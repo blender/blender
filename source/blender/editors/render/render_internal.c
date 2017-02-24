@@ -81,6 +81,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
+#include "GPU_shader.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1537,7 +1538,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 		if (force_fallback == false) {
 			if (IMB_colormanagement_setup_glsl_draw(&scene->view_settings, &scene->display_settings, dither, true)) {
 				glEnable(GL_BLEND);
-				glUseProgram(0); /* immDrawPixelsTex use it's own shader */
+				immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 				immDrawPixelsTex(xof, yof, rres.rectx, rres.recty,
 				                 GL_RGBA, GL_FLOAT, GL_NEAREST, rres.rectf,
 				                 scale_x, scale_y, NULL);;
@@ -1557,7 +1558,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 			                                              4, dither, &scene->view_settings, &scene->display_settings);
 
 			glEnable(GL_BLEND);
-			glUseProgram(0); /* immDrawPixelsTex use it's own shader */
+			immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 			immDrawPixelsTex(xof, yof, rres.rectx, rres.recty,
 			                 GL_RGBA, GL_UNSIGNED_BYTE,
 			                 GL_NEAREST, display_buffer,

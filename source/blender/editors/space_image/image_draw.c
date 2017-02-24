@@ -420,13 +420,10 @@ static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int 
 		recti[a] = rect[a] * 0.5f + 0.5f;
 	}
 
-	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-	GPU_shader_bind(shader);
+	GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 	GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
 
 	immDrawPixelsTex(x1, y1, rectx, recty, GL_RED, GL_INT, GL_NEAREST, recti, zoomx, zoomy, NULL);
-
-	GPU_shader_unbind();
 
 	MEM_freeN(recti);
 }
@@ -461,13 +458,10 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 		}
 	}
 
-	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-	GPU_shader_bind(shader);
+	GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 	GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
 
 	immDrawPixelsTex(x1, y1, rectx, recty, GL_RED, GL_FLOAT, GL_NEAREST, rectf, zoomx, zoomy, NULL);
-
-	GPU_shader_unbind();
 
 	MEM_freeN(rectf);
 }
@@ -526,8 +520,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			else if (sima->flag & SI_SHOW_ALPHA)
 				shuffle[3] = 1.0f;
 
-			GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-			GPU_shader_bind(shader);
+			GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 			GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, shuffle);
 
 			IMB_colormanagement_display_settings_from_ctx(C, &view_settings, &display_settings);
@@ -539,8 +532,6 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			}
 
 			IMB_display_buffer_release(cache_handle);
-
-			GPU_shader_unbind();
 		}
 
 		if (sima->flag & SI_USE_ALPHA)
@@ -615,24 +606,19 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 			shuffle[3] = 1.0f;
 	}
 
-	/* To make sure no program is bound */
-	GPU_shader_unbind();
-
 	for (sy = 0; sy + dy <= ibuf->y; sy += dy) {
 		for (sx = 0; sx + dx <= ibuf->x; sx += dx) {
 			UI_view2d_view_to_region(&ar->v2d, fx + (float)sx / (float)ibuf->x, fy + (float)sy / (float)ibuf->y, &x, &y);
 
 			if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B | SI_SHOW_ALPHA)) == 0) {
+				immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 				immDrawPixelsTex(x, y, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect, zoomx, zoomy, NULL);
 			}
 			else {
-				GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-				GPU_shader_bind(shader);
+				GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 				GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, shuffle);
 
 				immDrawPixelsTex(x, y, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect, zoomx, zoomy, NULL);
-
-				GPU_shader_unbind();
 			}
 		}
 	}
@@ -735,7 +721,10 @@ static void draw_image_paint_helpers(const bContext *C, ARegion *ar, Scene *scen
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 			immDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer, zoomx, zoomy, col);
+
 			glDisable(GL_BLEND);
 
 			BKE_image_release_ibuf(brush->clone.image, ibuf, NULL);

@@ -210,12 +210,20 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int ty
 void glaDrawPixelsTex_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
                                float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y);
 #endif
+
+/* To be used before calling immDrawPixelsTex
+ * Default shader is GPU_SHADER_2D_IMAGE_COLOR
+ * Returns a shader to be able to set uniforms */
+struct GPUShader *immDrawPixelsTexSetup(int builtin);
+
 /**
  * immDrawPixelsTex - Functions like a limited glDrawPixels, but actually draws the
  * image using textures, which can be tremendously faster on low-end
  * cards, and also avoids problems with the raster position being
  * clipped when offscreen. Pixel unpacking parameters and
  * the glPixelZoom values are _not_ respected.
+ *
+ * \attention Use immDrawPixelsTexSetup before calling this function.
  *
  * \attention This routine makes many assumptions: the rect data
  * is expected to be in RGBA byte or float format, and the

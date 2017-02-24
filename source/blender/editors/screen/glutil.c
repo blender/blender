@@ -620,11 +620,34 @@ void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int t
 }
 #endif
 
-/* Use the currently bound shader if there is one.
- * To let it draw without other shaders use glUseProgram(0)
- * or GPU_shader_unbind() before calling immDrawPixelsTex.
+/* To be used before calling immDrawPixelsTex
+ * Default shader is GPU_SHADER_2D_IMAGE_COLOR
+ * You can still set uniforms with :
+ * GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);
+ * */
+GPUShader *immDrawPixelsTexSetup(int builtin)
+{
+	GPUShader *shader = GPU_shader_get_builtin_shader(builtin);
+	/* Shader will be unbind by immUnbindProgram in immDrawPixelsTexScaled_clipping */
+	GPU_shader_bind(shader);
+	GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "image"), 0);
+
+	return shader;
+}
+
+/* Use the currently bound shader.
  *
- * If color is NULL then use white by default */
+ * Use immDrawPixelsTexSetup to bind the shader you
+ * want before calling immDrawPixelsTex.
+ *
+ * If using a special shader double check it uses the same
+ * attributes "pos" "texCoord" and uniform "image".
+ *
+ * If color is NULL then use white by default
+ *
+ * Be also aware that this function unbinds the shader when
+ * it's finished.
+ * */
 void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
                                      int format, int type, int zoomfilter, void *rect,
                                      float scaleX, float scaleY,
@@ -692,19 +715,19 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 
 	unsigned int program = glaGetOneInt(GL_CURRENT_PROGRAM);
 
-	if (program) {
-		immBindProgram(program);
+	/* This is needed for the OCIO case.
+	 * Shader program is set outside of blender and
+	 * we need it in imm module to do all attrib /
+	 * uniform bindings. */
 
-		/* optionnal */
-		if (glGetUniformLocation(program, "color") != -1)
-			immUniform4fv("color", (color) ? color : white);
-	}
-	else {
-		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-		immUniform1i("image", 0);
+	/* A program is already bound.
+	 * set it in imm.bound_program to be able to use imm functions */
+	BLI_assert(program);
+	immBindProgram(program);
+
+	/* optionnal */
+	if (glGetUniformLocation(program, "color") != -1)
 		immUniform4fv("color", (color) ? color : white);
-	}
-
 
 	for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
 		for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
@@ -1118,7 +1141,7 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
 
 		if (display_buffer) {
-			GPU_shader_unbind(); /* Make sure no shader is bound */
+			immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 			immDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
 			                          zoomfilter, display_buffer,
 			                          clip_min_x, clip_min_y, clip_max_x, clip_max_y,

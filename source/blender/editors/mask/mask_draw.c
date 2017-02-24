@@ -753,6 +753,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	}
 
 	if (draw_flag & MASK_DRAWFLAG_OVERLAY) {
+		float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 		float *buffer = threaded_mask_rasterize(mask, width, height);
 
 		if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
@@ -767,12 +768,10 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 		if (stabmat) {
 			glMultMatrixf((const float *) stabmat);
 		}
-		GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-		GPU_shader_bind(shader);
-		float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+		GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 		GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
 		immDrawPixelsTex(0.0f, 0.0f, width, height, GL_RED, GL_FLOAT, GL_NEAREST, buffer, 1.0f, 1.0f, NULL);
-		GPU_shader_unbind();
+
 		glPopMatrix();
 
 		if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {

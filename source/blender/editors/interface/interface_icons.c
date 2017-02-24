@@ -1009,6 +1009,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	/* draw */
 #if 0
 	if (is_preview) {
+		immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 		immDrawPixelsTex(draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
 		                 1.0f, 1.0f, col);
 	}
@@ -1017,6 +1018,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		int bound_options;
 		GPU_BASIC_SHADER_DISABLE_AND_STORE(bound_options);
 
+		immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 		immDrawPixelsTex(draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
 		                 1.0f, 1.0f, col);
 

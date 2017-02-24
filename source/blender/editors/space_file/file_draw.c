@@ -391,6 +391,7 @@ static void file_draw_preview(
 		UI_GetThemeColor4fv(TH_TEXT, col);
 	}
 
+	immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 	immDrawPixelsTexScaled((float)xco, (float)yco, imb->x, imb->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, imb->rect,
 	                       scale, scale, 1.0f, 1.0f, col);
 

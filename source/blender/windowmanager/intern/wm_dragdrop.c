@@ -46,6 +46,8 @@
 
 #include "BKE_context.h"
 
+#include "GPU_shader.h"
+
 #include "IMB_imbuf_types.h"
 
 #include "UI_interface.h"
@@ -333,6 +335,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 				drag_rect_minmax(rect, x, y, x + drag->sx, y + drag->sy);
 			else {
 				float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
+				immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 				immDrawPixelsTexScaled(x, y, drag->imb->x, drag->imb->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST,
 				                       drag->imb->rect, drag->scale, drag->scale, 1.0f, 1.0f, col);
 			}
