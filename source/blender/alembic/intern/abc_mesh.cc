@@ -691,7 +691,7 @@ static void assign_materials(Main *bmain, Object *ob, const std::map<std::string
 				assigned_name = mat_iter->second;
 			}
 
-			assign_material(ob, assigned_name, it->second, BKE_MAT_ASSIGN_OBJECT);
+			assign_material(ob, assigned_name, it->second, BKE_MAT_ASSIGN_OBDATA);
 		}
 	}
 }
