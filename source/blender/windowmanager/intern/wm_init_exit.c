@@ -444,8 +444,6 @@ void WM_exit_ext(bContext *C, const bool do_python)
 {
 	wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
 
-	BKE_sound_exit();
-
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
 	/* note; same code copied in wm_files.c */
@@ -590,6 +588,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	DNA_sdna_current_free();
 
 	BLI_threadapi_exit();
+
+	/* No need to call this early, rather do it late so that other pieces of Blender using sound may exit cleanly,
+	 * see also T50676. */
+	BKE_sound_exit();
 
 	BKE_blender_atexit();
 
