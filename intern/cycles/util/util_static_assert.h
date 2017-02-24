@@ -43,7 +43,9 @@ template <> class StaticAssertFailure<true> {};
 #    endif  /* __COUNTER__ */
 #  endif  /* C++11 or MSVC2015 */
 #else  /* __KERNEL_GPU__ */
-#  define static_assert(statement, message)
+#  ifndef static_assert
+#    define static_assert(statement, message)
+#  endif
 #endif  /* __KERNEL_GPU__ */
 
 /* TODO(sergey): For until C++11 is a bare minimum for us,
