@@ -52,8 +52,9 @@
 #include "wm.h"
 #include "wm_subwindow.h"
 #include "wm_draw.h"
-#include "GPU_basic_shader.h"
 
+#include "GPU_basic_shader.h"
+#include "GPU_shader.h"
 
 #include "BIF_glutil.h"
 
@@ -253,6 +254,7 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 	int i;
 	rcti rect;
 	rcti rect_win;
+	float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
 	for (i = 0; i < tot; i++, lasso += 2) {
 		moves[i][0] = lasso[0];
@@ -278,28 +280,27 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 		       (const int (*)[2])moves, tot,
 		       draw_filled_lasso_px_cb, &lasso_fill_data);
 
+		/* Additive Blending */
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-		glColor4f(1, 1, 1, 1);
-		glPixelTransferf(GL_RED_BIAS, 1);
-		glPixelTransferf(GL_GREEN_BIAS, 1);
-		glPixelTransferf(GL_BLUE_BIAS, 1);
+		GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+		GPU_shader_bind(shader);
+		GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
 
-		GPU_basic_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
+		immDrawPixelsTex(rect.xmin, rect.ymin, w, h, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, pixel_buf, 1.0f, 1.0f, NULL);
 
-		glEnable(GL_BLEND);
-		glaDrawPixelsTex(rect.xmin, rect.ymin, w, h, GL_ALPHA, GL_UNSIGNED_BYTE, GL_NEAREST, pixel_buf);
-		glDisable(GL_BLEND);
-
+		GPU_shader_unbind();
 		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-
-		glPixelTransferf(GL_RED_BIAS, 0);
-		glPixelTransferf(GL_GREEN_BIAS, 0);
-		glPixelTransferf(GL_BLUE_BIAS, 0);
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
+
 		MEM_freeN(pixel_buf);
+
+		glDisable(GL_BLEND);
 	}
 
 	MEM_freeN(moves);
