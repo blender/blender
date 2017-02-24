@@ -975,15 +975,13 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		BLI_assert(!"invalid icon size");
 		return;
 	}
-
 	/* modulate color */
-	if (alpha != 1.0f)
-		glPixelTransferf(GL_ALPHA_SCALE, alpha);
+	float col[4] = {1.0f, 1.0f, 1.0f, alpha};
 
 	if (rgb) {
-		glPixelTransferf(GL_RED_SCALE, rgb[0]);
-		glPixelTransferf(GL_GREEN_SCALE, rgb[1]);
-		glPixelTransferf(GL_BLUE_SCALE, rgb[2]);
+		col[0] = rgb[0];
+		col[1] = rgb[1];
+		col[2] = rgb[2];
 	}
 
 	/* rect contains image in 'rendersize', we only scale if needed */
@@ -1009,31 +1007,26 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	}
 
 	/* draw */
+#if 0
 	if (is_preview) {
-		glaDrawPixelsSafe(draw_x, draw_y, draw_w, draw_h, draw_w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		immDrawPixelsTex(draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
+		                 1.0f, 1.0f, col);
 	}
 	else {
+#endif
 		int bound_options;
 		GPU_BASIC_SHADER_DISABLE_AND_STORE(bound_options);
 
-		glRasterPos2f(draw_x, draw_y);
-		glDrawPixels(draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		immDrawPixelsTex(draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
+		                 1.0f, 1.0f, col);
 
 		GPU_BASIC_SHADER_ENABLE_AND_RESTORE(bound_options);
+#if 0
 	}
+#endif
 
 	if (ima)
 		IMB_freeImBuf(ima);
-
-	/* restore color */
-	if (alpha != 0.0f)
-		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-	
-	if (rgb) {
-		glPixelTransferf(GL_RED_SCALE, 1.0f);
-		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
-		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
-	}
 }
 
 static void icon_draw_texture(

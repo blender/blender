@@ -724,7 +724,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			/* draw with background color */
 			glEnable(GL_BLEND);
 			immUniformThemeColor(TH_PANEL_BACK);
-			immRecti(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 
 		if (panel->control & UI_PNL_SCALE)

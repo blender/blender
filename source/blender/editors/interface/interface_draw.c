@@ -476,6 +476,9 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	ImBuf *ibuf = (ImBuf *)but->poin;
 
 	if (!ibuf) return;
+
+	float facx = 1.0f;
+	float facy = 1.0f;
 	
 	int w = BLI_rcti_size_x(rect);
 	int h = BLI_rcti_size_y(rect);
@@ -492,16 +495,14 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 #endif
 	
 	glEnable(GL_BLEND);
-	glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
 	
 	if (w != ibuf->x || h != ibuf->y) {
-		float facx = (float)w / (float)ibuf->x;
-		float facy = (float)h / (float)ibuf->y;
-		glPixelZoom(facx, facy);
+		facx = (float)w / (float)ibuf->x;
+		facy = (float)h / (float)ibuf->y;
 	}
-	glaDrawPixelsAuto((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect);
-	
-	glPixelZoom(1.0f, 1.0f);
+
+	immDrawPixelsTex((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect,
+	                 facx, facy, NULL);
 	
 	glDisable(GL_BLEND);
 	
@@ -1726,7 +1727,6 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 		if (width > 0 && height > 0) {
 			ImBuf *drawibuf = scopes->track_preview;
-			float img_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 			float col_sel[4], col_outline[4];
 
 			if (scopes->use_track_mask) {
@@ -1736,7 +1736,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			}
 
 			GPU_shader_unbind(); /* make sure there is no program bound */
-			immDrawPixelsTex(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, drawibuf->rect, 1.0f, 1.0f, img_col);
+			immDrawPixelsTex(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, drawibuf->rect, 1.0f, 1.0f, NULL);
 
 			/* draw cross for pixel position */
 			gpuTranslate3f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1], 0.0f);
