@@ -54,6 +54,7 @@
 #include "wm_draw.h"
 
 #include "GPU_basic_shader.h"
+#include "GPU_immediate.h"
 #include "GPU_shader.h"
 
 #include "BIF_glutil.h"
@@ -169,69 +170,156 @@ int wm_gesture_evaluate(wmGesture *gesture)
 
 /* ******************* gesture draw ******************* */
 
-static void wm_gesture_draw_rect(wmGesture *gt)
-{
-	rcti *rect = (rcti *)gt->customdata;
-	
-	glEnable(GL_BLEND);
-	glColor4f(1.0, 1.0, 1.0, 0.05);
-	glBegin(GL_QUADS);
-	glVertex2s(rect->xmax, rect->ymin);
-	glVertex2s(rect->xmax, rect->ymax);
-	glVertex2s(rect->xmin, rect->ymax);
-	glVertex2s(rect->xmin, rect->ymin);
-	glEnd();
-	glDisable(GL_BLEND);
-	
-	GPU_basic_shader_bind(GPU_SHADER_LINE | GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
-	glColor3ub(96, 96, 96);
-	GPU_basic_shader_line_stipple(1, 0xCCCC);
-	sdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-	glColor3ub(255, 255, 255);
-	GPU_basic_shader_line_stipple(1, 0x3333);
-	sdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-}
-
 static void wm_gesture_draw_line(wmGesture *gt)
 {
 	rcti *rect = (rcti *)gt->customdata;
 	
-	GPU_basic_shader_bind(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
-	glColor3ub(96, 96, 96);
-	GPU_basic_shader_line_stipple(1, 0xAAAA);
-	sdrawline(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-	glColor3ub(255, 255, 255);
-	GPU_basic_shader_line_stipple(1, 0x5555);
-	sdrawline(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
+	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
+	immUniform1f("dash_width", 8.0f);
+	immUniform1f("dash_width_on", 4.0f);
+
+	float xmin = (float)rect->xmin;
+	float ymin = (float)rect->ymin;
+
+	immBegin(PRIM_LINES, 2);
+
+	immAttrib2f(line_origin, xmin, ymin);
+	immVertex2f(pos, xmin, ymin);
+	immAttrib2f(line_origin, xmin, ymin);
+	immVertex2f(pos, (float)rect->xmax, (float)rect->ymax);
+
+	immEnd();
+
+	immUnbindProgram();
+}
+
+static void imm_draw_line_box_dashed(unsigned pos, unsigned line_origin, float x1, float y1, float x2, float y2)
+{
+	immBegin(PRIM_LINES, 8);
+	immAttrib2f(line_origin, x1, y1);
+	immVertex2f(pos, x1, y1);
+	immVertex2f(pos, x1, y2);
+	immAttrib2f(line_origin, x1, y2);
+	immVertex2f(pos, x1, y2);
+	immVertex2f(pos, x2, y2);
+	immAttrib2f(line_origin, x2, y1);
+	immVertex2f(pos, x2, y2);
+	immVertex2f(pos, x2, y1);
+	immAttrib2f(line_origin, x1, y1);
+	immVertex2f(pos, x2, y1);
+	immVertex2f(pos, x1, y1);
+	immEnd();
+}
+
+static void wm_gesture_draw_rect(wmGesture *gt)
+{
+	rcti *rect = (rcti *)gt->customdata;
+
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	
+	glEnable(GL_BLEND);
+
+	immUniform4f("color", 1.0f, 1.0f, 1.0f, 0.05f);
+
+	immBegin(GL_QUADS, 4);
+
+	immVertex2f(pos, (float)rect->xmax, (float)rect->ymin);
+	immVertex2f(pos, (float)rect->xmax, (float)rect->ymax);
+	immVertex2f(pos, (float)rect->xmin, (float)rect->ymax);
+	immVertex2f(pos, (float)rect->xmin, (float)rect->ymin);
+
+	immEnd();
+
+	immUnbindProgram();
+
+	glDisable(GL_BLEND);
+
+	format = immVertexFormat();
+	pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
+	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
+	immUniform1f("dash_width", 8.0f);
+	immUniform1f("dash_width_on", 4.0f);
+	
+	imm_draw_line_box_dashed(pos, line_origin,
+		(float)rect->xmin, (float)rect->ymin, (float)rect->xmax, (float)rect->ymax);
+
+	immUnbindProgram();
+
+	// wm_gesture_draw_line(gt); // draws a diagonal line in the lined box to test wm_gesture_draw_line
+}
+
+static void imm_draw_lined_dashed_circle(unsigned pos, unsigned line_origin, float x, float y, float rad, int nsegments)
+{
+	float xpos, ypos;
+
+	xpos = x + rad;
+	ypos = y;
+
+	immBegin(PRIM_LINES, nsegments * 2);
+
+	for (int i = 1; i <= nsegments; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)nsegments);
+
+		immAttrib2f(line_origin, xpos, ypos);
+		immVertex2f(pos, xpos, ypos);
+
+		xpos = x + rad * cosf(angle);
+		ypos = y + rad * sinf(angle);
+
+		immVertex2f(pos, xpos, ypos);
+	}
+
+	immEnd();
 }
 
 static void wm_gesture_draw_circle(wmGesture *gt)
 {
 	rcti *rect = (rcti *)gt->customdata;
 
-	glTranslatef((float)rect->xmin, (float)rect->ymin, 0.0f);
-
 	glEnable(GL_BLEND);
-	glColor4f(1.0, 1.0, 1.0, 0.05);
-	glutil_draw_filled_arc(0.0, M_PI * 2.0, rect->xmax, 40);
+
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4f(1.0, 1.0, 1.0, 0.05);
+	imm_draw_filled_circle(pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
+
+	immUnbindProgram();
+
 	glDisable(GL_BLEND);
 	
-	// for USE_GLSL works bad because of no relation between lines
-	GPU_basic_shader_bind(GPU_SHADER_LINE | GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
-	glColor3ub(96, 96, 96);
-	GPU_basic_shader_line_stipple(1, 0xAAAA);
-	glutil_draw_lined_arc(0.0, M_PI * 2.0, rect->xmax, 40);
-	glColor3ub(255, 255, 255);
-	GPU_basic_shader_line_stipple(1, 0x5555);
-	glutil_draw_lined_arc(0.0, M_PI * 2.0, rect->xmax, 40);
+	format = immVertexFormat();
+	pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
+	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
+	immUniform1f("dash_width", 4.0f);
+	immUniform1f("dash_width_on", 2.0f);
 	
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-	glTranslatef(-rect->xmin, -rect->ymin, 0.0f);
-	
+	imm_draw_lined_dashed_circle(pos, line_origin,
+		(float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
+
+	immUnbindProgram();
 }
 
 struct LassoFillData {
@@ -310,35 +398,52 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 {
 	const short *lasso = (short *)gt->customdata;
-	int i;
+	int i, numverts;
+	float x, y;
 
 	if (filled) {
 		draw_filled_lasso(win, gt);
 	}
 
-	// for USE_GLSL can't check this yet
-	GPU_basic_shader_bind(GPU_SHADER_LINE | GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
-	glColor3ub(96, 96, 96);
-	GPU_basic_shader_line_stipple(1, 0xAAAA);
-	glBegin(GL_LINE_STRIP);
-	for (i = 0; i < gt->points; i++, lasso += 2)
-		glVertex2sv(lasso);
-	if (gt->type == WM_GESTURE_LASSO)
-		glVertex2sv((short *)gt->customdata);
-	glEnd();
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
+	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
+	immUniform1f("dash_width", 2.0f);
+	immUniform1f("dash_width_on", 1.0f);
+
+	numverts = gt->points;
+	if (gt->type == WM_GESTURE_LASSO) {
+		numverts++;
+	}
+
+	immBegin(PRIM_LINE_STRIP, numverts);
+
+	for (i = 0; i < gt->points; i++, lasso += 2) {
+
+		/* get line_origin coordinates only from the first vertex of each line */
+		if (!(i % 2)) {
+			x = (float)lasso[0];
+			y = (float)lasso[1];
+		}
+
+		immAttrib2f(line_origin, x, y);
+		immVertex2f(pos, (float)lasso[0], (float)lasso[1]);
+	}
+
+	if (gt->type == WM_GESTURE_LASSO) {
+		immAttrib2f(line_origin, x, y);
+		lasso = (short *)gt->customdata;
+		immVertex2f(pos, (float)lasso[0], (float)lasso[1]);
+	}
+
+	immEnd();
 	
-	glColor3ub(255, 255, 255);
-	GPU_basic_shader_line_stipple(1, 0x5555);
-	glBegin(GL_LINE_STRIP);
-	lasso = (short *)gt->customdata;
-	for (i = 0; i < gt->points; i++, lasso += 2)
-		glVertex2sv(lasso);
-	if (gt->type == WM_GESTURE_LASSO)
-		glVertex2sv((short *)gt->customdata);
-	glEnd();
-	
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-	
+	immUnbindProgram();
 }
 
 static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
@@ -347,17 +452,44 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 	const int winsize_x = WM_window_pixels_x(win);
 	const int winsize_y = WM_window_pixels_y(win);
 
-	GPU_basic_shader_bind(GPU_SHADER_LINE | GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
-	glColor3ub(96, 96, 96);
-	GPU_basic_shader_line_stipple(1, 0xCCCC);
-	sdrawline(rect->xmin - winsize_x, rect->ymin, rect->xmin + winsize_x, rect->ymin);
-	sdrawline(rect->xmin, rect->ymin - winsize_y, rect->xmin, rect->ymin + winsize_y);
-	
-	glColor3ub(255, 255, 255);
-	GPU_basic_shader_line_stipple(1, 0x3333);
-	sdrawline(rect->xmin - winsize_x, rect->ymin, rect->xmin + winsize_x, rect->ymin);
-	sdrawline(rect->xmin, rect->ymin - winsize_y, rect->xmin, rect->ymin + winsize_y);
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+	float x1, x2, y1, y2;
+
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
+	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
+	immUniform1f("dash_width", 8.0f);
+	immUniform1f("dash_width_on", 4.0f);
+
+	immBegin(PRIM_LINES, 4);
+
+	x1 = (float)(rect->xmin - winsize_x);
+	y1 = (float)rect->ymin;
+	x2 = (float)(rect->xmin + winsize_x);
+	y2 = y1;
+
+	immAttrib2f(line_origin, x1, y1);
+	immVertex2f(pos, x1, y1);
+	immAttrib2f(line_origin, x1, y1);
+	immVertex2f(pos, x2, y2);
+
+	x1 = (float)rect->xmin;
+	y1 = (float)(rect->ymin - winsize_y);
+	x2 = x1;
+	y2 = (float)(rect->ymin + winsize_y);
+
+	immAttrib2f(line_origin, x1, y1);
+	immVertex2f(pos, x1, y1);
+	immAttrib2f(line_origin, x1, y1);
+	immVertex2f(pos, x2, y2);
+
+	immEnd();
+
+	immUnbindProgram();
 }
 
 /* called in wm_draw.c */
