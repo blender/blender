@@ -544,7 +544,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			                         ar->v2d.cur.xmax, ar->v2d.cur.ymax,
 			                         &clip_max_x, &clip_max_y);
 			glaDrawImBuf_glsl_ctx_clipping(C, ibuf, x, y, GL_NEAREST,
-			                               0, 0, clip_max_x, clip_max_y);
+			                               0, 0, clip_max_x, clip_max_y, zoomx, zoomy);
 		}
 		else {
 			unsigned char *display_buffer;

@@ -618,7 +618,11 @@ void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int t
 	                           0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-/* Use the currently bound shader if there is one */
+/* Use the currently bound shader if there is one.
+ * To let it draw without other shaders use glUseProgram(0)
+ * or GPU_shader_unbind() before calling immDrawPixelsTex.
+ *
+ * If color is NULL then use white by default */
 void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
                                      int format, int type, int zoomfilter, void *rect,
                                      float scaleX, float scaleY,
@@ -633,10 +637,8 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	int texid = get_cached_work_texture(&tex_w, &tex_h);
 	int components;
 	const bool use_clipping = ((clip_min_x < clip_max_x) && (clip_min_y < clip_max_y));
+	float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-	/* Specify the color outside this function, and tex will modulate it.
-	 * This is useful for changing alpha without using glPixelTransferf()
-	 */
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
 	glBindTexture(GL_TEXTURE_2D, texid);
 
@@ -688,13 +690,19 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 
 	unsigned int program = glaGetOneInt(GL_CURRENT_PROGRAM);
 
-	if (program)
+	if (program) {
 		immBindProgram(program);
+
+		/* optionnal */
+		if (glGetUniformLocation(program, "color") != -1)
+			immUniform4fv("color", (color) ? color : white);
+	}
 	else {
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 		immUniform1i("image", 0);
-		immUniform4fv("color", color);
+		immUniform4fv("color", (color) ? color : white);
 	}
+
 
 	for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
 		for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
@@ -1031,7 +1039,8 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
                                 ColorManagedViewSettings *view_settings,
                                 ColorManagedDisplaySettings *display_settings,
                                 float clip_min_x, float clip_min_y,
-                                float clip_max_x, float clip_max_y)
+                                float clip_max_x, float clip_max_y,
+                                float zoom_x, float zoom_y)
 {
 	bool force_fallback = false;
 	bool need_fallback = true;
@@ -1068,8 +1077,6 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 		}
 
 		if (ok) {
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-
 			if (ibuf->rect_float) {
 				int format = 0;
 
@@ -1081,16 +1088,18 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 					BLI_assert(!"Incompatible number of channels for GLSL display");
 
 				if (format != 0) {
-					glaDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, format, GL_FLOAT,
+					immDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, format, GL_FLOAT,
 					                          zoomfilter, ibuf->rect_float,
-					                          clip_min_x, clip_min_y, clip_max_x, clip_max_y);
+					                          clip_min_x, clip_min_y, clip_max_x, clip_max_y,
+					                          zoom_x, zoom_y, NULL);
 				}
 			}
 			else if (ibuf->rect) {
 				/* ibuf->rect is always RGBA */
-				glaDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
+				immDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
 				                          zoomfilter, ibuf->rect,
-				                          clip_min_x, clip_min_y, clip_max_x, clip_max_y);
+				                          clip_min_x, clip_min_y, clip_max_x, clip_max_y,
+				                          zoom_x, zoom_y, NULL);
 			}
 
 			IMB_colormanagement_finish_glsl_draw();
@@ -1107,9 +1116,11 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
 
 		if (display_buffer) {
-			glaDrawPixelsAuto_clipping(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
-			                           zoomfilter, display_buffer,
-			                           clip_min_x, clip_min_y, clip_max_x, clip_max_y);
+			GPU_shader_unbind(); /* Make sure no shader is bound */
+			immDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
+			                          zoomfilter, display_buffer,
+			                          clip_min_x, clip_min_y, clip_max_x, clip_max_y,
+			                          zoom_x, zoom_y, NULL);
 		}
 
 		IMB_display_buffer_release(cache_handle);
@@ -1118,10 +1129,11 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 
 void glaDrawImBuf_glsl(ImBuf *ibuf, float x, float y, int zoomfilter,
                        ColorManagedViewSettings *view_settings,
-                       ColorManagedDisplaySettings *display_settings)
+                       ColorManagedDisplaySettings *display_settings,
+                       float zoom_x, float zoom_y)
 {
 	glaDrawImBuf_glsl_clipping(ibuf, x, y, zoomfilter, view_settings, display_settings,
-	                           0.0f, 0.0f, 0.0f, 0.0f);
+	                           0.0f, 0.0f, 0.0f, 0.0f, zoom_x, zoom_y);
 }
 
 void glaDrawImBuf_glsl_ctx_clipping(const bContext *C,
@@ -1129,7 +1141,8 @@ void glaDrawImBuf_glsl_ctx_clipping(const bContext *C,
                                     float x, float y,
                                     int zoomfilter,
                                     float clip_min_x, float clip_min_y,
-                                    float clip_max_x, float clip_max_y)
+                                    float clip_max_x, float clip_max_y,
+                                    float zoom_x, float zoom_y)
 {
 	ColorManagedViewSettings *view_settings;
 	ColorManagedDisplaySettings *display_settings;
@@ -1137,12 +1150,14 @@ void glaDrawImBuf_glsl_ctx_clipping(const bContext *C,
 	IMB_colormanagement_display_settings_from_ctx(C, &view_settings, &display_settings);
 
 	glaDrawImBuf_glsl_clipping(ibuf, x, y, zoomfilter, view_settings, display_settings,
-	                           clip_min_x, clip_min_y, clip_max_x, clip_max_y);
+	                           clip_min_x, clip_min_y, clip_max_x, clip_max_y,
+	                           zoom_x, zoom_y);
 }
 
-void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int zoomfilter)
+void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int zoomfilter,
+                           float zoom_x, float zoom_y)
 {
-	glaDrawImBuf_glsl_ctx_clipping(C, ibuf, x, y, zoomfilter, 0.0f, 0.0f, 0.0f, 0.0f);
+	glaDrawImBuf_glsl_ctx_clipping(C, ibuf, x, y, zoomfilter, 0.0f, 0.0f, 0.0f, 0.0f, zoom_x, zoom_y);
 }
 
 void cpack(unsigned int x)

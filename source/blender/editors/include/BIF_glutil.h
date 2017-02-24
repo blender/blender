@@ -297,22 +297,26 @@ void bgl_get_mats(bglMats *mats);
 /* Draw imbuf on a screen, preferably using GLSL display transform */
 void glaDrawImBuf_glsl(struct ImBuf *ibuf, float x, float y, int zoomfilter,
                        struct ColorManagedViewSettings *view_settings,
-                       struct ColorManagedDisplaySettings *display_settings);
+                       struct ColorManagedDisplaySettings *display_settings,
+                       float zoom_x, float zoom_y);
 void glaDrawImBuf_glsl_clipping(struct ImBuf *ibuf, float x, float y, int zoomfilter,
                                 struct ColorManagedViewSettings *view_settings,
                                 struct ColorManagedDisplaySettings *display_settings,
                                 float clip_min_x, float clip_min_y,
-                                float clip_max_x, float clip_max_y);
+                                float clip_max_x, float clip_max_y,
+                                float zoom_x, float zoom_y);
 
 
 /* Draw imbuf on a screen, preferably using GLSL display transform */
-void glaDrawImBuf_glsl_ctx(const struct bContext *C, struct ImBuf *ibuf, float x, float y, int zoomfilter);
+void glaDrawImBuf_glsl_ctx(const struct bContext *C, struct ImBuf *ibuf, float x, float y, int zoomfilter,
+                           float zoom_x, float zoom_y);
 void glaDrawImBuf_glsl_ctx_clipping(const struct bContext *C,
                                     struct ImBuf *ibuf,
                                     float x, float y,
                                     int zoomfilter,
                                     float clip_min_x, float clip_min_y,
-                                    float clip_max_x, float clip_max_y);
+                                    float clip_max_x, float clip_max_y,
+                                    float zoom_x, float zoom_y);
 
 void glaDrawBorderCorners(const struct rcti *border, float zoomx, float zoomy);
 
