@@ -172,6 +172,7 @@ int glaGetOneInt(int param);
  */
 void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y);
 
+#if 0 /* Obsolete / unused */
 /**
  * Functions like a limited glDrawPixels, except ensures that
  * the image is displayed onscreen even if the \a x and \a y
@@ -205,11 +206,10 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
  * modelview and projection matrices are assumed to define a
  * 1-to-1 mapping to screen space.
  */
-
 void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect);
 void glaDrawPixelsTex_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
                                float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y);
-
+#endif
 /**
  * immDrawPixelsTex - Functions like a limited glDrawPixels, but actually draws the
  * image using textures, which can be tremendously faster on low-end
@@ -227,7 +227,7 @@ void immDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int ty
 void immDrawPixelsTex_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
                                float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
                                float xzoom, float yzoom, float color[4]);
-
+#if 0 /* Obsolete / unused */
 /**
  * glaDrawPixelsAuto - Switches between texture or pixel drawing using UserDef.
  * only RGBA
@@ -241,6 +241,7 @@ void glaDrawPixelsAuto_clipping(float x, float y, int img_w, int img_h, int form
 void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY);
 void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
                                      float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y);
+#endif
 
 void immDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
                            float xzoom, float yzoom, float color[4]);
@@ -261,7 +262,6 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h, int
  * \param screen_rect The screen rectangle to be defined for 2D drawing.
  */
 void glaDefine2DArea(struct rcti *screen_rect);
-
 #if 0  /* UNUSED */
 
 typedef struct gla2DDrawInfo gla2DDrawInfo;

@@ -352,6 +352,7 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 	return texid;
 }
 
+#if 0 /* Obsolete / unused */
 /* DEPRECATED: use immDrawPixelsTexScaled_clipping instead */
 void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
                                      int format, int type, int zoomfilter, void *rect,
@@ -617,6 +618,7 @@ void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int t
 	glaDrawPixelsAuto_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect,
 	                           0.0f, 0.0f, 0.0f, 0.0f);
 }
+#endif
 
 /* Use the currently bound shader if there is one.
  * To let it draw without other shaders use glUseProgram(0)
