@@ -58,6 +58,7 @@ using namespace OCIO_NAMESPACE;
 static const int LUT3D_EDGE_SIZE = 64;
 
 extern "C" char datatoc_gpu_shader_display_transform_glsl[];
+extern "C" char datatoc_gpu_shader_display_transform_vertex_glsl[];
 
 /* **** OpenGL drawing routines using GLSL for color space transform ***** */
 
@@ -89,6 +90,7 @@ typedef struct OCIO_GLSLDrawState {
 
 	/* GLSL stuff */
 	GLuint ocio_shader;
+	GLuint vert_shader;
 	GLuint program;
 
 	/* Previous OpenGL state. */
@@ -116,14 +118,15 @@ static GLuint compileShaderText(GLenum shaderType, const char *text)
 	return shader;
 }
 
-static GLuint linkShaders(GLuint ocio_shader)
+static GLuint linkShaders(GLuint ocio_shader, GLuint vert_shader)
 {
-	if (!ocio_shader)
+	if (!ocio_shader || !vert_shader)
 		return 0;
 
 	GLuint program = glCreateProgram();
 
 	glAttachShader(program, ocio_shader);
+	glAttachShader(program, vert_shader);
 
 	glLinkProgram(program);
 
@@ -339,6 +342,25 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 			glDeleteShader(state->ocio_shader);
 		}
 
+		if (state->vert_shader) {
+			glDeleteShader(state->vert_shader);
+		}
+
+		/* Vertex shader */
+		std::ostringstream osv;
+
+		if (supportGLSL13()) {
+			osv << "#version 130\n";
+		}
+		else {
+			osv << "#version 120\n";
+		}
+
+		osv << datatoc_gpu_shader_display_transform_vertex_glsl;
+
+		state->vert_shader = compileShaderText(GL_VERTEX_SHADER, osv.str().c_str());
+
+		/* Fragment shader */
 		std::ostringstream os;
 
 		if (supportGLSL13()) {
@@ -366,8 +388,8 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 
 		state->ocio_shader = compileShaderText(GL_FRAGMENT_SHADER, os.str().c_str());
 
-		if (state->ocio_shader) {
-			state->program = linkShaders(state->ocio_shader);
+		if (state->ocio_shader && state->vert_shader) {
+			state->program = linkShaders(state->ocio_shader, state->vert_shader);
 		}
 
 		state->curve_mapping_used = use_curve_mapping;

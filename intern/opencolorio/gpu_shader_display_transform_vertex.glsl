@@ -1,7 +1,6 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 
-/* Keep in sync with intern/opencolorio/gpu_shader_display_transform_vertex.glsl */
 #if __VERSION__ == 120
   attribute vec2 texCoord;
   attribute vec2 pos;

@@ -66,6 +66,7 @@ if(WITH_OPENCOLORIO)
 	endif()
 
 	data_to_c_simple(gpu_shader_display_transform.glsl SRC)
+	data_to_c_simple(gpu_shader_display_transform_vertex.glsl SRC)
 endif()
 
 
