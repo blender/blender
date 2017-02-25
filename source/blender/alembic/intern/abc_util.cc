@@ -535,5 +535,5 @@ ScopeTimer::ScopeTimer(const char *message)
 
 ScopeTimer::~ScopeTimer()
 {
-	std::fprintf(stderr, "%s: %fs\n", m_message, PIL_check_seconds_timer() - m_start);
+	fprintf(stderr, "%s: %fs\n", m_message, PIL_check_seconds_timer() - m_start);
 }
