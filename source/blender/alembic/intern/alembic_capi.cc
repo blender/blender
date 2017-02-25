@@ -542,6 +542,8 @@ ABC_INLINE bool is_mesh_and_strands(const IObject &object)
 
 static void import_startjob(void *user_data, short *stop, short *do_update, float *progress)
 {
+	SCOPE_TIMER("Alembic import, objects reading and creation");
+
 	ImportJobData *data = static_cast<ImportJobData *>(user_data);
 
 	data->stop = stop;
@@ -677,6 +679,8 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
 static void import_endjob(void *user_data)
 {
+	SCOPE_TIMER("Alembic import, cleanup");
+
 	ImportJobData *data = static_cast<ImportJobData *>(user_data);
 
 	std::vector<AbcObjectReader *>::iterator iter;

@@ -37,6 +37,8 @@ extern "C" {
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+
+#include "PIL_time.h"
 }
 
 std::string get_id_name(Object *ob)
@@ -522,4 +524,16 @@ AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSe
 	}
 
 	return reader;
+}
+
+/* ********************** */
+
+ScopeTimer::ScopeTimer(const char *message)
+	: m_message(message)
+	, m_start(PIL_check_seconds_timer())
+{}
+
+ScopeTimer::~ScopeTimer()
+{
+	std::fprintf(stderr, "%s: %fs\n", m_message, PIL_check_seconds_timer() - m_start);
 }
