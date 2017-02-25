@@ -905,12 +905,13 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 	 *    can not control.
 	 */
 	typedef StackAllocator<256, int> LeafStackAllocator;
+	typedef StackAllocator<256, float2> LeafTimeStackAllocator;
 	typedef StackAllocator<256, BVHReference> LeafReferenceStackAllocator;
 
 	vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_object[PRIMITIVE_NUM_TOTAL];
-	vector<float2, LeafStackAllocator> p_time[PRIMITIVE_NUM_TOTAL];
+	vector<float2, LeafTimeStackAllocator> p_time[PRIMITIVE_NUM_TOTAL];
 	vector<BVHReference, LeafReferenceStackAllocator> p_ref[PRIMITIVE_NUM_TOTAL];
 
 	/* TODO(sergey): In theory we should be able to store references. */
@@ -964,7 +965,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 	vector<int, LeafStackAllocator> local_prim_type,
 	                                local_prim_index,
 	                                local_prim_object;
-	vector<float2, LeafStackAllocator> local_prim_time;
+	vector<float2, LeafTimeStackAllocator> local_prim_time;
 	local_prim_type.resize(num_new_prims);
 	local_prim_index.resize(num_new_prims);
 	local_prim_object.resize(num_new_prims);
