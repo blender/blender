@@ -146,4 +146,23 @@ ABC_INLINE void copy_yup_from_zup(short yup[3], const short zup[3])
 	yup[2] = -zup[1];
 }
 
+/* *************************** */
+
+#undef ABC_DEBUG_TIME
+
+class ScopeTimer {
+	const char *m_message;
+	double m_start;
+
+public:
+	ScopeTimer(const char *message);
+	~ScopeTimer();
+};
+
+#ifdef ABC_DEBUG_TIME
+#	define SCOPE_TIMER(message) ScopeTimer prof(message)
+#else
+#	define SCOPE_TIMER(message)
+#endif
+
 #endif  /* __ABC_UTIL_H__ */

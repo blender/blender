@@ -1312,8 +1312,12 @@ static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 
 static bConstraint *rna_Object_constraints_new(Object *object, int type)
 {
+	bConstraint *new_con = BKE_constraint_add_for_object(object, NULL, type);
+
+	ED_object_constraint_tag_update(object, new_con);
 	WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);
-	return BKE_constraint_add_for_object(object, NULL, type);
+
+	return new_con;
 }
 
 static void rna_Object_constraints_remove(Object *object, ReportList *reports, PointerRNA *con_ptr)

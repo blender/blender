@@ -685,6 +685,18 @@ ccl_device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 	return eval;
 }
 
+ccl_device void shader_bsdf_disable_transparency(KernelGlobals *kg, ShaderData *sd)
+{
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
+		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
+
+		if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID) {
+			sc->sample_weight = 0.0f;
+			sc->weight = make_float3(0.0f, 0.0f, 0.0f);
+		}
+	}
+}
+
 ccl_device float3 shader_bsdf_alpha(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 alpha = make_float3(1.0f, 1.0f, 1.0f) - shader_bsdf_transparency(kg, sd);

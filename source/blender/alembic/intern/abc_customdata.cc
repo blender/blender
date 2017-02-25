@@ -327,6 +327,11 @@ static void read_custom_data_ex(const ICompoundProperty &prop,
 	}
 	else if (data_type == CD_MLOOPUV) {
 		IV2fGeomParam uv_param(prop, prop_header.getName());
+
+		if (!uv_param.isIndexed()) {
+			return;
+		}
+
 		IV2fGeomParam::Sample sample;
 		uv_param.getIndexed(sample, iss);
 
