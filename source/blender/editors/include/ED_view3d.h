@@ -56,7 +56,6 @@ struct ViewContext;
 struct bContext;
 struct bPoseChannel;
 struct bScreen;
-struct bglMats;
 struct rctf;
 struct rcti;
 struct wmOperator;
@@ -233,7 +232,9 @@ bool ED_view3d_win_to_segment(const struct ARegion *ar, struct View3D *v3d, cons
                               float r_ray_start[3], float r_ray_end[3], const bool do_clip);
 void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d, float obmat[4][4], float pmat[4][4]);
-void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, const float y, const float z);
+
+void ED_view3d_project(const struct ARegion *ar, const float world[3], float region[3]);
+bool ED_view3d_unproject(const struct ARegion *ar, float regionx, float regiony, float regionz, float world[3]);
 
 /* end */
 
@@ -262,7 +263,8 @@ bool ED_view3d_calc_render_border(struct Scene *scene, struct View3D *v3d,
                                   struct ARegion *ar, struct rcti *rect);
 
 void ED_view3d_clipping_calc_from_boundbox(float clip[6][4], const struct BoundBox *clipbb, const bool is_flip);
-void ED_view3d_clipping_calc(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, const struct rcti *rect);
+void ED_view3d_clipping_calc(struct BoundBox *bb, float planes[4][4],
+        const struct ARegion *ar, const struct Object *ob, const struct rcti *rect);
 void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[4][4]);
 bool ED_view3d_clipping_test(const struct RegionView3D *rv3d, const float co[3], const bool is_local);
 void ED_view3d_clipping_set(struct RegionView3D *rv3d);
@@ -312,7 +314,6 @@ void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 void view3d_operator_needs_opengl(const struct bContext *C);
 void view3d_region_operator_needs_opengl(struct wmWindow *win, struct ARegion *ar);
 void view3d_opengl_read_pixels(struct ARegion *ar, int x, int y, int w, int h, int format, int type, void *data);
-void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
 /* XXX should move to BLI_math */
 bool edge_inside_circle(const float cent[2], float radius, const float screen_co_a[2], const float screen_co_b[2]);

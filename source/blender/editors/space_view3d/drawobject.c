@@ -941,14 +941,6 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 	if (tot) {
 		int col_pack_prev = 0;
 
-#if 0
-		bglMats mats; /* ZBuffer depth vars */
-		double ux, uy, uz;
-		float depth;
-
-		if (v3d->zbuf)
-			bgl_get_mats(&mats);
-#endif
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			ED_view3d_clipping_disable();
 		}
@@ -3418,11 +3410,9 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 
 	if (me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_EDGEANG)) {
 		BoundBox bb;
-		bglMats mats = {{0}};
 		const rcti rect = {0, ar->winx, 0, ar->winy};
 
-		view3d_get_transformation(ar, ar->regiondata, em->ob, &mats);
-		ED_view3d_clipping_calc(&bb, clip_planes, &mats, &rect);
+		ED_view3d_clipping_calc(&bb, clip_planes, ar, em->ob, &rect);
 	}
 
 	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
@@ -4276,7 +4266,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 				if (ob->sculpt->partial_redraw) {
 					if (ar->do_draw & RGN_DRAW_PARTIAL) {
-						ED_sculpt_redraw_planes_get(planes, ar, rv3d, ob);
+						ED_sculpt_redraw_planes_get(planes, ar, ob);
 						fpl = planes;
 						ob->sculpt->partial_redraw = 0;
 					}
@@ -4367,7 +4357,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 				if (ob->sculpt->partial_redraw) {
 					if (ar->do_draw & RGN_DRAW_PARTIAL) {
-						ED_sculpt_redraw_planes_get(planes, ar, rv3d, ob);
+						ED_sculpt_redraw_planes_get(planes, ar, ob);
 						fpl = planes;
 						ob->sculpt->partial_redraw = 0;
 					}
@@ -4753,7 +4743,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 
 				if (ob->sculpt->partial_redraw) {
 					if (ar->do_draw & RGN_DRAW_PARTIAL) {
-						ED_sculpt_redraw_planes_get(planes, ar, rv3d, ob);
+						ED_sculpt_redraw_planes_get(planes, ar, ob);
 						fpl = planes;
 						ob->sculpt->partial_redraw = 0;
 					}
@@ -4841,7 +4831,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 
 				if (ob->sculpt->partial_redraw) {
 					if (ar->do_draw & RGN_DRAW_PARTIAL) {
-						ED_sculpt_redraw_planes_get(planes, ar, rv3d, ob);
+						ED_sculpt_redraw_planes_get(planes, ar, ob);
 						fpl = planes;
 						ob->sculpt->partial_redraw = 0;
 					}

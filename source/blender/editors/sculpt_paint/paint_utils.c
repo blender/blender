@@ -130,16 +130,11 @@ bool paint_convert_bb_to_rect(rcti *rect,
  * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
                               const ARegion *ar,
-                              RegionView3D *rv3d,
                               Object *ob,
                               const rcti *screen_rect)
 {
 	BoundBox bb;
-	bglMats mats;
 	rcti rect;
-
-	memset(&bb, 0, sizeof(BoundBox));
-	view3d_get_transformation(ar, rv3d, ob, &mats);
 
 	/* use some extra space just in case */
 	rect = *screen_rect;
@@ -148,7 +143,7 @@ void paint_calc_redraw_planes(float planes[4][4],
 	rect.ymin -= 2;
 	rect.ymax += 2;
 
-	ED_view3d_clipping_calc(&bb, planes, &mats, &rect);
+	ED_view3d_clipping_calc(&bb, planes, ar, ob, &rect);
 	negate_m4(planes);
 }
 

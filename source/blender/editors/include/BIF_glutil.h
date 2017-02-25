@@ -292,14 +292,6 @@ void setlinestyle(int nr);
 /* own working polygon offset */
 void bglPolygonOffset(float viewdist, float dist);
 
-/* For caching opengl matrices (gluProject/gluUnProject) */
-typedef struct bglMats {
-	double modelview[16];
-	double projection[16];
-	int viewport[4];
-} bglMats;
-void bgl_get_mats(bglMats *mats);
-
 /* **** Color management helper functions for GLSL display/transform ***** */
 
 /* Draw imbuf on a screen, preferably using GLSL display transform */

@@ -119,34 +119,6 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->obedit = CTX_data_edit_object(C);
 }
 
-/*
- * ob == NULL if you want global matrices
- * */
-void view3d_get_transformation(const ARegion *ar, RegionView3D *rv3d, Object *ob, bglMats *mats)
-{
-	float cpy[4][4];
-	int i, j;
-
-	if (ob) {
-		mul_m4_m4m4(cpy, rv3d->viewmat, ob->obmat);
-	}
-	else {
-		copy_m4_m4(cpy, rv3d->viewmat);
-	}
-
-	for (i = 0; i < 4; ++i) {
-		for (j = 0; j < 4; ++j) {
-			mats->projection[i * 4 + j] = rv3d->winmat[i][j];
-			mats->modelview[i * 4 + j] = cpy[i][j];
-		}
-	}
-
-	mats->viewport[0] = ar->winrct.xmin;
-	mats->viewport[1] = ar->winrct.ymin;
-	mats->viewport[2] = ar->winx;
-	mats->viewport[3] = ar->winy;
-}
-
 /* ********************** view3d_select: selection manipulations ********************* */
 
 /* local prototypes */

@@ -251,7 +251,6 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 {
 	Sculpt *sd = vc->scene->toolsettings->sculpt;
 	BoundBox bb;
-	bglMats mats = {{0}};
 	float clip_planes[4][4];
 	float clip_planes_final[4][4];
 	ARegion *ar = vc->ar;
@@ -269,8 +268,7 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 	value = select ? 1.0 : 0.0;
 
 	/* transform the clip planes in object space */
-	view3d_get_transformation(vc->ar, vc->rv3d, vc->obact, &mats);
-	ED_view3d_clipping_calc(&bb, clip_planes, &mats, rect);
+	ED_view3d_clipping_calc(&bb, clip_planes, vc->ar, vc->obact, rect);
 	negate_m4(clip_planes);
 
 	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);
@@ -411,7 +409,6 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 	if (mcords) {
 		float clip_planes[4][4], clip_planes_final[4][4];
 		BoundBox bb;
-		bglMats mats = {{0}};
 		Object *ob;
 		ViewContext vc;
 		LassoMaskData data;
@@ -429,7 +426,6 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		 * calculations done. Bounding box PBVH collision is not computed against enclosing rectangle
 		 * of lasso */
 		view3d_set_viewcontext(C, &vc);
-		view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
 
 		/* lasso data calculations */
 		data.vc = &vc;
@@ -445,7 +441,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		       mcords, mcords_tot,
 		       mask_lasso_px_cb, &data);
 
-		ED_view3d_clipping_calc(&bb, clip_planes, &mats, &data.rect);
+		ED_view3d_clipping_calc(&bb, clip_planes, vc.ar, vc.obact, &data.rect);
 		negate_m4(clip_planes);
 
 		BKE_sculpt_update_mesh_elements(scene, sd, ob, false, true);

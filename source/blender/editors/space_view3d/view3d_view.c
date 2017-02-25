@@ -725,40 +725,35 @@ void ED_view3d_clipping_calc_from_boundbox(float clip[4][4], const BoundBox *bb,
 	}
 }
 
-void ED_view3d_clipping_calc(BoundBox *bb, float planes[4][4], bglMats *mats, const rcti *rect)
+void ED_view3d_clipping_calc(BoundBox *bb, float planes[4][4], const ARegion *ar, const Object *ob, const rcti *rect)
 {
-	float modelview[4][4];
-	double xs, ys, p[3];
-	int val, flip_sign, a;
-
-	/* near zero floating point values can give issues with gluUnProject
-	 * in side view on some implementations */
-	if (fabs(mats->modelview[0]) < 1e-6) mats->modelview[0] = 0.0;
-	if (fabs(mats->modelview[5]) < 1e-6) mats->modelview[5] = 0.0;
-
-	/* Set up viewport so that gluUnProject will give correct values */
-	mats->viewport[0] = 0;
-	mats->viewport[1] = 0;
+	/* init in case unproject fails */
+	memset(bb->vec, 0, sizeof(bb->vec));
 
 	/* four clipping planes and bounding volume */
 	/* first do the bounding volume */
-	for (val = 0; val < 4; val++) {
-		xs = (val == 0 || val == 3) ? rect->xmin : rect->xmax;
-		ys = (val == 0 || val == 1) ? rect->ymin : rect->ymax;
+	for (int val = 0; val < 4; val++) {
+		float xs = (val == 0 || val == 3) ? rect->xmin : rect->xmax;
+		float ys = (val == 0 || val == 1) ? rect->ymin : rect->ymax;
 
-		gluUnProject(xs, ys, 0.0, mats->modelview, mats->projection, mats->viewport, &p[0], &p[1], &p[2]);
-		copy_v3fl_v3db(bb->vec[val], p);
+		ED_view3d_unproject(ar, xs, ys, 0.0, bb->vec[val]);
+		ED_view3d_unproject(ar, xs, ys, 1.0, bb->vec[4 + val]);
+	}
 
-		gluUnProject(xs, ys, 1.0, mats->modelview, mats->projection, mats->viewport, &p[0], &p[1], &p[2]);
-		copy_v3fl_v3db(bb->vec[4 + val], p);
+	/* optionally transform to object space */
+	if (ob) {
+		float imat[4][4];
+		invert_m4_m4(imat, ob->obmat);
+
+		for (int val = 0; val < 8; val++) {
+			mul_m4_v3(imat, bb->vec[val]);
+		}
 	}
 
 	/* verify if we have negative scale. doing the transform before cross
 	 * product flips the sign of the vector compared to doing cross product
 	 * before transform then, so we correct for that. */
-	for (a = 0; a < 16; a++)
-		((float *)modelview)[a] = mats->modelview[a];
-	flip_sign = is_negative_m4(modelview);
+	int flip_sign = (ob) ? is_negative_m4(ob->obmat) : false;
 
 	ED_view3d_clipping_calc_from_boundbox(planes, bb, flip_sign);
 }

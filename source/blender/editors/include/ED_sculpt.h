@@ -39,8 +39,7 @@ struct rcti;
 
 /* sculpt.c */
 void ED_operatortypes_sculpt(void);
-void ED_sculpt_redraw_planes_get(float planes[4][4], struct ARegion *ar,
-                                 struct RegionView3D *rv3d, struct Object *ob);
+void ED_sculpt_redraw_planes_get(float planes[4][4], struct ARegion *ar, struct Object *ob);
 int  ED_sculpt_mask_box_select(struct bContext *C, struct ViewContext *vc, const struct rcti *rect, bool select, bool extend);
 
 #endif /* __ED_SCULPT_H__ */

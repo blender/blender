@@ -92,25 +92,17 @@ static float depth_read_zbuf(const ViewContext *vc, int x, int y)
 }
 
 static bool depth_unproject(
-        const ARegion *ar, const bglMats *mats,
+        const ARegion *ar,
         const int mval[2], const double depth,
         float r_location_world[3])
 {
-	double p[3];
-	if (gluUnProject(
-	        (double)ar->winrct.xmin + mval[0] + 0.5,
-	        (double)ar->winrct.ymin + mval[1] + 0.5,
-	        depth, mats->modelview, mats->projection, (const GLint *)mats->viewport,
-	        &p[0], &p[1], &p[2]))
-	{
-		copy_v3fl_v3db(r_location_world, p);
-		return true;
-	}
-	return false;
+	float centx = (float)mval[0] + 0.5f;
+	float centy = (float)mval[1] + 0.5f;
+	return ED_view3d_unproject(ar, centx, centy, depth, r_location_world);
 }
 
 static bool depth_read_normal(
-        const ViewContext *vc, const bglMats *mats, const int mval[2],
+        const ViewContext *vc, const int mval[2],
         float r_normal[3])
 {
 	/* pixels surrounding */
@@ -126,7 +118,7 @@ static bool depth_read_normal(
 
 			const double depth = (double)depth_read_zbuf(vc, mval_ofs[0], mval_ofs[1]);
 			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
-				if (depth_unproject(ar, mats, mval_ofs, depth, coords[i])) {
+				if (depth_unproject(ar, mval_ofs, depth, coords[i])) {
 					depths_valid[i] = true;
 				}
 			}
@@ -228,7 +220,6 @@ struct CurveDrawData {
 	} prev;
 
 	ViewContext vc;
-	bglMats mats;
 	enum {
 		CURVE_DRAW_IDLE = 0,
 		CURVE_DRAW_PAINTING = 1,
@@ -314,7 +305,7 @@ static bool stroke_elem_project(
 		{
 			const double depth = (double)depth_read_zbuf(&cdd->vc, mval_i[0], mval_i[1]);
 			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
-				if (depth_unproject(ar, &cdd->mats, mval_i, depth, r_location_world)) {
+				if (depth_unproject(ar, mval_i, depth, r_location_world)) {
 					is_location_world_set = true;
 					if (r_normal_world) {
 						zero_v3(r_normal_world);
@@ -323,7 +314,7 @@ static bool stroke_elem_project(
 					if (surface_offset != 0.0f) {
 						const float offset = cdd->project.use_surface_offset_absolute ? 1.0f : radius;
 						float normal[3];
-						if (depth_read_normal(&cdd->vc, &cdd->mats, mval_i, normal)) {
+						if (depth_read_normal(&cdd->vc, mval_i, normal)) {
 							madd_v3_v3fl(r_location_world, normal, offset * surface_offset);
 							if (r_normal_world) {
 								copy_v3_v3(r_normal_world, normal);
@@ -651,7 +642,7 @@ static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
 		         CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,
 		         CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE))
 		{
-			if (depth_read_normal(&cdd->vc, &cdd->mats, event->mval, normal)) {
+			if (depth_read_normal(&cdd->vc, event->mval, normal)) {
 				if (cps->surface_plane == CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW) {
 					float cross_a[3], cross_b[3];
 					cross_v3_v3v3(cross_a, rv3d->viewinv[2], normal);
@@ -1187,8 +1178,6 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			if ((cps->depth_mode == CURVE_PAINT_PROJECT_SURFACE) &&
 			    (v3d->drawtype > OB_WIRE))
 			{
-				view3d_get_transformation(cdd->vc.ar, cdd->vc.rv3d, NULL, &cdd->mats);
-
 				/* needed or else the draw matrix can be incorrect */
 				view3d_operator_needs_opengl(C);
 

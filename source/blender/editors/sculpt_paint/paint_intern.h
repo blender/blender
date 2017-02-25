@@ -209,7 +209,6 @@ bool paint_convert_bb_to_rect(struct rcti *rect,
  * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
                               const struct ARegion *ar,
-                              struct RegionView3D *rv3d,
                               struct Object *ob,
                               const struct rcti *screen_rect);
 

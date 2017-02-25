@@ -969,33 +969,6 @@ void glaEnd2DDraw(gla2DDrawInfo *di)
 #endif /* UNUSED */
 
 
-/* Uses current OpenGL state to get view matrices for gluProject/gluUnProject */
-void bgl_get_mats(bglMats *mats)
-{
-	const double badvalue = 1.0e-6;
-
-	glGetDoublev(GL_MODELVIEW_MATRIX, mats->modelview);
-	glGetDoublev(GL_PROJECTION_MATRIX, mats->projection);
-	glGetIntegerv(GL_VIEWPORT, (GLint *)mats->viewport);
-	
-	/* Very strange code here - it seems that certain bad values in the
-	 * modelview matrix can cause gluUnProject to give bad results. */
-	if (mats->modelview[0] < badvalue &&
-	    mats->modelview[0] > -badvalue)
-	{
-		mats->modelview[0] = 0;
-	}
-	if (mats->modelview[5] < badvalue &&
-	    mats->modelview[5] > -badvalue)
-	{
-		mats->modelview[5] = 0;
-	}
-	
-	/* Set up viewport so that gluUnProject will give correct values */
-	mats->viewport[0] = 0;
-	mats->viewport[1] = 0;
-}
-
 /* *************** glPolygonOffset hack ************* */
 
 /**

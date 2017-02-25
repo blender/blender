@@ -353,7 +353,6 @@ static int pe_x_mirror(Object *ob)
 
 typedef struct PEData {
 	ViewContext vc;
-	bglMats mats;
 	
 	Scene *scene;
 	Object *ob;
@@ -399,8 +398,6 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 	PE_set_data(C, data);
 
 	view3d_set_viewcontext(C, &data->vc);
-	/* note, the object argument means the modelview matrix does not account for the objects matrix, use viewmat rather than (obmat * viewmat) */
-	view3d_get_transformation(data->vc.ar, data->vc.rv3d, NULL, &data->mats);
 
 	if (V3D_IS_ZBUF(data->vc.v3d)) {
 		if (data->vc.v3d->flag & V3D_INVALID_BACKBUF) {
@@ -441,7 +438,6 @@ static bool key_test_depth(PEData *data, const float co[3], const int screen_co[
 {
 	View3D *v3d= data->vc.v3d;
 	ViewDepths *vd = data->vc.rv3d->depths;
-	double ux, uy, uz;
 	float depth;
 
 	/* nothing to do */
@@ -457,9 +453,6 @@ static bool key_test_depth(PEData *data, const float co[3], const int screen_co[
 	}
 #endif
 
-	gluProject(co[0], co[1], co[2], data->mats.modelview, data->mats.projection,
-	           (GLint *)data->mats.viewport, &ux, &uy, &uz);
-
 	/* check if screen_co is within bounds because brush_cut uses out of screen coords */
 	if (screen_co[0] >= 0 && screen_co[0] < vd->w && screen_co[1] >= 0 && screen_co[1] < vd->h) {
 		BLI_assert(vd && vd->depths);
@@ -469,7 +462,10 @@ static bool key_test_depth(PEData *data, const float co[3], const int screen_co[
 	else
 		return 0;
 
-	if ((float)uz - 0.00001f > depth)
+	float win[3];
+	ED_view3d_project(data->vc.ar, co, win);
+
+	if (win[2] - 0.00001f > depth)
 		return 0;
 	else
 		return 1;

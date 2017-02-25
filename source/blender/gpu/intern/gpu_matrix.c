@@ -487,19 +487,23 @@ void gpuLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY,
 	gpuTranslate3f(-eyeX, -eyeY, -eyeZ);
 }
 
-void gpuProject(const float obj[3], const float model[4][4], const float proj[4][4], const GLint view[4], float win[3])
+void gpuProject(const float world[3], const float model[4][4], const float proj[4][4], const int view[4], float win[3])
 {
 	float v[4];
 
-	mul_v4_m4v3(v, model, obj);
+	mul_v4_m4v3(v, model, world);
 	mul_m4_v4(proj, v);
+
+	if (v[3] != 0.0f) {
+		mul_v3_fl(v, 1.0f / v[3]);
+	}
 
 	win[0] = view[0] + (view[2] * (v[0] + 1)) * 0.5f;
 	win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
 	win[2] = (v[2] + 1) * 0.5f;
 }
 
-bool gpuUnProject(const float win[3], const float model[4][4], const float proj[4][4], const GLint view[4], float obj[3])
+bool gpuUnProject(const float win[3], const float model[4][4], const float proj[4][4], const int view[4], float world[3])
 {
 	float pm[4][4];
 	float in[4];
@@ -508,6 +512,7 @@ bool gpuUnProject(const float win[3], const float model[4][4], const float proj[
 	mul_m4_m4m4(pm, proj, model);
 
 	if (!invert_m4(pm)) {
+		zero_v3(world);
 		return false;
 	}
 
@@ -528,19 +533,12 @@ bool gpuUnProject(const float win[3], const float model[4][4], const float proj[
 	mul_v4_m4v3(out, pm, in);
 
 	if (out[3] == 0.0f) {
+		copy_v3_v3(world, out);
 		return false;
 	}
-	else {
-		out[0] /= out[3];
-		out[1] /= out[3];
-		out[2] /= out[3];
 
-		obj[0] = out[0];
-		obj[1] = out[1];
-		obj[2] = out[2];
-
-		return true;
-	}
+	mul_v3_v3fl(world, out, 1.0f / out[3]);
+	return true;
 }
 
 const float *gpuGetModelViewMatrix3D(float m[4][4])
