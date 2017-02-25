@@ -364,7 +364,7 @@ static const float cube_wire[24] = {
 static void drawsolidcube_size(float xsize, float ysize, float zsize)
 {
 	static VertexFormat format = {0};
-	static VertexBuffer vbo = {0};
+	static VertexBuffer vbo = {{0}};
 	static Batch batch = {0};
 	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
@@ -425,7 +425,7 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 static void drawcube_size(float xsize, float ysize, float zsize)
 {
 	static VertexFormat format = {0};
-	static VertexBuffer vbo = {0};
+	static VertexBuffer vbo = {{0}};
 	static ElementListBuilder elb = {0};
 	static ElementList el = {0};
 	static Batch batch = {0};
@@ -466,7 +466,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 static void draw_bonevert(void)
 {
 	static VertexFormat format = {0};
-	static VertexBuffer vbo = {0};
+	static VertexBuffer vbo = {{0}};
 	static Batch batch = {0};
 
 	if (format.attrib_ct == 0) {
@@ -582,7 +582,7 @@ static const float bone_octahedral_solid_normals[8][3] = {
 static void draw_bone_octahedral(void)
 {
 	static VertexFormat format = {0};
-	static VertexBuffer vbo = {0};
+	static VertexBuffer vbo = {{0}};
 	static ElementListBuilder elb = {0};
 	static ElementList el = {0};
 	static Batch batch = {0};
@@ -621,7 +621,7 @@ static void draw_bone_octahedral(void)
 static void draw_bone_solid_octahedral(void)
 {
 	static VertexFormat format = {0};
-	static VertexBuffer vbo = {0};
+	static VertexBuffer vbo = {{0}};
 	static Batch batch = {0};
 	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 

@@ -110,7 +110,9 @@
 #include "view3d_intern.h"  /* bad level include */
 
 /* prototypes */
+#ifdef WITH_GAMEENGINE
 static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos);
+#endif
 
 /* Workaround for sequencer scene render mode.
  *
@@ -7774,6 +7776,7 @@ static void draw_box(const float vec[8][3], bool solid)
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+#ifdef WITH_GAMEENGINE
 static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
 {
 	static const GLubyte quad_indices[24] = {0,1,2,3,7,6,5,4,4,5,1,0,3,2,6,7,3,7,4,0,1,5,6,2};
@@ -7797,6 +7800,7 @@ static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
 	}
 	immEnd();
 }
+#endif
 
 static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
 {

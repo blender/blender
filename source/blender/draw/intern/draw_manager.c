@@ -81,7 +81,7 @@ typedef enum {
 	DRW_ATTRIB_FLOAT,
 } DRWAttribType;
 
-typedef struct DRWUniform {
+struct DRWUniform {
 	struct DRWUniform *next, *prev;
 	DRWUniformType type;
 	int location;
@@ -89,7 +89,7 @@ typedef struct DRWUniform {
 	int arraysize;
 	int bindloc;
 	const void *value;
-} DRWUniform;
+};
 
 typedef struct DRWAttrib {
 	struct DRWAttrib *next, *prev;

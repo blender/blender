@@ -385,7 +385,7 @@ void GPU_framebuffer_blur(
 	const float fullscreenuvs[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}};
 
 	static VertexFormat format = {0};
-	static VertexBuffer vbo = {0};
+	static VertexBuffer vbo = {{0}};
 	static Batch batch = {0};
 
 	const float scaleh[2] = {1.0f / GPU_texture_width(blurtex), 0.0f};
