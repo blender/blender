@@ -54,7 +54,8 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 	float rbsdf = path_state_rng_1D(kg, &rng, &state, PRNG_BSDF);
 	shader_eval_surface(kg, sd, &rng, &state, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 
-	/* TODO, disable the closures we won't need */
+	/* TODO, disable more closures we don't need besides transparent */
+	shader_bsdf_disable_transparency(kg, sd);
 
 #ifdef __BRANCHED_PATH__
 	if(!kernel_data.integrator.branched) {
