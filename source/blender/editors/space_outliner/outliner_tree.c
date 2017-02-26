@@ -1870,7 +1870,9 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		ten = outliner_add_element(soops, &soops->tree, OBACT_NEW, NULL, 0, 0);
 	}
 
-	outliner_sort(&soops->tree);
+	if ((soops->flag & SO_SKIP_SORT_ALPHA) == 0) {
+		outliner_sort(&soops->tree);
+	}
 	outliner_filter_tree(soops, &soops->tree);
 
 	BKE_main_id_clear_newpoins(mainvar);
