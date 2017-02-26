@@ -26,6 +26,8 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "GPU_shader.h"
+
 #include "draw_mode_pass.h"
 
 #include "edit_mesh_mode.h"
@@ -36,21 +38,32 @@ typedef struct EDIT_MESH_PassList {
 	struct DRWPass *ob_center_pass;
 	struct DRWPass *wire_outline_pass;
 	struct DRWPass *depth_pass_hidden_wire;
+	struct DRWPass *edit_face_overlay_pass;
 } EDIT_MESH_PassList;
 
 static DRWShadingGroup *depth_shgrp_hidden_wire;
+static DRWShadingGroup *face_overlay_shgrp;
 
 void EDIT_MESH_cache_init(void)
 {
 	EDIT_MESH_PassList *psl = DRW_mode_pass_list_get();
 	static struct GPUShader *depth_sh;
+	static struct GPUShader *overlay_sh;
 
 	if (!depth_sh) {
 		depth_sh = DRW_shader_create_3D_depth_only();
 	}
 
+	if (!overlay_sh) {
+		overlay_sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_OVERLAY_EDIT);
+	}
+
 	psl->depth_pass_hidden_wire = DRW_pass_create("Depth Pass Hidden Wire", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
 	depth_shgrp_hidden_wire = DRW_shgroup_create(depth_sh, psl->depth_pass_hidden_wire);
+
+	psl->edit_face_overlay_pass = DRW_pass_create("Edit Mesh Face Overlay Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
+	face_overlay_shgrp = DRW_shgroup_create(overlay_sh, psl->edit_face_overlay_pass);
+	DRW_shgroup_uniform_vec2(face_overlay_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 
 	DRW_mode_passes_setup(NULL,
 	                      NULL,
@@ -63,7 +76,10 @@ void EDIT_MESH_cache_init(void)
 
 void EDIT_MESH_cache_populate(Object *ob)
 {
-	struct Batch *geom;
+	struct Batch *geom, *geom_overlay;
+	const struct bContext *C = DRW_get_context();
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = scene->obedit;
 
 	CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
 	bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
@@ -71,6 +87,10 @@ void EDIT_MESH_cache_populate(Object *ob)
 	switch (ob->type) {
 		case OB_MESH:
 			geom = DRW_cache_surface_get(ob);
+			if (ob == obedit) {
+				geom_overlay = DRW_cache_wire_overlay_get(ob);
+				DRW_shgroup_call_add(face_overlay_shgrp, geom_overlay, ob->obmat);
+			}
 			if (do_occlude_wire) {
 				DRW_shgroup_call_add(depth_shgrp_hidden_wire, geom, ob->obmat);
 				DRW_shgroup_wire_outline(ob, true, false, true);
@@ -107,6 +127,7 @@ void EDIT_MESH_draw(void)
 	EDIT_MESH_PassList *psl = DRW_mode_pass_list_get();
 
 	DRW_draw_pass(psl->depth_pass_hidden_wire);
+	DRW_draw_pass(psl->edit_face_overlay_pass);
 	DRW_draw_pass(psl->wire_outline_pass);
 	DRW_draw_pass(psl->non_meshes_pass);
 	DRW_draw_pass(psl->ob_center_pass);
