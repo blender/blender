@@ -61,9 +61,8 @@ static int outliner_item_drag_drop_poll(bContext *C)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	return ED_operator_outliner_active(C) &&
-	        (soops->flag & SO_SKIP_SORT_ALPHA) &&
-	        /* Only collection display mode supported for now. Others need more design work */
-	        ELEM(soops->outlinevis, SO_COLLECTIONS);
+	       /* Only collection display mode supported for now. Others need more design work */
+	       ELEM(soops->outlinevis, SO_COLLECTIONS);
 }
 
 static TreeElement *outliner_item_drag_element_find(SpaceOops *soops, ARegion *ar, const wmEvent *event)
