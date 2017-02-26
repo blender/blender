@@ -150,7 +150,7 @@ void main()
 			eData1[v] = 0.0;
 		}
 
-		/* and the last vertex
+		/* and the last vertex */
 		doVertex(2);
 	}
 	/* Harder case : compute visible edges vectors */
