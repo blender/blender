@@ -1394,7 +1394,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 				selwidth_draw = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->selend - but->ofs);
 
-				unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_INT, 2, KEEP_INT);
+				unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 				immUniformColor4ubv((unsigned char *)wcol->item);
@@ -1426,7 +1426,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 				t = 0;
 			}
 
-			unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_INT, 2, KEEP_INT);
+			unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformColor3f(0.2f, 0.6f, 0.9f);
@@ -4102,7 +4102,7 @@ void ui_draw_pie_center(uiBlock *block)
 			draw_disk_shaded(angle - range / 2.0f, range, pie_radius_internal, pie_radius_external, subd, col1, col2, true);
 		}
 		else {
-			draw_disk_shaded(angle - range / 2.0f, range, pie_radius_internal, pie_radius_external, subd, btheme->tui.wcol_pie_menu.inner, NULL, false);
+			draw_disk_shaded(angle - range / 2.0f, range, pie_radius_internal, pie_radius_external, subd, btheme->tui.wcol_pie_menu.inner_sel, NULL, false);
 		}
 	}
 
