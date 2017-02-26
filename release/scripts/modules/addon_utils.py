@@ -31,8 +31,9 @@ __all__ = (
 import bpy as _bpy
 _user_preferences = _bpy.context.user_preferences
 
-error_duplicates = False
 error_encoding = False
+# (name, file, path)
+error_duplicates = []
 addons_fake_modules = {}
 
 
@@ -57,12 +58,11 @@ def paths():
 
 
 def modules_refresh(module_cache=addons_fake_modules):
-    global error_duplicates
     global error_encoding
     import os
 
-    error_duplicates = False
     error_encoding = False
+    error_duplicates.clear()
 
     path_list = paths()
 
@@ -168,7 +168,7 @@ def modules_refresh(module_cache=addons_fake_modules):
                 if mod.__file__ != mod_path:
                     print("multiple addons with the same name:\n  %r\n  %r" %
                           (mod.__file__, mod_path))
-                    error_duplicates = True
+                    error_duplicates.append((mod.bl_info["name"], mod.__file__, mod_path))
 
                 elif mod.__time__ != os.path.getmtime(mod_path):
                     print("reloading addon:",
