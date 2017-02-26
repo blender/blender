@@ -474,14 +474,14 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[4])
 {
-	if (geom) {
-		DRWCall *call = MEM_callocN(sizeof(DRWCall), "DRWCall");
+	BLI_assert(geom != NULL);
 
-		call->obmat = obmat;
-		call->geometry = geom;
+	DRWCall *call = MEM_callocN(sizeof(DRWCall), "DRWCall");
 
-		BLI_addtail(&shgroup->calls, call);
-	}
+	call->obmat = obmat;
+	call->geometry = geom;
+
+	BLI_addtail(&shgroup->calls, call);
 }
 
 void DRW_shgroup_dynamic_call_add(DRWShadingGroup *shgroup, ...)
