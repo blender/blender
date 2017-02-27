@@ -36,15 +36,15 @@ static void print_mem_saved(const char *id, const BArrayStore *bs)
 /* -------------------------------------------------------------------- */
 /* Test Chunks (building data from list of chunks) */
 
-typedef struct TestChunnk {
-	struct TestChunnk *next, *prev;
+typedef struct TestChunk {
+	struct TestChunk *next, *prev;
 	const void *data;
 	size_t data_len;
-} TestChunnk;
+} TestChunk;
 
-static TestChunnk *testchunk_list_add(ListBase *lb, const void *data, size_t data_len)
+static TestChunk *testchunk_list_add(ListBase *lb, const void *data, size_t data_len)
 {
-	TestChunnk *tc = (TestChunnk *)MEM_mallocN(sizeof(*tc), __func__);
+	TestChunk *tc = (TestChunk *)MEM_mallocN(sizeof(*tc), __func__);
 	tc->data = data;
 	tc->data_len = data_len;
 	BLI_addtail(lb, tc);
@@ -53,7 +53,7 @@ static TestChunnk *testchunk_list_add(ListBase *lb, const void *data, size_t dat
 }
 
 #if 0
-static TestChunnk *testchunk_list_add_copydata(ListBase *lb, const void *data, size_t data_len)
+static TestChunk *testchunk_list_add_copydata(ListBase *lb, const void *data, size_t data_len)
 {
 	void *data_copy = MEM_mallocN(data_len, __func__);
 	memcpy(data_copy, data, data_len);
@@ -63,7 +63,7 @@ static TestChunnk *testchunk_list_add_copydata(ListBase *lb, const void *data, s
 
 static void testchunk_list_free(ListBase *lb)
 {
-	for (TestChunnk *tc = (TestChunnk *)lb->first, *tb_next; tc; tc = tb_next) {
+	for (TestChunk *tc = (TestChunk *)lb->first, *tb_next; tc; tc = tb_next) {
 		tb_next = tc->next;
 		MEM_freeN((void *)tc->data);
 		MEM_freeN(tc);
@@ -77,12 +77,12 @@ static char *testchunk_as_data(
         size_t *r_data_len)
 {
 	size_t data_len = 0;
-	for (TestChunnk *tc = (TestChunnk *)lb->first; tc; tc = tc->next) {
+	for (TestChunk *tc = (TestChunk *)lb->first; tc; tc = tc->next) {
 		data_len += tc->data_len;
 	}
 	char *data = (char *)MEM_mallocN(data_len, __func__);
 	size_t i = 0;
-	for (TestChunnk *tc = (TestChunnk *)lb->first; tc; tc = tc->next) {
+	for (TestChunk *tc = (TestChunk *)lb->first; tc; tc = tc->next) {
 		memcpy(&data[i], tc->data, tc->data_len);
 		data_len += tc->data_len;
 		i += tc->data_len;
@@ -95,7 +95,7 @@ static char *testchunk_as_data(
 #endif
 
 static char *testchunk_as_data_array(
-        TestChunnk **tc_array, int tc_array_len,
+        TestChunk **tc_array, int tc_array_len,
         size_t *r_data_len)
 {
 	size_t data_len = 0;
@@ -105,7 +105,7 @@ static char *testchunk_as_data_array(
 	char *data = (char *)MEM_mallocN(data_len, __func__);
 	size_t i = 0;
 	for (int tc_index = 0; tc_index < tc_array_len; tc_index++) {
-		TestChunnk *tc = tc_array[tc_index];
+		TestChunk *tc = tc_array[tc_index];
 		memcpy(&data[i], tc->data, tc->data_len);
 		i += tc->data_len;
 	}
@@ -677,9 +677,9 @@ static void random_chunk_mutate_helper(
 	ListBase random_chunks;
 	BLI_listbase_clear(&random_chunks);
 	random_chunk_generate(&random_chunks, chunks_per_buffer, stride, chunk_count, random_seed);
-	TestChunnk **chunks_array = (TestChunnk **)MEM_mallocN(chunks_per_buffer * sizeof(TestChunnk *), __func__);
+	TestChunk **chunks_array = (TestChunk **)MEM_mallocN(chunks_per_buffer * sizeof(TestChunk *), __func__);
 	{
-		TestChunnk *tc = (TestChunnk *)random_chunks.first;
+		TestChunk *tc = (TestChunk *)random_chunks.first;
 		for (int i = 0; i < chunks_per_buffer; i++, tc = tc->next) {
 			chunks_array[i] = tc;
 		}
@@ -692,7 +692,7 @@ static void random_chunk_mutate_helper(
 	{
 		RNG *rng = BLI_rng_new(random_seed);
 		for (int i = 0; i < items_total; i++) {
-			BLI_rng_shuffle_array(rng, chunks_array, sizeof(TestChunnk *), chunks_per_buffer);
+			BLI_rng_shuffle_array(rng, chunks_array, sizeof(TestChunk *), chunks_per_buffer);
 			size_t data_len;
 			char *data = testchunk_as_data_array(chunks_array, chunks_per_buffer, &data_len);
 			BLI_assert(data_len == chunks_per_buffer * chunk_count * stride);
