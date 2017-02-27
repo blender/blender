@@ -60,7 +60,7 @@ class OUTLINER_HT_header(Header):
         elif space.display_mode == 'ORPHAN_DATA':
             layout.operator("outliner.orphans_purge")
 
-        elif space.display_mode == 'COLLECTIONS':
+        elif space.display_mode == 'ACT_LAYER':
             row = layout.row(align=True)
 
             row.operator("outliner.collection_new", text="", icon='NEW')

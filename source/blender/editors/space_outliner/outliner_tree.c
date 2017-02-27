@@ -1405,7 +1405,7 @@ static void outliner_add_collections_recursive(SpaceOops *soops, ListBase *tree,
 	}
 }
 
-static void outliner_add_collections(SpaceOops *soops, SceneLayer *layer, Scene *scene)
+static void outliner_add_collections_act_layer(SpaceOops *soops, SceneLayer *layer, Scene *scene)
 {
 	outliner_add_collections_recursive(soops, &soops->tree, scene, &layer->layer_collections, NULL);
 }
@@ -1863,8 +1863,8 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 	else if (soops->outlinevis == SO_ID_ORPHANS) {
 		outliner_add_orphaned_datablocks(mainvar, soops);
 	}
-	else if (soops->outlinevis == SO_COLLECTIONS) {
-		outliner_add_collections(soops, BKE_scene_layer_context_active(scene), scene);
+	else if (soops->outlinevis == SO_ACT_LAYER) {
+		outliner_add_collections_act_layer(soops, BKE_scene_layer_context_active(scene), scene);
 	}
 	else {
 		ten = outliner_add_element(soops, &soops->tree, OBACT_NEW, NULL, 0, 0);
