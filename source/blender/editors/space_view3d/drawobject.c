@@ -2335,16 +2335,18 @@ void drawspeaker(const unsigned char ob_wire_col[3])
 	immUnbindProgram();
 }
 
-static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short sel)
+static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short sel,
+                               unsigned int pos, unsigned int color)
 {
 	BPoint *bp = lt->def;
 	const float *co = dl ? dl->verts : NULL;
+	float active_color[4], draw_color[4];
 
-	const int color = sel ? TH_VERTEX_SELECT : TH_VERTEX;
-	UI_ThemeColor(color);
+	UI_GetThemeColor4fv(sel ? TH_VERTEX_SELECT : TH_VERTEX, draw_color);
+	UI_GetThemeColor4fv(TH_ACTIVE_VERT, active_color);
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	glBegin(GL_POINTS);
+	immBeginAtMost(GL_POINTS, lt->pntsw * lt->pntsv * lt->pntsu);
 
 	for (int w = 0; w < lt->pntsw; w++) {
 		int wxt = (w == 0 || w == lt->pntsw - 1);
@@ -2356,12 +2358,12 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 					if (bp->hide == 0) {
 						/* check for active BPoint and ensure selected */
 						if ((bp == actbp) && (bp->f1 & SELECT)) {
-							UI_ThemeColor(TH_ACTIVE_VERT);
-							glVertex3fv(dl ? co : bp->vec);
-							UI_ThemeColor(color);
+							immAttrib4fv(color, active_color);
+							immVertex3fv(pos, dl ? co : bp->vec);
 						}
 						else if ((bp->f1 & SELECT) == sel) {
-							glVertex3fv(dl ? co : bp->vec);
+							immAttrib4fv(color, draw_color);
+							immVertex3fv(pos, dl ? co : bp->vec);
 						}
 					}
 				}
@@ -2369,27 +2371,26 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 		}
 	}
 	
-	glEnd();
+	immEnd();
 }
 
-static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, int actdef_wcol)
+static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, int actdef_wcol,
+                               unsigned int pos, unsigned int color)
 {
 	int index = ((w * lt->pntsv + v) * lt->pntsu) + u;
 
 	if (actdef_wcol) {
 		float col[3];
 		MDeformWeight *mdw = defvert_find_index(lt->dvert + index, actdef_wcol - 1);
-		
 		weight_to_rgb(col, mdw ? mdw->weight : 0.0f);
-		glColor3fv(col);
-
+		immAttrib3fv(color, col);
 	}
 	
 	if (dl) {
-		glVertex3fv(&dl->verts[index * 3]);
+		immVertex3fv(pos, &dl->verts[index * 3]);
 	}
 	else {
-		glVertex3fv(lt->def[index].vec);
+		immVertex3fv(pos, lt->def[index].vec);
 	}
 }
 
@@ -2437,7 +2438,7 @@ static void ensure_curve_cache(Scene *scene, Object *object)
 #endif
 
 /* lattice color is hardcoded, now also shows weightgroup values in edit mode */
-static void drawlattice(View3D *v3d, Object *ob)
+static void drawlattice(View3D *v3d, Object *ob, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Lattice *lt = ob->data;
 	DispList *dl;
@@ -2450,15 +2451,37 @@ static void drawlattice(View3D *v3d, Object *ob)
 	if (is_edit) {
 		lt = lt->editlatt->latt;
 
-		UI_ThemeColor(TH_WIRE_EDIT);
-		
 		if (ob->defbase.first && lt->dvert) {
 			actdef_wcol = ob->actdef;
 		}
 	}
 
+	VertexFormat *format = immVertexFormat();
+	unsigned int color, pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+	if (actdef_wcol) {
+		color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
+	}
+	else {
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+		if (is_edit) {
+			immUniformThemeColor(TH_WIRE_EDIT);
+		}
+		else {
+			if ((dflag & DRAW_CONSTCOLOR) == 0) {
+				immUniformColor3ubv(ob_wire_col);
+			}
+			else {
+				immUniformColor3f(0.0f, 0.0f, 0.0f);
+			}
+		}
+	}
+
 	glLineWidth(1.0f);
-	glBegin(GL_LINES);
+	immBeginAtMost(GL_LINES, lt->pntsw * lt->pntsv * lt->pntsu * 6);
+
 	for (w = 0; w < lt->pntsw; w++) {
 		int wxt = (w == 0 || w == lt->pntsw - 1);
 		for (v = 0; v < lt->pntsv; v++) {
@@ -2467,30 +2490,40 @@ static void drawlattice(View3D *v3d, Object *ob)
 				int uxt = (u == 0 || u == lt->pntsu - 1);
 
 				if (w && ((uxt || vxt) || !(lt->flag & LT_OUTSIDE))) {
-					drawlattice__point(lt, dl, u, v, w - 1, actdef_wcol);
-					drawlattice__point(lt, dl, u, v, w, actdef_wcol);
+					drawlattice__point(lt, dl, u, v, w - 1, actdef_wcol, pos, color);
+					drawlattice__point(lt, dl, u, v, w, actdef_wcol, pos, color);
 				}
 				if (v && ((uxt || wxt) || !(lt->flag & LT_OUTSIDE))) {
-					drawlattice__point(lt, dl, u, v - 1, w, actdef_wcol);
-					drawlattice__point(lt, dl, u, v, w, actdef_wcol);
+					drawlattice__point(lt, dl, u, v - 1, w, actdef_wcol, pos, color);
+					drawlattice__point(lt, dl, u, v, w, actdef_wcol, pos, color);
 				}
 				if (u && ((vxt || wxt) || !(lt->flag & LT_OUTSIDE))) {
-					drawlattice__point(lt, dl, u - 1, v, w, actdef_wcol);
-					drawlattice__point(lt, dl, u, v, w, actdef_wcol);
+					drawlattice__point(lt, dl, u - 1, v, w, actdef_wcol, pos, color);
+					drawlattice__point(lt, dl, u, v, w, actdef_wcol, pos, color);
 				}
 			}
 		}
 	}
-	glEnd();
+
+	immEnd();
+	immUnbindProgram();
 
 	if (is_edit) {
 		BPoint *actbp = BKE_lattice_active_point_get(lt);
 
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-		
-		lattice_draw_verts(lt, dl, actbp, 0);
-		lattice_draw_verts(lt, dl, actbp, 1);
-		
+
+		VertexFormat *v_format = immVertexFormat();
+		unsigned int v_pos = add_attrib(v_format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int v_color = add_attrib(v_format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
+
+		lattice_draw_verts(lt, dl, actbp, 0, v_pos, v_color);
+		lattice_draw_verts(lt, dl, actbp, 1, v_pos, v_color);
+
+		immUnbindProgram();
+
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
 }
@@ -8516,7 +8549,7 @@ void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *b
 #ifdef SEQUENCER_DAG_WORKAROUND
 						ensure_curve_cache(scene, ob);
 #endif
-						drawlattice(v3d, ob);
+						drawlattice(v3d, ob, dflag, ob_wire_col);
 					}
 				}
 				break;
