@@ -2023,11 +2023,11 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 	 */
 
 	if (hits > 0) { /* no need to loop if there's no hit */
-		BaseLegacy *base;
+		Base *base;
 		col = vbuffer + 3;
 		
-		for (base = vc->scene->base.first; base && hits; base = base->next) {
-			if (BASE_SELECTABLE(vc->v3d, base)) {
+		for (base = vc->sl->object_bases.first; base && hits; base = base->next) {
+			if (BASE_SELECTABLE_NEW(base)) {
 				while (base->selcol == (*col & 0xFFFF)) {   /* we got an object */
 					if (*col & 0xFFFF0000) {                    /* we got a bone */
 						bone = get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
@@ -2047,7 +2047,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 						}
 					}
 					else if (!bone_only) {
-						ED_base_object_select(base, select ? BA_SELECT : BA_DESELECT);
+						ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
 					}
 					
 					col += 4; /* next color */
