@@ -27,6 +27,7 @@
 
 #include "util_sky_model.h"
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_transform.h"
 
 CCL_NAMESPACE_BEGIN
