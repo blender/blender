@@ -225,15 +225,14 @@ static void draw_empty_cone(float size, unsigned pos);
 
 static void draw_box(const float vec[8][3], bool solid);
 
-static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], const int theme_id, float fac)
+static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], const int theme_id, float fac, float r_col[3])
 {
-	float col_wire[3], col_bg[3], col[3];
+	float col_wire[3], col_bg[3];
 
 	rgb_uchar_to_float(col_wire, ob_wire_col);
 
 	UI_GetThemeColor3fv(theme_id, col_bg);
-	interp_v3_v3v3(col, col_bg, col_wire, fac);
-	glColor3fv(col);
+	interp_v3_v3v3(r_col, col_bg, col_wire, fac);
 }
 
 int view3d_effective_drawtype(const struct View3D *v3d)
@@ -777,6 +776,7 @@ static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3
 	}
 }
 
+/* DEPRECATED use imm_drawcircball instead */
 void drawcircball(int mode, const float cent[3], float rad, const float tmat[4][4])
 {
 	float verts[CIRCLE_RESOL][3];
@@ -4398,7 +4398,9 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			if (is_obact && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-				ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.15f);
+				float color[3];
+				ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.15f, color);
+				glColor3fv(color);
 			}
 			else {
 				glColor3ubv(ob_wire_col);
@@ -7344,7 +7346,7 @@ static void draw_empty_cone(float size, unsigned pos)
 #undef NSEGMENTS
 }
 
-static void drawspiral(const float cent[3], float rad, float tmat[4][4], int start)
+static void drawspiral(unsigned int pos, const float cent[3], float rad, float tmat[4][4], int start)
 {
 	float vec[3], vx[3], vy[3];
 	const float tot_inv = 1.0f / (float)CIRCLE_RESOL;
@@ -7360,11 +7362,11 @@ static void drawspiral(const float cent[3], float rad, float tmat[4][4], int sta
 	mul_v3_v3fl(vx, tmat[0], rad);
 	mul_v3_v3fl(vy, tmat[1], rad);
 
-	glBegin(GL_LINE_STRIP);
+	immBegin(GL_LINE_STRIP, CIRCLE_RESOL + 1);
 
 	if (inverse == 0) {
 		copy_v3_v3(vec, cent);
-		glVertex3fv(vec);
+		immVertex3fv(pos, vec);
 
 		for (a = 0; a < CIRCLE_RESOL; a++) {
 			if (a + start >= CIRCLE_RESOL)
@@ -7378,7 +7380,7 @@ static void drawspiral(const float cent[3], float rad, float tmat[4][4], int sta
 			vec[1] = cent[1] + (x * vx[1] + y * vy[1]);
 			vec[2] = cent[2] + (x * vx[2] + y * vy[2]);
 
-			glVertex3fv(vec);
+			immVertex3fv(pos, vec);
 		}
 	}
 	else {
@@ -7390,7 +7392,7 @@ static void drawspiral(const float cent[3], float rad, float tmat[4][4], int sta
 		vec[1] = cent[1] + (x * vx[1] + y * vy[1]);
 		vec[2] = cent[2] + (x * vx[2] + y * vy[2]);
 
-		glVertex3fv(vec);
+		immVertex3fv(pos, vec);
 
 		for (a = 0; a < CIRCLE_RESOL; a++) {
 			if (a + start >= CIRCLE_RESOL)
@@ -7403,11 +7405,11 @@ static void drawspiral(const float cent[3], float rad, float tmat[4][4], int sta
 			vec[0] = cent[0] + (x * vx[0] + y * vy[0]);
 			vec[1] = cent[1] + (x * vx[1] + y * vy[1]);
 			vec[2] = cent[2] + (x * vx[2] + y * vy[2]);
-			glVertex3fv(vec);
+			immVertex3fv(pos, vec);
 		}
 	}
 
-	glEnd();
+	immEnd();
 }
 
 /* draws a circle on x-z plane given the scaling of the circle, assuming that
@@ -7428,30 +7430,7 @@ static void drawcircle_size(float size, unsigned pos)
 }
 
 /* needs fixing if non-identity matrix used */
-static void drawtube(const float vec[3], float radius, float height, float tmat[4][4])
-{
-	float cur[3];
-	drawcircball(GL_LINE_LOOP, vec, radius, tmat);
-
-	copy_v3_v3(cur, vec);
-	cur[2] += height;
-
-	drawcircball(GL_LINE_LOOP, cur, radius, tmat);
-
-	glBegin(GL_LINES);
-	glVertex3f(vec[0] + radius, vec[1], vec[2]);
-	glVertex3f(cur[0] + radius, cur[1], cur[2]);
-	glVertex3f(vec[0] - radius, vec[1], vec[2]);
-	glVertex3f(cur[0] - radius, cur[1], cur[2]);
-	glVertex3f(vec[0], vec[1] + radius, vec[2]);
-	glVertex3f(cur[0], cur[1] + radius, cur[2]);
-	glVertex3f(vec[0], vec[1] - radius, vec[2]);
-	glVertex3f(cur[0], cur[1] - radius, cur[2]);
-	glEnd();
-}
-
-/* needs fixing if non-identity matrix used */
-static void UNUSED_FUNCTION(imm_drawtube)(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
+static void imm_drawtube(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
 {
 	float cur[3];
 	imm_drawcircball(vec, radius, tmat, pos);
@@ -7474,30 +7453,7 @@ static void UNUSED_FUNCTION(imm_drawtube)(const float vec[3], float radius, floa
 }
 
 /* needs fixing if non-identity matrix used */
-static void drawcone(const float vec[3], float radius, float height, float tmat[4][4])
-{
-	float cur[3];
-
-	copy_v3_v3(cur, vec);
-	cur[2] += height;
-
-	drawcircball(GL_LINE_LOOP, cur, radius, tmat);
-
-	glBegin(GL_LINES);
-	glVertex3f(vec[0], vec[1], vec[2]);
-	glVertex3f(cur[0] + radius, cur[1], cur[2]);
-	glVertex3f(vec[0], vec[1], vec[2]);
-	glVertex3f(cur[0] - radius, cur[1], cur[2]);
-	glVertex3f(vec[0], vec[1], vec[2]);
-
-	glVertex3f(cur[0], cur[1] + radius, cur[2]);
-	glVertex3f(vec[0], vec[1], vec[2]);
-	glVertex3f(cur[0], cur[1] - radius, cur[2]);
-	glEnd();
-}
-
-/* needs fixing if non-identity matrix used */
-static void UNUSED_FUNCTION(imm_drawcone)(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
+static void imm_drawcone(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
 {
 	float cur[3];
 
@@ -7606,6 +7562,7 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	PartDeflect *pd = ob->pd;
 	float imat[4][4], tmat[4][4];
 	float vec[3] = {0.0, 0.0, 0.0};
+	float draw_color[3] = {0.0f, 0.0f, 0.0f};
 	/* scale size of circle etc with the empty drawsize */
 	const float size = (ob->type == OB_EMPTY) ? ob->empty_drawsize : 1.0f;
 	
@@ -7615,35 +7572,53 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	normalize_v3(imat[0]);  /* we don't do this because field doesnt scale either... apart from wind! */
 	normalize_v3(imat[1]);
 #endif
+
+	const int unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformColor3fv(draw_color);
 	
 	if (pd->forcefield == PFIELD_WIND) {
 		float force_val = pd->f_strength;
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
+			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f, draw_color);
+			immUniformColor3fv(draw_color);
 		}
 
 		unit_m4(tmat);
 		force_val *= 0.1f;
-		drawcircball(GL_LINE_LOOP, vec, size, tmat);
+		imm_drawcircball(vec, size, tmat, pos);
 		vec[2] = 0.5f * force_val;
-		drawcircball(GL_LINE_LOOP, vec, size, tmat);
+		imm_drawcircball(vec, size, tmat, pos);
 		vec[2] = 1.0f * force_val;
-		drawcircball(GL_LINE_LOOP, vec, size, tmat);
+		imm_drawcircball(vec, size, tmat, pos);
 		vec[2] = 1.5f * force_val;
-		drawcircball(GL_LINE_LOOP, vec, size, tmat);
+		imm_drawcircball(vec, size, tmat, pos);
 		vec[2] = 0.0f; /* reset vec for max dist circle */
-		
 	}
 	else if (pd->forcefield == PFIELD_FORCE) {
 		float ffall_val = pd->f_power;
 
-		if ((dflag & DRAW_CONSTCOLOR) == 0) ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
-		drawcircball(GL_LINE_LOOP, vec, size, imat);
-		if ((dflag & DRAW_CONSTCOLOR) == 0) ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.9f - 0.4f / powf(1.5f, ffall_val));
-		drawcircball(GL_LINE_LOOP, vec, size * 1.5f, imat);
-		if ((dflag & DRAW_CONSTCOLOR) == 0) ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.9f - 0.4f / powf(2.0f, ffall_val));
-		drawcircball(GL_LINE_LOOP, vec, size * 2.0f, imat);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f, draw_color);
+			immUniformColor3fv(draw_color);
+		}
+
+		imm_drawcircball(vec, size, imat, pos);
+
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.9f - 0.4f / powf(1.5f, ffall_val), draw_color);
+			immUniformColor3fv(draw_color);
+		}
+
+		imm_drawcircball(vec, size * 1.5f, imat, pos);
+
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.9f - 0.4f / powf(2.0f, ffall_val), draw_color);
+			immUniformColor3fv(draw_color);
+		}
+
+		imm_drawcircball(vec, size * 2.0f, imat, pos);
 	}
 	else if (pd->forcefield == PFIELD_VORTEX) {
 		float force_val = pd->f_strength;
@@ -7651,16 +7626,17 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 		unit_m4(tmat);
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.7f);
+			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.7f, draw_color);
+			immUniformColor3fv(draw_color);
 		}
 
 		if (force_val < 0) {
-			drawspiral(vec, size, tmat, 1);
-			drawspiral(vec, size, tmat, 16);
+			drawspiral(pos, vec, size, tmat, 1);
+			drawspiral(pos, vec, size, tmat, 16);
 		}
 		else {
-			drawspiral(vec, size, tmat, -1);
-			drawspiral(vec, size, tmat, -16);
+			drawspiral(pos, vec, size, tmat, -1);
+			drawspiral(pos, vec, size, tmat, -16);
 		}
 	}
 	else if (pd->forcefield == PFIELD_GUIDE && ob->type == OB_CURVE) {
@@ -7670,18 +7646,19 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 			float mindist = pd->f_strength;
 
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
-				ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
+				ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f, draw_color);
+				immUniformColor3fv(draw_color);
 			}
 
 			/* path end */
 			setlinestyle(3);
 			where_on_path(ob, 1.0f, guidevec1, guidevec2, NULL, NULL, NULL);
-			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
+			imm_drawcircball(guidevec1, mindist, imat, pos);
 
 			/* path beginning */
 			setlinestyle(0);
 			where_on_path(ob, 0.0f, guidevec1, guidevec2, NULL, NULL, NULL);
-			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
+			imm_drawcircball(guidevec1, mindist, imat, pos);
 			
 			copy_v3_v3(vec, guidevec1); /* max center */
 		}
@@ -7690,16 +7667,19 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	setlinestyle(3);
 
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
-		ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
+		ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f, draw_color);
+		immUniformColor3fv(draw_color);
 	}
 
 	if (pd->falloff == PFIELD_FALL_SPHERE) {
 		/* as last, guide curve alters it */
-		if (pd->flag & PFIELD_USEMAX)
-			drawcircball(GL_LINE_LOOP, vec, pd->maxdist, imat);
+		if ((pd->flag & PFIELD_USEMAX) != 0) {
+			imm_drawcircball(vec, pd->maxdist, imat, pos);
+		}
 
-		if (pd->flag & PFIELD_USEMIN)
-			drawcircball(GL_LINE_LOOP, vec, pd->mindist, imat);
+		if ((pd->flag & PFIELD_USEMIN) != 0) {
+			imm_drawcircball(vec, pd->mindist, imat, pos);
+		}
 	}
 	else if (pd->falloff == PFIELD_FALL_TUBE) {
 		float radius, distance;
@@ -7712,16 +7692,18 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 		vec[2] = distance;
 		distance = (pd->flag & PFIELD_POSZ) ? -distance : -2.0f * distance;
 
-		if (pd->flag & (PFIELD_USEMAX | PFIELD_USEMAXR))
-			drawtube(vec, radius, distance, tmat);
+		if (pd->flag & (PFIELD_USEMAX | PFIELD_USEMAXR)) {
+			imm_drawtube(vec, radius, distance, tmat, pos);
+		}
 
 		radius = (pd->flag & PFIELD_USEMINR) ? pd->minrad : 1.0f;
 		distance = (pd->flag & PFIELD_USEMIN) ? pd->mindist : 0.0f;
 		vec[2] = distance;
 		distance = (pd->flag & PFIELD_POSZ) ? -distance : -2.0f * distance;
 
-		if (pd->flag & (PFIELD_USEMIN | PFIELD_USEMINR))
-			drawtube(vec, radius, distance, tmat);
+		if (pd->flag & (PFIELD_USEMIN | PFIELD_USEMINR)) {
+			imm_drawtube(vec, radius, distance, tmat, pos);
+		}
 	}
 	else if (pd->falloff == PFIELD_FALL_CONE) {
 		float radius, distance;
@@ -7732,21 +7714,23 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 		distance = (pd->flag & PFIELD_USEMAX) ? pd->maxdist : 0.0f;
 
 		if (pd->flag & (PFIELD_USEMAX | PFIELD_USEMAXR)) {
-			drawcone(vec, distance * sinf(radius), distance * cosf(radius), tmat);
+			imm_drawcone(vec, distance * sinf(radius), distance * cosf(radius), tmat, pos);
 			if ((pd->flag & PFIELD_POSZ) == 0)
-				drawcone(vec, distance * sinf(radius), -distance * cosf(radius), tmat);
+				imm_drawcone(vec, distance * sinf(radius), -distance * cosf(radius), tmat, pos);
 		}
 
 		radius = DEG2RADF((pd->flag & PFIELD_USEMINR) ? pd->minrad : 1.0f);
 		distance = (pd->flag & PFIELD_USEMIN) ? pd->mindist : 0.0f;
 
 		if (pd->flag & (PFIELD_USEMIN | PFIELD_USEMINR)) {
-			drawcone(vec, distance * sinf(radius), distance * cosf(radius), tmat);
+			imm_drawcone(vec, distance * sinf(radius), distance * cosf(radius), tmat, pos);
 			if ((pd->flag & PFIELD_POSZ) == 0)
-				drawcone(vec, distance * sinf(radius), -distance * cosf(radius), tmat);
+				imm_drawcone(vec, distance * sinf(radius), -distance * cosf(radius), tmat, pos);
 		}
 	}
 	setlinestyle(0);
+
+	immUnbindProgram();
 }
 
 static void draw_box(const float vec[8][3], bool solid)
