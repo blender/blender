@@ -411,6 +411,7 @@ static void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
 		}
 	}
 
+	mesh->resize_mesh(mesh->verts.size(), mesh->triangles.size());
 	mesh->attributes.remove(ATTR_STD_VERTEX_NORMAL);
 	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	mesh->add_face_normals();
@@ -545,6 +546,7 @@ static void ExportCurveTriangleGeometry(Mesh *mesh,
 		}
 	}
 
+	mesh->resize_mesh(mesh->verts.size(), mesh->triangles.size());
 	mesh->attributes.remove(ATTR_STD_VERTEX_NORMAL);
 	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	mesh->add_face_normals();
