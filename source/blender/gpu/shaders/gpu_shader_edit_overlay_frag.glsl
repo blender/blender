@@ -23,6 +23,9 @@ smooth in vec3 vertexColor;
  *   in the first 2 components of the first vec4.
  *   This needs noperspective interpolation.
  *   The rest is filled with vertex screen positions.
+ *   eData1.zw actually contain v2
+ *   eData2.xy actually contain v1
+ *   eData2.zw actually contain v0
  *
  * - Hard case : two 2d edge corner are described by each
  *   vec4 as origin and direction. This is constant over
@@ -117,12 +120,12 @@ void main()
 		e.xy = eData1.xy;
 
 		/* computing missing distance */
-		vec2 dir = normalize(eData1.zw - eData2.xy);
-		e.z = distToEdge(eData1.zw, dir);
+		vec2 dir = normalize(eData2.zw - eData2.xy);
+		e.z = distToEdge(eData2.zw, dir);
 
-		p.x = distance(eData1.zw, gl_FragCoord.xy);
+		p.x = distance(eData2.zw, gl_FragCoord.xy);
 		p.y = distance(eData2.xy, gl_FragCoord.xy);
-		p.z = distance(eData2.zw, gl_FragCoord.xy);
+		p.z = distance(eData1.zw, gl_FragCoord.xy);
 	}
 	else {
 		ivec3 eidxs = clipEdgeIdx[clipCase - 1];
