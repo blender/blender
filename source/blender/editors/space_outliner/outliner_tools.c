@@ -2006,7 +2006,7 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 				else if (datalevel == TSE_MODIFIER) {
 					WM_operator_name_call(C, "OUTLINER_OT_modifier_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 				}
-				else if (datalevel == TSE_COLLECTION) {
+				else if (datalevel == TSE_LAYER_COLLECTION) {
 					WM_operator_name_call(C, "OUTLINER_OT_collection_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 				}
 				else {

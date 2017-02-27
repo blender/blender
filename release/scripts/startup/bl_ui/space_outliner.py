@@ -60,13 +60,14 @@ class OUTLINER_HT_header(Header):
         elif space.display_mode == 'ORPHAN_DATA':
             layout.operator("outliner.orphans_purge")
 
-        elif space.display_mode == 'ACT_LAYER':
+        elif space.display_mode in {'ACT_LAYER', 'COLLECTIONS'}:
             row = layout.row(align=True)
 
             row.operator("outliner.collection_new", text="", icon='NEW')
-            row.operator("outliner.collection_override_new", text="", icon='LINK_AREA')
-            row.operator("outliner.collection_link", text="", icon='LINKED')
-            row.operator("outliner.collection_unlink", text="", icon='UNLINKED')
+            if space.display_mode == 'ACT_LAYER':
+                row.operator("outliner.collection_override_new", text="", icon='LINK_AREA')
+                row.operator("outliner.collection_link", text="", icon='LINKED')
+                row.operator("outliner.collection_unlink", text="", icon='UNLINKED')
             row.operator("outliner.collection_delete", text="", icon='X')
 
 

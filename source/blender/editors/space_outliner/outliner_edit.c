@@ -307,6 +307,8 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 static void do_item_rename(const Scene *scene, ARegion *ar, TreeElement *te, TreeStoreElem *tselem,
                            ReportList *reports)
 {
+	bool add_textbut = false;
+
 	/* can't rename rna datablocks entries or listbases */
 	if (ELEM(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE)) {
 		/* do nothing */;
@@ -319,10 +321,17 @@ static void do_item_rename(const Scene *scene, ARegion *ar, TreeElement *te, Tre
 	else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
 	}
-	else if ((tselem->type == TSE_COLLECTION) &&
-	         (((LayerCollection *)te->directdata)->scene_collection == BKE_collection_master(scene)))
-	{
-		BKE_report(reports, RPT_WARNING, "Cannot edit name of master collection");
+	else if (ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
+		SceneCollection *master = BKE_collection_master(scene);
+
+		if ((tselem->type == TSE_SCENE_COLLECTION && te->directdata == master) ||
+		    (((LayerCollection *)te->directdata)->scene_collection == master))
+		{
+			BKE_report(reports, RPT_WARNING, "Cannot edit name of master collection");
+		}
+		else {
+			add_textbut = true;
+		}
 	}
 	else if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
@@ -331,6 +340,10 @@ static void do_item_rename(const Scene *scene, ARegion *ar, TreeElement *te, Tre
 		BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
 	}
 	else {
+		add_textbut = true;
+	}
+
+	if (add_textbut) {
 		tselem->flag |= TSE_TEXTBUT;
 		ED_region_tag_redraw(ar);
 	}

@@ -908,7 +908,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 
 	/* exceptions */
-	if (ELEM(type, TSE_ID_BASE, TSE_COLLECTION)) {
+	if (ELEM(type, TSE_ID_BASE, TSE_LAYER_COLLECTION)) {
 		/* pass */
 	}
 	else if (id == NULL) {
@@ -945,7 +945,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	else if (type == TSE_GP_LAYER) {
 		/* pass */
 	}
-	else if (type == TSE_COLLECTION) {
+	else if (ELEM(type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
 		/* pass */
 	}
 	else if (type == TSE_ID_BASE) {
@@ -1386,11 +1386,11 @@ static void outliner_collections_reorder(const Scene *scene, TreeElement *insert
 	BKE_layer_collection_reinsert_after(scene, sl, insert_coll, insert_after_coll);
 }
 
-static void outliner_add_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
-                                               ListBase *layer_collections, TreeElement *parent_ten)
+static void outliner_add_layer_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
+                                                     ListBase *layer_collections, TreeElement *parent_ten)
 {
 	for (LayerCollection *collection = layer_collections->first; collection; collection = collection->next) {
-		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_COLLECTION, 0);
+		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_LAYER_COLLECTION, 0);
 
 		ten->name = collection->scene_collection->name;
 		ten->directdata = collection;
@@ -1401,13 +1401,42 @@ static void outliner_add_collections_recursive(SpaceOops *soops, ListBase *tree,
 		}
 		outliner_make_hierarchy(&ten->subtree);
 
-		outliner_add_collections_recursive(soops, &ten->subtree, scene, &collection->layer_collections, ten);
+		outliner_add_layer_collections_recursive(soops, &ten->subtree, scene, &collection->layer_collections, ten);
 	}
 }
-
 static void outliner_add_collections_act_layer(SpaceOops *soops, SceneLayer *layer, Scene *scene)
 {
-	outliner_add_collections_recursive(soops, &soops->tree, scene, &layer->layer_collections, NULL);
+	outliner_add_layer_collections_recursive(soops, &soops->tree, scene, &layer->layer_collections, NULL);
+}
+
+static void outliner_add_scene_collection_init(TreeElement *te, SceneCollection *collection)
+{
+	te->name = collection->name;
+	te->directdata = collection;
+}
+
+static void outliner_add_scene_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
+                                                     ListBase *scene_collections, TreeElement *parent_ten)
+{
+	for (SceneCollection *collection = scene_collections->first; collection; collection = collection->next) {
+		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_SCENE_COLLECTION, 0);
+
+		outliner_add_scene_collection_init(ten, collection);
+		for (LinkData *link = collection->objects.first; link; link = link->next) {
+			outliner_add_element(soops, &ten->subtree, link->data, NULL, 0, 0);
+		}
+		outliner_make_hierarchy(&ten->subtree);
+
+		outliner_add_scene_collections_recursive(soops, &ten->subtree, scene, &collection->scene_collections, ten);
+	}
+}
+static void outliner_add_collections_master(SpaceOops *soops, Scene *scene)
+{
+	SceneCollection *master = BKE_collection_master(scene);
+	TreeElement *ten = outliner_add_element(soops, &soops->tree, scene, NULL, TSE_SCENE_COLLECTION, 0);
+
+	outliner_add_scene_collection_init(ten, master);
+	outliner_add_scene_collections_recursive(soops, &ten->subtree, scene, &master->scene_collections, ten);
 }
 
 /* ======================================================= */
@@ -1865,6 +1894,9 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 	}
 	else if (soops->outlinevis == SO_ACT_LAYER) {
 		outliner_add_collections_act_layer(soops, BKE_scene_layer_context_active(scene), scene);
+	}
+	else if (soops->outlinevis == SO_COLLECTIONS) {
+		outliner_add_collections_master(soops, scene);
 	}
 	else {
 		ten = outliner_add_element(soops, &soops->tree, OBACT_NEW, NULL, 0, 0);

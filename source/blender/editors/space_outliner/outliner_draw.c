@@ -569,7 +569,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				UI_block_emboss_set(block, UI_EMBOSS);
 			}
-			else if (tselem->type == TSE_COLLECTION) {
+			else if (tselem->type == TSE_LAYER_COLLECTION) {
 				LayerCollection *collection = te->directdata;
 
 				UI_block_emboss_set(block, UI_EMBOSS_NONE);
