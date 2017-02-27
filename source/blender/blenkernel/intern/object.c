@@ -1176,6 +1176,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 
 	BLI_listbase_clear(&obn->gpulamp);
 	BLI_listbase_clear(&obn->pc_ids);
+	BLI_listbase_clear(&obn->collection_settings);
 
 	obn->mpath = NULL;
 
