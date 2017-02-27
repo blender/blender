@@ -2294,3 +2294,63 @@ void OBJECT_OT_laplaciandeform_bind(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
+
+/************************ sdef bind operator *********************/
+
+static int surfacedeform_bind_poll(bContext *C)
+{
+	if (edit_modifier_poll_generic(C, &RNA_SurfaceDeformModifier, 0)) {
+		PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_SurfaceDeformModifier);
+		SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)ptr.data;
+
+		return ((smd != NULL) && (smd->target != NULL));
+	}
+
+	return 0;
+}
+
+static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_active_context(C);
+	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_SurfaceDeform);
+
+	if (!smd)
+		return OPERATOR_CANCELLED;
+
+	if (smd->flags & MOD_SDEF_BIND) {
+		smd->flags &= ~MOD_SDEF_BIND;
+	}
+	else if (smd->target) {
+		smd->flags |= MOD_SDEF_BIND;
+	}
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+static int surfacedeform_bind_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	if (edit_modifier_invoke_properties(C, op))
+		return surfacedeform_bind_exec(C, op);
+	else
+		return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_surfacedeform_bind(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Surface Deform Bind";
+	ot->description = "Bind mesh to target in surface deform modifier";
+	ot->idname = "OBJECT_OT_surfacedeform_bind";
+
+	/* api callbacks */
+	ot->poll = surfacedeform_bind_poll;
+	ot->invoke = surfacedeform_bind_invoke;
+	ot->exec = surfacedeform_bind_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+	edit_modifier_properties(ot);
+}
