@@ -411,6 +411,7 @@ static void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
 		}
 	}
 
+	mesh->resize_mesh(mesh->verts.size(), mesh->triangles.size());
 	mesh->attributes.remove(ATTR_STD_VERTEX_NORMAL);
 	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	mesh->add_face_normals();
@@ -434,8 +435,8 @@ static void ExportCurveTriangleGeometry(Mesh *mesh,
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
-			numverts += (CData->curve_keynum[curve] - 2)*2*resolution + resolution;
-			numtris += (CData->curve_keynum[curve] - 2)*resolution;
+			numverts += (CData->curve_keynum[curve] - 1)*resolution + resolution;
+			numtris += (CData->curve_keynum[curve] - 1)*2*resolution;
 		}
 	}
 
@@ -545,6 +546,7 @@ static void ExportCurveTriangleGeometry(Mesh *mesh,
 		}
 	}
 
+	mesh->resize_mesh(mesh->verts.size(), mesh->triangles.size());
 	mesh->attributes.remove(ATTR_STD_VERTEX_NORMAL);
 	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	mesh->add_face_normals();
@@ -890,7 +892,7 @@ void BlenderSync::sync_curves(Mesh *mesh,
 	}
 
 	/* obtain general settings */
-	bool use_curves = scene->curve_system_manager->use_curves;
+	const bool use_curves = scene->curve_system_manager->use_curves;
 
 	if(!(use_curves && b_ob.mode() != b_ob.mode_PARTICLE_EDIT)) {
 		if(!motion)
@@ -898,11 +900,11 @@ void BlenderSync::sync_curves(Mesh *mesh,
 		return;
 	}
 
-	int primitive = scene->curve_system_manager->primitive;
-	int triangle_method = scene->curve_system_manager->triangle_method;
-	int resolution = scene->curve_system_manager->resolution;
-	size_t vert_num = mesh->verts.size();
-	size_t tri_num = mesh->num_triangles();
+	const int primitive = scene->curve_system_manager->primitive;
+	const int triangle_method = scene->curve_system_manager->triangle_method;
+	const int resolution = scene->curve_system_manager->resolution;
+	const size_t vert_num = mesh->verts.size();
+	const size_t tri_num = mesh->num_triangles();
 	int used_res = 1;
 
 	/* extract particle hair data - should be combined with connecting to mesh later*/

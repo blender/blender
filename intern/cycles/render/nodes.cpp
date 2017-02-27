@@ -27,6 +27,7 @@
 
 #include "util_sky_model.h"
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_transform.h"
 
 CCL_NAMESPACE_BEGIN
@@ -1931,21 +1932,38 @@ GlossyBsdfNode::GlossyBsdfNode()
 void GlossyBsdfNode::simplify_settings(Scene *scene)
 {
 	if(distribution_orig == NBUILTIN_CLOSURES) {
+		roughness_orig = roughness;
 		distribution_orig = distribution;
 	}
+	else {
+		/* By default we use original values, so we don't worry about restoring
+		 * defaults later one and can only do override when needed.
+		 */
+		roughness = roughness_orig;
+		distribution = distribution_orig;
+	}
 	Integrator *integrator = scene->integrator;
+	ShaderInput *roughness_input = input("Roughness");
 	if(integrator->filter_glossy == 0.0f) {
 		/* Fallback to Sharp closure for Roughness close to 0.
 		 * Note: Keep the epsilon in sync with kernel!
 		 */
-		ShaderInput *roughness_input = input("Roughness");
 		if(!roughness_input->link && roughness <= 1e-4f) {
+			VLOG(1) << "Using sharp glossy BSDF.";
 			distribution = CLOSURE_BSDF_REFLECTION_ID;
 		}
 	}
 	else {
-		/* Rollback to original distribution when filter glossy is used. */
-		distribution = distribution_orig;
+		/* If filter glossy is used we replace Sharp glossy with GGX so we can
+		 * benefit from closure blur to remove unwanted noise.
+		 */
+		if(roughness_input->link == NULL &&
+		   distribution == CLOSURE_BSDF_REFLECTION_ID)
+		{
+			VLOG(1) << "Using GGX glossy with filter glossy.";
+			distribution = CLOSURE_BSDF_MICROFACET_GGX_ID;
+			roughness = 0.0f;
+		}
 	}
 	closure = distribution;
 }
@@ -1953,7 +1971,8 @@ void GlossyBsdfNode::simplify_settings(Scene *scene)
 bool GlossyBsdfNode::has_integrator_dependency()
 {
 	ShaderInput *roughness_input = input("Roughness");
-	return !roughness_input->link && roughness <= 1e-4f;
+	return !roughness_input->link &&
+	       (distribution == CLOSURE_BSDF_REFLECTION_ID || roughness <= 1e-4f);
 }
 
 void GlossyBsdfNode::compile(SVMCompiler& compiler)
@@ -2008,21 +2027,38 @@ GlassBsdfNode::GlassBsdfNode()
 void GlassBsdfNode::simplify_settings(Scene *scene)
 {
 	if(distribution_orig == NBUILTIN_CLOSURES) {
+		roughness_orig = roughness;
 		distribution_orig = distribution;
 	}
+	else {
+		/* By default we use original values, so we don't worry about restoring
+		 * defaults later one and can only do override when needed.
+		 */
+		roughness = roughness_orig;
+		distribution = distribution_orig;
+	}
 	Integrator *integrator = scene->integrator;
+	ShaderInput *roughness_input = input("Roughness");
 	if(integrator->filter_glossy == 0.0f) {
 		/* Fallback to Sharp closure for Roughness close to 0.
 		 * Note: Keep the epsilon in sync with kernel!
 		 */
-		ShaderInput *roughness_input = input("Roughness");
 		if(!roughness_input->link && roughness <= 1e-4f) {
+			VLOG(1) << "Using sharp glass BSDF.";
 			distribution = CLOSURE_BSDF_SHARP_GLASS_ID;
 		}
 	}
 	else {
-		/* Rollback to original distribution when filter glossy is used. */
-		distribution = distribution_orig;
+		/* If filter glossy is used we replace Sharp glossy with GGX so we can
+		 * benefit from closure blur to remove unwanted noise.
+		 */
+		if(roughness_input->link == NULL &&
+		   distribution == CLOSURE_BSDF_SHARP_GLASS_ID)
+		{
+			VLOG(1) << "Using GGX glass with filter glossy.";
+			distribution = CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID;
+			roughness = 0.0f;
+		}
 	}
 	closure = distribution;
 }
@@ -2030,7 +2066,8 @@ void GlassBsdfNode::simplify_settings(Scene *scene)
 bool GlassBsdfNode::has_integrator_dependency()
 {
 	ShaderInput *roughness_input = input("Roughness");
-	return !roughness_input->link && roughness <= 1e-4f;
+	return !roughness_input->link &&
+	       (distribution == CLOSURE_BSDF_SHARP_GLASS_ID || roughness <= 1e-4f);
 }
 
 void GlassBsdfNode::compile(SVMCompiler& compiler)
@@ -2085,21 +2122,38 @@ RefractionBsdfNode::RefractionBsdfNode()
 void RefractionBsdfNode::simplify_settings(Scene *scene)
 {
 	if(distribution_orig == NBUILTIN_CLOSURES) {
+		roughness_orig = roughness;
 		distribution_orig = distribution;
 	}
+	else {
+		/* By default we use original values, so we don't worry about restoring
+		 * defaults later one and can only do override when needed.
+		 */
+		roughness = roughness_orig;
+		distribution = distribution_orig;
+	}
 	Integrator *integrator = scene->integrator;
+	ShaderInput *roughness_input = input("Roughness");
 	if(integrator->filter_glossy == 0.0f) {
 		/* Fallback to Sharp closure for Roughness close to 0.
 		 * Note: Keep the epsilon in sync with kernel!
 		 */
-		ShaderInput *roughness_input = input("Roughness");
 		if(!roughness_input->link && roughness <= 1e-4f) {
+			VLOG(1) << "Using sharp refraction BSDF.";
 			distribution = CLOSURE_BSDF_REFRACTION_ID;
 		}
 	}
 	else {
-		/* Rollback to original distribution when filter glossy is used. */
-		distribution = distribution_orig;
+		/* If filter glossy is used we replace Sharp glossy with GGX so we can
+		 * benefit from closure blur to remove unwanted noise.
+		 */
+		if(roughness_input->link == NULL &&
+		   distribution == CLOSURE_BSDF_REFRACTION_ID)
+		{
+			VLOG(1) << "Using GGX refraction with filter glossy.";
+			distribution = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+			roughness = 0.0f;
+		}
 	}
 	closure = distribution;
 }
@@ -2107,7 +2161,8 @@ void RefractionBsdfNode::simplify_settings(Scene *scene)
 bool RefractionBsdfNode::has_integrator_dependency()
 {
 	ShaderInput *roughness_input = input("Roughness");
-	return !roughness_input->link && roughness <= 1e-4f;
+	return !roughness_input->link &&
+	       (distribution == CLOSURE_BSDF_REFRACTION_ID || roughness <= 1e-4f);
 }
 
 void RefractionBsdfNode::compile(SVMCompiler& compiler)

@@ -65,6 +65,7 @@
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
+#include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
@@ -1366,7 +1367,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		ob->proxy = NULL;
 
 		ob->parent = NULL;
-		BLI_listbase_clear(&ob->constraints);
+		BKE_constraints_free(&ob->constraints);
 		ob->curve_cache = NULL;
 		ob->transflag &= ~OB_DUPLI;
 

@@ -222,7 +222,7 @@ typedef uint64_t hash_key;
 
 typedef struct BArrayInfo {
 	size_t chunk_stride;
-	uint chunk_count;
+	// uint chunk_count;  /* UNUSED (other values are derived from this) */
 
 	/* pre-calculated */
 	size_t chunk_byte_size;
@@ -425,12 +425,12 @@ static void bchunk_list_decref(
 static size_t bchunk_list_data_check(
         const BChunkList *chunk_list, const uchar *data)
 {
-	size_t total_size = 0;
+	size_t offset = 0;
 	for (BChunkRef *cref = chunk_list->chunk_refs.first; cref; cref = cref->next) {
-		if (memcmp(&data[total_size], cref->link->data, cref->link->data_len) != 0) {
+		if (memcmp(&data[offset], cref->link->data, cref->link->data_len) != 0) {
 			return false;
 		}
-		total_size += cref->link->data_len;
+		offset += cref->link->data_len;
 	}
 	return true;
 }
@@ -598,7 +598,6 @@ static void bchunk_list_append_data(
 {
 	BLI_assert(data_len != 0);
 
-	// printf("data_len: %d\n", data_len);
 #ifdef USE_MERGE_CHUNKS
 	BLI_assert(data_len <= info->chunk_byte_size_max);
 
@@ -636,7 +635,7 @@ static void bchunk_list_append_data(
 	/* don't run this, instead preemptively avoid creating a chunk only to merge it (above). */
 #if 0
 #ifdef USE_MERGE_CHUNKS
-	bchunk_list_ensure_min_size_last(info, bs_mem, chunk_list, chunk_size_min);
+	bchunk_list_ensure_min_size_last(info, bs_mem, chunk_list);
 #endif
 #endif
 }
@@ -874,7 +873,7 @@ static void hash_accum_single(hash_key *hash_array, const size_t hash_array_len,
 
 static hash_key key_from_chunk_ref(
         const BArrayInfo *info, const BChunkRef *cref,
-        /* avoid reallicating each time */
+        /* avoid reallocating each time */
         hash_key *hash_store, const size_t hash_store_len)
 {
 	/* in C, will fill in a reusable array */
@@ -896,7 +895,7 @@ static hash_key key_from_chunk_ref(
 			key = hash_store[0];
 
 			/* cache the key */
-			if (key == HASH_TABLE_KEY_UNSET) {
+			if (UNLIKELY(key == HASH_TABLE_KEY_UNSET)) {
 				key = HASH_TABLE_KEY_FALLBACK;
 			}
 			chunk->key = key;
@@ -931,7 +930,7 @@ static const BChunkRef *table_lookup(
 	size_t size_left = data_len - offset;
 	hash_key key = table_hash_array[((offset - i_table_start) / info->chunk_stride)];
 	size_t key_index = (size_t)(key % (hash_key)table_len);
-	for (BTableRef *tref = table[key_index]; tref; tref = tref->next) {
+	for (const BTableRef *tref = table[key_index]; tref; tref = tref->next) {
 		const BChunkRef *cref = tref->cref;
 #ifdef USE_HASH_TABLE_KEY_CACHE
 		if (cref->link->key == key)
@@ -1039,10 +1038,8 @@ static BChunkList *bchunk_list_from_data_merge(
 	size_t i_prev = 0;
 
 #ifdef USE_FASTPATH_CHUNKS_FIRST
-	bool full_match = false;
-
 	{
-		full_match = true;
+		bool full_match = true;
 
 		const BChunkRef *cref = chunk_list_reference->chunk_refs.first;
 		while (i_prev < data_len_original) {
@@ -1430,7 +1427,7 @@ BArrayStore *BLI_array_store_create(
 	BArrayStore *bs = MEM_callocN(sizeof(BArrayStore), __func__);
 
 	bs->info.chunk_stride = stride;
-	bs->info.chunk_count = chunk_count;
+	// bs->info.chunk_count = chunk_count;
 
 	bs->info.chunk_byte_size = chunk_count * stride;
 #ifdef USE_MERGE_CHUNKS

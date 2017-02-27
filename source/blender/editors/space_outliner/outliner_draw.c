@@ -944,6 +944,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						ICON_DRAW(ICON_MOD_CAST);
 						break;
 					case eModifierType_MeshDeform:
+					case eModifierType_SurfaceDeform:
 						ICON_DRAW(ICON_MOD_MESHDEFORM);
 						break;
 					case eModifierType_Bevel:

@@ -87,6 +87,8 @@ typedef struct SnapObjectData {
 typedef struct SnapObjectData_Mesh {
 	SnapObjectData sd;
 	BVHTreeFromMesh *bvh_trees[3];
+	MPoly *mpoly;
+	bool poly_allocated;
 
 } SnapObjectData_Mesh;
 
@@ -1173,6 +1175,29 @@ static bool snapDerivedMesh(
 			if (treedata->cached && !bvhcache_has_tree(dm->bvhCache, treedata->tree)) {
 				free_bvhtree_from_mesh(treedata);
 			}
+			else {
+				if (!treedata->vert_allocated) {
+					treedata->vert = DM_get_vert_array(dm, &treedata->vert_allocated);
+				}
+				if ((tree_index == 1) && !treedata->edge_allocated) {
+					treedata->edge = DM_get_edge_array(dm, &treedata->vert_allocated);
+				}
+				if (tree_index == 2) {
+					if (!treedata->loop_allocated) {
+						treedata->loop = DM_get_loop_array(dm, &treedata->loop_allocated);
+					}
+					if (!treedata->looptri_allocated) {
+						if (!sod->poly_allocated) {
+							sod->mpoly = DM_get_poly_array(dm, &sod->poly_allocated);
+						}
+						treedata->looptri = DM_get_looptri_array(
+						        dm, treedata->vert,
+						        sod->mpoly, dm->getNumPolys(dm),
+						        treedata->loop, dm->getNumLoops(dm),
+						        &treedata->looptri_allocated);
+					}
+				}
+			}
 		}
 	}
 
@@ -1854,6 +1879,9 @@ static void snap_object_data_free(void *sod_v)
 				if (sod->bvh_trees[i]) {
 					free_bvhtree_from_mesh(sod->bvh_trees[i]);
 				}
+			}
+			if (sod->poly_allocated) {
+				MEM_freeN(sod->mpoly);
 			}
 			break;
 		}

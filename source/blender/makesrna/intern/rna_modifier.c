@@ -105,6 +105,7 @@ EnumPropertyItem rna_enum_object_modifier_type_items[] = {
 	{eModifierType_Shrinkwrap, "SHRINKWRAP", ICON_MOD_SHRINKWRAP, "Shrinkwrap", ""},
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
+	{eModifierType_SurfaceDeform, "SURFACE_DEFORM", ICON_MOD_MESHDEFORM, "Surface Deform", ""},
 	{eModifierType_Warp, "WARP", ICON_MOD_WARP, "Warp", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
 	{0, "", 0, N_("Simulate"), ""},
@@ -408,6 +409,8 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_CorrectiveSmoothModifier;
 		case eModifierType_MeshSequenceCache:
 			return &RNA_MeshSequenceCacheModifier;
+		case eModifierType_SurfaceDeform:
+			return &RNA_SurfaceDeformModifier;
 		/* Default */
 		case eModifierType_None:
 		case eModifierType_ShapeKey:
@@ -573,6 +576,7 @@ RNA_MOD_OBJECT_SET(MeshDeform, object, OB_MESH);
 RNA_MOD_OBJECT_SET(NormalEdit, target, OB_EMPTY);
 RNA_MOD_OBJECT_SET(Shrinkwrap, target, OB_MESH);
 RNA_MOD_OBJECT_SET(Shrinkwrap, auxTarget, OB_MESH);
+RNA_MOD_OBJECT_SET(SurfaceDeform, target, OB_MESH);
 
 static void rna_HookModifier_object_set(PointerRNA *ptr, PointerRNA value)
 {
@@ -1129,6 +1133,11 @@ static int rna_CorrectiveSmoothModifier_is_bind_get(PointerRNA *ptr)
 {
 	CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)ptr->data;
 	return (csmd->bind_coords != NULL);
+}
+
+static int rna_SurfaceDeformModifier_is_bound_get(PointerRNA *ptr)
+{
+	return (((SurfaceDeformModifierData *)ptr->data)->verts != NULL);
 }
 
 static void rna_MeshSequenceCache_object_path_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -4702,6 +4711,33 @@ static void rna_def_modifier_normaledit(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
+static void rna_def_modifier_surfacedeform(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "SurfaceDeformModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "SurfaceDeform Modifier", "blablabla");
+	RNA_def_struct_sdna(srna, "SurfaceDeformModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_MESHDEFORM);
+
+	prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Target", "Mesh object to deform with");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SurfaceDeformModifier_target_set", NULL, "rna_Mesh_object_poll");
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 2.0f, 16.0f);
+	RNA_def_property_ui_text(prop, "Interpolation falloff", "Controls how much nearby polygons influence deformation");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "is_bound", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SurfaceDeformModifier_is_bound_get", NULL);
+	RNA_def_property_ui_text(prop, "Bound", "Whether geometry has been bound to target mesh");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -4819,6 +4855,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_datatransfer(brna);
 	rna_def_modifier_normaledit(brna);
 	rna_def_modifier_meshseqcache(brna);
+	rna_def_modifier_surfacedeform(brna);
 }
 
 #endif

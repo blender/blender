@@ -1837,6 +1837,32 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				writedata(wd, DATA, sizeof(float[3]) * csmd->bind_coords_num, csmd->bind_coords);
 			}
 		}
+		else if (md->type == eModifierType_SurfaceDeform) {
+			SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+
+			writestruct(wd, DATA, SDefVert, smd->numverts, smd->verts);
+
+			if (smd->verts) {
+				for (int i = 0; i < smd->numverts; i++) {
+					writestruct(wd, DATA, SDefBind, smd->verts[i].numbinds, smd->verts[i].binds);
+
+					if (smd->verts[i].binds) {
+						for (int j = 0; j < smd->verts[i].numbinds; j++) {
+							writedata(wd, DATA, sizeof(int) * smd->verts[i].binds[j].numverts, smd->verts[i].binds[j].vert_inds);
+
+							if (smd->verts[i].binds[j].mode == MOD_SDEF_MODE_CENTROID ||
+							    smd->verts[i].binds[j].mode == MOD_SDEF_MODE_LOOPTRI)
+							{
+								writedata(wd, DATA, sizeof(float) * 3, smd->verts[i].binds[j].vert_weights);
+							}
+							else {
+								writedata(wd, DATA, sizeof(float) * smd->verts[i].binds[j].numverts, smd->verts[i].binds[j].vert_weights);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
 

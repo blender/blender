@@ -1991,6 +1991,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 		case UICURVE_FUNC_HANDLE_AUTO_ANIM: /* set auto-clamped */
 			curvemap_handle_set(cuma, HD_AUTO_ANIM);
 			curvemapping_changed(cumap, false);
+			break;
 		case UICURVE_FUNC_EXTEND_HOZ: /* extend horiz */
 			cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 			curvemapping_changed(cumap, false);

@@ -93,6 +93,7 @@ set(SRC
 	intern/MOD_solidify.c
 	intern/MOD_subsurf.c
 	intern/MOD_surface.c
+	intern/MOD_surfacedeform.c
 	intern/MOD_triangulate.c
 	intern/MOD_util.c
 	intern/MOD_uvwarp.c
