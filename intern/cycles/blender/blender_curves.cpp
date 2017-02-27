@@ -434,8 +434,8 @@ static void ExportCurveTriangleGeometry(Mesh *mesh,
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
-			numverts += (CData->curve_keynum[curve] - 2)*2*resolution + resolution;
-			numtris += (CData->curve_keynum[curve] - 2)*resolution;
+			numverts += (CData->curve_keynum[curve] - 1)*resolution + resolution;
+			numtris += (CData->curve_keynum[curve] - 1)*2*resolution;
 		}
 	}
 
