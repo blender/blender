@@ -5361,8 +5361,12 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		if (mmd)
 			multires_force_update(ob);
 
-		if (flush_recalc || (ob->sculpt && ob->sculpt->bm))
+		/* Always for now, so leaving sculpt mode always ensures scene is in
+		 * a consistent state.
+		 */
+		if (true || flush_recalc || (ob->sculpt && ob->sculpt->bm)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
 
 		if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
 			/* Dynamic topology must be disabled before exiting sculpt
