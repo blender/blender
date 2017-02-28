@@ -55,10 +55,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_basic_shader.h"
 #include "GPU_immediate.h"
 
 #include "ED_anim_api.h"

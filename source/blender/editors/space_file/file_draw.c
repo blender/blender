@@ -42,7 +42,6 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "BKE_context.h"
@@ -71,8 +70,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-//#include "GPU_draw.h"
-//#include "GPU_basic_shader.h"
 #include "GPU_immediate.h"
 
 #include "filelist.h"

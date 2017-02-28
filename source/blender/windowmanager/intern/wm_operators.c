@@ -86,8 +86,10 @@
 
 #include "BKE_idcode.h"
 
-#include "BIF_glutil.h" /* for paint cursor */
 #include "BLF_api.h"
+
+#include "BIF_glutil.h" /* for paint cursor */
+#include "GPU_immediate.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -96,9 +98,6 @@
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
-
-#include "GPU_basic_shader.h"
-#include "GPU_immediate.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -52,8 +52,6 @@
 
 #include "ED_screen.h"
 
-#include "GPU_glew.h"
-#include "GPU_basic_shader.h"
 #include "GPU_immediate.h"
 
 #include "WM_api.h"

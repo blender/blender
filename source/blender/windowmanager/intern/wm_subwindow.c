@@ -47,9 +47,6 @@
 
 #include "BIF_gl.h"
 
-#include "GPU_extensions.h"
-#include "GPU_basic_shader.h"
-
 #include "WM_api.h"
 #include "wm_subwindow.h"
 

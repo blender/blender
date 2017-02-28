@@ -50,13 +50,10 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_colormanagement.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "BLF_api.h"
 
-#include "GPU_draw.h"
-#include "GPU_basic_shader.h"
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
