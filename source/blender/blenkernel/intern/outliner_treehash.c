@@ -27,6 +27,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "BKE_outliner_treehash.h"
 
@@ -56,7 +57,7 @@ static TseGroup *tse_group_create(void)
 	return tse_group;
 }
 
-static void tse_group_add(TseGroup *tse_group, TreeStoreElem *elem)
+static void tse_group_add_element(TseGroup *tse_group, TreeStoreElem *elem)
 {
 	if (UNLIKELY(tse_group->size == tse_group->allocated)) {
 		tse_group->allocated *= 2;
@@ -64,6 +65,26 @@ static void tse_group_add(TseGroup *tse_group, TreeStoreElem *elem)
 	}
 	tse_group->elems[tse_group->size] = elem;
 	tse_group->size++;
+}
+
+static void tse_group_remove_element(TseGroup *tse_group, TreeStoreElem *elem)
+{
+	int min_allocated = MAX2(1, tse_group->allocated / 2);
+	BLI_assert(tse_group->allocated == 1 || (tse_group->allocated % 2) == 0);
+
+	tse_group->size--;
+	BLI_assert(tse_group->size >= 0);
+	for (int i = 0; i < tse_group->size; i++) {
+		if (tse_group->elems[i] == elem) {
+			memcpy(tse_group->elems[i], tse_group->elems[i + 1], (tse_group->size - (i + 1)) * sizeof(TreeStoreElem *));
+			break;
+		}
+	}
+
+	if (UNLIKELY(tse_group->size > 0 && tse_group->size <= min_allocated)) {
+		tse_group->allocated = min_allocated;
+		tse_group->elems = MEM_reallocN(tse_group->elems, sizeof(TreeStoreElem *) * tse_group->allocated);
+	}
 }
 
 static void tse_group_free(TseGroup *tse_group)
@@ -140,7 +161,21 @@ void BKE_outliner_treehash_add_element(void *treehash, TreeStoreElem *elem)
 		*val_p = tse_group_create();
 	}
 	group = *val_p;
-	tse_group_add(group, elem);
+	tse_group_add_element(group, elem);
+}
+
+void BKE_outliner_treehash_remove_element(void *treehash, TreeStoreElem *elem)
+{
+	TseGroup *group = BLI_ghash_lookup(treehash, elem);
+
+	BLI_assert(group != NULL);
+	if (group->size <= 1) {
+		/* one element -> remove group completely */
+		BLI_ghash_remove(treehash, elem, NULL, free_treehash_group);
+	}
+	else {
+		tse_group_remove_element(group, elem);
+	}
 }
 
 static TseGroup *BKE_outliner_treehash_lookup_group(GHash *th, short type, short nr, struct ID *id)

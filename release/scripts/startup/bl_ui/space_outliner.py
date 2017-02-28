@@ -68,7 +68,7 @@ class OUTLINER_HT_header(Header):
                 row.operator("outliner.collection_override_new", text="", icon='LINK_AREA')
                 row.operator("outliner.collection_link", text="", icon='LINKED')
                 row.operator("outliner.collection_unlink", text="", icon='UNLINKED')
-            row.operator("outliner.collection_delete", text="", icon='X')
+            row.operator("outliner.collections_delete", text="", icon='X')
 
 
 class OUTLINER_MT_editor_menus(Menu):

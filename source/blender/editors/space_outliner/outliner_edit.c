@@ -198,6 +198,50 @@ TreeElement *outliner_find_item_at_x_in_row(const SpaceOops *soops, const TreeEl
 	return (TreeElement *)parent_te;
 }
 
+/**
+ * Iterate over all tree elements (pre-order traversal), executing \a func callback for
+ * each tree element matching the optional filters.
+ *
+ * \param filter_te_flag: If not 0, only TreeElements with this flag will be visited.
+ * \param filter_tselem_flag: Same as \a filter_te_flag, but for the TreeStoreElem.
+ * \param func: Custom callback to execute for each visited item.
+ */
+bool outliner_tree_traverse(const SpaceOops *soops, ListBase *tree, int filter_te_flag, int filter_tselem_flag,
+                            TreeTraversalFunc func, void *customdata)
+{
+	for (TreeElement *te = tree->first, *te_next; te; te = te_next) {
+		TreeTraversalReturn func_retval = TRAVERSE_CONTINUE;
+		/* in case te is freed in callback */
+		TreeStoreElem *tselem = TREESTORE(te);
+		ListBase subtree = te->subtree;
+		te_next = te->next;
+
+		if (filter_te_flag && (te->flag & filter_te_flag) == 0) {
+			/* skip */
+		}
+		else if (filter_tselem_flag && (tselem->flag & filter_tselem_flag) == 0) {
+			/* skip */
+		}
+		else {
+			func_retval = func(te, customdata);
+		}
+		/* Don't access te or tselem from now on! Might've been freed... */
+
+		if (func_retval == TRAVERSE_BREAK) {
+			return false;
+		}
+
+		if (func_retval == TRAVERSE_SKIP_CHILDS) {
+			/* skip */
+		}
+		else if (!outliner_tree_traverse(soops, &subtree, filter_te_flag, filter_tselem_flag, func, customdata)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 
 /* ************************************************************** */
 

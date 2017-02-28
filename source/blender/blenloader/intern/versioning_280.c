@@ -32,6 +32,7 @@
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_genfile.h"
 
 #include "BKE_collection.h"

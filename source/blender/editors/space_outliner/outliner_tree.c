@@ -1240,6 +1240,15 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	return te;
 }
 
+/**
+ * \note Really only removes \a tselem, not it's TreeElement instance or any children.
+ */
+void outliner_remove_treestore_element(SpaceOops *soops, TreeStoreElem *tselem)
+{
+	BKE_outliner_treehash_remove_element(soops->treehash, tselem);
+	BLI_mempool_free(soops->treestore, tselem);
+}
+
 /* ======================================================= */
 /* Sequencer mode tree building */
 
@@ -1387,10 +1396,12 @@ static void outliner_collections_reorder(const Scene *scene, TreeElement *insert
 }
 
 static void outliner_add_layer_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
-                                                     ListBase *layer_collections, TreeElement *parent_ten)
+                                                     ListBase *layer_collections, TreeElement *parent_ten,
+                                                     int *io_collection_counter)
 {
 	for (LayerCollection *collection = layer_collections->first; collection; collection = collection->next) {
-		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_LAYER_COLLECTION, 0);
+		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_LAYER_COLLECTION,
+		                                        (*io_collection_counter)++);
 
 		ten->name = collection->scene_collection->name;
 		ten->directdata = collection;
@@ -1401,12 +1412,14 @@ static void outliner_add_layer_collections_recursive(SpaceOops *soops, ListBase 
 		}
 		outliner_make_hierarchy(&ten->subtree);
 
-		outliner_add_layer_collections_recursive(soops, &ten->subtree, scene, &collection->layer_collections, ten);
+		outliner_add_layer_collections_recursive(soops, &ten->subtree, scene, &collection->layer_collections, ten,
+		                                         io_collection_counter);
 	}
 }
 static void outliner_add_collections_act_layer(SpaceOops *soops, SceneLayer *layer, Scene *scene)
 {
-	outliner_add_layer_collections_recursive(soops, &soops->tree, scene, &layer->layer_collections, NULL);
+	int collection_counter = 0;
+	outliner_add_layer_collections_recursive(soops, &soops->tree, scene, &layer->layer_collections, NULL, &collection_counter);
 }
 
 static void outliner_add_scene_collection_init(TreeElement *te, SceneCollection *collection)

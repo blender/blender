@@ -54,12 +54,14 @@ static LayerCollection *outliner_collection_active(bContext *C)
 	return CTX_data_layer_collection(C);
 }
 
+#if 0
 static CollectionOverride *outliner_override_active(bContext *UNUSED(C))
 {
 	TODO_LAYER_OPERATORS;
 	TODO_LAYER_OVERRIDE;
 	return NULL;
 }
+#endif
 
 /* -------------------------------------------------------------------- */
 /* collection manager operators */
@@ -283,55 +285,61 @@ void OUTLINER_OT_collection_override_new(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/**
- * Returns true if selected element is a collection
- * or an override, but not a master collection
- */
-static int collection_delete_poll(bContext *C)
-{
-	LayerCollection *lc = outliner_collection_active(C);
+struct CollectionDeleteData {
+	Scene *scene;
+	SpaceOops *soops;
+};
 
-	if (lc == NULL) {
-		/* try override */
-		return outliner_override_active(C) ? 1 : 0;
+static TreeTraversalReturn collection_delete_cb(TreeElement *te, void *customdata)
+{
+	struct CollectionDeleteData *data = customdata;
+	TreeStoreElem *tselem = TREESTORE(te);
+	LayerCollection *lc = te->directdata;
+
+	if (tselem->type != TSE_LAYER_COLLECTION) {
+		/* skip */
+	}
+	else if (lc->scene_collection == BKE_collection_master(data->scene)) {
+		/* skip - showing warning/error message might be missleading
+		 * when deleting multiple collections, so just do nothing */
+	}
+	else {
+		/* XXX removing the treestore element shouldn't be done, it makes us loose information after
+		 * undo/file-read. We do need it here however, because non-ID elements don't have an ID pointer
+		 * that can be used to lookup the TreeStoreElem when recreating the TreeElement. This index
+		 * won't be correct after removing a collection from the list though.
+		 * This works as workaround, but having a proper way to find the TreeStoreElem for a recreated
+		 * TreeElement would be better. It could use an idname or the directdata pointer for that. */
+		outliner_remove_treestore_element(data->soops, tselem);
+		BKE_collection_remove(data->scene, lc->scene_collection);
 	}
 
-	return  (lc->scene_collection == BKE_collection_master(CTX_data_scene(C))) ? 0 : 1;
+	return TRAVERSE_CONTINUE;
 }
 
-static int collection_delete_exec(bContext *C, wmOperator *op)
+static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	LayerCollection *lc = outliner_collection_active(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	struct CollectionDeleteData data = {.scene = scene, .soops = soops};
 
 	TODO_LAYER_OVERRIDE; /* handle operators */
-
-	if (lc == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Active element is not a collection");
-		return OPERATOR_CANCELLED;
-	}
-
-	if (lc->scene_collection == BKE_collection_master(scene)) {
-		BKE_report(op->reports, RPT_ERROR, "You cannot delete the master collection, try unliking it instead");
-		return OPERATOR_CANCELLED;
-	}
-
-	BKE_collection_remove(scene, lc->scene_collection);
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_delete_cb, &data);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
-void OUTLINER_OT_collection_delete(wmOperatorType *ot)
+void OUTLINER_OT_collections_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete";
-	ot->idname = "OUTLINER_OT_collection_delete";
-	ot->description = "Delete active override or collection";
+	ot->idname = "OUTLINER_OT_collections_delete";
+	ot->description = "Delete selected overrides or collections";
 
 	/* api callbacks */
 	ot->exec = collection_delete_exec;
-	ot->poll = collection_delete_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

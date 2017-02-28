@@ -47,12 +47,24 @@ struct Object;
 struct bPoseChannel;
 struct EditBone;
 
+
+typedef enum TreeTraversalReturn {
+	/* Continue traversal regularly, don't skip children. */
+	TRAVERSE_CONTINUE = 0,
+	/* Stop traversal */
+	TRAVERSE_BREAK,
+	/* Continue traversal, but skip childs of traversed element */
+	TRAVERSE_SKIP_CHILDS,
+} TreeTraversalReturn;
+
 /**
  * Callback type for reinserting elements at a different position, used to allow user customizable element order.
  * Passing scene right now, may be better to allow some custom data.
  */
 typedef void (*TreeElementReinsertFunc)(const struct Scene *scene, struct TreeElement *insert_element,
                                         struct TreeElement *insert_after);
+typedef TreeTraversalReturn (*TreeTraversalFunc)(struct TreeElement *te, void *customdata);
+
 
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
@@ -150,6 +162,7 @@ typedef enum {
 
 void outliner_free_tree(ListBase *lb);
 void outliner_cleanup_tree(struct SpaceOops *soops);
+void outliner_remove_treestore_element(struct SpaceOops *soops, TreeStoreElem *tselem);
 
 TreeElement *outliner_find_tse(struct SpaceOops *soops, const TreeStoreElem *tse);
 TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
@@ -233,6 +246,9 @@ TreeElement *outliner_dropzone_find(const struct SpaceOops *soops, const float f
 TreeElement *outliner_find_item_at_y(const SpaceOops *soops, const ListBase *tree, float view_co_y);
 TreeElement *outliner_find_item_at_x_in_row(const SpaceOops *soops, const TreeElement *parent_te, float view_co_x);
 
+bool outliner_tree_traverse(const SpaceOops *soops, ListBase *tree, int filter_te_flag, int filter_tselem_flag,
+                            TreeTraversalFunc func, void *customdata);
+
 /* ...................................................... */
 
 void OUTLINER_OT_highlight_update(struct wmOperatorType *ot);
@@ -293,7 +309,7 @@ void outliner_keymap(struct wmKeyConfig *keyconf);
 
 /* outliner_collections.c */
 
-void OUTLINER_OT_collection_delete(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_delete(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_select(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_link(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_unlink(struct wmOperatorType *ot);
