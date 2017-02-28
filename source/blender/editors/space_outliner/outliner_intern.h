@@ -46,6 +46,7 @@ struct ID;
 struct Object;
 struct bPoseChannel;
 struct EditBone;
+struct wmKeyConfig;
 
 
 typedef enum TreeTraversalReturn {
@@ -164,13 +165,6 @@ void outliner_free_tree(ListBase *lb);
 void outliner_cleanup_tree(struct SpaceOops *soops);
 void outliner_remove_treestore_element(struct SpaceOops *soops, TreeStoreElem *tselem);
 
-TreeElement *outliner_find_tse(struct SpaceOops *soops, const TreeStoreElem *tse);
-TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
-TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, const struct ID *id);
-TreeElement *outliner_find_posechannel(ListBase *lb, const struct bPoseChannel *pchan);
-TreeElement *outliner_find_editbone(ListBase *lb, const struct EditBone *ebone);
-struct ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode);
-
 void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct SceneLayer *sl, struct SpaceOops *soops);
 
 /* outliner_draw.c ---------------------------------------------- */
@@ -192,11 +186,11 @@ typedef void (*outliner_operation_cb)(
         struct TreeElement *, struct TreeStoreElem *, TreeStoreElem *, void *);
 
 void outliner_do_object_operation_ex(
-        struct bContext *C, ReportList *reports, struct Scene *scene, struct SpaceOops *soops, struct ListBase *lb,
-        outliner_operation_cb operation_cb, bool recurse_selected);
+        struct bContext *C, struct ReportList *reports, struct Scene *scene, struct SpaceOops *soops,
+        struct ListBase *lb, outliner_operation_cb operation_cb, bool recurse_selected);
 void outliner_do_object_operation(
-        struct bContext *C, ReportList *reports, struct Scene *scene, struct SpaceOops *soops, struct ListBase *lb,
-        outliner_operation_cb operation_cb);
+        struct bContext *C, struct ReportList *reports, struct Scene *scene, struct SpaceOops *soops,
+        struct ListBase *lb, outliner_operation_cb operation_cb);
 
 int common_restrict_check(struct bContext *C, struct Object *ob);
 
@@ -242,12 +236,6 @@ void id_remap_cb(
         struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
 
 TreeElement *outliner_dropzone_find(const struct SpaceOops *soops, const float fmval[2], const bool children);
-
-TreeElement *outliner_find_item_at_y(const SpaceOops *soops, const ListBase *tree, float view_co_y);
-TreeElement *outliner_find_item_at_x_in_row(const SpaceOops *soops, const TreeElement *parent_te, float view_co_x);
-
-bool outliner_tree_traverse(const SpaceOops *soops, ListBase *tree, int filter_te_flag, int filter_tselem_flag,
-                            TreeTraversalFunc func, void *customdata);
 
 /* ...................................................... */
 
@@ -319,6 +307,19 @@ void OUTLINER_OT_collection_objects_add(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_remove(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_select(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_deselect(struct wmOperatorType *ot);
+
+/* outliner_utils.c ---------------------------------------------- */
+
+TreeElement *outliner_find_item_at_y(const SpaceOops *soops, const ListBase *tree, float view_co_y);
+TreeElement *outliner_find_item_at_x_in_row(const SpaceOops *soops, const TreeElement *parent_te, float view_co_x);
+TreeElement *outliner_find_tse(struct SpaceOops *soops, const TreeStoreElem *tse);
+TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
+TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, const struct ID *id);
+TreeElement *outliner_find_posechannel(ListBase *lb, const struct bPoseChannel *pchan);
+TreeElement *outliner_find_editbone(ListBase *lb, const struct EditBone *ebone);
+struct ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode);
+bool outliner_tree_traverse(const SpaceOops *soops, ListBase *tree, int filter_te_flag, int filter_tselem_flag,
+                            TreeTraversalFunc func, void *customdata);
 
 
 #endif /* __OUTLINER_INTERN_H__ */

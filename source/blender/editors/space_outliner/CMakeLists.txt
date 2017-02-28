@@ -44,6 +44,7 @@ set(SRC
 	outliner_select.c
 	outliner_tools.c
 	outliner_tree.c
+	outliner_utils.c
 	space_outliner.c
 
 	outliner_intern.h
