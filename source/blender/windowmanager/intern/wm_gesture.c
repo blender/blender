@@ -45,7 +45,6 @@
 
 #include "BKE_context.h"
 
-
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -53,9 +52,7 @@
 #include "wm_subwindow.h"
 #include "wm_draw.h"
 
-#include "GPU_basic_shader.h"
 #include "GPU_immediate.h"
-#include "GPU_shader.h"
 
 #include "BIF_glutil.h"
 
@@ -381,10 +378,8 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 		immDrawPixelsTex(rect.xmin, rect.ymin, w, h, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, pixel_buf, 1.0f, 1.0f, NULL);
 
 		GPU_shader_unbind();
-		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
 
 		MEM_freeN(pixel_buf);
 
@@ -496,8 +491,8 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 void wm_gesture_draw(wmWindow *win)
 {
 	wmGesture *gt = (wmGesture *)win->gesture.first;
-	
-	GPU_basic_shader_line_width(1);
+
+	glLineWidth(1.0f);
 	for (; gt; gt = gt->next) {
 		/* all in subwindow space */
 		wmSubWindowSet(win, gt->swinid);
