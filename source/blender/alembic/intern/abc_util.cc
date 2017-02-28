@@ -178,10 +178,10 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 	unit_m4(dst_scale_mat);
 
 	/* We assume there is no sheer component and no homogeneous scaling component. */
-	BLI_assert(src_mat[0][3] == 0.0);
-	BLI_assert(src_mat[1][3] == 0.0);
-	BLI_assert(src_mat[2][3] == 0.0);
-	BLI_assert(src_mat[3][3] == 1.0);
+	BLI_assert(fabs(src_mat[0][3]) < 2 * FLT_EPSILON);
+	BLI_assert(fabs(src_mat[1][3]) < 2 * FLT_EPSILON);
+	BLI_assert(fabs(src_mat[2][3]) < 2 * FLT_EPSILON);
+	BLI_assert(fabs(src_mat[3][3] - 1.0f) < 2 * FLT_EPSILON);
 
 	/* Extract translation, rotation, and scale form matrix. */
 	mat4_to_loc_rot_size(src_trans, src_rot, src_scale, src_mat);
