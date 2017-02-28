@@ -1237,7 +1237,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Sce
 				}
 			}
 			else {
-				active = tree_element_type_active(NULL, scene, sl, soops, te, tselem, OL_SETSEL_NONE, false);
+				active = tree_element_type_active(C, scene, sl, soops, te, tselem, OL_SETSEL_NONE, false);
 			}
 
 			if (active != OL_DRAWSEL_NONE) {
@@ -1366,9 +1366,7 @@ static void outliner_draw_tree_element(
 			}
 		}
 		else {
-			if (tree_element_type_active(NULL, scene, sl, soops, te, tselem, OL_SETSEL_NONE, false) != OL_DRAWSEL_NONE) {
-				active = OL_DRAWSEL_ACTIVE;
-			}
+			active = tree_element_type_active(C, scene, sl, soops, te, tselem, OL_SETSEL_NONE, false);
 			rgba_float_args_set(color, 0.85f, 0.85f, 1.0f, alpha);
 		}
 		

@@ -186,7 +186,7 @@ static eOLDrawState tree_element_set_active_object(
 			do_outliner_object_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
 		}
 
-		if (C) {
+		if (set != OL_SETSEL_NONE) {
 			ED_object_base_activate(C, base); /* adds notifier */
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
@@ -757,7 +757,12 @@ static eOLDrawState tree_element_active_keymap_item(
 static eOLDrawState tree_element_active_collection(
         bContext *C, TreeElement *te, TreeStoreElem *UNUSED(tselem), const eOLSetState set)
 {
-	if (set != OL_SETSEL_NONE) {
+	if (set == OL_SETSEL_NONE) {
+		if (CTX_data_layer_collection(C) == te->directdata) {
+			return OL_DRAWSEL_NORMAL;
+		}
+	}
+	else {
 		SceneLayer *sl = CTX_data_scene_layer(C);
 		LayerCollection *lc = te->directdata;
 		const int collection_index = BKE_layer_collection_findindex(sl, lc);
@@ -765,7 +770,6 @@ static eOLDrawState tree_element_active_collection(
 		BLI_assert(collection_index >= 0);
 		sl->active_collection = collection_index;
 		WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
-		return OL_DRAWSEL_ACTIVE;
 	}
 
 	return OL_DRAWSEL_NONE;
@@ -803,8 +807,6 @@ eOLDrawState tree_element_active(bContext *C, Scene *scene, SceneLayer *sl, Spac
 
 /**
  * Generic call for non-id data to make/check active in UI
- *
- * \note Context can be NULL when ``(set == OL_SETSEL_NONE)``
  */
 eOLDrawState tree_element_type_active(
         bContext *C, Scene *scene, SceneLayer *sl, SpaceOops *soops,
