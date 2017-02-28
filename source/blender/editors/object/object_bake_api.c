@@ -352,11 +352,16 @@ static bool is_noncolor_pass(ScenePassType pass_type)
 }
 
 /* if all is good tag image and return true */
-static bool bake_object_check(Object *ob, ReportList *reports)
+static bool bake_object_check(Scene *scene, Object *ob, ReportList *reports)
 {
 	Image *image;
 	void *lock;
 	int i;
+
+	if ((ob->lay & scene->lay) == 0) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not on a scene layer", ob->id.name + 2);
+		return false;
+	}
 
 	if (ob->type != OB_MESH) {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not a mesh", ob->id.name + 2);
@@ -491,7 +496,7 @@ static bool bake_pass_filter_check(ScenePassType pass_type, const int pass_filte
 }
 
 /* before even getting in the bake function we check for some basic errors */
-static bool bake_objects_check(Main *bmain, Object *ob, ListBase *selected_objects,
+static bool bake_objects_check(Main *bmain, Scene *scene, Object *ob, ListBase *selected_objects,
                                ReportList *reports, const bool is_selected_to_active)
 {
 	CollectionPointerLink *link;
@@ -502,7 +507,7 @@ static bool bake_objects_check(Main *bmain, Object *ob, ListBase *selected_objec
 	if (is_selected_to_active) {
 		int tot_objects = 0;
 
-		if (!bake_object_check(ob, reports))
+		if (!bake_object_check(scene, ob, reports))
 			return false;
 
 		for (link = selected_objects->first; link; link = link->next) {
@@ -530,7 +535,7 @@ static bool bake_objects_check(Main *bmain, Object *ob, ListBase *selected_objec
 		}
 
 		for (link = selected_objects->first; link; link = link->next) {
-			if (!bake_object_check(link->ptr.data, reports))
+			if (!bake_object_check(scene, link->ptr.data, reports))
 				return false;
 		}
 	}
@@ -1179,7 +1184,7 @@ static int bake_exec(bContext *C, wmOperator *op)
 		goto finally;
 	}
 
-	if (!bake_objects_check(bkr.main, bkr.ob, &bkr.selected_objects, bkr.reports, bkr.is_selected_to_active)) {
+	if (!bake_objects_check(bkr.main, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports, bkr.is_selected_to_active)) {
 		goto finally;
 	}
 
@@ -1237,7 +1242,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
 		return;
 	}
 
-	if (!bake_objects_check(bkr->main, bkr->ob, &bkr->selected_objects, bkr->reports, bkr->is_selected_to_active)) {
+	if (!bake_objects_check(bkr->main, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports, bkr->is_selected_to_active)) {
 		bkr->result = OPERATOR_CANCELLED;
 		return;
 	}
