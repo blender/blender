@@ -388,31 +388,20 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
  */
 static void draw_fcurve_sample_control(float x, float y, float xscale, float yscale, float hsize)
 {
-	static GLuint displist = 0;
-	
-	/* initialize X shape */
-	if (displist == 0) {
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-		
-		glBegin(GL_LINES);
-		glVertex2f(-0.7f, -0.7f);
-		glVertex2f(+0.7f, +0.7f);
-			
-		glVertex2f(-0.7f, +0.7f);
-		glVertex2f(+0.7f, -0.7f);
-		glEnd();  /* GL_LINES */
-		
-		glEndList();
-	}
 	
 	/* adjust view transform before starting */
 	glTranslatef(x, y, 0.0f);
 	glScalef(1.0f / xscale * hsize, 1.0f / yscale * hsize, 1.0f);
-	
-	/* draw! */
-	glCallList(displist);
-	
+
+	/* draw X shape */
+	glBegin(GL_LINES);
+	glVertex2f(-0.7f, -0.7f);
+	glVertex2f(+0.7f, +0.7f);
+
+	glVertex2f(-0.7f, +0.7f);
+	glVertex2f(+0.7f, -0.7f);
+	glEnd();  /* GL_LINES */
+
 	/* restore view transform */
 	glScalef(xscale / hsize, yscale / hsize, 1.0);
 	glTranslatef(-x, -y, 0.0f);

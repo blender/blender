@@ -1665,22 +1665,10 @@ bool view3d_camera_border_hack_test = false;
 
 static void draw_bundle_sphere(void)
 {
-	static GLuint displist = 0;
-
-	if (displist == 0) {
-		GLUquadricObj *qobj;
-
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-		qobj = gluNewQuadric();
-		gluQuadricDrawStyle(qobj, GLU_FILL);
-		gluSphere(qobj, 0.05, 8, 8);
-		gluDeleteQuadric(qobj);
-
-		glEndList();
-	}
-
-	glCallList(displist);
+	GLUquadricObj *qobj = gluNewQuadric();
+	gluQuadricDrawStyle(qobj, GLU_FILL);
+	gluSphere(qobj, 0.05, 8, 8);
+	gluDeleteQuadric(qobj);
 }
 
 static void draw_viewport_object_reconstruction(
