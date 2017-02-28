@@ -43,16 +43,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef __APPLE__ /* only non-Apple systems implement OpenGL debug callbacks */
+
 /* control whether we use older AMD_debug_output extension
  * some supported GPU + OS combos do not have the newer extensions */
-#define LEGACY_DEBUG 1
+ #define LEGACY_DEBUG 1
 
 /* Debug callbacks need the same calling convention as OpenGL functions. */
-#if defined(_WIN32)
-#   define APIENTRY __stdcall
-#else
-#   define APIENTRY
-#endif
+ #if defined(_WIN32)
+  #define APIENTRY __stdcall
+ #else
+  #define APIENTRY
+ #endif
 
 
 static const char* source_name(GLenum source)
@@ -105,7 +107,7 @@ static void APIENTRY gpu_debug_proc(
 	}
 }
 
-#if LEGACY_DEBUG
+ #if LEGACY_DEBUG
 
 static const char* category_name_amd(GLenum category)
 {
@@ -143,12 +145,16 @@ static void APIENTRY gpu_debug_proc_amd(
 		fflush(stderr);
 	}
 }
-#endif /* LEGACY_DEBUG */
+ #endif /* LEGACY_DEBUG */
 
-#undef APIENTRY
+ #undef APIENTRY
+#endif /* not Apple */
 
 void gpu_debug_init(void)
 {
+#ifdef __APPLE__
+	fprintf(stderr, "OpenGL debug callback is not available on Apple.\n");
+#else /* not Apple */
 	const char success[] = "Successfully hooked OpenGL debug callback.";
 
 	if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
@@ -166,37 +172,43 @@ void gpu_debug_init(void)
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(success);
 	}
-#if LEGACY_DEBUG
+ #if LEGACY_DEBUG
 	else if (GLEW_AMD_debug_output) {
 		fprintf(stderr, "Using AMD_debug_output extension\n");
 		glDebugMessageCallbackAMD(gpu_debug_proc_amd, mxGetCurrentContext());
 		glDebugMessageEnableAMD(GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(success);
 	}
-#endif
+ #endif
 	else {
 		fprintf(stderr, "Failed to hook OpenGL debug callback.\n");
 	}
+#endif /* not Apple */
 }
 
 
 void gpu_debug_exit(void)
 {
+#ifndef __APPLE__
 	if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
 		glDebugMessageCallback(NULL, NULL);
 	}
 	else if (GLEW_ARB_debug_output) {
 		glDebugMessageCallbackARB(NULL, NULL);
 	}
-#if LEGACY_DEBUG
+ #if LEGACY_DEBUG
 	else if (GLEW_AMD_debug_output) {
 		glDebugMessageCallbackAMD(NULL, NULL);
 	}
+ #endif
 #endif
 }
 
 void GPU_string_marker(const char *buf)
 {
+#ifdef __APPLE__
+	UNUSED_VARS(buf);
+#else /* not Apple */
 	if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
 		glDebugMessageInsert(
 		        GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0,
@@ -207,13 +219,14 @@ void GPU_string_marker(const char *buf)
 		        GL_DEBUG_SOURCE_APPLICATION_ARB, GL_DEBUG_TYPE_OTHER_ARB, 0,
 		        GL_DEBUG_SEVERITY_LOW_ARB, -1, buf);
 	}
-#if LEGACY_DEBUG
+ #if LEGACY_DEBUG
 	else if (GLEW_AMD_debug_output) {
 		glDebugMessageInsertAMD(
 		        GL_DEBUG_CATEGORY_APPLICATION_AMD, GL_DEBUG_SEVERITY_LOW_AMD, 0,
 		        0, buf);
 	}
-#endif
+ #endif
+#endif /* not Apple */
 }
 
 void GPU_print_error_debug(const char *str)
