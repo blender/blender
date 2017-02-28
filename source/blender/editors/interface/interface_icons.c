@@ -33,8 +33,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_extensions.h"
-#include "GPU_basic_shader.h"
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
 
@@ -1007,25 +1005,9 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	}
 
 	/* draw */
-#if 0
-	if (is_preview) {
-		immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-		immDrawPixelsTex(draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
-		                 1.0f, 1.0f, col);
-	}
-	else {
-#endif
-		int bound_options;
-		GPU_BASIC_SHADER_DISABLE_AND_STORE(bound_options);
-
-		immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-		immDrawPixelsTex(draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
-		                 1.0f, 1.0f, col);
-
-		GPU_BASIC_SHADER_ENABLE_AND_RESTORE(bound_options);
-#if 0
-	}
-#endif
+	immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+	immDrawPixelsTex(draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
+	                 1.0f, 1.0f, col);
 
 	if (ima)
 		IMB_freeImBuf(ima);
@@ -1075,7 +1057,6 @@ static void icon_draw_texture(
 	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, 0.0f);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
 /* Drawing size for preview images */
