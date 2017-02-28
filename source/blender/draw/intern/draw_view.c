@@ -522,9 +522,11 @@ void DRW_draw_grid(void)
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	glDepthMask(GL_TRUE);
 
 	if (!draw_floor) {
+		/* Do not get in front of overlays */
+		glDepthMask(GL_FALSE);
+
 		ED_region_pixelspace(ar);
 		*(&grid_unit) = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
@@ -535,6 +537,7 @@ void DRW_draw_grid(void)
 		glLoadMatrixf((float *)rv3d->viewmat);
 	}
 	else {
+		glDepthMask(GL_TRUE);
 		drawfloor(scene, v3d, &grid_unit);
 	}
 }
