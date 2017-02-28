@@ -1676,8 +1676,6 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glPointSize(5.0f);
-	glEnable(GL_POINT_SMOOTH);
 	glDepthMask(GL_FALSE);  /* don't overwrite zbuf */
 
 	VertexFormat *format = immVertexFormat();
@@ -1756,7 +1754,11 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	else
 		color[3] = 127;  /* see-through dot */
 
+	immUnbindProgram();
+
 	/* -- draw rotation center -- */
+	immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
+	glPointSize(5.0f);
 	immBegin(GL_POINTS, 1);
 	immAttrib4ubv(col, color);
 	immVertex3fv(pos, o);
@@ -1771,7 +1773,6 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 #endif
 
 	glDisable(GL_BLEND);
-	glDisable(GL_POINT_SMOOTH);
 	glDepthMask(GL_TRUE);
 }
 #endif /* WITH_INPUT_NDOF */
