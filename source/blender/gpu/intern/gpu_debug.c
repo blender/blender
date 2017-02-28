@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Brecht Van Lommel, Jason Wilkins.
+ * Contributor(s): Brecht Van Lommel, Jason Wilkins, Mike Erwin.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -43,9 +43,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* control whether we use older AMD_debug_output extension, or just the newer extensions
- * TODO(merwin): determine whether all supported GPU + OS combos have newer extensions */
-#define LEGACY_DEBUG 0
+/* control whether we use older AMD_debug_output extension
+ * some supported GPU + OS combos do not have the newer extensions */
+#define LEGACY_DEBUG 1
 
 /* Debug callbacks need the same calling convention as OpenGL functions. */
 #if defined(_WIN32)
