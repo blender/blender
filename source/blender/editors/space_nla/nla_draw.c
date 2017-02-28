@@ -150,11 +150,11 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 		immBegin(PRIM_POINTS, key_ct);
 
 		/* - disregard the selection status of keyframes so they draw a certain way
-		 *	- size is 3.0f which is smaller than the editable keyframes, so that there is a distinction
+		 *	- size is 6.0f which is smaller than the editable keyframes, so that there is a distinction
 		 */
 		for (ActKeyColumn *ak = keys.first; ak; ak = ak->next) {
-			draw_keyframe_shape(ak->cfra, y, 3.0f, false, ak->key_type, KEYFRAME_SHAPE_FRAME, 1.0f,
-									  pos_id, size_id, color_id, outline_color_id);
+			draw_keyframe_shape(ak->cfra, y, 6.0f, false, ak->key_type, KEYFRAME_SHAPE_FRAME, 1.0f,
+			                    pos_id, size_id, color_id, outline_color_id);
 		}
 
 		immEnd();

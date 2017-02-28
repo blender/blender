@@ -29,7 +29,7 @@ void main() {
 
 	float mid_stroke = 0.5 * (radii[1] + radii[2]);
 
-	vec4 backgroundColor = vec4(finalColor.rgb, 0.0);
+	vec4 backgroundColor = vec4(finalOutlineColor.rgb, 0.0);
 
 	if (dist > mid_stroke)
 		fragColor = mix(finalOutlineColor, backgroundColor, smoothstep(radii[1], radii[0], dist));

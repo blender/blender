@@ -264,12 +264,12 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 	GPU_enable_program_point_size();
 	immBegin(PRIM_POINTS, 1);
-	
+
 	/* draw keyframe
-	 * - size: 0.3 * h (found out experimentally... dunno why!)
+	 * - size: 0.6 * h (found out experimentally... dunno why!)
 	 * - sel: true (so that "keyframe" state shows the iconic yellow icon)
 	 */
-	draw_keyframe_shape(xco, yco, 0.3f * h, true, key_type, KEYFRAME_SHAPE_BOTH, alpha,
+	draw_keyframe_shape(xco, yco, 0.6f * h, true, key_type, KEYFRAME_SHAPE_BOTH, alpha,
 	                    pos_id, size_id, color_id, outline_color_id);
 
 	immEnd();

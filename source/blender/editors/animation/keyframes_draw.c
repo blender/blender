@@ -470,7 +470,7 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 	bool draw_fill = ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH);
 	bool draw_outline = ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH);
 
-	if (!(draw_fill || draw_outline)) return; /* TODO: assert this? */
+	BLI_assert(draw_fill || draw_outline);
 
 	/* tweak size of keyframe shape according to type of keyframe
 	 * - 'proper' keyframes have key_type = 0, so get drawn at full size
@@ -484,8 +484,7 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 			break;
 		
 		case BEZT_KEYTYPE_MOVEHOLD:  /* slightly smaller than normal keyframes (but by less than for breakdowns) */
-			//size *= 0.72f;
-			size *= 0.95f;
+			size *= 0.925f;
 			break;
 			
 		case BEZT_KEYTYPE_EXTREME:   /* slightly larger */
@@ -559,8 +558,9 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 
 static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, float ypos, float yscale_fac, bool channelLocked)
 {
-	const float iconsize = U.widget_unit * 0.25f * yscale_fac;
-	const float mhsize = iconsize * 0.7f;
+	const float icon_sz = U.widget_unit * 0.5f * yscale_fac;
+	const float half_icon_sz = 0.5f * icon_sz;
+	const float smaller_sz = 0.35f * icon_sz;
 	
 	glEnable(GL_BLEND);
 	
@@ -593,12 +593,12 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 				if (ab->flag & ACTKEYBLOCK_FLAG_MOVING_HOLD) {
 					/* draw "moving hold" long-keyframe block - slightly smaller */
 					immUniformColor4fv(ab->sel ? sel_mhcol : unsel_mhcol);
-					immRectf(pos_id, ab->start, ypos - mhsize, ab->end, ypos + mhsize);
+					immRectf(pos_id, ab->start, ypos - smaller_sz, ab->end, ypos + smaller_sz);
 				}
 				else {
 					/* draw standard long-keyframe block */
 					immUniformColor4fv(ab->sel ? sel_color : unsel_color);
-					immRectf(pos_id, ab->start, ypos - iconsize, ab->end, ypos + iconsize);
+					immRectf(pos_id, ab->start, ypos - half_icon_sz, ab->end, ypos + half_icon_sz);
 				}
 			}
 		}
@@ -629,7 +629,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 
 			for (ActKeyColumn *ak = keys->first; ak; ak = ak->next) {
 				if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax)) {
-					draw_keyframe_shape(ak->cfra, ypos, iconsize, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, alpha,
+					draw_keyframe_shape(ak->cfra, ypos, icon_sz, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, alpha,
 					                    pos_id, size_id, color_id, outline_color_id);
 				}
 			}

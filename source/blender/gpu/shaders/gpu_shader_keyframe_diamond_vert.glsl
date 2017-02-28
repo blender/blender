@@ -26,7 +26,7 @@ void main() {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
 
 	// pass through unchanged
-	gl_PointSize = size;
+	gl_PointSize = size + pixel_fudge; // 0.5 pixel_fudge on either side
 	finalColor = color;
 	finalOutlineColor = outlineColor;
 
