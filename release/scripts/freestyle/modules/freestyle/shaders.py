@@ -568,7 +568,7 @@ class pyRandomColorShader(StrokeShader):
 
 class py2DCurvatureColorShader(StrokeShader):
     """
-    Assigns a color (greyscale) to the stroke based on the curvature.
+    Assigns a color (grayscale) to the stroke based on the curvature.
     A higher curvature will yield a brighter color.
     """
     def shade(self, stroke):
@@ -584,7 +584,7 @@ class py2DCurvatureColorShader(StrokeShader):
 
 class pyTimeColorShader(StrokeShader):
     """
-    Assigns a greyscale value that increases for every vertex.
+    Assigns a grayscale value that increases for every vertex.
     The brightness will increase along the stroke.
     """
     def __init__(self, step=0.01):

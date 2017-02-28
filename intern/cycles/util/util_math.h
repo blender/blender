@@ -1329,7 +1329,7 @@ ccl_device_inline float3 safe_divide_even_color(float3 a, float3 b)
 	y = (b.y != 0.0f)? a.y/b.y: 0.0f;
 	z = (b.z != 0.0f)? a.z/b.z: 0.0f;
 
-	/* try to get grey even if b is zero */
+	/* try to get gray even if b is zero */
 	if(b.x == 0.0f) {
 		if(b.y == 0.0f) {
 			x = z;
