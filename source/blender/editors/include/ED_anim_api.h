@@ -82,6 +82,7 @@ typedef struct bAnimContext {
 	struct bDopeSheet *ads; /* dopesheet data for editor (or which is being used) */
 	
 	struct Scene *scene;    /* active scene */
+	struct SceneLayer *scene_layer; /* active scene layer */
 	struct Object *obact;   /* active object */
 	ListBase *markers;      /* active set of markers */
 	
