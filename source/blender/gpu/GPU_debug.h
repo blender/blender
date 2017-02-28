@@ -41,9 +41,6 @@ extern "C" {
 /* prints something if debug mode is active only */
 void GPU_print_error_debug(const char *str);
 
-/* prints current OpenGL state */
-void GPU_state_print(void);
-
 /* inserts a debug marker message for the debug context messaging system */
 void GPU_string_marker(const char *str);
 
