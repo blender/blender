@@ -302,7 +302,7 @@ static void region_draw_azone_icon(AZone *az)
 
 	/* outlined circle */
 	GPU_enable_program_point_size(); /* TODO: make a fixed-size shader to avoid this */
-	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 	immUniform4f("color", 1.0f, 1.0f, 1.0f, 0.8f);
 	immUniform4f("outlineColor", 0.2f, 0.2f, 0.2f, 0.9f);
 	immUniform1f("outlineWidth", 1.0f);

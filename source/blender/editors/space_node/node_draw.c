@@ -760,7 +760,7 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 	glEnable(GL_BLEND);
 	GPU_enable_program_point_size();
 
-	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_VARYING_COLOR_OUTLINE_SMOOTH);
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_VARYING_COLOR_OUTLINE_AA);
 
 	/* set handle size */
 	immUniform1f("size", 2.0f * NODE_SOCKSIZE * xscale); // 2 * size to have diameter

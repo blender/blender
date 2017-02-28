@@ -817,7 +817,7 @@ static void drawcentercircle(View3D *v3d, RegionView3D *UNUSED(rv3d), const floa
 	GPU_enable_program_point_size();
 
 	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+	immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 	immUniform1f("size", size);
 
 	if (special_color) {
@@ -1317,7 +1317,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+			immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 			immUniform1f("size", lampdot_size);
 			immUniform1f("outlineWidth", outlineWidth);
 			immUniformColor3fvAlpha(color, 0.3f);
@@ -4130,7 +4130,7 @@ static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *ar, View3D *UNUSED(
 	Batch *verts = MBC_get_all_verts(me);
 	glEnable(GL_BLEND);
 
-	Batch_set_builtin_program(verts, GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH);
+	Batch_set_builtin_program(verts, GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 	Batch_Uniform4f(verts, "color", 0.0f, 0.0f, 0.0f, 1.0f);
 	Batch_Uniform1f(verts, "size", UI_GetThemeValuef(TH_VERTEX_SIZE) * 1.5f);
 	Batch_draw(verts);

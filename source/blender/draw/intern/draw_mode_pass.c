@@ -97,7 +97,7 @@ static DRWShadingGroup *shgroup_dynlines_uniform_color(DRWPass *pass, float colo
 
 static DRWShadingGroup *shgroup_dynpoints_uniform_color(DRWPass *pass, float color[4], float *size)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH);
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
 	DRWShadingGroup *grp = DRW_shgroup_point_batch_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", color, 1);
@@ -333,7 +333,7 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 		UI_GetThemeColorShadeAlpha4fv(TH_TRANSFORM, 0, -80, colorDeselect);
 		UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, outlineColor);
 
-		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 
 		/* Active */
 		grp = DRW_shgroup_point_batch_create(sh, *psl_ob_center);

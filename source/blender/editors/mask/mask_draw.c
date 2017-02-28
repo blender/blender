@@ -159,7 +159,7 @@ static void draw_single_handle(const MaskLayer *mask_layer, const MaskSplinePoin
 	immUnbindProgram();
 
 	/* draw handle points */
-	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 	immUniform1f("size", handle_size);
 	immUniform1f("outlineWidth", 1.5f);
 
@@ -213,7 +213,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 	VertexFormat *format = immVertexFormat();
 	unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH);
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 	immUniform1f("size", 0.7f * handle_size);
 
 	/* feather points */
@@ -306,7 +306,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 		}
 
 		/* bind program in loop so it does not interfere with draw_single_handle */
-		immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH);
+		immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
 		/* draw CV point */
 		if (MASKPOINT_ISSEL_KNOT(point)) {
@@ -335,7 +335,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 		float x = (min[0] + max[0]) * 0.5f;
 		float y = (min[1] + max[1]) * 0.5f;
 
-		immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+		immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 		immUniform1f("outlineWidth", 1.5f);
 
 		if (masklay->act_spline == spline) {
