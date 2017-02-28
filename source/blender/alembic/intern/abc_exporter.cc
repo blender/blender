@@ -161,9 +161,8 @@ AbcExporter::~AbcExporter()
 	}
 
 	/* Free shapes vector */
-	m_shapes_type::iterator it_s, e_s;
-	for (it_s = m_shapes.begin(), e_s = m_shapes.end(); it_s != e_s; ++it_s) {
-		delete *it_s;
+	for (int i = 0, e = m_shapes.size(); i != e; ++i) {
+		delete m_shapes[i];
 	}
 
 	delete m_writer;
@@ -317,9 +316,8 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 		setCurrentFrame(bmain, frame - m_settings.frame_start);
 
 		if (shape_frames.count(frame) != 0) {
-			m_shapes_type::iterator xit, xe;
-			for (xit = m_shapes.begin(), xe = m_shapes.end(); xit != xe; ++xit) {
-				(*xit)->write();
+			for (int i = 0, e = m_shapes.size(); i != e; ++i) {
+				m_shapes[i]->write();
 			}
 		}
 
