@@ -67,11 +67,6 @@
 
 #include "uvedit_intern.h"
 
-#include "GPU_basic_shader.h"
-
-/* use editmesh tessface */
-#define USE_EDBM_LOOPTRIS
-
 static void draw_uvs_lineloop_bmface(BMFace *efa, const int cd_loop_uv_offset, unsigned int pos);
 
 void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
@@ -304,7 +299,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						weight_to_rgb(col, areadiff);
 						immUniformColor3fv(col);
 						
-						/* TODO: USE_EDBM_LOOPTRIS */
+						/* TODO: use editmesh tessface */
 						immBegin(GL_TRIANGLE_FAN, efa->len);
 
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
@@ -378,7 +373,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						ang[i] = angle_normalized_v3v3(av[i], av[(i + 1) % efa_len]);
 					}
 
-					/* TODO: USE_EDBM_LOOPTRIS */
+					/* TODO: use editmesh tessface */
 					immBegin(GL_TRIANGLE_FAN, efa->len);
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -603,7 +598,6 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, SceneLayer *sl, Ob
 	}
 }
 
-#ifdef USE_EDBM_LOOPTRIS
 static void draw_uvs_looptri(BMEditMesh *em, unsigned int *r_loop_index, const int cd_loop_uv_offset, unsigned int pos)
 {
 	unsigned int i = *r_loop_index;
@@ -618,7 +612,6 @@ static void draw_uvs_looptri(BMEditMesh *em, unsigned int *r_loop_index, const i
 	} while (i != em->tottri && (f == em->looptris[i][0]->f));
 	*r_loop_index = i - 1;
 }
-#endif
 
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obedit)
@@ -629,9 +622,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	BMEditMesh *em = me->edit_btmesh;
 	BMesh *bm = em->bm;
 	BMFace *efa, *efa_act;
-#ifndef USE_EDBM_LOOPTRIS
-	BMFace *activef;
-#endif
 	BMLoop *l;
 	BMIter iter, liter;
 	MTexPoly *tf, *activetf = NULL;
@@ -648,9 +638,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	unsigned int pos;
 
 	activetf = EDBM_mtexpoly_active_get(em, &efa_act, false, false); /* will be set to NULL if hidden */
-#ifndef USE_EDBM_LOOPTRIS
-	activef = BM_mesh_active_face_get(bm, false, false);
-#endif
 	ts = scene->toolsettings;
 
 	drawfaces = draw_uvs_face_check(scene);
@@ -712,66 +699,36 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		
-#ifdef USE_EDBM_LOOPTRIS
-		{
-			unsigned int i;
+		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-			pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-			for (i = 0; i < em->tottri; i++) {
-				efa = em->looptris[i][0]->f;
-				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
-					const bool is_select = uvedit_face_select_test(scene, efa, cd_loop_uv_offset);
-					BM_elem_flag_enable(efa, BM_ELEM_TAG);
-
-					if (tf == activetf) {
-						/* only once */
-						immUniformThemeColor(TH_EDITMESH_ACTIVE);
-					}
-					else {
-						immUniformColor4ubv(is_select ? col2 : col1);
-					}
-
-					immBegin(GL_TRIANGLES, (em->looptris[i][0]->f->len - 2) * 3);
-					draw_uvs_looptri(em, &i, cd_loop_uv_offset, pos);
-					immEnd();
-				}
-				else {
-					BM_elem_flag_disable(efa, BM_ELEM_TAG);
-				}
-			}
-
-			immUnbindProgram();
-		}
-#else
-		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		for (unsigned int i = 0; i < em->tottri; i++) {
+			efa = em->looptris[i][0]->f;
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
+				const bool is_select = uvedit_face_select_test(scene, efa, cd_loop_uv_offset);
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
-				if (tf == activetf) continue;  /* important the temp boolean is set above */
 
-				if (uvedit_face_select_test(scene, efa, cd_loop_uv_offset))
-					glColor4ubv((GLubyte *)col2);
-				else
-					glColor4ubv((GLubyte *)col1);
-				
-				glBegin(GL_POLYGON);
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					glVertex2fv(luv->uv);
+				if (tf == activetf) {
+					/* only once */
+					immUniformThemeColor(TH_EDITMESH_ACTIVE);
 				}
-				glEnd();
+				else {
+					immUniformColor4ubv(is_select ? col2 : col1);
+				}
+
+				immBegin(GL_TRIANGLES, (em->looptris[i][0]->f->len - 2) * 3);
+				draw_uvs_looptri(em, &i, cd_loop_uv_offset, pos);
+				immEnd();
 			}
 			else {
-				if (tf == activetf)
-					activetf = NULL;
 				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			}
 		}
-#endif
+
+		immUnbindProgram();
+
 		glDisable(GL_BLEND);
 	}
 	else {
@@ -793,30 +750,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	}
 
 	/* 3. draw active face stippled */
-#ifndef USE_EDBM_LOOPTRIS
-	if (activef) {
-		tf = BM_ELEM_CD_GET_VOID_P(activef, cd_poly_tex_offset);
-		if (uvedit_face_visible_test(scene, ima, activef, tf)) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			UI_ThemeColor4(TH_EDITMESH_ACTIVE);
+	/* (removed during OpenGL upgrade, reimplement if needed) */
 
-			GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
-			GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_QUARTTONE);
-
-			glBegin(GL_POLYGON);
-			BM_ITER_ELEM (l, &liter, activef, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				glVertex2fv(luv->uv);
-			}
-			glEnd();
-
-			GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-			glDisable(GL_BLEND);
-		}
-	}
-#endif
-	
 	/* 4. draw edges */
 
 	if (sima->flag & SI_SMOOTH_UV) {
