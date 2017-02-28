@@ -14,14 +14,16 @@ layout(triangles) in;
  * an outline strip around the screenspace
  * triangle. Order is important.
  * TODO diagram
+ * fixupsize should be equal to this formula with a small offset
+ * 2 * max(max_vert_radius, max_edge_width) / sqrt(2)
  */
 
-layout(triangle_strip, max_vertices=17) out;
+layout(triangle_strip, max_vertices=23) out;
 #else
 layout(triangle_strip, max_vertices=3) out;
 #endif
 
-const float fixupSize = 6.0; /* in pixels */
+const float fixupSize = 9.5; /* in pixels */
 
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
@@ -211,33 +213,54 @@ void main()
 		doVertex(2, pPos[2]);
 
 #ifdef EDGE_FIX
-		vec2 fixvec[3];
+		vec2 fixvec[6];
+		vec2 fixvecaf[6];
+		vec2 cornervec[3];
 
-		for (int v = 0; v < 3; ++v) {
-			vec2 v1 = pos[v];
-			vec2 v2 = pos[(v + 1) % 3];
-			vec2 v3 = pos[(v + 2) % 3];
+		/* This fix the case when 2 vertices are perfectly aligned
+		 * and corner vectors have nowhere to go.
+		 * ie: length(cornervec[i]) == 0 */
+		const float epsilon = 1e-2; /* in pixel so not that much */
+		const vec2 bias[3] = vec2[3](
+			vec2( epsilon,  epsilon),
+			vec2(-epsilon,  epsilon),
+			vec2(     0.0, -epsilon)
+		);
+
+		for (int i = 0; i < 3; ++i) {
+			int i1 = (i + 1) % 3;
+			int i2 = (i + 2) % 3;
+
+			vec2 v1 = pos[i] + bias[i];
+			vec2 v2 = pos[i1] + bias[i1];
+			vec2 v3 = pos[i2] + bias[i2];
 
 			/* Edge normalized vector */
 			vec2 dir = normalize(v2 - v1);
+			vec2 dir2 = normalize(v3 - v1);
+
+			cornervec[i] = -normalize(dir + dir2);
+
 			/* perpendicular to dir */
 			vec2 perp = vec2(-dir.y, dir.x);
 
 			/* Backface case */
-			if (dot(perp, v3 - v1) > 0) {
+			if (dot(perp, dir2) > 0) {
 				perp = -perp;
 			}
 
-			fixvec[v] = perp * fixupSize;
-
 			/* Make it view independant */
-			fixvec[v] /= viewportSize;
+			perp *= fixupSize / viewportSize;
+			cornervec[i] *= fixupSize / viewportSize;
+			fixvec[i] = fixvecaf[i] = perp;
 
 			/* Perspective */
 			if (ProjectionMatrix[3][3] == 0.0) {
-				/* vPos[v].z is negative and we don't want
+				/* vPos[i].z is negative and we don't want
 				 * our fixvec to be flipped */
-				fixvec[v] *= -vPos[v].z;
+				fixvec[i] *= -vPos[i].z;
+				fixvecaf[i] *= -vPos[i1].z;
+				cornervec[i] *= -vPos[i].z;
 			}
 		}
 
@@ -250,20 +273,17 @@ void main()
 		/* Start with the same last vertex to create a
 		 * degenerate triangle in order to "create"
 		 * a new triangle strip */
-		for (int i = 2; i < 7; ++i) {
+		for (int i = 2; i < 5; ++i) {
 			int vbe = (i - 1) % 3;
 			int vaf = (i + 1) % 3;
 			int v = i % 3;
 
-			/* first 2 vertex should not drax edges */
-			flag[2] = (vData[v].x << 8);
-			doVertex(v, pPos[v]);
+			/* Position of the "hidden" thrid vertex
+			 * we set it early because it has*/
+			eData1.zw = pos[vbe];
 
-			vec4 fixPos = pPos[v] + vec4(fixvec[v], 0.0, 0.0);
-			doVertex(v, fixPos);
-
-			/* do a final corner tri but not another edge */
-			if(i == 6) continue;
+			doVertex(vaf, pPos[v]);
+			doVertex(vaf, pPos[v] + vec4(fixvec[v], 0.0, 0.0));
 
 			/* Now one triangle only shade one edge
 			 * so we use the edge distance calculated
@@ -274,15 +294,22 @@ void main()
 			eData2.zw = pos[v];
 			flag[0] = (vData[v].x << 8);
 			flag[1] = (vData[vaf].x << 8);
-			flag[2] = vData[vbe].y;
+			flag[2] = eflag[vbe];
 			edgesCrease[2] = ecrease[vbe];
 			edgesSharp[2] = esharp[vbe];
 
-			doVertex(vaf, pPos[vaf]);
+			doVertex(v, pPos[vaf]);
+			doVertex(v, pPos[vaf] + vec4(fixvecaf[v], 0.0, 0.0));
 
-			fixPos = pPos[vaf] + vec4(fixvec[v], 0.0, 0.0);
-			doVertex(vaf, fixPos);
+			/* corner vertices should not drax edges but draw point only */
+			flag[2] = (vData[vbe].x << 8);
+			doVertex(v, pPos[vaf]);
+			doVertex(v, pPos[vaf] + vec4(cornervec[vaf], 0.0, 0.0));
 		}
+
+		/* finish the loop strip */
+		doVertex(0, pPos[2]);
+		doVertex(0, pPos[2] + vec4(fixvec[2], 0.0, 0.0));
 #endif
 	}
 	/* Harder case : compute visible edges vectors */
