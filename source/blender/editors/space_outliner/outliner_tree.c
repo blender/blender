@@ -1330,10 +1330,12 @@ static void outliner_add_scene_collection_init(TreeElement *te, SceneCollection 
 }
 
 static void outliner_add_scene_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
-                                                     ListBase *scene_collections, TreeElement *parent_ten)
+                                                     ListBase *scene_collections, TreeElement *parent_ten,
+                                                     int *io_collection_counter)
 {
 	for (SceneCollection *collection = scene_collections->first; collection; collection = collection->next) {
-		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_SCENE_COLLECTION, 0);
+		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_SCENE_COLLECTION,
+		                                        (*io_collection_counter)++);
 
 		outliner_add_scene_collection_init(ten, collection);
 		for (LinkData *link = collection->objects.first; link; link = link->next) {
@@ -1341,16 +1343,20 @@ static void outliner_add_scene_collections_recursive(SpaceOops *soops, ListBase 
 		}
 		outliner_make_hierarchy(&ten->subtree);
 
-		outliner_add_scene_collections_recursive(soops, &ten->subtree, scene, &collection->scene_collections, ten);
+		outliner_add_scene_collections_recursive(soops, &ten->subtree, scene, &collection->scene_collections, ten,
+		                                         io_collection_counter);
 	}
 }
 static void outliner_add_collections_master(SpaceOops *soops, Scene *scene)
 {
 	SceneCollection *master = BKE_collection_master(scene);
-	TreeElement *ten = outliner_add_element(soops, &soops->tree, scene, NULL, TSE_SCENE_COLLECTION, 0);
+	int collection_counter = 0;
+	TreeElement *ten = outliner_add_element(soops, &soops->tree, scene, NULL, TSE_SCENE_COLLECTION,
+	                                        collection_counter++);
 
 	outliner_add_scene_collection_init(ten, master);
-	outliner_add_scene_collections_recursive(soops, &ten->subtree, scene, &master->scene_collections, ten);
+	outliner_add_scene_collections_recursive(soops, &ten->subtree, scene, &master->scene_collections, ten,
+	                                         &collection_counter);
 }
 
 /* ======================================================= */

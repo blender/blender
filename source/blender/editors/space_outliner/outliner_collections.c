@@ -294,12 +294,20 @@ static TreeTraversalReturn collection_delete_cb(TreeElement *te, void *customdat
 {
 	struct CollectionDeleteData *data = customdata;
 	TreeStoreElem *tselem = TREESTORE(te);
-	LayerCollection *lc = te->directdata;
+	SceneCollection *scene_collection;
 
-	if (tselem->type != TSE_LAYER_COLLECTION) {
-		/* skip */
+	if (tselem->type == TSE_LAYER_COLLECTION) {
+		LayerCollection *lc = te->directdata;
+		scene_collection = lc->scene_collection;
 	}
-	else if (lc->scene_collection == BKE_collection_master(data->scene)) {
+	else if (tselem->type == TSE_SCENE_COLLECTION) {
+		scene_collection = te->directdata;
+	}
+	else {
+		return TRAVERSE_SKIP_CHILDS;
+	}
+
+	if (scene_collection == BKE_collection_master(data->scene)) {
 		/* skip - showing warning/error message might be missleading
 		 * when deleting multiple collections, so just do nothing */
 	}
@@ -311,7 +319,7 @@ static TreeTraversalReturn collection_delete_cb(TreeElement *te, void *customdat
 		 * This works as workaround, but having a proper way to find the TreeStoreElem for a recreated
 		 * TreeElement would be better. It could use an idname or the directdata pointer for that. */
 		outliner_remove_treestore_element(data->soops, tselem);
-		BKE_collection_remove(data->scene, lc->scene_collection);
+		BKE_collection_remove(data->scene, scene_collection);
 	}
 
 	return TRAVERSE_CONTINUE;
@@ -323,7 +331,7 @@ static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	struct CollectionDeleteData data = {.scene = scene, .soops = soops};
 
-	TODO_LAYER_OVERRIDE; /* handle operators */
+	TODO_LAYER_OVERRIDE; /* handle overrides */
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_delete_cb, &data);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
