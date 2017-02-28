@@ -755,14 +755,20 @@ static eOLDrawState tree_element_active_keymap_item(
 }
 
 static eOLDrawState tree_element_active_collection(
-        bContext *C, TreeElement *te, TreeStoreElem *UNUSED(tselem), const eOLSetState set)
+        bContext *C, TreeElement *te, TreeStoreElem *tselem, const eOLSetState set)
 {
 	if (set == OL_SETSEL_NONE) {
-		if (CTX_data_layer_collection(C) == te->directdata) {
+		LayerCollection *active = CTX_data_layer_collection(C);
+
+		if ((tselem->type == TSE_SCENE_COLLECTION && active->scene_collection == te->directdata) ||
+		    (tselem->type == TSE_LAYER_COLLECTION && active == te->directdata))
+		{
 			return OL_DRAWSEL_NORMAL;
 		}
 	}
-	else {
+	/* don't allow selecting a scene collection, it can have multiple layer collection
+	 * instances (which one would the user want to be selected then?) */
+	else if (tselem->type == TSE_LAYER_COLLECTION) {
 		SceneLayer *sl = CTX_data_scene_layer(C);
 		LayerCollection *lc = te->directdata;
 		const int collection_index = BKE_layer_collection_findindex(sl, lc);
@@ -850,6 +856,7 @@ eOLDrawState tree_element_type_active(
 		case TSE_GP_LAYER:
 			//return tree_element_active_gplayer(C, scene, s, te, tselem, set);
 			break;
+		case TSE_SCENE_COLLECTION:
 		case TSE_LAYER_COLLECTION:
 			return tree_element_active_collection(C, te, tselem, set);
 	}
