@@ -325,6 +325,7 @@ static void recalcData_actedit(TransInfo *t)
 	/* initialize relevant anim-context 'context' data from TransInfo data */
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	ac.scene = t->scene;
+	ac.scene_layer = t->sl;
 	ac.obact = OBACT_NEW;
 	ac.sa = t->sa;
 	ac.ar = t->ar;

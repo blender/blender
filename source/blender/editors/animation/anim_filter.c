@@ -380,9 +380,9 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 	ac->scene = scene;
 	if (scene) {
 		ac->markers = ED_context_get_markers(C);
-		ac->obact = (scene->basact) ?  scene->basact->object : NULL;
 	}
 	ac->scene_layer = CTX_data_scene_layer(C);
+	ac->obact = (ac->scene_layer->basact) ? ac->scene_layer->basact->object : NULL;
 	ac->sa = sa;
 	ac->ar = ar;
 	ac->sl = sl;
