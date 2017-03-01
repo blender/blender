@@ -61,7 +61,8 @@ struct Batch *DRW_cache_bone_point_wire_outline_get(void);
 struct Batch *DRW_cache_bone_arrows_get(void);
 
 /* Meshes */
-struct Batch *DRW_cache_wire_overlay_get(struct Object *ob);
+void DRW_cache_wire_overlay_get(
+	struct Object *ob, struct Batch **tris, struct Batch **ledges, struct Batch **lverts);
 struct Batch *DRW_cache_wire_outline_get(struct Object *ob);
 struct Batch *DRW_cache_surface_get(struct Object *ob);
 

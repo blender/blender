@@ -4049,7 +4049,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 #endif
 }
 
-static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *ar, View3D *UNUSED(v3d),
+static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *UNUSED(ar), View3D *UNUSED(v3d),
                               Object *UNUSED(ob), Mesh *me, BMEditMesh *UNUSED(em), DerivedMesh *UNUSED(cageDM), DerivedMesh *UNUSED(finalDM), const char UNUSED(dt))
 {
 	/* for now... something simple! */
@@ -4087,10 +4087,12 @@ static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *ar, View3D *UNUSED(
 	Batch_draw(surface);
 
 	if (GLEW_VERSION_3_2) {
+#if 0
 		Batch *overlay = BKE_mesh_batch_cache_get_overlay_edges(me);
 		Batch_set_builtin_program(overlay, GPU_SHADER_EDGES_OVERLAY);
 		Batch_Uniform2f(overlay, "viewportSize", ar->winx, ar->winy);
 		Batch_draw(overlay);
+#endif
 
 #if 0 /* TODO: use this SIMPLE variant for pure triangle meshes */
 		Batch_set_builtin_program(surface, GPU_SHADER_EDGES_OVERLAY_SIMPLE);

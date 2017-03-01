@@ -433,28 +433,6 @@ static int draw_object_wire_theme(Object *ob, float **color)
 	return theme_id;
 }
 
-void DRW_shgroup_wire_overlay(Object *ob)
-{
-#if 1
-	struct Batch *geom = DRW_cache_wire_overlay_get(ob);
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_OVERLAY);
-
-	DRWShadingGroup *grp = DRW_shgroup_create(sh, wire_overlay);
-	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
-
-	DRW_shgroup_call_add(grp, geom, ob->obmat);
-#else
-	static float col[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	struct Batch *geom = DRW_cache_wire_overlay_get(ob);
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
-
-	DRWShadingGroup *grp = DRW_shgroup_create(sh, wire_overlay);
-	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
-
-	DRW_shgroup_call_add(grp, geom, ob->obmat);
-#endif
-}
-
 void DRW_shgroup_wire_outline(Object *ob, const bool do_front, const bool do_back, const bool do_outline)
 {
 	GPUShader *sh;

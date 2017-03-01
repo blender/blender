@@ -5,8 +5,7 @@
 /* This shader follows the principles of
  * http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf */
 
-#define EDGE_FIX
-
+//#define EDGE_FIX
 layout(triangles) in;
 
 #ifdef EDGE_FIX
@@ -39,9 +38,9 @@ flat out vec3 edgesSharp;
 flat out ivec3 flag;
 flat out vec4 faceColor;
 flat out int clipCase;
-// #ifdef VERTEX_SELECTION
+#ifdef VERTEX_SELECTION
 smooth out vec3 vertexColor;
-// #endif
+#endif
 
 /* See fragment shader */
 noperspective out vec4 eData1;
@@ -50,10 +49,9 @@ flat out vec4 eData2;
 
 #define VERTEX_ACTIVE   (1 << 0)
 #define VERTEX_SELECTED (1 << 1)
-#define VERTEX_LOOSE    (1 << 2)
 
-#define FACE_ACTIVE     (1 << 3)
-#define FACE_SELECTED   (1 << 4)
+#define FACE_ACTIVE     (1 << 2)
+#define FACE_SELECTED   (1 << 3)
 
 /* Table 1. Triangle Projection Cases */
 const ivec4 clipPointsIdx[6] = ivec4[6](
@@ -113,19 +111,6 @@ void doVertex(int v, vec4 pos)
 	EmitVertex();
 }
 
-void doLooseVertex(int v, vec4 pos, vec2 fixvec)
-{
-	doVertex(v, pos + vec4( fixvec.x,  fixvec.y, 0.0, 0.0));
-
-	/* Quad */
-	doVertex(v, pos + vec4( fixvec.x,  fixvec.y, 0.0, 0.0));
-	doVertex(v, pos + vec4(-fixvec.x,  fixvec.y, 0.0, 0.0));
-	doVertex(v, pos + vec4( fixvec.x, -fixvec.y, 0.0, 0.0));
-	doVertex(v, pos + vec4(-fixvec.x, -fixvec.y, 0.0, 0.0));
-
-	doVertex(v, pos + vec4(-fixvec.x, -fixvec.y, 0.0, 0.0));
-}
-
 void main()
 {
 	/* First we detect which case we are in */
@@ -165,38 +150,9 @@ void main()
 	/* Vertex */
 	vec2 pos[3] = vec2[3](proj(pPos[0]), proj(pPos[1]), proj(pPos[2]));
 
-	/* Loose Vertex : emit quads linked by degenerate triangles */
-	if ((vData[0].x & VERTEX_LOOSE) != 0) {
-		vec2 fixvec[3];
 
-		/* there is no face */
-		faceColor = vec4(0.0);
-
-		/* and don't forget to overide clipCase */
-		clipCase = 0;
-
-		/* only verterx position 0 is used */
-		eData1 = eData2 = vec4(1e10);
-
-		vec2 dir = vec2(1.0) * fixupSize;
-		/* Make it view independant */
-		dir /= viewportSize;
-
-		for (int v = 0; v < 3; ++v) {
-			fixvec[v] = dir;
-			if (ProjectionMatrix[3][3] == 0.0) {
-				fixvec[v] *= -vPos[v].z;
-			}
-		}
-
-		for (int v = 0; v < 3; ++v) {
-			eData2.zw = pos[v];
-			flag[0] = (vData[v].x << 8);
-			doLooseVertex(v, pPos[v], fixvec[v]);
-		}
-	}
 	/* Simple case : compute edge distances in geometry shader */
-	else if (clipCase == 0) {
+	if (clipCase == 0) {
 
 		/* Packing screen positions and 2 distances */
 		eData1 = vec4(0.0, 0.0, pos[2]);

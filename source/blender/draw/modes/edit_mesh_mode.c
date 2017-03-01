@@ -43,27 +43,34 @@ typedef struct EDIT_MESH_PassList {
 
 static DRWShadingGroup *depth_shgrp_hidden_wire;
 static DRWShadingGroup *face_overlay_shgrp;
+static DRWShadingGroup *ledges_overlay_shgrp;
+static DRWShadingGroup *lverts_overlay_shgrp;
 
 void EDIT_MESH_cache_init(void)
 {
 	EDIT_MESH_PassList *psl = DRW_mode_pass_list_get();
 	static struct GPUShader *depth_sh;
-	static struct GPUShader *overlay_sh;
+	static struct GPUShader *over_tri_sh, *over_vert_sh, *over_edge_sh;
 
-	if (!depth_sh) {
+	if (!depth_sh)
 		depth_sh = DRW_shader_create_3D_depth_only();
-	}
-
-	if (!overlay_sh) {
-		overlay_sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_OVERLAY_EDIT);
-	}
+	if (!over_tri_sh)
+		over_tri_sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_OVERLAY_EDIT_TRI);
+	if (!over_edge_sh)
+		over_edge_sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_OVERLAY_EDIT_EDGE);
+	if (!over_vert_sh)
+		over_vert_sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_OVERLAY_EDIT_VERT);
 
 	psl->depth_pass_hidden_wire = DRW_pass_create("Depth Pass Hidden Wire", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
 	depth_shgrp_hidden_wire = DRW_shgroup_create(depth_sh, psl->depth_pass_hidden_wire);
 
-	psl->edit_face_overlay_pass = DRW_pass_create("Edit Mesh Face Overlay Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
-	face_overlay_shgrp = DRW_shgroup_create(overlay_sh, psl->edit_face_overlay_pass);
+	psl->edit_face_overlay_pass = DRW_pass_create("Edit Mesh Face Overlay Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
+	face_overlay_shgrp = DRW_shgroup_create(over_tri_sh, psl->edit_face_overlay_pass);
+	ledges_overlay_shgrp = DRW_shgroup_create(over_edge_sh, psl->edit_face_overlay_pass);
+	lverts_overlay_shgrp = DRW_shgroup_create(over_vert_sh, psl->edit_face_overlay_pass);
 	DRW_shgroup_uniform_vec2(face_overlay_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+	DRW_shgroup_uniform_vec2(ledges_overlay_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+	DRW_shgroup_uniform_vec2(lverts_overlay_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 
 	DRW_mode_passes_setup(NULL,
 	                      NULL,
@@ -76,7 +83,8 @@ void EDIT_MESH_cache_init(void)
 
 void EDIT_MESH_cache_populate(Object *ob)
 {
-	struct Batch *geom, *geom_overlay;
+	struct Batch *geom;
+	struct Batch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts;
 	const struct bContext *C = DRW_get_context();
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = scene->obedit;
@@ -88,8 +96,10 @@ void EDIT_MESH_cache_populate(Object *ob)
 		case OB_MESH:
 			geom = DRW_cache_surface_get(ob);
 			if (ob == obedit) {
-				geom_overlay = DRW_cache_wire_overlay_get(ob);
-				DRW_shgroup_call_add(face_overlay_shgrp, geom_overlay, ob->obmat);
+				DRW_cache_wire_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
+				DRW_shgroup_call_add(face_overlay_shgrp, geo_ovl_tris, ob->obmat);
+				DRW_shgroup_call_add(ledges_overlay_shgrp, geo_ovl_ledges, ob->obmat);
+				DRW_shgroup_call_add(lverts_overlay_shgrp, geo_ovl_lverts, ob->obmat);
 			}
 			if (do_occlude_wire) {
 				DRW_shgroup_call_add(depth_shgrp_hidden_wire, geom, ob->obmat);

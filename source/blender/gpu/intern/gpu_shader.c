@@ -110,7 +110,9 @@ extern char datatoc_gpu_shader_edges_overlay_geom_glsl[];
 extern char datatoc_gpu_shader_edges_overlay_simple_geom_glsl[];
 extern char datatoc_gpu_shader_edges_overlay_frag_glsl[];
 extern char datatoc_gpu_shader_edit_overlay_frag_glsl[];
-extern char datatoc_gpu_shader_edit_overlay_geom_glsl[];
+extern char datatoc_gpu_shader_edit_overlay_geom_tri_glsl[];
+extern char datatoc_gpu_shader_edit_overlay_geom_edge_glsl[];
+extern char datatoc_gpu_shader_edit_overlay_geom_vert_glsl[];
 extern char datatoc_gpu_shader_edit_overlay_vert_glsl[];
 extern char datatoc_gpu_shader_text_vert_glsl[];
 extern char datatoc_gpu_shader_text_frag_glsl[];
@@ -670,9 +672,15 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                                        datatoc_gpu_shader_flat_color_frag_glsl },
 		[GPU_SHADER_EDGES_OVERLAY_SIMPLE] = { datatoc_gpu_shader_3D_vert_glsl, datatoc_gpu_shader_edges_overlay_frag_glsl,
 		                                      datatoc_gpu_shader_edges_overlay_simple_geom_glsl },
-		[GPU_SHADER_EDGES_OVERLAY_EDIT] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
-		                                    datatoc_gpu_shader_edit_overlay_frag_glsl,
-		                                    datatoc_gpu_shader_edit_overlay_geom_glsl },
+		[GPU_SHADER_EDGES_OVERLAY_EDIT_TRI] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
+		                                        datatoc_gpu_shader_edit_overlay_frag_glsl,
+		                                        datatoc_gpu_shader_edit_overlay_geom_tri_glsl },
+		[GPU_SHADER_EDGES_OVERLAY_EDIT_EDGE] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
+		                                         datatoc_gpu_shader_edit_overlay_frag_glsl,
+		                                         datatoc_gpu_shader_edit_overlay_geom_edge_glsl },
+		[GPU_SHADER_EDGES_OVERLAY_EDIT_VERT] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
+		                                         datatoc_gpu_shader_edit_overlay_frag_glsl,
+		                                         datatoc_gpu_shader_edit_overlay_geom_vert_glsl },
 		[GPU_SHADER_EDGES_OVERLAY] = { datatoc_gpu_shader_edges_overlay_vert_glsl,
 		                               datatoc_gpu_shader_edges_overlay_frag_glsl,
 		                               datatoc_gpu_shader_edges_overlay_geom_glsl },
