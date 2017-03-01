@@ -185,11 +185,13 @@
 #define GLbitfield_ref(num)   &bgl_var##num
 #define GLbitfield_def(num)   /* unsigned */ int GLbitfield_var(num)
 
+#if 0
 /* typedef signed char GLbyte; */
 #define GLbyte_str        "b"
 #define GLbyte_var(num)     bgl_var##num
 #define GLbyte_ref(num)     &bgl_var##num
 #define GLbyte_def(num)     signed char GLbyte_var(num)
+#endif
 
 /* typedef short GLshort; */
 #define GLshort_str       "h"
@@ -227,11 +229,13 @@
 #define GLubyte_ref(num)    &bgl_var##num
 #define GLubyte_def(num)    /* unsigned */ char GLubyte_var(num)
 
+#if 0
 /* typedef unsigned short GLushort; */
 #define GLushort_str      "H"
 #define GLushort_var(num)   bgl_var##num
 #define GLushort_ref(num)   &bgl_var##num
 #define GLushort_def(num)   /* unsigned */ short GLushort_var(num)
+#endif
 
 /* typedef unsigned int GLuint; */
 #define GLuint_str        "I"

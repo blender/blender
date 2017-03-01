@@ -219,11 +219,12 @@ void GPU_render_text(
 }
 
 /* Checking powers of two for images since OpenGL ES requires it */
-
+#ifdef WITH_DDS
 static bool is_power_of_2_resolution(int w, int h)
 {
 	return is_power_of_2_i(w) && is_power_of_2_i(h);
 }
+#endif
 
 static bool is_over_resolution_limit(GLenum textarget, int w, int h)
 {

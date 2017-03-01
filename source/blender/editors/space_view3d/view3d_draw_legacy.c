@@ -969,11 +969,11 @@ static void draw_dupli_objects_color(
 
 	apply_data = duplilist_apply(base->object, scene, lb);
 
-	DupliObject *dob_prev = NULL, *dob_next = NULL;
+	DupliObject *dob_next = NULL;
 	DupliObject *dob = dupli_step(lb->first);
 	if (dob) dob_next = dupli_step(dob->next);
 
-	for (; dob; dob_prev = dob, dob = dob_next, dob_next = dob_next ? dupli_step(dob_next->next) : NULL) {
+	for (; dob; dob = dob_next, dob_next = dob_next ? dupli_step(dob_next->next) : NULL) {
 		bool testbb = false;
 
 		tbase.object = dob->ob;

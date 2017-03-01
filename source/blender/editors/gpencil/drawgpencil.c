@@ -94,7 +94,9 @@ typedef enum eDrawStrokeFlags {
 
 
 /* thickness above which we should use special drawing */
+#if 0
 #define GP_DRAWTHICKNESS_SPECIAL    3
+#endif
 
 /* conversion utility (float --> normalized unsigned byte) */
 #define F2UB(x) (unsigned char)(255.0f * x)
