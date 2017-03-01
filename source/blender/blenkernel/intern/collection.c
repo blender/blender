@@ -24,6 +24,8 @@
  *  \ingroup bke
  */
 
+#include <string.h>
+
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_iterator.h"
@@ -179,13 +181,38 @@ SceneCollection *BKE_collection_master(const Scene *scene)
 	return scene->collection;
 }
 
+struct UniqueNameCheckData {
+	ListBase *lb;
+	SceneCollection *lookup_sc;
+};
+
+static bool collection_unique_name_check(void *arg, const char *name)
+{
+	struct UniqueNameCheckData *data = arg;
+
+	for (SceneCollection *sc = data->lb->first; sc; sc = sc->next) {
+		struct UniqueNameCheckData child_data = {.lb = &sc->scene_collections, .lookup_sc = data->lookup_sc};
+
+		if (sc != data->lookup_sc) {
+			if (STREQ(sc->name, name)) {
+				return true;
+			}
+		}
+		if (collection_unique_name_check(&child_data, name)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void BKE_collection_rename(const Scene *scene, SceneCollection *sc, const char *name)
 {
 	SceneCollection *sc_master = BKE_collection_master(scene);
+	struct UniqueNameCheckData data = {.lb = &sc_master->scene_collections, .lookup_sc = sc};
 
 	BLI_strncpy(sc->name, name, sizeof(sc->name));
-	BLI_uniquename(&sc_master->scene_collections, sc, DATA_("Collection"), '.', offsetof(SceneCollection, name),
-	               sizeof(sc->name));
+	BLI_uniquename_cb(collection_unique_name_check, &data, DATA_("Collection"), '.', sc->name, sizeof(sc->name));
 }
 
 /**

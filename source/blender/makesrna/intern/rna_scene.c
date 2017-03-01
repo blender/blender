@@ -2262,10 +2262,7 @@ static void rna_SceneCollection_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	SceneCollection *sc = (SceneCollection *)ptr->data;
-	SceneCollection *sc_master = BKE_collection_master(scene);
-
-	BLI_strncpy_utf8(sc->name, value, sizeof(sc->name));
-	BLI_uniquename(&sc_master->scene_collections, sc, DATA_("SceneCollection"), '.', offsetof(SceneCollection, name), sizeof(sc->name));
+	BKE_collection_rename(scene, sc, value);
 }
 
 static void rna_SceneCollection_filter_set(PointerRNA *ptr, const char *value)
@@ -2517,10 +2514,7 @@ static void rna_LayerCollection_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	SceneCollection *sc = ((LayerCollection *)ptr->data)->scene_collection;
-	SceneCollection *sc_master = BKE_collection_master(scene);
-
-	BLI_strncpy_utf8(sc->name, value, sizeof(sc->name));
-	BLI_uniquename(&sc_master->scene_collections, sc, DATA_("SceneCollection"), '.', offsetof(SceneCollection, name), sizeof(sc->name));
+	BKE_collection_rename(scene, sc, value);
 }
 
 static PointerRNA rna_LayerCollection_objects_get(CollectionPropertyIterator *iter)

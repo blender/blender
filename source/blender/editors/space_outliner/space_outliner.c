@@ -316,6 +316,7 @@ static void outliner_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(s
 				case ND_RENDER_OPTIONS:
 				case ND_SEQUENCER:
 				case ND_LAYER:
+				case ND_LAYER_CONTENT:
 				case ND_WORLD:
 					ED_region_tag_redraw(ar);
 					break;
