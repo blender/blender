@@ -873,15 +873,15 @@ static void widget_draw_icon(
 	if (icon && icon != ICON_BLANK1) {
 		float ofs = 1.0f / aspect;
 		
-		if (but->drawflag & UI_BUT_ICON_LEFT) {
+		if (but->drawflag & UI_BUT_ICON_LEFT || ui_block_is_pie_menu(but->block)) {
 			if (but->block->flag & UI_BLOCK_LOOP) {
 				if (but->type == UI_BTYPE_SEARCH_MENU)
 					xs = rect->xmin + 4.0f * ofs;
 				else
-					xs = rect->xmin + ofs;
+					xs = rect->xmin + 2.0f * ofs;
 			}
 			else {
-				xs = rect->xmin + 4.0f * ofs;
+				xs = rect->xmin + 2.0f * ofs;
 			}
 			ys = (rect->ymin + rect->ymax - height) / 2.0f;
 		}
@@ -1554,11 +1554,11 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	/* Icons on the left with optional text label on the right */
 	else if (but->flag & UI_HAS_ICON || show_menu_icon) {
 		const BIFIconID icon = (but->flag & UI_HAS_ICON) ? but->icon + but->iconadd : ICON_NONE;
-		const float icon_size = ICON_SIZE_FROM_BUTRECT(rect);
+		const float icon_size = ICON_DEFAULT_WIDTH;
 
 		/* menu item - add some more padding so menus don't feel cramped. it must
 		 * be part of the button so that this area is still clickable */
-		if (ui_block_is_menu(but->block))
+		if (ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))
 			rect->xmin += 0.3f * U.widget_unit;
 
 		widget_draw_icon(but, icon, alpha, rect, show_menu_icon);
