@@ -966,7 +966,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 			mis_weight = 2.0f*power_heuristic(pdf, distance_pdf);
 		}
 	}
-	if(sample_t < 1e-6f) {
+	if(sample_t < 1e-6f || pdf == 0.0f) {
 		return VOLUME_PATH_SCATTERED;
 	}
 

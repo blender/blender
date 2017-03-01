@@ -36,7 +36,7 @@
 #include "FilterBase.h"
 
 
-/// pixel filter for gray scale
+/// pixel filter for grayscale
 class FilterGray : public FilterBase
 {
 public:
@@ -53,7 +53,7 @@ protected:
 		// calculate gray value
 		unsigned int gray = (28 * (VT_B(val)) + 151 * (VT_G(val))
 			+ 77 * (VT_R(val))) >> 8;
-		// return gray scale value
+		// return grayscale value
 		VT_R(val) = gray;
 		VT_G(val) = gray;
 		VT_B(val) = gray;

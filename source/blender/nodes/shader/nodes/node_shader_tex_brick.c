@@ -64,7 +64,7 @@ static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 
 	for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
 		if (STREQ(sock->name, "Mortar Smooth")) {
-			((bNodeSocketValueFloat*)sock->default_value)->value = 0.1f;
+			((bNodeSocketValueFloat *)sock->default_value)->value = 0.1f;
 		}
 	}
 }

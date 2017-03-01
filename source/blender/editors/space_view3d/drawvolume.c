@@ -774,8 +774,8 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 
 	float min[3] = {
 	    domain->p0[0] - domain->cell_size[0] * domain->adapt_res,
-		domain->p0[1] - domain->cell_size[1] * domain->adapt_res,
-		domain->p0[2] - domain->cell_size[2] * domain->adapt_res,
+	    domain->p0[1] - domain->cell_size[1] * domain->adapt_res,
+	    domain->p0[2] - domain->cell_size[2] * domain->adapt_res,
 	};
 
 	int num_points_v[3] = {
