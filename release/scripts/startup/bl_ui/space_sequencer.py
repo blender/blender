@@ -668,7 +668,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                     if (i % BT_ROW) == 1:
                         row = col.row(align=True)
 
-                    # Workaround - .active has to have a separate UI block to work
+                    # Workaround - .enabled has to have a separate UI block to work
                     if i == strip.multicam_source:
                         sub = row.row(align=True)
                         sub.enabled = False
