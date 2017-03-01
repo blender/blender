@@ -27,6 +27,7 @@
 #include "DRW_render.h"
 
 #include "GPU_shader.h"
+#include "DNA_view3d_types.h"
 
 #include "draw_mode_pass.h"
 
@@ -50,10 +51,15 @@ void EDIT_MESH_cache_init(void)
 {
 	EDIT_MESH_PassList *psl = DRW_mode_pass_list_get();
 	static struct GPUShader *depth_sh;
-	static struct GPUShader *over_tri_sh, *over_vert_sh, *over_edge_sh;
+	static struct GPUShader *over_tri_sh, *over_vert_sh, *over_edge_sh, *over_tri_fast_sh;
+
+	const struct bContext *C = DRW_get_context();
+	struct RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
 	if (!depth_sh)
 		depth_sh = DRW_shader_create_3D_depth_only();
+	if (!over_tri_fast_sh)
+		over_tri_fast_sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_OVERLAY_EDIT_TRI_FAST);
 	if (!over_tri_sh)
 		over_tri_sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_OVERLAY_EDIT_TRI);
 	if (!over_edge_sh)
@@ -65,7 +71,10 @@ void EDIT_MESH_cache_init(void)
 	depth_shgrp_hidden_wire = DRW_shgroup_create(depth_sh, psl->depth_pass_hidden_wire);
 
 	psl->edit_face_overlay_pass = DRW_pass_create("Edit Mesh Face Overlay Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
-	face_overlay_shgrp = DRW_shgroup_create(over_tri_sh, psl->edit_face_overlay_pass);
+	if ((rv3d->rflag & RV3D_NAVIGATING) != 0)
+		face_overlay_shgrp = DRW_shgroup_create(over_tri_fast_sh, psl->edit_face_overlay_pass);
+	else
+		face_overlay_shgrp = DRW_shgroup_create(over_tri_sh, psl->edit_face_overlay_pass);
 	ledges_overlay_shgrp = DRW_shgroup_create(over_edge_sh, psl->edit_face_overlay_pass);
 	lverts_overlay_shgrp = DRW_shgroup_create(over_vert_sh, psl->edit_face_overlay_pass);
 	DRW_shgroup_uniform_vec2(face_overlay_shgrp, "viewportSize", DRW_viewport_size_get(), 1);

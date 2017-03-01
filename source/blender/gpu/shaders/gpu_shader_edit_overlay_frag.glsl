@@ -99,7 +99,7 @@ float getVertexSize(int v)
 
 void colorDist(vec4 color, float width, inout float dist)
 {
-	FragColor = mix(color, FragColor, smoothstep(0.0, transitionWidth, dist));
+	FragColor = (dist - transitionWidth < 0) ? color : FragColor;
 	dist += width;
 }
 
@@ -191,4 +191,7 @@ void main()
 		else
 			colorDist(vec4(0.0, 0.0, 0.0, 1.0), vertexWidth, size);
 	}
+
+	/* don't write depth if not opaque */
+	if (FragColor.a == 0.0)	discard;
 }

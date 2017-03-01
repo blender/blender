@@ -675,6 +675,9 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_EDGES_OVERLAY_EDIT_TRI] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
 		                                        datatoc_gpu_shader_edit_overlay_frag_glsl,
 		                                        datatoc_gpu_shader_edit_overlay_geom_tri_glsl },
+		[GPU_SHADER_EDGES_OVERLAY_EDIT_TRI_FAST] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
+		                                             datatoc_gpu_shader_edit_overlay_frag_glsl,
+		                                             datatoc_gpu_shader_edit_overlay_geom_tri_glsl },
 		[GPU_SHADER_EDGES_OVERLAY_EDIT_EDGE] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
 		                                         datatoc_gpu_shader_edit_overlay_frag_glsl,
 		                                         datatoc_gpu_shader_edit_overlay_geom_edge_glsl },
@@ -775,6 +778,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		/* just a few special cases */
 		const char *defines = (shader == GPU_SHADER_SMOKE_COBA) ? "#define USE_COBA;\n" :
 		                      (shader == GPU_SHADER_SIMPLE_LIGHTING) ? "#define USE_NORMALS;\n" :
+		                      (shader == GPU_SHADER_EDGES_OVERLAY_EDIT_TRI) ? "#define EDGE_FIX;\n" :
 		                      (shader == GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR) ? "#define USE_INSTANCE_COLOR;\n" : NULL;
 
 		const GPUShaderStages *stages = builtin_shader_stages + shader;

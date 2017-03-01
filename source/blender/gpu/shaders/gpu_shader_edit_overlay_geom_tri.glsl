@@ -5,7 +5,6 @@
 /* This shader follows the principles of
  * http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf */
 
-//#define EDGE_FIX
 layout(triangles) in;
 
 #ifdef EDGE_FIX
