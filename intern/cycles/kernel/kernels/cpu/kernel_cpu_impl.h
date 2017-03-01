@@ -38,6 +38,7 @@
 #  include "split/kernel_split_common.h"
 
 #  include "split/kernel_data_init.h"
+#  include "split/kernel_path_init.h"
 #  include "split/kernel_scene_intersect.h"
 #  include "split/kernel_lamp_emission.h"
 #  include "split/kernel_queue_enqueue.h"
@@ -163,6 +164,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 		kernel_##name(kg); \
 	}
 
+DEFINE_SPLIT_KERNEL_FUNCTION(path_init)
 DEFINE_SPLIT_KERNEL_FUNCTION(scene_intersect)
 DEFINE_SPLIT_KERNEL_FUNCTION(lamp_emission)
 DEFINE_SPLIT_KERNEL_FUNCTION(queue_enqueue)
@@ -186,6 +188,7 @@ void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, 
 	REGISTER(shader);
 
 	REGISTER(data_init);
+	REGISTER(path_init);
 	REGISTER(scene_intersect);
 	REGISTER(lamp_emission);
 	REGISTER(queue_enqueue);

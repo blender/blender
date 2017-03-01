@@ -41,6 +41,7 @@ DeviceSplitKernel::~DeviceSplitKernel()
 	device->mem_free(queue_index);
 	device->mem_free(work_pool_wgs);
 
+	delete kernel_path_init;
 	delete kernel_scene_intersect;
 	delete kernel_lamp_emission;
 	delete kernel_queue_enqueue;
@@ -61,6 +62,7 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 			return false; \
 		}
 
+	LOAD_KERNEL(path_init);
 	LOAD_KERNEL(scene_intersect);
 	LOAD_KERNEL(lamp_emission);
 	LOAD_KERNEL(queue_enqueue);
@@ -199,6 +201,8 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		{
 			return false;
 		}
+
+		ENQUEUE_SPLIT_KERNEL(path_init, global_size, local_size);
 
 		bool activeRaysAvailable = true;
 

@@ -16,6 +16,7 @@ set(SRC
 	kernels/cpu/kernel_split.cpp
 	kernels/opencl/kernel.cl
 	kernels/opencl/kernel_data_init.cl
+	kernels/opencl/kernel_path_init.cl
 	kernels/opencl/kernel_queue_enqueue.cl
 	kernels/opencl/kernel_scene_intersect.cl
 	kernels/opencl/kernel_lamp_emission.cl
@@ -201,6 +202,7 @@ set(SRC_SPLIT_HEADERS
 	split/kernel_holdout_emission_blurring_pathtermination_ao.h
 	split/kernel_lamp_emission.h
 	split/kernel_next_iteration_setup.h
+	split/kernel_path_init.h
 	split/kernel_queue_enqueue.h
 	split/kernel_scene_intersect.h
 	split/kernel_shader_eval.h
@@ -400,6 +402,7 @@ endif()
 
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_data_init.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_path_init.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_queue_enqueue.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_scene_intersect.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_lamp_emission.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)

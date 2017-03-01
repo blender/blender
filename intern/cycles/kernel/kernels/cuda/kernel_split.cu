@@ -25,6 +25,7 @@
 
 #include "../../split/kernel_split_common.h"
 #include "../../split/kernel_data_init.h"
+#include "../../split/kernel_path_init.h"
 #include "../../split/kernel_scene_intersect.h"
 #include "../../split/kernel_lamp_emission.h"
 #include "../../split/kernel_queue_enqueue.h"
@@ -81,6 +82,7 @@ kernel_cuda_path_trace_data_init(
 		kernel_##name(NULL); \
 	}
 
+DEFINE_SPLIT_KERNEL_FUNCTION(path_init)
 DEFINE_SPLIT_KERNEL_FUNCTION(scene_intersect)
 DEFINE_SPLIT_KERNEL_FUNCTION(lamp_emission)
 DEFINE_SPLIT_KERNEL_FUNCTION(queue_enqueue)

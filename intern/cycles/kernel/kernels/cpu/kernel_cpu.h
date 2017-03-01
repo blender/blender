@@ -71,6 +71,7 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 #define DECLARE_SPLIT_KERNEL_FUNCTION(name) \
 	void KERNEL_FUNCTION_FULL_NAME(name)(KernelGlobals *kg, KernelData *data);
 
+DECLARE_SPLIT_KERNEL_FUNCTION(path_init)
 DECLARE_SPLIT_KERNEL_FUNCTION(scene_intersect)
 DECLARE_SPLIT_KERNEL_FUNCTION(lamp_emission)
 DECLARE_SPLIT_KERNEL_FUNCTION(queue_enqueue)

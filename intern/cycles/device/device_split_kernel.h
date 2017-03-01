@@ -55,6 +55,7 @@ class DeviceSplitKernel {
 private:
 	Device *device;
 
+	SplitKernelFunction *kernel_path_init;
 	SplitKernelFunction *kernel_scene_intersect;
 	SplitKernelFunction *kernel_lamp_emission;
 	SplitKernelFunction *kernel_queue_enqueue;
