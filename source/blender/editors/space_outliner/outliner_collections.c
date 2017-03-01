@@ -290,7 +290,7 @@ struct CollectionDeleteData {
 	SpaceOops *soops;
 };
 
-static TreeTraversalReturn collection_delete_cb(TreeElement *te, void *customdata)
+static TreeTraversalAction collection_delete_cb(TreeElement *te, void *customdata)
 {
 	struct CollectionDeleteData *data = customdata;
 	TreeStoreElem *tselem = TREESTORE(te);

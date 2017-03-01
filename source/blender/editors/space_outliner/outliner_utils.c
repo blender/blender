@@ -201,7 +201,7 @@ bool outliner_tree_traverse(const SpaceOops *soops, ListBase *tree, int filter_t
                             TreeTraversalFunc func, void *customdata)
 {
 	for (TreeElement *te = tree->first, *te_next; te; te = te_next) {
-		TreeTraversalReturn func_retval = TRAVERSE_CONTINUE;
+		TreeTraversalAction func_retval = TRAVERSE_CONTINUE;
 		/* in case te is freed in callback */
 		TreeStoreElem *tselem = TREESTORE(te);
 		ListBase subtree = te->subtree;

@@ -49,14 +49,14 @@ struct EditBone;
 struct wmKeyConfig;
 
 
-typedef enum TreeTraversalReturn {
+typedef enum TreeTraversalAction {
 	/* Continue traversal regularly, don't skip children. */
 	TRAVERSE_CONTINUE = 0,
 	/* Stop traversal */
 	TRAVERSE_BREAK,
 	/* Continue traversal, but skip childs of traversed element */
 	TRAVERSE_SKIP_CHILDS,
-} TreeTraversalReturn;
+} TreeTraversalAction;
 
 /**
  * Callback type for reinserting elements at a different position, used to allow user customizable element order.
@@ -64,7 +64,7 @@ typedef enum TreeTraversalReturn {
  */
 typedef void (*TreeElementReinsertFunc)(const struct Scene *scene, struct TreeElement *insert_element,
                                         struct TreeElement *insert_after);
-typedef TreeTraversalReturn (*TreeTraversalFunc)(struct TreeElement *te, void *customdata);
+typedef TreeTraversalAction (*TreeTraversalFunc)(struct TreeElement *te, void *customdata);
 
 
 typedef struct TreeElement {
