@@ -106,7 +106,6 @@ struct TaskPool {
 	TaskScheduler *scheduler;
 
 	volatile size_t num;
-	volatile size_t done;
 	size_t num_threads;
 	size_t currently_running_tasks;
 	ThreadMutex num_mutex;
@@ -238,7 +237,6 @@ static void task_pool_num_decrease(TaskPool *pool, size_t done)
 
 	pool->num -= done;
 	atomic_sub_and_fetch_z(&pool->currently_running_tasks, done);
-	pool->done += done;
 
 	if (pool->num == 0)
 		BLI_condition_notify_all(&pool->num_cond);
@@ -504,7 +502,6 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
 
 	pool->scheduler = scheduler;
 	pool->num = 0;
-	pool->done = 0;
 	pool->num_threads = 0;
 	pool->currently_running_tasks = 0;
 	pool->do_cancel = false;
@@ -741,11 +738,6 @@ void *BLI_task_pool_userdata(TaskPool *pool)
 ThreadMutex *BLI_task_pool_user_mutex(TaskPool *pool)
 {
 	return &pool->user_mutex;
-}
-
-size_t BLI_task_pool_tasks_done(TaskPool *pool)
-{
-	return pool->done;
 }
 
 /* Parallel range routines */

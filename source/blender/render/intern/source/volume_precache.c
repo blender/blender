@@ -60,6 +60,8 @@
 #include "volumetric.h"
 #include "volume_precache.h"
 
+#include "atomic_ops.h"
+
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
@@ -509,7 +511,8 @@ static void *vol_precache_part_test(void *data)
  */
 typedef struct VolPrecacheState {
 	double lasttime;
-	int totparts;
+	unsigned int doneparts;
+	unsigned int totparts;
 } VolPrecacheState;
 
 static void vol_precache_part(TaskPool * __restrict pool, void *taskdata, int UNUSED(threadid))
@@ -574,13 +577,15 @@ static void vol_precache_part(TaskPool * __restrict pool, void *taskdata, int UN
 		}
 	}
 
+	unsigned int doneparts = atomic_add_and_fetch_u(&state->doneparts, 1);
+
 	time = PIL_check_seconds_timer();
 	if (time - state->lasttime > 1.0) {
 		ThreadMutex *mutex = BLI_task_pool_user_mutex(pool);
 
 		if (BLI_mutex_trylock(mutex)) {
 			char str[64];
-			float ratio = (float)BLI_task_pool_tasks_done(pool)/(float)state->totparts;
+			float ratio = (float)doneparts/(float)state->totparts;
 			BLI_snprintf(str, sizeof(str), IFACE_("Precaching volume: %d%%"), (int)(100.0f * ratio));
 			re->i.infostr = str;
 			re->stats_draw(re->sdh, &re->i);
@@ -631,6 +636,7 @@ static void precache_launch_parts(Render *re, RayObject *tree, ShadeInput *shi, 
 	
 	/* setup task scheduler */
 	memset(&state, 0, sizeof(state));
+	state.doneparts = 0;
 	state.totparts = parts[0]*parts[1]*parts[2];
 	state.lasttime = PIL_check_seconds_timer();
 	

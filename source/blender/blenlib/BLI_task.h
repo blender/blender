@@ -113,9 +113,6 @@ void *BLI_task_pool_userdata(TaskPool *pool);
 /* optional mutex to use from run function */
 ThreadMutex *BLI_task_pool_user_mutex(TaskPool *pool);
 
-/* number of tasks done, for stats, don't use this to make decisions */
-size_t BLI_task_pool_tasks_done(TaskPool *pool);
-
 /* Parallel for routines */
 typedef void (*TaskParallelRangeFunc)(void *userdata, const int iter);
 typedef void (*TaskParallelRangeFuncEx)(void *userdata, void *userdata_chunk, const int iter, const int thread_id);
