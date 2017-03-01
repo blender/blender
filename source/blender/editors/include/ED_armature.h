@@ -130,8 +130,9 @@ void ED_armature_ebone_listbase_temp_clear(struct ListBase *lb);
 void ED_armature_deselect_all(struct Object *obedit);
 void ED_armature_deselect_all_visible(struct Object *obedit);
 
-int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer,
-                            short hits, bool extend, bool deselect, bool toggle, bool do_nearest);
+bool ED_do_pose_selectbuffer(
+        struct Scene *scene, struct Base *base, const unsigned int *buffer, short hits,
+        bool extend, bool deselect, bool toggle, bool do_nearest);
 bool ED_armature_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
 struct Bone *get_indexed_bone(struct Object *ob, int index);

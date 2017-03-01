@@ -72,7 +72,7 @@ static GPUQueryState g_query_state = {0};
 /**
  * initialize and provide buffer for results
  */
-void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, rctf *input, char mode, int oldhits)
+void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const rctf *input, char mode, int oldhits)
 {
 	g_query_state.select_is_active = true;
 	g_query_state.query_issued = false;
