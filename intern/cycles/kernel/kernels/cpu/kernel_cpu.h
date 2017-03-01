@@ -81,7 +81,6 @@ DECLARE_SPLIT_KERNEL_FUNCTION(holdout_emission_blurring_pathtermination_ao)
 DECLARE_SPLIT_KERNEL_FUNCTION(direct_lighting)
 DECLARE_SPLIT_KERNEL_FUNCTION(shadow_blocked)
 DECLARE_SPLIT_KERNEL_FUNCTION(next_iteration_setup)
-DECLARE_SPLIT_KERNEL_FUNCTION(sum_all_radiance)
 
 void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, void* func));
 

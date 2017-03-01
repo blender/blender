@@ -119,7 +119,7 @@ ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 	ccl_global float *L_transparent = &kernel_split_state.L_transparent[ray_index];
 	ccl_global uint *rng = &kernel_split_state.rng[ray_index];
-	ccl_global float *per_sample_output_buffers = kernel_split_state.per_sample_output_buffers;
+	ccl_global float *buffer = kernel_split_params.buffer;
 
 	unsigned int work_index;
 	ccl_global uint *initial_rng;
@@ -129,7 +129,6 @@ ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 	unsigned int tile_y;
 	unsigned int pixel_x;
 	unsigned int pixel_y;
-	unsigned int my_sample_tile;
 
 	work_index = kernel_split_state.work_array[ray_index];
 	sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
@@ -137,11 +136,10 @@ ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 	                        &tile_x, &tile_y,
 	                        work_index,
 	                        ray_index);
-	my_sample_tile = 0;
 	initial_rng = rng_state;
 
-	rng_state += kernel_split_params.offset + pixel_x + pixel_y*kernel_split_params.stride;
-	per_sample_output_buffers += ((tile_x + (tile_y * stride)) + my_sample_tile) * kernel_data.film.pass_stride;
+	rng_state += kernel_split_params.offset + pixel_x + pixel_y*stride;
+	buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 	if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
 		/* eval background shader if nothing hit */
@@ -165,14 +163,14 @@ ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
 		float3 L_sum = path_radiance_clamp_and_sum(kg, L);
-		kernel_write_light_passes(kg, per_sample_output_buffers, L, sample);
+		kernel_write_light_passes(kg, buffer, L, sample);
 #ifdef __KERNEL_DEBUG__
-		kernel_write_debug_passes(kg, per_sample_output_buffers, state, debug_data, sample);
+		kernel_write_debug_passes(kg, buffer, state, debug_data, sample);
 #endif
 		float4 L_rad = make_float4(L_sum.x, L_sum.y, L_sum.z, 1.0f - (*L_transparent));
 
 		/* accumulate result in output buffer */
-		kernel_write_pass_float4(per_sample_output_buffers, sample, L_rad);
+		kernel_write_pass_float4(buffer, sample, L_rad);
 		path_rng_end(kg, rng_state, *rng);
 
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
@@ -192,13 +190,11 @@ ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 			sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
 			/* Get pixel and tile position associated with current work */
 			get_work_pixel_tile_position(kg, &pixel_x, &pixel_y, &tile_x, &tile_y, work_index, ray_index);
-			my_sample_tile = 0;
 
 			/* Remap rng_state according to the current work */
-			rng_state = initial_rng + kernel_split_params.offset + pixel_x + pixel_y*kernel_split_params.stride;
-			/* Remap per_sample_output_buffers according to the current work */
-			per_sample_output_buffers = kernel_split_state.per_sample_output_buffers
-				+ ((tile_x + (tile_y * stride)) + my_sample_tile) * kernel_data.film.pass_stride;
+			rng_state = initial_rng + kernel_split_params.offset + pixel_x + pixel_y*stride;
+			/* Remap buffer according to the current work */
+			buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 			/* Initialize random numbers and ray. */
 			kernel_path_trace_setup(kg, rng_state, sample, pixel_x, pixel_y, rng, ray);
@@ -221,7 +217,7 @@ ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 				/* These rays do not participate in path-iteration. */
 				float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 				/* Accumulate result in output buffer. */
-				kernel_write_pass_float4(per_sample_output_buffers, sample, L_rad);
+				kernel_write_pass_float4(buffer, sample, L_rad);
 				path_rng_end(kg, rng_state, *rng);
 
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);

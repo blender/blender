@@ -35,7 +35,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	unsigned int pixel_y;
 	unsigned int tile_x;
 	unsigned int tile_y;
-	unsigned int my_sample_tile;
 
 	unsigned int work_index = 0;
 	/* Get work. */
@@ -49,8 +48,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	/* Get the sample associated with the work. */
 	my_sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
 
-	my_sample_tile = 0;
-
 	/* Get pixel and tile position associated with the work. */
 	get_work_pixel_tile_position(kg, &pixel_x, &pixel_y,
 	                        &tile_x, &tile_y,
@@ -61,9 +58,8 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	ccl_global uint *rng_state = kernel_split_params.rng_state;
 	rng_state += kernel_split_params.offset + pixel_x + pixel_y*kernel_split_params.stride;
 
-	ccl_global float *per_sample_output_buffers = kernel_split_state.per_sample_output_buffers;
-	per_sample_output_buffers += (tile_x + tile_y * kernel_split_params.stride + my_sample_tile)
-	                             * kernel_data.film.pass_stride;
+	ccl_global float *buffer = kernel_split_params.buffer;
+	buffer += (kernel_split_params.offset + pixel_x + pixel_y * kernel_split_params.stride) * kernel_data.film.pass_stride;
 
 	/* Initialize random numbers and ray. */
 	kernel_path_trace_setup(kg,
@@ -94,7 +90,7 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 		/* These rays do not participate in path-iteration. */
 		float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		/* Accumulate result in output buffer. */
-		kernel_write_pass_float4(per_sample_output_buffers, my_sample, L_rad);
+		kernel_write_pass_float4(buffer, my_sample, L_rad);
 		path_rng_end(kg, rng_state, kernel_split_state.rng[ray_index]);
 		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE);
 	}

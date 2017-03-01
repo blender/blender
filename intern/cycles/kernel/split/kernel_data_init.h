@@ -24,6 +24,21 @@ CCL_NAMESPACE_BEGIN
  * The number of elements in the queues is initialized to 0;
  */
 
+/* distributes an amount of work across all threads
+ * note: work done inside the loop may not show up to all threads till after the current kernel has completed
+ */
+#define parallel_for(kg, iter_name, work_size) \
+	for(size_t _size = (work_size), \
+	    _global_size = ccl_global_size(0) * ccl_global_size(1), \
+	    _n = _size / _global_size, \
+		_thread = ccl_global_id(0) + ccl_global_id(1) * ccl_global_size(0), \
+	    iter_name = (_n > 0) ? (_thread * _n) : (_thread) \
+		; \
+		(iter_name < (_thread+1) * _n) || (iter_name == _n * _global_size + _thread && _thread < _size % _global_size) \
+		; \
+		iter_name = (iter_name != (_thread+1) * _n - 1) ? (iter_name + 1) : (_n * _global_size + _thread) \
+	)
+
 #ifndef __KERNEL_CPU__
 ccl_device void kernel_data_init(
 #else
@@ -109,6 +124,21 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 		 * since the queue would be empty.
 		 */
 		*use_queues_flag = 0;
+	}
+
+	/* zero the tiles pixels if this is the first sample */
+	if(start_sample == 0) {
+		parallel_for(kg, i, sw * sh * kernel_data.film.pass_stride) {
+			int pixel = i / kernel_data.film.pass_stride;
+			int pass = i % kernel_data.film.pass_stride;
+
+			int x = sx + pixel % sw;
+			int y = sy + pixel / sw;
+
+			int index = (offset + x + y*stride) * kernel_data.film.pass_stride + pass;
+
+			*(buffer + index) = 0.0f;
+		}
 	}
 }
 

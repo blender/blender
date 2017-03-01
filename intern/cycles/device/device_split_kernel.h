@@ -65,7 +65,6 @@ private:
 	SplitKernelFunction *kernel_direct_lighting;
 	SplitKernelFunction *kernel_shadow_blocked;
 	SplitKernelFunction *kernel_next_iteration_setup;
-	SplitKernelFunction *kernel_sum_all_radiance;
 
 	/* Global memory variables [porting]; These memory is used for
 	 * co-operation between different kernels; Data written by one

@@ -114,7 +114,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 
 	unsigned int tile_x;
 	unsigned int tile_y;
-	int my_sample_tile;
 	unsigned int sample;
 
 	ccl_global RNG *rng = 0x0;
@@ -123,7 +122,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 
 	ccl_global char *ray_state = kernel_split_state.ray_state;
 	ShaderData *sd = &kernel_split_state.sd[ray_index];
-	ccl_global float *per_sample_output_buffers = kernel_split_state.per_sample_output_buffers;
+	ccl_global float *buffer = kernel_split_params.buffer;
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 
@@ -137,11 +136,8 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 		                        &tile_x, &tile_y,
 		                        work_index,
 		                        ray_index);
-		my_sample_tile = 0;
 
-		per_sample_output_buffers +=
-		    ((tile_x + (tile_y * stride)) + my_sample_tile) *
-		    kernel_data.film.pass_stride;
+		buffer += (kernel_split_params.offset + pixel_x + pixel_y * stride) * kernel_data.film.pass_stride;
 
 		/* holdout */
 #ifdef __HOLDOUT__
@@ -172,7 +168,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 		/* Holdout mask objects do not write data passes. */
 		kernel_write_data_passes(kg,
-		                         per_sample_output_buffers,
+		                         buffer,
 		                         L,
 		                         sd,
 		                         sample,

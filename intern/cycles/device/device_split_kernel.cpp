@@ -51,7 +51,6 @@ DeviceSplitKernel::~DeviceSplitKernel()
 	delete kernel_direct_lighting;
 	delete kernel_shadow_blocked;
 	delete kernel_next_iteration_setup;
-	delete kernel_sum_all_radiance;
 }
 
 bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_features)
@@ -72,7 +71,6 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 	LOAD_KERNEL(direct_lighting);
 	LOAD_KERNEL(shadow_blocked);
 	LOAD_KERNEL(next_iteration_setup);
-	LOAD_KERNEL(sum_all_radiance);
 
 #undef LOAD_KERNEL
 
@@ -257,15 +255,6 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		else {
 			avg_time_per_sample = alpha*time_per_sample + (1.0-alpha)*avg_time_per_sample;
 		}
-
-		size_t sum_all_radiance_local_size[2] = {16, 16};
-		size_t sum_all_radiance_global_size[2];
-		sum_all_radiance_global_size[0] = round_up(tile.w, sum_all_radiance_local_size[0]);
-		sum_all_radiance_global_size[1] = round_up(tile.h, sum_all_radiance_local_size[1]);
-
-		ENQUEUE_SPLIT_KERNEL(sum_all_radiance,
-		                     sum_all_radiance_global_size,
-		                     sum_all_radiance_local_size);
 
 #undef ENQUEUE_SPLIT_KERNEL
 

@@ -89,7 +89,6 @@ typedef struct SplitData {
 	/* size calculation for these is non trivial, so they are left out of SPLIT_DATA_ENTRIES and handled separately */
 	ShaderData *sd;
 	ShaderData *sd_DL_shadow;
-	ccl_global float *per_sample_output_buffers;
 
 	/* this is actually in a separate buffer from the rest of the split state data (so it can be read back from
 	 * the host easily) but is still used the same as the other data so we have it here in this struct as well
@@ -113,7 +112,6 @@ ccl_device_inline size_t split_data_buffer_size(size_t num_elements,
 	 */
 	size += align_up(num_elements * SIZEOF_SD(max_closure), 16); /* sd */
 	size += align_up(2 * num_elements * SIZEOF_SD(max_closure), 16); /* sd_DL_shadow */
-	size += align_up(num_elements * per_thread_output_buffer_size, 16); /* per_sample_output_buffers */
 
 	return size;
 }
@@ -135,9 +133,6 @@ ccl_device_inline void split_data_init(ccl_global SplitData *split_data,
 
 	split_data->sd_DL_shadow = (ShaderData*)p;
 	p += align_up(2 * num_elements * SIZEOF_SD(MAX_CLOSURE), 16);
-
-	split_data->per_sample_output_buffers = (ccl_global float*)p;
-	//p += align_up(num_elements * per_thread_output_buffer_size, 16);
 
 	split_data->ray_state = ray_state;
 }

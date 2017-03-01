@@ -26,7 +26,6 @@ set(SRC
 	kernels/opencl/kernel_direct_lighting.cl
 	kernels/opencl/kernel_shadow_blocked.cl
 	kernels/opencl/kernel_next_iteration_setup.cl
-	kernels/opencl/kernel_sum_all_radiance.cl
 	kernels/cuda/kernel.cu
 	kernels/cuda/kernel_split.cu
 )
@@ -209,7 +208,6 @@ set(SRC_SPLIT_HEADERS
 	split/kernel_shadow_blocked.h
 	split/kernel_split_common.h
 	split/kernel_split_data.h
-	split/kernel_sum_all_radiance.h
 )
 
 # CUDA module
@@ -412,7 +410,6 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_holdout_emiss
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_direct_lighting.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocked.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_next_iteration_setup.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_sum_all_radiance.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel.cu" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel_split.cu" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)

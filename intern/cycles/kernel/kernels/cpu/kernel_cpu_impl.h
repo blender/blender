@@ -48,7 +48,6 @@
 #  include "split/kernel_direct_lighting.h"
 #  include "split/kernel_shadow_blocked.h"
 #  include "split/kernel_next_iteration_setup.h"
-#  include "split/kernel_sum_all_radiance.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -174,7 +173,6 @@ DEFINE_SPLIT_KERNEL_FUNCTION(holdout_emission_blurring_pathtermination_ao)
 DEFINE_SPLIT_KERNEL_FUNCTION(direct_lighting)
 DEFINE_SPLIT_KERNEL_FUNCTION(shadow_blocked)
 DEFINE_SPLIT_KERNEL_FUNCTION(next_iteration_setup)
-DEFINE_SPLIT_KERNEL_FUNCTION(sum_all_radiance)
 
 void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, void* func))
 {
@@ -198,7 +196,6 @@ void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, 
 	REGISTER(direct_lighting);
 	REGISTER(shadow_blocked);
 	REGISTER(next_iteration_setup);
-	REGISTER(sum_all_radiance);
 
 #undef REGISTER
 #undef REGISTER_EVAL_NAME
