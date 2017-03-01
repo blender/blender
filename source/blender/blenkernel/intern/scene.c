@@ -1152,6 +1152,19 @@ int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
 	return iter->phase;
 }
 
+Scene *BKE_scene_find_from_collection(const Main *bmain, const SceneCollection *scene_collection)
+{
+	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (SceneLayer *layer = scene->render_layers.first; layer; layer = layer->next) {
+			if (BKE_scene_layer_has_collection(layer, scene_collection)) {
+				return scene;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 Object *BKE_scene_camera_find(Scene *sc)
 {
 	BaseLegacy *base;

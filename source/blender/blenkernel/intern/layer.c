@@ -656,7 +656,7 @@ static LayerCollection *layer_collection_add(SceneLayer *sl, ListBase *lb, Scene
 /**
  * See if render layer has the scene collection linked directly, or indirectly (nested)
  */
-bool BKE_scene_layer_has_collection(struct SceneLayer *sl, struct SceneCollection *sc)
+bool BKE_scene_layer_has_collection(SceneLayer *sl, const SceneCollection *sc)
 {
 	for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 		if (find_layer_collection_by_scene_collection(lc, sc) != NULL) {

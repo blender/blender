@@ -47,6 +47,7 @@ struct QuicktimeCodecData;
 struct RenderData;
 struct SceneRenderLayer;
 struct Scene;
+struct SceneCollection;
 struct SceneLayer;
 struct UnitSettings;
 struct Main;
@@ -110,6 +111,8 @@ struct Scene *BKE_scene_copy(struct Main *bmain, struct Scene *sce, int type);
 void BKE_scene_groups_relink(struct Scene *sce);
 
 void BKE_scene_make_local(struct Main *bmain, struct Scene *sce, const bool lib_local);
+
+struct Scene *BKE_scene_find_from_collection(const struct Main *bmain, const struct SceneCollection *scene_collection);
 
 struct Object *BKE_scene_camera_find(struct Scene *sc);
 #ifdef DURIAN_CAMERA_SWITCH

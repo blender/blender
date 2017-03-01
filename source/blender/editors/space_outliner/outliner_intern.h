@@ -297,6 +297,8 @@ void outliner_keymap(struct wmKeyConfig *keyconf);
 
 /* outliner_collections.c */
 
+struct SceneCollection *outliner_scene_collection_from_tree_element(TreeElement *te);
+
 void OUTLINER_OT_collections_delete(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_select(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_link(struct wmOperatorType *ot);

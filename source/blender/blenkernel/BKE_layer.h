@@ -91,7 +91,7 @@ struct LayerCollection *BKE_collection_link(struct SceneLayer *sl, struct SceneC
 
 void BKE_collection_unlink(struct SceneLayer *sl, struct LayerCollection *lc);
 
-bool BKE_scene_layer_has_collection(struct SceneLayer *sl, struct SceneCollection *sc);
+bool BKE_scene_layer_has_collection(struct SceneLayer *sl, const struct SceneCollection *sc);
 bool BKE_scene_has_object(struct Scene *scene, struct Object *ob);
 
 /* syncing */

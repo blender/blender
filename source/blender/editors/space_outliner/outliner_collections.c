@@ -54,6 +54,21 @@ static LayerCollection *outliner_collection_active(bContext *C)
 	return CTX_data_layer_collection(C);
 }
 
+SceneCollection *outliner_scene_collection_from_tree_element(TreeElement *te)
+{
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	if (tselem->type == TSE_SCENE_COLLECTION) {
+		return te->directdata;
+	}
+	else if (tselem->type == TSE_LAYER_COLLECTION) {
+		LayerCollection *lc = te->directdata;
+		return lc->scene_collection;
+	}
+
+	return NULL;
+}
+
 #if 0
 static CollectionOverride *outliner_override_active(bContext *UNUSED(C))
 {
@@ -294,16 +309,9 @@ static TreeTraversalAction collection_delete_cb(TreeElement *te, void *customdat
 {
 	struct CollectionDeleteData *data = customdata;
 	TreeStoreElem *tselem = TREESTORE(te);
-	SceneCollection *scene_collection;
+	SceneCollection *scene_collection = outliner_scene_collection_from_tree_element(te);
 
-	if (tselem->type == TSE_LAYER_COLLECTION) {
-		LayerCollection *lc = te->directdata;
-		scene_collection = lc->scene_collection;
-	}
-	else if (tselem->type == TSE_SCENE_COLLECTION) {
-		scene_collection = te->directdata;
-	}
-	else {
+	if (!scene_collection) {
 		return TRAVERSE_SKIP_CHILDS;
 	}
 

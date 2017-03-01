@@ -102,10 +102,14 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 		if (GS(id->name) == ID_OB) {
 			/* Ensure item under cursor is valid drop target */
 			TreeElement *te = outliner_dropzone_find(soops, fmval, true);
+			TreeStoreElem *tselem = te ? TREESTORE(te) : NULL;
 
-			if (te && te->idcode == ID_OB && TREESTORE(te)->type == 0) {
+			if (!te) {
+				/* pass */
+			}
+			else if (te->idcode == ID_OB && tselem->type == 0) {
 				Scene *scene;
-				ID *te_id = TREESTORE(te)->id;
+				ID *te_id = tselem->id;
 
 				/* check if dropping self or parent */
 				if (te_id == id || (Object *)te_id == ((Object *)id)->parent)
@@ -121,6 +125,10 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 				if (!scene || BKE_scene_base_find(scene, (Object *)id)) {
 					return 1;
 				}
+			}
+			else if (ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
+				/* support adding object from different scene to collection */
+				return 1;
 			}
 		}
 	}

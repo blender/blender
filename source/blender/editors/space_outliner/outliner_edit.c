@@ -1916,6 +1916,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = NULL;
 	TreeElement *te = NULL;
+	TreeStoreElem *tselem;
 	char childname[MAX_ID_NAME];
 	char parname[MAX_ID_NAME];
 	int partype = 0;
@@ -1925,8 +1926,21 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* Find object hovered over */
 	te = outliner_dropzone_find(soops, fmval, true);
+	tselem = te ? TREESTORE(te) : NULL;
 
-	if (te) {
+	if (tselem && ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
+		SceneCollection *sc = outliner_scene_collection_from_tree_element(te);
+
+		scene = BKE_scene_find_from_collection(bmain, sc);
+		BLI_assert(scene);
+		RNA_string_get(op->ptr, "child", childname);
+		ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
+		BKE_collection_object_add(scene, sc, ob);
+
+		DAG_relations_tag_update(bmain);
+		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+	}
+	else if (te) {
 		RNA_string_set(op->ptr, "parent", te->name);
 		/* Identify parent and child */
 		RNA_string_get(op->ptr, "child", childname);
