@@ -960,10 +960,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.separator()
 
+        col = layout.column()
+        col.active = md.target is not None
+
         if md.is_bound:
-            layout.operator("object.surfacedeform_bind", text="Unbind")
+            col.operator("object.surfacedeform_bind", text="Unbind")
         else:
-            layout.operator("object.surfacedeform_bind", text="Bind")
+            col.operator("object.surfacedeform_bind", text="Bind")
 
     def UV_PROJECT(self, layout, ob, md):
         split = layout.split()

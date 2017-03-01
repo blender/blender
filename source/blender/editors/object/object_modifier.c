@@ -2299,14 +2299,7 @@ void OBJECT_OT_laplaciandeform_bind(wmOperatorType *ot)
 
 static int surfacedeform_bind_poll(bContext *C)
 {
-	if (edit_modifier_poll_generic(C, &RNA_SurfaceDeformModifier, 0)) {
-		PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_SurfaceDeformModifier);
-		SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)ptr.data;
-
-		return ((smd != NULL) && (smd->target != NULL));
-	}
-
-	return 0;
+	return edit_modifier_poll_generic(C, &RNA_SurfaceDeformModifier, 0);
 }
 
 static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
