@@ -604,7 +604,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 			}
 			case ANIMTYPE_OBJECT:
 			{
-				BaseLegacy *base = (BaseLegacy *)data;
+				Base *base = (Base *)data;
 				Object *ob = base->object;
 				
 				ale->flag = ob->flag;
@@ -2577,7 +2577,7 @@ static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, b
 }
 
 /* get animation channels from object2 */
-static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, BaseLegacy *base, int filter_mode)
+static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	ListBase tmp_data = {NULL, NULL};
 	Object *ob = base->object;
