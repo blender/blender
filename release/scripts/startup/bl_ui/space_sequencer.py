@@ -671,11 +671,11 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                     # Workaround - .active has to have a separate UI block to work
                     if i == strip.multicam_source:
                         sub = row.row(align=True)
-                        sub.active = False
+                        sub.enabled = False
                         sub.operator("sequencer.cut_multicam", text="%d" % i).camera = i
                     else:
                         sub_1 = row.row(align=True)
-                        sub_1.active = True
+                        sub_1.enabled = True
                         sub_1.operator("sequencer.cut_multicam", text="%d" % i).camera = i
 
                 if strip.channel > BT_ROW and (strip_channel - 1) % BT_ROW:
