@@ -421,6 +421,13 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				}
 				case TSE_R_LAYER:
 					break;
+				case TSE_SCENE_COLLECTION:
+				case TSE_LAYER_COLLECTION:
+				{
+					SceneCollection *sc = outliner_scene_collection_from_tree_element(te);
+					BKE_collection_rename(scene, sc, te->name);
+					break;
+				}
 			}
 		}
 		tselem->flag &= ~TSE_TEXTBUT;

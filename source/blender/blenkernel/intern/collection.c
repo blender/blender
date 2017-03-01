@@ -62,9 +62,7 @@ SceneCollection *BKE_collection_add(Scene *scene, SceneCollection *sc_parent, co
 		sc_parent = sc_master;
 	}
 
-	BLI_strncpy(sc->name, name, sizeof(sc->name));
-	BLI_uniquename(&sc_master->scene_collections, sc, DATA_("Collection"), '.', offsetof(SceneCollection, name), sizeof(sc->name));
-
+	BKE_collection_rename(scene, sc, name);
 	BLI_addtail(&sc_parent->scene_collections, sc);
 
 	BKE_layer_sync_new_scene_collection(scene, sc_parent, sc);
@@ -179,6 +177,15 @@ bool BKE_collection_remove(Scene *scene, SceneCollection *sc)
 SceneCollection *BKE_collection_master(const Scene *scene)
 {
 	return scene->collection;
+}
+
+void BKE_collection_rename(const Scene *scene, SceneCollection *sc, const char *name)
+{
+	SceneCollection *sc_master = BKE_collection_master(scene);
+
+	BLI_strncpy(sc->name, name, sizeof(sc->name));
+	BLI_uniquename(&sc_master->scene_collections, sc, DATA_("Collection"), '.', offsetof(SceneCollection, name),
+	               sizeof(sc->name));
 }
 
 /**
