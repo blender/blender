@@ -113,58 +113,58 @@ ATOMIC_INLINE size_t atomic_cas_z(size_t *v, size_t old, size_t _new)
 
 /******************************************************************************/
 /* unsigned operations. */
-ATOMIC_INLINE unsigned atomic_add_and_fetch_u(unsigned *p, unsigned x)
+ATOMIC_INLINE unsigned int atomic_add_and_fetch_u(unsigned int *p, unsigned int x)
 {
-	assert(sizeof(unsigned) == LG_SIZEOF_INT);
+	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
 
 #if (LG_SIZEOF_INT == 8)
-	return (unsigned)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)x);
+	return (unsigned int)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)x);
 #elif (LG_SIZEOF_INT == 4)
-	return (unsigned)atomic_add_and_fetch_uint32((uint32_t *)p, (uint32_t)x);
+	return (unsigned int)atomic_add_and_fetch_uint32((uint32_t *)p, (uint32_t)x);
 #endif
 }
 
-ATOMIC_INLINE unsigned atomic_sub_and_fetch_u(unsigned *p, unsigned x)
+ATOMIC_INLINE unsigned int atomic_sub_and_fetch_u(unsigned int *p, unsigned int x)
 {
-	assert(sizeof(unsigned) == LG_SIZEOF_INT);
+	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
 
 #if (LG_SIZEOF_INT == 8)
-	return (unsigned)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
+	return (unsigned int)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_INT == 4)
-	return (unsigned)atomic_add_and_fetch_uint32((uint32_t *)p, (uint32_t)-((int32_t)x));
+	return (unsigned int)atomic_add_and_fetch_uint32((uint32_t *)p, (uint32_t)-((int32_t)x));
 #endif
 }
 
-ATOMIC_INLINE unsigned atomic_fetch_and_add_u(unsigned *p, unsigned x)
+ATOMIC_INLINE unsigned int atomic_fetch_and_add_u(unsigned int *p, unsigned int x)
 {
-	assert(sizeof(unsigned) == LG_SIZEOF_INT);
+	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
 
 #if (LG_SIZEOF_INT == 8)
-	return (unsigned)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)x);
+	return (unsigned int)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)x);
 #elif (LG_SIZEOF_INT == 4)
-	return (unsigned)atomic_fetch_and_add_uint32((uint32_t *)p, (uint32_t)x);
+	return (unsigned int)atomic_fetch_and_add_uint32((uint32_t *)p, (uint32_t)x);
 #endif
 }
 
-ATOMIC_INLINE unsigned atomic_fetch_and_sub_u(unsigned *p, unsigned x)
+ATOMIC_INLINE unsigned int atomic_fetch_and_sub_u(unsigned int *p, unsigned int x)
 {
-	assert(sizeof(unsigned) == LG_SIZEOF_INT);
+	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
 
 #if (LG_SIZEOF_INT == 8)
-	return (unsigned)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
+	return (unsigned int)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_INT == 4)
-	return (unsigned)atomic_fetch_and_add_uint32((uint32_t *)p, (uint32_t)-((int32_t)x));
+	return (unsigned int)atomic_fetch_and_add_uint32((uint32_t *)p, (uint32_t)-((int32_t)x));
 #endif
 }
 
-ATOMIC_INLINE unsigned atomic_cas_u(unsigned *v, unsigned old, unsigned _new)
+ATOMIC_INLINE unsigned int atomic_cas_u(unsigned int *v, unsigned int old, unsigned int _new)
 {
-	assert(sizeof(unsigned) == LG_SIZEOF_INT);
+	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
 
 #if (LG_SIZEOF_INT == 8)
-	return (unsigned)atomic_cas_uint64((uint64_t *)v, (uint64_t)old, (uint64_t)_new);
+	return (unsigned int)atomic_cas_uint64((uint64_t *)v, (uint64_t)old, (uint64_t)_new);
 #elif (LG_SIZEOF_INT == 4)
-	return (unsigned)atomic_cas_uint32((uint32_t *)v, (uint32_t)old, (uint32_t)_new);
+	return (unsigned int)atomic_cas_uint32((uint32_t *)v, (uint32_t)old, (uint32_t)_new);
 #endif
 }
 
