@@ -362,7 +362,7 @@ static int armature_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
 
 	arm = ob->data;
 
-	ListBase bones_names= {NULL};
+	ListBase bones_names = {NULL};
 
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{

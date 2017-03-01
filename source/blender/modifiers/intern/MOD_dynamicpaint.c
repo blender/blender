@@ -116,7 +116,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 static bool is_brush_cb(Object *UNUSED(ob), ModifierData *pmd)
 {
-	return ((DynamicPaintModifierData*)pmd)->brush != NULL;
+	return ((DynamicPaintModifierData *)pmd)->brush != NULL;
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

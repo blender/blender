@@ -3856,7 +3856,8 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	if (ac->sl) {
 		if ((ac->spacetype == SPACE_IPO) &&
 		    (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
-		     acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
+		     acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)))
+		{
 			/* for F-Curves, draw color-preview of curve behind checkbox */
 			if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
 				FCurve *fcu = (FCurve *)ale->data;

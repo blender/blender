@@ -832,14 +832,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	    {FLUID_FIELD_COLOR_R, "COLOR_R", 0, "Red", "Red component of the color field"},
 	    {FLUID_FIELD_COLOR_G, "COLOR_G", 0, "Green", "Green component of the color field"},
 	    {FLUID_FIELD_COLOR_B, "COLOR_B", 0, "Blue", "Blue component of the color field"},
-		{FLUID_FIELD_DENSITY, "DENSITY", 0, "Density", "Quantity of soot in the fluid"},
+	    {FLUID_FIELD_DENSITY, "DENSITY", 0, "Density", "Quantity of soot in the fluid"},
 	    {FLUID_FIELD_FLAME, "FLAME", 0, "Flame", "Flame field"},
 	    {FLUID_FIELD_FUEL, "FUEL", 0, "Fuel", "Fuel field"},
 	    {FLUID_FIELD_HEAT, "HEAT", 0, "Heat", "Temperature of the fluid"},
 	    {FLUID_FIELD_VELOCITY_X, "VELOCITY_X", 0, "X Velocity", "X component of the velocity field"},
 	    {FLUID_FIELD_VELOCITY_Y, "VELOCITY_Y", 0, "Y Velocity", "Y component of the velocity field"},
 	    {FLUID_FIELD_VELOCITY_Z, "VELOCITY_Z", 0, "Z Velocity", "Z component of the velocity field"},
-		{0, NULL, 0, NULL, NULL}
+	    {0, NULL, 0, NULL, NULL}
 	};
 
 	prop = RNA_def_property(srna, "coba_field", PROP_ENUM, PROP_NONE);

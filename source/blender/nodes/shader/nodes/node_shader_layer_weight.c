@@ -69,7 +69,7 @@ static void node_shader_exec_layer_weight(void *data, int UNUSED(thread), bNode 
 	if (shi->use_world_space_shading)
 		mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEW_MATRIX), n);
 
-	out[0]->vec[0] = RE_fresnel_dielectric(shi->view, n, shi->flippednor ? eta : 1/eta);
+	out[0]->vec[0] = RE_fresnel_dielectric(shi->view, n, shi->flippednor ? eta : 1 / eta);
 
 	float facing = fabs(dot_v3v3(shi->view, n));
 	if (blend != 0.5) {

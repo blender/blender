@@ -64,10 +64,11 @@ static void node_shader_exec_fresnel(void *data, int UNUSED(thread), bNode *UNUS
 		copy_v3_v3(n, shi->vn);
 	}
 
-	if(shi->use_world_space_shading)
+	if (shi->use_world_space_shading) {
 		mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEW_MATRIX), n);
+	}
 
-	out[0]->vec[0] = RE_fresnel_dielectric(shi->view, n, shi->flippednor ? 1/eta : eta);
+	out[0]->vec[0] = RE_fresnel_dielectric(shi->view, n, shi->flippednor ? 1 / eta : eta);
 }
 
 /* node type definition */

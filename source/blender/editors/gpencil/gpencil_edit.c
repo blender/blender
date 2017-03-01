@@ -74,7 +74,6 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_screen.h"
 #include "ED_space_api.h"
 
 #include "gpencil_intern.h"

@@ -545,7 +545,8 @@ static void draw_seq_text(View2D *v2d, SpaceSeq *sseq, Sequence *seq, float x1, 
 		if ((sseq->flag & SEQ_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM)) {
 			str[0] = 0;
 			str_len = 0;
-		} else if (seq->sound) {
+		}
+		else if (seq->sound) {
 			str_len = BLI_snprintf(str, sizeof(str), "%s: %s | %d",
 			                       name, seq->sound->name, seq->len);
 		}

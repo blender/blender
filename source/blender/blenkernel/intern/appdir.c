@@ -755,7 +755,6 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 void BKE_tempdir_init(char *userdir)
 {
 	where_is_temp(btempdir_session, btempdir_base, FILE_MAX, userdir);
-;
 }
 
 /**
