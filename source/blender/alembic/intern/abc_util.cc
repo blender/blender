@@ -206,14 +206,14 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 
 	/* Apply translation */
 	switch(mode) {
-	case ABC_ZUP_FROM_YUP:
-		copy_zup_from_yup(dst_mat[3], src_trans);
-		break;
-	case ABC_YUP_FROM_ZUP:
-		copy_yup_from_zup(dst_mat[3], src_trans);
-		break;
-	default:
-		BLI_assert(false);
+		case ABC_ZUP_FROM_YUP:
+			copy_zup_from_yup(dst_mat[3], src_trans);
+			break;
+		case ABC_YUP_FROM_ZUP:
+			copy_yup_from_zup(dst_mat[3], src_trans);
+			break;
+		default:
+			BLI_assert(false);
 	}
 
 	/* Apply scale matrix. Swaps y and z, but does not

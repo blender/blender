@@ -236,7 +236,6 @@ void AbcObjectReader::setupObjectTransform(const float time)
 	}
 }
 
-
 Alembic::AbcGeom::IXform AbcObjectReader::xform()
 {
 	/* Check that we have an empty object (locator, bone head/tail...).  */
@@ -262,7 +261,6 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
 
 	return IXform();
 }
-
 
 void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant)
 {
