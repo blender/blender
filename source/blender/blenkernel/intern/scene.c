@@ -1510,8 +1510,6 @@ static void scene_update_object_func(TaskPool * __restrict pool, void *taskdata,
 		if (add_to_stats) {
 			StatisicsEntry *entry;
 
-			BLI_assert(threadid < BLI_pool_get_num_threads(pool));
-
 			entry = MEM_mallocN(sizeof(StatisicsEntry), "update thread statistics");
 			entry->object = object;
 			entry->start_time = start_time;
