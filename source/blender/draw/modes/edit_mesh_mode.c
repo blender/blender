@@ -47,6 +47,8 @@ static DRWShadingGroup *face_overlay_shgrp;
 static DRWShadingGroup *ledges_overlay_shgrp;
 static DRWShadingGroup *lverts_overlay_shgrp;
 
+extern struct GPUUniformBuffer *globals_ubo; /* draw_mode_pass.c */
+
 void EDIT_MESH_cache_init(void)
 {
 	EDIT_MESH_PassList *psl = DRW_mode_pass_list_get();
@@ -78,6 +80,7 @@ void EDIT_MESH_cache_init(void)
 	ledges_overlay_shgrp = DRW_shgroup_create(over_edge_sh, psl->edit_face_overlay_pass);
 	lverts_overlay_shgrp = DRW_shgroup_create(over_vert_sh, psl->edit_face_overlay_pass);
 	DRW_shgroup_uniform_vec2(face_overlay_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+	DRW_shgroup_uniform_block(face_overlay_shgrp, "globalsBlock", globals_ubo, 0);
 	DRW_shgroup_uniform_vec2(ledges_overlay_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_vec2(lverts_overlay_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 

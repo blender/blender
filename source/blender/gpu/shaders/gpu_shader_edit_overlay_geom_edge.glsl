@@ -5,10 +5,51 @@
 /* This shader follows the principles of
  * http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf */
 
+/* keep in sync with GlobalsUboStorage */
+layout(std140) uniform globalsBlock {
+	vec4 colorWire;
+	vec4 colorWireEdit;
+	vec4 colorActive;
+	vec4 colorSelect;
+	vec4 colorTransform;
+	vec4 colorGroupActive;
+	vec4 colorGroup;
+	vec4 colorLamp;
+	vec4 colorSpeaker;
+	vec4 colorCamera;
+	vec4 colorEmpty;
+	vec4 colorVertex;
+	vec4 colorVertexSelect;
+	vec4 colorEditMeshActive;
+	vec4 colorEdgeSelect;
+	vec4 colorEdgeSeam;
+	vec4 colorEdgeSharp;
+	vec4 colorEdgeCrease;
+	vec4 colorEdgeBWeight;
+	vec4 colorEdgeFaceSelect;
+	vec4 colorFace;
+	vec4 colorFaceSelect;
+	vec4 colorNormal;
+	vec4 colorVNormal;
+	vec4 colorLNormal;
+	vec4 colorFaceDot;
+
+	vec4 colorDeselect;
+	vec4 colorOutline;
+	vec4 colorLampNoAlpha;
+
+	float sizeLampCenter;
+	float sizeLampCircle;
+	float sizeLampCircleShadow;
+	float sizeVertex;
+	float sizeEdge;
+	float sizeEdgeFix;
+	float sizeNormal;
+	float sizeFaceDot;
+};
+
 layout(lines) in;
 layout(triangle_strip, max_vertices=6) out;
-
-const float fixupSize = 9.5; /* in pixels */
 
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
@@ -70,11 +111,11 @@ float dist(vec2 pos[3], vec2 vpos, int v)
 vec3 getVertexColor(int v)
 {
 	if ((vData[v].x & VERTEX_ACTIVE) != 0)
-		return vec3(0.0, 1.0, 0.0);
+		return colorEditMeshActive;
 	else if ((vData[v].x & VERTEX_SELECTED) != 0)
-		return vec3(1.0, 0.0, 0.0);
+		return colorEdgeSelect;
 	else
-		return vec3(0.0, 0.0, 0.0);
+		return colorWireEdit;
 }
 
 void doVertex(int v, vec4 pos)
@@ -109,7 +150,7 @@ void main()
 	dirs1.zw = vec2(-dirs1.y, dirs1.x);
 
 	/* Make it view independant */
-	dirs1 *= fixupSize / viewportSize.xyxy;
+	dirs1 *= sizeEdgeFix / viewportSize.xyxy;
 
 	dirs2 = dirs1;
 

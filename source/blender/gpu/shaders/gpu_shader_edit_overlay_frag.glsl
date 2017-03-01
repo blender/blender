@@ -5,14 +5,57 @@
 /* This shader follows the principles of
  * http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf */
 
+/* keep in sync with GlobalsUboStorage */
+layout(std140) uniform globalsBlock {
+	vec4 colorWire;
+	vec4 colorWireEdit;
+	vec4 colorActive;
+	vec4 colorSelect;
+	vec4 colorTransform;
+	vec4 colorGroupActive;
+	vec4 colorGroup;
+	vec4 colorLamp;
+	vec4 colorSpeaker;
+	vec4 colorCamera;
+	vec4 colorEmpty;
+	vec4 colorVertex;
+	vec4 colorVertexSelect;
+	vec4 colorEditMeshActive;
+	vec4 colorEdgeSelect;
+	vec4 colorEdgeSeam;
+	vec4 colorEdgeSharp;
+	vec4 colorEdgeCrease;
+	vec4 colorEdgeBWeight;
+	vec4 colorEdgeFaceSelect;
+	vec4 colorFace;
+	vec4 colorFaceSelect;
+	vec4 colorNormal;
+	vec4 colorVNormal;
+	vec4 colorLNormal;
+	vec4 colorFaceDot;
+
+	vec4 colorDeselect;
+	vec4 colorOutline;
+	vec4 colorLampNoAlpha;
+
+	float sizeLampCenter;
+	float sizeLampCircle;
+	float sizeLampCircleShadow;
+	float sizeVertex;
+	float sizeEdge;
+	float sizeEdgeFix;
+	float sizeNormal;
+	float sizeFaceDot;
+};
+
 flat in vec3 edgesCrease;
 flat in vec3 edgesBweight;
 flat in ivec3 flag;
 flat in vec4 faceColor;
 flat in int clipCase;
-// #ifdef VERTEX_SELECTION
+#ifdef VERTEX_SELECTION
 smooth in vec3 vertexColor;
-// #endif
+#endif
 
 /* We use a vec4[2] interface to pass edge data
  * (without fragmenting memory accesses)
@@ -44,17 +87,9 @@ out vec4 FragColor;
 /* Vertex flag is shifted and combined with the edge flag */
 #define VERTEX_ACTIVE	(1 << (0 + 8))
 #define VERTEX_SELECTED	(1 << (1 + 8))
+#define FACE_ACTIVE		(1 << (2 + 8))
 
 /* Style Parameters in pixel */
-const float transitionWidth = 1.0;
-
-/* Width : minimum central size
- * Outline : additional info */
-const float edgeWidth = 0.2;
-const float edgeOutlineWidth = 1.5;
-
-const float vertexWidth = 2.0;
-const float vertexOutline = 2.0;
 
 /* Array to retreive vert/edge indices */
 const ivec3 clipEdgeIdx[6] = ivec3[6](
@@ -75,32 +110,14 @@ const ivec3 clipPointIdx[6] = ivec3[6](
 	ivec3(2, 1, 0)
 );
 
-float getEdgeSize(int v)
+const mat4 stipple_matrix = mat4(vec4(1.0, 0.0, 0.0, 0.0),
+                                 vec4(0.0, 0.0, 0.0, 0.0),
+                                 vec4(0.0, 0.0, 1.0, 0.0),
+                                 vec4(0.0, 0.0, 0.0, 0.0));
+
+void colorDist(vec4 color, float dist)
 {
-	float size = 0.0;
-
-	size += ((flag[v] & EDGE_EXISTS) != 0) ? edgeWidth : 0;
-	size += ((flag[v] & EDGE_SEAM) != 0) ? edgeOutlineWidth : 0;
-	size += ((flag[v] & EDGE_SHARP) != 0) ? edgeOutlineWidth : 0;
-	size += (edgesCrease[v] > 0.0) ? edgeOutlineWidth : 0;
-	size += (edgesBweight[v] > 0.0) ? edgeOutlineWidth : 0;
-
-	return size;
-}
-
-float getVertexSize(int v)
-{
-	float size = vertexWidth;
-
-	size += ((flag[v] & VERTEX_ACTIVE) != 0) ? vertexOutline : 0;
-
-	return size;
-}
-
-void colorDist(vec4 color, float width, inout float dist)
-{
-	FragColor = (dist - transitionWidth < 0) ? color : FragColor;
-	dist += width;
+	FragColor = (dist < 0) ? color : FragColor;
 }
 
 float distToEdge(vec2 o, vec2 dir)
@@ -153,43 +170,49 @@ void main()
 	/* First */
 	FragColor = faceColor;
 
+	if ((flag[0] & FACE_ACTIVE) != 0) {
+		int x = int(gl_FragCoord.x) & 0x3; /* mod 4 */
+		int y = int(gl_FragCoord.y) & 0x3; /* mod 4 */
+		FragColor *= stipple_matrix[x][y];
+	}
+
 	/* Edges */
 	for (int v = 0; v < 3; ++v) {
-		float edgeness = e[v] - getEdgeSize(v);
+		if ((flag[v] & EDGE_EXISTS) != 0) {
+			float largeEdge = e[v] - sizeEdge * 2.0;
+			float innerEdge = e[v] - sizeEdge;
 
-		/* Ordered from outer to inner */
-		if (edgesBweight[v] > 0.0)
-			colorDist(vec4(0.0, 0.4, 1.0, edgesBweight[v]), edgeOutlineWidth, edgeness);
-
-		if (edgesCrease[v] > 0.0)
-			colorDist(vec4(0.0, 1.0, 1.0, edgesCrease[v]), edgeOutlineWidth, edgeness);
-
-		if ((flag[v] & EDGE_SEAM) != 0)
-			colorDist(vec4(1.0, 0.0, 0.0, 1.0), edgeOutlineWidth, edgeness);
-
-		if ((flag[v] & EDGE_SHARP) != 0)
-			colorDist(vec4(0.0, 0.5, 1.0, 1.0), edgeOutlineWidth, edgeness);
-
-		if ((flag[v] & EDGE_ACTIVE) != 0)
-			colorDist(vec4(1.0, 1.0, 0.0, 1.0), edgeWidth, edgeness);
-		else if ((flag[v] & EDGE_SELECTED) != 0)
-			colorDist(vec4(0.0, 1.0, 0.0, 1.0), edgeWidth, edgeness);
-		else if ((flag[v] & EDGE_EXISTS) != 0)
-			colorDist(vec4(0.0, 0.0, 0.0, 1.0), edgeWidth, edgeness);
+			if ((flag[v] & EDGE_SEAM) != 0)
+				colorDist(colorEdgeSeam, largeEdge);
+			else if (edgesBweight[v] > 0.0)
+				colorDist(vec4(colorEdgeBWeight.rgb, edgesBweight[v]), largeEdge);
+			else if (edgesCrease[v] > 0.0)
+				colorDist(vec4(colorEdgeCrease.rgb, edgesCrease[v]), largeEdge);
+			else if ((flag[v] & EDGE_SHARP) != 0)
+				colorDist(colorEdgeSharp, largeEdge);
+			else
+#ifdef VERTEX_SELECTION
+				colorDist(vertexColor, innerEdge);
+#else
+				colorDist(colorWireEdit, innerEdge);
+			if ((flag[v] & EDGE_ACTIVE) != 0)
+				colorDist(vec4(colorEditMeshActive.xyz, 1.0), innerEdge);
+			else if ((flag[v] & EDGE_SELECTED) != 0)
+				colorDist(colorEdgeSelect, innerEdge);
+#endif
+		}
 	}
 
 	/* Points */
 	for (int v = 0; v < 3; ++v) {
-		float size = p[v] - getVertexSize(v);
+		float size = p[v] - sizeVertex;
 
-		/* Ordered from outer to inner */
 		if ((flag[v] & VERTEX_ACTIVE) != 0)
-			colorDist(vec4(1.0, 0.0, 0.0, 1.0), vertexOutline, size);
-
-		if ((flag[v] & VERTEX_SELECTED) != 0)
-			colorDist(vec4(0.0, 1.0, 0.0, 1.0), vertexWidth, size);
+			colorDist(vec4(colorEditMeshActive.xyz, 1.0), size);
+		else if ((flag[v] & VERTEX_SELECTED) != 0)
+			colorDist(colorVertexSelect, size);
 		else
-			colorDist(vec4(0.0, 0.0, 0.0, 1.0), vertexWidth, size);
+			colorDist(colorVertex, size);
 	}
 
 	/* don't write depth if not opaque */

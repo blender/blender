@@ -5,6 +5,49 @@
 /* This shader follows the principles of
  * http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf */
 
+/* keep in sync with GlobalsUboStorage */
+layout(std140) uniform globalsBlock {
+	vec4 colorWire;
+	vec4 colorWireEdit;
+	vec4 colorActive;
+	vec4 colorSelect;
+	vec4 colorTransform;
+	vec4 colorGroupActive;
+	vec4 colorGroup;
+	vec4 colorLamp;
+	vec4 colorSpeaker;
+	vec4 colorCamera;
+	vec4 colorEmpty;
+	vec4 colorVertex;
+	vec4 colorVertexSelect;
+	vec4 colorEditMeshActive;
+	vec4 colorEdgeSelect;
+	vec4 colorEdgeSeam;
+	vec4 colorEdgeSharp;
+	vec4 colorEdgeCrease;
+	vec4 colorEdgeBWeight;
+	vec4 colorEdgeFaceSelect;
+	vec4 colorFace;
+	vec4 colorFaceSelect;
+	vec4 colorNormal;
+	vec4 colorVNormal;
+	vec4 colorLNormal;
+	vec4 colorFaceDot;
+
+	vec4 colorDeselect;
+	vec4 colorOutline;
+	vec4 colorLampNoAlpha;
+
+	float sizeLampCenter;
+	float sizeLampCircle;
+	float sizeLampCircleShadow;
+	float sizeVertex;
+	float sizeEdge;
+	float sizeEdgeFix;
+	float sizeNormal;
+	float sizeFaceDot;
+};
+
 layout(triangles) in;
 
 #ifdef EDGE_FIX
@@ -12,16 +55,12 @@ layout(triangles) in;
  * an outline strip around the screenspace
  * triangle. Order is important.
  * TODO diagram
- * fixupsize should be equal to this formula with a small offset
- * 2 * max(max_vert_radius, max_edge_width) / sqrt(2)
  */
 
 layout(triangle_strip, max_vertices=23) out;
 #else
 layout(triangle_strip, max_vertices=3) out;
 #endif
-
-const float fixupSize = 9.5; /* in pixels */
 
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
@@ -84,11 +123,11 @@ float dist(vec2 pos[3], vec2 vpos, int v)
 vec3 getVertexColor(int v)
 {
 	if ((vData[v].x & VERTEX_ACTIVE) != 0)
-		return vec3(0.0, 1.0, 0.0);
+		return colorEditMeshActive;
 	else if ((vData[v].x & VERTEX_SELECTED) != 0)
-		return vec3(1.0, 0.0, 0.0);
+		return colorEdgeSelect;
 	else
-		return vec3(0.0, 0.0, 0.0);
+		return colorWireEdit;
 }
 
 vec4 getClipData(vec2 pos[3], ivec2 vidx)
@@ -136,19 +175,15 @@ void main()
 	}
 
 	/* Face */
-	if ((vData[0].x & FACE_ACTIVE) != 0) {
-		faceColor = vec4(0.1, 1.0, 0.0, 0.2);
-	}
-	else if ((vData[0].x & FACE_SELECTED) != 0) {
-		faceColor = vec4(1.0, 0.2, 0.0, 0.2);
-	}
-	else {
-		faceColor = vec4(0.0, 0.0, 0.0, 0.2);
-	}
+	if ((vData[0].x & FACE_ACTIVE) != 0)
+		faceColor = colorEditMeshActive;
+	else if ((vData[0].x & FACE_SELECTED) != 0)
+		faceColor = colorFaceSelect;
+	else
+		faceColor = colorFace;
 
 	/* Vertex */
 	vec2 pos[3] = vec2[3](proj(pPos[0]), proj(pPos[1]), proj(pPos[2]));
-
 
 	/* Simple case : compute edge distances in geometry shader */
 	if (clipCase == 0) {
@@ -205,8 +240,8 @@ void main()
 			}
 
 			/* Make it view independant */
-			perp *= fixupSize / viewportSize;
-			cornervec[i] *= fixupSize / viewportSize;
+			perp *= sizeEdgeFix / viewportSize;
+			cornervec[i] *= sizeEdgeFix / viewportSize;
 			fixvec[i] = fixvecaf[i] = perp;
 
 			/* Perspective */

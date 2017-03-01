@@ -30,6 +30,50 @@ struct DRWPass;
 struct Batch;
 struct Object;
 
+/* Used as ubo but colors can be directly
+ * referenced as well */
+/* Keep in sync with globalsBlock in shaders */
+typedef struct GlobalsUboStorage {
+	/* UBOs data needs to be 16 byte aligned (size of vec4) */
+	float colorWire[4];
+	float colorWireEdit[4];
+	float colorActive[4];
+	float colorSelect[4];
+	float colorTransform[4];
+	float colorGroupActive[4];
+	float colorGroup[4];
+	float colorLamp[4];
+	float colorSpeaker[4];
+	float colorCamera[4];
+	float colorEmpty[4];
+	float colorVertex[4];
+	float colorVertexSelect[4];
+	float colorEditMeshActive[4];
+	float colorEdgeSelect[4];
+	float colorEdgeSeam[4];
+	float colorEdgeSharp[4];
+	float colorEdgeCrease[4];
+	float colorEdgeBWeight[4];
+	float colorEdgeFaceSelect[4];
+	float colorFace[4];
+	float colorFaceSelect[4];
+	float colorNormal[4];
+	float colorVNormal[4];
+	float colorLNormal[4];
+	float colorFaceDot[4];
+
+	float colorDeselect[4];
+	float colorOutline[4];
+	float colorLampNoAlpha[4];
+
+	/* Pack individual float at the end of the buffer to avoid alignement errors */
+	float sizeLampCenter, sizeLampCircle, sizeLampCircleShadow;
+	float sizeVertex, sizeEdge, sizeEdgeFix, sizeNormal, sizeFaceDot;
+} GlobalsUboStorage;
+/* Keep in sync with globalsBlock in shaders */
+
+void DRW_update_global_values(void);
+
 void DRW_mode_passes_setup(struct DRWPass **psl_wire_overlay,
                            struct DRWPass **psl_wire_overlay_hidden_wire,
                            struct DRWPass **psl_wire_outline,

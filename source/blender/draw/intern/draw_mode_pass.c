@@ -71,10 +71,60 @@ static DRWShadingGroup *center_selected;
 static DRWShadingGroup *center_deselected;
 
 /* Colors & Constant */
-static float colorWire[4], colorWireEdit[4];
-static float colorActive[4], colorSelect[4], colorTransform[4], colorGroup[4], colorGroupActive[4];
-static float colorEmpty[4], colorLamp[4], colorCamera[4], colorSpeaker[4];
-static float lampCenterSize, lampCircleRad, lampCircleShadowRad, colorLampNoAlpha[4];
+GlobalsUboStorage ts;
+struct GPUUniformBuffer *globals_ubo = NULL;
+
+void DRW_update_global_values(void)
+{
+	UI_GetThemeColor4fv(TH_WIRE, ts.colorWire);
+	UI_GetThemeColor4fv(TH_WIRE_EDIT, ts.colorWireEdit);
+	UI_GetThemeColor4fv(TH_ACTIVE, ts.colorActive);
+	UI_GetThemeColor4fv(TH_SELECT, ts.colorSelect);
+	UI_GetThemeColor4fv(TH_TRANSFORM, ts.colorTransform);
+	UI_GetThemeColor4fv(TH_GROUP_ACTIVE, ts.colorGroupActive);
+	UI_GetThemeColor4fv(TH_GROUP, ts.colorGroup);
+	UI_GetThemeColor4fv(TH_LAMP, ts.colorLamp);
+	UI_GetThemeColor4fv(TH_SPEAKER, ts.colorSpeaker);
+	UI_GetThemeColor4fv(TH_CAMERA, ts.colorCamera);
+	UI_GetThemeColor4fv(TH_EMPTY, ts.colorEmpty);
+	UI_GetThemeColor4fv(TH_VERTEX, ts.colorVertex);
+	UI_GetThemeColor4fv(TH_VERTEX_SELECT, ts.colorVertexSelect);
+	UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, ts.colorEditMeshActive);
+	UI_GetThemeColor4fv(TH_EDGE_SELECT, ts.colorEdgeSelect);
+	UI_GetThemeColor4fv(TH_EDGE_SEAM, ts.colorEdgeSeam);
+	UI_GetThemeColor4fv(TH_EDGE_SHARP, ts.colorEdgeSharp);
+	UI_GetThemeColor4fv(TH_EDGE_CREASE, ts.colorEdgeCrease);
+	UI_GetThemeColor4fv(TH_EDGE_BEVEL, ts.colorEdgeBWeight);
+	UI_GetThemeColor4fv(TH_EDGE_FACESEL, ts.colorEdgeFaceSelect);
+	UI_GetThemeColor4fv(TH_FACE, ts.colorFace);
+	UI_GetThemeColor4fv(TH_FACE_SELECT, ts.colorFaceSelect);
+	UI_GetThemeColor4fv(TH_NORMAL, ts.colorNormal);
+	UI_GetThemeColor4fv(TH_VNORMAL, ts.colorVNormal);
+	UI_GetThemeColor4fv(TH_LNORMAL, ts.colorLNormal);
+	UI_GetThemeColor4fv(TH_FACE_DOT, ts.colorFaceDot);
+
+	UI_GetThemeColorShadeAlpha4fv(TH_TRANSFORM, 0, -80, ts.colorDeselect);
+	UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, ts.colorOutline);
+	UI_GetThemeColorShadeAlpha4fv(TH_LAMP, 0, 255, ts.colorLampNoAlpha);
+
+	ts.sizeLampCenter = (U.obcenter_dia + 1.5f) * U.pixelsize;
+	ts.sizeLampCircle = U.pixelsize * 9.0f;
+	ts.sizeLampCircleShadow = ts.sizeLampCircle + U.pixelsize * 3.0f;
+
+	/* M_SQRT2 to be at least the same size of the old square */
+	ts.sizeVertex = UI_GetThemeValuef(TH_VERTEX_SIZE) * M_SQRT2 / 2.0f;
+	ts.sizeFaceDot = UI_GetThemeValuef(TH_FACEDOT_SIZE) * M_SQRT2 / 2.0f;
+	ts.sizeEdge = 1.0f / 2.0f; /* TODO Theme */
+	ts.sizeEdgeFix = 0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * M_SQRT1_2);
+	ts.sizeNormal = 1.0f; /* TODO compute */
+
+	/* TODO Waiting for notifiers to invalidate cache */
+	if (globals_ubo) {
+		DRW_uniformbuffer_free(globals_ubo);
+	}
+
+	globals_ubo = DRW_uniformbuffer_create(sizeof(GlobalsUboStorage), &ts);
+}
 
 /* Store list of passes for easy access */
 static DRWPass *wire_overlay;
@@ -205,20 +255,7 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
                            DRWPass **psl_bone_solid,
                            DRWPass **psl_bone_wire)
 {
-	UI_GetThemeColor4fv(TH_WIRE, colorWire);
-	UI_GetThemeColor4fv(TH_WIRE_EDIT, colorWireEdit);
-	UI_GetThemeColor4fv(TH_ACTIVE, colorActive);
-	UI_GetThemeColor4fv(TH_SELECT, colorSelect);
-	UI_GetThemeColor4fv(TH_TRANSFORM, colorTransform);
-	UI_GetThemeColor4fv(TH_GROUP_ACTIVE, colorGroupActive);
-	UI_GetThemeColor4fv(TH_GROUP, colorGroup);
-	UI_GetThemeColor4fv(TH_LAMP, colorLamp);
-	UI_GetThemeColor4fv(TH_LAMP, colorLampNoAlpha);
-	UI_GetThemeColor4fv(TH_SPEAKER, colorSpeaker);
-	UI_GetThemeColor4fv(TH_CAMERA, colorCamera);
-	UI_GetThemeColor4fv(TH_EMPTY, colorEmpty);
 
-	colorLampNoAlpha[3] = 1.0f;
 
 	if (psl_wire_overlay) {
 		/* This pass can draw mesh edges top of Shaded Meshes without any Z fighting */
@@ -293,34 +330,30 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 		speaker = shgroup_instance(*psl_non_meshes, geom);
 
 		/* Lamps */
-		lampCenterSize = (U.obcenter_dia + 1.5f) * U.pixelsize;
-		lampCircleRad = U.pixelsize * 9.0f;
-		lampCircleShadowRad = lampCircleRad + U.pixelsize * 3.0f;
 		/* TODO
 		 * for now we create 3 times the same VBO with only lamp center coordinates
 		 * but ideally we would only create it once */
-		lamp_center = shgroup_dynpoints_uniform_color(*psl_non_meshes, colorLampNoAlpha, &lampCenterSize);
-		lamp_center_group = shgroup_dynpoints_uniform_color(*psl_non_meshes, colorGroup, &lampCenterSize);
+		lamp_center = shgroup_dynpoints_uniform_color(*psl_non_meshes, ts.colorLampNoAlpha, &ts.sizeLampCenter);
+		lamp_center_group = shgroup_dynpoints_uniform_color(*psl_non_meshes, ts.colorGroup, &ts.sizeLampCenter);
 
 		geom = DRW_cache_lamp_get();
-		lamp_circle = shgroup_instance_screenspace(*psl_non_meshes, geom, &lampCircleRad);
-		lamp_circle_shadow = shgroup_instance_screenspace(*psl_non_meshes, geom, &lampCircleShadowRad);
+		lamp_circle = shgroup_instance_screenspace(*psl_non_meshes, geom, &ts.sizeLampCircle);
+		lamp_circle_shadow = shgroup_instance_screenspace(*psl_non_meshes, geom, &ts.sizeLampCircleShadow);
 
 		geom = DRW_cache_lamp_sunrays_get();
-		lamp_sunrays = shgroup_instance_screenspace(*psl_non_meshes, geom, &lampCircleRad);
+		lamp_sunrays = shgroup_instance_screenspace(*psl_non_meshes, geom, &ts.sizeLampCircle);
 
-		lamp_groundline = shgroup_groundlines_uniform_color(*psl_non_meshes, colorLamp);
-		lamp_groundpoint = shgroup_groundpoints_uniform_color(*psl_non_meshes, colorLamp);
+		lamp_groundline = shgroup_groundlines_uniform_color(*psl_non_meshes, ts.colorLamp);
+		lamp_groundpoint = shgroup_groundpoints_uniform_color(*psl_non_meshes, ts.colorLamp);
 
 		/* Relationship Lines */
-		relationship_lines = shgroup_dynlines_uniform_color(*psl_non_meshes, colorWire);
+		relationship_lines = shgroup_dynlines_uniform_color(*psl_non_meshes, ts.colorWire);
 		DRW_shgroup_state_set(relationship_lines, DRW_STATE_STIPPLE_3);
 	}
 
 	if (psl_ob_center) {
 		/* Object Center pass grouped by State */
 		DRWShadingGroup *grp;
-		static float colorDeselect[4], outlineColor[4];
 		static float outlineWidth, size;
 
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND | DRW_STATE_POINT;
@@ -328,10 +361,6 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 
 		outlineWidth = 1.0f * U.pixelsize;
 		size = U.obcenter_dia * U.pixelsize + outlineWidth;
-		//UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -80, colorActive);
-		//UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -80, colorSelect);
-		UI_GetThemeColorShadeAlpha4fv(TH_TRANSFORM, 0, -80, colorDeselect);
-		UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, outlineColor);
 
 		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 
@@ -339,18 +368,18 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 		grp = DRW_shgroup_point_batch_create(sh, *psl_ob_center);
 		DRW_shgroup_uniform_float(grp, "size", &size, 1);
 		DRW_shgroup_uniform_float(grp, "outlineWidth", &outlineWidth, 1);
-		DRW_shgroup_uniform_vec4(grp, "color", colorActive, 1);
-		DRW_shgroup_uniform_vec4(grp, "outlineColor", outlineColor, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", ts.colorActive, 1);
+		DRW_shgroup_uniform_vec4(grp, "outlineColor", ts.colorOutline, 1);
 		center_active = grp;
 
 		/* Select */
 		grp = DRW_shgroup_point_batch_create(sh, *psl_ob_center);
-		DRW_shgroup_uniform_vec4(grp, "color", colorSelect, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", ts.colorSelect, 1);
 		center_selected = grp;
 
 		/* Deselect */
 		grp = DRW_shgroup_point_batch_create(sh, *psl_ob_center);
-		DRW_shgroup_uniform_vec4(grp, "color", colorDeselect, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", ts.colorDeselect, 1);
 		center_deselected = grp;
 	}
 
@@ -416,17 +445,17 @@ static int draw_object_wire_theme(Object *ob, float **color)
 
 	if (color != NULL) {
 		switch (theme_id) {
-			case TH_WIRE_EDIT: 		*color = colorTransform; break;
-			case TH_ACTIVE: 		*color = colorActive; break;
-			case TH_SELECT: 		*color = colorSelect; break;
-			case TH_GROUP: 			*color = colorGroup; break;
-			case TH_GROUP_ACTIVE: 	*color = colorGroupActive; break;
-			case TH_TRANSFORM: 		*color = colorTransform; break;
-			case OB_SPEAKER: 		*color = colorSpeaker; break;
-			case OB_CAMERA: 		*color = colorCamera; break;
-			case OB_EMPTY: 			*color = colorEmpty; break;
-			case OB_LAMP: 			*color = colorLamp; break;
-			default: 				*color = colorWire; break;
+			case TH_WIRE_EDIT:    *color = ts.colorTransform; break;
+			case TH_ACTIVE:       *color = ts.colorActive; break;
+			case TH_SELECT:       *color = ts.colorSelect; break;
+			case TH_GROUP:        *color = ts.colorGroup; break;
+			case TH_GROUP_ACTIVE: *color = ts.colorGroupActive; break;
+			case TH_TRANSFORM:    *color = ts.colorTransform; break;
+			case OB_SPEAKER:      *color = ts.colorSpeaker; break;
+			case OB_CAMERA:       *color = ts.colorCamera; break;
+			case OB_EMPTY:        *color = ts.colorEmpty; break;
+			case OB_LAMP:         *color = ts.colorLamp; break;
+			default:              *color = ts.colorWire; break;
 		}
 	}
 

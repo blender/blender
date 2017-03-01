@@ -1284,6 +1284,8 @@ void DRW_viewport_init(const bContext *C)
 
 	/* Save context for all later needs */
 	DST.context = C;
+
+	DRW_update_global_values();
 }
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
@@ -1366,12 +1368,16 @@ void DRW_engines_init(void)
 #endif
 }
 
+extern struct GPUUniformBuffer *globals_ubo; /* draw_mode_pass.c */
 void DRW_engines_free(void)
 {
 #ifdef WITH_CLAY_ENGINE
 	clay_engine_free();
 
 	DRW_shape_cache_free();
+
+	if (globals_ubo)
+		GPU_uniformbuffer_free(globals_ubo);
 
 	BLI_remlink(&R_engines, &viewport_clay_type);
 #endif
