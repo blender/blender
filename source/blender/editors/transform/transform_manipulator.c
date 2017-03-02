@@ -1836,6 +1836,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 	int constraint_axis[3] = {0, 0, 0};
 	int val;
 	const bool use_planar = RNA_boolean_get(op->ptr, "use_planar_constraint");
+	const bool use_accurate = RNA_boolean_get(op->ptr, "use_accurate");
 
 	if (!(v3d->twflag & V3D_USE_MANIPULATOR)) return 0;
 	if (!(v3d->twflag & V3D_DRAW_MANIPULATOR)) return 0;
@@ -1850,6 +1851,13 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 		// drawflags still global, for drawing call above
 		drawflags = manipulator_selectbuf(sa, ar, event->mval, 0.2f * (float)U.tw_hotspot);
 		if (drawflags == 0) drawflags = val;
+
+		/* We are not doing translation but were requested to do planar constraints.
+		 * This wouldn't work, so we give other keymaps a chance.
+		 */
+		if ((drawflags & MAN_TRANS_C) == 0 && use_planar) {
+			return 0;
+		}
 
 		if (drawflags & MAN_TRANS_C) {
 			switch (drawflags) {
@@ -1881,6 +1889,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 					break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
+			RNA_boolean_set(op->ptr, "use_accurate", use_accurate);
 			WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags & MAN_SCALE_C) {
@@ -1911,6 +1920,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 					break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
+			RNA_boolean_set(op->ptr, "use_accurate", use_accurate);
 			WM_operator_name_call(C, "TRANSFORM_OT_resize", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags == MAN_ROT_T) { /* trackball need special case, init is different */
@@ -1924,6 +1934,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 			if ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) && RNA_property_is_set(op->ptr, prop)) {
 				RNA_property_boolean_set(&props_ptr, prop, RNA_property_boolean_get(op->ptr, prop));
 			}
+			RNA_boolean_set(op->ptr, "use_accurate", use_accurate);
 			WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
 			WM_operator_properties_free(&props_ptr);
 		}
@@ -1940,6 +1951,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 					break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
+			RNA_boolean_set(op->ptr, "use_accurate", use_accurate);
 			WM_operator_name_call(C, "TRANSFORM_OT_rotate", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 	}
