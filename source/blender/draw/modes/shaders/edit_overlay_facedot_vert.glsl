@@ -45,7 +45,7 @@ layout(std140) uniform globalsBlock {
 uniform mat4 ModelViewProjectionMatrix;
 
 in vec3 pos;
-in int data;
+in vec4 norAndFlag;
 
 flat out int isSelected;
 
@@ -53,5 +53,5 @@ void main()
 {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	gl_PointSize = sizeFaceDot;
-	isSelected = data;
+	isSelected = int(norAndFlag.w);
 }
