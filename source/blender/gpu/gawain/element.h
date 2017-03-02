@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "common.h"
+#include "primitive.h"
 
 #define TRACK_INDEX_RANGE 1
 

@@ -12,6 +12,7 @@
 #pragma once
 
 #include "vertex_format.h"
+#include "primitive.h"
 
 #define IMM_BATCH_COMBO 1
 
