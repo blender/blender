@@ -4799,9 +4799,6 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 	prop = RNA_def_boolean(ot->srna, "use_planar_constraint", false, "Planar Constraint", "Limit the transformation to the "
 	                       "two axes that have not been clicked (translate/scale only)");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-
-	prop = RNA_def_boolean(ot->srna, "use_accurate", false, "Accurate", "Use accurate transformation");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 static int enable_manipulator_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
