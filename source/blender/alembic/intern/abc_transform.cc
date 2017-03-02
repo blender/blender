@@ -151,7 +151,7 @@ bool AbcEmptyReader::valid() const
 
 void AbcEmptyReader::readObjectData(Main *bmain, float /*time*/)
 {
-	const char *empty_name = m_iobject.getName().c_str();
-	m_object = BKE_object_add_only_object(bmain, OB_EMPTY, empty_name);
+	m_object = BKE_object_add_only_object(bmain, OB_EMPTY,
+	                                      m_object_name.c_str());
 	m_object->data = NULL;
 }
