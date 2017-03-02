@@ -226,8 +226,7 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 	mul_m4_m4m4(dst_mat, dst_mat, dst_scale_mat);
 }
 
-void convert_matrix(const Imath::M44d &xform, Object *ob,
-                    float r_mat[4][4], float scale, bool has_alembic_parent)
+void convert_matrix(const Imath::M44d &xform, Object *ob, float r_mat[4][4])
 {
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
@@ -242,14 +241,6 @@ void convert_matrix(const Imath::M44d &xform, Object *ob,
 	}
 
 	copy_m44_axis_swap(r_mat, r_mat, ABC_ZUP_FROM_YUP);
-
-	if (!has_alembic_parent) {
-		/* Only apply scaling to root objects, parenting will propagate it. */
-		float scale_mat[4][4];
-		scale_m4_fl(scale_mat, scale);
-		mul_m4_m4m4(r_mat, r_mat, scale_mat);
-		mul_v3_fl(r_mat[3], scale);
-	}
 }
 
 /* Recompute transform matrix of object in new coordinate system

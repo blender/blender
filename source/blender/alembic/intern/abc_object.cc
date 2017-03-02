@@ -289,7 +289,7 @@ void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
 	}
 
 	const Imath::M44d matrix = get_matrix(schema, time);
-	convert_matrix(matrix, m_object, r_mat, scale, has_alembic_parent);
+	convert_matrix(matrix, m_object, r_mat);
 
 	if (has_alembic_parent) {
 		/* In this case, the matrix in Alembic is in local coordinates, so
@@ -299,6 +299,13 @@ void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
 		 * world matrix. */
 		BLI_assert(m_object->parent);
 		mul_m4_m4m4(r_mat, m_object->parent->obmat, r_mat);
+	}
+	else {
+		/* Only apply scaling to root objects, parenting will propagate it. */
+		float scale_mat[4][4];
+		scale_m4_fl(scale_mat, scale);
+		mul_m4_m4m4(r_mat, r_mat, scale_mat);
+		mul_v3_fl(r_mat[3], scale);
 	}
 
 	is_constant = schema.isConstant();
