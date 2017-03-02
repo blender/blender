@@ -336,3 +336,9 @@ class RenderLayerTesting(unittest.TestCase):
         collection = layer.collections[0]
         self.assertEqual(len(collection.objects), 1, "New collection is empty")
 
+    def do_object_link(self, master_collection):
+        import bpy
+        self.assertEqual(master_collection.name, "Master Collection")
+        self.assertEqual(master_collection, bpy.context.scene.master_collection)
+        master_collection.objects.link(bpy.data.objects.new('object', None))
+
