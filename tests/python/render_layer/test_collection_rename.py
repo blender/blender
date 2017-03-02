@@ -45,7 +45,6 @@ class UnitTesting(RenderLayerTesting):
         family['grandma'].name = family['grandpa'].name
         self.assertNotEqual(family['grandma'].name, family['grandpa'].name)
 
-
     def test_rename_c(self):
         family = self.setup_family()
 
@@ -58,11 +57,17 @@ class UnitTesting(RenderLayerTesting):
         family['son'].name = family['daughter'].name
         self.assertNotEqual(family['son'].name, family['daughter'].name)
 
-    def test_add_equal_name(self):
+    def test_add_equal_name_a(self):
         family = self.setup_family()
 
-        family['mom'].collections.new('daughter')
-        self.assertNotEqual(family['mom'].name, family['daughter'].name)
+        other_daughter = family['mom'].collections.new(family['daughter'].name)
+        self.assertNotEqual(other_daughter.name, family['daughter'].name)
+
+    def test_add_equal_name_b(self):
+        family = self.setup_family()
+
+        other_aunt = family['grandma'].collections.new(family['daughter'].name)
+        self.assertNotEqual(other_aunt.name, family['daughter'].name)
 
 
 # ############################################################
