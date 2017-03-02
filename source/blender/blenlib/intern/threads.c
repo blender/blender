@@ -54,6 +54,8 @@
 #  include <sys/time.h>
 #endif
 
+#include "atomic_ops.h"
+
 #if defined(__APPLE__) && defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
 #  define USE_APPLE_OMP_FIX
 #endif
@@ -124,7 +126,7 @@ static pthread_mutex_t _colormanage_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _fftw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _view3d_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
-static int thread_levels = 0;  /* threads can be invoked inside threads */
+static unsigned int thread_levels = 0;  /* threads can be invoked inside threads */
 static int num_threads_override = 0;
 
 /* just a max for security reasons */
@@ -198,9 +200,9 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 			tslot->avail = 1;
 		}
 	}
-	
-	BLI_spin_lock(&_malloc_lock);
-	if (thread_levels == 0) {
+
+	unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
+	if (level == 0) {
 		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
 
 #ifdef USE_APPLE_OMP_FIX
@@ -210,9 +212,6 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 		thread_tls_data = pthread_getspecific(gomp_tls_key);
 #endif
 	}
-
-	thread_levels++;
-	BLI_spin_unlock(&_malloc_lock);
 }
 
 /* amount of available threads */
@@ -331,11 +330,10 @@ void BLI_end_threads(ListBase *threadbase)
 		BLI_freelistN(threadbase);
 	}
 
-	BLI_spin_lock(&_malloc_lock);
-	thread_levels--;
-	if (thread_levels == 0)
+	unsigned int level = atomic_sub_and_fetch_u(&thread_levels, 1);
+	if (level == 0) {
 		MEM_set_lock_callback(NULL, NULL);
-	BLI_spin_unlock(&_malloc_lock);
+	}
 }
 
 /* System Information */
@@ -812,26 +810,17 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 
 void BLI_begin_threaded_malloc(void)
 {
-	/* Used for debug only */
-	/* BLI_assert(thread_levels >= 0); */
-
-	BLI_spin_lock(&_malloc_lock);
-	if (thread_levels == 0) {
+	unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
+	if (level == 0) {
 		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
 	}
-	thread_levels++;
-	BLI_spin_unlock(&_malloc_lock);
 }
 
 void BLI_end_threaded_malloc(void)
 {
-	/* Used for debug only */
-	/* BLI_assert(thread_levels >= 0); */
-
-	BLI_spin_lock(&_malloc_lock);
-	thread_levels--;
-	if (thread_levels == 0)
+	unsigned int level = atomic_sub_and_fetch_u(&thread_levels, 1);
+	if (level == 0) {
 		MEM_set_lock_callback(NULL, NULL);
-	BLI_spin_unlock(&_malloc_lock);
+	}
 }
 
