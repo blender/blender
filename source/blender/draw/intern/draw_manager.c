@@ -526,10 +526,9 @@ void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const
 	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 0, loc);
 }
 
-void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, const int value, int loc)
+void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex, int loc)
 {
-	/* we abuse the lenght attrib to store the buffer index */
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, NULL, value, 0, loc);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 0, loc);
 }
 
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup, const char *name, const bool *value, int arraysize)
@@ -829,6 +828,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 	BLI_assert(shgroup->interface);
 
 	DRWInterface *interface = shgroup->interface;
+	GPUTexture *tex;
 
 	if (DST.shader != shgroup->shader) {
 		if (DST.shader) GPU_shader_unbind();
@@ -858,25 +858,26 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 				GPU_shader_uniform_vector(shgroup->shader, uni->location, uni->length, uni->arraysize, (float *)uni->value);
 				break;
 			case DRW_UNIFORM_TEXTURE:
-				GPU_texture_bind((GPUTexture *)uni->value, uni->bindloc);
+				tex = (GPUTexture *)uni->value;
+				GPU_texture_bind(tex, uni->bindloc);
 
 				bound_tex = MEM_callocN(sizeof(DRWBoundTexture), "DRWBoundTexture");
-				bound_tex->tex = (GPUTexture *)uni->value;
+				bound_tex->tex = tex;
 				BLI_addtail(&DST.bound_texs, bound_tex);
 
-				GPU_shader_uniform_texture(shgroup->shader, uni->location, (GPUTexture *)uni->value);
+				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BUFFER:
-				/* restore index from lenght we abused */
-				GPU_texture_bind(DST.txl->textures[uni->length], uni->bindloc);
-				GPU_texture_compare_mode(DST.txl->textures[uni->length], false);
-				GPU_texture_filter_mode(DST.txl->textures[uni->length], false);
+				tex = *((GPUTexture **)uni->value);
+				GPU_texture_bind(tex, uni->bindloc);
+				GPU_texture_compare_mode(tex, false);
+				GPU_texture_filter_mode(tex, false);
 				
 				bound_tex = MEM_callocN(sizeof(DRWBoundTexture), "DRWBoundTexture");
-				bound_tex->tex = DST.txl->textures[uni->length];
+				bound_tex->tex = tex;
 				BLI_addtail(&DST.bound_texs, bound_tex);
 
-				GPU_shader_uniform_texture(shgroup->shader, uni->location, DST.txl->textures[uni->length]);
+				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BLOCK:
 				GPU_uniformbuffer_bind((GPUUniformBuffer *)uni->value, uni->bindloc);
