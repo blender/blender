@@ -348,8 +348,3 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 
 	ob->recalc &= ~(OB_RECALC_DATA | OB_RECALC_TIME);
 }
-
-void BKE_object_eval_shading(EvaluationContext *UNUSED(eval_ctx), Object *ob)
-{
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
-}

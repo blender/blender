@@ -200,7 +200,6 @@ void BKE_object_eval_uber_transform(struct EvaluationContext *eval_ctx,
 void BKE_object_eval_uber_data(struct EvaluationContext *eval_ctx,
                                struct Scene *scene,
                                struct Object *ob);
-void BKE_object_eval_shading(struct EvaluationContext *eval_ctx, struct Object *ob);
 
 void BKE_object_handle_data_update(struct EvaluationContext *eval_ctx,
                                    struct Scene *scene,

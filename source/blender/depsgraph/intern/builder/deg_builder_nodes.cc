@@ -835,8 +835,8 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		add_operation_node(&ob->id,
 		                   DEPSNODE_TYPE_SHADING,
 		                   DEPSOP_TYPE_EXEC,
-		                   function_bind(BKE_object_eval_shading, _1, ob),
-		                   DEG_OPCODE_OPERATION, "Material Update");
+		                   NULL,
+		                   DEG_OPCODE_PLACEHOLDER, "Material Update");
 	}
 
 	/* geometry collision */
