@@ -1372,7 +1372,9 @@ extern struct GPUUniformBuffer *globals_ubo; /* draw_mode_pass.c */
 void DRW_engines_free(void)
 {
 #ifdef WITH_CLAY_ENGINE
-	clay_engine_free();
+	CLAY_engine_free();
+
+	EDIT_MESH_engine_free();
 
 	DRW_shape_cache_free();
 

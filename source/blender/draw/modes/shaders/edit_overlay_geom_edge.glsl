@@ -110,12 +110,10 @@ float dist(vec2 pos[3], vec2 vpos, int v)
 
 vec3 getVertexColor(int v)
 {
-	if ((vData[v].x & VERTEX_ACTIVE) != 0)
-		return colorEditMeshActive;
-	else if ((vData[v].x & VERTEX_SELECTED) != 0)
-		return colorEdgeSelect;
+	if ((vData[v].x & (VERTEX_ACTIVE | VERTEX_SELECTED)) != 0)
+		return colorEdgeSelect.rgb;
 	else
-		return colorWireEdit;
+		return colorWireEdit.rgb;
 }
 
 void doVertex(int v, vec4 pos)

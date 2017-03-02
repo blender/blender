@@ -109,11 +109,6 @@ extern char datatoc_gpu_shader_edges_overlay_vert_glsl[];
 extern char datatoc_gpu_shader_edges_overlay_geom_glsl[];
 extern char datatoc_gpu_shader_edges_overlay_simple_geom_glsl[];
 extern char datatoc_gpu_shader_edges_overlay_frag_glsl[];
-extern char datatoc_gpu_shader_edit_overlay_frag_glsl[];
-extern char datatoc_gpu_shader_edit_overlay_geom_tri_glsl[];
-extern char datatoc_gpu_shader_edit_overlay_geom_edge_glsl[];
-extern char datatoc_gpu_shader_edit_overlay_geom_vert_glsl[];
-extern char datatoc_gpu_shader_edit_overlay_vert_glsl[];
 extern char datatoc_gpu_shader_text_vert_glsl[];
 extern char datatoc_gpu_shader_text_frag_glsl[];
 extern char datatoc_gpu_shader_keyframe_diamond_vert_glsl[];
@@ -672,18 +667,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                                        datatoc_gpu_shader_flat_color_frag_glsl },
 		[GPU_SHADER_EDGES_OVERLAY_SIMPLE] = { datatoc_gpu_shader_3D_vert_glsl, datatoc_gpu_shader_edges_overlay_frag_glsl,
 		                                      datatoc_gpu_shader_edges_overlay_simple_geom_glsl },
-		[GPU_SHADER_EDGES_OVERLAY_EDIT_TRI] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
-		                                        datatoc_gpu_shader_edit_overlay_frag_glsl,
-		                                        datatoc_gpu_shader_edit_overlay_geom_tri_glsl },
-		[GPU_SHADER_EDGES_OVERLAY_EDIT_TRI_FAST] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
-		                                             datatoc_gpu_shader_edit_overlay_frag_glsl,
-		                                             datatoc_gpu_shader_edit_overlay_geom_tri_glsl },
-		[GPU_SHADER_EDGES_OVERLAY_EDIT_EDGE] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
-		                                         datatoc_gpu_shader_edit_overlay_frag_glsl,
-		                                         datatoc_gpu_shader_edit_overlay_geom_edge_glsl },
-		[GPU_SHADER_EDGES_OVERLAY_EDIT_VERT] = { datatoc_gpu_shader_edit_overlay_vert_glsl,
-		                                         datatoc_gpu_shader_edit_overlay_frag_glsl,
-		                                         datatoc_gpu_shader_edit_overlay_geom_vert_glsl },
 		[GPU_SHADER_EDGES_OVERLAY] = { datatoc_gpu_shader_edges_overlay_vert_glsl,
 		                               datatoc_gpu_shader_edges_overlay_frag_glsl,
 		                               datatoc_gpu_shader_edges_overlay_geom_glsl },
@@ -778,7 +761,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		/* just a few special cases */
 		const char *defines = (shader == GPU_SHADER_SMOKE_COBA) ? "#define USE_COBA;\n" :
 		                      (shader == GPU_SHADER_SIMPLE_LIGHTING) ? "#define USE_NORMALS;\n" :
-		                      (shader == GPU_SHADER_EDGES_OVERLAY_EDIT_TRI) ? "#define EDGE_FIX;\n" :
 		                      (shader == GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR) ? "#define USE_INSTANCE_COLOR;\n" : NULL;
 
 		const GPUShaderStages *stages = builtin_shader_stages + shader;

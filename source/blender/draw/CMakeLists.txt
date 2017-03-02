@@ -27,7 +27,7 @@ set(INC
 	.
 	intern
 	engines/clay
-	modes/
+	modes
 
 	../blenkernel
 	../blenlib
@@ -81,6 +81,14 @@ data_to_c_simple(engines/clay/shaders/clay_frag.glsl SRC)
 data_to_c_simple(engines/clay/shaders/clay_vert.glsl SRC)
 data_to_c_simple(engines/clay/shaders/ssao_alchemy.glsl SRC)
 data_to_c_simple(engines/clay/shaders/ssao_groundtruth.glsl SRC)
+
+data_to_c_simple(modes/shaders/edit_overlay_frag.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_vert.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_geom_tri.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_geom_edge.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_loosevert_vert.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_facedot_frag.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_facedot_vert.glsl SRC)
 
 list(APPEND INC
 )

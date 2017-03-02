@@ -34,4 +34,6 @@ void EDIT_MESH_cache_finish(void);
 
 void EDIT_MESH_draw(void);
 
+void EDIT_MESH_engine_free(void);
+
 #endif /* __EDIT_MESH_MODE_H__ */

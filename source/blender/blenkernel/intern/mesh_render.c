@@ -298,7 +298,7 @@ static int UNUSED_FUNCTION(mesh_render_data_loops_num_get)(const MeshRenderData 
 	return mrdata->totloop;
 }
 
-static int UNUSED_FUNCTION(mesh_render_data_polys_num_get)(const MeshRenderData *mrdata)
+static int mesh_render_data_polys_num_get(const MeshRenderData *mrdata)
 {
 	BLI_assert(mrdata->types & MR_DATATYPE_POLY);
 	return mrdata->totpoly;
@@ -331,6 +331,26 @@ static void mesh_render_data_edge_verts_indices_get(const MeshRenderData *mrdata
 		const MEdge *me = &mrdata->medge[edge_idx];
 		r_vert_idx[0] = me->v1;
 		r_vert_idx[1] = me->v2;
+	}
+}
+
+static void mesh_render_data_poly_center_select_get(MeshRenderData *mrdata, const int poly, float center[3], bool *selected)
+{
+	BLI_assert(mrdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
+
+	if (mrdata->edit_bmesh) {
+		const BMFace *bf = BM_face_at_index(mrdata->edit_bmesh->bm, poly);
+		BM_face_calc_center_mean(bf, center);
+		*selected = (BM_elem_flag_test(bf, BM_ELEM_SELECT) != 0) ? true : false;
+	}
+	else {
+		MVert *mvert = mrdata->mvert;
+		const MPoly *mpoly = mrdata->mpoly + poly;
+		const MLoop *mloop = mrdata->mloop + mpoly->loopstart;
+
+		BKE_mesh_calc_poly_center(mpoly, mloop, mvert, center);
+
+		*selected = false; /* No selection if not in edit mode */
 	}
 }
 
@@ -705,6 +725,7 @@ typedef struct MeshBatchCache {
 	Batch *overlay_triangles;
 	Batch *overlay_loose_verts;
 	Batch *overlay_loose_edges;
+	Batch *overlay_facedots;
 
 	/* settings to determine if cache is invalid */
 	bool is_dirty;
@@ -806,6 +827,7 @@ void BKE_mesh_batch_cache_clear(Mesh *me)
 	if (cache->overlay_triangles) Batch_discard(cache->overlay_triangles);
 	if (cache->overlay_loose_verts) Batch_discard(cache->overlay_loose_verts);
 	if (cache->overlay_loose_edges) Batch_discard(cache->overlay_loose_edges);
+	if (cache->overlay_facedots) Batch_discard(cache->overlay_facedots);
 
 	if (cache->triangles_with_normals) {
 		Batch_discard_all(cache->triangles_with_normals);
@@ -1161,6 +1183,42 @@ Batch *BKE_mesh_batch_cache_get_overlay_loose_verts(Mesh *me)
 	}
 
 	return cache->overlay_loose_verts;
+}
+
+Batch *BKE_mesh_batch_cache_get_overlay_facedots(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->overlay_facedots == NULL) {
+		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
+
+		static VertexFormat format = { 0 };
+		static unsigned pos_id, data_id;
+		if (format.attrib_ct == 0) {
+			/* initialize vertex format */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			data_id = add_attrib(&format, "data", GL_INT, 1, KEEP_INT);
+		}
+
+		const int poly_ct = mesh_render_data_polys_num_get(mrdata);
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, poly_ct);
+
+		for (int i = 0; i < poly_ct; ++i) {
+			float poly_center[3];
+			int selected = 0;
+			mesh_render_data_poly_center_select_get(mrdata, i, poly_center, (bool *)&selected);
+			setAttrib(vbo, pos_id, i, poly_center);
+			setAttrib(vbo, data_id, i, &selected);
+		}
+
+		cache->overlay_facedots = Batch_create(GL_POINTS, vbo, NULL);
+
+		mesh_render_data_free(mrdata);
+	}
+
+	return cache->overlay_facedots;
 }
 
 #undef MESH_RENDER_FUNCTION

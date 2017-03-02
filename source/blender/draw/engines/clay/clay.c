@@ -754,7 +754,7 @@ static void CLAY_collection_settings_create(RenderEngine *UNUSED(engine), Collec
 	BKE_collection_engine_property_add_float(ces, "ssao_factor_edge", 1.0f);
 }
 
-void clay_engine_free(void)
+void CLAY_engine_free(void)
 {
 	/* data.depth_sh Is builtin so it's automaticaly freed */
 	if (data.clay_sh) {

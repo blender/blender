@@ -190,20 +190,22 @@ void main()
 				colorDist(vec4(colorEdgeCrease.rgb, edgesCrease[v]), largeEdge);
 			else if ((flag[v] & EDGE_SHARP) != 0)
 				colorDist(colorEdgeSharp, largeEdge);
+#ifndef VERTEX_SELECTION
 			else
-#ifdef VERTEX_SELECTION
-				colorDist(vertexColor, innerEdge);
-#else
 				colorDist(colorWireEdit, innerEdge);
+
 			if ((flag[v] & EDGE_ACTIVE) != 0)
 				colorDist(vec4(colorEditMeshActive.xyz, 1.0), innerEdge);
 			else if ((flag[v] & EDGE_SELECTED) != 0)
 				colorDist(colorEdgeSelect, innerEdge);
+#else
+			colorDist(vec4(vertexColor, 1.0), innerEdge);
 #endif
 		}
 	}
 
 	/* Points */
+#ifdef VERTEX_SELECTION
 	for (int v = 0; v < 3; ++v) {
 		float size = p[v] - sizeVertex;
 
@@ -214,6 +216,7 @@ void main()
 		else
 			colorDist(colorVertex, size);
 	}
+#endif
 
 	/* don't write depth if not opaque */
 	if (FragColor.a == 0.0)	discard;

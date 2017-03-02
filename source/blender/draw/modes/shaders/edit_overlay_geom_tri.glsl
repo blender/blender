@@ -122,12 +122,10 @@ float dist(vec2 pos[3], vec2 vpos, int v)
 
 vec3 getVertexColor(int v)
 {
-	if ((vData[v].x & VERTEX_ACTIVE) != 0)
-		return colorEditMeshActive;
-	else if ((vData[v].x & VERTEX_SELECTED) != 0)
-		return colorEdgeSelect;
+	if ((vData[v].x & (VERTEX_ACTIVE | VERTEX_SELECTED)) != 0)
+		return colorEdgeSelect.rgb;
 	else
-		return colorWireEdit;
+		return colorWireEdit.rgb;
 }
 
 vec4 getClipData(vec2 pos[3], ivec2 vidx)
@@ -268,12 +266,11 @@ void main()
 			int vaf = (i + 1) % 3;
 			int v = i % 3;
 
-			/* Position of the "hidden" thrid vertex
-			 * we set it early because it has*/
+			/* Position of the "hidden" thrid vertex */
 			eData1.zw = pos[vbe];
 
-			doVertex(vaf, pPos[v]);
-			doVertex(vaf, pPos[v] + vec4(fixvec[v], 0.0, 0.0));
+			doVertex(v, pPos[v]);
+			doVertex(v, pPos[v] + vec4(fixvec[v], 0.0, 0.0));
 
 			/* Now one triangle only shade one edge
 			 * so we use the edge distance calculated
@@ -288,18 +285,18 @@ void main()
 			edgesCrease[2] = ecrease[vbe];
 			edgesSharp[2] = esharp[vbe];
 
-			doVertex(v, pPos[vaf]);
-			doVertex(v, pPos[vaf] + vec4(fixvecaf[v], 0.0, 0.0));
+			doVertex(vaf, pPos[vaf]);
+			doVertex(vaf, pPos[vaf] + vec4(fixvecaf[v], 0.0, 0.0));
 
 			/* corner vertices should not drax edges but draw point only */
 			flag[2] = (vData[vbe].x << 8);
-			doVertex(v, pPos[vaf]);
-			doVertex(v, pPos[vaf] + vec4(cornervec[vaf], 0.0, 0.0));
+			doVertex(vaf, pPos[vaf]);
+			doVertex(vaf, pPos[vaf] + vec4(cornervec[vaf], 0.0, 0.0));
 		}
 
 		/* finish the loop strip */
-		doVertex(0, pPos[2]);
-		doVertex(0, pPos[2] + vec4(fixvec[2], 0.0, 0.0));
+		doVertex(2, pPos[2]);
+		doVertex(2, pPos[2] + vec4(fixvec[2], 0.0, 0.0));
 #endif
 	}
 	/* Harder case : compute visible edges vectors */
