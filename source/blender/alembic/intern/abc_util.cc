@@ -267,13 +267,11 @@ void create_transform_matrix(Object *obj, float r_yup_mat[4][4])
 		 * constraints and modifiers as well as the obj->parentinv matrix. */
 		invert_m4_m4(obj->parent->imat, obj->parent->obmat);
 		mul_m4_m4m4(zup_mat, obj->parent->imat, obj->obmat);
+		copy_m44_axis_swap(r_yup_mat, zup_mat, ABC_YUP_FROM_ZUP);
 	}
 	else {
-		copy_m4_m4(zup_mat, obj->obmat);
+		copy_m44_axis_swap(r_yup_mat, obj->obmat, ABC_YUP_FROM_ZUP);
 	}
-
-
-	copy_m44_axis_swap(r_yup_mat, zup_mat, ABC_YUP_FROM_ZUP);
 }
 
 bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string &name)
