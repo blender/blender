@@ -6421,10 +6421,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 }
 
-static void draw_update_ptcache_edit(Scene *scene, Object *ob, PTCacheEdit *edit)
+static void draw_update_ptcache_edit(Scene *scene, SceneLayer *sl, Object *ob, PTCacheEdit *edit)
 {
 	if (edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED)
-		PE_update_object(scene, ob, 0);
+		PE_update_object(scene, sl, ob, 0);
 
 	/* create path and child path cache if it doesn't exist already */
 	if (edit->pathcache == NULL)
@@ -8624,7 +8624,7 @@ afterdraw:
 			if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
 				PTCacheEdit *edit = PE_create_current(scene, ob);
 				if (edit && edit->psys == psys)
-					draw_update_ptcache_edit(scene, ob, edit);
+					draw_update_ptcache_edit(scene, sl, ob, edit);
 			}
 
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt, dflag);
@@ -8647,7 +8647,7 @@ afterdraw:
 			PTCacheEdit *edit = PE_create_current(scene, ob);
 			if (edit) {
 				glLoadMatrixf(rv3d->viewmat);
-				draw_update_ptcache_edit(scene, ob, edit);
+				draw_update_ptcache_edit(scene, sl, ob, edit);
 				draw_ptcache_edit(scene, v3d, edit);
 				glMultMatrixf(ob->obmat);
 			}

@@ -564,7 +564,7 @@ static int calc_manipulator_stats(const bContext *C)
 		/* pass */
 	}
 	else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-		PTCacheEdit *edit = PE_get_current(scene, ob);
+		PTCacheEdit *edit = PE_get_current(scene, sl, ob);
 		PTCacheEditPoint *point;
 		PTCacheEditKey *ek;
 		int k;

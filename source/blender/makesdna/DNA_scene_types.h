@@ -1115,6 +1115,7 @@ typedef struct ParticleEditSettings {
 	int draw_step, fade_frames;
 
 	struct Scene *scene;
+	struct SceneLayer *scene_layer;
 	struct Object *object;
 	struct Object *shape_object;
 } ParticleEditSettings;

@@ -38,21 +38,22 @@ struct ParticleEditSettings;
 struct rcti;
 struct PTCacheEdit;
 struct Scene;
+struct SceneLayer;
 
 /* particle edit mode */
 void PE_free_ptcache_edit(struct PTCacheEdit *edit);
 int PE_start_edit(struct PTCacheEdit *edit);
 
 /* access */
-struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob);
+struct PTCacheEdit *PE_get_current(struct Scene *scene, struct SceneLayer *sl, struct Object *ob);
 struct PTCacheEdit *PE_create_current(struct Scene *scene, struct Object *ob);
 void PE_current_changed(struct Scene *scene, struct Object *ob);
-int PE_minmax(struct Scene *scene, float min[3], float max[3]);
+int PE_minmax(struct Scene *scene, struct SceneLayer *sl, float min[3], float max[3]);
 struct ParticleEditSettings *PE_settings(struct Scene *scene);
 
 /* update calls */
 void PE_hide_keys_time(struct Scene *scene, struct PTCacheEdit *edit, float cfra);
-void PE_update_object(struct Scene *scene, struct Object *ob, int useflag);
+void PE_update_object(struct Scene *scene, struct SceneLayer *sl, struct Object *ob, int useflag);
 
 /* selection tools */
 int PE_mouse_particles(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
@@ -62,13 +63,13 @@ int PE_lasso_select(struct bContext *C, const int mcords[][2], const short moves
 void PE_deselect_all_visible(struct PTCacheEdit *edit);
 
 /* undo */
-void PE_undo_push(struct Scene *scene, const char *str);
-void PE_undo_step(struct Scene *scene, int step);
-void PE_undo(struct Scene *scene);
-void PE_redo(struct Scene *scene);
-bool PE_undo_is_valid(struct Scene *scene);
-void PE_undo_number(struct Scene *scene, int nr);
-const char *PE_undo_get_name(struct Scene *scene, int nr, bool *r_active);
+void PE_undo_push(struct Scene *scene, struct SceneLayer *sl, const char *str);
+void PE_undo_step(struct Scene *scene, struct SceneLayer *sl, int step);
+void PE_undo(struct Scene *scene, struct SceneLayer *sl);
+void PE_redo(struct Scene *scene, struct SceneLayer *sl);
+bool PE_undo_is_valid(struct Scene *scene, struct SceneLayer *sl);
+void PE_undo_number(struct Scene *scene, struct SceneLayer *sl, int nr);
+const char *PE_undo_get_name(struct Scene *scene, struct SceneLayer *sl, int nr, bool *r_active);
 
 #endif /* __ED_PARTICLE_H__ */
 

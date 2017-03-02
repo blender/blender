@@ -101,7 +101,7 @@ void ED_undo_push(bContext *C, const char *str)
 	else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 		if (U.undosteps == 0) return;
 
-		PE_undo_push(CTX_data_scene(C), str);
+		PE_undo_push(CTX_data_scene(C), CTX_data_scene_layer(C), str);
 	}
 	else if (obact && obact->mode & OB_MODE_SCULPT) {
 		/* do nothing for now */
@@ -120,6 +120,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	wmWindow *win = CTX_wm_window(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -180,9 +181,9 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		}
 		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 			if (step == 1)
-				PE_undo(scene);
+				PE_undo(scene, sl);
 			else
-				PE_redo(scene);
+				PE_redo(scene, sl);
 		}
 		else if (U.uiflag & USER_GLOBALUNDO) {
 			// note python defines not valid here anymore.
@@ -297,7 +298,7 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
 				return 1;
 		}
 		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
-			return PE_undo_is_valid(CTX_data_scene(C));
+			return PE_undo_is_valid(CTX_data_scene(C), CTX_data_scene_layer(C));
 		}
 		
 		if (U.uiflag & USER_GLOBALUNDO) {
@@ -533,7 +534,7 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 		const char *name = NULL;
 		
 		if (undosys == UNDOSYSTEM_PARTICLE) {
-			name = PE_undo_get_name(CTX_data_scene(C), i, &active);
+			name = PE_undo_get_name(CTX_data_scene(C), CTX_data_scene_layer(C), i, &active);
 		}
 		else if (undosys == UNDOSYSTEM_EDITMODE) {
 			name = undo_editmode_get_name(C, i, &active);
@@ -616,7 +617,7 @@ static int undo_history_exec(bContext *C, wmOperator *op)
 		int item = RNA_int_get(op->ptr, "item");
 		
 		if (undosys == UNDOSYSTEM_PARTICLE) {
-			PE_undo_number(CTX_data_scene(C), item);
+			PE_undo_number(CTX_data_scene(C), CTX_data_scene_layer(C), item);
 		}
 		else if (undosys == UNDOSYSTEM_EDITMODE) {
 			undo_editmode_number(C, item + 1);
