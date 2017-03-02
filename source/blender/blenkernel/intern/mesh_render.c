@@ -824,10 +824,10 @@ void BKE_mesh_batch_cache_clear(Mesh *me)
 	if (cache->edges_in_order) ElementList_discard(cache->edges_in_order);
 	if (cache->triangles_in_order) ElementList_discard(cache->triangles_in_order);
 
-	if (cache->overlay_triangles) Batch_discard(cache->overlay_triangles);
-	if (cache->overlay_loose_verts) Batch_discard(cache->overlay_loose_verts);
-	if (cache->overlay_loose_edges) Batch_discard(cache->overlay_loose_edges);
-	if (cache->overlay_facedots) Batch_discard(cache->overlay_facedots);
+	if (cache->overlay_triangles) Batch_discard_all(cache->overlay_triangles);
+	if (cache->overlay_loose_verts) Batch_discard_all(cache->overlay_loose_verts);
+	if (cache->overlay_loose_edges) Batch_discard_all(cache->overlay_loose_edges);
+	if (cache->overlay_facedots) Batch_discard_all(cache->overlay_facedots);
 
 	if (cache->triangles_with_normals) {
 		Batch_discard_all(cache->triangles_with_normals);
