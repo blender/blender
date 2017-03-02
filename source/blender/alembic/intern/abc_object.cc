@@ -304,8 +304,8 @@ void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
 		/* Only apply scaling to root objects, parenting will propagate it. */
 		float scale_mat[4][4];
 		scale_m4_fl(scale_mat, scale);
+		scale_mat[3][3] = scale; /* scale translations too */
 		mul_m4_m4m4(r_mat, r_mat, scale_mat);
-		mul_v3_fl(r_mat[3], scale);
 	}
 
 	is_constant = schema.isConstant();
