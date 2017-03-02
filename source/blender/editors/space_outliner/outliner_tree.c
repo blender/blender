@@ -1287,13 +1287,19 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 	}
 }
 
-static void outliner_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_after)
+static void outliner_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle,
+                                         TreeElementInsertType action)
 {
 	SceneLayer *sl = BKE_scene_layer_render_active(scene);
 	LayerCollection *insert_coll = insert_element->directdata;
-	LayerCollection *insert_after_coll = insert_after ? insert_after->directdata : NULL;
+	LayerCollection *insert_handle_coll = insert_handle ? insert_handle->directdata : NULL;
 
-	BKE_layer_collection_reinsert_after(scene, sl, insert_coll, insert_after_coll);
+	if (action == TE_INSERT_AFTER) {
+		BKE_layer_collection_reinsert_after(scene, sl, insert_coll, insert_handle_coll);
+	}
+	else if (action == TE_INSERT_INTO) {
+		BKE_layer_collection_reinsert_into(insert_coll, insert_handle_coll);
+	}
 }
 
 static void outliner_add_layer_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,

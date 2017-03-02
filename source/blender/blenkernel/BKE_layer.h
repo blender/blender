@@ -86,6 +86,7 @@ int BKE_layer_collection_count(struct SceneLayer *sl);
 int BKE_layer_collection_findindex(struct SceneLayer *sl, struct LayerCollection *lc);
 void BKE_layer_collection_reinsert_after(const struct Scene *scene, struct SceneLayer *sl,
                                          struct LayerCollection *lc_reinsert, struct LayerCollection *lc_after);
+void BKE_layer_collection_reinsert_into(struct LayerCollection *lc_reinsert, struct LayerCollection *lc_into);
 
 struct LayerCollection *BKE_collection_link(struct SceneLayer *sl, struct SceneCollection *sc);
 

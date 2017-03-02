@@ -536,6 +536,10 @@ static ListBase *scene_collection_listbase_find(ListBase *lb, SceneCollection *s
 void BKE_layer_collection_reinsert_after(
         const Scene *scene, SceneLayer *sl, LayerCollection *lc_reinsert, LayerCollection *lc_after)
 {
+	/* TODO this function probably needs to be rewritten completely to support all cases
+	 * (reinserting master collection, reinsert into different hierarchy levels, etc) */
+	TODO_LAYER_OPERATORS;
+
 	SceneCollection *sc_master = BKE_collection_master(scene);
 	SceneCollection *sc_reinsert = lc_reinsert->scene_collection;
 	ListBase *lc_reinsert_lb = layer_collection_listbase_find(&sl->layer_collections, lc_reinsert);
@@ -562,6 +566,13 @@ void BKE_layer_collection_reinsert_after(
 
 	BKE_scene_layer_base_flag_recalculate(sl);
 	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc_reinsert);
+}
+
+void BKE_layer_collection_reinsert_into(LayerCollection *lc_reinsert, LayerCollection *lc_into)
+{
+	/* TODO this is missing */
+	TODO_LAYER_OPERATORS;
+	UNUSED_VARS(lc_reinsert, lc_into);
 }
 
 /**

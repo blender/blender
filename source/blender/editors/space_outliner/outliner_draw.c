@@ -1540,7 +1540,7 @@ static int outliner_count_visible_childs(const SpaceOops *soops, const TreeEleme
 static void outliner_draw_tree_element_floating(const SpaceOops *soops, const ARegion *ar,
                                                 const TreeElement *te_floating)
 {
-	const TreeElement *te_insert = te_floating->drag_data->insert_te;
+	const TreeElement *te_insert = te_floating->drag_data->insert_handle;
 	const ListBase *lb_parent = te_floating->parent ? &te_floating->parent->subtree : &soops->tree;
 	const TreeElement *te_insert_fallback = te_insert ? te_insert : lb_parent->first;
 	const int line_width = 2;
@@ -1560,14 +1560,30 @@ static void outliner_draw_tree_element_floating(const SpaceOops *soops, const AR
 
 	UI_GetThemeColorShade4ubv(TH_BACK, -40, col);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniformColor4ubv(col);
-	glLineWidth(line_width);
+	glEnable(GL_BLEND);
 
-	immBegin(PRIM_LINE_STRIP, 2);
-	immVertex2f(pos, 0, coord_y);
-	immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
-	immEnd();
+	if (!te_insert || (te_floating->drag_data->insert_type == TE_INSERT_AFTER)) {
+		immUniformColor4ubv(col);
+		glLineWidth(line_width);
 
+		immBegin(PRIM_LINE_STRIP, 2);
+		immVertex2f(pos, 0, coord_y);
+		immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
+		immEnd();
+	}
+	else {
+		BLI_assert(te_floating->drag_data->insert_type == TE_INSERT_INTO);
+		immUniformColor4ub(UNPACK3(col), col[3] * 0.5f);
+
+		immBegin(PRIM_QUADS, 4);
+		immVertex2f(pos, 0, coord_y);
+		immVertex2f(pos, 0, coord_y + UI_UNIT_Y);
+		immVertex2f(pos, ar->v2d.cur.xmax, coord_y + UI_UNIT_Y);
+		immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
+		immEnd();
+	}
+
+	glDisable(GL_BLEND);
 	immUnbindProgram();
 }
 

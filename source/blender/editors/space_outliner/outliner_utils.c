@@ -49,7 +49,7 @@ TreeElement *outliner_find_item_at_y(const SpaceOops *soops, const ListBase *tre
 {
 	for (TreeElement *te_iter = tree->first; te_iter; te_iter = te_iter->next) {
 		if (view_co_y < (te_iter->ys + UI_UNIT_Y)) {
-			if (view_co_y > te_iter->ys) {
+			if (view_co_y >= te_iter->ys) {
 				/* co_y is inside this element */
 				return te_iter;
 			}

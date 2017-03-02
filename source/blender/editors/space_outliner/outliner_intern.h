@@ -49,6 +49,12 @@ struct EditBone;
 struct wmKeyConfig;
 
 
+typedef enum TreeElementInsertType {
+	/* no INSERT_BEFORE needed for now */
+	TE_INSERT_AFTER,
+	TE_INSERT_INTO,
+} TreeElementInsertType;
+
 typedef enum TreeTraversalAction {
 	/* Continue traversal regularly, don't skip children. */
 	TRAVERSE_CONTINUE = 0,
@@ -63,7 +69,7 @@ typedef enum TreeTraversalAction {
  * Passing scene right now, may be better to allow some custom data.
  */
 typedef void (*TreeElementReinsertFunc)(const struct Scene *scene, struct TreeElement *insert_element,
-                                        struct TreeElement *insert_after);
+                                        struct TreeElement *insert_handle, TreeElementInsertType action);
 typedef TreeTraversalAction (*TreeTraversalFunc)(struct TreeElement *te, void *customdata);
 
 
@@ -84,8 +90,9 @@ typedef struct TreeElement {
 	TreeElementReinsertFunc reinsert;
 
 	struct {
+		TreeElementInsertType insert_type;
 		/* the element after which we may insert the dragged one (NULL to insert at top) */
-		struct TreeElement *insert_te;
+		struct TreeElement *insert_handle;
 	} *drag_data;
 } TreeElement;
 
