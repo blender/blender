@@ -1217,7 +1217,7 @@ void draw_mesh_textured(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D 
 	const int drawtype = view3d_effective_drawtype(v3d);
 	bool glsl = (drawtype == OB_MATERIAL) && !picking;
 
-	GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+	GPU_begin_object_materials(v3d, rv3d, scene, sl, ob, glsl, NULL);
 
 	if (glsl || picking) {
 		/* draw glsl or solid */

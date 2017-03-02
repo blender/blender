@@ -66,6 +66,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
 #include "BKE_movieclip.h"
@@ -3304,7 +3305,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene, scene->lay);
 		ibuf = sequencer_view3d_cb(
 		        /* set for OpenGL render (NULL when scrubbing) */
-		        scene, camera, width, height, IB_rect,
+		        scene, BKE_scene_layer_render_active(scene), camera, width, height, IB_rect,
 		        context->scene->r.seq_prev_type,
 		        (context->scene->r.seq_flag & R_SEQ_SOLID_TEX) != 0,
 		        use_gpencil, use_background, scene->r.alphamode,

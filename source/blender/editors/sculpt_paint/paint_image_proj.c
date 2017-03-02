@@ -5439,6 +5439,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	char filename[FILE_MAX];
 
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	ToolSettings *settings = scene->toolsettings;
 	int w = settings->imapaint.screen_grab_size[0];
 	int h = settings->imapaint.screen_grab_size[1];
@@ -5453,7 +5454,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (h > maxsize) h = maxsize;
 
 	ibuf = ED_view3d_draw_offscreen_imbuf(
-	        scene, CTX_wm_view3d(C), CTX_wm_region(C),
+	        scene, sl, CTX_wm_view3d(C), CTX_wm_region(C),
 	        w, h, IB_rect, false, R_ALPHAPREMUL, 0, false, NULL,
 	        NULL, NULL, err_out);
 	if (!ibuf) {

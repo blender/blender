@@ -1687,7 +1687,7 @@ void GPU_end_dupli_object(void)
 }
 
 void GPU_begin_object_materials(
-        View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob,
+        View3D *v3d, RegionView3D *rv3d, Scene *scene, SceneLayer *sl, Object *ob,
         bool glsl, bool *do_alpha_after)
 {
 	Material *ma;
@@ -1726,7 +1726,7 @@ void GPU_begin_object_materials(
 
 #ifdef WITH_GAMEENGINE
 	if (rv3d->rflag & RV3D_IS_GAME_ENGINE) {
-		ob = BKE_object_lod_matob_get(ob, scene);
+		ob = BKE_object_lod_matob_get(ob, sl);
 	}
 #endif
 

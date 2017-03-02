@@ -338,7 +338,7 @@ void *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d);
 void  ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, void *rv3dmat_pt);
 
 bool ED_view3d_context_activate(struct bContext *C);
-void ED_view3d_draw_offscreen_init(struct Scene *scene, struct View3D *v3d);
+void ED_view3d_draw_offscreen_init(struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d);
 void ED_view3d_draw_offscreen(
         struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int winx, int winy, float viewmat[4][4],
         float winmat[4][4], bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
@@ -346,12 +346,12 @@ void ED_view3d_draw_offscreen(
         struct GPUOffScreen *ofs);
 
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(
-        struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey,
+        struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey,
         unsigned int flag, bool draw_background,
         int alpha_mode, int samples, bool full_samples, const char *viewname,
         struct GPUFX *fx, struct GPUOffScreen *ofs, char err_out[256]);
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
-        struct Scene *scene, struct Object *camera, int width, int height,
+        struct Scene *scene, struct SceneLayer *sl, struct Object *camera, int width, int height,
         unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
         int alpha_mode, int samples, bool full_samples, const char *viewname,
         struct GPUFX *fx, struct GPUOffScreen *ofs, char err_out[256]);

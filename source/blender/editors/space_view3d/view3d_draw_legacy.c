@@ -1699,10 +1699,10 @@ void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, void *rv3dmat_pt)
 	rv3d->pixsize = rv3dmat->pixsize;
 }
 
-void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
+void ED_view3d_draw_offscreen_init(Scene *scene, SceneLayer *sl, View3D *v3d)
 {
 	/* shadow buffers, before we setup matrices */
-	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+	if (draw_glsl_material(scene, sl, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows_world(scene, v3d);
 }
 
@@ -1832,7 +1832,7 @@ void ED_view3d_draw_offscreen(
  * (avoids re-creating when doing multiple GL renders).
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf(
-        Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey,
+        Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, int sizex, int sizey,
         unsigned int flag, bool draw_background,
         int alpha_mode, int samples, bool full_samples, const char *viewname,
         /* output vars */
@@ -1861,7 +1861,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		}
 	}
 
-	ED_view3d_draw_offscreen_init(scene, v3d);
+	ED_view3d_draw_offscreen_init(scene, sl, v3d);
 
 	GPU_offscreen_bind(ofs, true);
 
@@ -1997,7 +1997,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
  * \note used by the sequencer
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
-        Scene *scene, Object *camera, int width, int height,
+        Scene *scene, SceneLayer *sl, Object *camera, int width, int height,
         unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
         int alpha_mode, int samples, bool full_samples, const char *viewname,
         GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
@@ -2051,7 +2051,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 	return ED_view3d_draw_offscreen_imbuf(
-	        scene, &v3d, &ar, width, height, flag,
+	        scene, sl, &v3d, &ar, width, height, flag,
 	        draw_background, alpha_mode, samples, full_samples, viewname,
 	        fx, ofs, err_out);
 }
@@ -2295,7 +2295,7 @@ static void update_lods(Scene *scene, float camera_pos[3])
 }
 #endif
 
-static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, View3D *v3d,
+static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, SceneLayer *sl, View3D *v3d,
                                           ARegion *ar, const char **grid_unit)
 {
 	wmWindow *win = CTX_wm_window(C);
@@ -2306,7 +2306,7 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Vie
 	bool do_compositing = false;
 	
 	/* shadow buffers, before we setup matrices */
-	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+	if (draw_glsl_material(scene, sl, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows_world(scene, v3d);
 
 	/* reset default OpenGL lights if needed (i.e. after preferences have been altered) */
@@ -2449,6 +2449,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	const char *grid_unit = NULL;
 	rcti border_rect;
@@ -2460,7 +2461,7 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_region_do_render_draw(scene) || clip_border) {
-		view3d_main_region_draw_objects(C, scene, v3d, ar, &grid_unit);
+		view3d_main_region_draw_objects(C, scene, sl, v3d, ar, &grid_unit);
 
 		if (G.debug & G_DEBUG_SIMDATA)
 			draw_sim_debug_data(scene, v3d, ar);

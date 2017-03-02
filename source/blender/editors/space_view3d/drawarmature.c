@@ -1631,7 +1631,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 	}
 }
 
-static void draw_custom_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob,
+static void draw_custom_bone(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, Object *ob,
                              const short dt, int armflag, int boneflag, unsigned int id, float length)
 {
 	if (ob == NULL) return;
@@ -1647,7 +1647,7 @@ static void draw_custom_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obje
 		GPU_select_load_id((GLuint) id | BONESEL_BONE);
 	}
 
-	draw_object_instance(scene, v3d, rv3d, ob, dt, armflag & ARM_POSEMODE, fcolor);
+	draw_object_instance(scene, sl, v3d, rv3d, ob, dt, armflag & ARM_POSEMODE, fcolor);
 }
 
 
@@ -1944,7 +1944,7 @@ static void bone_matrix_translate_y(float mat[4][4], float y)
 }
 
 /* assumes object is Armature with pose */
-static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *base,
+static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base,
                             const short dt, const unsigned char ob_wire_col[4],
                             const bool do_const_color, const bool is_outline)
 {
@@ -2071,7 +2071,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *
 								glDisable(GL_CULL_FACE);
 							}
 
-							draw_custom_bone(scene, v3d, rv3d, pchan->custom,
+							draw_custom_bone(scene, sl, v3d, rv3d, pchan->custom,
 							                 OB_SOLID, arm->flag, flag, index, PCHAN_CUSTOM_DRAW_SIZE(pchan));
 						}
 					}
@@ -2162,7 +2162,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *
 							if (bone == arm->act_bone)
 								flag |= BONE_DRAW_ACTIVE;
 							
-							draw_custom_bone(scene, v3d, rv3d, pchan->custom,
+							draw_custom_bone(scene, sl, v3d, rv3d, pchan->custom,
 							                 OB_WIRE, arm->flag, flag, index, PCHAN_CUSTOM_DRAW_SIZE(pchan));
 							
 							glPopMatrix();
@@ -2665,7 +2665,7 @@ static void ghost_poses_tag_unselected(Object *ob, short unset)
 /* draw ghosts that occur within a frame range 
  *  note: object should be in posemode
  */
-static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *base)
+static void draw_ghost_poses_range(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);
@@ -2710,7 +2710,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, BaseL
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		BKE_pose_where_is(scene, ob);
-		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, col, true, false);
+		draw_pose_bones(scene, sl, v3d, ar, base, OB_WIRE, col, true, false);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2732,7 +2732,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, BaseL
 /* draw ghosts on keyframes in action within range 
  *	- object should be in posemode 
  */
-static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *base)
+static void draw_ghost_poses_keys(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, BaseLegacy *base)
 {
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);
@@ -2791,7 +2791,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, BaseLe
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		BKE_pose_where_is(scene, ob);
-		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, col, true, false);
+		draw_pose_bones(scene, sl, v3d, ar, base, OB_WIRE, col, true, false);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2814,7 +2814,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, BaseLe
 /* draw ghosts around current frame
  *  - object is supposed to be armature in posemode
  */
-static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *base)
+static void draw_ghost_poses(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);
@@ -2869,7 +2869,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy 
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				BKE_pose_where_is(scene, ob);
-				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, col, true, false);
+				draw_pose_bones(scene, sl, v3d, ar, base, OB_WIRE, col, true, false);
 			}
 		}
 		
@@ -2884,7 +2884,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy 
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				BKE_pose_where_is(scene, ob);
-				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, col, true, false);
+				draw_pose_bones(scene, sl, v3d, ar, base, OB_WIRE, col, true, false);
 			}
 		}
 	}
@@ -2969,14 +2969,14 @@ bool draw_armature(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base 
 				}
 				else if (ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {
-						draw_ghost_poses_range(scene, v3d, ar, base);
+						draw_ghost_poses_range(scene, sl, v3d, ar, base);
 					}
 					else if (arm->ghosttype == ARM_GHOST_KEYS) {
-						draw_ghost_poses_keys(scene, v3d, ar, base);
+						draw_ghost_poses_keys(scene, sl, v3d, ar, base);
 					}
 					else if (arm->ghosttype == ARM_GHOST_CUR) {
 						if (arm->ghostep)
-							draw_ghost_poses(scene, v3d, ar, base);
+							draw_ghost_poses(scene, sl, v3d, ar, base);
 					}
 					if ((dflag & DRAW_SCENESET) == 0) {
 						if (ob == OBACT_NEW)
@@ -2989,7 +2989,7 @@ bool draw_armature(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base 
 					}
 				}
 			}
-			draw_pose_bones(scene, v3d, ar, base, dt, ob_wire_col, (dflag & DRAW_CONSTCOLOR), is_outline);
+			draw_pose_bones(scene, sl, v3d, ar, base, dt, ob_wire_col, (dflag & DRAW_CONSTCOLOR), is_outline);
 			arm->flag &= ~ARM_POSEMODE; 
 		}
 		else {
