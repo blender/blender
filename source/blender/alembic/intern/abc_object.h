@@ -187,7 +187,8 @@ public:
 	void incref();
 	void decref();
 
-	void read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant);
+	void read_matrix(float r_mat[4][4], const float time,
+	                 const float scale, bool &is_constant);
 };
 
 Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, const float time);

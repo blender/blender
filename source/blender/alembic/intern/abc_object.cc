@@ -262,7 +262,8 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
 	return IXform();
 }
 
-void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant)
+void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
+                                  const float scale, bool &is_constant)
 {
 	IXform ixform = xform();
 	if (!ixform) {
@@ -288,7 +289,7 @@ void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float
 	}
 
 	const Imath::M44d matrix = get_matrix(schema, time);
-	convert_matrix(matrix, m_object, mat, scale, has_alembic_parent);
+	convert_matrix(matrix, m_object, r_mat, scale, has_alembic_parent);
 
 	if (has_alembic_parent) {
 		/* In this case, the matrix in Alembic is in local coordinates, so
@@ -297,7 +298,7 @@ void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float
 		 * parent object is already updated for the current timekey, and use its
 		 * world matrix. */
 		BLI_assert(m_object->parent);
-		mul_m4_m4m4(mat, m_object->parent->obmat, mat);
+		mul_m4_m4m4(r_mat, m_object->parent->obmat, r_mat);
 	}
 
 	is_constant = schema.isConstant();

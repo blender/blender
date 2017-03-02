@@ -52,7 +52,7 @@ bool object_selected(Object *ob);
 bool parent_selected(Object *ob);
 
 Imath::M44d convert_matrix(float mat[4][4]);
-void create_transform_matrix(Object *obj, float transform_mat[4][4]);
+void create_transform_matrix(Object *obj, float r_transform_mat[4][4]);
 
 void split(const std::string &s, const char delim, std::vector<std::string> &tokens);
 

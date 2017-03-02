@@ -254,7 +254,7 @@ void convert_matrix(const Imath::M44d &xform, Object *ob,
 
 /* Recompute transform matrix of object in new coordinate system
  * (from Z-Up to Y-Up). */
-void create_transform_matrix(Object *obj, float yup_mat[4][4])
+void create_transform_matrix(Object *obj, float r_yup_mat[4][4])
 {
 	float zup_mat[4][4];
 
@@ -273,7 +273,7 @@ void create_transform_matrix(Object *obj, float yup_mat[4][4])
 	}
 
 
-	copy_m44_axis_swap(yup_mat, zup_mat, ABC_YUP_FROM_ZUP);
+	copy_m44_axis_swap(r_yup_mat, zup_mat, ABC_YUP_FROM_ZUP);
 }
 
 bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string &name)
