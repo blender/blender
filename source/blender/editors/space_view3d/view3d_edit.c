@@ -619,7 +619,8 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	bool is_set = false;
 
 	Scene *scene = CTX_data_scene(C);
-	Object *ob_act = OBACT;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob_act = OBACT_NEW;
 
 	if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
 	    /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
@@ -656,14 +657,13 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	}
 	else if (ob_act == NULL || ob_act->mode == OB_MODE_OBJECT) {
 		/* object mode use boundbox centers */
-		View3D *v3d = CTX_wm_view3d(C);
-		BaseLegacy *base;
+		Base *base;
 		unsigned int tot = 0;
 		float select_center[3];
 
 		zero_v3(select_center);
-		for (base = FIRSTBASE; base; base = base->next) {
-			if (TESTBASE(v3d, base)) {
+		for (base = FIRSTBASE_NEW; base; base = base->next) {
+			if (TESTBASE_NEW(base)) {
 				/* use the boundbox if we can */
 				Object *ob = base->object;
 
@@ -3027,9 +3027,10 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
-	Object *ob = OBACT;
+	Object *ob = OBACT_NEW;
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
 	bool ok = false, ok_dist = true;
@@ -3048,9 +3049,9 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
 		/* hard-coded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
-		BaseLegacy *base;
+		Base *base;
 		for (base = scene->base.first; base; base = base->next) {
-			if (TESTBASELIB(v3d, base)) {
+			if (TESTBASELIB_NEW(base)) {
 				if (base->object->type == OB_ARMATURE)
 					if (base->object->mode & OB_MODE_POSE)
 						break;
@@ -3859,6 +3860,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	RegionView3D *rv3d;
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	static int perspo = RV3D_PERSP;
 	int viewnum, nextperspo;
 	bool align_active;
@@ -3893,7 +3895,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			/* lastview -  */
 
 			if (rv3d->persp != RV3D_CAMOB) {
-				Object *ob = OBACT;
+				Object *ob = OBACT_NEW;
 
 				if (!rv3d->smooth_timer) {
 					/* store settings of current view before allowing overwriting with camera view

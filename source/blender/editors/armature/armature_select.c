@@ -74,7 +74,7 @@ Bone *get_indexed_bone(Object *ob, int index)
 
 /* See if there are any selected bones in this buffer */
 /* only bones from base are checked on */
-void *get_bone_from_selectbuffer(Scene *scene, BaseLegacy *base, unsigned int *buffer, short hits, short findunsel, bool do_nearest)
+void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short findunsel, bool do_nearest)
 {
 	Object *obedit = scene->obedit; // XXX get from context
 	Bone *bone;
@@ -178,7 +178,7 @@ void *get_nearest_bone(bContext *C, short findunsel, int x, int y)
 	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, true);
 
 	if (hits > 0)
-		return get_bone_from_selectbuffer(vc.scene, vc.scene->basact, buffer, hits, findunsel, true);
+		return get_bone_from_selectbuffer(vc.scene, vc.sl->basact, buffer, hits, findunsel, true);
 	
 	return NULL;
 }

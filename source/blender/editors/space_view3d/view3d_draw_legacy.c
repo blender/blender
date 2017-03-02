@@ -2384,6 +2384,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
                                        ARegion *ar, View3D *v3d,
                                        const char *grid_unit, bool render_border)
 {
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	RegionView3D *rv3d = ar->regiondata;
 	rcti rect;
@@ -2404,7 +2405,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-		VP_legacy_drawcursor(scene, ar, v3d); /* 3D cursor */
+		VP_legacy_drawcursor(scene, sl, ar, v3d); /* 3D cursor */
 
 		if (U.uiflag & USER_SHOW_ROTVIEWICON)
 			VP_legacy_draw_view_axis(rv3d, &rect);
@@ -2412,7 +2413,6 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 			draw_view_icon(rv3d, &rect);
 
 		if (U.uiflag & USER_DRAWVIEWINFO) {
-			SceneLayer *sl = CTX_data_scene_layer(C);
 			Object *ob = OBACT_NEW;
 			VP_legacy_draw_selected_name(scene, ob, &rect);
 		}

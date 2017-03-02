@@ -3797,7 +3797,7 @@ static DMDrawOption draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 	}
 }
 
-static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
+static void draw_em_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d,
                           Object *ob, BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, const char dt)
 
 {
@@ -3845,7 +3845,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 				glFrontFace(GL_CCW);
 			}
 			else {
-				draw_mesh_textured(scene, v3d, rv3d, ob, finalDM, 0);
+				draw_mesh_textured(scene, sl, v3d, rv3d, ob, finalDM, 0);
 			}
 		}
 		else {
@@ -4203,11 +4203,11 @@ static bool object_is_halo(Scene *scene, Object *ob)
 	return (ma && (ma->material_type == MA_TYPE_HALO) && !BKE_scene_use_new_shading_nodes(scene));
 }
 
-static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+static void draw_mesh_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
                             const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 #ifdef WITH_GAMEENGINE
-	Object *ob = (rv3d->rflag & RV3D_IS_GAME_ENGINE) ? BKE_object_lod_meshob_get(base->object, scene) : base->object;
+	Object *ob = (rv3d->rflag & RV3D_IS_GAME_ENGINE) ? BKE_object_lod_meshob_get(base->object, sl) : base->object;
 #else
 	Object *ob = base->object;
 #endif
@@ -4314,7 +4314,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				draw_mesh_face_select(rv3d, me, dm, false);
 		}
 		else {
-			draw_mesh_textured(scene, v3d, rv3d, ob, dm, draw_flags);
+			draw_mesh_textured(scene, sl, v3d, rv3d, ob, dm, draw_flags);
 		}
 
 		if (draw_loose && !(draw_flags & DRAW_FACE_SELECT)) {
@@ -4468,7 +4468,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 }
 
 /* returns true if nothing was drawn, for detecting to draw an object center */
-static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+static bool draw_mesh_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
                              const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
@@ -4528,7 +4528,7 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 			}
 		}
 
-		draw_em_fancy(scene, ar, v3d, ob, em, cageDM, finalDM, dt);
+		draw_em_fancy(scene, sl, ar, v3d, ob, em, cageDM, finalDM, dt);
 
 		if (use_material) {
 			GPU_end_object_materials();
@@ -4550,7 +4550,7 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 				}
 			}
 
-			draw_mesh_fancy(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+			draw_mesh_fancy(scene, sl, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 
 			GPU_end_object_materials();
 			
@@ -4612,18 +4612,18 @@ static void make_color_variations(const unsigned char base_ubyte[4], float low[4
 	high[3] = base[3];
 }
 
-static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+static void draw_mesh_fancy_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
                                 const char dt, const unsigned char ob_wire_col[4], const short dflag, const bool other_obedit)
 {
 	if (dflag & (DRAW_PICKING | DRAW_CONSTCOLOR)) {
 		/* too complicated! use existing methods */
 		/* TODO: move this into a separate depth pre-pass */
-		draw_mesh_fancy(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+		draw_mesh_fancy(scene, sl, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 		return;
 	}
 
 #ifdef WITH_GAMEENGINE
-	Object *ob = (rv3d->rflag & RV3D_IS_GAME_ENGINE) ? BKE_object_lod_meshob_get(base->object, scene) : base->object;
+	Object *ob = (rv3d->rflag & RV3D_IS_GAME_ENGINE) ? BKE_object_lod_meshob_get(base->object, sl) : base->object;
 #else
 	Object *ob = base->object;
 #endif
@@ -4789,7 +4789,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 				draw_mesh_face_select(rv3d, me, dm, false);
 		}
 		else {
-			draw_mesh_textured(scene, v3d, rv3d, ob, dm, draw_flags);
+			draw_mesh_textured(scene, sl, v3d, rv3d, ob, dm, draw_flags);
 		}
 
 		if (draw_loose && !(draw_flags & DRAW_FACE_SELECT)) {
@@ -4931,7 +4931,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 	dm->release(dm);
 }
 
-static bool draw_mesh_object_new(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+static bool draw_mesh_object_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
                                  const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
@@ -5017,7 +5017,7 @@ static bool draw_mesh_object_new(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 
 			const bool other_obedit = obedit && (obedit != ob);
 
-			draw_mesh_fancy_new(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag, other_obedit);
+			draw_mesh_fancy_new(scene, sl, ar, v3d, rv3d, base, dt, ob_wire_col, dflag, other_obedit);
 
 			GPU_end_object_materials();
 
@@ -8434,10 +8434,10 @@ void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *b
 		switch (ob->type) {
 			case OB_MESH:
 				if (IS_VIEWPORT_LEGACY(v3d)) {
-					empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+					empty_object = draw_mesh_object(scene, sl, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 				}
 				else {
-					empty_object = draw_mesh_object_new(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+					empty_object = draw_mesh_object_new(scene, sl, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 				}
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					/* mesh draws wire itself */

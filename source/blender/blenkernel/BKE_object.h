@@ -38,10 +38,10 @@ extern "C" {
 struct BaseLegacy;
 struct EvaluationContext;
 struct Scene;
+struct SceneLayer;
 struct Object;
 struct BoundBox;
 struct View3D;
-struct SceneLayer;
 struct SoftBody;
 struct BulletSoftBody;
 struct MovieClip;
@@ -102,9 +102,9 @@ void BKE_object_lod_add(struct Object *ob);
 void BKE_object_lod_sort(struct Object *ob);
 bool BKE_object_lod_remove(struct Object *ob, int level);
 void BKE_object_lod_update(struct Object *ob, const float camera_position[3]);
-bool BKE_object_lod_is_usable(struct Object *ob, struct Scene *scene);
-struct Object *BKE_object_lod_meshob_get(struct Object *ob, struct Scene *scene);
-struct Object *BKE_object_lod_matob_get(struct Object *ob, struct Scene *scene);
+bool BKE_object_lod_is_usable(struct Object *ob, struct SceneLayer *sl);
+struct Object *BKE_object_lod_meshob_get(struct Object *ob, struct SceneLayer *sl);
+struct Object *BKE_object_lod_matob_get(struct Object *ob, struct SceneLayer *sl);
 
 struct Object *BKE_object_copy_ex(struct Main *bmain, struct Object *ob, bool copy_caches);
 struct Object *BKE_object_copy(struct Main *bmain, struct Object *ob);

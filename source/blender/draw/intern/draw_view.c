@@ -589,9 +589,9 @@ void DRW_draw_background(void)
 
 /* **************************** 3D Cursor ******************************** */
 
-static bool is_cursor_visible(Scene *scene)
+static bool is_cursor_visible(Scene *scene, SceneLayer *sl)
 {
-	Object *ob = OBACT;
+	Object *ob = OBACT_NEW;
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
 	if (ob && ob->mode & OB_MODE_ALL_PAINT) {
@@ -625,13 +625,14 @@ void DRW_draw_cursor(void)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 
-	if (is_cursor_visible(scene)) {
+	if (is_cursor_visible(scene, sl)) {
 		float *co = ED_view3d_cursor3d_get(scene, v3d);
 		unsigned char crosshair_color[3];
 

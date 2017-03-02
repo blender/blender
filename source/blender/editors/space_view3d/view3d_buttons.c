@@ -786,8 +786,8 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 
 static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = OBACT;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = OBACT_NEW;
 	if (ob && (BKE_object_is_in_editmode_vgroup(ob) ||
 	           BKE_object_is_in_wpaint_select_vert(ob)))
 	{
@@ -1106,9 +1106,9 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 
 static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event)
 {
-	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Object *ob = OBACT;
+	Object *ob = OBACT_NEW;
 
 	switch (event) {
 

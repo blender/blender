@@ -792,6 +792,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceImage *sima;
 	ARegion *ar;
 	Scene *scene;
+	SceneLayer *sl;
 	Object *obedit;
 	Image *ima;
 
@@ -799,6 +800,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	sima = CTX_wm_space_image(C);
 	ar = CTX_wm_region(C);
 	scene = CTX_data_scene(C);
+	sl = CTX_data_scene_layer(C);
 	obedit = CTX_data_edit_object(C);
 
 	ima = ED_space_image(sima);
@@ -810,7 +812,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 			return OPERATOR_CANCELLED;
 		}
 	}
-	else if (ED_space_image_check_show_maskedit(scene, sima)) {
+	else if (ED_space_image_check_show_maskedit(sl, sima)) {
 		if (!ED_mask_selected_minmax(C, min, max)) {
 			return OPERATOR_CANCELLED;
 		}

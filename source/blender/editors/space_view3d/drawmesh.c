@@ -777,7 +777,7 @@ static DMDrawOption wpaint__setSolidDrawOptions_facemask(void *userData, int ind
 	return DM_DRAW_OPTION_NORMAL;
 }
 
-static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
+static void draw_mesh_text(Scene *scene, SceneLayer *sl, Object *ob, int glsl)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *ddm;
@@ -803,7 +803,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	/* don't draw when editing */
 	if (ob->mode & OB_MODE_EDIT)
 		return;
-	else if (ob == OBACT)
+	else if (ob == OBACT_NEW)
 		if (BKE_paint_select_elem_test(ob))
 			return;
 
@@ -947,7 +947,7 @@ static int compareDrawOptionsEm(void *userData, int cur_index, int next_index)
 	return 1;
 }
 
-static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d,
+static void draw_mesh_textured_old(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d,
                                    Object *ob, DerivedMesh *dm, const int draw_flags)
 {
 	Mesh *me = ob->data;
@@ -984,7 +984,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 			dm_draw_flag = DM_DRAW_USE_ACTIVE_UV;
 		}
 
-		if (ob == OBACT) {
+		if (ob == OBACT_NEW) {
 			if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 				dm_draw_flag |= DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH | DM_DRAW_SKIP_HIDDEN;
 			}
@@ -1040,7 +1040,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	/* draw game engine text hack */
 	if (rv3d->rflag & RV3D_IS_GAME_ENGINE) {
 		if (BKE_bproperty_object_get(ob, "Text")) {
-			draw_mesh_text(scene, ob, 0);
+			draw_mesh_text(scene, sl, ob, 0);
 		}
 	}
 
@@ -1174,7 +1174,7 @@ static bool tex_mat_set_face_editmesh_cb(void *userData, int index)
 	return !BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
 }
 
-void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
+void draw_mesh_textured(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d,
                         Object *ob, DerivedMesh *dm, const int draw_flags)
 {
 	/* if not cycles, or preview-modifiers, or drawing matcaps */
@@ -1183,7 +1183,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	    (BKE_scene_use_new_shading_nodes(scene) == false) ||
 	    ((ob->mode & OB_MODE_TEXTURE_PAINT) && ELEM(v3d->drawtype, OB_TEXTURE, OB_SOLID)))
 	{
-		draw_mesh_textured_old(scene, v3d, rv3d, ob, dm, draw_flags);
+		draw_mesh_textured_old(scene, sl, v3d, rv3d, ob, dm, draw_flags);
 		return;
 	}
 	else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {

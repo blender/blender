@@ -1505,9 +1505,9 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 	glDisable(GL_DEPTH_TEST);
 }
 
-static bool is_cursor_visible(Scene *scene)
+static bool is_cursor_visible(Scene *scene, SceneLayer *sl)
 {
-	Object *ob = OBACT;
+	Object *ob = OBACT_NEW;
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
 	if (ob && ob->mode & OB_MODE_ALL_PAINT) {
@@ -2394,9 +2394,9 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
  * meanwhile it should keep the old viewport working.
  */
 
-void VP_legacy_drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
+void VP_legacy_drawcursor(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d)
 {
-	if (is_cursor_visible(scene)) {
+	if (is_cursor_visible(scene, sl)) {
 		drawcursor(scene, ar, v3d);
 	}
 }

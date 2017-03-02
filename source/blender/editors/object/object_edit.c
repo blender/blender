@@ -649,17 +649,17 @@ static void copy_texture_space(Object *to, Object *ob)
 }
 
 /* UNUSED, keep in case we want to copy functionality for use elsewhere */
-static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
+static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, View3D *v3d, short event)
 {
 	Object *ob;
-	BaseLegacy *base;
+	Base *base;
 	Curve *cu, *cu1;
 	Nurb *nu;
 	bool do_depgraph_update = false;
 	
 	if (ID_IS_LINKED_DATABLOCK(scene)) return;
 
-	if (!(ob = OBACT)) return;
+	if (!(ob = OBACT_NEW)) return;
 	
 	if (scene->obedit) { // XXX get from context
 		/* obedit_copymenu(); */
@@ -679,9 +679,9 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 		return;
 	}
 
-	for (base = FIRSTBASE; base; base = base->next) {
-		if (base != BASACT) {
-			if (TESTBASELIB(v3d, base)) {
+	for (base = FIRSTBASE_NEW; base; base = base->next) {
+		if (base != BASACT_NEW) {
+			if (TESTBASELIB_NEW(base)) {
 				DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 				
 				if (event == 1) {  /* loc */
@@ -900,13 +900,13 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 		DAG_relations_tag_update(bmain);
 }
 
-static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, View3D *v3d)
+static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, SceneLayer *sl, View3D *v3d)
 {
 	Object *ob;
 	short event;
 	char str[512];
 	
-	if (!(ob = OBACT)) return;
+	if (!(ob = OBACT_NEW)) return;
 	
 	if (scene->obedit) { /* XXX get from context */
 /*		if (ob->type == OB_MESH) */
@@ -954,7 +954,7 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, View3D *
 	event = pupmenu(str);
 	if (event <= 0) return;
 	
-	copy_attr(bmain, scene, v3d, event);
+	copy_attr(bmain, scene, sl, v3d, event);
 }
 
 /* ******************* force field toggle operator ***************** */
