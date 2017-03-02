@@ -1287,7 +1287,7 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 	}
 }
 
-static void outliner_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle,
+static void outliner_layer_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle,
                                          TreeElementInsertType action)
 {
 	SceneLayer *sl = BKE_scene_layer_render_active(scene);
@@ -1302,6 +1302,20 @@ static void outliner_collections_reorder(const Scene *scene, TreeElement *insert
 	}
 }
 
+static void outliner_scene_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle,
+                                         TreeElementInsertType action)
+{
+	SceneCollection *insert_coll = insert_element->directdata;
+	SceneCollection *insert_handle_coll = insert_handle ? insert_handle->directdata : NULL;
+
+	if (action == TE_INSERT_AFTER) {
+		BKE_collection_reinsert_after(scene, insert_coll, insert_handle_coll);
+	}
+	else if (action == TE_INSERT_INTO) {
+		BKE_collection_reinsert_into(insert_coll, insert_handle_coll);
+	}
+}
+
 static void outliner_add_layer_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
                                                      ListBase *layer_collections, TreeElement *parent_ten,
                                                      int *io_collection_counter)
@@ -1312,7 +1326,7 @@ static void outliner_add_layer_collections_recursive(SpaceOops *soops, ListBase 
 
 		ten->name = collection->scene_collection->name;
 		ten->directdata = collection;
-		ten->reinsert = outliner_collections_reorder;
+		ten->reinsert = outliner_layer_collections_reorder;
 
 		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
 			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, NULL, 0, 0);
@@ -1333,6 +1347,7 @@ static void outliner_add_scene_collection_init(TreeElement *te, SceneCollection 
 {
 	te->name = collection->name;
 	te->directdata = collection;
+	te->reinsert = outliner_scene_collections_reorder;
 }
 
 static void outliner_add_scene_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,

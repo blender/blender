@@ -298,6 +298,18 @@ void BKE_collections_object_remove(Main *bmain, Scene *scene, Object *ob, const 
 	FOREACH_SCENE_COLLECTION_END
 }
 
+void BKE_collection_reinsert_after(const struct Scene *scene, SceneCollection *sc_reinsert, SceneCollection *sc_after)
+{
+	UNUSED_VARS(scene, sc_reinsert, sc_after);
+	TODO_LAYER_OPERATORS;
+}
+
+void BKE_collection_reinsert_into(SceneCollection *sc_reinsert, SceneCollection *sc_into)
+{
+	UNUSED_VARS(sc_reinsert, sc_into);
+	TODO_LAYER_OPERATORS;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Iteractors */
 /* scene collection iteractor */
