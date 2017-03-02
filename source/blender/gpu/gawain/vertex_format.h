@@ -74,7 +74,7 @@ typedef struct {
 	int x : 10;
 	int y : 10;
 	int z : 10;
-	int w : 2;	// ignored for our purposes
+	int w : 2;	// 0 by default, can manually set to { -2, -1, 0, 1 }
 } PackedNormal;
 
 PackedNormal convert_i10_v3(const float data[3]);

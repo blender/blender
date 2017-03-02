@@ -120,8 +120,10 @@ unsigned add_attrib(VertexFormat* format, const char* name, VertexCompType comp_
 			break;
  #if USE_10_10_10
 		case COMP_I10:
-			assert(comp_ct == 3); // 10_10_10 format intended for normals (xyz) or colors (rgb)
-			assert(fetch_mode == NORMALIZE_INT_TO_FLOAT);
+			// 10_10_10 format intended for normals (xyz) or colors (rgb)
+			// extra component packed.w can be manually set to { -2, -1, 0, 1 }
+			assert(comp_ct == 3 || comp_ct == 4);
+			assert(fetch_mode == NORMALIZE_INT_TO_FLOAT); // not strictly required, may relax later
 			break;
  #endif
 		default:
