@@ -2262,16 +2262,18 @@ static int split_faces_prepare_new_edges(
 		for (int loop_idx = 0; loop_idx < mp->totloop; loop_idx++, ml++) {
 			void **eval;
 			if (!BLI_edgehash_ensure_p(edges_hash, ml_prev->v, ml->v, &eval)) {
+				const int edge_idx = ml_prev->e;
+
 				/* That edge has not been encountered yet, define it. */
-				if (BLI_BITMAP_TEST(edges_used, ml_prev->e)) {
+				if (BLI_BITMAP_TEST(edges_used, edge_idx)) {
 					/* Original edge has already been used, we need to define a new one. */
-					const int edge_idx = num_edges++;
-					*eval = SET_INT_IN_POINTER(edge_idx);
-					ml_prev->e = edge_idx;
+					const int new_edge_idx = num_edges++;
+					*eval = SET_INT_IN_POINTER(new_edge_idx);
+					ml_prev->e = new_edge_idx;
 
 					SplitFaceNewEdge *new_edge = BLI_memarena_alloc(memarena, sizeof(*new_edge));
-					new_edge->orig_index = ml_prev->e;
-					new_edge->new_index = edge_idx;
+					new_edge->orig_index = edge_idx;
+					new_edge->new_index = new_edge_idx;
 					new_edge->v1 = ml_prev->v;
 					new_edge->v2 = ml->v;
 					new_edge->next = *new_edges;
@@ -2279,7 +2281,6 @@ static int split_faces_prepare_new_edges(
 				}
 				else {
 					/* We can re-use original edge. */
-					const int edge_idx = ml_prev->e;
 					medge[edge_idx].v1 = ml_prev->v;
 					medge[edge_idx].v2 = ml->v;
 					*eval = SET_INT_IN_POINTER(edge_idx);
@@ -2312,6 +2313,7 @@ static void split_faces_split_new_verts(
 	MVert *new_mv = &mvert[mesh->totvert - 1];
 	for (int i = mesh->totvert - 1; i >= num_verts ; i--, new_mv--, new_verts = new_verts->next) {
 		BLI_assert(new_verts->new_index == i);
+		BLI_assert(new_verts->new_index != new_verts->orig_index);
 		CustomData_copy_data(&mesh->vdata, &mesh->vdata, new_verts->orig_index, i, 1);
 		if (new_verts->vnor) {
 			normal_float_to_short_v3(new_mv->no, new_verts->vnor);
@@ -2330,6 +2332,7 @@ static void split_faces_split_new_edges(
 	MEdge *new_med = &medge[mesh->totedge - 1];
 	for (int i = mesh->totedge - 1; i >= num_edges ; i--, new_med--, new_edges = new_edges->next) {
 		BLI_assert(new_edges->new_index == i);
+		BLI_assert(new_edges->new_index != new_edges->orig_index);
 		CustomData_copy_data(&mesh->edata, &mesh->edata, new_edges->orig_index, i, 1);
 		new_med->v1 = new_edges->v1;
 		new_med->v2 = new_edges->v2;

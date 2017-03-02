@@ -1870,6 +1870,23 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	return 0;
 }
 
+static const char *manipulator_get_operator_name(int man_val)
+{
+	if (man_val & MAN_TRANS_C) {
+		return "TRANSFORM_OT_translate";
+	}
+	else if (man_val == MAN_ROT_T) {
+		return "TRANSFORM_OT_trackball";
+	}
+	else if (man_val & MAN_ROT_C) {
+		return "TRANSFORM_OT_rotate";
+	}
+	else if (man_val & MAN_SCALE_C) {
+		return "TRANSFORM_OT_resize";
+	}
+
+	return NULL;
+}
 
 /* return 0; nothing happened */
 int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
@@ -1890,10 +1907,25 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 	// find the hotspots first test narrow hotspot
 	val = manipulator_selectbuf(sa, ar, event->mval, 0.5f * (float)U.tw_hotspot);
 	if (val) {
+		wmOperatorType *ot;
+		PointerRNA props_ptr;
+		PropertyRNA *prop;
+		const char *opname;
 
 		// drawflags still global, for drawing call above
 		drawflags = manipulator_selectbuf(sa, ar, event->mval, 0.2f * (float)U.tw_hotspot);
 		if (drawflags == 0) drawflags = val;
+
+		/* We are not doing translation but were requested to do planar constraints.
+		 * This wouldn't work, so we give other keymaps a chance.
+		 */
+		if ((drawflags & MAN_TRANS_C) == 0 && use_planar) {
+			return 0;
+		}
+
+		opname = manipulator_get_operator_name(drawflags);
+		ot = WM_operatortype_find(opname, true);
+		WM_operator_properties_create_ptr(&props_ptr, ot);
 
 		if (drawflags & MAN_TRANS_C) {
 			switch (drawflags) {
@@ -1924,8 +1956,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 						constraint_axis[2] = 1;
 					break;
 			}
-			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_DEFAULT, op->ptr);
+			RNA_boolean_set_array(&props_ptr, "constraint_axis", constraint_axis);
 		}
 		else if (drawflags & MAN_SCALE_C) {
 			switch (drawflags) {
@@ -1954,22 +1985,10 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 						constraint_axis[2] = 1;
 					break;
 			}
-			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TRANSFORM_OT_resize", WM_OP_INVOKE_DEFAULT, op->ptr);
+			RNA_boolean_set_array(&props_ptr, "constraint_axis", constraint_axis);
 		}
-		else if (drawflags == MAN_ROT_T) { /* trackball need special case, init is different */
-			/* Do not pass op->ptr!!! trackball has no "constraint" properties!
-			 * See [#34621], it's a miracle it did not cause more problems!!! */
-			/* However, we need to copy the "release_confirm" property, but only if defined, see T41112. */
-			PointerRNA props_ptr;
-			PropertyRNA *prop;
-			wmOperatorType *ot = WM_operatortype_find("TRANSFORM_OT_trackball", true);
-			WM_operator_properties_create_ptr(&props_ptr, ot);
-			if ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) && RNA_property_is_set(op->ptr, prop)) {
-				RNA_property_boolean_set(&props_ptr, prop, RNA_property_boolean_get(op->ptr, prop));
-			}
-			WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
-			WM_operator_properties_free(&props_ptr);
+		else if (drawflags == MAN_ROT_T) {
+			/* pass */
 		}
 		else if (drawflags & MAN_ROT_C) {
 			switch (drawflags) {
@@ -1983,9 +2002,25 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 					constraint_axis[2] = 1;
 					break;
 			}
-			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TRANSFORM_OT_rotate", WM_OP_INVOKE_DEFAULT, op->ptr);
+			RNA_boolean_set_array(&props_ptr, "constraint_axis", constraint_axis);
 		}
+
+		/* pass operator properties on to transform operators */
+		prop = RNA_struct_find_property(op->ptr, "use_accurate");
+		if (RNA_property_is_set(op->ptr, prop)) {
+			RNA_property_boolean_set(&props_ptr, prop, RNA_property_boolean_get(op->ptr, prop));
+		}
+		prop = RNA_struct_find_property(op->ptr, "release_confirm");
+		if (RNA_property_is_set(op->ptr, prop)) {
+			RNA_property_boolean_set(&props_ptr, prop, RNA_property_boolean_get(op->ptr, prop));
+		}
+		prop = RNA_struct_find_property(op->ptr, "constraint_orientation");
+		if (RNA_property_is_set(op->ptr, prop)) {
+			RNA_property_enum_set(&props_ptr, prop, RNA_property_enum_get(op->ptr, prop));
+		}
+
+		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
 	}
 	/* after transform, restore drawflags */
 	drawflags = 0xFFFF;
