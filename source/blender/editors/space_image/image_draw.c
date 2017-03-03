@@ -60,8 +60,9 @@
 #include "BKE_image.h"
 #include "BKE_paint.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "GPU_immediate.h"
 
 #include "BLF_api.h"
 
@@ -70,8 +71,6 @@
 #include "ED_mask.h"
 #include "ED_render.h"
 #include "ED_screen.h"
-
-#include "GPU_shader.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -353,8 +352,11 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	}
 
 	/* draw outline */
-	glColor3ub(128, 128, 128);
-	sdrawbox(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor3ub(128, 128, 128);
+	imm_draw_line_box(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+	immUnbindProgram();
 
 	dx += 1.75f * UI_UNIT_X;
 

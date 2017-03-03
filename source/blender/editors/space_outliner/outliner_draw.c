@@ -1837,25 +1837,26 @@ static void outliner_back(ARegion *ar)
 static void outliner_draw_restrictcols(ARegion *ar)
 {
 	glLineWidth(1.0f);
-	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
+
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
+	immBegin(PRIM_LINES, 6);
 
 	/* view */
-	sdrawline((int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX),
-	          (int)ar->v2d.cur.ymax,
-	          (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX),
-	          (int)ar->v2d.cur.ymin);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymax);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymin);
 
 	/* render */
-	sdrawline((int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX),
-	          (int)ar->v2d.cur.ymax,
-	          (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX),
-	          (int)ar->v2d.cur.ymin);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)ar->v2d.cur.ymax);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)ar->v2d.cur.ymin);
 
 	/* render */
-	sdrawline((int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX),
-	          (int)ar->v2d.cur.ymax,
-	          (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX),
-	          (int)ar->v2d.cur.ymin);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)ar->v2d.cur.ymax);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)ar->v2d.cur.ymin);
+
+	immEnd();
+	immUnbindProgram();
 }
 
 /* ****************************************************** */
