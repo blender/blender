@@ -5713,21 +5713,16 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			/* successful creation of mtex layer, now create set */
 			if (mtex) {
 				int type = MAP_COL;
-				int type_id = 0;
+				char imagename_buff[MAX_ID_NAME - 2];
+				const char *imagename = DATA_("Diffuse Color");
 
 				if (op) {
-					int i;
 					type = RNA_enum_get(op->ptr, "type");
-
-					for (i = 0; i < ARRAY_SIZE(layer_type_items); i++) {
-						if (layer_type_items[i].value == type) {
-							type_id = i;
-							break;
-						}
-					}
+					RNA_string_get(op->ptr, "name", imagename_buff);
+					imagename = imagename_buff;
 				}
 
-				mtex->tex = BKE_texture_add(bmain, DATA_(layer_type_items[type_id].name));
+				mtex->tex = BKE_texture_add(bmain, imagename);
 				mtex->mapto = type;
 
 				if (mtex->tex) {

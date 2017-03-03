@@ -74,7 +74,9 @@ Bone *get_indexed_bone(Object *ob, int index)
 
 /* See if there are any selected bones in this buffer */
 /* only bones from base are checked on */
-void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short findunsel, bool do_nearest)
+void *get_bone_from_selectbuffer(
+        Scene *scene, Base *base, const unsigned int *buffer, short hits,
+        bool findunsel, bool do_nearest)
 {
 	Object *obedit = scene->obedit; // XXX get from context
 	Bone *bone;
@@ -103,8 +105,8 @@ void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer,
 							sel = (bone->flag & BONE_SELECTED);
 						else
 							sel = !(bone->flag & BONE_SELECTED);
-						
-						data = bone;						
+
+						data = bone;
 					}
 					else {
 						data = NULL;
@@ -162,7 +164,7 @@ void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer,
 /* used by posemode as well editmode */
 /* only checks scene->basact! */
 /* x and y are mouse coords (area space) */
-void *get_nearest_bone(bContext *C, short findunsel, int x, int y)
+void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel)
 {
 	ViewContext vc;
 	rcti rect;
@@ -172,8 +174,8 @@ void *get_nearest_bone(bContext *C, short findunsel, int x, int y)
 	view3d_set_viewcontext(C, &vc);
 	
 	// rect.xmin = ... mouseco!
-	rect.xmin = rect.xmax = x;
-	rect.ymin = rect.ymax = y;
+	rect.xmin = rect.xmax = xy[0];
+	rect.ymin = rect.ymax = xy[1];
 	
 	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, true);
 
@@ -197,10 +199,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEv
 
 	view3d_operator_needs_opengl(C);
 
-	if (extend)
-		bone = get_nearest_bone(C, 0, event->mval[0], event->mval[1]);
-	else
-		bone = get_nearest_bone(C, 1, event->mval[0], event->mval[1]);
+	bone = get_nearest_bone(C, event->mval, !extend);
 
 	if (!bone)
 		return OPERATOR_CANCELLED;
@@ -278,8 +277,9 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
-static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
-                                           ListBase *edbo, int findunsel, int *selmask)
+static EditBone *get_nearest_editbonepoint(
+        ViewContext *vc, const int mval[2],
+        ListBase *edbo, bool findunsel, int *r_selmask)
 {
 	bArmature *arm = (bArmature *)vc->obedit->data;
 	EditBone *ebone_next_act = arm->act_edbone;
@@ -375,17 +375,17 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 			
 			ebone = BLI_findlink(edbo, besthitresult & ~BONESEL_ANY);
 			
-			*selmask = 0;
+			*r_selmask = 0;
 			if (besthitresult & BONESEL_ROOT)
-				*selmask |= BONE_ROOTSEL;
+				*r_selmask |= BONE_ROOTSEL;
 			if (besthitresult & BONESEL_TIP)
-				*selmask |= BONE_TIPSEL;
+				*r_selmask |= BONE_TIPSEL;
 			if (besthitresult & BONESEL_BONE)
-				*selmask |= BONE_SELECTED;
+				*r_selmask |= BONE_SELECTED;
 			return ebone;
 		}
 	}
-	*selmask = 0;
+	*r_selmask = 0;
 	return NULL;
 }
 
@@ -439,8 +439,8 @@ bool ED_armature_select_pick(bContext *C, const int mval[2], bool extend, bool d
 	if (BIF_sk_selectStroke(C, mval, extend)) {
 		return true;
 	}
-	
-	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, 1, &selmask);
+
+	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, true, &selmask);
 	if (nearBone) {
 
 		if (!extend && !deselect && !toggle) {
@@ -1202,7 +1202,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
 	view3d_operator_needs_opengl(C);
 
 	ebone_src = arm->act_edbone;
-	ebone_dst = get_nearest_bone(C, 0, event->mval[0], event->mval[1]);
+	ebone_dst = get_nearest_bone(C, event->mval, false);
 
 	/* fallback to object selection */
 	if (ELEM(NULL, ebone_src, ebone_dst) || (ebone_src == ebone_dst)) {

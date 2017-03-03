@@ -72,7 +72,7 @@ static GPUQueryState g_query_state = {0};
 /**
  * initialize and provide buffer for results
  */
-void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, rctf *input, char mode, int oldhits)
+void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const rctf *input, char mode, int oldhits)
 {
 	g_query_state.select_is_active = true;
 	g_query_state.query_issued = false;
@@ -109,12 +109,7 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, rctf *input, c
 		 * get rejected before the depth test. Should probably cull rect against
 		 * scissor for viewport but this is a rare case I think */
 		glGetFloatv(GL_SCISSOR_BOX, viewport);
-		if (!input || input->xmin == input->xmax) {
-			glViewport(viewport[0], viewport[1], 24, 24);
-		}
-		else {
-			glViewport(viewport[0], viewport[1], (int)(input->xmax - input->xmin), (int)(input->ymax - input->ymin));
-		}
+		glViewport(viewport[0], viewport[1], (int)(input->xmax - input->xmin), (int)(input->ymax - input->ymin));
 
 		/* occlusion queries operates on fragments that pass tests and since we are interested on all
 		 * objects in the view frustum independently of their order, we need to disable the depth test */

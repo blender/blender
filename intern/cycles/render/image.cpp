@@ -285,9 +285,8 @@ int ImageManager::add_image(const string& filename,
 
 	thread_scoped_lock device_lock(device_mutex);
 
-	/* Do we have a float? */
-	if(type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4)
-		is_float = true;
+	/* Check whether it's a float texture. */
+	is_float = (type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4);
 
 	/* No single channel and half textures on CUDA (Fermi) and no half on OpenCL, use available slots */
 	if((type == IMAGE_DATA_TYPE_FLOAT ||
