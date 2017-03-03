@@ -48,9 +48,6 @@ struct ColorManagedDisplaySettings;
  */
 
 void fdrawline(float x1, float y1, float x2, float y2); /* DEPRECATED */
-void fdrawbox(float x1, float y1, float x2, float y2); /* DEPRECATED */
-void sdrawline(int x1, int y1, int x2, int y2); /* DEPRECATED */
-void sdrawbox(int x1, int y1, int x2, int y2); /* DEPRECATED */
 
 void fdrawcheckerboard(float x1, float y1, float x2, float y2); /* DEPRECATED */
 

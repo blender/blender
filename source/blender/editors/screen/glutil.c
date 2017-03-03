@@ -62,19 +62,6 @@ void fdrawline(float x1, float y1, float x2, float y2)
 	glEnd();
 }
 
-void fdrawbox(float x1, float y1, float x2, float y2)
-{
-	/* DEPRECATED: use imm_draw_line_box instead */
-	glBegin(GL_LINE_LOOP);
-	
-	glVertex2f(x1, y1);
-	glVertex2f(x1, y2);
-	glVertex2f(x2, y2);
-	glVertex2f(x2, y1);
-	
-	glEnd();
-}
-
 void fdrawcheckerboard(float x1, float y1, float x2, float y2)
 {
 	/* DEPRECATED: use imm_draw_checker_box instead */
@@ -88,27 +75,6 @@ void fdrawcheckerboard(float x1, float y1, float x2, float y2)
 	GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_CHECKER_8PX);
 	glRectf(x1, y1, x2, y2);
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-}
-
-void sdrawline(int x1, int y1, int x2, int y2) /* DEPRECATED */
-{
-	glBegin(GL_LINES);
-	glVertex2i(x1, y1);
-	glVertex2i(x2, y2);
-	glEnd();
-}
-
-void sdrawbox(int x1, int y1, int x2, int y2)
-{
-	/* DEPRECATED: use imm_draw_line_box instead */
-	glBegin(GL_LINE_LOOP);
-	
-	glVertex2i(x1, y1);
-	glVertex2i(x1, y2);
-	glVertex2i(x2, y2);
-	glVertex2i(x2, y1);
-	
-	glEnd();
 }
 
 
