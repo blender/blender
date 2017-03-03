@@ -60,6 +60,7 @@
 
 #include "ED_view3d.h"
 
+#include "GPU_immediate.h"
 #include "GPU_basic_shader.h"
 
 #include "UI_resources.h"
@@ -988,11 +989,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *brush = BKE_paint_brush(paint);
 	PaintMode mode = BKE_paintmode_get_active_from_context(C);
-	ViewContext vc;
-	float final_radius;
-	float translation[2];
-	float outline_alpha, *outline_col;
-	float zoomx, zoomy;
 
 	/* check that brush drawing is enabled */
 	if (ommit_cursor_drawing(paint, mode, brush))
@@ -1000,8 +996,10 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	/* can't use stroke vc here because this will be called during
 	 * mouse over too, not just during a stroke */
+	ViewContext vc;
 	view3d_set_viewcontext(C, &vc);
 
+	float zoomx, zoomy;
 	get_imapaint_zoom(C, &zoomx, &zoomy);
 	zoomx = max_ff(zoomx, zoomy);
 
@@ -1012,11 +1010,10 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	}
 
 	/* set various defaults */
-	translation[0] = x;
-	translation[1] = y;
-	outline_alpha = 0.5;
-	outline_col = brush->add_col;
-	final_radius = (BKE_brush_size_get(scene, brush) * zoomx);
+	const float *outline_col = brush->add_col;
+	const float outline_alpha = 0.5f;
+	float translation[2] = { x, y };
+	float final_radius = (BKE_brush_size_get(scene, brush) * zoomx);
 
 	/* don't calculate rake angles while a stroke is active because the rake variables are global and
 	 * we may get interference with the stroke itself. For line strokes, such interference is visible */
@@ -1032,10 +1029,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	if ((mode == ePaintSculpt) && vc.obact->sculpt) {
 		float location[3];
 		int pixel_radius;
-		bool hit;
 
 		/* test if brush is over the mesh */
-		hit = sculpt_get_brush_geometry(C, &vc, x, y, &pixel_radius, location, ups);
+		bool hit = sculpt_get_brush_geometry(C, &vc, x, y, &pixel_radius, location, ups);
 
 		if (BKE_brush_use_locked_size(scene, brush))
 			BKE_brush_size_set(scene, brush, pixel_radius);
@@ -1065,24 +1061,25 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	/* make lines pretty */
 	glLineWidth(1.0f);
-	glEnable(GL_BLEND);
+	glEnable(GL_BLEND); /* TODO: also set blend mode? */
 	glEnable(GL_LINE_SMOOTH);
 
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* set brush color */
-	glColor4f(outline_col[0], outline_col[1], outline_col[2], outline_alpha);
+	immUniformColor3fvAlpha(outline_col, outline_alpha);
 
 	/* draw brush outline */
-	glTranslate2fv(translation);
-
-	/* draw an inner brush */
 	if (ups->stroke_active && BKE_brush_use_size_pressure(scene, brush)) {
 		/* inner at full alpha */
-		glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius * ups->size_pressure_value, 40);
+		imm_draw_lined_circle(pos, translation[0], translation[1], final_radius * ups->size_pressure_value, 40);
 		/* outer at half alpha */
-		glColor4f(outline_col[0], outline_col[1], outline_col[2], outline_alpha * 0.5f);
+		immUniformColor3fvAlpha(outline_col, outline_alpha * 0.5f);
 	}
-	glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius, 40);
-	glTranslatef(-translation[0], -translation[1], 0);
+	imm_draw_lined_circle(pos, translation[0], translation[1], final_radius, 40);
+
+	immUnbindProgram();
 
 	/* restore GL state */
 	glDisable(GL_BLEND);
