@@ -126,7 +126,7 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 		*use_queues_flag = 0;
 	}
 
-	/* zero the tiles pixels if this is the first sample */
+	/* zero the tiles pixels and initialize rng_state if this is the first sample */
 	if(start_sample == 0) {
 		parallel_for(kg, i, sw * sh * kernel_data.film.pass_stride) {
 			int pixel = i / kernel_data.film.pass_stride;
@@ -138,6 +138,14 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 			int index = (offset + x + y*stride) * kernel_data.film.pass_stride + pass;
 
 			*(buffer + index) = 0.0f;
+		}
+
+		parallel_for(kg, i, sw * sh) {
+			int x = sx + i % sw;
+			int y = sy + i / sw;
+
+			int index = (offset + x + y*stride);
+			*(rng_state + index) = hash_int_2d(x, y);
 		}
 	}
 }
