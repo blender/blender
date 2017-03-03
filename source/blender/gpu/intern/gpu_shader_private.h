@@ -25,6 +25,7 @@
 #pragma once
 
 #include "GPU_glew.h"
+#include "gawain/shader_interface.h"
 
 struct GPUShader {
 	GLuint program;  /* handle for full program (links shader stages below) */
@@ -33,8 +34,8 @@ struct GPUShader {
 	GLuint geometry; /* handle for geometry shader */
 	GLuint fragment; /* handle for fragment shader */
 
-	int totattrib;   /* total number of attributes */
-	int uniforms;    /* required uniforms */
-
 	void *uniform_interface; /* cached uniform interface for shader. Data depends on shader */
+	/* NOTE: ^-- only FX compositing shaders use this */
+
+	ShaderInterface *interface; /* cached uniform & attrib interface for shader */
 };

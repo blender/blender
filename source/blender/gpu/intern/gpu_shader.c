@@ -490,6 +490,8 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 	}
 #endif
 
+	shader->interface = ShaderInterface_create(shader->program);
+
 	return shader;
 }
 
@@ -521,6 +523,9 @@ void GPU_shader_free(GPUShader *shader)
 	if (shader->uniform_interface)
 		MEM_freeN(shader->uniform_interface);
 
+	if (shader->interface)
+		ShaderInterface_discard(shader->interface);
+
 	MEM_freeN(shader);
 }
 
@@ -538,9 +543,14 @@ int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
 	return glGetUniformBlockIndex(shader->program, name);
 }
 
-void *GPU_shader_get_interface(GPUShader *shader)
+void *GPU_fx_shader_get_interface(GPUShader *shader)
 {
 	return shader->uniform_interface;
+}
+
+void *GPU_shader_get_interface(GPUShader *shader)
+{
+	return shader->interface;
 }
 
 /* Clement : Temp */
@@ -549,7 +559,7 @@ int GPU_shader_get_program(GPUShader *shader)
 	return (int)shader->program;
 }
 
-void GPU_shader_set_interface(GPUShader *shader, void *interface)
+void GPU_fx_shader_set_interface(GPUShader *shader, void *interface)
 {
 	shader->uniform_interface = interface;
 }

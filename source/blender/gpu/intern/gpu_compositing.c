@@ -712,7 +712,7 @@ void GPU_fx_compositor_XRay_resolve(GPUFX *fx)
 	depth_resolve_shader = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_DEPTH_RESOLVE, false);
 
 	if (depth_resolve_shader) {
-		GPUDepthResolveInterface *interface = GPU_shader_get_interface(depth_resolve_shader);
+		GPUDepthResolveInterface *interface = GPU_fx_shader_get_interface(depth_resolve_shader);
 
 		GPU_shader_bind(depth_resolve_shader);
 
@@ -828,7 +828,7 @@ bool GPU_fx_do_composite_pass(
 
 			ssao_params[3] = (passes_left == 1 && !ofs) ? dfdyfac[0] : dfdyfac[1];
 
-			GPUSSAOShaderInterface *interface = GPU_shader_get_interface(ssao_shader);
+			GPUSSAOShaderInterface *interface = GPU_fx_shader_get_interface(ssao_shader);
 
 			GPU_shader_bind(ssao_shader);
 
@@ -924,7 +924,7 @@ bool GPU_fx_do_composite_pass(
 			{
 				float invrendertargetdim[2] = {1.0f / fx->dof_downsampled_w, 1.0f / fx->dof_downsampled_h};
 
-				GPUDOFHQPassOneInterface *interface = GPU_shader_get_interface(dof_shader_pass1);
+				GPUDOFHQPassOneInterface *interface = GPU_fx_shader_get_interface(dof_shader_pass1);
 
 				GPU_shader_bind(dof_shader_pass1);
 
@@ -975,7 +975,7 @@ bool GPU_fx_do_composite_pass(
 				int rendertargetdim[2] = {fx->dof_downsampled_w, fx->dof_downsampled_h};
 				float selection[2] = {0.0f, 1.0f};
 
-				GPUDOFHQPassTwoInterface *interface = GPU_shader_get_interface(dof_shader_pass2);
+				GPUDOFHQPassTwoInterface *interface = GPU_fx_shader_get_interface(dof_shader_pass2);
 
 				GPU_shader_bind(dof_shader_pass2);
 
@@ -1038,7 +1038,7 @@ bool GPU_fx_do_composite_pass(
 			{
 				float invrendertargetdim[2] = {1.0f / fx->dof_downsampled_w, 1.0f / fx->dof_downsampled_h};
 
-				GPUDOFHQPassThreeInterface *interface = GPU_shader_get_interface(dof_shader_pass3);
+				GPUDOFHQPassThreeInterface *interface = GPU_fx_shader_get_interface(dof_shader_pass3);
 
 				GPU_shader_bind(dof_shader_pass3);
 
@@ -1120,7 +1120,7 @@ bool GPU_fx_do_composite_pass(
 			{
 				float invrendertargetdim[2] = {1.0f / fx->gbuffer_dim[0], 1.0f / fx->gbuffer_dim[1]};
 
-				GPUDOFPassOneInterface *interface = GPU_shader_get_interface(dof_shader_pass1);
+				GPUDOFPassOneInterface *interface = GPU_fx_shader_get_interface(dof_shader_pass1);
 
 				GPU_shader_bind(dof_shader_pass1);
 
@@ -1159,7 +1159,7 @@ bool GPU_fx_do_composite_pass(
 				float tmp = invrendertargetdim[0];
 				invrendertargetdim[0] = 0.0f;
 
-				GPUDOFPassTwoInterface *interface = GPU_shader_get_interface(dof_shader_pass2);
+				GPUDOFPassTwoInterface *interface = GPU_fx_shader_get_interface(dof_shader_pass2);
 
 				dof_params[2] = GPU_texture_width(fx->dof_near_coc_blurred_buffer) / (scale_camera * fx_dof->sensor);
 
@@ -1214,7 +1214,7 @@ bool GPU_fx_do_composite_pass(
 
 			/* third pass, calculate near coc */
 			{
-				GPUDOFPassThreeInterface *interface = GPU_shader_get_interface(dof_shader_pass3);
+				GPUDOFPassThreeInterface *interface = GPU_fx_shader_get_interface(dof_shader_pass3);
 
 				GPU_shader_bind(dof_shader_pass3);
 
@@ -1242,7 +1242,7 @@ bool GPU_fx_do_composite_pass(
 				float invrendertargetdim[2] = {1.0f / GPU_texture_width(fx->dof_near_coc_blurred_buffer),
 				                               1.0f / GPU_texture_height(fx->dof_near_coc_blurred_buffer)};
 
-				GPUDOFPassFourInterface *interface = GPU_shader_get_interface(dof_shader_pass4);
+				GPUDOFPassFourInterface *interface = GPU_fx_shader_get_interface(dof_shader_pass4);
 
 				GPU_shader_bind(dof_shader_pass4);
 
@@ -1267,7 +1267,7 @@ bool GPU_fx_do_composite_pass(
 			{
 				float invrendertargetdim[2] = {1.0f / fx->gbuffer_dim[0], 1.0f / fx->gbuffer_dim[1]};
 
-				GPUDOFPassFiveInterface *interface = GPU_shader_get_interface(dof_shader_pass5);
+				GPUDOFPassFiveInterface *interface = GPU_fx_shader_get_interface(dof_shader_pass5);
 
 				GPU_shader_bind(dof_shader_pass5);
 
@@ -1363,7 +1363,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->ssao_concentric_tex = GPU_shader_get_uniform(shader, "ssao_concentric_tex");
 			interface->ssao_jitter_uniform = GPU_shader_get_uniform(shader, "jitter_tex");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 
@@ -1377,7 +1377,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->depth_uniform = GPU_shader_get_uniform(shader, "depthbuffer");
 			interface->viewvecs_uniform = GPU_shader_get_uniform(shader, "viewvecs");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 
@@ -1391,7 +1391,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->select_uniform = GPU_shader_get_uniform(shader, "layerselection");
 			interface->dof_uniform = GPU_shader_get_uniform(shader, "dof_params");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 
@@ -1407,7 +1407,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->viewvecs_uniform = GPU_shader_get_uniform(shader, "viewvecs");
 			interface->depth_uniform = GPU_shader_get_uniform(shader, "depthbuffer");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 
@@ -1421,7 +1421,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->depth_uniform = GPU_shader_get_uniform(shader, "depthbuffer");
 			interface->viewvecs_uniform = GPU_shader_get_uniform(shader, "viewvecs");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 		case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_TWO:
@@ -1434,7 +1434,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->depth_uniform = GPU_shader_get_uniform(shader, "depthbuffer");
 			interface->viewvecs_uniform = GPU_shader_get_uniform(shader, "viewvecs");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 		case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_THREE:
@@ -1444,7 +1444,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->near_coc_downsampled = GPU_shader_get_uniform(shader, "colorbuffer");
 			interface->near_coc_blurred = GPU_shader_get_uniform(shader, "blurredcolorbuffer");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 		case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_FOUR:
@@ -1454,7 +1454,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->near_coc_downsampled = GPU_shader_get_uniform(shader, "colorbuffer");
 			interface->invrendertargetdim_uniform = GPU_shader_get_uniform(shader, "invrendertargetdim");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 		case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_FIVE:
@@ -1469,7 +1469,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 			interface->depth_uniform = GPU_shader_get_uniform(shader, "depthbuffer");
 			interface->viewvecs_uniform = GPU_shader_get_uniform(shader, "viewvecs");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 
@@ -1479,7 +1479,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 
 			interface->depth_uniform = GPU_shader_get_uniform(shader, "depthbuffer");
 
-			GPU_shader_set_interface(shader, interface);
+			GPU_fx_shader_set_interface(shader, interface);
 			break;
 		}
 
