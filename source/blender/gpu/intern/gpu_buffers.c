@@ -56,6 +56,7 @@
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_basic_shader.h"
+#include "GPU_immediate.h"
 
 #include "bmesh.h"
 
@@ -2033,59 +2034,57 @@ void GPU_free_pbvh_buffer_multires(GridCommonGPUBuffer **grid_common_gpu_buffer)
 }
 
 /* debug function, draws the pbvh BB */
-void GPU_draw_pbvh_BB(float min[3], float max[3], bool leaf)
+void GPU_draw_pbvh_BB(float min[3], float max[3], bool leaf, unsigned int pos)
 {
-	const float quads[4][4][3] = {
-		{
-			{min[0], min[1], min[2]},
-			{max[0], min[1], min[2]},
-			{max[0], min[1], max[2]},
-			{min[0], min[1], max[2]}
-		},
-
-		{
-			{min[0], min[1], min[2]},
-			{min[0], max[1], min[2]},
-			{min[0], max[1], max[2]},
-			{min[0], min[1], max[2]}
-		},
-
-		{
-			{max[0], max[1], min[2]},
-			{max[0], min[1], min[2]},
-			{max[0], min[1], max[2]},
-			{max[0], max[1], max[2]}
-		},
-
-		{
-			{max[0], max[1], min[2]},
-			{min[0], max[1], min[2]},
-			{min[0], max[1], max[2]},
-			{max[0], max[1], max[2]}
-		},
-	};
-
 	if (leaf)
-		glColor4f(0.0, 1.0, 0.0, 0.5);
+		immUniformColor4f(0.0, 1.0, 0.0, 0.5);
 	else
-		glColor4f(1.0, 0.0, 0.0, 0.5);
+		immUniformColor4f(1.0, 0.0, 0.0, 0.5);
 
-	glVertexPointer(3, GL_FLOAT, 0, &quads[0][0][0]);
-	glDrawArrays(GL_QUADS, 0, 16);
-}
+	/* TODO(merwin): revisit this after we have mutable VertexBuffers
+	 * could keep a static batch & index buffer, change the VBO contents per draw
+	 */
 
-void GPU_init_draw_pbvh_BB(void)
-{
-	glPushAttrib(GL_ENABLE_BIT);
-	glDisable(GL_CULL_FACE);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glEnable(GL_BLEND);
-}
+	immBegin(PRIM_LINES, 24);
 
-void GPU_end_draw_pbvh_BB(void)
-{
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glPopAttrib();
+	/* top */
+	immVertex3f(pos, min[0], min[1], max[2]);
+	immVertex3f(pos, min[0], max[1], max[2]);
+
+	immVertex3f(pos, min[0], max[1], max[2]);
+	immVertex3f(pos, max[0], max[1], max[2]);
+
+	immVertex3f(pos, max[0], max[1], max[2]);
+	immVertex3f(pos, max[0], min[1], max[2]);
+
+	immVertex3f(pos, max[0], min[1], max[2]);
+	immVertex3f(pos, min[0], min[1], max[2]);
+
+	/* bottom */
+	immVertex3f(pos, min[0], min[1], min[2]);
+	immVertex3f(pos, min[0], max[1], min[2]);
+
+	immVertex3f(pos, min[0], max[1], min[2]);
+	immVertex3f(pos, max[0], max[1], min[2]);
+
+	immVertex3f(pos, max[0], max[1], min[2]);
+	immVertex3f(pos, max[0], min[1], min[2]);
+
+	immVertex3f(pos, max[0], min[1], min[2]);
+	immVertex3f(pos, min[0], min[1], min[2]);
+
+	/* sides */
+	immVertex3f(pos, min[0], min[1], min[2]);
+	immVertex3f(pos, min[0], min[1], max[2]);
+
+	immVertex3f(pos, min[0], max[1], min[2]);
+	immVertex3f(pos, min[0], max[1], max[2]);
+
+	immVertex3f(pos, max[0], max[1], min[2]);
+	immVertex3f(pos, max[0], max[1], max[2]);
+
+	immVertex3f(pos, max[0], min[1], min[2]);
+	immVertex3f(pos, max[0], min[1], max[2]);
+
+	immEnd();
 }

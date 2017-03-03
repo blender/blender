@@ -40,6 +40,7 @@
 #include "BKE_paint.h"
 
 #include "GPU_buffers.h"
+#include "GPU_immediate.h"
 
 #include "bmesh.h"
 
@@ -1156,15 +1157,16 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 
 static void pbvh_draw_BB(PBVH *bvh)
 {
-	GPU_init_draw_pbvh_BB();
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 	for (int a = 0; a < bvh->totnode; a++) {
 		PBVHNode *node = &bvh->nodes[a];
 
-		GPU_draw_pbvh_BB(node->vb.bmin, node->vb.bmax, ((node->flag & PBVH_Leaf) != 0));
+		GPU_draw_pbvh_BB(node->vb.bmin, node->vb.bmax, ((node->flag & PBVH_Leaf) != 0), pos);
 	}
 
-	GPU_end_draw_pbvh_BB();
+	immUnbindProgram();
 }
 
 static int pbvh_flush_bb(PBVH *bvh, PBVHNode *node, int flag)
