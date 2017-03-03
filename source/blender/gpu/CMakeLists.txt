@@ -83,6 +83,8 @@ set(SRC
 	gawain/imm_util.h
 	gawain/primitive.h
 	gawain/primitive.c
+	gawain/shader_interface.c
+	gawain/shader_interface.h
 	gawain/vertex_buffer.c
 	gawain/vertex_buffer.h
 	gawain/vertex_format.c
