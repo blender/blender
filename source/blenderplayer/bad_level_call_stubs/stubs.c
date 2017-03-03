@@ -599,6 +599,12 @@ const char *uiLayoutIntrospect(uiLayout *layout) RET_NULL
 void UI_reinit_font(void) RET_NONE
 int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, const bool big) RET_ZERO
 struct bTheme *UI_GetTheme(void) RET_NULL
+void UI_GetThemeColor4fv(int colorid, float col[4]) RET_NONE
+void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4]) RET_NONE
+void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]) RET_NONE
+void UI_GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int offset, float col[4]) RET_NONE
+void UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, unsigned char col[3]) RET_NONE
+void UI_GetThemeColorShadeAlpha4ubv(int colorid, int coloffset, int alphaoffset, unsigned char col[4]) RET_NONE
 
 /* rna template */
 void uiTemplateAnyID(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *proptypename, const char *text) RET_NONE
@@ -791,8 +797,5 @@ void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rende
 /*multiview*/
 bool RE_RenderResult_is_stereo(RenderResult *res) RET_ZERO
 void uiTemplateImageViews(uiLayout *layout, struct PointerRNA *imfptr) RET_NONE
-
-/* GPU */
-void immBindBuiltinProgram(GPUBuiltinShader shader_id) RET_NONE
 
 #endif // WITH_GAMEENGINE
