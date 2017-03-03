@@ -708,13 +708,6 @@ void BLI_task_pool_cancel(TaskPool *pool)
 	pool->do_cancel = false;
 }
 
-void BLI_task_pool_stop(TaskPool *pool)
-{
-	task_scheduler_clear(pool->scheduler, pool);
-
-	BLI_assert(pool->num == 0);
-}
-
 bool BLI_task_pool_canceled(TaskPool *pool)
 {
 	return pool->do_cancel;
