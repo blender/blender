@@ -179,6 +179,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		 *       on the other hand since they get reset to lib data on file open/reload it is indirect too...
 		 *       Edit Mode is also a 'skip direct' case. */
 		const bool is_obj = (GS(id->name) == ID_OB);
+		const bool is_obj_proxy = (is_obj && (((Object *)id)->proxy || ((Object *)id)->proxy_group));
 		const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id));
 		const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
 		                            (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
@@ -231,7 +232,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 				/* We cannot affect old_id->us directly, LIB_TAG_EXTRAUSER(_SET) are assumed to be set as needed,
 				 * that extra user is processed in final handling... */
 			}
-			if (!is_indirect) {
+			if (!is_indirect || is_obj_proxy) {
 				id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
 			}
 		}
