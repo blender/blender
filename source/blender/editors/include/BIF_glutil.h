@@ -51,13 +51,6 @@ void fdrawline(float x1, float y1, float x2, float y2); /* DEPRECATED */
 
 void fdrawcheckerboard(float x1, float y1, float x2, float y2); /* DEPRECATED */
 
-/* OpenGL stipple defines */
-extern const unsigned char stipple_halftone[128];
-extern const unsigned char stipple_quarttone[128];
-extern const unsigned char stipple_diag_stripes_pos[128];
-extern const unsigned char stipple_diag_stripes_neg[128];
-extern const unsigned char stipple_checker_8px[128];
-
 /**
  * Draw a circle outline with the given \a radius.
  * The circle is centered at \a x, \a y and drawn in the XY plane.
