@@ -482,9 +482,6 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	
 	/* scissor doesn't seem to be doing the right thing...? */
 #if 0
-	//glColor4f(1.0, 0.f, 0.f, 1.f);
-	//fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax)
-
 	/* prevent drawing outside widget area */
 	GLint scissor[4];
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);

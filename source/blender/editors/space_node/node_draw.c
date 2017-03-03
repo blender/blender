@@ -711,8 +711,11 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	
 	glDisable(GL_BLEND);
 
-	UI_ThemeColorShadeAlpha(TH_BACK, -15, +100);
-	fdrawbox(draw_rect.xmin, draw_rect.ymin, draw_rect.xmax, draw_rect.ymax);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColorShadeAlpha(TH_BACK, -15, +100);
+	imm_draw_line_box(pos, draw_rect.xmin, draw_rect.ymin, draw_rect.xmax, draw_rect.ymax);
+	immUnbindProgram();
 }
 
 /* common handle function for operator buttons that need to select the node first */
