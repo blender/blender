@@ -357,8 +357,8 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 
 	/* Add background-only thread if needed. */
 	if (num_threads == 0) {
-	    scheduler->background_thread_only = true;
-	    num_threads = 1;
+		scheduler->background_thread_only = true;
+		num_threads = 1;
 	}
 
 	/* launch threads that will be waiting for work */
