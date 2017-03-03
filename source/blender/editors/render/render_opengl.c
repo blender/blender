@@ -715,7 +715,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 			oglrender->task_scheduler = task_scheduler;
 			oglrender->task_pool = BLI_task_pool_create_background(task_scheduler,
 			                                                       oglrender);
-			BLI_pool_set_num_threads(oglrender->task_pool, 1);
 		}
 		else {
 			oglrender->task_scheduler = NULL;
@@ -747,6 +746,23 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	int i;
 
 	if (oglrender->is_animation) {
+		/* Trickery part for movie output:
+		 *
+		 * We MUST write frames in an exact order, so we only let background
+		 * thread to work on that, and main thread is simply waits for that
+		 * thread to do all the dirty work.
+		 *
+		 * After this loop is done work_and_wait() will have nothing to do,
+		 * so we don't run into wrong order of frames written to the stream.
+		 */
+		if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
+			BLI_mutex_lock(&oglrender->task_mutex);
+			while (oglrender->num_scheduled_frames > 0) {
+				BLI_condition_wait(&oglrender->task_condition,
+				                   &oglrender->task_mutex);
+			}
+			BLI_mutex_unlock(&oglrender->task_mutex);
+		}
 		BLI_task_pool_work_and_wait(oglrender->task_pool);
 		BLI_task_pool_free(oglrender->task_pool);
 		/* Depending on various things we might or might not use global scheduler. */

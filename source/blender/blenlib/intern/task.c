@@ -106,8 +106,6 @@ struct TaskPool {
 	TaskScheduler *scheduler;
 
 	volatile size_t num;
-	size_t num_threads;
-	size_t currently_running_tasks;
 	ThreadMutex num_mutex;
 	ThreadCondition num_cond;
 
@@ -236,7 +234,6 @@ static void task_pool_num_decrease(TaskPool *pool, size_t done)
 	BLI_assert(pool->num >= done);
 
 	pool->num -= done;
-	atomic_sub_and_fetch_z(&pool->currently_running_tasks, done);
 
 	if (pool->num == 0)
 		BLI_condition_notify_all(&pool->num_cond);
@@ -290,17 +287,10 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 				continue;
 			}
 
-			if (atomic_add_and_fetch_z(&pool->currently_running_tasks, 1) <= pool->num_threads ||
-			    pool->num_threads == 0)
-			{
-				*task = current_task;
-				found_task = true;
-				BLI_remlink(&scheduler->queue, *task);
-				break;
-			}
-			else {
-				atomic_sub_and_fetch_z(&pool->currently_running_tasks, 1);
-			}
+			*task = current_task;
+			found_task = true;
+			BLI_remlink(&scheduler->queue, *task);
+			break;
 		}
 		if (!found_task)
 			BLI_condition_wait(&scheduler->queue_cond, &scheduler->queue_mutex);
@@ -502,8 +492,6 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
 
 	pool->scheduler = scheduler;
 	pool->num = 0;
-	pool->num_threads = 0;
-	pool->currently_running_tasks = 0;
 	pool->do_cancel = false;
 	pool->run_in_background = is_background;
 
@@ -648,16 +636,12 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		/* find task from this pool. if we get a task from another pool,
 		 * we can get into deadlock */
 
-		if (pool->num_threads == 0 ||
-		    pool->currently_running_tasks < pool->num_threads)
-		{
-			for (task = scheduler->queue.first; task; task = task->next) {
-				if (task->pool == pool) {
-					work_task = task;
-					found_task = true;
-					BLI_remlink(&scheduler->queue, task);
-					break;
-				}
+		for (task = scheduler->queue.first; task; task = task->next) {
+			if (task->pool == pool) {
+				work_task = task;
+				found_task = true;
+				BLI_remlink(&scheduler->queue, task);
+				break;
 			}
 		}
 
@@ -666,7 +650,6 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		/* if found task, do it, otherwise wait until other tasks are done */
 		if (found_task) {
 			/* run task */
-			atomic_add_and_fetch_z(&pool->currently_running_tasks, 1);
 			work_task->run(pool, work_task->taskdata, 0);
 
 			/* delete task */
@@ -685,12 +668,6 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 	}
 
 	BLI_mutex_unlock(&pool->num_mutex);
-}
-
-void BLI_pool_set_num_threads(TaskPool *pool, int num_threads)
-{
-	/* NOTE: Don't try to modify threads while tasks are running! */
-	pool->num_threads = num_threads;
 }
 
 void BLI_task_pool_cancel(TaskPool *pool)

@@ -378,12 +378,19 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	state.graph = graph;
 	state.layers = layers;
 
-	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
-	TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &state);
+	TaskScheduler *task_scheduler;
+	bool need_free_scheduler;
 
 	if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
-		BLI_pool_set_num_threads(task_pool, 1);
+		task_scheduler = BLI_task_scheduler_create(1);
+		need_free_scheduler = true;
 	}
+	else {
+		task_scheduler = BLI_task_scheduler_get();
+		need_free_scheduler = false;
+	}
+
+	TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &state);
 
 	calculate_pending_parents(graph, layers);
 
@@ -410,6 +417,10 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 
 	/* Clear any uncleared tags - just in case. */
 	deg_graph_clear_tags(graph);
+
+	if (need_free_scheduler) {
+		BLI_task_scheduler_free(task_scheduler);
+	}
 }
 
 }  // namespace DEG
