@@ -942,8 +942,7 @@ static void set_state(short flag)
 	}
 
 	/* Depht Test */
-	if (flag & DRW_STATE_DEPTH_LESS ||
-	    flag & DRW_STATE_DEPTH_EQUAL)
+	if (flag & (DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER))
 	{
 
 		glEnable(GL_DEPTH_TEST);
@@ -952,6 +951,8 @@ static void set_state(short flag)
 			glDepthFunc(GL_LEQUAL);
 		else if (flag & DRW_STATE_DEPTH_EQUAL)
 			glDepthFunc(GL_EQUAL);
+		else if (flag & DRW_STATE_DEPTH_GREATER)
+			glDepthFunc(GL_GREATER);
 	}
 	else {
 		glDisable(GL_DEPTH_TEST);
@@ -977,6 +978,7 @@ static void set_state(short flag)
 	/* Blending (all buffer) */
 	if (flag & DRW_STATE_BLEND) {
 		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else {
 		glDisable(GL_BLEND);
@@ -1063,6 +1065,23 @@ void DRW_draw_pass(DRWPass *UNUSED(pass))
 #endif
 
 /* ******************************************* Mode Engine Cache ****************************************** */
+
+void DRW_mode_init(void)
+{
+	const bContext *C = DRW_get_context();
+	int mode = CTX_data_mode_enum(C);
+
+	switch (mode) {
+		case CTX_MODE_EDIT_MESH:
+			EDIT_MESH_init();
+			break;
+		case CTX_MODE_EDIT_ARMATURE:
+			break;
+		case CTX_MODE_OBJECT:
+			break;
+	}
+}
+
 void DRW_mode_cache_init(void)
 {
 	const bContext *C = DRW_get_context();
@@ -1188,6 +1207,8 @@ void *DRW_render_settings_get(Scene *scene, const char *engine_name)
 void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX],
                           int texnbr)
 {
+	BLI_assert(texnbr <= MAX_FBO_TEX);
+
 	if (!*fb) {
 		int color_attachment = -1;
 		*fb = GPU_framebuffer_create();
@@ -1224,6 +1245,19 @@ void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRW
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb)
 {
 	GPU_framebuffer_bind(fb);
+}
+
+void DRW_framebuffer_clear(bool color, bool depth, float clear_col[4])
+{
+	if (color) {
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glClearColor(clear_col[0], clear_col[1], clear_col[2], clear_col[4]);
+	}
+	if (depth) {
+		glDepthMask(GL_TRUE);
+	}
+	glClear(((color) ? GL_COLOR_BUFFER_BIT : 0) |
+	        ((depth) ? GL_DEPTH_BUFFER_BIT : 0));
 }
 
 void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, GPUTexture *tex, int slot)

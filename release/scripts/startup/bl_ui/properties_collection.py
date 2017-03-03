@@ -127,6 +127,7 @@ class COLLECTION_PT_edit_mode_settings(CollectionButtonsPanel, Panel):
 
         col = layout.column()
         template_engine_settings(col, settings, "show_occlude_wire")
+        template_engine_settings(col, settings, "backwire_opacity")
 
 
 if __name__ == "__main__":  # only for live edit.

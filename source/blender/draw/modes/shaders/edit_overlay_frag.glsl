@@ -48,6 +48,8 @@ layout(std140) uniform globalsBlock {
 	float sizeFaceDot;
 };
 
+uniform float faceAlphaMod;
+
 flat in vec3 edgesCrease;
 flat in vec3 edgesBweight;
 flat in ivec3 flag;
@@ -174,6 +176,9 @@ void main()
 		int x = int(gl_FragCoord.x) & 0x3; /* mod 4 */
 		int y = int(gl_FragCoord.y) & 0x3; /* mod 4 */
 		FragColor *= stipple_matrix[x][y];
+	}
+	else {
+		FragColor.a *= faceAlphaMod;
 	}
 
 	/* Edges */

@@ -89,6 +89,10 @@ data_to_c_simple(modes/shaders/edit_overlay_geom_edge.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_loosevert_vert.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_facedot_frag.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_facedot_vert.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_mix_frag.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_mix_vert.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_facefill_vert.glsl SRC)
+data_to_c_simple(modes/shaders/edit_overlay_facefill_frag.glsl SRC)
 
 list(APPEND INC
 )

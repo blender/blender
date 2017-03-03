@@ -689,6 +689,7 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 	CLAY_FramebufferList *fbl = DRW_engine_framebuffer_list_get();
 
 	CLAY_engine_init();
+	DRW_mode_init();
 
 	/* TODO : tag to refresh by the deps graph */
 	/* ideally only refresh when objects are added/removed */

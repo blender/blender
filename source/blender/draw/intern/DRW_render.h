@@ -131,6 +131,7 @@ typedef struct DRWFboTexture {
 
 void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX], int texnbr);
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
+void DRW_framebuffer_clear(bool color, bool depth, float clear_col[4]);
 void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot);
 void DRW_framebuffer_texture_detach(struct GPUTexture *tex);
 void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth);
@@ -144,19 +145,20 @@ void DRW_shader_free(struct GPUShader *shader);
 /* Batches */
 
 typedef enum {
-	DRW_STATE_WRITE_DEPTH = (1 << 0),
-	DRW_STATE_WRITE_COLOR = (1 << 1),
-	DRW_STATE_DEPTH_LESS  = (1 << 2),
-	DRW_STATE_DEPTH_EQUAL = (1 << 3),
-	DRW_STATE_CULL_BACK   = (1 << 4),
-	DRW_STATE_CULL_FRONT  = (1 << 5),
-	DRW_STATE_WIRE        = (1 << 6),
-	DRW_STATE_WIRE_LARGE  = (1 << 7),
-	DRW_STATE_POINT       = (1 << 8),
-	DRW_STATE_STIPPLE_2   = (1 << 9),
-	DRW_STATE_STIPPLE_3   = (1 << 10),
-	DRW_STATE_STIPPLE_4   = (1 << 11),
-	DRW_STATE_BLEND       = (1 << 12),
+	DRW_STATE_WRITE_DEPTH   = (1 << 0),
+	DRW_STATE_WRITE_COLOR   = (1 << 1),
+	DRW_STATE_DEPTH_LESS    = (1 << 2),
+	DRW_STATE_DEPTH_EQUAL   = (1 << 3),
+	DRW_STATE_DEPTH_GREATER = (1 << 4),
+	DRW_STATE_CULL_BACK     = (1 << 5),
+	DRW_STATE_CULL_FRONT    = (1 << 6),
+	DRW_STATE_WIRE          = (1 << 7),
+	DRW_STATE_WIRE_LARGE    = (1 << 8),
+	DRW_STATE_POINT         = (1 << 9),
+	DRW_STATE_STIPPLE_2     = (1 << 10),
+	DRW_STATE_STIPPLE_3     = (1 << 11),
+	DRW_STATE_STIPPLE_4     = (1 << 12),
+	DRW_STATE_BLEND         = (1 << 13),
 } DRWState;
 
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
@@ -210,6 +212,7 @@ void *DRW_render_settings_get(Scene *scene, const char *engine_name);
 #endif /* __DRW_ENGINE_H__ */
 
 /* Cache */
+void DRW_mode_init(void);
 void DRW_mode_cache_init(void);
 void DRW_mode_cache_populate(struct Object *ob);
 void DRW_mode_cache_finish(void);
