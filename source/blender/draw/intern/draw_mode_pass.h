@@ -84,6 +84,7 @@ void DRW_mode_passes_setup(struct DRWPass **psl_wire_overlay,
 
 void DRW_shgroup_wire_outline(struct Object *ob, const bool do_front, const bool do_back, const bool do_outline);
 void DRW_shgroup_lamp(struct Object *ob);
+void DRW_shgroup_camera(struct Object *ob);
 void DRW_shgroup_empty(struct Object *ob);
 void DRW_shgroup_speaker(struct Object *ob);
 void DRW_shgroup_relationship_lines(struct Object *ob);

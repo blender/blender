@@ -128,6 +128,7 @@ typedef struct World {
 	/* nodes */
 	struct bNodeTree *nodetree;
 
+	float mistend, pad1;        /* runtime : miststa + mistdist, used for drawing camera */
 	ListBase gpumaterial;		/* runtime */
 } World;
 

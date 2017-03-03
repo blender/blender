@@ -79,6 +79,8 @@ extern char datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl[]
 extern char datatoc_gpu_shader_instance_objectspace_variying_color_vert_glsl[];
 extern char datatoc_gpu_shader_instance_screenspace_variying_color_vert_glsl[];
 extern char datatoc_gpu_shader_instance_screen_aligned_axis_name_vert_glsl[];
+extern char datatoc_gpu_shader_instance_camera_vert_glsl[];
+extern char datatoc_gpu_shader_instance_distance_line_vert_glsl[];
 
 extern char datatoc_gpu_shader_3D_groundpoint_vert_glsl[];
 extern char datatoc_gpu_shader_3D_groundline_geom_glsl[];
@@ -729,7 +731,12 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR] = { datatoc_gpu_shader_instance_screenspace_variying_color_vert_glsl,
 		                                               datatoc_gpu_shader_flat_color_frag_glsl},
 		[GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS] = { datatoc_gpu_shader_instance_screen_aligned_axis_name_vert_glsl,
-		                                     datatoc_gpu_shader_flat_color_frag_glsl},
+		                                                 datatoc_gpu_shader_flat_color_frag_glsl},
+
+		[GPU_SHADER_CAMERA] = { datatoc_gpu_shader_instance_camera_vert_glsl,
+		                        datatoc_gpu_shader_flat_color_frag_glsl},
+		[GPU_SHADER_DISTANCE_LINES] = { datatoc_gpu_shader_instance_distance_line_vert_glsl,
+		                                datatoc_gpu_shader_flat_color_frag_glsl},
 
 		[GPU_SHADER_2D_POINT_FIXED_SIZE_UNIFORM_COLOR] =
 			{ datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_point_uniform_color_frag_glsl },

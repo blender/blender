@@ -149,6 +149,10 @@ typedef enum GPUBuiltinShader {
 	/* bone drawing */
 	GPU_SHADER_3D_OBJECTSPACE_VARIYING_COLOR,
 	GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR,
+	/* camera drawing */
+	GPU_SHADER_CAMERA,
+	/* distance in front of objects */
+	GPU_SHADER_DISTANCE_LINES,
 	/* axis name */
 	GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS,
 	/* instance */

@@ -85,6 +85,13 @@ typedef struct Camera {
 	char sensor_fit;
 	char pad[7];
 
+	/* runtime only, used for drawing */
+	float drwcorners[4][2];
+	float drwtria[2][2];
+	float drwdepth, pad1;
+	float drwfocusmat[4][4];
+	float drwnormalmat[4][4];
+
 	/* Stereo settings */
 	struct CameraStereoSettings stereo;
 } Camera;

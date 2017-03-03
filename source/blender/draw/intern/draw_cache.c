@@ -45,6 +45,7 @@ static struct DRWShapeCache {
 	Batch *drw_cube;
 	Batch *drw_circle;
 	Batch *drw_line;
+	Batch *drw_line_endpoints;
 	Batch *drw_empty_sphere;
 	Batch *drw_empty_cone;
 	Batch *drw_arrows;
@@ -57,6 +58,9 @@ static struct DRWShapeCache {
 	Batch *drw_bone_point;
 	Batch *drw_bone_point_wire;
 	Batch *drw_bone_arrows;
+	Batch *drw_camera;
+	Batch *drw_camera_tria;
+	Batch *drw_camera_focus;
 } SHC = {NULL};
 
 void DRW_shape_cache_free(void)
@@ -75,6 +79,8 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_circle);
 	if (SHC.drw_line)
 		Batch_discard_all(SHC.drw_line);
+	if (SHC.drw_line_endpoints)
+		Batch_discard_all(SHC.drw_line_endpoints);
 	if (SHC.drw_empty_sphere)
 		Batch_discard_all(SHC.drw_empty_sphere);
 	if (SHC.drw_empty_cone)
@@ -99,6 +105,12 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_bone_point_wire);
 	if (SHC.drw_bone_arrows)
 		Batch_discard_all(SHC.drw_bone_arrows);
+	if (SHC.drw_camera)
+		Batch_discard_all(SHC.drw_camera);
+	if (SHC.drw_camera_tria)
+		Batch_discard_all(SHC.drw_camera_tria);
+	if (SHC.drw_camera_focus)
+		Batch_discard_all(SHC.drw_camera_focus);
 }
 
 /* Helper functions */
@@ -346,6 +358,32 @@ Batch *DRW_cache_single_line_get(void)
 		SHC.drw_line = Batch_create(GL_LINES, vbo, NULL);
 	}
 	return SHC.drw_line;
+}
+
+
+Batch *DRW_cache_single_line_endpoints_get(void)
+{
+	/* Z axis line */
+	if (!SHC.drw_line_endpoints) {
+		float v1[3] = {0.0f, 0.0f, 0.0f};
+		float v2[3] = {0.0f, 0.0f, 1.0f};
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 2);
+
+		setAttrib(vbo, pos_id, 0, v1);
+		setAttrib(vbo, pos_id, 1, v2);
+
+		SHC.drw_line_endpoints = Batch_create(GL_POINTS, vbo, NULL);
+	}
+	return SHC.drw_line_endpoints;
 }
 
 /* Empties */
@@ -840,6 +878,104 @@ Batch *DRW_cache_bone_arrows_get(void)
 		SHC.drw_bone_arrows = Batch_create(GL_LINES, vbo, NULL);
 	}
 	return SHC.drw_bone_arrows;
+}
+
+/* Camera */
+Batch *DRW_cache_camera_get(void)
+{
+	if (!SHC.drw_camera) {
+		float v0 = 0.0f; /* Center point */
+		float v1 = 1.0f; /* + X + Y */
+		float v2 = 2.0f; /* + X - Y */
+		float v3 = 3.0f; /* - X - Y */
+		float v4 = 4.0f; /* - X + Y */
+		float v5 = 5.0f; /* tria + X */
+		float v6 = 6.0f; /* tria - X */
+		float v7 = 7.0f; /* tria + Y */
+		int v_idx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			/* use x coordinate to identify the vertex
+			 * the vertex shader take care to place it
+			 * appropriatelly */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 1, KEEP_FLOAT);
+		}
+
+		/* Vertices */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 22);
+
+		setAttrib(vbo, pos_id, v_idx++, &v0);
+		setAttrib(vbo, pos_id, v_idx++, &v1);
+
+		setAttrib(vbo, pos_id, v_idx++, &v0);
+		setAttrib(vbo, pos_id, v_idx++, &v2);
+
+		setAttrib(vbo, pos_id, v_idx++, &v0);
+		setAttrib(vbo, pos_id, v_idx++, &v3);
+
+		setAttrib(vbo, pos_id, v_idx++, &v0);
+		setAttrib(vbo, pos_id, v_idx++, &v4);
+
+		/* camera frame */
+		setAttrib(vbo, pos_id, v_idx++, &v1);
+		setAttrib(vbo, pos_id, v_idx++, &v2);
+
+		setAttrib(vbo, pos_id, v_idx++, &v2);
+		setAttrib(vbo, pos_id, v_idx++, &v3);
+
+		setAttrib(vbo, pos_id, v_idx++, &v3);
+		setAttrib(vbo, pos_id, v_idx++, &v4);
+
+		setAttrib(vbo, pos_id, v_idx++, &v4);
+		setAttrib(vbo, pos_id, v_idx++, &v1);
+
+		/* tria */
+		setAttrib(vbo, pos_id, v_idx++, &v5);
+		setAttrib(vbo, pos_id, v_idx++, &v6);
+
+		setAttrib(vbo, pos_id, v_idx++, &v6);
+		setAttrib(vbo, pos_id, v_idx++, &v7);
+
+		setAttrib(vbo, pos_id, v_idx++, &v7);
+		setAttrib(vbo, pos_id, v_idx++, &v5);
+
+		SHC.drw_camera = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_camera;
+}
+
+Batch *DRW_cache_camera_tria_get(void)
+{
+	if (!SHC.drw_camera_tria) {
+		float v5 = 5.0f; /* tria + X */
+		float v6 = 6.0f; /* tria - X */
+		float v7 = 7.0f; /* tria + Y */
+		int v_idx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			/* use x coordinate to identify the vertex
+			 * the vertex shader take care to place it
+			 * appropriatelly */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 1, KEEP_FLOAT);
+		}
+
+		/* Vertices */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 6);
+
+		/* tria */
+		setAttrib(vbo, pos_id, v_idx++, &v5);
+		setAttrib(vbo, pos_id, v_idx++, &v6);
+		setAttrib(vbo, pos_id, v_idx++, &v7);
+
+		SHC.drw_camera_tria = Batch_create(GL_TRIANGLES, vbo, NULL);
+	}
+	return SHC.drw_camera_tria;
 }
 
 /* Object Center */

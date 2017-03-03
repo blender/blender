@@ -324,6 +324,8 @@ void EDIT_MESH_cache_populate(Object *ob)
 			DRW_shgroup_lamp(ob);
 			break;
 		case OB_CAMERA:
+			DRW_shgroup_camera(ob);
+			break;
 		case OB_EMPTY:
 			DRW_shgroup_empty(ob);
 			break;
