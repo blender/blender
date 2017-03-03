@@ -11,6 +11,7 @@
 
 #include "shader_interface.h"
 #include <stdlib.h>
+#include <stddef.h>
 
 #define DEBUG_SHADER_INTERFACE 0
 
