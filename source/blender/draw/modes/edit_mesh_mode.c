@@ -49,14 +49,12 @@ typedef struct EDIT_MESH_PassList {
 /* keep it under MAX_BUFFERS */
 typedef struct EDIT_MESH_FramebufferList {
 	struct GPUFrameBuffer *occlude_wire_fb;
-	struct GPUFrameBuffer *occlude_face_fb;
 } EDIT_MESH_FramebufferList;
 
 /* keep it under MAX_TEXTURES */
 typedef struct EDIT_MESH_TextureList {
 	struct GPUTexture *occlude_wire_depth_tx;
 	struct GPUTexture *occlude_wire_color_tx;
-	struct GPUTexture *occlude_face_color_tx;
 } EDIT_MESH_TextureList;
 
 static DRWShadingGroup *depth_shgrp_hidden_wire;
@@ -109,11 +107,6 @@ void EDIT_MESH_init(void)
 	DRW_framebuffer_init(&fbl->occlude_wire_fb,
 	                     (int)viewport_size[0], (int)viewport_size[1],
 	                     tex, 2);
-
-	DRWFboTexture tex2 = {&txl->occlude_face_color_tx, DRW_BUF_RGBA_8};
-	DRW_framebuffer_init(&fbl->occlude_face_fb,
-	                     (int)viewport_size[0], (int)viewport_size[1],
-	                     &tex2, 1);
 
 	if (!overlay_tri_sh) {
 		overlay_tri_sh = DRW_shader_create(datatoc_edit_overlay_vert_glsl,
@@ -244,7 +237,7 @@ void EDIT_MESH_cache_init(void)
 
 		/* however we loose the front faces value (because we need the depth of occluded wires and
 		 * faces are alpha blended ) so we recover them in a new pass. */
-		psl->facefill_occlude_pass = DRW_pass_create("Front Face Color", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS);
+		psl->facefill_occlude_pass = DRW_pass_create("Front Face Color", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
 		facefill_occluded_shgrp = DRW_shgroup_create(overlay_facefill_sh, psl->facefill_occlude_pass);
 		DRW_shgroup_uniform_block(facefill_occluded_shgrp, "globalsBlock", globals_ubo, 0);
 
@@ -260,7 +253,6 @@ void EDIT_MESH_cache_init(void)
 		DRW_shgroup_call_add(mix_shgrp, quad, mat);
 		DRW_shgroup_uniform_float(mix_shgrp, "alpha", &backwire_opacity, 1);
 		DRW_shgroup_uniform_buffer(mix_shgrp, "wireColor", &txl->occlude_wire_color_tx, 0);
-		DRW_shgroup_uniform_buffer(mix_shgrp, "faceColor", &txl->occlude_face_color_tx, 1);
 		DRW_shgroup_uniform_buffer(mix_shgrp, "wireDepth", &txl->occlude_wire_depth_tx, 2);
 		DRW_shgroup_uniform_buffer(mix_shgrp, "sceneDepth", &dtxl->depth, 3);
 	}
@@ -366,12 +358,7 @@ void EDIT_MESH_draw(void)
 	if (psl->edit_face_occluded_pass) {
 		float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		/* render facefill */
-		DRW_framebuffer_texture_detach(dtxl->depth);
-		DRW_framebuffer_texture_attach(fbl->occlude_face_fb, dtxl->depth, 0);
-		DRW_framebuffer_bind(fbl->occlude_face_fb);
-		DRW_framebuffer_clear(true, false, clearcol);
 		DRW_draw_pass(psl->facefill_occlude_pass);
-		DRW_framebuffer_texture_detach(dtxl->depth);
 		
 		/* Render wires on a separate framebuffer */
 		DRW_framebuffer_bind(fbl->occlude_wire_fb);
