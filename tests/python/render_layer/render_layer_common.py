@@ -342,3 +342,176 @@ class RenderLayerTesting(unittest.TestCase):
         self.assertEqual(master_collection, bpy.context.scene.master_collection)
         master_collection.objects.link(bpy.data.objects.new('object', None))
 
+    def cleanup_tree(self):
+        """
+        Remove any existent layer and collections,
+        leaving only the one render_layer we can't remove
+        """
+        import bpy
+        scene = bpy.context.scene
+        while len(scene.render_layers) > 1:
+            scene.render_layers.remove(scene.render_layers[1])
+
+        layer = scene.render_layers[0]
+        while layer.collections:
+            layer.collections.unlink(layer.collections[0])
+
+        master_collection = scene.master_collection
+        while master_collection.collections:
+            master_collection.collections.remove(master_collection.collections[0])
+
+
+class MoveSceneCollectionTesting(RenderLayerTesting):
+    """
+    To be used by tests of render_layer_move_into_scene_collection
+    """
+    def get_initial_scene_tree_map(self):
+        collections_map = [
+                ['A', [
+                    ['i', None],
+                    ['ii', None],
+                    ['iii', None],
+                    ]],
+                ['B', None],
+                ['C', [
+                    ['1', None],
+                    ['2', None],
+                    ['3', [
+                        ['dog', None],
+                        ['cat', None],
+                        ]],
+                    ]],
+                ]
+        return collections_map
+
+    def build_scene_tree(self, tree_map, collection=None, ret_dict=None):
+        """
+        Returns a flat dictionary with new scene collections
+        created from a nested tuple of nested tuples (name, tuple)
+        """
+        import bpy
+
+        if collection is None:
+            collection = bpy.context.scene.master_collection
+
+        if ret_dict is None:
+            ret_dict = {collection.name: collection}
+            self.assertEqual(collection.name, "Master Collection")
+
+        for name, nested_collections in tree_map:
+            new_collection = collection.collections.new(name)
+            ret_dict[name] = new_collection
+
+            if nested_collections:
+                self.build_scene_tree(nested_collections, new_collection, ret_dict)
+
+        return ret_dict
+
+    def setup_tree(self):
+        """
+        Cleanup file, and populate it with class scene tree map
+        """
+        self.cleanup_tree()
+        self.assertTrue(hasattr(self, "get_initial_scene_tree_map"), "Test class has no get_initial_scene_tree_map method implemented")
+
+        return self.build_scene_tree(self.get_initial_scene_tree_map())
+
+    def get_scene_tree_map(self, collection=None, ret_list=None):
+        """
+        Extract the scene collection tree from scene
+        Return as a nested list of nested lists (name, list)
+        """
+        import bpy
+
+        if collection is None:
+            scene = bpy.context.scene
+            collection = scene.master_collection
+
+        if ret_list is None:
+            ret_list = []
+
+        for nested_collection in collection.collections:
+            new_collection = [nested_collection.name, None]
+            ret_list.append(new_collection)
+
+            if nested_collection.collections:
+                new_collection[1] = list()
+                self.get_scene_tree_map(nested_collection, new_collection[1])
+
+        return ret_list
+
+    def compare_tree_maps(self):
+        """
+        Compare scene with expected (class defined) data
+        """
+        self.assertEqual(self.get_scene_tree_map(), self.get_reference_scene_tree_map())
+
+
+class MoveSceneCollectionSyncTesting(MoveSceneCollectionTesting):
+    """
+    To be used by tests of render_layer_move_into_scene_collection_sync
+    """
+    def get_initial_layers_tree_map(self):
+        layers_map = [
+                ['Layer 1', [
+                    'Master Collection',
+                    'C',
+                    '3',
+                    ]],
+                ['Layer 2', [
+                    'C',
+                    '3',
+                    'dog',
+                    'cat',
+                    ]],
+                ]
+        return layers_map
+
+    def setup_tree(self):
+        tree = super(MoveSceneCollectionSyncTesting, self).setup_tree()
+
+        import bpy
+        scene = bpy.context.scene
+
+        self.assertTrue(hasattr(self, "get_initial_layers_tree_map"), "Test class has no get_initial_layers_tree_map method implemented")
+        layers_map = self.get_initial_layers_tree_map()
+
+        for layer_name, collections_names in layers_map:
+            layer = scene.render_layers.new(layer_name)
+            layer.collections.unlink(layer.collections[0])
+
+            for collection_name in collections_names:
+                layer.collections.link(tree[collection_name])
+
+        return tree
+
+    def compare_tree_maps(self):
+        """
+        Compare scene with expected (class defined) data
+        """
+        super(MoveSceneCollectionSyncTesting, self).compare_tree_maps()
+
+        import bpy
+        scene = bpy.context.scene
+        layers_map = self.get_initial_layers_tree_map()
+
+        for layer_name, collections_names in layers_map:
+            layer = scene.render_layers.get(layer_name)
+            self.assertTrue(layer)
+            self.assertEqual(len(collections_names), len(layer.collections))
+
+            for i, collection_name in enumerate(collections_names):
+                self.assertEqual(collection_name, layer.collections[i].name)
+                self.verify_collection_tree(layer.collections[i])
+
+    def verify_collection_tree(self, layer_collection):
+        """
+        Check if the LayerCollection mimics the SceneLayer tree
+        """
+        scene_collection = layer_collection.collection
+        self.assertEqual(len(layer_collection.collections), len(scene_collection.collections))
+
+        for i, nested_collection in enumerate(layer_collection.collections):
+            self.assertEqual(nested_collection.collection.name, scene_collection.collections[i].name)
+            self.assertEqual(nested_collection.collection, scene_collection.collections[i])
+            self.verify_collection_tree(nested_collection)

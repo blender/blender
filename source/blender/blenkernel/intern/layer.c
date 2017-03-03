@@ -533,13 +533,13 @@ static ListBase *scene_collection_listbase_find(ListBase *lb, SceneCollection *s
  * Move \a lc_reinsert so that it follows \a lc_after. Both have to be stored in \a sl.
  * \param lc_after: Can be NULL to reinsert \a lc_after as first collection of its own list.
  */
-void BKE_layer_collection_reinsert_after(
+bool BKE_layer_collection_reinsert_after(
         const Scene *scene, SceneLayer *sl, LayerCollection *lc_reinsert, LayerCollection *lc_after)
 {
 	/* TODO this function probably needs to be rewritten completely to support all cases
 	 * (reinserting master collection, reinsert into different hierarchy levels, etc) */
 	TODO_LAYER_OPERATORS;
-
+#if 0
 	SceneCollection *sc_master = BKE_collection_master(scene);
 	SceneCollection *sc_reinsert = lc_reinsert->scene_collection;
 	ListBase *lc_reinsert_lb = layer_collection_listbase_find(&sl->layer_collections, lc_reinsert);
@@ -566,14 +566,105 @@ void BKE_layer_collection_reinsert_after(
 
 	BKE_scene_layer_base_flag_recalculate(sl);
 	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc_reinsert);
+#else
+	UNUSED_VARS(scene, sl, lc_reinsert, lc_after);
+	UNUSED_VARS(layer_collection_listbase_find, scene_collection_listbase_find);
+	return false;
+#endif
 }
 
-void BKE_layer_collection_reinsert_into(LayerCollection *lc_reinsert, LayerCollection *lc_into)
+/* ---------------------------------------------------------------------- */
+/* Outliner drag and drop */
+
+/**
+ * Nest a LayerCollection into another one
+ * Both collections must be from the same SceneLayer, return true if succeded.
+ *
+ * The LayerCollection will effectively be moved into the
+ * new (nested) position. So all the settings, overrides, ... go with it, and
+ * if the collection was directly linked to the SceneLayer it's then unlinked.
+ *
+ * For the other SceneLayers we simply resync the tree, without changing directly
+ * linked collections (even if they link to the same SceneCollection)
+ *
+ * \param lc_src LayerCollection to nest into \a lc_dst
+ * \param lc_dst LayerCollection to have \a lc_src inserted into
+ */
+bool BKE_layer_collection_move_into(const Scene *scene, LayerCollection *lc_src, LayerCollection *lc_dst)
 {
 	/* TODO this is missing */
 	TODO_LAYER_OPERATORS;
-	UNUSED_VARS(lc_reinsert, lc_into);
+	UNUSED_VARS(scene, lc_src, lc_dst);
+	return false;
 }
+
+bool BKE_layer_collection_move_above(const Scene *scene, LayerCollection *lc_dst, LayerCollection *lc_src)
+{
+	/* TODO this is missing */
+	TODO_LAYER_OPERATORS;
+	UNUSED_VARS(scene, lc_dst, lc_src);
+	return false;
+}
+
+bool BKE_layer_collection_move_below(const Scene *scene, LayerCollection *lc_dst, LayerCollection *lc_src)
+{
+	/* TODO this is missing */
+	TODO_LAYER_OPERATORS;
+	UNUSED_VARS(scene, lc_dst, lc_src);
+	return false;
+}
+
+static bool layer_collection_resync(SceneLayer *sl, LayerCollection *lc, const SceneCollection *sc)
+{
+	if (lc->scene_collection == sc) {
+		ListBase collections = {NULL};
+		BLI_movelisttolist(&collections, &lc->layer_collections);
+
+		for (SceneCollection *sc_nested = sc->scene_collections.first; sc_nested; sc_nested = sc_nested->next) {
+			LayerCollection *lc_nested = BLI_findptr(&collections, sc_nested, offsetof(LayerCollection, scene_collection));
+			if (lc_nested) {
+				BLI_remlink(&collections, lc_nested);
+				BLI_addtail(&lc->layer_collections, lc_nested);
+			}
+			else {
+				layer_collection_add(sl, &lc->layer_collections, sc_nested);
+			}
+		}
+
+		for (LayerCollection *lc_nested = collections.first; lc_nested; lc_nested = lc_nested->next) {
+			layer_collection_free(sl, lc_nested);
+		}
+		BLI_freelistN(&collections);
+
+		BLI_assert(BLI_listbase_count(&lc->layer_collections) ==
+		           BLI_listbase_count(&sc->scene_collections));
+
+		return true;
+	}
+
+	for (LayerCollection *lc_nested = lc->layer_collections.first; lc_nested; lc_nested = lc_nested->next) {
+		if (layer_collection_resync(sl, lc_nested, sc)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Update the scene layers so that any LayerCollection that points
+ * to \a sc is re-synced again
+ */
+void BKE_layer_collection_resync(const Scene *scene, const SceneCollection *sc)
+{
+	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+		for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
+			layer_collection_resync(sl, lc, sc);
+		}
+	}
+}
+
+/* ---------------------------------------------------------------------- */
 
 /**
  * Link a collection to a renderlayer
@@ -658,9 +749,9 @@ static LayerCollection *layer_collection_add(SceneLayer *sl, ListBase *lb, Scene
 	layer_collection_create_engine_settings(lc);
 	layer_collection_create_mode_settings(lc);
 	layer_collection_populate(sl, lc, sc);
+
 	return lc;
 }
-
 
 /* ---------------------------------------------------------------------- */
 

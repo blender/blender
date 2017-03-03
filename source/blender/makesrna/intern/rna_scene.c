@@ -2283,6 +2283,24 @@ static PointerRNA rna_SceneCollection_objects_get(CollectionPropertyIterator *it
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((LinkData *)internal->link)->data);
 }
 
+static int rna_SceneCollection_move_above(ID *id, SceneCollection *sc_src, SceneCollection *sc_dst)
+{
+	Scene *scene = (Scene *)id;
+	return BKE_collection_move_above(scene, sc_dst, sc_src);
+}
+
+static int rna_SceneCollection_move_below(ID *id, SceneCollection *sc_src, SceneCollection *sc_dst)
+{
+	Scene *scene = (Scene *)id;
+	return BKE_collection_move_below(scene, sc_dst, sc_src);
+}
+
+static int rna_SceneCollection_move_into(ID *id, SceneCollection *sc_src, SceneCollection *sc_dst)
+{
+	Scene *scene = (Scene *)id;
+	return BKE_collection_move_into(scene, sc_dst, sc_src);
+}
+
 static SceneCollection *rna_SceneCollection_new(ID *id, SceneCollection *sc_parent, const char *name)
 {
 	Scene *scene = (Scene *)id;
@@ -2566,6 +2584,24 @@ static PointerRNA rna_LayerCollection_mode_settings_get(ID *UNUSED(id), LayerCol
 	CollectionEngineSettings *ces = BKE_layer_collection_engine_get(lc, type, "");
 	RNA_pointer_create(NULL, &RNA_CollectionEngineSettings, ces, &ptr);
 	return rna_pointer_inherit_refine(&ptr, &RNA_CollectionModeSettings, ces);
+}
+
+static int rna_LayerCollection_move_above(ID *id, LayerCollection *lc_src, LayerCollection *lc_dst)
+{
+	Scene *scene = (Scene *)id;
+	return BKE_layer_collection_move_above(scene, lc_dst, lc_src);
+}
+
+static int rna_LayerCollection_move_below(ID *id, LayerCollection *lc_src, LayerCollection *lc_dst)
+{
+	Scene *scene = (Scene *)id;
+	return BKE_layer_collection_move_below(scene, lc_dst, lc_src);
+}
+
+static int rna_LayerCollection_move_into(ID *id, LayerCollection *lc_src, LayerCollection *lc_dst)
+{
+	Scene *scene = (Scene *)id;
+	return BKE_layer_collection_move_into(scene, lc_dst, lc_src);
 }
 
 static void rna_LayerCollection_hide_update(bContext *C, PointerRNA *ptr)
@@ -5782,6 +5818,9 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
 	srna = RNA_def_struct(brna, "SceneCollection", NULL);
 	RNA_def_struct_ui_text(srna, "Scene Collection", "Collection");
 
@@ -5814,6 +5853,28 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_SceneCollection_objects_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Filter Objects", "All the objects dynamically added to this collection via the filter");
+
+	/* Functions */
+	func = RNA_def_function(srna, "move_above", "rna_SceneCollection_move_above");
+	RNA_def_function_ui_description(func, "Move collection after another");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "sc_dst", "SceneCollection", "Collection", "Reference collection above which the collection will move");
+	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "move_below", "rna_SceneCollection_move_below");
+	RNA_def_function_ui_description(func, "Move collection before another");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "sc_dst", "SceneCollection", "Collection", "Reference collection below which the collection will move");
+	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "move_into", "rna_SceneCollection_move_into");
+	RNA_def_function_ui_description(func, "Move collection into another");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "sc_dst", "SceneCollection", "Collection", "Collection to insert into");
+	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
+	RNA_def_function_return(func, parm);
 }
 
 static void rna_def_layer_collection_override(BlenderRNA *brna)
@@ -6118,6 +6179,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "LayerCollectionOverride");
 	RNA_def_property_ui_text(prop, "Collection Overrides", "");
 
+	/* Functions */
 	func = RNA_def_function(srna, "get_engine_settings", "rna_LayerCollection_engine_settings_get");
 	RNA_def_function_ui_description(func, "Return the engine settings for this collection");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT);
@@ -6134,6 +6196,27 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "result", "CollectionEngineSettings", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "move_above", "rna_LayerCollection_move_above");
+	RNA_def_function_ui_description(func, "Move collection after another");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "lc_dst", "LayerCollection", "Collection", "Reference collection above which the collection will move");
+	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "move_below", "rna_LayerCollection_move_below");
+	RNA_def_function_ui_description(func, "Move collection before another");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "lc_dst", "LayerCollection", "Collection", "Reference collection below which the collection will move");
+	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "move_into", "rna_LayerCollection_move_into");
+	RNA_def_function_ui_description(func, "Move collection into another");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "lc_dst", "LayerCollection", "Collection", "Collection to insert into");
+	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
 
 	/* Flags */

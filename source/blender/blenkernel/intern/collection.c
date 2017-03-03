@@ -298,16 +298,150 @@ void BKE_collections_object_remove(Main *bmain, Scene *scene, Object *ob, const 
 	FOREACH_SCENE_COLLECTION_END
 }
 
-void BKE_collection_reinsert_after(const struct Scene *scene, SceneCollection *sc_reinsert, SceneCollection *sc_after)
+/* ---------------------------------------------------------------------- */
+/* Outliner drag and drop */
+
+/**
+ * Find and return the SceneCollection that has \a sc_child as one of its directly
+ * nested SceneCollection.
+ *
+ * \param sc_parent Initial SceneCollection to look into recursively, usually the master collection
+ */
+static SceneCollection *find_collection_parent(const SceneCollection *sc_child, SceneCollection *sc_parent)
 {
-	UNUSED_VARS(scene, sc_reinsert, sc_after);
-	TODO_LAYER_OPERATORS;
+	for (SceneCollection *sc_nested = sc_parent->scene_collections.first; sc_nested; sc_nested = sc_nested->next) {
+		if (sc_nested == sc_child) {
+			return sc_parent;
+		}
+
+		SceneCollection *found = find_collection_parent(sc_child, sc_nested);
+		if (found) {
+			return found;
+		}
+	}
+
+	return NULL;
 }
 
-void BKE_collection_reinsert_into(SceneCollection *sc_reinsert, SceneCollection *sc_into)
+/**
+ * Check if \a sc_reference is nested to \a sc_parent SceneCollection
+ */
+static bool is_collection_in_tree(const SceneCollection *sc_reference, SceneCollection *sc_parent)
 {
-	UNUSED_VARS(sc_reinsert, sc_into);
-	TODO_LAYER_OPERATORS;
+	return find_collection_parent(sc_reference, sc_parent) != NULL;
+}
+
+bool BKE_collection_move_above(const Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src)
+{
+	/* Find the SceneCollection the sc_src belongs to */
+	SceneCollection *sc_master = BKE_collection_master(scene);
+
+	/* Master Layer can't be moved around*/
+	if (ELEM(sc_master, sc_src, sc_dst)) {
+		return false;
+	}
+
+	/* collection is already where we wanted it to be */
+	if (sc_dst->prev == sc_src) {
+		return false;
+	}
+
+	/* We can't move a collection fs the destiny collection
+	 * is nested to the source collection */
+	if (is_collection_in_tree(sc_dst, sc_src)) {
+		return false;
+	}
+
+	SceneCollection *sc_src_parent = find_collection_parent(sc_src, sc_master);
+	SceneCollection *sc_dst_parent = find_collection_parent(sc_dst, sc_master);
+	BLI_assert(sc_src_parent);
+	BLI_assert(sc_dst_parent);
+
+	/* Remove sc_src from its parent */
+	BLI_remlink(&sc_src_parent->scene_collections, sc_src);
+
+	/* Re-insert it where it belongs */
+	BLI_insertlinkbefore(&sc_dst_parent->scene_collections, sc_dst, sc_src);
+
+	/* Update the tree */
+	BKE_layer_collection_resync(scene, sc_src_parent);
+	BKE_layer_collection_resync(scene, sc_dst_parent);
+
+	return true;
+}
+
+bool BKE_collection_move_below(const Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src)
+{
+	/* Find the SceneCollection the sc_src belongs to */
+	SceneCollection *sc_master = BKE_collection_master(scene);
+
+	/* Master Layer can't be moved around*/
+	if (ELEM(sc_master, sc_src, sc_dst)) {
+		return false;
+	}
+
+	/* Collection is already where we wanted it to be */
+	if (sc_dst->next == sc_src) {
+		return false;
+	}
+
+	/* We can't move a collection if the destiny collection
+	 * is nested to the source collection */
+	if (is_collection_in_tree(sc_dst, sc_src)) {
+		return false;
+	}
+
+	SceneCollection *sc_src_parent = find_collection_parent(sc_src, sc_master);
+	SceneCollection *sc_dst_parent = find_collection_parent(sc_dst, sc_master);
+	BLI_assert(sc_src_parent);
+	BLI_assert(sc_dst_parent);
+
+	/* Remove sc_src from its parent */
+	BLI_remlink(&sc_src_parent->scene_collections, sc_src);
+
+	/* Re-insert it where it belongs */
+	BLI_insertlinkafter(&sc_dst_parent->scene_collections, sc_dst, sc_src);
+
+	/* Update the tree */
+	BKE_layer_collection_resync(scene, sc_src_parent);
+	BKE_layer_collection_resync(scene, sc_dst_parent);
+
+	return true;
+}
+
+bool BKE_collection_move_into(const Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src)
+{
+	/* Find the SceneCollection the sc_src belongs to */
+	SceneCollection *sc_master = BKE_collection_master(scene);
+	if (sc_src == sc_master) {
+		return false;
+	}
+
+	/* We can't move a collection if the destiny collection
+	 * is nested to the source collection */
+	if (is_collection_in_tree(sc_dst, sc_src)) {
+		return false;
+	}
+
+	SceneCollection *sc_src_parent = find_collection_parent(sc_src, sc_master);
+	BLI_assert(sc_src_parent);
+
+	/* collection is already where we wanted it to be */
+	if (sc_dst->scene_collections.last == sc_src) {
+		return false;
+	}
+
+	/* Remove sc_src from it */
+	BLI_remlink(&sc_src_parent->scene_collections, sc_src);
+
+	/* Insert sc_src into sc_dst */
+	BLI_addtail(&sc_dst->scene_collections, sc_src);
+
+	/* Update the tree */
+	BKE_layer_collection_resync(scene, sc_src_parent);
+	BKE_layer_collection_resync(scene, sc_dst);
+
+	return true;
 }
 
 /* ---------------------------------------------------------------------- */

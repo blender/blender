@@ -55,6 +55,10 @@ void BKE_collections_object_remove(struct Main *bmain, struct Scene *scene, stru
 void BKE_collection_reinsert_after(const struct Scene *scene, struct SceneCollection *sc_reinsert, struct SceneCollection *sc_after);
 void BKE_collection_reinsert_into(struct SceneCollection *sc_reinsert, struct SceneCollection *sc_into);
 
+bool BKE_collection_move_above(const struct Scene *scene, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
+bool BKE_collection_move_below(const struct Scene *scene, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
+bool BKE_collection_move_into(const struct Scene *scene, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
+
 typedef void (*BKE_scene_objects_Cb)(struct Object *ob, void *data);
 typedef void (*BKE_scene_collections_Cb)(struct SceneCollection *ob, void *data);
 
