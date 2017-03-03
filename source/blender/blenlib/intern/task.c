@@ -565,7 +565,7 @@ TaskPool *BLI_task_pool_create_background(TaskScheduler *scheduler, void *userda
 
 void BLI_task_pool_free(TaskPool *pool)
 {
-	BLI_task_pool_stop(pool);
+	BLI_task_pool_cancel(pool);
 
 	BLI_mutex_end(&pool->num_mutex);
 	BLI_condition_end(&pool->num_cond);
