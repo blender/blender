@@ -59,32 +59,6 @@ extern const unsigned char stipple_diag_stripes_neg[128];
 extern const unsigned char stipple_checker_8px[128];
 
 /**
- * Draw a lined (non-looping) arc with the given
- * \a radius, starting at angle \a start and arcing
- * through \a angle. The arc is centered at the origin
- * and drawn in the XY plane.
- *
- * \param start The initial angle (in radians).
- * \param angle The length of the arc (in radians).
- * \param radius The arc radius.
- * \param nsegments The number of segments to use in drawing the arc.
- */
-void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments); /* DEPRECATED */
-
-/**
- * Draw a filled arc with the given \a radius,
- * starting at angle \a start and arcing through
- * \a angle. The arc is centered at the origin
- * and drawn in the XY plane.
- *
- * \param start The initial angle (in radians).
- * \param angle The length of the arc (in radians).
- * \param radius The arc radius.
- * \param nsegments The number of segments to use in drawing the arc.
- */
-void glutil_draw_filled_arc(float start, float angle, float radius, int nsegments); /* DEPRECATED */
-
-/**
  * Draw a circle outline with the given \a radius.
  * The circle is centered at \a x, \a y and drawn in the XY plane.
  *

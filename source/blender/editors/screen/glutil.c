@@ -106,38 +106,6 @@ void set_inverted_drawing(int enable)
 	GL_TOGGLE(GL_DITHER, !enable);
 }
 
-
-void glutil_draw_filled_arc(float start, float angle, float radius, int nsegments)
-{
-	/* DEPRECATED */
-	int i;
-	
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex2f(0.0, 0.0);
-	for (i = 0; i < nsegments; i++) {
-		float t = (float) i / (nsegments - 1);
-		float cur = start + t * angle;
-		
-		glVertex2f(cosf(cur) * radius, sinf(cur) * radius);
-	}
-	glEnd();
-}
-
-void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments)
-{
-	/* DEPRECATED */
-	int i;
-	
-	glBegin(GL_LINE_STRIP);
-	for (i = 0; i < nsegments; i++) {
-		float t = (float) i / (nsegments - 1);
-		float cur = start + t * angle;
-		
-		glVertex2f(cosf(cur) * radius, sinf(cur) * radius);
-	}
-	glEnd();
-}
-
 static void imm_draw_circle(PrimitiveType prim_type, unsigned pos, float x, float y, float rad, int nsegments)
 {
 	immBegin(prim_type, nsegments);
