@@ -282,8 +282,6 @@ void glaDrawImBuf_glsl_ctx_clipping(const struct bContext *C,
                                     float clip_max_x, float clip_max_y,
                                     float zoom_x, float zoom_y);
 
-void glaDrawBorderCorners(const struct rcti *border, float zoomx, float zoomy);
-
 void immDrawBorderCorners(unsigned int pos, const struct rcti *border, float zoomx, float zoomy);
 
 #endif /* __BIF_GLUTIL_H__ */
