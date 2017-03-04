@@ -49,8 +49,6 @@ struct ColorManagedDisplaySettings;
 
 void fdrawline(float x1, float y1, float x2, float y2); /* DEPRECATED */
 
-void fdrawcheckerboard(float x1, float y1, float x2, float y2); /* DEPRECATED */
-
 /**
  * Draw a circle outline with the given \a radius.
  * The circle is centered at \a x, \a y and drawn in the XY plane.

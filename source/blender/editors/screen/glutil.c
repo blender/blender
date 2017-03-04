@@ -62,22 +62,6 @@ void fdrawline(float x1, float y1, float x2, float y2)
 	glEnd();
 }
 
-void fdrawcheckerboard(float x1, float y1, float x2, float y2)
-{
-	/* DEPRECATED: use imm_draw_checker_box instead */
-	unsigned char col1[4] = {40, 40, 40}, col2[4] = {50, 50, 50};
-
-	glColor3ubv(col1);
-	glRectf(x1, y1, x2, y2);
-	glColor3ubv(col2);
-
-	GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
-	GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_CHECKER_8PX);
-	glRectf(x1, y1, x2, y2);
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-}
-
-
 /* ******************************************** */
 
 void setlinestyle(int nr)

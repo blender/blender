@@ -318,7 +318,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		fdrawcheckerboard(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
+		imm_draw_checker_box(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
 	}
 
 	glRasterPos2f(offs_x + (ps->draw_flip[0] ? span_x : 0.0f),
