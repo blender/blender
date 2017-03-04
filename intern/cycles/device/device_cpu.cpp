@@ -71,7 +71,8 @@ public:
 
 	virtual SplitKernelFunction* get_split_kernel_function(string kernel_name, const DeviceRequestedFeatures&);
 	virtual int2 split_kernel_local_size();
-	virtual int2 split_kernel_global_size(DeviceTask *task);
+	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask *task);
+	virtual size_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads);
 };
 
 class CPUDevice : public Device
@@ -854,9 +855,15 @@ int2 CPUSplitKernel::split_kernel_local_size()
 	return make_int2(1, 1);
 }
 
-int2 CPUSplitKernel::split_kernel_global_size(DeviceTask *task) {
+int2 CPUSplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask *task) {
 	/* TODO(mai): this needs investigation but cpu gives incorrect render if global size doesnt match tile size */
 	return task->requested_tile_size;
+}
+
+size_t CPUSplitKernel::state_buffer_size(device_memory& kernel_globals, device_memory& /*data*/, size_t num_threads) {
+	KernelGlobals *kg = (KernelGlobals*)kernel_globals.device_pointer;
+
+	return split_data_buffer_size(kg, num_threads);
 }
 
 unordered_map<string, void*> CPUDevice::kernel_functions;

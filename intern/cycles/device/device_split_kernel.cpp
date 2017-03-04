@@ -90,9 +90,9 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 	return true;
 }
 
-size_t DeviceSplitKernel::max_elements_for_max_buffer_size(size_t max_buffer_size, size_t passes_size)
+size_t DeviceSplitKernel::max_elements_for_max_buffer_size(device_memory& kg, device_memory& data, size_t max_buffer_size)
 {
-	size_t size_per_element = split_data_buffer_size(1024, current_max_closure, passes_size) / 1024;
+	size_t size_per_element = state_buffer_size(kg, data, 1024) / 1024;
 	return max_buffer_size / size_per_element;
 }
 
@@ -113,13 +113,10 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		local_size[1] = lsize[1];
 	}
 
-	/* Calculate per_thread_output_buffer_size. */
-	size_t per_thread_output_buffer_size = task->passes_size;
-
 	/* Set gloabl size */
 	size_t global_size[2];
 	{
-		int2 gsize = split_kernel_global_size(task);
+		int2 gsize = split_kernel_global_size(kgbuffer, kernel_data, task);
 
 		/* Make sure that set work size is a multiple of local
 		 * work size dimensions.
@@ -153,9 +150,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		ray_state.resize(num_global_elements);
 		device->mem_alloc("ray_state", ray_state, MEM_READ_WRITE);
 
-		split_data.resize(split_data_buffer_size(num_global_elements,
-		                                         current_max_closure,
-		                                         per_thread_output_buffer_size));
+		split_data.resize(state_buffer_size(kgbuffer, kernel_data, num_global_elements));
 		device->mem_alloc("split_data", split_data, MEM_READ_WRITE);
 	}
 

@@ -100,7 +100,8 @@ public:
 	                device_memory& kgbuffer,
 	                device_memory& kernel_data);
 
-	size_t max_elements_for_max_buffer_size(size_t max_buffer_size, size_t passes_size);
+	virtual size_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads) = 0;
+	size_t max_elements_for_max_buffer_size(device_memory& kg, device_memory& data, size_t max_buffer_size);
 
 	virtual bool enqueue_split_kernel_data_init(const KernelDimensions& dim,
 	                                            RenderTile& rtile,
@@ -115,7 +116,7 @@ public:
 
 	virtual SplitKernelFunction* get_split_kernel_function(string kernel_name, const DeviceRequestedFeatures&) = 0;
 	virtual int2 split_kernel_local_size() = 0;
-	virtual int2 split_kernel_global_size(DeviceTask *task) = 0;
+	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask *task) = 0;
 };
 
 CCL_NAMESPACE_END

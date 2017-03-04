@@ -93,7 +93,7 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 
 	kernel_split_params.buffer = buffer;
 
-	split_data_init(&kernel_split_state, num_elements, split_data_buffer, ray_state);
+	split_data_init(kg, &kernel_split_state, num_elements, split_data_buffer, ray_state);
 
 #ifdef __KERNEL_OPENCL__
 #define KERNEL_TEX(type, ttype, name) \

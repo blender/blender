@@ -78,6 +78,8 @@ typedef struct SplitParams {
 	SPLIT_DATA_ENTRY(Intersection, isect_shadow, 2) \
 	SPLIT_DATA_ENTRY(ccl_global int, queue_data, (NUM_QUEUES*2)) /* TODO(mai): this is too large? */ \
 	SPLIT_DATA_ENTRY(ccl_global uint, work_array, 1) \
+	SPLIT_DATA_ENTRY(ShaderData, sd, 1) \
+	SPLIT_DATA_ENTRY(ShaderData, sd_DL_shadow, 2) \
 	SPLIT_DATA_DEBUG_ENTRIES \
 
 /* struct that holds pointers to data in the shared state buffer */
@@ -86,37 +88,25 @@ typedef struct SplitData {
 	SPLIT_DATA_ENTRIES
 #undef SPLIT_DATA_ENTRY
 
-	/* size calculation for these is non trivial, so they are left out of SPLIT_DATA_ENTRIES and handled separately */
-	ShaderData *sd;
-	ShaderData *sd_DL_shadow;
-
 	/* this is actually in a separate buffer from the rest of the split state data (so it can be read back from
 	 * the host easily) but is still used the same as the other data so we have it here in this struct as well
 	 */
 	ccl_global char *ray_state;
 } SplitData;
 
-#define SIZEOF_SD(max_closure) (sizeof(ShaderData) - (sizeof(ShaderClosure) * (MAX_CLOSURE - (max_closure))))
-
-ccl_device_inline size_t split_data_buffer_size(size_t num_elements,
-                                                size_t max_closure,
-                                                size_t per_thread_output_buffer_size)
+/* TODO: find a way to get access to kg here */
+ccl_device_inline size_t split_data_buffer_size(ccl_global void *kg, size_t num_elements)
 {
 	size_t size = 0;
 #define SPLIT_DATA_ENTRY(type, name, num) + align_up(num_elements * num * sizeof(type), 16)
 	size = size SPLIT_DATA_ENTRIES;
 #undef SPLIT_DATA_ENTRY
 
-	/* TODO(sergey): This will actually over-allocate if
-	 * particular kernel does not support multiclosure.
-	 */
-	size += align_up(num_elements * SIZEOF_SD(max_closure), 16); /* sd */
-	size += align_up(2 * num_elements * SIZEOF_SD(max_closure), 16); /* sd_DL_shadow */
-
 	return size;
 }
 
-ccl_device_inline void split_data_init(ccl_global SplitData *split_data,
+ccl_device_inline void split_data_init(ccl_global void *kg,
+                                       ccl_global SplitData *split_data,
                                        size_t num_elements,
                                        ccl_global void *data,
                                        ccl_global char *ray_state)
@@ -127,12 +117,6 @@ ccl_device_inline void split_data_init(ccl_global SplitData *split_data,
 	split_data->name = (type*)p; p += align_up(num_elements * num * sizeof(type), 16);
 	SPLIT_DATA_ENTRIES
 #undef SPLIT_DATA_ENTRY
-
-	split_data->sd = (ShaderData*)p;
-	p += align_up(num_elements * SIZEOF_SD(MAX_CLOSURE), 16);
-
-	split_data->sd_DL_shadow = (ShaderData*)p;
-	p += align_up(2 * num_elements * SIZEOF_SD(MAX_CLOSURE), 16);
 
 	split_data->ray_state = ray_state;
 }

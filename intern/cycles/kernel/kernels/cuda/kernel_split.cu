@@ -41,6 +41,13 @@
 /* kernels */
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
+kernel_cuda_state_buffer_size(uint num_threads, uint *size)
+{
+	*size = split_data_buffer_size(NULL, num_threads);
+}
+
+extern "C" __global__ void
+CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
 kernel_cuda_path_trace_data_init(
         ccl_global void *split_data_buffer,
         int num_elements,

@@ -89,6 +89,8 @@ class CUDASplitKernel : public DeviceSplitKernel {
 public:
 	explicit CUDASplitKernel(CUDADevice *device);
 
+	virtual size_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads);
+
 	virtual bool enqueue_split_kernel_data_init(const KernelDimensions& dim,
 	                                            RenderTile& rtile,
 	                                            int num_global_elements,
@@ -102,7 +104,7 @@ public:
 
 	virtual SplitKernelFunction* get_split_kernel_function(string kernel_name, const DeviceRequestedFeatures&);
 	virtual int2 split_kernel_local_size();
-	virtual int2 split_kernel_global_size(DeviceTask *task);
+	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask *task);
 };
 
 class CUDADevice : public Device
@@ -1471,6 +1473,43 @@ CUDASplitKernel::CUDASplitKernel(CUDADevice *device) : DeviceSplitKernel(device)
 {
 }
 
+size_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory& /*data*/, size_t num_threads)
+{
+	device_vector<uint> size_buffer;
+	size_buffer.resize(1);
+	device->mem_alloc(NULL, size_buffer, MEM_READ_WRITE);
+
+	device->cuda_push_context();
+
+	uint threads = num_threads;
+	CUdeviceptr d_size = device->cuda_device_ptr(size_buffer.device_pointer);
+
+	struct args_t {
+		uint* num_threads;
+		CUdeviceptr* size;
+	};
+
+	args_t args = {
+		&threads,
+		&d_size
+	};
+
+	CUfunction state_buffer_size;
+	cuda_assert(cuModuleGetFunction(&state_buffer_size, device->cuModule, "kernel_cuda_state_buffer_size"));
+
+	cuda_assert(cuLaunchKernel(state_buffer_size,
+		                       1, 1, 1,
+		                       1, 1, 1,
+		                       0, 0, &args, 0));
+
+	device->cuda_pop_context();
+
+	device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint));
+	device->mem_free(size_buffer);
+
+	return *size_buffer.get_data();
+}
+
 bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim,
                                     RenderTile& rtile,
                                     int num_global_elements,
@@ -1573,7 +1612,7 @@ int2 CUDASplitKernel::split_kernel_local_size()
 	return make_int2(32, 1);
 }
 
-int2 CUDASplitKernel::split_kernel_global_size(DeviceTask */*task*/)
+int2 CUDASplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask */*task*/)
 {
 	/* TODO(mai): implement something here to detect ideal work size */
 	return make_int2(256, 256);
