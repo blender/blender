@@ -31,6 +31,17 @@ DeviceSplitKernel::DeviceSplitKernel(Device *device) : device(device)
 	first_tile = true;
 
 	avg_time_per_sample = 0.0;
+
+	kernel_path_init = NULL;
+	kernel_scene_intersect = NULL;
+	kernel_lamp_emission = NULL;
+	kernel_queue_enqueue = NULL;
+	kernel_background_buffer_update = NULL;
+	kernel_shader_eval = NULL;
+	kernel_holdout_emission_blurring_pathtermination_ao = NULL;
+	kernel_direct_lighting = NULL;
+	kernel_shadow_blocked = NULL;
+	kernel_next_iteration_setup = NULL;
 }
 
 DeviceSplitKernel::~DeviceSplitKernel()
