@@ -1088,6 +1088,7 @@ static void surfacedeformModifier_do(ModifierData *md, float (*vertexCos)[3], un
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 	DerivedMesh *tdm;
 	unsigned int tnumpoly;
+	bool tdm_vert_alloc;
 
 	/* Exit function if bind flag is not set (free bind data if any) */
 	if (!(smd->flags & MOD_SDEF_BIND)) {
@@ -1128,11 +1129,15 @@ static void surfacedeformModifier_do(ModifierData *md, float (*vertexCos)[3], un
 
 	/* Actual vertex location update starts here */
 	SDefDeformData data = {.bind_verts = smd->verts,
-		                   .mvert = tdm->getVertArray(tdm),
+		                   .mvert = DM_get_vert_array(tdm, &tdm_vert_alloc),
 		                   .vertexCos = vertexCos};
 
 	BLI_task_parallel_range_ex(0, numverts, &data, NULL, 0, deformVert,
 	                           numverts > 10000, false);
+
+	if (tdm_vert_alloc) {
+		MEM_freeN((void *)data.mvert);
+	}
 
 	tdm->release(tdm);
 }
