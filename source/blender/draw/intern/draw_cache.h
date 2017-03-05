@@ -42,6 +42,7 @@ struct Batch *DRW_cache_plain_axes_get(void);
 struct Batch *DRW_cache_single_arrow_get(void);
 struct Batch *DRW_cache_cube_get(void);
 struct Batch *DRW_cache_circle_get(void);
+struct Batch *DRW_cache_square_get(void);
 struct Batch *DRW_cache_empty_sphere_get(void);
 struct Batch *DRW_cache_empty_cone_get(void);
 struct Batch *DRW_cache_arrows_get(void);
@@ -50,6 +51,10 @@ struct Batch *DRW_cache_axis_names_get(void);
 /* Lamps */
 struct Batch *DRW_cache_lamp_get(void);
 struct Batch *DRW_cache_lamp_sunrays_get(void);
+struct Batch *DRW_cache_lamp_area_get(void);
+struct Batch *DRW_cache_lamp_hemi_get(void);
+struct Batch *DRW_cache_lamp_spot_get(void);
+struct Batch *DRW_cache_lamp_spot_square_get(void);
 
 /* Camera */
 struct Batch *DRW_cache_camera_get(void);

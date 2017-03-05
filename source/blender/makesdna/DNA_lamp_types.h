@@ -106,6 +106,10 @@ typedef struct Lamp {
 	short pr_texture, use_nodes;
 	char pad6[4];
 
+	float shapemat[4][4]; /* runtime, for display only */
+	float spotconemat[4][4]; /* runtime, for display only */
+	float spotblendmat[4][4]; /* runtime, for display only */
+
 	/* preview */
 	struct PreviewImage *preview;
 

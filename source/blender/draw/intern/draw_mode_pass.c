@@ -65,6 +65,15 @@ static DRWShadingGroup *lamp_groundline;
 static DRWShadingGroup *lamp_circle;
 static DRWShadingGroup *lamp_circle_shadow;
 static DRWShadingGroup *lamp_sunrays;
+static DRWShadingGroup *lamp_distance;
+static DRWShadingGroup *lamp_buflimit;
+static DRWShadingGroup *lamp_buflimit_points;
+static DRWShadingGroup *lamp_area;
+static DRWShadingGroup *lamp_hemi;
+static DRWShadingGroup *lamp_spot_cone;
+static DRWShadingGroup *lamp_spot_blend;
+static DRWShadingGroup *lamp_spot_pyramid;
+static DRWShadingGroup *lamp_spot_blend_rect;
 
 /* Helpers */
 static DRWShadingGroup *relationship_lines;
@@ -271,7 +280,6 @@ static DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct Batch *geo
 	return grp;
 }
 
-
 static DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_DISTANCE_LINES);
@@ -283,6 +291,22 @@ static DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct Ba
 	DRW_shgroup_attrib_float(grp, "end", 1);
 	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
 	DRW_shgroup_uniform_float(grp, "size", &point_size, 1);
+
+	return grp;
+}
+
+static DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct Batch *geom)
+{
+	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR);
+	static bool True = true;
+	static bool False = false;
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom);
+	DRW_shgroup_attrib_float(grp, "color", 3);
+	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
+	DRW_shgroup_uniform_bool(grp, "drawFront", &False, 1);
+	DRW_shgroup_uniform_bool(grp, "drawBack", &False, 1);
+	DRW_shgroup_uniform_bool(grp, "drawSilhouette", &True, 1);
 
 	return grp;
 }
@@ -392,8 +416,13 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 
 		/* Lamps */
 		/* TODO
-		 * for now we create 3 times the same VBO with only lamp center coordinates
+		 * for now we create multiple times the same VBO with only lamp center coordinates
 		 * but ideally we would only create it once */
+
+		/* start with buflimit because we don't want stipples */
+		geom = DRW_cache_single_line_get();
+		lamp_buflimit = shgroup_distance_lines_instance(*psl_non_meshes, geom);
+
 		lamp_center = shgroup_dynpoints_uniform_color(*psl_non_meshes, ts.colorLampNoAlpha, &ts.sizeLampCenter);
 		lamp_center_group = shgroup_dynpoints_uniform_color(*psl_non_meshes, ts.colorGroup, &ts.sizeLampCenter);
 
@@ -406,6 +435,30 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 
 		lamp_groundline = shgroup_groundlines_uniform_color(*psl_non_meshes, ts.colorLamp);
 		lamp_groundpoint = shgroup_groundpoints_uniform_color(*psl_non_meshes, ts.colorLamp);
+
+		geom = DRW_cache_lamp_area_get();
+		lamp_area = shgroup_instance(*psl_non_meshes, geom);
+
+		geom = DRW_cache_lamp_hemi_get();
+		lamp_hemi = shgroup_instance(*psl_non_meshes, geom);
+
+		geom = DRW_cache_single_line_get();
+		lamp_distance = shgroup_distance_lines_instance(*psl_non_meshes, geom);
+
+		geom = DRW_cache_single_line_endpoints_get();
+		lamp_buflimit_points = shgroup_distance_lines_instance(*psl_non_meshes, geom);
+
+		geom = DRW_cache_lamp_spot_get();
+		lamp_spot_cone = shgroup_spot_instance(*psl_non_meshes, geom);
+
+		geom = DRW_cache_circle_get();
+		lamp_spot_blend = shgroup_instance(*psl_non_meshes, geom);
+
+		geom = DRW_cache_lamp_spot_square_get();
+		lamp_spot_pyramid = shgroup_instance(*psl_non_meshes, geom);
+
+		geom = DRW_cache_square_get();
+		lamp_spot_blend_rect = shgroup_instance(*psl_non_meshes, geom);
 
 		/* Relationship Lines */
 		relationship_lines = shgroup_dynlines_uniform_color(*psl_non_meshes, ts.colorWire);
@@ -591,6 +644,7 @@ void DRW_shgroup_lamp(Object *ob)
 	Lamp *la = ob->data;
 	float *color;
 	int theme_id = draw_object_wire_theme(ob, &color);
+	static float zero = 0.0f;
 
 	/* Don't draw the center if it's selected or active */
 	if (theme_id == TH_GROUP)
@@ -603,12 +657,77 @@ void DRW_shgroup_lamp(Object *ob)
 
 	/* draw dashed outer circle if shadow is on. remember some lamps can't have certain shadows! */
 	if (la->type != LA_HEMI) {
-		DRW_shgroup_dynamic_call_add(lamp_circle_shadow, ob->obmat[3], color);
+		if ((la->mode & LA_SHAD_RAY) || ((la->mode & LA_SHAD_BUF) && (la->type == LA_SPOT))) {
+			DRW_shgroup_dynamic_call_add(lamp_circle_shadow, ob->obmat[3], color);
+		}
 	}
 
-	/* Sunrays */
+	/* Distance */
+	if (ELEM(la->type, LA_HEMI, LA_SUN, LA_AREA)) {
+		DRW_shgroup_dynamic_call_add(lamp_distance, color, &zero, &la->dist, ob->obmat);
+	}
+
+	copy_m4_m4(la->shapemat, ob->obmat);
+
 	if (la->type == LA_SUN) {
 		DRW_shgroup_dynamic_call_add(lamp_sunrays, ob->obmat[3], color);
+	}
+	else if (la->type == LA_SPOT) {
+		float size[3], sizemat[4][4];
+		static float one = 1.0f;
+		float blend = 1.0f - pow2f(la->spotblend);
+
+		size[0] = size[1] = sinf(la->spotsize * 0.5f) * la->dist;
+		size[2] = cosf(la->spotsize * 0.5f) * la->dist;
+
+		size_to_mat4(sizemat, size);
+		mul_m4_m4m4(la->spotconemat, ob->obmat, sizemat);
+
+		size[0] = size[1] = blend; size[2] = 1.0f;
+		size_to_mat4(sizemat, size);
+		translate_m4(sizemat, 0.0f, 0.0f, -1.0f);
+		rotate_m4(sizemat, 'X', M_PI / 2.0f);
+		mul_m4_m4m4(la->spotblendmat, la->spotconemat, sizemat);
+
+		if (la->mode & LA_SQUARE) {
+			DRW_shgroup_dynamic_call_add(lamp_spot_pyramid,    color, &one, la->spotconemat);
+
+			/* hide line if it is zero size or overlaps with outer border,
+			 * previously it adjusted to always to show it but that seems
+			 * confusing because it doesn't show the actual blend size */
+			if (blend != 0.0f && blend != 1.0f) {
+				DRW_shgroup_dynamic_call_add(lamp_spot_blend_rect, color, &one, la->spotblendmat);
+			}
+		}
+		else {
+			DRW_shgroup_dynamic_call_add(lamp_spot_cone,  color, la->spotconemat);
+
+			/* hide line if it is zero size or overlaps with outer border,
+			 * previously it adjusted to always to show it but that seems
+			 * confusing because it doesn't show the actual blend size */
+			if (blend != 0.0f && blend != 1.0f) {
+				DRW_shgroup_dynamic_call_add(lamp_spot_blend, color, &one, la->spotblendmat);
+			}
+		}
+
+		normalize_m4(la->shapemat);
+		DRW_shgroup_dynamic_call_add(lamp_buflimit,        color, &la->clipsta, &la->clipend, ob->obmat);
+		DRW_shgroup_dynamic_call_add(lamp_buflimit_points, color, &la->clipsta, &la->clipend, ob->obmat);
+	}
+	else if (la->type == LA_HEMI) {
+		static float hemisize = 2.0f;
+		DRW_shgroup_dynamic_call_add(lamp_hemi, color, &hemisize, la->shapemat);
+	}
+	else if (la->type == LA_AREA) {
+		float size[3] = {1.0f, 1.0f, 1.0f}, sizemat[4][4];
+
+		if (la->area_shape == LA_AREA_RECT) {
+			size[1] = la->area_sizey / la->area_size;
+			size_to_mat4(sizemat, size);
+			mul_m4_m4m4(la->shapemat, la->shapemat, sizemat);
+		}
+
+		DRW_shgroup_dynamic_call_add(lamp_area, color, &la->area_size, la->shapemat);
 	}
 
 	/* Line and point going to the ground */

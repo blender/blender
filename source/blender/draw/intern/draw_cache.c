@@ -44,6 +44,7 @@ static struct DRWShapeCache {
 	Batch *drw_single_arrow;
 	Batch *drw_cube;
 	Batch *drw_circle;
+	Batch *drw_square;
 	Batch *drw_line;
 	Batch *drw_line_endpoints;
 	Batch *drw_empty_sphere;
@@ -52,6 +53,10 @@ static struct DRWShapeCache {
 	Batch *drw_axis_names;
 	Batch *drw_lamp;
 	Batch *drw_lamp_sunrays;
+	Batch *drw_lamp_area;
+	Batch *drw_lamp_hemi;
+	Batch *drw_lamp_spot;
+	Batch *drw_lamp_spot_square;
 	Batch *drw_speaker;
 	Batch *drw_bone_octahedral;
 	Batch *drw_bone_octahedral_wire;
@@ -77,6 +82,8 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_cube);
 	if (SHC.drw_circle)
 		Batch_discard_all(SHC.drw_circle);
+	if (SHC.drw_square)
+		Batch_discard_all(SHC.drw_square);
 	if (SHC.drw_line)
 		Batch_discard_all(SHC.drw_line);
 	if (SHC.drw_line_endpoints)
@@ -93,6 +100,14 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_lamp);
 	if (SHC.drw_lamp_sunrays)
 		Batch_discard_all(SHC.drw_lamp_sunrays);
+	if (SHC.drw_lamp_area)
+		Batch_discard_all(SHC.drw_lamp_area);
+	if (SHC.drw_lamp_hemi)
+		Batch_discard_all(SHC.drw_lamp_hemi);
+	if (SHC.drw_lamp_spot)
+		Batch_discard_all(SHC.drw_lamp_spot);
+	if (SHC.drw_lamp_spot_square)
+		Batch_discard_all(SHC.drw_lamp_spot_square);
 	if (SHC.drw_speaker)
 		Batch_discard_all(SHC.drw_speaker);
 	if (SHC.drw_bone_octahedral)
@@ -333,6 +348,34 @@ Batch *DRW_cache_circle_get(void)
 	}
 	return SHC.drw_circle;
 #undef CIRCLE_RESOL
+}
+
+Batch *DRW_cache_square_get(void)
+{
+	if (!SHC.drw_square) {
+		float p[4][3] = {{ 1.0f, 0.0f,  1.0f},
+		                 { 1.0f, 0.0f, -1.0f},
+		                 {-1.0f, 0.0f, -1.0f},
+		                 {-1.0f, 0.0f,  1.0f}};
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 8);
+
+		for (int i = 0; i < 4; i++) {
+			setAttrib(vbo, pos_id, i * 2,     p[i % 4]);
+			setAttrib(vbo, pos_id, i * 2 + 1, p[(i+1) % 4]);
+		}
+
+		SHC.drw_square = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_square;
 }
 
 Batch *DRW_cache_single_line_get(void)
@@ -650,6 +693,208 @@ Batch *DRW_cache_lamp_sunrays_get(void)
 		SHC.drw_lamp_sunrays = Batch_create(GL_LINES, vbo, NULL);
 	}
 	return SHC.drw_lamp_sunrays;
+}
+
+Batch *DRW_cache_lamp_area_get(void)
+{
+	if (!SHC.drw_lamp_area) {
+		float v1[3] = {0.0f, 0.0f, 0.0f};
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 8);
+
+		v1[0] = v1[1] = 0.5f;
+		setAttrib(vbo, pos_id, 0, v1);
+		v1[0] = -0.5f;
+		setAttrib(vbo, pos_id, 1, v1);
+		setAttrib(vbo, pos_id, 2, v1);
+		v1[1] = -0.5f;
+		setAttrib(vbo, pos_id, 3, v1);
+		setAttrib(vbo, pos_id, 4, v1);
+		v1[0] = 0.5f;
+		setAttrib(vbo, pos_id, 5, v1);
+		setAttrib(vbo, pos_id, 6, v1);
+		v1[1] = 0.5f;
+		setAttrib(vbo, pos_id, 7, v1);
+
+		SHC.drw_lamp_area = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_lamp_area;
+}
+
+Batch *DRW_cache_lamp_hemi_get(void)
+{
+#define CIRCLE_RESOL 32
+	if (!SHC.drw_lamp_hemi) {
+		float v[3];
+		int vidx = 0;
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL * 2 * 2 - 6 * 2 * 2);
+
+		/* XZ plane */
+		for (int a = 3; a < CIRCLE_RESOL / 2 - 3; a++) {
+			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL) - M_PI / 2);
+			v[2] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL) - M_PI / 2) - 1.0f;
+			v[1] = 0.0f;
+			setAttrib(vbo, pos_id, vidx++, v);
+
+			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL) - M_PI / 2);
+			v[2] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL) - M_PI / 2) - 1.0f;
+			v[1] = 0.0f;
+			setAttrib(vbo, pos_id, vidx++, v);
+		}
+
+		/* XY plane */
+		for (int a = 3; a < CIRCLE_RESOL / 2 - 3; a++) {
+			v[2] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL)) - 1.0f;
+			v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v[0] = 0.0f;
+			setAttrib(vbo, pos_id, vidx++, v);
+
+			v[2] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL)) - 1.0f;
+			v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+			v[0] = 0.0f;
+			setAttrib(vbo, pos_id, vidx++, v);
+		}
+
+		/* YZ plane full circle */
+		/* lease v[2] as it is */
+		const float rad = cosf((2.0f * M_PI * 3) / ((float)CIRCLE_RESOL));
+		for (int a = 0; a < CIRCLE_RESOL; a++) {
+			v[1] = rad * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v[0] = rad * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			setAttrib(vbo, pos_id, vidx++, v);
+
+			v[1] = rad * sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+			v[0] = rad * cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+			setAttrib(vbo, pos_id, vidx++, v);
+		}
+
+
+		SHC.drw_lamp_hemi = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_lamp_hemi;
+#undef CIRCLE_RESOL
+}
+
+
+Batch *DRW_cache_lamp_spot_get(void)
+{
+#define NSEGMENTS 32
+	if (!SHC.drw_lamp_spot) {
+		/* a single ring of vertices */
+		float p[NSEGMENTS][2];
+		float n[NSEGMENTS][3];
+		float neg[NSEGMENTS][3];
+		float half_angle = 2 * M_PI / ((float)NSEGMENTS * 2);
+		for (int i = 0; i < NSEGMENTS; ++i) {
+			float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
+			p[i][0] = cosf(angle);
+			p[i][1] = sinf(angle);
+
+			n[i][0] = cosf(angle - half_angle);
+			n[i][1] = sinf(angle - half_angle);
+			n[i][2] = cosf(M_PI / 16.0f); /* slope of the cone */
+			normalize_v3(n[i]); /* necessary ? */
+			negate_v3_v3(neg[i], n[i]);
+		}
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id, n1_id, n2_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			n1_id = add_attrib(&format, "N1", GL_FLOAT, 3, KEEP_FLOAT);
+			n2_id = add_attrib(&format, "N2", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, NSEGMENTS * 4);
+
+		for (int i = 0; i < NSEGMENTS; ++i) {
+			float cv[2], v[3];
+			cv[0] = p[i % NSEGMENTS][0];
+			cv[1] = p[i % NSEGMENTS][1];
+
+			/* cone sides */
+			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			setAttrib(vbo, pos_id, i * 4, v);
+			v[0] = 0.0f, v[1] = 0.0f, v[2] = 0.0f;
+			setAttrib(vbo, pos_id, i * 4 + 1, v);
+
+			setAttrib(vbo, n1_id, i * 4,     n[(i) % NSEGMENTS]);
+			setAttrib(vbo, n1_id, i * 4 + 1, n[(i) % NSEGMENTS]);
+			setAttrib(vbo, n2_id, i * 4,     n[(i+1) % NSEGMENTS]);
+			setAttrib(vbo, n2_id, i * 4 + 1, n[(i+1) % NSEGMENTS]);
+
+			/* end ring */
+			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			setAttrib(vbo, pos_id, i * 4 + 2, v);
+			cv[0] = p[(i + 1) % NSEGMENTS][0];
+			cv[1] = p[(i + 1) % NSEGMENTS][1];
+			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			setAttrib(vbo, pos_id, i * 4 + 3, v);
+
+			setAttrib(vbo, n1_id, i * 4 + 2, n[(i) % NSEGMENTS]);
+			setAttrib(vbo, n1_id, i * 4 + 3, n[(i) % NSEGMENTS]);
+			setAttrib(vbo, n2_id, i * 4 + 2, neg[(i) % NSEGMENTS]);
+			setAttrib(vbo, n2_id, i * 4 + 3, neg[(i) % NSEGMENTS]);
+		}
+
+		SHC.drw_lamp_spot = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_lamp_spot;
+#undef NSEGMENTS
+}
+
+Batch *DRW_cache_lamp_spot_square_get(void)
+{
+	if (!SHC.drw_lamp_spot_square) {
+		float p[5][3] = {{ 0.0f,  0.0f,  0.0f},
+		                 { 1.0f,  1.0f, -1.0f},
+		                 { 1.0f, -1.0f, -1.0f},
+		                 {-1.0f, -1.0f, -1.0f},
+		                 {-1.0f,  1.0f, -1.0f}};
+
+		unsigned int v_idx = 0;
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 16);
+
+		/* piramid sides */
+		for (int i = 1; i <= 4; ++i) {
+			setAttrib(vbo, pos_id, v_idx++, p[0]);
+			setAttrib(vbo, pos_id, v_idx++, p[i]);
+
+			setAttrib(vbo, pos_id, v_idx++, p[(i % 4)+1]);
+			setAttrib(vbo, pos_id, v_idx++, p[((i+1) % 4)+1]);
+		}
+
+		SHC.drw_lamp_spot_square = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_lamp_spot_square;
 }
 
 /* Speaker */
