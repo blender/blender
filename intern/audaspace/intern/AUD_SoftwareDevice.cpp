@@ -365,6 +365,7 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::seek(float position)
 	if(!m_status)
 		return false;
 
+	m_pitch->setPitch(m_user_pitch);
 	m_reader->seek((int)(position * m_reader->getSpecs().rate));
 
 	if(m_status == AUD_STATUS_STOPPED)
