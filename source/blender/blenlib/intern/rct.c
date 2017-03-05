@@ -351,6 +351,22 @@ void BLI_rcti_init(rcti *rect, int xmin, int xmax, int ymin, int ymax)
 	}
 }
 
+void BLI_rctf_init_pt_size(rctf *rect, const float xy[2], float size)
+{
+	rect->xmin = xy[0] - size;
+	rect->xmax = xy[0] + size;
+	rect->ymin = xy[1] - size;
+	rect->ymax = xy[1] + size;
+}
+
+void BLI_rcti_init_pt_size(rcti *rect, const int xy[2], int size)
+{
+	rect->xmin = xy[0] - size;
+	rect->xmax = xy[0] + size;
+	rect->ymin = xy[1] - size;
+	rect->ymax = xy[1] + size;
+}
+
 void BLI_rcti_init_minmax(rcti *rect)
 {
 	rect->xmin = rect->ymin = INT_MAX;
