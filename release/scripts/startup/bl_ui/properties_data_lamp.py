@@ -26,7 +26,7 @@ class LAMP_MT_sunsky_presets(Menu):
     bl_label = "Sun & Sky Presets"
     preset_subdir = "sunsky"
     preset_operator = "script.execute_preset"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
     draw = Menu.draw_preset
 
 
@@ -44,7 +44,7 @@ class DataButtonsPanel:
 class DATA_PT_context_lamp(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout
@@ -68,7 +68,7 @@ class DATA_PT_context_lamp(DataButtonsPanel, Panel):
 
 class DATA_PT_preview(DataButtonsPanel, Panel):
     bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         self.layout.template_preview(context.lamp)
@@ -76,7 +76,7 @@ class DATA_PT_preview(DataButtonsPanel, Panel):
 
 class DATA_PT_lamp(DataButtonsPanel, Panel):
     bl_label = "Lamp"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout
@@ -312,7 +312,7 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
 
 class DATA_PT_area(DataButtonsPanel, Panel):
     bl_label = "Area Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     @classmethod
     def poll(cls, context):
@@ -338,7 +338,7 @@ class DATA_PT_area(DataButtonsPanel, Panel):
 
 class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Spot Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     @classmethod
     def poll(cls, context):
@@ -374,7 +374,7 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
 class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
     bl_label = "Falloff Curve"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     @classmethod
     def poll(cls, context):
@@ -390,7 +390,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
     _context_path = "object.data"
     _property_type = bpy.types.Lamp
 

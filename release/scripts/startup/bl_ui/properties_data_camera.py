@@ -37,7 +37,7 @@ class CAMERA_MT_presets(Menu):
     bl_label = "Camera Presets"
     preset_subdir = "camera"
     preset_operator = "script.execute_preset"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
     draw = Menu.draw_preset
 
 
@@ -45,14 +45,14 @@ class SAFE_AREAS_MT_presets(Menu):
     bl_label = "Camera Presets"
     preset_subdir = "safe_areas"
     preset_operator = "script.execute_preset"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
     draw = Menu.draw_preset
 
 
 class DATA_PT_context_camera(CameraButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout
@@ -72,7 +72,7 @@ class DATA_PT_context_camera(CameraButtonsPanel, Panel):
 
 class DATA_PT_lens(CameraButtonsPanel, Panel):
     bl_label = "Lens"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout
@@ -183,7 +183,7 @@ class DATA_PT_camera_stereoscopy(CameraButtonsPanel, Panel):
 
 class DATA_PT_camera(CameraButtonsPanel, Panel):
     bl_label = "Camera"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout
@@ -217,7 +217,7 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 
 class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
     bl_label = "Depth of Field"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout
@@ -247,7 +247,7 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = "Display"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout
@@ -277,7 +277,7 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
 class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
     bl_label = "Safe Areas"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw_header(self, context):
         cam = context.camera
@@ -293,7 +293,7 @@ class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
     _context_path = "object.data"
     _property_type = bpy.types.Camera
 
