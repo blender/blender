@@ -3179,6 +3179,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			GHOST_TEventCursorData *cd = customdata;
 
 			copy_v2_v2_int(&event.x, &cd->x);
+			wm_stereo3d_mouse_offset_apply(win, &event.x);
+
 			event.type = MOUSEMOVE;
 			wm_event_add_mousemove(win, &event);
 			copy_v2_v2_int(&evt->x, &event.x);

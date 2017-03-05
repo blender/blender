@@ -345,6 +345,32 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
 	return true;
 }
 
+/**
+ * If needed, this adjusts \a r_mouse_xy so that drawn cursor and handled mouse position are matching visually.
+*/
+void wm_stereo3d_mouse_offset_apply(wmWindow *win, int *r_mouse_xy)
+{
+	if (!WM_stereo3d_enabled(win, false))
+		return;
+
+	if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
+		const int half_x = win->sizex / 2;
+		/* right half of the screen */
+		if (r_mouse_xy[0] > half_x) {
+			r_mouse_xy[0] -= half_x;
+		}
+		r_mouse_xy[0] *= 2;
+	}
+	else if (win->stereo3d_format->display_mode == S3D_DISPLAY_TOPBOTTOM) {
+		const int half_y = win->sizey / 2;
+		/* upper half of the screen */
+		if (r_mouse_xy[1] > half_y) {
+			r_mouse_xy[1] -= half_y;
+		}
+		r_mouse_xy[1] *= 2;
+	}
+}
+
 /************************** Stereo 3D operator **********************************/
 typedef struct Stereo3dData {
 	Stereo3dFormat stereo3d_format;
