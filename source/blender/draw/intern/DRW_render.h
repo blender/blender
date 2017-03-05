@@ -221,6 +221,9 @@ void DRW_mode_cache_finish(void);
 void DRW_draw_pass(DRWPass *pass);
 void DRW_draw_mode_overlays(void);
 
+void DRW_draw_callbacks_pre_scene(void);
+void DRW_draw_callbacks_post_scene(void);
+
 void DRW_state_reset(void);
 
 /* Other */

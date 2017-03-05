@@ -715,6 +715,8 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 	/* Start Drawing */
 	DRW_draw_background();
 
+	DRW_draw_callbacks_pre_scene();
+
 	/* Pass 1 : Depth pre-pass */
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->depth_pass_cull);
@@ -729,6 +731,8 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 	/* Pass 4 : Overlays */
 	/* At this point all shaded geometry should have been rendered and their depth written */
 	DRW_draw_mode_overlays();
+
+	DRW_draw_callbacks_post_scene();
 
 	/* Always finish by this */
 	DRW_state_reset();

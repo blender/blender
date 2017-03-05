@@ -40,6 +40,8 @@
 
 #include "DNA_view3d_types.h"
 
+#include "ED_space_api.h"
+
 #include "GPU_batch.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
@@ -1023,6 +1025,36 @@ void DRW_draw_pass(DRWPass *pass)
 		GPU_shader_unbind();
 		DST.shader = NULL;
 	}
+}
+
+void DRW_draw_callbacks_pre_scene(void)
+{
+	struct ARegion *ar = CTX_wm_region(DST.context);
+	RegionView3D *rv3d = CTX_wm_region_view3d(DST.context);
+
+	/* This is temporary
+	 * waiting for the full matrix switch */
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf((float *)rv3d->winmat);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf((float *)rv3d->viewmat);
+
+	ED_region_draw_cb_draw(DST.context, ar, REGION_DRAW_PRE_VIEW);
+}
+
+void DRW_draw_callbacks_post_scene(void)
+{
+	struct ARegion *ar = CTX_wm_region(DST.context);
+	RegionView3D *rv3d = CTX_wm_region_view3d(DST.context);
+
+	/* This is temporary
+	 * waiting for the full matrix switch */
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf((float *)rv3d->winmat);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf((float *)rv3d->viewmat);
+
+	ED_region_draw_cb_draw(DST.context, ar, REGION_DRAW_POST_VIEW);
 }
 
 /* Reset state to not interfer with other UI drawcall */
