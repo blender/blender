@@ -11,7 +11,7 @@ in float depth;
 in vec4 tria;
 in mat4 InstanceModelMatrix;
 
-flat out vec3 finalColor;
+flat out vec4 finalColor;
 
 void main()
 {
@@ -46,5 +46,5 @@ void main()
 
 	gl_Position = ViewProjectionMatrix * InstanceModelMatrix * vec4(pPos, 1.0);
 
-	finalColor = color;
+	finalColor = vec4(color, 1.0);
 }
