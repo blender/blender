@@ -131,7 +131,7 @@ typedef struct DRWFboTexture {
 
 void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX], int texnbr);
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
-void DRW_framebuffer_clear(bool color, bool depth, float clear_col[4]);
+void DRW_framebuffer_clear(bool color, bool depth, float clear_col[4], float clear_depth);
 void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot);
 void DRW_framebuffer_texture_detach(struct GPUTexture *tex);
 void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth);

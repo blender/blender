@@ -1247,14 +1247,15 @@ void DRW_framebuffer_bind(struct GPUFrameBuffer *fb)
 	GPU_framebuffer_bind(fb);
 }
 
-void DRW_framebuffer_clear(bool color, bool depth, float clear_col[4])
+void DRW_framebuffer_clear(bool color, bool depth, float clear_col[4], float clear_depth)
 {
 	if (color) {
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glClearColor(clear_col[0], clear_col[1], clear_col[2], clear_col[4]);
+		glClearColor(clear_col[0], clear_col[1], clear_col[2], clear_col[3]);
 	}
 	if (depth) {
 		glDepthMask(GL_TRUE);
+		glClearDepth(clear_depth);
 	}
 	glClear(((color) ? GL_COLOR_BUFFER_BIT : 0) |
 	        ((depth) ? GL_DEPTH_BUFFER_BIT : 0));

@@ -364,12 +364,17 @@ void EDIT_MESH_draw(void)
 		
 		/* Render wires on a separate framebuffer */
 		DRW_framebuffer_bind(fbl->occlude_wire_fb);
-		DRW_framebuffer_clear(true, true, clearcol);
+		DRW_framebuffer_clear(true, true, clearcol, 1.0f);
 		DRW_draw_pass(psl->edit_face_occluded_pass);
+
+		/* detach textures */
+		DRW_framebuffer_texture_detach(dtxl->depth);
 
 		/* Combine with scene buffer */
 		DRW_framebuffer_bind(dfbl->default_fb);
 		DRW_draw_pass(psl->mix_occlude_pass);
+
+		/* reattach */
 		DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0);
 	}
 	else {
