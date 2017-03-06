@@ -124,19 +124,10 @@ struct TaskPool {
 	 */
 	bool run_in_background;
 
-	/* This TLS is used for caching task pointers for thread id 0.
-	 * This could either point to a global scheduler's TLS for thread 0 if the
-	 * pool is created form the main thread or point to task_mempool_local
-	 * otherwise.
-	 *
-	 * This way we solve possible threading conflicts accessing same global
-	 * memory pool from multiple threads from which wait_work() is called.
-	 *
-	 * TODO(sergey): Use real pthread's TLS to access current thread's TLS
-	 * and use it instead.
+	/* This is a task scheduler's ID of a thread at which pool was constructed.
+	 * It will be used to access task TLS.
 	 */
-	TaskThreadLocalStorage *task_tls;
-	TaskThreadLocalStorage task_tls_local;
+	int thread_id;
 
 #ifdef DEBUG_STATS
 	TaskMemPoolStats *mempool_stats;
@@ -154,6 +145,9 @@ struct TaskScheduler {
 	ThreadCondition queue_cond;
 
 	volatile bool do_exit;
+
+	/* NOTE: In pthread's TLS we store the whole TaskThread structure. */
+	pthread_key_t tls_id_key;
 };
 
 typedef struct TaskThread {
@@ -181,12 +175,7 @@ BLI_INLINE TaskThreadLocalStorage *get_task_tls(TaskPool *pool,
 	TaskScheduler *scheduler = pool->scheduler;
 	BLI_assert(thread_id >= 0);
 	BLI_assert(thread_id <= scheduler->num_threads);
-	if (thread_id == 0) {
-		return pool->task_tls;
-	}
-	else {
-		return &scheduler->task_threads[thread_id].tls;
-	}
+	return &scheduler->task_threads[thread_id].tls;
 }
 
 BLI_INLINE void free_task_tls(TaskThreadLocalStorage *tls)
@@ -202,6 +191,7 @@ static Task *task_alloc(TaskPool *pool, const int thread_id)
 	BLI_assert(thread_id <= pool->scheduler->num_threads);
 	if (thread_id != -1) {
 		BLI_assert(thread_id >= 0);
+		BLI_assert(thread_id <= pool->scheduler->num_threads);
 		TaskThreadLocalStorage *tls = get_task_tls(pool, thread_id);
 		TaskMemPool *task_mempool = &tls->task_mempool;
 		/* Try to re-use task memory from a thread local storage. */
@@ -331,6 +321,8 @@ static void *task_scheduler_thread_run(void *thread_p)
 	int thread_id = thread->id;
 	Task *task;
 
+	pthread_setspecific(scheduler->tls_id_key, thread);
+
 	/* keep popping off tasks */
 	while (task_scheduler_thread_wait_pop(scheduler, &task)) {
 		TaskPool *pool = task->pool;
@@ -377,6 +369,8 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 	scheduler->task_threads = MEM_callocN(sizeof(TaskThread) * (num_threads + 1),
 	                                      "TaskScheduler task threads");
 
+	pthread_key_create(&scheduler->tls_id_key, NULL);
+
 	/* launch threads that will be waiting for work */
 	if (num_threads > 0) {
 		int i;
@@ -407,6 +401,8 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 	scheduler->do_exit = true;
 	BLI_condition_notify_all(&scheduler->queue_cond);
 	BLI_mutex_unlock(&scheduler->queue_mutex);
+
+	pthread_key_delete(scheduler->tls_id_key);
 
 	/* delete threads */
 	if (scheduler->threads) {
@@ -476,7 +472,7 @@ static void task_scheduler_clear(TaskScheduler *scheduler, TaskPool *pool)
 		nexttask = task->next;
 
 		if (task->pool == pool) {
-			task_data_free(task, 0);
+			task_data_free(task, pool->thread_id);
 			BLI_freelinkN(&scheduler->queue, task);
 
 			done++;
@@ -519,11 +515,11 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
 	BLI_mutex_init(&pool->user_mutex);
 
 	if (BLI_thread_is_main()) {
-		pool->task_tls = &scheduler->task_threads[0].tls;
+		pool->thread_id = 0;
 	}
 	else {
-		pool->task_tls = &pool->task_tls_local;
-		memset(pool->task_tls, 0, sizeof(TaskThreadLocalStorage));
+		TaskThread *thread = pthread_getspecific(scheduler->tls_id_key);
+		pool->thread_id = thread->id;
 	}
 
 #ifdef DEBUG_STATS
@@ -576,11 +572,6 @@ void BLI_task_pool_free(TaskPool *pool)
 	BLI_condition_end(&pool->num_cond);
 
 	BLI_mutex_end(&pool->user_mutex);
-
-	/* Free local TLS. */
-	if (pool->task_tls == &pool->task_tls_local) {
-		free_task_tls(pool->task_tls);
-	}
 
 #ifdef DEBUG_STATS
 	printf("Thread ID    Allocated   Reused   Discarded\n");
@@ -638,6 +629,13 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 {
 	TaskScheduler *scheduler = pool->scheduler;
 
+#ifndef NDEBUG
+	if (!BLI_thread_is_main()) {
+		TaskThread *thread = pthread_getspecific(scheduler->tls_id_key);
+		BLI_assert(pool->thread_id == thread->id);
+	}
+#endif
+
 	BLI_mutex_lock(&pool->num_mutex);
 
 	while (pool->num != 0) {
@@ -665,10 +663,10 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		/* if found task, do it, otherwise wait until other tasks are done */
 		if (found_task) {
 			/* run task */
-			work_task->run(pool, work_task->taskdata, 0);
+			work_task->run(pool, work_task->taskdata, pool->thread_id);
 
 			/* delete task */
-			task_free(pool, task, 0);
+			task_free(pool, task, pool->thread_id);
 
 			/* notify pool task was done */
 			task_pool_num_decrease(pool, 1);
@@ -885,7 +883,8 @@ static void task_parallel_range_ex(
 		BLI_task_pool_push_from_thread(task_pool,
 		                               parallel_range_func,
 		                               userdata_chunk_local, false,
-		                               TASK_PRIORITY_HIGH, 0);
+		                               TASK_PRIORITY_HIGH,
+		                               task_pool->thread_id);
 	}
 
 	BLI_task_pool_work_and_wait(task_pool);
@@ -1091,7 +1090,8 @@ void BLI_task_parallel_listbase(
 		BLI_task_pool_push_from_thread(task_pool,
 		                               parallel_listbase_func,
 		                               NULL, false,
-		                               TASK_PRIORITY_HIGH, 0);
+		                               TASK_PRIORITY_HIGH,
+		                               task_pool->thread_id);
 	}
 
 	BLI_task_pool_work_and_wait(task_pool);
