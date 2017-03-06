@@ -57,7 +57,11 @@ layout(triangles) in;
  * TODO diagram
  */
 
+#ifdef VERTEX_SELECTION
 layout(triangle_strip, max_vertices=23) out;
+#else
+layout(triangle_strip, max_vertices=17) out;
+#endif
 #else
 layout(triangle_strip, max_vertices=3) out;
 #endif
@@ -290,8 +294,10 @@ void main()
 
 			/* corner vertices should not drax edges but draw point only */
 			flag[2] = (vData[vbe].x << 8);
+#ifdef VERTEX_SELECTION
 			doVertex(vaf, pPos[vaf]);
 			doVertex(vaf, pPos[vaf] + vec4(cornervec[vaf], 0.0, 0.0));
+#endif
 		}
 
 		/* finish the loop strip */
