@@ -38,6 +38,7 @@ void Batch_set_builtin_program(Batch*, GPUBuiltinShader);
 
 /* Replacement for gluSphere */
 Batch *Batch_get_sphere(int lod);
+Batch *Batch_get_sphere_wire(int lod);
 
 void gpu_batch_init(void);
 void gpu_batch_exit(void);

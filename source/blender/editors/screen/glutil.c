@@ -164,7 +164,7 @@ void imm_cpack(unsigned int x)
 		(((x) >> 16) & 0xFF));
 }
 
-void imm_cylinder(unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks)
+void imm_cylinder_nor(unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks)
 {
 	immBegin(GL_TRIANGLES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
@@ -210,6 +210,43 @@ void imm_cylinder(unsigned int pos, unsigned int nor, float base, float top, flo
 			immVertex3fv(pos, v4);
 			immAttrib3fv(nor, n2);
 			immVertex3fv(pos, v1);
+		}
+	}
+	immEnd();
+}
+
+void imm_cylinder_wire(unsigned int pos, float base, float top, float height, int slices, int stacks)
+{
+	immBegin(GL_LINES, 6 * slices * stacks);
+	for (int i = 0; i < slices; ++i) {
+		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
+		const float angle2 = 2 * M_PI * ((float)(i+1) / (float)slices);
+		const float cos1 = cosf(angle1);
+		const float sin1 = sinf(angle1);
+		const float cos2 = cosf(angle2);
+		const float sin2 = sinf(angle2);
+
+		for (int j = 0; j < stacks; ++j) {
+			float fac1 = (float)j / (float)stacks;
+			float fac2 = (float)(j+1) / (float)stacks;
+			float r1 = base * (1.f - fac1) + top * fac1;
+			float r2 = base * (1.f - fac2) + top * fac2;
+			float h1 = height * ((float)j / (float)stacks);
+			float h2 = height * ((float)(j+1) / (float)stacks);
+
+			float v1[3] = {r1 * cos2, r1 * sin2, h1};
+			float v2[3] = {r2 * cos2, r2 * sin2, h2};
+			float v3[3] = {r2 * cos1, r2 * sin1, h2};
+			float v4[3] = {r1 * cos1, r1 * sin1, h1};
+
+			immVertex3fv(pos, v1);
+			immVertex3fv(pos, v2);
+			
+			immVertex3fv(pos, v2);
+			immVertex3fv(pos, v3);
+
+			immVertex3fv(pos, v1);
+			immVertex3fv(pos, v4);
 		}
 	}
 	immEnd();

@@ -159,8 +159,8 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
                 const short dflag, const unsigned char ob_wire_col[4]);
 void drawspeaker(const unsigned char ob_wire_col[3]);
-void draw_bounding_volume(struct Object *ob, char type);
-void draw_rigidbody_shape(struct Object *ob);
+void draw_bounding_volume(struct Object *ob, char type, const unsigned char ob_wire_col[4]);
+void draw_rigidbody_shape(struct Object *ob, const unsigned char ob_wire_col[4]);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3],

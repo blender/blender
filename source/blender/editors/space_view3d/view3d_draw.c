@@ -1799,7 +1799,7 @@ RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 		case OB_SURF:
 		case OB_MBALL:
 			if (is_boundingbox) {
-				draw_bounding_volume(ob, ob->boundtype);
+				draw_bounding_volume(ob, ob->boundtype, color);
 			}
 			break;
 		case OB_EMPTY:
@@ -1826,7 +1826,7 @@ RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 	}
 
 	if (ob->rigidbody_object) {
-		draw_rigidbody_shape(ob);
+		draw_rigidbody_shape(ob, color);
 	}
 
 	ED_view3d_clear_mats_rv3d(rv3d);

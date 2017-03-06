@@ -40,6 +40,7 @@ void Batch_set_builtin_program(Batch* batch, GPUBuiltinShader shader_id)
 static Batch *sphere_high = NULL;
 static Batch *sphere_med = NULL;
 static Batch *sphere_low = NULL;
+static Batch *sphere_wire_low = NULL;
 
 static VertexBuffer *vbo;
 static VertexFormat format = {0};
@@ -94,6 +95,38 @@ static Batch *batch_sphere(int lat_res, int lon_res)
 	return Batch_create(GL_TRIANGLES, vbo, NULL);
 }
 
+static Batch *batch_sphere_wire(int lat_res, int lon_res)
+{
+	const float lon_inc = 2 * M_PI / lon_res;
+	const float lat_inc = M_PI / lat_res;
+	float lon, lat;
+
+	if (format.attrib_ct == 0) {
+		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+	}
+
+	vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, (lat_res * lon_res * 2) + ((lat_res-1) * lon_res * 2));
+	vert = 0;
+
+	lon = 0.0f;
+	for(int i = 0; i < lon_res; i++, lon += lon_inc) {
+		lat = 0.0f;
+		for(int j = 0; j < lat_res; j++, lat += lat_inc) {
+			batch_sphere_lat_lon_vert(lat+lat_inc, lon);
+			batch_sphere_lat_lon_vert(lat,         lon);
+
+			if (j != lat_res - 1) { /* Pole */
+				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
+				batch_sphere_lat_lon_vert(lat+lat_inc, lon);
+			}
+		}
+	}
+
+	return Batch_create(GL_LINES, vbo, NULL);
+}
+
 Batch *Batch_get_sphere(int lod)
 {
 	BLI_assert(lod >= 0 && lod <= 2);
@@ -106,12 +139,19 @@ Batch *Batch_get_sphere(int lod)
 		return sphere_high;
 }
 
+Batch *Batch_get_sphere_wire(int UNUSED(lod))
+{
+	return sphere_wire_low;
+}
+
 void gpu_batch_init(void)
 {
 	/* Hard coded resolution */
 	sphere_low = batch_sphere(8, 16);
 	sphere_med = batch_sphere(16, 10);
 	sphere_high = batch_sphere(32, 24);
+
+	sphere_wire_low = batch_sphere_wire(6, 8);
 }
 
 void gpu_batch_exit(void)
