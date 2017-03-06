@@ -180,9 +180,9 @@ BLI_INLINE TaskMemPool *get_task_mempool(TaskPool *pool, const int thread_id)
 
 static Task *task_alloc(TaskPool *pool, const int thread_id)
 {
-	assert(thread_id <= pool->scheduler->num_threads);
+	BLI_assert(thread_id <= pool->scheduler->num_threads);
 	if (thread_id != -1) {
-		assert(thread_id >= 0);
+		BLI_assert(thread_id >= 0);
 		TaskMemPool *mem_pool = get_task_mempool(pool, thread_id);
 		/* Try to re-use task memory from a thread local storage. */
 		if (mem_pool->num_tasks > 0) {
@@ -204,8 +204,8 @@ static Task *task_alloc(TaskPool *pool, const int thread_id)
 static void task_free(TaskPool *pool, Task *task, const int thread_id)
 {
 	task_data_free(task, thread_id);
-	assert(thread_id >= 0);
-	assert(thread_id <= pool->scheduler->num_threads);
+	BLI_assert(thread_id >= 0);
+	BLI_assert(thread_id <= pool->scheduler->num_threads);
 	TaskMemPool *mem_pool = get_task_mempool(pool, thread_id);
 	if (mem_pool->num_tasks < MEMPOOL_SIZE - 1) {
 		/* Successfully allowed the task to be re-used later. */
