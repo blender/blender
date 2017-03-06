@@ -350,7 +350,12 @@ int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
 FFMPEG_INLINE
 int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame * picture)
 {
-	int64_t pts = picture->pkt_pts;
+	int64_t pts;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(55, 34, 100)
+	pts = picture->pts;
+#else
+	pts = picture->pkt_pts;
+#endif
 
 	if (pts == AV_NOPTS_VALUE) {
 		pts = picture->pkt_dts;
