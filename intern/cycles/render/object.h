@@ -40,7 +40,7 @@ struct Transform;
 
 class Object : public Node {
 public:
-	NODE_DECLARE;
+	NODE_DECLARE
 
 	Mesh *mesh;
 	Transform tfm;

@@ -201,14 +201,14 @@ public:
 /* Node definition utility macros */
 
 #define SHADER_NODE_CLASS(type) \
-	NODE_DECLARE; \
+	NODE_DECLARE \
 	type(); \
 	virtual ShaderNode *clone() const { return new type(*this); } \
 	virtual void compile(SVMCompiler& compiler); \
 	virtual void compile(OSLCompiler& compiler); \
 
 #define SHADER_NODE_NO_CLONE_CLASS(type) \
-	NODE_DECLARE; \
+	NODE_DECLARE \
 	type(); \
 	virtual void compile(SVMCompiler& compiler); \
 	virtual void compile(OSLCompiler& compiler); \
