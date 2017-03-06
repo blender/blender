@@ -1598,6 +1598,17 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			} FOREACH_NODETREE_END
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "float", "mat[4][4]")) {
+			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_SurfaceDeform) {
+						SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+						unit_m4(smd->mat);
+					}
+				}
+			}
+		}
 	}
 }
 
