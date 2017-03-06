@@ -8037,7 +8037,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 }
 
 /* should be called in view space */
-static void draw_hooks(Object *ob)
+static void draw_hooks(Object *ob, unsigned int pos)
 {
 	for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Hook) {
@@ -8048,17 +8048,17 @@ static void draw_hooks(Object *ob)
 
 			if (hmd->object) {
 				setlinestyle(3);
-				glBegin(GL_LINES);
-				glVertex3fv(hmd->object->obmat[3]);
-				glVertex3fv(vec);
-				glEnd();
+				immBegin(GL_LINES, 2);
+				immVertex3fv(pos, hmd->object->obmat[3]);
+				immVertex3fv(pos, vec);
+				immEnd();
 				setlinestyle(0);
 			}
 
 			glPointSize(3.0f);
-			glBegin(GL_POINTS);
-			glVertex3fv(vec);
-			glEnd();
+			immBegin(GL_POINTS, 1);
+			immVertex3fv(pos, vec);
+			immEnd();
 		}
 	}
 }
@@ -8797,16 +8797,21 @@ afterdraw:
 		{
 			float imat[4][4], vec[3] = {0.0f, 0.0f, 0.0f};
 
+			unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
 			invert_m4_m4(imat, rv3d->viewmatob);
 
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
 				/* prevent random colors being used */
-				glColor3ubv(ob_wire_col);
+				immUniformColor3ubv(ob_wire_col);
 			}
 
 			setlinestyle(2);
-			drawcircball(GL_LINE_LOOP, vec, ob->inertia, imat);
+			imm_drawcircball(vec, ob->inertia, imat, pos);
 			setlinestyle(0);
+
+			immUnbindProgram();
 		}
 	}
 	
@@ -8876,17 +8881,20 @@ afterdraw:
 		ListBase *list;
 		RigidBodyCon *rbc = ob->rigidbody_constraint;
 		
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
 		/* draw hook center and offset line */
 		if (ob != scene->obedit)
-			draw_hooks(ob);
+			draw_hooks(ob, pos);
 
 		/* help lines and so */
 		if (ob != scene->obedit && ob->parent && (ob->parent->lay & v3d->lay)) {
 			setlinestyle(3);
-			glBegin(GL_LINES);
-			glVertex3fv(ob->obmat[3]);
-			glVertex3fv(ob->orig);
-			glEnd();
+			immBegin(GL_LINES, 2);
+			immVertex3fv(pos, ob->obmat[3]);
+			immVertex3fv(pos, ob->orig);
+			immEnd();
 			setlinestyle(0);
 		}
 
@@ -8900,7 +8908,7 @@ afterdraw:
 			
 			UI_GetThemeColor3ubv(TH_GRID, col1);
 			UI_make_axis_color(col1, col2, 'Z');
-			glColor3ubv(col2);
+			immUniformColor3ubv(col2);
 			
 			cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 			
@@ -8925,10 +8933,10 @@ afterdraw:
 
 					if (camob) {
 						setlinestyle(3);
-						glBegin(GL_LINES);
-						glVertex3fv(camob->obmat[3]);
-						glVertex3fv(ob->obmat[3]);
-						glEnd();
+						immBegin(GL_LINES, 2);
+						immVertex3fv(pos, camob->obmat[3]);
+						immVertex3fv(pos, ob->obmat[3]);
+						immEnd();
 						setlinestyle(0);
 					}
 				}
@@ -8949,10 +8957,10 @@ afterdraw:
 								unit_m4(ct->matrix);
 
 							setlinestyle(3);
-							glBegin(GL_LINES);
-							glVertex3fv(ct->matrix[3]);
-							glVertex3fv(ob->obmat[3]);
-							glEnd();
+							immBegin(GL_LINES, 2);
+							immVertex3fv(pos, ct->matrix[3]);
+							immVertex3fv(pos, ob->obmat[3]);
+							immEnd();
 							setlinestyle(0);
 						}
 
@@ -8965,21 +8973,24 @@ afterdraw:
 			BKE_constraints_clear_evalob(cob);
 		}
 		/* draw rigid body constraint lines */
-		if (rbc) {
-			UI_ThemeColor(TH_WIRE);
+		if (rbc && (rbc->ob1 || rbc->ob2)) {
+			immUniformThemeColor(TH_WIRE);
+
 			setlinestyle(3);
-			glBegin(GL_LINES);
+			immBegin(GL_LINES, ((int)((bool)rbc->ob1) + (int)((bool)rbc->ob2)) * 2);
 			if (rbc->ob1) {
-				glVertex3fv(ob->obmat[3]);
-				glVertex3fv(rbc->ob1->obmat[3]);
+				immVertex3fv(pos, ob->obmat[3]);
+				immVertex3fv(pos, rbc->ob1->obmat[3]);
 			}
 			if (rbc->ob2) {
-				glVertex3fv(ob->obmat[3]);
-				glVertex3fv(rbc->ob2->obmat[3]);
+				immVertex3fv(pos, ob->obmat[3]);
+				immVertex3fv(pos, rbc->ob2->obmat[3]);
 			}
-			glEnd();
+			immEnd();
 			setlinestyle(0);
 		}
+
+		immUnbindProgram();
 	}
 
 	ED_view3d_clear_mats_rv3d(rv3d);
