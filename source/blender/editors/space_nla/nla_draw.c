@@ -1,4 +1,3 @@
-
 /*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -308,6 +307,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 		 */
 		for (cfra = strip->start; cfra <= strip->end; cfra += 1.0f) {
 			float y = evaluate_fcurve(fcu, cfra); /* assume this to be in 0-1 range */
+			CLAMP(y, 0.0f, 1.0f);
 			immVertex2f(pos, cfra, ((y * yheight) + yminc));
 		}
 

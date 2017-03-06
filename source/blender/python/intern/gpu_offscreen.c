@@ -203,7 +203,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	ARegion *ar;
 	GPUFX *fx;
 	GPUFXSettings fx_settings;
-	void *rv3d_mats;
+	struct RV3DMatrixStore *rv3d_mats;
 
 	BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
 

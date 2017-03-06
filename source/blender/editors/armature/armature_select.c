@@ -303,17 +303,11 @@ static EditBone *get_nearest_editbonepoint(
 		ebone_next_act = NULL;
 	}
 
-	rect.xmin = mval[0] - 5;
-	rect.xmax = mval[0] + 5;
-	rect.ymin = mval[1] - 5;
-	rect.ymax = mval[1] + 5;
+	BLI_rcti_init_pt_size(&rect, mval, 5);
 
 	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, true);
 	if (hits == 0) {
-		rect.xmin = mval[0] - 12;
-		rect.xmax = mval[0] + 12;
-		rect.ymin = mval[1] - 12;
-		rect.ymax = mval[1] + 12;
+		BLI_rcti_init_pt_size(&rect, mval, 12);
 		hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, true);
 	}
 	/* See if there are any selected bones in this group */

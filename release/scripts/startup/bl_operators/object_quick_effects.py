@@ -319,7 +319,7 @@ class QuickSmoke(Operator):
 
     def execute(self, context):
         if not bpy.app.build_options.mod_smoke:
-            self.report({'ERROR'}, "Build without Smoke modifier support")
+            self.report({'ERROR'}, "Built without Smoke modifier support")
             return {'CANCELLED'}
 
         fake_context = context.copy()
@@ -568,7 +568,7 @@ class QuickFluid(Operator):
 
     def execute(self, context):
         if not bpy.app.build_options.mod_fluid:
-            self.report({'ERROR'}, "Build without Fluid modifier support")
+            self.report({'ERROR'}, "Built without Fluid modifier support")
             return {'CANCELLED'}
 
         fake_context = context.copy()

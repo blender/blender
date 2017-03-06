@@ -303,6 +303,7 @@ static DerivedMesh *applyModifier_bmesh(
 				        use_separate,
 				        use_dissolve,
 				        use_island_connect,
+				        false,
 				        bmd->operation,
 				        bmd->double_threshold);
 

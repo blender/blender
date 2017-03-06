@@ -80,6 +80,7 @@ void wm_autosave_location(char *filepath);
 
 /* wm_stereo.c */
 void wm_method_draw_stereo3d(const bContext *C, wmWindow *win);
+void wm_stereo3d_mouse_offset_apply(wmWindow *win, int *r_mouse_xy);
 int wm_stereo3d_set_exec(bContext *C, wmOperator *op);
 int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 void wm_stereo3d_set_draw(bContext *C, wmOperator *op);

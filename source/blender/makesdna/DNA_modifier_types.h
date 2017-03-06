@@ -1594,6 +1594,7 @@ typedef struct SurfaceDeformModifierData {
 	float falloff;
 	unsigned int numverts, numpoly;
 	int flags;
+	float mat[4][4];
 } SurfaceDeformModifierData;
 
 /* Surface Deform modifier flags */

@@ -1069,12 +1069,9 @@ int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **so
 	
 	/* check if we click in a socket */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		
-		rect.xmin = cursor[0] - (NODE_SOCKSIZE + 4);
-		rect.ymin = cursor[1] - (NODE_SOCKSIZE + 4);
-		rect.xmax = cursor[0] + (NODE_SOCKSIZE + 4);
-		rect.ymax = cursor[1] + (NODE_SOCKSIZE + 4);
-		
+
+		BLI_rctf_init_pt_size(&rect, cursor, NODE_SOCKSIZE + 4);
+
 		if (!(node->flag & NODE_HIDDEN)) {
 			/* extra padding inside and out - allow dragging on the text areas too */
 			if (in_out == SOCK_IN) {

@@ -980,7 +980,7 @@ bool BM_mesh_intersect(
         struct BMLoop *(*looptris)[3], const int looptris_tot,
         int (*test_fn)(BMFace *f, void *user_data), void *user_data,
         const bool use_self, const bool use_separate, const bool use_dissolve, const bool use_island_connect,
-        const int boolean_mode,
+        const bool use_edge_tag, const int boolean_mode,
         const float eps)
 {
 	struct ISectState s;
@@ -1516,7 +1516,7 @@ bool BM_mesh_intersect(
 
 		BM_mesh_edgesplit(bm, false, true, false);
 	}
-	else if (boolean_mode != BMESH_ISECT_BOOLEAN_NONE) {
+	else if (boolean_mode != BMESH_ISECT_BOOLEAN_NONE || use_edge_tag) {
 		GSetIterator gs_iter;
 
 		/* no need to clear for boolean */

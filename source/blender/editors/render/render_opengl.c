@@ -889,14 +889,15 @@ static void write_result_func(TaskPool * __restrict pool,
 	 */
 	ReportList reports;
 	BKE_reports_init(&reports, oglrender->reports->flag & ~RPT_PRINT);
-	/* Do actual save logic here, depending on the file format. */
+	/* Do actual save logic here, depending on the file format.
+	 *
+	 * NOTE: We have to construct temporary scene with proper scene->r.cfra.
+	 * This is because underlying calls do not use r.cfra but use scene
+	 * for that.
+	 */
 	Scene tmp_scene = *scene;
 	tmp_scene.r.cfra = cfra;
 	if (is_movie) {
-		/* We have to construct temporary scene with proper scene->r.cfra.
-		 * This is because underlying calls do not use r.cfra but use scene
-		 * for that.
-		 */
 		ok = RE_WriteRenderViewsMovie(&reports,
 		                              rr,
 		                              &tmp_scene,

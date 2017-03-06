@@ -62,6 +62,8 @@
 
 #include "ED_keyframing.h"
 #include "ED_armature.h"
+#include "ED_keyframing.h"
+#include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_gpencil.h"
@@ -1659,8 +1661,6 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 		BLF_color4ubv(BLF_default(), axis_col[i]);
 		BLF_draw_default_ascii(axis_pos[i][0] + 2, axis_pos[i][1] + 2, 0.0f, axis_text, 1);
 	}
-
-	/* BLF_draw disabled blending for us */
 }
 
 #ifdef WITH_INPUT_NDOF
