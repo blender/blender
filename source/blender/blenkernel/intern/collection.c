@@ -429,7 +429,7 @@ void BKE_scene_objects_Iterator_begin(Iterator *iter, void *data_in)
 	BKE_scene_collections_Iterator_begin(&data->scene_collection_iter, scene);
 
 	SceneCollection *sc = data->scene_collection_iter.current;
-	iter->current = sc->objects.first;
+	iter->current = sc->objects.first ? ((LinkData *)sc->objects.first)->data : NULL;
 	iter->valid = true;
 
 	if (iter->current == NULL) {
