@@ -811,6 +811,30 @@ void BKE_mesh_batch_cache_dirty(struct Mesh *me)
 	}
 }
 
+void BKE_mesh_batch_selection_dirty(struct Mesh *me)
+{
+	MeshBatchCache *cache = me->batch_cache;
+	if (cache) {
+		/* TODO Separate Flag vbo */
+		if (cache->overlay_triangles) {
+			Batch_discard_all(cache->overlay_triangles);
+			cache->overlay_triangles = NULL;
+		}
+		if (cache->overlay_loose_verts) {
+			Batch_discard_all(cache->overlay_loose_verts);
+			cache->overlay_loose_verts = NULL;
+		}
+		if (cache->overlay_loose_edges) {
+			Batch_discard_all(cache->overlay_loose_edges);
+			cache->overlay_loose_edges = NULL;
+		}
+		if (cache->overlay_facedots) {
+			Batch_discard_all(cache->overlay_facedots);
+			cache->overlay_facedots = NULL;
+		}
+	}
+}
+
 void BKE_mesh_batch_cache_clear(Mesh *me)
 {
 	MeshBatchCache *cache = me->batch_cache;
