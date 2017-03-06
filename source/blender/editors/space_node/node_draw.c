@@ -51,7 +51,6 @@
 
 #include "BLF_api.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_draw.h"
@@ -959,10 +958,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_draw_icon_tri(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v', color);
 	}
 	
-#if 0 /* this isn't doing anything for the label, so commenting out */
-	UI_ThemeColor((node->flag & SELECT) ? TH_TEXT_HI : TH_TEXT);
-#endif
-	
 	nodeLabel(ntree, node, showname, sizeof(showname));
 	
 	//if (node->flag & NODE_MUTED)
@@ -1040,7 +1035,6 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	node_draw_shadow(snode, node, hiddenrad, 1.0f);
 
 	/* body */
-	UI_ThemeColor(color_id);
 	if (node->flag & NODE_MUTED)
 		UI_GetThemeColorBlendShade4fv(color_id, TH_REDALERT, 0.5f, 0, color);
 
@@ -1108,8 +1102,6 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	if (node->flag & NODE_MUTED)
 		node_draw_mute_line(&ar->v2d, snode, node);
 
-	UI_ThemeColor((node->flag & SELECT) ? TH_SELECT : TH_TEXT);
-
 	if (node->miniwidth > 0.0f) {
 		nodeLabel(ntree, node, showname, sizeof(showname));
 
@@ -1123,15 +1115,32 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	}
 
 	/* scale widget thing */
-	UI_ThemeColorShade(color_id, -10);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformThemeColorShade(color_id, -10);
 	dx = 10.0f;
-	fdrawline(rct->xmax - dx, centy - 4.0f, rct->xmax - dx, centy + 4.0f);
-	fdrawline(rct->xmax - dx - 3.0f * snode->aspect, centy - 4.0f, rct->xmax - dx - 3.0f * snode->aspect, centy + 4.0f);
-	
-	UI_ThemeColorShade(color_id, +30);
+
+	immBegin(PRIM_LINES, 4);
+	immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
+	immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
+
+	immVertex2f(pos, rct->xmax - dx - 3.0f * snode->aspect, centy - 4.0f);
+	immVertex2f(pos, rct->xmax - dx - 3.0f * snode->aspect, centy + 4.0f);
+	immEnd();
+
+	immUniformThemeColorShade(color_id, 30);
 	dx -= snode->aspect;
-	fdrawline(rct->xmax - dx, centy - 4.0f, rct->xmax - dx, centy + 4.0f);
-	fdrawline(rct->xmax - dx - 3.0f * snode->aspect, centy - 4.0f, rct->xmax - dx - 3.0f * snode->aspect, centy + 4.0f);
+
+	immBegin(PRIM_LINES, 4);
+	immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
+	immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
+
+	immVertex2f(pos, rct->xmax - dx - 3.0f * snode->aspect, centy - 4.0f);
+	immVertex2f(pos, rct->xmax - dx - 3.0f * snode->aspect, centy + 4.0f);
+	immEnd();
+
+	immUnbindProgram();
 
 	node_draw_sockets(v2d, C, ntree, node, true, false);
 
