@@ -991,7 +991,6 @@ static void loop_split_worker(TaskPool * __restrict UNUSED(pool), void *taskdata
 #endif
 }
 
-/* Note we use data_buff to detect whether we are in threaded context or not, in later case it is NULL. */
 static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const bool threaded)
 {
 	MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
@@ -1010,7 +1009,7 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 	int data_idx = 0;
 
 	/* Temp edge vectors stack, only used when computing lnor spacearr (and we are not multi-threading). */
-	BLI_Stack *edge_vectors = (lnors_spacearr && !data_buff) ? BLI_stack_new(sizeof(float[3]), __func__) : NULL;
+	BLI_Stack *edge_vectors = NULL;
 
 #ifdef DEBUG_TIME
 	TIMEIT_START(loop_split_generator);
@@ -1019,6 +1018,10 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 	if (!threaded) {
 		memset(&data_mem, 0, sizeof(data_mem));
 		data = &data_mem;
+
+		if (lnors_spacearr) {
+			edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
+		}
 	}
 
 	/* We now know edges that can be smoothed (with their vector, and their two loops), and edges that will be hard!
