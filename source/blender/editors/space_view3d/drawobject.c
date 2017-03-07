@@ -196,6 +196,7 @@ typedef struct drawDMNormal_userData {
 } drawDMNormal_userData;
 
 typedef struct drawMVertOffset_userData {
+	unsigned int pos, col;
 	MVert *mvert;
 	int offset;
 } drawMVertOffset_userData;
@@ -206,6 +207,7 @@ typedef struct drawDMLayer_userData {
 } drawDMLayer_userData;
 
 typedef struct drawBMOffset_userData {
+	unsigned int pos, col;
 	BMesh *bm;
 	int offset;
 } drawBMOffset_userData;
@@ -1811,17 +1813,22 @@ static void draw_viewport_object_reconstruction(
 			MovieTrackingReconstruction *reconstruction;
 			reconstruction = BKE_tracking_object_get_reconstruction(tracking, tracking_object);
 
-			if (reconstruction->camnr) {
+			if (reconstruction->camnr >= 2) {
 				MovieReconstructedCamera *camera = reconstruction->cameras;
+				unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
-				UI_ThemeColor(TH_CAMERA_PATH);
+				immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+				immUniformThemeColor(TH_CAMERA_PATH);
+
 				glLineWidth(2.0f);
 
-				glBegin(GL_LINE_STRIP);
+				immBegin(GL_LINE_STRIP, reconstruction->camnr);
 				for (int a = 0; a < reconstruction->camnr; a++, camera++) {
-					glVertex3fv(camera->mat[3]);
+					immVertex3fv(pos, camera->mat[3]);
 				}
-				glEnd();
+				immEnd();
+
+				immUnbindProgram();
 			}
 		}
 	}
@@ -2523,6 +2530,7 @@ typedef struct drawDMVertSel_userData {
 	int active;
 	unsigned char *col[3];  /* (base, sel, act) */
 	char sel_prev;
+	unsigned int pos, color;
 } drawDMVertSel_userData;
 
 static void drawSelectedVertices__mapFunc(void *userData, int index, const float co[3],
@@ -2534,17 +2542,18 @@ static void drawSelectedVertices__mapFunc(void *userData, int index, const float
 	if (!(mv->flag & ME_HIDE)) {
 		const char sel = (index == data->active) ? 2 : (mv->flag & SELECT);
 		if (sel != data->sel_prev) {
-			glColor3ubv(data->col[sel]);
+			immAttrib3ubv(data->color, data->col[sel]);
 			data->sel_prev = sel;
 		}
 
-		glVertex3fv(co);
+		immVertex3fv(data->pos, co);
 	}
 }
 
 static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 {
 	drawDMVertSel_userData data;
+	VertexFormat *format = immVertexFormat();
 
 	/* TODO define selected color */
 	unsigned char base_col[3] = {0x0, 0x0, 0x0};
@@ -2559,9 +2568,16 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 	data.col[1] = sel_col;
 	data.col[2] = act_col;
 
-	glBegin(GL_POINTS);
+	data.color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
+	immBeginAtMost(GL_POINTS, dm->getNumVerts(dm));
 	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, &data, DM_FOREACH_NOP);
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
 }
 
 /* ************** DRAW MESH ****************** */
@@ -8092,9 +8108,16 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
 	const char *axis_str[3] = {"px", "py", "pz"};
 	float mat[4][4];
 
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+	if (ob_wire_col) immUniformColor3ubv(ob_wire_col);
+
 	eul_to_mat4(mat, &data->axX);
 	glLineWidth(4.0f);
 	setlinestyle(2);
+
+	immBegin(GL_LINES, 6);
 	for (int axis = 0; axis < 3; axis++) {
 		float dir[3] = {0, 0, 0};
 		float v[3];
@@ -8102,12 +8125,10 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
 		copy_v3_v3(v, &data->pivX);
 
 		dir[axis] = 1.0f;
-		glBegin(GL_LINES);
 		mul_m4_v3(mat, dir);
 		add_v3_v3(v, dir);
-		glVertex3fv(&data->pivX);
-		glVertex3fv(v);
-		glEnd();
+		immVertex3fv(pos, &data->pivX);
+		immVertex3fv(pos, v);
 
 		/* when const color is set wirecolor is NULL - we could get the current color but
 		 * with selection and group instancing its not needed to draw the text */
@@ -8115,8 +8136,12 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
 			view3d_cached_text_draw_add(v, axis_str[axis], 2, 0, V3D_CACHE_TEXT_ASCII, ob_wire_col);
 		}
 	}
+	immEnd();
 
 	setlinestyle(0);
+	glLineWidth(1.0f);
+
+	immUnbindProgram();
 }
 
 void draw_object_wire_color(Scene *scene, SceneLayer *sl, Base *base, unsigned char r_ob_wire_col[4])
@@ -9029,8 +9054,10 @@ static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, const floa
 	MVert *mv = &data->mvert[index];
 
 	if (!(mv->flag & ME_HIDE)) {
-		GPU_select_index_set(data->offset + index);
-		glVertex3fv(co);
+		int selcol;
+		GPU_select_index_get(data->offset + index, &selcol);
+		immAttrib3ubv(data->col, (unsigned char *)&selcol);
+		immVertex3fv(data->pos, co);
 	}
 }
 
@@ -9041,10 +9068,20 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 	MVert *mvert = me->mvert;
 	data.mvert = mvert;
 	data.offset = offset;
+
+	VertexFormat *format = immVertexFormat();
+	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	data.col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	glBegin(GL_POINTS);
+
+	immBeginAtMost(GL_POINTS, dm->getNumVerts(dm));
 	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
 }
 
 static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3],
@@ -9054,17 +9091,30 @@ static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3]
 	BMVert *eve = BM_vert_at_index(data->bm, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-		GPU_select_index_set(data->offset + index);
-		glVertex3fv(co);
+		int selcol;
+		GPU_select_index_get(data->offset + index, &selcol);
+		immAttrib3ubv(data->col, (unsigned char *)&selcol);
+		immVertex3fv(data->pos, co);
 	}
 }
 static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
-	drawBMOffset_userData data = {em->bm, offset};
+	drawBMOffset_userData data;
+	data.bm = em->bm;
+	data.offset = offset;
+	VertexFormat *format = immVertexFormat();
+	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	data.col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	glBegin(GL_POINTS);
+
+	immBeginAtMost(GL_POINTS, em->bm->totvert);
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
 }
 
 static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
@@ -9082,7 +9132,10 @@ static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 }
 static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
-	drawBMOffset_userData data = {em->bm, offset};
+	drawBMOffset_userData data;
+	data.bm = em->bm;
+	data.offset = offset;
+
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, &data);
 }
 
@@ -9116,12 +9169,14 @@ static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int inde
 
 static void bbs_mesh_solid__drawCenter(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
+	drawBMOffset_userData *data = (drawBMOffset_userData *)userData;
 	BMFace *efa = BM_face_at_index(userData, index);
 
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		GPU_select_index_set(index + 1);
-
-		glVertex3fv(cent);
+		int selcol;
+		GPU_select_index_get(index + 1, &selcol);
+		immAttrib3ubv(data->col, (unsigned char *)&selcol);
+		immVertex3fv(data->pos, cent);
 	}
 }
 
@@ -9135,11 +9190,22 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, NULL, NULL, em->bm, DM_DRAW_SKIP_HIDDEN | DM_DRAW_SELECT_USE_EDITMODE);
 
 		if (check_ob_drawface_dot(scene, v3d, ob->dt)) {
+			drawBMOffset_userData data; /* don't use offset */
+			data.bm = em->bm;
+			VertexFormat *format = immVertexFormat();
+			data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			data.col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
 			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
 
 			glBegin(GL_POINTS);
-			dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, em->bm, DM_FOREACH_NOP);
-			glEnd();
+			immBeginAtMost(GL_POINTS, em->bm->totface);
+			dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, &data, DM_FOREACH_NOP);
+			immEnd();
+
+			immUnbindProgram();
 		}
 
 	}
