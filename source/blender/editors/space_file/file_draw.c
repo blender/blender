@@ -460,15 +460,18 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 	int i;
 	int sy;
 
-	UI_ThemeColorShade(TH_BACK, -7);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColorShade(TH_BACK, -7);
 
 	/* alternating flat shade background */
 	for (i = 0; (i <= layout->rows); i += 2) {
 		sy = (int)v2d->cur.ymax - i * (layout->tile_h + 2 * layout->tile_border_y) - layout->tile_border_y;
 
-		glRectf(v2d->cur.xmin, (float)sy, v2d->cur.xmax, (float)(sy + layout->tile_h + 2 * layout->tile_border_y));
-		
+		immRectf(pos, v2d->cur.xmin, (float)sy, v2d->cur.xmax, (float)(sy + layout->tile_h + 2 * layout->tile_border_y));
 	}
+
+	immUnbindProgram();
 }
 
 static void draw_dividers(FileLayout *layout, View2D *v2d)
@@ -606,9 +609,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
 
 		BLI_join_dirfile(path, sizeof(path), root, file->relpath);
-
-		UI_ThemeColor4(TH_TEXT);
-
 
 		if (!(file_selflag & FILE_SEL_EDITING)) {
 			if ((params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ||
