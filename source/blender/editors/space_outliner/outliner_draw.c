@@ -67,9 +67,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
 #include "GPU_immediate.h"
 
 #include "UI_interface.h"
@@ -671,18 +668,22 @@ static void outliner_draw_rnacols(ARegion *ar, int sizex)
 	if (miny < v2d->tot.ymin) miny = v2d->tot.ymin;
 
 	glLineWidth(1.0f);
-	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
-	/* draw column separator lines */
-	fdrawline((float)sizex,
-	          v2d->cur.ymax,
-	          (float)sizex,
-	          miny);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
 
-	fdrawline((float)sizex + OL_RNA_COL_SIZEX,
-	          v2d->cur.ymax,
-	          (float)sizex + OL_RNA_COL_SIZEX,
-	          miny);
+	immBegin(PRIM_LINES, 4);
+
+	immVertex2f(pos, sizex, v2d->cur.ymax);
+	immVertex2f(pos, sizex, miny);
+
+	immVertex2f(pos, sizex + OL_RNA_COL_SIZEX, v2d->cur.ymax);
+	immVertex2f(pos, sizex + OL_RNA_COL_SIZEX, miny);
+
+	immEnd();
+
+	immUnbindProgram();
 }
 
 static void outliner_draw_rnabuts(uiBlock *block, ARegion *ar, SpaceOops *soops, int sizex, ListBase *lb)
