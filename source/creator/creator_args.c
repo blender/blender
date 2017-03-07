@@ -946,7 +946,7 @@ static int arg_handle_native_pixels_set(int UNUSED(argc), const char **UNUSED(ar
 }
 
 static const char arg_handle_with_borders_doc[] =
-"\n\tForce opening without borders"
+"\n\tForce opening with borders"
 ;
 static int arg_handle_with_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
