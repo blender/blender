@@ -323,7 +323,7 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 		need_free_scheduler = false;
 	}
 
-	TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &state);
+	TaskPool *task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
 
 	calculate_pending_parents(graph, layers);
 

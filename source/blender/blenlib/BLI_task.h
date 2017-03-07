@@ -81,6 +81,7 @@ typedef void (*TaskFreeFunction)(TaskPool *__restrict pool, void *taskdata, int 
 
 TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata);
 TaskPool *BLI_task_pool_create_background(TaskScheduler *scheduler, void *userdata);
+TaskPool *BLI_task_pool_create_suspended(TaskScheduler *scheduler, void *userdata);
 void BLI_task_pool_free(TaskPool *pool);
 
 void BLI_task_pool_push_ex(

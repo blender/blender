@@ -142,6 +142,10 @@ struct TaskPool {
 	volatile bool do_cancel;
 	volatile bool do_work;
 
+	volatile bool is_suspended;
+	ListBase suspended_queue;
+	size_t num_suspended;
+
 	/* If set, this pool may never be work_and_wait'ed, which means TaskScheduler
 	 * has to use its special background fallback thread in case we are in
 	 * single-threaded situation.
@@ -281,11 +285,11 @@ static void task_pool_num_decrease(TaskPool *pool, size_t done)
 	BLI_mutex_unlock(&pool->num_mutex);
 }
 
-static void task_pool_num_increase(TaskPool *pool)
+static void task_pool_num_increase(TaskPool *pool, size_t new)
 {
 	BLI_mutex_lock(&pool->num_mutex);
 
-	pool->num++;
+	pool->num += new;
 	BLI_condition_notify_all(&pool->num_cond);
 
 	BLI_mutex_unlock(&pool->num_mutex);
@@ -495,7 +499,7 @@ int BLI_task_scheduler_num_threads(TaskScheduler *scheduler)
 
 static void task_scheduler_push(TaskScheduler *scheduler, Task *task, TaskPriority priority)
 {
-	task_pool_num_increase(task->pool);
+	task_pool_num_increase(task->pool, 1);
 
 	/* add task to queue */
 	BLI_mutex_lock(&scheduler->queue_mutex);
@@ -536,7 +540,10 @@ static void task_scheduler_clear(TaskScheduler *scheduler, TaskPool *pool)
 
 /* Task Pool */
 
-static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, const bool is_background)
+static TaskPool *task_pool_create_ex(TaskScheduler *scheduler,
+                                     void *userdata,
+                                     const bool is_background,
+                                     const bool is_suspended)
 {
 	TaskPool *pool = MEM_mallocN(sizeof(TaskPool), "TaskPool");
 
@@ -556,6 +563,9 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
 	pool->num = 0;
 	pool->do_cancel = false;
 	pool->do_work = false;
+	pool->is_suspended = is_suspended;
+	pool->num_suspended = 0;
+	pool->suspended_queue.first = pool->suspended_queue.last = NULL;
 	pool->run_in_background = is_background;
 
 	BLI_mutex_init(&pool->num_mutex);
@@ -596,7 +606,7 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
  */
 TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata)
 {
-	return task_pool_create_ex(scheduler, userdata, false);
+	return task_pool_create_ex(scheduler, userdata, false, false);
 }
 
 /**
@@ -611,7 +621,17 @@ TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata)
  */
 TaskPool *BLI_task_pool_create_background(TaskScheduler *scheduler, void *userdata)
 {
-	return task_pool_create_ex(scheduler, userdata, true);
+	return task_pool_create_ex(scheduler, userdata, true, false);
+}
+
+/**
+ * Similar to BLI_task_pool_create() but does not schedule any tasks for execution
+ * for until BLI_task_pool_work_and_wait() is called. This helps reducing therading
+ * overhead when pushing huge amount of small initial tasks from the main thread.
+ */
+TaskPool *BLI_task_pool_create_suspended(TaskScheduler *scheduler, void *userdata)
+{
+	return task_pool_create_ex(scheduler, userdata, false, true);
 }
 
 void BLI_task_pool_free(TaskPool *pool)
@@ -653,6 +673,12 @@ static void task_pool_push(
 	task->freedata = freedata;
 	task->pool = pool;
 
+	if (pool->is_suspended) {
+		BLI_addhead(&pool->suspended_queue, task);
+		atomic_fetch_and_add_z(&pool->num_suspended, 1);
+		return;
+	}
+
 	if (thread_id != -1 &&
 	    (thread_id != pool->thread_id || pool->do_work))
 	{
@@ -692,6 +718,20 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 {
 	TaskThreadLocalStorage *tls = get_task_tls(pool, pool->thread_id);
 	TaskScheduler *scheduler = pool->scheduler;
+
+	if (atomic_fetch_and_and_uint8((uint8_t*)&pool->is_suspended, 0)) {
+		if (pool->num_suspended) {
+			task_pool_num_increase(pool, pool->num_suspended);
+			BLI_mutex_lock(&scheduler->queue_mutex);
+
+			BLI_movelisttolist(&scheduler->queue, &pool->suspended_queue);
+
+			BLI_condition_notify_all(&scheduler->queue_cond);
+			BLI_mutex_unlock(&scheduler->queue_mutex);
+
+		}
+		pool->is_suspended = false;
+	}
 
 	pool->do_work = true;
 
@@ -745,6 +785,8 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 	}
 
 	BLI_mutex_unlock(&pool->num_mutex);
+
+	handle_local_queue(tls, pool->thread_id);
 }
 
 void BLI_task_pool_cancel(TaskPool *pool)
