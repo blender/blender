@@ -97,6 +97,8 @@ typedef struct SplitData {
 /* TODO: find a way to get access to kg here */
 ccl_device_inline size_t split_data_buffer_size(ccl_global void *kg, size_t num_elements)
 {
+	(void)kg;  /* Unused on CPU. */
+
 	size_t size = 0;
 #define SPLIT_DATA_ENTRY(type, name, num) + align_up(num_elements * num * sizeof(type), 16)
 	size = size SPLIT_DATA_ENTRIES;
@@ -111,6 +113,8 @@ ccl_device_inline void split_data_init(ccl_global void *kg,
                                        ccl_global void *data,
                                        ccl_global char *ray_state)
 {
+	(void)kg;  /* Unused on CPU. */
+
 	ccl_global char *p = (ccl_global char*)data;
 
 #define SPLIT_DATA_ENTRY(type, name, num) \
