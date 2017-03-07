@@ -1872,10 +1872,8 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 		drawflags = manipulator_selectbuf(sa, ar, event->mval, 0.2f * (float)U.tw_hotspot);
 		if (drawflags == 0) drawflags = val;
 
-		/* We are not doing translation but were requested to do planar constraints.
-		 * This wouldn't work, so we give other keymaps a chance.
-		 */
-		if ((drawflags & MAN_TRANS_C) == 0 && use_planar) {
+		/* Planar constraint doesn't make sense for rotation, give other keymaps a chance */
+		if ((drawflags & MAN_ROT_C) && use_planar) {
 			return 0;
 		}
 
