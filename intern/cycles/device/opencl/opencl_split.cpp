@@ -128,9 +128,9 @@ public:
 			/* Keep rendering tiles until done. */
 			while(task->acquire_tile(this, tile)) {
 				split_kernel->path_trace(task,
-		                                 tile,
-		                                 kgbuffer,
-		                                 *const_mem_map["__data"]);
+				                         tile,
+				                         kgbuffer,
+				                         *const_mem_map["__data"]);
 
 				/* Complete kernel execution before release tile. */
 				/* This helps in multi-device render;
@@ -284,9 +284,9 @@ public:
 			                0,
 			                kernel_globals,
 			                kernel_data,
-							split_data,
+			                split_data,
 			                num_global_elements,
-							ray_state,
+			                ray_state,
 			                rtile.rng_state);
 
 /* TODO(sergey): Avoid map lookup here. */
@@ -311,7 +311,7 @@ public:
 			                use_queues_flag,
 			                work_pool_wgs,
 			                rtile.num_samples,
-							rtile.buffer);
+			                rtile.buffer);
 
 		/* Enqueue ckPathTraceKernel_data_init kernel. */
 		device->ciErr = clEnqueueNDRangeKernel(device->cqCommandQueue,

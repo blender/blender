@@ -511,8 +511,8 @@ public:
 	{
 		if(name) {
 			VLOG(1) << "Buffer allocate: " << name << ", "
-				    << string_human_readable_number(mem.memory_size()) << " bytes. ("
-				    << string_human_readable_size(mem.memory_size()) << ")";
+			        << string_human_readable_number(mem.memory_size()) << " bytes. ("
+			        << string_human_readable_size(mem.memory_size()) << ")";
 		}
 
 		cuda_push_context();
@@ -1459,9 +1459,9 @@ public:
 		cuda_assert(cuFuncSetCacheConfig(func, CU_FUNC_CACHE_PREFER_L1));
 
 		cuda_assert(cuLaunchKernel(func,
-			                       xblocks , yblocks, 1, /* blocks */
-			                       xthreads, ythreads, 1, /* threads */
-			                       0, 0, args, 0));
+		                           xblocks , yblocks, 1, /* blocks */
+		                           xthreads, ythreads, 1, /* threads */
+		                           0, 0, args, 0));
 
 		device->cuda_pop_context();
 
@@ -1498,9 +1498,9 @@ size_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory& 
 	cuda_assert(cuModuleGetFunction(&state_buffer_size, device->cuModule, "kernel_cuda_state_buffer_size"));
 
 	cuda_assert(cuLaunchKernel(state_buffer_size,
-		                       1, 1, 1,
-		                       1, 1, 1,
-		                       0, 0, &args, 0));
+	                           1, 1, 1,
+	                           1, 1, 1,
+	                           0, 0, &args, 0));
 
 	device->cuda_pop_context();
 

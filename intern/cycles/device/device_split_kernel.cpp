@@ -192,16 +192,15 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		device->mem_zero(split_data);
 
 		if(!enqueue_split_kernel_data_init(KernelDimensions(global_size, local_size),
-		                                           subtile,
-		                                           num_global_elements,
-		                                           kgbuffer,
-		                                           kernel_data,
-		                                           split_data,
-		                                           ray_state,
-		                                           queue_index,
-		                                           use_queues_flag,
-		                                           work_pool_wgs
-		                                           ))
+		                                   subtile,
+		                                   num_global_elements,
+		                                   kgbuffer,
+		                                   kernel_data,
+		                                   split_data,
+		                                   ray_state,
+		                                   queue_index,
+		                                   use_queues_flag,
+		                                   work_pool_wgs))
 		{
 			return false;
 		}

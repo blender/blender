@@ -236,8 +236,8 @@ public:
 	{
 		if(name) {
 			VLOG(1) << "Buffer allocate: " << name << ", "
-				    << string_human_readable_number(mem.memory_size()) << " bytes. ("
-				    << string_human_readable_size(mem.memory_size()) << ")";
+			        << string_human_readable_number(mem.memory_size()) << " bytes. ("
+			        << string_human_readable_size(mem.memory_size()) << ")";
 		}
 
 		mem.device_pointer = mem.data_pointer;
@@ -753,20 +753,20 @@ bool CPUSplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim,
                                                     device_memory& work_pool_wgs)
 {
 	typedef void(*data_init_t)(KernelGlobals *kg,
-                               ccl_constant KernelData *data,
-                               ccl_global void *split_data_buffer,
-                               int num_elements,
-                               ccl_global char *ray_state,
-                               ccl_global uint *rng_state,
-                               int start_sample,
-                               int end_sample,
-                               int sx, int sy, int sw, int sh, int offset, int stride,
-                               ccl_global int *Queue_index,
-                               int queuesize,
-                               ccl_global char *use_queues_flag,
-                               ccl_global unsigned int *work_pool_wgs,
-                               unsigned int num_samples,
-                               ccl_global float *buffer);
+	                           ccl_constant KernelData *data,
+	                           ccl_global void *split_data_buffer,
+	                           int num_elements,
+	                           ccl_global char *ray_state,
+	                           ccl_global uint *rng_state,
+	                           int start_sample,
+	                           int end_sample,
+	                           int sx, int sy, int sw, int sh, int offset, int stride,
+	                           ccl_global int *Queue_index,
+	                           int queuesize,
+	                           ccl_global char *use_queues_flag,
+	                           ccl_global unsigned int *work_pool_wgs,
+	                           unsigned int num_samples,
+	                           ccl_global float *buffer);
 
 	data_init_t data_init;
 
@@ -812,25 +812,25 @@ bool CPUSplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim,
 			kg->global_id = make_int2(x, y);
 
 			data_init((KernelGlobals*)kernel_globals.device_pointer,
-					  (KernelData*)data.device_pointer,
-					  (void*)split_data.device_pointer,
-					  num_global_elements,
-					  (char*)ray_state.device_pointer,
-					  (uint*)rtile.rng_state,
-					  rtile.start_sample,
-					  rtile.start_sample + rtile.num_samples,
-					  rtile.x,
-					  rtile.y,
-					  rtile.w,
-					  rtile.h,
-					  rtile.offset,
-					  rtile.stride,
-					  (int*)queue_index.device_pointer,
-					  dim.global_size[0] * dim.global_size[1],
-					  (char*)use_queues_flags.device_pointer,
-					  (uint*)work_pool_wgs.device_pointer,
-					  rtile.num_samples,
-					  (float*)rtile.buffer);
+			          (KernelData*)data.device_pointer,
+			          (void*)split_data.device_pointer,
+			          num_global_elements,
+			          (char*)ray_state.device_pointer,
+			          (uint*)rtile.rng_state,
+			          rtile.start_sample,
+			          rtile.start_sample + rtile.num_samples,
+			          rtile.x,
+			          rtile.y,
+			          rtile.w,
+			          rtile.h,
+			          rtile.offset,
+			          rtile.stride,
+			          (int*)queue_index.device_pointer,
+			          dim.global_size[0] * dim.global_size[1],
+			          (char*)use_queues_flags.device_pointer,
+			          (uint*)work_pool_wgs.device_pointer,
+			          rtile.num_samples,
+			          (float*)rtile.buffer);
 		}
 	}
 

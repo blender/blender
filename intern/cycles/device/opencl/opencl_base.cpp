@@ -336,14 +336,14 @@ void OpenCLDeviceBase::mem_zero(device_memory& mem)
 				kernel_set_args(ckZeroBuffer, 0, d_buffer, d_size, d_offset);
 
 				ciErr = clEnqueueNDRangeKernel(cqCommandQueue,
-						                       ckZeroBuffer,
-						                       2,
-						                       NULL,
-						                       global_size,
-						                       NULL,
-						                       0,
-						                       NULL,
-						                       NULL);
+				                               ckZeroBuffer,
+				                               2,
+				                               NULL,
+				                               global_size,
+				                               NULL,
+				                               0,
+				                               NULL,
+				                               NULL);
 				opencl_assert_err(ciErr, "clEnqueueNDRangeKernel");
 
 				d_offset += d_size;
@@ -363,13 +363,13 @@ void OpenCLDeviceBase::mem_zero(device_memory& mem)
 			}
 
 			opencl_assert(clEnqueueWriteBuffer(cqCommandQueue,
-                                   CL_MEM_PTR(mem.device_pointer),
-                                   CL_TRUE,
-                                   0,
-                                   mem.memory_size(),
-                                   zero,
-                                   0,
-                                   NULL, NULL));
+			                                   CL_MEM_PTR(mem.device_pointer),
+			                                   CL_TRUE,
+			                                   0,
+			                                   mem.memory_size(),
+			                                   zero,
+			                                   0,
+			                                   NULL, NULL));
 
 			if(!mem.data_pointer) {
 				util_aligned_free(zero);

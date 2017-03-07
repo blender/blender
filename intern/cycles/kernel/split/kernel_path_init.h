@@ -50,9 +50,9 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 
 	/* Get pixel and tile position associated with the work. */
 	get_work_pixel_tile_position(kg, &pixel_x, &pixel_y,
-	                        &tile_x, &tile_y,
-	                        work_index,
-	                        ray_index);
+	                             &tile_x, &tile_y,
+	                             work_index,
+	                             ray_index);
 	kernel_split_state.work_array[ray_index] = work_index;
 
 	ccl_global uint *rng_state = kernel_split_params.rng_state;
