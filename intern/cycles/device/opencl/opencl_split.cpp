@@ -77,16 +77,18 @@ public:
 	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features,
 	                          vector<OpenCLDeviceBase::OpenCLProgram*> &programs)
 	{
+		bool single_program = OpenCLInfo::use_single_program();
 		program_data_init = OpenCLDeviceBase::OpenCLProgram(this,
-		                                  "split_data_init",
-		                                  "kernel_data_init.cl",
+		                                  single_program ? "split" : "split_data_init",
+		                                  single_program ? "kernel_split.cl" : "kernel_data_init.cl",
 		                                  get_build_options(this, requested_features));
+
 		program_data_init.add_kernel(ustring("path_trace_data_init"));
 		programs.push_back(&program_data_init);
 
 		program_state_buffer_size = OpenCLDeviceBase::OpenCLProgram(this,
-		                                  "split_state_buffer_size",
-		                                  "kernel_state_buffer_size.cl",
+		                                  single_program ? "split" : "split_state_buffer_size",
+		                                  single_program ? "kernel_split.cl" : "kernel_state_buffer_size.cl",
 		                                  get_build_options(this, requested_features));
 		program_state_buffer_size.add_kernel(ustring("path_trace_state_buffer_size"));
 		programs.push_back(&program_state_buffer_size);
@@ -207,10 +209,13 @@ public:
 	{
 		OpenCLSplitKernelFunction* kernel = new OpenCLSplitKernelFunction(device);
 
-		kernel->program = OpenCLDeviceBase::OpenCLProgram(device,
-		                                "split_" + kernel_name,
-		                                "kernel_" + kernel_name + ".cl",
-		                                get_build_options(device, requested_features));
+		bool single_program = OpenCLInfo::use_single_program();
+		kernel->program =
+			OpenCLDeviceBase::OpenCLProgram(device,
+			                                single_program ? "split" : "split_" + kernel_name,
+			                                single_program ? "kernel_split.cl" : "kernel_" + kernel_name + ".cl",
+			                                get_build_options(device, requested_features));
+
 		kernel->program.add_kernel(ustring("path_trace_" + kernel_name));
 		kernel->program.load();
 

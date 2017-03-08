@@ -77,7 +77,8 @@ void DebugFlags::CUDA::reset()
 DebugFlags::OpenCL::OpenCL()
   : device_type(DebugFlags::OpenCL::DEVICE_ALL),
     kernel_type(DebugFlags::OpenCL::KERNEL_DEFAULT),
-    debug(false)
+    debug(false),
+    single_program(false)
 {
 	reset();
 }
@@ -117,6 +118,7 @@ void DebugFlags::OpenCL::reset()
 	}
 	/* Initialize other flags from environment variables. */
 	debug = (getenv("CYCLES_OPENCL_DEBUG") != NULL);
+	single_program = (getenv("CYCLES_OPENCL_SINGLE_PROGRAM") != NULL);
 }
 
 DebugFlags::DebugFlags()
@@ -179,9 +181,10 @@ std::ostream& operator <<(std::ostream &os,
 			break;
 	}
 	os << "OpenCL flags:\n"
-	   << "  Device type : " << opencl_device_type << "\n"
-	   << "  Kernel type : " << opencl_kernel_type << "\n"
-	   << "  Debug       : " << string_from_bool(debug_flags.opencl.debug)
+	   << "  Device type    : " << opencl_device_type << "\n"
+	   << "  Kernel type    : " << opencl_kernel_type << "\n"
+	   << "  Debug          : " << string_from_bool(debug_flags.opencl.debug) << "\n"
+	   << "  Signle program : " << string_from_bool(debug_flags.opencl.single_program)
 	   << "\n";
 	return os;
 }

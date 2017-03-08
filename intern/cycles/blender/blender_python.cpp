@@ -106,6 +106,7 @@ bool debug_flags_sync_from_scene(BL::Scene b_scene)
 	}
 	/* Synchronize other OpenCL flags. */
 	flags.opencl.debug = get_boolean(cscene, "debug_use_opencl_debug");
+	flags.opencl.single_program = get_boolean(cscene, "debug_opencl_kernel_single_program");
 	return flags.opencl.device_type != opencl_device_type ||
 	       flags.opencl.kernel_type != opencl_kernel_type;
 }

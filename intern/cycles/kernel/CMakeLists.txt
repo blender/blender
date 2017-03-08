@@ -16,6 +16,7 @@ set(SRC
 	kernels/cpu/kernel_split.cpp
 	kernels/opencl/kernel.cl
 	kernels/opencl/kernel_state_buffer_size.cl
+	kernels/opencl/kernel_split.cl
 	kernels/opencl/kernel_data_init.cl
 	kernels/opencl/kernel_path_init.cl
 	kernels/opencl/kernel_queue_enqueue.cl
@@ -413,6 +414,7 @@ endif()
 
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_state_buffer_size.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_split.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_data_init.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_path_init.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_queue_enqueue.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)

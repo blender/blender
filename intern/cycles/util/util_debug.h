@@ -112,6 +112,9 @@ public:
 
 		/* Use debug version of the kernel. */
 		bool debug;
+
+		/* Use single program */
+		bool single_program;
 	};
 
 	/* Get instance of debug flags registry. */
