@@ -54,6 +54,17 @@
 #define ccl_restrict __restrict__
 #define ccl_align(n) __align__(n)
 
+/* No assert supported for CUDA */
+
+#define kernel_assert(cond)
+
+/* Types */
+
+#include "util_half.h"
+#include "util_types.h"
+
+/* Work item functions */
+
 ccl_device_inline uint ccl_local_id(uint d)
 {
 	switch(d) {
@@ -97,15 +108,6 @@ ccl_device_inline uint ccl_num_groups(uint d)
 		default: return 0;
 	}
 }
-
-/* No assert supported for CUDA */
-
-#define kernel_assert(cond)
-
-/* Types */
-
-#include "util_half.h"
-#include "util_types.h"
 
 /* Textures */
 
