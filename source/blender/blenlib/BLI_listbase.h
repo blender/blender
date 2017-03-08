@@ -76,6 +76,7 @@ int  BLI_listbase_count(const struct ListBase *listbase) ATTR_WARN_UNUSED_RESULT
 void BLI_freelinkN(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 
 void BLI_listbase_swaplinks(struct ListBase *listbase, void *vlinka, void *vlinkb) ATTR_NONNULL(1, 2);
+void BLI_listbases_swaplinks(struct ListBase *listbasea, struct ListBase *listbaseb, void *vlinka, void *vlinkb) ATTR_NONNULL(2, 3);
 
 void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL(1, 2);
 void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src) ATTR_NONNULL(1, 2);
