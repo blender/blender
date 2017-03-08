@@ -53,6 +53,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "GPU_select.h"
+
 #include "armature_intern.h"
 
 /* utility macros for storing a temp int in the bone (selection flag) */
@@ -275,6 +277,19 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 }
 
+/* utility function for get_nearest_editbonepoint */
+static int selectbuffer_ret_hits_12(unsigned int *UNUSED(buffer), const int hits12)
+{
+	return hits12;
+}
+
+static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits12, const int hits5)
+{
+	const int offs = 4 * hits12;
+	memcpy(buffer, buffer + offs, 4 * hits5 * sizeof(unsigned int));
+	return hits5;
+}
+
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
 static EditBone *get_nearest_editbonepoint(
@@ -289,7 +304,8 @@ static EditBone *get_nearest_editbonepoint(
 	unsigned int buffer[MAXPICKBUF];
 	unsigned int hitresult, besthitresult = BONESEL_NOSEL;
 	int i, mindep = 5;
-	short hits;
+	int hits12, hits5 = 0;
+
 	static int last_mval[2] = {-100, -100};
 
 	/* find the bone after the current active bone, so as to bump up its chances in selection.
@@ -322,19 +338,41 @@ static EditBone *get_nearest_editbonepoint(
 		}
 	}
 
+	/* matching logic from 'mixed_bones_object_selectbuffer' */
 	const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
+	int hits = 0;
 
-	/* TODO: select larger region first (so we can use GPU_select_cache) */
-	BLI_rcti_init_pt_radius(&rect, mval, 5);
-	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
+	/* we _must_ end cache before return, use 'goto cache_end' */
+	GPU_select_cache_begin();
 
-	if (hits == 0) {
-		BLI_rcti_init_pt_radius(&rect, mval, 12);
-		hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
+	BLI_rcti_init_pt_radius(&rect, mval, 12);
+	hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
+	if (hits12 == 1) {
+		hits = selectbuffer_ret_hits_12(buffer, hits12);
+		goto cache_end;
 	}
+	else if (hits12 > 0) {
+		int offs;
+
+		offs = 4 * hits12;
+		BLI_rcti_init_pt_radius(&rect, mval, 5);
+		hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
+
+		if (hits5 == 1) {
+			hits = selectbuffer_ret_hits_5(buffer, hits12, hits5);
+			goto cache_end;
+		}
+
+		if      (hits5 > 0) { hits = selectbuffer_ret_hits_5(buffer,  hits12, hits5); goto cache_end; }
+		else                { hits = selectbuffer_ret_hits_12(buffer, hits12); goto cache_end; }
+	}
+
+cache_end:
+	GPU_select_cache_end();
+
 	/* See if there are any selected bones in this group */
 	if (hits > 0) {
-		
+
 		if (hits == 1) {
 			if (!(buffer[3] & BONESEL_NOSEL))
 				besthitresult = buffer[3];

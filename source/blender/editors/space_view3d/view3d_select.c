@@ -1211,7 +1211,6 @@ static int mixed_bones_object_selectbuffer(
         bool *r_do_nearest)
 {
 	rcti rect;
-	int offs;
 	int hits15, hits9 = 0, hits5 = 0;
 	bool has_bones15 = false, has_bones9 = false, has_bones5 = false;
 	static int last_mval[2] = {-100, -100};
@@ -1253,6 +1252,7 @@ static int mixed_bones_object_selectbuffer(
 		goto finally;
 	}
 	else if (hits15 > 0) {
+		int offs;
 		has_bones15 = selectbuffer_has_bones(buffer, hits15);
 
 		offs = 4 * hits15;
