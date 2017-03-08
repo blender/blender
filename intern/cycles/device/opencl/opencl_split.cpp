@@ -114,8 +114,6 @@ public:
 				ccl_global type *name;
 #include "kernel_textures.h"
 #undef KERNEL_TEX
-				void *sd_input;
-				void *isect_shadow;
 				SplitData split_data;
 				SplitParams split_param_data;
 			} KernelGlobals;
