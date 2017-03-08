@@ -760,6 +760,11 @@ static eOLDrawState tree_element_active_collection(
 	if (set == OL_SETSEL_NONE) {
 		LayerCollection *active = CTX_data_layer_collection(C);
 
+		/* sometimes the renderlayer has no LayerCollection at all */
+		if (active == NULL) {
+			return OL_DRAWSEL_NONE;
+		}
+
 		if ((tselem->type == TSE_SCENE_COLLECTION && active->scene_collection == te->directdata) ||
 		    (tselem->type == TSE_LAYER_COLLECTION && active == te->directdata))
 		{
