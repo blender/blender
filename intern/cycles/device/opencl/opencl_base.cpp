@@ -82,9 +82,10 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool backgrou
 	cpPlatform = platform_device.platform_id;
 	cdDevice = platform_device.device_id;
 	platform_name = platform_device.platform_name;
+	device_name = platform_device.device_name;
 	VLOG(2) << "Creating new Cycles device for OpenCL platform "
 	        << platform_name << ", device "
-	        << platform_device.device_name << ".";
+	        << device_name << ".";
 
 	{
 		/* try to use cached context */
@@ -191,6 +192,8 @@ string OpenCLDeviceBase::device_md5_hash(string kernel_custom_build_options)
 
 bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_features)
 {
+	VLOG(2) << "Loading kernels for platform " << platform_name
+	        << ", device " << device_name << ".";
 	/* Verify if device was initialized. */
 	if(!device_initialized) {
 		fprintf(stderr, "OpenCL: failed to initialize device.\n");

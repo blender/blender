@@ -248,6 +248,7 @@ public:
 
 	bool device_initialized;
 	string platform_name;
+	string device_name;
 
 	bool opencl_error(cl_int err);
 	void opencl_error(const string& message);
