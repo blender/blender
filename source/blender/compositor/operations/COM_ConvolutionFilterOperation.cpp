@@ -107,6 +107,12 @@ void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, voi
 	output[1] = output[1] * value[0] + in2[1] * mval;
 	output[2] = output[2] * value[0] + in2[2] * mval;
 	output[3] = output[3] * value[0] + in2[3] * mval;
+
+	/* Make sure we don't return negative color. */
+	output[0] = max(output[0], 0.0f);
+	output[1] = max(output[1], 0.0f);
+	output[2] = max(output[2], 0.0f);
+	output[3] = max(output[3], 0.0f);
 }
 
 bool ConvolutionFilterOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
