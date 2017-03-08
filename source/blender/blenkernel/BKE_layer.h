@@ -66,7 +66,7 @@ void BKE_scene_layer_engine_set(struct SceneLayer *sl, const char *engine);
 
 void BKE_scene_layer_selected_objects_tag(struct SceneLayer *sl, const int tag);
 
-struct SceneLayer *BKE_scene_layer_find_from_collection(struct Scene *scene, struct LayerCollection *lc);
+struct SceneLayer *BKE_scene_layer_find_from_collection(const struct Scene *scene, struct LayerCollection *lc);
 struct Base *BKE_scene_layer_base_find(struct SceneLayer *sl, struct Object *ob);
 void BKE_scene_layer_base_deselect_all(struct SceneLayer *sl);
 void BKE_scene_layer_base_select(struct SceneLayer *sl, struct Base *selbase);
@@ -83,9 +83,7 @@ struct LayerCollection *BKE_layer_collection_active(struct SceneLayer *sl);
 
 int BKE_layer_collection_count(struct SceneLayer *sl);
 
-int BKE_layer_collection_findindex(struct SceneLayer *sl, struct LayerCollection *lc);
-bool BKE_layer_collection_reinsert_after(const struct Scene *scene, struct SceneLayer *sl,
-                                         struct LayerCollection *lc_reinsert, struct LayerCollection *lc_after);
+int BKE_layer_collection_findindex(struct SceneLayer *sl, const struct LayerCollection *lc);
 
 bool BKE_layer_collection_move_above(const struct Scene *scene, struct LayerCollection *lc_dst, struct LayerCollection *lc_src);
 bool BKE_layer_collection_move_below(const struct Scene *scene, struct LayerCollection *lc_dst, struct LayerCollection *lc_src);

@@ -192,7 +192,7 @@ static bool find_scene_collection_in_scene_collections(ListBase *lb, const Layer
 /**
  * Find the SceneLayer a LayerCollection belongs to
  */
-SceneLayer *BKE_scene_layer_find_from_collection(Scene *scene, LayerCollection *lc)
+SceneLayer *BKE_scene_layer_find_from_collection(const Scene *scene, LayerCollection *lc)
 {
 	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
 		if (find_scene_collection_in_scene_collections(&sl->layer_collections, lc)) {
@@ -465,7 +465,7 @@ int BKE_layer_collection_count(SceneLayer *sl)
 /**
  * Recursively get the index for a given collection
  */
-static int index_from_collection(ListBase *lb, LayerCollection *lc, int *i)
+static int index_from_collection(ListBase *lb, const LayerCollection *lc, int *i)
 {
 	for (LayerCollection *lcol = lb->first; lcol; lcol = lcol->next) {
 		if (lcol == lc) {
@@ -485,7 +485,7 @@ static int index_from_collection(ListBase *lb, LayerCollection *lc, int *i)
 /**
  * Return -1 if not found
  */
-int BKE_layer_collection_findindex(SceneLayer *sl, LayerCollection *lc)
+int BKE_layer_collection_findindex(SceneLayer *sl, const LayerCollection *lc)
 {
 	int i = 0;
 	return index_from_collection(&sl->layer_collections, lc, &i);
@@ -510,6 +510,7 @@ static ListBase *layer_collection_listbase_find(ListBase *lb, LayerCollection *l
 	return NULL;
 }
 
+#if 0
 /**
  * Lookup the listbase that contains \a sc.
  */
@@ -528,50 +529,7 @@ static ListBase *scene_collection_listbase_find(ListBase *lb, SceneCollection *s
 
 	return NULL;
 }
-
-/**
- * Move \a lc_reinsert so that it follows \a lc_after. Both have to be stored in \a sl.
- * \param lc_after: Can be NULL to reinsert \a lc_after as first collection of its own list.
- */
-bool BKE_layer_collection_reinsert_after(
-        const Scene *scene, SceneLayer *sl, LayerCollection *lc_reinsert, LayerCollection *lc_after)
-{
-	/* TODO this function probably needs to be rewritten completely to support all cases
-	 * (reinserting master collection, reinsert into different hierarchy levels, etc) */
-	TODO_LAYER_OPERATORS;
-#if 0
-	SceneCollection *sc_master = BKE_collection_master(scene);
-	SceneCollection *sc_reinsert = lc_reinsert->scene_collection;
-	ListBase *lc_reinsert_lb = layer_collection_listbase_find(&sl->layer_collections, lc_reinsert);
-	ListBase *sc_reinsert_lb = scene_collection_listbase_find(&sc_master->scene_collections, sc_reinsert);
-
-	BLI_assert(BLI_findindex(lc_reinsert_lb, lc_reinsert) > -1);
-	BLI_assert(BLI_findindex(sc_reinsert_lb, sc_reinsert) > -1);
-	BLI_remlink(lc_reinsert_lb, lc_reinsert);
-	BLI_remlink(sc_reinsert_lb, sc_reinsert);
-
-	/* insert after lc_after or */
-	if (lc_after == NULL) {
-		BLI_addhead(lc_reinsert_lb, lc_reinsert);
-		BLI_addhead(sc_reinsert_lb, sc_reinsert);
-	}
-	else {
-		SceneCollection *sc_after = lc_after->scene_collection;
-		ListBase *lc_after_lb = layer_collection_listbase_find(&sl->layer_collections, lc_after);
-		ListBase *sc_after_lb = scene_collection_listbase_find(&sc_master->scene_collections, sc_after);
-
-		BLI_insertlinkafter(lc_after_lb, lc_after, lc_reinsert);
-		BLI_insertlinkafter(sc_after_lb, sc_after, sc_reinsert);
-	}
-
-	BKE_scene_layer_base_flag_recalculate(sl);
-	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc_reinsert);
-#else
-	UNUSED_VARS(scene, sl, lc_reinsert, lc_after);
-	UNUSED_VARS(layer_collection_listbase_find, scene_collection_listbase_find);
-	return false;
 #endif
-}
 
 /* ---------------------------------------------------------------------- */
 /* Outliner drag and drop */
@@ -590,28 +548,233 @@ bool BKE_layer_collection_reinsert_after(
  * \param lc_src LayerCollection to nest into \a lc_dst
  * \param lc_dst LayerCollection to have \a lc_src inserted into
  */
-bool BKE_layer_collection_move_into(const Scene *scene, LayerCollection *lc_src, LayerCollection *lc_dst)
+
+static void layer_collection_swap(
+        SceneLayer *sl, ListBase *lb_a, ListBase *lb_b,
+        LayerCollection *lc_a, LayerCollection *lc_b)
 {
-	/* TODO this is missing */
-	TODO_LAYER_OPERATORS;
-	UNUSED_VARS(scene, lc_src, lc_dst);
-	return false;
+	if (lb_a == NULL) {
+		lb_a = layer_collection_listbase_find(&sl->layer_collections, lc_a);
+	}
+
+	if (lb_b == NULL) {
+		lb_b = layer_collection_listbase_find(&sl->layer_collections, lc_b);
+	}
+
+	BLI_assert(lb_a);
+	BLI_assert(lb_b);
+
+	BLI_listbases_swaplinks(lb_a, lb_b, lc_a, lc_b);
 }
 
+/**
+ * Move \a lc_src into \a lc_dst. Both have to be stored in \a sl.
+ * If \a lc_src is directly linked to the SceneLayer it's unlinked
+ */
+bool BKE_layer_collection_move_into(const Scene *scene, LayerCollection *lc_dst, LayerCollection *lc_src)
+{
+	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, lc_src);
+	bool is_directly_linked = false;
+
+	if ((!sl) || (sl != BKE_scene_layer_find_from_collection(scene, lc_dst))) {
+		return false;
+	}
+
+	/* Collection is already where we wanted it to be */
+	if (lc_dst->layer_collections.last == lc_src) {
+		return false;
+	}
+
+	/* Collection is already where we want it to be in the scene tree
+	 * but we want to swap it in the layer tree still */
+	if (lc_dst->scene_collection->scene_collections.last == lc_src->scene_collection) {
+		LayerCollection *lc_swap = lc_dst->layer_collections.last;
+		layer_collection_swap(sl, &lc_dst->layer_collections, NULL, lc_dst->layer_collections.last, lc_src);
+
+		if (BLI_findindex(&sl->layer_collections, lc_swap) != -1) {
+			BKE_collection_unlink(sl, lc_swap);
+		}
+		return true;
+	}
+	else {
+		LayerCollection *lc_temp;
+		is_directly_linked = BLI_findindex(&sl->layer_collections, lc_src) != -1;
+
+		if (!is_directly_linked) {
+			/* lc_src will be invalid after BKE_collection_move_into!
+			 * so we swap it with lc_temp to preserve its settings */
+			lc_temp = BKE_collection_link(sl, lc_src->scene_collection);
+			layer_collection_swap(sl, &sl->layer_collections, NULL, lc_temp, lc_src);
+		}
+
+		if (!BKE_collection_move_into(scene, lc_dst->scene_collection, lc_src->scene_collection)) {
+			if (!is_directly_linked) {
+				/* Swap back and remove */
+				layer_collection_swap(sl, NULL, NULL, lc_temp, lc_src);
+				BKE_collection_unlink(sl, lc_temp);
+			}
+			return false;
+		}
+	}
+
+	LayerCollection *lc_new = BLI_findptr(&lc_dst->layer_collections, lc_src->scene_collection, offsetof(LayerCollection, scene_collection));
+	BLI_assert(lc_new);
+	layer_collection_swap(sl, &lc_dst->layer_collections, NULL, lc_new, lc_src);
+
+	/* If it's directly linked, unlink it after the swap */
+	if (BLI_findindex(&sl->layer_collections, lc_new) != -1) {
+		BKE_collection_unlink(sl, lc_new);
+	}
+
+	return true;
+}
+
+/**
+ * Move \a lc_src above \a lc_dst. Both have to be stored in \a sl.
+ * If \a lc_src is directly linked to the SceneLayer it's unlinked
+ */
 bool BKE_layer_collection_move_above(const Scene *scene, LayerCollection *lc_dst, LayerCollection *lc_src)
 {
-	/* TODO this is missing */
-	TODO_LAYER_OPERATORS;
-	UNUSED_VARS(scene, lc_dst, lc_src);
-	return false;
+	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, lc_src);
+	const bool is_directly_linked_src = BLI_findindex(&sl->layer_collections, lc_src) != -1;
+	const bool is_directly_linked_dst = BLI_findindex(&sl->layer_collections, lc_dst) != -1;
+
+	if ((!sl) || (sl != BKE_scene_layer_find_from_collection(scene, lc_dst))) {
+		return false;
+	}
+
+	/* Collection is already where we wanted it to be */
+	if (lc_dst->prev == lc_src) {
+		return false;
+	}
+
+	/* Collection is already where we want it to be in the scene tree
+	 * but we want to swap it in the layer tree still */
+	if (lc_dst->prev && lc_dst->prev->scene_collection == lc_src->scene_collection) {
+		LayerCollection *lc_swap = lc_dst->prev;
+		layer_collection_swap(sl, NULL, NULL, lc_dst->prev, lc_src);
+
+		if (BLI_findindex(&sl->layer_collections, lc_swap) != -1) {
+			BKE_collection_unlink(sl, lc_swap);
+		}
+		return true;
+	}
+	/* We don't allow to move above/below a directly linked collection
+	 * unless the source collection is also directly linked */
+	else if (is_directly_linked_dst) {
+		/* Both directly linked to the SceneLayer, just need to swap */
+		if (is_directly_linked_src) {
+			BLI_listbase_swaplinks(&sl->layer_collections, lc_src, lc_dst);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		LayerCollection *lc_temp;
+
+		if (!is_directly_linked_src) {
+			/* lc_src will be invalid after BKE_collection_move_into!
+			 * so we swap it with lc_temp to preserve its settings */
+			lc_temp = BKE_collection_link(sl, lc_src->scene_collection);
+			layer_collection_swap(sl, &sl->layer_collections, NULL, lc_temp, lc_src);
+		}
+
+		if (!BKE_collection_move_above(scene, lc_dst->scene_collection, lc_src->scene_collection)) {
+			if (!is_directly_linked_src) {
+				/* Swap back and remove */
+				layer_collection_swap(sl, NULL, NULL, lc_temp, lc_src);
+				BKE_collection_unlink(sl, lc_temp);
+			}
+			return false;
+		}
+	}
+
+	LayerCollection *lc_new = lc_dst->prev;
+	BLI_assert(lc_new);
+	layer_collection_swap(sl, NULL, NULL, lc_new, lc_src);
+
+	/* If it's directly linked, unlink it after the swap */
+	if (BLI_findindex(&sl->layer_collections, lc_new) != -1) {
+		BKE_collection_unlink(sl, lc_new);
+	}
+
+	return true;
 }
 
+/**
+ * Move \a lc_src below \a lc_dst. Both have to be stored in \a sl.
+ * If \a lc_src is directly linked to the SceneLayer it's unlinked
+ */
 bool BKE_layer_collection_move_below(const Scene *scene, LayerCollection *lc_dst, LayerCollection *lc_src)
 {
-	/* TODO this is missing */
-	TODO_LAYER_OPERATORS;
-	UNUSED_VARS(scene, lc_dst, lc_src);
-	return false;
+	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, lc_src);
+	const bool is_directly_linked_src = BLI_findindex(&sl->layer_collections, lc_src) != -1;
+	const bool is_directly_linked_dst = BLI_findindex(&sl->layer_collections, lc_dst) != -1;
+
+	if ((!sl) || (sl != BKE_scene_layer_find_from_collection(scene, lc_dst))) {
+		return false;
+	}
+
+	/* Collection is already where we wanted it to be */
+	if (lc_dst->next == lc_src) {
+		return false;
+	}
+
+	/* Collection is already where we want it to be in the scene tree
+	 * but we want to swap it in the layer tree still */
+	if (lc_dst->next && lc_dst->next->scene_collection == lc_src->scene_collection) {
+		LayerCollection *lc_swap = lc_dst->next;
+		layer_collection_swap(sl, NULL, NULL, lc_dst->next, lc_src);
+
+		if (BLI_findindex(&sl->layer_collections, lc_swap) != -1) {
+			BKE_collection_unlink(sl, lc_swap);
+		}
+		return true;
+	}
+	/* We don't allow to move above/below a directly linked collection
+	 * unless the source collection is also directly linked */
+	else if (is_directly_linked_dst) {
+		/* Both directly linked to the SceneLayer, just need to swap */
+		if (is_directly_linked_src) {
+			BLI_listbase_swaplinks(&sl->layer_collections, lc_src, lc_dst);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		LayerCollection *lc_temp;
+
+		if (!is_directly_linked_src) {
+			/* lc_src will be invalid after BKE_collection_move_into!
+			 * so we swap it with lc_temp to preserve its settings */
+			lc_temp = BKE_collection_link(sl, lc_src->scene_collection);
+			layer_collection_swap(sl, &sl->layer_collections, NULL, lc_temp, lc_src);
+		}
+
+		if (!BKE_collection_move_below(scene, lc_dst->scene_collection, lc_src->scene_collection)) {
+			if (!is_directly_linked_src) {
+				/* Swap back and remove */
+				layer_collection_swap(sl, NULL, NULL, lc_temp, lc_src);
+				BKE_collection_unlink(sl, lc_temp);
+			}
+			return false;
+		}
+	}
+
+	LayerCollection *lc_new = lc_dst->next;
+	BLI_assert(lc_new);
+	layer_collection_swap(sl, NULL, NULL, lc_new, lc_src);
+
+	/* If it's directly linked, unlink it after the swap */
+	if (BLI_findindex(&sl->layer_collections, lc_new) != -1) {
+		BKE_collection_unlink(sl, lc_new);
+	}
+
+	return true;
 }
 
 static bool layer_collection_resync(SceneLayer *sl, LayerCollection *lc, const SceneCollection *sc)

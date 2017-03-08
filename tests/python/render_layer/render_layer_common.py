@@ -467,6 +467,12 @@ class MoveSceneCollectionSyncTesting(MoveSceneCollectionTesting):
                 ]
         return layers_map
 
+    def get_reference_layers_tree_map(self):
+        """
+        For those classes we don't expect any changes in the layer tree
+        """
+        return self.get_initial_layers_tree_map()
+
     def setup_tree(self):
         tree = super(MoveSceneCollectionSyncTesting, self).setup_tree()
 
@@ -493,7 +499,7 @@ class MoveSceneCollectionSyncTesting(MoveSceneCollectionTesting):
 
         import bpy
         scene = bpy.context.scene
-        layers_map = self.get_initial_layers_tree_map()
+        layers_map = self.get_reference_layers_tree_map()
 
         for layer_name, collections_names in layers_map:
             layer = scene.render_layers.get(layer_name)
@@ -515,3 +521,41 @@ class MoveSceneCollectionSyncTesting(MoveSceneCollectionTesting):
             self.assertEqual(nested_collection.collection.name, scene_collection.collections[i].name)
             self.assertEqual(nested_collection.collection, scene_collection.collections[i])
             self.verify_collection_tree(nested_collection)
+
+
+class MoveLayerCollectionTesting(MoveSceneCollectionSyncTesting):
+    """
+    To be used by tests of render_layer_move_into_layer_collection
+    """
+    def parse_move(self, path, sep='.'):
+        """
+        convert 'Layer 1.C.2' into:
+        bpy.context.scene.render_layers['Layer 1'].collections['C'].collections['2']
+        """
+        import bpy
+
+        paths = path.split(sep)
+        layer = bpy.context.scene.render_layers[paths[0]]
+        collections = layer.collections
+
+        for subpath in paths[1:]:
+            collection = collections[subpath]
+            collections = collection.collections
+
+        return collection
+
+    def move_into(self, src, dst):
+        layer_collection_src = self.parse_move(src)
+        layer_collection_dst = self.parse_move(dst)
+        return layer_collection_src.move_into(layer_collection_dst)
+
+    def move_above(self, src, dst):
+        layer_collection_src = self.parse_move(src)
+        layer_collection_dst = self.parse_move(dst)
+        return layer_collection_src.move_above(layer_collection_dst)
+
+    def move_below(self, src, dst):
+        layer_collection_src = self.parse_move(src)
+        layer_collection_dst = self.parse_move(dst)
+        return layer_collection_src.move_below(layer_collection_dst)
+
