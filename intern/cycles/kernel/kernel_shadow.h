@@ -152,7 +152,13 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 		int bounce = state->transparent_bounce;
 		Intersection *isect = hits;
 #    ifdef __VOLUME__
-		PathState ps = *state;
+#      ifdef __SPLIT_KERNEL__
+		ccl_addr_space PathState *ps = &kernel_split_state.state_shadow[ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0)];
+#      else
+		PathState ps_object;
+		PathState *ps = &ps_object;
+#      endif
+		*ps = *state;
 #    endif
 		sort_intersections(hits, num_hits);
 		for(int hit = 0; hit < num_hits; hit++, isect++) {
@@ -171,7 +177,7 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 			                                   shadow_sd,
 			                                   state,
 #ifdef __VOLUME__
-			                                   &ps,
+			                                   ps,
 #endif
 			                                   isect,
 			                                   ray,
@@ -188,8 +194,8 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 		}
 #    ifdef __VOLUME__
 		/* Attenuation for last line segment towards light. */
-		if(ps.volume_stack[0].shader != SHADER_NONE) {
-			kernel_volume_shadow(kg, shadow_sd, &ps, ray, &throughput);
+		if(ps->volume_stack[0].shader != SHADER_NONE) {
+			kernel_volume_shadow(kg, shadow_sd, ps, ray, &throughput);
 		}
 #    endif
 		*shadow = throughput;
@@ -214,7 +220,10 @@ ccl_device bool shadow_blocked_transparent_all(KernelGlobals *kg,
                                                uint max_hits,
                                                float3 *shadow)
 {
-#    ifdef __KERNEL_CUDA__
+#    ifdef __SPLIT_KERNEL__
+	Intersection hits_[SHADOW_STACK_MAX_HITS];
+	Intersection *hits = &hits_[0];
+#    elif defined(__KERNEL_CUDA__)
 	Intersection *hits = kg->hits_stack;
 #    else
 	Intersection hits_stack[SHADOW_STACK_MAX_HITS];

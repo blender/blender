@@ -80,9 +80,9 @@ CCL_NAMESPACE_BEGIN
 #  define __CMJ__
 #  define __VOLUME__
 #  define __VOLUME_SCATTER__
+#  define __SHADOW_RECORD_ALL__
 #  ifndef __SPLIT_KERNEL__
 #    define __VOLUME_DECOUPLED__
-#    define __SHADOW_RECORD_ALL__
 #    define __VOLUME_RECORD_ALL__
 #  endif
 #endif  /* __KERNEL_CPU__ */
@@ -131,6 +131,7 @@ CCL_NAMESPACE_BEGIN
 #    define __SUBSURFACE__
 #    define __VOLUME__
 #    define __VOLUME_SCATTER__
+#    define __SHADOW_RECORD_ALL__
 #  endif  /* __KERNEL_OPENCL_AMD__ */
 
 #  ifdef __KERNEL_OPENCL_INTEL_CPU__
