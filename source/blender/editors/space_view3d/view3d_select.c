@@ -96,7 +96,11 @@
 
 #include "GPU_draw.h"
 
+#include "GPU_select.h"
+
 #include "view3d_intern.h"  /* own include */
+
+// #include "PIL_time_utildefines.h"
 
 float ED_view3d_select_dist_px(void)
 {
@@ -1091,7 +1095,7 @@ static Base *object_mouse_select_menu(
         bContext *C, ViewContext *vc, unsigned int *buffer, int hits,
         const int mval[2], bool toggle)
 {
-	int baseCount = 0;
+	short baseCount = 0;
 	bool ok;
 	LinkNode *linklist = NULL;
 	
@@ -1236,44 +1240,56 @@ static int mixed_bones_object_selectbuffer(
 
 	do_nearest = do_nearest && !enumerate;
 
+	const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
+	int hits = 0;
+
+	/* we _must_ end cache before return, use 'goto finally' */
+	GPU_select_cache_begin();
+
 	BLI_rcti_init_pt_radius(&rect, mval, 14);
-	hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, do_nearest);
+	hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
 	if (hits15 == 1) {
-		return selectbuffer_ret_hits_15(buffer, hits15);
+		hits = selectbuffer_ret_hits_15(buffer, hits15);
+		goto finally;
 	}
 	else if (hits15 > 0) {
 		has_bones15 = selectbuffer_has_bones(buffer, hits15);
 
 		offs = 4 * hits15;
 		BLI_rcti_init_pt_radius(&rect, mval, 9);
-		hits9 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, do_nearest);
+		hits9 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
 		if (hits9 == 1) {
-			return selectbuffer_ret_hits_9(buffer, hits15, hits9);
+			hits = selectbuffer_ret_hits_9(buffer, hits15, hits9);
+			goto finally;
 		}
 		else if (hits9 > 0) {
 			has_bones9 = selectbuffer_has_bones(buffer + offs, hits9);
 
 			offs += 4 * hits9;
 			BLI_rcti_init_pt_radius(&rect, mval, 5);
-			hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, do_nearest);
+			hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
 			if (hits5 == 1) {
-				return selectbuffer_ret_hits_5(buffer, hits15, hits9, hits5);
+				hits = selectbuffer_ret_hits_5(buffer, hits15, hits9, hits5);
+				goto finally;
 			}
 			else if (hits5 > 0) {
 				has_bones5 = selectbuffer_has_bones(buffer + offs, hits5);
 			}
 		}
 
-		if      (has_bones5)  return selectbuffer_ret_hits_5(buffer,  hits15, hits9, hits5);
-		else if (has_bones9)  return selectbuffer_ret_hits_9(buffer,  hits15, hits9);
-		else if (has_bones15) return selectbuffer_ret_hits_15(buffer, hits15);
-		
-		if      (hits5 > 0) return selectbuffer_ret_hits_5(buffer,  hits15, hits9, hits5);
-		else if (hits9 > 0) return selectbuffer_ret_hits_9(buffer,  hits15, hits9);
-		else                return selectbuffer_ret_hits_15(buffer, hits15);
+		if      (has_bones5)  { hits = selectbuffer_ret_hits_5(buffer,  hits15, hits9, hits5); goto finally; }
+		else if (has_bones9)  { hits = selectbuffer_ret_hits_9(buffer,  hits15, hits9); goto finally; }
+		else if (has_bones15) { hits = selectbuffer_ret_hits_15(buffer, hits15); goto finally; }
+
+		if      (hits5 > 0) { hits = selectbuffer_ret_hits_5(buffer,  hits15, hits9, hits5); goto finally; }
+		else if (hits9 > 0) { hits = selectbuffer_ret_hits_9(buffer,  hits15, hits9); goto finally; }
+		else                { hits = selectbuffer_ret_hits_15(buffer, hits15); goto finally; }
 	}
-	
-	return 0;
+
+finally:
+	GPU_select_cache_end();
+
+	return hits;
 }
 
 /* returns basact */
@@ -1466,10 +1482,13 @@ static bool ed_object_select_pick(
 		unsigned int buffer[MAXPICKBUF];
 		bool do_nearest;
 
+		// TIMEIT_START(select_time);
+
 		/* if objects have posemode set, the bones are in the same selection buffer */
-		
 		hits = mixed_bones_object_selectbuffer(&vc, buffer, mval, true, enumerate, &do_nearest);
-		
+
+		// TIMEIT_END(select_time);
+
 		if (hits > 0) {
 			/* note: bundles are handling in the same way as bones */
 			const bool has_bones = selectbuffer_has_bones(buffer, hits);
@@ -1908,7 +1927,7 @@ static int do_meta_box_select(ViewContext *vc, rcti *rect, bool select, bool ext
 	unsigned int buffer[MAXPICKBUF];
 	int hits;
 
-	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, rect, false);
+	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, rect, VIEW3D_SELECT_ALL);
 
 	if (extend == false && select)
 		BKE_mball_deselect_all(mb);
@@ -1942,7 +1961,7 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 	unsigned int buffer[MAXPICKBUF];
 	int hits;
 
-	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, rect, false);
+	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, rect, VIEW3D_SELECT_ALL);
 	
 	/* clear flag we use to detect point was affected */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next)
@@ -2039,7 +2058,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 
 	/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
 	vbuffer = MEM_mallocN(4 * (totobj + MAXPICKELEMS) * sizeof(unsigned int), "selection buffer");
-	hits = view3d_opengl_select(vc, vbuffer, 4 * (totobj + MAXPICKELEMS), rect, false);
+	hits = view3d_opengl_select(vc, vbuffer, 4 * (totobj + MAXPICKELEMS), rect, VIEW3D_SELECT_ALL);
 	/*
 	 * LOGIC NOTES (theeth):
 	 * The buffer and ListBase have the same relative order, which makes the selection

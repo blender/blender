@@ -23,37 +23,26 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file GPU_select.h
+/** \file blender/gpu/intern/gpu_select_private.h
  *  \ingroup gpu
+ *
+ * Selection implementations.
  */
 
-#ifndef __GPU_SELECT_H__
-#define __GPU_SELECT_H__
+/* gpu_select_pick */
+void gpu_select_pick_begin(unsigned int (*buffer)[4], unsigned int bufsize, const rcti *input, char mode);
+bool gpu_select_pick_load_id(unsigned int id);
+unsigned int gpu_select_pick_end(void);
 
-#include "BLI_sys_types.h"
+void gpu_select_pick_cache_begin(void);
+void gpu_select_pick_cache_end(void);
+bool gpu_select_pick_is_cached(void);
+void gpu_select_pick_cache_load_id(void);
 
-struct rcti;
+/* gpu_select_sample_query */
+void gpu_select_query_begin(unsigned int (*buffer)[4], unsigned int bufsize, const rcti *input, char mode, int oldhits);
+bool gpu_select_query_load_id(unsigned int id);
+unsigned int gpu_select_query_end(void);
 
-/* flags for mode of operation */
-enum {
-	GPU_SELECT_ALL                      = 1,
-	/* gpu_select_query */
-	GPU_SELECT_NEAREST_FIRST_PASS       = 2,
-	GPU_SELECT_NEAREST_SECOND_PASS      = 3,
-	/* gpu_select_pick */
-	GPU_SELECT_PICK_ALL           = 4,
-	GPU_SELECT_PICK_NEAREST       = 5,
-};
 
-void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const struct rcti *input, char mode, int oldhits);
-bool GPU_select_load_id(unsigned int id);
-unsigned int GPU_select_end(void);
-bool GPU_select_query_check_active(void);
-
-/* cache selection region */
-bool GPU_select_is_cached(void);
-void GPU_select_cache_begin(void);
-void GPU_select_cache_load_id(void);
-void GPU_select_cache_end(void);
-
-#endif
+#define SELECT_ID_NONE ((unsigned int)0xffffffff)

@@ -4180,6 +4180,10 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Selection Method",
 	                         "Use OpenGL occlusion queries or selection render mode to accelerate selection");
 
+	prop = RNA_def_property(srna, "use_select_pick_depth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gpu_select_pick_deph", 1);
+	RNA_def_property_ui_text(prop, "OpenGL Depth Picking", "Use the depth buffer for picking 3D View selection");
+
 	/* Full scene anti-aliasing */
 	prop = RNA_def_property(srna, "multi_sample", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ogl_multisamples");

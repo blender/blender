@@ -177,7 +177,7 @@ void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel)
 	rect.xmin = rect.xmax = xy[0];
 	rect.ymin = rect.ymax = xy[1];
 	
-	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, true);
+	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
 
 	if (hits > 0)
 		return get_bone_from_selectbuffer(vc.scene, vc.scene->basact, buffer, hits, findunsel, true);
@@ -279,7 +279,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
 static EditBone *get_nearest_editbonepoint(
         ViewContext *vc, const int mval[2],
-        ListBase *edbo, bool findunsel, int *r_selmask)
+        ListBase *edbo, bool findunsel, bool use_cycle, int *r_selmask)
 {
 	bArmature *arm = (bArmature *)vc->obedit->data;
 	EditBone *ebone_next_act = arm->act_edbone;
@@ -290,6 +290,7 @@ static EditBone *get_nearest_editbonepoint(
 	unsigned int hitresult, besthitresult = BONESEL_NOSEL;
 	int i, mindep = 5;
 	short hits;
+	static int last_mval[2] = {-100, -100};
 
 	/* find the bone after the current active bone, so as to bump up its chances in selection.
 	 * this way overlapping bones will cycle selection state as with objects. */
@@ -303,12 +304,33 @@ static EditBone *get_nearest_editbonepoint(
 		ebone_next_act = NULL;
 	}
 
-	BLI_rcti_init_pt_radius(&rect, mval, 5);
+	bool do_nearest = false;
 
-	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, true);
+	/* define if we use solid nearest select or not */
+	if (use_cycle) {
+		if (vc->v3d->drawtype > OB_WIRE) {
+			do_nearest = true;
+			if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
+				do_nearest = false;
+			}
+		}
+		copy_v2_v2_int(last_mval, mval);
+	}
+	else {
+		if (vc->v3d->drawtype > OB_WIRE) {
+			do_nearest = true;
+		}
+	}
+
+	const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
+
+	/* TODO: select larger region first (so we can use GPU_select_cache) */
+	BLI_rcti_init_pt_radius(&rect, mval, 5);
+	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
+
 	if (hits == 0) {
 		BLI_rcti_init_pt_radius(&rect, mval, 12);
-		hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, true);
+		hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
 	}
 	/* See if there are any selected bones in this group */
 	if (hits > 0) {
@@ -434,7 +456,7 @@ bool ED_armature_select_pick(bContext *C, const int mval[2], bool extend, bool d
 		return true;
 	}
 
-	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, true, &selmask);
+	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, true, true, &selmask);
 	if (nearBone) {
 
 		if (!extend && !deselect && !toggle) {
