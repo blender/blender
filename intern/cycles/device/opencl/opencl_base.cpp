@@ -114,12 +114,16 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool backgrou
 	}
 
 	cqCommandQueue = clCreateCommandQueue(cxContext, cdDevice, 0, &ciErr);
-	if(opencl_error(ciErr))
+	if(opencl_error(ciErr)) {
+		opencl_error("OpenCL: Error creating command queue");
 		return;
+	}
 
 	null_mem = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
-	if(opencl_error(ciErr))
+	if(opencl_error(ciErr)) {
+		opencl_error("OpenCL: Error creating memory buffer for NULL");
 		return;
+	}
 
 	fprintf(stderr, "Device init success\n");
 	device_initialized = true;
