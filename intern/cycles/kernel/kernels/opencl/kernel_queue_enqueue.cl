@@ -19,8 +19,8 @@
 #include "split/kernel_queue_enqueue.h"
 
 __kernel void kernel_ocl_path_trace_queue_enqueue(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_queue_enqueue(kg);
+	kernel_queue_enqueue((KernelGlobals*)kg);
 }

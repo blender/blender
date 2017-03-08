@@ -19,8 +19,8 @@
 #include "split/kernel_direct_lighting.h"
 
 __kernel void kernel_ocl_path_trace_direct_lighting(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_direct_lighting(kg);
+	kernel_direct_lighting((KernelGlobals*)kg);
 }

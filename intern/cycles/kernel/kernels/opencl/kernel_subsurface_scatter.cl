@@ -19,8 +19,8 @@
 #include "split/kernel_subsurface_scatter.h"
 
 __kernel void kernel_ocl_path_trace_subsurface_scatter(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_subsurface_scatter(kg);
+	kernel_subsurface_scatter((KernelGlobals*)kg);
 }

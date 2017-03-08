@@ -19,8 +19,8 @@
 #include "split/kernel_next_iteration_setup.h"
 
 __kernel void kernel_ocl_path_trace_next_iteration_setup(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_next_iteration_setup(kg);
+	kernel_next_iteration_setup((KernelGlobals*)kg);
 }

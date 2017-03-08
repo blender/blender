@@ -19,8 +19,8 @@
 #include "split/kernel_holdout_emission_blurring_pathtermination_ao.h"
 
 __kernel void kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_holdout_emission_blurring_pathtermination_ao(kg);
+	kernel_holdout_emission_blurring_pathtermination_ao((KernelGlobals*)kg);
 }

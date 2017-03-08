@@ -19,8 +19,8 @@
 #include "split/kernel_shadow_blocked_dl.h"
 
 __kernel void kernel_ocl_path_trace_shadow_blocked_dl(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_shadow_blocked_dl(kg);
+	kernel_shadow_blocked_dl((KernelGlobals*)kg);
 }

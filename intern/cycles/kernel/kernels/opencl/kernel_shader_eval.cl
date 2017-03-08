@@ -19,8 +19,8 @@
 #include "split/kernel_shader_eval.h"
 
 __kernel void kernel_ocl_path_trace_shader_eval(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_shader_eval(kg);
+	kernel_shader_eval((KernelGlobals*)kg);
 }
