@@ -1087,9 +1087,11 @@ static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b
 	}
 }
 
-static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffer, int hits, const int mval[2], short toggle)
+static Base *object_mouse_select_menu(
+        bContext *C, ViewContext *vc, unsigned int *buffer, int hits,
+        const int mval[2], bool toggle)
 {
-	short baseCount = 0;
+	int baseCount = 0;
 	bool ok;
 	LinkNode *linklist = NULL;
 	
@@ -1178,19 +1180,19 @@ static bool selectbuffer_has_bones(const unsigned int *buffer, const unsigned in
 }
 
 /* utility function for mixed_bones_object_selectbuffer */
-static short selectbuffer_ret_hits_15(unsigned int *UNUSED(buffer), const short hits15)
+static int selectbuffer_ret_hits_15(unsigned int *UNUSED(buffer), const int hits15)
 {
 	return hits15;
 }
 
-static short selectbuffer_ret_hits_9(unsigned int *buffer, const short hits15, const short hits9)
+static int selectbuffer_ret_hits_9(unsigned int *buffer, const int hits15, const int hits9)
 {
 	const int offs = 4 * hits15;
 	memcpy(buffer, buffer + offs, 4 * hits9 * sizeof(unsigned int));
 	return hits9;
 }
 
-static short selectbuffer_ret_hits_5(unsigned int *buffer, const short hits15, const short hits9, const short hits5)
+static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits15, const int hits9, const int hits5)
 {
 	const int offs = 4 * hits15 + 4 * hits9;
 	memcpy(buffer, buffer + offs, 4 * hits5  * sizeof(unsigned int));
@@ -1199,14 +1201,14 @@ static short selectbuffer_ret_hits_5(unsigned int *buffer, const short hits15, c
 
 /* we want a select buffer with bones, if there are... */
 /* so check three selection levels and compare */
-static short mixed_bones_object_selectbuffer(
+static int mixed_bones_object_selectbuffer(
         ViewContext *vc, unsigned int *buffer, const int mval[2],
         bool use_cycle, bool enumerate,
         bool *r_do_nearest)
 {
 	rcti rect;
 	int offs;
-	short hits15, hits9 = 0, hits5 = 0;
+	int hits15, hits9 = 0, hits5 = 0;
 	bool has_bones15 = false, has_bones9 = false, has_bones5 = false;
 	static int last_mval[2] = {-100, -100};
 	bool do_nearest = false;
@@ -1412,7 +1414,7 @@ static bool ed_object_select_pick(
 	bool is_obedit;
 	float dist = ED_view3d_select_dist_px() * 1.3333f;
 	bool retval = false;
-	short hits;
+	int hits;
 	const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
 
 	
@@ -1904,7 +1906,7 @@ static int do_meta_box_select(ViewContext *vc, rcti *rect, bool select, bool ext
 	int a;
 
 	unsigned int buffer[MAXPICKBUF];
-	short hits;
+	int hits;
 
 	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, rect, false);
 
@@ -1938,7 +1940,7 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 	int a;
 
 	unsigned int buffer[MAXPICKBUF];
-	short hits;
+	int hits;
 
 	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, rect, false);
 	
@@ -2013,7 +2015,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 	int bone_only;
 	int bone_selected = 0;
 	int totobj = MAXPICKBUF; /* XXX solve later */
-	short hits;
+	int hits;
 	
 	if ((ob) && (ob->mode & OB_MODE_POSE))
 		bone_only = 1;
@@ -2577,7 +2579,7 @@ static void lattice_circle_select(ViewContext *vc, const bool select, const int 
 
 
 /* NOTE: pose-bone case is copied from editbone case... */
-static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, const float screen_co[2])
+static bool pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, const float screen_co[2])
 {
 	CircleSelectUserData *data = userData;
 
@@ -2655,7 +2657,7 @@ static void pose_circle_select(ViewContext *vc, const bool select, const int mva
 	}
 }
 
-static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, const float screen_co[2], short head)
+static bool armature_circle_doSelectJoint(void *userData, EditBone *ebone, const float screen_co[2], bool head)
 {
 	CircleSelectUserData *data = userData;
 
