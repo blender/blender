@@ -136,6 +136,7 @@ typedef struct drawDMVerts_userData {
 
 	BMVert *eve_act;
 	char sel;
+	unsigned int pos, color;
 
 	/* cached theme values */
 	unsigned char th_editmesh_active[4];
@@ -188,6 +189,7 @@ typedef struct drawDMFacesSel_userData {
 } drawDMFacesSel_userData;
 
 typedef struct drawDMNormal_userData {
+	unsigned int pos;
 	BMesh *bm;
 	int uniform_scale;
 	float normalsize;
@@ -215,6 +217,7 @@ typedef struct drawBMOffset_userData {
 typedef struct drawBMSelect_userData {
 	BMesh *bm;
 	bool select;
+	unsigned int pos;
 } drawBMSelect_userData;
 
 
@@ -2571,6 +2574,8 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 	data.color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
 	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
+	if (dm->getNumVerts(dm) == 0) return;
+
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
 	immBeginAtMost(GL_POINTS, dm->getNumVerts(dm));
@@ -2624,25 +2629,34 @@ static void draw_dm_face_normals__mapFunc(void *userData, int index, const float
 			copy_v3_v3(n, no);
 		}
 
-		glVertex3fv(cent);
-		glVertex3f(cent[0] + n[0] * data->normalsize,
-		           cent[1] + n[1] * data->normalsize,
-		           cent[2] + n[2] * data->normalsize);
+		immVertex3fv(data->pos, cent);
+		immVertex3f(data->pos, cent[0] + n[0] * data->normalsize,
+		                       cent[1] + n[1] * data->normalsize,
+		                       cent[2] + n[2] * data->normalsize);
 	}
 }
 
-static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm)
+static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm, int theme_id)
 {
+	VertexFormat *format = immVertexFormat();
 	drawDMNormal_userData data;
 
 	data.bm = em->bm;
 	data.normalsize = scene->toolsettings->normalsize;
+	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
 	calcDrawDMNormalScale(ob, &data);
 
-	glBegin(GL_LINES);
+	if (dm->getNumPolys(dm) == 0) return;
+
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformThemeColor(theme_id);
+
+	immBeginAtMost(GL_LINES, dm->getNumPolys(dm) * 2);
 	dm->foreachMappedFaceCenter(dm, draw_dm_face_normals__mapFunc, &data, DM_FOREACH_USE_NORMAL);
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
 }
 
 static void draw_dm_face_centers__mapFunc(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
@@ -2653,16 +2667,28 @@ static void draw_dm_face_centers__mapFunc(void *userData, int index, const float
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) &&
 	    (BM_elem_flag_test(efa, BM_ELEM_SELECT) == data->select))
 	{
-		glVertex3fv(cent);
+		immVertex3fv(data->pos, cent);
 	}
 }
-static void draw_dm_face_centers(BMEditMesh *em, DerivedMesh *dm, bool select)
+static void draw_dm_face_centers(BMEditMesh *em, DerivedMesh *dm, bool select, const unsigned char fcol[3])
 {
-	drawBMSelect_userData data = {em->bm, select};
+	VertexFormat *format = immVertexFormat();
 
-	glBegin(GL_POINTS);
+	drawBMSelect_userData data;
+	data.bm = em->bm;
+	data.select = select;
+	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+	if (dm->getNumPolys(dm) == 0) return;
+
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformColor3ubv(fcol);
+
+	immBeginAtMost(GL_POINTS, dm->getNumPolys(dm));
 	dm->foreachMappedFaceCenter(dm, draw_dm_face_centers__mapFunc, &data, DM_FOREACH_NOP);
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
 }
 
 static void draw_dm_vert_normals__mapFunc(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
@@ -2689,25 +2715,50 @@ static void draw_dm_vert_normals__mapFunc(void *userData, int index, const float
 			copy_v3_v3(n, no);
 		}
 
-		glVertex3fv(co);
-		glVertex3f(co[0] + n[0] * data->normalsize,
-		           co[1] + n[1] * data->normalsize,
-		           co[2] + n[2] * data->normalsize);
+		immVertex3fv(data->pos, co);
+		immVertex3f(data->pos, co[0] + n[0] * data->normalsize,
+		                 co[1] + n[1] * data->normalsize,
+		                 co[2] + n[2] * data->normalsize);
 	}
 }
 
-static void draw_dm_vert_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm)
+static void draw_dm_vert_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm, int theme_id)
 {
 	drawDMNormal_userData data;
+	VertexFormat *format = immVertexFormat();
 
 	data.bm = em->bm;
 	data.normalsize = scene->toolsettings->normalsize;
+	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
 	calcDrawDMNormalScale(ob, &data);
 
-	glBegin(GL_LINES);
+	if (dm->getNumVerts(dm) == 0) return;
+
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformThemeColor(theme_id);
+
+	immBeginAtMost(GL_LINES, dm->getNumVerts(dm) * 2);
 	dm->foreachMappedVert(dm, draw_dm_vert_normals__mapFunc, &data, DM_FOREACH_USE_NORMAL);
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
+}
+
+static void draw_dm_verts_skin_root__mapFunc(void *userData, int index, const float co[3],
+                                             const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+{
+	drawDMVerts_userData *data = userData;
+	BMVert *eve = BM_vert_at_index(data->bm, index);
+
+	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->sel) {
+		/* skin nodes: draw a red circle around the root node(s) */
+		const MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, data->cd_vskin_offset);
+		if (vs->flag & MVERT_SKIN_ROOT) {
+			float radius = (vs->radius[0] + vs->radius[1]) * 0.5f;
+			imm_drawcircball(co, radius, data->imat, data->pos);
+		}
+	}
 }
 
 /* Draw verts with color set based on selection */
@@ -2718,42 +2769,29 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 	BMVert *eve = BM_vert_at_index(data->bm, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->sel) {
-		/* skin nodes: draw a red circle around the root node(s) */
-		if (data->cd_vskin_offset != -1) {
-			const MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, data->cd_vskin_offset);
-			if (vs->flag & MVERT_SKIN_ROOT) {
-				float radius = (vs->radius[0] + vs->radius[1]) * 0.5f;
-				glEnd();
-			
-				glColor4ubv(data->th_skin_root);
-				drawcircball(GL_LINES, co, radius, data->imat);
-
-				glColor4ubv(data->sel ? data->th_vertex_select : data->th_vertex);
-				glBegin(GL_POINTS);
-			}
-		}
-
 		/* draw active in a different color - no need to stop/start point drawing for this :D */
 		if (eve == data->eve_act) {
-			glColor4ubv(data->th_editmesh_active);
-			glVertex3fv(co);
-
-			/* back to regular vertex color */
-			glColor4ubv(data->sel ? data->th_vertex_select : data->th_vertex);
+			immAttrib4ubv(data->color, data->th_editmesh_active);
+			immVertex3fv(data->pos, co);
 		}
 		else {
-			glVertex3fv(co);
+			immAttrib4ubv(data->color, data->sel ? data->th_vertex_select : data->th_vertex);
+			immVertex3fv(data->pos, co);
 		}
 	}
 }
 
 static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, const char sel, BMVert *eve_act,
-                          RegionView3D *rv3d)
+                          RegionView3D *rv3d, const unsigned char col[4])
 {
+	VertexFormat *format = immVertexFormat();
+
 	drawDMVerts_userData data;
 	data.sel = sel;
 	data.eve_act = eve_act;
 	data.bm = em->bm;
+	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	data.color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
 	/* Cache theme values */
 	UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, data.th_editmesh_active);
@@ -2761,16 +2799,37 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, const char sel, BMVer
 	UI_GetThemeColor4ubv(TH_VERTEX, data.th_vertex);
 	UI_GetThemeColor4ubv(TH_SKIN_ROOT, data.th_skin_root);
 
-	/* For skin root drawing */
-	data.cd_vskin_offset = CustomData_get_offset(&em->bm->vdata, CD_MVERT_SKIN);
+	/* Set correct alpha */
+	data.th_editmesh_active[3] = data.th_vertex_select[3] = data.th_vertex[3] = data.th_skin_root[3] = col[3];
+
 	/* view-aligned matrix */
 	mul_m4_m4m4(data.imat, rv3d->viewmat, em->ob->obmat);
 	invert_m4(data.imat);
 
+	if (dm->getNumVerts(dm) == 0) return;
+
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	glBegin(GL_POINTS);
+
+	immBeginAtMost(GL_POINTS, dm->getNumVerts(dm));
 	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data, DM_FOREACH_NOP);
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
+
+	/* For skin root drawing */
+	data.cd_vskin_offset = CustomData_get_offset(&em->bm->vdata, CD_MVERT_SKIN);
+
+	if (data.cd_vskin_offset != -1) {
+		data.pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformColor4ubv(data.th_skin_root);
+
+		dm->foreachMappedVert(dm, draw_dm_verts_skin_root__mapFunc, &data, DM_FOREACH_NOP);
+
+		immUnbindProgram();
+	}
 }
 
 /* Draw edges with color set based on selection */
@@ -3076,24 +3135,32 @@ static void draw_dm_loop_normals__mapFunc(void *userData, int vertex_index, int 
 			}
 			mul_v3_fl(vec, data->normalsize);
 			add_v3_v3(vec, co);
-			glVertex3fv(co);
-			glVertex3fv(vec);
+			immVertex3fv(data->pos, co);
+			immVertex3fv(data->pos, vec);
 		}
 	}
 }
 
-static void draw_dm_loop_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm)
+static void draw_dm_loop_normals(BMEditMesh *em, Scene *scene, Object *ob, DerivedMesh *dm, int theme_id)
 {
 	drawDMNormal_userData data;
 
 	data.bm = em->bm;
 	data.normalsize = scene->toolsettings->normalsize;
+	data.pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+	if (dm->getNumLoops(dm) == 0) return;
+
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformThemeColor(theme_id);
 
 	calcDrawDMNormalScale(ob, &data);
 
-	glBegin(GL_LINES);
+	immBeginAtMost(GL_LINES, dm->getNumLoops(dm) * 2);
 	dm->foreachMappedLoop(dm, draw_dm_loop_normals__mapFunc, &data, DM_FOREACH_USE_NORMAL);
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
 }
 
 /* Draw faces with color set based on selection
@@ -3320,15 +3387,12 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
 			}
 
 			if (ts->selectmode & SCE_SELECT_VERTEX) {
-				glPointSize(size);
-				glColor4ubv(col);
-				draw_dm_verts(em, cageDM, sel, eve_act, rv3d);
+				draw_dm_verts(em, cageDM, sel, eve_act, rv3d, col);
 			}
 			
 			if (check_ob_drawface_dot(scene, v3d, obedit->dt)) {
 				glPointSize(fsize);
-				glColor4ubv(fcol);
-				draw_dm_face_centers(em, cageDM, sel);
+				draw_dm_face_centers(em, cageDM, sel, fcol);
 			}
 			
 			if (pass == 0) {
@@ -4022,16 +4086,13 @@ static void draw_em_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d
 			draw_em_fancy_verts(scene, v3d, ob, em, cageDM, eve_act, rv3d);
 
 			if (me->drawflag & ME_DRAWNORMALS) {
-				UI_ThemeColor(TH_NORMAL);
-				draw_dm_face_normals(em, scene, ob, cageDM);
+				draw_dm_face_normals(em, scene, ob, cageDM, TH_NORMAL);
 			}
 			if (me->drawflag & ME_DRAW_VNORMALS) {
-				UI_ThemeColor(TH_VNORMAL);
-				draw_dm_vert_normals(em, scene, ob, cageDM);
+				draw_dm_vert_normals(em, scene, ob, cageDM, TH_VNORMAL);
 			}
 			if (me->drawflag & ME_DRAW_LNORMALS) {
-				UI_ThemeColor(TH_LNORMAL);
-				draw_dm_loop_normals(em, scene, ob, cageDM);
+				draw_dm_loop_normals(em, scene, ob, cageDM, TH_LNORMAL);
 			}
 
 			if ((me->drawflag & (ME_DRAWEXTRA_EDGELEN |
@@ -9070,6 +9131,9 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 	data.offset = offset;
 
 	VertexFormat *format = immVertexFormat();
+
+	if (dm->getNumVerts(dm) == 0) return;
+
 	data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 	data.col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
 
