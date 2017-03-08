@@ -78,7 +78,7 @@ typedef struct SplitParams {
 	SPLIT_DATA_ENTRY(ccl_global int, queue_data, (NUM_QUEUES*2)) /* TODO(mai): this is too large? */ \
 	SPLIT_DATA_ENTRY(ccl_global uint, work_array, 1) \
 	SPLIT_DATA_ENTRY(ShaderData, sd, 1) \
-	SPLIT_DATA_ENTRY(ShaderData, sd_DL_shadow, 2) \
+	SPLIT_DATA_ENTRY(ShaderData, sd_DL_shadow, 1) \
 	SPLIT_DATA_DEBUG_ENTRIES \
 
 /* struct that holds pointers to data in the shared state buffer */

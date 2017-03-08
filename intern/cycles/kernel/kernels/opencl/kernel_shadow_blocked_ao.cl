@@ -16,11 +16,11 @@
 
 #include "kernel_compat_opencl.h"
 #include "split/kernel_split_common.h"
-#include "split/kernel_shadow_blocked.h"
+#include "split/kernel_shadow_blocked_ao.h"
 
-__kernel void kernel_ocl_path_trace_shadow_blocked(
+__kernel void kernel_ocl_path_trace_shadow_blocked_ao(
         KernelGlobals *kg,
         ccl_constant KernelData *data)
 {
-	kernel_shadow_blocked(kg);
+	kernel_shadow_blocked_ao(kg);
 }
