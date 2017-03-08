@@ -28,85 +28,80 @@
 
 #include "DNA_armature_types.h"
 
-#include "draw_mode_pass.h"
+#include "draw_common.h"
 
-#include "edit_armature_mode.h"
+#include "draw_mode_engines.h"
 
 /* keep it under MAX_PASSES */
 typedef struct EDIT_ARMATURE_PassList {
-	struct DRWPass *non_meshes_pass;
-	struct DRWPass *ob_center_pass;
-	struct DRWPass *wire_outline_pass;
-	struct DRWPass *bone_solid_pass;
-	struct DRWPass *bone_wire_pass;
+	struct DRWPass *bone_solid;
+	struct DRWPass *bone_wire;
+	struct DRWPass *relationship;
 } EDIT_ARMATURE_PassList;
 
-void EDIT_ARMATURE_cache_init(void)
-{
-	EDIT_ARMATURE_PassList *psl = DRW_mode_pass_list_get();
-	static struct GPUShader *depth_sh;
+typedef struct EDIT_ARMATURE_Data {
+	char engine_name[32];
+	void *fbl;
+	void *txl;
+	EDIT_ARMATURE_PassList *psl;
+	void *stl;
+} EDIT_ARMATURE_Data;
 
-	if (!depth_sh) {
-		depth_sh = DRW_shader_create_3D_depth_only();
+static DRWShadingGroup *relationship_lines;
+
+extern GlobalsUboStorage ts;
+
+static EDIT_ARMATURE_Data *vedata;
+
+static void EDIT_ARMATURE_cache_init(void)
+{
+	vedata = DRW_viewport_engine_data_get("EditArmatureMode");
+	EDIT_ARMATURE_PassList *psl = vedata->psl;
+
+	{
+		/* Solid bones */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->bone_solid = DRW_pass_create("Bone Solid Pass", state);
 	}
 
-	DRW_mode_passes_setup(NULL,
-	                      NULL,
-	                      &psl->wire_outline_pass,
-	                      &psl->non_meshes_pass,
-	                      &psl->ob_center_pass,
-	                      &psl->bone_solid_pass,
-	                      &psl->bone_wire_pass);
+	{
+		/* Wire bones */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		psl->bone_wire = DRW_pass_create("Bone Wire Pass", state);
+	}
+
+	{
+		/* Non Meshes Pass (Camera, empties, lamps ...) */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND | DRW_STATE_WIRE;
+		psl->relationship = DRW_pass_create("Bone Relationship Pass", state);
+
+		/* Relationship Lines */
+		relationship_lines = shgroup_dynlines_uniform_color(psl->relationship, ts.colorWire);
+		DRW_shgroup_state_set(relationship_lines, DRW_STATE_STIPPLE_3);
+	}
+
 }
 
-void EDIT_ARMATURE_cache_populate(Object *ob)
+static void EDIT_ARMATURE_cache_populate(Object *ob)
 {
 	bArmature *arm = ob->data;
+	EDIT_ARMATURE_PassList *psl = vedata->psl;
 
-	switch (ob->type) {
-		case OB_ARMATURE:
-			/* detect Edit Armature mode */
-			if (arm->edbo)
-				DRW_shgroup_armature_edit(ob);
-			else
-				DRW_shgroup_armature_object(ob);
-			break;
-		case OB_MESH:
-			break;
-		case OB_LAMP:
-			DRW_shgroup_lamp(ob);
-			break;
-		case OB_CAMERA:
-			DRW_shgroup_camera(ob);
-			break;
-		case OB_EMPTY:
-			DRW_shgroup_empty(ob);
-			break;
-		case OB_SPEAKER:
-			DRW_shgroup_speaker(ob);
-			break;
-		default:
-			break;
+	if (ob->type == OB_ARMATURE) {
+		if (arm->edbo) {
+			DRW_shgroup_armature_edit(ob, psl->bone_solid, psl->bone_wire, relationship_lines);
+		}
 	}
-
-	DRW_shgroup_object_center(ob);
-	DRW_shgroup_relationship_lines(ob);
 }
 
-void EDIT_ARMATURE_cache_finish(void)
+static void EDIT_ARMATURE_draw_scene(void)
 {
-	/* Do nothing */
-}
+	EDIT_ARMATURE_Data *ved = DRW_viewport_engine_data_get("EditArmatureMode");
+	EDIT_ARMATURE_PassList *psl = ved->psl;
 
-void EDIT_ARMATURE_draw(void)
-{
-	EDIT_ARMATURE_PassList *psl = DRW_mode_pass_list_get();
-
-	DRW_draw_pass(psl->bone_solid_pass);
-	DRW_draw_pass(psl->bone_wire_pass);
-	DRW_draw_pass(psl->wire_outline_pass);
-	DRW_draw_pass(psl->non_meshes_pass);
-	DRW_draw_pass(psl->ob_center_pass);
+	DRW_draw_pass(psl->bone_solid);
+	DRW_draw_pass(psl->bone_wire);
+	DRW_draw_pass(psl->relationship);
 }
 
 void EDIT_ARMATURE_collection_settings_create(CollectionEngineSettings *ces)
@@ -114,3 +109,15 @@ void EDIT_ARMATURE_collection_settings_create(CollectionEngineSettings *ces)
 	BLI_assert(ces);
 	//BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
 }
+
+DrawEngineType draw_engine_edit_armature_type = {
+	NULL, NULL,
+	N_("EditArmatureMode"),
+	NULL,
+	NULL,
+	&EDIT_ARMATURE_cache_init,
+	&EDIT_ARMATURE_cache_populate,
+	NULL,
+	NULL,
+	&EDIT_ARMATURE_draw_scene
+};

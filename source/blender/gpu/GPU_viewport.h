@@ -63,28 +63,27 @@ typedef struct StorageList {
 	void *storage[MAX_STORAGE]; /* custom structs from the engine */
 } StorageList;
 
-/* Buffer and textures used by the viewport by default */
-typedef struct DefaultFramebufferList {
-	struct GPUFrameBuffer *default_fb;
-} DefaultFramebufferList;
+typedef struct ViewportEngineData {
+	char engine_name[32];
 
-typedef struct DefaultTextureList {
-	struct GPUTexture *color;
-	struct GPUTexture *depth;
-} DefaultTextureList;
-
-typedef struct DefaultPassList {
-	struct DRWPass *non_meshes_pass;
-	struct DRWPass *ob_center_pass;
-} DefaultPassList;
+	FramebufferList *fbl;
+	TextureList *txl;
+	PassList *psl;
+	StorageList *stl;
+} ViewportEngineData;
 
 GPUViewport *GPU_viewport_create(void);
-void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect, const char *engine, int mode);
+void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect);
 void GPU_viewport_unbind(GPUViewport *viewport);
 void GPU_viewport_free(GPUViewport *viewport);
 
-void GPU_viewport_get_engine_data(GPUViewport *viewport, FramebufferList **fbs, TextureList **txs, PassList **pss, StorageList **str);
-void GPU_viewport_get_mode_data(GPUViewport *viewport, FramebufferList **fbs, TextureList **txs, PassList **pss, StorageList **str);
+void *GPU_viewport_engine_data_create(GPUViewport *viewport, const char *engine_name);
+void *GPU_viewport_engine_data_get(GPUViewport *viewport, const char *engine_name);
+void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport);
+void *GPU_viewport_texture_list_get(GPUViewport *viewport);
+void  GPU_viewport_size_get(GPUViewport *viewport, int *size);
+
+bool GPU_viewport_cache_validate(GPUViewport *viewport, int hash);
 
 /* debug */
 bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, char err_out[256]);

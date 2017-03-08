@@ -71,7 +71,7 @@
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
 	"BLENDER_RENDER", N_("Blender Render"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -80,7 +80,7 @@ static RenderEngineType internal_render_type = {
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
 	"BLENDER_GAME", N_("Blender Game"), RE_INTERNAL | RE_GAME,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -94,7 +94,7 @@ void RE_engines_init(void)
 #ifdef WITH_GAMEENGINE
 	RE_engines_register(NULL, &internal_game_type);
 #endif
-	DRW_engines_init();
+	DRW_engines_register();
 }
 
 void RE_engines_exit(void)
@@ -121,6 +121,9 @@ void RE_engines_exit(void)
 
 void RE_engines_register(Main *bmain, RenderEngineType *render_type)
 {
+	if (render_type->draw_engine) {
+		DRW_engine_register(render_type->draw_engine);
+	}
 	if (render_type->collection_settings_create) {
 		BKE_layer_collection_engine_settings_callback_register(bmain, render_type->idname, render_type->collection_settings_create);
 	}

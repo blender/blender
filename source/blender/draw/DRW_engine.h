@@ -30,9 +30,26 @@ struct CollectionEngineSettings;
 struct DRWPass;
 struct Material;
 struct Scene;
+struct DrawEngineType;
+struct bContext;
+struct Object;
 
-void DRW_engines_init(void);
+/* Buffer and textures used by the viewport by default */
+typedef struct DefaultFramebufferList {
+	struct GPUFrameBuffer *default_fb;
+} DefaultFramebufferList;
+
+typedef struct DefaultTextureList {
+	struct GPUTexture *color;
+	struct GPUTexture *depth;
+} DefaultTextureList;
+
+void DRW_engines_register(void);
 void DRW_engines_free(void);
+
+void DRW_engine_register(struct DrawEngineType *draw_engine_type);
+
+void DRW_draw_view(const struct bContext *C);
 
 /* This is here because GPUViewport needs it */
 void DRW_pass_free(struct DRWPass *pass);

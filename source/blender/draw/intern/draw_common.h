@@ -19,14 +19,15 @@
  *
  */
 
-/** \file draw_mode_pass.h
+/** \file draw_common.h
  *  \ingroup draw
  */
 
-#ifndef __DRAW_MODE_PASS_H__
-#define __DRAW_MODE_PASS_H__
+#ifndef __DRAW_COMMON__
+#define __DRAW_COMMON__
 
 struct DRWPass;
+struct DRWShadingGroup;
 struct Batch;
 struct Object;
 
@@ -72,37 +73,34 @@ typedef struct GlobalsUboStorage {
 } GlobalsUboStorage;
 /* Keep in sync with globalsBlock in shaders */
 
-void DRW_update_global_values(void);
+void DRW_globals_update(void);
 
-void DRW_mode_passes_setup(struct DRWPass **psl_wire_overlay,
-                           struct DRWPass **psl_wire_overlay_hidden_wire,
-                           struct DRWPass **psl_wire_outline,
-                           struct DRWPass **psl_non_meshes,
-                           struct DRWPass **psl_ob_center,
-                           struct DRWPass **psl_bone_solid,
-                           struct DRWPass **psl_bone_wire);
+struct DRWShadingGroup *shgroup_dynlines_uniform_color(struct DRWPass *pass, float color[4]);
+struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass, float color[4], float *size);
+struct DRWShadingGroup *shgroup_groundlines_uniform_color(struct DRWPass *pass, float color[4]);
+struct DRWShadingGroup *shgroup_groundpoints_uniform_color(struct DRWPass *pass, float color[4]);
+struct DRWShadingGroup *shgroup_instance_screenspace(struct DRWPass *pass, struct Batch *geom, float *size);
+struct DRWShadingGroup *shgroup_instance_objspace_solid(struct DRWPass *pass, struct Batch *geom, float (*obmat)[4]);
+struct DRWShadingGroup *shgroup_instance_objspace_wire(struct DRWPass *pass, struct Batch *geom, float (*obmat)[4]);
+struct DRWShadingGroup *shgroup_instance_axis_names(struct DRWPass *pass, struct Batch *geom);
+struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct Batch *geom);
+struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct Batch *geom);
+struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct Batch *geom);
+struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct Batch *geom);
 
-void DRW_shgroup_wire_outline(struct Object *ob, const bool do_front, const bool do_back, const bool do_outline);
-void DRW_shgroup_lamp(struct Object *ob);
-void DRW_shgroup_camera(struct Object *ob);
-void DRW_shgroup_empty(struct Object *ob);
-void DRW_shgroup_speaker(struct Object *ob);
-void DRW_shgroup_relationship_lines(struct Object *ob);
-void DRW_shgroup_object_center(struct Object *ob);
-
-void DRW_shgroup_armature_object(struct Object *ob);
-void DRW_shgroup_armature_edit(struct Object *ob);
-void DRW_shgroup_armature_pose(struct Object *ob);
-
-void DRW_shgroup_bone_octahedral_solid(const float (*arm_mat)[4], const float color[4]);
-void DRW_shgroup_bone_octahedral_wire(const float (*arm_mat)[4], const float color[4]);
-void DRW_shgroup_bone_point_solid(const float (*arm_mat)[4], const float color[4]);
-void DRW_shgroup_bone_point_wire(const float (*arm_mat)[4], const float color[4]);
-void DRW_shgroup_bone_relationship_lines(const float head[3], const float tail[3]);
-void DRW_shgroup_bone_axes(const float (*arm_mat)[4], const float color[4]);
+int DRW_object_wire_theme_get(struct Object *ob, float **color);
 
 /* draw_armature.c */
-void draw_armature_edit(struct Object *ob);
-void draw_armature_pose(struct Object *ob, const float const_color[4]);
+void DRW_shgroup_armature_object(
+    struct Object *ob, struct DRWPass *pass_bone_solid,
+    struct DRWPass *pass_bone_wire, struct DRWShadingGroup *shgrp_relationship_lines);
 
-#endif /* __DRAW_MODE_PASS_H__ */
+void DRW_shgroup_armature_pose(
+    struct Object *ob, struct DRWPass *pass_bone_solid,
+    struct DRWPass *pass_bone_wire, struct DRWShadingGroup *shgrp_relationship_lines);
+
+void DRW_shgroup_armature_edit(
+    struct Object *ob, struct DRWPass *pass_bone_solid,
+    struct DRWPass *pass_bone_wire, struct DRWShadingGroup *shgrp_relationship_lines);
+
+#endif /* __DRAW_COMMON__ */

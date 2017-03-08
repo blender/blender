@@ -102,6 +102,8 @@ typedef struct RenderEngineType {
 
 	void (*collection_settings_create)(struct RenderEngine *engine, struct CollectionEngineSettings *ces);
 
+	struct DrawEngineType *draw_engine;
+
 	/* RNA integration */
 	ExtensionRNA ext;
 } RenderEngineType;

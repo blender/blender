@@ -19,23 +19,15 @@
  *
  */
 
-/** \file blender/draw/modes/edit_mesh_mode.h
+/** \file blender/draw/modes/draw_mode_engines.h
  *  \ingroup draw
  */
 
-#ifndef __EDIT_MESH_MODE_H__
-#define __EDIT_MESH_MODE_H__
+#ifndef __DRAW_MODES_ENGINES_H__
+#define __DRAW_MODES_ENGINES_H__
 
-struct Object;
+extern DrawEngineType draw_engine_object_type;
+extern DrawEngineType draw_engine_edit_mesh_type;
+extern DrawEngineType draw_engine_edit_armature_type;
 
-void EDIT_MESH_init(void);
-
-void EDIT_MESH_cache_init(void);
-void EDIT_MESH_cache_populate(struct Object *ob);
-void EDIT_MESH_cache_finish(void);
-
-void EDIT_MESH_draw(void);
-
-void EDIT_MESH_engine_free(void);
-
-#endif /* __EDIT_MESH_MODE_H__ */
+#endif /* __DRAW_MODES_ENGINES_H__ */

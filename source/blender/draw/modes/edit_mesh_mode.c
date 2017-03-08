@@ -27,18 +27,14 @@
 #include "DRW_render.h"
 
 #include "GPU_shader.h"
-#include "GPU_viewport.h"
 #include "DNA_view3d_types.h"
 
-#include "draw_mode_pass.h"
+#include "draw_common.h"
 
-#include "edit_mesh_mode.h"
+#include "draw_mode_engines.h"
 
 /* keep it under MAX_PASSES */
 typedef struct EDIT_MESH_PassList {
-	struct DRWPass *non_meshes_pass;
-	struct DRWPass *ob_center_pass;
-	struct DRWPass *wire_outline_pass;
 	struct DRWPass *depth_pass_hidden_wire;
 	struct DRWPass *edit_face_overlay_pass;
 	struct DRWPass *edit_face_occluded_pass;
@@ -57,6 +53,14 @@ typedef struct EDIT_MESH_TextureList {
 	struct GPUTexture *occlude_wire_color_tx;
 } EDIT_MESH_TextureList;
 
+typedef struct EDIT_MESH_Data {
+	char engine_name[32];
+	EDIT_MESH_FramebufferList *fbl;
+	EDIT_MESH_TextureList *txl;
+	EDIT_MESH_PassList *psl;
+	void *stl;
+} EDIT_MESH_Data;
+
 static DRWShadingGroup *depth_shgrp_hidden_wire;
 
 static DRWShadingGroup *face_overlay_shgrp;
@@ -70,7 +74,7 @@ static DRWShadingGroup *lverts_occluded_shgrp;
 static DRWShadingGroup *facedot_occluded_shgrp;
 static DRWShadingGroup *facefill_occluded_shgrp;
 
-extern struct GPUUniformBuffer *globals_ubo; /* draw_mode_pass.c */
+extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 
 static struct GPUShader *overlay_tri_sh = NULL;
 static struct GPUShader *overlay_tri_fast_sh = NULL;
@@ -95,10 +99,11 @@ extern char datatoc_edit_overlay_mix_frag_glsl[];
 extern char datatoc_edit_overlay_facefill_vert_glsl[];
 extern char datatoc_edit_overlay_facefill_frag_glsl[];
 
-void EDIT_MESH_init(void)
+static void EDIT_MESH_engine_init(void)
 {
-	EDIT_MESH_TextureList *txl = DRW_mode_texture_list_get();
-	EDIT_MESH_FramebufferList *fbl = DRW_mode_framebuffer_list_get();
+	EDIT_MESH_Data *vedata = DRW_viewport_engine_data_get("EditMeshMode");
+	EDIT_MESH_TextureList *txl = vedata->txl;
+	EDIT_MESH_FramebufferList *fbl = vedata->fbl;
 
 	float *viewport_size = DRW_viewport_size_get();
 
@@ -209,9 +214,13 @@ static DRWPass *edit_mesh_create_overlay_pass(DRWShadingGroup **face_shgrp, DRWS
 static float backwire_opacity;
 static float face_mod;
 
-void EDIT_MESH_cache_init(void)
+static void EDIT_MESH_cache_init(void)
 {
-	EDIT_MESH_PassList *psl = DRW_mode_pass_list_get();
+	EDIT_MESH_Data *vedata = DRW_viewport_engine_data_get("EditMeshMode");
+	EDIT_MESH_TextureList *txl = vedata->txl;
+	EDIT_MESH_PassList *psl = vedata->psl;
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
 	const struct bContext *C = DRW_get_context();
 	View3D *v3d = CTX_wm_view3d(C);
 
@@ -242,11 +251,8 @@ void EDIT_MESH_cache_init(void)
 		DRW_shgroup_uniform_block(facefill_occluded_shgrp, "globalsBlock", globals_ubo, 0);
 
 		/* we need a full screen pass to combine the result */
-		EDIT_MESH_TextureList *txl = DRW_mode_texture_list_get();
-		DefaultTextureList *dtxl = DRW_engine_texture_list_get();
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
 		static float mat[4][4]; /* not even used but avoid crash */
-
 
 		psl->mix_occlude_pass = DRW_pass_create("Mix Occluded Wires", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
 		DRWShadingGroup *mix_shgrp = DRW_shgroup_create(overlay_mix_sh, psl->mix_occlude_pass);
@@ -256,14 +262,6 @@ void EDIT_MESH_cache_init(void)
 		DRW_shgroup_uniform_buffer(mix_shgrp, "wireDepth", &txl->occlude_wire_depth_tx, 2);
 		DRW_shgroup_uniform_buffer(mix_shgrp, "sceneDepth", &dtxl->depth, 3);
 	}
-
-	DRW_mode_passes_setup(NULL,
-	                      NULL,
-	                      &psl->wire_outline_pass,
-	                      &psl->non_meshes_pass,
-	                      &psl->ob_center_pass,
-	                      NULL,
-	                      NULL);
 }
 
 static void edit_mesh_add_ob_to_pass(Scene *scene, Object *ob, DRWShadingGroup *face_shgrp, DRWShadingGroup *ledges_shgrp,
@@ -288,7 +286,7 @@ static void edit_mesh_add_ob_to_pass(Scene *scene, Object *ob, DRWShadingGroup *
 	}
 }
 
-void EDIT_MESH_cache_populate(Object *ob)
+static void EDIT_MESH_cache_populate(Object *ob)
 {
 	const struct bContext *C = DRW_get_context();
 	View3D *v3d = CTX_wm_view3d(C);
@@ -296,64 +294,38 @@ void EDIT_MESH_cache_populate(Object *ob)
 	Object *obedit = scene->obedit;
 	struct Batch *geom;
 
-	CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
-	bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
-	backwire_opacity = BKE_collection_engine_property_value_get_float(ces_mode_ed, "backwire_opacity"); /* should be done only once */
+	if (ob->type == OB_MESH) {
+		if (ob == obedit) {
+			CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
+			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
+			backwire_opacity = BKE_collection_engine_property_value_get_float(ces_mode_ed, "backwire_opacity"); /* should be done only once */
 
-	face_mod = (do_occlude_wire) ? 0.0f : 1.0f;
+			face_mod = (do_occlude_wire) ? 0.0f : 1.0f;
 
-	switch (ob->type) {
-		case OB_MESH:
-			if (ob == obedit) {	
-				if (do_occlude_wire) {
-					geom = DRW_cache_surface_get(ob);
-					DRW_shgroup_call_add(depth_shgrp_hidden_wire, geom, ob->obmat);
-				}
-
-				if ((v3d->flag & V3D_ZBUF_SELECT) == 0) {
-					edit_mesh_add_ob_to_pass(scene, ob, face_occluded_shgrp, ledges_occluded_shgrp,
-					                         lverts_occluded_shgrp, facedot_occluded_shgrp, facefill_occluded_shgrp);
-				}
-				else {
-					edit_mesh_add_ob_to_pass(scene, ob, face_overlay_shgrp, ledges_overlay_shgrp,
-					                         lverts_overlay_shgrp, facedot_overlay_shgrp, NULL);
-				}
+			if (do_occlude_wire) {
+				geom = DRW_cache_surface_get(ob);
+				DRW_shgroup_call_add(depth_shgrp_hidden_wire, geom, ob->obmat);
 			}
-			break;
-		case OB_LAMP:
-			DRW_shgroup_lamp(ob);
-			break;
-		case OB_CAMERA:
-			DRW_shgroup_camera(ob);
-			break;
-		case OB_EMPTY:
-			DRW_shgroup_empty(ob);
-			break;
-		case OB_SPEAKER:
-			DRW_shgroup_speaker(ob);
-			break;
-		case OB_ARMATURE:
-			DRW_shgroup_armature_object(ob);
-			break;
-		default:
-			break;
+
+			if ((v3d->flag & V3D_ZBUF_SELECT) == 0) {
+				edit_mesh_add_ob_to_pass(scene, ob, face_occluded_shgrp, ledges_occluded_shgrp,
+				                         lverts_occluded_shgrp, facedot_occluded_shgrp, facefill_occluded_shgrp);
+			}
+			else {
+				edit_mesh_add_ob_to_pass(scene, ob, face_overlay_shgrp, ledges_overlay_shgrp,
+				                         lverts_overlay_shgrp, facedot_overlay_shgrp, NULL);
+			}
+		}
 	}
-
-	DRW_shgroup_object_center(ob);
-	DRW_shgroup_relationship_lines(ob);
 }
 
-void EDIT_MESH_cache_finish(void)
+static void EDIT_MESH_draw_scene(void)
 {
-	/* Do nothing */
-}
-
-void EDIT_MESH_draw(void)
-{
-	EDIT_MESH_PassList *psl = DRW_mode_pass_list_get();
-	EDIT_MESH_FramebufferList *fbl = DRW_mode_framebuffer_list_get();
-	DefaultFramebufferList *dfbl = DRW_engine_framebuffer_list_get();
-	DefaultTextureList *dtxl = DRW_engine_texture_list_get();
+	EDIT_MESH_Data *vedata = DRW_viewport_engine_data_get("EditMeshMode");
+	EDIT_MESH_PassList *psl = vedata->psl;
+	EDIT_MESH_FramebufferList *fbl = vedata->fbl;
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	DRW_draw_pass(psl->depth_pass_hidden_wire);
 
@@ -380,10 +352,6 @@ void EDIT_MESH_draw(void)
 	else {
 		DRW_draw_pass(psl->edit_face_overlay_pass);
 	}
-
-	DRW_draw_pass(psl->wire_outline_pass);
-	DRW_draw_pass(psl->non_meshes_pass);
-	DRW_draw_pass(psl->ob_center_pass);
 }
 
 void EDIT_MESH_collection_settings_create(CollectionEngineSettings *ces)
@@ -393,7 +361,7 @@ void EDIT_MESH_collection_settings_create(CollectionEngineSettings *ces)
 	BKE_collection_engine_property_add_float(ces, "backwire_opacity", 0.5);
 }
 
-void EDIT_MESH_engine_free(void)
+static void EDIT_MESH_engine_free(void)
 {
 	if (overlay_tri_sh)
 		DRW_shader_free(overlay_tri_sh);
@@ -416,3 +384,15 @@ void EDIT_MESH_engine_free(void)
 	if (overlay_facefill_sh)
 		DRW_shader_free(overlay_facefill_sh);
 }
+
+DrawEngineType draw_engine_edit_mesh_type = {
+	NULL, NULL,
+	N_("EditMeshMode"),
+	&EDIT_MESH_engine_init,
+	&EDIT_MESH_engine_free,
+	&EDIT_MESH_cache_init,
+	&EDIT_MESH_cache_populate,
+	NULL,
+	NULL,
+	&EDIT_MESH_draw_scene
+};

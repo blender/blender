@@ -124,6 +124,15 @@ typedef struct CLAY_PassList {
 	struct DRWPass *clay_pass;
 } CLAY_PassList;
 
+typedef struct CLAY_Data {
+	char engine_name[32];
+	CLAY_FramebufferList *fbl;
+	CLAY_TextureList *txl;
+	CLAY_PassList *psl;
+	CLAY_StorageList *stl;
+} CLAY_Data;
+
+
 //#define GTAO
 
 /* Functions */
@@ -262,20 +271,12 @@ RenderEngineSettings *CLAY_render_settings_create(void)
 	return (RenderEngineSettings *)settings;
 }
 
-MaterialEngineSettings *CLAY_material_settings_create(void)
-{
-	MaterialEngineSettingsClay *settings = MEM_callocN(sizeof(MaterialEngineSettingsClay), "MaterialEngineSettingsClay");
-
-	clay_material_settings_init(settings);
-
-	return (MaterialEngineSettings *)settings;
-}
-
 static void CLAY_engine_init(void)
 {
-	CLAY_StorageList *stl = DRW_engine_storage_list_get();
-	CLAY_TextureList *txl = DRW_engine_texture_list_get();
-	CLAY_FramebufferList *fbl = DRW_engine_framebuffer_list_get();
+	CLAY_Data *vedata = DRW_viewport_engine_data_get("Clay");
+	CLAY_StorageList *stl = vedata->stl;
+	CLAY_TextureList *txl = vedata->txl;
+	CLAY_FramebufferList *fbl = vedata->fbl;
 
 	/* Create Texture Array */
 	if (!data.matcap_array) {
@@ -428,10 +429,11 @@ static void CLAY_engine_init(void)
 
 static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *material_id)
 {
+	CLAY_Data *vedata = DRW_viewport_engine_data_get("Clay");
+	CLAY_TextureList *txl = vedata->txl;
 	const int depthloc = 0, matcaploc = 1, jitterloc = 2, sampleloc = 3;
 
 	DRWShadingGroup *grp = DRW_shgroup_create(data.clay_sh, pass);
-	CLAY_TextureList *txl = DRW_engine_texture_list_get();
 
 	DRW_shgroup_uniform_vec2(grp, "screenres", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_buffer(grp, "depthtex", &txl->depth_dup, depthloc);
@@ -599,9 +601,9 @@ static DRWShadingGroup *depth_shgrp_cull;
 
 static void CLAY_cache_init(void)
 {
-	CLAY_PassList *psl = DRW_engine_pass_list_get();
-	CLAY_StorageList *stl = DRW_engine_storage_list_get();
-
+	CLAY_Data *vedata = DRW_viewport_engine_data_get("Clay");
+	CLAY_PassList *psl = vedata->psl;
+	CLAY_StorageList *stl = vedata->stl;
 
 	/* Depth Pass */
 	{
@@ -622,100 +624,46 @@ static void CLAY_cache_init(void)
 
 static void CLAY_cache_populate(Object *ob)
 {
-	const bContext *C = DRW_get_context();
-	int mode = CTX_data_mode_enum(C);
-	CLAY_StorageList *stl = DRW_engine_storage_list_get();
-	CLAY_PassList *psl = DRW_engine_pass_list_get();
+	CLAY_Data *vedata = DRW_viewport_engine_data_get("Clay");
+	CLAY_PassList *psl = vedata->psl;
+	CLAY_StorageList *stl = vedata->stl;
+
 	struct Batch *geom;
 	DRWShadingGroup *clay_shgrp;
-	bool do_occlude_wire = false;
-	bool do_cull = false;
-	CollectionEngineSettings *ces_mode_ed, *ces_mode_ob;
 
-	switch (mode) {
-		case CTX_MODE_EDIT_MESH:
-		case CTX_MODE_EDIT_CURVE:
-		case CTX_MODE_EDIT_SURFACE:
-		case CTX_MODE_EDIT_TEXT:
-		case CTX_MODE_EDIT_ARMATURE:
-		case CTX_MODE_EDIT_METABALL:
-		case CTX_MODE_EDIT_LATTICE:
-		case CTX_MODE_POSE:
-		case CTX_MODE_SCULPT:
-		case CTX_MODE_PAINT_WEIGHT:
-		case CTX_MODE_PAINT_VERTEX:
-		case CTX_MODE_PAINT_TEXTURE:
-		case CTX_MODE_PARTICLE:
-			ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
-			do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
-			break;
-		case CTX_MODE_OBJECT:
-			ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
-			do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
-			break;
-	}
-
-	if (do_occlude_wire)
+	if (!DRW_is_object_renderable(ob))
 		return;
 
-	switch (ob->type) {
-		case OB_MESH:
-			geom = DRW_cache_surface_get(ob);
+	CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
+	bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 
-			/* Depth Prepass */
-			DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull : depth_shgrp, geom, ob->obmat);
+	/* TODO all renderable */
+	if (ob->type == OB_MESH) {
+		geom = DRW_cache_surface_get(ob);
 
-			/* Shading */
-			clay_shgrp = CLAY_object_shgrp_get(ob, stl, psl);
-			DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
-			break;
+		/* Depth Prepass */
+		DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull : depth_shgrp, geom, ob->obmat);
+
+		/* Shading */
+		clay_shgrp = CLAY_object_shgrp_get(ob, stl, psl);
+		DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
 	}
 }
 
 static void CLAY_cache_finish(void)
 {
-	CLAY_StorageList *stl = DRW_engine_storage_list_get();
+	CLAY_Data *vedata = DRW_viewport_engine_data_get("Clay");
+	CLAY_StorageList *stl = vedata->stl;
 
 	DRW_uniformbuffer_update(stl->mat_ubo, &stl->storage->mat_storage);
 }
 
-static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context)
+static void CLAY_draw_scene(void)
 {
-	DRW_viewport_init(context);
-
-	/* This function may run for multiple viewports
-	 * so get the current viewport buffers */
-	CLAY_PassList *psl = DRW_engine_pass_list_get();
-	CLAY_FramebufferList *fbl = DRW_engine_framebuffer_list_get();
-
-	CLAY_engine_init();
-	DRW_mode_init();
-
-	/* TODO : tag to refresh by the deps graph */
-	/* ideally only refresh when objects are added/removed */
-	/* or render properties / materials change */
-	if (DRW_viewport_cache_is_dirty()) {
-
-		SceneLayer *sl = CTX_data_scene_layer(context);
-
-		CLAY_cache_init();
-		DRW_mode_cache_init();
-
-		DEG_OBJECT_ITER(sl, ob);
-		{
-			CLAY_cache_populate(ob);
-			DRW_mode_cache_populate(ob);
-		}
-		DEG_OBJECT_ITER_END
-
-		CLAY_cache_finish();
-		DRW_mode_cache_finish();
-	}
-
-	/* Start Drawing */
-	DRW_draw_background();
-
-	DRW_draw_callbacks_pre_scene();
+	CLAY_Data *vedata = DRW_viewport_engine_data_get("Clay");
+	CLAY_PassList *psl = vedata->psl;
+	CLAY_FramebufferList *fbl = vedata->fbl;
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
 	/* Pass 1 : Depth pre-pass */
 	DRW_draw_pass(psl->depth_pass);
@@ -723,19 +671,10 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 
 	/* Pass 2 : Duplicate depth */
 	/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
-	DRW_framebuffer_blit(fbl->default_fb, fbl->dupli_depth, true);
+	DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true);
 
 	/* Pass 3 : Shading */
 	DRW_draw_pass(psl->clay_pass);
-
-	/* Pass 4 : Overlays */
-	/* At this point all shaded geometry should have been rendered and their depth written */
-	DRW_draw_mode_overlays();
-
-	DRW_draw_callbacks_post_scene();
-
-	/* Always finish by this */
-	DRW_state_reset();
 }
 
 static void CLAY_collection_settings_create(RenderEngine *UNUSED(engine), CollectionEngineSettings *ces)
@@ -753,30 +692,39 @@ static void CLAY_collection_settings_create(RenderEngine *UNUSED(engine), Collec
 	BKE_collection_engine_property_add_float(ces, "ssao_factor_edge", 1.0f);
 }
 
-void CLAY_engine_free(void)
+static void CLAY_engine_free(void)
 {
-	/* data.depth_sh Is builtin so it's automaticaly freed */
 	if (data.clay_sh) {
 		DRW_shader_free(data.clay_sh);
 	}
-
 	if (data.matcap_array) {
 		DRW_texture_free(data.matcap_array);
 	}
-
 	if (data.jitter_tx) {
 		DRW_texture_free(data.jitter_tx);
 	}
-
 	if (data.sampling_tx) {
 		DRW_texture_free(data.sampling_tx);
 	}
 }
 
+DrawEngineType draw_engine_clay_type = {
+	NULL, NULL,
+	N_("Clay"),
+	&CLAY_engine_init,
+	&CLAY_engine_free,
+	&CLAY_cache_init,
+	&CLAY_cache_populate,
+	&CLAY_cache_finish,
+	NULL,
+	&CLAY_draw_scene
+};
+
 RenderEngineType viewport_clay_type = {
 	NULL, NULL,
 	CLAY_ENGINE, N_("Clay"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
-	NULL, NULL, NULL, NULL, &CLAY_view_draw, NULL, &CLAY_collection_settings_create,
+	NULL, NULL, NULL, NULL, NULL, NULL, &CLAY_collection_settings_create,
+	&draw_engine_clay_type,
 	{NULL, NULL, NULL}
 };
 

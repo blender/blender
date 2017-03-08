@@ -44,7 +44,7 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
-#include "draw_mode_pass.h"
+#include "draw_common.h"
 #include "draw_cache.h"
 #include "draw_view.h"
 
@@ -59,11 +59,41 @@ struct GPUTexture;
 struct GPUUniformBuffer;
 struct Object;
 struct Batch;
+struct DefaultFramebufferList;
+struct DefaultTextureList;
 
 typedef struct DRWUniform DRWUniform;
 typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
 typedef struct DRWShadingGroup DRWShadingGroup;
+
+typedef struct DrawEngineType {
+	struct DrawEngineType *next, *prev;
+
+	char idname[32];
+
+	void (*engine_init)(void);
+	void (*engine_free)(void);
+
+	void (*cache_init)(void);
+	void (*cache_populate)(struct Object *ob);
+	void (*cache_finish)(void);
+
+	void (*draw_background)(void);
+	void (*draw_scene)(void);
+} DrawEngineType;
+
+#ifndef __DRW_ENGINE_H__
+/* Buffer and textures used by the viewport by default */
+typedef struct DefaultFramebufferList {
+	struct GPUFrameBuffer *default_fb;
+} DefaultFramebufferList;
+
+typedef struct DefaultTextureList {
+	struct GPUTexture *color;
+	struct GPUTexture *depth;
+} DefaultTextureList;
+#endif
 
 /* Textures */
 
@@ -199,27 +229,26 @@ typedef enum {
 
 void DRW_viewport_init(const bContext *C);
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type);
+void DRW_viewport_engine_data_set(const char *engine_name, void *fbl, void *txl, void *psl,	void *stl);
+void *DRW_viewport_engine_data_get(const char *engine_name);
 float *DRW_viewport_size_get(void);
 float *DRW_viewport_screenvecs_get(void);
 float *DRW_viewport_pixelsize_get(void);
 bool DRW_viewport_is_persp_get(void);
 bool DRW_viewport_cache_is_dirty(void);
 
+struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);
+struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
+
 /* Settings */
+bool DRW_is_object_renderable(struct Object *ob);
 #ifndef __DRW_ENGINE_H__
 void *DRW_material_settings_get(Material *ma, const char *engine_name);
 void *DRW_render_settings_get(Scene *scene, const char *engine_name);
 #endif /* __DRW_ENGINE_H__ */
 
-/* Cache */
-void DRW_mode_init(void);
-void DRW_mode_cache_init(void);
-void DRW_mode_cache_populate(struct Object *ob);
-void DRW_mode_cache_finish(void);
-
 /* Draw commands */
 void DRW_draw_pass(DRWPass *pass);
-void DRW_draw_mode_overlays(void);
 
 void DRW_draw_callbacks_pre_scene(void);
 void DRW_draw_callbacks_post_scene(void);
@@ -229,12 +258,4 @@ void DRW_state_reset(void);
 /* Other */
 void DRW_get_dfdy_factors(float dfdyfac[2]);
 const struct bContext *DRW_get_context(void);
-void *DRW_engine_pass_list_get(void);
-void *DRW_engine_storage_list_get(void);
-void *DRW_engine_texture_list_get(void);
-void *DRW_engine_framebuffer_list_get(void);
-void *DRW_mode_pass_list_get(void);
-void *DRW_mode_storage_list_get(void);
-void *DRW_mode_texture_list_get(void);
-void *DRW_mode_framebuffer_list_get(void);
 #endif /* __DRW_RENDER_H__ */

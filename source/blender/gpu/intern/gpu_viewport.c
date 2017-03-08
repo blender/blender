@@ -33,6 +33,7 @@
 
 #include <string.h>
 
+#include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
@@ -57,20 +58,11 @@ struct GPUViewport {
 	GPUTexture *debug_depth;
 	int size[2];
 
-	/* Viewport Buffer Storage */
+	ListBase data;  /* ViewportEngineData wrapped in LinkData */
+	int data_hash;  /* If hash mismatch we free all ViewportEngineData in this viewport */
+
 	FramebufferList *fbl;
 	TextureList *txl;
-	PassList *psl;
-	StorageList *stl;
-
-	char engine_name[32];
-
-	/* Mode storage */
-	FramebufferList *fbl_mode;
-	TextureList *txl_mode;
-	PassList *psl_mode;
-	StorageList *stl_mode;
-	int mode;
 };
 
 static void GPU_viewport_buffers_free(FramebufferList *fbl, TextureList *txl);
@@ -82,66 +74,118 @@ GPUViewport *GPU_viewport_create(void)
 	GPUViewport *viewport = MEM_callocN(sizeof(GPUViewport), "GPUViewport");
 	viewport->fbl = MEM_callocN(sizeof(FramebufferList), "FramebufferList");
 	viewport->txl = MEM_callocN(sizeof(TextureList), "TextureList");
-	viewport->psl = MEM_callocN(sizeof(PassList), "PassList");
-	viewport->stl = MEM_callocN(sizeof(StorageList), "StorageList");
-	viewport->fbl_mode = MEM_callocN(sizeof(FramebufferList), "FramebufferList");
-	viewport->txl_mode = MEM_callocN(sizeof(TextureList), "TextureList");
-	viewport->psl_mode = MEM_callocN(sizeof(PassList), "PassList");
-	viewport->stl_mode = MEM_callocN(sizeof(StorageList), "StorageList");
 	viewport->size[0] = viewport->size[1] = -1;
 
 	return viewport;
 }
 
-void GPU_viewport_get_engine_data(GPUViewport *viewport, FramebufferList **fbs, TextureList **txs, PassList **pss, StorageList **str)
+void *GPU_viewport_engine_data_create(GPUViewport *viewport, const char *engine_name)
 {
-	*fbs = viewport->fbl;
-	*txs = viewport->txl;
-	*pss = viewport->psl;
-	*str = viewport->stl;
+	LinkData *ld = MEM_callocN(sizeof(LinkData), "LinkData");
+	ViewportEngineData *data = MEM_callocN(sizeof(ViewportEngineData), "ViewportEngineData");
+	BLI_strncpy(data->engine_name, engine_name, 32);
+
+	data->fbl = MEM_callocN(sizeof(FramebufferList), "FramebufferList");
+	data->txl = MEM_callocN(sizeof(TextureList), "TextureList");
+	data->psl = MEM_callocN(sizeof(PassList), "PassList");
+	data->stl = MEM_callocN(sizeof(StorageList), "StorageList");
+
+	ld->data = data;
+	BLI_addtail(&viewport->data, ld);
+
+	return data;
 }
 
-void GPU_viewport_get_mode_data(GPUViewport *viewport, FramebufferList **fbs, TextureList **txs, PassList **pss, StorageList **str)
+static void GPU_viewport_engines_data_free(GPUViewport *viewport)
 {
-	*fbs = viewport->fbl_mode;
-	*txs = viewport->txl_mode;
-	*pss = viewport->psl_mode;
-	*str = viewport->stl_mode;
+	LinkData *next;
+	for (LinkData *link = viewport->data.first; link; link = next) {
+		next = link->next;
+		ViewportEngineData *data = link->data;
+
+		GPU_viewport_buffers_free(data->fbl, data->txl);
+		GPU_viewport_passes_free(data->psl);
+		GPU_viewport_storage_free(data->stl);
+
+		MEM_freeN(data->fbl);
+		MEM_freeN(data->txl);
+		MEM_freeN(data->psl);
+		MEM_freeN(data->stl);
+
+		MEM_freeN(data);
+
+		BLI_remlink(&viewport->data, link);
+		MEM_freeN(link);
+	}
 }
 
-void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect, const char *engine, int mode)
+void *GPU_viewport_engine_data_get(GPUViewport *viewport, const char *engine_name)
+{
+	for (LinkData *link = viewport->data.first; link; link = link->next) {
+		ViewportEngineData *vdata = link->data;
+		if (STREQ(engine_name, vdata->engine_name)) {
+			return vdata;
+		}
+	}
+	return NULL;
+}
+
+void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport)
+{
+	return viewport->fbl;
+}
+
+void *GPU_viewport_texture_list_get(GPUViewport *viewport)
+{
+	return viewport->txl;
+}
+
+void GPU_viewport_size_get(GPUViewport *viewport, int *size)
+{
+	size[0] = viewport->size[0];
+	size[1] = viewport->size[1];
+}
+
+bool GPU_viewport_cache_validate(GPUViewport *viewport, int hash)
+{
+	bool dirty = false;
+
+	/* TODO for testing only, we need proper cache invalidation */
+	if (G.debug_value != 666 && G.debug_value != 667) {
+		for (LinkData *link = viewport->data.first; link; link = link->next) {
+			ViewportEngineData *data = link->data;
+			GPU_viewport_passes_free(data->psl);
+		}
+		dirty = true;
+	}
+
+	if (viewport->data_hash != hash) {
+		GPU_viewport_engines_data_free(viewport);
+		dirty = true;
+	}
+
+	viewport->data_hash = hash;
+
+	return dirty;
+}
+
+void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 {
 	DefaultFramebufferList *dfbl = (DefaultFramebufferList *)viewport->fbl;
 	DefaultTextureList *dtxl = (DefaultTextureList *)viewport->txl;
 
 	/* add one pixel because of scissor test */
-	int rect_w = BLI_rcti_size_x(rect) + 1, rect_h = BLI_rcti_size_y(rect) + 1;
-
-	if (G.debug_value != 666 && G.debug_value != 667) {
-		/* TODO for testing only, we need proper cache invalidation */
-		GPU_viewport_passes_free(viewport->psl);
-		GPU_viewport_passes_free(viewport->psl_mode);
-	}
-
-	if (!STREQ(engine, viewport->engine_name)) {
-		GPU_viewport_storage_free(viewport->stl);
-		GPU_viewport_buffers_free(viewport->fbl, viewport->txl);
-
-		BLI_strncpy(viewport->engine_name, engine, 32);
-	}
-
-	if (mode != viewport->mode) {
-		GPU_viewport_buffers_free(viewport->fbl_mode, viewport->txl_mode);
-		GPU_viewport_passes_free(viewport->psl_mode);
-		GPU_viewport_storage_free(viewport->stl_mode);
-
-		viewport->mode = mode;
-	}
+	int rect_w = BLI_rcti_size_x(rect) + 1;
+	int rect_h = BLI_rcti_size_y(rect) + 1;
 
 	if (dfbl->default_fb) {
 		if (rect_w != viewport->size[0] || rect_h != viewport->size[1]) {
 			GPU_viewport_buffers_free(viewport->fbl, viewport->txl);
-			GPU_viewport_buffers_free(viewport->fbl_mode, viewport->txl_mode);
+
+			for (LinkData *link = viewport->data.first; link; link = link->next) {
+				ViewportEngineData *data = link->data;
+				GPU_viewport_buffers_free(data->fbl, data->txl);
+			}
 		}
 	}
 
@@ -211,12 +255,11 @@ static void draw_ofs_to_screen(GPUViewport *viewport)
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
-
 	GPU_texture_bind(color, 0);
 
 	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-	immBegin(GL_QUADS, 4);
+	immBegin(GL_TRIANGLE_STRIP, 4);
 
 	immAttrib2f(texcoord, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, 0.0f);
@@ -224,11 +267,11 @@ static void draw_ofs_to_screen(GPUViewport *viewport)
 	immAttrib2f(texcoord, 1.0f, 0.0f);
 	immVertex2f(pos, w, 0.0f);
 
-	immAttrib2f(texcoord, 1.0f, 1.0f);
-	immVertex2f(pos, w, h);
-
 	immAttrib2f(texcoord, 0.0f, 1.0f);
 	immVertex2f(pos, 0.0f, h);
+
+	immAttrib2f(texcoord, 1.0f, 1.0f);
+	immVertex2f(pos, w, h);
 
 	immEnd();
 
@@ -296,25 +339,13 @@ static void GPU_viewport_passes_free(PassList *psl)
 
 void GPU_viewport_free(GPUViewport *viewport)
 {
-	GPU_viewport_debug_depth_free(viewport);
+	GPU_viewport_engines_data_free(viewport);
 
 	GPU_viewport_buffers_free(viewport->fbl, viewport->txl);
-	GPU_viewport_passes_free(viewport->psl);
-	GPU_viewport_storage_free(viewport->stl);
-
-	GPU_viewport_buffers_free(viewport->fbl_mode, viewport->txl_mode);
-	GPU_viewport_passes_free(viewport->psl_mode);
-	GPU_viewport_storage_free(viewport->stl_mode);
-
 	MEM_freeN(viewport->fbl);
 	MEM_freeN(viewport->txl);
-	MEM_freeN(viewport->psl);
-	MEM_freeN(viewport->stl);
 
-	MEM_freeN(viewport->fbl_mode);
-	MEM_freeN(viewport->txl_mode);
-	MEM_freeN(viewport->psl_mode);
-	MEM_freeN(viewport->stl_mode);
+	GPU_viewport_debug_depth_free(viewport);
 }
 
 /****************** debug ********************/
@@ -360,7 +391,7 @@ void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, con
 	immUniform1f("zfar", zfar);
 	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-	immBegin(GL_QUADS, 4);
+	immBegin(GL_TRIANGLE_STRIP, 4);
 
 	immAttrib2f(texcoord, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, 0.0f);
@@ -368,11 +399,11 @@ void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, con
 	immAttrib2f(texcoord, 1.0f, 0.0f);
 	immVertex2f(pos, w, 0.0f);
 
-	immAttrib2f(texcoord, 1.0f, 1.0f);
-	immVertex2f(pos, w, h);
-
 	immAttrib2f(texcoord, 0.0f, 1.0f);
 	immVertex2f(pos, 0.0f, h);
+
+	immAttrib2f(texcoord, 1.0f, 1.0f);
+	immVertex2f(pos, w, h);
 
 	immEnd();
 

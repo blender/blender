@@ -35,6 +35,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_object_types.h"
 
+#include "DRW_render.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dlrbTree.h"
@@ -56,10 +58,82 @@
 
 #include "UI_resources.h"
 
-#include "draw_mode_pass.h"
+#include "draw_common.h"
 
 #define BONE_VAR(eBone, pchan, var) ((eBone) ? (eBone->var) : (pchan->var))
 #define BONE_FLAG(eBone, pchan) ((eBone) ? (eBone->flag) : (pchan->bone->flag))
+
+static Object *current_armature;
+/* Reset when changing current_armature */
+static DRWShadingGroup *bone_octahedral_solid;
+static DRWShadingGroup *bone_octahedral_wire;
+static DRWShadingGroup *bone_point_solid;
+static DRWShadingGroup *bone_point_wire;
+static DRWShadingGroup *bone_axes;
+static DRWShadingGroup *relationship_lines;
+
+static DRWPass *bone_solid;
+static DRWPass *bone_wire;
+
+/* Octahedral */
+static void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_octahedral_solid == NULL) {
+		struct Batch *geom = DRW_cache_bone_octahedral_get();
+		bone_octahedral_solid = shgroup_instance_objspace_solid(bone_solid, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_octahedral_solid, bone_mat, color);
+}
+
+static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_octahedral_wire == NULL) {
+		struct Batch *geom = DRW_cache_bone_octahedral_wire_outline_get();
+		bone_octahedral_wire = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_octahedral_wire, bone_mat, color);
+}
+
+/* Head and tail sphere */
+static void DRW_shgroup_bone_point_solid(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_point_solid == NULL) {
+		struct Batch *geom = DRW_cache_bone_point_get();
+		bone_point_solid = shgroup_instance_objspace_solid(bone_solid, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_point_solid, bone_mat, color);
+}
+
+static void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_point_wire == NULL) {
+		struct Batch *geom = DRW_cache_bone_point_wire_outline_get();
+		bone_point_wire = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_point_wire, bone_mat, color);
+}
+
+/* Axes */
+static void DRW_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_axes == NULL) {
+		struct Batch *geom = DRW_cache_bone_arrows_get();
+		bone_axes = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_axes, bone_mat, color);
+}
+
+/* Relationship lines */
+static void UNUSED_FUNCTION(DRW_shgroup_bone_relationship_lines)(const float head[3], const float tail[3])
+{
+	DRW_shgroup_dynamic_call_add(relationship_lines, head);
+	DRW_shgroup_dynamic_call_add(relationship_lines, tail);
+}
 
 /* *************** Armature Drawing - Coloring API ***************************** */
 
@@ -246,7 +320,7 @@ static void draw_bone_octahedral(EditBone *eBone, bPoseChannel *pchan, bArmature
 	draw_points(eBone, pchan, arm);
 }
 
-void draw_armature_edit(Object *ob)
+static void draw_armature_edit(Object *ob)
 {
 	EditBone *eBone;
 	bArmature *arm = ob->data;
@@ -280,7 +354,7 @@ void draw_armature_edit(Object *ob)
 }
 
 /* if const_color is NULL do pose mode coloring */
-void draw_armature_pose(Object *ob, const float const_color[4])
+static void draw_armature_pose(Object *ob, const float const_color[4])
 {
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan;
@@ -325,4 +399,45 @@ void draw_armature_pose(Object *ob, const float const_color[4])
 			}
 		}
 	}
+}
+
+/* this function set the object space to use
+ * for all subsequent DRW_shgroup_bone_*** calls */
+static void DRW_shgroup_armature(
+    Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWShadingGroup *shgrp_relationship_lines)
+{
+	current_armature = ob;
+	bone_octahedral_solid = NULL;
+	bone_octahedral_wire = NULL;
+	bone_point_solid = NULL;
+	bone_point_wire = NULL;
+	bone_axes = NULL;
+
+	bone_solid = pass_bone_solid;
+	bone_wire = pass_bone_wire;
+	relationship_lines = shgrp_relationship_lines;
+}
+
+void DRW_shgroup_armature_object(
+    Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWShadingGroup *shgrp_relationship_lines)
+{
+	float *color;
+	DRW_object_wire_theme_get(ob, &color);
+
+	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, shgrp_relationship_lines);
+	draw_armature_pose(ob, color);
+}
+
+void DRW_shgroup_armature_pose(
+    Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWShadingGroup *shgrp_relationship_lines)
+{
+	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, shgrp_relationship_lines);
+	draw_armature_pose(ob, NULL);
+}
+
+void DRW_shgroup_armature_edit(
+    Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWShadingGroup *shgrp_relationship_lines)
+{
+	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, shgrp_relationship_lines);
+	draw_armature_edit(ob);
 }
