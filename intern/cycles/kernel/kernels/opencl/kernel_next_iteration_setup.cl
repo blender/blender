@@ -22,5 +22,6 @@ __kernel void kernel_ocl_path_trace_next_iteration_setup(
         ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_next_iteration_setup((KernelGlobals*)kg);
+	ccl_local unsigned int local_queue_atomics;
+	kernel_next_iteration_setup((KernelGlobals*)kg, &local_queue_atomics);
 }

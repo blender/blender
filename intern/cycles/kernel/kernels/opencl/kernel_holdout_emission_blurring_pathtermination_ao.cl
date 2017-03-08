@@ -22,5 +22,8 @@ __kernel void kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao
         ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_holdout_emission_blurring_pathtermination_ao((KernelGlobals*)kg);
+	ccl_local BackgroundAOLocals locals;
+	kernel_holdout_emission_blurring_pathtermination_ao(
+	        (KernelGlobals*)kg,
+	        &locals);
 }

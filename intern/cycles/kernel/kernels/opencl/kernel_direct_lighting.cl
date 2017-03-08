@@ -22,5 +22,6 @@ __kernel void kernel_ocl_path_trace_direct_lighting(
         ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_direct_lighting((KernelGlobals*)kg);
+	ccl_local unsigned int local_queue_atomics;
+	kernel_direct_lighting((KernelGlobals*)kg, &local_queue_atomics);
 }

@@ -18,7 +18,6 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void kernel_indirect_background(KernelGlobals *kg)
 {
-
 	ccl_global char *ray_state = kernel_split_state.ray_state;
 
 	int thread_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);

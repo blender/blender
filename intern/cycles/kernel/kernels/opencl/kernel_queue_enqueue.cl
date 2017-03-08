@@ -22,5 +22,6 @@ __kernel void kernel_ocl_path_trace_queue_enqueue(
         ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_queue_enqueue((KernelGlobals*)kg);
+	ccl_local QueueEnqueueLocals locals;
+	kernel_queue_enqueue((KernelGlobals*)kg, &locals);
 }
