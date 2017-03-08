@@ -37,6 +37,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BLI_rect.h"
+
 #include "BLI_utildefines.h"
 
 /* Ad hoc number of queries to allocate to skip doing many glGenQueries */
@@ -72,7 +74,7 @@ static GPUQueryState g_query_state = {0};
 /**
  * initialize and provide buffer for results
  */
-void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const rctf *input, char mode, int oldhits)
+void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const rcti *input, char mode, int oldhits)
 {
 	g_query_state.select_is_active = true;
 	g_query_state.query_issued = false;
@@ -109,7 +111,7 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const rctf *in
 		 * get rejected before the depth test. Should probably cull rect against
 		 * scissor for viewport but this is a rare case I think */
 		glGetFloatv(GL_SCISSOR_BOX, viewport);
-		glViewport(viewport[0], viewport[1], (int)(input->xmax - input->xmin), (int)(input->ymax - input->ymin));
+		glViewport(viewport[0], viewport[1], BLI_rcti_size_x(input), BLI_rcti_size_y(input));
 
 		/* occlusion queries operates on fragments that pass tests and since we are interested on all
 		 * objects in the view frustum independently of their order, we need to disable the depth test */

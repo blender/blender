@@ -908,7 +908,7 @@ void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 /**
  * \param rect optional for picking (can be NULL).
  */
-void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rctf *rect)
+void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	rctf viewplane;
@@ -1175,7 +1175,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	Scene *scene = vc->scene;
 	View3D *v3d = vc->v3d;
 	ARegion *ar = vc->ar;
-	rctf rect;
+	rcti rect;
 	short hits;
 	const bool use_obedit_skip = (scene->obedit != NULL) && (vc->obedit == NULL);
 	const bool do_passes = do_nearest && GPU_select_query_check_active();
@@ -1185,10 +1185,10 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	/* case not a border select */
 	if (input->xmin == input->xmax) {
 		/* seems to be default value for bones only now */
-		BLI_rctf_init_pt_radius(&rect, (const float[2]){input->xmin, input->ymin}, 12);
+		BLI_rcti_init_pt_radius(&rect, (const int[2]){input->xmin, input->ymin}, 12);
 	}
 	else {
-		BLI_rctf_rcti_copy(&rect, input);
+		rect = *input;
 	}
 	
 	view3d_winmatrix_set(ar, v3d, &rect);
