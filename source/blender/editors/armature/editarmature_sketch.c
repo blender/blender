@@ -41,6 +41,7 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 #include "ED_armature.h"
 #include "armature_intern.h"
 #include "BIF_retarget.h"
@@ -53,6 +54,9 @@
 #include "WM_types.h"
 
 #include "GPU_select.h"
+#include "GPU_matrix.h"
+#include "GPU_batch.h"
+#include "GPU_immediate.h"
 
 typedef int (*GestureDetectFct)(bContext *, SK_Gesture *, SK_Sketch *);
 typedef void (*GestureApplyFct)(bContext *, SK_Gesture *, SK_Sketch *);
@@ -420,7 +424,6 @@ static void sk_retargetStroke(bContext *C, SK_Stroke *stk)
 }
 
 /**************************************************************/
-
 static void sk_cancelStroke(SK_Sketch *sketch)
 {
 	if (sketch->active_stroke != NULL) {
@@ -435,16 +438,32 @@ static float sk_clampPointSize(SK_Point *pt, float size)
 	return max_ff(size * pt->size, size / 2);
 }
 
-static void sk_drawPoint(GLUquadric *quad, SK_Point *pt, float size)
+static void sk_drawPoint(SK_Point *pt, float size, float color[4])
 {
-	glTranslate3fv(pt->p);
-	gluSphere(quad, sk_clampPointSize(pt, size), 8, 8);
+	Batch *batch = NULL;
+
+	gpuTranslate3fv(pt->p);
+
+	gpuPushMatrix();
+
+	gpuScaleUniform(sk_clampPointSize(pt, size));
+
+	batch = Batch_get_sphere(0);
+	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+	Batch_Uniform4fv(batch, "color", color);
+
+	Batch_draw(batch);
+
+	gpuPopMatrix();
 }
 
-static void sk_drawEdge(GLUquadric *quad, SK_Point *pt0, SK_Point *pt1, float size)
+static void sk_drawEdge(SK_Point *pt0, SK_Point *pt1, float size, float color[4])
 {
-	float vec1[3], vec2[3] = {0, 0, 1}, axis[3];
+	float vec1[3], vec2[3] = { 0, 0, 1 }, axis[3];
 	float angle, length;
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
 	sub_v3_v3v3(vec1, pt1->p, pt0->p);
 	length = normalize_v3(vec1);
@@ -454,19 +473,26 @@ static void sk_drawEdge(GLUquadric *quad, SK_Point *pt0, SK_Point *pt1, float si
 		axis[1] = 1;
 	}
 
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformColor4fv(color);
+
 	angle = angle_normalized_v3v3(vec2, vec1);
+	gpuRotate3fv(angle * (float)(180.0 / M_PI) + 180.0f, axis);
+	imm_cylinder(pos, sk_clampPointSize(pt1, size), sk_clampPointSize(pt0, size), length, 8, 8);
 
-	glRotate3fv(angle * (float)(180.0 / M_PI) + 180.0f, axis);
-
-	gluCylinder(quad, sk_clampPointSize(pt1, size), sk_clampPointSize(pt0, size), length, 8, 8);
+	immUnbindProgram();
 }
 
-static void sk_drawNormal(GLUquadric *quad, SK_Point *pt, float size, float height)
+static void sk_drawNormal(SK_Point *pt, float size, float height)
 {
-	float vec2[3] = {0, 0, 1}, axis[3];
+	float vec2[3] = { 0, 0, 1 }, axis[3];
 	float angle;
-	
-	glPushMatrix();
+	float color[3] = { 0.0f, 1.0f, 1.0f };
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+	gpuPushMatrix();
 
 	cross_v3_v3v3(axis, vec2, pt->no);
 
@@ -474,41 +500,44 @@ static void sk_drawNormal(GLUquadric *quad, SK_Point *pt, float size, float heig
 		axis[1] = 1;
 	}
 
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformColor4fv(color);
+
 	angle = angle_normalized_v3v3(vec2, pt->no);
+	gpuRotate3fv(angle * (float)(180.0 / M_PI), axis);
 
-	glRotate3fv(angle * (float)(180.0 / M_PI), axis);
+	imm_cylinder(pos, sk_clampPointSize(pt, size), 0, sk_clampPointSize(pt, height), 10, 2);
 
-	glColor3f(0, 1, 1);
-	gluCylinder(quad, sk_clampPointSize(pt, size), 0, sk_clampPointSize(pt, height), 10, 2);
+	immUnbindProgram();
 
-	glPopMatrix();
+	gpuPopMatrix();
 }
 
 static void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 {
 	float rgb[3];
+	float zero_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	int i;
-	GLUquadric *quad = gluNewQuadric();
-	gluQuadricNormals(quad, GLU_SMOOTH);
 
 	if (id != -1) {
 		GPU_select_load_id(id);
 
 		for (i = 0; i < stk->nb_points; i++) {
-			glPushMatrix();
+			gpuPushMatrix();
 
-			sk_drawPoint(quad, stk->points + i, 0.1);
+			sk_drawPoint(stk->points + i, 0.1, zero_color);
 
 			if (i > 0) {
-				sk_drawEdge(quad, stk->points + i - 1, stk->points + i, 0.1);
+				sk_drawEdge(stk->points + i - 1, stk->points + i, 0.1, zero_color);
 			}
 
-			glPopMatrix();
+			gpuPopMatrix();
 		}
 
 	}
 	else {
-		float d_rgb[3] = {1, 1, 1};
+		float d_rgb[3] = { 1, 1, 1 };
+		float tmp_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		copy_v3_v3(rgb, color);
 		sub_v3_v3(d_rgb, rgb);
@@ -517,48 +546,44 @@ static void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int
 		for (i = 0; i < stk->nb_points; i++) {
 			SK_Point *pt = stk->points + i;
 
-			glPushMatrix();
+			gpuPushMatrix();
 
 			if (pt->type == PT_EXACT) {
-				glColor3f(0, 0, 0);
-				sk_drawPoint(quad, pt, 0.15);
-				sk_drawNormal(quad, pt, 0.05, 0.9);
+				sk_drawPoint(pt, 0.15, zero_color);
+				sk_drawNormal(pt, 0.05, 0.9);
 			}
 
 			if (i >= start && i <= end) {
-				glColor3f(0.3, 0.3, 0.3);
+				copy_v4_fl4(tmp_color, 0.3f, 0.3f, 0.3f, 1.0f);
 			}
 			else {
-				glColor3fv(rgb);
+				copy_v4_fl4(tmp_color, rgb[0], rgb[1], rgb[2], 1.0f);
 			}
 
 			if (pt->type != PT_EXACT) {
-
-				sk_drawPoint(quad, pt, 0.1);
+				sk_drawPoint(pt, 0.1, tmp_color);
 			}
 
 			if (i > 0) {
-				sk_drawEdge(quad, pt - 1, pt, 0.1);
+				sk_drawEdge(pt - 1, pt, 0.1, tmp_color);
 			}
 
-			glPopMatrix();
+			gpuPopMatrix();
 
 			add_v3_v3(rgb, d_rgb);
 		}
 	}
 
-	gluDeleteQuadric(quad);
 }
 
 static void drawSubdividedStrokeBy(ToolSettings *toolsettings, BArcIterator *iter, NextSubdivisionFunc next_subdividion)
 {
 	SK_Stroke *stk = ((SK_StrokeIterator *)iter)->stroke;
 	float head[3], tail[3];
+	float color[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 	int bone_start = 0;
 	int end = iter->length;
 	int index;
-	GLUquadric *quad = gluNewQuadric();
-	gluQuadricNormals(quad, GLU_SMOOTH);
 
 	iter->head(iter);
 	copy_v3_v3(head, iter->p);
@@ -567,22 +592,19 @@ static void drawSubdividedStrokeBy(ToolSettings *toolsettings, BArcIterator *ite
 	while (index != -1) {
 		SK_Point *pt = stk->points + index;
 
-		glPushMatrix();
+		gpuPushMatrix();
 
-		glColor3f(0, 1, 0);
-		sk_drawPoint(quad, pt, 0.15);
+		sk_drawPoint(pt, 0.15, color);
 
-		sk_drawNormal(quad, pt, 0.05, 0.9);
+		sk_drawNormal(pt, 0.05, 0.9);
 
-		glPopMatrix();
+		gpuPopMatrix();
 
 		copy_v3_v3(head, tail);
 		bone_start = index; // start next bone from current index
 
 		index = next_subdividion(toolsettings, iter, bone_start, end, head, tail);
 	}
-
-	gluDeleteQuadric(quad);
 }
 
 static void sk_drawStrokeSubdivision(ToolSettings *toolsettings, SK_Stroke *stk)
@@ -1966,6 +1988,8 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
+	gpuMatrixBegin3D_legacy();
+
 	if (with_names) {
 		int id;
 		for (id = 1, stk = sketch->strokes.first; stk; id++, stk = stk->next) {
@@ -1975,9 +1999,9 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 		GPU_select_load_id(-1);
 	}
 	else {
-		float selected_rgb[3] = {1, 0, 0};
-		float unselected_rgb[3] = {1, 0.5, 0};
-
+		float selected_rgb[3] = { 1, 0, 0 };
+		float unselected_rgb[3] = { 1, 0.5, 0 };
+		float tmp_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 		for (stk = sketch->strokes.first; stk; stk = stk->next) {
 			int start = -1;
 			int end = -1;
@@ -2001,34 +2025,28 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 			}
 
 			if (last != NULL) {
-				GLUquadric *quad = gluNewQuadric();
-				gluQuadricNormals(quad, GLU_SMOOTH);
-
-				glPushMatrix();
+				gpuPushMatrix();
 
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 				switch (sketch->next_point.mode) {
-					case PT_SNAP:
-						glColor3f(0, 1, 0);
-						break;
-					case PT_PROJECT:
-						glColor3f(0, 0, 0);
-						break;
+				case PT_SNAP:
+					copy_v4_fl4(tmp_color, 0.0f, 1.0f, 0.0f, 1.0f);
+					break;
+				case PT_PROJECT:
+					copy_v4_fl4(tmp_color, 0.0f, 0.0f, 0.0f, 1.0f);
+					break;
 				}
 
-				sk_drawPoint(quad, &sketch->next_point, 0.1);
+				sk_drawPoint(&sketch->next_point, 0.1, tmp_color);
 
-				glColor4f(selected_rgb[0], selected_rgb[1], selected_rgb[2], 0.3);
-
-				sk_drawEdge(quad, last, &sketch->next_point, 0.1);
+				copy_v4_fl4(tmp_color, selected_rgb[0], selected_rgb[1], selected_rgb[2], 0.3);
+				sk_drawEdge(last, &sketch->next_point, 0.1f, tmp_color);
 
 				glDisable(GL_BLEND);
 
-				glPopMatrix();
-
-				gluDeleteQuadric(quad);
+				gpuPopMatrix();
 			}
 		}
 	}
@@ -2036,14 +2054,14 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 #if 0
 	if (BLI_listbase_is_empty(&sketch->depth_peels) == false) {
 		float colors[8][3] = {
-			{1, 0, 0},
-			{0, 1, 0},
-			{0, 0, 1},
-			{1, 1, 0},
-			{1, 0, 1},
-			{0, 1, 1},
-			{1, 1, 1},
-			{0, 0, 0}
+			{ 1, 0, 0 },
+			{ 0, 1, 0 },
+			{ 0, 0, 1 },
+			{ 1, 1, 0 },
+			{ 1, 0, 1 },
+			{ 0, 1, 1 },
+			{ 1, 1, 1 },
+			{ 0, 0, 0 }
 		};
 		DepthPeel *p;
 		GLUquadric *quad = gluNewQuadric();
@@ -2069,9 +2087,11 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 
 	/* only draw gesture in active area */
 	if (sketch->gesture != NULL /* && area_is_active_area(G.vd->area) */) {
-		float gesture_rgb[3] = {0, 0.5, 1};
+		float gesture_rgb[3] = { 0, 0.5, 1 };
 		sk_drawStroke(sketch->gesture, -1, gesture_rgb, -1, -1);
 	}
+
+	gpuMatrixEnd();
 }
 
 static int sk_finish_stroke(bContext *C, SK_Sketch *sketch)

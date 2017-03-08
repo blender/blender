@@ -114,6 +114,7 @@ void imm_cpack(unsigned int x);
 */
 void imm_cylinder_nor(unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks);
 void imm_cylinder_wire(unsigned int pos, float base, float top, float height, int slices, int stacks);
+void imm_cylinder(unsigned int pos, float base, float top, float height, int slices, int stacks);
 
 /**
  * Returns a float value as obtained by glGetFloatv.
