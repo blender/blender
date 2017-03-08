@@ -44,7 +44,7 @@
 #include "util_types.h"
 #include "util_time.h"
 
-#include "split/kernel_split_data.h"
+#include "split/kernel_split_data_types.h"
 
 CCL_NAMESPACE_BEGIN
 

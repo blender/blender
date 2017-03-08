@@ -16,6 +16,9 @@
 
 /* Constant Globals */
 
+#ifndef __KERNEL_GLOBALS_H__
+#define __KERNEL_GLOBALS_H__
+
 CCL_NAMESPACE_BEGIN
 
 /* On the CPU, we pass along the struct KernelGlobals to nearly everywhere in
@@ -153,3 +156,4 @@ ccl_device float lookup_table_read_2D(KernelGlobals *kg, float x, float y, int o
 
 CCL_NAMESPACE_END
 
+#endif  /* __KERNEL_GLOBALS_H__ */

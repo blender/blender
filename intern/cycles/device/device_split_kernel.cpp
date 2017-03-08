@@ -17,7 +17,7 @@
 #include "device_split_kernel.h"
 
 #include "kernel_types.h"
-#include "kernel_split_data.h"
+#include "kernel_split_data_types.h"
 
 #include "util_time.h"
 

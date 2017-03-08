@@ -209,6 +209,7 @@ set(SRC_SPLIT_HEADERS
 	split/kernel_shadow_blocked.h
 	split/kernel_split_common.h
 	split/kernel_split_data.h
+	split/kernel_split_data_types.h
 )
 
 # CUDA module

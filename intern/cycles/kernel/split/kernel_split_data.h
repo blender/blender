@@ -17,85 +17,12 @@
 #ifndef __KERNEL_SPLIT_DATA_H__
 #define __KERNEL_SPLIT_DATA_H__
 
+#include "kernel_split_data_types.h"
+#include "kernel_globals.h"
+
 CCL_NAMESPACE_BEGIN
 
-/* parameters used by the split kernels, we use a single struct to avoid passing these to each kernel */
-
-typedef struct SplitParams {
-	int x;
-	int y;
-	int w;
-	int h;
-
-	int offset;
-	int stride;
-
-	ccl_global uint *rng_state;
-
-	int start_sample;
-	int end_sample;
-
-	ccl_global unsigned int *work_pools;
-	unsigned int num_samples;
-
-	ccl_global int *queue_index;
-	int queue_size;
-	ccl_global char *use_queues_flag;
-
-	ccl_global float *buffer;
-} SplitParams;
-
-/* Global memory variables [porting]; These memory is used for
- * co-operation between different kernels; Data written by one
- * kernel will be available to another kernel via this global
- * memory.
- */
-
-/* SPLIT_DATA_ENTRY(type, name, num) */
-
-#if defined(WITH_CYCLES_DEBUG) || defined(__KERNEL_DEBUG__)
-/* DebugData memory */
-#  define SPLIT_DATA_DEBUG_ENTRIES \
-	SPLIT_DATA_ENTRY(DebugData, debug_data, 1)
-#else
-#  define SPLIT_DATA_DEBUG_ENTRIES
-#endif
-
-#define SPLIT_DATA_ENTRIES \
-	SPLIT_DATA_ENTRY(ccl_global RNG, rng, 1) \
-	SPLIT_DATA_ENTRY(ccl_global float3, throughput, 1) \
-	SPLIT_DATA_ENTRY(ccl_global float, L_transparent, 1) \
-	SPLIT_DATA_ENTRY(PathRadiance, path_radiance, 1) \
-	SPLIT_DATA_ENTRY(ccl_global Ray, ray, 1) \
-	SPLIT_DATA_ENTRY(ccl_global PathState, path_state, 1) \
-	SPLIT_DATA_ENTRY(Intersection, isect, 1) \
-	SPLIT_DATA_ENTRY(ccl_global float3, ao_alpha, 1) \
-	SPLIT_DATA_ENTRY(ccl_global float3, ao_bsdf, 1) \
-	SPLIT_DATA_ENTRY(ccl_global Ray, ao_light_ray, 1) \
-	SPLIT_DATA_ENTRY(ccl_global BsdfEval, bsdf_eval, 1) \
-	SPLIT_DATA_ENTRY(ccl_global int, is_lamp, 1) \
-	SPLIT_DATA_ENTRY(ccl_global Ray, light_ray, 1) \
-	SPLIT_DATA_ENTRY(Intersection, isect_shadow, 2) \
-	SPLIT_DATA_ENTRY(ccl_global int, queue_data, (NUM_QUEUES*2)) /* TODO(mai): this is too large? */ \
-	SPLIT_DATA_ENTRY(ccl_global uint, work_array, 1) \
-	SPLIT_DATA_ENTRY(ShaderData, sd, 1) \
-	SPLIT_DATA_ENTRY(ShaderData, sd_DL_shadow, 2) \
-	SPLIT_DATA_DEBUG_ENTRIES \
-
-/* struct that holds pointers to data in the shared state buffer */
-typedef struct SplitData {
-#define SPLIT_DATA_ENTRY(type, name, num) type *name;
-	SPLIT_DATA_ENTRIES
-#undef SPLIT_DATA_ENTRY
-
-	/* this is actually in a separate buffer from the rest of the split state data (so it can be read back from
-	 * the host easily) but is still used the same as the other data so we have it here in this struct as well
-	 */
-	ccl_global char *ray_state;
-} SplitData;
-
-/* TODO: find a way to get access to kg here */
-ccl_device_inline size_t split_data_buffer_size(ccl_global void *kg, size_t num_elements)
+ccl_device_inline size_t split_data_buffer_size(KernelGlobals *kg, size_t num_elements)
 {
 	(void)kg;  /* Unused on CPU. */
 
@@ -107,7 +34,7 @@ ccl_device_inline size_t split_data_buffer_size(ccl_global void *kg, size_t num_
 	return size;
 }
 
-ccl_device_inline void split_data_init(ccl_global void *kg,
+ccl_device_inline void split_data_init(KernelGlobals *kg,
                                        ccl_global SplitData *split_data,
                                        size_t num_elements,
                                        ccl_global void *data,
@@ -125,19 +52,6 @@ ccl_device_inline void split_data_init(ccl_global void *kg,
 	split_data->ray_state = ray_state;
 }
 
-#ifndef __KERNEL_CUDA__
-#  define kernel_split_state (kg->split_data)
-#  define kernel_split_params (kg->split_param_data)
-#else
-__device__ SplitData __split_data;
-#  define kernel_split_state (__split_data)
-__device__ SplitParams __split_param_data;
-#  define kernel_split_params (__split_param_data)
-#endif  /* __KERNEL_CUDA__ */
-
 CCL_NAMESPACE_END
 
 #endif  /* __KERNEL_SPLIT_DATA_H__ */
-
-
-
