@@ -1234,7 +1234,7 @@ static short mixed_bones_object_selectbuffer(
 
 	do_nearest = do_nearest && !enumerate;
 
-	BLI_rcti_init(&rect, mval[0] - 14, mval[0] + 14, mval[1] - 14, mval[1] + 14);
+	BLI_rcti_init_pt_radius(&rect, mval, 14);
 	hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, do_nearest);
 	if (hits15 == 1) {
 		return selectbuffer_ret_hits_15(buffer, hits15);
@@ -1243,7 +1243,7 @@ static short mixed_bones_object_selectbuffer(
 		has_bones15 = selectbuffer_has_bones(buffer, hits15);
 
 		offs = 4 * hits15;
-		BLI_rcti_init(&rect, mval[0] - 9, mval[0] + 9, mval[1] - 9, mval[1] + 9);
+		BLI_rcti_init_pt_radius(&rect, mval, 9);
 		hits9 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, do_nearest);
 		if (hits9 == 1) {
 			return selectbuffer_ret_hits_9(buffer, hits15, hits9);
@@ -1252,7 +1252,7 @@ static short mixed_bones_object_selectbuffer(
 			has_bones9 = selectbuffer_has_bones(buffer + offs, hits9);
 
 			offs += 4 * hits9;
-			BLI_rcti_init(&rect, mval[0] - 5, mval[0] + 5, mval[1] - 5, mval[1] + 5);
+			BLI_rcti_init_pt_radius(&rect, mval, 5);
 			hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, do_nearest);
 			if (hits5 == 1) {
 				return selectbuffer_ret_hits_5(buffer, hits15, hits9, hits5);

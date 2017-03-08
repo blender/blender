@@ -4887,7 +4887,7 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 		rect.ymax = mval[1] + 1;
 	}
 	else {
-		BLI_rcti_init_pt_size(&rect, mval, margin);
+		BLI_rcti_init_pt_radius(&rect, mval, margin);
 	}
 
 	view3d_update_depths_rect(ar, &depth_temp, &rect);

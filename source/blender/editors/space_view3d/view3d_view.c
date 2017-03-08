@@ -1185,7 +1185,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	/* case not a border select */
 	if (input->xmin == input->xmax) {
 		/* seems to be default value for bones only now */
-		BLI_rctf_init_pt_size(&rect, (const float[2]){input->xmin, input->ymin}, 12);
+		BLI_rctf_init_pt_radius(&rect, (const float[2]){input->xmin, input->ymin}, 12);
 	}
 	else {
 		BLI_rctf_rcti_copy(&rect, input);
