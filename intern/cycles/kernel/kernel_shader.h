@@ -203,11 +203,11 @@ void shader_setup_from_subsurface(
 #  ifdef __INSTANCING__
 	if(isect->object != OBJECT_NONE) {
 		/* instance transform */
-		object_normal_transform(kg, sd, &sd->N);
-		object_normal_transform(kg, sd, &sd->Ng);
+		object_normal_transform_auto(kg, sd, &sd->N);
+		object_normal_transform_auto(kg, sd, &sd->Ng);
 #    ifdef __DPDU__
-		object_dir_transform(kg, sd, &sd->dPdu);
-		object_dir_transform(kg, sd, &sd->dPdv);
+		object_dir_transform_auto(kg, sd, &sd->dPdu);
+		object_dir_transform_auto(kg, sd, &sd->dPdv);
 #    endif
 	}
 #  endif
@@ -816,7 +816,7 @@ ccl_device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_b
 		*N_ = (is_zero(N))? sd->N: normalize(N);
 
 	if(texture_blur_)
-		*texture_blur_ = texture_blur/weight_sum;
+		*texture_blur_ = safe_divide(texture_blur, weight_sum);
 	
 	return eval;
 }
@@ -1036,8 +1036,8 @@ ccl_device int shader_phase_sample_closure(KernelGlobals *kg, const ShaderData *
 
 ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
                                           ShaderData *sd,
-                                          PathState *state,
-                                          VolumeStack *stack,
+                                          ccl_addr_space PathState *state,
+                                          ccl_addr_space VolumeStack *stack,
                                           int path_flag,
                                           ShaderContext ctx)
 {

@@ -76,14 +76,12 @@ CCL_NAMESPACE_BEGIN
 #  ifdef WITH_OSL
 #    define __OSL__
 #  endif
-#  ifndef __SPLIT_KERNEL__
-#    define __SUBSURFACE__
-#  endif
+#  define __SUBSURFACE__
 #  define __CMJ__
+#  define __VOLUME__
+#  define __VOLUME_SCATTER__
 #  ifndef __SPLIT_KERNEL__
-#    define __VOLUME__
 #    define __VOLUME_DECOUPLED__
-#    define __VOLUME_SCATTER__
 #    define __SHADOW_RECORD_ALL__
 #    define __VOLUME_RECORD_ALL__
 #  endif
@@ -130,6 +128,9 @@ CCL_NAMESPACE_BEGIN
 #    define __CL_USE_NATIVE__
 #    define __KERNEL_SHADING__
 #    define __KERNEL_ADV_SHADING__
+#    define __SUBSURFACE__
+#    define __VOLUME__
+#    define __VOLUME_SCATTER__
 #  endif  /* __KERNEL_OPENCL_AMD__ */
 
 #  ifdef __KERNEL_OPENCL_INTEL_CPU__
@@ -552,7 +553,7 @@ typedef struct Ray {
 
 /* Intersection */
 
-typedef ccl_addr_space struct Intersection {
+typedef struct Intersection {
 	float t, u, v;
 	int prim;
 	int object;
@@ -934,7 +935,7 @@ typedef struct PathState {
 /* Subsurface */
 
 /* Struct to gather multiple SSS hits. */
-struct SubsurfaceIntersection
+typedef struct SubsurfaceIntersection
 {
 	Ray ray;
 	float3 weight[BSSRDF_MAX_HITS];
@@ -942,10 +943,10 @@ struct SubsurfaceIntersection
 	int num_hits;
 	struct Intersection hits[BSSRDF_MAX_HITS];
 	float3 Ng[BSSRDF_MAX_HITS];
-};
+} SubsurfaceIntersection;
 
 /* Struct to gather SSS indirect rays and delay tracing them. */
-struct SubsurfaceIndirectRays
+typedef struct SubsurfaceIndirectRays
 {
 	bool need_update_volume_stack;
 	bool tracing;
@@ -956,7 +957,7 @@ struct SubsurfaceIndirectRays
 	struct Ray rays[BSSRDF_MAX_HITS];
 	float3 throughputs[BSSRDF_MAX_HITS];
 	struct PathRadiance L[BSSRDF_MAX_HITS];
-};
+} SubsurfaceIndirectRays;
 
 /* Constant Kernel Data
  *

@@ -58,13 +58,17 @@ private:
 	SplitKernelFunction *kernel_path_init;
 	SplitKernelFunction *kernel_scene_intersect;
 	SplitKernelFunction *kernel_lamp_emission;
+	SplitKernelFunction *kernel_do_volume;
 	SplitKernelFunction *kernel_queue_enqueue;
-	SplitKernelFunction *kernel_background_buffer_update;
+	SplitKernelFunction *kernel_indirect_background;
 	SplitKernelFunction *kernel_shader_eval;
 	SplitKernelFunction *kernel_holdout_emission_blurring_pathtermination_ao;
+	SplitKernelFunction *kernel_subsurface_scatter;
 	SplitKernelFunction *kernel_direct_lighting;
 	SplitKernelFunction *kernel_shadow_blocked;
 	SplitKernelFunction *kernel_next_iteration_setup;
+	SplitKernelFunction *kernel_indirect_subsurface;
+	SplitKernelFunction *kernel_buffer_update;
 
 	/* Global memory variables [porting]; These memory is used for
 	 * co-operation between different kernels; Data written by one

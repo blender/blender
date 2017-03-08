@@ -74,13 +74,17 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 DECLARE_SPLIT_KERNEL_FUNCTION(path_init)
 DECLARE_SPLIT_KERNEL_FUNCTION(scene_intersect)
 DECLARE_SPLIT_KERNEL_FUNCTION(lamp_emission)
+DECLARE_SPLIT_KERNEL_FUNCTION(do_volume)
 DECLARE_SPLIT_KERNEL_FUNCTION(queue_enqueue)
-DECLARE_SPLIT_KERNEL_FUNCTION(background_buffer_update)
+DECLARE_SPLIT_KERNEL_FUNCTION(indirect_background)
 DECLARE_SPLIT_KERNEL_FUNCTION(shader_eval)
 DECLARE_SPLIT_KERNEL_FUNCTION(holdout_emission_blurring_pathtermination_ao)
+DECLARE_SPLIT_KERNEL_FUNCTION(subsurface_scatter)
 DECLARE_SPLIT_KERNEL_FUNCTION(direct_lighting)
 DECLARE_SPLIT_KERNEL_FUNCTION(shadow_blocked)
 DECLARE_SPLIT_KERNEL_FUNCTION(next_iteration_setup)
+DECLARE_SPLIT_KERNEL_FUNCTION(indirect_subsurface)
+DECLARE_SPLIT_KERNEL_FUNCTION(buffer_update)
 
 void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, void* func));
 

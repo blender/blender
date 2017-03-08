@@ -185,7 +185,7 @@ ccl_device float3 subsurface_color_pow(float3 color, float exponent)
 
 ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
                                            ShaderData *sd,
-                                           PathState *state,
+                                           ccl_addr_space PathState *state,
                                            int state_flag,
                                            float3 *eval,
                                            float3 *N)
@@ -277,7 +277,12 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 	float3 disk_P = (disk_r*cosf(phi)) * disk_T + (disk_r*sinf(phi)) * disk_B;
 
 	/* create ray */
+#ifdef __SPLIT_KERNEL__
+	Ray ray_object = ss_isect->ray;
+	Ray *ray = &ray_object;
+#else
 	Ray *ray = &ss_isect->ray;
+#endif
 	ray->P = sd->P + disk_N*disk_height + disk_P;
 	ray->D = -disk_N;
 	ray->t = 2.0f*disk_height;
@@ -351,6 +356,10 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 		ss_isect->weight[hit] = eval;
 	}
 
+#ifdef __SPLIT_KERNEL__
+	ss_isect->ray = *ray;
+#endif
+
 	return num_eval_hits;
 }
 
@@ -359,13 +368,19 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
         SubsurfaceIntersection* ss_isect,
         int hit,
         ShaderData *sd,
-        PathState *state,
+        ccl_addr_space PathState *state,
         int state_flag,
         ShaderClosure *sc,
         bool all)
 {
+#ifdef __SPLIT_KERNEL__
+	Ray ray_object = ss_isect->ray;
+	Ray *ray = &ray_object;
+#else
+	Ray *ray = &ss_isect->ray;
+#endif
 	/* Setup new shading point. */
-	shader_setup_from_subsurface(kg, sd, &ss_isect->hits[hit], &ss_isect->ray);
+	shader_setup_from_subsurface(kg, sd, &ss_isect->hits[hit], ray);
 
 	/* Optionally blur colors and bump mapping. */
 	float3 weight = ss_isect->weight[hit];
@@ -376,6 +391,7 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
 	subsurface_scatter_setup_diffuse_bsdf(sd, weight, true, N);
 }
 
+#ifndef __SPLIT_KERNEL__
 /* subsurface scattering step, from a point on the surface to another nearby point on the same object */
 ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, PathState *state,
 	int state_flag, ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
@@ -465,6 +481,7 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, PathS
 	/* setup diffuse bsdf */
 	subsurface_scatter_setup_diffuse_bsdf(sd, eval, (ss_isect.num_hits > 0), N);
 }
+#endif /* ! __SPLIT_KERNEL__ */
 
 CCL_NAMESPACE_END
 

@@ -75,16 +75,16 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	if(!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
 		Transform ob_itfm;
-		bvh_instance_motion_push(kg,
-		                         subsurface_object,
-		                         ray,
-		                         &P,
-		                         &dir,
-		                         &idir,
-		                         &isect_t,
-		                         &ob_itfm);
+		isect_t = bvh_instance_motion_push(kg,
+		                                   subsurface_object,
+		                                   ray,
+		                                   &P,
+		                                   &dir,
+		                                   &idir,
+		                                   isect_t,
+		                                   &ob_itfm);
 #else
-		bvh_instance_push(kg, subsurface_object, ray, &P, &dir, &idir, &isect_t);
+		isect_t = bvh_instance_push(kg, subsurface_object, ray, &P, &dir, &idir, isect_t);
 #endif
 		object = subsurface_object;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 Blender Foundation
+ * Copyright 2011-2017 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 #include "kernel_compat_opencl.h"
 #include "split/kernel_split_common.h"
-#include "split/kernel_background_buffer_update.h"
+#include "split/kernel_do_volume.h"
 
-__kernel void kernel_ocl_path_trace_background_buffer_update(
+__kernel void kernel_ocl_path_trace_do_volume(
         KernelGlobals *kg,
         ccl_constant KernelData *data)
 {
-	kernel_background_buffer_update(kg);
+	kernel_do_volume(kg);
 }

@@ -41,13 +41,17 @@
 #  include "split/kernel_path_init.h"
 #  include "split/kernel_scene_intersect.h"
 #  include "split/kernel_lamp_emission.h"
+#  include "split/kernel_do_volume.h"
 #  include "split/kernel_queue_enqueue.h"
-#  include "split/kernel_background_buffer_update.h"
+#  include "split/kernel_indirect_background.h"
 #  include "split/kernel_shader_eval.h"
 #  include "split/kernel_holdout_emission_blurring_pathtermination_ao.h"
+#  include "split/kernel_subsurface_scatter.h"
 #  include "split/kernel_direct_lighting.h"
 #  include "split/kernel_shadow_blocked.h"
 #  include "split/kernel_next_iteration_setup.h"
+#  include "split/kernel_indirect_subsurface.h"
+#  include "split/kernel_buffer_update.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -166,13 +170,17 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 DEFINE_SPLIT_KERNEL_FUNCTION(path_init)
 DEFINE_SPLIT_KERNEL_FUNCTION(scene_intersect)
 DEFINE_SPLIT_KERNEL_FUNCTION(lamp_emission)
+DEFINE_SPLIT_KERNEL_FUNCTION(do_volume)
 DEFINE_SPLIT_KERNEL_FUNCTION(queue_enqueue)
-DEFINE_SPLIT_KERNEL_FUNCTION(background_buffer_update)
+DEFINE_SPLIT_KERNEL_FUNCTION(indirect_background)
 DEFINE_SPLIT_KERNEL_FUNCTION(shader_eval)
 DEFINE_SPLIT_KERNEL_FUNCTION(holdout_emission_blurring_pathtermination_ao)
+DEFINE_SPLIT_KERNEL_FUNCTION(subsurface_scatter)
 DEFINE_SPLIT_KERNEL_FUNCTION(direct_lighting)
 DEFINE_SPLIT_KERNEL_FUNCTION(shadow_blocked)
 DEFINE_SPLIT_KERNEL_FUNCTION(next_iteration_setup)
+DEFINE_SPLIT_KERNEL_FUNCTION(indirect_subsurface)
+DEFINE_SPLIT_KERNEL_FUNCTION(buffer_update)
 
 void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, void* func))
 {
@@ -189,13 +197,17 @@ void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, 
 	REGISTER(path_init);
 	REGISTER(scene_intersect);
 	REGISTER(lamp_emission);
+	REGISTER(do_volume);
 	REGISTER(queue_enqueue);
-	REGISTER(background_buffer_update);
+	REGISTER(indirect_background);
 	REGISTER(shader_eval);
 	REGISTER(holdout_emission_blurring_pathtermination_ao);
+	REGISTER(subsurface_scatter);
 	REGISTER(direct_lighting);
 	REGISTER(shadow_blocked);
 	REGISTER(next_iteration_setup);
+	REGISTER(indirect_subsurface);
+	REGISTER(buffer_update);
 
 #undef REGISTER
 #undef REGISTER_EVAL_NAME

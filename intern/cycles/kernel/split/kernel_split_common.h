@@ -52,11 +52,11 @@
 #include "kernel_passes.h"
 
 #ifdef __SUBSURFACE__
-#include "kernel_subsurface.h"
+#  include "kernel_subsurface.h"
 #endif
 
 #ifdef __VOLUME__
-#include "kernel_volume.h"
+#  include "kernel_volume.h"
 #endif
 
 #include "kernel_path_state.h"
@@ -65,9 +65,10 @@
 #include "kernel_path_common.h"
 #include "kernel_path_surface.h"
 #include "kernel_path_volume.h"
+#include "kernel_path_subsurface.h"
 
 #ifdef __KERNEL_DEBUG__
-#include "kernel_debug.h"
+#  include "kernel_debug.h"
 #endif
 
 #include "kernel_queues.h"
