@@ -814,7 +814,7 @@ string path_source_replace_includes(const string& source,
 						/* Use line directives for better error messages. */
 						line = line_directive(filepath, 1)
 						     + token.replace(0, n_end + 1, "\n" + text + "\n")
-						     + line_directive(path_join(path, source_filename), i);
+						     + line_directive(path_join(path, source_filename), i + 1);
 					}
 				}
 			}
