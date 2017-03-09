@@ -1164,6 +1164,21 @@ static void view3d_select_loop(ViewContext *vc, Scene *scene, View3D *v3d, ARegi
 }
 
 /**
+ * Optionally cache data for multiple calls to #view3d_opengl_select
+ *
+ * just avoid GPU_select headers outside this file
+ */
+void view3d_opengl_select_cache_begin(void)
+{
+	GPU_select_cache_begin();
+}
+
+void view3d_opengl_select_cache_end(void)
+{
+	GPU_select_cache_end();
+}
+
+/**
  * \warning be sure to account for a negative return value
  * This is an error, "Too many objects in select buffer"
  * and no action should be taken (can crash blender) if this happens
@@ -1172,7 +1187,7 @@ static void view3d_select_loop(ViewContext *vc, Scene *scene, View3D *v3d, ARegi
  */
 int view3d_opengl_select(
         ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input,
-        int select_mode)
+        eV3DSelectMode select_mode)
 {
 	Scene *scene = vc->scene;
 	View3D *v3d = vc->v3d;

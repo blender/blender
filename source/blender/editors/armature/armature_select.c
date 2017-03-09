@@ -53,8 +53,6 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "GPU_select.h"
-
 #include "armature_intern.h"
 
 /* utility macros for storing a temp int in the bone (selection flag) */
@@ -343,7 +341,7 @@ static EditBone *get_nearest_editbonepoint(
 	int hits = 0;
 
 	/* we _must_ end cache before return, use 'goto cache_end' */
-	GPU_select_cache_begin();
+	view3d_opengl_select_cache_begin();
 
 	BLI_rcti_init_pt_radius(&rect, mval, 12);
 	hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
@@ -368,7 +366,7 @@ static EditBone *get_nearest_editbonepoint(
 	}
 
 cache_end:
-	GPU_select_cache_end();
+	view3d_opengl_select_cache_end();
 
 	/* See if there are any selected bones in this group */
 	if (hits > 0) {
