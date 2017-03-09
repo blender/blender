@@ -69,7 +69,7 @@ CCL_NAMESPACE_BEGIN
  * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE and RAY_REGENERATED rays
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty
  */
-ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
+ccl_device void kernel_buffer_update(KernelGlobals *kg)
 {
 	ccl_local unsigned int local_queue_atomics;
 	if(ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
@@ -141,26 +141,6 @@ ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 	rng_state += kernel_split_params.offset + pixel_x + pixel_y*stride;
 	buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
-	if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
-		/* eval background shader if nothing hit */
-		if(kernel_data.background.transparent && (state->flag & PATH_RAY_CAMERA)) {
-			*L_transparent = (*L_transparent) + average((*throughput));
-#ifdef __PASSES__
-			if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
-#endif
-				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-		}
-
-		if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
-#ifdef __BACKGROUND__
-			/* sample background shader */
-			float3 L_background = indirect_background(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, ray);
-			path_radiance_accum_background(L, (*throughput), L_background, state->bounce);
-#endif
-			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-		}
-	}
-
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
 		float3 L_sum = path_radiance_clamp_and_sum(kg, L);
 		kernel_write_light_passes(kg, buffer, L, sample);
@@ -207,6 +187,9 @@ ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 				*L_transparent = 0.0f;
 				path_radiance_init(L, kernel_data.film.use_light_pass);
 				path_state_init(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, rng, sample, ray);
+#ifdef __SUBSURFACE__
+				kernel_path_subsurface_init_indirect(&kernel_split_state.ss_rays[ray_index]);
+#endif
 #ifdef __KERNEL_DEBUG__
 				debug_data_init(debug_data);
 #endif

@@ -194,7 +194,7 @@ public:
 		if(!use_patch_evaluation) {
 			build_options += " -D__NO_PATCH_EVAL__";
 		}
-		if(!use_transparent) {
+		if(!use_transparent && !use_volume) {
 			build_options += " -D__NO_TRANSPARENT__";
 		}
 		return build_options;

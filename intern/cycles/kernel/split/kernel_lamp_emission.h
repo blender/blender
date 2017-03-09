@@ -38,10 +38,12 @@ CCL_NAMESPACE_BEGIN
  */
 ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 {
+#ifndef __VOLUME__
 	/* We will empty this queue in this kernel. */
 	if(ccl_global_id(0) == 0 && ccl_global_id(1) == 0) {
 		kernel_split_params.queue_index[QUEUE_ACTIVE_AND_REGENERATED_RAYS] = 0;
 	}
+#endif
 	/* Fetch use_queues_flag. */
 	ccl_local char local_use_queues_flag;
 	if(ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
@@ -55,7 +57,12 @@ ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 		                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
 		                          kernel_split_state.queue_data,
 		                          kernel_split_params.queue_size,
-		                          1);
+#ifndef __VOLUME__
+		                          1
+#else
+		                          0
+#endif
+		                          );
 		if(ray_index == QUEUE_EMPTY_SLOT) {
 			return;
 		}

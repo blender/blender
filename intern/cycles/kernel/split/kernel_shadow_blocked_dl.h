@@ -36,42 +36,28 @@ CCL_NAMESPACE_BEGIN
  *
  * Note on sd_shadow : sd_shadow is neither input nor output to this kernel. sd_shadow is filled and consumed in this kernel itself.
  * Note on queues :
- * The kernel fetches from QUEUE_SHADOW_RAY_CAST_AO_RAYS and QUEUE_SHADOW_RAY_CAST_DL_RAYS queues. We will empty
- * these queues this kernel.
+ * The kernel fetches from QUEUE_SHADOW_RAY_CAST_DL_RAYS queue. We will empty this queue in this kernel.
  * State of queues when this kernel is called :
  * state of queues QUEUE_ACTIVE_AND_REGENERATED_RAYS and QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be same
  * before and after this kernel call.
- * QUEUE_SHADOW_RAY_CAST_AO_RAYS & QUEUE_SHADOW_RAY_CAST_DL_RAYS will be filled with rays marked with flags RAY_SHADOW_RAY_CAST_AO
- * and RAY_SHADOW_RAY_CAST_DL respectively, during kernel entry.
- * QUEUE_SHADOW_RAY_CAST_AO_RAYS and QUEUE_SHADOW_RAY_CAST_DL_RAYS will be empty at kernel exit.
+ * QUEUE_SHADOW_RAY_CAST_DL_RAYS will be filled with rays marked with flags RAY_SHADOW_RAY_CAST_DL, during kernel entry.
+ * QUEUE_SHADOW_RAY_CAST_DL_RAYS will be empty at kernel exit.
  */
-ccl_device void kernel_shadow_blocked(KernelGlobals *kg)
+ccl_device void kernel_shadow_blocked_dl(KernelGlobals *kg)
 {
 	int lidx = ccl_local_id(1) * ccl_local_id(0) + ccl_local_id(0);
 
-	ccl_local unsigned int ao_queue_length;
 	ccl_local unsigned int dl_queue_length;
 	if(lidx == 0) {
-		ao_queue_length = kernel_split_params.queue_index[QUEUE_SHADOW_RAY_CAST_AO_RAYS];
 		dl_queue_length = kernel_split_params.queue_index[QUEUE_SHADOW_RAY_CAST_DL_RAYS];
 	}
 	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
-	/* flag determining if the current ray is to process shadow ray for AO or DL */
-	char shadow_blocked_type = -1;
-
 	int ray_index = QUEUE_EMPTY_SLOT;
 	int thread_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
-	if(thread_index < ao_queue_length + dl_queue_length) {
-		if(thread_index < ao_queue_length) {
-			ray_index = get_ray_index(kg, thread_index, QUEUE_SHADOW_RAY_CAST_AO_RAYS,
-			                          kernel_split_state.queue_data, kernel_split_params.queue_size, 1);
-			shadow_blocked_type = RAY_SHADOW_RAY_CAST_AO;
-		} else {
-			ray_index = get_ray_index(kg, thread_index - ao_queue_length, QUEUE_SHADOW_RAY_CAST_DL_RAYS,
-			                          kernel_split_state.queue_data, kernel_split_params.queue_size, 1);
-			shadow_blocked_type = RAY_SHADOW_RAY_CAST_DL;
-		}
+	if(thread_index < dl_queue_length) {
+		ray_index = get_ray_index(kg, thread_index, QUEUE_SHADOW_RAY_CAST_DL_RAYS,
+		                          kernel_split_state.queue_data, kernel_split_params.queue_size, 1);
 	}
 
 	if(ray_index == QUEUE_EMPTY_SLOT)
@@ -80,25 +66,19 @@ ccl_device void kernel_shadow_blocked(KernelGlobals *kg)
 	/* Flag determining if we need to update L. */
 	char update_path_radiance = 0;
 
-	if(IS_FLAG(kernel_split_state.ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL) ||
-	   IS_FLAG(kernel_split_state.ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO))
-	{
+	if(IS_FLAG(kernel_split_state.ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL)) {
 		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
-		ccl_global Ray *light_ray_dl_global = &kernel_split_state.light_ray[ray_index];
-		ccl_global Ray *light_ray_ao_global = &kernel_split_state.ao_light_ray[ray_index];
-
-		ccl_global Ray *light_ray_global =
-		        shadow_blocked_type == RAY_SHADOW_RAY_CAST_AO
-		                ? light_ray_ao_global
-		                : light_ray_dl_global;
+		ccl_global Ray *light_ray_global = &kernel_split_state.light_ray[ray_index];
 
 		float3 shadow;
+		Ray ray = *light_ray_global;
 		update_path_radiance = !(shadow_blocked(kg,
-		                                        &kernel_split_state.sd_DL_shadow[thread_index],
+		                                        &kernel_split_state.sd_DL_shadow[ray_index],
 		                                        state,
-		                                        light_ray_global,
+		                                        &ray,
 		                                        &shadow));
 
+		*light_ray_global = ray;
 		/* We use light_ray_global's P and t to store shadow and
 		 * update_path_radiance.
 		 */

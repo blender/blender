@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if defined(__BRANCHED_PATH__) || defined(__SUBSURFACE__)
+#if (defined(__BRANCHED_PATH__) || defined(__SUBSURFACE__)) && !defined(__SPLIT_KERNEL__)
 
 /* branched path tracing: connect path directly to position on one or more lights and add it to L */
 ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RNG *rng,
@@ -188,7 +188,6 @@ ccl_device bool kernel_branched_path_surface_bounce(KernelGlobals *kg, RNG *rng,
 
 #endif
 
-#ifndef __SPLIT_KERNEL__
 /* path tracing: connect path directly to position on a light and add it to L */
 ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_addr_space RNG *rng,
 	ShaderData *sd, ShaderData *emission_sd, float3 throughput, ccl_addr_space PathState *state,
@@ -226,7 +225,6 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_
 	}
 #endif
 }
-#endif
 
 /* path tracing: bounce off or through surface to with new direction stored in ray */
 ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,

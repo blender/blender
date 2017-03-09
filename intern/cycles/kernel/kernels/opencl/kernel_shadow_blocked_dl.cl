@@ -16,11 +16,11 @@
 
 #include "kernel_compat_opencl.h"
 #include "split/kernel_split_common.h"
-#include "split/kernel_background_buffer_update.h"
+#include "split/kernel_shadow_blocked_dl.h"
 
-__kernel void kernel_ocl_path_trace_background_buffer_update(
+__kernel void kernel_ocl_path_trace_shadow_blocked_dl(
         KernelGlobals *kg,
         ccl_constant KernelData *data)
 {
-	kernel_background_buffer_update(kg);
+	kernel_shadow_blocked_dl(kg);
 }

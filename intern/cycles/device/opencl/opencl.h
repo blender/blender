@@ -90,6 +90,7 @@ public:
 	                              cl_device_id device_id);
 	static void get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices,
 	                               bool force_all = false);
+	static bool use_single_program();
 };
 
 /* Thread safe cache for contexts and programs.

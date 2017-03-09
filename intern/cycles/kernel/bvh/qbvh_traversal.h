@@ -468,9 +468,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 			/* Instance pop. */
 #  if BVH_FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect->t, &ob_itfm);
+			isect->t = bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, isect->t, &ob_itfm);
 #  else
-			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect->t);
+			isect->t = bvh_instance_pop(kg, object, ray, &P, &dir, &idir, isect->t);
 #  endif
 
 			qbvh_near_far_idx_calc(idir,

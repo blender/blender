@@ -93,7 +93,7 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 #ifdef __KERNEL_DEBUG__
 	DebugData *debug_data = &kernel_split_state.debug_data[ray_index];
 #endif
-	Intersection *isect = &kernel_split_state.isect[ray_index];
+	Intersection isect;
 	PathState state = kernel_split_state.path_state[ray_index];
 	Ray ray = kernel_split_state.ray[ray_index];
 
@@ -116,16 +116,17 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 		lcg_state = lcg_state_init(&rng, &state, 0x51633e2d);
 	}
 
-	bool hit = scene_intersect(kg, ray, visibility, isect, &lcg_state, difl, extmax);
+	bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
-	bool hit = scene_intersect(kg, ray, visibility, isect, NULL, 0.0f, 0.0f);
+	bool hit = scene_intersect(kg, ray, visibility, &isect, NULL, 0.0f, 0.0f);
 #endif
+	kernel_split_state.isect[ray_index] = isect;
 
 #ifdef __KERNEL_DEBUG__
 	if(state.flag & PATH_RAY_CAMERA) {
-		debug_data->num_bvh_traversed_nodes += isect->num_traversed_nodes;
-		debug_data->num_bvh_traversed_instances += isect->num_traversed_instances;
-		debug_data->num_bvh_intersections += isect->num_intersections;
+		debug_data->num_bvh_traversed_nodes += isect.num_traversed_nodes;
+		debug_data->num_bvh_traversed_instances += isect.num_traversed_instances;
+		debug_data->num_bvh_intersections += isect.num_intersections;
 	}
 	debug_data->num_ray_bounces++;
 #endif
