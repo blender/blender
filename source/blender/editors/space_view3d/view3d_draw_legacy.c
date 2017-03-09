@@ -102,6 +102,7 @@
 #include "GPU_compositing.h"
 #include "GPU_extensions.h"
 #include "GPU_immediate.h"
+#include "GPU_select.h"
 
 #include "view3d_intern.h"  /* own include */
 
@@ -908,6 +909,35 @@ static void view3d_draw_xraytransp(Scene *scene, SceneLayer *sl, ARegion *ar, Vi
 	glDepthMask(GL_TRUE);
 }
 
+/* clears zbuffer and draws it over,
+ * note that in the select version we don't care about transparent flag as with regular drawing */
+static void view3d_draw_xray_select(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, bool *clear)
+{
+	/* Not ideal, but we need to read from the previous depths before clearing
+	 * otherwise we could have a function to load the depths after drawing.
+	 *
+	 * Clearing the depth buffer isn't all that common between drawing objects so accept this for now.
+	 */
+	if (U.gpu_select_pick_deph) {
+		GPU_select_load_id(-1);
+	}
+
+	View3DAfter *v3da;
+	if (*clear && v3d->zbuf) {
+		glClear(GL_DEPTH_BUFFER_BIT);
+		*clear = false;
+	}
+
+	v3d->xray = true;
+	while ((v3da = BLI_pophead(&v3d->afterdraw_xray))) {
+		if (GPU_select_load_id(v3da->base->selcol)) {
+			draw_object_select(scene, sl, ar, v3d, v3da->base, v3da->dflag);
+		}
+		MEM_freeN(v3da);
+	}
+	v3d->xray = false;
+}
+
 /* *********************** */
 
 /*
@@ -1309,6 +1339,57 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
 	U.obcenter_dia = obcenter_dia;
+}
+
+void ED_view3d_draw_select_loop(
+        ViewContext *vc, Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar,
+        bool use_obedit_skip, bool use_nearest)
+{
+	short code = 1;
+	const short dflag = DRAW_PICKING | DRAW_CONSTCOLOR;
+
+	if (vc->obedit && vc->obedit->type == OB_MBALL) {
+		draw_object(scene, sl, ar, v3d, BASACT_NEW, dflag);
+	}
+	else if ((vc->obedit && vc->obedit->type == OB_ARMATURE)) {
+		/* if not drawing sketch, draw bones */
+		if (!BDR_drawSketchNames(vc)) {
+			draw_object(scene, sl, ar, v3d, BASACT_NEW, dflag);
+		}
+	}
+	else {
+		Base *base;
+
+		for (base = sl->object_bases.first; base; base = base->next) {
+			if ((base->flag & BASE_VISIBLED) != 0) {
+				if (((base->flag & BASE_SELECTABLED) == 0) ||
+				    (use_obedit_skip && (scene->obedit->data == base->object->data)))
+				{
+					base->selcol = 0;
+				}
+				else {
+					base->selcol = code;
+
+					if (use_nearest && (base->object->dtx & OB_DRAWXRAY)) {
+						ED_view3d_after_add(&v3d->afterdraw_xray, base, dflag);
+					}
+					else {
+						if (GPU_select_load_id(code)) {
+							draw_object(scene, sl, ar, v3d, base, dflag);
+						}
+					}
+					code++;
+				}
+			}
+		}
+
+		if (use_nearest) {
+			bool xrayclear = true;
+			if (v3d->afterdraw_xray.first) {
+				view3d_draw_xray_select(scene, sl, ar, v3d, &xrayclear);
+			}
+		}
+	}
 }
 
 typedef struct View3DShadow {

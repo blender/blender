@@ -91,6 +91,15 @@ static void rect_subregion_stride_calc(const rcti *src, const rcti *dst, SubRect
 	r_sub->skip = src_x - dst_x;
 }
 
+/**
+ * Ignore depth clearing as a change,
+ * only check if its been changed _and_ filled in (ignore clearing since XRAY does this).
+ */
+BLI_INLINE bool depth_is_filled(const depth_t *prev, const depth_t *curr)
+{
+	return (*prev != *curr) && (*curr != DEPTH_MAX);
+}
+
 /* ----------------------------------------------------------------------------
  * DepthBufCache
  *
@@ -142,17 +151,28 @@ static bool depth_buf_subrect_depth_any(
 	return false;
 }
 
-static bool depth_buf_rect_not_equal(
-        const DepthBufCache *rect_depth_a, const DepthBufCache *rect_depth_b,
+static bool depth_buf_rect_depth_any_filled(
+        const DepthBufCache *rect_prev, const DepthBufCache *rect_curr,
         unsigned int rect_len)
 {
+#if 0
 	return memcmp(rect_depth_a->buf, rect_depth_b->buf, rect_len * sizeof(depth_t)) != 0;
+#else
+	const depth_t *prev = rect_prev->buf;
+	const depth_t *curr = rect_curr->buf;
+	for (unsigned int i = 0; i < rect_len; i++, curr++, prev++) {
+		if (depth_is_filled(prev, curr)) {
+			return true;
+		}
+	}
+	return false;
+#endif
 }
 
 /**
  * Both buffers are the same size, just check if the sub-rect contains any differences.
  */
-static bool depth_buf_subrect_not_equal(
+static bool depth_buf_subrect_depth_any_filled(
         const DepthBufCache *rect_src, const DepthBufCache *rect_dst,
         const SubRectStride *sub_rect)
 {
@@ -162,7 +182,7 @@ static bool depth_buf_subrect_not_equal(
 	for (unsigned int i = 0; i < sub_rect->span_len; i++) {
 		const depth_t *curr_end = curr + sub_rect->span;
 		for (; curr < curr_end; prev++, curr++) {
-			if (*prev != *curr) {
+			if (depth_is_filled(prev, curr)) {
 				return true;
 			}
 		}
@@ -422,8 +442,11 @@ static void gpu_select_load_id_pass_nearest(const DepthBufCache *rect_prev, cons
 	if (id != SELECT_ID_NONE) {
 		unsigned int *id_ptr = ps->nearest.rect_id;
 
+		/* Check against DEPTH_MAX because XRAY will clear the buffer,
+		 * so previously set values will become unset.
+		 * In this case just leave those id's left as-is. */
 #define EVAL_TEST() \
-		if (*curr != *prev) { \
+		if (depth_is_filled(prev, curr)) { \
 			*id_ptr = id; \
 		} ((void)0)
 
@@ -472,7 +495,7 @@ bool gpu_select_pick_load_id(unsigned int id)
 			}
 		}
 		else {
-			if (depth_buf_rect_not_equal(ps->gl.rect_depth, ps->gl.rect_depth_test, rect_len)) {
+			if (depth_buf_rect_depth_any_filled(ps->gl.rect_depth, ps->gl.rect_depth_test, rect_len)) {
 				ps->gl.rect_depth_test->id = ps->gl.prev_id;
 				gpu_select_load_id_pass_nearest(ps->gl.rect_depth, ps->gl.rect_depth_test);
 				do_pass = true;
@@ -623,16 +646,17 @@ unsigned int gpu_select_pick_end(void)
 		hits = -1;
 	}
 	else {
+		/* leave sorting up to the caller */
 		qsort(depth_data, depth_data_len, sizeof(DepthID), depth_cmp);
 
 		for (unsigned int i = 0; i < depth_data_len; i++) {
 #ifdef DEBUG_PRINT
-			printf("  hit: %d: depth %u\n", depth_data[i].id,  depth_data[i].depth);
+			printf("  hit: %u: depth %u\n", depth_data[i].id,  depth_data[i].depth);
 #endif
 			/* first 3 are dummy values */
 			g_pick_state.buffer[hits][0] = 1;
-			g_pick_state.buffer[hits][1] = 0x0;
-			g_pick_state.buffer[hits][2] = 0x0;
+			g_pick_state.buffer[hits][1] = 0x0;  /* depth_data[i].depth; */ /* unused */
+			g_pick_state.buffer[hits][2] = 0x0;  /* z-far is currently never used. */
 			g_pick_state.buffer[hits][3] = depth_data[i].id;
 			hits++;
 		}
@@ -709,7 +733,7 @@ void gpu_select_pick_cache_load_id(void)
 				}
 			}
 			else {
-				if (depth_buf_subrect_not_equal(rect_depth, rect_depth->next, &ps->cache.sub_rect)) {
+				if (depth_buf_subrect_depth_any_filled(rect_depth, rect_depth->next, &ps->cache.sub_rect)) {
 					gpu_select_load_id_pass_nearest(rect_depth, rect_depth->next);
 				}
 			}
