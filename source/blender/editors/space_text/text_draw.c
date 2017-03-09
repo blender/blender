@@ -1090,10 +1090,11 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 		w = st->cwidth * text_get_char_pos(st, str, len);
 		
 		if (item == sel) {
+			unsigned int posi = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformThemeColor(TH_SHADE2);
-			immRecti(pos, x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
+			immRecti(posi, x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
 
 			immUnbindProgram();
 		}
