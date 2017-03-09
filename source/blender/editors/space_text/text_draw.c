@@ -49,6 +49,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_immediate.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -123,38 +125,38 @@ static void txt_format_text(SpaceText *st)
 #endif
 
 /* Sets the current drawing color based on the format character specified */
-static void format_draw_color(char formatchar)
+static void format_draw_color(const TextDrawContext *tdc, char formatchar)
 {
 	switch (formatchar) {
 		case FMT_TYPE_WHITESPACE:
 			break;
 		case FMT_TYPE_SYMBOL:
-			UI_ThemeColor(TH_SYNTAX_S);
+			UI_FontThemeColor(tdc->font_id, TH_SYNTAX_S);
 			break;
 		case FMT_TYPE_COMMENT:
-			UI_ThemeColor(TH_SYNTAX_C);
+			UI_FontThemeColor(tdc->font_id, TH_SYNTAX_C);
 			break;
 		case FMT_TYPE_NUMERAL:
-			UI_ThemeColor(TH_SYNTAX_N);
+			UI_FontThemeColor(tdc->font_id, TH_SYNTAX_N);
 			break;
 		case FMT_TYPE_STRING:
-			UI_ThemeColor(TH_SYNTAX_L);
+			UI_FontThemeColor(tdc->font_id, TH_SYNTAX_L);
 			break;
 		case FMT_TYPE_DIRECTIVE:
-			UI_ThemeColor(TH_SYNTAX_D);
+			UI_FontThemeColor(tdc->font_id, TH_SYNTAX_D);
 			break;
 		case FMT_TYPE_SPECIAL:
-			UI_ThemeColor(TH_SYNTAX_V);
+			UI_FontThemeColor(tdc->font_id, TH_SYNTAX_V);
 			break;
 		case FMT_TYPE_RESERVED:
-			UI_ThemeColor(TH_SYNTAX_R);
+			UI_FontThemeColor(tdc->font_id, TH_SYNTAX_R);
 			break;
 		case FMT_TYPE_KEYWORD:
-			UI_ThemeColor(TH_SYNTAX_B);
+			UI_FontThemeColor(tdc->font_id, TH_SYNTAX_B);
 			break;
 		case FMT_TYPE_DEFAULT:
 		default:
-			UI_ThemeColor(TH_TEXT);
+			UI_FontThemeColor(tdc->font_id, TH_TEXT);
 			break;
 	}
 }
@@ -429,7 +431,7 @@ static int text_draw_wrapped(
 			/* Draw the visible portion of text on the overshot line */
 			for (a = fstart, ma = mstart; ma < mend; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
 				if (use_syntax) {
-					if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
+					if (fmt_prev != format[a]) format_draw_color(tdc, fmt_prev = format[a]);
 				}
 				x += text_font_draw_character_utf8(tdc, x, y, str + ma);
 				fpos++;
@@ -452,7 +454,7 @@ static int text_draw_wrapped(
 	/* Draw the remaining text */
 	for (a = fstart, ma = mstart; str[ma] && y > clip_min_y; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
 		if (use_syntax) {
-			if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
+			if (fmt_prev != format[a]) format_draw_color(tdc, fmt_prev = format[a]);
 		}
 
 		x += text_font_draw_character_utf8(tdc, x, y, str + ma);
@@ -505,7 +507,7 @@ static void text_draw(
 		char fmt_prev = 0xff;
 
 		for (a = 0; a < amount; a++) {
-			if (format[a] != fmt_prev) format_draw_color(fmt_prev = format[a]);
+			if (format[a] != fmt_prev) format_draw_color(tdc, fmt_prev = format[a]);
 			x += text_font_draw_character_utf8(tdc, x, y, in + str_shift);
 			str_shift += BLI_str_utf8_size_safe(in + str_shift);
 		}
@@ -908,9 +910,13 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
 	uiWidgetColors wcol = btheme->tui.wcol_scroll;
 	float col[4];
 	float rad;
-	
-	UI_ThemeColor(TH_BACK);
-	glRecti(back->xmin, back->ymin, back->xmax, back->ymax);
+
+	/* background so highlights don't go behind the scrollbar */
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColor(TH_BACK);
+	immRecti(pos, back->xmin, back->ymin, back->xmax, back->ymax);
+	immUnbindProgram();
 
 	UI_draw_widget_scroll(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT) ? UI_SCROLL_PRESSED : 0);
 
@@ -1008,11 +1014,6 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
 		}
 		if (lines >= DOC_HEIGHT) break;
 	}
-
-	if (0 /* XXX doc_scroll*/ /* > 0 && lines < DOC_HEIGHT */) {
-		// XXX doc_scroll--;
-		draw_documentation(st, ar);
-	}
 }
 #endif
 
@@ -1060,10 +1061,15 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 	/* not needed but stands out nicer */
 	UI_draw_box_shadow(220, x, y - boxh, x + boxw, y);
 
-	UI_ThemeColor(TH_SHADE1);
-	glRecti(x - 1, y + 1, x + boxw + 1, y - boxh - 1);
-	UI_ThemeColorShade(TH_BACK, 16);
-	glRecti(x, y, x + boxw, y - boxh);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformThemeColor(TH_SHADE1);
+	immRecti(pos, x - 1, y + 1, x + boxw + 1, y - boxh - 1);
+	immUniformThemeColorShade(TH_BACK, 16);
+	immRecti(pos, x, y, x + boxw, y - boxh);
+
+	immUnbindProgram();
 
 	/* Set the top 'item' of the visible list */
 	for (i = 0, item = first; i < *top && item->next; i++, item = item->next) ;
@@ -1078,11 +1084,15 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 		w = st->cwidth * text_get_char_pos(st, str, len);
 		
 		if (item == sel) {
-			UI_ThemeColor(TH_SHADE2);
-			glRecti(x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+			immUniformThemeColor(TH_SHADE2);
+			immRecti(pos, x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
+
+			immUnbindProgram();
 		}
 
-		format_draw_color(item->type);
+		format_draw_color(tdc, item->type);
 		text_draw(st, tdc, str, 0, 0, x + margin_x, y - 1, NULL);
 
 		if (item == last) break;
@@ -1091,42 +1101,57 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 
 /*********************** draw cursor ************************/
 
-static void draw_cursor(SpaceText *st, ARegion *ar)
+static void draw_text_decoration(SpaceText *st, ARegion *ar)
 {
 	Text *text = st->text;
 	int vcurl, vcurc, vsell, vselc, hidden = 0;
 	int x, y, w, i;
+	int offl, offc;
 	const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
+
+	/* Convert to view space character coordinates to determine if cursor is hidden */
+	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
+	vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
+	vselc = text_get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
+
+	if (vselc < 0) {
+		vselc = 0;
+		hidden = 1;
+	}
+
+	if (text->curl == text->sell && text->curc == text->selc && !st->line_hlight && hidden) {
+		/* Nothing to draw here */
+		return;
+	}
+
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* Draw the selection */
 	if (text->curl != text->sell || text->curc != text->selc) {
-		int offl, offc;
 		/* Convert all to view space character coordinates */
 		wrap_offset(st, ar, text->curl, text->curc, &offl, &offc);
 		vcurl = txt_get_span(text->lines.first, text->curl) - st->top + offl;
 		vcurc = text_get_char_pos(st, text->curl->line, text->curc) - st->left + offc;
-		wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
-		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
-		vselc = text_get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
 
 		if (vcurc < 0) {
 			vcurc = 0;
 		}
-		if (vselc < 0) {
-			vselc = 0;
-			hidden = 1;
-		}
-		
-		UI_ThemeColor(TH_SHADE2);
+
+		immUniformThemeColor(TH_SHADE2);
+
 		x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 		y = ar->winy;
 
 		if (vcurl == vsell) {
 			y -= vcurl * lheight;
-			if (vcurc < vselc)
-				glRecti(x + vcurc * st->cwidth - 1, y, x + vselc * st->cwidth, y - lheight);
-			else
-				glRecti(x + vselc * st->cwidth - 1, y, x + vcurc * st->cwidth, y - lheight);
+
+			if (vcurc < vselc) {
+				immRecti(pos, x + vcurc * st->cwidth - 1, y, x + vselc * st->cwidth, y - lheight);
+			}
+			else {
+				immRecti(pos, x + vselc * st->cwidth - 1, y, x + vcurc * st->cwidth, y - lheight);
+			}
 		}
 		else {
 			int froml, fromc, tol, toc;
@@ -1142,26 +1167,16 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 
 			y -= froml * lheight;
 
-			glRecti(x + fromc * st->cwidth - 1, y, ar->winx, y - lheight);
+			immRecti(pos, x + fromc * st->cwidth - 1, y, ar->winx, y - lheight);
 			y -= lheight;
+
 			for (i = froml + 1; i < tol; i++) {
-				glRecti(x - 4, y, ar->winx, y - lheight);
+				immRecti(pos, x - 4, y, ar->winx, y - lheight);
 				y -= lheight;
 			}
 
-			glRecti(x - 4, y, x + toc * st->cwidth, y - lheight);
+			immRecti(pos, x - 4, y, x + toc * st->cwidth, y - lheight);
 			y -= lheight;
-		}
-	}
-	else {
-		int offl, offc;
-		wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
-		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
-		vselc = text_get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
-
-		if (vselc < 0) {
-			vselc = 0;
-			hidden = 1;
 		}
 	}
 
@@ -1170,7 +1185,6 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 
 		if (st->wordwrap) {
 			int visible_lines = text_get_visible_lines(st, ar, text->sell->line);
-			int offl, offc;
 
 			wrap_offset_in_line(st, ar, text->sell, text->selc, &offl, &offc);
 
@@ -1186,36 +1200,38 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 			x1 = 0; // st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 			x2 = x1 + ar->winx;
 
-			glColor4ub(255, 255, 255, 32);
-			
+			immUniformColor4ub(255, 255, 255, 32);
+
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
-			glRecti(x1 - 4, y1, x2, y2);
+			immRecti(pos, x1 - 4, y1, x2, y2);
 			glDisable(GL_BLEND);
 		}
 	}
-	
+
 	if (!hidden) {
 		/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
 		x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 		x += vselc * st->cwidth;
 		y = ar->winy - vsell * lheight;
-		
+
+		immUniformThemeColor(TH_HILITE);
+
 		if (st->overwrite) {
 			char ch = text->sell->line[text->selc];
-			
+
 			y += TXT_LINE_SPACING;
 			w = st->cwidth;
 			if (ch == '\t') w *= st->tabnumber - (vselc + st->left) % st->tabnumber;
-			
-			UI_ThemeColor(TH_HILITE);
-			glRecti(x, y - lheight - 1, x + w, y - lheight + 1);
+
+			immRecti(pos, x, y - lheight - 1, x + w, y - lheight + 1);
 		}
 		else {
-			UI_ThemeColor(TH_HILITE);
-			glRecti(x - 1, y, x + 1, y - lheight);
+			immRecti(pos, x - 1, y, x + 1, y - lheight);
 		}
 	}
+
+	immUnbindProgram();
 }
 
 /******************* draw matching brackets *********************/
@@ -1316,7 +1332,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
 	if (!endl || endc == -1)
 		return;
 
-	UI_ThemeColor(TH_HILITE);
+	UI_FontThemeColor(tdc->font_id, TH_HILITE);
 	x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 	y = ar->winy - st->lheight_dpi;
 
@@ -1421,8 +1437,11 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	if (st->showlinenrs) {
 		x = TXT_OFFSET + TEXTXLOC;
 
-		UI_ThemeColor(TH_GRID);
-		glRecti((TXT_OFFSET - 12), 0, (TXT_OFFSET - 5) + TEXTXLOC, ar->winy - 2);
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformThemeColor(TH_GRID);
+		immRecti(pos, (TXT_OFFSET - 12), 0, (TXT_OFFSET - 5) + TEXTXLOC, ar->winy - 2);
+		immUnbindProgram();
 	}
 	else {
 		st->linenrs_tot = 0; /* not used */
@@ -1431,11 +1450,11 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	y = ar->winy - st->lheight_dpi;
 	winx = ar->winx - TXT_SCROLL_WIDTH;
 	
-	/* draw cursor */
-	draw_cursor(st, ar);
+	/* draw cursor, margin, selection and highlight */
+	draw_text_decoration(st, ar);
 
 	/* draw the text */
-	UI_ThemeColor(TH_TEXT);
+	UI_FontThemeColor(tdc.font_id, TH_TEXT);
 
 	for (i = 0; y > clip_min_y && i < st->viewlines && tmp; i++, tmp = tmp->next) {
 		if (st->showsyntax && !tmp->format)
@@ -1443,16 +1462,20 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 		if (st->showlinenrs && !wrap_skip) {
 			/* draw line number */
-			if (tmp == text->curl)
-				UI_ThemeColor(TH_HILITE);
-			else
-				UI_ThemeColor(TH_TEXT);
+			if (tmp == text->curl) {
+				UI_FontThemeColor(tdc.font_id, TH_HILITE);
+			}
+			else {
+				UI_FontThemeColor(tdc.font_id, TH_TEXT);
+			}
 
 			BLI_snprintf(linenr, sizeof(linenr), "%*d", st->linenrs_tot, i + linecount + 1);
 			/* itoa(i + linecount + 1, linenr, 10); */ /* not ansi-c :/ */
 			text_font_draw(&tdc, TXT_OFFSET - 7, y, linenr);
 
-			UI_ThemeColor(TH_TEXT);
+			if (tmp == text->curl) {
+				UI_FontThemeColor(tdc.font_id, TH_TEXT);
+			}
 		}
 
 		if (st->wordwrap) {
@@ -1473,14 +1496,17 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		margin_column_x = x + st->cwidth * (st->margin_column - st->left);
 		
 		if (margin_column_x >= x) {
-			/* same color as line number background */
-			UI_ThemeColor(TH_GRID);
-
 			setlinestyle(1);
-			glBegin(GL_LINES);
-			glVertex2i(margin_column_x, 0);
-			glVertex2i(margin_column_x, ar->winy - 2);
-			glEnd();
+			unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+			/* same color as line number background */
+			immUniformThemeColor(TH_GRID);
+			immBegin(GL_LINES, 2);
+			immVertex2i(pos, margin_column_x, 0);
+			immVertex2i(pos, margin_column_x, ar->winy - 2);
+			immEnd();
+			immUnbindProgram();
 			setlinestyle(0);
 		}
 	}
