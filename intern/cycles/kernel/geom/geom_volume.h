@@ -64,7 +64,7 @@ ccl_device_inline float3 volume_normalized_position(KernelGlobals *kg,
 
 ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float *dx, float *dy)
 {
-	float3 P = volume_normalized_position(kg, sd, ccl_fetch(sd, P));
+	float3 P = volume_normalized_position(kg, sd, sd->P);
 #ifdef __KERNEL_CUDA__
 #  if __CUDA_ARCH__ >= 300
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, desc.offset);
@@ -91,7 +91,7 @@ ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 
 ccl_device float3 volume_attribute_float3(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float3 *dx, float3 *dy)
 {
-	float3 P = volume_normalized_position(kg, sd, ccl_fetch(sd, P));
+	float3 P = volume_normalized_position(kg, sd, sd->P);
 #ifdef __KERNEL_CUDA__
 #  if __CUDA_ARCH__ >= 300
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, desc.offset);

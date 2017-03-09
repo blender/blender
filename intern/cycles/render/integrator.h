@@ -29,7 +29,7 @@ class Scene;
 
 class Integrator : public Node {
 public:
-	NODE_DECLARE;
+	NODE_DECLARE
 
 	int min_bounce;
 	int max_bounce;

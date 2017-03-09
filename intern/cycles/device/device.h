@@ -234,7 +234,7 @@ public:
 	Stats &stats;
 
 	/* regular memory */
-	virtual void mem_alloc(device_memory& mem, MemoryType type) = 0;
+	virtual void mem_alloc(const char *name, device_memory& mem, MemoryType type) = 0;
 	virtual void mem_copy_to(device_memory& mem) = 0;
 	virtual void mem_copy_from(device_memory& mem,
 		int y, int w, int h, int elem) = 0;

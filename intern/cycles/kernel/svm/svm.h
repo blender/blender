@@ -192,7 +192,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_addr_space PathState *state, ShaderType type, int path_flag)
 {
 	float stack[SVM_STACK_SIZE];
-	int offset = ccl_fetch(sd, shader) & SHADER_MASK;
+	int offset = sd->shader & SHADER_MASK;
 
 	while(1) {
 		uint4 node = read_node(kg, &offset);

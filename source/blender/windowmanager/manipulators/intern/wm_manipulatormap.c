@@ -279,35 +279,32 @@ static int manipulator_find_intersected_3D_intern(
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
-	rctf rect, selrect;
+	rcti rect;
 	GLuint buffer[64];      // max 4 items per select, so large enuf
 	short hits;
 	const bool do_passes = GPU_select_query_check_active();
 
-	extern void view3d_winmatrix_set(ARegion *ar, View3D *v3d, rctf *rect);
-
+	extern void view3d_winmatrix_set(ARegion *ar, View3D *v3d, const rcti *rect);
 
 	rect.xmin = co[0] - hotspot;
 	rect.xmax = co[0] + hotspot;
 	rect.ymin = co[1] - hotspot;
 	rect.ymax = co[1] + hotspot;
 
-	selrect = rect;
-
 	view3d_winmatrix_set(ar, v3d, &rect);
 	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
 	if (do_passes)
-		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &selrect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
+		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
 	else
-		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &selrect, GPU_SELECT_ALL, 0);
+		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_ALL, 0);
 	/* do the drawing */
 	manipulator_find_active_3D_loop(C, visible_manipulators);
 
 	hits = GPU_select_end();
 
 	if (do_passes) {
-		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &selrect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
+		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 		manipulator_find_active_3D_loop(C, visible_manipulators);
 		GPU_select_end();
 	}

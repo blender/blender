@@ -2681,13 +2681,14 @@ static void ui_litem_layout_absolute(uiLayout *litem)
 static void ui_litem_estimate_split(uiLayout *litem)
 {
 	ui_litem_estimate_row(litem);
+	litem->item.flag &= ~UI_ITEM_MIN;
 }
 
 static void ui_litem_layout_split(uiLayout *litem)
 {
 	uiLayoutItemSplit *split = (uiLayoutItemSplit *)litem;
 	uiItem *item;
-	float percentage;
+	float percentage, extra_pixel = 0.0f;
 	const int tot = BLI_listbase_count(&litem->items);
 	int itemh, x, y, w, colw = 0;
 
@@ -2710,7 +2711,9 @@ static void ui_litem_layout_split(uiLayout *litem)
 		x += colw;
 
 		if (item->next) {
-			colw = (w - (int)(w * percentage)) / (tot - 1);
+			const float width = extra_pixel + (w - (int)(w * percentage)) / ((float)tot - 1);
+			extra_pixel = width - (int)width;
+			colw = (int)width;
 			colw = MAX2(colw, 0);
 
 			x += litem->space;

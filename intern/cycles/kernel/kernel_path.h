@@ -75,17 +75,17 @@ ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
 
 	sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-	if(dot(ccl_fetch(sd, Ng), ao_D) > 0.0f && ao_pdf != 0.0f) {
+	if(dot(sd->Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
 		Ray light_ray;
 		float3 ao_shadow;
 
-		light_ray.P = ray_offset(ccl_fetch(sd, P), ccl_fetch(sd, Ng));
+		light_ray.P = ray_offset(sd->P, sd->Ng);
 		light_ray.D = ao_D;
 		light_ray.t = kernel_data.background.ao_distance;
 #ifdef __OBJECT_MOTION__
-		light_ray.time = ccl_fetch(sd, time);
+		light_ray.time = sd->time;
 #endif  /* __OBJECT_MOTION__ */
-		light_ray.dP = ccl_fetch(sd, dP);
+		light_ray.dP = sd->dP;
 		light_ray.dD = differential3_zero();
 
 		if(!shadow_blocked(kg, emission_sd, state, &light_ray, &ao_shadow)) {
@@ -459,7 +459,7 @@ bool kernel_path_subsurface_scatter(
 #  ifdef __VOLUME__
 		ss_indirect->need_update_volume_stack =
 		        kernel_data.integrator.use_volumes &&
-		        ccl_fetch(sd, object_flag) & SD_OBJECT_INTERSECTS_VOLUME;
+		        sd->object_flag & SD_OBJECT_INTERSECTS_VOLUME;
 #  endif  /* __VOLUME__ */
 
 		/* compute lighting with the BSDF closure */

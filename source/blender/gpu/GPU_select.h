@@ -32,7 +32,7 @@
 
 #include "BLI_sys_types.h"
 
-struct rctf;
+struct rcti;
 
 /* flags for mode of operation */
 enum {
@@ -41,7 +41,7 @@ enum {
 	GPU_SELECT_NEAREST_SECOND_PASS      = 3,
 };
 
-void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const struct rctf *input, char mode, int oldhits);
+void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const struct rcti *input, char mode, int oldhits);
 bool GPU_select_load_id(unsigned int id);
 unsigned int GPU_select_end(void);
 bool GPU_select_query_check_active(void);

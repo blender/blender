@@ -39,7 +39,7 @@ class Scene;
 
 class Camera : public Node {
 public:
-	NODE_DECLARE;
+	NODE_DECLARE
 
 	/* Specifies an offset for the shutter's time interval. */
 	enum MotionPosition {

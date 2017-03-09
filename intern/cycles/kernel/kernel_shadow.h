@@ -45,7 +45,7 @@ ccl_device_forceinline bool shadow_handle_transparent_isect(
 	/* Setup shader data at surface. */
 	shader_setup_from_ray(kg, shadow_sd, isect, ray);
 	/* Attenuation from transparent surface. */
-	if(!(ccl_fetch(shadow_sd, flag) & SD_HAS_ONLY_VOLUME)) {
+	if(!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
 		path_state_modify_bounce(state, true);
 		shader_eval_surface(kg,
 		                    shadow_sd,
@@ -180,7 +180,7 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 				return true;
 			}
 			/* Move ray forward. */
-			ray->P = ccl_fetch(shadow_sd, P);
+			ray->P = shadow_sd->P;
 			if(ray->t != FLT_MAX) {
 				ray->D = normalize_len(Pend - ray->P, &ray->t);
 			}
@@ -248,7 +248,7 @@ ccl_device bool shadow_blocked_transparent_all(KernelGlobals *kg,
 }
 #  endif  /* __SHADOW_RECORD_ALL__ */
 
-#  ifdef __KERNEL_GPU__
+#  if defined(__KERNEL_GPU__) || !defined(__SHADOW_RECORD_ALL__)
 /* Shadow function to compute how much light is blocked,
  *
  * Here we raytrace from one transparent surface to the next step by step.
@@ -308,7 +308,7 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(
 				return true;
 			}
 			/* Move ray forward. */
-			ray->P = ray_offset(ccl_fetch(shadow_sd, P), -ccl_fetch(shadow_sd, Ng));
+			ray->P = ray_offset(shadow_sd->P, -shadow_sd->Ng);
 			if(ray->t != FLT_MAX) {
 				ray->D = normalize_len(Pend - ray->P, &ray->t);
 			}
@@ -359,7 +359,7 @@ ccl_device bool shadow_blocked_transparent_stepped(
 	                                               shadow);
 }
 
-#  endif  /* __KERNEL_GPU__ */
+#  endif  /* __KERNEL_GPU__ || !__SHADOW_RECORD_ALL__ */
 #endif /* __TRANSPARENT_SHADOWS__ */
 
 ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
@@ -374,7 +374,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 #ifdef __SPLIT_KERNEL__
 	Ray private_ray = *ray_input;
 	Ray *ray = &private_ray;
-	Intersection *isect = &kg->isect_shadow[SD_THREAD];
+	Intersection *isect = &kernel_split_state.isect_shadow[ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0)];
 #else  /* __SPLIT_KERNEL__ */
 	Ray *ray = ray_input;
 	Intersection isect_object;

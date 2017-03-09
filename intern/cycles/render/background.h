@@ -30,7 +30,7 @@ class Shader;
 
 class Background : public Node {
 public:
-	NODE_DECLARE;
+	NODE_DECLARE
 
 	float ao_factor;
 	float ao_distance;

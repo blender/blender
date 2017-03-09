@@ -19,6 +19,7 @@
 #include "kernel_compat_cpu.h"
 #include "kernel_montecarlo.h"
 #include "kernel_types.h"
+#include "split/kernel_split_data_types.h"
 #include "kernel_globals.h"
 
 #include "geom/geom_object.h"

@@ -27,7 +27,7 @@ ccl_device AttributeDescriptor svm_node_attr_init(KernelGlobals *kg, ShaderData 
 
 	AttributeDescriptor desc;
 
-	if(ccl_fetch(sd, object) != OBJECT_NONE) {
+	if(sd->object != OBJECT_NONE) {
 		desc = find_attribute(kg, sd, node.y);
 		if(desc.offset == ATTR_STD_NOT_FOUND) {
 			desc = attribute_not_found();

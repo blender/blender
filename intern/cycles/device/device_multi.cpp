@@ -106,11 +106,11 @@ public:
 		return true;
 	}
 
-	void mem_alloc(device_memory& mem, MemoryType type)
+	void mem_alloc(const char *name, device_memory& mem, MemoryType type)
 	{
 		foreach(SubDevice& sub, devices) {
 			mem.device_pointer = 0;
-			sub.device->mem_alloc(mem, type);
+			sub.device->mem_alloc(name, mem, type);
 			sub.ptr_map[unique_ptr] = mem.device_pointer;
 		}
 

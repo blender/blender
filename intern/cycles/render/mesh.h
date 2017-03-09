@@ -48,7 +48,7 @@ struct PackedPatchTable;
 
 class Mesh : public Node {
 public:
-	NODE_DECLARE;
+	NODE_DECLARE
 
 	/* Mesh Triangle */
 	struct Triangle {

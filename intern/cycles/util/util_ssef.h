@@ -514,12 +514,12 @@ ccl_device_inline float len3(const ssef& a)
 /* faster version for SSSE3 */
 typedef ssei shuffle_swap_t;
 
-ccl_device_inline const shuffle_swap_t shuffle_swap_identity(void)
+ccl_device_inline shuffle_swap_t shuffle_swap_identity(void)
 {
 	return _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
 
-ccl_device_inline const shuffle_swap_t shuffle_swap_swap(void)
+ccl_device_inline shuffle_swap_t shuffle_swap_swap(void)
 {
 	return _mm_set_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
 }
@@ -534,12 +534,12 @@ ccl_device_inline const ssef shuffle_swap(const ssef& a, const shuffle_swap_t& s
 /* somewhat slower version for SSE2 */
 typedef int shuffle_swap_t;
 
-ccl_device_inline const shuffle_swap_t shuffle_swap_identity(void)
+ccl_device_inline shuffle_swap_t shuffle_swap_identity(void)
 {
 	return 0;
 }
 
-ccl_device_inline const shuffle_swap_t shuffle_swap_swap(void)
+ccl_device_inline shuffle_swap_t shuffle_swap_swap(void)
 {
 	return 1;
 }

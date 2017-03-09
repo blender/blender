@@ -180,6 +180,11 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			comp_node->done = 1;
 
 			/* Flush to nodes along links... */
+			/* TODO(sergey): This is mainly giving speedup due ot less queue pushes, which
+			 * reduces number of memory allocations.
+			 *
+			 * We should try solve the allocation issue instead of doing crazy things here.
+			 */
 			if (node->outlinks.size() == 1) {
 				OperationDepsNode *to_node = (OperationDepsNode *)node->outlinks[0]->to;
 				if (to_node->scheduled == false) {

@@ -298,20 +298,20 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 	for(int hit = 0; hit < num_eval_hits; hit++) {
 		/* Quickly retrieve P and Ng without setting up ShaderData. */
 		float3 hit_P;
-		if(ccl_fetch(sd, type) & PRIMITIVE_TRIANGLE) {
+		if(sd->type & PRIMITIVE_TRIANGLE) {
 			hit_P = triangle_refine_subsurface(kg,
 			                                   sd,
 			                                   &ss_isect->hits[hit],
 			                                   ray);
 		}
 #ifdef __OBJECT_MOTION__
-		else  if(ccl_fetch(sd, type) & PRIMITIVE_MOTION_TRIANGLE) {
+		else  if(sd->type & PRIMITIVE_MOTION_TRIANGLE) {
 			float3 verts[3];
 			motion_triangle_vertices(
 			        kg,
-			        ccl_fetch(sd, object),
+			        sd->object,
 			        kernel_tex_fetch(__prim_index, ss_isect->hits[hit].prim),
-			        ccl_fetch(sd, time),
+			        sd->time,
 			        verts);
 			hit_P = motion_triangle_refine_subsurface(kg,
 			                                          sd,

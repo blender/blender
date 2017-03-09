@@ -80,7 +80,7 @@ Device::~Device()
 
 void Device::pixels_alloc(device_memory& mem)
 {
-	mem_alloc(mem, MEM_READ_WRITE);
+	mem_alloc("pixels", mem, MEM_READ_WRITE);
 }
 
 void Device::pixels_copy_from(device_memory& mem, int y, int w, int h)

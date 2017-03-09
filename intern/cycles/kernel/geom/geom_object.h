@@ -137,9 +137,9 @@ ccl_device_inline Transform object_fetch_transform_motion_test(KernelGlobals *kg
 ccl_device_inline void object_position_transform(KernelGlobals *kg, const ShaderData *sd, float3 *P)
 {
 #ifdef __OBJECT_MOTION__
-	*P = transform_point_auto(&ccl_fetch(sd, ob_tfm), *P);
+	*P = transform_point_auto(&sd->ob_tfm, *P);
 #else
-	Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
 	*P = transform_point(&tfm, *P);
 #endif
 }
@@ -149,9 +149,9 @@ ccl_device_inline void object_position_transform(KernelGlobals *kg, const Shader
 ccl_device_inline void object_inverse_position_transform(KernelGlobals *kg, const ShaderData *sd, float3 *P)
 {
 #ifdef __OBJECT_MOTION__
-	*P = transform_point_auto(&ccl_fetch(sd, ob_itfm), *P);
+	*P = transform_point_auto(&sd->ob_itfm, *P);
 #else
-	Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_INVERSE_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
 	*P = transform_point(&tfm, *P);
 #endif
 }
@@ -161,12 +161,12 @@ ccl_device_inline void object_inverse_position_transform(KernelGlobals *kg, cons
 ccl_device_inline void object_inverse_normal_transform(KernelGlobals *kg, const ShaderData *sd, float3 *N)
 {
 #ifdef __OBJECT_MOTION__
-	if((ccl_fetch(sd, object) != OBJECT_NONE) || (ccl_fetch(sd, type) == PRIMITIVE_LAMP)) {
-		*N = normalize(transform_direction_transposed_auto(&ccl_fetch(sd, ob_tfm), *N));
+	if((sd->object != OBJECT_NONE) || (sd->type == PRIMITIVE_LAMP)) {
+		*N = normalize(transform_direction_transposed_auto(&sd->ob_tfm, *N));
 	}
 #else
-	if(ccl_fetch(sd, object) != OBJECT_NONE) {
-		Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_TRANSFORM);
+	if(sd->object != OBJECT_NONE) {
+		Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
 		*N = normalize(transform_direction_transposed(&tfm, *N));
 	}
 #endif
@@ -177,9 +177,9 @@ ccl_device_inline void object_inverse_normal_transform(KernelGlobals *kg, const 
 ccl_device_inline void object_normal_transform(KernelGlobals *kg, const ShaderData *sd, float3 *N)
 {
 #ifdef __OBJECT_MOTION__
-	*N = normalize(transform_direction_transposed_auto(&ccl_fetch(sd, ob_itfm), *N));
+	*N = normalize(transform_direction_transposed_auto(&sd->ob_itfm, *N));
 #else
-	Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_INVERSE_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
 	*N = normalize(transform_direction_transposed(&tfm, *N));
 #endif
 }
@@ -189,9 +189,9 @@ ccl_device_inline void object_normal_transform(KernelGlobals *kg, const ShaderDa
 ccl_device_inline void object_dir_transform(KernelGlobals *kg, const ShaderData *sd, float3 *D)
 {
 #ifdef __OBJECT_MOTION__
-	*D = transform_direction_auto(&ccl_fetch(sd, ob_tfm), *D);
+	*D = transform_direction_auto(&sd->ob_tfm, *D);
 #else
-	Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
 	*D = transform_direction(&tfm, *D);
 #endif
 }
@@ -201,9 +201,9 @@ ccl_device_inline void object_dir_transform(KernelGlobals *kg, const ShaderData 
 ccl_device_inline void object_inverse_dir_transform(KernelGlobals *kg, const ShaderData *sd, float3 *D)
 {
 #ifdef __OBJECT_MOTION__
-	*D = transform_direction_auto(&ccl_fetch(sd, ob_itfm), *D);
+	*D = transform_direction_auto(&sd->ob_itfm, *D);
 #else
-	Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_INVERSE_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
 	*D = transform_direction(&tfm, *D);
 #endif
 }
@@ -212,13 +212,13 @@ ccl_device_inline void object_inverse_dir_transform(KernelGlobals *kg, const Sha
 
 ccl_device_inline float3 object_location(KernelGlobals *kg, const ShaderData *sd)
 {
-	if(ccl_fetch(sd, object) == OBJECT_NONE)
+	if(sd->object == OBJECT_NONE)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 #ifdef __OBJECT_MOTION__
-	return make_float3(ccl_fetch(sd, ob_tfm).x.w, ccl_fetch(sd, ob_tfm).y.w, ccl_fetch(sd, ob_tfm).z.w);
+	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
 #else
-	Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
 	return make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
 #endif
 }
@@ -326,7 +326,7 @@ ccl_device_inline uint object_patch_map_offset(KernelGlobals *kg, int object)
 
 ccl_device int shader_pass_id(KernelGlobals *kg, const ShaderData *sd)
 {
-	return kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*SHADER_SIZE + 1);
+	return kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE + 1);
 }
 
 /* Particle data from which object was instanced */

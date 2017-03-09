@@ -1768,14 +1768,14 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 {
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
-	rctf rect, selrect;
+	rcti rect;
 	GLuint buffer[64];      // max 4 items per select, so large enuf
 	short hits;
 	const bool is_picksel = true;
 	const bool do_passes = GPU_select_query_check_active();
 
 	/* XXX check a bit later on this... (ton) */
-	extern void view3d_winmatrix_set(ARegion *ar, View3D *v3d, rctf *rect);
+	extern void view3d_winmatrix_set(ARegion *ar, View3D *v3d, const rcti *rect);
 
 	/* when looking through a selected camera, the manipulator can be at the
 	 * exact same position as the view, skip so we don't break selection */
@@ -1787,15 +1787,13 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	rect.ymin = mval[1] - hotspot;
 	rect.ymax = mval[1] + hotspot;
 
-	selrect = rect;
-
 	view3d_winmatrix_set(ar, v3d, &rect);
 	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
 	if (do_passes)
-		GPU_select_begin(buffer, 64, &selrect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
+		GPU_select_begin(buffer, 64, &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
 	else
-		GPU_select_begin(buffer, 64, &selrect, GPU_SELECT_ALL, 0);
+		GPU_select_begin(buffer, 64, &rect, GPU_SELECT_ALL, 0);
 
 	/* do the drawing */
 	if (v3d->twtype & V3D_MANIP_ROTATE) {
@@ -1810,7 +1808,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	hits = GPU_select_end();
 
 	if (do_passes) {
-		GPU_select_begin(buffer, 64, &selrect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
+		GPU_select_begin(buffer, 64, &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 
 		/* do the drawing */
 		if (v3d->twtype & V3D_MANIP_ROTATE) {
@@ -1916,10 +1914,8 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 		drawflags = manipulator_selectbuf(sa, ar, event->mval, 0.2f * (float)U.tw_hotspot);
 		if (drawflags == 0) drawflags = val;
 
-		/* We are not doing translation but were requested to do planar constraints.
-		 * This wouldn't work, so we give other keymaps a chance.
-		 */
-		if ((drawflags & MAN_TRANS_C) == 0 && use_planar) {
+		/* Planar constraint doesn't make sense for rotation, give other keymaps a chance */
+		if ((drawflags & MAN_ROT_C) && use_planar) {
 			return 0;
 		}
 

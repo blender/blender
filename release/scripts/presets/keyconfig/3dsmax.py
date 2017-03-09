@@ -400,6 +400,12 @@ kmi = km.keymap_items.new('particle.hide', 'H', 'PRESS')
 kmi.properties.unselected = False
 kmi = km.keymap_items.new('particle.hide', 'H', 'PRESS', shift=True)
 kmi.properties.unselected = True
+kmi = km.keymap_items.new('view3d.manipulator', 'LEFTMOUSE', 'PRESS', shift=True)
+kmi.properties.release_confirm = True
+kmi.properties.use_planar_constraint= True
+kmi = km.keymap_items.new('view3d.manipulator', 'LEFTMOUSE', 'PRESS', shift=True)
+kmi.properties.release_confirm = True
+kmi.properties.use_accurate= True
 kmi = km.keymap_items.new('view3d.manipulator', 'LEFTMOUSE', 'PRESS', any=True)
 kmi.properties.release_confirm = True
 kmi = km.keymap_items.new('particle.brush_edit', 'LEFTMOUSE', 'PRESS')
@@ -421,6 +427,12 @@ kmi.properties.value_2 = 'ENABLED'
 # Map 3D View
 km = kc.keymaps.new('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
 
+kmi = km.keymap_items.new('view3d.manipulator', 'LEFTMOUSE', 'PRESS', shift=True)
+kmi.properties.release_confirm = True
+kmi.properties.use_planar_constraint= True
+kmi = km.keymap_items.new('view3d.manipulator', 'LEFTMOUSE', 'PRESS', shift=True)
+kmi.properties.release_confirm = True
+kmi.properties.use_accurate= True
 kmi = km.keymap_items.new('view3d.manipulator', 'LEFTMOUSE', 'PRESS', any=True)
 kmi.properties.release_confirm = True
 kmi = km.keymap_items.new('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS')

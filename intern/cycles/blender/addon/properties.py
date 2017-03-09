@@ -665,8 +665,10 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.debug_use_cpu_sse3 = BoolProperty(name="SSE3", default=True)
         cls.debug_use_cpu_sse2 = BoolProperty(name="SSE2", default=True)
         cls.debug_use_qbvh = BoolProperty(name="QBVH", default=True)
+        cls.debug_use_cpu_split_kernel = BoolProperty(name="Split Kernel", default=False)
 
         cls.debug_use_cuda_adaptive_compile = BoolProperty(name="Adaptive Compile", default=False)
+        cls.debug_use_cuda_split_kernel = BoolProperty(name="Split Kernel", default=False)
 
         cls.debug_opencl_kernel_type = EnumProperty(
             name="OpenCL Kernel Type",

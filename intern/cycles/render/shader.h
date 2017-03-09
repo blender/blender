@@ -82,7 +82,7 @@ enum DisplacementMethod {
 
 class Shader : public Node {
 public:
-	NODE_DECLARE;
+	NODE_DECLARE
 
 	int pass_id;
 

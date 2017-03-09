@@ -171,9 +171,9 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		/* needs to be up to data for attribute access */
 		device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
 
-		device->mem_alloc(d_input, MEM_READ_ONLY);
+		device->mem_alloc("bake_input", d_input, MEM_READ_ONLY);
 		device->mem_copy_to(d_input);
-		device->mem_alloc(d_output, MEM_READ_WRITE);
+		device->mem_alloc("bake_output", d_output, MEM_READ_WRITE);
 
 		DeviceTask task(DeviceTask::SHADER);
 		task.shader_input = d_input.device_pointer;

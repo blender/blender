@@ -78,7 +78,7 @@ public:
 				bssrdf->albedo = albedo.x;
 				bssrdf->sharpness = sharpness;
 				bssrdf->N = params.N;
-				ccl_fetch(sd, flag) |= bssrdf_setup(bssrdf, (ClosureType)type);
+				sd->flag |= bssrdf_setup(bssrdf, (ClosureType)type);
 			}
 
 			bssrdf = bssrdf_alloc(sd, make_float3(0.0f, weight.y, 0.0f));
@@ -89,7 +89,7 @@ public:
 				bssrdf->albedo = albedo.y;
 				bssrdf->sharpness = sharpness;
 				bssrdf->N = params.N;
-				ccl_fetch(sd, flag) |= bssrdf_setup(bssrdf, (ClosureType)type);
+				sd->flag |= bssrdf_setup(bssrdf, (ClosureType)type);
 			}
 
 			bssrdf = bssrdf_alloc(sd, make_float3(0.0f, 0.0f, weight.z));
@@ -100,7 +100,7 @@ public:
 				bssrdf->albedo = albedo.z;
 				bssrdf->sharpness = sharpness;
 				bssrdf->N = params.N;
-				ccl_fetch(sd, flag) |= bssrdf_setup(bssrdf, (ClosureType)type);
+				sd->flag |= bssrdf_setup(bssrdf, (ClosureType)type);
 			}
 		}
 	}

@@ -69,6 +69,15 @@ void util_logging_verbosity_set(int verbosity)
 }
 
 std::ostream& operator <<(std::ostream &os,
+                          const int2 &value)
+{
+	os << "(" << value.x
+	   << ", " << value.y
+	   << ")";
+	return os;
+}
+
+std::ostream& operator <<(std::ostream &os,
                           const float3 &value)
 {
 	os << "(" << value.x

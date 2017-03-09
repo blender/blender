@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "kernel_split_common.h"
+CCL_NAMESPACE_BEGIN
 
 /* Note on kernel_background_buffer_update kernel.
  * This is the fourth kernel in the ray tracing logic, and the third
@@ -69,80 +69,77 @@
  * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE and RAY_REGENERATED rays
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty
  */
-ccl_device char kernel_background_buffer_update(
-        KernelGlobals *kg,
-        ccl_global float *per_sample_output_buffers,
-        ccl_global uint *rng_state,
-        ccl_global uint *rng_coop,             /* Required for buffer Update */
-        ccl_global float3 *throughput_coop,    /* Required for background hit processing */
-        PathRadiance *PathRadiance_coop,       /* Required for background hit processing and buffer Update */
-        ccl_global Ray *Ray_coop,              /* Required for background hit processing */
-        ccl_global PathState *PathState_coop,  /* Required for background hit processing */
-        ccl_global float *L_transparent_coop,  /* Required for background hit processing and buffer Update */
-        ccl_global char *ray_state,            /* Stores information on the current state of a ray */
-        int sw, int sh, int sx, int sy, int stride,
-        int rng_state_offset_x,
-        int rng_state_offset_y,
-        int rng_state_stride,
-        ccl_global unsigned int *work_array,   /* Denotes work of each ray */
-        int end_sample,
-        int start_sample,
-#ifdef __WORK_STEALING__
-        ccl_global unsigned int *work_pool_wgs,
-        unsigned int num_samples,
-#endif
-#ifdef __KERNEL_DEBUG__
-        DebugData *debugdata_coop,
-#endif
-        int parallel_samples,                  /* Number of samples to be processed in parallel */
-        int ray_index)
+ccl_device void kernel_background_buffer_update(KernelGlobals *kg)
 {
-	char enqueue_flag = 0;
-#ifdef __KERNEL_DEBUG__
-	DebugData *debug_data = &debugdata_coop[ray_index];
-#endif
-	ccl_global PathState *state = &PathState_coop[ray_index];
-	PathRadiance *L = L = &PathRadiance_coop[ray_index];
-	ccl_global Ray *ray = &Ray_coop[ray_index];
-	ccl_global float3 *throughput = &throughput_coop[ray_index];
-	ccl_global float *L_transparent = &L_transparent_coop[ray_index];
-	ccl_global uint *rng = &rng_coop[ray_index];
+	ccl_local unsigned int local_queue_atomics;
+	if(ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
+		local_queue_atomics = 0;
+	}
+	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
-#ifdef __WORK_STEALING__
-	unsigned int my_work;
-	ccl_global float *initial_per_sample_output_buffers;
-	ccl_global uint *initial_rng;
+	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
+	if(ray_index == 0) {
+		/* We will empty this queue in this kernel. */
+		kernel_split_params.queue_index[QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS] = 0;
+	}
+	char enqueue_flag = 0;
+	ray_index = get_ray_index(kg, ray_index,
+	                          QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
+	                          kernel_split_state.queue_data,
+	                          kernel_split_params.queue_size,
+	                          1);
+
+#ifdef __COMPUTE_DEVICE_GPU__
+	/* If we are executing on a GPU device, we exit all threads that are not
+	 * required.
+	 *
+	 * If we are executing on a CPU device, then we need to keep all threads
+	 * active since we have barrier() calls later in the kernel. CPU devices,
+	 * expect all threads to execute barrier statement.
+	 */
+	if(ray_index == QUEUE_EMPTY_SLOT) {
+		return;
+	}
 #endif
+
+#ifndef __COMPUTE_DEVICE_GPU__
+	if(ray_index != QUEUE_EMPTY_SLOT) {
+#endif
+
+	ccl_global uint *rng_state = kernel_split_params.rng_state;
+	int stride = kernel_split_params.stride;
+
+	ccl_global char *ray_state = kernel_split_state.ray_state;
+#ifdef __KERNEL_DEBUG__
+	DebugData *debug_data = &kernel_split_state.debug_data[ray_index];
+#endif
+	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
+	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
+	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
+	ccl_global float *L_transparent = &kernel_split_state.L_transparent[ray_index];
+	ccl_global uint *rng = &kernel_split_state.rng[ray_index];
+	ccl_global float *buffer = kernel_split_params.buffer;
+
+	unsigned int work_index;
+	ccl_global uint *initial_rng;
+
 	unsigned int sample;
 	unsigned int tile_x;
 	unsigned int tile_y;
 	unsigned int pixel_x;
 	unsigned int pixel_y;
-	unsigned int my_sample_tile;
 
-#ifdef __WORK_STEALING__
-	my_work = work_array[ray_index];
-	sample = get_my_sample(my_work, sw, sh, parallel_samples, ray_index) + start_sample;
-	get_pixel_tile_position(&pixel_x, &pixel_y,
+	work_index = kernel_split_state.work_array[ray_index];
+	sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
+	get_work_pixel_tile_position(kg, &pixel_x, &pixel_y,
 	                        &tile_x, &tile_y,
-	                        my_work,
-	                        sw, sh, sx, sy,
-	                        parallel_samples,
+	                        work_index,
 	                        ray_index);
-	my_sample_tile = 0;
-	initial_per_sample_output_buffers = per_sample_output_buffers;
 	initial_rng = rng_state;
-#else  /* __WORK_STEALING__ */
-	sample = work_array[ray_index];
-	int tile_index = ray_index / parallel_samples;
-	/* buffer and rng_state's stride is "stride". Find x and y using ray_index */
-	tile_x = tile_index % sw;
-	tile_y = tile_index / sw;
-	my_sample_tile = ray_index - (tile_index * parallel_samples);
-#endif  /* __WORK_STEALING__ */
 
-	rng_state += (rng_state_offset_x + tile_x) + (rng_state_offset_y + tile_y) * rng_state_stride;
-	per_sample_output_buffers += (((tile_x + (tile_y * stride)) * parallel_samples) + my_sample_tile) * kernel_data.film.pass_stride;
+	rng_state += kernel_split_params.offset + pixel_x + pixel_y*stride;
+	buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 	if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
 		/* eval background shader if nothing hit */
@@ -157,7 +154,7 @@ ccl_device char kernel_background_buffer_update(
 		if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
 #ifdef __BACKGROUND__
 			/* sample background shader */
-			float3 L_background = indirect_background(kg, kg->sd_input, state, ray);
+			float3 L_background = indirect_background(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, ray);
 			path_radiance_accum_background(L, (*throughput), L_background, state->bounce);
 #endif
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
@@ -166,55 +163,38 @@ ccl_device char kernel_background_buffer_update(
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
 		float3 L_sum = path_radiance_clamp_and_sum(kg, L);
-		kernel_write_light_passes(kg, per_sample_output_buffers, L, sample);
+		kernel_write_light_passes(kg, buffer, L, sample);
 #ifdef __KERNEL_DEBUG__
-		kernel_write_debug_passes(kg, per_sample_output_buffers, state, debug_data, sample);
+		kernel_write_debug_passes(kg, buffer, state, debug_data, sample);
 #endif
 		float4 L_rad = make_float4(L_sum.x, L_sum.y, L_sum.z, 1.0f - (*L_transparent));
 
 		/* accumulate result in output buffer */
-		kernel_write_pass_float4(per_sample_output_buffers, sample, L_rad);
+		kernel_write_pass_float4(buffer, sample, L_rad);
 		path_rng_end(kg, rng_state, *rng);
 
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
 	}
 
 	if(IS_STATE(ray_state, ray_index, RAY_TO_REGENERATE)) {
-#ifdef __WORK_STEALING__
 		/* We have completed current work; So get next work */
-		int valid_work = get_next_work(work_pool_wgs, &my_work, sw, sh, num_samples, parallel_samples, ray_index);
+		int valid_work = get_next_work(kg, &work_index, ray_index);
 		if(!valid_work) {
 			/* If work is invalid, this means no more work is available and the thread may exit */
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_INACTIVE);
 		}
-#else  /* __WORK_STEALING__ */
-		if((sample + parallel_samples) >= end_sample) {
-			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_INACTIVE);
-		}
-#endif  /* __WORK_STEALING__ */
 
 		if(IS_STATE(ray_state, ray_index, RAY_TO_REGENERATE)) {
-#ifdef __WORK_STEALING__
-			work_array[ray_index] = my_work;
+			kernel_split_state.work_array[ray_index] = work_index;
 			/* Get the sample associated with the current work */
-			sample = get_my_sample(my_work, sw, sh, parallel_samples, ray_index) + start_sample;
+			sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
 			/* Get pixel and tile position associated with current work */
-			get_pixel_tile_position(&pixel_x, &pixel_y, &tile_x, &tile_y, my_work, sw, sh, sx, sy, parallel_samples, ray_index);
-			my_sample_tile = 0;
+			get_work_pixel_tile_position(kg, &pixel_x, &pixel_y, &tile_x, &tile_y, work_index, ray_index);
 
 			/* Remap rng_state according to the current work */
-			rng_state = initial_rng + ((rng_state_offset_x + tile_x) + (rng_state_offset_y + tile_y) * rng_state_stride);
-			/* Remap per_sample_output_buffers according to the current work */
-			per_sample_output_buffers = initial_per_sample_output_buffers
-				+ (((tile_x + (tile_y * stride)) * parallel_samples) + my_sample_tile) * kernel_data.film.pass_stride;
-#else  /* __WORK_STEALING__ */
-			work_array[ray_index] = sample + parallel_samples;
-			sample = work_array[ray_index];
-
-			/* Get ray position from ray index */
-			pixel_x = sx + ((ray_index / parallel_samples) % sw);
-			pixel_y = sy + ((ray_index / parallel_samples) / sw);
-#endif  /* __WORK_STEALING__ */
+			rng_state = initial_rng + kernel_split_params.offset + pixel_x + pixel_y*stride;
+			/* Remap buffer according to the current work */
+			buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 			/* Initialize random numbers and ray. */
 			kernel_path_trace_setup(kg, rng_state, sample, pixel_x, pixel_y, rng, ray);
@@ -226,7 +206,7 @@ ccl_device char kernel_background_buffer_update(
 				*throughput = make_float3(1.0f, 1.0f, 1.0f);
 				*L_transparent = 0.0f;
 				path_radiance_init(L, kernel_data.film.use_light_pass);
-				path_state_init(kg, kg->sd_input, state, rng, sample, ray);
+				path_state_init(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, rng, sample, ray);
 #ifdef __KERNEL_DEBUG__
 				debug_data_init(debug_data);
 #endif
@@ -237,12 +217,29 @@ ccl_device char kernel_background_buffer_update(
 				/* These rays do not participate in path-iteration. */
 				float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 				/* Accumulate result in output buffer. */
-				kernel_write_pass_float4(per_sample_output_buffers, sample, L_rad);
+				kernel_write_pass_float4(buffer, sample, L_rad);
 				path_rng_end(kg, rng_state, *rng);
 
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
 			}
 		}
 	}
-	return enqueue_flag;
+
+#ifndef __COMPUTE_DEVICE_GPU__
+	}
+#endif
+
+	/* Enqueue RAY_REGENERATED rays into QUEUE_ACTIVE_AND_REGENERATED_RAYS;
+	 * These rays will be made active during next SceneIntersectkernel.
+	 */
+	enqueue_ray_index_local(ray_index,
+	                        QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+	                        enqueue_flag,
+	                        kernel_split_params.queue_size,
+	                        &local_queue_atomics,
+	                        kernel_split_state.queue_data,
+	                        kernel_split_params.queue_index);
 }
+
+CCL_NAMESPACE_END
+

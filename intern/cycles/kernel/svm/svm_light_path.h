@@ -31,8 +31,8 @@ ccl_device void svm_node_light_path(ShaderData *sd, ccl_addr_space PathState *st
 		case NODE_LP_reflection: info = (path_flag & PATH_RAY_REFLECT)? 1.0f: 0.0f; break;
 		case NODE_LP_transmission: info = (path_flag & PATH_RAY_TRANSMIT)? 1.0f: 0.0f; break;
 		case NODE_LP_volume_scatter: info = (path_flag & PATH_RAY_VOLUME_SCATTER)? 1.0f: 0.0f; break;
-		case NODE_LP_backfacing: info = (ccl_fetch(sd, flag) & SD_BACKFACING)? 1.0f: 0.0f; break;
-		case NODE_LP_ray_length: info = ccl_fetch(sd, ray_length); break;
+		case NODE_LP_backfacing: info = (sd->flag & SD_BACKFACING)? 1.0f: 0.0f; break;
+		case NODE_LP_ray_length: info = sd->ray_length; break;
 		case NODE_LP_ray_depth: info = (float)state->bounce; break;
 		case NODE_LP_ray_diffuse: info = (float)state->diffuse_bounce; break;
 		case NODE_LP_ray_glossy: info = (float)state->glossy_bounce; break;
@@ -56,14 +56,14 @@ ccl_device void svm_node_light_falloff(ShaderData *sd, float *stack, uint4 node)
 
 	switch(type) {
 		case NODE_LIGHT_FALLOFF_QUADRATIC: break;
-		case NODE_LIGHT_FALLOFF_LINEAR: strength *= ccl_fetch(sd, ray_length); break;
-		case NODE_LIGHT_FALLOFF_CONSTANT: strength *= ccl_fetch(sd, ray_length)*ccl_fetch(sd, ray_length); break;
+		case NODE_LIGHT_FALLOFF_LINEAR: strength *= sd->ray_length; break;
+		case NODE_LIGHT_FALLOFF_CONSTANT: strength *= sd->ray_length*sd->ray_length; break;
 	}
 
 	float smooth = stack_load_float(stack, smooth_offset);
 
 	if(smooth > 0.0f) {
-		float squared = ccl_fetch(sd, ray_length)*ccl_fetch(sd, ray_length);
+		float squared = sd->ray_length*sd->ray_length;
 		/* Distant lamps set the ray length to FLT_MAX, which causes squared to overflow. */
 		if(isfinite(squared)) {
 			strength *= squared/(smooth + squared);

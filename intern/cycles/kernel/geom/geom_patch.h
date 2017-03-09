@@ -267,7 +267,7 @@ ccl_device float patch_eval_float(KernelGlobals *kg, const ShaderData *sd, int o
 	float weights_du[PATCH_MAX_CONTROL_VERTS];
 	float weights_dv[PATCH_MAX_CONTROL_VERTS];
 
-	int num_control = patch_eval_control_verts(kg, ccl_fetch(sd, object), patch, u, v, channel,
+	int num_control = patch_eval_control_verts(kg, sd->object, patch, u, v, channel,
 	                                           indices, weights, weights_du, weights_dv);
 
 	float val = 0.0f;
@@ -294,7 +294,7 @@ ccl_device float3 patch_eval_float3(KernelGlobals *kg, const ShaderData *sd, int
 	float weights_du[PATCH_MAX_CONTROL_VERTS];
 	float weights_dv[PATCH_MAX_CONTROL_VERTS];
 
-	int num_control = patch_eval_control_verts(kg, ccl_fetch(sd, object), patch, u, v, channel,
+	int num_control = patch_eval_control_verts(kg, sd->object, patch, u, v, channel,
 	                                           indices, weights, weights_du, weights_dv);
 
 	float3 val = make_float3(0.0f, 0.0f, 0.0f);
@@ -321,7 +321,7 @@ ccl_device float3 patch_eval_uchar4(KernelGlobals *kg, const ShaderData *sd, int
 	float weights_du[PATCH_MAX_CONTROL_VERTS];
 	float weights_dv[PATCH_MAX_CONTROL_VERTS];
 
-	int num_control = patch_eval_control_verts(kg, ccl_fetch(sd, object), patch, u, v, channel,
+	int num_control = patch_eval_control_verts(kg, sd->object, patch, u, v, channel,
 	                                           indices, weights, weights_du, weights_dv);
 
 	float3 val = make_float3(0.0f, 0.0f, 0.0f);

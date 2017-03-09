@@ -95,105 +95,38 @@ static void deg_task_run_func(TaskPool *pool,
 	/* Should only be the case for NOOPs, which never get to this point. */
 	BLI_assert(node->evaluate);
 
-	while (true) {
-		/* Get context. */
-		/* TODO: Who initialises this? "Init" operations aren't able to
-		 * initialise it!!!
-		 */
-		/* TODO(sergey): We don't use component contexts at this moment. */
-		/* ComponentDepsNode *comp = node->owner; */
-		BLI_assert(node->owner != NULL);
+	/* Get context. */
+	/* TODO: Who initialises this? "Init" operations aren't able to
+	 * initialise it!!!
+	 */
+	/* TODO(sergey): We don't use component contexts at this moment. */
+	/* ComponentDepsNode *comp = node->owner; */
+	BLI_assert(node->owner != NULL);
 
-		/* Since we're not leaving the thread for until the graph branches it is
-		 * possible to have NO-OP on the way. for which evaluate() will be NULL.
-		 * but that's all fine, we'll just scheduler it's children.
-		 */
-		if (node->evaluate) {
+	/* Since we're not leaving the thread for until the graph branches it is
+	 * possible to have NO-OP on the way. for which evaluate() will be NULL.
+	 * but that's all fine, we'll just scheduler it's children.
+	 */
+	if (node->evaluate) {
 			/* Take note of current time. */
 #ifdef USE_DEBUGGER
-			double start_time = PIL_check_seconds_timer();
-			DepsgraphDebug::task_started(state->graph, node);
+		double start_time = PIL_check_seconds_timer();
+		DepsgraphDebug::task_started(state->graph, node);
 #endif
 
-			/* Perform operation. */
-			node->evaluate(state->eval_ctx);
+		/* Perform operation. */
+		node->evaluate(state->eval_ctx);
 
 			/* Note how long this took. */
 #ifdef USE_DEBUGGER
-			double end_time = PIL_check_seconds_timer();
-			DepsgraphDebug::task_completed(state->graph,
-			                               node,
-			                               end_time - start_time);
+		double end_time = PIL_check_seconds_timer();
+		DepsgraphDebug::task_completed(state->graph,
+		                               node,
+		                               end_time - start_time);
 #endif
-		}
-
-		/* If there's only one outgoing link we try to immediately switch to
-		 * that node evaluation, without leaving the thread.
-		 *
-		 * It's only doable if the child don't have extra relations or all they
-		 * are satisfied.
-		 *
-		 * TODO(sergey): Checks here can be de-duplicated with the ones from
-		 * schedule_node(), however, how to do it nicely?
-		 */
-		if (node->outlinks.size() == 1) {
-			DepsRelation *rel = node->outlinks[0];
-			OperationDepsNode *child = (OperationDepsNode *)rel->to;
-			BLI_assert(child->type == DEPSNODE_TYPE_OPERATION);
-			if (!child->scheduled) {
-				unsigned int id_layers = child->owner->owner->layers;
-				if (!((child->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0 &&
-				      (id_layers & state->layers) != 0))
-				{
-					/* Node does not need an update, so can;t continue with the
-					 * chain and need to switch to another one by leaving the
-					 * thread.
-					 */
-					break;
-				}
-				if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
-					BLI_assert(child->num_links_pending > 0);
-					atomic_sub_and_fetch_uint32(&child->num_links_pending, 1);
-				}
-				if (child->num_links_pending == 0) {
-					bool is_scheduled = atomic_fetch_and_or_uint8(
-					        (uint8_t *)&child->scheduled, (uint8_t)true);
-					if (!is_scheduled) {
-						/* Node was not scheduled, switch to it! */
-						node = child;
-					}
-					else {
-						/* Someone else scheduled the node, leaving us
-						 * unemployed in this thread, we're leaving.
-						 */
-						break;
-					}
-				}
-				else {
-					/* There are other dependencies on the child, can't do
-					 * anything in the current thread.
-					 */
-					break;
-				}
-			}
-			else {
-				/* Happens when having cyclic dependencies.
-				 *
-				 * Nothing to do here, single child was already scheduled, we
-				 * can leave the thread now.
-				 */
-				break;
-			}
-		}
-		else {
-			/* TODO(sergey): It's possible to use one of the outgoing relations
-			 * as a chain which we'll try to keep alive, but it's a bit more
-			 * involved change.
-			 */
-			schedule_children(pool, state->graph, node, state->layers, thread_id);
-			break;
-		}
 	}
+
+	schedule_children(pool, state->graph, node, state->layers, thread_id);
 }
 
 typedef struct CalculatePengindData {
@@ -378,12 +311,19 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	state.graph = graph;
 	state.layers = layers;
 
-	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
-	TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &state);
+	TaskScheduler *task_scheduler;
+	bool need_free_scheduler;
 
 	if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
-		BLI_pool_set_num_threads(task_pool, 1);
+		task_scheduler = BLI_task_scheduler_create(1);
+		need_free_scheduler = true;
 	}
+	else {
+		task_scheduler = BLI_task_scheduler_get();
+		need_free_scheduler = false;
+	}
+
+	TaskPool *task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
 
 	calculate_pending_parents(graph, layers);
 
@@ -410,6 +350,10 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 
 	/* Clear any uncleared tags - just in case. */
 	deg_graph_clear_tags(graph);
+
+	if (need_free_scheduler) {
+		BLI_task_scheduler_free(task_scheduler);
+	}
 }
 
 }  // namespace DEG

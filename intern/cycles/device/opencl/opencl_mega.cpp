@@ -43,11 +43,12 @@ public:
 		return true;
 	}
 
-	virtual void load_kernels(const DeviceRequestedFeatures& /*requested_features*/,
+	virtual bool load_kernels(const DeviceRequestedFeatures& /*requested_features*/,
 	                          vector<OpenCLProgram*> &programs)
 	{
 		path_trace_program.add_kernel(ustring("path_trace"));
 		programs.push_back(&path_trace_program);
+		return true;
 	}
 
 	~OpenCLDeviceMegaKernel()

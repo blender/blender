@@ -81,6 +81,7 @@ typedef void (*TaskFreeFunction)(TaskPool *__restrict pool, void *taskdata, int 
 
 TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata);
 TaskPool *BLI_task_pool_create_background(TaskScheduler *scheduler, void *userdata);
+TaskPool *BLI_task_pool_create_suspended(TaskScheduler *scheduler, void *userdata);
 void BLI_task_pool_free(TaskPool *pool);
 
 void BLI_task_pool_push_ex(
@@ -95,9 +96,6 @@ void BLI_task_pool_push_from_thread(TaskPool *pool, TaskRunFunction run,
 void BLI_task_pool_work_and_wait(TaskPool *pool);
 /* cancel all tasks, keep worker threads running */
 void BLI_task_pool_cancel(TaskPool *pool);
-
-/* set number of threads allowed to be used by this pool */
-void BLI_pool_set_num_threads(TaskPool *pool, int num_threads);
 
 /* for worker threads, test if canceled */
 bool BLI_task_pool_canceled(TaskPool *pool);

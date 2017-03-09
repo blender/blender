@@ -17,11 +17,23 @@
 #ifndef  __KERNEL_SPLIT_H__
 #define  __KERNEL_SPLIT_H__
 
-#include "kernel_compat_opencl.h"
 #include "kernel_math.h"
 #include "kernel_types.h"
+
+#include "kernel_split_data.h"
+
 #include "kernel_globals.h"
-#include "kernel_image_opencl.h"
+
+#ifdef __OSL__
+#  include "osl_shader.h"
+#endif
+
+#ifdef __KERNEL_OPENCL__
+#  include "kernel_image_opencl.h"
+#endif
+#ifdef __KERNEL_CPU__
+#  include "../kernels/cpu/kernel_cpu_image.h"
+#endif
 
 #include "util_atomic.h"
 

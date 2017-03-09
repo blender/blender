@@ -46,10 +46,57 @@
 #define ccl_device_noinline  __device__ __noinline__
 #define ccl_global
 #define ccl_constant
+#define ccl_local __shared__
+#define ccl_local_param
+#define ccl_private
 #define ccl_may_alias
 #define ccl_addr_space
 #define ccl_restrict __restrict__
 #define ccl_align(n) __align__(n)
+
+ccl_device_inline uint ccl_local_id(uint d)
+{
+	switch(d) {
+		case 0: return threadIdx.x;
+		case 1: return threadIdx.y;
+		case 2: return threadIdx.z;
+		default: return 0;
+	}
+}
+
+#define ccl_global_id(d) (ccl_group_id(d) * ccl_local_size(d) + ccl_local_id(d))
+
+ccl_device_inline uint ccl_local_size(uint d)
+{
+	switch(d) {
+		case 0: return blockDim.x;
+		case 1: return blockDim.y;
+		case 2: return blockDim.z;
+		default: return 0;
+	}
+}
+
+#define ccl_global_size(d) (ccl_num_groups(d) * ccl_local_size(d))
+
+ccl_device_inline uint ccl_group_id(uint d)
+{
+	switch(d) {
+		case 0: return blockIdx.x;
+		case 1: return blockIdx.y;
+		case 2: return blockIdx.z;
+		default: return 0;
+	}
+}
+
+ccl_device_inline uint ccl_num_groups(uint d)
+{
+	switch(d) {
+		case 0: return gridDim.x;
+		case 1: return gridDim.y;
+		case 2: return gridDim.z;
+		default: return 0;
+	}
+}
 
 /* No assert supported for CUDA */
 

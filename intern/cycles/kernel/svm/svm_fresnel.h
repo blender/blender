@@ -23,12 +23,12 @@ ccl_device void svm_node_fresnel(ShaderData *sd, float *stack, uint ior_offset, 
 	uint normal_offset, out_offset;
 	decode_node_uchar4(node, &normal_offset, &out_offset, NULL, NULL);
 	float eta = (stack_valid(ior_offset))? stack_load_float(stack, ior_offset): __uint_as_float(ior_value);
-	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): ccl_fetch(sd, N);
+	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
 	
 	eta = fmaxf(eta, 1e-5f);
-	eta = (ccl_fetch(sd, flag) & SD_BACKFACING)? 1.0f/eta: eta;
+	eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
-	float f = fresnel_dielectric_cos(dot(ccl_fetch(sd, I), normal_in), eta);
+	float f = fresnel_dielectric_cos(dot(sd->I, normal_in), eta);
 
 	stack_store_float(stack, out_offset, f);
 }
@@ -44,18 +44,18 @@ ccl_device void svm_node_layer_weight(ShaderData *sd, float *stack, uint4 node)
 	decode_node_uchar4(node.w, &type, &normal_offset, &out_offset, NULL);
 
 	float blend = (stack_valid(blend_offset))? stack_load_float(stack, blend_offset): __uint_as_float(blend_value);
-	float3 normal_in = (stack_valid(normal_offset))? stack_load_float3(stack, normal_offset): ccl_fetch(sd, N);
+	float3 normal_in = (stack_valid(normal_offset))? stack_load_float3(stack, normal_offset): sd->N;
 
 	float f;
 
 	if(type == NODE_LAYER_WEIGHT_FRESNEL) {
 		float eta = fmaxf(1.0f - blend, 1e-5f);
-		eta = (ccl_fetch(sd, flag) & SD_BACKFACING)? eta: 1.0f/eta;
+		eta = (sd->flag & SD_BACKFACING)? eta: 1.0f/eta;
 
-		f = fresnel_dielectric_cos(dot(ccl_fetch(sd, I), normal_in), eta);
+		f = fresnel_dielectric_cos(dot(sd->I, normal_in), eta);
 	}
 	else {
-		f = fabsf(dot(ccl_fetch(sd, I), normal_in));
+		f = fabsf(dot(sd->I, normal_in));
 
 		if(blend != 0.5f) {
 			blend = clamp(blend, 0.0f, 1.0f-1e-5f);
