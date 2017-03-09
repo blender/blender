@@ -1291,6 +1291,30 @@ Batch *DRW_cache_surface_get(Object *ob)
 	return surface;
 }
 
+Batch *DRW_cache_surface_verts_get(Object *ob)
+{
+	Batch *surface = NULL;
+
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	surface = BKE_mesh_batch_cache_get_points_with_normals(me);
+
+	return surface;
+}
+
+Batch *DRW_cache_verts_get(Object *ob)
+{
+	Batch *surface = NULL;
+
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	surface = BKE_mesh_batch_cache_get_all_verts(me);
+
+	return surface;
+}
+
 #if 0 /* TODO */
 struct Batch *DRW_cache_surface_material_get(Object *ob, int nr) {
 	/* TODO */

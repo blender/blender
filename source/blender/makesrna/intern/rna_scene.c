@@ -2503,6 +2503,10 @@ RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_backface_culling)
 
 /* mesh engine */
 RNA_LAYER_MODE_EDIT_GET_SET_BOOL(show_occlude_wire)
+RNA_LAYER_MODE_EDIT_GET_SET_BOOL(face_normals_show)
+RNA_LAYER_MODE_EDIT_GET_SET_BOOL(vert_normals_show)
+RNA_LAYER_MODE_EDIT_GET_SET_BOOL(loop_normals_show)
+RNA_LAYER_MODE_EDIT_GET_SET_FLOAT(normals_length)
 RNA_LAYER_MODE_EDIT_GET_SET_FLOAT(backwire_opacity)
 
 #undef RNA_LAYER_ENGINE_GET_SET
@@ -6104,6 +6108,36 @@ static void rna_def_layer_collection_mode_settings_edit(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_CollectionEngineSettings_update");
 	RNA_LAYER_MODE_EDIT_USE(show_occlude_wire)
+
+	prop = RNA_def_property(srna, "face_normals_show", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Draw Normals", "Display face normals as lines");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_face_normals_show_get", "rna_LayerEngineSettings_EditMode_face_normals_show_set");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_CollectionEngineSettings_update");
+	RNA_LAYER_MODE_EDIT_USE(face_normals_show)
+
+	prop = RNA_def_property(srna, "vert_normals_show", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Draw Vertex Normals", "Display vertex normals as lines");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_vert_normals_show_get", "rna_LayerEngineSettings_EditMode_vert_normals_show_set");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_CollectionEngineSettings_update");
+	RNA_LAYER_MODE_EDIT_USE(vert_normals_show)
+
+	prop = RNA_def_property(srna, "loop_normals_show", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Draw Split Normals", "Display vertex-per-face normals as lines");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_loop_normals_show_get", "rna_LayerEngineSettings_EditMode_loop_normals_show_set");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_CollectionEngineSettings_update");
+	RNA_LAYER_MODE_EDIT_USE(loop_normals_show)
+
+	prop = RNA_def_property(srna, "normals_length", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_ui_text(prop, "Normal Size", "Display size for normals in the 3D view");
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_EditMode_normals_length_get", "rna_LayerEngineSettings_EditMode_normals_length_set", NULL);
+	RNA_def_property_range(prop, 0.00001, 1000.0);
+	RNA_def_property_ui_range(prop, 0.01, 10.0, 10.0, 2);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_CollectionEngineSettings_update");
+	RNA_LAYER_MODE_EDIT_USE(normals_length)
 
 	prop = RNA_def_property(srna, "backwire_opacity", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_ui_text(prop, "Backwire Opacity", "Opacity when rendering transparent wires");

@@ -76,5 +76,7 @@ void DRW_cache_wire_overlay_get(
 struct Batch *DRW_cache_face_centers_get(struct Object *ob);
 struct Batch *DRW_cache_wire_outline_get(struct Object *ob);
 struct Batch *DRW_cache_surface_get(struct Object *ob);
+struct Batch *DRW_cache_surface_verts_get(struct Object *ob);
+struct Batch *DRW_cache_verts_get(struct Object *ob);
 
 #endif /* __DRAW_CACHE_H__ */

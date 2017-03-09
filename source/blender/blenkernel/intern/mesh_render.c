@@ -318,6 +318,22 @@ static float *mesh_render_data_vert_co(const MeshRenderData *mrdata, const int v
 	}
 }
 
+static short *mesh_render_data_vert_nor(const MeshRenderData *mrdata, const int vert_idx)
+{
+	BLI_assert(mrdata->types & MR_DATATYPE_VERT);
+
+	if (mrdata->edit_bmesh) {
+		static short fno[3];
+		BMesh *bm = mrdata->edit_bmesh->bm;
+		BMVert *bv = BM_vert_at_index(bm, vert_idx);
+		normal_float_to_short_v3(fno, bv->no);
+		return fno;
+	}
+	else {
+		return mrdata->mvert[vert_idx].no;
+	}
+}
+
 static void mesh_render_data_edge_verts_indices_get(const MeshRenderData *mrdata, const int edge_idx, int r_vert_idx[2])
 {
 	BLI_assert(mrdata->types & MR_DATATYPE_EDGE);
@@ -710,6 +726,7 @@ static void add_overlay_loose_vert(
 
 typedef struct MeshBatchCache {
 	VertexBuffer *pos_in_order;
+	VertexBuffer *nor_in_order;
 	ElementList *edges_in_order;
 	ElementList *triangles_in_order;
 
@@ -717,7 +734,9 @@ typedef struct MeshBatchCache {
 	Batch *all_edges;
 	Batch *all_triangles;
 
-	Batch *triangles_with_normals; /* owns its vertex buffer */
+	VertexBuffer *pos_with_normals;
+	Batch *triangles_with_normals;
+	Batch *points_with_normals;
 	Batch *fancy_edges; /* owns its vertex buffer (not shared) */
 
 	/* TODO : split in 2 buffers to avoid unnecessary
@@ -855,9 +874,10 @@ void BKE_mesh_batch_cache_clear(Mesh *me)
 	if (cache->overlay_loose_edges) Batch_discard_all(cache->overlay_loose_edges);
 	if (cache->overlay_facedots) Batch_discard_all(cache->overlay_facedots);
 
-	if (cache->triangles_with_normals) {
-		Batch_discard_all(cache->triangles_with_normals);
-	}
+	if (cache->triangles_with_normals) Batch_discard(cache->triangles_with_normals);
+	if (cache->points_with_normals) Batch_discard(cache->points_with_normals);
+	if (cache->pos_with_normals) VertexBuffer_discard(cache->pos_with_normals);
+	
 
 	if (cache->fancy_edges) {
 		Batch_discard_all(cache->fancy_edges);
@@ -872,16 +892,61 @@ void BKE_mesh_batch_cache_free(Mesh *me)
 
 /* Batch cache usage. */
 
-static VertexBuffer *mesh_batch_cache_get_pos_in_order(MeshRenderData *mrdata, MeshBatchCache *cache)
+static VertexBuffer *mesh_batch_cache_get_pos_and_normals(MeshRenderData *mrdata, MeshBatchCache *cache)
+{
+	BLI_assert(mrdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
+
+	if (cache->pos_with_normals == NULL) {
+		unsigned int vidx = 0, nidx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id, nor_id;
+		if (format.attrib_ct == 0) {
+			/* initialize vertex format */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			nor_id = add_attrib(&format, "nor", GL_SHORT, 3, NORMALIZE_INT_TO_FLOAT);
+		}
+
+		const int tottri = mesh_render_data_looptri_num_get(mrdata);
+
+		cache->pos_with_normals = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(cache->pos_with_normals, tottri * 3);
+
+		for (int i = 0; i < tottri; i++) {
+			float *tri_vert_cos[3];
+			short *tri_nor, *tri_vert_nors[3];
+
+			const bool is_smooth = mesh_render_data_looptri_cos_nors_smooth_get(mrdata, i, &tri_vert_cos, &tri_nor, &tri_vert_nors);
+
+			if (is_smooth) {
+				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[0]);
+				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[1]);
+				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[2]);
+			}
+			else {
+				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
+				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
+				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
+			}
+
+			setAttrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[0]);
+			setAttrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[1]);
+			setAttrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[2]);
+		}
+	}
+	return cache->pos_with_normals;
+}
+static VertexBuffer *mesh_batch_cache_get_pos_and_nor_in_order(MeshRenderData *mrdata, MeshBatchCache *cache)
 {
 	BLI_assert(mrdata->types & MR_DATATYPE_VERT);
 
 	if (cache->pos_in_order == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned pos_id, nor_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
 			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			nor_id = add_attrib(&format, "nor", GL_SHORT, 3, NORMALIZE_INT_TO_FLOAT);
 		}
 
 		const int vertex_ct = mesh_render_data_verts_num_get(mrdata);
@@ -890,6 +955,7 @@ static VertexBuffer *mesh_batch_cache_get_pos_in_order(MeshRenderData *mrdata, M
 		VertexBuffer_allocate_data(cache->pos_in_order, vertex_ct);
 		for (int i = 0; i < vertex_ct; ++i) {
 			setAttrib(cache->pos_in_order, pos_id, i, mesh_render_data_vert_co(mrdata, i));
+			setAttrib(cache->pos_in_order, nor_id, i, mesh_render_data_vert_nor(mrdata, i));
 		}
 	}
 
@@ -948,7 +1014,7 @@ Batch *BKE_mesh_batch_cache_get_all_edges(Mesh *me)
 		/* create batch from Mesh */
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_EDGE);
 
-		cache->all_edges = Batch_create(GL_LINES, mesh_batch_cache_get_pos_in_order(mrdata, cache),
+		cache->all_edges = Batch_create(GL_LINES, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache),
 		                                mesh_batch_cache_get_edges_in_order(mrdata, cache));
 
 		mesh_render_data_free(mrdata);
@@ -965,7 +1031,7 @@ Batch *BKE_mesh_batch_cache_get_all_triangles(Mesh *me)
 		/* create batch from DM */
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI);
 
-		cache->all_triangles = Batch_create(GL_TRIANGLES, mesh_batch_cache_get_pos_in_order(mrdata, cache),
+		cache->all_triangles = Batch_create(GL_TRIANGLES, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache),
 		                                    mesh_batch_cache_get_triangles_in_order(mrdata, cache));
 
 		mesh_render_data_free(mrdata);
@@ -979,50 +1045,29 @@ Batch *BKE_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	if (cache->triangles_with_normals == NULL) {
-		unsigned int vidx = 0, nidx = 0;
-
-		static VertexFormat format = { 0 };
-		static unsigned int pos_id, nor_id;
-		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			nor_id = add_attrib(&format, "nor", GL_SHORT, 3, NORMALIZE_INT_TO_FLOAT);
-		}
-
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
-		const int tottri = mesh_render_data_looptri_num_get(mrdata);
 
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, tottri * 3);
-
-		for (int i = 0; i < tottri; i++) {
-			float *tri_vert_cos[3];
-			short *tri_nor, *tri_vert_nors[3];
-
-			const bool is_smooth = mesh_render_data_looptri_cos_nors_smooth_get(mrdata, i, &tri_vert_cos, &tri_nor, &tri_vert_nors);
-
-			if (is_smooth) {
-				setAttrib(vbo, nor_id, nidx++, tri_vert_nors[0]);
-				setAttrib(vbo, nor_id, nidx++, tri_vert_nors[1]);
-				setAttrib(vbo, nor_id, nidx++, tri_vert_nors[2]);
-			}
-			else {
-				setAttrib(vbo, nor_id, nidx++, tri_nor);
-				setAttrib(vbo, nor_id, nidx++, tri_nor);
-				setAttrib(vbo, nor_id, nidx++, tri_nor);
-			}
-
-			setAttrib(vbo, pos_id, vidx++, tri_vert_cos[0]);
-			setAttrib(vbo, pos_id, vidx++, tri_vert_cos[1]);
-			setAttrib(vbo, pos_id, vidx++, tri_vert_cos[2]);
-		}
-
-		cache->triangles_with_normals = Batch_create(GL_TRIANGLES, vbo, NULL);
+		cache->triangles_with_normals = Batch_create(GL_TRIANGLES, mesh_batch_cache_get_pos_and_normals(mrdata, cache), NULL);
 
 		mesh_render_data_free(mrdata);
 	}
 
 	return cache->triangles_with_normals;
+}
+
+Batch *BKE_mesh_batch_cache_get_points_with_normals(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->points_with_normals == NULL) {
+		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
+
+		cache->points_with_normals = Batch_create(GL_POINTS, mesh_batch_cache_get_pos_and_normals(mrdata, cache), NULL);
+
+		mesh_render_data_free(mrdata);
+	}
+
+	return cache->points_with_normals;
 }
 
 Batch *BKE_mesh_batch_cache_get_all_verts(Mesh *me)
@@ -1033,8 +1078,7 @@ Batch *BKE_mesh_batch_cache_get_all_verts(Mesh *me)
 		/* create batch from DM */
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT);
 
-		cache->all_verts = Batch_create(GL_POINTS, mesh_batch_cache_get_pos_in_order(mrdata, cache), NULL);
-		Batch_set_builtin_program(cache->all_verts, GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+		cache->all_verts = Batch_create(GL_POINTS, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache), NULL);
 
 		mesh_render_data_free(mrdata);
 	}

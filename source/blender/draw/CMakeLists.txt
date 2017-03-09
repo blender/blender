@@ -91,6 +91,8 @@ data_to_c_simple(modes/shaders/edit_overlay_mix_frag.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_mix_vert.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_facefill_vert.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_facefill_frag.glsl SRC)
+data_to_c_simple(modes/shaders/edit_normals_vert.glsl SRC)
+data_to_c_simple(modes/shaders/edit_normals_geom.glsl SRC)
 
 list(APPEND INC
 )

@@ -63,7 +63,6 @@
 
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
-extern char datatoc_gpu_shader_basic_vert_glsl[];
 
 /* Structures */
 typedef enum {
