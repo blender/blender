@@ -38,7 +38,6 @@ layout(std140) uniform globalsBlock {
 	float sizeVertex;
 	float sizeEdge;
 	float sizeEdgeFix;
-	float sizeNormal;
 	float sizeFaceDot;
 };
 

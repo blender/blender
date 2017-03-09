@@ -69,7 +69,7 @@ typedef struct GlobalsUboStorage {
 
 	/* Pack individual float at the end of the buffer to avoid alignement errors */
 	float sizeLampCenter, sizeLampCircle, sizeLampCircleShadow;
-	float sizeVertex, sizeEdge, sizeEdgeFix, sizeNormal, sizeFaceDot;
+	float sizeVertex, sizeEdge, sizeEdgeFix, sizeFaceDot;
 } GlobalsUboStorage;
 /* Keep in sync with globalsBlock in shaders */
 

@@ -79,7 +79,6 @@ void DRW_globals_update(void)
 	ts.sizeFaceDot = UI_GetThemeValuef(TH_FACEDOT_SIZE) * M_SQRT2;
 	ts.sizeEdge = 1.0f / 2.0f; /* TODO Theme */
 	ts.sizeEdgeFix = 0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * M_SQRT1_2);
-	ts.sizeNormal = 1.0f; /* TODO compute */
 
 	/* TODO Waiting for notifiers to invalidate cache */
 	if (globals_ubo) {
