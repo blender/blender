@@ -1687,7 +1687,7 @@ void GPU_end_dupli_object(void)
 }
 
 void GPU_begin_object_materials(
-        View3D *v3d, RegionView3D *rv3d, Scene *scene, SceneLayer *sl, Object *ob,
+        View3D *v3d, RegionView3D *rv3d, Scene *scene, SceneLayer *UNUSED(sl), Object *ob,
         bool glsl, bool *do_alpha_after)
 {
 	Material *ma;

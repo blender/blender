@@ -19,6 +19,8 @@
  #include <stdio.h>
 #endif
 
+#if 0
+
 static const char* BuiltinUniform_name(BuiltinUniform u)
 	{
 	static const char* names[] =
@@ -42,6 +44,8 @@ static const char* BuiltinUniform_name(BuiltinUniform u)
 
 	return names[u];
 	}
+
+#endif
 
 static bool setup_builtin_uniform(ShaderInput* input, const char* name)
 	{
