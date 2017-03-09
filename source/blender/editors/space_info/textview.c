@@ -207,7 +207,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 		if (cdc->sel[0] != cdc->sel[1]) {
 			console_step_sel(cdc, -initial_offset);
-			// glColor4ub(255, 0, 0, 96); // debug
+			/* BLF_color3ub(cdc->font_id, 255, 0, 0); // debug */
 			console_draw_sel(s, cdc->sel, cdc->xy, len, cdc->cwidth, cdc->lheight, bg_sel);
 		}
 
@@ -222,7 +222,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			
 			if (cdc->sel[0] != cdc->sel[1]) {
 				console_step_sel(cdc, len);
-				// glColor4ub(0, 255, 0, 96); // debug
+				/* BLF_color3ub(cdc->font_id, 0, 255, 0); // debug */
 				console_draw_sel(s, cdc->sel, cdc->xy, len, cdc->cwidth, cdc->lheight, bg_sel);
 			}
 
@@ -261,7 +261,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			isel[0] = str_len - cdc->sel[1];
 			isel[1] = str_len - cdc->sel[0];
 
-			// glColor4ub(255, 255, 0, 96); // debug
+			/* BLF_color3ub(cdc->font_id, 255, 255, 0); // debug */
 			console_draw_sel(str, isel, cdc->xy, str_len, cdc->cwidth, cdc->lheight, bg_sel);
 			console_step_sel(cdc, -(str_len + 1));
 		}
