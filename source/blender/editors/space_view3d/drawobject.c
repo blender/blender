@@ -7944,23 +7944,6 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	immUnbindProgram();
 }
 
-static void draw_box(const float vec[8][3], bool solid)
-{
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, vec);
-	
-	if (solid) {
-		const GLubyte indices[24] = {0,1,2,3,7,6,5,4,4,5,1,0,3,2,6,7,3,7,4,0,1,5,6,2};
-		glDrawRangeElements(GL_QUADS, 0, 7, 24, GL_UNSIGNED_BYTE, indices);
-	}
-	else {
-		const GLubyte indices[24] = {0,1,1,2,2,3,3,0,0,4,4,5,5,6,6,7,7,4,1,5,2,6,3,7};
-		glDrawRangeElements(GL_LINES, 0, 7, 24, GL_UNSIGNED_BYTE, indices);
-	}
-
-	glDisableClientState(GL_VERTEX_ARRAY);
-}
-
 static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
 {
 	static const GLubyte quad_indices[24] = {0,1,2,3,7,6,5,4,4,5,1,0,3,2,6,7,3,7,4,0,1,5,6,2};
@@ -8428,6 +8411,7 @@ void draw_rigidbody_shape(Object *ob, const unsigned char ob_wire_col[4])
 {
 	BoundBox *bb = NULL;
 	float size[3], vec[8][3];
+	unsigned int pos;
 
 	if (ob->type == OB_MESH) {
 		bb = BKE_mesh_boundbox_get(ob);
@@ -8440,6 +8424,10 @@ void draw_rigidbody_shape(Object *ob, const unsigned char ob_wire_col[4])
 		case RB_SHAPE_BOX:
 			BKE_boundbox_calc_size_aabb(bb, size);
 			
+			pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			if (ob_wire_col) immUniformColor3ubv(ob_wire_col);
+
 			vec[0][0] = vec[1][0] = vec[2][0] = vec[3][0] = -size[0];
 			vec[4][0] = vec[5][0] = vec[6][0] = vec[7][0] = +size[0];
 			vec[0][1] = vec[1][1] = vec[4][1] = vec[5][1] = -size[1];
@@ -8447,7 +8435,8 @@ void draw_rigidbody_shape(Object *ob, const unsigned char ob_wire_col[4])
 			vec[0][2] = vec[3][2] = vec[4][2] = vec[7][2] = -size[2];
 			vec[1][2] = vec[2][2] = vec[5][2] = vec[6][2] = +size[2];
 			
-			draw_box(vec, false);
+			imm_draw_box(vec, false, pos);
+			immUnbindProgram();
 			break;
 		case RB_SHAPE_SPHERE:
 			imm_draw_bb(bb, OB_BOUND_SPHERE, true, ob_wire_col);
@@ -8900,13 +8889,16 @@ afterdraw:
 		if (!render_override) {
 			BoundBox bb;
 			float p0[3], p1[3];
+			unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			if (ob_wire_col) immUniformColor3ubv(ob_wire_col);
 
 			/* draw max domain bounds */
 			if ((sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN)) {
 				VECSUBFAC(p0, sds->p0, sds->cell_size, sds->adapt_res);
 				VECADDFAC(p1, sds->p1, sds->cell_size, sds->adapt_res);
 				BKE_boundbox_init_from_minmax(&bb, p0, p1);
-				draw_box(bb.vec, false);
+				imm_draw_box(bb.vec, false, pos);
 			}
 
 			/* draw a single voxel to hint the user about the resolution of the fluid */
@@ -8920,7 +8912,9 @@ afterdraw:
 			}
 
 			BKE_boundbox_init_from_minmax(&bb, p0, p1);
-			draw_box(bb.vec, false);
+			imm_draw_box(bb.vec, false, pos);
+
+			immUnbindProgram();
 		}
 
 		/* don't show smoke before simulation starts, this could be made an option in the future */
