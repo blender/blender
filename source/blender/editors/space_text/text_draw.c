@@ -968,26 +968,32 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
 	boxh = (DOC_HEIGHT + 1) * (st->lheight_dpi + TXT_LINE_SPACING);
 
 	/* Draw panel */
-	UI_ThemeColor(TH_BACK);
-	glRecti(x, y, x + boxw, y - boxh);
-	UI_ThemeColor(TH_SHADE1);
-	glBegin(GL_LINE_LOOP);
-	glVertex2i(x, y);
-	glVertex2i(x + boxw, y);
-	glVertex2i(x + boxw, y - boxh);
-	glVertex2i(x, y - boxh);
-	glEnd();
-	glBegin(GL_LINE_LOOP);
-	glVertex2i(x + boxw - 10, y - 7);
-	glVertex2i(x + boxw - 4, y - 7);
-	glVertex2i(x + boxw - 7, y - 2);
-	glEnd();
-	glBegin(GL_LINE_LOOP);
-	glVertex2i(x + boxw - 10, y - boxh + 7);
-	glVertex2i(x + boxw - 4, y - boxh + 7);
-	glVertex2i(x + boxw - 7, y - boxh + 2);
-	glEnd();
-	UI_ThemeColor(TH_TEXT);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformThemeColor(TH_BACK);
+	immRecti(pos, x, y, x + boxw, y - boxh);
+	immUniformThemeColor(TH_SHADE1);
+	immBegin(GL_LINE_LOOP, 4);
+	immVertex2i(pos, x, y);
+	immVertex2i(pos, x + boxw, y);
+	immVertex2i(pos, x + boxw, y - boxh);
+	immVertex2i(pos, x, y - boxh);
+	immEnd();
+	immBegin(GL_LINE_LOOP, 3);
+	immVertex2i(pos, x + boxw - 10, y - 7);
+	immVertex2i(pos, x + boxw - 4, y - 7);
+	immVertex2i(pos, x + boxw - 7, y - 2);
+	immEnd();
+	immBegin(GL_LINE_LOOP, 3);
+	immVertex2i(pos, x + boxw - 10, y - boxh + 7);
+	immVertex2i(pos, x + boxw - 4, y - boxh + 7);
+	immVertex2i(pos, x + boxw - 7, y - boxh + 2);
+	immEnd();
+
+	immUnbindProgram();
+
+	UI_FontThemeColor(tdc.font_id, TH_TEXT);
 
 	i = 0; br = DOC_WIDTH; lines = 0; // XXX -doc_scroll;
 	for (p = docs; *p; p++) {
