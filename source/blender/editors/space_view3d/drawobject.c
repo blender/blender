@@ -6689,130 +6689,137 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 	float tw = itw * drw_size;
 	float th = ith * drw_size;
 
-	glBegin(GL_LINES);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-	glColor4ub(0x7F, 0x00, 0x00, 155);
+	immBegin(GL_LINES, 30);
+
+	immAttrib4ub(col, 0x7F, 0x00, 0x00, 155);
 	root[1] = root[2] = 0.0f;
 	root[0] = -drw_size;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
+	immVertex3fv(pos, root);
 	tip[1] = tip[2] = 0.0f;
 	tip[0] = drw_size;
 	mul_m3_v3(tr, tip);
 	add_v3_v3(tip, com);
-	glVertex3fv(tip);
+	immVertex3fv(pos, tip);
 
 	root[1] = 0.0f; root[2] = tw;
 	root[0] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[1] = 0.0f; root[2] = -tw;
 	root[0] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[1] = tw; root[2] = 0.0f;
 	root[0] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[1] = -tw; root[2] = 0.0f;
 	root[0] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
-	glColor4ub(0x00, 0x7F, 0x00, 155);
+	immAttrib4ub(col, 0x00, 0x7F, 0x00, 155);
 
 	root[0] = root[2] = 0.0f;
 	root[1] = -drw_size;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
+	immVertex3fv(pos, root);
 	tip[0] = tip[2] = 0.0f;
 	tip[1] = drw_size;
 	mul_m3_v3(tr, tip);
 	add_v3_v3(tip, com);
-	glVertex3fv(tip);
+	immVertex3fv(pos, tip);
 
 	root[0] = 0.0f; root[2] = tw;
 	root[1] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[0] = 0.0f; root[2] = -tw;
 	root[1] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[0] = tw; root[2] = 0.0f;
 	root[1] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[0] = -tw; root[2] = 0.0f;
 	root[1] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
-	glColor4ub(0x00, 0x00, 0x7F, 155);
+	immAttrib4ub(col, 0x00, 0x00, 0x7F, 155);
 	root[0] = root[1] = 0.0f;
 	root[2] = -drw_size;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
+	immVertex3fv(pos, root);
 	tip[0] = tip[1] = 0.0f;
 	tip[2] = drw_size;
 	mul_m3_v3(tr, tip);
 	add_v3_v3(tip, com);
-	glVertex3fv(tip);
+	immVertex3fv(pos, tip);
 
 	root[0] = 0.0f; root[1] = tw;
 	root[2] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[0] = 0.0f; root[1] = -tw;
 	root[2] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[0] = tw; root[1] = 0.0f;
 	root[2] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
 	root[0] = -tw; root[1] = 0.0f;
 	root[2] = th;
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
-	glVertex3fv(root);
-	glVertex3fv(tip);
+	immVertex3fv(pos, root);
+	immVertex3fv(pos, tip);
 
-	glEnd();
+	immEnd();
+
+	immUnbindProgram();
 }
 
 /* place to add drawers */
@@ -6821,7 +6828,7 @@ static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 {
 	if (nu->hide || hide_handles) return;
 
-	if (nu->type == CU_BEZIER) {
+	if (nu->type == CU_BEZIER && nu->pntsu > 0) {
 
 		const float *fp;
 
@@ -6834,9 +6841,14 @@ static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 			UI_GetThemeColor3ubv(basecol + a, handle_cols[a]);
 		}
 
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
 		glLineWidth(1.0f);
 
-		glBegin(GL_LINES);
+		immBeginAtMost(GL_LINES, nu->pntsu * 4);
 
 		BezTriple *bezt = nu->bezt;
 		int a = nu->pntsu;
@@ -6845,33 +6857,35 @@ static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 				if ((bezt->f2 & SELECT) == sel) {
 					fp = bezt->vec[0];
 
-					glColor3ubv(handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT - 1)]);
-					glVertex3fv(fp);
-					glVertex3fv(fp + 3);
+					immAttrib3ubv(col, handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT - 1)]);
+					immVertex3fv(pos, fp);
+					immVertex3fv(pos, fp + 3);
 
-					glColor3ubv(handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT - 1)]);
-					glVertex3fv(fp + 3);
-					glVertex3fv(fp + 6);
+					immAttrib3ubv(col, handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT - 1)]);
+					immVertex3fv(pos, fp + 3);
+					immVertex3fv(pos, fp + 6);
 				}
 				else if ((bezt->f1 & SELECT) == sel) {
 					fp = bezt->vec[0];
 
-					glColor3ubv(handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT - 1)]);
-					glVertex3fv(fp);
-					glVertex3fv(fp + 3);
+					immAttrib3ubv(col, handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT - 1)]);
+					immVertex3fv(pos, fp);
+					immVertex3fv(pos, fp + 3);
 				}
 				else if ((bezt->f3 & SELECT) == sel) {
 					fp = bezt->vec[1];
 
-					glColor3ubv(handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT - 1)]);
-					glVertex3fv(fp);
-					glVertex3fv(fp + 3);
+					immAttrib3ubv(col, handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT - 1)]);
+					immVertex3fv(pos, fp);
+					immVertex3fv(pos, fp + 3);
 				}
 			}
 			bezt++;
 		}
 
-		glEnd();
+		immEnd();
+
+		immUnbindProgram();
 
 #undef TH_HANDLE_COL_TOT
 
@@ -6882,30 +6896,30 @@ static void drawhandlesN_active(Nurb *nu)
 {
 	if (nu->hide) return;
 
-	UI_ThemeColor(TH_ACTIVE_SPLINE);
-	glLineWidth(2.0f);
+	if (nu->type == CU_BEZIER && nu->pntsu > 0) {
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformThemeColor(TH_ACTIVE_SPLINE);
+		glLineWidth(2.0f);
 
-	glBegin(GL_LINES);
-
-	if (nu->type == CU_BEZIER) {
+		immBeginAtMost(GL_LINES, nu->pntsu * 4);
 		BezTriple *bezt = nu->bezt;
 		int a = nu->pntsu;
 		while (a--) {
 			if (bezt->hide == 0) {
 				const float *fp = bezt->vec[0];
 
-				glVertex3fv(fp);
-				glVertex3fv(fp + 3);
+				immVertex3fv(pos, fp);
+				immVertex3fv(pos, fp + 3);
 
-				glVertex3fv(fp + 3);
-				glVertex3fv(fp + 6);
+				immVertex3fv(pos, fp + 3);
+				immVertex3fv(pos, fp + 6);
 			}
 			bezt++;
 		}
+		immEnd();
+		immUnbindProgram();
 	}
-	glEnd();
-
-	glColor3ub(0, 0, 0);
 }
 
 static void drawvertsN(const Nurb *nurb, const bool hide_handles, const void *vert)
@@ -7000,63 +7014,78 @@ static void drawvertsN(const Nurb *nurb, const bool hide_handles, const void *ve
 
 static void editnurb_draw_active_poly(Nurb *nu)
 {
-	UI_ThemeColor(TH_ACTIVE_SPLINE);
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformThemeColor(TH_ACTIVE_SPLINE);
+
 	glLineWidth(2.0f);
 
 	BPoint *bp = nu->bp;
 	for (int b = 0; b < nu->pntsv; b++) {
-		if (nu->flagu & 1) glBegin(GL_LINE_LOOP);
-		else glBegin(GL_LINE_STRIP);
+		if (nu->pntsu >= 2) {
+			if (nu->flagu & 1) immBegin(GL_LINE_LOOP, nu->pntsu);
+			else immBegin(GL_LINE_STRIP, nu->pntsu);
 
-		for (int a = 0; a < nu->pntsu; a++, bp++) {
-			glVertex3fv(bp->vec);
+			for (int a = 0; a < nu->pntsu; a++, bp++) {
+				immVertex3fv(pos, bp->vec);
+			}
+
+			immEnd();
 		}
-
-		glEnd();
 	}
 
-	glColor3ub(0, 0, 0);
+	immUnbindProgram();
 }
 
 static void editnurb_draw_active_nurbs(Nurb *nu)
 {
-	UI_ThemeColor(TH_ACTIVE_SPLINE);
-	glLineWidth(2.0f);
+	if (nu->pntsv > 0) {
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformThemeColor(TH_ACTIVE_SPLINE);
 
-	glBegin(GL_LINES);
-	BPoint *bp = nu->bp;
-	for (int b = 0; b < nu->pntsv; b++) {
-		BPoint *bp1 = bp;
-		bp++;
+		glLineWidth(2.0f);
+		// just quick guesstimate of how many verts to draw
+		int count = (nu->pntsu - 1) * nu->pntsv * 2;
+		if (nu->pntsv > 1) count += (nu->pntsv - 1) * nu->pntsu * 2;
+		if (count < 2) return;
 
-		for (int a = nu->pntsu - 1; a > 0; a--, bp++) {
-			if (bp->hide == 0 && bp1->hide == 0) {
-				glVertex3fv(bp->vec);
-				glVertex3fv(bp1->vec);
-			}
-			bp1 = bp;
-		}
-	}
+		immBeginAtMost(GL_LINES, count);
+		BPoint *bp = nu->bp;
+		for (int b = 0; b < nu->pntsv; b++) {
+			BPoint *bp1 = bp;
+			bp++;
 
-	if (nu->pntsv > 1) {    /* surface */
-
-		int ofs = nu->pntsu;
-		for (int b = 0; b < nu->pntsu; b++) {
-			BPoint *bp1 = nu->bp + b;
-			bp = bp1 + ofs;
-			for (int a = nu->pntsv - 1; a > 0; a--, bp += ofs) {
+			for (int a = nu->pntsu - 1; a > 0; a--, bp++) {
 				if (bp->hide == 0 && bp1->hide == 0) {
-					glVertex3fv(bp->vec);
-					glVertex3fv(bp1->vec);
+					immVertex3fv(pos, bp->vec);
+					immVertex3fv(pos, bp1->vec);
 				}
 				bp1 = bp;
 			}
 		}
+
+		if (nu->pntsv > 1) {    /* surface */
+			int ofs = nu->pntsu;
+			for (int b = 0; b < nu->pntsu; b++) {
+				BPoint *bp1 = nu->bp + b;
+				bp = bp1 + ofs;
+				for (int a = nu->pntsv - 1; a > 0; a--, bp += ofs) {
+					if (bp->hide == 0 && bp1->hide == 0) {
+						immVertex3fv(pos, bp->vec);
+						immVertex3fv(pos, bp1->vec);
+					}
+					bp1 = bp;
+				}
+			}
+		}
+
+		immEnd();
+
+		immUnbindProgram();
 	}
-
-	glEnd();
-
-	glColor3ub(0, 0, 0);
 }
 
 static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
@@ -7064,6 +7093,9 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 	BPoint *bp, *bp1;
 	int a, b;
 	Curve *cu = ob->data;
+	VertexFormat *format;
+	unsigned int pos, col;
+	unsigned char color[3];
 
 	int index = 0;
 	Nurb *nu = nurb;
@@ -7071,35 +7103,55 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 		if (nu->hide == 0) {
 			switch (nu->type) {
 				case CU_POLY:
+				{
 					if (!sel && index == cu->actnu) {
 						/* we should draw active spline highlight below everything */
 						editnurb_draw_active_poly(nu);
 					}
 
+					format = immVertexFormat();
+					pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+					immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
 					glLineWidth(1.0f);
 
-					UI_ThemeColor(TH_NURB_ULINE);
+					immUniformThemeColor(TH_NURB_ULINE);
 					bp = nu->bp;
 					for (b = 0; b < nu->pntsv; b++) {
-						if (nu->flagu & 1) glBegin(GL_LINE_LOOP);
-						else glBegin(GL_LINE_STRIP);
+						if (nu->pntsu >= 2) {
+							if (nu->flagu & 1) immBegin(GL_LINE_LOOP, nu->pntsu);
+							else immBegin(GL_LINE_STRIP, nu->pntsu);
 
-						for (a = 0; a < nu->pntsu; a++, bp++) {
-							glVertex3fv(bp->vec);
+							for (a = 0; a < nu->pntsu; a++, bp++) {
+								immVertex3fv(pos, bp->vec);
+							}
+
+							immEnd();
 						}
-
-						glEnd();
 					}
+					immUnbindProgram();
 					break;
+				}
 				case CU_NURBS:
+				{
 					if (!sel && index == cu->actnu) {
 						/* we should draw active spline highlight below everything */
 						editnurb_draw_active_nurbs(nu);
 					}
 
+					format = immVertexFormat();
+					pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+					col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+					immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
+					// just quick guesstimate of how many verts to draw
+					int count = (nu->pntsu - 1) * nu->pntsv * 2;
+					if (nu->pntsv > 1) count += (nu->pntsv - 1) * nu->pntsu * 2;
+					if (count < 2) return;
+
 					glLineWidth(1.0f);
 
-					glBegin(GL_LINES);
+					immBeginAtMost(GL_LINES, count);
 
 					bp = nu->bp;
 					for (b = 0; b < nu->pntsv; b++) {
@@ -7109,10 +7161,10 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 							if (bp->hide == 0 && bp1->hide == 0) {
 								if (sel) {
 									if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
-										UI_ThemeColor(TH_NURB_SEL_ULINE);
-
-										glVertex3fv(bp->vec);
-										glVertex3fv(bp1->vec);
+										UI_GetThemeColor3ubv(TH_NURB_SEL_ULINE, color);
+										immAttrib3ubv(col, color);
+										immVertex3fv(pos, bp->vec);
+										immVertex3fv(pos, bp1->vec);
 									}
 								}
 								else {
@@ -7120,10 +7172,10 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 										/* pass */
 									}
 									else {
-										UI_ThemeColor(TH_NURB_ULINE);
-
-										glVertex3fv(bp->vec);
-										glVertex3fv(bp1->vec);
+										UI_GetThemeColor3ubv(TH_NURB_ULINE, color);
+										immAttrib3ubv(col, color);
+										immVertex3fv(pos, bp->vec);
+										immVertex3fv(pos, bp1->vec);
 									}
 								}
 							}
@@ -7140,10 +7192,10 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 								if (bp->hide == 0 && bp1->hide == 0) {
 									if (sel) {
 										if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
-											UI_ThemeColor(TH_NURB_SEL_VLINE);
-
-											glVertex3fv(bp->vec);
-											glVertex3fv(bp1->vec);
+											UI_GetThemeColor3ubv(TH_NURB_SEL_VLINE, color);
+											immAttrib3ubv(col, color);
+											immVertex3fv(pos, bp->vec);
+											immVertex3fv(pos, bp1->vec);
 										}
 									}
 									else {
@@ -7151,10 +7203,10 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 											/* pass */
 										}
 										else {
-											UI_ThemeColor(TH_NURB_VLINE);
-
-											glVertex3fv(bp->vec);
-											glVertex3fv(bp1->vec);
+											UI_GetThemeColor3ubv(TH_NURB_VLINE, color);
+											immAttrib3ubv(col, color);
+											immVertex3fv(pos, bp->vec);
+											immVertex3fv(pos, bp1->vec);
 										}
 									}
 								}
@@ -7162,9 +7214,10 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 							}
 						}
 					}
-
-					glEnd();
+					immEnd();
+					immUnbindProgram();
 					break;
+				}
 			}
 		}
 
@@ -7217,56 +7270,76 @@ static void draw_editnurb(
 	
 	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
 
-	glColor3ubv(wire_col);
-
 	/* direction vectors for 3d curve paths
 	 * when at its lowest, don't render normals */
 	if ((cu->flag & CU_3D) && (ts->normalsize > 0.0015f) && (cu->drawflag & CU_HIDE_NORMALS) == 0) {
 		BevList *bl;
+
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformThemeColor(TH_WIRE_EDIT);
+
 		glLineWidth(1.0f);
+
+		int count = 0;
 		for (bl = ob->curve_cache->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
-			BevPoint *bevp = bl->bevpoints;
 			int nr = bl->nr;
 			int skip = nu->resolu / 16;
 			
 			while (nr-- > 0) { /* accounts for empty bevel lists */
-				const float fac = bevp->radius * ts->normalsize;
-				float vec_a[3]; /* Offset perpendicular to the curve */
-				float vec_b[3]; /* Delta along the curve */
-
-				vec_a[0] = fac;
-				vec_a[1] = 0.0f;
-				vec_a[2] = 0.0f;
-
-				vec_b[0] = -fac;
-				vec_b[1] = 0.0f;
-				vec_b[2] = 0.0f;
-				
-				mul_qt_v3(bevp->quat, vec_a);
-				mul_qt_v3(bevp->quat, vec_b);
-				add_v3_v3(vec_a, bevp->vec);
-				add_v3_v3(vec_b, bevp->vec);
-
-				madd_v3_v3fl(vec_a, bevp->dir, -fac);
-				madd_v3_v3fl(vec_b, bevp->dir, -fac);
-
-				glBegin(GL_LINE_STRIP);
-				glVertex3fv(vec_a);
-				glVertex3fv(bevp->vec);
-				glVertex3fv(vec_b);
-				glEnd();
-				
-				bevp += skip + 1;
+				count += 4;
 				nr -= skip;
 			}
 		}
+
+		if (count > 2) {
+			immBegin(GL_LINES, count);
+			for (bl = ob->curve_cache->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
+				BevPoint *bevp = bl->bevpoints;
+				int nr = bl->nr;
+				int skip = nu->resolu / 16;
+				
+				while (nr-- > 0) { /* accounts for empty bevel lists */
+					const float fac = bevp->radius * ts->normalsize;
+					float vec_a[3]; /* Offset perpendicular to the curve */
+					float vec_b[3]; /* Delta along the curve */
+
+					vec_a[0] = fac;
+					vec_a[1] = 0.0f;
+					vec_a[2] = 0.0f;
+
+					vec_b[0] = -fac;
+					vec_b[1] = 0.0f;
+					vec_b[2] = 0.0f;
+
+					mul_qt_v3(bevp->quat, vec_a);
+					mul_qt_v3(bevp->quat, vec_b);
+					add_v3_v3(vec_a, bevp->vec);
+					add_v3_v3(vec_b, bevp->vec);
+
+					madd_v3_v3fl(vec_a, bevp->dir, -fac);
+					madd_v3_v3fl(vec_b, bevp->dir, -fac);
+
+					immVertex3fv(pos, vec_a);
+					immVertex3fv(pos, bevp->vec);
+					immVertex3fv(pos, bevp->vec);
+					immVertex3fv(pos, vec_b);
+
+					bevp += skip + 1;
+					nr -= skip;
+				}
+			}
+			immEnd();
+		}
+		immUnbindProgram();
 	}
 
-	if (v3d->zbuf) glDepthFunc(GL_ALWAYS);
+	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 
-	drawvertsN(nu, hide_handles, vert);
+	drawvertsN(nurb, hide_handles, vert);
 
-	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
+	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
 static void draw_editfont_textcurs(RegionView3D *rv3d, float textcurs[4][2])
