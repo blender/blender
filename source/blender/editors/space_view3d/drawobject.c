@@ -780,19 +780,6 @@ static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3
 	}
 }
 
-/* DEPRECATED use imm_drawcircball instead */
-void drawcircball(int mode, const float cent[3], float rad, const float tmat[4][4])
-{
-	float verts[CIRCLE_RESOL][3];
-
-	circball_array_fill(verts, cent, rad, tmat);
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, verts);
-	glDrawArrays(mode, 0, CIRCLE_RESOL);
-	glDisableClientState(GL_VERTEX_ARRAY);
-}
-
 void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned pos)
 {
 	float verts[CIRCLE_RESOL][3];
@@ -5599,7 +5586,8 @@ static void draw_particle_arrays(int draw_as, int totpoint, int ob_dt, int selec
 	}
 }
 static void draw_particle(ParticleKey *state, int draw_as, short draw, float pixsize,
-                          float imat[4][4], const float draw_line[2], ParticleBillboardData *bb, ParticleDrawData *pdd)
+                          float imat[4][4], const float draw_line[2], ParticleBillboardData *bb, ParticleDrawData *pdd,
+                          unsigned int pos)
 {
 	float vec[3], vec2[3];
 	float *vd = NULL;
@@ -5709,7 +5697,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 		}
 		case PART_DRAW_CIRC:
 		{
-			drawcircball(GL_LINE_LOOP, state->co, pixsize, imat);
+			imm_drawcircball(state->co, pixsize, imat, pos);
 			break;
 		}
 		case PART_DRAW_BB:
@@ -5750,7 +5738,8 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 static void draw_particle_data(ParticleSystem *psys, RegionView3D *rv3d,
                                ParticleKey *state, int draw_as,
                                float imat[4][4], ParticleBillboardData *bb, ParticleDrawData *pdd,
-                               const float ct, const float pa_size, const float r_tilt, const float pixsize_scale)
+                               const float ct, const float pa_size, const float r_tilt, const float pixsize_scale,
+                               unsigned int pos)
 {
 	ParticleSettings *part = psys->part;
 	float pixsize;
@@ -5781,7 +5770,7 @@ static void draw_particle_data(ParticleSystem *psys, RegionView3D *rv3d,
 
 	pixsize = ED_view3d_pixel_size(rv3d, state->co) * pixsize_scale;
 
-	draw_particle(state, draw_as, part->draw, pixsize, imat, part->draw_line, bb, pdd);
+	draw_particle(state, draw_as, part->draw, pixsize, imat, part->draw_line, bb, pdd, pos);
 }
 /* unified drawing of all new particle systems draw types except dupli ob & group
  * mostly tries to use vertex arrays for speed
@@ -5818,6 +5807,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	GLint polygonmode[2];
 	char numstr[32];
 	unsigned char tcol[4] = {0, 0, 0, 255};
+	unsigned int pos;
 
 /* 1. */
 	if (part == NULL || !psys_check_enabled(ob, psys, G.is_rendering))
@@ -6062,6 +6052,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			totpoint = pdd->totpoint; /* draw data is up to date */
 		}
 		else {
+			if ((draw_as == PART_DRAW_CIRC) || (part->draw & PART_DRAW_SIZE)) {
+				pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+				immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+				imm_cpack(0xFFFFFF);
+			}
 			for (a = 0, pa = pars; a < totpart + totchild; a++, pa++) {
 				/* setup per particle individual stuff */
 				if (a < totpart) {
@@ -6132,7 +6127,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 						draw_particle_data(psys, rv3d,
 						                   &state, draw_as, imat, &bb, psys->pdd,
-						                   ct, pa_size, r_tilt, pixsize_scale);
+						                   ct, pa_size, r_tilt, pixsize_scale, pos);
 
 						totpoint++;
 						drawn = 1;
@@ -6144,7 +6139,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 						draw_particle_data(psys, rv3d,
 						                   &state, draw_as, imat, &bb, psys->pdd,
-						                   pa_time, pa_size, r_tilt, pixsize_scale);
+						                   pa_time, pa_size, r_tilt, pixsize_scale, pos);
 
 						totpoint++;
 						drawn = 1;
@@ -6166,7 +6161,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 					if (part->draw & PART_DRAW_SIZE) {
 						setlinestyle(3);
-						drawcircball(GL_LINE_LOOP, state.co, pa_size, imat);
+						imm_drawcircball(state.co, pa_size, imat, pos);
 						setlinestyle(0);
 					}
 
@@ -6202,6 +6197,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						}
 					}
 				}
+			}
+			if ((draw_as == PART_DRAW_CIRC) || (part->draw & PART_DRAW_SIZE)) {
+				immUnbindProgram();
 			}
 		}
 	}
@@ -7273,17 +7271,20 @@ static void draw_editnurb(
 
 static void draw_editfont_textcurs(RegionView3D *rv3d, float textcurs[4][2])
 {
-	cpack(0);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	ED_view3d_polygon_offset(rv3d, -1.0);
 	set_inverted_drawing(1);
-	glBegin(GL_QUADS);
-	glVertex2fv(textcurs[0]);
-	glVertex2fv(textcurs[1]);
-	glVertex2fv(textcurs[2]);
-	glVertex2fv(textcurs[3]);
-	glEnd();
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	imm_cpack(0);
+	immBegin(GL_TRIANGLE_FAN, 4);
+	immVertex2fv(pos, textcurs[0]);
+	immVertex2fv(pos, textcurs[1]);
+	immVertex2fv(pos, textcurs[2]);
+	immVertex2fv(pos, textcurs[3]);
+	immEnd();
 	set_inverted_drawing(0);
 	ED_view3d_polygon_offset(rv3d, 0.0);
+	immUnbindProgram();
 }
 
 static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, Base *base,
@@ -7308,7 +7309,9 @@ static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3
 	}
 
 	if (cu->linewidth != 0.0f) {
-		UI_ThemeColor(TH_WIRE_EDIT);
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformThemeColor(TH_WIRE_EDIT);
 		copy_v3_v3(vec1, ob->orig);
 		copy_v3_v3(vec2, ob->orig);
 		vec1[0] += cu->linewidth;
@@ -7316,31 +7319,35 @@ static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3
 		vec1[1] += cu->linedist * cu->fsize;
 		vec2[1] -= cu->lines * cu->linedist * cu->fsize;
 		setlinestyle(3);
-		glBegin(GL_LINES);
-		glVertex2fv(vec1);
-		glVertex2fv(vec2);
-		glEnd();
+		immBegin(GL_LINES, 2);
+		immVertex2fv(pos, vec1);
+		immVertex2fv(pos, vec2);
+		immEnd();
 		setlinestyle(0);
+		immUnbindProgram();
 	}
 
 	setlinestyle(3);
 	for (int i = 0; i < cu->totbox; i++) {
 		if (cu->tb[i].w != 0.0f) {
-			UI_ThemeColor(i == (cu->actbox - 1) ? TH_ACTIVE : TH_WIRE);
+			unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			immUniformThemeColor(i == (cu->actbox - 1) ? TH_ACTIVE : TH_WIRE);
 			vec1[0] = cu->xof + cu->tb[i].x;
 			vec1[1] = cu->yof + cu->tb[i].y + cu->fsize;
 			vec1[2] = 0.001;
-			glBegin(GL_LINE_STRIP);
-			glVertex3fv(vec1);
+			immBegin(GL_LINE_STRIP, 5);
+			immVertex3fv(pos, vec1);
 			vec1[0] += cu->tb[i].w;
-			glVertex3fv(vec1);
+			immVertex3fv(pos, vec1);
 			vec1[1] -= cu->tb[i].h;
-			glVertex3fv(vec1);
+			immVertex3fv(pos, vec1);
 			vec1[0] -= cu->tb[i].w;
-			glVertex3fv(vec1);
+			immVertex3fv(pos, vec1);
 			vec1[1] += cu->tb[i].h;
-			glVertex3fv(vec1);
-			glEnd();
+			immVertex3fv(pos, vec1);
+			immEnd();
+			immUnbindProgram();
 		}
 	}
 	setlinestyle(0);
@@ -7350,7 +7357,9 @@ static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3
 		const int seltot = selend - selstart;
 		float selboxw;
 
-		cpack(0xffffff);
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		imm_cpack(0xffffff);
 		set_inverted_drawing(1);
 		for (int i = 0; i <= seltot; i++) {
 			EditFontSelBox *sb = &ef->selboxes[i];
@@ -7369,20 +7378,20 @@ static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3
 			/* fill in xy below */
 			tvec[2] = 0.001;
 
-			glBegin(GL_QUADS);
+			immBegin(GL_TRIANGLE_FAN, 4);
 
 			if (sb->rot == 0.0f) {
 				copy_v2_fl2(tvec, sb->x, sb->y);
-				glVertex3fv(tvec);
+				immVertex3fv(pos, tvec);
 
 				copy_v2_fl2(tvec, sb->x + selboxw, sb->y);
-				glVertex3fv(tvec);
+				immVertex3fv(pos, tvec);
 
 				copy_v2_fl2(tvec, sb->x + selboxw, sb->y + sb->h);
-				glVertex3fv(tvec);
+				immVertex3fv(pos, tvec);
 
 				copy_v2_fl2(tvec, sb->x, sb->y + sb->h);
-				glVertex3fv(tvec);
+				immVertex3fv(pos, tvec);
 			}
 			else {
 				float mat[2][2];
@@ -7390,27 +7399,28 @@ static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3
 				angle_to_mat2(mat, sb->rot);
 
 				copy_v2_fl2(tvec, sb->x, sb->y);
-				glVertex3fv(tvec);
+				immVertex3fv(pos, tvec);
 
 				copy_v2_fl2(tvec, selboxw, 0.0f);
 				mul_m2v2(mat, tvec);
 				add_v2_v2(tvec, &sb->x);
-				glVertex3fv(tvec);
+				immVertex3fv(pos, tvec);
 
 				copy_v2_fl2(tvec, selboxw, sb->h);
 				mul_m2v2(mat, tvec);
 				add_v2_v2(tvec, &sb->x);
-				glVertex3fv(tvec);
+				immVertex3fv(pos, tvec);
 
 				copy_v2_fl2(tvec, 0.0f, sb->h);
 				mul_m2v2(mat, tvec);
 				add_v2_v2(tvec, &sb->x);
-				glVertex3fv(tvec);
+				immVertex3fv(pos, tvec);
 			}
 
-			glEnd();
+			immEnd();
 		}
 		set_inverted_drawing(0);
+		immUnbindProgram();
 	}
 }
 
@@ -7645,12 +7655,15 @@ static bool drawmball(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *r
 	
 	glLineWidth(1.0f);
 
+	const int unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
 	while (ml) {
 		/* draw radius */
 		if (mb->editelems) {
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
-				if ((ml->flag & SELECT) && (ml->flag & MB_SCALE_RAD)) cpack(0xA0A0F0);
-				else cpack(0x3030A0);
+				if ((ml->flag & SELECT) && (ml->flag & MB_SCALE_RAD)) imm_cpack(0xA0A0F0);
+				else imm_cpack(0x3030A0);
 			}
 			
 			if (G.f & G_PICKSEL) {
@@ -7658,24 +7671,26 @@ static bool drawmball(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *r
 				GPU_select_load_id(code++);
 			}
 		}
-		drawcircball(GL_LINE_LOOP, &(ml->x), ml->rad, imat);
+		imm_drawcircball(&(ml->x), ml->rad, imat, pos);
 
 		/* draw stiffness */
 		if (mb->editelems) {
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
-				if ((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) cpack(0xA0F0A0);
-				else cpack(0x30A030);
+				if ((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) imm_cpack(0xA0F0A0);
+				else imm_cpack(0x30A030);
 			}
 			
 			if (G.f & G_PICKSEL) {
 				ml->selcol2 = code;
 				GPU_select_load_id(code++);
 			}
-			drawcircball(GL_LINE_LOOP, &(ml->x), ml->rad * atanf(ml->s) / (float)M_PI_2, imat);
+			imm_drawcircball(&(ml->x), ml->rad * atanf(ml->s) / (float)M_PI_2, imat, pos);
 		}
 		
 		ml = ml->next;
 	}
+
+	immUnbindProgram();
 	return false;
 }
 
@@ -8032,7 +8047,7 @@ void draw_bounding_volume(Object *ob, char type, const unsigned char ob_wire_col
 
 }
 
-static void drawtexspace(Object *ob)
+static void drawtexspace(Object *ob, const unsigned char ob_wire_col[3])
 {
 	float vec[8][3], loc[3], size[3];
 	
@@ -8062,7 +8077,19 @@ static void drawtexspace(Object *ob)
 	
 	setlinestyle(2);
 
-	draw_box(vec, false);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+	if (ob_wire_col) {
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformColor3ubv(ob_wire_col);
+	}
+	else {
+		immBindBuiltinProgram(GPU_SHADER_3D_DEPTH_ONLY);
+	}
+
+	imm_draw_box(vec, false, pos);
+
+	immUnbindProgram();
 
 	setlinestyle(0);
 }
@@ -8902,9 +8929,11 @@ afterdraw:
 			if (dtx & OB_TEXSPACE) {
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					/* prevent random colors being used */
-					glColor3ubv(ob_wire_col);
+					drawtexspace(ob, ob_wire_col);
 				}
-				drawtexspace(ob);
+				else {
+					drawtexspace(ob, NULL);
+				}
 			}
 			if (dtx & OB_DRAWNAME) {
 				/* patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing */
@@ -9331,7 +9360,6 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 
 			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
 
-			glBegin(GL_POINTS);
 			immBeginAtMost(GL_POINTS, em->bm->totface);
 			dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, &data, DM_FOREACH_NOP);
 			immEnd();

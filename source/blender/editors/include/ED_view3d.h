@@ -281,7 +281,6 @@ float ED_view3d_radius_to_dist(
         const char persp, const bool use_aspect,
         const float radius);
 
-void drawcircball(int mode, const float cent[3], float rad, const float tmat[4][4]);
 void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned pos);
 
 /* backbuffer select and draw support */
