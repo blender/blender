@@ -926,6 +926,7 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
 
 /*********************** draw documentation *******************************/
 
+#if 0
 static void draw_documentation(const SpaceText *st, ARegion *ar)
 {
 	TextDrawContext tdc = {0};
@@ -1014,6 +1015,7 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
 		draw_documentation(st, ar);
 	}
 }
+#endif
 
 /*********************** draw suggestion list *******************************/
 
@@ -1487,7 +1489,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	/* draw other stuff */
 	draw_brackets(st, &tdc, ar);
 	draw_textscroll(st, &scroll, &back);
-	draw_documentation(st, ar);
+	/* draw_documentation(st, ar); - No longer supported */
 	draw_suggestion_list(st, &tdc, ar);
 	
 	text_font_end(&tdc);
