@@ -251,6 +251,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			immUnbindProgram();
 		}
 
+		BLF_color3ubv(cdc->font_id, fg);
 		BLF_position(cdc->font_id, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
 		BLF_draw_mono(cdc->font_id, str, str_len, cdc->cwidth);
 		
