@@ -41,6 +41,7 @@ static Batch *sphere_high = NULL;
 static Batch *sphere_med = NULL;
 static Batch *sphere_low = NULL;
 static Batch *sphere_wire_low = NULL;
+static Batch *sphere_wire_med = NULL;
 
 static VertexBuffer *vbo;
 static VertexFormat format = {0};
@@ -139,9 +140,14 @@ Batch *Batch_get_sphere(int lod)
 		return sphere_high;
 }
 
-Batch *Batch_get_sphere_wire(int UNUSED(lod))
+Batch *Batch_get_sphere_wire(int lod)
 {
-	return sphere_wire_low;
+	BLI_assert(lod >= 0 && lod <= 1);
+
+	if (lod == 0)
+		return sphere_wire_low;
+	else
+		return sphere_wire_med;
 }
 
 void gpu_batch_init(void)
@@ -152,6 +158,7 @@ void gpu_batch_init(void)
 	sphere_high = batch_sphere(32, 24);
 
 	sphere_wire_low = batch_sphere_wire(6, 8);
+	sphere_wire_med = batch_sphere_wire(8, 16);
 }
 
 void gpu_batch_exit(void)
@@ -159,4 +166,6 @@ void gpu_batch_exit(void)
 	Batch_discard_all(sphere_low);
 	Batch_discard_all(sphere_med);
 	Batch_discard_all(sphere_high);
+	Batch_discard_all(sphere_wire_low);
+	Batch_discard_all(sphere_wire_med);
 }

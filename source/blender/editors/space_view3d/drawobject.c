@@ -206,6 +206,7 @@ typedef struct drawMVertOffset_userData {
 typedef struct drawDMLayer_userData {
 	BMesh *bm;
 	int cd_layer_offset;
+	unsigned int pos, col;
 } drawDMLayer_userData;
 
 typedef struct drawBMOffset_userData {
@@ -1666,14 +1667,6 @@ bool view3d_camera_border_hack_test = false;
 
 /* ****************** draw clip data *************** */
 
-static void draw_bundle_sphere(void)
-{
-	GLUquadricObj *qobj = gluNewQuadric();
-	gluQuadricDrawStyle(qobj, GLU_FILL);
-	gluSphere(qobj, 0.05, 8, 8);
-	gluDeleteQuadric(qobj);
-}
-
 static void draw_viewport_object_reconstruction(
         Scene *scene, BaseLegacy *base, const View3D *v3d, const RegionView3D *rv3d,
         MovieClip *clip, MovieTrackingObject *tracking_object,
@@ -1756,26 +1749,46 @@ static void draw_viewport_object_reconstruction(
 		}
 		else if (v3d_drawtype > OB_WIRE) {
 			if (v3d->bundle_drawtype == OB_EMPTY_SPHERE) {
+				Batch *batch;
+
+				glScalef(0.05f, 0.05f, 0.05f);
+
 				/* selection outline */
 				if (selected) {
+					batch = Batch_get_sphere_wire(1);
+
 					if ((dflag & DRAW_CONSTCOLOR) == 0) {
-						glColor3ubv(ob_wire_col);
+						Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+						Batch_Uniform4f(batch, "color",
+						                ob_wire_col[0]/255.f,
+						                ob_wire_col[1]/255.f,
+						                ob_wire_col[2]/255.f, 1.0f);
 					}
-
+					else {
+						Batch_set_builtin_program(batch, GPU_SHADER_3D_DEPTH_ONLY);
+					}
 					glLineWidth(2.0f);
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-					draw_bundle_sphere();
-
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+					Batch_draw(batch);
 				}
+
+				batch = Batch_get_sphere(0);
 
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
-					if (track->flag & TRACK_CUSTOMCOLOR) glColor3fv(track->color);
-					else UI_ThemeColor(TH_BUNDLE_SOLID);
+					const float light[3] = {0.0f, 0.0f, 1.0f};
+					float col[3];
+					Batch_set_builtin_program(batch, GPU_SHADER_SIMPLE_LIGHTING);
+					Batch_Uniform3fv(batch, "light", light);
+
+					if (track->flag & TRACK_CUSTOMCOLOR) copy_v3_v3(col, track->color);
+					else UI_GetThemeColor3fv(TH_BUNDLE_SOLID, col);
+					Batch_Uniform4f(batch, "color", col[0], col[1], col[2], 1.0f);
+				}
+				else {
+					Batch_set_builtin_program(batch, GPU_SHADER_3D_DEPTH_ONLY);
 				}
 
-				draw_bundle_sphere();
+				Batch_draw(batch);
 			}
 			else {
 				unsigned char color[4];
@@ -3307,8 +3320,10 @@ static void draw_dm_bweights__mapFunc(void *userData, int index, const float co[
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 		const float bweight = BM_ELEM_CD_GET_FLOAT(eve, data->cd_layer_offset);
 		if (bweight != 0.0f) {
-			UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_BEVEL, bweight);
-			glVertex3fv(co);
+			unsigned char col[3];
+			UI_GetThemeColorBlend3ubv(TH_VERTEX, TH_VERTEX_BEVEL, bweight, col);
+			immAttrib3ubv(data->col, col);
+			immVertex3fv(data->pos, co);
 		}
 	}
 }
@@ -3322,11 +3337,21 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 		data.bm = em->bm;
 		data.cd_layer_offset = CustomData_get_offset(&em->bm->vdata, CD_BWEIGHT);
 
+		/* is that ever true? */
 		if (data.cd_layer_offset != -1) {
+			VertexFormat *format = immVertexFormat();
+			data.pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			data.col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
 			glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2.0f);
-			glBegin(GL_POINTS);
+
+			immBeginAtMost(GL_POINTS, dm->getNumVerts(dm));
 			dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, &data, DM_FOREACH_NOP);
-			glEnd();
+			immEnd();
+
+			immUnbindProgram();
 		}
 	}
 	else {
