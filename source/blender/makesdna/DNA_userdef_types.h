@@ -498,7 +498,6 @@ typedef struct UserDef {
 	int prefetchframes;
 	float pad_rot_angle; /* control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use */
 	short frameserverport;
-	short pad4;
 	short obcenter_dia;
 	short rvisize;			/* rotating view icon size */
 	short rvibright;		/* rotating view icon brightness */
@@ -510,6 +509,8 @@ typedef struct UserDef {
 	char  ipo_new;			/* interpolation mode for newly added F-Curves */
 	char  keyhandles_new;	/* handle types for newly added keyframes */
 	char  gpu_select_method;
+	char  gpu_select_pick_deph;
+	char  pad4;
 	char  view_frame_type;
 
 	int view_frame_keyframes; /* number of keyframes to zoom around current frame */

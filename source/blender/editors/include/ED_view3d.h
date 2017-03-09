@@ -307,7 +307,19 @@ bool ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], con
 /* select */
 #define MAXPICKELEMS    2500
 #define MAXPICKBUF      (4 * MAXPICKELEMS)
-short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const struct rcti *input, bool do_nearest);
+
+enum {
+	/* all elements in the region, ignore depth */
+	VIEW3D_SELECT_ALL = 0,
+	/* pick also depth sorts (only for small regions!) */
+	VIEW3D_SELECT_PICK_ALL = 1,
+	/* sorts and only returns visible objects (only for small regions!) */
+	VIEW3D_SELECT_PICK_NEAREST = 2,
+};
+
+int view3d_opengl_select(
+        struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const struct rcti *input,
+        int select_mode);
 
 /* view3d_select.c */
 float ED_view3d_select_dist_px(void);

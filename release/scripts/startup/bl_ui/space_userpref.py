@@ -453,6 +453,7 @@ class USERPREF_PT_system(Panel):
         col.separator()
         col.label(text="Selection")
         col.prop(system, "select_method", text="")
+        col.prop(system, "use_select_pick_depth")
 
         col.separator()
 
