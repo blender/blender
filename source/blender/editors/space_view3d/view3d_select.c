@@ -98,8 +98,6 @@
 
 #include "GPU_draw.h"
 
-#include "GPU_select.h"
-
 #include "view3d_intern.h"  /* own include */
 
 // #include "PIL_time_utildefines.h"
@@ -1216,7 +1214,7 @@ static int mixed_bones_object_selectbuffer(
 	int hits = 0;
 
 	/* we _must_ end cache before return, use 'goto finally' */
-	GPU_select_cache_begin();
+	view3d_opengl_select_cache_begin();
 
 	BLI_rcti_init_pt_radius(&rect, mval, 14);
 	hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
@@ -1260,7 +1258,7 @@ static int mixed_bones_object_selectbuffer(
 	}
 
 finally:
-	GPU_select_cache_end();
+	view3d_opengl_select_cache_end();
 
 	return hits;
 }
