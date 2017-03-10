@@ -98,8 +98,11 @@ typedef struct tPoseSlideOp {
 	int prevFrame;      /* frame before current frame (blend-from) */
 	int nextFrame;      /* frame after current frame (blend-to) */
 	
-	int mode;           /* sliding mode (ePoseSlide_Modes) */
-	int flag;           /* unused for now, but can later get used for storing runtime settings.... */
+	short mode;         /* sliding mode (ePoseSlide_Modes) */
+	short flag;         /* unused for now, but can later get used for storing runtime settings.... */
+	
+	short channels;     /* which transforms/channels are affected (ePoseSlide_Channels) */
+	short axislock;     /* axis-limits for transforms (ePoseSlide_AxisLock) */
 	
 	float percentage;   /* 0-1 value for determining the influence of whatever is relevant */
 	
@@ -112,6 +115,49 @@ typedef enum ePoseSlide_Modes {
 	POSESLIDE_RELAX,            /* soften the pose... */
 	POSESLIDE_BREAKDOWN,        /* slide between the endpoint poses, finding a 'soft' spot */
 } ePoseSlide_Modes;
+
+
+/* Transforms/Channels to Affect */
+typedef enum ePoseSlide_Channels {
+	PS_TFM_ALL = 0,              /* All transforms and properties */
+	
+	PS_TFM_LOC,                  /* Loc/Rot/Scale */
+	PS_TFM_ROT,
+	PS_TFM_SIZE,
+	
+	PS_TFM_BBONE_SHAPE,          /* Bendy Bones */
+	
+	PS_TFM_PROPS                 /* Custom Properties */
+} ePoseSlide_Channels;
+
+/* Property enum for ePoseSlide_Channels */
+static EnumPropertyItem prop_channels_types[] = {
+	{PS_TFM_ALL, "ALL", 0, "All Properties", 
+	 "All properties, including transforms, bendy bone shape, and custom properties"},
+	{PS_TFM_LOC, "LOC", 0, "Location", "Location only"},
+	{PS_TFM_ROT, "ROT", 0, "Rotation", "Rotation only"},
+	{PS_TFM_SIZE, "SIZE", 0, "Scale", "Scale only"},
+	{PS_TFM_BBONE_SHAPE, "BBONE", 0, "Bendy Bone", "Bendy Bone shape properties"},
+	{PS_TFM_PROPS, "CUSTOM", 0, "Custom Properties", "Custom properties"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* Axis Locks */
+typedef enum ePoseSlide_AxisLock {
+	PS_LOCK_X = (1 << 0),
+	PS_LOCK_Y = (1 << 1),
+	PS_LOCK_Z = (1 << 2)
+} ePoseSlide_AxisLock;
+
+/* Property enum for ePoseSlide_AxisLock */
+static EnumPropertyItem prop_axis_lock_types[] = {
+	{0, "FREE", 0, "Free", "All axes are affected"},
+	{PS_LOCK_X, "X", 0, "X", "Only X-axis transforms are affected"},
+	{PS_LOCK_Y, "Y", 0, "Y", "Only Y-axis transforms are affected"},
+	{PS_LOCK_Z, "Z", 0, "Z", "Only Z-axis transforms are affected"},
+	/* TODO: Combinations? */
+	{0, NULL, 0, NULL, NULL}
+};
 
 /* ------------------------------------ */
 
@@ -138,6 +184,10 @@ static int pose_slide_init(bContext *C, wmOperator *op, short mode)
 	pso->percentage = RNA_float_get(op->ptr, "percentage");
 	pso->prevFrame = RNA_int_get(op->ptr, "prev_frame");
 	pso->nextFrame = RNA_int_get(op->ptr, "next_frame");
+	
+	/* get the set of properties/axes that can be operated on */
+	pso->channels = RNA_enum_get(op->ptr, "channels");
+	pso->axislock = RNA_enum_get(op->ptr, "axis_lock");
 	
 	/* check the settings from the context */
 	if (ELEM(NULL, pso->ob, pso->arm, pso->ob->adt, pso->ob->adt->action))
@@ -293,10 +343,20 @@ static void pose_slide_apply_vec3(tPoseSlideOp *pso, tPChanFCurveLink *pfl, floa
 	/* using this path, find each matching F-Curve for the variables we're interested in */
 	while ( (ld = poseAnim_mapping_getNextFCurve(&pfl->fcurves, ld, path)) ) {
 		FCurve *fcu = (FCurve *)ld->data;
-
-		/* just work on these channels one by one... there's no interaction between values */
+		const int idx  = fcu->array_index;
+		const int lock = pso->axislock;
+		
+		/* check if this F-Curve is ok given the current axis locks */
 		BLI_assert(fcu->array_index < 3);
-		pose_slide_apply_val(pso, fcu, &vec[fcu->array_index]);
+		
+		if ((lock == 0) ||
+		    ((lock & PS_LOCK_X) && (idx == 0)) ||
+		    ((lock & PS_LOCK_Y) && (idx == 1)) ||
+		    ((lock & PS_LOCK_Z) && (idx == 2)))
+		{
+			/* just work on these channels one by one... there's no interaction between values */
+			pose_slide_apply_val(pso, fcu, &vec[fcu->array_index]);
+		}
 	}
 	
 	/* free the temp path we got */
@@ -494,17 +554,17 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 		 */
 		bPoseChannel *pchan = pfl->pchan;
 		 
-		if (pchan->flag & POSE_LOC) {
+		if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_LOC) && (pchan->flag & POSE_LOC)) {
 			/* calculate these for the 'location' vector, and use location curves */
 			pose_slide_apply_vec3(pso, pfl, pchan->loc, "location");
 		}
 		
-		if (pchan->flag & POSE_SIZE) {
+		if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_SIZE) && (pchan->flag & POSE_SIZE)) {
 			/* calculate these for the 'scale' vector, and use scale curves */
 			pose_slide_apply_vec3(pso, pfl, pchan->size, "scale");
 		}
 		
-		if (pchan->flag & POSE_ROT) {
+		if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_ROT) && (pchan->flag & POSE_ROT)) {
 			/* everything depends on the rotation mode */
 			if (pchan->rotmode > 0) {
 				/* eulers - so calculate these for the 'eul' vector, and use euler_rotation curves */
@@ -519,12 +579,12 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 			}
 		}
 		
-		if (pchan->flag & POSE_BBONE_SHAPE) {
+		if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_BBONE_SHAPE) && (pchan->flag & POSE_BBONE_SHAPE)) {
 			/* bbone properties - they all start a "bbone_" prefix */
 			pose_slide_apply_props(pso, pfl, "bbone_"); 
 		}
 		
-		if (pfl->oldprops) {
+		if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (pfl->oldprops)) {
 			/* not strictly a transform, but custom properties contribute to the pose produced in many rigs
 			 * (e.g. the facial rigs used in Sintel)
 			 */
@@ -553,9 +613,12 @@ static void pose_slide_reset(tPoseSlideOp *pso)
 /* ------------------------------------ */
 
 /* draw percentage indicator in header */
+// TODO: Include hints about locks here...
 static void pose_slide_draw_status(tPoseSlideOp *pso)
 {
 	char status_str[UI_MAX_DRAW_STR];
+	char limits_str[UI_MAX_DRAW_STR];
+	char axis_str[50];
 	char mode_str[32];
 	
 	switch (pso->mode) {
@@ -575,16 +638,58 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
 			break;
 	}
 	
+	switch (pso->axislock) {
+		case PS_LOCK_X:
+			BLI_strncpy(axis_str, "[X]/Y/Z axis only (X to clear)", sizeof(axis_str));
+			break;
+		case PS_LOCK_Y:
+			BLI_strncpy(axis_str, "X/[Y]/Z axis only (Y to clear)", sizeof(axis_str));
+			break;
+		case PS_LOCK_Z:
+			BLI_strncpy(axis_str, "X/Y/[Z] axis only (Z to clear)", sizeof(axis_str));
+			break;
+			
+		default:
+			if (ELEM(pso->channels, PS_TFM_LOC, PS_TFM_ROT, PS_TFM_SIZE)) {
+				BLI_strncpy(axis_str, "X/Y/Z = Axis Constraint", sizeof(axis_str));
+			}
+			else {
+				axis_str[0] = '\0';
+			}
+			break;
+	}
+	
+	switch (pso->channels) {
+		case PS_TFM_LOC:
+			BLI_snprintf(limits_str, sizeof(limits_str), "[G]/R/S/B/C - Location only (G to clear) | %s", axis_str);
+			break;
+		case PS_TFM_ROT:
+			BLI_snprintf(limits_str, sizeof(limits_str), "G/[R]/S/B/C - Rotation only (R to clear) | %s", axis_str);
+			break;
+		case PS_TFM_SIZE:
+			BLI_snprintf(limits_str, sizeof(limits_str), "G/R/[S]/B/C - Scale only (S to clear) | %s", axis_str);
+			break;
+		case PS_TFM_BBONE_SHAPE:
+			BLI_strncpy(limits_str, "G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s", sizeof(limits_str));
+			break;
+		case PS_TFM_PROPS:
+			BLI_strncpy(limits_str, "G/R/S/B/[C] - Custom Properties only (C to clear) | %s", sizeof(limits_str));
+			break;
+		default:
+			BLI_strncpy(limits_str, "G/R/S/B/C - Limit to Transform/Property Set", sizeof(limits_str));
+			break;
+	}
+	
 	if (hasNumInput(&pso->num)) {
 		Scene *scene = pso->scene;
 		char str_offs[NUM_STR_REP_LEN];
 		
 		outputNumInput(&pso->num, str_offs, &scene->unit);
 		
-		BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_offs);
+		BLI_snprintf(status_str, sizeof(status_str), "%s: %s     |   %s", mode_str, str_offs, limits_str);
 	}
 	else {
-		BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%", mode_str, (int)(pso->percentage * 100.0f));
+		BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%     |   %s", mode_str, (int)(pso->percentage * 100.0f), limits_str);
 	}
 	
 	ED_area_headerprint(pso->sa, status_str);
@@ -675,11 +780,58 @@ static void pose_slide_mouse_update_percentage(tPoseSlideOp *pso, wmOperator *op
 	RNA_float_set(op->ptr, "percentage", pso->percentage);
 }
 
+/* handle an event to toggle channels mode */
+static void pose_slide_toggle_channels_mode(wmOperator *op, tPoseSlideOp *pso, ePoseSlide_Channels channel)
+{
+	/* Turn channel on or off? */
+	if (pso->channels == channel) {
+		/* Already limiting to transform only, so pressing this again turns it off */
+		pso->channels = PS_TFM_ALL;
+	}
+	else {
+		/* Only this set of channels */
+		pso->channels = channel;
+	}
+	RNA_enum_set(op->ptr, "channels", pso->channels);
+	
+	
+	/* Reset axis limits too for good measure */
+	pso->axislock = 0;
+	RNA_enum_set(op->ptr, "axis_lock", pso->axislock);
+}
+
+/* handle an event to toggle axis locks - returns whether any change in state is needed */
+static bool pose_slide_toggle_axis_locks(wmOperator *op, tPoseSlideOp *pso, ePoseSlide_AxisLock axis)
+{
+	/* Axis can only be set when a transform is set - it doesn't make sense otherwise */
+	if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_BBONE_SHAPE, PS_TFM_PROPS)) {
+		pso->axislock = 0;
+		RNA_enum_set(op->ptr, "axis_lock", pso->axislock);
+		return false;
+	}
+	
+	/* Turn on or off? */
+	if (pso->axislock == axis) {
+		/* Already limiting on this axis, so turn off */
+		pso->axislock = 0;
+	}
+	else {
+		/* Only this axis */
+		pso->axislock = axis;
+	}
+	RNA_enum_set(op->ptr, "axis_lock", pso->axislock);
+	
+	/* Setting changed, so pose update is needed */
+	return true;
+}
+
 /* common code for modal() */
 static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tPoseSlideOp *pso = op->customdata;
 	wmWindow *win = CTX_wm_window(C);
+	bool do_pose_update = false;
+	
 	const bool has_numinput = hasNumInput(&pso->num);
 	
 	switch (event->type) {
@@ -718,7 +870,8 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			/* canceled! */
 			return OPERATOR_CANCELLED;
 		}
-			
+		
+		/* Percentage Chane... */
 		case MOUSEMOVE: /* calculate new position */
 		{
 			/* only handle mousemove if not doing numinput */
@@ -726,14 +879,8 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* update percentage based on position of mouse */
 				pose_slide_mouse_update_percentage(pso, op, event);
 				
-				/* update percentage indicator in header */
-				pose_slide_draw_status(pso);
-				
-				/* reset transforms (to avoid accumulation errors) */
-				pose_slide_reset(pso);
-				
-				/* apply... */
-				pose_slide_apply(C, pso);
+				/* update pose to reflect the new values (see below) */
+				do_pose_update = true;
 			}
 			break;
 		}
@@ -751,21 +898,93 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				CLAMP(pso->percentage, 0.0f, 1.0f);
 				RNA_float_set(op->ptr, "percentage", pso->percentage);
 				
-				/* update percentage indicator in header */
-				pose_slide_draw_status(pso);
-				
-				/* reset transforms (to avoid accumulation errors) */
-				pose_slide_reset(pso);
-				
-				/* apply... */
-				pose_slide_apply(C, pso);
+				/* Update pose to reflect the new values (see below) */
+				do_pose_update = true;
 				break;
+			}
+			else if (event->val == KM_PRESS) {
+				switch (event->type) {
+					/* Transform Channel Limits  */
+					/* XXX: Replace these hardcoded hotkeys with a modalmap that can be customised */
+					case GKEY: /* Location */
+					{
+						pose_slide_toggle_channels_mode(op, pso, PS_TFM_LOC);
+						do_pose_update = true;
+						break;
+					}
+					case RKEY: /* Rotation */
+					{
+						pose_slide_toggle_channels_mode(op, pso, PS_TFM_ROT);
+						do_pose_update = true;
+						break;
+					}
+					case SKEY: /* Scale */
+					{
+						pose_slide_toggle_channels_mode(op, pso, PS_TFM_SIZE);
+						do_pose_update = true;
+						break;
+					}
+					case BKEY: /* Bendy Bones */
+					{
+						pose_slide_toggle_channels_mode(op, pso, PS_TFM_BBONE_SHAPE);
+						do_pose_update = true;
+						break;
+					}
+					case CKEY: /* Custom Properties */
+					{
+						pose_slide_toggle_channels_mode(op, pso, PS_TFM_PROPS);
+						do_pose_update = true;
+						break;
+					}
+					
+					
+					/* Axis Locks */
+					/* XXX: Hardcoded... */
+					case XKEY:
+					{
+						if (pose_slide_toggle_axis_locks(op, pso, PS_LOCK_X)) {
+							do_pose_update = true;
+						}
+						break;
+					}
+					case YKEY:
+					{
+						if (pose_slide_toggle_axis_locks(op, pso, PS_LOCK_Y)) {
+							do_pose_update = true;
+						}
+						break;
+					}
+					case ZKEY:
+					{
+						if (pose_slide_toggle_axis_locks(op, pso, PS_LOCK_Z)) {
+							do_pose_update = true;
+						}
+						break;
+					}
+					
+					
+					default: /* Some other unhandled key... */
+						break;
+				}
 			}
 			else {
 				/* unhandled event - maybe it was some view manip? */
 				/* allow to pass through */
 				return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
 			}
+	}
+	
+	
+	/* perform pose updates - in response to some user action (e.g. pressing a key or moving the mouse) */
+	if (do_pose_update) {
+		/* update percentage indicator in header */
+		pose_slide_draw_status(pso);
+		
+		/* reset transforms (to avoid accumulation errors) */
+		pose_slide_reset(pso);
+		
+		/* apply... */
+		pose_slide_apply(C, pso);
 	}
 	
 	/* still running... */
@@ -795,11 +1014,16 @@ static int pose_slide_exec_common(bContext *C, wmOperator *op, tPoseSlideOp *pso
 }
 
 /* common code for defining RNA properties */
+/* TODO: Skip save on these? */
 static void pose_slide_opdef_properties(wmOperatorType *ot)
 {
+	RNA_def_float_percentage(ot->srna, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Weighting factor for which keyframe is favored more", 0.3, 0.7);
+	
 	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, "Previous Keyframe", "Frame number of keyframe immediately before the current frame", 0, 50);
 	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, "Next Keyframe", "Frame number of keyframe immediately after the current frame", 0, 50);
-	RNA_def_float_percentage(ot->srna, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Weighting factor for the sliding operation", 0.3, 0.7);
+	
+	RNA_def_enum(ot->srna, "channels", prop_channels_types, PS_TFM_ALL, "Channels", "Set of properties that are affected");
+	RNA_def_enum(ot->srna, "axis_lock", prop_axis_lock_types, 0, "Axis Lock", "Transform axis to restrict effects to");
 }
 
 /* ------------------------------------ */
