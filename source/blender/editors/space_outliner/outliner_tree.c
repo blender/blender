@@ -1357,6 +1357,30 @@ static bool outliner_layer_collections_reorder_poll(
 	return ELEM(tselem_handle->type, TSE_LAYER_COLLECTION);
 }
 
+static void outliner_add_layer_collections_recursive(
+        SpaceOops *soops, ListBase *tree, ListBase *layer_collections, TreeElement *parent_ten)
+{
+	for (LayerCollection *collection = layer_collections->first; collection; collection = collection->next) {
+		TreeElement *ten = outliner_add_element(soops, tree, collection, parent_ten, TSE_LAYER_COLLECTION, 0);
+
+		ten->name = collection->scene_collection->name;
+		ten->directdata = collection;
+		ten->reinsert = outliner_layer_collections_reorder;
+		ten->reinsert_poll = outliner_layer_collections_reorder_poll;
+
+		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
+			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, ten, 0, 0);
+		}
+		outliner_make_hierarchy(&ten->subtree);
+
+		outliner_add_layer_collections_recursive(soops, &ten->subtree, &collection->layer_collections, ten);
+	}
+}
+static void outliner_add_collections_act_layer(SpaceOops *soops, SceneLayer *layer)
+{
+	outliner_add_layer_collections_recursive(soops, &soops->tree, &layer->layer_collections, NULL);
+}
+
 static void outliner_scene_collections_reorder(
         const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
@@ -1404,34 +1428,6 @@ static bool outliner_scene_collections_reorder_poll(
 	return true;
 }
 
-static void outliner_add_layer_collections_recursive(
-        SpaceOops *soops, ListBase *tree, Scene *scene, ListBase *layer_collections, TreeElement *parent_ten,
-        int *io_collection_counter)
-{
-	for (LayerCollection *collection = layer_collections->first; collection; collection = collection->next) {
-		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_LAYER_COLLECTION,
-		                                        (*io_collection_counter)++);
-
-		ten->name = collection->scene_collection->name;
-		ten->directdata = collection;
-		ten->reinsert = outliner_layer_collections_reorder;
-		ten->reinsert_poll = outliner_layer_collections_reorder_poll;
-
-		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
-			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, ten, 0, 0);
-		}
-		outliner_make_hierarchy(&ten->subtree);
-
-		outliner_add_layer_collections_recursive(soops, &ten->subtree, scene, &collection->layer_collections, ten,
-		                                         io_collection_counter);
-	}
-}
-static void outliner_add_collections_act_layer(SpaceOops *soops, SceneLayer *layer, Scene *scene)
-{
-	int collection_counter = 0;
-	outliner_add_layer_collections_recursive(soops, &soops->tree, scene, &layer->layer_collections, NULL, &collection_counter);
-}
-
 static void outliner_add_scene_collection_init(TreeElement *te, SceneCollection *collection)
 {
 	te->name = collection->name;
@@ -1440,13 +1436,11 @@ static void outliner_add_scene_collection_init(TreeElement *te, SceneCollection 
 	te->reinsert_poll = outliner_scene_collections_reorder_poll;
 }
 
-static void outliner_add_scene_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
-                                                     ListBase *scene_collections, TreeElement *parent_ten,
-                                                     int *io_collection_counter)
+static void outliner_add_scene_collections_recursive(
+        SpaceOops *soops, ListBase *tree, ListBase *scene_collections, TreeElement *parent_ten)
 {
 	for (SceneCollection *collection = scene_collections->first; collection; collection = collection->next) {
-		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_SCENE_COLLECTION,
-		                                        (*io_collection_counter)++);
+		TreeElement *ten = outliner_add_element(soops, tree, collection, parent_ten, TSE_SCENE_COLLECTION, 0);
 
 		outliner_add_scene_collection_init(ten, collection);
 		for (LinkData *link = collection->objects.first; link; link = link->next) {
@@ -1454,20 +1448,16 @@ static void outliner_add_scene_collections_recursive(SpaceOops *soops, ListBase 
 		}
 		outliner_make_hierarchy(&ten->subtree);
 
-		outliner_add_scene_collections_recursive(soops, &ten->subtree, scene, &collection->scene_collections, ten,
-		                                         io_collection_counter);
+		outliner_add_scene_collections_recursive(soops, &ten->subtree, &collection->scene_collections, ten);
 	}
 }
 static void outliner_add_collections_master(SpaceOops *soops, Scene *scene)
 {
 	SceneCollection *master = BKE_collection_master(scene);
-	int collection_counter = 0;
-	TreeElement *ten = outliner_add_element(soops, &soops->tree, scene, NULL, TSE_SCENE_COLLECTION,
-	                                        collection_counter++);
+	TreeElement *ten = outliner_add_element(soops, &soops->tree, master, NULL, TSE_SCENE_COLLECTION, 0);
 
 	outliner_add_scene_collection_init(ten, master);
-	outliner_add_scene_collections_recursive(soops, &ten->subtree, scene, &master->scene_collections, ten,
-	                                         &collection_counter);
+	outliner_add_scene_collections_recursive(soops, &ten->subtree, &master->scene_collections, ten);
 }
 
 /* ======================================================= */
@@ -1924,7 +1914,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		outliner_add_orphaned_datablocks(mainvar, soops);
 	}
 	else if (soops->outlinevis == SO_ACT_LAYER) {
-		outliner_add_collections_act_layer(soops, BKE_scene_layer_context_active(scene), scene);
+		outliner_add_collections_act_layer(soops, BKE_scene_layer_context_active(scene));
 	}
 	else if (soops->outlinevis == SO_COLLECTIONS) {
 		outliner_add_collections_master(soops, scene);
