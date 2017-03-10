@@ -454,7 +454,7 @@ ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals *kg,
 	Transform space1 = bvh_unaligned_node_fetch_space(kg, node_addr, 1);
 
 	float3 aligned_dir0 = transform_direction(&space0, dir),
-	       aligned_dir1 = transform_direction(&space1, dir);;
+	       aligned_dir1 = transform_direction(&space1, dir);
 	float3 aligned_P0 = transform_point(&space0, P),
 	       aligned_P1 = transform_point(&space1, P);
 	float3 nrdir0 = -bvh_inverse_direction(aligned_dir0),
@@ -516,7 +516,7 @@ ccl_device_forceinline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg
 	Transform space1 = bvh_unaligned_node_fetch_space(kg, node_addr, 1);
 
 	float3 aligned_dir0 = transform_direction(&space0, dir),
-	       aligned_dir1 = transform_direction(&space1, dir);;
+	       aligned_dir1 = transform_direction(&space1, dir);
 	float3 aligned_P0 = transform_point(&space0, P),
 	       aligned_P1 = transform_point(&space1, P);
 	float3 nrdir0 = -bvh_inverse_direction(aligned_dir0),
