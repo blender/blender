@@ -227,8 +227,6 @@ static void drawcircle_size(float size, unsigned pos);
 static void draw_empty_sphere(float size, unsigned pos);
 static void draw_empty_cone(float size, unsigned pos);
 
-static void draw_box(const float vec[8][3], bool solid);
-
 static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], const int theme_id, float fac, float r_col[3])
 {
 	float col_wire[3], col_bg[3];
@@ -1361,7 +1359,9 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	}
 	else {
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-		immUniformColor4fv(curcol);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			immUniformColor4fv(curcol);
+		}
 		circrad = 0.0f;
 	}
 
