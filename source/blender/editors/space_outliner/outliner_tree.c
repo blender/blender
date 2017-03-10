@@ -1394,7 +1394,8 @@ static bool outliner_scene_collections_reorder_poll(
 		/* exception: Can't insert before/after master selection, has to be one of its childs */
 		TreeElement *te_master = *io_insert_handle;
 		if (*io_action == TE_INSERT_BEFORE) {
-			*io_insert_handle = te_master->subtree.first;
+			/* can't go higher than master collection, insert into it */
+			*io_action = TE_INSERT_INTO;
 		}
 		else if (*io_action == TE_INSERT_AFTER) {
 			*io_insert_handle = te_master->subtree.last;
