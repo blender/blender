@@ -589,7 +589,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
 
 	/* remove loop dependencies on derived meshes (TODO should this be done elsewhere?)
-	 * This also ensure the object is of type OBJ_MESH avoiding crash in `object_get_derived_final` (see T50899). */
+	 * This also ensure the target is of type OBJ_MESH avoiding crash in `object_get_derived_final` (see T50899). */
 	if (smd->target) {
 		if (smd->target->type != OB_MESH || smd->target == ob) {
 			smd->target = NULL;
