@@ -103,11 +103,12 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	}
 
 	/* set the new frame number */
-	CFRA = (int)frame;
 	if (scene->r.flag & SCER_SHOW_SUBFRAME) {
+		CFRA = (int)frame;
 		SUBFRA = frame - (int)frame;
 	}
 	else {
+		CFRA = iroundf(frame);
 		SUBFRA = 0.0f;
 	}
 	FRAMENUMBER_MIN_CLAMP(CFRA);
@@ -134,15 +135,12 @@ static float frame_from_event(bContext *C, const wmEvent *event)
 {
 	ARegion *region = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
-	float viewx;
 	float frame;
 
 	/* convert from region coordinates to View2D 'tot' space */
-	viewx = UI_view2d_region_to_view_x(&region->v2d, event->mval[0]);
+	frame = UI_view2d_region_to_view_x(&region->v2d, event->mval[0]);
 	
-	/* round result to nearest int (frames are ints!) */
-	frame = viewx;
-	
+	/* respect preview range restrictions (if only allowed to move around within that range) */
 	if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
 		CLAMP(frame, PSFRA, PEFRA);
 	}
