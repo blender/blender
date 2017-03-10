@@ -1306,6 +1306,13 @@ static void outliner_layer_collections_reorder(
 		BLI_assert(0);
 	}
 }
+static bool outliner_layer_collections_reorder_poll(
+        const Scene *UNUSED(scene), const TreeElement *UNUSED(insert_element),
+        TreeElement **io_insert_handle, TreeElementInsertType *UNUSED(io_action))
+{
+	const TreeStoreElem *tselem_handle = TREESTORE(*io_insert_handle);
+	return ELEM(tselem_handle->type, TSE_LAYER_COLLECTION);
+}
 
 static void outliner_scene_collections_reorder(
         const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
@@ -1314,16 +1321,7 @@ static void outliner_scene_collections_reorder(
 	SceneCollection *sc_insert = insert_element->directdata;
 	SceneCollection *sc_handle = insert_handle->directdata;
 
-	if (sc_handle == sc_master) {
-		/* exception: Can't insert before/after master selection, has to be one of its childs */
-		if (action == TE_INSERT_BEFORE) {
-			sc_handle = sc_master->scene_collections.first;
-		}
-		else if (action == TE_INSERT_AFTER) {
-			sc_handle = sc_master->scene_collections.last;
-		}
-	}
-
+	BLI_assert((action == TE_INSERT_INTO) || (sc_handle != sc_master));
 	if (action == TE_INSERT_BEFORE) {
 		BKE_collection_move_above(scene, sc_handle, sc_insert);
 	}
@@ -1337,6 +1335,30 @@ static void outliner_scene_collections_reorder(
 		BLI_assert(0);
 	}
 }
+static bool outliner_scene_collections_reorder_poll(
+        const Scene *scene, const TreeElement *UNUSED(insert_element),
+        TreeElement **io_insert_handle, TreeElementInsertType *io_action)
+{
+	const TreeStoreElem *tselem_handle = TREESTORE(*io_insert_handle);
+	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_handle = (*io_insert_handle)->directdata;
+
+	if (!ELEM(tselem_handle->type, TSE_SCENE_COLLECTION)) {
+		return false;
+	}
+
+	if (sc_handle == sc_master) {
+		/* exception: Can't insert before/after master selection, has to be one of its childs */
+		TreeElement *te_master = *io_insert_handle;
+		if (*io_action == TE_INSERT_BEFORE) {
+			*io_insert_handle = te_master->subtree.first;
+		}
+		else if (*io_action == TE_INSERT_AFTER) {
+			*io_insert_handle = te_master->subtree.last;
+		}
+	}
+	return true;
+}
 
 static void outliner_add_layer_collections_recursive(
         SpaceOops *soops, ListBase *tree, Scene *scene, ListBase *layer_collections, TreeElement *parent_ten,
@@ -1349,6 +1371,7 @@ static void outliner_add_layer_collections_recursive(
 		ten->name = collection->scene_collection->name;
 		ten->directdata = collection;
 		ten->reinsert = outliner_layer_collections_reorder;
+		ten->reinsert_poll = outliner_layer_collections_reorder_poll;
 
 		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
 			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, NULL, 0, 0);
@@ -1370,6 +1393,7 @@ static void outliner_add_scene_collection_init(TreeElement *te, SceneCollection 
 	te->name = collection->name;
 	te->directdata = collection;
 	te->reinsert = outliner_scene_collections_reorder;
+	te->reinsert_poll = outliner_scene_collections_reorder_poll;
 }
 
 static void outliner_add_scene_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,

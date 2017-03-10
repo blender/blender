@@ -1772,7 +1772,7 @@ static void outliner_draw_tree(
 		outliner_draw_tree_element(C, block, fstyle, scene, sl, ar, soops, te, te->drag_data != NULL,
 		                           startx, &starty, te_edit, &te_floating);
 	}
-	if (te_floating) {
+	if (te_floating && te_floating->drag_data->insert_handle) {
 		outliner_draw_tree_element_floating(ar, te_floating);
 	}
 
