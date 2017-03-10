@@ -388,12 +388,55 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 #endif
 }
 
+static void outliner_object_reorder(
+        const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
+{
+	TreeStoreElem *tselem_insert = TREESTORE(insert_element);
+	Object *ob = (Object *)tselem_insert->id;
+	SceneCollection *sc = outliner_scene_collection_from_tree_element(insert_handle);
+	SceneCollection *sc_ob_parent = NULL;
+
+	BLI_assert(action == TE_INSERT_INTO);
+	UNUSED_VARS_NDEBUG(action);
+
+	/* find parent scene-collection of object */
+	if (insert_element->parent) {
+		for (TreeElement *te_ob_parent = insert_element->parent; te_ob_parent; te_ob_parent = te_ob_parent->parent) {
+			if (ELEM(TREESTORE(te_ob_parent)->type, TSE_SCENE_COLLECTION, TSE_LAYER_COLLECTION)) {
+				sc_ob_parent = outliner_scene_collection_from_tree_element(te_ob_parent);
+				break;
+			}
+		}
+	}
+	else {
+		sc_ob_parent = BKE_collection_master(scene);
+	}
+	BKE_collection_object_move(scene, sc, sc_ob_parent, ob);
+}
+static bool outliner_object_reorder_poll(
+        const Scene *UNUSED(scene), const TreeElement *insert_element,
+        TreeElement **io_insert_handle, TreeElementInsertType *io_action)
+{
+	TreeStoreElem *tselem_handle = TREESTORE(*io_insert_handle);
+	if (ELEM(tselem_handle->type, TSE_SCENE_COLLECTION, TSE_LAYER_COLLECTION) &&
+	    (insert_element->parent != *io_insert_handle))
+	{
+		*io_action = TE_INSERT_INTO;
+		return true;
+	}
+
+	return false;
+}
+
 // can be inlined if necessary
 static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, Object *ob)
 {
+	te->reinsert = outliner_object_reorder;
+	te->reinsert_poll = outliner_object_reorder_poll;
+
 	if (outliner_animdata_test(ob->adt))
 		outliner_add_element(soops, &te->subtree, ob, te, TSE_ANIM_DATA, 0);
-	
+
 	outliner_add_element(soops, &te->subtree, ob->poselib, te, 0, 0); // XXX FIXME.. add a special type for this
 	
 	if (ob->proxy && !ID_IS_LINKED_DATABLOCK(ob))
@@ -1374,7 +1417,7 @@ static void outliner_add_layer_collections_recursive(
 		ten->reinsert_poll = outliner_layer_collections_reorder_poll;
 
 		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
-			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, NULL, 0, 0);
+			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, ten, 0, 0);
 		}
 		outliner_make_hierarchy(&ten->subtree);
 
@@ -1406,7 +1449,7 @@ static void outliner_add_scene_collections_recursive(SpaceOops *soops, ListBase 
 
 		outliner_add_scene_collection_init(ten, collection);
 		for (LinkData *link = collection->objects.first; link; link = link->next) {
-			outliner_add_element(soops, &ten->subtree, link->data, NULL, 0, 0);
+			outliner_add_element(soops, &ten->subtree, link->data, ten, 0, 0);
 		}
 		outliner_make_hierarchy(&ten->subtree);
 

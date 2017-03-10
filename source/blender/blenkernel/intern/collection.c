@@ -224,7 +224,7 @@ void BKE_collection_master_free(Scene *scene)
 	collection_free(BKE_collection_master(scene));
 }
 
-static void collection_object_add(Scene *scene, SceneCollection *sc, Object *ob)
+static void collection_object_add(const Scene *scene, SceneCollection *sc, Object *ob)
 {
 	BLI_addtail(&sc->objects, BLI_genericNodeN(ob));
 	id_us_plus((ID *)ob);
@@ -234,7 +234,7 @@ static void collection_object_add(Scene *scene, SceneCollection *sc, Object *ob)
 /**
  * Add object to collection
  */
-void BKE_collection_object_add(Scene *scene, SceneCollection *sc, Object *ob)
+void BKE_collection_object_add(const Scene *scene, SceneCollection *sc, Object *ob)
 {
 	if (BLI_findptr(&sc->objects, ob, offsetof(LinkData, data))) {
 		/* don't add the same object twice */
@@ -259,9 +259,10 @@ void BKE_collection_object_add_from(Scene *scene, Object *ob_src, Object *ob_dst
 }
 
 /**
- * Remove object from collection
+ * Remove object from collection.
+ * \param bmain: Can be NULL if free_us is false.
  */
-void BKE_collection_object_remove(Main *bmain, Scene *scene, SceneCollection *sc, Object *ob, const bool free_us)
+void BKE_collection_object_remove(Main *bmain, const Scene *scene, SceneCollection *sc, Object *ob, const bool free_us)
 {
 
 	LinkData *link = BLI_findptr(&sc->objects, ob, offsetof(LinkData, data));
@@ -287,10 +288,10 @@ void BKE_collection_object_remove(Main *bmain, Scene *scene, SceneCollection *sc
 /**
  * Move object from a collection into another
  */
-void BKE_collection_object_move(Main *bmain, Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src, Object *ob)
+void BKE_collection_object_move(const Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src, Object *ob)
 {
 	BKE_collection_object_add(scene, sc_dst, ob);
-	BKE_collection_object_remove(bmain, scene, sc_src, ob, false);
+	BKE_collection_object_remove(NULL, scene, sc_src, ob, false);
 }
 
 /**

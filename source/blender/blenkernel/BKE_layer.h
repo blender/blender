@@ -101,8 +101,8 @@ bool BKE_scene_has_object(struct Scene *scene, struct Object *ob);
 /* syncing */
 
 void BKE_layer_sync_new_scene_collection(struct Scene *scene, const struct SceneCollection *sc_parent, struct SceneCollection *sc);
-void BKE_layer_sync_object_link(struct Scene *scene, struct SceneCollection *sc, struct Object *ob);
-void BKE_layer_sync_object_unlink(struct Scene *scene, struct SceneCollection *sc, struct Object *ob);
+void BKE_layer_sync_object_link(const struct Scene *scene, struct SceneCollection *sc, struct Object *ob);
+void BKE_layer_sync_object_unlink(const struct Scene *scene, struct SceneCollection *sc, struct Object *ob);
 
 /* override */
 
