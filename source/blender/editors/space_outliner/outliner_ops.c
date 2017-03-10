@@ -30,6 +30,7 @@
 
 #include "BKE_context.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "ED_screen.h"
@@ -91,7 +92,19 @@ static void outliner_item_drag_handle(
 
 			te_dragged->drag_data->insert_handle = insert_handle;
 			if (view_mval[1] < (insert_handle->ys + margin)) {
-				te_dragged->drag_data->insert_type = TE_INSERT_AFTER;
+				if (TSELEM_OPEN(tselem_handle, soops)) {
+					/* inserting after a open item means we insert into it, but as first child */
+					if (BLI_listbase_is_empty(&insert_handle->subtree)) {
+						te_dragged->drag_data->insert_type = TE_INSERT_INTO;
+					}
+					else {
+						te_dragged->drag_data->insert_type = TE_INSERT_BEFORE;
+						te_dragged->drag_data->insert_handle = insert_handle->subtree.first;
+					}
+				}
+				else {
+					te_dragged->drag_data->insert_type = TE_INSERT_AFTER;
+				}
 			}
 			else if (view_mval[1] > (insert_handle->ys + (2 * margin))) {
 				te_dragged->drag_data->insert_type = TE_INSERT_BEFORE;
