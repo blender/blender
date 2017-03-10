@@ -44,6 +44,8 @@
 
 #include "gpu_select_private.h"
 
+#include "BLI_strict_flags.h"
+
 /* #define DEBUG_PRINT */
 
 /* Alloc number for depths */
@@ -85,10 +87,10 @@ static void rect_subregion_stride_calc(const rcti *src, const rcti *dst, SubRect
 	           src->ymax >= dst->ymax && src->ymax >= dst->ymax);
 	BLI_assert(x >= 0 && y >= 0);
 
-	r_sub->start = (src_x * y) + x;
-	r_sub->span = dst_x;
-	r_sub->span_len = dst_y;
-	r_sub->skip = src_x - dst_x;
+	r_sub->start    = (unsigned int)((src_x * y) + x);
+	r_sub->span     = (unsigned int)dst_x;
+	r_sub->span_len = (unsigned int)dst_y;
+	r_sub->skip     = (unsigned int)(src_x - dst_x);
 }
 
 /**
@@ -308,7 +310,7 @@ void gpu_select_pick_begin(
 	ps->buffer = buffer;
 	ps->mode = mode;
 
-	const unsigned int rect_len = BLI_rcti_size_x(input) * BLI_rcti_size_y(input);
+	const unsigned int rect_len = (unsigned int)(BLI_rcti_size_x(input) * BLI_rcti_size_y(input));
 	ps->dst.clip_rect = *input;
 	ps->dst.rect_len = rect_len;
 
@@ -339,8 +341,8 @@ void gpu_select_pick_begin(
 		ps->src.clip_rect = *input;
 		ps->src.rect_len = rect_len;
 
-		ps->gl.clip_readpixels[0] = viewport[0];
-		ps->gl.clip_readpixels[1] = viewport[1];
+		ps->gl.clip_readpixels[0] = (int)viewport[0];
+		ps->gl.clip_readpixels[1] = (int)viewport[1];
 		ps->gl.clip_readpixels[2] = BLI_rcti_size_x(&ps->src.clip_rect);
 		ps->gl.clip_readpixels[3] = BLI_rcti_size_y(&ps->src.clip_rect);
 
@@ -643,7 +645,7 @@ unsigned int gpu_select_pick_end(void)
 	unsigned int hits = 0;
 
 	if (depth_data_len > maxhits) {
-		hits = -1;
+		hits = (unsigned int)-1;
 	}
 	else {
 		/* leave sorting up to the caller */
