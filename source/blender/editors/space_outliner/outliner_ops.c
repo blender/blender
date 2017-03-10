@@ -75,7 +75,7 @@ static void outliner_item_drag_end(TreeElement *dragged_te)
 }
 
 static void outliner_item_drag_get_insert_data(
-        SpaceOops *soops, ARegion *ar, const wmEvent *event, TreeElement *te_dragged,
+        const SpaceOops *soops, ARegion *ar, const wmEvent *event, TreeElement *te_dragged,
         TreeElement **r_te_insert_handle, TreeElementInsertType *r_insert_type)
 {
 	TreeElement *te_hovered;
@@ -109,7 +109,7 @@ static void outliner_item_drag_get_insert_data(
 					*r_insert_type = TE_INSERT_AFTER;
 				}
 			}
-			else if (view_mval[1] > (te_hovered->ys + (2 * margin))) {
+			else if (view_mval[1] > (te_hovered->ys + (3 * margin))) {
 				*r_insert_type = TE_INSERT_BEFORE;
 			}
 			else {
