@@ -1287,55 +1287,60 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 	}
 }
 
-static void outliner_layer_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle,
-                                         TreeElementInsertType action)
+static void outliner_layer_collections_reorder(
+        const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
-	LayerCollection *lc_src = insert_element->directdata;
-	LayerCollection *lc_dst = insert_handle ? insert_handle->directdata : NULL;
+	LayerCollection *lc_insert = insert_element->directdata;
+	LayerCollection *lc_handle = insert_handle->directdata;
 
-	if (action == TE_INSERT_AFTER) {
-		if (lc_dst == NULL) {
-			/* It needs a LayerCollection to use as reference,
-			 * specially now that we are to allow insert in collections
-			 * that don't belong to the same hierarchical level */
-			TODO_LAYER_OPERATORS;
-			/* BKE_layer_collection_move_after(scene, sc_dst, sc_src); */
-		}
-		else {
-			BKE_layer_collection_move_below(scene, lc_dst, lc_src);
-		}
+	if (action == TE_INSERT_BEFORE) {
+		BKE_layer_collection_move_above(scene, lc_handle, lc_insert);
+	}
+	else if (action == TE_INSERT_AFTER) {
+		BKE_layer_collection_move_below(scene, lc_handle, lc_insert);
 	}
 	else if (action == TE_INSERT_INTO) {
-		BKE_layer_collection_move_into(scene, lc_dst, lc_src);
+		BKE_layer_collection_move_into(scene, lc_insert, lc_handle);
+	}
+	else {
+		BLI_assert(0);
 	}
 }
 
-static void outliner_scene_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle,
-                                         TreeElementInsertType action)
+static void outliner_scene_collections_reorder(
+        const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
-	SceneCollection *sc_src = insert_element->directdata;
-	SceneCollection *sc_dst = insert_handle ? insert_handle->directdata : NULL;
+	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_insert = insert_element->directdata;
+	SceneCollection *sc_handle = insert_handle->directdata;
 
-	if (action == TE_INSERT_AFTER) {
-		if (sc_dst == NULL) {
-			/* It needs a SceneCollection to use as reference,
-			 * specially now that we are to allow insert in collections
-			 * that don't belong to the same hierarchical level */
-			TODO_LAYER_OPERATORS;
-			/* BKE_collection_move_after(scene, sc_dst, sc_src); */
+	if (sc_handle == sc_master) {
+		/* exception: Can't insert before/after master selection, has to be one of its childs */
+		if (action == TE_INSERT_BEFORE) {
+			sc_handle = sc_master->scene_collections.first;
 		}
-		else {
-			BKE_collection_move_below(scene, sc_dst, sc_src);
+		else if (action == TE_INSERT_AFTER) {
+			sc_handle = sc_master->scene_collections.last;
 		}
 	}
+
+	if (action == TE_INSERT_BEFORE) {
+		BKE_collection_move_above(scene, sc_handle, sc_insert);
+	}
+	else if (action == TE_INSERT_AFTER) {
+		BKE_collection_move_below(scene, sc_handle, sc_insert);
+	}
 	else if (action == TE_INSERT_INTO) {
-		BKE_collection_move_into(scene, sc_dst, sc_src);
+		BKE_collection_move_into(scene, sc_handle, sc_insert);
+	}
+	else {
+		BLI_assert(0);
 	}
 }
 
-static void outliner_add_layer_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
-                                                     ListBase *layer_collections, TreeElement *parent_ten,
-                                                     int *io_collection_counter)
+static void outliner_add_layer_collections_recursive(
+        SpaceOops *soops, ListBase *tree, Scene *scene, ListBase *layer_collections, TreeElement *parent_ten,
+        int *io_collection_counter)
 {
 	for (LayerCollection *collection = layer_collections->first; collection; collection = collection->next) {
 		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_LAYER_COLLECTION,

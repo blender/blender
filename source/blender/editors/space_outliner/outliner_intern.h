@@ -50,7 +50,7 @@ struct wmKeyConfig;
 
 
 typedef enum TreeElementInsertType {
-	/* no INSERT_BEFORE needed for now */
+	TE_INSERT_BEFORE,
 	TE_INSERT_AFTER,
 	TE_INSERT_INTO,
 } TreeElementInsertType;
@@ -91,7 +91,7 @@ typedef struct TreeElement {
 
 	struct {
 		TreeElementInsertType insert_type;
-		/* the element after which we may insert the dragged one (NULL to insert at top) */
+		/* the element before/after/into which we may insert the dragged one (NULL to insert at top) */
 		struct TreeElement *insert_handle;
 	} *drag_data;
 } TreeElement;
