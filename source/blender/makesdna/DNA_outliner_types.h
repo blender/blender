@@ -38,6 +38,9 @@ struct ID;
 
 typedef struct TreeStoreElem {
 	short type, nr, flag, used;
+
+	/* XXX We actually also store non-ID data in this pointer for identifying
+	 * the TreeStoreElem for a TreeElement when rebuilding the tree. Ugly! */
 	struct ID *id;
 } TreeStoreElem;
 
