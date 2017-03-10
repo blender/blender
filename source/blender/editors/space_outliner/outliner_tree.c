@@ -1290,11 +1290,11 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 static void outliner_layer_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle,
                                          TreeElementInsertType action)
 {
-	LayerCollection *sc_src = insert_element->directdata;
-	LayerCollection *sc_dst = insert_handle ? insert_handle->directdata : NULL;
+	LayerCollection *lc_src = insert_element->directdata;
+	LayerCollection *lc_dst = insert_handle ? insert_handle->directdata : NULL;
 
 	if (action == TE_INSERT_AFTER) {
-		if (sc_dst == NULL) {
+		if (lc_dst == NULL) {
 			/* It needs a LayerCollection to use as reference,
 			 * specially now that we are to allow insert in collections
 			 * that don't belong to the same hierarchical level */
@@ -1302,11 +1302,11 @@ static void outliner_layer_collections_reorder(const Scene *scene, TreeElement *
 			/* BKE_layer_collection_move_after(scene, sc_dst, sc_src); */
 		}
 		else {
-			BKE_layer_collection_move_below(scene, sc_dst, sc_src);
+			BKE_layer_collection_move_below(scene, lc_dst, lc_src);
 		}
 	}
 	else if (action == TE_INSERT_INTO) {
-		BKE_layer_collection_move_into(scene, sc_src, sc_dst);
+		BKE_layer_collection_move_into(scene, lc_dst, lc_src);
 	}
 }
 
