@@ -5120,16 +5120,33 @@ static bool draw_mesh_object_new(Scene *scene, SceneLayer *sl, ARegion *ar, View
 
 /* ************** DRAW DISPLIST ****************** */
 
+static void drawDispListVerts(int dt, const void *data, unsigned int vert_ct, const unsigned char wire_col[3])
+{
+	VertexFormat format = {0};
+	unsigned int pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, vert_ct);
+
+	fillAttrib(vbo, pos_id, data);
+
+	Batch *batch = Batch_create(dt, vbo, NULL);
+	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+	if (wire_col) {
+		Batch_Uniform4f(batch, "color", wire_col[0]/255.0f, wire_col[1]/255.0f, wire_col[2]/255.0f, 1.0f);
+	}
+	Batch_draw(batch);
+	Batch_discard_all(batch);
+}
 
 /**
  * \param dl_type_mask Only draw types matching this mask.
  * \return true when nothing was drawn
  */
-static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask)
+static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask, const unsigned char wire_col[3])
 {
 	if (dlbase == NULL) return true;
 	
-	glEnableClientState(GL_VERTEX_ARRAY);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	for (DispList *dl = dlbase->first; dl; dl = dl->next) {
@@ -5140,64 +5157,55 @@ static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask)
 		if ((dl_type_mask & (1 << dl->type)) == 0) {
 			continue;
 		}
-		
+
 		const float *data = dl->verts;
 		int parts;
 
 		switch (dl->type) {
 			case DL_SEGM:
-
-				glVertexPointer(3, GL_FLOAT, 0, data);
-
 				for (parts = 0; parts < dl->parts; parts++)
-					glDrawArrays(GL_LINE_STRIP, parts * dl->nr, dl->nr);
-				
+					drawDispListVerts(GL_LINE_STRIP, data + (parts * dl->nr * 3), dl->nr, wire_col);
 				break;
+
 			case DL_POLY:
-
-				glVertexPointer(3, GL_FLOAT, 0, data);
-
 				for (parts = 0; parts < dl->parts; parts++)
-					glDrawArrays(GL_LINE_LOOP, parts * dl->nr, dl->nr);
-
+					drawDispListVerts(GL_LINE_LOOP, data + (parts * dl->nr * 3), dl->nr, wire_col);
 				break;
+
 			case DL_SURF:
-
-				glVertexPointer(3, GL_FLOAT, 0, data);
-
 				for (parts = 0; parts < dl->parts; parts++) {
 					if (dl->flag & DL_CYCL_U)
-						glDrawArrays(GL_LINE_LOOP, parts * dl->nr, dl->nr);
+						drawDispListVerts(GL_LINE_LOOP, data + (parts * dl->nr * 3), dl->nr, wire_col);
 					else
-						glDrawArrays(GL_LINE_STRIP, parts * dl->nr, dl->nr);
+						drawDispListVerts(GL_LINE_STRIP, data + (parts * dl->nr * 3), dl->nr, wire_col);
 				}
 
+				float *data_aligned = MEM_mallocN(sizeof(float) * 3 * dl->parts, "aligned data");
 				for (int nr = 0; nr < dl->nr; nr++) {
 					int ofs = 3 * dl->nr;
+					int idx = 0;
 
 					data = (dl->verts) + 3 * nr;
 					parts = dl->parts;
 
-					if (dl->flag & DL_CYCL_V) glBegin(GL_LINE_LOOP);
-					else glBegin(GL_LINE_STRIP);
-
 					while (parts--) {
-						glVertex3fv(data);
+						copy_v3_v3(data_aligned + idx, data);
 						data += ofs;
+						idx += 3;
 					}
-					glEnd();
 
-#if 0
-				/* (ton) this code crashes for me when resolv is 86 or higher... no clue */
-				glVertexPointer(3, GL_FLOAT, sizeof(float) * 3 * dl->nr, data + 3 * nr);
-				if (dl->flag & DL_CYCL_V)
-					glDrawArrays(GL_LINE_LOOP, 0, dl->parts);
-				else
-					glDrawArrays(GL_LINE_STRIP, 0, dl->parts);
-#endif
+					if (dl->flag & DL_CYCL_V)
+						drawDispListVerts(GL_LINE_LOOP, data_aligned, dl->parts, wire_col);
+					else
+						drawDispListVerts(GL_LINE_STRIP, data_aligned, dl->parts, wire_col);
 				}
+
+				if (data_aligned)
+					MEM_freeN(data_aligned);
+
 				break;
 
+#if 0 /* Only needed by Metaballs and mathutils_geometry.c and both need to be recoded somehow */
 			case DL_INDEX3:
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 				glDrawElements(GL_TRIANGLES, 3 * dl->parts, GL_UNSIGNED_INT, dl->index);
@@ -5207,16 +5215,16 @@ static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask)
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 				glDrawElements(GL_QUADS, 4 * dl->parts, GL_UNSIGNED_INT, dl->index);
 				break;
+#endif
 		}
 	}
 	
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	
 	return false;
 }
 
-static bool drawDispListwire(ListBase *dlbase, const short ob_type)
+static bool drawDispListwire(ListBase *dlbase, const short ob_type, const unsigned char wire_col[3])
 {
 	unsigned int dl_mask = 0xffffffff;
 
@@ -5225,7 +5233,7 @@ static bool drawDispListwire(ListBase *dlbase, const short ob_type)
 		dl_mask &= ~((1 << DL_INDEX3) | (1 << DL_INDEX4));
 	}
 
-	return drawDispListwire_ex(dlbase, dl_mask);
+	return drawDispListwire_ex(dlbase, dl_mask, wire_col);
 }
 
 static bool index3_nors_incr = true;
@@ -5423,10 +5431,10 @@ static bool drawDispList_nobackface(Scene *scene, SceneLayer *sl, View3D *v3d, R
 				if (!render_only) {
 					/* when we have faces, only draw loose-wire */
 					if (has_faces) {
-						drawDispListwire_ex(lb, (1 << DL_SEGM));
+						drawDispListwire_ex(lb, (1 << DL_SEGM), ob_wire_col);
 					}
 					else {
-						drawDispListwire(lb, ob->type);
+						drawDispListwire(lb, ob->type, ob_wire_col);
 					}
 				}
 
@@ -5446,14 +5454,14 @@ static bool drawDispList_nobackface(Scene *scene, SceneLayer *sl, View3D *v3d, R
 					}
 					if (cu->editnurb && cu->bevobj == NULL && cu->taperobj == NULL && cu->ext1 == 0.0f && cu->ext2 == 0.0f) {
 						cpack(0);
-						drawDispListwire(lb, ob->type);
+						drawDispListwire(lb, ob->type, ob_wire_col);
 					}
 				}
 				index3_nors_incr = true;
 			}
 			else {
 				if (!render_only || BKE_displist_has_faces(lb)) {
-					return drawDispListwire(lb, ob->type);
+					return drawDispListwire(lb, ob->type, ob_wire_col);
 				}
 			}
 			break;
@@ -5481,7 +5489,7 @@ static bool drawDispList_nobackface(Scene *scene, SceneLayer *sl, View3D *v3d, R
 				}
 			}
 			else {
-				return drawDispListwire(lb, ob->type);
+				return drawDispListwire(lb, ob->type, ob_wire_col);
 			}
 			break;
 		case OB_MBALL:
@@ -5506,7 +5514,7 @@ static bool drawDispList_nobackface(Scene *scene, SceneLayer *sl, View3D *v3d, R
 					}
 				}
 				else {
-					return drawDispListwire(lb, ob->type);
+					return drawDispListwire(lb, ob->type, ob_wire_col);
 				}
 			}
 			break;
@@ -8185,7 +8193,7 @@ static void drawObjectSelect(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion 
 			}
 			else {
 				/* only draw 'solid' parts of the display list as wire. */
-				drawDispListwire_ex(&ob->curve_cache->disp, (DL_INDEX3 | DL_INDEX4 | DL_SURF));
+				drawDispListwire_ex(&ob->curve_cache->disp, (DL_INDEX3 | DL_INDEX4 | DL_SURF), ob_wire_col);
 			}
 		}
 	}
@@ -8193,7 +8201,7 @@ static void drawObjectSelect(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion 
 		if (BKE_mball_is_basis(ob)) {
 			if ((base->flag_legacy & OB_FROMDUPLI) == 0) {
 				glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
-				drawDispListwire(&ob->curve_cache->disp, ob->type);
+				drawDispListwire(&ob->curve_cache->disp, ob->type, ob_wire_col);
 			}
 		}
 	}
@@ -8229,13 +8237,13 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 					drawCurveDMWired(ob);
 				}
 				else {
-					drawDispListwire(&ob->curve_cache->disp, ob->type);
+					drawDispListwire(&ob->curve_cache->disp, ob->type, ob_wire_col);
 				}
 			}
 		}
 		else if (ob->type == OB_MBALL) {
 			if (BKE_mball_is_basis(ob)) {
-				drawDispListwire(&ob->curve_cache->disp, ob->type);
+				drawDispListwire(&ob->curve_cache->disp, ob->type, ob_wire_col);
 			}
 		}
 

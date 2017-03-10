@@ -30,7 +30,7 @@ void Batch_init(Batch* batch, PrimitiveType prim_type, VertexBuffer* verts, Elem
 	{
 #if TRUST_NO_ONE
 	assert(verts != NULL);
-	assert(prim_type == PRIM_POINTS || prim_type == PRIM_LINES || prim_type == PRIM_TRIANGLES);
+	// assert(prim_type == PRIM_POINTS || prim_type == PRIM_LINES || prim_type == PRIM_TRIANGLES);
 	// we will allow other primitive types in a future update
 #endif
 
