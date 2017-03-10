@@ -1300,7 +1300,7 @@ static void outliner_layer_collections_reorder(
 		BKE_layer_collection_move_below(scene, lc_handle, lc_insert);
 	}
 	else if (action == TE_INSERT_INTO) {
-		BKE_layer_collection_move_into(scene, lc_insert, lc_handle);
+		BKE_layer_collection_move_into(scene, lc_handle, lc_insert);
 	}
 	else {
 		BLI_assert(0);
