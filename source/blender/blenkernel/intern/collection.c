@@ -285,6 +285,15 @@ void BKE_collection_object_remove(Main *bmain, Scene *scene, SceneCollection *sc
 }
 
 /**
+ * Move object from a collection into another
+ */
+void BKE_collection_object_move(Main *bmain, Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src, Object *ob)
+{
+	BKE_collection_object_add(scene, sc_dst, ob);
+	BKE_collection_object_remove(bmain, scene, sc_src, ob, false);
+}
+
+/**
  * Remove object from all collections of scene
  */
 void BKE_collections_object_remove(Main *bmain, Scene *scene, Object *ob, const bool free_us)
