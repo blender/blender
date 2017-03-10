@@ -1528,6 +1528,7 @@ static void outliner_draw_tree_element_floating(
 
 	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	int coord_y = te_insert->ys;
+	int coord_x = te_insert->xs;
 	unsigned char col[4];
 
 	if (te_insert == te_floating) {
@@ -1547,7 +1548,7 @@ static void outliner_draw_tree_element_floating(
 		glLineWidth(line_width);
 
 		immBegin(PRIM_LINE_STRIP, 2);
-		immVertex2f(pos, 0, coord_y);
+		immVertex2f(pos, coord_x, coord_y);
 		immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
 		immEnd();
 	}
@@ -1556,8 +1557,8 @@ static void outliner_draw_tree_element_floating(
 		immUniformColor4ub(UNPACK3(col), col[3] * 0.5f);
 
 		immBegin(PRIM_QUADS, 4);
-		immVertex2f(pos, 0, coord_y);
-		immVertex2f(pos, 0, coord_y + UI_UNIT_Y);
+		immVertex2f(pos, coord_x, coord_y);
+		immVertex2f(pos, coord_x, coord_y + UI_UNIT_Y);
 		immVertex2f(pos, ar->v2d.cur.xmax, coord_y + UI_UNIT_Y);
 		immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
 		immEnd();
