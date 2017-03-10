@@ -5139,6 +5139,58 @@ static void drawDispListVerts(int dt, const void *data, unsigned int vert_ct, co
 	Batch_discard_all(batch);
 }
 
+/* convert dispList with elem indices to batch, only support triangles and quads
+ * XXX : This is a huge perf issue. We should cache the resulting batches inside the object instead.
+ *       But new viewport will do it anyway
+ * TODO implement flat drawing */
+static void drawDispListElem(bool quads, bool UNUSED(smooth), const float *data, const float *ndata, unsigned int vert_ct,
+                             const int *elem, unsigned int elem_ct, const unsigned char wire_col[3])
+{
+	VertexFormat format = {0};
+	int i;
+	const int *idx = elem;
+	unsigned int pos_id, nor_id;
+
+	pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	if (ndata) {
+		nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+	}
+
+	ElementListBuilder elb;
+	ElementListBuilder_init(&elb, GL_TRIANGLES, (quads) ? elem_ct * 2 : elem_ct, 0xffffffff);
+
+	if (quads) {
+		for (i = elem_ct; i; --i, idx += 4) {
+			add_triangle_vertices(&elb, idx[0], idx[1], idx[2]);
+			add_triangle_vertices(&elb, idx[0], idx[2], idx[3]);
+		}
+	}
+	else {
+		for (i = elem_ct; i; --i, idx += 3) {
+			add_triangle_vertices(&elb, idx[0], idx[1], idx[2]);
+		}
+	}
+
+	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, vert_ct);
+
+	fillAttrib(vbo, pos_id, data);
+
+	if (ndata) {
+		fillAttrib(vbo, nor_id, ndata);
+	}
+
+	Batch *batch = Batch_create(GL_TRIANGLES, vbo, ElementList_build(&elb));
+	Batch_set_builtin_program(batch, GPU_SHADER_SIMPLE_LIGHTING);
+	if (wire_col) {
+		Batch_Uniform4f(batch, "color", wire_col[0]/255.0f, wire_col[1]/255.0f, wire_col[2]/255.0f, 1.0f);
+	}
+	Batch_Uniform4f(batch, "color", 0.8f, 0.8f, 0.8f, 1.0f);
+	Batch_Uniform3f(batch, "light", 0.0f, 0.0f, 1.0f);
+	Batch_draw(batch);
+	Batch_discard_all(batch);
+}
+
 /**
  * \param dl_type_mask Only draw types matching this mask.
  * \return true when nothing was drawn
@@ -5205,17 +5257,13 @@ static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask, con
 
 				break;
 
-#if 0 /* Only needed by Metaballs and mathutils_geometry.c and both need to be recoded somehow */
 			case DL_INDEX3:
-				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-				glDrawElements(GL_TRIANGLES, 3 * dl->parts, GL_UNSIGNED_INT, dl->index);
+				drawDispListElem(false, true, dl->verts, NULL, dl->nr, dl->index, dl->parts, wire_col);
 				break;
 
 			case DL_INDEX4:
-				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-				glDrawElements(GL_QUADS, 4 * dl->parts, GL_UNSIGNED_INT, dl->index);
+				drawDispListElem(true, true, dl->verts, NULL, dl->nr, dl->index, dl->parts, wire_col);
 				break;
-#endif
 		}
 	}
 	
@@ -5238,14 +5286,12 @@ static bool drawDispListwire(ListBase *dlbase, const short ob_type, const unsign
 
 static bool index3_nors_incr = true;
 
-static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
+static void drawDispListsolid(ListBase *lb, Object *ob, const short UNUSED(dflag),
                               const unsigned char ob_wire_col[4], const bool use_glsl)
 {
 	GPUVertexAttribs gattribs;
 	
 	if (lb == NULL) return;
-
-	glEnableClientState(GL_VERTEX_ARRAY);
 
 	/* track current material, -1 for none (needed for lines) */
 	short col = -1;
@@ -5253,7 +5299,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 	DispList *dl = lb->first;
 	while (dl) {
 		const float *data = dl->verts;
-		const float *ndata = dl->nors;
+		//const float *ndata = dl->nors;
 
 		switch (dl->type) {
 			case DL_SEGM:
@@ -5263,15 +5309,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 						col = -1;
 					}
 
-					if ((dflag & DRAW_CONSTCOLOR) == 0)
-						glColor3ubv(ob_wire_col);
-
-					// glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-					// glDrawArrays(GL_LINE_STRIP, 0, dl->nr);
-					glBegin(GL_LINE_STRIP);
-					for (int nr = dl->nr; nr; nr--, data += 3)
-						glVertex3fv(data);
-					glEnd();
+					drawDispListVerts(GL_LINE_STRIP, data, dl->nr, ob_wire_col);
 				}
 				break;
 			case DL_POLY:
@@ -5281,14 +5319,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 						col = -1;
 					}
 
-					/* for some reason glDrawArrays crashes here in half of the platforms (not osx) */
-					//glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-					//glDrawArrays(GL_LINE_LOOP, 0, dl->nr);
-
-					glBegin(GL_LINE_LOOP);
-					for (int nr = dl->nr; nr; nr--, data += 3)
-						glVertex3fv(data);
-					glEnd();
+					drawDispListVerts(GL_LINE_LOOP, data, dl->nr, ob_wire_col);
 				}
 				break;
 			case DL_SURF:
@@ -5298,15 +5329,8 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 						GPU_object_material_bind(dl->col + 1, use_glsl ? &gattribs : NULL);
 						col = dl->col;
 					}
-					/* FLAT/SMOOTH shading for surfaces */
-					glShadeModel((dl->rt & CU_SMOOTH) ? GL_SMOOTH : GL_FLAT);
 
-					glEnableClientState(GL_NORMAL_ARRAY);
-					glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-					glNormalPointer(GL_FLOAT, 0, dl->nors);
-					glDrawElements(GL_QUADS, 4 * dl->totindex, GL_UNSIGNED_INT, dl->index);
-					glDisableClientState(GL_NORMAL_ARRAY);
-					glShadeModel(GL_SMOOTH);
+					drawDispListElem(true, (dl->rt & CU_SMOOTH), dl->verts, dl->nors, dl->nr * dl->parts, dl->index, dl->totindex, ob_wire_col);
 				}
 				break;
 
@@ -5316,8 +5340,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 					col = dl->col;
 				}
 
-				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-
+#if 0
 				/* for polys only one normal needed */
 				if (index3_nors_incr) {
 					glEnableClientState(GL_NORMAL_ARRAY);
@@ -5325,11 +5348,13 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 				}
 				else
 					glNormal3fv(ndata);
+#endif
+				drawDispListElem(false, (dl->rt & CU_SMOOTH), dl->verts, dl->nors, dl->nr, dl->index, dl->parts, ob_wire_col);
 
-				glDrawElements(GL_TRIANGLES, 3 * dl->parts, GL_UNSIGNED_INT, dl->index);
-
+#if 0
 				if (index3_nors_incr)
 					glDisableClientState(GL_NORMAL_ARRAY);
+#endif
 
 				break;
 
@@ -5339,18 +5364,13 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 					col = dl->col;
 				}
 
-				glEnableClientState(GL_NORMAL_ARRAY);
-				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-				glNormalPointer(GL_FLOAT, 0, dl->nors);
-				glDrawElements(GL_QUADS, 4 * dl->parts, GL_UNSIGNED_INT, dl->index);
-				glDisableClientState(GL_NORMAL_ARRAY);
+				drawDispListElem(true, true, dl->verts, dl->nors, dl->nr, dl->index, dl->parts, ob_wire_col);
 
 				break;
 		}
 		dl = dl->next;
 	}
 
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glFrontFace(GL_CCW);
 
 	if (col != -1) {
@@ -5453,8 +5473,8 @@ static bool drawDispList_nobackface(Scene *scene, SceneLayer *sl, View3D *v3d, R
 						GPU_end_object_materials();
 					}
 					if (cu->editnurb && cu->bevobj == NULL && cu->taperobj == NULL && cu->ext1 == 0.0f && cu->ext2 == 0.0f) {
-						cpack(0);
-						drawDispListwire(lb, ob->type, ob_wire_col);
+						unsigned char col[4] = {0, 0, 0, 0};
+						drawDispListwire(lb, ob->type, col);
 					}
 				}
 				index3_nors_incr = true;

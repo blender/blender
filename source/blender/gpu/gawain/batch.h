@@ -54,6 +54,7 @@ void Batch_Uniform1i(Batch*, const char* name, int value);
 void Batch_Uniform1b(Batch*, const char* name, bool value);
 void Batch_Uniform1f(Batch*, const char* name, float value);
 void Batch_Uniform2f(Batch*, const char* name, float x, float y);
+void Batch_Uniform3f(Batch*, const char* name, float x, float y, float z);
 void Batch_Uniform4f(Batch*, const char* name, float x, float y, float z, float w);
 void Batch_Uniform3fv(Batch*, const char* name, const float data[3]);
 void Batch_Uniform4fv(Batch*, const char* name, const float data[4]);

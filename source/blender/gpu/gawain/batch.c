@@ -166,6 +166,17 @@ void Batch_Uniform2f(Batch* batch, const char* name, float x, float y)
 	glUniform2f(loc, x, y);
 	}
 
+void Batch_Uniform3f(Batch* batch, const char* name, float x, float y, float z)
+	{
+	int loc = glGetUniformLocation(batch->program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform3f(loc, x, y, z);
+	}
+
 void Batch_Uniform4f(Batch* batch, const char* name, float x, float y, float z, float w)
 	{
 	int loc = glGetUniformLocation(batch->program, name);
