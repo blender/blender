@@ -664,7 +664,8 @@ bool BKE_layer_collection_move_above(const Scene *scene, LayerCollection *lc_dst
 	else if (is_directly_linked_dst) {
 		/* Both directly linked to the SceneLayer, just need to swap */
 		if (is_directly_linked_src) {
-			BLI_listbase_swaplinks(&sl->layer_collections, lc_src, lc_dst);
+			BLI_remlink(&sl->layer_collections, lc_src);
+			BLI_insertlinkbefore(&sl->layer_collections, lc_dst, lc_src);
 			return true;
 		}
 		else {
@@ -738,7 +739,8 @@ bool BKE_layer_collection_move_below(const Scene *scene, LayerCollection *lc_dst
 	else if (is_directly_linked_dst) {
 		/* Both directly linked to the SceneLayer, just need to swap */
 		if (is_directly_linked_src) {
-			BLI_listbase_swaplinks(&sl->layer_collections, lc_src, lc_dst);
+			BLI_remlink(&sl->layer_collections, lc_src);
+			BLI_insertlinkafter(&sl->layer_collections, lc_dst, lc_src);
 			return true;
 		}
 		else {
