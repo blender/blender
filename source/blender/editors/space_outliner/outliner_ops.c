@@ -85,14 +85,17 @@ static void outliner_item_drag_get_insert_data(
 	te_hovered = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
 
 	if (te_hovered) {
-		TreeStoreElem *tselem_hovered = TREESTORE(te_hovered);
+		/* mouse hovers an element (ignoring x-axis), now find out how to insert the dragged item exactly */
 
-		if (te_hovered != te_dragged) {
+		if (te_hovered == te_dragged) {
+			*r_te_insert_handle = te_dragged;
+		}
+		else if (te_hovered != te_dragged) {
 			const float margin = UI_UNIT_Y * (1.0f / 4);
 
 			*r_te_insert_handle = te_hovered;
 			if (view_mval[1] < (te_hovered->ys + margin)) {
-				if (TSELEM_OPEN(tselem_hovered, soops)) {
+				if (TSELEM_OPEN(TREESTORE(te_hovered), soops)) {
 					/* inserting after a open item means we insert into it, but as first child */
 					if (BLI_listbase_is_empty(&te_hovered->subtree)) {
 						*r_insert_type = TE_INSERT_INTO;
@@ -113,15 +116,13 @@ static void outliner_item_drag_get_insert_data(
 				*r_insert_type = TE_INSERT_INTO;
 			}
 		}
-		else {
-			*r_te_insert_handle = te_dragged;
-		}
 	}
 	else {
+		/* mouse doesn't hover any item (ignoring x-axis), so it's either above list bounds or below. */
+
 		TreeElement *first = soops->tree.first;
 		TreeElement *last = soops->tree.last;
 
-		/* mouse doesn't hover any item (ignoring x axis), so it's either above list bounds or below. */
 		if (view_mval[1] < last->ys) {
 			*r_te_insert_handle = last;
 			*r_insert_type = TE_INSERT_AFTER;
@@ -144,9 +145,18 @@ static void outliner_item_drag_handle(
 
 	outliner_item_drag_get_insert_data(soops, ar, event, te_dragged, &te_insert_handle, &insert_type);
 
-	if ((te_dragged != te_insert_handle) &&
-	    te_dragged->reinsert_poll &&
-	    !te_dragged->reinsert_poll(scene, te_dragged, &te_insert_handle, &insert_type))
+	if (!te_dragged->reinsert_poll &&
+	    /* there is no reinsert_poll, so we do some generic checks (same types and reinsert callback is available) */
+	    (TREESTORE(te_dragged)->type == TREESTORE(te_insert_handle)->type) &&
+	    te_dragged->reinsert)
+	{
+		/* pass */
+	}
+	else if (te_dragged == te_insert_handle) {
+		/* nothing will happen anyway, no need to do poll check */
+	}
+	else if (!te_dragged->reinsert_poll ||
+	         !te_dragged->reinsert_poll(scene, te_dragged, &te_insert_handle, &insert_type))
 	{
 		te_insert_handle = NULL;
 	}
