@@ -51,6 +51,7 @@
 #include "mesh_intern.h"  /* own include */
 
 #include "tools/bmesh_intersect.h"
+#include "tools/bmesh_separate.h"
 
 
 /* detect isolated holes and fill them */
@@ -196,13 +197,9 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 
 	if (use_separate_cut) {
 		/* detach selected/un-selected faces */
-		BMOperator bmop;
-		EDBM_op_init(em, &bmop, op, "split geom=%hf use_only_faces=%b", BM_ELEM_SELECT, true);
-		BMO_op_exec(em->bm, &bmop);
-		if (!EDBM_op_finish(em, &bmop, op, true)) {
-			/* should never happen! */
-			BKE_report(op->reports, RPT_ERROR, "Error separating");
-		}
+		BM_mesh_separate_faces(
+		        bm,
+		        BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
 	}
 
 	if (has_isect) {
