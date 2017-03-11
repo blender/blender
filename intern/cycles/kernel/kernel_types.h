@@ -1297,20 +1297,19 @@ enum QueueNumber {
 #define RAY_STATE_MASK 0x007
 #define RAY_FLAG_MASK 0x0F8
 enum RayState {
+	RAY_INVALID = 0,
 	/* Denotes ray is actively involved in path-iteration. */
-	RAY_ACTIVE = 0,
+	RAY_ACTIVE,
 	/* Denotes ray has completed processing all samples and is inactive. */
-	RAY_INACTIVE = 1,
+	RAY_INACTIVE,
 	/* Denoted ray has exited path-iteration and needs to update output buffer. */
-	RAY_UPDATE_BUFFER = 2,
+	RAY_UPDATE_BUFFER,
 	/* Donotes ray has hit background */
-	RAY_HIT_BACKGROUND = 3,
+	RAY_HIT_BACKGROUND,
 	/* Denotes ray has to be regenerated */
-	RAY_TO_REGENERATE = 4,
+	RAY_TO_REGENERATE,
 	/* Denotes ray has been regenerated */
-	RAY_REGENERATED = 5,
-	/* Denotes ray should skip direct lighting */
-	RAY_SKIP_DL = 6,
+	RAY_REGENERATED,
 	/* Flag's ray has to execute shadow blocked function in AO part */
 	RAY_SHADOW_RAY_CAST_AO = 16,
 	/* Flag's ray has to execute shadow blocked function in direct lighting part. */

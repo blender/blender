@@ -228,6 +228,14 @@ public:
 	DeviceInfo info;
 	virtual const string& error_message() { return error_msg; }
 	bool have_error() { return !error_message().empty(); }
+	virtual void set_error(const string& error)
+	{
+		if(!have_error()) {
+			error_msg = error;
+		}
+		fprintf(stderr, "%s\n", error.c_str());
+		fflush(stderr);
+	}
 	virtual bool show_samples() const { return false; }
 
 	/* statistics */
