@@ -6586,16 +6586,25 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	glEnable(GL_BLEND);
 	pathcol = MEM_callocN(totkeys * 4 * sizeof(float), "particle path color data");
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-
 	if (pset->brushtype == PE_BRUSH_WEIGHT)
 		glLineWidth(2.0f);
 
 	cache = edit->pathcache;
 	for (i = 0, point = edit->points; i < totpoint; i++, point++) {
+		VertexFormat format = {0};
+		unsigned int pos_id, col_id, col_comp;
+
+		col_comp = ((point->flag & PEP_HIDE) || timed) ? 4 : 3;
+
+		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		col_id = add_attrib(&format, "color", GL_FLOAT, col_comp, KEEP_FLOAT);
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, path->segments + 1);
+
 		path = cache[i];
-		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
+
+		fillAttribStride(vbo, pos_id, sizeof(ParticleCacheKey), path->co);
 
 		if (point->flag & PEP_HIDE) {
 			for (k = 0, pcol = pathcol; k < totkeys; k++, pcol += 4) {
@@ -6603,7 +6612,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 				pcol[3] = 0.25f;
 			}
 
-			glColorPointer(4, GL_FLOAT, 4 * sizeof(float), pathcol);
+			fillAttrib(vbo, col_id, pathcol);
 		}
 		else if (timed) {
 			for (k = 0, pcol = pathcol, pkey = path; k < totkeys; k++, pkey++, pcol += 4) {
@@ -6611,12 +6620,18 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 				pcol[3] = 1.0f - fabsf((float)(CFRA) -pkey->time) / (float)pset->fade_frames;
 			}
 
-			glColorPointer(4, GL_FLOAT, 4 * sizeof(float), pathcol);
+			fillAttrib(vbo, col_id, pathcol);
 		}
-		else
-			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+		else {
+			/* FIXME: shader wants 4 color components but the cache only contains ParticleCacheKey
+			 * So alpha is random */
+			fillAttribStride(vbo, col_id, sizeof(ParticleCacheKey), path->col);
+		}
 
-		glDrawArrays(GL_LINE_STRIP, 0, path->segments + 1);
+		Batch *batch = Batch_create(GL_LINE_STRIP, vbo, NULL);
+		Batch_set_builtin_program(batch, GPU_SHADER_3D_SMOOTH_COLOR);
+		Batch_draw(batch);
+		Batch_discard_all(batch);
 	}
 
 	if (pathcol) { MEM_freeN(pathcol); pathcol = pcol = NULL; }
@@ -6630,6 +6645,11 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 			float *pd = NULL, *pdata = NULL;
 			float *cd = NULL, *cdata = NULL;
 			int totkeys_visible = 0;
+
+			VertexFormat format = {0};
+			unsigned int pos_id, col_id;
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			col_id = add_attrib(&format, "color", GL_FLOAT, (timed ? 4 : 3), KEEP_FLOAT);
 
 			for (i = 0, point = edit->points; i < totpoint; i++, point++)
 				if (!(point->flag & PEP_HIDE))
@@ -6670,14 +6690,20 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 				if (point->flag & PEP_HIDE || point->totkey == 0)
 					continue;
 
+				VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+				VertexBuffer_allocate_data(vbo, point->totkey);
+
 				if (point->keys->flag & PEK_USE_WCO)
-					glVertexPointer(3, GL_FLOAT, sizeof(PTCacheEditKey), point->keys->world_co);
+					fillAttribStride(vbo, pos_id, sizeof(PTCacheEditKey), point->keys->world_co);
 				else
-					glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), pd);
+					fillAttrib(vbo, pos_id, pd);
 
-				glColorPointer((timed ? 4 : 3), GL_FLOAT, (timed ? 4 : 3) * sizeof(float), cd);
+				fillAttrib(vbo, col_id, cd);
 
-				glDrawArrays(GL_POINTS, 0, point->totkey);
+				Batch *batch = Batch_create(GL_POINTS, vbo, NULL);
+				Batch_set_builtin_program(batch, GPU_SHADER_3D_SMOOTH_COLOR);
+				Batch_draw(batch);
+				Batch_discard_all(batch);
 
 				pd += pd ? 3 * point->totkey : 0;
 				cd += (timed ? 4 : 3) * point->totkey;
@@ -6686,23 +6712,30 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 			if (cdata) { MEM_freeN(cdata); cd = cdata = NULL; }
 		}
 		else if (pset->selectmode == SCE_SELECT_END) {
-			glBegin(GL_POINTS);
+			VertexFormat *format = immVertexFormat();
+			unsigned int pos_id = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			unsigned int col_id = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+			immBeginAtMost(GL_POINTS, totpoint);
 			for (i = 0, point = edit->points; i < totpoint; i++, point++) {
 				if ((point->flag & PEP_HIDE) == 0 && point->totkey) {
 					key = point->keys + point->totkey - 1;
-					glColor3fv((key->flag & PEK_SELECT) ? sel_col : nosel_col);
+					if ((key->flag & PEK_SELECT) != 0) {
+						immAttrib4f(col_id, sel_col[0], sel_col[1], sel_col[2], 1.0f);
+					}
+					else {
+						immAttrib4f(col_id, nosel_col[0], nosel_col[1], nosel_col[2], 1.0f);
+					}
 					/* has to be like this.. otherwise selection won't work, have try glArrayElement later..*/
-					glVertex3fv((key->flag & PEK_USE_WCO) ? key->world_co : key->co);
+					immVertex3fv(pos_id, (key->flag & PEK_USE_WCO) ? key->world_co : key->co);
 				}
 			}
-			glEnd();
+			immEnd();
+			immUnbindProgram();
 		}
 	}
 
 	glDisable(GL_BLEND);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
