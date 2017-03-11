@@ -1240,6 +1240,31 @@ static bPoseChannel *dtar_get_pchan_ptr(ChannelDriver *driver, DriverTarget *dta
 	}
 }
 
+static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)
+{
+	short valid_targets = 0;
+
+	DRIVER_TARGETS_USED_LOOPER(dvar)
+	{
+		Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
+
+		/* check if this target has valid data */
+		if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
+			/* invalid target, so will not have enough targets */
+			driver->flag |= DRIVER_FLAG_INVALID;
+			dtar->flag |= DTAR_FLAG_INVALID;
+		}
+		else {
+			/* target seems to be OK now... */
+			dtar->flag &= ~DTAR_FLAG_INVALID;
+			valid_targets++;
+		}
+	}
+	DRIVER_TARGETS_LOOPER_END
+
+	return valid_targets;
+}
+
 /* ......... */
 
 /* evaluate 'single prop' driver variable */
@@ -1252,62 +1277,54 @@ static float dvar_eval_singleProp(ChannelDriver *driver, DriverVar *dvar)
 /* evaluate 'rotation difference' driver variable */
 static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
 {
-	DriverTarget *dtar1 = &dvar->targets[0];
-	DriverTarget *dtar2 = &dvar->targets[1];
-	bPoseChannel *pchan, *pchan2;
-	float q1[4], q2[4], quat[4], angle;
-	
-	/* get pose channels, and check if we've got two */
-	pchan  = dtar_get_pchan_ptr(driver, dtar1);
-	pchan2 = dtar_get_pchan_ptr(driver, dtar2);
-	
-	if (ELEM(NULL, pchan, pchan2)) {
-		/* disable this driver, since it doesn't work correctly... */
-		driver->flag |= DRIVER_FLAG_INVALID;
-		
-		/* check what the error was */
-		if ((pchan == NULL) && (pchan2 == NULL)) {
-			if (G.debug & G_DEBUG) {
-				printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid\n");
-			}
-			
-			dtar1->flag |= DTAR_FLAG_INVALID;
-			dtar2->flag |= DTAR_FLAG_INVALID;
+	short valid_targets = driver_check_valid_targets(driver, dvar);
+
+	/* make sure we have enough valid targets to use - all or nothing for now... */
+	if (driver_check_valid_targets(driver, dvar) != 2) {
+		if (G.debug & G_DEBUG) {
+			printf("RotDiff DVar: not enough valid targets (n = %d) (a = %p, b = %p)\n",
+			        valid_targets, dvar->targets[0].id, dvar->targets[1].id);
 		}
-		else if (pchan == NULL) {
-			if (G.debug & G_DEBUG) {
-				printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel\n");
-			}
-			
-			dtar1->flag |=  DTAR_FLAG_INVALID;
-			dtar2->flag &= ~DTAR_FLAG_INVALID;
-		}
-		else if (pchan2 == NULL) {
-			if (G.debug & G_DEBUG) {
-				printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel\n");
-			}
-			
-			dtar1->flag &= ~DTAR_FLAG_INVALID;
-			dtar2->flag |=  DTAR_FLAG_INVALID;
-		}
-		
-		/* stop here... */
 		return 0.0f;
 	}
-	else {
-		dtar1->flag &= ~DTAR_FLAG_INVALID;
-		dtar2->flag &= ~DTAR_FLAG_INVALID;
+
+	float (*mat[2])[4];
+
+	/* NOTE: for now, these are all just worldspace */
+	for (int i = 0; i < 2; i++) {
+		/* get pointer to loc values to store in */
+		DriverTarget *dtar = &dvar->targets[i];
+		Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
+		bPoseChannel *pchan;
+
+		/* after the checks above, the targets should be valid here... */
+		BLI_assert((ob != NULL) && (GS(ob->id.name) == ID_OB));
+
+		/* try to get posechannel */
+		pchan = BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
+
+		/* check if object or bone */
+		if (pchan) {
+			/* bone */
+			mat[i] = pchan->pose_mat;
+		}
+		else {
+			/* object */
+			mat[i] = ob->obmat;
+		}
 	}
-	
+
+	float q1[4], q2[4], quat[4], angle;
+
 	/* use the final posed locations */
-	mat4_to_quat(q1, pchan->pose_mat);
-	mat4_to_quat(q2, pchan2->pose_mat);
-	
+	mat4_to_quat(q1, mat[0]);
+	mat4_to_quat(q2, mat[1]);
+
 	invert_qt_normalized(q1);
 	mul_qt_qtqt(quat, q1, q2);
 	angle = 2.0f * (saacos(quat[0]));
 	angle = ABS(angle);
-	
+
 	return (angle > (float)M_PI) ? (float)((2.0f * (float)M_PI) - angle) : (float)(angle);
 }
 
@@ -1317,32 +1334,8 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 {
 	float loc1[3] = {0.0f, 0.0f, 0.0f};
 	float loc2[3] = {0.0f, 0.0f, 0.0f};
-	short valid_targets = 0;
-	
-	/* Perform two passes
-	 *
-	 * FIRST PASS - to just check that everything works... 
-	 * NOTE: we use loops here to reduce code duplication, though in practice, 
-	 *       there can only be 2 items or else we run into some problems later
-	 */
-	DRIVER_TARGETS_USED_LOOPER(dvar)
-	{
-		Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
-		
-		/* check if this target has valid data */
-		if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
-			/* invalid target, so will not have enough targets */
-			driver->flag |= DRIVER_FLAG_INVALID;
-			dtar->flag   |= DTAR_FLAG_INVALID;
-		}
-		else {
-			/* target seems to be OK now... */
-			dtar->flag &= ~DTAR_FLAG_INVALID;
-			valid_targets++;
-		}
-	}
-	DRIVER_TARGETS_LOOPER_END
-	
+	short valid_targets = driver_check_valid_targets(driver, dvar);
+
 	/* make sure we have enough valid targets to use - all or nothing for now... */
 	if (valid_targets < dvar->num_targets) {
 		if (G.debug & G_DEBUG) {
@@ -1351,8 +1344,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 		}
 		return 0.0f;
 	}
-	
-	
+
 	/* SECOND PASS: get two location values */
 	/* NOTE: for now, these are all just worldspace */
 	DRIVER_TARGETS_USED_LOOPER(dvar)
@@ -1570,7 +1562,7 @@ static DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
 	BEGIN_DVAR_TYPEDEF(DVAR_TYPE_ROT_DIFF)
 		dvar_eval_rotDiff,     /* eval callback */
 		2,     /* number of targets used */
-		{"Bone 1", "Bone 2"},     /* UI names for targets */
+		{"Object/Bone 1", "Object/Bone 2"},     /* UI names for targets */
 		{DTAR_FLAG_STRUCT_REF | DTAR_FLAG_ID_OB_ONLY, DTAR_FLAG_STRUCT_REF | DTAR_FLAG_ID_OB_ONLY} /* flags */
 	END_DVAR_TYPEDEF,
 	
