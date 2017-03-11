@@ -147,10 +147,10 @@ void draw_motion_paths_cleanup(View3D *v3d);
 void draw_object(Scene *scene, struct SceneLayer *sl, struct ARegion *ar, View3D *v3d, BaseLegacy *base, const short dflag);
 void draw_object_select(Scene *scene, struct SceneLayer *sl, struct ARegion *ar, View3D *v3d, Base *base, const short dflag);
 
-void draw_mesh_object_outline(View3D *v3d, Object *ob, struct DerivedMesh *dm);
+void draw_mesh_object_outline(View3D *v3d, Object *ob, struct DerivedMesh *dm, const unsigned char ob_wire_col[4]);
 
 bool draw_glsl_material(Scene *scene, struct SceneLayer *sl, struct Object *ob, View3D *v3d, const char dt);
-void draw_object_instance(Scene *scene, struct SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline, float wire_col[4]);
+void draw_object_instance(Scene *scene, struct SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline, const float wire_col[4]);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
 
 void draw_object_wire_color(Scene *scene, struct SceneLayer *, Base *base, unsigned char r_ob_wire_col[4]);

@@ -951,7 +951,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 		for (vos = g_v3d_strings[g_v3d_string_level]; vos; vos = vos->next) {
 			if (vos->sco[0] != IS_CLIPPED) {
 				if (col_pack_prev != vos->col.pack) {
-					glColor3ubv(vos->col.ub);
+					//glColor3ubv(vos->col.ub);
 					col_pack_prev = vos->col.pack;
 				}
 
@@ -1870,10 +1870,6 @@ static void draw_viewport_reconstruction(
 
 	/* restore */
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-
-	if ((dflag & DRAW_CONSTCOLOR) == 0) {
-		glColor3ubv(ob_wire_col);
-	}
 
 	if (dflag & DRAW_PICKING)
 		GPU_select_load_id(base->selcol);
@@ -4218,13 +4214,15 @@ static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *UNUSED(ar), View3D 
 
 /* Mesh drawing routines */
 
-void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm) /* LEGACY */
+void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm, const unsigned char ob_wire_col[4]) /* LEGACY */
 {
 	if ((v3d->transp == false) &&  /* not when we draw the transparent pass */
 	    (ob->mode & OB_MODE_ALL_PAINT) == false) /* not when painting (its distracting) - campbell */
 	{
 		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 		glDepthMask(GL_FALSE);
+
+		if (ob_wire_col) glColor4ubv(ob_wire_col);
 
 		/* if transparent, we cannot draw the edges for solid select... edges
 		 * have no material info. GPU_object_material_visible will skip the
@@ -4360,7 +4358,7 @@ static void draw_mesh_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v
 		    !(G.f & G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) &&
 		    (draw_wire == OBDRAW_WIRE_OFF))
 		{
-			draw_mesh_object_outline(v3d, ob, dm);
+			draw_mesh_object_outline(v3d, ob, dm, ob_wire_col);
 		}
 
 		if (draw_glsl_material(scene, sl, ob, v3d, dt) && !(draw_flags & DRAW_MODIFIERS_PREVIEW)) {
@@ -4431,7 +4429,7 @@ static void draw_mesh_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v
 				    (draw_wire == OBDRAW_WIRE_OFF) &&
 				    (ob->sculpt == NULL))
 				{
-					draw_mesh_object_outline(v3d, ob, dm);
+					draw_mesh_object_outline(v3d, ob, dm, ob_wire_col);
 				}
 
 				/* materials arent compatible with vertex colors */
@@ -4455,7 +4453,7 @@ static void draw_mesh_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v
 			    (draw_wire == OBDRAW_WIRE_OFF) &&
 			    (ob->sculpt == NULL))
 			{
-				draw_mesh_object_outline(v3d, ob, dm);
+				draw_mesh_object_outline(v3d, ob, dm, ob_wire_col);
 			}
 
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
@@ -5943,10 +5941,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		copy_v3_v3(ma_col, &ma->r);
 	}
 
-	if ((dflag & DRAW_CONSTCOLOR) == 0) {
-		glColor3ubv(tcol);
-	}
-
 	timestep = psys_get_timestep(&sim);
 
 	if ((ob->flag & OB_FROMGROUP) != 0) {
@@ -6299,7 +6293,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					draw_vertex_array(GL_LINE_STRIP, path->co, path->vel, path->col, sizeof(ParticleCacheKey), path->segments + 1, NULL);
 				}
 				else {
-					float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+					float color[4];
+					rgba_uchar_to_float(color, tcol);
 					draw_vertex_array(GL_LINE_STRIP, path->co, path->vel, NULL, sizeof(ParticleCacheKey), path->segments + 1, color);
 				}
 			}
@@ -7287,7 +7282,7 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 
 static void draw_editnurb(
         Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
-        const char dt, const short dflag, const unsigned char ob_wire_col[4])
+        const char dt, const short dflag, const unsigned char UNUSED(ob_wire_col[4]))
 {
 	ToolSettings *ts = scene->toolsettings;
 	Object *ob = base->object;
@@ -7299,9 +7294,8 @@ static void draw_editnurb(
 
 	/* DispList */
 	UI_GetThemeColor3ubv(TH_WIRE_EDIT, wire_col);
-	glColor3ubv(wire_col);
 
-	drawDispList(scene, sl, v3d, rv3d, base, dt, dflag, ob_wire_col);
+	drawDispList(scene, sl, v3d, rv3d, base, dt, dflag, wire_col);
 
 	/* for shadows only show solid faces */
 	if (v3d->flag2 & V3D_RENDER_SHADOW)
@@ -7754,8 +7748,6 @@ static bool drawmball(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *r
 		if ((G.f & G_PICKSEL) == 0) {
 			unsigned char wire_col[4];
 			UI_GetThemeColor4ubv(TH_WIRE_EDIT, wire_col);
-			glColor3ubv(wire_col);
-
 			drawDispList(scene, sl, v3d, rv3d, base, dt, dflag, wire_col);
 		}
 		ml = mb->editelems->first;
@@ -7779,12 +7771,14 @@ static bool drawmball(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *r
 	normalize_v3(imat[0]);
 	normalize_v3(imat[1]);
 
+#if 0 /* no purpose? */
 	if (mb->editelems == NULL) {
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			glColor3ubv(ob_wire_col);
 		}
 	}
-	
+#endif
+
 	glLineWidth(1.0f);
 
 	const int unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
@@ -8241,7 +8235,7 @@ static void draw_object_selected_outline(
 		if (has_faces && ED_view3d_boundbox_clip(rv3d, ob->bb)) {
 			glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 			if (dm) {
-				draw_mesh_object_outline(v3d, ob, dm);
+				draw_mesh_object_outline(v3d, ob, dm, ob_wire_col);
 			}
 			else {
 				/* only draw 'solid' parts of the display list as wire. */
@@ -8270,13 +8264,8 @@ static void draw_object_selected_outline(
 static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const unsigned char ob_wire_col[4])
 {
 	if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)) {
-
-		if (scene->obedit == ob) {
-			UI_ThemeColor(TH_WIRE_EDIT);
-		}
-		else {
-			glColor3ubv(ob_wire_col);
-		}
+		unsigned char wire_edit_col[4];
+		UI_GetThemeColor4ubv(TH_WIRE_EDIT, wire_edit_col);
 
 		ED_view3d_polygon_offset(rv3d, 1.0);
 		glDepthMask(GL_FALSE);  /* disable write in zbuffer, selected edge wires show better */
@@ -8289,13 +8278,13 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 					drawCurveDMWired(ob);
 				}
 				else {
-					drawDispListwire(&ob->curve_cache->disp, ob->type, ob_wire_col);
+					drawDispListwire(&ob->curve_cache->disp, ob->type, (scene->obedit == ob) ? wire_edit_col : ob_wire_col);
 				}
 			}
 		}
 		else if (ob->type == OB_MBALL) {
 			if (BKE_mball_is_basis(ob)) {
-				drawDispListwire(&ob->curve_cache->disp, ob->type, ob_wire_col);
+				drawDispListwire(&ob->curve_cache->disp, ob->type, (scene->obedit == ob) ? wire_edit_col : ob_wire_col);
 			}
 		}
 
@@ -8647,7 +8636,7 @@ void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *b
 		draw_object_wire_color(scene, sl, base, _ob_wire_col);
 		ob_wire_col = _ob_wire_col;
 
-		glColor3ubv(ob_wire_col);
+		//glColor3ubv(ob_wire_col);
 	}
 
 	/* maximum drawtype */
@@ -8839,8 +8828,7 @@ void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *b
 						glLineWidth(1.0f);
 
 						if (ob_wire_col == NULL) {
-							float fcol[4];
-							glGetFloatv(GL_CURRENT_COLOR, fcol);
+							float fcol[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 							rgba_float_to_uchar(arm_col, fcol);
 						}
 						else
@@ -9511,7 +9499,6 @@ static DMDrawOption bbs_mesh_solid_hide__setDrawOpts(void *userData, int index)
 	Mesh *me = userData;
 
 	if (!(me->mpoly[index].flag & ME_HIDE)) {
-		GPU_select_index_set(index + 1);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
@@ -9536,7 +9523,6 @@ static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
-	glColor3ub(0, 0, 0);
 
 	DM_update_materials(dm, ob);
 
@@ -9554,8 +9540,6 @@ static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	Mesh *me = ob->data;
 	
-	glColor3ub(0, 0, 0);
-
 	DM_update_materials(dm, ob);
 
 	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL))
@@ -9639,7 +9623,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 /* helper function for drawing object instances - meshes */
 static void draw_object_mesh_instance(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d,
-                                      Object *ob, const short dt, int outline)
+                                      Object *ob, const short dt, int outline, const unsigned char ob_wire_col[4])
 {
 	Mesh *me = ob->data;
 	DerivedMesh *dm = NULL, *edm = NULL;
@@ -9654,6 +9638,7 @@ static void draw_object_mesh_instance(Scene *scene, SceneLayer *sl, View3D *v3d,
 	}
 
 	if (dt <= OB_WIRE) {
+		glColor4ubv(ob_wire_col);
 		if (dm)
 			dm->drawEdges(dm, 1, 0);
 		else if (edm)
@@ -9661,7 +9646,7 @@ static void draw_object_mesh_instance(Scene *scene, SceneLayer *sl, View3D *v3d,
 	}
 	else {
 		if (outline)
-			draw_mesh_object_outline(v3d, ob, dm ? dm : edm);
+			draw_mesh_object_outline(v3d, ob, dm ? dm : edm, ob_wire_col);
 
 		if (dm) {
 			bool glsl = draw_glsl_material(scene, sl, ob, v3d, dt);
@@ -9684,24 +9669,24 @@ static void draw_object_mesh_instance(Scene *scene, SceneLayer *sl, View3D *v3d,
 	if (dm) dm->release(dm);
 }
 
-void draw_object_instance(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, Object *ob, const char dt, int outline, float wire_col[4])
+void draw_object_instance(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, Object *ob, const char dt, int outline, const float wire_col[4])
 {
 	if (ob == NULL)
 		return;
 
-	glColor4fv(wire_col);
+	unsigned char bcol[4];
+	rgba_float_to_uchar(bcol, wire_col);
 
 	switch (ob->type) {
 		case OB_MESH:
-			draw_object_mesh_instance(scene, sl, v3d, rv3d, ob, dt, outline);
+			draw_object_mesh_instance(scene, sl, v3d, rv3d, ob, dt, outline, bcol);
 			break;
 		case OB_EMPTY:
 			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-				/* CONSTCOLOR == no wire outline */
-				draw_empty_image(ob, DRAW_CONSTCOLOR, NULL, v3d->multiview_eye);
+				draw_empty_image(ob, 0, bcol, v3d->multiview_eye);
 			}
 			else {
-				drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, NULL); /* TODO: use proper color */
+				drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, bcol);
 			}
 			break;
 	}
