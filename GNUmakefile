@@ -1,4 +1,4 @@
-# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# -*- mode: gnumakefile; tab-width: 4; indent-tabs-mode: t; -*-
 # vim: tabstop=4
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
@@ -113,7 +113,7 @@ CMAKE_CONFIG = cmake $(BUILD_CMAKE_ARGS) \
 # X11 spesific
 ifdef DISPLAY
 	CMAKE_CONFIG_TOOL = cmake-gui
-else 
+else
 	CMAKE_CONFIG_TOOL = ccmake
 endif
 
@@ -127,7 +127,7 @@ all: .FORCE
 #	# if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
 #	# 	$(CMAKE_CONFIG); \
 #	# fi
-	
+
 #	# do this always incase of failed initial build, could be smarter here...
 	@$(CMAKE_CONFIG)
 
