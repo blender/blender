@@ -52,6 +52,7 @@ extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_checker_frag_glsl[];
 extern char datatoc_gpu_shader_diag_stripes_frag_glsl[];
 extern char datatoc_gpu_shader_simple_lighting_frag_glsl[];
+extern char datatoc_gpu_shader_simple_lighting_smooth_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl[];
 extern char datatoc_gpu_shader_2D_vert_glsl[];
@@ -685,6 +686,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                               datatoc_gpu_shader_edges_overlay_frag_glsl,
 		                               datatoc_gpu_shader_edges_overlay_geom_glsl },
 		[GPU_SHADER_SIMPLE_LIGHTING] = { datatoc_gpu_shader_3D_vert_glsl, datatoc_gpu_shader_simple_lighting_frag_glsl },
+		[GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR] = { datatoc_gpu_shader_3D_smooth_color_vert_glsl, datatoc_gpu_shader_simple_lighting_smooth_color_frag_glsl },
 
 		[GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR] = { datatoc_gpu_shader_3D_image_vert_glsl,
 		                                             datatoc_gpu_shader_image_mask_uniform_color_frag_glsl },
