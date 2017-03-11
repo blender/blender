@@ -378,6 +378,10 @@ void BMO_dupe_from_flag(BMesh *bm, int htype, const char hflag)
  * BMOP_DUPE_VOUTPUT: Buffer containing pointers to the split mesh vertices
  * BMOP_DUPE_EOUTPUT: Buffer containing pointers to the split mesh edges
  * BMOP_DUPE_FOUTPUT: Buffer containing pointers to the split mesh faces
+ *
+ * \note Lower level uses of this operator may want to use #BM_mesh_separate_faces
+ * Since it's faster for the 'use_only_faces' case.
+ *
  */
 void bmo_split_exec(BMesh *bm, BMOperator *op)
 {

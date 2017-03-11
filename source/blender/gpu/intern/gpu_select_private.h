@@ -29,6 +29,9 @@
  * Selection implementations.
  */
 
+#ifndef __GPU_SELECT_PRIVATE_H__
+#define __GPU_SELECT_PRIVATE_H__
+
 /* gpu_select_pick */
 void gpu_select_pick_begin(unsigned int (*buffer)[4], unsigned int bufsize, const rcti *input, char mode);
 bool gpu_select_pick_load_id(unsigned int id);
@@ -46,3 +49,5 @@ unsigned int gpu_select_query_end(void);
 
 
 #define SELECT_ID_NONE ((unsigned int)0xffffffff)
+
+#endif  /* __GPU_SELECT_PRIVATE_H__ */

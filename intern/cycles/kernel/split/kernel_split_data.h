@@ -22,11 +22,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline size_t split_data_buffer_size(KernelGlobals *kg, size_t num_elements)
+ccl_device_inline uint64_t split_data_buffer_size(KernelGlobals *kg, size_t num_elements)
 {
 	(void)kg;  /* Unused on CPU. */
 
-	size_t size = 0;
+	uint64_t size = 0;
 #define SPLIT_DATA_ENTRY(type, name, num) + align_up(num_elements * num * sizeof(type), 16)
 	size = size SPLIT_DATA_ENTRIES;
 #undef SPLIT_DATA_ENTRY

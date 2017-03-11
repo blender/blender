@@ -34,14 +34,14 @@ set(SRC
 	DeckLinkAPI.h
 )
 
-if (WIN32)
+if(WIN32)
 	list(APPEND SRC
 		win/DeckLinkAPI_h.h
 		win/DeckLinkAPI_i.c
 	)
 endif()
 
-if (UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE)
 	list(APPEND SRC
 		linux/DeckLinkAPI.h
 		linux/DeckLinkAPIConfiguration.h

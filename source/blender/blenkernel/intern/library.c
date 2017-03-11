@@ -1863,7 +1863,7 @@ void BKE_library_make_local(
 				/* Special case for objects because we don't want proxy pointers to be
 				 * cleared yet. This will happen down the road in this function.
 				 */
-				BKE_object_make_local_ex(bmain, (Object*)id, true, false);
+				BKE_object_make_local_ex(bmain, (Object *)id, true, false);
 			}
 			else {
 				id_make_local(bmain, id, false, true);

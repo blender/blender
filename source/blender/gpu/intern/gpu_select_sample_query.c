@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gpu_select.c
+/** \file blender/gpu/intern/gpu_select_sample_query.c
  *  \ingroup gpu
  *
  * Interface for accessing gpu-related methods for selection. The semantics will be

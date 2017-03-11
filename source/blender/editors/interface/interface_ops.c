@@ -739,6 +739,7 @@ static int editsource_text_edit(
 
 	if (text == NULL) {
 		text = BKE_text_load(bmain, filepath, bmain->name);
+		id_us_ensure_real(&text->id);
 	}
 
 	if (text == NULL) {

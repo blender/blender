@@ -1963,9 +1963,12 @@ void flushTransParticles(TransInfo *t)
 
 /* ********************* mesh ****************** */
 
-static bool bmesh_test_dist_add(BMVert *v, BMVert *v_other,
-                                float *dists, const float *dists_prev,
-                                float mtx[3][3])
+static bool bmesh_test_dist_add(
+        BMVert *v, BMVert *v_other,
+        float *dists, const float *dists_prev,
+        /* optionally track original index */
+        int *index, const int *index_prev,
+        float mtx[3][3])
 {
 	if ((BM_elem_flag_test(v_other, BM_ELEM_SELECT) == 0) &&
 	    (BM_elem_flag_test(v_other, BM_ELEM_HIDDEN) == 0))
@@ -1980,6 +1983,9 @@ static bool bmesh_test_dist_add(BMVert *v, BMVert *v_other,
 		dist_other = dists_prev[i] + len_v3(vec);
 		if (dist_other < dists[i_other]) {
 			dists[i_other] = dist_other;
+			if (index != NULL) {
+				index[i_other] = index_prev[i];
+			}
 			return true;
 		}
 	}
@@ -1987,11 +1993,13 @@ static bool bmesh_test_dist_add(BMVert *v, BMVert *v_other,
 	return false;
 }
 
-static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float *dists)
+/**
+ * \parm mtx: Measure disatnce in this space.
+ * \parm dists: Store the closest connected distance to selected vertices.
+ * \parm index: Optionally store the original index we're measuring the distance to (can be NULL).
+ */
+static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float *dists, int *index)
 {
-	/* need to be very careful of feedback loops here, store previous dist's to avoid feedback */
-	float *dists_prev = MEM_mallocN(bm->totvert * sizeof(float), __func__);
-
 	BLI_LINKSTACK_DECLARE(queue, BMVert *);
 
 	/* any BM_ELEM_TAG'd vertex is in 'queue_next', so we don't add in twice */
@@ -2012,16 +2020,26 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT) == 0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
 				dist = FLT_MAX;
+				if (index != NULL) {
+					index[i] = i;
+				}
 			}
 			else {
 				BLI_LINKSTACK_PUSH(queue, v);
 				dist = 0.0f;
+				if (index != NULL) {
+					index[i] = i;
+				}
 			}
 
-			dists[i] = dists_prev[i] = dist;
+			dists[i] = dist;
 		}
 		bm->elem_index_dirty &= ~BM_VERT;
 	}
+
+	/* need to be very careful of feedback loops here, store previous dist's to avoid feedback */
+	float *dists_prev = MEM_dupallocN(dists);
+	int *index_prev = MEM_dupallocN(index);  /* may be NULL */
 
 	do {
 		BMVert *v;
@@ -2051,7 +2069,7 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 						/* edge distance */
 						{
 							BMVert *v_other = BM_edge_other_vert(e_iter, v);
-							if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+							if (bmesh_test_dist_add(v, v_other, dists, dists_prev, index, index_prev, mtx)) {
 								if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
 									BM_elem_flag_enable(v_other, BM_ELEM_TAG);
 									BLI_LINKSTACK_PUSH(queue_next, v_other);
@@ -2076,7 +2094,7 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 								    (BM_elem_flag_test(l_iter_radial->f, BM_ELEM_HIDDEN) == 0))
 								{
 									BMVert *v_other = l_iter_radial->next->next->v;
-									if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+									if (bmesh_test_dist_add(v, v_other, dists, dists_prev, index, index_prev, mtx)) {
 										if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
 											BM_elem_flag_enable(v_other, BM_ELEM_TAG);
 											BLI_LINKSTACK_PUSH(queue_next, v_other);
@@ -2100,6 +2118,9 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 
 			/* keep in sync, avoid having to do full memcpy each iteration */
 			dists_prev[i] = dists[i];
+			if (index != NULL) {
+				index_prev[i] = index[i];
+			}
 		}
 
 		BLI_LINKSTACK_SWAP(queue, queue_next);
@@ -2113,9 +2134,14 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 	BLI_LINKSTACK_FREE(queue_next);
 
 	MEM_freeN(dists_prev);
+	if (index_prev != NULL) {
+		MEM_freeN(index_prev);
+	}
 }
 
-static struct TransIslandData *editmesh_islands_info_calc(BMEditMesh *em, int *r_island_tot, int **r_island_vert_map)
+static struct TransIslandData *editmesh_islands_info_calc(
+        BMEditMesh *em, int *r_island_tot, int **r_island_vert_map,
+        bool calc_single_islands)
 {
 	BMesh *bm = em->bm;
 	struct TransIslandData *trans_islands;
@@ -2227,6 +2253,42 @@ static struct TransIslandData *editmesh_islands_info_calc(BMEditMesh *em, int *r
 	MEM_freeN(groups_array);
 	MEM_freeN(group_index);
 
+	/* for PET we need islands of 1 so connected vertices can use it with V3D_AROUND_LOCAL_ORIGINS */
+	if (calc_single_islands) {
+		BMIter viter;
+		BMVert *v;
+		int group_tot_single = 0;
+
+		BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT) && (vert_map[i] == -1)) {
+				group_tot_single += 1;
+			}
+		}
+
+		if (group_tot_single != 0) {
+			trans_islands = MEM_reallocN(trans_islands, group_tot + group_tot_single);
+
+			BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
+				if (BM_elem_flag_test(v, BM_ELEM_SELECT) && (vert_map[i] == -1)) {
+					struct TransIslandData *v_island = &trans_islands[group_tot];
+					vert_map[i] = group_tot;
+
+					copy_v3_v3(v_island->co, v->co);
+
+					if (is_zero_v3(v->no) != 0.0f) {
+						axis_dominant_v3_to_m3(v_island->axismtx, v->no);
+						invert_m3(v_island->axismtx);
+					}
+					else {
+						unit_m3(v_island->axismtx);
+					}
+
+					group_tot += 1;
+				}
+			}
+		}
+	}
+
 	*r_island_tot = group_tot;
 	*r_island_vert_map = vert_map;
 
@@ -2326,6 +2388,11 @@ static void createTransEditVerts(TransInfo *t)
 	int island_info_tot;
 	int *island_vert_map = NULL;
 
+	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) && (t->mode != TFM_TRANSLATION);
+	/* Original index of our connected vertex when connected distances are calculated.
+	 * Optional, allocate if needed. */
+	int *dists_index = NULL;
+
 	if (t->flag & T_MIRROR) {
 		EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0, use_topology);
 		mirror = 1;
@@ -2357,8 +2424,12 @@ static void createTransEditVerts(TransInfo *t)
 		t->total = count;
 
 		/* allocating scratch arrays */
-		if (prop_mode & T_PROP_CONNECTED)
-			dists = MEM_mallocN(em->bm->totvert * sizeof(float), "scratch nears");
+		if (prop_mode & T_PROP_CONNECTED) {
+			dists = MEM_mallocN(em->bm->totvert * sizeof(float), __func__);
+			if (is_island_center) {
+				dists_index =  MEM_mallocN(em->bm->totvert * sizeof(int), __func__);
+			}
+		}
 	}
 	else {
 		t->total = bm->totvertsel;
@@ -2380,7 +2451,7 @@ static void createTransEditVerts(TransInfo *t)
 	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	if (prop_mode & T_PROP_CONNECTED) {
-		editmesh_set_connectivity_distance(em->bm, mtx, dists);
+		editmesh_set_connectivity_distance(em->bm, mtx, dists, dists_index);
 	}
 
 	/* Only in case of rotation and resize, we want the elements of the edited
@@ -2388,8 +2459,14 @@ static void createTransEditVerts(TransInfo *t)
 	 *
 	 * TODO: use island_info to detect the closest point when the "Snap Target"
 	 * in Blender UI is "Closest" */
-	if ((t->around == V3D_AROUND_LOCAL_ORIGINS) && (t->mode != TFM_TRANSLATION)) {
-		island_info = editmesh_islands_info_calc(em, &island_info_tot, &island_vert_map);
+	if (is_island_center) {
+		/* In this specific case, near-by vertices will need to know the island of the nearest connected vertex. */
+		const bool calc_single_islands = (
+		        (prop_mode & T_PROP_CONNECTED) &&
+		        (t->around == V3D_AROUND_LOCAL_ORIGINS) &&
+		        (em->selectmode & SCE_SELECT_VERTEX));
+
+		island_info = editmesh_islands_info_calc(em, &island_info_tot, &island_vert_map, calc_single_islands);
 	}
 
 	/* detect CrazySpace [tm] */
@@ -2439,9 +2516,15 @@ static void createTransEditVerts(TransInfo *t)
 	BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				struct TransIslandData *v_island = (island_info && island_vert_map[a] != -1) ?
-				                                   &island_info[island_vert_map[a]] : NULL;
+				struct TransIslandData *v_island = NULL;
 				float *bweight = (cd_vert_bweight_offset != -1) ? BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) : NULL;
+
+				if (island_info) {
+					const int connected_index = (dists_index && dists_index[a] != -1) ? dists_index[a] : a;
+					v_island = (island_vert_map[connected_index] != -1) ?
+					           &island_info[island_vert_map[connected_index]] : NULL;
+				}
+
 
 				VertsToTransData(t, tob, tx, em, eve, bweight, v_island);
 				if (tx)
@@ -2521,6 +2604,8 @@ cleanup:
 		MEM_freeN(defmats);
 	if (dists)
 		MEM_freeN(dists);
+	if (dists_index)
+		MEM_freeN(dists_index);
 
 	if (t->flag & T_MIRROR) {
 		EDBM_verts_mirror_cache_end(em);
@@ -8022,7 +8107,12 @@ void createTransData(bContext *C, TransInfo *t)
 		if (t->data && t->flag & T_PROP_EDIT) {
 			if (ELEM(t->obedit->type, OB_CURVE, OB_MESH)) {
 				sort_trans_data(t); // makes selected become first in array
-				set_prop_dist(t, 0);
+				if ((t->obedit->type == OB_MESH) && (t->flag & T_PROP_CONNECTED)) {
+					/* already calculated by editmesh_set_connectivity_distance */
+				}
+				else {
+					set_prop_dist(t, 0);
+				}
 				sort_trans_data_dist(t);
 			}
 			else {

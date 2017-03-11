@@ -33,7 +33,7 @@ endmacro()
 macro(windows_find_package package_name
 	)
 	if(WITH_WINDOWS_FIND_MODULES)
-		find_package( ${package_name})
+		find_package(${package_name})
 	endif(WITH_WINDOWS_FIND_MODULES)
 endmacro()
 

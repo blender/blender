@@ -152,6 +152,8 @@ set(SRC
 	tools/bmesh_path_region.h
 	tools/bmesh_region_match.c
 	tools/bmesh_region_match.h
+	tools/bmesh_separate.c
+	tools/bmesh_separate.h
 	tools/bmesh_triangulate.c
 	tools/bmesh_triangulate.h
 	tools/bmesh_wireframe.c

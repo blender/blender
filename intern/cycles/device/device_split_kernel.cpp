@@ -105,9 +105,9 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 	return true;
 }
 
-size_t DeviceSplitKernel::max_elements_for_max_buffer_size(device_memory& kg, device_memory& data, size_t max_buffer_size)
+size_t DeviceSplitKernel::max_elements_for_max_buffer_size(device_memory& kg, device_memory& data, uint64_t max_buffer_size)
 {
-	size_t size_per_element = state_buffer_size(kg, data, 1024) / 1024;
+	uint64_t size_per_element = state_buffer_size(kg, data, 1024) / 1024;
 	return max_buffer_size / size_per_element;
 }
 

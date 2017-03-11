@@ -243,9 +243,9 @@ static void rna_Scene_alembic_export(
 	    .use_subdiv_schema = use_subdiv_schema,
 	    .compression_type = compression_type,
 	    .packuv = packuv,
-		.triangulate = triangulate,
-		.quad_method = quad_method,
-		.ngon_method = ngon_method,
+	    .triangulate = triangulate,
+	    .quad_method = quad_method,
+	    .ngon_method = ngon_method,
 
 	    .global_scale = scale,
 	};

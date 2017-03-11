@@ -2781,7 +2781,7 @@ static bAnimChannelType ACF_DSMCLIP =
 	acf_generic_indention_1,         /* indent level */
 	acf_generic_basic_offset,        /* offset */
 
-	acf_generic_idblock_name ,       /* name */
+	acf_generic_idblock_name,        /* name */
 	acf_generic_idfill_name_prop,    /* name prop */
 	acf_dsmclip_icon,                /* icon */
 

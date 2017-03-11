@@ -8159,8 +8159,9 @@ static void drawtexspace(Object *ob, const unsigned char ob_wire_col[3])
 }
 
 /* draws wire outline */
-static void drawObjectSelect(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base,
-                             const unsigned char ob_wire_col[4])
+static void draw_object_selected_outline(
+        Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base,
+        const unsigned char ob_wire_col[4])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Object *ob = base->object;
@@ -8648,7 +8649,7 @@ void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *b
 		if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
 			if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
 				if (!(ob->dtx & OB_DRAWWIRE) && (base->flag & BASE_SELECTED) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
-					drawObjectSelect(scene, sl, v3d, ar, base, ob_wire_col);
+					draw_object_selected_outline(scene, sl, v3d, ar, base, ob_wire_col);
 				}
 			}
 		}

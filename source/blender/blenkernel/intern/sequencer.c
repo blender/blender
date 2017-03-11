@@ -515,7 +515,7 @@ void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make
 			 * artifacts which will then not happen in final render.
 			 */
 			IMB_colormanagement_transform_byte_threaded(
-			        (unsigned char*)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels,
+			        (unsigned char *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels,
 			        from_colorspace, to_colorspace);
 		}
 		else {
@@ -524,7 +524,7 @@ void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make
 			 */
 			imb_addrectfloatImBuf(ibuf);
 			IMB_colormanagement_transform_from_byte_threaded(
-			        ibuf->rect_float, (unsigned char*)ibuf->rect,
+			        ibuf->rect_float, (unsigned char *)ibuf->rect,
 			        ibuf->x, ibuf->y, ibuf->channels,
 			        from_colorspace, to_colorspace);
 			/* We don't need byte buffer anymore. */

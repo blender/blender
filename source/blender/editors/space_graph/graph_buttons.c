@@ -616,30 +616,31 @@ static void graph_panel_driverVar__rotDiff(uiLayout *layout, ID *id, DriverVar *
 	Object *ob2 = (Object *)dtar2->id;
 	PointerRNA dtar_ptr, dtar2_ptr;
 	uiLayout *col;
-	
+
 	/* initialize RNA pointer to the target */
-	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
-	RNA_pointer_create(id, &RNA_DriverTarget, dtar2, &dtar2_ptr); 
-	
-	/* Bone 1 */
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr);
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar2, &dtar2_ptr);
+
+	/* Object 1 */
 	col = uiLayoutColumn(layout, true);
 	uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
-	uiItemR(col, &dtar_ptr, "id", 0, IFACE_("Bone 1"), ICON_NONE);
-	
+	uiItemR(col, &dtar_ptr, "id", 0, IFACE_("Object 1"), ICON_NONE);
+
 	if (dtar->id && GS(dtar->id->name) == ID_OB && ob1->pose) {
 		PointerRNA tar_ptr;
-		
+
 		RNA_pointer_create(dtar->id, &RNA_Pose, ob1->pose, &tar_ptr);
 		uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
-	
+
+	/* Object 2 */
 	col = uiLayoutColumn(layout, true);
 	uiLayoutSetRedAlert(col, (dtar2->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
-	uiItemR(col, &dtar2_ptr, "id", 0, IFACE_("Bone 2"), ICON_NONE);
-		
+	uiItemR(col, &dtar2_ptr, "id", 0, IFACE_("Object 2"), ICON_NONE);
+
 	if (dtar2->id && GS(dtar2->id->name) == ID_OB && ob2->pose) {
 		PointerRNA tar_ptr;
-		
+
 		RNA_pointer_create(dtar2->id, &RNA_Pose, ob2->pose, &tar_ptr);
 		uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
@@ -658,8 +659,8 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 	/* initialize RNA pointer to the target */
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar,  &dtar_ptr); 
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar2, &dtar2_ptr); 
-	
-	/* Bone 1 */
+
+	/* Object 1 */
 	col = uiLayoutColumn(layout, true);
 	uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
 	uiItemR(col, &dtar_ptr, "id", 0, IFACE_("Object 1"), ICON_NONE);
@@ -673,7 +674,8 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 	
 	uiLayoutSetRedAlert(col, false); /* we can clear it again now - it's only needed when creating the ID/Bone fields */
 	uiItemR(col, &dtar_ptr, "transform_space", 0, NULL, ICON_NONE);
-	
+
+	/* Object 2 */
 	col = uiLayoutColumn(layout, true);
 	uiLayoutSetRedAlert(col, (dtar2->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
 	uiItemR(col, &dtar2_ptr, "id", 0, IFACE_("Object 2"), ICON_NONE);

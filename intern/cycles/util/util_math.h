@@ -43,41 +43,41 @@ CCL_NAMESPACE_BEGIN
 
 /* Division */
 #ifndef M_PI_F
-#define M_PI_F		((float)3.14159265358979323846264338327950288) 		/* pi */
+#define M_PI_F    (3.1415926535897932f)  /* pi */
 #endif
 #ifndef M_PI_2_F
-#define M_PI_2_F	((float)1.57079632679489661923132169163975144) 		/* pi/2 */
+#define M_PI_2_F  (1.5707963267948966f)  /* pi/2 */
 #endif
 #ifndef M_PI_4_F
-#define M_PI_4_F	((float)0.785398163397448309615660845819875721) 	/* pi/4 */
+#define M_PI_4_F  (0.7853981633974830f)  /* pi/4 */
 #endif
 #ifndef M_1_PI_F
-#define M_1_PI_F	((float)0.318309886183790671537767526745028724) 	/* 1/pi */
+#define M_1_PI_F  (0.3183098861837067f)  /* 1/pi */
 #endif
 #ifndef M_2_PI_F
-#define M_2_PI_F	((float)0.636619772367581343075535053490057448) 	/* 2/pi */
+#define M_2_PI_F  (0.6366197723675813f)  /* 2/pi */
 #endif
 
 /* Multiplication */
 #ifndef M_2PI_F
-#define M_2PI_F		((float)6.283185307179586476925286766559005768)		/* 2*pi */
+#define M_2PI_F   (6.2831853071795864f)  /* 2*pi */
 #endif
 #ifndef M_4PI_F
-#define M_4PI_F		((float)12.56637061435917295385057353311801153)		/* 4*pi */
+#define M_4PI_F   (12.566370614359172f)  /* 4*pi */
 #endif
 
 /* Float sqrt variations */
 
 #ifndef M_SQRT2_F
-#define M_SQRT2_F	((float)1.41421356237309504880) 					/* sqrt(2) */
+#define M_SQRT2_F (1.4142135623730950f)  /* sqrt(2) */
 #endif
 
 #ifndef M_LN2_F
-#define M_LN2_F      ((float)0.6931471805599453)        /* ln(2) */
+#define M_LN2_F   (0.6931471805599453f)  /* ln(2) */
 #endif
 
 #ifndef M_LN10_F
-#define M_LN10_F     ((float)2.3025850929940457)        /* ln(10) */
+#define M_LN10_F  (2.3025850929940457f)  /* ln(10) */
 #endif
 
 /* Scalar */

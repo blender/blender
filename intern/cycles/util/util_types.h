@@ -106,9 +106,15 @@ typedef unsigned int uint;
 
 #endif
 
-#ifndef __KERNEL_GPU__
-
 /* Fixed Bits Types */
+
+#ifdef __KERNEL_OPENCL__
+
+typedef ulong uint64_t;
+
+#endif
+
+#ifndef __KERNEL_GPU__
 
 #ifdef _WIN32
 
@@ -474,17 +480,17 @@ ccl_device_inline int4 make_int4(const float3& f)
 
 #endif
 
-ccl_device_inline int align_up(int offset, int alignment)
+ccl_device_inline size_t align_up(size_t offset, size_t alignment)
 {
 	return (offset + alignment - 1) & ~(alignment - 1);
 }
 
-ccl_device_inline int round_up(int x, int multiple)
+ccl_device_inline size_t round_up(size_t x, size_t multiple)
 {
 	return ((x + multiple - 1) / multiple) * multiple;
 }
 
-ccl_device_inline int round_down(int x, int multiple)
+ccl_device_inline size_t round_down(size_t x, size_t multiple)
 {
 	return (x / multiple) * multiple;
 }

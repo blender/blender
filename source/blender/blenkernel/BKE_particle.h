@@ -207,7 +207,7 @@ typedef struct ParticleCollisionElement {
 typedef struct ParticleCollision {
 	struct Object *current;
 	struct Object *hit;
-	struct Object *skip[PARTICLE_COLLISION_MAX_COLLISIONS+1];
+	struct Object *skip[PARTICLE_COLLISION_MAX_COLLISIONS + 1];
 	struct Object *emitter;
 
 	struct CollisionModifierData *md; // collision modifier for current object;

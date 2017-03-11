@@ -105,8 +105,8 @@ public:
 	                device_memory& kgbuffer,
 	                device_memory& kernel_data);
 
-	virtual size_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads) = 0;
-	size_t max_elements_for_max_buffer_size(device_memory& kg, device_memory& data, size_t max_buffer_size);
+	virtual uint64_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads) = 0;
+	size_t max_elements_for_max_buffer_size(device_memory& kg, device_memory& data, uint64_t max_buffer_size);
 
 	virtual bool enqueue_split_kernel_data_init(const KernelDimensions& dim,
 	                                            RenderTile& rtile,

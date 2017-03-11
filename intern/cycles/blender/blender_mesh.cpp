@@ -588,8 +588,8 @@ static void attr_create_pointiness(Scene *scene,
 			        sorted_vert_indeices[other_sorted_vert_index];
 			const float3 &other_vert_co = mesh->verts[other_vert_index];
 			/* We are too far away now, we wouldn't have duplicate. */
-			if ((other_vert_co.x + other_vert_co.y + other_vert_co.z) -
-			    (vert_co.x + vert_co.y + vert_co.z) > 3 * FLT_EPSILON)
+			if((other_vert_co.x + other_vert_co.y + other_vert_co.z) -
+			   (vert_co.x + vert_co.y + vert_co.z) > 3 * FLT_EPSILON)
 			{
 				break;
 			}

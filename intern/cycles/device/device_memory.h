@@ -48,7 +48,8 @@ enum DataType {
 	TYPE_UINT,
 	TYPE_INT,
 	TYPE_FLOAT,
-	TYPE_HALF
+	TYPE_HALF,
+	TYPE_UINT64,
 };
 
 static inline size_t datatype_size(DataType datatype) 
@@ -59,6 +60,7 @@ static inline size_t datatype_size(DataType datatype)
 		case TYPE_UINT: return sizeof(uint);
 		case TYPE_INT: return sizeof(int);
 		case TYPE_HALF: return sizeof(half);
+		case TYPE_UINT64: return sizeof(uint64_t);
 		default: return 0;
 	}
 }
@@ -158,6 +160,11 @@ template<> struct device_type_traits<half> {
 template<> struct device_type_traits<half4> {
 	static const DataType data_type = TYPE_HALF;
 	static const int num_elements = 4;
+};
+
+template<> struct device_type_traits<uint64_t> {
+	static const DataType data_type = TYPE_UINT64;
+	static const int num_elements = 1;
 };
 
 /* Device Memory */
