@@ -734,7 +734,7 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 	TaskThreadLocalStorage *tls = get_task_tls(pool, pool->thread_id);
 	TaskScheduler *scheduler = pool->scheduler;
 
-	if (atomic_fetch_and_and_uint8((uint8_t*)&pool->is_suspended, 0)) {
+	if (atomic_fetch_and_and_uint8((uint8_t *)&pool->is_suspended, 0)) {
 		if (pool->num_suspended) {
 			task_pool_num_increase(pool, pool->num_suspended);
 			BLI_mutex_lock(&scheduler->queue_mutex);
@@ -869,7 +869,7 @@ BLI_INLINE bool parallel_range_next_iter_get(
         int * __restrict iter, int * __restrict count)
 {
 	uint32_t uval = atomic_fetch_and_add_uint32((uint32_t *)(&state->iter), state->chunk_size);
-	int previter = *(int32_t*)&uval;
+	int previter = *(int32_t *)&uval;
 
 	*iter = previter;
 	*count = max_ii(0, min_ii(state->chunk_size, state->stop - previter));

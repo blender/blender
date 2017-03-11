@@ -936,9 +936,10 @@ static bool snapEmpty(
 			float tmp_co[3];
 			copy_v3_v3(tmp_co, obmat[3]);
 			if (test_projected_vert_dist(
-				        snapdata->depth_range, snapdata->mval, tmp_co,
-				        snapdata->pmat, snapdata->win_half, is_persp, &dist_px_sq,
-				        r_loc)) {
+			        snapdata->depth_range, snapdata->mval, tmp_co,
+			        snapdata->pmat, snapdata->win_half, is_persp, &dist_px_sq,
+			        r_loc))
+			{
 				*dist_px = sqrtf(dist_px_sq);
 				*ray_depth = depth_get(r_loc, snapdata->ray_start, snapdata->ray_dir);
 				retval = true;
@@ -1119,8 +1120,8 @@ static bool snapDerivedMesh(
 		/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
 		if (ELEM(snapdata->snap_to, SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE)) {
 			float dist_px_sq = dist_squared_to_projected_aabb_simple(
-				    lpmat, snapdata->win_half, ray_min_dist, snapdata->mval,
-				    ray_org_local, ray_normal_local, bb->vec[0], bb->vec[6]);
+			        lpmat, snapdata->win_half, ray_min_dist, snapdata->mval,
+			        ray_org_local, ray_normal_local, bb->vec[0], bb->vec[6]);
 			if (dist_px_sq > SQUARE(*dist_px))
 			{
 				return retval;
@@ -2078,10 +2079,10 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 		for (int i = 0; i < 3; i++) {
 			if (snap_to_flag & (1 << i)) {
 				if (ED_transform_snap_object_project_view3d(
-					sctx,
-					elem_type[i], params,
-					mval, dist_px, &ray_depth,
-					r_co, r_no))
+				        sctx,
+				        elem_type[i], params,
+				        mval, dist_px, &ray_depth,
+				        r_co, r_no))
 				{
 					is_hit = true;
 					break;

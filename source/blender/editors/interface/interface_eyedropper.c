@@ -1082,7 +1082,7 @@ static int depthdropper_poll(bContext *C)
 			return 1;
 		}
 	}
-	else  {
+	else {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		if (rv3d && rv3d->persp == RV3D_CAMOB) {
 			View3D *v3d = CTX_wm_view3d(C);

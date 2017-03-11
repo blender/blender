@@ -161,7 +161,7 @@ const char *gpuErrorString(GLenum err)
 #endif
 
 
-static const char* source_name(GLenum source)
+static const char *source_name(GLenum source)
 {
 	switch (source) {
 		case GL_DEBUG_SOURCE_API: return "API";
@@ -174,7 +174,7 @@ static const char* source_name(GLenum source)
 	}
 }
 
-static const char* message_type_name(GLenum message)
+static const char *message_type_name(GLenum message)
 {
 	switch (message) {
 		case GL_DEBUG_TYPE_ERROR: return "error";
@@ -188,7 +188,7 @@ static const char* message_type_name(GLenum message)
 	}
 }
 
-static const char* category_name_amd(GLenum category)
+static const char *category_name_amd(GLenum category)
 {
 	switch (category) {
 		case GL_DEBUG_CATEGORY_API_ERROR_AMD: return "API error";

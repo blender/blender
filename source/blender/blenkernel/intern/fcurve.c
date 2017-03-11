@@ -1217,6 +1217,7 @@ bool driver_get_variable_property(
 	return true;
 }
 
+#if 0
 /* Helper function to obtain a pointer to a Pose Channel (for evaluating drivers) */
 static bPoseChannel *dtar_get_pchan_ptr(ChannelDriver *driver, DriverTarget *dtar)
 {
@@ -1239,6 +1240,7 @@ static bPoseChannel *dtar_get_pchan_ptr(ChannelDriver *driver, DriverTarget *dta
 		return NULL;
 	}
 }
+#endif
 
 static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)
 {

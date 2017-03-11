@@ -124,9 +124,9 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	    .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
 	    .compression_type = RNA_enum_get(op->ptr, "compression_type"),
 	    .packuv = RNA_boolean_get(op->ptr, "packuv"),
-		.triangulate = RNA_boolean_get(op->ptr, "triangulate"),
-		.quad_method = RNA_enum_get(op->ptr, "quad_method"),
-		.ngon_method = RNA_enum_get(op->ptr, "ngon_method"),
+	    .triangulate = RNA_boolean_get(op->ptr, "triangulate"),
+	    .quad_method = RNA_enum_get(op->ptr, "quad_method"),
+	    .ngon_method = RNA_enum_get(op->ptr, "ngon_method"),
 
 	    .global_scale = RNA_float_get(op->ptr, "global_scale"),
 	};

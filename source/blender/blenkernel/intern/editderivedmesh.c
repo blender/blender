@@ -642,10 +642,10 @@ static void emDM_recalcLoopTri(DerivedMesh *dm)
 		MLoopTri *lt = &mlooptri[i];
 
 		ARRAY_SET_ITEMS(
-				lt->tri,
-				BM_elem_index_get(ltri[0]),
-				BM_elem_index_get(ltri[1]),
-				BM_elem_index_get(ltri[2]));
+		        lt->tri,
+		        BM_elem_index_get(ltri[0]),
+		        BM_elem_index_get(ltri[1]),
+		        BM_elem_index_get(ltri[2]));
 		lt->poly = BM_elem_index_get(ltri[0]->f);
 	}
 }

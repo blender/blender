@@ -2460,8 +2460,7 @@ static void dynamic_paint_find_island_border(
 			const unsigned int *other_loop_idx = mlooptri[lt_index].tri;
 
 			/* Check edges for match, looping in the same order as the outer loop. */
-			for (int j = 0; j < 3; j++)
-			{
+			for (int j = 0; j < 3; j++) {
 				const int overt0 = mloop[other_loop_idx[(j + 0)]].v;
 				const int overt1 = mloop[other_loop_idx[(j + 1) % 3]].v;
 
@@ -2525,8 +2524,7 @@ static void dynamic_paint_find_island_border(
 		int final_pixel[2] = { (int)floorf(tgt_pixel[0] * w), (int)floorf(tgt_pixel[1] * h) };
 
 		/* If current pixel uv is outside of texture	*/
-		if (final_pixel[0] < 0 || final_pixel[0] >= w || final_pixel[1] < 0 || final_pixel[1] >= h)
-		{
+		if (final_pixel[0] < 0 || final_pixel[0] >= w || final_pixel[1] < 0 || final_pixel[1] >= h) {
 			if (bdata->best_index == NOT_FOUND)
 				bdata->best_index = OUT_OF_TEXTURE;
 

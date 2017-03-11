@@ -737,7 +737,7 @@ static void add_streamline(float (*verts)[3], float(*colors)[3], float center[3]
 	copy_v3_v3(verts[(*offset)++], center);
 }
 
-typedef void (*vector_draw_func)(float(*)[3], float(*)[3], float*, float*, float, float, int*);
+typedef void (*vector_draw_func)(float(*)[3], float(*)[3], float *, float *, float, float, int *);
 #endif  /* WITH_SMOKE */
 
 void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
