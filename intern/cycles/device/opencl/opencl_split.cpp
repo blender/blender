@@ -227,9 +227,9 @@ public:
 		return kernel;
 	}
 
-	virtual size_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads)
+	virtual uint64_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads)
 	{
-		device_vector<uint> size_buffer;
+		device_vector<uint64_t> size_buffer;
 		size_buffer.resize(1);
 		device->mem_alloc(NULL, size_buffer, MEM_READ_WRITE);
 
@@ -249,7 +249,7 @@ public:
 
 		device->opencl_assert_err(device->ciErr, "clEnqueueNDRangeKernel");
 
-		device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint));
+		device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint64_t));
 		device->mem_free(size_buffer);
 
 		if(device->ciErr != CL_SUCCESS) {
@@ -346,8 +346,8 @@ public:
 
 	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask */*task*/)
 	{
-		size_t max_buffer_size;
-		clGetDeviceInfo(device->cdDevice, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &max_buffer_size, NULL);
+		cl_ulong max_buffer_size;
+		clGetDeviceInfo(device->cdDevice, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &max_buffer_size, NULL);
 		VLOG(1) << "Maximum device allocation side: "
 		        << string_human_readable_number(max_buffer_size) << " bytes. ("
 		        << string_human_readable_size(max_buffer_size) << ").";

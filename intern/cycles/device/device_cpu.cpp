@@ -72,7 +72,7 @@ public:
 	virtual SplitKernelFunction* get_split_kernel_function(string kernel_name, const DeviceRequestedFeatures&);
 	virtual int2 split_kernel_local_size();
 	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask *task);
-	virtual size_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads);
+	virtual uint64_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads);
 };
 
 class CPUDevice : public Device
@@ -860,7 +860,7 @@ int2 CPUSplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memo
 	return task->requested_tile_size;
 }
 
-size_t CPUSplitKernel::state_buffer_size(device_memory& kernel_globals, device_memory& /*data*/, size_t num_threads) {
+uint64_t CPUSplitKernel::state_buffer_size(device_memory& kernel_globals, device_memory& /*data*/, size_t num_threads) {
 	KernelGlobals *kg = (KernelGlobals*)kernel_globals.device_pointer;
 
 	return split_data_buffer_size(kg, num_threads);

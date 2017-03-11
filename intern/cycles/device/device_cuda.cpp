@@ -89,7 +89,7 @@ class CUDASplitKernel : public DeviceSplitKernel {
 public:
 	explicit CUDASplitKernel(CUDADevice *device);
 
-	virtual size_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads);
+	virtual uint64_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads);
 
 	virtual bool enqueue_split_kernel_data_init(const KernelDimensions& dim,
 	                                            RenderTile& rtile,
@@ -1473,9 +1473,9 @@ CUDASplitKernel::CUDASplitKernel(CUDADevice *device) : DeviceSplitKernel(device)
 {
 }
 
-size_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory& /*data*/, size_t num_threads)
+uint64_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory& /*data*/, size_t num_threads)
 {
-	device_vector<uint> size_buffer;
+	device_vector<uint64_t> size_buffer;
 	size_buffer.resize(1);
 	device->mem_alloc(NULL, size_buffer, MEM_READ_WRITE);
 
@@ -1504,7 +1504,7 @@ size_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory& 
 
 	device->cuda_pop_context();
 
-	device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint));
+	device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint64_t));
 	device->mem_free(size_buffer);
 
 	return *size_buffer.get_data();
