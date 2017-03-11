@@ -49,10 +49,10 @@ void BM_mesh_separate_faces(
 	 * - Create an array of faces based on 'filter_fn'.
 	 *   First part of array for match, for non-match.
 	 *
-	 * - Clear all vertex tags, then tag all vertices from 'faces_b'.
+	 * - Enable all vertex tags, then clear all tagged vertices from 'faces_b'.
 	 *
 	 * - Loop over 'faces_a', checking each vertex,
-	 *   splitting out any which are tagged (and therefor shared).
+	 *   splitting out any which aren't tagged (and therefor shared), disabling tags as we go.
 	 */
 
 	BMFace *f;
@@ -95,8 +95,8 @@ void BM_mesh_separate_faces(
 		do {
 			if (!BM_elem_flag_test(l_iter->v, BM_ELEM_TAG)) {
 				BMVert *v = l_iter->v;
-				/* Disable, since we may visit this vertex again on other faces */
-				BM_elem_flag_disable(v, BM_ELEM_TAG);
+				/* Enable, since we may visit this vertex again on other faces */
+				BM_elem_flag_enable(v, BM_ELEM_TAG);
 
 				/* We know the vertex is shared, collect all vertices and split them off. */
 
@@ -105,15 +105,17 @@ void BM_mesh_separate_faces(
 					BMEdge *e_first, *e_iter;
 					e_iter = e_first = l_iter->e;
 					do {
-						BMLoop *l_radial_first, *l_radial_iter;
-						l_radial_first = l_radial_iter = e_iter->l;
-						do {
-							if (l_radial_iter->v == v) {
-								if (filter_fn(l_radial_iter->f, user_data)) {
-									BLI_buffer_append(&loop_split, BMLoop *, l_radial_iter);
+						if (e_iter->l != NULL) {
+							BMLoop *l_radial_first, *l_radial_iter;
+							l_radial_first = l_radial_iter = e_iter->l;
+							do {
+								if (l_radial_iter->v == v) {
+									if (filter_fn(l_radial_iter->f, user_data)) {
+										BLI_buffer_append(&loop_split, BMLoop *, l_radial_iter);
+									}
 								}
-							}
-						} while ((l_radial_iter = l_radial_iter->radial_next) != l_radial_first);
+							} while ((l_radial_iter = l_radial_iter->radial_next) != l_radial_first);
+						}
 					} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
 				}
 
