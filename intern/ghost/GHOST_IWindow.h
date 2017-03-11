@@ -332,6 +332,12 @@ public:
 
 	virtual float getNativePixelSize(void) = 0;
 
+	/**
+	 * Returns the recommended DPI for this window.
+	 * \return The recommended DPI for this window.
+	 */
+	virtual GHOST_TUns16 getDPIHint() = 0;
+
 #ifdef WITH_INPUT_IME
 	/**
 	 * Enable IME attached to the given window, i.e. allows user-input

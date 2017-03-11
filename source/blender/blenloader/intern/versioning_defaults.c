@@ -68,6 +68,10 @@ void BLO_update_defaults_userpref_blend(void)
 	 * but take care since some hardware has driver bugs here (T46962).
 	 * Further hardware workarounds should be made in gpu_extensions.c */
 	U.glalphaclip = (1.0f / 255);
+
+	/* default so DPI is detected automatically */
+	U.dpi = 0;
+	U.ui_scale = 1.0f;
 }
 
 /**

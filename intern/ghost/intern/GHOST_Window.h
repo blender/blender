@@ -295,6 +295,15 @@ public:
 		return 1.0f;
 	}
 
+	/**
+	* Returns the recommended DPI for this window.
+	* \return The recommended DPI for this window.
+	*/
+	virtual inline GHOST_TUns16 getDPIHint()
+	{
+		return 96;
+	}
+
 #ifdef WITH_INPUT_IME
 	virtual void beginIME(GHOST_TInt32 x,
 	                      GHOST_TInt32 y,

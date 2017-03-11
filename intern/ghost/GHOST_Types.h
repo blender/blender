@@ -189,6 +189,7 @@ typedef enum {
 	GHOST_kEventWindowUpdate,
 	GHOST_kEventWindowSize,
 	GHOST_kEventWindowMove,
+	GHOST_kEventWindowDPIHintChanged,
 	
 	GHOST_kEventDraggingEntered,
 	GHOST_kEventDraggingUpdated,

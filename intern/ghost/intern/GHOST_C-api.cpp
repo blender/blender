@@ -914,6 +914,12 @@ float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle)
 	return 1.0f;
 }
 
+GHOST_TUns16 GHOST_GetDPIHint(GHOST_WindowHandle windowhandle)
+{
+	GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+	return window->getDPIHint();
+}
+
 #ifdef WITH_INPUT_IME
 
 void GHOST_BeginIME(GHOST_WindowHandle windowhandle,

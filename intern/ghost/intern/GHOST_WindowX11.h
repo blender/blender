@@ -235,6 +235,8 @@ public:
 
 	GHOST_TSuccess endFullScreen() const;
 
+	GHOST_TUns16 getDPIHint();
+
 protected:
 	/**
 	 * \param type	The type of rendering context create.

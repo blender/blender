@@ -111,6 +111,11 @@
 #define VK_MEDIA_PLAY_PAUSE 0xB3
 #endif // VK_MEDIA_PLAY_PAUSE
 
+// Window message newer than Windows 7
+#ifndef WM_DPICHANGED
+#define WM_DPICHANGED 0x02E0
+#endif // WM_DPICHANGED
+
 /* Workaround for some laptop touchpads, some of which seems to
  * have driver issues which makes it so window function receives
  * the message, but PeekMessage doesn't pick those messages for
@@ -152,6 +157,27 @@ static void initRawInput()
 #undef DEVICE_COUNT
 }
 
+#ifndef DPI_ENUMS_DECLARED
+typedef enum PROCESS_DPI_AWARENESS {
+	PROCESS_DPI_UNAWARE = 0,
+	PROCESS_SYSTEM_DPI_AWARE = 1,
+	PROCESS_PER_MONITOR_DPI_AWARE = 2
+} PROCESS_DPI_AWARENESS;
+
+typedef enum MONITOR_DPI_TYPE {
+	MDT_EFFECTIVE_DPI = 0,
+	MDT_ANGULAR_DPI = 1,
+	MDT_RAW_DPI = 2,
+	MDT_DEFAULT = MDT_EFFECTIVE_DPI
+} MONITOR_DPI_TYPE;
+
+#define USER_DEFAULT_SCREEN_DPI 96
+
+#define DPI_ENUMS_DECLARED
+#endif
+typedef HRESULT(API * GHOST_WIN32_SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS);
+typedef BOOL(API * GHOST_WIN32_EnableNonClientDpiScaling)(HWND);
+
 GHOST_SystemWin32::GHOST_SystemWin32()
 	: m_hasPerformanceCounter(false), m_freq(0), m_start(0)
 {
@@ -160,6 +186,18 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	m_displayManager->initialize();
 
 	m_consoleStatus = 1;
+
+	// Tell Windows we are per monitor DPI aware. This disables the default
+	// blurry scaling and enables WM_DPICHANGED to allow us to draw at proper DPI.
+	HMODULE m_shcore = ::LoadLibrary("Shcore.dll");
+	if (m_shcore) {
+		GHOST_WIN32_SetProcessDpiAwareness fpSetProcessDpiAwareness =
+			(GHOST_WIN32_SetProcessDpiAwareness) ::GetProcAddress(m_shcore, "SetProcessDpiAwareness");
+
+		if (fpSetProcessDpiAwareness) {
+			fpSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+		}
+	}
 
 	// Check if current keyboard layout uses AltGr and save keylayout ID for
 	// specialized handling if keys like VK_OEM_*. I.e. french keylayout
@@ -922,6 +960,20 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized");
 
 	if (hwnd) {
+		if(msg == WM_NCCREATE) {
+			// Tell Windows to automatically handle scaling of non-client areas
+			// such as the caption bar. EnableNonClientDpiScaling was introduced in Windows 10
+			HMODULE m_user32 = ::LoadLibrary("User32.dll");
+			if (m_user32) {
+				GHOST_WIN32_EnableNonClientDpiScaling fpEnableNonClientDpiScaling =
+					(GHOST_WIN32_EnableNonClientDpiScaling) ::GetProcAddress(m_user32, "EnableNonClientDpiScaling");
+
+				if (fpEnableNonClientDpiScaling) {
+					fpEnableNonClientDpiScaling(hwnd);
+				}
+			}
+		}
+
 		GHOST_WindowWin32 *window = (GHOST_WindowWin32 *)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		if (window) {
 			switch (msg) {
@@ -1293,6 +1345,32 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						event = processWindowEvent(GHOST_kEventWindowMove, window);
 					}
 
+					break;
+				case WM_DPICHANGED:
+					/* The WM_DPICHANGED message is sent when the effective dots per inch (dpi) for a window has changed.
+					* The DPI is the scale factor for a window. There are multiple events that can cause the DPI to
+					* change such as when the window is moved to a monitor with a different DPI.
+					*/
+					{
+						WORD newYAxisDPI = HIWORD(wParam);
+						WORD newXAxisDPI = LOWORD(wParam);
+						// The suggested new size and position of the window.
+						RECT* const suggestedWindowRect = (RECT*)lParam;
+
+						// Push DPI change event first
+						system->pushEvent(processWindowEvent(GHOST_kEventWindowDPIHintChanged, window));
+						system->dispatchEvents();
+						eventHandled = true;
+
+						// Then move and resize window
+						SetWindowPos(hwnd,
+							NULL,
+							suggestedWindowRect->left,
+							suggestedWindowRect->top,
+							suggestedWindowRect->right - suggestedWindowRect->left,
+							suggestedWindowRect->bottom - suggestedWindowRect->top,
+							SWP_NOZORDER | SWP_NOACTIVATE);
+					}
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Window events, ignored

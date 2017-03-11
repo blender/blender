@@ -168,6 +168,8 @@ protected:
 	GHOST_TSuccess beginFullScreen() const { return GHOST_kFailure; }
 
 	GHOST_TSuccess endFullScreen() const { return GHOST_kFailure; }
+
+	GHOST_TUns16 getDPIHint();
 };
 
 

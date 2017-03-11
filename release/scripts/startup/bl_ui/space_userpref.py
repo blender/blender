@@ -217,6 +217,7 @@ class USERPREF_PT_interface(Panel):
 
         col = row.column()
         col.label(text="Display:")
+        col.prop(view, "ui_scale", text="Scale")
         col.prop(view, "show_tooltips")
         col.prop(view, "show_tooltips_python")
         col.prop(view, "show_object_info", text="Object Info")
@@ -467,11 +468,6 @@ class USERPREF_PT_system(Panel):
 
         col = colsplit.column()
         col.label(text="General:")
-        col.prop(system, "dpi")
-        col.label("Virtual Pixel Mode:")
-        col.prop(system, "virtual_pixel_mode", text="")
-
-        col.separator()
 
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")

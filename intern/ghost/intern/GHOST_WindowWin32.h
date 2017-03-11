@@ -58,6 +58,12 @@ typedef BOOL (API * GHOST_WIN32_WTClose)(HCTX);
 typedef BOOL (API * GHOST_WIN32_WTPacket)(HCTX, UINT, LPVOID);
 typedef BOOL (API * GHOST_WIN32_WTOverlap)(HCTX, BOOL);
 
+// typedefs for user32 functions to allow dynamic loading of Windows 10 DPI scaling functions
+typedef UINT(API * GHOST_WIN32_GetDpiForWindow)(HWND);
+#ifndef USER_DEFAULT_SCREEN_DPI
+#define USER_DEFAULT_SCREEN_DPI 96
+#endif // USER_DEFAULT_SCREEN_DPI
+
 /**
  * GHOST window on M$ Windows OSs.
  * \author	Maarten Gribnau
@@ -251,6 +257,8 @@ public:
 
 	GHOST_TSuccess endFullScreen() const {return GHOST_kFailure;}
 
+	GHOST_TUns16 getDPIHint() override;
+
 	/** if the window currently resizing */
 	bool m_inLiveResize;
 
@@ -350,6 +358,9 @@ private:
 	LONG m_maxAzimuth, m_maxAltitude;
 
 	GHOST_TWindowState m_normal_state;
+
+	/** user32 dll handle*/
+	HMODULE m_user32;
 
 	/** Hwnd to parent window */
 	GHOST_TEmbedderWindowID m_parentWindowHwnd;

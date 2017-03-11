@@ -563,3 +563,19 @@ GHOST_WindowSDL::setWindowCursorVisibility(bool visible)
 	SDL_ShowCursor(visible);
 	return GHOST_kSuccess;
 }
+
+GHOST_TUns16
+GHOST_WindowSDL::getDPIHint()
+{
+	int displayIndex = SDL_GetWindowDisplayIndex(m_sdl_win);
+	if (displayIndex < 0) {
+		return 96;
+	}
+
+	float ddpi;
+	if (SDL_GetDisplayDPI(displayIndex, &ddpi, NULL, NULL) != 0) {
+		return 96;
+	}
+
+	return (int)ddpi;
+}

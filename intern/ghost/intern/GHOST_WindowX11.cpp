@@ -56,6 +56,9 @@
 #  include <X11/extensions/XInput2.h>
 #endif
 
+//For DPI value
+#include <X11/Xresource.h>
+
 #if defined(__sun__) || defined(__sun) || defined(__sparc) || defined(__sparc__) || defined(_AIX)
 #  include <strings.h>
 #endif
@@ -68,6 +71,7 @@
 
 #include <algorithm>
 #include <string>
+#include <math.h>
 
 /* For obscure full screen mode stuff
  * lifted verbatim from blut. */
@@ -1671,4 +1675,43 @@ endFullScreen() const
 	XUngrabPointer(m_display, CurrentTime);
 
 	return GHOST_kSuccess;
+}
+
+GHOST_TUns16
+GHOST_WindowX11::
+getDPIHint()
+{
+	/* Try to read DPI setting set using xrdb */
+	char* resMan = XResourceManagerString(m_display);
+	XrmDatabase xrdb = XrmGetStringDatabase(resMan);
+	if (xrdb) {
+		char* type = NULL;
+		XrmValue val;
+
+		int success = XrmGetResource(xrdb, "Xft.dpi", "Xft.Dpi", &type, &val);
+		if (success && type) {
+			if (strcmp(type, "String") == 0) {
+				return atoi((char*)val.addr);
+			}
+		}
+	}
+
+	/* Fallback to calculating DPI using X reported DPI, set using xrandr --dpi */
+	XWindowAttributes attr;
+	if (!XGetWindowAttributes(m_display, m_window, &attr)) {
+		/* Failed to get window attributes, return X11 default DPI */
+		return 96;
+	}
+
+	Screen* screen = attr.screen;
+	int pixelWidth = WidthOfScreen(screen);
+	int pixelHeight = HeightOfScreen(screen);
+	int mmWidth = WidthMMOfScreen(screen);
+	int mmHeight = HeightMMOfScreen(screen);
+
+	double pixelDiagonal = sqrt((pixelWidth * pixelWidth) + (pixelHeight * pixelHeight));
+	double mmDiagonal = sqrt((mmWidth * mmWidth) + (mmHeight * mmHeight));
+	float inchDiagonal = mmDiagonal * 0.039f;
+	int dpi = pixelDiagonal / inchDiagonal;
+	return dpi;
 }

@@ -92,6 +92,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_tablet(0),
       m_maxPressure(0),
       m_normal_state(GHOST_kWindowStateNormal),
+	  m_user32(NULL),
       m_parentWindowHwnd(parentwindowhwnd),
       m_debug_context(is_debug)
 {
@@ -963,6 +964,23 @@ void GHOST_WindowWin32::bringTabletContextToFront()
 			fpWTOverlap(m_tablet, TRUE);
 		}
 	}
+}
+
+GHOST_TUns16 GHOST_WindowWin32::getDPIHint()
+{
+	if (!m_user32) {
+		m_user32 = ::LoadLibrary("user32.dll");
+	}
+
+	if (m_user32) {
+		GHOST_WIN32_GetDpiForWindow fpGetDpiForWindow = (GHOST_WIN32_GetDpiForWindow) ::GetProcAddress(m_user32, "GetDpiForWindow");
+
+		if (fpGetDpiForWindow) {
+			return fpGetDpiForWindow(this->m_hWnd);
+		}
+	}
+
+	return USER_DEFAULT_SCREEN_DPI;
 }
 
 /** Reverse the bits in a GHOST_TUns8 */
