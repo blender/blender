@@ -1533,6 +1533,7 @@ class VIEW3D_MT_object_apply(Menu):
         layout.separator()
 
         layout.operator("object.visual_transform_apply", text="Visual Transform", text_ctxt=i18n_contexts.default)
+        layout.operator("object.convert", text="Visual Geometry to Mesh", text_ctxt=i18n_contexts.default).target = 'MESH'
         layout.operator("object.duplicates_make_real")
 
 
