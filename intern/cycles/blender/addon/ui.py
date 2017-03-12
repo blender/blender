@@ -86,12 +86,10 @@ def use_sample_all_lights(context):
 
     return cscene.sample_all_lights_direct or cscene.sample_all_lights_indirect
 
-def show_device_selection(context):
-    type = get_device_type(context)
-    if type == 'NETWORK':
+def show_device_active(context):
+    cscene = context.scene.cycles
+    if cscene.device != 'GPU':
         return True
-    if not type in {'CUDA', 'OPENCL'}:
-        return False
     return context.user_preferences.addons[__package__].preferences.has_active_device()
 
 
@@ -1636,7 +1634,7 @@ def draw_device(self, context):
         split = layout.split(percentage=1/3)
         split.label("Device:")
         row = split.row()
-        row.active = show_device_selection(context)
+        row.active = show_device_active(context)
         row.prop(cscene, "device", text="")
 
         if engine.with_osl() and use_cpu(context):
