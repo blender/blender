@@ -6790,7 +6790,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "jpeg2k_codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "jp2_codec");
 	RNA_def_property_enum_items(prop, jp2_codec_items);
-	RNA_def_property_ui_text(prop, "Codec", "Codec settings for Jpek2000");
+	RNA_def_property_ui_text(prop, "Codec", "Codec settings for Jpeg2000");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 #endif
 

@@ -192,9 +192,10 @@
  *
  * These conventions should be used throughout the bmesh module.
  *
- * - ``BM_***()`` -     High level BMesh API function for use anywhere.
- * - ``bmesh_***()`` -  Low level API function.
+ * - ``bmesh_kernel_*()`` - Low level API, for primitive functions that others are built ontop of.
+ * - ``bmesh_***()`` - Low level API function.
  * - ``bm_***()`` -     'static' functions, not apart of the API at all, but use prefix since they operate on BMesh data.
+ * - ``BM_***()`` -     High level BMesh API function for use anywhere.
  * - ``BMO_***()`` -    High level operator API function for use anywhere.
  * - ``bmo_***()`` -    Low level / internal operator API functions.
  * - ``_bm_***()`` -    Functions which are called via macros only.

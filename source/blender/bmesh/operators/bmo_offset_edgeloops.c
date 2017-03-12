@@ -270,7 +270,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 				v_other = BM_edge_other_vert(e, v);
 				if (BM_elem_index_get(v_other) == -1) {
 					if (BM_vert_is_edge_pair(v_other)) {
-						/* defer bmesh_jekv to avoid looping over data we're removing */
+						/* defer bmesh_kernel_join_edge_kill_vert to avoid looping over data we're removing */
 						v_other->e = e;
 						STACK_PUSH(varr, v_other);
 					}
@@ -278,7 +278,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 			}
 
 			while ((v = STACK_POP(varr))) {
-				bmesh_jekv(bm, v->e, v, true, false, false);
+				bmesh_kernel_join_edge_kill_vert(bm, v->e, v, true, false, false);
 			}
 		}
 	}

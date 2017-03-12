@@ -67,7 +67,7 @@
 
 #include "BKE_deform.h"
 
-/* Workaround for cyclic depenndnecy with curves.
+/* Workaround for cyclic dependency with curves.
  * In such case curve_cache might not be ready yet,
  */
 #define CYCLIC_DEPENDENCY_WORKAROUND

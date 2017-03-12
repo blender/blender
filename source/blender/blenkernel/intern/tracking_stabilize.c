@@ -755,7 +755,8 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
 	if (ok) {
 		r_ref_pos[0] /= weight_sum;
 		r_ref_pos[1] /= weight_sum;
-	} else {
+	}
+	else {
 		/* No usable tracking data on any track on this frame.
 		 * Use data from neighbouring frames to extrapolate...
 		 */
@@ -784,7 +785,8 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
 			 * Also default to this frame when we're in a gap */
 			average_marker_positions(ctx, next_lower, r_ref_pos);
 
-		} else if (next_higher < MAXFRAME) {
+		}
+		else if (next_higher < MAXFRAME) {
 			average_marker_positions(ctx, next_higher, r_ref_pos);
 		}
 		use_values_from_fcurves(ctx, false);

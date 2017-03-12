@@ -341,11 +341,11 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 
 void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 {
-	for(Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
+	for (Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
 		Object *ob = base->object;
 
 		if (export_object(&m_settings, base)) {
-			switch(ob->type) {
+			switch (ob->type) {
 				case OB_LAMP:
 				case OB_LATTICE:
 				case OB_MBALL:
@@ -362,7 +362,7 @@ void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 
 void AbcExporter::createTransformWritersFlat()
 {
-	for(Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
+	for (Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
 		Object *ob = base->object;
 
 		if (!export_object(&m_settings, base)) {
@@ -454,7 +454,7 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 
 void AbcExporter::createShapeWriters(EvaluationContext *eval_ctx)
 {
-	for(Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
+	for (Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
 		exploreObject(eval_ctx, base, NULL);
 	}
 }
@@ -525,7 +525,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 		}
 	}
 
-	switch(ob->type) {
+	switch (ob->type) {
 		case OB_MESH:
 		{
 			Mesh *me = static_cast<Mesh *>(ob->data);
