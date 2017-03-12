@@ -27,7 +27,18 @@
 #define __DRAW_MODES_ENGINES_H__
 
 extern DrawEngineType draw_engine_object_type;
-extern DrawEngineType draw_engine_edit_mesh_type;
 extern DrawEngineType draw_engine_edit_armature_type;
+extern DrawEngineType draw_engine_edit_curve_type;
+extern DrawEngineType draw_engine_edit_lattice_type;
+extern DrawEngineType draw_engine_edit_mesh_type;
+extern DrawEngineType draw_engine_edit_metaball_type;
+extern DrawEngineType draw_engine_edit_surface_type;
+extern DrawEngineType draw_engine_edit_text_type;
+extern DrawEngineType draw_engine_paint_texture_type;
+extern DrawEngineType draw_engine_paint_vertex_type;
+extern DrawEngineType draw_engine_paint_weight_type;
+extern DrawEngineType draw_engine_particle_type;
+extern DrawEngineType draw_engine_pose_type;
+extern DrawEngineType draw_engine_sculpt_type;
 
 #endif /* __DRAW_MODES_ENGINES_H__ */

@@ -57,9 +57,20 @@ set(SRC
 	intern/draw_view.c
 	intern/draw_armature.c
 	engines/clay/clay.c
-	modes/edit_armature_mode.c
-	modes/edit_mesh_mode.c
 	modes/object_mode.c
+	modes/edit_armature_mode.c
+	modes/edit_curve_mode.c
+	modes/edit_lattice_mode.c
+	modes/edit_mesh_mode.c
+	modes/edit_metaball_mode.c
+	modes/edit_surface_mode.c
+	modes/edit_text_mode.c
+	modes/paint_texture_mode.c
+	modes/paint_vertex_mode.c
+	modes/paint_weight_mode.c
+	modes/particle_mode.c
+	modes/pose_mode.c
+	modes/sculpt_mode.c
 
 	intern/DRW_render.h
 	intern/draw_common.h

@@ -1413,29 +1413,40 @@ static void DRW_engines_enable(const bContext *C)
 			use_drw_engine(&draw_engine_edit_mesh_type);
 			break;
 		case CTX_MODE_EDIT_CURVE:
+			use_drw_engine(&draw_engine_edit_curve_type);
 			break;
 		case CTX_MODE_EDIT_SURFACE:
+			use_drw_engine(&draw_engine_edit_surface_type);
 			break;
 		case CTX_MODE_EDIT_TEXT:
+			use_drw_engine(&draw_engine_edit_text_type);
 			break;
 		case CTX_MODE_EDIT_ARMATURE:
 			use_drw_engine(&draw_engine_edit_armature_type);
 			break;
 		case CTX_MODE_EDIT_METABALL:
+			use_drw_engine(&draw_engine_edit_metaball_type);
 			break;
 		case CTX_MODE_EDIT_LATTICE:
+			use_drw_engine(&draw_engine_edit_lattice_type);
 			break;
 		case CTX_MODE_POSE:
+			use_drw_engine(&draw_engine_pose_type);
 			break;
 		case CTX_MODE_SCULPT:
+			use_drw_engine(&draw_engine_sculpt_type);
 			break;
 		case CTX_MODE_PAINT_WEIGHT:
+			use_drw_engine(&draw_engine_paint_weight_type);
 			break;
 		case CTX_MODE_PAINT_VERTEX:
+			use_drw_engine(&draw_engine_paint_vertex_type);
 			break;
 		case CTX_MODE_PAINT_TEXTURE:
+			use_drw_engine(&draw_engine_paint_texture_type);
 			break;
 		case CTX_MODE_PARTICLE:
+			use_drw_engine(&draw_engine_particle_type);
 			break;
 		case CTX_MODE_OBJECT:
 			break;
@@ -1535,8 +1546,19 @@ void DRW_engines_register(void)
 	RE_engines_register(NULL, &viewport_clay_type);
 
 	DRW_engine_register(&draw_engine_object_type);
-	DRW_engine_register(&draw_engine_edit_mesh_type);
 	DRW_engine_register(&draw_engine_edit_armature_type);
+	DRW_engine_register(&draw_engine_edit_curve_type);
+	DRW_engine_register(&draw_engine_edit_lattice_type);
+	DRW_engine_register(&draw_engine_edit_mesh_type);
+	DRW_engine_register(&draw_engine_edit_metaball_type);
+	DRW_engine_register(&draw_engine_edit_surface_type);
+	DRW_engine_register(&draw_engine_edit_text_type);
+	DRW_engine_register(&draw_engine_paint_texture_type);
+	DRW_engine_register(&draw_engine_paint_vertex_type);
+	DRW_engine_register(&draw_engine_paint_weight_type);
+	DRW_engine_register(&draw_engine_particle_type);
+	DRW_engine_register(&draw_engine_pose_type);
+	DRW_engine_register(&draw_engine_sculpt_type);
 #endif
 }
 
