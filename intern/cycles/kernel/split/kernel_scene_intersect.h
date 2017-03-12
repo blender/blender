@@ -116,6 +116,11 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 		lcg_state = lcg_state_init(&rng, &state, 0x51633e2d);
 	}
 
+	if(state.bounce > kernel_data.integrator.ao_bounces) {
+		visibility = PATH_RAY_SHADOW;
+		ray.t = kernel_data.background.ao_distance;
+	}
+
 	bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
 	bool hit = scene_intersect(kg, ray, visibility, &isect, NULL, 0.0f, 0.0f);
