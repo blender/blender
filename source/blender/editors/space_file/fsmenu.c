@@ -537,28 +537,22 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 		/* Finally get user favorite places */
 		if (read_bookmarks) {
 			UInt32 seed;
-			OSErr err = noErr;
-			CFArrayRef pathesArray;
-			LSSharedFileListRef list;
-			LSSharedFileListItemRef itemRef;
-			CFIndex i, pathesCount;
-			CFURLRef cfURL = NULL;
-			CFStringRef pathString = NULL;
-			list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteItems, NULL);
-			pathesArray = LSSharedFileListCopySnapshot(list, &seed);
-			pathesCount = CFArrayGetCount(pathesArray);
+			LSSharedFileListRef list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteItems, NULL);
+			CFArrayRef pathesArray = LSSharedFileListCopySnapshot(list, &seed);
+			CFIndex pathesCount = CFArrayGetCount(pathesArray);
 			
-			for (i = 0; i < pathesCount; i++) {
-				itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
+			for (CFIndex i = 0; i < pathesCount; i++) {
+				LSSharedFileListItemRef itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
 				
-				err = LSSharedFileListItemResolve(itemRef, 
-				                                  kLSSharedFileListNoUserInteraction |
-				                                  kLSSharedFileListDoNotMountVolumes,
-				                                  &cfURL, NULL);
-				if (err != noErr)
+				CFURLRef cfURL = NULL;
+				OSErr err = LSSharedFileListItemResolve(itemRef, 
+				                                        kLSSharedFileListNoUserInteraction |
+				                                        kLSSharedFileListDoNotMountVolumes,
+				                                        &cfURL, NULL);
+				if (err != noErr || !cfURL)
 					continue;
 				
-				pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
+				CFStringRef pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 				
 				if (pathString == NULL || !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8))
 					continue;
