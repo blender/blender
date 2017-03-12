@@ -347,7 +347,7 @@ void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 		Object *ob = base->object;
 
 		if (export_object(&m_settings, ob)) {
-			switch(ob->type) {
+			switch (ob->type) {
 				case OB_LAMP:
 				case OB_LATTICE:
 				case OB_MBALL:
@@ -533,7 +533,7 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 		}
 	}
 
-	switch(ob->type) {
+	switch (ob->type) {
 		case OB_MESH:
 		{
 			Mesh *me = static_cast<Mesh *>(ob->data);

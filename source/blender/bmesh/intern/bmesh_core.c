@@ -2756,7 +2756,8 @@ BMVert *bmesh_urmv_loop_multi(
 				}
 
 				STACK_PUSH(edges, e_iter);
-			} else {
+			}
+			else {
 				/* at least one edge attached isn't connected to our loops */
 				is_mixed_edge_any = true;
 			}

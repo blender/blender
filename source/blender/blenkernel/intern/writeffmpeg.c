@@ -568,7 +568,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 
 	if (context->ffmpeg_crf >= 0) {
 		ffmpeg_dict_set_int(&opts, "crf", context->ffmpeg_crf);
-	} else {
+	}
+	else {
 		c->bit_rate = context->ffmpeg_video_bitrate * 1000;
 		c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
 		c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
@@ -576,8 +577,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 	}
 
 	if (context->ffmpeg_preset) {
-		char const * preset_name;
-		switch(context->ffmpeg_preset) {
+		char const *preset_name;
+		switch (context->ffmpeg_preset) {
 			case FFM_PRESET_ULTRAFAST: preset_name = "ultrafast"; break;
 			case FFM_PRESET_SUPERFAST: preset_name = "superfast"; break;
 			case FFM_PRESET_VERYFAST: preset_name = "veryfast"; break;
