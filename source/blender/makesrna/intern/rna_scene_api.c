@@ -263,34 +263,53 @@ static void rna_Scene_alembic_export(
 /* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 #include "../../collada/collada.h"
 
+/* Note: This definition must match to the generated function call */
 static void rna_Scene_collada_export(
         Scene *scene,
-        const char *filepath,
+        const char *filepath, 
         int apply_modifiers,
-        int export_mesh_type,
 
+        int export_mesh_type,
         int selected,
         int include_children,
         int include_armatures,
         int include_shapekeys,
         int deform_bones_only,
-
         int active_uv_only,
         int include_uv_textures,
         int include_material_textures,
         int use_texture_copies,
-
-        int use_ngons,
+        int triangulate,
         int use_object_instantiation,
         int use_blender_profile,
         int sort_by_name,
-        int open_sim,
-        int export_transformation_type)
+        int export_transformation_type,
+        int open_sim)
 {
-	collada_export(scene, filepath, apply_modifiers, export_mesh_type, selected,
-	               include_children, include_armatures, include_shapekeys, deform_bones_only,
-	               active_uv_only, include_uv_textures, include_material_textures,
-	               use_texture_copies, use_ngons, use_object_instantiation, use_blender_profile, sort_by_name, export_transformation_type, open_sim);
+    collada_export(scene,
+        filepath,
+
+        apply_modifiers,
+        export_mesh_type,
+
+        selected,
+        include_children,
+        include_armatures,
+        include_shapekeys,
+        deform_bones_only,
+
+        active_uv_only,
+        include_uv_textures,
+        include_material_textures,
+        use_texture_copies,
+
+        triangulate,
+        use_object_instantiation,
+        use_blender_profile,
+        sort_by_name,
+
+        export_transformation_type,
+        open_sim);
 }
 
 #endif
@@ -354,30 +373,60 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_string(func, "filepath", NULL, FILE_MAX, "File Path", "File path to write Collada file");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
-	RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers", "Apply modifiers");
+
+	RNA_def_boolean(func,
+		"apply_modifiers", 0, "Apply Modifiers",
+		"Apply modifiers to exported mesh (non destructive))");
+
 	RNA_def_int(func, "export_mesh_type", 0, INT_MIN, INT_MAX,
-	            "Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
-	RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
-	RNA_def_boolean(func, "include_children", 0, "Include Children", "Export all children of selected objects (even if not selected)");
-	RNA_def_boolean(func, "include_armatures", 0, "Include Armatures", "Export related armatures (even if not selected)");
-	RNA_def_boolean(func, "include_shapekeys", 0, "Include Shape Keys", "Export all Shape Keys from Mesh Objects");
-	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only", "Only export deforming bones with armatures");
+		"Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
 
-	RNA_def_boolean(func, "active_uv_only", 0, "Active UV Layer only", "Export only the active UV Layer");
-	RNA_def_boolean(func, "include_uv_textures", 0, "Include UV Textures", "Export textures assigned to the object UV maps");
-	RNA_def_boolean(func, "include_material_textures", 0, "Include Material Textures", "Export textures assigned to the object Materials");
-	RNA_def_boolean(func, "use_texture_copies", 0, "copy", "Copy textures to same folder where the .dae file is exported");
+	RNA_def_boolean(func, "selected", 0, "Selection Only",
+		"Export only selected elements");
 
-	RNA_def_boolean(func, "use_ngons", 1, "Use NGons", "Keep NGons in Export");
-	RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances", "Instantiate multiple Objects from same Data");
-	RNA_def_boolean(func, "use_blender_profile", 1, "Use Blender Profile", "Export additional Blender specific information (for material, shaders, bones, etc.)");
-	RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
-	RNA_def_boolean(func, "open_sim", 0, "Export for SL/OpenSim", "Compatibility mode for SL, OpenSim and similar online worlds");
+	RNA_def_boolean(func, "include_children", 0, "Include Children",
+		"Export all children of selected objects (even if not selected)");
+
+	RNA_def_boolean(func, "include_armatures", 0, "Include Armatures",
+		"Export related armatures (even if not selected)");
+
+	RNA_def_boolean(func, "include_shapekeys", 1, "Include Shape Keys",
+		"Export all Shape Keys from Mesh Objects");
+
+	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only",
+		"Only export deforming bones with armatures");
+
+
+	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
+		"Export only the selected UV Map");
+
+	RNA_def_boolean(func, "include_uv_textures", 0, "Include UV Textures",
+		"Export textures assigned to the object UV Maps");
+
+	RNA_def_boolean(func, "include_material_textures", 0, "Include Material Textures",
+		"Export textures assigned to the object Materials");
+
+	RNA_def_boolean(func, "use_texture_copies", 1, "Copy",
+		"Copy textures to same folder where the .dae file is exported");
+
+
+	RNA_def_boolean(func, "triangulate", 1, "Triangulate",
+		"Export Polygons (Quads & NGons) as Triangles");
+
+	RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances",
+		"Instantiate multiple Objects from same Data");
+
+	RNA_def_boolean(func, "use_blender_profile", 1, "Use Blender Profile",
+		"Export additional Blender specific information (for material, shaders, bones, etc.)");
+
+	RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name",
+		"Sort exported data by Object name");
 
 	RNA_def_int(func, "export_transformation_type", 0, INT_MIN, INT_MAX,
-	            "Transformation", "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);
+		"Transform", "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);
 
-	RNA_def_function_ui_description(func, "Export to collada file");
+	RNA_def_boolean(func, "open_sim", 0, "Export to SL/OpenSim",
+		"Compatibility mode for SL, OpenSim and other compatible online worlds");
 #endif
 
 #ifdef WITH_ALEMBIC

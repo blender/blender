@@ -256,11 +256,11 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemL(row, IFACE_("Collada Options:"), ICON_MODIFIER);
 
 	row = uiLayoutRow(box, false);
-	uiItemR(row, imfptr, "triangulate", 0, NULL, ICON_NONE);
+	uiItemR(row, imfptr, "triangulate", 1, NULL, ICON_NONE);
 	row = uiLayoutRow(box, false);
-	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
+	uiItemR(row, imfptr, "use_object_instantiation", 1, NULL, ICON_NONE);
 	row = uiLayoutRow(box, false);
-	uiItemR(row, imfptr, "use_blender_profile", 0, NULL, ICON_NONE);
+	uiItemR(row, imfptr, "use_blender_profile", 1, NULL, ICON_NONE);
 
 	row = uiLayoutRow(box, false);
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
@@ -296,6 +296,8 @@ static bool wm_collada_export_check(bContext *UNUSED(C), wmOperator *op)
 
 void WM_OT_collada_export(wmOperatorType *ot)
 {
+	struct StructRNA *func = ot->srna;
+
 	static EnumPropertyItem prop_bc_export_mesh_type[] = {
 		{BC_MESH_TYPE_VIEW, "view", 0, "View", "Apply modifier's view settings"},
 		{BC_MESH_TYPE_RENDER, "render", 0, "Render", "Apply modifier's render settings"},
@@ -325,64 +327,64 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	        ot, FILE_TYPE_FOLDER | FILE_TYPE_COLLADA, FILE_BLENDER, FILE_SAVE,
 	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 
-	RNA_def_boolean(ot->srna,
+	RNA_def_boolean(func,
 	                "apply_modifiers", 0, "Apply Modifiers",
 	                "Apply modifiers to exported mesh (non destructive))");
 
-	RNA_def_int(ot->srna, "export_mesh_type", 0, INT_MIN, INT_MAX,
+	RNA_def_int(func, "export_mesh_type", 0, INT_MIN, INT_MAX,
 	            "Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
 
-	RNA_def_enum(ot->srna, "export_mesh_type_selection", prop_bc_export_mesh_type, 0,
+	RNA_def_enum(func, "export_mesh_type_selection", prop_bc_export_mesh_type, 0,
 	             "Resolution", "Modifier resolution for export");
 
-	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
+	RNA_def_boolean(func, "selected", 0, "Selection Only",
 	                "Export only selected elements");
 
-	RNA_def_boolean(ot->srna, "include_children", 0, "Include Children",
+	RNA_def_boolean(func, "include_children", 0, "Include Children",
 	                "Export all children of selected objects (even if not selected)");
 
-	RNA_def_boolean(ot->srna, "include_armatures", 0, "Include Armatures",
+	RNA_def_boolean(func, "include_armatures", 0, "Include Armatures",
 	                "Export related armatures (even if not selected)");
 
-	RNA_def_boolean(ot->srna, "include_shapekeys", 1, "Include Shape Keys",
+	RNA_def_boolean(func, "include_shapekeys", 1, "Include Shape Keys",
 	                "Export all Shape Keys from Mesh Objects");
 
-	RNA_def_boolean(ot->srna, "deform_bones_only", 0, "Deform Bones only",
+	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only",
 	                "Only export deforming bones with armatures");
 
 
-	RNA_def_boolean(ot->srna, "active_uv_only", 0, "Only Selected UV Map",
+	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 	                "Export only the selected UV Map");
 
-	RNA_def_boolean(ot->srna, "include_uv_textures", 0, "Include UV Textures",
+	RNA_def_boolean(func, "include_uv_textures", 0, "Include UV Textures",
 	                "Export textures assigned to the object UV Maps");
 
-	RNA_def_boolean(ot->srna, "include_material_textures", 0, "Include Material Textures",
+	RNA_def_boolean(func, "include_material_textures", 0, "Include Material Textures",
 	                "Export textures assigned to the object Materials");
 
-	RNA_def_boolean(ot->srna, "use_texture_copies", 1, "Copy",
+	RNA_def_boolean(func, "use_texture_copies", 1, "Copy",
 	                "Copy textures to same folder where the .dae file is exported");
 
 
-	RNA_def_boolean(ot->srna, "triangulate", 1, "Triangulate",
+	RNA_def_boolean(func, "triangulate", 1, "Triangulate",
 	                "Export Polygons (Quads & NGons) as Triangles");
 
-	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instances",
+	RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances",
 		"Instantiate multiple Objects from same Data");
 
-	RNA_def_boolean(ot->srna, "use_blender_profile", 1, "Use Blender Profile",
+	RNA_def_boolean(func, "use_blender_profile", 1, "Use Blender Profile",
 		"Export additional Blender specific information (for material, shaders, bones, etc.)");
 
-	RNA_def_boolean(ot->srna, "sort_by_name", 0, "Sort by Object name",
+	RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name",
 	                "Sort exported data by Object name");
 
-	RNA_def_int(ot->srna, "export_transformation_type", 0, INT_MIN, INT_MAX,
+	RNA_def_int(func, "export_transformation_type", 0, INT_MIN, INT_MAX,
 	            "Transform", "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);
 
-	RNA_def_enum(ot->srna, "export_transformation_type_selection", prop_bc_export_transformation_type, 0,
+	RNA_def_enum(func, "export_transformation_type_selection", prop_bc_export_transformation_type, 0,
 	             "Transform", "Transformation type for translation, scale and rotation");
 
-	RNA_def_boolean(ot->srna, "open_sim", 0, "Export to SL/OpenSim",
+	RNA_def_boolean(func, "open_sim", 0, "Export to SL/OpenSim",
 	                "Compatibility mode for SL, OpenSim and other compatible online worlds");
 }
 
