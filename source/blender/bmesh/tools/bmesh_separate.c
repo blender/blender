@@ -120,7 +120,7 @@ void BM_mesh_separate_faces(
 				}
 
 				/* Perform the split */
-				bmesh_urmv_loop_multi(bm, loop_split.data, loop_split.count);
+				BM_face_loop_separate_multi(bm, loop_split.data, loop_split.count);
 
 				BLI_buffer_empty(&loop_split);
 			}

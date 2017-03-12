@@ -64,20 +64,15 @@ void    BM_face_kill(BMesh *bm, BMFace *f);
 void    BM_edge_kill(BMesh *bm, BMEdge *e);
 void    BM_vert_kill(BMesh *bm, BMVert *v);
 
-void    bmesh_edge_separate(
-        BMesh *bm, BMEdge *e, BMLoop *l_sep,
-        const bool copy_select);
 bool    BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src);
 bool    BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src);
 bool    BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b);
 
-void    bmesh_vert_separate(
-        BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
-        const bool copy_select);
-
-void    bmesh_loop_reverse(
+void    bmesh_kernel_loop_reverse(
         BMesh *bm, BMFace *f,
         const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip);
+
+void    bmesh_face_swap_data(BMFace *f_a, BMFace *f_b);
 
 BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del);
 void    BM_vert_separate(
@@ -90,34 +85,43 @@ void BM_vert_separate_wire_hflag(
         BMesh *bm, BMVert *v_dst, BMVert *v_src,
         const char hflag);
 
-/* EULER API - For modifying structure */
-BMFace *bmesh_sfme(
+/**
+ * BMesh Kernel: For modifying structure.
+ *
+ * Names are on the verbose side but these are only for low-level access.
+ */
+void    bmesh_kernel_vert_separate(
+        BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+        const bool copy_select);
+void    bmesh_kernel_edge_separate(
+        BMesh *bm, BMEdge *e, BMLoop *l_sep,
+        const bool copy_select);
+
+BMFace *bmesh_kernel_split_face_make_edge(
         BMesh *bm, BMFace *f,
         BMLoop *l1, BMLoop *l2,
         BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
-                   ListBase *holes,
+        ListBase *holes,
 #endif
-                   BMEdge *example,
-                   const bool no_double
-                   );
+        BMEdge *example,
+        const bool no_double
+        );
 
-BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e);
-BMEdge *bmesh_jekv(
+BMVert *bmesh_kernel_split_edge_make_vert(
+        BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e);
+BMEdge *bmesh_kernel_join_edge_kill_vert(
         BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
         const bool do_del, const bool check_edge_splice,
         const bool kill_degenerate_faces);
-BMVert *bmesh_jvke(
+BMVert *bmesh_kernel_join_vert_kill_edge(
         BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
         const bool do_del, const bool check_edge_double,
         const bool kill_degenerate_faces);
-BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
-BMVert *bmesh_urmv(BMesh *bm, BMFace *f_sep, BMVert *v_sep);
-BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep);
-BMVert *bmesh_urmv_loop_multi(
-        BMesh *bm, BMLoop **larr, int larr_len);
-BMVert *bmesh_urmv_loop_region(BMesh *bm, BMLoop *l_sep);
+BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 
-void    bmesh_face_swap_data(BMFace *f_a, BMFace *f_b);
+BMVert *bmesh_kernel_unglue_region_make_vert(BMesh *bm, BMLoop *l_sep);
+BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int larr_len);
+BMVert *bmesh_kernel_unglue_region_make_vert_multi_isolated(BMesh *bm, BMLoop *l_sep);
 
 #endif /* __BMESH_CORE_H__ */

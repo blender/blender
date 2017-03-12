@@ -844,7 +844,7 @@ void BM_face_normal_flip_ex(
         BMesh *bm, BMFace *f,
         const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip)
 {
-	bmesh_loop_reverse(bm, f, cd_loop_mdisp_offset, use_loop_mdisp_flip);
+	bmesh_kernel_loop_reverse(bm, f, cd_loop_mdisp_offset, use_loop_mdisp_flip);
 	negate_v3(f->no);
 }
 

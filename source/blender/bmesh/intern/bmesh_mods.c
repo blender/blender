@@ -234,7 +234,7 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, const bool do_de
 
 	if (l_a->v == l_b->v) {
 		const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
-		bmesh_loop_reverse(bm, l_b->f, cd_loop_mdisp_offset, true);
+		bmesh_kernel_loop_reverse(bm, l_b->f, cd_loop_mdisp_offset, true);
 	}
 
 	BMFace *faces[2] = {l_a->f, l_b->f};
@@ -288,9 +288,9 @@ BMFace *BM_face_split(
 	}
 	
 #ifdef USE_BMESH_HOLES
-	f_new = bmesh_sfme(bm, f, l_a, l_b, r_l, NULL, example, no_double);
+	f_new = bmesh_kernel_split_face_make_edge(bm, f, l_a, l_b, r_l, NULL, example, no_double);
 #else
-	f_new = bmesh_sfme(bm, f, l_a, l_b, r_l, example, no_double);
+	f_new = bmesh_kernel_split_face_make_edge(bm, f, l_a, l_b, r_l, example, no_double);
 #endif
 	
 	if (f_new) {
@@ -370,19 +370,19 @@ BMFace *BM_face_split_n(
 	f_tmp = BM_face_copy(bm, bm, f, true, true);
 	
 #ifdef USE_BMESH_HOLES
-	f_new = bmesh_sfme(bm, f, l_a, l_b, &l_new, NULL, example, false);
+	f_new = bmesh_kernel_split_face_make_edge(bm, f, l_a, l_b, &l_new, NULL, example, false);
 #else
-	f_new = bmesh_sfme(bm, f, l_a, l_b, &l_new, example, false);
+	f_new = bmesh_kernel_split_face_make_edge(bm, f, l_a, l_b, &l_new, example, false);
 #endif
-	/* bmesh_sfme returns in 'l_new' a Loop for f_new going from 'v_a' to 'v_b'.
+	/* bmesh_kernel_split_face_make_edge returns in 'l_new' a Loop for f_new going from 'v_a' to 'v_b'.
 	 * The radial_next is for 'f' and goes from 'v_b' to 'v_a'  */
 
 	if (f_new) {
 		e = l_new->e;
 		for (i = 0; i < n; i++) {
-			v_new = bmesh_semv(bm, v_b, e, &e_new);
+			v_new = bmesh_kernel_split_edge_make_vert(bm, v_b, e, &e_new);
 			BLI_assert(v_new != NULL);
-			/* bmesh_semv returns in 'e_new' the edge going from 'v_new' to 'v_b' */
+			/* bmesh_kernel_split_edge_make_vert returns in 'e_new' the edge going from 'v_new' to 'v_b' */
 			copy_v3_v3(v_new->co, cos[i]);
 
 			/* interpolate the loop data for the loops with (v == v_new), using orig face */
@@ -507,7 +507,7 @@ BMEdge *BM_vert_collapse_faces(
 		/* single face or no faces */
 		/* same as BM_vert_collapse_edge() however we already
 		 * have vars to perform this operation so don't call. */
-		e_new = bmesh_jekv(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
+		e_new = bmesh_kernel_join_edge_kill_vert(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
 		/* e_new = BM_edge_exists(tv, tv2); */ /* same as return above */
 	}
 
@@ -542,7 +542,7 @@ BMEdge *BM_vert_collapse_edge(
 			BMVert *tv2 = BM_edge_other_vert(e2, v_kill);
 			if (tv2) {
 				/* only action, other calls here only get the edge to return */
-				e_new = bmesh_jekv(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
+				e_new = bmesh_kernel_join_edge_kill_vert(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
 			}
 		}
 	}
@@ -564,7 +564,7 @@ BMVert *BM_edge_collapse(
         BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
         const bool do_del, const bool kill_degenerate_faces)
 {
-	return bmesh_jvke(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
+	return bmesh_kernel_join_vert_kill_edge(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
 }
 
 /**
@@ -616,7 +616,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 	}
 
 	v_other = BM_edge_other_vert(e, v);
-	v_new = bmesh_semv(bm, v, e, &e_new);
+	v_new = bmesh_kernel_split_edge_make_vert(bm, v, e, &e_new);
 	if (r_e != NULL) {
 		*r_e = e_new;
 	}
@@ -1090,23 +1090,18 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 /**
  * \brief Rip a single face from a vertex fan
  */
-BMVert *BM_face_vert_separate(BMesh *bm, BMFace *sf, BMVert *sv)
+BMVert *BM_face_loop_separate(BMesh *bm, BMLoop *l_sep)
 {
-	return bmesh_urmv(bm, sf, sv);
+	return bmesh_kernel_unglue_region_make_vert(bm, l_sep);
 }
 
-/**
- * \brief Rip a single face from a vertex fan
- *
- * \note same as #BM_face_vert_separate but faster (avoids a loop lookup)
- */
-BMVert *BM_face_loop_separate(BMesh *bm, BMLoop *sl)
+BMVert *BM_face_loop_separate_multi_isolated(BMesh *bm, BMLoop *l_sep)
 {
-	return bmesh_urmv_loop(bm, sl);
+	return bmesh_kernel_unglue_region_make_vert_multi_isolated(bm, l_sep);
 }
 
-BMVert *BM_face_loop_separate_multi(
-        BMesh *bm, BMLoop **larr, int larr_len)
+BMVert *BM_face_loop_separate_multi(BMesh *bm, BMLoop **larr, int larr_len)
 {
-	return bmesh_urmv_loop_multi(bm, larr, larr_len);
+	return bmesh_kernel_unglue_region_make_vert_multi(bm, larr, larr_len);
 }
+
