@@ -1522,9 +1522,6 @@ void DRW_draw_view(const bContext *C)
 
 	DRW_state_reset();
 	DRW_engines_disable();
-
-	/* Unbind fbo and draw result */
-	GPU_viewport_unbind(DST.viewport);
 }
 
 /* ****************************************** OTHER ***************************************** */

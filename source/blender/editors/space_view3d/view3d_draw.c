@@ -2369,6 +2369,8 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	else
 		view3d_draw_view(C, ar, &draw_data);
 
+	GPU_viewport_unbind(rv3d->viewport);
+
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
 
