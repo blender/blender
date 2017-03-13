@@ -580,6 +580,11 @@ bool BKE_layer_collection_move_into(const Scene *scene, LayerCollection *lc_dst,
 		return false;
 	}
 
+	/* We can't nest the collection into itself */
+	if (lc_src->scene_collection == lc_dst->scene_collection) {
+		return false;
+	}
+
 	/* Collection is already where we wanted it to be */
 	if (lc_dst->layer_collections.last == lc_src) {
 		return false;
