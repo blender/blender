@@ -266,7 +266,7 @@ ccl_device bool bsdf_microfacet_merge(const ShaderClosure *a, const ShaderClosur
 	       (bsdf_a->alpha_y == bsdf_b->alpha_y) &&
 	       (isequal_float3(bsdf_a->T, bsdf_b->T)) &&
 	       (bsdf_a->ior == bsdf_b->ior) &&
-	       ((!bsdf_a->extra && !bsdf_b->extra) ||
+	       ((bsdf_a->extra == NULL && bsdf_b->extra == NULL) ||
 	        ((bsdf_a->extra && bsdf_b->extra) &&
 	         (isequal_float3(bsdf_a->extra->color, bsdf_b->extra->color))));
 }
