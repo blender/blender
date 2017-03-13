@@ -1284,7 +1284,7 @@ static BMOpDefine bmo_bisect_plane_def = {
 	 {"clear_inner",   BMO_OP_SLOT_BOOL},    /* when enabled. remove all geometry on the negative side of the plane */
 	 {{'\0'}},
 	},
-	{{"geom_cut.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE}},  /* output new geometry from the cut */
+	{{"geom_cut.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE}},  /* output geometry aligned with the plane (new and existing) */
 	 {"geom.out",     BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},  /* input and output geometry (result of cut)  */
 	 {{'\0'}}},
 	bmo_bisect_plane_exec,
