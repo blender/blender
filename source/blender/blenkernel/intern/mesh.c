@@ -2145,6 +2145,8 @@ static int split_faces_prepare_new_verts(
 				/* If vert is already used by another smooth fan, we need a new vert for this one. */
 				const int new_vert_idx = vert_used ? num_verts++ : vert_idx;
 
+				BLI_assert(*lnor_space);
+
 				if ((*lnor_space)->loops) {
 					for (LinkNode *lnode = (*lnor_space)->loops; lnode; lnode = lnode->next) {
 						const int ml_fan_idx = GET_INT_FROM_POINTER(lnode->link);
@@ -2377,19 +2379,24 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 		 * loops' vertex and edge indices to new, to-be-created split ones). */
 
 		const int num_new_edges = split_faces_prepare_new_edges(mesh, &new_edges, memarena);
-		BLI_assert(num_new_edges > 0);
+		/* We can have to split a vertex without having to add a single new edge... */
+		const bool do_edges = (num_new_edges > 0);
 
 		/* Reallocate all vert and edge related data. */
 		mesh->totvert += num_new_verts;
 		mesh->totedge += num_new_edges;
 		CustomData_realloc(&mesh->vdata, mesh->totvert);
-		CustomData_realloc(&mesh->edata, mesh->totedge);
+		if (do_edges) {
+			CustomData_realloc(&mesh->edata, mesh->totedge);
+		}
 		/* Update pointers to a newly allocated memory. */
 		BKE_mesh_update_customdata_pointers(mesh, false);
 
 		/* Perform actual split of vertices and edges. */
 		split_faces_split_new_verts(mesh, new_verts, num_new_verts);
-		split_faces_split_new_edges(mesh, new_edges, num_new_edges);
+		if (do_edges) {
+			split_faces_split_new_edges(mesh, new_edges, num_new_edges);
+		}
 	}
 
 	/* Note: after this point mesh is expected to be valid again. */
