@@ -52,7 +52,7 @@ typedef struct PARTICLE_PassList {
 typedef struct PARTICLE_FramebufferList {
 	/* Contains all framebuffer objects needed by this engine.
 	 * Only contains (GPUFrameBuffer *) */
-	// struct GPUFrameBuffer *fb;
+	struct GPUFrameBuffer *fb;
 } PARTICLE_FramebufferList;
 
 /* keep it under MAX_TEXTURES */
@@ -60,7 +60,7 @@ typedef struct PARTICLE_TextureList {
 	/* Contains all framebuffer textures / utility textures
 	 * needed by this engine. Only viewport specific textures
 	 * (not per object). Only contains (GPUTexture *) */
-	// struct GPUTexture *texture;
+	struct GPUTexture *texture;
 } PARTICLE_TextureList;
 
 /* keep it under MAX_STORAGE */
@@ -69,7 +69,7 @@ typedef struct PARTICLE_StorageList {
 	 * Only directly MEM_(m/c)allocN'ed blocks because they are
 	 * free with MEM_freeN() when viewport is freed.
 	 * (not per object) */
-	// struct CustomStruct *block;
+	struct CustomStruct *block;
 } PARTICLE_StorageList;
 
 typedef struct PARTICLE_Data {
