@@ -304,13 +304,13 @@ void BKE_mesh_calc_normals_poly(
 void BKE_mesh_calc_normals(Mesh *mesh)
 {
 #ifdef DEBUG_TIME
-	TIMEIT_START(BKE_mesh_calc_normals);
+	TIMEIT_START_AVERAGED(BKE_mesh_calc_normals);
 #endif
 	BKE_mesh_calc_normals_poly(mesh->mvert, NULL, mesh->totvert,
 	                           mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
 	                           NULL, false);
 #ifdef DEBUG_TIME
-	TIMEIT_END(BKE_mesh_calc_normals);
+	TIMEIT_END_AVERAGED(BKE_mesh_calc_normals);
 #endif
 }
 
@@ -976,7 +976,7 @@ static void loop_split_worker(TaskPool * __restrict UNUSED(pool), void *taskdata
 	BLI_Stack *edge_vectors = common_data->lnors_spacearr ? BLI_stack_new(sizeof(float[3]), __func__) : NULL;
 
 #ifdef DEBUG_TIME
-	TIMEIT_START(loop_split_worker);
+	TIMEIT_START_AVERAGED(loop_split_worker);
 #endif
 
 	while ((data_buff = BLI_thread_queue_pop(common_data->task_queue))) {
@@ -999,7 +999,7 @@ static void loop_split_worker(TaskPool * __restrict UNUSED(pool), void *taskdata
 	}
 
 #ifdef DEBUG_TIME
-	TIMEIT_END(loop_split_worker);
+	TIMEIT_END_AVERAGED(loop_split_worker);
 #endif
 }
 
@@ -1093,7 +1093,7 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 	BLI_Stack *edge_vectors = NULL;
 
 #ifdef DEBUG_TIME
-	TIMEIT_START(loop_split_generator);
+	TIMEIT_START_AVERAGED(loop_split_generator);
 #endif
 
 	if (!threaded) {
@@ -1224,7 +1224,7 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 	MEM_freeN(skip_loops);
 
 #ifdef DEBUG_TIME
-	TIMEIT_END(loop_split_generator);
+	TIMEIT_END_AVERAGED(loop_split_generator);
 #endif
 }
 
@@ -1306,7 +1306,7 @@ void BKE_mesh_normals_loop_split(
 	LoopSplitTaskDataCommon common_data = {NULL};
 
 #ifdef DEBUG_TIME
-	TIMEIT_START(BKE_mesh_normals_loop_split);
+	TIMEIT_START_AVERAGED(BKE_mesh_normals_loop_split);
 #endif
 
 	if (check_angle) {
@@ -1424,7 +1424,7 @@ void BKE_mesh_normals_loop_split(
 	}
 
 #ifdef DEBUG_TIME
-	TIMEIT_END(BKE_mesh_normals_loop_split);
+	TIMEIT_END_AVERAGED(BKE_mesh_normals_loop_split);
 #endif
 
 	}
