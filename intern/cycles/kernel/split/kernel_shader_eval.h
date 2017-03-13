@@ -16,35 +16,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Note on kernel_shader_eval kernel
- * This kernel is the 5th kernel in the ray tracing logic. This is
- * the 4rd kernel in path iteration. This kernel sets up the ShaderData
- * structure from the values computed by the previous kernels. It also identifies
- * the rays of state RAY_TO_REGENERATE and enqueues them in QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue.
+/* This kernel sets up the ShaderData structure from the values computed
+ * by the previous kernels.
  *
- * The input and output of the kernel is as follows,
- * rng_coop -------------------------------------------|--- kernel_shader_eval --|--- sd
- * Ray_coop -------------------------------------------|                         |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * PathState_coop -------------------------------------|                         |--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * Intersection_coop ----------------------------------|                         |
- * Queue_data (QUEUE_ACTIVE_AND_REGENERATD_RAYS)-------|                         |
- * Queue_index(QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)---|                         |
- * ray_state ------------------------------------------|                         |
- * kg (globals) ---------------------------------------|                         |
- * queuesize ------------------------------------------|                         |
- *
- * Note on Queues :
- * This kernel reads from the QUEUE_ACTIVE_AND_REGENERATED_RAYS queue and processes
- * only the rays of state RAY_ACTIVE;
- * State of queues when this kernel is called,
- * at entry,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE and RAY_REGENERATED rays
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty.
- * at exit,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE and RAY_REGENERATED rays
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE rays
+ * It also identifies the rays of state RAY_TO_REGENERATE and enqueues them
+ * in QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue.
  */
-
 ccl_device void kernel_shader_eval(KernelGlobals *kg)
 {
 	/* Enqeueue RAY_TO_REGENERATE rays into QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue. */
@@ -91,4 +68,3 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg)
 }
 
 CCL_NAMESPACE_END
-

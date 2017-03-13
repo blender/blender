@@ -16,48 +16,33 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Note on kernel_setup_next_iteration kernel.
- * This is the tenth kernel in the ray tracing logic. This is the ninth
- * of the path iteration kernels. This kernel takes care of setting up
- * Ray for the next iteration of path-iteration and accumulating radiance
- * corresponding to AO and direct-lighting
+/*This kernel takes care of setting up ray for the next iteration of
+ * path-iteration and accumulating radiance corresponding to AO and
+ * direct-lighting
  *
- * Ray state of rays that are terminated in this kernel are changed to RAY_UPDATE_BUFFER
+ * Ray state of rays that are terminated in this kernel are changed
+ * to RAY_UPDATE_BUFFER.
  *
- * The input and output are as follows,
+ * Note on queues:
+ * This kernel fetches rays from the queue QUEUE_ACTIVE_AND_REGENERATED_RAYS
+ * and processes only the rays of state RAY_ACTIVE.
+ * There are different points in this kernel where a ray may terminate and
+ * reach RAY_UPDATE_BUFF state. These rays are enqueued into
+ * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue. These rays will still be present
+ * in QUEUE_ACTIVE_AND_REGENERATED_RAYS queue, but since their ray-state has
+ * been changed to RAY_UPDATE_BUFF, there is no problem.
  *
- * rng_coop ---------------------------------------------|--- kernel_next_iteration_setup -|--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * throughput_coop --------------------------------------|                                 |--- Queue_data (QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS)
- * PathRadiance_coop ------------------------------------|                                 |--- throughput_coop
- * PathState_coop ---------------------------------------|                                 |--- PathRadiance_coop
- * sd ---------------------------------------------------|                                 |--- PathState_coop
- * ray_state --------------------------------------------|                                 |--- ray_state
- * Queue_data (QUEUE_ACTIVE_AND_REGENERATD_RAYS) --------|                                 |--- Ray_coop
- * Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS) ---|                                 |--- use_queues_flag
- * Ray_coop ---------------------------------------------|                                 |
- * kg (globals) -----------------------------------------|                                 |
- * LightRay_dl_coop -------------------------------------|
- * ISLamp_coop ------------------------------------------|
- * BSDFEval_coop ----------------------------------------|
- * LightRay_ao_coop -------------------------------------|
- * AOBSDF_coop ------------------------------------------|
- * AOAlpha_coop -----------------------------------------|
- *
- * Note on queues,
- * This kernel fetches rays from the queue QUEUE_ACTIVE_AND_REGENERATED_RAYS and processes only
- * the rays of state RAY_ACTIVE.
- * There are different points in this kernel where a ray may terminate and reach RAY_UPDATE_BUFF
- * state. These rays are enqueued into QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue. These rays will
- * still be present in QUEUE_ACTIVE_AND_REGENERATED_RAYS queue, but since their ray-state has been
- * changed to RAY_UPDATE_BUFF, there is no problem.
- *
- * State of queues when this kernel is called :
+ * State of queues when this kernel is called:
  * At entry,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE, RAY_REGENERATED, RAY_UPDATE_BUFFER rays.
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE and RAY_UPDATE_BUFFER rays
+ *   - QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE,
+ *     RAY_REGENERATED, RAY_UPDATE_BUFFER rays.
+ *   - QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with
+ *     RAY_TO_REGENERATE and RAY_UPDATE_BUFFER rays.
  * At exit,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE, RAY_REGENERATED and more RAY_UPDATE_BUFFER rays.
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE and more RAY_UPDATE_BUFFER rays
+ *   - QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE,
+ *     RAY_REGENERATED and more RAY_UPDATE_BUFFER rays.
+ *   - QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with
+ *     RAY_TO_REGENERATE and more RAY_UPDATE_BUFFER rays.
  */
 ccl_device void kernel_next_iteration_setup(KernelGlobals *kg)
 {
@@ -182,4 +167,3 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg)
 }
 
 CCL_NAMESPACE_END
-

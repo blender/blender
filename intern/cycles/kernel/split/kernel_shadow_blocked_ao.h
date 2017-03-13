@@ -16,33 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Note on kernel_shadow_blocked kernel.
- * This is the ninth kernel in the ray tracing logic. This is the eighth
- * of the path iteration kernels. This kernel takes care of "shadow ray cast"
- * logic of the direct lighting and AO  part of ray tracing.
- *
- * The input and output are as follows,
- *
- * PathState_coop ----------------------------------|--- kernel_shadow_blocked --|
- * LightRay_dl_coop --------------------------------|                            |--- LightRay_dl_coop
- * LightRay_ao_coop --------------------------------|                            |--- LightRay_ao_coop
- * ray_state ---------------------------------------|                            |--- ray_state
- * Queue_data(QUEUE_SHADOW_RAY_CAST_AO_RAYS &       |                            |--- Queue_data (QUEUE_SHADOW_RAY_CAST_AO_RAYS & QUEUE_SHADOW_RAY_CAST_AO_RAYS)
-              QUEUE_SHADOW_RAY_CAST_DL_RAYS) -------|                            |
- * Queue_index(QUEUE_SHADOW_RAY_CAST_AO_RAYS&
-              QUEUE_SHADOW_RAY_CAST_DL_RAYS) -------|                            |
- * kg (globals) ------------------------------------|                            |
- * queuesize ---------------------------------------|                            |
- *
- * Note on sd_shadow : sd_shadow is neither input nor output to this kernel. sd_shadow is filled and consumed in this kernel itself.
- * Note on queues :
- * The kernel fetches from QUEUE_SHADOW_RAY_CAST_AO_RAYS queue. We will empty this queues in this kernel.
- * State of queues when this kernel is called :
- * state of queues QUEUE_ACTIVE_AND_REGENERATED_RAYS and QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be same
- * before and after this kernel call.
- * QUEUE_SHADOW_RAY_CAST_AO_RAYS will be filled with rays marked with flags RAY_SHADOW_RAY_CAST_AO during kernel entry.
- * QUEUE_SHADOW_RAY_CAST_AO_RAYS will be empty at kernel exit.
- */
+/* Shadow ray cast for AO. */
 ccl_device void kernel_shadow_blocked_ao(KernelGlobals *kg)
 {
 	int lidx = ccl_local_id(1) * ccl_local_id(0) + ccl_local_id(0);

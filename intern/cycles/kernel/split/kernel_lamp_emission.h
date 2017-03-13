@@ -16,25 +16,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Note on kernel_lamp_emission
- * This is the 3rd kernel in the ray-tracing logic. This is the second of the
- * path-iteration kernels. This kernel takes care of the indirect lamp emission logic.
- * This kernel operates on QUEUE_ACTIVE_AND_REGENERATED_RAYS. It processes rays of state RAY_ACTIVE
- * and RAY_HIT_BACKGROUND.
+/* This kernel operates on QUEUE_ACTIVE_AND_REGENERATED_RAYS.
+ * It processes rays of state RAY_ACTIVE and RAY_HIT_BACKGROUND.
  * We will empty QUEUE_ACTIVE_AND_REGENERATED_RAYS queue in this kernel.
- * The input/output of the kernel is as follows,
- * Throughput_coop ------------------------------------|--- kernel_lamp_emission --|--- PathRadiance_coop
- * Ray_coop -------------------------------------------|                           |--- Queue_data(QUEUE_ACTIVE_AND_REGENERATED_RAYS)
- * PathState_coop -------------------------------------|                           |--- Queue_index(QUEUE_ACTIVE_AND_REGENERATED_RAYS)
- * kg (globals) ---------------------------------------|                           |
- * Intersection_coop ----------------------------------|                           |
- * ray_state ------------------------------------------|                           |
- * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) -----|                           |
- * Queue_index (QUEUE_ACTIVE_AND_REGENERATED_RAYS) ----|                           |
- * queuesize ------------------------------------------|                           |
- * use_queues_flag ------------------------------------|                           |
- * sw -------------------------------------------------|                           |
- * sh -------------------------------------------------|                           |
  */
 ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 {

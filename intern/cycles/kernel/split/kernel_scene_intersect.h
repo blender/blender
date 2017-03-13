@@ -16,51 +16,13 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Note on kernel_scene_intersect kernel.
- * This is the second kernel in the ray tracing logic. This is the first
- * of the path iteration kernels. This kernel takes care of scene_intersect function.
+/* This kernel takes care of scene_intersect function.
  *
  * This kernel changes the ray_state of RAY_REGENERATED rays to RAY_ACTIVE.
  * This kernel processes rays of ray state RAY_ACTIVE
- * This kernel determines the rays that have hit the background and changes their ray state to RAY_HIT_BACKGROUND.
- *
- * The input and output are as follows,
- *
- * Ray_coop ---------------------------------------|--------- kernel_scene_intersect----------|--- PathState
- * PathState_coop ---------------------------------|                                          |--- Intersection
- * ray_state --------------------------------------|                                          |--- ray_state
- * use_queues_flag --------------------------------|                                          |
- * QueueData(QUEUE_ACTIVE_AND_REGENERATED_RAYS) ---|                                          |
- * kg (globals) -----------------------------------|                                          |
- * rng_coop ---------------------------------------|                                          |
- * sw ---------------------------------------------|                                          |
- * sh ---------------------------------------------|                                          |
- * queuesize --------------------------------------|                                          |
- *
- * Note on Queues :
- * Ideally we would want kernel_scene_intersect to work on queues.
- * But during the very first time, the queues will be empty and hence we perform a direct mapping
- * between ray-index and thread-index; From the next time onward, the queue will be filled and
- * we may start operating on queues.
- *
- * State of queue during the first time this kernel is called :
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS and QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty.before and after this kernel
- *
- * State of queues during other times this kernel is called :
- * At entry,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will have a mix of RAY_ACTIVE, RAY_UPDATE_BUFFER and RAY_REGENERATED rays;
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE and RAY_UPDATE_BUFFER rays ;
- * (The rays that are in the state RAY_UPDATE_BUFFER in both the queues are actually the same rays; These
- * are the rays that were in RAY_ACTIVE state during the initial enqueue but on further processing
- * , by different kernels, have turned into RAY_UPDATE_BUFFER rays. Since all kernel, even after fetching from
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS, proceed further based on ray state information, RAY_UPDATE_BUFFER rays
- * being present in QUEUE_ACTIVE_AND_REGENERATED_RAYS does not cause any logical issues)
- * At exit,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS - All RAY_REGENERATED rays will have been converted to RAY_ACTIVE and
- * Some rays in QUEUE_ACTIVE_AND_REGENERATED_RAYS queue will move to state RAY_HIT_BACKGROUND
- * QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS - no change
+ * This kernel determines the rays that have hit the background and changes
+ * their ray state to RAY_HIT_BACKGROUND.
  */
-
 ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 {
 	/* Fetch use_queues_flag */
@@ -146,4 +108,3 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 }
 
 CCL_NAMESPACE_END
-
