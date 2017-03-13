@@ -1019,18 +1019,6 @@ static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
 	ret_ret_##ret;                                                            \
 }
 
-#define BGLU_Wrap(funcname, ret, arg_list)                                    \
-static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
-{                                                                             \
-	arg_def arg_list;                                                         \
-	ret_def_##ret;                                                            \
-	if (!PyArg_ParseTuple(args, arg_str arg_list, arg_ref arg_list)) {        \
-		return NULL;                                                          \
-	}                                                                         \
-	ret_set_##ret glu##funcname (arg_var arg_list);                           \
-	ret_ret_##ret;                                                            \
-}
-
 /* GL_VERSION_1_0 */
 BGL_Wrap(BlendFunc,                 void,      (GLenum, GLenum))
 BGL_Wrap(Clear,                     void,      (GLbitfield))
@@ -1310,14 +1298,6 @@ BGL_Wrap(VertexP3uiv,               void,      (GLenum, GLuintP))
 BGL_Wrap(VertexP4ui,                void,      (GLenum, GLuint))
 BGL_Wrap(VertexP4uiv,               void,      (GLenum, GLuintP))
 
-
-BGLU_Wrap(Perspective,       void,       (GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(LookAt,            void,       (GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(Ortho2D,           void,       (GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(PickMatrix,        void,       (GLdouble, GLdouble, GLdouble, GLdouble, GLintP))
-BGLU_Wrap(Project,           GLint,      (GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
-BGLU_Wrap(UnProject,         GLint,      (GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
-
 /** \} */
 
 
@@ -1326,26 +1306,12 @@ BGLU_Wrap(UnProject,         GLint,      (GLdouble, GLdouble, GLdouble, GLdouble
 /** \name Module Definition
  * \{ */
 
-#define MethodDefu(func) {"glu"#func, Method_##func, METH_VARARGS, NULL}
-
-static struct PyMethodDef BGL_methods[] = {
-	MethodDefu(Perspective),
-	MethodDefu(LookAt),
-	MethodDefu(Ortho2D),
-	MethodDefu(PickMatrix),
-	MethodDefu(Project),
-	MethodDefu(UnProject),
-	{NULL, NULL, 0, NULL}
-};
-
-#undef MethodDefu
-
 static struct PyModuleDef BGL_module_def = {
 	PyModuleDef_HEAD_INIT,
 	"bgl",  /* m_name */
 	NULL,  /* m_doc */
 	0,  /* m_size */
-	BGL_methods,  /* m_methods */
+	NULL,  /* m_methods */
 	NULL,  /* m_reload */
 	NULL,  /* m_traverse */
 	NULL,  /* m_clear */
