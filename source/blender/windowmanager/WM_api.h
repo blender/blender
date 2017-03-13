@@ -238,6 +238,7 @@ void		WM_operator_view3d_unit_defaults(struct bContext *C, struct wmOperator *op
 int			WM_operator_smooth_viewtx_get(const struct wmOperator *op);
 int			WM_menu_invoke_ex(struct bContext *C, struct wmOperator *op, int opcontext);
 int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int         WM_enum_search_invoke_previews(struct bContext *C, struct wmOperator *op, short prv_cols, short prv_rows);
 int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);

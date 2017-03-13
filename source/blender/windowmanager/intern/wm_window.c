@@ -58,6 +58,7 @@
 
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -71,6 +72,7 @@
 #include "ED_fileselect.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 
 #include "PIL_time.h"
 
@@ -78,6 +80,8 @@
 #include "GPU_extensions.h"
 #include "GPU_init_exit.h"
 #include "GPU_immediate.h"
+
+#include "UI_resources.h"
 
 /* for assert */
 #ifndef NDEBUG
@@ -244,6 +248,25 @@ wmWindow *wm_window_new(bContext *C)
 	return win;
 }
 
+/**
+ * A higher level version of copy that tests the new window can be added.
+ */
+static wmWindow *wm_window_new_test(bContext *C)
+{
+	wmWindow *win = wm_window_new(C);
+
+	WM_check(C);
+
+	if (win->ghostwin) {
+		WM_event_add_notifier(C, NC_WINDOW | NA_ADDED, NULL);
+		return win;
+	}
+	else {
+		wmWindowManager *wm = CTX_wm_manager(C);
+		wm_window_close(C, wm, win);
+		return NULL;
+	}
+}
 
 /* part of wm_window.c api */
 wmWindow *wm_window_copy(bContext *C, wmWindow *win_src)
@@ -723,17 +746,79 @@ int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-/* operator callback */
-int wm_window_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
+/* new window operator callback */
+int wm_window_new_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindow *win_src = CTX_wm_window(C);
-	bool ok;
+	const int screen_id = RNA_enum_get(op->ptr, "screen");
+	bScreen *screen = BLI_findlink(&bmain->screen, screen_id);
+	wmWindow *win_dst;
 
-	ok = (wm_window_copy_test(C, win_src) != NULL);
+	if (screen->winid) {
+		/* Screen is already used, duplicate window and screen */
+		win_dst = wm_window_copy_test(C, win_src);
+	}
+	else if ((win_dst = wm_window_new_test(C))) {
+		/* New window with a different screen */
+		win_dst->screen = screen;
+		screen->winid = win_dst->winid;
+		CTX_wm_window_set(C, win_dst);
+		ED_screen_refresh(CTX_wm_manager(C), win_dst);
+	}
 
-	return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return (win_dst != NULL) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
+int wm_window_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	Main *bmain = CTX_data_main(C);
+
+	if (BLI_listbase_count_ex(&bmain->screen, 2) == 1) {
+		RNA_enum_set(op->ptr, "screen", 0);
+		return wm_window_new_exec(C, op);
+	}
+	else {
+		return WM_enum_search_invoke_previews(C, op, 6, 2);
+	}
+}
+
+struct EnumPropertyItem *wm_window_new_screen_itemf(
+        bContext *C, struct PointerRNA *UNUSED(ptr), struct PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	Main *bmain = CTX_data_main(C);
+	EnumPropertyItem *item = NULL;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	int value = 0, totitem = 0;
+	int count_act_screens = 0;
+	/* XXX setting max number of windows to 20. We'd need support
+	 * for dynamic strings in EnumPropertyItem.name to avoid this. */
+	static char active_screens[20][MAX_NAME + 12];
+
+	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		if (screen->winid) {
+			BLI_snprintf(active_screens[count_act_screens], sizeof(*active_screens), "%s (Duplicate)",
+			             screen->id.name + 2);
+			tmp.name = active_screens[count_act_screens++];
+		}
+		else {
+			tmp.name = screen->id.name + 2;
+		}
+
+		tmp.value = value;
+		tmp.identifier = screen->id.name;
+		UI_id_icon_render(C, CTX_data_scene(C), &screen->id, true, false);
+		tmp.icon = BKE_icon_id_ensure(&screen->id);
+
+		RNA_enum_item_add(&item, &totitem, &tmp);
+		value++;
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
 
 /* fullscreen operator callback */
 int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))

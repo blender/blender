@@ -281,7 +281,7 @@ class INFO_MT_window(Menu):
 
         layout = self.layout
 
-        layout.operator("wm.window_duplicate")
+        layout.operator("wm.window_new")
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
 
         layout.separator()
