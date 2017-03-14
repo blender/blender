@@ -787,8 +787,6 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			immDrawPixelsTex(x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect,
 			                 zoomx, zoomy, col);
 
-			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-
 			glMatrixMode(GL_PROJECTION);
 			glPopMatrix();
 			glMatrixMode(GL_MODELVIEW);

@@ -331,10 +331,6 @@ void gpu_select_pick_begin(
 			glDepthFunc(GL_LEQUAL);
 		}
 
-		/* set just in case */
-		glPixelTransferf(GL_DEPTH_BIAS, 0.0);
-		glPixelTransferf(GL_DEPTH_SCALE, 1.0);
-
 		float viewport[4];
 		glGetFloatv(GL_SCISSOR_BOX, viewport);
 

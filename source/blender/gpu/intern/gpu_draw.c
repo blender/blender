@@ -2255,15 +2255,6 @@ static void gpu_multisample(bool enable)
 
 void GPU_state_init(void)
 {
-	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
-	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
-	
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_specular);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
-	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 35);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-
 	GPU_default_lights();
 
 	GPU_disable_program_point_size();
@@ -2279,9 +2270,6 @@ void GPU_state_init(void)
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_FOG);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
 	glDisable(GL_LOGIC_OP);
 	glDisable(GL_STENCIL_TEST);
 	glDisable(GL_TEXTURE_1D);
@@ -2294,18 +2282,6 @@ void GPU_state_init(void)
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
-	glPixelTransferi(GL_RED_SCALE, 1);
-	glPixelTransferi(GL_RED_BIAS, 0);
-	glPixelTransferi(GL_GREEN_SCALE, 1);
-	glPixelTransferi(GL_GREEN_BIAS, 0);
-	glPixelTransferi(GL_BLUE_SCALE, 1);
-	glPixelTransferi(GL_BLUE_BIAS, 0);
-	glPixelTransferi(GL_ALPHA_SCALE, 1);
-	glPixelTransferi(GL_ALPHA_BIAS, 0);
-
-	glPixelTransferi(GL_DEPTH_BIAS, 0);
-	glPixelTransferi(GL_DEPTH_SCALE, 1);
 	glDepthRange(0.0, 1.0);
 
 	glMatrixMode(GL_TEXTURE);
