@@ -29,10 +29,7 @@ ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 	}
 #endif
 	/* Fetch use_queues_flag. */
-	ccl_local char local_use_queues_flag;
-	if(ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
-		local_use_queues_flag = *kernel_split_params.use_queues_flag;
-	}
+	char local_use_queues_flag = *kernel_split_params.use_queues_flag;
 	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
 	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);

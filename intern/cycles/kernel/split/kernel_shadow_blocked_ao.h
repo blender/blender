@@ -19,12 +19,7 @@ CCL_NAMESPACE_BEGIN
 /* Shadow ray cast for AO. */
 ccl_device void kernel_shadow_blocked_ao(KernelGlobals *kg)
 {
-	int lidx = ccl_local_id(1) * ccl_local_id(0) + ccl_local_id(0);
-
-	ccl_local unsigned int ao_queue_length;
-	if(lidx == 0) {
-		ao_queue_length = kernel_split_params.queue_index[QUEUE_SHADOW_RAY_CAST_AO_RAYS];
-	}
+	unsigned int ao_queue_length = kernel_split_params.queue_index[QUEUE_SHADOW_RAY_CAST_AO_RAYS];
 	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
 	int ray_index = QUEUE_EMPTY_SLOT;
