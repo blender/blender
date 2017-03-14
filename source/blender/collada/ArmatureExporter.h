@@ -83,8 +83,6 @@ private:
 	void find_objects_using_armature(Object *ob_arm, std::vector<Object *>& objects, Scene *sce);
 #endif
 
-	std::string get_joint_sid(Bone *bone, Object *ob_arm);
-
 	// Scene, SceneExporter and the list of child_objects
 	// are required for writing bone parented objects
 	void add_bone_node(Bone *bone, Object *ob_arm, Scene *sce, SceneExporter *se,

@@ -156,11 +156,6 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 }
 #endif
 
-std::string ArmatureExporter::get_joint_sid(Bone *bone, Object *ob_arm)
-{
-	return get_joint_id(bone, ob_arm);
-}
-
 // parent_mat is armature-space
 void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
                                      SceneExporter *se,

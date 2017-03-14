@@ -104,6 +104,7 @@ extern std::string get_geometry_id(Object *ob, bool use_instantiation);
 extern std::string get_light_id(Object *ob);
 
 extern std::string get_joint_id(Bone *bone, Object *ob_arm);
+extern std::string get_joint_sid(Bone *bone, Object *ob_arm);
 
 extern std::string get_camera_id(Object *ob);
 
