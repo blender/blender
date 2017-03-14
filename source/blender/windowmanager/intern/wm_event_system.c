@@ -715,7 +715,9 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
  */
 static bool wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
 {
-	return wm && (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
+	/* Check undo flag here since undo operators are also added to the list,
+	 * to support checking if the same operator is run twice. */
+	return wm && (wm->op_undo_depth == 0) && (ot->flag & (OPTYPE_REGISTER | OPTYPE_UNDO));
 }
 
 static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat)

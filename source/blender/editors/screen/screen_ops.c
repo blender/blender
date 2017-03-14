@@ -2904,9 +2904,20 @@ static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmOperator *lastop = CTX_wm_manager(C)->operators.last;
-	
-	if (lastop)
+
+	/* Seek last registered operator */
+	while (lastop) {
+		if (lastop->type->flag & OPTYPE_REGISTER) {
+			break;
+		}
+		else {
+			lastop = lastop->prev;
+		}
+	}
+
+	if (lastop) {
 		WM_operator_repeat(C, lastop);
+	}
 	
 	return OPERATOR_CANCELLED;
 }
@@ -2941,8 +2952,9 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 	layout = UI_popup_menu_layout(pup);
 	
 	for (i = items - 1, lastop = wm->operators.last; lastop; lastop = lastop->prev, i--)
-		if (WM_operator_repeat_check(C, lastop))
+		if ((lastop->type->flag & OPTYPE_REGISTER) && WM_operator_repeat_check(C, lastop)) {
 			uiItemIntO(layout, RNA_struct_ui_name(lastop->type->srna), ICON_NONE, op->type->idname, "index", i);
+		}
 	
 	UI_popup_menu_end(C, pup);
 	

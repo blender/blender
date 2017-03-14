@@ -149,18 +149,23 @@ static void wm_reports_free(wmWindowManager *wm)
 void wm_operator_register(bContext *C, wmOperator *op)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-	int tot;
+	int tot = 0;
 
 	BLI_addtail(&wm->operators, op);
-	tot = BLI_listbase_count(&wm->operators);
-	
-	while (tot > MAX_OP_REGISTERED) {
-		wmOperator *opt = wm->operators.first;
-		BLI_remlink(&wm->operators, opt);
-		WM_operator_free(opt);
-		tot--;
+
+	/* only count registered operators */
+	while (op) {
+		wmOperator *op_prev = op->prev;
+		if (op->type->flag & OPTYPE_REGISTER) {
+			tot += 1;
+		}
+		if (tot > MAX_OP_REGISTERED) {
+			BLI_remlink(&wm->operators, op);
+			WM_operator_free(op);
+		}
+		op = op_prev;
 	}
-	
+
 	/* so the console is redrawn */
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, NULL);
 	WM_event_add_notifier(C, NC_WM | ND_HISTORY, NULL);
