@@ -215,20 +215,22 @@ class TEXT_MT_templates_py(Menu):
     bl_label = "Python"
 
     def draw(self, context):
-        self.path_menu(bpy.utils.script_paths("templates_py"),
-                       "text.open",
-                       {"internal": True},
-                       )
+        self.path_menu(
+            bpy.utils.script_paths("templates_py"),
+            "text.open",
+            props_default={"internal": True},
+        )
 
 
 class TEXT_MT_templates_osl(Menu):
     bl_label = "Open Shading Language"
 
     def draw(self, context):
-        self.path_menu(bpy.utils.script_paths("templates_osl"),
-                       "text.open",
-                       {"internal": True},
-                       )
+        self.path_menu(
+            bpy.utils.script_paths("templates_osl"),
+            "text.open",
+            props_default={"internal": True},
+        )
 
 
 class TEXT_MT_templates(Menu):
