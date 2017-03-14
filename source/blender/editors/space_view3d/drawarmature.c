@@ -365,7 +365,7 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 {
 	static VertexFormat format = {0};
 	static VertexBuffer vbo = {{0}};
-	static Batch batch = {0};
+	static Batch batch = {{0}};
 	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
 	if (format.attrib_ct == 0) {
@@ -428,7 +428,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 	static VertexBuffer vbo = {{0}};
 	static ElementListBuilder elb = {0};
 	static ElementList el = {0};
-	static Batch batch = {0};
+	static Batch batch = {{0}};
 
 	if (format.attrib_ct == 0) {
 		/* Vertex format */
@@ -467,7 +467,7 @@ static void draw_bonevert(void)
 {
 	static VertexFormat format = {0};
 	static VertexBuffer vbo = {{0}};
-	static Batch batch = {0};
+	static Batch batch = {{0}};
 
 	if (format.attrib_ct == 0) {
 		/* Vertex format */
@@ -585,7 +585,7 @@ static void draw_bone_octahedral(void)
 	static VertexBuffer vbo = {{0}};
 	static ElementListBuilder elb = {0};
 	static ElementList el = {0};
-	static Batch batch = {0};
+	static Batch batch = {{0}};
 
 	if (format.attrib_ct == 0) {
 		/* Vertex format */
@@ -622,7 +622,7 @@ static void draw_bone_solid_octahedral(void)
 {
 	static VertexFormat format = {0};
 	static VertexBuffer vbo = {{0}};
-	static Batch batch = {0};
+	static Batch batch = {{0}};
 	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
 	if (format.attrib_ct == 0) {
