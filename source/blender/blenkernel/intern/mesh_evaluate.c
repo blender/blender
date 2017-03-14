@@ -644,9 +644,6 @@ typedef struct LoopSplitTaskDataCommon {
 
 	int numLoops;
 	int numPolys;
-
-	/* ***** Workers communication. ***** */
-	ThreadQueue *task_queue;
 } LoopSplitTaskDataCommon;
 
 #define INDEX_UNSET INT_MIN
@@ -967,10 +964,10 @@ static void loop_split_worker_do(
 	}
 }
 
-static void loop_split_worker(TaskPool * __restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
+static void loop_split_worker(TaskPool * __restrict pool, void *taskdata, int UNUSED(threadid))
 {
-	LoopSplitTaskDataCommon *common_data = taskdata;
-	LoopSplitTaskData *data_buff;
+	LoopSplitTaskDataCommon *common_data = BLI_task_pool_userdata(pool);
+	LoopSplitTaskData *data = taskdata;
 
 	/* Temp edge vectors stack, only used when computing lnor spacearr. */
 	BLI_Stack *edge_vectors = common_data->lnors_spacearr ? BLI_stack_new(sizeof(float[3]), __func__) : NULL;
@@ -979,19 +976,13 @@ static void loop_split_worker(TaskPool * __restrict UNUSED(pool), void *taskdata
 	TIMEIT_START_AVERAGED(loop_split_worker);
 #endif
 
-	while ((data_buff = BLI_thread_queue_pop(common_data->task_queue))) {
-		LoopSplitTaskData *data = data_buff;
-		uint i;
-
-		for (i = 0; i < LOOP_SPLIT_TASK_BLOCK_SIZE; i++, data++) {
-			/* A NULL ml_curr is used to tag ended data! */
-			if (data->ml_curr == NULL) {
-				break;
-			}
-			loop_split_worker_do(common_data, data, edge_vectors);
+	for (int i = 0; i < LOOP_SPLIT_TASK_BLOCK_SIZE; i++, data++) {
+		/* A NULL ml_curr is used to tag ended data! */
+		if (data->ml_curr == NULL) {
+			break;
 		}
 
-		MEM_freeN(data_buff);
+		loop_split_worker_do(common_data, data, edge_vectors);
 	}
 
 	if (edge_vectors) {
@@ -1064,7 +1055,7 @@ static bool loop_split_generator_check_cyclic_smooth_fan(
 	}
 }
 
-static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const bool threaded)
+static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common_data)
 {
 	MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
 	float (*loopnors)[3] = common_data->loopnors;
@@ -1096,7 +1087,7 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 	TIMEIT_START_AVERAGED(loop_split_generator);
 #endif
 
-	if (!threaded) {
+	if (!pool) {
 		if (lnors_spacearr) {
 			edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
 		}
@@ -1143,7 +1134,7 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 
 //				printf("PROCESSING!\n");
 
-				if (threaded) {
+				if (pool) {
 					if (data_idx == 0) {
 						data_buff = MEM_callocN(sizeof(*data_buff) * LOOP_SPLIT_TASK_BLOCK_SIZE, __func__);
 					}
@@ -1191,10 +1182,10 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 					}
 				}
 
-				if (threaded) {
+				if (pool) {
 					data_idx++;
 					if (data_idx == LOOP_SPLIT_TASK_BLOCK_SIZE) {
-						BLI_thread_queue_push(common_data->task_queue, data_buff);
+						BLI_task_pool_push(pool, loop_split_worker, data_buff, true, TASK_PRIORITY_LOW);
 						data_idx = 0;
 					}
 				}
@@ -1208,14 +1199,9 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 		}
 	}
 
-	if (threaded) {
-		/* Last block of data... Since it is calloc'ed and we use first NULL item as stopper, everything is fine. */
-		if (LIKELY(data_idx)) {
-			BLI_thread_queue_push(common_data->task_queue, data_buff);
-		}
-
-		/* This will signal all other worker threads to wake up and finish! */
-		BLI_thread_queue_nowait(common_data->task_queue);
+	/* Last block of data... Since it is calloc'ed and we use first NULL item as stopper, everything is fine. */
+	if (pool && data_idx) {
+		BLI_task_pool_push(pool, loop_split_worker, data_buff, true, TASK_PRIORITY_LOW);
 	}
 
 	if (edge_vectors) {
@@ -1226,13 +1212,6 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 #ifdef DEBUG_TIME
 	TIMEIT_END_AVERAGED(loop_split_generator);
 #endif
-}
-
-static void loop_split_generator(TaskPool * __restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
-{
-	LoopSplitTaskDataCommon *common_data = taskdata;
-
-	loop_split_generator_do(common_data, true);
 }
 
 /**
@@ -1278,8 +1257,6 @@ void BKE_mesh_normals_loop_split(
 		return;
 	}
 
-	{
-
 	/* Mapping edge -> loops.
 	 * If that edge is used by more than two loops (polys), it is always sharp (and tagged as such, see below).
 	 * We also use the second loop index as a kind of flag: smooth edge: > 0,
@@ -1296,14 +1273,11 @@ void BKE_mesh_normals_loop_split(
 
 	MPoly *mp;
 	int mp_index;
-	int i;
 
 	/* When using custom loop normals, disable the angle feature! */
 	const bool check_angle = (split_angle < (float)M_PI) && (clnors_data == NULL);
 
 	MLoopNorSpaceArray _lnors_spacearr = {NULL};
-
-	LoopSplitTaskDataCommon common_data = {NULL};
 
 #ifdef DEBUG_TIME
 	TIMEIT_START_AVERAGED(BKE_mesh_normals_loop_split);
@@ -1373,43 +1347,37 @@ void BKE_mesh_normals_loop_split(
 	}
 
 	/* Init data common to all tasks. */
-	common_data.lnors_spacearr = r_lnors_spacearr;
-	common_data.loopnors = r_loopnors;
-	common_data.clnors_data = clnors_data;
-
-	common_data.mverts = mverts;
-	common_data.medges = medges;
-	common_data.mloops = mloops;
-	common_data.mpolys = mpolys;
-	common_data.edge_to_loops = (const int(*)[2])edge_to_loops;
-	common_data.loop_to_poly = loop_to_poly;
-	common_data.polynors = polynors;
-	common_data.numLoops = numLoops;
-	common_data.numPolys = numPolys;
+	LoopSplitTaskDataCommon common_data = {
+	    .lnors_spacearr = r_lnors_spacearr,
+	    .loopnors = r_loopnors,
+	    .clnors_data = clnors_data,
+	    .mverts = mverts,
+	    .medges = medges,
+	    .mloops = mloops,
+	    .mpolys = mpolys,
+	    .edge_to_loops = (const int(*)[2])edge_to_loops,
+	    .loop_to_poly = loop_to_poly,
+	    .polynors = polynors,
+	    .numLoops = numLoops,
+	    .numPolys = numPolys,
+	};
 
 	if (numLoops < LOOP_SPLIT_TASK_BLOCK_SIZE * 8) {
 		/* Not enough loops to be worth the whole threading overhead... */
-		loop_split_generator_do(&common_data, false);
+		loop_split_generator(NULL, &common_data);
 	}
 	else {
 		TaskScheduler *task_scheduler;
 		TaskPool *task_pool;
 
-		common_data.task_queue = BLI_thread_queue_init();
-
 		task_scheduler = BLI_task_scheduler_get();
-		task_pool = BLI_task_pool_create(task_scheduler, NULL);
+		task_pool = BLI_task_pool_create(task_scheduler, &common_data);
 
-		const int nbr_workers = max_ii(2, BLI_task_scheduler_num_threads(task_scheduler));
-		for (i = 1; i < nbr_workers; i++) {
-			BLI_task_pool_push(task_pool, loop_split_worker, &common_data, false, TASK_PRIORITY_HIGH);
-		}
-		BLI_task_pool_push(task_pool, loop_split_generator, &common_data, false, TASK_PRIORITY_HIGH);
+		loop_split_generator(task_pool, &common_data);
+
 		BLI_task_pool_work_and_wait(task_pool);
 
 		BLI_task_pool_free(task_pool);
-
-		BLI_thread_queue_free(common_data.task_queue);
 	}
 
 	MEM_freeN(edge_to_loops);
@@ -1426,8 +1394,6 @@ void BKE_mesh_normals_loop_split(
 #ifdef DEBUG_TIME
 	TIMEIT_END_AVERAGED(BKE_mesh_normals_loop_split);
 #endif
-
-	}
 }
 
 #undef INDEX_UNSET
