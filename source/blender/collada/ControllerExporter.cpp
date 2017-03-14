@@ -157,11 +157,6 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 }
 #endif
 
-std::string ControllerExporter::get_joint_sid(Bone *bone, Object *ob_arm)
-{
-	return get_joint_id(bone, ob_arm);
-}
-
 std::string ControllerExporter::get_controller_id(Object *ob_arm, Object *ob)
 {
 	return translate_id(id_name(ob_arm)) + "_" + translate_id(id_name(ob)) + SKIN_CONTROLLER_ID_SUFFIX;

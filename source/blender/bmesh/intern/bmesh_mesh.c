@@ -486,8 +486,7 @@ static void bm_mesh_edges_sharp_tag(
         BMesh *bm, const float (*vnos)[3], const float (*fnos)[3], float split_angle,
         float (*r_lnos)[3])
 {
-	BMIter eiter, viter;
-	BMVert *v;
+	BMIter eiter;
 	BMEdge *e;
 	int i;
 
@@ -498,17 +497,11 @@ static void bm_mesh_edges_sharp_tag(
 	}
 
 	{
-		char htype = BM_LOOP;
+		char htype = BM_VERT | BM_LOOP;
 		if (fnos) {
 			htype |= BM_FACE;
 		}
 		BM_mesh_elem_index_ensure(bm, htype);
-	}
-
-	/* Clear all vertices' tags (means they are all smooth for now). */
-	BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
-		BM_elem_index_set(v, i); /* set_inline */
-		BM_elem_flag_disable(v, BM_ELEM_TAG);
 	}
 
 	/* This first loop checks which edges are actually smooth, and pre-populate lnos with vnos (as if they were
@@ -551,20 +544,45 @@ static void bm_mesh_edges_sharp_tag(
 				no = vnos ? vnos[BM_elem_index_get(l_b->v)] : l_b->v->no;
 				copy_v3_v3(r_lnos[BM_elem_index_get(l_b)], no);
 			}
-			else {
-				/* Sharp edge, tag its verts as such. */
-				BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
-				BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
-			}
-		}
-		else {
-			/* Sharp edge, tag its verts as such. */
-			BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
-			BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
 		}
 	}
 
-	bm->elem_index_dirty &= ~(BM_EDGE | BM_VERT);
+	bm->elem_index_dirty &= ~BM_EDGE;
+}
+
+/* Check whether gievn loop is part of an unknown-so-far cyclic smooth fan, or not.
+ * Needed because cyclic smooth fans have no obvious 'entry point', and yet we need to walk them once, and only once. */
+static bool bm_mesh_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
+{
+	BMLoop *lfan_pivot_next = l_curr;
+	BMEdge *e_next = l_curr->e;
+
+	BLI_assert(!BM_elem_flag_test(lfan_pivot_next, BM_ELEM_TAG));
+	BM_elem_flag_enable(lfan_pivot_next, BM_ELEM_TAG);
+
+	while (true) {
+		/* Much simpler than in sibling code with basic Mesh data! */
+		lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot_next, &e_next);
+
+		if (!lfan_pivot_next || !BM_elem_flag_test(e_next, BM_ELEM_TAG)) {
+			/* Sharp loop/edge, so not a cyclic smooth fan... */
+			return false;
+		}
+		/* Smooth loop/edge... */
+		else if (BM_elem_flag_test(lfan_pivot_next, BM_ELEM_TAG)) {
+			if (lfan_pivot_next == l_curr) {
+				/* We walked around a whole cyclic smooth fan without finding any already-processed loop, means we can
+				 * use initial l_curr/l_prev edge as start for this smooth fan. */
+				return true;
+			}
+			/* ... already checked in some previous looping, we can abort. */
+			return false;
+		}
+		else {
+			/* ... we can skip it in future, and keep checking the smooth fan. */
+			BM_elem_flag_enable(lfan_pivot_next, BM_ELEM_TAG);
+		}
+	}
 }
 
 /* BMesh version of BKE_mesh_normals_loop_split() in mesh_evaluate.c
@@ -587,13 +605,11 @@ static void bm_mesh_loops_calc_normals(
 	BLI_Stack *edge_vectors = NULL;
 
 	{
-		char htype = BM_LOOP;
+		char htype = 0;
 		if (vcos) {
 			htype |= BM_VERT;
 		}
-		if (fnos) {
-			htype |= BM_FACE;
-		}
+		/* Face/Loop indices are set inline below. */
 		BM_mesh_elem_index_ensure(bm, htype);
 	}
 
@@ -606,6 +622,21 @@ static void bm_mesh_loops_calc_normals(
 		edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
 	}
 
+	/* Clear all loops' tags (means none are to be skipped for now). */
+	int index_face, index_loop = 0;
+	BM_ITER_MESH_INDEX (f_curr, &fiter, bm, BM_FACES_OF_MESH, index_face) {
+		BMLoop *l_curr, *l_first;
+
+		BM_elem_index_set(f_curr, index_face); /* set_inline */
+
+		l_curr = l_first = BM_FACE_FIRST_LOOP(f_curr);
+		do {
+			BM_elem_index_set(l_curr, index_loop++); /* set_inline */
+			BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
+		} while ((l_curr = l_curr->next) != l_first);
+	}
+	bm->elem_index_dirty &= ~(BM_FACE|BM_LOOP);
+
 	/* We now know edges that can be smoothed (they are tagged), and edges that will be hard (they aren't).
 	 * Now, time to generate the normals.
 	 */
@@ -614,16 +645,16 @@ static void bm_mesh_loops_calc_normals(
 
 		l_curr = l_first = BM_FACE_FIRST_LOOP(f_curr);
 		do {
+			/* A smooth edge, we have to check for cyclic smooth fan case.
+			 * If we find a new, never-processed cyclic smooth fan, we can do it now using that loop/edge as
+			 * 'entry point', otherwise we can skip it. */
+			/* Note: In theory, we could make bm_mesh_loop_check_cyclic_smooth_fan() store mlfan_pivot's in a stack,
+			 * to avoid having to fan again around the vert during actual computation of clnor & clnorspace.
+			 * However, this would complicate the code, add more memory usage, and BM_vert_step_fan_loop()
+			 * is quite cheap in term of CPU cycles, so really think it's not worth it. */
 			if (BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
-			    (!r_lnors_spacearr || BM_elem_flag_test(l_curr->v, BM_ELEM_TAG)))
+			    (BM_elem_flag_test(l_curr, BM_ELEM_TAG) || !bm_mesh_loop_check_cyclic_smooth_fan(l_curr)))
 			{
-				/* A smooth edge, and we are not generating lnors_spacearr, or the related vertex is sharp.
-				 * We skip it because it is either:
-				 * - in the middle of a 'smooth fan' already computed (or that will be as soon as we hit
-				 *   one of its ends, i.e. one of its two sharp edges), or...
-				 * - the related vertex is a "full smooth" one, in which case pre-populated normals from vertex
-				 *   are just fine!
-				 */
 			}
 			else if (!BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
 			         !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG))

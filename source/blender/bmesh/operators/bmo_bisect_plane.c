@@ -38,7 +38,8 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 #define ELE_NEW 1
-#define ELE_INPUT 2
+#define ELE_CUT 2
+#define ELE_INPUT 4
 
 void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 {
@@ -69,7 +70,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 
 
 	BM_mesh_bisect_plane(bm, plane, use_snap_center, true,
-	                     ELE_NEW, dist);
+	                     ELE_CUT, ELE_NEW, dist);
 
 
 	if (clear_outer || clear_inner) {
@@ -108,5 +109,5 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW | ELE_INPUT);
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_cut.out", BM_VERT | BM_EDGE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_cut.out", BM_VERT | BM_EDGE, ELE_CUT);
 }

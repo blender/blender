@@ -62,7 +62,7 @@ ccl_device_inline ShaderClosure *bsdf_alloc(ShaderData *sd, int size, float3 wei
 {
 	ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
 
-	if(!sc)
+	if(sc == NULL)
 		return NULL;
 
 	float sample_weight = fabsf(average(weight));

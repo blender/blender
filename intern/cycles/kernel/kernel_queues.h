@@ -22,9 +22,10 @@ CCL_NAMESPACE_BEGIN
 /*
  * Queue utility functions for split kernel
  */
-
+#ifdef __KERNEL_OPENCL__
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
 #pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
+#endif
 
 /*
  * Enqueue ray index into the queue

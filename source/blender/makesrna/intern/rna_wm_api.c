@@ -87,6 +87,11 @@ static void rna_Operator_report(wmOperator *op, int type, const char *msg)
 	BKE_report(op->reports, type, msg);
 }
 
+static int rna_Operator_is_repeat(wmOperator *op, bContext *C)
+{
+	return WM_operator_is_repeat(C, op);
+}
+
 /* since event isn't needed... */
 static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 {
@@ -521,6 +526,12 @@ void RNA_api_operator(StructRNA *srna)
 	parm = RNA_def_string(func, "message", NULL, 0, "Report Message", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
+	/* utility, not for registering */
+	func = RNA_def_function(srna, "is_repeat", "rna_Operator_is_repeat");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	/* return */
+	parm = RNA_def_boolean(func, "result", 0, "result", "");
+	RNA_def_function_return(func, parm);
 
 	/* Registration */
 

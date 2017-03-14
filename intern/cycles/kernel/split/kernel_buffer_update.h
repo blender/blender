@@ -16,58 +16,27 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Note on kernel_background_buffer_update kernel.
- * This is the fourth kernel in the ray tracing logic, and the third
- * of the path iteration kernels. This kernel takes care of rays that hit
- * the background (sceneintersect kernel), and for the rays of
- * state RAY_UPDATE_BUFFER it updates the ray's accumulated radiance in
- * the output buffer. This kernel also takes care of rays that have been determined
- * to-be-regenerated.
+/* This kernel takes care of rays that hit the background (sceneintersect
+ * kernel), and for the rays of state RAY_UPDATE_BUFFER it updates the ray's
+ * accumulated radiance in the output buffer. This kernel also takes care of
+ * rays that have been determined to-be-regenerated.
  *
- * We will empty QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue in this kernel
+ * We will empty QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue in this kernel.
  *
  * Typically all rays that are in state RAY_HIT_BACKGROUND, RAY_UPDATE_BUFFER
- * will be eventually set to RAY_TO_REGENERATE state in this kernel. Finally all rays of ray_state
- * RAY_TO_REGENERATE will be regenerated and put in queue QUEUE_ACTIVE_AND_REGENERATED_RAYS.
+ * will be eventually set to RAY_TO_REGENERATE state in this kernel.
+ * Finally all rays of ray_state RAY_TO_REGENERATE will be regenerated and put
+ * in queue QUEUE_ACTIVE_AND_REGENERATED_RAYS.
  *
- * The input and output are as follows,
- *
- * rng_coop ---------------------------------------------|--- kernel_background_buffer_update --|--- PathRadiance_coop
- * throughput_coop --------------------------------------|                                      |--- L_transparent_coop
- * per_sample_output_buffers ----------------------------|                                      |--- per_sample_output_buffers
- * Ray_coop ---------------------------------------------|                                      |--- ray_state
- * PathState_coop ---------------------------------------|                                      |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * L_transparent_coop -----------------------------------|                                      |--- Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS)
- * ray_state --------------------------------------------|                                      |--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS) ----|                                      |--- Queue_index (QUEUE_ACTIVE_AND_REGENERATED_RAYS)
- * Queue_index (QUEUE_ACTIVE_AND_REGENERATED_RAYS) ------|                                      |--- work_array
- * parallel_samples -------------------------------------|                                      |--- PathState_coop
- * end_sample -------------------------------------------|                                      |--- throughput_coop
- * kg (globals) -----------------------------------------|                                      |--- rng_coop
- * rng_state --------------------------------------------|                                      |--- Ray
- * PathRadiance_coop ------------------------------------|                                      |
- * sw ---------------------------------------------------|                                      |
- * sh ---------------------------------------------------|                                      |
- * sx ---------------------------------------------------|                                      |
- * sy ---------------------------------------------------|                                      |
- * stride -----------------------------------------------|                                      |
- * work_array -------------------------------------------|                                      |--- work_array
- * queuesize --------------------------------------------|                                      |
- * start_sample -----------------------------------------|                                      |--- work_pool_wgs
- * work_pool_wgs ----------------------------------------|                                      |
- * num_samples ------------------------------------------|                                      |
- *
- * note on sd : sd argument is neither an input nor an output for this kernel. It is just filled and consumed here itself.
- * Note on Queues :
- * This kernel fetches rays from QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue.
- *
- * State of queues when this kernel is called :
+ * State of queues when this kernel is called:
  * At entry,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE rays
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_UPDATE_BUFFER, RAY_HIT_BACKGROUND, RAY_TO_REGENERATE rays
+ *   - QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE rays.
+ *   - QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with
+ *     RAY_UPDATE_BUFFER, RAY_HIT_BACKGROUND, RAY_TO_REGENERATE rays.
  * At exit,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE and RAY_REGENERATED rays
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty
+ *   - QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE and
+ *     RAY_REGENERATED rays.
+ *   - QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty.
  */
 ccl_device void kernel_buffer_update(KernelGlobals *kg)
 {
@@ -225,4 +194,3 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg)
 }
 
 CCL_NAMESPACE_END
-

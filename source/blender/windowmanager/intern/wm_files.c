@@ -1426,7 +1426,16 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		G.fileflags &= ~G_FILE_NO_UI;
 	}
 
-	return wm_homefile_read(C, op->reports, from_memory, filepath) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	if (wm_homefile_read(C, op->reports, from_memory, filepath)) {
+		/* Load a file but keep the splash open */
+		if (RNA_boolean_get(op->ptr, "use_splash")) {
+			WM_init_splash(C);
+		}
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void WM_OT_read_homefile(wmOperatorType *ot)
@@ -1447,6 +1456,10 @@ void WM_OT_read_homefile(wmOperatorType *ot)
 	/* So scripts can use an alternative start-up file without the UI */
 	prop = RNA_def_boolean(ot->srna, "load_ui", true, "Load UI",
 	                       "Load user interface setup from the .blend file");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	/* So the splash can be kept open after loading a file (for templates). */
+	prop = RNA_def_boolean(ot->srna, "use_splash", true, "Splash", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	/* omit poll to run in background mode */

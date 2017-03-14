@@ -16,36 +16,24 @@
 
 CCL_NAMESPACE_BEGIN
 
-/*
- * The kernel "kernel_queue_enqueue" enqueues rays of
- * different ray state into their appropriate Queues;
+/* This kernel enqueues rays of different ray state into their
+ * appropriate queues:
+ *
  * 1. Rays that have been determined to hit the background from the
- * "kernel_scene_intersect" kernel
- * are enqueued in QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS;
- * 2. Rays that have been determined to be actively participating in path-iteration will be enqueued into QUEUE_ACTIVE_AND_REGENERATED_RAYS.
+ *    "kernel_scene_intersect" kernel are enqueued in
+ *    QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS;
+ * 2. Rays that have been determined to be actively participating in pat
+ *    -iteration will be enqueued into QUEUE_ACTIVE_AND_REGENERATED_RAYS.
  *
- * The input and output of the kernel is as follows,
- *
- * ray_state -------------------------------------------|--- kernel_queue_enqueue --|--- Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS & QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS)
- * Queue_index(QUEUE_ACTIVE_AND_REGENERATED_RAYS) ------|                           |--- Queue_index (QUEUE_ACTIVE_AND_REGENERATED_RAYS & QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS)
- * Queue_index(QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS) ---|                           |
- * queuesize -------------------------------------------|                           |
- *
- * Note on Queues :
- * State of queues during the first time this kernel is called :
+ * State of queue during other times this kernel is called:
  * At entry,
- * Both QUEUE_ACTIVE_AND_REGENERATED_RAYS and QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty.
+ *   - QUEUE_ACTIVE_AND_REGENERATED_RAYS will be empty.
+ *   - QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will contain RAY_TO_REGENERATE
+ *     and RAY_UPDATE_BUFFER rays.
  * At exit,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE rays
- * QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_HIT_BACKGROUND rays.
- *
- * State of queue during other times this kernel is called :
- * At entry,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be empty.
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will contain RAY_TO_REGENERATE and RAY_UPDATE_BUFFER rays.
- * At exit,
- * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE rays.
- * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE, RAY_UPDATE_BUFFER, RAY_HIT_BACKGROUND rays.
+ *   - QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE rays.
+ *   - QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with
+ *     RAY_TO_REGENERATE, RAY_UPDATE_BUFFER, RAY_HIT_BACKGROUND rays.
  */
 ccl_device void kernel_queue_enqueue(KernelGlobals *kg)
 {
@@ -101,4 +89,3 @@ ccl_device void kernel_queue_enqueue(KernelGlobals *kg)
 }
 
 CCL_NAMESPACE_END
-

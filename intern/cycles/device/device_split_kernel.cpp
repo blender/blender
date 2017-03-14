@@ -205,6 +205,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		 */
 		device->mem_zero(work_pool_wgs);
 		device->mem_zero(split_data);
+		device->mem_zero(ray_state);
 
 		if(!enqueue_split_kernel_data_init(KernelDimensions(global_size, local_size),
 		                                   subtile,
@@ -254,7 +255,15 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 			activeRaysAvailable = false;
 
 			for(int rayStateIter = 0; rayStateIter < global_size[0] * global_size[1]; ++rayStateIter) {
-				if(int8_t(ray_state.get_data()[rayStateIter]) != RAY_INACTIVE) {
+				int8_t state = ray_state.get_data()[rayStateIter];
+
+				if(state != RAY_INACTIVE) {
+					if(state == RAY_INVALID) {
+						/* Something went wrong, abort to avoid looping endlessly. */
+						device->set_error("Split kernel error: invalid ray state");
+						return false;
+					}
+
 					/* Not all rays are RAY_INACTIVE. */
 					activeRaysAvailable = true;
 					break;

@@ -341,7 +341,12 @@ std::string get_light_id(Object *ob)
 
 std::string get_joint_id(Bone *bone, Object *ob_arm)
 {
-	return translate_id(/*id_name(ob_arm) + "_" +*/ bone->name);
+	return translate_id(id_name(ob_arm) + "_" + bone->name);
+}
+
+std::string get_joint_sid(Bone *bone, Object *ob_arm)
+{
+	return translate_id(bone->name);
 }
 
 std::string get_camera_id(Object *ob)

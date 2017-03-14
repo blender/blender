@@ -84,8 +84,6 @@ private:
 	void find_objects_using_armature(Object *ob_arm, std::vector<Object *>& objects, Scene *sce);
 #endif
 
-	std::string get_joint_sid(Bone *bone, Object *ob_arm);
-
 	std::string get_controller_id(Object *ob_arm, Object *ob);
 
 	std::string get_controller_id(Key *key, Object *ob);

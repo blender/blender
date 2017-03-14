@@ -16,16 +16,16 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Note on kernel_data_initialization kernel
- * This kernel Initializes structures needed in path-iteration kernels.
+/* This kernel Initializes structures needed in path-iteration kernels.
  *
- * Note on Queues :
+ * Note on Queues:
  * All slots in queues are initialized to queue empty slot;
  * The number of elements in the queues is initialized to 0;
  */
 
-/* distributes an amount of work across all threads
- * note: work done inside the loop may not show up to all threads till after the current kernel has completed
+/* Distributes an amount of work across all threads
+ * note: work done inside the loop may not show up to all threads till after
+ * the current kernel has completed
  */
 #define parallel_for(kg, iter_name, work_size) \
 	for(size_t _size = (work_size), \
@@ -151,4 +151,3 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 }
 
 CCL_NAMESPACE_END
-

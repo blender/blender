@@ -1449,7 +1449,7 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 	else {
 		/* wire */
 		if (armflag & ARM_POSEMODE) {
-			if (constflag) {
+			if (constflag && ((G.f & G_PICKSEL) == 0)) {
 				/* set constraint colors */
 				if (set_pchan_color(PCHAN_COLOR_CONSTS, boneflag, constflag)) {
 					glEnable(GL_BLEND);
@@ -1604,7 +1604,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 			set_ebone_color(boneflag);
 		}
 		else if (armflag & ARM_POSEMODE) {
-			if (constflag) {
+			if (constflag && ((G.f & G_PICKSEL) == 0)) {
 				/* draw constraint colors */
 				if (set_pchan_color(PCHAN_COLOR_CONSTS, boneflag, constflag)) {
 					glEnable(GL_BLEND);
