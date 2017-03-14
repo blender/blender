@@ -419,6 +419,9 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 
 			if (G.debug & G_DEBUG)
 				printf("redo_cb: operator redo %s\n", op->type->name);
+
+			WM_operator_free_all_after(wm, op);
+
 			ED_undo_pop_op(C, op);
 
 			if (op->type->check) {

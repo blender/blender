@@ -107,6 +107,17 @@ void WM_operator_free(wmOperator *op)
 	MEM_freeN(op);
 }
 
+void WM_operator_free_all_after(wmWindowManager *wm, struct wmOperator *op)
+{
+	op = op->next;
+	while (op != NULL) {
+		wmOperator *op_next = op->next;
+		BLI_remlink(&wm->operators, op);
+		WM_operator_free(op);
+		op = op_next;
+	}
+}
+
 /**
  * Use with extreme care!,
  * properties, customdata etc - must be compatible.

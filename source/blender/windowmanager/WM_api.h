@@ -252,6 +252,7 @@ int         WM_operator_confirm_message(struct bContext *C, struct wmOperator *o
 
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
+void		WM_operator_free_all_after(wmWindowManager *wm, struct wmOperator *op);
 void		WM_operator_type_set(struct wmOperator *op, struct wmOperatorType *ot);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
 void		WM_operator_handlers_clear(wmWindowManager *wm, struct wmOperatorType *ot);

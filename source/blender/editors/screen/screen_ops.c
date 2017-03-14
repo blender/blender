@@ -2903,7 +2903,8 @@ static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 
 static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	wmOperator *lastop = CTX_wm_manager(C)->operators.last;
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmOperator *lastop = wm->operators.last;
 
 	/* Seek last registered operator */
 	while (lastop) {
@@ -2916,6 +2917,7 @@ static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	if (lastop) {
+		WM_operator_free_all_after(wm, lastop);
 		WM_operator_repeat(C, lastop);
 	}
 	
