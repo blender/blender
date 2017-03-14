@@ -34,7 +34,9 @@ void Batch_init(Batch* batch, PrimitiveType prim_type, VertexBuffer* verts, Elem
 	// we will allow other primitive types in a future update
 #endif
 
-	batch->verts = verts;
+	batch->verts[0] = verts;
+	for (int v = 1; v < BATCH_MAX_VBO_CT; ++v)
+		batch->verts[v] = NULL;
 	batch->elem = elem;
 	batch->prim_type = prim_type;
 	batch->phase = READY_TO_DRAW;
@@ -50,10 +52,41 @@ void Batch_discard(Batch* batch)
 
 void Batch_discard_all(Batch* batch)
 	{
-	VertexBuffer_discard(batch->verts);
+	for (int v = 0; v < BATCH_MAX_VBO_CT; ++v)
+		{
+		if (batch->verts[v] == NULL)
+			break;
+		VertexBuffer_discard(batch->verts[v]);
+		}
+
 	if (batch->elem)
 		ElementList_discard(batch->elem);
+
 	Batch_discard(batch);
+	}
+
+int Batch_add_VertexBuffer(Batch* batch, VertexBuffer* verts)
+	{
+	for (unsigned v = 0; v < BATCH_MAX_VBO_CT; ++v)
+		{
+		if (batch->verts[v] == NULL)
+			{
+#if TRUST_NO_ONE
+			// for now all VertexBuffers must have same vertex_ct
+			assert(verts->vertex_ct == batch->verts[0]->vertex_ct);
+			// in the near future we will enable instanced attribs which have their own vertex_ct
+#endif
+			batch->verts[v] = verts;
+			// TODO: mark dirty so we can keep attrib bindings up-to-date
+			return v;
+			}
+		}
+	
+	// we only make it this far if there is no room for another VertexBuffer
+#if TRUST_NO_ONE
+	assert(false);
+#endif
+	return -1;
 	}
 
 void Batch_set_program(Batch* batch, GLuint program)
@@ -70,41 +103,48 @@ void Batch_set_program(Batch* batch, GLuint program)
 
 static void Batch_update_program_bindings(Batch* batch)
 	{
-	const VertexFormat* format = &batch->verts->format;
-
-	const unsigned attrib_ct = format->attrib_ct;
-	const unsigned stride = format->stride;
-
 	// disable all as a precaution
 	// why are we not using prev_attrib_enabled_bits?? see immediate.c
 	for (unsigned a_idx = 0; a_idx < MAX_VERTEX_ATTRIBS; ++a_idx)
 		glDisableVertexAttribArray(a_idx);
 
-	VertexBuffer_use(batch->verts);
-
-	for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
+	for (int v = 0; v < BATCH_MAX_VBO_CT; ++v)
 		{
-		const Attrib* a = format->attribs + a_idx;
+		VertexBuffer* verts = batch->verts[v];
+		if (verts == NULL)
+			break;
 
-		const GLvoid* pointer = (const GLubyte*)0 + a->offset;
+		const VertexFormat* format = &verts->format;
 
-		const GLint loc = glGetAttribLocation(batch->program, a->name);
+		const unsigned attrib_ct = format->attrib_ct;
+		const unsigned stride = format->stride;
 
-		if (loc == -1) continue;
+		VertexBuffer_use(verts);
 
-		glEnableVertexAttribArray(loc);
-
-		switch (a->fetch_mode)
+		for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
 			{
-			case KEEP_FLOAT:
-			case CONVERT_INT_TO_FLOAT:
-				glVertexAttribPointer(loc, a->comp_ct, a->comp_type, GL_FALSE, stride, pointer);
-				break;
-			case NORMALIZE_INT_TO_FLOAT:
-				glVertexAttribPointer(loc, a->comp_ct, a->comp_type, GL_TRUE, stride, pointer);
-				break;
-			case KEEP_INT:
-				glVertexAttribIPointer(loc, a->comp_ct, a->comp_type, stride, pointer);
+			const Attrib* a = format->attribs + a_idx;
+
+			const GLvoid* pointer = (const GLubyte*)0 + a->offset;
+
+			const GLint loc = glGetAttribLocation(batch->program, a->name);
+
+			if (loc == -1) continue;
+
+			glEnableVertexAttribArray(loc);
+
+			switch (a->fetch_mode)
+				{
+				case KEEP_FLOAT:
+				case CONVERT_INT_TO_FLOAT:
+					glVertexAttribPointer(loc, a->comp_ct, a->comp_type, GL_FALSE, stride, pointer);
+					break;
+				case NORMALIZE_INT_TO_FLOAT:
+					glVertexAttribPointer(loc, a->comp_ct, a->comp_type, GL_TRUE, stride, pointer);
+					break;
+				case KEEP_INT:
+					glVertexAttribIPointer(loc, a->comp_ct, a->comp_type, stride, pointer);
+				}
 			}
 		}
 
@@ -226,7 +266,12 @@ static void Batch_prime(Batch* batch)
 	batch->vao_id = vao_id_alloc();
 	glBindVertexArray(batch->vao_id);
 
-	VertexBuffer_use(batch->verts);
+	for (int v = 0; v < BATCH_MAX_VBO_CT; ++v)
+		{
+		if (batch->verts[v] == NULL)
+			break;
+		VertexBuffer_use(batch->verts[v]);
+		}
 
 	if (batch->elem)
 		ElementList_use(batch->elem);
@@ -267,7 +312,7 @@ void Batch_draw(Batch* batch)
 #endif
 		}
 	else
-		glDrawArrays(batch->prim_type, 0, batch->verts->vertex_ct);
+		glDrawArrays(batch->prim_type, 0, batch->verts[0]->vertex_ct);
 
 	Batch_done_using_program(batch);
 	glBindVertexArray(0);
@@ -304,7 +349,7 @@ void Batch_draw_stupid(Batch* batch)
 #endif
 		}
 	else
-		glDrawArrays(batch->prim_type, 0, batch->verts->vertex_ct);
+		glDrawArrays(batch->prim_type, 0, batch->verts[0]->vertex_ct);
 
 	// Batch_done_using_program(batch);
 	glBindVertexArray(0);
@@ -352,7 +397,7 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 		glDrawElementsInstanced(batch->prim_type, el->index_ct, GL_UNSIGNED_INT, 0, instance_count);
 		}
 	else
-		glDrawArraysInstanced(batch->prim_type, 0, batch->verts->vertex_ct, instance_count);
+		glDrawArraysInstanced(batch->prim_type, 0, batch->verts[0]->vertex_ct, instance_count);
 
 	// Batch_done_using_program(batch);
 	glBindVertexArray(0);

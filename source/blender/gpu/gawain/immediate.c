@@ -385,7 +385,7 @@ void immEnd(void)
 		{
 		if (buffer_bytes_used != imm.buffer_bytes_mapped)
 			{
-			VertexBuffer_resize_data(imm.batch->verts, imm.vertex_ct);
+			VertexBuffer_resize_data(imm.batch->verts[0], imm.vertex_ct);
 			// TODO: resize only if vertex count is much smaller
 			}
 

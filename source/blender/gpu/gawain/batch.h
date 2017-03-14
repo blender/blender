@@ -21,9 +21,11 @@ typedef enum {
 	READY_TO_DRAW
 } BatchPhase;
 
-typedef struct Batch{
+#define BATCH_MAX_VBO_CT 3
+
+typedef struct Batch {
 	// geometry
-	VertexBuffer* verts;
+	VertexBuffer* verts[BATCH_MAX_VBO_CT]; // verts[0] is required, others can be NULL
 	ElementList* elem; // NULL if element list not needed
 	PrimitiveType prim_type;
 
@@ -42,6 +44,8 @@ void Batch_init(Batch*, PrimitiveType, VertexBuffer*, ElementList*);
 
 void Batch_discard(Batch*); // verts & elem are not discarded
 void Batch_discard_all(Batch*); // including verts & elem
+
+int Batch_add_VertexBuffer(Batch*, VertexBuffer*);
 
 void Batch_set_program(Batch*, GLuint program);
 // Entire batch draws with one shader program, but can be redrawn later with another program.
