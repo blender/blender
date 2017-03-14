@@ -106,7 +106,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	*/
 
 	std::map<COLLADAFW::UniqueId, SkinInfo>::iterator skin_it;
-	bool bone_is_not_skinned = true;
+	bool bone_is_skinned = false;
 	for (skin_it = skin_by_data_uid.begin(); skin_it != skin_by_data_uid.end(); skin_it++) {
 
 		SkinInfo *b = &skin_it->second;
@@ -123,13 +123,13 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 				mul_m4_m4m4(mat, invmat, mat);
 			}
 
-			bone_is_not_skinned = false;
+			bone_is_skinned = true;
 			break;
 		}
 	}
 
 	// create a bone even if there's no joint data for it (i.e. it has no influence)
-	if (bone_is_not_skinned) {
+	if (!bone_is_skinned) {
 		float obmat[4][4];
 		// bone-space
 		get_node_mat(obmat, node, NULL, NULL);
@@ -141,6 +141,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 		else {
 			copy_m4_m4(mat, obmat);
 		}
+
 	}
 
 	if (parent) bone->parent = parent;
