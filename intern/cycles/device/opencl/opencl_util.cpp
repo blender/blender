@@ -356,10 +356,10 @@ bool OpenCLDeviceBase::OpenCLProgram::compile_kernel(const string *debug_src)
 	cl_int ciErr;
 
 	program = clCreateProgramWithSource(device->cxContext,
-	                                   1,
-	                                   &source_str,
-	                                   &source_len,
-	                                   &ciErr);
+	                                    1,
+	                                    &source_str,
+	                                    &source_len,
+	                                    &ciErr);
 
 	if(ciErr != CL_SUCCESS) {
 		add_error(string("OpenCL program creation failed: ") + clewErrorString(ciErr));
@@ -761,10 +761,10 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 		num_devices = 0;
 		cl_int ciErr;
 		if((ciErr = clGetDeviceIDs(platform_id,
-		                  device_type,
-		                  0,
-		                  NULL,
-		                  &num_devices)) != CL_SUCCESS || num_devices == 0)
+		                           device_type,
+		                           0,
+		                           NULL,
+		                           &num_devices)) != CL_SUCCESS || num_devices == 0)
 		{
 			FIRST_VLOG(2) << "Ignoring platform " << platform_name
 			              << ", failed to fetch number of devices: " << string(clewErrorString(ciErr));
