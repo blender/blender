@@ -880,6 +880,20 @@ bool WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 	return false;
 }
 
+bool WM_operator_is_repeat(const bContext *C, const wmOperator *op)
+{
+	/* may be in the operators list or not */
+	wmOperator *op_prev;
+	if (op->prev == NULL && op->next == NULL) {
+		wmWindowManager *wm = CTX_wm_manager(C);
+		op_prev = wm->operators.last;
+	}
+	else {
+		op_prev = op->prev;
+	}
+	return (op_prev && (op->type == op_prev->type));
+}
+
 static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot,
                                       PointerRNA *properties, ReportList *reports)
 {
