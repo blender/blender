@@ -104,11 +104,13 @@ static void EDIT_ARMATURE_draw_scene(void)
 	DRW_draw_pass(psl->relationship);
 }
 
+#if 0
 void EDIT_ARMATURE_collection_settings_create(CollectionEngineSettings *ces)
 {
 	BLI_assert(ces);
 	//BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
 }
+#endif
 
 DrawEngineType draw_engine_edit_armature_type = {
 	NULL, NULL,

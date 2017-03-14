@@ -110,13 +110,15 @@ static PAINT_TEXTURE_Data *vedata;
 
 /* Init Textures, Framebuffers, Storage and Shaders.
  * It is called for every frames.
- * (Optionnal) */
+ * (Optional) */
 static void PAINT_TEXTURE_engine_init(void)
 {
-	PAINT_TEXTURE_Data *vedata = DRW_viewport_engine_data_get("PaintTextureMode");
+	vedata = DRW_viewport_engine_data_get("PaintTextureMode");
 	PAINT_TEXTURE_TextureList *txl = vedata->txl;
 	PAINT_TEXTURE_FramebufferList *fbl = vedata->fbl;
 	PAINT_TEXTURE_StorageList *stl = vedata->stl;
+
+	UNUSED_VARS(txl, fbl, stl);
 
 	/* Init Framebuffers like this: order is attachment order (for color texs) */
 	/*
@@ -146,6 +148,8 @@ static void PAINT_TEXTURE_cache_init(void)
 	PAINT_TEXTURE_PassList *psl = vedata->psl;
 	PAINT_TEXTURE_StorageList *stl = vedata->stl;
 
+	UNUSED_VARS(stl);
+
 	{
 		/* Create a pass */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND | DRW_STATE_WIRE;
@@ -173,6 +177,8 @@ static void PAINT_TEXTURE_cache_populate(Object *ob)
 	PAINT_TEXTURE_PassList *psl = vedata->psl;
 	PAINT_TEXTURE_StorageList *stl = vedata->stl;
 
+	UNUSED_VARS(psl, stl);
+
 	if (ob->type == OB_MESH) {
 		/* Get geometry cache */
 		struct Batch *geom = DRW_cache_surface_get(ob);
@@ -182,13 +188,14 @@ static void PAINT_TEXTURE_cache_populate(Object *ob)
 	}
 }
 
-/* Optionnal : Post-cache_populate callback */
+/* Optional: Post-cache_populate callback */
 static void PAINT_TEXTURE_cache_finish(void)
 {
 	PAINT_TEXTURE_PassList *psl = vedata->psl;
 	PAINT_TEXTURE_StorageList *stl = vedata->stl;
 
 	/* Do something here! dependant on the objects gathered */
+	UNUSED_VARS(psl, stl);
 }
 
 /* Draw time ! Control rendering pipeline from here */
@@ -201,6 +208,8 @@ static void PAINT_TEXTURE_draw_scene(void)
 	/* Default framebuffer and texture */
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+	UNUSED_VARS(fbl, dfbl, dtxl);
 
 	/* Show / hide entire passes, swap framebuffers ... whatever you fancy */
 	/*
@@ -238,6 +247,7 @@ static void PAINT_TEXTURE_engine_free(void)
  * source/blender/makesrna/intern/rna_scene.c
  * source/blender/blenkernel/intern/layer.c
  */
+#if 0
 void PAINT_TEXTURE_collection_settings_create(CollectionEngineSettings *ces)
 {
 	BLI_assert(ces);
@@ -245,6 +255,7 @@ void PAINT_TEXTURE_collection_settings_create(CollectionEngineSettings *ces)
 	// BKE_collection_engine_property_add_int(ces, "my_int_prop", 0);
 	// BKE_collection_engine_property_add_float(ces, "my_float_prop", 0.0f);
 }
+#endif
 
 DrawEngineType draw_engine_paint_texture_type = {
 	NULL, NULL,
