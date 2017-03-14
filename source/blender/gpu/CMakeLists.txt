@@ -136,6 +136,7 @@ set(SRC
 	intern/gpu_codegen.h
 	intern/gpu_private.h
 	intern/gpu_select_private.h
+	intern/gpu_shader_private.h
 )
 
 data_to_c_simple(shaders/gpu_shader_depth_only_frag.glsl SRC)
