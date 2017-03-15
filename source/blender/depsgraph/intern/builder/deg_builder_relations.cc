@@ -1312,6 +1312,25 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	// TODO...
 }
 
+void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
+                                           Object *object,
+                                           ModifierData *md)
+{
+	OperationKey cache_key(&object->id,
+	                       DEPSNODE_TYPE_CACHE,
+	                       DEG_OPCODE_PLACEHOLDER,
+	                       "Cloth Modifier");
+	/* Cache component affects on modifier. */
+	OperationKey modifier_key(&object->id,
+	                          DEPSNODE_TYPE_GEOMETRY,
+	                          DEG_OPCODE_GEOMETRY_MODIFIER,
+	                          md->name);
+	add_relation(cache_key,
+	             modifier_key,
+	             DEPSREL_TYPE_TIME,
+	             "Cloth Cache -> Cloth");
+}
+
 /* Shapekeys */
 void DepsgraphRelationBuilder::build_shapekeys(ID *obdata, Key *key)
 {
@@ -1411,6 +1430,10 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 					ComponentKey animation_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
 					add_relation(animation_key, mod_key, DEPSREL_TYPE_OPERATION, "Modifier Animation");
 				}
+			}
+
+			if (md->type == eModifierType_Cloth) {
+				build_cloth(scene, ob, md);
 			}
 
 			prev_mod_key = mod_key;

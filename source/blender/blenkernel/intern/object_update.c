@@ -55,6 +55,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_material.h"
 #include "BKE_image.h"
@@ -347,4 +348,10 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 	}
 
 	ob->recalc &= ~(OB_RECALC_DATA | OB_RECALC_TIME);
+}
+
+void BKE_object_eval_cloth(EvaluationContext *UNUSED(eval_ctx), Scene *scene, Object *object)
+{
+	DEBUG_PRINT("%s on %s\n", __func__, object->id.name);
+	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);
 }

@@ -58,6 +58,7 @@ struct Main;
 struct Mask;
 struct Material;
 struct MTex;
+struct ModifierData;
 struct MovieClip;
 struct bNodeTree;
 struct Object;
@@ -205,6 +206,7 @@ struct DepsgraphRelationBuilder
 	void build_world(World *world);
 	void build_rigidbody(Scene *scene);
 	void build_particles(Scene *scene, Object *ob);
+	void build_cloth(Scene *scene, Object *object, ModifierData *md);
 	void build_ik_pose(Object *ob,
 	                   bPoseChannel *pchan,
 	                   bConstraint *con,
