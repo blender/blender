@@ -400,6 +400,16 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 		draw_filled_lasso(win, gt);
 	}
 
+	numverts = gt->points;
+	if (gt->type == WM_GESTURE_LASSO) {
+		numverts++;
+	}
+
+	/* Nothing to drawe, do early output. */
+	if(numverts < 2) {
+		return;
+	}
+
 	VertexFormat* format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
@@ -414,11 +424,6 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
 	immUniform1f("dash_width", 2.0f);
 	immUniform1f("dash_width_on", 1.0f);
-
-	numverts = gt->points;
-	if (gt->type == WM_GESTURE_LASSO) {
-		numverts++;
-	}
 
 	immBegin(PRIM_LINE_STRIP, numverts);
 
@@ -441,7 +446,7 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 	}
 
 	immEnd();
-	
+
 	immUnbindProgram();
 }
 
