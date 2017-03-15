@@ -24,7 +24,7 @@ uniform sampler2D cocbuffer;
 #else
   in vec2 uvcoord[];
   out vec2 particlecoord;
-  out vec4 color;
+  flat out vec4 color;
 #endif
 
 #define M_PI 3.1415926535897932384626433832795
@@ -46,21 +46,23 @@ void main()
 
 	vec2 offset_far = vec2(offset_val * 0.5) / vec2(rendertargetdim.x, rendertargetdim.y);
 
-	gl_Position = POS + vec4(-offset_far.x, -offset_far.y, 0.0, 0.0);
 	color = colortex;
+
+	gl_Position = POS + vec4(-offset_far.x, -offset_far.y, 0.0, 0.0);
 	particlecoord = vec2(-1.0, -1.0);
 	EmitVertex();
+
 	gl_Position = POS + vec4(-offset_far.x, offset_far.y, 0.0, 0.0);
 	particlecoord = vec2(-1.0, 1.0);
-	color = colortex;
 	EmitVertex();
+
 	gl_Position = POS + vec4(offset_far.x, -offset_far.y, 0.0, 0.0);
 	particlecoord = vec2(1.0, -1.0);
-	color = colortex;
 	EmitVertex();
+
 	gl_Position = POS + vec4(offset_far.x, offset_far.y, 0.0, 0.0);
 	particlecoord = vec2(1.0, 1.0);
-	color = colortex;
 	EmitVertex();
+
 	EndPrimitive();
 }

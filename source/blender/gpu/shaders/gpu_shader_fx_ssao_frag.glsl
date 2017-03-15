@@ -1,3 +1,4 @@
+
 // color buffer
 uniform sampler2D colorbuffer;
 
@@ -9,8 +10,15 @@ uniform sampler1D ssao_concentric_tex;
 
 // depth buffer
 uniform sampler2D depthbuffer;
-// coordinates on framebuffer in normalized (0.0-1.0) uv space
-varying vec4 uvcoordsvar;
+
+#if __VERSION__ == 120
+	// coordinates on framebuffer in normalized (0.0-1.0) uv space
+	varying vec4 uvcoordsvar;
+	#define FragColor gl_FragColor
+#else
+	in vec4 uvcoordsvar;
+	out vec4 FragColor;
+#endif
 
 /* ssao_params.x : pixel scale for the ssao radious */
 /* ssao_params.y : factor for the ssao darkening */
@@ -46,9 +54,9 @@ float calculate_ssao_factor(float depth)
 	/* find the offset in screen space by multiplying a point
 	 * in camera space at the depth of the point by the projection matrix. */
 	vec2 offset;
-	float homcoord = gl_ProjectionMatrix[2][3] * position.z + gl_ProjectionMatrix[3][3];
-	offset.x = gl_ProjectionMatrix[0][0] * ssao_params.x / homcoord;
-	offset.y = gl_ProjectionMatrix[1][1] * ssao_params.x / homcoord;
+	float homcoord = ProjectionMatrix[2][3] * position.z + ProjectionMatrix[3][3];
+	offset.x = ProjectionMatrix[0][0] * ssao_params.x / homcoord;
+	offset.y = ProjectionMatrix[1][1] * ssao_params.x / homcoord;
 	/* convert from -1.0...1.0 range to 0.0..1.0 for easy use with texture coordinates */
 	offset *= 0.5;
 
@@ -90,5 +98,5 @@ void main()
 	float depth = texture2D(depthbuffer, uvcoordsvar.xy).r;
 	vec4 scene_col = texture2D(colorbuffer, uvcoordsvar.xy);
 	vec3 final_color = mix(scene_col.rgb, ssao_color.rgb, calculate_ssao_factor(depth));
-	gl_FragColor = vec4(final_color.rgb, scene_col.a);
+	FragColor = vec4(final_color.rgb, scene_col.a);
 }

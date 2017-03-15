@@ -1,27 +1,47 @@
+
+#if __VERSION__ == 120
+	attribute vec2 pos;
+	attribute vec2 uvs;
+	/* initial uv coordinate */
+	varying vec2 uvcoord;
+
+	/* coordinate used for calculating radius et al set in geometry shader */
+	varying vec2 particlecoord;
+
+	/* downsampling coordinates */
+	varying vec2 downsample1;
+	varying vec2 downsample2;
+	varying vec2 downsample3;
+	varying vec2 downsample4;
+#else
+	in vec2 pos;
+	in vec2 uvs;
+	/* initial uv coordinate */
+	out vec2 uvcoord;
+
+	/* coordinate used for calculating radius et al set in geometry shader */
+	out vec2 particlecoord;
+
+	/* downsampling coordinates */
+	out vec2 downsample1;
+	out vec2 downsample2;
+	out vec2 downsample3;
+	out vec2 downsample4;
+#endif
+
 uniform vec2 invrendertargetdim;
 uniform ivec2 rendertargetdim;
-/* initial uv coordinate */
-varying vec2 uvcoord;
-
-/* coordinate used for calculating radius et al set in geometry shader */
-varying vec2 particlecoord;
-
-/* downsampling coordinates */
-varying vec2 downsample1;
-varying vec2 downsample2;
-varying vec2 downsample3;
-varying vec2 downsample4;
 
 void vert_dof_downsample()
 {
 	/* gather pixels from neighbors. half dimensions means we offset half a pixel to
 	 * get this right though it's possible we may lose a pixel at some point */
-	downsample1 = gl_MultiTexCoord0.xy + vec2(-0.5, -0.5) * invrendertargetdim;
-	downsample2 = gl_MultiTexCoord0.xy + vec2(-0.5, 0.5) * invrendertargetdim;
-	downsample3 = gl_MultiTexCoord0.xy + vec2(0.5, 0.5) * invrendertargetdim;
-	downsample4 = gl_MultiTexCoord0.xy + vec2(0.5, -0.5) * invrendertargetdim;
+	downsample1 = uvs.xy + vec2(-0.5, -0.5) * invrendertargetdim;
+	downsample2 = uvs.xy + vec2(-0.5, 0.5) * invrendertargetdim;
+	downsample3 = uvs.xy + vec2(0.5, 0.5) * invrendertargetdim;
+	downsample4 = uvs.xy + vec2(0.5, -0.5) * invrendertargetdim;
 
-	gl_Position = gl_Vertex;
+	gl_Position = vec4(pos, 0.0, 1.0);
 }
 
 /* geometry shading pass, calculate a texture coordinate based on the indexed id */
@@ -42,8 +62,8 @@ void vert_dof_coc_scatter_pass()
 
 void vert_dof_final()
 {
-	uvcoord = gl_MultiTexCoord0.xy;
-	gl_Position = gl_Vertex;
+	uvcoord = uvs;
+	gl_Position = vec4(pos, 0.0, 1.0);
 }
 
 void main()

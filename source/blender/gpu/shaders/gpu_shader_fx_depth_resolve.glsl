@@ -1,5 +1,10 @@
 uniform sampler2D depthbuffer;
-varying vec4 uvcoordsvar;
+
+#if __VERSION__ == 120
+	varying vec4 uvcoordsvar;
+#else
+	in vec4 uvcoordsvar;
+#endif
 
 void main(void)
 {

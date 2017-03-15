@@ -20,18 +20,42 @@ uniform vec4 dof_params;
 /* viewvectors for reconstruction of world space */
 uniform vec4 viewvecs[3];
 
-/* initial uv coordinate */
-varying vec2 uvcoord;
+#if __VERSION__ == 120
+	/* initial uv coordinate */
+	varying vec2 uvcoord;
 
-/* coordinate used for calculating radius et al set in geometry shader */
-varying vec2 particlecoord;
-varying vec4 color;
+	/* coordinate used for calculating radius et al set in geometry shader */
+	varying vec2 particlecoord;
+	varying vec4 color;
 
-/* downsampling coordinates */
-varying vec2 downsample1;
-varying vec2 downsample2;
-varying vec2 downsample3;
-varying vec2 downsample4;
+	/* downsampling coordinates */
+	varying vec2 downsample1;
+	varying vec2 downsample2;
+	varying vec2 downsample3;
+	varying vec2 downsample4;
+
+	#define fragData0 gl_FragData[0]
+	#define fragData1 gl_FragData[1]
+	#define fragData2 gl_FragData[2]
+#else
+	/* initial uv coordinate */
+	in vec2 uvcoord;
+
+	/* coordinate used for calculating radius et al set in geometry shader */
+	in vec2 particlecoord;
+	flat in vec4 color;
+
+	/* downsampling coordinates */
+	in vec2 downsample1;
+	in vec2 downsample2;
+	in vec2 downsample3;
+	in vec2 downsample4;
+
+	layout(location = 0) out vec4 fragData0;
+	layout(location = 1) out vec4 fragData1;
+	layout(location = 2) out vec4 fragData2;
+#endif
+
 
 #define M_PI 3.1415926535897932384626433832795
 
@@ -82,16 +106,16 @@ void downsample_pass()
 	float norm_far = dot(far_weights, vec4(1.0));
 
 	/* now write output to weighted buffers. */
-	gl_FragData[0] = color1 * near_weights.x + color2 * near_weights.y + color3 * near_weights.z +
+	fragData0 = color1 * near_weights.x + color2 * near_weights.y + color3 * near_weights.z +
 	                 color4 * near_weights.w;
-	gl_FragData[1] = color1 * far_weights.x + color2 * far_weights.y + color3 * far_weights.z +
+	fragData1 = color1 * far_weights.x + color2 * far_weights.y + color3 * far_weights.z +
 	                 color4 * far_weights.w;
 
 	if (norm_near > 0.0)
-		gl_FragData[0] /= norm_near;
+		fragData0 /= norm_near;
 	if (norm_far > 0.0)
-		gl_FragData[1] /= norm_far;
-	gl_FragData[2] = vec4(near_coc, far_coc, 0.0, 1.0);
+		fragData1 /= norm_far;
+	fragData2 = vec4(near_coc, far_coc, 0.0, 1.0);
 }
 
 /* accumulate color in the near/far blur buffers */
@@ -102,16 +126,16 @@ void accumulate_pass(void) {
 	if (dof_params.w == 0.0)
 		r = 1.0;
 	else
-		r = cos(M_PI / dof_params.w) /
-		    (cos(theta - (2.0 * M_PI / dof_params.w) * floor((dof_params.w * theta + M_PI) / (2.0 * M_PI))));
+	 	r = cos(M_PI / dof_params.w) /
+	 	    (cos(theta - (2.0 * M_PI / dof_params.w) * floor((dof_params.w * theta + M_PI) / (2.0 * M_PI))));
 
 	if (dot(particlecoord, particlecoord) > r * r)
 		discard;
 
-	gl_FragData[0] = color;
+	fragData0 = color;
 }
-#define MERGE_THRESHOLD 4.0
 
+#define MERGE_THRESHOLD 4.0
 /* combine the passes, */
 void final_pass(void) {
 	vec4 finalcolor;
@@ -152,7 +176,9 @@ void final_pass(void) {
 		finalcolor = mix(finalcolor, nearcolor, nearweight / totalweight);
 	}
 
-	gl_FragData[0] = finalcolor;
+	fragData0 = finalcolor;
+	// fragData0 = vec4(nearweight, farweight, 0.0, 1.0);
+	// fragData0 = vec4(nearcolor.rgb, 1.0);
 }
 
 void main()
