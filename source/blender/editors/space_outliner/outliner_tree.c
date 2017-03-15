@@ -1428,21 +1428,17 @@ static bool outliner_scene_collections_reorder_poll(
 	return true;
 }
 
-static void outliner_add_scene_collection_init(TreeElement *te, SceneCollection *collection)
-{
-	te->name = collection->name;
-	te->directdata = collection;
-	te->reinsert = outliner_scene_collections_reorder;
-	te->reinsert_poll = outliner_scene_collections_reorder_poll;
-}
-
 static void outliner_add_scene_collections_recursive(
         SpaceOops *soops, ListBase *tree, ListBase *scene_collections, TreeElement *parent_ten)
 {
 	for (SceneCollection *collection = scene_collections->first; collection; collection = collection->next) {
 		TreeElement *ten = outliner_add_element(soops, tree, collection, parent_ten, TSE_SCENE_COLLECTION, 0);
 
-		outliner_add_scene_collection_init(ten, collection);
+		ten->name = collection->name;
+		ten->directdata = collection;
+		ten->reinsert = outliner_scene_collections_reorder;
+		ten->reinsert_poll = outliner_scene_collections_reorder_poll;
+
 		for (LinkData *link = collection->objects.first; link; link = link->next) {
 			outliner_add_element(soops, &ten->subtree, link->data, ten, 0, 0);
 		}
@@ -1454,10 +1450,7 @@ static void outliner_add_scene_collections_recursive(
 static void outliner_add_collections_master(SpaceOops *soops, Scene *scene)
 {
 	SceneCollection *master = BKE_collection_master(scene);
-	TreeElement *ten = outliner_add_element(soops, &soops->tree, master, NULL, TSE_SCENE_COLLECTION, 0);
-
-	outliner_add_scene_collection_init(ten, master);
-	outliner_add_scene_collections_recursive(soops, &ten->subtree, &master->scene_collections, ten);
+	outliner_add_scene_collections_recursive(soops, &soops->tree, &master->scene_collections, NULL);
 }
 
 /* ======================================================= */
