@@ -1500,13 +1500,13 @@ void UI_GetThemeColorBlendShade3ubv(int colorid1, int colorid2, float fac, int o
 	cp2 = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
 
 	CLAMP(fac, 0.0f, 1.0f);
-	col[0] = offset + floorf((1.0f - fac) * cp1[0] + fac * cp2[0]);
-	col[1] = offset + floorf((1.0f - fac) * cp1[1] + fac * cp2[1]);
-	col[2] = offset + floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
 
-	CLAMP(col[0], 0, 255);
-	CLAMP(col[1], 0, 255);
-	CLAMP(col[2], 0, 255);
+	float blend[3];
+	blend[0] = offset + floorf((1.0f - fac) * cp1[0] + fac * cp2[0]);
+	blend[1] = offset + floorf((1.0f - fac) * cp1[1] + fac * cp2[1]);
+	blend[2] = offset + floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
+
+	F3TOCHAR3(blend, col);
 }
 
 void UI_GetThemeColorShade4ubv(int colorid, int offset, unsigned char col[4])
