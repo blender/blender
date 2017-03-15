@@ -206,35 +206,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_IMAGE) {
 		if (validSnap(t)) {
 			/* This will not draw, and Im nor sure why - campbell */
-#if 0
-			float xuser_asp, yuser_asp;
-			int wi, hi;
-			float w, h;
-			
-			calc_image_view(G.sima, 'f');   // float
-			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-			glLoadIdentity();
-			
-			ED_space_image_get_aspect(t->sa->spacedata.first, &xuser_aspx, &yuser_asp);
-			ED_space_image_width(t->sa->spacedata.first, &wi, &hi);
-			w = (((float)wi) / IMG_SIZE_FALLBACK) * G.sima->zoom * xuser_asp;
-			h = (((float)hi) / IMG_SIZE_FALLBACK) * G.sima->zoom * yuser_asp;
-			
-			cpack(0xFFFFFF);
-			glTranslate2fv(t->tsnap.snapPoint);
-			
-			//glRectf(0, 0, 1, 1);
-			
-			setlinestyle(0);
-			cpack(0x0);
-			fdrawline(-0.020 / w, 0, -0.1 / w, 0);
-			fdrawline(0.1 / w, 0, 0.020 / w, 0);
-			fdrawline(0, -0.020 / h, 0, -0.1 / h);
-			fdrawline(0, 0.1 / h, 0, 0.020 / h);
-			
-			glTranslatef(-t->tsnap.snapPoint[0], -t->tsnap.snapPoint[1], 0.0f);
-			setlinestyle(0);
-#endif
+			/* TODO: see 2.7x for non-working code */
 		}
 	}
 	else if (t->spacetype == SPACE_NODE) {
