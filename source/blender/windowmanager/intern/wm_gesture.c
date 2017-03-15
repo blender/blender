@@ -414,10 +414,6 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
-	if (gt->points + (gt->type == WM_GESTURE_LASSO ? 1 : 0) < 2) {
-		return;
-	}
-
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
 	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
