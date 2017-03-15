@@ -104,13 +104,13 @@ typedef void * wmUIHandlerRemoveFunc;
 #  include AUD_DEVICE_H
 #endif
 
-static BlendFileData *load_game_data(char *filename)
+static BlendFileData *load_game_data(const char *filename)
 {
 	ReportList reports;
 	BlendFileData *bfd;
 	
 	BKE_reports_init(&reports, RPT_STORE);
-	bfd= BLO_read_from_file(filename, &reports);
+	bfd= BLO_read_from_file(filename, &reports, BLO_READ_SKIP_USERDEF);
 
 	if (!bfd) {
 		printf("Loading %s failed: ", filename);
