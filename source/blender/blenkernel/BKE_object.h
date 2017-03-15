@@ -200,6 +200,11 @@ void BKE_object_eval_uber_data(struct EvaluationContext *eval_ctx,
                                struct Scene *scene,
                                struct Object *ob);
 
+void BKE_object_eval_cloth(struct EvaluationContext *eval_ctx,
+                           struct Scene *scene,
+                           struct Object *object);
+
+
 void BKE_object_handle_data_update(struct EvaluationContext *eval_ctx,
                                    struct Scene *scene,
                                    struct Object *ob);
