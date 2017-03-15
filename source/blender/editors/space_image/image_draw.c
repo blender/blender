@@ -172,9 +172,13 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
+	unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* noisy, high contrast make impossible to read if lower alpha is used. */
-	glColor4ub(0, 0, 0, 190);
-	glRecti(0.0, 0.0, BLI_rcti_size_x(&ar->winrct) + 1, UI_UNIT_Y);
+	immUniformColor4ub(0, 0, 0, 190);
+	immRecti(pos, 0, 0, BLI_rcti_size_x(&ar->winrct) + 1, UI_UNIT_Y);
+
 	glDisable(GL_BLEND);
 
 	BLF_size(blf_mono_font, 11 * U.pixelsize, U.dpi);
@@ -270,9 +274,9 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 				rgba[3] = linearcol[3];
 
 			if (use_default_view)
-				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba,  NULL, &scene->display_settings);
+				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba, NULL, &scene->display_settings);
 			else
-				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba,  &scene->view_settings, &scene->display_settings);
+				IMB_colormanagement_pixel_to_display_space_v4(rgba, rgba, &scene->view_settings, &scene->display_settings);
 
 			BLI_snprintf(str, sizeof(str), "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
 			BLF_position(blf_mono_font, dx, dy, 0);
@@ -308,9 +312,9 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 
 	if (color_manage) {
 		if (use_default_view)
-			IMB_colormanagement_pixel_to_display_space_v4(finalcol, col,  NULL, &scene->display_settings);
+			IMB_colormanagement_pixel_to_display_space_v4(finalcol, col, NULL, &scene->display_settings);
 		else
-			IMB_colormanagement_pixel_to_display_space_v4(finalcol, col,  &scene->view_settings, &scene->display_settings);
+			IMB_colormanagement_pixel_to_display_space_v4(finalcol, col, &scene->view_settings, &scene->display_settings);
 	}
 	else {
 		copy_v4_v4(finalcol, col);
@@ -321,13 +325,18 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 
 	BLI_rcti_init(&color_rect, dx, dx + (1.5f * UI_UNIT_X), 0.15f * UI_UNIT_Y, 0.85f * UI_UNIT_Y);
 
+	/* BLF uses immediate mode too, so we must reset our vertex format */
+	pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	if (channels == 4) {
 		rcti color_rect_half;
 		int color_quater_x, color_quater_y;
 
 		color_rect_half = color_rect;
 		color_rect_half.xmax = BLI_rcti_cent_x(&color_rect);
-		glRecti(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+		/* what color ??? */
+		immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
 
 		color_rect_half = color_rect;
 		color_rect_half.xmin = BLI_rcti_cent_x(&color_rect);
@@ -335,26 +344,25 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		color_quater_x = BLI_rcti_cent_x(&color_rect_half);
 		color_quater_y = BLI_rcti_cent_y(&color_rect_half);
 
-		glColor4ub(UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, 255);
-		glRecti(color_rect_half.xmin, color_rect_half.ymin, color_rect_half.xmax, color_rect_half.ymax);
+		immUniformColor3ub(UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK, UI_ALPHA_CHECKER_DARK);
+		immRecti(pos, color_rect_half.xmin, color_rect_half.ymin, color_rect_half.xmax, color_rect_half.ymax);
 
-		glColor4ub(UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, 255);
-		glRecti(color_quater_x, color_quater_y, color_rect_half.xmax, color_rect_half.ymax);
-		glRecti(color_rect_half.xmin, color_rect_half.ymin, color_quater_x, color_quater_y);
+		immUniformColor3ub(UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT);
+		immRecti(pos, color_quater_x, color_quater_y, color_rect_half.xmax, color_rect_half.ymax);
+		immRecti(pos, color_rect_half.xmin, color_rect_half.ymin, color_quater_x, color_quater_y);
 
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4f(UNPACK3(finalcol), fp ? fp[3] : (cp[3] / 255.0f));
-		glRecti(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+		immUniformColor4f(UNPACK3(finalcol), fp ? fp[3] : (cp[3] / 255.0f));
+		immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
 		glDisable(GL_BLEND);
 	}
 	else {
-		glColor3fv(finalcol);
-		glRecti(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+		immUniformColor3fv(finalcol);
+		immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
 	}
 
 	/* draw outline */
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3ub(128, 128, 128);
 	imm_draw_line_box(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
@@ -381,7 +389,6 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLI_snprintf(str, sizeof(str), "   L:%-.4f", lum);
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
 	else if (channels >= 3) {
 		rgb_to_hsv(finalcol[0], finalcol[1], finalcol[2], &hue, &sat, &val);
@@ -405,10 +412,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLI_snprintf(str, sizeof(str), "   L:%-.4f", lum);
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
-		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
-
-	(void)dx;
 }
 
 /* image drawing */
