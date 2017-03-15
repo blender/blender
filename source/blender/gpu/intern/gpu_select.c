@@ -181,12 +181,7 @@ unsigned int GPU_select_end(void)
  */
 bool GPU_select_query_check_active(void)
 {
-	return ((U.gpu_select_method == USER_SELECT_USE_OCCLUSION_QUERY) ||
-	        ((U.gpu_select_method == USER_SELECT_AUTO) &&
-	         (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) ||
-	          /* unsupported by nouveau, gallium 0.4, see: T47940 */
-	          GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))));
-
+	return ELEM(U.gpu_select_method, USER_SELECT_USE_OCCLUSION_QUERY, USER_SELECT_AUTO);
 }
 
 /* ----------------------------------------------------------------------------
