@@ -50,6 +50,18 @@ def _workaround_buggy_drivers():
             _cycles.opencl_disable()
 
 
+def _configure_argument_parser():
+    import argparse
+    parser = argparse.ArgumentParser(description="Cycles Addon argument parser")
+    parser.add_argument("--cycles-resumable-num-chunks",
+                        help="Number of chunks to split sample range into",
+                        default=None)
+    parser.add_argument("--cycles-resumable-current-chunk",
+                        help="Current chunk of samples range to render",
+                        default=None)
+    return parser
+
+
 def _parse_command_line():
     import sys
 
@@ -57,25 +69,15 @@ def _parse_command_line():
     if "--" not in argv:
         return
 
-    argv = argv[argv.index("--") + 1:]
+    parser = _configure_argument_parser()
+    args, unknown = parser.parse_known_args(argv[argv.index("--") + 1:])
 
-    num_resumable_chunks = None
-    current_resumable_chunk = None
-
-    # TODO(sergey): Add some nice error prints if argument is not used properly.
-    idx = 0
-    while idx < len(argv) - 1:
-        arg = argv[idx]
-        if arg == '--cycles-resumable-num-chunks':
-            num_resumable_chunks = int(argv[idx + 1])
-        elif arg == '--cycles-resumable-current-chunk':
-            current_resumable_chunk = int(argv[idx + 1])
-        idx += 1
-
-    if num_resumable_chunks is not None and current_resumable_chunk is not None:
+    if args.cycles_resumable_num_chunks is not None and \
+       args.cycles_resumable_current_chunk is not None:
         import _cycles
-        _cycles.set_resumable_chunks(num_resumable_chunks,
-                                     current_resumable_chunk)
+        _cycles.set_resumable_chunks(
+                int(args.cycles_resumable_num_chunks),
+                int(args.cycles_resumable_current_chunk))
 
 
 def init():
