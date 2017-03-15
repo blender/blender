@@ -46,6 +46,8 @@ CCL_NAMESPACE_BEGIN
 bool BlenderSession::headless = false;
 int BlenderSession::num_resumable_chunks = 0;
 int BlenderSession::current_resumable_chunk = 0;
+int BlenderSession::start_resumable_chunk = 0;
+int BlenderSession::end_resumable_chunk = 0;
 
 BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
                                BL::UserPreferences& b_userpref,
@@ -1342,9 +1344,21 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
 		return;
 	}
 
-	int num_samples_per_chunk = (int)ceilf((float)num_samples / num_resumable_chunks);
-	int range_start_sample = num_samples_per_chunk * (current_resumable_chunk - 1);
-	int range_num_samples = num_samples_per_chunk;
+	const int num_samples_per_chunk = (int)ceilf((float)num_samples / num_resumable_chunks);
+
+	int range_start_sample, range_num_samples;
+	if(current_resumable_chunk != 0) {
+		/* Single chunk rendering. */
+		range_start_sample = num_samples_per_chunk * (current_resumable_chunk - 1);
+		range_num_samples = num_samples_per_chunk;
+	}
+	else {
+		/* Ranged-chunks. */
+		const int num_chunks = end_resumable_chunk - start_resumable_chunk + 1;
+		range_start_sample = num_samples_per_chunk * (start_resumable_chunk - 1);
+		range_num_samples = num_chunks * num_samples_per_chunk;
+	}
+	/* Make sure we don't overshoot. */
 	if(range_start_sample + range_num_samples > num_samples) {
 		range_num_samples = num_samples - range_num_samples;
 	}

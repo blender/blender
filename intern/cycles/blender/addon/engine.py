@@ -59,6 +59,12 @@ def _configure_argument_parser():
     parser.add_argument("--cycles-resumable-current-chunk",
                         help="Current chunk of samples range to render",
                         default=None)
+    parser.add_argument("--cycles-resumable-start-chunk",
+                        help="Start chunk to render",
+                        default=None)
+    parser.add_argument("--cycles-resumable-end-chunk",
+                        help="End chunk to render",
+                        default=None)
     return parser
 
 
@@ -72,12 +78,19 @@ def _parse_command_line():
     parser = _configure_argument_parser()
     args, unknown = parser.parse_known_args(argv[argv.index("--") + 1:])
 
-    if args.cycles_resumable_num_chunks is not None and \
-       args.cycles_resumable_current_chunk is not None:
-        import _cycles
-        _cycles.set_resumable_chunks(
-                int(args.cycles_resumable_num_chunks),
-                int(args.cycles_resumable_current_chunk))
+    if args.cycles_resumable_num_chunks is not None:
+        if args.cycles_resumable_current_chunk is not None:
+            import _cycles
+            _cycles.set_resumable_chunk(
+                    int(args.cycles_resumable_num_chunks),
+                    int(args.cycles_resumable_current_chunk))
+        elif args.cycles_resumable_start_chunk is not None and \
+             args.cycles_resumable_end_chunk:
+            import _cycles
+            _cycles.set_resumable_chunk_range(
+                    int(args.cycles_resumable_num_chunks),
+                    int(args.cycles_resumable_start_chunk),
+                    int(args.cycles_resumable_end_chunk))
 
 
 def init():
