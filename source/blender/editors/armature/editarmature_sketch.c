@@ -2051,38 +2051,6 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 		}
 	}
 
-#if 0
-	if (BLI_listbase_is_empty(&sketch->depth_peels) == false) {
-		float colors[8][3] = {
-			{ 1, 0, 0 },
-			{ 0, 1, 0 },
-			{ 0, 0, 1 },
-			{ 1, 1, 0 },
-			{ 1, 0, 1 },
-			{ 0, 1, 1 },
-			{ 1, 1, 1 },
-			{ 0, 0, 0 }
-		};
-		DepthPeel *p;
-		GLUquadric *quad = gluNewQuadric();
-		gluQuadricNormals(quad, GLU_SMOOTH);
-
-		for (p = sketch->depth_peels.first; p; p = p->next)
-		{
-			int index = GET_INT_FROM_POINTER(p->ob);
-			index = (index >> 5) & 7;
-
-			glColor3fv(colors[index]);
-			glPushMatrix();
-			glTranslate3fv(p->p);
-			gluSphere(quad, 0.02, 8, 8);
-			glPopMatrix();
-		}
-
-		gluDeleteQuadric(quad);
-	}
-#endif
-
 	glDisable(GL_DEPTH_TEST);
 
 	/* only draw gesture in active area */
