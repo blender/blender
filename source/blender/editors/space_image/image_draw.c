@@ -179,21 +179,21 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 
 	BLF_size(blf_mono_font, 11 * U.pixelsize, U.dpi);
 
-	glColor3ub(255, 255, 255);
+	BLF_color3ub(blf_mono_font, 255, 255, 255);
 	BLI_snprintf(str, sizeof(str), "X:%-4d  Y:%-4d |", x, y);
 	BLF_position(blf_mono_font, dx, dy, 0);
 	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 	dx += BLF_width(blf_mono_font, str, sizeof(str));
 
 	if (zp) {
-		glColor3ub(255, 255, 255);
+		BLF_color3ub(blf_mono_font, 255, 255, 255);
 		BLI_snprintf(str, sizeof(str), " Z:%-.4f |", 0.5f + 0.5f * (((float)*zp) / (float)0x7fffffff));
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
 	if (zpf) {
-		glColor3ub(255, 255, 255);
+		BLF_color3ub(blf_mono_font, 255, 255, 255);
 		BLI_snprintf(str, sizeof(str), " Z:%-.3f |", *zpf);
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
@@ -207,14 +207,14 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		else if (cp != NULL) {
 			BLI_snprintf(str, sizeof(str), " Val:%-.3f |", cp[0] / 255.0f);
 		}
-		glColor3ub(255, 255, 255);
+		BLF_color3ub(blf_mono_font, 255, 255, 255);
 		BLF_position(blf_mono_font, dx, dy, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
 
 	if (channels >= 3) {
-		glColor3ubv(red);
+		BLF_color3ubv(blf_mono_font, red);
 		if (fp)
 			BLI_snprintf(str, sizeof(str), "  R:%-.5f", fp[0]);
 		else if (cp)
@@ -225,7 +225,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 		
-		glColor3ubv(green);
+		BLF_color3ubv(blf_mono_font, green);
 		if (fp)
 			BLI_snprintf(str, sizeof(str), "  G:%-.5f", fp[1]);
 		else if (cp)
@@ -236,7 +236,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 		
-		glColor3ubv(blue);
+		BLF_color3ubv(blf_mono_font, blue);
 		if (fp)
 			BLI_snprintf(str, sizeof(str), "  B:%-.5f", fp[2]);
 		else if (cp)
@@ -248,7 +248,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 		
 		if (channels == 4) {
-			glColor3ub(255, 255, 255);
+			BLF_color3ub(blf_mono_font, 255, 255, 255);
 			if (fp)
 				BLI_snprintf(str, sizeof(str), "  A:%-.4f", fp[3]);
 			else if (cp)
@@ -362,7 +362,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 
 	dx += 1.75f * UI_UNIT_X;
 
-	glColor3ub(255, 255, 255);
+	BLF_color3ub(blf_mono_font, 255, 255, 255);
 	if (channels == 1) {
 		if (fp) {
 			rgb_to_hsv(fp[0], fp[0], fp[0], &hue, &sat, &val);
