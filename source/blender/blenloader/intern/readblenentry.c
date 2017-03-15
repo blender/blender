@@ -317,7 +317,9 @@ void BLO_blendhandle_close(BlendHandle *bh)
  * \param reports If the return value is NULL, errors indicating the cause of the failure.
  * \return The data of the file.
  */
-BlendFileData *BLO_read_from_file(const char *filepath, ReportList *reports)
+BlendFileData *BLO_read_from_file(
+        const char *filepath,
+        ReportList *reports, eBLOReadSkip skip_flags)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
@@ -325,6 +327,7 @@ BlendFileData *BLO_read_from_file(const char *filepath, ReportList *reports)
 	fd = blo_openblenderfile(filepath, reports);
 	if (fd) {
 		fd->reports = reports;
+		fd->skip_flags = skip_flags;
 		bfd = blo_read_file_internal(fd, filepath);
 		blo_freefiledata(fd);
 	}
@@ -341,7 +344,9 @@ BlendFileData *BLO_read_from_file(const char *filepath, ReportList *reports)
  * \param reports If the return value is NULL, errors indicating the cause of the failure.
  * \return The data of the file.
  */
-BlendFileData *BLO_read_from_memory(const void *mem, int memsize, ReportList *reports)
+BlendFileData *BLO_read_from_memory(
+        const void *mem, int memsize,
+        ReportList *reports, eBLOReadSkip skip_flags)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
@@ -349,6 +354,7 @@ BlendFileData *BLO_read_from_memory(const void *mem, int memsize, ReportList *re
 	fd = blo_openblendermemory(mem, memsize,  reports);
 	if (fd) {
 		fd->reports = reports;
+		fd->skip_flags = skip_flags;
 		bfd = blo_read_file_internal(fd, "");
 		blo_freefiledata(fd);
 	}
@@ -362,7 +368,9 @@ BlendFileData *BLO_read_from_memory(const void *mem, int memsize, ReportList *re
  * \param oldmain old main, from which we will keep libraries and other datablocks that should not have changed.
  * \param filename current file, only for retrieving library data.
  */
-BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFile *memfile, ReportList *reports)
+BlendFileData *BLO_read_from_memfile(
+        Main *oldmain, const char *filename, MemFile *memfile,
+        ReportList *reports, eBLOReadSkip skip_flags)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
@@ -371,6 +379,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 	fd = blo_openblendermemfile(memfile, reports);
 	if (fd) {
 		fd->reports = reports;
+		fd->skip_flags = skip_flags;
 		BLI_strncpy(fd->relabase, filename, sizeof(fd->relabase));
 		
 		/* clear ob->proxy_from pointers in old main */

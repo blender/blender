@@ -34,20 +34,21 @@ struct Main;
 struct MemFile;
 struct ReportList;
 
-int BKE_blendfile_read(struct bContext *C, const char *filepath, struct ReportList *reports);
-
 enum {
 	BKE_BLENDFILE_READ_FAIL             = 0, /* no load */
 	BKE_BLENDFILE_READ_OK               = 1, /* OK */
 	BKE_BLENDFILE_READ_OK_USERPREFS     = 2, /* OK, and with new user settings */
 };
 
+int BKE_blendfile_read(
+        struct bContext *C, const char *filepath,
+        struct ReportList *reports, int skip_flag);
 bool BKE_blendfile_read_from_memory(
-        struct bContext *C, const void *filebuf,
-        int filelength, struct ReportList *reports, bool update_defaults);
+        struct bContext *C, const void *filebuf, int filelength,
+        struct ReportList *reports, int skip_flag, bool update_defaults);
 bool BKE_blendfile_read_from_memfile(
         struct bContext *C, struct MemFile *memfile,
-        struct ReportList *reports);
+        struct ReportList *reports, int skip_flag);
 
 int BKE_blendfile_read_userdef(const char *filepath, struct ReportList *reports);
 int BKE_blendfile_write_userdef(const char *filepath, struct ReportList *reports);

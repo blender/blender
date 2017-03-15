@@ -105,7 +105,7 @@ void BKE_blender_version_string(char *version_str, size_t maxncpy, short version
 	const char *prefix = v_prefix ? "v" : "";
 
 	if (include_subversion && subversion > 0) {
-		BLI_snprintf(version_str, maxncpy, "%s%d.%02d.%d", prefix, version / 100, subversion % 100, subversion);
+		BLI_snprintf(version_str, maxncpy, "%s%d.%02d.%d", prefix, version / 100, version % 100, subversion);
 	}
 	else {
 		BLI_snprintf(version_str, maxncpy, "%s%d.%02d", prefix, version / 100, version % 100);

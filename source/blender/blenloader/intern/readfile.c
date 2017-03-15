@@ -8706,7 +8706,12 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 			bhead = read_global(bfd, fd, bhead);
 			break;
 		case USER:
-			bhead = read_userdef(bfd, fd, bhead);
+			if (fd->skip_flags & BLO_READ_SKIP_USERDEF) {
+				bhead = blo_nextbhead(fd, bhead);
+			}
+			else {
+				bhead = read_userdef(bfd, fd, bhead);
+			}
 			break;
 		case ENDB:
 			bhead = NULL;
