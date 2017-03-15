@@ -35,6 +35,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_genfile.h"
 
+#include "BKE_blender.h"
 #include "BKE_collection.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -51,6 +52,9 @@
 void do_versions_after_linking_280(Main *main)
 {
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
+		char version[48];
+		BKE_blender_version_string(version, sizeof(version), main->versionfile, main->subversionfile, false, false);
+
 		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 			/* since we don't have access to FileData we check the (always valid) first render layer instead */
 			if (scene->render_layers.first == NULL) {
@@ -64,7 +68,7 @@ void do_versions_after_linking_280(Main *main)
 				for (int i = 0; i < 20; i++) {
 					char name[MAX_NAME];
 
-					BLI_snprintf(name, sizeof(collections[i]->name), "%d", i + 1);
+					BLI_snprintf(name, sizeof(collections[i]->name), "Collection %d [converted from %s]", i + 1, version);
 					collections[i] = BKE_collection_add(scene, sc_master, name);
 
 					is_visible[i] = (scene->lay & (1 << i));
@@ -161,6 +165,11 @@ void do_versions_after_linking_280(Main *main)
 					if ((lay_used & (1 << i)) == 0) {
 						BKE_collection_remove(scene, collections[i]);
 					}
+				}
+
+				/* Fallback name if only one layer was found in the original file */
+				if (BLI_listbase_count_ex(&sc_master->scene_collections, 2) == 1) {
+					BKE_collection_rename(scene, sc_master->scene_collections.first, "Default Collection");
 				}
 
 				/* remove bases once and for all */
