@@ -547,10 +547,6 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	char showname[128]; /* 128 used below */
 	rctf *rct = &node->totr;
 
-#if 0   /* UNUSED */
-	float size = NODE_REROUTE_SIZE;
-#endif
-
 	/* skip if out of view */
 	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
 	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax)
@@ -564,11 +560,14 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	 * selection state is indicated by socket outline below!
 	 */
 #if 0
+	float size = NODE_REROUTE_SIZE;
+
 	/* body */
+	float debug_color[4];
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_ThemeColor4(TH_NODE);
+	UI_GetThemeColor4fv(TH_NODE, debug_color);
 	glEnable(GL_BLEND);
-	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
+	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
@@ -576,11 +575,13 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		/* using different shades of TH_TEXT_HI for the empasis, like triangle */
-		if (node->flag & NODE_ACTIVE)
-			UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
-		else
-			UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
+		if (node->flag & NODE_ACTIVE) {
+			UI_GetThemeColorShadeAlpha4fv(TH_TEXT_HI, 0, -40, debug_color);
+		}
+		else {
+			UI_GetThemeColorShadeAlpha4fv(TH_TEXT_HI, -20, -120, debug_color);
+		}
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
