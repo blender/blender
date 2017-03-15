@@ -11,9 +11,8 @@
 
 #pragma once
 
-// #define TRUST_NO_ONE !defined(NDEBUG)
-#define TRUST_NO_ONE 1
-// strict error checking, always enabled during early development
+#define TRUST_NO_ONE !defined(NDEBUG)
+// strict error checking, enabled for debug builds during early development
 
 #include <GL/glew.h>
 #include <stdbool.h>
