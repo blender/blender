@@ -81,6 +81,8 @@ typedef struct FileData {
 	int id_name_offs;       /* used to retrieve ID names from (bhead+1) */
 	int globalf, fileflags; /* for do_versions patching */
 	
+	eBLOReadSkip skip_flags;  /* skip some data-blocks */
+
 	struct OldNewMap *datamap;
 	struct OldNewMap *globmap;
 	struct OldNewMap *libmap;
