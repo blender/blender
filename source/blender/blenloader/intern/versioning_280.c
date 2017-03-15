@@ -42,6 +42,7 @@
 #include "BKE_scene.h"
 
 #include "BLI_listbase.h"
+#include "BLI_mempool.h"
 #include "BLI_string.h"
 
 #include "BLO_readfile.h"
@@ -180,6 +181,30 @@ void do_versions_after_linking_280(Main *main)
 				scene->basact = NULL;
 			}
 		}
+
+		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_OUTLINER) {
+						SpaceOops *soutliner = (SpaceOops *)sl;
+						SceneLayer *layer = BKE_scene_layer_context_active(screen->scene);
+
+						soutliner->outlinevis = SO_ACT_LAYER;
+
+						if (BLI_listbase_count_ex(&layer->layer_collections, 2) == 1) {
+							/* Create a tree store element for the collection. This is normally
+							 * done in check_persistent (outliner_tree.c), but we need to access
+							 * it here :/ (expand element if it's the only one) */
+							TreeStoreElem *tselem = BLI_mempool_alloc(soutliner->treestore);
+							tselem->type = TSE_LAYER_COLLECTION;
+							tselem->id = layer->layer_collections.first;
+							tselem->nr = tselem->used = 0;
+							tselem->flag &= ~TSE_CLOSED;
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -202,5 +227,4 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		/* temporary validation of 280 files for layers */
 		blo_do_version_temporary(main);
 	}
-
 }
