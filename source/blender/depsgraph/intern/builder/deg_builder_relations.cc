@@ -1312,7 +1312,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	// TODO...
 }
 
-void DepsgraphRelationBuilder::build_cloth(Scene *scene,
+void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
                                            Object *object,
                                            ModifierData *md)
 {
