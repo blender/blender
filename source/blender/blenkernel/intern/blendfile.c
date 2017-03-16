@@ -430,7 +430,7 @@ int BKE_blendfile_read_userdef(const char *filepath, ReportList *reports)
 	BlendFileData *bfd;
 	int retval = BKE_BLENDFILE_READ_FAIL;
 
-	bfd = BLO_read_from_file(filepath, reports, 0);
+	bfd = BLO_read_from_file(filepath, reports, BLO_READ_SKIP_NONE);
 	if (bfd) {
 		if (bfd->user) {
 			retval = BKE_BLENDFILE_READ_OK_USERPREFS;

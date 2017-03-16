@@ -389,7 +389,7 @@ bool BKE_undo_save_file(const char *filename)
 Main *BKE_undo_get_main(Scene **r_scene)
 {
 	Main *mainp = NULL;
-	BlendFileData *bfd = BLO_read_from_memfile(G.main, G.main->name, &curundo->memfile, NULL, 0);
+	BlendFileData *bfd = BLO_read_from_memfile(G.main, G.main->name, &curundo->memfile, NULL, BLO_READ_SKIP_NONE);
 
 	if (bfd) {
 		mainp = bfd->main;
