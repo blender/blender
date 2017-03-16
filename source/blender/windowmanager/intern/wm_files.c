@@ -1435,7 +1435,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 
 	if (wm_homefile_read(C, op->reports, from_memory, filepath)) {
 		/* Load a file but keep the splash open */
-		if (RNA_boolean_get(op->ptr, "use_splash")) {
+		if (!from_memory && RNA_boolean_get(op->ptr, "use_splash")) {
 			WM_init_splash(C);
 		}
 		return OPERATOR_FINISHED;
