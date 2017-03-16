@@ -44,9 +44,6 @@
 #include <string>
 #include <vector>
 
-using std::string;
-using std::vector;
-
 struct bAction;
 struct ChannelDriver;
 struct ModifierData;
@@ -55,6 +52,9 @@ struct EvaluationContext;
 struct FCurve;
 
 namespace DEG {
+
+using std::string;
+using std::vector;
 
 /* Evaluation Operation for atomic operation */
 // XXX: move this to another header that can be exposed?
