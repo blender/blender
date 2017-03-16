@@ -63,6 +63,7 @@
 
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
+extern char datatoc_gpu_shader_fullscreen_vert_glsl[];
 
 /* Structures */
 typedef enum {
@@ -313,6 +314,11 @@ GPUShader *DRW_shader_create_2D(const char *frag, const char *defines)
 GPUShader *DRW_shader_create_3D(const char *frag, const char *defines)
 {
 	return GPU_shader_create(datatoc_gpu_shader_3D_vert_glsl, frag, NULL, NULL, defines, 0, 0, 0);
+}
+
+GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines)
+{
+	return GPU_shader_create(datatoc_gpu_shader_fullscreen_vert_glsl, frag, NULL, NULL, defines, 0, 0, 0);
 }
 
 GPUShader *DRW_shader_create_3D_depth_only(void)

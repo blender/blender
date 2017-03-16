@@ -251,30 +251,26 @@ static VertexBuffer *sphere_wire_vbo(const float rad)
 Batch *DRW_cache_fullscreen_quad_get(void)
 {
 	if (!SHC.drw_fullscreen_quad) {
-		float v1[2] = {-1.0f, -1.0f};
-		float v2[2] = { 1.0f, -1.0f};
-		float v3[2] = {-1.0f,  1.0f};
-		float v4[2] = { 1.0f,  1.0f};
+		float pos[4][2] = {{-1.0f, -1.0f}, { 1.0f, -1.0f}, {-1.0f,  1.0f}, { 1.0f,  1.0f}};
+		float uvs[4][2] = {{ 0.0f,  0.0f}, { 1.0f,  0.0f}, { 0.0f,  1.0f}, { 1.0f,  1.0f}};
 
 		/* Position Only 2D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned pos_id, uvs_id;
 		if (format.attrib_ct == 0) {
 			pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			uvs_id = add_attrib(&format, "uvs", GL_FLOAT, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, 6);
+		VertexBuffer_allocate_data(vbo, 4);
 
-		setAttrib(vbo, pos_id, 0, v1);
-		setAttrib(vbo, pos_id, 1, v2);
-		setAttrib(vbo, pos_id, 2, v3);
+		for (int i = 0; i < 4; ++i)	{
+			setAttrib(vbo, pos_id, i, pos[i]);
+			setAttrib(vbo, uvs_id, i, uvs[i]);
+		}
 
-		setAttrib(vbo, pos_id, 3, v2);
-		setAttrib(vbo, pos_id, 4, v3);
-		setAttrib(vbo, pos_id, 5, v4);
-
-		SHC.drw_fullscreen_quad = Batch_create(GL_TRIANGLES, vbo, NULL);
+		SHC.drw_fullscreen_quad = Batch_create(GL_TRIANGLE_STRIP, vbo, NULL);
 	}
 	return SHC.drw_fullscreen_quad;
 }

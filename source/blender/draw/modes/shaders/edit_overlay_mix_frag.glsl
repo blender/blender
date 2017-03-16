@@ -1,4 +1,6 @@
 
+in vec4 uvcoordsvar;
+
 out vec4 FragColor;
 
 uniform sampler2D wireColor;
@@ -8,10 +10,9 @@ uniform float alpha;
 
 void main()
 {
-	ivec2 co = ivec2(gl_FragCoord.xy);
-	float wire_depth = texelFetch(wireDepth, co, 0).r;
-	float scene_depth = texelFetch(sceneDepth, co, 0).r;
-	vec4 wire_color = texelFetch(wireColor, co, 0).rgba;
+	float wire_depth = texelFetch(wireDepth, uvcoordsvar, 0).r;
+	float scene_depth = texelFetch(sceneDepth, uvcoordsvar, 0).r;
+	vec4 wire_color = texelFetch(wireColor, uvcoordsvar, 0).rgba;
 
 	FragColor = wire_color;
 
