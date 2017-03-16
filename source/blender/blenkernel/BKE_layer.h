@@ -180,7 +180,7 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	Object *_instance;                                                        \
 	Base *base;                                                               \
 	for (base = (sl)->object_bases.first; base; base = base->next) {          \
-	    _instance = base->object;
+		_instance = base->object;
 
 #define FOREACH_OBJECT_END                                                    \
     }                                                                         \
@@ -191,19 +191,19 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	IteratorBeginCb func_begin;                                               \
 	IteratorCb func_next, func_end;                                           \
 	void *data_in;                                                            \
-	                                                                          \
+                                                                                  \
 	if (flag == SELECT) {                                                     \
-	    func_begin = &BKE_selected_objects_Iterator_begin;                    \
-	    func_next = &BKE_selected_objects_Iterator_next;                      \
-	    func_end = &BKE_selected_objects_Iterator_end;                        \
-	    data_in = (sl);                                                       \
-    }                                                                         \
+		func_begin = &BKE_selected_objects_Iterator_begin;                \
+		func_next = &BKE_selected_objects_Iterator_next;                  \
+		func_end = &BKE_selected_objects_Iterator_end;                    \
+		data_in = (sl);                                                   \
+	}                                                                         \
 	else {                                                                    \
-	    func_begin = BKE_scene_objects_Iterator_begin;                        \
-	    func_next = BKE_scene_objects_Iterator_next;                          \
-	    func_end = BKE_scene_objects_Iterator_end;                            \
-	    data_in = (scene);                                                    \
-    }                                                                         \
+		func_begin = BKE_scene_objects_Iterator_begin;                    \
+		func_next = BKE_scene_objects_Iterator_next;                      \
+		func_end = BKE_scene_objects_Iterator_end;                        \
+		data_in = (scene);                                                \
+	}                                                                         \
 	ITER_BEGIN(func_begin, func_next, func_end, data_in, Object *, _instance)
 
 
@@ -217,16 +217,16 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	Object *instance_;                                                        \
 	/* temporary solution, waiting for depsgraph update */                    \
 	BKE_scene_layer_engine_settings_update(sl_);                              \
-	                                                                          \
+                                                                                  \
 	/* flush all the data to objects*/                                        \
 	Base *base_;                                                              \
 	for (base_ = (sl_)->object_bases.first; base_; base_ = base_->next) {     \
-	if ((base_->flag & BASE_VISIBLED) == 0) {                             \
+	if ((base_->flag & BASE_VISIBLED) == 0) {                                 \
 		continue;                                                         \
-	}                                                                     \
-	                                                                          \
-	    instance_ = base_->object;			                                  \
-	    instance_->base_flag = base_->flag;
+	}                                                                         \
+                                                                                  \
+	instance_ = base_->object;                                                \
+	instance_->base_flag = base_->flag;
 
 #define DEG_OBJECT_ITER_END                                                   \
     }                                                                         \
