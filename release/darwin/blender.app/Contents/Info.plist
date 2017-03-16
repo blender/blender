@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.7.0</string>
+	<string>10.9.0</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

@@ -23,6 +23,8 @@
 
 # Libraries configuration for Apple.
 
+set(MACOSX_DEPLOYMENT_TARGET "10.9")
+
 if(NOT DEFINED LIBDIR)
 	if(WITH_CXX11)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
