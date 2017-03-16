@@ -150,11 +150,18 @@ static void keymap_item_free(wmKeyMapItem *kmi)
 		MEM_freeN(kmi->ptr);
 }
 
+void BKE_blender_userdef_set_data(UserDef *userdef)
+{
+	/* only here free userdef themes... */
+	BKE_blender_userdef_free_data(&U);
+	U = *userdef;
+}
+
 /**
  * When loading a new userdef from file,
  * or when exiting Blender.
  */
-void BKE_blender_userdef_free(UserDef *userdef)
+void BKE_blender_userdef_free_data(UserDef *userdef)
 {
 #define U _invalid_access_ /* ensure no accidental global access */
 #ifdef U  /* quiet warning */

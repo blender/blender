@@ -697,8 +697,11 @@ int wm_homefile_read(
 	
 	/* load preferences before startup.blend */
 	if (!from_memory && BLI_exists(filepath_userdef)) {
-		int done = BKE_blendfile_read_userdef(filepath_userdef, NULL);
-		if (done != BKE_BLENDFILE_READ_FAIL) {
+		UserDef *userdef = BKE_blendfile_userdef_read(filepath_userdef, NULL);
+		if (userdef != NULL) {
+			BKE_blender_userdef_set_data(userdef);
+			MEM_freeN(userdef);
+
 			read_userdef_from_memory = false;
 			skip_flags |= BLO_READ_SKIP_USERDEF;
 			printf("Read prefs: %s\n", filepath_userdef);
@@ -1365,7 +1368,7 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 	BLI_make_file_string("/", filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_USERPREF_FILE);
 	printf("trying to save userpref at %s ", filepath);
 
-	if (BKE_blendfile_write_userdef(filepath, op->reports) == 0) {
+	if (BKE_blendfile_userdef_write(filepath, op->reports) == 0) {
 		printf("fail\n");
 		return OPERATOR_CANCELLED;
 	}
