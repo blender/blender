@@ -19,8 +19,8 @@
 #include "split/kernel_indirect_subsurface.h"
 
 __kernel void kernel_ocl_path_trace_indirect_subsurface(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_indirect_subsurface(kg);
+	kernel_indirect_subsurface((KernelGlobals*)kg);
 }

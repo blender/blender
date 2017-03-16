@@ -19,8 +19,9 @@
 #include "split/kernel_buffer_update.h"
 
 __kernel void kernel_ocl_path_trace_buffer_update(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_buffer_update(kg);
+	ccl_local unsigned int local_queue_atomics;
+	kernel_buffer_update((KernelGlobals*)kg, &local_queue_atomics);
 }

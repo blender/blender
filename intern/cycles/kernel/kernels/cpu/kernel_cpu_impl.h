@@ -168,21 +168,28 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 		kernel_##name(kg); \
 	}
 
+#define DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(name, type) \
+	void KERNEL_FUNCTION_FULL_NAME(name)(KernelGlobals *kg, KernelData* /*data*/) \
+	{ \
+		ccl_local type locals; \
+		kernel_##name(kg, &locals); \
+	}
+
 DEFINE_SPLIT_KERNEL_FUNCTION(path_init)
 DEFINE_SPLIT_KERNEL_FUNCTION(scene_intersect)
 DEFINE_SPLIT_KERNEL_FUNCTION(lamp_emission)
 DEFINE_SPLIT_KERNEL_FUNCTION(do_volume)
-DEFINE_SPLIT_KERNEL_FUNCTION(queue_enqueue)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(queue_enqueue, QueueEnqueueLocals)
 DEFINE_SPLIT_KERNEL_FUNCTION(indirect_background)
-DEFINE_SPLIT_KERNEL_FUNCTION(shader_eval)
-DEFINE_SPLIT_KERNEL_FUNCTION(holdout_emission_blurring_pathtermination_ao)
-DEFINE_SPLIT_KERNEL_FUNCTION(subsurface_scatter)
-DEFINE_SPLIT_KERNEL_FUNCTION(direct_lighting)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(shader_eval, uint)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(holdout_emission_blurring_pathtermination_ao, BackgroundAOLocals)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(subsurface_scatter, uint)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(direct_lighting, uint)
 DEFINE_SPLIT_KERNEL_FUNCTION(shadow_blocked_ao)
 DEFINE_SPLIT_KERNEL_FUNCTION(shadow_blocked_dl)
-DEFINE_SPLIT_KERNEL_FUNCTION(next_iteration_setup)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(next_iteration_setup, uint)
 DEFINE_SPLIT_KERNEL_FUNCTION(indirect_subsurface)
-DEFINE_SPLIT_KERNEL_FUNCTION(buffer_update)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(buffer_update, uint)
 
 void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, void* func))
 {

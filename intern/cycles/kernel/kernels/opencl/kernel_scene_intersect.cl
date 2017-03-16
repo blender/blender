@@ -19,8 +19,8 @@
 #include "split/kernel_scene_intersect.h"
 
 __kernel void kernel_ocl_path_trace_scene_intersect(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_scene_intersect(kg);
+	kernel_scene_intersect((KernelGlobals*)kg);
 }

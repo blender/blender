@@ -433,7 +433,7 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Object *ob)
 	}
 
 	/* Object data. */
-	if (ob->data) {
+	if (ob->data != NULL) {
 		/* type-specific data... */
 		switch (ob->type) {
 			case OB_MESH:     /* Geometry */
@@ -491,13 +491,24 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Object *ob)
 	build_animdata(&ob->id);
 
 	/* particle systems */
-	if (ob->particlesystem.first) {
+	if (ob->particlesystem.first != NULL) {
 		build_particles(scene, ob);
 	}
 
-	/* grease pencil */
-	if (ob->gpd) {
+	/* Grease pencil. */
+	if (ob->gpd != NULL) {
 		build_gpencil(ob->gpd);
+	}
+
+	/* Object that this is a proxy for. */
+	if (ob->proxy) {
+		ob->proxy->proxy_from = ob;
+		build_object(scene, ob->proxy);
+	}
+
+	/* Object dupligroup. */
+	if (ob->dup_group != NULL) {
+		build_group(scene, ob->dup_group);
 	}
 }
 

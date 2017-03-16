@@ -44,9 +44,6 @@
 #include <string>
 #include <vector>
 
-using std::string;
-using std::vector;
-
 struct bAction;
 struct ChannelDriver;
 struct ModifierData;
@@ -55,6 +52,9 @@ struct EvaluationContext;
 struct FCurve;
 
 namespace DEG {
+
+using std::string;
+using std::vector;
 
 /* Evaluation Operation for atomic operation */
 // XXX: move this to another header that can be exposed?
@@ -89,52 +89,52 @@ typedef enum eDepsNode_Type {
 	/* **** Generic Types **** */
 
 	/* "Current Scene" - basically whatever kicks off the evaluation process. */
-	DEPSNODE_TYPE_ROOT             = 1,
+	DEPSNODE_TYPE_ROOT,
 	/* Time-Source */
-	DEPSNODE_TYPE_TIMESOURCE       = 2,
+	DEPSNODE_TYPE_TIMESOURCE,
 	/* ID-Block reference - used as landmarks/collection point for components,
 	 * but not usually part of main graph.
 	 */
-	DEPSNODE_TYPE_ID_REF           = 3,
+	DEPSNODE_TYPE_ID_REF,
 	/* Isolated sub-graph - used for keeping instanced data separate from
 	 * instances using them.
 	 */
-	DEPSNODE_TYPE_SUBGRAPH         = 4,
+	DEPSNODE_TYPE_SUBGRAPH,
 
 	/* **** Outer Types **** */
 
 	/* Parameters Component - Default when nothing else fits
 	 * (i.e. just SDNA property setting).
 	 */
-	DEPSNODE_TYPE_PARAMETERS       = 11,
+	DEPSNODE_TYPE_PARAMETERS,
 	/* Generic "Proxy-Inherit" Component
 	 * XXX: Also for instancing of subgraphs?
 	 */
-	DEPSNODE_TYPE_PROXY            = 12,
+	DEPSNODE_TYPE_PROXY,
 	/* Animation Component
 	 *
 	 * XXX: merge in with parameters?
 	 */
-	DEPSNODE_TYPE_ANIMATION        = 13,
+	DEPSNODE_TYPE_ANIMATION,
 	/* Transform Component (Parenting/Constraints) */
-	DEPSNODE_TYPE_TRANSFORM        = 14,
+	DEPSNODE_TYPE_TRANSFORM,
 	/* Geometry Component (DerivedMesh/Displist) */
-	DEPSNODE_TYPE_GEOMETRY         = 15,
+	DEPSNODE_TYPE_GEOMETRY,
 	/* Sequencer Component (Scene Only) */
-	DEPSNODE_TYPE_SEQUENCER        = 16,
+	DEPSNODE_TYPE_SEQUENCER,
 
 	/* **** Evaluation-Related Outer Types (with Subdata) **** */
 
 	/* Pose Component - Owner/Container of Bones Eval */
-	DEPSNODE_TYPE_EVAL_POSE        = 21,
+	DEPSNODE_TYPE_EVAL_POSE,
 	/* Bone Component - Child/Subcomponent of Pose */
-	DEPSNODE_TYPE_BONE             = 22,
+	DEPSNODE_TYPE_BONE,
 	/* Particle Systems Component */
-	DEPSNODE_TYPE_EVAL_PARTICLES   = 23,
+	DEPSNODE_TYPE_EVAL_PARTICLES,
 	/* Material Shading Component */
-	DEPSNODE_TYPE_SHADING          = 24,
+	DEPSNODE_TYPE_SHADING,
 	/* Cache Component */
-	DEPSNODE_TYPE_CACHE            = 25,
+	DEPSNODE_TYPE_CACHE,
 } eDepsNode_Type;
 
 /* Identifiers for common operations (as an enum). */

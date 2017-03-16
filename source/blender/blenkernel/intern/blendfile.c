@@ -227,7 +227,7 @@ static void setup_app_data(
 	if (bfd->user) {
 
 		/* only here free userdef themes... */
-		BKE_blender_userdef_free();
+		BKE_blender_userdef_free(&U);
 
 		U = *bfd->user;
 
@@ -430,13 +430,13 @@ int BKE_blendfile_read_userdef(const char *filepath, ReportList *reports)
 	BlendFileData *bfd;
 	int retval = BKE_BLENDFILE_READ_FAIL;
 
-	bfd = BLO_read_from_file(filepath, reports, 0);
+	bfd = BLO_read_from_file(filepath, reports, BLO_READ_SKIP_NONE);
 	if (bfd) {
 		if (bfd->user) {
 			retval = BKE_BLENDFILE_READ_OK_USERPREFS;
 
 			/* only here free userdef themes... */
-			BKE_blender_userdef_free();
+			BKE_blender_userdef_free(&U);
 
 			U = *bfd->user;
 			MEM_freeN(bfd->user);

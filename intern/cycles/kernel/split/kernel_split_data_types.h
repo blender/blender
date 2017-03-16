@@ -111,6 +111,17 @@ __device__ SplitParams __split_param_data;
 #  define kernel_split_params (__split_param_data)
 #endif  /* __KERNEL_CUDA__ */
 
+/* Local storage for queue_enqueue kernel. */
+typedef struct QueueEnqueueLocals {
+	uint queue_atomics[2];
+} QueueEnqueueLocals;
+
+/* Local storage for holdout_emission_blurring_pathtermination_ao kernel. */
+typedef struct BackgroundAOLocals {
+	uint queue_atomics_bg;
+	uint queue_atomics_ao;
+} BackgroundAOLocals;
+
 CCL_NAMESPACE_END
 
 #endif  /* __KERNEL_SPLIT_DATA_TYPES_H__ */

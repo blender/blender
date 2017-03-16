@@ -19,8 +19,8 @@
 #include "split/kernel_path_init.h"
 
 __kernel void kernel_ocl_path_trace_path_init(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_path_init(kg);
+	kernel_path_init((KernelGlobals*)kg);
 }

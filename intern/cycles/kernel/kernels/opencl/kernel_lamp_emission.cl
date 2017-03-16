@@ -19,8 +19,8 @@
 #include "split/kernel_lamp_emission.h"
 
 __kernel void kernel_ocl_path_trace_lamp_emission(
-        KernelGlobals *kg,
+        ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_lamp_emission(kg);
+	kernel_lamp_emission((KernelGlobals*)kg);
 }

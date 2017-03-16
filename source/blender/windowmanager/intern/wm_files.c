@@ -629,18 +629,21 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 
 /**
- * called on startup,  (context entirely filled with NULLs)
- * or called for 'New File'
- * both startup.blend and userpref.blend are checked
- * the optional parameter custom_file points to an alternative startup page
- * custom_file can be NULL
+ * Called on startup, (context entirely filled with NULLs)
+ * or called for 'New File' both startup.blend and userpref.blend are checked.
+ *
+ * \param from_memory: Ignore on-disk startup file, use bundled ``datatoc_startup_blend`` instead.
+ * Used for "Restore Factory Settings".
+ * \param filepath_startup_override: Optional path pointing to an alternative blend file (may be NULL).
  */
-int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const char *custom_file)
+int wm_homefile_read(
+        bContext *C, ReportList *reports,
+        bool from_memory, const char *filepath_startup_override)
 {
 	ListBase wmbase;
-	char startstr[FILE_MAX];
-	char prefstr[FILE_MAX];
-	int success = 0;
+	char filepath_startup[FILE_MAX];
+	char filepath_userdef[FILE_MAX];
+	bool success = false;
 
 	/* Indicates whether user preferences were really load from memory.
 	 *
@@ -655,7 +658,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	eBLOReadSkip skip_flags = 0;
 
 	/* options exclude eachother */
-	BLI_assert((from_memory && custom_file) == 0);
+	BLI_assert((from_memory && filepath_startup_override) == 0);
 
 	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
 		BKE_BIT_TEST_SET(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
@@ -668,24 +671,24 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	G.relbase_valid = 0;
 	if (!from_memory) {
 		const char * const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
-		if (custom_file) {
-			BLI_strncpy(startstr, custom_file, FILE_MAX);
+		if (filepath_startup_override) {
+			BLI_strncpy(filepath_startup, filepath_startup_override, FILE_MAX);
 
 			if (cfgdir) {
-				BLI_make_file_string(G.main->name, prefstr, cfgdir, BLENDER_USERPREF_FILE);
+				BLI_make_file_string(G.main->name, filepath_userdef, cfgdir, BLENDER_USERPREF_FILE);
 			}
 			else {
-				prefstr[0] = '\0';
+				filepath_userdef[0] = '\0';
 			}
 		}
 		else if (cfgdir) {
-			BLI_make_file_string(G.main->name, startstr, cfgdir, BLENDER_STARTUP_FILE);
-			BLI_make_file_string(G.main->name, prefstr, cfgdir, BLENDER_USERPREF_FILE);
+			BLI_make_file_string(G.main->name, filepath_startup, cfgdir, BLENDER_STARTUP_FILE);
+			BLI_make_file_string(G.main->name, filepath_userdef, cfgdir, BLENDER_USERPREF_FILE);
 		}
 		else {
-			startstr[0] = '\0';
-			prefstr[0] = '\0';
-			from_memory = 1;
+			filepath_startup[0] = '\0';
+			filepath_userdef[0] = '\0';
+			from_memory = true;
 		}
 	}
 	
@@ -693,32 +696,32 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	wm_window_match_init(C, &wmbase);
 	
 	/* load preferences before startup.blend */
-	if (!from_memory && BLI_exists(prefstr)) {
-		int done = BKE_blendfile_read_userdef(prefstr, NULL);
+	if (!from_memory && BLI_exists(filepath_userdef)) {
+		int done = BKE_blendfile_read_userdef(filepath_userdef, NULL);
 		if (done != BKE_BLENDFILE_READ_FAIL) {
 			read_userdef_from_memory = false;
 			skip_flags |= BLO_READ_SKIP_USERDEF;
-			printf("Read new prefs: %s\n", prefstr);
+			printf("Read prefs: %s\n", filepath_userdef);
 		}
 	}
 
 	if (!from_memory) {
-		if (BLI_access(startstr, R_OK) == 0) {
-			success = (BKE_blendfile_read(C, startstr, NULL, skip_flags) != BKE_BLENDFILE_READ_FAIL);
+		if (BLI_access(filepath_startup, R_OK) == 0) {
+			success = (BKE_blendfile_read(C, filepath_startup, NULL, skip_flags) != BKE_BLENDFILE_READ_FAIL);
 		}
 		if (BLI_listbase_is_empty(&U.themes)) {
 			if (G.debug & G_DEBUG)
-				printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n", startstr);
-			success = 0;
+				printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n", filepath_startup);
+			success = false;
 		}
 	}
 
-	if (success == 0 && custom_file && reports) {
-		BKE_reportf(reports, RPT_ERROR, "Could not read '%s'", custom_file);
+	if (success == false && filepath_startup_override && reports) {
+		BKE_reportf(reports, RPT_ERROR, "Could not read '%s'", filepath_startup_override);
 		/*We can not return from here because wm is already reset*/
 	}
 
-	if (success == 0) {
+	if (success == false) {
 		success = BKE_blendfile_read_from_memory(
 		        C, datatoc_startup_blend, datatoc_startup_blend_size,
 		        NULL, skip_flags, true);
