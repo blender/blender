@@ -58,6 +58,7 @@
 
 #include "draw_mode_engines.h"
 #include "clay.h"
+#include "eevee.h"
 
 #define MAX_ATTRIB_NAME 32
 
@@ -109,12 +110,14 @@ struct DRWInterface {
 	int attribs_size[16];
 	int attribs_loc[16];
 	/* matrices locations */
+	int model;
 	int modelview;
 	int projection;
 	int view;
 	int modelviewprojection;
 	int viewprojection;
 	int normal;
+	int worldnormal;
 	int eye;
 	/* Dynamic batch */
 	GLuint instance_vbo;
@@ -337,12 +340,14 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 {
 	DRWInterface *interface = MEM_mallocN(sizeof(DRWInterface), "DRWInterface");
 
+	interface->model = GPU_shader_get_uniform(shader, "ModelMatrix");
 	interface->modelview = GPU_shader_get_uniform(shader, "ModelViewMatrix");
 	interface->projection = GPU_shader_get_uniform(shader, "ProjectionMatrix");
 	interface->view = GPU_shader_get_uniform(shader, "ViewMatrix");
 	interface->viewprojection = GPU_shader_get_uniform(shader, "ViewProjectionMatrix");
 	interface->modelviewprojection = GPU_shader_get_uniform(shader, "ModelViewProjectionMatrix");
 	interface->normal = GPU_shader_get_uniform(shader, "NormalMatrix");
+	interface->worldnormal = GPU_shader_get_uniform(shader, "WorldNormalMatrix");
 	interface->eye = GPU_shader_get_uniform(shader, "eye");
 	interface->instance_count = 0;
 	interface->attribs_count = 0;
@@ -770,12 +775,13 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	RegionView3D *rv3d = CTX_wm_region_view3d(DST.context);
 	DRWInterface *interface = shgroup->interface;
 	
-	float mvp[4][4], mv[4][4], n[3][3];
+	float mvp[4][4], mv[4][4], n[3][3], wn[3][3];
 	float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
 
 	bool do_mvp = (interface->modelviewprojection != -1);
 	bool do_mv = (interface->modelview != -1);
 	bool do_n = (interface->normal != -1);
+	bool do_wn = (interface->worldnormal != -1);
 	bool do_eye = (interface->eye != -1);
 
 	if (do_mvp) {
@@ -789,6 +795,11 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 		invert_m3(n);
 		transpose_m3(n);
 	}
+	if (do_wn) {
+		copy_m3_m4(wn, obmat);
+		invert_m3(wn);
+		transpose_m3(wn);
+	}
 	if (do_eye) {
 		/* Used by orthographic wires */
 		float tmp[3][3];
@@ -799,6 +810,9 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 
 	/* Should be really simple */
 	/* step 1 : bind object dependent matrices */
+	if (interface->model != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->model, 16, 1, (float *)obmat);
+	}
 	if (interface->modelviewprojection != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->modelviewprojection, 16, 1, (float *)mvp);
 	}
@@ -816,6 +830,9 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	}
 	if (interface->normal != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->normal, 9, 1, (float *)n);
+	}
+	if (interface->worldnormal != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->worldnormal, 9, 1, (float *)wn);
 	}
 	if (interface->eye != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->eye, 3, 1, (float *)eye);
@@ -1548,6 +1565,7 @@ void DRW_engines_register(void)
 {
 #ifdef WITH_CLAY_ENGINE
 	RE_engines_register(NULL, &viewport_clay_type);
+	RE_engines_register(NULL, &viewport_eevee_type);
 
 	DRW_engine_register(&draw_engine_object_type);
 	DRW_engine_register(&draw_engine_edit_armature_type);

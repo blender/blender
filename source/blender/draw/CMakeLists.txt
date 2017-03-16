@@ -27,6 +27,7 @@ set(INC
 	.
 	intern
 	engines/clay
+	engines/eevee
 	modes
 
 	../blenkernel
@@ -56,7 +57,15 @@ set(SRC
 	intern/draw_cache.c
 	intern/draw_view.c
 	intern/draw_armature.c
+
 	engines/clay/clay.c
+	engines/clay/clay.h
+
+	engines/eevee/eevee.c
+	engines/eevee/eevee_lights.c
+	engines/eevee/eevee.h
+	engines/eevee/eevee_private.h
+
 	modes/object_mode.c
 	modes/edit_armature_mode.c
 	modes/edit_curve_mode.c
@@ -76,7 +85,6 @@ set(SRC
 	intern/draw_common.h
 	intern/draw_cache.h
 	intern/draw_view.h
-	engines/clay/clay.h
 	modes/draw_mode_engines.h
 
 	./DRW_engine.h
@@ -90,6 +98,10 @@ data_to_c_simple(engines/clay/shaders/clay_frag.glsl SRC)
 data_to_c_simple(engines/clay/shaders/clay_vert.glsl SRC)
 data_to_c_simple(engines/clay/shaders/ssao_alchemy.glsl SRC)
 data_to_c_simple(engines/clay/shaders/ssao_groundtruth.glsl SRC)
+
+data_to_c_simple(engines/eevee/shaders/lit_surface_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/lit_surface_vert.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/tonemap_frag.glsl SRC)
 
 data_to_c_simple(modes/shaders/edit_overlay_frag.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_vert.glsl SRC)
