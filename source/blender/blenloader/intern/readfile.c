@@ -8611,15 +8611,24 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 		case ID_ID:
 			/* Always adds to the most recently loaded ID_LI block, see direct_link_library.
 			 * This is part of the file format definition. */
-			bhead = read_libblock(fd, mainlist.last, bhead, LIB_TAG_READ | LIB_TAG_EXTERN, NULL);
+			if (fd->skip_flags & BLO_READ_SKIP_DATA) {
+				bhead = blo_nextbhead(fd, bhead);
+			}
+			else {
+				bhead = read_libblock(fd, mainlist.last, bhead, LIB_TAG_READ | LIB_TAG_EXTERN, NULL);
+			}
 			break;
-			
 			/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
 		case ID_SCRN:
 			bhead->code = ID_SCR;
 			/* deliberate pass on to default */
 		default:
-			bhead = read_libblock(fd, bfd->main, bhead, LIB_TAG_LOCAL, NULL);
+			if (fd->skip_flags & BLO_READ_SKIP_DATA) {
+				bhead = blo_nextbhead(fd, bhead);
+			}
+			else {
+				bhead = read_libblock(fd, bfd->main, bhead, LIB_TAG_LOCAL, NULL);
+			}
 		}
 	}
 	

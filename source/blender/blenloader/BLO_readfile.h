@@ -74,9 +74,12 @@ typedef struct BlendFileData {
 
 /* skip reading some data-block types (may want to skip screen data too). */
 typedef enum eBLOReadSkip {
-	BLO_READ_SKIP_NONE    = 0,
-	BLO_READ_SKIP_USERDEF = (1 << 0),
+	BLO_READ_SKIP_NONE          = 0,
+	BLO_READ_SKIP_USERDEF       = (1 << 0),
+	BLO_READ_SKIP_DATA          = (1 << 1),
 } eBLOReadSkip;
+#define BLO_READ_SKIP_ALL \
+	(BLO_READ_SKIP_USERDEF | BLO_READ_SKIP_DATA)
 
 BlendFileData *BLO_read_from_file(
         const char *filepath,
