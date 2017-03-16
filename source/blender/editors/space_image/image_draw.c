@@ -179,6 +179,8 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	immUniformColor4ub(0, 0, 0, 190);
 	immRecti(pos, 0, 0, BLI_rcti_size_x(&ar->winrct) + 1, UI_UNIT_Y);
 
+	immUnbindProgram();
+
 	glDisable(GL_BLEND);
 
 	BLF_size(blf_mono_font, 11 * U.pixelsize, U.dpi);
@@ -360,6 +362,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		immUniformColor3fv(finalcol);
 		immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
 	}
+	immUnbindProgram();
 
 	/* draw outline */
 	pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
