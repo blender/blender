@@ -1656,8 +1656,25 @@ static int convert_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	ListBase selected_editable_bases = CTX_data_collection_get(C, "selected_editable_bases");
+
+	/* Ensure we get all meshes calculated with a sufficient data-mask,
+	 * needed since re-evaluating single modifiers causes bugs if they depend
+	 * on other objects data masks too, see: T50950. */
 	{
+		for (CollectionPointerLink *link = selected_editable_bases.first; link; link = link->next) {
+			Base *base = link->ptr.data;
+			DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+		}
+
+		uint64_t customdata_mask_prev = scene->customdata_mask;
+		scene->customdata_mask |= CD_MASK_MESH;
+		BKE_scene_update_tagged(bmain->eval_ctx, bmain, scene);
+		scene->customdata_mask = customdata_mask_prev;
+	}
+
+	for (CollectionPointerLink *link = selected_editable_bases.first; link; link = link->next) {
+		Base *base = link->ptr.data;
 		ob = base->object;
 
 		if (ob->flag & OB_DONE || !IS_TAGGED(ob->data)) {
@@ -1889,7 +1906,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			((ID *)ob->data)->tag &= ~LIB_TAG_DOIT; /* flag not to convert this datablock again */
 		}
 	}
-	CTX_DATA_END;
+	BLI_freelistN(&selected_editable_bases);
 
 	if (!keep_original) {
 		if (mballConverted) {
