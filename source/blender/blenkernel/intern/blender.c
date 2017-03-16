@@ -154,16 +154,14 @@ static void keymap_item_free(wmKeyMapItem *kmi)
  * When loading a new userdef from file,
  * or when exiting Blender.
  */
-void BKE_blender_userdef_free(void)
+void BKE_blender_userdef_free(UserDef *userdef)
 {
-	wmKeyMap *km;
-	wmKeyMapItem *kmi;
-	wmKeyMapDiffItem *kmdi;
-	bAddon *addon, *addon_next;
-	uiFont *font;
+#define U _invalid_access_ /* ensure no accidental global access */
+#ifdef U  /* quiet warning */
+#endif
 
-	for (km = U.user_keymaps.first; km; km = km->next) {
-		for (kmdi = km->diff_items.first; kmdi; kmdi = kmdi->next) {
+	for (wmKeyMap *km = userdef->user_keymaps.first; km; km = km->next) {
+		for (wmKeyMapDiffItem *kmdi = km->diff_items.first; kmdi; kmdi = kmdi->next) {
 			if (kmdi->add_item) {
 				keymap_item_free(kmdi->add_item);
 				MEM_freeN(kmdi->add_item);
@@ -174,14 +172,15 @@ void BKE_blender_userdef_free(void)
 			}
 		}
 
-		for (kmi = km->items.first; kmi; kmi = kmi->next)
+		for (wmKeyMapItem *kmi = km->items.first; kmi; kmi = kmi->next) {
 			keymap_item_free(kmi);
+		}
 
 		BLI_freelistN(&km->diff_items);
 		BLI_freelistN(&km->items);
 	}
-	
-	for (addon = U.addons.first; addon; addon = addon_next) {
+
+	for (bAddon *addon = userdef->addons.first, *addon_next; addon; addon = addon_next) {
 		addon_next = addon->next;
 		if (addon->prop) {
 			IDP_FreeProperty(addon->prop);
@@ -190,18 +189,20 @@ void BKE_blender_userdef_free(void)
 		MEM_freeN(addon);
 	}
 
-	for (font = U.uifonts.first; font; font = font->next) {
+	for (uiFont *font = userdef->uifonts.first; font; font = font->next) {
 		BLF_unload_id(font->blf_id);
 	}
 
 	BLF_default_set(-1);
 
-	BLI_freelistN(&U.autoexec_paths);
+	BLI_freelistN(&userdef->autoexec_paths);
 
-	BLI_freelistN(&U.uistyles);
-	BLI_freelistN(&U.uifonts);
-	BLI_freelistN(&U.themes);
-	BLI_freelistN(&U.user_keymaps);
+	BLI_freelistN(&userdef->uistyles);
+	BLI_freelistN(&userdef->uifonts);
+	BLI_freelistN(&userdef->themes);
+	BLI_freelistN(&userdef->user_keymaps);
+
+#undef U
 }
 
 /**
