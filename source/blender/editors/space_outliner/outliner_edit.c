@@ -368,9 +368,12 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
 	ID *id = tselem->id;
 
 	BLI_assert(te->idcode != 0 && id != NULL);
-	BLI_assert(te->idcode != ID_LI || ((Library *)id)->parent == NULL);
 	UNUSED_VARS_NDEBUG(te);
 
+	if (te->idcode == ID_LI && ((Library *)id)->parent != NULL) {
+		BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
+		return;
+	}
 	if (id->tag & LIB_TAG_INDIRECT) {
 		BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked id '%s'", id->name);
 		return;
