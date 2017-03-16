@@ -81,21 +81,7 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	/* scene objects */
 	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *ob = base->object;
-
-		/* object itself */
 		build_object(scene, base, ob);
-
-		/* object that this is a proxy for */
-		// XXX: the way that proxies work needs to be completely reviewed!
-		if (ob->proxy) {
-			ob->proxy->proxy_from = ob;
-			build_object(scene, base, ob->proxy);
-		}
-
-		/* Object dupligroup. */
-		if (ob->dup_group) {
-			build_group(scene, base, ob->dup_group);
-		}
 	}
 
 	/* rigidbody */
