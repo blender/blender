@@ -689,19 +689,24 @@ void draw_image_sample_line(SpaceImage *sima)
 	if (sima->sample_line_hist.flag & HISTO_FLAG_SAMPLELINE) {
 		Histogram *hist = &sima->sample_line_hist;
 
-		glBegin(GL_LINES);
-		glColor3ub(0, 0, 0);
-		glVertex2fv(hist->co[0]);
-		glVertex2fv(hist->co[1]);
-		glEnd();
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+		immBegin(GL_LINES, 2);
+		immUniformColor3ub(0, 0, 0);
+		immVertex2fv(pos, hist->co[0]);
+		immVertex2fv(pos, hist->co[1]);
+		immEnd();
 
 		setlinestyle(1);
-		glBegin(GL_LINES);
-		glColor3ub(255, 255, 255);
-		glVertex2fv(hist->co[0]);
-		glVertex2fv(hist->co[1]);
-		glEnd();
+		immBegin(GL_LINES, 2);
+		immUniformColor3ub(255, 255, 255);
+		immVertex2fv(pos, hist->co[0]);
+		immVertex2fv(pos, hist->co[1]);
+		immEnd();
 		setlinestyle(0);
+
+		immUnbindProgram();
 
 	}
 }
