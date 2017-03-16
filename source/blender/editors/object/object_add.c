@@ -1717,7 +1717,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				ED_rigidbody_object_remove(bmain, scene, newob);
 			}
 		}
-		else if (ob->type == OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
+		else if (ob->type == OB_MESH) {
 			ob->flag |= OB_DONE;
 
 			if (keep_original) {
@@ -1741,7 +1741,6 @@ static int convert_exec(bContext *C, wmOperator *op)
 			 * cases this doesnt give correct results (when MDEF is used for eg)
 			 */
 			dm = mesh_get_derived_final(scene, newob, CD_MASK_MESH);
-			// dm = mesh_create_derived_no_deform(ob1, NULL);  /* this was called original (instead of get_derived). man o man why! (ton) */
 
 			DM_to_mesh(dm, newob->data, newob, CD_MASK_MESH, true);
 
