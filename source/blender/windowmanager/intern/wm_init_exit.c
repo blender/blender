@@ -576,7 +576,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	ED_file_exit(); /* for fsmenu */
 
 	UI_exit();
-	BKE_blender_userdef_free(&U);
+	BKE_blender_userdef_free_data(&U);
 
 	RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
 	

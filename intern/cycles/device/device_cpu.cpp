@@ -855,9 +855,8 @@ int2 CPUSplitKernel::split_kernel_local_size()
 	return make_int2(1, 1);
 }
 
-int2 CPUSplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask *task) {
-	/* TODO(mai): this needs investigation but cpu gives incorrect render if global size doesnt match tile size */
-	return task->requested_tile_size;
+int2 CPUSplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask * /*task*/) {
+	return make_int2(64, 1);
 }
 
 uint64_t CPUSplitKernel::state_buffer_size(device_memory& kernel_globals, device_memory& /*data*/, size_t num_threads) {

@@ -191,14 +191,14 @@ ccl_device void path_rng_end(KernelGlobals *kg, ccl_global uint *rng_state, RNG 
 
 /* Linear Congruential Generator */
 
-ccl_device_forceinline float path_rng_1D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension)
+ccl_device_forceinline float path_rng_1D(KernelGlobals *kg, RNG *rng, int sample, int num_samples, int dimension)
 {
 	/* implicit mod 2^32 */
-	rng = (1103515245*(rng) + 12345);
-	return (float)rng * (1.0f/(float)0xFFFFFFFF);
+	*rng = (1103515245*(*rng) + 12345);
+	return (float)*rng * (1.0f/(float)0xFFFFFFFF);
 }
 
-ccl_device_inline void path_rng_2D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension, float *fx, float *fy)
+ccl_device_inline void path_rng_2D(KernelGlobals *kg, RNG *rng, int sample, int num_samples, int dimension, float *fx, float *fy)
 {
 	*fx = path_rng_1D(kg, rng, sample, num_samples, dimension);
 	*fy = path_rng_1D(kg, rng, sample, num_samples, dimension + 1);

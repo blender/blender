@@ -38,11 +38,11 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg,
 	                          kernel_split_params.queue_size,
 	                          0);
 
-	if(ray_index == QUEUE_EMPTY_SLOT) {
-		return;
+	char enqueue_flag = 0;
+	if((ray_index != QUEUE_EMPTY_SLOT) && IS_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE)) {
+		enqueue_flag = 1;
 	}
 
-	char enqueue_flag = (IS_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE)) ? 1 : 0;
 	enqueue_ray_index_local(ray_index,
 	                        QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
 	                        enqueue_flag,
@@ -52,7 +52,7 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg,
 	                        kernel_split_params.queue_index);
 
 	/* Continue on with shader evaluation. */
-	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
+	if((ray_index != QUEUE_EMPTY_SLOT) && IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
 		Intersection isect = kernel_split_state.isect[ray_index];
 		ccl_global uint *rng = &kernel_split_state.rng[ray_index];
 		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];

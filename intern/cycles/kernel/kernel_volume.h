@@ -360,7 +360,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(
     ShaderData *sd,
     PathRadiance *L,
     ccl_addr_space float3 *throughput,
-	ccl_addr_space RNG *rng,
+    ccl_addr_space RNG *rng,
     bool probalistic_scatter)
 {
 	VolumeShaderCoefficients coeff;
