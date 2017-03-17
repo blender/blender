@@ -33,6 +33,8 @@
 #include "BLT_translation.h"
 
 #include "BKE_collection.h"
+#include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -48,6 +50,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+
 /* prototype */
 struct CollectionEngineSettingsCB_Type;
 static void layer_collection_free(SceneLayer *sl, LayerCollection *lc);
@@ -56,7 +60,6 @@ static LayerCollection *find_layer_collection_by_scene_collection(LayerCollectio
 static IDProperty *collection_engine_settings_create(struct CollectionEngineSettingsCB_Type *ces_type, const bool populate);
 static IDProperty *collection_engine_get(IDProperty *root, const int type, const char *engine_name);
 static void collection_engine_settings_init(IDProperty *root, const bool populate);
-static void scene_layer_engine_settings_update(Scene *scene, SceneLayer *sl, Object *ob);
 static void object_bases_Iterator_next(Iterator *iter, const int flag);
 
 /* RenderLayer */
@@ -145,6 +148,13 @@ bool BKE_scene_layer_remove(Main *bmain, Scene *scene, SceneLayer *sl)
 void BKE_scene_layer_free(SceneLayer *sl)
 {
 	sl->basact = NULL;
+
+	for (Base *base = sl->object_bases.first; base; base = base->next) {
+		if (base->collection_properties) {
+			IDP_FreeProperty(base->collection_properties);
+			MEM_freeN(base->collection_properties);
+		}
+	}
 	BLI_freelistN(&sl->object_bases);
 
 	for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
@@ -236,124 +246,14 @@ static void scene_layer_object_base_unref(SceneLayer *sl, Base *base)
 			sl->basact = NULL;
 		}
 
+		if (base->collection_properties) {
+			IDP_FreeProperty(base->collection_properties);
+			MEM_freeN(base->collection_properties);
+		}
+
 		BLI_remlink(&sl->object_bases, base);
 		MEM_freeN(base);
 	}
-}
-
-static void layer_collection_base_flag_recalculate(
-        LayerCollection *lc, const bool tree_is_visible, const bool tree_is_selectable)
-{
-	bool is_visible = tree_is_visible && ((lc->flag & COLLECTION_VISIBLE) != 0);
-	/* an object can only be selected if it's visible */
-	bool is_selectable = tree_is_selectable && is_visible && ((lc->flag & COLLECTION_SELECTABLE) != 0);
-
-	for (LinkData *link = lc->object_bases.first; link; link = link->next) {
-		Base *base = link->data;
-
-		if (is_visible) {
-			base->flag |= BASE_VISIBLED;
-		}
-
-		if (is_selectable) {
-			base->flag |= BASE_SELECTABLED;
-		}
-	}
-
-	for (LayerCollection *lcn = lc->layer_collections.first; lcn; lcn = lcn->next) {
-		layer_collection_base_flag_recalculate(lcn, is_visible, is_selectable);
-	}
-}
-
-/**
- * Re-evaluate the ObjectBase flags for SceneLayer
- */
-void BKE_scene_layer_base_flag_recalculate(SceneLayer *sl)
-{
-	for (Base *base = sl->object_bases.first; base; base = base->next) {
-		base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED);
-	}
-
-	for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
-		layer_collection_base_flag_recalculate(lc, true, true);
-	}
-
-	/* if base is not selectabled, clear select */
-	for (Base *base = sl->object_bases.first; base; base = base->next) {
-		if ((base->flag & BASE_SELECTABLED) == 0) {
-			base->flag &= ~BASE_SELECTED;
-		}
-	}
-}
-
-/**
- * Tag Scene Layer to recalculation
- *
- * Temporary function, waiting for real depsgraph
- */
-void BKE_scene_layer_engine_settings_recalculate(SceneLayer *sl)
-{
-	sl->flag |= SCENE_LAYER_ENGINE_DIRTY;
-	for (Base *base = sl->object_bases.first; base; base = base->next) {
-		base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
-	}
-}
-
-/**
- * Tag Object in SceneLayer to recalculation
- *
- * Temporary function, waiting for real depsgraph
- */
-void BKE_scene_layer_engine_settings_object_recalculate(SceneLayer *sl, Object *ob)
-{
-	Base *base = BLI_findptr(&sl->object_bases, ob, offsetof(Base, object));
-	if (base) {
-		sl->flag |= SCENE_LAYER_ENGINE_DIRTY;
-		base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
-	}
-}
-
-/**
- * Tag all Objects in LayerCollection to recalculation
- *
- * Temporary function, waiting for real depsgraph
- */
-void BKE_scene_layer_engine_settings_collection_recalculate(SceneLayer *sl, LayerCollection *lc)
-{
-	sl->flag |= SCENE_LAYER_ENGINE_DIRTY;
-
-	for (LinkData *link = lc->object_bases.first; link; link = link->next) {
-		Base *base = (Base *)link->data;
-		base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
-	}
-
-	for (LayerCollection *lcn = lc->layer_collections.first; lcn; lcn = lcn->next) {
-		BKE_scene_layer_engine_settings_collection_recalculate(sl, lcn);
-	}
-}
-
-/**
- * Re-calculate the engine settings for all the objects in SceneLayer
- *
- * Temporary function, waiting for real depsgraph
- */
-void BKE_scene_layer_engine_settings_update(struct Scene *scene, struct SceneLayer *sl)
-{
-	if ((sl->flag & SCENE_LAYER_ENGINE_DIRTY) == 0) {
-		return;
-	}
-
-	/* do the complete settings update */
-	for (Base *base = sl->object_bases.first; base; base = base->next) {
-		if (((base->flag & BASE_DIRTY_ENGINE_SETTINGS) != 0) &&
-		    (base->flag & BASE_VISIBLED) != 0)
-		{
-			scene_layer_engine_settings_update(scene, sl, base->object);
-			base->flag &= ~BASE_DIRTY_ENGINE_SETTINGS;
-		}
-	}
-
-	sl->flag &= ~SCENE_LAYER_ENGINE_DIRTY;
 }
 
 /**
@@ -371,7 +271,11 @@ static Base *object_base_add(SceneLayer *sl, Object *ob)
 		/* do not bump user count, leave it for SceneCollections */
 		base->object = ob;
 		BLI_addtail(&sl->object_bases, base);
+
+		IDPropertyTemplate val = {0};
+		base->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 	}
+
 	base->refcount++;
 	return base;
 }
@@ -396,6 +300,11 @@ static void layer_collection_free(SceneLayer *sl, LayerCollection *lc)
 	if (lc->properties) {
 		IDP_FreeProperty(lc->properties);
 		MEM_freeN(lc->properties);
+	}
+
+	if (lc->properties_evaluated) {
+		IDP_FreeProperty(lc->properties_evaluated);
+		MEM_freeN(lc->properties_evaluated);
 	}
 
 	for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
@@ -858,9 +767,6 @@ LayerCollection *BKE_collection_link(SceneLayer *sl, SceneCollection *sc)
 void BKE_collection_unlink(SceneLayer *sl, LayerCollection *lc)
 {
 	BKE_layer_collection_free(sl, lc);
-	BKE_scene_layer_base_flag_recalculate(sl);
-	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
-
 	BLI_remlink(&sl->layer_collections, lc);
 	MEM_freeN(lc);
 	sl->active_collection = 0;
@@ -879,8 +785,15 @@ static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Obj
 
 	BLI_addtail(&lc->object_bases, BLI_genericNodeN(base));
 
-	BKE_scene_layer_base_flag_recalculate(sl);
-	BKE_scene_layer_engine_settings_object_recalculate(sl, ob);
+	if ((lc->flag_evaluated & COLLECTION_VISIBLE) != 0) {
+		base->flag |= BASE_VISIBLED;
+
+		if ((lc->flag_evaluated & COLLECTION_SELECTABLE) != 0) {
+			base->flag |= BASE_SELECTABLED;
+		}
+
+		IDP_SyncGroupValues(base->collection_properties, lc->properties_evaluated);
+	}
 }
 
 static void layer_collection_object_remove(SceneLayer *sl, LayerCollection *lc, Object *ob)
@@ -1020,8 +933,6 @@ void BKE_layer_sync_object_unlink(const Scene *scene, SceneCollection *sc, Objec
 				layer_collection_object_remove(sl, found, ob);
 			}
 		}
-		BKE_scene_layer_base_flag_recalculate(sl);
-		BKE_scene_layer_engine_settings_object_recalculate(sl, ob);
 	}
 }
 
@@ -1237,7 +1148,7 @@ static IDProperty *collection_engine_get(
  */
 IDProperty *BKE_object_collection_engine_get(Object *ob, const int type, const char *engine_name)
 {
-	return collection_engine_get(ob->collection_properties, type, engine_name);
+	return collection_engine_get(ob->base_collection_properties, type, engine_name);
 }
 /**
  * Return layer collection engine settings for specified engine
@@ -1326,72 +1237,6 @@ static void collection_engine_settings_init(IDProperty *root, const bool populat
 void BKE_layer_collection_engine_settings_create(IDProperty *root)
 {
 	collection_engine_settings_init(root, true);
-}
-
-static void collection_engine_settings_copy(IDProperty *props_dst, IDProperty *props_src)
-{
-	IDP_MergeGroup(props_dst, props_src, true);
-}
-
-static void collection_engine_settings_merge(IDProperty *props_dst, IDProperty *props_src)
-{
-	IDP_SyncGroupValues(props_dst, props_src);
-}
-
-static void layer_collection_engine_settings_update(
-        LayerCollection *lc, IDProperty *props_parent,
-        Base *base, IDProperty *props_object)
-{
-	if ((lc->flag & COLLECTION_VISIBLE) == 0) {
-		return;
-	}
-
-	IDPropertyTemplate val = {0};
-	IDProperty *props_collection = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-	collection_engine_settings_copy(props_collection, props_parent);
-
-	collection_engine_settings_merge(props_collection, lc->properties);
-
-	if (BLI_findptr(&lc->object_bases, base, offsetof(LinkData, data)) != NULL) {
-		collection_engine_settings_merge(props_object, props_collection);
-	}
-
-	/* do it recursively */
-	for (LayerCollection *lcn = lc->layer_collections.first; lcn; lcn = lcn->next) {
-		layer_collection_engine_settings_update(lcn, props_collection, base, props_object);
-	}
-
-	IDP_FreeProperty(props_collection);
-	MEM_freeN(props_collection);
-}
-
-/**
- * Update the collection settings pointer allocated in the object
- * This is to be flushed from the Depsgraph
- */
-static void scene_layer_engine_settings_update(Scene *scene, SceneLayer *sl, Object *ob)
-{
-	Base *base = BKE_scene_layer_base_find(sl, ob);
-	IDPropertyTemplate val = {0};
-
-	IDProperty *layer_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-	collection_engine_settings_copy(layer_properties, scene->collection_properties);
-
-	/* start fresh */
-	if (ob->collection_properties) {
-		IDP_FreeProperty(ob->collection_properties);
-		MEM_freeN(ob->collection_properties);
-	}
-
-	ob->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-	collection_engine_settings_copy(ob->collection_properties, scene->collection_properties);
-
-	for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
-		layer_collection_engine_settings_update(lc, layer_properties, base, ob->collection_properties);
-	}
-
-	IDP_FreeProperty(layer_properties);
-	MEM_freeN(layer_properties);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1497,4 +1342,101 @@ void BKE_visible_bases_Iterator_next(Iterator *iter)
 void BKE_visible_bases_Iterator_end(Iterator *UNUSED(iter))
 {
 	/* do nothing */
+}
+
+/* Evaluation  */
+
+/**
+ * Reset props
+ *
+ * If props_ref is pasted, copy props from it
+ */
+static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
+{
+	IDPropertyTemplate val = {0};
+
+	if (*props) {
+		IDP_FreeProperty(*props);
+		MEM_freeN(*props);
+	}
+	*props = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+
+	if (props_ref) {
+		IDP_MergeGroup(*props, props_ref, true);
+	}
+}
+
+void BKE_layer_eval_layer_collection_pre(EvaluationContext *UNUSED(eval_ctx),
+                                         Scene *scene, SceneLayer *scene_layer)
+{
+	DEBUG_PRINT("%s on %s\n", __func__, scene_layer->name);
+	for (Base *base = scene_layer->object_bases.first; base != NULL; base = base->next) {
+		base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED);
+		idproperty_reset(&base->collection_properties, scene->collection_properties);
+	}
+
+	/* TODO(sergey): Is it always required? */
+	scene_layer->flag |= SCENE_LAYER_ENGINE_DIRTY;
+}
+
+void BKE_layer_eval_layer_collection(EvaluationContext *UNUSED(eval_ctx),
+                                     Scene *scene,
+                                     LayerCollection *layer_collection,
+                                     LayerCollection *parent_layer_collection)
+{
+	DEBUG_PRINT("%s on %s, parent %s\n",
+	            __func__,
+	            layer_collection->scene_collection->name,
+	            (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE");
+
+	/* visibility */
+	layer_collection->flag_evaluated = layer_collection->flag;
+	bool is_visible = (layer_collection->flag & COLLECTION_VISIBLE) != 0;
+	bool is_selectable = is_visible && ((layer_collection->flag & COLLECTION_SELECTABLE) != 0);
+
+	if (parent_layer_collection != NULL) {
+		is_visible &= (parent_layer_collection->flag_evaluated & COLLECTION_VISIBLE) != 0;
+		is_selectable &= (parent_layer_collection->flag_evaluated & COLLECTION_SELECTABLE) != 0;
+		layer_collection->flag_evaluated &= parent_layer_collection->flag_evaluated;
+	}
+
+	/* overrides */
+	if (parent_layer_collection != NULL) {
+		idproperty_reset(&layer_collection->properties_evaluated, parent_layer_collection->properties_evaluated);
+	}
+	else if (layer_collection->prev != NULL) {
+		    idproperty_reset(&layer_collection->properties_evaluated, NULL);
+	}
+	else {
+		idproperty_reset(&layer_collection->properties_evaluated, scene->collection_properties);
+	}
+
+	if (is_visible) {
+		IDP_MergeGroup(layer_collection->properties_evaluated, layer_collection->properties, true);
+	}
+
+	for (LinkData *link = layer_collection->object_bases.first; link != NULL; link = link->next) {
+		Base *base = link->data;
+
+		if (is_visible) {
+			IDP_SyncGroupValues(base->collection_properties, layer_collection->properties_evaluated);
+			base->flag |= BASE_VISIBLED;
+		}
+
+		if (is_selectable) {
+			base->flag |= BASE_SELECTABLED;
+		}
+	}
+}
+
+void BKE_layer_eval_layer_collection_post(EvaluationContext *UNUSED(eval_ctx),
+                                          SceneLayer *scene_layer)
+{
+	DEBUG_PRINT("%s on %s\n", __func__, scene_layer->name);
+	/* if base is not selectabled, clear select */
+	for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+		if ((base->flag & BASE_SELECTABLED) == 0) {
+			base->flag &= ~BASE_SELECTED;
+		}
+	}
 }

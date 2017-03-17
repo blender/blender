@@ -2273,37 +2273,62 @@ static PointerRNA rna_SceneCollection_objects_get(CollectionPropertyIterator *it
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((LinkData *)internal->link)->data);
 }
 
-static int rna_SceneCollection_move_above(ID *id, SceneCollection *sc_src, SceneCollection *sc_dst)
+static int rna_SceneCollection_move_above(ID *id, SceneCollection *sc_src, Main *bmain, SceneCollection *sc_dst)
 {
 	Scene *scene = (Scene *)id;
-	return BKE_collection_move_above(scene, sc_dst, sc_src);
+
+	if (!BKE_collection_move_above(scene, sc_dst, sc_src)) {
+		return 0;
+	}
+
+	DAG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+
+	return 1;
 }
 
-static int rna_SceneCollection_move_below(ID *id, SceneCollection *sc_src, SceneCollection *sc_dst)
+static int rna_SceneCollection_move_below(ID *id, SceneCollection *sc_src, Main *bmain, SceneCollection *sc_dst)
 {
 	Scene *scene = (Scene *)id;
-	return BKE_collection_move_below(scene, sc_dst, sc_src);
+
+	if (!BKE_collection_move_below(scene, sc_dst, sc_src)) {
+		return 0;
+	}
+
+	DAG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+
+	return 1;
 }
 
-static int rna_SceneCollection_move_into(ID *id, SceneCollection *sc_src, SceneCollection *sc_dst)
+static int rna_SceneCollection_move_into(ID *id, SceneCollection *sc_src, Main *bmain, SceneCollection *sc_dst)
 {
 	Scene *scene = (Scene *)id;
-	return BKE_collection_move_into(scene, sc_dst, sc_src);
+
+	if (!BKE_collection_move_into(scene, sc_dst, sc_src)) {
+		return 0;
+	}
+
+	DAG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+
+	return 1;
 }
 
-static SceneCollection *rna_SceneCollection_new(ID *id, SceneCollection *sc_parent, const char *name)
+static SceneCollection *rna_SceneCollection_new(
+        ID *id, SceneCollection *sc_parent, Main *bmain, const char *name)
 {
 	Scene *scene = (Scene *)id;
 	SceneCollection *sc = BKE_collection_add(scene, sc_parent, name);
 
-	DAG_id_tag_update(&scene->id, 0);
+	DAG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return sc;
 }
 
 static void rna_SceneCollection_remove(
-        ID *id, SceneCollection *sc_parent, ReportList *reports, PointerRNA *sc_ptr)
+        ID *id, SceneCollection *sc_parent, Main *bmain, ReportList *reports, PointerRNA *sc_ptr)
 {
 	Scene *scene = (Scene *)id;
 	SceneCollection *sc = sc_ptr->data;
@@ -2323,7 +2348,7 @@ static void rna_SceneCollection_remove(
 
 	RNA_POINTER_INVALIDATE(sc_ptr);
 
-	DAG_id_tag_update(&scene->id, 0);
+	DAG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 }
 
@@ -2455,9 +2480,9 @@ RNA_LAYER_MODE_EDIT_GET_SET_FLOAT(backwire_opacity)
 
 static void rna_LayerCollectionEngineSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	LayerCollection *lc = CTX_data_layer_collection(C);
-	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
+	Scene *scene = CTX_data_scene(C);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&scene->id, 0);
 }
 
 /***********************************/
@@ -2500,33 +2525,55 @@ static PointerRNA rna_LayerCollection_objects_get(CollectionPropertyIterator *it
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, base->object);
 }
 
-static int rna_LayerCollection_move_above(ID *id, LayerCollection *lc_src, LayerCollection *lc_dst)
+static int rna_LayerCollection_move_above(ID *id, LayerCollection *lc_src, Main *bmain, LayerCollection *lc_dst)
 {
 	Scene *scene = (Scene *)id;
-	return BKE_layer_collection_move_above(scene, lc_dst, lc_src);
+
+	if (!BKE_layer_collection_move_above(scene, lc_dst, lc_src)) {
+		return 0;
+	}
+
+	DAG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+
+	return 1;
 }
 
-static int rna_LayerCollection_move_below(ID *id, LayerCollection *lc_src, LayerCollection *lc_dst)
+static int rna_LayerCollection_move_below(ID *id, LayerCollection *lc_src, Main *bmain, LayerCollection *lc_dst)
 {
 	Scene *scene = (Scene *)id;
-	return BKE_layer_collection_move_below(scene, lc_dst, lc_src);
+
+	if (!BKE_layer_collection_move_below(scene, lc_dst, lc_src)) {
+		return 0;
+	}
+
+	DAG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+
+	return 1;
 }
 
-static int rna_LayerCollection_move_into(ID *id, LayerCollection *lc_src, LayerCollection *lc_dst)
+static int rna_LayerCollection_move_into(ID *id, LayerCollection *lc_src, Main *bmain, LayerCollection *lc_dst)
 {
 	Scene *scene = (Scene *)id;
-	return BKE_layer_collection_move_into(scene, lc_dst, lc_src);
+
+	if (!BKE_layer_collection_move_into(scene, lc_dst, lc_src)) {
+		return 0;
+	}
+
+	DAG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+
+	return 1;
 }
 
-static void rna_LayerCollection_hide_update(bContext *C, PointerRNA *ptr)
+static void rna_LayerCollection_hide_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	Scene *scene = CTX_data_scene(C);
-	LayerCollection *lc = ptr->data;
-	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, lc);
 
 	/* hide and deselect bases that are directly influenced by this LayerCollection */
-	BKE_scene_layer_base_flag_recalculate(sl);
-	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
 
@@ -2536,10 +2583,10 @@ static void rna_LayerCollection_hide_select_update(bContext *C, PointerRNA *ptr)
 
 	if ((lc->flag & COLLECTION_SELECTABLE) == 0) {
 		Scene *scene = CTX_data_scene(C);
-		SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, lc);
 
 		/* deselect bases that are directly influenced by this LayerCollection */
-		BKE_scene_layer_base_flag_recalculate(sl);
+		/* TODO(sergey): Use proper flag for tagging here. */
+		DAG_id_tag_update(&scene->id, 0);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 	}
 }
@@ -2586,7 +2633,6 @@ LayerCollection * rna_SceneLayer_collection_link(
 	Scene *scene = (Scene *)id;
 	LayerCollection *lc = BKE_collection_link(sl, sc);
 
-	/* TODO(sergey/dfelinto): Only update relations for the current scenelayer. */
 	DAG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, scene);
 
@@ -2605,10 +2651,7 @@ static void rna_SceneLayer_collection_unlink(
 
 	BKE_collection_unlink(sl, lc);
 
-	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
-	/* TODO(sergey/dfelinto): Only update relations for the current scenelayer. */
 	DAG_relations_tag_update(bmain);
-
 	WM_main_add_notifier(NC_SCENE | ND_LAYER | ND_OB_ACTIVE, scene);
 }
 
@@ -2769,12 +2812,14 @@ static void rna_SceneLayer_active_layer_set(PointerRNA *ptr, PointerRNA value)
 	if (index != -1) scene->active_layer = index;
 }
 
-static SceneLayer *rna_SceneLayer_new(ID *id, Scene *UNUSED(sce), const char *name)
+static SceneLayer *rna_SceneLayer_new(
+        ID *id, Scene *UNUSED(sce), Main *bmain, const char *name)
 {
 	Scene *scene = (Scene *)id;
 	SceneLayer *sl = BKE_scene_layer_add(scene, name);
 
 	DAG_id_tag_update(&scene->id, 0);
+	DAG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return sl;
@@ -2795,6 +2840,7 @@ static void rna_SceneLayer_remove(
 	RNA_POINTER_INVALIDATE(sl_ptr);
 
 	DAG_id_tag_update(&scene->id, 0);
+	DAG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 }
 
@@ -5686,7 +5732,7 @@ static void rna_def_scene_collections(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_SceneCollection_new");
 	RNA_def_function_ui_description(func, "Add a collection to scene");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_string(func, "name", "SceneCollection", 0, "", "New name for the collection (not unique)");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "result", "SceneCollection", "", "Newly created collection");
@@ -5694,7 +5740,7 @@ static void rna_def_scene_collections(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "remove", "rna_SceneCollection_remove");
 	RNA_def_function_ui_description(func, "Remove a collection layer");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "layer", "SceneCollection", "", "Collection to remove");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
@@ -5776,21 +5822,21 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 	/* Functions */
 	func = RNA_def_function(srna, "move_above", "rna_SceneCollection_move_above");
 	RNA_def_function_ui_description(func, "Move collection after another");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "sc_dst", "SceneCollection", "Collection", "Reference collection above which the collection will move");
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "move_below", "rna_SceneCollection_move_below");
 	RNA_def_function_ui_description(func, "Move collection before another");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "sc_dst", "SceneCollection", "Collection", "Reference collection below which the collection will move");
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "move_into", "rna_SceneCollection_move_into");
 	RNA_def_function_ui_description(func, "Move collection into another");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "sc_dst", "SceneCollection", "Collection", "Collection to insert into");
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
@@ -6075,21 +6121,21 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	/* Functions */
 	func = RNA_def_function(srna, "move_above", "rna_LayerCollection_move_above");
 	RNA_def_function_ui_description(func, "Move collection after another");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "lc_dst", "LayerCollection", "Collection", "Reference collection above which the collection will move");
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "move_below", "rna_LayerCollection_move_below");
 	RNA_def_function_ui_description(func, "Move collection before another");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "lc_dst", "LayerCollection", "Collection", "Reference collection below which the collection will move");
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "move_into", "rna_LayerCollection_move_into");
 	RNA_def_function_ui_description(func, "Move collection into another");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "lc_dst", "LayerCollection", "Collection", "Collection to insert into");
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
@@ -6267,7 +6313,7 @@ static void rna_def_scene_layers(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_SceneLayer_new");
 	RNA_def_function_ui_description(func, "Add a render layer to scene");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_string(func, "name", "SceneLayer", 0, "", "New name for the render layer (not unique)");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "result", "SceneLayer", "", "Newly created render layer");
@@ -6275,7 +6321,7 @@ static void rna_def_scene_layers(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "remove", "rna_SceneLayer_remove");
 	RNA_def_function_ui_description(func, "Remove a render layer");
-	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "layer", "SceneLayer", "", "Render layer to remove");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);

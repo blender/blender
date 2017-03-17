@@ -201,6 +201,10 @@ struct CacheComponentDepsNode : public ComponentDepsNode {
 	DEG_DEPSNODE_DECLARE;
 };
 
+struct LayerCollectionsDepsNode : public ComponentDepsNode {
+	DEG_DEPSNODE_DECLARE;
+};
+
 
 void deg_register_component_depsnodes();
 

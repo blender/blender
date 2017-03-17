@@ -1921,10 +1921,6 @@ static void write_object(WriteData *wd, Object *ob)
 		writelist(wd, DATA, LodLevel, &ob->lodlevels);
 
 		write_previews(wd, ob->preview);
-
-		if (ob->collection_properties) {
-			IDP_WriteProperty(ob->collection_properties, wd);
-		}
 	}
 }
 

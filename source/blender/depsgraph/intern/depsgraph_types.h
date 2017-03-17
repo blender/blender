@@ -135,6 +135,8 @@ typedef enum eDepsNode_Type {
 	DEPSNODE_TYPE_SHADING,
 	/* Cache Component */
 	DEPSNODE_TYPE_CACHE,
+	/* Component which contains all operations needed for layer collections evaluation. */
+	DEPSNODE_TYPE_LAYER_COLLECTIONS,
 } eDepsNode_Type;
 
 /* Identifiers for common operations (as an enum). */
@@ -242,6 +244,11 @@ typedef enum eDepsOperation_Code {
 
 	/* XXX: placeholder - Particle System eval */
 	DEG_OPCODE_PSYS_EVAL,
+
+	/* Collections ------------------------------------- */
+	DEG_OPCODE_SCENE_LAYER_INIT,
+	DEG_OPCODE_SCENE_LAYER_EVAL,
+	DEG_OPCODE_SCENE_LAYER_DONE,
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;

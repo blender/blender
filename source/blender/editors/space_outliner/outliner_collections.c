@@ -26,6 +26,7 @@
 
 #include "BKE_context.h"
 #include "BKE_collection.h"
+#include "BKE_depsgraph.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
@@ -120,6 +121,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
 	BKE_collection_link(sl, sc);
 
+	DAG_relations_tag_update(CTX_data_main(C));
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -217,6 +219,7 @@ static int collection_unlink_exec(bContext *C, wmOperator *op)
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	BKE_collection_unlink(sl, lc);
 
+	DAG_relations_tag_update(CTX_data_main(C));
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -244,6 +247,7 @@ static int collection_new_exec(bContext *C, wmOperator *UNUSED(op))
 	SceneCollection *sc = BKE_collection_add(scene, NULL, NULL);
 	BKE_collection_link(sl, sc);
 
+	DAG_relations_tag_update(CTX_data_main(C));
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -342,6 +346,7 @@ static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	TODO_LAYER_OVERRIDE; /* handle overrides */
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_delete_cb, &data);
 
+	DAG_relations_tag_update(CTX_data_main(C));
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return OPERATOR_FINISHED;

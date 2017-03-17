@@ -406,6 +406,11 @@ static DepsNodeFactoryImpl<ShadingComponentDepsNode> DNTI_SHADING;
 DEG_DEPSNODE_DEFINE(CacheComponentDepsNode, DEPSNODE_TYPE_CACHE, "Cache Component");
 static DepsNodeFactoryImpl<CacheComponentDepsNode> DNTI_CACHE;
 
+/* Layer COllections Defines ============================ */
+
+DEG_DEPSNODE_DEFINE(LayerCollectionsDepsNode, DEPSNODE_TYPE_LAYER_COLLECTIONS, "Layer Collections Component");
+static DepsNodeFactoryImpl<LayerCollectionsDepsNode> DNTI_LAYER_COLLECTIONS;
+
 
 /* Node Types Register =================================== */
 
@@ -425,6 +430,8 @@ void deg_register_component_depsnodes()
 	deg_register_node_typeinfo(&DNTI_SHADING);
 
 	deg_register_node_typeinfo(&DNTI_CACHE);
+
+	deg_register_node_typeinfo(&DNTI_LAYER_COLLECTIONS);
 }
 
 }  // namespace DEG

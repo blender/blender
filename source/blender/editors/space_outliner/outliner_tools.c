@@ -847,11 +847,13 @@ static void collection_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
 		}
 		else {
 			BKE_collection_unlink(sl, lc);
+			DAG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 		}
 	}
 	else if (event == OL_COLLECTION_OP_COLLECTION_DEL) {
 		if (BKE_collection_remove(scene, sc)) {
+			DAG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 		}
 		else {

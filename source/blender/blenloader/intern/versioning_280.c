@@ -139,9 +139,6 @@ void do_versions_after_linking_280(Main *main)
 					lc = lc->next;
 				}
 
-				/* but we still need to make the flags synced */
-				BKE_scene_layer_base_flag_recalculate(sl);
-
 				/* convert active base */
 				if (scene->basact) {
 					sl->basact = BKE_scene_layer_base_find(sl, scene->basact->object);
@@ -216,10 +213,6 @@ void do_versions_after_linking_280(Main *main)
 		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 			scene->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 			BKE_layer_collection_engine_settings_create(scene->collection_properties);
-		}
-
-		for (Object *ob = main->object.first; ob; ob = ob->id.next) {
-			ob->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 		}
 	}
 }

@@ -44,6 +44,7 @@ extern "C" {
 
 #define ROOT_PROP "root"
 
+struct EvaluationContext;
 struct LayerCollection;
 struct ID;
 struct IDProperty;
@@ -72,12 +73,6 @@ struct SceneLayer *BKE_scene_layer_find_from_collection(const struct Scene *scen
 struct Base *BKE_scene_layer_base_find(struct SceneLayer *sl, struct Object *ob);
 void BKE_scene_layer_base_deselect_all(struct SceneLayer *sl);
 void BKE_scene_layer_base_select(struct SceneLayer *sl, struct Base *selbase);
-void BKE_scene_layer_base_flag_recalculate(struct SceneLayer *sl);
-
-void BKE_scene_layer_engine_settings_recalculate(struct SceneLayer *sl);
-void BKE_scene_layer_engine_settings_object_recalculate(struct SceneLayer *sl, struct Object *ob);
-void BKE_scene_layer_engine_settings_collection_recalculate(struct SceneLayer *sl, struct LayerCollection *lc);
-void BKE_scene_layer_engine_settings_update(struct Scene *scene, struct SceneLayer *sl);
 
 void BKE_layer_collection_free(struct SceneLayer *sl, struct LayerCollection *lc);
 
@@ -128,6 +123,18 @@ bool BKE_collection_engine_property_value_get_bool(struct IDProperty *props, con
 void BKE_collection_engine_property_value_set_int(struct IDProperty *props, const char *name, int value);
 void BKE_collection_engine_property_value_set_float(struct IDProperty *props, const char *name, float value);
 void BKE_collection_engine_property_value_set_bool(struct IDProperty *props, const char *name, bool value);
+
+/* evaluation */
+
+void BKE_layer_eval_layer_collection_pre(struct EvaluationContext *eval_ctx,
+                                         struct Scene *scene,
+                                         struct SceneLayer *scene_layer);
+void BKE_layer_eval_layer_collection(struct EvaluationContext *eval_ctx,
+                                     struct Scene *scene,
+                                     struct LayerCollection *layer_collection,
+                                     struct LayerCollection *parent_layer_collection);
+void BKE_layer_eval_layer_collection_post(struct EvaluationContext *eval_ctx,
+                                          struct SceneLayer *scene_layer);
 
 /* iterators */
 
@@ -188,18 +195,18 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	IteratorBeginCb func_begin;                                               \
 	IteratorCb func_next, func_end;                                           \
 	void *data_in;                                                            \
-                                                                                  \
+	                                                                          \
 	if (flag == SELECT) {                                                     \
-		func_begin = &BKE_selected_objects_Iterator_begin;                \
-		func_next = &BKE_selected_objects_Iterator_next;                  \
-		func_end = &BKE_selected_objects_Iterator_end;                    \
-		data_in = (sl);                                                   \
+	    func_begin = &BKE_selected_objects_Iterator_begin;                    \
+	    func_next = &BKE_selected_objects_Iterator_next;                      \
+	    func_end = &BKE_selected_objects_Iterator_end;                        \
+	    data_in = (sl);                                                       \
 	}                                                                         \
 	else {                                                                    \
-		func_begin = BKE_scene_objects_Iterator_begin;                    \
-		func_next = BKE_scene_objects_Iterator_next;                      \
-		func_end = BKE_scene_objects_Iterator_end;                        \
-		data_in = (scene);                                                \
+	    func_begin = BKE_scene_objects_Iterator_begin;                        \
+	    func_next = BKE_scene_objects_Iterator_next;                          \
+	    func_end = BKE_scene_objects_Iterator_end;                            \
+	    data_in = (scene);                                                    \
 	}                                                                         \
 	ITER_BEGIN(func_begin, func_next, func_end, data_in, Object *, _instance)
 
@@ -208,24 +215,20 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	ITER_END                                                                  \
 }
 
-/* temporary hacky solution waiting for final depsgraph evaluation */
-#define DEG_OBJECT_ITER(scene_, sl_, instance_)                               \
+/* temporary hacky solution waiting for CoW depsgraph implementation */
+#define DEG_OBJECT_ITER(sl_, instance_)                                       \
 {                                                                             \
+	/* flush all the depsgraph data to objects */                             \
 	Object *instance_;                                                        \
-	/* temporary solution, waiting for depsgraph update */                    \
-	BKE_scene_layer_engine_settings_update(scene_, sl_);                      \
-                                                                                  \
-	/* flush all the data to objects*/                                        \
 	Base *base_;                                                              \
 	for (base_ = (sl_)->object_bases.first; base_; base_ = base_->next) {     \
-	if ((base_->flag & BASE_VISIBLED) == 0) {                                 \
-		continue;                                                         \
-	}                                                                         \
-                                                                                  \
-	instance_ = base_->object;                                                \
-	instance_->base_flag = base_->flag;
+	    if ((base_->flag & BASE_VISIBLED) != 0) {                             \
+	        instance_ = base_->object;                                        \
+	        instance_->base_flag = base_->flag;                               \
+	        instance_->base_collection_properties = base_->collection_properties;
 
 #define DEG_OBJECT_ITER_END                                                   \
+        }                                                                     \
     }                                                                         \
 }
 

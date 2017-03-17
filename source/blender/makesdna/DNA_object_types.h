@@ -303,7 +303,7 @@ typedef struct Object {
 
 	struct PreviewImage *preview;
 
-	struct IDProperty *collection_properties; /* used by depsgraph, flushed from collection-tree */
+	struct IDProperty *base_collection_properties; /* used by depsgraph, flushed from base */
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */

@@ -1721,11 +1721,10 @@ void DRW_draw_view(const bContext *C)
 	/* ideally only refresh when objects are added/removed */
 	/* or render properties / materials change */
 	if (cache_is_dirty) {
-		Scene *scene = CTX_data_scene(C);
 		SceneLayer *sl = CTX_data_scene_layer(C);
 
 		DRW_engines_cache_init();
-		DEG_OBJECT_ITER(scene, sl, ob);
+		DEG_OBJECT_ITER(sl, ob);
 		{
 			DRW_engines_cache_populate(ob);
 		}

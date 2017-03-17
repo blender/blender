@@ -245,15 +245,13 @@ static void restrictbutton_gp_layer_flag_cb(bContext *C, void *UNUSED(poin), voi
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
-static void restrictbutton_collection_hide_cb(bContext *C, void *poin, void *poin2)
+static void restrictbutton_collection_hide_cb(bContext *C, void *poin, void *UNUSED(poin2))
 {
 	Scene *scene = poin;
-	LayerCollection *collection = poin2;
-	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, collection);
 
 	/* hide and deselect bases that are directly influenced by this LayerCollection */
-	BKE_scene_layer_base_flag_recalculate(sl);
-	BKE_scene_layer_engine_settings_collection_recalculate(sl, collection);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, NULL);
 }
@@ -264,10 +262,9 @@ static void restrictbutton_collection_hide_select_cb(bContext *C, void *poin, vo
 	LayerCollection *collection = poin2;
 
 	if ((collection->flag & COLLECTION_SELECTABLE) == 0) {
-		SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, collection);
-
 		/* deselect bases that are directly influenced by this LayerCollection */
-		BKE_scene_layer_base_flag_recalculate(sl);
+		/* TODO(sergey): Use proper flag for tagging here. */
+		DAG_id_tag_update(&scene->id, 0);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 	}
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, NULL);

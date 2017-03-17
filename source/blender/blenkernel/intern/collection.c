@@ -119,7 +119,6 @@ static void layer_collection_remove(SceneLayer *sl, ListBase *lb, const SceneCol
 	LayerCollection *lc = lb->first;
 	while (lc) {
 		if (lc->scene_collection == sc) {
-			BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
 			BKE_layer_collection_free(sl, lc);
 			BLI_remlink(lb, lc);
 
@@ -165,7 +164,6 @@ bool BKE_collection_remove(Scene *scene, SceneCollection *sc)
 	/* check all layers that use this collection and clear them */
 	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
 		layer_collection_remove(sl, &sl->layer_collections, sc);
-		BKE_scene_layer_base_flag_recalculate(sl);
 		sl->active_collection = 0;
 	}
 

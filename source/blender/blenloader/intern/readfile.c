@@ -5604,8 +5604,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	ob->preview = direct_link_preview_image(fd, ob->preview);
 
-	ob->collection_properties = newdataadr(fd, ob->collection_properties);
-	IDP_DirectLinkGroup_OrFree(&ob->collection_properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+	ob->base_collection_properties = NULL;
 }
 
 /* ************ READ SCENE ***************** */
@@ -5840,6 +5839,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 					/* we only bump the use count for the collection objects */
 					base->object = newlibadr(fd, sce->id.lib, base->object);
 					base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
+					base->collection_properties = NULL;
 				}
 			}
 
@@ -5975,6 +5975,7 @@ static void direct_link_layer_collections(FileData *fd, ListBase *lb)
 			lc->properties = newdataadr(fd, lc->properties);
 			IDP_DirectLinkGroup_OrFree(&lc->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
+		lc->properties_evaluated = NULL;
 
 		direct_link_layer_collections(fd, &lc->layer_collections);
 	}
@@ -6250,8 +6251,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		link_list(fd, &sl->object_bases);
 		sl->basact = newdataadr(fd, sl->basact);
 		direct_link_layer_collections(fd, &sl->layer_collections);
-		/* tag scene layer to update for collection tree evaluation */
-		BKE_scene_layer_base_flag_recalculate(sl);
 	}
 
 	sce->collection_properties = newdataadr(fd, sce->collection_properties);

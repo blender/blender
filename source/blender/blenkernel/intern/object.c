@@ -460,10 +460,8 @@ void BKE_object_free(Object *ob)
 
 	BKE_previewimg_free(&ob->preview);
 
-	if (ob->collection_properties) {
-		IDP_FreeProperty(ob->collection_properties);
-		MEM_freeN(ob->collection_properties);
-	}
+	/* don't free, let the base free it */
+	ob->base_collection_properties = NULL;
 }
 
 /* actual check for internal data, not context or flags */
@@ -1191,12 +1189,6 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 
 	/* Do not copy object's preview (mostly due to the fact renderers create temp copy of objects). */
 	obn->preview = NULL;
-
-	if (ob->collection_properties) {
-		IDPropertyTemplate val = {0};
-		obn->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		IDP_MergeGroup(obn->collection_properties, ob->collection_properties, true);
-	}
 
 	return obn;
 }

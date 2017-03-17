@@ -116,6 +116,9 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 		build_movieclip(clip);
 	}
 
+	/* Collections. */
+	build_scene_layer_collections(scene);
+
 	for (Depsgraph::OperationNodes::const_iterator it_op = m_graph->operations.begin();
 	     it_op != m_graph->operations.end();
 	     ++it_op)
