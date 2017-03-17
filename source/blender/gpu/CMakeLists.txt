@@ -42,6 +42,7 @@ set(INC
 	../../../intern/glew-mx
 	../../../intern/guardedalloc
 	../../../intern/smoke/extern
+	../../../intern/gawain
 )
 
 set(INC_SYS
@@ -69,28 +70,6 @@ set(SRC
 	intern/gpu_texture.c
 	intern/gpu_uniformbuffer.c
 	intern/gpu_viewport.c
-
-	gawain/attrib_binding.c
-	gawain/attrib_binding.h
-	gawain/batch.c
-	gawain/batch.h
-	gawain/buffer_id.h
-	gawain/buffer_id.cpp
-	gawain/common.h
-	gawain/element.c
-	gawain/element.h
-	gawain/immediate.c
-	gawain/immediate.h
-	gawain/imm_util.c
-	gawain/imm_util.h
-	gawain/primitive.h
-	gawain/primitive.c
-	gawain/shader_interface.c
-	gawain/shader_interface.h
-	gawain/vertex_buffer.c
-	gawain/vertex_buffer.h
-	gawain/vertex_format.c
-	gawain/vertex_format.h
 
 	shaders/gpu_shader_fx_lib.glsl
 	shaders/gpu_shader_fx_ssao_frag.glsl

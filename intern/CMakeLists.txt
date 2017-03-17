@@ -33,6 +33,7 @@ add_subdirectory(opencolorio)
 add_subdirectory(mikktspace)
 add_subdirectory(glew-mx)
 add_subdirectory(eigen)
+add_subdirectory(gawain)
 
 if(WITH_GAMEENGINE_DECKLINK)
 	add_subdirectory(decklink)

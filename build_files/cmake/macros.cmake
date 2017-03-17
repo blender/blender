@@ -598,6 +598,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_bmesh
 		bf_gpu
 		bf_draw
+		bf_intern_gawain
 		bf_blenloader
 		bf_blenkernel
 		bf_physics

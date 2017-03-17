@@ -30,8 +30,13 @@
 
 #pragma once
 
-#include "gawain/immediate.h"
-#include "gawain/imm_util.h"
+#include "../../../intern/gawain/gawain/immediate.h"
+#include "../../../intern/gawain/gawain/imm_util.h"
+
+// TODO: CMake magic to do this:
+// #include "gawain/immediate.h"
+// #include "gawain/imm_util.h"
+
 #include "GPU_shader.h"
 
 /* Extend immBindProgram to use Blender’s library of built-in shader programs.
