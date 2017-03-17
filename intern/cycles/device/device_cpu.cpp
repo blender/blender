@@ -855,7 +855,7 @@ int2 CPUSplitKernel::split_kernel_local_size()
 	return make_int2(1, 1);
 }
 
-int2 CPUSplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask *task) {
+int2 CPUSplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask * /*task*/) {
 	return make_int2(64, 1);
 }
 
