@@ -138,6 +138,7 @@ endif()
 		bf_intern_moto 
 		bf_nodes
 		bf_gpu
+		bf_intern_gawain
 		bf_imbuf
 		bf_avi 
 		ge_logic_network 
