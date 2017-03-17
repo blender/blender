@@ -156,6 +156,16 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
 		}
 	}
 
+	/* Perform preliminary checks, with meaningful logging. */
+	if(!path_exists(filename)) {
+		VLOG(1) << "File '" << filename << "' does not exist.";
+		return IMAGE_DATA_TYPE_BYTE4;
+	}
+	if(path_is_directory(filename)) {
+		VLOG(1) << "File '" << filename << "' is a directory, can't use as image.";
+		return IMAGE_DATA_TYPE_BYTE4;
+	}
+
 	ImageInput *in = ImageInput::create(filename);
 
 	if(in) {
@@ -432,6 +442,11 @@ bool ImageManager::file_load_image_generic(Image *img, ImageInput **in, int &wid
 		return false;
 
 	if(!img->builtin_data) {
+		/* NOTE: Error logging is done in meta data acquisition. */
+		if(!path_exists(img->filename) || path_is_directory(img->filename)) {
+			return false;
+		}
+
 		/* load image from file through OIIO */
 		*in = ImageInput::create(img->filename);
 
