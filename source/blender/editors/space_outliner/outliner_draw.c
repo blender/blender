@@ -1040,9 +1040,6 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	struct DrawIconArg arg;
 	float aspect;
 	
-	/* icons tiny bit away from text */
-	x -= 0.15f * UI_UNIT_Y;
-	
 	/* make function calls a bit compacter */
 	arg.block = block;
 	arg.id = tselem->id;
@@ -1053,8 +1050,10 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	
 	/* placement of icons, copied from interface_widgets.c */
 	aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
-	arg.x = x = x + 4.0f * aspect;
-	arg.y = y = y + 0.1f * UI_UNIT_Y;
+	x += 2.0f * aspect;
+	y += 2.0f * aspect;
+	arg.x = x = x;
+	arg.y = y = y;
 
 	if (tselem->type) {
 		switch (tselem->type) {
@@ -1389,9 +1388,9 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
 				glColor4ub(255, 255, 255, 100);
 				UI_draw_roundbox(
-				        (float) *offsx - 1.0f * ufac,
+				        (float) *offsx + 1.0f * ufac,
 				        (float)ys + 1.0f * ufac,
-				        (float)*offsx + UI_UNIT_X - 2.0f * ufac,
+				        (float)*offsx + UI_UNIT_X - 1.0f * ufac,
 				        (float)ys + UI_UNIT_Y - ufac,
 				        (float)UI_UNIT_Y / 2.0f - ufac);
 				glEnable(GL_BLEND); /* roundbox disables */
@@ -1536,9 +1535,9 @@ static void outliner_draw_tree_element(
 		if (active != OL_DRAWSEL_NONE) {
 			UI_draw_roundbox_corner_set(UI_CNR_ALL);
 			UI_draw_roundbox(
-			        (float)startx + UI_UNIT_X,
+			        (float)startx + UI_UNIT_X + 1.0f * ufac,
 			        (float)*starty + 1.0f * ufac,
-			        (float)startx + 2.0f * UI_UNIT_X - 2.0f * ufac,
+			        (float)startx + 2.0f * UI_UNIT_X - 1.0f * ufac,
 			        (float)*starty + UI_UNIT_Y - 1.0f * ufac,
 			        UI_UNIT_Y / 2.0f - 1.0f * ufac);
 			glEnable(GL_BLEND); /* roundbox disables it */
@@ -1549,16 +1548,13 @@ static void outliner_draw_tree_element(
 		/* open/close icon, only when sublevels, except for scene */
 		if (te->subtree.first || (tselem->type == 0 && te->idcode == ID_SCE) || (te->flag & TE_LAZY_CLOSED)) {
 			int icon_x;
-			if (tselem->type == 0 && ELEM(te->idcode, ID_OB, ID_SCE))
-				icon_x = startx;
-			else
-				icon_x = startx + 5 * ufac;
+			icon_x = startx;
 			
 			// icons a bit higher
 			if (TSELEM_OPEN(tselem, soops))
-				UI_icon_draw((float)icon_x, (float)*starty + 2 * ufac, ICON_DISCLOSURE_TRI_DOWN);
+				UI_icon_draw((float)icon_x + 2 * ufac, (float)*starty + 1 * ufac, ICON_DISCLOSURE_TRI_DOWN);
 			else
-				UI_icon_draw((float)icon_x, (float)*starty + 2 * ufac, ICON_DISCLOSURE_TRI_RIGHT);
+				UI_icon_draw((float)icon_x + 2 * ufac, (float)*starty + 1 * ufac, ICON_DISCLOSURE_TRI_RIGHT);
 		}
 		offsx += UI_UNIT_X;
 		
@@ -1568,7 +1564,7 @@ static void outliner_draw_tree_element(
 			
 			tselem_draw_icon(block, xmax, (float)startx + offsx, (float)*starty, tselem, te, 1.0f);
 			
-			offsx += UI_UNIT_X;
+			offsx += UI_UNIT_X + 2 * ufac;
 		}
 		else
 			offsx += 2 * ufac;
@@ -1576,16 +1572,16 @@ static void outliner_draw_tree_element(
 		if (tselem->type == 0 && ID_IS_LINKED_DATABLOCK(tselem->id)) {
 			glPixelTransferf(GL_ALPHA_SCALE, 0.5f);
 			if (tselem->id->tag & LIB_TAG_MISSING) {
-				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_BROKEN);
+				UI_icon_draw((float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_BROKEN);
 			}
 			else if (tselem->id->tag & LIB_TAG_INDIRECT) {
-				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_INDIRECT);
+				UI_icon_draw((float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_INDIRECT);
 			}
 			else {
-				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT);
+				UI_icon_draw((float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT);
 			}
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-			offsx += UI_UNIT_X;
+			offsx += UI_UNIT_X + 2 * ufac;
 		}
 		glDisable(GL_BLEND);
 		
@@ -1757,7 +1753,7 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 	// gray hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.4f);
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
-	startx = 6;
+	startx = UI_UNIT_X / 2 - 1.0f;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
 	
 	// items themselves

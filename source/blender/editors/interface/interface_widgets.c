@@ -873,15 +873,18 @@ static void widget_draw_icon(
 	if (icon && icon != ICON_BLANK1) {
 		float ofs = 1.0f / aspect;
 		
-		if (but->drawflag & UI_BUT_ICON_LEFT || ui_block_is_pie_menu(but->block)) {
+		if (but->drawflag & UI_BUT_ICON_LEFT) {
 			if (but->block->flag & UI_BLOCK_LOOP) {
 				if (but->type == UI_BTYPE_SEARCH_MENU)
 					xs = rect->xmin + 4.0f * ofs;
 				else
-					xs = rect->xmin + 2.0f * ofs;
+					xs = rect->xmin + ofs;
 			}
 			else {
-				xs = rect->xmin + 2.0f * ofs;
+				if (but->dt == UI_EMBOSS_NONE || but->type == UI_BTYPE_LABEL)
+					xs = rect->xmin + 2.0f * ofs;
+				else
+					xs = rect->xmin + 4.0f * ofs;
 			}
 			ys = (rect->ymin + rect->ymax - height) / 2.0f;
 		}
