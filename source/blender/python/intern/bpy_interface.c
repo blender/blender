@@ -572,21 +572,23 @@ void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
 /**
  * \return success
  */
-bool BPY_execute_string_as_number(bContext *C, const char *expr, double *value, const bool verbose)
+bool BPY_execute_string_as_number(bContext *C, const char *expr, const bool verbose, double *r_value)
 {
 	PyGILState_STATE gilstate;
 	bool ok = true;
 
-	if (!value || !expr) return -1;
+	if (!r_value || !expr) {
+		return -1;
+	}
 
 	if (expr[0] == '\0') {
-		*value = 0.0;
+		*r_value = 0.0;
 		return ok;
 	}
 
 	bpy_context_set(C, &gilstate);
 
-	ok = PyC_RunString_AsNumber(expr, value, "<blender button>");
+	ok = PyC_RunString_AsNumber(expr, "<blender button>", r_value);
 
 	if (ok == false) {
 		if (verbose) {

@@ -75,12 +75,12 @@ typedef struct PyC_FlagSet {
 } PyC_FlagSet;
 
 char     *PyC_FlagSet_AsString(PyC_FlagSet *item);
-int       PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *value);
-int       PyC_FlagSet_ValueFromID(PyC_FlagSet *item, const char *identifier, int *value, const char *error_prefix);
+int       PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *r_value);
+int       PyC_FlagSet_ValueFromID(PyC_FlagSet *item, const char *identifier, int *r_value, const char *error_prefix);
 int       PyC_FlagSet_ToBitfield(PyC_FlagSet *items, PyObject *value, int *r_value, const char *error_prefix);
 PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag);
 
-bool PyC_RunString_AsNumber(const char *expr, double *value, const char *filename);
+bool PyC_RunString_AsNumber(const char *expr, const char *filename, double *r_value);
 
 int PyC_ParseBool(PyObject *o, void *p);
 

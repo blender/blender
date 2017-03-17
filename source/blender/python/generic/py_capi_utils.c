@@ -918,11 +918,11 @@ char *PyC_FlagSet_AsString(PyC_FlagSet *item)
 	return cstring;
 }
 
-int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *value)
+int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *r_value)
 {
 	for ( ; item->identifier; item++) {
 		if (STREQ(item->identifier, identifier)) {
-			*value = item->value;
+			*r_value = item->value;
 			return 1;
 		}
 	}
@@ -930,9 +930,9 @@ int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *
 	return 0;
 }
 
-int PyC_FlagSet_ValueFromID(PyC_FlagSet *item, const char *identifier, int *value, const char *error_prefix)
+int PyC_FlagSet_ValueFromID(PyC_FlagSet *item, const char *identifier, int *r_value, const char *error_prefix)
 {
-	if (PyC_FlagSet_ValueFromID_int(item, identifier, value) == 0) {
+	if (PyC_FlagSet_ValueFromID_int(item, identifier, r_value) == 0) {
 		const char *enum_str = PyC_FlagSet_AsString(item);
 		PyErr_Format(PyExc_ValueError,
 		             "%s: '%.200s' not found in (%s)",
@@ -1006,7 +1006,7 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag)
  *
  * \note it is caller's responsibility to acquire & release GIL!
  */
-bool PyC_RunString_AsNumber(const char *expr, double *value, const char *filename)
+bool PyC_RunString_AsNumber(const char *expr, const char *filename, double *r_value)
 {
 	PyObject *py_dict, *mod, *retval;
 	bool ok = true;
@@ -1058,10 +1058,10 @@ bool PyC_RunString_AsNumber(const char *expr, double *value, const char *filenam
 			ok = false;
 		}
 		else if (!isfinite(val)) {
-			*value = 0.0;
+			*r_value = 0.0;
 		}
 		else {
-			*value = val;
+			*r_value = val;
 		}
 	}
 
