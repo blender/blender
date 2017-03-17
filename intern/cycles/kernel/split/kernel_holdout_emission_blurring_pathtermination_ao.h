@@ -263,7 +263,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 	                        QUEUE_SHADOW_RAY_CAST_AO_RAYS,
 	                        enqueue_flag_AO_SHADOW_RAY_CAST,
 	                        kernel_split_params.queue_size,
-	                        &locals->queue_atomics_bg,
+	                        &locals->queue_atomics_ao,
 	                        kernel_split_state.queue_data,
 	                        kernel_split_params.queue_index);
 #endif

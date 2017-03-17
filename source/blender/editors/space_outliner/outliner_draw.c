@@ -834,9 +834,6 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	struct DrawIconArg arg;
 	float aspect;
 	
-	/* icons tiny bit away from text */
-	x -= 0.15f * UI_UNIT_Y;
-	
 	/* make function calls a bit compacter */
 	arg.block = block;
 	arg.id = tselem->id;
@@ -847,8 +844,10 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 
 	/* placement of icons, copied from interface_widgets.c */
 	aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
-	arg.x = x = x + 4.0f * aspect;
-	arg.y = y = y + 0.1f * UI_UNIT_Y;
+	x += 2.0f * aspect;
+	y += 2.0f * aspect;
+	arg.x = x = x;
+	arg.y = y = y;
 
 #define ICON_DRAW(_icon) UI_icon_draw_alpha(x, y, _icon, alpha)
 
@@ -1256,9 +1255,9 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Sce
 				color[3] *= alpha_fac;
 
 				UI_draw_roundbox(
-				        (float) *offsx - 1.0f * ufac,
+				        (float) *offsx + 1.0f * ufac,
 				        (float)ys + 1.0f * ufac,
-				        (float)*offsx + UI_UNIT_X - 2.0f * ufac,
+				        (float)*offsx + UI_UNIT_X - 1.0f * ufac,
 				        (float)ys + UI_UNIT_Y - ufac,
 				        (float)UI_UNIT_Y / 2.0f - ufac,
 				         color);
@@ -1382,9 +1381,9 @@ static void outliner_draw_tree_element(
 		if (active != OL_DRAWSEL_NONE) {
 			UI_draw_roundbox_corner_set(UI_CNR_ALL);
 			UI_draw_roundbox(
-			        (float)startx + UI_UNIT_X,
+			        (float)startx + UI_UNIT_X + 1.0f * ufac,
 			        (float)*starty + 1.0f * ufac,
-			        (float)startx + 2.0f * UI_UNIT_X - 2.0f * ufac,
+			        (float)startx + 2.0f * UI_UNIT_X - 1.0f * ufac,
 			        (float)*starty + UI_UNIT_Y - 1.0f * ufac,
 			        UI_UNIT_Y / 2.0f - 1.0f * ufac, color);
 			glEnable(GL_BLEND); /* roundbox disables it */
@@ -1402,10 +1401,10 @@ static void outliner_draw_tree_element(
 
 			// icons a bit higher
 			if (TSELEM_OPEN(tselem, soops))
-				UI_icon_draw_alpha((float)icon_x, (float)*starty + 2 * ufac, ICON_DISCLOSURE_TRI_DOWN,
+				UI_icon_draw_alpha((float)icon_x + 2 * ufac, (float)*starty + 1 * ufac, ICON_DISCLOSURE_TRI_DOWN,
 				                   alpha_fac);
 			else
-				UI_icon_draw_alpha((float)icon_x, (float)*starty + 2 * ufac, ICON_DISCLOSURE_TRI_RIGHT,
+				UI_icon_draw_alpha((float)icon_x + 2 * ufac, (float)*starty + 1 * ufac, ICON_DISCLOSURE_TRI_RIGHT,
 				                   alpha_fac);
 		}
 		offsx += UI_UNIT_X;
@@ -1414,25 +1413,25 @@ static void outliner_draw_tree_element(
 		
 		if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
 			tselem_draw_icon(block, xmax, (float)startx + offsx, (float)*starty, tselem, te, alpha_fac);
-			offsx += UI_UNIT_X;
+			offsx += UI_UNIT_X + 2 * ufac;
 		}
 		else
 			offsx += 2 * ufac;
 		
 		if (tselem->type == 0 && ID_IS_LINKED_DATABLOCK(tselem->id)) {
 			if (tselem->id->tag & LIB_TAG_MISSING) {
-				UI_icon_draw_alpha((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_BROKEN,
+				UI_icon_draw_alpha((float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_BROKEN,
 				                   alpha_fac);
 			}
 			else if (tselem->id->tag & LIB_TAG_INDIRECT) {
-				UI_icon_draw_alpha((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_INDIRECT,
+				UI_icon_draw_alpha((float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_INDIRECT,
 				                   alpha_fac);
 			}
 			else {
-				UI_icon_draw_alpha((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT,
+				UI_icon_draw_alpha((float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT,
 				                   alpha_fac);
 			}
-			offsx += UI_UNIT_X;
+			offsx += UI_UNIT_X + 2 * ufac;
 		}
 		glDisable(GL_BLEND);
 		
