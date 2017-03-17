@@ -22,10 +22,6 @@
   #include <assert.h>
 #endif
 
-#define PER_THREAD
-// #define PER_THREAD __thread
-// MSVC uses __declspec(thread) for C code
-
 #define APPLE_LEGACY (defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT))
 
 #if APPLE_LEGACY
