@@ -72,6 +72,7 @@ typedef enum {
 	UI_WTYPE_NUMBER,
 	UI_WTYPE_SLIDER,
 	UI_WTYPE_EXEC,
+	UI_WTYPE_TAB,
 	UI_WTYPE_TOOLTIP,
 	
 	/* strings */
@@ -639,6 +640,8 @@ extern void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, floa
 
 void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha);
 
+
+void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highlight[3], unsigned char highlight_fade[3]);
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);
 void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, const rcti *rect);

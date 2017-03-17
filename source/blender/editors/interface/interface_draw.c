@@ -464,6 +464,93 @@ void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const flo
 
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
+/* based on UI_draw_roundbox_gl_mode, check on making a version which allows us to skip some sides */
+void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highlight[3], unsigned char highlight_fade[3])
+{
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+	/* add a 1px offset, looks nicer */
+	const int minx = rect->xmin + U.pixelsize, maxx = rect->xmax - U.pixelsize;
+	const int miny = rect->ymin + U.pixelsize, maxy = rect->ymax - U.pixelsize;
+	int a;
+	float vec[4][2] = {
+	    {0.195, 0.02},
+	    {0.55, 0.169},
+	    {0.831, 0.45},
+	    {0.98, 0.805},
+	};
+
+
+	/* mult */
+	for (a = 0; a < 4; a++) {
+		mul_v2_fl(vec[a], rad);
+	}
+
+	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+	immBeginAtMost(PRIM_LINE_STRIP, 25);
+
+	immAttrib3ubv(col, highlight);
+
+	/* start with corner left-top */
+	if (roundboxtype & UI_CNR_TOP_LEFT) {
+		immVertex2f(pos, minx, maxy - rad);
+		for (a = 0; a < 4; a++) {
+			immVertex2f(pos, minx + vec[a][1], maxy - rad + vec[a][0]);
+		}
+		immVertex2f(pos, minx + rad, maxy);
+	}
+	else {
+		immVertex2f(pos, minx, maxy);
+	}
+
+	/* corner right-top */
+	if (roundboxtype & UI_CNR_TOP_RIGHT) {
+		immVertex2f(pos, maxx - rad, maxy);
+		for (a = 0; a < 4; a++) {
+			immVertex2f(pos, maxx - rad + vec[a][0], maxy - vec[a][1]);
+		}
+		immVertex2f(pos, maxx, maxy - rad);
+	}
+	else {
+		immVertex2f(pos, maxx, maxy);
+	}
+
+	immAttrib3ubv(col, highlight_fade);
+
+	/* corner right-bottom */
+	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+		immVertex2f(pos, maxx, miny + rad);
+		for (a = 0; a < 4; a++) {
+			immVertex2f(pos, maxx - vec[a][1], miny + rad - vec[a][0]);
+		}
+		immVertex2f(pos, maxx - rad, miny);
+	}
+	else {
+		immVertex2f(pos, maxx, miny);
+	}
+
+	/* corner left-bottom */
+	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
+		immVertex2f(pos, minx + rad, miny);
+		for (a = 0; a < 4; a++) {
+			immVertex2f(pos, minx + rad - vec[a][0], miny + vec[a][1]);
+		}
+		immVertex2f(pos, minx, miny + rad);
+	}
+	else {
+		immVertex2f(pos, minx, miny);
+	}
+
+	immAttrib3ubv(col, highlight);
+
+	/* back to corner left-top */
+	immVertex2f(pos, minx, roundboxtype & UI_CNR_TOP_LEFT ? maxy - rad : maxy);
+
+	immEnd();
+	immUnbindProgram();
+}
+
 void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *rect)
 {
 #ifdef WITH_HEADLESS

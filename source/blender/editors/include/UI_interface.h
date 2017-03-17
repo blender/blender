@@ -256,6 +256,7 @@ typedef enum {
 	UI_BTYPE_CHECKBOX               = (13 << 9),  /* similar to toggle, display a 'tick' */
 	UI_BTYPE_CHECKBOX_N             = (14 << 9),
 	UI_BTYPE_COLOR                  = (15 << 9),
+	UI_BTYPE_TAB                    = (16 << 9),
 	UI_BTYPE_SCROLL                 = (18 << 9),
 	UI_BTYPE_BLOCK                  = (19 << 9),
 	UI_BTYPE_LABEL                  = (20 << 9),

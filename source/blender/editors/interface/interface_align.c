@@ -110,9 +110,9 @@ enum {
 
 bool ui_but_can_align(const uiBut *but)
 {
-	return (
-	    !ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_CHECKBOX, UI_BTYPE_CHECKBOX_N, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE) &&
-	    (BLI_rctf_size_x(&but->rect) > 0.0f) && (BLI_rctf_size_y(&but->rect) > 0.0f));
+	const bool btype_can_align = !ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_CHECKBOX, UI_BTYPE_CHECKBOX_N,
+	                                   UI_BTYPE_TAB, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE);
+	return (btype_can_align && (BLI_rctf_size_x(&but->rect) > 0.0f) && (BLI_rctf_size_y(&but->rect) > 0.0f));
 }
 
 /**

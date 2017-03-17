@@ -2094,6 +2094,7 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			break;
 		case UI_BTYPE_ROW:
 		case UI_BTYPE_LISTROW:
+		case UI_BTYPE_TAB:
 			ui_apply_but_ROW(C, block, but, data);
 			break;
 		case UI_BTYPE_SCROLL:
@@ -3829,6 +3830,18 @@ static int ui_do_but_KEYEVT(
 				data->cancel = true;
 
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+	}
+
+	return WM_UI_HANDLER_CONTINUE;
+}
+
+static int ui_do_but_TAB(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
+{
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_RELEASE) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_CONTINUE;
 		}
 	}
 
@@ -7077,6 +7090,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			break;
 		case UI_BTYPE_HOTKEY_EVENT:
 			retval = ui_do_but_HOTKEYEVT(C, but, data, event);
+			break;
+		case UI_BTYPE_TAB:
+			retval = ui_do_but_TAB(C, but, data, event);
 			break;
 		case UI_BTYPE_BUT_TOGGLE:
 		case UI_BTYPE_TOGGLE:
