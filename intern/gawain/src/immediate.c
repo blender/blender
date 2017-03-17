@@ -144,6 +144,7 @@ void immUnbindProgram(void)
 	imm.bound_program = 0;
 	}
 
+#if TRUST_NO_ONE
 static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, PrimitiveType prim_type)
 	{
 	// does vertex_ct make sense for this primitive type?
@@ -172,6 +173,7 @@ static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, Primitive
 			return false;
 		}
 	}
+#endif
 
 void immBegin(PrimitiveType prim_type, unsigned vertex_ct)
 	{
