@@ -1353,9 +1353,6 @@ static void collection_engine_settings_init(ListBase *lb)
 		CollectionEngineSettings *ces = collection_engine_settings_create(ces_type);
 		BLI_strncpy_utf8(ces->name, ces_type->name, sizeof(ces->name));
 		BLI_addtail(lb, ces);
-
-		/* call callback */
-		ces_type->callback(NULL, ces);
 	}
 
 	/* edit modes */
