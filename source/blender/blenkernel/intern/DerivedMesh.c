@@ -2912,9 +2912,6 @@ DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em, CustomDa
 /* get derived mesh from an object, using editbmesh if available. */
 DerivedMesh *object_get_derived_final(Object *ob, const bool for_render)
 {
-	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
-
 	if (for_render) {
 		/* TODO(sergey): use proper derived render here in the future. */
 		return ob->derivedFinal;
@@ -2922,9 +2919,13 @@ DerivedMesh *object_get_derived_final(Object *ob, const bool for_render)
 
 	/* only return the editmesh if its from this object because
 	 * we don't a mesh from another object's modifier stack: T43122 */
-	if (em && (em->ob == ob)) {
-		DerivedMesh *dm = em->derivedFinal;
-		return dm;
+	if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		BMEditMesh *em = me->edit_btmesh;
+		if (em && (em->ob == ob)) {
+			DerivedMesh *dm = em->derivedFinal;
+			return dm;
+		}
 	}
 
 	return ob->derivedFinal;
