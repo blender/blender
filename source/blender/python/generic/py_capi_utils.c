@@ -1070,4 +1070,41 @@ bool PyC_RunString_AsNumber(const char *expr, const char *filename, double *r_va
 	return ok;
 }
 
+bool PyC_RunString_AsString(const char *expr, const char *filename, char **r_value)
+{
+	PyObject *py_dict, *retval;
+	bool ok = true;
+	PyObject *main_mod = NULL;
+
+	PyC_MainModule_Backup(&main_mod);
+
+	py_dict = PyC_DefaultNameSpace(filename);
+
+	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
+
+	if (retval == NULL) {
+		ok = false;
+	}
+	else {
+		const char *val;
+		Py_ssize_t val_len;
+
+		val = _PyUnicode_AsStringAndSize(retval, &val_len);
+		if (val == NULL && PyErr_Occurred()) {
+			ok = false;
+		}
+		else {
+			char *val_alloc = MEM_mallocN(val_len + 1, __func__);
+			memcpy(val_alloc, val, val_len + 1);
+			*r_value = val_alloc;
+		}
+
+		Py_DECREF(retval);
+	}
+
+	PyC_MainModule_Restore(main_mod);
+
+	return ok;
+}
+
 #endif  /* #ifndef MATH_STANDALONE */
