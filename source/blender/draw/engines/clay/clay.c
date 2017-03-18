@@ -597,7 +597,11 @@ static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl,
 }
 
 static DRWShadingGroup *depth_shgrp;
+static DRWShadingGroup *depth_shgrp_select;
+static DRWShadingGroup *depth_shgrp_active;
 static DRWShadingGroup *depth_shgrp_cull;
+static DRWShadingGroup *depth_shgrp_cull_select;
+static DRWShadingGroup *depth_shgrp_cull_active;
 
 static void CLAY_cache_init(void)
 {
@@ -607,11 +611,23 @@ static void CLAY_cache_init(void)
 
 	/* Depth Pass */
 	{
-		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-
-		depth_shgrp_cull = DRW_shgroup_create(data.depth_sh, psl->depth_pass_cull);
 		depth_shgrp = DRW_shgroup_create(data.depth_sh, psl->depth_pass);
+
+		depth_shgrp_select = DRW_shgroup_create(data.depth_sh, psl->depth_pass);
+		DRW_shgroup_state_set(depth_shgrp_select, DRW_STATE_WRITE_STENCIL_SELECT);
+
+		depth_shgrp_active = DRW_shgroup_create(data.depth_sh, psl->depth_pass);
+		DRW_shgroup_state_set(depth_shgrp_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
+
+		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
+		depth_shgrp_cull = DRW_shgroup_create(data.depth_sh, psl->depth_pass_cull);
+
+		depth_shgrp_cull_select = DRW_shgroup_create(data.depth_sh, psl->depth_pass_cull);
+		DRW_shgroup_state_set(depth_shgrp_cull_select, DRW_STATE_WRITE_STENCIL_SELECT);
+
+		depth_shgrp_cull_active = DRW_shgroup_create(data.depth_sh, psl->depth_pass_cull);
+		DRW_shgroup_state_set(depth_shgrp_cull_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
 	}
 
 	/* Clay Pass */
@@ -642,7 +658,13 @@ static void CLAY_cache_populate(Object *ob)
 		geom = DRW_cache_surface_get(ob);
 
 		/* Depth Prepass */
-		DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull : depth_shgrp, geom, ob->obmat);
+		/* waiting for proper flag */
+		// if ((ob->base_flag & BASE_ACTIVE) != 0)
+			// DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull_active : depth_shgrp_active, geom, ob->obmat);
+		if ((ob->base_flag & BASE_SELECTED) != 0)
+			DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull_select : depth_shgrp_select, geom, ob->obmat);
+		else
+			DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull : depth_shgrp, geom, ob->obmat);
 
 		/* Shading */
 		clay_shgrp = CLAY_object_shgrp_get(ob, stl, psl);

@@ -46,7 +46,8 @@
 typedef struct OBJECT_PassList {
 	struct DRWPass *non_meshes;
 	struct DRWPass *ob_center;
-	struct DRWPass *wire_outline;
+	struct DRWPass *outlines;
+	struct DRWPass *outlines_transp;
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_wire;
 } OBJECT_PassList;
@@ -108,9 +109,47 @@ static DRWShadingGroup *camera_clip_points;
 static DRWShadingGroup *camera_mist;
 static DRWShadingGroup *camera_mist_points;
 
+/* Outlines */
+static DRWShadingGroup *outlines_active;
+static DRWShadingGroup *outlines_active_group;
+static DRWShadingGroup *outlines_select;
+static DRWShadingGroup *outlines_select_group;
+static DRWShadingGroup *outlines_transform;
+static DRWShadingGroup *outlines_transp_select;
+static DRWShadingGroup *outlines_transp_select_group;
+static DRWShadingGroup *outlines_transp_active;
+static DRWShadingGroup *outlines_transp_active_group;
+static DRWShadingGroup *outlines_transp_transform;
+
 extern GlobalsUboStorage ts;
 
 static OBJECT_Data *vedata;
+
+static struct GPUShader *outline_sh = NULL;
+
+extern char datatoc_object_occluded_outline_frag_glsl[];
+
+static void OBJECT_engine_init(void)
+{
+	if (!outline_sh) {
+		outline_sh = DRW_shader_create_3D(datatoc_object_occluded_outline_frag_glsl, NULL);
+	}
+}
+
+static void OBJECT_engine_free(void)
+{
+	if (outline_sh)
+		DRW_shader_free(outline_sh);
+}
+
+static DRWShadingGroup *shgroup_outline(DRWPass *pass, int state_flag, const float col[4], struct GPUShader *sh)
+{
+	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
+	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
+	DRW_shgroup_state_set(grp, state_flag);
+
+	return grp;
+}
 
 static void OBJECT_cache_init(void)
 {
@@ -119,11 +158,38 @@ static void OBJECT_cache_init(void)
 	OBJECT_PassList *psl = vedata->psl;
 
 	{
-		/* This pass can draw mesh outlines and/or fancy wireframe */
-		/* Fancy wireframes are not meant to be occluded (without Z offset) */
-		/* Outlines and Fancy Wires use the same VBO */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
-		psl->wire_outline = DRW_pass_create("Wire + Outlines Pass", state);
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE_LARGE;
+		psl->outlines = DRW_pass_create("Outlines Pass", state);
+
+		struct GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+
+		/* Select */
+		outlines_select = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorSelect, sh);
+		outlines_select_group = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorGroupActive, sh);
+
+		/* Transform */
+		outlines_transform = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorTransform, sh);
+
+		/* Active */
+		outlines_active = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorActive, sh);
+		outlines_active_group = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorGroupActive, sh);
+	}
+
+	{
+		/* FIXME doing a 2nd pass is suboptimal, but waiting for a nice outline solution it does the job*/
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_WIRE_LARGE;
+		psl->outlines_transp = DRW_pass_create("See-through Outlines Pass", state);
+
+		/* Select */
+		outlines_transp_select = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorSelect, outline_sh);
+		outlines_transp_select_group = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorGroupActive, outline_sh);
+
+		/* Transform */
+		outlines_transp_transform = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorTransform, outline_sh);
+
+		/* Active */
+		outlines_transp_active = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorActive, outline_sh);
+		outlines_transp_active_group = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorGroupActive, outline_sh);
 	}
 
 	{
@@ -277,55 +343,6 @@ static void OBJECT_cache_init(void)
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", ts.colorDeselect, 1);
 		center_deselected = grp;
-	}
-}
-
-static void DRW_shgroup_wire_outline(Object *ob, const bool do_wire, const bool do_outline)
-{
-	struct GPUShader *sh;
-	OBJECT_PassList *psl = vedata->psl;
-	struct Batch *geom = DRW_cache_wire_outline_get(ob);
-
-	float *color;
-	DRW_object_wire_theme_get(ob, &color);
-
-	bool is_perps = DRW_viewport_is_persp_get();
-	static bool bTrue = true;
-	static bool bFalse = false;
-
-	/* Note (TODO) : this requires cache to be discarded on ortho/perp switch
-	 * It may be preferable (or not depending on performance implication)
-	 * to introduce a shader uniform switch */
-	if (is_perps) {
-		sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_FRONT_BACK_PERSP);
-	}
-	else {
-		sh = GPU_shader_get_builtin_shader(GPU_SHADER_EDGES_FRONT_BACK_ORTHO);
-	}
-
-	if (do_wire) {
-		bool *bFront = (do_wire) ? &bTrue : &bFalse;
-		bool *bBack = (do_wire) ? &bTrue : &bFalse;
-
-		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->wire_outline);
-		DRW_shgroup_state_set(grp, DRW_STATE_WIRE);
-		DRW_shgroup_uniform_vec4(grp, "frontColor", color, 1);
-		DRW_shgroup_uniform_vec4(grp, "backColor", color, 1);
-		DRW_shgroup_uniform_bool(grp, "drawFront", bFront, 1);
-		DRW_shgroup_uniform_bool(grp, "drawBack", bBack, 1);
-		DRW_shgroup_uniform_bool(grp, "drawSilhouette", &bFalse, 1);
-		DRW_shgroup_call_add(grp, geom, ob->obmat);
-	}
-
-	if (do_outline) {
-		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->wire_outline);
-		DRW_shgroup_state_set(grp, DRW_STATE_WIRE_LARGE);
-		DRW_shgroup_uniform_vec4(grp, "silhouetteColor", color, 1);
-		DRW_shgroup_uniform_bool(grp, "drawFront", &bFalse, 1);
-		DRW_shgroup_uniform_bool(grp, "drawBack", &bFalse, 1);
-		DRW_shgroup_uniform_bool(grp, "drawSilhouette", &bTrue, 1);
-
-		DRW_shgroup_call_add(grp, geom, ob->obmat);
 	}
 }
 
@@ -563,17 +580,38 @@ static void OBJECT_cache_populate(Object *ob)
 	const struct bContext *C = DRW_get_context();
 	Scene *scene = CTX_data_scene(C);
 
-	CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
+	//CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
 
-	bool do_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_wire");
-	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0) || do_wire;
+	//bool do_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_wire");
+	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
 
 	switch (ob->type) {
 		case OB_MESH:
 			{
 				Object *obedit = scene->obedit;
+				int theme_id = DRW_object_wire_theme_get(ob, NULL);
 				if (ob != obedit) {
-					DRW_shgroup_wire_outline(ob, do_wire, do_outlines);
+					if (do_outlines) {
+						struct Batch *geom = DRW_cache_wire_outline_get(ob);
+						switch (theme_id) {
+							case TH_ACTIVE:
+								DRW_shgroup_call_add(outlines_active, geom, ob->obmat);
+								DRW_shgroup_call_add(outlines_transp_active, geom, ob->obmat);
+								break;
+							case TH_SELECT:
+								DRW_shgroup_call_add(outlines_select, geom, ob->obmat);
+								DRW_shgroup_call_add(outlines_transp_select, geom, ob->obmat);
+								break;
+							case TH_GROUP_ACTIVE:
+								DRW_shgroup_call_add(outlines_select_group, geom, ob->obmat);
+								DRW_shgroup_call_add(outlines_transp_select_group, geom, ob->obmat);
+								break;
+							case TH_TRANSFORM:
+								DRW_shgroup_call_add(outlines_transform, geom, ob->obmat);
+								DRW_shgroup_call_add(outlines_transp_transform, geom, ob->obmat);
+								break;
+						}
+					}
 				}
 			}
 			break;
@@ -612,9 +650,10 @@ static void OBJECT_draw_scene(void)
 	OBJECT_Data *ved = DRW_viewport_engine_data_get("ObjectMode");
 	OBJECT_PassList *psl = ved->psl;
 
+	DRW_draw_pass(psl->outlines_transp);
+	DRW_draw_pass(psl->outlines);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->bone_solid);
-	DRW_draw_pass(psl->wire_outline);
 	DRW_draw_pass(psl->non_meshes);
 	DRW_draw_pass(psl->ob_center);
 }
@@ -629,8 +668,8 @@ void OBJECT_collection_settings_create(CollectionEngineSettings *ces)
 DrawEngineType draw_engine_object_type = {
 	NULL, NULL,
 	N_("ObjectMode"),
-	NULL,
-	NULL,
+	&OBJECT_engine_init,
+	&OBJECT_engine_free,
 	&OBJECT_cache_init,
 	&OBJECT_cache_populate,
 	NULL,

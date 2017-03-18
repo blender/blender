@@ -549,12 +549,13 @@ void DRW_draw_background(void)
 	/* Just to make sure */
 	glDepthMask(GL_TRUE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glStencilMask(0xFF);
 
 	if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
 		/* Gradient background Color */
 		gpuMatrixBegin3D(); /* TODO: finish 2D API */
 
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		VertexFormat *format = immVertexFormat();
 		unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
@@ -583,7 +584,7 @@ void DRW_draw_background(void)
 	else {
 		/* Solid background Color */
 		UI_ThemeClearColorAlpha(TH_HIGH_GRAD, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 }
 

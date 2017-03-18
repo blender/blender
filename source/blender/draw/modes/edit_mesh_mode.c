@@ -396,7 +396,7 @@ static void EDIT_MESH_draw_scene(void)
 		
 		/* Render wires on a separate framebuffer */
 		DRW_framebuffer_bind(fbl->occlude_wire_fb);
-		DRW_framebuffer_clear(true, true, clearcol, 1.0f);
+		DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
 		DRW_draw_pass(psl->normals);
 		DRW_draw_pass(psl->edit_face_occluded);
 

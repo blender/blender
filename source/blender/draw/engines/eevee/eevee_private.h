@@ -27,6 +27,8 @@ struct Object;
 
 /* keep it under MAX_PASSES */
 typedef struct EEVEE_PassList {
+	struct DRWPass *depth_pass;
+	struct DRWPass *depth_pass_cull;
 	struct DRWPass *pass;
 	struct DRWPass *tonemap;
 } EEVEE_PassList;

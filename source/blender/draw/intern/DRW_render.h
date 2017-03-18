@@ -161,7 +161,7 @@ typedef struct DRWFboTexture {
 
 void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX], int texnbr);
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
-void DRW_framebuffer_clear(bool color, bool depth, float clear_col[4], float clear_depth);
+void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col[4], float clear_depth);
 void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot);
 void DRW_framebuffer_texture_detach(struct GPUTexture *tex);
 void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth);
@@ -190,6 +190,11 @@ typedef enum {
 	DRW_STATE_STIPPLE_3     = (1 << 11),
 	DRW_STATE_STIPPLE_4     = (1 << 12),
 	DRW_STATE_BLEND         = (1 << 13),
+
+	DRW_STATE_WRITE_STENCIL_SELECT = (1 << 14),
+	DRW_STATE_WRITE_STENCIL_ACTIVE = (1 << 15),
+	DRW_STATE_TEST_STENCIL_SELECT  = (1 << 16),
+	DRW_STATE_TEST_STENCIL_ACTIVE  = (1 << 17),
 } DRWState;
 
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
@@ -230,7 +235,6 @@ typedef enum {
 
 void DRW_viewport_init(const bContext *C);
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type);
-void DRW_viewport_engine_data_set(const char *engine_name, void *fbl, void *txl, void *psl,	void *stl);
 void *DRW_viewport_engine_data_get(const char *engine_name);
 float *DRW_viewport_size_get(void);
 float *DRW_viewport_screenvecs_get(void);
