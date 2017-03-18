@@ -56,10 +56,10 @@ extern char datatoc_tonemap_frag_glsl[];
 
 static void EEVEE_engine_init(void)
 {
-	g_data.vedata = DRW_viewport_engine_data_get(EEVEE_ENGINE);
-	EEVEE_TextureList *txl = g_data.vedata->txl;
-	EEVEE_FramebufferList *fbl = g_data.vedata->fbl;
-	EEVEE_StorageList *stl = g_data.vedata->stl;
+	EEVEE_Data *ved = DRW_viewport_engine_data_get(EEVEE_ENGINE);
+	EEVEE_TextureList *txl = ved->txl;
+	EEVEE_FramebufferList *fbl = ved->fbl;
+	EEVEE_StorageList *stl = ved->stl;
 
 	DRWFboTexture tex = {&txl->color, DRW_BUF_RGBA_32};
 

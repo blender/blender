@@ -85,26 +85,24 @@ typedef struct SCULPT_Data {
 
 /* *********** STATIC *********** */
 
-/* This keeps the references of the shading groups for
- * easy access in SCULPT_cache_populate() */
-static DRWShadingGroup *group;
+static struct {
+	/* Custom shaders :
+	 * Add sources to source/blender/draw/modes/shaders
+	 * init in SCULPT_engine_init();
+	 * free in SCULPT_engine_free(); */
+	struct GPUShader *custom_shader;
+} e_data = {NULL}; /* Engine data */
 
-/* If needed, contains all global/Theme colors
- * Add needed theme colors / values to DRW_globals_update() and update UBO
- * Not needed for constant color. */
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-extern struct GlobalsUboStorage ts; /* draw_common.c */
+static struct {
+	/* This keeps the references of the shading groups for
+	 * easy access in SCULPT_cache_populate() */
+	DRWShadingGroup *group;
 
-/* Custom shaders :
- * Add sources to source/blender/draw/modes/shaders
- * init in SCULPT_engine_init();
- * free in SCULPT_engine_free(); */
-static struct GPUShader *custom_shader = NULL;
-
-/* This keeps the reference of the viewport engine data because
- * DRW_viewport_engine_data_get is slow and we don't want to
- * call it for every object */
-static SCULPT_Data *vedata;
+	/* This keeps the reference of the viewport engine data because
+	 * DRW_viewport_engine_data_get is slow and we don't want to
+	 * call it for every object */
+	SCULPT_Data *vedata;
+} g_data = {NULL}; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
@@ -113,10 +111,10 @@ static SCULPT_Data *vedata;
  * (Optional) */
 static void SCULPT_engine_init(void)
 {
-	vedata = DRW_viewport_engine_data_get("SculptMode");
-	SCULPT_TextureList *txl = vedata->txl;
-	SCULPT_FramebufferList *fbl = vedata->fbl;
-	SCULPT_StorageList *stl = vedata->stl;
+	SCULPT_Data *ved = DRW_viewport_engine_data_get("SculptMode");
+	SCULPT_TextureList *txl = ved->txl;
+	SCULPT_FramebufferList *fbl = ved->fbl;
+	SCULPT_StorageList *stl = ved->stl;
 
 	UNUSED_VARS(txl, fbl, stl);
 
@@ -135,8 +133,8 @@ static void SCULPT_engine_init(void)
 	 *                     tex, 2);
 	 */
 
-	if (!custom_shader) {
-		custom_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+	if (!e_data.custom_shader) {
+		e_data.custom_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 }
 
@@ -144,9 +142,9 @@ static void SCULPT_engine_init(void)
  * Assume that all Passes are NULL */
 static void SCULPT_cache_init(void)
 {
-	vedata = DRW_viewport_engine_data_get("SculptMode");
-	SCULPT_PassList *psl = vedata->psl;
-	SCULPT_StorageList *stl = vedata->stl;
+	g_data.vedata = DRW_viewport_engine_data_get("SculptMode");
+	SCULPT_PassList *psl = g_data.vedata->psl;
+	SCULPT_StorageList *stl = g_data.vedata->stl;
 
 	UNUSED_VARS(stl);
 
@@ -157,16 +155,16 @@ static void SCULPT_cache_init(void)
 
 		/* Create a shadingGroup using a function in draw_common.c or custom one */
 		/*
-		 * group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
+		 * g_data.group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
 		 * -- or --
-		 * group = DRW_shgroup_create(custom_shader, psl->pass);
+		 * g_data.group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
 		 */
-		group = DRW_shgroup_create(custom_shader, psl->pass);
+		g_data.group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
 
 		/* Uniforms need a pointer to it's value so be sure it's accessible at
 		 * any given time (i.e. use static vars) */
 		static float color[4] = {0.2f, 0.5f, 0.3f, 1.0};
-		DRW_shgroup_uniform_vec4(group, "color", color, 1);
+		DRW_shgroup_uniform_vec4(g_data.group, "color", color, 1);
 	}
 
 }
@@ -174,8 +172,8 @@ static void SCULPT_cache_init(void)
 /* Add geometry to shadingGroups. Execute for each objects */
 static void SCULPT_cache_populate(Object *ob)
 {
-	SCULPT_PassList *psl = vedata->psl;
-	SCULPT_StorageList *stl = vedata->stl;
+	SCULPT_PassList *psl = g_data.vedata->psl;
+	SCULPT_StorageList *stl = g_data.vedata->stl;
 
 	UNUSED_VARS(psl, stl);
 
@@ -184,15 +182,15 @@ static void SCULPT_cache_populate(Object *ob)
 		struct Batch *geom = DRW_cache_surface_get(ob);
 
 		/* Add geom to a shading group */
-		DRW_shgroup_call_add(group, geom, ob->obmat);
+		DRW_shgroup_call_add(g_data.group, geom, ob->obmat);
 	}
 }
 
 /* Optional: Post-cache_populate callback */
 static void SCULPT_cache_finish(void)
 {
-	SCULPT_PassList *psl = vedata->psl;
-	SCULPT_StorageList *stl = vedata->stl;
+	SCULPT_PassList *psl = g_data.vedata->psl;
+	SCULPT_StorageList *stl = g_data.vedata->stl;
 
 	/* Do something here! dependant on the objects gathered */
 	UNUSED_VARS(psl, stl);
@@ -203,7 +201,7 @@ static void SCULPT_draw_scene(void)
 {
 	SCULPT_Data *ved = DRW_viewport_engine_data_get("SculptMode");
 	SCULPT_PassList *psl = ved->psl;
-	SCULPT_FramebufferList *fbl = vedata->fbl;
+	SCULPT_FramebufferList *fbl = ved->fbl;
 
 	/* Default framebuffer and texture */
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();

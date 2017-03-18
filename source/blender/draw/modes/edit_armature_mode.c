@@ -32,6 +32,9 @@
 
 #include "draw_mode_engines.h"
 
+extern GlobalsUboStorage ts;
+
+/* *********** LISTS *********** */
 /* keep it under MAX_PASSES */
 typedef struct EDIT_ARMATURE_PassList {
 	struct DRWPass *bone_solid;
@@ -47,16 +50,19 @@ typedef struct EDIT_ARMATURE_Data {
 	void *stl;
 } EDIT_ARMATURE_Data;
 
-static DRWShadingGroup *relationship_lines;
+/* *********** STATIC *********** */
 
-extern GlobalsUboStorage ts;
+static struct {
+	DRWShadingGroup *relationship_lines;
+	EDIT_ARMATURE_Data *vedata;
+} g_data = {NULL}; /* Transient data */
 
-static EDIT_ARMATURE_Data *vedata;
+/* *********** FUNCTIONS *********** */
 
 static void EDIT_ARMATURE_cache_init(void)
 {
-	vedata = DRW_viewport_engine_data_get("EditArmatureMode");
-	EDIT_ARMATURE_PassList *psl = vedata->psl;
+	g_data.vedata = DRW_viewport_engine_data_get("EditArmatureMode");
+	EDIT_ARMATURE_PassList *psl = g_data.vedata->psl;
 
 	{
 		/* Solid bones */
@@ -76,20 +82,19 @@ static void EDIT_ARMATURE_cache_init(void)
 		psl->relationship = DRW_pass_create("Bone Relationship Pass", state);
 
 		/* Relationship Lines */
-		relationship_lines = shgroup_dynlines_uniform_color(psl->relationship, ts.colorWire);
-		DRW_shgroup_state_set(relationship_lines, DRW_STATE_STIPPLE_3);
+		g_data.relationship_lines = shgroup_dynlines_uniform_color(psl->relationship, ts.colorWire);
+		DRW_shgroup_state_set(g_data.relationship_lines, DRW_STATE_STIPPLE_3);
 	}
-
 }
 
 static void EDIT_ARMATURE_cache_populate(Object *ob)
 {
 	bArmature *arm = ob->data;
-	EDIT_ARMATURE_PassList *psl = vedata->psl;
+	EDIT_ARMATURE_PassList *psl = g_data.vedata->psl;
 
 	if (ob->type == OB_ARMATURE) {
 		if (arm->edbo) {
-			DRW_shgroup_armature_edit(ob, psl->bone_solid, psl->bone_wire, relationship_lines);
+			DRW_shgroup_armature_edit(ob, psl->bone_solid, psl->bone_wire, g_data.relationship_lines);
 		}
 	}
 }

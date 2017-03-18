@@ -42,6 +42,11 @@
 #include "draw_mode_engines.h"
 #include "draw_common.h"
 
+extern GlobalsUboStorage ts;
+
+extern char datatoc_object_occluded_outline_frag_glsl[];
+
+/* *********** LISTS *********** */
 /* keep it under MAX_PASSES */
 typedef struct OBJECT_PassList {
 	struct DRWPass *non_meshes;
@@ -60,86 +65,90 @@ typedef struct OBJECT_Data {
 	void *stl;
 } OBJECT_Data;
 
-/* Empties */
-static DRWShadingGroup *plain_axes;
-static DRWShadingGroup *cube;
-static DRWShadingGroup *circle;
-static DRWShadingGroup *sphere;
-static DRWShadingGroup *cone;
-static DRWShadingGroup *single_arrow;
-static DRWShadingGroup *single_arrow_line;
-static DRWShadingGroup *arrows;
-static DRWShadingGroup *axis_names;
+/* *********** STATIC *********** */
 
-/* Speaker */
-static DRWShadingGroup *speaker;
+static struct {
+	/* Empties */
+	DRWShadingGroup *plain_axes;
+	DRWShadingGroup *cube;
+	DRWShadingGroup *circle;
+	DRWShadingGroup *sphere;
+	DRWShadingGroup *cone;
+	DRWShadingGroup *single_arrow;
+	DRWShadingGroup *single_arrow_line;
+	DRWShadingGroup *arrows;
+	DRWShadingGroup *axis_names;
 
-/* Lamps */
-static DRWShadingGroup *lamp_center;
-static DRWShadingGroup *lamp_center_group;
-static DRWShadingGroup *lamp_groundpoint;
-static DRWShadingGroup *lamp_groundline;
-static DRWShadingGroup *lamp_circle;
-static DRWShadingGroup *lamp_circle_shadow;
-static DRWShadingGroup *lamp_sunrays;
-static DRWShadingGroup *lamp_distance;
-static DRWShadingGroup *lamp_buflimit;
-static DRWShadingGroup *lamp_buflimit_points;
-static DRWShadingGroup *lamp_area;
-static DRWShadingGroup *lamp_hemi;
-static DRWShadingGroup *lamp_spot_cone;
-static DRWShadingGroup *lamp_spot_blend;
-static DRWShadingGroup *lamp_spot_pyramid;
-static DRWShadingGroup *lamp_spot_blend_rect;
+	/* Speaker */
+	DRWShadingGroup *speaker;
 
-/* Helpers */
-static DRWShadingGroup *relationship_lines;
+	/* Lamps */
+	DRWShadingGroup *lamp_center;
+	DRWShadingGroup *lamp_center_group;
+	DRWShadingGroup *lamp_groundpoint;
+	DRWShadingGroup *lamp_groundline;
+	DRWShadingGroup *lamp_circle;
+	DRWShadingGroup *lamp_circle_shadow;
+	DRWShadingGroup *lamp_sunrays;
+	DRWShadingGroup *lamp_distance;
+	DRWShadingGroup *lamp_buflimit;
+	DRWShadingGroup *lamp_buflimit_points;
+	DRWShadingGroup *lamp_area;
+	DRWShadingGroup *lamp_hemi;
+	DRWShadingGroup *lamp_spot_cone;
+	DRWShadingGroup *lamp_spot_blend;
+	DRWShadingGroup *lamp_spot_pyramid;
+	DRWShadingGroup *lamp_spot_blend_rect;
 
-/* Objects Centers */
-static DRWShadingGroup *center_active;
-static DRWShadingGroup *center_selected;
-static DRWShadingGroup *center_deselected;
+	/* Helpers */
+	DRWShadingGroup *relationship_lines;
 
-/* Camera */
-static DRWShadingGroup *camera;
-static DRWShadingGroup *camera_tria;
-static DRWShadingGroup *camera_focus;
-static DRWShadingGroup *camera_clip;
-static DRWShadingGroup *camera_clip_points;
-static DRWShadingGroup *camera_mist;
-static DRWShadingGroup *camera_mist_points;
+	/* Objects Centers */
+	DRWShadingGroup *center_active;
+	DRWShadingGroup *center_selected;
+	DRWShadingGroup *center_deselected;
 
-/* Outlines */
-static DRWShadingGroup *outlines_active;
-static DRWShadingGroup *outlines_active_group;
-static DRWShadingGroup *outlines_select;
-static DRWShadingGroup *outlines_select_group;
-static DRWShadingGroup *outlines_transform;
-static DRWShadingGroup *outlines_transp_select;
-static DRWShadingGroup *outlines_transp_select_group;
-static DRWShadingGroup *outlines_transp_active;
-static DRWShadingGroup *outlines_transp_active_group;
-static DRWShadingGroup *outlines_transp_transform;
+	/* Camera */
+	DRWShadingGroup *camera;
+	DRWShadingGroup *camera_tria;
+	DRWShadingGroup *camera_focus;
+	DRWShadingGroup *camera_clip;
+	DRWShadingGroup *camera_clip_points;
+	DRWShadingGroup *camera_mist;
+	DRWShadingGroup *camera_mist_points;
 
-extern GlobalsUboStorage ts;
+	/* Outlines */
+	DRWShadingGroup *outlines_active;
+	DRWShadingGroup *outlines_active_group;
+	DRWShadingGroup *outlines_select;
+	DRWShadingGroup *outlines_select_group;
+	DRWShadingGroup *outlines_transform;
+	DRWShadingGroup *outlines_transp_select;
+	DRWShadingGroup *outlines_transp_select_group;
+	DRWShadingGroup *outlines_transp_active;
+	DRWShadingGroup *outlines_transp_active_group;
+	DRWShadingGroup *outlines_transp_transform;
 
-static OBJECT_Data *vedata;
+	OBJECT_Data *vedata;
+} g_data = {NULL}; /* Transient data */
 
-static struct GPUShader *outline_sh = NULL;
+static struct {
+	struct GPUShader *outline_sh;
+} e_data = {NULL}; /* Engine data */
 
-extern char datatoc_object_occluded_outline_frag_glsl[];
+/* *********** FUNCTIONS *********** */
 
 static void OBJECT_engine_init(void)
 {
-	if (!outline_sh) {
-		outline_sh = DRW_shader_create_3D(datatoc_object_occluded_outline_frag_glsl, NULL);
+	if (!e_data.outline_sh) {
+		e_data.outline_sh = DRW_shader_create_3D(datatoc_object_occluded_outline_frag_glsl, NULL);
 	}
 }
 
 static void OBJECT_engine_free(void)
 {
-	if (outline_sh)
-		DRW_shader_free(outline_sh);
+	if (e_data.outline_sh)
+		DRW_shader_free(e_data.outline_sh);
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, int state_flag, const float col[4], struct GPUShader *sh)
@@ -154,8 +163,8 @@ static DRWShadingGroup *shgroup_outline(DRWPass *pass, int state_flag, const flo
 static void OBJECT_cache_init(void)
 {
 	/* DRW_viewport_engine_data_get is rather slow, better not do it on every objects */
-	vedata = DRW_viewport_engine_data_get("ObjectMode");
-	OBJECT_PassList *psl = vedata->psl;
+	g_data.vedata = DRW_viewport_engine_data_get("ObjectMode");
+	OBJECT_PassList *psl = g_data.vedata->psl;
 
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE_LARGE;
@@ -164,15 +173,15 @@ static void OBJECT_cache_init(void)
 		struct GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 
 		/* Select */
-		outlines_select = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorSelect, sh);
-		outlines_select_group = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorGroupActive, sh);
+		g_data.outlines_select = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorSelect, sh);
+		g_data.outlines_select_group = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorGroupActive, sh);
 
 		/* Transform */
-		outlines_transform = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorTransform, sh);
+		g_data.outlines_transform = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorTransform, sh);
 
 		/* Active */
-		outlines_active = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorActive, sh);
-		outlines_active_group = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorGroupActive, sh);
+		g_data.outlines_active = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorActive, sh);
+		g_data.outlines_active_group = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorGroupActive, sh);
 	}
 
 	{
@@ -181,15 +190,15 @@ static void OBJECT_cache_init(void)
 		psl->outlines_transp = DRW_pass_create("See-through Outlines Pass", state);
 
 		/* Select */
-		outlines_transp_select = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorSelect, outline_sh);
-		outlines_transp_select_group = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorGroupActive, outline_sh);
+		g_data.outlines_transp_select = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorSelect, e_data.outline_sh);
+		g_data.outlines_transp_select_group = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorGroupActive, e_data.outline_sh);
 
 		/* Transform */
-		outlines_transp_transform = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorTransform, outline_sh);
+		g_data.outlines_transp_transform = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorTransform, e_data.outline_sh);
 
 		/* Active */
-		outlines_transp_active = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorActive, outline_sh);
-		outlines_transp_active_group = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorGroupActive, outline_sh);
+		g_data.outlines_transp_active = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorActive, e_data.outline_sh);
+		g_data.outlines_transp_active_group = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorGroupActive, e_data.outline_sh);
 	}
 
 	{
@@ -214,53 +223,53 @@ static void OBJECT_cache_init(void)
 
 		/* Empties */
 		geom = DRW_cache_plain_axes_get();
-		plain_axes = shgroup_instance(psl->non_meshes, geom);
+		g_data.plain_axes = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_cube_get();
-		cube = shgroup_instance(psl->non_meshes, geom);
+		g_data.cube = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_circle_get();
-		circle = shgroup_instance(psl->non_meshes, geom);
+		g_data.circle = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_empty_sphere_get();
-		sphere = shgroup_instance(psl->non_meshes, geom);
+		g_data.sphere = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_empty_cone_get();
-		cone = shgroup_instance(psl->non_meshes, geom);
+		g_data.cone = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_single_arrow_get();
-		single_arrow = shgroup_instance(psl->non_meshes, geom);
+		g_data.single_arrow = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_single_line_get();
-		single_arrow_line = shgroup_instance(psl->non_meshes, geom);
+		g_data.single_arrow_line = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_arrows_get();
-		arrows = shgroup_instance(psl->non_meshes, geom);
+		g_data.arrows = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_axis_names_get();
-		axis_names = shgroup_instance_axis_names(psl->non_meshes, geom);
+		g_data.axis_names = shgroup_instance_axis_names(psl->non_meshes, geom);
 
 		/* Speaker */
 		geom = DRW_cache_speaker_get();
-		speaker = shgroup_instance(psl->non_meshes, geom);
+		g_data.speaker = shgroup_instance(psl->non_meshes, geom);
 
 		/* Camera */
 		geom = DRW_cache_camera_get();
-		camera = shgroup_camera_instance(psl->non_meshes, geom);
+		g_data.camera = shgroup_camera_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_camera_tria_get();
-		camera_tria = shgroup_camera_instance(psl->non_meshes, geom);
+		g_data.camera_tria = shgroup_camera_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_plain_axes_get();
-		camera_focus = shgroup_instance(psl->non_meshes, geom);
+		g_data.camera_focus = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_single_line_get();
-		camera_clip = shgroup_distance_lines_instance(psl->non_meshes, geom);
-		camera_mist = shgroup_distance_lines_instance(psl->non_meshes, geom);
+		g_data.camera_clip = shgroup_distance_lines_instance(psl->non_meshes, geom);
+		g_data.camera_mist = shgroup_distance_lines_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_single_line_endpoints_get();
-		camera_clip_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
-		camera_mist_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
+		g_data.camera_clip_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
+		g_data.camera_mist_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
 
 		/* Lamps */
 		/* TODO
@@ -269,48 +278,48 @@ static void OBJECT_cache_init(void)
 
 		/* start with buflimit because we don't want stipples */
 		geom = DRW_cache_single_line_get();
-		lamp_buflimit = shgroup_distance_lines_instance(psl->non_meshes, geom);
+		g_data.lamp_buflimit = shgroup_distance_lines_instance(psl->non_meshes, geom);
 
-		lamp_center = shgroup_dynpoints_uniform_color(psl->non_meshes, ts.colorLampNoAlpha, &ts.sizeLampCenter);
-		lamp_center_group = shgroup_dynpoints_uniform_color(psl->non_meshes, ts.colorGroup, &ts.sizeLampCenter);
+		g_data.lamp_center = shgroup_dynpoints_uniform_color(psl->non_meshes, ts.colorLampNoAlpha, &ts.sizeLampCenter);
+		g_data.lamp_center_group = shgroup_dynpoints_uniform_color(psl->non_meshes, ts.colorGroup, &ts.sizeLampCenter);
 
 		geom = DRW_cache_lamp_get();
-		lamp_circle = shgroup_instance_screenspace(psl->non_meshes, geom, &ts.sizeLampCircle);
-		lamp_circle_shadow = shgroup_instance_screenspace(psl->non_meshes, geom, &ts.sizeLampCircleShadow);
+		g_data.lamp_circle = shgroup_instance_screenspace(psl->non_meshes, geom, &ts.sizeLampCircle);
+		g_data.lamp_circle_shadow = shgroup_instance_screenspace(psl->non_meshes, geom, &ts.sizeLampCircleShadow);
 
 		geom = DRW_cache_lamp_sunrays_get();
-		lamp_sunrays = shgroup_instance_screenspace(psl->non_meshes, geom, &ts.sizeLampCircle);
+		g_data.lamp_sunrays = shgroup_instance_screenspace(psl->non_meshes, geom, &ts.sizeLampCircle);
 
-		lamp_groundline = shgroup_groundlines_uniform_color(psl->non_meshes, ts.colorLamp);
-		lamp_groundpoint = shgroup_groundpoints_uniform_color(psl->non_meshes, ts.colorLamp);
+		g_data.lamp_groundline = shgroup_groundlines_uniform_color(psl->non_meshes, ts.colorLamp);
+		g_data.lamp_groundpoint = shgroup_groundpoints_uniform_color(psl->non_meshes, ts.colorLamp);
 
 		geom = DRW_cache_lamp_area_get();
-		lamp_area = shgroup_instance(psl->non_meshes, geom);
+		g_data.lamp_area = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_lamp_hemi_get();
-		lamp_hemi = shgroup_instance(psl->non_meshes, geom);
+		g_data.lamp_hemi = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_single_line_get();
-		lamp_distance = shgroup_distance_lines_instance(psl->non_meshes, geom);
+		g_data.lamp_distance = shgroup_distance_lines_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_single_line_endpoints_get();
-		lamp_buflimit_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
+		g_data.lamp_buflimit_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_lamp_spot_get();
-		lamp_spot_cone = shgroup_spot_instance(psl->non_meshes, geom);
+		g_data.lamp_spot_cone = shgroup_spot_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_circle_get();
-		lamp_spot_blend = shgroup_instance(psl->non_meshes, geom);
+		g_data.lamp_spot_blend = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_lamp_spot_square_get();
-		lamp_spot_pyramid = shgroup_instance(psl->non_meshes, geom);
+		g_data.lamp_spot_pyramid = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_square_get();
-		lamp_spot_blend_rect = shgroup_instance(psl->non_meshes, geom);
+		g_data.lamp_spot_blend_rect = shgroup_instance(psl->non_meshes, geom);
 
 		/* Relationship Lines */
-		relationship_lines = shgroup_dynlines_uniform_color(psl->non_meshes, ts.colorWire);
-		DRW_shgroup_state_set(relationship_lines, DRW_STATE_STIPPLE_3);
+		g_data.relationship_lines = shgroup_dynlines_uniform_color(psl->non_meshes, ts.colorWire);
+		DRW_shgroup_state_set(g_data.relationship_lines, DRW_STATE_STIPPLE_3);
 	}
 
 	{
@@ -332,17 +341,17 @@ static void OBJECT_cache_init(void)
 		DRW_shgroup_uniform_float(grp, "outlineWidth", &outlineWidth, 1);
 		DRW_shgroup_uniform_vec4(grp, "color", ts.colorActive, 1);
 		DRW_shgroup_uniform_vec4(grp, "outlineColor", ts.colorOutline, 1);
-		center_active = grp;
+		g_data.center_active = grp;
 
 		/* Select */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", ts.colorSelect, 1);
-		center_selected = grp;
+		g_data.center_selected = grp;
 
 		/* Deselect */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", ts.colorDeselect, 1);
-		center_deselected = grp;
+		g_data.center_deselected = grp;
 	}
 }
 
@@ -355,29 +364,29 @@ static void DRW_shgroup_lamp(Object *ob)
 
 	/* Don't draw the center if it's selected or active */
 	if (theme_id == TH_GROUP)
-		DRW_shgroup_dynamic_call_add(lamp_center_group, ob->obmat[3]);
+		DRW_shgroup_dynamic_call_add(g_data.lamp_center_group, ob->obmat[3]);
 	else if (theme_id == TH_LAMP)
-		DRW_shgroup_dynamic_call_add(lamp_center, ob->obmat[3]);
+		DRW_shgroup_dynamic_call_add(g_data.lamp_center, ob->obmat[3]);
 
 	/* First circle */
-	DRW_shgroup_dynamic_call_add(lamp_circle, ob->obmat[3], color);
+	DRW_shgroup_dynamic_call_add(g_data.lamp_circle, ob->obmat[3], color);
 
 	/* draw dashed outer circle if shadow is on. remember some lamps can't have certain shadows! */
 	if (la->type != LA_HEMI) {
 		if ((la->mode & LA_SHAD_RAY) || ((la->mode & LA_SHAD_BUF) && (la->type == LA_SPOT))) {
-			DRW_shgroup_dynamic_call_add(lamp_circle_shadow, ob->obmat[3], color);
+			DRW_shgroup_dynamic_call_add(g_data.lamp_circle_shadow, ob->obmat[3], color);
 		}
 	}
 
 	/* Distance */
 	if (ELEM(la->type, LA_HEMI, LA_SUN, LA_AREA)) {
-		DRW_shgroup_dynamic_call_add(lamp_distance, color, &zero, &la->dist, ob->obmat);
+		DRW_shgroup_dynamic_call_add(g_data.lamp_distance, color, &zero, &la->dist, ob->obmat);
 	}
 
 	copy_m4_m4(la->shapemat, ob->obmat);
 
 	if (la->type == LA_SUN) {
-		DRW_shgroup_dynamic_call_add(lamp_sunrays, ob->obmat[3], color);
+		DRW_shgroup_dynamic_call_add(g_data.lamp_sunrays, ob->obmat[3], color);
 	}
 	else if (la->type == LA_SPOT) {
 		float size[3], sizemat[4][4];
@@ -397,33 +406,33 @@ static void DRW_shgroup_lamp(Object *ob)
 		mul_m4_m4m4(la->spotblendmat, la->spotconemat, sizemat);
 
 		if (la->mode & LA_SQUARE) {
-			DRW_shgroup_dynamic_call_add(lamp_spot_pyramid,    color, &one, la->spotconemat);
+			DRW_shgroup_dynamic_call_add(g_data.lamp_spot_pyramid,    color, &one, la->spotconemat);
 
 			/* hide line if it is zero size or overlaps with outer border,
 			 * previously it adjusted to always to show it but that seems
 			 * confusing because it doesn't show the actual blend size */
 			if (blend != 0.0f && blend != 1.0f) {
-				DRW_shgroup_dynamic_call_add(lamp_spot_blend_rect, color, &one, la->spotblendmat);
+				DRW_shgroup_dynamic_call_add(g_data.lamp_spot_blend_rect, color, &one, la->spotblendmat);
 			}
 		}
 		else {
-			DRW_shgroup_dynamic_call_add(lamp_spot_cone,  color, la->spotconemat);
+			DRW_shgroup_dynamic_call_add(g_data.lamp_spot_cone,  color, la->spotconemat);
 
 			/* hide line if it is zero size or overlaps with outer border,
 			 * previously it adjusted to always to show it but that seems
 			 * confusing because it doesn't show the actual blend size */
 			if (blend != 0.0f && blend != 1.0f) {
-				DRW_shgroup_dynamic_call_add(lamp_spot_blend, color, &one, la->spotblendmat);
+				DRW_shgroup_dynamic_call_add(g_data.lamp_spot_blend, color, &one, la->spotblendmat);
 			}
 		}
 
 		normalize_m4(la->shapemat);
-		DRW_shgroup_dynamic_call_add(lamp_buflimit,        color, &la->clipsta, &la->clipend, ob->obmat);
-		DRW_shgroup_dynamic_call_add(lamp_buflimit_points, color, &la->clipsta, &la->clipend, ob->obmat);
+		DRW_shgroup_dynamic_call_add(g_data.lamp_buflimit,        color, &la->clipsta, &la->clipend, ob->obmat);
+		DRW_shgroup_dynamic_call_add(g_data.lamp_buflimit_points, color, &la->clipsta, &la->clipend, ob->obmat);
 	}
 	else if (la->type == LA_HEMI) {
 		static float hemisize = 2.0f;
-		DRW_shgroup_dynamic_call_add(lamp_hemi, color, &hemisize, la->shapemat);
+		DRW_shgroup_dynamic_call_add(g_data.lamp_hemi, color, &hemisize, la->shapemat);
 	}
 	else if (la->type == LA_AREA) {
 		float size[3] = {1.0f, 1.0f, 1.0f}, sizemat[4][4];
@@ -434,12 +443,12 @@ static void DRW_shgroup_lamp(Object *ob)
 			mul_m4_m4m4(la->shapemat, la->shapemat, sizemat);
 		}
 
-		DRW_shgroup_dynamic_call_add(lamp_area, color, &la->area_size, la->shapemat);
+		DRW_shgroup_dynamic_call_add(g_data.lamp_area, color, &la->area_size, la->shapemat);
 	}
 
 	/* Line and point going to the ground */
-	DRW_shgroup_dynamic_call_add(lamp_groundline, ob->obmat[3]);
-	DRW_shgroup_dynamic_call_add(lamp_groundpoint, ob->obmat[3]);
+	DRW_shgroup_dynamic_call_add(g_data.lamp_groundline, ob->obmat[3]);
+	DRW_shgroup_dynamic_call_add(g_data.lamp_groundpoint, ob->obmat[3]);
 }
 
 static void DRW_shgroup_camera(Object *ob)
@@ -477,11 +486,11 @@ static void DRW_shgroup_camera(Object *ob)
 	cam->drwtria[1][0] = shift[0];
 	cam->drwtria[1][1] = shift[1] + ((1.1f * drawsize * (asp[1] + 0.7f)) * scale[1]);
 
-	DRW_shgroup_dynamic_call_add(camera, color, cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
+	DRW_shgroup_dynamic_call_add(g_data.camera, color, cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
 
 	/* Active cam */
 	if (is_active) {
-		DRW_shgroup_dynamic_call_add(camera_tria, color, cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
+		DRW_shgroup_dynamic_call_add(g_data.camera_tria, color, cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
 	}
 
 	/* draw the rest in normalize object space */
@@ -498,10 +507,10 @@ static void DRW_shgroup_camera(Object *ob)
 		size_to_mat4(sizemat, size);
 		mul_m4_m4m4(cam->drwfocusmat, cam->drwfocusmat, sizemat);
 
-		DRW_shgroup_dynamic_call_add(camera_focus, (is_active ? col_hi : col), &cam->drawsize, cam->drwfocusmat);
+		DRW_shgroup_dynamic_call_add(g_data.camera_focus, (is_active ? col_hi : col), &cam->drawsize, cam->drwfocusmat);
 
-		DRW_shgroup_dynamic_call_add(camera_clip, color, &cam->clipsta, &cam->clipend, cam->drwnormalmat);
-		DRW_shgroup_dynamic_call_add(camera_clip_points, (is_active ? col_hi : col), &cam->clipsta, &cam->clipend, cam->drwnormalmat);
+		DRW_shgroup_dynamic_call_add(g_data.camera_clip, color, &cam->clipsta, &cam->clipend, cam->drwnormalmat);
+		DRW_shgroup_dynamic_call_add(g_data.camera_clip_points, (is_active ? col_hi : col), &cam->clipsta, &cam->clipend, cam->drwnormalmat);
 	}
 
 	if (cam->flag & CAM_SHOWMIST) {
@@ -510,8 +519,8 @@ static void DRW_shgroup_camera(Object *ob)
 		if (world) {
 			static float col[3] = {0.5f, 0.5f, 0.5f}, col_hi[3] = {1.0f, 1.0f, 1.0f};
 			world->mistend = world->miststa + world->mistdist;
-			DRW_shgroup_dynamic_call_add(camera_mist,        color, &world->miststa, &world->mistend, cam->drwnormalmat);
-			DRW_shgroup_dynamic_call_add(camera_mist_points, (is_active ? col_hi : col), &world->miststa, &world->mistend, cam->drwnormalmat);
+			DRW_shgroup_dynamic_call_add(g_data.camera_mist,        color, &world->miststa, &world->mistend, cam->drwnormalmat);
+			DRW_shgroup_dynamic_call_add(g_data.camera_mist_points, (is_active ? col_hi : col), &world->miststa, &world->mistend, cam->drwnormalmat);
 		}
 	}
 }
@@ -523,27 +532,27 @@ static void DRW_shgroup_empty(Object *ob)
 
 	switch (ob->empty_drawtype) {
 		case OB_PLAINAXES:
-			DRW_shgroup_dynamic_call_add(plain_axes, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.plain_axes, color, &ob->empty_drawsize, ob->obmat);
 			break;
 		case OB_SINGLE_ARROW:
-			DRW_shgroup_dynamic_call_add(single_arrow, color, &ob->empty_drawsize, ob->obmat);
-			DRW_shgroup_dynamic_call_add(single_arrow_line, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.single_arrow, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.single_arrow_line, color, &ob->empty_drawsize, ob->obmat);
 			break;
 		case OB_CUBE:
-			DRW_shgroup_dynamic_call_add(cube, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.cube, color, &ob->empty_drawsize, ob->obmat);
 			break;
 		case OB_CIRCLE:
-			DRW_shgroup_dynamic_call_add(circle, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.circle, color, &ob->empty_drawsize, ob->obmat);
 			break;
 		case OB_EMPTY_SPHERE:
-			DRW_shgroup_dynamic_call_add(sphere, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.sphere, color, &ob->empty_drawsize, ob->obmat);
 			break;
 		case OB_EMPTY_CONE:
-			DRW_shgroup_dynamic_call_add(cone, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.cone, color, &ob->empty_drawsize, ob->obmat);
 			break;
 		case OB_ARROWS:
-			DRW_shgroup_dynamic_call_add(arrows, color, &ob->empty_drawsize, ob->obmat);
-			DRW_shgroup_dynamic_call_add(axis_names, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.arrows, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(g_data.axis_names, color, &ob->empty_drawsize, ob->obmat);
 			break;
 	}
 }
@@ -554,24 +563,24 @@ static void DRW_shgroup_speaker(Object *ob)
 	static float one = 1.0f;
 	DRW_object_wire_theme_get(ob, &color);
 
-	DRW_shgroup_dynamic_call_add(speaker, color, &one, ob->obmat);
+	DRW_shgroup_dynamic_call_add(g_data.speaker, color, &one, ob->obmat);
 }
 
 static void DRW_shgroup_relationship_lines(Object *ob)
 {
 	if (ob->parent) {
-		DRW_shgroup_dynamic_call_add(relationship_lines, ob->obmat[3]);
-		DRW_shgroup_dynamic_call_add(relationship_lines, ob->parent->obmat[3]);
+		DRW_shgroup_dynamic_call_add(g_data.relationship_lines, ob->obmat[3]);
+		DRW_shgroup_dynamic_call_add(g_data.relationship_lines, ob->parent->obmat[3]);
 	}
 }
 
 static void DRW_shgroup_object_center(Object *ob)
 {
 	if ((ob->base_flag & BASE_SELECTED) != 0) {
-		DRW_shgroup_dynamic_call_add(center_selected, ob->obmat[3]);
+		DRW_shgroup_dynamic_call_add(g_data.center_selected, ob->obmat[3]);
 	}
 	else if (0) {
-		DRW_shgroup_dynamic_call_add(center_deselected, ob->obmat[3]);
+		DRW_shgroup_dynamic_call_add(g_data.center_deselected, ob->obmat[3]);
 	}
 }
 
@@ -595,20 +604,20 @@ static void OBJECT_cache_populate(Object *ob)
 						struct Batch *geom = DRW_cache_wire_outline_get(ob);
 						switch (theme_id) {
 							case TH_ACTIVE:
-								DRW_shgroup_call_add(outlines_active, geom, ob->obmat);
-								DRW_shgroup_call_add(outlines_transp_active, geom, ob->obmat);
+								DRW_shgroup_call_add(g_data.outlines_active, geom, ob->obmat);
+								DRW_shgroup_call_add(g_data.outlines_transp_active, geom, ob->obmat);
 								break;
 							case TH_SELECT:
-								DRW_shgroup_call_add(outlines_select, geom, ob->obmat);
-								DRW_shgroup_call_add(outlines_transp_select, geom, ob->obmat);
+								DRW_shgroup_call_add(g_data.outlines_select, geom, ob->obmat);
+								DRW_shgroup_call_add(g_data.outlines_transp_select, geom, ob->obmat);
 								break;
 							case TH_GROUP_ACTIVE:
-								DRW_shgroup_call_add(outlines_select_group, geom, ob->obmat);
-								DRW_shgroup_call_add(outlines_transp_select_group, geom, ob->obmat);
+								DRW_shgroup_call_add(g_data.outlines_select_group, geom, ob->obmat);
+								DRW_shgroup_call_add(g_data.outlines_transp_select_group, geom, ob->obmat);
 								break;
 							case TH_TRANSFORM:
-								DRW_shgroup_call_add(outlines_transform, geom, ob->obmat);
-								DRW_shgroup_call_add(outlines_transp_transform, geom, ob->obmat);
+								DRW_shgroup_call_add(g_data.outlines_transform, geom, ob->obmat);
+								DRW_shgroup_call_add(g_data.outlines_transp_transform, geom, ob->obmat);
 								break;
 						}
 					}
@@ -631,9 +640,9 @@ static void OBJECT_cache_populate(Object *ob)
 			{
 				bArmature *arm = ob->data;
 				if (arm->edbo == NULL) {
-					DRW_shgroup_armature_object(ob, vedata->psl->bone_solid,
-					                                vedata->psl->bone_wire,
-					                                relationship_lines);
+					DRW_shgroup_armature_object(ob, g_data.vedata->psl->bone_solid,
+					                                g_data.vedata->psl->bone_wire,
+					                                g_data.relationship_lines);
 				}
 			}
 			break;
