@@ -295,3 +295,14 @@ class NODE_OT_tree_path_parent(Operator):
         space.path.pop()
 
         return {'FINISHED'}
+
+
+classes = (
+    NodeSetting,
+
+    NODE_OT_add_and_link_node,
+    NODE_OT_add_node,
+    NODE_OT_add_search,
+    NODE_OT_collapse_hide_unused_toggle,
+    NODE_OT_tree_path_parent,
+)

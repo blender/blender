@@ -392,5 +392,17 @@ class MASK_MT_select(Menu):
         layout.operator("mask.select_all", text="Inverse").action = 'INVERT'
         layout.operator("mask.select_linked", text="Select Linked")
 
+
+classes = (
+    MASK_MT_animation,
+    MASK_MT_mask,
+    MASK_MT_select,
+    MASK_MT_transform,
+    MASK_MT_visibility,
+    MASK_UL_layers,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

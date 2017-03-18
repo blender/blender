@@ -829,4 +829,6 @@ class MATERIAL_PT_freestyle_line(MaterialFreestyleButtonsPanel, Panel):
 
 
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

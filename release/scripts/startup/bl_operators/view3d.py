@@ -213,3 +213,11 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
                                      enumerate=self.enumerate,
                                      object=self.object,
                                      location=(x, y))
+
+
+classes = (
+    VIEW3D_OT_edit_mesh_extrude_individual_move,
+    VIEW3D_OT_edit_mesh_extrude_move,
+    VIEW3D_OT_edit_mesh_extrude_shrink_fatten,
+    VIEW3D_OT_select_or_deselect_all,
+)

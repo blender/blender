@@ -1404,5 +1404,29 @@ class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, Panel):
     _context_path = "particle_system.settings"
     _property_type = bpy.types.ParticleSettings
 
+
+classes = (
+    PARTICLE_MT_hair_dynamics_presets,
+    PARTICLE_MT_specials,
+    PARTICLE_PT_boidbrain,
+    PARTICLE_PT_cache,
+    PARTICLE_PT_children,
+    PARTICLE_PT_context_particles,
+    PARTICLE_PT_custom_props,
+    PARTICLE_PT_draw,
+    PARTICLE_PT_emission,
+    PARTICLE_PT_field_weights,
+    PARTICLE_PT_force_fields,
+    PARTICLE_PT_hair_dynamics,
+    PARTICLE_PT_physics,
+    PARTICLE_PT_render,
+    PARTICLE_PT_rotation,
+    PARTICLE_PT_velocity,
+    PARTICLE_PT_vertexgroups,
+    PARTICLE_UL_particle_systems,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

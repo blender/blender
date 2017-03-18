@@ -308,5 +308,16 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
         row.prop(fluid, "tracer_particles", text="Tracer")
         row.prop(fluid, "generate_particles", text="Generate")
 
+
+classes = (
+    FLUID_MT_presets,
+    PHYSICS_PT_domain_boundary,
+    PHYSICS_PT_domain_gravity,
+    PHYSICS_PT_domain_particles,
+    PHYSICS_PT_fluid,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

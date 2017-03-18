@@ -185,3 +185,8 @@ class RandomizeLocRotSize(Operator):
                            loc, rot, scale, scale_even, scale_min)
 
         return {'FINISHED'}
+
+
+classes = (
+    RandomizeLocRotSize,
+)

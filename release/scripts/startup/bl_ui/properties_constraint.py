@@ -941,5 +941,12 @@ class BONE_PT_constraints(ConstraintButtonsPanel, Panel):
         for con in context.pose_bone.constraints:
             self.draw_constraint(context, con)
 
+classes = (
+    BONE_PT_constraints,
+    OBJECT_PT_constraints,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

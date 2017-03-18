@@ -309,3 +309,10 @@ class ConnectRigidBodies(Operator):
         else:
             self.report({'WARNING'}, "No other objects selected")
             return {'CANCELLED'}
+
+
+classes = (
+    BakeToKeyframes,
+    ConnectRigidBodies,
+    CopyRigidbodySettings,
+)

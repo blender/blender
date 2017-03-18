@@ -1481,5 +1481,27 @@ class USERPREF_PT_addons(Panel):
                 row.label(text=module_name, translate=False)
 
 
+classes = (
+    USERPREF_HT_header,
+    USERPREF_MT_addons_online_resources,
+    USERPREF_MT_appconfigs,
+    USERPREF_MT_interaction_presets,
+    USERPREF_MT_interface_theme_presets,
+    USERPREF_MT_keyconfigs,
+    USERPREF_MT_ndof_settings,
+    USERPREF_MT_splash,
+    USERPREF_MT_splash_footer,
+    USERPREF_PT_addons,
+    USERPREF_PT_edit,
+    USERPREF_PT_file,
+    USERPREF_PT_input,
+    USERPREF_PT_interface,
+    USERPREF_PT_system,
+    USERPREF_PT_tabs,
+    USERPREF_PT_theme,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

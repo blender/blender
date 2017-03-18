@@ -645,3 +645,11 @@ class QuickFluid(Operator):
             bpy.ops.fluid.bake('INVOKE_DEFAULT')
 
         return {'FINISHED'}
+
+
+classes = (
+    QuickExplode,
+    QuickFluid,
+    QuickFur,
+    QuickSmoke,
+)

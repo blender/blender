@@ -852,5 +852,30 @@ class OBJECT_PT_levels_of_detail(ObjectButtonsPanel, Panel):
         row.menu("OBJECT_MT_lod_tools", text="", icon='TRIA_DOWN')
 
 
+classes = (
+    DATA_PT_shadow_game,
+    OBJECT_MT_lod_tools,
+    OBJECT_PT_levels_of_detail,
+    PHYSICS_PT_game_collision_bounds,
+    PHYSICS_PT_game_obstacles,
+    PHYSICS_PT_game_physics,
+    RENDER_PT_embedded,
+    RENDER_PT_game_display,
+    RENDER_PT_game_player,
+    RENDER_PT_game_shading,
+    RENDER_PT_game_stereo,
+    RENDER_PT_game_system,
+    SCENE_PT_game_hysteresis,
+    SCENE_PT_game_navmesh,
+    SCENE_PT_game_physics,
+    SCENE_PT_game_physics_obstacles,
+    WORLD_PT_game_context_world,
+    WORLD_PT_game_environment_lighting,
+    WORLD_PT_game_mist,
+    WORLD_PT_game_world,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

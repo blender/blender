@@ -1239,5 +1239,37 @@ class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
     bl_category = "Strip"
 
 
+classes = (
+    SEQUENCER_HT_header,
+    SEQUENCER_MT_add,
+    SEQUENCER_MT_add_effect,
+    SEQUENCER_MT_change,
+    SEQUENCER_MT_editor_menus,
+    SEQUENCER_MT_frame,
+    SEQUENCER_MT_marker,
+    SEQUENCER_MT_select,
+    SEQUENCER_MT_strip,
+    SEQUENCER_MT_view,
+    SEQUENCER_MT_view_toggle,
+    SEQUENCER_PT_custom_props,
+    SEQUENCER_PT_edit,
+    SEQUENCER_PT_effect,
+    SEQUENCER_PT_filter,
+    SEQUENCER_PT_grease_pencil,
+    SEQUENCER_PT_grease_pencil_palettecolor,
+    SEQUENCER_PT_grease_pencil_tools,
+    SEQUENCER_PT_input,
+    SEQUENCER_PT_mask,
+    SEQUENCER_PT_modifiers,
+    SEQUENCER_PT_preview,
+    SEQUENCER_PT_proxy,
+    SEQUENCER_PT_scene,
+    SEQUENCER_PT_sound,
+    SEQUENCER_PT_view,
+    SEQUENCER_PT_view_safe_areas,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

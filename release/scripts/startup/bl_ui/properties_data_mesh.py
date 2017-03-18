@@ -392,5 +392,24 @@ class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
     _property_type = bpy.types.Mesh
 
 
+classes = (
+    DATA_PT_context_mesh,
+    DATA_PT_custom_props_mesh,
+    DATA_PT_customdata,
+    DATA_PT_normals,
+    DATA_PT_shape_keys,
+    DATA_PT_texture_space,
+    DATA_PT_uv_texture,
+    DATA_PT_vertex_colors,
+    DATA_PT_vertex_groups,
+    MESH_MT_shape_key_specials,
+    MESH_MT_vertex_group_specials,
+    MESH_UL_shape_keys,
+    MESH_UL_uvmaps_vcols,
+    MESH_UL_vgroups,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

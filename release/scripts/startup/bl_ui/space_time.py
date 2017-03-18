@@ -269,5 +269,18 @@ def marker_menu_generic(layout):
     layout.prop(ts, "lock_markers")
 
 
+classes = (
+    TIME_HT_header,
+    TIME_MT_autokey,
+    TIME_MT_cache,
+    TIME_MT_editor_menus,
+    TIME_MT_frame,
+    TIME_MT_marker,
+    TIME_MT_playback,
+    TIME_MT_view,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

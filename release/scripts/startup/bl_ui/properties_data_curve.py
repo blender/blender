@@ -431,5 +431,21 @@ class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, Panel):
     _context_path = "object.data"
     _property_type = bpy.types.Curve
 
+
+classes = (
+    DATA_PT_active_spline,
+    DATA_PT_context_curve,
+    DATA_PT_curve_texture_space,
+    DATA_PT_custom_props_curve,
+    DATA_PT_font,
+    DATA_PT_geometry_curve,
+    DATA_PT_paragraph,
+    DATA_PT_pathanim,
+    DATA_PT_shape_curve,
+    DATA_PT_text_boxes,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

@@ -260,5 +260,11 @@ class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Pa
                 sub.prop(rbc, "spring_damping_ang_z", text="Damping")
 
 
+classes = (
+    PHYSICS_PT_rigid_body_constraint,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

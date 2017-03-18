@@ -1071,3 +1071,17 @@ class CLIP_OT_track_settings_to_track(bpy.types.Operator):
                     setattr(marker_selected, attr, getattr(marker, attr))
 
         return {'FINISHED'}
+
+
+classes = (
+    CLIP_OT_bundles_to_mesh,
+    CLIP_OT_constraint_to_fcurve,
+    CLIP_OT_delete_proxy,
+    CLIP_OT_filter_tracks,
+    CLIP_OT_set_active_clip,
+    CLIP_OT_set_viewport_background,
+    CLIP_OT_setup_tracking_scene,
+    CLIP_OT_track_settings_as_default,
+    CLIP_OT_track_settings_to_track,
+    CLIP_OT_track_to_empty,
+)

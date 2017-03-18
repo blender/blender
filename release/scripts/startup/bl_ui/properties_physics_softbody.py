@@ -244,5 +244,18 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, Panel):
 
         effector_weights_ui(self, context, softbody.effector_weights, 'SOFTBODY')
 
+
+classes = (
+    PHYSICS_PT_softbody,
+    PHYSICS_PT_softbody_cache,
+    PHYSICS_PT_softbody_collision,
+    PHYSICS_PT_softbody_edge,
+    PHYSICS_PT_softbody_field_weights,
+    PHYSICS_PT_softbody_goal,
+    PHYSICS_PT_softbody_solver,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

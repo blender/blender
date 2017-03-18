@@ -680,3 +680,26 @@ class AddPresetUnitsLength(AddPresetBase, Operator):
     ]
 
     preset_subdir = "units_length"
+
+
+classes = (
+    AddPresetCamera,
+    AddPresetCloth,
+    AddPresetFluid,
+    AddPresetHairDynamics,
+    AddPresetInteraction,
+    AddPresetInterfaceTheme,
+    AddPresetKeyconfig,
+    AddPresetNodeColor,
+    AddPresetOperator,
+    AddPresetRender,
+    AddPresetSSS,
+    AddPresetSafeAreas,
+    AddPresetSunSky,
+    AddPresetTrackingCamera,
+    AddPresetTrackingSettings,
+    AddPresetTrackingTrackColor,
+    AddPresetUnitsLength,
+    ExecutePreset,
+    WM_MT_operator_presets,
+)

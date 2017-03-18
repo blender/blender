@@ -242,3 +242,11 @@ class ProjectApply(Operator):
         bpy.ops.paint.project_image(image=image_name)
 
         return {'FINISHED'}
+
+
+classes = (
+    EditExternally,
+    ProjectApply,
+    ProjectEdit,
+    SaveDirty,
+)

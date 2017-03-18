@@ -134,3 +134,10 @@ class SequencerDeinterlaceSelectedMovies(Operator):
                 s.use_deinterlace = True
 
         return {'FINISHED'}
+
+
+classes = (
+    SequencerCrossfadeSounds,
+    SequencerCutMulticam,
+    SequencerDeinterlaceSelectedMovies,
+)

@@ -412,3 +412,11 @@ class UpdateAnimatedTransformConstraint(Operator):
             text.from_string(log)
             self.report({'INFO'}, "Complete report available on '%s' text datablock" % text.name)
         return {'FINISHED'}
+
+
+classes = (
+    ANIM_OT_keying_set_export,
+    BakeAction,
+    ClearUselessActions,
+    UpdateAnimatedTransformConstraint,
+)

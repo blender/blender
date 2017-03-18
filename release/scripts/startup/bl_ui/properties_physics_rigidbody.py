@@ -137,5 +137,14 @@ class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
         col.prop(rbo, "linear_damping", text="Translation")
         col.prop(rbo, "angular_damping", text="Rotation")
 
+
+classes = (
+    PHYSICS_PT_rigid_body,
+    PHYSICS_PT_rigid_body_collisions,
+    PHYSICS_PT_rigid_body_dynamics,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

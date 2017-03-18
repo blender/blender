@@ -643,13 +643,41 @@ class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
 
 ###############################
 
+classes = (
+    BUILTIN_KSI_Available,
+    BUILTIN_KSI_BendyBones,
+    BUILTIN_KSI_DeltaLocation,
+    BUILTIN_KSI_DeltaRotation,
+    BUILTIN_KSI_DeltaScale,
+    BUILTIN_KSI_LocRot,
+    BUILTIN_KSI_LocRotScale,
+    BUILTIN_KSI_LocScale,
+    BUILTIN_KSI_Location,
+    BUILTIN_KSI_RotScale,
+    BUILTIN_KSI_Rotation,
+    BUILTIN_KSI_Scaling,
+    BUILTIN_KSI_VisualLoc,
+    BUILTIN_KSI_VisualLocRot,
+    BUILTIN_KSI_VisualLocRotScale,
+    BUILTIN_KSI_VisualLocScale,
+    BUILTIN_KSI_VisualRot,
+    BUILTIN_KSI_VisualRotScale,
+    BUILTIN_KSI_VisualScaling,
+    BUILTIN_KSI_WholeCharacter,
+    BUILTIN_KSI_WholeCharacterSelected,
+)
+
 
 def register():
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    from bpy.utils import unregister_class
+    for cls in classes:
+        unregister_class(cls)
 
 
 if __name__ == "__main__":

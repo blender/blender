@@ -309,3 +309,13 @@ def brush_mask_texture_settings(layout, brush):
     split = layout.split()
     split.prop(mask_tex_slot, "offset")
     split.prop(mask_tex_slot, "scale")
+
+
+classes = (
+    VIEW3D_MT_tools_projectpaint_clone,
+)
+
+if __name__ == "__main__":  # only for live edit.
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

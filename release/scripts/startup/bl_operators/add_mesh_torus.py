@@ -282,3 +282,8 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         object_utils.object_data_add(context, mesh, operator=self)
 
         return {'FINISHED'}
+
+
+classes = (
+    AddTorus,
+)

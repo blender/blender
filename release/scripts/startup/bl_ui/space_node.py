@@ -526,6 +526,33 @@ class NODE_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Pane
 def node_draw_tree_view(layout, context):
     pass
 
+classes = (
+    NODE_HT_header,
+    NODE_MT_add,
+    NODE_MT_editor_menus,
+    NODE_MT_node,
+    NODE_MT_node_color_presets,
+    NODE_MT_node_color_specials,
+    NODE_MT_select,
+    NODE_MT_view,
+    NODE_PT_active_node_color,
+    NODE_PT_active_node_generic,
+    NODE_PT_active_node_properties,
+    NODE_PT_backdrop,
+    NODE_PT_grease_pencil,
+    NODE_PT_grease_pencil_palettecolor,
+    NODE_PT_grease_pencil_tools,
+    NODE_PT_quality,
+    NODE_PT_tools_grease_pencil_brush,
+    NODE_PT_tools_grease_pencil_brushcurves,
+    NODE_PT_tools_grease_pencil_draw,
+    NODE_PT_tools_grease_pencil_edit,
+    NODE_PT_tools_grease_pencil_sculpt,
+    NODE_UL_interface_sockets,
+)
+
 
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

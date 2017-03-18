@@ -34,13 +34,11 @@ class PROPERTIES_HT_header(Header):
         row.prop(view, "context", expand=True, icon_only=True)
 
 
-def register():
-    bpy.utils.register_module(__name__)
+classes = (
+    PROPERTIES_HT_header,
+)
 
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-
-if __name__ == "__main__":
-    register()
+if __name__ == "__main__":  # only for live edit.
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

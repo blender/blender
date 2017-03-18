@@ -1034,3 +1034,22 @@ class LodGenerate(Operator):
         scene.objects.active = ob
 
         return {'FINISHED'}
+
+
+classes = (
+    ClearAllRestrictRender,
+    DupliOffsetFromCursor,
+    IsolateTypeRender,
+    JoinUVs,
+    LodByName,
+    LodClearAll,
+    LodGenerate,
+    MakeDupliFace,
+    SelectCamera,
+    SelectHierarchy,
+    SelectPattern,
+    ShapeTransfer,
+    SubdivisionSet,
+    TransformsToDeltas,
+    TransformsToDeltasAnim,
+)

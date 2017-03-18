@@ -82,5 +82,14 @@ class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, Panel):
     _context_path = "object.data"
     _property_type = bpy.types.Lattice
 
+
+classes = (
+    DATA_PT_context_lattice,
+    DATA_PT_custom_props_lattice,
+    DATA_PT_lattice,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
