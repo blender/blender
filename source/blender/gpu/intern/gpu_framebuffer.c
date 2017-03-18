@@ -133,13 +133,15 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 		}
 	}
 
-	if (GPU_texture_depth(tex))
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
+	GG.currentfb = fb->object;
+
+	if (GPU_texture_stencil(tex) && GPU_texture_depth(tex))
+		attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+	else if (GPU_texture_depth(tex))
 		attachment = GL_DEPTH_ATTACHMENT;
 	else
 		attachment = GL_COLOR_ATTACHMENT0 + slot;
-
-	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
-	GG.currentfb = fb->object;
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment,
 		GPU_texture_target(tex), GPU_texture_opengl_bindcode(tex), 0);
@@ -168,7 +170,11 @@ void GPU_framebuffer_texture_detach(GPUTexture *tex)
 		GG.currentfb = fb->object;
 	}
 
-	if (GPU_texture_depth(tex)) {
+	if (GPU_texture_stencil(tex) && GPU_texture_depth(tex)) {
+		fb->depthtex = NULL;
+		attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+	}
+	else if (GPU_texture_depth(tex)) {
 		fb->depthtex = NULL;
 		attachment = GL_DEPTH_ATTACHMENT;
 	}

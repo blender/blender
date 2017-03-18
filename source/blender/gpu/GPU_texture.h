@@ -101,8 +101,8 @@ typedef enum GPUTextureFormat {
 	GPU_RGB10_A2,
 	GPU_RGB10_A2UI,
 	GPU_DEPTH32F_STENCIL8,
-	GPU_DEPTH24_STENCIL8,
 #endif
+	GPU_DEPTH24_STENCIL8,
 
 	/* Texture only format */
 #if 0
@@ -155,6 +155,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int d, const float *pixels, char
 GPUTexture *GPU_texture_create_3D_custom(
         int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256]);
+GPUTexture *GPU_texture_create_depth_with_stencil(int w, int h, char err_out[256]);
 GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char err_out[256]);
 
 GPUTexture *GPU_texture_from_blender(
@@ -183,7 +184,8 @@ void GPU_texture_framebuffer_set(GPUTexture *tex, struct GPUFrameBuffer *fb, int
 int GPU_texture_target(const GPUTexture *tex);
 int GPU_texture_width(const GPUTexture *tex);
 int GPU_texture_height(const GPUTexture *tex);
-int GPU_texture_depth(const GPUTexture *tex);
+bool GPU_texture_depth(const GPUTexture *tex);
+bool GPU_texture_stencil(const GPUTexture *tex);
 int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 #ifdef __cplusplus

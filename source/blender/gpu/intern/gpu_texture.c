@@ -62,19 +62,30 @@ struct GPUTexture {
 	GPUFrameBuffer *fb; /* GPUFramebuffer this texture is attached to */
 	int fb_attachment;  /* slot the texture is attached to */
 	bool depth;         /* is a depth texture? */
+	bool stencil;       /* is a stencil texture? */
 };
 
-static GLenum GPU_texture_get_format(int components, GPUTextureFormat data_type, GLenum *format, bool *is_depth)
+static GLenum GPU_texture_get_format(int components, GPUTextureFormat data_type, GLenum *format, GLenum *data_format, bool *is_depth, bool *is_stencil)
 {
 	if (data_type == GPU_DEPTH_COMPONENT24 ||
 	    data_type == GPU_DEPTH_COMPONENT16 ||
 	    data_type == GPU_DEPTH_COMPONENT32F)
 	{
 		*is_depth = true;
+		*is_stencil = false;
+		*data_format = GL_FLOAT;
 		*format = GL_DEPTH_COMPONENT;
+	}
+	else if (data_type == GPU_DEPTH24_STENCIL8) {
+		*is_depth = true;
+		*is_stencil = true;
+		*data_format = GL_UNSIGNED_INT_24_8;
+		*format = GL_DEPTH_STENCIL;
 	}
 	else {
 		*is_depth = false;
+		*is_stencil = false;
+		*data_format = GL_FLOAT;
 
 		switch (components) {
 			case 1: *format = GL_RED; break;
@@ -95,7 +106,7 @@ static GLenum GPU_texture_get_format(int components, GPUTextureFormat data_type,
 		case GPU_RGBA8: return GL_RGBA8;
 		case GPU_R8: return GL_R8;
 		/* Special formats texture & renderbuffer */
-		/* ** Add Format here **/
+		case GPU_DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
 		/* Texture only format */
 		/* ** Add Format here **/
 		/* Special formats texture only */
@@ -148,20 +159,20 @@ static float *GPU_texture_3D_rescale(GPUTexture *tex, int w, int h, int d, int c
 /* This tries to allocate video memory for a given texture
  * If alloc fails, lower the resolution until it fits. */
 static bool GPU_texture_try_alloc(
-        GPUTexture *tex, GLenum proxy, GLenum internalformat, GLenum format, int channels,
-        bool try_rescale, const float *fpixels, float **rescaled_fpixels)
+        GPUTexture *tex, GLenum proxy, GLenum internalformat, GLenum format, GLenum data_format,
+        int channels, bool try_rescale, const float *fpixels, float **rescaled_fpixels)
 {
 	int r_width;
 
 	switch (proxy) {
 		case GL_PROXY_TEXTURE_1D:
-			glTexImage1D(proxy, 0, internalformat, tex->w, 0, format, GL_FLOAT, NULL);
+			glTexImage1D(proxy, 0, internalformat, tex->w, 0, format, data_format, NULL);
 			break;
 		case GL_PROXY_TEXTURE_2D:
-			glTexImage2D(proxy, 0, internalformat, tex->w, tex->h, 0, format, GL_FLOAT, NULL);
+			glTexImage2D(proxy, 0, internalformat, tex->w, tex->h, 0, format, data_format, NULL);
 			break;
 		case GL_PROXY_TEXTURE_3D:
-			glTexImage3D(proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, format, GL_FLOAT, NULL);
+			glTexImage3D(proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, format, data_format, NULL);
 			break;
 	}
 
@@ -182,11 +193,11 @@ static bool GPU_texture_try_alloc(
 			if (tex->d == 0 && proxy == GL_PROXY_TEXTURE_3D) break;
 
 			if (proxy == GL_PROXY_TEXTURE_1D)
-				glTexImage1D(proxy, 0, internalformat, tex->w, 0, format, GL_FLOAT, NULL);
+				glTexImage1D(proxy, 0, internalformat, tex->w, 0, format, data_format, NULL);
 			else if (proxy == GL_PROXY_TEXTURE_2D)
-				glTexImage2D(proxy, 0, internalformat, tex->w, tex->h, 0, format, GL_FLOAT, NULL);
+				glTexImage2D(proxy, 0, internalformat, tex->w, tex->h, 0, format, data_format, NULL);
 			else if (proxy == GL_PROXY_TEXTURE_3D)
-				glTexImage3D(proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, format, GL_FLOAT, NULL);
+				glTexImage3D(proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, format, data_format, NULL);
 
 			glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0, GL_TEXTURE_WIDTH, &r_width);
 		}
@@ -213,7 +224,7 @@ static GPUTexture *GPU_texture_create_nD(
         GPUTextureFormat data_type, int components, int samples,
         const bool can_rescale, char err_out[256])
 {
-	GLenum format, internalformat, proxy;
+	GLenum format, internalformat, proxy, data_format;
 	float *rescaled_fpixels = NULL;
 	const float *pix;
 	bool valid;
@@ -228,6 +239,7 @@ static GPUTexture *GPU_texture_create_nD(
 	tex->d = d;
 	tex->number = -1;
 	tex->refcount = 1;
+	tex->fb_attachment = -1;
 
 	if (n == 1) {
 		if (h == 0)
@@ -245,12 +257,10 @@ static GPUTexture *GPU_texture_create_nD(
 		tex->target_base = tex->target = GL_TEXTURE_3D;
 	}
 
-	tex->fb_attachment = -1;
-
 	if (samples && n == 2 && d == 0)
 		tex->target = GL_TEXTURE_2D_MULTISAMPLE;
 
-	internalformat = GPU_texture_get_format(components, data_type, &format, &tex->depth);
+	internalformat = GPU_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
 
 	/* Generate Texture object */
 	glGenTextures(1, &tex->bindcode);
@@ -278,7 +288,7 @@ static GPUTexture *GPU_texture_create_nD(
 		proxy = GL_PROXY_TEXTURE_1D;
 	}
 
-	valid = GPU_texture_try_alloc(tex, proxy, internalformat, format, components, can_rescale, fpixels,
+	valid = GPU_texture_try_alloc(tex, proxy, internalformat, format, data_format, components, can_rescale, fpixels,
 	                              &rescaled_fpixels);
 
 	if (!valid) {
@@ -294,7 +304,7 @@ static GPUTexture *GPU_texture_create_nD(
 	pix = (rescaled_fpixels) ? rescaled_fpixels : fpixels;
 
 	if (tex->target == GL_TEXTURE_1D) {
-		glTexImage1D(tex->target, 0, internalformat, tex->w, 0, format, GL_FLOAT, pix);
+		glTexImage1D(tex->target, 0, internalformat, tex->w, 0, format, data_format, pix);
 	}
 	else if (tex->target == GL_TEXTURE_1D_ARRAY ||
 	         tex->target == GL_TEXTURE_2D ||
@@ -303,14 +313,14 @@ static GPUTexture *GPU_texture_create_nD(
 		if (samples) {
 			glTexImage2DMultisample(tex->target, samples, internalformat, tex->w, tex->h, true);
 			if (pix)
-				glTexSubImage2D(tex->target, 0, 0, 0, tex->w, tex->h, format, GL_FLOAT, pix);
+				glTexSubImage2D(tex->target, 0, 0, 0, tex->w, tex->h, format, data_format, pix);
 		}
 		else {
-			glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0, format, GL_FLOAT, pix);
+			glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0, format, data_format, pix);
 		}
 	}
 	else {
-		glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->d, 0, format, GL_FLOAT, pix);
+		glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->d, 0, format, data_format, pix);
 	}
 
 	if (rescaled_fpixels)
@@ -492,6 +502,11 @@ GPUTexture *GPU_texture_create_3D_custom(int w, int h, int d, int channels, GPUT
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256])
 {
 	return GPU_texture_create_nD(w, h, 0, 2, NULL, GPU_DEPTH_COMPONENT24, 1, 0, false, err_out);
+}
+
+GPUTexture *GPU_texture_create_depth_with_stencil(int w, int h, char err_out[256])
+{
+	return GPU_texture_create_nD(w, h, 0, 2, NULL, GPU_DEPTH24_STENCIL8, 1, 0, false, err_out);
 }
 
 GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char err_out[256])
@@ -708,9 +723,14 @@ int GPU_texture_height(const GPUTexture *tex)
 	return tex->h;
 }
 
-int GPU_texture_depth(const GPUTexture *tex)
+bool GPU_texture_depth(const GPUTexture *tex)
 {
 	return tex->depth;
+}
+
+bool GPU_texture_stencil(const GPUTexture *tex)
+{
+	return tex->stencil;
 }
 
 int GPU_texture_opengl_bindcode(const GPUTexture *tex)

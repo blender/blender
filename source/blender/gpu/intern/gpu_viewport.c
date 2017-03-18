@@ -214,7 +214,7 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 		}
 
 		/* Depth */
-		dtxl->depth = GPU_texture_create_depth(rect_w, rect_h, NULL);
+		dtxl->depth = GPU_texture_create_depth_with_stencil(rect_w, rect_h, NULL);
 		if (!dtxl->depth) {
 			ok = false;
 			goto cleanup;
