@@ -4717,7 +4717,7 @@ static void rna_def_modifier_surfacedeform(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "SurfaceDeformModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "SurfaceDeform Modifier", "blablabla");
+	RNA_def_struct_ui_text(srna, "SurfaceDeform Modifier", "");
 	RNA_def_struct_sdna(srna, "SurfaceDeformModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_MESHDEFORM);
 
