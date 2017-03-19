@@ -21,9 +21,9 @@ import bpy
 from bpy.types import Panel
 
 from bl_ui.properties_physics_common import (
-        point_cache_ui,
-        effector_weights_ui,
-        )
+    point_cache_ui,
+    effector_weights_ui,
+)
 
 
 class PhysicButtonsPanel:
@@ -380,23 +380,23 @@ class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
         do_axis_slicing = (slice_method == 'AXIS_ALIGNED')
         do_full_slicing = (axis_slice_method == 'FULL')
 
-        row = layout.row();
+        row = layout.row()
         row.enabled = do_axis_slicing
         row.prop(domain, "axis_slice_method")
 
-        col = layout.column();
+        col = layout.column()
         col.enabled = not do_full_slicing and do_axis_slicing
         col.prop(domain, "slice_axis")
         col.prop(domain, "slice_depth")
 
-        row = layout.row();
+        row = layout.row()
         row.enabled = do_full_slicing or not do_axis_slicing
         row.prop(domain, "slice_per_voxel")
 
         layout.separator()
         layout.label(text="Debug:")
         layout.prop(domain, "draw_velocity")
-        col = layout.column();
+        col = layout.column()
         col.enabled = domain.draw_velocity
         col.prop(domain, "vector_draw_type")
         col.prop(domain, "vector_scale")
@@ -404,7 +404,7 @@ class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
         layout.separator()
         layout.label(text="Color Mapping:")
         layout.prop(domain, "use_color_ramp")
-        col = layout.column();
+        col = layout.column()
         col.enabled = domain.use_color_ramp
         col.prop(domain, "coba_field")
         col.template_color_ramp(domain, "color_ramp", expand=True)
