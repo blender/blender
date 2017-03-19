@@ -2290,7 +2290,7 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
 
 #ifdef WITH_PYTHON
 
-static bool ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char *str, double *value)
+static bool ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char *str, double *r_value)
 {
 	char str_unit_convert[256];
 	const int unit_type = UI_but_unit_type_get(but);
@@ -2302,13 +2302,13 @@ static bool ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char 
 	bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr,
 	                    ui_get_but_scale_unit(but, 1.0), but->block->unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
 
-	return BPY_execute_string_as_number(C, str_unit_convert, value, true);
+	return BPY_execute_string_as_number(C, str_unit_convert, true, r_value);
 }
 
 #endif /* WITH_PYTHON */
 
 
-bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double *value)
+bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double *r_value)
 {
 	bool ok = false;
 
@@ -2317,13 +2317,13 @@ bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double
 	if (str[0] != '\0') {
 		bool is_unit_but = (ui_but_is_float(but) && ui_but_is_unit(but));
 		/* only enable verbose if we won't run again with units */
-		if (BPY_execute_string_as_number(C, str, value, is_unit_but == false)) {
+		if (BPY_execute_string_as_number(C, str, is_unit_but == false, r_value)) {
 			/* if the value parsed ok without unit conversion this button may still need a unit multiplier */
 			if (is_unit_but) {
 				char str_new[128];
 
-				BLI_snprintf(str_new, sizeof(str_new), "%f", *value);
-				ok = ui_set_but_string_eval_num_unit(C, but, str_new, value);
+				BLI_snprintf(str_new, sizeof(str_new), "%f", *r_value);
+				ok = ui_set_but_string_eval_num_unit(C, but, str_new, r_value);
 			}
 			else {
 				ok = true; /* parse normal string via py (no unit conversion needed) */
@@ -2331,7 +2331,7 @@ bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double
 		}
 		else if (is_unit_but) {
 			/* parse failed, this is a unit but so run replacements and parse again */
-			ok = ui_set_but_string_eval_num_unit(C, but, str, value);
+			ok = ui_set_but_string_eval_num_unit(C, but, str, r_value);
 		}
 	}
 

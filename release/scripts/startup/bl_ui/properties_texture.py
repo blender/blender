@@ -1224,5 +1224,38 @@ class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, Panel):
     _context_path = "texture"
     _property_type = Texture
 
+
+classes = (
+    TEXTURE_MT_specials,
+    TEXTURE_MT_envmap_specials,
+    TEXTURE_UL_texslots,
+    TEXTURE_PT_context_texture,
+    TEXTURE_PT_preview,
+    TEXTURE_PT_colors,
+    TEXTURE_PT_clouds,
+    TEXTURE_PT_wood,
+    TEXTURE_PT_marble,
+    TEXTURE_PT_magic,
+    TEXTURE_PT_blend,
+    TEXTURE_PT_stucci,
+    TEXTURE_PT_image,
+    TEXTURE_PT_image_sampling,
+    TEXTURE_PT_image_mapping,
+    TEXTURE_PT_envmap,
+    TEXTURE_PT_envmap_sampling,
+    TEXTURE_PT_musgrave,
+    TEXTURE_PT_voronoi,
+    TEXTURE_PT_distortednoise,
+    TEXTURE_PT_voxeldata,
+    TEXTURE_PT_pointdensity,
+    TEXTURE_PT_pointdensity_turbulence,
+    TEXTURE_PT_ocean,
+    TEXTURE_PT_mapping,
+    TEXTURE_PT_influence,
+    TEXTURE_PT_custom_props,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

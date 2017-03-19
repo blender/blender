@@ -410,5 +410,19 @@ class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
         col.template_color_ramp(domain, "color_ramp", expand=True)
 
 
+classes = (
+    PHYSICS_PT_smoke,
+    PHYSICS_PT_smoke_flow_advanced,
+    PHYSICS_PT_smoke_fire,
+    PHYSICS_PT_smoke_adaptive_domain,
+    PHYSICS_PT_smoke_highres,
+    PHYSICS_PT_smoke_groups,
+    PHYSICS_PT_smoke_cache,
+    PHYSICS_PT_smoke_field_weights,
+    PHYSICS_PT_smoke_display_settings,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

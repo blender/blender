@@ -411,3 +411,8 @@ class AlignObjects(Operator):
             return {'CANCELLED'}
         else:
             return {'FINISHED'}
+
+
+classes = (
+    AlignObjects,
+)

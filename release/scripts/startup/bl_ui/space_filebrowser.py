@@ -247,5 +247,18 @@ class FILEBROWSER_PT_advanced_filter(Panel):
                 col.prop(params, "filter_id")
 
 
+classes = (
+    FILEBROWSER_HT_header,
+    FILEBROWSER_UL_dir,
+    FILEBROWSER_PT_system_folders,
+    FILEBROWSER_PT_system_bookmarks,
+    FILEBROWSER_MT_bookmarks_specials,
+    FILEBROWSER_PT_bookmarks,
+    FILEBROWSER_PT_recent_folders,
+    FILEBROWSER_PT_advanced_filter,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

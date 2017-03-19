@@ -248,3 +248,8 @@ class WM_OT_previews_batch_clear(Operator):
 
         return {'FINISHED'}
 
+
+classes = (
+    WM_OT_previews_batch_clear,
+    WM_OT_previews_batch_generate,
+)

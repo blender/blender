@@ -209,5 +209,19 @@ class NLA_MT_edit_transform(Menu):
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
 
+
+classes = (
+    NLA_HT_header,
+    NLA_MT_edit,
+    NLA_MT_editor_menus,
+    NLA_MT_view,
+    NLA_MT_select,
+    NLA_MT_marker,
+    NLA_MT_add,
+    NLA_MT_edit_transform,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

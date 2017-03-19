@@ -180,3 +180,8 @@ class PlayRenderedAnim(Operator):
             return {'CANCELLED'}
 
         return {'FINISHED'}
+
+
+classes = (
+    PlayRenderedAnim,
+)

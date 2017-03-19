@@ -258,5 +258,17 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
         cloth = context.cloth.settings
         effector_weights_ui(self, context, cloth.effector_weights, 'CLOTH')
 
+classes = (
+    CLOTH_MT_presets,
+    PHYSICS_PT_cloth,
+    PHYSICS_PT_cloth_cache,
+    PHYSICS_PT_cloth_collision,
+    PHYSICS_PT_cloth_stiffness,
+    PHYSICS_PT_cloth_sewing,
+    PHYSICS_PT_cloth_field_weights,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

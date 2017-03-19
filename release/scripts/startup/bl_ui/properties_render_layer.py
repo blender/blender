@@ -130,5 +130,14 @@ class RENDERLAYER_PT_views(RenderLayerButtonsPanel, Panel):
             row.prop(rv, "camera_suffix", text="")
 
 
+classes = (
+    RENDERLAYER_UL_renderlayers,
+    RENDERLAYER_PT_layers,
+    RENDERLAYER_UL_renderviews,
+    RENDERLAYER_PT_views,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

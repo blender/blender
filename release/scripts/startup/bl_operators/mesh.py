@@ -248,3 +248,10 @@ class MehsSetNormalsFromFaces(Operator):
 
         return {'FINISHED'}
 
+
+classes = (
+    MehsSetNormalsFromFaces,
+    MeshMirrorUV,
+    MeshSelectNext,
+    MeshSelectPrev,
+)

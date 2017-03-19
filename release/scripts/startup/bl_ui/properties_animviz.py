@@ -139,6 +139,11 @@ class OnionSkinButtonsPanel:
         col.label(text="Display:")
         col.prop(arm, "show_only_ghost_selected", text="Selected Only")
 
+
+classes = (
+)
+
 if __name__ == "__main__":  # only for live edit.
-    import bpy
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

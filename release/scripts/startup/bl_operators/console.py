@@ -159,3 +159,12 @@ class ConsoleLanguage(Operator):
                                        remove_duplicates=True)
 
         return {'FINISHED'}
+
+
+classes = (
+    ConsoleAutocomplete,
+    ConsoleBanner,
+    ConsoleCopyAsScript,
+    ConsoleExec,
+    ConsoleLanguage,
+)

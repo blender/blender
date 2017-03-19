@@ -828,5 +828,17 @@ class MATERIAL_PT_freestyle_line(MaterialFreestyleButtonsPanel, Panel):
         row.prop(mat, "line_priority", text="Priority")
 
 
+classes = (
+    RENDER_PT_freestyle,
+    RENDERLAYER_UL_linesets,
+    RENDER_MT_lineset_specials,
+    RENDERLAYER_PT_freestyle,
+    RENDERLAYER_PT_freestyle_lineset,
+    RENDERLAYER_PT_freestyle_linestyle,
+    MATERIAL_PT_freestyle_line,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

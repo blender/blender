@@ -63,8 +63,14 @@ del _namespace
 
 
 def register():
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for mod in _modules_loaded:
+        for cls in mod.classes:
+            register_class(cls)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    from bpy.utils import unregister_class
+    for mod in reversed(_modules_loaded):
+        for cls in reversed(mod.classes):
+            unregister_class(cls)

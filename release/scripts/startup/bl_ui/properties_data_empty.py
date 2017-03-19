@@ -55,5 +55,12 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
 
         layout.prop(ob, "empty_draw_size", text="Size")
 
+
+classes = (
+    DATA_PT_empty,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

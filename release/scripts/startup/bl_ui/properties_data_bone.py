@@ -449,5 +449,20 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
         else:
             return "active_bone"
 
+
+classes = (
+    BONE_PT_context_bone,
+    BONE_PT_transform,
+    BONE_PT_transform_locks,
+    BONE_PT_curved,
+    BONE_PT_relations,
+    BONE_PT_display,
+    BONE_PT_inverse_kinematics,
+    BONE_PT_deform,
+    BONE_PT_custom_props,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

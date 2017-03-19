@@ -130,5 +130,16 @@ class LOGIC_MT_view(Menu):
         layout.operator("screen.screen_full_area")
         layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
 
+
+classes = (
+    LOGIC_PT_properties,
+    LOGIC_MT_logicbricks_add,
+    LOGIC_HT_header,
+    LOGIC_MT_editor_menus,
+    LOGIC_MT_view,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)

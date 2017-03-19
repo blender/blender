@@ -102,5 +102,15 @@ def add_scrollback(text, text_type):
         bpy.ops.console.scrollback_append(text=l.expandtabs(4),
                                           type=text_type)
 
+
+classes = (
+    CONSOLE_HT_header,
+    CONSOLE_MT_editor_menus,
+    CONSOLE_MT_console,
+    CONSOLE_MT_language,
+)
+
 if __name__ == "__main__":  # only for live edit.
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
