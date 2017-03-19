@@ -218,3 +218,11 @@ class SCENE_OT_freestyle_module_open(bpy.types.Operator):
         text = bpy.data.texts.load(self.filepath, self.make_internal)
         self.freestyle_module.script = text
         return {'FINISHED'}
+
+
+classes = (
+    SCENE_OT_freestyle_add_edge_marks_to_keying_set,
+    SCENE_OT_freestyle_add_face_marks_to_keying_set,
+    SCENE_OT_freestyle_fill_range_by_selection,
+    SCENE_OT_freestyle_module_open,
+)
