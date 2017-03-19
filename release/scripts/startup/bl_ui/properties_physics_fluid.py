@@ -311,10 +311,10 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
 
 classes = (
     FLUID_MT_presets,
-    PHYSICS_PT_domain_boundary,
-    PHYSICS_PT_domain_gravity,
-    PHYSICS_PT_domain_particles,
     PHYSICS_PT_fluid,
+    PHYSICS_PT_domain_gravity,
+    PHYSICS_PT_domain_boundary,
+    PHYSICS_PT_domain_particles,
 )
 
 if __name__ == "__main__":  # only for live edit.

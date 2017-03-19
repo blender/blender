@@ -248,11 +248,11 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, Panel):
 classes = (
     PHYSICS_PT_softbody,
     PHYSICS_PT_softbody_cache,
-    PHYSICS_PT_softbody_collision,
-    PHYSICS_PT_softbody_edge,
-    PHYSICS_PT_softbody_field_weights,
     PHYSICS_PT_softbody_goal,
+    PHYSICS_PT_softbody_edge,
+    PHYSICS_PT_softbody_collision,
     PHYSICS_PT_softbody_solver,
+    PHYSICS_PT_softbody_field_weights,
 )
 
 if __name__ == "__main__":  # only for live edit.

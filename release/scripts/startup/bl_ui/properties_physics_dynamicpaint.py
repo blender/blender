@@ -530,16 +530,16 @@ class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, Panel):
 
 
 classes = (
+    PHYSICS_UL_dynapaint_surfaces,
+    PHYSICS_PT_dynamic_paint,
     PHYSICS_PT_dp_advanced_canvas,
+    PHYSICS_PT_dp_canvas_output,
+    PHYSICS_PT_dp_canvas_initial_color,
+    PHYSICS_PT_dp_effects,
+    PHYSICS_PT_dp_cache,
     PHYSICS_PT_dp_brush_source,
     PHYSICS_PT_dp_brush_velocity,
     PHYSICS_PT_dp_brush_wave,
-    PHYSICS_PT_dp_cache,
-    PHYSICS_PT_dp_canvas_initial_color,
-    PHYSICS_PT_dp_canvas_output,
-    PHYSICS_PT_dp_effects,
-    PHYSICS_PT_dynamic_paint,
-    PHYSICS_UL_dynapaint_surfaces,
 )
 
 if __name__ == "__main__":  # only for live edit.

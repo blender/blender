@@ -85,8 +85,8 @@ class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     DATA_PT_context_lattice,
-    DATA_PT_custom_props_lattice,
     DATA_PT_lattice,
+    DATA_PT_custom_props_lattice,
 )
 
 if __name__ == "__main__":  # only for live edit.

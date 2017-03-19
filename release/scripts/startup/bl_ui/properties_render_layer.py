@@ -228,12 +228,12 @@ class RENDERLAYER_PT_views(RenderLayerButtonsPanel, Panel):
 
 
 classes = (
+    RENDERLAYER_UL_renderlayers,
+    RENDERLAYER_PT_layers,
     RENDERLAYER_PT_layer_options,
     RENDERLAYER_PT_layer_passes,
-    RENDERLAYER_PT_layers,
-    RENDERLAYER_PT_views,
-    RENDERLAYER_UL_renderlayers,
     RENDERLAYER_UL_renderviews,
+    RENDERLAYER_PT_views,
 )
 
 if __name__ == "__main__":  # only for live edit.

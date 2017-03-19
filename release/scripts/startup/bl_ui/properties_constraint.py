@@ -942,8 +942,8 @@ class BONE_PT_constraints(ConstraintButtonsPanel, Panel):
             self.draw_constraint(context, con)
 
 classes = (
-    BONE_PT_constraints,
     OBJECT_PT_constraints,
+    BONE_PT_constraints,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -132,11 +132,11 @@ class LOGIC_MT_view(Menu):
 
 
 classes = (
+    LOGIC_PT_properties,
+    LOGIC_MT_logicbricks_add,
     LOGIC_HT_header,
     LOGIC_MT_editor_menus,
-    LOGIC_MT_logicbricks_add,
     LOGIC_MT_view,
-    LOGIC_PT_properties,
 )
 
 if __name__ == "__main__":  # only for live edit.

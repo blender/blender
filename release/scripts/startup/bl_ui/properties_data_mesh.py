@@ -393,20 +393,20 @@ class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    DATA_PT_context_mesh,
-    DATA_PT_custom_props_mesh,
-    DATA_PT_customdata,
-    DATA_PT_normals,
-    DATA_PT_shape_keys,
-    DATA_PT_texture_space,
-    DATA_PT_uv_texture,
-    DATA_PT_vertex_colors,
-    DATA_PT_vertex_groups,
-    MESH_MT_shape_key_specials,
     MESH_MT_vertex_group_specials,
+    MESH_MT_shape_key_specials,
+    MESH_UL_vgroups,
     MESH_UL_shape_keys,
     MESH_UL_uvmaps_vcols,
-    MESH_UL_vgroups,
+    DATA_PT_context_mesh,
+    DATA_PT_normals,
+    DATA_PT_texture_space,
+    DATA_PT_vertex_groups,
+    DATA_PT_shape_keys,
+    DATA_PT_uv_texture,
+    DATA_PT_vertex_colors,
+    DATA_PT_customdata,
+    DATA_PT_custom_props_mesh,
 )
 
 if __name__ == "__main__":  # only for live edit.

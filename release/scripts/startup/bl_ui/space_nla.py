@@ -212,13 +212,13 @@ class NLA_MT_edit_transform(Menu):
 
 classes = (
     NLA_HT_header,
-    NLA_MT_add,
     NLA_MT_edit,
-    NLA_MT_edit_transform,
     NLA_MT_editor_menus,
-    NLA_MT_marker,
-    NLA_MT_select,
     NLA_MT_view,
+    NLA_MT_select,
+    NLA_MT_marker,
+    NLA_MT_add,
+    NLA_MT_edit_transform,
 )
 
 if __name__ == "__main__":  # only for live edit.

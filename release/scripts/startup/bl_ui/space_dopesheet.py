@@ -451,16 +451,16 @@ class DOPESHEET_MT_delete(Menu):
 
 classes = (
     DOPESHEET_HT_header,
-    DOPESHEET_MT_channel,
-    DOPESHEET_MT_delete,
     DOPESHEET_MT_editor_menus,
-    DOPESHEET_MT_gpencil_channel,
-    DOPESHEET_MT_gpencil_frame,
+    DOPESHEET_MT_view,
+    DOPESHEET_MT_select,
+    DOPESHEET_MT_marker,
+    DOPESHEET_MT_channel,
     DOPESHEET_MT_key,
     DOPESHEET_MT_key_transform,
-    DOPESHEET_MT_marker,
-    DOPESHEET_MT_select,
-    DOPESHEET_MT_view,
+    DOPESHEET_MT_gpencil_channel,
+    DOPESHEET_MT_gpencil_frame,
+    DOPESHEET_MT_delete,
 )
 
 if __name__ == "__main__":  # only for live edit.

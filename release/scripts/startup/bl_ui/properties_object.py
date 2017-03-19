@@ -368,18 +368,18 @@ class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    GROUP_MT_specials,
     OBJECT_PT_context_object,
-    OBJECT_PT_custom_props,
+    OBJECT_PT_transform,
     OBJECT_PT_delta_transform,
-    OBJECT_PT_display,
-    OBJECT_PT_duplication,
-    OBJECT_PT_groups,
-    OBJECT_PT_motion_paths,
+    OBJECT_PT_transform_locks,
     OBJECT_PT_relations,
     OBJECT_PT_relations_extras,
-    OBJECT_PT_transform,
-    OBJECT_PT_transform_locks,
+    GROUP_MT_specials,
+    OBJECT_PT_groups,
+    OBJECT_PT_display,
+    OBJECT_PT_duplication,
+    OBJECT_PT_motion_paths,
+    OBJECT_PT_custom_props,
 )
 
 if __name__ == "__main__":  # only for live edit.

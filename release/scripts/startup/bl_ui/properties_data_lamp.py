@@ -396,16 +396,16 @@ class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    DATA_PT_area,
-    DATA_PT_context_lamp,
-    DATA_PT_custom_props_lamp,
-    DATA_PT_falloff_curve,
-    DATA_PT_lamp,
-    DATA_PT_preview,
-    DATA_PT_shadow,
-    DATA_PT_spot,
-    DATA_PT_sunsky,
     LAMP_MT_sunsky_presets,
+    DATA_PT_context_lamp,
+    DATA_PT_preview,
+    DATA_PT_lamp,
+    DATA_PT_sunsky,
+    DATA_PT_shadow,
+    DATA_PT_area,
+    DATA_PT_spot,
+    DATA_PT_falloff_curve,
+    DATA_PT_custom_props_lamp,
 )
 
 if __name__ == "__main__":  # only for live edit.

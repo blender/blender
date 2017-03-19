@@ -327,15 +327,15 @@ def draw_display_safe_settings(layout, safe_data, settings):
 
 classes = (
     CAMERA_MT_presets,
-    DATA_PT_camera,
-    DATA_PT_camera_display,
-    DATA_PT_camera_dof,
-    DATA_PT_camera_safe_areas,
-    DATA_PT_camera_stereoscopy,
-    DATA_PT_context_camera,
-    DATA_PT_custom_props_camera,
-    DATA_PT_lens,
     SAFE_AREAS_MT_presets,
+    DATA_PT_context_camera,
+    DATA_PT_lens,
+    DATA_PT_camera,
+    DATA_PT_camera_stereoscopy,
+    DATA_PT_camera_dof,
+    DATA_PT_camera_display,
+    DATA_PT_camera_safe_areas,
+    DATA_PT_custom_props_camera,
 )
 
 if __name__ == "__main__":  # only for live edit.

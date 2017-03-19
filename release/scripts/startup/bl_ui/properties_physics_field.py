@@ -230,8 +230,8 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
 
 
 classes = (
-    PHYSICS_PT_collision,
     PHYSICS_PT_field,
+    PHYSICS_PT_collision,
 )
 
 if __name__ == "__main__":  # only for live edit.

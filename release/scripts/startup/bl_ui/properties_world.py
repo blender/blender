@@ -250,15 +250,15 @@ class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    WORLD_PT_ambient_occlusion,
     WORLD_PT_context_world,
-    WORLD_PT_custom_props,
-    WORLD_PT_environment_lighting,
-    WORLD_PT_gather,
-    WORLD_PT_indirect_lighting,
-    WORLD_PT_mist,
     WORLD_PT_preview,
     WORLD_PT_world,
+    WORLD_PT_ambient_occlusion,
+    WORLD_PT_environment_lighting,
+    WORLD_PT_indirect_lighting,
+    WORLD_PT_gather,
+    WORLD_PT_mist,
+    WORLD_PT_custom_props,
 )
 
 if __name__ == "__main__":  # only for live edit.

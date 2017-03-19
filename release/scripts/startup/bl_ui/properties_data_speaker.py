@@ -123,11 +123,11 @@ class DATA_PT_custom_props_speaker(DataButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    DATA_PT_cone,
     DATA_PT_context_speaker,
-    DATA_PT_custom_props_speaker,
-    DATA_PT_distance,
     DATA_PT_speaker,
+    DATA_PT_distance,
+    DATA_PT_cone,
+    DATA_PT_custom_props_speaker,
 )
 
 if __name__ == "__main__":  # only for live edit.

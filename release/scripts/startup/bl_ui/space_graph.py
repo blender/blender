@@ -301,14 +301,14 @@ class GRAPH_MT_delete(Menu):
 
 classes = (
     GRAPH_HT_header,
-    GRAPH_MT_channel,
-    GRAPH_MT_delete,
     GRAPH_MT_editor_menus,
+    GRAPH_MT_view,
+    GRAPH_MT_select,
+    GRAPH_MT_marker,
+    GRAPH_MT_channel,
     GRAPH_MT_key,
     GRAPH_MT_key_transform,
-    GRAPH_MT_marker,
-    GRAPH_MT_select,
-    GRAPH_MT_view,
+    GRAPH_MT_delete,
 )
 
 if __name__ == "__main__":  # only for live edit.

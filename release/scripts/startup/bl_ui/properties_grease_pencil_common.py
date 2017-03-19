@@ -1158,18 +1158,18 @@ class GreasePencilToolsPanel:
 
 
 classes = (
-    GPENCIL_MT_brush_specials,
-    GPENCIL_MT_gpencil_edit_specials,
-    GPENCIL_MT_layer_specials,
-    GPENCIL_MT_palettecolor_specials,
-    GPENCIL_MT_snap,
-    GPENCIL_PIE_sculpt,
-    GPENCIL_PIE_settings_palette,
     GPENCIL_PIE_tool_palette,
+    GPENCIL_PIE_settings_palette,
     GPENCIL_PIE_tools_more,
+    GPENCIL_PIE_sculpt,
+    GPENCIL_MT_snap,
+    GPENCIL_MT_gpencil_edit_specials,
     GPENCIL_UL_brush,
-    GPENCIL_UL_layer,
     GPENCIL_UL_palettecolor,
+    GPENCIL_UL_layer,
+    GPENCIL_MT_layer_specials,
+    GPENCIL_MT_brush_specials,
+    GPENCIL_MT_palettecolor_specials,
 )
 
 if __name__ == "__main__":  # only for live edit.

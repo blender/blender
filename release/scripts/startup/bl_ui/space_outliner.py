@@ -133,10 +133,10 @@ class OUTLINER_MT_edit_datablocks(Menu):
 
 classes = (
     OUTLINER_HT_header,
-    OUTLINER_MT_edit_datablocks,
     OUTLINER_MT_editor_menus,
-    OUTLINER_MT_search,
     OUTLINER_MT_view,
+    OUTLINER_MT_search,
+    OUTLINER_MT_edit_datablocks,
 )
 
 if __name__ == "__main__":  # only for live edit.

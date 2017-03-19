@@ -585,20 +585,20 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
 
 
 classes = (
+    RENDER_MT_presets,
     RENDER_MT_ffmpeg_presets,
     RENDER_MT_framerate_presets,
-    RENDER_MT_presets,
-    RENDER_PT_antialiasing,
-    RENDER_PT_bake,
+    RENDER_PT_render,
     RENDER_PT_dimensions,
-    RENDER_PT_encoding,
+    RENDER_PT_antialiasing,
     RENDER_PT_motion_blur,
-    RENDER_PT_output,
+    RENDER_PT_shading,
     RENDER_PT_performance,
     RENDER_PT_post_processing,
-    RENDER_PT_render,
-    RENDER_PT_shading,
     RENDER_PT_stamp,
+    RENDER_PT_output,
+    RENDER_PT_encoding,
+    RENDER_PT_bake,
 )
 
 if __name__ == "__main__":  # only for live edit.

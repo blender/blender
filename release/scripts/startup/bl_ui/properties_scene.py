@@ -446,19 +446,19 @@ class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     SCENE_MT_units_length_presets,
-    SCENE_PT_audio,
-    SCENE_PT_color_management,
-    SCENE_PT_custom_props,
-    SCENE_PT_keying_set_paths,
+    SCENE_UL_keying_set_paths,
+    SCENE_PT_scene,
+    SCENE_PT_unit,
     SCENE_PT_keying_sets,
+    SCENE_PT_keying_set_paths,
+    SCENE_PT_color_management,
+    SCENE_PT_audio,
     SCENE_PT_physics,
+    SCENE_PT_rigid_body_world,
     SCENE_PT_rigid_body_cache,
     SCENE_PT_rigid_body_field_weights,
-    SCENE_PT_rigid_body_world,
-    SCENE_PT_scene,
     SCENE_PT_simplify,
-    SCENE_PT_unit,
-    SCENE_UL_keying_set_paths,
+    SCENE_PT_custom_props,
 )
 
 if __name__ == "__main__":  # only for live edit.

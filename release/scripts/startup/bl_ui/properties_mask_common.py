@@ -394,12 +394,12 @@ class MASK_MT_select(Menu):
 
 
 classes = (
-    MASK_MT_animation,
-    MASK_MT_mask,
-    MASK_MT_select,
-    MASK_MT_transform,
-    MASK_MT_visibility,
     MASK_UL_layers,
+    MASK_MT_mask,
+    MASK_MT_visibility,
+    MASK_MT_transform,
+    MASK_MT_animation,
+    MASK_MT_select,
 )
 
 if __name__ == "__main__":  # only for live edit.
