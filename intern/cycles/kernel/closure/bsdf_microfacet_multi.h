@@ -43,7 +43,7 @@ ccl_device_forceinline float D_ggx_aniso(const float3 wm, const float2 alpha)
 ccl_device_forceinline float2 mf_sampleP22_11(const float cosI, const float2 randU)
 {
 	if(cosI > 0.9999f || cosI < 1e-6f) {
-		const float r = sqrtf(randU.x / (1.0f - randU.x));
+		const float r = sqrtf(randU.x / max(1.0f - randU.x, 1e-7f));
 		const float phi = M_2PI_F * randU.y;
 		return make_float2(r*cosf(phi), r*sinf(phi));
 	}
@@ -83,7 +83,7 @@ ccl_device_forceinline float3 mf_sample_vndf(const float3 wi, const float2 alpha
 	const float3 wi_11 = normalize(make_float3(alpha.x*wi.x, alpha.y*wi.y, wi.z));
 	const float2 slope_11 = mf_sampleP22_11(wi_11.z, randU);
 
-	const float2 cossin_phi = normalize(make_float2(wi_11.x, wi_11.y));
+	const float2 cossin_phi = safe_normalize(make_float2(wi_11.x, wi_11.y));
 	const float slope_x = alpha.x*(cossin_phi.x * slope_11.x - cossin_phi.y * slope_11.y);
 	const float slope_y = alpha.y*(cossin_phi.y * slope_11.x + cossin_phi.x * slope_11.y);
 
