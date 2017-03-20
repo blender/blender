@@ -82,12 +82,23 @@ class AddPresetSampling(AddPresetBase, Operator):
     preset_subdir = "cycles/sampling"
 
 
+classes = (
+    AddPresetIntegrator,
+    AddPresetSampling,
+)
+
+
 def register():
-    pass
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
 
 
 def unregister():
-    pass
+    from bpy.utils import unregister_class
+    for cls in classes:
+        unregister_class(cls)
+
 
 if __name__ == "__main__":
     register()

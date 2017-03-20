@@ -2578,7 +2578,6 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 						/*	Draw name */
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, eBone->head, eBone->tail);
-							glRasterPos3fv(vec);
 							view3d_cached_text_draw_add(vec, eBone->name, strlen(eBone->name), 10, 0, col);
 						}
 						/*	Draw additional axes */

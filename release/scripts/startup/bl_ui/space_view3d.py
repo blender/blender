@@ -284,7 +284,8 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
         layout.separator()
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
+        # XXX see alignmenu() in edit.c of b2.4x to get this working
+        layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'
 
         layout.separator()
 
