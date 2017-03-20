@@ -797,14 +797,22 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 					              << string(clewErrorString(error));
 					continue;
 				}
-				FIRST_VLOG(2) << "Adding new device " << device_name << ".";
+				string readable_device_name =
+				        get_readable_device_name(device_id);
+				if(readable_device_name != device_name) {
+					FIRST_VLOG(2) << "Using more readable device name: "
+					              << readable_device_name;
+				}
+				FIRST_VLOG(2) << "Adding new device "
+				              << readable_device_name << ".";
 				string hardware_id = get_hardware_id(platform_name, device_id);
-				usable_devices->push_back(OpenCLPlatformDevice(platform_id,
-				                                               platform_name,
-				                                               device_id,
-				                                               device_type,
-				                                               device_name,
-				                                               hardware_id));
+				usable_devices->push_back(OpenCLPlatformDevice(
+				        platform_id,
+				        platform_name,
+				        device_id,
+				        device_type,
+				        readable_device_name,
+				        hardware_id));
 			}
 			else {
 				FIRST_VLOG(2) << "Ignoring device " << device_name
@@ -1044,6 +1052,21 @@ cl_device_type OpenCLInfo::get_device_type(cl_device_id device_id)
 		return 0;
 	}
 	return device_type;
+}
+
+string OpenCLInfo::get_readable_device_name(cl_device_id device_id)
+{
+	char board_name[1024];
+	if(clGetDeviceInfo(device_id,
+	                   CL_DEVICE_BOARD_NAME_AMD,
+	                   sizeof(board_name),
+	                   &board_name,
+	                   NULL) == CL_SUCCESS)
+	{
+		return board_name;
+	}
+	/* Fallback to standard device name API. */
+	return get_device_name(device_id);
 }
 
 CCL_NAMESPACE_END

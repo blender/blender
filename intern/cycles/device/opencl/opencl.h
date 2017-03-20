@@ -131,6 +131,13 @@ public:
 	                            cl_device_type *device_type,
 	                            cl_int* error = NULL);
 	static cl_device_type get_device_type(cl_device_id device_id);
+
+	/* Get somewhat more readable device name.
+	 * Main difference is AMD OpenCL here which only gives code name
+	 * for the regular device name. This will give more sane device
+	 * name using some extensions.
+	 */
+	static string get_readable_device_name(cl_device_id device_id);
 };
 
 /* Thread safe cache for contexts and programs.
