@@ -172,6 +172,7 @@ ModifierTypeInfo modifierType_Surface = {
 	/* structSize */        sizeof(SurfaceModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_AcceptsCVs |
 	                        eModifierTypeFlag_NoUserAdd,
 
 	/* copyData */          NULL,
