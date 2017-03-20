@@ -17,7 +17,7 @@ from render_layer_common import *
 class UnitTesting(RenderLayerTesting):
     def test_visibility(self):
         """
-        See if we can link objects
+        See if the depsgraph evaluation is correct
         """
         import bpy
 
@@ -28,19 +28,20 @@ class UnitTesting(RenderLayerTesting):
         layer.collections.unlink(layer.collections[0])
         scene.render_layers.active = layer
 
-        scene_collection_a = scene.master_collection.collections.new("Visible")
-        scene_collection_b = scene.master_collection.collections.new("Invisible")
+        scene_collection_mom = scene.master_collection.collections.new("Mom")
+        scene_collection_kid = scene.master_collection.collections.new("Kid")
 
-        scene_collection_a.objects.link(cube)
-        scene_collection_b.objects.link(cube)
+        scene_collection_mom.objects.link(cube)
+        scene_collection_kid.objects.link(cube)
 
-        layer_collection_a = layer.collections.link(scene_collection_a)
-        layer_collection_b = layer.collections.link(scene_collection_b)
+        layer_collection_mom = layer.collections.link(scene_collection_mom)
+        layer_collection_kid = layer.collections.link(scene_collection_kid)
 
-        layer_collection_a.hide = False
-        layer_collection_b.hide = True
+        layer_collection_mom.hide = True
+        layer_collection_kid.hide = False
 
-        self.assertTrue(cube.visible_get(), "Object is not visible")
+        bpy.context.scene.update()  # update depsgraph
+        self.assertTrue(cube.visible_get(), "Object should be visible")
 
 
 # ############################################################
