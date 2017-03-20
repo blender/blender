@@ -157,17 +157,10 @@ void BKE_blender_userdef_set_data(UserDef *userdef)
 	U = *userdef;
 }
 
-/**
- * When loading a new userdef from file,
- * or when exiting Blender.
- */
-void BKE_blender_userdef_free_data(UserDef *userdef)
+static void userdef_free_keymaps(UserDef *userdef)
 {
-#define U _invalid_access_ /* ensure no accidental global access */
-#ifdef U  /* quiet warning */
-#endif
-
-	for (wmKeyMap *km = userdef->user_keymaps.first; km; km = km->next) {
+	for (wmKeyMap *km = userdef->user_keymaps.first, *km_next; km; km = km_next) {
+		km_next = km->next;
 		for (wmKeyMapDiffItem *kmdi = km->diff_items.first; kmdi; kmdi = kmdi->next) {
 			if (kmdi->add_item) {
 				keymap_item_free(kmdi->add_item);
@@ -185,8 +178,14 @@ void BKE_blender_userdef_free_data(UserDef *userdef)
 
 		BLI_freelistN(&km->diff_items);
 		BLI_freelistN(&km->items);
-	}
 
+		MEM_freeN(km);
+	}
+	BLI_listbase_clear(&userdef->user_keymaps);
+}
+
+static void userdef_free_addons(UserDef *userdef)
+{
 	for (bAddon *addon = userdef->addons.first, *addon_next; addon; addon = addon_next) {
 		addon_next = addon->next;
 		if (addon->prop) {
@@ -195,6 +194,21 @@ void BKE_blender_userdef_free_data(UserDef *userdef)
 		}
 		MEM_freeN(addon);
 	}
+	BLI_listbase_clear(&userdef->addons);
+}
+
+/**
+ * When loading a new userdef from file,
+ * or when exiting Blender.
+ */
+void BKE_blender_userdef_free_data(UserDef *userdef)
+{
+#define U _invalid_access_ /* ensure no accidental global access */
+#ifdef U  /* quiet warning */
+#endif
+
+	userdef_free_keymaps(userdef);
+	userdef_free_addons(userdef);
 
 	for (uiFont *font = userdef->uifonts.first; font; font = font->next) {
 		BLF_unload_id(font->blf_id);
@@ -207,7 +221,6 @@ void BKE_blender_userdef_free_data(UserDef *userdef)
 	BLI_freelistN(&userdef->uistyles);
 	BLI_freelistN(&userdef->uifonts);
 	BLI_freelistN(&userdef->themes);
-	BLI_freelistN(&userdef->user_keymaps);
 
 #undef U
 }
