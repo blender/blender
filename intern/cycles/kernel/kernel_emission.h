@@ -157,7 +157,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg,
 		return false;
 
 	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
-		float probability = max3(bsdf_eval_sum(eval)) * kernel_data.integrator.light_inv_rr_threshold;
+		float probability = max3(fabs(bsdf_eval_sum(eval))) * kernel_data.integrator.light_inv_rr_threshold;
 		if(probability < 1.0f) {
 			if(rand_terminate >= probability) {
 				return false;
