@@ -303,11 +303,10 @@ static void EDIT_MESH_cache_init(void)
 
 		/* we need a full screen pass to combine the result */
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
-		static float mat[4][4]; /* not even used but avoid crash */
 
 		psl->mix_occlude = DRW_pass_create("Mix Occluded Wires", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
 		DRWShadingGroup *mix_shgrp = DRW_shgroup_create(e_data.overlay_mix_sh, psl->mix_occlude);
-		DRW_shgroup_call_add(mix_shgrp, quad, mat);
+		DRW_shgroup_call_add(mix_shgrp, quad, NULL);
 		DRW_shgroup_uniform_float(mix_shgrp, "alpha", &backwire_opacity, 1);
 		DRW_shgroup_uniform_buffer(mix_shgrp, "wireColor", &txl->occlude_wire_color_tx, 0);
 		DRW_shgroup_uniform_buffer(mix_shgrp, "wireDepth", &txl->occlude_wire_depth_tx, 2);
