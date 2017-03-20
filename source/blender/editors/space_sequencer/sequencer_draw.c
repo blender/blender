@@ -829,6 +829,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 
 	pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
+	/* TODO: add back stippled line for muted strips? */
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	if (seq->flag & SEQ_MUTE) {
@@ -844,10 +845,6 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	}
 
 	imm_draw_line_box(pos, x1, y1, x2, y2); /* outline */
-
-	if (seq->flag & SEQ_MUTE) {
-		glDisable(GL_LINE_STIPPLE);
-	}
 
 	immUnbindProgram();
 
