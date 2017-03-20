@@ -152,10 +152,8 @@ OpenCLDeviceBase::~OpenCLDeviceBase()
 void CL_CALLBACK OpenCLDeviceBase::context_notify_callback(const char *err_info,
 	const void * /*private_info*/, size_t /*cb*/, void *user_data)
 {
-	char name[256];
-	clGetDeviceInfo((cl_device_id)user_data, CL_DEVICE_NAME, sizeof(name), &name, NULL);
-
-	fprintf(stderr, "OpenCL error (%s): %s\n", name, err_info);
+	string device_name = OpenCLInfo::get_device_name((cl_device_id)user_data);
+	fprintf(stderr, "OpenCL error (%s): %s\n", device_name.c_str(), err_info);
 }
 
 bool OpenCLDeviceBase::opencl_version_check()
