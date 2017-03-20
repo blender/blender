@@ -107,7 +107,13 @@ def engine_exit():
     engine.exit()
 
 
+classes = (
+    CyclesRender,
+)
+
+
 def register():
+    from bpy.utils import register_class
     from . import ui
     from . import properties
     from . import presets
@@ -122,12 +128,15 @@ def register():
     properties.register()
     ui.register()
     presets.register()
-    bpy.utils.register_module(__name__)
+
+    for cls in classes:
+        register_class(cls)
 
     bpy.app.handlers.version_update.append(version_update.do_versions)
 
 
 def unregister():
+    from bpy.utils import unregister_class
     from . import ui
     from . import properties
     from . import presets
@@ -138,4 +147,6 @@ def unregister():
     ui.unregister()
     properties.unregister()
     presets.unregister()
-    bpy.utils.unregister_module(__name__)
+
+    for cls in classes:
+        unregister_class(cls)

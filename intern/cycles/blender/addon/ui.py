@@ -1713,17 +1713,75 @@ def get_panels():
 
     return panels
 
+
+classes = (
+    CYCLES_MT_sampling_presets,
+    CYCLES_MT_integrator_presets,
+    CyclesRender_PT_sampling,
+    CyclesRender_PT_geometry,
+    CyclesRender_PT_light_paths,
+    CyclesRender_PT_motion_blur,
+    CyclesRender_PT_film,
+    CyclesRender_PT_performance,
+    CyclesRender_PT_layer_options,
+    CyclesRender_PT_layer_passes,
+    CyclesRender_PT_views,
+    Cycles_PT_post_processing,
+    CyclesCamera_PT_dof,
+    Cycles_PT_context_material,
+    CyclesObject_PT_motion_blur,
+    CyclesObject_PT_cycles_settings,
+    CYCLES_OT_use_shading_nodes,
+    CyclesLamp_PT_preview,
+    CyclesLamp_PT_lamp,
+    CyclesLamp_PT_nodes,
+    CyclesLamp_PT_spot,
+    CyclesWorld_PT_preview,
+    CyclesWorld_PT_surface,
+    CyclesWorld_PT_volume,
+    CyclesWorld_PT_ambient_occlusion,
+    CyclesWorld_PT_mist,
+    CyclesWorld_PT_ray_visibility,
+    CyclesWorld_PT_settings,
+    CyclesMaterial_PT_preview,
+    CyclesMaterial_PT_surface,
+    CyclesMaterial_PT_volume,
+    CyclesMaterial_PT_displacement,
+    CyclesMaterial_PT_settings,
+    CyclesTexture_PT_context,
+    CyclesTexture_PT_node,
+    CyclesTexture_PT_mapping,
+    CyclesTexture_PT_colors,
+    CyclesParticle_PT_textures,
+    CyclesRender_PT_bake,
+    CyclesRender_PT_debug,
+    CyclesParticle_PT_CurveSettings,
+    CyclesScene_PT_simplify,
+)
+
+
 def register():
+    from bpy.utils import register_class
+
     bpy.types.RENDER_PT_render.append(draw_device)
     bpy.types.VIEW3D_HT_header.append(draw_pause)
 
     for panel in get_panels():
         panel.COMPAT_ENGINES.add('CYCLES')
 
+    for cls in classes:
+        register_class(cls)
+
+
 def unregister():
+    from bpy.utils import unregister_class
+
     bpy.types.RENDER_PT_render.remove(draw_device)
     bpy.types.VIEW3D_HT_header.remove(draw_pause)
 
     for panel in get_panels():
         if 'CYCLES' in panel.COMPAT_ENGINES:
             panel.COMPAT_ENGINES.remove('CYCLES')
+
+    for cls in classes:
+        unregister_class(cls)
