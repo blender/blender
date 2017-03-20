@@ -44,7 +44,8 @@
 
 extern GlobalsUboStorage ts;
 
-extern char datatoc_object_occluded_outline_frag_glsl[];
+extern char datatoc_object_outline_resolve_frag_glsl[];
+extern char datatoc_object_outline_expand_frag_glsl[];
 
 /* *********** LISTS *********** */
 /* keep it under MAX_PASSES */
@@ -52,10 +53,28 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *non_meshes;
 	struct DRWPass *ob_center;
 	struct DRWPass *outlines;
-	struct DRWPass *outlines_transp;
+	struct DRWPass *outlines_expand;
+	struct DRWPass *outlines_blur1;
+	struct DRWPass *outlines_blur2;
+	struct DRWPass *outlines_blur3;
+	struct DRWPass *outlines_blur4;
+	struct DRWPass *outlines_resolve;
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_wire;
 } OBJECT_PassList;
+
+/* keep it under MAX_BUFFERS */
+typedef struct OBJECT_FramebufferList {
+	struct GPUFrameBuffer *outlines;
+	struct GPUFrameBuffer *blur;
+} OBJECT_FramebufferList;
+
+/* keep it under MAX_TEXTURES */
+typedef struct OBJECT_TextureList {
+	struct GPUTexture *outlines_depth_tx;
+	struct GPUTexture *outlines_color_tx;
+	struct GPUTexture *outlines_blur_tx;
+} OBJECT_TextureList;
 
 typedef struct OBJECT_Data {
 	char engine_name[32];
@@ -123,39 +142,64 @@ static struct {
 	DRWShadingGroup *outlines_select;
 	DRWShadingGroup *outlines_select_group;
 	DRWShadingGroup *outlines_transform;
-	DRWShadingGroup *outlines_transp_select;
-	DRWShadingGroup *outlines_transp_select_group;
-	DRWShadingGroup *outlines_transp_active;
-	DRWShadingGroup *outlines_transp_active_group;
-	DRWShadingGroup *outlines_transp_transform;
 
 	OBJECT_Data *vedata;
 } g_data = {NULL}; /* Transient data */
 
 static struct {
-	struct GPUShader *outline_sh;
+	struct GPUShader *outline_resolve_sh;
+	struct GPUShader *outline_expand_sh;
+	struct GPUShader *outline_fade_sh;
 } e_data = {NULL}; /* Engine data */
 
 /* *********** FUNCTIONS *********** */
 
 static void OBJECT_engine_init(void)
 {
-	if (!e_data.outline_sh) {
-		e_data.outline_sh = DRW_shader_create_3D(datatoc_object_occluded_outline_frag_glsl, NULL);
+	OBJECT_Data *ved = DRW_viewport_engine_data_get("ObjectMode");
+	OBJECT_TextureList *txl = ved->txl;
+	OBJECT_FramebufferList *fbl = ved->fbl;
+
+	float *viewport_size = DRW_viewport_size_get();
+
+	DRWFboTexture tex[2] = {{&txl->outlines_depth_tx, DRW_BUF_DEPTH_24},
+	                        {&txl->outlines_color_tx, DRW_BUF_RGBA_8}};
+	DRW_framebuffer_init(&fbl->outlines,
+	                     (int)viewport_size[0], (int)viewport_size[1],
+	                     tex, 2);
+
+	DRWFboTexture blur_tex = {&txl->outlines_blur_tx, DRW_BUF_RGBA_8};
+	DRW_framebuffer_init(&fbl->blur,
+	                     (int)viewport_size[0], (int)viewport_size[1],
+	                     &blur_tex, 1);
+
+	if (!e_data.outline_resolve_sh) {
+		e_data.outline_resolve_sh = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
+	}
+
+	if (!e_data.outline_expand_sh) {
+		e_data.outline_expand_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, "#define DEPTH_TEST");
+	}
+
+	if (!e_data.outline_fade_sh) {
+		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
 	}
 }
 
 static void OBJECT_engine_free(void)
 {
-	if (e_data.outline_sh)
-		DRW_shader_free(e_data.outline_sh);
+	if (e_data.outline_resolve_sh)
+		DRW_shader_free(e_data.outline_resolve_sh);
+	if (e_data.outline_expand_sh)
+		DRW_shader_free(e_data.outline_expand_sh);
+	if (e_data.outline_fade_sh)
+		DRW_shader_free(e_data.outline_fade_sh);
 }
 
-static DRWShadingGroup *shgroup_outline(DRWPass *pass, int state_flag, const float col[4], struct GPUShader *sh)
+static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], struct GPUShader *sh)
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
-	DRW_shgroup_state_set(grp, state_flag);
 
 	return grp;
 }
@@ -165,40 +209,82 @@ static void OBJECT_cache_init(void)
 	/* DRW_viewport_engine_data_get is rather slow, better not do it on every objects */
 	g_data.vedata = DRW_viewport_engine_data_get("ObjectMode");
 	OBJECT_PassList *psl = g_data.vedata->psl;
+	OBJECT_TextureList *txl = g_data.vedata->txl;
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE_LARGE;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE;
 		psl->outlines = DRW_pass_create("Outlines Pass", state);
 
 		struct GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 
 		/* Select */
-		g_data.outlines_select = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorSelect, sh);
-		g_data.outlines_select_group = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorGroupActive, sh);
+		g_data.outlines_select = shgroup_outline(psl->outlines, ts.colorSelect, sh);
+		g_data.outlines_select_group = shgroup_outline(psl->outlines, ts.colorGroupActive, sh);
 
 		/* Transform */
-		g_data.outlines_transform = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_SELECT, ts.colorTransform, sh);
+		g_data.outlines_transform = shgroup_outline(psl->outlines, ts.colorTransform, sh);
 
 		/* Active */
-		g_data.outlines_active = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorActive, sh);
-		g_data.outlines_active_group = shgroup_outline(psl->outlines, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorGroupActive, sh);
+		g_data.outlines_active = shgroup_outline(psl->outlines, ts.colorActive, sh);
+		g_data.outlines_active_group = shgroup_outline(psl->outlines, ts.colorGroupActive, sh);
 	}
 
 	{
-		/* FIXME doing a 2nd pass is suboptimal, but waiting for a nice outline solution it does the job*/
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_WIRE_LARGE;
-		psl->outlines_transp = DRW_pass_create("See-through Outlines Pass", state);
+		DRWState state = DRW_STATE_WRITE_COLOR;
+		psl->outlines_expand = DRW_pass_create("Outlines Expand Pass", state);
 
-		/* Select */
-		g_data.outlines_transp_select = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorSelect, e_data.outline_sh);
-		g_data.outlines_transp_select_group = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorGroupActive, e_data.outline_sh);
+		struct Batch *quad = DRW_cache_fullscreen_quad_get();
+		static float one = 1.0f;
+		static float alphaNear = 0.75f;
+		static float alphaFar = 0.5f;
 
-		/* Transform */
-		g_data.outlines_transp_transform = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_SELECT, ts.colorTransform, e_data.outline_sh);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_expand_sh, psl->outlines_expand);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx, 0);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
+		DRW_shgroup_uniform_buffer(grp, "sceneDepth", &dtxl->depth, 2);
+		DRW_shgroup_uniform_float(grp, "alpha", &one, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
 
-		/* Active */
-		g_data.outlines_transp_active = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorActive, e_data.outline_sh);
-		g_data.outlines_transp_active_group = shgroup_outline(psl->outlines_transp, DRW_STATE_TEST_STENCIL_ACTIVE, ts.colorGroupActive, e_data.outline_sh);
+		psl->outlines_blur1 = DRW_pass_create("Outlines Blur 1 Pass", state);
+
+		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_blur1);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_blur_tx, 0);
+		DRW_shgroup_uniform_float(grp, "alpha", &alphaNear, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		psl->outlines_blur2 = DRW_pass_create("Outlines Blur 2 Pass", state);
+
+		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_blur2);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx, 0);
+		DRW_shgroup_uniform_float(grp, "alpha", &alphaNear, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		psl->outlines_blur3 = DRW_pass_create("Outlines Blur 3 Pass", state);
+
+		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_blur3);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_blur_tx, 0);
+		DRW_shgroup_uniform_float(grp, "alpha", &alphaFar, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		psl->outlines_blur4 = DRW_pass_create("Outlines Blur 4 Pass", state);
+
+		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_blur4);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx, 0);
+		DRW_shgroup_uniform_float(grp, "alpha", &alphaFar, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
+	}
+
+	{
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
+		psl->outlines_resolve = DRW_pass_create("Outlines Resolve Pass", state);
+
+		struct Batch *quad = DRW_cache_fullscreen_quad_get();
+
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_resolve_sh, psl->outlines_resolve);
+		DRW_shgroup_uniform_buffer(grp, "outlineBluredColor", &txl->outlines_blur_tx, 0);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
 	{
@@ -601,23 +687,19 @@ static void OBJECT_cache_populate(Object *ob)
 				int theme_id = DRW_object_wire_theme_get(ob, NULL);
 				if (ob != obedit) {
 					if (do_outlines) {
-						struct Batch *geom = DRW_cache_wire_outline_get(ob);
+						struct Batch *geom = DRW_cache_surface_get(ob);
 						switch (theme_id) {
 							case TH_ACTIVE:
 								DRW_shgroup_call_add(g_data.outlines_active, geom, ob->obmat);
-								DRW_shgroup_call_add(g_data.outlines_transp_active, geom, ob->obmat);
 								break;
 							case TH_SELECT:
 								DRW_shgroup_call_add(g_data.outlines_select, geom, ob->obmat);
-								DRW_shgroup_call_add(g_data.outlines_transp_select, geom, ob->obmat);
 								break;
 							case TH_GROUP_ACTIVE:
 								DRW_shgroup_call_add(g_data.outlines_select_group, geom, ob->obmat);
-								DRW_shgroup_call_add(g_data.outlines_transp_select_group, geom, ob->obmat);
 								break;
 							case TH_TRANSFORM:
 								DRW_shgroup_call_add(g_data.outlines_transform, geom, ob->obmat);
-								DRW_shgroup_call_add(g_data.outlines_transp_transform, geom, ob->obmat);
 								break;
 						}
 					}
@@ -658,13 +740,45 @@ static void OBJECT_draw_scene(void)
 {
 	OBJECT_Data *ved = DRW_viewport_engine_data_get("ObjectMode");
 	OBJECT_PassList *psl = ved->psl;
+	OBJECT_FramebufferList *fbl = ved->fbl;
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	DRW_draw_pass(psl->outlines_transp);
-	DRW_draw_pass(psl->outlines);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->non_meshes);
 	DRW_draw_pass(psl->ob_center);
+
+	/* Render filled polygon on a separate framebuffer */
+	DRW_framebuffer_bind(fbl->outlines);
+	DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
+	DRW_draw_pass(psl->outlines);
+
+	/* detach textures */
+	DRW_framebuffer_texture_detach(dtxl->depth);
+
+	/* Expand filled color by 1px and modulate if occluded */
+	DRW_framebuffer_bind(fbl->blur);
+	DRW_draw_pass(psl->outlines_expand);
+
+	/* Expand and fade gradually */
+	DRW_framebuffer_bind(fbl->outlines);
+	DRW_draw_pass(psl->outlines_blur1);
+
+	DRW_framebuffer_bind(fbl->blur);
+	DRW_draw_pass(psl->outlines_blur2);
+
+	DRW_framebuffer_bind(fbl->outlines);
+	DRW_draw_pass(psl->outlines_blur3);
+
+	DRW_framebuffer_bind(fbl->blur);
+	DRW_draw_pass(psl->outlines_blur4);
+
+	/* Combine with scene buffer */
+	DRW_framebuffer_bind(dfbl->default_fb);
+	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0);
+	DRW_draw_pass(psl->outlines_resolve);
 }
 
 void OBJECT_collection_settings_create(CollectionEngineSettings *ces)

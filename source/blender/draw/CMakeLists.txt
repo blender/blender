@@ -115,7 +115,8 @@ data_to_c_simple(modes/shaders/edit_overlay_facefill_vert.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_facefill_frag.glsl SRC)
 data_to_c_simple(modes/shaders/edit_normals_vert.glsl SRC)
 data_to_c_simple(modes/shaders/edit_normals_geom.glsl SRC)
-data_to_c_simple(modes/shaders/object_occluded_outline_frag.glsl SRC)
+data_to_c_simple(modes/shaders/object_outline_resolve_frag.glsl SRC)
+data_to_c_simple(modes/shaders/object_outline_expand_frag.glsl SRC)
 
 list(APPEND INC
 )
