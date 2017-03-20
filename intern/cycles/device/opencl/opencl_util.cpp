@@ -600,22 +600,18 @@ bool OpenCLInfo::device_supported(const string& platform_name,
                                   const cl_device_id device_id)
 {
 	cl_device_type device_type;
-	clGetDeviceInfo(device_id,
-	                CL_DEVICE_TYPE,
-	                sizeof(cl_device_type),
-	                &device_type,
-	                NULL);
-	char device_name[1024] = "\0";
-	clGetDeviceInfo(device_id,
-	                CL_DEVICE_NAME,
-	                sizeof(device_name),
-	                &device_name,
-	                NULL);
+	if(!get_device_type(device_id, &device_type)) {
+		return false;
+	}
+	string device_name;
+	if(!get_device_name(device_id, &device_name)) {
+		return false;
+	}
 	/* It is possible tyo have Iris GPU on AMD/Apple OpenCL framework
 	 * (aka, it will not be on Intel framework). This isn't supported
 	 * and needs an explicit blacklist.
 	 */
-	if(strstr(device_name, "Iris")) {
+	if(strstr(device_name.c_str(), "Iris")) {
 		return false;
 	}
 	if(platform_name == "AMD Accelerated Parallel Processing" &&
@@ -731,39 +727,30 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 		return;
 	}
 
+	cl_int error;
 	vector<cl_device_id> device_ids;
-	cl_uint num_devices = 0;
 	vector<cl_platform_id> platform_ids;
-	cl_uint num_platforms = 0;
 
-	/* Get devices. */
-	if(clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS ||
-	   num_platforms == 0)
-	{
+	/* Get platforms. */
+	if(!get_platforms(&platform_ids, &error)) {
+		FIRST_VLOG(2) << "Error fetching platforms:"
+		              << string(clewErrorString(error));
+		first_time = false;
+		return;
+	}
+	if(platform_ids.size() == 0) {
 		FIRST_VLOG(2) << "No OpenCL platforms were found.";
 		first_time = false;
 		return;
 	}
-	platform_ids.resize(num_platforms);
-	if(clGetPlatformIDs(num_platforms, &platform_ids[0], NULL) != CL_SUCCESS) {
-		FIRST_VLOG(2) << "Failed to fetch platform IDs from the driver..";
-		first_time = false;
-		return;
-	}
 	/* Devices are numbered consecutively across platforms. */
-	for(int platform = 0; platform < num_platforms; platform++) {
+	for(int platform = 0; platform < platform_ids.size(); platform++) {
 		cl_platform_id platform_id = platform_ids[platform];
-		char pname[256];
-		if(clGetPlatformInfo(platform_id,
-		                     CL_PLATFORM_NAME,
-		                     sizeof(pname),
-		                     &pname,
-		                     NULL) != CL_SUCCESS)
-		{
+		string platform_name;
+		if(!get_platform_name(platform_id, &platform_name)) {
 			FIRST_VLOG(2) << "Failed to get platform name, ignoring.";
 			continue;
 		}
-		string platform_name = pname;
 		FIRST_VLOG(2) << "Enumerating devices for platform "
 		              << platform_name << ".";
 		if(!platform_version_check(platform_id)) {
@@ -771,39 +758,28 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 			              << " due to too old compiler version.";
 			continue;
 		}
-		num_devices = 0;
-		cl_int ciErr;
-		if((ciErr = clGetDeviceIDs(platform_id,
-		                           device_type,
-		                           0,
-		                           NULL,
-		                           &num_devices)) != CL_SUCCESS || num_devices == 0)
+		if(!get_platform_devices(platform_id,
+		                         device_type,
+		                         &device_ids,
+		                         &error))
 		{
 			FIRST_VLOG(2) << "Ignoring platform " << platform_name
-			              << ", failed to fetch number of devices: " << string(clewErrorString(ciErr));
+			              << ", failed to fetch of devices: "
+			              << string(clewErrorString(error));
 			continue;
 		}
-		device_ids.resize(num_devices);
-		if(clGetDeviceIDs(platform_id,
-		                  device_type,
-		                  num_devices,
-		                  &device_ids[0],
-		                  NULL) != CL_SUCCESS)
-		{
+		if(device_ids.size() == 0) {
 			FIRST_VLOG(2) << "Ignoring platform " << platform_name
-			              << ", failed to fetch devices list.";
+			              << ", it has no devices.";
 			continue;
 		}
-		for(int num = 0; num < num_devices; num++) {
-			cl_device_id device_id = device_ids[num];
-			char device_name[1024] = "\0";
-			if(clGetDeviceInfo(device_id,
-			                   CL_DEVICE_NAME,
-			                   sizeof(device_name),
-			                   &device_name,
-			                   NULL) != CL_SUCCESS)
-			{
-				FIRST_VLOG(2) << "Failed to fetch device name, ignoring.";
+		for(int num = 0; num < device_ids.size(); num++) {
+			const cl_device_id device_id = device_ids[num];
+			string device_name;
+			if(!get_device_name(device_id, &device_name, &error)) {
+				FIRST_VLOG(2) << "Failed to fetch device name: "
+				              << string(clewErrorString(error))
+				              << ", ignoring.";
 				continue;
 			}
 			if(!device_version_check(device_id)) {
@@ -815,14 +791,10 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 			   device_supported(platform_name, device_id))
 			{
 				cl_device_type device_type;
-				if(clGetDeviceInfo(device_id,
-				                   CL_DEVICE_TYPE,
-				                   sizeof(cl_device_type),
-				                   &device_type,
-				                   NULL) != CL_SUCCESS)
-				{
+				if(!get_device_type(device_id, &device_type, &error)) {
 					FIRST_VLOG(2) << "Ignoring device " << device_name
-					              << ", failed to fetch device type.";
+					              << ", failed to fetch device type:"
+					              << string(clewErrorString(error));
 					continue;
 				}
 				FIRST_VLOG(2) << "Adding new device " << device_name << ".";
@@ -841,6 +813,237 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 		}
 	}
 	first_time = false;
+}
+
+bool OpenCLInfo::get_platforms(vector<cl_platform_id> *platform_ids,
+                               cl_int *error)
+{
+	/* Reset from possible previous state. */
+	platform_ids->resize(0);
+	cl_uint num_platforms;
+	if(!get_num_platforms(&num_platforms, error)) {
+		return false;
+	}
+	/* Get actual platforms. */
+	cl_int err;
+	platform_ids->resize(num_platforms);
+	if((err = clGetPlatformIDs(num_platforms,
+	                           &platform_ids->at(0),
+	                           NULL)) != CL_SUCCESS) {
+		if(error != NULL) {
+			*error = err;
+		}
+		return false;
+	}
+	if(error != NULL) {
+		*error = CL_SUCCESS;
+	}
+	return true;
+}
+
+vector<cl_platform_id> OpenCLInfo::get_platforms()
+{
+	vector<cl_platform_id> platform_ids;
+	get_platforms(&platform_ids);
+	return platform_ids;
+}
+
+bool OpenCLInfo::get_num_platforms(cl_uint *num_platforms, cl_int *error)
+{
+	cl_int err;
+	if((err = clGetPlatformIDs(0, NULL, num_platforms)) != CL_SUCCESS) {
+		if(error != NULL) {
+			*error = err;
+		}
+		*num_platforms = 0;
+		return false;
+	}
+	if(error != NULL) {
+		*error = CL_SUCCESS;
+	}
+	return true;
+}
+
+cl_uint OpenCLInfo::get_num_platforms()
+{
+	cl_uint num_platforms;
+	if(!get_num_platforms(&num_platforms)) {
+		return 0;
+	}
+	return num_platforms;
+}
+
+bool OpenCLInfo::get_platform_name(cl_platform_id platform_id,
+                                   string *platform_name)
+{
+	char buffer[256];
+	if(clGetPlatformInfo(platform_id,
+	                     CL_PLATFORM_NAME,
+	                     sizeof(buffer),
+	                     &buffer,
+	                     NULL) != CL_SUCCESS)
+	{
+		*platform_name = "";
+		return false;
+	}
+	*platform_name = buffer;
+	return true;
+}
+
+string OpenCLInfo::get_platform_name(cl_platform_id platform_id)
+{
+	string platform_name;
+	if (!get_platform_name(platform_id, &platform_name)) {
+		return "";
+	}
+	return platform_name;
+}
+
+bool OpenCLInfo::get_num_platform_devices(cl_platform_id platform_id,
+                                          cl_device_type device_type,
+                                          cl_uint *num_devices,
+                                          cl_int *error)
+{
+	cl_int err;
+	if((err = clGetDeviceIDs(platform_id,
+	                         device_type,
+	                         0,
+	                         NULL,
+	                         num_devices)) != CL_SUCCESS)
+	{
+		if(error != NULL) {
+			*error = err;
+		}
+		*num_devices = 0;
+		return false;
+	}
+	if(error != NULL) {
+		*error = CL_SUCCESS;
+	}
+	return true;
+}
+
+cl_uint OpenCLInfo::get_num_platform_devices(cl_platform_id platform_id,
+                                             cl_device_type device_type)
+{
+	cl_uint num_devices;
+	if(!get_num_platform_devices(platform_id,
+	                             device_type,
+	                             &num_devices))
+	{
+		return 0;
+	}
+	return num_devices;
+}
+
+bool OpenCLInfo::get_platform_devices(cl_platform_id platform_id,
+                                      cl_device_type device_type,
+                                      vector<cl_device_id> *device_ids,
+                                      cl_int* error)
+{
+	/* Reset from possible previous state. */
+	device_ids->resize(0);
+	/* Get number of devices to pre-allocate memory. */
+	cl_uint num_devices;
+	if(!get_num_platform_devices(platform_id,
+	                             device_type,
+	                             &num_devices,
+	                             error))
+	{
+		return false;
+	}
+	/* Get actual device list. */
+	device_ids->resize(num_devices);
+	cl_int err;
+	if((err = clGetDeviceIDs(platform_id,
+	                         device_type,
+	                         num_devices,
+	                         &device_ids->at(0),
+	                         NULL)) != CL_SUCCESS)
+	{
+		if(error != NULL) {
+			*error = err;
+		}
+		return false;
+	}
+	if(error != NULL) {
+		*error = CL_SUCCESS;
+	}
+	return true;
+}
+
+vector<cl_device_id> OpenCLInfo::get_platform_devices(cl_platform_id platform_id,
+                                                      cl_device_type device_type)
+{
+	vector<cl_device_id> devices;
+	get_platform_devices(platform_id, device_type, &devices);
+	return devices;
+}
+
+bool OpenCLInfo::get_device_name(cl_device_id device_id,
+                                 string *device_name,
+                                 cl_int* error)
+{
+	char buffer[1024];
+	cl_int err;
+	if((err = clGetDeviceInfo(device_id,
+	                          CL_DEVICE_NAME,
+	                          sizeof(buffer),
+	                          &buffer,
+	                          NULL)) != CL_SUCCESS)
+	{
+		if(error != NULL) {
+			*error = err;
+		}
+		*device_name = "";
+		return false;
+	}
+	if(error != NULL) {
+		*error = CL_SUCCESS;
+	}
+	*device_name = buffer;
+	return true;
+}
+
+string OpenCLInfo::get_device_name(cl_device_id device_id)
+{
+	string device_name;
+	if(!get_device_name(device_id, &device_name)) {
+		return "";
+	}
+	return device_name;
+}
+
+bool OpenCLInfo::get_device_type(cl_device_id device_id,
+                                 cl_device_type *device_type,
+                                 cl_int* error)
+{
+	cl_int err;
+	if((err = clGetDeviceInfo(device_id,
+	                          CL_DEVICE_TYPE,
+	                          sizeof(cl_device_type),
+	                          device_type,
+	                          NULL)) != CL_SUCCESS)
+	{
+		if(error != NULL) {
+			*error = err;
+		}
+		*device_type = 0;
+		return false;
+	}
+	if(error != NULL) {
+		*error = CL_SUCCESS;
+	}
+	return true;
+}
+
+cl_device_type OpenCLInfo::get_device_type(cl_device_id device_id)
+{
+	cl_device_type device_type;
+	if(!get_device_type(device_id, &device_type)) {
+		return 0;
+	}
+	return device_type;
 }
 
 CCL_NAMESPACE_END
