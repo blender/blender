@@ -1720,6 +1720,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		gpuMatrixBegin3D_legacy(); /* TODO(merwin): finish the 2D matrix API & use here */
 
 		unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		UNUSED_VARS(pos); /* silence warning */
 		BLI_assert(pos == POS_INDEX);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

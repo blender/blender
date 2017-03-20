@@ -1384,11 +1384,10 @@ static void outliner_add_collections_act_layer(SpaceOops *soops, SceneLayer *lay
 static void outliner_scene_collections_reorder(
         const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
-	SceneCollection *sc_master = BKE_collection_master(scene);
 	SceneCollection *sc_insert = insert_element->directdata;
 	SceneCollection *sc_handle = insert_handle->directdata;
 
-	BLI_assert((action == TE_INSERT_INTO) || (sc_handle != sc_master));
+	BLI_assert((action == TE_INSERT_INTO) || (sc_handle != BKE_collection_master(scene)));
 	if (action == TE_INSERT_BEFORE) {
 		BKE_collection_move_above(scene, sc_handle, sc_insert);
 	}
