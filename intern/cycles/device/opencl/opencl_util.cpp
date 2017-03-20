@@ -605,6 +605,19 @@ bool OpenCLInfo::device_supported(const string& platform_name,
 	                sizeof(cl_device_type),
 	                &device_type,
 	                NULL);
+	char device_name[1024] = "\0";
+	clGetDeviceInfo(device_id,
+	                CL_DEVICE_NAME,
+	                sizeof(device_name),
+	                &device_name,
+	                NULL);
+	/* It is possible tyo have Iris GPU on AMD/Apple OpenCL framework
+	 * (aka, it will not be on Intel framework). This isn't supported
+	 * and needs an explicit blacklist.
+	 */
+	if(strstr(device_name, "Iris")) {
+		return false;
+	}
 	if(platform_name == "AMD Accelerated Parallel Processing" &&
 	   device_type == CL_DEVICE_TYPE_GPU)
 	{
