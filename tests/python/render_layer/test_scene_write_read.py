@@ -35,6 +35,7 @@ class UnitTesting(RenderLayerTesting):
 
             # doversion + write test
             bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_layers)
+            self.rename_collections()
             bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=filepath_doversion)
 
             datas = query_scene(filepath_doversion, 'Main', data_callbacks)
@@ -54,6 +55,7 @@ class UnitTesting(RenderLayerTesting):
             if do_read:
                 # read test, simply open and save the file
                 bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_doversion)
+                self.rename_collections()
                 bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=filepath_saved)
 
                 datas = query_scene(filepath_saved, 'Main', data_callbacks)

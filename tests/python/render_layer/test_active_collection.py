@@ -30,6 +30,7 @@ class UnitTesting(RenderLayerTesting):
 
         # open file
         bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_layers)
+        self.rename_collections()
 
         # create sub-collections
         three_b = bpy.data.objects.get('T.3b')

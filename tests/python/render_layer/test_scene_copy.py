@@ -36,6 +36,7 @@ class UnitTesting(RenderLayerTesting):
             filepath_json = os.path.join(dirpath, "{0}.json".format(copy_mode))
 
             bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_layers)
+            self.rename_collections()
             bpy.ops.scene.new(type=copy_mode)
             bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=filepath_saved)
 

@@ -258,6 +258,7 @@ class RenderLayerTesting(unittest.TestCase):
 
             # open file
             bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_layers)
+            self.rename_collections()
 
             # create sub-collections
             three_b = bpy.data.objects.get('T.3b')
@@ -359,6 +360,25 @@ class RenderLayerTesting(unittest.TestCase):
         master_collection = scene.master_collection
         while master_collection.collections:
             master_collection.collections.remove(master_collection.collections[0])
+
+    def rename_collections(self, collection=None):
+        """
+        Rename 'Collection 1' to '1'
+        """
+        def strip_name(collection):
+            import re
+            if collection.name.startswith("Default Collection"):
+                collection.name = '1'
+            else:
+                collection.name = re.findall(r'\d+', collection.name)[0]
+
+        if collection is None:
+            import bpy
+            collection = bpy.context.scene.master_collection
+
+        for nested_collection in collection.collections:
+            strip_name(nested_collection)
+            self.rename_collections(nested_collection)
 
 
 class MoveSceneCollectionTesting(RenderLayerTesting):

@@ -75,6 +75,7 @@ class UnitTesting(RenderLayerTesting):
         ROOT = self.get_root()
         filepath_layers = os.path.join(ROOT, 'layers.blend')
         bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_layers)
+        self.rename_collections()
 
         # change the file
         three_b = bpy.data.objects.get('T.3b')
