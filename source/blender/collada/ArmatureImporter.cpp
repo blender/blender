@@ -322,10 +322,7 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 
 			if (len_squared_v3(vec) > MINIMUM_BONE_LENGTH)
 			{
-				pebone->tail[0] = cebone->head[0];
-				pebone->tail[1] = cebone->head[1];
-				pebone->tail[2] = cebone->head[2];
-
+				copy_v3_v3(pebone->tail, cebone->head);
 				if (pbe && pbe->get_chain_length() >= this->import_settings->min_chain_length) {
 					cebone->flag |= BONE_CONNECTED;
 					printf("Connecting chain: parent %s --> %s (child)\n", pebone->name, cebone->name);
