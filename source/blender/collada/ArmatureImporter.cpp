@@ -132,18 +132,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 
 	// create a bone even if there's no joint data for it (i.e. it has no influence)
 	if (!bone_is_skinned) {
-		float obmat[4][4];
-		// bone-space
-		get_node_mat(obmat, node, NULL, NULL);
-
-		// get world-space
-		if (parent) {
-			mul_m4_m4m4(mat, parent_mat, obmat);
-		}
-		else {
-			copy_m4_m4(mat, obmat);
-		}
-
+		get_node_mat(mat, node, NULL, NULL, parent_mat);
 	}
 
 	if (parent) bone->parent = parent;

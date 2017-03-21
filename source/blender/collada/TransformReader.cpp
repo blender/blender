@@ -34,7 +34,21 @@ TransformReader::TransformReader(UnitConverter *conv) : unit_converter(conv)
 	/* pass */
 }
 
-void TransformReader::get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob)
+void TransformReader::get_node_mat(
+	float mat[4][4],
+	COLLADAFW::Node *node,
+	std::map<COLLADAFW::UniqueId, Animation> *animation_map,
+	Object *ob)
+{
+	get_node_mat(mat, node, animation_map, ob, NULL);
+}
+
+void TransformReader::get_node_mat(
+	float mat[4][4],
+	COLLADAFW::Node *node,
+	std::map<COLLADAFW::UniqueId, Animation> *animation_map,
+	Object *ob,
+	float parent_mat[4][4])
 {
 	float cur[4][4];
 	float copy[4][4];
@@ -52,6 +66,9 @@ void TransformReader::get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::
 				// then this is considered as redundant information.
 				// So if we find a Matrix we use that and return.
 				dae_matrix_to_mat4(tm, mat);
+				if (parent_mat) {
+					mul_m4_m4m4(mat, parent_mat, mat);
+				}
 				return;
 			case COLLADAFW::Transformation::TRANSLATE:
 				dae_translate_to_mat4(tm, cur);
@@ -79,6 +96,10 @@ void TransformReader::get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::
 			Animation anim = {ob, node, tm};
 			(*animation_map)[anim_list_id] = anim;
 		}
+	}
+
+	if (parent_mat) {
+		mul_m4_m4m4(mat, parent_mat, mat);
 	}
 }
 

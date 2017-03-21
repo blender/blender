@@ -59,7 +59,8 @@ public:
 	TransformReader(UnitConverter *conv);
 
 	void get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob);
-	
+	void get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob, float parent_mat[4][4]);
+
 	void dae_rotate_to_mat4(COLLADAFW::Transformation *tm, float m[4][4]);
 	void dae_translate_to_mat4(COLLADAFW::Transformation *tm, float m[4][4]);
 	void dae_scale_to_mat4(COLLADAFW::Transformation *tm, float m[4][4]);
