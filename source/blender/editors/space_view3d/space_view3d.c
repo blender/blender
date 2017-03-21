@@ -59,8 +59,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_material.h"
 #include "GPU_viewport.h"
-
-#include "BIF_gl.h"
+#include "GPU_matrix.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -252,7 +251,7 @@ void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d)
 	/* we have to multiply instead of loading viewmatob to make
 	 * it work with duplis using displists, otherwise it will
 	 * override the dupli-matrix */
-	glMultMatrixf(ob->obmat);
+	gpuMultMatrix3D(ob->obmat);
 }
 
 #ifdef DEBUG
