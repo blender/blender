@@ -38,7 +38,7 @@ struct bContext;
 struct ColorManagedViewSettings;
 struct ColorManagedDisplaySettings;
 
-/* Several functions defined here are being DEPRECATED for Blender 2.8
+/* A few functions defined here are being DEPRECATED for Blender 2.8
  *
  * Do not use them in new code, and you are encouraged to
  * convert existing code to draw without these.
@@ -46,8 +46,6 @@ struct ColorManagedDisplaySettings;
  * These will be deleted before we ship 2.8!
  * - merwin
  */
-
-void fdrawline(float x1, float y1, float x2, float y2); /* DEPRECATED */
 
 /**
  * Draw a circle outline with the given \a radius.

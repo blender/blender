@@ -50,9 +50,6 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
 #include "BLF_api.h"
 
 #include "WM_api.h"
@@ -394,22 +391,6 @@ static void ui_offset_panel_block(uiBlock *block)
 }
 
 /**************************** drawing *******************************/
-
-/* extern used by previewrender */
-#if 0 /*UNUSED 2.5*/
-static void uiPanelPush(uiBlock *block)
-{
-	glPushMatrix(); 
-
-	if (block->panel)
-		glTranslatef((float)block->panel->ofsx, (float)block->panel->ofsy, 0.0);
-}
-
-static void uiPanelPop(uiBlock *UNUSED(block))
-{
-	glPopMatrix();
-}
-#endif
 
 /* triangle 'icon' for panel header */
 void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
