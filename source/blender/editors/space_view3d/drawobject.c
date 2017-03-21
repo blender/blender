@@ -6552,15 +6552,9 @@ static void draw_update_ptcache_edit(Scene *scene, SceneLayer *sl, Object *ob, P
 
 static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 {
-	ParticleCacheKey **cache, *path, *pkey;
-	PTCacheEditPoint *point;
-	PTCacheEditKey *key;
 	ParticleEditSettings *pset = PE_settings(scene);
-	int i, k, totpoint = edit->totpoint, timed = (pset->flag & PE_FADE_TIME) ? pset->fade_frames : 0;
-	int totkeys = 1;
-	float sel_col[3];
-	float nosel_col[3];
-	float *pathcol = NULL, *pcol;
+	const int totpoint = edit->totpoint;
+	const bool timed = (pset->flag & PE_FADE_TIME) ? pset->fade_frames : false;
 
 	if (edit->pathcache == NULL)
 		return;
@@ -6572,20 +6566,26 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		glDisable(GL_DEPTH_TEST);
 
 	/* get selection theme colors */
+	float sel_col[3], nosel_col[3];
 	UI_GetThemeColor3fv(TH_VERTEX_SELECT, sel_col);
 	UI_GetThemeColor3fv(TH_VERTEX, nosel_col);
 
 	/* draw paths */
-	totkeys = (*edit->pathcache)->segments + 1;
+	const int totkeys = (*edit->pathcache)->segments + 1;
 
 	glEnable(GL_BLEND);
-	pathcol = MEM_callocN(totkeys * 4 * sizeof(float), "particle path color data");
+	float *pathcol = MEM_callocN(totkeys * 4 * sizeof(float), "particle path color data");
 
 	if (pset->brushtype == PE_BRUSH_WEIGHT)
 		glLineWidth(2.0f);
 
-	cache = edit->pathcache;
+	ParticleCacheKey **cache = edit->pathcache;
+	PTCacheEditPoint *point;
+	int i;
+
 	for (i = 0, point = edit->points; i < totpoint; i++, point++) {
+		ParticleCacheKey *path = cache[i];
+
 		VertexFormat format = {0};
 		unsigned int pos_id, col_id, col_comp;
 
@@ -6597,12 +6597,12 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, path->segments + 1);
 
-		path = cache[i];
-
 		fillAttribStride(vbo, pos_id, sizeof(ParticleCacheKey), path->co);
 
+		float *pcol = pathcol;
+
 		if (point->flag & PEP_HIDE) {
-			for (k = 0, pcol = pathcol; k < totkeys; k++, pcol += 4) {
+			for (int k = 0; k < totkeys; k++, pcol += 4) {
 				copy_v3_v3(pcol, path->col);
 				pcol[3] = 0.25f;
 			}
@@ -6610,7 +6610,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 			fillAttrib(vbo, col_id, pathcol);
 		}
 		else if (timed) {
-			for (k = 0, pcol = pathcol, pkey = path; k < totkeys; k++, pkey++, pcol += 4) {
+			ParticleCacheKey *pkey = path;
+			for (int k = 0; k < totkeys; k++, pkey++, pcol += 4) {
 				copy_v3_v3(pcol, pkey->col);
 				pcol[3] = 1.0f - fabsf((float)(CFRA) -pkey->time) / (float)pset->fade_frames;
 			}
@@ -6629,8 +6630,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		Batch_discard_all(batch);
 	}
 
-	if (pathcol) { MEM_freeN(pathcol); pathcol = pcol = NULL; }
-
+	if (pathcol) { MEM_freeN(pathcol); pathcol = NULL; }
 
 	/* draw edit vertices */
 	if (pset->selectmode != SCE_SELECT_PATH) {
@@ -6660,7 +6660,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 				if (point->flag & PEP_HIDE)
 					continue;
 
-				for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
+				PTCacheEditKey *key = point->keys;
+				for (int k = 0; k < point->totkey; k++, key++) {
 					if (pd) {
 						copy_v3_v3(pd, key->co);
 						pd += 3;
@@ -6709,17 +6710,17 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		else if (pset->selectmode == SCE_SELECT_END) {
 			VertexFormat *format = immVertexFormat();
 			unsigned int pos_id = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			unsigned int col_id = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+			unsigned int col_id = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 			immBeginAtMost(GL_POINTS, totpoint);
 			for (i = 0, point = edit->points; i < totpoint; i++, point++) {
 				if ((point->flag & PEP_HIDE) == 0 && point->totkey) {
-					key = point->keys + point->totkey - 1;
+					PTCacheEditKey *key = point->keys + point->totkey - 1;
 					if ((key->flag & PEK_SELECT) != 0) {
-						immAttrib4f(col_id, sel_col[0], sel_col[1], sel_col[2], 1.0f);
+						immAttrib3fv(col_id, sel_col);
 					}
 					else {
-						immAttrib4f(col_id, nosel_col[0], nosel_col[1], nosel_col[2], 1.0f);
+						immAttrib3fv(col_id, nosel_col);
 					}
 					/* has to be like this.. otherwise selection won't work, have try glArrayElement later..*/
 					immVertex3fv(pos_id, (key->flag & PEK_USE_WCO) ? key->world_co : key->co);
