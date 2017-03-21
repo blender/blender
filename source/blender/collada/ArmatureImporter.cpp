@@ -32,6 +32,7 @@
 
 #include "COLLADAFWUniqueId.h"
 
+extern "C" {
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
@@ -39,6 +40,7 @@
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "ED_armature.h"
+}
 
 #include "ArmatureImporter.h"
 
