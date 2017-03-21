@@ -29,6 +29,7 @@
  *  \ingroup gpu
  */
 
+#define SUPPRESS_GENERIC_MATRIX_API
 #include "GPU_matrix.h"
 
 #include "BLI_math_matrix.h"

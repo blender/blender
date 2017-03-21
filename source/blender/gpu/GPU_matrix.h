@@ -143,4 +143,45 @@ bool gpuMatricesDirty(void); /* since last bind */
 }
 #endif
 
+
+#ifndef SUPPRESS_GENERIC_MATRIX_API
+/* make matrix inputs generic, to avoid warnings */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#  define gpuMultMatrix3D(x)  \
+	gpuMultMatrix3D(_Generic((x), \
+	        float *:      (const float (*)[4])(x), \
+	        float [16]:   (const float (*)[4])(x), \
+	        float (*)[4]: (const float (*)[4])(x), \
+	        float [4][4]: (const float (*)[4])(x), \
+	        const float *:      (const float (*)[4])(x), \
+	        const float [16]:   (const float (*)[4])(x), \
+	        const float (*)[4]: (const float (*)[4])(x), \
+	        const float [4][4]: (const float (*)[4])(x)) \
+)
+#  define gpuLoadMatrix3D(x)  \
+	gpuLoadMatrix3D(_Generic((x), \
+	        float *:      (const float (*)[4])(x), \
+	        float [16]:   (const float (*)[4])(x), \
+	        float (*)[4]: (const float (*)[4])(x), \
+	        float [4][4]: (const float (*)[4])(x), \
+	        const float *:      (const float (*)[4])(x), \
+	        const float [16]:   (const float (*)[4])(x), \
+	        const float (*)[4]: (const float (*)[4])(x), \
+	        const float [4][4]: (const float (*)[4])(x)) \
+)
+/* TODO: finish this in a simpler way --^ */
+#else
+#  define gpuMultMatrix3D(x)  gpuMultMatrix3D((const float (*)[4])(x))
+#  define gpuLoadMatrix3D(x)  gpuLoadMatrix3D((const float (*)[4])(x))
+
+#  define gpuMultMatrix2D(x)  gpuMultMatrix2D((const float (*)[3])(x))
+#  define gpuLoadMatrix2D(x)  gpuLoadMatrix2D((const float (*)[3])(x))
+
+#  define gpuGetModelViewMatrix3D(x)  gpuGetModelViewMatrix3D((float (*)[4])(x))
+#  define gpuGetProjectionMatrix3D(x)  gpuGetProjectionMatrix3D((float (*)[4])(x))
+#  define gpuGetModelViewProjectionMatrix3D(x)  gpuGetModelViewProjectionMatrix3D((float (*)[4])(x))
+#  define gpuGetNormalMatrix(x)  gpuGetNormalMatrix((float (*)[3])(x))
+#  define gpuGetNormalMatrixInverse(x)  gpuGetNormalMatrixInverse((float (*)[3])(x))
+#endif /* C11 */
+#endif /* SUPPRESS_GENERIC_MATRIX_API */
 #endif /* GPU_MATRIX_H */
