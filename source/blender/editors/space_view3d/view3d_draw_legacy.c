@@ -76,7 +76,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
@@ -103,6 +102,7 @@
 #include "GPU_extensions.h"
 #include "GPU_immediate.h"
 #include "GPU_select.h"
+#include "GPU_matrix.h"
 
 #include "view3d_intern.h"  /* own include */
 
@@ -752,13 +752,13 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 
 			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
+			gpuPushMatrix();
 			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
+			gpuPushMatrix();
 			ED_region_pixelspace(ar);
 
-			glTranslatef(centx, centy, 0.0);
-			glRotatef(RAD2DEGF(-bgpic->rotation), 0.0f, 0.0f, 1.0f);
+			gpuTranslate2f(centx, centy);
+			gpuRotate2D(RAD2DEGF(-bgpic->rotation));
 
 			if (bgpic->flag & V3D_BGPIC_FLIP_X) {
 				zoomx *= -1.0f;
@@ -775,9 +775,9 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			                 zoomx, zoomy, col);
 
 			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
+			gpuPopMatrix();
 			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
+			gpuPopMatrix();
 
 			glDisable(GL_BLEND);
 
@@ -1190,7 +1190,7 @@ void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	glLoadMatrixf(rv3d->viewmat);
+	gpuLoadMatrix3D(rv3d->viewmat);
 
 	v3d->zbuf = true;
 	glEnable(GL_DEPTH_TEST);
@@ -1228,7 +1228,7 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
-	glLoadMatrixf(rv3d->viewmat);
+	gpuLoadMatrix3D(rv3d->viewmat);
 	
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		ED_view3d_clipping_set(rv3d);
@@ -1586,9 +1586,9 @@ static void view3d_draw_objects(
 			VP_legacy_drawgrid(&scene->unit, ar, v3d, grid_unit);
 			/* XXX make function? replaces persp(1) */
 			glMatrixMode(GL_PROJECTION);
-			glLoadMatrixf(rv3d->winmat);
+			gpuLoadMatrix3D(rv3d->winmat); /* XXX make a gpuLoadProjectionMatrix function? */
 			glMatrixMode(GL_MODELVIEW);
-			glLoadMatrixf(rv3d->viewmat);
+			gpuLoadMatrix3D(rv3d->viewmat);
 		}
 		else if (!draw_grids_after) {
 			VP_legacy_drawfloor(scene, v3d, grid_unit, true);
@@ -1798,7 +1798,7 @@ void ED_view3d_draw_offscreen(
 	bool do_compositing = false;
 	RegionView3D *rv3d = ar->regiondata;
 
-	glPushMatrix();
+	gpuPushMatrix();
 
 	/* set temporary new size */
 	int bwinx = ar->winx;
@@ -1884,7 +1884,7 @@ void ED_view3d_draw_offscreen(
 	ar->winy = bwiny;
 	ar->winrct = brect;
 
-	glPopMatrix();
+	gpuPopMatrix();
 
 	UI_Theme_Restore(&theme_state);
 

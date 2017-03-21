@@ -58,9 +58,9 @@
 #include "ED_space_api.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_draw.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BLF_api.h"
 
@@ -123,7 +123,7 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct)
 void ED_region_pixelspace(ARegion *ar)
 {
 	wmOrtho2_region_pixelspace(ar);
-	glLoadIdentity();
+	gpuLoadIdentity();
 }
 
 /* only exported for WM */
@@ -455,8 +455,8 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glPushMatrix();
-	glTranslatef(-ar->winrct.xmin, -ar->winrct.ymin, 0.0f);
+	gpuPushMatrix();
+	gpuTranslate2f(-ar->winrct.xmin, -ar->winrct.ymin);
 	
 	for (az = sa->actionzones.first; az; az = az->next) {
 		/* test if action zone is over this region */
@@ -493,7 +493,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 		}
 	}
 
-	glPopMatrix();
+	gpuPopMatrix();
 
 	glDisable(GL_BLEND);
 }
@@ -2338,11 +2338,11 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, const rctf *frame,
 		return;
 
 	/* find window pixel coordinates of origin */
-	glPushMatrix();
+	gpuPushMatrix();
 
 	/* offset and zoom using ogl */
-	glTranslatef(x, y, 0.0f);
-	glScalef(zoomx, zoomy, 1.0f);
+	gpuTranslate2f(x, y);
+	gpuScale2f(zoomx, zoomy);
 
 	BLF_size(blf_mono_font, style->widgetlabel.points * 1.5f * U.pixelsize, U.dpi);
 
@@ -2396,7 +2396,7 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, const rctf *frame,
 		BLF_disable(blf_mono_font, BLF_CLIPPING);
 	}
 
-	glPopMatrix();
+	gpuPopMatrix();
 }
 
 void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)

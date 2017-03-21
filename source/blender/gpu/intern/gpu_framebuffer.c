@@ -225,9 +225,9 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 	GG.currentfb = fb->object;
 
 	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
+	gpuPushMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+	gpuPushMatrix();
 }
 
 void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
@@ -263,9 +263,9 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 	GG.currentfb = fb->object;
 
 	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
+	gpuPushMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+	gpuPushMatrix();
 }
 
 void GPU_framebuffer_bind(GPUFrameBuffer *fb)
@@ -310,9 +310,9 @@ void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUS
 {
 	/* restore matrix */
 	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+	gpuPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	gpuPopMatrix();
 
 	/* restore attributes */
 	glPopAttrib();

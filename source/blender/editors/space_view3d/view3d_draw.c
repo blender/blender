@@ -207,11 +207,10 @@ static void view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar
 	ED_view3d_update_viewmat(scene, v3d, ar, viewmat, winmat);
 
 	/* set for opengl */
-	/* TODO(merwin): transition to GPU_matrix API */
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(rv3d->winmat);
+	gpuLoadMatrix3D(rv3d->winmat); /* XXX make a gpuLoadProjectionMatrix function? */
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(rv3d->viewmat);
+	gpuLoadMatrix3D(rv3d->viewmat);
 }
 
 static bool view3d_stereo3d_active(const bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d)
@@ -773,9 +772,9 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 
 	/* background draw */
 	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
+	gpuPushMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+	gpuPushMatrix();
 	ED_region_pixelspace(ar);
 
 	if (clip_border) {
@@ -804,9 +803,9 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 	}
 
 	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+	gpuPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	gpuPopMatrix();
 
 	return true;
 }
@@ -1498,9 +1497,9 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 
 		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(rv3d->winmat);
+		gpuLoadMatrix3D(rv3d->winmat); /* XXX make a gpuLoadProjectionMatrix function? */
 		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(rv3d->viewmat);
+		gpuLoadMatrix3D(rv3d->viewmat);
 	}
 	else {
 		drawfloor(scene, v3d, &grid_unit, false);
@@ -1786,9 +1785,9 @@ Scene *scene, SceneLayer *sl, Object *ob, Base *base, View3D *v3d,
 RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 {
 	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
+	gpuPushMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+	gpuPushMatrix();
 
 	/* multiply view with object matrix.
 	* local viewmat and persmat, to calculate projections */
@@ -1834,9 +1833,9 @@ RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 	ED_view3d_clear_mats_rv3d(rv3d);
 
 	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+	gpuPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	gpuPopMatrix();
 }
 
 /* ******************** info ***************** */

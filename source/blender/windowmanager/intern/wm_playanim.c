@@ -64,6 +64,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_matrix.h"
+
 #include "DNA_scene_types.h"
 #include "ED_datafiles.h" /* for fonts */
 #include "GHOST_C-api.h"
@@ -191,8 +193,8 @@ static void playanim_gl_matrix(void)
 {
 	/* unified matrix, note it affects offset for drawing */
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
+	gpuLoadIdentity();
+	glOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f); /* XXX revisit this when 2D matrix API is complete */
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -355,11 +357,11 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 
 		fac = 2.0f * fac - 1.0f;
 		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
+		gpuPushMatrix();
+		gpuLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
+		gpuPushMatrix();
+		gpuLoadIdentity();
 
 		glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
 
@@ -368,9 +370,9 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		glVertex2f(fac, 1.0f);
 		glEnd();
 
-		glPopMatrix();
+		gpuPopMatrix();
 		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
+		gpuPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
 

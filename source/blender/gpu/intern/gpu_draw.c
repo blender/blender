@@ -78,6 +78,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
+#include "GPU_matrix.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
@@ -155,12 +156,12 @@ void GPU_render_text(
 			character = BLI_str_utf8_as_unicode_and_size_safe(textstr + index, &index);
 			
 			if (character == '\n') {
-				glTranslatef(line_start, -line_height, 0.0f);
+				gpuTranslate2f(line_start, -line_height);
 				line_start = 0.0f;
 				continue;
 			}
 			else if (character == '\t') {
-				glTranslatef(advance_tab, 0.0f, 0.0f);
+				gpuTranslate2f(advance_tab, 0.0f);
 				line_start -= advance_tab; /* so we can go back to the start of the line */
 				continue;
 				
@@ -209,10 +210,10 @@ void GPU_render_text(
 			}
 			glEnd();
 
-			glTranslatef(advance, 0.0f, 0.0f);
+			gpuTranslate2f(advance, 0.0f);
 			line_start -= advance; /* so we can go back to the start of the line */
 		}
-		glPopMatrix();
+		gpuPopMatrix();
 
 		BKE_image_release_ibuf(ima, first_ibuf, NULL);
 	}
@@ -419,7 +420,7 @@ void GPU_clear_tpage(bool force)
 	GTS.curima = NULL;
 	if (GTS.curtilemode != 0) {
 		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
+		gpuLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
 	}
 	GTS.curtilemode = 0;
@@ -603,10 +604,10 @@ int GPU_verify_image(
 	    GTS.curtileYRep != GTS.tileYRep)
 	{
 		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
+		gpuLoadIdentity();
 
 		if (ima && (ima->tpageflag & IMA_TILES))
-			glScalef(ima->xrep, ima->yrep, 1.0f);
+			gpuScale2f(ima->xrep, ima->yrep);
 
 		glMatrixMode(GL_MODELVIEW);
 	}
@@ -2095,7 +2096,7 @@ void GPU_end_object_materials(void)
 	/* resetting the texture matrix after the scaling needed for tiled textures */
 	if (GTS.tilemode) {
 		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
+		gpuLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
 	}
 }
@@ -2172,8 +2173,8 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 		Lamp *la = base->object->data;
 		
 		/* setup lamp transform */
-		glPushMatrix();
-		glLoadMatrixf((float *)viewmat);
+		gpuPushMatrix();
+		gpuLoadMatrix3D(viewmat);
 		
 		/* setup light */
 		GPULightData light = {0};
@@ -2207,7 +2208,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 		
 		GPU_basic_shader_light_set(count, &light);
 		
-		glPopMatrix();
+		gpuPopMatrix();
 		
 		count++;
 		if (count == 8)
@@ -2285,7 +2286,7 @@ void GPU_state_init(void)
 	glDepthRange(0.0, 1.0);
 
 	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
+	gpuLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 
 	glFrontFace(GL_CCW);
