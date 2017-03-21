@@ -44,6 +44,7 @@
 #include "BKE_depsgraph.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -263,13 +264,13 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	float xscale, yscale;
 	UI_view2d_scale_get(v2d, &xscale, &yscale);
-	glPushMatrix();
-	glScalef(1.0f / xscale, 1.0f, 1.0f);
+	gpuPushMatrix();
+	gpuScale2f(1.0f / xscale, 1.0f);
 
 	ED_region_cache_draw_curfra_label(sc->user.framenr, (float)sc->user.framenr * xscale, 18);
 
 	/* restore view transform */
-	glPopMatrix();
+	gpuPopMatrix();
 }
 
 void clip_draw_sfra_efra(View2D *v2d, Scene *scene)

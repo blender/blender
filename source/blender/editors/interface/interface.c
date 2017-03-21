@@ -56,7 +56,7 @@
 #include "BKE_screen.h"
 #include "BKE_idprop.h"
 
-#include "BIF_gl.h"
+#include "GPU_matrix.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -1378,10 +1378,10 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	
 	/* pixel space for AA widgets */
 	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
+	gpuPushMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+	gpuPushMatrix();
+	gpuLoadIdentity();
 
 	wmOrtho2_region_pixelspace(ar);
 	
@@ -1407,9 +1407,9 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	
 	/* restore matrix */
 	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+	gpuPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	gpuPopMatrix();
 
 	if (multisample_enabled)
 		glEnable(GL_MULTISAMPLE);

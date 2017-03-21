@@ -71,9 +71,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "GPU_glew.h"
 #include "GPU_compositing.h"
 #include "GPU_framebuffer.h"
+#include "GPU_matrix.h"
 
 #include "render_intern.h"
 
@@ -335,7 +335,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			wmOrtho2(0, sizex, 0, sizey);
-			glTranslatef(sizex / 2, sizey / 2, 0.0f);
+			gpuTranslate2f(sizex / 2, sizey / 2);
 
 			G.f |= G_RENDER_OGL;
 			ED_gpencil_draw_ex(scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);

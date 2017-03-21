@@ -56,10 +56,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -464,7 +464,8 @@ void ED_markers_draw(const bContext *C, int flag)
 	/* no time correction for framelen! space is drawn with old values */
 	ypixels = BLI_rcti_size_y(&v2d->mask);
 	UI_view2d_scale_get(v2d, &xscale, &yscale);
-	glScalef(1.0f / xscale, 1.0f, 1.0f);
+	gpuPushMatrix();
+	gpuScale2f(1.0f / xscale, 1.0f);
 
 	/* x-bounds with offset for text (adjust for long string, avoid checking string width) */
 	font_width_max = (10 * UI_DPI_FAC) / xscale;
@@ -487,7 +488,7 @@ void ED_markers_draw(const bContext *C, int flag)
 		}
 	}
 
-	glScalef(xscale, 1.0f, 1.0f);
+	gpuPopMatrix();
 }
 
 /* ************************ Marker Wrappers API ********************* */

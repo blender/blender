@@ -43,6 +43,7 @@
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -778,13 +779,13 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			unit_m4(imat);
 		}
 
-		glPushMatrix();
+		gpuPushMatrix();
 
 		if (t->spacetype == SPACE_VIEW3D) {
 			/* pass */
 		}
 		else if (t->spacetype == SPACE_IMAGE) {
-			glScalef(1.0f / t->aspect[0], 1.0f / t->aspect[1], 1.0f);
+			gpuScale2f(1.0f / t->aspect[0], 1.0f / t->aspect[1]);
 		}
 		else if (ELEM(t->spacetype, SPACE_IPO, SPACE_ACTION)) {
 			/* only scale y */
@@ -794,7 +795,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			float ysize = BLI_rctf_size_y(datamask);
 			float xmask = BLI_rcti_size_x(mask);
 			float ymask = BLI_rcti_size_y(mask);
-			glScalef(1.0f, (ysize / xsize) * (xmask / ymask), 1.0f);
+			gpuScale2f(1.0f, (ysize / xsize) * (xmask / ymask));
 		}
 
 		depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
@@ -815,7 +816,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		if (depth_test_enabled)
 			glEnable(GL_DEPTH_TEST);
 
-		glPopMatrix();
+		gpuPopMatrix();
 	}
 }
 

@@ -60,7 +60,7 @@
 
 #include "IMB_imbuf.h"
 
-#include "BIF_gl.h"
+#include "GPU_matrix.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1213,13 +1213,13 @@ static void clip_main_region_draw(const bContext *C, ARegion *ar)
 	show_cursor |= sc->around == V3D_AROUND_CURSOR;
 
 	if (show_cursor) {
-		glPushMatrix();
-		glTranslatef(x, y, 0);
-		glScalef(zoomx, zoomy, 0);
-		glMultMatrixf(sc->stabmat);
-		glScalef(width, height, 0);
+		gpuPushMatrix();
+		gpuTranslate2f(x, y);
+		gpuScale2f(zoomx, zoomy);
+		gpuMultMatrix3D(sc->stabmat); /* XXX make this a 2D matrix */
+		gpuScale2f(width, height);
 		ED_image_draw_cursor(ar, sc->cursor);
-		glPopMatrix();
+		gpuPopMatrix();
 	}
 
 	clip_draw_cache_and_notes(C, sc, ar);

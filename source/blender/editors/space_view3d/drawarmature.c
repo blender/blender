@@ -55,8 +55,6 @@
 #include "BKE_nla.h"
 #include "BKE_curve.h"
 
-
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "ED_armature.h"
@@ -405,7 +403,7 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);
 	}
 
-	gpuMatrixBegin3D_legacy();
+	gpuMatrixBegin3D_legacy(); /* TODO: replace Begin/End with Push/Pop */
 	gpuScale3f(xsize, ysize, zsize);
 
 	if (flat_color) {
@@ -452,7 +450,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
-	gpuMatrixBegin3D_legacy();
+	gpuMatrixBegin3D_legacy(); /* TODO: replace Begin/End with Push/Pop */
 	gpuScale3f(xsize, ysize, zsize);
 
 	Batch_use_program(&batch);
@@ -718,13 +716,13 @@ static void draw_bone_points(const short dt, int armflag, unsigned int boneflag,
 		}
 	}
 	
-	glTranslatef(0.0f, 1.0f, 0.0f);
+	gpuPushMatrix();
+	gpuTranslate2f(0.0f, 1.0f);
 	if (dt > OB_WIRE) 
 		draw_bonevert_solid();
 	else 
 		draw_bonevert();
-	glTranslatef(0.0f, -1.0f, 0.0f);
-	
+	gpuPopMatrix();
 }
 
 /* 16 values of sin function (still same result!) */
@@ -1374,18 +1372,16 @@ static void draw_b_bone_boxes(const short dt, bPoseChannel *pchan, EditBone *ebo
 		}
 		
 		for (a = 0; a < segments; a++) {
-			glPushMatrix();
-			glMultMatrixf(bbone[a].mat);
+			gpuPushMatrix();
+			gpuMultMatrix3D(bbone[a].mat);
 			if (dt == OB_SOLID) drawsolidcube_size(xwidth, dlen, zwidth);
 			else drawcube_size(xwidth, dlen, zwidth);
-			glPopMatrix();
+			gpuPopMatrix();
 		}
 	}
 	else {
-		glPushMatrix();
 		if (dt == OB_SOLID) drawsolidcube_size(xwidth, length, zwidth);
 		else drawcube_size(xwidth, length, zwidth);
-		glPopMatrix();
 	}
 }
 
@@ -1408,10 +1404,10 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 	/* draw points only if... */
 	if (armflag & ARM_EDITMODE) {
 		/* move to unitspace */
-		glPushMatrix();
-		glScalef(length, length, length);
+		gpuPushMatrix();
+		gpuScaleUniform(length);
 		draw_bone_points(dt, armflag, boneflag, id);
-		glPopMatrix();
+		gpuPopMatrix();
 		length *= 0.95f;  /* make vertices visible */
 	}
 
@@ -1535,11 +1531,11 @@ static void draw_wire_bone(const short dt, int armflag, int boneflag, short cons
 	/* draw points only if... */
 	if (armflag & ARM_EDITMODE) {
 		/* move to unitspace */
-		glPushMatrix();
-		glScalef(length, length, length);
+		gpuPushMatrix();
+		gpuScaleUniform(length);
 		flat_color = true;
 		draw_bone_points(dt, armflag, boneflag, id);
-		glPopMatrix();
+		gpuPopMatrix();
 		length *= 0.95f;  /* make vertices visible */
 	}
 	
@@ -1571,7 +1567,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 {
 	
 	/* Draw a 3d octahedral bone, we use normalized space based on length */
-	glScalef(length, length, length);
+	gpuScaleUniform(length);
 
 	/* set up solid drawing */
 	if (dt > OB_WIRE) {
@@ -1636,7 +1632,7 @@ static void draw_custom_bone(Scene *scene, SceneLayer *sl, View3D *v3d, RegionVi
 {
 	if (ob == NULL) return;
 	
-	glScalef(length, length, length);
+	gpuScaleUniform(length);
 	
 	/* colors for posemode */
 	if (armflag & ARM_POSEMODE) {
@@ -2030,13 +2026,13 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 			{
 				if (bone->layer & arm->layer) {
 					const bool use_custom = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
-					glPushMatrix();
+					gpuPushMatrix();
 					
 					if (use_custom && pchan->custom_tx) {
-						glMultMatrixf(pchan->custom_tx->pose_mat);
+						gpuMultMatrix3D(pchan->custom_tx->pose_mat);
 					}
 					else {
-						glMultMatrixf(pchan->pose_mat);
+						gpuMultMatrix3D(pchan->pose_mat);
 					}
 					
 					/* catch exception for bone with hidden parent */
@@ -2098,7 +2094,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 						}
 					}
 
-					glPopMatrix();
+					gpuPopMatrix();
 				}
 			}
 			
@@ -2134,13 +2130,13 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 				if (bone->layer & arm->layer) {
 					if (pchan->custom) {
 						if ((dt < OB_SOLID) || (bone->flag & BONE_DRAWWIRE)) {
-							glPushMatrix();
+							gpuPushMatrix();
 							
 							if (pchan->custom_tx) {
-								glMultMatrixf(pchan->custom_tx->pose_mat);
+								gpuMultMatrix3D(pchan->custom_tx->pose_mat);
 							}
 							else {
-								glMultMatrixf(pchan->pose_mat);
+								gpuMultMatrix3D(pchan->pose_mat);
 							}
 							
 							/* prepare colors */
@@ -2165,7 +2161,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 							draw_custom_bone(scene, sl, v3d, rv3d, pchan->custom,
 							                 OB_WIRE, arm->flag, flag, index, PCHAN_CUSTOM_DRAW_SIZE(pchan));
 							
-							glPopMatrix();
+							gpuPopMatrix();
 						}
 					}
 				}
@@ -2269,9 +2265,9 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 						}
 					}
 					
-					glPushMatrix();
+					gpuPushMatrix();
 					if (arm->drawtype != ARM_ENVELOPE)
-						glMultMatrixf(pchan->pose_mat);
+						gpuMultMatrix3D(pchan->pose_mat);
 					
 					/* catch exception for bone with hidden parent */
 					flag = bone->flag;
@@ -2308,7 +2304,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 					else
 						draw_bone(OB_WIRE, arm->flag, flag, constflag, index, bone->length);
 					
-					glPopMatrix();
+					gpuPopMatrix();
 				}
 			}
 			
@@ -2369,16 +2365,16 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 						
 						/*	Draw additional axes on the bone tail  */
 						if ((arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE)) {
-							glPushMatrix();
+							gpuPushMatrix();
 							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
-							glMultMatrixf(bmat);
+							gpuMultMatrix3D(bmat);
 							
 							float viewmat_pchan[4][4];
 							mul_m4_m4m4(viewmat_pchan, rv3d->viewmatob, bmat);
 							drawaxes(viewmat_pchan, pchan->bone->length * 0.25f, OB_ARROWS, col);
 							
-							glPopMatrix();
+							gpuPopMatrix();
 						}
 					}
 				}
@@ -2444,9 +2440,9 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 		for (eBone = arm->edbo->first, index = 0; eBone; eBone = eBone->next, index++) {
 			if (eBone->layer & arm->layer) {
 				if ((eBone->flag & BONE_HIDDEN_A) == 0) {
-					glPushMatrix();
+					gpuPushMatrix();
 					get_matrix_editbone(eBone, bmat);
-					glMultMatrixf(bmat);
+					gpuMultMatrix3D(bmat);
 					
 					/* catch exception for bone with hidden parent */
 					flag = eBone->flag;
@@ -2468,7 +2464,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 						draw_bone(OB_SOLID, arm->flag, flag, 0, index, eBone->length);
 					}
 					
-					glPopMatrix();
+					gpuPopMatrix();
 				}
 			}
 		}
@@ -2506,9 +2502,9 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 						draw_sphere_bone_wire(smat, imat, arm->flag, flag, 0, index, NULL, eBone);
 				}
 				else {
-					glPushMatrix();
+					gpuPushMatrix();
 					get_matrix_editbone(eBone, bmat);
-					glMultMatrixf(bmat);
+					gpuMultMatrix3D(bmat);
 					
 					if (arm->drawtype == ARM_LINE) 
 						draw_line_bone(arm->flag, flag, 0, index, NULL, eBone);
@@ -2519,7 +2515,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 					else
 						draw_bone(OB_WIRE, arm->flag, flag, 0, index, eBone->length);
 					
-					glPopMatrix();
+					gpuPopMatrix();
 				}
 				
 				/* offset to parent */
@@ -2582,16 +2578,16 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 						}
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
-							glPushMatrix();
+							gpuPushMatrix();
 							get_matrix_editbone(eBone, bmat);
 							bone_matrix_translate_y(bmat, eBone->length);
-							glMultMatrixf(bmat);
+							gpuMultMatrix3D(bmat);
 
 							float viewmat_ebone[4][4];
 							mul_m4_m4m4(viewmat_ebone, rv3d->viewmatob, bmat);
 							drawaxes(viewmat_ebone, eBone->length * 0.25f, OB_ARROWS, col);
 							
-							glPopMatrix();
+							gpuPopMatrix();
 						}
 						
 					}

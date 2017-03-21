@@ -50,6 +50,7 @@
 
 #include "GPU_basic_shader.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "UI_interface.h"
 
@@ -568,12 +569,12 @@ void glaDefine2DArea(rcti *screen_rect)
 	 */
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	gpuLoadIdentity();
 	glOrtho(0.0, sc_w, 0.0, sc_h, -1, 1);
-	glTranslatef(GLA_PIXEL_OFS, GLA_PIXEL_OFS, 0.0);
+	gpuTranslate2f(GLA_PIXEL_OFS, GLA_PIXEL_OFS);
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	gpuLoadIdentity();
 }
 
 /* TODO(merwin): put the following 2D code to use, or build new 2D code inspired & informd by it */
@@ -684,9 +685,9 @@ void glaEnd2DDraw(gla2DDrawInfo *di)
 	glViewport(di->orig_vp[0], di->orig_vp[1], di->orig_vp[2], di->orig_vp[3]);
 	glScissor(di->orig_vp[0], di->orig_vp[1], di->orig_vp[2], di->orig_vp[3]);
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(di->orig_projmat);
+	gpuLoadMatrix3D(di->orig_projmat);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(di->orig_viewmat);
+	gpuLoadMatrix3D(di->orig_viewmat);
 
 	MEM_freeN(di);
 }
@@ -743,14 +744,14 @@ void bglPolygonOffset(float viewdist, float dist)
 		winmat[14] -= offs;
 		offset += offs;
 		
-		glLoadMatrixf(winmat);
+		gpuLoadMatrix3D(winmat);
 		glMatrixMode(GL_MODELVIEW);
 	}
 	else {
 		glMatrixMode(GL_PROJECTION);
 		winmat[14] += offset;
 		offset = 0.0;
-		glLoadMatrixf(winmat);
+		gpuLoadMatrix3D(winmat);
 		glMatrixMode(GL_MODELVIEW);
 	}
 }

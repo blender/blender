@@ -138,7 +138,7 @@ void GPU_render_text(
 		else if (!col)
 			glColor3f(1.0f, 1.0f, 1.0f);
 
-		glPushMatrix();
+		gpuPushMatrix();
 		
 		/* get the tab width */
 		ImBuf *first_ibuf = BKE_image_get_first_ibuf(ima);

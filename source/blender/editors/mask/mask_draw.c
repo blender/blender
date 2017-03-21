@@ -55,6 +55,7 @@
 #include "GPU_immediate.h"
 #include "GPU_draw.h"
 #include "GPU_shader.h"
+#include "GPU_matrix.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -762,17 +763,17 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 			glBlendFunc(GL_DST_COLOR, GL_ZERO);
 		}
 
-		glPushMatrix();
-		glTranslatef(x, y, 0);
-		glScalef(zoomx, zoomy, 0);
+		gpuPushMatrix();
+		gpuTranslate2f(x, y);
+		gpuScale2f(zoomx, zoomy);
 		if (stabmat) {
-			glMultMatrixf((const float *) stabmat);
+			gpuMultMatrix3D(stabmat); /* XXX make this a 2D matrix */
 		}
 		GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 		GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
 		immDrawPixelsTex(0.0f, 0.0f, width, height, GL_RED, GL_FLOAT, GL_NEAREST, buffer, 1.0f, 1.0f, NULL);
 
-		glPopMatrix();
+		gpuPopMatrix();
 
 		if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
 			glDisable(GL_BLEND);
@@ -782,14 +783,14 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	}
 
 	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
-	glPushMatrix();
+	gpuPushMatrix();
 
 	if (stabmat) {
-		glMultMatrixf((const float *) stabmat);
+		gpuMultMatrix3D(stabmat); /* XXX make this a 2D matrix */
 	}
 
-	glTranslatef(x + xofs, y + yofs, 0);
-	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
+	gpuTranslate2f(x + xofs, y + yofs);
+	gpuScale2f(maxdim * zoomx, maxdim * zoomy);
 
 	if (do_draw_cb) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
@@ -802,7 +803,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	}
 
-	glPopMatrix();
+	gpuPopMatrix();
 }
 
 void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra, const int efra)

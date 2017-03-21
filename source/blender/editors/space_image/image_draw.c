@@ -63,6 +63,7 @@
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "BLF_api.h"
 
@@ -114,15 +115,14 @@ static void draw_render_info(const bContext *C,
 			int x, y;
 			UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
-			glPushMatrix();
-			glTranslatef(x, y, 0.0f);
-			glScalef(zoomx, zoomy, 1.0f);
+			gpuPushMatrix();
+			gpuTranslate2f(x, y);
+			gpuScale2f(zoomx, zoomy);
 
 			if (rd->mode & R_BORDER) {
 				/* TODO: round or floor instead of casting to int */
-				glTranslatef((int)(-rd->border.xmin * rd->xsch * rd->size * 0.01f),
-				             (int)(-rd->border.ymin * rd->ysch * rd->size * 0.01f),
-				             0.0f);
+				gpuTranslate2f((int)(-rd->border.xmin * rd->xsch * rd->size * 0.01f),
+				               (int)(-rd->border.ymin * rd->ysch * rd->size * 0.01f));
 			}
 
 			unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
@@ -142,7 +142,7 @@ static void draw_render_info(const bContext *C,
 				MEM_freeN(tiles);
 			}
 
-			glPopMatrix();
+			gpuPopMatrix();
 		}
 	}
 }
