@@ -809,11 +809,3 @@ bool gpuMatricesDirty(void)
 {
 	return state.dirty;
 }
-
-#if SUPPORT_LEGACY_MATRIX
-void gpuMatrixUpdate_legacy(void)
-{
-	BLI_assert(state.mode == MATRIX_MODE_INACTIVE);
-	state.dirty = true;
-}
-#endif

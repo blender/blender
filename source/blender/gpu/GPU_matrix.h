@@ -132,9 +132,6 @@ const float *gpuGetNormalMatrixInverse(float m[3][3]);
 #if SUPPORT_LEGACY_MATRIX
 /* copy top matrix from each legacy stack into new fresh stack */
 void gpuMatrixBegin3D_legacy(void);
-
-/* call after using glScale, glTranslate, etc. between draw calls */
-void gpuMatrixUpdate_legacy(void);
 #endif
 
 
