@@ -83,7 +83,7 @@ ccl_device_forceinline float3 mf_sample_vndf(const float3 wi, const float2 alpha
 	const float3 wi_11 = normalize(make_float3(alpha.x*wi.x, alpha.y*wi.y, wi.z));
 	const float2 slope_11 = mf_sampleP22_11(wi_11.z, randU);
 
-	const float2 cossin_phi = safe_normalize(make_float2(wi_11.x, wi_11.y));
+	const float3 cossin_phi = safe_normalize(make_float3(wi_11.x, wi_11.y, 0.0f));
 	const float slope_x = alpha.x*(cossin_phi.x * slope_11.x - cossin_phi.y * slope_11.y);
 	const float slope_y = alpha.y*(cossin_phi.y * slope_11.x + cossin_phi.x * slope_11.y);
 
