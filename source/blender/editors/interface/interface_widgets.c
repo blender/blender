@@ -47,7 +47,6 @@
 
 #include "RNA_access.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "BLF_api.h"
@@ -234,9 +233,9 @@ void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float m
 	draw_color[3] *= 0.125f;
 	
 	for (j = 0; j < WIDGET_AA_JITTER; j++) {
-		glTranslate2fv(jit[j]);
+		gpuTranslate2fv(jit[j]);
 		UI_draw_roundbox_gl_mode(mode, minx, miny, maxx, maxy, rad, draw_color);
-		glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
+		gpuTranslate2f(-jit[j][0], -jit[j][1]);
 	}
 
 	glDisable(GL_BLEND);

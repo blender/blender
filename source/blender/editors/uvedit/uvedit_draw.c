@@ -52,10 +52,10 @@
 
 #include "BKE_scene.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
@@ -79,7 +79,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	x_fac = zoom[0];
 	y_fac = zoom[1];
 
-	glTranslate2fv(cursor);
+	gpuTranslate2fv(cursor);
 
 	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
@@ -140,7 +140,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 
 	immUnbindProgram();
 
-	glTranslatef(-cursor[0], -cursor[1], 0.0);
+	gpuTranslate2f(-cursor[0], -cursor[1]);
 	setlinestyle(0);
 }
 

@@ -935,11 +935,11 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 		}
 
 		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
+		gpuPushMatrix();
 		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
+		gpuPushMatrix();
 		wmOrtho2_region_pixelspace(ar);
-		glLoadIdentity();
+		gpuLoadIdentity();
 		
 		if (depth_write) {
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
@@ -974,9 +974,9 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 		}
 		
 		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
+		gpuPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
+		gpuPopMatrix();
 
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			ED_view3d_clipping_enable();
@@ -1679,7 +1679,7 @@ static void draw_viewport_object_reconstruction(
 	if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0)
 		mul_v3_fl(camera_size, tracking_object->scale);
 
-	glPushMatrix();
+	gpuPushMatrix();
 
 	if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
 		/* current ogl matrix is translated in camera space, bundles should
@@ -1687,8 +1687,8 @@ static void draw_viewport_object_reconstruction(
 		 * from current ogl matrix */
 		invert_m4_m4(imat, base->object->obmat);
 
-		glMultMatrixf(imat);
-		glMultMatrixf(mat);
+		gpuMultMatrix3D(imat);
+		gpuMultMatrix3D(mat);
 	}
 	else {
 		float obmat[4][4];
@@ -1697,7 +1697,7 @@ static void draw_viewport_object_reconstruction(
 		BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, obmat);
 
 		invert_m4_m4(imat, obmat);
-		glMultMatrixf(imat);
+		gpuMultMatrix3D(imat);
 	}
 
 	for (track = tracksbase->first; track; track = track->next) {
@@ -1712,11 +1712,11 @@ static void draw_viewport_object_reconstruction(
 		if (dflag & DRAW_PICKING)
 			GPU_select_load_id(base->selcol + (tracknr << 16));
 
-		glPushMatrix();
-		glTranslate3fv(track->bundle_pos);
-		glScalef(v3d->bundle_size / 0.05f / camera_size[0],
-		         v3d->bundle_size / 0.05f / camera_size[1],
-		         v3d->bundle_size / 0.05f / camera_size[2]);
+		gpuPushMatrix();
+		gpuTranslate3fv(track->bundle_pos);
+		gpuScale3f(v3d->bundle_size / 0.05f / camera_size[0],
+		           v3d->bundle_size / 0.05f / camera_size[1],
+		           v3d->bundle_size / 0.05f / camera_size[2]);
 
 		const int v3d_drawtype = view3d_effective_drawtype(v3d);
 		if (v3d_drawtype == OB_WIRE) {
@@ -1738,7 +1738,7 @@ static void draw_viewport_object_reconstruction(
 			if (v3d->bundle_drawtype == OB_EMPTY_SPHERE) {
 				Batch *batch;
 
-				glScalef(0.05f, 0.05f, 0.05f);
+				gpuScaleUniform(0.05f);
 
 				/* selection outline */
 				if (selected) {
@@ -1796,7 +1796,7 @@ static void draw_viewport_object_reconstruction(
 			}
 		}
 
-		glPopMatrix();
+		gpuPopMatrix();
 
 		if ((dflag & DRAW_PICKING) == 0 && (v3d->flag2 & V3D_SHOW_BUNDLENAME)) {
 			float pos[3];
@@ -1836,7 +1836,7 @@ static void draw_viewport_object_reconstruction(
 		}
 	}
 
-	glPopMatrix();
+	gpuPopMatrix();
 
 	*global_track_index = tracknr;
 }
@@ -5946,7 +5946,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	if ((ob->flag & OB_FROMGROUP) != 0) {
 		float mat[4][4];
 		mul_m4_m4m4(mat, ob->obmat, psys->imat);
-		glMultMatrixf(mat);
+		gpuMultMatrix3D(mat);
 	}
 
 	/* needed for text display */
@@ -6536,7 +6536,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 
 	if ((ob->flag & OB_FROMGROUP) != 0) {
-		glLoadMatrixf(rv3d->viewmat);
+		gpuLoadMatrix3D(rv3d->viewmat);
 	}
 }
 
@@ -8856,12 +8856,12 @@ afterdraw:
 				if ((sb = ob->soft)) {
 					if (sb->solverflags & SBSO_ESTIMATEIPO) {
 
-						glLoadMatrixf(rv3d->viewmat);
+						gpuLoadMatrix3D(rv3d->viewmat);
 						copy_m3_m3(msc, sb->lscale);
 						copy_m3_m3(mrt, sb->lrot);
 						mul_m3_m3m3(mtr, mrt, msc);
 						ob_draw_RE_motion(sb->lcom, mtr, tipw, tiph, drawsize);
-						glMultMatrixf(ob->obmat);
+						gpuMultMatrix3D(ob->obmat);
 					}
 				}
 			}
@@ -8886,7 +8886,7 @@ afterdraw:
 		}
 		//glDepthMask(GL_FALSE);
 
-		glLoadMatrixf(rv3d->viewmat);
+		gpuLoadMatrix3D(rv3d->viewmat);
 		
 		view3d_cached_text_draw_begin();
 
@@ -8903,7 +8903,7 @@ afterdraw:
 		invert_m4_m4(ob->imat, ob->obmat);
 		view3d_cached_text_draw_end(v3d, ar, 0, NULL);
 
-		glMultMatrixf(ob->obmat);
+		gpuMultMatrix3D(ob->obmat);
 		
 		//glDepthMask(GL_TRUE);
 		if (col) cpack(col);
@@ -8917,10 +8917,10 @@ afterdraw:
 		if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
 			PTCacheEdit *edit = PE_create_current(scene, ob);
 			if (edit) {
-				glLoadMatrixf(rv3d->viewmat);
+				gpuLoadMatrix3D(rv3d->viewmat);
 				draw_update_ptcache_edit(scene, sl, ob, edit);
 				draw_ptcache_edit(scene, v3d, edit);
-				glMultMatrixf(ob->obmat);
+				gpuMultMatrix3D(ob->obmat);
 			}
 		}
 	}
@@ -8931,8 +8931,8 @@ afterdraw:
 		const bool show_smoke = (CFRA >= sds->point_cache[0]->startframe);
 		float viewnormal[3];
 
-		glLoadMatrixf(rv3d->viewmat);
-		glMultMatrixf(ob->obmat);
+		gpuLoadMatrix3D(rv3d->viewmat);
+		gpuMultMatrix3D(ob->obmat);
 
 		if (!render_override) {
 			BoundBox bb;
@@ -9099,7 +9099,7 @@ afterdraw:
 	/* return warning, clear temp flag */
 	v3d->flag2 &= ~V3D_SHOW_SOLID_MATCAP;
 	
-	glLoadMatrixf(rv3d->viewmat);
+	gpuLoadMatrix3D(rv3d->viewmat);
 
 	if (zbufoff) {
 		glDisable(GL_DEPTH_TEST);
@@ -9554,7 +9554,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 {
 	ToolSettings *ts = scene->toolsettings;
 
-	glMultMatrixf(ob->obmat);
+	gpuMultMatrix3D(ob->obmat);
 
 	glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -9614,7 +9614,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			break;
 	}
 
-	glLoadMatrixf(rv3d->viewmat);
+	gpuLoadMatrix3D(rv3d->viewmat);
 }
 
 

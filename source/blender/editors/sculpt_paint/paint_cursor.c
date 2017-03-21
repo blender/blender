@@ -53,7 +53,6 @@
 
 #include "WM_api.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "IMB_imbuf_types.h"
@@ -61,6 +60,7 @@
 #include "ED_view3d.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_basic_shader.h"
 
 #include "UI_resources.h"
@@ -606,21 +606,20 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		glDepthFunc(GL_ALWAYS);
 
 		glMatrixMode(GL_TEXTURE);
-		glPushMatrix();
-		glLoadIdentity();
+		gpuPushMatrix();
+		gpuLoadIdentity();
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* brush rotation */
-			glTranslatef(0.5, 0.5, 0);
-			glRotatef((double)RAD2DEGF((primary) ? ups->brush_rotation : ups->brush_rotation_sec),
-			          0.0, 0.0, 1.0);
-			glTranslatef(-0.5f, -0.5f, 0);
+			gpuTranslate2f(0.5, 0.5);
+			gpuRotate2D(RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
+			gpuTranslate2f(-0.5f, -0.5f);
 
 			/* scale based on tablet pressure */
 			if (primary && ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
-				glTranslatef(0.5f, 0.5f, 0);
-				glScalef(1.0f / ups->size_pressure_value, 1.0f / ups->size_pressure_value, 1);
-				glTranslatef(-0.5f, -0.5f, 0);
+				gpuTranslate2f(0.5f, 0.5f);
+				gpuScaleUniform(1.0f / ups->size_pressure_value);
+				gpuTranslate2f(-0.5f, -0.5f);
 			}
 
 			if (ups->draw_anchored) {
@@ -659,12 +658,12 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 				quad.ymax = brush->mask_stencil_dimension[1];
 			}
 			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
+			gpuPushMatrix();
 			if (primary)
-				glTranslate2fv(brush->stencil_pos);
+				gpuTranslate2fv(brush->stencil_pos);
 			else
-				glTranslate2fv(brush->mask_stencil_pos);
-			glRotatef(RAD2DEGF(mtex->rot), 0, 0, 1);
+				gpuTranslate2fv(brush->mask_stencil_pos);
+			gpuRotate2D(RAD2DEGF(mtex->rot));
 			glMatrixMode(GL_TEXTURE);
 		}
 
@@ -688,11 +687,11 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		glVertex2f(quad.xmin, quad.ymax);
 		glEnd();
 
-		glPopMatrix();
+		gpuPopMatrix();
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
 			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
+			gpuPopMatrix();
 		}
 	}
 }
@@ -740,11 +739,11 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		/* scale based on tablet pressure */
 		if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
 			do_pop = true;
-			glPushMatrix();
-			glLoadIdentity();
-			glTranslate2fv(center);
-			glScalef(ups->size_pressure_value, ups->size_pressure_value, 1);
-			glTranslatef(-center[0], -center[1], 0);
+			gpuPushMatrix();
+			gpuLoadIdentity();
+			gpuTranslate2fv(center);
+			gpuScaleUniform(ups->size_pressure_value);
+			gpuTranslate2f(-center[0], -center[1]);
 		}
 
 		glColor4f(U.sculpt_paint_overlay_col[0],
@@ -765,7 +764,7 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		glEnd();
 
 		if (do_pop)
-			glPopMatrix();
+			gpuPopMatrix();
 	}
 }
 
