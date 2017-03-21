@@ -383,7 +383,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
-				uint lcg_state = lcg_state_init(rng, state, 0x68bc21eb);
+				uint lcg_state = lcg_state_init(rng, state->rng_offset, state->sample, 0x68bc21eb);
 
 				float bssrdf_u, bssrdf_v;
 				path_state_rng_2D(kg,
@@ -476,7 +476,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			}
 
 			extmax = kernel_data.curve.maximum_width;
-			lcg_state = lcg_state_init(rng, &state, 0x51633e2d);
+			lcg_state = lcg_state_init(rng, state.rng_offset, state.sample, 0x51633e2d);
 		}
 
 		if(state.bounce > kernel_data.integrator.ao_bounces) {

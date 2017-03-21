@@ -197,7 +197,7 @@ ccl_device bool kernel_branched_path_surface_bounce(KernelGlobals *kg, RNG *rng,
 #endif
 
 /* path tracing: connect path directly to position on a light and add it to L */
-ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_addr_space RNG *rng,
+ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, RNG *rng,
 	ShaderData *sd, ShaderData *emission_sd, float3 throughput, ccl_addr_space PathState *state,
 	PathRadiance *L)
 {
@@ -254,7 +254,7 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_
 
 /* path tracing: bounce off or through surface to with new direction stored in ray */
 ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
-                                           ccl_addr_space RNG *rng,
+                                           RNG *rng,
                                            ShaderData *sd,
                                            ccl_addr_space float3 *throughput,
                                            ccl_addr_space PathState *state,

@@ -72,7 +72,7 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 		}
 
 		extmax = kernel_data.curve.maximum_width;
-		lcg_state = lcg_state_init(&rng, &state, 0x51633e2d);
+		lcg_state = lcg_state_init(&rng, state.rng_offset, state.sample, 0x51633e2d);
 	}
 
 	if(state.bounce > kernel_data.integrator.ao_bounces) {

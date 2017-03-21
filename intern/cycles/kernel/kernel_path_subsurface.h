@@ -28,7 +28,7 @@ bool kernel_path_subsurface_scatter(
         ShaderData *emission_sd,
         PathRadiance *L,
         ccl_addr_space PathState *state,
-        ccl_addr_space RNG *rng,
+        RNG *rng,
         ccl_addr_space Ray *ray,
         ccl_addr_space float3 *throughput,
         ccl_addr_space SubsurfaceIndirectRays *ss_indirect)
@@ -47,7 +47,7 @@ bool kernel_path_subsurface_scatter(
 		 */
 		kernel_assert(!ss_indirect->tracing);
 
-		uint lcg_state = lcg_state_init_addrspace(rng, state, 0x68bc21eb);
+		uint lcg_state = lcg_state_init(rng, state->rng_offset, state->sample, 0x68bc21eb);
 
 		SubsurfaceIntersection ss_isect;
 		float bssrdf_u, bssrdf_v;

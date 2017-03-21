@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void kernel_path_volume_connect_light(
         KernelGlobals *kg,
-        ccl_addr_space RNG *rng,
+        RNG *rng,
         ShaderData *sd,
         ShaderData *emission_sd,
         float3 throughput,
@@ -69,7 +69,7 @@ ccl_device
 #endif
 bool kernel_path_volume_bounce(
     KernelGlobals *kg,
-    ccl_addr_space RNG *rng,
+    RNG *rng,
     ShaderData *sd,
     ccl_addr_space float3 *throughput,
     ccl_addr_space PathState *state,

@@ -151,7 +151,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 			continue;
 
 		/* set up random number generator */
-		uint lcg_state = lcg_state_init(rng, state, 0x68bc21eb);
+		uint lcg_state = lcg_state_init(rng, state->rng_offset, state->sample, 0x68bc21eb);
 		int num_samples = kernel_data.integrator.subsurface_samples;
 		float num_samples_inv = 1.0f/num_samples;
 		RNG bssrdf_rng = cmj_hash(*rng, i);
@@ -285,7 +285,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 			}
 
 			extmax = kernel_data.curve.maximum_width;
-			lcg_state = lcg_state_init(rng, &state, 0x51633e2d);
+			lcg_state = lcg_state_init(rng, state.rng_offset, state.sample, 0x51633e2d);
 		}
 
 		bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);

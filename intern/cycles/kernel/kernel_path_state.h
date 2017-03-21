@@ -19,7 +19,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline void path_state_init(KernelGlobals *kg,
                                        ShaderData *stack_sd,
                                        ccl_addr_space PathState *state,
-                                       ccl_addr_space RNG *rng,
+                                       RNG *rng,
                                        int sample,
                                        ccl_addr_space Ray *ray)
 {
