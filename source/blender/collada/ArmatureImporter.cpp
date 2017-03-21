@@ -159,10 +159,11 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	int use_connect = be.get_use_connect();
 
 	switch (use_connect) {
-	case 1:  bone->flag |= BONE_CONNECTED;
-			 break;
-	case 0:  bone->flag &= ~BONE_CONNECTED;
-	case -1: break; // not defined
+		case 1: bone->flag |= BONE_CONNECTED;
+			break;
+		case -1:/* Connect type not specified */
+		case 0: bone->flag &= ~BONE_CONNECTED;
+			break;
 	}
 
 	if (be.has_roll()) {
