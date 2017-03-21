@@ -583,7 +583,6 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	/* pattern and search outline */
 	gpuPushMatrix();
 	gpuTranslate2fv(marker_pos);
-	gpuMatrixUpdate_legacy(); /* remove */
 
 	if (sc->flag & SC_SHOW_MARKER_PATTERN) {
 		immBegin(GL_LINE_LOOP, 4);
@@ -605,7 +604,6 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	}
 
 	gpuPopMatrix();
-	gpuMatrixUpdate_legacy(); /* remove */
 }
 
 static void track_colors(MovieTrackingTrack *track, int act, float col[3], float scol[3])
@@ -712,7 +710,6 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	/* pattern */
 	gpuPushMatrix();
 	gpuTranslate2fv(marker_pos);
-	gpuMatrixUpdate_legacy(); /* remove */
 
 	if (tiny) {
 		setlinestyle(3);
@@ -769,7 +766,6 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	gpuPopMatrix();
-	gpuMatrixUpdate_legacy(); /* remove */
 }
 
 static float get_shortest_pattern_side(MovieTrackingMarker *marker)
@@ -846,7 +842,6 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 
 	gpuPushMatrix();
 	gpuTranslate2fv(marker_pos);
-	gpuMatrixUpdate_legacy(); /* remove */
 
 	dx = 6.0f / width / sc->zoom;
 	dy = 6.0f / height / sc->zoom;
@@ -906,7 +901,6 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	}
 
 	gpuPopMatrix();
-	gpuMatrixUpdate_legacy(); /* remove */
 }
 
 static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,

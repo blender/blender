@@ -405,9 +405,9 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 static void draw_fcurve_sample_control(float x, float y, float xscale, float yscale, float hsize, unsigned int pos)
 {
 	/* adjust view transform before starting */
-	glTranslatef(x, y, 0.0f);
-	glScalef(1.0f / xscale * hsize, 1.0f / yscale * hsize, 1.0f);
-	gpuMatrixUpdate_legacy();
+	gpuPushMatrix();
+	gpuTranslate2f(x, y);
+	gpuScale2f(1.0f / xscale * hsize, 1.0f / yscale * hsize);
 
 	/* draw X shape */
 	immBegin(GL_LINES, 4);
@@ -419,9 +419,7 @@ static void draw_fcurve_sample_control(float x, float y, float xscale, float ysc
 	immEnd();
 
 	/* restore view transform */
-	glScalef(xscale / hsize, yscale / hsize, 1.0);
-	glTranslatef(-x, -y, 0.0f);
-	gpuMatrixUpdate_legacy();
+	gpuPopMatrix();
 }
 
 /* helper func - draw keyframe vertices only for an F-Curve */
@@ -570,11 +568,10 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 	}
 
 	/* apply unit mapping */
-	glPushMatrix();
+	gpuPushMatrix();
 	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
-	glScalef(1.0f, unit_scale, 1.0f);
-	glTranslatef(0.0f, offset, 0.0f);
-	gpuMatrixUpdate_legacy();
+	gpuScale2f(1.0f, unit_scale);
+	gpuTranslate2f(0.0f, offset);
 
 	immBegin(PRIM_LINE_STRIP, count);
 	
@@ -631,8 +628,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 	
 	immEnd();
 
-	glPopMatrix();
-	gpuMatrixUpdate_legacy();
+	gpuPopMatrix();
 }
 
 /* helper func - check if the F-Curve only contains easily drawable segments 
@@ -666,11 +662,10 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	short mapping_flag = ANIM_get_normalization_flags(ac);
 	
 	/* apply unit mapping */
-	glPushMatrix();
+	gpuPushMatrix();
 	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
-	glScalef(1.0f, unit_scale, 1.0f);
-	glTranslatef(0.0f, offset, 0.0f);
-	gpuMatrixUpdate_legacy();
+	gpuScale2f(1.0f, unit_scale);
+	gpuTranslate2f(0.0f, offset);
 
 	/* For now, this assumes the worst case scenario, where all the keyframes have
 	 * bezier interpolation, and are drawn at full res.
@@ -815,8 +810,7 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	
 	immEnd();
 
-	glPopMatrix();
-	gpuMatrixUpdate_legacy();
+	gpuPopMatrix();
 }
 
 /* Debugging -------------------------------- */
@@ -1096,9 +1090,9 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag, &offset);
 				
 				/* apply unit-scaling to all values via OpenGL */
-				glPushMatrix();
-				glScalef(1.0f, unit_scale, 1.0f);
-				glTranslatef(0.0f, offset, 0.0f);
+				gpuPushMatrix();
+				gpuScale2f(1.0f, unit_scale);
+				gpuTranslate2f(0.0f, offset);
 				
 				/* set this once and for all - all handles and handle-verts should use the same thickness */
 				glLineWidth(1.0);
@@ -1120,7 +1114,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 					draw_fcurve_samples(sipo, ar, fcu);
 				}
 				
-				glPopMatrix();
+				gpuPopMatrix();
 			}
 		}
 		

@@ -119,14 +119,13 @@ static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
 	if (sel == data->sel) {
 		immUniformThemeColor(sel ? TH_HANDLE_VERTEX_SELECT : TH_HANDLE_VERTEX);
 
-		glPushMatrix();
-		glTranslatef(scene_framenr, val, 0.0f);
-		glScalef(1.0f / data->xscale * data->hsize, 1.0f / data->yscale * data->hsize, 1.0f);
-		gpuMatrixUpdate_legacy();
+		gpuPushMatrix();
+		gpuTranslate2f(scene_framenr, val);
+		gpuScale2f(1.0f / data->xscale * data->hsize, 1.0f / data->yscale * data->hsize);
 
 		imm_draw_lined_circle(data->pos, 0, 0, 0.7, 8);
 
-		glPopMatrix();
+		gpuPopMatrix();
 	}
 }
 
@@ -153,9 +152,6 @@ static void draw_tracks_motion_curves(View2D *v2d, SpaceClip *sc, unsigned int p
 	                                   (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
 	                                   (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
 	                                   &userdata, tracking_segment_knot_cb, NULL, NULL);
-
-	gpuMatrixUpdate_legacy();
-
 	/* draw graph lines */
 	glEnable(GL_BLEND);
 	clip_graph_tracking_values_iterate(sc,
@@ -171,8 +167,6 @@ static void draw_tracks_motion_curves(View2D *v2d, SpaceClip *sc, unsigned int p
 	                                   (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
 	                                   (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
 	                                   &userdata, tracking_segment_knot_cb, NULL, NULL);
-
-	gpuMatrixUpdate_legacy();
 }
 
 typedef struct TrackErrorCurveUserData {
