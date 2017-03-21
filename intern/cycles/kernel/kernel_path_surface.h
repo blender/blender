@@ -16,11 +16,18 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if (defined(__BRANCHED_PATH__) || defined(__SUBSURFACE__) || defined(__SHADOW_TRICKS__)) && !defined(__SPLIT_KERNEL__)
+#if defined(__BRANCHED_PATH__) || defined(__SUBSURFACE__) || defined(__SHADOW_TRICKS__)
 /* branched path tracing: connect path directly to position on one or more lights and add it to L */
-ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RNG *rng,
-	ShaderData *sd, ShaderData *emission_sd, PathState *state, float3 throughput,
-	float num_samples_adjust, PathRadiance *L, int sample_all_lights)
+ccl_device_noinline void kernel_branched_path_surface_connect_light(
+        KernelGlobals *kg,
+        RNG *rng,
+        ShaderData *sd,
+        ShaderData *emission_sd,
+        ccl_addr_space PathState *state,
+        float3 throughput,
+        float num_samples_adjust,
+        PathRadiance *L,
+        int sample_all_lights)
 {
 #ifdef __EMISSION__
 	/* sample illumination from lights to find path contribution */
@@ -138,9 +145,17 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 }
 
 /* branched path tracing: bounce off or through surface to with new direction stored in ray */
-ccl_device bool kernel_branched_path_surface_bounce(KernelGlobals *kg, RNG *rng,
-	ShaderData *sd, const ShaderClosure *sc, int sample, int num_samples,
-	float3 *throughput, PathState *state, PathRadiance *L, Ray *ray)
+ccl_device bool kernel_branched_path_surface_bounce(
+        KernelGlobals *kg,
+        RNG *rng,
+        ShaderData *sd,
+        const ShaderClosure *sc,
+        int sample,
+        int num_samples,
+        ccl_addr_space float3 *throughput,
+        ccl_addr_space PathState *state,
+        PathRadiance *L,
+        Ray *ray)
 {
 	/* sample BSDF */
 	float bsdf_pdf;

@@ -120,6 +120,23 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 		buffer += (kernel_split_params.offset + pixel_x + pixel_y * stride) * kernel_data.film.pass_stride;
 
+#ifdef __SHADOW_TRICKS__
+		if((sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {
+			if (state->flag & PATH_RAY_CAMERA) {
+				state->flag |= (PATH_RAY_SHADOW_CATCHER | PATH_RAY_SHADOW_CATCHER_ONLY);
+				state->catcher_object = sd->object;
+				if(!kernel_data.background.transparent) {
+					PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+					ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
+					L->shadow_color = indirect_background(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, ray);
+				}
+			}
+		}
+		else {
+			state->flag &= ~PATH_RAY_SHADOW_CATCHER_ONLY;
+		}
+#endif  /* __SHADOW_TRICKS__ */
+
 		/* holdout */
 #ifdef __HOLDOUT__
 		if(((sd->flag & SD_HOLDOUT) ||

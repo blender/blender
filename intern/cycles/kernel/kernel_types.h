@@ -157,10 +157,7 @@ CCL_NAMESPACE_BEGIN
 #define __INTERSECTION_REFINE__
 #define __CLAMP_SAMPLE__
 #define __PATCH_EVAL__
-
-#ifndef __SPLIT_KERNEL__
-#  define __SHADOW_TRICKS__
-#endif
+#define __SHADOW_TRICKS__
 
 #ifdef __KERNEL_SHADING__
 #  define __SVM__

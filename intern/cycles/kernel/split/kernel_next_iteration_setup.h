@@ -117,6 +117,9 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 				                       shadow,
 				                       state->bounce);
 			}
+			else {
+				path_radiance_accum_total_ao(L, _throughput, kernel_split_state.ao_bsdf[ray_index]);
+			}
 			REMOVE_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO);
 		}
 
@@ -124,8 +127,8 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 			float3 shadow = kernel_split_state.light_ray[ray_index].P;
 			// TODO(mai): investigate correctness here
 			char update_path_radiance = (char)kernel_split_state.light_ray[ray_index].t;
+			BsdfEval L_light = kernel_split_state.bsdf_eval[ray_index];
 			if(update_path_radiance) {
-				BsdfEval L_light = kernel_split_state.bsdf_eval[ray_index];
 				path_radiance_accum_light(L,
 				                          _throughput,
 				                          &L_light,
@@ -133,6 +136,9 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 				                          1.0f,
 				                          state->bounce,
 				                          kernel_split_state.is_lamp[ray_index]);
+			}
+			else {
+				path_radiance_accum_total_light(L, _throughput, &L_light);
 			}
 			REMOVE_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL);
 		}

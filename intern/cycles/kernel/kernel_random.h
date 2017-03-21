@@ -282,18 +282,18 @@ ccl_device_inline void path_state_rng_2D(KernelGlobals *kg, RNG *rng, const ccl_
 	path_rng_2D(kg, rng, state->sample, state->num_samples, state->rng_offset + dimension, fx, fy);
 }
 
-ccl_device_inline float path_branched_rng_1D(KernelGlobals *kg, RNG *rng, const PathState *state, int branch, int num_branches, int dimension)
+ccl_device_inline float path_branched_rng_1D(KernelGlobals *kg, RNG *rng, const ccl_addr_space PathState *state, int branch, int num_branches, int dimension)
 {
 	return path_rng_1D(kg, rng, state->sample*num_branches + branch, state->num_samples*num_branches, state->rng_offset + dimension);
 }
 
-ccl_device_inline float path_branched_rng_1D_for_decision(KernelGlobals *kg, RNG *rng, const PathState *state, int branch, int num_branches, int dimension)
+ccl_device_inline float path_branched_rng_1D_for_decision(KernelGlobals *kg, RNG *rng, const ccl_addr_space PathState *state, int branch, int num_branches, int dimension)
 {
 	int rng_offset = state->rng_offset + state->transparent_bounce*PRNG_BOUNCE_NUM;
 	return path_rng_1D(kg, rng, state->sample*num_branches + branch, state->num_samples*num_branches, rng_offset + dimension);
 }
 
-ccl_device_inline void path_branched_rng_2D(KernelGlobals *kg, RNG *rng, const PathState *state, int branch, int num_branches, int dimension, float *fx, float *fy)
+ccl_device_inline void path_branched_rng_2D(KernelGlobals *kg, RNG *rng, const ccl_addr_space PathState *state, int branch, int num_branches, int dimension, float *fx, float *fy)
 {
 	path_rng_2D(kg, rng, state->sample*num_branches + branch, state->num_samples*num_branches, state->rng_offset + dimension, fx, fy);
 }
@@ -307,7 +307,7 @@ ccl_device_inline float path_state_rng_light_termination(KernelGlobals *kg, RNG 
 	return 0.0f;
 }
 
-ccl_device_inline float path_branched_rng_light_termination(KernelGlobals *kg, RNG *rng, const PathState *state, int branch, int num_branches)
+ccl_device_inline float path_branched_rng_light_termination(KernelGlobals *kg, RNG *rng, const ccl_addr_space PathState *state, int branch, int num_branches)
 {
 	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
 		return path_branched_rng_1D_for_decision(kg, rng, state, branch, num_branches, PRNG_LIGHT_TERMINATE);
@@ -315,7 +315,7 @@ ccl_device_inline float path_branched_rng_light_termination(KernelGlobals *kg, R
 	return 0.0f;
 }
 
-ccl_device_inline void path_state_branch(PathState *state, int branch, int num_branches)
+ccl_device_inline void path_state_branch(ccl_addr_space PathState *state, int branch, int num_branches)
 {
 	/* path is splitting into a branch, adjust so that each branch
 	 * still gets a unique sample from the same sequence */
