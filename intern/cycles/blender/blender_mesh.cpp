@@ -819,7 +819,7 @@ static void create_mesh(Scene *scene,
 			int shader = clamp(p->material_index(), 0, used_shaders.size()-1);
 			bool smooth = p->use_smooth() || use_loop_normals;
 
-			vi.reserve(n);
+			vi.resize(n);
 			for(int i = 0; i < n; i++) {
 				/* NOTE: Autosmooth is already taken care about. */
 				vi[i] = b_mesh.loops[p->loop_start() + i].vertex_index();
