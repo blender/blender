@@ -417,9 +417,8 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
 	subsurface_scatter_setup_diffuse_bsdf(sd, sc, weight, true, N);
 }
 
-#ifndef __SPLIT_KERNEL__
 /* subsurface scattering step, from a point on the surface to another nearby point on the same object */
-ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, PathState *state,
+ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_global PathState *state,
 	int state_flag, ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -507,7 +506,6 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, PathS
 	/* setup diffuse bsdf */
 	subsurface_scatter_setup_diffuse_bsdf(sd, sc, eval, (ss_isect.num_hits > 0), N);
 }
-#endif /* ! __SPLIT_KERNEL__ */
 
 CCL_NAMESPACE_END
 

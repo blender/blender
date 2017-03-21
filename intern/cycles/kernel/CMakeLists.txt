@@ -235,6 +235,7 @@ set(SRC_UTIL_HEADERS
 )
 
 set(SRC_SPLIT_HEADERS
+	split/kernel_branched.h
 	split/kernel_buffer_update.h
 	split/kernel_data_init.h
 	split/kernel_direct_lighting.h

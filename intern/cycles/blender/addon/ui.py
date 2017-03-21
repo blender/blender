@@ -78,7 +78,7 @@ def use_cuda(context):
 def use_branched_path(context):
     cscene = context.scene.cycles
 
-    return (cscene.progressive == 'BRANCHED_PATH' and not use_opencl(context))
+    return (cscene.progressive == 'BRANCHED_PATH')
 
 
 def use_sample_all_lights(context):
@@ -156,7 +156,6 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         row = layout.row()
         sub = row.row()
-        sub.active = get_device_type(context) != 'OPENCL' or use_cpu(context)
         sub.prop(cscene, "progressive", text="")
         row.prop(cscene, "use_square_samples")
 

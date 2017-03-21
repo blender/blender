@@ -22,7 +22,7 @@ ccl_device_inline void kernel_branched_path_ao(KernelGlobals *kg,
                                                ShaderData *sd,
                                                ShaderData *emission_sd,
                                                PathRadiance *L,
-                                               PathState *state,
+                                               ccl_addr_space PathState *state,
                                                RNG *rng,
                                                float3 throughput)
 {
@@ -65,6 +65,7 @@ ccl_device_inline void kernel_branched_path_ao(KernelGlobals *kg,
 	}
 }
 
+#ifndef __SPLIT_KERNEL__
 
 /* bounce off surface and integrate indirect light */
 ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGlobals *kg,
@@ -647,6 +648,8 @@ ccl_device void kernel_branched_path_trace(KernelGlobals *kg,
 
 	path_rng_end(kg, rng_state, rng);
 }
+
+#endif  /* __SPLIT_KERNEL__ */
 
 #endif  /* __BRANCHED_PATH__ */
 

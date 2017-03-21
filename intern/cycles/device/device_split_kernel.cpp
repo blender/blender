@@ -240,6 +240,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 				ENQUEUE_SPLIT_KERNEL(shader_eval, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(holdout_emission_blurring_pathtermination_ao, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(subsurface_scatter, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(queue_enqueue, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(direct_lighting, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(shadow_blocked_ao, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(shadow_blocked_dl, global_size, local_size);

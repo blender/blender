@@ -32,28 +32,71 @@ ccl_device void kernel_shadow_blocked_dl(KernelGlobals *kg)
 	if(ray_index == QUEUE_EMPTY_SLOT)
 		return;
 
-	/* Flag determining if we need to update L. */
-	char update_path_radiance = 0;
+	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
+	Ray ray = kernel_split_state.light_ray[ray_index];
+	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+	ShaderData *sd = &kernel_split_state.sd[ray_index];
+	float3 throughput = kernel_split_state.throughput[ray_index];
+	RNG rng = kernel_split_state.rng[ray_index];
 
-	if(IS_FLAG(kernel_split_state.ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL)) {
-		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
-		ccl_global Ray *light_ray_global = &kernel_split_state.light_ray[ray_index];
+	BsdfEval L_light = kernel_split_state.bsdf_eval[ray_index];
+	ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
+	bool is_lamp = kernel_split_state.is_lamp[ray_index];
 
-		float3 shadow;
-		Ray ray = *light_ray_global;
-		update_path_radiance = !(shadow_blocked(kg,
-		                                        &kernel_split_state.sd_DL_shadow[ray_index],
-		                                        state,
-		                                        &ray,
-		                                        &shadow));
+#  if defined(__BRANCHED_PATH__) || defined(__SHADOW_TRICKS__)
+	bool use_branched = false;
+	int all = 0;
 
-		*light_ray_global = ray;
-		/* We use light_ray_global's P and t to store shadow and
-		 * update_path_radiance.
-		 */
-		light_ray_global->P = shadow;
-		light_ray_global->t = update_path_radiance;
+	if(state->flag & PATH_RAY_SHADOW_CATCHER) {
+		use_branched = true;
+		all = 1;
 	}
+#    if defined(__BRANCHED_PATH__)
+	else if(kernel_data.integrator.branched) {
+		use_branched = true;
+
+		if(IS_FLAG(kernel_split_state.ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
+			all = (kernel_data.integrator.sample_all_lights_indirect);
+		}
+		else
+		{
+			all = (kernel_data.integrator.sample_all_lights_direct);
+		}
+	}
+#    endif  /* __BRANCHED_PATH__ */
+
+	if(use_branched) {
+		kernel_branched_path_surface_connect_light(kg,
+		                                           &rng,
+		                                           sd,
+		                                           emission_sd,
+		                                           state,
+		                                           throughput,
+		                                           1.0f,
+		                                           L,
+		                                           all);
+	}
+	else
+#  endif  /* defined(__BRANCHED_PATH__) || defined(__SHADOW_TRICKS__)*/
+	{
+		/* trace shadow ray */
+		float3 shadow;
+
+		if(!shadow_blocked(kg,
+			               emission_sd,
+			               state,
+			               &ray,
+			               &shadow))
+		{
+			/* accumulate */
+			path_radiance_accum_light(L, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
+		}
+		else {
+			path_radiance_accum_total_light(L, throughput, &L_light);
+		}
+	}
+
+	kernel_split_state.rng[ray_index] = rng;
 }
 
 CCL_NAMESPACE_END

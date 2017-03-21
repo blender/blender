@@ -58,7 +58,7 @@ ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
                                         ShaderData *sd,
                                         ShaderData *emission_sd,
                                         PathRadiance *L,
-                                        PathState *state,
+                                        ccl_addr_space PathState *state,
                                         RNG *rng,
                                         float3 throughput,
                                         float3 ao_alpha)
@@ -97,6 +97,8 @@ ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
 		}
 	}
 }
+
+#ifndef __SPLIT_KERNEL__
 
 ccl_device void kernel_path_indirect(KernelGlobals *kg,
                                      ShaderData *sd,
@@ -817,6 +819,8 @@ ccl_device void kernel_path_trace(KernelGlobals *kg,
 
 	path_rng_end(kg, rng_state, rng);
 }
+
+#endif  /* __SPLIT_KERNEL__ */
 
 CCL_NAMESPACE_END
 

@@ -34,7 +34,7 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
 			if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 				ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 				if(state->bounce > kernel_data.integrator.ao_bounces) {
-					ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
+					kernel_split_path_end(kg, ray_index);
 				}
 			}
 		}
@@ -63,7 +63,7 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
 #ifdef __PASSES__
 			if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
 #endif
-				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
+				kernel_split_path_end(kg, ray_index);
 		}
 
 		if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
@@ -72,7 +72,7 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
 			float3 L_background = indirect_background(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, ray);
 			path_radiance_accum_background(L, state, (*throughput), L_background);
 #endif
-			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
+			kernel_split_path_end(kg, ray_index);
 		}
 	}
 
