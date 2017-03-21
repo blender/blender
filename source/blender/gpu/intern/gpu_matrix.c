@@ -360,6 +360,18 @@ void gpuMultMatrix2D(const float m[3][3])
 	state.dirty = true;
 }
 
+void gpuRotate2D(float deg)
+{
+#if SUPPORT_LEGACY_MATRIX
+	if (state.mode == MATRIX_MODE_INACTIVE) {
+		glRotatef(deg, 0.0f, 0.0f, 1.0f);
+		return;
+	}
+#endif
+
+	BLI_assert(false); /* TODO: finish for MATRIX_MODE_2D */
+}
+
 void gpuRotate3f(float deg, float x, float y, float z)
 {
 	const float axis[3] = {x, y, z};
