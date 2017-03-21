@@ -106,6 +106,8 @@ void gpuRotate2D(float deg);
 
 /* 3D Projection Matrix */
 
+void gpuLoadProjectionMatrix3D(const float m[4][4]);
+
 void gpuOrtho(float left, float right, float bottom, float top, float near, float far);
 void gpuFrustum(float left, float right, float bottom, float top, float near, float far);
 void gpuPerspective(float fovy, float aspect, float near, float far);
@@ -173,6 +175,8 @@ bool gpuMatricesDirty(void); /* since last bind */
 #else
 #  define gpuMultMatrix3D(x)  gpuMultMatrix3D((const float (*)[4])(x))
 #  define gpuLoadMatrix3D(x)  gpuLoadMatrix3D((const float (*)[4])(x))
+
+#  define gpuLoadProjectionMatrix3D(x)  gpuLoadProjectionMatrix3D((const float (*)[4])(x))
 
 #  define gpuMultMatrix2D(x)  gpuMultMatrix2D((const float (*)[3])(x))
 #  define gpuLoadMatrix2D(x)  gpuLoadMatrix2D((const float (*)[3])(x))
