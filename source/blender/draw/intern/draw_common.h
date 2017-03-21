@@ -30,6 +30,7 @@ struct DRWPass;
 struct DRWShadingGroup;
 struct Batch;
 struct Object;
+struct SceneLayer;
 
 /* Used as ubo but colors can be directly
  * referenced as well */
@@ -88,11 +89,11 @@ struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct Bat
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct Batch *geom);
 
-int DRW_object_wire_theme_get(struct Object *ob, float **color);
+int DRW_object_wire_theme_get(struct Object *ob, struct SceneLayer *sl, float **color);
 
 /* draw_armature.c */
 void DRW_shgroup_armature_object(
-    struct Object *ob, struct DRWPass *pass_bone_solid,
+    struct Object *ob, struct SceneLayer *sl, struct DRWPass *pass_bone_solid,
     struct DRWPass *pass_bone_wire, struct DRWShadingGroup *shgrp_relationship_lines);
 
 void DRW_shgroup_armature_pose(

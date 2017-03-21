@@ -249,7 +249,7 @@ DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct Batch *geom)
 /* TODO FINISH */
 /* Get the wire color theme_id of an object based on it's state
  * **color is a way to get a pointer to the static color var associated */
-int DRW_object_wire_theme_get(Object *ob, float **color)
+int DRW_object_wire_theme_get(Object *ob, SceneLayer *sl, float **color)
 {
 	const bool is_edit = (ob->mode & OB_MODE_EDIT) != 0;
 	/* confusing logic here, there are 2 methods of setting the color
@@ -271,7 +271,7 @@ int DRW_object_wire_theme_get(Object *ob, float **color)
 				/* uses darker active color for non-active + selected */
 				theme_id = TH_GROUP_ACTIVE;
 
-				// if (scene->basact != base) {
+				// if (sl->basact->object != ob) {
 				// 	theme_shade = -16;
 				// }
 			}
@@ -281,8 +281,7 @@ int DRW_object_wire_theme_get(Object *ob, float **color)
 		}
 		else {
 			if ((ob->base_flag & BASE_SELECTED) != 0) {
-				theme_id = //scene->basact == base ? TH_ACTIVE :
-				TH_SELECT;
+				theme_id = (sl->basact->object == ob) ? TH_ACTIVE : TH_SELECT;
 			}
 			else {
 				if (ob->type == OB_LAMP) theme_id = TH_LAMP;

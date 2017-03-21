@@ -441,11 +441,11 @@ static void OBJECT_cache_init(void)
 	}
 }
 
-static void DRW_shgroup_lamp(Object *ob)
+static void DRW_shgroup_lamp(Object *ob, SceneLayer *sl)
 {
 	Lamp *la = ob->data;
 	float *color;
-	int theme_id = DRW_object_wire_theme_get(ob, &color);
+	int theme_id = DRW_object_wire_theme_get(ob, sl, &color);
 	static float zero = 0.0f;
 
 	/* Don't draw the center if it's selected or active */
@@ -537,7 +537,7 @@ static void DRW_shgroup_lamp(Object *ob)
 	DRW_shgroup_dynamic_call_add(g_data.lamp_groundpoint, ob->obmat[3]);
 }
 
-static void DRW_shgroup_camera(Object *ob)
+static void DRW_shgroup_camera(Object *ob, SceneLayer *sl)
 {
 	const struct bContext *C = DRW_get_context();
 	View3D *v3d = CTX_wm_view3d(C);
@@ -546,7 +546,7 @@ static void DRW_shgroup_camera(Object *ob)
 	Camera *cam = ob->data;
 	const bool is_active = (ob == v3d->camera);
 	float *color;
-	DRW_object_wire_theme_get(ob, &color);
+	DRW_object_wire_theme_get(ob, sl, &color);
 
 	float vec[4][3], asp[2], shift[2], scale[3], drawsize;
 
@@ -611,10 +611,10 @@ static void DRW_shgroup_camera(Object *ob)
 	}
 }
 
-static void DRW_shgroup_empty(Object *ob)
+static void DRW_shgroup_empty(Object *ob, SceneLayer *sl)
 {
 	float *color;
-	DRW_object_wire_theme_get(ob, &color);
+	DRW_object_wire_theme_get(ob, sl, &color);
 
 	switch (ob->empty_drawtype) {
 		case OB_PLAINAXES:
@@ -643,11 +643,11 @@ static void DRW_shgroup_empty(Object *ob)
 	}
 }
 
-static void DRW_shgroup_speaker(Object *ob)
+static void DRW_shgroup_speaker(Object *ob, SceneLayer *sl)
 {
 	float *color;
 	static float one = 1.0f;
-	DRW_object_wire_theme_get(ob, &color);
+	DRW_object_wire_theme_get(ob, sl, &color);
 
 	DRW_shgroup_dynamic_call_add(g_data.speaker, color, &one, ob->obmat);
 }
@@ -674,6 +674,7 @@ static void OBJECT_cache_populate(Object *ob)
 {
 	const struct bContext *C = DRW_get_context();
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 
 	//CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
 
@@ -684,7 +685,7 @@ static void OBJECT_cache_populate(Object *ob)
 		case OB_MESH:
 			{
 				Object *obedit = scene->obedit;
-				int theme_id = DRW_object_wire_theme_get(ob, NULL);
+				int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
 				if (ob != obedit) {
 					if (do_outlines) {
 						struct Batch *geom = DRW_cache_surface_get(ob);
@@ -707,24 +708,24 @@ static void OBJECT_cache_populate(Object *ob)
 			}
 			break;
 		case OB_LAMP:
-			DRW_shgroup_lamp(ob);
+			DRW_shgroup_lamp(ob, sl);
 			break;
 		case OB_CAMERA:
-			DRW_shgroup_camera(ob);
+			DRW_shgroup_camera(ob, sl);
 			break;
 		case OB_EMPTY:
-			DRW_shgroup_empty(ob);
+			DRW_shgroup_empty(ob, sl);
 			break;
 		case OB_SPEAKER:
-			DRW_shgroup_speaker(ob);
+			DRW_shgroup_speaker(ob, sl);
 			break;
 		case OB_ARMATURE:
 			{
 				bArmature *arm = ob->data;
 				if (arm->edbo == NULL) {
-					DRW_shgroup_armature_object(ob, g_data.vedata->psl->bone_solid,
-					                                g_data.vedata->psl->bone_wire,
-					                                g_data.relationship_lines);
+					DRW_shgroup_armature_object(ob, sl, g_data.vedata->psl->bone_solid,
+					                                    g_data.vedata->psl->bone_wire,
+					                                    g_data.relationship_lines);
 				}
 			}
 			break;
@@ -755,9 +756,6 @@ static void OBJECT_draw_scene(void)
 	DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
 	DRW_draw_pass(psl->outlines);
 
-	/* detach textures */
-	DRW_framebuffer_texture_detach(dtxl->depth);
-
 	/* Expand filled color by 1px and modulate if occluded */
 	DRW_framebuffer_bind(fbl->blur);
 	DRW_draw_pass(psl->outlines_expand);
@@ -777,7 +775,6 @@ static void OBJECT_draw_scene(void)
 
 	/* Combine with scene buffer */
 	DRW_framebuffer_bind(dfbl->default_fb);
-	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0);
 	DRW_draw_pass(psl->outlines_resolve);
 }
 
