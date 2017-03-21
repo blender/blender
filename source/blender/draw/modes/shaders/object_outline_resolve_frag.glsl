@@ -11,7 +11,7 @@ void main()
 	FragColor = texture(outlineBluredColor, uvcoordsvar.st).rgba;
 
 	/* Modulate fill color */
-	float depth = texture(outlineDepth, uvcoordsvar.st).r;
-	if (depth != 1.0)
-		FragColor.a *= 0.1;
+	// float depth = texture(outlineDepth, uvcoordsvar.st).r;
+	// if (depth != 1.0)
+	// 	FragColor.a *= 0.1;
 }

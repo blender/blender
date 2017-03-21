@@ -45,6 +45,7 @@
 extern GlobalsUboStorage ts;
 
 extern char datatoc_object_outline_resolve_frag_glsl[];
+extern char datatoc_object_outline_detect_frag_glsl[];
 extern char datatoc_object_outline_expand_frag_glsl[];
 
 /* *********** LISTS *********** */
@@ -178,7 +179,7 @@ static void OBJECT_engine_init(void)
 	}
 
 	if (!e_data.outline_expand_sh) {
-		e_data.outline_expand_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, "#define DEPTH_TEST");
+		e_data.outline_expand_sh = DRW_shader_create_fullscreen(datatoc_object_outline_detect_frag_glsl, NULL);
 	}
 
 	if (!e_data.outline_fade_sh) {
@@ -235,7 +236,7 @@ static void OBJECT_cache_init(void)
 		psl->outlines_expand = DRW_pass_create("Outlines Expand Pass", state);
 
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
-		static float one = 1.0f;
+		static float alphaOcclu = 0.35f;
 		static float alphaNear = 0.75f;
 		static float alphaFar = 0.5f;
 
@@ -243,7 +244,7 @@ static void OBJECT_cache_init(void)
 		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx, 0);
 		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
 		DRW_shgroup_uniform_buffer(grp, "sceneDepth", &dtxl->depth, 2);
-		DRW_shgroup_uniform_float(grp, "alpha", &one, 1);
+		DRW_shgroup_uniform_float(grp, "alphaOcclu", &alphaOcclu, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->outlines_blur1 = DRW_pass_create("Outlines Blur 1 Pass", state);
@@ -743,7 +744,6 @@ static void OBJECT_draw_scene(void)
 	OBJECT_PassList *psl = ved->psl;
 	OBJECT_FramebufferList *fbl = ved->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	DRW_draw_pass(psl->bone_wire);
@@ -767,11 +767,11 @@ static void OBJECT_draw_scene(void)
 	DRW_framebuffer_bind(fbl->blur);
 	DRW_draw_pass(psl->outlines_blur2);
 
-	DRW_framebuffer_bind(fbl->outlines);
-	DRW_draw_pass(psl->outlines_blur3);
+	// DRW_framebuffer_bind(fbl->outlines);
+	// DRW_draw_pass(psl->outlines_blur3);
 
-	DRW_framebuffer_bind(fbl->blur);
-	DRW_draw_pass(psl->outlines_blur4);
+	// DRW_framebuffer_bind(fbl->blur);
+	// DRW_draw_pass(psl->outlines_blur4);
 
 	/* Combine with scene buffer */
 	DRW_framebuffer_bind(dfbl->default_fb);
