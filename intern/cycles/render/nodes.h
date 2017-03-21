@@ -445,6 +445,7 @@ public:
 	virtual ClosureType get_closure_type() { return CLOSURE_EMISSION_ID; }
 
 	bool has_surface_emission() { return true; }
+	bool has_volume_support() { return true; }
 
 	float3 color;
 	float strength;
@@ -496,6 +497,7 @@ public:
 		return ShaderNode::get_feature() | NODE_FEATURE_VOLUME;
 	}
 	virtual ClosureType get_closure_type() { return closure; }
+	virtual bool has_volume_support() { return true; }
 
 	float3 color;
 	float density;

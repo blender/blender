@@ -155,7 +155,7 @@ public:
 	virtual bool has_spatial_varying() { return false; }
 	virtual bool has_object_dependency() { return false; }
 	virtual bool has_integrator_dependency() { return false; }
-
+	virtual bool has_volume_support() { return false; }
 	vector<ShaderInput*> inputs;
 	vector<ShaderOutput*> outputs;
 
@@ -284,6 +284,7 @@ protected:
 	void constant_fold();
 	void simplify_settings(Scene *scene);
 	void deduplicate_nodes();
+	void verify_volume_output();
 };
 
 CCL_NAMESPACE_END
