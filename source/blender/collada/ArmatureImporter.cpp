@@ -324,10 +324,15 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 			if (len_squared_v3(vec) > MINIMUM_BONE_LENGTH)
 			{
 				copy_v3_v3(pebone->tail, cebone->head);
+				pbe->set_tail(pebone->tail); /* to make fix_leafbone happy ...*/
 				if (pbe && pbe->get_chain_length() >= this->import_settings->min_chain_length) {
+
+					BoneExtended *cbe = extended_bones[cebone->name];
+					cbe->set_use_connect(true);
+
 					cebone->flag |= BONE_CONNECTED;
-					printf("Connecting chain: parent %s --> %s (child)\n", pebone->name, cebone->name);
 					pbe->set_leaf_bone(false);
+					printf("Connect Bone chain: parent (%s --> %s) child)\n", pebone->name, cebone->name);
 				}
 			}
 		}
