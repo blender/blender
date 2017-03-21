@@ -290,12 +290,13 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 		for (; child; child = child->next) {
 			BoneExtended *be = extended_bones[child->name];
 			if (be != NULL) {
-				if (be->get_chain_length() <= clip) {
-					if (be->get_chain_length() > maxlen) {
+				int chain_len = be->get_chain_length();
+				if (chain_len <= clip) {
+					if (chain_len > maxlen) {
 						dominant_child = be;
-						maxlen = be->get_chain_length();
+						maxlen = chain_len;
 					}
-					else if (be->get_chain_length() == maxlen) {
+					else if (chain_len == maxlen) {
 						dominant_child = NULL;
 					}
 				}
