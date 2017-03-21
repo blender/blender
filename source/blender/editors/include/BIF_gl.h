@@ -86,19 +86,5 @@ void cpack(unsigned int x);
 
 #define GLA_PIXEL_OFS 0.375f
 
-
-BLI_INLINE void glTranslate3iv(const int vec[3])    { glTranslatef(UNPACK3_EX((const float), vec, ));       }
-BLI_INLINE void glTranslate2iv(const int vec[2])    { glTranslatef(UNPACK2_EX((const float), vec, ), 0.0f); }
-BLI_INLINE void glTranslate3fv(const float vec[3])  { glTranslatef(UNPACK3(vec));       }
-BLI_INLINE void glTranslate2fv(const float vec[2])  { glTranslatef(UNPACK2(vec), 0.0f); }
-
-BLI_INLINE void glScale3iv(const int vec[3])    { glTranslatef(UNPACK3_EX((const float), vec, ));       }
-BLI_INLINE void glScale2iv(const int vec[2])    { glTranslatef(UNPACK2_EX((const float), vec, ), 0.0f); }
-BLI_INLINE void glScale3fv(const float vec[3])  { glScalef(UNPACK3(vec));      }
-BLI_INLINE void glScale2fv(const float vec[2])  { glScalef(UNPACK2(vec), 0.0); }
-
-/* v2 versions don't make much sense for rotation */
-BLI_INLINE void glRotate3fv(const float angle, const float vec[3])   { glRotatef(angle, UNPACK3(vec)); }
-
 #endif /* #ifdef __BIF_GL_H__ */
 
