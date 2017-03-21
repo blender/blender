@@ -138,6 +138,7 @@ void gpuPushMatrix(void)
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glPushMatrix();
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -156,6 +157,7 @@ void gpuPopMatrix(void)
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glPopMatrix();
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -170,8 +172,9 @@ void gpuLoadMatrix3D(const float m[4][4])
 {
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
-			glLoadMatrixf((const float*) m);
-			return;
+		glLoadMatrixf((const float*) m);
+		state.dirty = true;
+		return;
 	}
 #endif
 
@@ -214,6 +217,7 @@ void gpuTranslate2f(float x, float y)
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glTranslatef(x, y, 0.0f);
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -235,6 +239,7 @@ void gpuTranslate3f(float x, float y, float z)
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glTranslatef(x, y, z);
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -287,6 +292,7 @@ void gpuScaleUniform(float factor)
 #if SUPPORT_LEGACY_MATRIX
 		case MATRIX_MODE_INACTIVE:
 			glScalef(factor, factor, factor); /* always scale Z since we can't distinguish 2D from 3D */
+			state.dirty = true;
 			break;
 #endif
 		default:
@@ -299,6 +305,7 @@ void gpuScale2f(float x, float y)
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glScalef(x, y, 1.0f);
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -320,6 +327,7 @@ void gpuScale3f(float x, float y, float z)
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glScalef(x, y, z);
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -342,6 +350,7 @@ void gpuMultMatrix3D(const float m[4][4])
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glMultMatrixf((const float*) m);
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -365,6 +374,7 @@ void gpuRotate2D(float deg)
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glRotatef(deg, 0.0f, 0.0f, 1.0f);
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -383,6 +393,7 @@ void gpuRotate3fv(float deg, const float axis[3])
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		glRotatef(deg, axis[0], axis[1], axis[2]);
+		state.dirty = true;
 		return;
 	}
 #endif
@@ -404,6 +415,7 @@ void gpuRotateAxis(float deg, char axis)
 			default: BLI_assert(false); /* bad axis */
 		}
 		glRotatef(deg, a[0], a[1], a[2]);
+		state.dirty = true;
 		return;
 	}
 #endif
