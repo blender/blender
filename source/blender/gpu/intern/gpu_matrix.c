@@ -32,8 +32,6 @@
 #define SUPPRESS_GENERIC_MATRIX_API
 #include "GPU_matrix.h"
 
-#include "BIF_glutil.h"
-
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -191,7 +189,8 @@ void gpuLoadProjectionMatrix3D(const float m[4][4])
 {
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
-		GLenum mode = glaGetOneInt(GL_MATRIX_MODE);
+		GLenum mode;
+		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
 		if (mode != GL_PROJECTION_MATRIX) {
 			glMatrixMode(GL_PROJECTION_MATRIX);
 		}
