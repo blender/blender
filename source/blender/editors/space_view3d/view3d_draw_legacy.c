@@ -110,19 +110,6 @@
 static void view3d_stereo3d_setup_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
                                             float winmat[4][4], const char *viewname);
 
-void circ(float x, float y, float rad)
-{
-	glBegin(GL_LINE_LOOP);
-	const int segments = 32;
-	for (int i = 0; i < segments; ++i) {
-		float angle = 2 * M_PI * ((float)i / (float)segments);
-		glVertex2f(x + rad * cosf(angle),
-		           y + rad * sinf(angle));
-	}
-	glEnd();
-}
-
-
 /* ********* custom clipping *********** */
 
 static void view3d_draw_clipping(RegionView3D *rv3d)

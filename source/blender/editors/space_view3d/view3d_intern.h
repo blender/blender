@@ -221,7 +221,6 @@ void ED_view3d_draw_select_loop(
 
 void ED_view3d_after_add(ListBase *lb, BaseLegacy *base, const short dflag);
 
-void circ(float x, float y, float rad);
 void view3d_update_depths_rect(struct ARegion *ar, struct ViewDepths *d, struct rcti *rect);
 float view3d_depth_near(struct ViewDepths *d);
 
