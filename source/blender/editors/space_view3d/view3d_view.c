@@ -51,10 +51,10 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_select.h"
+#include "GPU_matrix.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -97,9 +97,9 @@ void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
 		
 		wmSubWindowSet(win, ar->swinid);
 		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(rv3d->winmat);
+		gpuLoadMatrix3D(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(rv3d->viewmat);
+		gpuLoadMatrix3D(rv3d->viewmat);
 	}
 }
 
@@ -936,7 +936,7 @@ void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rcti *rect)
 	}
 
 	/* update matrix in 3d view region */
-	glGetFloatv(GL_PROJECTION_MATRIX, (float *)rv3d->winmat);
+	gpuGetProjectionMatrix3D(rv3d->winmat);
 }
 
 static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)

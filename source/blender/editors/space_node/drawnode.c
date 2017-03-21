@@ -50,11 +50,11 @@
 #include "BLF_api.h"
 #include "BLT_translation.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -3198,9 +3198,9 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		float x, y; 
 		
 		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
+		gpuPushMatrix();
 		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
+		gpuPushMatrix();
 		
 		/* somehow the offset has to be calculated inverse */
 		
@@ -3286,9 +3286,9 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		}
 		
 		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
+		gpuPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
+		gpuPopMatrix();
 	}
 	
 	BKE_image_release_ibuf(ima, ibuf, lock);

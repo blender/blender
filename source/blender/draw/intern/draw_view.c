@@ -532,9 +532,9 @@ void DRW_draw_grid(void)
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 
 		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf((float *)rv3d->winmat);
+		gpuLoadMatrix3D(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf((float *)rv3d->viewmat);
+		gpuLoadMatrix3D(rv3d->viewmat);
 	}
 	else {
 		glDepthMask(GL_TRUE);

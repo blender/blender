@@ -58,6 +58,7 @@
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
@@ -1287,11 +1288,11 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	if (draw_backdrop) {
 		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
+		gpuPushMatrix();
+		gpuLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
+		gpuPushMatrix();
+		gpuLoadIdentity();
 	}
 
 	glGenTextures(1, (GLuint *)&texid);
@@ -1420,9 +1421,9 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 
 	if (draw_backdrop) {
-		glPopMatrix();
+		gpuPopMatrix();
 		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
+		gpuPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		return;
 	}

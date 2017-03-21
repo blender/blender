@@ -55,7 +55,6 @@
 #include "BKE_editmesh.h"
 #include "BKE_scene.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "UI_resources.h"
@@ -64,6 +63,7 @@
 #include "GPU_material.h"
 #include "GPU_basic_shader.h"
 #include "GPU_shader.h"
+#include "GPU_matrix.h"
 
 #include "RE_engine.h"
 
@@ -547,10 +547,10 @@ static void draw_textured_end(void)
 	 * of and restored the light settings it changed.
 	 *  - zr
 	 */
-	glPushMatrix();
-	glLoadIdentity();
+	gpuPushMatrix();
+	gpuLoadIdentity();
 	GPU_default_lights();
-	glPopMatrix();
+	gpuPopMatrix();
 }
 
 static DMDrawOption draw_tface__set_draw_legacy(MTexPoly *mtexpoly, const bool has_mcol, int matnr)
@@ -1104,7 +1104,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode[TEXTARGET_TEXTURE_2D]);
 
 			glMatrixMode(GL_TEXTURE);
-			glLoadMatrixf(texbase->tex_mapping.mat);
+			gpuLoadMatrix3D(texbase->tex_mapping.mat);
 			glMatrixMode(GL_MODELVIEW);
 
 			/* use active UV texture layer */
@@ -1140,7 +1140,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 	}
 	else {
 		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
+		gpuLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
 
 		/* enable solid material */
@@ -1243,7 +1243,7 @@ void draw_mesh_textured(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D 
 	glFrontFace(GL_CCW);
 
 	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
+	gpuLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 
 	/* faceselect mode drawing over textured mesh */

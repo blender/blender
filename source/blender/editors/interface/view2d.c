@@ -50,10 +50,9 @@
 #include "BKE_global.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "WM_api.h"
-
-#include "BIF_gl.h"
 
 #include "BLF_api.h"
 
@@ -1139,7 +1138,7 @@ void UI_view2d_view_restore(const bContext *C)
 	int height = BLI_rcti_size_y(&ar->winrct) + 1;
 	
 	wmOrtho2(0.0f, (float)width, 0.0f, (float)height);
-	glLoadIdentity();
+	gpuLoadIdentity();
 	
 	//	ED_region_pixelspace(CTX_wm_region(C));
 }

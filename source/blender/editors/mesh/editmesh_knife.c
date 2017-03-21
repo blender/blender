@@ -54,10 +54,10 @@
 #include "BKE_editmesh_bvh.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -1043,8 +1043,8 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	glPolygonOffset(1.0f, 1.0f);
 
-	glPushMatrix();
-	glMultMatrixf(kcd->ob->obmat);
+	gpuPushMatrix();
+	gpuMultMatrix3D(kcd->ob->obmat);
 
 	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
@@ -1191,7 +1191,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 	immUnbindProgram();
 
-	glPopMatrix();
+	gpuPopMatrix();
 
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }

@@ -623,8 +623,8 @@ gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 
 	glGetIntegerv(GL_VIEWPORT, (GLint *)di->orig_vp);
 	glGetIntegerv(GL_SCISSOR_BOX, (GLint *)di->orig_sc);
-	glGetFloatv(GL_PROJECTION_MATRIX, (GLfloat *)di->orig_projmat);
-	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *)di->orig_viewmat);
+	gpuGetProjectionMatrix3D(di->orig_projmat);
+	gpuGetModelViewMatrix3D(di->orig_viewmat);
 
 	di->screen_rect = *screen_rect;
 	if (world_rect) {
@@ -703,7 +703,7 @@ void bglPolygonOffset(float viewdist, float dist)
 
 		/* hack below is to mimic polygon offset */
 		glMatrixMode(GL_PROJECTION);
-		glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
+		gpuGetProjectionMatrix3D(winmat);
 		
 		/* dist is from camera to center point */
 		

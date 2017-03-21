@@ -51,6 +51,7 @@
 #include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
 #include "GPU_viewport.h"
+#include "GPU_matrix.h"
 
 #include "RE_engine.h"
 
@@ -1067,9 +1068,9 @@ void DRW_draw_callbacks_pre_scene(void)
 	/* This is temporary
 	 * waiting for the full matrix switch */
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf((float *)rv3d->winmat);
+	gpuLoadMatrix3D(rv3d->winmat);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf((float *)rv3d->viewmat);
+	gpuLoadMatrix3D(rv3d->viewmat);
 
 	ED_region_draw_cb_draw(DST.context, ar, REGION_DRAW_PRE_VIEW);
 }
@@ -1082,9 +1083,9 @@ void DRW_draw_callbacks_post_scene(void)
 	/* This is temporary
 	 * waiting for the full matrix switch */
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf((float *)rv3d->winmat);
+	gpuLoadMatrix3D(rv3d->winmat);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf((float *)rv3d->viewmat);
+	gpuLoadMatrix3D(rv3d->viewmat);
 
 	ED_region_draw_cb_draw(DST.context, ar, REGION_DRAW_POST_VIEW);
 }

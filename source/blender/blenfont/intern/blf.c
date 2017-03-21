@@ -555,7 +555,7 @@ static void blf_draw_gl__start(FontBLF *font)
 	gpuMatrixBegin3D_legacy();
 
 	if (font->flags & BLF_MATRIX)
-		gpuMultMatrix3D((float (*)[4])font->m);
+		gpuMultMatrix3D(font->m);
 
 	gpuTranslate3fv(font->pos);
 

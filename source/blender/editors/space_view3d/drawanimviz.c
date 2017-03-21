@@ -49,9 +49,8 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 
-#include "BIF_gl.h"
-
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "ED_keyframes_draw.h"
 
@@ -73,8 +72,8 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
 	
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
-	glPushMatrix();
-	glLoadMatrixf(rv3d->viewmat);
+	gpuPushMatrix();
+	gpuLoadMatrix3D(rv3d->viewmat);
 }
 
 /* set color
@@ -435,5 +434,5 @@ void draw_motion_path_instance(Scene *scene,
 void draw_motion_paths_cleanup(View3D *v3d)
 {
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-	glPopMatrix();
+	gpuPopMatrix();
 }

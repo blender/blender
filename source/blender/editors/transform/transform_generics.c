@@ -63,6 +63,7 @@
 #include "RNA_access.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "BIK_api.h"
 
@@ -1033,11 +1034,10 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 	if (t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = t->view;
 		
-		glPushMatrix();
-		
-		//if (t->obedit) glLoadMatrixf(t->obedit->obmat);	// sets opengl viewing
-		
-		
+		gpuPushMatrix();
+
+		// if (t->obedit) gpuLoadMatrix3D(t->obedit->obmat); // sets opengl viewing
+
 		copy_v3_v3(v3, dir);
 		mul_v3_fl(v3, v3d->far);
 		
@@ -1064,7 +1064,7 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 
 		immUnbindProgram();
 
-		glPopMatrix();
+		gpuPopMatrix();
 	}
 }
 
