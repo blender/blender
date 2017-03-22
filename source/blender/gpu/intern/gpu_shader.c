@@ -371,6 +371,7 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 		source[num_source++] = standard_defines;
 
 		if (defines) source[num_source++] = defines;
+		if (libcode) source[num_source++] = libcode;
 		source[num_source++] = vertexcode;
 
 		glAttachShader(shader->program, shader->vertex);
@@ -436,6 +437,7 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 		source[num_source++] = standard_defines;
 
 		if (defines) source[num_source++] = defines;
+		if (libcode) source[num_source++] = libcode;
 		source[num_source++] = geocode;
 
 		glAttachShader(shader->program, shader->geometry);

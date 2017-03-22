@@ -316,6 +316,11 @@ GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *fra
 	return GPU_shader_create(vert, frag, geom, NULL, defines, 0, 0, 0);
 }
 
+GPUShader *DRW_shader_create_with_lib(const char *vert, const char *geom, const char *frag, const char *lib, const char *defines)
+{
+	return GPU_shader_create(vert, frag, geom, lib, defines, 0, 0, 0);
+}
+
 GPUShader *DRW_shader_create_2D(const char *frag, const char *defines)
 {
 	return GPU_shader_create(datatoc_gpu_shader_2D_vert_glsl, frag, NULL, NULL, defines, 0, 0, 0);
