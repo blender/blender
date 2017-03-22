@@ -4252,7 +4252,7 @@ print_info() {
     PRINT "  $_3"
     _buildargs="$_buildargs $_1 $_2 $_3"
     if [ -d $INST/osl ]; then
-      _1="-D CYCLES_OSL=$INST/osl"
+      _1="-D OSL_ROOT_DIR=$INST/osl"
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
