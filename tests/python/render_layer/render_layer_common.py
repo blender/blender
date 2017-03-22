@@ -4,6 +4,7 @@ import unittest
 # Layer Collection Crawler
 # ############################################################
 
+
 def listbase_iter(data, struct, listbase):
     element = data.get_pointer((struct, listbase, b'first'))
     while element is not None:
@@ -22,9 +23,9 @@ def get_layer_collection(layer_collection):
     data = {}
     flag = layer_collection.get(b'flag')
 
-    data['is_visible']    = (flag & (1 << 0)) != 0;
-    data['is_selectable'] = (flag & (1 << 1)) != 0;
-    data['is_folded']     = (flag & (1 << 2)) != 0;
+    data['is_visible'] = (flag & (1 << 0)) != 0
+    data['is_selectable'] = (flag & (1 << 1)) != 0
+    data['is_folded'] = (flag & (1 << 2)) != 0
 
     scene_collection = layer_collection.get_pointer(b'scene_collection')
     if scene_collection is None:
@@ -86,7 +87,7 @@ def get_scene_collection_objects(collection, listbase):
     for link in linkdata_iter(collection, listbase):
         ob = link.get_pointer(b'data')
         if ob is None:
-            name  = 'Fail!'
+            name = 'Fail!'
         else:
             name = ob.get((b'id', b'name'))[2:]
         objects.append(name)
@@ -138,7 +139,8 @@ def query_scene(filepath, name, callbacks):
 
 def import_blendfile():
     import bpy
-    import os, sys
+    import os
+    import sys
     path = os.path.join(
             bpy.utils.resource_path('LOCAL'),
             'scripts',
@@ -168,12 +170,13 @@ def dump(data):
 PDB = False
 DUMP_DIFF = True
 
+
 def compare_files(file_a, file_b):
     import filecmp
 
     if not filecmp.cmp(
-        file_a,
-        file_b):
+            file_a,
+            file_b):
 
         if DUMP_DIFF:
             import subprocess
@@ -283,13 +286,13 @@ class RenderLayerTesting(unittest.TestCase):
 
             # add new objects
             if add_mode == 'EMPTY':
-                bpy.ops.object.add(override) # 'Empty'
+                bpy.ops.object.add(override)  # 'Empty'
 
             elif add_mode == 'CYLINDER':
-                bpy.ops.mesh.primitive_cylinder_add(override) # 'Cylinder'
+                bpy.ops.mesh.primitive_cylinder_add(override)  # 'Cylinder'
 
             elif add_mode == 'TORUS':
-                bpy.ops.mesh.primitive_torus_add(override) # 'Torus'
+                bpy.ops.mesh.primitive_torus_add(override)  # 'Torus'
 
             # save file
             filepath_objects = os.path.join(dirpath, 'objects.blend')
@@ -325,13 +328,13 @@ class RenderLayerTesting(unittest.TestCase):
 
         # add new objects
         if add_mode == 'EMPTY':
-            bpy.ops.object.add() # 'Empty'
+            bpy.ops.object.add()  # 'Empty'
 
         elif add_mode == 'CYLINDER':
-            bpy.ops.mesh.primitive_cylinder_add() # 'Cylinder'
+            bpy.ops.mesh.primitive_cylinder_add()  # 'Cylinder'
 
         elif add_mode == 'TORUS':
-            bpy.ops.mesh.primitive_torus_add() # 'Torus'
+            bpy.ops.mesh.primitive_torus_add()  # 'Torus'
 
         self.assertEqual(len(layer.collections), 1, "New collection not created")
         collection = layer.collections[0]
@@ -432,7 +435,9 @@ class MoveSceneCollectionTesting(RenderLayerTesting):
         Cleanup file, and populate it with class scene tree map
         """
         self.cleanup_tree()
-        self.assertTrue(hasattr(self, "get_initial_scene_tree_map"), "Test class has no get_initial_scene_tree_map method implemented")
+        self.assertTrue(
+                hasattr(self, "get_initial_scene_tree_map"),
+                "Test class has no get_initial_scene_tree_map method implemented")
 
         return self.build_scene_tree(self.get_initial_scene_tree_map())
 
@@ -499,7 +504,10 @@ class MoveSceneCollectionSyncTesting(MoveSceneCollectionTesting):
         import bpy
         scene = bpy.context.scene
 
-        self.assertTrue(hasattr(self, "get_initial_layers_tree_map"), "Test class has no get_initial_layers_tree_map method implemented")
+        self.assertTrue(
+                hasattr(self, "get_initial_layers_tree_map"),
+                "Test class has no get_initial_layers_tree_map method implemented")
+
         layers_map = self.get_initial_layers_tree_map()
 
         for layer_name, collections_names in layers_map:
@@ -578,4 +586,3 @@ class MoveLayerCollectionTesting(MoveSceneCollectionSyncTesting):
         layer_collection_src = self.parse_move(src)
         layer_collection_dst = self.parse_move(dst)
         return layer_collection_src.move_below(layer_collection_dst)
-

@@ -58,7 +58,8 @@ class UnitTesting(RenderLayerTesting):
 
         for i, name in enumerate(lookup):
             layer.collections.active_index = i
-            self.assertEqual(name, layer.collections.active.name,
+            self.assertEqual(
+                    name, layer.collections.active.name,
                     "Collection index mismatch: [{0}] : {1} != {2}".format(
                         i, name, layer.collections.active.name))
 

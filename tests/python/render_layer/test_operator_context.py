@@ -105,18 +105,20 @@ class UnitTesting(RenderLayerTesting):
         override = bpy.context.copy()
         override["render_layer"] = layer
         override["scene_collection"] = subzero
-        self.assertEqual(bpy.ops.testing.sample(override,
+        self.assertEqual(bpy.ops.testing.sample(
+            override,
             render_layer=layer.name,
-            scene_collection=subzero.name, # 'sub-zero'
+            scene_collection=subzero.name,  # 'sub-zero'
             use_verbose=True), {'FINISHED'})
 
         # set only render layer
         override = bpy.context.copy()
         override["render_layer"] = layer
 
-        self.assertEqual(bpy.ops.testing.sample(override,
+        self.assertEqual(bpy.ops.testing.sample(
+            override,
             render_layer=layer.name,
-            scene_collection=layer.collections.active.name, # 'scorpion'
+            scene_collection=layer.collections.active.name,  # 'scorpion'
             use_verbose=True), {'FINISHED'})
 
 
