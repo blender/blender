@@ -284,32 +284,34 @@ static void rna_Scene_collada_export(
         int use_blender_profile,
         int sort_by_name,
         int export_transformation_type,
-        int open_sim)
+        int open_sim,
+        int keep_bind_info)
 {
-    collada_export(scene,
-        filepath,
+	collada_export(scene,
+		filepath,
 
-        apply_modifiers,
-        export_mesh_type,
+		apply_modifiers,
+		export_mesh_type,
 
-        selected,
-        include_children,
-        include_armatures,
-        include_shapekeys,
-        deform_bones_only,
+		selected,
+		include_children,
+		include_armatures,
+		include_shapekeys,
+		deform_bones_only,
 
-        active_uv_only,
-        include_uv_textures,
-        include_material_textures,
-        use_texture_copies,
+		active_uv_only,
+		include_uv_textures,
+		include_material_textures,
+		use_texture_copies,
 
-        triangulate,
-        use_object_instantiation,
-        use_blender_profile,
-        sort_by_name,
+		triangulate,
+		use_object_instantiation,
+		use_blender_profile,
+		sort_by_name,
 
-        export_transformation_type,
-        open_sim);
+		export_transformation_type,
+		open_sim,
+		keep_bind_info);
 }
 
 #endif
@@ -396,7 +398,6 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only",
 		"Only export deforming bones with armatures");
 
-
 	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 		"Export only the selected UV Map");
 
@@ -408,7 +409,6 @@ void RNA_api_scene(StructRNA *srna)
 
 	RNA_def_boolean(func, "use_texture_copies", 1, "Copy",
 		"Copy textures to same folder where the .dae file is exported");
-
 
 	RNA_def_boolean(func, "triangulate", 1, "Triangulate",
 		"Export Polygons (Quads & NGons) as Triangles");
@@ -427,6 +427,10 @@ void RNA_api_scene(StructRNA *srna)
 
 	RNA_def_boolean(func, "open_sim", 0, "Export to SL/OpenSim",
 		"Compatibility mode for SL, OpenSim and other compatible online worlds");
+
+    RNA_def_boolean(func, "keep_bind_info", 0,
+		"Keep Bind Info", "Store Bindpose information in custom bone properties for later use during Collada export");
+
 #endif
 
 #ifdef WITH_ALEMBIC

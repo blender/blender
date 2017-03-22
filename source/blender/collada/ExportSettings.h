@@ -51,7 +51,9 @@ public:
 	bool use_blender_profile;
 	bool sort_by_name;
 	BC_export_transformation_type export_transformation_type;
+
 	bool open_sim;
+	bool keep_bind_info;
 
 	char *filepath;
 	LinkNode *export_set;

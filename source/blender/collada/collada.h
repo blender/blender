@@ -58,7 +58,9 @@ int collada_import(struct bContext *C,
 				   int find_chains,
 				   int auto_connect,
 				   int fix_orientation,
-				   int min_chain_length);
+				   int min_chain_length,
+
+				   int keep_bind_info);
 
 int collada_export(struct Scene *sce,
                    const char *filepath,
@@ -81,9 +83,9 @@ int collada_export(struct Scene *sce,
                    int use_blender_profile,
                    int sort_by_name,
                    BC_export_transformation_type export_transformation_type,
-                   int open_sim);
 
-
+				   int open_sim,
+				   int keep_bind_info);
 
 #ifdef __cplusplus
 }

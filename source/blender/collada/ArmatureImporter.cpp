@@ -93,6 +93,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 {
 	float mat[4][4];
 	float joint_inv_bind_mat[4][4];
+	float joint_bind_mat[4][4];
 	int chain_length = 0;
 
 	//Checking if bone is already made.
@@ -116,7 +117,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 
 			// get original world-space matrix
 			invert_m4_m4(mat, joint_inv_bind_mat);
-
+			copy_m4_m4(joint_bind_mat, mat);
 			// And make local to armature
 			Object *ob_arm = skin->BKE_armature_from_object();
 			if (ob_arm) {
@@ -165,6 +166,14 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 		bone->roll = angle;
 	}
 	copy_v3_v3(bone->head, mat[3]);
+
+	if (bone_is_skinned)
+	{
+		float rest_mat[4][4];
+		get_node_mat(rest_mat, node, NULL, NULL, NULL);
+		bc_create_bindpose_properties(this->import_settings, bone, joint_bind_mat, rest_mat);
+	}
+
 	add_v3_v3v3(bone->tail, bone->head, tail); //tail must be non zero
 
 	/* find smallest bone length in armature (used later for leaf bone length) */
@@ -266,7 +275,6 @@ void ArmatureImporter::fix_parent_connect(bArmature *armature, Bone *bone)
 
 }
 
-
 void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone, int clip)
 {
 	BoneExtensionMap &extended_bones = bone_extension_manager.getExtensionMap(armature);
@@ -302,7 +310,6 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 		EditBone *pebone = bc_get_edit_bone(armature, parentbone->name);
 		EditBone *cebone = bc_get_edit_bone(armature, dominant_child->get_name());
 		if (pebone && !(cebone->flag & BONE_CONNECTED)) {
-
 			float vec[3];
 			sub_v3_v3v3(vec, cebone->head, pebone->head);
 
