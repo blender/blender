@@ -1626,6 +1626,71 @@ const char *BLI_path_basename(const char *path)
 	return filename ? filename + 1 : path;
 }
 
+/**
+ * Get an element of the path at an index, eg:
+ * "/some/path/file.txt" where an index of...
+ * - 0 or -3: "some"
+ * - 1 or -2: "path"
+ * - 2 or -1: "file.txt"
+ *
+ * Ignores multiple slashes at any point in the path (including start/end).
+ */
+bool BLI_path_name_at_index(const char *path, const int index, int *r_offset, int *r_len)
+{
+	if (index >= 0) {
+		int index_step = 0;
+		int prev = -1;
+		int i = 0;
+		while (true) {
+			const char c = path[i];
+			if (ELEM(c, SEP, ALTSEP, '\0')) {
+				if (prev + 1 != i) {
+					prev += 1;
+					if (index_step == index) {
+						*r_offset = prev;
+						*r_len = i - prev;
+						/* printf("!!! %d %d\n", start, end); */
+						return true;
+					}
+					index_step += 1;
+				}
+				if (c == '\0') {
+					break;
+				}
+				prev = i;
+			}
+			i += 1;
+		}
+		return false;
+	}
+	else {
+		/* negative number, reverse where -1 is the last element */
+		int index_step = -1;
+		int prev = strlen(path);
+		int i = prev - 1;
+		while (true) {
+			const char c = i >= 0 ? path[i] : '\0';
+			if (ELEM(c, SEP, ALTSEP, '\0')) {
+				if (prev - 1 != i) {
+					i += 1;
+					if (index_step == index) {
+						*r_offset = i;
+						*r_len = prev - i;
+						return true;
+					}
+					index_step -= 1;
+				}
+				if (c == '\0') {
+					break;
+				}
+				prev = i;
+			}
+			i -= 1;
+		}
+		return false;
+	}
+}
+
 /* UNUSED */
 #if 0
 /**

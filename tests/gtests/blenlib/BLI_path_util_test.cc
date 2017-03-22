@@ -113,6 +113,139 @@ TEST(path_util, PathUtilClean)
 }
 #endif
 
+
+#define AT_INDEX(str_input, index_input, str_expect) \
+	{ \
+		char path[] = str_input; \
+		const char *expect = str_expect; \
+		int index_output, len_output; \
+		const bool ret = BLI_path_name_at_index(path, index_input, &index_output, &len_output); \
+		if (expect == NULL) { \
+			EXPECT_EQ(ret, false); \
+		} \
+		else { \
+			EXPECT_EQ(ret, true); \
+			EXPECT_EQ(strlen(expect), len_output); \
+			path[index_output + len_output] = '\0'; \
+			EXPECT_STREQ(expect, &path[index_output]); \
+		} \
+	}((void)0)
+
+/* BLI_path_name_at_index */
+TEST(path_util, NameAtIndex_Single)
+{
+	AT_INDEX("/a", 0, "a");
+	AT_INDEX("/a/", 0, "a");
+	AT_INDEX("a/", 0, "a");
+	AT_INDEX("//a//", 0, "a");
+	AT_INDEX("a/b", 0, "a");
+
+	AT_INDEX("/a", 1, NULL);
+	AT_INDEX("/a/", 1, NULL);
+	AT_INDEX("a/", 1, NULL);
+	AT_INDEX("//a//", 1, NULL);
+}
+TEST(path_util, NameAtIndex_SingleNeg)
+{
+	AT_INDEX("/a", -1, "a");
+	AT_INDEX("/a/", -1, "a");
+	AT_INDEX("a/", -1, "a");
+	AT_INDEX("//a//", -1, "a");
+	AT_INDEX("a/b", -1, "b");
+
+	AT_INDEX("/a", -2, NULL);
+	AT_INDEX("/a/", -2, NULL);
+	AT_INDEX("a/", -2, NULL);
+	AT_INDEX("//a//", -2, NULL);
+}
+
+TEST(path_util, NameAtIndex_Double)
+{
+	AT_INDEX("/ab", 0, "ab");
+	AT_INDEX("/ab/", 0, "ab");
+	AT_INDEX("ab/", 0, "ab");
+	AT_INDEX("//ab//", 0, "ab");
+	AT_INDEX("ab/c", 0, "ab");
+
+	AT_INDEX("/ab", 1, NULL);
+	AT_INDEX("/ab/", 1, NULL);
+	AT_INDEX("ab/", 1, NULL);
+	AT_INDEX("//ab//", 1, NULL);
+}
+
+TEST(path_util, NameAtIndex_DoublNeg)
+{
+	AT_INDEX("/ab", -1, "ab");
+	AT_INDEX("/ab/", -1, "ab");
+	AT_INDEX("ab/", -1, "ab");
+	AT_INDEX("//ab//", -1, "ab");
+	AT_INDEX("ab/c", -1, "c");
+
+	AT_INDEX("/ab", -2, NULL);
+	AT_INDEX("/ab/", -2, NULL);
+	AT_INDEX("ab/", -2, NULL);
+	AT_INDEX("//ab//", -2, NULL);
+}
+
+TEST(path_util, NameAtIndex_Misc)
+{
+	AT_INDEX("/how/now/brown/cow", 0, "how");
+	AT_INDEX("/how/now/brown/cow", 1, "now");
+	AT_INDEX("/how/now/brown/cow", 2, "brown");
+	AT_INDEX("/how/now/brown/cow", 3, "cow");
+	AT_INDEX("/how/now/brown/cow", 4, NULL);
+	AT_INDEX("/how/now/brown/cow/", 4, NULL);
+}
+
+TEST(path_util, NameAtIndex_MiscNeg)
+{
+	AT_INDEX("/how/now/brown/cow", 0, "how");
+	AT_INDEX("/how/now/brown/cow", 1, "now");
+	AT_INDEX("/how/now/brown/cow", 2, "brown");
+	AT_INDEX("/how/now/brown/cow", 3, "cow");
+	AT_INDEX("/how/now/brown/cow", 4, NULL);
+	AT_INDEX("/how/now/brown/cow/", 4, NULL);
+}
+
+TEST(path_util, NameAtIndex_MiscComplex)
+{
+	AT_INDEX("how//now/brown/cow", 0, "how");
+	AT_INDEX("//how///now\\/brown/cow", 1, "now");
+	AT_INDEX("/how/now\\//brown\\/cow", 2, "brown");
+	AT_INDEX("/how/now/brown/cow//\\", 3, "cow");
+	AT_INDEX("/how/now/brown/\\cow", 4, NULL);
+	AT_INDEX("how/now/brown/\\cow\\", 4, NULL);
+}
+
+TEST(path_util, NameAtIndex_MiscComplexNeg)
+{
+	AT_INDEX("how//now/brown/cow", -4, "how");
+	AT_INDEX("//how///now\\/brown/cow", -3, "now");
+	AT_INDEX("/how/now\\//brown\\/cow", -2, "brown");
+	AT_INDEX("/how/now/brown/cow//\\", -1, "cow");
+	AT_INDEX("/how/now/brown/\\cow", -5, NULL);
+	AT_INDEX("how/now/brown/\\cow\\", -5, NULL);
+}
+
+TEST(path_util, NameAtIndex_NoneComplex)
+{
+	AT_INDEX("", 0, NULL);
+	AT_INDEX("/", 0, NULL);
+	AT_INDEX("//", 0, NULL);
+	AT_INDEX("///", 0, NULL);
+}
+
+TEST(path_util, NameAtIndex_NoneComplexNeg)
+{
+	AT_INDEX("", -1, NULL);
+	AT_INDEX("/", -1, NULL);
+	AT_INDEX("//", -1, NULL);
+	AT_INDEX("///", -1, NULL);
+}
+
+#undef AT_INDEX
+
+
 /* BLI_path_frame */
 TEST(path_util, PathUtilFrame)
 {

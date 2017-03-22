@@ -61,6 +61,9 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen,
 void BLI_join_dirfile(char *__restrict string, const size_t maxlen,
                       const char *__restrict dir, const char *__restrict file) ATTR_NONNULL();
 const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_name_at_index(
+        const char *__restrict path, const int index,
+        int *__restrict r_offset, int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 #if 0
 typedef enum bli_rebase_state {
