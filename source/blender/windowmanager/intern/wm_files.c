@@ -675,15 +675,15 @@ int wm_homefile_read(
 			BLI_strncpy(filepath_startup, filepath_startup_override, FILE_MAX);
 
 			if (cfgdir) {
-				BLI_make_file_string(G.main->name, filepath_userdef, cfgdir, BLENDER_USERPREF_FILE);
+				BLI_make_file_string("/", filepath_userdef, cfgdir, BLENDER_USERPREF_FILE);
 			}
 			else {
 				filepath_userdef[0] = '\0';
 			}
 		}
 		else if (cfgdir) {
-			BLI_make_file_string(G.main->name, filepath_startup, cfgdir, BLENDER_STARTUP_FILE);
-			BLI_make_file_string(G.main->name, filepath_userdef, cfgdir, BLENDER_USERPREF_FILE);
+			BLI_make_file_string("/", filepath_startup, cfgdir, BLENDER_STARTUP_FILE);
+			BLI_make_file_string("/", filepath_userdef, cfgdir, BLENDER_USERPREF_FILE);
 		}
 		else {
 			filepath_startup[0] = '\0';
