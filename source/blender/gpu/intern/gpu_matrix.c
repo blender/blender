@@ -191,8 +191,8 @@ void gpuLoadProjectionMatrix3D(const float m[4][4])
 	if (state.mode == MATRIX_MODE_INACTIVE) {
 		GLenum mode;
 		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_PROJECTION_MATRIX) {
-			glMatrixMode(GL_PROJECTION_MATRIX);
+		if (mode != GL_PROJECTION) {
+			glMatrixMode(GL_PROJECTION);
 		}
 
 		glLoadMatrixf((const float*) m);
