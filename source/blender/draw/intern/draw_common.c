@@ -65,6 +65,19 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_VNORMAL, ts.colorVNormal);
 	UI_GetThemeColor4fv(TH_LNORMAL, ts.colorLNormal);
 	UI_GetThemeColor4fv(TH_FACE_DOT, ts.colorFaceDot);
+	UI_GetThemeColor4fv(TH_BACK, ts.colorBackground);
+
+	/* Grid */
+	UI_GetThemeColorShade4fv(TH_GRID, 10, ts.colorGrid);
+	/* emphasise division lines lighter instead of darker, if background is darker than grid */
+	UI_GetThemeColorShade4fv(TH_GRID,
+		(ts.colorGrid[0] + ts.colorGrid[1] + ts.colorGrid[2] + 0.12 >
+		ts.colorBackground[0] + ts.colorBackground[1] + ts.colorBackground[2])
+		? 20 : -10, ts.colorGridEmphasise);
+	/* Grid Axis */
+	UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_X, 0.5f, -10, ts.colorGridAxisX);
+	UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_Y, 0.5f, -10, ts.colorGridAxisY);
+	UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_Z, 0.5f, -10, ts.colorGridAxisZ);
 
 	UI_GetThemeColorShadeAlpha4fv(TH_TRANSFORM, 0, -80, ts.colorDeselect);
 	UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, ts.colorOutline);

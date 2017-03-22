@@ -68,9 +68,18 @@ typedef struct GlobalsUboStorage {
 	float colorOutline[4];
 	float colorLampNoAlpha[4];
 
+	float colorBackground[4];
+
+	float colorGrid[4];
+	float colorGridEmphasise[4];
+	float colorGridAxisX[4];
+	float colorGridAxisY[4];
+	float colorGridAxisZ[4];
+
 	/* Pack individual float at the end of the buffer to avoid alignement errors */
 	float sizeLampCenter, sizeLampCircle, sizeLampCircleShadow;
 	float sizeVertex, sizeEdge, sizeEdgeFix, sizeFaceDot;
+	float gridDistance, gridResolution, gridSubdivisions, gridScale;
 } GlobalsUboStorage;
 /* Keep in sync with globalsBlock in shaders */
 

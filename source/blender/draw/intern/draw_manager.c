@@ -1330,8 +1330,10 @@ void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 
 	if (type == DRW_MAT_PERS)
 		copy_m4_m4(mat, rv3d->persmat);
-	else if (type == DRW_MAT_WIEW)
+	else if (type == DRW_MAT_VIEW)
 		copy_m4_m4(mat, rv3d->viewmat);
+	else if (type == DRW_MAT_VIEWINV)
+		copy_m4_m4(mat, rv3d->viewinv);
 	else if (type == DRW_MAT_WIN)
 		copy_m4_m4(mat, rv3d->winmat);
 }
@@ -1546,7 +1548,7 @@ void DRW_draw_view(const bContext *C)
 	DRW_engines_draw_background();
 
 	DRW_draw_callbacks_pre_scene();
-	DRW_draw_grid();
+	// DRW_draw_grid();
 	DRW_engines_draw_scene();
 	DRW_draw_callbacks_post_scene();
 

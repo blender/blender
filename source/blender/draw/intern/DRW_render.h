@@ -230,7 +230,8 @@ DRWPass *DRW_pass_create(const char *name, DRWState state);
 /* Viewport */
 typedef enum {
 	DRW_MAT_PERS,
-	DRW_MAT_WIEW,
+	DRW_MAT_VIEW,
+	DRW_MAT_VIEWINV,
 	DRW_MAT_WIN,
 } DRWViewportMatrixType;
 

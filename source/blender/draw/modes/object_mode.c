@@ -35,6 +35,8 @@
 #include "BKE_camera.h"
 #include "BKE_global.h"
 
+#include "ED_view3d.h"
+
 #include "GPU_shader.h"
 
 #include "UI_resources.h"
@@ -42,11 +44,15 @@
 #include "draw_mode_engines.h"
 #include "draw_common.h"
 
+extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern GlobalsUboStorage ts;
 
 extern char datatoc_object_outline_resolve_frag_glsl[];
 extern char datatoc_object_outline_detect_frag_glsl[];
 extern char datatoc_object_outline_expand_frag_glsl[];
+extern char datatoc_object_grid_frag_glsl[];
+extern char datatoc_object_grid_vert_glsl[];
+extern char datatoc_common_globals_lib_glsl[];
 
 /* *********** LISTS *********** */
 /* keep it under MAX_PASSES */
@@ -62,6 +68,7 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *outlines_fade4;
 	struct DRWPass *outlines_fade5;
 	struct DRWPass *outlines_resolve;
+	struct DRWPass *grid;
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_wire;
 } OBJECT_PassList;
@@ -153,6 +160,9 @@ static struct {
 	struct GPUShader *outline_resolve_sh;
 	struct GPUShader *outline_detect_sh;
 	struct GPUShader *outline_fade_sh;
+	struct GPUShader *grid_sh;
+	float camera_pos[3];
+	float grid_settings[4];
 } e_data = {NULL}; /* Engine data */
 
 /* *********** FUNCTIONS *********** */
@@ -187,6 +197,29 @@ static void OBJECT_engine_init(void)
 	if (!e_data.outline_fade_sh) {
 		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
 	}
+
+	if (!e_data.grid_sh) {
+		e_data.grid_sh = DRW_shader_create_with_lib(datatoc_object_grid_vert_glsl, NULL,
+		                                            datatoc_object_grid_frag_glsl,
+		                                            datatoc_common_globals_lib_glsl, NULL);
+	}
+
+	{
+		/* Setup camera pos */
+		float viewmat[4][4];
+		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEWINV);
+		copy_v3_v3(e_data.camera_pos, viewmat[3]);
+
+		/* grid settings */
+		const bContext *C = DRW_get_context();
+		View3D *v3d = CTX_wm_view3d(C);
+		Scene *scene = CTX_data_scene(C);
+
+		e_data.grid_settings[0] = 100.0f; /* gridDistance */
+		e_data.grid_settings[1] = 2.0f; /* gridResolution */
+		e_data.grid_settings[2] = ED_view3d_grid_scale(scene, v3d, NULL); /* gridScale */
+		e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
+	}
 }
 
 static void OBJECT_engine_free(void)
@@ -197,6 +230,8 @@ static void OBJECT_engine_free(void)
 		DRW_shader_free(e_data.outline_detect_sh);
 	if (e_data.outline_fade_sh)
 		DRW_shader_free(e_data.outline_fade_sh);
+	if (e_data.grid_sh)
+		DRW_shader_free(e_data.grid_sh);
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], struct GPUShader *sh)
@@ -319,6 +354,20 @@ static void OBJECT_cache_init(void)
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_resolve_sh, psl->outlines_resolve);
 		DRW_shgroup_uniform_buffer(grp, "outlineBluredColor", &txl->outlines_blur_tx, 0);
+		DRW_shgroup_call_add(grp, quad, NULL);
+	}
+
+	{
+		/* Grid pass */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		psl->grid = DRW_pass_create("Infinite Grid Pass", state);
+
+		struct Batch *quad = DRW_cache_fullscreen_quad_get();
+
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
+		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
+		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo, 0);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
@@ -814,16 +863,17 @@ static void OBJECT_draw_scene(void)
 
 	/* reattach */
 	DRW_framebuffer_texture_attach(fbl->outlines, txl->outlines_depth_tx, 0);
-
-	/* Combine with scene buffer */
 	DRW_framebuffer_bind(dfbl->default_fb);
-	DRW_draw_pass(psl->outlines_resolve);
 
 	/* This needs to be drawn after the oultine */
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->non_meshes);
 	DRW_draw_pass(psl->ob_center);
+	DRW_draw_pass(psl->grid);
+
+	/* Combine with scene buffer last */
+	DRW_draw_pass(psl->outlines_resolve);
 }
 
 void OBJECT_collection_settings_create(CollectionEngineSettings *ces)
