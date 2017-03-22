@@ -1301,7 +1301,7 @@ PyDoc_STRVAR(Matrix_to_scale_doc,
 "   :return: Return the scale of a matrix.\n"
 "   :rtype: :class:`Vector`\n"
 "\n"
-"   .. note:: This method does not return negative a scale on any axis because it is not possible to obtain this data from the matrix alone.\n"
+"   .. note:: This method does not return a negative scale on any axis because it is not possible to obtain this data from the matrix alone.\n"
 );
 static PyObject *Matrix_to_scale(MatrixObject *self)
 {
@@ -1390,11 +1390,11 @@ PyDoc_STRVAR(Matrix_invert_doc,
 "\n"
 "   Set the matrix to its inverse.\n"
 "\n"
-"   :arg fallback: Set the matrix to this value when the inverse can't be calculated\n"
+"   :arg fallback: Set the matrix to this value when the inverse cannot be calculated\n"
 "      (instead of raising a :exc:`ValueError` exception).\n"
 "   :type fallback: :class:`Matrix`\n"
 "\n"
-"   .. seealso:: <https://en.wikipedia.org/wiki/Inverse_matrix>\n"
+"   .. seealso:: `Inverse matrix <https://en.wikipedia.org/wiki/Inverse_matrix>` on Wikipedia.\n"
 );
 static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
 {
@@ -1505,7 +1505,7 @@ PyDoc_STRVAR(Matrix_invert_safe_doc,
 "   If degenerated (e.g. zero scale on an axis), add some epsilon to its diagonal, to get an invertible one.\n"
 "   If tweaked matrix is still degenerated, set to the identity matrix instead.\n"
 "\n"
-"   .. seealso:: <https://en.wikipedia.org/wiki/Inverse_matrix>\n"
+"   .. seealso:: `Inverse Matrix <https://en.wikipedia.org/wiki/Inverse_matrix>` on Wikipedia.\n"
 );
 static PyObject *Matrix_invert_safe(MatrixObject *self)
 {
@@ -1554,9 +1554,9 @@ PyDoc_STRVAR(Matrix_adjugate_doc,
 "\n"
 "   Set the matrix to its adjugate.\n"
 "\n"
-"   .. note:: When the matrix cant be adjugated a :exc:`ValueError` exception is raised.\n"
+"   .. note:: When the matrix cannot be adjugated a :exc:`ValueError` exception is raised.\n"
 "\n"
-"   .. seealso:: <https://en.wikipedia.org/wiki/Adjugate_matrix>\n"
+"   .. seealso:: `Adjugate matrix <https://en.wikipedia.org/wiki/Adjugate_matrix>` on Wikipedia.\n"
 );
 static PyObject *Matrix_adjugate(MatrixObject *self)
 {
@@ -1733,7 +1733,7 @@ PyDoc_STRVAR(Matrix_determinant_doc,
 "   :return: Return the determinant of a matrix.\n"
 "   :rtype: float\n"
 "\n"
-"   .. seealso:: <https://en.wikipedia.org/wiki/Determinant>\n"
+"   .. seealso:: `Determinant <https://en.wikipedia.org/wiki/Determinant>` on Wikipedia.\n"
 );
 static PyObject *Matrix_determinant(MatrixObject *self)
 {
@@ -1755,7 +1755,7 @@ PyDoc_STRVAR(Matrix_transpose_doc,
 "\n"
 "   Set the matrix to its transpose.\n"
 "\n"
-"   .. seealso:: <https://en.wikipedia.org/wiki/Transpose>\n"
+"   .. seealso:: `Transpose <https://en.wikipedia.org/wiki/Transpose>` on Wikipedia.\n"
 );
 static PyObject *Matrix_transpose(MatrixObject *self)
 {
@@ -1887,10 +1887,10 @@ PyDoc_STRVAR(Matrix_identity_doc,
 "\n"
 "   Set the matrix to the identity matrix.\n"
 "\n"
-"   .. note:: An object with zero location and rotation, a scale of one,\n"
+"   .. note:: An object with a location and rotation of zero, and a scale of one\n"
 "      will have an identity matrix.\n"
 "\n"
-"   .. seealso:: <https://en.wikipedia.org/wiki/Identity_matrix>\n"
+"   .. seealso:: `Identity matrix <https://en.wikipedia.org/wiki/Identity_matrix>` on Wikipedia.\n"
 );
 static PyObject *Matrix_identity(MatrixObject *self)
 {
