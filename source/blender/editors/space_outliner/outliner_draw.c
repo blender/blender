@@ -1052,8 +1052,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
 	x += 2.0f * aspect;
 	y += 2.0f * aspect;
-	arg.x = x = x;
-	arg.y = y = y;
+	arg.x = x;
+	arg.y = y;
 
 	if (tselem->type) {
 		switch (tselem->type) {
