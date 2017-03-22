@@ -3556,14 +3556,13 @@ void uiLayoutOperatorButs(
 		row = uiLayoutRow(layout, true);
 		uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NONE);
 
-		WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
+		wmOperatorType *ot = WM_operatortype_find("WM_OT_operator_preset_add", false);
+		op_ptr = uiItemFullO_ptr(row, ot, "", ICON_ZOOMIN, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 		RNA_string_set(&op_ptr, "operator", op->type->idname);
-		uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMIN, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 
-		WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
+		op_ptr = uiItemFullO_ptr(row, ot, "", ICON_ZOOMOUT, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 		RNA_string_set(&op_ptr, "operator", op->type->idname);
 		RNA_boolean_set(&op_ptr, "remove_active", true);
-		uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMOUT, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 	}
 
 	if (op->type->ui) {
