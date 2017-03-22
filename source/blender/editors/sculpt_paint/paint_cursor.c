@@ -668,24 +668,34 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		}
 
 		/* set quad color. Colored overlay does not get blending */
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+
 		if (col) {
-			glColor4f(1.0, 1.0, 1.0, overlay_alpha / 100.0f);
+			immUniform4f("color", 1.0f, 1.0f, 1.0f, overlay_alpha / 100.0f);
 		}
 		else {
-			glColor4f(UNPACK3(U.sculpt_paint_overlay_col), overlay_alpha / 100.0f);
+			immUniform4f("color", UNPACK3(U.sculpt_paint_overlay_col), overlay_alpha / 100.0f);
 		}
 
 		/* draw textured quad */
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex2f(quad.xmin, quad.ymin);
-		glTexCoord2f(1, 0);
-		glVertex2f(quad.xmax, quad.ymin);
-		glTexCoord2f(1, 1);
-		glVertex2f(quad.xmax, quad.ymax);
-		glTexCoord2f(0, 1);
-		glVertex2f(quad.xmin, quad.ymax);
-		glEnd();
+		immUniform1i("image", GL_TEXTURE0);
+
+		immBegin(GL_QUADS, 4);
+		immAttrib2f(texCoord, 0.0f, 0.0f);
+		immVertex2f(pos, quad.xmin, quad.ymin);
+		immAttrib2f(texCoord, 1.0f, 0.0f);
+		immVertex2f(pos, quad.xmax, quad.ymin);
+		immAttrib2f(texCoord, 1.0f, 1.0f);
+		immVertex2f(pos, quad.xmax, quad.ymax);
+		immAttrib2f(texCoord, 0.0f, 1.0f);
+		immVertex2f(pos, quad.xmin, quad.ymax);
+		immEnd();
+
+		immUnbindProgram();
 
 		gpuPopMatrix();
 
@@ -746,22 +756,35 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			gpuTranslate2f(-center[0], -center[1]);
 		}
 
-		glColor4f(U.sculpt_paint_overlay_col[0],
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+
+		immUniform4f("color",
+		        U.sculpt_paint_overlay_col[0],
 		        U.sculpt_paint_overlay_col[1],
 		        U.sculpt_paint_overlay_col[2],
 		        brush->cursor_overlay_alpha / 100.0f);
 
 		/* draw textured quad */
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex2f(quad.xmin, quad.ymin);
-		glTexCoord2f(1, 0);
-		glVertex2f(quad.xmax, quad.ymin);
-		glTexCoord2f(1, 1);
-		glVertex2f(quad.xmax, quad.ymax);
-		glTexCoord2f(0, 1);
-		glVertex2f(quad.xmin, quad.ymax);
-		glEnd();
+
+		/* draw textured quad */
+		immUniform1i("image", GL_TEXTURE0);
+
+		immBegin(GL_QUADS, 4);
+		immAttrib2f(texCoord, 0.0f, 0.0f);
+		immVertex2f(pos, quad.xmin, quad.ymin);
+		immAttrib2f(texCoord, 1.0f, 0.0f);
+		immVertex2f(pos, quad.xmax, quad.ymin);
+		immAttrib2f(texCoord, 1.0f, 1.0f);
+		immVertex2f(pos, quad.xmax, quad.ymax);
+		immAttrib2f(texCoord, 0.0f, 1.0f);
+		immVertex2f(pos, quad.xmin, quad.ymax);
+		immEnd();
+
+		immUnbindProgram();
 
 		if (do_pop)
 			gpuPopMatrix();
