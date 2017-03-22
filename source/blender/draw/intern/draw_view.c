@@ -531,9 +531,7 @@ void DRW_draw_grid(void)
 		*(&grid_unit) = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 
-		glMatrixMode(GL_PROJECTION);
-		gpuLoadMatrix3D(rv3d->winmat);
-		glMatrixMode(GL_MODELVIEW);
+		gpuLoadProjectionMatrix3D(rv3d->winmat);
 		gpuLoadMatrix3D(rv3d->viewmat);
 	}
 	else {

@@ -675,9 +675,7 @@ void glaEnd2DDraw(gla2DDrawInfo *di)
 {
 	glViewport(di->orig_vp[0], di->orig_vp[1], di->orig_vp[2], di->orig_vp[3]);
 	glScissor(di->orig_vp[0], di->orig_vp[1], di->orig_vp[2], di->orig_vp[3]);
-	glMatrixMode(GL_PROJECTION);
-	gpuLoadMatrix3D(di->orig_projmat);
-	glMatrixMode(GL_MODELVIEW);
+	gpuLoadProjectionMatrix3D(di->orig_projmat);
 	gpuLoadMatrix3D(di->orig_viewmat);
 
 	MEM_freeN(di);
@@ -702,7 +700,6 @@ void bglPolygonOffset(float viewdist, float dist)
 		// glPolygonOffset(-1.0, -1.0);
 
 		/* hack below is to mimic polygon offset */
-		glMatrixMode(GL_PROJECTION);
 		gpuGetProjectionMatrix3D(winmat);
 		
 		/* dist is from camera to center point */
@@ -734,17 +731,13 @@ void bglPolygonOffset(float viewdist, float dist)
 		
 		winmat[14] -= offs;
 		offset += offs;
-		
-		gpuLoadMatrix3D(winmat);
-		glMatrixMode(GL_MODELVIEW);
 	}
 	else {
-		glMatrixMode(GL_PROJECTION);
 		winmat[14] += offset;
 		offset = 0.0;
-		gpuLoadMatrix3D(winmat);
-		glMatrixMode(GL_MODELVIEW);
 	}
+
+	gpuLoadProjectionMatrix3D(winmat);
 }
 
 /* **** Color management helper functions for GLSL display/transform ***** */

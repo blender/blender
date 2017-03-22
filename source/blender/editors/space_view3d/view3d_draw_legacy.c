@@ -1584,10 +1584,7 @@ static void view3d_draw_objects(
 			ED_region_pixelspace(ar);
 			*grid_unit = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
 			VP_legacy_drawgrid(&scene->unit, ar, v3d, grid_unit);
-			/* XXX make function? replaces persp(1) */
-			glMatrixMode(GL_PROJECTION);
-			gpuLoadMatrix3D(rv3d->winmat); /* XXX make a gpuLoadProjectionMatrix function? */
-			glMatrixMode(GL_MODELVIEW);
+			gpuLoadProjectionMatrix3D(rv3d->winmat);
 			gpuLoadMatrix3D(rv3d->viewmat);
 		}
 		else if (!draw_grids_after) {

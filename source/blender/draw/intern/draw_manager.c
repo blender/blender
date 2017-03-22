@@ -1065,11 +1065,7 @@ void DRW_draw_callbacks_pre_scene(void)
 	struct ARegion *ar = CTX_wm_region(DST.context);
 	RegionView3D *rv3d = CTX_wm_region_view3d(DST.context);
 
-	/* This is temporary
-	 * waiting for the full matrix switch */
-	glMatrixMode(GL_PROJECTION);
-	gpuLoadMatrix3D(rv3d->winmat);
-	glMatrixMode(GL_MODELVIEW);
+	gpuLoadProjectionMatrix3D(rv3d->winmat);
 	gpuLoadMatrix3D(rv3d->viewmat);
 
 	ED_region_draw_cb_draw(DST.context, ar, REGION_DRAW_PRE_VIEW);
@@ -1080,11 +1076,7 @@ void DRW_draw_callbacks_post_scene(void)
 	struct ARegion *ar = CTX_wm_region(DST.context);
 	RegionView3D *rv3d = CTX_wm_region_view3d(DST.context);
 
-	/* This is temporary
-	 * waiting for the full matrix switch */
-	glMatrixMode(GL_PROJECTION);
-	gpuLoadMatrix3D(rv3d->winmat);
-	glMatrixMode(GL_MODELVIEW);
+	gpuLoadProjectionMatrix3D(rv3d->winmat);
 	gpuLoadMatrix3D(rv3d->viewmat);
 
 	ED_region_draw_cb_draw(DST.context, ar, REGION_DRAW_POST_VIEW);

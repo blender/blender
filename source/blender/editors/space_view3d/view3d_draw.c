@@ -207,9 +207,7 @@ static void view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar
 	ED_view3d_update_viewmat(scene, v3d, ar, viewmat, winmat);
 
 	/* set for opengl */
-	glMatrixMode(GL_PROJECTION);
-	gpuLoadMatrix3D(rv3d->winmat); /* XXX make a gpuLoadProjectionMatrix function? */
-	glMatrixMode(GL_MODELVIEW);
+	gpuLoadProjectionMatrix3D(rv3d->winmat);
 	gpuLoadMatrix3D(rv3d->viewmat);
 }
 
@@ -1496,9 +1494,7 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 		*(&grid_unit) = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 
-		glMatrixMode(GL_PROJECTION);
-		gpuLoadMatrix3D(rv3d->winmat); /* XXX make a gpuLoadProjectionMatrix function? */
-		glMatrixMode(GL_MODELVIEW);
+		gpuLoadProjectionMatrix3D(rv3d->winmat);
 		gpuLoadMatrix3D(rv3d->viewmat);
 	}
 	else {

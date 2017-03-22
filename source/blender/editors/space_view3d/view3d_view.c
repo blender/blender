@@ -96,9 +96,7 @@ void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
 		RegionView3D *rv3d = ar->regiondata;
 		
 		wmSubWindowSet(win, ar->swinid);
-		glMatrixMode(GL_PROJECTION);
-		gpuLoadMatrix3D(rv3d->winmat);
-		glMatrixMode(GL_MODELVIEW);
+		gpuLoadProjectionMatrix3D(rv3d->winmat);
 		gpuLoadMatrix3D(rv3d->viewmat);
 	}
 }
