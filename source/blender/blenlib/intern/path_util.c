@@ -1167,30 +1167,6 @@ bool BLI_path_program_search(
 }
 
 /**
- * Copies into *last the part of *dir following the second-last slash.
- */
-void BLI_getlastdir(const char *dir, char *last, const size_t maxlen)
-{
-	const char *s = dir;
-	const char *lslash = NULL;
-	const char *prevslash = NULL;
-	while (*s) {
-		if ((*s == '\\') || (*s == '/')) {
-			prevslash = lslash;
-			lslash = s;
-		}
-		s++;
-	}
-	if (prevslash) {
-		BLI_strncpy(last, prevslash + 1, maxlen);
-	}
-	else {
-		BLI_strncpy(last, dir, maxlen);
-	}
-}
-
-
-/**
  * Sets the specified environment variable to the specified value,
  * and clears it if val == NULL.
  */
