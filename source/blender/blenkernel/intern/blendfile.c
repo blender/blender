@@ -356,8 +356,10 @@ int BKE_blendfile_read(
 	BlendFileData *bfd;
 	int retval = BKE_BLENDFILE_READ_OK;
 
-	if (strstr(filepath, BLENDER_STARTUP_FILE) == NULL) /* don't print user-pref loading */
-		printf("read blend: %s\n", filepath);
+	/* don't print user-pref loading */
+	if (strstr(filepath, BLENDER_STARTUP_FILE) == NULL) {
+		printf("Read blend: %s\n", filepath);
+	}
 
 	bfd = BLO_read_from_file(filepath, reports, skip_flags);
 	if (bfd) {

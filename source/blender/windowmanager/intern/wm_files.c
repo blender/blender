@@ -316,7 +316,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 }
 
 /* in case UserDef was read, we re-initialize all, and do versioning */
-static void wm_init_userdef(bContext *C, const bool from_memory)
+static void wm_init_userdef(bContext *C, const bool use_factory_settings)
 {
 	Main *bmain = CTX_data_main(C);
 
@@ -336,7 +336,7 @@ static void wm_init_userdef(bContext *C, const bool from_memory)
 	}
 
 	/* avoid re-saving for every small change to our prefs, allow overrides */
-	if (from_memory) {
+	if (use_factory_settings) {
 		BLO_update_defaults_userpref_blend();
 	}
 
@@ -632,13 +632,13 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
  * Called on startup, (context entirely filled with NULLs)
  * or called for 'New File' both startup.blend and userpref.blend are checked.
  *
- * \param from_memory: Ignore on-disk startup file, use bundled ``datatoc_startup_blend`` instead.
+ * \param use_factory_settings: Ignore on-disk startup file, use bundled ``datatoc_startup_blend`` instead.
  * Used for "Restore Factory Settings".
  * \param filepath_startup_override: Optional path pointing to an alternative blend file (may be NULL).
  */
 int wm_homefile_read(
         bContext *C, ReportList *reports,
-        bool from_memory, const char *filepath_startup_override)
+        bool use_factory_settings, const char *filepath_startup_override)
 {
 	ListBase wmbase;
 	char filepath_startup[FILE_MAX];
@@ -647,7 +647,7 @@ int wm_homefile_read(
 
 	/* Indicates whether user preferences were really load from memory.
 	 *
-	 * This is used for versioning code, and for this we can not rely on from_memory
+	 * This is used for versioning code, and for this we can not rely on use_factory_settings
 	 * passed via argument. This is because there might be configuration folder
 	 * exists but it might not have userpref.blend and in this case we fallback to
 	 * reading home file from memory.
@@ -658,7 +658,7 @@ int wm_homefile_read(
 	eBLOReadSkip skip_flags = 0;
 
 	/* options exclude eachother */
-	BLI_assert((from_memory && filepath_startup_override) == 0);
+	BLI_assert((use_factory_settings && filepath_startup_override) == 0);
 
 	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
 		BKE_BIT_TEST_SET(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
@@ -669,34 +669,30 @@ int wm_homefile_read(
 	UI_view2d_zoom_cache_reset();
 
 	G.relbase_valid = 0;
-	if (!from_memory) {
-		const char * const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
-		if (filepath_startup_override) {
-			BLI_strncpy(filepath_startup, filepath_startup_override, FILE_MAX);
 
-			if (cfgdir) {
-				BLI_make_file_string("/", filepath_userdef, cfgdir, BLENDER_USERPREF_FILE);
-			}
-			else {
-				filepath_userdef[0] = '\0';
-			}
-		}
-		else if (cfgdir) {
+	/* put aside screens to match with persistent windows later */
+	wm_window_match_init(C, &wmbase);
+
+	filepath_startup[0] = '\0';
+	filepath_userdef[0] = '\0';
+
+	if (!use_factory_settings) {
+		const char * const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
+		if (cfgdir) {
 			BLI_make_file_string("/", filepath_startup, cfgdir, BLENDER_STARTUP_FILE);
 			BLI_make_file_string("/", filepath_userdef, cfgdir, BLENDER_USERPREF_FILE);
 		}
 		else {
-			filepath_startup[0] = '\0';
-			filepath_userdef[0] = '\0';
-			from_memory = true;
+			use_factory_settings = true;
+		}
+
+		if (filepath_startup_override) {
+			BLI_strncpy(filepath_startup, filepath_startup_override, FILE_MAX);
 		}
 	}
-	
-	/* put aside screens to match with persistent windows later */
-	wm_window_match_init(C, &wmbase);
-	
+
 	/* load preferences before startup.blend */
-	if (!from_memory && BLI_exists(filepath_userdef)) {
+	if (!use_factory_settings && BLI_exists(filepath_userdef)) {
 		UserDef *userdef = BKE_blendfile_userdef_read(filepath_userdef, NULL);
 		if (userdef != NULL) {
 			BKE_blender_userdef_set_data(userdef);
@@ -708,7 +704,7 @@ int wm_homefile_read(
 		}
 	}
 
-	if (!from_memory) {
+	if (!use_factory_settings) {
 		if (BLI_access(filepath_startup, R_OK) == 0) {
 			success = (BKE_blendfile_read(C, filepath_startup, NULL, skip_flags) != BKE_BLENDFILE_READ_FAIL);
 		}
@@ -754,11 +750,14 @@ int wm_homefile_read(
 	G.main->name[0] = '\0';
 
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
-	if (!G.background) GPU_default_lights();
-	
-	/* XXX */
-	G.save_over = 0;    // start with save preference untitled.blend
-	G.fileflags &= ~G_FILE_AUTOPLAY;    /*  disable autoplay in startup.blend... */
+	if (!G.background) {
+		GPU_default_lights();
+	}
+
+	/* start with save preference untitled.blend */
+	G.save_over = 0;
+	/* disable auto-play in startup.blend... */
+	G.fileflags &= ~G_FILE_AUTOPLAY;
 
 	wm_file_read_post(C, true);
 
@@ -1410,11 +1409,11 @@ void WM_OT_read_history(wmOperatorType *ot)
 
 static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 {
-	const bool from_memory = (STREQ(op->type->idname, "WM_OT_read_factory_settings"));
+	const bool use_factory_settings = (STREQ(op->type->idname, "WM_OT_read_factory_settings"));
 	char filepath_buf[FILE_MAX];
 	const char *filepath = NULL;
 
-	if (!from_memory) {
+	if (!use_factory_settings) {
 		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
 
 		/* This can be used when loading of a start-up file should only change
@@ -1436,9 +1435,9 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		G.fileflags &= ~G_FILE_NO_UI;
 	}
 
-	if (wm_homefile_read(C, op->reports, from_memory, filepath)) {
+	if (wm_homefile_read(C, op->reports, use_factory_settings, filepath)) {
 		/* Load a file but keep the splash open */
-		if (!from_memory && RNA_boolean_get(op->ptr, "use_splash")) {
+		if (!use_factory_settings && RNA_boolean_get(op->ptr, "use_splash")) {
 			WM_init_splash(C);
 		}
 		return OPERATOR_FINISHED;

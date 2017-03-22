@@ -37,7 +37,7 @@ struct wmOperatorType;
 void		wm_history_file_read(void);
 int			wm_homefile_read(
         struct bContext *C, struct ReportList *reports,
-        bool from_memory, const char *filepath_startup_override);
+        bool use_factory_settings, const char *filepath_startup_override);
 void		wm_file_read_report(bContext *C);
 
 void        WM_OT_save_homefile(struct wmOperatorType *ot);
