@@ -1,15 +1,13 @@
-# ./blender.bin --background -noaudio --python tests/python/render_layer/test_collection_rename.py -- --testdir="/data/lib/tests/"
-
 # ############################################################
 # Importing - Same For All Render Layer Tests
 # ############################################################
 
-import unittest
-
-import os, sys
-sys.path.append(os.path.dirname(__file__))
-
 from render_layer_common import *
+import unittest
+import os
+import sys
+
+sys.path.append(os.path.dirname(__file__))
 
 
 # ############################################################
