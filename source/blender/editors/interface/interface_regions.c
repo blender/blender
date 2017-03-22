@@ -1692,6 +1692,28 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 		UI_block_draw(C, block);
 }
 
+/**
+ * Use to refresh centered popups on screen resizing (for splash).
+ */
+static void ui_block_region_popup_window_listener(
+        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+{
+	switch (wmn->category) {
+		case NC_WINDOW:
+		{
+			switch (wmn->action) {
+				case NA_EDITED:
+				{
+					/* window resize */
+					ED_region_tag_refresh_ui(ar);
+					break;
+				}
+			}
+			break;
+		}
+	}
+}
+
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
 	uiBut *bt;
@@ -2002,6 +2024,11 @@ uiPopupBlockHandle *ui_popup_block_create(
 
 	block = ui_popup_block_refresh(C, handle, butregion, but);
 	handle = block->handle;
+
+	/* keep centered on window resizing */
+	if ((block->bounds_type == UI_BLOCK_BOUNDS_POPUP_CENTER) && handle->can_refresh) {
+		type.listener = ui_block_region_popup_window_listener;
+	}
 
 	return handle;
 }
