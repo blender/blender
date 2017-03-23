@@ -43,7 +43,7 @@
 
 //struct Object;
 
-class TransformReader : public TransformBase
+class TransformReader
 {
 protected:
 

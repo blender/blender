@@ -162,18 +162,6 @@ void UnitConverter::calculate_scale(Scene &sce)
 	size_to_mat4(scale_mat4, rescale);
 }
 
-void TransformBase::decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size)
-{
-	mat4_to_size(size, mat);
-	if (eul) {
-		mat4_to_eul(eul, mat);
-	}
-	if (quat) {
-		mat4_to_quat(quat, mat);
-	}
-	copy_v3_v3(loc, mat[3]);
-}
-
 /**
  * Translation map.
  * Used to translate every COLLADA id to a valid id, no matter what "wrong" letters may be

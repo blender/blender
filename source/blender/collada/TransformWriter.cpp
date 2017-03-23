@@ -27,10 +27,9 @@
 
 
 #include "BKE_object.h"
+#include "BLI_math.h"
 
 #include "TransformWriter.h"
-
-#include "BLI_math.h"
 
 void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4], float parent_mat[4][4])
 {
@@ -51,7 +50,7 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 	converter->mat4_to_dae_double(dmat, local);
 	delete converter;
 
-	TransformBase::decompose(local, loc, rot, NULL, scale);
+	bc_decompose(local, loc, rot, NULL, scale);
 
 	if (node.getType() == COLLADASW::Node::JOINT) {
 		// XXX Why are joints handled differently ?
@@ -116,7 +115,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 		case BC_TRANSFORMATION_TYPE_TRANSROTLOC:
 		{
 			float loc[3], rot[3], scale[3];
-			TransformBase::decompose(f_obmat, loc, rot, NULL, scale);
+			bc_decompose(f_obmat, loc, rot, NULL, scale);
 			add_transform(node, loc, rot, scale); 
 			break;
 		}

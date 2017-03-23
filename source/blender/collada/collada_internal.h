@@ -85,12 +85,6 @@ public:
 
 };
 
-class TransformBase
-{
-public:
-	void decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size);
-};
-
 extern void clear_global_id_map();
 /** Look at documentation of translate_map */
 extern std::string translate_id(const std::string &id);
