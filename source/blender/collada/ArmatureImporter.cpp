@@ -42,6 +42,7 @@ extern "C" {
 #include "ED_armature.h"
 }
 
+#include "collada_utils.h"
 #include "ArmatureImporter.h"
 
 // use node name, or fall back to original id if not present (name is optional)
@@ -171,7 +172,8 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	{
 		float rest_mat[4][4];
 		get_node_mat(rest_mat, node, NULL, NULL, NULL);
-		bc_create_bindpose_properties(this->import_settings, bone, joint_bind_mat, rest_mat);
+		bc_set_IDPropertyMatrix(bone, "bind_mat", joint_bind_mat);
+		bc_set_IDPropertyMatrix(bone, "rest_mat", rest_mat);
 	}
 
 	add_v3_v3v3(bone->tail, bone->head, tail); //tail must be non zero
