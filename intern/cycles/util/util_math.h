@@ -1451,6 +1451,11 @@ ccl_device_inline float beta(float x, float y)
 #endif
 }
 
+ccl_device_inline float xor_signmask(float x, int y)
+{
+	return __int_as_float(__float_as_int(x) ^ y);
+}
+
 /* projections */
 ccl_device_inline float2 map_to_tube(const float3 co)
 {

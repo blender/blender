@@ -96,12 +96,6 @@ void triangle_intersect_precalc(float3 dir,
 	isect_precalc->kz = kz;
 }
 
-/* TODO(sergey): Make it general utility function. */
-ccl_device_inline float xor_signmask(float x, int y)
-{
-	return __int_as_float(__float_as_int(x) ^ y);
-}
-
 ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
                                           const IsectPrecalc *isect_precalc,
                                           Intersection *isect,
