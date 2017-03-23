@@ -24,6 +24,7 @@ __all__ = (
     "check",
     "enable",
     "disable",
+    "disable_all",
     "reset_all",
     "module_bl_info",
 )
@@ -442,6 +443,13 @@ def reset_all(*, reload_scripts=False):
             elif is_loaded:
                 print("\taddon_utils.reset_all unloading", mod_name)
                 disable(mod_name)
+
+
+def disable_all():
+    import sys
+    for mod_name, mod in sys.modules.items():
+        if getattr(mod, "__addon_enabled__", False):
+            disable(mod_name)
 
 
 def module_bl_info(mod, info_basis=None):
