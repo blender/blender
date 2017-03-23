@@ -481,7 +481,6 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 {
 	int x, y;
 
-	/* set zoom */
 	glaDefine2DArea(&ar->winrct);
 	
 	/* find window pixel coordinates of origin */
@@ -548,9 +547,6 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		if (sima->flag & SI_USE_ALPHA)
 			glDisable(GL_BLEND);
 	}
-
-	/* reset zoom */
-	glPixelZoom(1.0f, 1.0f);
 }
 
 static unsigned int *get_part_from_buffer(unsigned int *buffer, int width, short startx, short starty, short endx, short endy)
@@ -918,8 +914,12 @@ void draw_image_cache(const bContext *C, ARegion *ar)
 	/* Draw current frame. */
 	x = (cfra - sfra) / (efra - sfra + 1) * ar->winx;
 
-	UI_ThemeColor(TH_CFRAME);
-	glRecti(x, 0, x + ceilf(framelen), 8 * UI_DPI_FAC);
+	unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColor(TH_CFRAME);
+	immRecti(pos, x, 0, x + ceilf(framelen), 8 * UI_DPI_FAC);
+	immUnbindProgram();
+
 	ED_region_cache_draw_curfra_label(cfra, x, 8.0f * UI_DPI_FAC);
 
 	if (mask != NULL) {
