@@ -256,47 +256,57 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 	//bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
 
 	float mat[4][4];
+	float bone_rest_mat[4][4]; /* derived from bone->arm_mat */
+	float parent_rest_mat[4][4]; /* derived from bone->parent->arm_mat */
 
-	if (bone->parent) {
-		// get bone-space matrix from parent pose
-		/*bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, bone->parent->name);
-		float invpar[4][4];
-		invert_m4_m4(invpar, parchan->pose_mat);
-		mul_m4_m4m4(mat, invpar, pchan->pose_mat);*/
+	bool has_restmat = bc_get_property_matrix(bone, "rest_mat", mat);
+
+	if (!has_restmat) {
+
+		/* Have no restpose matrix stored, try old style <= Blender 2.78 */
 		
-		float invpar[4][4];
-		invert_m4_m4(invpar, bone->parent->arm_mat);
-		mul_m4_m4m4(mat, invpar, bone->arm_mat);
-
-	}
-	else {
-		
-		//copy_m4_m4(mat, pchan->pose_mat);
-		//pose mat is object space
-		//New change: export bone->arm_mat
-		copy_m4_m4(mat, bone->arm_mat);
-	}
-
-	// OPEN_SIM_COMPATIBILITY
-	if (export_settings->open_sim) {
-		// Remove rotations vs armature from transform
-		// parent_rest_rot * mat * irest_rot
-		float temp[4][4];
-		copy_m4_m4(temp, bone->arm_mat);
-		temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
-		invert_m4(temp);
-
-		mul_m4_m4m4(mat, mat, temp);
+		bc_create_restpose_mat(this->export_settings, bone, bone_rest_mat, bone->arm_mat, true);
 
 		if (bone->parent) {
-			copy_m4_m4(temp, bone->parent->arm_mat);
-			temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+			// get bone-space matrix from parent pose
+			/*bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, bone->parent->name);
+			float invpar[4][4];
+			invert_m4_m4(invpar, parchan->pose_mat);
+			mul_m4_m4m4(mat, invpar, pchan->pose_mat);*/
+			float invpar[4][4];
+			bc_create_restpose_mat(this->export_settings, bone->parent, parent_rest_mat, bone->parent->arm_mat, true);
 
-			mul_m4_m4m4(mat, temp, mat);
+			invert_m4_m4(invpar, parent_rest_mat);
+			mul_m4_m4m4(mat, invpar, bone_rest_mat);
+
+		}
+		else {
+			copy_m4_m4(mat, bone_rest_mat);
+		}
+
+		// OPEN_SIM_COMPATIBILITY
+		if (export_settings->open_sim) {
+			// Remove rotations vs armature from transform
+			// parent_rest_rot * mat * irest_rot
+			float temp[4][4];
+			copy_m4_m4(temp, bone_rest_mat);
+			temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+			invert_m4(temp);
+
+			mul_m4_m4m4(mat, mat, temp);
+
+			if (bone->parent) {
+				copy_m4_m4(temp, parent_rest_mat);
+				temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+
+				mul_m4_m4m4(mat, temp, mat);
+			}
 		}
 	}
 
+	bc_sanitize_mat(mat, 6); // XXX: Make this optional ?
 	TransformWriter::add_node_transform(node, mat, NULL);
+
 }
 
 std::string ArmatureExporter::get_controller_id(Object *ob_arm, Object *ob)
