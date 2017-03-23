@@ -123,8 +123,9 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 #if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
 	const avxf avxf_P(P.m128, P.m128);
 
-	const avxf tri_ab = kernel_tex_fetch_avxf(__prim_tri_verts, tri_vindex + 0);
-	const avxf tri_bc = kernel_tex_fetch_avxf(__prim_tri_verts, tri_vindex + 1);
+	const ssef *ssef_verts = (ssef*)&kg->__prim_tri_verts.data[tri_vindex];
+	const avxf tri_ab = _mm256_loadu_ps((float *)(ssef_verts));
+	const avxf tri_bc = _mm256_loadu_ps((float *)(ssef_verts + 1));
 
 	const avxf AB = tri_ab - avxf_P;
 	const avxf BC = tri_bc - avxf_P;
