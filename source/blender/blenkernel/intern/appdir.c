@@ -201,7 +201,8 @@ static bool get_path_local(char *targetpath, const char *folder_name, const char
 
 	/* try EXECUTABLE_DIR/2.5x/folder_name - new default directory for local blender installed files */
 #ifdef __APPLE__
-	static char osx_resourses[FILE_MAX]; /* due new codesign situation in OSX > 10.9.5 we must move the blender_version dir with contents to Resources */
+	/* due new codesign situation in OSX > 10.9.5 we must move the blender_version dir with contents to Resources */
+	static char osx_resourses[FILE_MAX];
 	sprintf(osx_resourses, "%s../Resources", bprogdir);
 	return test_path(targetpath, osx_resourses, blender_version_decimal(ver), relfolder);
 #else
@@ -233,7 +234,9 @@ static bool is_portable_install(void)
  * \param ver  Blender version, used to construct a subdirectory name
  * \return true if it was able to construct such a path.
  */
-static bool get_path_user(char *targetpath, const char *folder_name, const char *subfolder_name, const char *envvar, const int ver)
+static bool get_path_user(
+        char *targetpath, const char *folder_name, const char *subfolder_name,
+        const char *envvar, const int ver)
 {
 	char user_path[FILE_MAX];
 	const char *user_base_path;
@@ -283,7 +286,9 @@ static bool get_path_user(char *targetpath, const char *folder_name, const char 
  * \param ver  Blender version, used to construct a subdirectory name
  * \return  true if it was able to construct such a path.
  */
-static bool get_path_system(char *targetpath, const char *folder_name, const char *subfolder_name, const char *envvar, const int ver)
+static bool get_path_system(
+        char *targetpath, const char *folder_name, const char *subfolder_name,
+        const char *envvar, const int ver)
 {
 	char system_path[FILE_MAX];
 	const char *system_base_path;
@@ -713,7 +718,8 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 		BLI_add_slash(fullname);
 #ifdef WIN32
 		if (userdir && userdir != fullname) {
-			BLI_strncpy(userdir, fullname, maxlen); /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
+			/* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
+			BLI_strncpy(userdir, fullname, maxlen);
 		}
 #endif
 	}
