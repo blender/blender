@@ -204,7 +204,9 @@ def display_name(name):
     name = name.replace("_colon_", ":")
     name = name.replace("_plus_", "+")
 
-    name = name.replace("_", " ")
+    # strip to allow underscore prefix
+    # (when paths can't start with numbers for eg).
+    name = name.replace("_", " ").lstrip(" ")
 
     if name.islower():
         name = name.lower().title()
