@@ -1717,7 +1717,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 		projectFloatViewEx(t, vecrot, cent, V3D_PROJ_TEST_CLIP_ZERO);
 
-		gpuMatrixBegin3D_legacy(); /* TODO(merwin): finish the 2D matrix API & use here */
+		gpuPushMatrix();
 
 		unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		UNUSED_VARS(pos); /* silence warning */
@@ -1825,7 +1825,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		}
 
 		immUnbindProgram();
-		gpuMatrixEnd();
+		gpuPopMatrix();
 	}
 }
 
@@ -6873,8 +6873,7 @@ static void drawEdgeSlide(TransInfo *t)
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			gpuMatrixBegin3D_legacy();
-
+			gpuPushMatrix();
 			gpuMultMatrix3D(t->obedit->obmat);
 
 			unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
@@ -6962,7 +6961,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 			immUnbindProgram();
 
-			gpuMatrixEnd();
+			gpuPopMatrix();
 
 			glDisable(GL_BLEND);
 
@@ -7486,8 +7485,7 @@ static void drawVertSlide(TransInfo *t)
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			gpuMatrixBegin3D_legacy();
-
+			gpuPushMatrix();
 			gpuMultMatrix3D(t->obedit->obmat);
 
 			glLineWidth(line_size);
@@ -7566,7 +7564,7 @@ static void drawVertSlide(TransInfo *t)
 
 			immUnbindProgram();
 
-			gpuMatrixEnd();
+			gpuPopMatrix();
 
 			if (v3d && v3d->zbuf)
 				glEnable(GL_DEPTH_TEST);

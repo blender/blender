@@ -552,7 +552,7 @@ static void blf_draw_gl__start(FontBLF *font)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	gpuMatrixBegin3D_legacy();
+	gpuPushMatrix();
 
 	if (font->flags & BLF_MATRIX)
 		gpuMultMatrix3D(font->m);
@@ -563,7 +563,7 @@ static void blf_draw_gl__start(FontBLF *font)
 		gpuScale3fv(font->aspect);
 
 	if (font->flags & BLF_ROTATION)  /* radians -> degrees */
-		gpuRotateAxis(RAD2DEG(font->angle), 'Z');
+		gpuRotateAxis(RAD2DEG(font->angle), 'Z'); /* TODO: use gpuRotate2D here? */
 
 #ifndef BLF_STANDALONE
 	VertexFormat *format = immVertexFormat();
@@ -584,7 +584,7 @@ static void blf_draw_gl__start(FontBLF *font)
 
 static void blf_draw_gl__end(void)
 {
-	gpuMatrixEnd();
+	gpuPopMatrix();
 
 #ifndef BLF_STANDALONE
 	immUnbindProgram();

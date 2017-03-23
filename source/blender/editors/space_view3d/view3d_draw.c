@@ -812,7 +812,7 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 
 static void view3d_draw_background_gradient(void)
 {
-	gpuMatrixBegin3D(); /* TODO: finish 2D API */
+	/* TODO: finish 2D API & draw background with that */
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -837,8 +837,6 @@ static void view3d_draw_background_gradient(void)
 	immEnd();
 
 	immUnbindProgram();
-
-	gpuMatrixEnd();
 }
 
 static void view3d_draw_background_none(void)

@@ -765,11 +765,9 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-		gpuMatrixBegin3D_legacy();
-
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		for (j = 0; j < WIDGET_AA_JITTER; j++) {
-			gpuTranslate3f(jit[j][0], jit[j][1], 0.0f);
+			gpuTranslate2fv(jit[j]);
 			
 			/* outline */
 			immUniformColor4ubv(tcol);
@@ -784,11 +782,9 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				}
 			}
 			
-			gpuTranslate3f(-jit[j][0], -jit[j][1], 0.0f);
+			gpuTranslate2f(-jit[j][0], -jit[j][1]);
 		}
 		immUnbindProgram();
-
-		gpuMatrixEnd();
 	}
 
 	/* decoration */
@@ -802,11 +798,9 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4ubv(tcol);
 
-		gpuMatrixBegin3D_legacy();
-
 		/* for each AA step */
 		for (j = 0; j < WIDGET_AA_JITTER; j++) {
-			gpuTranslate3f(jit[j][0], jit[j][1], 0.0f);
+			gpuTranslate2fv(jit[j]);
 
 			if (wtb->tria1.tot)
 				widget_trias_draw(&wtb->tria1, pos);
@@ -814,10 +808,8 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			if (wtb->tria2.tot)
 				widget_trias_draw(&wtb->tria2, pos);
 		
-			gpuTranslate3f(-jit[j][0], -jit[j][1], 0.0f);
+			gpuTranslate2f(-jit[j][0], -jit[j][1]);
 		}
-
-		gpuMatrixEnd();
 
 		immUnbindProgram();
 	}
@@ -4151,9 +4143,8 @@ void ui_draw_pie_center(uiBlock *block)
 	float angle = atan2f(pie_dir[1], pie_dir[0]);
 	float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? M_PI_2 : M_PI_4;
 
-	gpuMatrixBegin3D_legacy();
 	gpuPushMatrix();
-	gpuTranslate3f(cx, cy, 0.0f);
+	gpuTranslate2f(cx, cy);
 
 	glEnable(GL_BLEND);
 	if (btheme->tui.wcol_pie_menu.shaded) {
@@ -4200,7 +4191,6 @@ void ui_draw_pie_center(uiBlock *block)
 
 	glDisable(GL_BLEND);
 	gpuPopMatrix();
-	gpuMatrixEnd();
 }
 
 

@@ -403,7 +403,7 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);
 	}
 
-	gpuMatrixBegin3D_legacy(); /* TODO: replace Begin/End with Push/Pop */
+	gpuPushMatrix();
 	gpuScale3f(xsize, ysize, zsize);
 
 	if (flat_color) {
@@ -417,7 +417,7 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 	Batch_Uniform4fv(&batch, "color", fcolor);
 	Batch_draw(&batch);
 
-	gpuMatrixEnd();
+	gpuPopMatrix();
 }
 
 static void drawcube_size(float xsize, float ysize, float zsize)
@@ -450,14 +450,14 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
-	gpuMatrixBegin3D_legacy(); /* TODO: replace Begin/End with Push/Pop */
+	gpuPushMatrix();
 	gpuScale3f(xsize, ysize, zsize);
 
 	Batch_use_program(&batch);
 	Batch_Uniform4fv(&batch, "color", fcolor);
 	Batch_draw(&batch);
 
-	gpuMatrixEnd();
+	gpuPopMatrix();
 }
 
 
@@ -506,13 +506,9 @@ static void draw_bonevert(void)
 		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
-	gpuMatrixBegin3D_legacy();
-
 	Batch_use_program(&batch);
 	Batch_Uniform4fv(&batch, "color", fcolor);
 	Batch_draw(&batch);
-
-	gpuMatrixEnd();
 }
 
 static void draw_bonevert_solid(void)
@@ -520,9 +516,8 @@ static void draw_bonevert_solid(void)
 	Batch *batch = Batch_get_sphere(0);
 	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
-	gpuMatrixBegin3D_legacy();
-
-	gpuScale3f(0.05, 0.05, 0.05);
+	gpuPushMatrix();
+	gpuScaleUniform(0.05);
 
 	if (flat_color) {
 		Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
@@ -535,7 +530,7 @@ static void draw_bonevert_solid(void)
 	Batch_Uniform4fv(batch, "color", fcolor);
 	Batch_draw(batch);
 
-	gpuMatrixEnd();
+	gpuPopMatrix();
 }
 
 static const float bone_octahedral_verts[6][3] = {
@@ -607,14 +602,10 @@ static void draw_bone_octahedral(void)
 		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
-	gpuMatrixBegin3D_legacy();
-
 	Batch_use_program(&batch);
 	Batch_Uniform4fv(&batch, "color", fcolor);
 	Batch_draw(&batch);
-
-	gpuMatrixEnd();
-}	
+}
 
 static void draw_bone_solid_octahedral(void)
 {
@@ -644,8 +635,6 @@ static void draw_bone_solid_octahedral(void)
 		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);
 	}
 
-	gpuMatrixBegin3D_legacy();
-
 	if (flat_color) {
 		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
@@ -656,9 +645,7 @@ static void draw_bone_solid_octahedral(void)
 	}
 	Batch_Uniform4fv(&batch, "color", fcolor);
 	Batch_draw(&batch);
-
-	gpuMatrixEnd();
-}	
+}
 
 /* *************** Armature drawing, bones ******************* */
 
@@ -1011,7 +998,6 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 	Batch_set_builtin_program(sphere, GPU_SHADER_SIMPLE_LIGHTING);
 	Batch_Uniform3fv(sphere, "light", light_vec);
 
-	gpuMatrixBegin3D_legacy();
 	gpuPushMatrix();
 
 	/* figure out the sizes of spheres */
@@ -1033,7 +1019,7 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 	}
 	
 	/* move to z-axis space */
-	gpuRotate3f(-90.0f, 1.0f, 0.0f, 0.0f);
+	gpuRotateAxis(-90.0f, 'X');
 
 	/* sphere root color */
 	if (armflag & ARM_EDITMODE) {
@@ -1052,7 +1038,7 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_ROOT);
 		gpuPushMatrix();
-		gpuScale3f(head, head, head);
+		gpuScaleUniform(head);
 		Batch_Uniform4fv(sphere, "color", fcolor);
 		Batch_draw(sphere);
 		gpuPopMatrix();
@@ -1070,7 +1056,7 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 	gpuTranslate3f(0.0f, 0.0f, length);
 
 	gpuPushMatrix();
-	gpuScale3f(tail, tail, tail);
+	gpuScaleUniform(tail);
 	Batch_use_program(sphere); /* hack to make the following uniforms stick */
 	Batch_Uniform4fv(sphere, "color", fcolor);
 	Batch_draw(sphere);
@@ -1104,14 +1090,14 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 		/* draw sphere on extrema */
 		gpuPushMatrix();
 		gpuTranslate3f(0.0f, 0.0f, length - tail);
-		gpuScale3f(size1, size1, size1);
+		gpuScaleUniform(size1);
 
 		Batch_draw(sphere);
 		gpuPopMatrix();
 
 		gpuPushMatrix();
 		gpuTranslate3f(0.0f, 0.0f, head);
-		gpuScale3f(size2, size2, size2);
+		gpuScaleUniform(size2);
 
 		Batch_draw(sphere);
 		gpuPopMatrix();
@@ -1141,12 +1127,11 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 		/* 1 sphere in center */
 		gpuTranslate3f(0.0f, 0.0f, (head + length - tail) / 2.0f);
 
-		gpuScale3f(size1, size1, size1);
+		gpuScaleUniform(size1);
 		Batch_draw(sphere);
 	}
 	
 	gpuPopMatrix();
-	gpuMatrixEnd();
 }
 
 static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned int id,
@@ -1162,9 +1147,8 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 	VertexFormat *format = immVertexFormat();
 	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
-	gpuMatrixBegin3D_legacy();
 	gpuPushMatrix();
-	gpuScale3f(length, length, length);
+	gpuScaleUniform(length);
 	
 	/* this chunk not in object mode */
 	if (armflag & (ARM_EDITMODE | ARM_POSEMODE)) {
@@ -1273,7 +1257,6 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 	immUnbindProgram();
 
 	gpuPopMatrix();
-	gpuMatrixEnd();
 }
 
 /* A partial copy of b_bone_spline_setup(), with just the parts for previewing editmode curve settings 
@@ -1473,8 +1456,6 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformColor4fv(fcolor);
 
-	gpuMatrixBegin3D_legacy();
-
 	if ((segments > 1) && (pchan)) {
 		float dlen = length / (float)segments;
 		Mat4 *bbone = bbones;
@@ -1502,8 +1483,6 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 
 		gpuPopMatrix();
 	}
-
-	gpuMatrixEnd();
 
 	immUnbindProgram();
 }
@@ -1815,7 +1794,6 @@ static void draw_pose_dofs(Object *ob)
 	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-	gpuMatrixBegin3D_legacy();
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
@@ -1845,7 +1823,7 @@ static void draw_pose_dofs(Object *ob)
 							gpuMultMatrix3D(mat);
 							
 							scale = bone->length * pchan->size[1];
-							gpuScale3f(scale, scale, scale);
+							gpuScaleUniform(scale);
 							
 							if (((pchan->ikflag & BONE_IK_XLIMIT) != 0) &&
 							    ((pchan->ikflag & BONE_IK_ZLIMIT) != 0))
@@ -1867,14 +1845,15 @@ static void draw_pose_dofs(Object *ob)
 									draw_dof_ellipse(pos, amax[0], amin[2]);
 								if ((amax[0] != 0.0f) && (amax[2] != 0.0f))
 									draw_dof_ellipse(pos, amax[0], amax[2]);
-								gpuScale3f(1.0f, -1.0f, 1.0f);
+								gpuScale3f(1.0f, -1.0f, 1.0f); /* XXX same as above, is this intentional? */
 							}
 							
 							/* arcs */
 							if (pchan->ikflag & BONE_IK_ZLIMIT) {
 								/* OpenGL requires rotations in degrees; so we're taking the average angle here */
 								theta = RAD2DEGF(0.5f * (pchan->limitmin[2] + pchan->limitmax[2]));
-								gpuRotate3f(theta, 0.0f, 0.0f, 1.0f);
+								gpuPushMatrix();
+								gpuRotateAxis(theta, 'Z');
 								
 								immUniformColor3ub(50, 50, 255);  /* blue, Z axis limit */
 								immBegin(GL_LINE_STRIP, 33);
@@ -1892,13 +1871,14 @@ static void draw_pose_dofs(Object *ob)
 								}
 								immEnd();
 								
-								gpuRotate3f(-theta, 0.0f, 0.0f, 1.0f);
+								gpuPopMatrix();
 							}
 							
 							if (pchan->ikflag & BONE_IK_XLIMIT) {
 								/* OpenGL requires rotations in degrees; so we're taking the average angle here */
 								theta = RAD2DEGF(0.5f * (pchan->limitmin[0] + pchan->limitmax[0]));
-								gpuRotate3f(theta, 1.0f, 0.0f, 0.0f);
+								gpuPushMatrix();
+								gpuRotateAxis(theta, 'X');
 								
 								immUniformColor3ub(255, 50, 50);  /* Red, X axis limit */
 								immBegin(GL_LINE_STRIP, 33);
@@ -1915,7 +1895,7 @@ static void draw_pose_dofs(Object *ob)
 								}
 								immEnd();
 								
-								gpuRotate3f(-theta, 1.0f, 0.0f, 0.0f);
+								gpuPopMatrix();
 							}
 							
 							/* out of cone, out of bone */
@@ -1926,7 +1906,7 @@ static void draw_pose_dofs(Object *ob)
 			}
 		}
 	}
-	gpuMatrixEnd();
+
 	immUnbindProgram();
 }
 

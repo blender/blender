@@ -1255,7 +1255,6 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	}
 
 	/* we first draw only the screen aligned & fixed scale stuff */
-	gpuMatrixBegin3D_legacy();
 	gpuPushMatrix();
 	gpuLoadMatrix3D(rv3d->viewmat);
 
@@ -1610,7 +1609,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	glDisable(GL_BLEND);
 
 	immUnbindProgram();
-	gpuMatrixEnd();
+	gpuPopMatrix();
 }
 
 static void draw_limit_line(float sta, float end, const short dflag, const unsigned char col[3], unsigned pos)
@@ -2171,8 +2170,6 @@ void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
 	                         asp, shift, &drawsize, vec);
 
-	gpuMatrixBegin3D_legacy();
-
 	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	if (ob_wire_col) {
@@ -2202,7 +2199,6 @@ void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 
 	if (is_view) {
 		immUnbindProgram();
-		gpuMatrixEnd();
 		return;
 	}
 
@@ -2277,7 +2273,6 @@ void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 	}
 
 	immUnbindProgram();
-	gpuMatrixEnd();
 }
 
 /* flag similar to draw_object() */
@@ -8038,7 +8033,6 @@ static void imm_draw_bb(BoundBox *bb, char type, bool around_origin, const unsig
 		BKE_boundbox_calc_center_aabb(bb, cent);
 	}
 	
-	gpuMatrixBegin3D_legacy();
 	gpuPushMatrix();
 
 	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
@@ -8078,9 +8072,8 @@ static void imm_draw_bb(BoundBox *bb, char type, bool around_origin, const unsig
 		gpuTranslate3f(0.0f, length / radius, 0.0f);
 		Batch_draw(sphere);
 	}
-	gpuPopMatrix();
-	gpuMatrixEnd();
 
+	gpuPopMatrix();
 	immUnbindProgram();
 }
 

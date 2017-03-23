@@ -475,7 +475,6 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		Batch_Uniform3fv(sphere, "color", color);
 
 		/* scale to edit-mode space */
-		gpuMatrixBegin3D_legacy();
 		gpuPushMatrix();
 		gpuMultMatrix3D(obedit->obmat);
 
@@ -489,15 +488,15 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 
 			const float radius = stroke_elem_radius(cdd, selem);
 
+			gpuPushMatrix();
 			gpuScaleUniform(radius);
 			Batch_draw(sphere);
-			gpuScaleUniform(1.0f / radius);
+			gpuPopMatrix();
 
 			location_prev = selem->location_local;
 		}
 
 		gpuPopMatrix();
-		gpuMatrixEnd();
 	}
 
 	if (stroke_len > 1) {

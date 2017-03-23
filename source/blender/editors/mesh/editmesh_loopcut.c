@@ -105,7 +105,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		if (v3d && v3d->zbuf)
 			glDisable(GL_DEPTH_TEST);
 
-		gpuMatrixBegin3D_legacy();
+		gpuPushMatrix();
 		gpuMultMatrix3D(lcd->ob->obmat);
 
 		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
@@ -138,7 +138,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 		immUnbindProgram();
 
-		gpuMatrixEnd();
+		gpuPopMatrix();
 
 		if (v3d && v3d->zbuf)
 			glEnable(GL_DEPTH_TEST);

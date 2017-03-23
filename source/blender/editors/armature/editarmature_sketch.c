@@ -1988,8 +1988,6 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
-	gpuMatrixBegin3D_legacy();
-
 	if (with_names) {
 		int id;
 		for (id = 1, stk = sketch->strokes.first; stk; id++, stk = stk->next) {
@@ -2058,8 +2056,6 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 		float gesture_rgb[3] = { 0, 0.5, 1 };
 		sk_drawStroke(sketch->gesture, -1, gesture_rgb, -1, -1);
 	}
-
-	gpuMatrixEnd();
 }
 
 static int sk_finish_stroke(bContext *C, SK_Sketch *sketch)
