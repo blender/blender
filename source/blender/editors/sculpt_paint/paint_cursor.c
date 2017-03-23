@@ -832,81 +832,102 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 }
 
 
-BLI_INLINE void draw_tri_point(float *co, float width, bool selected)
+BLI_INLINE void draw_tri_point(
+        unsigned int pos, float sel_col[4], float pivot_col[4],
+        float *co, float width, bool selected)
 {
+	if (selected) {
+		immUniformColor4fv(sel_col);
+	}
+	else {
+		immUniformColor4fv(pivot_col);
+	}
+	glLineWidth(3.0f);
+
 	float w = width / 2.0f;
-	if (selected)
-		UI_ThemeColor4(TH_VERTEX_SELECT);
-	else
-		UI_ThemeColor4(TH_PAINT_CURVE_PIVOT);
+	float tri[3][2] = {
+		{co[0], co[1] + w},
+		{co[0] - w, co[1] - w},
+		{co[0] + w, co[1] - w},
+	};
 
-	glLineWidth(3.0);
+	immBegin(PRIM_LINE_LOOP, 3);
+	immVertex2fv(pos, tri[0]);
+	immVertex2fv(pos, tri[1]);
+	immVertex2fv(pos, tri[2]);
+	immEnd();
 
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(co[0], co[1] + w);
-	glVertex2f(co[0] - w, co[1] - w);
-	glVertex2f(co[0] + w, co[1] - w);
-	glEnd();
+	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+	glLineWidth(1.0f);
 
-	glColor4f(1.0, 1.0, 1.0, 0.5);
-	glLineWidth(1.0);
-
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(co[0], co[1] + w);
-	glVertex2f(co[0] - w, co[1] - w);
-	glVertex2f(co[0] + w, co[1] - w);
-	glEnd();
+	immBegin(PRIM_LINE_LOOP, 3);
+	immVertex2fv(pos, tri[0]);
+	immVertex2fv(pos, tri[1]);
+	immVertex2fv(pos, tri[2]);
+	immEnd();
 }
 
-BLI_INLINE void draw_rect_point(float *co, float width, bool selected)
+BLI_INLINE void draw_rect_point(
+        unsigned int pos, float sel_col[4], float handle_col[4],
+        float *co, float width, bool selected)
 {
+	if (selected) {
+		immUniformColor4fv(sel_col);
+	}
+	else {
+		immUniformColor4fv(handle_col);
+	}
+	glLineWidth(3.0f);
+
 	float w = width / 2.0f;
-	if (selected)
-		UI_ThemeColor4(TH_VERTEX_SELECT);
-	else
-		UI_ThemeColor4(TH_PAINT_CURVE_HANDLE);
-	glLineWidth(3.0);
+	float minx = co[0] - w;
+	float miny = co[1] - w;
+	float maxx = co[0] + w;
+	float maxy = co[1] + w;
 
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(co[0] + w, co[1] + w);
-	glVertex2f(co[0] - w, co[1] + w);
-	glVertex2f(co[0] - w, co[1] - w);
-	glVertex2f(co[0] + w, co[1] - w);
-	glEnd();
+	imm_draw_line_box(pos, minx, miny, maxx, maxy);
 
-	glColor4f(1.0, 1.0, 1.0, 0.5);
-	glLineWidth(1.0);
+	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+	glLineWidth(1.0f);
 
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(co[0] + w, co[1] + w);
-	glVertex2f(co[0] - w, co[1] + w);
-	glVertex2f(co[0] - w, co[1] - w);
-	glVertex2f(co[0] + w, co[1] - w);
-	glEnd();
+	imm_draw_line_box(pos, minx, miny, maxx, maxy);
 }
 
 
-BLI_INLINE void draw_bezier_handle_lines(BezTriple *bez)
+BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], BezTriple *bez)
 {
-	short line1[] = {0, 1};
-	short line2[] = {1, 2};
+	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+	glLineWidth(3.0f);
 
-	glVertexPointer(2, GL_FLOAT, 3 * sizeof(float), bez->vec);
-	glColor4f(0.0, 0.0, 0.0, 0.5);
-	glLineWidth(3.0);
-	glDrawArrays(GL_LINE_STRIP, 0, 3);
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2fv(pos, bez->vec[0]);
+	immVertex2fv(pos, bez->vec[1]);
+	immVertex2fv(pos, bez->vec[2]);
+	immEnd();
 
-	glLineWidth(1.0);
-	if (bez->f1 || bez->f2)
-		UI_ThemeColor4(TH_VERTEX_SELECT);
-	else
-		glColor4f(1.0, 1.0, 1.0, 0.5);
-	glDrawElements(GL_LINES, 2, GL_UNSIGNED_SHORT, line1);
-	if (bez->f3 || bez->f2)
-		UI_ThemeColor4(TH_VERTEX_SELECT);
-	else
-		glColor4f(1.0, 1.0, 1.0, 0.5);
-	glDrawElements(GL_LINES, 2, GL_UNSIGNED_SHORT, line2);
+	glLineWidth(1.0f);
+
+	if (bez->f1 || bez->f2) {
+		immUniformColor4fv(sel_col);
+	}
+	else {
+		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+	}
+	immBegin(GL_LINES, 2);
+	immVertex2fv(pos, bez->vec[0]);
+	immVertex2fv(pos, bez->vec[1]);
+	immEnd();
+
+	if (bez->f3 || bez->f2) {
+		immUniformColor4fv(sel_col);
+	}
+	else {
+		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+	}
+	immBegin(GL_LINES, 2);
+	immVertex2fv(pos, bez->vec[1]);
+	immVertex2fv(pos, bez->vec[2]);
+	immEnd();
 }
 
 static void paint_draw_curve_cursor(Brush *brush)
@@ -918,18 +939,26 @@ static void paint_draw_curve_cursor(Brush *brush)
 
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
-		glEnableClientState(GL_VERTEX_ARRAY);
 
 		/* draw the bezier handles and the curve segment between the current and next point */
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+		float selec_col[4], handle_col[4], pivot_col[4];
+		UI_GetThemeColor4fv(TH_VERTEX_SELECT, selec_col);
+		UI_GetThemeColor4fv(TH_PAINT_CURVE_HANDLE, handle_col);
+		UI_GetThemeColor4fv(TH_PAINT_CURVE_PIVOT, pivot_col);
+
 		for (i = 0; i < pc->tot_points - 1; i++, cp++) {
 			int j;
 			PaintCurvePoint *cp_next = cp + 1;
 			float data[(PAINT_CURVE_NUM_SEGMENTS + 1) * 2];
 			/* use color coding to distinguish handles vs curve segments  */
-			draw_bezier_handle_lines(&cp->bez);
-			draw_tri_point(&cp->bez.vec[1][0], 10.0, cp->bez.f2);
-			draw_rect_point(&cp->bez.vec[0][0], 8.0, cp->bez.f1 || cp->bez.f2);
-			draw_rect_point(&cp->bez.vec[2][0], 8.0, cp->bez.f3 || cp->bez.f2);
+			draw_bezier_handle_lines(pos, selec_col, &cp->bez);
+			draw_tri_point(pos, selec_col, pivot_col, &cp->bez.vec[1][0], 10.0f, cp->bez.f2);
+			draw_rect_point(pos, selec_col, handle_col, &cp->bez.vec[0][0], 8.0f, cp->bez.f1 || cp->bez.f2);
+			draw_rect_point(pos, selec_col, handle_col, &cp->bez.vec[2][0], 8.0f, cp->bez.f3 || cp->bez.f2);
 
 			for (j = 0; j < 2; j++)
 				BKE_curve_forward_diff_bezier(
@@ -939,25 +968,35 @@ static void paint_draw_curve_cursor(Brush *brush)
 				        cp_next->bez.vec[1][j],
 				        data + j, PAINT_CURVE_NUM_SEGMENTS, sizeof(float[2]));
 
-			glVertexPointer(2, GL_FLOAT, 0, data);
-			glLineWidth(3.0);
-			glColor4f(0.0, 0.0, 0.0, 0.5);
-			glDrawArrays(GL_LINE_STRIP, 0, PAINT_CURVE_NUM_SEGMENTS + 1);
+			float (*v)[2] = (float(*)[2])data;
 
-			glLineWidth(1.0);
-			glColor4f(0.9, 0.9, 1.0, 0.5);
-			glDrawArrays(GL_LINE_STRIP, 0, PAINT_CURVE_NUM_SEGMENTS + 1);
+			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+			glLineWidth(3.0f);
+			immBegin(GL_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
+			for (j = 0; j <= PAINT_CURVE_NUM_SEGMENTS; j++) {
+				immVertex2fv(pos, v[j]);
+			}
+			immEnd();
+
+			immUniformColor4f(0.9f, 0.9f, 1.0f, 0.5f);
+			glLineWidth(1.0f);
+			immBegin(GL_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
+			for (j = 0; j <= PAINT_CURVE_NUM_SEGMENTS; j++) {
+				immVertex2fv(pos, v[j]);
+			}
+			immEnd();
 		}
 
 		/* draw last line segment */
-		draw_bezier_handle_lines(&cp->bez);
-		draw_tri_point(&cp->bez.vec[1][0], 10.0, cp->bez.f2);
-		draw_rect_point(&cp->bez.vec[0][0], 8.0, cp->bez.f1 || cp->bez.f2);
-		draw_rect_point(&cp->bez.vec[2][0], 8.0, cp->bez.f3 || cp->bez.f2);
+		draw_bezier_handle_lines(pos, selec_col, &cp->bez);
+		draw_tri_point(pos, selec_col, pivot_col, &cp->bez.vec[1][0], 10.0f, cp->bez.f2);
+		draw_rect_point(pos, selec_col, handle_col, &cp->bez.vec[0][0], 8.0f, cp->bez.f1 || cp->bez.f2);
+		draw_rect_point(pos, selec_col, handle_col, &cp->bez.vec[2][0], 8.0f, cp->bez.f3 || cp->bez.f2);
 
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
-		glDisableClientState(GL_VERTEX_ARRAY);
+
+		immUnbindProgram();
 	}
 }
 
