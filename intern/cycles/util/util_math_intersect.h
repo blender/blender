@@ -79,6 +79,82 @@ ccl_device bool ray_aligned_disk_intersect(
 	return true;
 }
 
+/* Optimized watertight ray-triangle intersection.
+ *
+ * Sven Woop
+ * Watertight Ray/Triangle Intersection
+ *
+ * http://jcgt.org/published/0002/01/05/paper.pdf
+ */
+
+/* Precalculated data for the ray->tri intersection. */
+typedef struct TriangleIsectPrecalc {
+	/* Maximal dimension kz, and orthogonal dimensions. */
+	int kx, ky, kz;
+
+	/* Shear constants. */
+	float Sx, Sy, Sz;
+} TriangleIsectPrecalc;
+
+/* Workaround stupidness of CUDA/OpenCL which doesn't allow to access indexed
+ * component of float3 value.
+ */
+#ifdef __KERNEL_GPU__
+#  define IDX(vec, idx) \
+    ((idx == 0) ? ((vec).x) : ( (idx == 1) ? ((vec).y) : ((vec).z) ))
+#else
+#  define IDX(vec, idx) ((vec)[idx])
+#endif
+
+#if (defined(__KERNEL_OPENCL_APPLE__)) || \
+    (defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86)))
+ccl_device_noinline
+#else
+ccl_device_inline
+#endif
+void ray_triangle_intersect_precalc(float3 dir,
+                                    TriangleIsectPrecalc *isect_precalc)
+{
+	/* Calculate dimension where the ray direction is maximal. */
+#ifndef __KERNEL_SSE__
+	int kz = util_max_axis(make_float3(fabsf(dir.x),
+	                                   fabsf(dir.y),
+	                                   fabsf(dir.z)));
+	int kx = kz + 1; if(kx == 3) kx = 0;
+	int ky = kx + 1; if(ky == 3) ky = 0;
+#else
+	int kx, ky, kz;
+	/* Avoiding mispredicted branch on direction. */
+	kz = util_max_axis(fabs(dir));
+	static const char inc_xaxis[] = {1, 2, 0, 55};
+	static const char inc_yaxis[] = {2, 0, 1, 55};
+	kx = inc_xaxis[kz];
+	ky = inc_yaxis[kz];
+#endif
+
+	float dir_kz = IDX(dir, kz);
+
+	/* Swap kx and ky dimensions to preserve winding direction of triangles. */
+	if(dir_kz < 0.0f) {
+		int tmp = kx;
+		kx = ky;
+		ky = tmp;
+	}
+
+	/* Calculate the shear constants. */
+	float inv_dir_z = 1.0f / dir_kz;
+	isect_precalc->Sx = IDX(dir, kx) * inv_dir_z;
+	isect_precalc->Sy = IDX(dir, ky) * inv_dir_z;
+	isect_precalc->Sz = inv_dir_z;
+
+	/* Store the dimensions. */
+	isect_precalc->kx = kx;
+	isect_precalc->ky = ky;
+	isect_precalc->kz = kz;
+}
+
+#undef IDX
+
 ccl_device_inline bool ray_triangle_intersect_uv(
         float3 ray_P, float3 ray_D, float ray_t,
         float3 v0, float3 v1, float3 v2,

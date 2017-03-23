@@ -109,8 +109,8 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
-	IsectPrecalc isect_precalc;
-	triangle_intersect_precalc(dir, &isect_precalc);
+	TriangleIsectPrecalc isect_precalc;
+	ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 	/* traversal loop */
 	do {

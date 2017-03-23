@@ -97,8 +97,8 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
-	IsectPrecalc isect_precalc;
-	triangle_intersect_precalc(dir, &isect_precalc);
+	TriangleIsectPrecalc isect_precalc;
+	ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 	/* traversal loop */
 	do {
@@ -243,7 +243,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						isect->t = bvh_instance_push(kg, object, ray, &P, &dir, &idir, isect->t);
 #  endif
 
-						triangle_intersect_precalc(dir, &isect_precalc);
+						ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 #  if defined(__KERNEL_SSE2__)
 						Psplat[0] = ssef(P.x);
@@ -286,7 +286,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			isect->t = bvh_instance_pop(kg, object, ray, &P, &dir, &idir, isect->t);
 #  endif
 
-			triangle_intersect_precalc(dir, &isect_precalc);
+			ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 #  if defined(__KERNEL_SSE2__)
 			Psplat[0] = ssef(P.x);

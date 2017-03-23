@@ -40,64 +40,8 @@ CCL_NAMESPACE_BEGIN
  * http://jcgt.org/published/0002/01/05/paper.pdf
  */
 
-/* Precalculated data for the ray->tri intersection. */
-typedef struct IsectPrecalc {
-	/* Maximal dimension kz, and orthogonal dimensions. */
-	int kx, ky, kz;
-
-	/* Shear constants. */
-	float Sx, Sy, Sz;
-} IsectPrecalc;
-
-#if (defined(__KERNEL_OPENCL_APPLE__)) || \
-    (defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86)))
-ccl_device_noinline
-#else
-ccl_device_inline
-#endif
-void triangle_intersect_precalc(float3 dir,
-                                IsectPrecalc *isect_precalc)
-{
-	/* Calculate dimension where the ray direction is maximal. */
-#ifndef __KERNEL_SSE__
-	int kz = util_max_axis(make_float3(fabsf(dir.x),
-	                                   fabsf(dir.y),
-	                                   fabsf(dir.z)));
-	int kx = kz + 1; if(kx == 3) kx = 0;
-	int ky = kx + 1; if(ky == 3) ky = 0;
-#else
-	int kx, ky, kz;
-	/* Avoiding mispredicted branch on direction. */
-	kz = util_max_axis(fabs(dir));
-	static const char inc_xaxis[] = {1, 2, 0, 55};
-	static const char inc_yaxis[] = {2, 0, 1, 55};
-	kx = inc_xaxis[kz];
-	ky = inc_yaxis[kz];
-#endif
-
-	float dir_kz = IDX(dir, kz);
-
-	/* Swap kx and ky dimensions to preserve winding direction of triangles. */
-	if(dir_kz < 0.0f) {
-		int tmp = kx;
-		kx = ky;
-		ky = tmp;
-	}
-
-	/* Calculate the shear constants. */
-	float inv_dir_z = 1.0f / dir_kz;
-	isect_precalc->Sx = IDX(dir, kx) * inv_dir_z;
-	isect_precalc->Sy = IDX(dir, ky) * inv_dir_z;
-	isect_precalc->Sz = inv_dir_z;
-
-	/* Store the dimensions. */
-	isect_precalc->kx = kx;
-	isect_precalc->ky = ky;
-	isect_precalc->kz = kz;
-}
-
 ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
-                                          const IsectPrecalc *isect_precalc,
+                                          const TriangleIsectPrecalc *isect_precalc,
                                           Intersection *isect,
                                           float3 P,
                                           uint visibility,
@@ -255,7 +199,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 #ifdef __SUBSURFACE__
 ccl_device_inline void triangle_intersect_subsurface(
         KernelGlobals *kg,
-        const IsectPrecalc *isect_precalc,
+        const TriangleIsectPrecalc *isect_precalc,
         SubsurfaceIntersection *ss_isect,
         float3 P,
         int object,
