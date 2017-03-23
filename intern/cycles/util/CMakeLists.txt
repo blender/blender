@@ -52,6 +52,7 @@ set(SRC_HEADERS
 	util_math.h
 	util_math_cdf.h
 	util_math_fast.h
+	util_math_intersect.h
 	util_md5.h
 	util_opengl.h
 	util_optimization.h
