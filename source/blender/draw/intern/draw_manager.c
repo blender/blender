@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 
+#include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -318,7 +319,40 @@ GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *fra
 
 GPUShader *DRW_shader_create_with_lib(const char *vert, const char *geom, const char *frag, const char *lib, const char *defines)
 {
-	return GPU_shader_create(vert, frag, geom, lib, defines, 0, 0, 0);
+	GPUShader *sh;
+	char *vert_with_lib = NULL;
+	char *frag_with_lib = NULL;
+	char *geom_with_lib = NULL;
+
+	DynStr *ds_vert = BLI_dynstr_new();
+	BLI_dynstr_append(ds_vert, lib);
+	BLI_dynstr_append(ds_vert, vert);
+	vert_with_lib = BLI_dynstr_get_cstring(ds_vert);
+	BLI_dynstr_free(ds_vert);
+
+	DynStr *ds_frag = BLI_dynstr_new();
+	BLI_dynstr_append(ds_frag, lib);
+	BLI_dynstr_append(ds_frag, frag);
+	frag_with_lib = BLI_dynstr_get_cstring(ds_frag);
+	BLI_dynstr_free(ds_frag);
+
+	if (geom) {
+		DynStr *ds_geom = BLI_dynstr_new();
+		BLI_dynstr_append(ds_geom, lib);
+		BLI_dynstr_append(ds_geom, geom);
+		geom_with_lib = BLI_dynstr_get_cstring(ds_geom);
+		BLI_dynstr_free(ds_geom);
+	}
+
+	sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines, 0, 0, 0);
+
+	MEM_freeN(vert_with_lib);
+	MEM_freeN(frag_with_lib);
+	if (geom) {
+		MEM_freeN(geom_with_lib);
+	}
+
+	return sh;
 }
 
 GPUShader *DRW_shader_create_2D(const char *frag, const char *defines)
