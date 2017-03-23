@@ -580,30 +580,35 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 			float world[4][4];
 			float inv_bind_mat[4][4];
 
+			float bind_mat[4][4]; /* derived from bone->arm_mat */
+
+			bool has_bindmat = bc_get_property_matrix(pchan->bone, "bind_mat", bind_mat);
 			
-			// SL/OPEN_SIM COMPATIBILITY
-			if (export_settings->open_sim) {
-				// Only translations, no rotation vs armature
-				float temp[4][4];
-				unit_m4(temp);
-				copy_v3_v3(temp[3], pchan->bone->arm_mat[3]);
-				mul_m4_m4m4(world, ob_arm->obmat, temp);
+			if (!has_bindmat) {
 
-				// Add Maya restpose matrix (if defined as properties)
-				float restpose_mat[4][4];
-				create_restpose_mat(pchan->bone, restpose_mat);
-				mul_m4_m4m4(world, world, restpose_mat);
+				/* Have no bind matrix stored, try old style <= Blender 2.78 */
 
+				bc_create_restpose_mat(this->export_settings, pchan->bone, bind_mat, pchan->bone->arm_mat, true);
+
+				// SL/OPEN_SIM COMPATIBILITY
+				if (export_settings->open_sim) {
+
+					float loc[3];
+					float rot[3] = { 0, 0, 0 };
+					float scale[3];
+					bc_decompose(bind_mat, loc, NULL, NULL, scale);
+
+					// Only translations, no rotation vs armature
+					loc_eulO_size_to_mat4(bind_mat, loc, rot, scale, 6);
+				}
 			}
-			else {
-				// make world-space matrix, arm_mat is armature-space
-				mul_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
-			}
 
+			// make world-space matrix (bind_mat is armature-space)
+			mul_m4_m4m4(world, ob_arm->obmat, bind_mat);
 
 			invert_m4_m4(mat, world);
 			converter.mat4_to_dae(inv_bind_mat, mat);
-
+			bc_sanitize_mat(inv_bind_mat, 6); // XXX: Make this optional ?
 			source.appendValues(inv_bind_mat);
 		}
 	}
