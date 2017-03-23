@@ -136,9 +136,6 @@ typedef struct ClothSpring {
 	float	restlen;	/* The original length of the spring.	*/
 	int	type;		/* types defined in BKE_cloth.h ("springType") */
 	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
-	float dfdx[3][3];
-	float dfdv[3][3];
-	float f[3];
 	float 	stiffness;	/* stiffness factor from the vertex groups */
 	float editrestlen;
 	
@@ -239,9 +236,6 @@ void bvhselftree_update_from_cloth(struct ClothModifierData *clmd, bool moving);
 
 // needed for button_object.c
 void cloth_clear_cache (struct Object *ob, struct ClothModifierData *clmd, float framenr );
-
-// needed for cloth.c
-int cloth_add_spring (struct ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type);
 
 void cloth_parallel_transport_hair_frame(float mat[3][3], const float dir_old[3], const float dir_new[3]);
 
