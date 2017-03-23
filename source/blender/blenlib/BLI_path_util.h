@@ -39,14 +39,6 @@ extern "C" {
 
 struct ListBase;
 
-#ifdef WIN32
-#define SEP '\\'
-#define ALTSEP '/'
-#else
-#define SEP '/'
-#define ALTSEP '\\'
-#endif
-
 void BLI_setenv(const char *env, const char *val) ATTR_NONNULL(1);
 void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 
@@ -143,6 +135,18 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 #  define FILE_MAXDIR         768
 #  define FILE_MAXFILE        256
 #  define FILE_MAX            1024
+#endif
+
+#ifdef WIN32
+#  define SEP        '\\'
+#  define ALTSEP     '/'
+#  define SEP_STR    "\\"
+#  define ALTSEP_STR "/"
+#else
+#  define SEP        '/'
+#  define ALTSEP     '\\'
+#  define SEP_STR    "/"
+#  define ALTSEP_STR "\\"
 #endif
 
 /* Parent and current dir helpers. */
