@@ -309,7 +309,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									continue;
 								}
 								/* Intersect ray against primitive. */
-								hit = motion_triangle_intersect(kg, isect_array, P, dir, ray->time, visibility, object, prim_addr);
+								hit = motion_triangle_intersect(kg, &isect_precalc, isect_array, P, ray->time, visibility, object, prim_addr);
 								if(hit) {
 									/* Move on to next entry in intersections array. */
 									isect_array++;

@@ -215,9 +215,9 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									continue;
 								}
 								motion_triangle_intersect(kg,
+								                          &isect_precalc,
 								                          isect,
 								                          P,
-								                          dir,
 								                          ray->time,
 								                          visibility,
 								                          object,

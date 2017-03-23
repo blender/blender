@@ -209,9 +209,9 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
 							case PRIMITIVE_MOTION_TRIANGLE: {
 								hit = motion_triangle_intersect(kg,
+								                                &isect_precalc,
 								                                isect_array,
 								                                P,
-								                                dir,
 								                                ray->time,
 								                                PATH_RAY_SHADOW,
 								                                object,

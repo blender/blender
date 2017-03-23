@@ -243,9 +243,9 @@ uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									continue;
 								}
 								hit = motion_triangle_intersect(kg,
+								                                &isect_precalc,
 								                                isect_array,
 								                                P,
-								                                dir,
 								                                ray->time,
 								                                visibility,
 								                                object,

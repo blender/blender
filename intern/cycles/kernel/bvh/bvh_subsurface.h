@@ -214,9 +214,9 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						for(; prim_addr < prim_addr2; prim_addr++) {
 							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 							motion_triangle_intersect_subsurface(kg,
+							                                     &isect_precalc,
 							                                     ss_isect,
 							                                     P,
-							                                     dir,
 							                                     ray->time,
 							                                     object,
 							                                     prim_addr,

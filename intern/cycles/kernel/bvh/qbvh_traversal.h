@@ -354,9 +354,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								BVH_DEBUG_NEXT_INTERSECTION();
 								kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 								if(motion_triangle_intersect(kg,
+								                             &isect_precalc,
 								                             isect,
 								                             P,
-								                             dir,
 								                             ray->time,
 								                             visibility,
 								                             object,
