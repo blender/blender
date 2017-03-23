@@ -41,7 +41,7 @@
 #include "RAS_CameraData.h"
 #include "BLI_math.h"
 
-#include "glew-mx.h"
+#include "GPU_matrix.h"
 
 // constructor
 KX_Dome::KX_Dome (
@@ -1685,7 +1685,7 @@ void KX_Dome::DrawEnvMap(void)
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0f,0.0f,1.0f, 0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f);
+	gpuLookAt(0.0f,0.0f,1.0f, 0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f);
 
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glShadeModel(GL_SMOOTH);
@@ -1830,7 +1830,7 @@ void KX_Dome::DrawDomeFisheye(void)
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0f,-1.0f,0.0f, 0.0f,0.0f,0.0f, 0.0f,0.0f,1.0f);
+	gpuLookAt(0.0f,-1.0f,0.0f, 0.0f,0.0f,0.0f, 0.0f,0.0f,1.0f);
 
 	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);
@@ -1913,7 +1913,7 @@ void KX_Dome::DrawPanorama(void)
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0f,-1.0f,0.0f, 0.0f,0.0f,0.0f, 0.0f,0.0f,1.0f);
+	gpuLookAt(0.0f,-1.0f,0.0f, 0.0f,0.0f,0.0f, 0.0f,0.0f,1.0f);
 
 	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);
@@ -1981,7 +1981,7 @@ void KX_Dome::DrawDomeWarped(void)
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0f, 0.0f, 1.0f, 0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f);
+	gpuLookAt(0.0f, 0.0f, 1.0f, 0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f);
 
 	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);

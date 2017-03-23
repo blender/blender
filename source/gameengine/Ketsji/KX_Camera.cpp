@@ -31,7 +31,7 @@
  */
 
  
-#include "glew-mx.h"
+#include "GPU_matrix.h"
 #include "KX_Camera.h"
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
@@ -1048,19 +1048,21 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 	}
 
 	const GLint *viewport;
-	GLdouble win[3];
-	GLdouble modelmatrix[16];
-	GLdouble projmatrix[16];
+	GLfloat vec[3];
+	GLfloat win[3];
+	GLfloat modelmatrix[4][4];
+	GLfloat projmatrix[4][4];
 
 	MT_Matrix4x4 m_modelmatrix = this->GetWorldToCamera();
 	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
 
-	m_modelmatrix.getValue(modelmatrix);
-	m_projmatrix.getValue(projmatrix);
+	vect.getValue(vec);
+	m_modelmatrix.getValue((float*) modelmatrix);
+	m_projmatrix.getValue((float*) projmatrix);
 
 	viewport = KX_GetActiveEngine()->GetCanvas()->GetViewPort();
 
-	gluProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
+	gpuProject(vec, modelmatrix, projmatrix, viewport, win);
 
 	vect[0] =  (win[0] - viewport[0]) / viewport[2];
 	vect[1] =  (win[1] - viewport[1]) / viewport[3];
@@ -1087,36 +1089,33 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
 
 	y = 1.0 - y; //to follow Blender window coordinate system (Top-Down)
 
-	MT_Vector3 vect;
-	MT_Point3 campos, screenpos;
-
 	const GLint *viewport;
-	GLdouble win[3];
-	GLdouble modelmatrix[16];
-	GLdouble projmatrix[16];
+	GLfloat vec[3];
+	GLfloat win[3];
+	GLfloat modelmatrix[4][4];
+	GLfloat projmatrix[4][4];
 
 	MT_Matrix4x4 m_modelmatrix = this->GetWorldToCamera();
 	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
 
-	m_modelmatrix.getValue(modelmatrix);
-	m_projmatrix.getValue(projmatrix);
+	m_modelmatrix.getValue((float*) modelmatrix);
+	m_projmatrix.getValue((float*) projmatrix);
 
 	viewport = KX_GetActiveEngine()->GetCanvas()->GetViewPort();
 
-	vect[0] = x * viewport[2];
-	vect[1] = y * viewport[3];
+	vec[0] = x * viewport[2];
+	vec[1] = y * viewport[3];
 
-	vect[0] += viewport[0];
-	vect[1] += viewport[1];
+	vec[0] += viewport[0];
+	vec[1] += viewport[1];
 
-	vect[2] = 0.f;
+	vec[2] = 0.f;
 
-	gluUnProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
+	gpuUnProject(vec, modelmatrix, projmatrix, viewport, win);
 
-	campos = this->GetCameraLocation();
-	screenpos = MT_Point3(win[0], win[1], win[2]);
-	vect = campos-screenpos;
-
+	MT_Point3 campos = this->GetCameraLocation();
+	MT_Point3 screenpos(win[0], win[1], win[2]);
+	MT_Vector3 vect = campos - screenpos;
 	vect.normalize();
 	return PyObjectFrom(vect);
 }
