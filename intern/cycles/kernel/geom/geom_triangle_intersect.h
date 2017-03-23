@@ -51,19 +51,22 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
 
 #if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
-	const ssef *verts = (ssef*)&kg->__prim_tri_verts.data[tri_vindex];
+	const ssef *ssef_verts = (ssef*)&kg->__prim_tri_verts.data[tri_vindex];
 #else
 	const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex+0),
 	             tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex+1),
 	             tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex+2);
-	const float3 verts[3] = {float4_to_float3(tri_a),
-	                         float4_to_float3(tri_b),
-	                         float4_to_float3(tri_c)};
 #endif
 	float t, u, v;
 	if(ray_triangle_intersect(isect_precalc,
 	                          P, isect->t,
-	                          verts,
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+	                          ssef_verts,
+#else
+	                          float4_to_float3(tri_a),
+	                          float4_to_float3(tri_b),
+	                          float4_to_float3(tri_c),
+#endif
 	                          &u, &v, &t))
 	{
 #ifdef __VISIBILITY_FLAG__
@@ -105,19 +108,22 @@ ccl_device_inline void triangle_intersect_subsurface(
 	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
 
 #if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
-	const ssef *verts = (ssef*)&kg->__prim_tri_verts.data[tri_vindex];
+	const ssef *ssef_verts = (ssef*)&kg->__prim_tri_verts.data[tri_vindex];
 #else
-	const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex+0),
-	             tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex+1),
-	             tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex+2);
-	const float3 verts[3] = {float4_to_float3(tri_a),
-	                         float4_to_float3(tri_b),
-	                         float4_to_float3(tri_c)};
+	const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+0)),
+	             tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+1)),
+	             tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+2));
 #endif
 	float t, u, v;
 	if(!ray_triangle_intersect(isect_precalc,
 	                           P, tmax,
-	                           verts,
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+	                           ssef_verts,
+#else
+	                           tri_a,
+	                           tri_b,
+	                           tri_c,
+#endif
 	                           &u, &v, &t))
 	{
 		return;
@@ -156,15 +162,11 @@ ccl_device_inline void triangle_intersect_subsurface(
 	/* Record geometric normal. */
 	/* TODO(sergey): Check whether it's faster to re-use ssef verts. */
 #if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
-	const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex+0),
-	             tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex+1),
-	             tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex+2);
+	const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+0)),
+	             tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+1)),
+	             tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+2));
 #endif
-	/* TODO(sergey): Use float4_to_float3() on just an edges. */
-	const float3 v0 = float4_to_float3(tri_a);
-	const float3 v1 = float4_to_float3(tri_b);
-	const float3 v2 = float4_to_float3(tri_c);
-	ss_isect->Ng[hit] = normalize(cross(v1 - v0, v2 - v0));
+	ss_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 }
 #endif
 

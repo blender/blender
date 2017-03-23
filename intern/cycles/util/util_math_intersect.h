@@ -153,13 +153,13 @@ void ray_triangle_intersect_precalc(float3 dir,
 	isect_precalc->kz = kz;
 }
 
-ccl_device_inline bool ray_triangle_intersect(
+ccl_device_forceinline bool ray_triangle_intersect(
         const TriangleIsectPrecalc *isect_precalc,
         float3 ray_P, float ray_t,
 #if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
         const ssef *ssef_verts,
 #else
-        const float3 *verts,
+        const float3 tri_a, const float3 tri_b, const float3 tri_c,
 #endif
         float *isect_u, float *isect_v, float *isect_t)
 {
@@ -230,9 +230,9 @@ ccl_device_inline bool ray_triangle_intersect(
 	}
 #else
 	/* Calculate vertices relative to ray origin. */
-	const float3 A = verts[0] - ray_P;
-	const float3 B = verts[1] - ray_P;
-	const float3 C = verts[2] - ray_P;
+	const float3 A = make_float3(tri_a.x - ray_P.x, tri_a.y - ray_P.y, tri_a.z - ray_P.z);
+	const float3 B = make_float3(tri_b.x - ray_P.x, tri_b.y - ray_P.y, tri_b.z - ray_P.z);
+	const float3 C = make_float3(tri_c.x - ray_P.x, tri_c.y - ray_P.y, tri_c.z - ray_P.z);
 
 	const float A_kx = IDX(A, kx), A_ky = IDX(A, ky), A_kz = IDX(A, kz);
 	const float B_kx = IDX(B, kx), B_ky = IDX(B, ky), B_kz = IDX(B, kz);
