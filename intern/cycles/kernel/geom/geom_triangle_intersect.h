@@ -22,16 +22,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Workaround stupidness of CUDA/OpenCL which doesn't allow to access indexed
- * component of float3 value.
- */
-#ifndef __KERNEL_CPU__
-#  define IDX(vec, idx) \
-    ((idx == 0) ? ((vec).x) : ( (idx == 1) ? ((vec).y) : ((vec).z) ))
-#else
-#  define IDX(vec, idx) ((vec)[idx])
-#endif
-
 /* Ray-Triangle intersection for BVH traversal
  *
  * Sven Woop
@@ -308,7 +298,5 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
 
 	return P;
 }
-
-#undef IDX
 
 CCL_NAMESPACE_END
