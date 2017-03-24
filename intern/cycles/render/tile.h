@@ -63,7 +63,6 @@ public:
 		int num_samples;
 		int resolution_divider;
 		int num_tiles;
-		int num_rendered_tiles;
 
 		/* Total samples over all pixels: Generally num_samples*num_pixels,
 		 * but can be higher due to the initial resolution division for previews. */
