@@ -831,18 +831,15 @@ static void layerInterp_mloopcol(
 		}
 	}
 
-	/* delay writing to the destination incase dest is in sources */
-	mc->r = iroundf(col.r);
-	mc->g = iroundf(col.g);
-	mc->b = iroundf(col.b);
-	mc->a = iroundf(col.a);
 
 	/* Subdivide smooth or fractal can cause problems without clamping
 	 * although weights should also not cause this situation */
-	CLAMP(mc->a, 0, 255);
-	CLAMP(mc->r, 0, 255);
-	CLAMP(mc->g, 0, 255);
-	CLAMP(mc->b, 0, 255);
+
+	/* also delay writing to the destination incase dest is in sources */
+	mc->r = CLAMPIS(iroundf(col.r), 0, 255);
+	mc->g = CLAMPIS(iroundf(col.g), 0, 255);
+	mc->b = CLAMPIS(iroundf(col.b), 0, 255);
+	mc->a = CLAMPIS(iroundf(col.a), 0, 255);
 }
 
 static int layerMaxNum_mloopcol(void)
