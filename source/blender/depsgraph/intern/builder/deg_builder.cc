@@ -154,7 +154,7 @@ void deg_graph_build_finalize(Depsgraph *graph)
 		}
 		GHASH_FOREACH_END();
 
-		if ((id_node->layers & graph->layers) != 0) {
+		if ((id_node->layers & graph->layers) != 0 || graph->layers == 0) {
 			ID *id = id_node->id;
 			if ((id->tag & LIB_TAG_ID_RECALC_ALL) &&
 			    (id->tag & LIB_TAG_DOIT))
