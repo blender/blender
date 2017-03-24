@@ -52,6 +52,9 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen,
                      const char *__restrict file) ATTR_NONNULL();
 void BLI_join_dirfile(char *__restrict string, const size_t maxlen,
                       const char *__restrict dir, const char *__restrict file) ATTR_NONNULL();
+size_t BLI_path_join(
+        char *__restrict dst, const size_t dst_len,
+        const char *path_first, ...) ATTR_NONNULL(1, 3) ATTR_SENTINEL(0);
 const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 bool BLI_path_name_at_index(
         const char *__restrict path, const int index,

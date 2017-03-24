@@ -1591,6 +1591,90 @@ void BLI_join_dirfile(char *__restrict dst, const size_t maxlen, const char *__r
 }
 
 /**
+ * Join multiple strings into a path, ensuring only a single path separator between each,
+ * and trailing slash is kept.
+ *
+ * \note If you want a trailing slash, add ``SEP_STR`` as the last path argument,
+ * duplicate slashes will be cleaned up.
+ */
+size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *path, ...)
+{
+	if (UNLIKELY(dst_len == 0)) {
+		return 0;
+	}
+	const size_t dst_last = dst_len - 1;
+	size_t ofs = BLI_strncpy_rlen(dst, path, dst_len);
+
+	if (ofs == dst_last) {
+		return ofs;
+	}
+
+	/* remove trailing slashes, unless there are _only_ trailing slashes
+	 * (allow "//" as the first argument). */
+	bool has_trailing_slash = false;
+	if (ofs != 0) {
+		size_t len = ofs;
+		while ((len != 0) && ELEM(path[len - 1], SEP, ALTSEP)) {
+			len -= 1;
+		}
+		if (len != 0) {
+			ofs = len;
+		}
+		has_trailing_slash = (path[len] != '\0');
+	}
+
+	va_list args;
+	va_start(args, path);
+	while ((path = (const char *) va_arg(args, const char *))) {
+		has_trailing_slash = false;
+		const char *path_init = path;
+		while (ELEM(path[0], SEP, ALTSEP)) {
+			path++;
+		}
+		size_t len = strlen(path);
+		if (len != 0) {
+			while ((len != 0) && ELEM(path[len - 1], SEP, ALTSEP)) {
+				len -= 1;
+			}
+
+			if (len != 0) {
+				/* the very first path may have a slash at the end */
+				if (ofs && !ELEM(dst[ofs - 1], SEP, ALTSEP)) {
+					dst[ofs++] = SEP;
+					if (ofs == dst_last) {
+						break;
+					}
+				}
+				has_trailing_slash = (path[len] != '\0');
+				if (ofs + len >= dst_last) {
+					len = dst_last - ofs;
+				}
+				memcpy(&dst[ofs], path, len);
+				ofs += len;
+				if (ofs == dst_last) {
+					break;
+				}
+			}
+		}
+		else {
+			has_trailing_slash = (path_init != path);
+		}
+	}
+	va_end(args);
+
+	if (has_trailing_slash) {
+		if ((ofs != dst_last) && (ofs != 0) && (ELEM(dst[ofs - 1], SEP, ALTSEP) == 0)) {
+			dst[ofs++] = SEP;
+		}
+	}
+
+	BLI_assert(ofs <= dst_last);
+	dst[ofs] = '\0';
+
+	return ofs;
+}
+
+/**
  * like pythons os.path.basename()
  *
  * \return The pointer into \a path string immediately after last slash,
