@@ -1287,10 +1287,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 
 	if (draw_backdrop) {
-		glMatrixMode(GL_PROJECTION);
-		gpuPushMatrix();
-		gpuLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
+		/* XXX: need to load identity projection too? */
 		gpuPushMatrix();
 		gpuLoadIdentity();
 	}
@@ -1422,9 +1419,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	if (draw_backdrop) {
 		gpuPopMatrix();
-		glMatrixMode(GL_PROJECTION);
-		gpuPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
 		return;
 	}
 

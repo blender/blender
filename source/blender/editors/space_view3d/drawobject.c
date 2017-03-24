@@ -934,11 +934,11 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 			ED_view3d_clipping_disable();
 		}
 
-		glMatrixMode(GL_PROJECTION);
-		gpuPushMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		gpuPushMatrix();
+		float original_proj[4][4];
+		gpuGetProjectionMatrix3D(original_proj);
 		wmOrtho2_region_pixelspace(ar);
+
+		gpuPushMatrix();
 		gpuLoadIdentity();
 		
 		if (depth_write) {
@@ -973,10 +973,8 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 			glDepthMask(GL_TRUE);
 		}
 		
-		glMatrixMode(GL_PROJECTION);
 		gpuPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		gpuPopMatrix();
+		gpuLoadProjectionMatrix3D(original_proj); /* TODO: make this more 2D friendly */
 
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			ED_view3d_clipping_enable();

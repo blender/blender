@@ -768,11 +768,10 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 		rv3d->render_engine = engine;
 	}
 
-	/* background draw */
-	glMatrixMode(GL_PROJECTION);
+	/* rendered draw */
 	gpuPushMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	gpuPushMatrix();
+	float original_proj[4][4];
+	gpuGetProjectionMatrix3D(original_proj);
 	ED_region_pixelspace(ar);
 
 	if (clip_border) {
@@ -787,8 +786,8 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 		}
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	/* don't change depth buffer */
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT); /* is this necessary? -- merwin */
 
 	/* render result draw */
@@ -800,9 +799,7 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 		glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 	}
 
-	glMatrixMode(GL_PROJECTION);
-	gpuPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
+	gpuLoadProjectionMatrix3D(original_proj);
 	gpuPopMatrix();
 
 	return true;
@@ -1762,10 +1759,7 @@ static void view3d_draw_non_mesh(
 Scene *scene, SceneLayer *sl, Object *ob, Base *base, View3D *v3d,
 RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 {
-	glMatrixMode(GL_PROJECTION);
-	gpuPushMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	gpuPushMatrix();
+	gpuPushMatrix(); /* necessary? --merwin */
 
 	/* multiply view with object matrix.
 	* local viewmat and persmat, to calculate projections */
@@ -1808,12 +1802,9 @@ RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 		draw_rigidbody_shape(ob, color);
 	}
 
-	ED_view3d_clear_mats_rv3d(rv3d);
+	ED_view3d_clear_mats_rv3d(rv3d); /* no effect in release builds */
 
-	glMatrixMode(GL_PROJECTION);
-	gpuPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	gpuPopMatrix();
+	gpuPopMatrix(); /* see above */
 }
 
 /* ******************** info ***************** */
@@ -2128,11 +2119,12 @@ static void view3d_draw_solid_plates(const bContext *C, ARegion *ar, DrawData *d
 		view3d_draw_post_draw(C);
 	}
 
-	/* offline plates*/
+	/* offline plates */
 	if (draw_data->is_render) {
 		Scene *scene = CTX_data_scene(C);
 		View3D *v3d = CTX_wm_view3d(C);
 
+		/* TODO: move this outside of solid plates, after solid & before other 3D elements */
 		view3d_draw_render_draw(C, scene, ar, v3d, draw_data->clip_border, &draw_data->border_rect);
 	}
 
@@ -2294,10 +2286,10 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	glClear(GL_DEPTH_BUFFER_BIT);
 //	glDisable(GL_DEPTH_TEST); /* should be set by default */
 
-	glMatrixMode(GL_PROJECTION);
-	gpuLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	gpuLoadIdentity();
+	glMatrixMode(GL_PROJECTION); //
+	gpuLoadIdentity();           // TODO: replace these lines with gpuMatrixBegin3D
+	glMatrixMode(GL_MODELVIEW);  //
+	gpuLoadIdentity();           //
 
 	view3d_draw_background(C); /* clears/overwrites entire color buffer */
 
@@ -2308,7 +2300,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	view3d_draw_prerender_buffers(C, ar, draw_data); /* depth pre-pass */
 
 //	glDepthFunc(GL_EQUAL); /* TODO: do this after separating surfaces from wires */
-//	glDepthMask(GL_FALSE); /* TODO: do this after separating surfaces from wires */
+//	glDepthMask(GL_FALSE); /* same TODO as above */
 	view3d_draw_solid_plates(C, ar, draw_data);
 
 //	glDepthFunc(GL_LEQUAL); /* same TODO as above */

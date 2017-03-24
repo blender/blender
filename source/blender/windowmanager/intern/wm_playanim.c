@@ -192,10 +192,7 @@ static void playanim_window_get_size(int *r_width, int *r_height)
 static void playanim_gl_matrix(void)
 {
 	/* unified matrix, note it affects offset for drawing */
-	glMatrixMode(GL_PROJECTION);
-	gpuLoadIdentity();
-	glOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f); /* XXX revisit this when 2D matrix API is complete */
-	glMatrixMode(GL_MODELVIEW);
+	gpuOrtho2D(0.0f, 1.0f, 0.0f, 1.0f);
 }
 
 /* implementation */
@@ -356,7 +353,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		float fac = ps->picture->frame / (double)(((PlayAnimPict *)picsbase.last)->frame - ((PlayAnimPict *)picsbase.first)->frame);
 
 		fac = 2.0f * fac - 1.0f;
-		glMatrixMode(GL_PROJECTION);
+		glMatrixMode(GL_PROJECTION); /* TODO: convert this nasty code */
 		gpuPushMatrix();
 		gpuLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
