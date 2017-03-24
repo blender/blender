@@ -3327,6 +3327,7 @@ static void def_frame(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeFrame", "storage");
+	RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_ID_NODETREE);
 	
 	prop = RNA_def_property(srna, "shrink", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_FRAME_SHRINK);

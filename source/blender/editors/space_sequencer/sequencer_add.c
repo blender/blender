@@ -38,6 +38,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 
@@ -445,6 +447,7 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	prop = RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
 	RNA_def_enum_funcs(prop, RNA_movieclip_itemf);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }

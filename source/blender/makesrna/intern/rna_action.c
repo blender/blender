@@ -34,6 +34,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_action.h"
 
 #include "RNA_access.h"
@@ -731,6 +733,7 @@ static void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "ID Root Type",
 	                         "Type of ID block that action can be used on - "
 	                         "DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING");
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 	
 	/* API calls */
 	RNA_api_action(srna);

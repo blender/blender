@@ -519,7 +519,8 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
 
 	ot->flag = 0;
 
-	RNA_def_enum(ot->srna, "id_type", rna_enum_id_type_items, ID_OB, "ID Type", "");
+	prop = RNA_def_enum(ot->srna, "id_type", rna_enum_id_type_items, ID_OB, "ID Type", "");
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 
 	prop = RNA_def_enum(ot->srna, "old_id", DummyRNA_NULL_items, 0, "Old ID", "Old ID to replace");
 	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, outliner_id_itemf);
