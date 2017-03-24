@@ -58,7 +58,7 @@ char *zLhm65070058860608_br_find_exe(const char *default_exe)
 
 /* BLI_cleanup_path */
 #ifndef _WIN32
-TEST(path_util, PathUtilClean)
+TEST(path_util, Clean)
 {
 	/* "/./" -> "/" */
 	{
@@ -128,7 +128,7 @@ TEST(path_util, PathUtilClean)
 			EXPECT_EQ(ret, true); \
 			EXPECT_EQ(strlen(expect), len_output); \
 			path[index_output + len_output] = '\0'; \
-			EXPECT_STREQ(expect, &path[index_output]); \
+			EXPECT_STREQ(&path[index_output], expect); \
 		} \
 	}((void)0)
 
@@ -345,7 +345,7 @@ TEST(path_util, JoinComplex)
 #undef JOIN
 
 /* BLI_path_frame */
-TEST(path_util, PathUtilFrame)
+TEST(path_util, Frame)
 {
 	bool ret;
 
@@ -408,7 +408,7 @@ TEST(path_util, PathUtilFrame)
 }
 
 /* BLI_split_dirfile */
-TEST(path_util, PathUtilSplitDirfile)
+TEST(path_util, SplitDirfile)
 {
 	{
 		const char *path = "";
