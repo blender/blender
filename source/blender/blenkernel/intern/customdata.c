@@ -33,14 +33,10 @@
 /** \file blender/blenkernel/intern/customdata.c
  *  \ingroup bke
  */
- 
-
-#include <math.h>
-#include <string.h>
-#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_ID.h"
 
@@ -48,7 +44,6 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
-#include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_mempool.h"
 
@@ -66,16 +61,11 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <string.h>
-
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
 
 /* ensure typemap size is ok */
-BLI_STATIC_ASSERT(sizeof(((CustomData *)NULL)->typemap) /
-                  sizeof(((CustomData *)NULL)->typemap[0]) == CD_NUMTYPES,
-                  "size mismatch");
+BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)NULL)->typemap) == CD_NUMTYPES, "size mismatch");
 
 
 /********************* Layer type information **********************/
@@ -1062,15 +1052,10 @@ static void layerInterp_mcol(
 		
 		/* Subdivide smooth or fractal can cause problems without clamping
 		 * although weights should also not cause this situation */
-		CLAMP(col[j].a, 0.0f, 255.0f);
-		CLAMP(col[j].r, 0.0f, 255.0f);
-		CLAMP(col[j].g, 0.0f, 255.0f);
-		CLAMP(col[j].b, 0.0f, 255.0f);
-		
-		mc[j].a = (int)col[j].a;
-		mc[j].r = (int)col[j].r;
-		mc[j].g = (int)col[j].g;
-		mc[j].b = (int)col[j].b;
+		mc[j].a = CLAMPIS(iroundf(col[j].a), 0, 255);
+		mc[j].r = CLAMPIS(iroundf(col[j].r), 0, 255);
+		mc[j].g = CLAMPIS(iroundf(col[j].g), 0, 255);
+		mc[j].b = CLAMPIS(iroundf(col[j].b), 0, 255);
 	}
 }
 
