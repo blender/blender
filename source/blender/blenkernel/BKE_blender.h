@@ -52,6 +52,8 @@ void BKE_blender_userdef_set_data(struct UserDef *userdef);
 void BKE_blender_userdef_free_data(struct UserDef *userdef);
 void BKE_blender_userdef_refresh(void);
 
+void BKE_blender_userdef_set_app_template(struct UserDef *userdef);
+
 /* set this callback when a UI is running */
 void BKE_blender_callback_test_break_set(void (*func)(void));
 int  BKE_blender_test_break(void);

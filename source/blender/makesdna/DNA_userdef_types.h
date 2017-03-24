@@ -473,7 +473,10 @@ typedef struct UserDef {
 	char pad2;
 	short transopts;
 	short menuthreshold1, menuthreshold2;
-	
+
+	/* startup template */
+	char app_template[64];
+
 	struct ListBase themes;
 	struct ListBase uifonts;
 	struct ListBase uistyles;

@@ -127,6 +127,18 @@ class INFO_MT_file(Menu):
         layout.operator("wm.save_homefile", icon='SAVE_PREFS')
         layout.operator("wm.read_factory_settings", icon='LOAD_FACTORY')
 
+        if any(bpy.utils.app_template_paths()):
+            app_template = context.user_preferences.app_template
+            if app_template:
+                layout.operator(
+                    "wm.read_factory_settings",
+                    text="Load Factory Template Settings",
+                    icon='LOAD_FACTORY',
+                ).app_template = app_template
+            del app_template
+
+        layout.menu("USERPREF_MT_app_templates", icon='FILE_BLEND')
+
         layout.separator()
 
         layout.operator_context = 'INVOKE_AREA'

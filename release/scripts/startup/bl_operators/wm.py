@@ -130,6 +130,20 @@ def execute_context_assign(self, context):
     return operator_path_undo_return(context, data_path)
 
 
+def module_filesystem_remove(path_base, module_name):
+    import os
+    module_name = os.path.splitext(module_name)[0]
+    for f in os.listdir(path_base):
+        f_base = os.path.splitext(f)[0]
+        if f_base == module_name:
+            f_full = os.path.join(path_base, f)
+
+            if os.path.isdir(f_full):
+                os.rmdir(f_full)
+            else:
+                os.remove(f_full)
+
+
 class BRUSH_OT_active_index_set(Operator):
     """Set active sculpt/paint brush from it's number"""
     bl_idname = "brush.active_index_set"
@@ -1917,10 +1931,12 @@ class WM_OT_addon_refresh(Operator):
         return {'FINISHED'}
 
 
+# Note: shares some logic with WM_OT_app_template_install
+# but not enough to de-duplicate. Fixed here may apply to both.
 class WM_OT_addon_install(Operator):
     "Install an add-on"
     bl_idname = "wm.addon_install"
-    bl_label = "Install from File..."
+    bl_label = "Install Add-on from File..."
 
     overwrite = BoolProperty(
             name="Overwrite",
@@ -1950,20 +1966,6 @@ class WM_OT_addon_install(Operator):
             default="*.py;*.zip",
             options={'HIDDEN'},
             )
-
-    @staticmethod
-    def _module_remove(path_addons, module):
-        import os
-        module = os.path.splitext(module)[0]
-        for f in os.listdir(path_addons):
-            f_base = os.path.splitext(f)[0]
-            if f_base == module:
-                f_full = os.path.join(path_addons, f)
-
-                if os.path.isdir(f_full):
-                    os.rmdir(f_full)
-                else:
-                    os.remove(f_full)
 
     def execute(self, context):
         import addon_utils
@@ -2017,7 +2019,7 @@ class WM_OT_addon_install(Operator):
 
             if self.overwrite:
                 for f in file_to_extract.namelist():
-                    WM_OT_addon_install._module_remove(path_addons, f)
+                    module_filesystem_remove(path_addons, f)
             else:
                 for f in file_to_extract.namelist():
                     path_dest = os.path.join(path_addons, os.path.basename(f))
@@ -2035,7 +2037,7 @@ class WM_OT_addon_install(Operator):
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if self.overwrite:
-                WM_OT_addon_install._module_remove(path_addons, os.path.basename(pyfile))
+                module_filesystem_remove(path_addons, os.path.basename(pyfile))
             elif os.path.exists(path_dest):
                 self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
@@ -2070,7 +2072,10 @@ class WM_OT_addon_install(Operator):
         bpy.utils.refresh_script_paths()
 
         # print message
-        msg = tip_("Modules Installed from %r into %r (%s)") % (pyfile, path_addons, ", ".join(sorted(addons_new)))
+        msg = (
+            tip_("Modules Installed (%s) from %r into %r (%s)") %
+            (", ".join(sorted(addons_new)), pyfile, path_addons)
+        )
         print(msg)
         self.report({'INFO'}, msg)
 
@@ -2164,6 +2169,7 @@ class WM_OT_addon_expand(Operator):
 
         return {'FINISHED'}
 
+
 class WM_OT_addon_userpref_show(Operator):
     "Show add-on user preferences"
     bl_idname = "wm.addon_userpref_show"
@@ -2194,6 +2200,124 @@ class WM_OT_addon_userpref_show(Operator):
         return {'FINISHED'}
 
 
+# Note: shares some logic with WM_OT_addon_install
+# but not enough to de-duplicate. Fixes here may apply to both.
+class WM_OT_app_template_install(Operator):
+    "Install an application-template"
+    bl_idname = "wm.app_template_install"
+    bl_label = "Install Template from File..."
+
+    overwrite = BoolProperty(
+            name="Overwrite",
+            description="Remove existing template with the same ID",
+            default=True,
+            )
+
+    filepath = StringProperty(
+            subtype='FILE_PATH',
+            )
+    filter_folder = BoolProperty(
+            name="Filter folders",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_python = BoolProperty(
+            name="Filter python",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_glob = StringProperty(
+            default="*.py;*.zip",
+            options={'HIDDEN'},
+            )
+
+    def execute(self, context):
+        import addon_utils
+        import traceback
+        import zipfile
+        import shutil
+        import os
+
+        pyfile = self.filepath
+
+        path_app_templates = bpy.utils.user_resource(
+            'SCRIPTS', os.path.join("startup", "bl_app_templates_user"),
+            create=True,
+        )
+
+        if not path_app_templates:
+            self.report({'ERROR'}, "Failed to get add-ons path")
+            return {'CANCELLED'}
+
+        if not os.path.isdir(path_app_templates):
+            try:
+                os.makedirs(path_app_templates, exist_ok=True)
+            except:
+                traceback.print_exc()
+
+        app_templates_old = set(os.listdir(path_app_templates))
+
+        # check to see if the file is in compressed format (.zip)
+        if zipfile.is_zipfile(pyfile):
+            try:
+                file_to_extract = zipfile.ZipFile(pyfile, 'r')
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+            if self.overwrite:
+                for f in file_to_extract.namelist():
+                    module_filesystem_remove(path_app_templates, f)
+            else:
+                for f in file_to_extract.namelist():
+                    path_dest = os.path.join(path_app_templates, os.path.basename(f))
+                    if os.path.exists(path_dest):
+                        self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                        return {'CANCELLED'}
+
+            try:  # extract the file to "bl_app_templates_user"
+                file_to_extract.extractall(path_app_templates)
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+        else:
+            path_dest = os.path.join(path_app_templates, os.path.basename(pyfile))
+
+            if self.overwrite:
+                module_filesystem_remove(path_app_templates, os.path.basename(pyfile))
+            elif os.path.exists(path_dest):
+                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                return {'CANCELLED'}
+
+            # if not compressed file just copy into the addon path
+            try:
+                shutil.copyfile(pyfile, path_dest)
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+        app_templates_new = set(os.listdir(path_app_templates)) - app_templates_old
+
+        # in case a new module path was created to install this addon.
+        bpy.utils.refresh_script_paths()
+
+        # print message
+        msg = (
+            tip_("Template Installed (%s) from %r into %r") %
+            (", ".join(sorted(app_templates_new)), pyfile, path_app_templates)
+        )
+        print(msg)
+        self.report({'INFO'}, msg)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
 classes = (
     BRUSH_OT_active_index_set,
     WM_OT_addon_disable,
@@ -2203,6 +2327,7 @@ classes = (
     WM_OT_addon_refresh,
     WM_OT_addon_remove,
     WM_OT_addon_userpref_show,
+    WM_OT_app_template_install,
     WM_OT_appconfig_activate,
     WM_OT_appconfig_default,
     WM_OT_blenderplayer_start,
