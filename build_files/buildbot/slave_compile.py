@@ -111,7 +111,7 @@ if 'cmake' in builder:
             cuda_chroot_name = 'buildbot_' + deb_name + '_x86_64'
             targets = ['player', 'blender', 'cuda']
 
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-8.0/bin/nvcc')
+        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda/bin/nvcc')
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
