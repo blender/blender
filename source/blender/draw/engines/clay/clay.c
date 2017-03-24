@@ -42,7 +42,6 @@
 extern char datatoc_clay_frag_glsl[];
 extern char datatoc_clay_vert_glsl[];
 extern char datatoc_ssao_alchemy_glsl[];
-extern char datatoc_ssao_groundtruth_glsl[];
 
 /* *********** LISTS *********** */
 
@@ -127,6 +126,7 @@ static struct {
 	float winmat[4][4];
 	float viewvecs[3][4];
 	float ssao_params[4];
+	int cached_sample_num;
 	struct GPUTexture *jitter_tx;
 	struct GPUTexture *sampling_tx;
 
@@ -143,8 +143,6 @@ static struct {
 	DRWShadingGroup *depth_shgrp_cull_active;
 	CLAY_Data *vedata;
 } g_data = {NULL}; /* Transient data */
-
-//#define GTAO
 
 /* Functions */
 
@@ -245,14 +243,9 @@ static struct GPUTexture *create_jitter_texture(void)
 
 	/* TODO replace by something more evenly distributed like blue noise */
 	for (i = 0; i < 64 * 64; i++) {
-#ifdef GTAO
-		jitter[i][0] = BLI_frand();
-		jitter[i][1] = BLI_frand();
-#else
 		jitter[i][0] = 2.0f * BLI_frand() - 1.0f;
 		jitter[i][1] = 2.0f * BLI_frand() - 1.0f;
 		normalize_v2(jitter[i]);
-#endif
 	}
 
 	return DRW_texture_create_2D(64, 64, DRW_TEX_RG_16, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
@@ -327,11 +320,6 @@ static void CLAY_engine_init(void)
 		e_data.jitter_tx = create_jitter_texture();
 	}
 
-	/* AO Samples */
-	/* TODO use hammersley sequence */
-	if (!e_data.sampling_tx) {
-		e_data.sampling_tx = create_spiral_sample_texture(500);
-	}
 
 	/* Depth prepass */
 	if (!e_data.depth_sh) {
@@ -349,11 +337,7 @@ static void CLAY_engine_init(void)
 		char *matcap_with_ao;
 
 		BLI_dynstr_append(ds, datatoc_clay_frag_glsl);
-#ifdef GTAO
-		BLI_dynstr_append(ds, datatoc_ssao_groundtruth_glsl);
-#else
 		BLI_dynstr_append(ds, datatoc_ssao_alchemy_glsl);
-#endif
 
 		matcap_with_ao = BLI_dynstr_get_cstring(ds);
 
@@ -435,6 +419,17 @@ static void CLAY_engine_init(void)
 			mul_v3_fl(vec_far, 1.0f / vec_far[3]);
 			e_data.viewvecs[1][2] = vec_far[2] - e_data.viewvecs[0][2];
 		}
+
+		/* AO Samples Tex */
+		if (e_data.sampling_tx && (e_data.cached_sample_num != settings->ssao_samples)) {
+			DRW_texture_free(e_data.sampling_tx);
+			e_data.sampling_tx = NULL;
+		}
+
+		if (!e_data.sampling_tx) {
+			e_data.sampling_tx = create_spiral_sample_texture(settings->ssao_samples);
+			e_data.cached_sample_num = settings->ssao_samples;
+		}
 	}
 }
 
@@ -456,10 +451,8 @@ static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *material_id)
 
 	DRW_shgroup_uniform_int(grp, "mat_id", material_id, 1);
 
-#ifndef GTAO
 	DRW_shgroup_uniform_texture(grp, "ssao_jitter", e_data.jitter_tx, jitterloc);
 	DRW_shgroup_uniform_texture(grp, "ssao_samples", e_data.sampling_tx, sampleloc);
-#endif
 
 	return grp;
 }
@@ -504,7 +497,8 @@ static int push_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap
 	ubo->matcap_hsv[1] = matcap_sat * 2.0f;
 	ubo->matcap_hsv[2] = matcap_val * 2.0f;
 
-	ubo->ssao_params_var[0] = ssao_distance;
+	/* small optimisation : make samples not spread if we don't need ssao */
+	ubo->ssao_params_var[0] = (ssao_factor_cavity + ssao_factor_edge > 0.0f) ? ssao_distance : 0.0f;
 	ubo->ssao_params_var[1] = ssao_factor_cavity;
 	ubo->ssao_params_var[2] = ssao_factor_edge;
 	ubo->ssao_params_var[3] = ssao_attenuation;
@@ -618,20 +612,8 @@ static void CLAY_cache_init(void)
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 		g_data.depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
-		g_data.depth_shgrp_select = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-		DRW_shgroup_state_set(g_data.depth_shgrp_select, DRW_STATE_WRITE_STENCIL_SELECT);
-
-		g_data.depth_shgrp_active = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-		DRW_shgroup_state_set(g_data.depth_shgrp_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
-
 		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
 		g_data.depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-
-		g_data.depth_shgrp_cull_select = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-		DRW_shgroup_state_set(g_data.depth_shgrp_cull_select, DRW_STATE_WRITE_STENCIL_SELECT);
-
-		g_data.depth_shgrp_cull_active = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-		DRW_shgroup_state_set(g_data.depth_shgrp_cull_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
 	}
 
 	/* Clay Pass */
@@ -661,13 +643,7 @@ static void CLAY_cache_populate(Object *ob)
 		geom = DRW_cache_surface_get(ob);
 
 		/* Depth Prepass */
-		/* waiting for proper flag */
-		// if ((ob->base_flag & BASE_ACTIVE) != 0)
-			// DRW_shgroup_call_add((do_cull) ? g_data.depth_shgrp_cull_active : g_data.depth_shgrp_active, geom, ob->obmat);
-		if ((ob->base_flag & BASE_SELECTED) != 0)
-			DRW_shgroup_call_add((do_cull) ? g_data.depth_shgrp_cull_select : g_data.depth_shgrp_select, geom, ob->obmat);
-		else
-			DRW_shgroup_call_add((do_cull) ? g_data.depth_shgrp_cull : g_data.depth_shgrp, geom, ob->obmat);
+		DRW_shgroup_call_add((do_cull) ? g_data.depth_shgrp_cull : g_data.depth_shgrp, geom, ob->obmat);
 
 		/* Shading */
 		clay_shgrp = CLAY_object_shgrp_get(ob, stl, psl);
