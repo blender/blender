@@ -839,10 +839,10 @@ static void layerInterp_mloopcol(
 
 	/* Subdivide smooth or fractal can cause problems without clamping
 	 * although weights should also not cause this situation */
-	CLAMP(col.a, 0.0f, 255.0f);
-	CLAMP(col.r, 0.0f, 255.0f);
-	CLAMP(col.g, 0.0f, 255.0f);
-	CLAMP(col.b, 0.0f, 255.0f);
+	CLAMP(mc->a, 0, 255);
+	CLAMP(mc->r, 0, 255);
+	CLAMP(mc->g, 0, 255);
+	CLAMP(mc->b, 0, 255);
 }
 
 static int layerMaxNum_mloopcol(void)
