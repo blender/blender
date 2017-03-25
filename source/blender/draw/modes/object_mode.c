@@ -36,6 +36,7 @@
 #include "BKE_global.h"
 
 #include "ED_view3d.h"
+#include "ED_view3d.h"
 
 #include "GPU_shader.h"
 
@@ -164,7 +165,23 @@ static struct {
 	float camera_pos[3];
 	float grid_settings[4];
 	float grid_mat[4][4];
+	int grid_flag;
+	int zpos_flag;
+	int zneg_flag;
 } e_data = {NULL}; /* Engine data */
+
+
+enum {
+	SHOW_AXIS_X  = (1 << 0),
+	SHOW_AXIS_Y  = (1 << 1),
+	SHOW_AXIS_Z  = (1 << 2),
+	SHOW_GRID    = (1 << 3),
+	PLANE_XY     = (1 << 4),
+	PLANE_XZ     = (1 << 5),
+	PLANE_YZ     = (1 << 6),
+	CLIP_ZPOS    = (1 << 7),
+	CLIP_ZNEG    = (1 << 8),
+};
 
 /* *********** FUNCTIONS *********** */
 
@@ -206,7 +223,20 @@ static void OBJECT_engine_init(void)
 	}
 
 	{
-		float viewinvmat[4][4], winmat[4][4], viewmat[4][4];
+		/* Grid precompute */
+		float viewinvmat[4][4], winmat[4][4], invwinmat[4][4], viewmat[4][4];
+		const bContext *C = DRW_get_context();
+		View3D *v3d = CTX_wm_view3d(C);
+		Scene *scene = CTX_data_scene(C);
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		float grid_scale = ED_view3d_grid_scale(scene, v3d, NULL);
+		float grid_res, offs;
+
+		const bool show_axis_x = v3d->gridflag & V3D_SHOW_X;
+		const bool show_axis_y = v3d->gridflag & V3D_SHOW_Y;
+		const bool show_axis_z = v3d->gridflag & V3D_SHOW_Z;
+		const bool show_floor = (v3d->gridflag & V3D_SHOW_FLOOR);
+
 		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
 		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
 		DRW_viewport_matrix_get(viewinvmat, DRW_MAT_VIEWINV);
@@ -214,29 +244,113 @@ static void OBJECT_engine_init(void)
 		/* Setup camera pos */
 		copy_v3_v3(e_data.camera_pos, viewinvmat[3]);
 
-		/* grid settings */
-		const bContext *C = DRW_get_context();
-		View3D *v3d = CTX_wm_view3d(C);
-		Scene *scene = CTX_data_scene(C);
+		/* if perps */
+		if (winmat[3][3] == 0.0f) {
+			float fov;
+			float viewvecs[2][4] = {
+			    {1.0f, -1.0f, -1.0f, 1.0f},
+			    {-1.0f, 1.0f, -1.0f, 1.0f}
+			};
+			/* invert the proj matrix */
+			invert_m4_m4(invwinmat, winmat);
 
-		e_data.grid_settings[0] = 100.0f; /* gridDistance */
-		e_data.grid_settings[1] = 2.0f; /* gridResolution */
-		e_data.grid_settings[2] = ED_view3d_grid_scale(scene, v3d, NULL); /* gridScale */
-		e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
+			/* convert the view vectors to view space */
+			for (int i = 0; i < 2; i++) {
+				mul_m4_v4(invwinmat, viewvecs[i]);
+				mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]); /* normalize */
+			}
 
-		/* Grid matrix polygon offset (fix depth fighting) */
-		/* see ED_view3d_polygon_offset */
-		float offs;
-		if (winmat[3][3] > 0.5f) {
-			float viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
-			offs = 0.00001f * viewdist;
+			fov = angle_v3v3(viewvecs[0], viewvecs[1]) / 2.0f;
+			grid_res = fabsf(tanf(fov)) / grid_scale;
+
+			/* Grid matrix polygon offset (fix depth fighting) */
+			/* see ED_view3d_polygon_offset */
+			offs = winmat[3][2] * -0.0025f;
+
+			e_data.grid_flag = (1 << 4); /* XY plane */
+			if (show_axis_x)
+				e_data.grid_flag |= SHOW_AXIS_X;
+			if (show_axis_y)
+				e_data.grid_flag |= SHOW_AXIS_Y;
+			if (show_floor)
+				e_data.grid_flag |= SHOW_GRID;
 		}
 		else {
-			offs = winmat[3][2] * -0.0025f;
-		}
-		winmat[3][2] -= offs;
+			float viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
+			grid_res = viewdist / grid_scale;
 
+			/* Grid matrix polygon offset (fix depth fighting) */
+			/* see ED_view3d_polygon_offset */
+			offs = 0.00001f * viewdist;
+			if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
+				e_data.grid_flag = PLANE_YZ;
+				e_data.grid_flag |= SHOW_AXIS_Y;
+				e_data.grid_flag |= SHOW_AXIS_Z;
+				e_data.grid_flag |= SHOW_GRID;
+			}
+			else if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
+				e_data.grid_flag = PLANE_XY;
+				e_data.grid_flag |= SHOW_AXIS_X;
+				e_data.grid_flag |= SHOW_AXIS_Y;
+				e_data.grid_flag |= SHOW_GRID;
+			}
+			else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
+				e_data.grid_flag = PLANE_XZ;
+				e_data.grid_flag |= SHOW_AXIS_X;
+				e_data.grid_flag |= SHOW_AXIS_Z;
+				e_data.grid_flag |= SHOW_GRID;
+			}
+			else { /* RV3D_VIEW_USER */
+				e_data.grid_flag = PLANE_XY;
+				if (show_axis_x)
+					e_data.grid_flag |= SHOW_AXIS_X;
+				if (show_axis_y)
+					e_data.grid_flag |= SHOW_AXIS_Y;
+				if (show_floor)
+					e_data.grid_flag |= SHOW_GRID;
+			}
+		}
+
+		/* Z axis if needed */
+		if ((rv3d->view == RV3D_VIEW_USER) && show_axis_z) {
+			e_data.zpos_flag = SHOW_AXIS_Z;
+
+			float zvec[4] = {0.0f, 0.0f, -1.0f, 0.0f};
+			mul_m4_v4(viewinvmat, zvec);
+
+			/* z axis : chose the most facing plane */
+			if (fabsf(zvec[0]) > fabsf(zvec[1])) {
+				e_data.zpos_flag |= (PLANE_XZ | SHOW_AXIS_X);
+			}
+			else {
+				e_data.zpos_flag |= (PLANE_YZ | SHOW_AXIS_Y);
+			}
+
+			e_data.zneg_flag = e_data.zpos_flag;
+
+			/* Persp : If camera is below floor plane, we switch clipping
+			 * Ortho : If eye vector is looking up, we switch clipping */
+			if (((winmat[3][3] == 0.0f) && (e_data.camera_pos[2] > 0.0f)) ||
+				((winmat[3][3] != 0.0f) && (zvec[2] < 0.0f))) {
+				e_data.zpos_flag |= CLIP_ZPOS;
+				e_data.zneg_flag |= CLIP_ZNEG;
+			}
+			else {
+				e_data.zpos_flag |= CLIP_ZNEG;
+				e_data.zneg_flag |= CLIP_ZPOS;
+			}
+		}
+		else {
+			e_data.zneg_flag = e_data.zpos_flag = 0;
+		}
+
+		winmat[3][2] -= offs;
 		mul_m4_m4m4(e_data.grid_mat, winmat, viewmat);
+
+		e_data.grid_settings[0] = v3d->far / 2.0f; /* gridDistance */
+		e_data.grid_settings[1] = grid_res; /* gridResolution */
+		e_data.grid_settings[2] = grid_scale; /* gridScale */
+		e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
 	}
 }
 
@@ -382,11 +496,21 @@ static void OBJECT_cache_init(void)
 
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
 
+		/* Create 3 quads to render ordered transparency Z axis */
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
+		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zneg_flag, 1);
 		DRW_shgroup_uniform_mat4(grp, "ViewProjectionOffsetMatrix", (float *)e_data.grid_mat);
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
 		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo, 0);
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
+		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.grid_flag, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
+		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zpos_flag, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 

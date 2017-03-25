@@ -15,19 +15,29 @@ uniform vec4 gridSettings;
 #define gridScale         gridSettings.z
 #define gridSubdiv        gridSettings.w
 
+uniform int gridFlag;
+
+#define AXIS_X    (1 << 0)
+#define AXIS_Y    (1 << 1)
+#define AXIS_Z    (1 << 2)
+#define GRID      (1 << 3)
+#define PLANE_XY  (1 << 4)
+#define PLANE_XZ  (1 << 5)
+#define PLANE_YZ  (1 << 6)
+
 #define GRID_LINE_SMOOTH 1.15
 
-float grid(vec2 uv, vec2 fwidthUvs, float grid_size)
+float grid(vec3 uv, vec3 fwidthCos, float grid_size)
 {
 	float half_size = grid_size / 2.0;
 	/* triangular wave pattern, amplitude is [0, grid_size] */
-	vec2 grid_domain = abs(mod(uv + half_size, grid_size) - half_size);
+	vec3 grid_domain = abs(mod(uv + half_size, grid_size) - half_size);
 	/* modulate by the absolute rate of change of the uvs
 	 * (make lines have the same width under perspective) */
-	grid_domain /= fwidthUvs;
+	grid_domain /= fwidthCos;
 
 	/* collapse waves and normalize */
-	grid_domain.x = min(grid_domain.x, grid_domain.y) / grid_size;
+	grid_domain.x = min(grid_domain.x, min(grid_domain.y, grid_domain.z)) / grid_size;
 
 	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH / grid_size, grid_domain.x);
 }
@@ -44,43 +54,78 @@ float axis(float u, float fwidthU, float line_size)
 
 void main()
 {
-	vec2 fwidthUvs = fwidth(wPos.xy);
+	vec3 fwidthCos = fwidth(wPos);
 
-	float blend, lvl, fade;
-
+	float fade, grid_res;
 	/* if persp */
 	if (ProjectionMatrix[3][3] == 0.0) {
 		float dist = distance(cameraPos, wPos);
-		float log2dist = -log2(dist / (2.0 * gridDistance));
-
-		blend = fract(log2dist / gridResolution);
-		lvl = floor(log2dist / gridResolution);
+		float dist_norm = dist / (2.0 * gridDistance);
+		grid_res = log(dist * gridResolution) / log(gridSubdiv);
 		fade = 1.0 - smoothstep(0.0, gridDistance, dist - gridDistance);
 	}
 	else {
-		/* todo find a better way */
-		blend = 0.0;
-		lvl = 0.0;
-		fade = 1.0;
+		float dist = abs(gl_FragCoord.z * 2.0 - 1.0);
+		grid_res = log(gridResolution) / log(gridSubdiv);
+		fade = 1.0 - smoothstep(0.0, 0.5, dist - 0.5);
 	}
 
-	/* from smallest to biggest */
-	float scaleA = gridScale * pow(gridSubdiv, min(-lvl + 1.0, 1.0));
-	float scaleB = gridScale * pow(gridSubdiv, min(-lvl + 2.0, 1.0));
-	float scaleC = gridScale * pow(gridSubdiv, min(-lvl + 3.0, 1.0));
+	/* fix division by 0 (log(1) = 0) */
+	if (gridSubdiv == 1.0) {
+		grid_res = 0.0;
+	}
 
-	float gridA = grid(wPos.xy, fwidthUvs, scaleA);
-	float gridB = grid(wPos.xy, fwidthUvs, scaleB);
-	float gridC = grid(wPos.xy, fwidthUvs, scaleC);
+	if ((gridFlag & GRID) > 0) {
+		float blend = fract(-max(grid_res, 0.0));
+		float lvl = floor(grid_res);
 
-	float xAxis = axis(wPos.y, fwidthUvs.y, 0.1); /* Swapped */
-	float yAxis = axis(wPos.x, fwidthUvs.x, 0.1); /* Swapped */
+		/* from smallest to biggest */
+		float scaleA = gridScale * pow(gridSubdiv, max(lvl - 1.0, 0.0));
+		float scaleB = gridScale * pow(gridSubdiv, max(lvl + 0.0, 0.0));
+		float scaleC = gridScale * pow(gridSubdiv, max(lvl + 1.0, 1.0));
 
-	FragColor = vec4(colorGrid.rgb, gridA * blend);
-	FragColor = mix(FragColor, vec4(mix(colorGrid.rgb, colorGridEmphasise.rgb, blend), 1.0), gridB);
-	FragColor = mix(FragColor, vec4(colorGridEmphasise.rgb, 1.0), gridC);
+		float gridA = grid(wPos, fwidthCos, scaleA);
+		float gridB = grid(wPos, fwidthCos, scaleB);
+		float gridC = grid(wPos, fwidthCos, scaleC);
 
-	FragColor = mix(FragColor, colorGridAxisX, xAxis);
-	FragColor = mix(FragColor, colorGridAxisY, yAxis);
+		FragColor = vec4(colorGrid.rgb, gridA * blend);
+		FragColor = mix(FragColor, vec4(mix(colorGrid.rgb, colorGridEmphasise.rgb, blend), 1.0), gridB);
+		FragColor = mix(FragColor, vec4(colorGridEmphasise.rgb, 1.0), gridC);
+	}
+	else {
+		FragColor = vec4(colorGrid.rgb, 0.0);
+	}
+
+	if ((gridFlag & AXIS_X) > 0) {
+		float xAxis;
+		if ((gridFlag & AXIS_Y) > 0) {
+			xAxis = axis(wPos.y, fwidthCos.y, 0.1);
+		}
+		else {
+			xAxis = axis(wPos.z, fwidthCos.z, 0.1);
+		}
+		FragColor = mix(FragColor, colorGridAxisX, xAxis);
+	}
+	if ((gridFlag & AXIS_Y) > 0) {
+		float yAxis;
+		if ((gridFlag & AXIS_X) > 0) {
+			yAxis = axis(wPos.x, fwidthCos.x, 0.1);
+		}
+		else {
+			yAxis = axis(wPos.z, fwidthCos.z, 0.1);
+		}
+		FragColor = mix(FragColor, colorGridAxisY, yAxis);
+	}
+	if ((gridFlag & AXIS_Z) > 0) {
+		float zAxis;
+		if ((gridFlag & AXIS_Y) > 0) {
+			zAxis = axis(wPos.y, fwidthCos.y, 0.1);
+		}
+		else {
+			zAxis = axis(wPos.x, fwidthCos.x, 0.1);
+		}
+		FragColor = mix(FragColor, colorGridAxisZ, zAxis);
+	}
+
 	FragColor.a *= fade;
 }
