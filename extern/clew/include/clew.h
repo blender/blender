@@ -369,7 +369,7 @@ typedef unsigned int cl_GLenum;
 #endif
 
 /* Define basic vector types */
-/* WOrkaround for ppc64el platform: conflicts with bool from C++. */
+/* Workaround for ppc64el platform: conflicts with bool from C++. */
 #if defined( __VEC__ ) && !(defined(__PPC64__) && defined(__LITTLE_ENDIAN__))
    #include <altivec.h>   /* may be omitted depending on compiler. AltiVec spec provides no way to detect whether the header is required. */
    typedef vector unsigned char     __cl_uchar16;
@@ -2765,11 +2765,40 @@ CLEW_FUN_EXPORT     PFNCLGETGLCONTEXTINFOKHR            __clewGetGLContextInfoKH
 #define CL_DEVICE_GPU_OVERLAP_NV                    0x4004
 #define CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV            0x4005
 #define CL_DEVICE_INTEGRATED_MEMORY_NV              0x4006
+#define CL_DEVICE_ATTRIBUTE_ASYNC_ENGINE_COUNT_NV   0x4007
+#define CL_DEVICE_PCI_BUS_ID_NV                     0x4008
+#define CL_DEVICE_PCI_SLOT_ID_NV                    0x4009
 
 /*********************************
  * cl_amd_device_attribute_query *
  *********************************/
 #define CL_DEVICE_PROFILING_TIMER_OFFSET_AMD        0x4036
+#define CL_DEVICE_TOPOLOGY_AMD                      0x4037
+#define CL_DEVICE_BOARD_NAME_AMD                    0x4038
+#define CL_DEVICE_GLOBAL_FREE_MEMORY_AMD            0x4039
+#define CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD         0x4040
+#define CL_DEVICE_SIMD_WIDTH_AMD                    0x4041
+#define CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD        0x4042
+#define CL_DEVICE_WAVEFRONT_WIDTH_AMD               0x4043
+#define CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD           0x4044
+#define CL_DEVICE_GLOBAL_MEM_CHANNEL_BANKS_AMD      0x4045
+#define CL_DEVICE_GLOBAL_MEM_CHANNEL_BANK_WIDTH_AMD    0x4046
+#define CL_DEVICE_LOCAL_MEM_SIZE_PER_COMPUTE_UNIT_AMD  0x4047
+#define CL_DEVICE_LOCAL_MEM_BANKS_AMD               0x4048
+#define CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD        0x4049
+#define CL_DEVICE_GFXIP_MAJOR_AMD                   0x404A
+#define CL_DEVICE_GFXIP_MINOR_AMD                   0x404B
+#define CL_DEVICE_AVAILABLE_ASYNC_QUEUES_AMD        0x404C
+
+#ifndef CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD
+#define CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD            1
+
+typedef union
+{
+    struct { cl_uint type; cl_uint data[5]; } raw;
+    struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
+} cl_device_topology_amd;
+#endif
 
 /*********************************
  * cl_arm_printf extension

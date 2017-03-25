@@ -32,6 +32,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -742,6 +744,7 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_enum_default(prop, ID_OB);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ksPath_id_type_set", NULL);
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used");
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_EDITED, NULL); /* XXX: maybe a bit too noisy */
 	
 	/* Group */

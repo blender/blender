@@ -97,7 +97,9 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int use_blender_profile;
 	int sort_by_name;
 	int export_transformation_type;
+
 	int open_sim;
+	int keep_bind_info;
 
 	int export_count;
 
@@ -148,6 +150,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	export_transformation_type = RNA_enum_get(op->ptr,    "export_transformation_type_selection");
 	open_sim                   = RNA_boolean_get(op->ptr, "open_sim");
 
+	keep_bind_info = RNA_boolean_get(op->ptr, "keep_bind_info");
+
 	/* get editmode results */
 	ED_object_editmode_load(CTX_data_edit_object(C));
 
@@ -172,7 +176,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		use_blender_profile,
 		sort_by_name,
 		export_transformation_type,
-		open_sim);
+
+		open_sim,
+		keep_bind_info
+	);
 
 	if (export_count == 0) {
 		BKE_report(op->reports, RPT_WARNING, "No objects selected -- Created empty export file");
@@ -269,6 +276,8 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, false);
+	uiItemR(row, imfptr, "keep_bind_info", 0, NULL, ICON_NONE);
 
 }
 
@@ -386,6 +395,10 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
 	RNA_def_boolean(func, "open_sim", 0, "Export to SL/OpenSim",
 	                "Compatibility mode for SL, OpenSim and other compatible online worlds");
+
+	RNA_def_boolean(func, "keep_bind_info", 0,
+		"Keep Bind Info", "Store Bindpose information in custom bone properties for later use during Collada export");
+
 }
 
 
@@ -397,7 +410,9 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	int find_chains;
 	int auto_connect;
 	int fix_orientation;
-	int  min_chain_length;
+	int min_chain_length;
+
+	int keep_bind_info;
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -409,6 +424,9 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	find_chains      = RNA_boolean_get(op->ptr, "find_chains");
 	auto_connect     = RNA_boolean_get(op->ptr, "auto_connect");
 	fix_orientation  = RNA_boolean_get(op->ptr, "fix_orientation");
+
+	keep_bind_info = RNA_boolean_get(op->ptr, "keep_bind_info");
+
 	min_chain_length = RNA_int_get(op->ptr, "min_chain_length");
 
 	RNA_string_get(op->ptr, "filepath", filename);
@@ -418,7 +436,8 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	        find_chains,
 	        auto_connect,
 	        fix_orientation,
-	        min_chain_length))
+	        min_chain_length,
+			keep_bind_info) )
 	{
 		return OPERATOR_FINISHED;
 	}
@@ -455,6 +474,13 @@ static void uiCollada_importSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "min_chain_length", 0, NULL, ICON_NONE);
+
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, false);
+
+	row = uiLayoutRow(box, false);
+	uiItemR(row, imfptr, "keep_bind_info", 0, NULL, ICON_NONE);
+
 }
 
 static void wm_collada_import_draw(bContext *UNUSED(C), wmOperator *op)
@@ -509,6 +535,10 @@ void WM_OT_collada_import(wmOperatorType *ot)
 		"When searching Bone Chains disregard chains of length below this value",
 		0,
 		INT_MAX);
+
+	RNA_def_boolean(ot->srna, 
+		"keep_bind_info", 0, "Keep Bind Info", 
+		"Store Bindpose information in custom bone properties for later use during Collada export");
 
 }
 #endif

@@ -293,7 +293,7 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 	/* intersect with the same object. if multiple intersections are found it
 	 * will use at most BSSRDF_MAX_HITS hits, a random subset of all hits */
 	scene_intersect_subsurface(kg,
-	                           ray,
+	                           *ray,
 	                           ss_isect,
 	                           sd->object,
 	                           lcg_state,
@@ -448,7 +448,7 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, PathS
 	/* intersect with the same object. if multiple intersections are
 	 * found it will randomly pick one of them */
 	SubsurfaceIntersection ss_isect;
-	scene_intersect_subsurface(kg, &ray, &ss_isect, sd->object, lcg_state, 1);
+	scene_intersect_subsurface(kg, ray, &ss_isect, sd->object, lcg_state, 1);
 
 	/* evaluate bssrdf */
 	if(ss_isect.num_hits > 0) {

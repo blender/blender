@@ -48,7 +48,8 @@ int collada_import(bContext *C,
 				   int find_chains,
 				   int auto_connect,
 				   int fix_orientation,
-				   int min_chain_length)
+				   int min_chain_length,
+				   int keep_bind_info)
 {
 
 	ImportSettings import_settings;
@@ -58,6 +59,7 @@ int collada_import(bContext *C,
 	import_settings.find_chains      = find_chains != 0;
 	import_settings.fix_orientation  = fix_orientation != 0;
 	import_settings.min_chain_length = min_chain_length;
+	import_settings.keep_bind_info = keep_bind_info;
 
 	DocumentImporter imp(C, &import_settings);
 	if (imp.import()) return 1;
@@ -87,7 +89,9 @@ int collada_export(Scene *sce,
 				   int use_blender_profile,
 				   int sort_by_name,
 				   BC_export_transformation_type export_transformation_type,
-                   int open_sim)
+				   int open_sim,
+
+				   int keep_bind_info)
 {
 	ExportSettings export_settings;
 
@@ -113,6 +117,7 @@ int collada_export(Scene *sce,
 	export_settings.export_transformation_type = export_transformation_type;
 	export_settings.open_sim                   = open_sim != 0;
 
+	export_settings.keep_bind_info = keep_bind_info;
 
 	int includeFilter = OB_REL_NONE;
 	if (export_settings.include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;

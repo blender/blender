@@ -113,6 +113,7 @@ public:
 	string last_status;
 	string last_error;
 	float last_progress;
+	double last_status_time;
 
 	int width, height;
 	double start_resize_time;

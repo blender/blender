@@ -15,7 +15,7 @@
 
     typedef HMODULE             CLEW_DYNLIB_HANDLE;
 
-    #define CLEW_DYNLIB_OPEN    LoadLibrary
+    #define CLEW_DYNLIB_OPEN    LoadLibraryA
     #define CLEW_DYNLIB_CLOSE   FreeLibrary
     #define CLEW_DYNLIB_IMPORT  GetProcAddress
 #else
@@ -223,7 +223,7 @@ int clewInit()
     __clewSetCommandQueueProperty       = (PFNCLSETCOMMANDQUEUEPROPERTY     )CLEW_DYNLIB_IMPORT(module, "clSetCommandQueueProperty");
 #endif
     __clewCreateBuffer                  = (PFNCLCREATEBUFFER                )CLEW_DYNLIB_IMPORT(module, "clCreateBuffer");
-    __clewCreateSubBuffer               = (PFNCLCREATESUBBUFFER             )CLEW_DYNLIB_IMPORT(module, "clCreateBuffer");
+    __clewCreateSubBuffer               = (PFNCLCREATESUBBUFFER             )CLEW_DYNLIB_IMPORT(module, "clCreateSubBuffer");
     __clewCreateImage                   = (PFNCLCREATEIMAGE                 )CLEW_DYNLIB_IMPORT(module, "clCreateImage");
     __clewRetainMemObject               = (PFNCLRETAINMEMOBJECT             )CLEW_DYNLIB_IMPORT(module, "clRetainMemObject");
     __clewReleaseMemObject              = (PFNCLRELEASEMEMOBJECT            )CLEW_DYNLIB_IMPORT(module, "clReleaseMemObject");

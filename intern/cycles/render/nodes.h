@@ -324,7 +324,7 @@ private:
 class BsdfNode : public ShaderNode {
 public:
 	explicit BsdfNode(const NodeType *node_type);
-	SHADER_NODE_BASE_CLASS(BsdfNode);
+	SHADER_NODE_BASE_CLASS(BsdfNode)
 
 	bool has_spatial_varying() { return true; }
 	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL, ShaderInput *param4 = NULL);
@@ -641,7 +641,7 @@ public:
 
 class MixClosureWeightNode : public ShaderNode {
 public:
-	SHADER_NODE_CLASS(MixClosureWeightNode);
+	SHADER_NODE_CLASS(MixClosureWeightNode)
 
 	float weight;
 	float fac;
@@ -887,7 +887,7 @@ public:
 class CurvesNode : public ShaderNode {
 public:
 	explicit CurvesNode(const NodeType *node_type);
-	SHADER_NODE_BASE_CLASS(CurvesNode);
+	SHADER_NODE_BASE_CLASS(CurvesNode)
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 

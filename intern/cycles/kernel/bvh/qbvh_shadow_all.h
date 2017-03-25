@@ -96,8 +96,8 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	                       &near_x, &near_y, &near_z,
 	                       &far_x, &far_y, &far_z);
 
-	IsectPrecalc isect_precalc;
-	triangle_intersect_precalc(dir, &isect_precalc);
+	TriangleIsectPrecalc isect_precalc;
+	ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 	/* Traversal loop. */
 	do {
@@ -290,9 +290,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
 							case PRIMITIVE_MOTION_TRIANGLE: {
 								hit = motion_triangle_intersect(kg,
+								                                &isect_precalc,
 								                                isect_array,
 								                                P,
-								                                dir,
 								                                ray->time,
 								                                PATH_RAY_SHADOW,
 								                                object,
@@ -414,7 +414,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					org4 = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
 #  endif
 
-					triangle_intersect_precalc(dir, &isect_precalc);
+					ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 					++stack_ptr;
 					kernel_assert(stack_ptr < BVH_QSTACK_SIZE);
@@ -471,7 +471,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			org4 = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
 #  endif
 
-			triangle_intersect_precalc(dir, &isect_precalc);
+			ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 			object = OBJECT_NONE;
 			node_addr = traversal_stack[stack_ptr].addr;

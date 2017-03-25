@@ -169,12 +169,15 @@ void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *path)
 
 static void fsmenu_entry_generate_name(struct FSMenuEntry *fsentry, char *name, size_t name_size)
 {
-	char temp[FILE_MAX];
+	int offset = 0;
+	int len = name_size;
 
-	BLI_strncpy(temp, fsentry->path, FILE_MAX);
-	BLI_add_slash(temp);
-	BLI_getlastdir(temp, name, name_size);
-	BLI_del_slash(name);
+	if (BLI_path_name_at_index(fsentry->path, -1, &offset, &len)) {
+		/* use as size */
+		len += 1;
+	}
+
+	BLI_strncpy(name, &fsentry->path[offset], MIN2(len, name_size));
 	if (!name[0]) {
 		name[0] = '/';
 		name[1] = '\0';

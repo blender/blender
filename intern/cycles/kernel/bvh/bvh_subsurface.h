@@ -109,8 +109,8 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
-	IsectPrecalc isect_precalc;
-	triangle_intersect_precalc(dir, &isect_precalc);
+	TriangleIsectPrecalc isect_precalc;
+	ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 	/* traversal loop */
 	do {
@@ -214,9 +214,9 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						for(; prim_addr < prim_addr2; prim_addr++) {
 							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 							motion_triangle_intersect_subsurface(kg,
+							                                     &isect_precalc,
 							                                     ss_isect,
 							                                     P,
-							                                     dir,
 							                                     ray->time,
 							                                     object,
 							                                     prim_addr,

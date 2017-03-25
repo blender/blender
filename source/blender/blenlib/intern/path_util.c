@@ -1167,30 +1167,6 @@ bool BLI_path_program_search(
 }
 
 /**
- * Copies into *last the part of *dir following the second-last slash.
- */
-void BLI_getlastdir(const char *dir, char *last, const size_t maxlen)
-{
-	const char *s = dir;
-	const char *lslash = NULL;
-	const char *prevslash = NULL;
-	while (*s) {
-		if ((*s == '\\') || (*s == '/')) {
-			prevslash = lslash;
-			lslash = s;
-		}
-		s++;
-	}
-	if (prevslash) {
-		BLI_strncpy(last, prevslash + 1, maxlen);
-	}
-	else {
-		BLI_strncpy(last, dir, maxlen);
-	}
-}
-
-
-/**
  * Sets the specified environment variable to the specified value,
  * and clears it if val == NULL.
  */
@@ -1615,6 +1591,90 @@ void BLI_join_dirfile(char *__restrict dst, const size_t maxlen, const char *__r
 }
 
 /**
+ * Join multiple strings into a path, ensuring only a single path separator between each,
+ * and trailing slash is kept.
+ *
+ * \note If you want a trailing slash, add ``SEP_STR`` as the last path argument,
+ * duplicate slashes will be cleaned up.
+ */
+size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *path, ...)
+{
+	if (UNLIKELY(dst_len == 0)) {
+		return 0;
+	}
+	const size_t dst_last = dst_len - 1;
+	size_t ofs = BLI_strncpy_rlen(dst, path, dst_len);
+
+	if (ofs == dst_last) {
+		return ofs;
+	}
+
+	/* remove trailing slashes, unless there are _only_ trailing slashes
+	 * (allow "//" as the first argument). */
+	bool has_trailing_slash = false;
+	if (ofs != 0) {
+		size_t len = ofs;
+		while ((len != 0) && ELEM(path[len - 1], SEP, ALTSEP)) {
+			len -= 1;
+		}
+		if (len != 0) {
+			ofs = len;
+		}
+		has_trailing_slash = (path[len] != '\0');
+	}
+
+	va_list args;
+	va_start(args, path);
+	while ((path = (const char *) va_arg(args, const char *))) {
+		has_trailing_slash = false;
+		const char *path_init = path;
+		while (ELEM(path[0], SEP, ALTSEP)) {
+			path++;
+		}
+		size_t len = strlen(path);
+		if (len != 0) {
+			while ((len != 0) && ELEM(path[len - 1], SEP, ALTSEP)) {
+				len -= 1;
+			}
+
+			if (len != 0) {
+				/* the very first path may have a slash at the end */
+				if (ofs && !ELEM(dst[ofs - 1], SEP, ALTSEP)) {
+					dst[ofs++] = SEP;
+					if (ofs == dst_last) {
+						break;
+					}
+				}
+				has_trailing_slash = (path[len] != '\0');
+				if (ofs + len >= dst_last) {
+					len = dst_last - ofs;
+				}
+				memcpy(&dst[ofs], path, len);
+				ofs += len;
+				if (ofs == dst_last) {
+					break;
+				}
+			}
+		}
+		else {
+			has_trailing_slash = (path_init != path);
+		}
+	}
+	va_end(args);
+
+	if (has_trailing_slash) {
+		if ((ofs != dst_last) && (ofs != 0) && (ELEM(dst[ofs - 1], SEP, ALTSEP) == 0)) {
+			dst[ofs++] = SEP;
+		}
+	}
+
+	BLI_assert(ofs <= dst_last);
+	dst[ofs] = '\0';
+
+	return ofs;
+}
+
+/**
  * like pythons os.path.basename()
  *
  * \return The pointer into \a path string immediately after last slash,
@@ -1624,6 +1684,71 @@ const char *BLI_path_basename(const char *path)
 {
 	const char * const filename = BLI_last_slash(path);
 	return filename ? filename + 1 : path;
+}
+
+/**
+ * Get an element of the path at an index, eg:
+ * "/some/path/file.txt" where an index of...
+ * - 0 or -3: "some"
+ * - 1 or -2: "path"
+ * - 2 or -1: "file.txt"
+ *
+ * Ignores multiple slashes at any point in the path (including start/end).
+ */
+bool BLI_path_name_at_index(const char *path, const int index, int *r_offset, int *r_len)
+{
+	if (index >= 0) {
+		int index_step = 0;
+		int prev = -1;
+		int i = 0;
+		while (true) {
+			const char c = path[i];
+			if (ELEM(c, SEP, ALTSEP, '\0')) {
+				if (prev + 1 != i) {
+					prev += 1;
+					if (index_step == index) {
+						*r_offset = prev;
+						*r_len = i - prev;
+						/* printf("!!! %d %d\n", start, end); */
+						return true;
+					}
+					index_step += 1;
+				}
+				if (c == '\0') {
+					break;
+				}
+				prev = i;
+			}
+			i += 1;
+		}
+		return false;
+	}
+	else {
+		/* negative number, reverse where -1 is the last element */
+		int index_step = -1;
+		int prev = strlen(path);
+		int i = prev - 1;
+		while (true) {
+			const char c = i >= 0 ? path[i] : '\0';
+			if (ELEM(c, SEP, ALTSEP, '\0')) {
+				if (prev - 1 != i) {
+					i += 1;
+					if (index_step == index) {
+						*r_offset = i;
+						*r_len = prev - i;
+						return true;
+					}
+					index_step -= 1;
+				}
+				if (c == '\0') {
+					break;
+				}
+				prev = i;
+			}
+			i -= 1;
+		}
+		return false;
+	}
 }
 
 /* UNUSED */

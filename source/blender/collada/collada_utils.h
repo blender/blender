@@ -53,8 +53,10 @@ extern "C" {
 #include "BKE_object.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_scene.h"
+#include "BKE_idprop.h"
 }
 
+#include "ImportSettings.h"
 #include "ExportSettings.h"
 #include "collada_internal.h"
 
@@ -88,11 +90,25 @@ extern std::string bc_url_encode(std::string data);
 extern void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene);
 extern void bc_match_scale(std::vector<Object *> *objects_done, UnitConverter &unit_converter, bool scale_to_scene);
 
+extern void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size);
+
 extern void bc_triangulate_mesh(Mesh *me);
 extern bool bc_is_leaf_bone(Bone *bone);
 extern EditBone *bc_get_edit_bone(bArmature * armature, char *name);
 extern int bc_set_layer(int bitfield, int layer, bool enable);
 extern int bc_set_layer(int bitfield, int layer);
+extern float bc_sanitize_float(float value, float precision);
+extern void bc_sanitize_mat(float mat[4][4], float precision);
+
+extern IDProperty *bc_get_IDProperty(Bone *bone, std::string key);
+extern void bc_set_IDProperty(EditBone *ebone, const char *key, float value);
+extern void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4]);
+
+extern float bc_get_property(Bone *bone, std::string key, float def);
+extern void bc_get_property_vector(Bone *bone, std::string key, float val[3], const float def[3]);
+extern bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4]);
+
+extern void bc_create_restpose_mat(const ExportSettings *export_settings, Bone *bone, float to_mat[4][4], float world[4][4], bool use_local_space);
 
 class BCPolygonNormalsIndices
 {

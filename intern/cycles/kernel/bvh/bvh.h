@@ -202,8 +202,9 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
 }
 
 #ifdef __SUBSURFACE__
+/* Note: ray is passed by value to work around a possible CUDA compiler bug. */
 ccl_device_intersect void scene_intersect_subsurface(KernelGlobals *kg,
-                                                     const Ray *ray,
+                                                     const Ray ray,
                                                      SubsurfaceIntersection *ss_isect,
                                                      int subsurface_object,
                                                      uint *lcg_state,
@@ -212,7 +213,7 @@ ccl_device_intersect void scene_intersect_subsurface(KernelGlobals *kg,
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
 		return bvh_intersect_subsurface_motion(kg,
-		                                       ray,
+		                                       &ray,
 		                                       ss_isect,
 		                                       subsurface_object,
 		                                       lcg_state,
@@ -220,7 +221,7 @@ ccl_device_intersect void scene_intersect_subsurface(KernelGlobals *kg,
 	}
 #endif /* __OBJECT_MOTION__ */
 	return bvh_intersect_subsurface(kg,
-	                                ray,
+	                                &ray,
 	                                ss_isect,
 	                                subsurface_object,
 	                                lcg_state,

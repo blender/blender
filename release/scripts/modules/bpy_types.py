@@ -683,6 +683,10 @@ class _GenericUI:
         return draw_funcs
 
     @classmethod
+    def is_extended(cls):
+        return bool(getattr(cls.draw, "_draw_funcs", None))
+
+    @classmethod
     def append(cls, draw_func):
         """
         Append a draw function to this menu,

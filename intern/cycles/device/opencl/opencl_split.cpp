@@ -41,11 +41,7 @@ static string get_build_options(OpenCLDeviceBase *device, const DeviceRequestedF
 
 	/* Set compute device build option. */
 	cl_device_type device_type;
-	device->ciErr = clGetDeviceInfo(device->cdDevice,
-	                        CL_DEVICE_TYPE,
-	                        sizeof(cl_device_type),
-	                        &device_type,
-	                        NULL);
+	OpenCLInfo::get_device_type(device->cdDevice, &device_type, &device->ciErr);
 	assert(device->ciErr == CL_SUCCESS);
 	if(device_type == CL_DEVICE_TYPE_GPU) {
 		build_options += " -D__COMPUTE_DEVICE_GPU__";
@@ -346,9 +342,7 @@ public:
 
 	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask */*task*/)
 	{
-		cl_device_type type;
-		clGetDeviceInfo(device->cdDevice, CL_DEVICE_TYPE, sizeof(cl_device_type), &type, NULL);
-
+		cl_device_type type = OpenCLInfo::get_device_type(device->cdDevice);
 		/* Use small global size on CPU devices as it seems to be much faster. */
 		if(type == CL_DEVICE_TYPE_CPU) {
 			VLOG(1) << "Global size: (64, 64).";

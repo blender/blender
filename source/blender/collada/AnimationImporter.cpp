@@ -1934,7 +1934,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 			mul_m4_m4m4(mat, ipar, temp);
 		}
 
-		TransformBase::decompose(mat, job->loc, NULL, job->quat, job->size);
+		bc_decompose(mat, job->loc, NULL, job->quat, job->size);
 
 		if (par_job) {
 			job->parent = par_job;

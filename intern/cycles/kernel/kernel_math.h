@@ -20,6 +20,7 @@
 #include "util_color.h"
 #include "util_math.h"
 #include "util_math_fast.h"
+#include "util_math_intersect.h"
 #include "util_texture.h"
 #include "util_transform.h"
 

@@ -39,14 +39,6 @@ extern "C" {
 
 struct ListBase;
 
-#ifdef WIN32
-#define SEP '\\'
-#define ALTSEP '/'
-#else
-#define SEP '/'
-#define ALTSEP '\\'
-#endif
-
 void BLI_setenv(const char *env, const char *val) ATTR_NONNULL(1);
 void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 
@@ -60,7 +52,13 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen,
                      const char *__restrict file) ATTR_NONNULL();
 void BLI_join_dirfile(char *__restrict string, const size_t maxlen,
                       const char *__restrict dir, const char *__restrict file) ATTR_NONNULL();
+size_t BLI_path_join(
+        char *__restrict dst, const size_t dst_len,
+        const char *path_first, ...) ATTR_NONNULL(1, 3) ATTR_SENTINEL(0);
 const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_name_at_index(
+        const char *__restrict path, const int index,
+        int *__restrict r_offset, int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 #if 0
 typedef enum bli_rebase_state {
@@ -83,7 +81,6 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen);
 #endif
 bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *name);
 
-void BLI_getlastdir(const char *dir, char *last, const size_t maxlen);
 bool BLI_testextensie(const char *str, const char *ext) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 bool BLI_testextensie_n(const char *str, ...) ATTR_NONNULL(1) ATTR_SENTINEL(0);
 bool BLI_testextensie_array(const char *str, const char **ext_array) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
@@ -141,6 +138,18 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 #  define FILE_MAXDIR         768
 #  define FILE_MAXFILE        256
 #  define FILE_MAX            1024
+#endif
+
+#ifdef WIN32
+#  define SEP        '\\'
+#  define ALTSEP     '/'
+#  define SEP_STR    "\\"
+#  define ALTSEP_STR "/"
+#else
+#  define SEP        '/'
+#  define ALTSEP     '\\'
+#  define SEP_STR    "/"
+#  define ALTSEP_STR "\\"
 #endif
 
 /* Parent and current dir helpers. */

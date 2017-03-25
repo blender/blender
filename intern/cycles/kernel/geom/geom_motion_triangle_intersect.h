@@ -166,14 +166,15 @@ float3 motion_triangle_refine_subsurface(KernelGlobals *kg,
  * time and do a ray intersection with the resulting triangle.
  */
 
-ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg,
-                                                 Intersection *isect,
-                                                 float3 P,
-                                                 float3 dir,
-                                                 float time,
-                                                 uint visibility,
-                                                 int object,
-                                                 int prim_addr)
+ccl_device_inline bool motion_triangle_intersect(
+        KernelGlobals *kg,
+        const TriangleIsectPrecalc *isect_precalc,
+        Intersection *isect,
+        float3 P,
+        float time,
+        uint visibility,
+        int object,
+        int prim_addr)
 {
 	/* Primitive index for vertex location lookup. */
 	int prim = kernel_tex_fetch(__prim_index, prim_addr);
@@ -185,11 +186,15 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg,
 	motion_triangle_vertices(kg, fobject, prim, time, verts);
 	/* Ray-triangle intersection, unoptimized. */
 	float t, u, v;
-	if(ray_triangle_intersect_uv(P,
-	                             dir,
-	                             isect->t,
-	                             verts[2], verts[0], verts[1],
-	                             &u, &v, &t))
+	if(ray_triangle_intersect(isect_precalc,
+	                          P,
+	                          isect->t,
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+	                          (ssef*)verts,
+#else
+	                          verts[0], verts[1], verts[2],
+#endif
+	                          &u, &v, &t))
 	{
 #ifdef __VISIBILITY_FLAG__
 		/* Visibility flag test. we do it here under the assumption
@@ -217,9 +222,9 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg,
 #ifdef __SUBSURFACE__
 ccl_device_inline void motion_triangle_intersect_subsurface(
         KernelGlobals *kg,
+        const TriangleIsectPrecalc *isect_precalc,
         SubsurfaceIntersection *ss_isect,
         float3 P,
-        float3 dir,
         float time,
         int object,
         int prim_addr,
@@ -237,11 +242,15 @@ ccl_device_inline void motion_triangle_intersect_subsurface(
 	motion_triangle_vertices(kg, fobject, prim, time, verts);
 	/* Ray-triangle intersection, unoptimized. */
 	float t, u, v;
-	if(ray_triangle_intersect_uv(P,
-	                             dir,
-	                             tmax,
-	                             verts[2], verts[0], verts[1],
-	                             &u, &v, &t))
+	if(ray_triangle_intersect(isect_precalc,
+	                          P,
+	                          tmax,
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+	                          (ssef*)verts,
+#else
+	                          verts[0], verts[1], verts[2],
+#endif
+	                          &u, &v, &t))
 	{
 		for(int i = min(max_hits, ss_isect->num_hits) - 1; i >= 0; --i) {
 			if(ss_isect->hits[i].t == t) {

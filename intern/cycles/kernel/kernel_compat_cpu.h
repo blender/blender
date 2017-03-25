@@ -87,9 +87,9 @@ template<typename T> struct texture  {
 	ccl_always_inline avxf fetch_avxf(const int index)
 	{
 		kernel_assert(index >= 0 && (index+1) < width);
-		ssef *ssefData = (ssef*)data;
-		ssef *ssefNodeData = &ssefData[index];
-		return _mm256_loadu_ps((float *)ssefNodeData);
+		ssef *ssef_data = (ssef*)data;
+		ssef *ssef_node_data = &ssef_data[index];
+		return _mm256_loadu_ps((float *)ssef_node_data);
 	}
 
 #endif

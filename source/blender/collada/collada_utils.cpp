@@ -33,6 +33,7 @@
 #include "COLLADAFWMeshVertexData.h"
 
 #include "collada_utils.h"
+#include "ExportSettings.h"
 
 extern "C" {
 #include "DNA_modifier_types.h"
@@ -352,6 +353,28 @@ void bc_match_scale(std::vector<Object *> *objects_done,
 	}
 }
 
+/*
+    Convenience function to get only the needed components of a matrix
+*/
+void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size)
+{
+	if (size) {
+		mat4_to_size(size, mat);
+	}
+
+	if (eul) {
+		mat4_to_eul(eul, mat);
+	}
+
+	if (quat) {
+		mat4_to_quat(quat, mat);
+	}
+
+	if (loc) {
+		copy_v3_v3(loc, mat[3]);
+	}
+}
+
 void bc_triangulate_mesh(Mesh *me)
 {
 	bool use_beauty  = false;
@@ -611,4 +634,213 @@ void BoneExtended::set_use_connect(int use_connect)
 int BoneExtended::get_use_connect()
 {
 	return this->use_connect;
+}
+
+/**
+* Stores a 4*4 matrix as a custom bone property array of size 16
+*/
+void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4])
+{
+	IDProperty *idgroup = (IDProperty *)ebone->prop;
+	if (idgroup == NULL)
+	{
+		IDPropertyTemplate val = { 0 };
+		idgroup = IDP_New(IDP_GROUP, &val, "RNA_EditBone ID properties");
+		ebone->prop = idgroup;
+	}
+
+	IDPropertyTemplate val = { 0 };
+	val.array.len = 16;
+	val.array.type = IDP_FLOAT;
+
+	IDProperty *data = IDP_New(IDP_ARRAY, &val, key);
+	float *array = (float *)IDP_Array(data);
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
+			array[4 * i + j] = mat[i][j];
+
+	IDP_AddToGroup(idgroup, data);
+}
+
+#if 0
+/**
+* Stores a Float value as a custom bone property
+*
+* Note: This function is currently not needed. Keep for future usage
+*/
+static void bc_set_IDProperty(EditBone *ebone, const char *key, float value)
+{
+	if (ebone->prop == NULL)
+	{
+		IDPropertyTemplate val = { 0 };
+		ebone->prop = IDP_New(IDP_GROUP, &val, "RNA_EditBone ID properties");
+	}
+
+	IDProperty *pgroup = (IDProperty *)ebone->prop;
+	IDPropertyTemplate val = { 0 };
+	IDProperty *prop = IDP_New(IDP_FLOAT, &val, key);
+	IDP_Float(prop) = value;
+	IDP_AddToGroup(pgroup, prop);
+
+}
+#endif
+
+/*
+* Get a custom property when it exists.
+* This function is also used to check if a property exists.
+*/
+IDProperty *bc_get_IDProperty(Bone *bone, std::string key)
+{
+	return (bone->prop == NULL) ? NULL : IDP_GetPropertyFromGroup(bone->prop, key.c_str());
+}
+
+/**
+* Read a custom bone property and convert to float
+* Return def if the property does not exist.
+*/
+float bc_get_property(Bone *bone, std::string key, float def)
+{
+	float result = def;
+	IDProperty *property = bc_get_IDProperty(bone, key);
+	if (property) {
+		switch (property->type) {
+		case IDP_INT:
+			result = (float)(IDP_Int(property));
+			break;
+		case IDP_FLOAT:
+			result = (float)(IDP_Float(property));
+			break;
+		case IDP_DOUBLE:
+			result = (float)(IDP_Double(property));
+			break;
+		default:
+			result = def;
+		}
+	}
+	return result;
+}
+
+/**
+* Read a custom bone property and convert to matrix
+* Return true if conversion was succesfull
+* 
+* Return false if:
+* - the property does not exist
+* - is not an array of size 16
+*/
+bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4])
+{
+	IDProperty *property = bc_get_IDProperty(bone, key);
+	if (property && property->type == IDP_ARRAY && property->len == 16) {
+		float *array = (float *)IDP_Array(property);
+		for (int i = 0; i < 4; i++)
+			for (int j = 0; j < 4; j++)
+				mat[i][j] = array[4 * i + j];
+		return true;
+	}
+	return false;
+}
+
+/**
+* get a vector that is stored in 3 custom properties (used in Blender <= 2.78)
+*/
+void bc_get_property_vector(Bone *bone, std::string key, float val[3], const float def[3])
+{
+	val[0] = bc_get_property(bone, key + "_x", def[0]);
+	val[1] = bc_get_property(bone, key + "_y", def[1]);
+	val[2] = bc_get_property(bone, key + "_z", def[2]);
+}
+
+/**
+* Check if vector exist stored in 3 custom properties (used in Blender <= 2.78)
+*/
+static bool has_custom_props(Bone *bone, bool enabled, std::string key)
+{
+	if (!enabled)
+		return false;
+
+	return (bc_get_IDProperty(bone, key + "_x")
+		||	bc_get_IDProperty(bone, key + "_y")
+		||	bc_get_IDProperty(bone, key + "_z"));
+
+}
+
+/**
+* Check if custom information about bind matrix exists and modify the from_mat
+* accordingly.
+*
+* Note: This is old style for Blender <= 2.78 only kept for compatibility
+*/
+void bc_create_restpose_mat(const ExportSettings *export_settings, Bone *bone, float to_mat[4][4], float from_mat[4][4], bool use_local_space)
+{
+	float loc[3];
+	float rot[3];
+	float scale[3];
+	static const float V0[3] = { 0, 0, 0 };
+
+	if (!has_custom_props(bone, export_settings->keep_bind_info, "restpose_loc") &&
+		!has_custom_props(bone, export_settings->keep_bind_info, "restpose_rot") &&
+		!has_custom_props(bone, export_settings->keep_bind_info, "restpose_scale"))
+	{
+		/* No need */
+		copy_m4_m4(to_mat, from_mat);
+		return;
+	}
+
+	bc_decompose(from_mat, loc, rot, NULL, scale);
+	loc_eulO_size_to_mat4(to_mat, loc, rot, scale, 6);
+
+	if (export_settings->keep_bind_info) {
+		bc_get_property_vector(bone, "restpose_loc", loc, loc);
+
+		if (use_local_space && bone->parent) {
+			Bone *b = bone;
+			while (b->parent) {
+				b = b->parent;
+				float ploc[3];
+				bc_get_property_vector(b, "restpose_loc", ploc, V0);
+				loc[0] += ploc[0];
+				loc[1] += ploc[1];
+				loc[2] += ploc[2];
+			}
+		}
+	}
+
+	if (export_settings->keep_bind_info) {
+		if (bc_get_IDProperty(bone, "restpose_rot_x"))
+		    rot[0] = DEG2RADF(bc_get_property(bone, "restpose_rot_x", 0));
+		if (bc_get_IDProperty(bone, "restpose_rot_y"))
+			rot[1] = DEG2RADF(bc_get_property(bone, "restpose_rot_y", 0));
+		if (bc_get_IDProperty(bone, "restpose_rot_z"))
+			rot[2] = DEG2RADF(bc_get_property(bone, "restpose_rot_z", 0));
+	}
+
+	if (export_settings->keep_bind_info) {
+		bc_get_property_vector(bone, "restpose_scale", scale, scale);
+	}
+
+	loc_eulO_size_to_mat4(to_mat, loc, rot, scale, 6);
+
+}
+
+/*
+    To get rid of those lengthy float values which make the numbers unreadable.
+*/
+float bc_sanitize_float(float value, float precision)
+{
+	float result = floor((value * pow(10, precision) + 0.5)) / pow(10, precision);
+	if (abs(result) < 1 / pow(10, precision)) {
+		result = 0;
+	}
+	return result;
+}
+
+/*
+    Make 4*4 matrices better readable
+*/
+void bc_sanitize_mat(float mat[4][4], float precision)
+{
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
+			mat[i][j] = bc_sanitize_float(mat[i][j], precision);
 }

@@ -196,6 +196,7 @@ set(SRC_UTIL_HEADERS
 	../util/util_hash.h
 	../util/util_math.h
 	../util/util_math_fast.h
+	../util/util_math_intersect.h
 	../util/util_static_assert.h
 	../util/util_transform.h
 	../util/util_texture.h

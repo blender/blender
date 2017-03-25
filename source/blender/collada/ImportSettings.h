@@ -37,6 +37,7 @@ public:
 	bool fix_orientation;
 	int  min_chain_length;
 	char *filepath;
+	bool keep_bind_info;
 };
 
 #endif

@@ -33,9 +33,10 @@
 #include "DNA_object_types.h"
 
 #include "collada_internal.h"
+#include "collada_utils.h"
 #include "collada.h"
 
-class TransformWriter : protected TransformBase
+class TransformWriter
 {
 protected:
 	void add_node_transform(COLLADASW::Node& node, float mat[4][4], float parent_mat[4][4]);

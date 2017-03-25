@@ -35,6 +35,8 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_action.h"
 
 #include "RNA_access.h"
@@ -1448,6 +1450,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_DriverTarget_id_type_set", NULL);
 	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_type_editable");
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used");
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
 	/* Target Properties - Property to Drive */

@@ -32,6 +32,7 @@
 
 #include "COLLADAFWUniqueId.h"
 
+extern "C" {
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
@@ -39,7 +40,9 @@
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "ED_armature.h"
+}
 
+#include "collada_utils.h"
 #include "ArmatureImporter.h"
 
 // use node name, or fall back to original id if not present (name is optional)
@@ -91,6 +94,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 {
 	float mat[4][4];
 	float joint_inv_bind_mat[4][4];
+	float joint_bind_mat[4][4];
 	int chain_length = 0;
 
 	//Checking if bone is already made.
@@ -114,7 +118,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 
 			// get original world-space matrix
 			invert_m4_m4(mat, joint_inv_bind_mat);
-
+			copy_m4_m4(joint_bind_mat, mat);
 			// And make local to armature
 			Object *ob_arm = skin->BKE_armature_from_object();
 			if (ob_arm) {
@@ -130,18 +134,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 
 	// create a bone even if there's no joint data for it (i.e. it has no influence)
 	if (!bone_is_skinned) {
-		float obmat[4][4];
-		// bone-space
-		get_node_mat(obmat, node, NULL, NULL);
-
-		// get world-space
-		if (parent) {
-			mul_m4_m4m4(mat, parent_mat, obmat);
-		}
-		else {
-			copy_m4_m4(mat, obmat);
-		}
-
+		get_node_mat(mat, node, NULL, NULL, parent_mat);
 	}
 
 	if (parent) bone->parent = parent;
@@ -157,10 +150,11 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	int use_connect = be.get_use_connect();
 
 	switch (use_connect) {
-	case 1:  bone->flag |= BONE_CONNECTED;
-			 break;
-	case 0:  bone->flag &= ~BONE_CONNECTED;
-	case -1: break; // not defined
+		case 1: bone->flag |= BONE_CONNECTED;
+			break;
+		case -1:/* Connect type not specified */
+		case 0: bone->flag &= ~BONE_CONNECTED;
+			break;
 	}
 
 	if (be.has_roll()) {
@@ -173,6 +167,15 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 		bone->roll = angle;
 	}
 	copy_v3_v3(bone->head, mat[3]);
+
+	if (bone_is_skinned)
+	{
+		float rest_mat[4][4];
+		get_node_mat(rest_mat, node, NULL, NULL, NULL);
+		bc_set_IDPropertyMatrix(bone, "bind_mat", joint_bind_mat);
+		bc_set_IDPropertyMatrix(bone, "rest_mat", rest_mat);
+	}
+
 	add_v3_v3v3(bone->tail, bone->head, tail); //tail must be non zero
 
 	/* find smallest bone length in armature (used later for leaf bone length) */
@@ -274,7 +277,6 @@ void ArmatureImporter::fix_parent_connect(bArmature *armature, Bone *bone)
 
 }
 
-
 void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone, int clip)
 {
 	BoneExtensionMap &extended_bones = bone_extension_manager.getExtensionMap(armature);
@@ -290,12 +292,13 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 		for (; child; child = child->next) {
 			BoneExtended *be = extended_bones[child->name];
 			if (be != NULL) {
-				if (be->get_chain_length() <= clip) {
-					if (be->get_chain_length() > maxlen) {
+				int chain_len = be->get_chain_length();
+				if (chain_len <= clip) {
+					if (chain_len > maxlen) {
 						dominant_child = be;
-						maxlen = be->get_chain_length();
+						maxlen = chain_len;
 					}
-					else if (be->get_chain_length() == maxlen) {
+					else if (chain_len == maxlen) {
 						dominant_child = NULL;
 					}
 				}
@@ -309,7 +312,6 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 		EditBone *pebone = bc_get_edit_bone(armature, parentbone->name);
 		EditBone *cebone = bc_get_edit_bone(armature, dominant_child->get_name());
 		if (pebone && !(cebone->flag & BONE_CONNECTED)) {
-
 			float vec[3];
 			sub_v3_v3v3(vec, cebone->head, pebone->head);
 
@@ -322,14 +324,16 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 
 			if (len_squared_v3(vec) > MINIMUM_BONE_LENGTH)
 			{
-				pebone->tail[0] = cebone->head[0];
-				pebone->tail[1] = cebone->head[1];
-				pebone->tail[2] = cebone->head[2];
-
+				copy_v3_v3(pebone->tail, cebone->head);
+				pbe->set_tail(pebone->tail); /* to make fix_leafbone happy ...*/
 				if (pbe && pbe->get_chain_length() >= this->import_settings->min_chain_length) {
+
+					BoneExtended *cbe = extended_bones[cebone->name];
+					cbe->set_use_connect(true);
+
 					cebone->flag |= BONE_CONNECTED;
-					printf("Connecting chain: parent %s --> %s (child)\n", pebone->name, cebone->name);
 					pbe->set_leaf_bone(false);
+					printf("Connect Bone chain: parent (%s --> %s) child)\n", pebone->name, cebone->name);
 				}
 			}
 		}

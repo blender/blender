@@ -905,7 +905,7 @@ void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot)
 
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 {
-	wmOperatorType *ot = WM_operatortype_find(opstring, 0);
+	wmOperatorType *ot = WM_operatortype_find(opstring, false);
 
 	if (ot)
 		WM_operator_properties_create_ptr(ptr, ot);

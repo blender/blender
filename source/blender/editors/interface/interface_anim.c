@@ -39,6 +39,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
@@ -210,6 +211,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 
 			/* updates */
 			driver->flag |= DRIVER_FLAG_RECOMPILE;
+			DAG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, NULL);
 			ok = true;
 		}

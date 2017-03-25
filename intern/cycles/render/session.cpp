@@ -833,7 +833,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	int progressive_sample = tile_manager.state.sample;
 	int num_samples = tile_manager.get_num_effective_samples();
 
-	int tile = tile_manager.state.num_rendered_tiles;
+	int tile = progress.get_finished_tiles();
 	int num_tiles = tile_manager.state.num_tiles;
 
 	/* update status */
@@ -841,7 +841,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 
 	if(!params.progressive) {
 		const bool is_cpu = params.device.type == DEVICE_CPU;
-		const bool is_last_tile = (progress.get_finished_tiles() + 1) == num_tiles;
+		const bool is_last_tile = (tile + 1) == num_tiles;
 
 		substatus = string_printf("Path Tracing Tile %d/%d", tile, num_tiles);
 

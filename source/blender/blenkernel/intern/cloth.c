@@ -868,12 +868,6 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return 0;
 	}
 	
-	for ( i = 0; i < dm->getNumVerts(dm); i++) {
-		if ((!(cloth->verts[i].flags & CLOTH_VERT_FLAG_PINNED)) && (cloth->verts[i].goal > ALMOST_ZERO)) {
-			cloth_add_spring (clmd, i, i, 0.0, CLOTH_SPRING_TYPE_GOAL);
-		}
-	}
-	
 	// init our solver
 	BPH_cloth_solver_init(ob, clmd);
 	
@@ -941,37 +935,6 @@ BLI_INLINE void spring_verts_ordered_set(ClothSpring *spring, int v0, int v1)
 		spring->ij = v1;
 		spring->kl = v0;
 	}
-}
-
-// be careful: implicit solver has to be resettet when using this one!
-// --> only for implicit handling of this spring!
-int cloth_add_spring(ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type)
-{
-	Cloth *cloth = clmd->clothObject;
-	ClothSpring *spring = NULL;
-	
-	if (cloth) {
-		// TODO: look if this spring is already there
-		
-		spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
-		
-		if (!spring)
-			return 0;
-		
-		spring->ij = indexA;
-		spring->kl = indexB;
-		spring->restlen =  restlength;
-		spring->type = spring_type;
-		spring->flags = 0;
-		spring->stiffness = 0;
-		
-		cloth->numsprings++;
-	
-		BLI_linklist_prepend ( &cloth->springs, spring );
-		
-		return 1;
-	}
-	return 0;
 }
 
 static void cloth_free_edgelist(LinkNodePair *edgelist, unsigned int mvert_num)

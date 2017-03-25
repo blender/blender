@@ -805,18 +805,15 @@ static void layerInterp_mloopcol(
         const float *sub_weights, int count, void *dest)
 {
 	MLoopCol *mc = dest;
-	int i;
-	const float *sub_weight;
 	struct {
 		float a;
 		float r;
 		float g;
 		float b;
-	} col;
-	col.a = col.r = col.g = col.b = 0;
+	} col = {0};
 
-	sub_weight = sub_weights;
-	for (i = 0; i < count; ++i) {
+	const float *sub_weight = sub_weights;
+	for (int i = 0; i < count; ++i) {
 		float weight = weights ? weights[i] : 1;
 		const MLoopCol *src = sources[i];
 		if (sub_weights) {
@@ -833,19 +830,16 @@ static void layerInterp_mloopcol(
 			col.a += src->a * weight;
 		}
 	}
-	
+
+
 	/* Subdivide smooth or fractal can cause problems without clamping
 	 * although weights should also not cause this situation */
-	CLAMP(col.a, 0.0f, 255.0f);
-	CLAMP(col.r, 0.0f, 255.0f);
-	CLAMP(col.g, 0.0f, 255.0f);
-	CLAMP(col.b, 0.0f, 255.0f);
 
-	/* delay writing to the destination incase dest is in sources */
-	mc->r = (int)col.r;
-	mc->g = (int)col.g;
-	mc->b = (int)col.b;
-	mc->a = (int)col.a;
+	/* also delay writing to the destination incase dest is in sources */
+	mc->r = CLAMPIS(iroundf(col.r), 0, 255);
+	mc->g = CLAMPIS(iroundf(col.g), 0, 255);
+	mc->b = CLAMPIS(iroundf(col.b), 0, 255);
+	mc->a = CLAMPIS(iroundf(col.a), 0, 255);
 }
 
 static int layerMaxNum_mloopcol(void)
