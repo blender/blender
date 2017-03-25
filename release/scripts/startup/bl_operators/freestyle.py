@@ -16,13 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 
 from bpy.props import (
-        BoolProperty,
-        EnumProperty,
-        StringProperty,
-        )
+    BoolProperty,
+    EnumProperty,
+    StringProperty,
+)
 
 
 class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):

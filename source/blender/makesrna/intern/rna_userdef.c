@@ -4678,6 +4678,11 @@ void RNA_def_userdef(BlenderRNA *brna)
 	                         "Active section of the user preferences shown in the user interface");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	/* don't expose this directly via the UI, modify via an operator */
+	prop = RNA_def_property(srna, "app_template", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "app_template");
+	RNA_def_property_ui_text(prop, "Application Template", "");
+
 	prop = RNA_def_property(srna, "themes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "themes", NULL);
 	RNA_def_property_struct_type(prop, "Theme");

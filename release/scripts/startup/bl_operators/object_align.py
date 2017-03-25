@@ -26,13 +26,14 @@ from mathutils import Vector
 def GlobalBB_LQ(bb_world):
 
     # Initialize the variables with the 8th vertex
-    left, right, front, back, down, up = (bb_world[7][0],
-                                          bb_world[7][0],
-                                          bb_world[7][1],
-                                          bb_world[7][1],
-                                          bb_world[7][2],
-                                          bb_world[7][2],
-                                          )
+    left, right, front, back, down, up = (
+        bb_world[7][0],
+        bb_world[7][0],
+        bb_world[7][1],
+        bb_world[7][1],
+        bb_world[7][2],
+        bb_world[7][2],
+    )
 
     # Test against the other 7 verts
     for i in range(7):
@@ -398,13 +399,15 @@ class AlignObjects(Operator):
 
     def execute(self, context):
         align_axis = self.align_axis
-        ret = align_objects(context,
-                            'X' in align_axis,
-                            'Y' in align_axis,
-                            'Z' in align_axis,
-                            self.align_mode,
-                            self.relative_to,
-                            self.bb_quality)
+        ret = align_objects(
+            context,
+            'X' in align_axis,
+            'Y' in align_axis,
+            'Z' in align_axis,
+            self.align_mode,
+            self.relative_to,
+            self.bb_quality,
+        )
 
         if not ret:
             self.report({'WARNING'}, "No objects with bound-box selected")

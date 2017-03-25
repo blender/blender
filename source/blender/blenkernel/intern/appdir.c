@@ -683,6 +683,48 @@ bool BKE_appdir_program_python_search(
 	return is_found;
 }
 
+static const char *app_template_directory_search[2] = {
+	"startup" SEP_STR "bl_app_templates_user",
+	"startup" SEP_STR "bl_app_templates_system",
+};
+
+static const int app_template_directory_id[2] = {
+	BLENDER_USER_SCRIPTS,
+	BLENDER_SYSTEM_SCRIPTS,
+};
+
+/**
+ * Return true if templates exist
+ */
+bool BKE_appdir_app_template_any(void)
+{
+	char temp_dir[FILE_MAX];
+	for (int i = 0; i < 2; i++) {
+		if (BKE_appdir_folder_id_ex(
+		        app_template_directory_id[i], app_template_directory_search[i],
+		        temp_dir, sizeof(temp_dir)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_len)
+{
+	for (int i = 0; i < 2; i++) {
+		char subdir[FILE_MAX];
+		BLI_join_dirfile(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
+		if (BKE_appdir_folder_id_ex(
+		        app_template_directory_id[i], subdir,
+		        path, path_len))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 /**
  * Gets the temp directory when blender first runs.
  * If the default path is not found, use try $TEMP

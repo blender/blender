@@ -32,6 +32,7 @@ __all__ = (
     "preset_find",
     "preset_paths",
     "refresh_script_paths",
+    "app_template_paths",
     "register_class",
     "register_module",
     "register_manual_map",
@@ -245,6 +246,12 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     for mod in modules_from_path(path, loaded_modules):
                         test_register(mod)
 
+    # load template (if set)
+    if any(_bpy.utils.app_template_paths()):
+        import bl_app_template_utils
+        bl_app_template_utils.reset(reload_scripts=reload_scripts)
+        del bl_app_template_utils
+
     # deal with addons separately
     _initialize = getattr(_addon_utils, "_initialize", None)
     if _initialize is not None:
@@ -354,6 +361,38 @@ def refresh_script_paths():
         path = _os.path.join(path, "modules")
         if _os.path.isdir(path):
             _sys_path_ensure(path)
+
+
+def app_template_paths(subdir=None):
+    """
+    Returns valid application template paths.
+
+    :arg subdir: Optional subdir.
+    :type subdir: string
+    :return: app template paths.
+    :rtype: generator
+    """
+
+    # note: LOCAL, USER, SYSTEM order matches script resolution order.
+    subdir_tuple = (subdir,) if subdir is not None else ()
+
+    path = _os.path.join(*(
+        resource_path('LOCAL'), "scripts", "startup",
+        "bl_app_templates_user", *subdir_tuple))
+    if _os.path.isdir(path):
+        yield path
+    else:
+        path = _os.path.join(*(
+            resource_path('USER'), "scripts", "startup",
+            "bl_app_templates_user", *subdir_tuple))
+        if _os.path.isdir(path):
+            yield path
+
+    path = _os.path.join(*(
+        resource_path('SYSTEM'), "scripts", "startup",
+        "bl_app_templates_system", *subdir_tuple))
+    if _os.path.isdir(path):
+        yield path
 
 
 def preset_paths(subdir):

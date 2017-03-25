@@ -19,7 +19,11 @@
 # <pep8 compliant>
 import bpy
 import nodeitems_utils
-from nodeitems_utils import NodeCategory, NodeItem, NodeItemCustom
+from nodeitems_utils import (
+    NodeCategory,
+    NodeItem,
+    NodeItemCustom,
+)
 
 
 # Subclasses for standard node types
