@@ -553,7 +553,7 @@ void DRW_draw_background(void)
 		/* Gradient background Color */
 		gpuMatrixBegin3D(); /* TODO: finish 2D API */
 
-		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
 
 		VertexFormat *format = immVertexFormat();
 		unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
@@ -578,6 +578,8 @@ void DRW_draw_background(void)
 		immUnbindProgram();
 
 		gpuMatrixEnd();
+
+		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 	else {
 		/* Solid background Color */

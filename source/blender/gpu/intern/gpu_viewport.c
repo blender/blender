@@ -289,6 +289,7 @@ void GPU_viewport_unbind(GPUViewport *viewport)
 		GPU_framebuffer_restore();
 
 		glEnable(GL_SCISSOR_TEST);
+		glDisable(GL_DEPTH_TEST);
 
 		/* This might be bandwidth limiting */
 		draw_ofs_to_screen(viewport);
