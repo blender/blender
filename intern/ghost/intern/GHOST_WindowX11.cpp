@@ -1683,15 +1683,17 @@ getDPIHint()
 {
 	/* Try to read DPI setting set using xrdb */
 	char* resMan = XResourceManagerString(m_display);
-	XrmDatabase xrdb = XrmGetStringDatabase(resMan);
-	if (xrdb) {
-		char* type = NULL;
-		XrmValue val;
+	if (resMan) {
+		XrmDatabase xrdb = XrmGetStringDatabase(resMan);
+		if (xrdb) {
+			char* type = NULL;
+			XrmValue val;
 
-		int success = XrmGetResource(xrdb, "Xft.dpi", "Xft.Dpi", &type, &val);
-		if (success && type) {
-			if (strcmp(type, "String") == 0) {
-				return atoi((char*)val.addr);
+			int success = XrmGetResource(xrdb, "Xft.dpi", "Xft.Dpi", &type, &val);
+			if (success && type) {
+				if (strcmp(type, "String") == 0) {
+					return atoi((char*)val.addr);
+				}
 			}
 		}
 	}
