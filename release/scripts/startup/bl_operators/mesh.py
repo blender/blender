@@ -21,7 +21,10 @@
 import bpy
 from bpy.types import Operator
 
-from bpy.props import EnumProperty, IntProperty
+from bpy.props import (
+    EnumProperty,
+    IntProperty,
+)
 
 
 class MeshMirrorUV(Operator):

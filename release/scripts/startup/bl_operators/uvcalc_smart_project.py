@@ -18,7 +18,11 @@
 
 # TODO <pep8 compliant>
 
-from mathutils import Matrix, Vector, geometry
+from mathutils import (
+    Matrix,
+    Vector,
+    geometry,
+)
 import bpy
 from bpy.types import Operator
 

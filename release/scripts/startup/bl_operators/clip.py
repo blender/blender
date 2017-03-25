@@ -21,7 +21,10 @@ import bpy
 import os
 from bpy.types import Operator
 from bpy.props import FloatProperty
-from mathutils import Vector, Matrix
+from mathutils import (
+    Vector,
+    Matrix,
+)
 
 
 def CLIP_spaces_walk(context, all_screens, tarea, tspace, callback, *args):

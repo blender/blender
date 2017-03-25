@@ -21,12 +21,12 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import (
-        StringProperty,
-        BoolProperty,
-        IntProperty,
-        FloatProperty,
-        EnumProperty,
-        )
+    StringProperty,
+    BoolProperty,
+    IntProperty,
+    FloatProperty,
+    EnumProperty,
+)
 
 from bpy.app.translations import pgettext_tip as tip_
 
@@ -921,7 +921,10 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
         # an operator (common case - just button referencing an op)
         if hasattr(bpy.types, class_name.upper() + "_OT_" + class_prop):
             if do_url:
-                url = ("%s/bpy.ops.%s.html#bpy.ops.%s.%s" % (url_prefix, class_name, class_name, class_prop))
+                url = (
+                    "%s/bpy.ops.%s.html#bpy.ops.%s.%s" %
+                    (url_prefix, class_name, class_name, class_prop)
+                )
             else:
                 rna = "bpy.ops.%s.%s" % (class_name, class_prop)
         else:
@@ -936,7 +939,10 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
                 class_name, class_prop = class_name.split("_OT_", 1)
                 class_name = class_name.lower()
                 if do_url:
-                    url = ("%s/bpy.ops.%s.html#bpy.ops.%s.%s" % (url_prefix, class_name, class_name, class_prop))
+                    url = (
+                        "%s/bpy.ops.%s.html#bpy.ops.%s.%s" %
+                        (url_prefix, class_name, class_name, class_prop)
+                    )
                 else:
                     rna = "bpy.ops.%s.%s" % (class_name, class_prop)
             else:
@@ -952,9 +958,12 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
                         rna_parent = rna_parent.base
 
                     if do_url:
-                        url = ("%s/bpy.types.%s.html#bpy.types.%s.%s" % (url_prefix, class_name, class_name, class_prop))
+                        url = (
+                            "%s/bpy.types.%s.html#bpy.types.%s.%s" %
+                            (url_prefix, class_name, class_name, class_prop)
+                        )
                     else:
-                        rna = ("bpy.types.%s.%s" % (class_name, class_prop))
+                        rna = "bpy.types.%s.%s" % (class_name, class_prop)
                 else:
                     # We assume this is custom property, only try to generate generic url/rna_id...
                     if do_url:
@@ -1101,10 +1110,10 @@ class WM_OT_properties_edit(Operator):
 
     def execute(self, context):
         from rna_prop_ui import (
-                rna_idprop_ui_prop_get,
-                rna_idprop_ui_prop_clear,
-                rna_idprop_ui_prop_update,
-                )
+            rna_idprop_ui_prop_get,
+            rna_idprop_ui_prop_clear,
+            rna_idprop_ui_prop_update,
+        )
 
         data_path = self.data_path
         value = self.value
@@ -1281,9 +1290,9 @@ class WM_OT_properties_add(Operator):
 
     def execute(self, context):
         from rna_prop_ui import (
-                rna_idprop_ui_prop_get,
-                rna_idprop_ui_prop_update,
-                )
+            rna_idprop_ui_prop_get,
+            rna_idprop_ui_prop_update,
+        )
 
         data_path = self.data_path
         item = eval("context.%s" % data_path)
@@ -1298,10 +1307,10 @@ class WM_OT_properties_add(Operator):
 
             return prop_new
 
-        prop = unique_name(
-                {*item.keys(),
-                 *type(item).bl_rna.properties.keys(),
-                 })
+        prop = unique_name({
+            *item.keys(),
+            *type(item).bl_rna.properties.keys(),
+        })
 
         item[prop] = 1.0
         rna_idprop_ui_prop_update(item, prop)
@@ -1341,9 +1350,9 @@ class WM_OT_properties_remove(Operator):
 
     def execute(self, context):
         from rna_prop_ui import (
-                rna_idprop_ui_prop_clear,
-                rna_idprop_ui_prop_update,
-                )
+            rna_idprop_ui_prop_clear,
+            rna_idprop_ui_prop_update,
+        )
         data_path = self.data_path
         item = eval("context.%s" % data_path)
         prop = self.property
@@ -1381,7 +1390,10 @@ class WM_OT_appconfig_default(Operator):
         filepath = os.path.join(bpy.utils.preset_paths("interaction")[0], "blender.py")
 
         if os.path.exists(filepath):
-            bpy.ops.script.execute_preset(filepath=filepath, menu_idname="USERPREF_MT_interaction_presets")
+            bpy.ops.script.execute_preset(
+                filepath=filepath,
+                menu_idname="USERPREF_MT_interaction_presets",
+            )
 
         return {'FINISHED'}
 
@@ -1401,7 +1413,10 @@ class WM_OT_appconfig_activate(Operator):
         filepath = self.filepath.replace("keyconfig", "interaction")
 
         if os.path.exists(filepath):
-            bpy.ops.script.execute_preset(filepath=filepath, menu_idname="USERPREF_MT_interaction_presets")
+            bpy.ops.script.execute_preset(
+                filepath=filepath,
+                menu_idname="USERPREF_MT_interaction_presets",
+            )
 
         return {'FINISHED'}
 
@@ -1506,7 +1521,7 @@ class WM_OT_blenderplayer_start(Operator):
             "-g", "show_profile", "=", "%d" % gs.show_framerate_profile,
             "-g", "show_properties", "=", "%d" % gs.show_debug_properties,
             "-g", "ignore_deprecation_warnings", "=", "%d" % (not gs.use_deprecation_warnings),
-            ])
+        ])
 
         # finish the call with the path to the blend file
         args.append(filepath)
@@ -1636,10 +1651,11 @@ class WM_OT_keyconfig_export(Operator):
 
         wm = context.window_manager
 
-        keyconfig_utils.keyconfig_export(wm,
-                                         wm.keyconfigs.active,
-                                         self.filepath,
-                                         )
+        keyconfig_utils.keyconfig_export(
+            wm,
+            wm.keyconfigs.active,
+            self.filepath,
+        )
 
         return {'FINISHED'}
 
@@ -1904,7 +1920,10 @@ class WM_OT_theme_install(Operator):
 
         try:
             shutil.copyfile(xmlfile, path_dest)
-            bpy.ops.script.execute_preset(filepath=path_dest, menu_idname="USERPREF_MT_interface_theme_presets")
+            bpy.ops.script.execute_preset(
+                filepath=path_dest,
+                menu_idname="USERPREF_MT_interface_theme_presets",
+            )
 
         except:
             traceback.print_exc()
@@ -2232,7 +2251,6 @@ class WM_OT_app_template_install(Operator):
             )
 
     def execute(self, context):
-        import addon_utils
         import traceback
         import zipfile
         import shutil
