@@ -163,6 +163,7 @@ static struct {
 	struct GPUShader *grid_sh;
 	float camera_pos[3];
 	float grid_settings[4];
+	float grid_mat[4][4];
 } e_data = {NULL}; /* Engine data */
 
 /* *********** FUNCTIONS *********** */
@@ -205,10 +206,13 @@ static void OBJECT_engine_init(void)
 	}
 
 	{
+		float viewinvmat[4][4], winmat[4][4], viewmat[4][4];
+		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
+		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
+		DRW_viewport_matrix_get(viewinvmat, DRW_MAT_VIEWINV);
+
 		/* Setup camera pos */
-		float viewmat[4][4];
-		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEWINV);
-		copy_v3_v3(e_data.camera_pos, viewmat[3]);
+		copy_v3_v3(e_data.camera_pos, viewinvmat[3]);
 
 		/* grid settings */
 		const bContext *C = DRW_get_context();
@@ -219,6 +223,20 @@ static void OBJECT_engine_init(void)
 		e_data.grid_settings[1] = 2.0f; /* gridResolution */
 		e_data.grid_settings[2] = ED_view3d_grid_scale(scene, v3d, NULL); /* gridScale */
 		e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
+
+		/* Grid matrix polygon offset (fix depth fighting) */
+		/* see ED_view3d_polygon_offset */
+		float offs;
+		if (winmat[3][3] > 0.5f) {
+			float viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
+			offs = 0.00001f * viewdist;
+		}
+		else {
+			offs = winmat[3][2] * -0.0025f;
+		}
+		winmat[3][2] -= offs;
+
+		mul_m4_m4m4(e_data.grid_mat, winmat, viewmat);
 	}
 }
 
@@ -365,6 +383,7 @@ static void OBJECT_cache_init(void)
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
+		DRW_shgroup_uniform_mat4(grp, "ViewProjectionOffsetMatrix", (float *)e_data.grid_mat);
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
 		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo, 0);

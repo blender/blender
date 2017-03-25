@@ -3,7 +3,6 @@
  * Clément Foucault */
 
 in vec3 wPos;
-in float viewDist;
 
 out vec4 FragColor;
 
