@@ -185,11 +185,11 @@ enum {
 
 /* *********** FUNCTIONS *********** */
 
-static void OBJECT_engine_init(void)
+static void OBJECT_engine_init(void *vedata)
 {
-	OBJECT_Data *ved = DRW_viewport_engine_data_get("ObjectMode");
-	OBJECT_TextureList *txl = ved->txl;
-	OBJECT_FramebufferList *fbl = ved->fbl;
+
+	OBJECT_TextureList *txl = ((OBJECT_Data *)vedata)->txl;
+	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
 
 	float *viewport_size = DRW_viewport_size_get();
 
@@ -374,12 +374,12 @@ static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], struc
 	return grp;
 }
 
-static void OBJECT_cache_init(void)
+static void OBJECT_cache_init(void *vedata)
 {
 	/* DRW_viewport_engine_data_get is rather slow, better not do it on every objects */
-	g_data.vedata = DRW_viewport_engine_data_get("ObjectMode");
-	OBJECT_PassList *psl = g_data.vedata->psl;
-	OBJECT_TextureList *txl = g_data.vedata->txl;
+
+	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
+	OBJECT_TextureList *txl = ((OBJECT_Data *)vedata)->txl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	{
@@ -897,7 +897,7 @@ static void DRW_shgroup_object_center(Object *ob)
 	}
 }
 
-static void OBJECT_cache_populate(Object *ob)
+static void OBJECT_cache_populate(void *vedata, Object *ob)
 {
 	const struct bContext *C = DRW_get_context();
 	Scene *scene = CTX_data_scene(C);
@@ -950,8 +950,8 @@ static void OBJECT_cache_populate(Object *ob)
 			{
 				bArmature *arm = ob->data;
 				if (arm->edbo == NULL) {
-					DRW_shgroup_armature_object(ob, sl, g_data.vedata->psl->bone_solid,
-					                                    g_data.vedata->psl->bone_wire,
+					DRW_shgroup_armature_object(ob, sl, ((OBJECT_Data *)vedata)->psl->bone_solid,
+					                                    ((OBJECT_Data *)vedata)->psl->bone_wire,
 					                                    g_data.relationship_lines);
 				}
 			}
@@ -964,12 +964,12 @@ static void OBJECT_cache_populate(Object *ob)
 	DRW_shgroup_relationship_lines(ob);
 }
 
-static void OBJECT_draw_scene(void)
+static void OBJECT_draw_scene(void *vedata)
 {
-	OBJECT_Data *ved = DRW_viewport_engine_data_get("ObjectMode");
-	OBJECT_PassList *psl = ved->psl;
-	OBJECT_FramebufferList *fbl = ved->fbl;
-	OBJECT_TextureList *txl = ved->txl;
+
+	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
+	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
+	OBJECT_TextureList *txl = ((OBJECT_Data *)vedata)->txl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 

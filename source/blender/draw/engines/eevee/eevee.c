@@ -54,12 +54,11 @@ extern char datatoc_tonemap_frag_glsl[];
 
 /* *********** FUNCTIONS *********** */
 
-static void EEVEE_engine_init(void)
+static void EEVEE_engine_init(void *vedata)
 {
-	EEVEE_Data *ved = DRW_viewport_engine_data_get(EEVEE_ENGINE);
-	EEVEE_TextureList *txl = ved->txl;
-	EEVEE_FramebufferList *fbl = ved->fbl;
-	EEVEE_StorageList *stl = ved->stl;
+	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
+	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
 	DRWFboTexture tex = {&txl->color, DRW_BUF_RGBA_32};
 
@@ -79,7 +78,6 @@ static void EEVEE_engine_init(void)
 	if (!e_data.tonemap) {
 		e_data.tonemap = DRW_shader_create_fullscreen(datatoc_tonemap_frag_glsl, NULL);
 	}
-	UNUSED_VARS(stl);
 
 	if (stl->lights_info == NULL)
 		EEVEE_lights_init(stl);
@@ -87,12 +85,11 @@ static void EEVEE_engine_init(void)
 	// EEVEE_lights_update(stl);
 }
 
-static void EEVEE_cache_init(void)
+static void EEVEE_cache_init(void *vedata)
 {
-	g_data.vedata = DRW_viewport_engine_data_get(EEVEE_ENGINE);
-	EEVEE_PassList *psl = g_data.vedata->psl;
-	EEVEE_TextureList *txl = g_data.vedata->txl;
-	EEVEE_StorageList *stl = g_data.vedata->stl;
+	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
 	{
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
@@ -138,9 +135,9 @@ static void EEVEE_cache_init(void)
 	EEVEE_lights_cache_init(stl);
 }
 
-static void EEVEE_cache_populate(Object *ob)
+static void EEVEE_cache_populate(void *vedata, Object *ob)
 {
-	EEVEE_StorageList *stl = g_data.vedata->stl;
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
 	if (ob->type == OB_MESH) {
 		CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
@@ -163,18 +160,17 @@ static void EEVEE_cache_populate(Object *ob)
 	}
 }
 
-static void EEVEE_cache_finish(void)
+static void EEVEE_cache_finish(void *vedata)
 {
-	EEVEE_StorageList *stl = g_data.vedata->stl;
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
 	EEVEE_lights_cache_finish(stl);
 }
 
-static void EEVEE_draw_scene(void)
+static void EEVEE_draw_scene(void *vedata)
 {
-	EEVEE_Data *ved = DRW_viewport_engine_data_get(EEVEE_ENGINE);
-	EEVEE_PassList *psl = ved->psl;
-	EEVEE_FramebufferList *fbl = ved->fbl;
+	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
 
 	/* Default framebuffer and texture */
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
@@ -218,7 +214,7 @@ static void EEVEE_collection_settings_create(RenderEngine *UNUSED(engine), Colle
 
 DrawEngineType draw_engine_eevee_type = {
 	NULL, NULL,
-	N_("Clay"),
+	N_("Eevee"),
 	&EEVEE_engine_init,
 	&EEVEE_engine_free,
 	&EEVEE_cache_init,

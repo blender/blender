@@ -1394,8 +1394,9 @@ static void DRW_engines_init(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
 		if (engine->engine_init) {
-			engine->engine_init();
+			engine->engine_init(data);
 		}
 	}
 }
@@ -1404,8 +1405,9 @@ static void DRW_engines_cache_init(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
 		if (engine->cache_init) {
-			engine->cache_init();
+			engine->cache_init(data);
 		}
 	}
 }
@@ -1414,8 +1416,9 @@ static void DRW_engines_cache_populate(Object *ob)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
 		if (engine->cache_populate) {
-			engine->cache_populate(ob);
+			engine->cache_populate(data, ob);
 		}
 	}
 }
@@ -1424,8 +1427,9 @@ static void DRW_engines_cache_finish(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
 		if (engine->cache_finish) {
-			engine->cache_finish();
+			engine->cache_finish(data);
 		}
 	}
 }
@@ -1434,8 +1438,9 @@ static void DRW_engines_draw_background(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
 		if (engine->draw_background) {
-			engine->draw_background();
+			engine->draw_background(data);
 			return;
 		}
 	}
@@ -1448,8 +1453,9 @@ static void DRW_engines_draw_scene(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
 		if (engine->draw_scene) {
-			engine->draw_scene();
+			engine->draw_scene(data);
 		}
 	}
 }

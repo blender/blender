@@ -59,10 +59,10 @@ static struct {
 
 /* *********** FUNCTIONS *********** */
 
-static void EDIT_ARMATURE_cache_init(void)
+static void EDIT_ARMATURE_cache_init(void *vedata)
 {
-	g_data.vedata = DRW_viewport_engine_data_get("EditArmatureMode");
-	EDIT_ARMATURE_PassList *psl = g_data.vedata->psl;
+
+	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
 
 	{
 		/* Solid bones */
@@ -87,10 +87,10 @@ static void EDIT_ARMATURE_cache_init(void)
 	}
 }
 
-static void EDIT_ARMATURE_cache_populate(Object *ob)
+static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 {
 	bArmature *arm = ob->data;
-	EDIT_ARMATURE_PassList *psl = g_data.vedata->psl;
+	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
 
 	if (ob->type == OB_ARMATURE) {
 		if (arm->edbo) {
@@ -99,10 +99,9 @@ static void EDIT_ARMATURE_cache_populate(Object *ob)
 	}
 }
 
-static void EDIT_ARMATURE_draw_scene(void)
+static void EDIT_ARMATURE_draw_scene(void *vedata)
 {
-	EDIT_ARMATURE_Data *ved = DRW_viewport_engine_data_get("EditArmatureMode");
-	EDIT_ARMATURE_PassList *psl = ved->psl;
+	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
 
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->bone_wire);

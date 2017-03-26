@@ -109,12 +109,12 @@ static struct {
 /* Init Textures, Framebuffers, Storage and Shaders.
  * It is called for every frames.
  * (Optional) */
-static void POSE_engine_init(void)
+static void POSE_engine_init(void *vedata)
 {
-	POSE_Data *ved = DRW_viewport_engine_data_get("PoseMode");
-	POSE_TextureList *txl = ved->txl;
-	POSE_FramebufferList *fbl = ved->fbl;
-	POSE_StorageList *stl = ved->stl;
+
+	POSE_TextureList *txl = ((POSE_Data *)vedata)->txl;
+	POSE_FramebufferList *fbl = ((POSE_Data *)vedata)->fbl;
+	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 
 	UNUSED_VARS(txl, fbl, stl);
 
@@ -140,11 +140,11 @@ static void POSE_engine_init(void)
 
 /* Here init all passes and shading groups
  * Assume that all Passes are NULL */
-static void POSE_cache_init(void)
+static void POSE_cache_init(void *vedata)
 {
-	g_data.vedata = DRW_viewport_engine_data_get("PoseMode");
-	POSE_PassList *psl = g_data.vedata->psl;
-	POSE_StorageList *stl = g_data.vedata->stl;
+
+	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
+	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 
 	UNUSED_VARS(stl);
 
@@ -170,10 +170,10 @@ static void POSE_cache_init(void)
 }
 
 /* Add geometry to shadingGroups. Execute for each objects */
-static void POSE_cache_populate(Object *ob)
+static void POSE_cache_populate(void *vedata, Object *ob)
 {
-	POSE_PassList *psl = g_data.vedata->psl;
-	POSE_StorageList *stl = g_data.vedata->stl;
+	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
+	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 
 	UNUSED_VARS(psl, stl);
 
@@ -187,21 +187,21 @@ static void POSE_cache_populate(Object *ob)
 }
 
 /* Optional: Post-cache_populate callback */
-static void POSE_cache_finish(void)
+static void POSE_cache_finish(void *vedata)
 {
-	POSE_PassList *psl = g_data.vedata->psl;
-	POSE_StorageList *stl = g_data.vedata->stl;
+	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
+	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 
 	/* Do something here! dependant on the objects gathered */
 	UNUSED_VARS(psl, stl);
 }
 
 /* Draw time ! Control rendering pipeline from here */
-static void POSE_draw_scene(void)
+static void POSE_draw_scene(void *vedata)
 {
-	POSE_Data *ved = DRW_viewport_engine_data_get("PoseMode");
-	POSE_PassList *psl = ved->psl;
-	POSE_FramebufferList *fbl = ved->fbl;
+
+	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
+	POSE_FramebufferList *fbl = ((POSE_Data *)vedata)->fbl;
 
 	/* Default framebuffer and texture */
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();

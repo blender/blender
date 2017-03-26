@@ -124,11 +124,11 @@ static struct {
 
 /* *********** FUNCTIONS *********** */
 
-static void EDIT_MESH_engine_init(void)
+static void EDIT_MESH_engine_init(void *vedata)
 {
 	EDIT_MESH_Data *ved = DRW_viewport_engine_data_get("EditMeshMode");
 	EDIT_MESH_TextureList *txl = ved->txl;
-	EDIT_MESH_FramebufferList *fbl = ved->fbl;
+	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 
 	float *viewport_size = DRW_viewport_size_get();
 
@@ -261,11 +261,11 @@ static float backwire_opacity;
 static float face_mod;
 static float size_normal;
 
-static void EDIT_MESH_cache_init(void)
+static void EDIT_MESH_cache_init(void *vedata)
 {
-	g_data.vedata = DRW_viewport_engine_data_get("EditMeshMode");
-	EDIT_MESH_TextureList *txl = g_data.vedata->txl;
-	EDIT_MESH_PassList *psl = g_data.vedata->psl;
+
+	EDIT_MESH_TextureList *txl = ((EDIT_MESH_Data *)vedata)->txl;
+	EDIT_MESH_PassList *psl = ((EDIT_MESH_Data *)vedata)->psl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	const struct bContext *C = DRW_get_context();
@@ -348,7 +348,7 @@ static void edit_mesh_add_ob_to_pass(Scene *scene, Object *ob, DRWShadingGroup *
 	}
 }
 
-static void EDIT_MESH_cache_populate(Object *ob)
+static void EDIT_MESH_cache_populate(void *UNUSED(vedata), Object *ob)
 {
 	const struct bContext *C = DRW_get_context();
 	View3D *v3d = CTX_wm_view3d(C);
@@ -401,11 +401,10 @@ static void EDIT_MESH_cache_populate(Object *ob)
 	}
 }
 
-static void EDIT_MESH_draw_scene(void)
+static void EDIT_MESH_draw_scene(void *vedata)
 {
-	EDIT_MESH_Data *ved = DRW_viewport_engine_data_get("EditMeshMode");
-	EDIT_MESH_PassList *psl = ved->psl;
-	EDIT_MESH_FramebufferList *fbl = ved->fbl;
+	EDIT_MESH_PassList *psl = ((EDIT_MESH_Data *)vedata)->psl;
+	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 

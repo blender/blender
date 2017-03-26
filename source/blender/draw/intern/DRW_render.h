@@ -72,15 +72,15 @@ typedef struct DrawEngineType {
 
 	char idname[32];
 
-	void (*engine_init)(void);
+	void (*engine_init)(void *vedata);
 	void (*engine_free)(void);
 
-	void (*cache_init)(void);
-	void (*cache_populate)(struct Object *ob);
-	void (*cache_finish)(void);
+	void (*cache_init)(void *vedata);
+	void (*cache_populate)(void *vedata, struct Object *ob);
+	void (*cache_finish)(void *vedata);
 
-	void (*draw_background)(void);
-	void (*draw_scene)(void);
+	void (*draw_background)(void *vedata);
+	void (*draw_scene)(void *vedata);
 } DrawEngineType;
 
 #ifndef __DRW_ENGINE_H__

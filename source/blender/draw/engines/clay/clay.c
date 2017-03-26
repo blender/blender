@@ -275,12 +275,11 @@ RenderEngineSettings *CLAY_render_settings_create(void)
 	return (RenderEngineSettings *)settings;
 }
 
-static void CLAY_engine_init(void)
+static void CLAY_engine_init(void *vedata)
 {
-	CLAY_Data *ved = DRW_viewport_engine_data_get("Clay");
-	CLAY_StorageList *stl = ved->stl;
-	CLAY_TextureList *txl = ved->txl;
-	CLAY_FramebufferList *fbl = ved->fbl;
+	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
+	CLAY_TextureList *txl = ((CLAY_Data *)vedata)->txl;
+	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
 
 	/* Create Texture Array */
 	if (!e_data.matcap_array) {
@@ -433,10 +432,9 @@ static void CLAY_engine_init(void)
 	}
 }
 
-static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *material_id)
+static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *vedata, DRWPass *pass, int *material_id)
 {
-	CLAY_Data *vedata = DRW_viewport_engine_data_get("Clay");
-	CLAY_TextureList *txl = vedata->txl;
+	CLAY_TextureList *txl = ((CLAY_Data *)vedata)->txl;
 	const int depthloc = 0, matcaploc = 1, jitterloc = 2, sampleloc = 3;
 
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.clay_sh, pass);
@@ -556,7 +554,7 @@ static void override_setting(CollectionEngineSettings *ces, const char *name, vo
 	}
 }
 
-static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
+static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
 {
 	DRWShadingGroup **shgrps = stl->storage->shgrps;
 	MaterialEngineSettingsClay *settings = DRW_render_settings_get(NULL, RE_engine_id_BLENDER_CLAY);
@@ -591,7 +589,7 @@ static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl,
 	                    ssao_attenuation, matcap_icon);
 
 	if (shgrps[id] == NULL) {
-		shgrps[id] = CLAY_shgroup_create(psl->clay_pass, &e_data.ubo_mat_idxs[id]);
+		shgrps[id] = CLAY_shgroup_create(vedata, psl->clay_pass, &e_data.ubo_mat_idxs[id]);
 		/* if it's the first shgrp, pass bind the material UBO */
 		if (stl->storage->ubo_current_id == 1) {
 			DRW_shgroup_uniform_block(shgrps[0], "material_block", stl->mat_ubo, 0);
@@ -601,11 +599,10 @@ static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl,
 	return shgrps[id];
 }
 
-static void CLAY_cache_init(void)
+static void CLAY_cache_init(void *vedata)
 {
-	g_data.vedata = DRW_viewport_engine_data_get("Clay");
-	CLAY_PassList *psl = g_data.vedata->psl;
-	CLAY_StorageList *stl = g_data.vedata->stl;
+	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
+	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 
 	/* Depth Pass */
 	{
@@ -624,10 +621,10 @@ static void CLAY_cache_init(void)
 	}
 }
 
-static void CLAY_cache_populate(Object *ob)
+static void CLAY_cache_populate(void *vedata, Object *ob)
 {
-	CLAY_PassList *psl = g_data.vedata->psl;
-	CLAY_StorageList *stl = g_data.vedata->stl;
+	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
+	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 
 	struct Batch *geom;
 	DRWShadingGroup *clay_shgrp;
@@ -646,23 +643,23 @@ static void CLAY_cache_populate(Object *ob)
 		DRW_shgroup_call_add((do_cull) ? g_data.depth_shgrp_cull : g_data.depth_shgrp, geom, ob->obmat);
 
 		/* Shading */
-		clay_shgrp = CLAY_object_shgrp_get(ob, stl, psl);
+		clay_shgrp = CLAY_object_shgrp_get(vedata, ob, stl, psl);
 		DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
 	}
 }
 
-static void CLAY_cache_finish(void)
+static void CLAY_cache_finish(void *vedata)
 {
-	CLAY_StorageList *stl = g_data.vedata->stl;
+	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 
 	DRW_uniformbuffer_update(stl->mat_ubo, &stl->storage->mat_storage);
 }
 
-static void CLAY_draw_scene(void)
+static void CLAY_draw_scene(void *vedata)
 {
-	CLAY_Data *ved = DRW_viewport_engine_data_get("Clay");
-	CLAY_PassList *psl = ved->psl;
-	CLAY_FramebufferList *fbl = ved->fbl;
+
+	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
+	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
 	/* Pass 1 : Depth pre-pass */
