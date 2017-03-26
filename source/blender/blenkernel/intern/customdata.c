@@ -60,6 +60,9 @@
 
 #include "bmesh.h"
 
+/* only for customdata_data_transfer_interp_normal_normals */
+#include "data_transfer_intern.h"
+
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
 
