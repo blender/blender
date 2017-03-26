@@ -44,6 +44,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+#include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_mempool.h"
 
@@ -56,8 +57,6 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
-
-#include "data_transfer_intern.h"
 
 #include "bmesh.h"
 
