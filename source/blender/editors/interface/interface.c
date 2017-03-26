@@ -1337,7 +1337,7 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, u
 	rctf rectf;
 
 	ui_block_to_window_rctf(ar, block, &rectf, (but) ? &but->rect : &block->rect);
-	BLI_rcti_rctf_copy_floor(rect, &rectf);
+	BLI_rcti_rctf_copy(rect, &rectf);
 	BLI_rcti_translate(rect, -ar->winrct.xmin, -ar->winrct.ymin);
 }
 
