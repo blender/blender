@@ -59,7 +59,7 @@ struct GPUViewport {
 	int size[2];
 
 	ListBase data;  /* ViewportEngineData wrapped in LinkData */
-	int data_hash;  /* If hash mismatch we free all ViewportEngineData in this viewport */
+	unsigned int data_hash;  /* If hash mismatch we free all ViewportEngineData in this viewport */
 
 	FramebufferList *fbl;
 	TextureList *txl;
@@ -146,7 +146,7 @@ void GPU_viewport_size_get(GPUViewport *viewport, int *size)
 	size[1] = viewport->size[1];
 }
 
-bool GPU_viewport_cache_validate(GPUViewport *viewport, int hash)
+bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash)
 {
 	bool dirty = false;
 

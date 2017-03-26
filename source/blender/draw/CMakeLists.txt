@@ -30,6 +30,7 @@ set(INC
 	engines/eevee
 	modes
 
+	../blenfont
 	../blenkernel
 	../blenlib
 	../blentranslation

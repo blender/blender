@@ -70,6 +70,12 @@ typedef struct ViewportEngineData {
 	TextureList *txl;
 	PassList *psl;
 	StorageList *stl;
+
+	/* Profiling data */
+	double init_time;
+	double cache_time;
+	double render_time;
+	double background_time;
 } ViewportEngineData;
 
 GPUViewport *GPU_viewport_create(void);
@@ -83,7 +89,7 @@ void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport);
 void *GPU_viewport_texture_list_get(GPUViewport *viewport);
 void  GPU_viewport_size_get(GPUViewport *viewport, int *size);
 
-bool GPU_viewport_cache_validate(GPUViewport *viewport, int hash);
+bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash);
 
 /* debug */
 bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, char err_out[256]);
