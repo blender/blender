@@ -144,6 +144,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     :type refresh_scripts: bool
     """
     use_time = _bpy.app.debug_python
+    use_class_register_check = use_time
 
     if use_time:
         import time
@@ -275,6 +276,16 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if use_time:
         print("Python Script Load Time %.4f" % (time.time() - t_main))
+
+    if use_class_register_check:
+        for cls in _bpy.types.bpy_struct.__subclasses__():
+            if getattr(cls, "is_registered", False):
+                for subcls in cls.__subclasses__():
+                    if not subcls.is_registered:
+                        print(
+                            "Warning, unregistered class: %s(%s)" %
+                            (subcls.__name__, cls.__name__)
+                        )
 
 
 # base scripts
