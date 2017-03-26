@@ -70,6 +70,7 @@ typedef struct SCULPT_StorageList {
 	 * free with MEM_freeN() when viewport is freed.
 	 * (not per object) */
 	struct CustomStruct *block;
+	struct g_data *g_data;
 } SCULPT_StorageList;
 
 typedef struct SCULPT_Data {
@@ -93,16 +94,11 @@ static struct {
 	struct GPUShader *custom_shader;
 } e_data = {NULL}; /* Engine data */
 
-static struct {
+typedef struct g_data {
 	/* This keeps the references of the shading groups for
 	 * easy access in SCULPT_cache_populate() */
 	DRWShadingGroup *group;
-
-	/* This keeps the reference of the viewport engine data because
-	 * DRW_viewport_engine_data_get is slow and we don't want to
-	 * call it for every object */
-	SCULPT_Data *vedata;
-} g_data = {NULL}; /* Transient data */
+} g_data; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
@@ -144,7 +140,10 @@ static void SCULPT_cache_init(void *vedata)
 	SCULPT_PassList *psl = ((SCULPT_Data *)vedata)->psl;
 	SCULPT_StorageList *stl = ((SCULPT_Data *)vedata)->stl;
 
-	UNUSED_VARS(stl);
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+	}
 
 	{
 		/* Create a pass */
@@ -153,16 +152,16 @@ static void SCULPT_cache_init(void *vedata)
 
 		/* Create a shadingGroup using a function in draw_common.c or custom one */
 		/*
-		 * g_data.group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
+		 * stl->g_data->group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
 		 * -- or --
-		 * g_data.group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
+		 * stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
 		 */
-		g_data.group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
+		stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
 
 		/* Uniforms need a pointer to it's value so be sure it's accessible at
 		 * any given time (i.e. use static vars) */
 		static float color[4] = {0.2f, 0.5f, 0.3f, 1.0};
-		DRW_shgroup_uniform_vec4(g_data.group, "color", color, 1);
+		DRW_shgroup_uniform_vec4(stl->g_data->group, "color", color, 1);
 	}
 
 }
@@ -180,7 +179,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 		struct Batch *geom = DRW_cache_surface_get(ob);
 
 		/* Add geom to a shading group */
-		DRW_shgroup_call_add(g_data.group, geom, ob->obmat);
+		DRW_shgroup_call_add(stl->g_data->group, geom, ob->obmat);
 	}
 }
 

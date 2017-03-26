@@ -50,6 +50,7 @@ typedef struct EEVEE_StorageList {
 	struct EEVEE_Light *lights_data;            /* Array, Packed lights data info, duplication of what is in the Uniform Buffer in Vram */
 	struct Object **lights_ref;                 /* List of all lights in the buffer. */
 	struct GPUUniformBuffer *lights_ubo;
+	struct g_data *g_data;
 } EEVEE_StorageList;
 
 typedef struct EEVEE_LightsInfo {
@@ -63,6 +64,18 @@ typedef struct EEVEE_Data {
 	EEVEE_PassList *psl;
 	EEVEE_StorageList *stl;
 } EEVEE_Data;
+
+typedef struct g_data{
+	struct DRWShadingGroup *default_lit_grp;
+	struct DRWShadingGroup *depth_shgrp;
+	struct DRWShadingGroup *depth_shgrp_select;
+	struct DRWShadingGroup *depth_shgrp_active;
+	struct DRWShadingGroup *depth_shgrp_cull;
+	struct DRWShadingGroup *depth_shgrp_cull_select;
+	struct DRWShadingGroup *depth_shgrp_cull_active;
+
+	struct ListBase lamps; /* Lamps gathered during cache iteration */
+} g_data; /* Transient data */
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_StorageList *stl);

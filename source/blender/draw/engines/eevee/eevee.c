@@ -37,17 +37,6 @@ static struct {
 	struct GPUShader *tonemap;
 } e_data = {NULL}; /* Engine data */
 
-static struct {
-	DRWShadingGroup *default_lit_grp;
-	DRWShadingGroup *depth_shgrp;
-	DRWShadingGroup *depth_shgrp_select;
-	DRWShadingGroup *depth_shgrp_active;
-	DRWShadingGroup *depth_shgrp_cull;
-	DRWShadingGroup *depth_shgrp_cull_select;
-	DRWShadingGroup *depth_shgrp_cull_active;
-	EEVEE_Data *vedata;
-} g_data = {NULL}; /* Transient data */
-
 extern char datatoc_lit_surface_frag_glsl[];
 extern char datatoc_lit_surface_vert_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
@@ -91,33 +80,38 @@ static void EEVEE_cache_init(void *vedata)
 	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+	}
+
 	{
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-		g_data.depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
-		g_data.depth_shgrp_select = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-		DRW_shgroup_state_set(g_data.depth_shgrp_select, DRW_STATE_WRITE_STENCIL_SELECT);
+		stl->g_data->depth_shgrp_select = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+		DRW_shgroup_state_set(stl->g_data->depth_shgrp_select, DRW_STATE_WRITE_STENCIL_SELECT);
 
-		g_data.depth_shgrp_active = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-		DRW_shgroup_state_set(g_data.depth_shgrp_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
+		stl->g_data->depth_shgrp_active = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+		DRW_shgroup_state_set(stl->g_data->depth_shgrp_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
 
 		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
-		g_data.depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
+		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
 
-		g_data.depth_shgrp_cull_select = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-		DRW_shgroup_state_set(g_data.depth_shgrp_cull_select, DRW_STATE_WRITE_STENCIL_SELECT);
+		stl->g_data->depth_shgrp_cull_select = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
+		DRW_shgroup_state_set(stl->g_data->depth_shgrp_cull_select, DRW_STATE_WRITE_STENCIL_SELECT);
 
-		g_data.depth_shgrp_cull_active = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-		DRW_shgroup_state_set(g_data.depth_shgrp_cull_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
+		stl->g_data->depth_shgrp_cull_active = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
+		DRW_shgroup_state_set(stl->g_data->depth_shgrp_cull_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
 	}
 
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_EQUAL;
 		psl->pass = DRW_pass_create("Default Light Pass", state);
 
-		g_data.default_lit_grp = DRW_shgroup_create(e_data.default_lit, psl->pass);
-		DRW_shgroup_uniform_block(g_data.default_lit_grp, "light_block", stl->lights_ubo, 0);
-		DRW_shgroup_uniform_int(g_data.default_lit_grp, "light_count", &stl->lights_info->light_count, 1);
+		stl->g_data->default_lit_grp = DRW_shgroup_create(e_data.default_lit, psl->pass);
+		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "light_block", stl->lights_ubo, 0);
+		DRW_shgroup_uniform_int(stl->g_data->default_lit_grp, "light_count", &stl->lights_info->light_count, 1);
 	}
 
 	{
@@ -149,11 +143,11 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		// if ((ob->base_flag & BASE_ACTIVE) != 0)
 			// DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull_active : depth_shgrp_active, geom, ob->obmat);
 		if ((ob->base_flag & BASE_SELECTED) != 0)
-			DRW_shgroup_call_add((do_cull) ? g_data.depth_shgrp_cull_select : g_data.depth_shgrp_select, geom, ob->obmat);
+			DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull_select : stl->g_data->depth_shgrp_select, geom, ob->obmat);
 		else
-			DRW_shgroup_call_add((do_cull) ? g_data.depth_shgrp_cull : g_data.depth_shgrp, geom, ob->obmat);
+			DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
 
-		DRW_shgroup_call_add(g_data.default_lit_grp, geom, ob->obmat);
+		DRW_shgroup_call_add(stl->g_data->default_lit_grp, geom, ob->obmat);
 	}
 	else if (ob->type == OB_LAMP) {
 		EEVEE_lights_cache_add(stl, ob);

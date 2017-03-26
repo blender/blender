@@ -76,6 +76,7 @@ typedef struct CLAY_Storage {
 typedef struct CLAY_StorageList {
 	struct CLAY_Storage *storage;
 	struct GPUUniformBuffer *mat_ubo;
+	struct g_data *g_data;
 } CLAY_StorageList;
 
 /* keep it under MAX_BUFFERS */
@@ -100,6 +101,7 @@ typedef struct CLAY_PassList {
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
 	struct DRWPass *clay_pass;
+	struct g_data *g_data;
 } CLAY_PassList;
 
 typedef struct CLAY_Data {
@@ -134,15 +136,14 @@ static struct {
 	int ubo_mat_idxs[MAX_CLAY_MAT];
 } e_data = {NULL}; /* Engine data */
 
-static struct {
+typedef struct g_data {
 	DRWShadingGroup *depth_shgrp;
 	DRWShadingGroup *depth_shgrp_select;
 	DRWShadingGroup *depth_shgrp_active;
 	DRWShadingGroup *depth_shgrp_cull;
 	DRWShadingGroup *depth_shgrp_cull_select;
 	DRWShadingGroup *depth_shgrp_cull_active;
-	CLAY_Data *vedata;
-} g_data = {NULL}; /* Transient data */
+} g_data; /* Transient data */
 
 /* Functions */
 
@@ -604,13 +605,18 @@ static void CLAY_cache_init(void *vedata)
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+	}
+
 	/* Depth Pass */
 	{
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-		g_data.depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
 		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
-		g_data.depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
+		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
 	}
 
 	/* Clay Pass */
@@ -640,7 +646,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 		geom = DRW_cache_surface_get(ob);
 
 		/* Depth Prepass */
-		DRW_shgroup_call_add((do_cull) ? g_data.depth_shgrp_cull : g_data.depth_shgrp, geom, ob->obmat);
+		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
 
 		/* Shading */
 		clay_shgrp = CLAY_object_shgrp_get(vedata, ob, stl, psl);

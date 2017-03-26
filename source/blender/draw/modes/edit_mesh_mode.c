@@ -75,6 +75,11 @@ typedef struct EDIT_MESH_TextureList {
 	struct GPUTexture *occlude_wire_color_tx;
 } EDIT_MESH_TextureList;
 
+/* keep it under MAX_STORAGE */
+typedef struct EDIT_MESH_StorageList {
+	struct g_data *g_data;
+} EDIT_MESH_StorageList;
+
 typedef struct EDIT_MESH_Data {
 	char engine_name[32];
 	EDIT_MESH_FramebufferList *fbl;
@@ -101,7 +106,7 @@ static struct {
 	struct GPUShader *depth_sh;
 } e_data = {NULL}; /* Engine data */
 
-static struct {
+typedef struct g_data {
 	DRWShadingGroup *depth_shgrp_hidden_wire;
 
 	DRWShadingGroup *fnormals_shgrp;
@@ -119,15 +124,13 @@ static struct {
 	DRWShadingGroup *facedot_occluded_shgrp;
 	DRWShadingGroup *facefill_occluded_shgrp;
 
-	EDIT_MESH_Data *vedata;
-} g_data = {NULL}; /* Transient data */
+} g_data; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
 static void EDIT_MESH_engine_init(void *vedata)
 {
-	EDIT_MESH_Data *ved = DRW_viewport_engine_data_get("EditMeshMode");
-	EDIT_MESH_TextureList *txl = ved->txl;
+	EDIT_MESH_TextureList *txl = ((EDIT_MESH_Data *)vedata)->txl;
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 
 	float *viewport_size = DRW_viewport_size_get();
@@ -263,9 +266,9 @@ static float size_normal;
 
 static void EDIT_MESH_cache_init(void *vedata)
 {
-
 	EDIT_MESH_TextureList *txl = ((EDIT_MESH_Data *)vedata)->txl;
 	EDIT_MESH_PassList *psl = ((EDIT_MESH_Data *)vedata)->psl;
+	EDIT_MESH_StorageList *stl = ((EDIT_MESH_Data *)vedata)->stl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	const struct bContext *C = DRW_get_context();
@@ -274,44 +277,49 @@ static void EDIT_MESH_cache_init(void *vedata)
 	bool do_zbufclip = ((v3d->flag & V3D_ZBUF_SELECT) == 0);
 
 	static float zero = 0.0f;
-	
+
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+	}
+
 	{
 		/* Complementary Depth Pass */
 		psl->depth_hidden_wire = DRW_pass_create("Depth Pass Hidden Wire", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
-		g_data.depth_shgrp_hidden_wire = DRW_shgroup_create(e_data.depth_sh, psl->depth_hidden_wire);
+		stl->g_data->depth_shgrp_hidden_wire = DRW_shgroup_create(e_data.depth_sh, psl->depth_hidden_wire);
 	}
 
 	{
 		/* Normals */
 		psl->normals = DRW_pass_create("Edit Mesh Normals Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS);
 
-		g_data.fnormals_shgrp = DRW_shgroup_create(e_data.normals_face_sh, psl->normals);
-		DRW_shgroup_uniform_float(g_data.fnormals_shgrp, "normalSize", &size_normal, 1);
-		DRW_shgroup_uniform_vec4(g_data.fnormals_shgrp, "color", ts.colorNormal, 1);
+		stl->g_data->fnormals_shgrp = DRW_shgroup_create(e_data.normals_face_sh, psl->normals);
+		DRW_shgroup_uniform_float(stl->g_data->fnormals_shgrp, "normalSize", &size_normal, 1);
+		DRW_shgroup_uniform_vec4(stl->g_data->fnormals_shgrp, "color", ts.colorNormal, 1);
 
-		g_data.vnormals_shgrp = DRW_shgroup_create(e_data.normals_sh, psl->normals);
-		DRW_shgroup_uniform_float(g_data.vnormals_shgrp, "normalSize", &size_normal, 1);
-		DRW_shgroup_uniform_vec4(g_data.vnormals_shgrp, "color", ts.colorVNormal, 1);
+		stl->g_data->vnormals_shgrp = DRW_shgroup_create(e_data.normals_sh, psl->normals);
+		DRW_shgroup_uniform_float(stl->g_data->vnormals_shgrp, "normalSize", &size_normal, 1);
+		DRW_shgroup_uniform_vec4(stl->g_data->vnormals_shgrp, "color", ts.colorVNormal, 1);
 
-		g_data.lnormals_shgrp = DRW_shgroup_create(e_data.normals_sh, psl->normals);
-		DRW_shgroup_uniform_float(g_data.lnormals_shgrp, "normalSize", &size_normal, 1);
-		DRW_shgroup_uniform_vec4(g_data.lnormals_shgrp, "color", ts.colorLNormal, 1);
+		stl->g_data->lnormals_shgrp = DRW_shgroup_create(e_data.normals_sh, psl->normals);
+		DRW_shgroup_uniform_float(stl->g_data->lnormals_shgrp, "normalSize", &size_normal, 1);
+		DRW_shgroup_uniform_vec4(stl->g_data->lnormals_shgrp, "color", ts.colorLNormal, 1);
 	}
 
 	if (!do_zbufclip) {
-		psl->edit_face_overlay = edit_mesh_create_overlay_pass(&g_data.face_overlay_shgrp, &g_data.ledges_overlay_shgrp, &g_data.lverts_overlay_shgrp,
-		                                                            &g_data.facedot_overlay_shgrp, &face_mod, DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND);
+		psl->edit_face_overlay = edit_mesh_create_overlay_pass(&stl->g_data->face_overlay_shgrp, &stl->g_data->ledges_overlay_shgrp, &stl->g_data->lverts_overlay_shgrp,
+		                                                            &stl->g_data->facedot_overlay_shgrp, &face_mod, DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND);
 	}
 	else {
 		/* We render all wires with depth and opaque to a new fbo and blend the result based on depth values */
-		psl->edit_face_occluded = edit_mesh_create_overlay_pass(&g_data.face_occluded_shgrp, &g_data.ledges_occluded_shgrp, &g_data.lverts_occluded_shgrp,
-		                                                             &g_data.facedot_occluded_shgrp, &zero,  DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH);
+		psl->edit_face_occluded = edit_mesh_create_overlay_pass(&stl->g_data->face_occluded_shgrp, &stl->g_data->ledges_occluded_shgrp, &stl->g_data->lverts_occluded_shgrp,
+		                                                             &stl->g_data->facedot_occluded_shgrp, &zero,  DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH);
 
 		/* however we loose the front faces value (because we need the depth of occluded wires and
 		 * faces are alpha blended ) so we recover them in a new pass. */
 		psl->facefill_occlude = DRW_pass_create("Front Face Color", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
-		g_data.facefill_occluded_shgrp = DRW_shgroup_create(e_data.overlay_facefill_sh, psl->facefill_occlude);
-		DRW_shgroup_uniform_block(g_data.facefill_occluded_shgrp, "globalsBlock", globals_ubo, 0);
+		stl->g_data->facefill_occluded_shgrp = DRW_shgroup_create(e_data.overlay_facefill_sh, psl->facefill_occlude);
+		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", globals_ubo, 0);
 
 		/* we need a full screen pass to combine the result */
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
@@ -348,8 +356,9 @@ static void edit_mesh_add_ob_to_pass(Scene *scene, Object *ob, DRWShadingGroup *
 	}
 }
 
-static void EDIT_MESH_cache_populate(void *UNUSED(vedata), Object *ob)
+static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 {
+	EDIT_MESH_StorageList *stl = ((EDIT_MESH_Data *)vedata)->stl;
 	const struct bContext *C = DRW_get_context();
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
@@ -371,31 +380,31 @@ static void EDIT_MESH_cache_populate(void *UNUSED(vedata), Object *ob)
 
 			if (do_occlude_wire) {
 				geom = DRW_cache_surface_get(ob);
-				DRW_shgroup_call_add(g_data.depth_shgrp_hidden_wire, geom, ob->obmat);
+				DRW_shgroup_call_add(stl->g_data->depth_shgrp_hidden_wire, geom, ob->obmat);
 			}
 
 			if (fnormals_do) {
 				geom = DRW_cache_face_centers_get(ob);
-				DRW_shgroup_call_add(g_data.fnormals_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(stl->g_data->fnormals_shgrp, geom, ob->obmat);
 			}
 
 			if (vnormals_do) {
 				geom = DRW_cache_verts_get(ob);
-				DRW_shgroup_call_add(g_data.vnormals_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(stl->g_data->vnormals_shgrp, geom, ob->obmat);
 			}
 
 			if (lnormals_do) {
 				geom = DRW_cache_surface_verts_get(ob);
-				DRW_shgroup_call_add(g_data.lnormals_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(stl->g_data->lnormals_shgrp, geom, ob->obmat);
 			}
 
 			if ((v3d->flag & V3D_ZBUF_SELECT) == 0) {
-				edit_mesh_add_ob_to_pass(scene, ob, g_data.face_occluded_shgrp, g_data.ledges_occluded_shgrp,
-				                         g_data.lverts_occluded_shgrp, g_data.facedot_occluded_shgrp, g_data.facefill_occluded_shgrp);
+				edit_mesh_add_ob_to_pass(scene, ob, stl->g_data->face_occluded_shgrp, stl->g_data->ledges_occluded_shgrp,
+				                         stl->g_data->lverts_occluded_shgrp, stl->g_data->facedot_occluded_shgrp, stl->g_data->facefill_occluded_shgrp);
 			}
 			else {
-				edit_mesh_add_ob_to_pass(scene, ob, g_data.face_overlay_shgrp, g_data.ledges_overlay_shgrp,
-				                         g_data.lverts_overlay_shgrp, g_data.facedot_overlay_shgrp, NULL);
+				edit_mesh_add_ob_to_pass(scene, ob, stl->g_data->face_overlay_shgrp, stl->g_data->ledges_overlay_shgrp,
+				                         stl->g_data->lverts_overlay_shgrp, stl->g_data->facedot_overlay_shgrp, NULL);
 			}
 		}
 	}

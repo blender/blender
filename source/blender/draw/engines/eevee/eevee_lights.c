@@ -35,9 +35,6 @@ typedef struct EEVEE_Light {
 	float spot_size, spot_blend, area_x, area_y;
 } EEVEE_Light;
 
-static struct {
-	ListBase lamps; /* Lamps gathered during cache iteration */
-} g_data = {NULL}; /* Transient data */
 
 void EEVEE_lights_init(EEVEE_StorageList *stl)
 {
@@ -49,13 +46,13 @@ void EEVEE_lights_init(EEVEE_StorageList *stl)
 
 void EEVEE_lights_cache_init(EEVEE_StorageList *stl)
 {
-	BLI_listbase_clear(&g_data.lamps);
+	BLI_listbase_clear(&stl->g_data->lamps);
 	stl->lights_info->light_count = 0;
 }
 
 void EEVEE_lights_cache_add(EEVEE_StorageList *stl, Object *ob)
 {
-	BLI_addtail(&g_data.lamps, BLI_genericNodeN(ob));
+	BLI_addtail(&stl->g_data->lamps, BLI_genericNodeN(ob));
 	stl->lights_info->light_count += 1;
 }
 
@@ -70,12 +67,12 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl)
 
 	if (light_ct > 0) {
 		int i = 0;
-		for (LinkData *link = g_data.lamps.first; link && i < MAX_LIGHT; link = link->next, i++) {
+		for (LinkData *link = stl->g_data->lamps.first; link && i < MAX_LIGHT; link = link->next, i++) {
 			Object *ob = (Object *)link->data;
 			stl->lights_ref[i] = ob;
 		}
 	}
-	BLI_freelistN(&g_data.lamps);
+	BLI_freelistN(&stl->g_data->lamps);
 
 	/* We changed light data so we need to upload it */
 	EEVEE_lights_update(stl);
