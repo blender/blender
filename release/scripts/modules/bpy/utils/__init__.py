@@ -289,11 +289,9 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
 
 # base scripts
-_scripts = _os.path.join(_os.path.dirname(__file__),
-                         _os.path.pardir,
-                         _os.path.pardir,
-                         )
-_scripts = (_os.path.normpath(_scripts), )
+_scripts = (
+    _os.path.dirname(_os.path.dirname(_os.path.dirname(__file__))),
+)
 
 
 def script_path_user():
