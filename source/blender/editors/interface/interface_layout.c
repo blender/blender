@@ -2171,7 +2171,16 @@ static void ui_litem_layout_row(uiLayout *litem)
 
 			x += neww;
 
-			if ((neww < minw || itemw == minw || item->flag & UI_ITEM_MIN) && w != 0) {
+			bool min_flag = item->flag & UI_ITEM_MIN;
+			/* ignore min flag for rows with right or center alignment */
+			if (item->type != ITEM_BUTTON &&
+					ELEM(((uiLayout *)item)->alignment, UI_LAYOUT_ALIGN_RIGHT, UI_LAYOUT_ALIGN_CENTER) &&
+					litem->alignment == UI_LAYOUT_ALIGN_EXPAND && 
+					((uiItem *)litem)->flag & UI_ITEM_MIN) {
+				min_flag = false;
+			}
+			
+			if ((neww < minw || min_flag) && w != 0) {
 				/* fixed size */
 				item->flag |= UI_ITEM_FIXED;
 				if (item->type != ITEM_BUTTON && item->flag & UI_ITEM_MIN) {
