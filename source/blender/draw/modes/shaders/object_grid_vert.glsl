@@ -57,7 +57,7 @@ void main()
 	if ((gridFlag & CLIP_Z_POS) > 0) {
 		realPos.z = max(realPos.z, 0.0);
 	}
-	else if ((gridFlag & CLIP_Z_NEG) > 0) {
+	if ((gridFlag & CLIP_Z_NEG) > 0) {
 		realPos.z = min(realPos.z, 0.0);
 	}
 

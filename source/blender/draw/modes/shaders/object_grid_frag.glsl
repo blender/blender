@@ -9,6 +9,7 @@ out vec4 FragColor;
 uniform mat4 ProjectionMatrix;
 uniform vec3 cameraPos;
 uniform vec4 gridSettings;
+uniform float gridOneOverLogSubdiv;
 
 #define gridDistance      gridSettings.x
 #define gridResolution    gridSettings.y
@@ -56,26 +57,21 @@ void main()
 {
 	vec3 fwidthCos = fwidth(wPos);
 
-	float fade, grid_res;
+	float dist, fade;
 	/* if persp */
 	if (ProjectionMatrix[3][3] == 0.0) {
-		float dist = distance(cameraPos, wPos);
-		float dist_norm = dist / (2.0 * gridDistance);
-		grid_res = log(dist * gridResolution) / log(gridSubdiv);
+		dist = distance(cameraPos, wPos);
 		fade = 1.0 - smoothstep(0.0, gridDistance, dist - gridDistance);
 	}
 	else {
-		float dist = abs(gl_FragCoord.z * 2.0 - 1.0);
-		grid_res = log(gridResolution) / log(gridSubdiv);
+		dist = abs(gl_FragCoord.z * 2.0 - 1.0);
 		fade = 1.0 - smoothstep(0.0, 0.5, dist - 0.5);
-	}
-
-	/* fix division by 0 (log(1) = 0) */
-	if (gridSubdiv == 1.0) {
-		grid_res = 0.0;
+		dist = 1.0; /* avoid branch after */
 	}
 
 	if ((gridFlag & GRID) > 0) {
+		float grid_res = log(dist * gridResolution) * gridOneOverLogSubdiv;
+
 		float blend = fract(-max(grid_res, 0.0));
 		float lvl = floor(grid_res);
 
@@ -98,27 +94,27 @@ void main()
 
 	if ((gridFlag & AXIS_X) > 0) {
 		float xAxis;
-		if ((gridFlag & AXIS_Y) > 0) {
-			xAxis = axis(wPos.y, fwidthCos.y, 0.1);
+		if ((gridFlag & PLANE_XZ) > 0) {
+			xAxis = axis(wPos.z, fwidthCos.z, 0.1);
 		}
 		else {
-			xAxis = axis(wPos.z, fwidthCos.z, 0.1);
+			xAxis = axis(wPos.y, fwidthCos.y, 0.1);
 		}
 		FragColor = mix(FragColor, colorGridAxisX, xAxis);
 	}
 	if ((gridFlag & AXIS_Y) > 0) {
 		float yAxis;
-		if ((gridFlag & AXIS_X) > 0) {
-			yAxis = axis(wPos.x, fwidthCos.x, 0.1);
+		if ((gridFlag & PLANE_YZ) > 0) {
+			yAxis = axis(wPos.z, fwidthCos.z, 0.1);
 		}
 		else {
-			yAxis = axis(wPos.z, fwidthCos.z, 0.1);
+			yAxis = axis(wPos.x, fwidthCos.x, 0.1);
 		}
 		FragColor = mix(FragColor, colorGridAxisY, yAxis);
 	}
 	if ((gridFlag & AXIS_Z) > 0) {
 		float zAxis;
-		if ((gridFlag & AXIS_Y) > 0) {
+		if ((gridFlag & PLANE_YZ) > 0) {
 			zAxis = axis(wPos.y, fwidthCos.y, 0.1);
 		}
 		else {

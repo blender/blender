@@ -167,7 +167,7 @@ static struct {
 	struct GPUShader *outline_fade_sh;
 	struct GPUShader *grid_sh;
 	float camera_pos[3];
-	float grid_settings[4];
+	float grid_settings[5];
 	float grid_mat[4][4];
 	int grid_flag;
 	int zpos_flag;
@@ -322,7 +322,7 @@ static void OBJECT_engine_init(void *vedata)
 			mul_m4_v4(viewinvmat, zvec);
 
 			/* z axis : chose the most facing plane */
-			if (fabsf(zvec[0]) > fabsf(zvec[1])) {
+			if (fabsf(zvec[0]) < fabsf(zvec[1])) {
 				e_data.zpos_flag |= (PLANE_XZ | SHOW_AXIS_X);
 			}
 			else {
@@ -344,7 +344,7 @@ static void OBJECT_engine_init(void *vedata)
 			}
 		}
 		else {
-			e_data.zneg_flag = e_data.zpos_flag = 0;
+			e_data.zneg_flag = e_data.zpos_flag = CLIP_ZNEG | CLIP_ZPOS;
 		}
 
 		winmat[3][2] -= offs;
@@ -354,6 +354,7 @@ static void OBJECT_engine_init(void *vedata)
 		e_data.grid_settings[1] = grid_res; /* gridResolution */
 		e_data.grid_settings[2] = grid_scale; /* gridScale */
 		e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
+		e_data.grid_settings[4] = (v3d->gridsubdiv > 1) ? 1.0f / log(v3d->gridsubdiv) : 0.0; /* 1/log(gridSubdiv) */
 	}
 }
 
@@ -509,6 +510,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_mat4(grp, "ViewProjectionOffsetMatrix", (float *)e_data.grid_mat);
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
 		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
+		DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo, 0);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
