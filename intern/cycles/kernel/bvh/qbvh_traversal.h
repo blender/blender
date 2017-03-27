@@ -106,9 +106,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	                       &near_x, &near_y, &near_z,
 	                       &far_x, &far_y, &far_z);
 
-	TriangleIsectPrecalc isect_precalc;
-	ray_triangle_intersect_precalc(dir, &isect_precalc);
-
 	/* Traversal loop. */
 	do {
 		do {
@@ -333,9 +330,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								BVH_DEBUG_NEXT_INTERSECTION();
 								kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 								if(triangle_intersect(kg,
-								                      &isect_precalc,
 								                      isect,
 								                      P,
+								                      dir,
 								                      visibility,
 								                      object,
 								                      prim_addr)) {
@@ -354,9 +351,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								BVH_DEBUG_NEXT_INTERSECTION();
 								kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 								if(motion_triangle_intersect(kg,
-								                             &isect_precalc,
 								                             isect,
 								                             P,
+								                             dir,
 								                             ray->time,
 								                             visibility,
 								                             object,
@@ -447,8 +444,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					org4 = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
 #  endif
 
-					ray_triangle_intersect_precalc(dir, &isect_precalc);
-
 					++stack_ptr;
 					kernel_assert(stack_ptr < BVH_QSTACK_SIZE);
 					traversal_stack[stack_ptr].addr = ENTRYPOINT_SENTINEL;
@@ -488,8 +483,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #  if BVH_FEATURE(BVH_HAIR) || !defined(__KERNEL_AVX2__)
 			org4 = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
 #  endif
-
-			ray_triangle_intersect_precalc(dir, &isect_precalc);
 
 			object = OBJECT_NONE;
 			node_addr = traversal_stack[stack_ptr].addr;

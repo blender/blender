@@ -22,25 +22,16 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Ray-Triangle intersection for BVH traversal
- *
- * Sven Woop
- * Watertight Ray/Triangle Intersection
- *
- * http://jcgt.org/published/0002/01/05/paper.pdf
- */
-
 ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
-                                          const TriangleIsectPrecalc *isect_precalc,
                                           Intersection *isect,
                                           float3 P,
+                                          float3 dir,
                                           uint visibility,
                                           int object,
                                           int prim_addr)
 {
 	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
-
-#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
 	const ssef *ssef_verts = (ssef*)&kg->__prim_tri_verts.data[tri_vindex];
 #else
 	const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex+0),
@@ -48,9 +39,10 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	             tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex+2);
 #endif
 	float t, u, v;
-	if(ray_triangle_intersect(isect_precalc,
-	                          P, isect->t,
-#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+	if(ray_triangle_intersect(P,
+	                          dir,
+	                          isect->t,
+#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
 	                          ssef_verts,
 #else
 	                          float4_to_float3(tri_a),
@@ -86,9 +78,9 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 #ifdef __SUBSURFACE__
 ccl_device_inline void triangle_intersect_subsurface(
         KernelGlobals *kg,
-        const TriangleIsectPrecalc *isect_precalc,
         SubsurfaceIntersection *ss_isect,
         float3 P,
+        float3 dir,
         int object,
         int prim_addr,
         float tmax,
@@ -96,8 +88,7 @@ ccl_device_inline void triangle_intersect_subsurface(
         int max_hits)
 {
 	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
-
-#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
 	const ssef *ssef_verts = (ssef*)&kg->__prim_tri_verts.data[tri_vindex];
 #else
 	const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+0)),
@@ -105,14 +96,13 @@ ccl_device_inline void triangle_intersect_subsurface(
 	             tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+2));
 #endif
 	float t, u, v;
-	if(!ray_triangle_intersect(isect_precalc,
-	                           P, tmax,
-#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+	if(!ray_triangle_intersect(P,
+	                           dir,
+	                           tmax,
+#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
 	                           ssef_verts,
 #else
-	                           tri_a,
-	                           tri_b,
-	                           tri_c,
+	                           tri_a, tri_b, tri_c,
 #endif
 	                           &u, &v, &t))
 	{
@@ -150,15 +140,14 @@ ccl_device_inline void triangle_intersect_subsurface(
 	isect->t = t;
 
 	/* Record geometric normal. */
-	/* TODO(sergey): Check whether it's faster to re-use ssef verts. */
-#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
 	const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+0)),
 	             tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+1)),
 	             tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+2));
 #endif
 	ss_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 }
-#endif
+#endif  /* __SUBSURFACE__ */
 
 /* Refine triangle intersection to more precise hit point. For rays that travel
  * far the precision is often not so good, this reintersects the primitive from

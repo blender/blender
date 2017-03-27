@@ -79,216 +79,106 @@ ccl_device bool ray_aligned_disk_intersect(
 	return true;
 }
 
-/* Optimized watertight ray-triangle intersection.
- *
- * Sven Woop
- * Watertight Ray/Triangle Intersection
- *
- * http://jcgt.org/published/0002/01/05/paper.pdf
- */
-
-/* Precalculated data for the ray->tri intersection. */
-typedef struct TriangleIsectPrecalc {
-	/* Maximal dimension kz, and orthogonal dimensions. */
-	int kx, ky, kz;
-
-	/* Shear constants. */
-	float Sx, Sy, Sz;
-} TriangleIsectPrecalc;
-
-/* Workaround stupidness of CUDA/OpenCL which doesn't allow to access indexed
- * component of float3 value.
- */
-#ifdef __KERNEL_GPU__
-#  define IDX(vec, idx) \
-    ((idx == 0) ? ((vec).x) : ( (idx == 1) ? ((vec).y) : ((vec).z) ))
-#else
-#  define IDX(vec, idx) ((vec)[idx])
-#endif
-
-#if (defined(__KERNEL_OPENCL_APPLE__)) || \
-    (defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86)))
-ccl_device_noinline
-#else
-ccl_device_inline
-#endif
-void ray_triangle_intersect_precalc(float3 dir,
-                                    TriangleIsectPrecalc *isect_precalc)
-{
-	/* Calculate dimension where the ray direction is maximal. */
-#ifndef __KERNEL_SSE__
-	int kz = util_max_axis(make_float3(fabsf(dir.x),
-	                                   fabsf(dir.y),
-	                                   fabsf(dir.z)));
-	int kx = kz + 1; if(kx == 3) kx = 0;
-	int ky = kx + 1; if(ky == 3) ky = 0;
-#else
-	int kx, ky, kz;
-	/* Avoiding mispredicted branch on direction. */
-	kz = util_max_axis(fabs(dir));
-	static const char inc_xaxis[] = {1, 2, 0, 55};
-	static const char inc_yaxis[] = {2, 0, 1, 55};
-	kx = inc_xaxis[kz];
-	ky = inc_yaxis[kz];
-#endif
-
-	float dir_kz = IDX(dir, kz);
-
-	/* Swap kx and ky dimensions to preserve winding direction of triangles. */
-	if(dir_kz < 0.0f) {
-		int tmp = kx;
-		kx = ky;
-		ky = tmp;
-	}
-
-	/* Calculate the shear constants. */
-	float inv_dir_z = 1.0f / dir_kz;
-	isect_precalc->Sx = IDX(dir, kx) * inv_dir_z;
-	isect_precalc->Sy = IDX(dir, ky) * inv_dir_z;
-	isect_precalc->Sz = inv_dir_z;
-
-	/* Store the dimensions. */
-	isect_precalc->kx = kx;
-	isect_precalc->ky = ky;
-	isect_precalc->kz = kz;
-}
-
 ccl_device_forceinline bool ray_triangle_intersect(
-        const TriangleIsectPrecalc *isect_precalc,
-        float3 ray_P, float ray_t,
-#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
+        float3 ray_P, float3 ray_dir, float ray_t,
+#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
         const ssef *ssef_verts,
 #else
         const float3 tri_a, const float3 tri_b, const float3 tri_c,
 #endif
         float *isect_u, float *isect_v, float *isect_t)
 {
-	const int kx = isect_precalc->kx;
-	const int ky = isect_precalc->ky;
-	const int kz = isect_precalc->kz;
-	const float Sx = isect_precalc->Sx;
-	const float Sy = isect_precalc->Sy;
-	const float Sz = isect_precalc->Sz;
-
-#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
-	const avxf avxf_P(ray_P.m128, ray_P.m128);
-	const avxf tri_ab(_mm256_loadu_ps((float *)(ssef_verts)));
-	const avxf tri_bc(_mm256_loadu_ps((float *)(ssef_verts + 1)));
-
-	const avxf AB = tri_ab - avxf_P;
-	const avxf BC = tri_bc - avxf_P;
-
-	const __m256i permute_mask = _mm256_set_epi32(0x3, kz, ky, kx, 0x3, kz, ky, kx);
-
-	const avxf AB_k = shuffle(AB, permute_mask);
-	const avxf BC_k = shuffle(BC, permute_mask);
-
-	/* Akz, Akz, Bkz, Bkz, Bkz, Bkz, Ckz, Ckz */
-	const avxf ABBC_kz = shuffle<2>(AB_k, BC_k);
-
-	/* Akx, Aky, Bkx, Bky, Bkx,Bky, Ckx, Cky */
-	const avxf ABBC_kxy = shuffle<0,1,0,1>(AB_k, BC_k);
-
-	const avxf Sxy(Sy, Sx, Sy, Sx);
-
-	/* Ax, Ay, Bx, By, Bx, By, Cx, Cy */
-	const avxf ABBC_xy = nmadd(ABBC_kz, Sxy, ABBC_kxy);
-
-	float ABBC_kz_array[8];
-	_mm256_storeu_ps((float*)&ABBC_kz_array, ABBC_kz);
-
-	const float A_kz = ABBC_kz_array[0];
-	const float B_kz = ABBC_kz_array[2];
-	const float C_kz = ABBC_kz_array[6];
-
-	/* By, Bx, Cy, Cx, By, Bx, Ay, Ax */
-	const avxf BCBA_yx = permute<3,2,7,6,3,2,1,0>(ABBC_xy);
-
-	const avxf neg_mask(0,0,0,0,0x80000000, 0x80000000, 0x80000000, 0x80000000);
-
-	/* W           U                             V
-	 * (AxBy-AyBx) (BxCy-ByCx) XX XX (BxBy-ByBx) (CxAy-CyAx) XX XX
-	 */
-	const avxf WUxxxxVxx_neg = _mm256_hsub_ps(ABBC_xy * BCBA_yx, neg_mask /* Dont care */);
-
-	const avxf WUVWnegWUVW = permute<0,1,5,0,0,1,5,0>(WUxxxxVxx_neg) ^ neg_mask;
-
-	/* Calculate scaled barycentric coordinates. */
-	float WUVW_array[4];
-	_mm_storeu_ps((float*)&WUVW_array, _mm256_castps256_ps128 (WUVWnegWUVW));
-
-	const float W = WUVW_array[0];
-	const float U = WUVW_array[1];
-	const float V = WUVW_array[2];
-
-	const int WUVW_mask = 0x7 & _mm256_movemask_ps(WUVWnegWUVW);
-	const int WUVW_zero = 0x7 & _mm256_movemask_ps(_mm256_cmp_ps(WUVWnegWUVW,
-	                                               _mm256_setzero_ps(), 0));
-
-	if(!((WUVW_mask == 7) || (WUVW_mask == 0)) && ((WUVW_mask | WUVW_zero) != 7)) {
-		return false;
-	}
+#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
+	typedef ssef float3;
+	const float3 tri_a(ssef_verts[0]);
+	const float3 tri_b(ssef_verts[1]);
+	const float3 tri_c(ssef_verts[2]);
+	const float3 P(ray_P);
+	const float3 dir(ray_dir);
 #else
+#  define dot3(a, b) dot(a, b)
+	const float3 P = ray_P;
+	const float3 dir = ray_dir;
+#endif
+
 	/* Calculate vertices relative to ray origin. */
-	const float3 A = make_float3(tri_a.x - ray_P.x, tri_a.y - ray_P.y, tri_a.z - ray_P.z);
-	const float3 B = make_float3(tri_b.x - ray_P.x, tri_b.y - ray_P.y, tri_b.z - ray_P.z);
-	const float3 C = make_float3(tri_c.x - ray_P.x, tri_c.y - ray_P.y, tri_c.z - ray_P.z);
+	const float3 v0 = tri_c - P;
+	const float3 v1 = tri_a - P;
+	const float3 v2 = tri_b - P;
 
-	const float A_kx = IDX(A, kx), A_ky = IDX(A, ky), A_kz = IDX(A, kz);
-	const float B_kx = IDX(B, kx), B_ky = IDX(B, ky), B_kz = IDX(B, kz);
-	const float C_kx = IDX(C, kx), C_ky = IDX(C, ky), C_kz = IDX(C, kz);
+	/* Calculate triangle edges. */
+	const float3 e0 = v2 - v0;
+	const float3 e1 = v0 - v1;
+	const float3 e2 = v1 - v2;
 
-	/* Perform shear and scale of vertices. */
-	const float Ax = A_kx - Sx * A_kz;
-	const float Ay = A_ky - Sy * A_kz;
-	const float Bx = B_kx - Sx * B_kz;
-	const float By = B_ky - Sy * B_kz;
-	const float Cx = C_kx - Sx * C_kz;
-	const float Cy = C_ky - Sy * C_kz;
+	/* Perform edge tests. */
+#ifdef __KERNEL_SSE2__
+	const float3 crossU = cross(v2 + v0, e0);
+	const float3 crossV = cross(v0 + v1, e1);
+	const float3 crossW = cross(v1 + v2, e2);
+#  ifndef __KERNEL_SSE__
+	const ssef crossX(crossU.x, crossV.x, crossW.x, crossW.x);
+	const ssef crossY(crossU.y, crossV.y, crossW.y, crossW.y);
+	const ssef crossZ(crossU.z, crossV.z, crossW.z, crossW.z);
+#  else
+	ssef crossX(crossU);
+	ssef crossY(crossV);
+	ssef crossZ(crossW);
+	ssef zero = _mm_setzero_ps();
+	_MM_TRANSPOSE4_PS(crossX, crossY, crossZ, zero);
+#  endif
+	const ssef dirX(ray_dir.x);
+	const ssef dirY(ray_dir.y);
+	const ssef dirZ(ray_dir.z);
+	/*const*/ ssef UVWW = crossX*dirX + crossY*dirY + crossZ*dirZ;
+	const float minUVW = reduce_min(UVWW);
+	const float maxUVW = reduce_max(UVWW);
+#else  /* __KERNEL_SSE2__ */
+	const float U = dot(cross(v2 + v0, e0), ray_dir);
+	const float V = dot(cross(v0 + v1, e1), ray_dir);
+	const float W = dot(cross(v1 + v2, e2), ray_dir);
+	const float minUVW = min(U, min(V, W));
+	const float maxUVW = max(U, max(V, W));
+#endif  /* __KERNEL_SSE2__ */
 
-	/* Calculate scaled barycentric coordinates. */
-	float U = Cx * By - Cy * Bx;
-	float V = Ax * Cy - Ay * Cx;
-	float W = Bx * Ay - By * Ax;
-	if((U < 0.0f || V < 0.0f || W < 0.0f) &&
-	   (U > 0.0f || V > 0.0f || W > 0.0f))
-	{
+	if(minUVW < 0.0f && maxUVW > 0.0f) {
 		return false;
 	}
-#endif
 
-	/* Calculate determinant. */
-	float det = U + V + W;
-	if(UNLIKELY(det == 0.0f)) {
+	/* Calculate geometry normal and denominator. */
+	const float3 Ng1 = cross(e1, e0);
+	//const Vec3vfM Ng1 = stable_triangle_normal(e2,e1,e0);
+	const float3 Ng = Ng1 + Ng1;
+	const float den = dot3(Ng, dir);
+	/* Avoid division by 0. */
+	if(UNLIKELY(den == 0.0f)) {
 		return false;
 	}
 
-	/* Calculate scaled z-coordinates of vertices and use them to calculate
-	 * the hit distance.
-	 */
-	const float T = (U * A_kz + V * B_kz + W * C_kz) * Sz;
-	const int sign_det = (__float_as_int(det) & 0x80000000);
-	const float sign_T = xor_signmask(T, sign_det);
+	/* Perform depth test. */
+	const float T = dot3(v0, Ng);
+	const int sign_den = (__float_as_int(den) & 0x80000000);
+	const float sign_T = xor_signmask(T, sign_den);
 	if((sign_T < 0.0f) ||
-	   (sign_T > ray_t * xor_signmask(det, sign_det)))
+	   (sign_T > ray_t * xor_signmask(den, sign_den)))
 	{
 		return false;
 	}
 
-	/* Workaround precision error on CUDA. */
-#ifdef __KERNEL_CUDA__
-	if(A == B && B == C) {
-		return false;
-	}
+	const float inv_den = 1.0f / den;
+#ifdef __KERNEL_SSE2__
+	UVWW *= inv_den;
+	_mm_store_ss(isect_u, UVWW);
+	_mm_store_ss(isect_v, shuffle<1,1,3,3>(UVWW));
+#else
+	*isect_u = U * inv_den;
+	*isect_v = V * inv_den;
 #endif
-	const float inv_det = 1.0f / det;
-	*isect_u = U * inv_det;
-	*isect_v = V * inv_det;
-	*isect_t = T * inv_det;
+	*isect_t = T * inv_den;
 	return true;
-}
 
-#undef IDX
+#undef dot3
+}
 
 ccl_device bool ray_quad_intersect(float3 ray_P, float3 ray_D,
                                    float ray_mint, float ray_maxt,

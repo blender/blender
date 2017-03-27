@@ -101,9 +101,6 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif  /* __KERNEL_SSE2__ */
 
-	TriangleIsectPrecalc isect_precalc;
-	ray_triangle_intersect_precalc(dir, &isect_precalc);
-
 	/* traversal loop */
 	do {
 		do {
@@ -209,9 +206,9 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						switch(p_type) {
 							case PRIMITIVE_TRIANGLE: {
 								hit = triangle_intersect(kg,
-								                         &isect_precalc,
 								                         isect_array,
 								                         P,
+								                         dir,
 								                         PATH_RAY_SHADOW,
 								                         object,
 								                         prim_addr);
@@ -220,9 +217,9 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
 							case PRIMITIVE_MOTION_TRIANGLE: {
 								hit = motion_triangle_intersect(kg,
-								                                &isect_precalc,
 								                                isect_array,
 								                                P,
+								                                dir,
 								                                ray->time,
 								                                PATH_RAY_SHADOW,
 								                                object,
@@ -325,7 +322,6 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					isect_t = bvh_instance_push(kg, object, ray, &P, &dir, &idir, isect_t);
 #  endif
 
-					ray_triangle_intersect_precalc(dir, &isect_precalc);
 					num_hits_in_instance = 0;
 					isect_array->t = isect_t;
 
@@ -365,8 +361,6 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
 #  endif
 
-				ray_triangle_intersect_precalc(dir, &isect_precalc);
-
 				/* scale isect->t to adjust for instancing */
 				for(int i = 0; i < num_hits_in_instance; i++) {
 					(isect_array-i-1)->t *= t_fac;
@@ -378,7 +372,6 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #  else
 				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, FLT_MAX);
 #  endif
-				ray_triangle_intersect_precalc(dir, &isect_precalc);
 			}
 
 			isect_t = tmax;
