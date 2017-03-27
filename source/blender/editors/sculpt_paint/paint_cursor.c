@@ -606,20 +606,20 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		glDepthFunc(GL_ALWAYS);
 
 		glMatrixMode(GL_TEXTURE);
-		gpuPushMatrix();
-		gpuLoadIdentity();
+		glPushMatrix(); /* TEXTURE */
+		glLoadIdentity(); /* TEXTURE */
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* brush rotation */
-			gpuTranslate2f(0.5, 0.5);
-			gpuRotate2D(RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
-			gpuTranslate2f(-0.5f, -0.5f);
+			glTranslatef(0.5, 0.5, 0); /* TEXTURE */
+			glRotatef(RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec), 0, 0, 1);  /* TEXTURE */
+			glTranslatef(-0.5f, -0.5f, 0); /* TEXTURE */
 
 			/* scale based on tablet pressure */
 			if (primary && ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
-				gpuTranslate2f(0.5f, 0.5f);
-				gpuScaleUniform(1.0f / ups->size_pressure_value);
-				gpuTranslate2f(-0.5f, -0.5f);
+				glTranslatef(0.5f, 0.5f, 0); /* TEXTURE */
+				glScalef(1.0f / ups->size_pressure_value, 1.0f / ups->size_pressure_value, 1.0f / ups->size_pressure_value); /* TEXTURE */
+				glTranslatef(-0.5f, -0.5f, 0); /* TEXTURE */
 			}
 
 			if (ups->draw_anchored) {
@@ -697,7 +697,7 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 
 		immUnbindProgram();
 
-		gpuPopMatrix();
+		glPopMatrix(); /* TEXTURE */
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
 			glMatrixMode(GL_MODELVIEW);

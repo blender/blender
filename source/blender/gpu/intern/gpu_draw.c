@@ -420,7 +420,7 @@ void GPU_clear_tpage(bool force)
 	GTS.curima = NULL;
 	if (GTS.curtilemode != 0) {
 		glMatrixMode(GL_TEXTURE);
-		gpuLoadIdentity();
+		glLoadIdentity(); /* TEXTURE */
 		glMatrixMode(GL_MODELVIEW);
 	}
 	GTS.curtilemode = 0;
@@ -604,10 +604,10 @@ int GPU_verify_image(
 	    GTS.curtileYRep != GTS.tileYRep)
 	{
 		glMatrixMode(GL_TEXTURE);
-		gpuLoadIdentity();
+		glLoadIdentity(); /* TEXTURE */
 
 		if (ima && (ima->tpageflag & IMA_TILES))
-			gpuScale2f(ima->xrep, ima->yrep);
+			glScalef(ima->xrep, ima->yrep, 0); /* TEXTURE */
 
 		glMatrixMode(GL_MODELVIEW);
 	}
@@ -2096,7 +2096,7 @@ void GPU_end_object_materials(void)
 	/* resetting the texture matrix after the scaling needed for tiled textures */
 	if (GTS.tilemode) {
 		glMatrixMode(GL_TEXTURE);
-		gpuLoadIdentity();
+		glLoadIdentity(); /* TEXTURE */
 		glMatrixMode(GL_MODELVIEW);
 	}
 }
@@ -2286,7 +2286,7 @@ void GPU_state_init(void)
 	glDepthRange(0.0, 1.0);
 
 	glMatrixMode(GL_TEXTURE);
-	gpuLoadIdentity();
+	glLoadIdentity(); /* TEXTURE */
 	glMatrixMode(GL_MODELVIEW);
 
 	glFrontFace(GL_CCW);
