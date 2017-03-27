@@ -157,6 +157,9 @@ void do_versions_after_linking_280(Main *main)
 					else {
 						ob_base->flag &= ~BASE_SELECTED;
 					}
+
+					/* keep lay around for forward compatibility (open those files in 2.79) */
+					ob_base->lay = base->lay;
 				}
 
 				/* TODO: copy scene render data to layer */
