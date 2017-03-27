@@ -48,11 +48,11 @@ std::ostream& operator <<(std::ostream &os,
 	os << "Max nodes group: " << requested_features.max_nodes_group << std::endl;
 	/* TODO(sergey): Decode bitflag into list of names. */
 	os << "Nodes features: " << requested_features.nodes_features << std::endl;
-	os << "Use hair: "
+	os << "Use Hair: "
 	   << string_from_bool(requested_features.use_hair) << std::endl;
-	os << "Use object motion: "
+	os << "Use Object Motion: "
 	   << string_from_bool(requested_features.use_object_motion) << std::endl;
-	os << "Use camera motion: "
+	os << "Use Camera Motion: "
 	   << string_from_bool(requested_features.use_camera_motion) << std::endl;
 	os << "Use Baking: "
 	   << string_from_bool(requested_features.use_baking) << std::endl;
