@@ -9,10 +9,10 @@ uniform sampler2D outlineDepth;
 uniform float alpha;
 uniform bool doExpand;
 
-void search_outline(ivec2 uv, ivec2 offset, inout bool found_edge)
+void search_outline(ivec2 uv, inout bool found_edge)
 {
 	if (!found_edge) {
-		vec4 color = texelFetchOffset(outlineColor, uv, 0, offset).rgba;
+		vec4 color = texelFetch(outlineColor, uv, 0).rgba;
 		if (color.a != 0.0) {
 			if (doExpand || color.a != 1.0) {
 				FragColor = color;
@@ -32,10 +32,10 @@ void main()
 		return;
 
 	bool found_edge = false;
-	search_outline(uv, ivec2( 1,  0), found_edge);
-	search_outline(uv, ivec2( 0,  1), found_edge);
-	search_outline(uv, ivec2(-1,  0), found_edge);
-	search_outline(uv, ivec2( 0, -1), found_edge);
+	search_outline(uv + ivec2( 1,  0), found_edge);
+	search_outline(uv + ivec2( 0,  1), found_edge);
+	search_outline(uv + ivec2(-1,  0), found_edge);
+	search_outline(uv + ivec2( 0, -1), found_edge);
 
 	/* We Hit something ! */
 	if (found_edge) {
