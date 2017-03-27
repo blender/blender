@@ -48,7 +48,6 @@
 
 #include "BIF_gl.h"
 
-#include "GPU_debug.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 

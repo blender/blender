@@ -33,8 +33,6 @@
 #include "BKE_global.h"
 
 #include "GPU_batch.h"
-#include "GPU_debug.h"
-#include "GPU_glew.h"
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
