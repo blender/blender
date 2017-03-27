@@ -4,6 +4,6 @@ varying vec4 v_position;
 
 void main()
 {
-	gl_Position = ModelViewProjectionMatrix * v_position;
+	gl_Position = ModelViewProjectionMatrix * gl_Vertex;
 	v_position = gl_Position;
 }
