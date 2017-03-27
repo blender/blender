@@ -30,9 +30,12 @@
 #define MAX_LIGHT 210 /* TODO : find size by dividing UBO max size by light data size */
 
 typedef struct EEVEE_Light {
-	float position[3], pad;
+	float position[3], dist;
 	float color[3], spec;
-	float spot_size, spot_blend, area_x, area_y;
+	float spotsize, spotblend, radius, shadowid;
+	float rightvec[3], sizex;
+	float upvec[3], sizey;
+	float forwardvec[3], lamptype;
 } EEVEE_Light;
 
 
@@ -88,11 +91,44 @@ void EEVEE_lights_update(EEVEE_StorageList *stl)
 		EEVEE_Light *evli = stl->lights_data + i;
 		Object *ob = stl->lights_ref[i];
 		Lamp *la = (Lamp *)ob->data;
+		float mat[4][4], scale[3];
 
+		/* Position */
 		copy_v3_v3(evli->position, ob->obmat[3]);
+
+		/* Color */
 		evli->color[0] = la->r * la->energy;
 		evli->color[1] = la->g * la->energy;
 		evli->color[2] = la->b * la->energy;
+
+		/* Influence Radius */
+		evli->dist = la->dist;
+
+		/* Vectors */
+		normalize_m4_m4_ex(mat, ob->obmat, scale);
+		copy_v3_v3(evli->forwardvec, mat[2]);
+		normalize_v3(evli->forwardvec);
+		negate_v3(evli->forwardvec);
+
+		copy_v3_v3(evli->rightvec, mat[0]);
+		normalize_v3(evli->rightvec);
+
+		copy_v3_v3(evli->upvec, mat[1]);
+		normalize_v3(evli->upvec);
+
+		/* Spot size & blend */
+		if (la->type == LA_SPOT) {
+			evli->sizex = scale[0] / scale[2];
+			evli->sizey = scale[1] / scale[2];
+			evli->spotsize = cosf(la->spotsize * 0.5f);
+			evli->spotblend = (1.0f - evli->spotsize) * la->spotblend;
+		}
+		// else if (la->type == LA_SPOT) {
+
+		// }
+
+		/* Lamp Type */
+		evli->lamptype = (float)la->type;
 	}
 
 	/* Upload buffer to GPU */

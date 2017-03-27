@@ -25,6 +25,8 @@
 
 #include "DRW_render.h"
 
+#include "BLI_dynstr.h"
+
 #include "eevee.h"
 #include "eevee_private.h"
 
@@ -37,6 +39,8 @@ static struct {
 	struct GPUShader *tonemap;
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_bsdf_common_lib_glsl[];
+extern char datatoc_bsdf_direct_lib_glsl[];
 extern char datatoc_lit_surface_frag_glsl[];
 extern char datatoc_lit_surface_vert_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
@@ -61,7 +65,17 @@ static void EEVEE_engine_init(void *vedata)
 	}
 
 	if (!e_data.default_lit) {
-		e_data.default_lit = DRW_shader_create(datatoc_lit_surface_vert_glsl, NULL, datatoc_lit_surface_frag_glsl, "#define MAX_LIGHT 128\n");
+		char *lib_str = NULL;
+
+		DynStr *ds_vert = BLI_dynstr_new();
+		BLI_dynstr_append(ds_vert, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_vert, datatoc_bsdf_direct_lib_glsl);
+		lib_str = BLI_dynstr_get_cstring(ds_vert);
+		BLI_dynstr_free(ds_vert);
+
+		e_data.default_lit = DRW_shader_create_with_lib(datatoc_lit_surface_vert_glsl, NULL, datatoc_lit_surface_frag_glsl, lib_str, "#define MAX_LIGHT 128\n");
+
+		MEM_freeN(lib_str);
 	}
 
 	if (!e_data.tonemap) {

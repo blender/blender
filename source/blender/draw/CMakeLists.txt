@@ -103,6 +103,8 @@ data_to_c_simple(engines/clay/shaders/ssao_groundtruth.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lit_surface_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lit_surface_vert.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/tonemap_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/bsdf_direct_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/bsdf_common_lib.glsl SRC)
 
 data_to_c_simple(modes/shaders/common_globals_lib.glsl SRC)
 data_to_c_simple(modes/shaders/edit_overlay_frag.glsl SRC)
