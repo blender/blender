@@ -2277,12 +2277,6 @@ void GPU_state_init(void)
 	glDisable(GL_TEXTURE_2D);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	/* default disabled, enable should be local per function */
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
 	glDepthRange(0.0, 1.0);
 
 	glMatrixMode(GL_TEXTURE);
@@ -2294,8 +2288,6 @@ void GPU_state_init(void)
 	glDisable(GL_CULL_FACE);
 
 	gpu_multisample(false);
-
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
 void GPU_enable_program_point_size(void)
