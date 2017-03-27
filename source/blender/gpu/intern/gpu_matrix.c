@@ -92,18 +92,6 @@ void gpuMatrixBegin3D(void)
 	unit_m4(Projection3D);
 }
 
-#if SUPPORT_LEGACY_MATRIX
-void gpuMatrixBegin3D_legacy(void)
-{
-	/* copy top matrix from each legacy stack into new fresh stack */
-	state.mode = MATRIX_MODE_3D;
-	state.top = 0;
-	state.dirty = true;
-	glGetFloatv(GL_MODELVIEW_MATRIX, (float*)ModelView3D);
-	glGetFloatv(GL_PROJECTION_MATRIX, (float*)Projection3D);
-}
-#endif
-
 void gpuMatrixEnd(void)
 {
 	state.mode = MATRIX_MODE_INACTIVE;

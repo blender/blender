@@ -131,12 +131,6 @@ const float *gpuGetNormalMatrix(float m[3][3]);
 const float *gpuGetNormalMatrixInverse(float m[3][3]);
 
 
-#if SUPPORT_LEGACY_MATRIX
-/* copy top matrix from each legacy stack into new fresh stack */
-void gpuMatrixBegin3D_legacy(void);
-#endif
-
-
 /* set uniform values for currently bound shader */
 void gpuBindMatrices(GLuint program);
 bool gpuMatricesDirty(void); /* since last bind */
