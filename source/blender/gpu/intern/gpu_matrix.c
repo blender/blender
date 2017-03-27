@@ -81,7 +81,7 @@ void gpuMatrixBegin2D(void)
 	state.mode = MATRIX_MODE_2D;
 	state.top = 0;
 	unit_m3(ModelView2D);
-	gpuOrtho2D(-1.0f, +1.0f, -1.0f, +1.0f); // or identity?
+	unit_m3(Projection2D);
 }
 
 void gpuMatrixBegin3D(void)
@@ -89,7 +89,7 @@ void gpuMatrixBegin3D(void)
 	state.mode = MATRIX_MODE_3D;
 	state.top = 0;
 	unit_m4(ModelView3D);
-	gpuOrtho(-1.0f, +1.0f, -1.0f, +1.0f, -1.0f, +1.0f); // or identity?
+	unit_m4(Projection3D);
 }
 
 #if SUPPORT_LEGACY_MATRIX
@@ -485,7 +485,7 @@ static void mat4_ortho_set(float m[4][4], float left, float right, float bottom,
 	state.dirty = true;
 }
 
-static void mat4_frustum_set(float m[][4], float left, float right, float bottom, float top, float near, float far)
+static void mat4_frustum_set(float m[4][4], float left, float right, float bottom, float top, float near, float far)
 {
 	m[0][0] = 2.0f * near / (right - left);
 	m[1][0] = 0.0f;
@@ -782,11 +782,11 @@ const float *gpuGetProjectionMatrix3D(float m[4][4])
 	BLI_assert(state.mode == MATRIX_MODE_3D);
 
 	if (m) {
-		copy_m4_m4(m, ModelView3D);
+		copy_m4_m4(m, Projection3D);
 		return (const float*)m;
 	}
 	else {
-		return (const float*)ModelView3D;
+		return (const float*)Projection3D;
 	}
 }
 
@@ -888,6 +888,27 @@ void gpuBindMatrices(GLuint program)
 		#endif
 
 		glUniformMatrix3fv(loc_N, 1, GL_FALSE, gpuGetNormalMatrix(NULL));
+	}
+
+	/* also needed by material.glsl
+	 * - ProjectionMatrixInverse
+	 * - ModelViewMatrixInverse
+	 */
+	GLint loc_MV_inv = glGetUniformLocation(program, "ModelViewInverseMatrix");
+	GLint loc_P_inv = glGetUniformLocation(program, "ProjectionInverseMatrix");
+
+	if (loc_MV_inv != -1) {
+		Mat4 m;
+		gpuGetModelViewMatrix3D(m);
+		invert_m4(m);
+		glUniformMatrix4fv(loc_MV_inv, 1, GL_FALSE, (const float*) m);
+	}
+
+	if (loc_P_inv != -1) {
+		Mat4 m;
+		gpuGetProjectionMatrix3D(m);
+		invert_m4(m);
+		glUniformMatrix4fv(loc_P_inv, 1, GL_FALSE, (const float*) m);
 	}
 
 	state.dirty = false;
