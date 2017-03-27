@@ -1,6 +1,11 @@
 
 uniform mat4 ModelViewProjectionMatrix;
-varying vec4 v_position;
+
+#if __VERSION__ == 120
+  varying vec4 v_position;
+#else
+  out vec4 v_position;
+#endif
 
 void main()
 {

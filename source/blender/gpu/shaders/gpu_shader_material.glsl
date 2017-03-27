@@ -5,6 +5,14 @@ uniform mat4 ModelViewMatrixInverse;
 uniform mat4 ProjectionMatrixInverse;
 uniform mat3 NormalMatrix;
 
+#if __VERSION__ == 120
+  #define fragColor gl_FragColor
+#else
+  out vec4 fragColor;
+  #define texture2D texture
+  #define textureCube texture
+#endif
+
 /* Converters */
 
 float convert_rgba_to_float(vec4 color)

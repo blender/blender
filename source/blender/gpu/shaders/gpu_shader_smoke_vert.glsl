@@ -1,7 +1,11 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 
-varying vec3 coords;
+#if __VERSION__ == 120
+  varying vec3 coords;
+#else
+  out vec3 coords;
+#endif
 
 uniform vec3 min_location;
 uniform vec3 invsize;
