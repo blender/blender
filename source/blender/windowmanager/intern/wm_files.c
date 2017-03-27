@@ -777,11 +777,6 @@ int wm_homefile_read(
 		if (BLI_listbase_is_empty(&wmbase)) {
 			wm_clear_default_size(C);
 		}
-#ifdef WITH_PYTHON_SECURITY
-		/* use alternative setting for security nuts
-		 * otherwise we'd need to patch the binary blob - startup.blend.c */
-		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
-#endif
 	}
 
 	/* Load template preferences,

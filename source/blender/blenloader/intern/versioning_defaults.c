@@ -72,6 +72,14 @@ void BLO_update_defaults_userpref_blend(void)
 	/* default so DPI is detected automatically */
 	U.dpi = 0;
 	U.ui_scale = 1.0f;
+
+#ifdef WITH_PYTHON_SECURITY
+	/* use alternative setting for security nuts
+	 * otherwise we'd need to patch the binary blob - startup.blend.c */
+	U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
+#else
+	U.flag &= ~USER_SCRIPT_AUTOEXEC_DISABLE;
+#endif
 }
 
 /**

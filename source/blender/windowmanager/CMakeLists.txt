@@ -128,10 +128,6 @@ if(WITH_PYTHON)
 		../python
 	)
 	add_definitions(-DWITH_PYTHON)
-
-	if(WITH_PYTHON_SECURITY)
-		add_definitions(-DWITH_PYTHON_SECURITY)
-	endif()
 endif()
 
 if(WITH_GAMEENGINE)
