@@ -45,7 +45,7 @@ void main()
 	if (float(uv.x) < viewportSize.x - 1.0)
 		search_outline(uv, ivec2( 1,  0), ref_col, ref_occlu, outline);
 
-	if (float(uv.y) < viewportSize.x - 1.0)
+	if (float(uv.y) < viewportSize.y - 1.0)
 		search_outline(uv, ivec2( 0,  1), ref_col, ref_occlu, outline);
 
 	if (float(uv.x) > 0)
