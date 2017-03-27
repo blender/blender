@@ -428,7 +428,6 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
 		DRW_shgroup_uniform_buffer(grp, "sceneDepth", &dtxl->depth, 2);
 		DRW_shgroup_uniform_float(grp, "alphaOcclu", &alphaOcclu, 1);
-		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->outlines_expand = DRW_pass_create("Outlines Expand Pass", state);
