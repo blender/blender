@@ -1,3 +1,6 @@
+
+uniform mat4 ProjectionMatrix;
+
 uniform int PrimitiveIdBase;
 uniform int osd_active_uv_offset;
 
@@ -69,7 +72,7 @@ void emit_flat(int index, vec3 normal)
 
 	set_mtface_vertex_attrs(st);
 
-	gl_Position = gl_ProjectionMatrix * inpt[index].v.position;
+	gl_Position = ProjectionMatrix * inpt[index].v.position;
 	EmitVertex();
 }
 
@@ -90,7 +93,7 @@ void emit_smooth(int index)
 
 	set_mtface_vertex_attrs(st);
 
-	gl_Position = gl_ProjectionMatrix * inpt[index].v.position;
+	gl_Position = ProjectionMatrix * inpt[index].v.position;
 	EmitVertex();
 }
 

@@ -21,6 +21,10 @@
 #define STIPPLE_DIAG_STRIPES                           4
 #define STIPPLE_DIAG_STRIPES_SWAP                      5
 
+#ifndef NO_SPECULAR
+uniform mat4 ProjectionMatrix;
+#endif
+
 #if defined(USE_SOLID_LIGHTING) || defined(USE_SCENE_LIGHTING)
 #if defined(USE_FLAT_NORMAL)
 varying vec3 eyespace_vert_pos;
@@ -163,7 +167,7 @@ void main()
 
 #ifndef NO_SPECULAR
 	/* view vector computation, depends on orthographics or perspective */
-	vec3 V = (gl_ProjectionMatrix[3][3] == 0.0) ? normalize(varying_position) : vec3(0.0, 0.0, -1.0);
+	vec3 V = (ProjectionMatrix[3][3] == 0.0) ? normalize(varying_position) : vec3(0.0, 0.0, -1.0);
 #endif
 
 	for (int i = 0; i < NUM_SCENE_LIGHTS; i++) {
