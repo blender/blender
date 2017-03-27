@@ -786,6 +786,8 @@ class CyclesObject_PT_cycles_settings(CyclesButtonsPanel, Panel):
         if ob.type != 'LAMP':
             flow.prop(visibility, "shadow")
 
+        layout.prop(cob, "is_shadow_catcher")
+
         col = layout.column()
         col.label(text="Performance:")
         row = col.row()
@@ -796,9 +798,6 @@ class CyclesObject_PT_cycles_settings(CyclesButtonsPanel, Panel):
         sub = row.row()
         sub.active = scene.render.use_simplify and cscene.use_distance_cull
         sub.prop(cob, "use_distance_cull")
-
-        col = layout.column()
-        col.prop(cob, "is_shadow_catcher")
 
 
 class CYCLES_OT_use_shading_nodes(Operator):
