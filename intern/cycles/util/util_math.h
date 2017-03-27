@@ -774,6 +774,7 @@ template<size_t index_0, size_t index_1, size_t index_2, size_t index_3> __force
 	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(index_3, index_2, index_1, index_0)));
 }
 
+#if defined(__KERNEL_SSE3__)
 template<> __forceinline const float4 shuffle<0, 0, 2, 2>(const float4& b)
 {
 	return _mm_moveldup_ps(b);
@@ -783,6 +784,7 @@ template<> __forceinline const float4 shuffle<1, 1, 3, 3>(const float4& b)
 {
 	return _mm_movehdup_ps(b);
 }
+#endif
 
 template<> __forceinline const float4 shuffle<0, 1, 0, 1>(const float4& b)
 {
