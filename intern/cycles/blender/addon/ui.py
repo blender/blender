@@ -268,7 +268,7 @@ class CyclesRender_PT_geometry(CyclesButtonsPanel, Panel):
 
         row = col.row()
         row.prop(ccscene, "minimum_width", text="Min Pixels")
-        row.prop(ccscene, "maximum_width", text="Max Ext.")
+        row.prop(ccscene, "maximum_width", text="Max Extension")
 
 
 class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
