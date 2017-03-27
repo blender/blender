@@ -2286,10 +2286,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	glClear(GL_DEPTH_BUFFER_BIT);
 //	glDisable(GL_DEPTH_TEST); /* should be set by default */
 
-	glMatrixMode(GL_PROJECTION); //
-	gpuLoadIdentity();           // TODO: replace these lines with gpuMatrixBegin3D
-	glMatrixMode(GL_MODELVIEW);  //
-	gpuLoadIdentity();           //
+	gpuMatrixBegin3D();
 
 	view3d_draw_background(C); /* clears/overwrites entire color buffer */
 
@@ -2312,6 +2309,8 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	view3d_draw_tool_ui(C);
 	view3d_draw_reference_images(C);
 	view3d_draw_manipulator(C);
+
+	gpuMatrixEnd();
 
 	glDisable(GL_DEPTH_TEST);
 
