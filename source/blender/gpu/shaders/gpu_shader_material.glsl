@@ -1,3 +1,10 @@
+
+uniform mat4 ModelViewMatrix;
+uniform mat4 ProjectionMatrix;
+uniform mat4 ModelViewMatrixInverse;
+uniform mat4 ProjectionMatrixInverse;
+uniform mat3 NormalMatrix;
+
 /* Converters */
 
 float convert_rgba_to_float(vec4 color)
