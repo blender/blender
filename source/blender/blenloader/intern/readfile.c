@@ -8457,6 +8457,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_screen(fd, main);
 	lib_link_scene(fd, main);
 	lib_link_object(fd, main);
+	lib_link_mesh(fd, main);
 	lib_link_curve(fd, main);
 	lib_link_mball(fd, main);
 	lib_link_material(fd, main);
@@ -8486,8 +8487,6 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_gpencil(fd, main);
 	lib_link_cachefiles(fd, main);
 
-	lib_link_mesh(fd, main);       /* as last: tpage images with users at zero */
-	
 	lib_link_library(fd, main);    /* only init users */
 }
 
