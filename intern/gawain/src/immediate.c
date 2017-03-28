@@ -160,6 +160,8 @@ static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, Primitive
 		case PRIM_LINE_STRIP:
 		case PRIM_LINE_LOOP:
 			return vertex_ct >= 2;
+		case PRIM_LINE_STRIP_ADJACENCY:
+			return vertex_ct >= 4;
 		case PRIM_TRIANGLES:
 			return vertex_ct % 3 == 0;
 		case PRIM_TRIANGLE_STRIP:
