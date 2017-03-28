@@ -34,10 +34,10 @@
 
 #include <OSL/genclosure.h>
 
-#include "osl_closures.h"
+#include "kernel/osl/osl_closures.h"
 
-#include "kernel_compat_cpu.h"
-#include "closure/alloc.h"
+#include "kernel/kernel_compat_cpu.h"
+#include "kernel/closure/alloc.h"
 
 CCL_NAMESPACE_BEGIN
 

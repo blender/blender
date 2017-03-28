@@ -15,26 +15,26 @@
  * limitations under the License.
  */
 
-#include "bvh_binning.h"
-#include "bvh_build.h"
-#include "bvh_node.h"
-#include "bvh_params.h"
+#include "bvh/bvh_binning.h"
+#include "bvh/bvh_build.h"
+#include "bvh/bvh_node.h"
+#include "bvh/bvh_params.h"
 #include "bvh_split.h"
 
-#include "mesh.h"
-#include "object.h"
-#include "scene.h"
-#include "curves.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/scene.h"
+#include "render/curves.h"
 
-#include "util_algorithm.h"
-#include "util_debug.h"
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_progress.h"
-#include "util_stack_allocator.h"
-#include "util_simd.h"
-#include "util_time.h"
-#include "util_queue.h"
+#include "util/util_algorithm.h"
+#include "util/util_debug.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_progress.h"
+#include "util/util_stack_allocator.h"
+#include "util/util_simd.h"
+#include "util/util_time.h"
+#include "util/util_queue.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "node.h"
-#include "node_type.h"
+#include "graph/node.h"
+#include "graph/node_type.h"
 
-#include "util_foreach.h"
-#include "util_param.h"
-#include "util_transform.h"
+#include "util/util_foreach.h"
+#include "util/util_param.h"
+#include "util/util_transform.h"
 
 CCL_NAMESPACE_BEGIN
 

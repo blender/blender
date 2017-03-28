@@ -16,9 +16,9 @@
 
 #include <cstdlib>
 
-#include "camera.h"
+#include "render/camera.h"
 
-#include "blender_object_cull.h"
+#include "blender/blender_object_cull.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -1,10 +1,7 @@
 remove_extra_strict_flags()
 
 set(INC
-	.
-	../util
-	osl
-	svm
+	..
 )
 
 set(INC_SYS
@@ -309,8 +306,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 					${cuda_math_flags}
 					${cuda_extra_flags}
 					${cuda_debug_flags}
-					-I${CMAKE_CURRENT_SOURCE_DIR}/../util
-					-I${CMAKE_CURRENT_SOURCE_DIR}/svm
+					-I${CMAKE_CURRENT_SOURCE_DIR}/..
 					-DCCL_NAMESPACE_BEGIN=
 					-DCCL_NAMESPACE_END=
 					-DNVCC
@@ -413,33 +409,33 @@ endif()
 #add_custom_target(cycles_kernel_preprocess ALL DEPENDS ${KERNEL_PREPROCESSED})
 #delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${KERNEL_PREPROCESSED}" ${CYCLES_INSTALL_PATH}/kernel)
 
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_state_buffer_size.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_split.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_data_init.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_path_init.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_queue_enqueue.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_scene_intersect.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_lamp_emission.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_do_volume.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_indirect_background.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shader_eval.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_holdout_emission_blurring_pathtermination_ao.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_subsurface_scatter.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_direct_lighting.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocked_ao.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocked_dl.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_next_iteration_setup.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_indirect_subsurface.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_buffer_update.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel.cu" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel_split.cu" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNELS_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/bvh)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/closure)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/svm)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/geom)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SPLIT_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/split)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_state_buffer_size.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_split.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_data_init.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_path_init.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_queue_enqueue.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_scene_intersect.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_lamp_emission.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_do_volume.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_indirect_background.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shader_eval.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_holdout_emission_blurring_pathtermination_ao.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_subsurface_scatter.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_direct_lighting.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocked_ao.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocked_dl.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_next_iteration_setup.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_indirect_subsurface.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_buffer_update.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel.cu" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel_split.cu" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNELS_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/bvh)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/closure)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/svm)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/geom)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/util)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SPLIT_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/split)
 

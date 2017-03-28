@@ -21,8 +21,8 @@
 #include <string.h>
 #endif
 
-#include "util_math.h"
-#include "util_types.h"
+#include "util/util_math.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

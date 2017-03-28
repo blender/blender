@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "camera.h"
-#include "mesh.h"
+#include "render/camera.h"
+#include "render/mesh.h"
 
-#include "subd_dice.h"
-#include "subd_patch.h"
+#include "subd/subd_dice.h"
+#include "subd/subd_patch.h"
 
-#include "util_debug.h"
+#include "util/util_debug.h"
 
 CCL_NAMESPACE_BEGIN
 

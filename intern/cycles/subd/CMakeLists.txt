@@ -1,11 +1,6 @@
 
 set(INC
-	.
-	../graph
-	../kernel
-	../kernel/svm
-	../render
-	../util
+	..
 )
 
 set(INC_SYS

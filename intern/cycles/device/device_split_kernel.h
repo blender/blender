@@ -17,8 +17,8 @@
 #ifndef __DEVICE_SPLIT_KERNEL_H__
 #define __DEVICE_SPLIT_KERNEL_H__
 
-#include "device.h"
-#include "buffers.h"
+#include "device/device.h"
+#include "render/buffers.h"
 
 CCL_NAMESPACE_BEGIN
 

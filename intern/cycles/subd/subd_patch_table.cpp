@@ -25,10 +25,10 @@
  *
  */
 
-#include "subd_patch_table.h"
-#include "kernel_types.h"
+#include "subd/subd_patch_table.h"
+#include "kernel/kernel_types.h"
 
-#include "util_math.h"
+#include "util/util_math.h"
 
 #ifdef WITH_OPENSUBDIV
 #include <opensubdiv/far/patchTable.h>

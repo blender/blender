@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-#include "mesh.h"
-#include "object.h"
-#include "scene.h"
-#include "curves.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/scene.h"
+#include "render/curves.h"
 
-#include "bvh.h"
-#include "bvh_build.h"
-#include "bvh_node.h"
-#include "bvh_params.h"
-#include "bvh_unaligned.h"
+#include "bvh/bvh.h"
+#include "bvh/bvh_build.h"
+#include "bvh/bvh_node.h"
+#include "bvh/bvh_params.h"
+#include "bvh/bvh_unaligned.h"
 
-#include "util_debug.h"
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_map.h"
-#include "util_progress.h"
-#include "util_system.h"
-#include "util_types.h"
-#include "util_math.h"
+#include "util/util_debug.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_map.h"
+#include "util/util_progress.h"
+#include "util/util_system.h"
+#include "util/util_types.h"
+#include "util/util_math.h"
 
 CCL_NAMESPACE_BEGIN
 

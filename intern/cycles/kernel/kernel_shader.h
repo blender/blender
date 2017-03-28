@@ -24,12 +24,12 @@
  *
  */
 
-#include "closure/alloc.h"
-#include "closure/bsdf_util.h"
-#include "closure/bsdf.h"
-#include "closure/emissive.h"
+#include "kernel/closure/alloc.h"
+#include "kernel/closure/bsdf_util.h"
+#include "kernel/closure/bsdf.h"
+#include "kernel/closure/emissive.h"
 
-#include "svm/svm.h"
+#include "kernel/svm/svm.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -34,12 +34,12 @@
 
 #include <OSL/genclosure.h>
 
-#include "osl_closures.h"
+#include "kernel/osl/osl_closures.h"
 
-#include "kernel_compat_cpu.h"
-#include "kernel_types.h"
-#include "closure/alloc.h"
-#include "closure/emissive.h"
+#include "kernel/kernel_compat_cpu.h"
+#include "kernel/kernel_types.h"
+#include "kernel/closure/alloc.h"
+#include "kernel/closure/emissive.h"
 
 CCL_NAMESPACE_BEGIN
 

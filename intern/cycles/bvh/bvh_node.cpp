@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-#include "bvh.h"
-#include "bvh_build.h"
-#include "bvh_node.h"
+#include "bvh/bvh.h"
+#include "bvh/bvh_build.h"
+#include "bvh/bvh_node.h"
 
-#include "util_debug.h"
-#include "util_vector.h"
+#include "util/util_debug.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

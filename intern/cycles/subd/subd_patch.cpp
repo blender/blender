@@ -16,12 +16,12 @@
 
 /* Parts adapted from code in the public domain in NVidia Mesh Tools. */
 
-#include "mesh.h"
+#include "render/mesh.h"
 
-#include "subd_patch.h"
+#include "subd/subd_patch.h"
 
-#include "util_math.h"
-#include "util_types.h"
+#include "util/util_math.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -20,39 +20,39 @@
  * simply includes this file without worry of copying actual implementation over.
  */
 
-#include "kernel_compat_cpu.h"
+#include "kernel/kernel_compat_cpu.h"
 
 #ifndef __SPLIT_KERNEL__
-#  include "kernel_math.h"
-#  include "kernel_types.h"
+#  include "kernel/kernel_math.h"
+#  include "kernel/kernel_types.h"
 
-#  include "split/kernel_split_data.h"
-#  include "kernel_globals.h"
+#  include "kernel/split/kernel_split_data.h"
+#  include "kernel/kernel_globals.h"
 
-#  include "kernel_cpu_image.h"
-#  include "kernel_film.h"
-#  include "kernel_path.h"
-#  include "kernel_path_branched.h"
-#  include "kernel_bake.h"
+#  include "kernel/kernels/cpu/kernel_cpu_image.h"
+#  include "kernel/kernel_film.h"
+#  include "kernel/kernel_path.h"
+#  include "kernel/kernel_path_branched.h"
+#  include "kernel/kernel_bake.h"
 #else
-#  include "split/kernel_split_common.h"
+#  include "kernel/split/kernel_split_common.h"
 
-#  include "split/kernel_data_init.h"
-#  include "split/kernel_path_init.h"
-#  include "split/kernel_scene_intersect.h"
-#  include "split/kernel_lamp_emission.h"
-#  include "split/kernel_do_volume.h"
-#  include "split/kernel_queue_enqueue.h"
-#  include "split/kernel_indirect_background.h"
-#  include "split/kernel_shader_eval.h"
-#  include "split/kernel_holdout_emission_blurring_pathtermination_ao.h"
-#  include "split/kernel_subsurface_scatter.h"
-#  include "split/kernel_direct_lighting.h"
-#  include "split/kernel_shadow_blocked_ao.h"
-#  include "split/kernel_shadow_blocked_dl.h"
-#  include "split/kernel_next_iteration_setup.h"
-#  include "split/kernel_indirect_subsurface.h"
-#  include "split/kernel_buffer_update.h"
+#  include "kernel/split/kernel_data_init.h"
+#  include "kernel/split/kernel_path_init.h"
+#  include "kernel/split/kernel_scene_intersect.h"
+#  include "kernel/split/kernel_lamp_emission.h"
+#  include "kernel/split/kernel_do_volume.h"
+#  include "kernel/split/kernel_queue_enqueue.h"
+#  include "kernel/split/kernel_indirect_background.h"
+#  include "kernel/split/kernel_shader_eval.h"
+#  include "kernel/split/kernel_holdout_emission_blurring_pathtermination_ao.h"
+#  include "kernel/split/kernel_subsurface_scatter.h"
+#  include "kernel/split/kernel_direct_lighting.h"
+#  include "kernel/split/kernel_shadow_blocked_ao.h"
+#  include "kernel/split/kernel_shadow_blocked_dl.h"
+#  include "kernel/split/kernel_next_iteration_setup.h"
+#  include "kernel/split/kernel_indirect_subsurface.h"
+#  include "kernel/split/kernel_buffer_update.h"
 #endif
 
 CCL_NAMESPACE_BEGIN

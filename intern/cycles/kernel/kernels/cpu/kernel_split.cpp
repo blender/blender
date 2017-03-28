@@ -57,7 +57,7 @@
     /* do nothing */
 #endif
 
-#include "kernel.h"
+#include "kernel/kernel.h"
 #define KERNEL_ARCH cpu
-#include "kernel_cpu_impl.h"
+#include "kernel/kernels/cpu/kernel_cpu_impl.h"
 

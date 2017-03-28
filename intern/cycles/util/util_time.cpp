@@ -16,8 +16,8 @@
 
 #include <stdlib.h>
 
-#include "util_time.h"
-#include "util_windows.h"
+#include "util/util_time.h"
+#include "util/util_windows.h"
 
 #ifdef _WIN32
 

@@ -20,8 +20,8 @@
 
 #include <limits>
 
-#include "util_debug.h"
-#include "util_types.h"
+#include "util/util_debug.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -451,11 +451,11 @@ ccl_device_inline int bitscan(int value)
 
 CCL_NAMESPACE_END
 
-#include "util_math.h"
-#include "util_sseb.h"
-#include "util_ssei.h"
-#include "util_ssef.h"
-#include "util_avxf.h"
+#include "util/util_math.h"
+#include "util/util_sseb.h"
+#include "util/util_ssei.h"
+#include "util/util_ssef.h"
+#include "util/util_avxf.h"
 
 #endif /* __UTIL_SIMD_TYPES_H__ */
 

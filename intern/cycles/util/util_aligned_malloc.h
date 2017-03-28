@@ -17,7 +17,7 @@
 #ifndef __UTIL_ALIGNED_MALLOC_H__
 #define __UTIL_ALIGNED_MALLOC_H__
 
-#include "util_types.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

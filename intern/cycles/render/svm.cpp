@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-#include "device.h"
-#include "graph.h"
-#include "light.h"
-#include "mesh.h"
-#include "nodes.h"
-#include "scene.h"
-#include "shader.h"
-#include "svm.h"
+#include "device/device.h"
+#include "render/graph.h"
+#include "render/light.h"
+#include "render/mesh.h"
+#include "render/nodes.h"
+#include "render/scene.h"
+#include "render/shader.h"
+#include "render/svm.h"
 
-#include "util_debug.h"
-#include "util_logging.h"
-#include "util_foreach.h"
-#include "util_progress.h"
-#include "util_task.h"
+#include "util/util_debug.h"
+#include "util/util_logging.h"
+#include "util/util_foreach.h"
+#include "util/util_progress.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 

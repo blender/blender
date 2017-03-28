@@ -18,7 +18,7 @@
 #define __BLENDER_TEXTURE_H__
 
 #include <stdlib.h>
-#include "blender_sync.h"
+#include "blender/blender_sync.h"
 
 CCL_NAMESPACE_BEGIN
 

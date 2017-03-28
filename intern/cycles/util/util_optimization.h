@@ -111,7 +111,7 @@
 
 /* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
  * Since we can't avoid including <windows.h>, better only include that */
-#include "util_windows.h"
+#include "util/util_windows.h"
 
 #endif
 

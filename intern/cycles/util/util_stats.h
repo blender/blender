@@ -17,7 +17,7 @@
 #ifndef __UTIL_STATS_H__
 #define __UTIL_STATS_H__
 
-#include "util_atomic.h"
+#include "util/util_atomic.h"
 
 CCL_NAMESPACE_BEGIN
 

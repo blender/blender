@@ -16,19 +16,19 @@
 
 #ifdef WITH_OPENCL
 
-#include "opencl.h"
+#include "device/opencl/opencl.h"
 
-#include "buffers.h"
+#include "render/buffers.h"
 
-#include "kernel_types.h"
-#include "kernel_split_data_types.h"
+#include "kernel/kernel_types.h"
+#include "kernel/split/kernel_split_data_types.h"
 
-#include "device_split_kernel.h"
+#include "device/device_split_kernel.h"
 
-#include "util_logging.h"
-#include "util_md5.h"
-#include "util_path.h"
-#include "util_time.h"
+#include "util/util_logging.h"
+#include "util/util_md5.h"
+#include "util/util_path.h"
+#include "util/util_time.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -110,7 +110,7 @@ public:
 				ccl_constant KernelData *data;
 #define KERNEL_TEX(type, ttype, name) \
 				ccl_global type *name;
-#include "kernel_textures.h"
+#include "kernel/kernel_textures.h"
 #undef KERNEL_TEX
 				SplitData split_data;
 				SplitParams split_param_data;
@@ -291,7 +291,7 @@ public:
 /* TODO(sergey): Avoid map lookup here. */
 #define KERNEL_TEX(type, ttype, name) \
 	device->set_kernel_arg_mem(device->program_data_init(), &start_arg_index, #name);
-#include "kernel_textures.h"
+#include "kernel/kernel_textures.h"
 #undef KERNEL_TEX
 
 		start_arg_index +=

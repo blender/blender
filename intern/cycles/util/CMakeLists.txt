@@ -1,6 +1,6 @@
 
 set(INC
-	.
+	..
 	../../glew-mx
 )
 

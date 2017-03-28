@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#include "device.h"
-#include "image.h"
-#include "scene.h"
+#include "device/device.h"
+#include "render/image.h"
+#include "render/scene.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_path.h"
-#include "util_progress.h"
-#include "util_texture.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_path.h"
+#include "util/util_progress.h"
+#include "util/util_texture.h"
 
 #ifdef WITH_OSL
 #include <OSL/oslexec.h>

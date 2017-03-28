@@ -17,17 +17,17 @@
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
-#include "node.h"
-#include "node_type.h"
+#include "graph/node.h"
+#include "graph/node_type.h"
 
-#include "kernel_types.h"
+#include "kernel/kernel_types.h"
 
-#include "util_list.h"
-#include "util_map.h"
-#include "util_param.h"
-#include "util_set.h"
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_list.h"
+#include "util/util_map.h"
+#include "util/util_param.h"
+#include "util/util_set.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

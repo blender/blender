@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-#include "bvh.h"
-#include "bvh_build.h"
+#include "bvh/bvh.h"
+#include "bvh/bvh_build.h"
 
-#include "camera.h"
-#include "curves.h"
-#include "device.h"
-#include "graph.h"
-#include "shader.h"
-#include "light.h"
-#include "mesh.h"
-#include "nodes.h"
-#include "object.h"
-#include "scene.h"
+#include "render/camera.h"
+#include "render/curves.h"
+#include "device/device.h"
+#include "render/graph.h"
+#include "render/shader.h"
+#include "render/light.h"
+#include "render/mesh.h"
+#include "render/nodes.h"
+#include "render/object.h"
+#include "render/scene.h"
 
-#include "osl_globals.h"
+#include "kernel/osl/osl_globals.h"
 
-#include "subd_split.h"
-#include "subd_patch_table.h"
+#include "subd/subd_split.h"
+#include "subd/subd_patch_table.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_progress.h"
-#include "util_set.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_progress.h"
+#include "util/util_set.h"
 
 CCL_NAMESPACE_BEGIN
 

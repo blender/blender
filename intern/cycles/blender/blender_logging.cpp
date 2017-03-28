@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "CCL_api.h"
-#include "util_logging.h"
+#include "blender/CCL_api.h"
+#include "util/util_logging.h"
 
 void CCL_init_logging(const char *argv0)
 {

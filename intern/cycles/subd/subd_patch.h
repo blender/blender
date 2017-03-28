@@ -17,8 +17,8 @@
 #ifndef __SUBD_PATCH_H__
 #define __SUBD_PATCH_H__
 
-#include "util_boundbox.h"
-#include "util_types.h"
+#include "util/util_boundbox.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

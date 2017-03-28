@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "device.h"
-#include "scene.h"
-#include "tables.h"
+#include "device/device.h"
+#include "render/scene.h"
+#include "render/tables.h"
 
-#include "util_debug.h"
-#include "util_logging.h"
+#include "util/util_debug.h"
+#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 

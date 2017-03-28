@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <util_logging.h>
+#include "util/util_logging.h"
 
-#include "util_math.h"
+#include "util/util_math.h"
 
 #include <stdio.h>
 #ifdef _MSC_VER

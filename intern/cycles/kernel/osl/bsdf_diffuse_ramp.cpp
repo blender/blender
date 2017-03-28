@@ -34,13 +34,13 @@
 
 #include <OSL/genclosure.h>
 
-#include "kernel_compat_cpu.h"
-#include "osl_closures.h"
+#include "kernel/kernel_compat_cpu.h"
+#include "kernel/osl/osl_closures.h"
 
-#include "kernel_types.h"
-#include "kernel_montecarlo.h"
-#include "closure/alloc.h"
-#include "closure/bsdf_diffuse_ramp.h"
+#include "kernel/kernel_types.h"
+#include "kernel/kernel_montecarlo.h"
+#include "kernel/closure/alloc.h"
+#include "kernel/closure/bsdf_diffuse_ramp.h"
 
 CCL_NAMESPACE_BEGIN
 

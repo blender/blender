@@ -60,8 +60,8 @@
 
 /* Types */
 
-#include "util_half.h"
-#include "util_types.h"
+#include "util/util_half.h"
+#include "util/util_types.h"
 
 /* Work item functions */
 

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "kernel_compat_opencl.h"
-#include "split/kernel_split_common.h"
-#include "split/kernel_data_init.h"
+#include "kernel/kernel_compat_opencl.h"
+#include "kernel/split/kernel_split_common.h"
+#include "kernel/split/kernel_data_init.h"
 
 __kernel void kernel_ocl_path_trace_data_init(
         ccl_global char *kg,
@@ -28,7 +28,7 @@ __kernel void kernel_ocl_path_trace_data_init(
 
 #define KERNEL_TEX(type, ttype, name)                                   \
         ccl_global type *name,
-#include "../../kernel_textures.h"
+#include "kernel/kernel_textures.h"
 
         int start_sample,
         int end_sample,
@@ -48,7 +48,7 @@ __kernel void kernel_ocl_path_trace_data_init(
 	                 rng_state,
 
 #define KERNEL_TEX(type, ttype, name) name,
-#include "../../kernel_textures.h"
+#include "kernel/kernel_textures.h"
 
 	                 start_sample,
 	                 end_sample,

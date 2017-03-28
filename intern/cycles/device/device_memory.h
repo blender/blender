@@ -28,10 +28,10 @@
  * other devices this is a pointer to device memory, where we will copy memory
  * to and from. */
 
-#include "util_debug.h"
-#include "util_half.h"
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_debug.h"
+#include "util/util_half.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

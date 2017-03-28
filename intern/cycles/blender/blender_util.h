@@ -17,15 +17,15 @@
 #ifndef __BLENDER_UTIL_H__
 #define __BLENDER_UTIL_H__
 
-#include "mesh.h"
+#include "render/mesh.h"
 
-#include "util_algorithm.h"
-#include "util_map.h"
-#include "util_path.h"
-#include "util_set.h"
-#include "util_transform.h"
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_algorithm.h"
+#include "util/util_map.h"
+#include "util/util_path.h"
+#include "util/util_set.h"
+#include "util/util_transform.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 /* Hacks to hook into Blender API
  * todo: clean this up ... */

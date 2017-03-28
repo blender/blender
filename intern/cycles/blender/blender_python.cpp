@@ -16,21 +16,21 @@
 
 #include <Python.h>
 
-#include "CCL_api.h"
+#include "blender/CCL_api.h"
 
-#include "blender_sync.h"
-#include "blender_session.h"
+#include "blender/blender_sync.h"
+#include "blender/blender_session.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_md5.h"
-#include "util_opengl.h"
-#include "util_path.h"
-#include "util_string.h"
-#include "util_types.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_md5.h"
+#include "util/util_opengl.h"
+#include "util/util_path.h"
+#include "util/util_string.h"
+#include "util/util_types.h"
 
 #ifdef WITH_OSL
-#include "osl.h"
+#include "render/osl.h"
 
 #include <OSL/oslquery.h>
 #include <OSL/oslconfig.h>

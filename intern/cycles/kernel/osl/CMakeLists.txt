@@ -1,12 +1,6 @@
 
 set(INC
-	.
-	..
-	../svm
-	../../graph
-	../../render
-	../../util
-	../../device
+	../..
 )
 
 set(INC_SYS

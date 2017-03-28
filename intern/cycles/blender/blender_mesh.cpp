@@ -15,22 +15,22 @@
  */
 
  
-#include "mesh.h"
-#include "object.h"
-#include "scene.h"
-#include "camera.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/scene.h"
+#include "render/camera.h"
 
-#include "blender_sync.h"
-#include "blender_session.h"
-#include "blender_util.h"
+#include "blender/blender_sync.h"
+#include "blender/blender_session.h"
+#include "blender/blender_util.h"
 
-#include "subd_patch.h"
-#include "subd_split.h"
+#include "subd/subd_patch.h"
+#include "subd/subd_split.h"
 
-#include "util_algorithm.h"
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_math.h"
+#include "util/util_algorithm.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_math.h"
 
 #include "mikktspace.h"
 

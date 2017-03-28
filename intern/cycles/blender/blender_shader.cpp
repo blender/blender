@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-#include "background.h"
-#include "graph.h"
-#include "light.h"
-#include "nodes.h"
-#include "osl.h"
-#include "scene.h"
-#include "shader.h"
+#include "render/background.h"
+#include "render/graph.h"
+#include "render/light.h"
+#include "render/nodes.h"
+#include "render/osl.h"
+#include "render/scene.h"
+#include "render/shader.h"
 
-#include "blender_texture.h"
-#include "blender_sync.h"
-#include "blender_util.h"
+#include "blender/blender_texture.h"
+#include "blender/blender_sync.h"
+#include "blender/blender_util.h"
 
-#include "util_debug.h"
-#include "util_string.h"
-#include "util_task.h"
+#include "util/util_debug.h"
+#include "util/util_string.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 

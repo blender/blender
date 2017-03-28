@@ -17,13 +17,13 @@
 #ifndef __IMAGE_H__
 #define __IMAGE_H__
 
-#include "device.h"
-#include "device_memory.h"
+#include "device/device.h"
+#include "device/device_memory.h"
 
-#include "util_image.h"
-#include "util_string.h"
-#include "util_thread.h"
-#include "util_vector.h"
+#include "util/util_image.h"
+#include "util/util_string.h"
+#include "util/util_thread.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

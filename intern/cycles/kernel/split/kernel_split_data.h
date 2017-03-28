@@ -17,8 +17,8 @@
 #ifndef __KERNEL_SPLIT_DATA_H__
 #define __KERNEL_SPLIT_DATA_H__
 
-#include "kernel_split_data_types.h"
-#include "kernel_globals.h"
+#include "kernel/split/kernel_split_data_types.h"
+#include "kernel/kernel_globals.h"
 
 CCL_NAMESPACE_BEGIN
 

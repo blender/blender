@@ -23,10 +23,10 @@
 #  define __KERNEL_SSE2__
 #endif
 
-#include "util_optimization.h"
+#include "util/util_optimization.h"
 
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-#  include "kernel.h"
+#  include "kernel/kernel.h"
 #  define KERNEL_ARCH cpu_sse2
-#  include "kernel_cpu_impl.h"
+#  include "kernel/kernels/cpu/kernel_cpu_impl.h"
 #endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE2 */

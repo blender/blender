@@ -17,9 +17,9 @@
 #ifndef __INTEGRATOR_H__
 #define __INTEGRATOR_H__
 
-#include "kernel_types.h"
+#include "kernel/kernel_types.h"
 
-#include "node.h"
+#include "graph/node.h"
 
 CCL_NAMESPACE_BEGIN
 

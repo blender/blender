@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#include "mesh.h"
-#include "attribute.h"
-#include "camera.h"
+#include "render/mesh.h"
+#include "render/attribute.h"
+#include "render/camera.h"
 
-#include "subd_split.h"
-#include "subd_patch.h"
-#include "subd_patch_table.h"
+#include "subd/subd_split.h"
+#include "subd/subd_patch.h"
+#include "subd/subd_patch_table.h"
 
-#include "util_foreach.h"
-#include "util_algorithm.h"
+#include "util/util_foreach.h"
+#include "util/util_algorithm.h"
 
 CCL_NAMESPACE_BEGIN
 

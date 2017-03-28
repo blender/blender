@@ -17,8 +17,8 @@
 #ifndef __SUBD_PATCH_TABLE_H__
 #define __SUBD_PATCH_TABLE_H__
 
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 #ifdef WITH_OPENSUBDIV
 #ifdef _MSC_VER

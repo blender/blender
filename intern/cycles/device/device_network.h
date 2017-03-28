@@ -33,12 +33,12 @@
 #include <sstream>
 #include <deque>
 
-#include "buffers.h"
+#include "render/buffers.h"
 
-#include "util_foreach.h"
-#include "util_list.h"
-#include "util_map.h"
-#include "util_string.h"
+#include "util/util_foreach.h"
+#include "util/util_list.h"
+#include "util/util_map.h"
+#include "util/util_string.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -17,17 +17,17 @@
 #include <stdlib.h>
 #include <sstream>
 
-#include "device.h"
-#include "device_intern.h"
-#include "device_network.h"
+#include "device/device.h"
+#include "device/device_intern.h"
+#include "device/device_network.h"
 
-#include "buffers.h"
+#include "render/buffers.h"
 
-#include "util_foreach.h"
-#include "util_list.h"
-#include "util_logging.h"
-#include "util_map.h"
-#include "util_time.h"
+#include "util/util_foreach.h"
+#include "util/util_list.h"
+#include "util/util_logging.h"
+#include "util/util_map.h"
+#include "util/util_time.h"
 
 CCL_NAMESPACE_BEGIN
 

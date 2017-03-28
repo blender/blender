@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "util_debug.h"
-#include "util_md5.h"
-#include "util_path.h"
-#include "util_string.h"
+#include "util/util_debug.h"
+#include "util/util_md5.h"
+#include "util/util_path.h"
+#include "util/util_string.h"
 
 #include <OpenImageIO/filesystem.h>
 #include <OpenImageIO/strutil.h>
@@ -45,7 +45,7 @@ OIIO_NAMESPACE_USING
 #  include <shlwapi.h>
 #endif
 
-#include "util_windows.h"
+#include "util/util_windows.h"
 
 CCL_NAMESPACE_BEGIN
 

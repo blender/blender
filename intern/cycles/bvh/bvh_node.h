@@ -18,9 +18,9 @@
 #ifndef __BVH_NODE_H__
 #define __BVH_NODE_H__
 
-#include "util_boundbox.h"
-#include "util_debug.h"
-#include "util_types.h"
+#include "util/util_boundbox.h"
+#include "util/util_debug.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

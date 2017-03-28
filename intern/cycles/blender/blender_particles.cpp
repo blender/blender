@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include "mesh.h"
-#include "object.h"
-#include "particles.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/particles.h"
 
-#include "blender_sync.h"
-#include "blender_util.h"
+#include "blender/blender_sync.h"
+#include "blender/blender_util.h"
 
-#include "util_foreach.h"
+#include "util/util_foreach.h"
 
 CCL_NAMESPACE_BEGIN
 

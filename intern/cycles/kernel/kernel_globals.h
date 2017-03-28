@@ -47,7 +47,7 @@ typedef struct KernelGlobals {
 
 #  define KERNEL_TEX(type, ttype, name) ttype name;
 #  define KERNEL_IMAGE_TEX(type, ttype, name)
-#  include "kernel_textures.h"
+#  include "kernel/kernel_textures.h"
 
 	KernelData __data;
 
@@ -97,7 +97,7 @@ typedef struct KernelGlobals {
 #    define KERNEL_TEX(type, ttype, name) const __constant__ __device__ type *name;
 #  endif
 #  define KERNEL_IMAGE_TEX(type, ttype, name) ttype name;
-#  include "kernel_textures.h"
+#  include "kernel/kernel_textures.h"
 
 #endif  /* __KERNEL_CUDA__ */
 
@@ -110,7 +110,7 @@ typedef ccl_addr_space struct KernelGlobals {
 
 #  define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name;
-#  include "kernel_textures.h"
+#  include "kernel/kernel_textures.h"
 
 #  ifdef __SPLIT_KERNEL__
 	SplitData split_data;

@@ -22,8 +22,8 @@
  * DiagSplit. For more algorithm details, see the DiagSplit paper or the
  * ARB_tessellation_shader OpenGL extension, Section 2.X.2. */
 
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

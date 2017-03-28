@@ -16,22 +16,22 @@
 
 #include <OSL/oslexec.h>
 
-#include "kernel_compat_cpu.h"
-#include "kernel_montecarlo.h"
-#include "kernel_types.h"
-#include "split/kernel_split_data_types.h"
-#include "kernel_globals.h"
+#include "kernel/kernel_compat_cpu.h"
+#include "kernel/kernel_montecarlo.h"
+#include "kernel/kernel_types.h"
+#include "kernel/split/kernel_split_data_types.h"
+#include "kernel/kernel_globals.h"
 
-#include "geom/geom_object.h"
+#include "kernel/geom/geom_object.h"
 
-#include "osl_closures.h"
-#include "osl_globals.h"
-#include "osl_services.h"
-#include "osl_shader.h"
+#include "kernel/osl/osl_closures.h"
+#include "kernel/osl/osl_globals.h"
+#include "kernel/osl/osl_services.h"
+#include "kernel/osl/osl_shader.h"
 
-#include "util_foreach.h"
+#include "util/util_foreach.h"
 
-#include "attribute.h"
+#include "render/attribute.h"
 
 
 CCL_NAMESPACE_BEGIN

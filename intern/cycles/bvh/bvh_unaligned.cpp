@@ -15,17 +15,17 @@
  */
 
 
-#include "bvh_unaligned.h"
+#include "bvh/bvh_unaligned.h"
 
-#include "mesh.h"
-#include "object.h"
+#include "render/mesh.h"
+#include "render/object.h"
 
-#include "bvh_binning.h"
+#include "bvh/bvh_binning.h"
 #include "bvh_params.h"
 
-#include "util_boundbox.h"
-#include "util_debug.h"
-#include "util_transform.h"
+#include "util/util_boundbox.h"
+#include "util/util_debug.h"
+#include "util/util_transform.h"
 
 CCL_NAMESPACE_BEGIN
 

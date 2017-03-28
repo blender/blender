@@ -19,15 +19,15 @@
 
 #include <stdlib.h>
 
-#include "device_memory.h"
-#include "device_task.h"
+#include "device/device_memory.h"
+#include "device/device_task.h"
 
-#include "util_list.h"
-#include "util_stats.h"
-#include "util_string.h"
-#include "util_thread.h"
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_list.h"
+#include "util/util_stats.h"
+#include "util/util_string.h"
+#include "util/util_thread.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

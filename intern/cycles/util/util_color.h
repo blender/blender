@@ -17,11 +17,11 @@
 #ifndef __UTIL_COLOR_H__
 #define __UTIL_COLOR_H__
 
-#include "util_math.h"
-#include "util_types.h"
+#include "util/util_math.h"
+#include "util/util_types.h"
 
 #ifdef __KERNEL_SSE2__
-#include "util_simd.h"
+#include "util/util_simd.h"
 #endif
 
 CCL_NAMESPACE_BEGIN

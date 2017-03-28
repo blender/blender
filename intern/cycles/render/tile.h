@@ -19,8 +19,8 @@
 
 #include <limits.h>
 
-#include "buffers.h"
-#include "util_list.h"
+#include "render/buffers.h"
+#include "util/util_list.h"
 
 CCL_NAMESPACE_BEGIN
 

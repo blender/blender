@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "util_aligned_malloc.h"
-#include "util_guarded_allocator.h"
+#include "util/util_aligned_malloc.h"
+#include "util/util_guarded_allocator.h"
 
 #include <cassert>
 

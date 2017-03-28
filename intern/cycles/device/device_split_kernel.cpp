@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "device_split_kernel.h"
+#include "device/device_split_kernel.h"
 
-#include "kernel_types.h"
-#include "kernel_split_data_types.h"
+#include "kernel/kernel_types.h"
+#include "kernel/split/kernel_split_data_types.h"
 
-#include "util_time.h"
+#include "util/util_time.h"
 
 CCL_NAMESPACE_BEGIN
 

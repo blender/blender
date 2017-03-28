@@ -17,8 +17,8 @@
 #ifndef __BLENDER_OBJECT_CULL_H__
 #define __BLENDER_OBJECT_CULL_H__
 
-#include "blender_sync.h"
-#include "util_types.h"
+#include "blender/blender_sync.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

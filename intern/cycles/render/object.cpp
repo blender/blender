@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-#include "camera.h"
-#include "device.h"
-#include "light.h"
-#include "mesh.h"
-#include "curves.h"
-#include "object.h"
-#include "particles.h"
-#include "scene.h"
+#include "render/camera.h"
+#include "device/device.h"
+#include "render/light.h"
+#include "render/mesh.h"
+#include "render/curves.h"
+#include "render/object.h"
+#include "render/particles.h"
+#include "render/scene.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_map.h"
-#include "util_progress.h"
-#include "util_vector.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_map.h"
+#include "util/util_progress.h"
+#include "util/util_vector.h"
 
-#include "subd_patch_table.h"
+#include "subd/subd_patch_table.h"
 
 CCL_NAMESPACE_BEGIN
 

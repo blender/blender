@@ -17,12 +17,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "device_task.h"
+#include "device/device_task.h"
 
-#include "buffers.h"
+#include "render/buffers.h"
 
-#include "util_algorithm.h"
-#include "util_time.h"
+#include "util/util_algorithm.h"
+#include "util/util_time.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -17,15 +17,15 @@
 #ifndef __SESSION_H__
 #define __SESSION_H__
 
-#include "buffers.h"
-#include "device.h"
-#include "shader.h"
-#include "tile.h"
+#include "render/buffers.h"
+#include "device/device.h"
+#include "render/shader.h"
+#include "render/tile.h"
 
-#include "util_progress.h"
-#include "util_stats.h"
-#include "util_thread.h"
-#include "util_vector.h"
+#include "util/util_progress.h"
+#include "util/util_stats.h"
+#include "util/util_thread.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

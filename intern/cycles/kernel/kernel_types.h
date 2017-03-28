@@ -17,9 +17,9 @@
 #ifndef __KERNEL_TYPES_H__
 #define __KERNEL_TYPES_H__
 
-#include "kernel_math.h"
-#include "svm/svm_types.h"
-#include "util_static_assert.h"
+#include "kernel/kernel_math.h"
+#include "kernel/svm/svm_types.h"
+#include "util/util_static_assert.h"
 
 #ifndef __KERNEL_GPU__
 #  define __KERNEL_CPU__

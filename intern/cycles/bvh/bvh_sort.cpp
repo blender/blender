@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-#include "bvh_build.h"
-#include "bvh_sort.h"
+#include "bvh/bvh_build.h"
+#include "bvh/bvh_sort.h"
 
-#include "util_algorithm.h"
-#include "util_debug.h"
-#include "util_task.h"
+#include "util/util_algorithm.h"
+#include "util/util_debug.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 

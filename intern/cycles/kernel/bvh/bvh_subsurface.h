@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#  include "qbvh_subsurface.h"
+#  include "kernel/bvh/qbvh_subsurface.h"
 #endif
 
 #if BVH_FEATURE(BVH_HAIR)

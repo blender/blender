@@ -18,8 +18,8 @@
 #ifndef __BVH_SPLIT_H__
 #define __BVH_SPLIT_H__
 
-#include "bvh_build.h"
-#include "bvh_params.h"
+#include "bvh/bvh_build.h"
+#include "bvh/bvh_params.h"
 
 CCL_NAMESPACE_BEGIN
 
