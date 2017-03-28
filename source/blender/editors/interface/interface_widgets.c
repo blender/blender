@@ -874,24 +874,18 @@ static void widget_draw_icon(
 		float ofs = 1.0f / aspect;
 		
 		if (but->drawflag & UI_BUT_ICON_LEFT) {
-			if (but->block->flag & UI_BLOCK_LOOP) {
-				if (but->type == UI_BTYPE_SEARCH_MENU)
-					xs = rect->xmin + 4.0f * ofs;
-				else
-					xs = rect->xmin + ofs;
-			}
-			else {
-				if (but->dt == UI_EMBOSS_NONE || but->type == UI_BTYPE_LABEL)
-					xs = rect->xmin + 2.0f * ofs;
-				else
-					xs = rect->xmin + 4.0f * ofs;
-			}
-			ys = (rect->ymin + rect->ymax - height) / 2.0f;
+			/* special case - icon_only pie buttons */
+			if (ui_block_is_pie_menu(but->block) && but->type != UI_BTYPE_MENU && but->str && but->str[0] == '\0')
+				xs = rect->xmin + 2.0f * ofs;
+			else if (but->dt == UI_EMBOSS_NONE || but->type == UI_BTYPE_LABEL)
+				xs = rect->xmin + 2.0f * ofs;
+			else
+				xs = rect->xmin + 4.0f * ofs;
 		}
 		else {
 			xs = (rect->xmin + rect->xmax - height) / 2.0f;
-			ys = (rect->ymin + rect->ymax - height) / 2.0f;
 		}
+		ys = (rect->ymin + rect->ymax - height) / 2.0f;
 
 		/* force positions to integers, for zoom levels near 1. draws icons crisp. */
 		if (aspect > 0.95f && aspect < 1.05f) {
