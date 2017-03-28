@@ -2713,22 +2713,16 @@ static void lib_link_cachefiles(FileData *fd, Main *bmain)
 	for (CacheFile *cache_file = bmain->cachefiles.first; cache_file; cache_file = cache_file->id.next) {
 		if (cache_file->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(cache_file->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			lib_link_animdata(fd, &cache_file->id, cache_file->adt);
 
 			cache_file->id.tag &= ~LIB_TAG_NEED_LINK;
-		}
-
-		BLI_listbase_clear(&cache_file->object_paths);
-		cache_file->handle = NULL;
-		cache_file->handle_mutex = NULL;
-
-		if (cache_file->adt) {
-			lib_link_animdata(fd, &cache_file->id, cache_file->adt);
 		}
 	}
 }
 
 static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
 {
+	BLI_listbase_clear(&cache_file->object_paths);
 	cache_file->handle = NULL;
 	cache_file->handle_mutex = NULL;
 
