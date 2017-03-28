@@ -67,7 +67,7 @@ BVH *BVH::create(const BVHParams& params, const vector<Object*>& objects)
 	if(params.use_qbvh)
 		return new QBVH(params, objects);
 	else
-		return new RegularBVH(params, objects);
+		return new BinaryBVH(params, objects);
 }
 
 /* Building */
@@ -427,13 +427,13 @@ static bool node_bvh_is_unaligned(const BVHNode *node)
 	return node0->is_unaligned || node1->is_unaligned;
 }
 
-RegularBVH::RegularBVH(const BVHParams& params_, const vector<Object*>& objects_)
+BinaryBVH::BinaryBVH(const BVHParams& params_, const vector<Object*>& objects_)
 : BVH(params_, objects_)
 {
 }
 
-void RegularBVH::pack_leaf(const BVHStackEntry& e,
-                           const LeafNode *leaf)
+void BinaryBVH::pack_leaf(const BVHStackEntry& e,
+                          const LeafNode *leaf)
 {
 	assert(e.idx + BVH_NODE_LEAF_SIZE <= pack.leaf_nodes.size());
 	float4 data[BVH_NODE_LEAF_SIZE];
@@ -456,9 +456,9 @@ void RegularBVH::pack_leaf(const BVHStackEntry& e,
 	memcpy(&pack.leaf_nodes[e.idx], data, sizeof(float4)*BVH_NODE_LEAF_SIZE);
 }
 
-void RegularBVH::pack_inner(const BVHStackEntry& e,
-                            const BVHStackEntry& e0,
-                            const BVHStackEntry& e1)
+void BinaryBVH::pack_inner(const BVHStackEntry& e,
+                           const BVHStackEntry& e0,
+                           const BVHStackEntry& e1)
 {
 	if(e0.node->is_unaligned || e1.node->is_unaligned) {
 		pack_unaligned_inner(e, e0, e1);
@@ -467,9 +467,9 @@ void RegularBVH::pack_inner(const BVHStackEntry& e,
 	}
 }
 
-void RegularBVH::pack_aligned_inner(const BVHStackEntry& e,
-                                    const BVHStackEntry& e0,
-                                    const BVHStackEntry& e1)
+void BinaryBVH::pack_aligned_inner(const BVHStackEntry& e,
+                                   const BVHStackEntry& e0,
+                                   const BVHStackEntry& e1)
 {
 	pack_aligned_node(e.idx,
 	                  e0.node->bounds, e1.node->bounds,
@@ -477,11 +477,11 @@ void RegularBVH::pack_aligned_inner(const BVHStackEntry& e,
 	                  e0.node->visibility, e1.node->visibility);
 }
 
-void RegularBVH::pack_aligned_node(int idx,
-                                   const BoundBox& b0,
-                                   const BoundBox& b1,
-                                   int c0, int c1,
-                                   uint visibility0, uint visibility1)
+void BinaryBVH::pack_aligned_node(int idx,
+                                  const BoundBox& b0,
+                                  const BoundBox& b1,
+                                  int c0, int c1,
+                                  uint visibility0, uint visibility1)
 {
 	assert(idx + BVH_NODE_SIZE <= pack.nodes.size());
 	assert(c0 < 0 || c0 < pack.nodes.size());
@@ -508,9 +508,9 @@ void RegularBVH::pack_aligned_node(int idx,
 	memcpy(&pack.nodes[idx], data, sizeof(int4)*BVH_NODE_SIZE);
 }
 
-void RegularBVH::pack_unaligned_inner(const BVHStackEntry& e,
-                                      const BVHStackEntry& e0,
-                                      const BVHStackEntry& e1)
+void BinaryBVH::pack_unaligned_inner(const BVHStackEntry& e,
+                                     const BVHStackEntry& e0,
+                                     const BVHStackEntry& e1)
 {
 	pack_unaligned_node(e.idx,
 	                    e0.node->get_aligned_space(),
@@ -521,13 +521,13 @@ void RegularBVH::pack_unaligned_inner(const BVHStackEntry& e,
 	                    e0.node->visibility, e1.node->visibility);
 }
 
-void RegularBVH::pack_unaligned_node(int idx,
-                                     const Transform& aligned_space0,
-                                     const Transform& aligned_space1,
-                                     const BoundBox& bounds0,
-                                     const BoundBox& bounds1,
-                                     int c0, int c1,
-                                     uint visibility0, uint visibility1)
+void BinaryBVH::pack_unaligned_node(int idx,
+                                    const Transform& aligned_space0,
+                                    const Transform& aligned_space1,
+                                    const BoundBox& bounds0,
+                                    const BoundBox& bounds1,
+                                    int c0, int c1,
+                                    uint visibility0, uint visibility1)
 {
 	assert(idx + BVH_UNALIGNED_NODE_SIZE <= pack.nodes.size());
 	assert(c0 < 0 || c0 < pack.nodes.size());
@@ -553,7 +553,7 @@ void RegularBVH::pack_unaligned_node(int idx,
 	memcpy(&pack.nodes[idx], data, sizeof(float4)*BVH_UNALIGNED_NODE_SIZE);
 }
 
-void RegularBVH::pack_nodes(const BVHNode *root)
+void BinaryBVH::pack_nodes(const BVHNode *root)
 {
 	const size_t num_nodes = root->getSubtreeSize(BVH_STAT_NODE_COUNT);
 	const size_t num_leaf_nodes = root->getSubtreeSize(BVH_STAT_LEAF_COUNT);
@@ -630,7 +630,7 @@ void RegularBVH::pack_nodes(const BVHNode *root)
 	pack.root_index = (root->is_leaf())? -1: 0;
 }
 
-void RegularBVH::refit_nodes()
+void BinaryBVH::refit_nodes()
 {
 	assert(!params.top_level);
 
@@ -639,7 +639,7 @@ void RegularBVH::refit_nodes()
 	refit_node(0, (pack.root_index == -1)? true: false, bbox, visibility);
 }
 
-void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
+void BinaryBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 {
 	if(leaf) {
 		assert(idx + BVH_NODE_LEAF_SIZE <= pack.leaf_nodes.size());
