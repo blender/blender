@@ -55,7 +55,7 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg,
 	ccl_global char *ray_state = kernel_split_state.ray_state;
 	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-	ccl_global RNG *rng = &kernel_split_state.rng[ray_index];
+	RNG rng = kernel_split_state.rng[ray_index];
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 	ccl_global SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
@@ -69,7 +69,7 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg,
 			                                  emission_sd,
 			                                  L,
 			                                  state,
-			                                  rng,
+			                                  &rng,
 			                                  ray,
 			                                  throughput,
 			                                  ss_indirect)) {
@@ -77,6 +77,7 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg,
 				enqueue_flag = 1;
 			}
 		}
+		kernel_split_state.rng[ray_index] = rng;
 	}
 
 #ifndef __COMPUTE_DEVICE_GPU__

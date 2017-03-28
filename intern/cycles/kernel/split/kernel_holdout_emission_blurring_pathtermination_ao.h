@@ -98,7 +98,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 	unsigned int tile_y;
 	unsigned int sample;
 
-	ccl_global RNG *rng = 0x0;
+	RNG rng = kernel_split_state.rng[ray_index];
 	ccl_global PathState *state = 0x0;
 	float3 throughput;
 
@@ -110,7 +110,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 		throughput = kernel_split_state.throughput[ray_index];
 		state = &kernel_split_state.path_state[ray_index];
-		rng = &kernel_split_state.rng[ray_index];
 
 		work_index = kernel_split_state.work_array[ray_index];
 		sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
@@ -120,6 +119,23 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		                        ray_index);
 
 		buffer += (kernel_split_params.offset + pixel_x + pixel_y * stride) * kernel_data.film.pass_stride;
+
+#ifdef __SHADOW_TRICKS__
+		if((sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {
+			if (state->flag & PATH_RAY_CAMERA) {
+				state->flag |= (PATH_RAY_SHADOW_CATCHER | PATH_RAY_SHADOW_CATCHER_ONLY);
+				state->catcher_object = sd->object;
+				if(!kernel_data.background.transparent) {
+					PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+					ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
+					L->shadow_color = indirect_background(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, ray);
+				}
+			}
+		}
+		else {
+			state->flag &= ~PATH_RAY_SHADOW_CATCHER_ONLY;
+		}
+#endif  /* __SHADOW_TRICKS__ */
 
 		/* holdout */
 #ifdef __HOLDOUT__
@@ -194,7 +210,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 		if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 			if(probability != 1.0f) {
-				float terminate = path_state_rng_1D_for_decision(kg, rng, state, PRNG_TERMINATE);
+				float terminate = path_state_rng_1D_for_decision(kg, &rng, state, PRNG_TERMINATE);
 				if(terminate >= probability) {
 					ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
 					enqueue_flag = 1;
@@ -214,7 +230,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		{
 			/* todo: solve correlation */
 			float bsdf_u, bsdf_v;
-			path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
+			path_state_rng_2D(kg, &rng, state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
 
 			float ao_factor = kernel_data.background.ao_factor;
 			float3 ao_N;
@@ -243,6 +259,8 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		}
 	}
 #endif  /* __AO__ */
+	kernel_split_state.rng[ray_index] = rng;
+
 
 #ifndef __COMPUTE_DEVICE_GPU__
 	}

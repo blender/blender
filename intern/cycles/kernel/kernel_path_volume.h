@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void kernel_path_volume_connect_light(
         KernelGlobals *kg,
-        ccl_addr_space RNG *rng,
+        RNG *rng,
         ShaderData *sd,
         ShaderData *emission_sd,
         float3 throughput,
@@ -69,7 +69,7 @@ ccl_device
 #endif
 bool kernel_path_volume_bounce(
     KernelGlobals *kg,
-    ccl_addr_space RNG *rng,
+    RNG *rng,
     ShaderData *sd,
     ccl_addr_space float3 *throughput,
     ccl_addr_space PathState *state,
@@ -117,10 +117,18 @@ bool kernel_path_volume_bounce(
 	return true;
 }
 
-#ifdef __BRANCHED_PATH__
-ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
-	ShaderData *sd, ShaderData *emission_sd, float3 throughput, PathState *state, PathRadiance *L,
-	bool sample_all_lights, Ray *ray, const VolumeSegment *segment)
+#ifndef __SPLIT_KERNEL__
+ccl_device void kernel_branched_path_volume_connect_light(
+        KernelGlobals *kg,
+        RNG *rng,
+        ShaderData *sd,
+        ShaderData *emission_sd,
+        float3 throughput,
+        ccl_addr_space PathState *state,
+        PathRadiance *L,
+        bool sample_all_lights,
+        Ray *ray,
+        const VolumeSegment *segment)
 {
 #ifdef __EMISSION__
 	if(!kernel_data.integrator.use_direct_light)
@@ -270,7 +278,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 	}
 #endif /* __EMISSION__ */
 }
-#endif /* __BRANCHED_PATH__ */
+#endif /* __SPLIT_KERNEL__ */
 
 #endif /* __VOLUME_SCATTER__ */
 

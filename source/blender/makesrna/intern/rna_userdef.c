@@ -138,22 +138,10 @@ static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 }
 
 /* also used by buffer swap switching */
-static void rna_userdef_dpi_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+static void rna_userdef_dpi_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	/* font's are stored at each DPI level, without this we can easy load 100's of fonts */
 	BLF_cache_clear();
-
-	BKE_blender_userdef_refresh();
-	WM_main_add_notifier(NC_WINDOW, NULL);      /* full redraw */
-	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);    /* refresh region sizes */
-}
-
-static void rna_userdef_virtual_pixel_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
-{
-	/* font's are stored at each DPI level, without this we can easy load 100's of fonts */
-	BLF_cache_clear();
-	
-	BKE_blender_userdef_refresh();
 
 	/* force setting drawable again */
 	wmWindowManager *wm = bmain->wm.first;
@@ -3325,6 +3313,12 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "View & Controls", "Preferences related to viewing data");
 
 	/* View  */
+	prop = RNA_def_property(srna, "ui_scale", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_ui_text(prop, "UI Scale", "Changes the size of the fonts and buttons in the interface");
+	RNA_def_property_range(prop, 0.25f, 4.0f);
+	RNA_def_property_ui_range(prop, 0.5f, 2.0f, 1, 1);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
 	/* display */
 	prop = RNA_def_property(srna, "show_tooltips", PROP_BOOLEAN, PROP_NONE);
@@ -3916,12 +3910,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem virtual_pixel_mode_items[] = {
-		{VIRTUAL_PIXEL_NATIVE, "NATIVE", 0, "Native", "Use native pixel size of the display"},
-		{VIRTUAL_PIXEL_DOUBLE, "DOUBLE", 0, "Double", "Use double the native pixel size of the display"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
@@ -3936,16 +3924,8 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
 	prop = RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "dpi");
-	RNA_def_property_range(prop, 48, 144);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "DPI", "Font size and resolution for display");
-	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
-
-	prop = RNA_def_property(srna, "virtual_pixel_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "virtual_pixel");
-	RNA_def_property_enum_items(prop, virtual_pixel_mode_items);
-	RNA_def_property_ui_text(prop, "Virtual Pixel Mode", "Modify the pixel size for hi-res devices");
-	RNA_def_property_update(prop, 0, "rna_userdef_virtual_pixel_update");
 
 	prop = RNA_def_property(srna, "pixel_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

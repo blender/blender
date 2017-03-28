@@ -60,12 +60,14 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	ccl_global float *buffer = kernel_split_params.buffer;
 	buffer += (kernel_split_params.offset + pixel_x + pixel_y * kernel_split_params.stride) * kernel_data.film.pass_stride;
 
+	RNG rng = kernel_split_state.rng[ray_index];
+
 	/* Initialize random numbers and ray. */
 	kernel_path_trace_setup(kg,
 	                        rng_state,
 	                        my_sample,
 	                        pixel_x, pixel_y,
-	                        &kernel_split_state.rng[ray_index],
+	                        &rng,
 	                        &kernel_split_state.ray[ray_index]);
 
 	if(kernel_split_state.ray[ray_index].t != 0.0f) {
@@ -78,7 +80,7 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 		path_state_init(kg,
 		                &kernel_split_state.sd_DL_shadow[ray_index],
 		                &kernel_split_state.path_state[ray_index],
-		                &kernel_split_state.rng[ray_index],
+		                &rng,
 		                my_sample,
 		                &kernel_split_state.ray[ray_index]);
 #ifdef __SUBSURFACE__
@@ -97,6 +99,7 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 		path_rng_end(kg, rng_state, kernel_split_state.rng[ray_index]);
 		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE);
 	}
+	kernel_split_state.rng[ray_index] = rng;
 }
 
 CCL_NAMESPACE_END

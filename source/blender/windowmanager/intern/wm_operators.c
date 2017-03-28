@@ -1807,7 +1807,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 			        (U.pixelsize == 2) ? "splash_2x.png" : "splash.png");
 			ibuf_template = IMB_loadiffname(splash_filepath, IB_rect, NULL);
 			if (ibuf_template) {
-				const int x_expect = ibuf_template->x;
+				const int x_expect = ibuf->x;
 				const int y_expect = 230 * (int)U.pixelsize;
 				/* don't cover the header text */
 				if (ibuf_template->x == x_expect && ibuf_template->y == y_expect) {

@@ -813,7 +813,6 @@ void SVMCompiler::compile(Scene *scene,
 		scoped_timer timer((summary != NULL)? &summary->time_finalize: NULL);
 		shader->graph->finalize(scene,
 		                        false,
-		                        false,
 		                        shader->has_integrator_dependency);
 	}
 
@@ -821,7 +820,6 @@ void SVMCompiler::compile(Scene *scene,
 		scoped_timer timer((summary != NULL)? &summary->time_finalize_bump: NULL);
 		shader->graph_bump->finalize(scene,
 		                             true,
-		                             false,
 		                             shader->has_integrator_dependency,
 		                             shader->displacement_method == DISPLACE_BOTH);
 	}

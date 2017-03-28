@@ -3870,6 +3870,7 @@ classes = (
     INFO_MT_edit_armature_add,
     INFO_MT_armature_add,
     INFO_MT_lamp_add,
+    INFO_MT_camera_add,
     INFO_MT_add,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,

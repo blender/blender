@@ -80,6 +80,7 @@
 #include "GPU_extensions.h"
 #include "GPU_init_exit.h"
 #include "GPU_immediate.h"
+#include "BLF_api.h"
 
 #include "UI_resources.h"
 
@@ -398,14 +399,39 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 	}
 }
 
-static float wm_window_get_virtual_pixelsize(void)
+static void wm_window_set_dpi(wmWindow *win)
 {
-	return ((U.virtual_pixel == VIRTUAL_PIXEL_NATIVE) ? 1.0f : 2.0f);
-}
+	int auto_dpi = GHOST_GetDPIHint(win->ghostwin);
 
-float wm_window_pixelsize(wmWindow *win)
-{
-	return (GHOST_GetNativePixelSize(win->ghostwin) * wm_window_get_virtual_pixelsize());
+	/* Lazily init UI scale size, preserving backwards compatibility by
+	 * computing UI scale from ratio of previous DPI and auto DPI */
+	if (U.ui_scale == 0) {
+		int virtual_pixel = (U.virtual_pixel == VIRTUAL_PIXEL_NATIVE) ? 1 : 2;
+
+		if (U.dpi == 0) {
+			U.ui_scale = virtual_pixel;
+		}
+		else {
+			U.ui_scale = (virtual_pixel * U.dpi * 96.0f) / (auto_dpi * 72.0f);
+		}
+
+		CLAMP(U.ui_scale, 0.25f, 4.0f);
+	}
+
+	/* Blender's UI drawing assumes DPI 72 as a good default following macOS
+	 * while Windows and Linux use DPI 96. GHOST assumes a default 96 so we
+	 * remap the DPI to Blender's convention. */
+	int dpi = auto_dpi * U.ui_scale * (72.0/96.0f);
+
+	/* Automatically set larger pixel size for high DPI. */
+	int pixelsize = MAX2(1, dpi / 54);
+
+	/* Set user preferences globals for drawing, and for forward compatibility. */
+	U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin) * pixelsize;
+	U.dpi = dpi / pixelsize;
+	U.virtual_pixel = (pixelsize == 1) ? VIRTUAL_PIXEL_NATIVE : VIRTUAL_PIXEL_DOUBLE;
+
+	BKE_blender_userdef_refresh();
 }
 
 /* belongs to below */
@@ -480,10 +506,8 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 		
-		/* displays with larger native pixels, like Macbook. Used to scale dpi with */
 		/* needed here, because it's used before it reads userdef */
-		U.pixelsize = wm_window_pixelsize(win);
-		BKE_blender_userdef_refresh();
+		wm_window_set_dpi(win);
 		
 		wm_window_swap_buffers(win);
 		
@@ -650,7 +674,6 @@ wmWindow *WM_window_open_temp(bContext *C, const rcti *rect_init, int type)
 	Scene *scene = CTX_data_scene(C);
 	const char *title;
 	rcti rect = *rect_init;
-	const short px_virtual = (short)wm_window_get_virtual_pixelsize();
 
 	/* changes rect to fit within desktop */
 	wm_window_check_position(&rect);
@@ -668,9 +691,8 @@ wmWindow *WM_window_open_temp(bContext *C, const rcti *rect_init, int type)
 		win->posy = rect.ymin;
 	}
 
-	/* multiply with virtual pixelsize, ghost handles native one (e.g. for retina) */
-	win->sizex = BLI_rcti_size_x(&rect) * px_virtual;
-	win->sizey = BLI_rcti_size_y(&rect) * px_virtual;
+	win->sizex = BLI_rcti_size_x(&rect);
+	win->sizey = BLI_rcti_size_y(&rect);
 
 	if (win->ghostwin) {
 		wm_window_set_size(win, win->sizex, win->sizey);
@@ -913,7 +935,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 {
 	if (win != wm->windrawable && win->ghostwin) {
 //		win->lmbut = 0;	/* keeps hanging when mousepressed while other window opened */
-
+		
 		wm->windrawable = win;
 		if (G.debug & G_DEBUG_EVENTS) {
 			printf("%s: set drawable %d\n", __func__, win->winid);
@@ -924,8 +946,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 		immActivate();
 
 		/* this can change per window */
-		U.pixelsize = wm_window_pixelsize(win);
-		BKE_blender_userdef_refresh();
+		wm_window_set_dpi(win);
 	}
 }
 
@@ -1124,6 +1145,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				if (type == GHOST_kEventWindowSize) {
 					WM_jobs_stop(wm, win->screen, NULL);
 				}
+
+				wm_window_set_dpi(win);
 				
 				/* win32: gives undefined window size when minimized */
 				if (state != GHOST_kWindowStateMinimized) {
@@ -1208,7 +1231,19 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				}
 				break;
 			}
-				
+
+			case GHOST_kEventWindowDPIHintChanged:
+			{
+				wm_window_set_dpi(win);
+				/* font's are stored at each DPI level, without this we can easy load 100's of fonts */
+				BLF_cache_clear();
+
+				BKE_blender_userdef_refresh();
+				WM_main_add_notifier(NC_WINDOW, NULL);      /* full redraw */
+				WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);    /* refresh region sizes */
+				break;
+			}
+
 			case GHOST_kEventOpenMainFile:
 			{
 				PointerRNA props_ptr;
@@ -1289,10 +1324,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			{
 				// only update if the actual pixel size changes
 				float prev_pixelsize = U.pixelsize;
-				U.pixelsize = wm_window_pixelsize(win);
+				wm_window_set_dpi(win);
 
 				if (U.pixelsize != prev_pixelsize) {
-					BKE_blender_userdef_refresh();
 					BKE_icon_changed(win->screen->id.icon_id);
 
 					// close all popups since they are positioned with the pixel

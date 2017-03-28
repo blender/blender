@@ -54,7 +54,7 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg,
 	/* Continue on with shader evaluation. */
 	if((ray_index != QUEUE_EMPTY_SLOT) && IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
 		Intersection isect = kernel_split_state.isect[ray_index];
-		ccl_global uint *rng = &kernel_split_state.rng[ray_index];
+		RNG rng = kernel_split_state.rng[ray_index];
 		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 		Ray ray = kernel_split_state.ray[ray_index];
 
@@ -62,8 +62,9 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg,
 		                      &kernel_split_state.sd[ray_index],
 		                      &isect,
 		                      &ray);
-		float rbsdf = path_state_rng_1D_for_decision(kg, rng, state, PRNG_BSDF);
-		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], rng, state, rbsdf, state->flag, SHADER_CONTEXT_MAIN);
+		float rbsdf = path_state_rng_1D_for_decision(kg, &rng, state, PRNG_BSDF);
+		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], &rng, state, rbsdf, state->flag, SHADER_CONTEXT_MAIN);
+		kernel_split_state.rng[ray_index] = rng;
 	}
 }
 

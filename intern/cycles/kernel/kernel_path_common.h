@@ -22,7 +22,7 @@ ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg,
                                                ccl_global uint *rng_state,
                                                int sample,
                                                int x, int y,
-                                               ccl_addr_space RNG *rng,
+                                               RNG *rng,
                                                ccl_addr_space Ray *ray)
 {
 	float filter_u;

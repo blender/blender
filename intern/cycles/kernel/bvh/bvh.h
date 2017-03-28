@@ -230,30 +230,63 @@ ccl_device_intersect void scene_intersect_subsurface(KernelGlobals *kg,
 #endif
 
 #ifdef __SHADOW_RECORD_ALL__
-ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg, const Ray *ray, Intersection *isect, uint max_hits, uint *num_hits)
+ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
+                                                     const Ray *ray,
+                                                     Intersection *isect,
+                                                     int skip_object,
+                                                     uint max_hits,
+                                                     uint *num_hits)
 {
 #  ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
 #    ifdef __HAIR__
-		if(kernel_data.bvh.have_curves)
-			return bvh_intersect_shadow_all_hair_motion(kg, ray, isect, max_hits, num_hits);
+		if(kernel_data.bvh.have_curves) {
+			return bvh_intersect_shadow_all_hair_motion(kg,
+			                                            ray,
+			                                            isect,
+			                                            skip_object,
+			                                            max_hits,
+			                                            num_hits);
+		}
 #    endif /* __HAIR__ */
 
-		return bvh_intersect_shadow_all_motion(kg, ray, isect, max_hits, num_hits);
+		return bvh_intersect_shadow_all_motion(kg,
+		                                       ray,
+		                                       isect,
+		                                       skip_object,
+		                                       max_hits,
+		                                       num_hits);
 	}
 #  endif /* __OBJECT_MOTION__ */
 
 #  ifdef __HAIR__
-	if(kernel_data.bvh.have_curves)
-		return bvh_intersect_shadow_all_hair(kg, ray, isect, max_hits, num_hits);
+	if(kernel_data.bvh.have_curves) {
+		return bvh_intersect_shadow_all_hair(kg,
+		                                     ray,
+		                                     isect,
+		                                     skip_object,
+		                                     max_hits,
+		                                     num_hits);
+	}
 #  endif /* __HAIR__ */
 
 #  ifdef __INSTANCING__
-	if(kernel_data.bvh.have_instancing)
-		return bvh_intersect_shadow_all_instancing(kg, ray, isect, max_hits, num_hits);
+	if(kernel_data.bvh.have_instancing) {
+		return bvh_intersect_shadow_all_instancing(kg,
+		                                           ray,
+		                                           isect,
+		                                           skip_object,
+		                                           max_hits,
+		                                           num_hits);
+	}
 #  endif /* __INSTANCING__ */
 
-	return bvh_intersect_shadow_all(kg, ray, isect, max_hits, num_hits);
+	return bvh_intersect_shadow_all(kg,
+	                                ray,
+	                                isect,
+	                                skip_object,
+	                                max_hits,
+	                                num_hits);
 }
 #endif  /* __SHADOW_RECORD_ALL__ */
 

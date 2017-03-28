@@ -47,7 +47,7 @@ def ui_draw_filter_register(
     ui_ignore_operator=None,
     ui_ignore_property=None,
     ui_ignore_menu=None,
-    ui_ignore_label=None,
+    ui_ignore_label=None
 ):
     import bpy
 

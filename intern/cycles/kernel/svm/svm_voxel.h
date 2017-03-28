@@ -46,7 +46,7 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 #  if defined(__KERNEL_CUDA__)
 #    if __CUDA_ARCH__ >= 300
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
-	if(id < 2048) /* TODO(dingto): Make this a variable */
+	if(id < TEX_START_HALF4_CUDA_KEPLER)
 		r = kernel_tex_image_interp_3d_float4(tex, co.x, co.y, co.z);
 	else {
 		float f = kernel_tex_image_interp_3d_float(tex, co.x, co.y, co.z);

@@ -44,6 +44,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+#include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_mempool.h"
 
@@ -57,9 +58,10 @@
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
 
-#include "data_transfer_intern.h"
-
 #include "bmesh.h"
+
+/* only for customdata_data_transfer_interp_normal_normals */
+#include "data_transfer_intern.h"
 
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5

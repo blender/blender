@@ -223,7 +223,7 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
         SubsurfaceIntersection *ss_isect,
         ShaderData *sd,
         ShaderClosure *sc,
-        uint *lcg_state,
+        RNG *lcg_state,
         float disk_u,
         float disk_v,
         bool all)

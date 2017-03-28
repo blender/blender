@@ -467,9 +467,11 @@ typedef struct UserDef {
 	int audioformat;
 	int audiochannels;
 
-	int scrollback; /* console scrollback limit */
-	int dpi;		/* range 48-128? */
-	char node_margin; /* node insert offset (aka auto-offset) margin, but might be useful for later stuff as well */
+	int scrollback;     /* console scrollback limit */
+	int dpi;            /* range 48-128? */
+	float ui_scale;     /* interface scale */
+	int pad1;
+	char node_margin;   /* node insert offset (aka auto-offset) margin, but might be useful for later stuff as well */
 	char pad2;
 	short transopts;
 	short menuthreshold1, menuthreshold2;

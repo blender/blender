@@ -360,7 +360,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(
     ShaderData *sd,
     PathRadiance *L,
     ccl_addr_space float3 *throughput,
-    ccl_addr_space RNG *rng,
+    RNG *rng,
     bool probalistic_scatter)
 {
 	VolumeShaderCoefficients coeff;
@@ -469,7 +469,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
     ShaderData *sd,
     PathRadiance *L,
     ccl_addr_space float3 *throughput,
-    ccl_addr_space RNG *rng)
+    RNG *rng)
 {
 	float3 tp = *throughput;
 	const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
@@ -610,7 +610,7 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(
     Ray *ray,
     PathRadiance *L,
     ccl_addr_space float3 *throughput,
-    ccl_addr_space RNG *rng,
+    RNG *rng,
     bool heterogeneous)
 {
 	shader_setup_from_volume(kg, sd, ray);

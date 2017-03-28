@@ -637,6 +637,9 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 			requested_features.use_patch_evaluation = true;
 		}
 #endif
+		if(object->is_shadow_catcher) {
+			requested_features.use_shadow_tricks = true;
+		}
 	}
 
 	BakeManager *bake_manager = scene->bake_manager;

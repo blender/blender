@@ -121,6 +121,9 @@ public:
 	/* Use Transparent shadows */
 	bool use_transparent;
 
+	/* Use various shadow tricks, such as shadow catcher. */
+	bool use_shadow_tricks;
+
 	DeviceRequestedFeatures()
 	{
 		/* TODO(sergey): Find more meaningful defaults. */
@@ -137,6 +140,7 @@ public:
 		use_integrator_branched = false;
 		use_patch_evaluation = false;
 		use_transparent = false;
+		use_shadow_tricks = false;
 	}
 
 	bool modified(const DeviceRequestedFeatures& requested_features)
@@ -153,7 +157,8 @@ public:
 		         use_volume == requested_features.use_volume &&
 		         use_integrator_branched == requested_features.use_integrator_branched &&
 		         use_patch_evaluation == requested_features.use_patch_evaluation &&
-		         use_transparent == requested_features.use_transparent);
+		         use_transparent == requested_features.use_transparent &&
+		         use_shadow_tricks == requested_features.use_shadow_tricks);
 	}
 
 	/* Convert the requested features structure to a build options,
@@ -196,6 +201,9 @@ public:
 		}
 		if(!use_transparent && !use_volume) {
 			build_options += " -D__NO_TRANSPARENT__";
+		}
+		if(!use_shadow_tricks) {
+			build_options += " -D__NO_SHADOW_TRICKS__";
 		}
 		return build_options;
 	}

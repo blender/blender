@@ -87,7 +87,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 	ccl_global float *L_transparent = &kernel_split_state.L_transparent[ray_index];
-	ccl_global uint *rng = &kernel_split_state.rng[ray_index];
+	RNG rng = kernel_split_state.rng[ray_index];
 	ccl_global float *buffer = kernel_split_params.buffer;
 
 	unsigned int work_index;
@@ -111,7 +111,16 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
-		float3 L_sum = path_radiance_clamp_and_sum(kg, L);
+		float3 L_sum;
+#ifdef __SHADOW_TRICKS__
+		if(state->flag & PATH_RAY_SHADOW_CATCHER) {
+			L_sum = path_radiance_sum_shadowcatcher(kg, L, L_transparent);
+		}
+		else
+#endif  /* __SHADOW_TRICKS__ */
+		{
+			L_sum = path_radiance_clamp_and_sum(kg, L);
+		}
 		kernel_write_light_passes(kg, buffer, L, sample);
 #ifdef __KERNEL_DEBUG__
 		kernel_write_debug_passes(kg, buffer, state, debug_data, sample);
@@ -120,7 +129,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 
 		/* accumulate result in output buffer */
 		kernel_write_pass_float4(buffer, sample, L_rad);
-		path_rng_end(kg, rng_state, *rng);
+		path_rng_end(kg, rng_state, rng);
 
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
 	}
@@ -146,7 +155,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 			buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 			/* Initialize random numbers and ray. */
-			kernel_path_trace_setup(kg, rng_state, sample, pixel_x, pixel_y, rng, ray);
+			kernel_path_trace_setup(kg, rng_state, sample, pixel_x, pixel_y, &rng, ray);
 
 			if(ray->t != 0.0f) {
 				/* Initialize throughput, L_transparent, Ray, PathState;
@@ -155,7 +164,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 				*throughput = make_float3(1.0f, 1.0f, 1.0f);
 				*L_transparent = 0.0f;
 				path_radiance_init(L, kernel_data.film.use_light_pass);
-				path_state_init(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, rng, sample, ray);
+				path_state_init(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, &rng, sample, ray);
 #ifdef __SUBSURFACE__
 				kernel_path_subsurface_init_indirect(&kernel_split_state.ss_rays[ray_index]);
 #endif
@@ -170,12 +179,13 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 				float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 				/* Accumulate result in output buffer. */
 				kernel_write_pass_float4(buffer, sample, L_rad);
-				path_rng_end(kg, rng_state, *rng);
+				path_rng_end(kg, rng_state, rng);
 
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
 			}
 		}
 	}
+	kernel_split_state.rng[ray_index] = rng;
 
 #ifndef __COMPUTE_DEVICE_GPU__
 	}

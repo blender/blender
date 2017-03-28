@@ -2240,13 +2240,8 @@ class WM_OT_app_template_install(Operator):
             default=True,
             options={'HIDDEN'},
             )
-    filter_python = BoolProperty(
-            name="Filter python",
-            default=True,
-            options={'HIDDEN'},
-            )
     filter_glob = StringProperty(
-            default="*.py;*.zip",
+            default="*.zip",
             options={'HIDDEN'},
             )
 
@@ -2256,7 +2251,7 @@ class WM_OT_app_template_install(Operator):
         import shutil
         import os
 
-        pyfile = self.filepath
+        filepath = self.filepath
 
         path_app_templates = bpy.utils.user_resource(
             'SCRIPTS', os.path.join("startup", "bl_app_templates_user"),
@@ -2276,9 +2271,9 @@ class WM_OT_app_template_install(Operator):
         app_templates_old = set(os.listdir(path_app_templates))
 
         # check to see if the file is in compressed format (.zip)
-        if zipfile.is_zipfile(pyfile):
+        if zipfile.is_zipfile(filepath):
             try:
-                file_to_extract = zipfile.ZipFile(pyfile, 'r')
+                file_to_extract = zipfile.ZipFile(filepath, 'r')
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -2300,20 +2295,9 @@ class WM_OT_app_template_install(Operator):
                 return {'CANCELLED'}
 
         else:
-            path_dest = os.path.join(path_app_templates, os.path.basename(pyfile))
-
-            if self.overwrite:
-                module_filesystem_remove(path_app_templates, os.path.basename(pyfile))
-            elif os.path.exists(path_dest):
-                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
-                return {'CANCELLED'}
-
-            # if not compressed file just copy into the addon path
-            try:
-                shutil.copyfile(pyfile, path_dest)
-            except:
-                traceback.print_exc()
-                return {'CANCELLED'}
+            # Only support installing zipfiles
+            self.report({'WARNING'}, "Expected a zip-file %r\n" % filepath)
+            return {'CANCELLED'}
 
         app_templates_new = set(os.listdir(path_app_templates)) - app_templates_old
 
@@ -2323,7 +2307,7 @@ class WM_OT_app_template_install(Operator):
         # print message
         msg = (
             tip_("Template Installed (%s) from %r into %r") %
-            (", ".join(sorted(app_templates_new)), pyfile, path_app_templates)
+            (", ".join(sorted(app_templates_new)), filepath, path_app_templates)
         )
         print(msg)
         self.report({'INFO'}, msg)

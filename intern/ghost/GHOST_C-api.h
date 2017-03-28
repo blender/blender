@@ -908,6 +908,11 @@ extern int GHOST_UseNativePixels(void);
 extern float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle);
 
 /**
+ * Returns the suggested DPI for this window.
+ */
+extern GHOST_TUns16 GHOST_GetDPIHint(GHOST_WindowHandle windowhandle);
+
+/**
  * Enable IME attached to the given window, i.e. allows user-input
  * events to be dispatched to the IME.
  * \param windowhandle Window handle of the caller
