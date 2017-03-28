@@ -105,9 +105,6 @@ ccl_device void BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	                       &near_x, &near_y, &near_z,
 	                       &far_x, &far_y, &far_z);
 
-	TriangleIsectPrecalc isect_precalc;
-	ray_triangle_intersect_precalc(dir, &isect_precalc);
-
 	/* Traversal loop. */
 	do {
 		do {
@@ -253,9 +250,9 @@ ccl_device void BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						for(; prim_addr < prim_addr2; prim_addr++) {
 							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 							triangle_intersect_subsurface(kg,
-							                              &isect_precalc,
 							                              ss_isect,
 							                              P,
+							                              dir,
 							                              object,
 							                              prim_addr,
 							                              isect_t,
@@ -270,9 +267,9 @@ ccl_device void BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						for(; prim_addr < prim_addr2; prim_addr++) {
 							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 							motion_triangle_intersect_subsurface(kg,
-							                                     &isect_precalc,
 							                                     ss_isect,
 							                                     P,
+							                                     dir,
 							                                     ray->time,
 							                                     object,
 							                                     prim_addr,

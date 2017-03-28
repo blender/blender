@@ -2771,12 +2771,16 @@ static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 		 * of library blocks that implement this.*/
 		IDP_LibLinkProperty(node->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		
-		node->id= newlibadr_us(fd, id->lib, node->id);
+		node->id = newlibadr_us(fd, id->lib, node->id);
 
-		for (sock = node->inputs.first; sock; sock = sock->next)
+		for (sock = node->inputs.first; sock; sock = sock->next) {
+			IDP_LibLinkProperty(sock->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			lib_link_node_socket(fd, id, sock);
-		for (sock = node->outputs.first; sock; sock = sock->next)
+		}
+		for (sock = node->outputs.first; sock; sock = sock->next) {
+			IDP_LibLinkProperty(sock->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			lib_link_node_socket(fd, id, sock);
+		}
 	}
 	
 	for (sock = ntree->inputs.first; sock; sock = sock->next) {
