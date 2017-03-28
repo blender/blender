@@ -183,11 +183,6 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         else:
             sub.label(text="AA Samples:")
             sub.prop(cscene, "aa_samples", text="Render")
-            sub.prop(cscene, "preview_aa_samples", text="Preview")
-            sub.separator()
-            sub.prop(cscene, "sample_all_lights_direct")
-            sub.prop(cscene, "sample_all_lights_indirect")
-
             col = split.column()
             sub = col.column(align=True)
             sub.label(text="Samples:")
@@ -202,6 +197,10 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
             sub.prop(cscene, "subsurface_samples", text="Subsurface")
             sub.prop(cscene, "volume_samples", text="Volume")
+
+            col = layout.column(align=True)
+            col.prop(cscene, "sample_all_lights_direct")
+            col.prop(cscene, "sample_all_lights_indirect")
 
         if not (use_opencl(context) and cscene.feature_set != 'EXPERIMENTAL'):
             layout.row().prop(cscene, "sampling_pattern", text="Pattern")
