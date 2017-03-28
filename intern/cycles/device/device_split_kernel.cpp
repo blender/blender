@@ -256,10 +256,8 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 			activeRaysAvailable = false;
 
 			for(int rayStateIter = 0; rayStateIter < global_size[0] * global_size[1]; ++rayStateIter) {
-				int8_t state = ray_state.get_data()[rayStateIter];
-
-				if(state != RAY_INACTIVE) {
-					if(state == RAY_INVALID) {
+				if(!IS_STATE(ray_state.get_data(), rayStateIter, RAY_INACTIVE)) {
+					if(IS_STATE(ray_state.get_data(), rayStateIter, RAY_INVALID)) {
 						/* Something went wrong, abort to avoid looping endlessly. */
 						device->set_error("Split kernel error: invalid ray state");
 						return false;
