@@ -198,7 +198,7 @@ void do_versions_after_linking_280(Main *main)
 							/* Create a tree store element for the collection. This is normally
 							 * done in check_persistent (outliner_tree.c), but we need to access
 							 * it here :/ (expand element if it's the only one) */
-							TreeStoreElem *tselem = BLI_mempool_alloc(soutliner->treestore);
+							TreeStoreElem *tselem = BLI_mempool_calloc(soutliner->treestore);
 							tselem->type = TSE_LAYER_COLLECTION;
 							tselem->id = layer->layer_collections.first;
 							tselem->nr = tselem->used = 0;
