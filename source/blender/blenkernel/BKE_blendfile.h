@@ -50,6 +50,7 @@ bool BKE_blendfile_read_from_memory(
 bool BKE_blendfile_read_from_memfile(
         struct bContext *C, struct MemFile *memfile,
         struct ReportList *reports, int skip_flag);
+void BKE_blendfile_read_make_empty(struct bContext *C);
 
 struct UserDef *BKE_blendfile_userdef_read(
         const char *filepath, struct ReportList *reports);

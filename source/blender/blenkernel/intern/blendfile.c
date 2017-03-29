@@ -426,6 +426,32 @@ bool BKE_blendfile_read_from_memfile(
 	return (bfd != NULL);
 }
 
+/**
+ * Utility to make a file 'empty' used for startup to optionally give an empty file.
+ * Handy for tests.
+ */
+void BKE_blendfile_read_make_empty(bContext *C)
+{
+	Main *bmain = CTX_data_main(C);
+
+	ListBase *lbarray[MAX_LIBARRAY];
+	ID *id;
+	int a;
+
+	a = set_listbasepointers(bmain, lbarray);
+	while (a--) {
+		id = lbarray[a]->first;
+		if (id != NULL) {
+			if (ELEM(GS(id->name), ID_SCE, ID_SCR, ID_WM)) {
+				continue;
+			}
+			while ((id = lbarray[a]->first)) {
+				BKE_libblock_delete(bmain, id);
+			}
+		}
+	}
+}
+
 /* only read the userdef from a .blend */
 UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
 {

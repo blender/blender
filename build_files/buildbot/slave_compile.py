@@ -91,7 +91,6 @@ if 'cmake' in builder:
             elif builder.startswith('win32'):
                 bits = 32
                 cmake_options.extend(['-G', 'Visual Studio 12 2013'])
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/bin/nvcc.exe')
 
     elif builder.startswith('linux'):
         tokens = builder.split("_")
@@ -110,8 +109,6 @@ if 'cmake' in builder:
             chroot_name = 'buildbot_' + deb_name + '_i686'
             cuda_chroot_name = 'buildbot_' + deb_name + '_x86_64'
             targets = ['player', 'blender', 'cuda']
-
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda/bin/nvcc')
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 

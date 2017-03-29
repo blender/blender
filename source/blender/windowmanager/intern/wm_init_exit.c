@@ -193,7 +193,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	wm_init_reports(C);
 
 	/* get the default database, plus a wm */
-	wm_homefile_read(C, NULL, G.factory_startup, NULL, NULL);
+	wm_homefile_read(C, NULL, G.factory_startup, false, NULL, NULL);
 	
 
 	BLT_lang_set(NULL);

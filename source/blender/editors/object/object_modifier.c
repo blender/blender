@@ -1485,7 +1485,6 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	BMesh *bm = em->bm;
-	const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 	BMVert *bm_vert;
 	BMIter bm_iter;
 	GSet *visited;
@@ -1493,6 +1492,8 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 	visited = BLI_gset_ptr_new(__func__);
 
 	BKE_mesh_ensure_skin_customdata(ob->data);
+
+	const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT) &&

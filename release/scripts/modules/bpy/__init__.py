@@ -48,11 +48,11 @@ def main():
     import sys
 
     # Possibly temp. addons path
-    from os.path import join, dirname, normpath
-    sys.path.append(normpath(join(dirname(__file__),
-                                  "..", "..", "addons", "modules")))
-    sys.path.append(join(utils.user_resource('SCRIPTS'),
-                         "addons", "modules"))
+    from os.path import join, dirname
+    sys.path.extend([
+        join(dirname(dirname(dirname(__file__))), "addons", "modules"),
+        join(utils.user_resource('SCRIPTS'), "addons", "modules"),
+    ])
 
     # fake module to allow:
     #   from bpy.types import Panel

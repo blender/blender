@@ -21,8 +21,7 @@
 # support reloading sub-modules
 if "bpy" in locals():
     from importlib import reload
-    for val in _modules_loaded:
-        reload(val)
+    _modules_loaded[:] = [reload(val) for val in _modules_loaded]
     del reload
 
 _modules = [
@@ -73,4 +72,5 @@ def unregister():
     from bpy.utils import unregister_class
     for mod in reversed(_modules_loaded):
         for cls in reversed(mod.classes):
-            unregister_class(cls)
+            if cls.is_registered:
+                unregister_class(cls)

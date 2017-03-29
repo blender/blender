@@ -336,7 +336,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 	if (tmpwin == NULL)
 		do_exit = 1;
 	
-	if ((U.uiflag & USER_QUIT_PROMPT) && !wm->file_saved) {
+	if ((U.uiflag & USER_QUIT_PROMPT) && !wm->file_saved && !G.background) {
 		if (do_exit) {
 			if (!GHOST_confirmQuit(win->ghostwin))
 				return;

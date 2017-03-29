@@ -48,29 +48,17 @@ import os
 import sys
 
 
-def clear_scene():
-    import bpy
-    unique_obs = set()
-    for scene in bpy.data.scenes:
-        for obj in scene.objects[:]:
-            scene.objects.unlink(obj)
-            unique_obs.add(obj)
-
-    # remove obdata, for now only worry about the startup scene
-    for bpy_data_iter in (bpy.data.objects, bpy.data.meshes, bpy.data.lamps, bpy.data.cameras):
-        for id_data in bpy_data_iter:
-            bpy_data_iter.remove(id_data)
-
-
-def batch_import(operator="",
-                 path="",
-                 save_path="",
-                 match="",
-                 start=0,
-                 end=sys.maxsize,
-                 ):
+def batch_import(
+    operator="",
+    path="",
+    save_path="",
+    match="",
+    start=0,
+    end=sys.maxsize,
+):
     import addon_utils
     _reset_all = addon_utils.reset_all  # XXX, hack
+    _disable_all = addon_utils.disable_all  # XXX, hack
 
     import fnmatch
 
@@ -116,11 +104,12 @@ def batch_import(operator="",
 
         # hack so loading the new file doesn't undo our loaded addons
         addon_utils.reset_all = lambda: None  # XXX, hack
+        addon_utils.disable_all = lambda: None  # XXX, hack
 
-        bpy.ops.wm.read_factory_settings()
+        bpy.ops.wm.read_factory_settings(use_empty=True)
 
         addon_utils.reset_all = _reset_all  # XXX, hack
-        clear_scene()
+        addon_utils.disable_all = _disable_all  # XXX, hack
 
         result = op(filepath=f)
 
