@@ -817,23 +817,25 @@ struct EnumPropertyItem *wm_window_new_screen_itemf(
 	 * for dynamic strings in EnumPropertyItem.name to avoid this. */
 	static char active_screens[20][MAX_NAME + 12];
 
-	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
-		if (screen->winid) {
-			BLI_snprintf(active_screens[count_act_screens], sizeof(*active_screens), "%s (Duplicate)",
-			             screen->id.name + 2);
-			tmp.name = active_screens[count_act_screens++];
-		}
-		else {
-			tmp.name = screen->id.name + 2;
-		}
+	if (bmain) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			if (screen->winid) {
+				BLI_snprintf(active_screens[count_act_screens], sizeof(*active_screens), "%s (Duplicate)",
+				             screen->id.name + 2);
+				tmp.name = active_screens[count_act_screens++];
+			}
+			else {
+				tmp.name = screen->id.name + 2;
+			}
 
-		tmp.value = value;
-		tmp.identifier = screen->id.name;
-		UI_id_icon_render(C, CTX_data_scene(C), &screen->id, true, false);
-		tmp.icon = BKE_icon_id_ensure(&screen->id);
+			tmp.value = value;
+			tmp.identifier = screen->id.name;
+			UI_id_icon_render(C, CTX_data_scene(C), &screen->id, true, false);
+			tmp.icon = BKE_icon_id_ensure(&screen->id);
 
-		RNA_enum_item_add(&item, &totitem, &tmp);
-		value++;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			value++;
+		}
 	}
 
 	RNA_enum_item_end(&item, &totitem);
