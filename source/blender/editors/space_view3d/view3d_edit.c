@@ -2943,7 +2943,8 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	BaseLegacy *base;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Base *base;
 	float *curs;
 	const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
 	const bool skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
@@ -2966,8 +2967,8 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 		INIT_MINMAX(min, max);
 	}
 
-	for (base = scene->base.first; base; base = base->next) {
-		if (BASE_VISIBLE(v3d, base)) {
+	for (base = sl->object_bases.first; base; base = base->next) {
+		if (BASE_VISIBLE_NEW(base)) {
 			changed = true;
 
 			if (skip_camera && base->object == v3d->camera) {
