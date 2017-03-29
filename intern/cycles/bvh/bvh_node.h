@@ -46,16 +46,16 @@ class BVHParams;
 class BVHNode
 {
 public:
-	BVHNode() : m_is_unaligned(false),
-	            m_aligned_space(NULL),
-	            m_time_from(0.0f),
-	            m_time_to(1.0f)
+	BVHNode() : is_unaligned(false),
+	            aligned_space(NULL),
+	            time_from(0.0f),
+	            time_to(1.0f)
 	{
 	}
 
 	virtual ~BVHNode()
 	{
-		delete m_aligned_space;
+		delete aligned_space;
 	}
 
 	virtual bool is_leaf() const = 0;
@@ -63,29 +63,25 @@ public:
 	virtual BVHNode *get_child(int i) const = 0;
 	virtual int num_triangles() const { return 0; }
 	virtual void print(int depth = 0) const = 0;
-	bool is_unaligned() const { return m_is_unaligned; }
 
 	inline void set_aligned_space(const Transform& aligned_space)
 	{
-		m_is_unaligned = true;
-		if(m_aligned_space == NULL) {
-			m_aligned_space = new Transform(aligned_space);
+		is_unaligned = true;
+		if(this->aligned_space == NULL) {
+			this->aligned_space = new Transform(aligned_space);
 		}
 		else {
-			*m_aligned_space = aligned_space;
+			*this->aligned_space = aligned_space;
 		}
 	}
 
 	inline Transform get_aligned_space() const
 	{
-		if(m_aligned_space == NULL) {
+		if(aligned_space == NULL) {
 			return transform_identity();
 		}
-		return *m_aligned_space;
+		return *aligned_space;
 	}
-
-	BoundBox m_bounds;
-	uint m_visibility;
 
 	// Subtree functions
 	int getSubtreeSize(BVH_STAT stat=BVH_STAT_NODE_COUNT) const;
@@ -95,13 +91,18 @@ public:
 	uint update_visibility();
 	void update_time();
 
-	bool m_is_unaligned;
+	// Properties.
+	BoundBox bounds;
+	uint visibility;
 
-	// TODO(sergey): Can be stored as 3x3 matrix, but better to have some
-	// utilities and type defines in util_transform first.
-	Transform *m_aligned_space;
+	bool is_unaligned;
 
-	float m_time_from, m_time_to;
+	/* TODO(sergey): Can be stored as 3x3 matrix, but better to have some
+	 * utilities and type defines in util_transform first.
+	 */
+	Transform *aligned_space;
+
+	float time_from, time_to;
 };
 
 class InnerNode : public BVHNode
@@ -111,20 +112,20 @@ public:
 	          BVHNode* child0,
 	          BVHNode* child1)
 	{
-		m_bounds = bounds;
+		this->bounds = bounds;
 		children[0] = child0;
 		children[1] = child1;
 
 		if(child0 && child1)
-			m_visibility = child0->m_visibility|child1->m_visibility;
+			visibility = child0->visibility|child1->visibility;
 		else
-			m_visibility = 0; /* happens on build cancel */
+			visibility = 0; /* happens on build cancel */
 	}
 
 	explicit InnerNode(const BoundBox& bounds)
 	{
-		m_bounds = bounds;
-		m_visibility = 0;
+		this->bounds = bounds;
+		visibility = 0;
 		children[0] = NULL;
 		children[1] = NULL;
 	}
@@ -140,12 +141,12 @@ public:
 class LeafNode : public BVHNode
 {
 public:
-	LeafNode(const BoundBox& bounds, uint visibility, int lo, int hi) 
+	LeafNode(const BoundBox& bounds, uint visibility, int lo, int hi)
+	: lo(lo),
+	  hi(hi)
 	{
-		m_bounds = bounds;
-		m_visibility = visibility;
-		m_lo = lo;
-		m_hi = hi;
+		this->bounds = bounds;
+		this->visibility = visibility;
 	}
 
 	LeafNode(const LeafNode& s)
@@ -157,14 +158,13 @@ public:
 	bool is_leaf() const { return true; }
 	int num_children() const { return 0; }
 	BVHNode *get_child(int) const { return NULL; }
-	int num_triangles() const { return m_hi - m_lo; }
+	int num_triangles() const { return hi - lo; }
 	void print(int depth) const;
 
-	int m_lo;
-	int m_hi;
+	int lo;
+	int hi;
 };
 
 CCL_NAMESPACE_END
 
 #endif /* __BVH_NODE_H__ */
-

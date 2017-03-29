@@ -866,8 +866,8 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 
 		uint visibility = objects[ref->prim_object()]->visibility;
 		BVHNode *leaf_node =  new LeafNode(ref->bounds(), visibility, start, start+1);
-		leaf_node->m_time_from = ref->time_from();
-		leaf_node->m_time_to = ref->time_to();
+		leaf_node->time_from = ref->time_from();
+		leaf_node->time_to = ref->time_to();
 		return leaf_node;
 	}
 	else {
@@ -876,12 +876,12 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 		BVHNode *leaf1 = create_object_leaf_nodes(ref+mid, start+mid, num-mid);
 
 		BoundBox bounds = BoundBox::empty;
-		bounds.grow(leaf0->m_bounds);
-		bounds.grow(leaf1->m_bounds);
+		bounds.grow(leaf0->bounds);
+		bounds.grow(leaf1->bounds);
 
 		BVHNode *inner_node = new InnerNode(bounds, leaf0, leaf1);
-		inner_node->m_time_from = min(leaf0->m_time_from, leaf1->m_time_from);
-		inner_node->m_time_to = max(leaf0->m_time_to, leaf1->m_time_to);
+		inner_node->time_from = min(leaf0->time_from, leaf1->time_from);
+		inner_node->time_to = max(leaf0->time_to, leaf1->time_to);
 		return inner_node;
 	}
 }
@@ -1004,19 +1004,19 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 					time_from = min(time_from, ref.time_from());
 					time_to = max(time_to, ref.time_to());
 				}
-				leaf_node->m_time_from = time_from;
-				leaf_node->m_time_to = time_to;
+				leaf_node->time_from = time_from;
+				leaf_node->time_to = time_to;
 			}
 			if(alignment_found) {
 				/* Need to recalculate leaf bounds with new alignment. */
-				leaf_node->m_bounds = BoundBox::empty;
+				leaf_node->bounds = BoundBox::empty;
 				for(int j = 0; j < num; ++j) {
 					const BVHReference &ref = p_ref[i][j];
 					BoundBox ref_bounds =
 					        unaligned_heuristic.compute_aligned_prim_boundbox(
 					                ref,
 					                aligned_space);
-					leaf_node->m_bounds.grow(ref_bounds);
+					leaf_node->bounds.grow(ref_bounds);
 				}
 				/* Set alignment space. */
 				leaf_node->set_aligned_space(aligned_space);
@@ -1099,8 +1099,8 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 	 */
 	for(int i = 0; i < num_leaves; ++i) {
 		LeafNode *leaf = (LeafNode *)leaves[i];
-		leaf->m_lo += start_index;
-		leaf->m_hi += start_index;
+		leaf->lo += start_index;
+		leaf->hi += start_index;
 	}
 
 	/* Create leaf node for object. */
@@ -1129,17 +1129,17 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 		return new InnerNode(range.bounds(), leaves[0], leaves[1]);
 	}
 	else if(num_leaves == 3) {
-		BoundBox inner_bounds = merge(leaves[1]->m_bounds, leaves[2]->m_bounds);
+		BoundBox inner_bounds = merge(leaves[1]->bounds, leaves[2]->bounds);
 		BVHNode *inner = new InnerNode(inner_bounds, leaves[1], leaves[2]);
 		return new InnerNode(range.bounds(), leaves[0], inner);
 	} else {
 		/* Should be doing more branches if more primitive types added. */
 		assert(num_leaves <= 5);
-		BoundBox inner_bounds_a = merge(leaves[0]->m_bounds, leaves[1]->m_bounds);
-		BoundBox inner_bounds_b = merge(leaves[2]->m_bounds, leaves[3]->m_bounds);
+		BoundBox inner_bounds_a = merge(leaves[0]->bounds, leaves[1]->bounds);
+		BoundBox inner_bounds_b = merge(leaves[2]->bounds, leaves[3]->bounds);
 		BVHNode *inner_a = new InnerNode(inner_bounds_a, leaves[0], leaves[1]);
 		BVHNode *inner_b = new InnerNode(inner_bounds_b, leaves[2], leaves[3]);
-		BoundBox inner_bounds_c = merge(inner_a->m_bounds, inner_b->m_bounds);
+		BoundBox inner_bounds_c = merge(inner_a->bounds, inner_b->bounds);
 		BVHNode *inner_c = new InnerNode(inner_bounds_c, inner_a, inner_b);
 		if(num_leaves == 5) {
 			return new InnerNode(range.bounds(), inner_c, leaves[4]);
@@ -1174,8 +1174,8 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 		rotate(parent->children[c], max_depth-1);
 
 	/* compute current area of all children */
-	BoundBox bounds0 = parent->children[0]->m_bounds;
-	BoundBox bounds1 = parent->children[1]->m_bounds;
+	BoundBox bounds0 = parent->children[0]->bounds;
+	BoundBox bounds1 = parent->children[1]->bounds;
 
 	float area0 = bounds0.half_area();
 	float area1 = bounds1.half_area();
@@ -1195,8 +1195,8 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 		BoundBox& other = (c == 0)? bounds1: bounds0;
 
 		/* transpose child bounds */
-		BoundBox target0 = child->children[0]->m_bounds;
-		BoundBox target1 = child->children[1]->m_bounds;
+		BoundBox target0 = child->children[0]->bounds;
+		BoundBox target1 = child->children[1]->bounds;
 
 		/* compute cost for both possible swaps */
 		float cost0 = merge(other, target1).half_area() - child_area[c];
@@ -1228,7 +1228,7 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 	InnerNode *child = (InnerNode*)parent->children[best_child];
 
 	swap(parent->children[best_other], child->children[best_target]);
-	child->m_bounds = merge(child->children[0]->m_bounds, child->children[1]->m_bounds);
+	child->bounds = merge(child->children[0]->bounds, child->children[1]->bounds);
 }
 
 CCL_NAMESPACE_END
