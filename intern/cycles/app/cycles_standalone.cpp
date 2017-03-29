@@ -16,29 +16,29 @@
 
 #include <stdio.h>
 
-#include "buffers.h"
-#include "camera.h"
-#include "device.h"
-#include "scene.h"
-#include "session.h"
-#include "integrator.h"
+#include "render/buffers.h"
+#include "render/camera.h"
+#include "device/device.h"
+#include "render/scene.h"
+#include "render/session.h"
+#include "render/integrator.h"
 
-#include "util_args.h"
-#include "util_foreach.h"
-#include "util_function.h"
-#include "util_logging.h"
-#include "util_path.h"
-#include "util_progress.h"
-#include "util_string.h"
-#include "util_time.h"
-#include "util_transform.h"
-#include "util_version.h"
+#include "util/util_args.h"
+#include "util/util_foreach.h"
+#include "util/util_function.h"
+#include "util/util_logging.h"
+#include "util/util_path.h"
+#include "util/util_progress.h"
+#include "util/util_string.h"
+#include "util/util_time.h"
+#include "util/util_transform.h"
+#include "util/util_version.h"
 
 #ifdef WITH_CYCLES_STANDALONE_GUI
-#include "util_view.h"
+#include "util/util_view.h"
 #endif
 
-#include "cycles_xml.h"
+#include "app/cycles_xml.h"
 
 CCL_NAMESPACE_BEGIN
 
