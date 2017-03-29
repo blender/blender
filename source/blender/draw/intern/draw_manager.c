@@ -1265,6 +1265,18 @@ void *DRW_render_settings_get(Scene *scene, const char *engine_name)
 }
 /* ****************************************** Framebuffers ******************************************/
 
+static GPUTextureFormat convert_tex_format(int fbo_format, int *channels)
+{
+	switch (fbo_format) {
+		case DRW_BUF_RGBA_8:   *channels = 4; return GPU_RGBA8;
+		case DRW_BUF_RGBA_16:  *channels = 4; return GPU_RGBA16F;
+		case DRW_BUF_DEPTH_24: *channels = 1; return GPU_DEPTH_COMPONENT24;
+		default:
+			BLI_assert(false);
+	}
+}
+
+
 void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX],
                           int texnbr)
 {
@@ -1278,6 +1290,9 @@ void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRW
 			DRWFboTexture fbotex = textures[i];
 			
 			if (!*fbotex.tex) {
+				int channels;
+				GPUTextureFormat gpu_format = convert_tex_format(fbotex.format, &channels);
+
 				/* TODO refine to opengl formats */
 				if (fbotex.format == DRW_BUF_DEPTH_16 ||
 				    fbotex.format == DRW_BUF_DEPTH_24)
@@ -1287,7 +1302,7 @@ void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRW
 					GPU_texture_filter_mode(*fbotex.tex, false);
 				}
 				else {
-					*fbotex.tex = GPU_texture_create_2D(width, height, NULL, NULL);
+					*fbotex.tex = GPU_texture_create_2D_custom(width, height, channels, gpu_format, NULL, NULL);
 					++color_attachment;
 				}
 			}
