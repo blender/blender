@@ -3684,6 +3684,8 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
 {
 	uiLayout *flow, *box, *row;
 
+	WM_operator_properties_sanitize(ptr, false);
+
 	uiItemS(layout);
 
 	if (title)
