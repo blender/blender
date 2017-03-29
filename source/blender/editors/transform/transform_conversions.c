@@ -6467,8 +6467,6 @@ int special_transform_moving(TransInfo *t)
 
 static void createTransObject(bContext *C, TransInfo *t)
 {
-	Scene *scene = t->scene;
-
 	TransData *td = NULL;
 	TransDataExtension *tx;
 	const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
@@ -6518,15 +6516,16 @@ static void createTransObject(bContext *C, TransInfo *t)
 	CTX_DATA_END;
 	
 	if (is_prop_edit) {
-		View3D *v3d = t->view;
-		BaseLegacy *base;
+		SceneLayer *sl = t->sl;
+		Base *base;
 
-		for (base = scene->base.first; base; base = base->next) {
+		for (base = sl->object_bases.first; base; base = base->next) {
 			Object *ob = base->object;
 
 			/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
-			if ((ob->flag & (SELECT | BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
-			    BASE_EDITABLE_BGMODE(v3d, scene, base))
+			if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
+			    (base->flag & BASE_SELECTED) == 0 &&
+			    BASE_EDITABLE_BGMODE_NEW(base))
 			{
 				td->protectflag = ob->protectflag;
 				td->ext = tx;
