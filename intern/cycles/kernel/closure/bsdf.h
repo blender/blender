@@ -37,14 +37,14 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
-                                  ShaderData *sd,
-                                  const ShaderClosure *sc,
-                                  float randu,
-                                  float randv,
-                                  float3 *eval,
-                                  float3 *omega_in,
-                                  differential3 *domega_in,
-                                  float *pdf)
+                                       ShaderData *sd,
+                                       const ShaderClosure *sc,
+                                       float randu,
+                                       float randv,
+                                       float3 *eval,
+                                       float3 *omega_in,
+                                       differential3 *domega_in,
+                                       float *pdf)
 {
 	int label;
 
