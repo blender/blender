@@ -38,7 +38,7 @@
 
 #define ccl_device  __device__ __inline__
 #  define ccl_device_forceinline  __device__ __forceinline__
-#if (__KERNEL_CUDA_VERSION__ == 80) && (__CUDA_ARCH__ < 500)
+#if __CUDA_ARCH__ < 500
 #  define ccl_device_inline  __device__ __forceinline__
 #else
 #  define ccl_device_inline  __device__ __inline__
