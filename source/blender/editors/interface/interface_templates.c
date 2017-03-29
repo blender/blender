@@ -3684,8 +3684,6 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
 {
 	uiLayout *flow, *box, *row;
 
-	WM_operator_properties_sanitize(ptr, false);
-
 	uiItemS(layout);
 
 	if (title)
@@ -3736,6 +3734,7 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 	if (propptr.data) {
 		uiBut *but = uiLayoutGetBlock(layout)->buttons.last;
 
+		WM_operator_properties_sanitize(&propptr, false);
 		template_keymap_item_properties(layout, NULL, &propptr);
 
 		/* attach callbacks to compensate for missing properties update,
