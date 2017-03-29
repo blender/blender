@@ -563,7 +563,6 @@ static bool select_grouped_children(bContext *C, Object *ob, const bool recursiv
 static bool select_grouped_parent(bContext *C) /* Makes parent active and de-selected OBACT */
 {
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	Base *baspar, *basact = CTX_data_active_base(C);
 	bool changed = false;
 
@@ -574,7 +573,7 @@ static bool select_grouped_parent(bContext *C) /* Makes parent active and de-sel
 	baspar = BKE_scene_layer_base_find(sl, basact->object->parent);
 
 	/* can be NULL if parent in other scene */
-	if (baspar && BASE_SELECTABLE(v3d, baspar)) {
+	if (baspar && BASE_SELECTABLE_NEW(baspar)) {
 		ED_object_base_select(baspar, BA_SELECT);
 		ED_object_base_activate(C, baspar);
 		changed = true;
@@ -632,10 +631,9 @@ static bool select_grouped_group(bContext *C, Object *ob)  /* Select objects in 
 static bool select_grouped_object_hooks(bContext *C, Object *ob)
 {
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
 
 	bool changed = false;
-	BaseLegacy *base;
+	Base *base;
 	ModifierData *md;
 	HookModifierData *hmd;
 
@@ -644,7 +642,7 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
 			hmd = (HookModifierData *) md;
 			if (hmd->object && !(hmd->object->flag & SELECT)) {
 				base = BKE_scene_base_find(scene, hmd->object);
-				if (base && (BASE_SELECTABLE(v3d, base))) {
+				if (base && (BASE_SELECTABLE_NEW(base))) {
 					ED_base_object_select(base, BA_SELECT);
 					changed = true;
 				}
