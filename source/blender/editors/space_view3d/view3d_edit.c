@@ -3096,9 +3096,9 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		ok_dist = 0; /* don't zoom */
 	}
 	else {
-		BaseLegacy *base;
-		for (base = FIRSTBASE; base; base = base->next) {
-			if (TESTBASE(v3d, base)) {
+		Base *base;
+		for (base = FIRSTBASE_NEW; base; base = base->next) {
+			if (TESTBASE_NEW(base)) {
 
 				if (skip_camera && base->object == v3d->camera) {
 					continue;
