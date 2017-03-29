@@ -96,6 +96,7 @@ class DATA_PT_lamp(DataButtonsPanel, Panel):
             sub.label(text="Falloff:")
             sub.prop(lamp, "falloff_type", text="")
             sub.prop(lamp, "distance")
+            sub.prop(lamp, "shadow_soft_size", text="Radius")
 
             if lamp.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED':
                 col.label(text="Attenuation Factors:")

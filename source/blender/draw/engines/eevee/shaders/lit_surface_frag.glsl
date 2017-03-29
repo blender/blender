@@ -1,5 +1,8 @@
 
 uniform int light_count;
+uniform vec3 cameraPos;
+uniform vec3 eye;
+uniform mat4 ProjectionMatrix;
 
 struct LightData {
 	vec4 positionAndInfluence;     /* w : InfluenceRadius */
@@ -40,18 +43,52 @@ out vec4 fragColor;
 #define HEMI     3.0
 #define AREA     4.0
 
-vec3 light_diffuse(LightData ld, vec3 N, vec3 W, vec3 color) {
-	vec3 light, wL, L;
+vec3 light_diffuse(LightData ld, vec3 N, vec3 W, vec3 wL, vec3 L, float Ldist, vec3 color)
+{
+	vec3 light;
 
 	if (ld.lampType == SUN) {
 		L = -ld.lampForward;
 		light = color * direct_diffuse_sun(N, L) * ld.lampColor;
 	}
-	else {
-		wL = ld.lampPosition - W;
-		float dist = length(wL);
-		light = color * direct_diffuse_point(N, wL / dist, dist) * ld.lampColor;
+	else if (ld.lampType == AREA) {
+		light = color * direct_diffuse_rectangle(W, N, L, Ldist,
+		                                         ld.lampRight, ld.lampUp, ld.lampForward,
+		                                         ld.lampSizeX, ld.lampSizeY) * ld.lampColor;
 	}
+	else {
+		// light = color * direct_diffuse_point(N, L, Ldist) * ld.lampColor;
+		light = color * direct_diffuse_sphere(N, L, Ldist, ld.lampSizeX) * ld.lampColor;
+	}
+
+	return light;
+}
+
+vec3 light_specular(
+        LightData ld, vec3 V, vec3 N, vec3 W, vec3 wL,
+        vec3 L, float Ldist, vec3 spec, float roughness)
+{
+	vec3 light;
+
+	if (ld.lampType == SUN) {
+		L = -ld.lampForward;
+		light = spec * direct_ggx_point(N, L, V, roughness) * ld.lampColor;
+	}
+	else if (ld.lampType == AREA) {
+		light = spec * direct_ggx_rectangle(W, N, L, V, Ldist, ld.lampRight, ld.lampUp, ld.lampForward,
+		                                    ld.lampSizeX, ld.lampSizeY, roughness) * ld.lampColor;
+	}
+	else {
+		light = spec * direct_ggx_sphere(N, L, V, Ldist, ld.lampSizeX, roughness) * ld.lampColor;
+	}
+
+	return light;
+}
+
+float light_visibility(
+        LightData ld, vec3 V, vec3 N, vec3 W, vec3 wL, vec3 L, float Ldist)
+{
+	float vis = 1.0;
 
 	if (ld.lampType == SPOT) {
 		float z = dot(ld.lampForward, wL);
@@ -63,28 +100,42 @@ vec3 light_diffuse(LightData ld, vec3 N, vec3 W, vec3 color) {
 
 		float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.lampSpotSize) / ld.lampSpotBlend);
 
-		light *= spotmask;
+		vis *= spotmask;
+	}
+	else if (ld.lampType == AREA) {
+		vis *= step(0.0, -dot(L, ld.lampForward));
 	}
 
-	return light;
+	return vis;
 }
 
-vec3 light_specular(LightData ld, vec3 V, vec3 N, vec3 T, vec3 B, vec3 spec, float roughness) {
-	vec3 L = normalize(ld.lampPosition - worldPosition);
-	vec3 light = L;
+void main()
+{
+	vec3 N = normalize(worldNormal);
 
-	return light;
-}
-
-void main() {
-	vec3 n = normalize(worldNormal);
-	vec3 diffuse = vec3(0.0);
+	vec3 V;
+	if (ProjectionMatrix[3][3] == 0.0) {
+		V = normalize(cameraPos - worldPosition);
+	}
+	else {
+		V = normalize(eye);
+	}
+	vec3 radiance = vec3(0.0);
 
 	vec3 albedo = vec3(1.0, 1.0, 1.0);
+	vec3 specular = mix(vec3(0.03), vec3(1.0), pow(max(0.0, 1.0 - dot(N,V)), 5.0));
 
 	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
-		diffuse += light_diffuse(lights_data[i], n, worldPosition, albedo);
+		vec3 wL = lights_data[i].lampPosition - worldPosition;
+		float dist = length(wL);
+		vec3 L = wL / dist;
+
+		float vis = light_visibility(lights_data[i], V, N, worldPosition, wL, L, dist);
+		vec3 spec = light_specular(lights_data[i], V, N, worldPosition, wL, L, dist, vec3(1.0), .2);
+		vec3 diff = light_diffuse(lights_data[i], N, worldPosition, wL, L, dist, albedo);
+
+		radiance += vis * (diff + spec);
 	}
 
-	fragColor = vec4(diffuse,1.0);
+	fragColor = vec4(radiance, 1.0);
 }

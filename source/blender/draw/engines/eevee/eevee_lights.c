@@ -123,9 +123,13 @@ void EEVEE_lights_update(EEVEE_StorageList *stl)
 			evli->spotsize = cosf(la->spotsize * 0.5f);
 			evli->spotblend = (1.0f - evli->spotsize) * la->spotblend;
 		}
-		// else if (la->type == LA_SPOT) {
-
-		// }
+		else if (la->type == LA_AREA) {
+			evli->sizex = la->area_size * scale[0] * 0.5f;
+			evli->sizey = la->area_sizey * scale[1] * 0.5f;
+		}
+		else {
+			evli->sizex = la->area_size * scale[0] * 0.5f;
+		}
 
 		/* Lamp Type */
 		evli->lamptype = (float)la->type;

@@ -37,6 +37,7 @@ static struct {
 	struct GPUShader *default_lit;
 	struct GPUShader *depth_sh;
 	struct GPUShader *tonemap;
+	float camera_pos[3];
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_bsdf_common_lib_glsl[];
@@ -86,6 +87,12 @@ static void EEVEE_engine_init(void *vedata)
 		EEVEE_lights_init(stl);
 
 	// EEVEE_lights_update(stl);
+	{
+		float viewinvmat[4][4];
+		DRW_viewport_matrix_get(viewinvmat, DRW_MAT_VIEWINV);
+
+		copy_v3_v3(e_data.camera_pos, viewinvmat[3]);
+	}
 }
 
 static void EEVEE_cache_init(void *vedata)
@@ -126,6 +133,7 @@ static void EEVEE_cache_init(void *vedata)
 		stl->g_data->default_lit_grp = DRW_shgroup_create(e_data.default_lit, psl->pass);
 		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "light_block", stl->lights_ubo, 0);
 		DRW_shgroup_uniform_int(stl->g_data->default_lit_grp, "light_count", &stl->lights_info->light_count, 1);
+		DRW_shgroup_uniform_vec3(stl->g_data->default_lit_grp, "cameraPos", e_data.camera_pos, 1);
 	}
 
 	{
