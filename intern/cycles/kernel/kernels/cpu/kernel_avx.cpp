@@ -28,10 +28,10 @@
 #  define __KERNEL_AVX__
 #endif
 
-#include "util_optimization.h"
+#include "util/util_optimization.h"
 
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
-#  include "kernel.h"
+#  include "kernel/kernel.h"
 #  define KERNEL_ARCH cpu_avx
-#  include "kernel_cpu_impl.h"
+#  include "kernel/kernels/cpu/kernel_cpu_impl.h"
 #endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_AVX */

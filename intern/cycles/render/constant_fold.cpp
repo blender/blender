@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#include "constant_fold.h"
-#include "graph.h"
+#include "render/constant_fold.h"
+#include "render/graph.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 

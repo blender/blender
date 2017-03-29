@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "camera.h"
-#include "scene.h"
+#include "render/camera.h"
+#include "render/scene.h"
 
-#include "blender_sync.h"
-#include "blender_util.h"
+#include "blender/blender_sync.h"
+#include "blender/blender_util.h"
 
-#include "util_logging.h"
+#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 

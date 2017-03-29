@@ -16,12 +16,12 @@
 
 #ifdef WITH_OPENCL
 
-#include "opencl.h"
+#include "device/opencl/opencl.h"
 
-#include "util_logging.h"
-#include "util_md5.h"
-#include "util_path.h"
-#include "util_time.h"
+#include "util/util_logging.h"
+#include "util/util_md5.h"
+#include "util/util_path.h"
+#include "util/util_time.h"
 
 using std::cerr;
 using std::endl;
@@ -235,7 +235,7 @@ string OpenCLCache::get_kernel_md5()
 	thread_scoped_lock lock(self.kernel_md5_lock);
 
 	if(self.kernel_md5.empty()) {
-		self.kernel_md5 = path_files_md5_hash(path_get("kernel"));
+		self.kernel_md5 = path_files_md5_hash(path_get("source/kernel"));
 	}
 	return self.kernel_md5;
 }
@@ -339,12 +339,12 @@ bool OpenCLDeviceBase::OpenCLProgram::build_kernel(const string *debug_src)
 
 bool OpenCLDeviceBase::OpenCLProgram::compile_kernel(const string *debug_src)
 {
-	string source = "#include \"kernels/opencl/" + kernel_file + "\"\n";
+	string source = "#include \"kernel/kernels/opencl/" + kernel_file + "\"\n";
 	/* We compile kernels consisting of many files. unfortunately OpenCL
 	 * kernel caches do not seem to recognize changes in included files.
 	 * so we force recompile on changes by adding the md5 hash of all files.
 	 */
-	source = path_source_replace_includes(source, path_get("kernel"));
+	source = path_source_replace_includes(source, path_get("source"));
 	source += "\n// " + util_md5_string(source) + "\n";
 
 	if(debug_src) {
@@ -444,7 +444,7 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 
 		/* need to create source to get md5 */
 		string source = "#include \"kernels/opencl/" + kernel_file + "\"\n";
-		source = path_source_replace_includes(source, path_get("kernel"));
+		source = path_source_replace_includes(source, path_get("source/kernel"));
 
 		string basename = "cycles_kernel_" + program_name + "_" + device_md5 + "_" + util_md5_string(source);
 		basename = path_cache_get(path_join("kernels", basename));

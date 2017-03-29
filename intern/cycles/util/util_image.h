@@ -21,7 +21,7 @@
 
 #include <OpenImageIO/imageio.h>
 
-#include "util_vector.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -42,4 +42,4 @@ CCL_NAMESPACE_END
 
 #endif /* __UTIL_IMAGE_H__ */
 
-#include "util_image_impl.h"
+#include "util/util_image_impl.h"

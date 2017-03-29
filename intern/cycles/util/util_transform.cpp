@@ -46,10 +46,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "util_transform.h"
+#include "util/util_transform.h"
 
-#include "util_boundbox.h"
-#include "util_math.h"
+#include "util/util_boundbox.h"
+#include "util/util_math.h"
 
 CCL_NAMESPACE_BEGIN
 

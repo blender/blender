@@ -29,7 +29,7 @@
  * This means no thread state must be passed along in the kernel itself.
  */
 
-#include "kernel_types.h"
+#include "kernel/kernel_types.h"
 
 CCL_NAMESPACE_BEGIN
 

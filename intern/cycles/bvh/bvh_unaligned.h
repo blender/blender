@@ -17,7 +17,7 @@
 #ifndef __BVH_UNALIGNED_H__
 #define __BVH_UNALIGNED_H__
 
-#include "util_vector.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

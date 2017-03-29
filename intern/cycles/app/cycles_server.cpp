@@ -16,15 +16,15 @@
 
 #include <stdio.h>
 
-#include "device.h"
+#include "device/device.h"
 
-#include "util_args.h"
-#include "util_foreach.h"
-#include "util_path.h"
-#include "util_stats.h"
-#include "util_string.h"
-#include "util_task.h"
-#include "util_logging.h"
+#include "util/util_args.h"
+#include "util/util_foreach.h"
+#include "util/util_path.h"
+#include "util/util_stats.h"
+#include "util/util_string.h"
+#include "util/util_task.h"
+#include "util/util_logging.h"
 
 using namespace ccl;
 

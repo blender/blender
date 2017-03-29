@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "node.h"
+#include "graph/node.h"
 
-#include "util_map.h"
-#include "util_string.h"
-#include "util_xml.h"
+#include "util/util_map.h"
+#include "util/util_string.h"
+#include "util/util_xml.h"
 
 CCL_NAMESPACE_BEGIN
 

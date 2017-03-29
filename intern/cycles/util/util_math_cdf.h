@@ -17,9 +17,9 @@
 #ifndef __UTIL_MATH_CDF_H__
 #define __UTIL_MATH_CDF_H__
 
-#include "util_algorithm.h"
-#include "util_math.h"
-#include "util_vector.h"
+#include "util/util_algorithm.h"
+#include "util/util_math.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

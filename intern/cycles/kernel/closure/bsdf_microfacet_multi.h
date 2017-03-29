@@ -313,18 +313,18 @@ ccl_device_forceinline float mf_glass_pdf(const float3 wi, const float3 wo, cons
 
 #define MF_PHASE_FUNCTION glass
 #define MF_MULTI_GLASS
-#include "bsdf_microfacet_multi_impl.h"
+#include "kernel/closure/bsdf_microfacet_multi_impl.h"
 
 /* The diffuse phase function is not implemented as a node yet. */
 #if 0
 #define MF_PHASE_FUNCTION diffuse
 #define MF_MULTI_DIFFUSE
-#include "bsdf_microfacet_multi_impl.h"
+#include "kernel/closure/bsdf_microfacet_multi_impl.h"
 #endif
 
 #define MF_PHASE_FUNCTION glossy
 #define MF_MULTI_GLOSSY
-#include "bsdf_microfacet_multi_impl.h"
+#include "kernel/closure/bsdf_microfacet_multi_impl.h"
 
 ccl_device void bsdf_microfacet_multi_ggx_blur(ShaderClosure *sc, float roughness)
 {

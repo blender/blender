@@ -19,7 +19,7 @@
     (defined(WITH_KERNEL_NATIVE) && defined(__SSE2__))
 
 #define __KERNEL_SSE2__
-#include "util_simd.h"
+#include "util/util_simd.h"
 
 CCL_NAMESPACE_BEGIN
 

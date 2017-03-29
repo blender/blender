@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#include "camera.h"
-#include "integrator.h"
-#include "graph.h"
-#include "light.h"
-#include "mesh.h"
-#include "object.h"
-#include "scene.h"
-#include "nodes.h"
-#include "particles.h"
-#include "shader.h"
+#include "render/camera.h"
+#include "render/integrator.h"
+#include "render/graph.h"
+#include "render/light.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/scene.h"
+#include "render/nodes.h"
+#include "render/particles.h"
+#include "render/shader.h"
 
-#include "blender_object_cull.h"
-#include "blender_sync.h"
-#include "blender_util.h"
+#include "blender/blender_object_cull.h"
+#include "blender/blender_sync.h"
+#include "blender/blender_util.h"
 
-#include "util_foreach.h"
-#include "util_hash.h"
-#include "util_logging.h"
+#include "util/util_foreach.h"
+#include "util/util_hash.h"
+#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 

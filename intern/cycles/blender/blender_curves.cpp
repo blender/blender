@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-#include "attribute.h"
-#include "camera.h"
-#include "curves.h"
-#include "mesh.h"
-#include "object.h"
-#include "scene.h"
+#include "render/attribute.h"
+#include "render/camera.h"
+#include "render/curves.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/scene.h"
 
-#include "blender_sync.h"
-#include "blender_util.h"
+#include "blender/blender_sync.h"
+#include "blender/blender_util.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 

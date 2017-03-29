@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-#include "bvh.h"
-#include "bvh_build.h"
-#include "bvh_node.h"
+#include "bvh/bvh.h"
+#include "bvh/bvh_build.h"
+#include "bvh/bvh_node.h"
 
-#include "util_debug.h"
-#include "util_vector.h"
+#include "util/util_debug.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -62,12 +62,12 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 			}
 			return cnt;
 		case BVH_STAT_ALIGNED_COUNT:
-			if(!is_unaligned()) {
+			if(!is_unaligned) {
 				cnt = 1;
 			}
 			break;
 		case BVH_STAT_UNALIGNED_COUNT:
-			if(is_unaligned()) {
+			if(is_unaligned) {
 				cnt = 1;
 			}
 			break;
@@ -75,7 +75,7 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 			if(!is_leaf()) {
 				bool has_unaligned = false;
 				for(int j = 0; j < num_children(); j++) {
-					has_unaligned |= get_child(j)->is_unaligned();
+					has_unaligned |= get_child(j)->is_unaligned;
 				}
 				cnt += has_unaligned? 0: 1;
 			}
@@ -84,7 +84,7 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 			if(!is_leaf()) {
 				bool has_unaligned = false;
 				for(int j = 0; j < num_children(); j++) {
-					has_unaligned |= get_child(j)->is_unaligned();
+					has_unaligned |= get_child(j)->is_unaligned;
 				}
 				cnt += has_unaligned? 1: 0;
 			}
@@ -95,12 +95,12 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 				for(int i = 0; i < num_children(); i++) {
 					BVHNode *node = get_child(i);
 					if(node->is_leaf()) {
-						has_unaligned |= node->is_unaligned();
+						has_unaligned |= node->is_unaligned;
 					}
 					else {
 						for(int j = 0; j < node->num_children(); j++) {
 							cnt += node->get_child(j)->getSubtreeSize(stat);
-							has_unaligned |= node->get_child(j)->is_unaligned();
+							has_unaligned |= node->get_child(j)->is_unaligned;
 						}
 					}
 				}
@@ -113,12 +113,12 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 				for(int i = 0; i < num_children(); i++) {
 					BVHNode *node = get_child(i);
 					if(node->is_leaf()) {
-						has_unaligned |= node->is_unaligned();
+						has_unaligned |= node->is_unaligned;
 					}
 					else {
 						for(int j = 0; j < node->num_children(); j++) {
 							cnt += node->get_child(j)->getSubtreeSize(stat);
-							has_unaligned |= node->get_child(j)->is_unaligned();
+							has_unaligned |= node->get_child(j)->is_unaligned;
 						}
 					}
 				}
@@ -126,10 +126,10 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 			}
 			return cnt;
 		case BVH_STAT_ALIGNED_LEAF_COUNT:
-			cnt = (is_leaf() && !is_unaligned()) ? 1 : 0;
+			cnt = (is_leaf() && !is_unaligned) ? 1 : 0;
 			break;
 		case BVH_STAT_UNALIGNED_LEAF_COUNT:
-			cnt = (is_leaf() && is_unaligned()) ? 1 : 0;
+			cnt = (is_leaf() && is_unaligned) ? 1 : 0;
 			break;
 		default:
 			assert(0); /* unknown mode */
@@ -157,7 +157,7 @@ float BVHNode::computeSubtreeSAHCost(const BVHParams& p, float probability) cons
 
 	for(int i = 0; i < num_children(); i++) {
 		BVHNode *child = get_child(i);
-		SAH += child->computeSubtreeSAHCost(p, probability * child->m_bounds.safe_area()/m_bounds.safe_area());
+		SAH += child->computeSubtreeSAHCost(p, probability * child->bounds.safe_area()/bounds.safe_area());
 	}
 
 	return SAH;
@@ -165,15 +165,15 @@ float BVHNode::computeSubtreeSAHCost(const BVHParams& p, float probability) cons
 
 uint BVHNode::update_visibility()
 {
-	if(!is_leaf() && m_visibility == 0) {
+	if(!is_leaf() && visibility == 0) {
 		InnerNode *inner = (InnerNode*)this;
 		BVHNode *child0 = inner->children[0];
 		BVHNode *child1 = inner->children[1];
 
-		m_visibility = child0->update_visibility()|child1->update_visibility();
+		visibility = child0->update_visibility()|child1->update_visibility();
 	}
 
-	return m_visibility;
+	return visibility;
 }
 
 void BVHNode::update_time()
@@ -184,8 +184,8 @@ void BVHNode::update_time()
 		BVHNode *child1 = inner->children[1];
 		child0->update_time();
 		child1->update_time();
-		m_time_from = min(child0->m_time_from, child1->m_time_from);
-		m_time_to =  max(child0->m_time_to, child1->m_time_to);
+		time_from = min(child0->time_from, child1->time_from);
+		time_to =  max(child0->time_to, child1->time_to);
 	}
 }
 
@@ -209,7 +209,7 @@ void LeafNode::print(int depth) const
 	for(int i = 0; i < depth; i++)
 		printf("  ");
 	
-	printf("leaf node %d to %d\n", m_lo, m_hi);
+	printf("leaf node %d to %d\n", lo, hi);
 }
 
 CCL_NAMESPACE_END

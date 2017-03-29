@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "util_thread.h"
+#include "util/util_thread.h"
 
-#include "util_system.h"
-#include "util_windows.h"
+#include "util/util_system.h"
+#include "util/util_windows.h"
 
 CCL_NAMESPACE_BEGIN
 

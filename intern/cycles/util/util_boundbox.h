@@ -20,10 +20,10 @@
 #include <math.h>
 #include <float.h>
 
-#include "util_math.h"
-#include "util_string.h"
-#include "util_transform.h"
-#include "util_types.h"
+#include "util/util_math.h"
+#include "util/util_string.h"
+#include "util/util_transform.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -85,7 +85,7 @@
 
 /* SIMD Types */
 
-#include "util_optimization.h"
+#include "util/util_optimization.h"
 
 #endif
 

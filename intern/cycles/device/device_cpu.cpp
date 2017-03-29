@@ -20,34 +20,34 @@
 /* So ImathMath is included before our kernel_cpu_compat. */
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
-#  include "util_windows.h"
+#  include "util/util_windows.h"
 #  include <OSL/oslexec.h>
 #endif
 
-#include "device.h"
-#include "device_intern.h"
-#include "device_split_kernel.h"
+#include "device/device.h"
+#include "device/device_intern.h"
+#include "device/device_split_kernel.h"
 
-#include "kernel.h"
-#include "kernel_compat_cpu.h"
-#include "kernel_types.h"
-#include "split/kernel_split_data.h"
-#include "kernel_globals.h"
+#include "kernel/kernel.h"
+#include "kernel/kernel_compat_cpu.h"
+#include "kernel/kernel_types.h"
+#include "kernel/split/kernel_split_data.h"
+#include "kernel/kernel_globals.h"
 
-#include "osl_shader.h"
-#include "osl_globals.h"
+#include "kernel/osl/osl_shader.h"
+#include "kernel/osl/osl_globals.h"
 
-#include "buffers.h"
+#include "render/buffers.h"
 
-#include "util_debug.h"
-#include "util_foreach.h"
-#include "util_function.h"
-#include "util_logging.h"
-#include "util_map.h"
-#include "util_opengl.h"
-#include "util_progress.h"
-#include "util_system.h"
-#include "util_thread.h"
+#include "util/util_debug.h"
+#include "util/util_foreach.h"
+#include "util/util_function.h"
+#include "util/util_logging.h"
+#include "util/util_map.h"
+#include "util/util_opengl.h"
+#include "util/util_progress.h"
+#include "util/util_system.h"
+#include "util/util_thread.h"
 
 CCL_NAMESPACE_BEGIN
 

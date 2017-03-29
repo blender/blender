@@ -56,9 +56,9 @@
     /* do nothing */
 #endif
 
-#include "kernel.h"
+#include "kernel/kernel.h"
 #define KERNEL_ARCH cpu
-#include "kernel_cpu_impl.h"
+#include "kernel/kernels/cpu/kernel_cpu_impl.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -90,7 +90,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 		kg->tname.width = width; \
 	}
 #define KERNEL_IMAGE_TEX(type, ttype, tname)
-#include "kernel_textures.h"
+#include "kernel/kernel_textures.h"
 
 	else if(strstr(name, "__tex_image_float4")) {
 		texture_image_float4 *tex = NULL;

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-#include "image.h"
-#include "integrator.h"
-#include "nodes.h"
-#include "scene.h"
-#include "svm.h"
-#include "svm_color_util.h"
-#include "svm_ramp_util.h"
-#include "svm_math_util.h"
-#include "osl.h"
-#include "constant_fold.h"
+#include "render/image.h"
+#include "render/integrator.h"
+#include "render/nodes.h"
+#include "render/scene.h"
+#include "render/svm.h"
+#include "kernel/svm/svm_color_util.h"
+#include "kernel/svm/svm_ramp_util.h"
+#include "kernel/svm/svm_math_util.h"
+#include "render/osl.h"
+#include "render/constant_fold.h"
 
-#include "util_sky_model.h"
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_transform.h"
+#include "util/util_sky_model.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_transform.h"
 
 CCL_NAMESPACE_BEGIN
 

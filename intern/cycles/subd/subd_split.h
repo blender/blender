@@ -22,10 +22,10 @@
  * evaluation at arbitrary points is required for this to work. See the paper
  * for more details. */
 
-#include "subd_dice.h"
+#include "subd/subd_dice.h"
 
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

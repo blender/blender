@@ -17,7 +17,7 @@
 #ifndef __UTIL_SYSTEM_H__
 #define __UTIL_SYSTEM_H__
 
-#include "util_string.h"
+#include "util/util_string.h"
 
 CCL_NAMESPACE_BEGIN
 

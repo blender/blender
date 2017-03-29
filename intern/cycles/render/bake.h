@@ -17,11 +17,11 @@
 #ifndef __BAKE_H__
 #define __BAKE_H__
 
-#include "device.h"
-#include "scene.h"
+#include "device/device.h"
+#include "render/scene.h"
 
-#include "util_progress.h"
-#include "util_vector.h"
+#include "util/util_progress.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

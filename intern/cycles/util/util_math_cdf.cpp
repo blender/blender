@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "util_math_cdf.h"
+#include "util/util_math_cdf.h"
 
-#include "util_algorithm.h"
-#include "util_math.h"
+#include "util/util_algorithm.h"
+#include "util/util_math.h"
 
 CCL_NAMESPACE_BEGIN
 

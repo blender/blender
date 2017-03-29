@@ -17,12 +17,12 @@
 #ifndef __LIGHT_H__
 #define __LIGHT_H__
 
-#include "kernel_types.h"
+#include "kernel/kernel_types.h"
 
-#include "node.h"
+#include "graph/node.h"
 
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

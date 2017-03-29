@@ -32,7 +32,7 @@
 #  include <libkern/OSAtomic.h>
 #endif
 
-#include "util_function.h"
+#include "util/util_function.h"
 
 CCL_NAMESPACE_BEGIN
 

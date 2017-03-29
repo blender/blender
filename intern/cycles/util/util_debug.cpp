@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "util_debug.h"
+#include "util/util_debug.h"
 
 #include <stdlib.h>
 
-#include "util_logging.h"
-#include "util_string.h"
+#include "util/util_logging.h"
+#include "util/util_string.h"
 
 CCL_NAMESPACE_BEGIN
 

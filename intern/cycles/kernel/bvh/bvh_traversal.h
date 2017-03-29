@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#  include "qbvh_traversal.h"
+#  include "kernel/bvh/qbvh_traversal.h"
 #endif
 
 #if BVH_FEATURE(BVH_HAIR)

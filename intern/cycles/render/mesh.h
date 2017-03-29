@@ -17,17 +17,18 @@
 #ifndef __MESH_H__
 #define __MESH_H__
 
-#include "attribute.h"
-#include "node.h"
-#include "shader.h"
+#include "graph/node.h"
 
-#include "util_boundbox.h"
-#include "util_list.h"
-#include "util_map.h"
-#include "util_param.h"
-#include "util_transform.h"
-#include "util_types.h"
-#include "util_vector.h"
+#include "render/attribute.h"
+#include "render/shader.h"
+
+#include "util/util_boundbox.h"
+#include "util/util_list.h"
+#include "util/util_map.h"
+#include "util/util_param.h"
+#include "util/util_transform.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

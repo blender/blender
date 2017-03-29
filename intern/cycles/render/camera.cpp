@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-#include "camera.h"
-#include "mesh.h"
-#include "object.h"
-#include "scene.h"
-#include "tables.h"
+#include "render/camera.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/scene.h"
+#include "render/tables.h"
 
-#include "device.h"
+#include "device/device.h"
 
-#include "util_foreach.h"
-#include "util_function.h"
-#include "util_math_cdf.h"
-#include "util_vector.h"
+#include "util/util_foreach.h"
+#include "util/util_function.h"
+#include "util/util_math_cdf.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

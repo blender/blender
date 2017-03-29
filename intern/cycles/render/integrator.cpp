@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#include "device.h"
-#include "integrator.h"
-#include "film.h"
-#include "light.h"
-#include "scene.h"
-#include "shader.h"
-#include "sobol.h"
+#include "device/device.h"
+#include "render/integrator.h"
+#include "render/film.h"
+#include "render/light.h"
+#include "render/scene.h"
+#include "render/shader.h"
+#include "render/sobol.h"
 
-#include "util_foreach.h"
-#include "util_hash.h"
+#include "util/util_foreach.h"
+#include "util/util_hash.h"
 
 CCL_NAMESPACE_BEGIN
 

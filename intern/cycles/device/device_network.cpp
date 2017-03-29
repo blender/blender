@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "device.h"
-#include "device_intern.h"
-#include "device_network.h"
+#include "device/device.h"
+#include "device/device_intern.h"
+#include "device/device_network.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
 
 #if defined(WITH_NETWORK)
 

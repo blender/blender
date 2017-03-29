@@ -18,10 +18,10 @@
 #ifndef __BVH_H__
 #define __BVH_H__
 
-#include "bvh_params.h"
+#include "bvh/bvh_params.h"
 
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -30,8 +30,8 @@
 #ifndef __UTIL_MD5_H__
 #define __UTIL_MD5_H__
 
-#include "util_string.h"
-#include "util_types.h"
+#include "util/util_string.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

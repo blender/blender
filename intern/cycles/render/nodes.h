@@ -17,10 +17,10 @@
 #ifndef __NODES_H__
 #define __NODES_H__
 
-#include "graph.h"
-#include "node.h"
+#include "render/graph.h"
+#include "graph/node.h"
 
-#include "util_string.h"
+#include "util/util_string.h"
 
 CCL_NAMESPACE_BEGIN
 

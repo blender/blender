@@ -17,13 +17,13 @@
 #ifndef __OSL_H__
 #define __OSL_H__
 
-#include "util_set.h"
-#include "util_string.h"
-#include "util_thread.h"
+#include "util/util_set.h"
+#include "util/util_string.h"
+#include "util/util_thread.h"
 
-#include "graph.h"
-#include "nodes.h"
-#include "shader.h"
+#include "render/graph.h"
+#include "render/nodes.h"
+#include "render/shader.h"
 
 #ifdef WITH_OSL
 #include <OSL/oslcomp.h>

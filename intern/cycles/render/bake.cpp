@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "bake.h"
-#include "integrator.h"
+#include "render/bake.h"
+#include "render/integrator.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -17,9 +17,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "util_foreach.h"
-#include "util_string.h"
-#include "util_windows.h"
+#include "util/util_foreach.h"
+#include "util/util_string.h"
+#include "util/util_windows.h"
 
 #ifdef _WIN32
 #  ifndef vsnprintf

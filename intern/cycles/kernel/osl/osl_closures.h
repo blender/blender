@@ -33,8 +33,8 @@
 #ifndef __OSL_CLOSURES_H__
 #define __OSL_CLOSURES_H__
 
-#include "util_types.h"
-#include "kernel_types.h"
+#include "util/util_types.h"
+#include "kernel/kernel_types.h"
 
 #include <OSL/oslclosure.h>
 #include <OSL/oslexec.h>

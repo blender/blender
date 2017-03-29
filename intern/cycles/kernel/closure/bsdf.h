@@ -14,37 +14,37 @@
  * limitations under the License.
  */
 
-#include "../closure/bsdf_ashikhmin_velvet.h"
-#include "../closure/bsdf_diffuse.h"
-#include "../closure/bsdf_oren_nayar.h"
-#include "../closure/bsdf_phong_ramp.h"
-#include "../closure/bsdf_diffuse_ramp.h"
-#include "../closure/bsdf_microfacet.h"
-#include "../closure/bsdf_microfacet_multi.h"
-#include "../closure/bsdf_reflection.h"
-#include "../closure/bsdf_refraction.h"
-#include "../closure/bsdf_transparent.h"
-#include "../closure/bsdf_ashikhmin_shirley.h"
-#include "../closure/bsdf_toon.h"
-#include "../closure/bsdf_hair.h"
+#include "kernel/closure/bsdf_ashikhmin_velvet.h"
+#include "kernel/closure/bsdf_diffuse.h"
+#include "kernel/closure/bsdf_oren_nayar.h"
+#include "kernel/closure/bsdf_phong_ramp.h"
+#include "kernel/closure/bsdf_diffuse_ramp.h"
+#include "kernel/closure/bsdf_microfacet.h"
+#include "kernel/closure/bsdf_microfacet_multi.h"
+#include "kernel/closure/bsdf_reflection.h"
+#include "kernel/closure/bsdf_refraction.h"
+#include "kernel/closure/bsdf_transparent.h"
+#include "kernel/closure/bsdf_ashikhmin_shirley.h"
+#include "kernel/closure/bsdf_toon.h"
+#include "kernel/closure/bsdf_hair.h"
 #ifdef __SUBSURFACE__
-#  include "../closure/bssrdf.h"
+#  include "kernel/closure/bssrdf.h"
 #endif
 #ifdef __VOLUME__
-#  include "../closure/volume.h"
+#  include "kernel/closure/volume.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
 
 ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
-                                  ShaderData *sd,
-                                  const ShaderClosure *sc,
-                                  float randu,
-                                  float randv,
-                                  float3 *eval,
-                                  float3 *omega_in,
-                                  differential3 *domega_in,
-                                  float *pdf)
+                                       ShaderData *sd,
+                                       const ShaderClosure *sc,
+                                       float randu,
+                                       float randv,
+                                       float3 *eval,
+                                       float3 *omega_in,
+                                       differential3 *domega_in,
+                                       float *pdf)
 {
 	int label;
 

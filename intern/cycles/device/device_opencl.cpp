@@ -16,12 +16,12 @@
 
 #ifdef WITH_OPENCL
 
-#include "opencl/opencl.h"
+#include "device/opencl/opencl.h"
 
-#include "device_intern.h"
+#include "device/device_intern.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 

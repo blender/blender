@@ -17,7 +17,7 @@
 #ifndef __SOBOL_H__
 #define __SOBOL_H__
 
-#include "util_types.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

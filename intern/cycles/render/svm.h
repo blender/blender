@@ -17,13 +17,13 @@
 #ifndef __SVM_H__
 #define __SVM_H__
 
-#include "attribute.h"
-#include "graph.h"
-#include "shader.h"
+#include "render/attribute.h"
+#include "render/graph.h"
+#include "render/shader.h"
 
-#include "util_set.h"
-#include "util_string.h"
-#include "util_thread.h"
+#include "util/util_set.h"
+#include "util/util_string.h"
+#include "util/util_thread.h"
 
 CCL_NAMESPACE_BEGIN
 

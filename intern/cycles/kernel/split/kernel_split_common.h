@@ -17,61 +17,61 @@
 #ifndef  __KERNEL_SPLIT_H__
 #define  __KERNEL_SPLIT_H__
 
-#include "kernel_math.h"
-#include "kernel_types.h"
+#include "kernel/kernel_math.h"
+#include "kernel/kernel_types.h"
 
-#include "kernel_split_data.h"
+#include "kernel/split/kernel_split_data.h"
 
-#include "kernel_globals.h"
+#include "kernel/kernel_globals.h"
 
 #ifdef __OSL__
-#  include "osl_shader.h"
+#  include "kernel/osl/osl_shader.h"
 #endif
 
 #ifdef __KERNEL_OPENCL__
-#  include "kernel_image_opencl.h"
+#  include "kernel/kernel_image_opencl.h"
 #endif
 #ifdef __KERNEL_CPU__
-#  include "../kernels/cpu/kernel_cpu_image.h"
+#  include "kernel/kernels/cpu/kernel_cpu_image.h"
 #endif
 
-#include "util_atomic.h"
+#include "util/util_atomic.h"
 
-#include "kernel_random.h"
-#include "kernel_projection.h"
-#include "kernel_montecarlo.h"
-#include "kernel_differential.h"
-#include "kernel_camera.h"
+#include "kernel/kernel_random.h"
+#include "kernel/kernel_projection.h"
+#include "kernel/kernel_montecarlo.h"
+#include "kernel/kernel_differential.h"
+#include "kernel/kernel_camera.h"
 
-#include "geom/geom.h"
-#include "bvh/bvh.h"
+#include "kernel/geom/geom.h"
+#include "kernel/bvh/bvh.h"
 
-#include "kernel_accumulate.h"
-#include "kernel_shader.h"
-#include "kernel_light.h"
-#include "kernel_passes.h"
+#include "kernel/kernel_accumulate.h"
+#include "kernel/kernel_shader.h"
+#include "kernel/kernel_light.h"
+#include "kernel/kernel_passes.h"
 
 #ifdef __SUBSURFACE__
-#  include "kernel_subsurface.h"
+#  include "kernel/kernel_subsurface.h"
 #endif
 
 #ifdef __VOLUME__
-#  include "kernel_volume.h"
+#  include "kernel/kernel_volume.h"
 #endif
 
-#include "kernel_path_state.h"
-#include "kernel_shadow.h"
-#include "kernel_emission.h"
-#include "kernel_path_common.h"
-#include "kernel_path_surface.h"
-#include "kernel_path_volume.h"
-#include "kernel_path_subsurface.h"
+#include "kernel/kernel_path_state.h"
+#include "kernel/kernel_shadow.h"
+#include "kernel/kernel_emission.h"
+#include "kernel/kernel_path_common.h"
+#include "kernel/kernel_path_surface.h"
+#include "kernel/kernel_path_volume.h"
+#include "kernel/kernel_path_subsurface.h"
 
 #ifdef __KERNEL_DEBUG__
-#  include "kernel_debug.h"
+#  include "kernel/kernel_debug.h"
 #endif
 
-#include "kernel_queues.h"
-#include "kernel_work_stealing.h"
+#include "kernel/kernel_queues.h"
+#include "kernel/kernel_work_stealing.h"
 
 #endif  /* __KERNEL_SPLIT_H__ */

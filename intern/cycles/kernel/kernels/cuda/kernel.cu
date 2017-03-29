@@ -18,15 +18,15 @@
 
 #ifdef __CUDA_ARCH__
 
-#include "../../kernel_compat_cuda.h"
+#include "kernel/kernel_compat_cuda.h"
 #include "kernel_config.h"
-#include "../../kernel_math.h"
-#include "../../kernel_types.h"
-#include "../../kernel_globals.h"
-#include "../../kernel_film.h"
-#include "../../kernel_path.h"
-#include "../../kernel_path_branched.h"
-#include "../../kernel_bake.h"
+#include "kernel/kernel_math.h"
+#include "kernel/kernel_types.h"
+#include "kernel/kernel_globals.h"
+#include "kernel/kernel_film.h"
+#include "kernel/kernel_path.h"
+#include "kernel/kernel_path_branched.h"
+#include "kernel/kernel_bake.h"
 
 /* kernels */
 extern "C" __global__ void

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "blender_texture.h"
+#include "blender/blender_texture.h"
 
 CCL_NAMESPACE_BEGIN
 

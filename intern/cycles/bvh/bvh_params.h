@@ -18,9 +18,9 @@
 #ifndef __BVH_PARAMS_H__
 #define __BVH_PARAMS_H__
 
-#include "util_boundbox.h"
+#include "util/util_boundbox.h"
 
-#include "kernel_types.h"
+#include "kernel/kernel_types.h"
 
 CCL_NAMESPACE_BEGIN
 

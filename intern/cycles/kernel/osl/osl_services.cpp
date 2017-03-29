@@ -25,34 +25,34 @@
 
 #include <string.h>
 
-#include "mesh.h"
-#include "object.h"
-#include "scene.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/scene.h"
 
-#include "osl_closures.h"
-#include "osl_globals.h"
-#include "osl_services.h"
-#include "osl_shader.h"
+#include "kernel/osl/osl_closures.h"
+#include "kernel/osl/osl_globals.h"
+#include "kernel/osl/osl_services.h"
+#include "kernel/osl/osl_shader.h"
 
-#include "util_foreach.h"
-#include "util_logging.h"
-#include "util_string.h"
+#include "util/util_foreach.h"
+#include "util/util_logging.h"
+#include "util/util_string.h"
 
-#include "kernel_compat_cpu.h"
-#include "split/kernel_split_data_types.h"
-#include "kernel_globals.h"
-#include "kernel_random.h"
-#include "kernel_projection.h"
-#include "kernel_differential.h"
-#include "kernel_montecarlo.h"
-#include "kernel_camera.h"
-#include "kernels/cpu/kernel_cpu_image.h"
-#include "geom/geom.h"
-#include "bvh/bvh.h"
+#include "kernel/kernel_compat_cpu.h"
+#include "kernel/split/kernel_split_data_types.h"
+#include "kernel/kernel_globals.h"
+#include "kernel/kernel_random.h"
+#include "kernel/kernel_projection.h"
+#include "kernel/kernel_differential.h"
+#include "kernel/kernel_montecarlo.h"
+#include "kernel/kernel_camera.h"
+#include "kernel/kernels/cpu/kernel_cpu_image.h"
+#include "kernel/geom/geom.h"
+#include "kernel/bvh/bvh.h"
 
-#include "kernel_projection.h"
-#include "kernel_accumulate.h"
-#include "kernel_shader.h"
+#include "kernel/kernel_projection.h"
+#include "kernel/kernel_accumulate.h"
+#include "kernel/kernel_shader.h"
 
 #ifdef WITH_PTEX
 #  include <Ptexture.h>

@@ -1,12 +1,6 @@
 
 set(INC
-	../graph
-	../render
-	../device
-	../kernel
-	../kernel/svm
-	../util
-	../subd
+	..
 	../../glew-mx
 	../../guardedalloc
 	../../mikktspace

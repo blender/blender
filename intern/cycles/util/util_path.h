@@ -24,10 +24,10 @@
 
 #include <stdio.h>
 
-#include "util_set.h"
-#include "util_string.h"
-#include "util_types.h"
-#include "util_vector.h"
+#include "util/util_set.h"
+#include "util/util_string.h"
+#include "util/util_types.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

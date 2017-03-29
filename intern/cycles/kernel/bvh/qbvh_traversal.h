@@ -112,6 +112,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			/* Traverse internal nodes. */
 			while(node_addr >= 0 && node_addr != ENTRYPOINT_SENTINEL) {
 				float4 inodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
+				(void)inodes;
 
 				if(UNLIKELY(node_dist > isect->t)
 #if BVH_FEATURE(BVH_MOTION)
@@ -119,8 +120,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				   || UNLIKELY(ray->time > inodes.z)
 #endif
 #ifdef __VISIBILITY_FLAG__
-				   || (__float_as_uint(inodes.x) & visibility) == 0)
+				   || (__float_as_uint(inodes.x) & visibility) == 0
 #endif
+				 )
 				{
 					/* Pop. */
 					node_addr = traversal_stack[stack_ptr].addr;

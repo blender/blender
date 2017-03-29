@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "kernel_jitter.h"
+#include "kernel/kernel_jitter.h"
 
 CCL_NAMESPACE_BEGIN
 

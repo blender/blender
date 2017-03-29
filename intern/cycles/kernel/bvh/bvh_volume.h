@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#  include "qbvh_volume.h"
+#  include "kernel/bvh/qbvh_volume.h"
 #endif
 
 #if BVH_FEATURE(BVH_HAIR)
