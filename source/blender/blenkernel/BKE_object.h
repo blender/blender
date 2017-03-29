@@ -153,8 +153,7 @@ bool BKE_object_minmax_dupli(struct Scene *scene, struct Object *ob, float r_min
 void BKE_object_foreach_display_point(struct Object *ob, float obmat[4][4],
                                       void (*func_cb)(const float[3], void *), void *user_data);
 void BKE_scene_foreach_display_point(struct Scene *scene,
-                                     struct View3D *v3d,
-                                     const short flag,
+                                     struct SceneLayer *sl,
                                      void (*func_cb)(const float[3], void *), void *user_data);
 
 bool BKE_object_parent_loop_check(const struct Object *parent, const struct Object *ob);
