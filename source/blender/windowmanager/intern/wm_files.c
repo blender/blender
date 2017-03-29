@@ -643,7 +643,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
  * When not-null, this is written into the user preferences.
  */
 int wm_homefile_read(
-        bContext *C, ReportList *reports, bool use_factory_settings,
+        bContext *C, ReportList *reports,
+        bool use_factory_settings, bool use_empty_data,
         const char *filepath_startup_override, const char *app_template_override)
 {
 	ListBase wmbase;
@@ -777,6 +778,10 @@ int wm_homefile_read(
 		if (BLI_listbase_is_empty(&wmbase)) {
 			wm_clear_default_size(C);
 		}
+	}
+
+	if (use_empty_data) {
+		BKE_blendfile_read_make_empty(C);
 	}
 
 	/* Load template preferences,
@@ -1551,6 +1556,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 	const char *app_template;
 	PropertyRNA *prop_app_template = RNA_struct_find_property(op->ptr, "app_template");
 	const bool use_splash = !use_factory_settings && RNA_boolean_get(op->ptr, "use_splash");
+	const bool use_empty_data = RNA_boolean_get(op->ptr, "use_empty");
 
 	if (prop_app_template && RNA_property_is_set(op->ptr, prop_app_template)) {
 		RNA_property_string_get(op->ptr, prop_app_template, app_template_buf);
@@ -1560,7 +1566,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		app_template = NULL;
 	}
 
-	if (wm_homefile_read(C, op->reports, use_factory_settings, filepath, app_template)) {
+	if (wm_homefile_read(C, op->reports, use_factory_settings, use_empty_data, filepath, app_template)) {
 		if (use_splash) {
 			WM_init_splash(C);
 		}
@@ -1591,6 +1597,9 @@ void WM_OT_read_homefile(wmOperatorType *ot)
 	                       "Load user interface setup from the .blend file");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
+	prop = RNA_def_boolean(ot->srna, "use_empty", false, "Empty", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
 	/* So the splash can be kept open after loading a file (for templates). */
 	prop = RNA_def_boolean(ot->srna, "use_splash", false, "Splash", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
@@ -1613,6 +1622,9 @@ void WM_OT_read_factory_settings(wmOperatorType *ot)
 	ot->exec = wm_homefile_read_exec;
 
 	prop = RNA_def_string(ot->srna, "app_template", "Template", sizeof(U.app_template), "", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	prop = RNA_def_boolean(ot->srna, "use_empty", false, "Empty", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	/* omit poll to run in background mode */
