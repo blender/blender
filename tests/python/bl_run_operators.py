@@ -65,6 +65,7 @@ op_blacklist = (
     "wm.blenderplayer_start",
     "wm.recover_auto_save",
     "wm.quit_blender",
+    "wm.window_close",
     "wm.url_open",
     "wm.doc_view",
     "wm.doc_edit",
@@ -308,16 +309,7 @@ def run_ops(operators, setup_func=None, reset=True):
 
 # contexts
 def ctx_clear_scene():  # copied from batch_import.py
-    unique_obs = set()
-    for scene in bpy.data.scenes:
-        for obj in scene.objects[:]:
-            scene.objects.unlink(obj)
-            unique_obs.add(obj)
-
-    # remove obdata, for now only worry about the startup scene
-    for bpy_data_iter in (bpy.data.objects, bpy.data.meshes, bpy.data.lamps, bpy.data.cameras):
-        for id_data in bpy_data_iter:
-            bpy_data_iter.remove(id_data)
+    bpy.ops.wm.read_factory_settings(use_empty=True)
 
 
 def ctx_editmode_mesh():
