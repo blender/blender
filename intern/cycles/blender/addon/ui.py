@@ -183,6 +183,8 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         else:
             sub.label(text="AA Samples:")
             sub.prop(cscene, "aa_samples", text="Render")
+            sub.prop(cscene, "preview_aa_samples", text="Preview")
+
             col = split.column()
             sub = col.column(align=True)
             sub.label(text="Samples:")
