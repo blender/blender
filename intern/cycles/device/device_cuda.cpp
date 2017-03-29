@@ -345,15 +345,15 @@ public:
 			cuda_error_message("CUDA nvcc compiler version could not be parsed.");
 			return false;
 		}
-		if(cuda_version < 75) {
+		if(cuda_version < 80) {
 			printf("Unsupported CUDA version %d.%d detected, "
-			       "you need CUDA 7.5 or newer.\n",
+			       "you need CUDA 8.0 or newer.\n",
 			       major, minor);
 			return false;
 		}
-		else if(cuda_version != 75 && cuda_version != 80) {
+		else if(cuda_version != 80) {
 			printf("CUDA version %d.%d detected, build may succeed but only "
-			       "CUDA 7.5 and 8.0 are officially supported.\n",
+			       "CUDA 8.0 is officially supported.\n",
 			       major, minor);
 		}
 		return true;
