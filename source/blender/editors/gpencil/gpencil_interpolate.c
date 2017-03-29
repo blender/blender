@@ -86,13 +86,14 @@
 /* Core/Shared Utilities */
 
 /* Poll callback for interpolation operators */
-static int gpencil_interpolate_poll(bContext *C)
+static int gpencil_view3d_poll(bContext *C)
 {
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
 	
 	/* only 3D view */
-	if (CTX_wm_area(C)->spacetype != SPACE_VIEW3D) {
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype != SPACE_VIEW3D) {
 		return 0;
 	}
 	
@@ -673,7 +674,7 @@ void GPENCIL_OT_interpolate(wmOperatorType *ot)
 	ot->invoke = gpencil_interpolate_invoke;
 	ot->modal = gpencil_interpolate_modal;
 	ot->cancel = gpencil_interpolate_cancel;
-	ot->poll = gpencil_interpolate_poll;
+	ot->poll = gpencil_view3d_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
@@ -1017,7 +1018,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = gpencil_interpolate_seq_exec;
-	ot->poll = gpencil_interpolate_poll;
+	ot->poll = gpencil_view3d_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1025,24 +1026,14 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
 
 /* ******************** Remove Breakdowns ************************ */
 
-/* Same as gpencil_interpolate_poll(), 
- * except we ALSO need to have an active frame that is a breakdown
- */
 static int gpencil_interpolate_reverse_poll(bContext *C)
 {
-	bGPdata *gpd = CTX_data_gpencil_data(C);
+	if (!gpencil_view3d_poll(C)) {
+		return 0;
+	}
+
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
-	
-	/* only 3D view */
-	if (CTX_wm_area(C)->spacetype != SPACE_VIEW3D) {
-		return 0;
-	}
-	
-	/* need data to interpolate */
-	if (ELEM(NULL, gpd, gpl)) {
-		return 0;
-	}
-	
+
 	/* need to be on a breakdown frame */
 	if ((gpl->actframe == NULL) || (gpl->actframe->key_type != BEZT_KEYTYPE_BREAKDOWN)) {
 		CTX_wm_operator_poll_msg_set(C, "Expected current frame to be a breakdown");
