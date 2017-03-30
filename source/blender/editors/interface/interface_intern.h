@@ -556,6 +556,7 @@ struct uiPopupBlockHandle {
 	struct uiKeyNavLock keynav_state;
 
 	/* for operator popups */
+	struct wmOperator *popup_op;
 	struct wmOperatorType *optype;
 	ScrArea *ctx_area;
 	ARegion *ctx_region;

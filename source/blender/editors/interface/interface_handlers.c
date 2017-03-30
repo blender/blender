@@ -87,6 +87,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "wm_event_system.h"
 
 #ifdef WITH_INPUT_IME
 #  include "wm_window.h"
@@ -380,6 +381,7 @@ typedef struct uiAfterFunc {
 	void *butm_func_arg;
 	int a2;
 
+	wmOperator *popup_op;
 	wmOperatorType *optype;
 	int opcontext;
 	PointerRNA *opptr;
@@ -635,13 +637,24 @@ PointerRNA *ui_handle_afterfunc_add_operator(wmOperatorType *ot, int opcontext, 
 	return ptr;
 }
 
+static void popup_check(bContext *C, const wmOperator *op)
+{
+	if (op && op->type->check && op->type->check(C, op)) {
+		/* check for popup and re-layout buttons */
+		ARegion *ar_menu = CTX_wm_menu(C);
+		if (ar_menu)
+			ED_region_tag_refresh_ui(ar_menu);
+	}
+}
+
 /**
  * Check if a #uiAfterFunc is needed for this button.
  */
 static bool ui_afterfunc_check(const uiBlock *block, const uiBut *but)
 {
 	return (but->func || but->funcN || but->rename_func || but->optype || but->rnaprop || block->handle_func ||
-	        (but->type == UI_BTYPE_BUT_MENU && block->butm_func));
+	        (but->type == UI_BTYPE_BUT_MENU && block->butm_func) ||
+	        block->handle && block->handle->popup_op);
 }
 
 static void ui_apply_but_func(bContext *C, uiBut *but)
@@ -682,6 +695,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 			after->butm_func_arg = block->butm_func_arg;
 			after->a2 = but->a2;
 		}
+		
+		if (block->handle)
+			after->popup_op = block->handle->popup_op;
 
 		after->optype = but->optype;
 		after->opcontext = but->opcontext;
@@ -766,6 +782,9 @@ static void ui_apply_but_funcs_after(bContext *C)
 		if (after.context)
 			CTX_store_set(C, after.context);
 
+		if (after.popup_op)
+			popup_check(C, after.popup_op);
+		
 		if (after.opptr) {
 			/* free in advance to avoid leak on exit */
 			opptr = *after.opptr;
@@ -6665,7 +6684,7 @@ static void remove_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 {
 	uiBut *but = (uiBut *)arg1;
-	UI_popup_block_ex(C, menu_add_shortcut, NULL, menu_add_shortcut_cancel, but);
+	UI_popup_block_ex(C, menu_add_shortcut, NULL, menu_add_shortcut_cancel, but, NULL);
 }
 
 /**
@@ -10179,6 +10198,25 @@ void UI_popup_handlers_add(bContext *C, ListBase *handlers, uiPopupBlockHandle *
 
 void UI_popup_handlers_remove(ListBase *handlers, uiPopupBlockHandle *popup)
 {
+	wmEventHandler *handler;
+
+	for (handler = handlers->first; handler; handler = handler->next) {
+		if (handler->ui_handle == ui_popup_handler &&
+		    handler->ui_remove == ui_popup_handler_remove &&
+		    handler->ui_userdata == popup)
+		{
+			/* tag refresh parent popup */
+			if (handler->next && 
+				handler->next->ui_handle == ui_popup_handler && 
+				handler->next->ui_remove == ui_popup_handler_remove) 
+			{
+				uiPopupBlockHandle *parent_popup = handler->next->ui_userdata;
+				ED_region_tag_refresh_ui(parent_popup->region);
+			}
+			break;
+		}
+	}
+
 	WM_event_remove_ui_handler(handlers, ui_popup_handler, ui_popup_handler_remove, popup, false);
 }
 
