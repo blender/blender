@@ -59,8 +59,6 @@ typedef struct LayerCollection {
 	ListBase object_bases;      /* (ObjectBase *)LinkData->data - synced with collection->objects and collection->filter_objects */
 	ListBase overrides;
 	ListBase layer_collections; /* synced with collection->collections */
-	ListBase engine_settings; /* CollectionEngineSettings */
-	ListBase mode_settings; /* CollectionModeSettings */
 	struct IDProperty *properties;  /* overrides */
 } LayerCollection;
 
@@ -100,7 +98,6 @@ enum {
 enum {
 	COLLECTION_VISIBLE    = (1 << 0),
 	COLLECTION_SELECTABLE = (1 << 1),
-	COLLECTION_FOLDED     = (1 << 2),
 };
 
 /* SceneLayer->flag */
