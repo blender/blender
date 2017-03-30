@@ -5192,7 +5192,8 @@ static int ui_do_but_COLOR(
 				if (!event->ctrl) {
 					float color[3];
 					Scene *scene = CTX_data_scene(C);
-					Paint *paint = BKE_paint_get_active(scene);
+					SceneLayer *sl = CTX_data_scene_layer(C);
+					Paint *paint = BKE_paint_get_active(scene, sl);
 					Brush *brush = BKE_paint_brush(paint);
 
 					if (brush->flag & BRUSH_USE_GRADIENT) {
@@ -6100,6 +6101,7 @@ static int ui_do_but_CURVE(
 	int mx, my, a;
 	bool changed = false;
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 
 	mx = event->x;
 	my = event->y;
@@ -6228,7 +6230,7 @@ static int ui_do_but_CURVE(
 				}
 				else {
 					curvemapping_changed(cumap, true);  /* remove doubles */
-					BKE_paint_invalidate_cursor_overlay(scene, cumap);
+					BKE_paint_invalidate_cursor_overlay(scene, sl, cumap);
 				}
 			}
 

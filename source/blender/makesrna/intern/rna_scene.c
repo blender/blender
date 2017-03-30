@@ -1995,9 +1995,10 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 	}
 }
 
-static void rna_UnifiedPaintSettings_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_UnifiedPaintSettings_update(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	Brush *br = BKE_paint_brush(BKE_paint_get_active(scene));
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Brush *br = BKE_paint_brush(BKE_paint_get_active(scene, sl));
 	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
 }
 
@@ -2020,11 +2021,11 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	ups->unprojected_radius = value;
 }
 
-static void rna_UnifiedPaintSettings_radius_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_UnifiedPaintSettings_radius_update(Main *bmain, bContext *C, Scene *scene, PointerRNA *ptr)
 {
 	/* changing the unified size should invalidate the overlay but also update the brush */
 	BKE_paint_invalidate_overlay_all();
-	rna_UnifiedPaintSettings_update(bmain, scene, ptr);
+	rna_UnifiedPaintSettings_update(bmain, C, scene, ptr);
 }
 
 static char *rna_UnifiedPaintSettings_path(PointerRNA *UNUSED(ptr))
@@ -3737,6 +3738,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	 * from the active brush */
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_funcs(prop, NULL, "rna_UnifiedPaintSettings_size_set", NULL);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS * 10);
 	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, -1);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush");
@@ -3744,6 +3746,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_funcs(prop, NULL, "rna_UnifiedPaintSettings_unprojected_radius_set", NULL);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 1, 0, -1);
 	RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
@@ -3751,6 +3754,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
@@ -3759,6 +3763,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "weight");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
@@ -3766,12 +3771,14 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_float_sdna(prop, NULL, "rgb");
 	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 
 	prop = RNA_def_property(srna, "secondary_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_float_sdna(prop, NULL, "secondary_rgb");
 	RNA_def_property_ui_text(prop, "Secondary Color", "");

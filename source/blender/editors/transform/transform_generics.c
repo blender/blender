@@ -1786,7 +1786,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 		}
 	}
 	else if (t->options & CTX_PAINT_CURVE) {
-		Paint *p = BKE_paint_get_active(t->scene);
+		Paint *p = BKE_paint_get_active(t->scene, t->sl);
 		Brush *br = p->brush;
 		PaintCurve *pc = br->paint_curve;
 		copy_v3_v3(r_center, pc->points[pc->add_index - 1].bez.vec[1]);

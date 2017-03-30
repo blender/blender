@@ -370,7 +370,7 @@ static int buttons_context_path_particle(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_brush(ButsContextPath *path)
+static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 {
 	Scene *scene;
 	Brush *br = NULL;
@@ -384,8 +384,10 @@ static int buttons_context_path_brush(ButsContextPath *path)
 	else if (buttons_context_path_scene(path)) {
 		scene = path->ptr[path->len - 1].data;
 
-		if (scene)
-			br = BKE_paint_brush(BKE_paint_get_active(scene));
+		if (scene) {
+			SceneLayer *sl = CTX_data_scene_layer(C);
+			br = BKE_paint_brush(BKE_paint_get_active(scene, sl));
+		}
 
 		if (br) {
 			RNA_id_pointer_create((ID *)br, &path->ptr[path->len]);
@@ -399,7 +401,7 @@ static int buttons_context_path_brush(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_texture(ButsContextPath *path, ButsContextTexture *ct)
+static int buttons_context_path_texture(const bContext *C, ButsContextPath *path, ButsContextTexture *ct)
 {
 	if (ct) {
 		/* new shading system */
@@ -417,7 +419,7 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 
 		if (id) {
 			if (GS(id->name) == ID_BR)
-				buttons_context_path_brush(path);
+				buttons_context_path_brush(C, path);
 			else if (GS(id->name) == ID_MA)
 				buttons_context_path_material(path, false, true);
 			else if (GS(id->name) == ID_WO)
@@ -650,7 +652,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found = buttons_context_path_material(path, false, (sbuts->texuser != NULL));
 			break;
 		case BCONTEXT_TEXTURE:
-			found = buttons_context_path_texture(path, sbuts->texuser);
+			found = buttons_context_path_texture(C, path, sbuts->texuser);
 			break;
 		case BCONTEXT_BONE:
 			found = buttons_context_path_bone(path);

@@ -4359,7 +4359,7 @@ static void draw_mesh_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v
 
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
-			if ((v3d->flag2 & V3D_SHOW_SOLID_MATCAP) && ob->sculpt && (p = BKE_paint_get_active(scene))) {
+			if ((v3d->flag2 & V3D_SHOW_SOLID_MATCAP) && ob->sculpt && (p = BKE_paint_get_active(scene, sl))) {
 				GPUVertexAttribs gattribs;
 				float planes[4][4];
 				float (*fpl)[4] = NULL;
@@ -4451,7 +4451,7 @@ static void draw_mesh_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v
 
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
-			if (ob->sculpt && (p = BKE_paint_get_active(scene))) {
+			if (ob->sculpt && (p = BKE_paint_get_active(scene, sl))) {
 				float planes[4][4];
 				float (*fpl)[4] = NULL;
 				const bool fast = (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
@@ -4838,7 +4838,7 @@ static void draw_mesh_fancy_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3
 
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
-			if ((v3d->flag2 & V3D_SHOW_SOLID_MATCAP) && ob->sculpt && (p = BKE_paint_get_active(scene))) {
+			if ((v3d->flag2 & V3D_SHOW_SOLID_MATCAP) && ob->sculpt && (p = BKE_paint_get_active(scene, sl))) {
 				GPUVertexAttribs gattribs;
 				float planes[4][4];
 				float (*fpl)[4] = NULL;
@@ -4927,7 +4927,7 @@ static void draw_mesh_fancy_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3
 
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
-			if (ob->sculpt && (p = BKE_paint_get_active(scene))) {
+			if (ob->sculpt && (p = BKE_paint_get_active(scene, sl))) {
 				float planes[4][4];
 				float (*fpl)[4] = NULL;
 				const bool fast = (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
