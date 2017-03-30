@@ -637,7 +637,7 @@ PointerRNA *ui_handle_afterfunc_add_operator(wmOperatorType *ot, int opcontext, 
 	return ptr;
 }
 
-static void popup_check(bContext *C, const wmOperator *op)
+static void popup_check(bContext *C, wmOperator *op)
 {
 	if (op && op->type->check && op->type->check(C, op)) {
 		/* check for popup and re-layout buttons */
@@ -654,7 +654,7 @@ static bool ui_afterfunc_check(const uiBlock *block, const uiBut *but)
 {
 	return (but->func || but->funcN || but->rename_func || but->optype || but->rnaprop || block->handle_func ||
 	        (but->type == UI_BTYPE_BUT_MENU && block->butm_func) ||
-	        block->handle && block->handle->popup_op);
+	        (block->handle && block->handle->popup_op));
 }
 
 static void ui_apply_but_func(bContext *C, uiBut *but)
