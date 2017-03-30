@@ -11,22 +11,21 @@
 
 /* ------------ Diffuse ------------- */
 
-float direct_diffuse_point(vec3 N, vec3 L, float Ldist)
+float direct_diffuse_point(LightData ld, ShadingData sd)
 {
-	float bsdf = max(0.0, dot(N, L));
-	bsdf /= Ldist * Ldist;
-	bsdf *= M_PI / 2.0; /* Normalize */
+	float bsdf = max(0.0, dot(sd.N, sd.L));
+	bsdf /= sd.l_distance * sd.l_distance;
 	return bsdf;
 }
 
 /* From Frostbite PBR Course
  * Analitical irradiance from a sphere with correct horizon handling
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
-float direct_diffuse_sphere(vec3 N, vec3 L, float Ldist, float radius)
+float direct_diffuse_sphere(LightData ld, ShadingData sd)
 {
-	radius = max(radius, 0.0001);
-	float costheta = clamp(dot(N, L), -0.999, 0.999);
-	float h = min(radius / Ldist , 0.9999);
+	float radius = max(ld.l_sizex, 0.0001);
+	float costheta = clamp(dot(sd.N, sd.L), -0.999, 0.999);
+	float h = min(ld.l_radius / sd.l_distance , 0.9999);
 	float h2 = h*h;
 	float costheta2 = costheta * costheta;
 	float bsdf;
@@ -42,47 +41,31 @@ float direct_diffuse_sphere(vec3 N, vec3 L, float Ldist, float radius)
 		bsdf = (costheta * acos(y) - x * sinthetasqrty) * h2 + atan(sinthetasqrty / x);
 	}
 
-	/* Energy conservation + cycle matching */
 	bsdf = max(bsdf, 0.0);
-	bsdf *= M_1_PI;
-	bsdf *= sphere_energy(radius);
+	bsdf *= M_1_PI * M_1_PI;
 
 	return bsdf;
 }
 
 /* From Frostbite PBR Course
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
-float direct_diffuse_rectangle(
-        vec3 W, vec3 N, vec3 L,
-        float Ldist, vec3 Lx, vec3 Ly, vec3 Lz, float Lsizex, float Lsizey)
+float direct_diffuse_rectangle(LightData ld, ShadingData sd)
 {
-	vec3 lco = L * Ldist;
-
-	/* Surface to corner vectors */
-	vec3 p0 = lco + Lx * -Lsizex + Ly *  Lsizey;
-	vec3 p1 = lco + Lx * -Lsizex + Ly * -Lsizey;
-	vec3 p2 = lco + Lx *  Lsizex + Ly * -Lsizey;
-	vec3 p3 = lco + Lx *  Lsizex + Ly *  Lsizey;
-
-	float solidAngle = rectangle_solid_angle(p0, p1, p2, p3);
-
-	float bsdf = solidAngle * 0.2 * (
-		max(0.0, dot(normalize(p0), N)) +
-		max(0.0, dot(normalize(p1), N)) +
-		max(0.0, dot(normalize(p2), N)) +
-		max(0.0, dot(normalize(p3), N)) +
-		max(0.0, dot(L, N))
+	float bsdf = sd.area_data.solid_angle * 0.2 * (
+		max(0.0, dot(normalize(sd.area_data.corner[0]), sd.N)) +
+		max(0.0, dot(normalize(sd.area_data.corner[1]), sd.N)) +
+		max(0.0, dot(normalize(sd.area_data.corner[2]), sd.N)) +
+		max(0.0, dot(normalize(sd.area_data.corner[3]), sd.N)) +
+		max(0.0, dot(sd.L, sd.N))
 	);
-
-	bsdf *= rectangle_energy(Lsizex * 2.0, Lsizey * 2.0);
 
 	return bsdf;
 }
 
 /* infinitly far away point source, no decay */
-float direct_diffuse_sun(vec3 N, vec3 L)
+float direct_diffuse_sun(LightData ld, ShadingData sd)
 {
-	float bsdf = max(0.0, dot(N, L));
+	float bsdf = max(0.0, dot(sd.N, sd.L));
 	bsdf *= M_1_PI; /* Normalize */
 	return bsdf;
 }
@@ -95,47 +78,32 @@ float direct_diffuse_unit_disc(vec3 N, vec3 L)
 #endif
 
 /* ----------- GGx ------------ */
-float direct_ggx_point(vec3 N, vec3 L, vec3 V, float roughness)
+float direct_ggx_point(ShadingData sd, float roughness)
 {
-	return bsdf_ggx(N, L, V, roughness);
+	float bsdf = bsdf_ggx(sd.N, sd.L, sd.V, roughness);
+	bsdf /= sd.l_distance * sd.l_distance;
+	return bsdf;
 }
 
-float direct_ggx_sphere(vec3 N, vec3 L, vec3 V, float Ldist, float radius, float roughness)
+float direct_ggx_sphere(LightData ld, ShadingData sd, float roughness)
 {
-	vec3 R = reflect(V, N);
+	float energy_conservation;
+	vec3 L = mrp_sphere(ld, sd, sd.spec_dominant_dir, roughness, energy_conservation);
+	float bsdf = bsdf_ggx(sd.N, L, sd.V, roughness);
 
-	float energy_conservation = 1.0;
-	mrp_sphere(radius, Ldist, R, L, roughness, energy_conservation);
-	float bsdf = bsdf_ggx(N, L, V, roughness);
-
-	bsdf *= energy_conservation / (Ldist * Ldist);
-	bsdf *= sphere_energy(radius) * max(radius * radius, 1e-16); /* radius is already inside energy_conservation */
-	bsdf *= M_PI;
+	bsdf *= energy_conservation / (sd.l_distance * sd.l_distance);
+	bsdf *= max(ld.l_radius * ld.l_radius, 1e-16); /* radius is already inside energy_conservation */
 
 	return bsdf;
 }
 
-float direct_ggx_rectangle(
-        vec3 W, vec3 N, vec3 L, vec3 V,
-        float Ldist, vec3 Lx, vec3 Ly, vec3 Lz, float Lsizex, float Lsizey, float roughness)
+float direct_ggx_rectangle(LightData ld, ShadingData sd, float roughness)
 {
-	vec3 lco = L * Ldist;
+	vec3 L = mrp_area(ld, sd, sd.spec_dominant_dir);
 
-	/* Surface to corner vectors */
-	vec3 p0 = lco + Lx * -Lsizex + Ly *  Lsizey;
-	vec3 p1 = lco + Lx * -Lsizex + Ly * -Lsizey;
-	vec3 p2 = lco + Lx *  Lsizex + Ly * -Lsizey;
-	vec3 p3 = lco + Lx *  Lsizex + Ly *  Lsizey;
+	float bsdf = bsdf_ggx(sd.N, L, sd.V, roughness) * sd.area_data.solid_angle;
 
-	float solidAngle = rectangle_solid_angle(p0, p1, p2, p3);
-
-	vec3 R = reflect(V, N);
-	mrp_area(R, N, W, W + lco, Lx, Ly, Lz, Lsizex, Lsizey, Ldist, L);
-
-	float bsdf = bsdf_ggx(N, L, V, roughness) * solidAngle;
-
-	bsdf *= pow(max(0.0, dot(R, Lz)), 0.5); /* fade mrp artifacts */
-	bsdf *= rectangle_energy(Lsizex * 2.0, Lsizey * 2.0);
+	bsdf *= max(0.0, dot(-sd.spec_dominant_dir, ld.l_forward)); /* fade mrp artifacts */
 
 	return bsdf;
 }

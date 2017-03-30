@@ -2,6 +2,49 @@
 #define M_PI        3.14159265358979323846  /* pi */
 #define M_1_PI      0.318309886183790671538  /* 1/pi */
 
+/* ------- Structures -------- */
+
+struct LightData {
+	vec4 position_influence;     /* w : InfluenceRadius */
+	vec4 color_spec;          /* w : Spec Intensity */
+	vec4 spotdata_shadow;  /* x : spot size, y : spot blend */
+	vec4 rightvec_sizex;         /* xyz: Normalized up vector, w: Lamp Type */
+	vec4 upvec_sizey;      /* xyz: Normalized right vector, w: Lamp Type */
+	vec4 forwardvec_type;     /* xyz: Normalized forward vector, w: Lamp Type */
+};
+
+/* convenience aliases */
+#define l_color        color_spec.rgb
+#define l_spec         color_spec.a
+#define l_position     position_influence.xyz
+#define l_influence    position_influence.w
+#define l_sizex        rightvec_sizex.w
+#define l_radius       rightvec_sizex.w
+#define l_sizey        upvec_sizey.w
+#define l_right        rightvec_sizex.xyz
+#define l_up           upvec_sizey.xyz
+#define l_forward      forwardvec_type.xyz
+#define l_type         forwardvec_type.w
+#define l_spot_size    spotdata_shadow.x
+#define l_spot_blend   spotdata_shadow.y
+
+struct AreaData {
+	vec3 corner[4];
+	float solid_angle;
+};
+
+struct ShadingData {
+	vec3 V; /* View vector */
+	vec3 N; /* World Normal of the fragment */
+	vec3 W; /* World Position of the fragment */
+	vec3 R; /* Reflection vector */
+	vec3 L; /* Current Light vector (normalized) */
+	vec3 spec_dominant_dir; /* dominant direction of the specular rays */
+	vec3 l_vector; /* Current Light vector */
+	float l_distance; /* distance(l_position, W) */
+	AreaData area_data; /* If current light is an area light */
+};
+
 /* ------- Convenience functions --------- */
 
 vec3 mul(mat3 m, vec3 v) { return m * v; }
@@ -30,12 +73,12 @@ vec3 line_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 planeorigin,
 	return lineorigin + linedirection * dist;
 }
 
-float rectangle_solid_angle(vec3 p0, vec3 p1, vec3 p2, vec3 p3)
+float rectangle_solid_angle(AreaData ad)
 {
-	vec3 n0 = normalize(cross(p0, p1));
-	vec3 n1 = normalize(cross(p1, p2));
-	vec3 n2 = normalize(cross(p2, p3));
-	vec3 n3 = normalize(cross(p3, p0));
+	vec3 n0 = normalize(cross(ad.corner[0], ad.corner[1]));
+	vec3 n1 = normalize(cross(ad.corner[1], ad.corner[2]));
+	vec3 n2 = normalize(cross(ad.corner[2], ad.corner[3]));
+	vec3 n3 = normalize(cross(ad.corner[3], ad.corner[0]));
 
 	float g0 = acos(dot(-n0, n1));
 	float g1 = acos(dot(-n1, n2));
@@ -45,67 +88,48 @@ float rectangle_solid_angle(vec3 p0, vec3 p1, vec3 p2, vec3 p3)
 	return max(0.0, (g0 + g1 + g2 + g3 - 2.0 * M_PI));
 }
 
-
-/* ------- Energy Conversion for lights ------- */
-/* from Sebastien Lagarde
- * course_notes_moving_frostbite_to_pbr.pdf */
-
-float sphere_energy(float radius)
+vec3 get_specular_dominant_dir(vec3 N, vec3 R, float roughness)
 {
-	radius = max(radius, 1e-8);
-	return 0.25 / (radius*radius * M_PI * M_PI) /* 1/(4*r²*Pi²) */
-		* M_PI * M_PI * 10.0;  /* XXX : Empirical, Fit cycles power */
-}
-
-float rectangle_energy(float width, float height)
-{
-	return M_1_PI / (width*height) /* 1/(w*h*Pi) */
-		* 20.0;  /* XXX : Empirical, Fit cycles power */
+	return normalize(mix(N, R, (1.0 - roughness * roughness)));
 }
 
 /* From UE4 paper */
-void mrp_sphere(
-        float radius, float dist, vec3 R, inout vec3 L,
-        inout float roughness, inout float energy_conservation)
+vec3 mrp_sphere(LightData ld, ShadingData sd, vec3 dir, inout float roughness, out float energy_conservation)
 {
-	L = dist * L;
-
 	/* Sphere Light */
 	roughness = max(3e-3, roughness); /* Artifacts appear with roughness below this threshold */
 
 	/* energy preservation */
-	float sphere_angle = saturate(radius / dist);
-	energy_conservation *= pow(roughness / saturate(roughness + 0.5 * sphere_angle), 2.0);
+	float sphere_angle = saturate(ld.l_radius / sd.l_distance);
+	energy_conservation = pow(roughness / saturate(roughness + 0.5 * sphere_angle), 2.0);
 
 	/* sphere light */
-	float inter_dist = dot(L, R);
-	vec3 closest_point_on_ray = inter_dist * R;
-	vec3 center_to_ray = closest_point_on_ray - L;
+	float inter_dist = dot(sd.l_vector, dir);
+	vec3 closest_point_on_ray = inter_dist * dir;
+	vec3 center_to_ray = closest_point_on_ray - sd.l_vector;
 
 	/* closest point on sphere */
-	L = L + center_to_ray * saturate(radius * inverse_distance(center_to_ray));
+	vec3 closest_point_on_sphere = sd.l_vector + center_to_ray * saturate(ld.l_radius * inverse_distance(center_to_ray));
 
-	L = normalize(L);
+	return normalize(closest_point_on_sphere);
 }
 
-void mrp_area(vec3 R, vec3 N, vec3 W, vec3 Lpos, vec3 Lx, vec3 Ly, vec3 Lz, float sizeX, float sizeY, float dist, inout vec3 L)
+vec3 mrp_area(LightData ld, ShadingData sd, vec3 dir)
 {
-	vec3 refproj = line_plane_intersect(W, R, Lpos, Lz);
-	vec3 norproj = line_plane_intersect(W, N, Lpos, Lz);
+	vec3 refproj = line_plane_intersect(sd.W, dir, ld.l_position, ld.l_forward);
 
-	vec2 area_half_size = vec2(sizeX, sizeY);
+	/* Project the point onto the light plane */
+	vec3 refdir = refproj - ld.l_position;
+	vec2 mrp = vec2(dot(refdir, ld.l_right), dot(refdir, ld.l_up));
 
-	/* Find the closest point to the rectangular light shape */
-	vec3 refdir = refproj - Lpos;
-	vec2 mrp = vec2(dot(refdir, Lx), dot(refdir, Ly));
-
-	/* clamp to corners */
+	/* clamp to light shape bounds */
+	vec2 area_half_size = vec2(ld.l_sizex, ld.l_sizey);
 	mrp = clamp(mrp, -area_half_size, area_half_size);
 
-	L = dist * L;
-	L = L + mrp.x * Lx + mrp.y * Ly ;
+	/* go back in world space */
+	vec3 closest_point_on_rectangle = sd.l_vector + mrp.x * ld.l_right + mrp.y * ld.l_up;
 
-	L = normalize(L);
+	return normalize(closest_point_on_rectangle);
 }
 
 /* GGX */
@@ -121,7 +145,7 @@ float G1_Smith_GGX(float NX, float a2)
 	 * this way the (2*NL)*(2*NV) in G = G1(V) * G1(L) gets canceled by the brdf denominator 4*NL*NV
 	 * Rcp is done on the whole G later
 	 * Note that this is not convenient for the transmition formula */
-	return NX + sqrt( NX * (NX - NX * a2) + a2 );
+	return NX + sqrt(NX * (NX - NX * a2) + a2);
 	/* return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function */
 }
 

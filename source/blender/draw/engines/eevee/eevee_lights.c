@@ -91,7 +91,7 @@ void EEVEE_lights_update(EEVEE_StorageList *stl)
 		EEVEE_Light *evli = stl->lights_data + i;
 		Object *ob = stl->lights_ref[i];
 		Lamp *la = (Lamp *)ob->data;
-		float mat[4][4], scale[3];
+		float mat[4][4], scale[3], power;
 
 		/* Position */
 		copy_v3_v3(evli->position, ob->obmat[3]);
@@ -124,12 +124,34 @@ void EEVEE_lights_update(EEVEE_StorageList *stl)
 			evli->spotblend = (1.0f - evli->spotsize) * la->spotblend;
 		}
 		else if (la->type == LA_AREA) {
-			evli->sizex = la->area_size * scale[0] * 0.5f;
-			evli->sizey = la->area_sizey * scale[1] * 0.5f;
+			evli->sizex = MAX2(0.0001f, la->area_size * scale[0] * 0.5f);
+			if (la->area_shape == LA_AREA_RECT) {
+				evli->sizey = MAX2(0.0001f, la->area_sizey * scale[1] * 0.5f);
+			}
+			else {
+				evli->sizey = evli->sizex;
+			}
 		}
 		else {
-			evli->sizex = la->area_size * scale[0] * 0.5f;
+			evli->sizex = MAX2(0.0001f, la->area_size);
 		}
+
+		/* Make illumination power constant */
+		if (la->type == LA_AREA) {
+			power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) /* 1/(w*h*Pi) */
+			        * M_PI * 10.0f; /* XXX : Empirical, Fit cycles power */
+		}
+		else if (la->type == LA_SPOT || la->type == LA_LOCAL) {
+			power = 1.0f / (4.0f * evli->sizex * evli->sizex * M_PI * M_PI) /* 1/(4*r²*Pi²) */
+			        * M_PI * 100.0; /* XXX : Empirical, Fit cycles power */
+
+			/* for point lights (a.k.a radius == 0.0) */
+			// power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */
+		}
+		else {
+			power = 1.0f;
+		}
+		mul_v3_fl(evli->color, power);
 
 		/* Lamp Type */
 		evli->lamptype = (float)la->type;
