@@ -313,31 +313,6 @@ static void rna_MaterialTextureSlot_use_set(PointerRNA *ptr, int value)
 	}
 }
 
-static StructRNA *rna_MaterialEngineSettings_refine(PointerRNA *ptr)
-{
-#ifdef WITH_CLAY_ENGINE
-	MaterialEngineSettings *mes = (MaterialEngineSettings *)ptr->data;
-	if (STREQ(mes->name, RE_engine_id_BLENDER_CLAY)) {
-		return  &RNA_MaterialEngineSettingsClay;
-	}
-#endif
-	return &RNA_MaterialEngineSettings;
-}
-
-static void rna_Material_update_engine_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
-{
-#if 0
-	Material *ma = (Material *)ptr->data;
-	RenderEngineSettings *ed = DRW_material_settings_get(ma, sce->r.engine, NULL);
-
-	if (ed->runtime) {
-		MEM_freeN(ed->runtime);
-		ed->runtime = NULL;
-	}
-#endif
-	WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
-}
-
 static void rna_Material_use_diffuse_ramp_set(PointerRNA *ptr, int value)
 {
 	Material *ma = (Material *)ptr->data;
@@ -847,118 +822,6 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_bump_space_items);
 	RNA_def_property_ui_text(prop, "Bump Space", "Space to apply bump mapping in");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
-}
-
-static void rna_def_material_settings_clay(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static EnumPropertyItem clay_matcap_items[] = {
-		{ICON_MATCAP_01, "01", ICON_MATCAP_01, "", ""},
-		{ICON_MATCAP_02, "02", ICON_MATCAP_02, "", ""},
-		{ICON_MATCAP_03, "03", ICON_MATCAP_03, "", ""},
-		{ICON_MATCAP_04, "04", ICON_MATCAP_04, "", ""},
-		{ICON_MATCAP_05, "05", ICON_MATCAP_05, "", ""},
-		{ICON_MATCAP_06, "06", ICON_MATCAP_06, "", ""},
-		{ICON_MATCAP_07, "07", ICON_MATCAP_07, "", ""},
-		{ICON_MATCAP_08, "08", ICON_MATCAP_08, "", ""},
-		{ICON_MATCAP_09, "09", ICON_MATCAP_09, "", ""},
-		{ICON_MATCAP_10, "10", ICON_MATCAP_10, "", ""},
-		{ICON_MATCAP_11, "11", ICON_MATCAP_11, "", ""},
-		{ICON_MATCAP_12, "12", ICON_MATCAP_12, "", ""},
-		{ICON_MATCAP_13, "13", ICON_MATCAP_13, "", ""},
-		{ICON_MATCAP_14, "14", ICON_MATCAP_14, "", ""},
-		{ICON_MATCAP_15, "15", ICON_MATCAP_15, "", ""},
-		{ICON_MATCAP_16, "16", ICON_MATCAP_16, "", ""},
-		{ICON_MATCAP_17, "17", ICON_MATCAP_17, "", ""},
-		{ICON_MATCAP_18, "18", ICON_MATCAP_18, "", ""},
-		{ICON_MATCAP_19, "19", ICON_MATCAP_19, "", ""},
-		{ICON_MATCAP_20, "20", ICON_MATCAP_20, "", ""},
-		{ICON_MATCAP_21, "21", ICON_MATCAP_21, "", ""},
-		{ICON_MATCAP_22, "22", ICON_MATCAP_22, "", ""},
-		{ICON_MATCAP_23, "23", ICON_MATCAP_23, "", ""},
-		{ICON_MATCAP_24, "24", ICON_MATCAP_24, "", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	static EnumPropertyItem clay_matcap_type[] = {
-		{CLAY_MATCAP_NONE, "NONE", 0, "Scene", "Use default scene matcap"},
-		{CLAY_MATCAP_SIMPLE, "SIMPLE", 0, "Simple", "Let you choose the texture to use with the default settings"},
-		{CLAY_MATCAP_COMPLETE, "COMPLETE", 0, "Complete", "Expose all settings"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	srna = RNA_def_struct(brna, "MaterialEngineSettingsClay", "MaterialEngineSettings");
-	RNA_def_struct_ui_text(srna, "Material Clay Settings", "Clay Engine settings for a Material data-block");
-	RNA_def_struct_sdna_from(srna, "MaterialEngineSettingsClay", "data");
-
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, clay_matcap_type);
-	RNA_def_property_ui_text(prop, "Settings Type", "What settings to use for this material");
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "matcap_icon", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, clay_matcap_items);
-	RNA_def_property_ui_text(prop, "Matcap", "Image to use for Material Capture by this material");
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "matcap_rotation", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "matcap_rot");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Rotation", "Orientation of the matcap on the model");
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "matcap_hue", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Hue shift", "Hue correction of the matcap");
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "matcap_saturation", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "matcap_sat");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Saturation", "Saturation correction of the matcap");
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "matcap_value", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "matcap_val");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Value", "Value correction of the matcap");
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "ssao_factor_cavity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Cavity Strength", "Strength of the Cavity effect");
-	RNA_def_property_range(prop, 0.0f, 250.0f);
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "ssao_factor_edge", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Edge Strength", "Strength of the Edge effect");
-	RNA_def_property_range(prop, 0.0f, 250.0f);
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "ssao_distance", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Distance", "Distance of object that contribute to the Cavity/Edge effect");
-	RNA_def_property_range(prop, 0.0f, 100000.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-
-	prop = RNA_def_property(srna, "ssao_attenuation", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Attenuation", "Attenuation constant");
-	RNA_def_property_range(prop, 1.0f, 100000.0f);
-	RNA_def_property_ui_range(prop, 1.0f, 100.0f, 1, 3);
-	RNA_def_property_update(prop, 0, "rna_Material_update_engine_data");
-}
-
-static void rna_def_material_engine_settings(BlenderRNA *brna)
-{
-	StructRNA *srna;
-
-	srna = RNA_def_struct(brna, "MaterialEngineSettings", NULL);
-	RNA_def_struct_ui_text(srna, "Engine Settings", "Engine specific settings");
-	RNA_def_struct_sdna(srna, "MaterialEngineSettings");
-	RNA_def_struct_refine_func(srna, "rna_MaterialEngineSettings_refine");
-
-	rna_def_material_settings_clay(brna);
 }
 
 static void rna_def_material_gamesettings(BlenderRNA *brna)
@@ -2224,11 +2087,6 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MaterialGameSettings");
 	RNA_def_property_ui_text(prop, "Game Settings", "Game material settings");
 
-	/* Engine settings */
-	prop = RNA_def_property(srna, "engines_settings", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "MaterialEngineSettings");
-	RNA_def_property_ui_text(prop, "Material Engine Settings", "Engine specific settings");
-
 	/* nodetree */
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
@@ -2278,7 +2136,6 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_material_strand(brna);
 	rna_def_material_physics(brna);
 	rna_def_material_gamesettings(brna);
-	rna_def_material_engine_settings(brna);
 
 	RNA_api_material(srna);
 }

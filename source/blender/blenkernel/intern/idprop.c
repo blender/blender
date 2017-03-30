@@ -468,6 +468,7 @@ static IDProperty *IDP_CopyGroup(const IDProperty *prop)
 	BLI_assert(prop->type == IDP_GROUP);
 	newp = idp_generic_copy(prop);
 	newp->len = prop->len;
+	newp->subtype = prop->subtype;
 
 	for (link = prop->data.group.first; link; link = link->next) {
 		BLI_addtail(&newp->data.group, IDP_CopyProperty(link));

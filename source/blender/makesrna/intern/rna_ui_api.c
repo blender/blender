@@ -888,6 +888,15 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 
+	func = RNA_def_function(srna, "template_override_property", "uiTemplateOverrideProperty");
+	parm = RNA_def_pointer(func, "collection_render_overrides", "AnyType", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	parm = RNA_def_pointer(func, "scene_collection_properties", "AnyType", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	parm = RNA_def_string(func, "property", NULL, 0, "", "Identifier of property in collection_properties");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_string(func, "custom_template", NULL, 0, "", "Optional template to use for property");
+
 	func = RNA_def_function(srna, "template_component_menu", "uiTemplateComponentMenu");
 	RNA_def_function_ui_description(func, "Item. Display expanded property in a popup menu");
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");

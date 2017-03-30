@@ -37,6 +37,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_collection.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -211,11 +212,6 @@ void do_versions_after_linking_280(Main *main)
 	}
 }
 
-static void blo_do_version_temporary(Main *main)
-{
-	BKE_scene_layer_doversion_update(main);
-}
-
 void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 {
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
@@ -227,7 +223,19 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
-		/* temporary validation of 280 files for layers */
-		blo_do_version_temporary(main);
+		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "IDProperty", "collection_properties")) {
+			IDPropertyTemplate val = {0};
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				scene->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+				BKE_layer_collection_engine_settings_create(scene->collection_properties);
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "Object", "IDProperty", "collection_properties")) {
+			IDPropertyTemplate val = {0};
+			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+				ob->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+			}
+		}
 	}
 }

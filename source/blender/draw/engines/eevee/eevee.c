@@ -156,7 +156,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
 	if (ob->type == OB_MESH) {
-		CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
+		IDProperty *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
 		bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 		struct Batch *geom = DRW_cache_surface_get(ob);
 
@@ -222,10 +222,12 @@ static void EEVEE_engine_free(void)
 		DRW_shader_free(e_data.tonemap);
 }
 
-static void EEVEE_collection_settings_create(RenderEngine *UNUSED(engine), CollectionEngineSettings *ces)
+static void EEVEE_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
-	BLI_assert(ces);
-	// BKE_collection_engine_property_add_int(ces, "high_quality_sphere_lamps", false);
+	BLI_assert(props &&
+	           props->type == IDP_GROUP &&
+	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
+	// BKE_collection_engine_property_add_int(props, "high_quality_sphere_lamps", false);
 }
 
 DrawEngineType draw_engine_eevee_type = {

@@ -261,19 +261,18 @@ static void engine_update_script_node(RenderEngine *engine, struct bNodeTree *nt
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_collection_settings_create(RenderEngine *engine, struct CollectionEngineSettings *ces)
+static void engine_collection_settings_create(RenderEngine *engine, struct IDProperty *props)
 {
 	extern FunctionRNA rna_RenderEngine_collection_settings_create_func;
-	PointerRNA ptr,cesptr;
+	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	RNA_pointer_create(NULL, &RNA_CollectionEngineSettings, ces, &cesptr);
 	func = &rna_RenderEngine_collection_settings_create_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
-	RNA_parameter_set_lookup(&list, "collection_settings", &cesptr);
+	RNA_parameter_set_lookup(&list, "props", &props);
 	engine->type->ext.call(NULL, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
@@ -512,7 +511,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	func = RNA_def_function(srna, "collection_settings_create", NULL);
 	RNA_def_function_ui_description(func, "Create the per collection settings for the engine");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-	parm = RNA_def_pointer(func, "collection_settings", "CollectionEngineSettings", "", "");
+	parm = RNA_def_pointer(func, "collection_settings", "LayerCollectionSettings", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 
 	/* tag for redraw */

@@ -28,7 +28,8 @@
 
 extern RenderEngineType viewport_clay_type;
 
-struct RenderEngineSettings *CLAY_render_settings_create(void);
-struct MaterialEngineSettings *CLAY_material_settings_create(void);
+struct IDProperty;
+
+struct IDProperty *CLAY_render_settings_create(void);
 
 #endif /* __CLAY_H__ */

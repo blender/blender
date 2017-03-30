@@ -367,7 +367,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		if (ob == obedit) {
-			CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
+			IDProperty *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
 			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
 			backwire_opacity = BKE_collection_engine_property_value_get_float(ces_mode_ed, "backwire_opacity"); /* Updating uniform */
 
@@ -446,15 +446,17 @@ static void EDIT_MESH_draw_scene(void *vedata)
 	}
 }
 
-void EDIT_MESH_collection_settings_create(CollectionEngineSettings *ces)
+void EDIT_MESH_collection_settings_create(IDProperty *properties)
 {
-	BLI_assert(ces);
-	BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
-	BKE_collection_engine_property_add_int(ces, "face_normals_show", false);
-	BKE_collection_engine_property_add_int(ces, "vert_normals_show", false);
-	BKE_collection_engine_property_add_int(ces, "loop_normals_show", false);
-	BKE_collection_engine_property_add_float(ces, "normals_length", 0.1);
-	BKE_collection_engine_property_add_float(ces, "backwire_opacity", 0.5);
+	BLI_assert(properties &&
+	           properties->type == IDP_GROUP &&
+	           properties->subtype == IDP_GROUP_SUB_MODE_EDIT);
+	BKE_collection_engine_property_add_int(properties, "show_occlude_wire", false);
+	BKE_collection_engine_property_add_int(properties, "face_normals_show", false);
+	BKE_collection_engine_property_add_int(properties, "vert_normals_show", false);
+	BKE_collection_engine_property_add_int(properties, "loop_normals_show", false);
+	BKE_collection_engine_property_add_float(properties, "normals_length", 0.1);
+	BKE_collection_engine_property_add_float(properties, "backwire_opacity", 0.5);
 }
 
 static void EDIT_MESH_engine_free(void)

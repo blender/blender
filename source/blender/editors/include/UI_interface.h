@@ -948,6 +948,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
+void uiTemplateOverrideProperty(uiLayout *layout, struct PointerRNA *collection_props_ptr, struct PointerRNA *scene_props_ptr, const char *name, const char *custom_template);
 void uiTemplateComponentMenu(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name);
 void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float *color);
 void uiTemplateCacheFile(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname);

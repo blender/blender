@@ -460,7 +460,10 @@ void BKE_object_free(Object *ob)
 
 	BKE_previewimg_free(&ob->preview);
 
-	BKE_layer_collection_engine_settings_list_free(&ob->collection_settings);
+	if (ob->collection_properties) {
+		IDP_FreeProperty(ob->collection_properties);
+		MEM_freeN(ob->collection_properties);
+	}
 }
 
 /* actual check for internal data, not context or flags */
@@ -1176,7 +1179,6 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 
 	BLI_listbase_clear(&obn->gpulamp);
 	BLI_listbase_clear(&obn->pc_ids);
-	BLI_listbase_clear(&obn->collection_settings);
 
 	obn->mpath = NULL;
 
@@ -1189,6 +1191,12 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 
 	/* Do not copy object's preview (mostly due to the fact renderers create temp copy of objects). */
 	obn->preview = NULL;
+
+	if (ob->collection_properties) {
+		IDPropertyTemplate val = {0};
+		obn->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		IDP_MergeGroup(obn->collection_properties, ob->collection_properties, true);
+	}
 
 	return obn;
 }

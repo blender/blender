@@ -249,10 +249,6 @@ struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 
 /* Settings */
 bool DRW_is_object_renderable(struct Object *ob);
-#ifndef __DRW_ENGINE_H__
-void *DRW_material_settings_get(Material *ma, const char *engine_name);
-void *DRW_render_settings_get(Scene *scene, const char *engine_name);
-#endif /* __DRW_ENGINE_H__ */
 
 /* Draw commands */
 void DRW_draw_pass(DRWPass *pass);

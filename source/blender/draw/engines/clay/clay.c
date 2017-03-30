@@ -22,6 +22,7 @@
 #include "DRW_render.h"
 
 #include "BKE_icons.h"
+#include "BKE_idprop.h"
 #include "BKE_main.h"
 
 #include "BLI_dynstr.h"
@@ -252,30 +253,6 @@ static struct GPUTexture *create_jitter_texture(void)
 	return DRW_texture_create_2D(64, 64, DRW_TEX_RG_16, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
 }
 
-static void clay_material_settings_init(MaterialEngineSettingsClay *ma)
-{
-	ma->matcap_icon = ICON_MATCAP_01;
-	ma->matcap_rot = 0.0f;
-	ma->matcap_hue = 0.5f;
-	ma->matcap_sat = 0.5f;
-	ma->matcap_val = 0.5f;
-	ma->ssao_distance = 0.2;
-	ma->ssao_attenuation = 1.0f;
-	ma->ssao_factor_cavity = 1.0f;
-	ma->ssao_factor_edge = 1.0f;
-}
-
-RenderEngineSettings *CLAY_render_settings_create(void)
-{
-	RenderEngineSettingsClay *settings = MEM_callocN(sizeof(RenderEngineSettingsClay), "RenderEngineSettingsClay");
-
-	clay_material_settings_init((MaterialEngineSettingsClay *)settings);
-
-	settings->ssao_samples = 32;
-
-	return (RenderEngineSettings *)settings;
-}
-
 static void CLAY_engine_init(void *vedata)
 {
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
@@ -372,6 +349,7 @@ static void CLAY_engine_init(void *vedata)
 
 	/* SSAO setup */
 	{
+		int ssao_samples = 32; /* XXX get from render settings */
 		float invproj[4][4];
 		float dfdyfacs[2];
 		bool is_persp = DRW_viewport_is_persp_get();
@@ -383,11 +361,10 @@ static void CLAY_engine_init(void *vedata)
 		};
 		int i;
 		float *size = DRW_viewport_size_get();
-		RenderEngineSettingsClay *settings = DRW_render_settings_get(NULL, RE_engine_id_BLENDER_CLAY);
 
 		DRW_get_dfdy_factors(dfdyfacs);
 
-		e_data.ssao_params[0] = settings->ssao_samples;
+		e_data.ssao_params[0] = ssao_samples;
 		e_data.ssao_params[1] = size[0] / 64.0;
 		e_data.ssao_params[2] = size[1] / 64.0;
 		e_data.ssao_params[3] = dfdyfacs[1]; /* dfdy sign for offscreen */
@@ -421,14 +398,14 @@ static void CLAY_engine_init(void *vedata)
 		}
 
 		/* AO Samples Tex */
-		if (e_data.sampling_tx && (e_data.cached_sample_num != settings->ssao_samples)) {
+		if (e_data.sampling_tx && (e_data.cached_sample_num != ssao_samples)) {
 			DRW_texture_free(e_data.sampling_tx);
 			e_data.sampling_tx = NULL;
 		}
 
 		if (!e_data.sampling_tx) {
-			e_data.sampling_tx = create_spiral_sample_texture(settings->ssao_samples);
-			e_data.cached_sample_num = settings->ssao_samples;
+			e_data.sampling_tx = create_spiral_sample_texture(ssao_samples);
+			e_data.cached_sample_num = ssao_samples;
 		}
 	}
 }
@@ -528,62 +505,21 @@ static int mat_in_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue,
 	return id;
 }
 
-/* Safe way to get override values */
-static void override_setting(CollectionEngineSettings *ces, const char *name, void *ret)
-{
-	CollectionEngineProperty *cep = BKE_collection_engine_property_get(ces, name);
-
-	if (cep == NULL) {
-		return;
-	}
-
-	if ((cep->flag & COLLECTION_PROP_USE) == 0) {
-		return;
-	}
-
-	if (cep->type == COLLECTION_PROP_TYPE_INT) {
-		CollectionEnginePropertyInt *prop = (CollectionEnginePropertyInt *)cep;
-		*((int *)ret) = prop->value;
-	}
-	else if (cep->type == COLLECTION_PROP_TYPE_FLOAT) {
-		CollectionEnginePropertyFloat *prop = (CollectionEnginePropertyFloat *)cep;
-		*((float *)ret) = prop->value;
-	}
-	else if (cep->type == COLLECTION_PROP_TYPE_BOOL) {
-		CollectionEnginePropertyBool *prop = (CollectionEnginePropertyBool *)cep;
-		*((bool *)ret) = prop->value;
-	}
-}
-
 static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
 {
 	DRWShadingGroup **shgrps = stl->storage->shgrps;
-	MaterialEngineSettingsClay *settings = DRW_render_settings_get(NULL, RE_engine_id_BLENDER_CLAY);
-	CollectionEngineSettings *ces = BKE_object_collection_engine_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
+	IDProperty *props = BKE_object_collection_engine_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 
 	/* Default Settings */
-	float matcap_rot = settings->matcap_rot;
-	float matcap_hue = settings->matcap_hue;
-	float matcap_sat = settings->matcap_sat;
-	float matcap_val = settings->matcap_val;
-	float ssao_distance = settings->ssao_distance;
-	float ssao_factor_cavity = settings->ssao_factor_cavity;
-	float ssao_factor_edge = settings->ssao_factor_edge;
-	float ssao_attenuation = settings->ssao_attenuation;
-	int matcap_icon = settings->matcap_icon;
-
-	/* Override settings */
-	if (ces) {
-		override_setting(ces, "matcap_rotation", &matcap_rot);
-		override_setting(ces, "matcap_hue", &matcap_hue);
-		override_setting(ces, "matcap_saturation", &matcap_sat);
-		override_setting(ces, "matcap_value", &matcap_val);
-		override_setting(ces, "ssao_distance", &ssao_distance);
-		override_setting(ces, "ssao_factor_cavity", &ssao_factor_cavity);
-		override_setting(ces, "ssao_factor_edge", &ssao_factor_edge);
-		override_setting(ces, "ssao_attenuation", &ssao_attenuation);
-		override_setting(ces, "matcap_icon", &matcap_icon);
-	}
+	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");
+	float matcap_hue = BKE_collection_engine_property_value_get_float(props, "matcap_hue");
+	float matcap_sat = BKE_collection_engine_property_value_get_float(props, "matcap_saturation");
+	float matcap_val = BKE_collection_engine_property_value_get_float(props, "matcap_value");
+	float ssao_distance = BKE_collection_engine_property_value_get_float(props, "ssao_distance");
+	float ssao_factor_cavity = BKE_collection_engine_property_value_get_float(props, "ssao_factor_cavity");
+	float ssao_factor_edge = BKE_collection_engine_property_value_get_float(props, "ssao_factor_edge");
+	float ssao_attenuation = BKE_collection_engine_property_value_get_float(props, "ssao_attenuation");
+	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
 
 	int id = mat_in_ubo(stl->storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
 	                    ssao_distance, ssao_factor_cavity, ssao_factor_edge,
@@ -638,7 +574,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	if (!DRW_is_object_renderable(ob))
 		return;
 
-	CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
+	IDProperty *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
 	bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 
 	/* TODO all renderable */
@@ -680,19 +616,22 @@ static void CLAY_draw_scene(void *vedata)
 	DRW_draw_pass(psl->clay_pass);
 }
 
-static void CLAY_collection_settings_create(RenderEngine *UNUSED(engine), CollectionEngineSettings *ces)
+static void CLAY_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
-	BLI_assert(ces);
-	BKE_collection_engine_property_add_int(ces, "matcap_icon", ICON_MATCAP_01);
-	BKE_collection_engine_property_add_int(ces, "type", CLAY_MATCAP_NONE);
-	BKE_collection_engine_property_add_float(ces, "matcap_rotation", 0.0f);
-	BKE_collection_engine_property_add_float(ces, "matcap_hue", 0.5f);
-	BKE_collection_engine_property_add_float(ces, "matcap_saturation", 0.5f);
-	BKE_collection_engine_property_add_float(ces, "matcap_value", 0.5f);
-	BKE_collection_engine_property_add_float(ces, "ssao_distance", 0.2f);
-	BKE_collection_engine_property_add_float(ces, "ssao_attenuation", 1.0f);
-	BKE_collection_engine_property_add_float(ces, "ssao_factor_cavity", 1.0f);
-	BKE_collection_engine_property_add_float(ces, "ssao_factor_edge", 1.0f);
+	BLI_assert(props &&
+	           props->type == IDP_GROUP &&
+	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
+
+	BKE_collection_engine_property_add_int(props, "matcap_icon", ICON_MATCAP_01);
+	BKE_collection_engine_property_add_int(props, "type", CLAY_MATCAP_NONE);
+	BKE_collection_engine_property_add_float(props, "matcap_rotation", 0.0f);
+	BKE_collection_engine_property_add_float(props, "matcap_hue", 0.5f);
+	BKE_collection_engine_property_add_float(props, "matcap_saturation", 0.5f);
+	BKE_collection_engine_property_add_float(props, "matcap_value", 0.5f);
+	BKE_collection_engine_property_add_float(props, "ssao_distance", 0.2f);
+	BKE_collection_engine_property_add_float(props, "ssao_attenuation", 1.0f);
+	BKE_collection_engine_property_add_float(props, "ssao_factor_cavity", 1.0f);
+	BKE_collection_engine_property_add_float(props, "ssao_factor_edge", 1.0f);
 }
 
 static void CLAY_engine_free(void)

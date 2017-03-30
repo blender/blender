@@ -43,27 +43,6 @@ class COLLECTION_PT_context_collection(CollectionButtonsPanel, Panel):
             layout.prop(collection, "name", text="", icon='COLLAPSEMENU')
 
 
-def template_engine_settings(col, settings, name, use_icon_view=False):
-    icons = {
-            False: 'ZOOMIN',
-            True: 'X',
-            }
-
-    use_name = "{0}_use".format(name)
-    use = getattr(settings, use_name)
-
-    row = col.row()
-    col = row.column()
-    col.active = use
-
-    if use_icon_view:
-        col.template_icon_view(settings, name)
-    else:
-        col.prop(settings, name)
-
-    row.prop(settings, "{}_use".format(name), text="", icon=icons[use], emboss=False)
-
-
 class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
     bl_label = "Render Settings"
     COMPAT_ENGINES = {'BLENDER_CLAY'}
@@ -75,21 +54,20 @@ class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        scene_props = context.scene.collection_properties['BLENDER_CLAY']
         collection = context.layer_collection
-        settings = collection.get_engine_settings()
+        collection_props = collection.engine_overrides['BLENDER_CLAY']
 
         col = layout.column()
-        template_engine_settings(col, settings, "type")
-        template_engine_settings(col, settings, "matcap_icon", use_icon_view=True)
-        template_engine_settings(col, settings, "matcap_rotation")
-        template_engine_settings(col, settings, "matcap_hue")
-        template_engine_settings(col, settings, "matcap_saturation")
-        template_engine_settings(col, settings, "matcap_value")
-        template_engine_settings(col, settings, "ssao_factor_cavity")
-        template_engine_settings(col, settings, "ssao_factor_edge")
-        template_engine_settings(col, settings, "ssao_distance")
-        template_engine_settings(col, settings, "ssao_attenuation")
+        col.template_override_property(collection_props, scene_props, "matcap_icon", custom_template="icon_view")
+        col.template_override_property(collection_props, scene_props, "matcap_rotation")
+        col.template_override_property(collection_props, scene_props, "matcap_hue")
+        col.template_override_property(collection_props, scene_props, "matcap_saturation")
+        col.template_override_property(collection_props, scene_props, "matcap_value")
+        col.template_override_property(collection_props, scene_props, "ssao_factor_cavity")
+        col.template_override_property(collection_props, scene_props, "ssao_factor_edge")
+        col.template_override_property(collection_props, scene_props, "ssao_distance")
+        col.template_override_property(collection_props, scene_props, "ssao_attenuation")
 
 
 class COLLECTION_PT_object_mode_settings(CollectionButtonsPanel, Panel):
@@ -102,13 +80,13 @@ class COLLECTION_PT_object_mode_settings(CollectionButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        scene_props = context.scene.collection_properties['ObjectMode']
         collection = context.layer_collection
-        settings = collection.get_mode_settings('OBJECT')
+        collection_props = collection.engine_overrides['ObjectMode']
 
         col = layout.column()
-        template_engine_settings(col, settings, "show_wire")
-        template_engine_settings(col, settings, "show_backface_culling")
+        col.template_override_property(collection_props, scene_props, "show_wire")
+        col.template_override_property(collection_props, scene_props, "show_backface_culling")
 
 
 class COLLECTION_PT_edit_mode_settings(CollectionButtonsPanel, Panel):
@@ -121,17 +99,17 @@ class COLLECTION_PT_edit_mode_settings(CollectionButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        scene_props = context.scene.collection_properties['EditMode']
         collection = context.layer_collection
-        settings = collection.get_mode_settings('EDIT')
+        collection_props = collection.engine_overrides['EditMode']
 
         col = layout.column()
-        template_engine_settings(col, settings, "show_occlude_wire")
-        template_engine_settings(col, settings, "backwire_opacity")
-        template_engine_settings(col, settings, "face_normals_show")
-        template_engine_settings(col, settings, "vert_normals_show")
-        template_engine_settings(col, settings, "loop_normals_show")
-        template_engine_settings(col, settings, "normals_length")
+        col.template_override_property(collection_props, scene_props, "show_occlude_wire")
+        col.template_override_property(collection_props, scene_props, "backwire_opacity")
+        col.template_override_property(collection_props, scene_props, "face_normals_show")
+        col.template_override_property(collection_props, scene_props, "vert_normals_show")
+        col.template_override_property(collection_props, scene_props, "loop_normals_show")
+        col.template_override_property(collection_props, scene_props, "normals_length")
 
 
 classes = (

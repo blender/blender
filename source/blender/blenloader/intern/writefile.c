@@ -1921,6 +1921,10 @@ static void write_object(WriteData *wd, Object *ob)
 		writelist(wd, DATA, LodLevel, &ob->lodlevels);
 
 		write_previews(wd, ob->preview);
+
+		if (ob->collection_properties) {
+			IDP_WriteProperty(ob->collection_properties, wd);
+		}
 	}
 }
 
@@ -2402,21 +2406,6 @@ static void write_texture(WriteData *wd, Tex *tex)
 	}
 }
 
-static void write_material_engines_settings(WriteData *wd, ListBase *lb)
-{
-	for (MaterialEngineSettings *res = lb->first; res; res = res->next) {
-		writestruct(wd, DATA, MaterialEngineSettings, 1, res);
-
-		if (STREQ(res->name, RE_engine_id_BLENDER_CLAY)) {
-			writestruct(wd, DATA, MaterialEngineSettingsClay, 1, res->data);
-		}
-		else {
-			/* No engine matched */
-			/* error: don't know how to write this file */
-		}
-	}
-}
-
 static void write_material(WriteData *wd, Material *ma)
 {
 	if (ma->id.us > 0 || wd->current) {
@@ -2448,8 +2437,6 @@ static void write_material(WriteData *wd, Material *ma)
 		}
 
 		write_previews(wd, ma->preview);
-
-		write_material_engines_settings(wd, &ma->engines_settings);
 	}
 }
 
@@ -2565,29 +2552,6 @@ static void write_scene_collection(WriteData *wd, SceneCollection *sc)
 	}
 }
 
-static void write_collection_engine_settings(WriteData *wd, ListBase *lb)
-{
-	for (CollectionEngineSettings *ces = lb->first; ces; ces = ces->next) {
-		writestruct(wd, DATA, CollectionEngineSettings, 1, ces);
-
-		for (CollectionEngineProperty *prop = ces->properties.first; prop; prop = prop->next) {
-			switch (prop->type) {
-			    case COLLECTION_PROP_TYPE_FLOAT:
-				    writestruct(wd, DATA, CollectionEnginePropertyFloat, 1, prop);
-				    break;
-			    case COLLECTION_PROP_TYPE_INT:
-				    writestruct(wd, DATA, CollectionEnginePropertyInt, 1, prop);
-				    break;
-			    case COLLECTION_PROP_TYPE_BOOL:
-				    writestruct(wd, DATA, CollectionEnginePropertyBool, 1, prop);
-				    break;
-			    default:
-				    ; /* error: don't know how to write this file */
-			}
-		}
-	}
-}
-
 static void write_layer_collections(WriteData *wd, ListBase *lb)
 {
 	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
@@ -2596,26 +2560,11 @@ static void write_layer_collections(WriteData *wd, ListBase *lb)
 		writelist(wd, DATA, LinkData, &lc->object_bases);
 		writelist(wd, DATA, CollectionOverride, &lc->overrides);
 
-		write_collection_engine_settings(wd, &lc->engine_settings);
-
-		write_collection_engine_settings(wd, &lc->mode_settings);
+		if (lc->properties) {
+			IDP_WriteProperty(lc->properties, wd);
+		}
 
 		write_layer_collections(wd, &lc->layer_collections);
-	}
-}
-
-static void write_render_engines_settings(WriteData *wd, ListBase *lb)
-{
-	for (RenderEngineSettings *res = lb->first; res; res = res->next) {
-		writestruct(wd, DATA, RenderEngineSettings, 1, res);
-
-		if (STREQ(res->name, RE_engine_id_BLENDER_CLAY)) {
-			writestruct(wd, DATA, RenderEngineSettingsClay, 1, res->data);
-		}
-		else {
-			/* No engine matched */
-			/* error: don't know how to write this file */
-		}
 	}
 }
 
@@ -2830,7 +2779,9 @@ static void write_scene(WriteData *wd, Scene *sce)
 		write_layer_collections(wd, &sl->layer_collections);
 	}
 
-	write_render_engines_settings(wd, &sce->engines_settings);
+	if (sce->collection_properties) {
+		IDP_WriteProperty(sce->collection_properties, wd);
+	}
 }
 
 static void write_gpencil(WriteData *wd, bGPdata *gpd)

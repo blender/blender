@@ -1028,11 +1028,13 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->outlines_resolve);
 }
 
-void OBJECT_collection_settings_create(CollectionEngineSettings *ces)
+void OBJECT_collection_settings_create(IDProperty *props)
 {
-	BLI_assert(ces);
-	BKE_collection_engine_property_add_int(ces, "show_wire", false);
-	BKE_collection_engine_property_add_int(ces, "show_backface_culling", false);
+	BLI_assert(props &&
+	           props->type == IDP_GROUP &&
+	           props->subtype == IDP_GROUP_SUB_MODE_OBJECT);
+	BKE_collection_engine_property_add_int(props, "show_wire", false);
+	BKE_collection_engine_property_add_int(props, "show_backface_culling", false);
 }
 
 DrawEngineType draw_engine_object_type = {

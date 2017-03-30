@@ -61,6 +61,7 @@ typedef struct LayerCollection {
 	ListBase layer_collections; /* synced with collection->collections */
 	ListBase engine_settings; /* CollectionEngineSettings */
 	ListBase mode_settings; /* CollectionModeSettings */
+	struct IDProperty *properties;  /* overrides */
 } LayerCollection;
 
 typedef struct SceneLayer {
@@ -111,53 +112,6 @@ enum {
 
 /* *************************************************************** */
 /* Engine Settings */
-
-typedef struct CollectionEngineProperty {
-	struct CollectionEngineProperty *next, *prev;
-	char name[64]; /* MAX_NAME */
-	short type;
-	short pad;
-	char flag;
-	char pad2[3];
-} CollectionEngineProperty;
-
-typedef struct CollectionEnginePropertyInt {
-  struct CollectionEngineProperty data;
-  int value;
-  int pad;
-} CollectionEnginePropertyInt;
-
-typedef struct CollectionEnginePropertyBool {
-  struct CollectionEngineProperty data;
-  int value;
-  int pad;
-} CollectionEnginePropertyBool;
-
-typedef struct CollectionEnginePropertyFloat {
-  struct CollectionEngineProperty data;
-  float value;
-  float pad;
-} CollectionEnginePropertyFloat;
-
-typedef struct CollectionEngineSettings {
-	struct CollectionEngineSettings *next, *prev;
-	char name[32]; /* engine name - MAX_NAME */
-	ListBase properties; /* CollectionProperty */
-	int type; /* CollectionEngineSettingsType */
-	int pad;
-} CollectionEngineSettings;
-
-/* CollectionEngineProperty->flag */
-enum {
-	COLLECTION_PROP_USE = (1 << 0),
-};
-
-/* CollectionEngineProperty.type */
-typedef enum CollectionEnginePropertyType {
-	COLLECTION_PROP_TYPE_FLOAT = 0,
-	COLLECTION_PROP_TYPE_INT = 1,
-	COLLECTION_PROP_TYPE_BOOL = 2,
-} CollectionEnginePropertyType;
 
 /* CollectionEngineSettings->type */
 typedef enum CollectionEngineSettingsType {

@@ -539,44 +539,6 @@ typedef enum BakePassFilter {
 
 #define R_BAKE_PASS_FILTER_ALL (~0)
 
-/* *************************************************************** */
-/* Engine Settings */
-
-typedef struct RenderEngineSettings {
-	struct RenderEngineSettings *next, *prev;
-	char name[32]; /* engine name */
-	void *data;
-} RenderEngineSettings;
-
-/* Render Data */
-typedef struct RenderEngineSettingsClay {
-	/* Use same layout as MaterialEngineSettingsClay so this struct
-	 * can be used as Material Settings. */
-	short type;
-	short matcap_icon; /* Icon ID */
-
-	float matcap_rot;
-	float matcap_hue;
-	float matcap_sat;
-	float matcap_val;
-
-	float ssao_distance;
-	float ssao_attenuation;
-	float ssao_factor_cavity;
-	float ssao_factor_edge;
-
-	short flag;
-	short pad;
-	int ubo_index;
-	/* end of MaterialEngineSettingsClay */
-
-	/* Global Settings */
-	short options;
-	short pad1;
-	int ssao_samples;
-	int pad2[2];
-} RenderEngineSettingsClay;
-
 /* RenderEngineSettingsClay.options */
 typedef enum ClayFlagSettings {
 	CLAY_USE_AO     = (1 << 0),
@@ -1754,7 +1716,7 @@ typedef struct Scene {
 	int active_layer;
 	int pad4;
 
-	ListBase engines_settings; /* RenderEngineSettings */
+	IDProperty *collection_properties;  /* settings to be overriden by layer collections */
 	int pad5[2];
 } Scene;
 

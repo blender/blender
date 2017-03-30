@@ -39,7 +39,7 @@
 
 struct bNode;
 struct bNodeTree;
-struct CollectionEngineSettings;
+struct IDProperty;
 struct Main;
 struct Object;
 struct Render;
@@ -100,7 +100,7 @@ typedef struct RenderEngineType {
 
 	void (*update_script_node)(struct RenderEngine *engine, struct bNodeTree *ntree, struct bNode *node);
 
-	void (*collection_settings_create)(struct RenderEngine *engine, struct CollectionEngineSettings *ces);
+	void (*collection_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
 
 	struct DrawEngineType *draw_engine;
 

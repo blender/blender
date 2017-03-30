@@ -90,37 +90,10 @@ typedef struct TexPaintSlot {
 	int pad;
 } TexPaintSlot;
 
-/* Material Engine Settings */
-typedef struct MaterialEngineSettings {
-	struct MaterialEngineSettings *next, *prev;
-	char name[32]; /* engine name - MAX_NAME */
-	void *data;
-} MaterialEngineSettings;
-
 /* Clay engine */
 
 /* MaterialRuntimeClay.flag */
 #define CLAY_OUTDATED		1
-
-typedef struct MaterialEngineSettingsClay {
-	short type;
-	short matcap_icon; /* Icon ID */
-
-	float matcap_rot;
-	float matcap_hue;
-	float matcap_sat;
-	float matcap_val;
-
-	float ssao_distance;
-	float ssao_attenuation;
-	float ssao_factor_cavity;
-	float ssao_factor_edge;
-
-	/* Runtime */
-	short flag;
-	short pad;
-	int ubo_index;
-} MaterialEngineSettingsClay;
 
 /* MaterialEngineSettingsClay.type */
 #define CLAY_MATCAP_NONE		0
@@ -240,9 +213,6 @@ typedef struct Material {
 
 	struct TexPaintSlot *texpaintslot; /* cached slot for painting. Make sure to recalculate before use
 	                                    * with refresh_texpaint_image_cache */
-	/* Engine Settings */
-	ListBase engines_settings; /* MaterialEngineSettings */
-
 	ListBase gpumaterial;		/* runtime */
 } Material;
 

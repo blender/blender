@@ -569,11 +569,11 @@ void BKE_scene_free(Scene *sce)
 	sce->collection = NULL;
 
 	/* Runtime Engine Data */
-	for (RenderEngineSettings *res = sce->engines_settings.first; res; res = res->next) {
-		if (res->data)
-			MEM_freeN(res->data);
+	if (sce->collection_properties) {
+		IDP_FreeProperty(sce->collection_properties);
+		MEM_freeN(sce->collection_properties);
+		sce->collection_properties = NULL;
 	}
-	BLI_freelistN(&sce->engines_settings);
 }
 
 void BKE_scene_init(Scene *sce)
@@ -927,6 +927,10 @@ void BKE_scene_init(Scene *sce)
 	/* Master Collection */
 	sce->collection = MEM_callocN(sizeof(SceneCollection), "Master Collection");
 	BLI_strncpy(sce->collection->name, "Master Collection", sizeof(sce->collection->name));
+
+	IDPropertyTemplate val = {0};
+	sce->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+	BKE_layer_collection_engine_settings_create(sce->collection_properties);
 
 	BKE_scene_layer_add(sce, "Render Layer");
 }
