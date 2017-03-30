@@ -443,8 +443,8 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 		add_log(string("OpenCL program ") + program_name + " not found in cache.", true);
 
 		/* need to create source to get md5 */
-		string source = "#include \"kernels/opencl/" + kernel_file + "\"\n";
-		source = path_source_replace_includes(source, path_get("source/kernel"));
+		string source = "#include \"kernel/kernels/opencl/" + kernel_file + "\"\n";
+		source = path_source_replace_includes(source, path_get("source"));
 
 		string basename = "cycles_kernel_" + program_name + "_" + device_md5 + "_" + util_md5_string(source);
 		basename = path_cache_get(path_join("kernels", basename));
