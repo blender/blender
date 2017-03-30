@@ -212,6 +212,25 @@ void do_versions_after_linking_280(Main *main)
 	}
 }
 
+static void do_version_layer_collections_idproperties(ListBase *lb)
+{
+	IDPropertyTemplate val = {0};
+	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+		lc->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		BKE_layer_collection_engine_settings_create(lc->properties);
+
+		/* No overrides at first */
+		for (IDProperty *prop = lc->properties->data.group.first; prop; prop = prop->next) {
+			while (prop->data.group.first) {
+				IDP_FreeFromGroup(prop, prop->data.group.first);
+			}
+		}
+
+		/* Do it recursively */
+		do_version_layer_collections_idproperties(&lc->layer_collections);
+	}
+}
+
 void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 {
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
@@ -235,6 +254,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			IDPropertyTemplate val = {0};
 			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
 				ob->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+			}
+		}
+
+		if (DNA_struct_elem_find(fd->filesdna, "LayerCollection", "ListBase", "engine_settings") &&
+		    !DNA_struct_elem_find(fd->filesdna, "LayerCollection", "IDProperty", "properties"))
+		{
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+					do_version_layer_collections_idproperties(&sl->layer_collections);
+				}
 			}
 		}
 	}
