@@ -347,6 +347,9 @@ endif()
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
+set_source_files_properties(kernels/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
+set_source_files_properties(kernels/cpu/kernel_split.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
+
 if(CXX_HAS_SSE)
 	list(APPEND SRC
 		kernels/cpu/kernel_sse2.cpp
