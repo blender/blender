@@ -42,5 +42,6 @@ struct Depsgraph;
 string deg_fcurve_id_name(const FCurve *fcu);
 
 void deg_graph_build_finalize(struct Depsgraph *graph);
+void deg_graph_build_flush_layers(struct Depsgraph *graph);
 
 }  // namespace DEG
