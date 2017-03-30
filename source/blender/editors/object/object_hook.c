@@ -49,6 +49,7 @@
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -447,19 +448,19 @@ static int hook_op_edit_poll(bContext *C)
 
 static Object *add_hook_object_new(Main *bmain, Scene *scene, SceneLayer *sl, Object *obedit)
 {
-	BaseLegacy *base, *basedit;
+	Base *base, *basedit;
 	Object *ob;
 
 	ob = BKE_object_add(bmain, scene, sl, OB_EMPTY, NULL);
 	
-	basedit = BKE_scene_base_find(scene, obedit);
-	base = scene->basact;
+	basedit = BKE_scene_layer_base_find(sl, obedit);
+	base = sl->basact;
 	base->lay = ob->lay = obedit->lay;
-	BLI_assert(scene->basact->object == ob);
+	BLI_assert(sl->basact->object == ob);
 	
 	/* icky, BKE_object_add sets new base as active.
 	 * so set it back to the original edit object */
-	scene->basact = basedit;
+	sl->basact = basedit;
 
 	return ob;
 }

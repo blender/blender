@@ -133,6 +133,7 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	int mode_orig;
 
 	if (!scene || !ob)
@@ -146,7 +147,7 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	 */
 	if (mode_orig & OB_MODE_PARTICLE_EDIT) {
 		if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0) {
-			if (scene->basact && scene->basact->object == ob) {
+			if (sl->basact && sl->basact->object == ob) {
 				WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 			}
 		}

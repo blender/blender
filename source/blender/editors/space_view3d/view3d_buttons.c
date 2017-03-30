@@ -776,8 +776,8 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 		return;
 	}
 	else {
-		Scene *scene = CTX_data_scene(C);
-		Object *ob = scene->basact->object;
+		SceneLayer *sl = CTX_data_scene_layer(C);
+		Object *ob = sl->basact->object;
 		ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
@@ -805,7 +805,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 {
 	uiBlock *block = uiLayoutAbsoluteBlock(pa->layout);
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = scene->basact->object;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = sl->basact->object;
 
 	MDeformVert *dv;
 
@@ -1119,16 +1120,17 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 
 static int view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	Scene *scene = CTX_data_scene(C);
-	return (scene->basact != NULL);
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	return (sl->basact != NULL);
 }
 
 static void view3d_panel_transform(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
-	Object *ob = scene->basact->object;
+	Object *ob = sl->basact->object;
 	uiLayout *col;
 
 	block = uiLayoutGetBlock(pa->layout);

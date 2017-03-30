@@ -6388,8 +6388,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->options & CTX_PAINT_CURVE) {
 		/* pass */
 	}
-	else if ((t->scene->basact) &&
-	         (ob = t->scene->basact->object) &&
+	else if ((t->sl->basact) &&
+	         (ob = t->sl->basact->object) &&
 	         (ob->mode & OB_MODE_PARTICLE_EDIT) &&
 	         PE_get_current(t->scene, t->sl, ob))
 	{

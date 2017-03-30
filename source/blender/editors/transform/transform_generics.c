@@ -711,7 +711,7 @@ static void recalcData_spaceclip(TransInfo *t)
 /* helper for recalcData() - for object transforms, typically in the 3D view */
 static void recalcData_objects(TransInfo *t)
 {
-	BaseLegacy *base = t->scene->basact;
+	Base *base = t->sl->basact;
 
 	if (t->obedit) {
 		if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {

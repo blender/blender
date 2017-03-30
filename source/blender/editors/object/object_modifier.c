@@ -873,6 +873,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int mode_orig = ob->mode;
@@ -885,7 +886,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	/* if cloth/softbody was removed, particle mode could be cleared */
 	if (mode_orig & OB_MODE_PARTICLE_EDIT)
 		if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0)
-			if (scene->basact && scene->basact->object == ob)
+			if (sl->basact && sl->basact->object == ob)
 				WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 	
 	return OPERATOR_FINISHED;

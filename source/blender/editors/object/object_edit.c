@@ -231,6 +231,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
 	/* Note! if 'EM_FREEDATA' isn't in the flag, use ED_object_editmode_load directly */
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
@@ -239,8 +240,8 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	if (ED_object_editmode_load_ex(CTX_data_main(C), obedit, freedata) == false) {
 		/* in rare cases (background mode) its possible active object
 		 * is flagged for editmode, without 'obedit' being set [#35489] */
-		if (UNLIKELY(scene->basact && (scene->basact->object->mode & OB_MODE_EDIT))) {
-			scene->basact->object->mode &= ~OB_MODE_EDIT;
+		if (UNLIKELY(sl->basact && (sl->basact->object->mode & OB_MODE_EDIT))) {
+			sl->basact->object->mode &= ~OB_MODE_EDIT;
 		}
 		if (flag & EM_WAITCURSOR) waitcursor(0);
 		return;

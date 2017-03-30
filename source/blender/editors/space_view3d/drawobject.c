@@ -8384,7 +8384,7 @@ void draw_object_wire_color(Scene *scene, SceneLayer *sl, Base *base, unsigned c
 					/* uses darker active color for non-active + selected */
 					theme_id = TH_GROUP_ACTIVE;
 
-					if (scene->basact != base) {
+					if (sl->basact != base) {
 						theme_shade = -16;
 					}
 				}
