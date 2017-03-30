@@ -872,7 +872,6 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
 static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
