@@ -130,18 +130,22 @@ void IDP_FreeIDPArray(IDProperty *prop)
 		MEM_freeN(prop->data.pointer);
 }
 
-/*shallow copies item*/
+/* shallow copies item */
 void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
 {
 	IDProperty *old;
 
 	BLI_assert(prop->type == IDP_IDPARRAY);
 
+	if (index >= prop->len || index < 0)
+		return;
+
 	old = GETPROP(prop, index);
-	if (index >= prop->len || index < 0) return;
-	if (item != old) IDP_FreeProperty(old);
-	
-	memcpy(GETPROP(prop, index), item, sizeof(IDProperty));
+	if (item != old) {
+		IDP_FreeProperty(old);
+
+		memcpy(old, item, sizeof(IDProperty));
+	}
 }
 
 IDProperty *IDP_GetIndexArray(IDProperty *prop, int index)
