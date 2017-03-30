@@ -433,16 +433,17 @@ static void screen_preview_draw_areas(const bScreen *screen, const float scale[2
 {
 	const float ofs_h = ofs_between_areas * 0.5f;
 	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	rctf rect;
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(col);
 
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-		rect.xmin = sa->totrct.xmin * scale[0] + ofs_h;
-		rect.xmax = sa->totrct.xmax * scale[0] - ofs_h;
-		rect.ymin = sa->totrct.ymin * scale[1] + ofs_h;
-		rect.ymax = sa->totrct.ymax * scale[1] - ofs_h;
+		rctf rect = {
+			.xmin = sa->totrct.xmin * scale[0] + ofs_h,
+			.xmax = sa->totrct.xmax * scale[0] - ofs_h,
+			.ymin = sa->totrct.ymin * scale[1] + ofs_h,
+			.ymax = sa->totrct.ymax * scale[1] - ofs_h
+		};
 
 		immBegin(PRIM_TRIANGLE_FAN, 4);
 		immVertex2f(pos, rect.xmin, rect.ymin);
@@ -464,10 +465,13 @@ static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
 
 	wmOrtho2(0.0f, size_x, 0.0f, size_y);
 	/* center */
+	gpuPushMatrix();
 	gpuTranslate2f(size_x * (1.0f - asp[0]) * 0.5f, size_y * (1.0f - asp[1]) * 0.5f);
 
 	screen_preview_scale_get(screen, size_x, size_y, asp, scale);
 	screen_preview_draw_areas(screen, scale, col, 1.5f);
+
+	gpuPopMatrix();
 }
 
 /**
