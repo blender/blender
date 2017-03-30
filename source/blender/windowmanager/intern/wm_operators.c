@@ -3251,6 +3251,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	imm_draw_lined_circle(pos, 0.0f, 0.0f, r2, 40);
 	if (rmin > 0.0f)
 		imm_draw_lined_circle(pos, 0.0, 0.0f, rmin, 40);
+	immUnbindProgram();
 
 	BLF_size(fontid, 1.5 * fstyle_points * U.pixelsize, U.dpi);
 	BLF_enable(fontid, BLF_SHADOW);
@@ -3267,7 +3268,6 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 
-	immUnbindProgram();
 }
 
 typedef enum {
