@@ -277,6 +277,7 @@ typedef struct MirrorModifierData {
 	short axis  DNA_DEPRECATED; /* deprecated, use flag instead */
 	short flag;
 	float tolerance;
+	float uv_offset[2];
 	struct Object *mirror_ob;
 } MirrorModifierData;
 

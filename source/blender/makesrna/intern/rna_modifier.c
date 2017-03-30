@@ -1526,6 +1526,20 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mirror V", "Mirror the V texture coordinate around the 0.5 point");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "mirror_offset_u", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "uv_offset[0]");
+	RNA_def_property_range(prop, -1, 1);
+	RNA_def_property_ui_range(prop, -1, 1, 2, 4);
+	RNA_def_property_ui_text(prop, "U Offset", "Amount to offset mirrored UVs from the 0.5 point on the U axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "mirror_offset_v", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "uv_offset[1]");
+	RNA_def_property_range(prop, -1, 1);
+	RNA_def_property_ui_range(prop, -1, 1, 2, 4);
+	RNA_def_property_ui_text(prop, "V Offset", "Amount to offset mirrored UVs from the 0.5 point on the V axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "merge_threshold", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "tolerance");
 	RNA_def_property_range(prop, 0, FLT_MAX);
