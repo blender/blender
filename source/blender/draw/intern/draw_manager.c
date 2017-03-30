@@ -1273,6 +1273,7 @@ static GPUTextureFormat convert_tex_format(int fbo_format, int *channels)
 		case DRW_BUF_DEPTH_24: *channels = 1; return GPU_DEPTH_COMPONENT24;
 		default:
 			BLI_assert(false);
+			*channels = 4; return GPU_RGBA8;
 	}
 }
 
