@@ -294,7 +294,7 @@ int DRW_object_wire_theme_get(Object *ob, SceneLayer *sl, float **color)
 		}
 		else {
 			if ((ob->base_flag & BASE_SELECTED) != 0) {
-				theme_id = (sl->basact->object == ob) ? TH_ACTIVE : TH_SELECT;
+				theme_id = (sl->basact && sl->basact->object == ob) ? TH_ACTIVE : TH_SELECT;
 			}
 			else {
 				if (ob->type == OB_LAMP) theme_id = TH_LAMP;
