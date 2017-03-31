@@ -349,15 +349,24 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 	/* Special trick to get local view to work.  */
 	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
-		DEG::IDDepsNode *node = graph->find_id_node(&object->id);
-		node->layers = 0;
+		DEG::IDDepsNode *id_node = graph->find_id_node(&object->id);
+		id_node->layers = 0;
 	}
 	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
-		DEG::IDDepsNode *node = graph->find_id_node(&object->id);
-		node->layers |= base->lay;
+		DEG::IDDepsNode *id_node = graph->find_id_node(&object->id);
+		id_node->layers |= base->lay;
 	}
 	DEG::deg_graph_build_flush_layers(graph);
+	LINKLIST_FOREACH (Base *, base, &scene->base) {
+		Object *object = base->object;
+		DEG::IDDepsNode *id_node = graph->find_id_node(&object->id);
+		GHASH_FOREACH_BEGIN(DEG::ComponentDepsNode *, comp, id_node->components)
+		{
+			id_node->layers |= comp->layers;
+		}
+		GHASH_FOREACH_END();
+	}
 }
 
 void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
