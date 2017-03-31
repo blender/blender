@@ -320,17 +320,18 @@ static char *path_specials(const string& sub)
 {
 	static bool env_init = false;
 	static char *env_shader_path;
-	static char *env_kernel_path;
+	static char *env_source_path;
 	if(!env_init) {
 		env_shader_path = getenv("CYCLES_SHADER_PATH");
-		env_kernel_path = getenv("CYCLES_KERNEL_PATH");
+		/* NOTE: It is KERNEL in env variable for compatibility reasons. */
+		env_source_path = getenv("CYCLES_KERNEL_PATH");
 		env_init = true;
 	}
 	if(env_shader_path != NULL && sub == "shader") {
 		return env_shader_path;
 	}
-	else if(env_shader_path != NULL && sub == "kernel") {
-		return env_kernel_path;
+	else if(env_shader_path != NULL && sub == "source") {
+		return env_source_path;
 	}
 	return NULL;
 }
