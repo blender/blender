@@ -25,7 +25,7 @@ def get_layer_collection(layer_collection):
 
     data['is_visible'] = (flag & (1 << 0)) != 0
     data['is_selectable'] = (flag & (1 << 1)) != 0
-    data['is_folded'] = (flag & (1 << 2)) != 0
+    data['is_folded'] = True
 
     scene_collection = layer_collection.get_pointer(b'scene_collection')
     if scene_collection is None:
