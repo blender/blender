@@ -708,10 +708,17 @@ int wm_homefile_read(
 
 	/* load preferences before startup.blend */
 	if (!use_factory_settings && BLI_exists(filepath_userdef)) {
+
+		/* keep existing app-template for regular file-new */
+		char app_template_buf[sizeof(U.app_template)] = "";
+		BLI_strncpy(app_template_buf, U.app_template, sizeof(app_template_buf));
+
 		UserDef *userdef = BKE_blendfile_userdef_read(filepath_userdef, NULL);
 		if (userdef != NULL) {
 			BKE_blender_userdef_set_data(userdef);
 			MEM_freeN(userdef);
+
+			BLI_strncpy(U.app_template, app_template_buf, sizeof(app_template_buf));
 
 			read_userdef_from_memory = false;
 			skip_flags |= BLO_READ_SKIP_USERDEF;
