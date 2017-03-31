@@ -210,6 +210,18 @@ void do_versions_after_linking_280(Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
+		IDPropertyTemplate val = {0};
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			scene->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+			BKE_layer_collection_engine_settings_create(scene->collection_properties);
+		}
+
+		for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+			ob->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		}
+	}
 }
 
 static void do_version_layer_collections_idproperties(ListBase *lb)
@@ -239,21 +251,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				/* Master Collection */
 				scene->collection = MEM_callocN(sizeof(SceneCollection), "Master Collection");
 				BLI_strncpy(scene->collection->name, "Master Collection", sizeof(scene->collection->name));
-			}
-		}
-
-		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "IDProperty", "collection_properties")) {
-			IDPropertyTemplate val = {0};
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				scene->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-				BKE_layer_collection_engine_settings_create(scene->collection_properties);
-			}
-		}
-
-		if (!DNA_struct_elem_find(fd->filesdna, "Object", "IDProperty", "collection_properties")) {
-			IDPropertyTemplate val = {0};
-			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
-				ob->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 			}
 		}
 
