@@ -2092,7 +2092,7 @@ class WM_OT_addon_install(Operator):
 
         # print message
         msg = (
-            tip_("Modules Installed (%s) from %r into %r (%s)") %
+            tip_("Modules Installed (%s) from %r into %r") %
             (", ".join(sorted(addons_new)), pyfile, path_addons)
         )
         print(msg)

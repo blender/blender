@@ -235,7 +235,7 @@ string OpenCLCache::get_kernel_md5()
 	thread_scoped_lock lock(self.kernel_md5_lock);
 
 	if(self.kernel_md5.empty()) {
-		self.kernel_md5 = path_files_md5_hash(path_get("source/kernel"));
+		self.kernel_md5 = path_files_md5_hash(path_get("source"));
 	}
 	return self.kernel_md5;
 }
@@ -443,8 +443,8 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 		add_log(string("OpenCL program ") + program_name + " not found in cache.", true);
 
 		/* need to create source to get md5 */
-		string source = "#include \"kernels/opencl/" + kernel_file + "\"\n";
-		source = path_source_replace_includes(source, path_get("source/kernel"));
+		string source = "#include \"kernel/kernels/opencl/" + kernel_file + "\"\n";
+		source = path_source_replace_includes(source, path_get("source"));
 
 		string basename = "cycles_kernel_" + program_name + "_" + device_md5 + "_" + util_md5_string(source);
 		basename = path_cache_get(path_join("kernels", basename));

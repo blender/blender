@@ -1562,6 +1562,11 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		RNA_property_string_get(op->ptr, prop_app_template, app_template_buf);
 		app_template = app_template_buf;
 	}
+	else if (!use_factory_settings) {
+		/* TODO: dont reset prefs on 'New File' */
+		BLI_strncpy(app_template_buf, U.app_template, sizeof(app_template_buf));
+		app_template = app_template_buf;
+	}
 	else {
 		app_template = NULL;
 	}

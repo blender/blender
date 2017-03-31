@@ -77,28 +77,8 @@ static bool check_object_needs_evaluation(Object *object)
 	return false;
 }
 
-void deg_graph_build_finalize(Depsgraph *graph)
+void deg_graph_build_flush_layers(Depsgraph *graph)
 {
-	/* STEP 1: Make sure new invisible dependencies are ready for use.
-	 *
-	 * TODO(sergey): This might do a bit of extra tagging, but it's kinda nice
-	 * to do it ahead of a time and don't spend time on flushing updates on
-	 * every frame change.
-	 */
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
-	{
-		if (id_node->layers == 0) {
-			ID *id = id_node->id;
-			if (GS(id->name) == ID_OB) {
-				Object *object = (Object *)id;
-				if (check_object_needs_evaluation(object)) {
-					id_node->tag_update(graph);
-				}
-			}
-		}
-	}
-	GHASH_FOREACH_END();
-	/* STEP 2: Flush visibility layers from children to parent. */
 	std::stack<OperationDepsNode *> stack;
 	foreach (OperationDepsNode *node, graph->operations) {
 		IDDepsNode *id_node = node->owner->owner;
@@ -143,6 +123,31 @@ void deg_graph_build_finalize(Depsgraph *graph)
 			}
 		}
 	}
+}
+
+void deg_graph_build_finalize(Depsgraph *graph)
+{
+	/* STEP 1: Make sure new invisible dependencies are ready for use.
+	 *
+	 * TODO(sergey): This might do a bit of extra tagging, but it's kinda nice
+	 * to do it ahead of a time and don't spend time on flushing updates on
+	 * every frame change.
+	 */
+	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
+	{
+		if (id_node->layers == 0) {
+			ID *id = id_node->id;
+			if (GS(id->name) == ID_OB) {
+				Object *object = (Object *)id;
+				if (check_object_needs_evaluation(object)) {
+					id_node->tag_update(graph);
+				}
+			}
+		}
+	}
+	GHASH_FOREACH_END();
+	/* STEP 2: Flush visibility layers from children to parent. */
+	deg_graph_build_flush_layers(graph);
 	/* STEP 3: Re-tag IDs for update if it was tagged before the relations
 	 * update tag.
 	 */

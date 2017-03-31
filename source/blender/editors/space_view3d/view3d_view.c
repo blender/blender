@@ -1400,6 +1400,8 @@ static bool view3d_localview_init(
 		}
 	}
 
+	DAG_on_visible_update(bmain, false);
+
 	return ok;
 }
 

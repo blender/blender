@@ -259,8 +259,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			int j = maxLoops;
 			dmloopuv += j; /* second set of loops only */
 			for (; j-- > 0; dmloopuv++) {
-				if (do_mirr_u) dmloopuv->uv[0] = 1.0f - dmloopuv->uv[0];
-				if (do_mirr_v) dmloopuv->uv[1] = 1.0f - dmloopuv->uv[1];
+				if (do_mirr_u) dmloopuv->uv[0] = 1.0f - dmloopuv->uv[0] + mmd->uv_offset[0];
+				if (do_mirr_v) dmloopuv->uv[1] = 1.0f - dmloopuv->uv[1] + mmd->uv_offset[1];
 			}
 		}
 	}

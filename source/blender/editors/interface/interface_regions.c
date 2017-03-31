@@ -3317,7 +3317,7 @@ void UI_popup_block_invoke(bContext *C, uiBlockCreateFunc func, void *arg)
 	UI_popup_block_invoke_ex(C, func, arg, NULL, WM_OP_INVOKE_DEFAULT);
 }
 
-void UI_popup_block_ex(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func, void *arg)
+void UI_popup_block_ex(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func, void *arg, wmOperator *op)
 {
 	wmWindow *window = CTX_wm_window(C);
 	uiPopupBlockHandle *handle;
@@ -3326,6 +3326,7 @@ void UI_popup_block_ex(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc po
 	handle->popup = true;
 	handle->retvalue = 1;
 
+	handle->popup_op = op;
 	handle->popup_arg = arg;
 	handle->popup_func = popup_func;
 	handle->cancel_func = cancel_func;

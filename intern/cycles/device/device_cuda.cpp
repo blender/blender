@@ -300,8 +300,8 @@ public:
 	{
 		const int cuda_version = cuewCompilerVersion();
 		const int machine = system_cpu_bits();
-		const string kernel_path = path_get("source/kernel");
-		const string include = path_dirname(kernel_path);
+		const string source_path = path_get("source");
+		const string include_path = source_path;
 		string cflags = string_printf("-m%d "
 		                              "--ptxas-options=\"-v\" "
 		                              "--use_fast_math "
@@ -310,7 +310,7 @@ public:
 		                               "-I\"%s\"",
 		                              machine,
 		                              cuda_version,
-		                              include.c_str());
+		                              include_path.c_str());
 		if(use_adaptive_compilation()) {
 			cflags += " " + requested_features.get_build_options();
 		}
@@ -382,8 +382,8 @@ public:
 		        compile_kernel_get_common_cflags(requested_features, split);
 
 		/* Try to use locally compiled kernel. */
-		const string kernel_path = path_get("source/kernel");
-		const string kernel_md5 = path_files_md5_hash(kernel_path);
+		const string source_path = path_get("source");
+		const string kernel_md5 = path_files_md5_hash(source_path);
 
 		/* We include cflags into md5 so changing cuda toolkit or changing other
 		 * compiler command line arguments makes sure cubin gets re-built.
@@ -424,9 +424,10 @@ public:
 			return "";
 		}
 		const char *nvcc = cuewCompilerPath();
-		const string kernel = path_join(kernel_path,
-		                          path_join("kernels",
-		                                    path_join("cuda", split ? "kernel_split.cu" : "kernel.cu")));
+		const string kernel = path_join(
+		        path_join(source_path, "kernel"),
+		        path_join("kernels",
+		                  path_join("cuda", split ? "kernel_split.cu" : "kernel.cu")));
 		double starttime = time_dt();
 		printf("Compiling CUDA kernel ...\n");
 
