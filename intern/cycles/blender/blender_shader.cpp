@@ -1158,6 +1158,13 @@ static void add_nodes(Scene *scene,
 
 /* Sync Materials */
 
+void BlenderSync::sync_materials_simpligy(Shader *shader)
+{
+	ShaderGraph *graph = shader->graph;
+	graph->simplify(scene);
+	shader->tag_update(scene);
+}
+
 void BlenderSync::sync_materials(bool update_all)
 {
 	shader_map.set_default(scene->default_surface);
@@ -1203,17 +1210,26 @@ void BlenderSync::sync_materials(bool update_all)
 
 			shader->set_graph(graph);
 
-			/* By simplifying the shader graph as soon as possible, some redundant shader nodes
-			 * might be removed which prevents loading unneccessary attributes later.
+			/* By simplifying the shader graph as soon as possible, some
+			 * redundant shader nodes might be removed which prevents loading
+			 * unnecessary attributes later.
 			 *
-			 * However, since graph simplification also accounts for e.g. mix weight, this would
-			 * cause frequent expensive resyncs in interactive sessions, so for those sessions
-			 * optimization is only performed right before compiling. */
+			 * However, since graph simplification also accounts for e.g. mix
+			 * weight, this would cause frequent expensive resyncs in interactive
+			 * sessions, so for those sessions optimization is only performed
+			 * right before compiling.
+			 */
 			if(!preview) {
-				pool.push(function_bind(&ShaderGraph::simplify, shader->graph, scene));
+				pool.push(function_bind(&BlenderSync::sync_materials_simpligy,
+				                        this,
+				                        shader));
 			}
-
-			shader->tag_update(scene);
+			else {
+				/* NOTE: Update tagging can access links which are being
+				 * optimized out.
+				 */
+				shader->tag_update(scene);
+			}
 		}
 	}
 
