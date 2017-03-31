@@ -346,6 +346,42 @@ class RenderLayerTesting(unittest.TestCase):
         self.assertEqual(master_collection, bpy.context.scene.master_collection)
         master_collection.objects.link(bpy.data.objects.new('object', None))
 
+    def do_scene_copy(self, filepath_json_reference, copy_mode, data_callbacks):
+        import bpy
+        import os
+        import tempfile
+        import filecmp
+
+        ROOT = self.get_root()
+        with tempfile.TemporaryDirectory() as dirpath:
+            filepath_layers = os.path.join(ROOT, 'layers.blend')
+
+            (self.path_exists(f) for f in (
+                filepath_layers,
+                filepath_json_reference,
+                ))
+
+            filepath_saved = os.path.join(dirpath, '{0}.blend'.format(copy_mode))
+            filepath_json = os.path.join(dirpath, "{0}.json".format(copy_mode))
+
+            bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_layers)
+            self.rename_collections()
+            bpy.ops.scene.new(type=copy_mode)
+            bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=filepath_saved)
+
+            datas = query_scene(filepath_saved, 'Main.001', data_callbacks)
+            self.assertTrue(datas, "Data is not valid")
+
+            with open(filepath_json, "w") as f:
+                for data in datas:
+                    f.write(dump(data))
+
+            self.assertTrue(compare_files(
+                filepath_json,
+                filepath_json_reference,
+                ),
+                "Scene copy \"{0}\" test failed".format(copy_mode.title()))
+
     def cleanup_tree(self):
         """
         Remove any existent layer and collections,

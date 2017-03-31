@@ -330,6 +330,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			}
 			new_sl = new_sl->next;
 		}
+
+		IDPropertyTemplate val = {0};
+		scen->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 	}
 
 	/* copy color management settings */
@@ -442,6 +445,12 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 	}
 
 	BKE_previewimg_id_copy(&scen->id, &sce->id);
+
+	if (type != SCE_COPY_NEW) {
+		if (sce->collection_properties) {
+			IDP_MergeGroup(scen->collection_properties, sce->collection_properties, true);
+		}
+	}
 
 	return scen;
 }
