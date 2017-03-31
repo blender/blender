@@ -1512,23 +1512,6 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
 	}
 }
 
-/**
- * Special case: Python uses custom-data layers to hold PyObject references.
- * These have to be kept in-place, else the PyObject's we point to, wont point back to us.
- *
- * \note ``ele_src`` Is a duplicate, so we don't need to worry about getting in a feedback loop.
- *
- * \note If there are other customdata layers which need this functionality, it should be generalized.
- * However #BM_mesh_remap is currently the only place where this is done.
- */
-static void bm_mesh_remap_cd_update(
-        BMHeader *ele_dst, BMHeader *ele_src,
-        const int cd_elem_pyptr)
-{
-	void **pyptr_dst_p = BM_ELEM_CD_GET_VOID_P(((BMElem *)ele_dst), cd_elem_pyptr);
-	void **pyptr_src_p = BM_ELEM_CD_GET_VOID_P(((BMElem *)ele_src), cd_elem_pyptr);
-	*pyptr_dst_p = *pyptr_src_p;
-}
 
 /**
  * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
@@ -1570,6 +1553,8 @@ void BM_mesh_remap(
 		BMVert **verts_pool, *verts_copy, **vep;
 		int i, totvert = bm->totvert;
 		const unsigned int *new_idx;
+		/* Special case: Python uses custom - data layers to hold PyObject references.
+		 * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
 		const int cd_vert_pyptr  = CustomData_get_offset(&bm->vdata, CD_BM_ELEM_PYPTR);
 
 		/* Init the old-to-new vert pointers mapping */
@@ -1578,9 +1563,14 @@ void BM_mesh_remap(
 		/* Make a copy of all vertices. */
 		verts_pool = bm->vtable;
 		verts_copy = MEM_mallocN(sizeof(BMVert) * totvert, "BM_mesh_remap verts copy");
+		void **pyptrs = (cd_vert_pyptr != -1) ? MEM_mallocN(sizeof(void *) * totvert, __func__) : NULL;
 		for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--; ve--, vep--) {
 			*ve = **vep;
 /*			printf("*vep: %p, verts_pool[%d]: %p\n", *vep, i, verts_pool[i]);*/
+			if (cd_vert_pyptr != -1) {
+				void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)ve), cd_vert_pyptr);
+				pyptrs[i] = *pyptr;
+			}
 		}
 
 		/* Copy back verts to their new place, and update old2new pointers mapping. */
@@ -1593,13 +1583,17 @@ void BM_mesh_remap(
 /*			printf("mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);*/
 			BLI_ghash_insert(vptr_map, *vep, new_vep);
 			if (cd_vert_pyptr != -1) {
-				bm_mesh_remap_cd_update(&(*vep)->head, &new_vep->head, cd_vert_pyptr);
+				void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)new_vep), cd_vert_pyptr);
+				*pyptr = pyptrs[*new_idx];
 			}
 		}
 		bm->elem_index_dirty |= BM_VERT;
 		bm->elem_table_dirty |= BM_VERT;
 
 		MEM_freeN(verts_copy);
+		if (pyptrs) {
+			MEM_freeN(pyptrs);
+		}
 	}
 
 	/* Remap Edges */
@@ -1607,6 +1601,8 @@ void BM_mesh_remap(
 		BMEdge **edges_pool, *edges_copy, **edp;
 		int i, totedge = bm->totedge;
 		const unsigned int *new_idx;
+		/* Special case: Python uses custom - data layers to hold PyObject references.
+		 * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
 		const int cd_edge_pyptr  = CustomData_get_offset(&bm->edata, CD_BM_ELEM_PYPTR);
 
 		/* Init the old-to-new vert pointers mapping */
@@ -1615,8 +1611,13 @@ void BM_mesh_remap(
 		/* Make a copy of all vertices. */
 		edges_pool = bm->etable;
 		edges_copy = MEM_mallocN(sizeof(BMEdge) * totedge, "BM_mesh_remap edges copy");
+		void **pyptrs = (cd_edge_pyptr != -1) ? MEM_mallocN(sizeof(void *) * totedge, __func__) : NULL;
 		for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--; ed--, edp--) {
 			*ed = **edp;
+			if (cd_edge_pyptr != -1) {
+				void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)ed), cd_edge_pyptr);
+				pyptrs[i] = *pyptr;
+			}
 		}
 
 		/* Copy back verts to their new place, and update old2new pointers mapping. */
@@ -1629,13 +1630,17 @@ void BM_mesh_remap(
 			BLI_ghash_insert(eptr_map, *edp, new_edp);
 /*			printf("mapping edge from %d to %d (%p/%p to %p)\n", i, *new_idx, *edp, edges_pool[i], new_edp);*/
 			if (cd_edge_pyptr != -1) {
-				bm_mesh_remap_cd_update(&(*edp)->head, &new_edp->head, cd_edge_pyptr);
+				void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)new_edp), cd_edge_pyptr);
+				*pyptr = pyptrs[*new_idx];
 			}
 		}
 		bm->elem_index_dirty |= BM_EDGE;
 		bm->elem_table_dirty |= BM_EDGE;
 
 		MEM_freeN(edges_copy);
+		if (pyptrs) {
+			MEM_freeN(pyptrs);
+		}
 	}
 
 	/* Remap Faces */
@@ -1643,6 +1648,8 @@ void BM_mesh_remap(
 		BMFace **faces_pool, *faces_copy, **fap;
 		int i, totface = bm->totface;
 		const unsigned int *new_idx;
+		/* Special case: Python uses custom - data layers to hold PyObject references.
+		 * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
 		const int cd_poly_pyptr  = CustomData_get_offset(&bm->pdata, CD_BM_ELEM_PYPTR);
 
 		/* Init the old-to-new vert pointers mapping */
@@ -1651,8 +1658,13 @@ void BM_mesh_remap(
 		/* Make a copy of all vertices. */
 		faces_pool = bm->ftable;
 		faces_copy = MEM_mallocN(sizeof(BMFace) * totface, "BM_mesh_remap faces copy");
+		void **pyptrs = (cd_poly_pyptr != -1) ? MEM_mallocN(sizeof(void *) * totface, __func__) : NULL;
 		for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--; fa--, fap--) {
 			*fa = **fap;
+			if (cd_poly_pyptr != -1) {
+				void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)fa), cd_poly_pyptr);
+				pyptrs[i] = *pyptr;
+			}
 		}
 
 		/* Copy back verts to their new place, and update old2new pointers mapping. */
@@ -1664,7 +1676,8 @@ void BM_mesh_remap(
 			*new_fap = *fa;
 			BLI_ghash_insert(fptr_map, *fap, new_fap);
 			if (cd_poly_pyptr != -1) {
-				bm_mesh_remap_cd_update(&(*fap)->head, &new_fap->head, cd_poly_pyptr);
+				void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)new_fap), cd_poly_pyptr);
+				*pyptr = pyptrs[*new_idx];
 			}
 		}
 
@@ -1672,6 +1685,9 @@ void BM_mesh_remap(
 		bm->elem_table_dirty |= BM_FACE;
 
 		MEM_freeN(faces_copy);
+		if (pyptrs) {
+			MEM_freeN(pyptrs);
+		}
 	}
 
 	/* And now, fix all vertices/edges/faces/loops pointers! */
