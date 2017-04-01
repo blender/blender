@@ -1122,15 +1122,14 @@ static bool snapDerivedMesh(
 			float dist_px_sq = dist_squared_to_projected_aabb_simple(
 			        lpmat, snapdata->win_half, ray_min_dist, snapdata->mval,
 			        ray_org_local, ray_normal_local, bb->vec[0], bb->vec[6]);
-			if (dist_px_sq > SQUARE(*dist_px))
-			{
+			if (dist_px_sq > SQUARE(*dist_px)) {
 				return retval;
 			}
 		}
 		else {
 			/* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
 			if (!isect_ray_aabb_v3_simple(
-				ray_start_local, ray_normal_local, bb->vec[0], bb->vec[6], NULL, NULL))
+			        ray_start_local, ray_normal_local, bb->vec[0], bb->vec[6], NULL, NULL))
 			{
 				return retval;
 			}

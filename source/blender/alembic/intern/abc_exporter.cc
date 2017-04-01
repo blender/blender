@@ -418,7 +418,7 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 	BLI_assert(ob != dupliObParent);
 
 	/* check if we have already created a transform writer for this object */
-	if (getXForm(name) != NULL){
+	if (getXForm(name) != NULL) {
 		std::cerr << "xform " << name << " already exists\n";
 		return;
 	}

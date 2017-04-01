@@ -437,7 +437,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	        auto_connect,
 	        fix_orientation,
 	        min_chain_length,
-			keep_bind_info) )
+	        keep_bind_info) )
 	{
 		return OPERATOR_FINISHED;
 	}
