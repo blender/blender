@@ -106,7 +106,7 @@ typedef struct CLAY_PassList {
 } CLAY_PassList;
 
 typedef struct CLAY_Data {
-	char engine_name[32];
+	void *engine_type;
 	CLAY_FramebufferList *fbl;
 	CLAY_TextureList *txl;
 	CLAY_PassList *psl;

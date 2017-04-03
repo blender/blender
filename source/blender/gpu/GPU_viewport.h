@@ -64,7 +64,7 @@ typedef struct StorageList {
 } StorageList;
 
 typedef struct ViewportEngineData {
-	char engine_name[32];
+	void *engine_type;
 
 	FramebufferList *fbl;
 	TextureList *txl;
@@ -83,8 +83,8 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect);
 void GPU_viewport_unbind(GPUViewport *viewport);
 void GPU_viewport_free(GPUViewport *viewport);
 
-void *GPU_viewport_engine_data_create(GPUViewport *viewport, const char *engine_name);
-void *GPU_viewport_engine_data_get(GPUViewport *viewport, const char *engine_name);
+void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type);
+void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_type);
 void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport);
 void *GPU_viewport_texture_list_get(GPUViewport *viewport);
 void  GPU_viewport_size_get(GPUViewport *viewport, int *size);

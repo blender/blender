@@ -93,7 +93,7 @@ typedef struct OBJECT_StorageList {
 } OBJECT_StorageList;
 
 typedef struct OBJECT_Data {
-	char engine_name[32];
+	void *engine_type;
 	void *fbl;
 	void *txl;
 	OBJECT_PassList *psl;

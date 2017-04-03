@@ -83,7 +83,7 @@ typedef struct EDIT_TEXT_Data {
 	/* Struct returned by DRW_viewport_engine_data_get.
 	 * If you don't use one of these, just make it a (void *) */
 	// void *fbl;
-	char engine_name[32]; /* Required */
+	void *engine_type; /* Required */
 	EDIT_TEXT_FramebufferList *fbl;
 	EDIT_TEXT_TextureList *txl;
 	EDIT_TEXT_PassList *psl;

@@ -81,7 +81,7 @@ typedef struct EDIT_MESH_StorageList {
 } EDIT_MESH_StorageList;
 
 typedef struct EDIT_MESH_Data {
-	char engine_name[32];
+	void *engine_type;
 	EDIT_MESH_FramebufferList *fbl;
 	EDIT_MESH_TextureList *txl;
 	EDIT_MESH_PassList *psl;

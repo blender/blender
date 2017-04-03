@@ -83,7 +83,7 @@ typedef struct PAINT_WEIGHT_Data {
 	/* Struct returned by DRW_viewport_engine_data_get.
 	 * If you don't use one of these, just make it a (void *) */
 	// void *fbl;
-	char engine_name[32]; /* Required */
+	void *engine_type; /* Required */
 	PAINT_WEIGHT_FramebufferList *fbl;
 	PAINT_WEIGHT_TextureList *txl;
 	PAINT_WEIGHT_PassList *psl;

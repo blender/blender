@@ -79,11 +79,11 @@ GPUViewport *GPU_viewport_create(void)
 	return viewport;
 }
 
-void *GPU_viewport_engine_data_create(GPUViewport *viewport, const char *engine_name)
+void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
 {
 	LinkData *ld = MEM_callocN(sizeof(LinkData), "LinkData");
 	ViewportEngineData *data = MEM_callocN(sizeof(ViewportEngineData), "ViewportEngineData");
-	BLI_strncpy(data->engine_name, engine_name, 32);
+	data->engine_type = engine_type;
 
 	data->fbl = MEM_callocN(sizeof(FramebufferList), "FramebufferList");
 	data->txl = MEM_callocN(sizeof(TextureList), "TextureList");
@@ -119,11 +119,11 @@ static void GPU_viewport_engines_data_free(GPUViewport *viewport)
 	}
 }
 
-void *GPU_viewport_engine_data_get(GPUViewport *viewport, const char *engine_name)
+void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_type)
 {
 	for (LinkData *link = viewport->data.first; link; link = link->next) {
 		ViewportEngineData *vdata = link->data;
-		if (STREQ(engine_name, vdata->engine_name)) {
+		if (vdata->engine_type == engine_type) {
 			return vdata;
 		}
 	}

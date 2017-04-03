@@ -77,7 +77,7 @@ typedef struct SCULPT_Data {
 	/* Struct returned by DRW_viewport_engine_data_get.
 	 * If you don't use one of these, just make it a (void *) */
 	// void *fbl;
-	char engine_name[32]; /* Required */
+	void *engine_type; /* Required */
 	SCULPT_FramebufferList *fbl;
 	SCULPT_TextureList *txl;
 	SCULPT_PassList *psl;

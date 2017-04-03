@@ -58,7 +58,7 @@ typedef struct EEVEE_LightsInfo {
 } EEVEE_LightsInfo;
 
 typedef struct EEVEE_Data {
-	char engine_name[32];
+	void *engine_type;
 	EEVEE_FramebufferList *fbl;
 	EEVEE_TextureList *txl;
 	EEVEE_PassList *psl;
