@@ -1396,7 +1396,7 @@ void **DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type)
 	}
 
 	oed = MEM_callocN(sizeof(ObjectEngineData), "ObjectEngineData");
-
+	oed->engine_type = engine_type;
 	BLI_addtail(&ob->drawdata, oed);
 
 	return &oed->storage;
