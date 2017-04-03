@@ -103,6 +103,38 @@ void imm_draw_filled_circle(unsigned pos, float x, float y, float rad, int nsegm
 	imm_draw_circle(PRIM_TRIANGLE_FAN, pos, x, y, rad, nsegments);
 }
 
+/**
+ * \note We could have `imm_draw_lined_circle_partial` but currently there is no need.
+ */
+static void imm_draw_circle_partial(
+        PrimitiveType prim_type, unsigned pos, float x, float y,
+        float rad_inner, float rad_outer, int nsegments, float start, float sweep)
+{
+	/* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
+	const float angle_start = -(DEG2RADF(start)) + (M_PI / 2);
+	const float angle_end   = -(DEG2RADF(sweep) - angle_start);
+	nsegments += 1;
+	immBegin(prim_type, nsegments * 2);
+	for (int i = 0; i < nsegments; ++i) {
+		const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
+		const float angle_sin = sinf(angle);
+		const float angle_cos = cosf(angle);
+		immVertex2f(pos, x + rad_inner * angle_cos, y + rad_inner * angle_sin);
+		immVertex2f(pos, x + rad_outer * angle_cos, y + rad_outer * angle_sin);
+	}
+	immEnd();
+}
+
+/**
+ * Replacement for gluPartialDisk, (without 'loops' argument).
+ */
+void imm_draw_filled_circle_partial(
+        unsigned pos, float x, float y,
+        float rad_inner, float rad_outer, int nsegments, float start, float sweep)
+{
+	imm_draw_circle_partial(PRIM_TRIANGLE_STRIP, pos, x, y, rad_inner, rad_outer, nsegments, start, sweep);
+}
+
 void imm_draw_lined_circle_3D(unsigned pos, float x, float y, float rad, int nsegments)
 {
 	immBegin(PRIM_LINE_LOOP, nsegments);

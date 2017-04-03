@@ -75,6 +75,25 @@ void imm_draw_lined_circle_3D(unsigned pos, float x, float y, float radius, int 
 void imm_draw_filled_circle(unsigned pos, float x, float y, float radius, int nsegments);
 
 /**
+ * Draw a filled arc with the given inner and outer radius.
+ * The circle is centered at \a x, \a y and drawn in the XY plane.
+ *
+ * \note Arguments are `gluPartialDisk` compatible.
+ *
+ * \param pos: The vertex attribute number for position.
+ * \param x: Horizontal center.
+ * \param y: Vertical center.
+ * \param radius_inner: The inner circle's radius.
+ * \param radius_outer: The outer circle's radius (can be zero).
+ * \param nsegments: The number of segments to use in drawing (more = smoother).
+ * \param start: Specifies the starting angle, in degrees, of the disk portion.
+ * \param sweep: Specifies the sweep angle, in degrees, of the disk portion.
+ */
+void imm_draw_filled_circle_partial(
+        unsigned pos, float x, float y,
+        float radius_inner, float radius_outer, int nsegments, float start, float sweep);
+
+/**
 * Draw a lined box.
 *
 * \param pos The vertex attribute number for position.
