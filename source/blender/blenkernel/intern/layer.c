@@ -55,7 +55,7 @@
 /* prototype */
 struct CollectionEngineSettingsCB_Type;
 static void layer_collection_free(SceneLayer *sl, LayerCollection *lc);
-static LayerCollection *layer_collection_add(SceneLayer *sl, ListBase *lb, SceneCollection *sc);
+static LayerCollection *layer_collection_add(SceneLayer *sl, LayerCollection *parent, SceneCollection *sc);
 static LayerCollection *find_layer_collection_by_scene_collection(LayerCollection *lc, const SceneCollection *sc);
 static IDProperty *collection_engine_settings_create(struct CollectionEngineSettingsCB_Type *ces_type, const bool populate);
 static IDProperty *collection_engine_get(IDProperty *root, const int type, const char *engine_name);
@@ -106,7 +106,7 @@ SceneLayer *BKE_scene_layer_add(Scene *scene, const char *name)
 	BLI_uniquename(&scene->render_layers, sl, DATA_("SceneLayer"), '.', offsetof(SceneLayer, name), sizeof(sl->name));
 
 	SceneCollection *sc = BKE_collection_master(scene);
-	layer_collection_add(sl, &sl->layer_collections, sc);
+	layer_collection_add(sl, NULL, sc);
 
 	return sl;
 }
@@ -710,7 +710,7 @@ static bool layer_collection_resync(SceneLayer *sl, LayerCollection *lc, const S
 				BLI_addtail(&lc->layer_collections, lc_nested);
 			}
 			else {
-				layer_collection_add(sl, &lc->layer_collections, sc_nested);
+				layer_collection_add(sl, lc, sc_nested);
 			}
 		}
 
@@ -755,7 +755,7 @@ void BKE_layer_collection_resync(const Scene *scene, const SceneCollection *sc)
  */
 LayerCollection *BKE_collection_link(SceneLayer *sl, SceneCollection *sc)
 {
-	LayerCollection *lc = layer_collection_add(sl, &sl->layer_collections, sc);
+	LayerCollection *lc = layer_collection_add(sl, NULL, sc);
 	sl->active_collection = BKE_layer_collection_findindex(sl, lc);
 	return lc;
 }
@@ -821,21 +821,27 @@ static void layer_collection_populate(SceneLayer *sl, LayerCollection *lc, Scene
 	layer_collection_objects_populate(sl, lc, &sc->filter_objects);
 
 	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
-		layer_collection_add(sl, &lc->layer_collections, nsc);
+		layer_collection_add(sl, lc, nsc);
 	}
 }
 
-static LayerCollection *layer_collection_add(SceneLayer *sl, ListBase *lb, SceneCollection *sc)
+static LayerCollection *layer_collection_add(SceneLayer *sl, LayerCollection *parent, SceneCollection *sc)
 {
 	IDPropertyTemplate val = {0};
 	LayerCollection *lc = MEM_callocN(sizeof(LayerCollection), "Collection Base");
-	BLI_addtail(lb, lc);
 
 	lc->scene_collection = sc;
-	lc->flag = COLLECTION_VISIBLE + COLLECTION_SELECTABLE;
+	lc->flag = COLLECTION_VISIBLE | COLLECTION_SELECTABLE;
 
 	lc->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 	collection_engine_settings_init(lc->properties, false);
+
+	if (parent != NULL) {
+		BLI_addtail(&parent->layer_collections, lc);
+	}
+	else {
+		BLI_addtail(&sl->layer_collections, lc);
+	}
 
 	layer_collection_populate(sl, lc, sc);
 
@@ -899,7 +905,7 @@ void BKE_layer_sync_new_scene_collection(Scene *scene, const SceneCollection *sc
 		for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 			LayerCollection *lc_parent = find_layer_collection_by_scene_collection(lc, sc_parent);
 			if (lc_parent) {
-				layer_collection_add(sl, &lc_parent->layer_collections, sc);
+				layer_collection_add(sl, lc_parent, sc);
 			}
 		}
 	}
