@@ -96,6 +96,7 @@ public:
 private:
 	/* sync */
 	void sync_lamps(bool update_all);
+	void sync_materials_simpligy(Shader *shader);
 	void sync_materials(bool update_all);
 	void sync_objects(BL::SpaceView3D& b_v3d, float motion_time = 0.0f);
 	void sync_motion(BL::RenderSettings& b_render,

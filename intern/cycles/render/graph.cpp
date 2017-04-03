@@ -238,6 +238,8 @@ ShaderGraph *ShaderGraph::copy()
 	foreach(ShaderNode *node, nodes)
 		newgraph->add(nodes_copy[node]);
 
+	newgraph->simplified = simplified;
+
 	return newgraph;
 }
 
@@ -245,7 +247,6 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 {
 	assert(!finalized);
 	assert(from && to);
-	simplified = false;
 
 	if(to->link) {
 		fprintf(stderr, "Cycles shader graph connect: input already connected.\n");

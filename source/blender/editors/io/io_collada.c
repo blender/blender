@@ -99,6 +99,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int export_transformation_type;
 
 	int open_sim;
+	int limit_precision;
 	int keep_bind_info;
 
 	int export_count;
@@ -150,6 +151,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	export_transformation_type = RNA_enum_get(op->ptr,    "export_transformation_type_selection");
 	open_sim                   = RNA_boolean_get(op->ptr, "open_sim");
 
+	limit_precision = RNA_boolean_get(op->ptr, "limit_precision");
 	keep_bind_info = RNA_boolean_get(op->ptr, "keep_bind_info");
 
 	/* get editmode results */
@@ -178,6 +180,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		export_transformation_type,
 
 		open_sim,
+		limit_precision,
 		keep_bind_info
 	);
 
@@ -276,8 +279,12 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
+
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "keep_bind_info", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, false);
+	uiItemR(row, imfptr, "limit_precision", 0, NULL, ICON_NONE);
 
 }
 
@@ -396,6 +403,9 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_boolean(func, "open_sim", 0, "Export to SL/OpenSim",
 	                "Compatibility mode for SL, OpenSim and other compatible online worlds");
 
+	RNA_def_boolean(func, "limit_precision", 0,
+		"Limit Precision", "Reduce the precision of the exported data to 6 digits");
+
 	RNA_def_boolean(func, "keep_bind_info", 0,
 		"Keep Bind Info", "Store Bindpose information in custom bone properties for later use during Collada export");
 
@@ -437,7 +447,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	        auto_connect,
 	        fix_orientation,
 	        min_chain_length,
-			keep_bind_info) )
+	        keep_bind_info) )
 	{
 		return OPERATOR_FINISHED;
 	}

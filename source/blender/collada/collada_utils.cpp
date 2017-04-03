@@ -32,9 +32,6 @@
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 
-#include "collada_utils.h"
-#include "ExportSettings.h"
-
 extern "C" {
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
@@ -63,6 +60,9 @@ extern "C" {
 #include "bmesh.h"
 #include "bmesh_tools.h"
 }
+
+#include "collada_utils.h"
+#include "ExportSettings.h"
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index)
 {
@@ -824,23 +824,11 @@ void bc_create_restpose_mat(const ExportSettings *export_settings, Bone *bone, f
 }
 
 /*
-    To get rid of those lengthy float values which make the numbers unreadable.
-*/
-float bc_sanitize_float(float value, float precision)
-{
-	float result = floor((value * pow(10, precision) + 0.5)) / pow(10, precision);
-	if (abs(result) < 1 / pow(10, precision)) {
-		result = 0;
-	}
-	return result;
-}
-
-/*
     Make 4*4 matrices better readable
 */
-void bc_sanitize_mat(float mat[4][4], float precision)
+void bc_sanitize_mat(float mat[4][4], int precision)
 {
 	for (int i = 0; i < 4; i++)
 		for (int j = 0; j < 4; j++)
-			mat[i][j] = bc_sanitize_float(mat[i][j], precision);
+			mat[i][j] = double_round(mat[i][j], precision);
 }

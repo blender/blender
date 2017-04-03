@@ -809,7 +809,7 @@ int wm_homefile_read(
 		if (userdef_template == NULL) {
 			/* we need to have preferences load to overwrite preferences from previous template */
 			userdef_template = BKE_blendfile_userdef_read_from_memory(
-					datatoc_startup_blend, datatoc_startup_blend_size, NULL);
+			        datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		}
 		if (userdef_template) {
 			BKE_blender_userdef_set_app_template(userdef_template);

@@ -63,7 +63,7 @@ static void node_shader_exec_normal_map(void *data, int UNUSED(thread), bNode *n
 
 		CLAMP_MIN(strength, 0.0f);
 
-		float *N = shi->vno;
+		float *N = shi->nmapnorm;
 		int uv_index = 0;
 		switch (nm->space) {
 			case SHD_NORMAL_MAP_TANGENT:

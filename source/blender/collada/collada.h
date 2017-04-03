@@ -85,6 +85,7 @@ int collada_export(struct Scene *sce,
                    BC_export_transformation_type export_transformation_type,
 
 				   int open_sim,
+				   int limit_precision,
 				   int keep_bind_info);
 
 #ifdef __cplusplus

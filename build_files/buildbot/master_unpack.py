@@ -67,6 +67,9 @@ def get_platform(filename):
 
 
 def get_branch(filename):
+    if filename.startswith("blender-2.8"):
+        return "blender2.8"
+
     tokens = filename.split("-")
     branch = ""
 

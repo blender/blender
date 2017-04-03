@@ -53,6 +53,7 @@ public:
 	BC_export_transformation_type export_transformation_type;
 
 	bool open_sim;
+	bool limit_precision;
 	bool keep_bind_info;
 
 	char *filepath;

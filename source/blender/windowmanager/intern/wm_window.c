@@ -421,7 +421,7 @@ static void wm_window_set_dpi(wmWindow *win)
 	/* Blender's UI drawing assumes DPI 72 as a good default following macOS
 	 * while Windows and Linux use DPI 96. GHOST assumes a default 96 so we
 	 * remap the DPI to Blender's convention. */
-	int dpi = auto_dpi * U.ui_scale * (72.0/96.0f);
+	int dpi = auto_dpi * U.ui_scale * (72.0 / 96.0f);
 
 	/* Automatically set larger pixel size for high DPI. */
 	int pixelsize = MAX2(1, dpi / 54);
