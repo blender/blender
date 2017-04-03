@@ -1,6 +1,8 @@
 
 #define M_PI        3.14159265358979323846  /* pi */
 #define M_1_PI      0.318309886183790671538  /* 1/pi */
+#define M_1_2PI     0.159154943091895335768  /* 1/(2*pi) */
+#define M_1_PI2     0.101321183642337771443  /* 1/(pi^2) */
 
 /* ------- Structures -------- */
 
@@ -73,6 +75,26 @@ vec3 line_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 planeorigin,
 	return lineorigin + linedirection * dist;
 }
 
+float line_aligned_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec3 planeorigin)
+{
+	/* aligned plane normal */
+	vec3 L = planeorigin - lineorigin;
+	float diskdist = length(L);
+	vec3 planenormal = -normalize(L);
+	return -diskdist / dot(planenormal, linedirection);
+}
+
+vec3 line_aligned_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 planeorigin)
+{
+	float dist = line_aligned_plane_intersect_dist(lineorigin, linedirection, planeorigin);
+	if (dist < 0) {
+		/* if intersection is behind we fake the intersection to be
+		 * really far and (hopefully) not inside the radius of interest */
+		dist = 1e16;
+	}
+	return lineorigin + linedirection * dist;
+}
+
 float rectangle_solid_angle(AreaData ad)
 {
 	vec3 n0 = normalize(cross(ad.corner[0], ad.corner[1]));
@@ -90,13 +112,12 @@ float rectangle_solid_angle(AreaData ad)
 
 vec3 get_specular_dominant_dir(vec3 N, vec3 R, float roughness)
 {
-	return normalize(mix(N, R, (1.0 - roughness * roughness)));
+	return normalize(mix(N, R, 1.0 - roughness * roughness));
 }
 
 /* From UE4 paper */
 vec3 mrp_sphere(LightData ld, ShadingData sd, vec3 dir, inout float roughness, out float energy_conservation)
 {
-	/* Sphere Light */
 	roughness = max(3e-3, roughness); /* Artifacts appear with roughness below this threshold */
 
 	/* energy preservation */
@@ -114,8 +135,13 @@ vec3 mrp_sphere(LightData ld, ShadingData sd, vec3 dir, inout float roughness, o
 	return normalize(closest_point_on_sphere);
 }
 
-vec3 mrp_area(LightData ld, ShadingData sd, vec3 dir)
+vec3 mrp_area(LightData ld, ShadingData sd, vec3 dir, inout float roughness, out float energy_conservation)
 {
+	roughness = max(3e-3, roughness); /* Artifacts appear with roughness below this threshold */
+
+	/* FIXME : This needs to be fixed */
+	energy_conservation = pow(roughness / saturate(roughness + 0.5 * sd.area_data.solid_angle), 2.0);
+
 	vec3 refproj = line_plane_intersect(sd.W, dir, ld.l_position, ld.l_forward);
 
 	/* Project the point onto the light plane */
@@ -129,7 +155,10 @@ vec3 mrp_area(LightData ld, ShadingData sd, vec3 dir)
 	/* go back in world space */
 	vec3 closest_point_on_rectangle = sd.l_vector + mrp.x * ld.l_right + mrp.y * ld.l_up;
 
-	return normalize(closest_point_on_rectangle);
+	float len = length(closest_point_on_rectangle);
+	energy_conservation /= len * len;
+
+	return closest_point_on_rectangle / len;
 }
 
 /* GGX */

@@ -42,7 +42,7 @@ float direct_diffuse_sphere(LightData ld, ShadingData sd)
 	}
 
 	bsdf = max(bsdf, 0.0);
-	bsdf *= M_1_PI * M_1_PI;
+	bsdf *= M_1_PI2;
 
 	return bsdf;
 }
@@ -51,6 +51,10 @@ float direct_diffuse_sphere(LightData ld, ShadingData sd)
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
 float direct_diffuse_rectangle(LightData ld, ShadingData sd)
 {
+#ifdef USE_LTC
+	float bsdf = ltc_evaluate(sd.N, sd.V, mat3(1.0), sd.area_data.corner);
+	bsdf *= M_1_2PI;
+#else
 	float bsdf = sd.area_data.solid_angle * 0.2 * (
 		max(0.0, dot(normalize(sd.area_data.corner[0]), sd.N)) +
 		max(0.0, dot(normalize(sd.area_data.corner[1]), sd.N)) +
@@ -58,7 +62,8 @@ float direct_diffuse_rectangle(LightData ld, ShadingData sd)
 		max(0.0, dot(normalize(sd.area_data.corner[3]), sd.N)) +
 		max(0.0, dot(sd.L, sd.N))
 	);
-
+	bsdf *= M_1_PI;
+#endif
 	return bsdf;
 }
 
@@ -87,24 +92,76 @@ float direct_ggx_point(ShadingData sd, float roughness)
 
 float direct_ggx_sphere(LightData ld, ShadingData sd, float roughness)
 {
+#ifdef USE_LTC
+	vec3 P = line_aligned_plane_intersect(vec3(0.0), sd.spec_dominant_dir, sd.l_vector);
+
+	vec3 Px = normalize(P - sd.l_vector) * ld.l_radius;
+	vec3 Py = cross(Px, sd.L);
+
+	float NV = max(dot(sd.N, sd.V), 1e-8);
+	vec2 uv = ltc_coords(NV, sqrt(roughness));
+	mat3 ltcmat = ltc_matrix(uv);
+
+// #define HIGHEST_QUALITY
+#ifdef HIGHEST_QUALITY
+	vec3 Pxy1 = normalize( Px + Py) * ld.l_radius;
+	vec3 Pxy2 = normalize(-Px + Py) * ld.l_radius;
+
+	/* counter clockwise */
+	vec3 points[8];
+	points[0] = sd.l_vector + Px;
+	points[1] = sd.l_vector - Pxy2;
+	points[2] = sd.l_vector - Py;
+	points[3] = sd.l_vector - Pxy1;
+	points[4] = sd.l_vector - Px;
+	points[5] = sd.l_vector + Pxy2;
+	points[6] = sd.l_vector + Py;
+	points[7] = sd.l_vector + Pxy1;
+	float bsdf = ltc_evaluate_circle(sd.N, sd.V, ltcmat, points);
+#else
+	vec3 points[4];
+	points[0] = sd.l_vector + Px;
+	points[1] = sd.l_vector - Py;
+	points[2] = sd.l_vector - Px;
+	points[3] = sd.l_vector + Py;
+	float bsdf = ltc_evaluate(sd.N, sd.V, ltcmat, points);
+	/* sqrt(pi/2) difference between square and disk area */
+	bsdf *= 1.25331413731;
+#endif
+
+	bsdf *= texture(ltcMag, uv).r; /* Bsdf intensity */
+	bsdf *= M_1_2PI * M_1_PI;
+#else
 	float energy_conservation;
 	vec3 L = mrp_sphere(ld, sd, sd.spec_dominant_dir, roughness, energy_conservation);
 	float bsdf = bsdf_ggx(sd.N, L, sd.V, roughness);
 
 	bsdf *= energy_conservation / (sd.l_distance * sd.l_distance);
 	bsdf *= max(ld.l_radius * ld.l_radius, 1e-16); /* radius is already inside energy_conservation */
-
+#endif
 	return bsdf;
 }
 
 float direct_ggx_rectangle(LightData ld, ShadingData sd, float roughness)
 {
-	vec3 L = mrp_area(ld, sd, sd.spec_dominant_dir);
+#ifdef USE_LTC
+	float NV = max(dot(sd.N, sd.V), 1e-8);
+	vec2 uv = ltc_coords(NV, sqrt(roughness));
+	mat3 ltcmat = ltc_matrix(uv);
 
-	float bsdf = bsdf_ggx(sd.N, L, sd.V, roughness) * sd.area_data.solid_angle;
+	float bsdf = ltc_evaluate(sd.N, sd.V, ltcmat, sd.area_data.corner);
+	bsdf *= texture(ltcMag, uv).r; /* Bsdf intensity */
+	bsdf *= M_1_2PI;
+#else
+	float energy_conservation;
+	vec3 L = mrp_area(ld, sd, sd.spec_dominant_dir, roughness, energy_conservation);
+	float bsdf = bsdf_ggx(sd.N, L, sd.V, roughness);
 
-	bsdf *= max(0.0, dot(-sd.spec_dominant_dir, ld.l_forward)); /* fade mrp artifacts */
-
+	bsdf *= energy_conservation;
+	/* fade mrp artifacts */
+	bsdf *= max(0.0, dot(-sd.spec_dominant_dir, ld.l_forward));
+	bsdf *= max(0.0, -dot(L, ld.l_forward));
+#endif
 	return bsdf;
 }
 

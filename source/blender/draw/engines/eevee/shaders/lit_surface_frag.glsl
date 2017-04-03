@@ -88,7 +88,9 @@ float light_common(inout LightData ld, inout ShadingData sd)
 		sd.area_data.corner[1] = sd.l_vector + ld.l_right * -ld.l_sizex + ld.l_up * -ld.l_sizey;
 		sd.area_data.corner[2] = sd.l_vector + ld.l_right *  ld.l_sizex + ld.l_up * -ld.l_sizey;
 		sd.area_data.corner[3] = sd.l_vector + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey;
+#ifndef USE_LTC
 		sd.area_data.solid_angle = rectangle_solid_angle(sd.area_data);
+#endif
 	}
 
 	return vis;
@@ -107,7 +109,7 @@ void main()
 	/* hardcoded test vars */
 	vec3 albedo = vec3(0.0);
 	vec3 specular = mix(vec3(1.0), vec3(1.0), pow(max(0.0, 1.0 - dot(sd.N, sd.V)), 5.0));
-	float roughness = 0.5;
+	float roughness = 0.1;
 
     sd.spec_dominant_dir = get_specular_dominant_dir(sd.N, sd.R, roughness);
 

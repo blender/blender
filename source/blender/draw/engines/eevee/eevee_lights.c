@@ -133,17 +133,17 @@ void EEVEE_lights_update(EEVEE_StorageList *stl)
 			}
 		}
 		else {
-			evli->sizex = MAX2(0.0001f, la->area_size);
+			evli->sizex = MAX2(0.001f, la->area_size);
 		}
 
 		/* Make illumination power constant */
 		if (la->type == LA_AREA) {
 			power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) /* 1/(w*h*Pi) */
-			        * M_PI * 10.0f; /* XXX : Empirical, Fit cycles power */
+			        * 80.0f; /* XXX : Empirical, Fit cycles power */
 		}
 		else if (la->type == LA_SPOT || la->type == LA_LOCAL) {
 			power = 1.0f / (4.0f * evli->sizex * evli->sizex * M_PI * M_PI) /* 1/(4*r²*Pi²) */
-			        * M_PI * 100.0; /* XXX : Empirical, Fit cycles power */
+			        * M_PI * M_PI * M_PI * 10.0; /* XXX : Empirical, Fit cycles power */
 
 			/* for point lights (a.k.a radius == 0.0) */
 			// power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */

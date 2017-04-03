@@ -66,6 +66,7 @@ typedef enum GPUTextureFormat {
 	GPU_RGBA8,
 	GPU_RG32F,
 	GPU_RG16F,
+	GPU_R16F,
 	GPU_R8,
 #if 0
 	GPU_RGBA32F,
@@ -87,7 +88,6 @@ typedef enum GPUTextureFormat {
 	GPU_R32F,
 	GPU_R32I,
 	GPU_R32UI,
-	GPU_R16F,
 	GPU_R16I,
 	GPU_R16UI,
 	GPU_R16,
