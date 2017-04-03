@@ -304,7 +304,9 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 		}
 	}
 
-	bc_sanitize_mat(mat, 6); // XXX: Make this optional ?
+	if (this->export_settings->limit_precision)
+		bc_sanitize_mat(mat, 6);
+
 	TransformWriter::add_node_transform(node, mat, NULL);
 
 }
