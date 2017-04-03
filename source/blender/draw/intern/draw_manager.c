@@ -1379,6 +1379,8 @@ DefaultTextureList *DRW_viewport_texture_list_get(void)
 
 /* **************************************** RENDERING ************************************** */
 
+#define TIMER_FALLOFF 0.1f
+
 static void DRW_engines_init(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
@@ -1391,7 +1393,7 @@ static void DRW_engines_init(void)
 		}
 
 		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
-		data->init_time = data->init_time * 0.75 + ftime * 0.25; /* exp average */
+		data->init_time = data->init_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
 	}
 }
 
@@ -1400,11 +1402,14 @@ static void DRW_engines_cache_init(void)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
-		data->cache_time = PIL_check_seconds_timer();
+		double stime = PIL_check_seconds_timer();
+		data->cache_time = 0.0;
 
 		if (engine->cache_init) {
 			engine->cache_init(data);
 		}
+
+		data->cache_time += (PIL_check_seconds_timer() - stime) * 1e3;
 	}
 }
 
@@ -1413,10 +1418,13 @@ static void DRW_engines_cache_populate(Object *ob)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
+		double stime = PIL_check_seconds_timer();
 
 		if (engine->cache_populate) {
 			engine->cache_populate(data, ob);
 		}
+
+		data->cache_time += (PIL_check_seconds_timer() - stime) * 1e3;
 	}
 }
 
@@ -1425,12 +1433,13 @@ static void DRW_engines_cache_finish(void)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine->idname);
+		double stime = PIL_check_seconds_timer();
 
 		if (engine->cache_finish) {
 			engine->cache_finish(data);
 		}
 
-		data->cache_time = (PIL_check_seconds_timer() - data->cache_time) * 1e3;
+		data->cache_time += (PIL_check_seconds_timer() - stime) * 1e3;
 	}
 }
 
@@ -1447,7 +1456,7 @@ static void DRW_engines_draw_background(void)
 		}
 
 		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
-		data->background_time = data->background_time * 0.75 + ftime * 0.25; /* exp average */
+		data->background_time = data->background_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
 	}
 
 	/* No draw_background found, doing default background */
@@ -1466,7 +1475,7 @@ static void DRW_engines_draw_scene(void)
 		}
 
 		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
-		data->render_time = data->render_time * 0.75 + ftime * 0.25; /* exp average */
+		data->render_time = data->render_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
 	}
 }
 
