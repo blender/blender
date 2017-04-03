@@ -123,20 +123,8 @@ static void EEVEE_cache_init(void *vedata)
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
-		stl->g_data->depth_shgrp_select = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-		DRW_shgroup_state_set(stl->g_data->depth_shgrp_select, DRW_STATE_WRITE_STENCIL_SELECT);
-
-		stl->g_data->depth_shgrp_active = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-		DRW_shgroup_state_set(stl->g_data->depth_shgrp_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
-
 		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
 		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-
-		stl->g_data->depth_shgrp_cull_select = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-		DRW_shgroup_state_set(stl->g_data->depth_shgrp_cull_select, DRW_STATE_WRITE_STENCIL_SELECT);
-
-		stl->g_data->depth_shgrp_cull_active = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-		DRW_shgroup_state_set(stl->g_data->depth_shgrp_cull_active, DRW_STATE_WRITE_STENCIL_ACTIVE);
 	}
 
 	{
@@ -176,13 +164,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		struct Batch *geom = DRW_cache_surface_get(ob);
 
 		/* Depth Prepass */
-		/* waiting for proper flag */
-		// if ((ob->base_flag & BASE_ACTIVE) != 0)
-			// DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull_active : depth_shgrp_active, geom, ob->obmat);
-		if ((ob->base_flag & BASE_SELECTED) != 0)
-			DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull_select : stl->g_data->depth_shgrp_select, geom, ob->obmat);
-		else
-			DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
+		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
 
 		DRW_shgroup_call_add(stl->g_data->default_lit_grp, geom, ob->obmat);
 	}
