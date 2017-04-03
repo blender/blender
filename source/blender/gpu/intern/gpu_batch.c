@@ -31,7 +31,7 @@
 #include "GPU_batch.h"
 #include "gpu_shader_private.h"
 
-void Batch_set_builtin_program(Batch* batch, GPUBuiltinShader shader_id)
+void Batch_set_builtin_program(Batch *batch, GPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 	Batch_set_program(batch, shader->program);
@@ -72,23 +72,23 @@ static Batch *batch_sphere(int lat_res, int lon_res)
 	}
 
 	vbo = VertexBuffer_create_with_format(&format);
-	VertexBuffer_allocate_data(vbo, (lat_res-1) * lon_res * 6);
+	VertexBuffer_allocate_data(vbo, (lat_res - 1) * lon_res * 6);
 	vert = 0;
 
 	lon = 0.0f;
-	for(int i = 0; i < lon_res; i++, lon += lon_inc) {
+	for (int i = 0; i < lon_res; i++, lon += lon_inc) {
 		lat = 0.0f;
-		for(int j = 0; j < lat_res; j++, lat += lat_inc) {
+		for (int j = 0; j < lat_res; j++, lat += lat_inc) {
 			if (j != lat_res - 1) { /* Pole */
-				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
-				batch_sphere_lat_lon_vert(lat+lat_inc, lon);
-				batch_sphere_lat_lon_vert(lat,         lon);
+				batch_sphere_lat_lon_vert(lat + lat_inc, lon + lon_inc);
+				batch_sphere_lat_lon_vert(lat + lat_inc, lon);
+				batch_sphere_lat_lon_vert(lat,           lon);
 			}
 
 			if (j != 0) { /* Pole */
-				batch_sphere_lat_lon_vert(lat,         lon+lon_inc);
-				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
-				batch_sphere_lat_lon_vert(lat,         lon);
+				batch_sphere_lat_lon_vert(lat,           lon + lon_inc);
+				batch_sphere_lat_lon_vert(lat + lat_inc, lon + lon_inc);
+				batch_sphere_lat_lon_vert(lat,           lon);
 			}
 		}
 	}
@@ -108,19 +108,19 @@ static Batch *batch_sphere_wire(int lat_res, int lon_res)
 	}
 
 	vbo = VertexBuffer_create_with_format(&format);
-	VertexBuffer_allocate_data(vbo, (lat_res * lon_res * 2) + ((lat_res-1) * lon_res * 2));
+	VertexBuffer_allocate_data(vbo, (lat_res * lon_res * 2) + ((lat_res - 1) * lon_res * 2));
 	vert = 0;
 
 	lon = 0.0f;
-	for(int i = 0; i < lon_res; i++, lon += lon_inc) {
+	for (int i = 0; i < lon_res; i++, lon += lon_inc) {
 		lat = 0.0f;
-		for(int j = 0; j < lat_res; j++, lat += lat_inc) {
-			batch_sphere_lat_lon_vert(lat+lat_inc, lon);
-			batch_sphere_lat_lon_vert(lat,         lon);
+		for (int j = 0; j < lat_res; j++, lat += lat_inc) {
+			batch_sphere_lat_lon_vert(lat + lat_inc, lon);
+			batch_sphere_lat_lon_vert(lat,           lon);
 
 			if (j != lat_res - 1) { /* Pole */
-				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
-				batch_sphere_lat_lon_vert(lat+lat_inc, lon);
+				batch_sphere_lat_lon_vert(lat + lat_inc, lon + lon_inc);
+				batch_sphere_lat_lon_vert(lat + lat_inc, lon);
 			}
 		}
 	}

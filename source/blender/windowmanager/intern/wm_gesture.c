@@ -171,7 +171,7 @@ static void wm_gesture_draw_line(wmGesture *gt)
 {
 	rcti *rect = (rcti *)gt->customdata;
 	
-	VertexFormat* format = immVertexFormat();
+	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
@@ -219,7 +219,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 {
 	rcti *rect = (rcti *)gt->customdata;
 
-	VertexFormat* format = immVertexFormat();
+	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -290,7 +290,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 
 	glEnable(GL_BLEND);
 
-	VertexFormat* format = immVertexFormat();
+	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -406,11 +406,11 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 	}
 
 	/* Nothing to drawe, do early output. */
-	if(numverts < 2) {
+	if (numverts < 2) {
 		return;
 	}
 
-	VertexFormat* format = immVertexFormat();
+	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
@@ -454,7 +454,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 
 	float x1, x2, y1, y2;
 
-	VertexFormat* format = immVertexFormat();
+	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	unsigned line_origin = add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
