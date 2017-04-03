@@ -45,7 +45,6 @@ struct Image;
 struct ImageUser;
 struct Material;
 struct Object;
-struct Image;
 struct Scene;
 struct SceneRenderLayer;
 struct GPUVertexAttribs;
@@ -61,7 +60,7 @@ struct World;
 typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
 typedef struct GPUMaterial GPUMaterial;
-typedef struct GPULamp GPULamp;
+
 typedef struct GPUParticleInfo GPUParticleInfo;
 
 /* Functions to create GPU Materials nodes */
@@ -224,7 +223,6 @@ void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_materials_free(void);
 
-bool GPU_lamp_override_visible(GPULamp *lamp, struct SceneRenderLayer *srl, struct Material *ma);
 void GPU_material_bind(
         GPUMaterial *material, int oblay, int viewlay, double time, int mipmap,
         float viewmat[4][4], float viewinv[4][4], float cameraborder[4], bool scenelock);
@@ -310,26 +308,8 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma);
 void GPU_free_shader_export(GPUShaderExport *shader);
 
 /* Lamps */
-
-GPULamp *GPU_lamp_from_blender(struct Scene *scene, struct Object *ob, struct Object *par);
-void GPU_lamp_free(struct Object *ob);
-
-bool GPU_lamp_has_shadow_buffer(GPULamp *lamp);
-void GPU_lamp_update_buffer_mats(GPULamp *lamp);
-void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[4][4], int *winsize, float winmat[4][4]);
-void GPU_lamp_shadow_buffer_unbind(GPULamp *lamp);
-int GPU_lamp_shadow_buffer_type(GPULamp *lamp);
-int GPU_lamp_shadow_bind_code(GPULamp *lamp);
-float *GPU_lamp_dynpersmat(GPULamp *lamp);
-
-void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[4][4]);
-void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy);
-void GPU_lamp_update_distance(GPULamp *lamp, float distance, float att1, float att2,
-                              float coeff_const, float coeff_lin, float coeff_quad);
-void GPU_lamp_update_spot(GPULamp *lamp, float spotsize, float spotblend);
-int GPU_lamp_shadow_layer(GPULamp *lamp);
 GPUNodeLink *GPU_lamp_get_data(
-        GPUMaterial *mat, GPULamp *lamp,
+        GPUMaterial *mat, struct GPULamp *lamp,
         GPUNodeLink **r_col, GPUNodeLink **r_lv, GPUNodeLink **r_dist, GPUNodeLink **r_shadow, GPUNodeLink **r_energy);
 
 /* World */

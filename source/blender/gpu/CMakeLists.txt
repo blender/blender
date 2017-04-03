@@ -61,6 +61,7 @@ set(SRC
 	intern/gpu_framebuffer.c
 	intern/gpu_immediate.c
 	intern/gpu_init_exit.c
+	intern/gpu_lamp.c
 	intern/gpu_material.c
 	intern/gpu_matrix.c
 	intern/gpu_select.c
@@ -114,6 +115,7 @@ set(SRC
 
 	intern/gpu_codegen.h
 	intern/gpu_private.h
+	intern/gpu_lamp_private.h
 	intern/gpu_select_private.h
 	intern/gpu_shader_private.h
 )

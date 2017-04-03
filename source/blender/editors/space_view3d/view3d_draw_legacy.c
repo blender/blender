@@ -97,6 +97,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_framebuffer.h"
+#include "GPU_lamp.h"
 #include "GPU_material.h"
 #include "GPU_compositing.h"
 #include "GPU_extensions.h"

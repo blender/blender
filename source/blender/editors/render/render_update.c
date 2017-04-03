@@ -55,6 +55,7 @@
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 
+#include "GPU_lamp.h"
 #include "GPU_material.h"
 #include "GPU_buffers.h"
 
