@@ -59,7 +59,7 @@ int collada_import(bContext *C,
 	import_settings.find_chains      = find_chains != 0;
 	import_settings.fix_orientation  = fix_orientation != 0;
 	import_settings.min_chain_length = min_chain_length;
-	import_settings.keep_bind_info = keep_bind_info;
+	import_settings.keep_bind_info = keep_bind_info !=0;
 
 	DocumentImporter imp(C, &import_settings);
 	if (imp.import()) return 1;
