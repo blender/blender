@@ -443,6 +443,42 @@ class RenderLayerTesting(unittest.TestCase):
                 ),
                 "Scene dump files differ")
 
+    def do_visibility_object_add(self, add_mode):
+        import bpy
+
+        scene = bpy.context.scene
+
+        # delete all objects of the file
+        for ob in bpy.data.objects:
+            bpy.data.objects.remove(ob, do_unlink=True)
+
+        # real test
+        layer = scene.render_layers.new('Visibility Test')
+        layer.collections.unlink(layer.collections[0])
+        scene.render_layers.active = layer
+
+        scene_collection = scene.master_collection.collections.new("Collection")
+        layer.collections.link(scene_collection)
+
+        bpy.context.scene.update()  # update depsgraph
+
+        self.assertEqual(len(bpy.data.objects), 0)
+
+        # add new objects
+        if add_mode == 'EMPTY':
+            bpy.ops.object.add()  # 'Empty'
+
+        elif add_mode == 'CYLINDER':
+            bpy.ops.mesh.primitive_cylinder_add()  # 'Cylinder'
+
+        elif add_mode == 'TORUS':
+            bpy.ops.mesh.primitive_torus_add()  # 'Torus'
+
+        self.assertEqual(len(bpy.data.objects), 1)
+
+        new_ob = bpy.data.objects[0]
+        self.assertTrue(new_ob.visible_get(), "Object should be visible")
+
     def cleanup_tree(self):
         """
         Remove any existent layer and collections,

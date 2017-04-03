@@ -444,6 +444,9 @@ Object *ED_object_add_type(
 
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&scene->id, 0);
+
 	return ob;
 }
 
