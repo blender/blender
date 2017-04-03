@@ -178,7 +178,8 @@ if builder.find('cmake') != -1:
                                                       blender_hash,
                                                       blender_glibc,
                                                       blender_arch)
-        if branch != '':
+        # NOTE: Blender 2.8 is already respected by blender_full_version.
+        if branch != '' and branch != 'blender2.8':
             package_name = branch + "-" + package_name
 
         upload_filename = package_name + ".tar.bz2"
