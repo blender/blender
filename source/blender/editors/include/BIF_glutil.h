@@ -89,7 +89,7 @@ void imm_draw_filled_circle(unsigned pos, float x, float y, float radius, int ns
  * \param start: Specifies the starting angle, in degrees, of the disk portion.
  * \param sweep: Specifies the sweep angle, in degrees, of the disk portion.
  */
-void imm_draw_filled_circle_partial(
+void imm_draw_filled_disk_partial(
         unsigned pos, float x, float y,
         float radius_inner, float radius_outer, int nsegments, float start, float sweep);
 

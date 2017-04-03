@@ -104,9 +104,9 @@ void imm_draw_filled_circle(unsigned pos, float x, float y, float rad, int nsegm
 }
 
 /**
- * \note We could have `imm_draw_lined_circle_partial` but currently there is no need.
+ * \note We could have `imm_draw_lined_disk_partial` but currently there is no need.
  */
-static void imm_draw_circle_partial(
+static void imm_draw_disk_partial(
         PrimitiveType prim_type, unsigned pos, float x, float y,
         float rad_inner, float rad_outer, int nsegments, float start, float sweep)
 {
@@ -128,11 +128,11 @@ static void imm_draw_circle_partial(
 /**
  * Replacement for gluPartialDisk, (without 'loops' argument).
  */
-void imm_draw_filled_circle_partial(
+void imm_draw_filled_disk_partial(
         unsigned pos, float x, float y,
         float rad_inner, float rad_outer, int nsegments, float start, float sweep)
 {
-	imm_draw_circle_partial(PRIM_TRIANGLE_STRIP, pos, x, y, rad_inner, rad_outer, nsegments, start, sweep);
+	imm_draw_disk_partial(PRIM_TRIANGLE_STRIP, pos, x, y, rad_inner, rad_outer, nsegments, start, sweep);
 }
 
 void imm_draw_lined_circle_3D(unsigned pos, float x, float y, float rad, int nsegments)
