@@ -8,6 +8,7 @@ out vec4 FragColor;
 
 uniform mat4 ProjectionMatrix;
 uniform vec3 cameraPos;
+uniform vec3 eye;
 uniform vec4 gridSettings;
 uniform float gridOneOverLogSubdiv;
 
@@ -60,13 +61,32 @@ void main()
 	float dist, fade;
 	/* if persp */
 	if (ProjectionMatrix[3][3] == 0.0) {
-		dist = distance(cameraPos, wPos);
-		fade = 1.0 - smoothstep(0.0, gridDistance, dist - gridDistance);
+		vec3 viewvec = cameraPos - wPos;
+		dist = length(viewvec);
+		viewvec /= dist;
+
+		float angle;
+		if ((gridFlag & PLANE_XZ) > 0)
+			angle = viewvec.y;
+		else if ((gridFlag & PLANE_YZ) > 0)
+			angle = viewvec.x;
+		else
+			angle = viewvec.z;
+
+		angle = 1.0 - abs(angle);
+		fade = 1.0 - angle * angle;
+		fade *= 1.0 - smoothstep(0.0, gridDistance, dist - gridDistance);
 	}
 	else {
 		dist = abs(gl_FragCoord.z * 2.0 - 1.0);
 		fade = 1.0 - smoothstep(0.0, 0.5, dist - 0.5);
 		dist = 1.0; /* avoid branch after */
+
+		if ((gridFlag & PLANE_XY) > 0) {
+			float angle = 1.0 - abs(eye.z);
+			fade *= 1.0 - angle * angle * angle;
+			dist = 1.0 + angle * 2.0;
+		}
 	}
 
 	if ((gridFlag & GRID) > 0) {

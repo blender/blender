@@ -315,7 +315,7 @@ static void OBJECT_engine_init(void *vedata)
 		}
 
 		/* Z axis if needed */
-		if ((rv3d->view == RV3D_VIEW_USER) && show_axis_z) {
+		if (((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) && show_axis_z) {
 			e_data.zpos_flag = SHOW_AXIS_Z;
 
 			float zvec[4] = {0.0f, 0.0f, -1.0f, 0.0f};
@@ -323,10 +323,10 @@ static void OBJECT_engine_init(void *vedata)
 
 			/* z axis : chose the most facing plane */
 			if (fabsf(zvec[0]) < fabsf(zvec[1])) {
-				e_data.zpos_flag |= (PLANE_XZ | SHOW_AXIS_X);
+				e_data.zpos_flag |= PLANE_XZ;
 			}
 			else {
-				e_data.zpos_flag |= (PLANE_YZ | SHOW_AXIS_Y);
+				e_data.zpos_flag |= PLANE_YZ;
 			}
 
 			e_data.zneg_flag = e_data.zpos_flag;
@@ -502,6 +502,8 @@ static void OBJECT_cache_init(void *vedata)
 		psl->grid = DRW_pass_create("Infinite Grid Pass", state);
 
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
+		static float mat[4][4];
+		unit_m4(mat);
 
 		/* Create 3 quads to render ordered transparency Z axis */
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
@@ -511,15 +513,15 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
 		DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo, 0);
-		DRW_shgroup_call_add(grp, quad, NULL);
+		DRW_shgroup_call_add(grp, quad, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.grid_flag, 1);
-		DRW_shgroup_call_add(grp, quad, NULL);
+		DRW_shgroup_call_add(grp, quad, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zpos_flag, 1);
-		DRW_shgroup_call_add(grp, quad, NULL);
+		DRW_shgroup_call_add(grp, quad, mat);
 	}
 
 	{
@@ -690,8 +692,8 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 	}
 
 	float (*shapemat)[4], (*spotblendmat)[4];
-	shapemat = (float (*)[4])*la_mats;
-	spotblendmat = (float (*)[4])*la_mats + 16;
+	shapemat = (float (*)[4])(*la_mats);
+	spotblendmat = (float (*)[4])(*la_mats + 16);
 
 	/* Don't draw the center if it's selected or active */
 	if (theme_id == TH_GROUP)
