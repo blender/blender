@@ -784,16 +784,6 @@ static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Obj
 	}
 
 	BLI_addtail(&lc->object_bases, BLI_genericNodeN(base));
-
-	if ((lc->flag_evaluated & COLLECTION_VISIBLE) != 0) {
-		base->flag |= BASE_VISIBLED;
-
-		if ((lc->flag_evaluated & COLLECTION_SELECTABLE) != 0) {
-			base->flag |= BASE_SELECTABLED;
-		}
-
-		IDP_SyncGroupValues(base->collection_properties, lc->properties_evaluated);
-	}
 }
 
 static void layer_collection_object_remove(SceneLayer *sl, LayerCollection *lc, Object *ob)

@@ -2386,6 +2386,10 @@ void rna_SceneCollection_object_link(
 
 	/* TODO(sergey): Only update relations for the current scene. */
 	DAG_relations_tag_update(bmain);
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&scene->id, 0);
+
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER | ND_OB_ACTIVE, scene);
@@ -2634,6 +2638,8 @@ LayerCollection * rna_SceneLayer_collection_link(
 	LayerCollection *lc = BKE_collection_link(sl, sc);
 
 	DAG_relations_tag_update(bmain);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, scene);
 
 	return lc;
@@ -2652,6 +2658,8 @@ static void rna_SceneLayer_collection_unlink(
 	BKE_collection_unlink(sl, lc);
 
 	DAG_relations_tag_update(bmain);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER | ND_OB_ACTIVE, scene);
 }
 
