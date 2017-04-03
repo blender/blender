@@ -52,6 +52,8 @@ void DRW_engine_register(struct DrawEngineType *draw_engine_type);
 
 void DRW_draw_view(const struct bContext *C);
 
+void DRW_object_engine_data_free(struct Object *ob);
+
 /* This is here because GPUViewport needs it */
 void DRW_pass_free(struct DRWPass *pass);
 

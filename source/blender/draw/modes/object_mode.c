@@ -683,6 +683,16 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 	int theme_id = DRW_object_wire_theme_get(ob, sl, &color);
 	static float zero = 0.0f;
 
+	float **la_mats = (float **)DRW_object_engine_data_get(ob, &draw_engine_object_type);
+	if (*la_mats == NULL) {
+		/* we need 2 matrices */
+		*la_mats = MEM_mallocN(sizeof(float) * 16 * 2, "Lamp Object Mode Matrices");
+	}
+
+	float (*shapemat)[4], (*spotblendmat)[4];
+	shapemat = (float (*)[4])*la_mats;
+	spotblendmat = (float (*)[4])*la_mats + 16;
+
 	/* Don't draw the center if it's selected or active */
 	if (theme_id == TH_GROUP)
 		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_center_group, ob->obmat[3]);
@@ -704,7 +714,7 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_distance, color, &zero, &la->dist, ob->obmat);
 	}
 
-	copy_m4_m4(la->shapemat, ob->obmat);
+	copy_m4_m4(shapemat, ob->obmat);
 
 	if (la->type == LA_SUN) {
 		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_sunrays, ob->obmat[3], color);
@@ -718,42 +728,41 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 		size[2] = cosf(la->spotsize * 0.5f) * la->dist;
 
 		size_to_mat4(sizemat, size);
-		mul_m4_m4m4(la->spotconemat, ob->obmat, sizemat);
+		mul_m4_m4m4(shapemat, ob->obmat, sizemat);
 
 		size[0] = size[1] = blend; size[2] = 1.0f;
 		size_to_mat4(sizemat, size);
 		translate_m4(sizemat, 0.0f, 0.0f, -1.0f);
 		rotate_m4(sizemat, 'X', M_PI / 2.0f);
-		mul_m4_m4m4(la->spotblendmat, la->spotconemat, sizemat);
+		mul_m4_m4m4(spotblendmat, shapemat, sizemat);
 
 		if (la->mode & LA_SQUARE) {
-			DRW_shgroup_dynamic_call_add(stl->g_data->lamp_spot_pyramid,    color, &one, la->spotconemat);
+			DRW_shgroup_dynamic_call_add(stl->g_data->lamp_spot_pyramid,    color, &one, shapemat);
 
 			/* hide line if it is zero size or overlaps with outer border,
 			 * previously it adjusted to always to show it but that seems
 			 * confusing because it doesn't show the actual blend size */
 			if (blend != 0.0f && blend != 1.0f) {
-				DRW_shgroup_dynamic_call_add(stl->g_data->lamp_spot_blend_rect, color, &one, la->spotblendmat);
+				DRW_shgroup_dynamic_call_add(stl->g_data->lamp_spot_blend_rect, color, &one, spotblendmat);
 			}
 		}
 		else {
-			DRW_shgroup_dynamic_call_add(stl->g_data->lamp_spot_cone,  color, la->spotconemat);
+			DRW_shgroup_dynamic_call_add(stl->g_data->lamp_spot_cone,  color, shapemat);
 
 			/* hide line if it is zero size or overlaps with outer border,
 			 * previously it adjusted to always to show it but that seems
 			 * confusing because it doesn't show the actual blend size */
 			if (blend != 0.0f && blend != 1.0f) {
-				DRW_shgroup_dynamic_call_add(stl->g_data->lamp_spot_blend, color, &one, la->spotblendmat);
+				DRW_shgroup_dynamic_call_add(stl->g_data->lamp_spot_blend, color, &one, spotblendmat);
 			}
 		}
 
-		normalize_m4(la->shapemat);
 		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_buflimit,        color, &la->clipsta, &la->clipend, ob->obmat);
 		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_buflimit_points, color, &la->clipsta, &la->clipend, ob->obmat);
 	}
 	else if (la->type == LA_HEMI) {
 		static float hemisize = 2.0f;
-		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_hemi, color, &hemisize, la->shapemat);
+		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_hemi, color, &hemisize, shapemat);
 	}
 	else if (la->type == LA_AREA) {
 		float size[3] = {1.0f, 1.0f, 1.0f}, sizemat[4][4];
@@ -761,10 +770,10 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 		if (la->area_shape == LA_AREA_RECT) {
 			size[1] = la->area_sizey / la->area_size;
 			size_to_mat4(sizemat, size);
-			mul_m4_m4m4(la->shapemat, la->shapemat, sizemat);
+			mul_m4_m4m4(shapemat, shapemat, sizemat);
 		}
 
-		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_area, color, &la->area_size, la->shapemat);
+		DRW_shgroup_dynamic_call_add(stl->g_data->lamp_area, color, &la->area_size, shapemat);
 	}
 
 	/* Line and point going to the ground */

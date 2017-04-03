@@ -247,6 +247,9 @@ bool DRW_viewport_cache_is_dirty(void);
 struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);
 struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 
+/* Objects */
+void **DRW_object_engine_data_get(Object *ob, DrawEngineType *det);
+
 /* Settings */
 bool DRW_is_object_renderable(struct Object *ob);
 

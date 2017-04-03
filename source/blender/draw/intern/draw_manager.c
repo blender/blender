@@ -1377,6 +1377,42 @@ DefaultTextureList *DRW_viewport_texture_list_get(void)
 	return GPU_viewport_texture_list_get(DST.viewport);
 }
 
+/* **************************************** OBJECTS *************************************** */
+
+typedef struct ObjectEngineData {
+	struct ObjectEngineData *next, *prev;
+	DrawEngineType *engine_type;
+	void *storage;
+} ObjectEngineData;
+
+void **DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type)
+{
+	ObjectEngineData *oed;
+
+	for (oed = ob->drawdata.first; oed; oed = oed->next) {
+		if (oed->engine_type == engine_type) {
+			return &oed->storage;
+		}
+	}
+
+	oed = MEM_callocN(sizeof(ObjectEngineData), "ObjectEngineData");
+
+	BLI_addtail(&ob->drawdata, oed);
+
+	return &oed->storage;
+}
+
+void DRW_object_engine_data_free(Object *ob)
+{
+	for (ObjectEngineData *oed = ob->drawdata.first; oed; oed = oed->next) {
+		if (oed->storage) {
+			MEM_freeN(oed->storage);
+		}
+	}
+
+	BLI_freelistN(&ob->drawdata);
+}
+
 /* **************************************** RENDERING ************************************** */
 
 #define TIMER_FALLOFF 0.1f

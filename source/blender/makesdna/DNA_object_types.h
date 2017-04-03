@@ -304,6 +304,8 @@ typedef struct Object {
 	struct PreviewImage *preview;
 
 	struct IDProperty *base_collection_properties; /* used by depsgraph, flushed from base */
+
+	ListBase drawdata;		/* runtime, for draw engine datas */
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
