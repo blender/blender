@@ -39,6 +39,8 @@
 #include "DNA_linestyle_types.h"
 #include "DNA_gpencil_types.h"
 
+#include "DEG_depsgraph.h"
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -1209,3 +1211,8 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
 	return ctx_data_collection_get(C, "editable_gpencil_strokes", list);
 }
 
+Depsgraph *CTX_data_depsgraph(const bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	return scene->depsgraph;
+}
