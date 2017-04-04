@@ -836,23 +836,6 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	if (show_paint)
 		draw_image_paint_helpers(C, ar, scene, zoomx, zoomy);
 
-	/* XXX integrate this code */
-#if 0
-	if (ibuf) {
-		float xoffs = 0.0f, yoffs = 0.0f;
-		
-		if (image_preview_active(sa, &xim, &yim)) {
-			xoffs = scene->r.disprect.xmin;
-			yoffs = scene->r.disprect.ymin;
-			glColor3ub(0, 0, 0);
-			calc_image_view(sima, 'f');
-			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-			glRectf(0.0f, 0.0f, 1.0f, 1.0f);
-			gpuLoadIdentity();
-		}
-	}
-#endif
-
 	if (show_viewer) {
 		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
