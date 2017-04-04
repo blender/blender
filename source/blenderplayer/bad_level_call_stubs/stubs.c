@@ -736,6 +736,7 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C, const char *title,
 
 /* RNA COLLADA dependency */
 int collada_export(struct Scene *sce,
+                   struct SceneLayer *scene_layer,
                    const char *filepath,
                    int apply_modifiers,
                    BC_export_mesh_type export_mesh_type,
