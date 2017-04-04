@@ -3053,7 +3053,7 @@ void DAG_id_type_tag(Main *bmain, short idtype)
 		DAG_id_type_tag(bmain, ID_SCE);
 	}
 
-	bmain->id_tag_update[BKE_idcode_to_index(idtype)] = 1;
+	atomic_fetch_and_or_uint8((uint8_t*)&bmain->id_tag_update[BKE_idcode_to_index(idtype)], 1);
 }
 
 int DAG_id_type_tagged(Main *bmain, short idtype)
