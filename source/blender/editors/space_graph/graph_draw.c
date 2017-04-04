@@ -462,21 +462,28 @@ static void draw_fcurve_samples(SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 /* helper func - just draw the F-Curve by sampling the visible region (for drawing curves with modifiers) */
 static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, View2DGrid *grid, unsigned int pos)
 {
+	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	ChannelDriver *driver;
+	float samplefreq;
+	float stime, etime;
+	float unitFac, offset;
+	float dx, dy;
+	short mapping_flag = ANIM_get_normalization_flags(ac);
+	int i, n;
+
 	/* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
 	 * best just bail out in this case */
-	float dx, dy;
 	UI_view2d_grid_size(grid, &dx, &dy);
 	if (dx <= 0.0f)
 		return;
 
+
 	/* disable any drivers temporarily */
-	ChannelDriver *driver = fcu->driver;
+	driver = fcu->driver;
 	fcu->driver = NULL;
 	
 	/* compute unit correction factor */
-	float offset;
-	const short mapping_flag = ANIM_get_normalization_flags(ac);
-	const float unitFac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
+	unitFac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 	
 	/* Note about sampling frequency:
 	 *  Ideally, this is chosen such that we have 1-2 pixels = 1 segment
@@ -492,9 +499,8 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	 */
 	/* grid->dx represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps */
 	/* TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted? */
-	float samplefreq = dx / (U.v2d_min_gridsize * U.pixelsize);
+	samplefreq = dx / (U.v2d_min_gridsize * U.pixelsize);
 	
-	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
 	if (sipo->flag & SIPO_BEAUTYDRAW_OFF) {
 		/* Low Precision = coarse lower-bound clamping
 		 * 
@@ -516,8 +522,8 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	
 	
 	/* the start/end times are simply the horizontal extents of the 'cur' rect */
-	const float stime = v2d->cur.xmin;
-	const float etime = v2d->cur.xmax + samplefreq; /* + samplefreq here so that last item gets included... */
+	stime = v2d->cur.xmin;
+	etime = v2d->cur.xmax + samplefreq; /* + samplefreq here so that last item gets included... */
 	
 	
 	/* at each sampling interval, add a new vertex 
@@ -525,12 +531,12 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	 *	  the displayed values appear correctly in the viewport
 	 */
 
-	const int n = (etime - stime) / samplefreq + 0.5f;
+	n = (etime - stime) / samplefreq + 0.5f;
 
 	if (n > 0) {
 		immBegin(PRIM_LINE_STRIP, (n + 1));
 
-		for (int i = 0; i <= n; i++) {
+		for (i = 0; i <= n; i++) {
 			float ctime = stime + i * samplefreq;
 			immVertex2f(pos, ctime, (evaluate_fcurve(fcu, ctime) + offset) * unitFac);
 		}
@@ -548,22 +554,22 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 	FPoint *prevfpt = fcu->fpt;
 	FPoint *fpt = prevfpt + 1;
 	float fac, v[2];
+	int b = fcu->totvert;
+	float unit_scale, offset;
+	short mapping_flag = ANIM_get_normalization_flags(ac);
 	int count = fcu->totvert;
 
 	if (prevfpt->vec[0] > v2d->cur.xmin) {
 		count++;
 	}
 
-	int b = fcu->totvert;
 	if ((prevfpt + b - 1)->vec[0] < v2d->cur.xmax) {
 		count++;
 	}
 
 	/* apply unit mapping */
-	float offset;
-	const short mapping_flag = ANIM_get_normalization_flags(ac);
-	const float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 	gpuPushMatrix();
+	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 	gpuScale2f(1.0f, unit_scale);
 	gpuTranslate2f(0.0f, offset);
 
@@ -648,20 +654,22 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	BezTriple *prevbezt = fcu->bezt;
 	BezTriple *bezt = prevbezt + 1;
 	float v1[2], v2[2], v3[2], v4[2];
+	float *fp, data[120];
 	float fac = 0.0f;
+	int b = fcu->totvert - 1;
+	int resol;
+	float unit_scale, offset;
+	short mapping_flag = ANIM_get_normalization_flags(ac);
 	
 	/* apply unit mapping */
-	float offset;
-	const short mapping_flag = ANIM_get_normalization_flags(ac);
-	const float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 	gpuPushMatrix();
+	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 	gpuScale2f(1.0f, unit_scale);
 	gpuTranslate2f(0.0f, offset);
 
 	/* For now, this assumes the worst case scenario, where all the keyframes have
 	 * bezier interpolation, and are drawn at full res.
 	 * This is tricky to optimize, but maybe can be improved at some point... */
-	int b = fcu->totvert - 1;
 	immBeginAtMost(PRIM_LINE_STRIP, (b * 32 + 3));
 	
 	/* extrapolate to left? */
@@ -717,8 +725,10 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 			immVertex2fv(pos, v1);
 		}
 		else if (prevbezt->ipo == BEZT_IPO_BEZ) {
-			/* Bezier-Interpolation: draw curve as series of segments between keyframes */
-			int resol; /* determines number of points to sample in between keyframes */
+			/* Bezier-Interpolation: draw curve as series of segments between keyframes 
+			 *	- resol determines number of points to sample in between keyframes
+			 */
+			
 			/* resol depends on distance between points (not just horizontal) OR is a fixed high res */
 			/* TODO: view scale should factor into this someday too... */
 			if (fcu->driver) {
@@ -750,13 +760,11 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 				v4[1] = bezt->vec[1][1];
 				
 				correct_bezpart(v1, v2, v3, v4);
-
-				float data[120];
-
+				
 				BKE_curve_forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float) * 3);
 				BKE_curve_forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data + 1, resol, sizeof(float) * 3);
 				
-				for (const float *fp = data; resol; resol--, fp += 3) {
+				for (fp = data; resol; resol--, fp += 3) {
 					immVertex2fv(pos, fp);
 				}
 			}
@@ -816,9 +824,9 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 {
 	ChannelDriver *driver = fcu->driver;
 	View2D *v2d = &ac->ar->v2d;
-	const short mapping_flag = ANIM_get_normalization_flags(ac);
+	short mapping_flag = ANIM_get_normalization_flags(ac);
 	float offset;
-	const float unitfac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
+	float unitfac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 	
 	/* for now, only show when debugging driver... */
 	//if ((driver->flag & DRIVER_FLAG_SHOWDEBUG) == 0)
@@ -831,6 +839,8 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 	 * => We still want to show the 1-1 default... 
 	 */
 	if ((fcu->totvert == 0) && BLI_listbase_is_empty(&fcu->modifiers)) {
+		float t;
+		
 		/* draw with thin dotted lines in style of what curve would have been */
 		immUniformColor3fv(fcu->color);
 		
@@ -842,7 +852,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 		 */
 		immBegin(PRIM_LINES, 2);
 
-		float t = v2d->cur.xmin;
+		t = v2d->cur.xmin;
 		immVertex2f(pos, t, (t + offset) * unitfac);
 
 		t = v2d->cur.xmax;
@@ -923,6 +933,8 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
  */
 void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 {
+	FCurve *fcu;
+	
 	/* draw with thick dotted lines */
 	setlinestyle(10);
 	glLineWidth(3.0f);
@@ -935,7 +947,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
-	for (FCurve *fcu = sipo->ghostCurves.first; fcu; fcu = fcu->next) {
+	for (fcu = sipo->ghostCurves.first; fcu; fcu = fcu->next) {
 		/* set whatever color the curve has set 
 		 *  - this is set by the function which creates these
 		 *	- draw with a fixed opacity of 2
@@ -960,16 +972,20 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
  */
 void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid, short sel)
 {
-	/* build list of curves to draw */
 	ListBase anim_data = {NULL, NULL};
-	const int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | (sel ? ANIMFILTER_SEL : ANIMFILTER_UNSEL);
+	bAnimListElem *ale;
+	int filter;
+	
+	/* build list of curves to draw */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
+	filter |= ((sel) ? (ANIMFILTER_SEL) : (ANIMFILTER_UNSEL));
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-
+		
 	/* for each curve:
 	 *	draw curve, then handle-lines, and finally vertices in this order so that 
 	 *  the data will be layered correctly
 	 */
-	for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->key_data;
 		FModifier *fcm = find_active_fmodifier(&fcu->modifiers);
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
@@ -1122,12 +1138,18 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 /* left hand part */
 void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar) 
 {
-	View2D *v2d = &ar->v2d;
-
-	/* build list of channels to draw */
 	ListBase anim_data = {NULL, NULL};
-	const int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS;
-	const size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d = &ar->v2d;
+	float y = 0.0f, height;
+	size_t items;
+	int i = 0;
+	
+	/* build list of channels to draw */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+	items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
 	 *  - this is done to allow the channel list to be scrollable, but must be done here
@@ -1135,16 +1157,14 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
-	const float height = (float)((items * ACHANNEL_STEP(ac)) + (ACHANNEL_HEIGHT(ac) * 2));
+	height = (float)((items * ACHANNEL_STEP(ac)) + (ACHANNEL_HEIGHT(ac) * 2));
 	UI_view2d_totRect_set(v2d, BLI_rcti_size_x(&ar->v2d.mask), height);
 	
 	/* loop through channels, and set up drawing depending on their type  */
-	bAnimListElem *ale;
-	int i;
 	{   /* first pass: just the standard GL-drawing for backdrop + text */
 		size_t channel_index = 0;
 		
-		float y = (float)ACHANNEL_FIRST(ac);
+		y = (float)ACHANNEL_FIRST(ac);
 		
 		for (ale = anim_data.first, i = 0; ale; ale = ale->next, i++) {
 			const float yminc = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
@@ -1167,7 +1187,7 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 		uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 		size_t channel_index = 0;
 		
-		float y = (float)ACHANNEL_FIRST(ac);
+		y = (float)ACHANNEL_FIRST(ac);
 		
 		/* set blending again, as may not be set in previous step */
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

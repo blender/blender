@@ -66,17 +66,18 @@ void clip_graph_tracking_values_iterate_track(
         void (*segment_end)(void *userdata, int coord))
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);
-	int width, height;
+	int width, height, coord;
 
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	for (int coord = 0; coord < 2; coord++) {
-		int prevfra = 0;
+	for (coord = 0; coord < 2; coord++) {
+		int i, prevfra = 0;
 		bool open = false;
 		float prevval = 0.0f;
 
-		for (int i = 0; i < track->markersnr; i++) {
+		for (i = 0; i < track->markersnr; i++) {
 			MovieTrackingMarker *marker = &track->markers[i];
+			float val;
 
 			if (marker->flag & MARKER_DISABLED) {
 				if (open) {
@@ -104,7 +105,7 @@ void clip_graph_tracking_values_iterate_track(
 			}
 
 			/* value is a pixels per frame speed */
-			float val = (marker->pos[coord] - prevval) * ((coord == 0) ? (width) : (height));
+			val = (marker->pos[coord] - prevval) * ((coord == 0) ? (width) : (height));
 			val /= marker->framenr - prevfra;
 
 			if (func) {
@@ -134,8 +135,9 @@ void clip_graph_tracking_values_iterate(
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	MovieTrackingTrack *track;
 
-	for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
+	for (track = tracksbase->first; track; track = track->next) {
 		if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0)
 			continue;
 
@@ -152,8 +154,10 @@ void clip_graph_tracking_iterate(SpaceClip *sc, bool selected_only, bool include
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	MovieTrackingTrack *track;
 
-	for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
+	for (track = tracksbase->first; track; track = track->next) {
+		int i;
 
 		if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0)
 			continue;
@@ -161,7 +165,7 @@ void clip_graph_tracking_iterate(SpaceClip *sc, bool selected_only, bool include
 		if (selected_only && !TRACK_SELECTED(track))
 			continue;
 
-		for (int i = 0; i < track->markersnr; i++) {
+		for (i = 0; i < track->markersnr; i++) {
 			MovieTrackingMarker *marker = &track->markers[i];
 
 			if (marker->flag & MARKER_DISABLED)
