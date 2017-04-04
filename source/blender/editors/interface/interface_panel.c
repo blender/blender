@@ -576,7 +576,6 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	Panel *panel = block->panel;
 	rcti headrect;
 	rctf itemrect;
-	int ofsx;
 	float color[4];
 	const bool is_closed_x = (panel->flag & PNL_CLOSEDX) ? true : false;
 	const bool is_closed_y = (panel->flag & PNL_CLOSEDY) ? true : false;
@@ -716,12 +715,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 	/* draw optional close icon */
 
-	ofsx = 6;
 	if (panel->control & UI_PNL_CLOSE) {
+		const int ofsx = 6;
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformThemeColor(TH_TITLE);
 		ui_draw_x_icon(pos, rect->xmin + 2 + ofsx, rect->ymax + 2);
-		ofsx = 22;
 		immUnbindProgram();
 	}
 
@@ -741,9 +739,6 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		ui_draw_tria_rect(&itemrect, 'h');
 	else
 		ui_draw_tria_rect(&itemrect, 'v');
-
-
-	(void)ofsx;
 }
 
 /************************** panel alignment *************************/

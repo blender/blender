@@ -71,17 +71,12 @@
 /* Draw current frame number in a little green box beside the current frame indicator */
 static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const bool time)
 {
-	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned char col[4];
-	float xscale, yscale, x, y;
 	char numstr[32] = "    t";  /* t is the character to start replacing from */
-	int slen;
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
+	float xscale;
+	UI_view2d_scale_get(v2d, &xscale, NULL);
 	gpuPushMatrix();
-	UI_view2d_scale_get(v2d, &xscale, &yscale);
 	gpuScale2f(1.0f / xscale, 1.0f);
 	
 	/* get timecode string 
@@ -96,11 +91,15 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 		BLI_timecode_string_from_time_seconds(&numstr[4], sizeof(numstr) - 4, 1, cfra);
 	}
 
-	slen = UI_fontstyle_string_width(fstyle, numstr) - 1;
+	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+	int slen = UI_fontstyle_string_width(fstyle, numstr) - 1;
 	
 	/* get starting coordinates for drawing */
-	x = cfra * xscale;
-	y = 0.9f * U.widget_unit;
+	float x = cfra * xscale;
+	float y = 0.9f * U.widget_unit;
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -110,7 +109,8 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 	immRectf(pos, x, y,  x + slen,  y + 0.75f * U.widget_unit);
 	immUnbindProgram();
 
-	/* draw current frame number - black text */
+	/* draw current frame number */
+	unsigned char col[4];
 	UI_GetThemeColor4ubv(TH_TEXT, col);
 	UI_fontstyle_draw_simple(fstyle, x - 0.25f * U.widget_unit, y + 0.15f * U.widget_unit, numstr, col);
 

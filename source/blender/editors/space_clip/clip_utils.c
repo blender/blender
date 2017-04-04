@@ -66,18 +66,17 @@ void clip_graph_tracking_values_iterate_track(
         void (*segment_end)(void *userdata, int coord))
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);
-	int width, height, coord;
+	int width, height;
 
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	for (coord = 0; coord < 2; coord++) {
-		int i, prevfra = 0;
+	for (int coord = 0; coord < 2; coord++) {
+		int prevfra = 0;
 		bool open = false;
 		float prevval = 0.0f;
 
-		for (i = 0; i < track->markersnr; i++) {
+		for (int i = 0; i < track->markersnr; i++) {
 			MovieTrackingMarker *marker = &track->markers[i];
-			float val;
 
 			if (marker->flag & MARKER_DISABLED) {
 				if (open) {
@@ -105,7 +104,7 @@ void clip_graph_tracking_values_iterate_track(
 			}
 
 			/* value is a pixels per frame speed */
-			val = (marker->pos[coord] - prevval) * ((coord == 0) ? (width) : (height));
+			float val = (marker->pos[coord] - prevval) * ((coord == 0) ? (width) : (height));
 			val /= marker->framenr - prevfra;
 
 			if (func) {
@@ -135,9 +134,8 @@ void clip_graph_tracking_values_iterate(
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	MovieTrackingTrack *track;
 
-	for (track = tracksbase->first; track; track = track->next) {
+	for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
 		if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0)
 			continue;
 
@@ -154,10 +152,8 @@ void clip_graph_tracking_iterate(SpaceClip *sc, bool selected_only, bool include
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	MovieTrackingTrack *track;
 
-	for (track = tracksbase->first; track; track = track->next) {
-		int i;
+	for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
 
 		if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0)
 			continue;
@@ -165,7 +161,7 @@ void clip_graph_tracking_iterate(SpaceClip *sc, bool selected_only, bool include
 		if (selected_only && !TRACK_SELECTED(track))
 			continue;
 
-		for (i = 0; i < track->markersnr; i++) {
+		for (int i = 0; i < track->markersnr; i++) {
 			MovieTrackingMarker *marker = &track->markers[i];
 
 			if (marker->flag & MARKER_DISABLED)
@@ -246,7 +242,7 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	View2D *v2d = &ar->v2d;
 	float x = (float)(sc->user.framenr * scene->r.framelen);
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_CFRAME);
@@ -262,8 +258,8 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 
 	/* because the frame number text is subject to the same scaling as the contents of the view */
-	float xscale, yscale;
-	UI_view2d_scale_get(v2d, &xscale, &yscale);
+	float xscale;
+	UI_view2d_scale_get(v2d, &xscale, NULL);
 	gpuPushMatrix();
 	gpuScale2f(1.0f / xscale, 1.0f);
 
@@ -281,7 +277,7 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
