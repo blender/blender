@@ -353,6 +353,78 @@ static GPUTexture *GPU_texture_create_nD(
 	return tex;
 }
 
+static GPUTexture *GPU_texture_cube_create(
+        int w, int d,
+        const float *fpixels_px, const float *fpixels_py, const float *fpixels_pz,
+        const float *fpixels_nx, const float *fpixels_ny, const float *fpixels_nz,
+        GPUTextureFormat data_type, int components,
+        char err_out[256])
+{
+	GLenum format, internalformat, data_format;
+
+	GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+	tex->w = w;
+	tex->h = w;
+	tex->d = d;
+	tex->number = -1;
+	tex->refcount = 1;
+	tex->fb_attachment = -1;
+
+	if (d == 0) {
+		tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP;
+	}
+	else {
+		BLI_assert(false && "Cubemap array Not implemented yet");
+		// tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP_ARRAY;
+	}
+
+	internalformat = GPU_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
+
+	/* Generate Texture object */
+	glGenTextures(1, &tex->bindcode);
+
+	if (!tex->bindcode) {
+		if (err_out)
+			BLI_snprintf(err_out, 256, "GPUTexture: texture create failed");
+		else
+			fprintf(stderr, "GPUTexture: texture create failed");
+		GPU_texture_free(tex);
+		return NULL;
+	}
+
+	tex->number = 0;
+	glBindTexture(tex->target, tex->bindcode);
+
+	/* Upload Texture */
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, internalformat, tex->w, tex->h, 0, format, data_format, fpixels_px);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, internalformat, tex->w, tex->h, 0, format, data_format, fpixels_py);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, internalformat, tex->w, tex->h, 0, format, data_format, fpixels_pz);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, internalformat, tex->w, tex->h, 0, format, data_format, fpixels_nx);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, internalformat, tex->w, tex->h, 0, format, data_format, fpixels_ny);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, internalformat, tex->w, tex->h, 0, format, data_format, fpixels_nz);
+
+	/* Texture Parameters */
+	if (tex->depth) {
+		glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+		glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+		glTexParameteri(tex->target_base, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+	}
+	else {
+		glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	GPU_texture_unbind(tex);
+
+	return tex;
+}
+
 GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget, bool is_data, double time, int mipmap)
 {
 	int gputt;
@@ -485,9 +557,9 @@ GPUTexture *GPU_texture_create_2D_multisample(int w, int h, const float *pixels,
 	return GPU_texture_create_nD(w, h, 0, 2, pixels, GPU_RGBA8, 4, samples, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D_array(int w, int h, int d, const float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_2D_array_custom(int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
-	return GPU_texture_create_nD(w, h, d, 2, pixels, GPU_RGBA8, 4, 0, false, err_out);
+	return GPU_texture_create_nD(w, h, d, 2, pixels, data_type, channels, 0, false, err_out);
 }
 
 GPUTexture *GPU_texture_create_3D(int w, int h, int d, const float *pixels, char err_out[256])
@@ -498,6 +570,24 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int d, const float *pixels, char
 GPUTexture *GPU_texture_create_3D_custom(int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
 	return GPU_texture_create_nD(w, h, d, 3, pixels, data_type, channels, 0, true, err_out);
+}
+GPUTexture *GPU_texture_create_cube_custom(int w, int channels, GPUTextureFormat data_type, const float *fpixels, char err_out[256])
+{
+	const float *fpixels_px, *fpixels_py, *fpixels_pz, *fpixels_nx, *fpixels_ny, *fpixels_nz;
+
+	if (fpixels) {
+		fpixels_px = fpixels + 0 * w * w;
+		fpixels_py = fpixels + 1 * w * w;
+		fpixels_pz = fpixels + 2 * w * w;
+		fpixels_nx = fpixels + 3 * w * w;
+		fpixels_ny = fpixels + 4 * w * w;
+		fpixels_nz = fpixels + 5 * w * w;
+	}
+	else {
+		fpixels_px = fpixels_py = fpixels_pz = fpixels_nx = fpixels_ny = fpixels_nz = NULL;
+	}
+
+	return GPU_texture_cube_create(w, 0, fpixels_px, fpixels_py, fpixels_pz, fpixels_nx, fpixels_ny, fpixels_nz, data_type, channels, err_out);
 }
 
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256])

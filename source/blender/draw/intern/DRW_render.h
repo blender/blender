@@ -126,7 +126,9 @@ struct GPUTexture *DRW_texture_create_1D(
 struct GPUTexture *DRW_texture_create_2D(
         int w, int h, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_2D_array(
-        int w, int h, int d, DRWTextureFormat UNUSED(format), DRWTextureFlag flags, const float *fpixels);
+        int w, int h, int d, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+struct GPUTexture *DRW_texture_create_cube(
+        int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 void DRW_texture_free(struct GPUTexture *tex);
 
 /* UBOs */
@@ -165,6 +167,7 @@ void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col
 void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot);
 void DRW_framebuffer_texture_detach(struct GPUTexture *tex);
 void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth);
+
 /* Shaders */
 struct GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_with_lib(const char *vert, const char *geom, const char *frag, const char *lib, const char *defines);

@@ -150,10 +150,13 @@ GPUTexture *GPU_texture_create_2D(int w, int h, const float *pixels, char err_ou
 GPUTexture *GPU_texture_create_2D_custom(
         int w, int h, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2D_multisample(int w, int h, const float *pixels, int samples, char err_out[256]);
-GPUTexture *GPU_texture_create_2D_array(int w, int h, int d, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_2D_array_custom(
+        int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_3D(int w, int h, int d, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_3D_custom(
         int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_cube_custom(
+        int w, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256]);
 GPUTexture *GPU_texture_create_depth_with_stencil(int w, int h, char err_out[256]);
 GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char err_out[256]);

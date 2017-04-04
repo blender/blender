@@ -287,12 +287,27 @@ GPUTexture *DRW_texture_create_2D(int w, int h, DRWTextureFormat format, DRWText
 	return tex;
 }
 
-/* TODO make use of format */
-GPUTexture *DRW_texture_create_2D_array(int w, int h, int d, DRWTextureFormat UNUSED(format), DRWTextureFlag flags, const float *fpixels)
+GPUTexture *DRW_texture_create_2D_array(int w, int h, int d, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels)
 {
 	GPUTexture *tex;
+	GPUTextureFormat data_type;
+	int channels;
 
-	tex = GPU_texture_create_2D_array(w, h, d, fpixels, NULL);
+	drw_texture_get_format(format, &data_type, &channels);
+	tex = GPU_texture_create_2D_array_custom(w, h, d, channels, data_type, fpixels, NULL);
+	drw_texture_set_parameters(tex, flags);
+
+	return tex;
+}
+
+GPUTexture *DRW_texture_create_cube(int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels)
+{
+	GPUTexture *tex;
+	GPUTextureFormat data_type;
+	int channels;
+
+	drw_texture_get_format(format, &data_type, &channels);
+	tex = GPU_texture_create_cube_custom(w, channels, data_type, fpixels, NULL);
 	drw_texture_set_parameters(tex, flags);
 
 	return tex;
