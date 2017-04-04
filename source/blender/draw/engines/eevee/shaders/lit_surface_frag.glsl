@@ -63,6 +63,7 @@ float light_visibility(LightData ld, ShadingData sd)
 		float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.l_spot_size) / ld.l_spot_blend);
 
 		vis *= spotmask;
+		vis *= step(0.0, -dot(sd.L, ld.l_forward));
 	}
 	else if (ld.l_type == AREA) {
 		vis *= step(0.0, -dot(sd.L, ld.l_forward));
