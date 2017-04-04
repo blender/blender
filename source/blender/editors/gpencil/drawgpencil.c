@@ -739,7 +739,6 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
-		/* this code previously used glShadeModel(GL_FLAT) */
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 		immBegin(GL_QUADS, (totpoints - 2) * 4 + 12);
 
