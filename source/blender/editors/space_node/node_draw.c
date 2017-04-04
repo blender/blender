@@ -55,6 +55,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -749,11 +750,18 @@ void node_draw_shadow(SpaceNode *snode, bNode *node, float radius, float alpha)
 
 void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *node, bool draw_outputs, bool select_all)
 {
+	const unsigned int total_input_ct = BLI_listbase_count(&node->inputs);
+	const unsigned int total_output_ct = BLI_listbase_count(&node->outputs);
+
+	if (total_input_ct + total_output_ct == 0) {
+		return;
+	}
+
 	PointerRNA node_ptr;
 	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
 
-	float xscale, yscale;
-	UI_view2d_scale_get(v2d, &xscale, &yscale);
+	float scale;
+	UI_view2d_scale_get(v2d, &scale, NULL);
 
 	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
@@ -765,14 +773,14 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_VARYING_COLOR_OUTLINE_AA);
 
 	/* set handle size */
-	immUniform1f("size", 2.0f * NODE_SOCKSIZE * xscale); // 2 * size to have diameter
+	immUniform1f("size", 2.0f * NODE_SOCKSIZE * scale); /* 2 * size to have diameter */
 
 	if (!select_all) {
 		/* outline for unselected sockets */
 		immUniform1f("outlineWidth", 1.0f);
 		immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, 0.6f);
 
-		immBeginAtMost(GL_POINTS, BLI_listbase_count(&node->inputs) + BLI_listbase_count(&node->outputs));
+		immBeginAtMost(GL_POINTS, total_input_ct + total_output_ct);
 	}
 
 	/* socket inputs */
@@ -879,17 +887,19 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* shadow */
 	node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
 	
-	/* header uses color from backdrop, but we make it opaqie */
-	if (color_id == TH_NODE) {
-		UI_GetThemeColorShade3fv(color_id, -20, color);
-	}
-	else
-		UI_GetThemeColor4fv(color_id, color);
-	
-	if (node->flag & NODE_MUTED)
+	if (node->flag & NODE_MUTED) {
 		UI_GetThemeColorBlendShade4fv(color_id, TH_REDALERT, 0.5f, 0, color);
-
-	
+	}
+	else {
+		/* header uses color from backdrop, but we make it opaque */
+		if (color_id == TH_NODE) {
+			UI_GetThemeColorShade3fv(color_id, -20, color);
+			color[3] = 1.0f;
+		}
+		else {
+			UI_GetThemeColor4fv(color_id, color);
+		}
+	}
 
 #ifdef WITH_COMPOSITOR
 	if (ntree->type == NTREE_COMPOSIT && (snode->flag & SNODE_SHOW_HIGHLIGHT)) {
@@ -972,10 +982,11 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if (!nodeIsRegistered(node))
 		UI_GetThemeColor4fv(TH_REDALERT, color);	/* use warning color to indicate undefined types */
 	else if (node->flag & NODE_CUSTOM_COLOR) {
-		rgba_float_args_set(color,  node->color[0],  node->color[1],  node->color[2], 1.0f);
+		rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], 1.0f);
 	}
 	else
 		UI_GetThemeColor4fv(TH_NODE, color);
+
 	glEnable(GL_BLEND);
 	UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
 	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax - NODE_DY, BASIS_RAD, color);
@@ -1027,9 +1038,9 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	float color[4];
 	char showname[128]; /* 128 is used below */
 	View2D *v2d = &ar->v2d;
-	float xscale, yscale;
+	float scale;
 
-	UI_view2d_scale_get(v2d, &xscale, &yscale);
+	UI_view2d_scale_get(v2d, &scale, NULL);
 	
 	/* shadow */
 	node_draw_shadow(snode, node, hiddenrad, 1.0f);
@@ -1037,6 +1048,8 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	/* body */
 	if (node->flag & NODE_MUTED)
 		UI_GetThemeColorBlendShade4fv(color_id, TH_REDALERT, 0.5f, 0, color);
+	else
+		UI_GetThemeColor4fv(color_id, color);
 
 #ifdef WITH_COMPOSITOR
 	if (ntree->type == NTREE_COMPOSIT && (snode->flag & SNODE_SHOW_HIGHLIGHT)) {
@@ -1190,10 +1203,20 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2])
 
 void node_draw_default(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node, bNodeInstanceKey key)
 {
+	glMatrixMode(GL_PROJECTION);
+	gpuPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	gpuPushMatrix();
+
 	if (node->flag & NODE_HIDDEN)
 		node_draw_hidden(C, ar, snode, ntree, node, key);
 	else
 		node_draw_basis(C, ar, snode, ntree, node, key);
+
+	glMatrixMode(GL_PROJECTION);
+	gpuPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	gpuPopMatrix();
 }
 
 static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)

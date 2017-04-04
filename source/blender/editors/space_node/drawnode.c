@@ -3184,9 +3184,12 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 	if (ibuf) {
 		float x, y; 
-		
+
+		glMatrixMode(GL_PROJECTION);
 		gpuPushMatrix();
-		
+		glMatrixMode(GL_MODELVIEW);
+		gpuPushMatrix();
+
 		/* somehow the offset has to be calculated inverse */
 		
 		glaDefine2DArea(&ar->winrct);
@@ -3269,7 +3272,10 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 				immUnbindProgram();
 			}
 		}
-		
+
+		glMatrixMode(GL_PROJECTION);
+		gpuPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
 		gpuPopMatrix();
 	}
 	
