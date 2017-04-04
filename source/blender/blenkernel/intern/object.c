@@ -3313,7 +3313,14 @@ LinkNode *BKE_object_relational_superset(struct Scene *scene, struct SceneLayer 
 	Base *base;
 
 	/* Remove markers from all objects */
+	/* XXX: Do we need the scene here at all?
+	 *      See scene_layer below (gaia)
+	 */
 	for (base = scene->base.first; base; base = base->next) {
+		base->object->id.tag &= ~LIB_TAG_DOIT;
+	}
+
+	for (base = scene_layer->object_bases.first; base; base = base->next) {
 		base->object->id.tag &= ~LIB_TAG_DOIT;
 	}
 
