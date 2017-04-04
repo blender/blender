@@ -960,6 +960,22 @@ static void postOrtho(const bool ortho)
 	}
 }
 
+static void twmat_to_rotation_axis_mat(
+        const float twmat[4][4], const int axis, const bool ortho,
+        float r_axis_mat[4][4])
+{
+	copy_m4_m4(r_axis_mat, twmat);
+	if (!ortho) {
+		orthogonalize_m4(r_axis_mat, axis); /* for gimbal */
+	}
+
+	if (ELEM(axis, 0, 1)) {
+		const char rot_axis = (axis == 0) ? 'Y' : 'X';
+		const float angle = (axis == 0) ? M_PI_2 : -M_PI_2;
+		rotate_m4(r_axis_mat, rot_axis, angle);
+	}
+}
+
 BLI_INLINE bool manipulator_rotate_is_visible(const int drawflags)
 {
 	return (drawflags & (MAN_ROT_X | MAN_ROT_Y | MAN_ROT_Z));
@@ -969,12 +985,11 @@ static void draw_manipulator_rotate(
         View3D *v3d, RegionView3D *rv3d, const int drawflags, const int combo,
         const bool is_moving, const bool is_picksel)
 {
-	double plane[4];
 	float matt[4][4];
 	float size, unitmat[4][4];
 	float cywid = 0.33f * 0.01f * (float)U.tw_handlesize;
 	float cusize = cywid * 0.65f;
-	int arcs = (G.debug_value != 2);
+	bool arcs = (G.debug_value != 2);
 	const int colcode = (is_moving) ? MAN_MOVECOL : MAN_RGB;
 	bool ortho;
 
@@ -994,17 +1009,9 @@ static void draw_manipulator_rotate(
 
 	const unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-
-	if (arcs) {
-		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
-		copy_v3db_v3fl(plane, rv3d->viewinv[2]);
-		plane[3] = -0.02f * size; // clip just a bit more
-		glClipPlane(GL_CLIP_PLANE0, plane);
-	}
 	/* sets view screen aligned */
 	gpuRotate3f(-360.0f * saacos(rv3d->viewquat[0]) / (float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 	/* Screen aligned help circle */
 	if (arcs) {
@@ -1063,7 +1070,7 @@ static void draw_manipulator_rotate(
 	}
 
 	/* axes */
-	if (arcs == 0) {
+	if (arcs == false) {
 		if (!is_picksel) {
 			if ((combo & V3D_MANIP_SCALE) == 0) {
 				/* axis */
@@ -1098,7 +1105,7 @@ static void draw_manipulator_rotate(
 		}
 	}
 
-	if (arcs == 0 && is_moving) {
+	if (arcs == false && is_moving) {
 
 		/* Z circle */
 		if (drawflags & MAN_ROT_Z) {
@@ -1133,43 +1140,63 @@ static void draw_manipulator_rotate(
 	}
 	// donut arcs
 	if (arcs) {
-		glEnable(GL_CLIP_PLANE0);
+		float axis_model_mat[4][4];
+		float clip_plane[4];
+
+		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
+		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], rv3d->twmat[3]);
+		clip_plane[3] -= 0.02f * size; /* clip just a bit more so view aligned arcs are not visible */
+
+		gpuPopMatrix(); /* we setup our own matrix, pop previously set twmat */
+		immUnbindProgram();
+		immBindBuiltinProgram(GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR);
+		immUniform4fv("ClipPlane", clip_plane);
+
+		glEnable(GL_CLIP_DISTANCE0);
 
 		/* Z circle */
 		if (drawflags & MAN_ROT_Z) {
-			preOrthoFront(ortho, rv3d->twmat, 2);
 			if (is_picksel) GPU_select_load_id(MAN_ROT_Z);
 			else manipulator_setcolor(v3d, 'Z', colcode, 255);
+
+			twmat_to_rotation_axis_mat(rv3d->twmat, 2, ortho, axis_model_mat);
+			immUniformMatrix4fv("ModelMatrix", axis_model_mat);
+			gpuPushMatrix();
+			gpuMultMatrix3D(axis_model_mat);
+
 			partial_doughnut(pos, cusize / 4.0f, 1.0f, 0, 48, 8, 48);
-			postOrtho(ortho);
+			gpuPopMatrix();
 		}
 		/* X circle */
 		if (drawflags & MAN_ROT_X) {
-			preOrthoFront(ortho, rv3d->twmat, 0);
 			if (is_picksel) GPU_select_load_id(MAN_ROT_X);
 			else manipulator_setcolor(v3d, 'X', colcode, 255);
+
+			twmat_to_rotation_axis_mat(rv3d->twmat, 0, ortho, axis_model_mat);
+			immUniformMatrix4fv("ModelMatrix", axis_model_mat);
 			gpuPushMatrix();
-			gpuRotateAxis(90.0, 'Y');
+			gpuMultMatrix3D(axis_model_mat);
+
 			partial_doughnut(pos, cusize / 4.0f, 1.0f, 0, 48, 8, 48);
 			gpuPopMatrix();
-			postOrtho(ortho);
 		}
 		/* Y circle */
 		if (drawflags & MAN_ROT_Y) {
-			preOrthoFront(ortho, rv3d->twmat, 1);
 			if (is_picksel) GPU_select_load_id(MAN_ROT_Y);
 			else manipulator_setcolor(v3d, 'Y', colcode, 255);
+
+			twmat_to_rotation_axis_mat(rv3d->twmat, 1, ortho, axis_model_mat);
+			immUniformMatrix4fv("ModelMatrix", axis_model_mat);
 			gpuPushMatrix();
-			gpuRotateAxis(-90.0, 'X');
+			gpuMultMatrix3D(axis_model_mat);
+
 			partial_doughnut(pos, cusize / 4.0f, 1.0f, 0, 48, 8, 48);
 			gpuPopMatrix();
-			postOrtho(ortho);
 		}
 
-		glDisable(GL_CLIP_PLANE0);
+		glDisable(GL_CLIP_DISTANCE0);
 	}
-
-	if (arcs == 0) {
+	else {
 
 		/* Z handle on X axis */
 		if (drawflags & MAN_ROT_Z) {
@@ -1213,8 +1240,8 @@ static void draw_manipulator_rotate(
 			gpuPopMatrix();
 			postOrtho(ortho);
 		}
-
 	}
+	/* Note: Shader is not ensured to be GPU_SHADER_3D_UNIFORM_COLOR from here on, twmat might have been popped too! */
 
 	/* restore */
 	gpuPopMatrix();
