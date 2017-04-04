@@ -50,6 +50,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
+#include "DEG_depsgraph.h"
+
 #include "IMB_imbuf_types.h"
 
 #include "ED_image.h"
@@ -686,6 +688,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Object *obact = CTX_data_active_object(C);
 	Object *obedit = CTX_data_edit_object(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Mask *mask = NULL;
 	bool curve = false;
 	Scene *scene = CTX_data_scene(C);
@@ -725,7 +728,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
-	ED_uvedit_draw_main(sima, ar, scene, sl, obedit, obact);
+	ED_uvedit_draw_main(sima, ar, scene, sl, obedit, obact, depsgraph);
 
 	/* check for mask (delay draw) */
 	if (ED_space_image_show_uvedit(sima, obedit)) {

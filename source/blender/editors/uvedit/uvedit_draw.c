@@ -46,14 +46,16 @@
 #include "BLI_buffer.h"
 #include "BLI_bitmap.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
-#include "BKE_layer.h"
 #include "BKE_material.h"
 
 #include "BKE_scene.h"
 
 #include "BIF_glutil.h"
+
+#include "DEG_depsgraph.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -602,7 +604,7 @@ static void draw_uvs_looptri(BMEditMesh *em, unsigned int *r_loop_index, const i
 }
 
 /* draws uv's in the image space */
-static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obedit)
+static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obedit, Depsgraph *depsgraph)
 {
 	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	ToolSettings *ts;
@@ -655,14 +657,14 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	/* 1. draw shadow mesh */
 	
 	if (sima->flag & SI_DRAWSHADOW) {
-		TODO_LAYER_DEPSGRAPH;
+		Object *ob_cage = DAG_get_object(depsgraph, obedit);
 		/* XXX TODO: Need to check if shadow mesh is different than original mesh. */
-		bool is_cage_like_final_meshes = true;
+		bool is_cage_like_final_meshes = (ob_cage == obedit);
 
 		/* When sync selection is enabled, all faces are drawn (except for hidden)
 		 * so if cage is the same as the final, there is no point in drawing this. */
 		if (((ts->uv_flag & UV_SYNC_SELECTION) == 0) || is_cage_like_final_meshes) {
-			draw_uvs_shadow(obedit);
+			draw_uvs_shadow(ob_cage);
 		}
 	}
 
@@ -1050,7 +1052,7 @@ static void draw_uv_shadows_get(SpaceImage *sima, Object *ob, Object *obedit, bo
 	*show_texpaint = (ob && ob->type == OB_MESH && ob->mode == OB_MODE_TEXTURE_PAINT);
 }
 
-void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, SceneLayer *sl, Object *obedit, Object *obact)
+void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, SceneLayer *sl, Object *obedit, Object *obact, Depsgraph *depsgraph)
 {
 	ToolSettings *toolsettings = scene->toolsettings;
 	bool show_uvedit, show_uvshadow, show_texpaint_uvshadow;
@@ -1062,7 +1064,7 @@ void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, SceneLayer
 		if (show_uvshadow)
 			draw_uvs_shadow(obedit);
 		else if (show_uvedit)
-			draw_uvs(sima, scene, sl, obedit);
+			draw_uvs(sima, scene, sl, obedit, depsgraph);
 		else
 			draw_uvs_texpaint(sima, scene, sl, obact);
 
