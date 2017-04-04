@@ -428,8 +428,13 @@ static bool visit_object(const IObject &object,
 	// or a Blender object (Empty) themselves.
 	size_t children_claiming_this_object = 0;
 	size_t num_children = object.getNumChildren();
+	IObject first_claiming_child;
 	for (size_t i = 0; i < num_children; ++i) {
-		bool child_claims_this_object = visit_object(object.getChild(i), readers, readers_map, settings);
+		const IObject ichild = object.getChild(i);
+		bool child_claims_this_object = visit_object(ichild , readers, readers_map, settings);
+		if (child_claims_this_object && !first_claiming_child) {
+			first_claiming_child = ichild;
+		}
 		children_claiming_this_object += child_claims_this_object ? 1 : 0;
 	}
 
@@ -521,7 +526,27 @@ static bool visit_object(const IObject &object,
 		 * memory, for example when dealing with instances. */
 		char * name_copy = static_cast<char *>(MEM_mallocN(
 		                                           full_name.length() + 1,
-		                                           "Alembic readers_map key"));
+		                                           "Alembic readers_map key 1"));
+		BLI_strncpy(name_copy, full_name.c_str(), full_name.length() + 1);
+		BLI_ghash_insert(readers_map, name_copy, reader);
+	}
+	else if (children_claiming_this_object > 0) {
+		/* In this case, add it to reader_map under the name of the claiming
+		 * child, but do not add to readers. The latter is used to instantiate
+		 * the new objects (which shouldn't be done for this one), whereas the
+		 * former is used for parent-child relationships (for which this
+		 * Alembic object should be represented by its claiming child). */
+
+		reader = reinterpret_cast<AbcObjectReader *>(
+		             BLI_ghash_lookup(readers_map,
+		                              first_claiming_child.getFullName().c_str())
+		             );
+
+		/* We have to take a copy of the name, because Alembic can reuse
+		 * memory, for example when dealing with instances. */
+		char * name_copy = static_cast<char *>(MEM_mallocN(
+		                                           full_name.length() + 1,
+		                                           "Alembic readers_map key 2"));
 		BLI_strncpy(name_copy, full_name.c_str(), full_name.length() + 1);
 		BLI_ghash_insert(readers_map, name_copy, reader);
 	}
@@ -684,6 +709,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 		const AbcObjectReader *reader = *iter;
 		const AbcObjectReader *parent_reader = NULL;
 		const IObject &iobject = reader->iobject();
+		Object *ob = reader->object();
 
 		/* Find the parent reader by going up in the Alembic hierarchy until we find it.
 		 * Some Xform Alembic objects do not produce an AbcEmptyReader, since they
@@ -695,7 +721,10 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 			parent_reader = reinterpret_cast<AbcObjectReader *>(
 			                    BLI_ghash_lookup(data->readers_map,
 			                                     parent_name));
-			if (parent_reader != NULL) {
+			/* NULL means: the reader with this name doesn't exist
+			 * equal to ob means: the Alembic object with this name represents
+			 * the same object, and the real parent is found higher up. */
+			if (parent_reader != NULL && parent_reader->object() != ob) {
 				break;  // found the parent reader.
 			}
 
@@ -706,7 +735,6 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 			Object *blender_parent = parent_reader->object();
 
 			if (blender_parent != NULL && reader->object() != blender_parent) {
-				Object *ob = reader->object();
 				ob->parent = blender_parent;
 			}
 		}

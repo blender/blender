@@ -286,6 +286,17 @@ void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
 	}
 	else {
 		has_alembic_parent = ixform_parent && schema.getInheritsXforms();
+
+		if (has_alembic_parent && m_object->parent == NULL) {
+			/* TODO Sybren: This happened in some files. I think I solved it,
+			 * but I'll leave this check in here anyway until we've tested it
+			 * more thoroughly. Better than crashing on a null parent anyway. */
+			std::cerr << "Alembic object " << m_iobject.getFullName()
+			          << " with transform " << ixform.getFullName()
+			          << " has an Alembic parent but no parent Blender object."
+			          << std::endl;
+			has_alembic_parent = false;
+		}
 	}
 
 	const Imath::M44d matrix = get_matrix(schema, time);
