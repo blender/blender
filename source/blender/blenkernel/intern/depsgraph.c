@@ -228,6 +228,18 @@ bool DAG_is_acyclic(Scene *UNUSED(scene))
 	return false;
 }
 
+/* ************************ DAG ********************* */
+
+/**
+ * Get the object as properly evaluated by depsgraph.
+ */
+Object *DAG_get_object(Depsgraph *depsgraph, Object *ob)
+{
+	/* XXX TODO */
+	UNUSED_VARS(depsgraph);
+	return ob;
+}
+
 /* ************************************
  * This functions are to be supported *
  * ************************************

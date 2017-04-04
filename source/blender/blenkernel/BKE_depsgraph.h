@@ -44,6 +44,7 @@
 extern "C" {
 #endif
 
+struct Depsgraph;
 struct ID;
 struct Main;
 struct Object;
@@ -173,6 +174,10 @@ struct Object *DAG_get_node_object(void *node_v);
 const char *DAG_get_node_name(struct Scene *scene, void *node_v);
 short DAG_get_eval_flags_for_object(struct Scene *scene, void *object);
 bool DAG_is_acyclic(struct Scene *scene);
+
+/* ************************ DAG ********************* */
+
+struct Object *DAG_get_object(struct Depsgraph *depsgraph, struct Object *ob);
 
 #ifdef __cplusplus
 }
