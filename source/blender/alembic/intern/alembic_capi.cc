@@ -443,7 +443,7 @@ static bool visit_object(const IObject &object,
 	else if (IXform::matches(md)) {
 		bool create_empty;
 
-		/* An xform can either be a Blender Object (if it contains a mesh, for exapmle),
+		/* An xform can either be a Blender Object (if it contains a mesh, for example),
 		 * but it can also be an Empty. Its correct translation to Blender's data model
 		 * depends on its children. */
 
@@ -677,7 +677,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 		}
 	}
 
-	/* Setup parentship. */
+	/* Setup parenthood. */
 
 	i = 0;
 	for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
