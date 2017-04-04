@@ -411,6 +411,9 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	const bool use_clipping = ((clip_min_x < clip_max_x) && (clip_min_y < clip_max_y));
 	float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
+	GLint unpack_row_length;
+	glGetIntegerv(GL_UNPACK_ROW_LENGTH, &unpack_row_length);
+
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
 	glBindTexture(GL_TEXTURE_2D, texid);
 
@@ -546,7 +549,7 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	immUnbindProgram();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, unpack_row_length);
 }
 
 void immDrawPixelsTexScaled(float x, float y, int img_w, int img_h,

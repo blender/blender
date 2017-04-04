@@ -369,6 +369,9 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 
+		GLint unpack_alignment;
+		glGetIntegerv(GL_UNPACK_ALIGNMENT, &unpack_alignment);
+
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 		GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
@@ -379,7 +382,7 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 
 		GPU_shader_unbind();
 
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, unpack_alignment);
 
 		MEM_freeN(pixel_buf);
 
