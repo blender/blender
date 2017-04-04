@@ -3306,20 +3306,13 @@ static void obrel_list_add(LinkNode **links, Object *ob)
  * If OB_SET_VISIBLE or OB_SET_SELECTED are collected, 
  * then also add related objects according to the given includeFilters.
  */
-LinkNode *BKE_object_relational_superset(struct Scene *scene, struct SceneLayer *scene_layer, eObjectSet objectSet, eObRelationTypes includeFilter)
+LinkNode *BKE_object_relational_superset(struct SceneLayer *scene_layer, eObjectSet objectSet, eObRelationTypes includeFilter)
 {
 	LinkNode *links = NULL;
 
 	Base *base;
 
 	/* Remove markers from all objects */
-	/* XXX: Do we need the scene here at all?
-	 *      See scene_layer below (gaia)
-	 */
-	for (base = scene->base.first; base; base = base->next) {
-		base->object->id.tag &= ~LIB_TAG_DOIT;
-	}
-
 	for (base = scene_layer->object_bases.first; base; base = base->next) {
 		base->object->id.tag &= ~LIB_TAG_DOIT;
 	}
