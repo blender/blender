@@ -27,7 +27,9 @@
 #include "blender/blender_util.h"
 
 #include "util/util_debug.h"
+#include "util/util_foreach.h"
 #include "util/util_string.h"
+#include "util/util_set.h"
 #include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
@@ -1158,13 +1160,6 @@ static void add_nodes(Scene *scene,
 
 /* Sync Materials */
 
-void BlenderSync::sync_materials_simpligy(Shader *shader)
-{
-	ShaderGraph *graph = shader->graph;
-	graph->simplify(scene);
-	shader->tag_update(scene);
-}
-
 void BlenderSync::sync_materials(bool update_all)
 {
 	shader_map.set_default(scene->default_surface);
@@ -1173,6 +1168,7 @@ void BlenderSync::sync_materials(bool update_all)
 	BL::BlendData::materials_iterator b_mat;
 
 	TaskPool pool;
+	set<Shader*> updated_shaders;
 
 	for(b_data.materials.begin(b_mat); b_mat != b_data.materials.end(); ++b_mat) {
 		Shader *shader;
@@ -1220,9 +1216,11 @@ void BlenderSync::sync_materials(bool update_all)
 			 * right before compiling.
 			 */
 			if(!preview) {
-				pool.push(function_bind(&BlenderSync::sync_materials_simpligy,
-				                        this,
-				                        shader));
+				pool.push(function_bind(&ShaderGraph::simplify, graph, scene));
+				/* NOTE: Update shaders out of the threads since those routines
+				 * are accessing and writing to a global context.
+				 */
+				updated_shaders.insert(shader);
 			}
 			else {
 				/* NOTE: Update tagging can access links which are being
@@ -1234,6 +1232,10 @@ void BlenderSync::sync_materials(bool update_all)
 	}
 
 	pool.wait_work();
+
+	foreach(Shader *shader, updated_shaders) {
+		shader->tag_update(scene);
+	}
 }
 
 /* Sync World */

@@ -355,7 +355,7 @@ OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
 
 # Alembic needs to be compiled for now
-ALEMBIC_VERSION="1.6.0"
+ALEMBIC_VERSION="1.7.1"
 ALEMBIC_VERSION_MIN=$ALEMBIC_VERSION
 ALEMBIC_FORCE_BUILD=false
 ALEMBIC_FORCE_REBUILD=false
@@ -2228,9 +2228,6 @@ compile_ALEMBIC() {
     return
   fi
 
-  compile_HDF5
-  PRINT ""
-
   # To be changed each time we make edits that would modify the compiled result!
   alembic_magic=2
   _init_alembic
@@ -2258,6 +2255,12 @@ compile_ALEMBIC() {
 
     cmake_d="-D CMAKE_INSTALL_PREFIX=$_inst"
 
+    # Without Boost or TR1, Alembic requires C++11.
+    if [ "$USE_CXX11" != true ]; then
+      cmake_d="$cmake_d -D ALEMBIC_LIB_USES_BOOST=ON"
+      cmake_d="$cmake_d -D ALEMBIC_LIB_USES_TR1=OFF"
+    fi
+
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
       cmake_d="$cmake_d -D USE_STATIC_BOOST=ON"
@@ -2277,8 +2280,6 @@ compile_ALEMBIC() {
       cmake_d="$cmake_d -D USE_STATIC_HDF5=OFF"
       cmake_d="$cmake_d -D ALEMBIC_ILMBASE_LINK_STATIC=OFF"
       cmake_d="$cmake_d -D ALEMBIC_SHARED_LIBS=OFF"
-      cmake_d="$cmake_d -D ALEMBIC_LIB_USES_BOOST=ON"
-      cmake_d="$cmake_d -D ALEMBIC_LIB_USES_TR1=OFF"
       INFO "ILMBASE_ROOT=$INST/openexr"
     fi
 

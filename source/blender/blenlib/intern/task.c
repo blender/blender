@@ -743,9 +743,7 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 
 			BLI_condition_notify_all(&scheduler->queue_cond);
 			BLI_mutex_unlock(&scheduler->queue_mutex);
-
 		}
-		pool->is_suspended = false;
 	}
 
 	pool->do_work = true;
