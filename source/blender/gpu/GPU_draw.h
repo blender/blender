@@ -74,7 +74,7 @@ void GPU_disable_program_point_size(void);
  *   GPU_object_material_bind returns 0 if drawing should be skipped
  * - after drawing, the material must be disabled again */
 
-void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d, 
+void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d,
                                 struct Scene *scene, struct SceneLayer *sl,
                                 struct Object *ob, bool glsl, bool *do_alpha_after);
 void GPU_end_object_materials(void);
@@ -174,6 +174,58 @@ void	GPU_select_index_set(int index);
 void	GPU_select_index_get(int index, int *r_col);
 int		GPU_select_to_index(unsigned int col);
 void	GPU_select_to_index_array(unsigned int *col, const unsigned int size);
+
+typedef enum eGPUStateMask {
+	GPU_DEPTH_BUFFER_BIT = (1 << 0),
+	GPU_ENABLE_BIT = (1 << 1),
+	GPU_SCISSOR_BIT = (1 << 2),
+	GPU_VIEWPORT_BIT = (1 << 3),
+	GPU_BLEND_BIT = (1 << 4),
+} eGPUStateMask;
+
+typedef struct GPUStateValues
+{
+	eGPUStateMask mask;
+
+	/* GL_ENABLE_BIT */
+	unsigned int is_alpha_test : 1;
+	unsigned int is_blend : 1;
+	bool is_clip_plane[6];
+	unsigned int is_cull_face : 1;
+	unsigned int is_depth_test : 1;
+	unsigned int is_dither : 1;
+	bool is_light[8];
+	unsigned int is_lighting : 1;
+	unsigned int is_line_smooth : 1;
+	unsigned int is_color_logic_op : 1;
+	unsigned int is_map1_vertex3 : 1;
+	unsigned int is_multisample : 1;
+	unsigned int is_normalize : 1;
+	unsigned int is_polygon_offset_line : 1;
+	unsigned int is_polygon_offset_fill : 1;
+	unsigned int is_polygon_smooth : 1;
+	unsigned int is_sample_alpha_to_coverage : 1;
+	unsigned int is_scissor_test : 1;
+	unsigned int is_stencil_test : 1;
+	unsigned int is_texture_2d : 1;
+
+	/* GL_DEPTH_BUFFER_BIT */
+	/* unsigned int is_depth_test : 1; */
+	int depth_func;
+	double depth_clear_value;
+	bool depth_write_mask;
+
+	/* GL_SCISSOR_BIT */
+	int scissor_box[4];
+	/* unsigned int is_scissor_test : 1; */
+
+	/* GL_VIEWPORT_BIT */
+	int viewport[4];
+	double near_far[2];
+} GPUStateValues;
+
+void gpuSaveState(GPUStateValues *attribs, eGPUStateMask mask);
+void gpuRestoreState(GPUStateValues *attribs);
 
 #ifdef __cplusplus
 }

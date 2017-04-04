@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <float.h>
 
+#include "GPU_immediate.h"
+#include "GPU_draw.h"
 #include "GPU_select.h"
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
@@ -291,6 +293,8 @@ typedef struct GPUPickState {
 			unsigned int *rect_id;
 		} nearest;
 	};
+
+	struct GPUStateValues attribs;
 } GPUPickState;
 
 
@@ -316,8 +320,8 @@ void gpu_select_pick_begin(
 
 	/* Restrict OpenGL operations for when we don't have cache */
 	if (ps->is_cached == false) {
+		gpuSaveState(&ps->attribs, GPU_DEPTH_BUFFER_BIT | GPU_VIEWPORT_BIT);
 
-		glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_VIEWPORT_BIT);
 		/* disable writing to the framebuffer */
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
@@ -536,7 +540,7 @@ unsigned int gpu_select_pick_end(void)
 			gpu_select_pick_load_id(ps->gl.prev_id);
 		}
 
-		glPopAttrib();
+		gpuRestoreState(&ps->attribs);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}
 

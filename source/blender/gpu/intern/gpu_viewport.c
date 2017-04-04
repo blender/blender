@@ -285,7 +285,7 @@ void GPU_viewport_unbind(GPUViewport *viewport)
 	DefaultFramebufferList *dfbl = (DefaultFramebufferList *)viewport->fbl;
 
 	if (dfbl->default_fb) {
-		GPU_framebuffer_texture_unbind(NULL, NULL);
+		GPU_framebuffer_texture_unbind(dfbl->default_fb, NULL);
 		GPU_framebuffer_restore();
 
 		glEnable(GL_SCISSOR_TEST);

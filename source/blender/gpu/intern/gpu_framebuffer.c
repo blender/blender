@@ -33,6 +33,7 @@
 #include "BKE_global.h"
 
 #include "GPU_batch.h"
+#include "GPU_draw.h"
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
@@ -50,6 +51,7 @@ struct GPUFrameBuffer {
 	GLuint object;
 	GPUTexture *colortex[GPU_FB_MAX_SLOTS];
 	GPUTexture *depthtex;
+	struct GPUStateValues attribs;
 };
 
 static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
@@ -198,7 +200,7 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 	}
 
 	/* push attributes */
-	glPushAttrib(GL_ENABLE_BIT | GL_VIEWPORT_BIT);
+	gpuSaveState(&fb->attribs, GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
 	glDisable(GL_SCISSOR_TEST);
 
 	/* bind framebuffer */
@@ -241,7 +243,7 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 	}
 	
 	/* push attributes */
-	glPushAttrib(GL_ENABLE_BIT | GL_VIEWPORT_BIT);
+	gpuSaveState(&fb->attribs, GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
 	glDisable(GL_SCISSOR_TEST);
 
 	/* bind framebuffer */
@@ -294,10 +296,10 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 }
 
 
-void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUSED(tex))
+void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *UNUSED(tex))
 {
 	/* restore attributes */
-	glPopAttrib();
+	gpuRestoreState(&fb->attribs);
 }
 
 void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot)
