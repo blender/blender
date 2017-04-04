@@ -2236,9 +2236,6 @@ compile_ALEMBIC() {
     return
   fi
 
-  compile_HDF5
-  PRINT ""
-
   # To be changed each time we make edits that would modify the compiled result!
   alembic_magic=2
   _init_alembic
