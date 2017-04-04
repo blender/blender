@@ -48,6 +48,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_material.h"
 
 #include "BKE_scene.h"
@@ -182,19 +183,6 @@ static void draw_uvs_shadow(Object *obedit)
 	}
 
 	immUnbindProgram();
-}
-
-static int draw_uvs_dm_shadow(DerivedMesh *dm)
-{
-	/* draw shadow mesh - this is the mesh with the modifier applied */
-
-	if (dm && dm->drawUVEdges && CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
-		UI_ThemeColor(TH_UV_SHADOW);
-		dm->drawUVEdges(dm);
-		return 1;
-	}
-
-	return 0;
 }
 
 static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTexPoly *activetf)
@@ -626,7 +614,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	BMIter iter, liter;
 	MTexPoly *tf, *activetf = NULL;
 	MLoopUV *luv;
-	DerivedMesh *finaldm, *cagedm;
 	unsigned char col1[4], col2[4];
 	float pointsize;
 	int drawfaces, interpedges;
@@ -668,22 +655,14 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	/* 1. draw shadow mesh */
 	
 	if (sima->flag & SI_DRAWSHADOW) {
-		DM_update_materials(em->derivedFinal, obedit);
-		/* first try existing derivedmesh */
-		if (!draw_uvs_dm_shadow(em->derivedFinal)) {
-			/* create one if it does not exist */
-			cagedm = editbmesh_get_derived_cage_and_final(
-			        scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH | CD_MASK_MTFACE,
-			        &finaldm);
+		TODO_LAYER_DEPSGRAPH;
+		/* XXX TODO: Need to check if shadow mesh is different than original mesh. */
+		bool is_cage_like_final_meshes = true;
 
-			/* when sync selection is enabled, all faces are drawn (except for hidden)
-			 * so if cage is the same as the final, theres no point in drawing this */
-			if (!((ts->uv_flag & UV_SYNC_SELECTION) && (cagedm == finaldm)))
-				draw_uvs_dm_shadow(finaldm);
-			
-			/* release derivedmesh again */
-			if (cagedm != finaldm) cagedm->release(cagedm);
-			finaldm->release(finaldm);
+		/* When sync selection is enabled, all faces are drawn (except for hidden)
+		 * so if cage is the same as the final, there is no point in drawing this. */
+		if (((ts->uv_flag & UV_SYNC_SELECTION) == 0) || is_cage_like_final_meshes) {
+			draw_uvs_shadow(obedit);
 		}
 	}
 

@@ -372,36 +372,6 @@ static void cdDM_drawVerts(DerivedMesh *dm)
 	GPU_buffers_unbind();
 }
 
-static void cdDM_drawUVEdges(DerivedMesh *dm)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	const MPoly *mpoly = cddm->mpoly;
-	int totpoly = dm->getNumPolys(dm);
-	int prevstart = 0;
-	bool prevdraw = true;
-	int curpos = 0;
-	int i;
-
-	GPU_uvedge_setup(dm);
-	for (i = 0; i < totpoly; i++, mpoly++) {
-		const bool draw = (mpoly->flag & ME_HIDE) == 0;
-
-		if (prevdraw != draw) {
-			if (prevdraw && (curpos != prevstart)) {
-				glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
-			}
-			prevstart = curpos;
-		}
-
-		curpos += 2 * mpoly->totloop;
-		prevdraw = draw;
-	}
-	if (prevdraw && (curpos != prevstart)) {
-		glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
-	}
-	GPU_buffers_unbind();
-}
-
 static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdges)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
@@ -2008,7 +1978,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
 	dm->drawVerts = cdDM_drawVerts;
 
-	dm->drawUVEdges = cdDM_drawUVEdges;
 	dm->drawEdges = cdDM_drawEdges;
 	dm->drawLooseEdges = cdDM_drawLooseEdges;
 	dm->drawMappedEdges = cdDM_drawMappedEdges;

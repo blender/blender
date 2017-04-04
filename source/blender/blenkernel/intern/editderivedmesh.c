@@ -810,39 +810,6 @@ static void emDM_drawMappedEdgesInterp(
 	}
 }
 
-static void emDM_drawUVEdges(DerivedMesh *dm)
-{
-	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
-	BMesh *bm = bmdm->em->bm;
-	BMFace *efa;
-	BMIter iter;
-
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-
-	if (UNLIKELY(cd_loop_uv_offset == -1)) {
-		return;
-	}
-
-	glBegin(GL_LINES);
-	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		BMLoop *l_iter, *l_first;
-		const float *uv, *uv_prev;
-
-		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
-			continue;
-
-		l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
-		uv_prev = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter->prev, cd_loop_uv_offset))->uv;
-		do {
-			uv = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset))->uv;
-			glVertex2fv(uv);
-			glVertex2fv(uv_prev);
-			uv_prev = uv;
-		} while ((l_iter = l_iter->next) != l_first);
-	}
-	glEnd();
-}
-
 static void emDM_foreachMappedLoop(
         DerivedMesh *dm,
         void (*func)(void *userData, int vertex_index, int face_index, const float co[3], const float no[3]),
@@ -2280,7 +2247,6 @@ DerivedMesh *getEditDerivedBMesh(
 	bmdm->dm.drawMappedFacesMat = emDM_drawMappedFacesMat;
 	bmdm->dm.drawFacesTex = emDM_drawFacesTex;
 	bmdm->dm.drawFacesGLSL = emDM_drawFacesGLSL;
-	bmdm->dm.drawUVEdges = emDM_drawUVEdges;
 
 	bmdm->dm.release = emDM_release;
 

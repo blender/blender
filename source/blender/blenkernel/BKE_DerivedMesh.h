@@ -387,9 +387,6 @@ struct DerivedMesh {
 	/** Draw all vertices as bgl points (no options) */
 	void (*drawVerts)(DerivedMesh *dm);
 
-	/** Draw edges in the UV mesh (if exists) */
-	void (*drawUVEdges)(DerivedMesh *dm);
-
 	/** Draw all edges as lines (no options)
 	 *
 	 * Also called for *final* editmode DerivedMeshes

@@ -3634,36 +3634,6 @@ static void ccgDM_drawMappedFacesTex(DerivedMesh *dm,
 	ccgDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData, flag);
 }
 
-/* same as cdDM_drawUVEdges */
-static void ccgDM_drawUVEdges(DerivedMesh *dm)
-{
-	MPoly *mpoly = dm->getPolyArray(dm);
-	int totpoly = dm->getNumPolys(dm);
-	int prevstart = 0;
-	bool prevdraw = true;
-	int curpos = 0;
-	int i;
-
-	GPU_uvedge_setup(dm);
-	for (i = 0; i < totpoly; i++, mpoly++) {
-		const bool draw = (mpoly->flag & ME_HIDE) == 0;
-
-		if (prevdraw != draw) {
-			if (prevdraw && (curpos != prevstart)) {
-				glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
-			}
-			prevstart = curpos;
-		}
-
-		curpos += 2 * mpoly->totloop;
-		prevdraw = draw;
-	}
-	if (prevdraw && (curpos != prevstart)) {
-		glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
-	}
-	GPU_buffers_unbind();
-}
-
 static void ccgDM_drawMappedFaces(DerivedMesh *dm,
                                   DMSetDrawOptions setDrawOptions,
                                   DMSetMaterial setMaterial,
@@ -4589,7 +4559,6 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
 	ccgdm->dm.drawMappedFacesTex = ccgDM_drawMappedFacesTex;
 	ccgdm->dm.drawMappedFacesGLSL = ccgDM_drawMappedFacesGLSL;
 	ccgdm->dm.drawMappedFacesMat = ccgDM_drawMappedFacesMat;
-	ccgdm->dm.drawUVEdges = ccgDM_drawUVEdges;
 
 	ccgdm->dm.drawMappedEdgesInterp = ccgDM_drawMappedEdgesInterp;
 	ccgdm->dm.drawMappedEdges = ccgDM_drawMappedEdges;
