@@ -57,6 +57,7 @@
 
 #include "ED_view3d.h"
 
+#include "GPU_draw.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
@@ -697,9 +698,9 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		immUnbindProgram();
 
 		glPopMatrix(); /* TEXTURE */
+		glMatrixMode(GL_MODELVIEW);
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
-			glMatrixMode(GL_MODELVIEW);
 			gpuPopMatrix();
 		}
 	}
@@ -796,19 +797,8 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
 	bool col = ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex) ? true : false;
 	OverlayControlFlags flags = BKE_paint_get_overlay_flags();
-	/* save lots of GL state
-	 * TODO: check on whether all of these are needed? */
-	glPushAttrib(GL_COLOR_BUFFER_BIT |
-	             GL_CURRENT_BIT |
-	             GL_DEPTH_BUFFER_BIT |
-	             GL_ENABLE_BIT |
-	             GL_LINE_BIT |
-	             GL_POLYGON_BIT |
-	             GL_STENCIL_BUFFER_BIT |
-	             GL_TRANSFORM_BIT |
-	             GL_VIEWPORT_BIT |
-	             GL_TEXTURE_BIT);
-
+	GPUStateValues attribs;
+	gpuSaveState(&attribs, GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
 
 	/* coloured overlay should be drawn separately */
 	if (col) {
@@ -826,7 +816,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
 	}
 
-	glPopAttrib();
+	gpuRestoreState(&attribs);
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
