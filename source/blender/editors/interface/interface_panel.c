@@ -414,7 +414,8 @@ void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
 static void ui_draw_tria_rect(const rctf *rect, char dir)
 {
 	float color[4];
-	UI_GetThemeColor4fv(TH_TITLE, color);
+	UI_GetThemeColor3fv(TH_TITLE, color);
+	color[3] = 1.0f;
 
 	if (dir == 'h') {
 		float half = 0.5f * BLI_rctf_size_y(rect);
@@ -553,7 +554,8 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const r
 		pnl_icons = (panel->labelofs + PNL_ICON + 5) / block->aspect + 0.001f;
 
 	/* draw text label */
-	UI_GetThemeColor4ubv(TH_TITLE, col_title);
+	UI_GetThemeColor3ubv(TH_TITLE, col_title);
+	col_title[3] = 255;
 
 	hrect = *rect;
 	if (dir == 'h') {
@@ -718,7 +720,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	if (panel->control & UI_PNL_CLOSE) {
 		const int ofsx = 6;
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformThemeColor(TH_TITLE);
+		immUniformThemeColor3(TH_TITLE);
 		ui_draw_x_icon(pos, rect->xmin + 2 + ofsx, rect->ymax + 2);
 		immUnbindProgram();
 	}

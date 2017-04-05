@@ -45,6 +45,13 @@ void immUniformThemeColor(int color_id)
 	immUniformColor4fv(color);
 }
 
+void immUniformThemeColor3(int color_id)
+{
+	float color[3];
+	UI_GetThemeColor3fv(color_id, color);
+	immUniformColor3fv(color);
+}
+
 void immUniformThemeColorShade(int color_id, int offset)
 {
 	float color[4];

@@ -47,6 +47,7 @@ void immBindBuiltinProgram(GPUBuiltinShader shader_id);
  * Extend immUniformColor to take Blender's themes
  */
 void immUniformThemeColor(int color_id);
+void immUniformThemeColor3(int color_id);
 void immUniformThemeColorShade(int color_id, int offset);
 void immUniformThemeColorShadeAlpha(int color_id, int color_offset, int alpha_offset);
 void immUniformThemeColorBlendShade(int color_id1, int color_id2, float fac, int offset);

@@ -600,6 +600,7 @@ const char *uiLayoutIntrospect(uiLayout *layout) RET_NULL
 void UI_reinit_font(void) RET_NONE
 int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, const bool big) RET_ZERO
 struct bTheme *UI_GetTheme(void) RET_NULL
+void UI_GetThemeColor3fv(int colorid, float col[4]) RET_NONE
 void UI_GetThemeColor4fv(int colorid, float col[4]) RET_NONE
 void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4]) RET_NONE
 void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]) RET_NONE
