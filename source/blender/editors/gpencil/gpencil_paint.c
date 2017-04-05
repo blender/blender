@@ -1852,7 +1852,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 		glEnable(GL_BLEND);
 
 		immUniformColor4ub(255, 100, 100, 20);
-		imm_draw_filled_circle(pos, x, y, p->radius, 40);
+		imm_draw_circle_fill(pos, x, y, p->radius, 40);
 
 		setlinestyle(6); /* TODO: handle line stipple in shader */
 

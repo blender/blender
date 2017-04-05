@@ -1115,7 +1115,7 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 		immUniform3fv("light", light_vec);
 
 		gpuTranslate3f(0.0f, 0.0f, head);
-		imm_cylinder_nor(pos, nor, size2, size1, length - head - tail, 16, 1);
+		imm_draw_cylinder_fill_normal_3d(pos, nor, size2, size1, length - head - tail, 16, 1);
 
 		immUnbindProgram();
 		

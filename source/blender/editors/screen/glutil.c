@@ -97,7 +97,7 @@ void imm_draw_lined_circle(unsigned pos, float x, float y, float rad, int nsegme
 	imm_draw_circle(PRIM_LINE_LOOP, pos, x, y, rad, nsegments);
 }
 
-void imm_draw_filled_circle(unsigned pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_fill(unsigned pos, float x, float y, float rad, int nsegments)
 {
 	imm_draw_circle(PRIM_TRIANGLE_FAN, pos, x, y, rad, nsegments);
 }
@@ -127,21 +127,33 @@ static void imm_draw_disk_partial(
 /**
  * Replacement for gluPartialDisk, (without 'loops' argument).
  */
-void imm_draw_filled_disk_partial(
+void imm_draw_disk_partial_fill(
         unsigned pos, float x, float y,
         float rad_inner, float rad_outer, int nsegments, float start, float sweep)
 {
 	imm_draw_disk_partial(PRIM_TRIANGLE_STRIP, pos, x, y, rad_inner, rad_outer, nsegments, start, sweep);
 }
 
-void imm_draw_lined_circle_3D(unsigned pos, float x, float y, float rad, int nsegments)
+static void imm_draw_circle_3D(
+        PrimitiveType prim_type, unsigned pos, float x, float y,
+        float rad, int nsegments)
 {
-	immBegin(PRIM_LINE_LOOP, nsegments);
+	immBegin(prim_type, nsegments);
 	for (int i = 0; i < nsegments; ++i) {
 		float angle = 2 * M_PI * ((float)i / (float)nsegments);
 		immVertex3f(pos, x + rad * cosf(angle), y + rad * sinf(angle), 0.0f);
 	}
 	immEnd();
+}
+
+void imm_draw_circle_wire_3d(unsigned pos, float x, float y, float rad, int nsegments)
+{
+	imm_draw_circle_3D(PRIM_LINE_LOOP, pos, x, y, rad, nsegments);
+}
+
+void imm_draw_circle_fill_3d(unsigned pos, float x, float y, float rad, int nsegments)
+{
+	imm_draw_circle_3D(PRIM_TRIANGLE_FAN, pos, x, y, rad, nsegments);
 }
 
 void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2)
@@ -154,7 +166,7 @@ void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2)
 	immEnd();
 }
 
-void imm_draw_line_box_3D(unsigned pos, float x1, float y1, float x2, float y2)
+void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2)
 {
 	/* use this version when VertexFormat has a vec3 position */
 	immBegin(PRIM_LINE_LOOP, 4);
@@ -186,7 +198,8 @@ void imm_cpack(unsigned int x)
 	                   (((x) >> 16) & 0xFF));
 }
 
-void imm_cylinder_nor(unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks)
+void imm_draw_cylinder_fill_normal_3d(
+        unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks)
 {
 	immBegin(GL_TRIANGLES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
@@ -237,7 +250,7 @@ void imm_cylinder_nor(unsigned int pos, unsigned int nor, float base, float top,
 	immEnd();
 }
 
-void imm_cylinder_wire(unsigned int pos, float base, float top, float height, int slices, int stacks)
+void imm_draw_cylinder_wire_3d(unsigned int pos, float base, float top, float height, int slices, int stacks)
 {
 	immBegin(GL_LINES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
@@ -274,7 +287,7 @@ void imm_cylinder_wire(unsigned int pos, float base, float top, float height, in
 	immEnd();
 }
 
-void imm_cylinder(unsigned int pos, float base, float top, float height, int slices, int stacks)
+void imm_draw_cylinder_fill_3d(unsigned int pos, float base, float top, float height, int slices, int stacks)
 {
 	immBegin(GL_TRIANGLES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {

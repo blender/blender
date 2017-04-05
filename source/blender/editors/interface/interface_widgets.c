@@ -2270,7 +2270,7 @@ static void ui_hsv_cursor(float x, float y)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor3f(1.0f, 1.0f, 1.0f);
-	imm_draw_filled_circle(pos, x, y, 3.0f * U.pixelsize, 8);
+	imm_draw_circle_fill(pos, x, y, 3.0f * U.pixelsize, 8);
 	
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);

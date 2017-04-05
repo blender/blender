@@ -1453,7 +1453,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 				 * previously it adjusted to always to show it but that seems
 				 * confusing because it doesn't show the actual blend size */
 				if (blend != 0.0f && blend != z_abs) {
-					imm_draw_line_box_3D(pos, blend, -blend, -blend, blend);
+					imm_draw_line_box_3d(pos, blend, -blend, -blend, blend);
 				}
 			}
 		}
@@ -1467,7 +1467,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 
 			/* draw the circle at the end of the cone */
 			gpuTranslate3f(0.0f, 0.0f, x);
-			imm_draw_lined_circle_3D(pos, 0.0f, 0.0f, z_abs, 32);
+			imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, z_abs, 32);
 
 			/* draw the circle representing spotbl */
 			if (la->type == LA_SPOT) {
@@ -1477,7 +1477,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 				 * previously it adjusted to always to show it but that seems
 				 * confusing because it doesn't show the actual blend size */
 				if (blend != 0.0f && blend != z_abs) {
-					imm_draw_lined_circle_3D(pos, 0.0f, 0.0f, blend, 32);
+					imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, blend, 32);
 				}
 			}
 		}
@@ -1563,9 +1563,9 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	else if (la->type == LA_AREA) {
 		setlinestyle(3);
 		if (la->area_shape == LA_AREA_SQUARE)
-			imm_draw_line_box_3D(pos, -la->area_size * 0.5f, -la->area_size * 0.5f, la->area_size * 0.5f, la->area_size * 0.5f);
+			imm_draw_line_box_3d(pos, -la->area_size * 0.5f, -la->area_size * 0.5f, la->area_size * 0.5f, la->area_size * 0.5f);
 		else if (la->area_shape == LA_AREA_RECT)
-			imm_draw_line_box_3D(pos, -la->area_size * 0.5f, -la->area_sizey * 0.5f, la->area_size * 0.5f, la->area_sizey * 0.5f);
+			imm_draw_line_box_3d(pos, -la->area_size * 0.5f, -la->area_sizey * 0.5f, la->area_size * 0.5f, la->area_sizey * 0.5f);
 
 		immBegin(GL_LINES, 2);
 		immVertex3f(pos, 0.0f, 0.0f, -circrad);
@@ -8048,20 +8048,20 @@ static void imm_draw_bb(BoundBox *bb, char type, bool around_origin, const unsig
 		float radius = size[0] > size[1] ? size[0] : size[1];
 		gpuTranslate3f(cent[0], cent[1], cent[2] - size[2]);
 		gpuScale3f(radius, radius, 2.0f * size[2]);
-		imm_cylinder_wire(pos, 1.0f, 1.0f, 1.0f, 8, 1);
+		imm_draw_cylinder_wire_3d(pos, 1.0f, 1.0f, 1.0f, 8, 1);
 	}
 	else if (type == OB_BOUND_CONE) {
 		float radius = size[0] > size[1] ? size[0] : size[1];
 		gpuTranslate3f(cent[0], cent[1], cent[2] - size[2]);
 		gpuScale3f(radius, radius, 2.0f * size[2]);
-		imm_cylinder_wire(pos, 1.0f, 0.0f, 1.0f, 8, 1);
+		imm_draw_cylinder_wire_3d(pos, 1.0f, 0.0f, 1.0f, 8, 1);
 
 	}
 	else if (type == OB_BOUND_CAPSULE) {
 		float radius = size[0] > size[1] ? size[0] : size[1];
 		float length = size[2] > radius ? 2.0f * (size[2] - radius) : 0.0f;
 		gpuTranslate3f(cent[0], cent[1], cent[2] - length * 0.5f);
-		imm_cylinder_wire(pos, radius, radius, length, 8, 1);
+		imm_draw_cylinder_wire_3d(pos, radius, radius, length, 8, 1);
 
 		gpuRotateAxis(90, 'X');
 		gpuScaleUniform(radius);

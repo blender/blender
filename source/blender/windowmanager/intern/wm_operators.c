@@ -3122,7 +3122,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		/* flat color if no texture available */
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3fvAlpha(col, alpha);
-		imm_draw_filled_circle(pos, 0.0f, 0.0f, radius, 40);
+		imm_draw_circle_fill(pos, 0.0f, 0.0f, radius, 40);
 	}
 	
 	immUnbindProgram();
