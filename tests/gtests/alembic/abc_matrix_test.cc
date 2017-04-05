@@ -9,12 +9,6 @@ extern "C" {
 }
 
 
-#define EXPECT_M3_NEAR(a, b, eps) {\
-	EXPECT_V3_NEAR(a[0], b[0], eps); \
-	EXPECT_V3_NEAR(a[1], b[1], eps); \
-	EXPECT_V3_NEAR(a[2], b[2], eps); \
-}
-
 TEST(abc_matrix, CreateRotationMatrixY_YfromZ) {
 	// Input variables
 	float rot_x_mat[3][3];
