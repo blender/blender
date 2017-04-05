@@ -676,22 +676,22 @@ static void add_overlay_tri(
 	unsigned char  fflag = mesh_render_data_looptri_flag(mrdata, f);
 	unsigned char  vflag = mesh_render_data_vertex_flag(mrdata, v1);
 	eflag[0] = fflag | vflag;
-	setAttrib(vbo, pos_id, base_vert_idx + 0, pos);
-	setAttrib(vbo, edgeMod_id, base_vert_idx + 0, eflag);
+	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 0, pos);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 0, eflag);
 
 	pos = mesh_render_data_vert_co(mrdata, v2);
 	eflag = mesh_render_data_edge_flag(mrdata, v1, v3, -1);
 	vflag = mesh_render_data_vertex_flag(mrdata, v2);
 	eflag[0] = fflag | vflag;
-	setAttrib(vbo, pos_id, base_vert_idx + 1, pos);
-	setAttrib(vbo, edgeMod_id, base_vert_idx + 1, eflag);
+	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 1, pos);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 1, eflag);
 
 	pos = mesh_render_data_vert_co(mrdata, v3);
 	eflag = mesh_render_data_edge_flag(mrdata, v1, v2, -1);
 	vflag = mesh_render_data_vertex_flag(mrdata, v3);
 	eflag[0] = fflag | vflag;
-	setAttrib(vbo, pos_id, base_vert_idx + 2, pos);
-	setAttrib(vbo, edgeMod_id, base_vert_idx + 2, eflag);
+	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 2, pos);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 2, eflag);
 }
 
 static void add_overlay_loose_edge(
@@ -701,13 +701,13 @@ static void add_overlay_loose_edge(
 	unsigned char *eflag = mesh_render_data_edge_flag(mrdata, 0, 0, e);
 	const float *pos = mesh_render_data_vert_co(mrdata, v1);
 	eflag[0] = mesh_render_data_vertex_flag(mrdata, v1);
-	setAttrib(vbo, pos_id, base_vert_idx + 0, pos);
-	setAttrib(vbo, edgeMod_id, base_vert_idx + 0, eflag);
+	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 0, pos);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 0, eflag);
 
 	pos = mesh_render_data_vert_co(mrdata, v2);
 	eflag[0] = mesh_render_data_vertex_flag(mrdata, v2);
-	setAttrib(vbo, pos_id, base_vert_idx + 1, pos);
-	setAttrib(vbo, edgeMod_id, base_vert_idx + 1, eflag);
+	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 1, pos);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 1, eflag);
 }
 
 static void add_overlay_loose_vert(
@@ -717,8 +717,8 @@ static void add_overlay_loose_vert(
 	unsigned char vflag[4] = {0, 0, 0, 0};
 	const float *pos = mesh_render_data_vert_co(mrdata, v);
 	vflag[0] = mesh_render_data_vertex_flag(mrdata, v);
-	setAttrib(vbo, pos_id, base_vert_idx + 0, pos);
-	setAttrib(vbo, edgeMod_id, base_vert_idx + 0, vflag);
+	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 0, pos);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 0, vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -919,19 +919,19 @@ static VertexBuffer *mesh_batch_cache_get_pos_and_normals(MeshRenderData *mrdata
 			const bool is_smooth = mesh_render_data_looptri_cos_nors_smooth_get(mrdata, i, &tri_vert_cos, &tri_nor, &tri_vert_nors);
 
 			if (is_smooth) {
-				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[0]);
-				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[1]);
-				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[2]);
+				VertexBuffer_set_attrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[0]);
+				VertexBuffer_set_attrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[1]);
+				VertexBuffer_set_attrib(cache->pos_with_normals, nor_id, nidx++, tri_vert_nors[2]);
 			}
 			else {
-				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
-				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
-				setAttrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
+				VertexBuffer_set_attrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
+				VertexBuffer_set_attrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
+				VertexBuffer_set_attrib(cache->pos_with_normals, nor_id, nidx++, tri_nor);
 			}
 
-			setAttrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[0]);
-			setAttrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[1]);
-			setAttrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[2]);
+			VertexBuffer_set_attrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[0]);
+			VertexBuffer_set_attrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[1]);
+			VertexBuffer_set_attrib(cache->pos_with_normals, pos_id, vidx++, tri_vert_cos[2]);
 		}
 	}
 	return cache->pos_with_normals;
@@ -954,8 +954,8 @@ static VertexBuffer *mesh_batch_cache_get_pos_and_nor_in_order(MeshRenderData *m
 		cache->pos_in_order = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(cache->pos_in_order, vertex_ct);
 		for (int i = 0; i < vertex_ct; ++i) {
-			setAttrib(cache->pos_in_order, pos_id, i, mesh_render_data_vert_co(mrdata, i));
-			setAttrib(cache->pos_in_order, nor_id, i, mesh_render_data_vert_nor(mrdata, i));
+			VertexBuffer_set_attrib(cache->pos_in_order, pos_id, i, mesh_render_data_vert_co(mrdata, i));
+			VertexBuffer_set_attrib(cache->pos_in_order, nor_id, i, mesh_render_data_vert_nor(mrdata, i));
 		}
 	}
 
@@ -1138,13 +1138,13 @@ Batch *BKE_mesh_batch_cache_get_fancy_edges(Mesh *me)
 			const float *n2 = (is_manifold) ? pnor2 : dummy2;
 #endif
 
-			setAttrib(vbo, pos_id, 2 * i, vcos1);
-			setAttrib(vbo, n1_id, 2 * i, n1);
-			setAttrib(vbo, n2_id, 2 * i, n2);
+			VertexBuffer_set_attrib(vbo, pos_id, 2 * i, vcos1);
+			VertexBuffer_set_attrib(vbo, n1_id, 2 * i, n1);
+			VertexBuffer_set_attrib(vbo, n2_id, 2 * i, n2);
 
-			setAttrib(vbo, pos_id, 2 * i + 1, vcos2);
-			setAttrib(vbo, n1_id, 2 * i + 1, n1);
-			setAttrib(vbo, n2_id, 2 * i + 1, n2);
+			VertexBuffer_set_attrib(vbo, pos_id, 2 * i + 1, vcos2);
+			VertexBuffer_set_attrib(vbo, n1_id, 2 * i + 1, n1);
+			VertexBuffer_set_attrib(vbo, n2_id, 2 * i + 1, n2);
 		}
 
 		cache->fancy_edges = Batch_create(GL_LINES, vbo, NULL);
@@ -1289,13 +1289,13 @@ Batch *BKE_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 			PackedNormal nor = { .x = 0, .y = 0, .z = -511 };
 			nor = convert_i10_v3(pnor);
 			nor.w = selected;
-			setAttrib(vbo, data_id, i, &nor);
+			VertexBuffer_set_attrib(vbo, data_id, i, &nor);
 #else
 			float nor[4] = {pnor[0], pnor[1], pnor[2], (float)selected};
-			setAttrib(vbo, data_id, i, nor);
+			VertexBuffer_set_attrib(vbo, data_id, i, nor);
 #endif
 
-			setAttrib(vbo, pos_id, i, pcenter);
+			VertexBuffer_set_attrib(vbo, pos_id, i, pcenter);
 		}
 
 		cache->overlay_facedots = Batch_create(GL_POINTS, vbo, NULL);

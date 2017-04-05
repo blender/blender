@@ -398,10 +398,12 @@ void GPU_framebuffer_blur(
 		VertexBuffer_allocate_data(&vbo, 36);
 
 		for (int j = 0; j < 3; ++j) {
-			setAttrib(&vbo, uvs, i, fullscreenuvs[j]); setAttrib(&vbo, pos, i++, fullscreencos[j]);
+			VertexBuffer_set_attrib(&vbo, uvs, i, fullscreenuvs[j]);
+			VertexBuffer_set_attrib(&vbo, pos, i++, fullscreencos[j]);
 		}
 		for (int j = 1; j < 4; ++j) {
-			setAttrib(&vbo, uvs, i, fullscreenuvs[j]); setAttrib(&vbo, pos, i++, fullscreencos[j]);
+			VertexBuffer_set_attrib(&vbo, uvs, i, fullscreenuvs[j]);
+			VertexBuffer_set_attrib(&vbo, pos, i++, fullscreencos[j]);
 		}
 
 		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);

@@ -334,12 +334,12 @@ static void set_ebone_color(const unsigned int boneflag)
 static void add_solid_flat_triangle(VertexBuffer *vbo, unsigned int *vertex, unsigned int pos, unsigned int nor,
                                     const float p1[3], const float p2[3], const float p3[3], const float n[3])
 {
-	setAttrib(vbo, nor, *vertex, n);
-	setAttrib(vbo, pos, (*vertex)++, p1);
-	setAttrib(vbo, nor, *vertex, n);
-	setAttrib(vbo, pos, (*vertex)++, p2);
-	setAttrib(vbo, nor, *vertex, n);
-	setAttrib(vbo, pos, (*vertex)++, p3);
+	VertexBuffer_set_attrib(vbo, nor, *vertex, n);
+	VertexBuffer_set_attrib(vbo, pos, (*vertex)++, p1);
+	VertexBuffer_set_attrib(vbo, nor, *vertex, n);
+	VertexBuffer_set_attrib(vbo, pos, (*vertex)++, p2);
+	VertexBuffer_set_attrib(vbo, nor, *vertex, n);
+	VertexBuffer_set_attrib(vbo, pos, (*vertex)++, p3);
 }
 
 /* half the cube, in Y */
@@ -444,7 +444,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 		VertexBuffer_init_with_format(&vbo, &format);
 		VertexBuffer_allocate_data(&vbo, 8);
 		for (int i = 0; i < 8; ++i) {
-			setAttrib(&vbo, pos, i, cube_vert[i]);
+			VertexBuffer_set_attrib(&vbo, pos, i, cube_vert[i]);
 		}
 
 		Batch_init(&batch, GL_LINES, &vbo, &el);
@@ -481,26 +481,26 @@ static void draw_bonevert(void)
 
 			vert[0] = r * cosf(2 * M_PI * i / 16.f);
 			vert[1] = r * sinf(2 * M_PI * i / 16.f);
-			setAttrib(&vbo, pos, i * 6 + 0, vert);
+			VertexBuffer_set_attrib(&vbo, pos, i * 6 + 0, vert);
 			vert[0] = r * cosf(2 * M_PI * (i + 1) / 16.f);
 			vert[1] = r * sinf(2 * M_PI * (i + 1) / 16.f);
-			setAttrib(&vbo, pos, i * 6 + 1, vert);
+			VertexBuffer_set_attrib(&vbo, pos, i * 6 + 1, vert);
 
 			vert[0] = 0.f;
 			vert[1] = r * cosf(2 * M_PI * i / 16.f);
 			vert[2] = r * sinf(2 * M_PI * i / 16.f);
-			setAttrib(&vbo, pos, i * 6 + 2, vert);
+			VertexBuffer_set_attrib(&vbo, pos, i * 6 + 2, vert);
 			vert[1] = r * cosf(2 * M_PI * (i + 1) / 16.f);
 			vert[2] = r * sinf(2 * M_PI * (i + 1) / 16.f);
-			setAttrib(&vbo, pos, i * 6 + 3, vert);
+			VertexBuffer_set_attrib(&vbo, pos, i * 6 + 3, vert);
 
 			vert[1] = 0.f;
 			vert[0] = r * cosf(2 * M_PI * i / 16.f);
 			vert[2] = r * sinf(2 * M_PI * i / 16.f);
-			setAttrib(&vbo, pos, i * 6 + 4, vert);
+			VertexBuffer_set_attrib(&vbo, pos, i * 6 + 4, vert);
 			vert[0] = r * cosf(2 * M_PI * (i + 1) / 16.f);
 			vert[2] = r * sinf(2 * M_PI * (i + 1) / 16.f);
-			setAttrib(&vbo, pos, i * 6 + 5, vert);
+			VertexBuffer_set_attrib(&vbo, pos, i * 6 + 5, vert);
 		}
 
 		Batch_init(&batch, GL_LINES, &vbo, NULL);
@@ -596,7 +596,7 @@ static void draw_bone_octahedral(void)
 		VertexBuffer_init_with_format(&vbo, &format);
 		VertexBuffer_allocate_data(&vbo, 6);
 		for (int i = 0; i < 6; ++i) {
-			setAttrib(&vbo, pos, i, bone_octahedral_verts[i]);
+			VertexBuffer_set_attrib(&vbo, pos, i, bone_octahedral_verts[i]);
 		}
 
 		Batch_init(&batch, GL_LINES, &vbo, &el);

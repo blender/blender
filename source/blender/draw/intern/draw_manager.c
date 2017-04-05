@@ -689,7 +689,7 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 	for (DRWDynamicCall *call = shgroup->calls.first; call; call = call->next, j++) {
 		int i = 0;
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, i++) {
-			setAttrib(vbo, attrib->format_id, j, call->data[i]);
+			VertexBuffer_set_attrib(vbo, attrib->format_id, j, call->data[i]);
 		}
 	}
 

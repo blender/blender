@@ -5119,7 +5119,7 @@ static void drawDispListVerts(int dt, const void *data, unsigned int vert_ct, co
 	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 	VertexBuffer_allocate_data(vbo, vert_ct);
 
-	fillAttrib(vbo, pos_id, data);
+	VertexBuffer_fill_attrib(vbo, pos_id, data);
 
 	Batch *batch = Batch_create(dt, vbo, NULL);
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
@@ -5165,10 +5165,10 @@ static void drawDispListElem(bool quads, bool UNUSED(smooth), const float *data,
 	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 	VertexBuffer_allocate_data(vbo, vert_ct);
 
-	fillAttrib(vbo, pos_id, data);
+	VertexBuffer_fill_attrib(vbo, pos_id, data);
 
 	if (ndata) {
-		fillAttrib(vbo, nor_id, ndata);
+		VertexBuffer_fill_attrib(vbo, nor_id, ndata);
 	}
 
 	Batch *batch = Batch_create(GL_TRIANGLES, vbo, ElementList_build(&elb));
@@ -5594,14 +5594,14 @@ static void draw_vertex_array(int dt, const float *vert, const float *nor, const
 	VertexBuffer_allocate_data(vbo, vert_ct);
 
 	if (stride == 0) {
-		fillAttrib(vbo, pos_id, vert);
-		if (nor) fillAttrib(vbo, nor_id, nor);
-		if (color) fillAttrib(vbo, col_id, color);
+		VertexBuffer_fill_attrib(vbo, pos_id, vert);
+		if (nor) VertexBuffer_fill_attrib(vbo, nor_id, nor);
+		if (color) VertexBuffer_fill_attrib(vbo, col_id, color);
 	}
 	else {
-		fillAttribStride(vbo, pos_id, stride, vert);
-		if (nor) fillAttribStride(vbo, nor_id, stride, nor);
-		if (color) fillAttribStride(vbo, col_id, stride, color);
+		VertexBuffer_fill_attrib_stride(vbo, pos_id, stride, vert);
+		if (nor) VertexBuffer_fill_attrib_stride(vbo, nor_id, stride, nor);
+		if (color) VertexBuffer_fill_attrib_stride(vbo, col_id, stride, color);
 	}
 
 	Batch *batch = Batch_create(dt, vbo, NULL);
@@ -6590,7 +6590,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, path->segments + 1);
 
-		fillAttribStride(vbo, pos_id, sizeof(ParticleCacheKey), path->co);
+		VertexBuffer_fill_attrib_stride(vbo, pos_id, sizeof(ParticleCacheKey), path->co);
 
 		float *pcol = pathcol;
 
@@ -6600,7 +6600,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 				pcol[3] = 0.25f;
 			}
 
-			fillAttrib(vbo, col_id, pathcol);
+			VertexBuffer_fill_attrib(vbo, col_id, pathcol);
 		}
 		else if (timed) {
 			ParticleCacheKey *pkey = path;
@@ -6609,12 +6609,12 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 				pcol[3] = 1.0f - fabsf((float)(CFRA) -pkey->time) / (float)pset->fade_frames;
 			}
 
-			fillAttrib(vbo, col_id, pathcol);
+			VertexBuffer_fill_attrib(vbo, col_id, pathcol);
 		}
 		else {
 			/* FIXME: shader wants 4 color components but the cache only contains ParticleCacheKey
 			 * So alpha is random */
-			fillAttribStride(vbo, col_id, sizeof(ParticleCacheKey), path->col);
+			VertexBuffer_fill_attrib_stride(vbo, col_id, sizeof(ParticleCacheKey), path->col);
 		}
 
 		Batch *batch = Batch_create(GL_LINE_STRIP, vbo, NULL);
@@ -6683,11 +6683,11 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 				VertexBuffer_allocate_data(vbo, point->totkey);
 
 				if (point->keys->flag & PEK_USE_WCO)
-					fillAttribStride(vbo, pos_id, sizeof(PTCacheEditKey), point->keys->world_co);
+					VertexBuffer_fill_attrib_stride(vbo, pos_id, sizeof(PTCacheEditKey), point->keys->world_co);
 				else
-					fillAttrib(vbo, pos_id, pd);
+					VertexBuffer_fill_attrib(vbo, pos_id, pd);
 
-				fillAttrib(vbo, col_id, cd);
+				VertexBuffer_fill_attrib(vbo, col_id, cd);
 
 				Batch *batch = Batch_create(GL_POINTS, vbo, NULL);
 				Batch_set_builtin_program(batch, GPU_SHADER_3D_SMOOTH_COLOR);

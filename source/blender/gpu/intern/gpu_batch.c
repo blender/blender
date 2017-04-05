@@ -55,8 +55,8 @@ static void batch_sphere_lat_lon_vert(float lat, float lon)
 	pos[1] = cosf(lat);
 	pos[2] = sinf(lat) * sinf(lon);
 
-	setAttrib(vbo, nor_id, vert, pos);
-	setAttrib(vbo, pos_id, vert++, pos);
+	VertexBuffer_set_attrib(vbo, nor_id, vert, pos);
+	VertexBuffer_set_attrib(vbo, pos_id, vert++, pos);
 }
 
 /* Replacement for gluSphere */

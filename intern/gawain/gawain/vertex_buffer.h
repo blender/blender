@@ -46,9 +46,9 @@ void VertexBuffer_resize_data(VertexBuffer*, unsigned v_ct);
 // to the vertex attribute's type and component count. They're in control of both, so this
 // should not be a problem.
 
-void setAttrib(VertexBuffer*, unsigned a_idx, unsigned v_idx, const void* data);
-void fillAttrib(VertexBuffer*, unsigned a_idx, const void* data); // tightly packed, non interleaved input data
-void fillAttribStride(VertexBuffer*, unsigned a_idx, unsigned stride, const void* data);
+void VertexBuffer_set_attrib(VertexBuffer*, unsigned a_idx, unsigned v_idx, const void* data);
+void VertexBuffer_fill_attrib(VertexBuffer*, unsigned a_idx, const void* data); // tightly packed, non interleaved input data
+void VertexBuffer_fill_attrib_stride(VertexBuffer*, unsigned a_idx, unsigned stride, const void* data);
 
 // TODO: decide whether to keep the functions below
 // doesn't immediate mode satisfy these needs?

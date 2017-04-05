@@ -793,7 +793,7 @@ static void waveform_draw_one(float *waveform, int nbr, const float col[3])
 	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 	VertexBuffer_allocate_data(vbo, nbr);
 
-	fillAttrib(vbo, pos_id, waveform);
+	VertexBuffer_fill_attrib(vbo, pos_id, waveform);
 
 	/* TODO store the Batch inside the scope */
 	Batch *batch = Batch_create(GL_POINTS, vbo, NULL);
