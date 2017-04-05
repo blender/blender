@@ -2274,7 +2274,7 @@ static void ui_hsv_cursor(float x, float y)
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 	immUniformColor3f(0.0f, 0.0f, 0.0f);
-	imm_draw_lined_circle(pos, x, y, 3.0f * U.pixelsize, 12);
+	imm_draw_circle_wire(pos, x, y, 3.0f * U.pixelsize, 12);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 
@@ -2394,7 +2394,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	glEnable(GL_LINE_SMOOTH);
 
 	immUniformColor3ubv((unsigned char *)wcol->outline);
-	imm_draw_lined_circle(pos, centx, centy, radius, tot);
+	imm_draw_circle_wire(pos, centx, centy, radius, tot);
 
 	immUnbindProgram();
 
@@ -4165,8 +4165,8 @@ void ui_draw_pie_center(uiBlock *block)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4ubv((unsigned char *)btheme->tui.wcol_pie_menu.outline);
 
-	imm_draw_lined_circle(pos, 0.0f, 0.0f, pie_radius_internal, subd);
-	imm_draw_lined_circle(pos, 0.0f, 0.0f, pie_radius_external, subd);
+	imm_draw_circle_wire(pos, 0.0f, 0.0f, pie_radius_internal, subd);
+	imm_draw_circle_wire(pos, 0.0f, 0.0f, pie_radius_external, subd);
 
 	immUnbindProgram();
 

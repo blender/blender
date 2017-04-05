@@ -29,7 +29,7 @@
 
 void imm_cpack(unsigned int x);
 
-void imm_draw_lined_circle(unsigned pos, float x, float y, float radius, int nsegments);
+void imm_draw_circle_wire(unsigned pos, float x, float y, float radius, int nsegments);
 void imm_draw_circle_fill(unsigned pos, float x, float y, float radius, int nsegments);
 
 /* use this version when VertexFormat has a vec3 position */

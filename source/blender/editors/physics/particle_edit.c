@@ -2719,7 +2719,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 
-		imm_draw_lined_circle(pos, (float)x, (float)y, pe_brush_size_get(scene, brush), 40);
+		imm_draw_circle_wire(pos, (float)x, (float)y, pe_brush_size_get(scene, brush), 40);
 
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);

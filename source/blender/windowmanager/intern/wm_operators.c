@@ -3228,10 +3228,10 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	}
 
 	/* draw circles on top */
-	imm_draw_lined_circle(pos, 0.0f, 0.0f, r1, 40);
-	imm_draw_lined_circle(pos, 0.0f, 0.0f, r2, 40);
+	imm_draw_circle_wire(pos, 0.0f, 0.0f, r1, 40);
+	imm_draw_circle_wire(pos, 0.0f, 0.0f, r2, 40);
 	if (rmin > 0.0f)
-		imm_draw_lined_circle(pos, 0.0, 0.0f, rmin, 40);
+		imm_draw_circle_wire(pos, 0.0, 0.0f, rmin, 40);
 	immUnbindProgram();
 
 	BLF_size(fontid, 1.5 * fstyle_points * U.pixelsize, U.dpi);

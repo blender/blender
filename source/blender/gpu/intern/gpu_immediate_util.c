@@ -65,7 +65,7 @@ static void imm_draw_circle(PrimitiveType prim_type, unsigned pos, float x, floa
  * \param radius The circle's radius.
  * \param nsegments The number of segments to use in drawing (more = smoother).
  */
-void imm_draw_lined_circle(unsigned pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_wire(unsigned pos, float x, float y, float rad, int nsegments)
 {
 	imm_draw_circle(PRIM_LINE_LOOP, pos, x, y, rad, nsegments);
 }

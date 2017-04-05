@@ -970,11 +970,11 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customda
 		/* Inner Ring: Light color for action of the brush */
 		/* TODO: toggle between add and remove? */
 		immUniformColor4ub(255, 255, 255, 200);
-		imm_draw_lined_circle(pos, x, y, brush->size, 40);
+		imm_draw_circle_wire(pos, x, y, brush->size, 40);
 
 		/* Outer Ring: Dark color for contrast on light backgrounds (e.g. gray on white) */
 		immUniformColor3ub(30, 30, 30);
-		imm_draw_lined_circle(pos, x, y, brush->size + 1, 40);
+		imm_draw_circle_wire(pos, x, y, brush->size + 1, 40);
 
 		immUnbindProgram();
 
