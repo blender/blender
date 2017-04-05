@@ -302,7 +302,6 @@ set(SRC
 	BKE_writeavi.h
 	BKE_writeframeserver.h
 
-	depsgraph_private.h
 	nla_private.h
 	tracking_private.h
 	intern/CCGSubSurf.h

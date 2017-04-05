@@ -45,9 +45,8 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_global.h"
+#include "BKE_depsgraph.h"
 #include "BKE_main.h"
-
-#include "depsgraph_private.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -58,113 +57,6 @@
  * Stubs to avoid linking issues and make sure legacy crap is not used *
  * *********************************************************************
  */
-
-DagNodeQueue *queue_create(int UNUSED(slots))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-void queue_raz(DagNodeQueue *UNUSED(queue))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
-
-void queue_delete(DagNodeQueue *UNUSED(queue))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
-
-void push_queue(DagNodeQueue *UNUSED(queue), DagNode *UNUSED(node))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
-
-void push_stack(DagNodeQueue *UNUSED(queue), DagNode *UNUSED(node))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
-
-DagNode *pop_queue(DagNodeQueue *UNUSED(queue))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-DagNode *get_top_node_queue(DagNodeQueue *UNUSED(queue))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-DagForest *dag_init(void)
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-DagForest *build_dag(Main *UNUSED(bmain),
-                     Scene *UNUSED(sce),
-                     short UNUSED(mask))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-void free_forest(DagForest *UNUSED(Dag))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
-
-DagNode *dag_find_node(DagForest *UNUSED(forest), void *UNUSED(fob))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-DagNode *dag_add_node(DagForest *UNUSED(forest), void *UNUSED(fob))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-DagNode *dag_get_node(DagForest *UNUSED(forest), void *UNUSED(fob))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-DagNode *dag_get_sub_node(DagForest *UNUSED(forest), void *UNUSED(fob))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-	return NULL;
-}
-
-void dag_add_relation(DagForest *UNUSED(forest),
-                      DagNode *UNUSED(fob1),
-                      DagNode *UNUSED(fob2),
-                      short UNUSED(rel),
-                      const char *UNUSED(name))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
-
-/* debug test functions */
-
-void graph_print_queue(DagNodeQueue *UNUSED(nqueue))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
-
-void graph_print_queue_dist(DagNodeQueue *UNUSED(nqueue))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
-
-void graph_print_adj_list(DagForest *UNUSED(dag))
-{
-	BLI_assert(!"Should not be used with new dependnecy graph");
-}
 
 void DAG_scene_flush_update(Main *UNUSED(bmain),
                             Scene *UNUSED(sce),
