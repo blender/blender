@@ -43,7 +43,6 @@
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */
 
-#include "depsgraph_private.h"
 #include "DEG_depsgraph_build.h"
 
 #include "MEM_guardedalloc.h"

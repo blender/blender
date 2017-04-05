@@ -42,8 +42,6 @@
 #include "BKE_texture.h"
 #include "BKE_colortools.h"
 
-#include "depsgraph_private.h"
-
 #include "RE_shader_ext.h"
 
 #include "MOD_util.h"

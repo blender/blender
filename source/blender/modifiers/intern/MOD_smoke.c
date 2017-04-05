@@ -53,7 +53,6 @@
 #include "BKE_modifier.h"
 #include "BKE_smoke.h"
 
-#include "depsgraph_private.h"
 #include "DEG_depsgraph_build.h"
 
 static void initData(ModifierData *md) 

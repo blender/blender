@@ -47,8 +47,6 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 
-#include "depsgraph_private.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "MOD_util.h"

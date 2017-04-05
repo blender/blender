@@ -44,9 +44,6 @@
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
-
-#include "depsgraph_private.h"
-
 #include "MOD_util.h"
 
 #define BEND_EPS 0.000001f

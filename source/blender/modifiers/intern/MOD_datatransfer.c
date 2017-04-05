@@ -50,8 +50,6 @@
 #include "MEM_guardedalloc.h"
 #include "MOD_util.h"
 
-#include "depsgraph_private.h"
-
 /**************************************
  * Modifiers functions.               *
  **************************************/

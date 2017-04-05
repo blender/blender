@@ -36,7 +36,6 @@
 #include "BKE_library_query.h"
 #include "BKE_scene.h"
 
-#include "depsgraph_private.h"
 #include "DEG_depsgraph_build.h"
 
 #include "MOD_modifiertypes.h"

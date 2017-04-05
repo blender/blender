@@ -11,8 +11,6 @@
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
-#include "depsgraph_private.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "MOD_util.h"

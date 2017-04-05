@@ -49,8 +49,6 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
-#include "depsgraph_private.h"
-
 #include "MEM_guardedalloc.h"
 #include "RE_shader_ext.h"
 

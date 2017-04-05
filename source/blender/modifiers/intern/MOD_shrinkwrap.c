@@ -45,8 +45,6 @@
 #include "BKE_modifier.h"
 #include "BKE_shrinkwrap.h"
 
-#include "depsgraph_private.h"
-
 #include "MOD_util.h"
 
 static bool dependsOnNormals(ModifierData *md);

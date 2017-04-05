@@ -51,7 +51,6 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-#include "depsgraph_private.h"
 #include "DEG_depsgraph_build.h"
 
 static void initData(ModifierData *md)

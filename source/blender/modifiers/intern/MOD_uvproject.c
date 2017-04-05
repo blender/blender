@@ -53,7 +53,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "depsgraph_private.h"
 #include "DEG_depsgraph_build.h"
 
 static void initData(ModifierData *md)

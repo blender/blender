@@ -46,14 +46,13 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_curve.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
 #include "MOD_util.h"
-
-#include "depsgraph_private.h"
 
 /* Due to cyclic dependencies it's possible that curve used for
  * deformation here is not evaluated at the time of evaluating

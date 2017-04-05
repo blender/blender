@@ -39,7 +39,6 @@
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
-#include "depsgraph_private.h"
 #include "DEG_depsgraph_build.h"
 
 

@@ -49,8 +49,6 @@
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
-#include "depsgraph_private.h"
-
 #include "MOD_boolean_util.h"
 #include "MOD_util.h"
 
