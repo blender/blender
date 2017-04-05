@@ -200,7 +200,7 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 	mat4_to_loc_rot_size(src_trans, src_rot, src_scale, src_mat);
 
 	/* Get euler angles from rotation matrix. */
-	mat3_to_eulO(euler, ROT_MODE_XYZ, src_rot);
+	mat3_to_eulO(euler, ROT_MODE_XZY, src_rot);
 
 	/* Create X, Y, Z rotation matrices from euler angles. */
 	create_swapped_rotation_matrix(rot_x_mat, rot_y_mat, rot_z_mat, euler, mode);
@@ -210,7 +210,7 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 	mul_m3_m3m3(dst_rot, dst_rot, rot_y_mat);
 	mul_m3_m3m3(dst_rot, dst_rot, rot_x_mat);
 
-	mat3_to_eulO(euler, ROT_MODE_XYZ, dst_rot);
+	mat3_to_eulO(euler, ROT_MODE_XZY, dst_rot);
 
 	/* Start construction of dst_mat from rotation matrix */
 	unit_m4(dst_mat);
