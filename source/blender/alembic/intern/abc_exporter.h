@@ -28,6 +28,8 @@
 #include <set>
 #include <vector>
 
+#include "abc_util.h"
+
 class AbcObjectWriter;
 class AbcTransformWriter;
 class ArchiveWriter;
@@ -41,6 +43,7 @@ struct ExportSettings {
 	ExportSettings();
 
 	Scene *scene;
+	SimpleLogger logger;
 
 	bool selected_only;
 	bool visible_layers_only;

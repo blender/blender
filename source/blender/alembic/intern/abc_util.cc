@@ -537,3 +537,32 @@ ScopeTimer::~ScopeTimer()
 {
 	fprintf(stderr, "%s: %fs\n", m_message, PIL_check_seconds_timer() - m_start);
 }
+
+/* ********************** */
+
+bool SimpleLogger::empty()
+{
+	return m_stream.tellp() == 0ul;
+}
+
+std::string SimpleLogger::str() const
+{
+	return m_stream.str();
+}
+
+void SimpleLogger::clear()
+{
+	m_stream.clear();
+	m_stream.str("");
+}
+
+std::ostringstream &SimpleLogger::stream()
+{
+	return m_stream;
+}
+
+std::ostream &operator<<(std::ostream &os, const SimpleLogger &logger)
+{
+	os << logger.str();
+	return os;
+}

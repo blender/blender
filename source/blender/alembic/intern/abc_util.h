@@ -165,4 +165,48 @@ public:
 #	define SCOPE_TIMER(message)
 #endif
 
+/* *************************** */
+
+/**
+ * Utility class whose purpose is to more easily log related informations. An
+ * instance of the SimpleLogger can be created in any context, and will hold a
+ * copy of all the strings passed to its output stream.
+ *
+ * Different instances of the class may be accessed from different threads,
+ * although accessing the same instance from different threads will lead to race
+ * conditions.
+ */
+class SimpleLogger {
+	std::ostringstream m_stream;
+
+public:
+	/**
+	 * Check whether or not the SimpleLogger's stream is empty.
+	 */
+	bool empty();
+
+	/**
+	 * Return a copy of the string contained in the SimpleLogger's stream.
+	 */
+	std::string str() const;
+
+	/**
+	 * Remove the bits set on the SimpleLogger's stream and clear its string.
+	 */
+	void clear();
+
+	/**
+	 * Return a reference to the SimpleLogger's stream, in order to e.g. push
+	 * content into it.
+	 */
+	std::ostringstream &stream();
+};
+
+#define ABC_LOG(logger) logger.stream()
+
+/**
+ * Pass the content of the logger's stream to the specified std::ostream.
+ */
+std::ostream &operator<<(std::ostream &os, const SimpleLogger &logger);
+
 #endif  /* __ABC_UTIL_H__ */
