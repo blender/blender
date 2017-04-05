@@ -225,22 +225,9 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 	walk(userData, ob, &umd->object_src, IDWALK_CB_NOP);
 }
 
-static void UNUSED_FUNCTION(uv_warp_deps_object_bone)(DagForest *forest, DagNode *obNode,
-                                Object *obj, const char *bonename)
-{
-	if (obj) {
-		DagNode *curNode = dag_get_node(forest, obj);
-
-		if (bonename[0])
-			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "UVWarp Modifier");
-		else
-			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA, "UVWarp Modifier");
-	}
-}
-
-static void uv_warp_deps_object_bone_new(struct DepsNodeHandle *node,
-                                         Object *object,
-                                         const char *bonename)
+static void uv_warp_deps_object_bone(struct DepsNodeHandle *node,
+                                     Object *object,
+                                     const char *bonename)
 {
 	if (object != NULL) {
 		if (bonename[0])
@@ -258,8 +245,8 @@ static void updateDepsgraph(ModifierData *md,
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *) md;
 
-	uv_warp_deps_object_bone_new(node, umd->object_src, umd->bone_src);
-	uv_warp_deps_object_bone_new(node, umd->object_dst, umd->bone_dst);
+	uv_warp_deps_object_bone(node, umd->object_src, umd->bone_src);
+	uv_warp_deps_object_bone(node, umd->object_dst, umd->bone_dst);
 }
 
 ModifierTypeInfo modifierType_UVWarp = {
