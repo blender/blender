@@ -314,47 +314,15 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 /* update scene for current frame */
 static void motionpaths_calc_update_scene(Scene *scene)
 {
-#if 1 // 'production' optimizations always on
-	/* rigid body simulation needs complete update to work correctly for now */
-	/* RB_TODO investigate if we could avoid updating everything */
-	if (BKE_scene_check_rigidbody_active(scene)) {
-		BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene);
-	}
-	else { /* otherwise we can optimize by restricting updates */
-		BaseLegacy *base, *last = NULL;
-		
-		/* only stuff that moves or needs display still */
-		DAG_scene_update_flags(G.main, scene, scene->lay, true, false);
-		
-		/* find the last object with the tag 
-		 * - all those afterwards are assumed to not be relevant for our calculations
-		 */
-		/* optimize further by moving out... */
-		for (base = scene->base.first; base; base = base->next) {
-			if (base->object->flag & BA_TEMP_TAG)
-				last = base;
-		}
-		
-		/* perform updates for tagged objects */
-		/* XXX: this will break if rigs depend on scene or other data that
-		 * is animated but not attached to/updatable from objects */
-		for (base = scene->base.first; base; base = base->next) {
-			/* update this object */
-			BKE_object_handle_update(G.main->eval_ctx, scene, base->object);
-			
-			/* if this is the last one we need to update, let's stop to save some time */
-			if (base == last)
-				break;
-		}
-	}
-#else // original, 'always correct' version
-	/* do all updates
+	/* Do all updates
 	 *  - if this is too slow, resort to using a more efficient way
 	 *    that doesn't force complete update, but for now, this is the
 	 *    most accurate way!
+	 *
+	 * TODO(segey): Bring back partial updates, which became impossible
+	 * with the new depsgraph due to unsorted nature of bases.
 	 */
-	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene); /* XXX this is the best way we can get anything moving */
-#endif
+	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene);
 }
 
 /* ........ */
