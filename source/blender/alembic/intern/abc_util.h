@@ -155,6 +155,13 @@ typedef enum {
 	ABC_YUP_FROM_ZUP = 2,
 } AbcAxisSwapMode;
 
+/* Create a rotation matrix for each axis from euler angles.
+ * Euler angles are swaped to change coordinate system. */
+void create_swapped_rotation_matrix(
+        float rot_x_mat[3][3], float rot_y_mat[3][3],
+        float rot_z_mat[3][3], const float euler[3],
+        AbcAxisSwapMode mode);
+
 void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMode mode);
 
 /* *************************** */

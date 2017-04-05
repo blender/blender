@@ -132,15 +132,28 @@ void split(const std::string &s, const char delim, std::vector<std::string> &tok
 	}
 }
 
-/* Create a rotation matrix for each axis from euler angles.
- * Euler angles are swaped to change coordinate system. */
-static void create_rotation_matrix(
+void create_swapped_rotation_matrix(
         float rot_x_mat[3][3], float rot_y_mat[3][3],
-        float rot_z_mat[3][3], const float euler[3], const bool to_yup)
+        float rot_z_mat[3][3], const float euler[3],
+        AbcAxisSwapMode mode)
 {
 	const float rx = euler[0];
-	const float ry = (to_yup) ?  euler[2] : -euler[2];
-	const float rz = (to_yup) ? -euler[1] :  euler[1];
+	float ry;
+	float rz;
+
+	/* Apply transformation */
+	switch(mode) {
+		case ABC_ZUP_FROM_YUP:
+			ry = -euler[2];
+			rz = euler[1];
+			break;
+		case ABC_YUP_FROM_ZUP:
+			ry = euler[2];
+			rz = -euler[1];
+			break;
+		default:
+			BLI_assert(false);
+	}
 
 	unit_m3(rot_x_mat);
 	unit_m3(rot_y_mat);
@@ -190,12 +203,11 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 	mat3_to_eulO(euler, ROT_MODE_XYZ, src_rot);
 
 	/* Create X, Y, Z rotation matrices from euler angles. */
-	create_rotation_matrix(rot_x_mat, rot_y_mat, rot_z_mat, euler,
-	                       mode == ABC_YUP_FROM_ZUP);
+	create_swapped_rotation_matrix(rot_x_mat, rot_y_mat, rot_z_mat, euler, mode);
 
 	/* Concatenate rotation matrices. */
-	mul_m3_m3m3(dst_rot, dst_rot, rot_y_mat);
 	mul_m3_m3m3(dst_rot, dst_rot, rot_z_mat);
+	mul_m3_m3m3(dst_rot, dst_rot, rot_y_mat);
 	mul_m3_m3m3(dst_rot, dst_rot, rot_x_mat);
 
 	mat3_to_eulO(euler, ROT_MODE_XYZ, dst_rot);
