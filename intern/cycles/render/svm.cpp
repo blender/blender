@@ -67,6 +67,7 @@ void SVMShaderManager::device_update_shader(Scene *scene,
 	        << "Shader name: " << shader->name << "\n"
 	        << summary.full_report();
 
+	nodes_lock_.lock();
 	if(shader->use_mis && shader->has_surface_emission) {
 		scene->light_manager->need_update = true;
 	}
@@ -74,7 +75,6 @@ void SVMShaderManager::device_update_shader(Scene *scene,
 	/* The copy needs to be done inside the lock, if another thread resizes the array 
 	 * while memcpy is running, it'll be copying into possibly invalid/freed ram. 
 	 */
-	nodes_lock_.lock();
 	size_t global_nodes_size = global_svm_nodes->size();
 	global_svm_nodes->resize(global_nodes_size + svm_nodes.size());
 	
