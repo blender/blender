@@ -1219,8 +1219,11 @@ bool DRW_is_object_renderable(Object *ob)
 
 /* ****************************************** Framebuffers ******************************************/
 
-static GPUTextureFormat convert_tex_format(int fbo_format, int *channels)
+static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *is_depth)
 {
+	*is_depth = ((fbo_format == DRW_BUF_DEPTH_16) ||
+	             (fbo_format == DRW_BUF_DEPTH_24));
+
 	switch (fbo_format) {
 		case DRW_BUF_RGBA_8:   *channels = 4; return GPU_RGBA8;
 		case DRW_BUF_RGBA_16:  *channels = 4; return GPU_RGBA16F;
@@ -1246,18 +1249,13 @@ void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRW
 
 			if (!*fbotex.tex) {
 				int channels;
-				GPUTextureFormat gpu_format = convert_tex_format(fbotex.format, &channels);
+				bool is_depth;
+				GPUTextureFormat gpu_format = convert_tex_format(fbotex.format, &channels, &is_depth);
 
-				/* TODO refine to opengl formats */
-				if (fbotex.format == DRW_BUF_DEPTH_16 ||
-				    fbotex.format == DRW_BUF_DEPTH_24)
-				{
-					*fbotex.tex = GPU_texture_create_depth(width, height, NULL);
-					GPU_texture_compare_mode(*fbotex.tex, false);
-					GPU_texture_filter_mode(*fbotex.tex, false);
-				}
-				else {
-					*fbotex.tex = GPU_texture_create_2D_custom(width, height, channels, gpu_format, NULL, NULL);
+				*fbotex.tex = GPU_texture_create_2D_custom(width, height, channels, gpu_format, NULL, NULL);
+				drw_texture_set_parameters(*fbotex.tex, fbotex.flag);
+
+				if (!is_depth) {
 					++color_attachment;
 				}
 			}

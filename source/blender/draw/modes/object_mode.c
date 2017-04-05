@@ -196,13 +196,13 @@ static void OBJECT_engine_init(void *vedata)
 
 	float *viewport_size = DRW_viewport_size_get();
 
-	DRWFboTexture tex[2] = {{&txl->outlines_depth_tx, DRW_BUF_DEPTH_24},
-	                        {&txl->outlines_color_tx, DRW_BUF_RGBA_8}};
+	DRWFboTexture tex[2] = {{&txl->outlines_depth_tx, DRW_BUF_DEPTH_24, 0},
+	                        {&txl->outlines_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER}};
 	DRW_framebuffer_init(&fbl->outlines,
 	                     (int)viewport_size[0], (int)viewport_size[1],
 	                     tex, 2);
 
-	DRWFboTexture blur_tex = {&txl->outlines_blur_tx, DRW_BUF_RGBA_8};
+	DRWFboTexture blur_tex = {&txl->outlines_blur_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER};
 	DRW_framebuffer_init(&fbl->blur,
 	                     (int)viewport_size[0], (int)viewport_size[1],
 	                     &blur_tex, 1);

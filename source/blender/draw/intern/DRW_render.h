@@ -159,6 +159,7 @@ void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
 typedef struct DRWFboTexture {
 	struct GPUTexture **tex;
 	int format;
+	DRWTextureFlag flag;
 } DRWFboTexture;
 
 void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX], int texnbr);
