@@ -218,6 +218,8 @@ protected:
 	int max_stack_use;
 	uint mix_weight_offset;
 	bool compile_failed;
+
+	thread_spin_lock attribute_lock_;
 };
 
 CCL_NAMESPACE_END

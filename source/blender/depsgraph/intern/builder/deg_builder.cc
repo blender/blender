@@ -52,14 +52,6 @@
 
 namespace DEG {
 
-string deg_fcurve_id_name(const FCurve *fcu)
-{
-	char index_buf[32];
-	// TODO(sergey): Use int-to-string utility or so.
-	BLI_snprintf(index_buf, sizeof(index_buf), "[%d]", fcu->array_index);
-	return string(fcu->rna_path) + index_buf;
-}
-
 void deg_graph_build_finalize(Depsgraph *graph)
 {
 	/* Re-tag IDs for update if it was tagged before the relations

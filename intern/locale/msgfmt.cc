@@ -27,42 +27,48 @@ namespace {
 
 std::map<std::string, std::string> MESSAGES;
 
-bool starts_with(const std::string &string,
+bool starts_with(const std::string &str,
                  const std::string &prefix) {
-  return prefix.size() <= string.size() &&
-         string.compare(0, prefix.size(), prefix) == 0;
+  const size_t prefix_length = prefix.length();
+  if (prefix_length == 0) {
+    return true;
+  }
+  // TODO(sergey): Could be optimized if we calculate str.length()
+  // to maximum of prefix_length characters.
+  if (prefix_length > str.length()) {
+    return false;
+  } else {
+    return str.compare(0, prefix_length, prefix) == 0;
+  }
 }
 
-std::string ltrim(const std::string &s) {
-  std::string result = s;
-  result.erase(result.begin(),
-               std::find_if(result.begin(),
-                            result.end(),
-                            std::not1(std::ptr_fun<int, int>(std::isspace))));
+std::string ltrim(const std::string &str) {
+  std::string result = str;
+  result.erase(0, result.find_first_not_of(" \t\r\n"));
   return result;
 }
 
-std::string rtrim(const std::string &s) {
-  std::string result = s;
-  result.erase(
-    std::find_if(result.rbegin(),
-                 result.rend(),
-                 std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
-    result.end());
+std::string rtrim(const std::string &str) {
+  std::string result = str;
+  result.erase(result.find_last_not_of(" \t\r\n") + 1);
   return result;
 }
 
-std::string trim(const std::string &s) {
-  return ltrim(rtrim(s));
+std::string trim(const std::string &str) {
+  std::string result = str;
+  result.erase(0, result.find_first_not_of(" \t\r\n"));
+  result.erase(result.find_last_not_of(" \t\r\n") + 1);
+  return result;
 }
 
-std::string unescape(const std::string &s) {
+std::string unescape(const std::string &str) {
   std::string result;
-  std::string::const_iterator it = s.begin();
-  while (it != s.end()) {
-    char current_char = *it++;
-    if (current_char == '\\' && it != s.end()) {
-      char next_char = *it++;
+  const size_t str_length = str.length();
+  size_t i = 0;
+  while (i < str_length) {
+    char current_char = str[i++];
+    if (current_char == '\\' && i < str_length - 1) {
+      char next_char = str[i++];
       if (next_char == '\\') {
         current_char = '\\';
       } else if (next_char == 'n') {
@@ -76,8 +82,9 @@ std::string unescape(const std::string &s) {
     result += current_char;
   }
 
-  if (result[0] == '"' && result[result.size() - 1] == '"') {
-    result = result.substr(1, result.size() - 2);
+  const size_t result_length = result.length();
+  if (result[0] == '"' && result[result_length - 1] == '"') {
+    result = result.substr(1, result_length - 2);
   }
 
   return result;
@@ -100,6 +107,7 @@ void add(const std::string &msgctxt,
 template<typename TKey, typename TValue>
 void get_keys(std::map<TKey, TValue> map,
               std::vector<TKey> *keys) {
+  keys->reserve(map.size());
   for (typename std::map<TKey, TValue>::iterator it = map.begin();
       it != map.end();
       it++) {
@@ -136,6 +144,7 @@ std::string generate(void) {
   std::sort(keys.begin(), keys.end());
 
   std::vector<Offset> offsets;
+  offsets.reserve(keys.size());
   std::string ids = "", strs = "";
   for (std::vector<std::string>::iterator it = keys.begin();
        it != keys.end();
@@ -160,6 +169,8 @@ std::string generate(void) {
   int valuestart = keystart + ids.size();
   std::vector<int> koffsets;
   std::vector<int> voffsets;
+  koffsets.reserve(offsets.size() * 2);
+  voffsets.reserve(offsets.size() * 2);
   // The string table first has the list of keys, then the list of values.
   // Each entry has first the size of the string, then the file offset.
   for (std::vector<Offset>::iterator it = offsets.begin();

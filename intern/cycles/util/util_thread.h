@@ -106,6 +106,23 @@ protected:
 #endif
 };
 
+class thread_scoped_spin_lock {
+public:
+	explicit thread_scoped_spin_lock(thread_spin_lock& lock)
+	        : lock_(lock) {
+		lock_.lock();
+	}
+
+	~thread_scoped_spin_lock() {
+		lock_.unlock();
+	}
+
+	/* TODO(sergey): Implement manual control over lock/unlock. */
+
+protected:
+	thread_spin_lock& lock_;
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_THREAD_H__ */
