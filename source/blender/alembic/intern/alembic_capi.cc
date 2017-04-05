@@ -301,10 +301,10 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 		}
 	}
 	catch (const std::exception &e) {
-		std::cerr << "Abc Export error: " << e.what() << '\n';
+		ABC_LOG(data->settings.logger) << "Abc Export error: " << e.what() << '\n';
 	}
 	catch (...) {
-		std::cerr << "Abc Export error\n";
+		ABC_LOG(data->settings.logger) << "Abc Export: unknown error...\n";
 	}
 }
 
@@ -314,6 +314,11 @@ static void export_endjob(void *customdata)
 
 	if (data->was_canceled && BLI_exists(data->filename)) {
 		BLI_delete(data->filename, false, false);
+	}
+
+	if (!data->settings.logger.empty()) {
+		std::cerr << data->settings.logger;
+		WM_report(RPT_ERROR, "Errors occured during the export, look in the console to know more...");
 	}
 
 	G.is_rendering = false;
@@ -331,6 +336,22 @@ void ABC_export(
 	job->bmain = CTX_data_main(C);
 	BLI_strncpy(job->filename, filepath, 1024);
 
+	/* Alright, alright, alright....
+	 *
+	 * ExportJobData contains an ExportSettings containing a SimpleLogger.
+	 *
+	 * Since ExportJobData is a C-style struct dynamically allocated with
+	 * MEM_mallocN (see above), its construtor is never called, therefore the
+	 * ExportSettings constructor is not called which implies that the
+	 * SimpleLogger one is not called either. SimpleLogger in turn does not call
+	 * the constructor of its data members which ultimately means that its
+	 * std::ostringstream member has a NULL pointer. To be able to properly use
+	 * the stream's operator<<, the pointer needs to be set, therefore we have
+	 * to properly construct everything. And this is done using the placement
+	 * new operator as here below. It seems hackish, but I'm too lazy to
+	 * do bigger refactor and maybe there is a better way which does not involve
+	 * hardcore refactoring. */
+	new (&job->settings) ExportSettings();
 	job->settings.scene = job->scene;
 
 	/* Sybren: for now we only export the active scene layer.

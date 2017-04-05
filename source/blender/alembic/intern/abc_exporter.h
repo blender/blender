@@ -28,6 +28,8 @@
 #include <set>
 #include <vector>
 
+#include "abc_util.h"
+
 class AbcObjectWriter;
 class AbcTransformWriter;
 class ArchiveWriter;
@@ -44,6 +46,7 @@ struct ExportSettings {
 
 	Scene *scene;
 	SceneLayer *sl;  // Scene layer to export; all its objects will be exported, unless selected_only=true
+	SimpleLogger logger;
 
 	bool selected_only;
 	bool visible_layers_only;
