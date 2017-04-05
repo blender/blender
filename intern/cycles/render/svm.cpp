@@ -393,11 +393,13 @@ void SVMCompiler::add_node(const float4& f)
 
 uint SVMCompiler::attribute(ustring name)
 {
+	thread_scoped_spin_lock lock(attribute_lock_);
 	return shader_manager->get_attribute_id(name);
 }
 
 uint SVMCompiler::attribute(AttributeStandard std)
 {
+	thread_scoped_spin_lock lock(attribute_lock_);
 	return shader_manager->get_attribute_id(std);
 }
 
