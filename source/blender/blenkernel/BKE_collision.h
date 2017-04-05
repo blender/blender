@@ -148,7 +148,7 @@ void collision_get_collider_velocity(float vel_old[3], float vel_new[3], struct 
 /////////////////////////////////////////////////
 
 /* explicit control over layer mask and dupli recursion */
-struct Object **get_collisionobjects_ext(struct Scene *scene, struct Object *self, struct Group *group, int layer, unsigned int *numcollobj, unsigned int modifier_type, bool dupli);
+struct Object **get_collisionobjects_ext(struct Scene *scene, struct Object *self, struct Group *group, unsigned int *numcollobj, unsigned int modifier_type, bool dupli);
 
 struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Group *group, unsigned int *numcollobj, unsigned int modifier_type);
 

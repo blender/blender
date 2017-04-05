@@ -588,5 +588,5 @@ void AbcExporter::setCurrentFrame(Main *bmain, double t)
 {
 	m_scene->r.cfra = static_cast<int>(t);
 	m_scene->r.subframe = static_cast<float>(t) - m_scene->r.cfra;
-	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, m_scene, m_scene->lay);
+	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, m_scene);
 }

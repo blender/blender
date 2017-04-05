@@ -3854,7 +3854,7 @@ static void redraw_timer_step(
 	}
 	else if (type == eRTAnimationStep) {
 		scene->r.cfra += (cfra == scene->r.cfra) ? 1 : -1;
-		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, scene->lay);
+		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
 	}
 	else if (type == eRTAnimationPlay) {
 		/* play anim, return on same frame as started with */
@@ -3866,7 +3866,7 @@ static void redraw_timer_step(
 			if (scene->r.cfra > scene->r.efra)
 				scene->r.cfra = scene->r.sfra;
 
-			BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, scene->lay);
+			BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
 			redraw_timer_window_swap(C);
 		}
 	}

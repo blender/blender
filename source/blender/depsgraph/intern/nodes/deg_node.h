@@ -173,9 +173,6 @@ struct IDDepsNode : public DepsNode {
 	/* Hash to make it faster to look up components. */
 	GHash *components;
 
-	/* Layers of this node with accumulated layers of it's output relations. */
-	unsigned int layers;
-
 	/* Additional flags needed for scene evaluation.
 	 * TODO(sergey): Only needed for until really granular updates
 	 * of all the entities.

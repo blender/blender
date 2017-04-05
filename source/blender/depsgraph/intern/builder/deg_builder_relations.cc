@@ -274,10 +274,10 @@ void DepsgraphRelationBuilder::add_operation_relation(
 	}
 }
 
-void DepsgraphRelationBuilder::add_collision_relations(const OperationKey &key, Scene *scene, Object *ob, Group *group, int layer, bool dupli, const char *name)
+void DepsgraphRelationBuilder::add_collision_relations(const OperationKey &key, Scene *scene, Object *ob, Group *group, bool dupli, const char *name)
 {
 	unsigned int numcollobj;
-	Object **collobjs = get_collisionobjects_ext(scene, ob, group, layer, &numcollobj, eModifierType_Collision, dupli);
+	Object **collobjs = get_collisionobjects_ext(scene, ob, group, &numcollobj, eModifierType_Collision, dupli);
 
 	for (unsigned int i = 0; i < numcollobj; i++)
 	{
@@ -329,7 +329,7 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 			}
 
 			if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
-				add_collision_relations(key, scene, ob, NULL, eff->ob->lay, true, "Force Absorption");
+				add_collision_relations(key, scene, ob, NULL, true, "Force Absorption");
 			}
 		}
 	}
@@ -1308,10 +1308,10 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 		/* collisions */
 		if (part->type != PART_HAIR) {
-			add_collision_relations(psys_key, scene, ob, part->collision_group, ob->lay, true, "Particle Collision");
+			add_collision_relations(psys_key, scene, ob, part->collision_group, true, "Particle Collision");
 		}
 		else if ((psys->flag & PSYS_HAIR_DYNAMICS) && psys->clmd && psys->clmd->coll_parms) {
-			add_collision_relations(psys_key, scene, ob, psys->clmd->coll_parms->group, ob->lay | scene->lay, true, "Hair Collision");
+			add_collision_relations(psys_key, scene, ob, psys->clmd->coll_parms->group, true, "Hair Collision");
 		}
 
 		/* effectors */

@@ -134,7 +134,7 @@ static void updateDepsgraph(ModifierData *md,
 			}
 
 			/* Actual code uses custom loop over group/scene without layer checks in dynamicPaint_doStep */
-			DEG_add_collision_relations(node, scene, ob, surface->brush_group, -1, eModifierType_DynamicPaint, is_brush_cb, false, "Dynamic Paint Brush");
+			DEG_add_collision_relations(node, scene, ob, surface->brush_group,  eModifierType_DynamicPaint, is_brush_cb, false, "Dynamic Paint Brush");
 		}
 	}
 }

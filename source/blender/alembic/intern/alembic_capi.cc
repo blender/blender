@@ -296,8 +296,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 		if (CFRA != orig_frame) {
 			CFRA = orig_frame;
 
-			BKE_scene_update_for_newframe(data->bmain->eval_ctx, data->bmain,
-			                              scene, scene->lay);
+			BKE_scene_update_for_newframe(data->bmain->eval_ctx, data->bmain, scene);
 		}
 	}
 	catch (const std::exception &e) {

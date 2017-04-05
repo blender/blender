@@ -70,8 +70,7 @@ static DEG_EditorUpdateScenePreCb deg_editor_update_scene_pre_cb = NULL;
 
 Depsgraph::Depsgraph()
   : root_node(NULL),
-    need_update(false),
-    layers(0)
+    need_update(false)
 {
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");

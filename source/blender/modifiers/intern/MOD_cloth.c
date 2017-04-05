@@ -126,7 +126,7 @@ static void updateDepsgraph(ModifierData *md,
 	ClothModifierData *clmd = (ClothModifierData *)md;
 	if (clmd != NULL) {
 		/* Actual code uses get_collisionobjects */
-		DEG_add_collision_relations(node, scene, ob, clmd->coll_parms->group, ob->lay|scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
+		DEG_add_collision_relations(node, scene, ob, clmd->coll_parms->group, eModifierType_Collision, NULL, true, "Cloth Collision");
 
 		DEG_add_forcefield_relations(node, scene, ob, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
 	}

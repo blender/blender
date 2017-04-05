@@ -172,11 +172,6 @@ struct Depsgraph {
 	 */
 	SpinLock lock;
 
-	/* Layers Visibility .................. */
-
-	/* Visible layers bitfield, used for skipping invisible objects updates. */
-	unsigned int layers;
-
 	// XXX: additional stuff like eval contexts, mempools for allocating nodes from, etc.
 };
 

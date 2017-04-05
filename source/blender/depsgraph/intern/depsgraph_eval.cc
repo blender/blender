@@ -93,22 +93,14 @@ void DEG_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	/* Update time on primary timesource. */
 	DEG::TimeSourceDepsNode *tsrc = deg_graph->find_time_source();
 	tsrc->cfra = BKE_scene_frame_get(scene);
-	unsigned int layers = deg_graph->layers;
-	/* XXX(sergey): This works around missing updates in temp scenes used
-	 * by various scripts, but is weak and needs closer investigation.
-	 */
-	if (layers == 0) {
-		layers = scene->lay;
-	}
-	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph, layers);
+	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph);
 }
 
 /* Frame-change happened for root scene that graph belongs to. */
 void DEG_evaluate_on_framechange(EvaluationContext *eval_ctx,
                                  Main *bmain,
                                  Depsgraph *graph,
-                                 float ctime,
-                                 const unsigned int layers)
+                                 float ctime)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	/* Update time on primary timesource. */
@@ -117,7 +109,7 @@ void DEG_evaluate_on_framechange(EvaluationContext *eval_ctx,
 	tsrc->tag_update(deg_graph);
 	DEG::deg_graph_flush_updates(bmain, deg_graph);
 	/* Perform recalculation updates. */
-	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph, layers);
+	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph);
 }
 
 bool DEG_needs_eval(Depsgraph *graph)

@@ -123,8 +123,7 @@ static void comp_node_hash_value_free(void *value_v)
 
 ComponentDepsNode::ComponentDepsNode() :
     entry_operation(NULL),
-    exit_operation(NULL),
-    layers(0)
+    exit_operation(NULL)
 {
 	operations_map = BLI_ghash_new(comp_node_hash_key,
 	                               comp_node_hash_key_cmp,
@@ -157,10 +156,7 @@ string ComponentDepsNode::identifier() const
 	char typebuf[16];
 	sprintf(typebuf, "(%d)", type);
 
-	char layers[16];
-	sprintf(layers, "%u", this->layers);
-
-	return string(typebuf) + name + " : " + idname + " (Layers: " + layers + ")";
+	return string(typebuf) + name + " : " + idname;
 }
 
 OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
@@ -406,11 +402,10 @@ static DepsNodeFactoryImpl<ShadingComponentDepsNode> DNTI_SHADING;
 DEG_DEPSNODE_DEFINE(CacheComponentDepsNode, DEPSNODE_TYPE_CACHE, "Cache Component");
 static DepsNodeFactoryImpl<CacheComponentDepsNode> DNTI_CACHE;
 
-/* Layer COllections Defines ============================ */
+/* Layer Collections Defines ============================ */
 
 DEG_DEPSNODE_DEFINE(LayerCollectionsDepsNode, DEPSNODE_TYPE_LAYER_COLLECTIONS, "Layer Collections Component");
 static DepsNodeFactoryImpl<LayerCollectionsDepsNode> DNTI_LAYER_COLLECTIONS;
-
 
 /* Node Types Register =================================== */
 

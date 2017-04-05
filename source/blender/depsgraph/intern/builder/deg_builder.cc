@@ -60,119 +60,21 @@ string deg_fcurve_id_name(const FCurve *fcu)
 	return string(fcu->rna_path) + index_buf;
 }
 
-static bool check_object_needs_evaluation(Object *object)
-{
-	if (object->recalc & OB_RECALC_ALL) {
-		/* Object is tagged for update anyway, no need to re-tag it. */
-		return false;
-	}
-	if (object->type == OB_MESH) {
-		return object->derivedFinal == NULL;
-	}
-	else if (ELEM(object->type,
-	              OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
-	{
-		return object->curve_cache == NULL;
-	}
-	return false;
-}
-
-void deg_graph_build_flush_layers(Depsgraph *graph)
-{
-	std::stack<OperationDepsNode *> stack;
-	foreach (OperationDepsNode *node, graph->operations) {
-		IDDepsNode *id_node = node->owner->owner;
-		node->done = 0;
-		node->num_links_pending = 0;
-		foreach (DepsRelation *rel, node->outlinks) {
-			if ((rel->from->type == DEPSNODE_TYPE_OPERATION) &&
-			    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
-			{
-				++node->num_links_pending;
-			}
-		}
-		if (node->num_links_pending == 0) {
-			stack.push(node);
-			node->done = 1;
-		}
-		node->owner->layers = id_node->layers;
-		id_node->id->tag |= LIB_TAG_DOIT;
-	}
-	while (!stack.empty()) {
-		OperationDepsNode *node = stack.top();
-		stack.pop();
-		/* Flush layers to parents. */
-		foreach (DepsRelation *rel, node->inlinks) {
-			if (rel->from->type == DEPSNODE_TYPE_OPERATION) {
-				OperationDepsNode *from = (OperationDepsNode *)rel->from;
-				from->owner->layers |= node->owner->layers;
-			}
-		}
-		/* Schedule parent nodes. */
-		foreach (DepsRelation *rel, node->inlinks) {
-			if (rel->from->type == DEPSNODE_TYPE_OPERATION) {
-				OperationDepsNode *from = (OperationDepsNode *)rel->from;
-				if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
-					BLI_assert(from->num_links_pending > 0);
-					--from->num_links_pending;
-				}
-				if (from->num_links_pending == 0 && from->done == 0) {
-					stack.push(from);
-					from->done = 1;
-				}
-			}
-		}
-	}
-}
-
 void deg_graph_build_finalize(Depsgraph *graph)
 {
-	/* STEP 1: Make sure new invisible dependencies are ready for use.
-	 *
-	 * TODO(sergey): This might do a bit of extra tagging, but it's kinda nice
-	 * to do it ahead of a time and don't spend time on flushing updates on
-	 * every frame change.
-	 */
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
-	{
-		if (id_node->layers == 0) {
-			ID *id = id_node->id;
-			if (GS(id->name) == ID_OB) {
-				Object *object = (Object *)id;
-				if (check_object_needs_evaluation(object)) {
-					id_node->tag_update(graph);
-				}
-			}
-		}
-	}
-	GHASH_FOREACH_END();
-	/* STEP 2: Flush visibility layers from children to parent. */
-	deg_graph_build_flush_layers(graph);
-	/* STEP 3: Re-tag IDs for update if it was tagged before the relations
+	/* Re-tag IDs for update if it was tagged before the relations
 	 * update tag.
 	 */
 	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
 	{
-		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp, id_node->components)
-		{
-			id_node->layers |= comp->layers;
+		ID *id = id_node->id;
+		if ((id->tag & LIB_TAG_ID_RECALC_ALL)) {
+			id_node->tag_update(graph);
 		}
-		GHASH_FOREACH_END();
-
-		if ((id_node->layers & graph->layers) != 0 || graph->layers == 0) {
-			ID *id = id_node->id;
-			if ((id->tag & LIB_TAG_ID_RECALC_ALL) &&
-			    (id->tag & LIB_TAG_DOIT))
-			{
+		else if (GS(id->name) == ID_OB) {
+			Object *object = (Object *)id;
+			if (object->recalc & OB_RECALC_ALL) {
 				id_node->tag_update(graph);
-				id->tag &= ~LIB_TAG_DOIT;
-			}
-			else if (GS(id->name) == ID_OB) {
-				Object *object = (Object *)id;
-				if (object->recalc & OB_RECALC_ALL) {
-					id_node->tag_update(graph);
-					id->tag &= ~LIB_TAG_DOIT;
-				}
 			}
 		}
 		id_node->finalize_build();

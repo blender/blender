@@ -70,7 +70,7 @@ static void updateDepsgraph(ModifierData *UNUSED(md),
 {
 	if (ob->soft) {
 		/* Actual code uses ccd_build_deflector_hash */
-		DEG_add_collision_relations(node, scene, ob, ob->soft->collision_group, ob->lay, eModifierType_Collision, NULL, false, "Softbody Collision");
+		DEG_add_collision_relations(node, scene, ob, ob->soft->collision_group, eModifierType_Collision, NULL, false, "Softbody Collision");
 
 		DEG_add_forcefield_relations(node, scene, ob, ob->soft->effector_weights, true, 0, "Softbody Field");
 	}

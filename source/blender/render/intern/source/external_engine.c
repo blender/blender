@@ -581,8 +581,7 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
 	BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-	/* It's possible that here we're including layers which were never visible before. */
-	BKE_scene_update_for_newframe_ex(re->eval_ctx, re->main, scene, (1 << 20) - 1, true);
+	BKE_scene_update_for_newframe(re->eval_ctx, re->main, scene);
 
 #ifdef WITH_PYTHON
 	BPy_END_ALLOW_THREADS;
@@ -592,17 +591,6 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
 }
 
 /* Render */
-
-static bool render_layer_exclude_animated(Scene *scene, SceneRenderLayer *srl)
-{
-	PointerRNA ptr;
-	PropertyRNA *prop;
-
-	RNA_pointer_create(&scene->id, &RNA_SceneRenderLayer, srl, &ptr);
-	prop = RNA_struct_find_property(&ptr, "layers_exclude");
-
-	return RNA_property_animated(&ptr, prop);
-}
 
 int RE_engine_render(Render *re, int do_all)
 {
@@ -628,40 +616,7 @@ int RE_engine_render(Render *re, int do_all)
 	/* update animation here so any render layer animation is applied before
 	 * creating the render result */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0) {
-		unsigned int lay = re->lay;
-
-		/* don't update layers excluded on all render layers */
-		if (type->flag & RE_USE_EXCLUDE_LAYERS) {
-			SceneRenderLayer *srl;
-			unsigned int non_excluded_lay = 0;
-
-			if (re->r.scemode & R_SINGLE_LAYER) {
-				srl = BLI_findlink(&re->r.layers, re->r.actlay);
-				if (srl) {
-					non_excluded_lay |= ~(srl->lay_exclude & ~srl->lay_zmask);
-
-					/* in this case we must update all because animation for
-					 * the scene has not been updated yet, and so may not be
-					 * up to date until after BKE_scene_update_for_newframe */
-					if (render_layer_exclude_animated(re->scene, srl))
-						non_excluded_lay |= ~0;
-				}
-			}
-			else {
-				for (srl = re->r.layers.first; srl; srl = srl->next) {
-					if (!(srl->layflag & SCE_LAY_DISABLE)) {
-						non_excluded_lay |= ~(srl->lay_exclude & ~srl->lay_zmask);
-
-						if (render_layer_exclude_animated(re->scene, srl))
-							non_excluded_lay |= ~0;
-					}
-				}
-			}
-
-			lay &= non_excluded_lay;
-		}
-
-		BKE_scene_update_for_newframe_ex(re->eval_ctx, re->main, re->scene, lay, true);
+		BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene);
 		render_update_anim_renderdata(re, &re->scene->r);
 	}
 

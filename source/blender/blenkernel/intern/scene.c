@@ -1520,12 +1520,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 }
 
 /* applies changes right away, does all sets too */
-void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Scene *sce, unsigned int lay)
-{
-	BKE_scene_update_for_newframe_ex(eval_ctx, bmain, sce, lay, false);
-}
-
-void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, Scene *sce, unsigned int lay, bool UNUSED(do_invisible_flush))
+void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Scene *sce)
 {
 	float ctime = BKE_scene_frame_get(sce);
 	Scene *sce_iter;
@@ -1564,7 +1559,7 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
-	DEG_evaluate_on_framechange(eval_ctx, bmain, sce->depsgraph, ctime, lay);
+	DEG_evaluate_on_framechange(eval_ctx, bmain, sce->depsgraph, ctime);
 
 	/* update sound system animation (TODO, move to depsgraph) */
 	BKE_sound_update_scene(bmain, sce);

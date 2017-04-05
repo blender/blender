@@ -330,14 +330,13 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  Scene *scene,
                                  Object *ob,
                                  Group *group,
-                                 int layer,
                                  unsigned int modifier_type,
                                  DEG_CollobjFilterFunction fn,
                                  bool dupli,
                                  const char *name)
 {
 	unsigned int numcollobj;
-	Object **collobjs = get_collisionobjects_ext(scene, ob, group, layer, &numcollobj, modifier_type, dupli);
+	Object **collobjs = get_collisionobjects_ext(scene, ob, group, &numcollobj, modifier_type, dupli);
 
 	for (unsigned int i = 0; i < numcollobj; i++) {
 		Object *ob1 = collobjs[i];
@@ -392,7 +391,6 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 					                            scene,
 					                            ob,
 					                            NULL,
-					                            eff->ob->lay,
 					                            eModifierType_Collision,
 					                            NULL,
 					                            true,

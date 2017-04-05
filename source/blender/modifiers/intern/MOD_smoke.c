@@ -139,8 +139,8 @@ static void updateDepsgraph(ModifierData *md,
 
 	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
 		/* Actual code uses get_collisionobjects */
-		DEG_add_collision_relations(node, scene, ob, smd->domain->fluid_group, ob->lay|scene->lay, eModifierType_Smoke, is_flow_cb, true, "Smoke Flow");
-		DEG_add_collision_relations(node, scene, ob, smd->domain->coll_group, ob->lay|scene->lay, eModifierType_Smoke, is_coll_cb, true, "Smoke Coll");
+		DEG_add_collision_relations(node, scene, ob, smd->domain->fluid_group, eModifierType_Smoke, is_flow_cb, true, "Smoke Flow");
+		DEG_add_collision_relations(node, scene, ob, smd->domain->coll_group, eModifierType_Smoke, is_coll_cb, true, "Smoke Coll");
 
 		DEG_add_forcefield_relations(node, scene, ob, smd->domain->effector_weights, true, PFIELD_SMOKEFLOW, "Smoke Force Field");
 	}

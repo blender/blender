@@ -1839,10 +1839,6 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
  * screen can be NULL */
 void ED_update_for_newframe(Main *bmain, Scene *scene, int UNUSED(mute))
 {
-	wmWindowManager *wm = bmain->wm.first;
-	wmWindow *window;
-	int layers = 0;
-
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera = BKE_scene_camera_switch_find(scene);
 	if (camera && scene->camera != camera) {
@@ -1857,12 +1853,8 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, int UNUSED(mute))
 	
 	ED_clip_update_frame(bmain, scene->r.cfra);
 
-	/* get layers from all windows */
-	for (window = wm->windows.first; window; window = window->next)
-		layers |= BKE_screen_visible_layers(window->screen, scene);
-
 	/* this function applies the changes too */
-	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, layers);
+	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
 
 	/* composite */
 	if (scene->use_nodes && scene->nodetree)

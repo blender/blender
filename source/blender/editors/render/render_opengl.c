@@ -150,17 +150,6 @@ typedef struct OGLRender {
 #endif
 } OGLRender;
 
-/* added because v3d is not always valid */
-static unsigned int screen_opengl_layers(OGLRender *oglrender)
-{
-	if (oglrender->v3d) {
-		return oglrender->scene->lay | oglrender->v3d->lay;
-	}
-	else {
-		return oglrender->scene->lay;
-	}
-}
-
 static bool screen_opengl_is_multiview(OGLRender *oglrender)
 {
 	View3D *v3d = oglrender->v3d;
@@ -796,7 +785,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
 	if (oglrender->timer) { /* exec will not have a timer */
 		scene->r.cfra = oglrender->cfrao;
-		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, screen_opengl_layers(oglrender));
+		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
 
 		WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
 	}
@@ -1008,12 +997,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if (CFRA < oglrender->nfra)
 		CFRA++;
 	while (CFRA < oglrender->nfra) {
-		unsigned int lay = screen_opengl_layers(oglrender);
-
-		if (lay & 0xFF000000)
-			lay &= 0xFF000000;
-
-		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, lay);
+		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
 		CFRA++;
 	}
 
@@ -1035,7 +1019,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 	WM_cursor_time(oglrender->win, scene->r.cfra);
 
-	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, screen_opengl_layers(oglrender));
+	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
 
 	if (view_context) {
 		if (oglrender->rv3d->persp == RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {

@@ -86,8 +86,7 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 	BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-	/* It's possible that here we're including layers which were never visible before. */
-	BKE_scene_update_for_newframe_ex(G.main->eval_ctx, G.main, scene, (1 << 20) - 1, true);
+	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene);
 
 #ifdef WITH_PYTHON
 	BPy_END_ALLOW_THREADS;

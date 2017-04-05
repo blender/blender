@@ -318,7 +318,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	/* rigid body simulation needs complete update to work correctly for now */
 	/* RB_TODO investigate if we could avoid updating everything */
 	if (BKE_scene_check_rigidbody_active(scene)) {
-		BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, scene->lay);
+		BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene);
 	}
 	else { /* otherwise we can optimize by restricting updates */
 		BaseLegacy *base, *last = NULL;
@@ -353,7 +353,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	 *    that doesn't force complete update, but for now, this is the
 	 *    most accurate way!
 	 */
-	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, scene->lay); /* XXX this is the best way we can get anything moving */
+	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene); /* XXX this is the best way we can get anything moving */
 #endif
 }
 
