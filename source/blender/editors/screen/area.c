@@ -58,10 +58,10 @@
 #include "ED_space_api.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_draw.h"
 
-#include "BIF_glutil.h"
 #include "BLF_api.h"
 
 #include "IMB_imbuf.h"

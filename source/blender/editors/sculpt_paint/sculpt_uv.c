@@ -56,6 +56,7 @@
 #include "ED_mesh.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -65,8 +66,6 @@
 
 #include "paint_intern.h"
 #include "uvedit_intern.h"
-
-#include "BIF_glutil.h"
 
 #include "UI_view2d.h"
 

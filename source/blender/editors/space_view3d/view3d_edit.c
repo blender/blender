@@ -60,9 +60,7 @@
 #include "BKE_action.h"
 #include "BKE_depsgraph.h" /* for ED_view3d_camera_lock_sync */
 
-
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

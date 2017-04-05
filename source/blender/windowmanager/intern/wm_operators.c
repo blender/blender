@@ -88,9 +88,8 @@
 
 #include "BLF_api.h"
 
-#include "BIF_glutil.h" /* for paint cursor */
-
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 
 #include "IMB_imbuf_types.h"

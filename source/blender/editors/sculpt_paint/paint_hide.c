@@ -52,8 +52,6 @@
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"
 
-#include "BIF_glutil.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 

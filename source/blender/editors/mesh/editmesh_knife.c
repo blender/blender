@@ -54,8 +54,6 @@
 #include "BKE_editmesh_bvh.h"
 #include "BKE_report.h"
 
-#include "BIF_glutil.h" /* for paint cursor */
-
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 

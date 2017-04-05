@@ -75,9 +75,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "BIF_glutil.h"
-
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 
 #include "gpencil_intern.h"
 

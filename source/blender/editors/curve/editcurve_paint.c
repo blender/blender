@@ -46,10 +46,10 @@
 #include "ED_curve.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 
 #include "curve_intern.h"

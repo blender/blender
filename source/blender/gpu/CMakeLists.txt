@@ -60,6 +60,7 @@ set(SRC
 	intern/gpu_extensions.c
 	intern/gpu_framebuffer.c
 	intern/gpu_immediate.c
+	intern/gpu_immediate_util.c
 	intern/gpu_init_exit.c
 	intern/gpu_lamp.c
 	intern/gpu_material.c
@@ -104,6 +105,7 @@ set(SRC
 	GPU_framebuffer.h
 	GPU_glew.h
 	GPU_immediate.h
+	GPU_immediate_util.h
 	GPU_init_exit.h
 	GPU_material.h
 	GPU_matrix.h

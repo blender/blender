@@ -54,9 +54,9 @@
 #include "BKE_writeavi.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -81,7 +81,6 @@
 #include "GPU_immediate.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "IMB_colormanagement.h"
 

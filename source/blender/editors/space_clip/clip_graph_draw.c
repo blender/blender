@@ -42,9 +42,8 @@
 #include "ED_screen.h"
 #include "ED_clip.h"
 
-#include "BIF_glutil.h"
-
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 
 #include "WM_types.h"

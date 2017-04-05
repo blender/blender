@@ -41,7 +41,6 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 #include "ED_armature.h"
 #include "armature_intern.h"
 #include "BIF_retarget.h"
@@ -57,6 +56,7 @@
 #include "GPU_matrix.h"
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 
 typedef int (*GestureDetectFct)(bContext *, SK_Gesture *, SK_Sketch *);
 typedef void (*GestureApplyFct)(bContext *, SK_Gesture *, SK_Sketch *);

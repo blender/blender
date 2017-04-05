@@ -47,8 +47,6 @@
 
 #include "RNA_access.h"
 
-#include "BIF_glutil.h"
-
 #include "BLF_api.h"
 
 #include "UI_interface.h"
@@ -58,6 +56,7 @@
 
 #include "GPU_basic_shader.h"
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 
 #ifdef WITH_INPUT_IME

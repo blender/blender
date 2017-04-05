@@ -62,9 +62,9 @@
 #include "BKE_image.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "GPU_matrix.h"
+#include "GPU_immediate_util.h"
 
 #include "DNA_scene_types.h"
 #include "ED_datafiles.h" /* for fonts */

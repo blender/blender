@@ -71,6 +71,7 @@
 #include "WM_types.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 
 #include "filelist.h"
 

@@ -102,6 +102,7 @@
 #include "GPU_compositing.h"
 #include "GPU_extensions.h"
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_select.h"
 #include "GPU_matrix.h"
 

@@ -65,7 +65,6 @@
 #include "BKE_pointcache.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_object.h"
 #include "ED_physics.h"
@@ -74,6 +73,7 @@
 #include "ED_view3d.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 
 #include "UI_resources.h"
 

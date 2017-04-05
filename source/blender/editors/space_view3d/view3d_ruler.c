@@ -44,6 +44,7 @@
 #include "BIF_gl.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

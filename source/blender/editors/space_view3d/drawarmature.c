@@ -63,6 +63,7 @@
 #include "GPU_basic_shader.h"
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 
 #include "UI_resources.h"

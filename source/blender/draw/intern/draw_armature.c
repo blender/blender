@@ -51,7 +51,6 @@
 #include "BKE_curve.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"

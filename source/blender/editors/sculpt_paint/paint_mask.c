@@ -35,8 +35,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BIF_glutil.h"
-
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_geom.h"

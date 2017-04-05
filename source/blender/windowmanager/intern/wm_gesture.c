@@ -53,6 +53,7 @@
 #include "wm_draw.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 
 #include "BIF_glutil.h"
 

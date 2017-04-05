@@ -53,13 +53,12 @@
 
 #include "WM_api.h"
 
-#include "BIF_glutil.h"
-
 #include "IMB_imbuf_types.h"
 
 #include "ED_view3d.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_basic_shader.h"
 
