@@ -2009,7 +2009,6 @@ static void drawcamera_stereo3d(
 
 	if (is_stereo3d_cameras) {
 		/* draw connecting lines */
-		glPushAttrib(GL_ENABLE_BIT); /* TODO(merwin): new state tracking! */
 		glLineStipple(2, 0xAAAA);
 		glEnable(GL_LINE_STIPPLE);
 
@@ -2018,7 +2017,7 @@ static void drawcamera_stereo3d(
 		immVertex3fv(pos, origin[1]);
 		immEnd();
 
-		glPopAttrib();
+		glDisable(GL_LINE_STIPPLE);
 	}
 
 	/* draw convergence plane */
