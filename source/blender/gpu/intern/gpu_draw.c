@@ -2567,6 +2567,7 @@ void gpuRestoreState(GPUStateValues *values)
 	}
 
 	if ((mask & GPU_ENABLE_BIT) != 0) {
+		restore_mask(GL_ALPHA_TEST, values->is_alpha_test);
 		restore_mask(GL_BLEND, values->is_blend);
 
 		for (int i = 0; i < 6; i++) {
