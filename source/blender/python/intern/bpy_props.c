@@ -230,7 +230,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
 	PyGILState_STATE gilstate;
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -279,7 +279,7 @@ static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struc
 
 static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -337,7 +337,7 @@ static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 
 static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -391,7 +391,7 @@ static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *
 
 static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -452,7 +452,7 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr, struct Propert
 
 static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, const int *values)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -513,7 +513,7 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr, struct Propert
 
 static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -571,7 +571,7 @@ static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 
 static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -625,7 +625,7 @@ static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
 
 static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -686,7 +686,7 @@ static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA
 
 static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, const int *values)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -747,7 +747,7 @@ static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr, struct PropertyRNA
 
 static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -805,7 +805,7 @@ static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 
 static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, float value)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -859,7 +859,7 @@ static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pr
 
 static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, float *values)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -920,7 +920,7 @@ static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr, struct PropertyR
 
 static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, const float *values)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -981,7 +981,7 @@ static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr, struct PropertyR
 
 static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, char *value)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -1040,7 +1040,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 
 static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -1102,7 +1102,7 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
 
 static void bpy_prop_string_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, const char *value)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -1163,7 +1163,7 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 
 static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
@@ -1221,7 +1221,7 @@ static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
 
 static void bpy_prop_enum_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
 {
-	PyObject **py_data = (PyObject **)RNA_property_py_data_get(prop);
+	PyObject **py_data = RNA_property_py_data_get(prop);
 	PyObject *py_func;
 	PyObject *args;
 	PyObject *self;
