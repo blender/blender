@@ -64,6 +64,7 @@
 #include "BIF_gl.h"
 
 #include "GPU_matrix.h"
+#include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 
 #include "DNA_scene_types.h"
@@ -1254,6 +1255,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	//GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
+	/* initialize OpenGL immediate mode */
+	immInit();
+
 	/* initialize the font */
 	BLF_init(11, 72);
 	ps.fontid = BLF_load_mem("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
@@ -1524,7 +1528,11 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 	/* we still miss freeing a lot!,
 	 * but many areas could skip initialization too for anim play */
-	
+
+	GPU_shader_free_builtin_shaders();
+
+	immDestroy();
+
 	BLF_exit();
 
 	GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
