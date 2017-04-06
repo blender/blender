@@ -145,13 +145,13 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
 }
 
 /* for pose mode */
-static void stats_pchan(RegionView3D *rv3d, bPoseChannel *pchan)
+static void protectflag_to_drawflags_pchan(RegionView3D *rv3d, const bPoseChannel *pchan)
 {
 	protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
 }
 
 /* for editmode*/
-static void stats_editbone(RegionView3D *rv3d, EditBone *ebo)
+static void protectflag_to_drawflags_ebone(RegionView3D *rv3d, const EditBone *ebo)
 {
 	if (ebo->flag & BONE_EDITMODE_LOCKED) {
 		protectflag_to_drawflags(OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE, &rv3d->twdrawflag);
@@ -190,7 +190,7 @@ static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], con
 }
 
 
-static int test_rotmode_euler(short rotmode)
+static bool test_rotmode_euler(short rotmode)
 {
 	return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0 : 1;
 }
@@ -382,7 +382,7 @@ static int calc_manipulator_stats(const bContext *C)
 					calc_tw_center(scene, ebo->head);
 					totsel++;
 				}
-				stats_editbone(rv3d, ebo);
+				protectflag_to_drawflags_ebone(rv3d, ebo);
 			}
 			else {
 				for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
@@ -402,7 +402,7 @@ static int calc_manipulator_stats(const bContext *C)
 							totsel++;
 						}
 						if (ebo->flag & BONE_SELECTED) {
-							stats_editbone(rv3d, ebo);
+							protectflag_to_drawflags_ebone(rv3d, ebo);
 						}
 					}
 				}
@@ -528,7 +528,7 @@ static int calc_manipulator_stats(const bContext *C)
 			Bone *bone = pchan->bone;
 			if (bone) {
 				calc_tw_center(scene, pchan->pose_head);
-				stats_pchan(rv3d, pchan);
+				protectflag_to_drawflags_pchan(rv3d, pchan);
 				totsel = 1;
 				ok = true;
 			}
@@ -542,7 +542,7 @@ static int calc_manipulator_stats(const bContext *C)
 					Bone *bone = pchan->bone;
 					if (bone && (bone->flag & BONE_TRANSFORM)) {
 						calc_tw_center(scene, pchan->pose_head);
-						stats_pchan(rv3d, pchan);
+						protectflag_to_drawflags_pchan(rv3d, pchan);
 					}
 				}
 				ok = true;
