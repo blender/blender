@@ -33,6 +33,7 @@ set(INC
 	../blenloader
 	../blentranslation
 	../compositor
+	../depsgraph
 	../editors/include
 	../gpu
 	../imbuf

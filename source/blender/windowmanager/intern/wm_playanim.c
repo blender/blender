@@ -58,7 +58,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_image.h"
 
 #include "BIF_gl.h"
@@ -71,6 +70,8 @@
 #include "ED_datafiles.h" /* for fonts */
 #include "GHOST_C-api.h"
 #include "BLF_api.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"  /* only for WM_main_playanim */
 
@@ -1545,7 +1546,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	
 	IMB_exit();
 	BKE_images_exit();
-	DAG_exit();
+	DEG_free_node_types();
 
 	totblock = MEM_get_memory_blocks_in_use();
 	if (totblock != 0) {

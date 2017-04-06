@@ -119,9 +119,10 @@
 #include "GPU_draw.h"
 #include "GPU_init_exit.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_sound.h"
 #include "COM_compositor.h"
+
+#include "DEG_depsgraph.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.h"
@@ -173,9 +174,9 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BKE_library_callback_remap_editor_id_reference_set(WM_main_remap_editor_id_reference);   /* library.c */
 	BKE_blender_callback_test_break_set(wm_window_testbreak); /* blender.c */
 	BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap); /* screen.c */
-	DAG_editors_update_cb(ED_render_id_flush_update,
-	                      ED_render_scene_update,
-	                      ED_render_scene_update_pre); /* depsgraph.c */
+	DEG_editors_set_update_cb(ED_render_id_flush_update,
+	                          ED_render_scene_update,
+	                          ED_render_scene_update_pre);
 	
 	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	

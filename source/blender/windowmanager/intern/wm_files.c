@@ -77,7 +77,6 @@
 #include "BKE_blendfile.h"
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -118,6 +117,8 @@
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -464,7 +465,7 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 	CTX_wm_window_set(C, wm->windows.first);
 
 	ED_editors_init(C);
-	DAG_on_visible_update(CTX_data_main(C), true);
+	DEG_on_visible_update(CTX_data_main(C), true);
 
 #ifdef WITH_PYTHON
 	if (is_startup_file) {

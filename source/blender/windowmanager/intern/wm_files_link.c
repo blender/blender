@@ -59,7 +59,6 @@
 #include "BLO_readfile.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_library_remap.h"
 #include "BKE_global.h"
@@ -69,6 +68,7 @@
 
 #include "BKE_idcode.h"
 
+#include "DEG_depsgraph_build.h"
 
 #include "IMB_colormanagement.h"
 
@@ -446,7 +446,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
 	/* recreate dependency graph to include new objects */
-	DAG_scene_relations_rebuild(bmain, scene);
+	DEG_scene_relations_rebuild(bmain, scene);
 	
 	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
 	GPU_materials_free();
@@ -736,7 +736,7 @@ static void lib_relocate_do(
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
 	/* recreate dependency graph to include new objects */
-	DAG_scene_relations_rebuild(bmain, scene);
+	DEG_scene_relations_rebuild(bmain, scene);
 
 	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
 	GPU_materials_free();
