@@ -62,6 +62,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_anim.h"
 
+#include "DEG_depsgraph.h"
 
 #include "BLI_strict_flags.h"
 

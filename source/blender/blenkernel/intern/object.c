@@ -119,6 +119,8 @@
 #include "BKE_camera.h"
 #include "BKE_image.h"
 
+#include "DEG_depsgraph.h"
+
 #include "DRW_engine.h"
 
 #ifdef WITH_MOD_FLUID

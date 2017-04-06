@@ -54,6 +54,8 @@
 
 #include "MOD_util.h"
 
+#include "DEG_depsgraph.h"
+
 /* Due to cyclic dependencies it's possible that curve used for
  * deformation here is not evaluated at the time of evaluating
  * this modifier.

@@ -46,6 +46,7 @@
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 static void initData(ModifierData *md)

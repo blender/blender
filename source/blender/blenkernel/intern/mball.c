@@ -67,6 +67,8 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 
+#include "DEG_depsgraph.h"
+
 /* Functions */
 
 /** Free (or release) any data used by this mball (does not free the mball itself). */

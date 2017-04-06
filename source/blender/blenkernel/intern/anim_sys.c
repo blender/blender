@@ -70,6 +70,8 @@
 #include "BKE_report.h"
 #include "BKE_texture.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RNA_access.h"
 
 #include "nla_private.h"

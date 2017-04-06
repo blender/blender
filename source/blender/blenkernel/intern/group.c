@@ -55,6 +55,8 @@
 #include "BKE_object.h"
 #include "BKE_scene.h" /* BKE_scene_base_find */
 
+#include "DEG_depsgraph.h"
+
 static void free_group_object(GroupObject *go)
 {
 	MEM_freeN(go);

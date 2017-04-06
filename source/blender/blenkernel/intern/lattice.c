@@ -67,6 +67,8 @@
 
 #include "BKE_deform.h"
 
+#include "DEG_depsgraph.h"
+
 /* Workaround for cyclic dependency with curves.
  * In such case curve_cache might not be ready yet,
  */

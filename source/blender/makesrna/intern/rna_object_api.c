@@ -47,6 +47,8 @@
 #include "BKE_depsgraph.h"
 #include "BKE_layer.h"
 
+#include "DEG_depsgraph.h"
+
 #include "rna_internal.h"  /* own include */
 
 static EnumPropertyItem space_items[] = {
@@ -89,8 +91,6 @@ static EnumPropertyItem space_items[] = {
 #include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "DEG_depsgraph.h"
 
 static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, int action)
 {

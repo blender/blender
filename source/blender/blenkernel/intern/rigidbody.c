@@ -66,6 +66,8 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
+#include "DEG_depsgraph.h"
+
 /* ************************************** */
 /* Memory Management */
 

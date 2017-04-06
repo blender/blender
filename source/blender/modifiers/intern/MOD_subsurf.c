@@ -50,6 +50,8 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
+#include "DEG_depsgraph.h"
+
 #include "MOD_modifiertypes.h"
 
 #include "intern/CCGSubSurf.h"

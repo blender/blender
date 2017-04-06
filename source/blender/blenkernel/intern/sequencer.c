@@ -76,6 +76,8 @@
 #include "BKE_library.h"
 #include "BKE_idprop.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RNA_access.h"
 
 #include "RE_pipeline.h"

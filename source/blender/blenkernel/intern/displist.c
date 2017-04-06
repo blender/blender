@@ -63,6 +63,8 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
+#include "DEG_depsgraph.h"
+
 static void boundbox_displist_object(Object *ob);
 
 void BKE_displist_elem_free(DispList *dl)

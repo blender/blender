@@ -81,6 +81,7 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_depsgraph.h"
+#  include "DEG_depsgraph.h"
 #  include "DNA_userdef_types.h"
 #endif
 

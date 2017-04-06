@@ -50,35 +50,6 @@ struct Main;
 struct Object;
 struct Scene;
 
-/* Dependency graph evaluation context
- *
- * This structure stores all the local dependency graph data,
- * which is needed for it's evaluation,
- */
-typedef struct EvaluationContext {
-	int mode;               /* evaluation mode */
-	float ctime;            /* evaluation time */
-} EvaluationContext;
-
-typedef enum eEvaluationMode {
-	DAG_EVAL_VIEWPORT       = 0,    /* evaluate for OpenGL viewport */
-	DAG_EVAL_PREVIEW        = 1,    /* evaluate for render with preview settings */
-	DAG_EVAL_RENDER         = 2,    /* evaluate for render purposes */
-} eEvaluationMode;
-
-/* DagNode->eval_flags */
-enum {
-	/* Regardless to curve->path animation flag path is to be evaluated anyway,
-	 * to meet dependencies with such a things as curve modifier and other guys
-	 * who're using curve deform, where_on_path and so.
-	 */
-	DAG_EVAL_NEED_CURVE_PATH = 1,
-	/* Scene evaluation would need to have object's data on CPU,
-	 * meaning no GPU shortcuts is allowed.
-	 */
-	DAG_EVAL_NEED_CPU        = 2,
-};
-
 /* Global initialization/deinitialization */
 void DAG_init(void);
 void DAG_exit(void);

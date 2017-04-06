@@ -64,6 +64,8 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 
+#include "DEG_depsgraph.h"
+
 /* globals */
 
 /* local */

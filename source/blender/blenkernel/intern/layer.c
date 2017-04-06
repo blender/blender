@@ -40,6 +40,8 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
+#include "DEG_depsgraph.h"
+
 #include "DNA_ID.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"

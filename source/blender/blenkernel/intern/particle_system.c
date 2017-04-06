@@ -90,6 +90,8 @@
 #include "BKE_bvhutils.h"
 #include "BKE_depsgraph.h"
 
+#include "DEG_depsgraph.h"
+
 #include "PIL_time.h"
 
 #include "RE_shader_ext.h"
