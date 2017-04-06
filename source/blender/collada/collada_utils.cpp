@@ -45,7 +45,6 @@ extern "C" {
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -60,6 +59,8 @@ extern "C" {
 #include "bmesh.h"
 #include "bmesh_tools.h"
 }
+
+#include "DEG_depsgraph.h"
 
 #include "collada_utils.h"
 #include "ExportSettings.h"
@@ -118,8 +119,8 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	BKE_object_workob_calc_parent(sce, ob, &workob);
 	invert_m4_m4(ob->parentinv, workob.obmat);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
-	DAG_id_tag_update(&par->id, OB_RECALC_OB);
+	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&par->id, OB_RECALC_OB);
 
 	/** done once after import */
 #if 0
@@ -136,7 +137,7 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 
 	ob->data = BKE_object_obdata_add_from_type(G.main, type, name);
 	ob->lay = scene->lay;
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	BKE_scene_base_select(scene, BKE_scene_base_add(scene, ob));
 

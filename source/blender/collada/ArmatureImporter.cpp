@@ -34,13 +34,14 @@
 
 extern "C" {
 #include "BKE_action.h"
-#include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_armature.h"
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "ED_armature.h"
 }
+
+#include "DEG_depsgraph.h"
 
 #include "collada_utils.h"
 #include "ArmatureImporter.h"
@@ -496,7 +497,7 @@ void ArmatureImporter::create_armature_bones(std::vector<Object *> &ob_arms)
 			ob_arms.push_back(ob_arm);
 		}
 
-		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 	}
 }
 
@@ -629,7 +630,7 @@ Object *ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	ED_armature_from_edit(armature);
 	ED_armature_edit_free(armature);
 
-	DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 	return ob_arm;
 }
