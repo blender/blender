@@ -79,6 +79,7 @@
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -1709,10 +1710,6 @@ static void view3d_draw_objects(
 		view3d_draw_bgpic_test(scene, ar, v3d, true, do_camera_frame);
 	}
 
-	if (!draw_offscreen) {
-		BIF_draw_manipulator(C);
-	}
-
 	/* cleanup */
 	if (v3d->zbuf) {
 		v3d->zbuf = false;
@@ -2429,6 +2426,11 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Sce
 	/* main drawing call */
 	view3d_draw_objects(C, scene, v3d, ar, grid_unit, true, false, do_compositing ? rv3d->compositor : NULL);
 
+	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
+	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
+	 * later become _IN_SCENE (and draw _3D separate) */
+	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_3D);
+
 	/* post process */
 	if (do_compositing) {
 		GPU_fx_do_composite_pass(rv3d->compositor, rv3d->winmat, rv3d->is_persp, scene, NULL);
@@ -2552,6 +2554,13 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 	/* draw viewport using external renderer */
 	if (v3d->drawtype == OB_RENDER)
 		view3d_main_region_draw_engine(C, scene, ar, v3d, clip_border, &border_rect);
+
+	VP_legacy_view3d_main_region_setup_view(scene, v3d, ar, NULL, NULL);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
+
+	ED_region_pixelspace(ar);
 
 	view3d_main_region_draw_info(C, scene, ar, v3d, grid_unit, render_border);
 

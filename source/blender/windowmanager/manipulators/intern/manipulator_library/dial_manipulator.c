@@ -66,12 +66,6 @@
 #include "manipulator_geometry.h"
 #include "manipulator_library_intern.h"
 
-#define USE_IMM
-
-#ifndef USE_IMM
-#include <GL/glu.h>
-#endif
-
 /* to use custom dials exported to geom_dial_manipulator.c */
 // #define USE_MANIPULATOR_CUSTOM_DIAL
 

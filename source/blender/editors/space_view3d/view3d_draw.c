@@ -84,6 +84,7 @@
 #include "RE_engine.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "view3d_intern.h"  /* own include */
 
@@ -2211,12 +2212,18 @@ static void view3d_draw_reference_images(const bContext *UNUSED(C))
 
 /**
 * 3D manipulators
-*/
-static void view3d_draw_manipulator(const bContext *C)
+ */
+static void view3d_draw_manipulators(const bContext *C, const ARegion *ar)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	v3d->zbuf = false;
-	BIF_draw_manipulator(C);
+
+	/* TODO, only draws 3D manipulators right now, need to see how 2D drawing will work in new viewport */
+
+	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
+	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
+	 * later become _IN_SCENE (and draw _3D separate) */
+	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_3D);
 }
 
 /**
@@ -2309,7 +2316,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	view3d_draw_other_elements(C, ar);
 	view3d_draw_tool_ui(C);
 	view3d_draw_reference_images(C);
-	view3d_draw_manipulator(C);
+	view3d_draw_manipulators(C, ar);
 
 	gpuMatrixEnd();
 

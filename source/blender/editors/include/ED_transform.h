@@ -112,6 +112,8 @@ struct TransInfo;
 struct BaseLegacy;
 struct Scene;
 struct Object;
+struct wmManipulatorGroup;
+struct wmManipulatorGroupType;
 struct wmOperator;
 
 /* UNUSED */
@@ -152,10 +154,17 @@ int BIF_countTransformOrientation(const struct bContext *C);
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 
-/* view3d manipulators */
+/* transform manipulators */
 
-int BIF_do_manipulator(struct bContext *C, const struct wmEvent *event, struct wmOperator *op);
-void BIF_draw_manipulator(const struct bContext *C);
+void TRANSFORM_WGT_manipulator(struct wmManipulatorGroupType *wgt);
+
+void TRANSFORM_WGT_object(struct wmManipulatorGroupType *wgt);
+
+bool WIDGETGROUP_manipulator2d_poll(const struct bContext *C, struct wmManipulatorGroupType *wgrouptype);
+void WIDGETGROUP_manipulator2d_init(const struct bContext *C, struct wmManipulatorGroup *wgroup);
+void WIDGETGROUP_manipulator2d_refresh(const struct bContext *C, struct wmManipulatorGroup *wgroup);
+void WIDGETGROUP_manipulator2d_draw_prepare(const struct bContext *C, struct wmManipulatorGroup *wgroup);
+
 
 /* Snapping */
 

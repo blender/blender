@@ -43,6 +43,7 @@ set(INC
 	../editors/space_view3d
 	../render/extern/include
 	../render/intern/include
+	../windowmanager
 
 	../../../intern/glew-mx
 	../../../intern/guardedalloc

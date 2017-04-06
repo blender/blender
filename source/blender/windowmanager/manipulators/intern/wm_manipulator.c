@@ -39,7 +39,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "GL/glew.h"
+#include "GPU_batch.h"
+#include "GPU_glew.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -57,53 +58,58 @@
 /**
  * Main draw call for ManipulatorGeomInfo data
  */
-void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const bool select)
+void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const bool select, const float color[4])
 {
-	GLuint buf[3];
-	const bool use_lighting = !select && ((U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0);
+	/* TODO store the Batches inside the ManipulatorGeomInfo and updated it when geom changes
+	 * So we don't need to re-created and discard it every time */
 
-	if (use_lighting)
-		glGenBuffers(3, buf);
-	else
-		glGenBuffers(2, buf);
+	const bool use_lighting = true || (!select && ((U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0));
+	VertexBuffer *vbo;
+	ElementList *el;
+	Batch *batch;
+	ElementListBuilder elb = {0};
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, buf[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * info->nverts, info->verts, GL_STATIC_DRAW);
-	glVertexPointer(3, GL_FLOAT, 0, NULL);
+	VertexFormat format = {0};
+	unsigned int pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int nor_id;
 
 	if (use_lighting) {
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glBindBuffer(GL_ARRAY_BUFFER, buf[2]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * info->nverts, info->normals, GL_STATIC_DRAW);
-		glNormalPointer(GL_FLOAT, 0, NULL);
-		glShadeModel(GL_SMOOTH);
+		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
 	}
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf[1]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * (3 * info->ntris), info->indices, GL_STATIC_DRAW);
+	/* Elements */
+	ElementListBuilder_init(&elb, GL_TRIANGLES, info->ntris, info->nverts);
+	for (int i = 0; i < info->ntris; ++i) {
+		const unsigned short *idx = &info->indices[i * 3];
+		add_triangle_vertices(&elb, idx[0], idx[1], idx[2]);
+	}
+	el = ElementList_build(&elb);
+
+	vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, info->nverts);
+
+	VertexBuffer_fill_attrib(vbo, pos_id, info->verts);
+
+	if (use_lighting) {
+		/* Normals are expected to be smooth. */
+		VertexBuffer_fill_attrib(vbo, nor_id, info->normals);
+	}
+
+	batch = Batch_create(GL_TRIANGLES, vbo, el);
+	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+
+	Batch_Uniform4fv(batch, "color", color);
 
 	glEnable(GL_CULL_FACE);
 	// glEnable(GL_DEPTH_TEST);
 
-	glDrawElements(GL_TRIANGLES, info->ntris * 3, GL_UNSIGNED_SHORT, NULL);
+	Batch_draw(batch);
 
 	glDisable(GL_DEPTH_TEST);
 	// glDisable(GL_CULL_FACE);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	glDisableClientState(GL_VERTEX_ARRAY);
-
-	if (use_lighting) {
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glShadeModel(GL_FLAT);
-		glDeleteBuffers(3, buf);
-	}
-	else {
-		glDeleteBuffers(2, buf);
-	}
+	Batch_discard_all(batch);
 }
 
 /* Still unused */

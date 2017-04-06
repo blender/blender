@@ -498,8 +498,7 @@ typedef struct TransInfo {
 #define T_CAMERA		(1 << 4)
 		 // trans on points, having no rotation/scale
 #define T_POINTS		(1 << 6)
-		// for manipulator exceptions, like scaling using center point, drawing help lines
-#define T_USES_MANIPULATOR	(1 << 7)
+/* empty slot - (1 << 7) */
 
 	/* restrictions flags */
 #define T_ALL_RESTRICTIONS	((1 << 8)|(1 << 9)|(1 << 10))
@@ -636,7 +635,10 @@ void flushTransMasking(TransInfo *t);
 void flushTransPaintCurve(TransInfo *t);
 void restoreBones(TransInfo *t);
 
-/*********************** exported from transform_manipulator.c ********** */
+/*********************** transform_manipulator.c ********** */
+
+#define MANIPULATOR_AXIS_LINE_WIDTH 2.0
+
 bool gimbal_axis(struct Object *ob, float gmat[3][3]); /* return 0 when no gimbal for selection */
 
 /*********************** TransData Creation and General Handling *********** */

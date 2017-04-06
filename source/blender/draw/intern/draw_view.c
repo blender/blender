@@ -41,6 +41,9 @@
 
 #include "UI_resources.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -699,5 +702,13 @@ void DRW_draw_manipulator(void)
 	const bContext *C = DRW_get_context();
 	View3D *v3d = CTX_wm_view3d(C);
 	v3d->zbuf = false;
-	BIF_draw_manipulator(C);
+	ARegion *ar = CTX_wm_region(C);
+
+
+	/* TODO, only draws 3D manipulators right now, need to see how 2D drawing will work in new viewport */
+
+	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
+	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
+	 * later become _IN_SCENE (and draw _3D separate) */
+	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_3D);
 }

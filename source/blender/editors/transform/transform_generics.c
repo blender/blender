@@ -1228,7 +1228,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		t->animtimer = (animscreen) ? animscreen->animtimer : NULL;
 		
 		/* turn manipulator off during transform */
-		// FIXME: but don't do this when USING the manipulator...
 		if (t->flag & T_MODAL) {
 			t->twtype = v3d->twtype;
 			v3d->twtype = 0;
