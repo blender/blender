@@ -653,6 +653,8 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
 	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_MAT4, value, 16, 1, 0);
 }
 
+#ifdef WITH_CLAY_ENGINE
+
 /* Creates a VBO containing OGL primitives for all DRWDynamicCall */
 static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 {
@@ -763,6 +765,7 @@ static void shgroup_dynamic_batch_from_calls(DRWShadingGroup *shgroup)
 		shgroup_dynamic_batch(shgroup);
 	}
 }
+#endif  /* WITH_CLAY_ENGINE */
 
 /* ***************************************** PASSES ******************************************/
 
@@ -1170,12 +1173,14 @@ void DRW_state_reset(void)
 	set_state(state, true);
 }
 
-#else
-void DRW_draw_pass(DRWPass *UNUSED(pass))
-{
-}
+#else  /* !WITH_CLAY_ENGINE */
 
-#endif
+void DRW_draw_pass(DRWPass *UNUSED(pass)) {}
+void DRW_draw_callbacks_pre_scene(void) {}
+void DRW_draw_callbacks_post_scene(void) {}
+void DRW_state_reset(void) {}
+
+#endif  /* WITH_CLAY_ENGINE */
 
 /* ****************************************** Settings ******************************************/
 
