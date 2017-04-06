@@ -42,13 +42,14 @@
 #include "BLI_threads.h"
 
 #include "BKE_ccg.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
 #include "BKE_subsurf.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RE_multires_bake.h"
 #include "RE_pipeline.h"
@@ -1283,7 +1284,7 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 		}
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
-		DAG_id_tag_update(&ima->id, 0);		
+		DEG_id_tag_update(&ima->id, 0);
 	}
 }
 

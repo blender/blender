@@ -66,7 +66,6 @@
 #include "BKE_customdata.h"
 #include "BKE_colortools.h"
 #include "BKE_displist.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -81,6 +80,8 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+
+#include "DEG_depsgraph.h"
 
 #include "PIL_time.h"
 
@@ -5221,7 +5222,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		RE_SetView(re, mat);
 
 		/* force correct matrix for scaled cameras */
-		DAG_id_tag_update_ex(re->main, &camera->id, OB_RECALC_OB);
+		DEG_id_tag_update_ex(re->main, &camera->id, OB_RECALC_OB);
 	}
 	
 	/* store for incremental render, viewmat rotates dbase */
