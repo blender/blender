@@ -71,21 +71,6 @@ enum {
 /* -------------------------------------------------------------------- */
 /* wmManipulatorGroup */
 
-typedef struct wmManipulatorGroup {
-	struct wmManipulatorGroup *next, *prev;
-
-	struct wmManipulatorGroupType *type;
-	ListBase manipulators;
-
-	void *py_instance;            /* python stores the class instance here */
-	struct ReportList *reports;   /* errors and warnings storage */
-
-	void *customdata;
-	void (*customdata_free)(void *); /* for freeing customdata from above */
-	int flag; /* private */
-	int pad;
-} wmManipulatorGroup;
-
 /* factory class for a manipulator-group type, gets called every time a new area is spawned */
 typedef struct wmManipulatorGroupType {
 	struct wmManipulatorGroupType *next, *prev;

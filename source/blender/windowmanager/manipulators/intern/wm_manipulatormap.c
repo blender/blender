@@ -36,6 +36,8 @@
 #include "BLI_string.h"
 #include "BLI_ghash.h"
 
+#include "DNA_manipulator_types.h"
+
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -237,6 +239,30 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 		return;
 	BLI_assert(!BLI_listbase_is_empty(&mmap->manipulator_groups));
 
+	const bool draw_multisample = (U.ogl_multisamples != USER_MULTISAMPLE_NONE);
+	const bool use_lighting = (U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0;
+
+	/* enable multisampling */
+	if (draw_multisample) {
+		glEnable(GL_MULTISAMPLE);
+	}
+	if (use_lighting) {
+		const float lightpos[4] = {0.0, 0.0, 1.0, 0.0};
+		const float diffuse[4] = {1.0, 1.0, 1.0, 0.0};
+
+		glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		glPushMatrix();
+		glLoadIdentity();
+		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+		glPopMatrix();
+	}
+
 	/* draw_manipulators contains all visible manipulators - draw them */
 	for (LinkData *link = draw_manipulators->first, *link_next; link; link = link_next) {
 		wmManipulator *manipulator = link->data;
@@ -245,6 +271,13 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 		manipulator->draw(C, manipulator);
 		/* free/remove manipulator link after drawing */
 		BLI_freelinkN(draw_manipulators, link);
+	}
+
+	if (draw_multisample) {
+		glDisable(GL_MULTISAMPLE);
+	}
+	if (use_lighting) {
+		glPopAttrib();
 	}
 }
 

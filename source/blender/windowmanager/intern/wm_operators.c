@@ -176,6 +176,10 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
 		ot->name = N_("Dummy Name");
 	}
 
+	if (ot->mgrouptype) {
+		ot->mgrouptype->flag |= WM_MANIPULATORGROUPTYPE_OP;
+	}
+
 	/* XXX All ops should have a description but for now allow them not to. */
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
 	RNA_def_struct_identifier(ot->srna, ot->idname);

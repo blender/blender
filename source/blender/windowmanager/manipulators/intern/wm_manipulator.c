@@ -34,6 +34,8 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 
+#include "DNA_manipulator_types.h"
+
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -50,6 +52,59 @@
 #include "wm_manipulator_wmapi.h"
 #include "wm_manipulator_intern.h"
 
+#include "manipulator_library/manipulator_geometry.h"
+
+/**
+ * Main draw call for ManipulatorGeomInfo data
+ */
+void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const bool select)
+{
+	GLuint buf[3];
+	const bool use_lighting = !select && ((U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0);
+
+	if (use_lighting)
+		glGenBuffers(3, buf);
+	else
+		glGenBuffers(2, buf);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glBindBuffer(GL_ARRAY_BUFFER, buf[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * info->nverts, info->verts, GL_STATIC_DRAW);
+	glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+	if (use_lighting) {
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glBindBuffer(GL_ARRAY_BUFFER, buf[2]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * info->nverts, info->normals, GL_STATIC_DRAW);
+		glNormalPointer(GL_FLOAT, 0, NULL);
+		glShadeModel(GL_SMOOTH);
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf[1]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * (3 * info->ntris), info->indices, GL_STATIC_DRAW);
+
+	glEnable(GL_CULL_FACE);
+	// glEnable(GL_DEPTH_TEST);
+
+	glDrawElements(GL_TRIANGLES, info->ntris * 3, GL_UNSIGNED_SHORT, NULL);
+
+	glDisable(GL_DEPTH_TEST);
+	// glDisable(GL_CULL_FACE);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+
+	if (use_lighting) {
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glShadeModel(GL_FLAT);
+		glDeleteBuffers(3, buf);
+	}
+	else {
+		glDeleteBuffers(2, buf);
+	}
+}
 
 /* Still unused */
 wmManipulator *WM_manipulator_new(
@@ -66,12 +121,11 @@ wmManipulator *WM_manipulator_new(
 	manipulator->render_3d_intersection = render_3d_intersection;
 
 	/* XXX */
-//	fix_linking_manipulator_arrow();
-//	fix_linking_manipulator_arrow2d();
-//	fix_linking_manipulator_cage();
-//	fix_linking_manipulator_dial();
-//	fix_linking_manipulator_facemap();
-//	fix_linking_manipulator_primitive();
+	fix_linking_manipulator_arrow();
+	fix_linking_manipulator_arrow2d();
+	fix_linking_manipulator_cage();
+	fix_linking_manipulator_dial();
+	fix_linking_manipulator_primitive();
 
 	return manipulator;
 }
@@ -205,6 +259,14 @@ PointerRNA *WM_manipulator_set_operator(wmManipulator *manipulator, const char *
 	}
 
 	return NULL;
+}
+
+
+void WM_manipulator_set_custom_handler(
+        struct wmManipulator *manipulator,
+        int (*handler)(struct bContext *, const wmEvent *, struct wmManipulator *, const int))
+{
+	manipulator->handler = handler;
 }
 
 /**
@@ -341,7 +403,7 @@ void wm_manipulator_calculate_scale(wmManipulator *manipulator, const bContext *
 	float scale = 1.0f;
 
 	if (manipulator->mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE_3D) {
-		if (rv3d /*&& (U.manipulator_flag & V3D_3D_MANIPULATORS) == 0*/) { /* UserPref flag might be useful for later */
+		if (rv3d /*&& (U.manipulator_flag & V3D_DRAW_MANIPULATOR) == 0*/) { /* UserPref flag might be useful for later */
 			if (manipulator->get_final_position) {
 				float position[3];
 

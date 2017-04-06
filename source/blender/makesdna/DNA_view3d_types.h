@@ -137,7 +137,7 @@ typedef struct RegionView3D {
 	char pad[3];
 	float ofs_lock[2];			/* normalized offset for locked view: (-1, -1) bottom left, (1, 1) upper right */
 
-	short twdrawflag;
+	short twdrawflag; /* XXX can easily get rid of this (Julian) */
 	short rflag;
 
 
@@ -392,8 +392,8 @@ enum {
 /* View3d->twflag */
    /* USE = user setting, DRAW = based on selection */
 #define V3D_USE_MANIPULATOR		1
-#define V3D_DRAW_MANIPULATOR	2
-/* #define V3D_CALC_MANIPULATOR	4 */ /*UNUSED*/
+#define V3D_DRAW_MANIPULATOR        (1 << 1)
+#define V3D_SHADED_MANIPULATORS      (1 << 2)
 
 /* BGPic->flag */
 /* may want to use 1 for select ? */

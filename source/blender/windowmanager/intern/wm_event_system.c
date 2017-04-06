@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "DNA_listBase.h"
+#include "DNA_manipulator_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"

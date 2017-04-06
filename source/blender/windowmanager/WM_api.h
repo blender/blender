@@ -44,6 +44,7 @@
 
 /* Include external manipulator API's */
 #include "manipulators/WM_manipulator_api.h"
+#include "manipulators/WM_manipulator_library.h"
 
 #ifdef __cplusplus
 extern "C" {

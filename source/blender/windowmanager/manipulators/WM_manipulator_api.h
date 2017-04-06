@@ -58,6 +58,9 @@ void WM_manipulator_delete(
 
 void WM_manipulator_set_property(struct wmManipulator *, int slot, struct PointerRNA *ptr, const char *propname);
 struct PointerRNA *WM_manipulator_set_operator(struct wmManipulator *, const char *opname);
+void WM_manipulator_set_custom_handler(
+        struct wmManipulator *manipulator,
+        int (*handler)(struct bContext *, const struct wmEvent *, struct wmManipulator *, const int));
 void WM_manipulator_set_func_select(
         struct wmManipulator *manipulator,
         void (*select)(struct bContext *, struct wmManipulator *, const int action)); /* wmManipulatorSelectFunc */

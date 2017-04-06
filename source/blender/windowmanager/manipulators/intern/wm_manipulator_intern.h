@@ -30,6 +30,7 @@
 
 struct wmKeyConfig;
 struct wmManipulatorMap;
+struct ManipulatorGeomInfo;
 
 /* -------------------------------------------------------------------- */
 /* wmManipulator */
@@ -154,8 +155,8 @@ enum {
 
 struct wmManipulatorGroup *wm_manipulatorgroup_new_from_type(struct wmManipulatorGroupType *mgrouptype);
 void wm_manipulatorgroup_free(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulatorGroup *mgroup);
-void wm_manipulatorgroup_manipulator_register(struct wmManipulatorGroup *mgroup, wmManipulator *manipulator);
-wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
+void wm_manipulatorgroup_manipulator_register(struct wmManipulatorGroup *mgroup, struct wmManipulator *manipulator);
+struct wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
         const struct wmManipulatorGroup *mgroup, struct bContext *C, const struct wmEvent *event,
         unsigned char *part);
 void wm_manipulatorgroup_intersectable_manipulators_to_list(
@@ -210,21 +211,14 @@ struct wmManipulatorMapType {
 	ListBase manipulator_grouptypes;
 };
 
-void wm_manipulatormap_selected_delete(wmManipulatorMap *mmap);
-bool wm_manipulatormap_deselect_all(struct wmManipulatorMap *mmap, wmManipulator ***sel);
+void wm_manipulatormap_selected_delete(struct wmManipulatorMap *mmap);
+bool wm_manipulatormap_deselect_all(struct wmManipulatorMap *mmap, struct wmManipulator ***sel);
 
 
 /* -------------------------------------------------------------------- */
 /* Manipulator drawing */
 
-typedef struct ManipulatorGeometryInfo {
-	int nverts;
-	int ntris;
-	float (*verts)[3];
-	float (*normals)[3];
-	unsigned short *indices;
-	bool init;
-} ManipulatorGeometryInfo;
+void wm_manipulator_geometryinfo_draw(const struct ManipulatorGeomInfo *info, const bool select);
 
 #endif  /* __WM_MANIPULATOR_INTERN_H__ */
 
