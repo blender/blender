@@ -66,8 +66,6 @@
 
 #include "BKE_deform.h"
 
-#include "DEG_depsgraph.h"
-
 /* Workaround for cyclic dependency with curves.
  * In such case curve_cache might not be ready yet,
  */
@@ -1228,7 +1226,7 @@ void BKE_lattice_translate(Lattice *lt, float offset[3], bool do_keys)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_lattice_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
+void BKE_lattice_eval_geometry(struct EvaluationContext *UNUSED(eval_ctx),
                                Lattice *UNUSED(latt))
 {
 }

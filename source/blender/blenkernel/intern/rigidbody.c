@@ -65,8 +65,6 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph.h"
-
 /* ************************************** */
 /* Memory Management */
 
@@ -1653,7 +1651,7 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}
 /* -------------------- */
 /* Depsgraph evaluation */
 
-void BKE_rigidbody_rebuild_sim(EvaluationContext *UNUSED(eval_ctx),
+void BKE_rigidbody_rebuild_sim(struct EvaluationContext *UNUSED(eval_ctx),
                                Scene *scene)
 {
 	float ctime = BKE_scene_frame_get(scene);
@@ -1668,7 +1666,7 @@ void BKE_rigidbody_rebuild_sim(EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_rigidbody_eval_simulation(EvaluationContext *UNUSED(eval_ctx),
+void BKE_rigidbody_eval_simulation(struct EvaluationContext *UNUSED(eval_ctx),
                                    Scene *scene)
 {
 	float ctime = BKE_scene_frame_get(scene);
@@ -1683,7 +1681,7 @@ void BKE_rigidbody_eval_simulation(EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_rigidbody_object_sync_transforms(EvaluationContext *UNUSED(eval_ctx),
+void BKE_rigidbody_object_sync_transforms(struct EvaluationContext *UNUSED(eval_ctx),
                                           Scene *scene,
                                           Object *ob)
 {

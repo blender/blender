@@ -89,8 +89,6 @@
 #include "BKE_scene.h"
 #include "BKE_bvhutils.h"
 
-#include "DEG_depsgraph.h"
-
 #include "PIL_time.h"
 
 #include "RE_shader_ext.h"
@@ -4351,7 +4349,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_particle_system_eval(EvaluationContext *UNUSED(eval_ctx),
+void BKE_particle_system_eval(struct EvaluationContext *UNUSED(eval_ctx),
                               Scene *scene,
                               Object *ob,
                               ParticleSystem *psys)

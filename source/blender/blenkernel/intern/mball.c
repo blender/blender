@@ -66,7 +66,7 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 
-#include "DEG_depsgraph.h"
+//#include "DEG_depsgraph.h"
 
 /* Functions */
 
@@ -323,7 +323,7 @@ void BKE_mball_properties_copy(Scene *scene, Object *active_object)
 	int basisnr, obnr;
 	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
 	SceneBaseIter iter;
-	EvaluationContext *eval_ctx = G.main->eval_ctx;
+	struct EvaluationContext *eval_ctx = G.main->eval_ctx;
 
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name + 2, '.');
 
@@ -532,7 +532,7 @@ void BKE_mball_select_swap(struct MetaBall *mb)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_mball_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
+void BKE_mball_eval_geometry(struct EvaluationContext *UNUSED(eval_ctx),
                              MetaBall *UNUSED(mball))
 {
 }
