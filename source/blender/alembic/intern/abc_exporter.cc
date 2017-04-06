@@ -410,7 +410,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 	free_object_duplilist(lb);
 }
 
-void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupliObParent)
+AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupliObParent)
 {
 	const std::string name = get_object_dag_path_name(ob, dupliObParent);
 
@@ -419,43 +419,47 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 	BLI_assert(ob != dupliObParent);
 
 	/* check if we have already created a transform writer for this object */
-	if (getXForm(name) != NULL) {
-		ABC_LOG(m_settings.logger) << "xform " << name << " already exists!\n";
-		return;
+	AbcTransformWriter *my_writer = getXForm(name);
+	if (my_writer != NULL){
+		return my_writer;
 	}
 
-	AbcTransformWriter *parent_xform = NULL;
+	AbcTransformWriter *parent_writer = NULL;
+	Alembic::Abc::OObject alembic_parent;
 
 	if (parent) {
-		const std::string parentname = get_object_dag_path_name(parent, dupliObParent);
-		parent_xform = getXForm(parentname);
-
-		if (!parent_xform) {
-			if (parent->parent) {
-				createTransformWriter(parent, parent->parent, dupliObParent);
-			}
-			else if (parent == dupliObParent) {
-				if (dupliObParent->parent == NULL) {
-					createTransformWriter(parent, NULL, NULL);
-				}
-				else {
-					createTransformWriter(parent, dupliObParent->parent, dupliObParent->parent);
-				}
+		/* Since there are so many different ways to find parents (as evident
+		 * in the number of conditions below), we can't really look up the
+		 * parent by name. We'll just call createTransformWriter(), which will
+		 * return the parent's AbcTransformWriter pointer. */
+		if (parent->parent) {
+			parent_writer = createTransformWriter(parent, parent->parent, dupliObParent);
+		}
+		else if (parent == dupliObParent) {
+			if (dupliObParent->parent == NULL) {
+				parent_writer = createTransformWriter(parent, NULL, NULL);
 			}
 			else {
-				createTransformWriter(parent, dupliObParent, dupliObParent);
+				parent_writer = createTransformWriter(parent, dupliObParent->parent, dupliObParent->parent);
 			}
-
-			parent_xform = getXForm(parentname);
 		}
-	}
+		else {
+			parent_writer = createTransformWriter(parent, dupliObParent, dupliObParent);
+		}
 
-	if (parent_xform) {
-		m_xforms[name] = new AbcTransformWriter(ob, parent_xform->alembicXform(), parent_xform, m_trans_sampling_index, m_settings);
+		BLI_assert(parent_writer);
+		alembic_parent = parent_writer->alembicXform();
 	}
 	else {
-		m_xforms[name] = new AbcTransformWriter(ob, m_writer->archive().getTop(), NULL, m_trans_sampling_index, m_settings);
+		/* Parentless objects still have the "top object" as parent
+		 * in Alembic. */
+		alembic_parent = m_writer->archive().getTop();
 	}
+
+	my_writer = new AbcTransformWriter(ob, alembic_parent, parent_writer,
+	                                   m_trans_sampling_index, m_settings);
+	m_xforms[name] = my_writer;
+	return my_writer;
 }
 
 void AbcExporter::createShapeWriters(EvaluationContext *eval_ctx)

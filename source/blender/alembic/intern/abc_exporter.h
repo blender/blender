@@ -107,7 +107,7 @@ private:
 
 	void createTransformWritersHierarchy(EvaluationContext *eval_ctx);
 	void createTransformWritersFlat();
-	void createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
+	AbcTransformWriter * createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
 	void exploreTransform(EvaluationContext *eval_ctx, Object *ob, Object *parent, Object *dupliObParent = NULL);
 	void exploreObject(EvaluationContext *eval_ctx, Object *ob, Object *dupliObParent);
 	void createShapeWriters(EvaluationContext *eval_ctx);
