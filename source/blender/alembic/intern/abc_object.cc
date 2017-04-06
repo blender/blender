@@ -32,7 +32,6 @@ extern "C" {
 #include "DNA_space_types.h"  /* for FILE_MAX */
 
 #include "BKE_constraint.h"
-#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"

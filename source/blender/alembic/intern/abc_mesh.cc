@@ -38,7 +38,6 @@ extern "C" {
 #include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"

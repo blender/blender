@@ -47,11 +47,13 @@ extern "C" {
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 /* SpaceType struct has a member called 'new' which obviously conflicts with C++
  * so temporarily redefining the new keyword to make it compile. */
@@ -744,10 +746,10 @@ static void import_endjob(void *user_data)
 
 			BKE_scene_base_add(data->scene, ob);
 
-			DAG_id_tag_update_ex(data->bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+			DEG_id_tag_update_ex(data->bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		}
 
-		DAG_relations_tag_update(data->bmain);
+		DEG_relations_tag_update(data->bmain);
 	}
 
 	for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
