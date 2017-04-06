@@ -366,14 +366,14 @@ static void region_draw_azone_tab_plus(AZone *az)
 	}
 
 	float color[4] = {0.05f, 0.05f, 0.05f, 0.4f};
-	UI_draw_roundbox((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, color);
+	UI_draw_roundbox_aa(true, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, color);
 
 	draw_azone_plus((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2);
 }
 
 static void region_draw_azone_tab(AZone *az)
 {
-	float col[4], black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	float col[4], black[4] = {0.0f, 0.0f, 0.0f, 0.5f};
 	
 	glEnable(GL_BLEND);
 	UI_GetThemeColor3fv(TH_HEADER, col);
@@ -382,28 +382,24 @@ static void region_draw_azone_tab(AZone *az)
 	/* add code to draw region hidden as 'too small' */
 	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
-			UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_RB_ALPHA);
-			
-			UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
-			UI_draw_roundbox_unfilled((float)az->x1, 0.3f + (float)az->y1, (float)az->x2, 0.3f + (float)az->y2, 4.0f, black);
+			UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+			UI_draw_roundbox_shade_x(true, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
+			UI_draw_roundbox_aa(false, (float)az->x1, 0.3f + (float)az->y1, (float)az->x2, 0.3f + (float)az->y2, 4.0f, black);
 			break;
 		case AE_BOTTOM_TO_TOPLEFT:
-			UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT | UI_RB_ALPHA);
-			
-			UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
-			UI_draw_roundbox_unfilled((float)az->x1, 0.3f + (float)az->y1, (float)az->x2, 0.3f + (float)az->y2, 4.0f, black);
+			UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
+			UI_draw_roundbox_shade_x(true, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
+			UI_draw_roundbox_aa(false, (float)az->x1, 0.3f + (float)az->y1, (float)az->x2, 0.3f + (float)az->y2, 4.0f, black);
 			break;
 		case AE_LEFT_TO_TOPRIGHT:
-			UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT | UI_RB_ALPHA);
-			
-			UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
-			UI_draw_roundbox_unfilled((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, black);
+			UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
+			UI_draw_roundbox_shade_x(true, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
+			UI_draw_roundbox_aa(false, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, black);
 			break;
 		case AE_RIGHT_TO_TOPLEFT:
-			UI_draw_roundbox_corner_set(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_RB_ALPHA);
-			
-			UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
-			UI_draw_roundbox_unfilled((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, black);
+			UI_draw_roundbox_corner_set(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+			UI_draw_roundbox_shade_x(true, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
+			UI_draw_roundbox_aa(false, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, black);
 			break;
 	}
 	

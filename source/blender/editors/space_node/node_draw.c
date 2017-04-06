@@ -742,10 +742,8 @@ void node_draw_shadow(SpaceNode *snode, bNode *node, float radius, float alpha)
 		const float margin = 3.0f;
 		
 		float color[4] = {0.0f, 0.0f, 0.0f, 0.33f};
-		glEnable(GL_BLEND);
-		UI_draw_roundbox(rct->xmin - margin, rct->ymin - margin,
-		                 rct->xmax + margin, rct->ymax + margin, radius + margin, color);
-		glDisable(GL_BLEND);
+		UI_draw_roundbox_aa(true, rct->xmin - margin, rct->ymin - margin,
+		                    rct->xmax + margin, rct->ymax + margin, radius + margin, color);
 	}
 }
 
@@ -913,7 +911,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glLineWidth(1.0f);
 
 	UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
-	UI_draw_roundbox(rct->xmin, rct->ymax - NODE_DY, rct->xmax, rct->ymax, BASIS_RAD, color);
+	UI_draw_roundbox_aa(true, rct->xmin, rct->ymax - NODE_DY, rct->xmax, rct->ymax, BASIS_RAD, color);
 	
 	/* show/hide icons */
 	iconofs = rct->xmax - 0.35f * U.widget_unit;
@@ -988,23 +986,15 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_GetThemeColor4fv(TH_NODE, color);
 
-	glEnable(GL_BLEND);
 	UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
-	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax - NODE_DY, BASIS_RAD, color);
-	glDisable(GL_BLEND);
+	UI_draw_roundbox_aa(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax - NODE_DY, BASIS_RAD, color);
 
 	/* outline active and selected emphasis */
 	if (node->flag & SELECT) {
-		glEnable(GL_BLEND);
-		glEnable(GL_LINE_SMOOTH);
-
 		UI_GetThemeColorShadeAlpha4fv((node->flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, 0, -40, color);
 
 		UI_draw_roundbox_corner_set(UI_CNR_ALL);
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
-
-		glDisable(GL_LINE_SMOOTH);
-		glDisable(GL_BLEND);
+		UI_draw_roundbox_aa(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
 	}
 	
 	/* disable lines */
@@ -1062,19 +1052,13 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	(void)ntree;
 #endif
 	
-	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad, color);
+	UI_draw_roundbox_aa(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad, color);
 	
 	/* outline active and selected emphasis */
 	if (node->flag & SELECT) {
-		glEnable(GL_BLEND);
-		glEnable(GL_LINE_SMOOTH);
-		
 		UI_GetThemeColorShadeAlpha4fv((node->flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, 0, -40, color);
 
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad, color);
-
-		glDisable(GL_LINE_SMOOTH);
-		glDisable(GL_BLEND);
+		UI_draw_roundbox_aa(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad, color);
 	}
 
 	/* custom color inline */
@@ -1082,7 +1066,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 
-		UI_draw_roundbox_gl_mode_3fvAlpha(GL_LINE_LOOP, rct->xmin + 1, rct->ymin + 1, rct->xmax -1, rct->ymax - 1, hiddenrad, node->color, 1.0f);
+		UI_draw_roundbox_3fvAlpha(false, rct->xmin + 1, rct->ymin + 1, rct->xmax -1, rct->ymax - 1, hiddenrad, node->color, 1.0f);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
@@ -1354,7 +1338,7 @@ static void draw_group_overlay(const bContext *C, ARegion *ar)
 
 	UI_GetThemeColorShadeAlpha4fv(TH_NODE_GROUP, 0, -70, color);
 	UI_draw_roundbox_corner_set(UI_CNR_NONE);
-	UI_draw_roundbox_gl_mode(GL_TRIANGLE_FAN, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0, color);
+	UI_draw_roundbox_4fv(true, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0, color);
 	glDisable(GL_BLEND);
 	
 	/* set the block bounds to clip mouse events from underlying nodes */

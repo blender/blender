@@ -705,7 +705,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			/* draw */
 			float color[4];
 			UI_GetThemeColorShade4fv(TH_VIEW_OVERLAY, 100, color);
-			UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color);
+			UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color);
 		}
 	}
 

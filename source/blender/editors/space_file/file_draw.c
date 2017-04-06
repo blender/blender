@@ -263,7 +263,7 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
 	float color[4];
 	UI_GetThemeColorShade4fv(colorid, shade, color);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox((float)sx, (float)(sy - height), (float)(sx + width), (float)sy, 5.0f, color);
+	UI_draw_roundbox_aa(true, (float)sx, (float)(sy - height), (float)(sx + width), (float)sy, 5.0f, color);
 }
 
 

@@ -309,16 +309,19 @@ typedef enum {
  * Functions to draw various shapes, taking theme settings into account.
  * Used for code that draws its own UI style elements. */
 
-void UI_draw_roundbox(float minx, float miny, float maxx, float maxy, float rad, const float color[4]);
 void UI_draw_roundbox_corner_set(int type);
+void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4]);
+void UI_draw_roundbox_4fv(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[4]);
+void UI_draw_roundbox_3ubAlpha(bool filled, float minx, float miny, float maxx, float maxy, float rad, const unsigned char col[3], unsigned char alpha);
+void UI_draw_roundbox_3fvAlpha(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[3], float alpha);
+void UI_draw_roundbox_shade_x(bool filled, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown, const float col[4]);
+
+#if 0 /* unused */
 int  UI_draw_roundbox_corner_get(void);
-void UI_draw_roundbox_unfilled(float minx, float miny, float maxx, float maxy, float rad, const float color[4]);
+void UI_draw_roundbox_shade_y(bool filled, float minx, float miny, float maxx, float maxy, float rad, float shadeleft, float shaderight, const float col[4]);
+#endif
+
 void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
-void UI_draw_roundbox_gl_mode_3ubAlpha(int mode, float minx, float miny, float maxx, float maxy, float rad, unsigned char col[3], unsigned char alpha);
-void UI_draw_roundbox_gl_mode_3fvAlpha(int mode, float minx, float miny, float maxx, float maxy, float rad, float col[3], float alpha);
-void UI_draw_roundbox_gl_mode(int mode, float minx, float miny, float maxx, float maxy, float rad, float col[4]);
-void UI_draw_roundbox_shade_x(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown, const float col[4]);
-void UI_draw_roundbox_shade_y(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeleft, float shaderight, const float col[4]);
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4]);
 
 void UI_draw_safe_areas(
@@ -854,9 +857,6 @@ enum {
 	UI_CNR_NONE         = 0,
 	UI_CNR_ALL          = (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)
 };
-
-/* not apart of the corner flags but mixed in some functions  */
-#define UI_RB_ALPHA (UI_CNR_ALL + 1)
 
 uiLayout *UI_block_layout(uiBlock *block, int dir, int type, int x, int y, int size, int em, int padding, struct uiStyle *style);
 void UI_block_layout_set_current(uiBlock *block, uiLayout *layout);

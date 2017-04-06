@@ -217,24 +217,27 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	glDisable(GL_BLEND);
 }
 
-void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy,
-                           float rad, bool use_alpha, const float color[4])
+/* belongs in interface_draw.c, but needs WIDGET_AA_JITTER from this file */
+void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4])
 {
-	float draw_color[4];
-	int j;
-
-	copy_v4_v4(draw_color, color);
-
 	glEnable(GL_BLEND);
-	if (use_alpha) {
-		draw_color[3] = 0.5f;
+
+	if (filled) {
+		/* plain antialiased filled box */
+		const float alpha = color[3] * 0.125f;
+		
+		for (int j = 0; j < WIDGET_AA_JITTER; j++) {
+			gpuPushMatrix();
+			gpuTranslate2fv(jit[j]);
+			UI_draw_roundbox_3fvAlpha(true, minx, miny, maxx, maxy, rad, color, alpha);
+			gpuPopMatrix();
+		}
 	}
-	draw_color[3] *= 0.125f;
-	
-	for (j = 0; j < WIDGET_AA_JITTER; j++) {
-		gpuTranslate2fv(jit[j]);
-		UI_draw_roundbox_gl_mode(mode, minx, miny, maxx, maxy, rad, draw_color);
-		gpuTranslate2f(-jit[j][0], -jit[j][1]);
+	else {
+		/* plain antialiased unfilled box */
+		glEnable(GL_LINE_SMOOTH);
+		UI_draw_roundbox_4fv(false, minx, miny, maxx, maxy, rad, color);
+		glDisable(GL_LINE_SMOOTH);
 	}
 
 	glDisable(GL_BLEND);

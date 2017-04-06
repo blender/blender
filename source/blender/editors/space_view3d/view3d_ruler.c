@@ -590,7 +590,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				/* draw text (bg) */
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
-				UI_draw_roundbox(
+				UI_draw_roundbox_aa(true,
 				        posit[0] - bg_margin,                  posit[1] - bg_margin,
 				        posit[0] + bg_margin + numstr_size[0], posit[1] + bg_margin + numstr_size[1],
 				        bg_radius, color_back);
@@ -679,7 +679,8 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				/* draw text (bg) */
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
-				UI_draw_roundbox(posit[0] - bg_margin,                  posit[1] - bg_margin,
+				UI_draw_roundbox_aa(true,
+				           posit[0] - bg_margin,                  posit[1] - bg_margin,
 				           posit[0] + bg_margin + numstr_size[0], posit[1] + bg_margin + numstr_size[1],
 				           bg_radius, color_back);
 				/* draw text */

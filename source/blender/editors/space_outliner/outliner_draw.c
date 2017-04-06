@@ -1251,13 +1251,14 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Sce
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
 				color[3] *= alpha_fac;
 
-				UI_draw_roundbox(
+				UI_draw_roundbox_aa(
+				        true,
 				        (float) *offsx + 1.0f * ufac,
 				        (float)ys + 1.0f * ufac,
 				        (float)*offsx + UI_UNIT_X - 1.0f * ufac,
 				        (float)ys + UI_UNIT_Y - ufac,
 				        (float)UI_UNIT_Y / 2.0f - ufac,
-				         color);
+				        color);
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
@@ -1377,7 +1378,8 @@ static void outliner_draw_tree_element(
 		/* active circle */
 		if (active != OL_DRAWSEL_NONE) {
 			UI_draw_roundbox_corner_set(UI_CNR_ALL);
-			UI_draw_roundbox(
+			UI_draw_roundbox_aa(
+			        true,
 			        (float)startx + UI_UNIT_X + 1.0f * ufac,
 			        (float)*starty + 1.0f * ufac,
 			        (float)startx + 2.0f * UI_UNIT_X - 1.0f * ufac,

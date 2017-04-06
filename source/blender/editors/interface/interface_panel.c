@@ -696,7 +696,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			else UI_draw_roundbox_corner_set(UI_CNR_NONE);
 
 			UI_GetThemeColorShade4fv(TH_BACK, -120, color);
-			UI_draw_roundbox_unfilled(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8, color);
+			UI_draw_roundbox_aa(false, 0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8, color);
 		}
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -1553,7 +1553,7 @@ void UI_panel_category_clear_all(ARegion *ar)
 	BLI_freelistN(&ar->panels_category);
 }
 
-/* based on UI_draw_roundbox_gl_mode, check on making a version which allows us to skip some sides */
+/* based on UI_draw_roundbox, check on making a version which allows us to skip some sides */
 static void ui_panel_category_draw_tab(
         int mode, float minx, float miny, float maxx, float maxy, float rad,
         int roundboxtype,

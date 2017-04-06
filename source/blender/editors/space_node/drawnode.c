@@ -450,29 +450,20 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 	}
 	else
 		UI_GetThemeColor4fv(TH_NODE_FRAME, color);
-	glEnable(GL_BLEND);
+
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
-	glDisable(GL_BLEND);
+	UI_draw_roundbox_aa(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
 
 	/* outline active and selected emphasis */
 	if (node->flag & SELECT) {
-		glEnable(GL_BLEND);
-		glEnable(GL_LINE_SMOOTH);
-				
 		if (node->flag & NODE_ACTIVE)
 			UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, color);
 		else
 			UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, color);
 
-		UI_draw_roundbox_corner_set(UI_CNR_ALL);
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
-
-
-		glDisable(GL_LINE_SMOOTH);
-		glDisable(GL_BLEND);
+		UI_draw_roundbox_aa(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
 	}
-	
+
 	/* label */
 	node_draw_frame_label(ntree, node, snode->aspect);
 	
@@ -566,9 +557,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	float debug_color[4];
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
 	UI_GetThemeColor4fv(TH_NODE, debug_color);
-	glEnable(GL_BLEND);
-	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
-	glDisable(GL_BLEND);
+	UI_draw_roundbox_aa(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
 
 	/* outline active and selected emphasis */
 	if (node->flag & SELECT) {
@@ -581,7 +570,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 		else {
 			UI_GetThemeColorShadeAlpha4fv(TH_TEXT_HI, -20, -120, debug_color);
 		}
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
+		UI_draw_roundbox_4fv(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);

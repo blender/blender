@@ -402,7 +402,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 
 		/* strip is in normal track */
 		UI_draw_roundbox_corner_set(UI_CNR_ALL); /* all corners rounded */
-		UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1, color);
+		UI_draw_roundbox_shade_x(true, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1, color);
 
 		/* restore current vertex format & program (roundbox trashes it) */
 		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
@@ -450,7 +450,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		setlinestyle(4);
 
 	/* draw outline */
-	UI_draw_roundbox_shade_x(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1, color);
+	UI_draw_roundbox_shade_x(false, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1, color);
 
 	/* restore current vertex format & program (roundbox trashes it) */
 	pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
