@@ -425,13 +425,16 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 	const std::string & full_name = object.getFullName();
 
 	if (!object.valid()) {
-		std::cerr << "  - " << full_name << ": object is invalid, skipping it and all its children.\n";
+		std::cerr << "  - "
+		          << full_name
+		          << ": object is invalid, skipping it and all its children.\n";
 		return std::make_pair(false, static_cast<AbcObjectReader *>(NULL));
 	}
 
-	// The interpretation of data by the children determine the role of this object.
-	// This is especially important for Xform objects, as they can be either part of a Blender object
-	// or a Blender object (Empty) themselves.
+	/* The interpretation of data by the children determine the role of this
+	 * object. This is especially important for Xform objects, as they can be
+	 * either part of a Blender object or a Blender object (Empty) themselves.
+	 */
 	size_t children_claiming_this_object = 0;
 	size_t num_children = object.getNumChildren();
 	AbcObjectReader::ptr_vector claiming_child_readers;
@@ -472,9 +475,9 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 	else if (IXform::matches(md)) {
 		bool create_empty;
 
-		/* An xform can either be a Blender Object (if it contains a mesh, for example),
-		 * but it can also be an Empty. Its correct translation to Blender's data model
-		 * depends on its children. */
+		/* An xform can either be a Blender Object (if it contains a mesh, for
+		 * example), but it can also be an Empty. Its correct translation to
+		 * Blender's data model depends on its children. */
 
 		/* Check whether or not this object is a Maya locator, which is
 		 * similar to empties used as parent object in Blender. */
@@ -719,7 +722,8 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 			max_time = std::max(max_time, reader->maxTime());
 		}
 		else {
-			std::cerr << "Object " << reader->name() << " in Alembic file " << data->filename << " is invalid.\n";
+			std::cerr << "Object " << reader->name() << " in Alembic file "
+			          << data->filename << " is invalid.\n";
 		}
 
 		*data->progress = 0.1f + 0.3f * (++i / size);
