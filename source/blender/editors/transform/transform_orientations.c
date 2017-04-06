@@ -451,7 +451,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 
 		case V3D_MANIP_GIMBAL:
 			unit_m3(t->spacemtx);
-			if (gimbal_axis(ob, t->spacemtx)) {
+			if (ob && gimbal_axis(ob, t->spacemtx)) {
 				BLI_strncpy(t->spacename, IFACE_("gimbal"), sizeof(t->spacename));
 				break;
 			}

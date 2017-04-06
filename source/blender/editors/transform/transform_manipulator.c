@@ -201,65 +201,63 @@ static int test_rotmode_euler(short rotmode)
 
 bool gimbal_axis(Object *ob, float gmat[3][3])
 {
-	if (ob) {
-		if (ob->mode & OB_MODE_POSE) {
-			bPoseChannel *pchan = BKE_pose_channel_active(ob);
+	if (ob->mode & OB_MODE_POSE) {
+		bPoseChannel *pchan = BKE_pose_channel_active(ob);
 
-			if (pchan) {
-				float mat[3][3], tmat[3][3], obmat[3][3];
-				if (test_rotmode_euler(pchan->rotmode)) {
-					eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
-				}
-				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-					axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
-				}
-				else { /* quat */
-					return 0;
-				}
-
-
-				/* apply bone transformation */
-				mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
-
-				if (pchan->parent) {
-					float parent_mat[3][3];
-
-					copy_m3_m4(parent_mat, pchan->parent->pose_mat);
-					mul_m3_m3m3(mat, parent_mat, tmat);
-
-					/* needed if object transformation isn't identity */
-					copy_m3_m4(obmat, ob->obmat);
-					mul_m3_m3m3(gmat, obmat, mat);
-				}
-				else {
-					/* needed if object transformation isn't identity */
-					copy_m3_m4(obmat, ob->obmat);
-					mul_m3_m3m3(gmat, obmat, tmat);
-				}
-
-				normalize_m3(gmat);
-				return 1;
+		if (pchan) {
+			float mat[3][3], tmat[3][3], obmat[3][3];
+			if (test_rotmode_euler(pchan->rotmode)) {
+				eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
 			}
-		}
-		else {
-			if (test_rotmode_euler(ob->rotmode)) {
-				eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
-			}
-			else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-				axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+				axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
 			}
 			else { /* quat */
 				return 0;
 			}
 
-			if (ob->parent) {
+
+			/* apply bone transformation */
+			mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
+
+			if (pchan->parent) {
 				float parent_mat[3][3];
-				copy_m3_m4(parent_mat, ob->parent->obmat);
-				normalize_m3(parent_mat);
-				mul_m3_m3m3(gmat, parent_mat, gmat);
+
+				copy_m3_m4(parent_mat, pchan->parent->pose_mat);
+				mul_m3_m3m3(mat, parent_mat, tmat);
+
+				/* needed if object transformation isn't identity */
+				copy_m3_m4(obmat, ob->obmat);
+				mul_m3_m3m3(gmat, obmat, mat);
 			}
+			else {
+				/* needed if object transformation isn't identity */
+				copy_m3_m4(obmat, ob->obmat);
+				mul_m3_m3m3(gmat, obmat, tmat);
+			}
+
+			normalize_m3(gmat);
 			return 1;
 		}
+	}
+	else {
+		if (test_rotmode_euler(ob->rotmode)) {
+			eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
+		}
+		else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+			axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
+		}
+		else { /* quat */
+			return 0;
+		}
+
+		if (ob->parent) {
+			float parent_mat[3][3];
+			copy_m3_m4(parent_mat, ob->parent->obmat);
+			normalize_m3(parent_mat);
+			mul_m3_m3m3(gmat, parent_mat, gmat);
+		}
+		return 1;
 	}
 
 	return 0;
