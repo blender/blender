@@ -21,6 +21,10 @@ else()
 	message(FATAL_ERROR "Unknown build environment")
 endif()
 
+# Use backported version of the compiler instead of a system default one
+set(CMAKE_C_COMPILER "/usr/bin/gcc-6" CACHE STRING "" FORCE)
+set(CMAKE_CXX_COMPILER "/usr/bin/g++-6" CACHE STRING "" FORCE)
+
 # Default to only build Blender, not the player
 set(WITH_BLENDER             ON  CACHE BOOL "" FORCE)
 set(WITH_PLAYER              OFF CACHE BOOL "" FORCE)
