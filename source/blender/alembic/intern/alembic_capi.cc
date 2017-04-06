@@ -21,6 +21,7 @@
  */
 
 #include "../ABC_alembic.h"
+#include <boost/foreach.hpp>
 
 #include <Alembic/AbcMaterial/IMaterial.h>
 
@@ -438,10 +439,14 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 	AbcObjectReader::ptr_vector assign_as_parent;
 	for (size_t i = 0; i < num_children; ++i) {
 		const IObject ichild = object.getChild(i);
-		bool child_claims_this_object;
-		AbcObjectReader *child_reader;
 
-		std::tie(child_claims_this_object, child_reader) = visit_object(ichild, readers, settings, assign_as_parent);
+		/* TODO: When we only support C++11, use std::tie() instead. */
+		std::pair<bool, AbcObjectReader *> child_result;
+		child_result = visit_object(ichild, readers, settings, assign_as_parent);
+
+		bool child_claims_this_object = child_result.first;
+		AbcObjectReader *child_reader = child_result.second;
+
 		if (child_reader == NULL) {
 			BLI_assert(!child_claims_this_object);
 		}
@@ -547,10 +552,11 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 
 		/* We can now assign this reader as parent for our children. */
 		if (nonclaiming_child_readers.size() + assign_as_parent.size() > 0) {
-			for(AbcObjectReader *child_reader : nonclaiming_child_readers) {
+			/* TODO: When we only support C++11, use for (a: b) instead. */
+			BOOST_FOREACH(AbcObjectReader *child_reader, nonclaiming_child_readers) {
 				child_reader->parent_reader = reader;
 			}
-			for(AbcObjectReader *child_reader : assign_as_parent) {
+			BOOST_FOREACH(AbcObjectReader *child_reader, assign_as_parent) {
 				child_reader->parent_reader = reader;
 			}
 		}
@@ -561,14 +567,14 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 			 * our non-claiming children. Since all claiming children share
 			 * the same XForm, it doesn't really matter which one we pick. */
 			AbcObjectReader *claiming_child = claiming_child_readers[0];
-			for(AbcObjectReader *child_reader : nonclaiming_child_readers) {
+			BOOST_FOREACH(AbcObjectReader *child_reader, nonclaiming_child_readers) {
 				child_reader->parent_reader = claiming_child;
 			}
-			for(AbcObjectReader *child_reader : assign_as_parent) {
+			BOOST_FOREACH(AbcObjectReader *child_reader, assign_as_parent) {
 				child_reader->parent_reader = claiming_child;
 			}
 			/* Claiming children should have our parent set as their parent. */
-			for(AbcObjectReader *child_reader : claiming_child_readers) {
+			BOOST_FOREACH(AbcObjectReader *child_reader, claiming_child_readers) {
 				r_assign_as_parent.push_back(child_reader);
 			}
 		}
@@ -576,13 +582,13 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 			/* This object isn't claimed by any child, and didn't produce
 			 * a reader. Odd situation, could be the top Alembic object, or
 			 * an unsupported Alembic schema. Delegate to our parent. */
-			for(AbcObjectReader *child_reader : claiming_child_readers) {
+			BOOST_FOREACH(AbcObjectReader *child_reader, claiming_child_readers) {
 				r_assign_as_parent.push_back(child_reader);
 			}
-			for(AbcObjectReader *child_reader : nonclaiming_child_readers) {
+			BOOST_FOREACH(AbcObjectReader *child_reader, nonclaiming_child_readers) {
 				r_assign_as_parent.push_back(child_reader);
 			}
-			for(AbcObjectReader *child_reader : assign_as_parent) {
+			BOOST_FOREACH(AbcObjectReader *child_reader, assign_as_parent) {
 				r_assign_as_parent.push_back(child_reader);
 			}
 		}
