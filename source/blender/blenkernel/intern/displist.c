@@ -48,7 +48,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
-#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_object.h"
@@ -64,6 +63,7 @@
 #include "BLI_sys_types.h" // for intptr_t support
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 static void boundbox_displist_object(Object *ob);
 
@@ -1734,7 +1734,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		if (!for_orco) {
 			if ((cu->flag & CU_PATH) ||
-			    DAG_get_eval_flags_for_object(scene, ob) & DAG_EVAL_NEED_CURVE_PATH)
+			    DEG_get_eval_flags_for_id(scene->depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH)
 			{
 				calc_curvepath(ob, &nubase);
 			}

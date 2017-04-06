@@ -48,7 +48,6 @@
 
 #include "BKE_global.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_scene.h"
 #include "BKE_displist.h"
 #include "BKE_mball_tessellate.h"  /* own include */

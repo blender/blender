@@ -53,7 +53,6 @@
 #include "BKE_anim.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_key.h"

@@ -60,7 +60,6 @@
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_mball.h"
-#include "BKE_depsgraph.h"
 /* these 2 are only used by conversion functions */
 #include "BKE_curve.h"
 /* -- */

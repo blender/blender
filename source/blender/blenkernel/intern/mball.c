@@ -57,7 +57,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_scene.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"

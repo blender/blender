@@ -58,7 +58,6 @@
 #include "BKE_animsys.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_depsgraph.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -72,6 +71,8 @@
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
 #include "BKE_font.h"
+
+#include "DEG_depsgraph_build.h"
 
 #include "GPU_material.h"
 
@@ -430,7 +431,7 @@ void BKE_material_resize_id(Main *bmain, ID *id, short totcol, bool do_id_user)
 	}
 	*totcolp = totcol;
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 
 void BKE_material_append_id(Main *bmain, ID *id, Material *ma)
@@ -447,7 +448,7 @@ void BKE_material_append_id(Main *bmain, ID *id, Material *ma)
 
 		id_us_plus((ID *)ma);
 		test_all_objects_materials(bmain, id);
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 	}
 }
 
@@ -481,7 +482,7 @@ Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i, bool update_data
 				material_data_index_remove_id(id, index);
 			}
 
-			DAG_relations_tag_update(bmain);
+			DEG_relations_tag_update(bmain);
 		}
 	}
 	
@@ -508,7 +509,7 @@ void BKE_material_clear_id(Main *bmain, ID *id, bool update_data)
 			material_data_index_clear_id(id);
 		}
 
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 	}
 }
 
@@ -603,7 +604,7 @@ void BKE_material_resize_object(Main *bmain, Object *ob, const short totcol, boo
 	if (ob->totcol && ob->actcol == 0) ob->actcol = 1;
 	if (ob->actcol > ob->totcol) ob->actcol = ob->totcol;
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 
 void test_object_materials(Object *ob, ID *id)

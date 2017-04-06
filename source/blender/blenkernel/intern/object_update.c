@@ -43,7 +43,6 @@
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_animsys.h"
 #include "BKE_displist.h"

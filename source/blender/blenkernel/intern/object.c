@@ -78,7 +78,6 @@
 #include "BKE_action.h"
 #include "BKE_bullet.h"
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_animsys.h"
 #include "BKE_anim.h"
@@ -400,7 +399,7 @@ void BKE_object_free_caches(Object *object)
 	 * guaranteed to be in a known state.
 	 */
 	if (update_flag != 0) {
-		DAG_id_tag_update(&object->id, update_flag);
+		DEG_id_tag_update(&object->id, update_flag);
 	}
 }
 
@@ -713,7 +712,7 @@ Object *BKE_object_add(
 	BKE_scene_layer_base_deselect_all(sl);
 	BKE_scene_layer_base_select(sl, base);
 
-	DAG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	return ob;
 }
 
@@ -1340,8 +1339,8 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->proxy_group = gob;
 	id_lib_extern(&target->id);
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-	DAG_id_tag_update(&target->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_id_tag_update(&target->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	
 	/* copy transform
 	 * - gob means this proxy comes from a group, just apply the matrix

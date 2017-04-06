@@ -43,9 +43,10 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1019,7 +1020,7 @@ int BKE_mesh_validate(Mesh *me, const int do_verbose, const int cddata_check_mas
 	        &changed);
 
 	if (changed) {
-		DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 		return true;
 	}
 	else {
@@ -1105,7 +1106,7 @@ int BKE_mesh_validate_material_indices(Mesh *me)
 	}
 
 	if (!is_valid) {
-		DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 		return true;
 	}
 	else {

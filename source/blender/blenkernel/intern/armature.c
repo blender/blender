@@ -60,7 +60,6 @@
 #include "BKE_anim.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"

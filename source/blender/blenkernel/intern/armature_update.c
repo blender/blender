@@ -41,7 +41,6 @@
 #include "BKE_anim.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"

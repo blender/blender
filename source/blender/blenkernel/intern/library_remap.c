@@ -73,7 +73,6 @@
 #include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_font.h"
 #include "BKE_group.h"
@@ -108,6 +107,9 @@
 #include "BKE_text.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -220,7 +222,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		else {
 			if (!is_never_null) {
 				*id_p = new_id;
-				DAG_id_tag_update_ex(id_remap_data->bmain, id_self, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+				DEG_id_tag_update_ex(id_remap_data->bmain, id_self, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			}
 			if (cb_flag & IDWALK_CB_USER) {
 				id_us_min(old_id);
@@ -599,7 +601,7 @@ void BKE_libblock_remap_locked(
 	BKE_main_lock(bmain);
 
 	/* Full rebuild of DAG! */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 
 void BKE_libblock_remap(Main *bmain, void *old_idv, void *new_idv, const short remap_flags)
@@ -767,7 +769,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const b
 	short type = GS(id->name);
 	ListBase *lb = which_libbase(bmain, type);
 
-	DAG_id_type_tag(bmain, type);
+	DEG_id_type_tag(bmain, type);
 
 #ifdef WITH_PYTHON
 	BPY_id_release(id);

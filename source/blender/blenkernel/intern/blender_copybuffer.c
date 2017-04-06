@@ -44,11 +44,12 @@
 #include "BKE_blender_copybuffer.h"  /* own include */
 #include "BKE_blendfile.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+
+#include "DEG_depsgraph_build.h"
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
@@ -157,7 +158,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
 	/* recreate dependency graph to include new objects */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 
 	BLO_blendhandle_close(bh);
 	/* remove library... */

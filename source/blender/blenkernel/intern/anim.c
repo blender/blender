@@ -44,7 +44,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
@@ -53,6 +52,8 @@
 #include "BKE_scene.h"
 #include "BKE_anim.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph_build.h"
 
 // XXX bad level call...
 
@@ -308,7 +309,7 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 	}
 	
 	/* "brew me a list that's sorted a bit faster now depsy" */
-	DAG_scene_relations_rebuild(G.main, scene);
+	DEG_scene_relations_rebuild(G.main, scene);
 }
 
 /* update scene for current frame */

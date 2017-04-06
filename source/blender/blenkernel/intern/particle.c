@@ -78,13 +78,15 @@
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
-#include "BKE_depsgraph.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_deform.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RE_render_ext.h"
 
@@ -3153,8 +3155,8 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 	psys->flag = PSYS_CURRENT;
 	psys->cfra = BKE_scene_frame_get_from_ctime(scene, CFRA + 1);
 
-	DAG_relations_tag_update(G.main);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_relations_tag_update(G.main);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	return md;
 }
@@ -3199,8 +3201,8 @@ void object_remove_particle_system(Scene *UNUSED(scene), Object *ob)
 	else
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 
-	DAG_relations_tag_update(G.main);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_relations_tag_update(G.main);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 
 static void default_particle_settings(ParticleSettings *part)

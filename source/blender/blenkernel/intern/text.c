@@ -58,7 +58,6 @@
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"

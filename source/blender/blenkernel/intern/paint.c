@@ -52,7 +52,6 @@
 #include "BKE_main.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
@@ -63,6 +62,8 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_subsurf.h"
+
+#include "DEG_depsgraph.h"
 
 #include "bmesh.h"
 
@@ -683,7 +684,7 @@ void BKE_sculptsession_bm_to_me(Object *ob, bool reorder)
 		sculptsession_bm_to_me_update_data_only(ob, reorder);
 
 		/* ensure the objects DerivedMesh mesh doesn't hold onto arrays now realloc'd in the mesh [#34473] */
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 }
 

@@ -33,7 +33,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_collection.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"

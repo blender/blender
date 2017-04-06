@@ -88,7 +88,6 @@
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
 #include "BKE_bvhutils.h"
-#include "BKE_depsgraph.h"
 
 #include "DEG_depsgraph.h"
 

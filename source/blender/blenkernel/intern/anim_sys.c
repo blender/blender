@@ -60,7 +60,6 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_global.h"
@@ -1663,7 +1662,7 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 		 * notify anyone of updates */
 		if (!(id->tag & LIB_TAG_ANIM_NO_RECALC)) {
 			BKE_id_tag_set_atomic(id, LIB_TAG_ID_RECALC);
-			DAG_id_type_tag(G.main, GS(id->name));
+			DEG_id_type_tag(G.main, GS(id->name));
 		}
 	}
 
@@ -2618,7 +2617,7 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 		ID *id = ptr->id.data;
 		if (!(id->tag & LIB_TAG_ANIM_NO_RECALC)) {
 			id->tag |= LIB_TAG_ID_RECALC;
-			DAG_id_type_tag(G.main, GS(id->name));
+			DEG_id_type_tag(G.main, GS(id->name));
 		}
 	}
 }

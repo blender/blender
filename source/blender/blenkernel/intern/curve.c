@@ -52,7 +52,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -4570,7 +4569,7 @@ int BKE_curve_material_index_validate(Curve *cu)
 	}
 
 	if (!is_valid) {
-		DAG_id_tag_update(&cu->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&cu->id, OB_RECALC_DATA);
 		return true;
 	}
 	else {

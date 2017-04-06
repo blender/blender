@@ -80,8 +80,8 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #include "GPU_immediate.h"
 
 #ifdef WITH_OPENSUBDIV
-#  include "BKE_depsgraph.h"
 #  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph_query.h"
 #  include "DNA_userdef_types.h"
 #endif
 
@@ -2601,7 +2601,7 @@ static bool calc_modifiers_skip_orco(Scene *scene,
 		else if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
 			return false;
 		}
-		else if ((DAG_get_eval_flags_for_object(scene, ob) & DAG_EVAL_NEED_CPU) != 0) {
+		else if ((DEG_get_eval_flags_for_id(scene->depsgraph, &ob->id) & DAG_EVAL_NEED_CPU) != 0) {
 			return false;
 		}
 		SubsurfModifierData *smd = (SubsurfModifierData *)last_md;

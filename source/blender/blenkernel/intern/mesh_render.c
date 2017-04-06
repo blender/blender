@@ -39,7 +39,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"

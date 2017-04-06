@@ -55,7 +55,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_library.h"

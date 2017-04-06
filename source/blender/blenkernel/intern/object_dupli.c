@@ -49,7 +49,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_group.h"
 #include "BKE_global.h"
