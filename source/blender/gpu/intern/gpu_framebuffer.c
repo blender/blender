@@ -390,8 +390,8 @@ void GPU_framebuffer_blur(
 	if (format.attrib_ct == 0) {
 		unsigned int i = 0;
 		/* Vertex format */
-		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned int uvs = add_attrib(&format, "uvs", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int uvs = VertexFormat_add_attrib(&format, "uvs", COMP_F32, 2, KEEP_FLOAT);
 
 		/* Vertices */
 		VertexBuffer_init_with_format(&vbo, &format);

@@ -116,8 +116,8 @@ static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 	float halfy = GLA_PIXEL_OFS;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_INTERLACE);
 
@@ -200,8 +200,8 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 	bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
@@ -273,8 +273,8 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 	int soffy;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);

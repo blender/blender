@@ -371,8 +371,8 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 		unsigned int i = 0;
 		float n[3] = {0.0f};
 		/* Vertex format */
-		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		unsigned int nor = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		unsigned int nor = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 
 		/* Vertices */
 		VertexBuffer_init_with_format(&vbo, &format);
@@ -431,7 +431,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 
 	if (format.attrib_ct == 0) {
 		/* Vertex format */
-		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		/* Elements */
 		ElementListBuilder_init(&elb, GL_LINES, 12, 8);
@@ -470,7 +470,7 @@ static void draw_bonevert(void)
 
 	if (format.attrib_ct == 0) {
 		/* Vertex format */
-		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		/* Vertices */
 		VertexBuffer_init_with_format(&vbo, &format);
@@ -583,7 +583,7 @@ static void draw_bone_octahedral(void)
 
 	if (format.attrib_ct == 0) {
 		/* Vertex format */
-		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		/* Elements */
 		ElementListBuilder_init(&elb, GL_LINES, 12, 6);
@@ -618,8 +618,8 @@ static void draw_bone_solid_octahedral(void)
 	if (format.attrib_ct == 0) {
 		unsigned int v_idx = 0;
 		/* Vertex format */
-		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		unsigned int nor = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		unsigned int nor = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 
 		/* Vertices */
 		VertexBuffer_init_with_format(&vbo, &format);
@@ -811,7 +811,7 @@ static void draw_sphere_bone_dist(float smat[4][4], float imat[4][4], bPoseChann
 		cross_v3_v3v3(norvec, dirvec, imat[2]);
 
 		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immBegin(GL_TRIANGLE_STRIP, 66);
@@ -867,7 +867,7 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 	float *headvec, *tailvec, dirvec[3];
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	
@@ -1108,8 +1108,8 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 		glPolygonOffset(-1.0f, -1.0f);
 
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		unsigned int nor = add_attrib(format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		unsigned int nor = VertexFormat_add_attrib(format, "nor", COMP_F32, 3, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_SIMPLE_LIGHTING);
 		immUniformColor4fv(fcolor);
@@ -1146,7 +1146,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 		length = ebone->length;
 	
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	gpuPushMatrix();
 	gpuScaleUniform(length);
@@ -1452,7 +1452,7 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float length, int segments)
 {
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformColor4fv(fcolor);
@@ -1633,7 +1633,7 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 	bPoseChannel *parchan;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformColor4fv(fcolor);
@@ -1792,7 +1792,7 @@ static void draw_pose_dofs(Object *ob)
 	Bone *bone;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -2202,7 +2202,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 						 */
 						if ((do_dashed & DASH_HELP_LINES) && ((bone->flag & BONE_CONNECTED) == 0)) {
 							VertexFormat *format = immVertexFormat();
-							unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+							unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 							immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -2502,7 +2502,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 				/* offset to parent */
 				if (eBone->parent) {
 					VertexFormat *format = immVertexFormat();
-					unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+					unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 					GPU_select_load_id(-1);  /* -1 here is OK! */
 

@@ -160,9 +160,9 @@ static VertexBuffer *fill_arrows_vbo(const float scale)
 {
 	/* Position Only 3D format */
 	static VertexFormat format = { 0 };
-	static unsigned pos_id;
+	static unsigned int pos_id;
 	if (format.attrib_ct == 0) {
-		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 	}
 
 	/* Line */
@@ -207,9 +207,9 @@ static VertexBuffer *sphere_wire_vbo(const float rad)
 #define NSEGMENTS 16
 	/* Position Only 3D format */
 	static VertexFormat format = { 0 };
-	static unsigned pos_id;
+	static unsigned int pos_id;
 	if (format.attrib_ct == 0) {
-		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 	}
 
 	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -256,10 +256,10 @@ Batch *DRW_cache_fullscreen_quad_get(void)
 
 		/* Position Only 2D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, uvs_id;
+		static unsigned int pos_id, uvs_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-			uvs_id = add_attrib(&format, "uvs", GL_FLOAT, 2, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			uvs_id = VertexFormat_add_attrib(&format, "uvs", COMP_F32, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -295,9 +295,9 @@ Batch *DRW_cache_cube_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -320,9 +320,9 @@ Batch *DRW_cache_circle_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -356,9 +356,9 @@ Batch *DRW_cache_square_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -383,9 +383,9 @@ Batch *DRW_cache_single_line_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -409,9 +409,9 @@ Batch *DRW_cache_single_line_endpoints_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -435,9 +435,9 @@ Batch *DRW_cache_plain_axes_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -466,9 +466,9 @@ Batch *DRW_cache_single_arrow_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Square Pyramid */
@@ -522,9 +522,9 @@ Batch *DRW_cache_empty_cone_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -574,10 +574,10 @@ Batch *DRW_cache_axis_names_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
 			/* Using 3rd component as axis indicator */
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Line */
@@ -636,9 +636,9 @@ Batch *DRW_cache_lamp_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -667,9 +667,9 @@ Batch *DRW_cache_lamp_sunrays_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -698,9 +698,9 @@ Batch *DRW_cache_lamp_area_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -734,9 +734,9 @@ Batch *DRW_cache_lamp_hemi_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -814,9 +814,9 @@ Batch *DRW_cache_lamp_spot_get(void)
 		static VertexFormat format = { 0 };
 		static unsigned int pos_id, n1_id, n2_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			n1_id = add_attrib(&format, "N1", GL_FLOAT, 3, KEEP_FLOAT);
-			n2_id = add_attrib(&format, "N2", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -873,7 +873,7 @@ Batch *DRW_cache_lamp_spot_square_get(void)
 		static VertexFormat format = { 0 };
 		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -903,9 +903,9 @@ Batch *DRW_cache_speaker_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -1005,10 +1005,10 @@ Batch *DRW_cache_bone_octahedral_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, nor_id;
+		static unsigned int pos_id, nor_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1035,11 +1035,11 @@ Batch *DRW_cache_bone_octahedral_wire_outline_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, n1_id, n2_id;
+		static unsigned int pos_id, n1_id, n2_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			n1_id = add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
-			n2_id = add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1070,10 +1070,10 @@ Batch *DRW_cache_bone_point_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, nor_id;
+		static unsigned int pos_id, nor_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1136,12 +1136,12 @@ Batch *DRW_cache_camera_get(void)
 		int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
 			/* use x coordinate to identify the vertex
 			 * the vertex shader take care to place it
 			 * appropriatelly */
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 1, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 1, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1197,12 +1197,12 @@ Batch *DRW_cache_camera_tria_get(void)
 		int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
 			/* use x coordinate to identify the vertex
 			 * the vertex shader take care to place it
 			 * appropriatelly */
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 1, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 1, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1227,9 +1227,9 @@ Batch *DRW_cache_single_vert_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static unsigned int pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);

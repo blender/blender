@@ -640,7 +640,7 @@ static void node_draw_preview_background(float tile, rctf *rect)
 	float x, y;
 	
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -712,7 +712,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	
 	glDisable(GL_BLEND);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, +100);
 	imm_draw_line_box(pos, draw_rect.xmin, draw_rect.ymin, draw_rect.xmax, draw_rect.ymax);
@@ -765,8 +765,8 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 	UI_view2d_scale_get(v2d, &scale, NULL);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned col = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
 
 	glEnable(GL_BLEND);
 	GPU_enable_program_point_size();
@@ -1129,7 +1129,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	}
 
 	/* scale widget thing */
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColorShade(color_id, -10);

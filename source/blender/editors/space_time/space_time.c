@@ -84,7 +84,7 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 	glEnable(GL_BLEND);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -126,7 +126,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 
 	BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* iterate over pointcaches on the active object, 
@@ -321,7 +321,7 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, cons
 	if (max_len > 0) {
 
 		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3ubv(color);

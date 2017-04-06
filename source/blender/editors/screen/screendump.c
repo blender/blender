@@ -457,7 +457,7 @@ static void screencast_draw_cursor(bContext *UNUSED(C), int x, int y, void *UNUS
 	glEnable(GL_BLEND);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

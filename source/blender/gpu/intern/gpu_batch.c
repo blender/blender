@@ -67,8 +67,8 @@ static Batch *batch_sphere(int lat_res, int lon_res)
 	float lon, lat;
 
 	if (format.attrib_ct == 0) {
-		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 	}
 
 	vbo = VertexBuffer_create_with_format(&format);
@@ -103,8 +103,8 @@ static Batch *batch_sphere_wire(int lat_res, int lon_res)
 	float lon, lat;
 
 	if (format.attrib_ct == 0) {
-		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 	}
 
 	vbo = VertexBuffer_create_with_format(&format);

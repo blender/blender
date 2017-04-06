@@ -124,7 +124,7 @@ static void draw_single_handle(const MaskLayer *mask_layer, const MaskSplinePoin
 	}
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	const unsigned char rgb_gray[4] = {0x60, 0x60, 0x60, 0xff};
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -212,7 +212,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 	mask_spline_color_get(masklay, spline, is_spline_sel, rgb_spline);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 	immUniform1f("size", 0.7f * handle_size);
@@ -402,7 +402,7 @@ static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*
 	}
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	switch (draw_type) {
 
@@ -816,7 +816,7 @@ void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra
 		unsigned int num_lines = BLI_listbase_count(&masklay->splines_shapes);
 
 		if (num_lines > 0) {
-			unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			immUniformColor4ub(255, 175, 0, 255);

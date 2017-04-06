@@ -230,8 +230,8 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	}
 
 	VertexFormat *vert_format = immVertexFormat();
-	unsigned int pos = add_attrib(vert_format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned int texco = add_attrib(vert_format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(vert_format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int texco = VertexFormat_add_attrib(vert_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 	unsigned int program = glaGetOneInt(GL_CURRENT_PROGRAM);
 

@@ -166,7 +166,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	BKE_movieclip_get_cache_segments(clip, &sc->user, &totseg, &points);
 	ED_region_cache_draw_cached_segments(ar, totseg, points, sfra, efra);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* track */
@@ -247,7 +247,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 	ED_region_cache_draw_curfra_label(sc->user.framenr, x, 8.0f * UI_DPI_FAC);
 
-	pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* solver keyframes */
@@ -289,7 +289,7 @@ static void draw_movieclip_muted(ARegion *ar, int width, int height, float zoomx
 {
 	int x, y;
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* find window pixel coordinates of origin */
@@ -359,7 +359,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		gpuScale2f(zoomx, zoomy);
 		gpuMultMatrix3D(sc->stabmat); /* XXX can we make stabmat a 2D matrix? --merwin */
 
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3f(0.0f, 0.0f, 0.0f);
@@ -436,7 +436,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		i++;
 	}
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1101,8 +1101,8 @@ static void draw_plane_marker_image(Scene *scene,
 			gpuMultMatrix3D(gl_matrix); /* XXX update for new 2D matrix API --merwin */
 
 			VertexFormat *imm_format = immVertexFormat();
-			unsigned int pos = add_attrib(imm_format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-			unsigned int texCoord = add_attrib(imm_format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(imm_format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int texCoord = VertexFormat_add_attrib(imm_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 			immUniform4f("color", 1.0f, 1.0f, 1.0f, plane_track->image_opacity);
@@ -1162,7 +1162,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 	}
 
 	if (draw_plane_quad || is_selected_track) {
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1363,7 +1363,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 		}
 	}
 
-	unsigned int position = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int position = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1547,7 +1547,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	gpuMultMatrix3D(sc->stabmat); /* XXX make 2D */
 	gpuScale2f(width, height);
 
-	unsigned int position = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int position = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

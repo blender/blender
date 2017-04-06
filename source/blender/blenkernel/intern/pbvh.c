@@ -1157,7 +1157,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 
 static void pbvh_draw_BB(PBVH *bvh)
 {
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 	for (int a = 0; a < bvh->totnode; a++) {

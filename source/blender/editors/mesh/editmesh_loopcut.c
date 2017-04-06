@@ -108,7 +108,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		gpuPushMatrix();
 		gpuMultMatrix3D(lcd->ob->obmat);
 
-		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor3ub(255, 0, 255);

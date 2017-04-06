@@ -106,7 +106,7 @@ static const char* copy_attrib_name(VertexFormat* format, const char* name)
 	return name_copy;
 	}
 
-unsigned add_attrib(VertexFormat* format, const char* name, VertexCompType comp_type, unsigned comp_ct, VertexFetchMode fetch_mode)
+unsigned VertexFormat_add_attrib(VertexFormat* format, const char* name, VertexCompType comp_type, unsigned comp_ct, VertexFetchMode fetch_mode)
 	{
 #if TRUST_NO_ONE
 	assert(format->attrib_ct < MAX_VERTEX_ATTRIBS); // there's room for more

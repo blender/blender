@@ -186,7 +186,7 @@ void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2)
  */
 void imm_draw_checker_box(float x1, float y1, float x2, float y2)
 {
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
 
 	immUniform4f("color1", 0.15f, 0.15f, 0.15f, 1.0f);

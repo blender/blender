@@ -1002,7 +1002,7 @@ static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
 		copy_v3_v3(v2, ray_hit_best[1]);
 	}
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_TRANSFORM);
@@ -1044,7 +1044,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	gpuPushMatrix();
 	gpuMultMatrix3D(kcd->ob->obmat);
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 

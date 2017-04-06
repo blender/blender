@@ -126,7 +126,7 @@ static void draw_render_info(const bContext *C,
 				               (int)(-rd->border.ymin * rd->ysch * rd->size * 0.01f));
 			}
 
-			unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			immUniformThemeColor(TH_FACE_SELECT);
 
@@ -173,7 +173,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* noisy, high contrast make impossible to read if lower alpha is used. */
@@ -329,7 +329,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	BLI_rcti_init(&color_rect, dx, dx + (1.5f * UI_UNIT_X), 0.15f * UI_UNIT_Y, 0.85f * UI_UNIT_Y);
 
 	/* BLF uses immediate mode too, so we must reset our vertex format */
-	pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	if (channels == 4) {
@@ -366,7 +366,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	immUnbindProgram();
 
 	/* draw outline */
-	pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3ub(128, 128, 128);
 	imm_draw_line_box(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
@@ -686,7 +686,7 @@ void draw_image_sample_line(SpaceImage *sima)
 	if (sima->sample_line_hist.flag & HISTO_FLAG_SAMPLELINE) {
 		Histogram *hist = &sima->sample_line_hist;
 
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immBegin(GL_LINES, 2);
@@ -898,7 +898,7 @@ void draw_image_cache(const bContext *C, ARegion *ar)
 	/* Draw current frame. */
 	x = (cfra - sfra) / (efra - sfra + 1) * ar->winx;
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_CFRAME);
 	immRecti(pos, x, 0, x + ceilf(framelen), 8 * UI_DPI_FAC);

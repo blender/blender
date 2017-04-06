@@ -85,7 +85,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 
 	gpuTranslate2fv(cursor);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -174,7 +174,7 @@ static void draw_uvs_shadow(Object *obedit)
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -239,7 +239,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				}
 			}
 
-			unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -319,8 +319,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			col[3] = 0.5f; /* hard coded alpha, not that nice */
 
 			VertexFormat *format = immVertexFormat();
-			unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-			unsigned int color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
@@ -521,7 +521,7 @@ static void draw_uvs_other_mesh(Object *ob, const Image *curimage, const bool ne
 static void draw_uvs_other(SceneLayer *sl, Object *obedit, const Image *curimage, const bool new_shading_nodes,
                            const int other_uv_filter)
 {
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -563,7 +563,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, SceneLayer *sl, Ob
 			mloopuv = me->mloopuv;
 		}
 
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -681,7 +681,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		
-		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -746,7 +746,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 
 	switch (sima->dt_uv) {
 		case SI_UVDT_DASH:
-			pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -774,7 +774,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 			break;
 		case SI_UVDT_BLACK: /* black/white */
 		case SI_UVDT_WHITE:
-			pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -796,7 +796,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 
 			break;
 		case SI_UVDT_OUTLINE:
-			pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -820,8 +820,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 				UI_GetThemeColor4ubv(TH_EDGE_SELECT, col1);
 
 				VertexFormat *format = immVertexFormat();
-				pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-				unsigned int color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+				pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+				unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 				if (interpedges) {
 					immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
@@ -876,7 +876,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 				}
 			}
 			else {
-				pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+				pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 				immUniformColor4ubv(col2);
@@ -907,8 +907,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		bool col_set = false;
 
 		VertexFormat *format = immVertexFormat();
-		pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned int color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+		pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
@@ -967,7 +967,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	/* 6. draw uv vertices */
 	
 	if (drawfaces != 2) { /* 2 means Mesh Face Mode */
-		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

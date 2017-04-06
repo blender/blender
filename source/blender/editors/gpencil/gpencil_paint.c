@@ -1846,7 +1846,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
 		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		glEnable(GL_LINE_SMOOTH);

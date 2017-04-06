@@ -903,8 +903,8 @@ static VertexBuffer *mesh_batch_cache_get_pos_and_normals(MeshRenderData *mrdata
 		static unsigned int pos_id, nor_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			nor_id = add_attrib(&format, "nor", GL_SHORT, 3, NORMALIZE_INT_TO_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
 		}
 
 		const int tottri = mesh_render_data_looptri_num_get(mrdata);
@@ -945,8 +945,8 @@ static VertexBuffer *mesh_batch_cache_get_pos_and_nor_in_order(MeshRenderData *m
 		static unsigned pos_id, nor_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			nor_id = add_attrib(&format, "nor", GL_SHORT, 3, NORMALIZE_INT_TO_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
 		}
 
 		const int vertex_ct = mesh_render_data_verts_num_get(mrdata);
@@ -1096,14 +1096,14 @@ Batch *BKE_mesh_batch_cache_get_fancy_edges(Mesh *me)
 		static unsigned int pos_id, n1_id, n2_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 #if USE_10_10_10 /* takes 1/3 the space */
-			n1_id = add_attrib(&format, "N1", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-			n2_id = add_attrib(&format, "N2", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
 #else
-			n1_id = add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
-			n2_id = add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
 #endif
 		}
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -1167,8 +1167,8 @@ static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 	static unsigned pos_id, data_id;
 	if (format.attrib_ct == 0) {
 		/* initialize vertex format */
-		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		data_id = add_attrib(&format, "data", GL_UNSIGNED_BYTE, 4, KEEP_INT);
+		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		data_id = VertexFormat_add_attrib(&format, "data", COMP_U8, 4, KEEP_INT);
 	}
 
 	const int tri_ct = mesh_render_data_looptri_num_get(mrdata);
@@ -1266,11 +1266,11 @@ Batch *BKE_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 		static unsigned pos_id, data_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 #if USE_10_10_10
-			data_id = add_attrib(&format, "norAndFlag", COMP_I10, 4, NORMALIZE_INT_TO_FLOAT);
+			data_id = VertexFormat_add_attrib(&format, "norAndFlag", COMP_I10, 4, NORMALIZE_INT_TO_FLOAT);
 #else
-			data_id = add_attrib(&format, "norAndFlag", GL_FLOAT, 4, KEEP_FLOAT);
+			data_id = VertexFormat_add_attrib(&format, "norAndFlag", COMP_F32, 4, KEEP_FLOAT);
 #endif
 		}
 

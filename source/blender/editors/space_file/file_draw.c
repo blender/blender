@@ -400,7 +400,7 @@ static void file_draw_preview(
 	/* border */
 	if (use_dropshadow) {
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2,KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2,KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -461,7 +461,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 	int i;
 	int sy;
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShade(TH_BACK, -7);
 
@@ -484,8 +484,8 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 	unsigned char col_hi[3], col_lo[3];
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
-	unsigned int color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 	vertex_ct = (v2d->cur.xmax - v2d->tot.xmin) / step + 1; /* paint at least 1 divider */
 	vertex_ct *= 4; /* vertex_count = 2 points per divider * 2 lines per divider */

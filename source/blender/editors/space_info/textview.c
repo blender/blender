@@ -85,7 +85,7 @@ static void console_draw_sel(const char *str, const int sel[2], const int xy[2],
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor4ubv(bg_sel);
@@ -191,7 +191,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		
 		if (bg) {
 			VertexFormat *format = immVertexFormat();
-			unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformColor3ubv(bg);
@@ -242,7 +242,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 		if (bg) {
 			VertexFormat *format = immVertexFormat();
-			unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformColor3ubv(bg);

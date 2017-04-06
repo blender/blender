@@ -666,7 +666,7 @@ static void outliner_draw_rnacols(ARegion *ar, int sizex)
 
 	glLineWidth(1.0f);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
 
@@ -1468,7 +1468,7 @@ static void outliner_draw_tree_element(
 					/* divider */
 					{
 						VertexFormat *format = immVertexFormat();
-						unsigned int pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+						unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 						unsigned char col[4];
 
 						immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -1522,7 +1522,7 @@ static void outliner_draw_tree_element_floating(
 	const TreeElement *te_insert = te_floating->drag_data->insert_handle;
 	const int line_width = 2;
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	int coord_y = te_insert->ys;
 	int coord_x = te_insert->xs;
 	unsigned char col[4];
@@ -1609,7 +1609,7 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soo
 static void outliner_draw_hierarchy_lines(SpaceOops *soops, ListBase *lb, int startx, int *starty)
 {
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	unsigned char col[4];
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -1635,7 +1635,7 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 		if (TSELEM_OPEN(tselem, soops))
 			if (tselem->type == TSE_RNA_STRUCT) {
 				VertexFormat *format = immVertexFormat();
-				unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+				unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 				immThemeColorShadeAlpha(TH_BACK, -15, -200);
 				immRecti(pos, 0, *starty + 1, (int)ar->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
@@ -1647,7 +1647,7 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 			outliner_draw_struct_marks(ar, soops, &te->subtree, starty);
 			if (tselem->type == TSE_RNA_STRUCT) {
 				VertexFormat *format = immVertexFormat();
-				unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+				unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 				immThemeColorShadeAlpha(TH_BACK, -15, -200);
 
@@ -1715,7 +1715,7 @@ static void outliner_draw_highlights(ARegion *ar, SpaceOops *soops, int startx, 
 
 	glEnable(GL_BLEND);
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	outliner_draw_highlights_recursive(pos, ar, soops, &soops->tree, col_selection, col_highlight, col_searchmatch,
 	                                   startx, starty);
@@ -1787,7 +1787,7 @@ static void outliner_back(ARegion *ar)
 	ystart = UI_UNIT_Y * (ystart / (UI_UNIT_Y)) - OL_Y_OFFSET;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShade(TH_BACK, 6);
@@ -1815,7 +1815,7 @@ static void outliner_draw_restrictcols(ARegion *ar)
 {
 	glLineWidth(1.0f);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
 	immBegin(PRIM_LINES, 6);

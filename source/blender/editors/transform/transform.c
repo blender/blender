@@ -1720,7 +1720,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 		gpuPushMatrix();
 
-		unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		UNUSED_VARS(pos); /* silence warning */
 		BLI_assert(pos == POS_INDEX);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -6877,7 +6877,7 @@ static void drawEdgeSlide(TransInfo *t)
 			gpuPushMatrix();
 			gpuMultMatrix3D(t->obedit->obmat);
 
-			unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -7491,7 +7491,7 @@ static void drawVertSlide(TransInfo *t)
 
 			glLineWidth(line_size);
 
-			unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 			 
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 			immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);

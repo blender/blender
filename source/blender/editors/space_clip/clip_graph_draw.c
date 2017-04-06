@@ -327,7 +327,7 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_grid_free(grid);
 
 	if (clip) {
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		glPointSize(3.0f);

@@ -146,7 +146,7 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4ubv(paint->paint_cursor_col);
 
@@ -173,7 +173,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	setlinestyle(3);
 	glLineWidth(3.0f);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	
 	immUniformColor4ub(0, 0, 0, paint->paint_cursor_col[3]);

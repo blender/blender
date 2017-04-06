@@ -669,8 +669,8 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 
 		/* set quad color. Colored overlay does not get blending */
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned int texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int texCoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
@@ -757,8 +757,8 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		}
 
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned int texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int texCoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
@@ -930,7 +930,7 @@ static void paint_draw_curve_cursor(Brush *brush)
 		glEnable(GL_BLEND);
 
 		/* draw the bezier handles and the curve segment between the current and next point */
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1114,7 +1114,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	glEnable(GL_BLEND); /* TODO: also set blend mode? */
 	glEnable(GL_LINE_SMOOTH);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* set brush color */

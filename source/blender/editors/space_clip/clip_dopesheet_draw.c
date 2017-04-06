@@ -130,7 +130,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		unsigned int keyframe_ct = 0;
 
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		/* don't use totrect set, as the width stays the same
@@ -214,10 +214,10 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		if (keyframe_ct > 0) {
 			/* draw keyframe markers */
 			format = immVertexFormat();
-			pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			unsigned int size_id = add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
-			unsigned int color_id = add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
-			unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+			pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int size_id = VertexFormat_add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
+			unsigned int color_id = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
+			unsigned int outline_color_id = VertexFormat_add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 			GPU_enable_program_point_size();
@@ -318,7 +318,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	float y = (float) CHANNEL_FIRST;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

@@ -961,7 +961,7 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customda
 
 	if (brush) {
 		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		glEnable(GL_LINE_SMOOTH);

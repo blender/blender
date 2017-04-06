@@ -223,7 +223,7 @@ static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float
 	viconutil_set_point(pts[1], cx - d2, cy - d);
 	viconutil_set_point(pts[2], cx + d2, cy);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4f(0.2f, 0.2f, 0.2f, alpha);
 
@@ -254,10 +254,10 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	int yco = y + h / 2;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int size_id = add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
-	unsigned int color_id = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
-	unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int size_id = VertexFormat_add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
+	unsigned int color_id = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+	unsigned int outline_color_id = VertexFormat_add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 	GPU_enable_program_point_size();
@@ -316,7 +316,7 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 	const int b = x + w / 3 * 2;
 	const int c = x + w;
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* XXX: Include alpha into this... */
@@ -1029,8 +1029,8 @@ static void icon_draw_texture(
 
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned int texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int texCoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 	if (rgb) immUniformColor3fvAlpha(rgb, alpha);

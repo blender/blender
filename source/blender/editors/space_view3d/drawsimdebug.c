@@ -49,8 +49,8 @@
 static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 {
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-	unsigned int color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
 	
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 	

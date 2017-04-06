@@ -463,7 +463,7 @@ static void sk_drawEdge(SK_Point *pt0, SK_Point *pt1, float size, float color[4]
 	float angle, length;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	sub_v3_v3v3(vec1, pt1->p, pt0->p);
 	length = normalize_v3(vec1);
@@ -490,7 +490,7 @@ static void sk_drawNormal(SK_Point *pt, float size, float height)
 	float color[3] = { 0.0f, 1.0f, 1.0f };
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	gpuPushMatrix();
 

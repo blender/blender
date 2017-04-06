@@ -3953,8 +3953,8 @@ static void navmesh_drawColored(DerivedMesh *dm)
 #endif
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 

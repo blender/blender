@@ -671,10 +671,10 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next) {
 			BLI_assert(attrib->size <= 4); /* matrices have no place here for now */
 			if (attrib->type == DRW_ATTRIB_FLOAT) {
-				attrib->format_id = add_attrib(&interface->vbo_format, attrib->name, GL_FLOAT, attrib->size, KEEP_FLOAT);
+				attrib->format_id = VertexFormat_add_attrib(&interface->vbo_format, attrib->name, COMP_F32, attrib->size, KEEP_FLOAT);
 			}
 			else if (attrib->type == DRW_ATTRIB_INT) {
-				attrib->format_id = add_attrib(&interface->vbo_format, attrib->name, GL_BYTE, attrib->size, KEEP_INT);
+				attrib->format_id = VertexFormat_add_attrib(&interface->vbo_format, attrib->name, COMP_I8, attrib->size, KEEP_INT);
 			}
 			else {
 				BLI_assert(false);

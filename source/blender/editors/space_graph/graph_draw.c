@@ -85,7 +85,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 	const float fac = 0.05f * BLI_rctf_size_x(&v2d->cur);
 	int i;
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw two black lines showing the standard reference levels */
@@ -266,7 +266,7 @@ static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool
 	 *	- draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
 	 */
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	glEnable(GL_BLEND);
 	GPU_enable_program_point_size();
@@ -310,7 +310,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 {
 	int sel, b;
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* slightly hacky, but we want to draw unselected points before selected ones 
@@ -442,7 +442,7 @@ static void draw_fcurve_samples(SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformThemeColor((fcu->flag & FCURVE_SELECTED) ? TH_TEXT_HI : TH_TEXT);
@@ -832,7 +832,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 	//if ((driver->flag & DRIVER_FLAG_SHOWDEBUG) == 0)
 	//	return;
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* No curve to modify/visualize the result?
@@ -943,7 +943,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
@@ -1024,7 +1024,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
 			glEnable(GL_BLEND);
 
-			unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			if (((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED)) {

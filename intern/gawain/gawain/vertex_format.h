@@ -64,7 +64,7 @@ typedef struct {
 void VertexFormat_clear(VertexFormat*);
 void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src);
 
-unsigned add_attrib(VertexFormat*, const char* name, VertexCompType, unsigned comp_ct, VertexFetchMode);
+unsigned VertexFormat_add_attrib(VertexFormat*, const char* name, VertexCompType, unsigned comp_ct, VertexFetchMode);
 
 // format conversion
 

@@ -159,7 +159,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 		int xy[2] = {CONSOLE_DRAW_MARGIN, CONSOLE_DRAW_MARGIN};
 		int pen[2];
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		xy[1] += tvc->lheight / 6;
 
 		console_cursor_wrap_offset(sc->prompt, tvc->console_width, &offl, &offc, NULL);

@@ -119,7 +119,7 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 	color[3] *= 2.5f;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immUniformColor4fv(color);
 
@@ -140,10 +140,10 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 
 	if (key_ct > 0) {
 		format = immVertexFormat();
-		pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned int size_id = add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
-		unsigned int color_id = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
-		unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+		pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int size_id = VertexFormat_add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
+		unsigned int color_id = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+		unsigned int outline_color_id = VertexFormat_add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 		GPU_enable_program_point_size();
 		immBegin(PRIM_POINTS, key_ct);
@@ -352,7 +352,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	/* get color of strip */
 	nla_strip_get_color_inside(adt, strip, color);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw extrapolation info first (as backdrop)
@@ -405,7 +405,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1, color);
 
 		/* restore current vertex format & program (roundbox trashes it) */
-		pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	}
 	else {
@@ -453,7 +453,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	UI_draw_roundbox_shade_x(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1, color);
 
 	/* restore current vertex format & program (roundbox trashes it) */
-	pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor3fv(color);
@@ -652,7 +652,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				{
 					AnimData *adt = ale->adt;
 
-					unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+					unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 					immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data,

@@ -514,7 +514,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 
 		{
 			VertexFormat *format = immVertexFormat();
-			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 			glEnable(GL_BLEND);

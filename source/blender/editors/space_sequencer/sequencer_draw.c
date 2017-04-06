@@ -338,7 +338,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 
 	col[3] = 196; /* alpha, used for all meta children */
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -714,7 +714,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	x2 = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -776,7 +776,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	if (seq->flag & SEQ_LOCK) {
 		glEnable(GL_BLEND);
 
-		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
 		immUniform4f("color1", 1.0f, 1.0f, 1.0f, 0.125f);
@@ -794,7 +794,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	if (!BKE_sequence_is_valid_check(seq)) {
 		glEnable(GL_BLEND);
 
-		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
 		immUniform4f("color1", 1.0f, 0.0f, 0.0f, 1.0f);
@@ -829,7 +829,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 		drawmeta_contents(scene, seq, x1, y1, x2, y2);
 	}
 
-	pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	/* TODO: add back stippled line for muted strips? */
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -1035,7 +1035,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	/* border */
 	setlinestyle(3);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_BACK);
@@ -1306,8 +1306,8 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, format, type, display_buffer);
 
 	VertexFormat *imm_format = immVertexFormat();
-	unsigned int pos = add_attrib(imm_format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned int texCoord = add_attrib(imm_format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(imm_format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int texCoord = VertexFormat_add_attrib(imm_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 	immUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
@@ -1494,7 +1494,7 @@ static void draw_seq_backdrop(View2D *v2d)
 {
 	int i;
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* darker gray overlay over the view backdrop */
@@ -1573,7 +1573,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 		const Sequence *seq = special_seq_update;
 		glEnable(GL_BLEND);
 
-		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor4ub(255, 255, 255, 48);
@@ -1593,7 +1593,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 	glEnable(GL_BLEND);
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw darkened area outside of active timeline 
@@ -1717,7 +1717,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	if (scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
 		int cfra_over = (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) ? scene->ed->over_cfra : scene->r.cfra + scene->ed->over_ofs;
 
-		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor3f(0.2, 0.2, 0.2);

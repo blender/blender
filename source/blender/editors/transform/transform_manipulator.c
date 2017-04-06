@@ -999,7 +999,7 @@ static void draw_manipulator_rotate(
 	gpuTranslate3fv(rv3d->twmat[3]);
 
 
-	const unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	const unsigned pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	/* sets view screen aligned */
 	gpuRotate3f(-360.0f * saacos(rv3d->viewquat[0]) / (float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
@@ -1293,7 +1293,7 @@ static void draw_manipulator_scale(
 
 	glDisable(GL_DEPTH_TEST);
 
-	const unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	const unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -1483,7 +1483,7 @@ static void draw_manipulator_translate(
 	// XXX if (moving) gpuTranslate3fv(t->vec);
 	glDisable(GL_DEPTH_TEST);
 
-	const unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	const unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -1576,7 +1576,7 @@ static void draw_manipulator_rotate_cyl(
 
 	manipulator_axis_order(rv3d, axis_order);
 
-	const unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	const unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 

@@ -212,7 +212,7 @@ static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(cu
 			alpha *= (size - PX_SIZE_FADE_MIN) / (PX_SIZE_FADE_MAX - PX_SIZE_FADE_MIN);
 		}
 
-		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3fvAlpha(brush->add_col, alpha);
 

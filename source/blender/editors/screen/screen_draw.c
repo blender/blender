@@ -303,7 +303,7 @@ void ED_screen_draw(wmWindow *win)
 
 	wmSubWindowSet(win, win->screen->mainwin);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* Note: first loop only draws if U.pixelsize > 1, skip otherwise */
@@ -432,7 +432,7 @@ static void screen_preview_draw_areas(const bScreen *screen, const float scale[2
                                       const float ofs_between_areas)
 {
 	const float ofs_h = ofs_between_areas * 0.5f;
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(col);

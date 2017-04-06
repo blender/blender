@@ -239,8 +239,8 @@ void draw_motion_path_instance(Scene *scene,
 		glLineWidth(mpath->line_thickness);
 
 		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
@@ -264,7 +264,7 @@ void draw_motion_path_instance(Scene *scene,
 		glLineWidth(old_width);
 	}
 
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -388,7 +388,7 @@ void draw_motion_path_instance(Scene *scene,
 		/* point must be bigger than line */
 		glPointSize(mpath->line_thickness + 3.0);
 
-		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor3ubv(col);

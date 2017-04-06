@@ -1562,7 +1562,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	static VertexFormat format = { 0 };
 	static unsigned int pos_id;
 	if (format.attrib_ct == 0) {
-		pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	}
 
 	glEnable(GL_BLEND);

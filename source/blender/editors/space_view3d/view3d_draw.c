@@ -523,7 +523,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	y2i = (int)(y2 + (1.0f - 0.0001f));
 
 	/* use the same program for everything */
-	unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* passepartout, specified in camera edit buttons */
@@ -724,7 +724,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 static void drawrenderborder(ARegion *ar, View3D *v3d)
 {
 	/* use the same program for everything */
-	unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	glLineWidth(1.0f);
@@ -813,8 +813,8 @@ static void view3d_draw_background_gradient(void)
 	/* TODO: finish 2D API & draw background with that */
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 	unsigned char col_hi[3], col_lo[3];
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
@@ -1107,8 +1107,8 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 #endif
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
@@ -1283,8 +1283,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 			unsigned char col_bg[3], col_grid_emphasise[3], col_grid_light[3];
 
 			VertexFormat *format = immVertexFormat();
-			unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
@@ -1371,8 +1371,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 			/* draw axis lines -- sometimes grid floor is off, other times we still need to draw the Z axis */
 
 			VertexFormat *format = immVertexFormat();
-			unsigned int pos = add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 			immBegin(GL_LINES, (show_axis_x + show_axis_y + show_axis_z) * 2);
@@ -1527,8 +1527,8 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		glLineWidth(1.0f);
 
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
@@ -1553,7 +1553,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		immUnbindProgram();
 
 		VertexFormat_clear(format);
-		pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1612,8 +1612,8 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned col = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 	immBegin(GL_LINES, 6);
@@ -1656,8 +1656,8 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glDepthMask(GL_FALSE);  /* don't overwrite zbuf */
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	unsigned col = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 

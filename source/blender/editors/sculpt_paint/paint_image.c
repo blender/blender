@@ -722,7 +722,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 		glEnable(GL_BLEND);
 
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

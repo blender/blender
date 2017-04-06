@@ -107,7 +107,7 @@ void UI_draw_roundbox_gl_mode(int mode, float minx, float miny, float maxx, floa
 	int a;
 	
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	/* mult */
 	for (a = 0; a < 7; a++) {
@@ -198,8 +198,8 @@ void UI_draw_roundbox_shade_x(
 	int a;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
@@ -326,8 +326,8 @@ void UI_draw_roundbox_shade_y(
 	BLI_assert(mode != GL_POLYGON);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
@@ -454,7 +454,7 @@ void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const flo
 	int ofs_y = 4 * U.pixelsize;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(color);
@@ -469,8 +469,8 @@ void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const flo
 void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highlight[3], unsigned char highlight_fade[3])
 {
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned int col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 	/* add a 1px offset, looks nicer */
 	const int minx = rect->xmin + U.pixelsize, maxx = rect->xmax - U.pixelsize;
 	const int miny = rect->ymin + U.pixelsize, maxy = rect->ymax - U.pixelsize;
@@ -737,7 +737,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	          (rect.ymax + 1) - (rect.ymin - 1));
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -788,7 +788,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 static void waveform_draw_one(float *waveform, int nbr, const float col[3])
 {
 	VertexFormat format = {0};
-	unsigned int pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 	VertexBuffer_allocate_data(vbo, nbr);
@@ -869,7 +869,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1126,7 +1126,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	          (rect.ymax + 1) - (rect.ymin - 1));
 	
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1323,7 +1323,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	float y1 = rect->ymin;
 
 	VertexFormat *format = immVertexFormat();
-	position = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	position = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
 
 	/* Drawing the checkerboard. */
@@ -1335,8 +1335,8 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 
 	/* New format */
 	format = immVertexFormat();
-	position = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	color = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+	position = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	color = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
 	/* layer: color ramp */
@@ -1390,7 +1390,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 
 	/* New format */
 	format = immVertexFormat();
-	position = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	position = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* layer: box outline */
@@ -1472,7 +1472,7 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	
 	/* AA circle */
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3ubv((unsigned char *)wcol->inner);
 
@@ -1575,7 +1575,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	glLineWidth(1.0f);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* backdrop */
@@ -1705,8 +1705,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 
 	/* the points, use aspect to make them visible on edges */
 	format = immVertexFormat();
-	pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned int col = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+	pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	cmp = cuma->curve;
@@ -1731,7 +1731,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 
 	/* outline */
 	format = immVertexFormat();
-	pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor3ubv((unsigned char *)wcol->outline);
@@ -1822,8 +1822,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			          BLI_rctf_size_y(&rect));
 
 			VertexFormat *format = immVertexFormat();
-			unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-			unsigned int col = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int col = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 			UI_GetThemeColor4fv(TH_SEL_MARKER, col_sel);
@@ -1911,7 +1911,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	float y = 0.5f * (recti->ymin + recti->ymax);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4ubv(but->col);
 
@@ -1972,8 +1972,8 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 	glEnable(GL_BLEND);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 

@@ -3070,11 +3070,11 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 	}
 		
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	if (rc->gltex) {
 
-		unsigned texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int texCoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 		glBindTexture(GL_TEXTURE_2D, rc->gltex);
 
@@ -3202,7 +3202,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		RNA_property_float_get_array(&rc->col_ptr, rc->col_prop, col);
 
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3fvAlpha(col, 0.5); 

@@ -199,8 +199,8 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 #endif
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
@@ -365,8 +365,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 			unsigned char col_bg[3], col_grid_emphasise[3], col_grid_light[3];
 
 			VertexFormat *format = immVertexFormat();
-			unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
@@ -453,8 +453,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 			/* draw axis lines -- sometimes grid floor is off, other times we still need to draw the Z axis */
 
 			VertexFormat *format = immVertexFormat();
-			unsigned int pos = add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 			immBegin(GL_LINES, (show_axis_x + show_axis_y + show_axis_z) * 2);
@@ -556,8 +556,8 @@ void DRW_draw_background(void)
 		glDisable(GL_DEPTH_TEST);
 
 		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+		unsigned pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 		unsigned char col_hi[3], col_lo[3];
 
 		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
@@ -642,9 +642,9 @@ void DRW_draw_cursor(void)
 		const float f20 = 1.0f;
 
 		VertexFormat *format = immVertexFormat();
-		unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
-		unsigned int wpos = add_attrib(format, "world_pos", COMP_F32, 3, KEEP_FLOAT);
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+		unsigned int wpos = VertexFormat_add_attrib(format, "world_pos", COMP_F32, 3, KEEP_FLOAT);
 
 		/* XXX Using instance shader without instance */
 		immBindBuiltinProgram(GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR);
