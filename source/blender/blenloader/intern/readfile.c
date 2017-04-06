@@ -121,7 +121,6 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h" // for G
@@ -149,6 +148,8 @@
 #include "BKE_outliner_treehash.h"
 #include "BKE_sound.h"
 #include "BKE_colortools.h"
+
+#include "DEG_depsgraph.h"
 
 #include "NOD_common.h"
 #include "NOD_socket.h"
@@ -3309,7 +3310,7 @@ static void lib_link_pose(FileData *fd, Main *bmain, Object *ob, bPose *pose)
 	
 
 	if (rebuild) {
-		DAG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+		DEG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		BKE_pose_tag_recalc(bmain, pose);
 	}
 }
@@ -10034,7 +10035,7 @@ static void give_base_to_groups(
 			base = BKE_scene_base_add(scene, ob);
 			base->flag_legacy |= SELECT;
 			BKE_scene_base_flag_sync_from_base(base);
-			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+			DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			scene->basact = base;
 
 			/* assign the group */
