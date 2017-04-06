@@ -127,6 +127,7 @@ AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings
     , m_min_time(std::numeric_limits<chrono_t>::max())
     , m_max_time(std::numeric_limits<chrono_t>::min())
     , m_refcount(0)
+    , parent_reader(NULL)
 {
 	m_name = object.getFullName();
 	std::vector<std::string> parts;

@@ -144,11 +144,16 @@ protected:
 	int m_refcount;
 
 public:
+	AbcObjectReader *parent_reader;
+
+public:
 	explicit AbcObjectReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
 	virtual ~AbcObjectReader();
 
 	const Alembic::Abc::IObject &iobject() const;
+
+	typedef std::vector<AbcObjectReader *> ptr_vector;
 
 	/**
 	 * Returns the transform of this object. This can be the Alembic object

@@ -402,25 +402,30 @@ void ABC_export(
  *
  * \param object The Alembic IObject to visit.
  * \param readers The created AbcObjectReader * will be appended to this vector.
- * \param readers_map The created AbcObjectReader * will be appended to this
- *                    map, keyed by its full name in Alembic.
  * \param settings Import settings, not used directly but passed to the
  *                 AbcObjectReader subclass constructors.
- * \return whether this IObject claims its parent as part of the same object
+ * \param r_assign_as_parent Return parameter, contains a list of reader
+ *                 pointers, whose parent pointer should still be set.
+ *                 This is filled when this call to visit_object() didn't create
+ *                 a reader that should be the parent.
+ * \return A pair of boolean and reader pointer. The boolean indicates whether
+ *         this IObject claims its parent as part of the same object
  *         (for example an IPolyMesh object would claim its parent, as the mesh
  *         is interpreted as the object's data, and the parent IXform as its
- *         Blender object).
+ *         Blender object). The pointer is the AbcObjectReader that represents
+ *         the IObject parameter.
  */
-static bool visit_object(const IObject &object,
-                         std::vector<AbcObjectReader *> &readers,
-                         GHash * readers_map,
-                         ImportSettings &settings)
+static std::pair<bool, AbcObjectReader *> visit_object(
+        const IObject &object,
+        AbcObjectReader::ptr_vector &readers,
+        ImportSettings &settings,
+        AbcObjectReader::ptr_vector &r_assign_as_parent)
 {
 	const std::string & full_name = object.getFullName();
 
 	if (!object.valid()) {
 		std::cerr << "  - " << full_name << ": object is invalid, skipping it and all its children.\n";
-		return false;
+		return std::make_pair(false, static_cast<AbcObjectReader *>(NULL));
 	}
 
 	// The interpretation of data by the children determine the role of this object.
@@ -428,15 +433,29 @@ static bool visit_object(const IObject &object,
 	// or a Blender object (Empty) themselves.
 	size_t children_claiming_this_object = 0;
 	size_t num_children = object.getNumChildren();
-	IObject first_claiming_child;
+	AbcObjectReader::ptr_vector claiming_child_readers;
+	AbcObjectReader::ptr_vector nonclaiming_child_readers;
+	AbcObjectReader::ptr_vector assign_as_parent;
 	for (size_t i = 0; i < num_children; ++i) {
 		const IObject ichild = object.getChild(i);
-		bool child_claims_this_object = visit_object(ichild , readers, readers_map, settings);
-		if (child_claims_this_object && !first_claiming_child) {
-			first_claiming_child = ichild;
+		bool child_claims_this_object;
+		AbcObjectReader *child_reader;
+
+		std::tie(child_claims_this_object, child_reader) = visit_object(ichild, readers, settings, assign_as_parent);
+		if (child_reader == NULL) {
+			BLI_assert(!child_claims_this_object);
 		}
+		else {
+			if (child_claims_this_object) {
+				claiming_child_readers.push_back(child_reader);
+			} else {
+				nonclaiming_child_readers.push_back(child_reader);
+			}
+		}
+
 		children_claiming_this_object += child_claims_this_object ? 1 : 0;
 	}
+	BLI_assert(children_claiming_this_object == claiming_child_readers.size());
 
 	AbcObjectReader *reader = NULL;
 	const MetaData &md = object.getMetaData();
@@ -458,7 +477,7 @@ static bool visit_object(const IObject &object,
 			create_empty = true;
 		}
 		else {
-			create_empty = children_claiming_this_object == 0;
+			create_empty = claiming_child_readers.empty();
 		}
 
 		if (create_empty) {
@@ -514,6 +533,10 @@ static bool visit_object(const IObject &object,
 	}
 
 	if (reader) {
+		/* We have created a reader, which should imply that this object is
+		 * not claimed as part of any child Alembic object. */
+		BLI_assert(claiming_child_readers.empty());
+
 		readers.push_back(reader);
 		reader->incref();
 
@@ -522,36 +545,50 @@ static bool visit_object(const IObject &object,
 		BLI_strncpy(abc_path->path, full_name.c_str(), PATH_MAX);
 		BLI_addtail(&settings.cache_file->object_paths, abc_path);
 
-		/* We have to take a copy of the name, because Alembic can reuse
-		 * memory, for example when dealing with instances. */
-		char * name_copy = static_cast<char *>(MEM_mallocN(
-		                                           full_name.length() + 1,
-		                                           "Alembic readers_map key 1"));
-		BLI_strncpy(name_copy, full_name.c_str(), full_name.length() + 1);
-		BLI_ghash_insert(readers_map, name_copy, reader);
+		/* We can now assign this reader as parent for our children. */
+		if (nonclaiming_child_readers.size() + assign_as_parent.size() > 0) {
+			for(AbcObjectReader *child_reader : nonclaiming_child_readers) {
+				child_reader->parent_reader = reader;
+			}
+			for(AbcObjectReader *child_reader : assign_as_parent) {
+				child_reader->parent_reader = reader;
+			}
+		}
 	}
-	else if (children_claiming_this_object > 0) {
-		/* In this case, add it to reader_map under the name of the claiming
-		 * child, but do not add to readers. The latter is used to instantiate
-		 * the new objects (which shouldn't be done for this one), whereas the
-		 * former is used for parent-child relationships (for which this
-		 * Alembic object should be represented by its claiming child). */
-
-		reader = reinterpret_cast<AbcObjectReader *>(
-		             BLI_ghash_lookup(readers_map,
-		                              first_claiming_child.getFullName().c_str())
-		             );
-
-		/* We have to take a copy of the name, because Alembic can reuse
-		 * memory, for example when dealing with instances. */
-		char * name_copy = static_cast<char *>(MEM_mallocN(
-		                                           full_name.length() + 1,
-		                                           "Alembic readers_map key 2"));
-		BLI_strncpy(name_copy, full_name.c_str(), full_name.length() + 1);
-		BLI_ghash_insert(readers_map, name_copy, reader);
+	else if (object.getParent()) {
+		if (claiming_child_readers.size() > 0) {
+			/* The first claiming child will serve just fine as parent to
+			 * our non-claiming children. Since all claiming children share
+			 * the same XForm, it doesn't really matter which one we pick. */
+			AbcObjectReader *claiming_child = claiming_child_readers[0];
+			for(AbcObjectReader *child_reader : nonclaiming_child_readers) {
+				child_reader->parent_reader = claiming_child;
+			}
+			for(AbcObjectReader *child_reader : assign_as_parent) {
+				child_reader->parent_reader = claiming_child;
+			}
+			/* Claiming children should have our parent set as their parent. */
+			for(AbcObjectReader *child_reader : claiming_child_readers) {
+				r_assign_as_parent.push_back(child_reader);
+			}
+		}
+		else {
+			/* This object isn't claimed by any child, and didn't produce
+			 * a reader. Odd situation, could be the top Alembic object, or
+			 * an unsupported Alembic schema. Delegate to our parent. */
+			for(AbcObjectReader *child_reader : claiming_child_readers) {
+				r_assign_as_parent.push_back(child_reader);
+			}
+			for(AbcObjectReader *child_reader : nonclaiming_child_readers) {
+				r_assign_as_parent.push_back(child_reader);
+			}
+			for(AbcObjectReader *child_reader : assign_as_parent) {
+				r_assign_as_parent.push_back(child_reader);
+			}
+		}
 	}
 
-	return parent_is_part_of_this_object;
+	return std::make_pair(parent_is_part_of_this_object, reader);
 }
 
 enum {
@@ -566,7 +603,6 @@ struct ImportJobData {
 	char filename[1024];
 	ImportSettings settings;
 
-	GHash * readers_map;
 	std::vector<AbcObjectReader *> readers;
 
 	short *stop;
@@ -643,10 +679,12 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	*data->do_update = true;
 	*data->progress = 0.05f;
 
-	data->readers_map = BLI_ghash_str_new("Alembic readers_map ghash");
-
 	/* Parse Alembic Archive. */
-	visit_object(archive->getTop(), data->readers, data->readers_map, data->settings);
+	AbcObjectReader::ptr_vector assign_as_parent;
+	visit_object(archive->getTop(), data->readers, data->settings, assign_as_parent);
+
+	/* There shouldn't be any orphans. */
+	BLI_assert(assign_as_parent.size() == 0);
 
 	if (G.is_break) {
 		data->was_cancelled = true;
@@ -703,48 +741,16 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	}
 
 	/* Setup parenthood. */
-
-	i = 0;
 	for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 		const AbcObjectReader *reader = *iter;
-		const AbcObjectReader *parent_reader = NULL;
-		const IObject &iobject = reader->iobject();
+		const AbcObjectReader *parent_reader = reader->parent_reader;
 		Object *ob = reader->object();
 
-		/* Find the parent reader by going up in the Alembic hierarchy until we find it.
-		 * Some Xform Alembic objects do not produce an AbcEmptyReader, since they
-		 * translate to a Blender object with a reader attached to the Xform's child. */
-		IObject alembic_parent = iobject.getParent();
-
-		while (alembic_parent) {
-			const char * parent_name = alembic_parent.getFullName().c_str();
-			parent_reader = reinterpret_cast<AbcObjectReader *>(
-			                    BLI_ghash_lookup(data->readers_map,
-			                                     parent_name));
-			/* NULL means: the reader with this name doesn't exist
-			 * equal to ob means: the Alembic object with this name represents
-			 * the same object, and the real parent is found higher up. */
-			if (parent_reader != NULL && parent_reader->object() != ob) {
-				break;  // found the parent reader.
-			}
-
-			alembic_parent = alembic_parent.getParent();
+		if (parent_reader == NULL) {
+			ob->parent = NULL;
 		}
-
-		if (parent_reader) {
-			Object *blender_parent = parent_reader->object();
-
-			if (blender_parent != NULL && reader->object() != blender_parent) {
-				ob->parent = blender_parent;
-			}
-		}
-
-		*data->progress = 0.4f + 0.3f * (++i / size);
-		*data->do_update = true;
-
-		if (G.is_break) {
-			data->was_cancelled = true;
-			return;
+		else {
+			ob->parent = parent_reader->object();
 		}
 	}
 
@@ -810,10 +816,6 @@ static void import_endjob(void *user_data)
 		}
 	}
 
-	if (data->readers_map) {
-		BLI_ghash_free(data->readers_map, MEM_freeN, NULL);
-	}
-
 	switch (data->error_code) {
 		default:
 		case ABC_NO_ERROR:
@@ -847,7 +849,6 @@ void ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 	job->settings.sequence_len = sequence_len;
 	job->settings.offset = offset;
 	job->settings.validate_meshes = validate_meshes;
-	job->readers_map = NULL;
 	job->error_code = ABC_NO_ERROR;
 	job->was_cancelled = false;
 
