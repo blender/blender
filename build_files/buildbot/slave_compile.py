@@ -109,6 +109,8 @@ if 'cmake' in builder:
             chroot_name = 'buildbot_' + deb_name + '_i686'
             cuda_chroot_name = 'buildbot_' + deb_name + '_x86_64'
             targets = ['player', 'blender', 'cuda']
+        cmake_extra_options.extend(["-DCMAKE_C_COMPILER=/usr/bin/gcc-6",
+                                    "-DCMAKE_CXX_COMPILER=/usr/bin/g++-6"])
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
