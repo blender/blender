@@ -34,9 +34,10 @@
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "bmesh.h"
 
@@ -920,7 +921,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
 	/* we could have the user do this but if they forget blender can easy crash
 	 * since the references arrays for the objects derived meshes are now invalid */
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 
 	Py_RETURN_NONE;
 }
