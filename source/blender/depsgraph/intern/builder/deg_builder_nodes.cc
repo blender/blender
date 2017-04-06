@@ -72,7 +72,6 @@ extern "C" {
 #include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_idcode.h"

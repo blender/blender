@@ -39,7 +39,6 @@ extern "C" {
 #include "BLI_task.h"
 #include "BLI_ghash.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 
 #include "DEG_depsgraph.h"

@@ -46,8 +46,6 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BKE_depsgraph.h"
-
 #include "RNA_access.h"
 }
 
