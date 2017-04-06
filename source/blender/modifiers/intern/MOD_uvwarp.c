@@ -37,7 +37,6 @@
 #include "BKE_action.h"  /* BKE_pose_channel_find_name */
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
