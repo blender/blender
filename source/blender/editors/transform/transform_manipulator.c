@@ -143,21 +143,17 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
 }
 
 /* for pose mode */
-static void stats_pose(Scene *scene, RegionView3D *rv3d, bPoseChannel *pchan)
+static void stats_pchan(RegionView3D *rv3d, bPoseChannel *pchan)
 {
-	Bone *bone = pchan->bone;
-
-	if (bone) {
-		calc_tw_center(scene, pchan->pose_head);
-		protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
-	}
+	protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
 }
 
 /* for editmode*/
 static void stats_editbone(RegionView3D *rv3d, EditBone *ebo)
 {
-	if (ebo->flag & BONE_EDITMODE_LOCKED)
+	if (ebo->flag & BONE_EDITMODE_LOCKED) {
 		protectflag_to_drawflags(OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE, &rv3d->twdrawflag);
+	}
 }
 
 /* could move into BLI_math however this is only useful for display/editing purposes */
@@ -530,7 +526,8 @@ static int calc_manipulator_stats(const bContext *C)
 			/* doesn't check selection or visibility intentionally */
 			Bone *bone = pchan->bone;
 			if (bone) {
-				stats_pose(scene, rv3d, pchan);
+				calc_tw_center(scene, pchan->pose_head);
+				stats_pchan(rv3d, pchan);
 				totsel = 1;
 				ok = true;
 			}
@@ -543,7 +540,8 @@ static int calc_manipulator_stats(const bContext *C)
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					Bone *bone = pchan->bone;
 					if (bone && (bone->flag & BONE_TRANSFORM)) {
-						stats_pose(scene, rv3d, pchan);
+						calc_tw_center(scene, pchan->pose_head);
+						stats_pchan(rv3d, pchan);
 					}
 				}
 				ok = true;
