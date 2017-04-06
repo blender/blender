@@ -151,7 +151,8 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		/* Calculate max groups */
 
 		/* Denotes the maximum work groups possible w.r.t. current requested tile size. */
-		unsigned int max_work_groups = num_global_elements / WORK_POOL_SIZE + 1;
+		unsigned int work_pool_size = (device->info.type == DEVICE_CPU) ? WORK_POOL_SIZE_CPU : WORK_POOL_SIZE_GPU;
+		unsigned int max_work_groups = num_global_elements / work_pool_size + 1;
 
 		/* Allocate work_pool_wgs memory. */
 		work_pool_wgs.resize(max_work_groups * sizeof(unsigned int));

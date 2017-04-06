@@ -56,7 +56,13 @@ CCL_NAMESPACE_BEGIN
 
 #define VOLUME_STACK_SIZE		16
 
-#define WORK_POOL_SIZE 64
+#define WORK_POOL_SIZE_GPU 64
+#define WORK_POOL_SIZE_CPU 1
+#ifdef __KERNEL_GPU__
+#  define WORK_POOL_SIZE WORK_POOL_SIZE_GPU
+#else
+#  define WORK_POOL_SIZE WORK_POOL_SIZE_CPU
+#endif
 
 /* device capabilities */
 #ifdef __KERNEL_CPU__
