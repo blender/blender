@@ -22,17 +22,17 @@
 //   ^-- this is only guaranteed on Windows right now, will be true on all platforms soon
 
 typedef enum {
-	COMP_I8 = GL_BYTE,
-	COMP_U8 = GL_UNSIGNED_BYTE,
-	COMP_I16 = GL_SHORT,
-	COMP_U16 = GL_UNSIGNED_SHORT,
-	COMP_I32 = GL_INT,
-	COMP_U32 = GL_UNSIGNED_INT,
+	COMP_I8,
+	COMP_U8,
+	COMP_I16,
+	COMP_U16,
+	COMP_I32,
+	COMP_U32,
 
-	COMP_F32 = GL_FLOAT, // TODO: drop the GL_ equivalence here, use a private lookup table
+	COMP_F32,
 
 #if USE_10_10_10
-	COMP_I10 = GL_INT_2_10_10_10_REV
+	COMP_I10
 #endif
 } VertexCompType;
 
@@ -45,6 +45,7 @@ typedef enum {
 
 typedef struct {
 	VertexCompType comp_type;
+	unsigned gl_comp_type;
 	unsigned comp_ct; // 1 to 4
 	unsigned sz; // size in bytes, 1 to 16
 	unsigned offset; // from beginning of vertex, in bytes

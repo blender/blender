@@ -329,13 +329,13 @@ static void immDrawSetup(void)
 			{
 			case KEEP_FLOAT:
 			case CONVERT_INT_TO_FLOAT:
-				glVertexAttribPointer(loc, a->comp_ct, a->comp_type, GL_FALSE, stride, pointer);
+				glVertexAttribPointer(loc, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
 				break;
 			case NORMALIZE_INT_TO_FLOAT:
-				glVertexAttribPointer(loc, a->comp_ct, a->comp_type, GL_TRUE, stride, pointer);
+				glVertexAttribPointer(loc, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
 				break;
 			case KEEP_INT:
-				glVertexAttribIPointer(loc, a->comp_ct, a->comp_type, stride, pointer);
+				glVertexAttribIPointer(loc, a->comp_ct, a->gl_comp_type, stride, pointer);
 			}
 		}
 

@@ -36,14 +36,33 @@ void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src)
 	memcpy(dest, src, sizeof(VertexFormat));
 	}
 
+static GLenum convert_comp_type_to_gl(VertexCompType type)
+	{
+	static const GLenum table[] = {
+		[COMP_I8] = GL_BYTE,
+		[COMP_U8] = GL_UNSIGNED_BYTE,
+		[COMP_I16] = GL_SHORT,
+		[COMP_U16] = GL_UNSIGNED_SHORT,
+		[COMP_I32] = GL_INT,
+		[COMP_U32] = GL_UNSIGNED_INT,
+
+		[COMP_F32] = GL_FLOAT,
+
+	#if USE_10_10_10
+		[COMP_I10] = GL_INT_2_10_10_10_REV
+	#endif
+		};
+	return table[type];
+	}
+
 static unsigned comp_sz(VertexCompType type)
 	{
 #if TRUST_NO_ONE
-	assert(type >= GL_BYTE && type <= GL_FLOAT);
+	assert(type <= COMP_F32); // other types have irregular sizes (not bytes)
 #endif
 
 	const GLubyte sizes[] = {1,1,2,2,4,4,4};
-	return sizes[type - GL_BYTE];
+	return sizes[type];
 	}
 
 static unsigned attrib_sz(const Attrib *a)
@@ -137,6 +156,7 @@ unsigned VertexFormat_add_attrib(VertexFormat* format, const char* name, VertexC
 
 	attrib->name = copy_attrib_name(format, name);
 	attrib->comp_type = comp_type;
+	attrib->gl_comp_type = convert_comp_type_to_gl(comp_type);
 #if USE_10_10_10
 	attrib->comp_ct = (comp_type == COMP_I10) ? 4 : comp_ct; // system needs 10_10_10_2 to be 4 or BGRA
 #else
