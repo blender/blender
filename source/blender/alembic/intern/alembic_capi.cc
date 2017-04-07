@@ -121,91 +121,62 @@ ABC_INLINE AbcArchiveHandle *handle_from_archive(ArchiveReader *archive)
 
 /* NOTE: this function is similar to visit_objects below, need to keep them in
  * sync. */
-static void gather_objects_paths(const IObject &object, ListBase *object_paths)
+static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
 {
 	if (!object.valid()) {
-		return;
+		return false;
 	}
 
-	for (int i = 0; i < object.getNumChildren(); ++i) {
-		IObject child = object.getChild(i);
 
-		if (!child.valid()) {
-			continue;
-		}
+	size_t children_claiming_this_object = 0;
+	size_t num_children = object.getNumChildren();
 
-		bool get_path = false;
+	for (size_t i = 0; i < num_children; ++i) {
+		bool child_claims_this_object = gather_objects_paths(object.getChild(i), object_paths);
+		children_claiming_this_object += child_claims_this_object ? 1 : 0;
+	}
 
-		const MetaData &md = child.getMetaData();
+	const MetaData &md = object.getMetaData();
+	bool get_path = false;
+	bool parent_is_part_of_this_object = false;
 
-		if (IXform::matches(md)) {
-			/* Check whether or not this object is a Maya locator, which is
-			 * similar to empties used as parent object in Blender. */
-			if (has_property(child.getProperties(), "locator")) {
-				get_path = true;
-			}
-			else {
-				/* Avoid creating an empty object if the child of this transform
-				 * is not a transform (that is an empty). */
-				if (child.getNumChildren() == 1) {
-					if (IXform::matches(child.getChild(0).getMetaData())) {
-						get_path = true;
-					}
-#if 0
-					else {
-						std::cerr << "gather_objects_paths(" << object.getFullName() << "): Skipping " << child.getFullName() << '\n';
-					}
-#endif
-				}
-				else {
-					get_path = true;
-				}
-			}
-		}
-		else if (IPolyMesh::matches(md)) {
-			get_path = true;
-		}
-		else if (ISubD::matches(md)) {
-			get_path = true;
-		}
-		else if (INuPatch::matches(md)) {
-#ifdef USE_NURBS
-			get_path = true;
-#endif
-		}
-		else if (ICamera::matches(md)) {
-			get_path = true;
-		}
-		else if (IPoints::matches(md)) {
-			get_path = true;
-		}
-		else if (IMaterial::matches(md)) {
-			/* Pass for now. */
-		}
-		else if (ILight::matches(md)) {
-			/* Pass for now. */
-		}
-		else if (IFaceSet::matches(md)) {
-			/* Pass, those are handled in the mesh reader. */
-		}
-		else if (ICurves::matches(md)) {
+	if (!object.getParent()) {
+		/* The root itself is not an object we should import. */
+	}
+	else if (IXform::matches(md)) {
+		if (has_property(object.getProperties(), "locator")) {
 			get_path = true;
 		}
 		else {
-			assert(false);
+			get_path = children_claiming_this_object == 0;
 		}
 
-		if (get_path) {
-			AlembicObjectPath *abc_path = static_cast<AlembicObjectPath *>(
-			                                  MEM_callocN(sizeof(AlembicObjectPath), "AlembicObjectPath"));
-
-			BLI_strncpy(abc_path->path, child.getFullName().c_str(), PATH_MAX);
-
-			BLI_addtail(object_paths, abc_path);
-		}
-
-		gather_objects_paths(child, object_paths);
+		/* Transforms are never "data" for their parent. */
+		parent_is_part_of_this_object = false;
 	}
+	else {
+		/* These types are "data" for their parent. */
+		get_path =
+		        IPolyMesh::matches(md) ||
+		        ISubD::matches(md) ||
+#ifdef USE_NURBS
+		        INuPatch::matches(md) ||
+#endif
+		        ICamera::matches(md) ||
+		        IPoints::matches(md) ||
+		        ICurves::matches(md);
+		parent_is_part_of_this_object = get_path;
+	}
+
+	if (get_path) {
+		void *abc_path_void = MEM_callocN(sizeof(AlembicObjectPath), "AlembicObjectPath");
+		AlembicObjectPath *abc_path = static_cast<AlembicObjectPath *>(abc_path_void);
+
+		BLI_strncpy(abc_path->path, object.getFullName().c_str(), PATH_MAX);
+		BLI_addtail(object_paths, abc_path);
+	}
+
+	return parent_is_part_of_this_object;
 }
 
 AbcArchiveHandle *ABC_create_handle(const char *filename, ListBase *object_paths)
@@ -415,7 +386,9 @@ void ABC_export(
  *         is interpreted as the object's data, and the parent IXform as its
  *         Blender object). The pointer is the AbcObjectReader that represents
  *         the IObject parameter.
- */
+ *
+ * NOTE: this function is similar to gather_object_paths above, need to keep
+ * them in sync. */
 static std::pair<bool, AbcObjectReader *> visit_object(
         const IObject &object,
         AbcObjectReader::ptr_vector &readers,
@@ -470,7 +443,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 	bool parent_is_part_of_this_object = false;
 
 	if (!object.getParent()) {
-		// The root itself is not an object we should import.
+		/* The root itself is not an object we should import. */
 	}
 	else if (IXform::matches(md)) {
 		bool create_empty;
