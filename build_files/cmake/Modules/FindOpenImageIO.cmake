@@ -60,7 +60,7 @@ FIND_FILE(OPENIMAGEIO_IDIFF
   NAMES
     idiff
   HINTS
-    ${OPENIMAGEIO_ROOT_DIR}
+    ${_openimageio_SEARCH_DIRS}
   PATH_SUFFIXES
     bin
 )
