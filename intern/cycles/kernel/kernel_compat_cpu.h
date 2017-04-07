@@ -316,184 +316,203 @@ template<typename T> struct texture_image  {
 		return interp_3d_ex(x, y, z, interpolation);
 	}
 
-	ccl_always_inline float4 interp_3d_ex(float x, float y, float z,
-	                                      int interpolation = INTERPOLATION_LINEAR)
+	ccl_always_inline float4 interp_3d_ex_closest(float x, float y, float z)
 	{
-		if(UNLIKELY(!data))
-			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		int ix, iy, iz;
+		frac(x*(float)width, &ix);
+		frac(y*(float)height, &iy);
+		frac(z*(float)depth, &iz);
 
-		int ix, iy, iz, nix, niy, niz;
-
-		if(interpolation == INTERPOLATION_CLOSEST) {
-			frac(x*(float)width, &ix);
-			frac(y*(float)height, &iy);
-			frac(z*(float)depth, &iz);
-
-			switch(extension) {
-				case EXTENSION_REPEAT:
-					ix = wrap_periodic(ix, width);
-					iy = wrap_periodic(iy, height);
-					iz = wrap_periodic(iz, depth);
-					break;
-				case EXTENSION_CLIP:
-					if(x < 0.0f || y < 0.0f || z < 0.0f ||
-					   x > 1.0f || y > 1.0f || z > 1.0f)
-					{
-						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-					}
-					/* Fall through. */
-				case EXTENSION_EXTEND:
-					ix = wrap_clamp(ix, width);
-					iy = wrap_clamp(iy, height);
-					iz = wrap_clamp(iz, depth);
-					break;
-				default:
-					kernel_assert(0);
+		switch(extension) {
+			case EXTENSION_REPEAT:
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+				iz = wrap_periodic(iz, depth);
+				break;
+			case EXTENSION_CLIP:
+				if(x < 0.0f || y < 0.0f || z < 0.0f ||
+				   x > 1.0f || y > 1.0f || z > 1.0f)
+				{
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			}
-
-			return read(data[ix + iy*width + iz*width*height]);
+				}
+				/* Fall through. */
+			case EXTENSION_EXTEND:
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+				iz = wrap_clamp(iz, depth);
+				break;
+			default:
+				kernel_assert(0);
+				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
-		else if(interpolation == INTERPOLATION_LINEAR) {
-			float tx = frac(x*(float)width - 0.5f, &ix);
-			float ty = frac(y*(float)height - 0.5f, &iy);
-			float tz = frac(z*(float)depth - 0.5f, &iz);
 
-			switch(extension) {
-				case EXTENSION_REPEAT:
-					ix = wrap_periodic(ix, width);
-					iy = wrap_periodic(iy, height);
-					iz = wrap_periodic(iz, depth);
+		return read(data[ix + iy*width + iz*width*height]);
+	}
 
-					nix = wrap_periodic(ix+1, width);
-					niy = wrap_periodic(iy+1, height);
-					niz = wrap_periodic(iz+1, depth);
-					break;
-				case EXTENSION_CLIP:
-					if(x < 0.0f || y < 0.0f || z < 0.0f ||
-					   x > 1.0f || y > 1.0f || z > 1.0f)
-					{
-						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-					}
-					/* Fall through. */
-				case EXTENSION_EXTEND:
-					nix = wrap_clamp(ix+1, width);
-					niy = wrap_clamp(iy+1, height);
-					niz = wrap_clamp(iz+1, depth);
+	ccl_always_inline float4 interp_3d_ex_linear(float x, float y, float z)
+	{
+		int ix, iy, iz;
+		int nix, niy, niz;
+		
+		float tx = frac(x*(float)width - 0.5f, &ix);
+		float ty = frac(y*(float)height - 0.5f, &iy);
+		float tz = frac(z*(float)depth - 0.5f, &iz);
 
-					ix = wrap_clamp(ix, width);
-					iy = wrap_clamp(iy, height);
-					iz = wrap_clamp(iz, depth);
-					break;
-				default:
-					kernel_assert(0);
+		switch(extension) {
+			case EXTENSION_REPEAT:
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+				iz = wrap_periodic(iz, depth);
+
+				nix = wrap_periodic(ix+1, width);
+				niy = wrap_periodic(iy+1, height);
+				niz = wrap_periodic(iz+1, depth);
+				break;
+			case EXTENSION_CLIP:
+				if(x < 0.0f || y < 0.0f || z < 0.0f ||
+				   x > 1.0f || y > 1.0f || z > 1.0f)
+				{
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			}
+				}
+				/* Fall through. */
+			case EXTENSION_EXTEND:
+				nix = wrap_clamp(ix+1, width);
+				niy = wrap_clamp(iy+1, height);
+				niz = wrap_clamp(iz+1, depth);
 
-			float4 r;
-
-			r  = (1.0f - tz)*(1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width + iz*width*height]);
-			r += (1.0f - tz)*(1.0f - ty)*tx*read(data[nix + iy*width + iz*width*height]);
-			r += (1.0f - tz)*ty*(1.0f - tx)*read(data[ix + niy*width + iz*width*height]);
-			r += (1.0f - tz)*ty*tx*read(data[nix + niy*width + iz*width*height]);
-
-			r += tz*(1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width + niz*width*height]);
-			r += tz*(1.0f - ty)*tx*read(data[nix + iy*width + niz*width*height]);
-			r += tz*ty*(1.0f - tx)*read(data[ix + niy*width + niz*width*height]);
-			r += tz*ty*tx*read(data[nix + niy*width + niz*width*height]);
-
-			return r;
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+				iz = wrap_clamp(iz, depth);
+				break;
+			default:
+				kernel_assert(0);
+				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
-		else {
-			/* Tricubic b-spline interpolation. */
-			const float tx = frac(x*(float)width - 0.5f, &ix);
-			const float ty = frac(y*(float)height - 0.5f, &iy);
-			const float tz = frac(z*(float)depth - 0.5f, &iz);
-			int pix, piy, piz, nnix, nniy, nniz;
 
-			switch(extension) {
-				case EXTENSION_REPEAT:
-					ix = wrap_periodic(ix, width);
-					iy = wrap_periodic(iy, height);
-					iz = wrap_periodic(iz, depth);
+		float4 r;
 
-					pix = wrap_periodic(ix-1, width);
-					piy = wrap_periodic(iy-1, height);
-					piz = wrap_periodic(iz-1, depth);
+		r  = (1.0f - tz)*(1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width + iz*width*height]);
+		r += (1.0f - tz)*(1.0f - ty)*tx*read(data[nix + iy*width + iz*width*height]);
+		r += (1.0f - tz)*ty*(1.0f - tx)*read(data[ix + niy*width + iz*width*height]);
+		r += (1.0f - tz)*ty*tx*read(data[nix + niy*width + iz*width*height]);
 
-					nix = wrap_periodic(ix+1, width);
-					niy = wrap_periodic(iy+1, height);
-					niz = wrap_periodic(iz+1, depth);
+		r += tz*(1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width + niz*width*height]);
+		r += tz*(1.0f - ty)*tx*read(data[nix + iy*width + niz*width*height]);
+		r += tz*ty*(1.0f - tx)*read(data[ix + niy*width + niz*width*height]);
+		r += tz*ty*tx*read(data[nix + niy*width + niz*width*height]);
 
-					nnix = wrap_periodic(ix+2, width);
-					nniy = wrap_periodic(iy+2, height);
-					nniz = wrap_periodic(iz+2, depth);
-					break;
-				case EXTENSION_CLIP:
-					if(x < 0.0f || y < 0.0f || z < 0.0f ||
-					   x > 1.0f || y > 1.0f || z > 1.0f)
-					{
-						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-					}
-					/* Fall through. */
-				case EXTENSION_EXTEND:
-					pix = wrap_clamp(ix-1, width);
-					piy = wrap_clamp(iy-1, height);
-					piz = wrap_clamp(iz-1, depth);
+		return r;
+	}
 
-					nix = wrap_clamp(ix+1, width);
-					niy = wrap_clamp(iy+1, height);
-					niz = wrap_clamp(iz+1, depth);
+	ccl_never_inline float4 interp_3d_ex_tricubic(float x, float y, float z)
+	{
+		int ix, iy, iz;
+		int nix, niy, niz;
+		/* Tricubic b-spline interpolation. */
+		const float tx = frac(x*(float)width - 0.5f, &ix);
+		const float ty = frac(y*(float)height - 0.5f, &iy);
+		const float tz = frac(z*(float)depth - 0.5f, &iz);
+		int pix, piy, piz, nnix, nniy, nniz;
 
-					nnix = wrap_clamp(ix+2, width);
-					nniy = wrap_clamp(iy+2, height);
-					nniz = wrap_clamp(iz+2, depth);
+		switch(extension) {
+			case EXTENSION_REPEAT:
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+				iz = wrap_periodic(iz, depth);
 
-					ix = wrap_clamp(ix, width);
-					iy = wrap_clamp(iy, height);
-					iz = wrap_clamp(iz, depth);
-					break;
-				default:
-					kernel_assert(0);
+				pix = wrap_periodic(ix-1, width);
+				piy = wrap_periodic(iy-1, height);
+				piz = wrap_periodic(iz-1, depth);
+
+				nix = wrap_periodic(ix+1, width);
+				niy = wrap_periodic(iy+1, height);
+				niz = wrap_periodic(iz+1, depth);
+
+				nnix = wrap_periodic(ix+2, width);
+				nniy = wrap_periodic(iy+2, height);
+				nniz = wrap_periodic(iz+2, depth);
+				break;
+			case EXTENSION_CLIP:
+				if(x < 0.0f || y < 0.0f || z < 0.0f ||
+				   x > 1.0f || y > 1.0f || z > 1.0f)
+				{
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			}
+				}
+				/* Fall through. */
+			case EXTENSION_EXTEND:
+				pix = wrap_clamp(ix-1, width);
+				piy = wrap_clamp(iy-1, height);
+				piz = wrap_clamp(iz-1, depth);
 
-			const int xc[4] = {pix, ix, nix, nnix};
-			const int yc[4] = {width * piy,
-			                   width * iy,
-			                   width * niy,
-			                   width * nniy};
-			const int zc[4] = {width * height * piz,
-			                   width * height * iz,
-			                   width * height * niz,
-			                   width * height * nniz};
-			float u[4], v[4], w[4];
+				nix = wrap_clamp(ix+1, width);
+				niy = wrap_clamp(iy+1, height);
+				niz = wrap_clamp(iz+1, depth);
 
-			/* Some helper macro to keep code reasonable size,
-			 * let compiler to inline all the matrix multiplications.
-			 */
+				nnix = wrap_clamp(ix+2, width);
+				nniy = wrap_clamp(iy+2, height);
+				nniz = wrap_clamp(iz+2, depth);
+
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+				iz = wrap_clamp(iz, depth);
+				break;
+			default:
+				kernel_assert(0);
+				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+
+		const int xc[4] = {pix, ix, nix, nnix};
+		const int yc[4] = {width * piy,
+						   width * iy,
+						   width * niy,
+						   width * nniy};
+		const int zc[4] = {width * height * piz,
+						   width * height * iz,
+						   width * height * niz,
+						   width * height * nniz};
+		float u[4], v[4], w[4];
+
+		/* Some helper macro to keep code reasonable size,
+		 * let compiler to inline all the matrix multiplications.
+		 */
 #define DATA(x, y, z) (read(data[xc[x] + yc[y] + zc[z]]))
 #define COL_TERM(col, row) \
-			(v[col] * (u[0] * DATA(0, col, row) + \
-			           u[1] * DATA(1, col, row) + \
-			           u[2] * DATA(2, col, row) + \
-			           u[3] * DATA(3, col, row)))
+		(v[col] * (u[0] * DATA(0, col, row) + \
+				   u[1] * DATA(1, col, row) + \
+				   u[2] * DATA(2, col, row) + \
+				   u[3] * DATA(3, col, row)))
 #define ROW_TERM(row) \
-			(w[row] * (COL_TERM(0, row) + \
-			           COL_TERM(1, row) + \
-			           COL_TERM(2, row) + \
-			           COL_TERM(3, row)))
+		(w[row] * (COL_TERM(0, row) + \
+				   COL_TERM(1, row) + \
+				   COL_TERM(2, row) + \
+				   COL_TERM(3, row)))
 
-			SET_CUBIC_SPLINE_WEIGHTS(u, tx);
-			SET_CUBIC_SPLINE_WEIGHTS(v, ty);
-			SET_CUBIC_SPLINE_WEIGHTS(w, tz);
+		SET_CUBIC_SPLINE_WEIGHTS(u, tx);
+		SET_CUBIC_SPLINE_WEIGHTS(v, ty);
+		SET_CUBIC_SPLINE_WEIGHTS(w, tz);
 
-			/* Actual interpolation. */
-			return ROW_TERM(0) + ROW_TERM(1) + ROW_TERM(2) + ROW_TERM(3);
+		/* Actual interpolation. */
+		return ROW_TERM(0) + ROW_TERM(1) + ROW_TERM(2) + ROW_TERM(3);
 
 #undef COL_TERM
 #undef ROW_TERM
 #undef DATA
+	}
+
+	ccl_always_inline float4 interp_3d_ex(float x, float y, float z,
+	                                      int interpolation = INTERPOLATION_LINEAR)
+	{
+		
+		if(UNLIKELY(!data))
+			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+		switch(interpolation) { 
+			case INTERPOLATION_CLOSEST:
+				return interp_3d_ex_closest(x, y, z);
+			case INTERPOLATION_LINEAR:
+				return interp_3d_ex_linear(x, y, z);
+			default:
+				return interp_3d_ex_tricubic(x, y, z);
 		}
 	}
 

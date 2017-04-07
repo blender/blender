@@ -55,6 +55,7 @@
 #endif
 #define ccl_may_alias
 #define ccl_always_inline __forceinline
+#define ccl_never_inline __declspec(noinline)
 #define ccl_maybe_unused
 
 #else
@@ -68,6 +69,7 @@
 #define ccl_try_align(...) __attribute__((aligned(__VA_ARGS__)))
 #define ccl_may_alias __attribute__((__may_alias__))
 #define ccl_always_inline __attribute__((always_inline))
+#define ccl_never_inline __attribute__((noinline))
 #define ccl_maybe_unused __attribute__((used))
 
 #endif
