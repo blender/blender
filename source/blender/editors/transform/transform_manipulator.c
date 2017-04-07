@@ -1133,18 +1133,24 @@ static void draw_manipulator_rotate(
 	// donut arcs
 	if (arcs) {
 		float axis_model_mat[4][4];
+
+#if !APPLE_LEGACY
 		float clip_plane[4];
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
 		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], rv3d->twmat[3]);
 		clip_plane[3] -= 0.02f * size; /* clip just a bit more so view aligned arcs are not visible */
+#endif
 
 		gpuPopMatrix(); /* we setup our own matrix, pop previously set twmat */
+
+#if !APPLE_LEGACY
 		immUnbindProgram();
 		immBindBuiltinProgram(GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR);
 		immUniform4fv("ClipPlane", clip_plane);
 
 		glEnable(GL_CLIP_DISTANCE0);
+#endif
 
 		/* Z circle */
 		if (drawflags & MAN_ROT_Z) {
@@ -1152,7 +1158,9 @@ static void draw_manipulator_rotate(
 			else manipulator_setcolor(v3d, 'Z', colcode, 255);
 
 			twmat_to_rotation_axis_mat(rv3d->twmat, 2, ortho, axis_model_mat);
+#if !APPLE_LEGACY
 			immUniformMatrix4fv("ModelMatrix", axis_model_mat);
+#endif
 			gpuPushMatrix();
 			gpuMultMatrix3D(axis_model_mat);
 
@@ -1165,7 +1173,9 @@ static void draw_manipulator_rotate(
 			else manipulator_setcolor(v3d, 'X', colcode, 255);
 
 			twmat_to_rotation_axis_mat(rv3d->twmat, 0, ortho, axis_model_mat);
+#if !APPLE_LEGACY
 			immUniformMatrix4fv("ModelMatrix", axis_model_mat);
+#endif
 			gpuPushMatrix();
 			gpuMultMatrix3D(axis_model_mat);
 
@@ -1178,7 +1188,9 @@ static void draw_manipulator_rotate(
 			else manipulator_setcolor(v3d, 'Y', colcode, 255);
 
 			twmat_to_rotation_axis_mat(rv3d->twmat, 1, ortho, axis_model_mat);
+#if !APPLE_LEGACY
 			immUniformMatrix4fv("ModelMatrix", axis_model_mat);
+#endif
 			gpuPushMatrix();
 			gpuMultMatrix3D(axis_model_mat);
 
@@ -1186,7 +1198,10 @@ static void draw_manipulator_rotate(
 			gpuPopMatrix();
 		}
 
+#if !APPLE_LEGACY
 		glDisable(GL_CLIP_DISTANCE0);
+#endif
+
 		gpuPushMatrix(); /* to balance final pop at end of function */
 	}
 	else {

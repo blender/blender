@@ -3,11 +3,7 @@ uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 uniform vec4 ClipPlane;
 
-#if __VERSION__ == 120
-  attribute vec3 pos;
-#else
-  in vec3 pos;
-#endif
+in vec3 pos;
 
 void main()
 {
