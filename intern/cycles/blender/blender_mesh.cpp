@@ -560,6 +560,9 @@ static void attr_create_pointiness(Scene *scene,
 		return;
 	}
 	const int num_verts = b_mesh.vertices.length();
+	if(num_verts == 0) {
+		return;
+	}
 	/* STEP 1: Find out duplicated vertices and point duplicates to a single
 	 *         original vertex.
 	 */
