@@ -1187,6 +1187,7 @@ static void draw_manipulator_rotate(
 		}
 
 		glDisable(GL_CLIP_DISTANCE0);
+		gpuPushMatrix(); /* to balance final pop at end of function */
 	}
 	else {
 
