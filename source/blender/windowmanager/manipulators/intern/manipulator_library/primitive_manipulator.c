@@ -93,7 +93,7 @@ static void manipulator_primitive_draw_geom(
 	}
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-	wm_manipulator_vec_draw(col_inner, verts, vert_count, pos, PRIM_QUADS);
+	wm_manipulator_vec_draw(col_inner, verts, vert_count, pos, PRIM_TRIANGLE_FAN);
 	wm_manipulator_vec_draw(col_outer, verts, vert_count, pos, PRIM_LINE_LOOP);
 	immUnbindProgram();
 }
