@@ -1554,9 +1554,9 @@ static void outliner_draw_tree_element_floating(
 		BLI_assert(te_floating->drag_data->insert_type == TE_INSERT_INTO);
 		immUniformColor4ub(UNPACK3(col), col[3] * 0.5f);
 
-		immBegin(PRIM_QUADS, 4);
-		immVertex2f(pos, coord_x, coord_y);
+		immBegin(PRIM_TRIANGLE_STRIP, 4);
 		immVertex2f(pos, coord_x, coord_y + UI_UNIT_Y);
+		immVertex2f(pos, coord_x, coord_y);
 		immVertex2f(pos, ar->v2d.cur.xmax, coord_y + UI_UNIT_Y);
 		immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
 		immEnd();
