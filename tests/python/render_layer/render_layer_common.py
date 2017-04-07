@@ -127,11 +127,10 @@ def query_scene(filepath, name, callbacks):
     with blendfile.open_blend(filepath) as blend:
         scenes = [block for block in blend.blocks if block.code == b'SC']
         for scene in scenes:
-            if scene.get((b'id', b'name'))[2:] == name:
-                output = []
-                for callback in callbacks:
-                    output.append(callback(scene))
-                return output
+            if scene.get((b'id', b'name'))[2:] != name:
+                continue
+
+            return [callback(scene) for callback in callbacks]
 
 
 # ############################################################
