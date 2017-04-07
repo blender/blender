@@ -122,7 +122,8 @@ def get_scene_collections(scene):
 
 def query_scene(filepath, name, callbacks):
     """Return the equivalent to bpy.context.scene"""
-    import blendfile
+    from io_blend_utils.blend import blendfile
+
     with blendfile.open_blend(filepath) as blend:
         scenes = [block for block in blend.blocks if block.code == b'SC']
         for scene in scenes:
@@ -136,22 +137,6 @@ def query_scene(filepath, name, callbacks):
 # ############################################################
 # Utils
 # ############################################################
-
-def import_blendfile():
-    import bpy
-    import os
-    import sys
-    path = os.path.join(
-            bpy.utils.resource_path('LOCAL'),
-            'scripts',
-            'addons',
-            'io_blend_utils',
-            'blend',
-            )
-
-    if path not in sys.path:
-        sys.path.append(path)
-
 
 def dump(data):
     import json
@@ -199,7 +184,6 @@ class RenderLayerTesting(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Runs once"""
-        cls.pretest_import_blendfile()
         cls.pretest_parsing()
 
     @classmethod
@@ -224,15 +208,6 @@ class RenderLayerTesting(unittest.TestCase):
         """
         root = cls.get_root()
         cls.assertTrue(root, "Testdir not set")
-
-    @staticmethod
-    def pretest_import_blendfile():
-        """
-        Make sure blendfile imports with no problems
-        name has extra _ because we need this test to run first
-        """
-        import_blendfile()
-        import blendfile
 
     def setUp(self):
         """Runs once per test"""
