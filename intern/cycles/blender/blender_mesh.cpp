@@ -1164,8 +1164,8 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 	}
 
 	/* skip empty meshes */
-	size_t numverts = mesh->verts.size();
-	size_t numkeys = mesh->curve_keys.size();
+	const size_t numverts = mesh->verts.size();
+	const size_t numkeys = mesh->curve_keys.size();
 
 	if(!numverts && !numkeys)
 		return;
@@ -1223,13 +1223,12 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 
 	/* TODO(sergey): Perform preliminary check for number of verticies. */
 	if(numverts) {
-		/* find attributes */
+		/* Find attributes. */
 		Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 		Attribute *attr_mN = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
 		Attribute *attr_N = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
 		bool new_attribute = false;
-
-		/* add new attributes if they don't exist already */
+		/* Add new attributes if they don't exist already. */
 		if(!attr_mP) {
 			attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
 			if(attr_N)
@@ -1237,22 +1236,21 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 
 			new_attribute = true;
 		}
-
-		/* load vertex data from mesh */
+		/* Load vertex data from mesh. */
 		float3 *mP = attr_mP->data_float3() + time_index*numverts;
 		float3 *mN = (attr_mN)? attr_mN->data_float3() + time_index*numverts: NULL;
-
+		/* NOTE: We don't copy more that existing amount of vertices to prevent
+		 * possible memory corruption.
+		 */
 		BL::Mesh::vertices_iterator v;
 		int i = 0;
-
 		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end() && i < numverts; ++v, ++i) {
 			mP[i] = get_float3(v->co());
 			if(mN)
 				mN[i] = get_float3(v->normal());
 		}
-
-		/* in case of new attribute, we verify if there really was any motion */
 		if(new_attribute) {
+			/* In case of new attribute, we verify if there really was any motion. */
 			if(b_mesh.vertices.length() != numverts ||
 			   memcmp(mP, &mesh->verts[0], sizeof(float3)*numverts) == 0)
 			{
@@ -1275,11 +1273,20 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 				 * they had no motion, but we need them anyway now */
 				float3 *P = &mesh->verts[0];
 				float3 *N = (attr_N)? attr_N->data_float3(): NULL;
-
 				for(int step = 0; step < time_index; step++) {
 					memcpy(attr_mP->data_float3() + step*numverts, P, sizeof(float3)*numverts);
 					if(attr_mN)
 						memcpy(attr_mN->data_float3() + step*numverts, N, sizeof(float3)*numverts);
+				}
+			}
+		}
+		else {
+			if(b_mesh.vertices.length() != numverts) {
+				VLOG(1) << "Topology differs, discarding motion blur for object "
+				        << b_ob.name() << " at time " << time_index;
+				memcpy(mP, &mesh->verts[0], sizeof(float3)*numverts);
+				if(mN != NULL) {
+					memcpy(mN, attr_N->data_float3(), sizeof(float3)*numverts);
 				}
 			}
 		}
