@@ -19,7 +19,7 @@ typedef enum {
 	PRIM_TRIANGLES = GL_TRIANGLES,
 
 #ifdef WITH_GL_PROFILE_COMPAT
-	PRIM_QUADS = GL_QUADS, // legacy GL has this, modern GL & Vulkan do not
+	PRIM_QUADS_XXX = GL_QUADS, // legacy GL has this, modern GL & Vulkan do not
 #endif
 
 	PRIM_LINE_STRIP = GL_LINE_STRIP,

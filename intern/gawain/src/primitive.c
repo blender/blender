@@ -25,7 +25,7 @@ PrimitiveClass prim_class_of_type(PrimitiveType prim_type)
 		[PRIM_TRIANGLE_FAN] = PRIM_CLASS_SURFACE,
 
 #ifdef WITH_GL_PROFILE_COMPAT
-		[PRIM_QUADS] = PRIM_CLASS_SURFACE,
+		[PRIM_QUADS_XXX] = PRIM_CLASS_SURFACE,
 #endif
 		};
 
