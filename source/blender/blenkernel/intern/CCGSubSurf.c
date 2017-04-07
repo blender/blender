@@ -42,7 +42,7 @@
 #  include "opensubdiv_converter_capi.h"
 #endif
 
-#include "GL/glew.h"
+#include "GPU_glew.h"
 
 /***/
 

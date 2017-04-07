@@ -43,7 +43,7 @@
 #include "opensubdiv_capi.h"
 #include "opensubdiv_converter_capi.h"
 
-#include "GL/glew.h"
+#include "GPU_glew.h"
 #include "GPU_extensions.h"
 
 #define OSD_LOG if (false) printf
