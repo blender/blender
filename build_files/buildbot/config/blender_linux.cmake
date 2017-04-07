@@ -106,6 +106,7 @@ if(GLIBC EQUAL "2.19")
 		/usr/lib${MULTILIB}/libwebp.a
 		/usr/lib${MULTILIB}/liblzma.a
 		/usr/lib${MULTILIB}/libjbig.a
+		${FREETYPE_LIBRARY}
 		CACHE STRING "" FORCE
 	)
 endif()
