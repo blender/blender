@@ -50,7 +50,10 @@ set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background -noaudio --factory-startup
 # ------------------------------------------------------------------------------
 
 macro(RENDER_LAYER_TEST test_name)
+	# Adds ${CMAKE_CURRENT_LIST_DIR} to sys.path so that the tests can import
+	# things from render_layer_common.py
 	add_test(render_layer_${test_name} ${TEST_BLENDER_EXE}
+		--python-expr "import sys; sys.path.append('${CMAKE_CURRENT_LIST_DIR}')"
 		--python ${CMAKE_CURRENT_LIST_DIR}/test_${test_name}.py --
 		--testdir="${TEST_SRC_DIR}/layers"
 	)
