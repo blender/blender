@@ -37,7 +37,15 @@ include_directories(${INC})
 setup_libdirs()
 get_property(BLENDER_SORTED_LIBS GLOBAL PROPERTY BLENDER_SORTED_LIBS_PROP)
 
+if(WITH_BUILDINFO)
+	set(_buildinfo_src "$<TARGET_OBJECTS:buildinfoobj>")
+else()
+	set(_buildinfo_src "")
+endif()
+
 # For motivation on doubling BLENDER_SORTED_LIBS, see ../bmesh/CMakeLists.txt
-BLENDER_SRC_GTEST(abc_matrix "abc_matrix_test.cc" "${BLENDER_SORTED_LIBS};${BLENDER_SORTED_LIBS}")
+BLENDER_SRC_GTEST(abc_matrix "abc_matrix_test.cc;${_buildinfo_src}" "${BLENDER_SORTED_LIBS};${BLENDER_SORTED_LIBS}")
+
+unset(_buildinfo_src)
 
 setup_liblinks(abc_matrix_test)
