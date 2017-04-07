@@ -766,10 +766,6 @@ static void import_endjob(void *user_data)
 		for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 			Object *ob = (*iter)->object();
 
-			if (ob->data) {
-				BKE_libblock_free_us(data->bmain, ob->data);
-				ob->data = NULL;
-			}
 
 			BKE_libblock_free_us(data->bmain, ob);
 		}
