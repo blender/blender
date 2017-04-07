@@ -1653,7 +1653,7 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 				immThemeColorShadeAlpha(TH_BACK, -15, -200);
 
-				immBegin(GL_LINES, 2);
+				immBegin(PRIM_LINES, 2);
 				immVertex2f(pos, 0, (float)*starty + UI_UNIT_Y);
 				immVertex2f(pos, ar->v2d.cur.xmax, (float)*starty + UI_UNIT_Y);
 				immEnd();

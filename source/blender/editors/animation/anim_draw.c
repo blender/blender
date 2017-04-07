@@ -136,7 +136,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 	/* Draw a light green line to indicate current frame */
 	immUniformThemeColor(TH_CFRAME);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2f(pos, x, v2d->cur.ymin - 500.0f); /* XXX arbitrary... want it go to bottom */
 	immVertex2f(pos, x, v2d->cur.ymax);
 	immEnd();

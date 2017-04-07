@@ -300,7 +300,7 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, format, GL_UNSIGNED_BYTE, &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
 			}
 
-			immBegin(GL_TRIANGLE_FAN, 4);
+			immBegin(PRIM_TRIANGLE_FAN, 4);
 			immAttrib2f(texco, (float)(0 + offset_left) / tex_w, (float)(0 + offset_bot) / tex_h);
 			immVertex2f(pos, rast_x + (float)offset_left * xzoom, rast_y + (float)offset_bot * yzoom);
 
@@ -695,28 +695,28 @@ void immDrawBorderCorners(unsigned int pos, const rcti *border, float zoomx, flo
 	delta_y = min_ff(delta_y, border->ymax - border->ymin);
 
 	/* left bottom corner */
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, border->xmin, border->ymin + delta_y);
 	immVertex2f(pos, border->xmin, border->ymin);
 	immVertex2f(pos, border->xmin + delta_x, border->ymin);
 	immEnd();
 
 	/* left top corner */
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, border->xmin, border->ymax - delta_y);
 	immVertex2f(pos, border->xmin, border->ymax);
 	immVertex2f(pos, border->xmin + delta_x, border->ymax);
 	immEnd();
 
 	/* right bottom corner */
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, border->xmax - delta_x, border->ymin);
 	immVertex2f(pos, border->xmax, border->ymin);
 	immVertex2f(pos, border->xmax, border->ymin + delta_y);
 	immEnd();
 
 	/* right top corner */
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, border->xmax - delta_x, border->ymax);
 	immVertex2f(pos, border->xmax, border->ymax);
 	immVertex2f(pos, border->xmax, border->ymax - delta_y);

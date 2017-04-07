@@ -779,7 +779,7 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 		immUniform1f("outlineWidth", 1.0f);
 		immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, 0.6f);
 
-		immBeginAtMost(GL_POINTS, total_input_ct + total_output_ct);
+		immBeginAtMost(PRIM_POINTS, total_input_ct + total_output_ct);
 	}
 
 	/* socket inputs */
@@ -823,7 +823,7 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 		immUniform4f("outlineColor", c[0], c[1], c[2], 1.0f);
 		immUniform1f("outlineWidth", 1.5f);
 
-		immBegin(GL_POINTS, selected_input_ct + selected_output_ct);
+		immBegin(PRIM_POINTS, selected_input_ct + selected_output_ct);
 
 		if (selected_input_ct) {
 			/* socket inputs */

@@ -201,7 +201,7 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor4fv(draw_color);
-	immBegin(GL_TRIANGLES, 3 * WIDGET_AA_JITTER);
+	immBegin(PRIM_TRIANGLES, 3 * WIDGET_AA_JITTER);
 
 	/* for each AA step */
 	for (int j = 0; j < WIDGET_AA_JITTER; j++) {
@@ -549,7 +549,7 @@ static void widget_scroll_circle(uiWidgetTrias *tria, const rcti *rect, float tr
 
 static void widget_trias_draw(uiWidgetTrias *tria, unsigned int pos)
 {
-	immBegin(GL_TRIANGLES, tria->tot * 3);
+	immBegin(PRIM_TRIANGLES, tria->tot * 3);
 	for (int i = 0; i < tria->tot; ++i)
 		for (int j = 0; j < 3; ++j)
 			immVertex2fv(pos, tria->vec[tria->index[i][j]]);
@@ -2368,7 +2368,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
-	immBegin(GL_TRIANGLE_FAN, tot + 2);
+	immBegin(PRIM_TRIANGLE_FAN, tot + 2);
 	immAttrib3fv(color, colcent);
 	immVertex2f(pos, centx, centy);
 	
@@ -2478,7 +2478,7 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 	
-	immBegin(GL_TRIANGLES, steps * 3 * 6);
+	immBegin(PRIM_TRIANGLES, steps * 3 * 6);
 	for (dx = 0.0f; dx < 0.999f; dx += color_step) { /* 0.999 = prevent float inaccuracy for steps */
 		const float dx_next = dx + color_step;
 
@@ -2714,7 +2714,7 @@ static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 	immUniformColor4ubv(col);
 	glLineWidth(1.0f);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2f(pos, rect->xmin, y);
 	immVertex2f(pos, rect->xmax, y);
 	immEnd();
@@ -2810,7 +2810,7 @@ void ui_draw_link_bezier(const rcti *rect, const float color[4])
 
 		immUniformColor4fv(color);
 
-		immBegin(GL_LINE_STRIP, LINK_RESOL + 1);
+		immBegin(PRIM_LINE_STRIP, LINK_RESOL + 1);
 		for (int i = 0; i <= LINK_RESOL; ++i)
 			immVertex2fv(pos, coord_array[i]);
 		immEnd();
@@ -3166,7 +3166,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor4f(bw, bw, bw, 1.0f);
-		immBegin(GL_TRIANGLES, 3);
+		immBegin(PRIM_TRIANGLES, 3);
 		immVertex2f(pos, rect->xmin + 0.1f * width, rect->ymin + 0.9f * height);
 		immVertex2f(pos, rect->xmin + 0.1f * width, rect->ymin + 0.5f * height);
 		immVertex2f(pos, rect->xmin + 0.5f * width, rect->ymin + 0.9f * height);
@@ -4094,7 +4094,7 @@ static void draw_disk_shaded(
 		immUniformColor4ubv((unsigned char *)col1);
 	}
 
-	immBegin(GL_TRIANGLE_STRIP, subd * 2);
+	immBegin(PRIM_TRIANGLE_STRIP, subd * 2);
 	for (i = 0; i < subd; i++) {
 		float a;
 

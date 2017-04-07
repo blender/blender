@@ -347,7 +347,7 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 
 	immUniformThemeColor(TH_VIEW_OVERLAY);
 
-	immBegin(GL_LINES, 8);
+	immBegin(PRIM_LINES, 8);
 
 	/* North */
 	immVertex2i(pos, xoff, yoff + inner_length);

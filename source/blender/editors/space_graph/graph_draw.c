@@ -158,7 +158,7 @@ static void draw_fcurve_selected_keyframe_vertices(FCurve *fcu, View2D *v2d, boo
 
 	set_fcurve_vertex_color(fcu, sel);
 
-	immBeginAtMost(GL_POINTS, fcu->totvert);
+	immBeginAtMost(PRIM_POINTS, fcu->totvert);
 
 	BezTriple *bezt = fcu->bezt;
 	for (int i = 0; i < fcu->totvert; i++, bezt++) {
@@ -210,7 +210,7 @@ static void draw_fcurve_selected_handle_vertices(FCurve *fcu, View2D *v2d, bool 
 	immUniform4f("outlineColor", hcolor[0], hcolor[1], hcolor[2], 1.0f);
 	immUniformColor3fvAlpha(hcolor, 0.4f);
 
-	immBeginAtMost(GL_POINTS, fcu->totvert * 2);
+	immBeginAtMost(PRIM_POINTS, fcu->totvert * 2);
 
 	BezTriple *bezt = fcu->bezt;
 	BezTriple *prevbezt = NULL;
@@ -410,7 +410,7 @@ static void draw_fcurve_sample_control(float x, float y, float xscale, float ysc
 	gpuScale2f(1.0f / xscale * hsize, 1.0f / yscale * hsize);
 
 	/* draw X shape */
-	immBegin(GL_LINES, 4);
+	immBegin(PRIM_LINES, 4);
 	immVertex2f(pos, -0.7f, -0.7f);
 	immVertex2f(pos, +0.7f, +0.7f);
 

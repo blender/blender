@@ -361,7 +361,7 @@ static void draw_marker(
 			immUniformColor4ub(0, 0, 0, 96);
 		}
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, xpos + 0.5f, 12.0f);
 		immVertex2f(pos, xpos + 0.5f, (v2d->cur.ymax + 12.0f) * yscale);
 		immEnd();

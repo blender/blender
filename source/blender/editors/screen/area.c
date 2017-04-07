@@ -97,7 +97,7 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct)
 	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(GL_LINE_STRIP, 5);
+	immBegin(PRIM_LINE_STRIP, 5);
 	
 	/* right  */
 	immAttrib4ub(color, 0, 0, 0, 30);
@@ -231,7 +231,7 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 		imm_draw_line_box(pos, click_rect.xmin, click_rect.ymin, click_rect.xmax, click_rect.ymax);
 
 		immAttrib4ub(color, 0, 255, 255, alpha_debug);
-		immBegin(GL_LINES, 4);
+		immBegin(PRIM_LINES, 4);
 		immVertex2f(pos, click_rect.xmin, click_rect.ymin);
 		immVertex2f(pos, click_rect.xmax, click_rect.ymax);
 		immVertex2f(pos, click_rect.xmin, click_rect.ymax);
@@ -260,7 +260,7 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(GL_LINES, 12);
+	immBegin(PRIM_LINES, 12);
 
 	immAttrib4ub(col, 255, 255, 255, 180);
 	immVertex2f(pos, x1, y2);
@@ -307,7 +307,7 @@ static void region_draw_azone_icon(AZone *az)
 	immUniform4f("outlineColor", 0.2f, 0.2f, 0.2f, 0.9f);
 	immUniform1f("outlineWidth", 1.0f);
 	immUniform1f("size", 9.5f);
-	immBegin(GL_POINTS, 1);
+	immBegin(PRIM_POINTS, 1);
 	immVertex2f(pos, midx, midy);
 	immEnd();
 	immUnbindProgram();
@@ -316,7 +316,7 @@ static void region_draw_azone_icon(AZone *az)
 	/* + */
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniform4f("color", 0.2f, 0.2f, 0.2f, 0.9f);
-	immBegin(GL_LINES, 4);
+	immBegin(PRIM_LINES, 4);
 	immVertex2f(pos, midx, midy - 2);
 	immVertex2f(pos, midx, midy + 3);
 	immVertex2f(pos, midx - 2, midy);
@@ -2443,7 +2443,7 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 		unsigned color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
 		
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-		immBegin(GL_LINES, 4 * count_fine + 4 * count_large);
+		immBegin(PRIM_LINES, 4 * count_fine + 4 * count_large);
 		
 		float theme_color[3];
 		UI_GetThemeColorShade3fv(TH_BACK, (int)(20.0f * (1.0f - blendfac)), theme_color);

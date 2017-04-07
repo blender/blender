@@ -689,14 +689,14 @@ void draw_image_sample_line(SpaceImage *sima)
 		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immUniformColor3ub(0, 0, 0);
 		immVertex2fv(pos, hist->co[0]);
 		immVertex2fv(pos, hist->co[1]);
 		immEnd();
 
 		setlinestyle(1);
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immUniformColor3ub(255, 255, 255);
 		immVertex2fv(pos, hist->co[0]);
 		immVertex2fv(pos, hist->co[1]);
@@ -704,7 +704,6 @@ void draw_image_sample_line(SpaceImage *sima)
 		setlinestyle(0);
 
 		immUnbindProgram();
-
 	}
 }
 

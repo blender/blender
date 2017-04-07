@@ -1330,7 +1330,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(GL_LINES, vertex_count);
+	immBegin(PRIM_LINES, vertex_count);
 
 	/* vertical lines */
 	if (flag & V2D_VERTICAL_LINES) {
@@ -1475,7 +1475,7 @@ void UI_view2d_constant_grid_draw(View2D *v2d)
 		UI_GetThemeColorShade3fv(TH_BACK, -10, theme_color);
 		
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-		immBegin(GL_LINES, count_x * 2 + count_y * 2 + 4);
+		immBegin(PRIM_LINES, count_x * 2 + count_y * 2 + 4);
 		
 		immAttrib3fv(color, theme_color);
 		for (int i = 0; i < count_x ; start_x += step, i++) {
@@ -1525,7 +1525,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 	glLineWidth(1.0f);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBeginAtMost(GL_LINES, vertex_count);
+	immBeginAtMost(PRIM_LINES, vertex_count);
 
 	for (int level = 0; level < totlevels; ++level) {
 		UI_GetThemeColorShade3ubv(colorid, offset, grid_line_color);

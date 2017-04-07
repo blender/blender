@@ -300,7 +300,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 		float cfra;
 		
 		/* plot the curve (over the strip's main region) */
-		immBegin(GL_LINE_STRIP, abs((int)(strip->end - strip->start) + 1));
+		immBegin(PRIM_LINE_STRIP, abs((int)(strip->end - strip->start) + 1));
 
 		/* sample at 1 frame intervals, and draw
 		 *	- min y-val is yminc, max is y-maxc, so clamp in those regions
@@ -316,7 +316,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 	else {
 		/* use blend in/out values only if both aren't zero */
 		if ((IS_EQF(strip->blendin, 0.0f) && IS_EQF(strip->blendout, 0.0f)) == 0) {
-			immBeginAtMost(GL_LINE_STRIP, 4);
+			immBeginAtMost(PRIM_LINE_STRIP, 4);
 
 			/* start of strip - if no blendin, start straight at 1, otherwise from 0 to 1 over blendin frames */
 			if (IS_EQF(strip->blendin, 0.0f) == 0) {

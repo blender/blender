@@ -1038,7 +1038,7 @@ static void icon_draw_texture(
 
 	immUniform1i("image", 0);
 
-	immBegin(GL_TRIANGLE_STRIP, 4);
+	immBegin(PRIM_TRIANGLE_STRIP, 4);
 	immAttrib2f(texCoord, x1, y2);
 	immVertex2f(pos, x, y + h);
 

@@ -189,7 +189,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			if (usingSnappingNormal(t) && validSnappingNormal(t)) {
 				immUniformColor4ubv(activeCol);
 				
-				immBegin(GL_LINES, 2);
+				immBegin(PRIM_LINES, 2);
 				immVertex3f(pos, t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
 				immVertex3f(pos, t->tsnap.snapPoint[0] + t->tsnap.snapNormal[0],
 				            t->tsnap.snapPoint[1] + t->tsnap.snapNormal[1],

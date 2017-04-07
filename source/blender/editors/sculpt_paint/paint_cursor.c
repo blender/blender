@@ -888,7 +888,7 @@ BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], Bez
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 	glLineWidth(3.0f);
 
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2fv(pos, bez->vec[0]);
 	immVertex2fv(pos, bez->vec[1]);
 	immVertex2fv(pos, bez->vec[2]);
@@ -902,7 +902,7 @@ BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], Bez
 	else {
 		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 	}
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2fv(pos, bez->vec[0]);
 	immVertex2fv(pos, bez->vec[1]);
 	immEnd();
@@ -913,7 +913,7 @@ BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], Bez
 	else {
 		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 	}
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2fv(pos, bez->vec[1]);
 	immVertex2fv(pos, bez->vec[2]);
 	immEnd();
@@ -961,7 +961,7 @@ static void paint_draw_curve_cursor(Brush *brush)
 
 			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 			glLineWidth(3.0f);
-			immBegin(GL_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
+			immBegin(PRIM_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
 			for (j = 0; j <= PAINT_CURVE_NUM_SEGMENTS; j++) {
 				immVertex2fv(pos, v[j]);
 			}
@@ -969,7 +969,7 @@ static void paint_draw_curve_cursor(Brush *brush)
 
 			immUniformColor4f(0.9f, 0.9f, 1.0f, 0.5f);
 			glLineWidth(1.0f);
-			immBegin(GL_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
+			immBegin(PRIM_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
 			for (j = 0; j <= PAINT_CURVE_NUM_SEGMENTS; j++) {
 				immVertex2fv(pos, v[j]);
 			}

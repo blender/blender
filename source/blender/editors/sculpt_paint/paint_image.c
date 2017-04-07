@@ -729,7 +729,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 		glLineWidth(4.0);
 		immUniformColor4ub(0, 0, 0, 255);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2i(pos, x, y);
 		immVertex2i(pos, pop->startmouse[0], pop->startmouse[1]);
 		immEnd();
@@ -737,7 +737,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 		glLineWidth(2.0);
 		immUniformColor4ub(255, 255, 255, 255);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2i(pos, x, y);
 		immVertex2i(pos, pop->startmouse[0], pop->startmouse[1]);
 		immEnd();

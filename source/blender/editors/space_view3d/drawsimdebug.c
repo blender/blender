@@ -73,7 +73,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	/**** dots ****/
 	
 	glPointSize(3.0f);
-	immBegin(GL_POINTS, num_dots);
+	immBegin(PRIM_POINTS, num_dots);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_DOT)
@@ -94,7 +94,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 		    {-0.000000, -1.000000}, {-0.382683, -0.923880}, {-0.707107, -0.707107}, {-0.923879, -0.382684},
 		    {-1.000000, 0.000000}, {-0.923879, 0.382684}, {-0.707107, 0.707107}, {-0.382683, 0.923880} };
 		
-		immBegin(GL_LINES, num_circles * CIRCLERES * 2);
+		immBegin(PRIM_LINES, num_circles * CIRCLERES * 2);
 		
 		for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 			SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
@@ -130,7 +130,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	
 	/**** lines ****/
 	
-	immBegin(GL_LINES, num_lines * 2);
+	immBegin(PRIM_LINES, num_lines * 2);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_LINE)
@@ -145,7 +145,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	/**** vectors ****/
 	
 	glPointSize(2.0f);
-	immBegin(GL_POINTS, num_vectors);
+	immBegin(PRIM_POINTS, num_vectors);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_VECTOR)
@@ -156,7 +156,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	}
 	immEnd();
 	
-	immBegin(GL_LINES, num_vectors * 2);
+	immBegin(PRIM_LINES, num_vectors * 2);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		float t[3];

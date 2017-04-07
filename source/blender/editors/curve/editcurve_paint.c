@@ -521,7 +521,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 			glEnable(GL_LINE_SMOOTH);
 
 			imm_cpack(0x0);
-			immBegin(GL_LINE_STRIP, stroke_len);
+			immBegin(PRIM_LINE_STRIP, stroke_len);
 			glLineWidth(3.0f);
 
 			if (v3d->zbuf) {
@@ -535,7 +535,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 			immEnd();
 
 			imm_cpack(0xffffffff);
-			immBegin(GL_LINE_STRIP, stroke_len);
+			immBegin(PRIM_LINE_STRIP, stroke_len);
 			glLineWidth(1.0f);
 
 			for (int i = 0; i < stroke_len; i++) {

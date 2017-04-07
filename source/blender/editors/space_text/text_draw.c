@@ -972,18 +972,18 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
 	immUniformThemeColor(TH_BACK);
 	immRecti(pos, x, y, x + boxw, y - boxh);
 	immUniformThemeColor(TH_SHADE1);
-	immBegin(GL_LINE_LOOP, 4);
+	immBegin(PRIM_LINE_LOOP, 4);
 	immVertex2i(pos, x, y);
 	immVertex2i(pos, x + boxw, y);
 	immVertex2i(pos, x + boxw, y - boxh);
 	immVertex2i(pos, x, y - boxh);
 	immEnd();
-	immBegin(GL_LINE_LOOP, 3);
+	immBegin(PRIM_LINE_LOOP, 3);
 	immVertex2i(pos, x + boxw - 10, y - 7);
 	immVertex2i(pos, x + boxw - 4, y - 7);
 	immVertex2i(pos, x + boxw - 7, y - 2);
 	immEnd();
-	immBegin(GL_LINE_LOOP, 3);
+	immBegin(PRIM_LINE_LOOP, 3);
 	immVertex2i(pos, x + boxw - 10, y - boxh + 7);
 	immVertex2i(pos, x + boxw - 4, y - boxh + 7);
 	immVertex2i(pos, x + boxw - 7, y - boxh + 2);
@@ -1507,7 +1507,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 			/* same color as line number background */
 			immUniformThemeColor(TH_GRID);
-			immBegin(GL_LINES, 2);
+			immBegin(PRIM_LINES, 2);
 			immVertex2i(pos, margin_column_x, 0);
 			immVertex2i(pos, margin_column_x, ar->winy - 2);
 			immEnd();

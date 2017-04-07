@@ -436,7 +436,7 @@ static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float
 
 	glLineWidth(2.0);
 
-	immBegin(GL_LINES, 4);
+	immBegin(PRIM_LINES, 4);
 
 	immVertex2f(pos, x1, y1);
 	immVertex2f(pos, x2, y2);
@@ -477,7 +477,7 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 	glEnable(GL_BLEND);
 	immUniformColor4ub(255, 255, 255, 50);
 
-	immBegin(GL_LINES, 4);
+	immBegin(PRIM_LINES, 4);
 
 	immVertex2f(pos, xmin, ymin);
 	immVertex2f(pos, xmax, ymax);
@@ -489,7 +489,7 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 	
 	immUniformColor4ub(0, 0, 0, 50);
 
-	immBegin(GL_LINES, 4);
+	immBegin(PRIM_LINES, 4);
 
 	immVertex2f(pos, xmin, ymin + 1);
 	immVertex2f(pos, xmax, ymax + 1);
@@ -606,7 +606,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			immUniformThemeColor(TH_PANEL_HEADER);
 			immRectf(pos, minx, headrect.ymin + 1, maxx, y);
 
-			immBegin(GL_LINES, 4);
+			immBegin(PRIM_LINES, 4);
 
 			immVertex2f(pos, minx, y);
 			immVertex2f(pos, maxx, y);
@@ -626,14 +626,14 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
-			immBegin(GL_LINES, 2);
+			immBegin(PRIM_LINES, 2);
 			immVertex2f(pos, minx, y);
 			immVertex2f(pos, maxx, y);
 			immEnd();
 
 			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.25f);
 
-			immBegin(GL_LINES, 2);
+			immBegin(PRIM_LINES, 2);
 			immVertex2f(pos, minx, y - 1);
 			immVertex2f(pos, maxx, y - 1);
 			immEnd();

@@ -281,7 +281,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 			glEnable(GL_BLEND);
 			glLineWidth(2.0);
 
-			immBegin(GL_LINES, 2);
+			immBegin(PRIM_LINES, 2);
 			immVertex2f(pos, v2d->cur.xmin, y);
 			immVertex2f(pos, v2d->cur.xmax, y);
 			immEnd();
@@ -299,7 +299,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 			glEnable(GL_BLEND);
 			glLineWidth(2.0);
 
-			immBegin(GL_LINES, 2);
+			immBegin(PRIM_LINES, 2);
 			immVertex2f(pos, x, v2d->cur.ymin);
 			immVertex2f(pos, x, v2d->cur.ymax);
 			immEnd();

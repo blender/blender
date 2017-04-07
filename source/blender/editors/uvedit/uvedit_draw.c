@@ -91,7 +91,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 
 	imm_cpack(0xFFFFFF);
 
-	immBegin(GL_LINE_LOOP, 4);
+	immBegin(PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, -0.05f * x_fac, 0.0f);
 	immVertex2f(pos, 0.0f, 0.05f * y_fac);
 	immVertex2f(pos, 0.05f * x_fac, 0.0f);
@@ -103,7 +103,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 
 	/* drawing individual segments, because the stipple pattern
 	 * gets messed up when drawing a continuous loop */
-	immBegin(GL_LINES, 8);
+	immBegin(PRIM_LINES, 8);
 	immVertex2f(pos, -0.05f * x_fac, 0.0f);
 	immVertex2f(pos, 0.0f, 0.05f * y_fac);
 	immVertex2f(pos, 0.0f, 0.05f * y_fac);
@@ -117,7 +117,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	setlinestyle(0);
 	imm_cpack(0x0);
 
-	immBegin(GL_LINES, 8);
+	immBegin(PRIM_LINES, 8);
 	immVertex2f(pos, -0.020f * x_fac, 0.0f);
 	immVertex2f(pos, -0.1f * x_fac, 0.0f);
 	immVertex2f(pos, 0.1f * x_fac, 0.0f);
@@ -131,7 +131,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	setlinestyle(1);
 	imm_cpack(0xFFFFFF);
 
-	immBegin(GL_LINES, 8);
+	immBegin(PRIM_LINES, 8);
 	immVertex2f(pos, -0.020f * x_fac, 0.0f);
 	immVertex2f(pos, -0.1f * x_fac, 0.0f);
 	immVertex2f(pos, 0.1f * x_fac, 0.0f);
@@ -251,7 +251,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 				BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 					if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-						immBegin(GL_TRIANGLE_FAN, efa->len);
+						immBegin(PRIM_TRIANGLE_FAN, efa->len);
 
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -291,7 +291,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						immUniformColor3fv(col);
 						
 						/* TODO: use editmesh tessface */
-						immBegin(GL_TRIANGLE_FAN, efa->len);
+						immBegin(PRIM_TRIANGLE_FAN, efa->len);
 
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -365,7 +365,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 					}
 
 					/* TODO: use editmesh tessface */
-					immBegin(GL_TRIANGLE_FAN, efa->len);
+					immBegin(PRIM_TRIANGLE_FAN, efa->len);
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						a = fabsf(uvang[i] - ang[i]) / (float)M_PI;
@@ -403,7 +403,7 @@ static void draw_uvs_lineloop_bmface(BMFace *efa, const int cd_loop_uv_offset, u
 	BMLoop *l;
 	MLoopUV *luv;
 
-	immBegin(GL_LINE_LOOP, efa->len);
+	immBegin(PRIM_LINE_LOOP, efa->len);
 
 	BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 		luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -418,7 +418,7 @@ static void draw_uvs_lineloop_mpoly(Mesh *me, MPoly *mpoly, unsigned int pos)
 	MLoopUV *mloopuv;
 	int i;
 
-	immBegin(GL_LINE_LOOP, mpoly->totloop);
+	immBegin(PRIM_LINE_LOOP, mpoly->totloop);
 
 	mloopuv = &me->mloopuv[mpoly->loopstart];
 	for (i = mpoly->totloop; i != 0; i--, mloopuv++) {
@@ -575,7 +575,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, SceneLayer *sl, Ob
 			if ((scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE) && mpoly->mat_nr != ob->actcol - 1)
 				continue;
 
-			immBegin(GL_LINE_LOOP, mpoly->totloop);
+			immBegin(PRIM_LINE_LOOP, mpoly->totloop);
 
 			mloopuv = mloopuv_base + mpoly->loopstart;
 			for (b = 0; b < mpoly->totloop; b++, mloopuv++) {
@@ -700,7 +700,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 					immUniformColor4ubv(is_select ? col2 : col1);
 				}
 
-				immBegin(GL_TRIANGLES, (em->looptris[i][0]->f->len - 2) * 3);
+				immBegin(PRIM_TRIANGLES, (em->looptris[i][0]->f->len - 2) * 3);
 				draw_uvs_looptri(em, &i, cd_loop_uv_offset, pos);
 				immEnd();
 			}
@@ -830,7 +830,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 						if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 							continue;
 
-						immBegin(GL_LINE_LOOP, efa->len);
+						immBegin(PRIM_LINE_LOOP, efa->len);
 
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 							sel = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
@@ -854,7 +854,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 						if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 							continue;
 
-						immBegin(GL_LINES, efa->len * 2);
+						immBegin(PRIM_LINES, efa->len * 2);
 
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 							sel = uvedit_edge_select_test(scene, l, cd_loop_uv_offset);
@@ -915,7 +915,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		pointsize = UI_GetThemeValuef(TH_FACEDOT_SIZE);
 		glPointSize(pointsize);
 		
-		immBeginAtMost(GL_POINTS, bm->totface);
+		immBeginAtMost(PRIM_POINTS, bm->totface);
 
 		/* unselected faces */
 
@@ -976,7 +976,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		pointsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
 		glPointSize(pointsize);
 
-		immBeginAtMost(GL_POINTS, bm->totloop);
+		immBeginAtMost(PRIM_POINTS, bm->totloop);
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
@@ -996,7 +996,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		glPointSize(pointsize * 2 + (((int)pointsize % 2) ? (-1) : 0));
 		imm_cpack(0xFF);
 	
-		immBeginAtMost(GL_POINTS, bm->totloop);
+		immBeginAtMost(PRIM_POINTS, bm->totloop);
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
@@ -1016,7 +1016,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		immUniformThemeColor(TH_VERTEX_SELECT);
 		glPointSize(pointsize);
 	
-		immBeginAtMost(GL_POINTS, bm->totloop);
+		immBeginAtMost(PRIM_POINTS, bm->totloop);
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))

@@ -90,11 +90,11 @@ static void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track,
 	immUniformColor4fv(col);
 
 	if (is_point) {
-		immBeginAtMost(GL_POINTS, 1);
+		immBeginAtMost(PRIM_POINTS, 1);
 	}
 	else {
 		/* Graph can be composed of smaller segments, if any marker is disabled */
-		immBeginAtMost(GL_LINE_STRIP, track->markersnr);
+		immBeginAtMost(PRIM_LINE_STRIP, track->markersnr);
 	}
 }
 
@@ -236,11 +236,11 @@ static void tracking_error_segment_start_cb(void *userdata, MovieTrackingTrack *
 		immUniformColor4fv(col);
 
 		if (is_point) { /* This probably never happens here, but just in case... */
-			immBeginAtMost(GL_POINTS, 1);
+			immBeginAtMost(PRIM_POINTS, 1);
 		}
 		else {
 			/* Graph can be composed of smaller segments, if any marker is disabled */
-			immBeginAtMost(GL_LINE_STRIP, track->markersnr);
+			immBeginAtMost(PRIM_LINE_STRIP, track->markersnr);
 		}
 	}
 }
@@ -299,7 +299,7 @@ static void draw_frame_curves(SpaceClip *sc, unsigned int pos)
 		}
 
 		if (!lines) {
-			immBeginAtMost(GL_LINE_STRIP, reconstruction->camnr);
+			immBeginAtMost(PRIM_LINE_STRIP, reconstruction->camnr);
 			lines = 1;
 		}
 

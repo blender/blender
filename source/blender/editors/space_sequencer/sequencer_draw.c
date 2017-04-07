@@ -262,7 +262,7 @@ static void drawseqwave(View2D *v2d, const bContext *C, SpaceSeq *sseq, Scene *s
 
 		glEnable(GL_BLEND);
 
-		immBegin(GL_TRIANGLE_STRIP, length * 2);
+		immBegin(PRIM_TRIANGLE_STRIP, length * 2);
 
 		for (i = 0; i < length; i++) {
 			float sampleoffset = startsample + ((x1_offset - x1) / stepsize + i) * samplestep;
@@ -452,7 +452,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 			immUniformColor4ub(0, 0, 0, 50);
 		}
 
-		immBegin(GL_TRIANGLES, 3);
+		immBegin(PRIM_TRIANGLES, 3);
 		immVertex2fv(pos, v1);
 		immVertex2fv(pos, v2);
 		immVertex2fv(pos, v3);
@@ -1521,7 +1521,7 @@ static void draw_seq_backdrop(View2D *v2d)
 	i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 	int line_ct = (int)v2d->cur.ymax - i + 1;
 	immUniformThemeColor(TH_GRID);
-	immBegin(GL_LINES, line_ct * 2);
+	immBegin(PRIM_LINES, line_ct * 2);
 	while (line_ct--) {
 		immVertex2f(pos, v2d->cur.xmax, i);
 		immVertex2f(pos, v2d->cur.xmin, i);
@@ -1611,7 +1611,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 	immUniformThemeColorShade(TH_BACK, -60);
 
 	/* thin lines where the actual frames are */
-	immBegin(GL_LINES, 4);
+	immBegin(PRIM_LINES, 4);
 
 	immVertex2f(pos, frame_sta, v2d->cur.ymin);
 	immVertex2f(pos, frame_sta, v2d->cur.ymax);
@@ -1629,7 +1629,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 		immUniformThemeColorShade(TH_BACK, -40);
 
-		immBegin(GL_LINES, 4);
+		immBegin(PRIM_LINES, 4);
 
 		immVertex2f(pos, ms->disp_range[0], v2d->cur.ymin);
 		immVertex2f(pos, ms->disp_range[0], v2d->cur.ymax);
@@ -1722,7 +1722,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 
 		immUniformColor3f(0.2, 0.2, 0.2);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, cfra_over, v2d->cur.ymin);
 		immVertex2f(pos, cfra_over, v2d->cur.ymax);
 		immEnd();

@@ -814,7 +814,7 @@ static void draw_sphere_bone_dist(float smat[4][4], float imat[4][4], bPoseChann
 		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-		immBegin(GL_TRIANGLE_STRIP, 66);
+		immBegin(PRIM_TRIANGLE_STRIP, 66);
 		immUniformColor4ub(255, 255, 255, 50);
 		
 		for (a = 0; a < 16; a++) {
@@ -966,7 +966,7 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_BONE);
 		
-		immBegin(GL_LINES, 4);
+		immBegin(PRIM_LINES, 4);
 
 		add_v3_v3v3(vec, headvec, norvech);
 		immVertex3fv(pos, vec);
@@ -1169,7 +1169,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_BONE);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex3f(pos, 0.0f, 1.0f, 0.0f);
 		immVertex3f(pos, 0.0f, 0.0f, 0.0f);
 		immEnd();
@@ -1184,7 +1184,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 			if (G.f & G_PICKSEL)
 				GPU_select_load_id(id | BONESEL_ROOT);
 
-			immBegin(GL_POINTS, 1);
+			immBegin(PRIM_POINTS, 1);
 			immVertex3f(pos, 0.0f, 0.0f, 0.0f);
 			immEnd();
 		}
@@ -1193,7 +1193,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 		if (G.f & G_PICKSEL)
 			GPU_select_load_id(id | BONESEL_TIP);
 
-		immBegin(GL_POINTS, 1);
+		immBegin(PRIM_POINTS, 1);
 		immVertex3f(pos, 0.0f, 1.0f, 0.0f);
 		immEnd();
 
@@ -1221,7 +1221,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformColor4fv(fcolor);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex3f(pos, 0.0f, 1.0f, 0.0f);
 	immVertex3f(pos, 0.0f, 0.0f, 0.0f);
 	immEnd();
@@ -1237,7 +1237,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 			else UI_GetThemeColor4fv(TH_VERTEX, fcolor);
 		}
 		immUniformColor4fv(fcolor);
-		immBegin(GL_POINTS, 1);
+		immBegin(PRIM_POINTS, 1);
 		immVertex3f(pos, 0.0f, 0.0f, 0.0f);
 		immEnd();
 	}
@@ -1250,7 +1250,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 			else UI_GetThemeColor4fv(TH_VERTEX, fcolor);
 		}
 		immUniformColor4fv(fcolor);
-		immBegin(GL_POINTS, 1);
+		immBegin(PRIM_POINTS, 1);
 		immVertex3f(pos, 0.0f, 1.0f, 0.0f);
 		immEnd();
 	}
@@ -1466,7 +1466,7 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 			gpuPushMatrix();
 			gpuMultMatrix3D(bbone->mat);
 
-			immBegin(GL_LINES, 2);
+			immBegin(PRIM_LINES, 2);
 			immVertex3f(pos, 0.0f, 0.0f, 0.0f);
 			immVertex3f(pos, 0.0f, dlen, 0.0f);
 			immEnd();
@@ -1477,7 +1477,7 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 	else {
 		gpuPushMatrix();
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex3f(pos, 0.0f, 0.0f, 0.0f);
 		immVertex3f(pos, 0.0f, length, 0.0f);
 		immEnd();
@@ -1671,7 +1671,7 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 				}
 
 				if (parchan) {
-					immBegin(GL_LINES, 2);
+					immBegin(PRIM_LINES, 2);
 					immVertex3fv(pos, ik_tip);
 					immVertex3fv(pos, parchan->pose_head);
 					immEnd();
@@ -1697,7 +1697,7 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 				}
 				/* Only draw line in case our chain is more than one bone long! */
 				if (parchan != pchan) { /* XXX revise the breaking conditions to only stop at the tail? */
-					immBegin(GL_LINES, 2);
+					immBegin(PRIM_LINES, 2);
 					immVertex3fv(pos, ik_tip);
 					immVertex3fv(pos, parchan->pose_head);
 					immEnd();
@@ -1744,7 +1744,7 @@ static void draw_dof_ellipse(unsigned int pos, float ax, float az)
 
 	immUniformColor4ub(70, 70, 70, 50);
 
-	immBegin(GL_TRIANGLES, tri*3);
+	immBegin(PRIM_TRIANGLES, tri*3);
 	pz = 0.0f;
 	for (i = 1; i < n; i++) {
 		z = staticSine[i];
@@ -1779,7 +1779,7 @@ static void draw_dof_ellipse(unsigned int pos, float ax, float az)
 
 	immUniformColor3ub(0, 0, 0);
 
-	immBegin(GL_LINE_STRIP, n);
+	immBegin(PRIM_LINE_STRIP, n);
 	for (i = 0; i < n; i++)
 		imm_sphere_project(pos, staticSine[n - i - 1] * ax, staticSine[i] * az);
 	immEnd();
@@ -1857,7 +1857,7 @@ static void draw_pose_dofs(Object *ob)
 								gpuRotateAxis(theta, 'Z');
 								
 								immUniformColor3ub(50, 50, 255);  /* blue, Z axis limit */
-								immBegin(GL_LINE_STRIP, 33);
+								immBegin(PRIM_LINE_STRIP, 33);
 								for (a = -16; a <= 16; a++) {
 									/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
 									float fac = ((float)a) / 16.0f * 0.5f;
@@ -1882,7 +1882,7 @@ static void draw_pose_dofs(Object *ob)
 								gpuRotateAxis(theta, 'X');
 								
 								immUniformColor3ub(255, 50, 50);  /* Red, X axis limit */
-								immBegin(GL_LINE_STRIP, 33);
+								immBegin(PRIM_LINE_STRIP, 33);
 								for (a = -16; a <= 16; a++) {
 									/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
 									float fac = ((float)a) / 16.0f * 0.5f;
@@ -2213,7 +2213,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 							}
 
 							setlinestyle(3);
-							immBegin(GL_LINES, 2);
+							immBegin(PRIM_LINES, 2);
 							immVertex3fv(pos, pchan->pose_head);
 							immVertex3fv(pos, pchan->parent->pose_tail);
 							immEnd();
@@ -2511,7 +2511,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 					immUniformColor4fv(fcolor);
 					
 					setlinestyle(3);
-					immBegin(GL_LINES, 2);
+					immBegin(PRIM_LINES, 2);
 					immVertex3fv(pos, eBone->head);
 					immVertex3fv(pos, eBone->parent->tail);
 					immEnd();

@@ -244,7 +244,7 @@ void draw_motion_path_instance(Scene *scene,
 
 		immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
-		immBegin(GL_LINE_STRIP, len);
+		immBegin(PRIM_LINE_STRIP, len);
 
 		for (i = 0, mpv = mpv_start; i < len; i++, mpv++) {
 			short sel = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->flag & SELECT);
@@ -274,7 +274,7 @@ void draw_motion_path_instance(Scene *scene,
 	/* draw little black point at each frame */
 	immUniformColor3ub(0, 0, 0);
 
-	immBegin(GL_POINTS, len);
+	immBegin(PRIM_POINTS, len);
 
 	for (i = 0, mpv = mpv_start; i < len; i++, mpv++) {
 		immVertex3fv(pos, mpv->co);
@@ -290,7 +290,7 @@ void draw_motion_path_instance(Scene *scene,
 		immUniformThemeColor(TH_TEXT_HI);
 	}
 
-	immBegin(GL_POINTS, (len + stepsize - 1) / stepsize);
+	immBegin(PRIM_POINTS, (len + stepsize - 1) / stepsize);
 
 	for (i = 0, mpv = mpv_start; i < len; i += stepsize, mpv += stepsize) {
 		immVertex3fv(pos, mpv->co);
@@ -307,7 +307,7 @@ void draw_motion_path_instance(Scene *scene,
 		glPointSize(mpath->line_thickness + 5.0);
 		immUniformThemeColor(TH_CFRAME);
 
-		immBegin(GL_POINTS, 1);
+		immBegin(PRIM_POINTS, 1);
 
 		mpv = mpv_start + (CFRA - sfra);
 		immVertex3fv(pos, mpv->co);
@@ -393,7 +393,7 @@ void draw_motion_path_instance(Scene *scene,
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor3ubv(col);
 		
-		immBeginAtMost(GL_POINTS, len);
+		immBeginAtMost(PRIM_POINTS, len);
 
 		for (i = 0, mpv = mpv_start; i < len; i++, mpv++) {
 			int    frame = sfra + i; 

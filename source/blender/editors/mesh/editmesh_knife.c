@@ -1008,7 +1008,7 @@ static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
 	immUniformThemeColor(TH_TRANSFORM);
 	glLineWidth(2.0);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex3fv(pos, v1);
 	immVertex3fv(pos, v2);
 	immEnd();
@@ -1055,7 +1055,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.line);
 		glLineWidth(2.0);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex3fv(pos, kcd->prev.cage);
 		immVertex3fv(pos, kcd->curr.cage);
 		immEnd();
@@ -1065,7 +1065,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.point);
 		glPointSize(11);
 
-		immBegin(GL_POINTS, 1);
+		immBegin(PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->prev.cage);
 		immEnd();
 	}
@@ -1074,7 +1074,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.curpoint);
 		glPointSize(9);
 
-		immBegin(GL_POINTS, 1);
+		immBegin(PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->prev.cage);
 		immEnd();
 	}
@@ -1083,7 +1083,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.edge);
 		glLineWidth(2.0);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex3fv(pos, kcd->curr.edge->v1->cageco);
 		immVertex3fv(pos, kcd->curr.edge->v2->cageco);
 		immEnd();
@@ -1092,7 +1092,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.point);
 		glPointSize(11);
 
-		immBegin(GL_POINTS, 1);
+		immBegin(PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->curr.cage);
 		immEnd();
 	}
@@ -1101,7 +1101,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.curpoint);
 		glPointSize(9);
 
-		immBegin(GL_POINTS, 1);
+		immBegin(PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->curr.cage);
 		immEnd();
 	}
@@ -1117,7 +1117,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor4ubv(kcd->colors.point_a);
 		glPointSize(11);
 
-		immBeginAtMost(GL_POINTS, kcd->totlinehit);
+		immBeginAtMost(PRIM_POINTS, kcd->totlinehit);
 
 		lh = kcd->linehits;
 		for (i = 0; i < kcd->totlinehit; i++, lh++) {
@@ -1132,7 +1132,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor4ubv(kcd->colors.curpoint_a);
 		glPointSize(7);
 
-		immBeginAtMost(GL_POINTS, kcd->totlinehit);
+		immBeginAtMost(PRIM_POINTS, kcd->totlinehit);
 
 		lh = kcd->linehits;
 		for (i = 0; i < kcd->totlinehit; i++, lh++) {
@@ -1153,7 +1153,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.line);
 		glLineWidth(1.0);
 
-		immBeginAtMost(GL_LINES, BLI_mempool_count(kcd->kedges) * 2);
+		immBeginAtMost(PRIM_LINES, BLI_mempool_count(kcd->kedges) * 2);
 
 		BLI_mempool_iternew(kcd->kedges, &iter);
 		for (kfe = BLI_mempool_iterstep(&iter); kfe; kfe = BLI_mempool_iterstep(&iter)) {
@@ -1174,7 +1174,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.point);
 		glPointSize(5.0);
 
-		immBeginAtMost(GL_POINTS, BLI_mempool_count(kcd->kverts));
+		immBeginAtMost(PRIM_POINTS, BLI_mempool_count(kcd->kverts));
 
 		BLI_mempool_iternew(kcd->kverts, &iter);
 		for (kfv = BLI_mempool_iterstep(&iter); kfv; kfv = BLI_mempool_iterstep(&iter)) {

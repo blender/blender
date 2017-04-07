@@ -465,7 +465,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			imm_cpack(is_act ? color_act : color_base);
 
-			immBegin(GL_LINE_STRIP, 3);
+			immBegin(PRIM_LINE_STRIP, 3);
 
 			for (j = 0; j < 3; j++) {
 				immVertex2fv(pos, co_ss[j]);
@@ -476,7 +476,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			imm_cpack(0xaaaaaa);
 			setlinestyle(3);
 
-			immBegin(GL_LINE_STRIP, 3);
+			immBegin(PRIM_LINE_STRIP, 3);
 
 			for (j = 0; j < 3; j++) {
 				immVertex2fv(pos, co_ss[j]);
@@ -516,7 +516,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				immUniformColor3ubv(color_wire);
 
-				immBegin(GL_LINE_STRIP, arc_steps + 1);
+				immBegin(PRIM_LINE_STRIP, arc_steps + 1);
 
 				for (j = 0; j <= arc_steps; j++) {
 					madd_v3_v3v3fl(co_tmp, ruler_item->co[1], dir_tmp, px_scale);
@@ -549,7 +549,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				immUniformColor3ubv(color_wire);
 
-				immBegin(GL_LINES, 8);
+				immBegin(PRIM_LINES, 8);
 
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, cap_size);
 				immVertex2fv(pos, cap);
@@ -607,7 +607,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			imm_cpack(is_act ? color_act : color_base);
 
-			immBegin(GL_LINE_STRIP, 2);
+			immBegin(PRIM_LINE_STRIP, 2);
 
 			for (j = 0; j < 3; j += 2) {
 				immVertex2fv(pos, co_ss[j]);
@@ -618,7 +618,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			imm_cpack(0xaaaaaa);
 			setlinestyle(3);
 
-			immBegin(GL_LINE_STRIP, 2);
+			immBegin(PRIM_LINE_STRIP, 2);
 
 			for (j = 0; j < 3; j += 2) {
 				immVertex2fv(pos, co_ss[j]);
@@ -641,7 +641,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				immUniformColor3ubv(color_wire);
 
-				immBegin(GL_LINES, 4);
+				immBegin(PRIM_LINES, 4);
 
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, cap_size);
 				immVertex2fv(pos, cap);

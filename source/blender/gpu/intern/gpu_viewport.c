@@ -259,7 +259,7 @@ static void draw_ofs_to_screen(GPUViewport *viewport)
 
 	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-	immBegin(GL_TRIANGLE_STRIP, 4);
+	immBegin(PRIM_TRIANGLE_STRIP, 4);
 
 	immAttrib2f(texcoord, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, 0.0f);
@@ -392,7 +392,7 @@ void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, con
 	immUniform1f("zfar", zfar);
 	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-	immBegin(GL_TRIANGLE_STRIP, 4);
+	immBegin(PRIM_TRIANGLE_STRIP, 4);
 
 	immAttrib2f(texcoord, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, 0.0f);

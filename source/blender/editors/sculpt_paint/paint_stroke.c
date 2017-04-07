@@ -150,7 +150,7 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4ubv(paint->paint_cursor_col);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, x, y);
 		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
 		immEnd();
@@ -178,7 +178,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	
 	immUniformColor4ub(0, 0, 0, paint->paint_cursor_col[3]);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 
 	if (stroke->constrain_line) {
 		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
@@ -194,7 +194,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	glLineWidth(1.0f);
 	immUniformColor4ub(255, 255, 255, paint->paint_cursor_col[3]);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 
 	if (stroke->constrain_line) {
 		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);

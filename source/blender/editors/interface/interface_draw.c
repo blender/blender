@@ -645,7 +645,7 @@ static void histogram_draw_one(
 		/* curve outline */
 		glLineWidth(1.5);
 
-		immBegin(GL_LINE_STRIP, res);
+		immBegin(PRIM_LINE_STRIP, res);
 		for (int i = 0; i < res; i++) {
 			float x2 = x + i * (w / (float)res);
 			immVertex2f(pos_attrib, x2, y + (data[i] * h));
@@ -654,7 +654,7 @@ static void histogram_draw_one(
 	}
 	else {
 		/* under the curve */
-		immBegin(GL_TRIANGLE_STRIP, res * 2);
+		immBegin(PRIM_TRIANGLE_STRIP, res * 2);
 		immVertex2f(pos_attrib, x, y);
 		immVertex2f(pos_attrib, x, y + (data[0] * h));
 		for (int i = 1; i < res; i++) {
@@ -668,7 +668,7 @@ static void histogram_draw_one(
 		immUniformColor4f(0.0f, 0.0f, 0.0f, 0.25f);
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		immBegin(GL_LINE_STRIP, res);
+		immBegin(PRIM_LINE_STRIP, res);
 		for (int i = 0; i < res; i++) {
 			float x2 = x + i * (w / (float)res);
 			immVertex2f(pos_attrib, x2, y + (data[i] * h));
@@ -728,7 +728,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 		}
 
-		immBegin(GL_LINES, 4);
+		immBegin(PRIM_LINES, 4);
 
 		immVertex2f(pos, rect.xmin, rect.ymin + fac * h);
 		immVertex2f(pos, rect.xmax, rect.ymin + fac * h);
@@ -853,7 +853,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.08f);
 
 	/* draw grid lines here */
-	immBegin(GL_LINES, 12);
+	immBegin(PRIM_LINES, 12);
 
 	for (int i = 0; i < 6; i++) {
 		immVertex2f(pos, rect.xmin + 22, yofs + (i * 0.2f) * h);
@@ -864,7 +864,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 
 	/* 3 vertical separation */
 	if (scopes->wavefrm_mode != SCOPES_WAVEFRM_LUMA) {
-		immBegin(GL_LINES, 4);
+		immBegin(PRIM_LINES, 4);
 
 		for (int i = 1; i < 3; i++) {
 			immVertex2f(pos, rect.xmin + i * w3, rect.ymin);
@@ -875,7 +875,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	}
 	
 	/* separate min max zone on the right */
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2f(pos, rect.xmin + w, rect.ymin);
 	immVertex2f(pos, rect.xmin + w, rect.ymax);
 	immEnd();
@@ -883,7 +883,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	/* 16-235-240 level in case of ITU-R BT601/709 */
 	immUniformColor4f(1.0f, 0.4f, 0.0f, 0.2f);
 	if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709)) {
-		immBegin(GL_LINES, 8);
+		immBegin(PRIM_LINES, 8);
 
 		immVertex2f(pos, rect.xmin + 22, yofs + h * 16.0f / 255.0f);
 		immVertex2f(pos, rect.xmax + 1, yofs + h * 16.0f / 255.0f);
@@ -901,7 +901,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	}
 	/* 7.5 IRE black point level for NTSC */
 	if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA) {
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, rect.xmin, yofs + h * 0.075f);
 		immVertex2f(pos, rect.xmax + 1, yofs + h * 0.075f);
 		immEnd();
@@ -930,7 +930,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 			CLAMP(min, rect.ymin, rect.ymax);
 			CLAMP(max, rect.ymin, rect.ymax);
 
-			immBegin(GL_LINES, 2);
+			immBegin(PRIM_LINES, 2);
 			immVertex2f(pos, rect.xmax - 3, min);
 			immVertex2f(pos, rect.xmax - 3, max);
 			immEnd();
@@ -984,7 +984,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 				CLAMP(min, rect.ymin, rect.ymax);
 				CLAMP(max, rect.ymin, rect.ymax);
 
-				immBegin(GL_LINES, 2);
+				immBegin(PRIM_LINES, 2);
 				immVertex2f(pos, rect.xmin + w + 2 + c * 2, min);
 				immVertex2f(pos, rect.xmin + w + 2 + c * 2, max);
 				immEnd();
@@ -1028,7 +1028,7 @@ static void vectorscope_draw_target(unsigned int pos, float centerx, float cente
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.12f);
 	dangle = DEG2RADF(2.5f);
 	dampli = 2.5f / 200.0f;
-	immBegin(GL_LINE_LOOP, 4);
+	immBegin(PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle + dangle), polar_to_y(centery, diam, tampli + dampli, tangle + dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle + dangle), polar_to_y(centery, diam, tampli - dampli, tangle + dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle - dangle), polar_to_y(centery, diam, tampli - dampli, tangle - dangle));
@@ -1040,22 +1040,22 @@ static void vectorscope_draw_target(unsigned int pos, float centerx, float cente
 	dampli = 0.2f * tampli;
 	dangle2 = DEG2RADF(5.0f);
 	dampli2 = 0.5f * dampli;
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli - dampli2, tangle + dangle), polar_to_y(centery, diam, tampli + dampli - dampli2, tangle + dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle + dangle), polar_to_y(centery, diam, tampli + dampli, tangle + dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle + dangle - dangle2), polar_to_y(centery, diam, tampli + dampli, tangle + dangle - dangle2));
 	immEnd();
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli + dampli2, tangle + dangle), polar_to_y(centery, diam, tampli - dampli + dampli2, tangle + dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle + dangle), polar_to_y(centery, diam, tampli - dampli, tangle + dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle + dangle - dangle2), polar_to_y(centery, diam, tampli - dampli, tangle + dangle - dangle2));
 	immEnd();
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli + dampli2, tangle - dangle), polar_to_y(centery, diam, tampli - dampli + dampli2, tangle - dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle - dangle), polar_to_y(centery, diam, tampli - dampli, tangle - dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle - dangle + dangle2), polar_to_y(centery, diam, tampli - dampli, tangle - dangle + dangle2));
 	immEnd();
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli - dampli2, tangle - dangle), polar_to_y(centery, diam, tampli + dampli - dampli2, tangle - dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle - dangle), polar_to_y(centery, diam, tampli + dampli, tangle - dangle));
 	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle - dangle + dangle2), polar_to_y(centery, diam, tampli + dampli, tangle - dangle + dangle2));
@@ -1110,7 +1110,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.08f);
 	/* draw grid elements */
 	/* cross */
-	immBegin(GL_LINES, 4);
+	immBegin(PRIM_LINES, 4);
 
 	immVertex2f(pos, centerx - (diam * 0.5f) - 5, centery);
 	immVertex2f(pos, centerx + (diam * 0.5f) + 5, centery);
@@ -1123,7 +1123,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	/* circles */
 	for (int j = 0; j < 5; j++) {
 		const int increment = 15;
-		immBegin(GL_LINE_LOOP, (int)(360 / increment));
+		immBegin(PRIM_LINE_LOOP, (int)(360 / increment));
 		for (int i = 0; i <= 360 - increment; i += increment) {
 			const float a = DEG2RADF((float)i);
 			const float r = (j + 1) * 0.1f;
@@ -1134,7 +1134,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	/* skin tone line */
 	immUniformColor4f(1.0f, 0.4f, 0.0f, 0.2f);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2f(pos, polar_to_x(centerx, diam, 0.5f, skin_rad), polar_to_y(centery, diam, 0.5f, skin_rad));
 	immVertex2f(pos, polar_to_x(centerx, diam, 0.1f, skin_rad), polar_to_y(centery, diam, 0.1f, skin_rad));
 	immEnd();
@@ -1171,7 +1171,7 @@ static void ui_draw_colorband_handle_tri_hlight(unsigned int pos, float x1, floa
 {
 	glEnable(GL_LINE_SMOOTH);
 
-	immBegin(GL_LINE_STRIP, 3);
+	immBegin(PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, x1 + halfwidth, y1);
 	immVertex2f(pos, x1, y1 + height);
 	immVertex2f(pos, x1 - halfwidth, y1);
@@ -1184,7 +1184,7 @@ static void ui_draw_colorband_handle_tri(unsigned int pos, float x1, float y1, f
 {
 	glEnable(fill ? GL_POLYGON_SMOOTH : GL_LINE_SMOOTH);
 
-	immBegin(fill ? GL_TRIANGLES : GL_LINE_LOOP, 3);
+	immBegin(fill ? PRIM_TRIANGLES : PRIM_LINE_LOOP, 3);
 	immVertex2f(pos, x1 + halfwidth, y1);
 	immVertex2f(pos, x1, y1 + height);
 	immVertex2f(pos, x1 - halfwidth, y1);
@@ -1224,14 +1224,14 @@ static void ui_draw_colorband_handle(
 
 	if (active || half_width < min_width) {
 		immUniformColor3ub(0, 0, 0);
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, x, y1);
 		immVertex2f(pos, x, y2);
 		immEnd();
 
 		setlinestyle(active ? 2 : 1);
 		immUniformColor3ub(200, 200, 200);
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, x, y1);
 		immVertex2f(pos, x, y2);
 		immEnd();
@@ -1327,7 +1327,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	v1[1] = y1 + sizey_solid;
 	v2[1] = rect->ymax;
 	
-	immBegin(GL_TRIANGLE_STRIP, (sizex + 1) * 2);
+	immBegin(PRIM_TRIANGLE_STRIP, (sizex + 1) * 2);
 	for (int a = 0; a <= sizex; a++) {
 		float pos = ((float)a) / sizex;
 		do_colorband(coba, pos, colf);
@@ -1346,7 +1346,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	v1[1] = y1;
 	v2[1] = y1 + sizey_solid;
 
-	immBegin(GL_TRIANGLE_STRIP, (sizex + 1) * 2);
+	immBegin(PRIM_TRIANGLE_STRIP, (sizex + 1) * 2);
 	for (int a = 0; a <= sizex; a++) {
 		float pos = ((float)a) / sizex;
 		do_colorband(coba, pos, colf);
@@ -1378,14 +1378,14 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	glEnable(GL_BLEND);
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2f(position, x1, y1);
 	immVertex2f(position, x1 + sizex, y1);
 	immEnd();
 
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.25f);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2f(position, x1, y1 - 1);
 	immVertex2f(position, x1 + sizex, y1 - 1);
 	immEnd();
@@ -1478,7 +1478,7 @@ static void ui_draw_but_curve_grid(unsigned int pos, const rcti *rect, float zoo
 	float line_count = floorf((rect->xmax - fx) / dx) + 1.0f +
 	                   floorf((rect->ymax - fy) / dy) + 1.0f;
 
-	immBegin(GL_LINES, (int)line_count * 2);
+	immBegin(PRIM_LINES, (int)line_count * 2);
 	while (fx < rect->xmax) {
 		immVertex2f(pos, fx, rect->ymin);
 		immVertex2f(pos, fx, rect->ymax);
@@ -1587,7 +1587,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 		ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
 		/* axes */
 		gl_shaded_color((unsigned char *)wcol->inner, -50);
-		immBegin(GL_LINES, 4);
+		immBegin(PRIM_LINES, 4);
 		immVertex2f(pos, rect->xmin, rect->ymin + zoomy * (-offsy));
 		immVertex2f(pos, rect->xmax, rect->ymin + zoomy * (-offsy));
 		immVertex2f(pos, rect->xmin + zoomx * (-offsx), rect->ymin);
@@ -1600,7 +1600,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 #if 0
 	if (cumap->flag & CUMA_DRAW_CFRA) {
 		immUniformColor3ub(0x60, 0xc0, 0x40);
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, rect->xmin + zoomx * (cumap->sample[0] - offsx), rect->ymin);
 		immVertex2f(pos, rect->xmin + zoomx * (cumap->sample[0] - offsx), rect->ymax);
 		immEnd();
@@ -1609,7 +1609,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	/* sample option */
 
 	if (cumap->flag & CUMA_DRAW_SAMPLE) {
-		immBegin(GL_LINES, 2); /* will draw one of the following 3 lines */
+		immBegin(PRIM_LINES, 2); /* will draw one of the following 3 lines */
 		if (but->a1 == UI_GRAD_H) {
 			float tsample[3];
 			float hsv[3];
@@ -1645,7 +1645,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	immUniformColor3ubv((unsigned char *)wcol->item);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
-	immBegin(GL_LINE_STRIP, (CM_TABLE+1) + 2);
+	immBegin(PRIM_LINE_STRIP, (CM_TABLE+1) + 2);
 	
 	if (cuma->table == NULL)
 		curvemapping_changed(cumap, false);
@@ -1688,7 +1688,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 
 	cmp = cuma->curve;
 	glPointSize(3.0f);
-	immBegin(GL_POINTS, cuma->totpoint);
+	immBegin(PRIM_POINTS, cuma->totpoint);
 	for (int a = 0; a < cuma->totpoint; a++) {
 		float color[4];
 		if (cmp[a].flag & CUMA_SELECT)
@@ -1807,7 +1807,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			UI_GetThemeColor4fv(TH_MARKER_OUTLINE, col_outline);
 
 			/* Do stipple cross with geometry */
-			immBegin(GL_LINES, 7*2*2);
+			immBegin(PRIM_LINES, 7*2*2);
 			float pos_sel[8] = {-10.0f, -7.0f, -4.0f, -1.0f, 2.0f, 5.0f, 8.0f, 11.0f};
 			for (int axe = 0; axe < 2; ++axe) {
 				for (int i = 0; i < 7; ++i) {
@@ -1893,7 +1893,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	immUniformColor4ubv(but->col);
 
 	glEnable(GL_BLEND);
-	immBegin(GL_TRIANGLE_FAN, 16);
+	immBegin(PRIM_TRIANGLE_FAN, 16);
 	for (int a = 0; a < 16; a++)
 		immVertex2f(pos, x + size * si[a], y + size * co[a]);
 	immEnd();
@@ -1901,7 +1901,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	immUniformColor4ub(0, 0, 0, 150);
 	glLineWidth(1);
 	glEnable(GL_LINE_SMOOTH);
-	immBegin(GL_LINE_LOOP, 16);
+	immBegin(PRIM_LINE_LOOP, 16);
 	for (int a = 0; a < 16; a++)
 		immVertex2f(pos, x + size * si[a], y + size * co[a]);
 	immEnd();

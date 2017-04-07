@@ -114,7 +114,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ub(255, 0, 255);
 
 		if (lcd->totedge > 0) {
-			immBegin(GL_LINES, lcd->totedge * 2);
+			immBegin(PRIM_LINES, lcd->totedge * 2);
 
 			for (int i = 0; i < lcd->totedge; i++) {
 				immVertex3fv(pos, lcd->edges[i][0]);
@@ -127,7 +127,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		if (lcd->totpoint > 0) {
 			glPointSize(3.0f);
 
-			immBegin(GL_POINTS, lcd->totpoint);
+			immBegin(PRIM_POINTS, lcd->totpoint);
 
 			for (int i = 0; i < lcd->totpoint; i++) {
 				immVertex3fv(pos, lcd->points[i]);

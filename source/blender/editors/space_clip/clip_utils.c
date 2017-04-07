@@ -252,7 +252,7 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	immUniformThemeColor(TH_CFRAME);
 	glLineWidth(2.0f);
 
-	immBegin(GL_LINES, 2);
+	immBegin(PRIM_LINES, 2);
 	immVertex2f(pos, x, v2d->cur.ymin);
 	immVertex2f(pos, x, v2d->cur.ymax);
 	immEnd();
@@ -295,7 +295,7 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
 	/* thin lines where the actual frames are */
 	glLineWidth(1.0f);
 
-	immBegin(GL_LINES, 4);
+	immBegin(PRIM_LINES, 4);
 	immVertex2f(pos, (float)SFRA, v2d->cur.ymin);
 	immVertex2f(pos, (float)SFRA, v2d->cur.ymax);
 	immVertex2f(pos, (float)EFRA, v2d->cur.ymin);

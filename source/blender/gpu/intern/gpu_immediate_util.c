@@ -213,7 +213,7 @@ void imm_draw_checker_box(float x1, float y1, float x2, float y2)
 void imm_draw_cylinder_fill_normal_3d(
         unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks)
 {
-	immBegin(GL_TRIANGLES, 6 * slices * stacks);
+	immBegin(PRIM_TRIANGLES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
 		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
 		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);
@@ -264,7 +264,7 @@ void imm_draw_cylinder_fill_normal_3d(
 
 void imm_draw_cylinder_wire_3d(unsigned int pos, float base, float top, float height, int slices, int stacks)
 {
-	immBegin(GL_LINES, 6 * slices * stacks);
+	immBegin(PRIM_LINES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
 		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
 		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);
@@ -301,7 +301,7 @@ void imm_draw_cylinder_wire_3d(unsigned int pos, float base, float top, float he
 
 void imm_draw_cylinder_fill_3d(unsigned int pos, float base, float top, float height, int slices, int stacks)
 {
-	immBegin(GL_TRIANGLES, 6 * slices * stacks);
+	immBegin(PRIM_TRIANGLES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
 		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
 		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);

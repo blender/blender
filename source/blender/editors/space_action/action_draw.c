@@ -334,7 +334,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	if (saction->flag & SACTION_MOVING) {
 		immUniformColor3f(0.0f, 0.0f, 0.0f);
 
-		immBegin(GL_LINES, 2);
+		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, saction->timeslide, v2d->cur.ymin - EXTRA_SCROLL_PAD);
 		immVertex2f(pos, saction->timeslide, v2d->cur.ymax);
 		immEnd();

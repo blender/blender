@@ -266,7 +266,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 
 	immUniformThemeColor(TH_VIEW_OVERLAY);
 
-	immBegin(GL_LINES, 16);
+	immBegin(PRIM_LINES, 16);
 
 	/* bottom left */
 	immVertex2f(pos, x1, y1);

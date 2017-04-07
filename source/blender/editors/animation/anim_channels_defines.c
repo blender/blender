@@ -3927,7 +3927,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 
 			glLineWidth(2.0f);
 
-			immBegin(GL_LINES, 2);
+			immBegin(PRIM_LINES, 2);
 			immVertex2f(pos, (float)offset, yminc);
 			immVertex2f(pos, (float)v2d->cur.xmax, yminc);
 			immEnd();

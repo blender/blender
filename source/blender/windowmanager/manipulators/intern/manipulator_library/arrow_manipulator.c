@@ -109,7 +109,7 @@ static void arrow_draw_geom(const ArrowManipulator *arrow, const bool select, co
 	if (arrow->style & MANIPULATOR_ARROW_STYLE_CROSS) {
 		immUniformColor4fv(color);
 
-		immBegin(GL_LINES, 4);
+		immBegin(PRIM_LINES, 4);
 		immVertex2f(pos, -1.0, 0.f);
 		immVertex2f(pos, 1.0, 0.f);
 		immVertex2f(pos, 0.f, -1.0);
