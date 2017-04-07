@@ -190,12 +190,12 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 	r.ymax = half_h;
 
 	gpuPushMatrix();
-	gpuTranslate3f(manipulator->origin[0] + manipulator->offset[0],
-	        manipulator->origin[1] + manipulator->offset[1], 0.0f);
+	gpuTranslate2f(manipulator->origin[0] + manipulator->offset[0],
+	               manipulator->origin[1] + manipulator->offset[1]);
 	if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
-		gpuScale3f(cage->scale[0], cage->scale[0], 1.0);
+		gpuScaleUniform(cage->scale[0]);
 	else
-		gpuScale3f(cage->scale[0], cage->scale[1], 1.0);
+		gpuScale2fv(cage->scale);
 
 	if (w > h)
 		aspx = h / w;

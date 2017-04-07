@@ -149,7 +149,7 @@ static void manipulator_primitive_draw_intern(
 		gpuMultMatrix3D(mat);
 
 		glEnable(GL_BLEND);
-		gpuTranslate3f(UNPACK3(prim->manipulator.offset));
+		gpuTranslate3fv(prim->manipulator.offset);
 		manipulator_primitive_draw_geom(col_inner, col_outer, prim->style);
 		glDisable(GL_BLEND);
 
