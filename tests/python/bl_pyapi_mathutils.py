@@ -260,6 +260,11 @@ class KDTreeTesting(unittest.TestCase):
         k.balance()
         return k
 
+    def assertAlmostEqualVector(self, first, second, places=7, msg=None, delta=None):
+        self.assertAlmostEqual(first[0], second[0], places=places, msg=msg, delta=delta)
+        self.assertAlmostEqual(first[1], second[1], places=places, msg=msg, delta=delta)
+        self.assertAlmostEqual(first[2], second[2], places=places, msg=msg, delta=delta)
+
     def test_kdtree_single(self):
         co = (0,) * 3
         index = 2
@@ -360,12 +365,12 @@ class KDTreeTesting(unittest.TestCase):
                     ret_regular = k_odd.find(co)
                     self.assertEqual(ret_regular[1] % 2, 1)
                     ret_filter = k_all.find(co, lambda i: (i % 2) == 1)
-                    self.assertEqual(ret_regular, ret_filter)
+                    self.assertAlmostEqualVector(ret_regular, ret_filter)
 
                     ret_regular = k_evn.find(co)
                     self.assertEqual(ret_regular[1] % 2, 0)
                     ret_filter = k_all.find(co, lambda i: (i % 2) == 0)
-                    self.assertEqual(ret_regular, ret_filter)
+                    self.assertAlmostEqualVector(ret_regular, ret_filter)
 
 
         # filter out all values (search odd tree for even values and the reverse)
