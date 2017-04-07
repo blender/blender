@@ -42,18 +42,6 @@ bool starts_with(const std::string &str,
   }
 }
 
-std::string ltrim(const std::string &str) {
-  std::string result = str;
-  result.erase(0, result.find_first_not_of(" \t\r\n"));
-  return result;
-}
-
-std::string rtrim(const std::string &str) {
-  std::string result = str;
-  result.erase(result.find_last_not_of(" \t\r\n") + 1);
-  return result;
-}
-
 std::string trim(const std::string &str) {
   std::string result = str;
   result.erase(0, result.find_first_not_of(" \t\r\n"));
