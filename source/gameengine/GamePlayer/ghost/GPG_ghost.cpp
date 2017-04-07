@@ -1202,7 +1202,7 @@ int main(
 
 	IMB_exit();
 	BKE_images_exit();
-	DAG_exit();
+	DEG_free_node_types();
 	IMB_moviecache_destruct();
 
 	SYS_DeleteSystem(syshandle);
