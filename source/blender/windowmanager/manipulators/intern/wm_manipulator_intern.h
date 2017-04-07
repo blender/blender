@@ -219,6 +219,9 @@ bool wm_manipulatormap_deselect_all(struct wmManipulatorMap *mmap, struct wmMani
 /* Manipulator drawing */
 
 void wm_manipulator_geometryinfo_draw(const struct ManipulatorGeomInfo *info, const bool select, const float color[4]);
+void wm_manipulator_vec_draw(
+        const float color[4], const float (*verts)[3], unsigned int vert_count,
+        unsigned int pos, unsigned int primitive_type);
 
 #endif  /* __WM_MANIPULATOR_INTERN_H__ */
 

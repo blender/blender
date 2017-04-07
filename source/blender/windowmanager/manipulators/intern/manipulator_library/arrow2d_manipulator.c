@@ -44,6 +44,8 @@
 
 #include "ED_screen.h"
 
+#include "GPU_matrix.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -73,12 +75,12 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2])
 	const float len = arrow->line_len;
 	const float draw_line_ofs = (arrow->manipulator.line_width * 0.5f) / arrow->manipulator.scale;
 
-	glPushMatrix();
-	glTranslatef(UNPACK2(origin), 0.0f);
-	glScalef(arrow->manipulator.scale, arrow->manipulator.scale, 0.0f);
-	glRotatef(RAD2DEGF(arrow->angle), 0.0f, 0.0f, 1.0f);
+	gpuPushMatrix();
+	gpuTranslate3f(UNPACK2(origin), 0.0f);
+	gpuScale3f(arrow->manipulator.scale, arrow->manipulator.scale, 0.0f);
+	gpuRotate3f(RAD2DEGF(arrow->angle), 0.0f, 0.0f, 1.0f);
 	/* local offset */
-	glTranslatef(arrow->manipulator.offset[0] + draw_line_ofs, arrow->manipulator.offset[1], 0.0f);
+	gpuTranslate3f(arrow->manipulator.offset[0] + draw_line_ofs, arrow->manipulator.offset[1], 0.0f);
 
 	/* TODO get rid of immediate mode */
 	glBegin(GL_LINES);
@@ -91,7 +93,7 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2])
 	glVertex2f(0.0f, len + size * 1.7f);
 	glEnd();
 
-	glPopMatrix();
+	gpuPopMatrix();
 }
 
 static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipulator *manipulator)

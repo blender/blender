@@ -41,6 +41,7 @@
 
 #include "GPU_batch.h"
 #include "GPU_glew.h"
+#include "GPU_immediate.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -110,6 +111,18 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 
 
 	Batch_discard_all(batch);
+}
+
+void wm_manipulator_vec_draw(
+        const float color[4], const float (*verts)[3], unsigned int vert_count,
+        unsigned int pos, unsigned int primitive_type)
+{
+	immUniformColor4fv(color);
+	immBegin(primitive_type, vert_count);
+	for (int i = 0; i < vert_count; i++) {
+		immVertex3fv(pos, verts[i]);
+	}
+	immEnd();
 }
 
 /* Still unused */

@@ -45,6 +45,8 @@
 
 #include "ED_screen.h"
 
+#include "GPU_matrix.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -187,13 +189,13 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 	r.xmax = half_w;
 	r.ymax = half_h;
 
-	glPushMatrix();
-	glTranslatef(manipulator->origin[0] + manipulator->offset[0],
+	gpuPushMatrix();
+	gpuTranslate3f(manipulator->origin[0] + manipulator->offset[0],
 	        manipulator->origin[1] + manipulator->offset[1], 0.0f);
 	if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
-		glScalef(cage->scale[0], cage->scale[0], 1.0);
+		gpuScale3f(cage->scale[0], cage->scale[0], 1.0);
 	else
-		glScalef(cage->scale[0], cage->scale[1], 1.0);
+		gpuScale3f(cage->scale[0], cage->scale[1], 1.0);
 
 	if (w > h)
 		aspx = h / w;
@@ -218,7 +220,7 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 	                                w, h, cage->manipulator.line_width);
 
 	glLineWidth(1.0);
-	glPopMatrix();
+	gpuPopMatrix();
 }
 
 static int manipulator_rect_transform_get_cursor(wmManipulator *manipulator)

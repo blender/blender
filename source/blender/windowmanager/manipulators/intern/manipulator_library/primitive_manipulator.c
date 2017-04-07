@@ -38,6 +38,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_manipulator_types.h"
 
+#include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_select.h"
 
 #include "MEM_guardedalloc.h"
@@ -83,19 +85,17 @@ static void manipulator_primitive_draw_geom(
 {
 	float (*verts)[3];
 	float vert_count;
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	if (style == MANIPULATOR_PRIMITIVE_STYLE_PLANE) {
 		verts = verts_plane;
 		vert_count = ARRAY_SIZE(verts_plane);
 	}
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, verts);
-	glColor4fv(col_inner);
-	glDrawArrays(GL_QUADS, 0, vert_count);
-	glColor4fv(col_outer);
-	glDrawArrays(GL_LINE_LOOP, 0, vert_count);
-	glDisableClientState(GL_VERTEX_ARRAY);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	wm_manipulator_vec_draw(col_inner, verts, vert_count, pos, PRIM_QUADS);
+	wm_manipulator_vec_draw(col_outer, verts, vert_count, pos, PRIM_LINE_LOOP);
+	immUnbindProgram();
 }
 
 static void manipulator_primitive_draw_intern(
@@ -120,19 +120,19 @@ static void manipulator_primitive_draw_intern(
 	copy_v3_v3(mat[3], prim->manipulator.origin);
 	mul_mat3_m4_fl(mat, prim->manipulator.scale);
 
-	glPushMatrix();
-	glMultMatrixf(mat);
+	gpuPushMatrix();
+	gpuMultMatrix3D(mat);
 
 	manipulator_color_get(&prim->manipulator, highlight, col_outer);
 	copy_v4_v4(col_inner, col_outer);
 	col_inner[3] *= 0.5f;
 
 	glEnable(GL_BLEND);
-	glTranslatef(UNPACK3(prim->manipulator.offset));
+	gpuTranslate3fv(prim->manipulator.offset);
 	manipulator_primitive_draw_geom(col_inner, col_outer, prim->style);
 	glDisable(GL_BLEND);
 
-	glPopMatrix();
+	gpuPopMatrix();
 
 	if (prim->manipulator.interaction_data) {
 		ManipulatorInteraction *inter = prim->manipulator.interaction_data;
@@ -145,15 +145,15 @@ static void manipulator_primitive_draw_intern(
 		copy_v3_v3(mat[3], inter->init_origin);
 		mul_mat3_m4_fl(mat, inter->init_scale);
 
-		glPushMatrix();
-		glMultMatrixf(mat);
+		gpuPushMatrix();
+		gpuMultMatrix3D(mat);
 
 		glEnable(GL_BLEND);
-		glTranslatef(UNPACK3(prim->manipulator.offset));
+		gpuTranslate3f(UNPACK3(prim->manipulator.offset));
 		manipulator_primitive_draw_geom(col_inner, col_outer, prim->style);
 		glDisable(GL_BLEND);
 
-		glPopMatrix();
+		gpuPopMatrix();
 	}
 }
 

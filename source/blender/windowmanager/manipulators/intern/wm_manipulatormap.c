@@ -42,6 +42,7 @@
 #include "ED_view3d.h"
 
 #include "GPU_glew.h"
+#include "GPU_matrix.h"
 #include "GPU_select.h"
 
 #include "MEM_guardedalloc.h"
@@ -256,11 +257,11 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 		glEnable(GL_LIGHT0);
 		glEnable(GL_COLOR_MATERIAL);
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		glPushMatrix();
-		glLoadIdentity();
+		gpuPushMatrix();
+		gpuLoadIdentity();
 		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 		glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-		glPopMatrix();
+		gpuPopMatrix();
 	}
 
 	/* draw_manipulators contains all visible manipulators - draw them */
