@@ -766,6 +766,9 @@ static void import_endjob(void *user_data)
 		for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 			Object *ob = (*iter)->object();
 
+			/* It's possible that cancellation occured between the creation of
+			 * the reader and the creation of the Blender object. */
+			if (ob == NULL) continue;
 
 			BKE_libblock_free_us(data->bmain, ob);
 		}
