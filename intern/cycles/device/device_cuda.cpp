@@ -1613,7 +1613,7 @@ int2 CUDASplitKernel::split_kernel_local_size()
 	return make_int2(32, 1);
 }
 
-int2 CUDASplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask */*task*/)
+int2 CUDASplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask * /*task*/)
 {
 	/* TODO(mai): implement something here to detect ideal work size */
 	return make_int2(256, 256);

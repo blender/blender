@@ -340,7 +340,7 @@ public:
 		return make_int2(64, 1);
 	}
 
-	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask */*task*/)
+	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask * /*task*/)
 	{
 		cl_device_type type = OpenCLInfo::get_device_type(device->cdDevice);
 		/* Use small global size on CPU devices as it seems to be much faster. */
