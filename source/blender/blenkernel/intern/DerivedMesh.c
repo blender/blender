@@ -2677,7 +2677,8 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, C
 
 static CustomDataMask object_get_datamask(const Scene *scene, Object *ob, bool *r_need_mapping)
 {
-	Object *actob = scene->basact ? scene->basact->object : NULL;
+	SceneLayer *sl = scene->render_layers.first; /* XXX TODO pass SceneLayer to this function */
+	Object *actob = sl->basact ? sl->basact->object : NULL;
 	CustomDataMask mask = ob->customdata_mask;
 
 	if (r_need_mapping) {
