@@ -209,8 +209,8 @@ class HomographySymmetricGeometricCostFunctor {
     return true;
   }
 
-  const Vec2 x_;
-  const Vec2 y_;
+  const Vec2 &x_;
+  const Vec2 &y_;
 };
 
 // Termination checking callback used for homography estimation.
