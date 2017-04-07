@@ -2011,15 +2011,3 @@ void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha
 	
 	glDisable(GL_BLEND);
 }
-
-/**
- * Reset GL state (keep minimal).
- *
- * \note Blender's internal code doesn't assume these are reset,
- * but external callbacks may depend on their state.
- */
-void UI_reinit_gl_state(void)
-{
-	glLineWidth(1.0f);
-	glPointSize(1.0f);
-}

@@ -793,7 +793,6 @@ void UI_popup_handlers_remove_all(struct bContext *C, struct ListBase *handlers)
 void UI_init(void);
 void UI_init_userdef(void);
 void UI_reinit_font(void);
-void UI_reinit_gl_state(void);
 void UI_exit(void);
 
 /* Layout
