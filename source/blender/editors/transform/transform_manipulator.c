@@ -921,6 +921,7 @@ static int calc_manipulator_stats(const bContext *C)
 				if (ob == NULL)
 					ob = base->object;
 				calc_tw_center(scene, base->object->obmat[3]);
+				protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
 				totsel++;
 			}
 		}
