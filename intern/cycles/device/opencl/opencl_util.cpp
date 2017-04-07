@@ -281,6 +281,7 @@ void OpenCLDeviceBase::OpenCLProgram::add_log(string msg, bool debug)
 	}
 	else if(!debug) {
 		printf("%s\n", msg.c_str());
+		fflush(stdout);
 	}
 	else {
 		VLOG(2) << msg;

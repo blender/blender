@@ -64,7 +64,6 @@ AbcTransformWriter::AbcTransformWriter(Object *ob,
     : AbcObjectWriter(NULL, ob, time_sampling, settings, parent)
 {
 	m_is_animated = hasAnimation(m_object);
-	m_parent = NULL;
 
 	if (!m_is_animated) {
 		time_sampling = 0;
@@ -86,26 +85,28 @@ void AbcTransformWriter::do_write()
 		return;
 	}
 
-	float mat[4][4];
-	create_transform_matrix(m_object, mat);
+	float yup_mat[4][4];
+	create_transform_matrix(m_object, yup_mat);
 
 	/* Only apply rotation to root camera, parenting will propagate it. */
 	if (m_object->type == OB_CAMERA && !has_parent_camera(m_object)) {
 		float rot_mat[4][4];
 		axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
-		mul_m4_m4m4(mat, mat, rot_mat);
+		mul_m4_m4m4(yup_mat, yup_mat, rot_mat);
 	}
 
 	if (!m_object->parent) {
 		/* Only apply scaling to root objects, parenting will propagate it. */
+		/* TODO Sybren: when we're exporting as "flat", i.e. non-hierarchial,
+		 * we should apply the scale even when the object has a parent
+		 * Blender Object. */
 		float scale_mat[4][4];
 		scale_m4_fl(scale_mat, m_settings.global_scale);
-		mul_m4_m4m4(mat, mat, scale_mat);
-		mul_v3_fl(mat[3], m_settings.global_scale);
+		scale_mat[3][3] = m_settings.global_scale;  /* also scale translation */
+		mul_m4_m4m4(yup_mat, yup_mat, scale_mat);
 	}
 
-	m_matrix = convert_matrix(mat);
-
+	m_matrix = convert_matrix(yup_mat);
 	m_sample.setMatrix(m_matrix);
 	m_schema.set(m_sample);
 }
@@ -133,6 +134,10 @@ bool AbcTransformWriter::hasAnimation(Object * /*ob*/) const
 AbcEmptyReader::AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
 {
+	/* Empties have no data. It makes the import of Alembic files easier to
+	 * understand when we name the empty after its name in Alembic. */
+	m_object_name = object.getName();
+
 	Alembic::AbcGeom::IXform xform(object, Alembic::AbcGeom::kWrapExisting);
 	m_schema = xform.getSchema();
 
@@ -146,6 +151,7 @@ bool AbcEmptyReader::valid() const
 
 void AbcEmptyReader::readObjectData(Main *bmain, float /*time*/)
 {
-	m_object = BKE_object_add_only_object(bmain, OB_EMPTY, m_data_name.c_str());
+	m_object = BKE_object_add_only_object(bmain, OB_EMPTY,
+	                                      m_object_name.c_str());
 	m_object->data = NULL;
 }

@@ -14,5 +14,7 @@ if(WITH_GTESTS)
 	add_subdirectory(blenlib)
 	add_subdirectory(guardedalloc)
 	add_subdirectory(bmesh)
+	if(WITH_ALEMBIC)
+		add_subdirectory(alembic)
+	endif()
 endif()
-

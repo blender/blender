@@ -126,6 +126,7 @@ AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings
     , m_min_time(std::numeric_limits<chrono_t>::max())
     , m_max_time(std::numeric_limits<chrono_t>::min())
     , m_refcount(0)
+    , parent_reader(NULL)
 {
 	m_name = object.getFullName();
 	std::vector<std::string> parts;
@@ -213,7 +214,7 @@ Imath::M44d get_matrix(const IXformSchema &schema, const float time)
 	return s0.getMatrix();
 }
 
-void AbcObjectReader::readObjectMatrix(const float time)
+void AbcObjectReader::setupObjectTransform(const float time)
 {
 	bool is_constant = false;
 
@@ -235,49 +236,88 @@ void AbcObjectReader::readObjectMatrix(const float time)
 	}
 }
 
-void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant)
+Alembic::AbcGeom::IXform AbcObjectReader::xform()
 {
-	IXform ixform;
-	bool has_alembic_parent = false;
-
 	/* Check that we have an empty object (locator, bone head/tail...).  */
 	if (IXform::matches(m_iobject.getMetaData())) {
-		ixform = IXform(m_iobject, Alembic::AbcGeom::kWrapExisting);
-
-		/* See comment below. */
-		has_alembic_parent = m_iobject.getParent().getParent().valid();
+		return IXform(m_iobject, Alembic::AbcGeom::kWrapExisting);
 	}
-	/* Check that we have an object with actual data. */
-	else if (IXform::matches(m_iobject.getParent().getMetaData())) {
-		ixform = IXform(m_iobject.getParent(), Alembic::AbcGeom::kWrapExisting);
 
-		/* This is a bit hackish, but we need to make sure that extra
-		 * transformations added to the matrix (rotation/scale) are only applied
-		 * to root objects. The way objects and their hierarchy are created will
-		 * need to be revisited at some point but for now this seems to do the
-		 * trick.
-		 *
-		 * Explanation of the trick:
-		 * The first getParent() will return this object's transformation matrix.
-		 * The second getParent() will get the parent of the transform, but this
-		 * might be the archive root ('/') which is valid, so we go passed it to
-		 * make sure that there is no parent.
-		 */
-		has_alembic_parent = m_iobject.getParent().getParent().getParent().valid();
+	/* Check that we have an object with actual data, in which case the
+	 * parent Alembic object should contain the transform. */
+	IObject abc_parent = m_iobject.getParent();
+
+	/* The archive's top object can be recognised by not having a parent. */
+	if (abc_parent.getParent()
+	        && IXform::matches(abc_parent.getMetaData())) {
+		return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);
 	}
+
 	/* Should not happen. */
-	else {
+	std::cerr << "AbcObjectReader::xform(): "
+	          << "unable to find IXform for Alembic object '"
+	          << m_iobject.getFullName() << "'\n";
+	BLI_assert(false);
+
+	return IXform();
+}
+
+void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
+                                  const float scale, bool &is_constant)
+{
+	IXform ixform = xform();
+	if (!ixform) {
 		return;
 	}
 
-	const IXformSchema &schema(ixform.getSchema());
-
+	const IXformSchema & schema(ixform.getSchema());
 	if (!schema.valid()) {
+		std::cerr << "Alembic object " << ixform.getFullName()
+		          << " has an invalid schema." << std::endl;
 		return;
+	}
+
+	bool has_alembic_parent;
+	IObject ixform_parent = ixform.getParent();
+	if (!ixform_parent.getParent()) {
+		/* The archive top object certainly is not a transform itself, so handle
+		 * it as "no parent". */
+		has_alembic_parent = false;
+	}
+	else {
+		has_alembic_parent = ixform_parent && schema.getInheritsXforms();
+
+		if (has_alembic_parent && m_object->parent == NULL) {
+			/* TODO Sybren: This happened in some files. I think I solved it,
+			 * but I'll leave this check in here anyway until we've tested it
+			 * more thoroughly. Better than crashing on a null parent anyway. */
+			std::cerr << "Alembic object " << m_iobject.getFullName()
+			          << " with transform " << ixform.getFullName()
+			          << " has an Alembic parent but no parent Blender object."
+			          << std::endl;
+			has_alembic_parent = false;
+		}
 	}
 
 	const Imath::M44d matrix = get_matrix(schema, time);
-	convert_matrix(matrix, m_object, mat, scale, has_alembic_parent);
+	convert_matrix(matrix, m_object, r_mat);
+
+	if (has_alembic_parent) {
+		/* In this case, the matrix in Alembic is in local coordinates, so
+		 * convert to world matrix. To prevent us from reading and accumulating
+		 * all parent matrices in the Alembic file, we assume that the Blender
+		 * parent object is already updated for the current timekey, and use its
+		 * world matrix. */
+		BLI_assert(m_object->parent);
+		mul_m4_m4m4(r_mat, m_object->parent->obmat, r_mat);
+	}
+	else {
+		/* Only apply scaling to root objects, parenting will propagate it. */
+		float scale_mat[4][4];
+		scale_m4_fl(scale_mat, scale);
+		scale_mat[3][3] = scale; /* scale translations too */
+		mul_m4_m4m4(r_mat, r_mat, scale_mat);
+	}
 
 	is_constant = schema.isConstant();
 }

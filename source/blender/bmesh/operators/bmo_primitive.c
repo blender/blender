@@ -1566,7 +1566,7 @@ void BM_mesh_calc_uvs_cone(
 
 	BLI_assert(cd_loop_uv_offset != -1); /* caller is responsible for ensuring the mesh has UVs */
 
-	x = 0.0f;
+	x = 1.0f;
 	y = 1.0f - uv_height;
 
 	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
@@ -1580,7 +1580,7 @@ void BM_mesh_calc_uvs_cone(
 
 				switch (loop_index) {
 					case 0:
-						x += uv_width;
+						/* Continue in the last position */
 						break;
 					case 1:
 						y += uv_height;
@@ -1598,8 +1598,6 @@ void BM_mesh_calc_uvs_cone(
 				luv->uv[0] = x;
 				luv->uv[1] = y;
 			}
-
-			x += uv_width;
 		}
 		else {
 			/* top or bottom face - so unwrap it by transforming back to a circle and using the X/Y coords */

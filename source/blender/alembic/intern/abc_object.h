@@ -117,15 +117,7 @@ struct ImportSettings {
 template <typename Schema>
 static bool has_animations(Schema &schema, ImportSettings *settings)
 {
-	if (settings->is_sequence) {
-		return true;
-	}
-
-	if (!schema.isConstant()) {
-		return true;
-	}
-
-	return false;
+	return settings->is_sequence || !schema.isConstant();
 }
 
 /* ************************************************************************** */
@@ -152,14 +144,29 @@ protected:
 	int m_refcount;
 
 public:
+	AbcObjectReader *parent_reader;
+
+public:
 	explicit AbcObjectReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
 	virtual ~AbcObjectReader();
 
 	const Alembic::Abc::IObject &iobject() const;
 
+	typedef std::vector<AbcObjectReader *> ptr_vector;
+
+	/**
+	 * Returns the transform of this object. This can be the Alembic object
+	 * itself (in case of an Empty) or it can be the parent Alembic object.
+	 */
+	virtual Alembic::AbcGeom::IXform xform();
+
 	Object *object() const;
 	void object(Object *ob);
+
+	const std::string & name() const { return m_name; }
+	const std::string & object_name() const { return m_object_name; }
+	const std::string & data_name() const { return m_data_name; }
 
 	virtual bool valid() const = 0;
 
@@ -173,7 +180,8 @@ public:
 		return dm;
 	}
 
-	void readObjectMatrix(const float time);
+	/** Reads the object matrix and sets up an object transform if animated. */
+	void setupObjectTransform(const float time);
 
 	void addCacheModifier();
 
@@ -184,7 +192,8 @@ public:
 	void incref();
 	void decref();
 
-	void read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant);
+	void read_matrix(float r_mat[4][4], const float time,
+	                 const float scale, bool &is_constant);
 };
 
 Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, const float time);

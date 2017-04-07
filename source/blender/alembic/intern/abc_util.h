@@ -32,6 +32,11 @@
 #  define ABC_INLINE static inline
 #endif
 
+/**
+ * @brief The CacheReader struct is only used for anonymous pointers,
+ * to interface between C and C++ code. This library only creates
+ * pointers to AbcObjectReader (or subclasses thereof).
+ */
 struct CacheReader {
 	int unused;
 };
@@ -45,15 +50,14 @@ struct ID;
 struct Object;
 struct Base;
 
-std::string get_id_name(ID *id);
-std::string get_id_name(Object *ob);
-std::string get_object_dag_path_name(Object *ob, Object *dupli_parent);
+std::string get_id_name(const ID * const id);
+std::string get_id_name(const Object * const ob);
+std::string get_object_dag_path_name(const Object * const ob, Object *dupli_parent);
 
 bool object_selected(const Base * const ob_base);
 
 Imath::M44d convert_matrix(float mat[4][4]);
-void create_transform_matrix(float r_mat[4][4]);
-void create_transform_matrix(Object *obj, float transform_mat[4][4]);
+void create_transform_matrix(Object *obj, float r_transform_mat[4][4]);
 
 void split(const std::string &s, const char delim, std::vector<std::string> &tokens);
 
@@ -64,8 +68,7 @@ bool begins_with(const TContainer &input, const TContainer &match)
 	        && std::equal(match.begin(), match.end(), input.begin());
 }
 
-void convert_matrix(const Imath::M44d &xform, Object *ob,
-                    float r_mat[4][4], float scale, bool has_alembic_parent = false);
+void convert_matrix(const Imath::M44d &xform, Object *ob, float r_mat[4][4]);
 
 template <typename Schema>
 void get_min_max_time_ex(const Schema &schema, chrono_t &min, chrono_t &max)
@@ -118,33 +121,53 @@ AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSe
 
 ABC_INLINE void copy_zup_from_yup(float zup[3], const float yup[3])
 {
+	const float old_yup1 = yup[1];  /* in case zup == yup */
 	zup[0] = yup[0];
 	zup[1] = -yup[2];
-	zup[2] = yup[1];
+	zup[2] = old_yup1;
 }
 
 ABC_INLINE void copy_zup_from_yup(short zup[3], const short yup[3])
 {
+	const short old_yup1 = yup[1];  /* in case zup == yup */
 	zup[0] = yup[0];
 	zup[1] = -yup[2];
-	zup[2] = yup[1];
+	zup[2] = old_yup1;
 }
 
 /* Copy from Z-up to Y-up. */
 
 ABC_INLINE void copy_yup_from_zup(float yup[3], const float zup[3])
 {
+	const float old_zup1 = zup[1];  /* in case yup == zup */
 	yup[0] = zup[0];
 	yup[1] = zup[2];
-	yup[2] = -zup[1];
+	yup[2] = -old_zup1;
 }
 
 ABC_INLINE void copy_yup_from_zup(short yup[3], const short zup[3])
 {
+	const short old_zup1 = zup[1];  /* in case yup == zup */
 	yup[0] = zup[0];
 	yup[1] = zup[2];
-	yup[2] = -zup[1];
+	yup[2] = -old_zup1;
 }
+
+/* Names are given in (dst, src) order, just like
+ * the parameters of copy_m44_axis_swap() */
+typedef enum {
+	ABC_ZUP_FROM_YUP = 1,
+	ABC_YUP_FROM_ZUP = 2,
+} AbcAxisSwapMode;
+
+/* Create a rotation matrix for each axis from euler angles.
+ * Euler angles are swaped to change coordinate system. */
+void create_swapped_rotation_matrix(
+        float rot_x_mat[3][3], float rot_y_mat[3][3],
+        float rot_z_mat[3][3], const float euler[3],
+        AbcAxisSwapMode mode);
+
+void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMode mode);
 
 /* *************************** */
 

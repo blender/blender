@@ -422,9 +422,9 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 		return false;
 	}
 #ifdef __SHADOW_TRICKS__
-    const int skip_object = state->catcher_object;
+	const int skip_object = state->catcher_object;
 #else
-    const int skip_object = OBJECT_NONE;
+	const int skip_object = OBJECT_NONE;
 #endif
 	/* Do actual shadow shading. */
 	/* First of all, we check if integrator requires transparent shadows.
