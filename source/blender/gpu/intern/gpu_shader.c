@@ -42,9 +42,9 @@
 
 #include "gpu_shader_private.h"
 
-/* TODO(sergey): Find better default values for this constants. */
-#define MAX_DEFINE_LENGTH 1024
-#define MAX_EXT_DEFINE_LENGTH 1024
+/* Adjust these constants as needed. */
+#define MAX_DEFINE_LENGTH 256
+#define MAX_EXT_DEFINE_LENGTH 256
 
 /* Non-generated shaders */
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
