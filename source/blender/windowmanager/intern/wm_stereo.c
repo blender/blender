@@ -132,7 +132,7 @@ static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 
 	immUniform1i("interlace_id", interlace_gpu_id_from_type(interlace_type));
 
-	immBegin(GL_QUADS, 4);
+	immBegin(PRIM_TRIANGLE_FAN, 4);
 
 	immAttrib2f(texcoord, halfx, halfy);
 	immVertex2f(pos, 0.0f, 0.0f);
@@ -242,7 +242,7 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 		immUniform1f("alpha", 1.0f);
 		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-		immBegin(GL_QUADS, 4);
+		immBegin(PRIM_TRIANGLE_FAN, 4);
 
 		immAttrib2f(texcoord, halfx, halfy);
 		immVertex2f(pos, soffx, 0.0f);
@@ -312,7 +312,7 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 		immUniform1f("alpha", 1.0f);
 		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-		immBegin(GL_QUADS, 4);
+		immBegin(PRIM_TRIANGLE_FAN, 4);
 
 		immAttrib2f(texcoord, halfx, halfy);
 		immVertex2f(pos, 0.0f, soffy);

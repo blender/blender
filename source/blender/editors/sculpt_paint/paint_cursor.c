@@ -684,7 +684,7 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		/* draw textured quad */
 		immUniform1i("image", GL_TEXTURE0);
 
-		immBegin(GL_QUADS, 4);
+		immBegin(PRIM_TRIANGLE_FAN, 4);
 		immAttrib2f(texCoord, 0.0f, 0.0f);
 		immVertex2f(pos, quad.xmin, quad.ymin);
 		immAttrib2f(texCoord, 1.0f, 0.0f);
@@ -773,7 +773,7 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		/* draw textured quad */
 		immUniform1i("image", GL_TEXTURE0);
 
-		immBegin(GL_QUADS, 4);
+		immBegin(PRIM_TRIANGLE_FAN, 4);
 		immAttrib2f(texCoord, 0.0f, 0.0f);
 		immVertex2f(pos, quad.xmin, quad.ymin);
 		immAttrib2f(texCoord, 1.0f, 0.0f);

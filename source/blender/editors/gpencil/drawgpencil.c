@@ -740,7 +740,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-		immBegin(GL_QUADS, (totpoints - 2) * 4 + 12);
+		immBegin(PRIM_QUADS_XXX, (totpoints - 2) * 4 + 12);
 
 		for (i = 0, pt1 = points, pt2 = points + 1; i < (totpoints - 1); i++, pt1++, pt2++) {
 			float s0[2], s1[2];     /* segment 'center' points */

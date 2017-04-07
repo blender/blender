@@ -1195,7 +1195,7 @@ static void ui_draw_colorband_handle_tri(unsigned int pos, float x1, float y1, f
 
 static void ui_draw_colorband_handle_box(unsigned int pos, float x1, float y1, float x2, float y2, bool fill)
 {
-	immBegin(fill ? GL_QUADS : GL_LINE_LOOP, 4);
+	immBegin(fill ? PRIM_TRIANGLE_FAN : PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, x1, y1);
 	immVertex2f(pos, x1, y2);
 	immVertex2f(pos, x2, y2);
@@ -1916,6 +1916,9 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 
 /* ****************************************************** */
 
+/* TODO: high quality UI drop shadows using GLSL shader and single draw call
+ * would replace / modify the following 3 functions  - merwin
+ */
 
 static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
 {
@@ -1954,7 +1957,7 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
-	immBegin(GL_QUADS, 36);
+	immBegin(PRIM_QUADS_XXX, 36);
 
 	/* accumulated outline boxes to make shade not linear, is more pleasant */
 	ui_shadowbox(pos, color, minx, miny, maxx, maxy, 11.0, (20 * alpha) >> 8);

@@ -461,7 +461,7 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	immUniform1f("alpha", alpha);
 	immUniform1i("image", activeTex);
 
-	immBegin(GL_QUADS, 4);
+	immBegin(PRIM_TRIANGLE_FAN, 4);
 
 	immAttrib2f(texcoord, halfx, halfy);
 	immVertex2f(pos, 0.0f, 0.0f);

@@ -1799,7 +1799,7 @@ static void outliner_back(ARegion *ar)
 	int tot = (int)floor(ystart - ar->v2d.cur.ymin + 2 * UI_UNIT_Y) / (2 * UI_UNIT_Y);
 
 	if (tot > 0) {
-		immBegin(GL_QUADS, 4 * tot);
+		immBegin(PRIM_QUADS_XXX, 4 * tot);
 		while (tot--) {
 			y1 -= 2 * UI_UNIT_Y;
 			y2 = y1 + UI_UNIT_Y;

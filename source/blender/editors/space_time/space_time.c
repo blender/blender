@@ -215,7 +215,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 		immUniformColor4fv(col);
 
 		if (len > 0) {
-			immBeginAtMost(GL_QUADS, len);
+			immBeginAtMost(PRIM_QUADS_XXX, len);
 
 			/* draw a quad for each cached frame */
 			for (int i = sta; i <= end; i++) {

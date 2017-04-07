@@ -1108,7 +1108,7 @@ static void draw_plane_marker_image(Scene *scene,
 			immUniform4f("color", 1.0f, 1.0f, 1.0f, plane_track->image_opacity);
 			immUniform1i("image", GL_TEXTURE0);
 
-			immBegin(GL_QUADS, 4);
+			immBegin(PRIM_TRIANGLE_FAN, 4);
 
 			immAttrib2f(texCoord, 0.0f, 0.0f);
 			immVertex2f(pos, 0.0f, 0.0f);

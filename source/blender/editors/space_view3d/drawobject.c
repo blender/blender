@@ -1876,7 +1876,7 @@ static void draw_viewport_reconstruction(
 /* camera frame */
 static void drawcamera_frame(float vec[4][3], bool filled, unsigned pos)
 {
-	immBegin(filled ? GL_QUADS : GL_LINE_LOOP, 4);
+	immBegin(filled ? PRIM_TRIANGLE_FAN : PRIM_LINE_LOOP, 4);
 	immVertex3fv(pos, vec[0]);
 	immVertex3fv(pos, vec[1]);
 	immVertex3fv(pos, vec[2]);
@@ -1905,7 +1905,7 @@ static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], boo
 	drawcamera_frame(far_plane, filled, pos);
 
 	if (filled) {
-		immBegin(GL_QUADS, 16); /* TODO(merwin): use GL_TRIANGLE_STRIP here */
+		immBegin(PRIM_QUADS_XXX, 16); /* TODO(merwin): use PRIM_TRIANGLE_STRIP here */
 		immVertex3fv(pos, near_plane[0]);
 		immVertex3fv(pos, far_plane[0]);
 		immVertex3fv(pos, far_plane[1]);
@@ -5582,7 +5582,7 @@ static bool drawDispList(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D
 /* *********** drawing for particles ************* */
 /* stride :   offset size in bytes
  * col[4] :   the color to use when *color is NULL, can be also NULL */
-static void draw_vertex_array(int dt, const float *vert, const float *nor, const float *color, int stride, int vert_ct, float col[4])
+static void draw_vertex_array(PrimitiveType prim_type, const float *vert, const float *nor, const float *color, int stride, int vert_ct, float col[4])
 {
 	VertexFormat format = {0};
 	unsigned int pos_id, nor_id, col_id;
@@ -5604,7 +5604,7 @@ static void draw_vertex_array(int dt, const float *vert, const float *nor, const
 		if (color) VertexBuffer_fill_attrib_stride(vbo, col_id, stride, color);
 	}
 
-	Batch *batch = Batch_create(dt, vbo, NULL);
+	Batch *batch = Batch_create(prim_type, vbo, NULL);
 	if (nor && color) {
 		Batch_set_builtin_program(batch, GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR);
 		Batch_Uniform3f(batch, "light", 0.0f, 0.0f, 1.0f);
@@ -5624,6 +5624,7 @@ static void draw_vertex_array(int dt, const float *vert, const float *nor, const
 	Batch_draw(batch);
 	Batch_discard_all(batch);
 }
+
 static void draw_particle_arrays_new(int draw_as, int ob_dt, int select,
                                      const float *vert, const float *nor, const float *color,
                                      int totpoint, float col[4])
@@ -5643,7 +5644,7 @@ static void draw_particle_arrays_new(int draw_as, int ob_dt, int select,
 			else
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-			draw_vertex_array(GL_QUADS, vert, nor, color, 0, 4 * totpoint, col);
+			draw_vertex_array(PRIM_QUADS_XXX, vert, nor, color, 0, 4 * totpoint, col);
 			break;
 		default:
 			draw_vertex_array(GL_POINTS, vert, nor, color, 0, totpoint, col);
@@ -8000,11 +8001,11 @@ static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
 
 	if (solid) {
 		indices = quad_indices;
-		prim_type = GL_QUADS;
+		prim_type = PRIM_QUADS_XXX;
 	}
 	else {
 		indices = line_indices;
-		prim_type = GL_LINES;
+		prim_type = PRIM_LINES;
 	}
 
 	immBegin(prim_type, 24);

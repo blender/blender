@@ -1313,7 +1313,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	immUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
 	immUniform1i("image", GL_TEXTURE0);
 
-	immBegin(GL_QUADS, 4);
+	immBegin(PRIM_TRIANGLE_FAN, 4);
 
 	if (draw_overlay) {
 		if (sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {

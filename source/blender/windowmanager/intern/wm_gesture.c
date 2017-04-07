@@ -221,22 +221,14 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 	rcti *rect = (rcti *)gt->customdata;
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	
 	glEnable(GL_BLEND);
 
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniform4f("color", 1.0f, 1.0f, 1.0f, 0.05f);
 
-	immBegin(GL_QUADS, 4);
-
-	immVertex2f(pos, (float)rect->xmax, (float)rect->ymin);
-	immVertex2f(pos, (float)rect->xmax, (float)rect->ymax);
-	immVertex2f(pos, (float)rect->xmin, (float)rect->ymax);
-	immVertex2f(pos, (float)rect->xmin, (float)rect->ymin);
-
-	immEnd();
+	immRecti(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	immUnbindProgram();
 

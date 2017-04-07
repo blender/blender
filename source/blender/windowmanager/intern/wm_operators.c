@@ -3100,7 +3100,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		}
 
 		/* draw textured quad */
-		immBegin(GL_QUADS, 4);
+		immBegin(PRIM_TRIANGLE_FAN, 4);
 
 		immAttrib2f(texCoord, 0, 0);
 		immVertex2f(pos, -radius, -radius);

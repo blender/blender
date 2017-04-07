@@ -568,7 +568,7 @@ void DRW_draw_background(void)
 		UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
 		UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
 
-		immBegin(GL_QUADS, 4);
+		immBegin(PRIM_TRIANGLE_FAN, 4);
 		immAttrib3ubv(color, col_lo);
 		immVertex2f(pos, -1.0f, -1.0f);
 		immVertex2f(pos, 1.0f, -1.0f);
