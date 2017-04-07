@@ -178,6 +178,7 @@ static void shader_print_errors(const char *task, const char *log, const char **
 
 static const char *gpu_shader_version(void)
 {
+#ifdef WITH_LEGACY_OPENGL
 	if (GLEW_VERSION_3_3) {
 		if (GPU_legacy_support()) {
 			return "#version 330 compatibility\n";
@@ -201,8 +202,10 @@ static const char *gpu_shader_version(void)
 		return "#version 120\n";
 		/* minimum supported */
 	}
+#else
+	return "#version 330\n";
+#endif
 }
-
 
 static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH], bool use_geometry_shader)
 {
@@ -215,6 +218,7 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH], 
 		strcat(defines, "#extension GL_ARB_texture_query_lod: enable\n");
 	}
 
+#ifdef WITH_LEGACY_OPENGL
 	if (use_geometry_shader && GPU_geometry_shader_support_via_extension()) {
 		strcat(defines, "#extension GL_EXT_geometry_shader4: enable\n");
 	}
@@ -232,6 +236,9 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH], 
 			strcat(defines, "#extension GL_EXT_gpu_shader4: require\n");
 		}
 	}
+#else
+	(void)use_geometry_shader;
+#endif
 }
 
 static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH],
