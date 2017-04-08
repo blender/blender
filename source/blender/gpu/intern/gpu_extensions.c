@@ -273,6 +273,7 @@ void gpu_extensions_exit(void)
 
 bool GPU_legacy_support(void)
 {
+#ifdef WITH_LEGACY_OPENGL 
 	/* return whether or not current GL context is compatible with legacy OpenGL */
 	/* (will be removed after switching to core profile) */
 
@@ -308,6 +309,9 @@ bool GPU_legacy_support(void)
 	}
 
 	return support;
+#else
+	return false;
+#endif
 }
 
 bool GPU_full_non_power_of_two_support(void)
@@ -319,11 +323,15 @@ bool GPU_full_non_power_of_two_support(void)
 
 bool GPU_display_list_support(void)
 {
+#ifdef WITH_LEGACY_OPENGL
 	/* deprecated in GL 3
 	 * supported on older GL and compatibility profile
 	 * still queried by game engine
 	 */
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool GPU_bicubic_bump_support(void)
@@ -333,10 +341,13 @@ bool GPU_bicubic_bump_support(void)
 
 bool GPU_geometry_shader_support(void)
 {
-	/* starting with GL 3.2 geometry shaders are fully supported
-	 * core profile clashes with our other shaders so accept compatibility only
-	 */
+	/* starting with GL 3.2 geometry shaders are fully supported */
+#ifdef WITH_LEGACY_OPENGL
+	/* core profile clashes with our other shaders so accept compatibility only */
 	return GLEW_VERSION_3_2 && GPU_legacy_support();
+#else
+	return GLEW_VERSION_3_2;
+#endif
 }
 
 bool GPU_instanced_drawing_support(void)
