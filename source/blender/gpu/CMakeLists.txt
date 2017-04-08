@@ -236,9 +236,5 @@ if(WITH_OPENSUBDIV)
 	add_definitions(-DWITH_OPENSUBDIV)
 endif()
 
-if(WITH_LEGACY_OPENGL)
-	add_definitions(-DWITH_LEGACY_OPENGL)
-endif()
-
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}")
 
