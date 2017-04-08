@@ -661,7 +661,7 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 	DRWInterface *interface = shgroup->interface;
 	int nbr = interface->instance_count;
 
-	GLenum type = (shgroup->type == DRW_SHG_POINT_BATCH) ? GL_POINTS : GL_LINES;
+	PrimitiveType type = (shgroup->type == DRW_SHG_POINT_BATCH) ? PRIM_POINTS : PRIM_LINES;
 
 	if (nbr == 0)
 		return;

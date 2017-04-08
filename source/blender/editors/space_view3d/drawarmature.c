@@ -401,7 +401,7 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[7], cube_vert[4], cube_vert[0], n);
 		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[0], cube_vert[3], cube_vert[7], n);
 
-		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);
+		Batch_init(&batch, PRIM_TRIANGLES, &vbo, NULL);
 	}
 
 	gpuPushMatrix();
@@ -434,7 +434,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 		unsigned int pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		/* Elements */
-		ElementListBuilder_init(&elb, GL_LINES, 12, 8);
+		ElementListBuilder_init(&elb, PRIM_LINES, 12, 8);
 		for (int i = 0; i < 12; ++i) {
 			add_line_vertices(&elb, cube_wire[i*2], cube_wire[i*2+1]);
 		}
@@ -447,7 +447,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 			VertexBuffer_set_attrib(&vbo, pos, i, cube_vert[i]);
 		}
 
-		Batch_init(&batch, GL_LINES, &vbo, &el);
+		Batch_init(&batch, PRIM_LINES, &vbo, &el);
 		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
@@ -503,7 +503,7 @@ static void draw_bonevert(void)
 			VertexBuffer_set_attrib(&vbo, pos, i * 6 + 5, vert);
 		}
 
-		Batch_init(&batch, GL_LINES, &vbo, NULL);
+		Batch_init(&batch, PRIM_LINES, &vbo, NULL);
 		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
@@ -586,7 +586,7 @@ static void draw_bone_octahedral(void)
 		unsigned int pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 		/* Elements */
-		ElementListBuilder_init(&elb, GL_LINES, 12, 6);
+		ElementListBuilder_init(&elb, PRIM_LINES, 12, 6);
 		for (int i = 0; i < 12; ++i) {
 			add_line_vertices(&elb, bone_octahedral_wire[i*2], bone_octahedral_wire[i*2+1]);
 		}
@@ -599,7 +599,7 @@ static void draw_bone_octahedral(void)
 			VertexBuffer_set_attrib(&vbo, pos, i, bone_octahedral_verts[i]);
 		}
 
-		Batch_init(&batch, GL_LINES, &vbo, &el);
+		Batch_init(&batch, PRIM_LINES, &vbo, &el);
 		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
@@ -633,7 +633,7 @@ static void draw_bone_solid_octahedral(void)
 			                        bone_octahedral_solid_normals[i]);
 		}
 
-		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);
+		Batch_init(&batch, PRIM_TRIANGLES, &vbo, NULL);
 	}
 
 	if (flat_color) {

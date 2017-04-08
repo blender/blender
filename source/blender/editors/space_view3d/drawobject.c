@@ -427,7 +427,7 @@ static const float cosval[CIRCLE_RESOL] = {
  */
 static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3], float size, int axis, unsigned pos)
 {
-	int line_type;
+	PrimitiveType line_type = PRIM_LINES;
 	float buffer[4][3];
 	int n = 0;
 
@@ -440,8 +440,6 @@ static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3]
 
 	switch (axis) {
 		case 0:     /* x axis */
-			line_type = GL_LINES;
-
 			/* bottom left to top right */
 			negate_v3_v3(v1, dx);
 			sub_v3_v3(v1, dy);
@@ -461,8 +459,6 @@ static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3]
 
 			break;
 		case 1:     /* y axis */
-			line_type = GL_LINES;
-			
 			/* bottom left to top right */
 			mul_v3_fl(dx, 0.75f);
 			negate_v3_v3(v1, dx);
@@ -483,7 +479,7 @@ static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3]
 			
 			break;
 		case 2:     /* z axis */
-			line_type = GL_LINE_STRIP;
+			line_type = PRIM_LINE_STRIP;
 			
 			/* start at top left */
 			negate_v3_v3(v1, dx);
@@ -521,13 +517,6 @@ static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3]
 	immEnd();
 
 	/* TODO: recode this function for clarity once we're not in a hurry to modernize GL usage */
-
-#if 0
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, buffer);
-	glDrawArrays(line_type, 0, n);
-	glDisableClientState(GL_VERTEX_ARRAY);
-#endif
 }
 
 void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const unsigned char color[4])
@@ -1001,7 +990,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
  */
 static void drawcube_size(float size, unsigned pos)
 {
-	const GLfloat verts[8][3] = {
+	const float verts[8][3] = {
 		{-size, -size, -size},
 		{-size, -size,  size},
 		{-size,  size, -size},
@@ -5111,7 +5100,7 @@ static bool draw_mesh_object_new(Scene *scene, SceneLayer *sl, ARegion *ar, View
 
 /* ************** DRAW DISPLIST ****************** */
 
-static void drawDispListVerts(int dt, const void *data, unsigned int vert_ct, const unsigned char wire_col[3])
+static void drawDispListVerts(PrimitiveType prim_type, const void *data, unsigned int vert_ct, const unsigned char wire_col[3])
 {
 	VertexFormat format = {0};
 	unsigned int pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
@@ -5121,7 +5110,7 @@ static void drawDispListVerts(int dt, const void *data, unsigned int vert_ct, co
 
 	VertexBuffer_fill_attrib(vbo, pos_id, data);
 
-	Batch *batch = Batch_create(dt, vbo, NULL);
+	Batch *batch = Batch_create(prim_type, vbo, NULL);
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	if (wire_col) {
 		Batch_Uniform4f(batch, "color", wire_col[0]/255.0f, wire_col[1]/255.0f, wire_col[2]/255.0f, 1.0f);
@@ -5148,7 +5137,7 @@ static void drawDispListElem(bool quads, bool UNUSED(smooth), const float *data,
 	}
 
 	ElementListBuilder elb;
-	ElementListBuilder_init(&elb, GL_TRIANGLES, (quads) ? elem_ct * 2 : elem_ct, 0xffffffff);
+	ElementListBuilder_init(&elb, PRIM_TRIANGLES, (quads) ? elem_ct * 2 : elem_ct, 0xffffffff);
 
 	if (quads) {
 		for (i = elem_ct; i; --i, idx += 4) {
@@ -5171,7 +5160,7 @@ static void drawDispListElem(bool quads, bool UNUSED(smooth), const float *data,
 		VertexBuffer_fill_attrib(vbo, nor_id, ndata);
 	}
 
-	Batch *batch = Batch_create(GL_TRIANGLES, vbo, ElementList_build(&elb));
+	Batch *batch = Batch_create(PRIM_TRIANGLES, vbo, ElementList_build(&elb));
 	Batch_set_builtin_program(batch, GPU_SHADER_SIMPLE_LIGHTING);
 	if (wire_col) {
 		Batch_Uniform4f(batch, "color", wire_col[0]/255.0f, wire_col[1]/255.0f, wire_col[2]/255.0f, 1.0f);
@@ -5207,20 +5196,20 @@ static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask, con
 		switch (dl->type) {
 			case DL_SEGM:
 				for (parts = 0; parts < dl->parts; parts++)
-					drawDispListVerts(GL_LINE_STRIP, data + (parts * dl->nr * 3), dl->nr, wire_col);
+					drawDispListVerts(PRIM_LINE_STRIP, data + (parts * dl->nr * 3), dl->nr, wire_col);
 				break;
 
 			case DL_POLY:
 				for (parts = 0; parts < dl->parts; parts++)
-					drawDispListVerts(GL_LINE_LOOP, data + (parts * dl->nr * 3), dl->nr, wire_col);
+					drawDispListVerts(PRIM_LINE_LOOP, data + (parts * dl->nr * 3), dl->nr, wire_col);
 				break;
 
 			case DL_SURF:
 				for (parts = 0; parts < dl->parts; parts++) {
 					if (dl->flag & DL_CYCL_U)
-						drawDispListVerts(GL_LINE_LOOP, data + (parts * dl->nr * 3), dl->nr, wire_col);
+						drawDispListVerts(PRIM_LINE_LOOP, data + (parts * dl->nr * 3), dl->nr, wire_col);
 					else
-						drawDispListVerts(GL_LINE_STRIP, data + (parts * dl->nr * 3), dl->nr, wire_col);
+						drawDispListVerts(PRIM_LINE_STRIP, data + (parts * dl->nr * 3), dl->nr, wire_col);
 				}
 
 				float *data_aligned = MEM_mallocN(sizeof(float) * 3 * dl->parts, "aligned data");
@@ -5238,9 +5227,9 @@ static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask, con
 					}
 
 					if (dl->flag & DL_CYCL_V)
-						drawDispListVerts(GL_LINE_LOOP, data_aligned, dl->parts, wire_col);
+						drawDispListVerts(PRIM_LINE_LOOP, data_aligned, dl->parts, wire_col);
 					else
-						drawDispListVerts(GL_LINE_STRIP, data_aligned, dl->parts, wire_col);
+						drawDispListVerts(PRIM_LINE_STRIP, data_aligned, dl->parts, wire_col);
 				}
 
 				if (data_aligned)
@@ -5300,7 +5289,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short UNUSED(dflag
 						col = -1;
 					}
 
-					drawDispListVerts(GL_LINE_STRIP, data, dl->nr, ob_wire_col);
+					drawDispListVerts(PRIM_LINE_STRIP, data, dl->nr, ob_wire_col);
 				}
 				break;
 			case DL_POLY:
@@ -5310,7 +5299,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short UNUSED(dflag
 						col = -1;
 					}
 
-					drawDispListVerts(GL_LINE_LOOP, data, dl->nr, ob_wire_col);
+					drawDispListVerts(PRIM_LINE_LOOP, data, dl->nr, ob_wire_col);
 				}
 				break;
 			case DL_SURF:
@@ -5633,10 +5622,10 @@ static void draw_particle_arrays_new(int draw_as, int ob_dt, int select,
 	switch (draw_as) {
 		case PART_DRAW_AXIS:
 		case PART_DRAW_CROSS:
-			draw_vertex_array(GL_LINES, vert, nor, color, 0, 6 * totpoint, col);
+			draw_vertex_array(PRIM_LINES, vert, nor, color, 0, 6 * totpoint, col);
 			break;
 		case PART_DRAW_LINE:
-			draw_vertex_array(GL_LINES, vert, nor, color, 0, 2 * totpoint, col);
+			draw_vertex_array(PRIM_LINES, vert, nor, color, 0, 2 * totpoint, col);
 			break;
 		case PART_DRAW_BB:
 			if (ob_dt <= OB_WIRE || select)
@@ -5647,7 +5636,7 @@ static void draw_particle_arrays_new(int draw_as, int ob_dt, int select,
 			draw_vertex_array(PRIM_QUADS_XXX, vert, nor, color, 0, 4 * totpoint, col);
 			break;
 		default:
-			draw_vertex_array(GL_POINTS, vert, nor, color, 0, totpoint, col);
+			draw_vertex_array(PRIM_POINTS, vert, nor, color, 0, totpoint, col);
 			break;
 	}
 }
@@ -6284,12 +6273,12 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			path = cache[a];
 			if (path->segments > 0) {
 				if (((dflag & DRAW_CONSTCOLOR) == 0) && (part->draw_col == PART_DRAW_COL_MAT)) {
-					draw_vertex_array(GL_LINE_STRIP, path->co, path->vel, path->col, sizeof(ParticleCacheKey), path->segments + 1, NULL);
+					draw_vertex_array(PRIM_LINE_STRIP, path->co, path->vel, path->col, sizeof(ParticleCacheKey), path->segments + 1, NULL);
 				}
 				else {
 					float color[4];
 					rgba_uchar_to_float(color, tcol);
-					draw_vertex_array(GL_LINE_STRIP, path->co, path->vel, NULL, sizeof(ParticleCacheKey), path->segments + 1, color);
+					draw_vertex_array(PRIM_LINE_STRIP, path->co, path->vel, NULL, sizeof(ParticleCacheKey), path->segments + 1, color);
 				}
 			}
 		}
@@ -6304,7 +6293,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						
 						/* XXX use proper theme color here */
 						float color[4] = {0.58f, 0.67f, 1.0f, 1.0f};
-						draw_vertex_array(GL_LINE_STRIP, hkey->world_co, NULL, NULL, sizeof(HairKey), pa->totkey, color);
+						draw_vertex_array(PRIM_LINE_STRIP, hkey->world_co, NULL, NULL, sizeof(HairKey), pa->totkey, color);
 					}
 				}
 				
@@ -6425,11 +6414,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			path = cache[a];
 
 			if (((dflag & DRAW_CONSTCOLOR) == 0) && (part->draw_col == PART_DRAW_COL_MAT)) {
-				draw_vertex_array(GL_LINE_STRIP, path->co, path->vel, path->col, sizeof(ParticleCacheKey), path->segments + 1, NULL);
+				draw_vertex_array(PRIM_LINE_STRIP, path->co, path->vel, path->col, sizeof(ParticleCacheKey), path->segments + 1, NULL);
 			}
 			else {
 				float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-				draw_vertex_array(GL_LINE_STRIP, path->co, path->vel, NULL, sizeof(ParticleCacheKey), path->segments + 1, color);
+				draw_vertex_array(PRIM_LINE_STRIP, path->co, path->vel, NULL, sizeof(ParticleCacheKey), path->segments + 1, color);
 			}
 		}
 
@@ -6498,7 +6487,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if (pdd && pdd->vedata) {
 		float color[4] = {0.75f, 0.75f, 0.75f, 1.0f};
-		draw_vertex_array(GL_LINES, pdd->vedata, NULL, NULL, 0, 2 * totve, color);
+		draw_vertex_array(PRIM_LINES, pdd->vedata, NULL, NULL, 0, 2 * totve, color);
 	}
 
 	glPolygonMode(GL_FRONT, polygonmode[0]);
@@ -6618,7 +6607,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 			VertexBuffer_fill_attrib_stride(vbo, col_id, sizeof(ParticleCacheKey), path->col);
 		}
 
-		Batch *batch = Batch_create(GL_LINE_STRIP, vbo, NULL);
+		Batch *batch = Batch_create(PRIM_LINE_STRIP, vbo, NULL);
 		Batch_set_builtin_program(batch, GPU_SHADER_3D_SMOOTH_COLOR);
 		Batch_draw(batch);
 		Batch_discard_all(batch);
@@ -6689,7 +6678,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 
 				VertexBuffer_fill_attrib(vbo, col_id, cd);
 
-				Batch *batch = Batch_create(GL_POINTS, vbo, NULL);
+				Batch *batch = Batch_create(PRIM_POINTS, vbo, NULL);
 				Batch_set_builtin_program(batch, GPU_SHADER_3D_SMOOTH_COLOR);
 				Batch_draw(batch);
 				Batch_discard_all(batch);

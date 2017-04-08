@@ -79,7 +79,7 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 	}
 
 	/* Elements */
-	ElementListBuilder_init(&elb, GL_TRIANGLES, info->ntris, info->nverts);
+	ElementListBuilder_init(&elb, PRIM_TRIANGLES, info->ntris, info->nverts);
 	for (int i = 0; i < info->ntris; ++i) {
 		const unsigned short *idx = &info->indices[i * 3];
 		add_triangle_vertices(&elb, idx[0], idx[1], idx[2]);
@@ -96,7 +96,7 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 		VertexBuffer_fill_attrib(vbo, nor_id, info->normals);
 	}
 
-	batch = Batch_create(GL_TRIANGLES, vbo, el);
+	batch = Batch_create(PRIM_TRIANGLES, vbo, el);
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
 	Batch_Uniform4fv(batch, "color", color);

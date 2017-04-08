@@ -93,7 +93,7 @@ static Batch *batch_sphere(int lat_res, int lon_res)
 		}
 	}
 
-	return Batch_create(GL_TRIANGLES, vbo, NULL);
+	return Batch_create(PRIM_TRIANGLES, vbo, NULL);
 }
 
 static Batch *batch_sphere_wire(int lat_res, int lon_res)
@@ -125,7 +125,7 @@ static Batch *batch_sphere_wire(int lat_res, int lon_res)
 		}
 	}
 
-	return Batch_create(GL_LINES, vbo, NULL);
+	return Batch_create(PRIM_LINES, vbo, NULL);
 }
 
 Batch *Batch_get_sphere(int lod)

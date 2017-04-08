@@ -287,7 +287,7 @@ GPUFX *GPU_fx_compositor_create(void)
 		VertexBuffer_set_attrib(vbo, pos, i, fullscreencos[i]);
 		VertexBuffer_set_attrib(vbo, uvs, i, fullscreenuvs[i]);
 	}
-	fx->quad_batch = Batch_create(GL_TRIANGLE_STRIP, vbo, NULL);
+	fx->quad_batch = Batch_create(PRIM_TRIANGLE_STRIP, vbo, NULL);
 
 	/* Point Buffer */
 	static VertexFormat format_point = {0};
@@ -299,7 +299,7 @@ GPUFX *GPU_fx_compositor_create(void)
 	VertexBuffer *vbo_point = VertexBuffer_create_with_format(&format_point);
 	VertexBuffer_allocate_data(vbo_point, 1);
 	VertexBuffer_set_attrib(vbo_point, dummy_attrib, 0, &dummy);
-	fx->point_batch = Batch_create(GL_POINTS, vbo_point, NULL);
+	fx->point_batch = Batch_create(PRIM_POINTS, vbo_point, NULL);
 
 	return fx;
 }

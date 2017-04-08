@@ -577,7 +577,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 /**
  * Draw title and text safe areas.
  *
- * The first parameter is a GL_FLOAT, 2, KEEP_FLOAT vertex attrib
+ * The first parameter is a PRIM_FLOAT, 2, KEEP_FLOAT vertex attrib
  * The next 4 parameters are the offsets for the view, not the zones.
  */
 void UI_draw_safe_areas(
@@ -773,7 +773,7 @@ static void waveform_draw_one(float *waveform, int nbr, const float col[3])
 	VertexBuffer_fill_attrib(vbo, pos_id, waveform);
 
 	/* TODO store the Batch inside the scope */
-	Batch *batch = Batch_create(GL_POINTS, vbo, NULL);
+	Batch *batch = Batch_create(PRIM_POINTS, vbo, NULL);
 	Batch_set_builtin_program(batch, GPU_SHADER_2D_UNIFORM_COLOR);
 	Batch_Uniform4f(batch, "color", col[0], col[1], col[2], 1.0f);
 	Batch_draw(batch);

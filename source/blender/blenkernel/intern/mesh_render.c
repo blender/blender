@@ -971,7 +971,7 @@ static ElementList *mesh_batch_cache_get_edges_in_order(MeshRenderData *mrdata, 
 		const int edge_ct = mesh_render_data_edges_num_get(mrdata);
 
 		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, GL_LINES, edge_ct, vertex_ct);
+		ElementListBuilder_init(&elb, PRIM_LINES, edge_ct, vertex_ct);
 		for (int i = 0; i < edge_ct; ++i) {
 			int vert_idx[2];
 			mesh_render_data_edge_verts_indices_get(mrdata, i, vert_idx);
@@ -992,7 +992,7 @@ static ElementList *mesh_batch_cache_get_triangles_in_order(MeshRenderData *mrda
 		const int tri_ct = mesh_render_data_looptri_num_get(mrdata);
 
 		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, GL_TRIANGLES, tri_ct, vertex_ct);
+		ElementListBuilder_init(&elb, PRIM_TRIANGLES, tri_ct, vertex_ct);
 		for (int i = 0; i < tri_ct; ++i) {
 			int tri_vert_idx[3];
 			mesh_render_data_looptri_verts_indices_get(mrdata, i, tri_vert_idx);
@@ -1013,7 +1013,7 @@ Batch *BKE_mesh_batch_cache_get_all_edges(Mesh *me)
 		/* create batch from Mesh */
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_EDGE);
 
-		cache->all_edges = Batch_create(GL_LINES, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache),
+		cache->all_edges = Batch_create(PRIM_LINES, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache),
 		                                mesh_batch_cache_get_edges_in_order(mrdata, cache));
 
 		mesh_render_data_free(mrdata);
@@ -1030,7 +1030,7 @@ Batch *BKE_mesh_batch_cache_get_all_triangles(Mesh *me)
 		/* create batch from DM */
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI);
 
-		cache->all_triangles = Batch_create(GL_TRIANGLES, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache),
+		cache->all_triangles = Batch_create(PRIM_TRIANGLES, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache),
 		                                    mesh_batch_cache_get_triangles_in_order(mrdata, cache));
 
 		mesh_render_data_free(mrdata);
@@ -1046,7 +1046,7 @@ Batch *BKE_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 	if (cache->triangles_with_normals == NULL) {
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
 
-		cache->triangles_with_normals = Batch_create(GL_TRIANGLES, mesh_batch_cache_get_pos_and_normals(mrdata, cache), NULL);
+		cache->triangles_with_normals = Batch_create(PRIM_TRIANGLES, mesh_batch_cache_get_pos_and_normals(mrdata, cache), NULL);
 
 		mesh_render_data_free(mrdata);
 	}
@@ -1061,7 +1061,7 @@ Batch *BKE_mesh_batch_cache_get_points_with_normals(Mesh *me)
 	if (cache->points_with_normals == NULL) {
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
 
-		cache->points_with_normals = Batch_create(GL_POINTS, mesh_batch_cache_get_pos_and_normals(mrdata, cache), NULL);
+		cache->points_with_normals = Batch_create(PRIM_POINTS, mesh_batch_cache_get_pos_and_normals(mrdata, cache), NULL);
 
 		mesh_render_data_free(mrdata);
 	}
@@ -1077,7 +1077,7 @@ Batch *BKE_mesh_batch_cache_get_all_verts(Mesh *me)
 		/* create batch from DM */
 		MeshRenderData *mrdata = mesh_render_data_create(me, MR_DATATYPE_VERT);
 
-		cache->all_verts = Batch_create(GL_POINTS, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache), NULL);
+		cache->all_verts = Batch_create(PRIM_POINTS, mesh_batch_cache_get_pos_and_nor_in_order(mrdata, cache), NULL);
 
 		mesh_render_data_free(mrdata);
 	}
@@ -1111,7 +1111,7 @@ Batch *BKE_mesh_batch_cache_get_fancy_edges(Mesh *me)
 
 		const int edge_ct = mesh_render_data_edges_num_get(mrdata);
 
-		const int vertex_ct = edge_ct * 2; /* these are GL_LINE verts, not mesh verts */
+		const int vertex_ct = edge_ct * 2; /* these are PRIM_LINE verts, not mesh verts */
 		VertexBuffer_allocate_data(vbo, vertex_ct);
 		for (int i = 0; i < edge_ct; ++i) {
 			float *vcos1, *vcos2;
@@ -1146,7 +1146,7 @@ Batch *BKE_mesh_batch_cache_get_fancy_edges(Mesh *me)
 			VertexBuffer_set_attrib(vbo, n2_id, 2 * i + 1, n2);
 		}
 
-		cache->fancy_edges = Batch_create(GL_LINES, vbo, NULL);
+		cache->fancy_edges = Batch_create(PRIM_LINES, vbo, NULL);
 
 		mesh_render_data_free(mrdata);
 	}
@@ -1187,7 +1187,7 @@ static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 			gpu_vert_idx += 3;
 		}
 
-		cache->overlay_triangles = Batch_create(GL_TRIANGLES, vbo, NULL);
+		cache->overlay_triangles = Batch_create(PRIM_TRIANGLES, vbo, NULL);
 	}
 
 	if (cache->overlay_loose_edges == NULL) {
@@ -1202,7 +1202,7 @@ static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 			                       vert_idx[0], vert_idx[1], mrdata->loose_edges[i], gpu_vert_idx);
 			gpu_vert_idx += 2;
 		}
-		cache->overlay_loose_edges = Batch_create(GL_LINES, vbo, NULL);
+		cache->overlay_loose_edges = Batch_create(PRIM_LINES, vbo, NULL);
 	}
 
 	if (cache->overlay_loose_verts == NULL) {
@@ -1215,7 +1215,7 @@ static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 			                       mrdata->loose_verts[i], gpu_vert_idx);
 			gpu_vert_idx += 1;
 		}
-		cache->overlay_loose_verts = Batch_create(GL_POINTS, vbo, NULL);
+		cache->overlay_loose_verts = Batch_create(PRIM_POINTS, vbo, NULL);
 	}
 
 	mesh_render_data_free(mrdata);
@@ -1297,7 +1297,7 @@ Batch *BKE_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 			VertexBuffer_set_attrib(vbo, pos_id, i, pcenter);
 		}
 
-		cache->overlay_facedots = Batch_create(GL_POINTS, vbo, NULL);
+		cache->overlay_facedots = Batch_create(PRIM_POINTS, vbo, NULL);
 
 		mesh_render_data_free(mrdata);
 	}
