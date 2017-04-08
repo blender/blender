@@ -28,6 +28,7 @@ typedef struct Batch {
 	VertexBuffer* verts[BATCH_MAX_VBO_CT]; // verts[0] is required, others can be NULL
 	ElementList* elem; // NULL if element list not needed
 	PrimitiveType prim_type;
+	GLenum gl_prim_type;
 
 	// book-keeping
 	GLuint vao_id; // remembers all geometry state (vertex attrib bindings & element buffer)

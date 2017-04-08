@@ -30,8 +30,6 @@ void Batch_init(Batch* batch, PrimitiveType prim_type, VertexBuffer* verts, Elem
 	{
 #if TRUST_NO_ONE
 	assert(verts != NULL);
-	// assert(prim_type == PRIM_POINTS || prim_type == PRIM_LINES || prim_type == PRIM_TRIANGLES);
-	// we will allow other primitive types in a future update
 #endif
 
 	batch->verts[0] = verts;
@@ -39,6 +37,7 @@ void Batch_init(Batch* batch, PrimitiveType prim_type, VertexBuffer* verts, Elem
 		batch->verts[v] = NULL;
 	batch->elem = elem;
 	batch->prim_type = prim_type;
+	batch->gl_prim_type = convert_prim_type_to_gl(prim_type);
 	batch->phase = READY_TO_DRAW;
 	}
 
@@ -304,15 +303,15 @@ void Batch_draw(Batch* batch)
 
 #if TRACK_INDEX_RANGE
 		if (el->base_index)
-			glDrawRangeElementsBaseVertex(batch->prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0, el->base_index);
+			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0, el->base_index);
 		else
-			glDrawRangeElements(batch->prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0);
+			glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0);
 #else
-		glDrawElements(batch->prim_type, el->index_ct, GL_UNSIGNED_INT, 0);
+		glDrawElements(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0);
 #endif
 		}
 	else
-		glDrawArrays(batch->prim_type, 0, batch->verts[0]->vertex_ct);
+		glDrawArrays(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct);
 
 	Batch_done_using_program(batch);
 	glBindVertexArray(0);
@@ -341,15 +340,15 @@ void Batch_draw_stupid(Batch* batch)
 
 #if TRACK_INDEX_RANGE
 		if (el->base_index)
-			glDrawRangeElementsBaseVertex(batch->prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0, el->base_index);
+			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0, el->base_index);
 		else
-			glDrawRangeElements(batch->prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0);
+			glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0);
 #else
-		glDrawElements(batch->prim_type, el->index_ct, GL_UNSIGNED_INT, 0);
+		glDrawElements(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0);
 #endif
 		}
 	else
-		glDrawArrays(batch->prim_type, 0, batch->verts[0]->vertex_ct);
+		glDrawArrays(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct);
 
 	// Batch_done_using_program(batch);
 	glBindVertexArray(0);
@@ -394,10 +393,10 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 		{
 		const ElementList* el = batch->elem;
 
-		glDrawElementsInstanced(batch->prim_type, el->index_ct, GL_UNSIGNED_INT, 0, instance_count);
+		glDrawElementsInstanced(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, instance_count);
 		}
 	else
-		glDrawArraysInstanced(batch->prim_type, 0, batch->verts[0]->vertex_ct, instance_count);
+		glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct, instance_count);
 
 	// Batch_done_using_program(batch);
 	glBindVertexArray(0);

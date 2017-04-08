@@ -14,21 +14,21 @@
 #include "common.h"
 
 typedef enum {
-	PRIM_POINTS = GL_POINTS,
-	PRIM_LINES = GL_LINES,
-	PRIM_TRIANGLES = GL_TRIANGLES,
+	PRIM_POINTS,
+	PRIM_LINES,
+	PRIM_TRIANGLES,
+	PRIM_LINE_STRIP,
+	PRIM_LINE_LOOP, // GL has this, Vulkan does not
+	PRIM_TRIANGLE_STRIP,
+	PRIM_TRIANGLE_FAN,
+
+	PRIM_LINE_STRIP_ADJACENCY,
 
 #ifdef WITH_GL_PROFILE_COMPAT
-	PRIM_QUADS_XXX = GL_QUADS, // legacy GL has this, modern GL & Vulkan do not
+	PRIM_QUADS_XXX, // legacy GL has this, modern GL & Vulkan do not
 #endif
 
-	PRIM_LINE_STRIP = GL_LINE_STRIP,
-	PRIM_LINE_STRIP_ADJACENCY = GL_LINE_STRIP_ADJACENCY,
-	PRIM_LINE_LOOP = GL_LINE_LOOP, // GL has this, Vulkan does not
-	PRIM_TRIANGLE_STRIP = GL_TRIANGLE_STRIP,
-	PRIM_TRIANGLE_FAN = GL_TRIANGLE_FAN,
-
-	PRIM_NONE = 0xF
+	PRIM_NONE
 } PrimitiveType;
 
 // what types of primitives does each shader expect?
@@ -42,3 +42,5 @@ typedef enum {
 
 PrimitiveClass prim_class_of_type(PrimitiveType);
 bool prim_type_belongs_to_class(PrimitiveType, PrimitiveClass);
+
+GLenum convert_prim_type_to_gl(PrimitiveType);

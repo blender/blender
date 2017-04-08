@@ -409,7 +409,7 @@ void immEnd(void)
 		if (imm.vertex_ct > 0)
 			{
 			immDrawSetup();
-			glDrawArrays(imm.prim_type, 0, imm.vertex_ct);
+			glDrawArrays(convert_prim_type_to_gl(imm.prim_type), 0, imm.vertex_ct);
 			}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
