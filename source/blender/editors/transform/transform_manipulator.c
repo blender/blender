@@ -367,22 +367,22 @@ static void manipulator_get_axis_color(
 		case MAN_AXIS_TRANS_X:
 		case MAN_AXIS_ROT_X:
 		case MAN_AXIS_SCALE_X:
-		case MAN_AXIS_TRANS_XY:
-		case MAN_AXIS_SCALE_XY:
+		case MAN_AXIS_TRANS_YZ:
+		case MAN_AXIS_SCALE_YZ:
 			UI_GetThemeColor4fv(TH_AXIS_X, r_col);
 			break;
 		case MAN_AXIS_TRANS_Y:
 		case MAN_AXIS_ROT_Y:
 		case MAN_AXIS_SCALE_Y:
-		case MAN_AXIS_TRANS_YZ:
-		case MAN_AXIS_SCALE_YZ:
+		case MAN_AXIS_TRANS_ZX:
+		case MAN_AXIS_SCALE_ZX:
 			UI_GetThemeColor4fv(TH_AXIS_Y, r_col);
 			break;
 		case MAN_AXIS_TRANS_Z:
 		case MAN_AXIS_ROT_Z:
 		case MAN_AXIS_SCALE_Z:
-		case MAN_AXIS_TRANS_ZX:
-		case MAN_AXIS_SCALE_ZX:
+		case MAN_AXIS_TRANS_XY:
+		case MAN_AXIS_SCALE_XY:
 			UI_GetThemeColor4fv(TH_AXIS_Z, r_col);
 			break;
 		case MAN_AXIS_TRANS_C:
