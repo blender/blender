@@ -325,7 +325,7 @@ void DRW_uniformbuffer_free(GPUUniformBuffer *ubo)
 
 GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *frag, const char *defines)
 {
-	return GPU_shader_create(vert, frag, geom, NULL, defines, 0, 0, 0);
+	return GPU_shader_create(vert, frag, geom, NULL, defines);
 }
 
 GPUShader *DRW_shader_create_with_lib(const char *vert, const char *geom, const char *frag, const char *lib, const char *defines)
@@ -355,7 +355,7 @@ GPUShader *DRW_shader_create_with_lib(const char *vert, const char *geom, const 
 		BLI_dynstr_free(ds_geom);
 	}
 
-	sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines, 0, 0, 0);
+	sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines);
 
 	MEM_freeN(vert_with_lib);
 	MEM_freeN(frag_with_lib);
@@ -368,17 +368,17 @@ GPUShader *DRW_shader_create_with_lib(const char *vert, const char *geom, const 
 
 GPUShader *DRW_shader_create_2D(const char *frag, const char *defines)
 {
-	return GPU_shader_create(datatoc_gpu_shader_2D_vert_glsl, frag, NULL, NULL, defines, 0, 0, 0);
+	return GPU_shader_create(datatoc_gpu_shader_2D_vert_glsl, frag, NULL, NULL, defines);
 }
 
 GPUShader *DRW_shader_create_3D(const char *frag, const char *defines)
 {
-	return GPU_shader_create(datatoc_gpu_shader_3D_vert_glsl, frag, NULL, NULL, defines, 0, 0, 0);
+	return GPU_shader_create(datatoc_gpu_shader_3D_vert_glsl, frag, NULL, NULL, defines);
 }
 
 GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines)
 {
-	return GPU_shader_create(datatoc_gpu_shader_fullscreen_vert_glsl, frag, NULL, NULL, defines, 0, 0, 0);
+	return GPU_shader_create(datatoc_gpu_shader_fullscreen_vert_glsl, frag, NULL, NULL, defines);
 }
 
 GPUShader *DRW_shader_create_3D_depth_only(void)

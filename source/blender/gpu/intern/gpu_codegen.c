@@ -1686,9 +1686,6 @@ GPUPass *GPU_generate_pass(
 	                              geometrycode,
 	                              glsl_material_library,
 	                              NULL,
-	                              0,
-	                              0,
-	                              0,
 	                              flags);
 
 	/* failed? */

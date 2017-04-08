@@ -55,15 +55,13 @@ GPUShader *GPU_shader_create(
         const char *fragcode,
         const char *geocode,
         const char *libcode,
-        const char *defines,
-        int input, int output, int number);
+        const char *defines);
 GPUShader *GPU_shader_create_ex(
         const char *vertexcode,
         const char *fragcode,
         const char *geocode,
         const char *libcode,
         const char *defines,
-        int input, int output, int number,
         const int flags);
 void GPU_shader_free(GPUShader *shader);
 

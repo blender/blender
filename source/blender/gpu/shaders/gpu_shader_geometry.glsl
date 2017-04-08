@@ -4,10 +4,8 @@ uniform mat4 ProjectionMatrix;
 uniform int PrimitiveIdBase;
 uniform int osd_active_uv_offset;
 
-#if __VERSION__ >= 150
-  layout(lines_adjacency) in;
-  layout(triangle_strip, max_vertices = 4) out;
-#endif
+layout(lines_adjacency) in;
+layout(triangle_strip, max_vertices = 4) out;
 
 in block {
 	VertexData v;

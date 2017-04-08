@@ -61,7 +61,6 @@
  * EXT_framebuffer_multisample_blit_scaled: ???
  * ARB_draw_instanced: 3.1
  * ARB_texture_multisample: 3.2
- * EXT_geometry_shader4: 3.2
  * ARB_texture_query_lod: 4.0
  */
 
@@ -334,16 +333,10 @@ bool GPU_bicubic_bump_support(void)
 
 bool GPU_geometry_shader_support(void)
 {
-	/* in GL 3.2 geometry shaders are fully supported
+	/* starting with GL 3.2 geometry shaders are fully supported
 	 * core profile clashes with our other shaders so accept compatibility only
-	 * other GL versions can use EXT_geometry_shader4 if available
 	 */
-	return (GLEW_VERSION_3_2 && GPU_legacy_support()) || GLEW_EXT_geometry_shader4;
-}
-
-bool GPU_geometry_shader_support_via_extension(void)
-{
-	return GLEW_EXT_geometry_shader4 && !(GLEW_VERSION_3_2 && GPU_legacy_support());
+	return GLEW_VERSION_3_2 && GPU_legacy_support();
 }
 
 bool GPU_instanced_drawing_support(void)

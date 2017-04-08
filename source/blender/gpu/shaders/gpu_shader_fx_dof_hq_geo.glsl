@@ -5,27 +5,14 @@ uniform vec2 layerselection;
 
 uniform sampler2D cocbuffer;
 
-#if __VERSION__ >= 150
-  layout(points) in;
-  layout(triangle_strip, max_vertices = 4) out;
+layout(points) in;
+layout(triangle_strip, max_vertices = 4) out;
 
-  #define POS gl_in[0].gl_Position
-#else
-  /* use the EXT_geometry_shader4 way */
-  #define POS gl_PositionIn[0]
-#endif
+#define POS gl_in[0].gl_Position
 
-/* initial uv coordinate */
-#if __VERSION__ < 130
-  varying in vec2 uvcoord[];
-  varying out vec2 particlecoord;
-  varying out vec4 color;
-  #define textureLod texture2DLod
-#else
-  in vec2 uvcoord[];
-  out vec2 particlecoord;
-  flat out vec4 color;
-#endif
+in vec2 uvcoord[];
+out vec2 particlecoord;
+flat out vec4 color;
 
 #define M_PI 3.1415926535897932384626433832795
 
