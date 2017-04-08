@@ -19,6 +19,7 @@
 #include "kernel/kernel_types.h"
 #include "kernel/split/kernel_split_data_types.h"
 
+#include "util/util_logging.h"
 #include "util/util_time.h"
 
 CCL_NAMESPACE_BEGIN
@@ -108,6 +109,9 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 size_t DeviceSplitKernel::max_elements_for_max_buffer_size(device_memory& kg, device_memory& data, uint64_t max_buffer_size)
 {
 	uint64_t size_per_element = state_buffer_size(kg, data, 1024) / 1024;
+	VLOG(1) << "Split state element size: "
+	        << string_human_readable_number(size_per_element) << " bytes. ("
+	        << string_human_readable_size(size_per_element) << ").";
 	return max_buffer_size / size_per_element;
 }
 
