@@ -66,7 +66,7 @@ float inverse_distance(vec3 V) { return max( 1 / length(V), 1e-8); }
 
 float line_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec3 planeorigin, vec3 planenormal)
 {
-    return dot(planenormal, planeorigin - lineorigin) / dot(planenormal, linedirection);
+	return dot(planenormal, planeorigin - lineorigin) / dot(planenormal, linedirection);
 }
 
 vec3 line_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 planeorigin, vec3 planenormal)

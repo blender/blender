@@ -10,10 +10,12 @@ flat in int faceActive;
 
 out vec4 FragColor;
 
-const mat4 stipple_matrix = mat4(vec4(1.0, 0.0, 0.0, 0.0),
-                                 vec4(0.0, 0.0, 0.0, 0.0),
-                                 vec4(0.0, 0.0, 1.0, 0.0),
-                                 vec4(0.0, 0.0, 0.0, 0.0));
+const mat4 stipple_matrix = mat4(
+	vec4(1.0, 0.0, 0.0, 0.0),
+	vec4(0.0, 0.0, 0.0, 0.0),
+	vec4(0.0, 0.0, 1.0, 0.0),
+	vec4(0.0, 0.0, 0.0, 0.0)
+);
 
 void main()
 {

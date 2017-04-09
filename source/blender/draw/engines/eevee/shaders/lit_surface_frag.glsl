@@ -103,15 +103,15 @@ void main()
 	sd.V = (ProjectionMatrix[3][3] == 0.0) /* if perspective */
 	            ? normalize(cameraPos - worldPosition)
 	            : normalize(eye);
-    sd.W = worldPosition;
-    sd.R = reflect(-sd.V, sd.N);
+	sd.W = worldPosition;
+	sd.R = reflect(-sd.V, sd.N);
 
 	/* hardcoded test vars */
 	vec3 albedo = vec3(0.0);
 	vec3 specular = mix(vec3(1.0), vec3(1.0), pow(max(0.0, 1.0 - dot(sd.N, sd.V)), 5.0));
 	float roughness = 0.1;
 
-    sd.spec_dominant_dir = get_specular_dominant_dir(sd.N, sd.R, roughness);
+	sd.spec_dominant_dir = get_specular_dominant_dir(sd.N, sd.R, roughness);
 
 	vec3 radiance = vec3(0.0);
 	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {

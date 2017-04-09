@@ -69,10 +69,12 @@ const ivec3 clipPointIdx[6] = ivec3[6](
 	ivec3(2, 1, 0)
 );
 
-const mat4 stipple_matrix = mat4(vec4(1.0, 0.0, 0.0, 0.0),
-                                 vec4(0.0, 0.0, 0.0, 0.0),
-                                 vec4(0.0, 0.0, 1.0, 0.0),
-                                 vec4(0.0, 0.0, 0.0, 0.0));
+const mat4 stipple_matrix = mat4(
+	vec4(1.0, 0.0, 0.0, 0.0),
+	vec4(0.0, 0.0, 0.0, 0.0),
+	vec4(0.0, 0.0, 1.0, 0.0),
+	vec4(0.0, 0.0, 0.0, 0.0)
+);
 
 void colorDist(vec4 color, float dist)
 {
