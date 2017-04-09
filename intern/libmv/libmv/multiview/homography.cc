@@ -209,6 +209,8 @@ class HomographySymmetricGeometricCostFunctor {
     return true;
   }
 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   const Vec2 x_;
   const Vec2 y_;
 };

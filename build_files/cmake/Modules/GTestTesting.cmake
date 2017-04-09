@@ -39,6 +39,9 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
 		                      ${PTHREADS_LIBRARIES}
 		                      extern_glog
 		                      extern_gflags)
+		if(WITH_OPENMP_STATIC)
+			target_link_libraries(${NAME}_test ${OpenMP_LIBRARIES})
+		endif()
 		set_target_properties(${NAME}_test PROPERTIES
 		                      RUNTIME_OUTPUT_DIRECTORY         "${TESTS_OUTPUT_DIR}"
 		                      RUNTIME_OUTPUT_DIRECTORY_RELEASE "${TESTS_OUTPUT_DIR}"

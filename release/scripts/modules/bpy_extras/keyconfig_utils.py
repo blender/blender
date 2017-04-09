@@ -141,6 +141,78 @@ KM_HIERARCHY = [
 
 
 # -----------------------------------------------------------------------------
+# Add-on helpers to properly (un)register their own keymaps.
+
+# Example of keymaps_description:
+keymaps_description_doc = """
+keymaps_description is a tuple (((keymap_description), (tuple of keymap_item_descriptions))).
+keymap_description is a tuple (name, space_type, region_type, is_modal).
+keymap_item_description is a tuple ({kw_args_for_keymap_new}, (tuple of properties)).
+kw_args_for_keymap_new is a mapping which keywords match parameters of keymap.new() function.
+tuple of properties is a tuple of pairs (prop_name, prop_value) (properties being those of called operator).
+
+Example:
+
+KEYMAPS = (
+    # First, keymap identifiers (last bool is True for modal km).
+    (('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', False), (
+    # Then a tuple of keymap items, defined by a dict of kwargs for the km new func, and a tuple of tuples (name, val)
+    # for ops properties, if needing non-default values.
+        ({"idname": export_strips.SEQExportStrip.bl_idname, "type": 'P', "value": 'PRESS', "shift": True, "ctrl": True},
+         ()),
+    )),
+)
+"""
+
+
+def addon_keymap_register(wm, keymaps_description):
+    """
+    Register a set of keymaps for addons.
+
+    """ + keymaps_description_doc
+    kconf = wm.keyconfigs.addon
+    if not kconf:
+        return  # happens in background mode...
+    for km_info, km_items in keymaps_description:
+        km_name, km_sptype, km_regtype, km_ismodal = km_info
+        kmap = [k for k in kconf.keymaps
+                  if k.name == km_name and k.region_type == km_regtype and
+                     k.space_type == km_sptype and k.is_modal == km_ismodal]
+        if kmap:
+            kmap = kmap[0]
+        else:
+            kmap = kconf.keymaps.new(km_name, region_type=km_regtype, space_type=km_sptype, modal=km_ismodal)
+        for kmi_kwargs, props in km_items:
+            kmi = kmap.keymap_items.new(**kmi_kwargs)
+            kmi.active = True
+            for prop, val in props:
+                setattr(kmi.properties, prop, val)
+
+
+def addon_keymap_unregister(wm, keymaps_description):
+    """
+    Unregister a set of keymaps for addons.
+
+    """ + keymaps_description_doc
+    # NOTE: We must also clean up user keyconfig, else, if user has customized one of add-on's shortcut, this
+    #       customization remains in memory, and comes back when re-enabling the addon, causing a segfault... :/
+    kconfs = wm.keyconfigs
+    for kconf in (kconfs.user, kconfs.addon):
+        for km_info, km_items in keymaps_description:
+            km_name, km_sptype, km_regtype, km_ismodal = km_info
+            kmaps = (k for k in kconf.keymaps
+                       if k.name == km_name and k.region_type == km_regtype and
+                          k.space_type == km_sptype and k.is_modal == km_ismodal)
+            for kmap in kmaps:
+                for kmi_kwargs, props in km_items:
+                    idname = kmi_kwargs["idname"]
+                    for kmi in kmap.keymap_items:
+                        if kmi.idname == idname:
+                            kmap.keymap_items.remove(kmi)
+            # NOTE: We won't remove addons keymaps themselves, other addons might also use them!
+
+
+# -----------------------------------------------------------------------------
 # Utility functions
 
 def km_exists_in(km, export_keymaps):
