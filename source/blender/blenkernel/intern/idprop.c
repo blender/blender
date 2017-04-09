@@ -859,17 +859,19 @@ bool IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
  * The union is simple to use; see the top of this header file for its definition.
  * An example of using this function:
  *
- *     IDPropertyTemplate val;
- *     IDProperty *group, *idgroup, *color;
- *     group = IDP_New(IDP_GROUP, val, "group1"); //groups don't need a template.
+ * \code{.c}
+ * IDPropertyTemplate val;
+ * IDProperty *group, *idgroup, *color;
+ * group = IDP_New(IDP_GROUP, val, "group1"); //groups don't need a template.
  *
- *     val.array.len = 4
- *     val.array.type = IDP_FLOAT;
- *     color = IDP_New(IDP_ARRAY, val, "color1");
+ * val.array.len = 4
+ * val.array.type = IDP_FLOAT;
+ * color = IDP_New(IDP_ARRAY, val, "color1");
  *
- *     idgroup = IDP_GetProperties(some_id, 1);
- *     IDP_AddToGroup(idgroup, color);
- *     IDP_AddToGroup(idgroup, group);
+ * idgroup = IDP_GetProperties(some_id, 1);
+ * IDP_AddToGroup(idgroup, color);
+ * IDP_AddToGroup(idgroup, group);
+ * \endcode
  *
  * Note that you MUST either attach the id property to an id property group with
  * IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
