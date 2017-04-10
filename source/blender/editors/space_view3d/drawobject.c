@@ -1824,16 +1824,16 @@ static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], con
 
 	glBegin(mode);
 	glVertex3fv(near_plane[2]);
-	glVertex3fv(near_plane[1]);
-	glVertex3fv(far_plane[1]);
 	glVertex3fv(far_plane[2]);
+	glVertex3fv(far_plane[3]);
+	glVertex3fv(near_plane[3]);
 	glEnd();
 
 	glBegin(mode);
-	glVertex3fv(far_plane[0]);
-	glVertex3fv(near_plane[0]);
-	glVertex3fv(near_plane[3]);
 	glVertex3fv(far_plane[3]);
+	glVertex3fv(near_plane[3]);
+	glVertex3fv(near_plane[0]);
+	glVertex3fv(far_plane[0]);
 	glEnd();
 }
 
