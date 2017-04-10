@@ -53,7 +53,7 @@
  */
 static void gl_deprecated(void)
 {
-	BLI_assert(false);
+	BLI_assert(true);
 }
 
 #define _GL_BOOL _GL_PREFIX GLboolean
