@@ -1819,6 +1819,8 @@ void DRW_draw_view(const bContext *C)
 	DRW_engines_draw_scene();
 	DRW_draw_callbacks_post_scene();
 
+	DRW_draw_manipulator();
+
 	DRW_draw_region_info();
 
 	if (G.debug_value > 20) {
