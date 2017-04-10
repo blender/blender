@@ -1922,29 +1922,62 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 
 static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
 {
+	/*          v1-_
+	 *          |   -_v2
+	 *          |     |
+	 *          |     |
+	 *          |     |
+	 * v7_______v3____v4
+	 * \        |     /
+	 *  \       |   _v5
+	 *  v8______v6_-
+	 */
+	const float v1[2] = {maxx,                   maxy - 0.3f * shadsize};
+	const float v2[2] = {maxx + shadsize,        maxy - 0.75f * shadsize};
+	const float v3[2] = {maxx,                   miny};
+	const float v4[2] = {maxx + shadsize,        miny};
+
+	const float v5[2] = {maxx + 0.7f * shadsize, miny - 0.7f * shadsize};
+
+	const float v6[2] = {maxx,                   miny - shadsize};
+	const float v7[2] = {minx + 0.3f * shadsize, miny};
+	const float v8[2] = {minx + 0.5f * shadsize, miny - shadsize};
+
 	/* right quad */
 	immAttrib4ub(color, 0, 0, 0, alpha);
-	immVertex2f(pos, maxx, miny);
-	immVertex2f(pos, maxx, maxy - 0.3f * shadsize);
+	immVertex2fv(pos, v3);
+	immVertex2fv(pos, v1);
 	immAttrib4ub(color, 0, 0, 0, 0);
-	immVertex2f(pos, maxx + shadsize, maxy - 0.75f * shadsize);
-	immVertex2f(pos, maxx + shadsize, miny);
-	
+	immVertex2fv(pos, v2);
+
+	immVertex2fv(pos, v2);
+	immVertex2fv(pos, v4);
+	immAttrib4ub(color, 0, 0, 0, alpha);
+	immVertex2fv(pos, v3);
+
 	/* corner shape */
-	immAttrib4ub(color, 0, 0, 0, alpha);
-	immVertex2f(pos, maxx, miny);
+	/* immAttrib4ub(color, 0, 0, 0, alpha); */  /* Not needed, done above in previous tri */
+	immVertex2fv(pos, v3);
 	immAttrib4ub(color, 0, 0, 0, 0);
-	immVertex2f(pos, maxx + shadsize, miny);
-	immVertex2f(pos, maxx + 0.7f * shadsize, miny - 0.7f * shadsize);
-	immVertex2f(pos, maxx, miny - shadsize);
-	
+	immVertex2fv(pos, v4);
+	immVertex2fv(pos, v5);
+
+	immVertex2fv(pos, v5);
+	immVertex2fv(pos, v6);
+	immAttrib4ub(color, 0, 0, 0, alpha);
+	immVertex2fv(pos, v3);
+
 	/* bottom quad */
-	immAttrib4ub(color, 0, 0, 0, alpha);
-	immVertex2f(pos, minx + 0.3f * shadsize, miny);
-	immVertex2f(pos, maxx, miny);
+	/* immAttrib4ub(color, 0, 0, 0, alpha); */  /* Not needed, done above in previous tri */
+	immVertex2fv(pos, v3);
 	immAttrib4ub(color, 0, 0, 0, 0);
-	immVertex2f(pos, maxx, miny - shadsize);
-	immVertex2f(pos, minx + 0.5f * shadsize, miny - shadsize);
+	immVertex2fv(pos, v6);
+	immVertex2fv(pos, v8);
+
+	immVertex2fv(pos, v8);
+	immAttrib4ub(color, 0, 0, 0, alpha);
+	immVertex2fv(pos, v7);
+	immVertex2fv(pos, v3);
 }
 
 void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy)
@@ -1957,8 +1990,7 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
-#ifdef WITH_GL_PROFILE_COMPAT
-	immBegin(PRIM_QUADS_XXX, 36);
+	immBegin(PRIM_TRIANGLES, 54);
 
 	/* accumulated outline boxes to make shade not linear, is more pleasant */
 	ui_shadowbox(pos, color, minx, miny, maxx, maxy, 11.0, (20 * alpha) >> 8);
@@ -1966,7 +1998,6 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 	ui_shadowbox(pos, color, minx, miny, maxx, maxy, 5.0, (80 * alpha) >> 8);
 	
 	immEnd();
-#endif
 
 	immUnbindProgram();
 

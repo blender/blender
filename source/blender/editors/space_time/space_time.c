@@ -196,8 +196,8 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 				break;
 		}
 
-		int sta = pid->cache->startframe, end = pid->cache->endframe;
-		int len = (end - sta + 1) * 4;
+		const int sta = pid->cache->startframe, end = pid->cache->endframe;
+		const int len = (end - sta + 1) * 6;
 
 		glEnable(GL_BLEND);
 
@@ -214,9 +214,8 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 
 		immUniformColor4fv(col);
 
-#ifdef WITH_GL_PROFILE_COMPAT
 		if (len > 0) {
-			immBeginAtMost(PRIM_QUADS_XXX, len);
+			immBeginAtMost(PRIM_TRIANGLES, len);
 
 			/* draw a quad for each cached frame */
 			for (int i = sta; i <= end; i++) {
@@ -224,13 +223,15 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 					immVertex2f(pos, (float)i - 0.5f, 0.0f);
 					immVertex2f(pos, (float)i - 0.5f, 1.0f);
 					immVertex2f(pos, (float)i + 0.5f, 1.0f);
+
+					immVertex2f(pos, (float)i - 0.5f, 0.0f);
+					immVertex2f(pos, (float)i + 0.5f, 1.0f);
 					immVertex2f(pos, (float)i + 0.5f, 0.0f);
 				}
 			}
 
 			immEnd();
 		}
-#endif
 
 		glDisable(GL_BLEND);
 
