@@ -404,7 +404,18 @@ template<typename T> struct texture_image  {
 		return r;
 	}
 
-	ccl_never_inline float4 interp_3d_ex_tricubic(float x, float y, float z)
+	/* TODO(sergey): For some unspeakable reason both GCC-6 and Clang-3.9 are
+	 * causing stack overflow issue in this function unless it is inlined.
+	 *
+	 * Only happens for AVX2 kernel and global __KERNEL_SSE__ vectorization
+	 * enabled.
+	 */
+#ifdef __GNUC__
+	ccl_always_inline
+#else
+	ccl_never_inline
+#endif
+	float4 interp_3d_ex_tricubic(float x, float y, float z)
 	{
 		int ix, iy, iz;
 		int nix, niy, niz;
