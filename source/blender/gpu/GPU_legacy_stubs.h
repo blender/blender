@@ -43,6 +43,8 @@
 #  pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
+#include <stdlib.h>  /* for abort(). */
+
 #include "BLI_utildefines.h"
 
 #define _GL_PREFIX static inline
