@@ -167,10 +167,6 @@ static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, Primitive
 		case PRIM_TRIANGLE_STRIP:
 		case PRIM_TRIANGLE_FAN:
 			return vertex_ct >= 3;
-  #ifdef WITH_GL_PROFILE_COMPAT
-		case PRIM_QUADS_XXX:
-			return vertex_ct % 4 == 0;
-  #endif
 		default:
 			return false;
 		}

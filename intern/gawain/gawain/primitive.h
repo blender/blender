@@ -24,10 +24,6 @@ typedef enum {
 
 	PRIM_LINE_STRIP_ADJACENCY,
 
-#ifdef WITH_GL_PROFILE_COMPAT
-	PRIM_QUADS_XXX, // legacy GL has this, modern GL & Vulkan do not
-#endif
-
 	PRIM_NONE
 } PrimitiveType;
 

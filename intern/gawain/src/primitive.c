@@ -25,10 +25,6 @@ PrimitiveClass prim_class_of_type(PrimitiveType prim_type)
 
 		[PRIM_LINE_STRIP_ADJACENCY] = PRIM_CLASS_LINE,
 
-#ifdef WITH_GL_PROFILE_COMPAT
-		[PRIM_QUADS_XXX] = PRIM_CLASS_SURFACE,
-#endif
-
 		[PRIM_NONE] = PRIM_CLASS_NONE
 		};
 
@@ -60,10 +56,6 @@ GLenum convert_prim_type_to_gl(PrimitiveType prim_type)
 		[PRIM_TRIANGLE_FAN] = GL_TRIANGLE_FAN,
 
 		[PRIM_LINE_STRIP_ADJACENCY] = GL_LINE_STRIP_ADJACENCY,
-
-#ifdef WITH_GL_PROFILE_COMPAT
-		[PRIM_QUADS_XXX] = GL_QUADS,
-#endif
 		};
 
 	return table[prim_type];
