@@ -202,6 +202,8 @@ protected:
 
 	void get_requested_graph_features(ShaderGraph *graph,
 	                                  DeviceRequestedFeatures *requested_features);
+
+	thread_spin_lock attribute_lock_;
 };
 
 CCL_NAMESPACE_END
