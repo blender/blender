@@ -701,24 +701,25 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 	 */
 	{
 		bGPDspoint *pt1, *pt2;
-		float pm[2];
+		float s0[2], s1[2];     /* segment 'center' points */
+		float pm[2];  /* normal from previous segment. */
 		int i;
 		float fpt[3];
 		
 		glShadeModel(GL_FLAT);
 		glBegin(GL_QUADS);
-		
+
+		/* get x and y coordinates from first point */
+		mul_v3_m4v3(fpt, diff_mat, &points->x);
+		gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, s0);
+
 		for (i = 0, pt1 = points, pt2 = points + 1; i < (totpoints - 1); i++, pt1++, pt2++) {
-			float s0[2], s1[2];     /* segment 'center' points */
 			float t0[2], t1[2];     /* tessellated coordinates */
 			float m1[2], m2[2];     /* gradient and normal */
 			float mt[2], sc[2];     /* gradient for thickness, point for end-cap */
 			float pthick;           /* thickness at segment point */
 
-			/* get x and y coordinates from points */
-			mul_v3_m4v3(fpt, diff_mat, &pt1->x);
-			gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, s0);
-
+			/* get x and y coordinates from point2 (point1 has already been computed in previous iteration). */
 			mul_v3_m4v3(fpt, diff_mat, &pt2->x);
 			gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, s1);
 			
@@ -846,6 +847,8 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 				glVertex2fv(t0);
 			}
 			
+			/* store computed point2 coordinates as point1 ones of next segment. */
+			copy_v2_v2(s0, s1);
 			/* store stroke's 'natural' normal for next stroke to use */
 			copy_v2_v2(pm, m2);
 		}
