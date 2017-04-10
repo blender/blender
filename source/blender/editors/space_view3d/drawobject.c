@@ -1911,10 +1911,10 @@ static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], boo
 		immVertex3fv(pos, far_plane[3]);
 		immVertex3fv(pos, near_plane[3]);
 
-		immVertex3fv(pos, far_plane[3]);
 		immVertex3fv(pos, near_plane[3]);
-		immVertex3fv(pos, near_plane[0]);
+		immVertex3fv(pos, far_plane[3]);
 		immVertex3fv(pos, far_plane[0]);
+		immVertex3fv(pos, near_plane[0]);
 		immEnd();
 #endif
 	}
