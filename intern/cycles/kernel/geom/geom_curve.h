@@ -270,7 +270,7 @@ ccl_device_curveintersect bool bvh_cardinal_curve_intersect(KernelGlobals *kg, I
 		int ka = max(k0 - 1, v00.x);
 		int kb = min(k1 + 1, v00.x + v00.y - 1);
 
-#if defined(__KERNEL_AVX2__) && (!defined(_MSC_VER) || _MSC_VER > 1800)
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__) && (!defined(_MSC_VER) || _MSC_VER > 1800)
 		avxf P_curve_0_1, P_curve_2_3;
 		if(is_curve_primitive) {
 			P_curve_0_1 = _mm256_loadu2_m128(&kg->__curve_keys.data[k0].x, &kg->__curve_keys.data[ka].x);
@@ -305,7 +305,7 @@ ccl_device_curveintersect bool bvh_cardinal_curve_intersect(KernelGlobals *kg, I
 		ssef htfm1 = shuffle<1, 0, 1, 3>(load1f_first(extract<0>(d_ss)), vdir0);
 		ssef htfm2 = shuffle<1, 3, 2, 3>(mul_shuf, vdir0);
 
-#if defined(__KERNEL_AVX2__) && (!defined(_MSC_VER) || _MSC_VER > 1800)
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__) && (!defined(_MSC_VER) || _MSC_VER > 1800)
 		const avxf vPP = _mm256_broadcast_ps(&P.m128);
 		const avxf htfm00 = avxf(htfm0.m128, htfm0.m128);
 		const avxf htfm11 = avxf(htfm1.m128, htfm1.m128);

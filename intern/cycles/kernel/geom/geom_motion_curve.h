@@ -152,7 +152,7 @@ ccl_device_inline void motion_cardinal_curve_keys(KernelGlobals *kg,
 	keys[3] = (1.0f - t)*keys[3] + t*next_keys[3];
 }
 
-#ifdef __KERNEL_AVX2__
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
 /* Similar to above, but returns keys as pair of two AVX registers with each
  * holding two float4.
  */

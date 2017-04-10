@@ -335,19 +335,9 @@ static char idp_sequence_type(PyObject *seq_fast)
 	return type;
 }
 
-/**
- * \note group can be a pointer array or a group.
- * assume we already checked key is a string.
- *
- * \return success.
- */
-bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group, PyObject *ob)
+static const char *idp_try_read_name(PyObject *name_obj)
 {
-	IDProperty *prop = NULL;
-	IDPropertyTemplate val = {0};
-
-	const char *name;
-
+	const char *name = NULL;
 	if (name_obj) {
 		Py_ssize_t name_size;
 		name = _PyUnicode_AsStringAndSize(name_obj, &name_size);
@@ -356,168 +346,297 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 			PyErr_Format(PyExc_KeyError,
 			             "invalid id-property key, expected a string, not a %.200s",
 			             Py_TYPE(name_obj)->tp_name);
-			return false;
+			return NULL;
 		}
 
 		if (name_size > MAX_IDPROP_NAME) {
 			PyErr_SetString(PyExc_KeyError, "the length of IDProperty names is limited to 63 characters");
-			return false;
+			return NULL;
 		}
 	}
 	else {
 		name = "";
 	}
+	return name;
+}
 
-	if (PyFloat_Check(ob)) {
-		val.d = PyFloat_AsDouble(ob);
-		prop = IDP_New(IDP_DOUBLE, &val, name);
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The 'idp_from_Py*' functions expect that the input type has been checked before
+ * and return NULL if the IDProperty can't be created.
+ */
+
+static IDProperty *idp_from_PyFloat(const char *name, PyObject *ob)
+{
+	IDPropertyTemplate val = {0};
+	val.d = PyFloat_AsDouble(ob);
+	return IDP_New(IDP_DOUBLE, &val, name);
+}
+
+static IDProperty *idp_from_PyLong(const char *name, PyObject *ob)
+{
+	IDPropertyTemplate val = {0};
+	val.i = _PyLong_AsInt(ob);
+	if (val.i == -1 && PyErr_Occurred()) {
+		return NULL;
 	}
-	else if (PyLong_Check(ob)) {
-		val.i = _PyLong_AsInt(ob);
-		if (val.i == -1 && PyErr_Occurred()) {
-			return false;
-		}
-		prop = IDP_New(IDP_INT, &val, name);
-	}
-	else if (PyUnicode_Check(ob)) {
+	return IDP_New(IDP_INT, &val, name);
+}
+
+static IDProperty *idp_from_PyUnicode(const char *name, PyObject *ob)
+{
+	IDProperty *prop;
+	IDPropertyTemplate val = {0};
 #ifdef USE_STRING_COERCE
-		Py_ssize_t value_size;
-		PyObject *value_coerce = NULL;
-		val.string.str = PyC_UnicodeAsByteAndSize(ob, &value_size, &value_coerce);
-		val.string.len = (int)value_size + 1;
-		val.string.subtype = IDP_STRING_SUB_UTF8;
-		prop = IDP_New(IDP_STRING, &val, name);
-		Py_XDECREF(value_coerce);
+	Py_ssize_t value_size;
+	PyObject *value_coerce = NULL;
+	val.string.str = PyC_UnicodeAsByteAndSize(ob, &value_size, &value_coerce);
+	val.string.len = (int)value_size + 1;
+	val.string.subtype = IDP_STRING_SUB_UTF8;
+	prop = IDP_New(IDP_STRING, &val, name);
+	Py_XDECREF(value_coerce);
 #else
-		val.str = _PyUnicode_AsString(ob);
-		prop = IDP_New(IDP_STRING, val, name);
+	val.str = _PyUnicode_AsString(ob);
+	prop = IDP_New(IDP_STRING, val, name);
 #endif
-	}
-	else if (PyBytes_Check(ob)) {
-		val.string.str = PyBytes_AS_STRING(ob);
-		val.string.len = PyBytes_GET_SIZE(ob);
-		val.string.subtype = IDP_STRING_SUB_BYTE;
+	return prop;
+}
 
-		prop = IDP_New(IDP_STRING, &val, name);
-		//prop = IDP_NewString(PyBytes_AS_STRING(ob), name, PyBytes_GET_SIZE(ob));
-		//prop->subtype = IDP_STRING_SUB_BYTE;
-	}
-	else if (PySequence_Check(ob)) {
-		PyObject *ob_seq_fast;
-		PyObject **ob_seq_fast_items;
-		PyObject *item;
-		int i;
+static IDProperty *idp_from_PyBytes(const char *name, PyObject *ob)
+{
+	IDPropertyTemplate val = {0};
+	val.string.str = PyBytes_AS_STRING(ob);
+	val.string.len = PyBytes_GET_SIZE(ob);
+	val.string.subtype = IDP_STRING_SUB_BYTE;
+	return IDP_New(IDP_STRING, &val, name);
+}
 
-		if (!(ob_seq_fast = PySequence_Fast(ob, "py -> idprop"))) {
-			return false;
+static int idp_array_type_from_format_char(char format)
+{
+	if (format == 'i') return IDP_INT;
+	if (format == 'f') return IDP_FLOAT;
+	if (format == 'd') return IDP_DOUBLE;
+	return -1;
+}
+
+static const char *idp_format_from_array_type(int type)
+{
+	if (type == IDP_INT) return "i";
+	if (type == IDP_FLOAT) return "f";
+	if (type == IDP_DOUBLE) return "d";
+	return NULL;
+}
+
+static IDProperty *idp_from_PySequence_Buffer(const char *name, Py_buffer *buffer)
+{
+	IDProperty *prop;
+	IDPropertyTemplate val = {0};
+
+	int format = idp_array_type_from_format_char(*buffer->format);
+	if (format == -1) {
+		/* should never happen as the type has been checked before */
+		return NULL;
+	}
+	else {
+		val.array.type = format;
+		val.array.len = buffer->len / buffer->itemsize;
+	}
+	prop = IDP_New(IDP_ARRAY, &val, name);
+	memcpy(IDP_Array(prop), buffer->buf, buffer->len);
+	return prop;
+}
+
+static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
+{
+	IDProperty *prop;
+	IDPropertyTemplate val = {0};
+
+	PyObject **ob_seq_fast_items;
+	PyObject *item;
+	int i;
+
+	ob_seq_fast_items = PySequence_Fast_ITEMS(ob);
+
+	if ((val.array.type = idp_sequence_type(ob)) == (char)-1) {
+		PyErr_SetString(PyExc_TypeError, "only floats, ints and dicts are allowed in ID property arrays");
+		return NULL;
+	}
+
+	/* validate sequence and derive type.
+	 * we assume IDP_INT unless we hit a float
+	 * number; then we assume it's */
+
+	val.array.len = PySequence_Fast_GET_SIZE(ob);
+
+	switch (val.array.type) {
+		case IDP_DOUBLE:
+		{
+			double *prop_data;
+			prop = IDP_New(IDP_ARRAY, &val, name);
+			prop_data = IDP_Array(prop);
+			for (i = 0; i < val.array.len; i++) {
+				item = ob_seq_fast_items[i];
+				if (((prop_data[i] = PyFloat_AsDouble(item)) == -1.0) && PyErr_Occurred()) {
+					return NULL;
+				}
+			}
+			break;
 		}
+		case IDP_INT:
+		{
+			int *prop_data;
+			prop = IDP_New(IDP_ARRAY, &val, name);
+			prop_data = IDP_Array(prop);
+			for (i = 0; i < val.array.len; i++) {
+				item = ob_seq_fast_items[i];
+				if (((prop_data[i] = _PyLong_AsInt(item)) == -1) && PyErr_Occurred()) {
+					return NULL;
+				}
+			}
+			break;
+		}
+		case IDP_IDPARRAY:
+		{
+			prop = IDP_NewIDPArray(name);
+			for (i = 0; i < val.array.len; i++) {
+				item = ob_seq_fast_items[i];
+				if (BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item) == false) {
+					return NULL;
+				}
+			}
+			break;
+		}
+		default:
+			/* should never happen */
+			PyErr_SetString(PyExc_RuntimeError, "internal error with idp array.type");
+			return NULL;
+	}
+	return prop;
+}
 
-		ob_seq_fast_items = PySequence_Fast_ITEMS(ob_seq_fast);
 
-		if ((val.array.type = idp_sequence_type(ob_seq_fast)) == (char)-1) {
+static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
+{
+	Py_buffer buffer;
+	bool use_buffer = false;
+
+	if (PyObject_CheckBuffer(ob)) {
+		PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT);
+		char format = *buffer.format;
+		if (ELEM(format, 'i', 'f', 'd')) {
+			use_buffer = true;
+		}
+		else {
+			PyBuffer_Release(&buffer);
+		}
+	}
+
+	if (use_buffer) {
+		IDProperty *prop = idp_from_PySequence_Buffer(name, &buffer);
+		PyBuffer_Release(&buffer);
+		return prop;
+	}
+	else {
+		PyObject *ob_seq_fast = PySequence_Fast(ob, "py -> idprop");
+		if (ob_seq_fast != NULL) {
+			IDProperty *prop = idp_from_PySequence_Fast(name, ob_seq_fast);
 			Py_DECREF(ob_seq_fast);
-			PyErr_SetString(PyExc_TypeError, "only floats, ints and dicts are allowed in ID property arrays");
-			return false;
+			return prop;
 		}
-
-		/* validate sequence and derive type.
-		 * we assume IDP_INT unless we hit a float
-		 * number; then we assume it's */
-
-		val.array.len = PySequence_Fast_GET_SIZE(ob_seq_fast);
-
-		switch (val.array.type) {
-			case IDP_DOUBLE:
-			{
-				double *prop_data;
-
-				prop = IDP_New(IDP_ARRAY, &val, name);
-				prop_data = IDP_Array(prop);
-				for (i = 0; i < val.array.len; i++) {
-					item = ob_seq_fast_items[i];
-					if (((prop_data[i] = PyFloat_AsDouble(item)) == -1.0) && PyErr_Occurred()) {
-						Py_DECREF(ob_seq_fast);
-						return false;
-					}
-				}
-				break;
-			}
-			case IDP_INT:
-			{
-				int *prop_data;
-				prop = IDP_New(IDP_ARRAY, &val, name);
-				prop_data = IDP_Array(prop);
-				for (i = 0; i < val.array.len; i++) {
-					item = ob_seq_fast_items[i];
-					if (((prop_data[i] = _PyLong_AsInt(item)) == -1) && PyErr_Occurred()) {
-						Py_DECREF(ob_seq_fast);
-						return false;
-					}
-				}
-				break;
-			}
-			case IDP_IDPARRAY:
-			{
-				prop = IDP_NewIDPArray(name);
-				for (i = 0; i < val.array.len; i++) {
-					item = ob_seq_fast_items[i];
-
-					if (BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item) == false) {
-						Py_DECREF(ob_seq_fast);
-						return false;
-					}
-				}
-				break;
-			}
-			default:
-				/* should never happen */
-				Py_DECREF(ob_seq_fast);
-				PyErr_SetString(PyExc_RuntimeError, "internal error with idp array.type");
-				return false;
+		else {
+			return NULL;
 		}
-
-		Py_DECREF(ob_seq_fast);
 	}
-	else if (PyMapping_Check(ob)) {
-		PyObject *keys, *vals, *key, *pval;
-		int i, len;
-		/*yay! we get into recursive stuff now!*/
-		keys = PyMapping_Keys(ob);
-		vals = PyMapping_Values(ob);
+}
 
-		/* we allocate the group first; if we hit any invalid data,
-		 * we can delete it easily enough.*/
-		prop = IDP_New(IDP_GROUP, &val, name);
-		len = PyMapping_Length(ob);
-		for (i = 0; i < len; i++) {
-			key = PySequence_GetItem(keys, i);
-			pval = PySequence_GetItem(vals, i);
-			if (BPy_IDProperty_Map_ValidateAndCreate(key, prop, pval) == false) {
-				IDP_FreeProperty(prop);
-				MEM_freeN(prop);
-				Py_XDECREF(keys);
-				Py_XDECREF(vals);
-				Py_XDECREF(key);
-				Py_XDECREF(pval);
-				/* error is already set */
-				return false;
-			}
+static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
+{
+	IDProperty *prop;
+	IDPropertyTemplate val = {0};
+
+	PyObject *keys, *vals, *key, *pval;
+	int i, len;
+	/* yay! we get into recursive stuff now! */
+	keys = PyMapping_Keys(ob);
+	vals = PyMapping_Values(ob);
+
+	/* we allocate the group first; if we hit any invalid data,
+	 * we can delete it easily enough.*/
+	prop = IDP_New(IDP_GROUP, &val, name);
+	len = PyMapping_Length(ob);
+	for (i = 0; i < len; i++) {
+		key = PySequence_GetItem(keys, i);
+		pval = PySequence_GetItem(vals, i);
+		if (BPy_IDProperty_Map_ValidateAndCreate(key, prop, pval) == false) {
+			IDP_FreeProperty(prop);
+			MEM_freeN(prop);
+			Py_XDECREF(keys);
+			Py_XDECREF(vals);
 			Py_XDECREF(key);
 			Py_XDECREF(pval);
+			/* error is already set */
+			return NULL;
 		}
-		Py_XDECREF(keys);
-		Py_XDECREF(vals);
+		Py_XDECREF(key);
+		Py_XDECREF(pval);
+	}
+	Py_XDECREF(keys);
+	Py_XDECREF(vals);
+	return prop;
+}
+
+static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
+{
+	const char *name = idp_try_read_name(name_obj);
+	if (name == NULL) {
+		return NULL;
+	}
+
+	if (PyFloat_Check(ob)) {
+		return idp_from_PyFloat(name, ob);
+	}
+	else if (PyLong_Check(ob)) {
+		return idp_from_PyLong(name, ob);
+	}
+	else if (PyUnicode_Check(ob)) {
+		return idp_from_PyUnicode(name, ob);
+	}
+	else if (PyBytes_Check(ob)) {
+		return idp_from_PyBytes(name, ob);
+	}
+	else if (PySequence_Check(ob)) {
+		return idp_from_PySequence(name, ob);
+	}
+	else if (PyMapping_Check(ob)) {
+		return idp_from_PyMapping(name, ob);
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
 		             "invalid id-property type %.200s not supported",
 		             Py_TYPE(ob)->tp_name);
+		return NULL;
+	}
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * \note group can be a pointer array or a group.
+ * assume we already checked key is a string.
+ *
+ * \return success.
+ */
+bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group, PyObject *ob)
+{
+	IDProperty *prop = idp_from_PyObject(name_obj, ob);
+	if (prop == NULL) {
 		return false;
 	}
 
 	if (group->type == IDP_IDPARRAY) {
 		IDP_AppendArray(group, prop);
-		// IDP_FreeProperty(item);  /* IDP_AppendArray does a shallow copy (memcpy), only free memory */
+		/* IDP_AppendArray does a shallow copy (memcpy), only free memory */
 		MEM_freeN(prop);
 	}
 	else {
@@ -1371,6 +1490,44 @@ static PyMappingMethods BPy_IDArray_AsMapping = {
 	(objobjargproc)BPy_IDArray_ass_subscript
 };
 
+static int itemsize_by_idarray_type(int array_type)
+{
+	if (array_type == IDP_INT) return sizeof(int);
+	if (array_type == IDP_FLOAT) return sizeof(float);
+	if (array_type == IDP_DOUBLE) return sizeof(double);
+	return -1;  /* should never happen */
+}
+
+static int BPy_IDArray_getbuffer(BPy_IDArray *self, Py_buffer *view, int flags)
+{
+	IDProperty *prop = self->prop;
+	int itemsize = itemsize_by_idarray_type(prop->subtype);
+	int length = itemsize * prop->len;
+
+	if (PyBuffer_FillInfo(view, (PyObject *)self, IDP_Array(prop), length, false, flags) == -1) {
+		return -1;
+	}
+
+	view->itemsize = itemsize;
+	view->format = (char *)idp_format_from_array_type(prop->subtype);
+
+	Py_ssize_t *shape = MEM_mallocN(sizeof(Py_ssize_t), __func__);
+	shape[0] = prop->len;
+	view->shape = shape;
+
+	return 0;
+}
+
+static void BPy_IDArray_releasebuffer(BPy_IDArray *UNUSED(self), Py_buffer *view)
+{
+	MEM_freeN(view->shape);
+}
+
+static PyBufferProcs BPy_IDArray_Buffer = {
+	(getbufferproc)BPy_IDArray_getbuffer,
+	(releasebufferproc)BPy_IDArray_releasebuffer,
+};
+
 
 PyTypeObject BPy_IDArray_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -1403,7 +1560,7 @@ PyTypeObject BPy_IDArray_Type = {
 	NULL,                       /* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
-	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+	&BPy_IDArray_Buffer,        /* PyBufferProcs *tp_as_buffer; */
 
 	/*** Flags to define presence of optional/expanded features ***/
 	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */

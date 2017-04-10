@@ -891,7 +891,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
 			*(float *)&prop->data.val = val->f;
 			break;
 		case IDP_DOUBLE:
-			prop = MEM_callocN(sizeof(IDProperty), "IDProperty float");
+			prop = MEM_callocN(sizeof(IDProperty), "IDProperty double");
 			*(double *)&prop->data.val = val->d;
 			break;
 		case IDP_ARRAY:

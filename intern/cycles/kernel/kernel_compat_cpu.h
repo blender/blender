@@ -353,7 +353,7 @@ template<typename T> struct texture_image  {
 	{
 		int ix, iy, iz;
 		int nix, niy, niz;
-		
+
 		float tx = frac(x*(float)width - 0.5f, &ix);
 		float ty = frac(y*(float)height - 0.5f, &iy);
 		float tz = frac(z*(float)depth - 0.5f, &iz);
@@ -404,7 +404,18 @@ template<typename T> struct texture_image  {
 		return r;
 	}
 
-	ccl_never_inline float4 interp_3d_ex_tricubic(float x, float y, float z)
+	/* TODO(sergey): For some unspeakable reason both GCC-6 and Clang-3.9 are
+	 * causing stack overflow issue in this function unless it is inlined.
+	 *
+	 * Only happens for AVX2 kernel and global __KERNEL_SSE__ vectorization
+	 * enabled.
+	 */
+#ifdef __GNUC__
+	ccl_always_inline
+#else
+	ccl_never_inline
+#endif
+	float4 interp_3d_ex_tricubic(float x, float y, float z)
 	{
 		int ix, iy, iz;
 		int nix, niy, niz;
@@ -463,13 +474,13 @@ template<typename T> struct texture_image  {
 
 		const int xc[4] = {pix, ix, nix, nnix};
 		const int yc[4] = {width * piy,
-						   width * iy,
-						   width * niy,
-						   width * nniy};
+		                   width * iy,
+		                   width * niy,
+		                   width * nniy};
 		const int zc[4] = {width * height * piz,
-						   width * height * iz,
-						   width * height * niz,
-						   width * height * nniz};
+		                   width * height * iz,
+		                   width * height * niz,
+		                   width * height * nniz};
 		float u[4], v[4], w[4];
 
 		/* Some helper macro to keep code reasonable size,
@@ -478,14 +489,14 @@ template<typename T> struct texture_image  {
 #define DATA(x, y, z) (read(data[xc[x] + yc[y] + zc[z]]))
 #define COL_TERM(col, row) \
 		(v[col] * (u[0] * DATA(0, col, row) + \
-				   u[1] * DATA(1, col, row) + \
-				   u[2] * DATA(2, col, row) + \
-				   u[3] * DATA(3, col, row)))
+		           u[1] * DATA(1, col, row) + \
+		           u[2] * DATA(2, col, row) + \
+		           u[3] * DATA(3, col, row)))
 #define ROW_TERM(row) \
 		(w[row] * (COL_TERM(0, row) + \
-				   COL_TERM(1, row) + \
-				   COL_TERM(2, row) + \
-				   COL_TERM(3, row)))
+		           COL_TERM(1, row) + \
+		           COL_TERM(2, row) + \
+		           COL_TERM(3, row)))
 
 		SET_CUBIC_SPLINE_WEIGHTS(u, tx);
 		SET_CUBIC_SPLINE_WEIGHTS(v, ty);
@@ -502,11 +513,10 @@ template<typename T> struct texture_image  {
 	ccl_always_inline float4 interp_3d_ex(float x, float y, float z,
 	                                      int interpolation = INTERPOLATION_LINEAR)
 	{
-		
 		if(UNLIKELY(!data))
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-		switch(interpolation) { 
+		switch(interpolation) {
 			case INTERPOLATION_CLOSEST:
 				return interp_3d_ex_closest(x, y, z);
 			case INTERPOLATION_LINEAR:
