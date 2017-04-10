@@ -40,26 +40,57 @@
 #if defined(__GNUC__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
+#  pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 #include "BLI_utildefines.h"
 
 #define _GL_PREFIX static inline
 
+/**
+ * Empty function, use for breakpoint when a depreacated
+ * OpenGL function is called.
+ */
+static void gl_deprecated(void)
+{
+	BLI_assert(false);
+}
+
 #define _GL_BOOL _GL_PREFIX GLboolean
-#define _GL_BOOL_RET { return false; }
+#define _GL_BOOL_RET { \
+	gl_deprecated();   \
+	return false;      \
+}
+
 #define _GL_ENUM _GL_PREFIX GLenum
-#define _GL_ENUM_RET { return 0; }
+#define _GL_ENUM_RET { \
+	gl_deprecated();   \
+	return 0;          \
+}
+
 #define _GL_INT _GL_PREFIX GLint
-#define _GL_INT_RET { return 0; }
+#define _GL_INT_RET { \
+	gl_deprecated();  \
+	return 0;         \
+}
+
+
 #define _GL_UINT _GL_PREFIX GLuint
-#define _GL_UINT_RET { return 0; }
+#define _GL_UINT_RET { \
+	gl_deprecated();   \
+	return 0;          \
+}
+
 #define _GL_VOID _GL_PREFIX void
-#define _GL_VOID_RET {}
+#define _GL_VOID_RET { \
+	gl_deprecated();   \
+}
 
 static bool disable_enable_check(GLenum cap)
 {
-	return ELEM(cap,
+	const bool is_deprecated = \
+	        ELEM(
+	            cap,
 	            GL_ALPHA_TEST,
 	            GL_LINE_STIPPLE,
 	            GL_POINT_SPRITE,
@@ -69,6 +100,12 @@ static bool disable_enable_check(GLenum cap)
 	            GL_TEXTURE_GEN_T,
 	            -1
 	            );
+
+	if (is_deprecated) {
+		gl_deprecated();
+	}
+
+	return is_deprecated;
 }
 
 _GL_VOID USE_CAREFULLY_glDisable (GLenum cap)
