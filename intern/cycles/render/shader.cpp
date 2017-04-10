@@ -332,6 +332,8 @@ ShaderManager *ShaderManager::create(Scene *scene, int shadingsystem)
 
 uint ShaderManager::get_attribute_id(ustring name)
 {
+	thread_scoped_spin_lock lock(attribute_lock_);
+
 	/* get a unique id for each name, for SVM attribute lookup */
 	AttributeIDMap::iterator it = unique_attribute_id.find(name);
 
