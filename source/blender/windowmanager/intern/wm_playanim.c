@@ -61,6 +61,7 @@
 #include "BKE_image.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
@@ -309,11 +310,10 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 
 	CLAMP(offs_x, 0.0f, 1.0f);
 	CLAMP(offs_y, 0.0f, 1.0f);
-	glRasterPos2f(offs_x, offs_y);
 
 	glClearColor(0.1, 0.1, 0.1, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	/* checkerboard for case alpha */
 	if (ibuf->planes == 32) {
 		glEnable(GL_BLEND);
@@ -322,16 +322,19 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		imm_draw_checker_box(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
 	}
 
-	glRasterPos2f(offs_x + (ps->draw_flip[0] ? span_x : 0.0f),
-	              offs_y + (ps->draw_flip[1] ? span_y : 0.0f));
+	immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 
-	glPixelZoom(ps->zoom * (ps->draw_flip[0] ? -1.0f : 1.0f),
-	            ps->zoom * (ps->draw_flip[1] ? -1.0f : 1.0f));
-
-	glDrawPixels(ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	immDrawPixelsTex(
+	        offs_x + (ps->draw_flip[0] ? span_x : 0.0f),
+	        offs_y + (ps->draw_flip[1] ? span_y : 0.0f),
+	        ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST,
+	        ibuf->rect,
+	        ((ps->draw_flip[0] ? -1.0f : 1.0f)) * (ps->zoom / (float)ps->win_x),
+	        ((ps->draw_flip[1] ? -1.0f : 1.0f)) * (ps->zoom / (float)ps->win_y),
+	        NULL);
 
 	glDisable(GL_BLEND);
-	
+
 	pupdate_time();
 
 	if (picture && (g_WS.qual & (WS_QUAL_SHIFT | WS_QUAL_LMOUSE)) && (fontid != -1)) {
@@ -345,6 +348,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		fsizex_inv = 1.0f / sizex;
 		fsizey_inv = 1.0f / sizey;
 
+		BLF_color4f(fontid, 1.0, 1.0, 1.0, 1.0);
 		BLF_enable(fontid, BLF_ASPECT);
 		BLF_aspect(fontid, fsizex_inv, fsizey_inv, 1.0f);
 		BLF_position(fontid, 10.0f * fsizex_inv, 10.0f * fsizey_inv, 0.0f);
@@ -362,12 +366,17 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		gpuPushMatrix();
 		gpuLoadIdentity();
 
-		glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
-		glBegin(GL_LINES);
-		glVertex2f(fac, -1.0f);
-		glVertex2f(fac, 1.0f);
-		glEnd();
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformColor4ub(0, 255, 0, 255);
+
+		immBegin(PRIM_LINES, 2);
+		immVertex2f(pos, fac, -1.0f);
+		immVertex2f(pos, fac,  1.0f);
+		immEnd();
+
+		immUnbindProgram();
 
 		gpuPopMatrix();
 		glMatrixMode(GL_PROJECTION);
