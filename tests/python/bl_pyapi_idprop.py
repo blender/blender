@@ -3,6 +3,7 @@
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_idprop.py -- --verbose
 import bpy
 import unittest
+import numpy as np
 from array import array
 
 
@@ -75,7 +76,7 @@ class TestIdPropertyCreation(TestHelper, unittest.TestCase):
         mylist = [1.2, 3.4, 5.6]
         self.id["a"] = array("f", mylist)
         self.assertAlmostEqualSeq(self.id["a"].to_list(), mylist)
-        self.assertEqual(self.id["a"].typecode, "d")
+        self.assertEqual(self.id["a"].typecode, "f")
 
     def test_sequence_double_array(self):
         mylist = [1.2, 3.4, 5.6]
@@ -137,6 +138,65 @@ class TestIdPropertyCreation(TestHelper, unittest.TestCase):
         with self.assertRaises(TypeError):
             self.id["a"] = self
 
+
+class TestBufferProtocol(TestHelper, unittest.TestCase):
+
+    def test_int(self):
+        self.id["a"] = array("i", [1, 2, 3, 4, 5])
+        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+        self.assertEqual(len(a), 5)
+        a[2] = 10
+        self.assertEqual(self.id["a"].to_list(), [1, 2, 10, 4, 5])
+
+    def test_float(self):
+        self.id["a"] = array("f", [1.0, 2.0, 3.0, 4.0])
+        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+        self.assertEqual(len(a), 4)
+        a[-1] = 10
+        self.assertEqual(self.id["a"].to_list(), [1.0, 2.0, 3.0, 10.0])
+
+    def test_double(self):
+        self.id["a"] = array("d", [1.0, 2.0, 3.0, 4.0])
+        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+        a[1] = 10
+        self.assertEqual(self.id["a"].to_list(), [1.0, 10.0, 3.0, 4.0])
+
+    def test_full_update(self):
+        self.id["a"] = array("i", [1, 2, 3, 4, 5, 6])
+        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+        a[:] = [10, 20, 30, 40, 50, 60]
+        self.assertEqual(self.id["a"].to_list(), [10, 20, 30, 40, 50, 60])
+
+    def test_partial_update(self):
+        self.id["a"] = array("i", [1, 2, 3, 4, 5, 6, 7, 8])
+        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+        a[1:5] = [10, 20, 30, 40]
+        self.assertEqual(self.id["a"].to_list(), [1, 10, 20, 30, 40, 6, 7, 8])
+
+    def test_copy(self):
+        self.id["a"] = array("i", [1, 2, 3, 4, 5])
+        self.id["b"] = self.id["a"]
+        self.assertEqual(self.id["a"].to_list(), self.id["b"].to_list())
+
+    def test_memview_attributes(self):
+        mylist = [1, 2, 3]
+        self.id["a"] = mylist
+
+        view1 = memoryview(self.id["a"])
+        view2 = memoryview(array("i", mylist))
+
+        self.assertEqualMemviews(view1, view2)
+
+    def assertEqualMemviews(self, view1, view2):
+        props_to_compare = (
+            "contiguous", "format", "itemsize", "nbytes", "ndim",
+            "readonly", "shape", "strides", "suboffsets"
+        )
+        for attr in props_to_compare:
+            self.assertEqual(getattr(view1, attr), getattr(view2, attr))
+
+        self.assertEqual(list(view1), list(view2))
+        self.assertEqual(view1.tobytes(), view2.tobytes())
 
 if __name__ == '__main__':
     import sys
