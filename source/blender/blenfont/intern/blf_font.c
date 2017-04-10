@@ -206,6 +206,7 @@ static void blf_font_draw_ex(
 
 	blf_font_ensure_ascii_table(font);
 
+#ifdef WITH_GL_PROFILE_COMPAT
 	immBeginAtMost(PRIM_QUADS_XXX, verts_needed(font, str, len));
 	/* at most because some glyphs might be clipped & not drawn */
 
@@ -227,6 +228,7 @@ static void blf_font_draw_ex(
 	}
 
 	immEnd();
+#endif
 
 	if (r_info) {
 		r_info->lines = 1;
@@ -253,6 +255,7 @@ static void blf_font_draw_ascii_ex(
 
 	blf_font_ensure_ascii_table(font);
 
+#ifdef WITH_GL_PROFILE_COMPAT
 	immBeginAtMost(PRIM_QUADS_XXX, verts_needed(font, str, len));
 
 	while ((c = *(str++)) && len--) {
@@ -270,6 +273,7 @@ static void blf_font_draw_ascii_ex(
 	}
 
 	immEnd();
+#endif
 
 	if (r_info) {
 		r_info->lines = 1;
@@ -293,6 +297,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, size_t len, int cwidth)
 
 	blf_font_ensure_ascii_table(font);
 
+#ifdef WITH_GL_PROFILE_COMPAT
 	immBeginAtMost(PRIM_QUADS_XXX, verts_needed(font, str, len));
 
 	while ((i < len) && str[i]) {
@@ -315,6 +320,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, size_t len, int cwidth)
 	}
 
 	immEnd();
+#endif
 
 	return columns;
 }

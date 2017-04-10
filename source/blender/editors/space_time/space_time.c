@@ -214,6 +214,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 
 		immUniformColor4fv(col);
 
+#ifdef WITH_GL_PROFILE_COMPAT
 		if (len > 0) {
 			immBeginAtMost(PRIM_QUADS_XXX, len);
 
@@ -229,6 +230,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 
 			immEnd();
 		}
+#endif
 
 		glDisable(GL_BLEND);
 

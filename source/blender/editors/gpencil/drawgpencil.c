@@ -740,6 +740,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+#ifdef WITH_GL_PROFILE_COMPAT
 		immBegin(PRIM_QUADS_XXX, (totpoints - 2) * 4 + 12);
 
 		for (i = 0, pt1 = points, pt2 = points + 1; i < (totpoints - 1); i++, pt1++, pt2++) {
@@ -882,6 +883,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 			/* store stroke's 'natural' normal for next stroke to use */
 			copy_v2_v2(pm, m2);
 		}
+#endif
 
 		immEnd();
 		immUnbindProgram();

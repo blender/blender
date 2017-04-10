@@ -1894,6 +1894,7 @@ static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], boo
 	drawcamera_frame(far_plane, filled, pos);
 
 	if (filled) {
+#ifdef WITH_GL_PROFILE_COMPAT
 		immBegin(PRIM_QUADS_XXX, 16); /* TODO(merwin): use PRIM_TRIANGLE_STRIP here */
 		immVertex3fv(pos, near_plane[0]);
 		immVertex3fv(pos, far_plane[0]);
@@ -1915,6 +1916,7 @@ static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], boo
 		immVertex3fv(pos, near_plane[3]);
 		immVertex3fv(pos, far_plane[3]);
 		immEnd();
+#endif
 	}
 	else {
 		immBegin(PRIM_LINES, 8);
@@ -5633,7 +5635,9 @@ static void draw_particle_arrays_new(int draw_as, int ob_dt, int select,
 			else
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+#ifdef WITH_GL_PROFILE_COMPAT
 			draw_vertex_array(PRIM_QUADS_XXX, vert, nor, color, 0, 4 * totpoint, col);
+#endif
 			break;
 		default:
 			draw_vertex_array(PRIM_POINTS, vert, nor, color, 0, totpoint, col);
@@ -7990,7 +7994,11 @@ static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
 
 	if (solid) {
 		indices = quad_indices;
+#ifdef WITH_GL_PROFILE_COMPAT
 		prim_type = PRIM_QUADS_XXX;
+#else
+		return;
+#endif
 	}
 	else {
 		indices = line_indices;

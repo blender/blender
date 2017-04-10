@@ -1957,6 +1957,7 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
+#ifdef WITH_GL_PROFILE_COMPAT
 	immBegin(PRIM_QUADS_XXX, 36);
 
 	/* accumulated outline boxes to make shade not linear, is more pleasant */
@@ -1965,6 +1966,7 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 	ui_shadowbox(pos, color, minx, miny, maxx, maxy, 5.0, (80 * alpha) >> 8);
 	
 	immEnd();
+#endif
 
 	immUnbindProgram();
 

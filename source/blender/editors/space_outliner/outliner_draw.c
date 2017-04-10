@@ -1799,6 +1799,7 @@ static void outliner_back(ARegion *ar)
 	int tot = (int)floor(ystart - ar->v2d.cur.ymin + 2 * UI_UNIT_Y) / (2 * UI_UNIT_Y);
 
 	if (tot > 0) {
+#ifdef WITH_GL_PROFILE_COMPAT
 		immBegin(PRIM_QUADS_XXX, 4 * tot);
 		while (tot--) {
 			y1 -= 2 * UI_UNIT_Y;
@@ -1809,6 +1810,7 @@ static void outliner_back(ARegion *ar)
 			immVertex2f(pos, x1, y2);
 		}
 		immEnd();
+#endif
 	}
 	immUnbindProgram();
 }
