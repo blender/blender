@@ -1894,29 +1894,20 @@ static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], boo
 	drawcamera_frame(far_plane, filled, pos);
 
 	if (filled) {
-#ifdef WITH_GL_PROFILE_COMPAT
-		immBegin(PRIM_QUADS_XXX, 16); /* TODO(merwin): use PRIM_TRIANGLE_STRIP here */
+		immBegin(PRIM_TRIANGLE_STRIP, 10);
+
 		immVertex3fv(pos, near_plane[0]);
 		immVertex3fv(pos, far_plane[0]);
-		immVertex3fv(pos, far_plane[1]);
-		immVertex3fv(pos, near_plane[1]);
-
 		immVertex3fv(pos, near_plane[1]);
 		immVertex3fv(pos, far_plane[1]);
-		immVertex3fv(pos, far_plane[2]);
-		immVertex3fv(pos, near_plane[2]);
-
 		immVertex3fv(pos, near_plane[2]);
 		immVertex3fv(pos, far_plane[2]);
-		immVertex3fv(pos, far_plane[3]);
-		immVertex3fv(pos, near_plane[3]);
-
 		immVertex3fv(pos, near_plane[3]);
 		immVertex3fv(pos, far_plane[3]);
-		immVertex3fv(pos, far_plane[0]);
 		immVertex3fv(pos, near_plane[0]);
+		immVertex3fv(pos, far_plane[0]);
+
 		immEnd();
-#endif
 	}
 	else {
 		immBegin(PRIM_LINES, 8);
@@ -5635,9 +5626,7 @@ static void draw_particle_arrays_new(int draw_as, int ob_dt, int select,
 			else
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-#ifdef WITH_GL_PROFILE_COMPAT
-			draw_vertex_array(PRIM_QUADS_XXX, vert, nor, color, 0, 4 * totpoint, col);
-#endif
+			draw_vertex_array(PRIM_TRIANGLES, vert, nor, color, 0, 6 * totpoint, col);
 			break;
 		default:
 			draw_vertex_array(PRIM_POINTS, vert, nor, color, 0, totpoint, col);
@@ -5762,18 +5751,13 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 		case PART_DRAW_BB:
 		{
 			float xvec[3], yvec[3], zvec[3], bb_center[3];
-			if (cd) {
-				cd[0] = cd[3] = cd[6] = cd[9] = ma_col[0];
-				cd[1] = cd[4] = cd[7] = cd[10] = ma_col[1];
-				cd[2] = cd[5] = cd[8] = cd[11] = ma_col[2];
-				pdd->cd += 12;
-			}
 
 			copy_v3_v3(bb->vec, state->co);
 			copy_v3_v3(bb->vel, state->vel);
 
 			psys_make_billboard(bb, xvec, yvec, zvec, bb_center);
-			
+
+			/* First tri */
 			add_v3_v3v3(pdd->vd, bb_center, xvec);
 			add_v3_v3(pdd->vd, yvec); pdd->vd += 3;
 
@@ -5783,13 +5767,24 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			sub_v3_v3v3(pdd->vd, bb_center, xvec);
 			sub_v3_v3v3(pdd->vd, pdd->vd, yvec); pdd->vd += 3;
 
+			/* Second tri */
+			add_v3_v3v3(pdd->vd, bb_center, xvec);
+			add_v3_v3(pdd->vd, yvec); pdd->vd += 3;
+
+			sub_v3_v3v3(pdd->vd, bb_center, xvec);
+			sub_v3_v3v3(pdd->vd, pdd->vd, yvec); pdd->vd += 3;
+
 			add_v3_v3v3(pdd->vd, bb_center, xvec);
 			sub_v3_v3v3(pdd->vd, pdd->vd, yvec); pdd->vd += 3;
 
-			copy_v3_v3(pdd->nd, zvec); pdd->nd += 3;
-			copy_v3_v3(pdd->nd, zvec); pdd->nd += 3;
-			copy_v3_v3(pdd->nd, zvec); pdd->nd += 3;
-			copy_v3_v3(pdd->nd, zvec); pdd->nd += 3;
+			if (cd) {
+				for (int i = 0; i < 6; i++, cd += 3, pdd->cd += 3) {
+					copy_v3_v3(cd, ma_col);
+				}
+			}
+			for (int i = 0; i < 6; i++, pdd->nd += 3) {
+				copy_v3_v3(pdd->nd, zvec);
+			}
 			break;
 		}
 	}
@@ -6053,7 +6048,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				tot_vec_size *= 2;
 				break;
 			case PART_DRAW_BB:
-				tot_vec_size *= 4;
+				tot_vec_size *= 6;  /* New OGL only understands tris, no choice here. */
 				create_ndata = 1;
 				break;
 		}
@@ -7986,30 +7981,25 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 
 static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
 {
-	static const GLubyte quad_indices[24] = {0,1,2,3,7,6,5,4,4,5,1,0,3,2,6,7,3,7,4,0,1,5,6,2};
-	static const GLubyte line_indices[24] = {0,1,1,2,2,3,3,0,0,4,4,5,5,6,6,7,7,4,1,5,2,6,3,7};
-
-	const GLubyte *indices;
-	GLenum prim_type;
-
 	if (solid) {
-		indices = quad_indices;
-#ifdef WITH_GL_PROFILE_COMPAT
-		prim_type = PRIM_QUADS_XXX;
-#else
-		return;
-#endif
+		/* Adpated from "Optimizing Triangle Strips for Fast Rendering" by F. Evans, S. Skiena and A. Varshney
+		 *              (http://www.cs.umd.edu/gvil/papers/av_ts.pdf). */
+		static const GLubyte tris_strip_indices[14] = {0,1,3,2,6,1,5,0,4,3,7,6,4,5};
+		immBegin(PRIM_TRIANGLE_STRIP, 14);
+		for (int i = 0; i < 14; ++i) {
+			immVertex3fv(pos, vec[tris_strip_indices[i]]);
+		}
+		immEnd();
 	}
 	else {
-		indices = line_indices;
-		prim_type = PRIM_LINES;
+		static const GLubyte line_indices[24] = {0,1,1,2,2,3,3,0,0,4,4,5,5,6,6,7,7,4,1,5,2,6,3,7};
+		immBegin(PRIM_LINES, 24);
+		for (int i = 0; i < 24; ++i) {
+			immVertex3fv(pos, vec[line_indices[i]]);
+		}
+		immEnd();
 	}
 
-	immBegin(prim_type, 24);
-	for (int i = 0; i < 24; ++i) {
-		immVertex3fv(pos, vec[indices[i]]);
-	}
-	immEnd();
 }
 
 static void imm_draw_bb(BoundBox *bb, char type, bool around_origin, const unsigned char ob_wire_col[4])
