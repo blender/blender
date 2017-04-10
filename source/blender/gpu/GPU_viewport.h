@@ -44,7 +44,7 @@ typedef struct GPUViewport GPUViewport;
 #define MAX_BUFFERS 8
 #define MAX_TEXTURES 16
 #define MAX_PASSES 16
-#define MAX_STORAGE 5 /* extend if needed */
+#define MAX_STORAGE 9 /* extend if needed */
 
 /* All FramebufferLists are just the same pointers with different names */
 typedef struct FramebufferList {

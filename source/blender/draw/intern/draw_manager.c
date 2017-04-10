@@ -50,6 +50,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
+#include "GPU_lamp.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
@@ -1197,6 +1198,7 @@ void DRW_state_reset(void) {}
 
 #endif  /* WITH_CLAY_ENGINE */
 
+
 /* ****************************************** Settings ******************************************/
 
 bool DRW_is_object_renderable(Object *ob)
@@ -1233,7 +1235,6 @@ static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *
 			*channels = 4; return GPU_RGBA8;
 	}
 }
-
 
 void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX],
                           int texnbr)
@@ -1429,6 +1430,21 @@ void DRW_object_engine_data_free(Object *ob)
 	}
 
 	BLI_freelistN(&ob->drawdata);
+}
+
+LampEngineData *DRW_lamp_engine_data_get(Object *ob, RenderEngineType *engine_type)
+{
+	BLI_assert(ob->type == OB_LAMP);
+
+	Scene *scene = CTX_data_scene(DST.context);
+
+	/* TODO Dupliobjects */
+	return GPU_lamp_engine_data_get(scene, ob, NULL, engine_type);
+}
+
+void DRW_lamp_engine_data_free(LampEngineData *led)
+{
+	return GPU_lamp_engine_data_free(led);
 }
 
 /* **************************************** RENDERING ************************************** */

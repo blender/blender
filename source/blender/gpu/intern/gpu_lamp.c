@@ -214,7 +214,7 @@ static GPUTexture *gpu_lamp_create_vsm_shadow_map(int size)
 	return GPU_texture_create_2D_custom(size, size, 2, GPU_RG32F, NULL, NULL);
 }
 
-GPULamp *GPU_lamp_from_engine(Scene *scene, Object *ob, Object *par, struct RenderEngineType *re)
+LampEngineData *GPU_lamp_engine_data_get(Scene *scene, Object *ob, Object *par, struct RenderEngineType *re)
 {
 	GPULamp *lamp;
 	LinkData *link;
@@ -223,7 +223,7 @@ GPULamp *GPU_lamp_from_engine(Scene *scene, Object *ob, Object *par, struct Rend
 		lamp = (GPULamp *)link->data;
 
 		if ((lamp->par == par) && (lamp->scene == scene) && (lamp->re == re))
-			return link->data;
+			return &lamp->data;
 	}
 
 	lamp = MEM_callocN(sizeof(GPULamp), "GPULamp");
@@ -238,7 +238,7 @@ GPULamp *GPU_lamp_from_engine(Scene *scene, Object *ob, Object *par, struct Rend
 	lamp->la = ob->data;
 	lamp->re = re;
 
-	return lamp;
+	return &lamp->data;
 }
 
 GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
@@ -364,6 +364,16 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 	return lamp;
 }
 
+void GPU_lamp_engine_data_free(LampEngineData *led)
+{
+	for (int i = 0; i < MAX_LAMP_DATA; ++i)	{
+		if (led->storage[i]) {
+			MEM_freeN(led->storage[i]);
+			led->storage[i] = NULL;
+		}
+	}
+}
+
 void GPU_lamp_free(Object *ob)
 {
 	GPULamp *lamp;
@@ -384,6 +394,7 @@ void GPU_lamp_free(Object *ob)
 		}
 
 		gpu_lamp_shadow_free(lamp);
+		GPU_lamp_engine_data_free(&lamp->data);
 
 		MEM_freeN(lamp);
 	}

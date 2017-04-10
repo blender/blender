@@ -143,8 +143,7 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 	else
 		attachment = GL_COLOR_ATTACHMENT0 + slot;
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment,
-		GPU_texture_target(tex), GPU_texture_opengl_bindcode(tex), 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0);
 
 	if (GPU_texture_depth(tex))
 		fb->depthtex = tex;

@@ -7,12 +7,12 @@
 /* ------- Structures -------- */
 
 struct LightData {
-	vec4 position_influence;     /* w : InfluenceRadius */
-	vec4 color_spec;          /* w : Spec Intensity */
-	vec4 spotdata_shadow;  /* x : spot size, y : spot blend */
-	vec4 rightvec_sizex;         /* xyz: Normalized up vector, w: Lamp Type */
-	vec4 upvec_sizey;      /* xyz: Normalized right vector, w: Lamp Type */
-	vec4 forwardvec_type;     /* xyz: Normalized forward vector, w: Lamp Type */
+	vec4 position_influence;      /* w : InfluenceRadius */
+	vec4 color_spec;              /* w : Spec Intensity */
+	vec4 spotdata_radius_shadow;  /* x : spot size, y : spot blend, z : radius, w: shadow id */
+	vec4 rightvec_sizex;          /* xyz: Normalized up vector, w: area size X or spot scale X */
+	vec4 upvec_sizey;             /* xyz: Normalized right vector, w: area size Y or spot scale Y */
+	vec4 forwardvec_type;         /* xyz: Normalized forward vector, w: Lamp Type */
 };
 
 /* convenience aliases */
@@ -21,14 +21,48 @@ struct LightData {
 #define l_position     position_influence.xyz
 #define l_influence    position_influence.w
 #define l_sizex        rightvec_sizex.w
-#define l_radius       rightvec_sizex.w
 #define l_sizey        upvec_sizey.w
 #define l_right        rightvec_sizex.xyz
 #define l_up           upvec_sizey.xyz
 #define l_forward      forwardvec_type.xyz
 #define l_type         forwardvec_type.w
-#define l_spot_size    spotdata_shadow.x
-#define l_spot_blend   spotdata_shadow.y
+#define l_spot_size    spotdata_radius_shadow.x
+#define l_spot_blend   spotdata_radius_shadow.y
+#define l_radius       spotdata_radius_shadow.z
+#define l_shadowid     spotdata_radius_shadow.w
+
+
+struct ShadowCubeData {
+	vec4 near_far_bias;
+};
+
+/* convenience aliases */
+#define sh_cube_near   near_far_bias.x
+#define sh_cube_far    near_far_bias.y
+#define sh_cube_bias   near_far_bias.z
+
+
+struct ShadowMapData {
+	mat4 shadowmat;
+	vec4 near_far_bias;
+};
+
+/* convenience aliases */
+#define sh_map_near   near_far_bias.x
+#define sh_map_far    near_far_bias.y
+#define sh_map_bias   near_far_bias.z
+
+struct ShadowCascadeData {
+	mat4 shadowmat[MAX_CASCADE_NUM];
+	vec4 bias_count;
+	float near[MAX_CASCADE_NUM];
+	float far[MAX_CASCADE_NUM];
+};
+
+/* convenience aliases */
+#define sh_cascade_bias   bias_count.x
+#define sh_cascade_count  bias_count.y
+
 
 struct AreaData {
 	vec3 corner[4];
@@ -63,6 +97,26 @@ float distance_squared(vec3 a, vec3 b) { a -= b; return dot(a, a); }
 float hypot(float x, float y) { return sqrt(x*x + y*y); }
 
 float inverse_distance(vec3 V) { return max( 1 / length(V), 1e-8); }
+
+float linear_depth(float z, float zf, float zn)
+{
+	if (gl_ProjectionMatrix[3][3] == 0.0) {
+		return (zn  * zf) / (z * (zn - zf) + zf);
+	}
+	else {
+		return (z * 2.0 - 1.0) * zf;
+	}
+}
+
+float buffer_depth(float z, float zf, float zn)
+{
+	if (gl_ProjectionMatrix[3][3] == 0.0) {
+		return (zf * (zn - z)) / (z * (zn - zf));
+	}
+	else {
+		return (z / (zf * 2.0)) + 0.5;
+	}
+}
 
 float line_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec3 planeorigin, vec3 planenormal)
 {

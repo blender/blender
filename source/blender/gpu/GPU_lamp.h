@@ -42,15 +42,17 @@ struct RenderEngineType;
 
 typedef struct GPULamp GPULamp;
 
+#define MAX_LAMP_DATA 2
+
 typedef struct LampEngineData {
-	struct GPUFrameBuffer *framebuffers[4];
-	struct GPUTexture *textures[4];
-	void *storage[4];
+	void *storage[MAX_LAMP_DATA];
 } LampEngineData;
 
-GPULamp *GPU_lamp_from_engine(struct Scene *scene, struct Object *ob, Object *par, struct RenderEngineType *re);
+LampEngineData *GPU_lamp_engine_data_get(struct Scene *scene, struct Object *ob, struct Object *par, struct RenderEngineType *re);
+
 GPULamp *GPU_lamp_from_blender(struct Scene *scene, struct Object *ob, struct Object *par);
 void GPU_lamp_free(struct Object *ob);
+void GPU_lamp_engine_data_free(LampEngineData *led);
 
 bool GPU_lamp_override_visible(GPULamp *lamp, struct SceneRenderLayer *srl, struct Material *ma);
 bool GPU_lamp_has_shadow_buffer(GPULamp *lamp);

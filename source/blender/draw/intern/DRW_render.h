@@ -61,6 +61,8 @@ struct Object;
 struct Batch;
 struct DefaultFramebufferList;
 struct DefaultTextureList;
+struct LampEngineData;
+struct RenderEngineType;
 
 typedef struct DRWUniform DRWUniform;
 typedef struct DRWInterface DRWInterface;
@@ -252,6 +254,8 @@ struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 
 /* Objects */
 void **DRW_object_engine_data_get(Object *ob, DrawEngineType *det);
+struct LampEngineData *DRW_lamp_engine_data_get(Object *ob, struct RenderEngineType *engine_type);
+void DRW_lamp_engine_data_free(struct LampEngineData *led);
 
 /* Settings */
 bool DRW_is_object_renderable(struct Object *ob);

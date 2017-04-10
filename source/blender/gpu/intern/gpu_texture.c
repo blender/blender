@@ -169,9 +169,11 @@ static bool GPU_texture_try_alloc(
 		case GL_PROXY_TEXTURE_1D:
 			glTexImage1D(proxy, 0, internalformat, tex->w, 0, format, data_format, NULL);
 			break;
+		case GL_PROXY_TEXTURE_1D_ARRAY:
 		case GL_PROXY_TEXTURE_2D:
 			glTexImage2D(proxy, 0, internalformat, tex->w, tex->h, 0, format, data_format, NULL);
 			break;
+		case GL_PROXY_TEXTURE_2D_ARRAY:
 		case GL_PROXY_TEXTURE_3D:
 			glTexImage3D(proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, format, data_format, NULL);
 			break;
@@ -279,14 +281,20 @@ static GPUTexture *GPU_texture_create_nD(
 	glBindTexture(tex->target, tex->bindcode);
 
 	/* Check if texture fit in VRAM */
-	if (d > 0) {
+	if (n == 1) {
+		if (h == 0)
+			proxy = GL_PROXY_TEXTURE_1D;
+		else
+			proxy = GL_PROXY_TEXTURE_1D_ARRAY;
+	}
+	else if (n == 2) {
+		if (d == 0)
+			proxy = GL_PROXY_TEXTURE_2D;
+		else
+			proxy = GL_PROXY_TEXTURE_2D_ARRAY;
+	}
+	else if (n == 3) {
 		proxy = GL_PROXY_TEXTURE_3D;
-	}
-	else if (h > 0) {
-		proxy = GL_PROXY_TEXTURE_2D;
-	}
-	else {
-		proxy = GL_PROXY_TEXTURE_1D;
 	}
 
 	valid = GPU_texture_try_alloc(tex, proxy, internalformat, format, data_format, components, can_rescale, fpixels,
