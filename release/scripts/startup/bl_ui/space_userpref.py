@@ -1222,23 +1222,25 @@ class USERPREF_PT_input(Panel):
         sub = col.column()
         sub.label(text="View Navigation:")
         sub.row().prop(inputs, "navigation_mode", expand=True)
-        if inputs.navigation_mode == 'WALK':
-            walk = inputs.walk_navigation
 
-            sub.prop(walk, "use_mouse_reverse")
-            sub.prop(walk, "mouse_speed")
-            sub.prop(walk, "teleport_time")
+        sub.label(text="Walk Navigation:")
 
-            sub = col.column(align=True)
-            sub.prop(walk, "walk_speed")
-            sub.prop(walk, "walk_speed_factor")
+        walk = inputs.walk_navigation
 
-            sub.separator()
-            sub.prop(walk, "use_gravity")
-            sub = col.column(align=True)
-            sub.active = walk.use_gravity
-            sub.prop(walk, "view_height")
-            sub.prop(walk, "jump_height")
+        sub.prop(walk, "use_mouse_reverse")
+        sub.prop(walk, "mouse_speed")
+        sub.prop(walk, "teleport_time")
+
+        sub = col.column(align=True)
+        sub.prop(walk, "walk_speed")
+        sub.prop(walk, "walk_speed_factor")
+
+        sub.separator()
+        sub.prop(walk, "use_gravity")
+        sub = col.column(align=True)
+        sub.active = walk.use_gravity
+        sub.prop(walk, "view_height")
+        sub.prop(walk, "jump_height")
 
         if inputs.use_ndof:
             col.separator()
