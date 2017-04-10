@@ -72,7 +72,7 @@ void clip_graph_tracking_values_iterate_track(
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
 	for (coord = 0; coord < 2; coord++) {
-		int i, prevfra = 0;
+		int i, prevfra = track->markers[0].framenr;
 		bool open = false;
 		float prevval = 0.0f;
 
