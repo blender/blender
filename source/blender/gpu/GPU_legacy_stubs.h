@@ -44,11 +44,18 @@
 
 #include "BLI_utildefines.h"
 
-#define _GL_VOID static inline void
-#define _GL_VOID_RET {}
+#define _GL_PREFIX static inline
 
-#define _GL_INT static inline GLint
+#define _GL_BOOL _GL_PREFIX GLboolean
+#define _GL_BOOL_RET { return false; }
+#define _GL_ENUM _GL_PREFIX GLenum
+#define _GL_ENUM_RET { return 0; }
+#define _GL_INT _GL_PREFIX GLint
 #define _GL_INT_RET { return 0; }
+#define _GL_UINT _GL_PREFIX GLuint
+#define _GL_UINT_RET { return 0; }
+#define _GL_VOID _GL_PREFIX void
+#define _GL_VOID_RET {}
 
 static bool disable_enable_check(GLenum cap)
 {
@@ -64,180 +71,359 @@ static bool disable_enable_check(GLenum cap)
 	            );
 }
 
-static bool tex_env_check(GLenum target, GLenum pname)
-{
-	return (ELEM(target, GL_TEXTURE_ENV) ||
-	        (target == GL_TEXTURE_FILTER_CONTROL && pname == GL_TEXTURE_LOD_BIAS));
-}
-
-#define glAlphaFunc oldAlphaFunc
-_GL_VOID oldAlphaFunc (GLenum func, GLclampf ref) _GL_VOID_RET
-
-#define glBegin oldBegin
-_GL_VOID oldBegin (GLenum mode) _GL_VOID_RET
-
-#define glBitmap oldBitmap
-_GL_VOID oldBitmap (GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap) _GL_VOID_RET
-
-#define glClipPlane oldClipPlane
-_GL_VOID oldClipPlane (GLenum plane, const GLdouble *equation) _GL_VOID_RET
-
-#define glColor3f oldColor3f
-_GL_VOID oldColor3f (GLfloat red, GLfloat green, GLfloat blue) _GL_VOID_RET
-
-#define glColor3fv oldColor3fv
-_GL_VOID oldColor3fv (const GLfloat *v) _GL_VOID_RET
-
-#define glColor3ub oldColor3ub
-_GL_VOID oldColor3ub (GLubyte red, GLubyte green, GLubyte blue) _GL_VOID_RET
-
-#define glColor3ubv oldColor3ubv
-_GL_VOID oldColor3ubv (const GLubyte *v) _GL_VOID_RET
-
-#define glColor4f oldColor4f
-_GL_VOID oldColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) _GL_VOID_RET
-
-#define glColor4ub oldColor4ub
-_GL_VOID oldColor4ub (GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha) _GL_VOID_RET
-
-#define glColor4ubv oldColor4ubv
-_GL_VOID oldColor4ubv (const GLubyte *v) _GL_VOID_RET
-
-#define glColorPointer oldColorPointer
-_GL_VOID oldColorPointer (GLint size, GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
-
-_GL_VOID oldDisable (GLenum cap)
+_GL_VOID USE_CAREFULLY_glDisable (GLenum cap)
 {
 	if (!disable_enable_check(cap)) {
 		glDisable(cap);
 	}
 }
-#define glDisable oldDisable
+#define glDisable USE_CAREFULLY_glDisable
 
-#define glDisableClientState oldDisableClientState
-_GL_VOID oldDisableClientState (GLenum array) _GL_VOID_RET
-
-_GL_VOID oldEnable (GLenum cap)
+_GL_VOID USE_CAREFULLY_glEnable (GLenum cap)
 {
 	if (!disable_enable_check(cap)) {
 		glEnable(cap);
 	}
 }
-#define glEnable oldEnable
+#define glEnable USE_CAREFULLY_glEnable
 
-#define glEnableClientState oldEnableClientState
-_GL_VOID oldEnableClientState (GLenum array) _GL_VOID_RET
+/**
+ * Hand written cases
+ */
 
-#define glEnd oldEnd
-_GL_VOID oldEnd (void) _GL_VOID_RET
-
-#define glInitNames oldInitNames
-_GL_VOID oldInitNames (void) _GL_VOID_RET
-
-#define glLightf oldLightf
-_GL_VOID oldLightf (GLenum light, GLenum pname, GLfloat param) _GL_VOID_RET
-
-#define glLightfv oldLightfv
-_GL_VOID oldLightfv (GLenum light, GLenum pname, const GLfloat *params) _GL_VOID_RET
-
-#define glLineStipple oldLineStipple
-_GL_VOID oldLineStipple (GLint factor, GLushort pattern) _GL_VOID_RET
-
-#define glLoadName oldLoadName
-_GL_VOID oldLoadName (GLuint name) _GL_VOID_RET
-
-#define glMaterialfv oldMaterialfv
-_GL_VOID oldMaterialfv (GLenum face, GLenum pname, const GLfloat *params) _GL_VOID_RET
-
-#define glMateriali oldMateriali
-_GL_VOID oldMateriali (GLenum face, GLenum pname, GLint param) _GL_VOID_RET
-
-#define glNormal3fv oldNormal3fv
-_GL_VOID oldNormal3fv (const GLfloat *v) _GL_VOID_RET
-
-#define glNormal3sv oldNormal3sv
-_GL_VOID oldNormal3sv (const GLshort *v) _GL_VOID_RET
-
-#define glNormalPointer oldNormalPointer
-_GL_VOID oldNormalPointer (GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
-
-#define glPopName oldPopName
-_GL_VOID oldPopName (void) _GL_VOID_RET
-
-#define glPushName oldPushName
-_GL_VOID oldPushName (GLuint name) _GL_VOID_RET
-
-#define glRasterPos2f oldRasterPos2f
-_GL_VOID oldRasterPos2f (GLfloat x, GLfloat y) _GL_VOID_RET
-
-#define glRenderMode oldRenderMode
-_GL_INT oldRenderMode (GLenum mode) _GL_INT_RET
-
-#define glSelectBuffer oldSelectBuffer
-_GL_VOID oldSelectBuffer (GLsizei size, GLuint *buffer) _GL_VOID_RET
-
-#define glShadeModel oldShadeModel
-_GL_VOID oldShadeModel (GLenum mode) _GL_VOID_RET
-
-#define glTexCoord2fv oldTexCoord2fv
-_GL_VOID oldTexCoord2fv (const GLfloat *v) _GL_VOID_RET
-
-_GL_VOID oldTexEnvf(GLenum target, GLenum pname, GLint param)
-{
-	if (!tex_env_check(target, pname)) {
-		glTexEnvf(target, pname, param);
-	}
-}
-#define glTexEnvf oldTexEnvf
-
-_GL_VOID oldTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
-{
-	if (!tex_env_check(target, pname)) {
-		glTexEnvfv(target, pname, params);
-	}
-}
-#define glTexEnvfv oldTexEnvfv
-
-_GL_VOID oldTexEnvi(GLenum target, GLenum pname, GLint param)
-{
-	if (!tex_env_check(target, pname)) {
-		glTexEnvi(target, pname, param);
-	}
-}
-#define glTexEnvi oldTexEnvi
-
-_GL_VOID oldTexGeni(GLenum coord, GLenum pname, GLint param)
-{
-	if (pname != GL_TEXTURE_GEN_MODE) {
-		glTexGeni(coord, pname, param);
-	}
-}
-#define glTexGeni oldTexGeni
-
-#define glVertex2f oldVertex2f
-_GL_VOID oldVertex2f (GLfloat x, GLfloat y) _GL_VOID_RET
-
-#define glVertex3f oldVertex3f
-_GL_VOID oldVertex3f (GLfloat x, GLfloat y, GLfloat z) _GL_VOID_RET
-
-#define glTexCoord3fv oldTexCoord3fv
-_GL_VOID oldTexCoord3fv (const GLfloat *v) _GL_VOID_RET
-
-#define glTexCoordPointer oldTexCoordPointer
-_GL_VOID oldTexCoordPointer (GLint size, GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
-
-#define glVertexPointer oldVertexPointer
-_GL_VOID oldVertexPointer (GLint size, GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
-
-#define glVertex3fv oldVertex3fv
-_GL_VOID oldVertex3fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glClientActiveTexture (GLenum texture) _GL_VOID_RET
 
 
-#undef _GL_VOID
-#undef _GL_VOID_RET
+/**
+ * List automatically generated from `gl-deprecated.h` and `glew.h`
+ */
 
+/**
+ * ENUM values
+ */
+#define DO_NOT_USE_GL_POINT_SIZE_RANGE 0
+#define DO_NOT_USE_GL_POINT_SIZE_GRANULARITY 0
+#define DO_NOT_USE_GL_CURRENT_FOG_COORDINATE 0
+#define DO_NOT_USE_GL_FOG_COORDINATE 0
+#define DO_NOT_USE_GL_FOG_COORDINATE_ARRAY 0
+#define DO_NOT_USE_GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING 0
+#define DO_NOT_USE_GL_FOG_COORDINATE_ARRAY_POINTER 0
+#define DO_NOT_USE_GL_FOG_COORDINATE_ARRAY_STRIDE 0
+#define DO_NOT_USE_GL_FOG_COORDINATE_ARRAY_TYPE 0
+#define DO_NOT_USE_GL_FOG_COORDINATE_SOURCE 0
+#define DO_NOT_USE_GL_SOURCE0_ALPHA 0
+#define DO_NOT_USE_GL_SOURCE0_RGB 0
+#define DO_NOT_USE_GL_SOURCE1_ALPHA 0
+#define DO_NOT_USE_GL_SOURCE1_RGB 0
+#define DO_NOT_USE_GL_SOURCE2_ALPHA 0
+#define DO_NOT_USE_GL_SOURCE2_RGB 0
+#define USE_GL_CLIP_DISTANCE0 0
+#define USE_GL_CLIP_DISTANCE1 0
+#define USE_GL_CLIP_DISTANCE2 0
+#define USE_GL_CLIP_DISTANCE3 0
+#define USE_GL_CLIP_DISTANCE4 0
+#define USE_GL_CLIP_DISTANCE5 0
+#define USE_GL_COMPARE_REF_TO_TEXTURE 0
+#define USE_GL_MAX_CLIP_DISTANCES 0
+#define USE__MAX_VARYING_COMPONENTS 0
+#define USE_GL_PROGRAM_POINT_SIZE 0
+#define DO_NOT_USE_GL_CURRENT_PROGRAM 0
+
+/**
+ * Functions
+ */
+_GL_VOID DO_NOT_USE_glAccum (GLenum op, GLfloat value) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glAlphaFunc (GLenum func, GLclampf ref) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glBegin (GLenum mode) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glBitmap (GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glCallList (GLuint list) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glCallLists (GLsizei n, GLenum type, const void *lists) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glClearAccum (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glClearIndex (GLfloat c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glClipPlane (GLenum plane, const GLdouble *equation) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3b (GLbyte red, GLbyte green, GLbyte blue) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3bv (const GLbyte *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3d (GLdouble red, GLdouble green, GLdouble blue) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3f (GLfloat red, GLfloat green, GLfloat blue) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3i (GLint red, GLint green, GLint blue) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3s (GLshort red, GLshort green, GLshort blue) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3ub (GLubyte red, GLubyte green, GLubyte blue) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3ubv (const GLubyte *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3ui (GLuint red, GLuint green, GLuint blue) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3uiv (const GLuint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3us (GLushort red, GLushort green, GLushort blue) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor3usv (const GLushort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4b (GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4bv (const GLbyte *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4d (GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4i (GLint red, GLint green, GLint blue, GLint alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4s (GLshort red, GLshort green, GLshort blue, GLshort alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4ub (GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4ubv (const GLubyte *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4ui (GLuint red, GLuint green, GLuint blue, GLuint alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4uiv (const GLuint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4us (GLushort red, GLushort green, GLushort blue, GLushort alpha) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColor4usv (const GLushort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColorMaterial (GLenum face, GLenum mode) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glCopyPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum type) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glDeleteLists (GLuint list, GLsizei range) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glDrawPixels (GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEdgeFlag (GLboolean flag) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEdgeFlagv (const GLboolean *flag) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEnd (void) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEndList (void) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalCoord1d (GLdouble u) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalCoord1dv (const GLdouble *u) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalCoord1f (GLfloat u) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalCoord1fv (const GLfloat *u) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalCoord2d (GLdouble u, GLdouble v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalCoord2dv (const GLdouble *u) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalCoord2f (GLfloat u, GLfloat v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalCoord2fv (const GLfloat *u) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalMesh1 (GLenum mode, GLint i1, GLint i2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalMesh2 (GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalPoint1 (GLint i) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEvalPoint2 (GLint i, GLint j) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glFeedbackBuffer (GLsizei size, GLenum type, GLfloat *buffer) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glFogf (GLenum pname, GLfloat param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glFogfv (GLenum pname, const GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glFogi (GLenum pname, GLint param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glFogiv (GLenum pname, const GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glFrustum (GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar) _GL_VOID_RET
+_GL_UINT DO_NOT_USE_glGenLists (GLsizei range) _GL_UINT_RET
+_GL_VOID DO_NOT_USE_glGetClipPlane (GLenum plane, GLdouble *equation) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetLightfv (GLenum light, GLenum pname, GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetLightiv (GLenum light, GLenum pname, GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetMapdv (GLenum target, GLenum query, GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetMapfv (GLenum target, GLenum query, GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetMapiv (GLenum target, GLenum query, GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetMaterialfv (GLenum face, GLenum pname, GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetMaterialiv (GLenum face, GLenum pname, GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetPixelMapfv (GLenum map, GLfloat *values) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetPixelMapuiv (GLenum map, GLuint *values) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetPixelMapusv (GLenum map, GLushort *values) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetPolygonStipple (GLubyte *mask) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetTexEnvfv (GLenum target, GLenum pname, GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetTexEnviv (GLenum target, GLenum pname, GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetTexGendv (GLenum coord, GLenum pname, GLdouble *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetTexGenfv (GLenum coord, GLenum pname, GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glGetTexGeniv (GLenum coord, GLenum pname, GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexMask (GLuint mask) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexd (GLdouble c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexdv (const GLdouble *c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexf (GLfloat c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexfv (const GLfloat *c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexi (GLint c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexiv (const GLint *c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexs (GLshort c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexsv (const GLshort *c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glInitNames (void) _GL_VOID_RET
+_GL_BOOL DO_NOT_USE_glIsList (GLuint list) _GL_BOOL_RET
+_GL_VOID DO_NOT_USE_glLightModelf (GLenum pname, GLfloat param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLightModelfv (GLenum pname, const GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLightModeli (GLenum pname, GLint param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLightModeliv (GLenum pname, const GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLightf (GLenum light, GLenum pname, GLfloat param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLightfv (GLenum light, GLenum pname, const GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLighti (GLenum light, GLenum pname, GLint param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLightiv (GLenum light, GLenum pname, const GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLineStipple (GLint factor, GLushort pattern) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glListBase (GLuint base) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLoadIdentity (void) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLoadMatrixd (const GLdouble *m) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLoadMatrixf (const GLfloat *m) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glLoadName (GLuint name) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMap1d (GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMap1f (GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMap2d (GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMap2f (GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMapGrid1d (GLint un, GLdouble u1, GLdouble u2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMapGrid1f (GLint un, GLfloat u1, GLfloat u2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMapGrid2d (GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMapGrid2f (GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMaterialf (GLenum face, GLenum pname, GLfloat param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMaterialfv (GLenum face, GLenum pname, const GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMateriali (GLenum face, GLenum pname, GLint param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMaterialiv (GLenum face, GLenum pname, const GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMatrixMode (GLenum mode) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMultMatrixd (const GLdouble *m) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glMultMatrixf (const GLfloat *m) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNewList (GLuint list, GLenum mode) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3b (GLbyte nx, GLbyte ny, GLbyte nz) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3bv (const GLbyte *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3d (GLdouble nx, GLdouble ny, GLdouble nz) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3f (GLfloat nx, GLfloat ny, GLfloat nz) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3i (GLint nx, GLint ny, GLint nz) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3s (GLshort nx, GLshort ny, GLshort nz) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormal3sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glOrtho (GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPassThrough (GLfloat token) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPixelMapfv (GLenum map, GLsizei mapsize, const GLfloat *values) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPixelMapuiv (GLenum map, GLsizei mapsize, const GLuint *values) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPixelMapusv (GLenum map, GLsizei mapsize, const GLushort *values) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPixelTransferf (GLenum pname, GLfloat param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPixelTransferi (GLenum pname, GLint param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPixelZoom (GLfloat xfactor, GLfloat yfactor) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPolygonStipple (const GLubyte *mask) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPopAttrib (void) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPopMatrix (void) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPopName (void) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPushAttrib (GLbitfield mask) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPushMatrix (void) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPushName (GLuint name) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos2d (GLdouble x, GLdouble y) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos2dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos2f (GLfloat x, GLfloat y) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos2fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos2i (GLint x, GLint y) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos2iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos2s (GLshort x, GLshort y) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos2sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos3d (GLdouble x, GLdouble y, GLdouble z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos3dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos3f (GLfloat x, GLfloat y, GLfloat z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos3fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos3i (GLint x, GLint y, GLint z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos3iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos3s (GLshort x, GLshort y, GLshort z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos3sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos4d (GLdouble x, GLdouble y, GLdouble z, GLdouble w) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos4dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos4f (GLfloat x, GLfloat y, GLfloat z, GLfloat w) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos4fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos4i (GLint x, GLint y, GLint z, GLint w) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos4iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos4s (GLshort x, GLshort y, GLshort z, GLshort w) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRasterPos4sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRectd (GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRectdv (const GLdouble *v1, const GLdouble *v2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRectf (GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRectfv (const GLfloat *v1, const GLfloat *v2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRecti (GLint x1, GLint y1, GLint x2, GLint y2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRectiv (const GLint *v1, const GLint *v2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRects (GLshort x1, GLshort y1, GLshort x2, GLshort y2) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRectsv (const GLshort *v1, const GLshort *v2) _GL_VOID_RET
+_GL_INT DO_NOT_USE_glRenderMode (GLenum mode) _GL_INT_RET
+_GL_VOID DO_NOT_USE_glRotated (GLdouble angle, GLdouble x, GLdouble y, GLdouble z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glRotatef (GLfloat angle, GLfloat x, GLfloat y, GLfloat z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glScaled (GLdouble x, GLdouble y, GLdouble z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glScalef (GLfloat x, GLfloat y, GLfloat z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glSelectBuffer (GLsizei size, GLuint *buffer) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glShadeModel (GLenum mode) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord1d (GLdouble s) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord1dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord1f (GLfloat s) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord1fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord1i (GLint s) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord1iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord1s (GLshort s) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord1sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord2d (GLdouble s, GLdouble t) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord2dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord2f (GLfloat s, GLfloat t) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord2fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord2i (GLint s, GLint t) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord2iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord2s (GLshort s, GLshort t) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord2sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord3d (GLdouble s, GLdouble t, GLdouble r) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord3dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord3f (GLfloat s, GLfloat t, GLfloat r) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord3fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord3i (GLint s, GLint t, GLint r) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord3iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord3s (GLshort s, GLshort t, GLshort r) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord3sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord4d (GLdouble s, GLdouble t, GLdouble r, GLdouble q) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord4dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord4f (GLfloat s, GLfloat t, GLfloat r, GLfloat q) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord4fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord4i (GLint s, GLint t, GLint r, GLint q) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord4iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord4s (GLshort s, GLshort t, GLshort r, GLshort q) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoord4sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexEnvf (GLenum target, GLenum pname, GLfloat param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexEnvfv (GLenum target, GLenum pname, const GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexEnvi (GLenum target, GLenum pname, GLint param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexEnviv (GLenum target, GLenum pname, const GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexGend (GLenum coord, GLenum pname, GLdouble param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexGendv (GLenum coord, GLenum pname, const GLdouble *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexGenf (GLenum coord, GLenum pname, GLfloat param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexGenfv (GLenum coord, GLenum pname, const GLfloat *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexGeni (GLenum coord, GLenum pname, GLint param) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexGeniv (GLenum coord, GLenum pname, const GLint *params) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTranslated (GLdouble x, GLdouble y, GLdouble z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTranslatef (GLfloat x, GLfloat y, GLfloat z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex2d (GLdouble x, GLdouble y) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex2dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex2f (GLfloat x, GLfloat y) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex2fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex2i (GLint x, GLint y) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex2iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex2s (GLshort x, GLshort y) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex2sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex3d (GLdouble x, GLdouble y, GLdouble z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex3dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex3f (GLfloat x, GLfloat y, GLfloat z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex3fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex3i (GLint x, GLint y, GLint z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex3iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex3s (GLshort x, GLshort y, GLshort z) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex3sv (const GLshort *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex4d (GLdouble x, GLdouble y, GLdouble z, GLdouble w) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex4dv (const GLdouble *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex4f (GLfloat x, GLfloat y, GLfloat z, GLfloat w) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex4fv (const GLfloat *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex4i (GLint x, GLint y, GLint z, GLint w) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex4iv (const GLint *v) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex4s (GLshort x, GLshort y, GLshort z, GLshort w) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertex4sv (const GLshort *v) _GL_VOID_RET
+_GL_BOOL DO_NOT_USE_glAreTexturesResident (GLsizei n, const GLuint *textures, GLboolean *residences) _GL_BOOL_RET
+_GL_VOID DO_NOT_USE_glArrayElement (GLint i) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glColorPointer (GLint size, GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glDisableClientState (GLenum array) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEdgeFlagPointer (GLsizei stride, const void *pointer) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glEnableClientState (GLenum array) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexPointer (GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexub (GLubyte c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glIndexubv (const GLubyte *c) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glInterleavedArrays (GLenum format, GLsizei stride, const void *pointer) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glNormalPointer (GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPopClientAttrib (void) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPrioritizeTextures (GLsizei n, const GLuint *textures, const GLclampf *priorities) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glPushClientAttrib (GLbitfield mask) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glTexCoordPointer (GLint size, GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
+_GL_VOID DO_NOT_USE_glVertexPointer (GLint size, GLenum type, GLsizei stride, const void *pointer) _GL_VOID_RET
+
+/**
+ * End of automatically generated list
+ */
+
+
+
+#undef _GL_BOOL
+#undef _GL_BOOL_RET
+#undef _GL_ENUM
+#undef _GL_ENUM_RET
 #undef _GL_INT
 #undef _GL_INT_RET
+#undef _GL_UINT
+#undef _GL_UINT_RET
+#undef _GL_VOID
+#undef _GL_VOID_RET
+#undef _GL_PREFIX
 
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop

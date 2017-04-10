@@ -85,7 +85,7 @@ extern MXContext *_mx_context;
 /* If compiling only for OpenGL 3.2 Core Profile then we should make sure
  * no legacy API entries or symbolic constants are used.
  */
-#if defined(WITH_GL_PROFILE_CORE) && !defined(WITH_GL_PROFILE_COMPAT) && !defined(WITH_GL_PROFILE_ES20)
+#if (!defined(WITH_LEGACY_OPENGL)) || defined(WITH_GL_PROFILE_CORE) && !defined(WITH_GL_PROFILE_COMPAT) && !defined(WITH_GL_PROFILE_ES20)
 #  include "intern/gl-deprecated.h"
 #endif
 
