@@ -44,6 +44,7 @@ uniform vec4 viewvecs[3];
 	in vec2 depth_uv4;
 
 	out vec4 FragColor;
+	#define texture2D texture
 #endif
 
 

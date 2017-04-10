@@ -54,6 +54,8 @@ uniform vec4 viewvecs[3];
 	layout(location = 0) out vec4 fragData0;
 	layout(location = 1) out vec4 fragData1;
 	layout(location = 2) out vec4 fragData2;
+
+	#define texture2D texture
 #endif
 
 

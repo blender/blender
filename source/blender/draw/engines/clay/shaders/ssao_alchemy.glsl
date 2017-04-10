@@ -9,7 +9,7 @@
 void ssao_factors(in float depth, in vec3 normal, in vec3 position, in vec2 screenco, out float cavities, out float edges)
 {
 	/* take the normalized ray direction here */
-	vec2 rotX = texture2D(ssao_jitter, screenco.xy * jitter_tilling).rg;
+	vec2 rotX = texture(ssao_jitter, screenco.xy * jitter_tilling).rg;
 	vec2 rotY = vec2(-rotX.y, rotX.x);
 
 	/* find the offset in screen space by multiplying a point
@@ -27,7 +27,7 @@ void ssao_factors(in float depth, in vec3 normal, in vec3 position, in vec2 scre
 
 	for (x = 0; x < num_samples; x++) {
 		/* TODO : optimisation replace by constant */
-		vec2 dir_sample = texture1D(ssao_samples, (float(x) + 0.5) / ssao_samples_num).rg;
+		vec2 dir_sample = texture(ssao_samples, (float(x) + 0.5) / ssao_samples_num).rg;
 
 		/* rotate with random direction to get jittered result */
 		vec2 dir_jittered = vec2(dot(dir_sample, rotX), dot(dir_sample, rotY));
@@ -37,7 +37,7 @@ void ssao_factors(in float depth, in vec3 normal, in vec3 position, in vec2 scre
 		if (uvcoords.x > 1.0 || uvcoords.x < 0.0 || uvcoords.y > 1.0 || uvcoords.y < 0.0)
 			continue;
 
-		float depth_new = texture2D(depthtex, uvcoords).r;
+		float depth_new = texture(depthtex, uvcoords).r;
 
 		/* Handle Background case */
 		bool is_background = (depth_new == 1.0);

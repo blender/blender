@@ -18,6 +18,8 @@ uniform sampler2D depthbuffer;
 #else
 	in vec4 uvcoordsvar;
 	out vec4 FragColor;
+	#define texture1D texture
+	#define texture2D texture
 #endif
 
 /* ssao_params.x : pixel scale for the ssao radious */
