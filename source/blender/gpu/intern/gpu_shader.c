@@ -80,7 +80,7 @@ extern char datatoc_gpu_shader_instance_vert_glsl[];
 extern char datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl[];
 extern char datatoc_gpu_shader_instance_objectspace_variying_color_vert_glsl[];
 extern char datatoc_gpu_shader_instance_screenspace_variying_color_vert_glsl[];
-extern char datatoc_gpu_shader_instance_screen_aligned_axis_name_vert_glsl[];
+extern char datatoc_gpu_shader_instance_screen_aligned_vert_glsl[];
 extern char datatoc_gpu_shader_instance_camera_vert_glsl[];
 extern char datatoc_gpu_shader_instance_distance_line_vert_glsl[];
 extern char datatoc_gpu_shader_instance_edges_variying_color_geom_glsl[];
@@ -712,8 +712,10 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                                               datatoc_gpu_shader_flat_color_frag_glsl},
 		[GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR] = { datatoc_gpu_shader_instance_screenspace_variying_color_vert_glsl,
 		                                               datatoc_gpu_shader_flat_color_frag_glsl},
-		[GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS] = { datatoc_gpu_shader_instance_screen_aligned_axis_name_vert_glsl,
+		[GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS] = { datatoc_gpu_shader_instance_screen_aligned_vert_glsl,
 		                                                 datatoc_gpu_shader_flat_color_frag_glsl},
+		[GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED] = { datatoc_gpu_shader_instance_screen_aligned_vert_glsl,
+		                                            datatoc_gpu_shader_flat_color_frag_glsl},
 
 		[GPU_SHADER_CAMERA] = { datatoc_gpu_shader_instance_camera_vert_glsl,
 		                        datatoc_gpu_shader_flat_color_frag_glsl},
@@ -754,6 +756,9 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE] = 
 		    { datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl,
 		      datatoc_gpu_shader_flat_color_frag_glsl },
+		[GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE] =
+		    { datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl,
+		      datatoc_gpu_shader_flat_color_frag_glsl },
 		[GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR] = { datatoc_gpu_shader_instance_edges_variying_color_vert_glsl,
 		                                               datatoc_gpu_shader_flat_color_frag_glsl,
 		                                               datatoc_gpu_shader_instance_edges_variying_color_geom_glsl},
@@ -763,6 +768,8 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		/* just a few special cases */
 		const char *defines = (shader == GPU_SHADER_SMOKE_COBA) ? "#define USE_COBA;\n" :
 		                      (shader == GPU_SHADER_SIMPLE_LIGHTING) ? "#define USE_NORMALS;\n" :
+		                      (shader == GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE) ? "#define UNIFORM_SCALE;\n" :
+		                      (shader == GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS) ? "#define AXIS_NAME;\n" :
 		                      (shader == GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR) ? "#define USE_INSTANCE_COLOR;\n" : NULL;
 
 		const GPUShaderStages *stages = builtin_shader_stages + shader;

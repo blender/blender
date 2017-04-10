@@ -112,6 +112,12 @@ typedef struct PartDeflect {
 	float f_noise;		/* noise of force						*/
 	int seed;			/* noise random seed					*/
 
+	/* Display Size */
+	float drawvec1[4]; /* Runtime only : start of the curve or draw scale */
+	float drawvec2[4]; /* Runtime only : end of the curve */
+	float drawvec_falloff_min[3], pad1; /* Runtime only */
+	float drawvec_falloff_max[3], pad2; /* Runtime only */
+
 	struct Object *f_source; /* force source object */
 } PartDeflect;
 

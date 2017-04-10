@@ -92,13 +92,16 @@ struct DRWShadingGroup *shgroup_groundpoints_uniform_color(struct DRWPass *pass,
 struct DRWShadingGroup *shgroup_instance_screenspace(struct DRWPass *pass, struct Batch *geom, float *size);
 struct DRWShadingGroup *shgroup_instance_objspace_solid(struct DRWPass *pass, struct Batch *geom, float (*obmat)[4]);
 struct DRWShadingGroup *shgroup_instance_objspace_wire(struct DRWPass *pass, struct Batch *geom, float (*obmat)[4]);
+struct DRWShadingGroup *shgroup_instance_screen_aligned(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_instance_axis_names(struct DRWPass *pass, struct Batch *geom);
+struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct Batch *geom);
 
 int DRW_object_wire_theme_get(struct Object *ob, struct SceneLayer *sl, float **color);
+float *DRW_color_background_blend_get(int theme_id);
 
 /* draw_armature.c */
 void DRW_shgroup_armature_object(

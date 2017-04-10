@@ -36,6 +36,7 @@ struct Batch *DRW_cache_fullscreen_quad_get(void);
 struct Batch *DRW_cache_single_vert_get(void);
 struct Batch *DRW_cache_single_line_get(void);
 struct Batch *DRW_cache_single_line_endpoints_get(void);
+struct Batch *DRW_cache_screenspace_circle_get(void);
 
 /* Empties */
 struct Batch *DRW_cache_plain_axes_get(void);
@@ -47,6 +48,13 @@ struct Batch *DRW_cache_empty_sphere_get(void);
 struct Batch *DRW_cache_empty_cone_get(void);
 struct Batch *DRW_cache_arrows_get(void);
 struct Batch *DRW_cache_axis_names_get(void);
+
+/* Force Field */
+struct Batch *DRW_cache_field_wind_get(void);
+struct Batch *DRW_cache_field_force_get(void);
+struct Batch *DRW_cache_field_vortex_get(void);
+struct Batch *DRW_cache_field_tube_limit_get(void);
+struct Batch *DRW_cache_field_cone_limit_get(void);
 
 /* Lamps */
 struct Batch *DRW_cache_lamp_get(void);

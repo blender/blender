@@ -40,6 +40,7 @@
 static struct DRWShapeCache {
 	Batch *drw_single_vertice;
 	Batch *drw_fullscreen_quad;
+	Batch *drw_screenspace_circle;
 	Batch *drw_plain_axes;
 	Batch *drw_single_arrow;
 	Batch *drw_cube;
@@ -51,6 +52,11 @@ static struct DRWShapeCache {
 	Batch *drw_empty_cone;
 	Batch *drw_arrows;
 	Batch *drw_axis_names;
+	Batch *drw_field_wind;
+	Batch *drw_field_force;
+	Batch *drw_field_vortex;
+	Batch *drw_field_tube_limit;
+	Batch *drw_field_cone_limit;
 	Batch *drw_lamp;
 	Batch *drw_lamp_sunrays;
 	Batch *drw_lamp_area;
@@ -96,6 +102,16 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_arrows);
 	if (SHC.drw_axis_names)
 		Batch_discard_all(SHC.drw_axis_names);
+	if (SHC.drw_field_wind)
+		Batch_discard_all(SHC.drw_field_wind);
+	if (SHC.drw_field_force)
+		Batch_discard_all(SHC.drw_field_force);
+	if (SHC.drw_field_vortex)
+		Batch_discard_all(SHC.drw_field_vortex);
+	if (SHC.drw_field_tube_limit)
+		Batch_discard_all(SHC.drw_field_tube_limit);
+	if (SHC.drw_field_cone_limit)
+		Batch_discard_all(SHC.drw_field_cone_limit);
 	if (SHC.drw_lamp)
 		Batch_discard_all(SHC.drw_lamp);
 	if (SHC.drw_lamp_sunrays)
@@ -399,7 +415,6 @@ Batch *DRW_cache_single_line_get(void)
 	return SHC.drw_line;
 }
 
-
 Batch *DRW_cache_single_line_endpoints_get(void)
 {
 	/* Z axis line */
@@ -423,6 +438,34 @@ Batch *DRW_cache_single_line_endpoints_get(void)
 		SHC.drw_line_endpoints = Batch_create(PRIM_POINTS, vbo, NULL);
 	}
 	return SHC.drw_line_endpoints;
+}
+
+Batch *DRW_cache_screenspace_circle_get(void)
+{
+#define CIRCLE_RESOL 32
+	if (!SHC.drw_screenspace_circle) {
+		float v[3] = {0.0f, 0.0f, 0.0f};
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL + 1);
+
+		for (int a = 0; a <= CIRCLE_RESOL; a++) {
+			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			VertexBuffer_set_attrib(vbo, pos_id, a, v);
+		}
+
+		SHC.drw_screenspace_circle = Batch_create(PRIM_LINE_STRIP, vbo, NULL);
+	}
+	return SHC.drw_screenspace_circle;
+#undef CIRCLE_RESOL
 }
 
 /* Empties */
@@ -625,6 +668,216 @@ Batch *DRW_cache_axis_names_get(void)
 		SHC.drw_axis_names = Batch_create(PRIM_LINES, vbo, NULL);
 	}
 	return SHC.drw_axis_names;
+}
+
+/* Force Field */
+Batch *DRW_cache_field_wind_get(void)
+{
+#define CIRCLE_RESOL 32
+	if (!SHC.drw_field_wind) {
+		float v[3] = {0.0f, 0.0f, 0.0f};
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL * 2 * 4);
+
+		for (int i = 0; i < 4; i++) {
+			float z = 0.05f * (float)i;
+			for (int a = 0; a < CIRCLE_RESOL; a++) {
+				v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				v[2] = z;
+				VertexBuffer_set_attrib(vbo, pos_id, i * CIRCLE_RESOL * 2 + a * 2, v);
+
+				v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+				v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+				v[2] = z;
+				VertexBuffer_set_attrib(vbo, pos_id, i * CIRCLE_RESOL * 2 + a * 2 + 1, v);
+			}
+		}
+
+		SHC.drw_field_wind = Batch_create(PRIM_LINES, vbo, NULL);
+	}
+	return SHC.drw_field_wind;
+#undef CIRCLE_RESOL
+}
+
+Batch *DRW_cache_field_force_get(void)
+{
+#define CIRCLE_RESOL 32
+	if (!SHC.drw_field_force) {
+		float v[3] = {0.0f, 0.0f, 0.0f};
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL * 2 * 3);
+
+		for (int i = 0; i < 3; i++) {
+			float radius = 1.0f + 0.5f * (float)i;
+			for (int a = 0; a < CIRCLE_RESOL; a++) {
+				v[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				v[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				v[2] = 0.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, i * CIRCLE_RESOL * 2 + a * 2, v);
+
+				v[0] = radius * sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+				v[1] = radius * cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+				v[2] = 0.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, i * CIRCLE_RESOL * 2 + a * 2 + 1, v);
+			}
+		}
+
+		SHC.drw_field_force = Batch_create(PRIM_LINES, vbo, NULL);
+	}
+	return SHC.drw_field_force;
+#undef CIRCLE_RESOL
+}
+
+Batch *DRW_cache_field_vortex_get(void)
+{
+#define SPIRAL_RESOL 32
+	if (!SHC.drw_field_vortex) {
+		float v[3] = {0.0f, 0.0f, 0.0f};
+		unsigned int v_idx = 0;
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, SPIRAL_RESOL * 2 + 1);
+
+		for (int a = SPIRAL_RESOL; a > -1; a--) {
+			v[0] = sinf((2.0f * M_PI * a) / ((float)SPIRAL_RESOL)) * (a / (float)SPIRAL_RESOL);
+			v[1] = cosf((2.0f * M_PI * a) / ((float)SPIRAL_RESOL)) * (a / (float)SPIRAL_RESOL);
+
+			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+		}
+
+		for (int a = 1; a <= SPIRAL_RESOL; a++) {
+			v[0] = -sinf((2.0f * M_PI * a) / ((float)SPIRAL_RESOL)) * (a / (float)SPIRAL_RESOL);
+			v[1] = -cosf((2.0f * M_PI * a) / ((float)SPIRAL_RESOL)) * (a / (float)SPIRAL_RESOL);
+
+			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+		}
+
+		SHC.drw_field_vortex = Batch_create(PRIM_LINE_STRIP, vbo, NULL);
+	}
+	return SHC.drw_field_vortex;
+#undef SPIRAL_RESOL
+}
+
+Batch *DRW_cache_field_tube_limit_get(void)
+{
+#define CIRCLE_RESOL 32
+	if (!SHC.drw_field_tube_limit) {
+		float v[3] = {0.0f, 0.0f, 0.0f};
+		unsigned int v_idx = 0;
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL * 2 * 2 + 8);
+
+		/* Caps */
+		for (int i = 0; i < 2; i++) {
+			float z = (float)i * 2.0f - 1.0f;
+			for (int a = 0; a < CIRCLE_RESOL; a++) {
+				v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				v[2] = z;
+				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+
+				v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+				v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+				v[2] = z;
+				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+			}
+		}
+		/* Side Edges */
+		for (int a = 0; a < 4; a++) {
+			for (int i = 0; i < 2; i++) {
+				float z = (float)i * 2.0f - 1.0f;
+				v[0] = sinf((2.0f * M_PI * a) / 4.0f);
+				v[1] = cosf((2.0f * M_PI * a) / 4.0f);
+				v[2] = z;
+				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+			}
+		}
+
+		SHC.drw_field_tube_limit = Batch_create(PRIM_LINES, vbo, NULL);
+	}
+	return SHC.drw_field_tube_limit;
+#undef CIRCLE_RESOL
+}
+
+Batch *DRW_cache_field_cone_limit_get(void)
+{
+#define CIRCLE_RESOL 32
+	if (!SHC.drw_field_cone_limit) {
+		float v[3] = {0.0f, 0.0f, 0.0f};
+		unsigned int v_idx = 0;
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL * 2 * 2 + 8);
+
+		/* Caps */
+		for (int i = 0; i < 2; i++) {
+			float z = (float)i * 2.0f - 1.0f;
+			for (int a = 0; a < CIRCLE_RESOL; a++) {
+				v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				v[2] = z;
+				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+
+				v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+				v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+				v[2] = z;
+				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+			}
+		}
+		/* Side Edges */
+		for (int a = 0; a < 4; a++) {
+			for (int i = 0; i < 2; i++) {
+				float z = (float)i * 2.0f - 1.0f;
+				v[0] = z * sinf((2.0f * M_PI * a) / 4.0f);
+				v[1] = z * cosf((2.0f * M_PI * a) / 4.0f);
+				v[2] = z;
+				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+			}
+		}
+
+		SHC.drw_field_cone_limit = Batch_create(PRIM_LINES, vbo, NULL);
+	}
+	return SHC.drw_field_cone_limit;
+#undef CIRCLE_RESOL
 }
 
 /* Lamps */
