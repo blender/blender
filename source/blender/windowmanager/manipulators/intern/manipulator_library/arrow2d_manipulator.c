@@ -44,6 +44,8 @@
 
 #include "ED_screen.h"
 
+#include "GPU_draw.h"
+#include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
 #include "MEM_guardedalloc.h"
@@ -68,12 +70,14 @@ typedef struct ArrowManipulator2D {
 } ArrowManipulator2D;
 
 
-static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2])
+static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2], const float color[4])
 {
 	const float size = 0.11f;
 	const float size_h = size / 2.0f;
 	const float len = arrow->line_len;
 	const float draw_line_ofs = (arrow->manipulator.line_width * 0.5f) / arrow->manipulator.scale;
+
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	gpuPushMatrix();
 	gpuTranslate2fv(origin);
@@ -82,16 +86,22 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2])
 	/* local offset */
 	gpuTranslate2f(arrow->manipulator.offset[0] + draw_line_ofs, arrow->manipulator.offset[1]);
 
-	/* TODO get rid of immediate mode */
-	glBegin(GL_LINES);
-	glVertex2f(0.0f, 0.0f);
-	glVertex2f(0.0f, len);
-	glEnd();
-	glBegin(GL_TRIANGLES);
-	glVertex2f(size_h, len);
-	glVertex2f(-size_h, len);
-	glVertex2f(0.0f, len + size * 1.7f);
-	glEnd();
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4fv(color);
+
+	immBegin(PRIM_LINES, 2);
+	immVertex2f(pos, 0.0f, 0.0f);
+	immVertex2f(pos, 0.0f, len);
+	immEnd();
+
+	immBegin(PRIM_TRIANGLES, 3);
+	immVertex2f(pos, size_h, len);
+	immVertex2f(pos, -size_h, len);
+	immVertex2f(pos, 0.0f, len + size * 1.7f);
+	immEnd();
+
+	immUnbindProgram();
 
 	gpuPopMatrix();
 }
@@ -103,18 +113,16 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipul
 
 	manipulator_color_get(manipulator, manipulator->state & WM_MANIPULATOR_HIGHLIGHT, col);
 
-	glColor4fv(col);
 	glLineWidth(manipulator->line_width);
 	glEnable(GL_BLEND);
-	arrow2d_draw_geom(arrow, manipulator->origin);
+	arrow2d_draw_geom(arrow, manipulator->origin, col);
 	glDisable(GL_BLEND);
 
 	if (arrow->manipulator.interaction_data) {
 		ManipulatorInteraction *inter = arrow->manipulator.interaction_data;
 
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 		glEnable(GL_BLEND);
-		arrow2d_draw_geom(arrow, inter->init_origin);
+		arrow2d_draw_geom(arrow, inter->init_origin, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
 		glDisable(GL_BLEND);
 	}
 }
