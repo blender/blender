@@ -169,15 +169,12 @@ static void arrow_draw_geom(const ArrowManipulator *arrow, const bool select, co
 			gpuTranslate3f(0.0f, 0.0f, arrow->len);
 
 			if (use_lighting) {
-				glShadeModel(GL_SMOOTH);
+				immUnbindProgram();
+				immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 			}
 
 			imm_draw_circle_fill_3d(pos, 0.0, 0.0, width, 8);
 			imm_draw_cylinder_fill_3d(pos, width, 0.0, len, 8, 1);
-
-			if (use_lighting) {
-				glShadeModel(GL_FLAT);
-			}
 		}
 
 		gpuPopMatrix();
