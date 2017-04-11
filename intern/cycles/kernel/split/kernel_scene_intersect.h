@@ -59,6 +59,11 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 	/* intersect scene */
 	uint visibility = path_state_ray_visibility(kg, &state);
 
+	if(state.bounce > kernel_data.integrator.ao_bounces) {
+		visibility = PATH_RAY_SHADOW;
+		ray.t = kernel_data.background.ao_distance;
+	}
+
 #ifdef __HAIR__
 	float difl = 0.0f, extmax = 0.0f;
 	uint lcg_state = 0;
@@ -73,11 +78,6 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 
 		extmax = kernel_data.curve.maximum_width;
 		lcg_state = lcg_state_init(&rng, state.rng_offset, state.sample, 0x51633e2d);
-	}
-
-	if(state.bounce > kernel_data.integrator.ao_bounces) {
-		visibility = PATH_RAY_SHADOW;
-		ray.t = kernel_data.background.ao_distance;
 	}
 
 	bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);

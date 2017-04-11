@@ -4515,7 +4515,6 @@ static void draw_mesh_fancy(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v
 	
 	if (is_obact && BKE_paint_select_vert_test(ob)) {
 		const bool use_depth = (v3d->flag & V3D_ZBUF_SELECT) != 0;
-		glColor3f(0.0f, 0.0f, 0.0f);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if (!use_depth) glDisable(GL_DEPTH_TEST);
@@ -4977,7 +4976,6 @@ static void draw_mesh_fancy_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3
 #if 0 // (merwin) what is this for?
 	if (is_obact && BKE_paint_select_vert_test(ob)) {
 		const bool use_depth = (v3d->flag & V3D_ZBUF_SELECT) != 0;
-		glColor3f(0.0f, 0.0f, 0.0f);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if (!use_depth) glDisable(GL_DEPTH_TEST);
