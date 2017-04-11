@@ -382,7 +382,7 @@ float *DRW_color_background_blend_get(int theme_id)
 		default:              ret = colors[10]; break;
 	}
 
-	UI_GetThemeColorBlendShade4fv(theme_id, TH_BACK, 0.5, -16, ret);
+	UI_GetThemeColorBlendShade4fv(theme_id, TH_BACK, 0.5, 0, ret);
 
 	return ret;
 }
