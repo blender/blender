@@ -1929,18 +1929,6 @@ extern const char *RE_engine_id_CYCLES;
 	((base)->flag_legacy & SELECT) &&                                         \
 	((base)->lay & v3d->lay) &&                                               \
 	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
-#define TESTBASELIB_BGMODE(v3d, scene, base)  (                               \
-	((base)->flag_legacy & SELECT) &&                                         \
-	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
-	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
-#define BASE_EDITABLE_BGMODE(v3d, scene, base)  (                             \
-	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
-	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
-#define BASE_VISIBLE_BGMODE(v3d, scene, base)  (                              \
-	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
-	((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0)
 
 #define TESTBASE_NEW(base)  (                                                 \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
