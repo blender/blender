@@ -358,7 +358,7 @@ typedef struct PEData {
 	ViewContext vc;
 	
 	Scene *scene;
-	SceneLayer *sl;
+	SceneLayer *scene_layer;
 	Object *ob;
 	DerivedMesh *dm;
 	PTCacheEdit *edit;
@@ -393,9 +393,9 @@ static void PE_set_data(bContext *C, PEData *data)
 	memset(data, 0, sizeof(*data));
 
 	data->scene= CTX_data_scene(C);
-	data->sl = CTX_data_scene_layer(C);
+	data->scene_layer = CTX_data_scene_layer(C);
 	data->ob= CTX_data_active_object(C);
-	data->edit= PE_get_current(data->scene, data->sl, data->ob);
+	data->edit= PE_get_current(data->scene, data->scene_layer, data->ob);
 }
 
 static void PE_set_view3d_data(bContext *C, PEData *data)
@@ -1526,7 +1526,7 @@ static int select_roots_exec(bContext *C, wmOperator *op)
 	data.select_action = action;
 	foreach_point(&data, select_root);
 
-	PE_update_selection(data.scene, data.sl, data.ob, 1);
+	PE_update_selection(data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1591,7 +1591,7 @@ static int select_tips_exec(bContext *C, wmOperator *op)
 	data.select_action = action;
 	foreach_point(&data, select_tip);
 
-	PE_update_selection(data.scene, data.sl, data.ob, 1);
+	PE_update_selection(data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1677,7 +1677,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
 	BLI_rng_free(rng);
 
-	PE_update_selection(data.scene, data.sl, data.ob, 1);
+	PE_update_selection(data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1721,7 +1721,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	data.select= !RNA_boolean_get(op->ptr, "deselect");
 
 	for_mouse_hit_keys(&data, select_keys, 1);  /* nearest only */
-	PE_update_selection(data.scene, data.sl, data.ob, 1);
+	PE_update_selection(data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2039,7 +2039,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	PE_set_data(C, &data);
 	foreach_point(&data, select_less_keys);
 
-	PE_update_selection(data.scene, data.sl, data.ob, 1);
+	PE_update_selection(data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2101,7 +2101,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	PE_set_data(C, &data);
 	foreach_point(&data, select_more_keys);
 
-	PE_update_selection(data.scene, data.sl, data.ob, 1);
+	PE_update_selection(data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2198,7 +2198,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 	foreach_selected_point(&data, rekey_particle);
 	
 	recalc_lengths(data.edit);
-	PE_update_object(data.scene, data.sl, data.ob, 1);
+	PE_update_object(data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2529,7 +2529,7 @@ static int subdivide_exec(bContext *C, wmOperator *UNUSED(op))
 	foreach_point(&data, subdivide_particle);
 	
 	recalc_lengths(data.edit);
-	PE_update_object(data.scene, data.sl, data.ob, 1);
+	PE_update_object(data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -3100,7 +3100,7 @@ static void brush_cut(PEData *data, int pa_index)
 			edit->points[pa_index].flag |= PEP_TAG;
 		}
 		else {
-			rekey_particle_to_time(data->scene, data->sl, ob, pa_index, cut_time);
+			rekey_particle_to_time(data->scene, data->scene_layer, ob, pa_index, cut_time);
 			edit->points[pa_index].flag |= PEP_EDIT_RECALC;
 		}
 	}
@@ -4192,7 +4192,7 @@ static void shape_cut(PEData *data, int pa_index)
 			edit->points[pa_index].flag |= PEP_TAG;
 		}
 		else {
-			rekey_particle_to_time(data->scene, data->sl, ob, pa_index, cut_time);
+			rekey_particle_to_time(data->scene, data->scene_layer, ob, pa_index, cut_time);
 			edit->points[pa_index].flag |= PEP_EDIT_RECALC;
 		}
 	}
