@@ -549,7 +549,7 @@ bool ED_text_region_location_from_cursor(SpaceText *st, ARegion *ar, const int c
 SnapObjectContext *ED_transform_snap_object_context_create(
         struct Main *bmain, struct Scene *scene, int flag) RET_NULL
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        struct Main *bmain, struct Scene *scene, int flag,
+        struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, int flag,
         const struct ARegion *ar, const struct View3D *v3d) RET_NULL
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx) RET_NONE
 bool ED_transform_snap_object_project_ray_ex(

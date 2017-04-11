@@ -31,6 +31,7 @@ struct BMFace;
 
 struct ListBase;
 struct Scene;
+struct SceneLayer;
 struct Main;
 struct Object;
 struct ARegion;
@@ -67,9 +68,9 @@ struct SnapObjectParams {
 
 typedef struct SnapObjectContext SnapObjectContext;
 SnapObjectContext *ED_transform_snap_object_context_create(
-        struct Main *bmain, struct Scene *scene, int flag);
+        struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, int flag);
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        struct Main *bmain, struct Scene *scene, int flag,
+        struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, int flag,
         /* extra args for view3d */
         const struct ARegion *ar, const struct View3D *v3d);
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx);

@@ -101,6 +101,7 @@ typedef struct SnapObjectData_EditMesh {
 struct SnapObjectContext {
 	Main *bmain;
 	Scene *scene;
+	SceneLayer *scene_layer;
 	int flag;
 
 	/* Optional: when performing screen-space projection.
@@ -1770,7 +1771,7 @@ static bool snapObjectsRay(
 	 *
 	 * To solve that problem, we do it first as an exception.
 	 * */
-	BaseLegacy *base_act = sctx->scene->basact;
+	Base *base_act = sctx->scene_layer->basact;
 	if (base_act && base_act->object && base_act->object->mode & OB_MODE_PARTICLE_EDIT) {
 		Object *ob = base_act->object;
 
@@ -1791,11 +1792,11 @@ static bool snapObjectsRay(
 			ignore_object_active = true;
 			break;
 	}
-	for (BaseLegacy *base = sctx->scene->base.first; base != NULL; base = base->next) {
-		if ((BASE_VISIBLE_BGMODE(sctx->v3d_data.v3d, sctx->scene, base)) &&
+	for (Base *base = sctx->scene_layer->object_bases.first; base != NULL; base = base->next) {
+		if ((BASE_VISIBLE_NEW(base)) &&
 		    (base->flag_legacy & (BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA)) == 0 &&
 
-		    !((ignore_object_selected && (base->flag_legacy & (SELECT | BA_WAS_SEL))) ||
+		    !((ignore_object_selected && (((base->flag & BASE_SELECTED) != 0) || ((base->flag_legacy & BA_WAS_SEL)))) ||
 		      (ignore_object_active && base == base_act)))
 		{
 			Object *ob = base->object;
@@ -1840,7 +1841,7 @@ static bool snapObjectsRay(
  * \{ */
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        Main *bmain, Scene *scene, int flag)
+        Main *bmain, Scene *scene, SceneLayer *sl, int flag)
 {
 	SnapObjectContext *sctx = MEM_callocN(sizeof(*sctx), __func__);
 
@@ -1848,6 +1849,7 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 
 	sctx->bmain = bmain;
 	sctx->scene = scene;
+	sctx->scene_layer = sl;
 
 	sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
 	sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -1856,11 +1858,11 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 }
 
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        Main *bmain, Scene *scene, int flag,
+        Main *bmain, Scene *scene, SceneLayer *sl, int flag,
         /* extra args for view3d */
         const ARegion *ar, const View3D *v3d)
 {
-	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, flag);
+	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, sl, flag);
 
 	sctx->use_v3d = true;
 	sctx->v3d_data.ar = ar;

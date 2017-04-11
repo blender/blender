@@ -78,7 +78,7 @@
 #include "transform.h"
 
 /* this should be passed as an arg for use in snap functions */
-#undef BASACT
+#undef BASACT_NEW
 
 /* use half of flt-max so we can scale up without an exception */
 
@@ -503,8 +503,8 @@ static void initSnappingMode(TransInfo *t)
 {
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
-	Scene *scene = t->scene;
-	BaseLegacy *base_act = scene->basact;
+	SceneLayer *sl = t->sl;
+	Base *base_act = sl->basact;
 
 	if (t->spacetype == SPACE_NODE) {
 		/* force project off when not supported */
@@ -585,7 +585,7 @@ static void initSnappingMode(TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->tsnap.object_context == NULL) {
 			t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-			        G.main, t->scene, 0,
+			        G.main, t->scene, t->sl, 0,
 			        t->ar, t->view);
 
 			ED_transform_snap_object_context_set_editmesh_callbacks(
