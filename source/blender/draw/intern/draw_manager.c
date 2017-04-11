@@ -582,7 +582,7 @@ void DRW_shgroup_dynamic_call_add_array(DRWShadingGroup *shgroup, const void *at
 
 	BLI_assert(attr_len == interface->attribs_count);
 
-	memcpy(call->data, attr, data_size);
+	memcpy((void *) call->data, attr, data_size);
 
 	interface->instance_count += 1;
 
@@ -1441,7 +1441,7 @@ LampEngineData *DRW_lamp_engine_data_get(Object *ob, RenderEngineType *engine_ty
 
 void DRW_lamp_engine_data_free(LampEngineData *led)
 {
-	return GPU_lamp_engine_data_free(led);
+	GPU_lamp_engine_data_free(led);
 }
 
 /* **************************************** RENDERING ************************************** */
