@@ -5114,8 +5114,10 @@ static void drawDispListVerts(PrimitiveType prim_type, const void *data, unsigne
  * XXX : This is a huge perf issue. We should cache the resulting batches inside the object instead.
  *       But new viewport will do it anyway
  * TODO implement flat drawing */
-static void drawDispListElem(bool quads, bool UNUSED(smooth), const float *data, const float *ndata, unsigned int vert_ct,
-                             const int *elem, unsigned int elem_ct, const unsigned char wire_col[3])
+static void drawDispListElem(
+        bool quads, bool UNUSED(smooth), bool ndata_is_single,
+        const float *data, const float *ndata, unsigned int data_len,
+        const int *elem, unsigned int elem_len, const unsigned char wire_col[3])
 {
 	VertexFormat format = {0};
 	int i;
@@ -5124,31 +5126,41 @@ static void drawDispListElem(bool quads, bool UNUSED(smooth), const float *data,
 
 	pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 	if (ndata) {
-		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+		if (ndata_is_single) {
+			/* pass */
+		}
+		else {
+			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+		}
 	}
 
 	ElementListBuilder elb;
-	ElementListBuilder_init(&elb, PRIM_TRIANGLES, (quads) ? elem_ct * 2 : elem_ct, 0xffffffff);
+	ElementListBuilder_init(&elb, PRIM_TRIANGLES, (quads) ? elem_len * 2 : elem_len, 0xffffffff);
 
 	if (quads) {
-		for (i = elem_ct; i; --i, idx += 4) {
+		for (i = elem_len; i; --i, idx += 4) {
 			add_triangle_vertices(&elb, idx[0], idx[1], idx[2]);
 			add_triangle_vertices(&elb, idx[0], idx[2], idx[3]);
 		}
 	}
 	else {
-		for (i = elem_ct; i; --i, idx += 3) {
+		for (i = elem_len; i; --i, idx += 3) {
 			add_triangle_vertices(&elb, idx[0], idx[1], idx[2]);
 		}
 	}
 
 	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-	VertexBuffer_allocate_data(vbo, vert_ct);
+	VertexBuffer_allocate_data(vbo, data_len);
 
 	VertexBuffer_fill_attrib(vbo, pos_id, data);
 
 	if (ndata) {
-		VertexBuffer_fill_attrib(vbo, nor_id, ndata);
+		if (ndata_is_single) {
+			/* TODO: something like glNormal for a single value */
+		}
+		else {
+			VertexBuffer_fill_attrib(vbo, nor_id, ndata);
+		}
 	}
 
 	Batch *batch = Batch_create(PRIM_TRIANGLES, vbo, ElementList_build(&elb));
@@ -5229,11 +5241,17 @@ static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask, con
 				break;
 
 			case DL_INDEX3:
-				drawDispListElem(false, true, dl->verts, NULL, dl->nr, dl->index, dl->parts, wire_col);
+				drawDispListElem(
+				        false, true, false,
+				        dl->verts, NULL, dl->nr,
+				        dl->index, dl->parts, wire_col);
 				break;
 
 			case DL_INDEX4:
-				drawDispListElem(true, true, dl->verts, NULL, dl->nr, dl->index, dl->parts, wire_col);
+				drawDispListElem(
+				        true, true, false,
+				        dl->verts, NULL, dl->nr,
+				        dl->index, dl->parts, wire_col);
 				break;
 		}
 	}
@@ -5300,8 +5318,12 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short UNUSED(dflag
 						GPU_object_material_bind(dl->col + 1, use_glsl ? &gattribs : NULL);
 						col = dl->col;
 					}
+					const unsigned int verts_len = dl->nr * dl->parts;
 
-					drawDispListElem(true, (dl->rt & CU_SMOOTH), dl->verts, dl->nors, dl->nr * dl->parts, dl->index, dl->totindex, ob_wire_col);
+					drawDispListElem(
+					        true, (dl->rt & CU_SMOOTH) != 0, false,
+					        dl->verts, dl->nors, verts_len,
+					        dl->index, dl->totindex, ob_wire_col);
 				}
 				break;
 
@@ -5320,7 +5342,11 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short UNUSED(dflag
 				else
 					glNormal3fv(ndata);
 #endif
-				drawDispListElem(false, (dl->rt & CU_SMOOTH), dl->verts, dl->nors, dl->nr, dl->index, dl->parts, ob_wire_col);
+				/* special case, 'nors' is a single value */
+				drawDispListElem(
+				        false, (dl->rt & CU_SMOOTH) != 0, true,
+				        dl->verts, dl->nors, dl->nr,
+				        dl->index, dl->parts, ob_wire_col);
 
 #if 0
 				if (index3_nors_incr)
@@ -5335,7 +5361,10 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short UNUSED(dflag
 					col = dl->col;
 				}
 
-				drawDispListElem(true, true, dl->verts, dl->nors, dl->nr, dl->index, dl->parts, ob_wire_col);
+				drawDispListElem(
+				        true, true, false,
+				        dl->verts, dl->nors, dl->nr,
+				        dl->index, dl->parts, ob_wire_col);
 
 				break;
 		}
