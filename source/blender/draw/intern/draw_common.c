@@ -33,6 +33,14 @@
 
 #include "draw_common.h"
 
+
+#if 0
+#define UI_COLOR_RGB_FROM_U8(r, g, b, v4) \
+	ARRAY_SET_ITEMS(v4, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0)
+#endif
+#define UI_COLOR_RGBA_FROM_U8(r, g, b, a, v4) \
+	ARRAY_SET_ITEMS(v4, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, (float)a / 255.0f)
+
 /* Colors & Constant */
 GlobalsUboStorage ts;
 struct GPUUniformBuffer *globals_ubo = NULL;
@@ -47,6 +55,8 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_GROUP_ACTIVE, ts.colorGroupActive);
 	UI_GetThemeColorShade4fv(TH_GROUP_ACTIVE, -25, ts.colorGroupSelect);
 	UI_GetThemeColor4fv(TH_GROUP, ts.colorGroup);
+	UI_COLOR_RGBA_FROM_U8(0x88, 0xFF, 0xFF, 155, ts.colorLibrarySelect);
+	UI_COLOR_RGBA_FROM_U8(0x55, 0xCC, 0xCC, 155, ts.colorLibrary);
 	UI_GetThemeColor4fv(TH_LAMP, ts.colorLamp);
 	UI_GetThemeColor4fv(TH_SPEAKER, ts.colorSpeaker);
 	UI_GetThemeColor4fv(TH_CAMERA, ts.colorCamera);

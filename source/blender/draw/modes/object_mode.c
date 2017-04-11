@@ -155,6 +155,8 @@ typedef struct g_data{
 	DRWShadingGroup *center_active;
 	DRWShadingGroup *center_selected;
 	DRWShadingGroup *center_deselected;
+	DRWShadingGroup *center_selected_lib;
+	DRWShadingGroup *center_deselected_lib;
 
 	/* Camera */
 	DRWShadingGroup *camera;
@@ -715,6 +717,16 @@ static void OBJECT_cache_init(void *vedata)
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", ts.colorDeselect, 1);
 		stl->g_data->center_deselected = grp;
+
+		/* Select (library) */
+		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
+		DRW_shgroup_uniform_vec4(grp, "color", ts.colorLibrarySelect, 1);
+		stl->g_data->center_selected_lib = grp;
+
+		/* Deselect (library) */
+		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
+		DRW_shgroup_uniform_vec4(grp, "color", ts.colorLibrary, 1);
+		stl->g_data->center_deselected_lib = grp;
 	}
 }
 
@@ -1047,12 +1059,32 @@ static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)
 
 static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob)
 {
+	const bool is_library = ob->id.us > 1 || ID_IS_LINKED_DATABLOCK(ob);
+	DRWShadingGroup *shgroup;
+
 	if ((ob->base_flag & BASE_SELECTED) != 0) {
-		DRW_shgroup_dynamic_call_add(stl->g_data->center_selected, ob->obmat[3]);
+		if (is_library) {
+			shgroup = stl->g_data->center_selected_lib;
+		}
+		else {
+			shgroup = stl->g_data->center_selected;
+		}
 	}
-	else if (0) {
-		DRW_shgroup_dynamic_call_add(stl->g_data->center_deselected, ob->obmat[3]);
+	else {
+#if 0
+		shgroup = stl->g_data->center_deselected;
+		if (is_library) {
+			shgroup = stl->g_data->center_deselected_lib;
+		}
+		else {
+			shgroup = stl->g_data->center_deselected;
+		}
+#else
+		return;
+#endif
 	}
+
+	DRW_shgroup_dynamic_call_add(shgroup, ob->obmat[3]);
 }
 
 static void OBJECT_cache_populate(void *vedata, Object *ob)
