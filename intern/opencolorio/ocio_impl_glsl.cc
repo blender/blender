@@ -48,6 +48,9 @@
 #  pragma warning(pop)
 #endif
 
+extern "C" {
+#include "gawain/immediate.h"
+}
 
 using namespace OCIO_NAMESPACE;
 
@@ -408,7 +411,7 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 
 		glActiveTexture(GL_TEXTURE0);
 
-		glUseProgram(state->program);
+		immBindProgram(state->program);
 
 		glUniform1i(glGetUniformLocation(state->program, "image_texture"), 0);
 		glUniform1i(glGetUniformLocation(state->program, "lut3d_texture"), 1);
@@ -461,7 +464,7 @@ void OCIOImpl::finishGLSLDraw(OCIO_GLSLDrawState *state)
 {
 	glActiveTexture(state->last_texture_unit);
 	glBindTexture(GL_TEXTURE_2D, state->last_texture);
-	glUseProgram(0);
+	immUnbindProgram();
 }
 
 void OCIOImpl::freeGLState(struct OCIO_GLSLDrawState *state)

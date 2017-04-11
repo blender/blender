@@ -27,6 +27,7 @@ set(INC
 	.
 	../glew-mx
 	../guardedalloc
+	../gawain
 	../../source/blender/blenlib
 )
 
