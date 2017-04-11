@@ -124,6 +124,7 @@ static void rect_transform_draw_interaction(
         const float half_w, const float half_h,
         const float w, const float h, const float line_width)
 {
+	/* Why generate coordinates for 4 vertices, when we only use three? */
 	float verts[4][2];
 
 	switch (highlighted) {
@@ -175,15 +176,28 @@ static void rect_transform_draw_interaction(
 			return;
 	}
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, verts);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	glLineWidth(line_width + 3.0);
-	glColor3f(0.0, 0.0, 0.0);
-	glDrawArrays(GL_LINE_STRIP, 0, 3);
+
+	immBegin(PRIM_LINE_STRIP, 3);
+	immAttrib3f(color, 0.0f, 0.0f, 0.0f);
+	immVertex2fv(pos, verts[0]);
+	immVertex2fv(pos, verts[1]);
+	immVertex2fv(pos, verts[2]);
+	immEnd();
+
 	glLineWidth(line_width);
-	glColor3fv(col);
-	glDrawArrays(GL_LINE_STRIP, 0, 3);
-	glLineWidth(1.0);
+
+	immBegin(PRIM_LINE_STRIP, 3);
+	immAttrib3fv(color, col);
+	immVertex2fv(pos, verts[0]);
+	immVertex2fv(pos, verts[1]);
+	immVertex2fv(pos, verts[2]);
+	immEnd();
 }
 
 static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipulator *manipulator)
