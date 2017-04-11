@@ -32,9 +32,8 @@ struct Batch;
 struct Object;
 struct SceneLayer;
 
-/* Used as ubo but colors can be directly
- * referenced as well */
-/* Keep in sync with globalsBlock in shaders */
+/* Used as ubo but colors can be directly referenced as well */
+/* Keep in sync with: common_globals_lib.glsl (globalsBlock) */
 typedef struct GlobalsUboStorage {
 	/* UBOs data needs to be 16 byte aligned (size of vec4) */
 	float colorWire[4];
