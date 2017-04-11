@@ -1071,17 +1071,12 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob)
 		}
 	}
 	else {
-#if 0
-		shgroup = stl->g_data->center_deselected;
 		if (is_library) {
 			shgroup = stl->g_data->center_deselected_lib;
 		}
 		else {
 			shgroup = stl->g_data->center_deselected;
 		}
-#else
-		return;
-#endif
 	}
 
 	DRW_shgroup_dynamic_call_add(shgroup, ob->obmat[3]);
