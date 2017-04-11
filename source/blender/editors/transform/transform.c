@@ -1889,7 +1889,7 @@ static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, vo
 {	
 	TransInfo *t = arg;
 	Scene *scene = t->scene;
-	SceneLayer *sl = t->sl;
+	SceneLayer *sl = t->scene_layer;
 	Object *ob = OBACT_NEW;
 	
 	/* draw autokeyframing hint in the corner 

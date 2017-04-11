@@ -503,7 +503,7 @@ static void initSnappingMode(TransInfo *t)
 {
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
-	SceneLayer *sl = t->sl;
+	SceneLayer *sl = t->scene_layer;
 	Base *base_act = sl->basact;
 
 	if (t->spacetype == SPACE_NODE) {
@@ -585,7 +585,7 @@ static void initSnappingMode(TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->tsnap.object_context == NULL) {
 			t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-			        G.main, t->scene, t->sl, 0,
+			        G.main, t->scene, t->scene_layer, 0,
 			        t->ar, t->view);
 
 			ED_transform_snap_object_context_set_editmesh_callbacks(

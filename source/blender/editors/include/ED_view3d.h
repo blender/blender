@@ -71,7 +71,7 @@ enum eGPUFXFlags;
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
 	struct Scene *scene;
-	struct SceneLayer *sl;
+	struct SceneLayer *scene_layer;
 	struct Object *obact;
 	struct Object *obedit;
 	struct ARegion *ar;

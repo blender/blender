@@ -1112,7 +1112,7 @@ int view3d_opengl_select(
         eV3DSelectMode select_mode)
 {
 	Scene *scene = vc->scene;
-	SceneLayer *sl = vc->sl;
+	SceneLayer *sl = vc->scene_layer;
 	View3D *v3d = vc->v3d;
 	ARegion *ar = vc->ar;
 	rcti rect;

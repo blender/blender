@@ -356,7 +356,7 @@ static void view3d_opengl_read_Z_pixels(ARegion *ar, int x, int y, int w, int h,
 void ED_view3d_backbuf_validate(ViewContext *vc)
 {
 	if (vc->v3d->flag & V3D_INVALID_BACKBUF)
-		backdrawview3d(vc->scene, vc->sl, vc->win, vc->ar, vc->v3d);
+		backdrawview3d(vc->scene, vc->scene_layer, vc->win, vc->ar, vc->v3d);
 }
 
 /**
