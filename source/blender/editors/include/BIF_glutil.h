@@ -67,10 +67,16 @@ int glaGetOneInt(int param);
  */
 void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y);
 
+typedef struct IMMDrawPixelsTexState {
+	struct GPUShader *shader;
+	unsigned int pos;
+	unsigned int texco;
+} IMMDrawPixelsTexState;
+
 /* To be used before calling immDrawPixelsTex
  * Default shader is GPU_SHADER_2D_IMAGE_COLOR
  * Returns a shader to be able to set uniforms */
-struct GPUShader *immDrawPixelsTexSetup(int builtin);
+IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
 
 /**
  * immDrawPixelsTex - Functions like a limited glDrawPixels, but actually draws the
@@ -86,14 +92,18 @@ struct GPUShader *immDrawPixelsTexSetup(int builtin);
  * modelview and projection matrices are assumed to define a
  * 1-to-1 mapping to screen space.
  */
-void immDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
+void immDrawPixelsTex(IMMDrawPixelsTexState *state,
+                      float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
                       float xzoom, float yzoom, float color[4]);
-void immDrawPixelsTex_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
+void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
+                               float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
                                float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
                                float xzoom, float yzoom, float color[4]);
-void immDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
-                           float xzoom, float yzoom, float color[4]);
-void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
+void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
+                            float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
+                            float xzoom, float yzoom, float color[4]);
+void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
+                                     float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
                                      float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
                                      float xzoom, float yzoom, float color[4]);
 /* 2D Drawing Assistance */

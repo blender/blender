@@ -1538,8 +1538,8 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 		if (force_fallback == false) {
 			if (IMB_colormanagement_setup_glsl_draw(&scene->view_settings, &scene->display_settings, dither, true)) {
 				glEnable(GL_BLEND);
-				immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-				immDrawPixelsTex(xof, yof, rres.rectx, rres.recty,
+				IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+				immDrawPixelsTex(&state, xof, yof, rres.rectx, rres.recty,
 				                 GL_RGBA, GL_FLOAT, GL_NEAREST, rres.rectf,
 				                 scale_x, scale_y, NULL);;
 				glDisable(GL_BLEND);
@@ -1558,8 +1558,8 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 			                                              4, dither, &scene->view_settings, &scene->display_settings);
 
 			glEnable(GL_BLEND);
-			immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-			immDrawPixelsTex(xof, yof, rres.rectx, rres.recty,
+			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+			immDrawPixelsTex(&state, xof, yof, rres.rectx, rres.recty,
 			                 GL_RGBA, GL_UNSIGNED_BYTE,
 			                 GL_NEAREST, display_buffer,
 			                 scale_x, scale_y, NULL);

@@ -322,9 +322,10 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		imm_draw_checker_box(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
 	}
 
-	immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 
 	immDrawPixelsTex(
+	        &state,
 	        offs_x + (ps->draw_flip[0] ? span_x : 0.0f),
 	        offs_y + (ps->draw_flip[1] ? span_y : 0.0f),
 	        ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST,

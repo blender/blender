@@ -600,8 +600,8 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 				if (re)
 					RE_AcquiredResultGet32(re, &rres, (unsigned int *)rect_byte, 0);
 
-				immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-				immDrawPixelsTex(fx, fy, rres.rectx, rres.recty, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect_byte,
+				IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+				immDrawPixelsTex(&state, fx, fy, rres.rectx, rres.recty, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect_byte,
 				                 1.0f, 1.0f, NULL);
 				
 				MEM_freeN(rect_byte);

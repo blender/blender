@@ -137,19 +137,33 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 	return texid;
 }
 
+static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
+{
+	VertexFormat *vert_format = immVertexFormat();
+	unsigned int pos = VertexFormat_add_attrib(vert_format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int texco = VertexFormat_add_attrib(vert_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+	state->pos = pos;
+	state->texco = texco;
+}
+
 /* To be used before calling immDrawPixelsTex
  * Default shader is GPU_SHADER_2D_IMAGE_COLOR
  * You can still set uniforms with :
  * GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);
  * */
-GPUShader *immDrawPixelsTexSetup(int builtin)
+IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
 {
+	IMMDrawPixelsTexState state;
+	immDrawPixelsTexSetupAttributes(&state);
+
 	GPUShader *shader = GPU_shader_get_builtin_shader(builtin);
 	/* Shader will be unbind by immUnbindProgram in immDrawPixelsTexScaled_clipping */
-	GPU_shader_bind(shader);
+	immBindBuiltinProgram(builtin);
 	GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "image"), 0);
 
-	return shader;
+	state.shader = shader;
+
+	return state;
 }
 
 /* Use the currently bound shader.
@@ -165,7 +179,8 @@ GPUShader *immDrawPixelsTexSetup(int builtin)
  * Be also aware that this function unbinds the shader when
  * it's finished.
  * */
-void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
+void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
+                                     float x, float y, int img_w, int img_h,
                                      int format, int type, int zoomfilter, void *rect,
                                      float scaleX, float scaleY,
                                      float clip_min_x, float clip_min_y,
@@ -229,25 +244,15 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, format, GL_UNSIGNED_BYTE, NULL);
 	}
 
-	VertexFormat *vert_format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(vert_format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int texco = VertexFormat_add_attrib(vert_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = 0, texco = 1;
 
-	unsigned int program = glaGetOneInt(GL_CURRENT_PROGRAM);
-
-	/* This is needed for the OCIO case.
-	 * Shader program is set outside of blender and
-	 * we need it in imm module to do all attrib /
-	 * uniform bindings. */
-
-	/* A program is already bound.
-	 * set it in imm.bound_program to be able to use imm functions */
-	BLI_assert(program);
-	immBindProgram(program);
-
-	/* optionnal */
-	if (glGetUniformLocation(program, "color") != -1)
+	/* optional */
+	/* NOTE: Shader could be null for GLSL OCIO drawing, it is fine, since
+	 * it does not need color.
+	 */
+	if (state->shader != NULL && GPU_shader_get_uniform(state->shader, "color") != -1) {
 		immUniform4fv("color", (color) ? color : white);
+	}
 
 	for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
 		for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
@@ -322,27 +327,30 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, unpack_row_length);
 }
 
-void immDrawPixelsTexScaled(float x, float y, int img_w, int img_h,
+void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
+                            float x, float y, int img_w, int img_h,
                             int format, int type, int zoomfilter, void *rect,
                             float scaleX, float scaleY, float xzoom, float yzoom, float color[4])
 {
-	immDrawPixelsTexScaled_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect,
+	immDrawPixelsTexScaled_clipping(state, x, y, img_w, img_h, format, type, zoomfilter, rect,
 	                                scaleX, scaleY, 0.0f, 0.0f, 0.0f, 0.0f, xzoom, yzoom, color);
 }
 
-void immDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
+void immDrawPixelsTex(IMMDrawPixelsTexState *state,
+                      float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
                       float xzoom, float yzoom, float color[4])
 {
-	immDrawPixelsTexScaled_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect, 1.0f, 1.0f,
+	immDrawPixelsTexScaled_clipping(state, x, y, img_w, img_h, format, type, zoomfilter, rect, 1.0f, 1.0f,
 	                                0.0f, 0.0f, 0.0f, 0.0f, xzoom, yzoom, color);
 }
 
-void immDrawPixelsTex_clipping(float x, float y, int img_w, int img_h,
+void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
+                               float x, float y, int img_w, int img_h,
                                int format, int type, int zoomfilter, void *rect,
                                float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
                                float xzoom, float yzoom, float color[4])
 {
-	immDrawPixelsTexScaled_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect, 1.0f, 1.0f,
+	immDrawPixelsTexScaled_clipping(state, x, y, img_w, img_h, format, type, zoomfilter, rect, 1.0f, 1.0f,
 	                                clip_min_x, clip_min_y, clip_max_x, clip_max_y, xzoom, yzoom, color);
 }
 
@@ -575,6 +583,9 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 	if (force_fallback == false) {
 		int ok;
 
+		IMMDrawPixelsTexState state = {0};
+		immDrawPixelsTexSetupAttributes(&state);
+
 		if (ibuf->rect_float) {
 			if (ibuf->float_colorspace) {
 				ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings, display_settings,
@@ -604,7 +615,8 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 					BLI_assert(!"Incompatible number of channels for GLSL display");
 
 				if (format != 0) {
-					immDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, format, GL_FLOAT,
+					immDrawPixelsTex_clipping(&state,
+					                          x, y, ibuf->x, ibuf->y, format, GL_FLOAT,
 					                          zoomfilter, ibuf->rect_float,
 					                          clip_min_x, clip_min_y, clip_max_x, clip_max_y,
 					                          zoom_x, zoom_y, NULL);
@@ -612,7 +624,8 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 			}
 			else if (ibuf->rect) {
 				/* ibuf->rect is always RGBA */
-				immDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
+				immDrawPixelsTex_clipping(&state,
+				                          x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
 				                          zoomfilter, ibuf->rect,
 				                          clip_min_x, clip_min_y, clip_max_x, clip_max_y,
 				                          zoom_x, zoom_y, NULL);
@@ -632,8 +645,9 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
 
 		if (display_buffer) {
-			immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-			immDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
+			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+			immDrawPixelsTex_clipping(&state,
+			                          x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
 			                          zoomfilter, display_buffer,
 			                          clip_min_x, clip_min_y, clip_max_x, clip_max_y,
 			                          zoom_x, zoom_y, NULL);

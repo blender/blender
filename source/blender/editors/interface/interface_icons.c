@@ -1005,8 +1005,8 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	}
 
 	/* draw */
-	immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-	immDrawPixelsTex(draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
+	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+	immDrawPixelsTex(&state, draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
 	                 1.0f, 1.0f, col);
 
 	if (ima)

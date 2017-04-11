@@ -3204,10 +3204,10 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 				else
 					shuffle[3] = 1.0f;
 
-				GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-				GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, shuffle);
+				IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+				GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, shuffle);
 
-				immDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST,
+				immDrawPixelsTex(&state, x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST,
 				                 display_buffer, snode->zoom, snode->zoom, NULL);
 
 				GPU_shader_unbind();

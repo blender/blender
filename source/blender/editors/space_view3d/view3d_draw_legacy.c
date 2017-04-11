@@ -773,8 +773,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			}
 
 			float col[4] = {1.0f, 1.0f, 1.0f, 1.0f - bgpic->blend};
-			immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-			immDrawPixelsTex(x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect,
+			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+			immDrawPixelsTex(&state, x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect,
 			                 zoomx, zoomy, col);
 
 			glMatrixMode(GL_PROJECTION);

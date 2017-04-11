@@ -432,10 +432,10 @@ static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int 
 		recti[a] = rect[a] * 0.5f + 0.5f;
 	}
 
-	GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-	GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
+	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+	GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 
-	immDrawPixelsTex(x1, y1, rectx, recty, GL_RED, GL_INT, GL_NEAREST, recti, zoomx, zoomy, NULL);
+	immDrawPixelsTex(&state, x1, y1, rectx, recty, GL_RED, GL_INT, GL_NEAREST, recti, zoomx, zoomy, NULL);
 
 	MEM_freeN(recti);
 }
@@ -470,10 +470,10 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 		}
 	}
 
-	GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-	GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
+	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+	GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 
-	immDrawPixelsTex(x1, y1, rectx, recty, GL_RED, GL_FLOAT, GL_NEAREST, rectf, zoomx, zoomy, NULL);
+	immDrawPixelsTex(&state, x1, y1, rectx, recty, GL_RED, GL_FLOAT, GL_NEAREST, rectf, zoomx, zoomy, NULL);
 
 	MEM_freeN(rectf);
 }
@@ -531,14 +531,14 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			else if (sima->flag & SI_SHOW_ALPHA)
 				shuffle[3] = 1.0f;
 
-			GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-			GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, shuffle);
+			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+			GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, shuffle);
 
 			IMB_colormanagement_display_settings_from_ctx(C, &view_settings, &display_settings);
 			display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
 
 			if (display_buffer) {
-				immDrawPixelsTex_clipping(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer,
+				immDrawPixelsTex_clipping(&state, x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer,
 				                          0, 0, clip_max_x, clip_max_y, zoomx, zoomy, NULL);
 			}
 
@@ -619,14 +619,14 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 			UI_view2d_view_to_region(&ar->v2d, fx + (float)sx / (float)ibuf->x, fy + (float)sy / (float)ibuf->y, &x, &y);
 
 			if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B | SI_SHOW_ALPHA)) == 0) {
-				immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-				immDrawPixelsTex(x, y, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect, zoomx, zoomy, NULL);
+				IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+				immDrawPixelsTex(&state, x, y, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect, zoomx, zoomy, NULL);
 			}
 			else {
-				GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-				GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, shuffle);
+				IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+				GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, shuffle);
 
-				immDrawPixelsTex(x, y, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect, zoomx, zoomy, NULL);
+				immDrawPixelsTex(&state, x, y, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect, zoomx, zoomy, NULL);
 			}
 		}
 	}
@@ -734,8 +734,8 @@ static void draw_image_paint_helpers(const bContext *C, ARegion *ar, Scene *scen
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-			immDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer, zoomx, zoomy, col);
+			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+			immDrawPixelsTex(&state, x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, display_buffer, zoomx, zoomy, col);
 
 			glDisable(GL_BLEND);
 

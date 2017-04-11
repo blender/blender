@@ -769,9 +769,9 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 		if (stabmat) {
 			gpuMultMatrix3D(stabmat); /* XXX make this a 2D matrix */
 		}
-		GPUShader *shader = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-		GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
-		immDrawPixelsTex(0.0f, 0.0f, width, height, GL_RED, GL_FLOAT, GL_NEAREST, buffer, 1.0f, 1.0f, NULL);
+		IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+		GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
+		immDrawPixelsTex(&state, 0.0f, 0.0f, width, height, GL_RED, GL_FLOAT, GL_NEAREST, buffer, 1.0f, 1.0f, NULL);
 
 		gpuPopMatrix();
 

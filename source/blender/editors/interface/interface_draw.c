@@ -560,8 +560,8 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 		facy = (float)h / (float)ibuf->y;
 	}
 
-	immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-	immDrawPixelsTex((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect,
+	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+	immDrawPixelsTex(&state, (float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, ibuf->rect,
 	                 facx, facy, NULL);
 	
 	glDisable(GL_BLEND);
@@ -1788,8 +1788,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 				UI_draw_roundbox_4fv(true, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 			}
 
-			immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-			immDrawPixelsTex(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, drawibuf->rect, 1.0f, 1.0f, NULL);
+			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+			immDrawPixelsTex(&state, rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, drawibuf->rect, 1.0f, 1.0f, NULL);
 
 			/* draw cross for pixel position */
 			gpuTranslate2f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1]);
