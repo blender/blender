@@ -95,6 +95,9 @@ private:
 	/* Marked True in constructor and marked false at the end of path_trace(). */
 	bool first_tile;
 
+	/* Cached global size */
+	size_t global_size[2];
+
 public:
 	explicit DeviceSplitKernel(Device* device);
 	virtual ~DeviceSplitKernel();

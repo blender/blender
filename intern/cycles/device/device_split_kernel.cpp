@@ -128,25 +128,26 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		local_size[1] = lsize[1];
 	}
 
-	/* Set gloabl size */
-	size_t global_size[2];
-	{
-		int2 gsize = split_kernel_global_size(kgbuffer, kernel_data, task);
-
-		/* Make sure that set work size is a multiple of local
-		 * work size dimensions.
-		 */
-		global_size[0] = round_up(gsize[0], local_size[0]);
-		global_size[1] = round_up(gsize[1], local_size[1]);
-	}
-
 	/* Number of elements in the global state buffer */
 	int num_global_elements = global_size[0] * global_size[1];
-	assert(num_global_elements % WORK_POOL_SIZE == 0);
 
 	/* Allocate all required global memory once. */
 	if(first_tile) {
 		first_tile = false;
+
+		/* Set gloabl size */
+		{
+			int2 gsize = split_kernel_global_size(kgbuffer, kernel_data, task);
+
+			/* Make sure that set work size is a multiple of local
+			 * work size dimensions.
+			 */
+			global_size[0] = round_up(gsize[0], local_size[0]);
+			global_size[1] = round_up(gsize[1], local_size[1]);
+		}
+
+		num_global_elements = global_size[0] * global_size[1];
+		assert(num_global_elements % WORK_POOL_SIZE == 0);
 
 		/* Calculate max groups */
 
