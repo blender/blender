@@ -77,7 +77,7 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2], 
 	const float len = arrow->line_len;
 	const float draw_line_ofs = (arrow->manipulator.line_width * 0.5f) / arrow->manipulator.scale;
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	gpuPushMatrix();
 	gpuTranslate2fv(origin);
