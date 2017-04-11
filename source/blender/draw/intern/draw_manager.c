@@ -572,20 +572,17 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 	BLI_addtail(&shgroup->calls, call);
 }
 
-void DRW_shgroup_dynamic_call_add(DRWShadingGroup *shgroup, ...)
+void DRW_shgroup_dynamic_call_add_array(DRWShadingGroup *shgroup, const void *attr[], unsigned int attr_len)
 {
-	va_list params;
-	int i;
 	DRWInterface *interface = shgroup->interface;
-	int size = sizeof(ListBase) + sizeof(void *) * interface->attribs_count;
+	unsigned int data_size = sizeof(void *) * interface->attribs_count;
+	int size = sizeof(ListBase) + data_size;
 
 	DRWDynamicCall *call = MEM_callocN(size, "DRWDynamicCall");
 
-	va_start(params, shgroup);
-	for (i = 0; i < interface->attribs_count; ++i) {
-		call->data[i] = va_arg(params, void *);
-	}
-	va_end(params);
+	BLI_assert(attr_len == interface->attribs_count);
+
+	memcpy(call->data, attr, data_size);
 
 	interface->instance_count += 1;
 
