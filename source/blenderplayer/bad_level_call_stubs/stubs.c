@@ -547,7 +547,7 @@ bool ED_texture_context_check_others(const struct bContext *C) RET_ZERO
 bool ED_text_region_location_from_cursor(SpaceText *st, ARegion *ar, const int cursor_co[2], int r_pixel_co[2]) RET_ZERO
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        struct Main *bmain, struct Scene *scene, int flag) RET_NULL
+        struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, int flag) RET_NULL
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
         struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, int flag,
         const struct ARegion *ar, const struct View3D *v3d) RET_NULL
