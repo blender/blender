@@ -515,20 +515,17 @@ void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Object *ob, Object 
 	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
 
 	if (lb) {
-		DupliObject *dupliob = static_cast<DupliObject *>(lb->first);
+		DupliObject *link = static_cast<DupliObject *>(lb->first);
 
-		while (dupliob) {
+		for (; link; link = link->next) {
 			/* This skips things like custom bone shapes. */
-			if (m_settings.renderable_only && dupliob->no_draw) {
-				dupliob = dupliob->next;
+			if (m_settings.renderable_only && link->no_draw) {
 				continue;
 			}
 
-			if (dupliob->type == OB_DUPLIGROUP) {
-				exploreObject(eval_ctx, dupliob->ob, ob);
+			if (link->type == OB_DUPLIGROUP) {
+				exploreObject(eval_ctx, link->ob, ob);
 			}
-
-			dupliob = dupliob->next;
 		}
 	}
 
