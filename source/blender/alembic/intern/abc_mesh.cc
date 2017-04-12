@@ -897,19 +897,31 @@ static void *add_customdata_cb(void *user_data, const char *name, int data_type)
 {
 	DerivedMesh *dm = static_cast<DerivedMesh *>(user_data);
 	CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
-	void *cd_ptr = NULL;
+	void *cd_ptr;
+	CustomData *loopdata;
+	int numloops;
 
-	if (ELEM(cd_data_type, CD_MLOOPUV, CD_MLOOPCOL)) {
-		cd_ptr = CustomData_get_layer_named(dm->getLoopDataLayout(dm), cd_data_type, name);
+	/* unsupported custom data type -- don't do anything. */
+	if (!ELEM(cd_data_type, CD_MLOOPUV, CD_MLOOPCOL)) {
+		return NULL;
+	}
 
-		if (cd_ptr == NULL) {
-			cd_ptr = CustomData_add_layer_named(dm->getLoopDataLayout(dm),
-			                                    cd_data_type,
-			                                    CD_DEFAULT,
-			                                    NULL,
-			                                    dm->getNumLoops(dm),
-			                                    name);
-		}
+	loopdata = dm->getLoopDataLayout(dm);
+	cd_ptr = CustomData_get_layer_named(loopdata, cd_data_type, name);
+	if (cd_ptr != NULL) {
+		/* layer already exists, so just return it. */
+		return cd_ptr;
+	}
+
+	/* create a new layer, taking care to construct the hopefully-soon-to-be-removed
+	 * CD_MTEXPOLY layer too, with the same name. */
+	numloops = dm->getNumLoops(dm);
+	cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT,
+	                                    NULL, numloops, name);
+	if (cd_data_type == CD_MLOOPUV) {
+		CustomData_add_layer_named(dm->getPolyDataLayout(dm),
+		                           CD_MTEXPOLY, CD_DEFAULT,
+		                           NULL, numloops, name);
 	}
 
 	return cd_ptr;
