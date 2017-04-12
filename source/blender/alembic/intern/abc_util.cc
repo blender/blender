@@ -257,15 +257,12 @@ void convert_matrix(const Imath::M44d &xform, Object *ob, float r_mat[4][4])
 
 /* Recompute transform matrix of object in new coordinate system
  * (from Z-Up to Y-Up). */
-void create_transform_matrix(Object *obj, float r_yup_mat[4][4])
+void create_transform_matrix(Object *obj, float r_yup_mat[4][4], AbcMatrixMode mode)
 {
 	float zup_mat[4][4];
 
-	/* get local matrix. */
-	/* TODO Sybren: when we're exporting as "flat", i.e. non-hierarchial,
-	 * we should export the world matrix even when the object has a parent
-	 * Blender Object. */
-	if (obj->parent) {
+	/* get local or world matrix. */
+	if (mode == ABC_MATRIX_LOCAL && obj->parent) {
 		/* Note that this produces another matrix than the local matrix, due to
 		 * constraints and modifiers as well as the obj->parentinv matrix. */
 		invert_m4_m4(obj->parent->imat, obj->parent->obmat);
