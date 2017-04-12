@@ -124,14 +124,32 @@ static bool object_is_shape(Object *ob)
 	}
 }
 
-static bool export_object(const ExportSettings * const settings, Object *ob)
-{
-	if (settings->selected_only && !parent_selected(ob)) {
-		return false;
-	}
 
-	if (settings->visible_layers_only && !(settings->scene->lay & ob->lay)) {
-		return false;
+/**
+ * Returns whether this object should be exported into the Alembic file.
+ *
+ * @param settings export settings, used for options like 'selected only'.
+ * @param ob the object in question.
+ * @param is_duplicated normally false; true when the object is instanced
+ *                      into the scene by a dupli-object (e.g. part of a
+ *                      dupligroup). This ignores selection and layer
+ *                      visibility, and assumes that the dupli-object itself
+ *                      (e.g. the group-instantiating empty) is exported.
+ */
+static bool export_object(const ExportSettings * const settings, Object *ob,
+                          bool is_duplicated)
+{
+	if (!is_duplicated) {
+		/* These two tests only make sense when the object isn't being instanced
+		 * into the scene. When it is, its exportability is determined by
+		 * its dupli-object and the DupliObject::no_draw property. */
+		if (settings->selected_only && !parent_selected(ob)) {
+			return false;
+		}
+
+		if (settings->visible_layers_only && !(settings->scene->lay & ob->lay)) {
+			return false;
+		}
 	}
 
 	if (settings->renderable_only && (ob->restrictflag & OB_RESTRICT_RENDER)) {
@@ -372,7 +390,7 @@ void AbcExporter::createTransformWritersFlat()
 	while (base) {
 		Object *ob = base->object;
 
-		if (export_object(&m_settings, ob) && object_is_shape(ob)) {
+		if (export_object(&m_settings, ob, false) && object_is_shape(ob)) {
 			std::string name = get_id_name(ob);
 			m_xforms[name] = new AbcTransformWriter(
 			                     ob, m_writer->archive().getTop(), NULL,
@@ -385,8 +403,13 @@ void AbcExporter::createTransformWritersFlat()
 
 void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Object *parent, Object *dupliObParent)
 {
+	/* If an object isn't exported itself, its duplilist shouldn't be
+	 * exported either. */
+	if (!export_object(&m_settings, ob, dupliObParent != NULL)) {
+		return;
+	}
 
-	if (export_object(&m_settings, ob) && object_is_shape(ob)) {
+	if (object_is_shape(ob)) {
 		createTransformWriter(ob, parent, dupliObParent);
 	}
 
@@ -397,15 +420,18 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 		Object *dupli_ob = NULL;
 		Object *dupli_parent = NULL;
 		
-		while (link) {
+		for (; link; link = link->next) {
+			/* This skips things like custom bone shapes. */
+			if (m_settings.renderable_only && link->no_draw) {
+				continue;
+			}
+
 			if (link->type == OB_DUPLIGROUP) {
 				dupli_ob = link->ob;
 				dupli_parent = (dupli_ob->parent) ? dupli_ob->parent : ob;
 
 				exploreTransform(eval_ctx, dupli_ob, dupli_parent, ob);
 			}
-
-			link = link->next;
 		}
 	}
 
@@ -478,14 +504,26 @@ void AbcExporter::createShapeWriters(EvaluationContext *eval_ctx)
 
 void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Object *ob, Object *dupliObParent)
 {
-	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
-	
+	/* If an object isn't exported itself, its duplilist shouldn't be
+	 * exported either. */
+	if (!export_object(&m_settings, ob, dupliObParent != NULL)) {
+		return;
+	}
+
 	createShapeWriter(ob, dupliObParent);
 	
+	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
+
 	if (lb) {
 		DupliObject *dupliob = static_cast<DupliObject *>(lb->first);
 
 		while (dupliob) {
+			/* This skips things like custom bone shapes. */
+			if (m_settings.renderable_only && dupliob->no_draw) {
+				dupliob = dupliob->next;
+				continue;
+			}
+
 			if (dupliob->type == OB_DUPLIGROUP) {
 				exploreObject(eval_ctx, dupliob->ob, ob);
 			}
@@ -500,10 +538,6 @@ void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Object *ob, Object 
 void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 {
 	if (!object_is_shape(ob)) {
-		return;
-	}
-
-	if (!export_object(&m_settings, ob)) {
 		return;
 	}
 
