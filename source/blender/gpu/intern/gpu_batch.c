@@ -34,7 +34,7 @@
 void Batch_set_builtin_program(Batch *batch, GPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-	Batch_set_program(batch, shader->program);
+	Batch_set_program(batch, shader->program, shader->interface);
 }
 
 static Batch *sphere_high = NULL;

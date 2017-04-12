@@ -490,7 +490,7 @@ void GPU_shader_bind(GPUShader *shader)
 	BLI_assert(shader && shader->program);
 
 	glUseProgram(shader->program);
-	gpuBindMatrices(shader->program);
+	gpuBindMatrices(shader->interface);
 }
 
 void GPU_shader_unbind(void)

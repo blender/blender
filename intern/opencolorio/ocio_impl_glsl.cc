@@ -95,6 +95,7 @@ typedef struct OCIO_GLSLDrawState {
 	GLuint ocio_shader;
 	GLuint vert_shader;
 	GLuint program;
+	ShaderInterface *shader_interface;
 
 	/* Previous OpenGL state. */
 	GLint last_texture, last_texture_unit;
@@ -411,10 +412,12 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 
 		glActiveTexture(GL_TEXTURE0);
 
-		immBindProgram(state->program);
+		state->shader_interface = ShaderInterface_create(state->program);
 
-		glUniform1i(glGetUniformLocation(state->program, "image_texture"), 0);
-		glUniform1i(glGetUniformLocation(state->program, "lut3d_texture"), 1);
+		immBindProgram(state->program, state->shader_interface);
+
+		immUniform1i("image_texture", 0);
+		immUniform1i("lut3d_texture", 1);
 
 		if (state->texture_size_used) {
 			/* we use textureSize() if possible for best performance, if not
@@ -424,30 +427,30 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
 			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
 
-			glUniform1f(glGetUniformLocation(state->program, "image_texture_width"), (float)width);
-			glUniform1f(glGetUniformLocation(state->program, "image_texture_height"), (float)height);
+			immUniform1f("image_texture_width", (float)width);
+			immUniform1f("image_texture_height", (float)height);
 		}
 
 		if (use_dither) {
-			glUniform1f(glGetUniformLocation(state->program, "dither"), dither);
+			immUniform1f("dither", dither);
 		}
 
 		if (use_curve_mapping) {
-			glUniform1i(glGetUniformLocation(state->program, "curve_mapping_texture"), 2);
-			glUniform1i(glGetUniformLocation(state->program, "curve_mapping_lut_size"), curve_mapping_settings->lut_size);
-			glUniform4iv(glGetUniformLocation(state->program, "use_curve_mapping_extend_extrapolate"), 1, curve_mapping_settings->use_extend_extrapolate);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_mintable"), 1, curve_mapping_settings->mintable);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_range"), 1, curve_mapping_settings->range);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_ext_in_x"), 1, curve_mapping_settings->ext_in_x);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_ext_in_y"), 1, curve_mapping_settings->ext_in_y);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_ext_out_x"), 1, curve_mapping_settings->ext_out_x);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_ext_out_y"), 1, curve_mapping_settings->ext_out_y);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_first_x"), 1, curve_mapping_settings->first_x);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_first_y"), 1, curve_mapping_settings->first_y);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_last_x"), 1, curve_mapping_settings->last_x);
-			glUniform4fv(glGetUniformLocation(state->program, "curve_mapping_last_y"), 1, curve_mapping_settings->last_y);
-			glUniform3fv(glGetUniformLocation(state->program, "curve_mapping_black"), 1, curve_mapping_settings->black);
-			glUniform3fv(glGetUniformLocation(state->program, "curve_mapping_bwmul"), 1, curve_mapping_settings->bwmul);
+			immUniform1i("curve_mapping_texture", 2);
+			immUniform1i("curve_mapping_lut_size", curve_mapping_settings->lut_size);
+			immUniform4iv("use_curve_mapping_extend_extrapolate", curve_mapping_settings->use_extend_extrapolate);
+			immUniform4fv("curve_mapping_mintable", curve_mapping_settings->mintable);
+			immUniform4fv("curve_mapping_range", curve_mapping_settings->range);
+			immUniform4fv("curve_mapping_ext_in_x", curve_mapping_settings->ext_in_x);
+			immUniform4fv("curve_mapping_ext_in_y", curve_mapping_settings->ext_in_y);
+			immUniform4fv("curve_mapping_ext_out_x", curve_mapping_settings->ext_out_x);
+			immUniform4fv("curve_mapping_ext_out_y", curve_mapping_settings->ext_out_y);
+			immUniform4fv("curve_mapping_first_x", curve_mapping_settings->first_x);
+			immUniform4fv("curve_mapping_first_y", curve_mapping_settings->first_y);
+			immUniform4fv("curve_mapping_last_x", curve_mapping_settings->last_x);
+			immUniform4fv("curve_mapping_last_y", curve_mapping_settings->last_y);
+			immUniform3fv("curve_mapping_black", curve_mapping_settings->black);
+			immUniform3fv("curve_mapping_bwmul", curve_mapping_settings->bwmul);
 		}
 
 		return true;
@@ -479,6 +482,9 @@ void OCIOImpl::freeGLState(struct OCIO_GLSLDrawState *state)
 
 	if (state->program)
 		glDeleteProgram(state->program);
+
+	if (state->shader_interface)
+		ShaderInterface_discard(state->shader_interface);		
 
 	if (state->ocio_shader)
 		glDeleteShader(state->ocio_shader);

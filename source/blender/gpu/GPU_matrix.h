@@ -34,6 +34,7 @@
 
 #include "BLI_sys_types.h"
 #include "GPU_glew.h"
+#include "../../../intern/gawain/gawain/shader_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -132,7 +133,7 @@ const float *gpuGetNormalMatrixInverse(float m[3][3]);
 
 
 /* set uniform values for currently bound shader */
-void gpuBindMatrices(GLuint program);
+void gpuBindMatrices(const ShaderInterface*);
 bool gpuMatricesDirty(void); /* since last bind */
 
 #ifdef __cplusplus

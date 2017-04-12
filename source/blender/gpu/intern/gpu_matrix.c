@@ -829,74 +829,69 @@ const float *gpuGetNormalMatrixInverse(float m[3][3])
 	return (const float*)m;
 }
 
-void gpuBindMatrices(GLuint program)
+void gpuBindMatrices(const ShaderInterface* shaderface)
 {
-	/* TODO: split this into 2 functions
-	 * 1) get uniform locations & determine 2D or 3D
+	/* set uniform values to matrix stack values
+	 * call this before a draw call if desired matrices are dirty
+	 * call glUseProgram before this, as glUniform expects program to be bound
 	 */
-	GLint loc_MV = glGetUniformLocation(program, "ModelViewMatrix");
-	GLint loc_P = glGetUniformLocation(program, "ProjectionMatrix");
-	GLint loc_MVP = glGetUniformLocation(program, "ModelViewProjectionMatrix");
-	GLint loc_N = glGetUniformLocation(program, "NormalMatrix");
 
-	/* 2) set uniform values to matrix stack values
-	 * program needs to be bound
-	 */
-	glUseProgram(program);
+	const ShaderInput *MV = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MODELVIEW_3D);
+	const ShaderInput *P = ShaderInterface_builtin_uniform(shaderface, UNIFORM_PROJECTION_3D);
+	const ShaderInput *MVP = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MVP_3D);
+	const ShaderInput *N = ShaderInterface_builtin_uniform(shaderface, UNIFORM_NORMAL_3D);
 
-
-	/* call this portion before a draw call if desired matrices are dirty */
-	if (loc_MV != -1) {
+	if (MV) {
 		#if DEBUG_MATRIX_BIND
 		puts("setting 3D MV matrix");
 		#endif
 
-		glUniformMatrix4fv(loc_MV, 1, GL_FALSE, gpuGetModelViewMatrix3D(NULL));
+		glUniformMatrix4fv(MV->location, 1, GL_FALSE, gpuGetModelViewMatrix3D(NULL));
 	}
 
-	if (loc_P != -1) {
+	if (P) {
 		#if DEBUG_MATRIX_BIND
 		puts("setting 3D P matrix");
 		#endif
 
-		glUniformMatrix4fv(loc_P, 1, GL_FALSE, gpuGetProjectionMatrix3D(NULL));
+		glUniformMatrix4fv(P->location, 1, GL_FALSE, gpuGetProjectionMatrix3D(NULL));
 	}
 
-	if (loc_MVP != -1) {
+	if (MVP) {
 		#if DEBUG_MATRIX_BIND
 		puts("setting 3D MVP matrix");
 		#endif
 
-		glUniformMatrix4fv(loc_MVP, 1, GL_FALSE, gpuGetModelViewProjectionMatrix3D(NULL));
+		glUniformMatrix4fv(MVP->location, 1, GL_FALSE, gpuGetModelViewProjectionMatrix3D(NULL));
 	}
 
-	if (loc_N != -1) {
+	if (N) {
 		#if DEBUG_MATRIX_BIND
 		puts("setting 3D normal matrix");
 		#endif
 
-		glUniformMatrix3fv(loc_N, 1, GL_FALSE, gpuGetNormalMatrix(NULL));
+		glUniformMatrix3fv(N->location, 1, GL_FALSE, gpuGetNormalMatrix(NULL));
 	}
 
 	/* also needed by material.glsl
 	 * - ProjectionMatrixInverse
 	 * - ModelViewMatrixInverse
 	 */
-	GLint loc_MV_inv = glGetUniformLocation(program, "ModelViewInverseMatrix");
-	GLint loc_P_inv = glGetUniformLocation(program, "ProjectionInverseMatrix");
+	const ShaderInput *MV_inv = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MODELVIEW_INV_3D);
+	const ShaderInput *P_inv = ShaderInterface_builtin_uniform(shaderface, UNIFORM_PROJECTION_INV_3D);
 
-	if (loc_MV_inv != -1) {
+	if (MV_inv) {
 		Mat4 m;
 		gpuGetModelViewMatrix3D(m);
 		invert_m4(m);
-		glUniformMatrix4fv(loc_MV_inv, 1, GL_FALSE, (const float*) m);
+		glUniformMatrix4fv(MV_inv->location, 1, GL_FALSE, (const float*) m);
 	}
 
-	if (loc_P_inv != -1) {
+	if (P_inv) {
 		Mat4 m;
 		gpuGetProjectionMatrix3D(m);
 		invert_m4(m);
-		glUniformMatrix4fv(loc_P_inv, 1, GL_FALSE, (const float*) m);
+		glUniformMatrix4fv(P_inv->location, 1, GL_FALSE, (const float*) m);
 	}
 
 	state.dirty = false;

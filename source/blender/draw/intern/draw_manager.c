@@ -1002,7 +1002,7 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	}
 
 	/* step 2 : bind vertex array & draw */
-	Batch_set_program(geom, GPU_shader_get_program(shgroup->shader));
+	Batch_set_program(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
 	if (interface->instance_vbo) {
 		Batch_draw_stupid_instanced(geom, interface->instance_vbo, interface->instance_count, interface->attribs_count,
 		                            interface->attribs_stride, interface->attribs_size, interface->attribs_loc);

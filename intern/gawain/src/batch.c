@@ -88,13 +88,14 @@ int Batch_add_VertexBuffer(Batch* batch, VertexBuffer* verts)
 	return -1;
 	}
 
-void Batch_set_program(Batch* batch, GLuint program)
+void Batch_set_program(Batch* batch, GLuint program, const ShaderInterface* shaderface)
 	{
 #if TRUST_NO_ONE
 	assert(glIsProgram(program));
 #endif
 
 	batch->program = program;
+	batch->interface = shaderface;
 	batch->program_dirty = true;
 
 	Batch_use_program(batch); // hack! to make Batch_Uniform* simpler
@@ -172,92 +173,58 @@ void Batch_done_using_program(Batch* batch)
 		}
 	}
 
-void Batch_Uniform1i(Batch* batch, const char* name, int value)
-	{
-	int loc = glGetUniformLocation(batch->program, name);
-
 #if TRUST_NO_ONE
-	assert(loc != -1);
+  #define GET_UNIFORM const ShaderInput* uniform = ShaderInterface_uniform(batch->interface, name); assert(uniform);
+#else
+  #define GET_UNIFORM const ShaderInput* uniform = ShaderInterface_uniform(batch->interface, name);
 #endif
 
-	glUniform1i(loc, value);
+void Batch_Uniform1i(Batch* batch, const char* name, int value)
+	{
+	GET_UNIFORM
+	glUniform1i(uniform->location, value);
 	}
 
 void Batch_Uniform1b(Batch* batch, const char* name, bool value)
 	{
-	int loc = glGetUniformLocation(batch->program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform1i(loc, value ? GL_TRUE : GL_FALSE);
+	GET_UNIFORM
+	glUniform1i(uniform->location, value ? GL_TRUE : GL_FALSE);
 	}
 
 void Batch_Uniform2f(Batch* batch, const char* name, float x, float y)
 	{
-	int loc = glGetUniformLocation(batch->program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform2f(loc, x, y);
+	GET_UNIFORM
+	glUniform2f(uniform->location, x, y);
 	}
 
 void Batch_Uniform3f(Batch* batch, const char* name, float x, float y, float z)
 	{
-	int loc = glGetUniformLocation(batch->program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform3f(loc, x, y, z);
+	GET_UNIFORM
+	glUniform3f(uniform->location, x, y, z);
 	}
 
 void Batch_Uniform4f(Batch* batch, const char* name, float x, float y, float z, float w)
 	{
-	int loc = glGetUniformLocation(batch->program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform4f(loc, x, y, z, w);
+	GET_UNIFORM
+	glUniform4f(uniform->location, x, y, z, w);
 	}
 
 void Batch_Uniform1f(Batch* batch, const char* name, float x)
 	{
-	int loc = glGetUniformLocation(batch->program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform1f(loc, x);
+	GET_UNIFORM
+	glUniform1f(uniform->location, x);
 	}
 
 void Batch_Uniform3fv(Batch* batch, const char* name, const float data[3])
 	{
-	int loc = glGetUniformLocation(batch->program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform3fv(loc, 1, data);
+	GET_UNIFORM
+	glUniform3fv(uniform->location, 1, data);
 	}
 
 void Batch_Uniform4fv(Batch* batch, const char* name, const float data[4])
 	{
-	int loc = glGetUniformLocation(batch->program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform4fv(loc, 1, data);
+	GET_UNIFORM
+	glUniform4fv(uniform->location, 1, data);
 	}
 
 static void Batch_prime(Batch* batch)

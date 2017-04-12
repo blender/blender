@@ -15,7 +15,7 @@
 #include <string.h>
 
 // necessary functions from matrix API
-extern void gpuBindMatrices(GLuint program);
+extern void gpuBindMatrices(const ShaderInterface*);
 extern bool gpuMatricesDirty(void);
 
 typedef struct {
@@ -44,6 +44,7 @@ typedef struct {
 	GLuint vao_id;
 	
 	GLuint bound_program;
+	const ShaderInterface* shader_interface;
 	AttribBinding attrib_binding;
 	uint16_t prev_enabled_attrib_bits; // <-- only affects this VAO, so we're ok
 } Immediate;
@@ -117,21 +118,22 @@ VertexFormat* immVertexFormat(void)
 	return &imm.vertex_format;
 	}
 
-void immBindProgram(GLuint program)
+void immBindProgram(GLuint program, const ShaderInterface* shaderface)
 	{
 #if TRUST_NO_ONE
 	assert(imm.bound_program == 0);
 	assert(glIsProgram(program));
 #endif
 
+	imm.bound_program = program;
+	imm.shader_interface = shaderface;
+
 	if (!imm.vertex_format.packed)
 		VertexFormat_pack(&imm.vertex_format);
 
 	glUseProgram(program);
 	get_attrib_locations(&imm.vertex_format, &imm.attrib_binding, program);
-	imm.bound_program = program;
-
-	gpuBindMatrices(program);
+	gpuBindMatrices(shaderface);
 	}
 
 void immUnbindProgram(void)
@@ -267,7 +269,7 @@ Batch* immBeginBatch(PrimitiveType prim_type, unsigned vertex_ct)
 	imm.batch = Batch_create(prim_type, verts, NULL);
 	imm.batch->phase = BUILDING;
 
-	Batch_set_program(imm.batch, imm.bound_program);
+	Batch_set_program(imm.batch, imm.bound_program, imm.shader_interface);
 
 	return imm.batch;
 	}
@@ -336,7 +338,7 @@ static void immDrawSetup(void)
 		}
 
 	if (gpuMatricesDirty())
-		gpuBindMatrices(imm.bound_program);
+		gpuBindMatrices(imm.shader_interface);
 	}
 
 void immEnd(void)
@@ -716,126 +718,76 @@ void immVertex2iv(unsigned attrib_id, const int data[2])
 
 // --- generic uniform functions ---
 
-void immUniform1f(const char* name, float x)
-	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
 #if TRUST_NO_ONE
-	assert(loc != -1);
+  #define GET_UNIFORM const ShaderInput* uniform = ShaderInterface_uniform(imm.shader_interface, name); assert(uniform);
+#else
+  #define GET_UNIFORM const ShaderInput* uniform = ShaderInterface_uniform(imm.shader_interface, name);
 #endif
 
-	glUniform1f(loc, x);
+void immUniform1f(const char* name, float x)
+	{
+	GET_UNIFORM
+	glUniform1f(uniform->location, x);
 	}
 
 void immUniform2f(const char* name, float x, float y)
 {
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform2f(loc, x, y);
+	GET_UNIFORM
+	glUniform2f(uniform->location, x, y);
 }
 
 void immUniform2fv(const char* name, const float data[2])
 {
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform2fv(loc, 1, data);
+	GET_UNIFORM
+	glUniform2fv(uniform->location, 1, data);
 }
 
 void immUniform3f(const char* name, float x, float y, float z)
 	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform3f(loc, x, y, z);
+	GET_UNIFORM
+	glUniform3f(uniform->location, x, y, z);
 	}
 
 void immUniform3fv(const char* name, const float data[3])
 	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform3fv(loc, 1, data);
+	GET_UNIFORM
+	glUniform3fv(uniform->location, 1, data);
 	}
 
 void immUniformArray3fv(const char* name, const float *data, int count)
 	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-	assert(count > 0);
-#endif
-
-	glUniform3fv(loc, count, data);
+	GET_UNIFORM
+	glUniform3fv(uniform->location, count, data);
 	}
 
 void immUniform4f(const char* name, float x, float y, float z, float w)
 	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform4f(loc, x, y, z, w);
+	GET_UNIFORM
+	glUniform4f(uniform->location, x, y, z, w);
 	}
 
 void immUniform4fv(const char* name, const float data[4])
 	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform4fv(loc, 1, data);
+	GET_UNIFORM
+	glUniform4fv(uniform->location, 1, data);
 	}
 
 void immUniformMatrix4fv(const char* name, const float data[4][4])
 	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniformMatrix4fv(loc, 1, GL_FALSE, (float *)data);
+	GET_UNIFORM
+	glUniformMatrix4fv(uniform->location, 1, GL_FALSE, (float *)data);
 	}
 
 void immUniform1i(const char* name, int x)
 	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform1i(loc, x);
+	GET_UNIFORM
+	glUniform1i(uniform->location, x);
 	}
 
 void immUniform4iv(const char* name, const int data[4])
 	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform4iv(loc, 1, data);
+	GET_UNIFORM
+	glUniform4iv(uniform->location, 1, data);
 	}
 
 // --- convenience functions for setting "uniform vec4 color" ---

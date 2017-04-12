@@ -13,13 +13,14 @@
 
 #include "vertex_format.h"
 #include "primitive.h"
+#include "shader_interface.h"
 
 #define IMM_BATCH_COMBO 1
 
 
 VertexFormat* immVertexFormat(void); // returns a cleared vertex format, ready for add_attrib
 
-void immBindProgram(GLuint program); // every immBegin must have a program bound first
+void immBindProgram(GLuint program, const ShaderInterface*); // every immBegin must have a program bound first
 void immUnbindProgram(void); // call after your last immEnd, or before binding another program
 
 void immBegin(PrimitiveType, unsigned vertex_ct); // must supply exactly vertex_ct vertices
