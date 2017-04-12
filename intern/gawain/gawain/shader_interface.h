@@ -20,7 +20,9 @@ typedef enum {
 	UNIFORM_PROJECTION_3D, // mat4 ProjectionMatrix
 	UNIFORM_MVP_3D,        // mat4 ModelViewProjectionMatrix
 	UNIFORM_NORMAL_3D,     // mat3 NormalMatrix
-	UNIFORM_INV_NORMAL_3D, // mat3 InverseNormalMatrix
+
+	UNIFORM_MODELVIEW_INV_3D,  // mat4 ModelViewInverseMatrix
+	UNIFORM_PROJECTION_INV_3D, // mat4 ProjectionInverseMatrix
 
 	UNIFORM_MODELVIEW_2D,  // mat3 ModelViewMatrix
 	UNIFORM_PROJECTION_2D, // mat3 ProjectionMatrix
@@ -47,3 +49,6 @@ typedef struct {
 
 ShaderInterface* ShaderInterface_create(GLint program_id);
 void ShaderInterface_discard(ShaderInterface*);
+
+const ShaderInput* ShaderInterface_uniform(const ShaderInterface*, const char* name);
+const ShaderInput* ShaderInterface_builtin_uniform(const ShaderInterface*, BuiltinUniform);
