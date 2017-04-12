@@ -181,31 +181,30 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			int *lverts = mrdata->loose_verts = MEM_mallocN(mrdata->totvert * sizeof(int), "Loose Vert");
 			int *ledges = mrdata->loose_edges = MEM_mallocN(mrdata->totedge * sizeof(int), "Loose Edges");
 
-			for (int i = 0; i < mrdata->totvert; ++i) {
-				BMVert *bv = BM_vert_at_index(bm, i);
-
-				/* Loose vert */
-				if (bv->e == NULL) {
-					lverts[mrdata->totlvert] = BM_elem_index_get(bv);
-					mrdata->totlvert++;
-					continue;
-				}
-
-				/* Find Loose Edges */
-				BMEdge *e_iter, *e_first;
-				e_first = e_iter = bv->e;
-				do {
-					if (e_iter->l == NULL) {
-						BMVert *other_vert = BM_edge_other_vert(e_iter, bv);
-
-						/* Verify we do not add the same edge twice */
-						if (BM_elem_index_get(other_vert) > i) {
-							ledges[mrdata->totledge] = BM_elem_index_get(e_iter);
-							mrdata->totledge++;
-						}
+			{
+				BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
+				BMVert **vtable = bm->vtable;
+				for (int i = 0; i < bm->totvert; i++) {
+					const BMVert *v = vtable[i];
+					/* Loose vert */
+					if (v->e == NULL) {
+						lverts[mrdata->totlvert++] = i;
 					}
-				} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, bv)) != e_first);
+				}
 			}
+
+			{
+				BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
+				BMEdge **etable = bm->etable;
+				for (int i = 0; i < bm->totedge; i++) {
+					const BMEdge *e = etable[i];
+					/* Loose edge */
+					if (e->l == NULL) {
+						ledges[mrdata->totledge++] = i;
+					}
+				}
+			}
+
 			mrdata->loose_verts = MEM_reallocN(mrdata->loose_verts, mrdata->totlvert * sizeof(int));
 			mrdata->loose_edges = MEM_reallocN(mrdata->loose_edges, mrdata->totledge * sizeof(int));
 		}
