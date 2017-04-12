@@ -225,7 +225,7 @@ static void gpu_material_set_attrib_id(GPUMaterial *material)
 	attribs->totlayer = b;
 }
 
-static int GPU_material_construct_end(GPUMaterial *material, const char *passname)
+static int gpu_material_construct_end(GPUMaterial *material, const char *passname)
 {
 	if (material->outlink) {
 		GPUNodeLink *outlink = material->outlink;
@@ -1891,7 +1891,7 @@ GPUMaterial *GPU_material_matcap(Scene *scene, Material *ma, bool use_opensubdiv
 		
 	GPU_material_output_link(mat, outlink);
 
-	GPU_material_construct_end(mat, "matcap_pass");
+	gpu_material_construct_end(mat, "matcap_pass");
 	
 	/* note that even if building the shader fails in some way, we still keep
 	 * it to avoid trying to compile again and again, and simple do not use
@@ -2044,7 +2044,7 @@ static void do_world_tex(GPUShadeInput *shi, struct World *wo, GPUNodeLink **hor
 	}
 }
 
-static void GPU_material_old_world(struct GPUMaterial *mat, struct World *wo)
+static void gpu_material_old_world(struct GPUMaterial *mat, struct World *wo)
 {
 	GPUShadeInput shi;
 	GPUShadeResult shr;
@@ -2112,17 +2112,18 @@ GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo)
 	mat->type = GPU_MATERIAL_TYPE_WORLD;
 	
 	/* create nodes */
-	if (BKE_scene_use_new_shading_nodes(scene) && wo->nodetree && wo->use_nodes)
+	if (BKE_scene_use_new_shading_nodes(scene) && wo->nodetree && wo->use_nodes) {
 		ntreeGPUMaterialNodes(wo->nodetree, mat, NODE_NEW_SHADING);
+	}
 	else {
-		GPU_material_old_world(mat, wo);
+		gpu_material_old_world(mat, wo);
 	}
 
 	if (GPU_material_do_color_management(mat))
 		if (mat->outlink)
 			GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
 
-	GPU_material_construct_end(mat, wo->id.name);
+	gpu_material_construct_end(mat, wo->id.name);
 	
 	/* note that even if building the shader fails in some way, we still keep
 	 * it to avoid trying to compile again and again, and simple do not use
@@ -2188,7 +2189,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, bool use_open
 		if (mat->outlink)
 			GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
 
-	GPU_material_construct_end(mat, ma->id.name);
+	gpu_material_construct_end(mat, ma->id.name);
 
 	/* note that even if building the shader fails in some way, we still keep
 	 * it to avoid trying to compile again and again, and simple do not use
