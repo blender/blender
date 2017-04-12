@@ -83,6 +83,13 @@ typedef struct EdgeAdjacentPolys {
 	int face_index[2];
 } EdgeAdjacentPolys;
 
+typedef struct EdgeDrawAttr {
+	unsigned char v_flag;
+	unsigned char e_flag;
+	unsigned char crease;
+	unsigned char bweight;
+} EdgeDrawAttr;
+
 typedef struct MeshRenderData {
 	int types;
 
@@ -466,7 +473,7 @@ static void mesh_render_data_looptri_vert_edge_indices_get(
 	if (mrdata->edit_bmesh) {
 		const BMLoop **bm_looptri = (const BMLoop **)mrdata->edit_bmesh->looptris[tri_idx];
 
-		/* assign r_edges_idx */
+		/* assign 'r_edges_idx' & 'r_vert_idx' */
 		int j, j_next;
 		for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
 			const BMLoop *l = bm_looptri[j], *l_next = bm_looptri[j_next];
@@ -488,7 +495,7 @@ static void mesh_render_data_looptri_vert_edge_indices_get(
 		const unsigned int *l_idx = mrdata->mlooptri[tri_idx].tri;
 		const MLoop *l_tri[3] = {&mrdata->mloop[l_idx[0]], &mrdata->mloop[l_idx[1]], &mrdata->mloop[l_idx[2]]};
 
-		/* assign r_edges_idx */
+		/* assign 'r_edges_idx' & 'r_vert_idx' */
 		int j, j_next;
 		for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
 			const MLoop *l = l_tri[j], *l_next = l_tri[j_next];
@@ -620,13 +627,13 @@ static unsigned char mesh_render_data_looptri_flag(MeshRenderData *mrdata, const
 	return fflag;
 }
 
-static unsigned char *mesh_render_data_edge_flag(MeshRenderData *mrdata, const int e)
+static EdgeDrawAttr *mesh_render_data_edge_flag(MeshRenderData *mrdata, const int e)
 {
-	static unsigned char eflag[4];
-	memset(eflag, 0, sizeof(char) * 4);
+	static EdgeDrawAttr eattr;
+	memset(&eattr, 0, sizeof(eattr));
 
 	if (e == -1) {
-		return eflag;
+		return &eattr;
 	}
 
 	/* if edge exists */
@@ -636,25 +643,25 @@ static unsigned char *mesh_render_data_edge_flag(MeshRenderData *mrdata, const i
 
 		be = BM_edge_at_index(bm, e);
 
-		eflag[1] |= VFLAG_EDGE_EXISTS;
+		eattr.e_flag |= VFLAG_EDGE_EXISTS;
 
 		if (be == mrdata->eed_act)
-			eflag[1] |= VFLAG_EDGE_ACTIVE;
+			eattr.e_flag |= VFLAG_EDGE_ACTIVE;
 
 		if (BM_elem_flag_test(be, BM_ELEM_SELECT))
-			eflag[1] |= VFLAG_EDGE_SELECTED;
+			eattr.e_flag |= VFLAG_EDGE_SELECTED;
 
 		if (BM_elem_flag_test(be, BM_ELEM_SEAM))
-			eflag[1] |= VFLAG_EDGE_SEAM;
+			eattr.e_flag |= VFLAG_EDGE_SEAM;
 
 		if (!BM_elem_flag_test(be, BM_ELEM_SMOOTH))
-			eflag[1] |= VFLAG_EDGE_SHARP;
+			eattr.e_flag |= VFLAG_EDGE_SHARP;
 
 		/* Use a byte for value range */
 		if (mrdata->crease_ofs != -1) {
 			float crease = BM_ELEM_CD_GET_FLOAT(be, mrdata->crease_ofs);
 			if (crease > 0) {
-				eflag[2] = (char)(crease * 255.0f);
+				eattr.crease = (char)(crease * 255.0f);
 			}
 		}
 
@@ -662,15 +669,15 @@ static unsigned char *mesh_render_data_edge_flag(MeshRenderData *mrdata, const i
 		if (mrdata->bweight_ofs != -1) {
 			float bweight = BM_ELEM_CD_GET_FLOAT(be, mrdata->bweight_ofs);
 			if (bweight > 0) {
-				eflag[3] = (char)(bweight * 255.0f);
+				eattr.bweight = (char)(bweight * 255.0f);
 			}
 		}
 	}
 	else {
-		eflag[1] |= VFLAG_EDGE_EXISTS;
+		eattr.e_flag |= VFLAG_EDGE_EXISTS;
 	}
 
-	return eflag;
+	return &eattr;
 }
 
 static unsigned char mesh_render_data_vertex_flag(MeshRenderData *mrdata, const int v)
@@ -698,47 +705,47 @@ static void add_overlay_tri(
         const int tri_vert_idx[3], const int tri_edge_idx[3], const int f, const int base_vert_idx)
 {
 	const float *pos;
-	unsigned char *eflag;
+	EdgeDrawAttr *eattr;
 	unsigned char  fflag;
 	unsigned char  vflag;
 
 	pos = mesh_render_data_vert_co(mrdata, tri_vert_idx[0]);
-	eflag = mesh_render_data_edge_flag(mrdata, tri_edge_idx[1]);
+	eattr = mesh_render_data_edge_flag(mrdata, tri_edge_idx[1]);
 	fflag = mesh_render_data_looptri_flag(mrdata, f);
 	vflag = mesh_render_data_vertex_flag(mrdata, tri_vert_idx[0]);
-	eflag[0] = fflag | vflag;
+	eattr->v_flag = fflag | vflag;
 	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 0, pos);
-	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 0, eflag);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 0, eattr);
 
 	pos = mesh_render_data_vert_co(mrdata, tri_vert_idx[1]);
-	eflag = mesh_render_data_edge_flag(mrdata, tri_edge_idx[2]);
+	eattr = mesh_render_data_edge_flag(mrdata, tri_edge_idx[2]);
 	vflag = mesh_render_data_vertex_flag(mrdata, tri_vert_idx[1]);
-	eflag[0] = fflag | vflag;
+	eattr->v_flag = fflag | vflag;
 	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 1, pos);
-	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 1, eflag);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 1, eattr);
 
 	pos = mesh_render_data_vert_co(mrdata, tri_vert_idx[2]);
-	eflag = mesh_render_data_edge_flag(mrdata, tri_edge_idx[0]);
+	eattr = mesh_render_data_edge_flag(mrdata, tri_edge_idx[0]);
 	vflag = mesh_render_data_vertex_flag(mrdata, tri_vert_idx[2]);
-	eflag[0] = fflag | vflag;
+	eattr->v_flag = fflag | vflag;
 	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 2, pos);
-	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 2, eflag);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 2, eattr);
 }
 
 static void add_overlay_loose_edge(
         MeshRenderData *mrdata, VertexBuffer *vbo, const unsigned int pos_id, const unsigned int edgeMod_id,
         const int v1, const int v2, const int e, const int base_vert_idx)
 {
-	unsigned char *eflag = mesh_render_data_edge_flag(mrdata, e);
+	EdgeDrawAttr *eattr = mesh_render_data_edge_flag(mrdata, e);
 	const float *pos = mesh_render_data_vert_co(mrdata, v1);
-	eflag[0] = mesh_render_data_vertex_flag(mrdata, v1);
+	eattr->v_flag = mesh_render_data_vertex_flag(mrdata, v1);
 	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 0, pos);
-	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 0, eflag);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 0, eattr);
 
 	pos = mesh_render_data_vert_co(mrdata, v2);
-	eflag[0] = mesh_render_data_vertex_flag(mrdata, v2);
+	eattr->v_flag = mesh_render_data_vertex_flag(mrdata, v2);
 	VertexBuffer_set_attrib(vbo, pos_id, base_vert_idx + 1, pos);
-	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 1, eflag);
+	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 1, eattr);
 }
 
 static void add_overlay_loose_vert(
