@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#define SUPPORT_LEGACY_GLSL 1
 #define DEBUG_SHADER_INTERFACE 0
 
 #if DEBUG_SHADER_INTERFACE
@@ -92,17 +93,23 @@ ShaderInterface* ShaderInterface_create(GLint program)
 
 		input->location = glGetUniformLocation(program, name);
 
-#if TRUST_NO_ONE
-		assert(input->location != -1);
+#if SUPPORT_LEGACY_GLSL
+		if (input->location != -1)
+			{
+#elif TRUST_NO_ONE
+			assert(input->location != -1);
 #endif
 
-		if (setup_builtin_uniform(input, name))
-			; // reclaim space from name buffer (don't advance offset)
-		else
-			{
-			input->name = name;
-			name_buffer_offset += name_len + 1; // include NULL terminator
+			if (setup_builtin_uniform(input, name))
+				; // reclaim space from name buffer (don't advance offset)
+			else
+				{
+				input->name = name;
+				name_buffer_offset += name_len + 1; // include NULL terminator
+				}
+#if SUPPORT_LEGACY_GLSL
 			}
+#endif
 
 #if DEBUG_SHADER_INTERFACE
 		printf("uniform[%u] '%s' at location %d\n", i, name, input->location);
@@ -122,12 +129,18 @@ ShaderInterface* ShaderInterface_create(GLint program)
 
 		input->location = glGetAttribLocation(program, name);
 
-#if TRUST_NO_ONE
-		assert(input->location != -1);
+#if SUPPORT_LEGACY_GLSL
+		if (input->location != -1)
+			{
+#elif TRUST_NO_ONE
+			assert(input->location != -1);
 #endif
 
-		input->name = name;
-		name_buffer_offset += name_len + 1; // include NULL terminator
+			input->name = name;
+			name_buffer_offset += name_len + 1; // include NULL terminator
+#if SUPPORT_LEGACY_GLSL
+			}
+#endif
 
 #if DEBUG_SHADER_INTERFACE
 		printf("attrib[%u] '%s' at location %d\n", i, name, input->location);
@@ -156,6 +169,10 @@ const ShaderInput* ShaderInterface_uniform(const ShaderInterface* shaderface, co
 	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
 		{
 		const ShaderInput* uniform = shaderface->inputs + i;
+
+#if SUPPORT_LEGACY_GLSL
+		if (uniform->name == NULL) continue;
+#endif
 
 		if (strcmp(uniform->name, name) == 0)
 			return uniform;
