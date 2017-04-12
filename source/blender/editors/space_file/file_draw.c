@@ -477,46 +477,54 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 
 static void draw_dividers(FileLayout *layout, View2D *v2d)
 {
-	const int step = (layout->tile_w + 2 * layout->tile_border_x);
-	int v1[2], v2[2];
-	int sx;
-	unsigned int vertex_ct = 0;
-	unsigned char col_hi[3], col_lo[3];
-
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
-
-	vertex_ct = (v2d->cur.xmax - v2d->tot.xmin) / step + 1; /* paint at least 1 divider */
-	vertex_ct *= 4; /* vertex_count = 2 points per divider * 2 lines per divider */
-
-	UI_GetThemeColorShade3ubv(TH_BACK,  30, col_hi);
-	UI_GetThemeColorShade3ubv(TH_BACK, -30, col_lo);
-
-	v1[1] = v2d->cur.ymax - layout->tile_border_y;
-	v2[1] = v2d->cur.ymin;
-
-	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(PRIM_LINES, vertex_ct);
-
 	/* vertical column dividers */
-	sx = (int)v2d->tot.xmin;
+
+	const int step = (layout->tile_w + 2 * layout->tile_border_x);
+
+	unsigned int vertex_ct = 0;
+	int sx = (int)v2d->tot.xmin;
 	while (sx < v2d->cur.xmax) {
 		sx += step;
-
-		v1[0] = v2[0] = sx;
-		immAttrib3ubv(color, col_lo);
-		immVertex2iv(pos, v1);
-		immVertex2iv(pos, v2);
-
-		v1[0] = v2[0] = sx + 1;
-		immAttrib3ubv(color, col_hi);
-		immVertex2iv(pos, v1);
-		immVertex2iv(pos, v2);
+		vertex_ct += 4; /* vertex_count = 2 points per line * 2 lines per divider */
 	}
 
-	immEnd();
-	immUnbindProgram();
+	if (vertex_ct > 0) {
+		int v1[2], v2[2];
+		unsigned char col_hi[3], col_lo[3];
+
+		UI_GetThemeColorShade3ubv(TH_BACK,  30, col_hi);
+		UI_GetThemeColorShade3ubv(TH_BACK, -30, col_lo);
+
+		v1[1] = v2d->cur.ymax - layout->tile_border_y;
+		v2[1] = v2d->cur.ymin;
+
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+		immBegin(PRIM_LINES, vertex_ct);
+
+		sx = (int)v2d->tot.xmin;
+		while (sx < v2d->cur.xmax) {
+			sx += step;
+
+			v1[0] = v2[0] = sx;
+			immSkipAttrib(color);
+			immVertex2iv(pos, v1);
+			immAttrib3ubv(color, col_lo);
+			immVertex2iv(pos, v2);
+
+			v1[0] = v2[0] = sx + 1;
+			immSkipAttrib(color);
+			immVertex2iv(pos, v1);
+			immAttrib3ubv(color, col_hi);
+			immVertex2iv(pos, v2);
+		}
+
+		immEnd();
+		immUnbindProgram();
+	}
 }
 
 void file_draw_list(const bContext *C, ARegion *ar)
