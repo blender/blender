@@ -65,7 +65,7 @@ static void EEVEE_engine_init(void *vedata)
 
 	DRWFboTexture tex = {&txl->color, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
 
-	float *viewport_size = DRW_viewport_size_get();
+	const float *viewport_size = DRW_viewport_size_get();
 	DRW_framebuffer_init(&fbl->main,
 	                    (int)viewport_size[0], (int)viewport_size[1],
 	                    &tex, 1);

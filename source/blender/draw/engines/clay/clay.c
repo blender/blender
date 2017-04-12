@@ -340,7 +340,7 @@ static void CLAY_engine_init(void *vedata)
 	}
 
 	{
-		float *viewport_size = DRW_viewport_size_get();
+		const float *viewport_size = DRW_viewport_size_get();
 		DRWFboTexture tex = {&txl->depth_dup, DRW_BUF_DEPTH_24, 0};
 		DRW_framebuffer_init(&fbl->dupli_depth,
 		                     (int)viewport_size[0], (int)viewport_size[1],
@@ -360,7 +360,7 @@ static void CLAY_engine_init(void *vedata)
 		    {-1.0f, 1.0f, -1.0f, 1.0f}
 		};
 		int i;
-		float *size = DRW_viewport_size_get();
+		const float *size = DRW_viewport_size_get();
 
 		DRW_get_dfdy_factors(dfdyfacs);
 

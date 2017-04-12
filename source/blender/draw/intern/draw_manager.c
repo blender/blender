@@ -1318,17 +1318,17 @@ static void *DRW_viewport_engine_data_get(void *engine_type)
 	return data;
 }
 
-float *DRW_viewport_size_get(void)
+const float *DRW_viewport_size_get(void)
 {
 	return &DST.size[0];
 }
 
-float *DRW_viewport_screenvecs_get(void)
+const float *DRW_viewport_screenvecs_get(void)
 {
 	return &DST.screenvecs[0][0];
 }
 
-float *DRW_viewport_pixelsize_get(void)
+const float *DRW_viewport_pixelsize_get(void)
 {
 	return &DST.pixsize;
 }

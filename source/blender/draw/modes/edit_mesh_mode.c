@@ -133,7 +133,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 	EDIT_MESH_TextureList *txl = ((EDIT_MESH_Data *)vedata)->txl;
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 
-	float *viewport_size = DRW_viewport_size_get();
+	const float *viewport_size = DRW_viewport_size_get();
 
 	DRWFboTexture tex[2] = {{
 	    &txl->occlude_wire_depth_tx, DRW_BUF_DEPTH_24, 0},

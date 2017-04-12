@@ -248,9 +248,9 @@ typedef enum {
 
 void DRW_viewport_init(const bContext *C);
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type);
-float *DRW_viewport_size_get(void);
-float *DRW_viewport_screenvecs_get(void);
-float *DRW_viewport_pixelsize_get(void);
+const float *DRW_viewport_size_get(void);
+const float *DRW_viewport_screenvecs_get(void);
+const float *DRW_viewport_pixelsize_get(void);
 bool DRW_viewport_is_persp_get(void);
 bool DRW_viewport_cache_is_dirty(void);
 
