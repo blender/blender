@@ -1274,7 +1274,8 @@ static void ui_item_rna_size(
 	if (!w) {
 		if (type == PROP_ENUM && icon_only) {
 			w = ui_text_icon_width(layout, "", ICON_BLANK1, 0);
-			w += 0.6f * UI_UNIT_X;
+			if (index != RNA_ENUM_VALUE)
+				w += 0.6f * UI_UNIT_X;
 		}
 		else {
 			w = ui_text_icon_width(layout, name, icon, 0);

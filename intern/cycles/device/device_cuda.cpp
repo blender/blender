@@ -1613,10 +1613,23 @@ int2 CUDASplitKernel::split_kernel_local_size()
 	return make_int2(32, 1);
 }
 
-int2 CUDASplitKernel::split_kernel_global_size(device_memory& /*kg*/, device_memory& /*data*/, DeviceTask * /*task*/)
+int2 CUDASplitKernel::split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask * /*task*/)
 {
-	/* TODO(mai): implement something here to detect ideal work size */
-	return make_int2(256, 256);
+	size_t free;
+	size_t total;
+
+	device->cuda_push_context();
+	cuda_assert(cuMemGetInfo(&free, &total));
+	device->cuda_pop_context();
+
+	VLOG(1) << "Maximum device allocation size: "
+	        << string_human_readable_number(free) << " bytes. ("
+	        << string_human_readable_size(free) << ").";
+
+	size_t num_elements = max_elements_for_max_buffer_size(kg, data, free / 2);
+	int2 global_size = make_int2(round_down((int)sqrt(num_elements), 32), (int)sqrt(num_elements));
+	VLOG(1) << "Global size: " << global_size << ".";
+	return global_size;
 }
 
 bool device_cuda_init(void)
