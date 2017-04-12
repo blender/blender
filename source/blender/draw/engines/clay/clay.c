@@ -579,7 +579,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 
 	/* TODO all renderable */
 	if (ob->type == OB_MESH) {
-		geom = DRW_cache_surface_get(ob);
+		geom = DRW_cache_mesh_surface_get(ob);
 
 		/* Depth Prepass */
 		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);

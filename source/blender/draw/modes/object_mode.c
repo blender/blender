@@ -1101,7 +1101,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
 				if (ob != obedit) {
 					if (do_outlines) {
-						struct Batch *geom = DRW_cache_surface_get(ob);
+						struct Batch *geom = DRW_cache_mesh_surface_get(ob);
 						switch (theme_id) {
 							case TH_ACTIVE:
 								DRW_shgroup_call_add(stl->g_data->outlines_active, geom, ob->obmat);

@@ -176,7 +176,7 @@ static void PARTICLE_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		/* Get geometry cache */
-		struct Batch *geom = DRW_cache_surface_get(ob);
+		struct Batch *geom = DRW_cache_mesh_surface_get(ob);
 
 		/* Add geom to a shading group */
 		DRW_shgroup_call_add(stl->g_data->group, geom, ob->obmat);

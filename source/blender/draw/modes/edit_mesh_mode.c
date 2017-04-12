@@ -375,7 +375,7 @@ static void edit_mesh_add_ob_to_pass(
 	struct Batch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts, *geo_ovl_fcenter;
 	ToolSettings *tsettings = scene->toolsettings;
 
-	DRW_cache_wire_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
+	DRW_cache_mesh_wire_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
 	DRW_shgroup_call_add(face_shgrp, geo_ovl_tris, ob->obmat);
 	DRW_shgroup_call_add(ledges_shgrp, geo_ovl_ledges, ob->obmat);
 
@@ -418,7 +418,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			face_mod = (do_occlude_wire) ? 0.0f : 1.0f;
 
 			if (do_occlude_wire) {
-				geom = DRW_cache_surface_get(ob);
+				geom = DRW_cache_mesh_surface_get(ob);
 				DRW_shgroup_call_add(stl->g_data->depth_shgrp_hidden_wire, geom, ob->obmat);
 			}
 
@@ -428,12 +428,12 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			}
 
 			if (vnormals_do) {
-				geom = DRW_cache_verts_get(ob);
+				geom = DRW_cache_mesh_verts_get(ob);
 				DRW_shgroup_call_add(stl->g_data->vnormals_shgrp, geom, ob->obmat);
 			}
 
 			if (lnormals_do) {
-				geom = DRW_cache_surface_verts_get(ob);
+				geom = DRW_cache_mesh_surface_verts_get(ob);
 				DRW_shgroup_call_add(stl->g_data->lnormals_shgrp, geom, ob->obmat);
 			}
 
