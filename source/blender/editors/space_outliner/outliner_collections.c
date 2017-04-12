@@ -122,6 +122,10 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 	BKE_collection_link(sl, sc);
 
 	DAG_relations_tag_update(CTX_data_main(C));
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&scene->id, 0);
+
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -220,6 +224,10 @@ static int collection_unlink_exec(bContext *C, wmOperator *op)
 	BKE_collection_unlink(sl, lc);
 
 	DAG_relations_tag_update(CTX_data_main(C));
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&CTX_data_scene(C)->id, 0);
+
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -347,6 +355,10 @@ static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_delete_cb, &data);
 
 	DAG_relations_tag_update(CTX_data_main(C));
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&scene->id, 0);
+
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return OPERATOR_FINISHED;
