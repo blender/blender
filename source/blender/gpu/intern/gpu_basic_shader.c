@@ -281,7 +281,7 @@ static GPUShader *gpu_basic_shader(int options)
 	return shader;
 }
 
-static void GPU_basic_shader_uniform_autoset(GPUShader *shader, int options)
+static void gpu_basic_shader_uniform_autoset(GPUShader *shader, int options)
 {
 	if (options & GPU_SHADER_LINE) {
 		glGetIntegerv(GL_VIEWPORT, &GPU_MATERIAL_STATE.viewport[0]);
@@ -299,7 +299,7 @@ void GPU_basic_shader_bind(int options)
 
 		if (shader) {
 			GPU_shader_bind(shader);
-			GPU_basic_shader_uniform_autoset(shader, options);
+			gpu_basic_shader_uniform_autoset(shader, options);
 		}
 	}
 	else {

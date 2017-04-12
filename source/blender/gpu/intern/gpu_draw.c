@@ -1175,7 +1175,7 @@ void GPU_paint_set_mipmap(bool mipmap)
 
 
 /* check if image has been downscaled and do scaled partial update */
-static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x, int y, int w, int h)
+static bool gpu_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x, int y, int w, int h)
 {
 	if (is_over_resolution_limit(GL_TEXTURE_2D, ibuf->x, ibuf->y)) {
 		int x_limit = smaller_power_of_2_limit(ibuf->x);
@@ -1266,7 +1266,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 			bool is_data = (ima->tpageflag & IMA_GLBIND_IS_DATA) != 0;
 			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h, is_data);
 
-			if (GPU_check_scaled_image(ibuf, ima, buffer, x, y, w, h)) {
+			if (gpu_check_scaled_image(ibuf, ima, buffer, x, y, w, h)) {
 				MEM_freeN(buffer);
 				BKE_image_release_ibuf(ima, ibuf, NULL);
 				return;
@@ -1290,7 +1290,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 			return;
 		}
 
-		if (GPU_check_scaled_image(ibuf, ima, NULL, x, y, w, h)) {
+		if (gpu_check_scaled_image(ibuf, ima, NULL, x, y, w, h)) {
 			BKE_image_release_ibuf(ima, ibuf, NULL);
 			return;
 		}
@@ -1851,7 +1851,7 @@ void GPU_begin_object_materials(
 	GPU_object_material_unbind();
 }
 
-static int GPU_get_particle_info(GPUParticleInfo *pi)
+static int gpu_get_particle_info(GPUParticleInfo *pi)
 {
 	DupliObject *dob = GMS.dob;
 	if (dob->particle_system) {
@@ -1946,7 +1946,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 			GPU_material_vertex_attributes(gpumat, gattribs);
 
 			if (GMS.dob)
-				GPU_get_particle_info(&partile_info);
+				gpu_get_particle_info(&partile_info);
 
 			GPU_material_bind(
 			        gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT),

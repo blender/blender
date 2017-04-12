@@ -1406,7 +1406,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	bool is_data = handle->is_data;
 
 	if (cm_processor == NULL) {
-		if (display_buffer_byte) {
+		if (display_buffer_byte && display_buffer_byte != handle->byte_buffer) {
 			IMB_buffer_byte_from_byte(display_buffer_byte, handle->byte_buffer, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
 			                          false, width, height, width, width);
 		}

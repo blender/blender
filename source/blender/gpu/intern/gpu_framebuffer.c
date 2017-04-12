@@ -54,7 +54,7 @@ struct GPUFrameBuffer {
 	struct GPUStateValues attribs;
 };
 
-static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
+static void gpu_print_framebuffer_error(GLenum status, char err_out[256])
 {
 	const char *format = "GPUFrameBuffer: framebuffer status %s\n";
 	const char *err = "unknown";
@@ -327,7 +327,7 @@ bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
 
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
 		GPU_framebuffer_restore();
-		GPU_print_framebuffer_error(status, err_out);
+		gpu_print_framebuffer_error(status, err_out);
 		return false;
 	}
 

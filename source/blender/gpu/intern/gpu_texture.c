@@ -65,7 +65,9 @@ struct GPUTexture {
 	bool stencil;       /* is a stencil texture? */
 };
 
-static GLenum GPU_texture_get_format(int components, GPUTextureFormat data_type, GLenum *format, GLenum *data_format, bool *is_depth, bool *is_stencil)
+static GLenum gpu_texture_get_format(
+        int components, GPUTextureFormat data_type,
+        GLenum *format, GLenum *data_format, bool *is_depth, bool *is_stencil)
 {
 	if (data_type == GPU_DEPTH_COMPONENT24 ||
 	    data_type == GPU_DEPTH_COMPONENT16 ||
@@ -159,7 +161,7 @@ static float *GPU_texture_3D_rescale(GPUTexture *tex, int w, int h, int d, int c
 
 /* This tries to allocate video memory for a given texture
  * If alloc fails, lower the resolution until it fits. */
-static bool GPU_texture_try_alloc(
+static bool gpu_texture_try_alloc(
         GPUTexture *tex, GLenum proxy, GLenum internalformat, GLenum format, GLenum data_format,
         int channels, bool try_rescale, const float *fpixels, float **rescaled_fpixels)
 {
@@ -263,7 +265,7 @@ static GPUTexture *GPU_texture_create_nD(
 	if (samples && n == 2 && d == 0)
 		tex->target = GL_TEXTURE_2D_MULTISAMPLE;
 
-	internalformat = GPU_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
+	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
 
 	/* Generate Texture object */
 	glGenTextures(1, &tex->bindcode);
@@ -297,7 +299,7 @@ static GPUTexture *GPU_texture_create_nD(
 		proxy = GL_PROXY_TEXTURE_3D;
 	}
 
-	valid = GPU_texture_try_alloc(tex, proxy, internalformat, format, data_format, components, can_rescale, fpixels,
+	valid = gpu_texture_try_alloc(tex, proxy, internalformat, format, data_format, components, can_rescale, fpixels,
 	                              &rescaled_fpixels);
 
 	if (!valid) {
@@ -386,7 +388,7 @@ static GPUTexture *GPU_texture_cube_create(
 		// tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP_ARRAY;
 	}
 
-	internalformat = GPU_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
+	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
 
 	/* Generate Texture object */
 	glGenTextures(1, &tex->bindcode);

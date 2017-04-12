@@ -744,7 +744,7 @@ void GPU_triangle_setup(struct DerivedMesh *dm)
 	GLStates |= GPU_BUFFER_ELEMENT_STATE;
 }
 
-static int GPU_typesize(int type)
+static int gpu_typesize(int type)
 {
 	switch (type) {
 		case GL_FLOAT:
@@ -767,7 +767,7 @@ int GPU_attrib_element_size(GPUAttrib data[], int numdata)
 	int i, elementsize = 0;
 
 	for (i = 0; i < numdata; i++) {
-		int typesize = GPU_typesize(data[i].type);
+		int typesize = gpu_typesize(data[i].type);
 		if (typesize != 0)
 			elementsize += typesize * data[i].size;
 	}
@@ -804,7 +804,7 @@ void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numda
 
 		glVertexAttribPointer(data[i].index, data[i].size, data[i].type,
 		                         GL_TRUE, elementsize, BUFFER_OFFSET(offset));
-		offset += data[i].size * GPU_typesize(data[i].type);
+		offset += data[i].size * gpu_typesize(data[i].type);
 		
 		attribData[i].index = data[i].index;
 		attribData[i].size = data[i].size;

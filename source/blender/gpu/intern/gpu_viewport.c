@@ -68,9 +68,9 @@ struct GPUViewport {
 	DefaultTextureList *txl;
 };
 
-static void GPU_viewport_buffers_free(FramebufferList *fbl, int fbl_len, TextureList *txl, int txl_len);
-static void GPU_viewport_storage_free(StorageList *stl, int stl_len);
-static void GPU_viewport_passes_free(PassList *psl, int psl_len);
+static void gpu_viewport_buffers_free(FramebufferList *fbl, int fbl_len, TextureList *txl, int txl_len);
+static void gpu_viewport_storage_free(StorageList *stl, int stl_len);
+static void gpu_viewport_passes_free(PassList *psl, int psl_len);
 
 GPUViewport *GPU_viewport_create(void)
 {
@@ -104,7 +104,7 @@ void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
 	return data;
 }
 
-static void GPU_viewport_engines_data_free(GPUViewport *viewport)
+static void gpu_viewport_engines_data_free(GPUViewport *viewport)
 {
 	int fbl_len, txl_len, psl_len, stl_len;
 
@@ -114,9 +114,9 @@ static void GPU_viewport_engines_data_free(GPUViewport *viewport)
 		ViewportEngineData *data = link->data;
 		DRW_engine_viewport_data_size_get(data->engine_type, &fbl_len, &txl_len, &psl_len, &stl_len);
 
-		GPU_viewport_buffers_free(data->fbl, fbl_len, data->txl, txl_len);
-		GPU_viewport_passes_free(data->psl, psl_len);
-		GPU_viewport_storage_free(data->stl, stl_len);
+		gpu_viewport_buffers_free(data->fbl, fbl_len, data->txl, txl_len);
+		gpu_viewport_passes_free(data->psl, psl_len);
+		gpu_viewport_storage_free(data->stl, stl_len);
 
 		MEM_freeN(data->fbl);
 		MEM_freeN(data->txl);
@@ -167,13 +167,13 @@ bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash)
 			ViewportEngineData *data = link->data;
 			int psl_len;
 			DRW_engine_viewport_data_size_get(data->engine_type, NULL, NULL, &psl_len, NULL);
-			GPU_viewport_passes_free(data->psl, psl_len);
+			gpu_viewport_passes_free(data->psl, psl_len);
 		}
 		dirty = true;
 	}
 
 	if (viewport->data_hash != hash) {
-		GPU_viewport_engines_data_free(viewport);
+		gpu_viewport_engines_data_free(viewport);
 		dirty = true;
 	}
 
@@ -194,14 +194,14 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 
 	if (dfbl->default_fb) {
 		if (rect_w != viewport->size[0] || rect_h != viewport->size[1]) {
-			GPU_viewport_buffers_free(
+			gpu_viewport_buffers_free(
 			        (FramebufferList *)viewport->fbl, default_fbl_len,
 			        (TextureList *)viewport->txl, default_txl_len);
 
 			for (LinkData *link = viewport->data.first; link; link = link->next) {
 				ViewportEngineData *data = link->data;
 				DRW_engine_viewport_data_size_get(data->engine_type, &fbl_len, &txl_len, NULL, NULL);
-				GPU_viewport_buffers_free(data->fbl, fbl_len, data->txl, txl_len);
+				gpu_viewport_buffers_free(data->fbl, fbl_len, data->txl, txl_len);
 			}
 		}
 	}
@@ -313,7 +313,7 @@ void GPU_viewport_unbind(GPUViewport *viewport)
 	}
 }
 
-static void GPU_viewport_buffers_free(
+static void gpu_viewport_buffers_free(
         FramebufferList *fbl, int fbl_len,
         TextureList *txl, int txl_len)
 {
@@ -333,7 +333,7 @@ static void GPU_viewport_buffers_free(
 	}
 }
 
-static void GPU_viewport_storage_free(StorageList *stl, int stl_len)
+static void gpu_viewport_storage_free(StorageList *stl, int stl_len)
 {
 	for (int i = 0; i < stl_len; i++) {
 		void *storage = stl->storage[i];
@@ -344,7 +344,7 @@ static void GPU_viewport_storage_free(StorageList *stl, int stl_len)
 	}
 }
 
-static void GPU_viewport_passes_free(PassList *psl, int psl_len)
+static void gpu_viewport_passes_free(PassList *psl, int psl_len)
 {
 	for (int i = 0; i < psl_len; i++) {
 		struct DRWPass *pass = psl->passes[i];
@@ -358,9 +358,9 @@ static void GPU_viewport_passes_free(PassList *psl, int psl_len)
 
 void GPU_viewport_free(GPUViewport *viewport)
 {
-	GPU_viewport_engines_data_free(viewport);
+	gpu_viewport_engines_data_free(viewport);
 
-	GPU_viewport_buffers_free(
+	gpu_viewport_buffers_free(
 	        (FramebufferList *)viewport->fbl, default_fbl_len,
 	        (TextureList *)viewport->txl, default_txl_len);
 
