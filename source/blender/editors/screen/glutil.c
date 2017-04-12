@@ -140,10 +140,8 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
 {
 	VertexFormat *vert_format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(vert_format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int texco = VertexFormat_add_attrib(vert_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
-	state->pos = pos;
-	state->texco = texco;
+	state->pos = VertexFormat_add_attrib(vert_format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	state->texco = VertexFormat_add_attrib(vert_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 }
 
 /* To be used before calling immDrawPixelsTex
@@ -156,12 +154,11 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
 	IMMDrawPixelsTexState state;
 	immDrawPixelsTexSetupAttributes(&state);
 
-	GPUShader *shader = GPU_shader_get_builtin_shader(builtin);
+	state.shader = GPU_shader_get_builtin_shader(builtin);
+
 	/* Shader will be unbind by immUnbindProgram in immDrawPixelsTexScaled_clipping */
 	immBindBuiltinProgram(builtin);
-	GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "image"), 0);
-
-	state.shader = shader;
+	immUniform1i("image", 0);
 
 	return state;
 }
@@ -251,7 +248,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
 	 * it does not need color.
 	 */
 	if (state->shader != NULL && GPU_shader_get_uniform(state->shader, "color") != -1) {
-		immUniform4fv("color", (color) ? color : white);
+		immUniformColor4fv((color) ? color : white);
 	}
 
 	for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
