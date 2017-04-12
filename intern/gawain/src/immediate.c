@@ -827,6 +827,16 @@ void immUniform1i(const char* name, int x)
 	glUniform1i(loc, x);
 	}
 
+void immUniform4iv(const char* name, const int data[4])
+	{
+	int loc = glGetUniformLocation(imm.bound_program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform4iv(loc, 1, data);
+	}
 
 // --- convenience functions for setting "uniform vec4 color" ---
 
