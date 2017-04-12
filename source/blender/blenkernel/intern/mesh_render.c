@@ -1323,17 +1323,17 @@ Batch *BKE_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 
 		for (int i = 0; i < poly_ct; ++i) {
 			float pcenter[3], pnor[3];
-			int selected = 0;
+			bool selected = false;
 
-			mesh_render_data_pnors_pcenter_select_get(mrdata, i, pnor, pcenter, (bool *)&selected);
+			mesh_render_data_pnors_pcenter_select_get(mrdata, i, pnor, pcenter, &selected);
 
 #if USE_10_10_10
 			PackedNormal nor = { .x = 0, .y = 0, .z = -511 };
 			nor = convert_i10_v3(pnor);
-			nor.w = selected;
+			nor.w = selected ? 1 : 0;
 			VertexBuffer_set_attrib(vbo, data_id, i, &nor);
 #else
-			float nor[4] = {pnor[0], pnor[1], pnor[2], (float)selected};
+			float nor[4] = {pnor[0], pnor[1], pnor[2], selected ? 1 : 0};
 			VertexBuffer_set_attrib(vbo, data_id, i, nor);
 #endif
 
