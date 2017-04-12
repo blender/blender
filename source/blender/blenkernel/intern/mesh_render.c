@@ -334,7 +334,9 @@ static short *mesh_render_data_vert_nor(const MeshRenderData *mrdata, const int 
 	}
 }
 
-static void mesh_render_data_edge_verts_indices_get(const MeshRenderData *mrdata, const int edge_idx, int r_vert_idx[2])
+static void mesh_render_data_edge_verts_indices_get(
+        const MeshRenderData *mrdata, const int edge_idx,
+        int r_vert_idx[2])
 {
 	BLI_assert(mrdata->types & MR_DATATYPE_EDGE);
 
@@ -350,25 +352,27 @@ static void mesh_render_data_edge_verts_indices_get(const MeshRenderData *mrdata
 	}
 }
 
-static void mesh_render_data_pnors_pcenter_select_get(MeshRenderData *mrdata, const int poly, float pnors[3], float center[3], bool *selected)
+static void mesh_render_data_pnors_pcenter_select_get(
+        MeshRenderData *mrdata, const int poly,
+        float r_pnors[3], float r_center[3], bool *r_selected)
 {
 	BLI_assert(mrdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
 
 	if (mrdata->edit_bmesh) {
 		const BMFace *bf = BM_face_at_index(mrdata->edit_bmesh->bm, poly);
-		BM_face_calc_center_mean(bf, center);
-		BM_face_calc_normal(bf, pnors);
-		*selected = (BM_elem_flag_test(bf, BM_ELEM_SELECT) != 0) ? true : false;
+		BM_face_calc_center_mean(bf, r_center);
+		BM_face_calc_normal(bf, r_pnors);
+		*r_selected = (BM_elem_flag_test(bf, BM_ELEM_SELECT) != 0) ? true : false;
 	}
 	else {
 		MVert *mvert = mrdata->mvert;
 		const MPoly *mpoly = mrdata->mpoly + poly;
 		const MLoop *mloop = mrdata->mloop + mpoly->loopstart;
 
-		BKE_mesh_calc_poly_center(mpoly, mloop, mvert, center);
-		BKE_mesh_calc_poly_normal(mpoly, mloop, mvert, pnors);
+		BKE_mesh_calc_poly_center(mpoly, mloop, mvert, r_center);
+		BKE_mesh_calc_poly_normal(mpoly, mloop, mvert, r_pnors);
 
-		*selected = false; /* No selection if not in edit mode */
+		*r_selected = false; /* No selection if not in edit mode */
 	}
 }
 
@@ -515,7 +519,8 @@ static void mesh_render_data_looptri_vert_edge_indices_get(
 }
 
 static bool mesh_render_data_looptri_cos_nors_smooth_get(
-        MeshRenderData *mrdata, const int tri_idx, float *(*r_vert_cos)[3], short **r_tri_nor, short *(*r_vert_nors)[3])
+        MeshRenderData *mrdata, const int tri_idx,
+        float *(*r_vert_cos)[3], short **r_tri_nor, short *(*r_vert_nors)[3])
 {
 	BLI_assert(mrdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
 
@@ -859,7 +864,7 @@ static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
 	return me->batch_cache;
 }
 
-void BKE_mesh_batch_cache_dirty(struct Mesh *me)
+void BKE_mesh_batch_cache_dirty(Mesh *me)
 {
 	MeshBatchCache *cache = me->batch_cache;
 	if (cache) {
@@ -867,7 +872,7 @@ void BKE_mesh_batch_cache_dirty(struct Mesh *me)
 	}
 }
 
-void BKE_mesh_batch_selection_dirty(struct Mesh *me)
+void BKE_mesh_batch_selection_dirty(Mesh *me)
 {
 	MeshBatchCache *cache = me->batch_cache;
 	if (cache) {
