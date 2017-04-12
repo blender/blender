@@ -73,14 +73,12 @@ typedef struct CLAY_Storage {
 	DRWShadingGroup *shgrps[MAX_CLAY_MAT];
 } CLAY_Storage;
 
-/* keep it under MAX_STORAGE */
 typedef struct CLAY_StorageList {
 	struct CLAY_Storage *storage;
 	struct GPUUniformBuffer *mat_ubo;
 	struct g_data *g_data;
 } CLAY_StorageList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct CLAY_FramebufferList {
 	/* default */
 	struct GPUFrameBuffer *default_fb;
@@ -88,7 +86,6 @@ typedef struct CLAY_FramebufferList {
 	struct GPUFrameBuffer *dupli_depth;
 } CLAY_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct CLAY_TextureList {
 	/* default */
 	struct GPUTexture *color;
@@ -97,7 +94,6 @@ typedef struct CLAY_TextureList {
 	struct GPUTexture *depth_dup;
 } CLAY_TextureList;
 
-/* keep it under MAX_PASSES */
 typedef struct CLAY_PassList {
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
@@ -650,9 +646,12 @@ static void CLAY_engine_free(void)
 	}
 }
 
+static const DrawEngineDataSize CLAY_data_size = DRW_VIEWPORT_DATA_SIZE(CLAY_Data);
+
 DrawEngineType draw_engine_clay_type = {
 	NULL, NULL,
 	N_("Clay"),
+	&CLAY_data_size,
 	&CLAY_engine_init,
 	&CLAY_engine_free,
 	&CLAY_cache_init,

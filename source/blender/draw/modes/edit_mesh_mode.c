@@ -54,7 +54,6 @@ extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 /* *********** LISTS *********** */
-/* keep it under MAX_PASSES */
 typedef struct EDIT_MESH_PassList {
 	struct DRWPass *depth_hidden_wire;
 	struct DRWPass *edit_face_overlay;
@@ -64,18 +63,15 @@ typedef struct EDIT_MESH_PassList {
 	struct DRWPass *normals;
 } EDIT_MESH_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct EDIT_MESH_FramebufferList {
 	struct GPUFrameBuffer *occlude_wire_fb;
 } EDIT_MESH_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct EDIT_MESH_TextureList {
 	struct GPUTexture *occlude_wire_depth_tx;
 	struct GPUTexture *occlude_wire_color_tx;
 } EDIT_MESH_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct EDIT_MESH_StorageList {
 	struct g_data *g_data;
 } EDIT_MESH_StorageList;
@@ -85,7 +81,7 @@ typedef struct EDIT_MESH_Data {
 	EDIT_MESH_FramebufferList *fbl;
 	EDIT_MESH_TextureList *txl;
 	EDIT_MESH_PassList *psl;
-	void *stl;
+	EDIT_MESH_StorageList *stl;
 } EDIT_MESH_Data;
 
 /* *********** STATIC *********** */
@@ -529,9 +525,12 @@ static void EDIT_MESH_engine_free(void)
 		DRW_shader_free(e_data.normals_sh);
 }
 
+static const DrawEngineDataSize EDIT_MESH_data_size = DRW_VIEWPORT_DATA_SIZE(EDIT_MESH_Data);
+
 DrawEngineType draw_engine_edit_mesh_type = {
 	NULL, NULL,
 	N_("EditMeshMode"),
+	&EDIT_MESH_data_size,
 	&EDIT_MESH_engine_init,
 	&EDIT_MESH_engine_free,
 	&EDIT_MESH_cache_init,

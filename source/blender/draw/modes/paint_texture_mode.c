@@ -46,7 +46,6 @@ extern struct GlobalsUboStorage ts; /* draw_common.c */
  * initialize most of them and PAINT_TEXTURE_cache_init()
  * for PAINT_TEXTURE_PassList */
 
-/* keep it under MAX_PASSES */
 typedef struct PAINT_TEXTURE_PassList {
 	/* Declare all passes here and init them in
 	 * PAINT_TEXTURE_cache_init().
@@ -54,14 +53,12 @@ typedef struct PAINT_TEXTURE_PassList {
 	struct DRWPass *pass;
 } PAINT_TEXTURE_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct PAINT_TEXTURE_FramebufferList {
 	/* Contains all framebuffer objects needed by this engine.
 	 * Only contains (GPUFrameBuffer *) */
 	struct GPUFrameBuffer *fb;
 } PAINT_TEXTURE_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct PAINT_TEXTURE_TextureList {
 	/* Contains all framebuffer textures / utility textures
 	 * needed by this engine. Only viewport specific textures
@@ -69,7 +66,6 @@ typedef struct PAINT_TEXTURE_TextureList {
 	struct GPUTexture *texture;
 } PAINT_TEXTURE_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct PAINT_TEXTURE_StorageList {
 	/* Contains any other memory block that the engine needs.
 	 * Only directly MEM_(m/c)allocN'ed blocks because they are
@@ -257,9 +253,12 @@ void PAINT_TEXTURE_collection_settings_create(CollectionEngineSettings *ces)
 }
 #endif
 
+static const DrawEngineDataSize PAINT_TEXTURE_data_size = DRW_VIEWPORT_DATA_SIZE(PAINT_TEXTURE_Data);
+
 DrawEngineType draw_engine_paint_texture_type = {
 	NULL, NULL,
 	N_("PaintTextureMode"),
+	&PAINT_TEXTURE_data_size,
 	&PAINT_TEXTURE_engine_init,
 	&PAINT_TEXTURE_engine_free,
 	&PAINT_TEXTURE_cache_init,

@@ -63,16 +63,37 @@ struct DefaultFramebufferList;
 struct DefaultTextureList;
 struct LampEngineData;
 struct RenderEngineType;
+struct ViewportEngineData;
+struct ViewportEngineData_Info;
 
 typedef struct DRWUniform DRWUniform;
 typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
 typedef struct DRWShadingGroup DRWShadingGroup;
 
+#define DRW_VIEWPORT_LIST_SIZE(list) (sizeof(list) == sizeof(char) ? 0 : ((sizeof(list)) / sizeof(void *)))
+
+/* Unused members must be either pass list or 'char *' when not usd. */
+#define DRW_VIEWPORT_DATA_SIZE(ty) { \
+	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->fbl)), \
+	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->txl)), \
+	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->psl)), \
+	DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->stl)) \
+}
+
+typedef struct DrawEngineDataSize {
+	int fbl_len;
+	int txl_len;
+	int psl_len;
+	int stl_len;
+} DrawEngineDataSize;
+
 typedef struct DrawEngineType {
 	struct DrawEngineType *next, *prev;
 
 	char idname[32];
+
+	const DrawEngineDataSize *vedata_size;
 
 	void (*engine_init)(void *vedata);
 	void (*engine_free)(void);

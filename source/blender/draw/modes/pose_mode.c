@@ -40,7 +40,6 @@
  * initialize most of them and POSE_cache_init()
  * for POSE_PassList */
 
-/* keep it under MAX_PASSES */
 typedef struct POSE_PassList {
 	/* Declare all passes here and init them in
 	 * POSE_cache_init().
@@ -48,14 +47,12 @@ typedef struct POSE_PassList {
 	struct DRWPass *pass;
 } POSE_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct POSE_FramebufferList {
 	/* Contains all framebuffer objects needed by this engine.
 	 * Only contains (GPUFrameBuffer *) */
 	struct GPUFrameBuffer *fb;
 } POSE_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct POSE_TextureList {
 	/* Contains all framebuffer textures / utility textures
 	 * needed by this engine. Only viewport specific textures
@@ -63,7 +60,6 @@ typedef struct POSE_TextureList {
 	struct GPUTexture *texture;
 } POSE_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct POSE_StorageList {
 	/* Contains any other memory block that the engine needs.
 	 * Only directly MEM_(m/c)allocN'ed blocks because they are
@@ -252,9 +248,12 @@ void POSE_collection_settings_create(CollectionEngineSettings *ces)
 }
 #endif
 
+static const DrawEngineDataSize POSE_data_size = DRW_VIEWPORT_DATA_SIZE(POSE_Data);
+
 DrawEngineType draw_engine_pose_type = {
 	NULL, NULL,
 	N_("PoseMode"),
+	&POSE_data_size,
 	&POSE_engine_init,
 	&POSE_engine_free,
 	&POSE_cache_init,

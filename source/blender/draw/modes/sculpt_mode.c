@@ -40,7 +40,6 @@
  * initialize most of them and SCULPT_cache_init()
  * for SCULPT_PassList */
 
-/* keep it under MAX_PASSES */
 typedef struct SCULPT_PassList {
 	/* Declare all passes here and init them in
 	 * SCULPT_cache_init().
@@ -48,14 +47,12 @@ typedef struct SCULPT_PassList {
 	struct DRWPass *pass;
 } SCULPT_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct SCULPT_FramebufferList {
 	/* Contains all framebuffer objects needed by this engine.
 	 * Only contains (GPUFrameBuffer *) */
 	struct GPUFrameBuffer *fb;
 } SCULPT_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct SCULPT_TextureList {
 	/* Contains all framebuffer textures / utility textures
 	 * needed by this engine. Only viewport specific textures
@@ -63,7 +60,6 @@ typedef struct SCULPT_TextureList {
 	struct GPUTexture *texture;
 } SCULPT_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct SCULPT_StorageList {
 	/* Contains any other memory block that the engine needs.
 	 * Only directly MEM_(m/c)allocN'ed blocks because they are
@@ -251,9 +247,12 @@ void SCULPT_collection_settings_create(CollectionEngineSettings *ces)
 }
 #endif
 
+static const DrawEngineDataSize SCULPT_data_size = DRW_VIEWPORT_DATA_SIZE(SCULPT_Data);
+
 DrawEngineType draw_engine_sculpt_type = {
 	NULL, NULL,
 	N_("SculptMode"),
+	&SCULPT_data_size,
 	&SCULPT_engine_init,
 	&SCULPT_engine_free,
 	&SCULPT_cache_init,

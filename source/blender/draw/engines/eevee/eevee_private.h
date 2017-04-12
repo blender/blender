@@ -32,7 +32,6 @@ struct Object;
 #define MAX_SHADOW_CASCADE 8
 #define MAX_CASCADE_NUM 4
 
-/* keep it under MAX_PASSES */
 typedef struct EEVEE_PassList {
 	struct DRWPass *shadow_pass;
 	struct DRWPass *depth_pass;
@@ -41,7 +40,6 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *tonemap;
 } EEVEE_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *main; /* HDR */
 	struct GPUFrameBuffer *shadow_cube_fb;
@@ -49,7 +47,6 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *shadow_cascade_fb;
 } EEVEE_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct EEVEE_TextureList {
 	struct GPUTexture *color; /* R11_G11_B10 */
 	struct GPUTexture *shadow_depth_cube_pool;
@@ -57,7 +54,6 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *shadow_depth_cascade_pool;
 } EEVEE_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct EEVEE_StorageList {
 	/* Lamps */
 	/* XXX this should be per-scenelayer and not per_viewport */

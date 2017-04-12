@@ -49,6 +49,9 @@ void DRW_engines_register(void);
 void DRW_engines_free(void);
 
 void DRW_engine_register(struct DrawEngineType *draw_engine_type);
+void DRW_engine_viewport_data_size_get(
+        const void *engine_type,
+        int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len);
 
 void DRW_draw_view(const struct bContext *C);
 

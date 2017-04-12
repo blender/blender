@@ -1308,6 +1308,7 @@ void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer 
 }
 
 /* ****************************************** Viewport ******************************************/
+
 static void *DRW_viewport_engine_data_get(void *engine_type)
 {
 	void *data = GPU_viewport_engine_data_get(DST.viewport, engine_type);
@@ -1316,6 +1317,26 @@ static void *DRW_viewport_engine_data_get(void *engine_type)
 		data = GPU_viewport_engine_data_create(DST.viewport, engine_type);
 	}
 	return data;
+}
+
+void DRW_engine_viewport_data_size_get(
+        const void *engine_type_v,
+        int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len)
+{
+	const DrawEngineType *engine_type = engine_type_v;
+
+	if (r_fbl_len) {
+		*r_fbl_len = engine_type->vedata_size->fbl_len;
+	}
+	if (r_txl_len) {
+		*r_txl_len = engine_type->vedata_size->txl_len;
+	}
+	if (r_psl_len) {
+		*r_psl_len = engine_type->vedata_size->psl_len;
+	}
+	if (r_stl_len) {
+		*r_stl_len = engine_type->vedata_size->stl_len;
+	}
 }
 
 const float *DRW_viewport_size_get(void)
@@ -1739,7 +1760,7 @@ static void DRW_debug_gpu_stats(void)
 		draw_stat(&rect, 0, v, engine->idname, sizeof(engine->idname));
 		v++;
 
-		for (int i = 0; i < MAX_PASSES; ++i) {
+		for (int i = 0; i < engine->vedata_size->psl_len; ++i) {
 			DRWPass *pass = data->psl->passes[i];
 			if (pass != NULL) {
 				GLuint64 time;

@@ -46,7 +46,6 @@ extern struct GlobalsUboStorage ts; /* draw_common.c */
  * initialize most of them and PAINT_WEIGHT_cache_init()
  * for PAINT_WEIGHT_PassList */
 
-/* keep it under MAX_PASSES */
 typedef struct PAINT_WEIGHT_PassList {
 	/* Declare all passes here and init them in
 	 * PAINT_WEIGHT_cache_init().
@@ -54,14 +53,12 @@ typedef struct PAINT_WEIGHT_PassList {
 	struct DRWPass *pass;
 } PAINT_WEIGHT_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct PAINT_WEIGHT_FramebufferList {
 	/* Contains all framebuffer objects needed by this engine.
 	 * Only contains (GPUFrameBuffer *) */
 	struct GPUFrameBuffer *fb;
 } PAINT_WEIGHT_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct PAINT_WEIGHT_TextureList {
 	/* Contains all framebuffer textures / utility textures
 	 * needed by this engine. Only viewport specific textures
@@ -69,7 +66,6 @@ typedef struct PAINT_WEIGHT_TextureList {
 	struct GPUTexture *texture;
 } PAINT_WEIGHT_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct PAINT_WEIGHT_StorageList {
 	/* Contains any other memory block that the engine needs.
 	 * Only directly MEM_(m/c)allocN'ed blocks because they are
@@ -254,9 +250,12 @@ void PAINT_WEIGHT_collection_settings_create(CollectionEngineSettings *ces)
 }
 #endif
 
+static const DrawEngineDataSize PAINT_WEIGHT_data_size = DRW_VIEWPORT_DATA_SIZE(PAINT_WEIGHT_Data);
+
 DrawEngineType draw_engine_paint_weight_type = {
 	NULL, NULL,
 	N_("PaintWeightMode"),
+	&PAINT_WEIGHT_data_size,
 	&PAINT_WEIGHT_engine_init,
 	&PAINT_WEIGHT_engine_free,
 	&PAINT_WEIGHT_cache_init,

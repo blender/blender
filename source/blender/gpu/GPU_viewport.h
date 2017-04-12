@@ -41,26 +41,21 @@
 
 typedef struct GPUViewport GPUViewport;
 
-#define MAX_BUFFERS 8
-#define MAX_TEXTURES 16
-#define MAX_PASSES 16
-#define MAX_STORAGE 9 /* extend if needed */
-
 /* All FramebufferLists are just the same pointers with different names */
 typedef struct FramebufferList {
-	struct GPUFrameBuffer *framebuffers[MAX_BUFFERS];
+	struct GPUFrameBuffer *framebuffers[0];
 } FramebufferList;
 
 typedef struct TextureList {
-	struct GPUTexture *textures[MAX_TEXTURES];
+	struct GPUTexture *textures[0];
 } TextureList;
 
 typedef struct PassList {
-	struct DRWPass *passes[MAX_PASSES];
+	struct DRWPass *passes[0];
 } PassList;
 
 typedef struct StorageList {
-	void *storage[MAX_STORAGE]; /* custom structs from the engine */
+	void *storage[0]; /* custom structs from the engine */
 } StorageList;
 
 typedef struct ViewportEngineData {
@@ -77,6 +72,13 @@ typedef struct ViewportEngineData {
 	double render_time;
 	double background_time;
 } ViewportEngineData;
+
+typedef struct ViewportEngineData_Info {
+	int fbl_len;
+	int txl_len;
+	int psl_len;
+	int stl_len;
+} ViewportEngineData_Info;
 
 GPUViewport *GPU_viewport_create(void);
 void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect);

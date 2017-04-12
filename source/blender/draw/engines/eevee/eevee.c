@@ -268,9 +268,12 @@ static void EEVEE_collection_settings_create(RenderEngine *UNUSED(engine), IDPro
 	// BKE_collection_engine_property_add_int(props, "high_quality_sphere_lamps", false);
 }
 
+static const DrawEngineDataSize EEVEE_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);
+
 DrawEngineType draw_engine_eevee_type = {
 	NULL, NULL,
 	N_("Eevee"),
+	&EEVEE_data_size,
 	&EEVEE_engine_init,
 	&EEVEE_engine_free,
 	&EEVEE_cache_init,

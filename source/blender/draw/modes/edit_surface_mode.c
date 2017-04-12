@@ -46,7 +46,6 @@ extern struct GlobalsUboStorage ts; /* draw_common.c */
  * initialize most of them and EDIT_SURFACE_cache_init()
  * for EDIT_SURFACE_PassList */
 
-/* keep it under MAX_PASSES */
 typedef struct EDIT_SURFACE_PassList {
 	/* Declare all passes here and init them in
 	 * EDIT_SURFACE_cache_init().
@@ -54,14 +53,12 @@ typedef struct EDIT_SURFACE_PassList {
 	struct DRWPass *pass;
 } EDIT_SURFACE_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct EDIT_SURFACE_FramebufferList {
 	/* Contains all framebuffer objects needed by this engine.
 	 * Only contains (GPUFrameBuffer *) */
 	struct GPUFrameBuffer *fb;
 } EDIT_SURFACE_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct EDIT_SURFACE_TextureList {
 	/* Contains all framebuffer textures / utility textures
 	 * needed by this engine. Only viewport specific textures
@@ -69,7 +66,6 @@ typedef struct EDIT_SURFACE_TextureList {
 	struct GPUTexture *texture;
 } EDIT_SURFACE_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct EDIT_SURFACE_StorageList {
 	/* Contains any other memory block that the engine needs.
 	 * Only directly MEM_(m/c)allocN'ed blocks because they are
@@ -257,9 +253,12 @@ void EDIT_SURFACE_collection_settings_create(CollectionEngineSettings *ces)
 }
 #endif
 
+static const DrawEngineDataSize EDIT_SURFACE_data_size = DRW_VIEWPORT_DATA_SIZE(EDIT_SURFACE_Data);
+
 DrawEngineType draw_engine_edit_surface_type = {
 	NULL, NULL,
 	N_("EditSurfaceMode"),
+	&EDIT_SURFACE_data_size,
 	&EDIT_SURFACE_engine_init,
 	&EDIT_SURFACE_engine_free,
 	&EDIT_SURFACE_cache_init,

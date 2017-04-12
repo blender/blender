@@ -60,7 +60,6 @@ extern char datatoc_object_grid_vert_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 
 /* *********** LISTS *********** */
-/* keep it under MAX_PASSES */
 typedef struct OBJECT_PassList {
 	struct DRWPass *non_meshes;
 	struct DRWPass *ob_center;
@@ -78,30 +77,27 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *bone_wire;
 } OBJECT_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct OBJECT_FramebufferList {
 	struct GPUFrameBuffer *outlines;
 	struct GPUFrameBuffer *blur;
 } OBJECT_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct OBJECT_TextureList {
 	struct GPUTexture *outlines_depth_tx;
 	struct GPUTexture *outlines_color_tx;
 	struct GPUTexture *outlines_blur_tx;
 } OBJECT_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct OBJECT_StorageList {
 	struct g_data *g_data;
 } OBJECT_StorageList;
 
 typedef struct OBJECT_Data {
 	void *engine_type;
-	void *fbl;
-	void *txl;
+	OBJECT_FramebufferList *fbl;
+	OBJECT_TextureList *txl;
 	OBJECT_PassList *psl;
-	void *stl;
+	OBJECT_StorageList *stl;
 } OBJECT_Data;
 
 /* *********** STATIC *********** */
@@ -1218,9 +1214,12 @@ void OBJECT_collection_settings_create(IDProperty *props)
 	BKE_collection_engine_property_add_int(props, "show_backface_culling", false);
 }
 
+static const DrawEngineDataSize OBJECT_data_size = DRW_VIEWPORT_DATA_SIZE(OBJECT_Data);
+
 DrawEngineType draw_engine_object_type = {
 	NULL, NULL,
 	N_("ObjectMode"),
+	&OBJECT_data_size,
 	&OBJECT_engine_init,
 	&OBJECT_engine_free,
 	&OBJECT_cache_init,

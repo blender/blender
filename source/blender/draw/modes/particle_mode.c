@@ -40,7 +40,6 @@
  * initialize most of them and PARTICLE_cache_init()
  * for PARTICLE_PassList */
 
-/* keep it under MAX_PASSES */
 typedef struct PARTICLE_PassList {
 	/* Declare all passes here and init them in
 	 * PARTICLE_cache_init().
@@ -48,14 +47,12 @@ typedef struct PARTICLE_PassList {
 	struct DRWPass *pass;
 } PARTICLE_PassList;
 
-/* keep it under MAX_BUFFERS */
 typedef struct PARTICLE_FramebufferList {
 	/* Contains all framebuffer objects needed by this engine.
 	 * Only contains (GPUFrameBuffer *) */
 	struct GPUFrameBuffer *fb;
 } PARTICLE_FramebufferList;
 
-/* keep it under MAX_TEXTURES */
 typedef struct PARTICLE_TextureList {
 	/* Contains all framebuffer textures / utility textures
 	 * needed by this engine. Only viewport specific textures
@@ -63,7 +60,6 @@ typedef struct PARTICLE_TextureList {
 	struct GPUTexture *texture;
 } PARTICLE_TextureList;
 
-/* keep it under MAX_STORAGE */
 typedef struct PARTICLE_StorageList {
 	/* Contains any other memory block that the engine needs.
 	 * Only directly MEM_(m/c)allocN'ed blocks because they are
@@ -252,9 +248,12 @@ void PARTICLE_collection_settings_create(CollectionEngineSettings *ces)
 }
 #endif
 
+static const DrawEngineDataSize PARTICLE_data_size = DRW_VIEWPORT_DATA_SIZE(PARTICLE_Data);
+
 DrawEngineType draw_engine_particle_type = {
 	NULL, NULL,
 	N_("ParticleMode"),
+	&PARTICLE_data_size,
 	&PARTICLE_engine_init,
 	&PARTICLE_engine_free,
 	&PARTICLE_cache_init,

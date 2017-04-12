@@ -35,24 +35,22 @@
 extern GlobalsUboStorage ts;
 
 /* *********** LISTS *********** */
-/* keep it under MAX_PASSES */
 typedef struct EDIT_ARMATURE_PassList {
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_wire;
 	struct DRWPass *relationship;
 } EDIT_ARMATURE_PassList;
 
-/* keep it under MAX_STORAGE */
 typedef struct EDIT_ARMATURE_StorageList {
 	struct g_data *g_data;
 } EDIT_ARMATURE_StorageList;
 
 typedef struct EDIT_ARMATURE_Data {
 	void *engine_type;
-	void *fbl;
-	void *txl;
+	char *fbl;
+	char *txl;
 	EDIT_ARMATURE_PassList *psl;
-	void *stl;
+	EDIT_ARMATURE_StorageList *stl;
 } EDIT_ARMATURE_Data;
 
 /* *********** STATIC *********** */
@@ -126,9 +124,12 @@ void EDIT_ARMATURE_collection_settings_create(CollectionEngineSettings *ces)
 }
 #endif
 
+static const DrawEngineDataSize EDIT_ARMATURE_data_size = DRW_VIEWPORT_DATA_SIZE(EDIT_ARMATURE_Data);
+
 DrawEngineType draw_engine_edit_armature_type = {
 	NULL, NULL,
 	N_("EditArmatureMode"),
+	&EDIT_ARMATURE_data_size,
 	NULL,
 	NULL,
 	&EDIT_ARMATURE_cache_init,
