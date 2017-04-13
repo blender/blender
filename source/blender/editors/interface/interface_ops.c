@@ -42,6 +42,7 @@
 #include "BLT_lang.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_screen.h"
@@ -384,6 +385,9 @@ static int use_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 			break;
 	}
 
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update((ID *)CTX_data_scene(C), 0);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -415,6 +419,9 @@ static int unuse_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 	IDProperty *props = (IDProperty *)ptr.data;
 	IDProperty *prop_to_remove = IDP_GetPropertyFromGroup(props, identifier);
 	IDP_FreeFromGroup(props, prop_to_remove);
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update((ID *)CTX_data_scene(C), 0);
 
 	return OPERATOR_FINISHED;
 }
