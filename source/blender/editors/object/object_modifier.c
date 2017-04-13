@@ -793,7 +793,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Add Modifier";
-	ot->description = "Add a modifier to the active object";
+	ot->description = "Add a procedural operation/effect to the active object";
 	ot->idname = "OBJECT_OT_modifier_add";
 	
 	/* api callbacks */

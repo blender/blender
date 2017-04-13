@@ -1775,6 +1775,7 @@ class WM_OT_keyconfig_remove(Operator):
 
 
 class WM_OT_operator_cheat_sheet(Operator):
+    "List all the Operators in a text-block, useful for scripting"
     bl_idname = "wm.operator_cheat_sheet"
     bl_label = "Operator Cheat Sheet"
 
