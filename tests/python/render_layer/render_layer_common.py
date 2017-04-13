@@ -693,3 +693,88 @@ class MoveLayerCollectionTesting(MoveSceneCollectionSyncTesting):
         layer_collection_src = self.parse_move(src)
         layer_collection_dst = self.parse_move(dst)
         return layer_collection_src.move_below(layer_collection_dst)
+
+
+class Clay:
+    def __init__(self, extra_kid_layer=False):
+        import bpy
+
+        self._scene = bpy.context.scene
+        self._layer = self._fresh_layer()
+        self._object = bpy.data.objects.new('guinea pig', bpy.data.meshes.new('mesh'))
+
+        # update depsgraph
+        self._scene.update()
+
+        scene_collection_grandma = self._scene.master_collection.collections.new("Grandma")
+        scene_collection_mom = scene_collection_grandma.collections.new("Mom")
+        scene_collection_kid = scene_collection_mom.collections.new("Kid")
+        scene_collection_kid.objects.link(self._object)
+
+        layer_collection_grandma = self._layer.collections.link(scene_collection_grandma)
+        layer_collection_mom = layer_collection_grandma.collections[0]
+        layer_collection_kid = layer_collection_mom.collections[0]
+
+        # store the variables
+        self._scene_collections = {
+                'grandma': scene_collection_grandma,
+                'mom': scene_collection_mom,
+                'kid': scene_collection_kid,
+                }
+        self._layer_collections = {
+                'grandma': layer_collection_grandma,
+                'mom': layer_collection_mom,
+                'kid': layer_collection_kid,
+                }
+
+        if extra_kid_layer:
+            layer_collection_extra = self._layer.collections.link(scene_collection_kid)
+            self._layer_collections['extra'] = layer_collection_extra
+
+        self._update()
+
+    def _fresh_layer(self):
+        import bpy
+
+        # remove all other objects
+        while bpy.data.objects:
+            bpy.data.objects.remove(bpy.data.objects[0])
+
+        layer = self._scene.render_layers.new('Evaluation Test')
+        layer.collections.unlink(layer.collections[0])
+        self._scene.render_layers.active = layer
+
+        # remove all other layers
+        for layer_iter in self._scene.render_layers:
+            if layer_iter != layer:
+                self._scene.render_layers.remove(layer_iter)
+
+        return layer
+
+    def _update(self):
+        """
+        Force depsgrpah evaluation
+        and update pointers to IDProperty collections
+        """
+        ENGINE = 'BLENDER_CLAY'
+
+        self._scene.update()  # update depsgraph
+        self._layer.update()  # flush depsgraph evaluation
+
+        # change scene settings
+        self._properties = {
+                'scene': self._scene.collection_properties[ENGINE],
+                'object': self._object.collection_properties[ENGINE],
+                }
+
+        for key, value in self._layer_collections.items():
+            self._properties[key] = self._layer_collections[key].engine_overrides[ENGINE]
+
+    def get(self, name, data_path):
+        self._update()
+        return getattr(self._properties[name], data_path)
+
+    def set(self, name, data_path, value):
+        self._update()
+        self._properties[name].use(data_path)
+        setattr(self._properties[name], data_path, value)
