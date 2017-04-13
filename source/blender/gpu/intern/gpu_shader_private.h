@@ -22,7 +22,8 @@
  *  \ingroup gpu
  */
 
-#pragma once
+#ifndef __GPU_SHADER_PRIVATE_H__
+#define __GPU_SHADER_PRIVATE_H__
 
 #include "GPU_glew.h"
 #include "gawain/shader_interface.h"
@@ -39,3 +40,6 @@ struct GPUShader {
 
 	ShaderInterface *interface; /* cached uniform & attrib interface for shader */
 };
+
+#endif  /* __GPU_SHADER_PRIVATE_H__ */
+

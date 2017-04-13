@@ -28,7 +28,8 @@
  * This file contains any additions or modifications specific to Blender.
  */
 
-#pragma once
+#ifndef __GPU_BATCH_H__
+#define __GPU_BATCH_H__
 
 #include "../../../intern/gawain/gawain/batch.h"
 
@@ -46,3 +47,5 @@ Batch *Batch_get_sphere_wire(int lod);
 
 void gpu_batch_init(void);
 void gpu_batch_exit(void);
+
+#endif  /* __GPU_BATCH_H__ */
