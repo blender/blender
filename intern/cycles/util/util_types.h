@@ -18,78 +18,68 @@
 #define __UTIL_TYPES_H__
 
 #ifndef __KERNEL_OPENCL__
-
-#include <stdlib.h>
-
+#  include <stdlib.h>
 #endif
 
 /* Bitness */
 
 #if defined(__ppc64__) || defined(__PPC64__) || defined(__x86_64__) || defined(__ia64__) || defined(_M_X64)
-#define __KERNEL_64_BIT__
+#  define __KERNEL_64_BIT__
 #endif
 
 /* Qualifiers for kernel code shared by CPU and GPU */
 
 #ifndef __KERNEL_GPU__
+#  define ccl_device static inline
+#  define ccl_device_noinline static
+#  define ccl_global
+#  define ccl_constant
+#  define ccl_local
+#  define ccl_local_param
+#  define ccl_private
+#  define ccl_restrict __restrict
+#  define __KERNEL_WITH_SSE_ALIGN__
 
-#define ccl_device static inline
-#define ccl_device_noinline static
-#define ccl_global
-#define ccl_constant
-#define ccl_local
-#define ccl_local_param
-#define ccl_private
-#define ccl_restrict __restrict
-#define __KERNEL_WITH_SSE_ALIGN__
-
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
-#define ccl_device_inline static __forceinline
-#define ccl_device_forceinline static __forceinline
-#define ccl_align(...) __declspec(align(__VA_ARGS__))
-#ifdef __KERNEL_64_BIT__
-#define ccl_try_align(...) __declspec(align(__VA_ARGS__))
-#else
-#undef __KERNEL_WITH_SSE_ALIGN__
-#define ccl_try_align(...) /* not support for function arguments (error C2719) */
-#endif
-#define ccl_may_alias
-#define ccl_always_inline __forceinline
-#define ccl_never_inline __declspec(noinline)
-#define ccl_maybe_unused
-
-#else
-
-#define ccl_device_inline static inline __attribute__((always_inline))
-#define ccl_device_forceinline static inline __attribute__((always_inline))
-#define ccl_align(...) __attribute__((aligned(__VA_ARGS__)))
-#ifndef FREE_WINDOWS64
-#define __forceinline inline __attribute__((always_inline))
-#endif
-#define ccl_try_align(...) __attribute__((aligned(__VA_ARGS__)))
-#define ccl_may_alias __attribute__((__may_alias__))
-#define ccl_always_inline __attribute__((always_inline))
-#define ccl_never_inline __attribute__((noinline))
-#define ccl_maybe_unused __attribute__((used))
-
-#endif
-
-#endif
+#  if defined(_WIN32) && !defined(FREE_WINDOWS)
+#    define ccl_device_inline static __forceinline
+#    define ccl_device_forceinline static __forceinline
+#    define ccl_align(...) __declspec(align(__VA_ARGS__))
+#    ifdef __KERNEL_64_BIT__
+#      define ccl_try_align(...) __declspec(align(__VA_ARGS__))
+#    else  /* __KERNEL_64_BIT__ */
+#      undef __KERNEL_WITH_SSE_ALIGN__
+/* No support for function arguments (error C2719). */
+#      define ccl_try_align(...)
+#    endif  /* __KERNEL_64_BIT__ */
+#    define ccl_may_alias
+#    define ccl_always_inline __forceinline
+#    define ccl_never_inline __declspec(noinline)
+#    define ccl_maybe_unused
+#  else  /* _WIN32 && !FREE_WINDOWS */
+#    define ccl_device_inline static inline __attribute__((always_inline))
+#    define ccl_device_forceinline static inline __attribute__((always_inline))
+#    define ccl_align(...) __attribute__((aligned(__VA_ARGS__)))
+#    ifndef FREE_WINDOWS64
+#      define __forceinline inline __attribute__((always_inline))
+#    endif
+#    define ccl_try_align(...) __attribute__((aligned(__VA_ARGS__)))
+#    define ccl_may_alias __attribute__((__may_alias__))
+#    define ccl_always_inline __attribute__((always_inline))
+#    define ccl_never_inline __attribute__((noinline))
+#    define ccl_maybe_unused __attribute__((used))
+#  endif  /* _WIN32 && !FREE_WINDOWS */
+#endif  /* __KERNEL_GPU__ */
 
 /* Standard Integer Types */
 
 #ifndef __KERNEL_GPU__
-
 /* int8_t, uint16_t, and friends */
-#ifndef _WIN32
-#include <stdint.h>
-#endif
-
+#  ifndef _WIN32
+#    include <stdint.h>
+#  endif
 /* SIMD Types */
-
-#include "util/util_optimization.h"
-
-#endif
+#  include "util/util_optimization.h"
+#endif  /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_BEGIN
 
@@ -102,24 +92,18 @@ CCL_NAMESPACE_BEGIN
 /* Shorter Unsigned Names */
 
 #ifndef __KERNEL_OPENCL__
-
 typedef unsigned char uchar;
 typedef unsigned int uint;
-
 #endif
 
 /* Fixed Bits Types */
 
 #ifdef __KERNEL_OPENCL__
-
 typedef ulong uint64_t;
-
 #endif
 
 #ifndef __KERNEL_GPU__
-
-#ifdef _WIN32
-
+#  ifdef _WIN32
 typedef signed char int8_t;
 typedef unsigned char uint8_t;
 
@@ -131,14 +115,12 @@ typedef unsigned int uint32_t;
 
 typedef long long int64_t;
 typedef unsigned long long uint64_t;
-
-#ifdef __KERNEL_64_BIT__
+#    ifdef __KERNEL_64_BIT__
 typedef int64_t ssize_t;
-#else
+#    else
 typedef int32_t ssize_t;
-#endif
-
-#endif
+#    endif
+#  endif  /* _WIN32 */
 
 /* Generic Memory Pointer */
 
@@ -303,10 +285,6 @@ public:
 	ccl_always_inline vector3(const T& x, const T& y, const T& z)
 	  : x(x), y(y), z(z) {}
 };
-
-#endif
-
-#ifndef __KERNEL_GPU__
 
 /* Vector Type Constructors
  * 
@@ -480,7 +458,7 @@ ccl_device_inline int4 make_int4(const float3& f)
 	return a;
 }
 
-#endif
+#endif  /* __KERNEL_GPU__ */
 
 ccl_device_inline size_t align_up(size_t offset, size_t alignment)
 {
@@ -554,7 +532,7 @@ template<typename T> static inline T decltype_helper(T x) { return x; }
  * ... the compiler optimizes away the temp var */
 #ifdef __GNUC__
 #define CHECK_TYPE(var, type)  {  \
-	TYPEOF(var) *__tmp;         \
+	TYPEOF(var) *__tmp;           \
 	__tmp = (type *)NULL;         \
 	(void)__tmp;                  \
 } (void)0
