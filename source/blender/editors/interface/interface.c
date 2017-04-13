@@ -4372,7 +4372,7 @@ void UI_but_func_search_set(
 	if (0 == (but->block->flag & UI_BLOCK_LOOP)) {
 		/* skip empty buttons, not all buttons need input, we only show invalid */
 		if (but->drawstr[0])
-			ui_but_search_refresh(but);
+			ui_but_search_refresh(but, false);
 	}
 }
 
