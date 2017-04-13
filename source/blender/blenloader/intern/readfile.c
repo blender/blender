@@ -4714,6 +4714,7 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 	direct_link_dverts(fd, lt->pntsu*lt->pntsv*lt->pntsw, lt->dvert);
 	
 	lt->editlatt = NULL;
+	lt->batch_cache = NULL;
 	
 	lt->adt = newdataadr(fd, lt->adt);
 	direct_link_animdata(fd, lt->adt);

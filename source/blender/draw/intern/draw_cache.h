@@ -87,4 +87,8 @@ struct Batch *DRW_cache_mesh_surface_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_surface_verts_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_verts_get(struct Object *ob);
 
+/* Lattice */
+struct Batch *DRW_cache_lattice_verts_get(struct Object *ob);
+struct Batch *DRW_cache_lattice_wire_get(struct Object *ob);
+
 #endif /* __DRAW_CACHE_H__ */

@@ -99,7 +99,8 @@ static struct {
 typedef struct g_data {
 	/* This keeps the references of the shading groups for
 	 * easy access in EDIT_LATTICE_cache_populate() */
-	DRWShadingGroup *group;
+	DRWShadingGroup *wire_shgrp;
+	DRWShadingGroup *vert_shgrp;
 } g_data; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -149,23 +150,16 @@ static void EDIT_LATTICE_cache_init(void *vedata)
 
 	{
 		/* Create a pass */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND | DRW_STATE_WIRE;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE;
 		psl->pass = DRW_pass_create("My Pass", state);
 
-		/* Create a shadingGroup using a function in draw_common.c or custom one */
-		/*
-		 * stl->g_data->group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
-		 * -- or --
-		 * stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
-		 */
-		stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
+		stl->g_data->wire_shgrp = DRW_shgroup_create(e_data.custom_shader, psl->pass);
 
-		/* Uniforms need a pointer to it's value so be sure it's accessible at
-		 * any given time (i.e. use static vars) */
-		static float color[4] = {1.0f, 0.0f, 0.0f, 1.0};
-		DRW_shgroup_uniform_vec4(stl->g_data->group, "color", color, 1);
+		DRW_shgroup_uniform_vec4(stl->g_data->wire_shgrp, "color", ts.colorWireEdit, 1);
+
+		stl->g_data->vert_shgrp = DRW_shgroup_create(e_data.custom_shader, psl->pass);
+		DRW_shgroup_uniform_vec4(stl->g_data->vert_shgrp, "color", ts.colorVertexSelect, 1);
 	}
-
 }
 
 /* Add geometry to shadingGroups. Execute for each objects */
@@ -173,15 +167,23 @@ static void EDIT_LATTICE_cache_populate(void *vedata, Object *ob)
 {
 	EDIT_LATTICE_PassList *psl = ((EDIT_LATTICE_Data *)vedata)->psl;
 	EDIT_LATTICE_StorageList *stl = ((EDIT_LATTICE_Data *)vedata)->stl;
+	const struct bContext *C = DRW_get_context();
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = scene->obedit;
 
-	UNUSED_VARS(psl, stl);
+	UNUSED_VARS(psl);
 
-	if (ob->type == OB_MESH) {
-		/* Get geometry cache */
-		struct Batch *geom = DRW_cache_mesh_surface_get(ob);
+	if (ob->type == OB_LATTICE) {
+		if (ob == obedit) {
+			/* Get geometry cache */
+			struct Batch *geom;
 
-		/* Add geom to a shading group */
-		DRW_shgroup_call_add(stl->g_data->group, geom, ob->obmat);
+			geom = DRW_cache_lattice_wire_get(ob);
+			DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);
+
+			geom = DRW_cache_lattice_verts_get(ob);
+			DRW_shgroup_call_add(stl->g_data->vert_shgrp, geom, ob->obmat);
+		}
 	}
 }
 
@@ -228,7 +230,8 @@ static void EDIT_LATTICE_draw_scene(void *vedata)
  * Mostly used for freeing shaders */
 static void EDIT_LATTICE_engine_free(void)
 {
-	// DRW_SHADER_FREE_SAFE(custom_shader);
+	// Currently built-in, dont free
+	// DRW_SHADER_FREE_SAFE(e_data.custom_shader);
 }
 
 /* Create collection settings here.

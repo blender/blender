@@ -32,6 +32,7 @@
 #include "BLI_math.h"
 
 #include "BKE_mesh_render.h"
+#include "BKE_lattice_render.h"
 
 #include "GPU_batch.h"
 
@@ -1527,6 +1528,32 @@ Batch *DRW_cache_mesh_verts_get(Object *ob)
 
 	Mesh *me = ob->data;
 	surface = BKE_mesh_batch_cache_get_all_verts(me);
+
+	return surface;
+}
+
+/* Lattice  */
+
+Batch *DRW_cache_lattice_verts_get(Object *ob)
+{
+	Batch *surface = NULL;
+
+	BLI_assert(ob->type == OB_LATTICE);
+
+	struct Lattice *lt = ob->data;
+	surface = BKE_lattice_batch_cache_get_all_verts(lt);
+
+	return surface;
+}
+
+Batch *DRW_cache_lattice_wire_get(Object *ob)
+{
+	Batch *surface = NULL;
+
+	BLI_assert(ob->type == OB_LATTICE);
+
+	struct Lattice *lt = ob->data;
+	surface = BKE_lattice_batch_cache_get_all_edges(lt);
 
 	return surface;
 }

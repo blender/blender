@@ -57,6 +57,7 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_lattice_render.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
@@ -305,6 +306,8 @@ Lattice *BKE_lattice_copy(Main *bmain, Lattice *lt)
 void BKE_lattice_free(Lattice *lt)
 {
 	BKE_animdata_free(&lt->id, false);
+
+	BKE_lattice_batch_cache_free(lt);
 
 	MEM_SAFE_FREE(lt->def);
 	if (lt->dvert) {

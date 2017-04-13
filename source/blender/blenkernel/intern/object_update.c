@@ -50,7 +50,6 @@
 #include "BKE_key.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
-#include "BKE_mesh_render.h"
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -58,6 +57,9 @@
 #include "BKE_scene.h"
 #include "BKE_material.h"
 #include "BKE_image.h"
+
+#include "BKE_mesh_render.h"
+#include "BKE_lattice_render.h"
 
 #include "DEG_depsgraph.h"
 
@@ -342,8 +344,13 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 	BLI_assert(ob->type != OB_ARMATURE);
 	BKE_object_handle_data_update(eval_ctx, scene, ob);
 
-	if (ob->type == OB_MESH) {
-		BKE_mesh_batch_cache_dirty(ob->data);
+	switch (ob->type) {
+		case OB_MESH:
+			BKE_mesh_batch_cache_dirty(ob->data);
+			break;
+		case OB_LATTICE:
+			BKE_lattice_batch_cache_dirty(ob->data);
+			break;
 	}
 
 	ob->recalc &= ~(OB_RECALC_DATA | OB_RECALC_TIME);

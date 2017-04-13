@@ -69,6 +69,7 @@ typedef struct Lattice {
 	char vgroup[64]; /* multiply the influence, MAX_VGROUP_NAME */
 	
 	struct EditLatt *editlatt;
+	void *batch_cache;
 } Lattice;
 
 /* ***************** LATTICE ********************* */
