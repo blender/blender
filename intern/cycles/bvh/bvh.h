@@ -110,15 +110,15 @@ protected:
 	virtual void refit_nodes() = 0;
 };
 
-/* Binary BVH
+/* BVH2
  *
  * Typical BVH with each node having two children. */
 
-class BinaryBVH : public BVH {
+class BVH2 : public BVH {
 protected:
 	/* constructor */
 	friend class BVH;
-	BinaryBVH(const BVHParams& params, const vector<Object*>& objects);
+	BVH2(const BVHParams& params, const vector<Object*>& objects);
 
 	/* pack */
 	void pack_nodes(const BVHNode *root);
@@ -154,15 +154,15 @@ protected:
 	void refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility);
 };
 
-/* QBVH
+/* BVH4
  *
  * Quad BVH, with each node having four children, to use with SIMD instructions. */
 
-class QBVH : public BVH {
+class BVH4 : public BVH {
 protected:
 	/* constructor */
 	friend class BVH;
-	QBVH(const BVHParams& params, const vector<Object*>& objects);
+	BVH4(const BVHParams& params, const vector<Object*>& objects);
 
 	/* pack */
 	void pack_nodes(const BVHNode *root);
