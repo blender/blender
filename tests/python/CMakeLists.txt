@@ -91,6 +91,10 @@ add_test(script_pyapi_idprop ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_idprop.py
 )
 
+add_test(script_pyapi_idprop_datablock ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_idprop_datablock.py
+)
+
 # ------------------------------------------------------------------------------
 # MODELING TESTS
 add_test(bevel ${TEST_BLENDER_EXE}

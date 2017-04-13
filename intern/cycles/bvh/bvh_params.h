@@ -246,4 +246,3 @@ struct BVHSpatialStorage {
 CCL_NAMESPACE_END
 
 #endif /* __BVH_PARAMS_H__ */
-

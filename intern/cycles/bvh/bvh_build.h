@@ -20,17 +20,17 @@
 
 #include <float.h>
 
-#include "bvh/bvh.h"
-#include "bvh/bvh_binning.h"
+#include "bvh/bvh_params.h"
 #include "bvh/bvh_unaligned.h"
 
-#include "util/util_boundbox.h"
 #include "util/util_task.h"
 #include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
+class Boundbox;
 class BVHBuildTask;
+class BVHNode;
 class BVHSpatialSplitBuildTask;
 class BVHParams;
 class InnerNode;

@@ -370,7 +370,9 @@ void AbcExporter::createTransformWritersFlat()
 
 		if (!export_object(&m_settings, base)) {
 			std::string name = get_id_name(ob);
-			m_xforms[name] = new AbcTransformWriter(ob, m_writer->archive().getTop(), 0, m_trans_sampling_index, m_settings);
+			m_xforms[name] = new AbcTransformWriter(
+			                     ob, m_writer->archive().getTop(), NULL,
+			                     m_trans_sampling_index, m_settings);
 		}
 	}
 }

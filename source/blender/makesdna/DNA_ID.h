@@ -82,8 +82,6 @@ enum {
 	IDP_FLOAT            = 2,
 	IDP_ARRAY            = 5,
 	IDP_GROUP            = 6,
-	/* the ID link property type hasn't been implemented yet, this will require
-	 * some cleanup of blenkernel, most likely. */
 	IDP_ID               = 7,
 	IDP_DOUBLE           = 8,
 	IDP_IDPARRAY         = 9,

@@ -18,8 +18,11 @@
 #ifndef __BVH_SORT_H__
 #define __BVH_SORT_H__
 
+#include <cstddef>
+
 CCL_NAMESPACE_BEGIN
 
+class BVHReference;
 class BVHUnaligned;
 struct Transform;
 
@@ -33,4 +36,3 @@ void bvh_reference_sort(int start,
 CCL_NAMESPACE_END
 
 #endif /* __BVH_SORT_H__ */
-

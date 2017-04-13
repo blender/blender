@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 #include "bvh/bvh_unaligned.h"
 
 #include "render/mesh.h"

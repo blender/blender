@@ -701,7 +701,7 @@ void    UI_but_func_search_set(
 int     UI_searchbox_size_y(void);
 int     UI_searchbox_size_x(void);
 /* check if a string is in an existing search box */
-int     UI_search_items_find_index(uiSearchItems *items, const char *name);
+int     UI_search_items_find_index(uiSearchItems *items, const char *name, const size_t offset);
 
 void    UI_block_func_handle_set(uiBlock *block, uiBlockHandleFunc func, void *arg);
 void    UI_block_func_butmenu_set(uiBlock *block, uiMenuHandleFunc func, void *arg);

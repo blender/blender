@@ -1039,6 +1039,7 @@ static void rna_def_uilist(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_UIList_refine");
 	RNA_def_struct_register_funcs(srna, "rna_UIList_register", "rna_UIList_unregister", NULL);
 	RNA_def_struct_idprops_func(srna, "rna_UIList_idprops");
+	RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
 
 	/* Registration */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);

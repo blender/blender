@@ -1828,7 +1828,7 @@ void ntreeFreeTree(bNodeTree *ntree)
 		if (tntree == ntree)
 			break;
 	if (tntree == NULL) {
-		BKE_libblock_free_data(G.main, &ntree->id);
+		BKE_libblock_free_data(G.main, &ntree->id, true);
 	}
 }
 

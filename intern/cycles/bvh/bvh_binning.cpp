@@ -17,9 +17,9 @@
 
 //#define __KERNEL_SSE__
 
-#include <stdlib.h>
-
 #include "bvh/bvh_binning.h"
+
+#include <stdlib.h>
 
 #include "util/util_algorithm.h"
 #include "util/util_boundbox.h"

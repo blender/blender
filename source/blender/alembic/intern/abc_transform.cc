@@ -71,6 +71,9 @@ AbcTransformWriter::AbcTransformWriter(Object *ob,
 
 	m_xform = OXform(abc_parent, get_id_name(m_object), time_sampling);
 	m_schema = m_xform.getSchema();
+
+	/* Blender objects can't have a parent without inheriting the transform. */
+	m_inherits_xform = parent != NULL;
 }
 
 void AbcTransformWriter::do_write()
@@ -86,20 +89,18 @@ void AbcTransformWriter::do_write()
 	}
 
 	float yup_mat[4][4];
-	create_transform_matrix(m_object, yup_mat);
+	create_transform_matrix(m_object, yup_mat,
+	                        m_inherits_xform ? ABC_MATRIX_LOCAL : ABC_MATRIX_WORLD);
 
 	/* Only apply rotation to root camera, parenting will propagate it. */
-	if (m_object->type == OB_CAMERA && !has_parent_camera(m_object)) {
+	if (m_object->type == OB_CAMERA && (!m_inherits_xform || !has_parent_camera(m_object))) {
 		float rot_mat[4][4];
 		axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
 		mul_m4_m4m4(yup_mat, yup_mat, rot_mat);
 	}
 
-	if (!m_object->parent) {
+	if (!m_object->parent || !m_inherits_xform) {
 		/* Only apply scaling to root objects, parenting will propagate it. */
-		/* TODO Sybren: when we're exporting as "flat", i.e. non-hierarchial,
-		 * we should apply the scale even when the object has a parent
-		 * Blender Object. */
 		float scale_mat[4][4];
 		scale_m4_fl(scale_mat, m_settings.global_scale);
 		scale_mat[3][3] = m_settings.global_scale;  /* also scale translation */
@@ -108,6 +109,7 @@ void AbcTransformWriter::do_write()
 
 	m_matrix = convert_matrix(yup_mat);
 	m_sample.setMatrix(m_matrix);
+	m_sample.setInheritsXforms(m_inherits_xform);
 	m_schema.set(m_sample);
 }
 
