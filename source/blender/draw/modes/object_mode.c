@@ -1088,30 +1088,34 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	switch (ob->type) {
 		case OB_MESH:
-			{
-				Object *obedit = scene->obedit;
-				int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
-				if (ob != obedit) {
-					if (do_outlines) {
-						struct Batch *geom = DRW_cache_mesh_surface_get(ob);
-						switch (theme_id) {
-							case TH_ACTIVE:
-								DRW_shgroup_call_add(stl->g_data->outlines_active, geom, ob->obmat);
-								break;
-							case TH_SELECT:
-								DRW_shgroup_call_add(stl->g_data->outlines_select, geom, ob->obmat);
-								break;
-							case TH_GROUP_ACTIVE:
-								DRW_shgroup_call_add(stl->g_data->outlines_select_group, geom, ob->obmat);
-								break;
-							case TH_TRANSFORM:
-								DRW_shgroup_call_add(stl->g_data->outlines_transform, geom, ob->obmat);
-								break;
-						}
+		{
+			Object *obedit = scene->obedit;
+			if (ob != obedit) {
+				if (do_outlines) {
+					struct Batch *geom = DRW_cache_mesh_surface_get(ob);
+					int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
+					DRWShadingGroup *shgroup = NULL;
+					switch (theme_id) {
+						case TH_ACTIVE:
+							shgroup = stl->g_data->outlines_active;
+							break;
+						case TH_SELECT:
+							shgroup = stl->g_data->outlines_select;
+							break;
+						case TH_GROUP_ACTIVE:
+							shgroup = stl->g_data->outlines_select_group;
+							break;
+						case TH_TRANSFORM:
+							shgroup = stl->g_data->outlines_transform;
+							break;
+					}
+					if (shgroup != NULL) {
+						DRW_shgroup_call_add(shgroup, geom, ob->obmat);
 					}
 				}
 			}
 			break;
+		}
 		case OB_LAMP:
 			DRW_shgroup_lamp(stl, ob, sl);
 			break;
@@ -1125,15 +1129,17 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_speaker(stl, ob, sl);
 			break;
 		case OB_ARMATURE:
-			{
-				bArmature *arm = ob->data;
-				if (arm->edbo == NULL) {
-					DRW_shgroup_armature_object(ob, sl, ((OBJECT_Data *)vedata)->psl->bone_solid,
-					                                    ((OBJECT_Data *)vedata)->psl->bone_wire,
-					                                    stl->g_data->relationship_lines);
-				}
+		{
+			bArmature *arm = ob->data;
+			if (arm->edbo == NULL) {
+				DRW_shgroup_armature_object(
+				        ob, sl,
+				        ((OBJECT_Data *)vedata)->psl->bone_solid,
+				        ((OBJECT_Data *)vedata)->psl->bone_wire,
+				        stl->g_data->relationship_lines);
 			}
 			break;
+		}
 		default:
 			break;
 	}
