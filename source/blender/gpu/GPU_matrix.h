@@ -43,7 +43,11 @@ extern "C" {
 /* For now we support the legacy matrix stack in gpuGetMatrix functions.
  * Will remove this after switching to core profile, which can happen after
  * we convert all code to use the API in this file. */
-#define SUPPORT_LEGACY_MATRIX 1
+#ifdef WITH_GL_PROFILE_CORE
+	#define SUPPORT_LEGACY_MATRIX 0
+#else
+	#define SUPPORT_LEGACY_MATRIX 1
+#endif
 
 /* implement 2D parts with 4x4 matrices, even though 3x3 feels better
  * this is a compromise to get core profile up & running sooner

@@ -464,7 +464,7 @@ option(WITH_GLEW_MX             "Support multiple GLEW contexts (experimental)" 
 option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
 option(WITH_GL_EGL              "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, glX, or WGL)"       OFF)
 option(WITH_GL_PROFILE_COMPAT   "Support using the OpenGL 'compatibility' profile. (deprecated)"                                                    ON )
-option(WITH_GL_PROFILE_CORE     "Support using the OpenGL 3.2+ 'core' profile."                                                                     OFF)
+option(WITH_GL_PROFILE_CORE     "Support using the OpenGL 3.3+ 'core' profile."                                                                     OFF)
 option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (thru either EGL or the AGL/WGL/XGL 'es20' profile)"                                  OFF)
 
 mark_as_advanced(
