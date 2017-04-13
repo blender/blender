@@ -1788,6 +1788,23 @@ static void DRW_debug_gpu_stats(void)
 	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
 }
 
+static void drw_draw_view_set_recursive(Scene *scene)
+{
+	if (scene->set) {
+		drw_draw_view_set_recursive(scene->set);
+	}
+
+	SceneLayer *sl = BKE_scene_layer_render_active(scene);
+	DEG_OBJECT_ITER(sl, ob);
+	{
+		/* XXX FIXME!!! - dont de-select users data!
+		 * (set drawing should use a fixed color - ignoring select and other theme colors) */
+		ob->base_flag &= ~BASE_SELECTED;
+		DRW_engines_cache_populate(ob);
+	}
+	DEG_OBJECT_ITER_END
+}
+
 /* Everything starts here.
  * This function takes care of calling all cache and rendering functions
  * for each relevant engine / mode engine. */
@@ -1823,13 +1840,7 @@ void DRW_draw_view(const bContext *C)
 
 		/* draw set first */
 		if (scene->set) {
-			sl = BKE_scene_layer_render_active(scene->set);
-			DEG_OBJECT_ITER(sl, ob);
-			{
-				ob->base_flag &= ~BASE_SELECTED;
-				DRW_engines_cache_populate(ob);
-			}
-			DEG_OBJECT_ITER_END
+			drw_draw_view_set_recursive(scene->set);
 		}
 
 		sl = CTX_data_scene_layer(C);
