@@ -200,6 +200,32 @@ set(SRC_UTIL_HEADERS
 	../util/util_transform.h
 	../util/util_texture.h
 	../util/util_types.h
+	../util/util_types_float2.h
+	../util/util_types_float2_impl.h
+	../util/util_types_float3.h
+	../util/util_types_float3_impl.h
+	../util/util_types_float4.h
+	../util/util_types_float4_impl.h
+	../util/util_types_int2.h
+	../util/util_types_int2_impl.h
+	../util/util_types_int3.h
+	../util/util_types_int3_impl.h
+	../util/util_types_int4.h
+	../util/util_types_int4_impl.h
+	../util/util_types_uchar2.h
+	../util/util_types_uchar2_impl.h
+	../util/util_types_uchar3.h
+	../util/util_types_uchar3_impl.h
+	../util/util_types_uchar4.h
+	../util/util_types_uchar4_impl.h
+	../util/util_types_uint2.h
+	../util/util_types_uint2_impl.h
+	../util/util_types_uint3.h
+	../util/util_types_uint3_impl.h
+	../util/util_types_uint4.h
+	../util/util_types_uint4_impl.h
+	../util/util_types_vector3.h
+	../util/util_types_vector3_impl.h
 )
 
 set(SRC_SPLIT_HEADERS
