@@ -754,8 +754,23 @@ void immUniform3fv(const char* name, const float data[3])
 	glUniform3fv(uniform->location, 1, data);
 	}
 
-void immUniformArray3fv(const char* name, const float *data, int count)
+// can increase this limit or move to another file
+#define MAX_UNIFORM_NAME_LEN 60
+
+void immUniformArray3fv(const char* bare_name, const float *data, int count)
 	{
+	// look up "name[0]" when given "name"
+	const size_t len = strlen(bare_name);
+#if TRUST_NO_ONE
+	assert(len <= MAX_UNIFORM_NAME_LEN);
+#endif
+	char name[MAX_UNIFORM_NAME_LEN];
+	strcpy(name, bare_name);
+	name[len + 0] = '[';
+	name[len + 1] = '0';
+	name[len + 2] = ']';
+	name[len + 3] = '\0';
+
 	GET_UNIFORM
 	glUniform3fv(uniform->location, count, data);
 	}
