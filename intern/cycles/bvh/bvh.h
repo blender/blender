@@ -33,15 +33,8 @@ class LeafNode;
 class Object;
 class Progress;
 
-#define BVH_NODE_SIZE	4
-#define BVH_NODE_LEAF_SIZE	1
-#define BVH_QNODE_SIZE	8
-#define BVH_QNODE_LEAF_SIZE	1
-#define BVH_ALIGN		4096
-#define TRI_NODE_SIZE	3
-
-#define BVH_UNALIGNED_NODE_SIZE 7
-#define BVH_UNALIGNED_QNODE_SIZE 14
+#define BVH_ALIGN     4096
+#define TRI_NODE_SIZE 3
 
 /* Packed BVH
  *
@@ -54,7 +47,7 @@ struct PackedBVH {
 	/* BVH leaf nodes storage. */
 	array<int4> leaf_nodes;
 	/* object index to BVH node index mapping for instances */
-	array<int> object_node; 
+	array<int> object_node;
 	/* Mapping from primitive index to index in triangle array. */
 	array<uint> prim_tri_index;
 	/* Continuous storage of triangle vertices. */
@@ -110,95 +103,16 @@ protected:
 	virtual void refit_nodes() = 0;
 };
 
-/* BVH2
- *
- * Typical BVH with each node having two children. */
+/* Pack Utility */
+struct BVHStackEntry
+{
+	const BVHNode *node;
+	int idx;
 
-class BVH2 : public BVH {
-protected:
-	/* constructor */
-	friend class BVH;
-	BVH2(const BVHParams& params, const vector<Object*>& objects);
-
-	/* pack */
-	void pack_nodes(const BVHNode *root);
-
-	void pack_leaf(const BVHStackEntry& e,
-	               const LeafNode *leaf);
-	void pack_inner(const BVHStackEntry& e,
-	                const BVHStackEntry& e0,
-	                const BVHStackEntry& e1);
-
-	void pack_aligned_inner(const BVHStackEntry& e,
-	                        const BVHStackEntry& e0,
-	                        const BVHStackEntry& e1);
-	void pack_aligned_node(int idx,
-	                       const BoundBox& b0,
-	                       const BoundBox& b1,
-	                       int c0, int c1,
-	                       uint visibility0, uint visibility1);
-
-	void pack_unaligned_inner(const BVHStackEntry& e,
-	                          const BVHStackEntry& e0,
-	                          const BVHStackEntry& e1);
-	void pack_unaligned_node(int idx,
-	                         const Transform& aligned_space0,
-	                         const Transform& aligned_space1,
-	                         const BoundBox& b0,
-	                         const BoundBox& b1,
-	                         int c0, int c1,
-	                         uint visibility0, uint visibility1);
-
-	/* refit */
-	void refit_nodes();
-	void refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility);
-};
-
-/* BVH4
- *
- * Quad BVH, with each node having four children, to use with SIMD instructions. */
-
-class BVH4 : public BVH {
-protected:
-	/* constructor */
-	friend class BVH;
-	BVH4(const BVHParams& params, const vector<Object*>& objects);
-
-	/* pack */
-	void pack_nodes(const BVHNode *root);
-
-	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
-	void pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num);
-
-	void pack_aligned_inner(const BVHStackEntry& e,
-	                        const BVHStackEntry *en,
-	                        int num);
-	void pack_aligned_node(int idx,
-	                       const BoundBox *bounds,
-	                       const int *child,
-	                       const uint visibility,
-	                       const float time_from,
-	                       const float time_to,
-	                       const int num);
-
-	void pack_unaligned_inner(const BVHStackEntry& e,
-	                          const BVHStackEntry *en,
-	                          int num);
-	void pack_unaligned_node(int idx,
-	                         const Transform *aligned_space,
-	                         const BoundBox *bounds,
-	                         const int *child,
-	                         const uint visibility,
-	                         const float time_from,
-	                         const float time_to,
-	                         const int num);
-
-	/* refit */
-	void refit_nodes();
-	void refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility);
+	BVHStackEntry(const BVHNode *n = 0, int i = 0);
+	int encodeIdx() const;
 };
 
 CCL_NAMESPACE_END
 
 #endif /* __BVH_H__ */
-
