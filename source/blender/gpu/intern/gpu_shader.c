@@ -467,20 +467,20 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 		return NULL;
 	}
 
+	shader->interface = ShaderInterface_create(shader->program);
+
 #ifdef WITH_OPENSUBDIV
 	/* TODO(sergey): Find a better place for this. */
 	if (use_opensubdiv && GLEW_VERSION_4_1) {
 		glProgramUniform1i(shader->program,
-		                   glGetUniformLocation(shader->program, "FVarDataOffsetBuffer"),
+		                   ShaderInterface_uniform(shader->interface, "FVarDataOffsetBuffer")->location,
 		                   30);  /* GL_TEXTURE30 */
 
 		glProgramUniform1i(shader->program,
-		                   glGetUniformLocation(shader->program, "FVarDataBuffer"),
+		                   ShaderInterface_uniform(shader->interface, "FVarDataBuffer")->location,
 		                   31);  /* GL_TEXTURE31 */
 	}
 #endif
-
-	shader->interface = ShaderInterface_create(shader->program);
 
 	return shader;
 }
@@ -523,8 +523,8 @@ void GPU_shader_free(GPUShader *shader)
 int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 {
 	BLI_assert(shader && shader->program);
-
-	return glGetUniformLocation(shader->program, name);
+	const ShaderInput *uniform = ShaderInterface_uniform(shader->interface, name);
+	return uniform ? uniform->location : -1;
 }
 
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
