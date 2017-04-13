@@ -1153,6 +1153,14 @@ IDProperty *BKE_layer_collection_engine_get(LayerCollection *lc, const int type,
 	return collection_engine_get(lc->properties, type, engine_name);
 }
 
+/**
+ * Return scene engine settings for specified engine
+ */
+IDProperty *BKE_scene_collection_engine_get(Scene *scene, const int type, const char *engine_name)
+{
+	return collection_engine_get(scene->collection_properties, type, engine_name);
+}
+
 /* ---------------------------------------------------------------------- */
 /* Engine Settings Properties */
 

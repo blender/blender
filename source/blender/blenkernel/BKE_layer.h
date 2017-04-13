@@ -109,6 +109,7 @@ void BKE_collection_override_datablock_add(struct LayerCollection *lc, const cha
 typedef void (*CollectionEngineSettingsCB)(struct RenderEngine *engine, struct IDProperty *props);
 struct IDProperty *BKE_layer_collection_engine_get(struct LayerCollection *lc, const int type, const char *engine_name);
 struct IDProperty *BKE_object_collection_engine_get(struct Object *ob, const int type, const char *engine_name);
+struct IDProperty *BKE_scene_collection_engine_get(struct Scene *scene, const int type, const char *engine_name);
 void BKE_layer_collection_engine_settings_callback_register(struct Main *bmain, const char *engine_name, CollectionEngineSettingsCB func);
 void BKE_layer_collection_engine_settings_callback_free(void);
 void BKE_layer_collection_engine_settings_create(struct IDProperty *root);

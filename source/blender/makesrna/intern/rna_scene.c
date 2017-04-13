@@ -469,6 +469,7 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_depsgraph.h"
+#include "BKE_idprop.h"
 #include "BKE_mesh.h"
 #include "BKE_sound.h"
 #include "BKE_screen.h"
@@ -2503,6 +2504,62 @@ static int rna_LayerCollectionSettings_name_length(PointerRNA *ptr)
 	return strnlen(props->name, sizeof(props->name));
 }
 
+static void rna_LayerCollectionSettings_use(ID *id, IDProperty *props, const char *identifier)
+{
+	Scene *scene = (Scene *)id;
+	PointerRNA scene_props_ptr;
+	PropertyRNA *prop;
+	IDProperty *scene_props;
+
+	scene_props = BKE_scene_collection_engine_get(scene, COLLECTION_MODE_NONE, props->name);
+	RNA_pointer_create(id, &RNA_LayerCollectionSettings, scene_props, &scene_props_ptr);
+	prop = RNA_struct_find_property(&scene_props_ptr, identifier);
+
+	switch (RNA_property_type(prop)) {
+		case PROP_FLOAT:
+		{
+			float value = BKE_collection_engine_property_value_get_float(scene_props, identifier);
+			BKE_collection_engine_property_add_float(props, identifier, value);
+			break;
+		}
+		case PROP_ENUM:
+		{
+			int value = BKE_collection_engine_property_value_get_int(scene_props, identifier);
+			BKE_collection_engine_property_add_int(props, identifier, value);
+			break;
+		}
+		case PROP_INT:
+		{
+			int value = BKE_collection_engine_property_value_get_int(scene_props, identifier);
+			BKE_collection_engine_property_add_int(props, identifier, value);
+			break;
+		}
+		case PROP_BOOLEAN:
+		{
+			int value = BKE_collection_engine_property_value_get_int(scene_props, identifier);
+			BKE_collection_engine_property_add_bool(props, identifier, value);
+			break;
+		}
+		case PROP_STRING:
+		case PROP_POINTER:
+		case PROP_COLLECTION:
+		default:
+			break;
+	}
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(id, 0);
+}
+
+static void rna_LayerCollectionSettings_unuse(ID *id, IDProperty *props, const char *identifier)
+{
+	IDProperty *prop_to_remove = IDP_GetPropertyFromGroup(props, identifier);
+	IDP_FreeFromGroup(props, prop_to_remove);
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(id, 0);
+}
+
 static void rna_LayerCollection_name_get(PointerRNA *ptr, char *value)
 {
 	SceneCollection *sc = ((LayerCollection *)ptr->data)->scene_collection;
@@ -2780,6 +2837,16 @@ static void rna_SceneLayer_engine_update(Main *bmain, Scene *UNUSED(unused), Poi
 static int rna_SceneLayer_multiple_engines_get(PointerRNA *UNUSED(ptr))
 {
 	return (BLI_listbase_count(&R_engines) > 1);
+}
+
+static void rna_SceneLayer_update_tagged(SceneLayer *sl)
+{
+	DEG_OBJECT_ITER(sl, ob)
+	{
+		/* Don't do anything, we just need to run the iterator to flush
+		 * the base info to the objects. */
+	}
+	DEG_OBJECT_ITER_END
 }
 
 static int rna_SceneLayer_active_layer_index_get(PointerRNA *ptr)
@@ -6057,8 +6124,11 @@ static void rna_def_layer_collection_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	srna = RNA_def_struct(brna, "LayerCollectionSettings", NULL);
+	RNA_def_struct_sdna(srna, "IDProperty");
 	RNA_def_struct_ui_text(srna, "Layer Collection Settings",
 	                       "Engine specific settings that can be overriden by LayerCollection");
 	RNA_def_struct_refine_func(srna, "rna_LayerCollectionSettings_refine");
@@ -6070,6 +6140,18 @@ static void rna_def_layer_collection_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Engine Name");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_name_property(srna, prop);
+
+	func = RNA_def_function(srna, "use", "rna_LayerCollectionSettings_use");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Initialize this property to use");
+	parm = RNA_def_string(func, "identifier", NULL, 0, "Property Name", "Name of the property to set");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+	func = RNA_def_function(srna, "unuse", "rna_LayerCollectionSettings_unuse");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Remove the property");
+	parm = RNA_def_string(func, "identifier", NULL, 0, "Property Name", "Name of the property to unset");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 #ifdef WITH_CLAY_ENGINE
 	rna_def_layer_collection_engine_settings_clay(brna);
@@ -6239,6 +6321,7 @@ static void rna_def_layer_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 static void rna_def_scene_layer(BlenderRNA *brna)
 {
+	FunctionRNA *func;
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -6289,6 +6372,11 @@ static void rna_def_scene_layer(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_SceneLayer_multiple_engines_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Multiple Engines", "More than one rendering engine is available");
+
+	/* debug update routine */
+	func = RNA_def_function(srna, "update", "rna_SceneLayer_update_tagged");
+	RNA_def_function_ui_description(func,
+	                                "Update data tagged to be updated from previous access to data or operators");
 }
 
 static void rna_def_scene_layers(BlenderRNA *brna, PropertyRNA *cprop)

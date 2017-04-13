@@ -2613,6 +2613,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
 
+	prop = RNA_def_property(srna, "collection_properties", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "base_collection_properties->data.group", NULL);
+	RNA_def_property_struct_type(prop, "LayerCollectionSettings");
+	RNA_def_property_ui_text(prop, "Collection Settings",
+	                         "Engine specific render settings to be overridden by collections");
+
 	/* anim */
 	rna_def_animdata_common(srna);
 	
