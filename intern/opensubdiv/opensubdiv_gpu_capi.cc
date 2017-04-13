@@ -353,6 +353,7 @@ void bindProgram(OpenSubdiv_GLMesh *gl_mesh, int program)
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, g_lighting_ub);
 
 	/* Color */
+#ifdef WITH_LEGACY_OPENGL
 	GLboolean use_lighting;
 	glGetBooleanv(GL_LIGHTING, &use_lighting);
 
@@ -372,6 +373,19 @@ void bindProgram(OpenSubdiv_GLMesh *gl_mesh, int program)
 		glGetFloatv(GL_CURRENT_COLOR, color);
 		glUniform4fv(glGetUniformLocation(program, "diffuse"), 1, color);
 	}
+#else
+	{
+		float color[4];
+		glGetMaterialfv(GL_FRONT, GL_DIFFUSE, color);
+		glUniform4fv(glGetUniformLocation(program, "diffuse"), 1, color);
+
+		glGetMaterialfv(GL_FRONT, GL_SPECULAR, color);
+		glUniform4fv(glGetUniformLocation(program, "specular"), 1, color);
+
+		glGetMaterialfv(GL_FRONT, GL_SHININESS, color);
+		glUniform1f(glGetUniformLocation(program, "shininess"), color[0]);
+	}
+#endif
 
 	/* Face-vertex data */
 	if (gl_mesh->fvar_data != NULL) {
@@ -635,6 +649,8 @@ static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
 		GLboolean use_texture_2d, use_lighting;
 		glGetIntegerv(GL_SHADE_MODEL, &model);
 		glGetBooleanv(GL_TEXTURE_2D, &use_texture_2d);
+
+#ifdef WITH_LEGACY_OPENGL
 		glGetBooleanv(GL_LIGHTING, &use_lighting);
 		if (model == GL_FLAT) {
 			if (use_texture_2d) {
@@ -660,6 +676,25 @@ static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
 				                  : g_smooth_fill_solid_shadeless_program;
 			}
 		}
+#else
+		if (model == GL_FLAT) {
+			if (use_texture_2d) {
+				program = g_flat_fill_texture2d_program;
+			}
+			else {
+				program = g_flat_fill_solid_program;
+			}
+		}
+		else {
+			if (use_texture_2d) {
+				program = g_smooth_fill_texture2d_program;
+			}
+			else {
+				program = g_smooth_fill_solid_program;
+			}
+		}
+#endif
+
 	}
 	else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
