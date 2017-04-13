@@ -451,6 +451,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	gpuMatrixBegin2D();
 	gpuPushMatrix();
 	gpuTranslate2f(-ar->winrct.xmin, -ar->winrct.ymin);
 	
