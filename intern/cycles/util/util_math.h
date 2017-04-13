@@ -1493,31 +1493,6 @@ ccl_device_inline float2 map_to_sphere(const float3 co)
 	return make_float2(u, v);
 }
 
-ccl_device_inline int util_max_axis(float3 vec)
-{
-#ifdef __KERNEL_SSE__
-	__m128 a = shuffle<0,0,1,1>(vec.m128);
-	__m128 b = shuffle<1,2,2,1>(vec.m128);
-	__m128 c = _mm_cmpgt_ps(a, b);
-	int mask = _mm_movemask_ps(c) & 0x7;
-	static const char tab[8] = {2, 2, 2, 0, 1, 2, 1, 0};
-	return tab[mask];
-#else
-	if(vec.x > vec.y) {
-		if(vec.x > vec.z)
-			return 0;
-		else
-			return 2;
-	}
-	else {
-		if(vec.y > vec.z)
-			return 1;
-		else
-			return 2;
-	}
-#endif
-}
-
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MATH_H__ */
