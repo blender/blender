@@ -717,8 +717,8 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 			CFRA = SFRA;
 		}
 		else if (min_time < max_time) {
-			SFRA = static_cast<int>(min_time * FPS);
-			EFRA = static_cast<int>(max_time * FPS);
+			SFRA = static_cast<int>(round(min_time * FPS));
+			EFRA = static_cast<int>(round(max_time * FPS));
 			CFRA = SFRA;
 		}
 	}
