@@ -111,5 +111,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif
-
+#endif  /* __BVH_BINNING_H__ */

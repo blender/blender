@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-#include "bvh/bvh_build.h"
 #include "bvh/bvh_split.h"
+
+#include "bvh/bvh_build.h"
 #include "bvh/bvh_sort.h"
 
 #include "render/mesh.h"

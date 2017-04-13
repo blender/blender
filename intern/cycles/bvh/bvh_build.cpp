@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-#include "bvh/bvh_binning.h"
 #include "bvh/bvh_build.h"
+
+#include "bvh/bvh_binning.h"
 #include "bvh/bvh_node.h"
 #include "bvh/bvh_params.h"
 #include "bvh_split.h"
