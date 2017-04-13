@@ -168,6 +168,9 @@ struct TaskPool {
 	 */
 	bool use_local_tls;
 	TaskThreadLocalStorage local_tls;
+#ifndef NDEBUG
+	pthread_t creator_thread_id;
+#endif
 
 #ifdef DEBUG_STATS
 	TaskMemPoolStats *mempool_stats;
@@ -220,11 +223,14 @@ BLI_INLINE TaskThreadLocalStorage *get_task_tls(TaskPool *pool,
 	TaskScheduler *scheduler = pool->scheduler;
 	BLI_assert(thread_id >= 0);
 	BLI_assert(thread_id <= scheduler->num_threads);
-	if (pool->use_local_tls) {
+	if (pool->use_local_tls && thread_id == 0) {
 		BLI_assert(pool->thread_id == 0);
+		BLI_assert(!BLI_thread_is_main());
+		BLI_assert(pthread_equal(pthread_self(), pool->creator_thread_id));
 		return &pool->local_tls;
 	}
 	if (thread_id == 0) {
+		BLI_assert(BLI_thread_is_main());
 		return &scheduler->task_threads[pool->thread_id].tls;
 	}
 	return &scheduler->task_threads[thread_id].tls;
@@ -268,6 +274,9 @@ static void task_free(TaskPool *pool, Task *task, const int thread_id)
 	task_data_free(task, thread_id);
 	BLI_assert(thread_id >= 0);
 	BLI_assert(thread_id <= pool->scheduler->num_threads);
+	if (thread_id == 0) {
+		BLI_assert(pool->use_local_tls || BLI_thread_is_main());
+	}
 	TaskThreadLocalStorage *tls = get_task_tls(pool, thread_id);
 	TaskMemPool *task_mempool = &tls->task_mempool;
 	if (task_mempool->num_tasks < MEMPOOL_SIZE - 1) {
@@ -613,6 +622,9 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler,
 			 */
 			pool->thread_id = 0;
 			pool->use_local_tls = true;
+#ifndef NDEBUG
+			pool->creator_thread_id = pthread_self();
+#endif
 			initialize_task_tls(&pool->local_tls);
 		}
 		else {
