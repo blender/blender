@@ -489,7 +489,7 @@ void wm_close_and_free_all(bContext *C, ListBase *wmlist)
 	while ((wm = wmlist->first)) {
 		wm_close_and_free(C, wm);
 		BLI_remlink(wmlist, wm);
-		BKE_libblock_free_data(bmain, &wm->id);
+		BKE_libblock_free_data(bmain, &wm->id, true);
 		MEM_freeN(wm);
 	}
 }

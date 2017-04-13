@@ -434,6 +434,8 @@ typedef enum StructFlag {
 	STRUCT_GENERATED       = (1 << 4),
 	STRUCT_FREE_POINTERS   = (1 << 5),
 	STRUCT_NO_IDPROPERTIES = (1 << 6), /* Menus and Panels don't need properties */
+	STRUCT_NO_DATABLOCK_IDPROPERTIES = (1 << 7), /* e.g. for Operator */
+	STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES = (1 << 8), /* for PropertyGroup which contains pointers to datablocks */
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);

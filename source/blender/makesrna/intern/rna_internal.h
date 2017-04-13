@@ -344,6 +344,7 @@ extern IntPropertyRNA rna_PropertyGroupItem_int_array;
 extern FloatPropertyRNA rna_PropertyGroupItem_float;
 extern FloatPropertyRNA rna_PropertyGroupItem_float_array;
 extern PointerPropertyRNA rna_PropertyGroupItem_group;
+extern PointerPropertyRNA rna_PropertyGroupItem_id;
 extern CollectionPropertyRNA rna_PropertyGroupItem_collection;
 extern CollectionPropertyRNA rna_PropertyGroupItem_idp_array;
 extern FloatPropertyRNA rna_PropertyGroupItem_double;

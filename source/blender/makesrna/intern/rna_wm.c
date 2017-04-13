@@ -1556,6 +1556,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator");
 	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
 	RNA_def_struct_idprops_func(srna, "rna_OperatorProperties_idprops");
+	RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
 }
 
 static void rna_def_macro_operator(BlenderRNA *brna)

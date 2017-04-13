@@ -33,6 +33,7 @@
 
 #include "DNA_actuator_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
@@ -70,10 +71,12 @@
 #include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sca.h"
@@ -82,7 +85,9 @@
 
 
 #define FOREACH_FINALIZE _finalize
-#define FOREACH_FINALIZE_VOID FOREACH_FINALIZE: (void)0
+#define FOREACH_FINALIZE_VOID \
+	if (0) { goto FOREACH_FINALIZE; } \
+	FOREACH_FINALIZE: ((void)0)
 
 #define FOREACH_CALLBACK_INVOKE_ID_PP(_data, id_pp, _cb_flag) \
 	CHECK_TYPE(id_pp, ID **); \
@@ -139,6 +144,37 @@ typedef struct LibraryForeachIDData {
 	GSet *ids_handled;  /* All IDs that are either already done, or still in ids_todo stack. */
 	BLI_LINKSTACK_DECLARE(ids_todo, ID *);
 } LibraryForeachIDData;
+
+static void library_foreach_idproperty_ID_link(LibraryForeachIDData *data, IDProperty *prop, int flag)
+{
+	if (!prop)
+		return;
+
+	switch (prop->type) {
+		case IDP_GROUP:
+		{
+			for (IDProperty *loop = prop->data.group.first; loop; loop = loop->next) {
+				library_foreach_idproperty_ID_link(data, loop, flag);
+			}
+			break;
+		}
+		case IDP_IDPARRAY:
+		{
+			IDProperty *loop = IDP_Array(prop);
+			for (int i = 0; i < prop->len; i++) {
+				library_foreach_idproperty_ID_link(data, &loop[i], flag);
+			}
+			break;
+		}
+		case IDP_ID:
+			FOREACH_CALLBACK_INVOKE_ID(data, prop->data.pointer, flag);
+			break;
+		default:
+			break;  /* Nothing to do here with other types of IDProperties... */
+	}
+
+	FOREACH_FINALIZE_VOID;
+}
 
 static void library_foreach_rigidbodyworldSceneLooper(
         struct RigidBodyWorld *UNUSED(rbw), ID **id_pointer, void *user_data, int cb_flag)
@@ -265,6 +301,17 @@ static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
 	FOREACH_FINALIZE_VOID;
 }
 
+static void library_foreach_bone(LibraryForeachIDData *data, Bone *bone)
+{
+	library_foreach_idproperty_ID_link(data, bone->prop, IDWALK_CB_USER);
+
+	for (Bone *curbone = bone->childbase.first; curbone; curbone = curbone->next) {
+		library_foreach_bone(data, curbone);
+	}
+
+	FOREACH_FINALIZE_VOID;
+}
+
 static void library_foreach_ID_as_subdata_link(
         ID **id_pp, LibraryIDLinkCallback callback, void *user_data, int flag, LibraryForeachIDData *data)
 {
@@ -337,6 +384,8 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			continue;
 		}
 
+		library_foreach_idproperty_ID_link(&data, id->properties, IDWALK_CB_USER);
+
 		AnimData *adt = BKE_animdata_from_id(id);
 		if (adt) {
 			library_foreach_animationData(&data, adt);
@@ -402,6 +451,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 						CALLBACK_INVOKE(seq->clip, IDWALK_CB_USER);
 						CALLBACK_INVOKE(seq->mask, IDWALK_CB_USER);
 						CALLBACK_INVOKE(seq->sound, IDWALK_CB_USER);
+						library_foreach_idproperty_ID_link(&data, seq->prop, IDWALK_CB_USER);
 						for (SequenceModifierData *smd = seq->modifiers.first; smd; smd = smd->next) {
 							CALLBACK_INVOKE(smd->mask_id, IDWALK_CB_USER);
 						}
@@ -515,6 +565,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 					data.cb_flag |= proxy_cb_flag;
 					for (pchan = object->pose->chanbase.first; pchan; pchan = pchan->next) {
+						library_foreach_idproperty_ID_link(&data, pchan->prop, IDWALK_CB_USER);
 						CALLBACK_INVOKE(pchan->custom, IDWALK_CB_USER);
 						BKE_constraints_id_loop(&pchan->constraints, library_foreach_constraintObjectLooper, &data);
 					}
@@ -551,6 +602,16 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				BKE_sca_sensors_id_loop(&object->sensors, library_foreach_sensorsObjectLooper, &data);
 				BKE_sca_controllers_id_loop(&object->controllers, library_foreach_controllersObjectLooper, &data);
 				BKE_sca_actuators_id_loop(&object->actuators, library_foreach_actuatorsObjectLooper, &data);
+				break;
+			}
+
+			case ID_AR:
+			{
+				bArmature *arm = (bArmature *)id;
+
+				for (Bone *bone = arm->bonebase.first; bone; bone = bone->next) {
+					library_foreach_bone(&data, bone);
+				}
 				break;
 			}
 
@@ -736,9 +797,27 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			{
 				bNodeTree *ntree = (bNodeTree *) id;
 				bNode *node;
+				bNodeSocket *sock;
+
 				CALLBACK_INVOKE(ntree->gpd, IDWALK_CB_USER);
+
 				for (node = ntree->nodes.first; node; node = node->next) {
 					CALLBACK_INVOKE_ID(node->id, IDWALK_CB_USER);
+
+					library_foreach_idproperty_ID_link(&data, node->prop, IDWALK_CB_USER);
+					for (sock = node->inputs.first; sock; sock = sock->next) {
+						library_foreach_idproperty_ID_link(&data, sock->prop, IDWALK_CB_USER);
+					}
+					for (sock = node->outputs.first; sock; sock = sock->next) {
+						library_foreach_idproperty_ID_link(&data, sock->prop, IDWALK_CB_USER);
+					}
+				}
+
+				for (sock = ntree->inputs.first; sock; sock = sock->next) {
+					library_foreach_idproperty_ID_link(&data, sock->prop, IDWALK_CB_USER);
+				}
+				for (sock = ntree->outputs.first; sock; sock = sock->next) {
+					library_foreach_idproperty_ID_link(&data, sock->prop, IDWALK_CB_USER);
 				}
 				break;
 			}
@@ -898,7 +977,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_VF:
 			case ID_TXT:
 			case ID_SO:
-			case ID_AR:
 			case ID_GD:
 			case ID_WM:
 			case ID_PAL:
@@ -948,9 +1026,25 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
  */
 /* XXX This has to be fully rethink, basing check on ID type is not really working anymore (and even worth once
  *     IDProps will support ID pointers), we'll have to do some quick checks on IDs themselves... */
-bool BKE_library_idtype_can_use_idtype(const short id_type_owner, const short id_type_used)
+bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 {
-	if (id_type_can_have_animdata(id_type_owner)) {
+	/* any type of ID can be used in custom props. */
+	if (id_owner->properties) {
+		return true;
+	}
+
+	const short id_type_owner = GS(id_owner->name);
+
+	/* IDProps of armature bones and nodes, and bNode->id can use virtually any type of ID. */
+	if (ELEM(id_type_owner, ID_NT, ID_AR)) {
+		return true;
+	}
+
+	if (ntreeFromID(id_owner)) {
+		return true;
+	}
+
+	if (BKE_animdata_from_id(id_owner)) {
 		return true;  /* AnimationData can use virtually any kind of datablocks, through drivers especially. */
 	}
 
@@ -959,8 +1053,7 @@ bool BKE_library_idtype_can_use_idtype(const short id_type_owner, const short id
 			return ELEM(id_type_used, ID_LI);
 		case ID_SCE:
 			return (ELEM(id_type_used, ID_OB, ID_WO, ID_SCE, ID_MC, ID_MA, ID_GR, ID_TXT,
-			                           ID_LS, ID_MSK, ID_SO, ID_GD, ID_BR, ID_PAL, ID_IM, ID_NT) ||
-			        BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+			                           ID_LS, ID_MSK, ID_SO, ID_GD, ID_BR, ID_PAL, ID_IM, ID_NT));
 		case ID_OB:
 			/* Could be the following, but simpler to just always say 'yes' here. */
 #if 0
@@ -977,13 +1070,13 @@ bool BKE_library_idtype_can_use_idtype(const short id_type_owner, const short id
 		case ID_MB:
 			return ELEM(id_type_used, ID_MA);
 		case ID_MA:
-			return (ELEM(id_type_used, ID_TE, ID_GR) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+			return (ELEM(id_type_used, ID_TE, ID_GR));
 		case ID_TE:
-			return (ELEM(id_type_used, ID_IM, ID_OB) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+			return (ELEM(id_type_used, ID_IM, ID_OB));
 		case ID_LT:
 			return ELEM(id_type_used, ID_KE);
 		case ID_LA:
-			return (ELEM(id_type_used, ID_TE) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+			return (ELEM(id_type_used, ID_TE));
 		case ID_CA:
 			return ELEM(id_type_used, ID_OB);
 		case ID_KE:
@@ -991,7 +1084,7 @@ bool BKE_library_idtype_can_use_idtype(const short id_type_owner, const short id
 		case ID_SCR:
 			return ELEM(id_type_used, ID_SCE);
 		case ID_WO:
-			return (ELEM(id_type_used, ID_TE) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+			return (ELEM(id_type_used, ID_TE));
 		case ID_SPK:
 			return ELEM(id_type_used, ID_SO);
 		case ID_GR:
@@ -1012,7 +1105,7 @@ bool BKE_library_idtype_can_use_idtype(const short id_type_owner, const short id
 		case ID_MSK:
 			return ELEM(id_type_used, ID_MC);  /* WARNING! mask->parent.id, not typed. */
 		case ID_LS:
-			return (ELEM(id_type_used, ID_TE, ID_OB) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+			return (ELEM(id_type_used, ID_TE, ID_OB));
 		case ID_IM:
 		case ID_VF:
 		case ID_TXT:
@@ -1118,7 +1211,7 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
 
-		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id_curr->name), GS(id->name))) {
+		if (!id_curr || !BKE_library_id_can_use_idtype(id_curr, GS(id->name))) {
 			continue;
 		}
 
@@ -1170,7 +1263,7 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
 
-		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id_curr->name), GS(id->name))) {
+		if (!id_curr || !BKE_library_id_can_use_idtype(id_curr, GS(id->name))) {
 			continue;
 		}
 

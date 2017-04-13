@@ -50,6 +50,7 @@
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
 #include "BKE_fcurve.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
@@ -380,6 +381,7 @@ static bool rna_idproperty_verify_valid(PointerRNA *ptr, PropertyRNA *prop, IDPr
 				return false;
 			break;
 		case IDP_GROUP:
+		case IDP_ID:
 			if (prop->type != PROP_POINTER)
 				return false;
 			break;
@@ -395,7 +397,8 @@ static PropertyRNA *typemap[IDP_NUMTYPES] = {
 	(PropertyRNA *)&rna_PropertyGroupItem_int,
 	(PropertyRNA *)&rna_PropertyGroupItem_float,
 	NULL, NULL, NULL,
-	(PropertyRNA *)&rna_PropertyGroupItem_group, NULL,
+	(PropertyRNA *)&rna_PropertyGroupItem_group,
+	(PropertyRNA *)&rna_PropertyGroupItem_id,
 	(PropertyRNA *)&rna_PropertyGroupItem_double,
 	(PropertyRNA *)&rna_PropertyGroupItem_idp_array
 };
@@ -587,6 +590,21 @@ bool RNA_struct_idprops_register_check(const StructRNA *type)
 	return (type->flag & STRUCT_NO_IDPROPERTIES) == 0;
 }
 
+bool RNA_struct_idprops_datablock_allowed(const StructRNA *type)
+{
+	return (type->flag & (STRUCT_NO_DATABLOCK_IDPROPERTIES | STRUCT_NO_IDPROPERTIES)) == 0;
+}
+
+/**
+ * Whether given type implies datablock usage by IDProperties.
+ * This is used to prevent classes allowed to have IDProperties, but not datablock ones, to indirectly use some
+ * (e.g. by assigning an IDP_GROUP containing some IDP_ID pointers...).
+ */
+bool RNA_struct_idprops_contains_datablock(const StructRNA *type)
+{
+	return (type->flag & (STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES | STRUCT_ID)) != 0;
+}
+
 /* remove an id-property */
 bool RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier)
 {
@@ -628,8 +646,11 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 		/* id prop lookup, not so common */
 		PropertyRNA *r_prop = NULL;
 		PointerRNA r_ptr; /* only support single level props */
-		if (RNA_path_resolve(ptr, identifier, &r_ptr, &r_prop) && (r_ptr.type == ptr->type) && (r_ptr.data == ptr->data))
+		if (RNA_path_resolve_property(ptr, identifier, &r_ptr, &r_prop) &&
+		    (r_ptr.type == ptr->type) && (r_ptr.data == ptr->data))
+		{
 			return r_prop;
+		}
 	}
 	else {
 		/* most common case */
@@ -1201,13 +1222,20 @@ int RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *va
 
 	if (prop->type == PROP_POINTER) {
 		PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
-		if (pprop->poll)
-			return pprop->poll(ptr, *value);
+
+		if (pprop->poll) {
+			if (rna_idproperty_check(&prop, ptr)) {
+				return ((PropPointerPollFuncPy) pprop->poll)(ptr, *value, prop);
+			}
+			else {
+				return pprop->poll(ptr, *value);
+			}
+		}
 
 		return 1;
 	}
 
-	printf("%s %s: is not a pointer property.\n", __func__, prop->identifier);
+	printf("%s: %s is not a pointer property.\n", __func__, prop->identifier);
 	return 0;
 }
 
@@ -2967,6 +2995,10 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
 		pprop = (PointerPropertyRNA *)prop;
 
+		if (RNA_struct_is_ID(pprop->type)) {
+			return rna_pointer_inherit_refine(ptr, pprop->type, IDP_Id(idprop));
+		}
+
 		/* for groups, data is idprop itself */
 		if (pprop->typef)
 			return rna_pointer_inherit_refine(ptr, pprop->typef(ptr), idprop);
@@ -2989,22 +3021,32 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value)
 {
-	/*IDProperty *idprop;*/
-
+	PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 	BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
-	if ((/*idprop = */ rna_idproperty_check(&prop, ptr))) {
-		/* not supported */
-		/* rna_idproperty_touch(idprop); */
+	/* Check types */
+	if (ptr_value.type != NULL && !RNA_struct_is_a(ptr_value.type, pprop->type)) {
+		printf("%s: expected %s type, not %s.\n", __func__, pprop->type->identifier, ptr_value.type->identifier);
+		return;
 	}
-	else {
-		PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
-		if (pprop->set &&
-		    !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
-		    !((prop->flag & PROP_ID_SELF_CHECK) && ptr->id.data == ptr_value.id.data))
-		{
-			pprop->set(ptr, ptr_value);
+	/* RNA */
+	if (pprop->set &&
+	    !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
+	    !((prop->flag & PROP_ID_SELF_CHECK) && ptr->id.data == ptr_value.id.data))
+	{
+		pprop->set(ptr, ptr_value);
+	}
+	/* IDProperty */
+	else if (prop->flag & PROP_EDITABLE) {
+		IDPropertyTemplate val = {0};
+		IDProperty *group;
+
+		val.id = ptr_value.data;
+
+		group = RNA_struct_idprops(ptr, true);
+		if (group) {
+			IDP_ReplaceInGroup(group, IDP_New(IDP_ID, &val, prop->identifier));
 		}
 	}
 }
