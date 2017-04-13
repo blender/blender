@@ -338,7 +338,6 @@ void wmOrtho2(float x1, float x2, float y1, float y2)
 	if (x1 == x2) x2 += 1.0f;
 	if (y1 == y2) y2 += 1.0f;
 
-	gpuMatrixBegin3D();
 	gpuOrtho(x1, x2, y1, y2, -100, 100);
 }
 
