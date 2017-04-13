@@ -76,72 +76,39 @@ static struct DRWShapeCache {
 
 void DRW_shape_cache_free(void)
 {
-	if (SHC.drw_single_vertice)
-		Batch_discard_all(SHC.drw_single_vertice);
-	if (SHC.drw_fullscreen_quad)
-		Batch_discard_all(SHC.drw_fullscreen_quad);
-	if (SHC.drw_plain_axes)
-		Batch_discard_all(SHC.drw_plain_axes);
-	if (SHC.drw_single_arrow)
-		Batch_discard_all(SHC.drw_single_arrow);
-	if (SHC.drw_cube)
-		Batch_discard_all(SHC.drw_cube);
-	if (SHC.drw_circle)
-		Batch_discard_all(SHC.drw_circle);
-	if (SHC.drw_square)
-		Batch_discard_all(SHC.drw_square);
-	if (SHC.drw_line)
-		Batch_discard_all(SHC.drw_line);
-	if (SHC.drw_line_endpoints)
-		Batch_discard_all(SHC.drw_line_endpoints);
-	if (SHC.drw_empty_sphere)
-		Batch_discard_all(SHC.drw_empty_sphere);
-	if (SHC.drw_empty_cone)
-		Batch_discard_all(SHC.drw_empty_cone);
-	if (SHC.drw_arrows)
-		Batch_discard_all(SHC.drw_arrows);
-	if (SHC.drw_axis_names)
-		Batch_discard_all(SHC.drw_axis_names);
-	if (SHC.drw_field_wind)
-		Batch_discard_all(SHC.drw_field_wind);
-	if (SHC.drw_field_force)
-		Batch_discard_all(SHC.drw_field_force);
-	if (SHC.drw_field_vortex)
-		Batch_discard_all(SHC.drw_field_vortex);
-	if (SHC.drw_field_tube_limit)
-		Batch_discard_all(SHC.drw_field_tube_limit);
-	if (SHC.drw_field_cone_limit)
-		Batch_discard_all(SHC.drw_field_cone_limit);
-	if (SHC.drw_lamp)
-		Batch_discard_all(SHC.drw_lamp);
-	if (SHC.drw_lamp_sunrays)
-		Batch_discard_all(SHC.drw_lamp_sunrays);
-	if (SHC.drw_lamp_area)
-		Batch_discard_all(SHC.drw_lamp_area);
-	if (SHC.drw_lamp_hemi)
-		Batch_discard_all(SHC.drw_lamp_hemi);
-	if (SHC.drw_lamp_spot)
-		Batch_discard_all(SHC.drw_lamp_spot);
-	if (SHC.drw_lamp_spot_square)
-		Batch_discard_all(SHC.drw_lamp_spot_square);
-	if (SHC.drw_speaker)
-		Batch_discard_all(SHC.drw_speaker);
-	if (SHC.drw_bone_octahedral)
-		Batch_discard_all(SHC.drw_bone_octahedral);
-	if (SHC.drw_bone_octahedral_wire)
-		Batch_discard_all(SHC.drw_bone_octahedral_wire);
-	if (SHC.drw_bone_point)
-		Batch_discard_all(SHC.drw_bone_point);
-	if (SHC.drw_bone_point_wire)
-		Batch_discard_all(SHC.drw_bone_point_wire);
-	if (SHC.drw_bone_arrows)
-		Batch_discard_all(SHC.drw_bone_arrows);
-	if (SHC.drw_camera)
-		Batch_discard_all(SHC.drw_camera);
-	if (SHC.drw_camera_tria)
-		Batch_discard_all(SHC.drw_camera_tria);
-	if (SHC.drw_camera_focus)
-		Batch_discard_all(SHC.drw_camera_focus);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_single_vertice);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_fullscreen_quad);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_plain_axes);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_single_arrow);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_cube);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_circle);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_square);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_line);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_line_endpoints);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_empty_sphere);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_empty_cone);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_arrows);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_axis_names);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_field_wind);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_field_force);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_field_vortex);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_field_tube_limit);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_field_cone_limit);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_sunrays);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_area);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_hemi);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_spot);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_spot_square);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_speaker);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_octahedral);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_octahedral_wire);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_point);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_point_wire);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_arrows);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_camera);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_camera_tria);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_camera_focus);
 }
 
 /* Helper functions */

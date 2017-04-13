@@ -371,14 +371,10 @@ static void OBJECT_engine_init(void *vedata)
 
 static void OBJECT_engine_free(void)
 {
-	if (e_data.outline_resolve_sh)
-		DRW_shader_free(e_data.outline_resolve_sh);
-	if (e_data.outline_detect_sh)
-		DRW_shader_free(e_data.outline_detect_sh);
-	if (e_data.outline_fade_sh)
-		DRW_shader_free(e_data.outline_fade_sh);
-	if (e_data.grid_sh)
-		DRW_shader_free(e_data.grid_sh);
+	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_sh);
+	DRW_SHADER_FREE_SAFE(e_data.outline_detect_sh);
+	DRW_SHADER_FREE_SAFE(e_data.outline_fade_sh);
+	DRW_SHADER_FREE_SAFE(e_data.grid_sh);
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], struct GPUShader *sh)

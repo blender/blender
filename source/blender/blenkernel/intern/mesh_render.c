@@ -877,22 +877,10 @@ void BKE_mesh_batch_selection_dirty(Mesh *me)
 	MeshBatchCache *cache = me->batch_cache;
 	if (cache) {
 		/* TODO Separate Flag vbo */
-		if (cache->overlay_triangles) {
-			Batch_discard_all(cache->overlay_triangles);
-			cache->overlay_triangles = NULL;
-		}
-		if (cache->overlay_loose_verts) {
-			Batch_discard_all(cache->overlay_loose_verts);
-			cache->overlay_loose_verts = NULL;
-		}
-		if (cache->overlay_loose_edges) {
-			Batch_discard_all(cache->overlay_loose_edges);
-			cache->overlay_loose_edges = NULL;
-		}
-		if (cache->overlay_facedots) {
-			Batch_discard_all(cache->overlay_facedots);
-			cache->overlay_facedots = NULL;
-		}
+		BATCH_DISCARD_ALL_SAFE(cache->overlay_triangles);
+		BATCH_DISCARD_ALL_SAFE(cache->overlay_loose_verts);
+		BATCH_DISCARD_ALL_SAFE(cache->overlay_loose_edges);
+		BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
 	}
 }
 
@@ -903,27 +891,24 @@ void BKE_mesh_batch_cache_clear(Mesh *me)
 		return;
 	}
 
-	if (cache->all_verts) Batch_discard(cache->all_verts);
-	if (cache->all_edges) Batch_discard(cache->all_edges);
-	if (cache->all_triangles) Batch_discard(cache->all_triangles);
+	BATCH_DISCARD_SAFE(cache->all_verts);
+	BATCH_DISCARD_SAFE(cache->all_edges);
+	BATCH_DISCARD_SAFE(cache->all_triangles);
 
-	if (cache->pos_in_order) VertexBuffer_discard(cache->pos_in_order);
-	if (cache->edges_in_order) ElementList_discard(cache->edges_in_order);
-	if (cache->triangles_in_order) ElementList_discard(cache->triangles_in_order);
+	VERTEXBUFFER_DISCARD_SAFE(cache->pos_in_order);
+	ELEMENTLIST_DISCARD_SAFE(cache->edges_in_order);
+	ELEMENTLIST_DISCARD_SAFE(cache->triangles_in_order);
 
-	if (cache->overlay_triangles) Batch_discard_all(cache->overlay_triangles);
-	if (cache->overlay_loose_verts) Batch_discard_all(cache->overlay_loose_verts);
-	if (cache->overlay_loose_edges) Batch_discard_all(cache->overlay_loose_edges);
-	if (cache->overlay_facedots) Batch_discard_all(cache->overlay_facedots);
+	BATCH_DISCARD_ALL_SAFE(cache->overlay_triangles);
+	BATCH_DISCARD_ALL_SAFE(cache->overlay_loose_verts);
+	BATCH_DISCARD_ALL_SAFE(cache->overlay_loose_edges);
+	BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
 
-	if (cache->triangles_with_normals) Batch_discard(cache->triangles_with_normals);
-	if (cache->points_with_normals) Batch_discard(cache->points_with_normals);
-	if (cache->pos_with_normals) VertexBuffer_discard(cache->pos_with_normals);
-	
+	BATCH_DISCARD_SAFE(cache->triangles_with_normals);
+	BATCH_DISCARD_SAFE(cache->points_with_normals);
+	VERTEXBUFFER_DISCARD_SAFE(cache->pos_with_normals);
 
-	if (cache->fancy_edges) {
-		Batch_discard_all(cache->fancy_edges);
-	}
+	BATCH_DISCARD_ALL_SAFE(cache->fancy_edges);
 }
 
 void BKE_mesh_batch_cache_free(Mesh *me)

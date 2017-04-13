@@ -222,8 +222,7 @@ static void SCULPT_draw_scene(void *vedata)
  * Mostly used for freeing shaders */
 static void SCULPT_engine_free(void)
 {
-	// if (custom_shader)
-	// 	DRW_shader_free(custom_shader);
+	// DRW_SHADER_FREE_SAFE(custom_shader);
 }
 
 /* Create collection settings here.

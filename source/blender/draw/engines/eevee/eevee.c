@@ -248,16 +248,11 @@ static void EEVEE_draw_scene(void *vedata)
 
 static void EEVEE_engine_free(void)
 {
-	if (e_data.default_lit)
-		DRW_shader_free(e_data.default_lit);
-	if (e_data.shadow_sh)
-		DRW_shader_free(e_data.shadow_sh);
-	if (e_data.tonemap)
-		DRW_shader_free(e_data.tonemap);
-	if (e_data.ltc_mat)
-		DRW_texture_free(e_data.ltc_mat);
-	if (e_data.ltc_mag)
-		DRW_texture_free(e_data.ltc_mag);
+	DRW_SHADER_FREE_SAFE(e_data.default_lit);
+	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
+	DRW_SHADER_FREE_SAFE(e_data.tonemap);
+	DRW_TEXTURE_FREE_SAFE(e_data.ltc_mat);
+	DRW_TEXTURE_FREE_SAFE(e_data.ltc_mag);
 }
 
 static void EEVEE_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)

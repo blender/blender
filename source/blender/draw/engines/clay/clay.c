@@ -632,18 +632,10 @@ static void CLAY_collection_settings_create(RenderEngine *UNUSED(engine), IDProp
 
 static void CLAY_engine_free(void)
 {
-	if (e_data.clay_sh) {
-		DRW_shader_free(e_data.clay_sh);
-	}
-	if (e_data.matcap_array) {
-		DRW_texture_free(e_data.matcap_array);
-	}
-	if (e_data.jitter_tx) {
-		DRW_texture_free(e_data.jitter_tx);
-	}
-	if (e_data.sampling_tx) {
-		DRW_texture_free(e_data.sampling_tx);
-	}
+	DRW_SHADER_FREE_SAFE(e_data.clay_sh);
+	DRW_TEXTURE_FREE_SAFE(e_data.matcap_array);
+	DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
+	DRW_TEXTURE_FREE_SAFE(e_data.sampling_tx);
 }
 
 static const DrawEngineDataSize CLAY_data_size = DRW_VIEWPORT_DATA_SIZE(CLAY_Data);

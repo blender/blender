@@ -555,9 +555,7 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 
 	MEM_freeN(shgroup->interface);
 
-	if (shgroup->batch_geom) {
-		Batch_discard_all(shgroup->batch_geom);
-	}
+	BATCH_DISCARD_ALL_SAFE(shgroup->batch_geom);
 }
 
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[4])

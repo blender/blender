@@ -62,3 +62,13 @@ ElementList* ElementList_build(ElementListBuilder*);
 void ElementList_build_in_place(ElementListBuilder*, ElementList*);
 
 void ElementList_discard(ElementList*);
+
+
+/* Macros */
+
+#define ELEMENTLIST_DISCARD_SAFE(elem) do { \
+	if (elem != NULL) { \
+		ElementList_discard(elem); \
+		elem = NULL; \
+	} \
+} while (0)

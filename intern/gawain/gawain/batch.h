@@ -109,3 +109,19 @@ Batch* create_BatchWithOwnVertexBufferAndElementList(PrimitiveType, VertexFormat
 Batch* create_BatchInGeneral(PrimitiveType, VertexBufferStuff, ElementListStuff);
 
 #endif // future plans
+
+
+/* Macros */
+
+#define BATCH_DISCARD_SAFE(batch) do { \
+	if (batch != NULL) { \
+		Batch_discard(batch); \
+		batch = NULL; \
+	} \
+} while (0)
+#define BATCH_DISCARD_ALL_SAFE(batch) do { \
+	if (batch != NULL) { \
+		Batch_discard_all(batch); \
+		batch = NULL; \
+	} \
+} while (0)

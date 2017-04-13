@@ -62,3 +62,13 @@ void VertexBuffer_fill_attrib_stride(VertexBuffer*, unsigned a_idx, unsigned str
 //	void setAttrib4ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
 void VertexBuffer_use(VertexBuffer*);
+
+
+/* Macros */
+
+#define VERTEXBUFFER_DISCARD_SAFE(verts) do { \
+	if (verts != NULL) { \
+		VertexBuffer_discard(verts); \
+		verts = NULL; \
+	} \
+} while (0)

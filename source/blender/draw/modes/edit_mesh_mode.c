@@ -499,30 +499,18 @@ void EDIT_MESH_collection_settings_create(IDProperty *properties)
 
 static void EDIT_MESH_engine_free(void)
 {
-	if (e_data.overlay_tri_sh)
-		DRW_shader_free(e_data.overlay_tri_sh);
-	if (e_data.overlay_tri_fast_sh)
-		DRW_shader_free(e_data.overlay_tri_fast_sh);
-	if (e_data.overlay_tri_vcol_sh)
-		DRW_shader_free(e_data.overlay_tri_vcol_sh);
-	if (e_data.overlay_tri_vcol_fast_sh)
-		DRW_shader_free(e_data.overlay_tri_vcol_fast_sh);
-	if (e_data.overlay_edge_sh)
-		DRW_shader_free(e_data.overlay_edge_sh);
-	if (e_data.overlay_edge_vcol_sh)
-		DRW_shader_free(e_data.overlay_edge_vcol_sh);
-	if (e_data.overlay_vert_sh)
-		DRW_shader_free(e_data.overlay_vert_sh);
-	if (e_data.overlay_facedot_sh)
-		DRW_shader_free(e_data.overlay_facedot_sh);
-	if (e_data.overlay_mix_sh)
-		DRW_shader_free(e_data.overlay_mix_sh);
-	if (e_data.overlay_facefill_sh)
-		DRW_shader_free(e_data.overlay_facefill_sh);
-	if (e_data.normals_face_sh)
-		DRW_shader_free(e_data.normals_face_sh);
-	if (e_data.normals_sh)
-		DRW_shader_free(e_data.normals_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_tri_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_tri_fast_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_tri_vcol_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_tri_vcol_fast_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_edge_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_edge_vcol_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_vert_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_facedot_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_mix_sh);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_facefill_sh);
+	DRW_SHADER_FREE_SAFE(e_data.normals_face_sh);
+	DRW_SHADER_FREE_SAFE(e_data.normals_sh);
 }
 
 static const DrawEngineDataSize EDIT_MESH_data_size = DRW_VIEWPORT_DATA_SIZE(EDIT_MESH_Data);

@@ -125,24 +125,15 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 	/* Step 5 Setup enough layers */
 	/* Free textures if number mismatch */
 	if (linfo->num_cube != linfo->cache_num_cube) {
-		if (txl->shadow_depth_cube_pool) {
-			DRW_texture_free(txl->shadow_depth_cube_pool);
-			txl->shadow_depth_cube_pool = NULL;
-		}
+		DRW_TEXTURE_FREE_SAFE(txl->shadow_depth_cube_pool);
 		linfo->cache_num_cube = linfo->num_cube;
 	}
 	if (linfo->num_map != linfo->cache_num_map) {
-		if (txl->shadow_depth_map_pool) {
-			DRW_texture_free(txl->shadow_depth_map_pool);
-			txl->shadow_depth_map_pool = NULL;
-		}
+		DRW_TEXTURE_FREE_SAFE(txl->shadow_depth_map_pool);
 		linfo->cache_num_map = linfo->num_map;
 	}
 	if (linfo->num_cascade != linfo->cache_num_cascade) {
-		if (txl->shadow_depth_cascade_pool) {
-			DRW_texture_free(txl->shadow_depth_cascade_pool);
-			txl->shadow_depth_cascade_pool = NULL;
-		}
+		DRW_TEXTURE_FREE_SAFE(txl->shadow_depth_cascade_pool);
 		linfo->cache_num_cascade = linfo->num_cascade;
 	}
 

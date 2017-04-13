@@ -153,6 +153,12 @@ struct GPUTexture *DRW_texture_create_2D_array(
 struct GPUTexture *DRW_texture_create_cube(
         int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 void DRW_texture_free(struct GPUTexture *tex);
+#define DRW_TEXTURE_FREE_SAFE(tex) do { \
+	if (tex != NULL) { \
+		DRW_texture_free(tex); \
+		tex = NULL; \
+	} \
+} while (0)
 
 /* UBOs */
 struct GPUUniformBuffer *DRW_uniformbuffer_create(int size, const void *data);
@@ -200,6 +206,12 @@ struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D_depth_only(void);
 void DRW_shader_free(struct GPUShader *shader);
+#define DRW_SHADER_FREE_SAFE(shader) do { \
+	if (shader != NULL) { \
+		DRW_shader_free(shader); \
+		shader = NULL; \
+	} \
+} while (0)
 
 /* Batches */
 
