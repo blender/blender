@@ -5899,7 +5899,7 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "LayerCollectionEngineSettingsClay", NULL);
+	srna = RNA_def_struct(brna, "LayerCollectionEngineSettingsClay", "LayerCollectionSettings");
 	RNA_def_struct_ui_text(srna, "Collections Clay Engine Settings", "Engine specific settings for this collection");
 
 	RNA_define_verify_sdna(0); /* not in sdna */
