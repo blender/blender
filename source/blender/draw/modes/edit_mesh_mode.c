@@ -36,17 +36,17 @@
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GlobalsUboStorage ts; /* draw_common.c */
 
-extern char datatoc_edit_overlay_frag_glsl[];
-extern char datatoc_edit_overlay_vert_glsl[];
-extern char datatoc_edit_overlay_geom_tri_glsl[];
-extern char datatoc_edit_overlay_geom_edge_glsl[];
-extern char datatoc_edit_overlay_loosevert_vert_glsl[];
-extern char datatoc_edit_overlay_facedot_frag_glsl[];
-extern char datatoc_edit_overlay_facedot_vert_glsl[];
-extern char datatoc_edit_overlay_mix_vert_glsl[];
-extern char datatoc_edit_overlay_mix_frag_glsl[];
-extern char datatoc_edit_overlay_facefill_vert_glsl[];
-extern char datatoc_edit_overlay_facefill_frag_glsl[];
+extern char datatoc_edit_mesh_overlay_frag_glsl[];
+extern char datatoc_edit_mesh_overlay_vert_glsl[];
+extern char datatoc_edit_mesh_overlay_geom_tri_glsl[];
+extern char datatoc_edit_mesh_overlay_geom_edge_glsl[];
+extern char datatoc_edit_mesh_overlay_loosevert_vert_glsl[];
+extern char datatoc_edit_mesh_overlay_facedot_frag_glsl[];
+extern char datatoc_edit_mesh_overlay_facedot_vert_glsl[];
+extern char datatoc_edit_mesh_overlay_mix_vert_glsl[];
+extern char datatoc_edit_mesh_overlay_mix_frag_glsl[];
+extern char datatoc_edit_mesh_overlay_facefill_vert_glsl[];
+extern char datatoc_edit_mesh_overlay_facefill_frag_glsl[];
 extern char datatoc_edit_normals_vert_glsl[];
 extern char datatoc_edit_normals_geom_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
@@ -142,70 +142,70 @@ static void EDIT_MESH_engine_init(void *vedata)
 
 	if (!e_data.overlay_tri_sh) {
 		e_data.overlay_tri_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_vert_glsl,
-		        datatoc_edit_overlay_geom_tri_glsl,
-		        datatoc_edit_overlay_frag_glsl,
+		        datatoc_edit_mesh_overlay_vert_glsl,
+		        datatoc_edit_mesh_overlay_geom_tri_glsl,
+		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl, "#define EDGE_FIX\n");
 	}
 	if (!e_data.overlay_tri_fast_sh) {
 		e_data.overlay_tri_fast_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_vert_glsl,
-		        datatoc_edit_overlay_geom_tri_glsl,
-		        datatoc_edit_overlay_frag_glsl,
+		        datatoc_edit_mesh_overlay_vert_glsl,
+		        datatoc_edit_mesh_overlay_geom_tri_glsl,
+		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
 	}
 	if (!e_data.overlay_tri_vcol_sh) {
 		e_data.overlay_tri_vcol_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_vert_glsl,
-		        datatoc_edit_overlay_geom_tri_glsl,
-		        datatoc_edit_overlay_frag_glsl,
+		        datatoc_edit_mesh_overlay_vert_glsl,
+		        datatoc_edit_mesh_overlay_geom_tri_glsl,
+		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
 		        "#define EDGE_FIX\n"
 		        "#define VERTEX_SELECTION\n");
 	}
 	if (!e_data.overlay_tri_vcol_fast_sh) {
 		e_data.overlay_tri_vcol_fast_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_vert_glsl,
-		        datatoc_edit_overlay_geom_tri_glsl,
-		        datatoc_edit_overlay_frag_glsl,
+		        datatoc_edit_mesh_overlay_vert_glsl,
+		        datatoc_edit_mesh_overlay_geom_tri_glsl,
+		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
 		        "#define VERTEX_SELECTION\n");
 	}
 	if (!e_data.overlay_edge_sh) {
 		e_data.overlay_edge_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_vert_glsl,
-		        datatoc_edit_overlay_geom_edge_glsl,
-		        datatoc_edit_overlay_frag_glsl,
+		        datatoc_edit_mesh_overlay_vert_glsl,
+		        datatoc_edit_mesh_overlay_geom_edge_glsl,
+		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
 	}
 	if (!e_data.overlay_edge_vcol_sh) {
 		e_data.overlay_edge_vcol_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_vert_glsl,
-		        datatoc_edit_overlay_geom_edge_glsl,
-		        datatoc_edit_overlay_frag_glsl,
+		        datatoc_edit_mesh_overlay_vert_glsl,
+		        datatoc_edit_mesh_overlay_geom_edge_glsl,
+		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
 		        "#define VERTEX_SELECTION\n");
 	}
 	if (!e_data.overlay_vert_sh) {
 		e_data.overlay_vert_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_loosevert_vert_glsl, NULL,
-		        datatoc_edit_overlay_frag_glsl,
+		        datatoc_edit_mesh_overlay_loosevert_vert_glsl, NULL,
+		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
 		        "#define VERTEX_SELECTION\n");
 	}
 	if (!e_data.overlay_facedot_sh) {
 		e_data.overlay_facedot_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_facedot_vert_glsl, NULL,
-		        datatoc_edit_overlay_facedot_frag_glsl,
+		        datatoc_edit_mesh_overlay_facedot_vert_glsl, NULL,
+		        datatoc_edit_mesh_overlay_facedot_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
 	}
 	if (!e_data.overlay_mix_sh) {
-		e_data.overlay_mix_sh = DRW_shader_create_fullscreen(datatoc_edit_overlay_mix_frag_glsl, NULL);
+		e_data.overlay_mix_sh = DRW_shader_create_fullscreen(datatoc_edit_mesh_overlay_mix_frag_glsl, NULL);
 	}
 	if (!e_data.overlay_facefill_sh) {
 		e_data.overlay_facefill_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_overlay_facefill_vert_glsl, NULL,
-		        datatoc_edit_overlay_facefill_frag_glsl,
+		        datatoc_edit_mesh_overlay_facefill_vert_glsl, NULL,
+		        datatoc_edit_mesh_overlay_facefill_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
 	}
 	if (!e_data.normals_face_sh) {

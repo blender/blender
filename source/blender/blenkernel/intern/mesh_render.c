@@ -611,7 +611,7 @@ enum {
 	VFLAG_EDGE_SEAM     = 1 << 3,
 	VFLAG_EDGE_SHARP    = 1 << 4,
 	/* Beware to not go over 1 << 7
-	 * (see gpu_shader_edit_overlay_geom.glsl) */
+	 * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
 };
 
 static unsigned char mesh_render_data_looptri_flag(MeshRenderData *mrdata, const int f)
