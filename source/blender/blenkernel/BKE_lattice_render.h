@@ -33,5 +33,6 @@ void BKE_lattice_batch_cache_clear(struct Lattice *lt);
 void BKE_lattice_batch_cache_free(struct Lattice *lt);
 struct Batch *BKE_lattice_batch_cache_get_all_edges(struct Lattice *lt);
 struct Batch *BKE_lattice_batch_cache_get_all_verts(struct Lattice *lt);
+struct Batch *BKE_lattice_batch_cache_get_overlay_verts(struct Lattice *me);
 
 #endif /* __BKE_LATTICE_RENDER_H__ */

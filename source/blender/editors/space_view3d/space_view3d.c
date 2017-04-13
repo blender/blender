@@ -47,6 +47,7 @@
 #include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_lattice_render.h"
 #include "BKE_mesh_render.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -922,9 +923,13 @@ static void view3d_main_region_listener(bScreen *sc, ScrArea *sa, ARegion *ar, w
 
 					if (scene->obedit) {
 						Object *ob = scene->obedit;
-						if (ob->type == OB_MESH) {
-							struct Mesh *me = ob->data;
-							BKE_mesh_batch_selection_dirty(me);
+						switch (ob->type) {
+							case OB_MESH:
+								BKE_mesh_batch_selection_dirty(ob->data);
+								break;
+							case OB_LATTICE:
+								BKE_lattice_batch_selection_dirty(ob->data);
+								break;
 						}
 					}
 				}

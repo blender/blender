@@ -1558,6 +1558,18 @@ Batch *DRW_cache_lattice_wire_get(Object *ob)
 	return surface;
 }
 
+Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
+{
+	Batch *surface = NULL;
+
+	BLI_assert(ob->type == OB_LATTICE);
+
+	struct Lattice *lt = ob->data;
+	surface = BKE_lattice_batch_cache_get_overlay_verts(lt);
+
+	return surface;
+}
+
 #if 0 /* TODO */
 struct Batch *DRW_cache_surface_material_get(Object *ob, int nr) {
 	/* TODO */
