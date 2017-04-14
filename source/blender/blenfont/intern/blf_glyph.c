@@ -135,6 +135,7 @@ void blf_glyph_cache_clear(FontBLF *font)
 	while ((gc = BLI_pophead(&font->cache))) {
 		blf_glyph_cache_free(gc);
 	}
+	font->glyph_cache = NULL;
 }
 
 void blf_glyph_cache_free(GlyphCacheBLF *gc)
