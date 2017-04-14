@@ -205,6 +205,7 @@ void AbcCurveReader::readObjectData(Main *bmain, float time)
 
 	cu->flag |= CU_DEFORM_FILL | CU_3D;
 	cu->actvert = CU_ACT_NONE;
+	cu->resolu = 1;
 
 	m_object = BKE_object_add_only_object(bmain, OB_CURVE, m_object_name.c_str());
 	m_object->data = cu;
@@ -250,13 +251,18 @@ void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const float time)
 		nu->pntsv = 1;
 		nu->flag |= CU_SMOOTH;
 
-		nu->orderu = num_verts;
-
-		if (smp.getType() == Alembic::AbcGeom::kCubic) {
-			nu->orderu = 3;
-		}
-		else if (orders && orders->size() > i) {
-			nu->orderu = static_cast<short>((*orders)[i] - 1);
+		switch (smp.getType()) {
+			case Alembic::AbcGeom::kCubic:
+				nu->orderu = 4;
+				break;
+			case Alembic::AbcGeom::kVariableOrder:
+				if (orders && orders->size() > i) {
+					nu->orderu = static_cast<short>((*orders)[i]);
+				}
+				break;
+			case Alembic::AbcGeom::kLinear:
+			default:
+				nu->orderu = 2;
 		}
 
 		if (periodicity == Alembic::AbcGeom::kNonPeriodic) {
