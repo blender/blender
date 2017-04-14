@@ -221,5 +221,46 @@ class HierarchicalAndFlatExportTest(AbstractAlembicTest):
         )
 
 
+class DupliGroupExportTest(AbstractAlembicTest):
+    @with_tempdir
+    def test_hierarchical_export(self, tempdir: pathlib.Path):
+        abc = tempdir / 'dupligroup_hierarchical.abc'
+        script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
+                 "renderable_only=True, visible_layers_only=True, flatten=False)" % abc
+        self.run_blender('dupligroup-scene.blend', script)
+
+        # Now check the resulting Alembic file.
+        xform = self.abcprop(abc, '/Real_Cube/Linked_Suzanne/Cylinder/Suzanne/.xform')
+        self.assertEqual(1, xform['.inherits'])
+        self.assertAlmostEqualFloatArray(
+            xform['.vals'],
+            [1.0, 0.0, 0.0, 0.0,
+             0.0, 1.0, 0.0, 0.0,
+             0.0, 0.0, 1.0, 0.0,
+             0.0, 2.0, 0.0, 1.0]
+        )
+
+    @with_tempdir
+    def test_flat_export(self, tempdir: pathlib.Path):
+        abc = tempdir / 'dupligroup_hierarchical.abc'
+        script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
+                 "renderable_only=True, visible_layers_only=True, flatten=True)" % abc
+        self.run_blender('dupligroup-scene.blend', script)
+
+        # Now check the resulting Alembic file.
+        xform = self.abcprop(abc, '/Suzanne/.xform')
+        self.assertEqual(0, xform['.inherits'])
+
+        self.assertAlmostEqualFloatArray(
+            xform['.vals'],
+            [1.5, 0.0, 0.0, 0.0,
+             0.0, 1.5, 0.0, 0.0,
+             0.0, 0.0, 1.5, 0.0,
+             2.0, 3.0, 0.0, 1.0]
+        )
+
+
+
+
 if __name__ == '__main__':
     unittest.main(argv=sys.argv[0:1])

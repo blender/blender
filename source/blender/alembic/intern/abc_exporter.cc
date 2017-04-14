@@ -448,7 +448,12 @@ AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *pare
 		 * parent by name. We'll just call createTransformWriter(), which will
 		 * return the parent's AbcTransformWriter pointer. */
 		if (parent->parent) {
-			parent_writer = createTransformWriter(parent, parent->parent, dupliObParent);
+			if (parent == dupliObParent) {
+				parent_writer = createTransformWriter(parent, parent->parent, NULL);
+			}
+			else {
+				parent_writer = createTransformWriter(parent, parent->parent, dupliObParent);
+			}
 		}
 		else if (parent == dupliObParent) {
 			if (dupliObParent->parent == NULL) {
@@ -468,6 +473,12 @@ AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *pare
 
 	my_writer = new AbcTransformWriter(ob, alembic_parent, parent_writer,
 	                                   m_trans_sampling_index, m_settings);
+
+	/* When flattening, the matrix of the dupliobject has to be added. */
+	if (m_settings.flatten_hierarchy && dupliObParent) {
+		my_writer->m_proxy_from = dupliObParent;
+	}
+
 	m_xforms[name] = my_writer;
 	return my_writer;
 }

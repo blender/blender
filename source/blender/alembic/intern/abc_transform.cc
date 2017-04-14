@@ -62,6 +62,7 @@ AbcTransformWriter::AbcTransformWriter(Object *ob,
                                        unsigned int time_sampling,
                                        ExportSettings &settings)
     : AbcObjectWriter(NULL, ob, time_sampling, settings, parent)
+    , m_proxy_from(NULL)
 {
 	m_is_animated = hasAnimation(m_object);
 
@@ -90,7 +91,8 @@ void AbcTransformWriter::do_write()
 
 	float yup_mat[4][4];
 	create_transform_matrix(m_object, yup_mat,
-	                        m_inherits_xform ? ABC_MATRIX_LOCAL : ABC_MATRIX_WORLD);
+	                        m_inherits_xform ? ABC_MATRIX_LOCAL : ABC_MATRIX_WORLD,
+	                        m_proxy_from);
 
 	/* Only apply rotation to root camera, parenting will propagate it. */
 	if (m_object->type == OB_CAMERA && (!m_inherits_xform || !has_parent_camera(m_object))) {
