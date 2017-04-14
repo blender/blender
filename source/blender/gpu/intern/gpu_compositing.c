@@ -798,7 +798,9 @@ bool GPU_fx_do_composite_pass(
 		ssao_shader = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_SSAO, is_persp);
 		if (ssao_shader) {
 			const GPUSSAOSettings *fx_ssao = fx->settings.ssao;
-			float ssao_params[4] = {fx_ssao->distance_max, fx_ssao->factor, fx_ssao->attenuation, 0.0f};
+			/* adjust attenuation to be scale invariant */
+			float attenuation = fx_ssao->attenuation / (fx_ssao->distance_max * fx_ssao->distance_max);
+			float ssao_params[4] = {fx_ssao->distance_max, fx_ssao->factor, attenuation, 0.0f};
 			float sample_params[3];
 
 			sample_params[0] = fx->ssao_sample_count_cache;

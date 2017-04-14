@@ -75,7 +75,7 @@ float calculate_ssao_factor(float depth)
 			float f = dot(dir, normal);
 
 			/* use minor bias here to avoid self shadowing */
-			if (f > 0.05 * len + 0.0001)
+			if (f > 0.05 * len)
 				factor += f * 1.0 / (len * (1.0 + len * len * ssao_params.z));
 		}
 	}
