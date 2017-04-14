@@ -178,6 +178,7 @@ typedef struct ShadeInput {
 	
 	unsigned int lay;
 	int layflag, passflag, combinedflag;
+	short object_pass_index;
 	struct Group *light_override;
 	struct Material *mat_override;
 
@@ -240,6 +241,9 @@ enum {
 };
 
 const float (*RE_object_instance_get_matrix(struct ObjectInstanceRen *obi, int matrix_id))[4];
+
+float RE_object_instance_get_object_pass_index(struct ObjectInstanceRen *obi);
+float RE_object_instance_get_random_id(struct ObjectInstanceRen *obi);
 
 enum {
 	RE_VIEW_MATRIX,

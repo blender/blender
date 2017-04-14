@@ -39,6 +39,7 @@
 #include "GPU_uniformbuffer.h"
 #include "GPU_texture.h"
 #include "GPU_matrix.h"
+#include "GPU_material.h"
 
 #include "gpu_shader_private.h"
 
