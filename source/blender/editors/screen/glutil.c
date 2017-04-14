@@ -566,7 +566,7 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 	float rast_x = x + off_x * xzoom;
 	float rast_y = y + off_y * yzoom;
 
-	GLfloat scissor[4];
+	GLfloat viewport[4];
 	int draw_w, draw_h;
 
 	/* Determine the smallest number of pixels we need to draw
@@ -581,9 +581,9 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 	 * fails if we zoom in on one really huge pixel so that it
 	 * covers the entire screen).
 	 */
-	glGetFloatv(GL_SCISSOR_BOX, scissor);
-	draw_w = min_ii(img_w - off_x, ceil((scissor[2] - rast_x) / xzoom));
-	draw_h = min_ii(img_h - off_y, ceil((scissor[3] - rast_y) / yzoom));
+	glGetFloatv(GL_VIEWPORT, viewport);
+	draw_w = min_ii(img_w - off_x, ceil((viewport[2] - rast_x) / xzoom));
+	draw_h = min_ii(img_h - off_y, ceil((viewport[3] - rast_y) / yzoom));
 
 	if (draw_w > 0 && draw_h > 0) {
 
