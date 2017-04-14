@@ -3563,12 +3563,12 @@ void node_light_falloff(float strength, float tsmooth, out float quadratic, out 
 	constant = strength;
 }
 
-void node_object_info(out vec3 location, out float object_index, out float material_index, out float random)
+void node_object_info(mat4 obmat, vec3 info, out vec3 location, out float object_index, out float material_index, out float random)
 {
-	location = vec3(0.0);
-	object_index = 0.0;
-	material_index = 0.0;
-	random = 0.0;
+	location = obmat[3].xyz;
+	object_index = info.x;
+	material_index = info.y;
+	random = info.z;
 }
 
 void node_normal_map(vec4 tangent, vec3 normal, vec3 texnormal, out vec3 outnormal)

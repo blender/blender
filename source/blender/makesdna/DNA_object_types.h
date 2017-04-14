@@ -335,6 +335,8 @@ typedef struct DupliObject {
 
 	/* particle this dupli was generated from */
 	struct ParticleSystem *particle_system;
+	unsigned int random_id;
+	unsigned int pad;
 } DupliObject;
 
 /* **************** OBJECT ********************* */

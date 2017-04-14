@@ -382,6 +382,8 @@ typedef struct ObjectInstanceRen {
 	float part_co[3];
 	float part_vel[3];
 	float part_avel[3];
+
+	unsigned int random_id;
 } ObjectInstanceRen;
 
 /* ------------------------------------------------------------------------- */

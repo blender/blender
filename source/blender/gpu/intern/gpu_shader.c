@@ -39,6 +39,7 @@
 #include "GPU_glew.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
+#include "GPU_material.h"
 
 /* TODO(sergey): Find better default values for this constants. */
 #define MAX_DEFINE_LENGTH 1024

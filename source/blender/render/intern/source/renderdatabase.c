@@ -66,6 +66,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_hash.h"
 
 #include "DNA_material_types.h" 
 #include "DNA_meshdata_types.h" 
@@ -1456,6 +1457,14 @@ ObjectInstanceRen *RE_addRenderInstance(
 				copy_v3_v3(obi->part_avel, p->state.ave);
 			}
 		}
+	}
+
+	/* Fill object info */
+	if (dob) {
+		obi->random_id = dob->random_id;
+	}
+	else {
+		obi->random_id = BLI_hash_int_2d(BLI_hash_string(obi->ob->id.name + 2), 0);
 	}
 
 	RE_updateRenderInstance(re, obi, RE_OBJECT_INSTANCES_UPDATE_OBMAT | RE_OBJECT_INSTANCES_UPDATE_VIEW);

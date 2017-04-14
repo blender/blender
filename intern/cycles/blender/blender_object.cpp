@@ -379,27 +379,16 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 			}
 		}
 
-		/* random number */
-		object->random_id = hash_string(object->name.c_str());
-
-		if(persistent_id) {
-			for(int i = 0; i < OBJECT_PERSISTENT_ID_SIZE; i++)
-				object->random_id = hash_int_2d(object->random_id, persistent_id[i]);
-		}
-		else
-			object->random_id = hash_int_2d(object->random_id, 0);
-
-		if(b_parent.ptr.data != b_ob.ptr.data)
-			object->random_id ^= hash_int(hash_string(b_parent.name().c_str()));
-
-		/* dupli texture coordinates */
+		/* dupli texture coordinates and random_id */
 		if(b_dupli_ob) {
 			object->dupli_generated = 0.5f*get_float3(b_dupli_ob.orco()) - make_float3(0.5f, 0.5f, 0.5f);
 			object->dupli_uv = get_float2(b_dupli_ob.uv());
+			object->random_id = b_dupli_ob.random_id();
 		}
 		else {
 			object->dupli_generated = make_float3(0.0f, 0.0f, 0.0f);
 			object->dupli_uv = make_float2(0.0f, 0.0f);
+			object->random_id =  hash_int_2d(hash_string(object->name.c_str()), 0);
 		}
 
 		object->tag_update(scene);

@@ -45,6 +45,7 @@
 #include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_hash.h"
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -1899,6 +1900,21 @@ static int gpu_get_particle_info(GPUParticleInfo *pi)
 		return 0;
 }
 
+static void GPU_get_object_info(float oi[3], Material *mat)
+{
+	Object *ob = GMS.gob;
+	oi[0] = ob->index;
+	oi[1] = mat->index;
+	unsigned int random;
+	if (GMS.dob) {
+		random = GMS.dob->random_id;
+	}
+	else {
+		random = BLI_hash_int_2d(BLI_hash_string(GMS.gob->id.name + 2), 0);
+	}
+	oi[2] = random * (1.0f/(float)0xFFFFFFFF);
+}
+
 int GPU_object_material_bind(int nr, void *attribs)
 {
 	GPUVertexAttribs *gattribs = attribs;
@@ -1958,6 +1974,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 			/* bind glsl material and get attributes */
 			Material *mat = GMS.gmatbuf[nr];
 			GPUParticleInfo partile_info;
+			float object_info[3] = {0};
 
 			float auto_bump_scale;
 
@@ -1967,13 +1984,17 @@ int GPU_object_material_bind(int nr, void *attribs)
 			if (GMS.dob) {
 				gpu_get_particle_info(&partile_info);
 			}
+			
+			if (GPU_get_material_builtins(gpumat) & GPU_OBJECT_INFO) {
+				GPU_get_object_info(object_info, mat);
+			}
 
 			GPU_material_bind(
 			        gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT),
 			        GMS.gviewmat, GMS.gviewinv, GMS.gviewcamtexcofac, GMS.gscenelock);
 
 			auto_bump_scale = GMS.gob->derivedFinal != NULL ? GMS.gob->derivedFinal->auto_bump_scale : 1.0f;
-			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gob->col, auto_bump_scale, &partile_info);
+			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gob->col, auto_bump_scale, &partile_info, object_info);
 			GMS.gboundmat = mat;
 
 			/* for glsl use alpha blend mode, unless it's set to solid and

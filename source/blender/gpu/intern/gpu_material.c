@@ -122,6 +122,8 @@ struct GPUMaterial {
 	int partvel;
 	int partangvel;
 
+	int objectinfoloc;
+
 	ListBase lamps;
 	bool bound;
 
@@ -268,6 +270,8 @@ static int gpu_material_construct_end(GPUMaterial *material, const char *passnam
 			material->partvel = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_PARTICLE_VELOCITY));
 		if (material->builtins & GPU_PARTICLE_ANG_VELOCITY)
 			material->partangvel = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_PARTICLE_ANG_VELOCITY));
+		if (material->builtins & GPU_OBJECT_INFO)
+			material->objectinfoloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_OBJECT_INFO));
 		return 1;
 	}
 	else {
@@ -398,9 +402,14 @@ void GPU_material_bind(
 	}
 }
 
+GPUBuiltin GPU_get_material_builtins(GPUMaterial *material)
+{
+	return material->builtins;
+}
+
 void GPU_material_bind_uniforms(
         GPUMaterial *material, float obmat[4][4], float viewmat[4][4], float obcol[4],
-        float autobumpscale, GPUParticleInfo *pi)
+        float autobumpscale, GPUParticleInfo *pi, float object_info[3])
 {
 	if (material->pass) {
 		GPUShader *shader = GPU_pass_shader(material->pass);
@@ -448,6 +457,9 @@ void GPU_material_bind_uniforms(
 		}
 		if (material->builtins & GPU_PARTICLE_ANG_VELOCITY) {
 			GPU_shader_uniform_vector(shader, material->partangvel, 3, 1, pi->angular_velocity);
+		}
+		if (material->builtins & GPU_OBJECT_INFO) {
+			GPU_shader_uniform_vector(shader, material->objectinfoloc, 3, 1, object_info);
 		}
 
 	}

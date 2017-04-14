@@ -2897,6 +2897,10 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, dupli_items);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dupli Type", "Duplicator type that generated this dupli object");
+
+	prop = RNA_def_property(srna, "random_id", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Dupli random id", "Random id for this dupli object");
 }
 
 static void rna_def_object_base(BlenderRNA *brna)
