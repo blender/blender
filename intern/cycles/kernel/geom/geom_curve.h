@@ -565,7 +565,7 @@ ccl_device_curveintersect bool bvh_cardinal_curve_intersect(KernelGlobals *kg, I
 					r_ext = mw_extension + r_curr;
 #ifdef __KERNEL_SSE__
 					const float3 p_curr_sq = p_curr * p_curr;
-					const float3 dxxx = _mm_sqrt_ss(_mm_hadd_ps(p_curr_sq.m128, p_curr_sq.m128));
+					const float3 dxxx(_mm_sqrt_ss(_mm_hadd_ps(p_curr_sq.m128, p_curr_sq.m128)));
 					float d = dxxx.x;
 #else
 					float d = sqrtf(p_curr.x * p_curr.x + p_curr.y * p_curr.y);

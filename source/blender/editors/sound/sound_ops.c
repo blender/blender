@@ -670,7 +670,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Mixdown";
-	ot->description = "Mixes the scene's audio to a sound file";
+	ot->description = "Mix the scene's audio to a sound file";
 	ot->idname = "SOUND_OT_mixdown";
 
 	/* api callbacks */

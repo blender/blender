@@ -318,7 +318,7 @@ class BoundingBox:
 
 
 class StrokeCollector(StrokeShader):
-    "Collects and Stores stroke objects"
+    """Collects and Stores stroke objects"""
     def __init__(self):
         StrokeShader.__init__(self)
         self.strokes = []

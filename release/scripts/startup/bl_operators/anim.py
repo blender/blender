@@ -36,7 +36,7 @@ from bpy.props import (
 
 
 class ANIM_OT_keying_set_export(Operator):
-    "Export Keying Set to a python script"
+    """Export Keying Set to a python script"""
     bl_idname = "anim.keying_set_export"
     bl_label = "Export Keying Set..."
 
@@ -102,15 +102,13 @@ class ANIM_OT_keying_set_export(Operator):
             if ksp.id in id_to_paths_cache:
                 continue
 
-            """
-            - idtype_list is used to get the list of id-datablocks from
-              bpy.data.* since this info isn't available elsewhere
-            - id.bl_rna.name gives a name suitable for UI,
-              with a capitalised first letter, but we need
-              the plural form that's all lower case
-            - special handling is needed for "nested" ID-blocks
-              (e.g. nodetree in Material)
-            """
+            # - idtype_list is used to get the list of id-datablocks from
+            #   bpy.data.* since this info isn't available elsewhere
+            # - id.bl_rna.name gives a name suitable for UI,
+            #   with a capitalised first letter, but we need
+            #   the plural form that's all lower case
+            # - special handling is needed for "nested" ID-blocks
+            #   (e.g. nodetree in Material)
             if ksp.id.bl_rna.identifier.startswith("ShaderNodeTree"):
                 # Find material or lamp using this node tree...
                 id_bpy_path = "bpy.data.nodes[\"%s\"]"

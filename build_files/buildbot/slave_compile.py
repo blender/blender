@@ -74,6 +74,9 @@ if 'cmake' in builder:
             cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
         cmake_extra_options.append('-DWITH_CODEC_QUICKTIME=OFF')
         cmake_extra_options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.6')
+        cmake_extra_options.append('-DCUDA_HOST_COMPILER=/usr/local/cuda-hack/clang')
+        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/nvcc')
+
 
 
     elif builder.startswith('win'):
@@ -177,7 +180,7 @@ if 'cmake' in builder:
             os.remove('CMakeCache.txt')
         retcode = subprocess.call(target_chroot_prefix + ['cmake', blender_dir] + target_cmake_options)
         if retcode != 0:
-            print('Condifuration FAILED!')
+            print('Configuration FAILED!')
             sys.exit(retcode)
 
         if 'win32' in builder or 'win64' in builder:
