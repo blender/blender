@@ -14,7 +14,7 @@
 #include <stdlib.h>
 
 // necessary functions from matrix API
-extern void gpuBindMatrices(GLuint program);
+extern void gpuBindMatrices(const ShaderInterface* shaderface);
 extern bool gpuMatricesDirty(void); // how best to use this here?
 
 Batch* Batch_create(PrimitiveType prim_type, VertexBuffer* verts, ElementList* elem)
@@ -262,7 +262,7 @@ void Batch_draw(Batch* batch)
 
 	Batch_use_program(batch);
 
-	gpuBindMatrices(batch->program);
+	gpuBindMatrices(batch->interface);
 
 	if (batch->elem)
 		{
