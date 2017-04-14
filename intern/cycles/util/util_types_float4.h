@@ -53,6 +53,7 @@ struct ccl_try_align(16) float4 {
 ccl_device_inline float4 make_float4(float f);
 ccl_device_inline float4 make_float4(float x, float y, float z, float w);
 ccl_device_inline float4 make_float4(const int4& i);
+ccl_device_inline void print_float4(const char *label, const float4& a);
 #endif  /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END

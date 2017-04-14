@@ -196,6 +196,12 @@ set(SRC_UTIL_HEADERS
 	../util/util_math.h
 	../util/util_math_fast.h
 	../util/util_math_intersect.h
+	../util/util_math_float2.h
+	../util/util_math_float3.h
+	../util/util_math_float4.h
+	../util/util_math_int2.h
+	../util/util_math_int3.h
+	../util/util_math_int4.h
 	../util/util_static_assert.h
 	../util/util_transform.h
 	../util/util_texture.h

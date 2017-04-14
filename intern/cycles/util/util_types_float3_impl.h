@@ -21,6 +21,10 @@
 #  error "Do not include this file directly, include util_types.h instead."
 #endif
 
+#ifndef __KERNEL_GPU__
+#  include <cstdio>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
@@ -88,6 +92,11 @@ ccl_device_inline float3 make_float3(float x, float y, float z)
 	float3 a = {x, y, z, 0.0f};
 #endif
 	return a;
+}
+
+ccl_device_inline void print_float3(const char *label, const float3& a)
+{
+	printf("%s: %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z);
 }
 #endif  /* __KERNEL_GPU__ */
 
