@@ -290,13 +290,7 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 
 	OBox3dProperty archive_bounds_prop = Alembic::AbcGeom::CreateOArchiveBounds(m_writer->archive(), m_trans_sampling_index);
 
-	if (m_settings.flatten_hierarchy) {
-		createTransformWritersFlat();
-	}
-	else {
-		createTransformWritersHierarchy(bmain->eval_ctx);
-	}
-
+	createTransformWritersHierarchy(bmain->eval_ctx);
 	createShapeWriters(bmain->eval_ctx);
 
 	/* Make a list of frames to export. */
@@ -383,24 +377,6 @@ void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 	}
 }
 
-void AbcExporter::createTransformWritersFlat()
-{
-	Base *base = static_cast<Base *>(m_scene->base.first);
-
-	while (base) {
-		Object *ob = base->object;
-
-		if (export_object(&m_settings, ob, false) && object_is_shape(ob)) {
-			std::string name = get_id_name(ob);
-			m_xforms[name] = new AbcTransformWriter(
-			                     ob, m_writer->archive().getTop(), NULL,
-			                     m_trans_sampling_index, m_settings);
-		}
-
-		base = base->next;
-	}
-}
-
 void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Object *parent, Object *dupliObParent)
 {
 	/* If an object isn't exported itself, its duplilist shouldn't be
@@ -440,11 +416,17 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 
 AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupliObParent)
 {
-	const std::string name = get_object_dag_path_name(ob, dupliObParent);
-
 	/* An object should not be its own parent, or we'll get infinite loops. */
 	BLI_assert(ob != parent);
 	BLI_assert(ob != dupliObParent);
+
+	std::string name;
+	if (m_settings.flatten_hierarchy) {
+		name = get_id_name(ob);
+	}
+	else {
+		name = get_object_dag_path_name(ob, dupliObParent);
+	}
 
 	/* check if we have already created a transform writer for this object */
 	AbcTransformWriter *my_writer = getXForm(name);
@@ -455,7 +437,12 @@ AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *pare
 	AbcTransformWriter *parent_writer = NULL;
 	Alembic::Abc::OObject alembic_parent;
 
-	if (parent) {
+	if (m_settings.flatten_hierarchy || parent == NULL) {
+		/* Parentless objects still have the "top object" as parent
+		 * in Alembic. */
+		alembic_parent = m_writer->archive().getTop();
+	}
+	else {
 		/* Since there are so many different ways to find parents (as evident
 		 * in the number of conditions below), we can't really look up the
 		 * parent by name. We'll just call createTransformWriter(), which will
@@ -477,11 +464,6 @@ AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *pare
 
 		BLI_assert(parent_writer);
 		alembic_parent = parent_writer->alembicXform();
-	}
-	else {
-		/* Parentless objects still have the "top object" as parent
-		 * in Alembic. */
-		alembic_parent = m_writer->archive().getTop();
 	}
 
 	my_writer = new AbcTransformWriter(ob, alembic_parent, parent_writer,
