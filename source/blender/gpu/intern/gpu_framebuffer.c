@@ -415,9 +415,6 @@ void GPU_framebuffer_blur(
 		
 	glDisable(GL_DEPTH_TEST);
 	
-	/* Load fresh matrices */
-	gpuMatrixBegin3D(); /* TODO: finish 2D API */
-
 	/* Blurring horizontally */
 	/* We do the bind ourselves rather than using GPU_framebuffer_texture_bind() to avoid
 	 * pushing unnecessary matrices onto the OpenGL stack. */
@@ -451,8 +448,6 @@ void GPU_framebuffer_blur(
 	Batch_Uniform2f(&batch, "ScaleU", scalev[0], scalev[1]);
 	Batch_Uniform1i(&batch, "textureSource", GL_TEXTURE0);
 	Batch_draw(&batch);
-
-	gpuMatrixEnd();
 }
 
 void GPU_framebuffer_blit(GPUFrameBuffer *fb_read, int read_slot, GPUFrameBuffer *fb_write, int write_slot, bool use_depth)

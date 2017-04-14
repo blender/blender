@@ -554,8 +554,6 @@ void DRW_draw_background(void)
 
 	if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
 		/* Gradient background Color */
-		gpuMatrixBegin3D(); /* TODO: finish 2D API */
-
 		glDisable(GL_DEPTH_TEST);
 
 		VertexFormat *format = immVertexFormat();
@@ -579,8 +577,6 @@ void DRW_draw_background(void)
 		immEnd();
 
 		immUnbindProgram();
-
-		gpuMatrixEnd();
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}

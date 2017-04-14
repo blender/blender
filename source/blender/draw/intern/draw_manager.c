@@ -1856,16 +1856,12 @@ void DRW_draw_view(const bContext *C)
 	/* Start Drawing */
 	DRW_engines_draw_background();
 
-	gpuMatrixBegin3D();
-
 	DRW_draw_callbacks_pre_scene();
 	// DRW_draw_grid();
 	DRW_engines_draw_scene();
 	DRW_draw_callbacks_post_scene();
 
 	DRW_draw_manipulator();
-
-	gpuMatrixEnd();
 
 	DRW_draw_region_info();
 

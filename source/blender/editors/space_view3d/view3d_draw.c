@@ -2294,8 +2294,6 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	glClear(GL_DEPTH_BUFFER_BIT);
 //	glDisable(GL_DEPTH_TEST); /* should be set by default */
 
-	gpuMatrixBegin3D();
-
 	view3d_draw_background(C); /* clears/overwrites entire color buffer */
 
 	view3d_draw_setup_view(C, ar);
@@ -2317,8 +2315,6 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	view3d_draw_tool_ui(C);
 	view3d_draw_reference_images(C);
 	view3d_draw_manipulators(C, ar);
-
-	gpuMatrixEnd();
 
 	glDisable(GL_DEPTH_TEST);
 
