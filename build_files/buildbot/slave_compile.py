@@ -74,6 +74,9 @@ if 'cmake' in builder:
             cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
         cmake_extra_options.append('-DWITH_CODEC_QUICKTIME=OFF')
         cmake_extra_options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.6')
+        cmake_extra_options.append('CUDA_HOST_COMPILER=/usr/local/cuda-hack/clang')
+        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/nvcc')
+
 
 
     elif builder.startswith('win'):
