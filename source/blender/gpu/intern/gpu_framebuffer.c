@@ -143,7 +143,12 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 	else
 		attachment = GL_COLOR_ATTACHMENT0 + slot;
 
+#if defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT)
+	/* Mac workaround, remove after we switch to core profile */
+	glFramebufferTextureEXT(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0);
+#else
 	glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0);
+#endif
 
 	if (GPU_texture_depth(tex))
 		fb->depthtex = tex;
