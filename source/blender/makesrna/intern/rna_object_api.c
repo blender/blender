@@ -335,9 +335,11 @@ static void rna_Object_ray_cast(
 		if (isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], &distmin, &distmax)) {
 			float dist = distmin >= 0 ? distmin : distmax;
 			if (dist > distance) {
+				goto finally;
 			}
 		}
 		else {
+			goto finally;
 		}
 	}
 
@@ -372,6 +374,7 @@ static void rna_Object_ray_cast(
 	}
 
 	if (*r_success == false) {
+finally:
 		zero_v3(r_location);
 		zero_v3(r_normal);
 		*r_index = -1;
