@@ -226,10 +226,6 @@ void gpu_extensions_init(void)
 		GG.driver = GPU_DRIVER_ANY;
 	}
 
-	/* make sure double side isn't used by default and only getting enabled in places where it's
-	 * really needed to prevent different unexpected behaviors like with intel gme965 card (sergey) */
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
-
 #ifdef _WIN32
 	GG.os = GPU_OS_WIN;
 #elif defined(__APPLE__)
@@ -362,12 +358,14 @@ int GPU_color_depth(void)
 
 bool GPU_mem_stats_supported(void)
 {
-	return (GLEW_NVX_gpu_memory_info || (GLEW_ATI_meminfo)) && (G.debug & G_DEBUG_GPU_MEM);
+	return (GLEW_NVX_gpu_memory_info || GLEW_ATI_meminfo) && (G.debug & G_DEBUG_GPU_MEM);
 }
 
 
 void GPU_mem_stats_get(int *totalmem, int *freemem)
 {
+	/* TODO(merwin): use Apple's platform API to get this info */
+
 	if (GLEW_NVX_gpu_memory_info) {
 		/* returned value in Kb */
 		glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, totalmem);
