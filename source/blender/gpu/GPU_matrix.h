@@ -107,12 +107,12 @@ void gpuOrtho2D(float left, float right, float bottom, float top);
 
 
 /* functions to get matrix values */
-const float *gpuGetModelViewMatrix(float m[4][4]);
-const float *gpuGetProjectionMatrix(float m[4][4]);
-const float *gpuGetModelViewProjectionMatrix(float m[4][4]);
+const float (*gpuGetModelViewMatrix(float m[4][4]))[4];
+const float (*gpuGetProjectionMatrix(float m[4][4]))[4];
+const float (*gpuGetModelViewProjectionMatrix(float m[4][4]))[4];
 
-const float *gpuGetNormalMatrix(float m[3][3]);
-const float *gpuGetNormalMatrixInverse(float m[3][3]);
+const float (*gpuGetNormalMatrix(float m[3][3]))[3];
+const float (*gpuGetNormalMatrixInverse(float m[3][3]))[3];
 
 
 /* set uniform values for currently bound shader */
@@ -123,16 +123,62 @@ bool gpuMatricesDirty(void); /* since last bind */
 }
 #endif
 
-
 #ifndef SUPPRESS_GENERIC_MATRIX_API
+
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#define _GPU_MAT3_CONST_CAST(x) (_Generic((x), \
+	void *:       (const float (*)[3])(x), \
+	float *:      (const float (*)[3])(x), \
+	float [9]:    (const float (*)[3])(x), \
+	float (*)[4]: (const float (*)[3])(x), \
+	float [4][4]: (const float (*)[3])(x), \
+	const void *:       (const float (*)[3])(x), \
+	const float *:      (const float (*)[3])(x), \
+	const float [9]:    (const float (*)[3])(x), \
+	const float (*)[3]: (const float (*)[3])(x), \
+	const float [3][3]: (const float (*)[3])(x)) \
+)
+#define _GPU_MAT3_CAST(x) (_Generic((x), \
+	void *:       (float (*)[3])(x), \
+	float *:      (float (*)[3])(x), \
+	float [9]:    (float (*)[3])(x), \
+	float (*)[3]: (float (*)[3])(x), \
+	float [3][3]: (float (*)[3])(x)) \
+)
+#define _GPU_MAT4_CONST_CAST(x) (_Generic((x), \
+	void *:       (const float (*)[4])(x), \
+	float *:      (const float (*)[4])(x), \
+	float [16]:   (const float (*)[4])(x), \
+	float (*)[4]: (const float (*)[4])(x), \
+	float [4][4]: (const float (*)[4])(x), \
+	const void *:       (const float (*)[4])(x), \
+	const float *:      (const float (*)[4])(x), \
+	const float [16]:   (const float (*)[4])(x), \
+	const float (*)[4]: (const float (*)[4])(x), \
+	const float [4][4]: (const float (*)[4])(x)) \
+)
+#define _GPU_MAT4_CAST(x) (_Generic((x), \
+	void *:       (float (*)[4])(x), \
+	float *:      (float (*)[4])(x), \
+	float [16]:   (float (*)[4])(x), \
+	float (*)[4]: (float (*)[4])(x), \
+	float [4][4]: (float (*)[4])(x)) \
+)
+#else
+#  define _GPU_MAT3_CONST_CAST(x) (const float (*)[3])(x)
+#  define _GPU_MAT3_CAST(x)             (float (*)[3])(x)
+#  define _GPU_MAT4_CONST_CAST(x) (const float (*)[4])(x)
+#  define _GPU_MAT4_CAST(x)             (float (*)[4])(x)
+#endif  /* C11 */
+
 /* make matrix inputs generic, to avoid warnings */
-#  define gpuMultMatrix(x)  gpuMultMatrix((const float (*)[4])(x))
-#  define gpuLoadMatrix(x)  gpuLoadMatrix((const float (*)[4])(x))
-#  define gpuLoadProjectionMatrix(x)  gpuLoadProjectionMatrix((const float (*)[4])(x))
-#  define gpuGetModelViewMatrix(x)  gpuGetModelViewMatrix((float (*)[4])(x))
-#  define gpuGetProjectionMatrix(x)  gpuGetProjectionMatrix((float (*)[4])(x))
-#  define gpuGetModelViewProjectionMatrix(x)  gpuGetModelViewProjectionMatrix((float (*)[4])(x))
-#  define gpuGetNormalMatrix(x)  gpuGetNormalMatrix((float (*)[3])(x))
-#  define gpuGetNormalMatrixInverse(x)  gpuGetNormalMatrixInverse((float (*)[3])(x))
+#  define gpuMultMatrix(x)  gpuMultMatrix(_GPU_MAT4_CONST_CAST(x))
+#  define gpuLoadMatrix(x)  gpuLoadMatrix(_GPU_MAT4_CONST_CAST(x))
+#  define gpuLoadProjectionMatrix(x)  gpuLoadProjectionMatrix(_GPU_MAT4_CONST_CAST(x))
+#  define gpuGetModelViewMatrix(x)  gpuGetModelViewMatrix(_GPU_MAT4_CAST(x))
+#  define gpuGetProjectionMatrix(x)  gpuGetProjectionMatrix(_GPU_MAT4_CAST(x))
+#  define gpuGetModelViewProjectionMatrix(x)  gpuGetModelViewProjectionMatrix(_GPU_MAT4_CAST(x))
+#  define gpuGetNormalMatrix(x)  gpuGetNormalMatrix(_GPU_MAT3_CAST(x))
+#  define gpuGetNormalMatrixInverse(x)  gpuGetNormalMatrixInverse(_GPU_MAT3_CAST(x))
 #endif /* SUPPRESS_GENERIC_MATRIX_API */
 #endif /* GPU_MATRIX_H */

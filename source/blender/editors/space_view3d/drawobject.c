@@ -4233,7 +4233,7 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 			Batch_set_builtin_program(fancy_edges, GPU_SHADER_EDGES_FRONT_BACK_ORTHO);
 			/* set eye vector, transformed to object coords */
 			float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
-			mul_m3_v3((float (*)[3])gpuGetNormalMatrixInverse(NULL), eye);
+			mul_m3_v3(gpuGetNormalMatrixInverse(NULL), eye);
 			Batch_Uniform3fv(fancy_edges, "eye", eye);
 		}
 		else {
@@ -4757,7 +4757,7 @@ static void draw_mesh_fancy_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3
 			Batch_set_builtin_program(fancy_edges, GPU_SHADER_EDGES_FRONT_BACK_ORTHO);
 			/* set eye vector, transformed to object coords */
 			float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
-			mul_m3_v3((float (*)[3])gpuGetNormalMatrixInverse(NULL), eye);
+			mul_m3_v3(gpuGetNormalMatrixInverse(NULL), eye);
 			Batch_Uniform3fv(fancy_edges, "eye", eye);
 		}
 		else {

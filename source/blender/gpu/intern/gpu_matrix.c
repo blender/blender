@@ -648,7 +648,7 @@ bool gpuUnProject(const float win[3], const float model[4][4], const float proj[
 	return true;
 }
 
-const float *gpuGetModelViewMatrix(float m[4][4])
+const float (*gpuGetModelViewMatrix(float m[4][4]))[4]
 {
 #if SUPPORT_LEGACY_MATRIX
 	{
@@ -658,20 +658,20 @@ const float *gpuGetModelViewMatrix(float m[4][4])
 		}
 
 		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)m);
-		return (const float*)m;		
+		return m;
 	}
 #endif
 
 	if (m) {
 		copy_m4_m4(m, ModelView);
-		return (const float*)m;
+		return m;
 	}
 	else {
-		return (const float*)ModelView;
+		return ModelView;
 	}
 }
 
-const float *gpuGetProjectionMatrix(float m[4][4])
+const float (*gpuGetProjectionMatrix(float m[4][4]))[4]
 {
 #if SUPPORT_LEGACY_MATRIX
 	{
@@ -681,20 +681,20 @@ const float *gpuGetProjectionMatrix(float m[4][4])
 		}
 
 		glGetFloatv(GL_PROJECTION_MATRIX, (float*)m);
-		return (const float*)m;
+		return m;
 	}
 #endif
 
 	if (m) {
 		copy_m4_m4(m, Projection);
-		return (const float*)m;
+		return m;
 	}
 	else {
-		return (const float*)Projection;
+		return Projection;
 	}
 }
 
-const float *gpuGetModelViewProjectionMatrix(float m[4][4])
+const float (*gpuGetModelViewProjectionMatrix(float m[4][4]))[4]
 {
 	if (m == NULL) {
 		static Mat4 temp;
@@ -707,15 +707,15 @@ const float *gpuGetModelViewProjectionMatrix(float m[4][4])
 		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)m);
 		glGetFloatv(GL_PROJECTION_MATRIX, (float*)proj);
 		mul_m4_m4_pre(m, proj);
-		return (const float*)m;
+		return m;
 	}
 #endif
 
 	mul_m4_m4m4(m, Projection, ModelView);
-	return (const float*)m;
+	return m;
 }
 
-const float *gpuGetNormalMatrix(float m[3][3])
+const float (*gpuGetNormalMatrix(float m[3][3]))[3]
 {
 	if (m == NULL) {
 		static Mat3 temp3;
@@ -727,10 +727,10 @@ const float *gpuGetNormalMatrix(float m[3][3])
 	invert_m3(m);
 	transpose_m3(m);
 
-	return (const float*)m;
+	return m;
 }
 
-const float *gpuGetNormalMatrixInverse(float m[3][3])
+const float (*gpuGetNormalMatrixInverse(float m[3][3]))[3]
 {
 	if (m == NULL) {
 		static Mat3 temp3;
@@ -740,7 +740,7 @@ const float *gpuGetNormalMatrixInverse(float m[3][3])
 	gpuGetNormalMatrix(m);
 	invert_m3(m);
 
-	return (const float*)m;
+	return m;
 }
 
 void gpuBindMatrices(const ShaderInterface* shaderface)
@@ -763,7 +763,7 @@ void gpuBindMatrices(const ShaderInterface* shaderface)
 		puts("setting MV matrix");
 		#endif
 
-		glUniformMatrix4fv(MV->location, 1, GL_FALSE, gpuGetModelViewMatrix(NULL));
+		glUniformMatrix4fv(MV->location, 1, GL_FALSE, (const float *)gpuGetModelViewMatrix(NULL));
 	}
 
 	if (P) {
@@ -771,7 +771,7 @@ void gpuBindMatrices(const ShaderInterface* shaderface)
 		puts("setting P matrix");
 		#endif
 
-		glUniformMatrix4fv(P->location, 1, GL_FALSE, gpuGetProjectionMatrix(NULL));
+		glUniformMatrix4fv(P->location, 1, GL_FALSE, (const float *)gpuGetProjectionMatrix(NULL));
 	}
 
 	if (MVP) {
@@ -779,7 +779,7 @@ void gpuBindMatrices(const ShaderInterface* shaderface)
 		puts("setting MVP matrix");
 		#endif
 
-		glUniformMatrix4fv(MVP->location, 1, GL_FALSE, gpuGetModelViewProjectionMatrix(NULL));
+		glUniformMatrix4fv(MVP->location, 1, GL_FALSE, (const float *)gpuGetModelViewProjectionMatrix(NULL));
 	}
 
 	if (N) {
@@ -787,7 +787,7 @@ void gpuBindMatrices(const ShaderInterface* shaderface)
 		puts("setting normal matrix");
 		#endif
 
-		glUniformMatrix3fv(N->location, 1, GL_FALSE, gpuGetNormalMatrix(NULL));
+		glUniformMatrix3fv(N->location, 1, GL_FALSE, (const float *)gpuGetNormalMatrix(NULL));
 	}
 
 	if (MV_inv) {
