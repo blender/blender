@@ -1464,15 +1464,17 @@ Batch *DRW_cache_single_vert_get(void)
 }
 
 /* Meshes */
-void DRW_cache_mesh_wire_overlay_get(Object *ob, Batch **tris, Batch **ledges, Batch **lverts)
+void DRW_cache_mesh_wire_overlay_get(
+        Object *ob,
+        Batch **r_tris, Batch **r_ledges, Batch **r_lverts)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
 
-	*tris = BKE_mesh_batch_cache_get_overlay_triangles(me);
-	*ledges = BKE_mesh_batch_cache_get_overlay_loose_edges(me);
-	*lverts = BKE_mesh_batch_cache_get_overlay_loose_verts(me);
+	*r_tris = BKE_mesh_batch_cache_get_overlay_triangles(me);
+	*r_ledges = BKE_mesh_batch_cache_get_overlay_loose_edges(me);
+	*r_lverts = BKE_mesh_batch_cache_get_overlay_loose_verts(me);
 }
 
 Batch *DRW_cache_face_centers_get(Object *ob)

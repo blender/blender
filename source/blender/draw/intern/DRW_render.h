@@ -244,7 +244,7 @@ DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass
 
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Batch *geom, float (*obmat)[4]);
-void DRW_shgroup_dynamic_call_add_array(DRWShadingGroup *shgroup, const void **attr, unsigned int attr_len);
+void DRW_shgroup_dynamic_call_add_array(DRWShadingGroup *shgroup, const void *attr[], unsigned int attr_len);
 #define DRW_shgroup_dynamic_call_add(shgroup, ...) do { \
 	const void *array[] = {__VA_ARGS__}; \
 	DRW_shgroup_dynamic_call_add_array(shgroup, array, (sizeof(array) / sizeof(*array))); \

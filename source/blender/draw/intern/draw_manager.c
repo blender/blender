@@ -580,7 +580,7 @@ void DRW_shgroup_dynamic_call_add_array(DRWShadingGroup *shgroup, const void *at
 
 	BLI_assert(attr_len == interface->attribs_count);
 
-	memcpy((void *) call->data, attr, data_size);
+	memcpy((void *)call->data, attr, data_size);
 
 	interface->instance_count += 1;
 
