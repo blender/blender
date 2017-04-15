@@ -839,6 +839,11 @@ static void view3d_main_region_listener(bScreen *sc, ScrArea *sa, ARegion *ar, w
 
 	/* context changes */
 	switch (wmn->category) {
+		case NC_WM:
+			if (ELEM(wmn->data, ND_UNDO)) {
+				WM_manipulatormap_tag_refresh(mmap);
+			}
+			break;
 		case NC_ANIMATION:
 			switch (wmn->data) {
 				case ND_KEYFRAME_PROP:
