@@ -632,8 +632,8 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
 	BLI_assert(shader && shader->program);
-
-	return glGetAttribLocation(shader->program, name);
+	const ShaderInput *attrib = ShaderInterface_attrib(shader->interface, name);
+	return attrib ? attrib->location : -1;
 }
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)

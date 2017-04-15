@@ -181,3 +181,21 @@ const ShaderInput* ShaderInterface_builtin_uniform(const ShaderInterface* shader
 	// TODO: look up by enum, not name (fix setup_builtin_uniform first)
 	return ShaderInterface_uniform(shaderface, BuiltinUniform_name(builtin));
 	}
+
+const ShaderInput* ShaderInterface_attrib(const ShaderInterface* shaderface, const char* name)
+	{
+	// attribs are stored after uniforms
+	const uint32_t input_ct = shaderface->uniform_ct + shaderface->attrib_ct;
+	for (uint32_t i = shaderface->uniform_ct; i < input_ct; ++i)
+		{
+		const ShaderInput* attrib = shaderface->inputs + i;
+
+#if SUPPORT_LEGACY_GLSL
+		if (attrib->name == NULL) continue;
+#endif
+
+		if (strcmp(attrib->name, name) == 0)
+			return attrib;
+		}
+	return NULL; // not found
+	}

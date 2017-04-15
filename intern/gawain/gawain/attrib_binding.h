@@ -12,6 +12,7 @@
 #pragma once
 
 #include "vertex_format.h"
+#include "shader_interface.h"
 
 typedef struct {
 	uint64_t loc_bits; // store 4 bits for each of the 16 attribs
@@ -20,5 +21,5 @@ typedef struct {
 
 void AttribBinding_clear(AttribBinding*);
 
-void get_attrib_locations(const VertexFormat*, AttribBinding*, GLuint program);
+void get_attrib_locations(const VertexFormat*, AttribBinding*, const ShaderInterface*);
 unsigned read_attrib_location(const AttribBinding*, unsigned a_idx);

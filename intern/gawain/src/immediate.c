@@ -133,7 +133,7 @@ void immBindProgram(GLuint program, const ShaderInterface* shaderface)
 		VertexFormat_pack(&imm.vertex_format);
 
 	glUseProgram(program);
-	get_attrib_locations(&imm.vertex_format, &imm.attrib_binding, program);
+	get_attrib_locations(&imm.vertex_format, &imm.attrib_binding, shaderface);
 	gpuBindMatrices(shaderface);
 	}
 

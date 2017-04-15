@@ -46,24 +46,20 @@ static void write_attrib_location(AttribBinding* binding, unsigned a_idx, unsign
 	binding->enabled_bits |= 1 << a_idx;
 	}
 
-void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, GLuint program)
+void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, const ShaderInterface* shaderface)
 	{
-#if TRUST_NO_ONE
-	assert(glIsProgram(program));
-#endif
-
 	AttribBinding_clear(binding);
 
 	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
 		{
 		const Attrib* a = format->attribs + a_idx;
-		GLint loc = glGetAttribLocation(program, a->name);
+		const ShaderInput* input = ShaderInterface_attrib(shaderface, a->name);
 
 #if TRUST_NO_ONE
-		assert(loc != -1);
+		assert(input != NULL);
 		// TODO: make this a recoverable runtime error? indicates mismatch between vertex format and program
 #endif
 
-		write_attrib_location(binding, a_idx, loc);
+		write_attrib_location(binding, a_idx, input->location);
 		}
 	}

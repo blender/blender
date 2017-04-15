@@ -48,3 +48,4 @@ void ShaderInterface_discard(ShaderInterface*);
 
 const ShaderInput* ShaderInterface_uniform(const ShaderInterface*, const char* name);
 const ShaderInput* ShaderInterface_builtin_uniform(const ShaderInterface*, BuiltinUniform);
+const ShaderInput* ShaderInterface_attrib(const ShaderInterface*, const char* name);
