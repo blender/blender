@@ -29,8 +29,8 @@
  *  \ingroup gpu
  */
 
-#ifndef _GPU_MATRIX_H_
-#define _GPU_MATRIX_H_
+#ifndef __GPU_MATRIX_H__
+#define __GPU_MATRIX_H__
 
 #include "BLI_sys_types.h"
 #include "GPU_glew.h"
@@ -181,4 +181,5 @@ bool gpuMatricesDirty(void); /* since last bind */
 #  define gpuGetNormalMatrix(x)  gpuGetNormalMatrix(_GPU_MAT3_CAST(x))
 #  define gpuGetNormalMatrixInverse(x)  gpuGetNormalMatrixInverse(_GPU_MAT3_CAST(x))
 #endif /* SUPPRESS_GENERIC_MATRIX_API */
-#endif /* GPU_MATRIX_H */
+
+#endif /* __GPU_MATRIX_H__ */

@@ -29,6 +29,9 @@
  *  \ingroup gpu
  */
 
+#ifndef __GPU_UNIFORMBUFFER_H__
+#define __GPU_UNIFORMBUFFER_H__
+
 typedef struct GPUUniformBuffer GPUUniformBuffer;
 
 GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_out[256]);
@@ -42,3 +45,5 @@ void GPU_uniformbuffer_unbind(GPUUniformBuffer *ubo);
 #endif
 
 int GPU_uniformbuffer_bindpoint(GPUUniformBuffer *ubo);
+
+#endif  /* __GPU_UNIFORMBUFFER_H__ */
