@@ -925,7 +925,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 		}
 
 		float original_proj[4][4];
-		gpuGetProjectionMatrix3D(original_proj);
+		gpuGetProjectionMatrix(original_proj);
 		wmOrtho2_region_pixelspace(ar);
 
 		gpuPushMatrix();
@@ -964,7 +964,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 		}
 		
 		gpuPopMatrix();
-		gpuLoadProjectionMatrix3D(original_proj); /* TODO: make this more 2D friendly */
+		gpuLoadProjectionMatrix(original_proj);
 
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			ED_view3d_clipping_enable();
@@ -1244,7 +1244,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 
 	/* we first draw only the screen aligned & fixed scale stuff */
 	gpuPushMatrix();
-	gpuLoadMatrix3D(rv3d->viewmat);
+	gpuLoadMatrix(rv3d->viewmat);
 
 	/* lets calculate the scale: */
 	const float lampsize_px = U.obcenter_dia;
@@ -1565,7 +1565,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 
 	/* and back to viewspace */
 	gpuPushMatrix();
-	gpuLoadMatrix3D(rv3d->viewmat);
+	gpuLoadMatrix(rv3d->viewmat);
 	copy_v3_v3(vec, ob->obmat[3]);
 
 	setlinestyle(0);
@@ -1674,8 +1674,8 @@ static void draw_viewport_object_reconstruction(
 		 * from current ogl matrix */
 		invert_m4_m4(imat, base->object->obmat);
 
-		gpuMultMatrix3D(imat);
-		gpuMultMatrix3D(mat);
+		gpuMultMatrix(imat);
+		gpuMultMatrix(mat);
 	}
 	else {
 		float obmat[4][4];
@@ -1684,7 +1684,7 @@ static void draw_viewport_object_reconstruction(
 		BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, obmat);
 
 		invert_m4_m4(imat, obmat);
-		gpuMultMatrix3D(imat);
+		gpuMultMatrix(imat);
 	}
 
 	for (track = tracksbase->first; track; track = track->next) {
@@ -1950,9 +1950,9 @@ static void drawcamera_stereo3d(
 		ob = BKE_camera_multiview_render(scene, ob, names[i]);
 		cam_lr[i] = ob->data;
 
-		gpuLoadMatrix3D(rv3d->viewmat);
+		gpuLoadMatrix(rv3d->viewmat);
 		BKE_camera_multiview_model_matrix(&scene->r, ob, names[i], obmat);
-		gpuMultMatrix3D(obmat);
+		gpuMultMatrix(obmat);
 
 		copy_m3_m3(vec_lr[i], vec);
 		copy_v3_v3(vec_lr[i][3], vec[3]);
@@ -1987,7 +1987,7 @@ static void drawcamera_stereo3d(
 	}
 
 	/* the remaining drawing takes place in the view space */
-	gpuLoadMatrix3D(rv3d->viewmat);
+	gpuLoadMatrix(rv3d->viewmat);
 
 	if (is_stereo3d_cameras) {
 		/* draw connecting lines */
@@ -2165,9 +2165,9 @@ void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
 
 			gpuPushMatrix();
-			gpuLoadMatrix3D(rv3d->viewmat);
+			gpuLoadMatrix(rv3d->viewmat);
 			BKE_camera_multiview_model_matrix(&scene->r, ob, is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME, obmat);
-			gpuMultMatrix3D(obmat);
+			gpuMultMatrix(obmat);
 
 			drawcamera_frame(vec, false, pos);
 			gpuPopMatrix();
@@ -2224,8 +2224,8 @@ void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			copy_m4_m4(nobmat, ob->obmat);
 			normalize_m4(nobmat);
 
-			gpuLoadMatrix3D(rv3d->viewmat);
-			gpuMultMatrix3D(nobmat);
+			gpuLoadMatrix(rv3d->viewmat);
+			gpuMultMatrix(nobmat);
 
 			if (cam->flag & CAM_SHOWLIMITS) {
 				const unsigned char col[3] = {128, 128, 60}, col_hi[3] = {255, 255, 120};
@@ -5955,7 +5955,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	if ((ob->flag & OB_FROMGROUP) != 0) {
 		float mat[4][4];
 		mul_m4_m4m4(mat, ob->obmat, psys->imat);
-		gpuMultMatrix3D(mat);
+		gpuMultMatrix(mat);
 	}
 
 	/* needed for text display */
@@ -6545,7 +6545,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 
 	if ((ob->flag & OB_FROMGROUP) != 0) {
-		gpuLoadMatrix3D(rv3d->viewmat);
+		gpuLoadMatrix(rv3d->viewmat);
 	}
 }
 
@@ -8862,12 +8862,12 @@ afterdraw:
 				if ((sb = ob->soft)) {
 					if (sb->solverflags & SBSO_ESTIMATEIPO) {
 
-						gpuLoadMatrix3D(rv3d->viewmat);
+						gpuLoadMatrix(rv3d->viewmat);
 						copy_m3_m3(msc, sb->lscale);
 						copy_m3_m3(mrt, sb->lrot);
 						mul_m3_m3m3(mtr, mrt, msc);
 						ob_draw_RE_motion(sb->lcom, mtr, tipw, tiph, drawsize);
-						gpuMultMatrix3D(ob->obmat);
+						gpuMultMatrix(ob->obmat);
 					}
 				}
 			}
@@ -8892,7 +8892,7 @@ afterdraw:
 		}
 		//glDepthMask(GL_FALSE);
 
-		gpuLoadMatrix3D(rv3d->viewmat);
+		gpuLoadMatrix(rv3d->viewmat);
 		
 		view3d_cached_text_draw_begin();
 
@@ -8909,7 +8909,7 @@ afterdraw:
 		invert_m4_m4(ob->imat, ob->obmat);
 		view3d_cached_text_draw_end(v3d, ar, 0, NULL);
 
-		gpuMultMatrix3D(ob->obmat);
+		gpuMultMatrix(ob->obmat);
 		
 		//glDepthMask(GL_TRUE);
 		if (col) cpack(col);
@@ -8923,10 +8923,10 @@ afterdraw:
 		if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
 			PTCacheEdit *edit = PE_create_current(scene, ob);
 			if (edit) {
-				gpuLoadMatrix3D(rv3d->viewmat);
+				gpuLoadMatrix(rv3d->viewmat);
 				draw_update_ptcache_edit(scene, sl, ob, edit);
 				draw_ptcache_edit(scene, v3d, edit);
-				gpuMultMatrix3D(ob->obmat);
+				gpuMultMatrix(ob->obmat);
 			}
 		}
 	}
@@ -8937,8 +8937,8 @@ afterdraw:
 		const bool show_smoke = (CFRA >= sds->point_cache[0]->startframe);
 		float viewnormal[3];
 
-		gpuLoadMatrix3D(rv3d->viewmat);
-		gpuMultMatrix3D(ob->obmat);
+		gpuLoadMatrix(rv3d->viewmat);
+		gpuMultMatrix(ob->obmat);
 
 		if (!render_override) {
 			BoundBox bb;
@@ -9105,7 +9105,7 @@ afterdraw:
 	/* return warning, clear temp flag */
 	v3d->flag2 &= ~V3D_SHOW_SOLID_MATCAP;
 	
-	gpuLoadMatrix3D(rv3d->viewmat);
+	gpuLoadMatrix(rv3d->viewmat);
 
 	if (zbufoff) {
 		glDisable(GL_DEPTH_TEST);
@@ -9560,7 +9560,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 {
 	ToolSettings *ts = scene->toolsettings;
 
-	gpuMultMatrix3D(ob->obmat);
+	gpuMultMatrix(ob->obmat);
 
 	glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -9620,7 +9620,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			break;
 	}
 
-	gpuLoadMatrix3D(rv3d->viewmat);
+	gpuLoadMatrix(rv3d->viewmat);
 }
 
 

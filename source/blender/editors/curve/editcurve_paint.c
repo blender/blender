@@ -476,7 +476,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 
 		/* scale to edit-mode space */
 		gpuPushMatrix();
-		gpuMultMatrix3D(obedit->obmat);
+		gpuMultMatrix(obedit->obmat);
 
 		BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
 		for (selem = BLI_mempool_iterstep(&iter); selem; selem = BLI_mempool_iterstep(&iter)) {

@@ -357,7 +357,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		gpuTranslate2f(x, y);
 
 		gpuScale2f(zoomx, zoomy);
-		gpuMultMatrix3D(sc->stabmat); /* XXX can we make stabmat a 2D matrix? --merwin */
+		gpuMultMatrix(sc->stabmat);
 
 		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
@@ -1079,7 +1079,7 @@ static void draw_plane_marker_image(Scene *scene,
 			                                          plane_marker->corners,
 			                                          perspective_matrix);
 
-			homogeneous_2d_to_gl_matrix(perspective_matrix, gl_matrix); /* XXX update for new 2D matrix API --merwin */
+			homogeneous_2d_to_gl_matrix(perspective_matrix, gl_matrix);
 
 			if (plane_track->image_opacity != 1.0f || ibuf->planes == 32) {
 				transparent = true;
@@ -1098,7 +1098,7 @@ static void draw_plane_marker_image(Scene *scene,
 			             GL_UNSIGNED_BYTE, display_buffer);
 
 			gpuPushMatrix();
-			gpuMultMatrix3D(gl_matrix); /* XXX update for new 2D matrix API --merwin */
+			gpuMultMatrix(gl_matrix);
 
 			VertexFormat *imm_format = immVertexFormat();
 			unsigned int pos = VertexFormat_add_attrib(imm_format, "pos", COMP_F32, 2, KEEP_FLOAT);
@@ -1296,7 +1296,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 
 	gpuPushMatrix();
 	gpuScale2f(zoomx, zoomy);
-	gpuMultMatrix3D(sc->stabmat); /* XXX would like 2D stabmat --merwin */
+	gpuMultMatrix(sc->stabmat);
 	gpuScale2f(width, height);
 
 	act_track = BKE_tracking_track_get_active(tracking);
@@ -1544,7 +1544,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	gpuPushMatrix();
 	gpuTranslate2f(x, y);
 	gpuScale2f(zoomx, zoomy);
-	gpuMultMatrix3D(sc->stabmat); /* XXX make 2D */
+	gpuMultMatrix(sc->stabmat);
 	gpuScale2f(width, height);
 
 	unsigned int position = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
@@ -1821,7 +1821,7 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 		 */
 		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0 || is_track_source) {
 			gpuPushMatrix();
-			gpuMultMatrix3D(sc->unistabmat); /* XXX make 2D */
+			gpuMultMatrix(sc->unistabmat);
 
 			if (is_track_source) {
 				MovieTrackingTrack *track = BKE_tracking_track_get_active(&sc->clip->tracking);

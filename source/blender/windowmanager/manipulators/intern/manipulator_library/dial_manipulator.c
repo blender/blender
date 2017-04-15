@@ -239,7 +239,7 @@ static void dial_draw_intern(
 	mul_mat3_m4_fl(mat, dial->manipulator.scale);
 
 	gpuPushMatrix();
-	gpuMultMatrix3D(mat);
+	gpuMultMatrix(mat);
 	gpuTranslate3fv(dial->manipulator.offset);
 
 	/* draw rotation indicator arc first */

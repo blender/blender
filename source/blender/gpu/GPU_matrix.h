@@ -49,25 +49,8 @@ extern "C" {
 	#define SUPPORT_LEGACY_MATRIX 1
 #endif
 
-/* implement 2D parts with 4x4 matrices, even though 3x3 feels better
- * this is a compromise to get core profile up & running sooner
- * external API stays (almost) the same
- */
-#define MATRIX_2D_4x4 1
 
-
-void gpuMatrixInit(void); /* called by system -- make private? */
-
-
-/* MatrixMode is conceptually different from GL_MATRIX_MODE */
-
-typedef enum {
-	MATRIX_MODE_INACTIVE,
-	MATRIX_MODE_2D,
-	MATRIX_MODE_3D
-} MatrixMode;
-
-MatrixMode gpuMatrixMode(void);
+void gpuMatrixReset(void); /* to Identity transform & empty stack */
 
 /* ModelView Matrix (2D or 3D) */
 
@@ -81,9 +64,8 @@ void gpuScaleUniform(float factor);
 
 /* 3D ModelView Matrix */
 
-void gpuLoadMatrix3D(const float m[4][4]);
-void gpuMultMatrix3D(const float m[4][4]);
-//const float *gpuGetMatrix3D(float m[4][4]);
+void gpuLoadMatrix(const float m[4][4]);
+void gpuMultMatrix(const float m[4][4]);
 
 void gpuTranslate3f(float x, float y, float z);
 void gpuTranslate3fv(const float vec[3]);
@@ -99,7 +81,7 @@ void gpuLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY,
 
 /* 2D ModelView Matrix */
 
-void gpuMultMatrix2D(const float m[4][4]);
+void gpuMultMatrix(const float m[4][4]);
 
 void gpuTranslate2f(float x, float y);
 void gpuTranslate2fv(const float vec[2]);
@@ -110,7 +92,7 @@ void gpuRotate2D(float deg);
 
 /* 3D Projection Matrix */
 
-void gpuLoadProjectionMatrix3D(const float m[4][4]);
+void gpuLoadProjectionMatrix(const float m[4][4]);
 
 void gpuOrtho(float left, float right, float bottom, float top, float near, float far);
 void gpuFrustum(float left, float right, float bottom, float top, float near, float far);
@@ -127,9 +109,9 @@ void gpuOrtho2D(float left, float right, float bottom, float top);
 
 
 /* functions to get matrix values */
-const float *gpuGetModelViewMatrix3D(float m[4][4]);
-const float *gpuGetProjectionMatrix3D(float m[4][4]);
-const float *gpuGetModelViewProjectionMatrix3D(float m[4][4]);
+const float *gpuGetModelViewMatrix(float m[4][4]);
+const float *gpuGetProjectionMatrix(float m[4][4]);
+const float *gpuGetModelViewProjectionMatrix(float m[4][4]);
 
 const float *gpuGetNormalMatrix(float m[3][3]);
 const float *gpuGetNormalMatrixInverse(float m[3][3]);
@@ -146,43 +128,13 @@ bool gpuMatricesDirty(void); /* since last bind */
 
 #ifndef SUPPRESS_GENERIC_MATRIX_API
 /* make matrix inputs generic, to avoid warnings */
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
-#  define gpuMultMatrix3D(x)  \
-	gpuMultMatrix3D(_Generic((x), \
-	        float *:      (const float (*)[4])(x), \
-	        float [16]:   (const float (*)[4])(x), \
-	        float (*)[4]: (const float (*)[4])(x), \
-	        float [4][4]: (const float (*)[4])(x), \
-	        const float *:      (const float (*)[4])(x), \
-	        const float [16]:   (const float (*)[4])(x), \
-	        const float (*)[4]: (const float (*)[4])(x), \
-	        const float [4][4]: (const float (*)[4])(x)) \
-)
-#  define gpuLoadMatrix3D(x)  \
-	gpuLoadMatrix3D(_Generic((x), \
-	        float *:      (const float (*)[4])(x), \
-	        float [16]:   (const float (*)[4])(x), \
-	        float (*)[4]: (const float (*)[4])(x), \
-	        float [4][4]: (const float (*)[4])(x), \
-	        const float *:      (const float (*)[4])(x), \
-	        const float [16]:   (const float (*)[4])(x), \
-	        const float (*)[4]: (const float (*)[4])(x), \
-	        const float [4][4]: (const float (*)[4])(x)) \
-)
-/* TODO: finish this in a simpler way --^ */
-#else
-#  define gpuMultMatrix3D(x)  gpuMultMatrix3D((const float (*)[4])(x))
-#  define gpuLoadMatrix3D(x)  gpuLoadMatrix3D((const float (*)[4])(x))
-
-#  define gpuLoadProjectionMatrix3D(x)  gpuLoadProjectionMatrix3D((const float (*)[4])(x))
-
-#  define gpuMultMatrix2D(x)  gpuMultMatrix2D((const float (*)[4])(x))
-
-#  define gpuGetModelViewMatrix3D(x)  gpuGetModelViewMatrix3D((float (*)[4])(x))
-#  define gpuGetProjectionMatrix3D(x)  gpuGetProjectionMatrix3D((float (*)[4])(x))
-#  define gpuGetModelViewProjectionMatrix3D(x)  gpuGetModelViewProjectionMatrix3D((float (*)[4])(x))
+#  define gpuMultMatrix(x)  gpuMultMatrix((const float (*)[4])(x))
+#  define gpuLoadMatrix(x)  gpuLoadMatrix((const float (*)[4])(x))
+#  define gpuLoadProjectionMatrix(x)  gpuLoadProjectionMatrix((const float (*)[4])(x))
+#  define gpuGetModelViewMatrix(x)  gpuGetModelViewMatrix((float (*)[4])(x))
+#  define gpuGetProjectionMatrix(x)  gpuGetProjectionMatrix((float (*)[4])(x))
+#  define gpuGetModelViewProjectionMatrix(x)  gpuGetModelViewProjectionMatrix((float (*)[4])(x))
 #  define gpuGetNormalMatrix(x)  gpuGetNormalMatrix((float (*)[3])(x))
 #  define gpuGetNormalMatrixInverse(x)  gpuGetNormalMatrixInverse((float (*)[3])(x))
-#endif /* C11 */
 #endif /* SUPPRESS_GENERIC_MATRIX_API */
 #endif /* GPU_MATRIX_H */

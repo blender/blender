@@ -6858,7 +6858,7 @@ static void drawEdgeSlide(TransInfo *t)
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			gpuPushMatrix();
-			gpuMultMatrix3D(t->obedit->obmat);
+			gpuMultMatrix(t->obedit->obmat);
 
 			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
@@ -7470,7 +7470,7 @@ static void drawVertSlide(TransInfo *t)
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			gpuPushMatrix();
-			gpuMultMatrix3D(t->obedit->obmat);
+			gpuMultMatrix(t->obedit->obmat);
 
 			glLineWidth(line_size);
 

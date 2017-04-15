@@ -1357,7 +1357,7 @@ static void draw_b_bone_boxes(const short dt, bPoseChannel *pchan, EditBone *ebo
 		
 		for (a = 0; a < segments; a++) {
 			gpuPushMatrix();
-			gpuMultMatrix3D(bbone[a].mat);
+			gpuMultMatrix(bbone[a].mat);
 			if (dt == OB_SOLID) drawsolidcube_size(xwidth, dlen, zwidth);
 			else drawcube_size(xwidth, dlen, zwidth);
 			gpuPopMatrix();
@@ -1464,7 +1464,7 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 
 		for (a = 0; a < segments; a++, bbone++) {
 			gpuPushMatrix();
-			gpuMultMatrix3D(bbone->mat);
+			gpuMultMatrix(bbone->mat);
 
 			immBegin(PRIM_LINES, 2);
 			immVertex3f(pos, 0.0f, 0.0f, 0.0f);
@@ -1817,11 +1817,11 @@ static void draw_pose_dofs(Object *ob)
 							if (pchan->parent) {
 								copy_m4_m4(mat, pchan->parent->pose_mat);
 								mat[3][0] = mat[3][1] = mat[3][2] = 0.0f;
-								gpuMultMatrix3D(mat);
+								gpuMultMatrix(mat);
 							}
 							
 							copy_m4_m3(mat, pchan->bone->bone_mat);
-							gpuMultMatrix3D(mat);
+							gpuMultMatrix(mat);
 							
 							scale = bone->length * pchan->size[1];
 							gpuScaleUniform(scale);
@@ -2010,10 +2010,10 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 					gpuPushMatrix();
 					
 					if (use_custom && pchan->custom_tx) {
-						gpuMultMatrix3D(pchan->custom_tx->pose_mat);
+						gpuMultMatrix(pchan->custom_tx->pose_mat);
 					}
 					else {
-						gpuMultMatrix3D(pchan->pose_mat);
+						gpuMultMatrix(pchan->pose_mat);
 					}
 					
 					/* catch exception for bone with hidden parent */
@@ -2114,10 +2114,10 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 							gpuPushMatrix();
 							
 							if (pchan->custom_tx) {
-								gpuMultMatrix3D(pchan->custom_tx->pose_mat);
+								gpuMultMatrix(pchan->custom_tx->pose_mat);
 							}
 							else {
-								gpuMultMatrix3D(pchan->pose_mat);
+								gpuMultMatrix(pchan->pose_mat);
 							}
 							
 							/* prepare colors */
@@ -2248,7 +2248,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 					
 					gpuPushMatrix();
 					if (arm->drawtype != ARM_ENVELOPE)
-						gpuMultMatrix3D(pchan->pose_mat);
+						gpuMultMatrix(pchan->pose_mat);
 					
 					/* catch exception for bone with hidden parent */
 					flag = bone->flag;
@@ -2349,7 +2349,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 							gpuPushMatrix();
 							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
-							gpuMultMatrix3D(bmat);
+							gpuMultMatrix(bmat);
 							
 							float viewmat_pchan[4][4];
 							mul_m4_m4m4(viewmat_pchan, rv3d->viewmatob, bmat);
@@ -2423,7 +2423,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 				if ((eBone->flag & BONE_HIDDEN_A) == 0) {
 					gpuPushMatrix();
 					get_matrix_editbone(eBone, bmat);
-					gpuMultMatrix3D(bmat);
+					gpuMultMatrix(bmat);
 					
 					/* catch exception for bone with hidden parent */
 					flag = eBone->flag;
@@ -2485,7 +2485,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 				else {
 					gpuPushMatrix();
 					get_matrix_editbone(eBone, bmat);
-					gpuMultMatrix3D(bmat);
+					gpuMultMatrix(bmat);
 					
 					if (arm->drawtype == ARM_LINE) 
 						draw_line_bone(arm->flag, flag, 0, index, NULL, eBone);
@@ -2562,7 +2562,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 							gpuPushMatrix();
 							get_matrix_editbone(eBone, bmat);
 							bone_matrix_translate_y(bmat, eBone->length);
-							gpuMultMatrix3D(bmat);
+							gpuMultMatrix(bmat);
 
 							float viewmat_ebone[4][4];
 							mul_m4_m4m4(viewmat_ebone, rv3d->viewmatob, bmat);

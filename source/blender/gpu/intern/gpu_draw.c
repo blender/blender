@@ -2174,7 +2174,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 
 		/* setup lamp transform */
 		gpuPushMatrix();
-		gpuLoadMatrix3D(viewmat);
+		gpuLoadMatrix(viewmat);
 
 		/* setup light */
 		GPULightData light = {0};

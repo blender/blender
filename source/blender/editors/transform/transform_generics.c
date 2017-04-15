@@ -1036,7 +1036,7 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 		
 		gpuPushMatrix();
 
-		// if (t->obedit) gpuLoadMatrix3D(t->obedit->obmat); // sets opengl viewing
+		// if (t->obedit) gpuLoadMatrix(t->obedit->obmat); // sets opengl viewing
 
 		copy_v3_v3(v3, dir);
 		mul_v3_fl(v3, v3d->far);

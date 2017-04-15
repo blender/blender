@@ -1042,7 +1042,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	glPolygonOffset(1.0f, 1.0f);
 
 	gpuPushMatrix();
-	gpuMultMatrix3D(kcd->ob->obmat);
+	gpuMultMatrix(kcd->ob->obmat);
 
 	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 

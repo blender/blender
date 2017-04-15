@@ -199,7 +199,7 @@ void draw_sim_debug_data(Scene *UNUSED(scene), View3D *v3d, ARegion *ar)
 	invert_m4_m4(imat, rv3d->viewmatob);
 	
 	gpuPushMatrix();
-	gpuLoadMatrix3D(rv3d->viewmat);
+	gpuLoadMatrix(rv3d->viewmat);
 	
 	view3d_cached_text_draw_begin();
 	draw_sim_debug_elements(_sim_debug_data, imat);

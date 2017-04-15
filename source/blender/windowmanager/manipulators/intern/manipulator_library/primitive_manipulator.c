@@ -123,7 +123,7 @@ static void manipulator_primitive_draw_intern(
 	mul_mat3_m4_fl(mat, prim->manipulator.scale);
 
 	gpuPushMatrix();
-	gpuMultMatrix3D(mat);
+	gpuMultMatrix(mat);
 
 	manipulator_color_get(&prim->manipulator, highlight, col_outer);
 	copy_v4_v4(col_inner, col_outer);
@@ -148,7 +148,7 @@ static void manipulator_primitive_draw_intern(
 		mul_mat3_m4_fl(mat, inter->init_scale);
 
 		gpuPushMatrix();
-		gpuMultMatrix3D(mat);
+		gpuMultMatrix(mat);
 
 		glEnable(GL_BLEND);
 		gpuTranslate3fv(prim->manipulator.offset);

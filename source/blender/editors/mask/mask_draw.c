@@ -767,7 +767,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 		gpuTranslate2f(x, y);
 		gpuScale2f(zoomx, zoomy);
 		if (stabmat) {
-			gpuMultMatrix3D(stabmat); /* XXX make this a 2D matrix */
+			gpuMultMatrix(stabmat);
 		}
 		IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 		GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
@@ -786,7 +786,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	gpuPushMatrix();
 
 	if (stabmat) {
-		gpuMultMatrix3D(stabmat); /* XXX make this a 2D matrix */
+		gpuMultMatrix(stabmat);
 	}
 
 	gpuTranslate2f(x + xofs, y + yofs);

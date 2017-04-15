@@ -209,8 +209,8 @@ static void view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar
 	ED_view3d_update_viewmat(scene, v3d, ar, viewmat, winmat);
 
 	/* set for opengl */
-	gpuLoadProjectionMatrix3D(rv3d->winmat);
-	gpuLoadMatrix3D(rv3d->viewmat);
+	gpuLoadProjectionMatrix(rv3d->winmat);
+	gpuLoadMatrix(rv3d->viewmat);
 }
 
 static bool view3d_stereo3d_active(const bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d)
@@ -773,7 +773,7 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 	/* rendered draw */
 	gpuPushMatrix();
 	float original_proj[4][4];
-	gpuGetProjectionMatrix3D(original_proj);
+	gpuGetProjectionMatrix(original_proj);
 	ED_region_pixelspace(ar);
 
 	if (clip_border) {
@@ -801,7 +801,7 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 		glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 	}
 
-	gpuLoadProjectionMatrix3D(original_proj);
+	gpuLoadProjectionMatrix(original_proj);
 	gpuPopMatrix();
 
 	return true;
@@ -1475,8 +1475,8 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 		*(&grid_unit) = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 
-		gpuLoadProjectionMatrix3D(rv3d->winmat);
-		gpuLoadMatrix3D(rv3d->viewmat);
+		gpuLoadProjectionMatrix(rv3d->winmat);
+		gpuLoadMatrix(rv3d->viewmat);
 	}
 	else {
 		drawfloor(scene, v3d, &grid_unit, false);

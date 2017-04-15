@@ -73,7 +73,7 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	gpuPushMatrix();
-	gpuLoadMatrix3D(rv3d->viewmat);
+	gpuLoadMatrix(rv3d->viewmat);
 }
 
 /* set color

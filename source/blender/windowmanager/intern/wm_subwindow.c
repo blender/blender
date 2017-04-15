@@ -149,7 +149,7 @@ static void wm_swin_matrix_get(wmWindow *win, wmSubWindow *swin, float mat[4][4]
 		orthographic_m4(mat, -GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS, -100, 100);
 	}
 	else {
-		gpuGetProjectionMatrix3D(mat);
+		gpuGetProjectionMatrix(mat);
 	}
 }
 void wm_subwindow_matrix_get(wmWindow *win, int swinid, float mat[4][4])
