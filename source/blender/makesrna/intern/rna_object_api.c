@@ -326,10 +326,19 @@ static void rna_Object_ray_cast(
 		return;
 	}
 
-	/* Test BoundBox */
+	/* Test BoundBox first (efficiency) */
 	BoundBox *bb = BKE_object_boundbox_get(ob);
-	if (bb && !isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], NULL, NULL)) {
-		goto finally;
+	if (bb) {
+		float distmin, distmax;
+		if (isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], &distmin, &distmax)) {
+			float dist = distmin >= 0 ? distmin : distmax;
+			if (dist > distance) {
+				goto finally;
+			}
+		}
+		else {
+			goto finally;
+		}
 	}
 
 	BVHTreeFromMesh treeData = {NULL};
