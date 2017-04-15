@@ -810,27 +810,33 @@ void immUniform4iv(const char* name, const int data[4])
 
 void immUniformColor4f(float r, float g, float b, float a)
 	{
-	immUniform4f("color", r, g, b, a);
+	const ShaderInput* uniform = ShaderInterface_builtin_uniform(imm.shader_interface, UNIFORM_COLOR);
+
+#if TRUST_NO_ONE
+	assert(uniform != NULL);
+#endif
+
+	glUniform4f(uniform->location, r, g, b, a);
 	}
 
 void immUniformColor4fv(const float rgba[4])
 	{
-	immUniform4fv("color", rgba);
+	immUniformColor4f(rgba[0], rgba[1], rgba[2], rgba[3]);
 	}
 
 void immUniformColor3f(float r, float g, float b)
 	{
-	immUniform4f("color", r, g, b, 1.0f);
+	immUniformColor4f(r, g, b, 1.0f);
 	}
 
 void immUniformColor3fv(const float rgb[3])
 	{
-	immUniform4f("color", rgb[0], rgb[1], rgb[2], 1.0f);
+	immUniformColor4f(rgb[0], rgb[1], rgb[2], 1.0f);
 	}
 
 void immUniformColor3fvAlpha(const float rgb[3], float a)
 	{
-	immUniform4f("color", rgb[0], rgb[1], rgb[2], a);
+	immUniformColor4f(rgb[0], rgb[1], rgb[2], a);
 	}
 
 // TODO: v-- treat as sRGB? --v
@@ -838,13 +844,13 @@ void immUniformColor3fvAlpha(const float rgb[3], float a)
 void immUniformColor3ub(unsigned char r, unsigned char g, unsigned char b)
 	{
 	const float scale = 1.0f / 255.0f;
-	immUniform4f("color", scale * r, scale * g, scale * b, 1.0f);
+	immUniformColor4f(scale * r, scale * g, scale * b, 1.0f);
 	}
 
 void immUniformColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 	{
 	const float scale = 1.0f / 255.0f;
-	immUniform4f("color", scale * r, scale * g, scale * b, scale * a);
+	immUniformColor4f(scale * r, scale * g, scale * b, scale * a);
 	}
 
 void immUniformColor3ubv(const unsigned char rgb[3])

@@ -30,10 +30,11 @@ static const char* BuiltinUniform_name(BuiltinUniform u)
 		[UNIFORM_MODELVIEW] = "ModelViewMatrix",
 		[UNIFORM_PROJECTION] = "ProjectionMatrix",
 		[UNIFORM_MVP] = "ModelViewProjectionMatrix",
-		[UNIFORM_NORMAL] = "NormalMatrix",
 
 		[UNIFORM_MODELVIEW_INV] = "ModelViewInverseMatrix",
 		[UNIFORM_PROJECTION_INV] = "ProjectionInverseMatrix",
+
+		[UNIFORM_NORMAL] = "NormalMatrix",
 
 		[UNIFORM_COLOR] = "color",
 
@@ -43,13 +44,61 @@ static const char* BuiltinUniform_name(BuiltinUniform u)
 	return names[u];
 	}
 
+static bool match(const char* a, const char* b)
+	{
+	return strcmp(a, b) == 0;
+	}
+
+// keep these in sync with BuiltinUniform order
+#define FIRST_MAT4_UNIFORM UNIFORM_MODELVIEW
+#define LAST_MAT4_UNIFORM UNIFORM_PROJECTION_INV
+
 static bool setup_builtin_uniform(ShaderInput* input, const char* name)
 	{
 	// TODO: reject DOUBLE, IMAGE, ATOMIC_COUNTER gl_types
 
-	// TODO: detect built-in uniforms (gl_type and name must match)
-	//       if a match is found, use BuiltinUniform_name so name buffer space can be reclaimed
-	input->name = name;
+	// detect built-in uniforms (gl_type and name must match)
+	// if a match is found, use BuiltinUniform_name so name buffer space can be reclaimed
+	switch (input->gl_type)
+		{
+		case GL_FLOAT_MAT4:
+			for (BuiltinUniform u = FIRST_MAT4_UNIFORM; u <= LAST_MAT4_UNIFORM; ++u)
+				{
+				const char* builtin_name = BuiltinUniform_name(u);
+				if (match(name, builtin_name))
+					{
+					input->name = builtin_name;
+					input->builtin_type = u;
+					return true;
+					}
+				}
+			break;
+		case GL_FLOAT_MAT3:
+			{
+			const char* builtin_name = BuiltinUniform_name(UNIFORM_NORMAL);
+			if (match(name, builtin_name))
+				{
+				input->name = builtin_name;
+				input->builtin_type = UNIFORM_NORMAL;
+				return true;
+				}
+			}
+			break;
+		case GL_FLOAT_VEC4:
+			{
+			const char* builtin_name = BuiltinUniform_name(UNIFORM_COLOR);
+			if (match(name, builtin_name))
+				{
+				input->name = builtin_name;
+				input->builtin_type = UNIFORM_COLOR;
+				return true;
+				}
+			}
+			break;
+		default:
+			;
+		} 
+
 	input->builtin_type = UNIFORM_CUSTOM;
 	return false;
 	}
@@ -170,7 +219,7 @@ const ShaderInput* ShaderInterface_uniform(const ShaderInterface* shaderface, co
 		if (uniform->name == NULL) continue;
 #endif
 
-		if (strcmp(uniform->name, name) == 0)
+		if (match(uniform->name, name))
 			return uniform;
 		}
 	return NULL; // not found
@@ -178,8 +227,15 @@ const ShaderInput* ShaderInterface_uniform(const ShaderInterface* shaderface, co
 
 const ShaderInput* ShaderInterface_builtin_uniform(const ShaderInterface* shaderface, BuiltinUniform builtin)
 	{
-	// TODO: look up by enum, not name (fix setup_builtin_uniform first)
-	return ShaderInterface_uniform(shaderface, BuiltinUniform_name(builtin));
+	// look up by enum, not name
+	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
+		{
+		const ShaderInput* uniform = shaderface->inputs + i;
+
+		if (uniform->builtin_type == builtin)
+			return uniform;
+		}
+	return NULL; // not found
 	}
 
 const ShaderInput* ShaderInterface_attrib(const ShaderInterface* shaderface, const char* name)
@@ -194,7 +250,7 @@ const ShaderInput* ShaderInterface_attrib(const ShaderInterface* shaderface, con
 		if (attrib->name == NULL) continue;
 #endif
 
-		if (strcmp(attrib->name, name) == 0)
+		if (match(attrib->name, name))
 			return attrib;
 		}
 	return NULL; // not found
