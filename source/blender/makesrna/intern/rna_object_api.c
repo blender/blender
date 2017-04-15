@@ -321,12 +321,18 @@ static void rna_Object_ray_cast(
         float origin[3], float direction[3], float distance,
         int *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
-	BVHTreeFromMesh treeData = {NULL};
-	
 	if (ob->derivedFinal == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' has no mesh data to be used for ray casting", ob->id.name + 2);
 		return;
 	}
+
+	/* Test BoundBox */
+	BoundBox *bb = BKE_object_boundbox_get(ob);
+	if (bb && !isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], NULL, NULL)) {
+		goto finally;
+	}
+
+	BVHTreeFromMesh treeData = {NULL};
 
 	/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
 	bvhtree_from_mesh_looptri(&treeData, ob->derivedFinal, 0.0f, 4, 6);
