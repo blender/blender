@@ -15,7 +15,7 @@
   #error "attrib binding code assumes MAX_VERTEX_ATTRIBS = 16"
 #endif
 
-void clear_AttribBinding(AttribBinding* binding)
+void AttribBinding_clear(AttribBinding* binding)
 	{
 	binding->loc_bits = 0;
 	binding->enabled_bits = 0;
@@ -52,7 +52,7 @@ void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, GL
 	assert(glIsProgram(program));
 #endif
 
-	clear_AttribBinding(binding);
+	AttribBinding_clear(binding);
 
 	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
 		{

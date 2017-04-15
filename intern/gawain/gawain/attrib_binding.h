@@ -18,7 +18,7 @@ typedef struct {
 	uint16_t enabled_bits; // 1 bit for each attrib
 } AttribBinding;
 
-void clear_AttribBinding(AttribBinding*);
+void AttribBinding_clear(AttribBinding*);
 
 void get_attrib_locations(const VertexFormat*, AttribBinding*, GLuint program);
 unsigned read_attrib_location(const AttribBinding*, unsigned a_idx);
