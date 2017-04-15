@@ -6047,6 +6047,9 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	cu = ob->data;
 	BLI_movelisttolist(&cu->nurb, &tempbase);
 	
+	/* Account for mixed 2D/3D curves when joining */
+	BKE_curve_curve_dimension_update(cu);
+
 	DAG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
