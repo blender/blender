@@ -31,8 +31,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BKE_mesh_render.h"
+#include "BKE_curve_render.h"
 #include "BKE_lattice_render.h"
+#include "BKE_mesh_render.h"
 
 #include "GPU_batch.h"
 
@@ -1589,6 +1590,47 @@ Batch *DRW_cache_mesh_verts_get(Object *ob)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name Curve
+ * \{ */
+
+Batch *DRW_cache_curve_edge_wire_get(Object *ob)
+{
+	Batch *surface = NULL;
+
+	BLI_assert(ob->type == OB_CURVE);
+
+	struct Curve *cu = ob->data;
+	surface = BKE_curve_batch_cache_get_wire_edge(cu, ob->curve_cache);
+
+	return surface;
+}
+
+Batch *DRW_cache_curve_edge_overlay_get(Object *ob)
+{
+	Batch *surface = NULL;
+
+	BLI_assert(ob->type == OB_CURVE);
+
+	struct Curve *cu = ob->data;
+	surface = BKE_curve_batch_cache_get_overlay_edges(cu);
+
+	return surface;
+}
+
+Batch *DRW_cache_curve_vert_overlay_get(Object *ob)
+{
+	Batch *surface = NULL;
+
+	BLI_assert(ob->type == OB_CURVE);
+
+	struct Curve *cu = ob->data;
+	surface = BKE_curve_batch_cache_get_overlay_verts(cu);
+
+	return surface;
+}
 
 /* -------------------------------------------------------------------- */
 

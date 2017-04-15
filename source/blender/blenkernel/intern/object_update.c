@@ -58,8 +58,9 @@
 #include "BKE_material.h"
 #include "BKE_image.h"
 
-#include "BKE_mesh_render.h"
+#include "BKE_curve_render.h"
 #include "BKE_lattice_render.h"
+#include "BKE_mesh_render.h"
 
 #include "DEG_depsgraph.h"
 
@@ -350,6 +351,9 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 			break;
 		case OB_LATTICE:
 			BKE_lattice_batch_cache_dirty(ob->data);
+			break;
+		case OB_CURVE:
+			BKE_curve_batch_cache_dirty(ob->data);
 			break;
 	}
 

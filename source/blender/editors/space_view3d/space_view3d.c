@@ -47,11 +47,13 @@
 #include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_lattice_render.h"
-#include "BKE_mesh_render.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+
+#include "BKE_curve_render.h"
+#include "BKE_lattice_render.h"
+#include "BKE_mesh_render.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -931,6 +933,9 @@ static void view3d_main_region_listener(bScreen *sc, ScrArea *sa, ARegion *ar, w
 						switch (ob->type) {
 							case OB_MESH:
 								BKE_mesh_batch_selection_dirty(ob->data);
+								break;
+							case OB_CURVE:
+								BKE_curve_batch_selection_dirty(ob->data);
 								break;
 							case OB_LATTICE:
 								BKE_lattice_batch_selection_dirty(ob->data);

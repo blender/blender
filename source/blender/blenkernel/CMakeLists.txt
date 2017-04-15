@@ -93,6 +93,7 @@ set(SRC
 	intern/context.c
 	intern/crazyspace.c
 	intern/curve.c
+	intern/curve_render.c
 	intern/customdata.c
 	intern/customdata_file.c
 	intern/data_transfer.c
@@ -225,6 +226,7 @@ set(SRC
 	BKE_context.h
 	BKE_crazyspace.h
 	BKE_curve.h
+	BKE_curve_render.h
 	BKE_customdata.h
 	BKE_customdata_file.h
 	BKE_data_transfer.h
