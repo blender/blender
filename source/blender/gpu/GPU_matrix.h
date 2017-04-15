@@ -81,8 +81,6 @@ void gpuLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY,
 
 /* 2D ModelView Matrix */
 
-void gpuMultMatrix(const float m[4][4]);
-
 void gpuTranslate2f(float x, float y);
 void gpuTranslate2fv(const float vec[2]);
 void gpuScale2f(float x, float y);
