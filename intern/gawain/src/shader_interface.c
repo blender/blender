@@ -27,17 +27,13 @@ static const char* BuiltinUniform_name(BuiltinUniform u)
 		{
 		[UNIFORM_NONE] = NULL,
 
-		[UNIFORM_MODELVIEW_3D] = "ModelViewMatrix",
-		[UNIFORM_PROJECTION_3D] = "ProjectionMatrix",
-		[UNIFORM_MVP_3D] = "ModelViewProjectionMatrix",
-		[UNIFORM_NORMAL_3D] = "NormalMatrix",
+		[UNIFORM_MODELVIEW] = "ModelViewMatrix",
+		[UNIFORM_PROJECTION] = "ProjectionMatrix",
+		[UNIFORM_MVP] = "ModelViewProjectionMatrix",
+		[UNIFORM_NORMAL] = "NormalMatrix",
 
-		[UNIFORM_MODELVIEW_INV_3D] = "ModelViewInverseMatrix",
-		[UNIFORM_PROJECTION_INV_3D] = "ProjectionInverseMatrix",
-
-		[UNIFORM_MODELVIEW_2D] = "ModelViewMatrix",
-		[UNIFORM_PROJECTION_2D] = "ProjectionMatrix",
-		[UNIFORM_MVP_2D] = "ModelViewProjectionMatrix",
+		[UNIFORM_MODELVIEW_INV] = "ModelViewInverseMatrix",
+		[UNIFORM_PROJECTION_INV] = "ProjectionInverseMatrix",
 
 		[UNIFORM_COLOR] = "color",
 

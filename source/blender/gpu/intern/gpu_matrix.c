@@ -750,13 +750,13 @@ void gpuBindMatrices(const ShaderInterface* shaderface)
 	 * call glUseProgram before this, as glUniform expects program to be bound
 	 */
 
-	const ShaderInput *MV = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MODELVIEW_3D);
-	const ShaderInput *P = ShaderInterface_builtin_uniform(shaderface, UNIFORM_PROJECTION_3D);
-	const ShaderInput *MVP = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MVP_3D);
+	const ShaderInput *MV = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MODELVIEW);
+	const ShaderInput *P = ShaderInterface_builtin_uniform(shaderface, UNIFORM_PROJECTION);
+	const ShaderInput *MVP = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MVP);
 
-	const ShaderInput *N = ShaderInterface_builtin_uniform(shaderface, UNIFORM_NORMAL_3D);
-	const ShaderInput *MV_inv = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MODELVIEW_INV_3D);
-	const ShaderInput *P_inv = ShaderInterface_builtin_uniform(shaderface, UNIFORM_PROJECTION_INV_3D);
+	const ShaderInput *N = ShaderInterface_builtin_uniform(shaderface, UNIFORM_NORMAL);
+	const ShaderInput *MV_inv = ShaderInterface_builtin_uniform(shaderface, UNIFORM_MODELVIEW_INV);
+	const ShaderInput *P_inv = ShaderInterface_builtin_uniform(shaderface, UNIFORM_PROJECTION_INV);
 
 	if (MV) {
 		#if DEBUG_MATRIX_BIND

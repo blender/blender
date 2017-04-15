@@ -16,17 +16,13 @@
 typedef enum {
 	UNIFORM_NONE, // uninitialized/unknown
 
-	UNIFORM_MODELVIEW_3D,  // mat4 ModelViewMatrix
-	UNIFORM_PROJECTION_3D, // mat4 ProjectionMatrix
-	UNIFORM_MVP_3D,        // mat4 ModelViewProjectionMatrix
-	UNIFORM_NORMAL_3D,     // mat3 NormalMatrix
+	UNIFORM_MODELVIEW,  // mat4 ModelViewMatrix
+	UNIFORM_PROJECTION, // mat4 ProjectionMatrix
+	UNIFORM_MVP,        // mat4 ModelViewProjectionMatrix
+	UNIFORM_NORMAL,     // mat3 NormalMatrix
 
-	UNIFORM_MODELVIEW_INV_3D,  // mat4 ModelViewInverseMatrix
-	UNIFORM_PROJECTION_INV_3D, // mat4 ProjectionInverseMatrix
-
-	UNIFORM_MODELVIEW_2D,  // mat3 ModelViewMatrix
-	UNIFORM_PROJECTION_2D, // mat3 ProjectionMatrix
-	UNIFORM_MVP_2D,        // mat3 ModelViewProjectionMatrix
+	UNIFORM_MODELVIEW_INV,  // mat4 ModelViewInverseMatrix
+	UNIFORM_PROJECTION_INV, // mat4 ProjectionInverseMatrix
 
 	UNIFORM_COLOR, // vec4 color
 
