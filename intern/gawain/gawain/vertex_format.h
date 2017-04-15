@@ -81,8 +81,3 @@ typedef struct {
 PackedNormal convert_i10_v3(const float data[3]);
 
 #endif // USE_10_10_10
-
-// for internal use
-void VertexFormat_pack(VertexFormat*);
-unsigned padding(unsigned offset, unsigned alignment);
-unsigned vertex_buffer_size(const VertexFormat*, unsigned vertex_ct);

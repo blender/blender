@@ -12,6 +12,7 @@
 #include "immediate.h"
 #include "attrib_binding.h"
 #include "buffer_id.h"
+#include "vertex_format_private.h"
 #include <string.h>
 
 // necessary functions from matrix API

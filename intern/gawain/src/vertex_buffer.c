@@ -11,6 +11,7 @@
 
 #include "vertex_buffer.h"
 #include "buffer_id.h"
+#include "vertex_format_private.h"
 #include <stdlib.h>
 #include <string.h>
 
