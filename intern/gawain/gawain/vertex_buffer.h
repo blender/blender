@@ -1,5 +1,5 @@
 
-// Gawain geometry batch
+// Gawain vertex buffer
 //
 // This code is part of the Gawain library, with modifications
 // specific to integration with Blender.
