@@ -37,13 +37,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 
-#include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_editmesh.h"
-#include "BKE_mesh.h"
 #include "BKE_lattice_render.h"
-
-#include "bmesh.h"
 
 #include "GPU_batch.h"
 
@@ -135,9 +129,9 @@ typedef struct LatticeRenderData {
 } LatticeRenderData;
 
 enum {
-	MR_DATATYPE_VERT       = 1 << 0,
-	MR_DATATYPE_EDGE       = 1 << 1,
-	MR_DATATYPE_OVERLAY    = 1 << 2,
+	LR_DATATYPE_VERT       = 1 << 0,
+	LR_DATATYPE_EDGE       = 1 << 1,
+	LR_DATATYPE_OVERLAY    = 1 << 2,
 };
 
 static LatticeRenderData *lattice_render_data_create(Lattice *lt, const int types)
@@ -151,21 +145,21 @@ static LatticeRenderData *lattice_render_data_create(Lattice *lt, const int type
 
 		lrdata->edit_latt = editlatt;
 
-		if (types & (MR_DATATYPE_VERT)) {
+		if (types & (LR_DATATYPE_VERT)) {
 			lrdata->totvert = lattice_render_verts_num_get(lt);
 		}
-		if (types & (MR_DATATYPE_EDGE)) {
+		if (types & (LR_DATATYPE_EDGE)) {
 			lrdata->totedge = lattice_render_edges_num_get(lt);
 		}
-		if (types & MR_DATATYPE_OVERLAY) {
+		if (types & LR_DATATYPE_OVERLAY) {
 			lrdata->actbp = lt->actbp;
 		}
 	}
 	else {
-		if (types & (MR_DATATYPE_VERT)) {
+		if (types & (LR_DATATYPE_VERT)) {
 			lrdata->totvert = lattice_render_verts_num_get(lt);
 		}
-		if (types & (MR_DATATYPE_EDGE)) {
+		if (types & (LR_DATATYPE_EDGE)) {
 			lrdata->totedge = lattice_render_edges_num_get(lt);
 			/*no edge data */
 		}
@@ -195,19 +189,19 @@ static void lattice_render_data_free(LatticeRenderData *lrdata)
 
 static int lattice_render_data_verts_num_get(const LatticeRenderData *lrdata)
 {
-	BLI_assert(lrdata->types & MR_DATATYPE_VERT);
+	BLI_assert(lrdata->types & LR_DATATYPE_VERT);
 	return lrdata->totvert;
 }
 
 static int lattice_render_data_edges_num_get(const LatticeRenderData *lrdata)
 {
-	BLI_assert(lrdata->types & MR_DATATYPE_EDGE);
+	BLI_assert(lrdata->types & LR_DATATYPE_EDGE);
 	return lrdata->totedge;
 }
 
 static const BPoint *lattice_render_data_vert_bpoint(const LatticeRenderData *lrdata, const int vert_idx)
 {
-	BLI_assert(lrdata->types & MR_DATATYPE_VERT);
+	BLI_assert(lrdata->types & LR_DATATYPE_VERT);
 	return &lrdata->bp[vert_idx];
 }
 
@@ -343,7 +337,7 @@ void BKE_lattice_batch_cache_free(Lattice *lt)
 /* Batch cache usage. */
 static VertexBuffer *lattice_batch_cache_get_pos(LatticeRenderData *lrdata, LatticeBatchCache *cache)
 {
-	BLI_assert(lrdata->types & MR_DATATYPE_VERT);
+	BLI_assert(lrdata->types & LR_DATATYPE_VERT);
 
 	if (cache->pos == NULL) {
 		static VertexFormat format = { 0 };
@@ -368,7 +362,7 @@ static VertexBuffer *lattice_batch_cache_get_pos(LatticeRenderData *lrdata, Latt
 
 static ElementList *lattice_batch_cache_get_edges(LatticeRenderData *lrdata, LatticeBatchCache *cache)
 {
-	BLI_assert(lrdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE));
+	BLI_assert(lrdata->types & (LR_DATATYPE_VERT | LR_DATATYPE_EDGE));
 
 	if (cache->edges == NULL) {
 		const int vertex_ct = lattice_render_data_verts_num_get(lrdata);
@@ -424,8 +418,8 @@ static ElementList *lattice_batch_cache_get_edges(LatticeRenderData *lrdata, Lat
 
 static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 {
-	/* Since MR_DATATYPE_OVERLAY is slow to generate, generate them all at once */
-	int options = MR_DATATYPE_VERT | MR_DATATYPE_OVERLAY;
+	/* Since LR_DATATYPE_OVERLAY is slow to generate, generate them all at once */
+	int options = LR_DATATYPE_VERT | LR_DATATYPE_OVERLAY;
 
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 	LatticeRenderData *lrdata = lattice_render_data_create(lt, options);
@@ -472,7 +466,7 @@ Batch *BKE_lattice_batch_cache_get_all_edges(Lattice *lt)
 
 	if (cache->all_edges == NULL) {
 		/* create batch from Lattice */
-		LatticeRenderData *lrdata = lattice_render_data_create(lt, MR_DATATYPE_VERT | MR_DATATYPE_EDGE);
+		LatticeRenderData *lrdata = lattice_render_data_create(lt, LR_DATATYPE_VERT | LR_DATATYPE_EDGE);
 
 		cache->all_edges = Batch_create(PRIM_LINES, lattice_batch_cache_get_pos(lrdata, cache),
 		                                lattice_batch_cache_get_edges(lrdata, cache));
@@ -488,7 +482,7 @@ Batch *BKE_lattice_batch_cache_get_all_verts(Lattice *lt)
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
 	if (cache->all_verts == NULL) {
-		LatticeRenderData *lrdata = lattice_render_data_create(lt, MR_DATATYPE_VERT);
+		LatticeRenderData *lrdata = lattice_render_data_create(lt, LR_DATATYPE_VERT);
 
 		cache->all_verts = Batch_create(PRIM_POINTS, lattice_batch_cache_get_pos(lrdata, cache), NULL);
 
@@ -508,5 +502,3 @@ Batch *BKE_lattice_batch_cache_get_overlay_verts(Lattice *lt)
 
 	return cache->overlay_verts;
 }
-
-#undef MESH_RENDER_FUNCTION
