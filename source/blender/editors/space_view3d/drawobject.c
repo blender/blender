@@ -1190,7 +1190,7 @@ static void draw_transp_sun_volume(Lamp *la, unsigned pos)
 	glCullFace(GL_BACK);
 
 	glBlendFunc(GL_ONE, GL_ONE);
-	immUniformColor4f(0.2f, 0.2f, 0.2f);
+	immUniformColor3f(0.2f, 0.2f, 0.2f);
 
 	imm_draw_box(box, true, pos);
 
