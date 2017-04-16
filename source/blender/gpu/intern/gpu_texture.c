@@ -229,11 +229,6 @@ static GPUTexture *GPU_texture_create_nD(
         GPUTextureFormat data_type, int components, int samples,
         const bool can_rescale, char err_out[256])
 {
-	GLenum format, internalformat, proxy, data_format;
-	float *rescaled_fpixels = NULL;
-	const float *pix;
-	bool valid;
-
 	if (samples) {
 		CLAMP_MAX(samples, GPU_max_color_texture_samples());
 	}
@@ -246,25 +241,31 @@ static GPUTexture *GPU_texture_create_nD(
 	tex->refcount = 1;
 	tex->fb_attachment = -1;
 
-	if (n == 1) {
-		if (h == 0)
-			tex->target_base = tex->target = GL_TEXTURE_1D;
-		else
-			tex->target_base = tex->target = GL_TEXTURE_1D_ARRAY;
-	}
-	else if (n == 2) {
+	if (n == 2) {
 		if (d == 0)
 			tex->target_base = tex->target = GL_TEXTURE_2D;
 		else
 			tex->target_base = tex->target = GL_TEXTURE_2D_ARRAY;
 	}
+	else if (n == 1) {
+		if (h == 0)
+			tex->target_base = tex->target = GL_TEXTURE_1D;
+		else
+			tex->target_base = tex->target = GL_TEXTURE_1D_ARRAY;
+	}
 	else if (n == 3) {
 		tex->target_base = tex->target = GL_TEXTURE_3D;
+	}
+	else {
+		/* should never happen */
+		MEM_freeN(tex);
+		return NULL;
 	}
 
 	if (samples && n == 2 && d == 0)
 		tex->target = GL_TEXTURE_2D_MULTISAMPLE;
 
+	GLenum format, internalformat, data_format;
 	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
 
 	/* Generate Texture object */
@@ -283,25 +284,25 @@ static GPUTexture *GPU_texture_create_nD(
 	glBindTexture(tex->target, tex->bindcode);
 
 	/* Check if texture fit in VRAM */
-	if (n == 1) {
+	GLenum proxy = GL_PROXY_TEXTURE_2D;
+
+	if (n == 2) {
+		if (d > 0)
+			proxy = GL_PROXY_TEXTURE_2D_ARRAY;
+	}
+	else if (n == 1) {
 		if (h == 0)
 			proxy = GL_PROXY_TEXTURE_1D;
 		else
 			proxy = GL_PROXY_TEXTURE_1D_ARRAY;
 	}
-	else if (n == 2) {
-		if (d == 0)
-			proxy = GL_PROXY_TEXTURE_2D;
-		else
-			proxy = GL_PROXY_TEXTURE_2D_ARRAY;
-	}
 	else if (n == 3) {
 		proxy = GL_PROXY_TEXTURE_3D;
 	}
 
-	valid = gpu_texture_try_alloc(tex, proxy, internalformat, format, data_format, components, can_rescale, fpixels,
-	                              &rescaled_fpixels);
-
+	float *rescaled_fpixels = NULL;
+	bool valid = gpu_texture_try_alloc(tex, proxy, internalformat, format, data_format, components, can_rescale,
+	                                   fpixels, &rescaled_fpixels);
 	if (!valid) {
 		if (err_out)
 			BLI_snprintf(err_out, 256, "GPUTexture: texture alloc failed");
@@ -312,14 +313,11 @@ static GPUTexture *GPU_texture_create_nD(
 	}
 
 	/* Upload Texture */
-	pix = (rescaled_fpixels) ? rescaled_fpixels : fpixels;
+	const float *pix = (rescaled_fpixels) ? rescaled_fpixels : fpixels;
 
-	if (tex->target == GL_TEXTURE_1D) {
-		glTexImage1D(tex->target, 0, internalformat, tex->w, 0, format, data_format, pix);
-	}
-	else if (tex->target == GL_TEXTURE_1D_ARRAY ||
-	         tex->target == GL_TEXTURE_2D ||
-	         tex->target == GL_TEXTURE_2D_MULTISAMPLE)
+	if (tex->target == GL_TEXTURE_2D ||
+	    tex->target == GL_TEXTURE_2D_MULTISAMPLE ||
+	    tex->target == GL_TEXTURE_1D_ARRAY)
 	{
 		if (samples) {
 			glTexImage2DMultisample(tex->target, samples, internalformat, tex->w, tex->h, true);
@@ -329,6 +327,9 @@ static GPUTexture *GPU_texture_create_nD(
 		else {
 			glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0, format, data_format, pix);
 		}
+	}
+	else if (tex->target == GL_TEXTURE_1D) {
+		glTexImage1D(tex->target, 0, internalformat, tex->w, 0, format, data_format, pix);
 	}
 	else {
 		glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->d, 0, format, data_format, pix);
@@ -351,10 +352,10 @@ static GPUTexture *GPU_texture_create_nD(
 	}
 
 	glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	if (n > 1)	{
+	if (n > 1) {
 		glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
-	if (n > 2)	{
+	if (n > 2) {
 		glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	}
 
