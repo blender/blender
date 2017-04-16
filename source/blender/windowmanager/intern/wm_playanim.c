@@ -370,7 +370,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformColor4ub(0, 255, 0, 255);
+		immUniformColor3ub(0, 255, 0);
 
 		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, fac, -1.0f);

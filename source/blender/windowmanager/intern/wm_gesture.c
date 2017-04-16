@@ -288,7 +288,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	immUniformColor4f(1.0, 1.0, 1.0, 0.05);
+	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.05f);
 	imm_draw_circle_fill(pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
 
 	immUnbindProgram();

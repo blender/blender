@@ -239,16 +239,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						case ANIMTYPE_SCENE:
 						case ANIMTYPE_OBJECT:
 						{
-							if (sel) immUniformColor4ub(col1b[0], col1b[1], col1b[2], 0x45);
-							else immUniformColor4ub(col1b[0], col1b[1], col1b[2], 0x22);
+							immUniformColor3ubvAlpha(col1b, sel ? 0x45 : 0x22);
 							break;
 						}
 						case ANIMTYPE_FILLACTD:
 						case ANIMTYPE_DSSKEY:
 						case ANIMTYPE_DSWOR:
 						{
-							if (sel) immUniformColor4ub(col2b[0], col2b[1], col2b[2], 0x45);
-							else immUniformColor4ub(col2b[0], col2b[1], col2b[2], 0x22);
+							immUniformColor3ubvAlpha(col2b, sel ? 0x45 : 0x22);
 							break;
 						}
 						case ANIMTYPE_GROUP:
@@ -256,17 +254,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							bActionGroup *agrp = ale->data;
 							if (show_group_colors && agrp->customCol) {
 								if (sel) {
-									char *cp = agrp->cs.select;
-									immUniformColor4ub(cp[0], cp[1], cp[2], 0x45);
+									immUniformColor3ubvAlpha((unsigned char *)agrp->cs.select, 0x45);
 								}
 								else {
-									char *cp = agrp->cs.solid;
-									immUniformColor4ub(cp[0], cp[1], cp[2], 0x1D);
+									immUniformColor3ubvAlpha((unsigned char *)agrp->cs.solid, 0x1D);
 								}
 							}
 							else {
-								if (sel) immUniformColor4ub(col1a[0], col1a[1], col1a[2], 0x22);
-								else immUniformColor4ub(col2a[0], col2a[1], col2a[2], 0x22);
+								immUniformColor3ubvAlpha(sel ? col1a : col2a, 0x22);
 							}
 							break;
 						}
@@ -274,22 +269,16 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						{
 							FCurve *fcu = ale->data;
 							if (show_group_colors && fcu->grp && fcu->grp->customCol) {
-								unsigned char *cp = (unsigned char *)fcu->grp->cs.active;
-								
-								if (sel) immUniformColor4ub(cp[0], cp[1], cp[2], 0x65);
-								else immUniformColor4ub(cp[0], cp[1], cp[2], 0x0B);
+								immUniformColor3ubvAlpha((unsigned char *)fcu->grp->cs.active, sel ? 0x65 : 0x0B);
 							}
 							else {
-								if (sel) immUniformColor4ub(col1[0], col1[1], col1[2], 0x22);
-								else immUniformColor4ub(col2[0], col2[1], col2[2], 0x22);
+								immUniformColor3ubvAlpha(sel ? col1 : col2, 0x22);
 							}
 							break;
 						}
 						default:
 						{
-							if (sel) immUniformColor4ub(col1[0], col1[1], col1[2], 0x22);
-							else immUniformColor4ub(col2[0], col2[1], col2[2], 0x22);
-							break;
+							immUniformColor3ubvAlpha(sel ? col1 : col2, 0x22);
 						}
 					}
 					
@@ -301,25 +290,21 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				}
 				else if (ac->datatype == ANIMCONT_GPENCIL) {
 					/* frames less than one get less saturated background */
-					if (sel) immUniformColor4ub(col1[0], col1[1], col1[2], 0x22);
-					else immUniformColor4ub(col2[0], col2[1], col2[2], 0x22);
+					immUniformColor3ubvAlpha(sel ? col1 : col2, 0x22);
 					immRectf(pos, 0.0f, (float)y - ACHANNEL_HEIGHT_HALF(ac), v2d->cur.xmin, (float)y + ACHANNEL_HEIGHT_HALF(ac));
 					
 					/* frames one and higher get a saturated background */
-					if (sel) immUniformColor4ub(col1[0], col1[1], col1[2], 0x44);
-					else immUniformColor4ub(col2[0], col2[1], col2[2], 0x44);
+					immUniformColor3ubvAlpha(sel ? col1 : col2, 0x44);
 					immRectf(pos, v2d->cur.xmin, (float)y - ACHANNEL_HEIGHT_HALF(ac), v2d->cur.xmax + EXTRA_SCROLL_PAD,  (float)y + ACHANNEL_HEIGHT_HALF(ac));
 				}
 				else if (ac->datatype == ANIMCONT_MASK) {
 					/* TODO --- this is a copy of gpencil */
 					/* frames less than one get less saturated background */
-					if (sel) immUniformColor4ub(col1[0], col1[1], col1[2], 0x22);
-					else immUniformColor4ub(col2[0], col2[1], col2[2], 0x22);
+					immUniformColor3ubvAlpha(sel ? col1 : col2, 0x22);
 					immRectf(pos, 0.0f, (float)y - ACHANNEL_HEIGHT_HALF(ac), v2d->cur.xmin, (float)y + ACHANNEL_HEIGHT_HALF(ac));
 
 					/* frames one and higher get a saturated background */
-					if (sel) immUniformColor4ub(col1[0], col1[1], col1[2], 0x44);
-					else immUniformColor4ub(col2[0], col2[1], col2[2], 0x44);
+					immUniformColor3ubvAlpha(sel ? col1 : col2, 0x44);
 					immRectf(pos, v2d->cur.xmin, (float)y - ACHANNEL_HEIGHT_HALF(ac), v2d->cur.xmax + EXTRA_SCROLL_PAD,  (float)y + ACHANNEL_HEIGHT_HALF(ac));
 				}
 			}

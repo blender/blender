@@ -286,7 +286,7 @@ static void nla_strip_get_color_inside(AnimData *adt, NlaStrip *strip, float col
 /* helper call for drawing influence/time control curves for a given NLA-strip */
 static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, unsigned int pos)
 {
-	immUniformColor4f(0.7f, 0.7f, 0.7f, 1.0f);
+	immUniformColor3f(0.7f, 0.7f, 0.7f);
 
 	const float yheight = ymaxc - yminc;
 		
@@ -674,7 +674,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* draw 'embossed' lines above and below the strip for effect */
 					/* white base-lines */
 					glLineWidth(2.0f);
-					immUniformColor4f(1.0f, 1.0f, 1.0f, 0.3);
+					immUniformColor4f(1.0f, 1.0f, 1.0f, 0.3f);
 					immBegin(PRIM_LINES, 4);
 					immVertex2f(pos, v2d->cur.xmin, yminc + NLACHANNEL_SKIP);
 					immVertex2f(pos, v2d->cur.xmax, yminc + NLACHANNEL_SKIP);

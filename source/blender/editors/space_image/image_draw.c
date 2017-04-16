@@ -355,7 +355,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		immRecti(pos, color_rect_half.xmin, color_rect_half.ymin, color_quater_x, color_quater_y);
 
 		glEnable(GL_BLEND);
-		immUniformColor4f(UNPACK3(finalcol), fp ? fp[3] : (cp[3] / 255.0f));
+		immUniformColor3fvAlpha(finalcol, fp ? fp[3] : (cp[3] / 255.0f));
 		immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
 		glDisable(GL_BLEND);
 	}

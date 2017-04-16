@@ -258,7 +258,7 @@ static void drawseqwave(View2D *v2d, const bContext *C, SpaceSeq *sseq, Scene *s
 			return;
 		}
 
-		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5);
+		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 
 		glEnable(GL_BLEND);
 
@@ -641,7 +641,7 @@ static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq, u
 		immUniformColor4ubv(col);
 		immRectf(pos, (float)(seq->start), y1 - SEQ_STRIP_OFSBOTTOM, x1, y1);
 
-		immUniformColor4ub(col[0], col[1], col[2], col[3] + 50);
+		immUniformColor3ubvAlpha(col, col[3] + 50);
 
 		imm_draw_line_box(pos, (float)(seq->start), y1 - SEQ_STRIP_OFSBOTTOM, x1, y1);  /* outline */
 	}
@@ -649,7 +649,7 @@ static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq, u
 		immUniformColor4ubv(col);
 		immRectf(pos, x2, y2, (float)(seq->start + seq->len), y2 + SEQ_STRIP_OFSBOTTOM);
 
-		immUniformColor4ub(col[0], col[1], col[2], col[3] + 50);
+		immUniformColor3ubvAlpha(col, col[3] + 50);
 
 		imm_draw_line_box(pos, x2, y2, (float)(seq->start + seq->len), y2 + SEQ_STRIP_OFSBOTTOM); /* outline */
 	}
@@ -1310,7 +1310,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	unsigned int texCoord = VertexFormat_add_attrib(imm_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-	immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	immUniformColor3f(1.0f, 1.0f, 1.0f);
 	immUniform1i("image", GL_TEXTURE0);
 
 	immBegin(PRIM_TRIANGLE_FAN, 4);
@@ -1720,7 +1720,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		immUniformColor3f(0.2, 0.2, 0.2);
+		immUniformColor3f(0.2f, 0.2f, 0.2f);
 
 		immBegin(PRIM_LINES, 2);
 		immVertex2f(pos, cfra_over, v2d->cur.ymin);

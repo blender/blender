@@ -703,7 +703,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				widget_draw_vertex_buffer(pos, 0, GL_TRIANGLE_FAN, wtb->inner_v, NULL, wtb->totvert);
 
 				/* 1/2 solid color */
-				immUniformColor4ub(wcol->inner[0], wcol->inner[1], wcol->inner[2], 255);
+				immUniformColor3ubv((unsigned char *)wcol->inner);
 
 				for (a = 0; a < wtb->totvert; a++) {
 					inner_v_half[a][0] = MIN2(wtb->inner_v[a][0], x_mid);
@@ -3165,7 +3165,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		immUniformColor4f(bw, bw, bw, 1.0f);
+		immUniformColor3f(bw, bw, bw);
 		immBegin(PRIM_TRIANGLES, 3);
 		immVertex2f(pos, rect->xmin + 0.1f * width, rect->ymin + 0.9f * height);
 		immVertex2f(pos, rect->xmin + 0.1f * width, rect->ymin + 0.5f * height);

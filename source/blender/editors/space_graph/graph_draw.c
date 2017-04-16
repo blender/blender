@@ -952,7 +952,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		 *  - this is set by the function which creates these
 		 *	- draw with a fixed opacity of 2
 		 */
-		immUniformColor4f(fcu->color[0], fcu->color[1], fcu->color[2], 0.5f);
+		immUniformColor3fvAlpha(fcu->color, 0.5f);
 		
 		/* simply draw the stored samples */
 		draw_fcurve_curve_samples(ac, NULL, fcu, &ar->v2d, pos);
@@ -1036,7 +1036,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				/* set whatever color the curve has set
 				 *	- unselected curves draw less opaque to help distinguish the selected ones
 				 */
-				immUniformColor4f(fcu->color[0], fcu->color[1], fcu->color[2], fcurve_display_alpha(fcu));
+				immUniformColor3fvAlpha(fcu->color, fcurve_display_alpha(fcu));
 			}
 
 			/* draw F-Curve */
