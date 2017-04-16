@@ -10,6 +10,7 @@
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "vertex_format.h"
+#include "vertex_format_private.h"
 #include <stddef.h>
 #include <string.h>
 
