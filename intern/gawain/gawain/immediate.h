@@ -103,6 +103,7 @@ void immUniformColor3fvAlpha(const float rgb[3], float a);
 void immUniformColor3ub(unsigned char r, unsigned char g, unsigned char b);
 void immUniformColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 void immUniformColor3ubv(const unsigned char rgb[3]);
+void immUniformColor3ubvAlpha(const unsigned char rgb[3], unsigned char a);
 void immUniformColor4ubv(const unsigned char rgba[4]);
 
 

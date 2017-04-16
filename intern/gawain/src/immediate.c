@@ -859,6 +859,11 @@ void immUniformColor3ubv(const unsigned char rgb[3])
 	immUniformColor3ub(rgb[0], rgb[1], rgb[2]);
 	}
 
+void immUniformColor3ubvAlpha(const unsigned char rgb[3], unsigned char alpha)
+	{
+	immUniformColor4ub(rgb[0], rgb[1], rgb[2], alpha);
+	}
+
 void immUniformColor4ubv(const unsigned char rgba[4])
 	{
 	immUniformColor4ub(rgba[0], rgba[1], rgba[2], rgba[3]);
