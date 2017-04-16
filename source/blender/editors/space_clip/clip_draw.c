@@ -1105,7 +1105,7 @@ static void draw_plane_marker_image(Scene *scene,
 			unsigned int texCoord = VertexFormat_add_attrib(imm_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-			immUniform4f("color", 1.0f, 1.0f, 1.0f, plane_track->image_opacity);
+			immUniformColor4f(1.0f, 1.0f, 1.0f, plane_track->image_opacity);
 			immUniform1i("image", GL_TEXTURE0);
 
 			immBegin(PRIM_TRIANGLE_FAN, 4);

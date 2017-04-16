@@ -675,10 +675,10 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
 		if (col) {
-			immUniform4f("color", 1.0f, 1.0f, 1.0f, overlay_alpha / 100.0f);
+			immUniformColor4f(1.0f, 1.0f, 1.0f, overlay_alpha * 0.01f);
 		}
 		else {
-			immUniform4f("color", UNPACK3(U.sculpt_paint_overlay_col), overlay_alpha / 100.0f);
+			immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, overlay_alpha * 0.01f);
 		}
 
 		/* draw textured quad */
@@ -762,11 +762,7 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
-		immUniform4f("color",
-		        U.sculpt_paint_overlay_col[0],
-		        U.sculpt_paint_overlay_col[1],
-		        U.sculpt_paint_overlay_col[2],
-		        brush->cursor_overlay_alpha / 100.0f);
+		immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, brush->cursor_overlay_alpha * 0.01f);
 
 		/* draw textured quad */
 
@@ -825,12 +821,8 @@ BLI_INLINE void draw_tri_point(
         unsigned int pos, float sel_col[4], float pivot_col[4],
         float *co, float width, bool selected)
 {
-	if (selected) {
-		immUniformColor4fv(sel_col);
-	}
-	else {
-		immUniformColor4fv(pivot_col);
-	}
+	immUniformColor4fv(selected ? sel_col : pivot_col);
+
 	glLineWidth(3.0f);
 
 	float w = width / 2.0f;
@@ -860,12 +852,8 @@ BLI_INLINE void draw_rect_point(
         unsigned int pos, float sel_col[4], float handle_col[4],
         float *co, float width, bool selected)
 {
-	if (selected) {
-		immUniformColor4fv(sel_col);
-	}
-	else {
-		immUniformColor4fv(handle_col);
-	}
+	immUniformColor4fv(selected ? sel_col : handle_col);
+
 	glLineWidth(3.0f);
 
 	float w = width / 2.0f;

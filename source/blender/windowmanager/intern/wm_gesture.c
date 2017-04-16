@@ -226,7 +226,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 	glEnable(GL_BLEND);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniform4f("color", 1.0f, 1.0f, 1.0f, 0.05f);
+	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.05f);
 
 	immRecti(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 

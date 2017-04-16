@@ -115,7 +115,7 @@ static void gp_set_point_uniform_color(const bGPDspoint *pt, const float ink[4])
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
-	immUniform4f("color", ink[0], ink[1], ink[2], alpha);
+	immUniformColor3fvAlpha(ink, alpha);
 }
 
 static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4], unsigned attrib_id)

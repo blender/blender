@@ -1310,7 +1310,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	unsigned int texCoord = VertexFormat_add_attrib(imm_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-	immUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
+	immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	immUniform1i("image", GL_TEXTURE0);
 
 	immBegin(PRIM_TRIANGLE_FAN, 4);

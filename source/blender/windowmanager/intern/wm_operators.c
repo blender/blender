@@ -3089,7 +3089,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR);
 
-		immUniform4f("color", col[0], col[1], col[2], alpha);
+		immUniformColor3fvAlpha(col, alpha);
 		immUniform1i("image", GL_TEXTURE0);
 
 		/* set up rotation if available */
@@ -3208,7 +3208,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniformColor3fvAlpha(col, 0.5); 
+	immUniformColor3fvAlpha(col, 0.5f);
 
 	if (rc->subtype == PROP_ANGLE) {
 		gpuPushMatrix();
