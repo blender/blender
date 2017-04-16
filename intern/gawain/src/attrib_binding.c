@@ -10,6 +10,7 @@
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "attrib_binding.h"
+#include "attrib_binding_private.h"
 #include <stddef.h>
 
 #if MAX_VERTEX_ATTRIBS != 16
