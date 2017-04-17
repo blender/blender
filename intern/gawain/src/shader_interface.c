@@ -211,17 +211,34 @@ void ShaderInterface_discard(ShaderInterface* shaderface)
 
 const ShaderInput* ShaderInterface_uniform(const ShaderInterface* shaderface, const char* name)
 	{
+	// search through custom uniforms first
 	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
 		{
 		const ShaderInput* uniform = shaderface->inputs + i;
 
+		if (uniform->builtin_type == UNIFORM_CUSTOM)
+			{
 #if SUPPORT_LEGACY_GLSL
-		if (uniform->name == NULL) continue;
+			if (uniform->name == NULL) continue;
 #endif
 
-		if (match(uniform->name, name))
-			return uniform;
+			if (match(uniform->name, name))
+				return uniform;
+			}
 		}
+
+	// search through builtin uniforms next
+	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
+		{
+		const ShaderInput* uniform = shaderface->inputs + i;
+
+		if (uniform->builtin_type != UNIFORM_CUSTOM)
+			if (match(uniform->name, name))
+				return uniform;
+
+		// TODO: warn if we find a matching builtin, since these can be looked up much quicker --v
+		}
+
 	return NULL; // not found
 	}
 
