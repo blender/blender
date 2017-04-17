@@ -146,6 +146,12 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 #if defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT)
 	/* Mac workaround, remove after we switch to core profile */
 	glFramebufferTextureEXT(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0);
+#elif defined(WITH_GL_PROFILE_COMPAT)
+	/* Workaround for Mesa compatibility profile, remove after we switch to core profile */
+	if(!GLEW_VERSION_3_2) /* glFramebufferTexture was introduced in 3.2. It is *not* available in the ARB FBO extension */
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GPU_texture_target(tex), GPU_texture_opengl_bindcode(tex), 0);
+	else
+		glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0); /* normal core call, same as below */
 #else
 	glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0);
 #endif
