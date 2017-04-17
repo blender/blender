@@ -25,7 +25,7 @@
  *  \ingroup bli
  */
 
-static inline unsigned int BLI_hash_int_2d(unsigned int kx, unsigned int ky)
+BLI_INLINE unsigned int BLI_hash_int_2d(unsigned int kx, unsigned int ky)
 {
 #define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
 
@@ -48,7 +48,7 @@ static inline unsigned int BLI_hash_int_2d(unsigned int kx, unsigned int ky)
 #undef rot
 }
 
-static inline unsigned int BLI_hash_string(const char *str)
+BLI_INLINE unsigned int BLI_hash_string(const char *str)
 {
 	unsigned int i = 0, c;
 
@@ -58,7 +58,7 @@ static inline unsigned int BLI_hash_string(const char *str)
 	return i;
 }
 
-static inline  unsigned int BLI_hash_int(unsigned int k)
+BLI_INLINE unsigned int BLI_hash_int(unsigned int k)
 {
 	return BLI_hash_int_2d(k, 0);
 }
