@@ -631,71 +631,63 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 #define FLUID_SUFFIX_CONFIG_TMP	(FLUID_SUFFIX_CONFIG ".tmp")
 #define FLUID_SUFFIX_SURFACE	"fluidsurface"
 
-static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetFile, char *debugStrBuffer)
+static bool fluid_init_filepaths(
+        ReportList *reports, FluidsimSettings *domainSettings, Object *fsDomain,
+        char *targetDir, char *targetFile)
 {
-	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(fsDomain, eModifierType_Fluidsim);
-	FluidsimSettings *domainSettings= fluidmd->fss;
-	FILE *fileCfg;
-	int dirExist = 0;
-	char newSurfdataPath[FILE_MAX]; /* modified output settings */
 	const char *suffixConfigTmp = FLUID_SUFFIX_CONFIG_TMP;
-	int outStringsChanged = 0;
 
 	/* prepare names... */
-	const char *relbase= modifier_path_relbase(fsDomain);
+	const char *relbase = modifier_path_relbase(fsDomain);
+
+	/* We do not accept empty paths, they can end in random places silently, see T51176. */
+	if (domainSettings->surfdataPath[0] == '\0') {
+		modifier_path_init(domainSettings->surfdataPath, sizeof(domainSettings->surfdataPath),
+		                   OB_FLUIDSIM_SURF_DIR_DEFAULT);
+		BKE_reportf(reports, RPT_WARNING, "Fluidsim: empty cache path, reset to default '%s'",
+		            domainSettings->surfdataPath);
+	}
 
 	BLI_strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
-	BLI_strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR); /* if 0'd out below, this value is never used! */
-	BLI_path_abs(targetDir, relbase); /* fixed #frame-no */
+	BLI_path_abs(targetDir, relbase);
 
 	/* .tmp: don't overwrite/delete original file */
 	BLI_join_dirfile(targetFile, FILE_MAX, targetDir, suffixConfigTmp);
 
-	// make sure all directories exist
-	// as the bobjs use the same dir, this only needs to be checked
-	// for the cfg output
-	BLI_make_existing_file(targetFile);
-	
-	// check selected directory
-	// simply try to open cfg file for writing to test validity of settings
-	fileCfg = BLI_fopen(targetFile, "w");
-	if (fileCfg) {
-		dirExist = 1; fclose(fileCfg); 
-		// remove cfg dummy from  directory test
-		BLI_delete(targetFile, false, false);
+	/* Ensure whole path exists and is wirtable. */
+	const bool dir_exists = BLI_dir_create_recursive(targetDir);
+	const bool is_writable = BLI_file_is_writable(targetFile);
+
+	/* We change path to some presumably valid default value, but do not allow bake process to continue,
+	 * this gives user chance to set manually another path. */
+	if (!dir_exists || !is_writable) {
+		modifier_path_init(domainSettings->surfdataPath, sizeof(domainSettings->surfdataPath),
+		                   OB_FLUIDSIM_SURF_DIR_DEFAULT);
+
+		if (!dir_exists) {
+			BKE_reportf(reports, RPT_ERROR, "Fluidsim: could not create cache directory '%s', reset to default '%s'",
+			            targetDir, domainSettings->surfdataPath);
+		}
+		else {
+			BKE_reportf(reports, RPT_ERROR, "Fluidsim: cache directory '%s' is not writable, reset to default '%s'",
+			            targetDir, domainSettings->surfdataPath);
+		}
+
+		BLI_strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
+		BLI_path_abs(targetDir, relbase);
+
+		/* .tmp: don't overwrite/delete original file */
+		BLI_join_dirfile(targetFile, FILE_MAX, targetDir, suffixConfigTmp);
+
+		/* Ensure whole path exists and is wirtable. */
+		if (!BLI_dir_create_recursive(targetDir) || !BLI_file_is_writable(targetFile)) {
+			BKE_reportf(reports, RPT_ERROR, "Fluidsim: could not use default cache directory '%s', "
+			                                "please define a valid cache path manually", targetDir);
+		}
+		return false;
 	}
-	
-	if (targetDir[0] == '\0' || (!dirExist)) {
-		char blendFile[FILE_MAX];
-		
-		// invalid dir, reset to current/previous
-		BLI_split_file_part(G.main->name, blendFile, sizeof(blendFile));
-		BLI_replace_extension(blendFile, FILE_MAX, ""); /* strip .blend */
-		BLI_snprintf(newSurfdataPath, FILE_MAX, "//fluidsimdata/%s_%s_", blendFile, fsDomain->id.name);
-		
-		BLI_snprintf(debugStrBuffer, 256, "fluidsimBake::error - warning resetting output dir to '%s'\n", newSurfdataPath);
-		elbeemDebugOut(debugStrBuffer);
-		outStringsChanged=1;
-	}
-	
-	/* check if modified output dir is ok */
-#if 0
-	if (outStringsChanged) {
-		char dispmsg[FILE_MAX+256];
-		int  selection=0;
-		BLI_strncpy(dispmsg, "Output settings set to: '", sizeof(dispmsg));
-		strcat(dispmsg, newSurfdataPath);
-		strcat(dispmsg, "'%t|Continue with changed settings %x1|Discard and abort %x0");
-		
-		/* ask user if thats what he/she wants... */
-		selection = pupmenu(dispmsg);
-		if (selection < 1) return 0; /* 0 from menu, or -1 aborted */
-		BLI_strncpy(targetDir, newSurfdataPath, sizeof(targetDir));
-		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
-		BLI_path_abs(targetDir, G.main->name); /* fixed #frame-no */
-	}
-#endif
-	return outStringsChanged;
+
+	return true;
 }
 
 /* ******************************************************************************** */
@@ -857,7 +849,6 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 
 	char targetDir[FILE_MAX];  // store & modify output settings
 	char targetFile[FILE_MAX]; // temp. store filename from targetDir for access
-	int  outStringsChanged = 0;             // modified? copy back before baking
 
 	float domainMat[4][4];
 	float invDomMat[4][4];
@@ -943,7 +934,11 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	
 	
 	/* ******** prepare output file paths ******** */
-	outStringsChanged = fluid_init_filepaths(fsDomain, targetDir, targetFile, debugStrBuffer);
+	if (!fluid_init_filepaths(reports, domainSettings, fsDomain, targetDir, targetFile)) {
+		fluidbake_free_data(channels, fobjects, fsset, fb);
+		return false;
+	}
+
 	channels->length = scene->r.efra; // DG TODO: why using endframe and not "noFrames" here? .. because "noFrames" is buggy too? (not using sfra)
 	channels->aniFrameTime = (double)((double)domainSettings->animEnd - (double)domainSettings->animStart) / (double)noFrames;
 	
@@ -968,11 +963,6 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	/* ********  start writing / exporting ******** */
 	// use .tmp, don't overwrite/delete original file
 	BLI_join_dirfile(targetFile, sizeof(targetFile), targetDir, suffixConfigTmp);
-	
-	// make sure these directories exist as well
-	if (outStringsChanged) {
-		BLI_make_existing_file(targetFile);
-	}
 
 	/* ******** export domain to elbeem ******** */
 	elbeemResetSettings(fsset);

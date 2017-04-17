@@ -98,7 +98,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		/* fluid/inflow settings
 		 * fss->iniVel --> automatically set to 0 */
 
-		modifier_path_init(fss->surfdataPath, sizeof(fss->surfdataPath), "cache_fluid");
+		modifier_path_init(fss->surfdataPath, sizeof(fss->surfdataPath), OB_FLUIDSIM_SURF_DIR_DEFAULT);
 
 		/* first init of bounding box */
 		/* no bounding box needed */
