@@ -44,7 +44,7 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
-void BLI_make_existing_file(const char *name);
+bool BLI_make_existing_file(const char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen);
 void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen);
 void BLI_split_file_part(const char *string, char *file, const size_t filelen);
