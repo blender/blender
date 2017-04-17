@@ -204,7 +204,7 @@ ShaderInterface* ShaderInterface_create(GLint program)
 		// realloc shaderface to shrink name buffer
 		ShaderInterface* orig_pointer = shaderface;
 		shaderface = realloc(shaderface, offsetof(ShaderInterface, inputs) + input_ct * sizeof(ShaderInput) + name_buffer_used);
-		const ptrdiff_t delta = shaderface - orig_pointer;
+		const ptrdiff_t delta = (char*)shaderface - (char*)orig_pointer;
 
 		if (delta)
 			{
