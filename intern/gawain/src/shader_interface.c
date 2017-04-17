@@ -192,13 +192,33 @@ ShaderInterface* ShaderInterface_create(GLint program)
 #endif
 		}
 
-	// TODO: realloc shaderface to shrink name buffer
-	//       each input->name will need adjustment (except static built-in names)
+	const uint32_t name_buffer_used = name_buffer_offset;
 
 #if DEBUG_SHADER_INTERFACE
-	printf("using %u of %u bytes from name buffer\n", name_buffer_offset, name_buffer_len);
+	printf("using %u of %u bytes from name buffer\n", name_buffer_used, name_buffer_len);
 	printf("}\n"); // exit function
 #endif
+
+	if (name_buffer_used < name_buffer_len)
+		{
+		// realloc shaderface to shrink name buffer
+		ShaderInterface* orig_pointer = shaderface;
+		shaderface = realloc(shaderface, offsetof(ShaderInterface, inputs) + input_ct * sizeof(ShaderInput) + name_buffer_used);
+		const ptrdiff_t delta = shaderface - orig_pointer;
+
+		if (delta)
+			{
+			// each input->name will need adjustment (except static built-in names)
+			const uint32_t input_ct = shaderface->uniform_ct + shaderface->attrib_ct;
+			for (uint32_t i = 0; i < input_ct; ++i)
+				{
+				ShaderInput* input = shaderface->inputs + i;
+
+				if (input->builtin_type == UNIFORM_CUSTOM || input->builtin_type == UNIFORM_NONE)
+					input->name += delta;
+				}
+			}
+		}
 
 	return shaderface;
 	}
