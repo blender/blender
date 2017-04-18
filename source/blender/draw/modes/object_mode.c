@@ -1265,7 +1265,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->outlines_fade5);
 
 	/* reattach */
-	DRW_framebuffer_texture_attach(fbl->outlines, txl->outlines_depth_tx, 0);
+	DRW_framebuffer_texture_attach(fbl->outlines, txl->outlines_depth_tx, 0, 0);
 	DRW_framebuffer_bind(dfbl->default_fb);
 
 	/* This needs to be drawn after the oultine */

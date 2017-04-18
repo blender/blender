@@ -225,7 +225,7 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 			goto cleanup;
 		}
 
-		if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->color, 0)) {
+		if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->color, 0, 0)) {
 			ok = false;
 			goto cleanup;
 		}
@@ -236,7 +236,7 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 			ok = false;
 			goto cleanup;
 		}
-		else if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0)) {
+		else if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0)) {
 			ok = false;
 			goto cleanup;
 		}

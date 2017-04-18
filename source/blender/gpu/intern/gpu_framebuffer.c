@@ -114,7 +114,7 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 	return fb;
 }
 
-bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot)
+bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
 {
 	GLenum attachment;
 
@@ -145,15 +145,15 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 
 #if defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT)
 	/* Mac workaround, remove after we switch to core profile */
-	glFramebufferTextureEXT(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0);
+	glFramebufferTextureEXT(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), mip);
 #elif defined(WITH_GL_PROFILE_COMPAT)
 	/* Workaround for Mesa compatibility profile, remove after we switch to core profile */
 	if(!GLEW_VERSION_3_2) /* glFramebufferTexture was introduced in 3.2. It is *not* available in the ARB FBO extension */
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GPU_texture_target(tex), GPU_texture_opengl_bindcode(tex), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GPU_texture_target(tex), GPU_texture_opengl_bindcode(tex), mip);
 	else
-		glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0); /* normal core call, same as below */
+		glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), mip); /* normal core call, same as below */
 #else
-	glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), mip);
 #endif
 
 	if (GPU_texture_depth(tex))
@@ -194,7 +194,7 @@ void GPU_framebuffer_texture_detach(GPUTexture *tex)
 		attachment = GL_COLOR_ATTACHMENT0 + fb_attachment;
 	}
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GPU_texture_target(tex), 0, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, attachment, 0, 0);
 
 	GPU_texture_framebuffer_set(tex, NULL, -1);
 }
@@ -526,7 +526,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_
 		return NULL;
 	}
 
-	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth, 0)) {
+	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth, 0, 0)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
@@ -537,7 +537,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_
 		return NULL;
 	}
 
-	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->color, 0)) {
+	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->color, 0, 0)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}

@@ -50,7 +50,7 @@ struct GPUTexture;
 void GPU_texture_bind_as_framebuffer(struct GPUTexture *tex);
 
 GPUFrameBuffer *GPU_framebuffer_create(void);
-bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, struct GPUTexture *tex, int slot);
+bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int mip);
 void GPU_framebuffer_texture_detach(struct GPUTexture *tex);
 void GPU_framebuffer_bind(GPUFrameBuffer *fb);
 void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot);

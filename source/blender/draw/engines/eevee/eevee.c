@@ -226,7 +226,7 @@ static void EEVEE_draw_scene(void *vedata)
 
 	/* Attach depth to the hdr buffer and bind it */	
 	DRW_framebuffer_texture_detach(dtxl->depth);
-	DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0);
+	DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
 	DRW_framebuffer_bind(fbl->main);
 
 	/* Clear Depth */
@@ -240,7 +240,7 @@ static void EEVEE_draw_scene(void *vedata)
 
 	/* Restore default framebuffer */
 	DRW_framebuffer_texture_detach(dtxl->depth);
-	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0);
+	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
 	DRW_framebuffer_bind(dfbl->default_fb);
 
 	DRW_draw_pass(psl->tonemap);

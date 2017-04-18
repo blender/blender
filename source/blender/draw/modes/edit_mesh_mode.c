@@ -476,7 +476,7 @@ static void EDIT_MESH_draw_scene(void *vedata)
 		DRW_draw_pass(psl->mix_occlude);
 
 		/* reattach */
-		DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0);
+		DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
 	}
 	else {
 		DRW_draw_pass(psl->normals);

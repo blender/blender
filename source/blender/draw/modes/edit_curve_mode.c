@@ -214,7 +214,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 	 * DRW_framebuffer_texture_detach(dtxl->depth);
 	 * DRW_framebuffer_bind(fbl->custom_fb);
 	 * DRW_draw_pass(psl->pass);
-	 * DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0);
+	 * DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
 	 * DRW_framebuffer_bind(dfbl->default_fb);
 	 */
 

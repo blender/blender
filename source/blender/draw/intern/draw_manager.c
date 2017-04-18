@@ -1256,7 +1256,7 @@ void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRW
 				}
 			}
 
-			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment);
+			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
 		}
 
 		if (!GPU_framebuffer_check_valid(*fb, NULL)) {
@@ -1290,9 +1290,9 @@ void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col
 	        ((stencil) ? GL_STENCIL_BUFFER_BIT : 0));
 }
 
-void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, GPUTexture *tex, int slot)
+void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
 {
-	GPU_framebuffer_texture_attach(fb, tex, slot);
+	GPU_framebuffer_texture_attach(fb, tex, slot, mip);
 }
 
 void DRW_framebuffer_texture_detach(GPUTexture *tex)

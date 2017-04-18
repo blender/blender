@@ -141,17 +141,17 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 	if (!txl->shadow_depth_cube_pool) {
 		txl->shadow_depth_cube_pool = DRW_texture_create_2D_array(512, 512, MAX2(1, linfo->num_cube * 6), DRW_TEX_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
 		if (fbl->shadow_cube_fb)
-			DRW_framebuffer_texture_attach(fbl->shadow_cube_fb, txl->shadow_depth_cube_pool, 0);
+			DRW_framebuffer_texture_attach(fbl->shadow_cube_fb, txl->shadow_depth_cube_pool, 0, 0);
 	}
 	if (!txl->shadow_depth_map_pool) {
 		txl->shadow_depth_map_pool = DRW_texture_create_2D_array(512, 512, MAX2(1, linfo->num_map), DRW_TEX_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
 		if (fbl->shadow_map_fb)
-			DRW_framebuffer_texture_attach(fbl->shadow_map_fb, txl->shadow_depth_map_pool, 0);
+			DRW_framebuffer_texture_attach(fbl->shadow_map_fb, txl->shadow_depth_map_pool, 0, 0);
 	}
 	if (!txl->shadow_depth_cascade_pool) {
 		txl->shadow_depth_cascade_pool = DRW_texture_create_2D_array(512, 512, MAX2(1, linfo->num_cascade), DRW_TEX_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
 		if (fbl->shadow_cascade_fb)
-			DRW_framebuffer_texture_attach(fbl->shadow_cascade_fb, txl->shadow_depth_map_pool, 0);
+			DRW_framebuffer_texture_attach(fbl->shadow_cascade_fb, txl->shadow_depth_map_pool, 0, 0);
 	}
 
 	DRWFboTexture tex_cube = {&txl->shadow_depth_cube_pool, DRW_BUF_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE};
