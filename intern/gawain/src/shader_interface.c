@@ -209,8 +209,8 @@ ShaderInterface* ShaderInterface_create(GLint program)
 		if (delta)
 			{
 			// each input->name will need adjustment (except static built-in names)
-			const uint32_t input_ct = shaderface->uniform_ct + shaderface->attrib_ct;
-			for (uint32_t i = 0; i < input_ct; ++i)
+			const uint32_t input_ct_new = shaderface->uniform_ct + shaderface->attrib_ct;
+			for (uint32_t i = 0; i < input_ct_new; ++i)
 				{
 				ShaderInput* input = shaderface->inputs + i;
 
@@ -252,6 +252,9 @@ const ShaderInput* ShaderInterface_uniform(const ShaderInterface* shaderface, co
 		{
 		const ShaderInput* uniform = shaderface->inputs + i;
 
+#if SUPPORT_LEGACY_GLSL
+		if (uniform->name == NULL) continue;
+#endif
 		if (uniform->builtin_type != UNIFORM_CUSTOM)
 			if (match(uniform->name, name))
 				return uniform;
