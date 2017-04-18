@@ -157,7 +157,6 @@ shader_node_categories = [
         NodeItem("ShaderNodeGeometry"),
         NodeItem("ShaderNodeExtendedMaterial"),
         NodeItem("ShaderNodeParticleInfo"),
-        NodeItem("ShaderNodeObjectInfo"),
         NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
         ]),
     ShaderOldNodeCategory("SH_OUTPUT", "Output", items=[
