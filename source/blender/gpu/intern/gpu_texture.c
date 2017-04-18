@@ -587,12 +587,12 @@ GPUTexture *GPU_texture_create_cube_custom(int w, int channels, GPUTextureFormat
 	const float *fpixels_px, *fpixels_py, *fpixels_pz, *fpixels_nx, *fpixels_ny, *fpixels_nz;
 
 	if (fpixels) {
-		fpixels_px = fpixels + 0 * w * w;
-		fpixels_py = fpixels + 1 * w * w;
-		fpixels_pz = fpixels + 2 * w * w;
-		fpixels_nx = fpixels + 3 * w * w;
-		fpixels_ny = fpixels + 4 * w * w;
-		fpixels_nz = fpixels + 5 * w * w;
+		fpixels_px = fpixels + 0 * w * w * channels;
+		fpixels_nx = fpixels + 1 * w * w * channels;
+		fpixels_py = fpixels + 2 * w * w * channels;
+		fpixels_ny = fpixels + 3 * w * w * channels;
+		fpixels_pz = fpixels + 4 * w * w * channels;
+		fpixels_nz = fpixels + 5 * w * w * channels;
 	}
 	else {
 		fpixels_px = fpixels_py = fpixels_pz = fpixels_nx = fpixels_ny = fpixels_nz = NULL;
