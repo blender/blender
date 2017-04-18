@@ -29,7 +29,7 @@
 #if defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT)
   #define APPLE_LEGACY 1
 #else
-  #define APPLE_LEGACY 1
+  #define APPLE_LEGACY 0
 #endif
 
 #if APPLE_LEGACY
