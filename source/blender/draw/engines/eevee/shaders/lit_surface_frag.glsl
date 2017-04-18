@@ -3,6 +3,13 @@ uniform int light_count;
 uniform vec3 cameraPos;
 uniform vec3 eye;
 uniform mat4 ProjectionMatrix;
+
+uniform samplerCube probeFiltered;
+uniform float lodMax;
+
+#ifndef USE_LTC
+uniform sampler2D brdfLut;
+#endif
 uniform sampler2DArrayShadow shadowCubes;
 uniform sampler2DArrayShadow shadowMaps;
 // uniform sampler2DArrayShadow shadowCascades;
@@ -190,13 +197,16 @@ void main()
 	sd.R = reflect(-sd.V, sd.N);
 
 	/* hardcoded test vars */
-	vec3 albedo = vec3(0.8);
-	vec3 specular = mix(vec3(0.03), vec3(1.0), pow(max(0.0, 1.0 - dot(sd.N, sd.V)), 5.0));
-	float roughness = 0.1;
+	vec3 albedo = vec3(0.0);
+	vec3 f0 = mix(vec3(0.83, 0.5, 0.1), vec3(0.03, 0.03, 0.03), saturate(worldPosition.y/2));
+	vec3 specular = mix(f0, vec3(1.0), pow(max(0.0, 1.0 - dot(sd.N, sd.V)), 5.0));
+	float roughness = saturate(worldPosition.x/lodMax);
 
 	sd.spec_dominant_dir = get_specular_dominant_dir(sd.N, sd.R, roughness);
 
 	vec3 radiance = vec3(0.0);
+
+	/* Analitic Lights */
 	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
 		LightData ld = lights_data[i];
 
@@ -211,6 +221,12 @@ void main()
 
 		radiance += vis * (albedo * diff + specular * spec) * ld.l_color;
 	}
+
+	/* Envmaps */
+	vec2 uv = ltc_coords(dot(sd.N, sd.V), sqrt(roughness));
+	vec2 brdf_lut = texture(brdfLut, uv).rg;
+	vec3 Li = textureLod(probeFiltered, sd.spec_dominant_dir, roughness * lodMax).rgb;
+	radiance += Li * brdf_lut.y + f0 * Li * brdf_lut.x;
 
 	fragColor = vec4(radiance, 1.0);
 }

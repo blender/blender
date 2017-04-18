@@ -65,6 +65,7 @@ set(SRC
 
 	engines/eevee/eevee.c
 	engines/eevee/eevee_lights.c
+	engines/eevee/eevee_probes.c
 	engines/eevee/eevee.h
 	engines/eevee/eevee_private.h
 
@@ -103,12 +104,18 @@ data_to_c_simple(engines/clay/shaders/ssao_groundtruth.glsl SRC)
 
 data_to_c_simple(engines/eevee/shaders/lit_surface_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lit_surface_vert.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/probe_filter_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/probe_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/probe_geom.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/probe_vert.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/shadow_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/shadow_geom.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/shadow_vert.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/tonemap_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/bsdf_lut_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/bsdf_direct_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/bsdf_common_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/bsdf_sampling_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/ltc_lib.glsl SRC)
 
 data_to_c_simple(modes/shaders/common_globals_lib.glsl SRC)

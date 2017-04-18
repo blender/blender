@@ -2263,6 +2263,7 @@ void GPU_state_init(void)
 	/* TODO: remove this when we switch to core profile */
 	glEnable(GL_POINT_SPRITE);
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	glDepthFunc(GL_LEQUAL);
 	/* scaling matrices */

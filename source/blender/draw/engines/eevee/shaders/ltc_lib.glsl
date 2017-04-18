@@ -4,7 +4,7 @@
 #define LTC_LUT_SIZE 64
 
 uniform sampler2D ltcMat;
-uniform sampler2D ltcMag;
+uniform sampler2D brdfLut;
 
 /* from Real-Time Area Lighting: a Journey from Research to Production
  * Stephen Hill and Eric Heitz */

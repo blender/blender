@@ -105,6 +105,7 @@ typedef enum GPUTextureFormat {
 	GPU_DEPTH24_STENCIL8,
 
 	/* Texture only format */
+	GPU_RGB16F,
 #if 0
 	GPU_RGBA16_SNORM,
 	GPU_RGBA8_SNORM,
@@ -112,7 +113,6 @@ typedef enum GPUTextureFormat {
 	GPU_RGB32I,
 	GPU_RGB32UI,
 	GPU_RGB16_SNORM,
-	GPU_RGB16F,
 	GPU_RGB16I,
 	GPU_RGB16UI,
 	GPU_RGB16,

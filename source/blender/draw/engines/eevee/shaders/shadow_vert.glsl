@@ -1,5 +1,4 @@
 
-uniform mat4 ShadowMatrix;
 uniform mat4 ModelMatrix;
 
 in vec3 pos;

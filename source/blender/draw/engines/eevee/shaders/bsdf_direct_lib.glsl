@@ -129,7 +129,7 @@ float direct_ggx_sphere(LightData ld, ShadingData sd, float roughness)
 	bsdf *= 1.25331413731;
 #endif
 
-	bsdf *= texture(ltcMag, uv).r; /* Bsdf intensity */
+	bsdf *= texture(brdfLut, uv).b; /* Bsdf intensity */
 	bsdf *= M_1_2PI * M_1_PI;
 #else
 	float energy_conservation;
@@ -150,7 +150,7 @@ float direct_ggx_rectangle(LightData ld, ShadingData sd, float roughness)
 	mat3 ltcmat = ltc_matrix(uv);
 
 	float bsdf = ltc_evaluate(sd.N, sd.V, ltcmat, sd.area_data.corner);
-	bsdf *= texture(ltcMag, uv).r; /* Bsdf intensity */
+	bsdf *= texture(brdfLut, uv).b; /* Bsdf intensity */
 	bsdf *= M_1_2PI;
 #else
 	float energy_conservation;

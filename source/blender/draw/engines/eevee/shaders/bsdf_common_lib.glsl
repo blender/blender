@@ -1,5 +1,6 @@
 
 #define M_PI        3.14159265358979323846  /* pi */
+#define M_PI_2      1.57079632679489661923  /* pi/2 */
 #define M_1_PI      0.318309886183790671538  /* 1/pi */
 #define M_1_2PI     0.159154943091895335768  /* 1/(2*pi) */
 #define M_1_PI2     0.101321183642337771443  /* 1/(pi^2) */
@@ -52,6 +53,10 @@ struct ShadowMapData {
 #define sh_map_far    near_far_bias.y
 #define sh_map_bias   near_far_bias.z
 
+#ifndef MAX_CASCADE_NUM
+#define MAX_CASCADE_NUM 1
+#endif
+
 struct ShadowCascadeData {
 	mat4 shadowmat[MAX_CASCADE_NUM];
 	vec4 bias_count;
@@ -98,26 +103,6 @@ float hypot(float x, float y) { return sqrt(x*x + y*y); }
 
 float inverse_distance(vec3 V) { return max( 1 / length(V), 1e-8); }
 
-float linear_depth(float z, float zf, float zn)
-{
-	if (gl_ProjectionMatrix[3][3] == 0.0) {
-		return (zn  * zf) / (z * (zn - zf) + zf);
-	}
-	else {
-		return (z * 2.0 - 1.0) * zf;
-	}
-}
-
-float buffer_depth(float z, float zf, float zn)
-{
-	if (gl_ProjectionMatrix[3][3] == 0.0) {
-		return (zf * (zn - z)) / (z * (zn - zf));
-	}
-	else {
-		return (z / (zf * 2.0)) + 0.5;
-	}
-}
-
 float line_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec3 planeorigin, vec3 planenormal)
 {
 	return dot(planenormal, planeorigin - lineorigin) / dot(planenormal, linedirection);
@@ -149,6 +134,45 @@ vec3 line_aligned_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 plan
 	return lineorigin + linedirection * dist;
 }
 
+/* -- Tangent Space conversion -- */
+vec3 tangent_to_world(vec3 vector, vec3 N, vec3 T, vec3 B)
+{
+	return T * vector.x + B * vector.y + N * vector.z;
+}
+
+vec3 world_to_tangent(vec3 vector, vec3 N, vec3 T, vec3 B)
+{
+	return vec3( dot(T, vector), dot(B, vector), dot(N, vector));
+}
+
+void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
+{
+	vec3 UpVector = abs(N.z) < 0.99999 ? vec3(0.0,0.0,1.0) : vec3(1.0,0.0,0.0);
+	T = normalize( cross(UpVector, N) );
+	B = cross(N, T);
+}
+
+/* ---- Opengl Depth conversion ---- */
+float linear_depth(float z, float zf, float zn)
+{
+	if (gl_ProjectionMatrix[3][3] == 0.0) {
+		return (zn  * zf) / (z * (zn - zf) + zf);
+	}
+	else {
+		return (z * 2.0 - 1.0) * zf;
+	}
+}
+
+float buffer_depth(float z, float zf, float zn)
+{
+	if (gl_ProjectionMatrix[3][3] == 0.0) {
+		return (zf * (zn - z)) / (z * (zn - zf));
+	}
+	else {
+		return (z / (zf * 2.0)) + 0.5;
+	}
+}
+
 float rectangle_solid_angle(AreaData ad)
 {
 	vec3 n0 = normalize(cross(ad.corner[0], ad.corner[1]));
@@ -166,7 +190,9 @@ float rectangle_solid_angle(AreaData ad)
 
 vec3 get_specular_dominant_dir(vec3 N, vec3 R, float roughness)
 {
-	return normalize(mix(N, R, 1.0 - roughness * roughness));
+	float smoothness = 1.0 - roughness;
+	float fac = smoothness * (sqrt(smoothness) + roughness);
+	return normalize(mix(N, R, fac));
 }
 
 /* From UE4 paper */

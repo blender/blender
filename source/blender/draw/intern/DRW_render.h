@@ -142,6 +142,7 @@ typedef enum {
 	DRW_TEX_FILTER = (1 << 0),
 	DRW_TEX_WRAP = (1 << 1),
 	DRW_TEX_COMPARE = (1 << 2),
+	DRW_TEX_MIPMAP = (1 << 3),
 } DRWTextureFlag;
 
 struct GPUTexture *DRW_texture_create_1D(
@@ -152,6 +153,7 @@ struct GPUTexture *DRW_texture_create_2D_array(
         int w, int h, int d, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_cube(
         int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+void DRW_texture_generate_mipmaps(struct GPUTexture *tex);
 void DRW_texture_free(struct GPUTexture *tex);
 #define DRW_TEXTURE_FREE_SAFE(tex) do { \
 	if (tex != NULL) { \
@@ -176,9 +178,6 @@ void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
 #define DRW_BUF_RG_8			6
 #define DRW_BUF_RG_16			7
 #define DRW_BUF_RG_32			8
-#define DRW_BUF_RGB_8			9
-#define DRW_BUF_RGB_16			10
-#define DRW_BUF_RGB_32			11
 #define DRW_BUF_RGBA_8			12
 #define DRW_BUF_RGBA_16			13
 #define DRW_BUF_RGBA_32			14
@@ -194,9 +193,10 @@ typedef struct DRWFboTexture {
 void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX], int texnbr);
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
 void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col[4], float clear_depth);
-void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot);
+void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int mip);
 void DRW_framebuffer_texture_detach(struct GPUTexture *tex);
 void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth);
+void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *UNUSED(fb_read), int w, int h);
 
 /* Shaders */
 struct GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *frag, const char *defines);

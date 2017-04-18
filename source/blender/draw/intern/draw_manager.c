@@ -210,6 +210,7 @@ static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *da
 	switch (format) {
 		case DRW_TEX_RGBA_8: *data_type = GPU_RGBA8; break;
 		case DRW_TEX_RGBA_16: *data_type = GPU_RGBA16F; break;
+		case DRW_TEX_RGB_16: *data_type = GPU_RGB16F; break;
 		case DRW_TEX_RG_16: *data_type = GPU_RG16F; break;
 		case DRW_TEX_RG_32: *data_type = GPU_RG32F; break;
 		case DRW_TEX_R_8: *data_type = GPU_R8; break;
@@ -217,7 +218,6 @@ static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *da
 #if 0
 		case DRW_TEX_RGBA_32: *data_type = GPU_RGBA32F; break;
 		case DRW_TEX_RGB_8: *data_type = GPU_RGB8; break;
-		case DRW_TEX_RGB_16: *data_type = GPU_RGB16F; break;
 		case DRW_TEX_RGB_32: *data_type = GPU_RGB32F; break;
 		case DRW_TEX_RG_8: *data_type = GPU_RG8; break;
 		case DRW_TEX_R_32: *data_type = GPU_R32F; break;
@@ -257,6 +257,10 @@ static void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags)
 {
 	GPU_texture_bind(tex, 0);
 	GPU_texture_filter_mode(tex, flags & DRW_TEX_FILTER);
+	if (flags & DRW_TEX_MIPMAP) {
+		GPU_texture_mipmap_mode(tex, true);
+		DRW_texture_generate_mipmaps(tex);
+	}
 	GPU_texture_wrap_mode(tex, flags & DRW_TEX_WRAP);
 	GPU_texture_compare_mode(tex, flags & DRW_TEX_COMPARE);
 	GPU_texture_unbind(tex);
@@ -312,6 +316,13 @@ GPUTexture *DRW_texture_create_cube(int w, DRWTextureFormat format, DRWTextureFl
 	drw_texture_set_parameters(tex, flags);
 
 	return tex;
+}
+
+void DRW_texture_generate_mipmaps(GPUTexture *tex)
+{
+	GPU_texture_bind(tex, 0);
+	GPU_texture_generate_mipmap(tex);
+	GPU_texture_unbind(tex);
 }
 
 void DRW_texture_free(GPUTexture *tex)
@@ -1222,6 +1233,7 @@ static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *
 	             (fbo_format == DRW_BUF_DEPTH_24));
 
 	switch (fbo_format) {
+		case DRW_BUF_RG_16:    *channels = 2; return GPU_RG16F;
 		case DRW_BUF_RGBA_8:   *channels = 4; return GPU_RGBA8;
 		case DRW_BUF_RGBA_16:  *channels = 4; return GPU_RGBA16F;
 		case DRW_BUF_DEPTH_24: *channels = 1; return GPU_DEPTH_COMPONENT24;
@@ -1241,19 +1253,19 @@ void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRW
 		*fb = GPU_framebuffer_create();
 
 		for (int i = 0; i < texnbr; ++i) {
+			int channels;
+			bool is_depth;
+
 			DRWFboTexture fbotex = textures[i];
+			GPUTextureFormat gpu_format = convert_tex_format(fbotex.format, &channels, &is_depth);
 
 			if (!*fbotex.tex) {
-				int channels;
-				bool is_depth;
-				GPUTextureFormat gpu_format = convert_tex_format(fbotex.format, &channels, &is_depth);
-
 				*fbotex.tex = GPU_texture_create_2D_custom(width, height, channels, gpu_format, NULL, NULL);
 				drw_texture_set_parameters(*fbotex.tex, fbotex.flag);
+			}
 
-				if (!is_depth) {
-					++color_attachment;
-				}
+			if (!is_depth) {
+				++color_attachment;
 			}
 
 			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
@@ -1303,6 +1315,11 @@ void DRW_framebuffer_texture_detach(GPUTexture *tex)
 void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth)
 {
 	GPU_framebuffer_blit(fb_read, 0, fb_write, 0, depth);
+}
+
+void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *UNUSED(fb_read), int w, int h)
+{
+	glViewport(0, 0, w, h);
 }
 
 /* ****************************************** Viewport ******************************************/
