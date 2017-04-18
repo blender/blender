@@ -217,16 +217,17 @@ void AbcCurveReader::readObjectData(Main *bmain, float time)
 
 	cu->flag |= CU_DEFORM_FILL | CU_3D;
 	cu->actvert = CU_ACT_NONE;
+	cu->resolu = 1;
 
 	const ISampleSelector sample_sel(time);
+
 	ICompoundProperty user_props = m_curves_schema.getUserProperties();
-	const PropertyHeader *header = user_props.getPropertyHeader(ABC_CURVE_RESOLUTION_U_PROPNAME);
-	if (header != NULL && header->isScalar() && IInt16Property::matches(*header)) {
-		IInt16Property resolu(user_props, header->getName());
-		cu->resolu = resolu.getValue(sample_sel);
-	}
-	else {
-		cu->resolu = 1;
+	if (user_props) {
+		const PropertyHeader *header = user_props.getPropertyHeader(ABC_CURVE_RESOLUTION_U_PROPNAME);
+		if (header != NULL && header->isScalar() && IInt16Property::matches(*header)) {
+			IInt16Property resolu(user_props, header->getName());
+			cu->resolu = resolu.getValue(sample_sel);
+		}
 	}
 
 	m_object = BKE_object_add_only_object(bmain, OB_CURVE, m_object_name.c_str());
