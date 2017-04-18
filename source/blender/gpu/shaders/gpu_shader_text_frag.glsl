@@ -18,5 +18,5 @@ void main()
 	fragColor.rgb = color_flat.rgb;
 
 	// modulate input alpha & texture alpha
-	fragColor.a = color_flat.a * texture2D(glyph, texCoord_interp).a;
+	fragColor.a = color_flat.a * texture2D(glyph, texCoord_interp).r;
 }
