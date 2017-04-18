@@ -8,7 +8,7 @@ vec2 jitternoise = vec2(0.0);
 
 void setup_noise(void)
 {
-	jitternoise = texture(texJitter, gl_FragCoord.xy / NOISE_SIZE, 0).rg; /* Global variable */
+	jitternoise = texture(texJitter, gl_FragCoord.xy / NOISE_SIZE).rg; /* Global variable */
 }
 
 vec3 hammersley_3d(float i, float invsamplenbr)

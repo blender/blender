@@ -153,7 +153,8 @@ float light_visibility(LightData ld, ShadingData sd)
 		/* Depth in lightspace to compare against shadow map */
 		float w = dot(maj_axis, sd.l_vector);
 		w -= scd.sh_map_bias * w;
-		float shdepth = buffer_depth(w, scd.sh_cube_far, scd.sh_cube_near);
+		bool is_persp = (ProjectionMatrix[3][3] == 0.0);
+		float shdepth = buffer_depth(is_persp, w, scd.sh_cube_far, scd.sh_cube_near);
 
 		vis *= texture(shadowCubes, vec4(uvs, shid * 6.0 + face, shdepth));
 	}

@@ -153,9 +153,9 @@ void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
 }
 
 /* ---- Opengl Depth conversion ---- */
-float linear_depth(float z, float zf, float zn)
+float linear_depth(bool is_persp, float z, float zf, float zn)
 {
-	if (gl_ProjectionMatrix[3][3] == 0.0) {
+	if (is_persp) {
 		return (zn  * zf) / (z * (zn - zf) + zf);
 	}
 	else {
@@ -163,9 +163,9 @@ float linear_depth(float z, float zf, float zn)
 	}
 }
 
-float buffer_depth(float z, float zf, float zn)
+float buffer_depth(bool is_persp, float z, float zf, float zn)
 {
-	if (gl_ProjectionMatrix[3][3] == 0.0) {
+	if (is_persp) {
 		return (zf * (zn - z)) / (z * (zn - zf));
 	}
 	else {
