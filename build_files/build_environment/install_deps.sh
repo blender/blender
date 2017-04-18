@@ -2601,7 +2601,6 @@ install_DEB() {
   fi
 
   # These libs should always be available in debian/ubuntu official repository...
-  OPENJPEG_DEV="libopenjpeg-dev"
   VORBIS_DEV="libvorbis-dev"
   OGG_DEV="libogg-dev"
   THEORA_DEV="libtheora-dev"
@@ -2609,15 +2608,23 @@ install_DEB() {
   _packages="gawk cmake cmake-curses-gui build-essential libjpeg-dev libpng-dev libtiff-dev \
              git libfreetype6-dev libx11-dev flex bison libtbb-dev libxxf86vm-dev \
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
-             libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
+             libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
              libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
              libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev"
              # libglewmx-dev  (broken in deb testing currently...)
 
-  OPENJPEG_USE=true
   VORBIS_USE=true
   OGG_USE=true
   THEORA_USE=true
+
+  PRINT ""
+  # New Ubuntu crap (17.04 and more) have no openjpeg lib!
+  OPENJPEG_DEV="libopenjpeg-dev"
+  check_package_DEB $OPENJPEG_DEV
+  if [ $? -eq 0 ]; then
+    _packages="$_packages $OPENJPEG_DEV"
+    OPENJPEG_USE=true
+  fi
 
   PRINT ""
   # Some not-so-old distro (ubuntu 12.4) do not have it, do not fail in this case, just warn.
