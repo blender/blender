@@ -202,19 +202,21 @@ ShaderInterface* ShaderInterface_create(GLint program)
 	if (name_buffer_used < name_buffer_len)
 		{
 		// realloc shaderface to shrink name buffer
-		ShaderInterface* orig_pointer = shaderface;
-		shaderface = realloc(shaderface, offsetof(ShaderInterface, inputs) + input_ct * sizeof(ShaderInput) + name_buffer_used);
-		const ptrdiff_t delta = (char*)shaderface - (char*)orig_pointer;
+		const size_t shaderface_alloc =
+		        offsetof(ShaderInterface, inputs) + (input_ct * sizeof(ShaderInput)) + name_buffer_used;
+		const char* shaderface_orig_start = (const char*)shaderface;
+		const char* shaderface_orig_end = &shaderface_orig_start[shaderface_alloc];
+		shaderface = realloc(shaderface, shaderface_alloc);
+		const ptrdiff_t delta = (char*)shaderface - shaderface_orig_start;
 
 		if (delta)
 			{
 			// each input->name will need adjustment (except static built-in names)
-			const uint32_t input_ct_new = shaderface->uniform_ct + shaderface->attrib_ct;
-			for (uint32_t i = 0; i < input_ct_new; ++i)
+			for (uint32_t i = 0; i < input_ct; ++i)
 				{
 				ShaderInput* input = shaderface->inputs + i;
 
-				if (input->builtin_type == UNIFORM_CUSTOM || input->builtin_type == UNIFORM_NONE)
+				if (input->name >= shaderface_orig_start && input->name < shaderface_orig_end)
 					input->name += delta;
 				}
 			}
