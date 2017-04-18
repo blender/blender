@@ -841,6 +841,7 @@
 #undef GL_SOURCE2_RGB
 #define GL_SOURCE2_RGB DO_NOT_USE_GL_SOURCE2_RGB
 
+#if 0 /* Those are deprecated but still valid */
 // Old Token Names 3.0
 #undef GL_CLIP_PLANE0
 #define GL_CLIP_PLANE0 USE_GL_CLIP_DISTANCE0
@@ -864,5 +865,6 @@
 // Old Token Names 3.2
 #undef GL_VERTEX_PROGRAM_POINT_SIZE
 #define GL_VERTEX_PROGRAM_POINT_SIZE USE_GL_PROGRAM_POINT_SIZE
+#endif
 
 #endif /* __GL_DEPRECATED_H__ */
