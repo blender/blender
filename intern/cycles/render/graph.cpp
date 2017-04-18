@@ -1037,6 +1037,9 @@ int ShaderGraph::get_num_closures()
 		else if(CLOSURE_IS_BSDF_MULTISCATTER(closure_type)) {
 			num_closures += 2;
 		}
+		else if(CLOSURE_IS_PRINCIPLED(closure_type)) {
+			num_closures += 8;
+		}
 		else {
 			++num_closures;
 		}

@@ -124,6 +124,13 @@ ccl_device float3 fresnel_conductor(float cosi, const float3 eta, const float3 k
 	return(Rparl2 + Rperp2) * 0.5f;
 }
 
+ccl_device float schlick_fresnel(float u)
+{
+	float m = clamp(1.0f - u, 0.0f, 1.0f);
+	float m2 = m * m;
+	return m2 * m2 * m; // pow(m, 5)
+}
+
 ccl_device float smooth_step(float edge0, float edge1, float x)
 {
 	float result;
@@ -134,6 +141,19 @@ ccl_device float smooth_step(float edge0, float edge1, float x)
 		result = (3.0f-2.0f*t)*(t*t);
 	}
 	return result;
+}
+
+/* Calculate the fresnel color which is a blend between white and the F0 color (cspec0) */
+ccl_device_forceinline float3 interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, float3 cspec0) {
+	/* Calculate the fresnel interpolation factor
+	 * The value from fresnel_dielectric_cos(...) has to be normalized because
+	 * the cspec0 keeps the F0 color
+	*/
+	float F0_norm = 1.0f / (1.0f - F0);
+	float FH = (fresnel_dielectric_cos(dot(L, H), ior) - F0) * F0_norm;
+
+	/* Blend between white and a specular color with respect to the fresnel */
+	return cspec0 * (1.0f - FH) + make_float3(1.0f, 1.0f, 1.0f) * FH;
 }
 
 CCL_NAMESPACE_END

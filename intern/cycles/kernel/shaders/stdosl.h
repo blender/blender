@@ -530,6 +530,11 @@ closure color microfacet_ggx_refraction(normal N, float ag, float eta) BUILTIN;
 closure color microfacet_multi_ggx(normal N, float ag, color C) BUILTIN;
 closure color microfacet_multi_ggx_aniso(normal N, vector T, float ax, float ay, color C) BUILTIN;
 closure color microfacet_multi_ggx_glass(normal N, float ag, float eta, color C) BUILTIN;
+closure color microfacet_ggx_fresnel(normal N, float ag, float eta, color C, color Cspec0) BUILTIN;
+closure color microfacet_ggx_aniso_fresnel(normal N, vector T, float ax, float ay, float eta, color C, color Cspec0) BUILTIN;
+closure color microfacet_multi_ggx_fresnel(normal N, float ag, float eta, color C, color Cspec0) BUILTIN;
+closure color microfacet_multi_ggx_aniso_fresnel(normal N, vector T, float ax, float ay, float eta, color C, color Cspec0) BUILTIN;
+closure color microfacet_multi_ggx_glass_fresnel(normal N, float ag, float eta, color C, color Cspec0) BUILTIN;
 closure color microfacet_beckmann(normal N, float ab) BUILTIN;
 closure color microfacet_beckmann_aniso(normal N, vector T, float ax, float ay) BUILTIN;
 closure color microfacet_beckmann_refraction(normal N, float ab, float eta) BUILTIN;
@@ -539,11 +544,15 @@ closure color emission() BUILTIN;
 closure color background() BUILTIN;
 closure color holdout() BUILTIN;
 closure color ambient_occlusion() BUILTIN;
+closure color principled_diffuse(normal N, float roughness) BUILTIN;
+closure color principled_sheen(normal N) BUILTIN;
+closure color principled_clearcoat(normal N, float clearcoat, float clearcoat_gloss) BUILTIN;
 
 // BSSRDF
 closure color bssrdf_cubic(normal N, vector radius, float texture_blur, float sharpness) BUILTIN;
 closure color bssrdf_gaussian(normal N, vector radius, float texture_blur) BUILTIN;
 closure color bssrdf_burley(normal N, vector radius, float texture_blur, color albedo) BUILTIN;
+closure color bssrdf_principled(normal N, vector radius, float texture_blur, color subsurface_color, float roughness) BUILTIN;
 
 // Hair
 closure color hair_reflection(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;

@@ -27,6 +27,8 @@
 #include "kernel/closure/bsdf_ashikhmin_shirley.h"
 #include "kernel/closure/bsdf_toon.h"
 #include "kernel/closure/bsdf_hair.h"
+#include "kernel/closure/bsdf_principled_diffuse.h"
+#include "kernel/closure/bsdf_principled_sheen.h"
 #ifdef __SUBSURFACE__
 #  include "kernel/closure/bssrdf.h"
 #endif
@@ -86,16 +88,21 @@ ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 			label = bsdf_microfacet_ggx_sample(kg, sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
 			label = bsdf_microfacet_multi_ggx_sample(kg, sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 			        eval, omega_in,  &domega_in->dx, &domega_in->dy, pdf, &sd->lcg_state);
 			break;
 		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
 			label = bsdf_microfacet_multi_ggx_glass_sample(kg, sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 			        eval, omega_in,  &domega_in->dx, &domega_in->dy, pdf, &sd->lcg_state);
 			break;
@@ -128,6 +135,15 @@ ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
 			break;
 		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
 			label = bsdf_hair_transmission_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			break;
+		case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
+		case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
+			label = bsdf_principled_diffuse_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			break;
+		case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
+			label = bsdf_principled_sheen_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #endif
@@ -188,14 +204,19 @@ float3 bsdf_eval(KernelGlobals *kg,
 				eval = bsdf_transparent_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_GGX_ID:
+			case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
+			case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
 			case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
+			case CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID:
 			case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 				eval = bsdf_microfacet_ggx_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
+			case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
 				eval = bsdf_microfacet_multi_ggx_eval_reflect(sc, sd->I, omega_in, pdf, &sd->lcg_state);
 				break;
 			case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
+			case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
 				eval = bsdf_microfacet_multi_ggx_glass_eval_reflect(sc, sd->I, omega_in, pdf, &sd->lcg_state);
 				break;
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
@@ -221,6 +242,13 @@ float3 bsdf_eval(KernelGlobals *kg,
 				break;
 			case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
 				eval = bsdf_hair_transmission_eval_reflect(sc, sd->I, omega_in, pdf);
+				break;
+			case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
+			case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
+				eval = bsdf_principled_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
+				break;
+			case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
+				eval = bsdf_principled_sheen_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 #endif
 #ifdef __VOLUME__
@@ -256,14 +284,19 @@ float3 bsdf_eval(KernelGlobals *kg,
 				eval = bsdf_transparent_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_GGX_ID:
+			case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
+			case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
 			case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
+			case CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID:
 			case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 				eval = bsdf_microfacet_ggx_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
+			case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
 				eval = bsdf_microfacet_multi_ggx_eval_transmit(sc, sd->I, omega_in, pdf, &sd->lcg_state);
 				break;
 			case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
+			case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
 				eval = bsdf_microfacet_multi_ggx_glass_eval_transmit(sc, sd->I, omega_in, pdf, &sd->lcg_state);
 				break;
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
@@ -290,6 +323,13 @@ float3 bsdf_eval(KernelGlobals *kg,
 			case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
 				eval = bsdf_hair_transmission_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
+			case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
+			case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
+				eval = bsdf_principled_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
+				break;
+			case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
+				eval = bsdf_principled_sheen_eval_transmit(sc, sd->I, omega_in, pdf);
+				break;
 #endif
 #ifdef __VOLUME__
 			case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
@@ -311,11 +351,16 @@ ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 #ifdef __SVM__
 	switch(sc->type) {
 		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
 		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
 			bsdf_microfacet_multi_ggx_blur(sc, roughness);
 			break;
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 			bsdf_microfacet_ggx_blur(sc, roughness);
 			break;
@@ -349,10 +394,15 @@ ccl_device bool bsdf_merge(ShaderClosure *a, ShaderClosure *b)
 		case CLOSURE_BSDF_REFLECTION_ID:
 		case CLOSURE_BSDF_REFRACTION_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
 		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
 		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:

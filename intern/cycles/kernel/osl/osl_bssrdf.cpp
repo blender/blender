@@ -39,7 +39,9 @@
 #include "kernel/kernel_montecarlo.h"
 
 #include "kernel/closure/alloc.h"
+#include "kernel/closure/bsdf_util.h"
 #include "kernel/closure/bsdf_diffuse.h"
+#include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bssrdf.h"
 
 CCL_NAMESPACE_BEGIN
@@ -78,6 +80,7 @@ public:
 				bssrdf->albedo = albedo.x;
 				bssrdf->sharpness = sharpness;
 				bssrdf->N = params.N;
+				bssrdf->roughness = params.roughness;
 				sd->flag |= bssrdf_setup(bssrdf, (ClosureType)type);
 			}
 
@@ -89,6 +92,7 @@ public:
 				bssrdf->albedo = albedo.y;
 				bssrdf->sharpness = sharpness;
 				bssrdf->N = params.N;
+				bssrdf->roughness = params.roughness;
 				sd->flag |= bssrdf_setup(bssrdf, (ClosureType)type);
 			}
 
@@ -100,6 +104,7 @@ public:
 				bssrdf->albedo = albedo.z;
 				bssrdf->sharpness = sharpness;
 				bssrdf->N = params.N;
+				bssrdf->roughness = params.roughness;
 				sd->flag |= bssrdf_setup(bssrdf, (ClosureType)type);
 			}
 		}
@@ -179,6 +184,32 @@ ClosureParam *closure_bssrdf_burley_params()
 }
 
 CCLOSURE_PREPARE(closure_bssrdf_burley_prepare, BurleyBSSRDFClosure)
+
+/* Disney principled */
+
+class PrincipledBSSRDFClosure : public CBSSRDFClosure {
+public:
+	void setup(ShaderData *sd, int path_flag, float3 weight)
+	{
+		alloc(sd, path_flag, weight * albedo, CLOSURE_BSSRDF_PRINCIPLED_ID);
+	}
+};
+
+ClosureParam *closure_bssrdf_principled_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(PrincipledBSSRDFClosure, params.N),
+		CLOSURE_FLOAT3_PARAM(PrincipledBSSRDFClosure, radius),
+		CLOSURE_FLOAT_PARAM(PrincipledBSSRDFClosure, params.texture_blur),
+		CLOSURE_FLOAT3_PARAM(PrincipledBSSRDFClosure, albedo),
+		CLOSURE_FLOAT_PARAM(PrincipledBSSRDFClosure, params.roughness),
+		CLOSURE_STRING_KEYPARAM(PrincipledBSSRDFClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(PrincipledBSSRDFClosure)
+	};
+	return params;
+}
+
+CCLOSURE_PREPARE(closure_bssrdf_principled_prepare, PrincipledBSSRDFClosure)
 
 CCL_NAMESPACE_END
 
