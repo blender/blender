@@ -152,6 +152,7 @@ set(SRC
 	BLI_ghash.h
 	BLI_graph.h
 	BLI_gsqueue.h
+	BLI_hash.h
 	BLI_hash_md5.h
 	BLI_hash_mm2a.h
 	BLI_heap.h
