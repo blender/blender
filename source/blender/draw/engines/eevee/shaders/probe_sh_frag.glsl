@@ -1,6 +1,7 @@
 
 uniform samplerCube probeHdr;
 uniform int probeSize;
+uniform float lodBias;
 
 in vec3 worldPosition;
 
@@ -93,7 +94,7 @@ void main()
 					shcoef = 0.546274 * (cubevec.x * cubevec.x - cubevec.z * cubevec.z) * 1.0 / 4.0;
 				}
 
-				vec4 sample = textureCube(probeHdr, cubevec);
+				vec4 sample = textureCubeLod(probeHdr, cubevec, lodBias);
 				sh += sample.rgb * shcoef * weight;
 				weight_accum += weight;
 			}

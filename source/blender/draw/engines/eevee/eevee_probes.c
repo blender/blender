@@ -208,7 +208,9 @@ void EEVEE_refresh_probe(EEVEE_Data *vedata)
 	DRW_framebuffer_texture_attach(fbl->probe_filter_fb, txl->probe_pool, 0, 0);
 
 	/* 4 - Compute spherical harmonics */
-	pinfo->shres = 64;
+	/* Tweaking parameters to balance perf. vs precision */
+	pinfo->shres = 16; /* Less texture fetches & reduce branches */
+	pinfo->lodfactor = 4.0f; /* Improve cache reuse */
 	DRW_framebuffer_bind(fbl->probe_sh_fb);
 	DRW_draw_pass(psl->probe_sh_compute);
 	DRW_framebuffer_read_data(0, 0, 9, 1, 3, 0, (float *)pinfo->shcoefs);

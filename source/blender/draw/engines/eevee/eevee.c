@@ -352,6 +352,7 @@ static void EEVEE_cache_init(void *vedata)
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_spherical_harmonic_sh, psl->probe_sh_compute);
 		DRW_shgroup_uniform_int(grp, "probeSize", &stl->probes->shres, 1);
+		DRW_shgroup_uniform_float(grp, "lodBias", &stl->probes->lodfactor, 1);
 		DRW_shgroup_uniform_texture(grp, "probeHdr", txl->probe_rt, 0);
 
 		struct Batch *geom = DRW_cache_fullscreen_quad_get();
