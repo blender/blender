@@ -29,6 +29,11 @@ set(SRC
 )
 
 # remove this when we switch to core profile
-add_definitions(-DWITH_GL_PROFILE_COMPAT)
+if(WITH_GL_PROFILE_COMPAT)
+	add_definitions(-DWITH_GL_PROFILE_COMPAT)
+	add_definitions(-DWITH_OPENGL_LEGACY)
+else()
+	add_definitions(-DWITH_GL_PROFILE_CORE)
+endif()
 
 blender_add_lib(bf_intern_gawain "${SRC}" "${INC}" "${INC_SYS}")
