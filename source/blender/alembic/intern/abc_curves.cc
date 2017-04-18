@@ -95,7 +95,7 @@ void AbcCurveWriter::do_write()
 	for (; nurbs; nurbs = nurbs->next) {
 		if (nurbs->bp) {
 			curve_basis = Alembic::AbcGeom::kNoBasis;
-			curve_type = Alembic::AbcGeom::kLinear;
+			curve_type = Alembic::AbcGeom::kVariableOrder;
 
 			const int totpoint = nurbs->pntsu * nurbs->pntsv;
 
@@ -160,7 +160,7 @@ void AbcCurveWriter::do_write()
 			}
 		}
 
-		orders.push_back(nurbs->orderu + 1);
+		orders.push_back(nurbs->orderu);
 		vert_counts.push_back(verts.size());
 	}
 
