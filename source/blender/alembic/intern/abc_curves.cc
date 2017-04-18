@@ -258,8 +258,8 @@ void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const float time)
 			case Alembic::AbcGeom::kVariableOrder:
 				if (orders && orders->size() > i) {
 					nu->orderu = static_cast<short>((*orders)[i]);
+					break;
 				}
-				break;
 			case Alembic::AbcGeom::kLinear:
 			default:
 				nu->orderu = 2;
