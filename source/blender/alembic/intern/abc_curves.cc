@@ -49,18 +49,25 @@ using Alembic::Abc::Int32ArraySamplePtr;
 using Alembic::Abc::FloatArraySamplePtr;
 using Alembic::Abc::P3fArraySamplePtr;
 using Alembic::Abc::UcharArraySamplePtr;
+using Alembic::Abc::PropertyHeader;
 
+using Alembic::AbcGeom::ICompoundProperty;
 using Alembic::AbcGeom::ICurves;
 using Alembic::AbcGeom::ICurvesSchema;
 using Alembic::AbcGeom::IFloatGeomParam;
+using Alembic::AbcGeom::IInt16Property;
 using Alembic::AbcGeom::ISampleSelector;
 using Alembic::AbcGeom::kWrapExisting;
 using Alembic::AbcGeom::CurvePeriodicity;
 
+using Alembic::AbcGeom::OCompoundProperty;
 using Alembic::AbcGeom::OCurves;
 using Alembic::AbcGeom::OCurvesSchema;
+using Alembic::AbcGeom::OInt16Property;
 using Alembic::AbcGeom::ON3fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
+
+#define ABC_CURVE_RESOLUTION_U_PROPNAME "blender:resolution"
 
 /* ************************************************************************** */
 
@@ -73,6 +80,11 @@ AbcCurveWriter::AbcCurveWriter(Scene *scene,
 {
 	OCurves curves(parent->alembicXform(), m_name, m_time_sampling);
 	m_schema = curves.getSchema();
+
+	Curve *cu = static_cast<Curve *>(m_object->data);
+	OCompoundProperty user_props = m_schema.getUserProperties();
+	OInt16Property user_prop_resolu(user_props, ABC_CURVE_RESOLUTION_U_PROPNAME);
+	user_prop_resolu.set(cu->resolu);
 }
 
 void AbcCurveWriter::do_write()
@@ -205,12 +217,22 @@ void AbcCurveReader::readObjectData(Main *bmain, float time)
 
 	cu->flag |= CU_DEFORM_FILL | CU_3D;
 	cu->actvert = CU_ACT_NONE;
-	cu->resolu = 1;
+
+	const ISampleSelector sample_sel(time);
+	ICompoundProperty user_props = m_curves_schema.getUserProperties();
+	const PropertyHeader *header = user_props.getPropertyHeader(ABC_CURVE_RESOLUTION_U_PROPNAME);
+	if (header != NULL && header->isScalar() && IInt16Property::matches(*header)) {
+		IInt16Property resolu(user_props, header->getName());
+		cu->resolu = resolu.getValue(sample_sel);
+	}
+	else {
+		cu->resolu = 1;
+	}
 
 	m_object = BKE_object_add_only_object(bmain, OB_CURVE, m_object_name.c_str());
 	m_object->data = cu;
 
-	read_curve_sample(cu, m_curves_schema, time);
+	read_curve_sample(cu, m_curves_schema, sample_sel);
 
 	if (has_animations(m_curves_schema, m_settings)) {
 		addCacheModifier();
@@ -219,9 +241,8 @@ void AbcCurveReader::readObjectData(Main *bmain, float time)
 
 /* ************************************************************************** */
 
-void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const float time)
+void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const ISampleSelector &sample_sel)
 {
-	const ISampleSelector sample_sel(time);
 	ICurvesSchema::Sample smp = schema.getValue(sample_sel);
 	const Int32ArraySamplePtr num_vertices = smp.getCurvesNumVertices();
 	const P3fArraySamplePtr positions = smp.getPositions();
@@ -383,7 +404,7 @@ DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh * /*dm*/, const float 
 
 	if (curve_count != num_vertices->size()) {
 		BKE_nurbList_free(&curve->nurb);
-		read_curve_sample(curve, m_curves_schema, time);
+		read_curve_sample(curve, m_curves_schema, sample_sel);
 	}
 	else {
 		Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);

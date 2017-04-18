@@ -128,6 +128,7 @@ class AbstractAlembicTest(unittest.TestCase):
         converters = {
             'bool_t': int,
             'uint8_t': int,
+            'int16_t': int,
             'int32_t': int,
             'float64_t': float,
             'float32_t': float,
@@ -141,7 +142,13 @@ class AbstractAlembicTest(unittest.TestCase):
             info = lines.popleft()
             if not info:
                 continue
-            proptype, valtype_and_arrsize, name_and_extent = info.split()
+            parts = info.split()
+            proptype = parts[0]
+
+            if proptype == 'CompoundProperty':
+                # To read those, call self.abcprop() on it.
+                continue
+            valtype_and_arrsize, name_and_extent = parts[1:]
 
             # Parse name and extent
             m = self.abcls_array.match(name_and_extent)
@@ -290,6 +297,9 @@ class CurveExportTest(AbstractAlembicTest):
         # Now check the resulting Alembic file.
         abcprop = self.abcprop(abc, '/NurbsCurve/NurbsCurveShape/.geom')
         self.assertEqual(abcprop['.orders'], [4])
+
+        abcprop = self.abcprop(abc, '/NurbsCurve/NurbsCurveShape/.geom/.userProperties')
+        self.assertEqual(abcprop['blender:resolution'], 10)
 
 
 if __name__ == '__main__':
