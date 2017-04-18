@@ -454,8 +454,9 @@ static void EEVEE_draw_scene(void *vedata)
 
 	/* Clear Depth */
 	/* TODO do background */
-	float clearcol[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
+	// float clearcol[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	// DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
+	DRW_draw_background();
 
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->depth_pass_cull);
