@@ -176,8 +176,10 @@ void GPU_texture_bind(GPUTexture *tex, int number);
 void GPU_texture_unbind(GPUTexture *tex);
 int GPU_texture_bound_number(GPUTexture *tex);
 
+void GPU_texture_generate_mipmap(GPUTexture *tex);
 void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
 void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
+void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap);
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat);
 
 struct GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex);
