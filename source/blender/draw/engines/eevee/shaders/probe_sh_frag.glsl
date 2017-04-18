@@ -94,7 +94,7 @@ void main()
 					shcoef = 0.546274 * (cubevec.x * cubevec.x - cubevec.z * cubevec.z) * 1.0 / 4.0;
 				}
 
-				vec4 sample = textureCubeLod(probeHdr, cubevec, lodBias);
+				vec4 sample = textureLod(probeHdr, cubevec, lodBias);
 				sh += sample.rgb * shcoef * weight;
 				weight_accum += weight;
 			}
@@ -103,5 +103,5 @@ void main()
 
 	sh *= M_4PI / weight_accum;
 
-	gl_FragColor = vec4(sh, 1.0);
+	FragColor = vec4(sh, 1.0);
 }
