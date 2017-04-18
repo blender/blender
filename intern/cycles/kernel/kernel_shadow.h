@@ -379,7 +379,7 @@ ccl_device bool shadow_blocked_transparent_stepped(
         float3 *shadow)
 {
 	bool blocked, is_transparent_isect;
-	if (skip_object == OBJECT_NONE) {
+	if(skip_object == OBJECT_NONE) {
 		blocked = scene_intersect(kg,
 		                          *ray,
 		                          PATH_RAY_SHADOW_OPAQUE,

@@ -423,7 +423,8 @@ void ShaderGraph::copy_nodes(ShaderNodeSet& nodes, ShaderNodeMap& nnodemap)
 /* Graph simplification */
 /* ******************** */
 
-/* Step 1: Remove proxy nodes.
+/* Remove proxy nodes.
+ *
  * These only exists temporarily when exporting groups, and we must remove them
  * early so that node->attributes() and default links do not see them.
  */
@@ -493,7 +494,8 @@ void ShaderGraph::remove_proxy_nodes()
 	}
 }
 
-/* Step 2: Constant folding.
+/* Constant folding.
+ *
  * Try to constant fold some nodes, and pipe result directly to
  * the input socket of connected nodes.
  */
@@ -554,7 +556,7 @@ void ShaderGraph::constant_fold()
 	}
 }
 
-/* Step 3: Simplification. */
+/* Simplification. */
 void ShaderGraph::simplify_settings(Scene *scene)
 {
 	foreach(ShaderNode *node, nodes) {
@@ -562,7 +564,7 @@ void ShaderGraph::simplify_settings(Scene *scene)
 	}
 }
 
-/* Step 4: Deduplicate nodes with same settings. */
+/* Deduplicate nodes with same settings. */
 void ShaderGraph::deduplicate_nodes()
 {
 	/* NOTES:
@@ -638,6 +640,48 @@ void ShaderGraph::deduplicate_nodes()
 	}
 }
 
+/* Check whether volume output has meaningful nodes, otherwise
+ * disconnect the output.
+ */
+void ShaderGraph::verify_volume_output()
+{
+	/* Check whether we can optimize the whole volume graph out. */
+	ShaderInput *volume_in = output()->input("Volume");
+	if(volume_in->link == NULL) {
+		return;
+	}
+	bool has_valid_volume = false;
+	ShaderNodeSet scheduled;
+	queue<ShaderNode*> traverse_queue;
+	/* Schedule volume output. */
+	traverse_queue.push(volume_in->link->parent);
+	scheduled.insert(volume_in->link->parent);
+	/* Traverse down the tree. */
+	while(!traverse_queue.empty()) {
+		ShaderNode *node = traverse_queue.front();
+		traverse_queue.pop();
+		/* Node is fully valid for volume, can't optimize anything out. */
+		if(node->has_volume_support()) {
+			has_valid_volume = true;
+			break;
+		}
+		foreach(ShaderInput *input, node->inputs) {
+			if(input->link == NULL) {
+				continue;
+			}
+			if(scheduled.find(input->link->parent) != scheduled.end()) {
+				continue;
+			}
+			traverse_queue.push(input->link->parent);
+			scheduled.insert(input->link->parent);
+		}
+	}
+	if(!has_valid_volume) {
+		VLOG(1) << "Disconnect meaningless volume output.";
+		disconnect(volume_in->link);
+	}
+}
+
 void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack)
 {
 	visited[node->id] = true;
@@ -666,16 +710,11 @@ void ShaderGraph::clean(Scene *scene)
 {
 	/* Graph simplification */
 
-	/* 1: Remove proxy nodes was already done. */
-
-	/* 2: Constant folding. */
+	/* NOTE: Remove proxy nodes was already done. */
 	constant_fold();
-
-	/* 3: Simplification. */
 	simplify_settings(scene);
-
-	/* 4: De-duplication. */
 	deduplicate_nodes();
+	verify_volume_output();
 
 	/* we do two things here: find cycles and break them, and remove unused
 	 * nodes that don't feed into the output. how cycles are broken is
@@ -997,6 +1036,9 @@ int ShaderGraph::get_num_closures()
 		}
 		else if(CLOSURE_IS_BSDF_MULTISCATTER(closure_type)) {
 			num_closures += 2;
+		}
+		else if(CLOSURE_IS_PRINCIPLED(closure_type)) {
+			num_closures += 8;
 		}
 		else {
 			++num_closures;

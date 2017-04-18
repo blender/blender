@@ -64,11 +64,12 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_pose_constraints(Object *ob, bPoseChannel *pchan)
+void DepsgraphNodeBuilder::build_pose_constraints(Scene *scene, Object *ob, bPoseChannel *pchan)
 {
 	/* create node for constraint stack */
 	add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-	                   DEPSOP_TYPE_EXEC, function_bind(BKE_pose_constraints_evaluate, _1, ob, pchan),
+	                   DEPSOP_TYPE_EXEC,
+	                   function_bind(BKE_pose_constraints_evaluate, _1, scene, ob, pchan),
 	                   DEG_OPCODE_BONE_CONSTRAINTS);
 }
 
@@ -201,7 +202,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 
 		/* constraints */
 		if (pchan->constraints.first != NULL) {
-			build_pose_constraints(ob, pchan);
+			build_pose_constraints(scene, ob, pchan);
 		}
 
 		/**

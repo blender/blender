@@ -2286,6 +2286,150 @@ void DiffuseBsdfNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_diffuse_bsdf");
 }
 
+/* Disney principled BSDF Closure */
+NODE_DEFINE(PrincipledBsdfNode)
+{
+	NodeType* type = NodeType::add("principled_bsdf", create, NodeType::SHADER);
+
+	static NodeEnum distribution_enum;
+	distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
+	distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+	SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+	SOCKET_IN_COLOR(base_color, "Base Color", make_float3(0.8f, 0.8f, 0.8f));
+	SOCKET_IN_COLOR(subsurface_color, "Subsurface Color", make_float3(0.8f, 0.8f, 0.8f));
+	SOCKET_IN_FLOAT(metallic, "Metallic", 0.0f);
+	SOCKET_IN_FLOAT(subsurface, "Subsurface", 0.0f);
+	SOCKET_IN_VECTOR(subsurface_radius, "Subsurface Radius", make_float3(0.1f, 0.1f, 0.1f));
+	SOCKET_IN_FLOAT(specular, "Specular", 0.0f);
+	SOCKET_IN_FLOAT(roughness, "Roughness", 0.0f);
+	SOCKET_IN_FLOAT(specular_tint, "Specular Tint", 0.0f);
+	SOCKET_IN_FLOAT(anisotropic, "Anisotropic", 0.0f);
+	SOCKET_IN_FLOAT(sheen, "Sheen", 0.0f);
+	SOCKET_IN_FLOAT(sheen_tint, "Sheen Tint", 0.0f);
+	SOCKET_IN_FLOAT(clearcoat, "Clearcoat", 0.0f);
+	SOCKET_IN_FLOAT(clearcoat_gloss, "Clearcoat Gloss", 0.0f);
+	SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
+	SOCKET_IN_FLOAT(transparency, "Transparency", 0.0f);
+	SOCKET_IN_FLOAT(refraction_roughness, "Refraction Roughness", 0.0f);
+	SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
+	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
+	SOCKET_IN_NORMAL(clearcoat_normal, "Clearcoat Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
+	SOCKET_IN_NORMAL(tangent, "Tangent", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TANGENT);
+	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
+
+	SOCKET_OUT_CLOSURE(BSDF, "BSDF");
+
+	return type;
+}
+
+PrincipledBsdfNode::PrincipledBsdfNode()
+	: ShaderNode(node_type)
+{
+	special_type = SHADER_SPECIAL_TYPE_CLOSURE;
+	closure = CLOSURE_BSDF_PRINCIPLED_ID;
+	distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
+	distribution_orig = NBUILTIN_CLOSURES;
+}
+
+void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+	if(shader->has_surface) {
+		ShaderInput *tangent_in = input("Tangent");
+
+		if(!tangent_in->link)
+			attributes->add(ATTR_STD_GENERATED);
+	}
+
+	ShaderNode::attributes(shader, attributes);
+}
+
+void PrincipledBsdfNode::compile(SVMCompiler& compiler, ShaderInput *p_metallic, ShaderInput *p_subsurface, ShaderInput *p_subsurface_radius,
+	ShaderInput *p_specular, ShaderInput *p_roughness, ShaderInput *p_specular_tint, ShaderInput *p_anisotropic,
+	ShaderInput *p_sheen, ShaderInput *p_sheen_tint, ShaderInput *p_clearcoat, ShaderInput *p_clearcoat_gloss,
+	ShaderInput *p_ior, ShaderInput *p_transparency, ShaderInput *p_anisotropic_rotation, ShaderInput *p_refraction_roughness)
+{
+	ShaderInput *base_color_in = input("Base Color");
+	ShaderInput *subsurface_color_in = input("Subsurface Color");
+	ShaderInput *normal_in = input("Normal");
+	ShaderInput *clearcoat_normal_in = input("Clearcoat Normal");
+	ShaderInput *tangent_in = input("Tangent");
+
+	float3 weight = make_float3(1.0f, 1.0f, 1.0f);
+
+	compiler.add_node(NODE_CLOSURE_SET_WEIGHT, weight);
+
+	int normal_offset = compiler.stack_assign_if_linked(normal_in);
+	int clearcoat_normal_offset = compiler.stack_assign_if_linked(clearcoat_normal_in);
+	int tangent_offset = compiler.stack_assign_if_linked(tangent_in);
+	int specular_offset = compiler.stack_assign(p_specular);
+	int roughness_offset = compiler.stack_assign(p_roughness);
+	int specular_tint_offset = compiler.stack_assign(p_specular_tint);
+	int anisotropic_offset = compiler.stack_assign(p_anisotropic);
+	int sheen_offset = compiler.stack_assign(p_sheen);
+	int sheen_tint_offset = compiler.stack_assign(p_sheen_tint);
+	int clearcoat_offset = compiler.stack_assign(p_clearcoat);
+	int clearcoat_gloss_offset = compiler.stack_assign(p_clearcoat_gloss);
+	int ior_offset = compiler.stack_assign(p_ior);
+	int transparency_offset = compiler.stack_assign(p_transparency);
+	int refraction_roughness_offset = compiler.stack_assign(p_refraction_roughness);
+	int anisotropic_rotation_offset = compiler.stack_assign(p_anisotropic_rotation);
+	int subsurface_radius_offset = compiler.stack_assign(p_subsurface_radius);
+
+	compiler.add_node(NODE_CLOSURE_BSDF,
+		compiler.encode_uchar4(closure,
+		compiler.stack_assign(p_metallic),
+		compiler.stack_assign(p_subsurface),
+		compiler.closure_mix_weight_offset()),
+		__float_as_int((p_metallic) ? get_float(p_metallic->socket_type) : 0.0f),
+		__float_as_int((p_subsurface) ? get_float(p_subsurface->socket_type) : 0.0f));
+
+	compiler.add_node(normal_offset, tangent_offset,
+		compiler.encode_uchar4(specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
+		compiler.encode_uchar4(sheen_offset, sheen_tint_offset, clearcoat_offset, clearcoat_gloss_offset));
+
+	compiler.add_node(compiler.encode_uchar4(ior_offset, transparency_offset, anisotropic_rotation_offset, refraction_roughness_offset),
+		distribution, SVM_STACK_INVALID, SVM_STACK_INVALID);
+
+	float3 bc_default = get_float3(base_color_in->socket_type);
+
+	compiler.add_node(((base_color_in->link) ? compiler.stack_assign(base_color_in) : SVM_STACK_INVALID),
+		__float_as_int(bc_default.x), __float_as_int(bc_default.y), __float_as_int(bc_default.z));
+
+	compiler.add_node(clearcoat_normal_offset, subsurface_radius_offset, SVM_STACK_INVALID, SVM_STACK_INVALID);
+
+	float3 ss_default = get_float3(subsurface_color_in->socket_type);
+
+	compiler.add_node(((subsurface_color_in->link) ? compiler.stack_assign(subsurface_color_in) : SVM_STACK_INVALID),
+		__float_as_int(ss_default.x), __float_as_int(ss_default.y), __float_as_int(ss_default.z));
+}
+
+bool PrincipledBsdfNode::has_integrator_dependency()
+{
+	ShaderInput *roughness_input = input("Roughness");
+	return !roughness_input->link && roughness <= 1e-4f;
+}
+
+void PrincipledBsdfNode::compile(SVMCompiler& compiler)
+{
+	compile(compiler, input("Metallic"), input("Subsurface"), input("Subsurface Radius"), input("Specular"),
+		input("Roughness"), input("Specular Tint"), input("Anisotropic"), input("Sheen"), input("Sheen Tint"),
+		input("Clearcoat"), input("Clearcoat Gloss"), input("IOR"), input("Transparency"),
+		input("Anisotropic Rotation"), input("Refraction Roughness"));
+}
+
+void PrincipledBsdfNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter(this, "distribution");
+	compiler.add(this, "node_principled_bsdf");
+}
+
+bool PrincipledBsdfNode::has_bssrdf_bump()
+{
+	/* detect if anything is plugged into the normal input besides the default */
+	ShaderInput *normal_in = input("Normal");
+	return (normal_in->link && normal_in->link->parent->special_type != SHADER_SPECIAL_TYPE_GEOMETRY);
+}
+
 /* Translucent BSDF Closure */
 
 NODE_DEFINE(TranslucentBsdfNode)

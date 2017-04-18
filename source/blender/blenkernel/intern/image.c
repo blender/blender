@@ -2216,8 +2216,10 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, const ImageFormatData *imf)
 			ibuf->foptions.flag |= OPENEXR_HALF;
 		ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_COMPRESS);
 
-		if (!(imf->flag & R_IMF_FLAG_ZBUF))
-			ibuf->zbuf_float = NULL;    /* signal for exr saving */
+		if (!(imf->flag & R_IMF_FLAG_ZBUF)) {
+			/* Signal for exr saving. */
+			IMB_freezbuffloatImBuf(ibuf);
+		}
 
 	}
 #endif

@@ -379,49 +379,55 @@ static void rna_Object_ray_cast(
         float origin[3], float direction[3], float distance,
         int *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
-	BVHTreeFromMesh treeData = {NULL};
-	
+	bool success = false;
+
 	if (ob->derivedFinal == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' has no mesh data to be used for ray casting", ob->id.name + 2);
 		return;
 	}
 
-	/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
-	bvhtree_from_mesh_looptri(&treeData, ob->derivedFinal, 0.0f, 4, 6);
+	/* Test BoundBox first (efficiency) */
+	BoundBox *bb = BKE_object_boundbox_get(ob);
+	float distmin;
+	if (!bb || (isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], &distmin, NULL) && distmin <= distance)) {
 
-	/* may fail if the mesh has no faces, in that case the ray-cast misses */
-	if (treeData.tree != NULL) {
-		BVHTreeRayHit hit;
+		BVHTreeFromMesh treeData = {NULL};
 
-		hit.index = -1;
-		hit.dist = distance;
-		
-		normalize_v3(direction);
+		/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
+		bvhtree_from_mesh_looptri(&treeData, ob->derivedFinal, 0.0f, 4, 6);
+
+		/* may fail if the mesh has no faces, in that case the ray-cast misses */
+		if (treeData.tree != NULL) {
+			BVHTreeRayHit hit;
+
+			hit.index = -1;
+			hit.dist = distance;
+
+			normalize_v3(direction);
 
 
-		if (BLI_bvhtree_ray_cast(treeData.tree, origin, direction, 0.0f, &hit,
-		                         treeData.raycast_callback, &treeData) != -1)
-		{
-			if (hit.dist <= distance) {
-				*r_success = true;
+			if (BLI_bvhtree_ray_cast(treeData.tree, origin, direction, 0.0f, &hit,
+			                         treeData.raycast_callback, &treeData) != -1)
+			{
+				if (hit.dist <= distance) {
+					*r_success = success = true;
 
-				copy_v3_v3(r_location, hit.co);
-				copy_v3_v3(r_normal, hit.no);
-				*r_index = dm_looptri_to_poly_index(ob->derivedFinal, &treeData.looptri[hit.index]);
-
-				goto finally;
+					copy_v3_v3(r_location, hit.co);
+					copy_v3_v3(r_normal, hit.no);
+					*r_index = dm_looptri_to_poly_index(ob->derivedFinal, &treeData.looptri[hit.index]);
+				}
 			}
+
+			free_bvhtree_from_mesh(&treeData);
 		}
 	}
+	if (success == false) {
+		*r_success = false;
 
-	*r_success = false;
-
-	zero_v3(r_location);
-	zero_v3(r_normal);
-	*r_index = -1;
-
-finally:
-	free_bvhtree_from_mesh(&treeData);
+		zero_v3(r_location);
+		zero_v3(r_normal);
+		*r_index = -1;
+	}
 }
 
 static void rna_Object_closest_point_on_mesh(

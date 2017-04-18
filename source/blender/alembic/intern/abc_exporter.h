@@ -112,7 +112,6 @@ private:
 	void getFrameSet(double step, std::set<double> &frames);
 
 	void createTransformWritersHierarchy(EvaluationContext *eval_ctx);
-	void createTransformWritersFlat();
 	AbcTransformWriter * createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
 	void exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, Object *parent, Object *dupliObParent);
 	void exploreObject(EvaluationContext *eval_ctx, Base *ob_base, Object *dupliObParent);

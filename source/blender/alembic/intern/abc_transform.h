@@ -41,6 +41,9 @@ class AbcTransformWriter : public AbcObjectWriter {
 	bool m_inherits_xform;
 
 public:
+	Object *m_proxy_from;
+
+public:
 	AbcTransformWriter(Object *ob,
 	                   const Alembic::AbcGeom::OObject &abc_parent,
 	                   AbcTransformWriter *parent,

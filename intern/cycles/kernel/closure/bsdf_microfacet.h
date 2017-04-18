@@ -36,7 +36,8 @@
 CCL_NAMESPACE_BEGIN
 
 typedef ccl_addr_space struct MicrofacetExtra {
-	float3 color;
+	float3 color, cspec0;
+	float clearcoat;
 } MicrofacetExtra;
 
 typedef ccl_addr_space struct MicrofacetBsdf {
@@ -233,6 +234,36 @@ ccl_device_forceinline float3 microfacet_sample_stretched(
 	return normalize(make_float3(-slope_x, -slope_y, 1.0f));
 } 
 
+/* Calculate the reflection color
+ *
+ * If fresnel is used, the color is an interpolation of the F0 color and white
+ * with respect to the fresnel
+ *
+ * Else it is simply white
+ */
+ccl_device_forceinline float3 reflection_color(const MicrofacetBsdf *bsdf, float3 L, float3 H) {
+	float3 F = make_float3(1.0f, 1.0f, 1.0f);
+	bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID
+	                   || bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID
+	                   || bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID);
+
+	if(use_fresnel) {
+		float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
+
+		F = interpolate_fresnel_color(L, H, bsdf->ior, F0, bsdf->extra->cspec0);
+	}
+
+	return F;
+}
+
+ccl_device_forceinline float D_GTR1(float NdotH, float alpha)
+{
+	if (alpha >= 1.0f) return M_1_PI_F;
+	float alpha2 = alpha*alpha;
+	float t = 1.0f + (alpha2 - 1.0f) * NdotH*NdotH;
+	return (alpha2 - 1.0f) / (M_PI_F * logf(alpha2) * t);
+}
+
 /* GGX microfacet with Smith shadow-masking from:
  *
  * Microfacet Models for Refraction through Rough Surfaces
@@ -248,10 +279,40 @@ ccl_device_forceinline float3 microfacet_sample_stretched(
 
 ccl_device int bsdf_microfacet_ggx_setup(MicrofacetBsdf *bsdf)
 {
+	bsdf->extra = NULL;
+
 	bsdf->alpha_x = saturate(bsdf->alpha_x);
 	bsdf->alpha_y = bsdf->alpha_x;
-	
+
 	bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
+
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
+}
+
+ccl_device int bsdf_microfacet_ggx_fresnel_setup(MicrofacetBsdf *bsdf)
+{
+	bsdf->extra->cspec0.x = saturate(bsdf->extra->cspec0.x);
+	bsdf->extra->cspec0.y = saturate(bsdf->extra->cspec0.y);
+	bsdf->extra->cspec0.z = saturate(bsdf->extra->cspec0.z);
+
+	bsdf->alpha_x = saturate(bsdf->alpha_x);
+	bsdf->alpha_y = bsdf->alpha_x;
+
+	bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID;
+
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
+}
+
+ccl_device int bsdf_microfacet_ggx_clearcoat_setup(MicrofacetBsdf *bsdf)
+{
+	bsdf->extra->cspec0.x = saturate(bsdf->extra->cspec0.x);
+	bsdf->extra->cspec0.y = saturate(bsdf->extra->cspec0.y);
+	bsdf->extra->cspec0.z = saturate(bsdf->extra->cspec0.z);
+
+	bsdf->alpha_x = saturate(bsdf->alpha_x);
+	bsdf->alpha_y = bsdf->alpha_x;
+
+	bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
@@ -273,16 +334,34 @@ ccl_device bool bsdf_microfacet_merge(const ShaderClosure *a, const ShaderClosur
 
 ccl_device int bsdf_microfacet_ggx_aniso_setup(MicrofacetBsdf *bsdf)
 {
+	bsdf->extra = NULL;
+
 	bsdf->alpha_x = saturate(bsdf->alpha_x);
 	bsdf->alpha_y = saturate(bsdf->alpha_y);
-	
+
 	bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID;
+
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
+}
+
+ccl_device int bsdf_microfacet_ggx_aniso_fresnel_setup(MicrofacetBsdf *bsdf)
+{
+	bsdf->extra->cspec0.x = saturate(bsdf->extra->cspec0.x);
+	bsdf->extra->cspec0.y = saturate(bsdf->extra->cspec0.y);
+	bsdf->extra->cspec0.z = saturate(bsdf->extra->cspec0.z);
+
+	bsdf->alpha_x = saturate(bsdf->alpha_x);
+	bsdf->alpha_y = saturate(bsdf->alpha_y);
+
+	bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device int bsdf_microfacet_ggx_refraction_setup(MicrofacetBsdf *bsdf)
 {
+	bsdf->extra = NULL;
+
 	bsdf->alpha_x = saturate(bsdf->alpha_x);
 	bsdf->alpha_y = bsdf->alpha_x;
 
@@ -319,6 +398,8 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 		float alpha2 = alpha_x * alpha_y;
 		float D, G1o, G1i;
 
+		bool is_principled_clearcoat = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
+
 		if(alpha_x == alpha_y) {
 			/* isotropic
 			 * eq. 20: (F*G*D)/(4*in*on)
@@ -327,7 +408,18 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 			float cosThetaM2 = cosThetaM * cosThetaM;
 			float cosThetaM4 = cosThetaM2 * cosThetaM2;
 			float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
-			D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
+
+			if(is_principled_clearcoat) {
+				/* use GTR1 for clearcoat */
+				D = D_GTR1(cosThetaM, bsdf->alpha_x);
+
+				/* the alpha value for clearcoat is a fixed 0.25 => alpha2 = 0.25 * 0.25 */
+				alpha2 = 0.0625f;
+			}
+			else {
+				/* use GTR2 otherwise */
+				D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
+			}
 
 			/* eq. 34: now calculate G1(i,m) and G1(o,m) */
 			G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
@@ -374,7 +466,13 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 
 		/* eq. 20 */
 		float common = D * 0.25f / cosNO;
-		float out = G * common;
+
+		float3 F = reflection_color(bsdf, omega_in, m);
+		if(is_principled_clearcoat) {
+			F *= 0.25f * bsdf->extra->clearcoat;
+		}
+
+		float3 out = F * G * common;
 
 		/* eq. 2 in distribution of visible normals sampling
 		 * pm = Dw = G1o * dot(m, I) * D / dot(N, I); */
@@ -384,7 +482,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 		 * pdf = pm * 0.25 / dot(m, I); */
 		*pdf = G1o * common;
 
-		return make_float3(out, out, out);
+		return out;
 	}
 
 	return make_float3(0.0f, 0.0f, 0.0f);
@@ -489,6 +587,17 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 						/* some high number for MIS */
 						*pdf = 1e6f;
 						*eval = make_float3(1e6f, 1e6f, 1e6f);
+
+						bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID
+						                   || bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID
+						                   || bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID);
+
+						/* if fresnel is used, calculate the color with reflection_color(...) */
+						if(use_fresnel) {
+							*pdf = 1.0f;
+							*eval = reflection_color(bsdf, *omega_in, m);
+						}
+
 						label = LABEL_REFLECT | LABEL_SINGULAR;
 					}
 					else {
@@ -497,15 +606,31 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 						float alpha2 = alpha_x * alpha_y;
 						float D, G1i;
 
+						bool is_principled_clearcoat = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
+
 						if(alpha_x == alpha_y) {
 							/* isotropic */
 							float cosThetaM2 = cosThetaM * cosThetaM;
 							float cosThetaM4 = cosThetaM2 * cosThetaM2;
 							float tanThetaM2 = 1/(cosThetaM2) - 1;
-							D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
 
 							/* eval BRDF*cosNI */
 							float cosNI = dot(N, *omega_in);
+
+							if(is_principled_clearcoat) {
+								/* use GTR1 for clearcoat */
+								D = D_GTR1(cosThetaM, bsdf->alpha_x);
+
+								/* the alpha value for clearcoat is a fixed 0.25 => alpha2 = 0.25 * 0.25 */
+								alpha2 = 0.0625f;
+
+								/* recalculate G1o */
+								G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
+							}
+							else {
+								/* use GTR2 otherwise */
+								D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
+							}
 
 							/* eq. 34: now calculate G1(i,m) */
 							G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI))); 
@@ -538,10 +663,14 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 
 						/* see eval function for derivation */
 						float common = (G1o * D) * 0.25f / cosNO;
-						float out = G1i * common;
 						*pdf = common;
 
-						*eval = make_float3(out, out, out);
+						float3 F = reflection_color(bsdf, *omega_in, m);
+						if(is_principled_clearcoat) {
+							F *= 0.25f * bsdf->extra->clearcoat;
+						}
+
+						*eval = G1i * common * F;
 					}
 
 #ifdef __RAY_DIFFERENTIALS__

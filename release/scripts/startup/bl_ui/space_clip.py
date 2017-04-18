@@ -1238,7 +1238,6 @@ class CLIP_MT_view(Menu):
 
             layout.prop(sc, "show_seconds")
             layout.prop(sc, "show_locked_time")
-            layout.separator()
 
         layout.separator()
         layout.operator("screen.area_dupli")

@@ -179,6 +179,7 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_ACTIVE			(1 << 1)
 #define OB_FLUIDSIM_OVERRIDE_TIME	(1 << 2)
 
+#define OB_FLUIDSIM_SURF_DIR_DEFAULT "cache_fluid"
 #define OB_FLUIDSIM_SURF_PREVIEW_OBJ_FNAME "fluidsurface_preview_####.bobj.gz"
 #define OB_FLUIDSIM_SURF_FINAL_OBJ_FNAME   "fluidsurface_final_####.bobj.gz"
 #define OB_FLUIDSIM_SURF_FINAL_VEL_FNAME   "fluidsurface_final_####.bvel.gz"

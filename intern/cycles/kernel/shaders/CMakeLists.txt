@@ -81,13 +81,15 @@ set(SRC_OSL
 	node_wireframe.osl
 	node_hair_bsdf.osl
 	node_uv_map.osl
+	node_principled_bsdf.osl
 	node_rgb_to_bw.osl
 )
 
 set(SRC_OSL_HEADERS
-	node_texture.h
 	node_color.h
 	node_fresnel.h
+	node_ramp_util.h
+	node_texture.h
 	stdosl.h
 	oslutil.h
 )

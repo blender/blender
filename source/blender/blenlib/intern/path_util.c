@@ -1234,14 +1234,16 @@ void BLI_make_exist(char *dir)
 
 /**
  * Ensures that the parent directory of *name exists.
+ *
+ * \return true on success (i.e. given path now exists on FS), false otherwise.
  */
-void BLI_make_existing_file(const char *name)
+bool BLI_make_existing_file(const char *name)
 {
 	char di[FILE_MAX];
 	BLI_split_dir_part(name, di, sizeof(di));
 
 	/* make if the dir doesn't exist */
-	BLI_dir_create_recursive(di);
+	return BLI_dir_create_recursive(di);
 }
 
 /**

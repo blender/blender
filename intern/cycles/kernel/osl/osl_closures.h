@@ -51,10 +51,17 @@ OSL::ClosureParam *closure_bsdf_phong_ramp_params();
 OSL::ClosureParam *closure_bssrdf_cubic_params();
 OSL::ClosureParam *closure_bssrdf_gaussian_params();
 OSL::ClosureParam *closure_bssrdf_burley_params();
+OSL::ClosureParam *closure_bssrdf_principled_params();
 OSL::ClosureParam *closure_henyey_greenstein_volume_params();
 OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_params();
 OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_glass_params();
 OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_aniso_params();
+OSL::ClosureParam *closure_bsdf_microfacet_ggx_fresnel_params();
+OSL::ClosureParam *closure_bsdf_microfacet_ggx_aniso_fresnel_params();
+OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_fresnel_params();
+OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_glass_fresnel_params();
+OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_aniso_fresnel_params();
+OSL::ClosureParam *closure_bsdf_principled_clearcoat_params();
 
 void closure_emission_prepare(OSL::RendererServices *, int id, void *data);
 void closure_background_prepare(OSL::RendererServices *, int id, void *data);
@@ -65,10 +72,17 @@ void closure_bsdf_phong_ramp_prepare(OSL::RendererServices *, int id, void *data
 void closure_bssrdf_cubic_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_gaussian_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_burley_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bssrdf_principled_prepare(OSL::RendererServices *, int id, void *data);
 void closure_henyey_greenstein_volume_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_microfacet_multi_ggx_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_microfacet_multi_ggx_glass_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_microfacet_multi_ggx_aniso_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_microfacet_ggx_fresnel_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_microfacet_ggx_aniso_fresnel_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_microfacet_multi_ggx_fresnel_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_microfacet_multi_ggx_glass_fresnel_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_microfacet_multi_ggx_aniso_fresnel_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_principled_clearcoat_prepare(OSL::RendererServices *, int id, void *data);
 
 #define CCLOSURE_PREPARE(name, classname)          \
 void name(RendererServices *, int id, void *data) \

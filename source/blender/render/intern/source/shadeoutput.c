@@ -2141,6 +2141,16 @@ const float (*RE_object_instance_get_matrix(struct ObjectInstanceRen *obi, int m
 	return NULL;
 }
 
+float RE_object_instance_get_object_pass_index(struct ObjectInstanceRen *obi)
+{
+	return obi->ob->index;
+}
+
+float RE_object_instance_get_random_id(struct ObjectInstanceRen *obi)
+{
+	return obi->random_id;
+}
+
 const float (*RE_render_current_get_matrix(int matrix_id))[4]
 {
 	switch (matrix_id) {

@@ -122,7 +122,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 #ifdef __SHADOW_TRICKS__
 		if((sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {
-			if (state->flag & PATH_RAY_CAMERA) {
+			if(state->flag & PATH_RAY_CAMERA) {
 				state->flag |= (PATH_RAY_SHADOW_CATCHER | PATH_RAY_SHADOW_CATCHER_ONLY);
 				state->catcher_object = sd->object;
 				if(!kernel_data.background.transparent) {

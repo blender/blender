@@ -902,7 +902,7 @@ bool OpenCLInfo::get_platform_name(cl_platform_id platform_id,
 string OpenCLInfo::get_platform_name(cl_platform_id platform_id)
 {
 	string platform_name;
-	if (!get_platform_name(platform_id, &platform_name)) {
+	if(!get_platform_name(platform_id, &platform_name)) {
 		return "";
 	}
 	return platform_name;

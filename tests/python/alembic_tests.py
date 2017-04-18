@@ -59,12 +59,6 @@ class AbstractAlembicTest(unittest.TestCase):
     def setUpClass(cls):
         import re
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--blender', required=True)
-        parser.add_argument('--testdir', required=True)
-        parser.add_argument('--alembic-root', required=True)
-        args, _ = parser.parse_known_args()
-
         cls.blender = args.blender
         cls.testdir = pathlib.Path(args.testdir)
         cls.alembic_root = pathlib.Path(args.alembic_root)
@@ -116,6 +110,7 @@ class AbstractAlembicTest(unittest.TestCase):
         The Python bindings for Alembic are old, and only compatible with Python 2.x,
         so that's why we can't use them here, and have to rely on other tooling.
         """
+        import collections
 
         abcls = self.alembic_root / 'bin' / 'abcls'
 
@@ -133,14 +128,19 @@ class AbstractAlembicTest(unittest.TestCase):
         converters = {
             'bool_t': int,
             'uint8_t': int,
+            'int32_t': int,
             'float64_t': float,
+            'float32_t': float,
         }
 
         result = {}
 
         # Ideally we'd get abcls to output JSON, see https://github.com/alembic/alembic/issues/121
-        lines = output.split('\n')
-        for info, value in zip(lines[0::2], lines[1::2]):
+        lines = collections.deque(output.split('\n'))
+        while lines:
+            info = lines.popleft()
+            if not info:
+                continue
             proptype, valtype_and_arrsize, name_and_extent = info.split()
 
             # Parse name and extent
@@ -152,22 +152,41 @@ class AbstractAlembicTest(unittest.TestCase):
             if extent != '1':
                 self.fail('Unsupported extent %s for property %s/%s' % (extent, proppath, name))
 
-            # Parse type and convert values
+            # Parse type
             m = self.abcls_array.match(valtype_and_arrsize)
             if not m:
                 self.fail('Unparsable value type from abcls: %s' % valtype_and_arrsize)
-            valtype, arraysize = m.group('name'), m.group('arraysize')
+            valtype, scalarsize = m.group('name'), m.group('arraysize')
 
+            # Convert values
             try:
                 conv = converters[valtype]
             except KeyError:
                 self.fail('Unsupported type %s for property %s/%s' % (valtype, proppath, name))
 
-            if arraysize is None:
-                result[name] = conv(value)
+            def convert_single_line(linevalue):
+                try:
+                    if scalarsize is None:
+                        return conv(linevalue)
+                    else:
+                        return [conv(v.strip()) for v in linevalue.split(',')]
+                except ValueError as ex:
+                    return str(ex)
+
+            if proptype == 'ScalarProperty':
+                value = lines.popleft()
+                result[name] = convert_single_line(value)
+            elif proptype == 'ArrayProperty':
+                arrayvalue = []
+                # Arrays consist of a variable number of items, and end in a blank line.
+                while True:
+                    linevalue = lines.popleft()
+                    if not linevalue:
+                        break
+                    arrayvalue.append(convert_single_line(linevalue))
+                result[name] = arrayvalue
             else:
-                values = [conv(v.strip()) for v in value.split(',')]
-                result[name] = values
+                self.fail('Unsupported type %s for property %s/%s' % (proptype, proppath, name))
 
         return result
 
@@ -221,5 +240,63 @@ class HierarchicalAndFlatExportTest(AbstractAlembicTest):
         )
 
 
+class DupliGroupExportTest(AbstractAlembicTest):
+    @with_tempdir
+    def test_hierarchical_export(self, tempdir: pathlib.Path):
+        abc = tempdir / 'dupligroup_hierarchical.abc'
+        script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
+                 "renderable_only=True, visible_layers_only=True, flatten=False)" % abc
+        self.run_blender('dupligroup-scene.blend', script)
+
+        # Now check the resulting Alembic file.
+        xform = self.abcprop(abc, '/Real_Cube/Linked_Suzanne/Cylinder/Suzanne/.xform')
+        self.assertEqual(1, xform['.inherits'])
+        self.assertAlmostEqualFloatArray(
+            xform['.vals'],
+            [1.0, 0.0, 0.0, 0.0,
+             0.0, 1.0, 0.0, 0.0,
+             0.0, 0.0, 1.0, 0.0,
+             0.0, 2.0, 0.0, 1.0]
+        )
+
+    @with_tempdir
+    def test_flat_export(self, tempdir: pathlib.Path):
+        abc = tempdir / 'dupligroup_hierarchical.abc'
+        script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
+                 "renderable_only=True, visible_layers_only=True, flatten=True)" % abc
+        self.run_blender('dupligroup-scene.blend', script)
+
+        # Now check the resulting Alembic file.
+        xform = self.abcprop(abc, '/Suzanne/.xform')
+        self.assertEqual(0, xform['.inherits'])
+
+        self.assertAlmostEqualFloatArray(
+            xform['.vals'],
+            [1.5, 0.0, 0.0, 0.0,
+             0.0, 1.5, 0.0, 0.0,
+             0.0, 0.0, 1.5, 0.0,
+             2.0, 3.0, 0.0, 1.0]
+        )
+
+
+class CurveExportTest(AbstractAlembicTest):
+    @with_tempdir
+    def test_export_single_curve(self, tempdir: pathlib.Path):
+        abc = tempdir / 'single-curve.abc'
+        script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
+                 "renderable_only=True, visible_layers_only=True, flatten=False)" % abc
+        self.run_blender('single-curve.blend', script)
+
+        # Now check the resulting Alembic file.
+        abcprop = self.abcprop(abc, '/NurbsCurve/NurbsCurveShape/.geom')
+        self.assertEqual(abcprop['.orders'], [4])
+
+
 if __name__ == '__main__':
-    unittest.main(argv=sys.argv[0:1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--blender', required=True)
+    parser.add_argument('--testdir', required=True)
+    parser.add_argument('--alembic-root', required=True)
+    args, remaining = parser.parse_known_args()
+
+    unittest.main(argv=sys.argv[0:1] + remaining)

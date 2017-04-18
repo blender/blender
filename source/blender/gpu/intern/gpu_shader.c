@@ -35,10 +35,10 @@
 
 #include "GPU_compositing.h"
 #include "GPU_extensions.h"
-#include "GPU_shader.h"
-#include "GPU_uniformbuffer.h"
-#include "GPU_texture.h"
 #include "GPU_matrix.h"
+#include "GPU_shader.h"
+#include "GPU_texture.h"
+#include "GPU_uniformbuffer.h"
 
 #include "gpu_shader_private.h"
 

@@ -521,6 +521,19 @@ static ShaderNode *add_node(Scene *scene,
 		}
 		node = hair;
 	}
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfPrincipled)) {
+		BL::ShaderNodeBsdfPrincipled b_principled_node(b_node);
+		PrincipledBsdfNode *principled = new PrincipledBsdfNode();
+		switch (b_principled_node.distribution()) {
+			case BL::ShaderNodeBsdfPrincipled::distribution_GGX:
+				principled->distribution = CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID;
+				break;
+			case BL::ShaderNodeBsdfPrincipled::distribution_MULTI_GGX:
+				principled->distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
+				break;
+		}
+		node = principled;
+	}
 	else if(b_node.is_a(&RNA_ShaderNodeBsdfTranslucent)) {
 		node = new TranslucentBsdfNode();
 	}
