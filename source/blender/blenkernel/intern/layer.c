@@ -78,7 +78,7 @@ SceneLayer *BKE_scene_layer_render_active(const Scene *scene)
  * Returns the SceneLayer to be used for drawing, outliner, and
  * other context related areas.
  */
-SceneLayer *BKE_scene_layer_context_active(Scene *scene)
+SceneLayer *BKE_scene_layer_context_active(const Scene *scene)
 {
 	/* waiting for workspace to get the layer from context*/
 	TODO_LAYER_CONTEXT;
