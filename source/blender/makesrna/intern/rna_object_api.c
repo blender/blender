@@ -331,7 +331,7 @@ static void rna_Object_ray_cast(
 	/* Test BoundBox first (efficiency) */
 	BoundBox *bb = BKE_object_boundbox_get(ob);
 	float distmin;
-	if (!bb || isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], &distmin, NULL) && distmin <= distance) {
+	if (!bb || (isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], &distmin, NULL) && distmin <= distance)) {
 
 		BVHTreeFromMesh treeData = {NULL};
 
