@@ -250,6 +250,9 @@ void DRW_shgroup_dynamic_call_add_array(DRWShadingGroup *shgroup, const void *at
 	const void *array[] = {__VA_ARGS__}; \
 	DRW_shgroup_dynamic_call_add_array(shgroup, array, (sizeof(array) / sizeof(*array))); \
 } while (0)
+#define DRW_shgroup_dynamic_call_add_empty(shgroup) do { \
+	DRW_shgroup_dynamic_call_add_array(shgroup, NULL, 0); \
+} while (0)
 
 void DRW_shgroup_state_set(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_attrib_int(DRWShadingGroup *shgroup, const char *name, int size);
