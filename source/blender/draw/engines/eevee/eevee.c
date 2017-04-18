@@ -299,7 +299,7 @@ static DRWShadingGroup *eevee_cube_shgroup(struct GPUShader *sh, DRWPass *pass, 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
 
 	for (int i = 0; i < 6; ++i)
-		DRW_shgroup_dynamic_call_add(grp);
+		DRW_shgroup_dynamic_call_add(grp, NULL);
 
 	return grp;
 }
