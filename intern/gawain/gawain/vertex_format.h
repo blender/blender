@@ -17,7 +17,7 @@
 #define AVG_VERTEX_ATTRIB_NAME_LEN 5
 #define VERTEX_ATTRIB_NAMES_BUFFER_LEN ((AVG_VERTEX_ATTRIB_NAME_LEN + 1) * MAX_VERTEX_ATTRIBS)
 
-#if defined(_WIN32)
+#if defined(WITH_GL_PROFILE_CORE) || defined(_WIN32)
   // (GLEW_VERSION_3_3 || GLEW_ARB_vertex_type_2_10_10_10_rev)
   //   ^-- this is only guaranteed on Windows right now, will be true on all platforms soon
   #define USE_10_10_10 1
