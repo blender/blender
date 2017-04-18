@@ -241,27 +241,13 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 	BLI_assert(!BLI_listbase_is_empty(&mmap->manipulator_groups));
 
 	const bool draw_multisample = (U.ogl_multisamples != USER_MULTISAMPLE_NONE);
-	const bool use_lighting = (U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0;
+
+	/* TODO this will need it own shader probably? don't think it can be handled from that point though. */
+/*	const bool use_lighting = (U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0; */
 
 	/* enable multisampling */
 	if (draw_multisample) {
 		glEnable(GL_MULTISAMPLE);
-	}
-	if (use_lighting) {
-		const float lightpos[4] = {0.0, 0.0, 1.0, 0.0};
-		const float diffuse[4] = {1.0, 1.0, 1.0, 0.0};
-
-		glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glEnable(GL_COLOR_MATERIAL);
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		gpuPushMatrix();
-		gpuLoadIdentity();
-		glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-		gpuPopMatrix();
 	}
 
 	/* draw_manipulators contains all visible manipulators - draw them */
@@ -276,9 +262,6 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 
 	if (draw_multisample) {
 		glDisable(GL_MULTISAMPLE);
-	}
-	if (use_lighting) {
-		glPopAttrib();
 	}
 }
 
