@@ -443,4 +443,24 @@ if(WITH_CYCLES)
 	endif()
 endif()
 
+if(WITH_ALEMBIC)
+	if(MSVC)
+		add_test(NAME cycles_${subject}_test
+			COMMAND
+				"$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}/python/bin/python$<$<CONFIG:Debug>:_d>"
+				${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py
+			--blender "${TEST_BLENDER_EXE_BARE}"
+			--testdir "${TEST_SRC_DIR}/alembic"
+			--alembic-root "${ALEMBIC_ROOT_DIR}"
+		)
+	else()
+		add_test(alembic_tests
+			${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py
+			--blender "${TEST_BLENDER_EXE_BARE}"
+			--testdir "${TEST_SRC_DIR}/alembic"
+			--alembic-root "${ALEMBIC_ROOT_DIR}"
+		)
+	endif()
+endif()
+
 add_subdirectory(render_layer)
