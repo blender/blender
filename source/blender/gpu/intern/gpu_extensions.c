@@ -143,7 +143,7 @@ void gpu_extensions_init(void)
 	 * final 2.8 release will be unified on OpenGL 3.3 core profile, no required extensions
 	 * see developer.blender.org/T49012 for details
 	 */
-#ifdef _WIN32
+#if defined(WITH_GL_PROFILE_CORE) || defined(_WIN32)
 	BLI_assert(GLEW_VERSION_3_3);
 #elif defined(__APPLE__)
 	BLI_assert(GLEW_VERSION_2_1 && GLEW_EXT_gpu_shader4
