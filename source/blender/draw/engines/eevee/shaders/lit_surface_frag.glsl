@@ -6,6 +6,7 @@ uniform mat4 ProjectionMatrix;
 
 uniform samplerCube probeFiltered;
 uniform float lodMax;
+uniform vec3 shCoefs[9];
 
 #ifndef USE_LTC
 uniform sampler2D brdfLut;
@@ -198,7 +199,7 @@ void main()
 	sd.R = reflect(-sd.V, sd.N);
 
 	/* hardcoded test vars */
-	vec3 albedo = vec3(0.0);
+	vec3 albedo = mix(vec3(0.0, 0.0, 0.0), vec3(0.8, 0.8, 0.8), saturate(worldPosition.y/2));
 	vec3 f0 = mix(vec3(0.83, 0.5, 0.1), vec3(0.03, 0.03, 0.03), saturate(worldPosition.y/2));
 	vec3 specular = mix(f0, vec3(1.0), pow(max(0.0, 1.0 - dot(sd.N, sd.V)), 5.0));
 	float roughness = saturate(worldPosition.x/lodMax);
@@ -228,6 +229,8 @@ void main()
 	vec2 brdf_lut = texture(brdfLut, uv).rg;
 	vec3 Li = textureLod(probeFiltered, sd.spec_dominant_dir, roughness * lodMax).rgb;
 	radiance += Li * brdf_lut.y + f0 * Li * brdf_lut.x;
+
+	radiance += spherical_harmonics(sd.N, shCoefs) * albedo;
 
 	fragColor = vec4(radiance, 1.0);
 }

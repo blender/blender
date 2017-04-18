@@ -1302,6 +1302,21 @@ void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col
 	        ((stencil) ? GL_STENCIL_BUFFER_BIT : 0));
 }
 
+void DRW_framebuffer_read_data(int x, int y, int w, int h, int channels, int slot, float *data)
+{
+	GLenum type;
+	switch (channels) {
+		case 1: type = GL_RED; break;
+		case 2: type = GL_RG; break;
+		case 3: type = GL_RGB; break;
+		case 4: type = GL_RGBA;	break;
+		default:
+			BLI_assert(false && "wrong number of read channels");
+	}
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + slot);
+	glReadPixels(x, y, w, h, type, GL_FLOAT, data);
+}
+
 void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
 {
 	GPU_framebuffer_texture_attach(fb, tex, slot, mip);

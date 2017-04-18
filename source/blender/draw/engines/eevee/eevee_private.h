@@ -39,7 +39,7 @@ typedef struct EEVEE_PassList {
 	/* Probes */
 	struct DRWPass *probe_background;
 	struct DRWPass *probe_prefilter;
-	struct DRWPass *probe_sh;
+	struct DRWPass *probe_sh_compute;
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
@@ -69,6 +69,7 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *probe_rt; /* R16_G16_B16 */
 	struct GPUTexture *probe_depth_rt;
 	struct GPUTexture *probe_pool; /* R11_G11_B10 */
+	struct GPUTexture *probe_sh; /* R16_G16_B16 */
 
 	struct GPUTexture *color; /* R16_G16_B16 */
 } EEVEE_TextureList;
@@ -82,6 +83,7 @@ typedef struct EEVEE_StorageList {
 
 	/* Probes */
 	struct EEVEE_ProbesInfo *probes;
+	struct GPUUniformBuffer *probe_ubo;
 
 	struct g_data *g_data;
 } EEVEE_StorageList;
@@ -144,6 +146,9 @@ typedef struct EEVEE_ProbesInfo {
 	float roughness;
 	float lodfactor;
 	float lodmax;
+	int shres;
+	int shnbr;
+	float shcoefs[9][3]; /* Temp */
 	struct GPUTexture *backgroundtex;
 } EEVEE_ProbesInfo;
 

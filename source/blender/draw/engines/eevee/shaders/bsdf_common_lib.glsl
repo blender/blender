@@ -173,6 +173,41 @@ float buffer_depth(bool is_persp, float z, float zf, float zn)
 	}
 }
 
+#define spherical_harmonics spherical_harmonics_L2
+
+/* http://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/ */
+vec3 spherical_harmonics_L1(vec3 N, vec3 shcoefs[9])
+{
+	vec3 sh = vec3(0.0);
+
+	sh += 0.282095 * shcoefs[0];
+
+	sh += -0.488603 * N.z * shcoefs[1];
+	sh += 0.488603 * N.y * shcoefs[2];
+	sh += -0.488603 * N.x * shcoefs[3];
+
+	return sh;
+}
+
+vec3 spherical_harmonics_L2(vec3 N, vec3 shcoefs[9])
+{
+	vec3 sh = vec3(0.0);
+
+	sh += 0.282095 * shcoefs[0];
+
+	sh += -0.488603 * N.z * shcoefs[1];
+	sh += 0.488603 * N.y * shcoefs[2];
+	sh += -0.488603 * N.x * shcoefs[3];
+
+	sh += 1.092548 * N.x * N.z * shcoefs[4];
+	sh += -1.092548 * N.z * N.y * shcoefs[5];
+	sh += 0.315392 * (3.0 * N.y * N.y - 1.0) * shcoefs[6];
+	sh += -1.092548 * N.x * N.y * shcoefs[7];
+	sh += 0.546274 * (N.x * N.x - N.z * N.z) * shcoefs[8];
+
+	return sh;
+}
+
 float rectangle_solid_angle(AreaData ad)
 {
 	vec3 n0 = normalize(cross(ad.corner[0], ad.corner[1]));

@@ -44,6 +44,7 @@ static struct {
 	/* Temp : use world shader */
 	struct GPUShader *probe_sh;
 	struct GPUShader *probe_filter_sh;
+	struct GPUShader *probe_spherical_harmonic_sh;
 
 	struct GPUTexture *ltc_mat;
 	struct GPUTexture *brdf_lut;
@@ -65,6 +66,7 @@ extern char datatoc_shadow_frag_glsl[];
 extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_vert_glsl[];
 extern char datatoc_probe_filter_frag_glsl[];
+extern char datatoc_probe_sh_frag_glsl[];
 extern char datatoc_probe_frag_glsl[];
 extern char datatoc_probe_geom_glsl[];
 extern char datatoc_probe_vert_glsl[];
@@ -238,19 +240,24 @@ static void EEVEE_engine_init(void *ved)
 	}
 
 	if (!e_data.probe_filter_sh) {
-		char *lib_str = NULL;
+		char *shader_str = NULL;
 
-		DynStr *ds_vert = BLI_dynstr_new();
-		BLI_dynstr_append(ds_vert, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_vert, datatoc_bsdf_sampling_lib_glsl);
-		lib_str = BLI_dynstr_get_cstring(ds_vert);
-		BLI_dynstr_free(ds_vert);
+		DynStr *ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_probe_filter_frag_glsl);
+		shader_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
 
-		e_data.probe_filter_sh = DRW_shader_create_with_lib(datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, datatoc_probe_filter_frag_glsl, lib_str,
-		                                                    "#define HAMMERSLEY_SIZE 8192\n"
-		                                                    "#define NOISE_SIZE 64\n");
+		e_data.probe_filter_sh = DRW_shader_create(datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, shader_str,
+		                                           "#define HAMMERSLEY_SIZE 8192\n"
+		                                           "#define NOISE_SIZE 64\n");
 
-		MEM_freeN(lib_str);
+		MEM_freeN(shader_str);
+	}
+
+	if (!e_data.probe_spherical_harmonic_sh) {
+		e_data.probe_spherical_harmonic_sh = DRW_shader_create_fullscreen(datatoc_probe_sh_frag_glsl, NULL);
 	}
 
 	if (!e_data.tonemap) {
@@ -341,6 +348,17 @@ static void EEVEE_cache_init(void *vedata)
 	}
 
 	{
+		psl->probe_sh_compute = DRW_pass_create("Probe SH Compute", DRW_STATE_WRITE_COLOR);
+
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_spherical_harmonic_sh, psl->probe_sh_compute);
+		DRW_shgroup_uniform_int(grp, "probeSize", &stl->probes->shres, 1);
+		DRW_shgroup_uniform_texture(grp, "probeHdr", txl->probe_rt, 0);
+
+		struct Batch *geom = DRW_cache_fullscreen_quad_get();
+		DRW_shgroup_call_add(grp, geom, NULL);
+	}
+
+	{
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
@@ -357,6 +375,7 @@ static void EEVEE_cache_init(void *vedata)
 		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "shadow_block", stl->shadow_ubo, 1);
 		DRW_shgroup_uniform_int(stl->g_data->default_lit_grp, "light_count", &stl->lamps->num_light, 1);
 		DRW_shgroup_uniform_float(stl->g_data->default_lit_grp, "lodMax", &stl->probes->lodmax, 1);
+		DRW_shgroup_uniform_vec3(stl->g_data->default_lit_grp, "shCoefs[0]", (float *)stl->probes->shcoefs, 9);
 		DRW_shgroup_uniform_vec3(stl->g_data->default_lit_grp, "cameraPos", e_data.camera_pos, 1);
 		DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "ltcMat", e_data.ltc_mat, 0);
 		DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut, 1);
@@ -455,6 +474,7 @@ static void EEVEE_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_sh);
+	DRW_SHADER_FREE_SAFE(e_data.probe_spherical_harmonic_sh);
 	DRW_SHADER_FREE_SAFE(e_data.tonemap);
 	DRW_TEXTURE_FREE_SAFE(e_data.ltc_mat);
 	DRW_TEXTURE_FREE_SAFE(e_data.brdf_lut);

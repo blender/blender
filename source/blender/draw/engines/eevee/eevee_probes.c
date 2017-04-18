@@ -98,6 +98,11 @@ void EEVEE_probes_init(EEVEE_Data *vedata)
 	DRWFboTexture tex_filter = {&txl->probe_pool, DRW_BUF_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 	DRW_framebuffer_init(&fbl->probe_filter_fb, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
+
+	/* Spherical Harmonic Buffer */
+	DRWFboTexture tex_sh = {&txl->probe_sh, DRW_BUF_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+
+	DRW_framebuffer_init(&fbl->probe_sh_fb, 9, 1, &tex_sh, 1);
 }
 
 void EEVEE_probes_cache_init(EEVEE_Data *UNUSED(vedata))
@@ -203,7 +208,8 @@ void EEVEE_refresh_probe(EEVEE_Data *vedata)
 	DRW_framebuffer_texture_attach(fbl->probe_filter_fb, txl->probe_pool, 0, 0);
 
 	/* 4 - Compute spherical harmonics */
-	/* TODO */
-	// DRW_framebuffer_bind(fbl->probe_sh_fb);
-	// DRW_draw_pass(psl->probe_sh);
+	pinfo->shres = 64;
+	DRW_framebuffer_bind(fbl->probe_sh_fb);
+	DRW_draw_pass(psl->probe_sh_compute);
+	DRW_framebuffer_read_data(0, 0, 9, 1, 3, 0, (float *)pinfo->shcoefs);
 }
