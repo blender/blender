@@ -116,7 +116,7 @@ static struct GPUTexture *create_jitter_texture(int w, int h)
 	return tex;
 }
 
-static struct GPUTexture *create_ggx_lut_texture(int w, int h)
+static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 {
 	struct GPUTexture *tex;
 #if 0 /* Used only to generate the LUT values */
