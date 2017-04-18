@@ -417,9 +417,9 @@ static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *vedata, DRWPass *pass, in
 	DRW_shgroup_uniform_buffer(grp, "depthtex", &txl->depth_dup, depthloc);
 	DRW_shgroup_uniform_texture(grp, "matcaps", e_data.matcap_array, matcaploc);
 	DRW_shgroup_uniform_mat4(grp, "WinMatrix", (float *)e_data.winmat);
-	DRW_shgroup_uniform_vec4(grp, "viewvecs", (float *)e_data.viewvecs, 3);
+	DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)e_data.viewvecs, 3);
 	DRW_shgroup_uniform_vec4(grp, "ssao_params", e_data.ssao_params, 1);
-	DRW_shgroup_uniform_vec3(grp, "matcaps_color", (float *)e_data.matcap_colors, 24);
+	DRW_shgroup_uniform_vec3(grp, "matcaps_color[0]", (float *)e_data.matcap_colors, 24);
 
 	DRW_shgroup_uniform_int(grp, "mat_id", material_id, 1);
 
