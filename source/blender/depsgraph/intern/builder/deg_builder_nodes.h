@@ -130,7 +130,7 @@ struct DepsgraphNodeBuilder {
 	void build_object(Scene *scene, Base *base, Object *ob);
 	void build_object_transform(Scene *scene, Object *ob);
 	void build_object_constraints(Scene *scene, Object *ob);
-	void build_pose_constraints(Object *ob, bPoseChannel *pchan);
+	void build_pose_constraints(Scene *scene, Object *ob, bPoseChannel *pchan);
 	void build_rigidbody(Scene *scene);
 	void build_particles(Scene *scene, Object *ob);
 	void build_cloth(Scene *scene, Object *object);

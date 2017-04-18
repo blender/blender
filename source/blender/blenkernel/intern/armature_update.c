@@ -628,10 +628,10 @@ void BKE_pose_eval_bone(EvaluationContext *UNUSED(eval_ctx),
 }
 
 void BKE_pose_constraints_evaluate(EvaluationContext *UNUSED(eval_ctx),
+                                   Scene *scene,
                                    Object *ob,
                                    bPoseChannel *pchan)
 {
-	Scene *scene = G.main->scene.first;
 	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, pchan->name);
 	bArmature *arm = (bArmature *)ob->data;
 	if (arm->flag & ARM_RESTPOS) {

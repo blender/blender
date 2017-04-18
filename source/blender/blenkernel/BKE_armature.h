@@ -177,6 +177,7 @@ void BKE_pose_eval_bone(struct EvaluationContext *eval_ctx,
                         struct bPoseChannel *pchan);
 
 void BKE_pose_constraints_evaluate(struct EvaluationContext *eval_ctx,
+                                   struct Scene *scene,
                                    struct Object *ob,
                                    struct bPoseChannel *pchan);
 
