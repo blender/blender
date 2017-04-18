@@ -59,12 +59,6 @@ class AbstractAlembicTest(unittest.TestCase):
     def setUpClass(cls):
         import re
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--blender', required=True)
-        parser.add_argument('--testdir', required=True)
-        parser.add_argument('--alembic-root', required=True)
-        args, _ = parser.parse_known_args()
-
         cls.blender = args.blender
         cls.testdir = pathlib.Path(args.testdir)
         cls.alembic_root = pathlib.Path(args.alembic_root)
@@ -299,4 +293,10 @@ class CurveExportTest(AbstractAlembicTest):
 
 
 if __name__ == '__main__':
-    unittest.main(argv=sys.argv[0:1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--blender', required=True)
+    parser.add_argument('--testdir', required=True)
+    parser.add_argument('--alembic-root', required=True)
+    args, remaining = parser.parse_known_args()
+
+    unittest.main(argv=sys.argv[0:1] + remaining)
