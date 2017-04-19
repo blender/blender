@@ -444,6 +444,12 @@ if(WITH_CYCLES)
 endif()
 
 if(WITH_ALEMBIC)
+	add_test(script_alembic_import ${TEST_BLENDER_EXE}
+		--python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
+		--
+		--testdir "${TEST_SRC_DIR}/alembic"
+	)
+
 	if(MSVC)
 		add_test(NAME cycles_${subject}_test
 			COMMAND
