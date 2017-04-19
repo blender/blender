@@ -322,18 +322,21 @@ static bool curve_batch_cache_valid(Curve *cu)
 		return false;
 	}
 
+	if (cache->is_editmode) {
+		if ((cache->hide_handles != ((cu->drawflag & CU_HIDE_HANDLES) != 0))) {
+			return false;
+		}
+		else if ((cache->hide_normals != ((cu->drawflag & CU_HIDE_NORMALS) != 0))) {
+			return false;
+		}
+	}
+
 	if (cache->is_dirty == false) {
 		return true;
 	}
 	else {
 		/* TODO: check number of vertices/edges? */
 		if (cache->is_editmode) {
-			return false;
-		}
-		else if ((cache->hide_handles != ((cu->drawflag & CU_HIDE_HANDLES) != 0))) {
-			return false;
-		}
-		else if ((cache->hide_normals != ((cu->drawflag & CU_HIDE_NORMALS) != 0))) {
 			return false;
 		}
 	}
@@ -352,8 +355,8 @@ static void curve_batch_cache_init(Curve *cu)
 		memset(cache, 0, sizeof(*cache));
 	}
 
-	cache->hide_handles = (cu->flag & CU_HIDE_HANDLES) != 0;
-	cache->hide_normals = (cu->flag & CU_HIDE_NORMALS) != 0;
+	cache->hide_handles = (cu->drawflag & CU_HIDE_HANDLES) != 0;
+	cache->hide_normals = (cu->drawflag & CU_HIDE_NORMALS) != 0;
 
 #if 0
 	ListBase *nurbs;
@@ -408,8 +411,10 @@ void BKE_curve_batch_cache_clear(Curve *cu)
 	BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
 
 	if (cache->wire.batch) {
-		/* Also handles: 'cache->wire.verts', 'cache->wire.edges', 'cache->wire.elem' */
 		BATCH_DISCARD_ALL_SAFE(cache->wire.batch);
+		cache->wire.verts = NULL;
+		cache->wire.edges = NULL;
+		cache->wire.elem = NULL;
 	}
 	else {
 		VERTEXBUFFER_DISCARD_SAFE(cache->wire.verts);
@@ -419,6 +424,9 @@ void BKE_curve_batch_cache_clear(Curve *cu)
 
 	if (cache->normal.batch) {
 		BATCH_DISCARD_ALL_SAFE(cache->normal.batch);
+		cache->normal.verts = NULL;
+		cache->normal.edges = NULL;
+		cache->normal.elem = NULL;
 	}
 	else {
 		VERTEXBUFFER_DISCARD_SAFE(cache->normal.verts);
