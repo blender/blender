@@ -227,7 +227,9 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 
 			/* Add geom to a shading group */
 			geom = DRW_cache_curve_edge_overlay_get(ob);
-			DRW_shgroup_call_add(stl->g_data->overlay_edge_shgrp, geom, ob->obmat);
+			if (geom) {
+				DRW_shgroup_call_add(stl->g_data->overlay_edge_shgrp, geom, ob->obmat);
+			}
 
 			geom = DRW_cache_curve_vert_overlay_get(ob);
 			DRW_shgroup_call_add(stl->g_data->overlay_vert_shgrp, geom, ob->obmat);
