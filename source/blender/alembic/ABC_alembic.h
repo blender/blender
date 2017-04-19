@@ -53,41 +53,57 @@ struct AlembicExportParams {
 	double shutter_open;
 	double shutter_close;
 
-	/* bools */
-	unsigned int selected_only : 1;
-	unsigned int uvs : 1;
-	unsigned int normals : 1;
-	unsigned int vcolors : 1;
-	unsigned int apply_subdiv : 1;
-	unsigned int flatten_hierarchy : 1;
-	unsigned int visible_layers_only : 1;
-	unsigned int renderable_only : 1;
-	unsigned int face_sets : 1;
-	unsigned int use_subdiv_schema : 1;
-	unsigned int packuv : 1;
-	unsigned int triangulate : 1;
+	bool selected_only;
+	bool uvs;
+	bool normals;
+	bool vcolors;
+	bool apply_subdiv;
+	bool flatten_hierarchy;
+	bool visible_layers_only;
+	bool renderable_only;
+	bool face_sets;
+	bool use_subdiv_schema;
+	bool packuv;
+	bool triangulate;
+	bool export_hair;
+	bool export_particles;
 
 	unsigned int compression_type : 1;
 
+	/* See MOD_TRIANGULATE_NGON_xxx and MOD_TRIANGULATE_QUAD_xxx
+	 * in DNA_modifier_types.h */
 	int quad_method;
 	int ngon_method;
+
 	float global_scale;
 };
 
-void ABC_export(
+/* The ABC_export and ABC_import functions both take a as_background_job
+ * parameter, and return a boolean.
+ *
+ * When as_background_job=true, returns false immediately after scheduling
+ * a background job.
+ *
+ * When as_background_job=false, performs the export synchronously, and returns
+ * true when the export was ok, and false if there were any errors.
+ */
+
+bool ABC_export(
         struct Scene *scene,
         struct bContext *C,
         const char *filepath,
-        const struct AlembicExportParams *params);
+        const struct AlembicExportParams *params,
+        bool as_background_job);
 
-void ABC_import(struct bContext *C,
+bool ABC_import(struct bContext *C,
                 const char *filepath,
                 float scale,
                 bool is_sequence,
                 bool set_frame_range,
                 int sequence_len,
                 int offset,
-                bool validate_meshes);
+                bool validate_meshes,
+                bool as_background_job);
 
 AbcArchiveHandle *ABC_create_handle(const char *filename, struct ListBase *object_paths);
 

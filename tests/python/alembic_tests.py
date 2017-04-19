@@ -54,6 +54,10 @@ def with_tempdir(wrapped):
     return decorator
 
 
+class AbcPropError(Exception):
+    """Raised when AbstractAlembicTest.abcprop() finds an error."""
+
+
 class AbstractAlembicTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -104,8 +108,7 @@ class AbstractAlembicTest(unittest.TestCase):
     def abcprop(self, filepath: pathlib.Path, proppath: str) -> dict:
         """Uses abcls to obtain compound property values from an Alembic object.
 
-        A dict of subproperties is returned, where the values are just strings
-        as returned by abcls.
+        A dict of subproperties is returned, where the values are Python values.
 
         The Python bindings for Alembic are old, and only compatible with Python 2.x,
         so that's why we can't use them here, and have to rely on other tooling.
@@ -122,7 +125,7 @@ class AbstractAlembicTest(unittest.TestCase):
         output = self.ansi_remove_re.sub(b'', coloured_output).decode('utf8')
 
         if proc.returncode:
-            self.fail('Error %d running abcls:\n%s' % (proc.returncode, output))
+            raise AbcPropError('Error %d running abcls:\n%s' % (proc.returncode, output))
 
         # Mapping from value type to callable that can convert a string to Python values.
         converters = {
@@ -130,6 +133,7 @@ class AbstractAlembicTest(unittest.TestCase):
             'uint8_t': int,
             'int16_t': int,
             'int32_t': int,
+            'uint64_t': int,
             'float64_t': float,
             'float32_t': float,
         }
@@ -300,6 +304,72 @@ class CurveExportTest(AbstractAlembicTest):
 
         abcprop = self.abcprop(abc, '/NurbsCurve/NurbsCurveShape/.geom/.userProperties')
         self.assertEqual(abcprop['blender:resolution'], 10)
+
+
+class HairParticlesExportTest(AbstractAlembicTest):
+    """Tests exporting with/without hair/particles.
+
+    Just a basic test to ensure that the enabling/disabling works, and that export
+    works at all. NOT testing the quality/contents of the exported file.
+    """
+
+    def _do_test(self, tempdir: pathlib.Path, export_hair: bool, export_particles: bool) -> pathlib.Path:
+        abc = tempdir / 'hair-particles.abc'
+        script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
+                 "renderable_only=True, visible_layers_only=True, flatten=False, " \
+                 "export_hair=%r, export_particles=%r, as_background_job=False)" \
+                 % (abc, export_hair, export_particles)
+        self.run_blender('hair-particles.blend', script)
+        return abc
+
+    @with_tempdir
+    def test_with_both(self, tempdir: pathlib.Path):
+        abc = self._do_test(tempdir, True, True)
+
+        abcprop = self.abcprop(abc, '/Suzanne/Hair system/.geom')
+        self.assertIn('nVertices', abcprop)
+
+        abcprop = self.abcprop(abc, '/Suzanne/Non-hair particle system/.geom')
+        self.assertIn('.velocities', abcprop)
+
+        abcprop = self.abcprop(abc, '/Suzanne/SuzanneShape/.geom')
+        self.assertIn('.faceIndices', abcprop)
+
+    @with_tempdir
+    def test_with_hair_only(self, tempdir: pathlib.Path):
+        abc = self._do_test(tempdir, True, False)
+
+        abcprop = self.abcprop(abc, '/Suzanne/Hair system/.geom')
+        self.assertIn('nVertices', abcprop)
+
+        self.assertRaises(AbcPropError, self.abcprop, abc,
+                          '/Suzanne/Non-hair particle system/.geom')
+
+        abcprop = self.abcprop(abc, '/Suzanne/SuzanneShape/.geom')
+        self.assertIn('.faceIndices', abcprop)
+
+    @with_tempdir
+    def test_with_particles_only(self, tempdir: pathlib.Path):
+        abc = self._do_test(tempdir, False, True)
+
+        self.assertRaises(AbcPropError, self.abcprop, abc, '/Suzanne/Hair system/.geom')
+
+        abcprop = self.abcprop(abc, '/Suzanne/Non-hair particle system/.geom')
+        self.assertIn('.velocities', abcprop)
+
+        abcprop = self.abcprop(abc, '/Suzanne/SuzanneShape/.geom')
+        self.assertIn('.faceIndices', abcprop)
+
+    @with_tempdir
+    def test_with_neither(self, tempdir: pathlib.Path):
+        abc = self._do_test(tempdir, False, False)
+
+        self.assertRaises(AbcPropError, self.abcprop, abc, '/Suzanne/Hair system/.geom')
+        self.assertRaises(AbcPropError, self.abcprop, abc,
+                          '/Suzanne/Non-hair particle system/.geom')
+
+        abcprop = self.abcprop(abc, '/Suzanne/SuzanneShape/.geom')
+        self.assertIn('.faceIndices', abcprop)
 
 
 if __name__ == '__main__':

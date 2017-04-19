@@ -240,6 +240,7 @@ struct ExportJobData {
 	float *progress;
 
 	bool was_canceled;
+	bool export_ok;
 };
 
 static void export_startjob(void *customdata, short *stop, short *do_update, float *progress)
@@ -272,6 +273,8 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 
 			BKE_scene_update_for_newframe(data->bmain->eval_ctx, data->bmain, scene);
 		}
+
+		data->export_ok = !data->was_canceled;
 	}
 	catch (const std::exception &e) {
 		ABC_LOG(data->settings.logger) << "Abc Export error: " << e.what() << '\n';
@@ -298,15 +301,17 @@ static void export_endjob(void *customdata)
 	BKE_spacedata_draw_locks(false);
 }
 
-void ABC_export(
+bool ABC_export(
         Scene *scene,
         bContext *C,
         const char *filepath,
-        const struct AlembicExportParams *params)
+        const struct AlembicExportParams *params,
+        bool as_background_job)
 {
 	ExportJobData *job = static_cast<ExportJobData *>(MEM_mallocN(sizeof(ExportJobData), "ExportJobData"));
 	job->scene = scene;
 	job->bmain = CTX_data_main(C);
+	job->export_ok = false;
 	BLI_strncpy(job->filename, filepath, 1024);
 
 	/* Alright, alright, alright....
@@ -348,6 +353,8 @@ void ABC_export(
 	job->settings.export_normals = params->normals;
 	job->settings.export_uvs = params->uvs;
 	job->settings.export_vcols = params->vcolors;
+	job->settings.export_hair = params->export_hair;
+	job->settings.export_particles = params->export_particles;
 	job->settings.apply_subdiv = params->apply_subdiv;
 	job->settings.flatten_hierarchy = params->flatten_hierarchy;
 
@@ -369,19 +376,31 @@ void ABC_export(
 		std::swap(job->settings.frame_start, job->settings.frame_end);
 	}
 
-	wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
-	                            CTX_wm_window(C),
-	                            job->scene,
-	                            "Alembic Export",
-	                            WM_JOB_PROGRESS,
-	                            WM_JOB_TYPE_ALEMBIC);
+	if (as_background_job) {
+		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
+		                            CTX_wm_window(C),
+		                            job->scene,
+		                            "Alembic Export",
+		                            WM_JOB_PROGRESS,
+		                            WM_JOB_TYPE_ALEMBIC);
 
-	/* setup job */
-	WM_jobs_customdata_set(wm_job, job, MEM_freeN);
-	WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
-	WM_jobs_callbacks(wm_job, export_startjob, NULL, NULL, export_endjob);
+		/* setup job */
+		WM_jobs_customdata_set(wm_job, job, MEM_freeN);
+		WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
+		WM_jobs_callbacks(wm_job, export_startjob, NULL, NULL, export_endjob);
 
-	WM_jobs_start(CTX_wm_manager(C), wm_job);
+		WM_jobs_start(CTX_wm_manager(C), wm_job);
+	}
+	else {
+		/* Fake a job context, so that we don't need NULL pointer checks while exporting. */
+		short stop = 0, do_update = 0;
+		float progress = 0.f;
+
+		export_startjob(job, &stop, &do_update, &progress);
+		export_endjob(job);
+	}
+
+	return job->export_ok;
 }
 
 /* ********************** Import file ********************** */
@@ -610,6 +629,7 @@ struct ImportJobData {
 
 	char error_code;
 	bool was_cancelled;
+	bool import_ok;
 };
 
 ABC_INLINE bool is_mesh_and_strands(const IObject &object)
@@ -818,6 +838,7 @@ static void import_endjob(void *user_data)
 	switch (data->error_code) {
 		default:
 		case ABC_NO_ERROR:
+			data->import_ok = !data->was_cancelled;
 			break;
 		case ABC_ARCHIVE_FAIL:
 			WM_report(RPT_ERROR, "Could not open Alembic archive for reading! See console for detail.");
@@ -833,13 +854,16 @@ static void import_freejob(void *user_data)
 	delete data;
 }
 
-void ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence, bool set_frame_range, int sequence_len, int offset, bool validate_meshes)
+bool ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence,
+                bool set_frame_range, int sequence_len, int offset,
+                bool validate_meshes, bool as_background_job)
 {
 	/* Using new here since MEM_* funcs do not call ctor to properly initialize
 	 * data. */
 	ImportJobData *job = new ImportJobData();
 	job->bmain = CTX_data_main(C);
 	job->scene = CTX_data_scene(C);
+	job->import_ok = false;
 	BLI_strncpy(job->filename, filepath, 1024);
 
 	job->settings.scale = scale;
@@ -853,19 +877,31 @@ void ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 
 	G.is_break = false;
 
-	wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
-	                            CTX_wm_window(C),
-	                            job->scene,
-	                            "Alembic Import",
-	                            WM_JOB_PROGRESS,
-	                            WM_JOB_TYPE_ALEMBIC);
+	if (as_background_job) {
+		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
+									CTX_wm_window(C),
+									job->scene,
+									"Alembic Import",
+									WM_JOB_PROGRESS,
+									WM_JOB_TYPE_ALEMBIC);
 
-	/* setup job */
-	WM_jobs_customdata_set(wm_job, job, import_freejob);
-	WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
-	WM_jobs_callbacks(wm_job, import_startjob, NULL, NULL, import_endjob);
+		/* setup job */
+		WM_jobs_customdata_set(wm_job, job, import_freejob);
+		WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
+		WM_jobs_callbacks(wm_job, import_startjob, NULL, NULL, import_endjob);
 
-	WM_jobs_start(CTX_wm_manager(C), wm_job);
+		WM_jobs_start(CTX_wm_manager(C), wm_job);
+	}
+	else {
+		/* Fake a job context, so that we don't need NULL pointer checks while importing. */
+		short stop = 0, do_update = 0;
+		float progress = 0.f;
+
+		import_startjob(job, &stop, &do_update, &progress);
+		import_endjob(job);
+	}
+
+	return job->import_ok;
 }
 
 /* ************************************************************************** */

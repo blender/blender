@@ -66,6 +66,8 @@ struct ExportSettings {
 	bool export_vcols;
 	bool export_face_sets;
 	bool export_vweigths;
+	bool export_hair;
+	bool export_particles;
 
 	bool apply_subdiv;
 	bool use_subdiv_schema;
@@ -117,6 +119,7 @@ private:
 	void exploreObject(EvaluationContext *eval_ctx, Base *ob_base, Object *dupliObParent);
 	void createShapeWriters(EvaluationContext *eval_ctx);
 	void createShapeWriter(Base *ob_base, Object *dupliObParent);
+	void createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform);
 
 	AbcTransformWriter *getXForm(const std::string &name);
 

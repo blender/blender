@@ -122,6 +122,8 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	    .renderable_only = RNA_boolean_get(op->ptr, "renderable_only"),
 	    .face_sets = RNA_boolean_get(op->ptr, "face_sets"),
 	    .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
+	    .export_hair = RNA_boolean_get(op->ptr, "export_hair"),
+	    .export_particles = RNA_boolean_get(op->ptr, "export_particles"),
 	    .compression_type = RNA_enum_get(op->ptr, "compression_type"),
 	    .packuv = RNA_boolean_get(op->ptr, "packuv"),
 	    .triangulate = RNA_boolean_get(op->ptr, "triangulate"),
@@ -131,15 +133,17 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	    .global_scale = RNA_float_get(op->ptr, "global_scale"),
 	};
 
-	ABC_export(CTX_data_scene(C), C, filename, &params);
+	const bool as_background_job = RNA_boolean_get(op->ptr, "as_background_job");
+	bool ok = ABC_export(CTX_data_scene(C), C, filename, &params, as_background_job);
 
-	return OPERATOR_FINISHED;
+	return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 {
 	uiLayout *box;
 	uiLayout *row;
+	uiLayout *col;
 
 #ifdef WITH_ALEMBIC_HDF5
 	box = uiLayoutBox(layout);
@@ -231,6 +235,15 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 	row = uiLayoutRow(box, false);
 	uiLayoutSetEnabled(row, triangulate);
 	uiItemR(row, imfptr, "ngon_method", 0, NULL, ICON_NONE);
+
+	/* Object Data */
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, false);
+	uiItemL(row, IFACE_("Particle Systems:"), ICON_PARTICLE_DATA);
+
+	col = uiLayoutColumn(box, true);
+	uiItemR(col, imfptr, "export_hair", 0, NULL, ICON_NONE);
+	uiItemR(col, imfptr, "export_particles", 0, NULL, ICON_NONE);
 }
 
 static void wm_alembic_export_draw(bContext *C, wmOperator *op)
@@ -347,6 +360,12 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 
 	RNA_def_enum(ot->srna, "ngon_method", rna_enum_modifier_triangulate_quad_method_items,
 	             MOD_TRIANGULATE_NGON_BEAUTY, "Polygon Method", "Method for splitting the polygons into triangles");
+
+	RNA_def_boolean(ot->srna, "export_hair", 1, "Export Hair", "Exports hair particle systems as animated curves");
+	RNA_def_boolean(ot->srna, "export_particles", 1, "Export Particles", "Exports non-hair particle systems");
+
+	RNA_def_boolean(ot->srna, "as_background_job", true, "Run as Background Job",
+	                "Enable this to run the import in the background, disable to block Blender while importing");
 
 	/* This dummy prop is used to check whether we need to init the start and
      * end frame values to that of the scene's, otherwise they are reset at
@@ -482,6 +501,7 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 	const bool is_sequence = RNA_boolean_get(op->ptr, "is_sequence");
 	const bool set_frame_range = RNA_boolean_get(op->ptr, "set_frame_range");
 	const bool validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
+	const bool as_background_job = RNA_boolean_get(op->ptr, "as_background_job");
 
 	int offset = 0;
 	int sequence_len = 1;
@@ -490,9 +510,11 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 		sequence_len = get_sequence_len(filename, &offset);
 	}
 
-	ABC_import(C, filename, scale, is_sequence, set_frame_range, sequence_len, offset, validate_meshes);
+	bool ok = ABC_import(C, filename, scale, is_sequence, set_frame_range,
+	                     sequence_len, offset, validate_meshes,
+	                     as_background_job);
 
-	return OPERATOR_FINISHED;
+	return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void WM_OT_alembic_import(wmOperatorType *ot)
@@ -523,6 +545,9 @@ void WM_OT_alembic_import(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "is_sequence", false, "Is Sequence",
 	                "Set to true if the cache is split into separate files");
+
+	RNA_def_boolean(ot->srna, "as_background_job", true, "Run as Background Job",
+	                "Enable this to run the export in the background, disable to block Blender while exporting");
 }
 
 #endif
