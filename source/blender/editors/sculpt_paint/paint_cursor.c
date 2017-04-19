@@ -335,8 +335,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 	glBindTexture(GL_TEXTURE_2D, target->overlay_texture);
 
 	if (refresh) {
-		GLenum format = col ? GL_RGBA : GL_ALPHA;
-		GLenum internalformat = col ? GL_RGBA8 : GL_ALPHA8;
+		GLenum format = col ? GL_RGBA : GL_RED;
+		GLenum internalformat = col ? GL_RGBA8 : GL_R8;
 
 		if (!init || (target->old_col != col)) {
 			glTexImage2D(GL_TEXTURE_2D, 0, internalformat, size, size, 0, format, GL_UNSIGNED_BYTE, buffer);
@@ -457,10 +457,10 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
 	if (refresh) {
 		if (!init) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA8, size, size, 0, GL_ALPHA, GL_UNSIGNED_BYTE, buffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
 		}
 		else {
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, GL_ALPHA, GL_UNSIGNED_BYTE, buffer);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, GL_RED, GL_UNSIGNED_BYTE, buffer);
 		}
 
 		if (buffer)
@@ -664,12 +664,12 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		unsigned int texCoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
 
-		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-
 		if (col) {
+			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 			immUniformColor4f(1.0f, 1.0f, 1.0f, overlay_alpha * 0.01f);
 		}
 		else {
+			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA_COLOR);
 			immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, overlay_alpha * 0.01f);
 		}
 
