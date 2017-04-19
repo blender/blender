@@ -32,6 +32,8 @@ void BKE_curve_batch_selection_dirty(struct Curve *cu);
 void BKE_curve_batch_cache_clear(struct Curve *cu);
 void BKE_curve_batch_cache_free(struct Curve *cu);
 struct Batch *BKE_curve_batch_cache_get_wire_edge(struct Curve *cu, struct CurveCache *ob_curve_cache);
+struct Batch *BKE_curve_batch_cache_get_normal_edge(
+        struct Curve *cu, struct CurveCache *ob_curve_cache, float normal_size);
 struct Batch *BKE_curve_batch_cache_get_overlay_edges(struct Curve *cu);
 struct Batch *BKE_curve_batch_cache_get_overlay_verts(struct Curve *cu);
 

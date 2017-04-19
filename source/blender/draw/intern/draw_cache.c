@@ -1588,6 +1588,14 @@ Batch *DRW_cache_curve_edge_wire_get(Object *ob)
 	return BKE_curve_batch_cache_get_wire_edge(cu, ob->curve_cache);
 }
 
+Batch *DRW_cache_curve_edge_normal_get(Object *ob, float normal_size)
+{
+	BLI_assert(ob->type == OB_CURVE);
+
+	struct Curve *cu = ob->data;
+	return BKE_curve_batch_cache_get_normal_edge(cu, ob->curve_cache, normal_size);
+}
+
 Batch *DRW_cache_curve_edge_overlay_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_CURVE);

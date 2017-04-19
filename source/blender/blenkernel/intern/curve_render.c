@@ -107,6 +107,26 @@ static void curve_render_wire_verts_edges_len_get(
 	}
 }
 
+static int curve_render_normal_len_get(const ListBase *lb, const CurveCache *ob_curve_cache)
+{
+	int normal_len = 0;
+	const BevList *bl;
+	const Nurb *nu;
+	for (bl = ob_curve_cache->bev.first, nu = lb->first; nu && bl; bl = bl->next, nu = nu->next) {
+		int nr = bl->nr;
+		int skip = nu->resolu / 16;
+#if 0
+		while (nr-- > 0) { /* accounts for empty bevel lists */
+			normal_len += 1;
+			nr -= skip;
+		}
+#else
+		normal_len += max_ii((nr + max_ii(skip - 1, 0)) / (skip + 1), 0);
+#endif
+	}
+	return normal_len;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Curve Interface, indirect, partially cached access to complex data. */
 
@@ -123,7 +143,15 @@ typedef struct CurveRenderData {
 		int edge_len;
 	} wire;
 
+	/* edit mode normal's */
+	struct {
+		/* 'edge_len == len * 2'
+		 * 'vert_len == len * 3' */
+		int len;
+	} normal;
+
 	bool hide_handles;
+	bool hide_normals;
 
 	/* borrow from 'Object' */
 	CurveCache *ob_curve_cache;
@@ -143,6 +171,8 @@ enum {
 	CU_DATATYPE_WIRE        = 1 << 0,
 	/* Edit-mode verts and optionally handles */
 	CU_DATATYPE_OVERLAY     = 1 << 1,
+	/* Edit-mode normals */
+	CU_DATATYPE_NORMAL      = 1 << 2,
 };
 
 /*
@@ -155,6 +185,8 @@ static CurveRenderData *curve_render_data_create(Curve *cu, CurveCache *ob_curve
 	ListBase *nurbs;
 
 	lrdata->hide_handles = (cu->drawflag & CU_HIDE_HANDLES) != 0;
+	lrdata->hide_normals = (cu->drawflag & CU_HIDE_NORMALS) != 0;
+
 	lrdata->actnu = cu->actnu;
 	lrdata->actvert = cu->actvert;
 
@@ -180,6 +212,9 @@ static CurveRenderData *curve_render_data_create(Curve *cu, CurveCache *ob_curve
 
 			lrdata->actnu = cu->actnu;
 			lrdata->actvert = cu->actvert;
+		}
+		if (types & CU_DATATYPE_NORMAL) {
+			lrdata->normal.len = curve_render_normal_len_get(nurbs, lrdata->ob_curve_cache);
 		}
 	}
 	else {
@@ -225,13 +260,11 @@ static int curve_render_data_wire_edges_len_get(const CurveRenderData *lrdata)
 	return lrdata->wire.edge_len;
 }
 
-#if 0
-static const BPoint *curve_render_data_vert_bpoint(const CurveRenderData *lrdata, const int vert_idx)
+static int curve_render_data_normal_len_get(const CurveRenderData *lrdata)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_VERT);
-	return &lrdata->bp[vert_idx];
+	BLI_assert(lrdata->types & CU_DATATYPE_NORMAL);
+	return lrdata->normal.len;
 }
-#endif
 
 enum {
 	VFLAG_VERTEX_SELECTED = 1 << 0,
@@ -250,6 +283,14 @@ typedef struct CurveBatchCache {
 		ElementList *elem;
 	} wire;
 
+	/* normals */
+	struct {
+		VertexBuffer *verts;
+		VertexBuffer *edges;
+		Batch *batch;
+		ElementList *elem;
+	} normal;
+
 	/* control handles and vertices */
 	struct {
 		Batch *edges;
@@ -260,6 +301,9 @@ typedef struct CurveBatchCache {
 	bool is_dirty;
 
 	bool hide_handles;
+	bool hide_normals;
+
+	float normal_size;
 
 	bool is_editmode;
 } CurveBatchCache;
@@ -289,6 +333,9 @@ static bool curve_batch_cache_valid(Curve *cu)
 		else if ((cache->hide_handles != ((cu->drawflag & CU_HIDE_HANDLES) != 0))) {
 			return false;
 		}
+		else if ((cache->hide_normals != ((cu->drawflag & CU_HIDE_NORMALS) != 0))) {
+			return false;
+		}
 	}
 
 	return true;
@@ -306,6 +353,7 @@ static void curve_batch_cache_init(Curve *cu)
 	}
 
 	cache->hide_handles = (cu->flag & CU_HIDE_HANDLES) != 0;
+	cache->hide_normals = (cu->flag & CU_HIDE_NORMALS) != 0;
 
 #if 0
 	ListBase *nurbs;
@@ -368,6 +416,15 @@ void BKE_curve_batch_cache_clear(Curve *cu)
 		VERTEXBUFFER_DISCARD_SAFE(cache->wire.edges);
 		ELEMENTLIST_DISCARD_SAFE(cache->wire.elem);
 	}
+
+	if (cache->normal.batch) {
+		BATCH_DISCARD_ALL_SAFE(cache->normal.batch);
+	}
+	else {
+		VERTEXBUFFER_DISCARD_SAFE(cache->normal.verts);
+		VERTEXBUFFER_DISCARD_SAFE(cache->normal.edges);
+		ELEMENTLIST_DISCARD_SAFE(cache->normal.elem);
+	}
 }
 
 void BKE_curve_batch_cache_free(Curve *cu)
@@ -417,7 +474,7 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *lrdata, Cu
 	if (cache->wire.edges == NULL) {
 		const int vert_len = curve_render_data_wire_verts_len_get(lrdata);
 		const int edge_len = curve_render_data_wire_edges_len_get(lrdata);
-		int edge_len_real = 0;
+		int edge_len_used = 0;
 
 		ElementListBuilder elb;
 		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, vert_len);
@@ -437,22 +494,115 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *lrdata, Cu
 				}
 				for (; i < i_end; i_prev = i++) {
 					add_line_vertices(&elb, i_prev, i);
-					edge_len_real += 1;
+					edge_len_used += 1;
 				}
 			}
 		}
 
 		if (lrdata->hide_handles) {
-			BLI_assert(edge_len_real <= edge_len);
+			BLI_assert(edge_len_used <= edge_len);
 		}
 		else {
-			BLI_assert(edge_len_real == edge_len);
+			BLI_assert(edge_len_used == edge_len);
 		}
 
 		cache->wire.elem = ElementList_build(&elb);
 	}
 
 	return cache->wire.elem;
+}
+
+static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *lrdata, CurveBatchCache *cache)
+{
+	BLI_assert(lrdata->types & CU_DATATYPE_NORMAL);
+	BLI_assert(lrdata->ob_curve_cache != NULL);
+
+	if (cache->normal.verts == NULL) {
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			/* initialize vertex format */
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		const int normal_len = curve_render_data_normal_len_get(lrdata);
+		const int vert_len = normal_len * 3;
+
+		VertexBuffer *vbo = cache->normal.verts = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, vert_len);
+		int vbo_len_used = 0;
+
+		const BevList *bl;
+		const Nurb *nu;
+
+		for (bl = lrdata->ob_curve_cache->bev.first, nu = lrdata->nurbs->first;
+		     nu && bl;
+		     bl = bl->next, nu = nu->next)
+		{
+			const BevPoint *bevp = bl->bevpoints;
+			int nr = bl->nr;
+			int skip = nu->resolu / 16;
+
+			while (nr-- > 0) { /* accounts for empty bevel lists */
+				const float fac = bevp->radius * cache->normal_size;
+				float vec_a[3]; /* Offset perpendicular to the curve */
+				float vec_b[3]; /* Delta along the curve */
+
+				vec_a[0] = fac;
+				vec_a[1] = 0.0f;
+				vec_a[2] = 0.0f;
+
+				vec_b[0] = -fac;
+				vec_b[1] = 0.0f;
+				vec_b[2] = 0.0f;
+
+				mul_qt_v3(bevp->quat, vec_a);
+				mul_qt_v3(bevp->quat, vec_b);
+				add_v3_v3(vec_a, bevp->vec);
+				add_v3_v3(vec_b, bevp->vec);
+
+				madd_v3_v3fl(vec_a, bevp->dir, -fac);
+				madd_v3_v3fl(vec_b, bevp->dir, -fac);
+
+				VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, vec_a);
+				VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, bevp->vec);
+				VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, vec_b);
+
+				bevp += skip + 1;
+				nr -= skip;
+			}
+		}
+		BLI_assert(vbo_len_used == vert_len);
+	}
+
+	return cache->normal.verts;
+}
+
+static ElementList *curve_batch_cache_get_normal_edges(CurveRenderData *lrdata, CurveBatchCache *cache)
+{
+	BLI_assert(lrdata->types & CU_DATATYPE_NORMAL);
+	BLI_assert(lrdata->ob_curve_cache != NULL);
+
+	if (cache->normal.edges == NULL) {
+		const int normal_len = curve_render_data_normal_len_get(lrdata);
+		const int edge_len = normal_len * 2;
+
+		ElementListBuilder elb;
+		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, normal_len * 2);
+
+		int vbo_len_used = 0;
+		for (int i = 0; i < normal_len; i++) {
+			add_line_vertices(&elb, vbo_len_used + 0, vbo_len_used + 1);
+			add_line_vertices(&elb, vbo_len_used + 1, vbo_len_used + 2);
+			vbo_len_used += 3;
+		}
+
+		BLI_assert(vbo_len_used == normal_len * 3);
+
+		cache->normal.elem = ElementList_build(&elb);
+	}
+
+	return cache->normal.elem;
 }
 
 static void curve_batch_cache_create_overlay_batches(Curve *cu)
@@ -618,8 +768,34 @@ Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache
 
 		curve_render_data_free(lrdata);
 	}
-
 	return cache->wire.batch;
+}
+
+Batch *BKE_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cache, float normal_size)
+{
+	CurveBatchCache *cache = curve_batch_cache_get(cu);
+
+	if (cache->normal.batch != NULL) {
+		cache->normal_size = normal_size;
+		if (cache->normal_size != normal_size) {
+			BATCH_DISCARD_ALL_SAFE(cache->normal.batch);
+		}
+	}
+	cache->normal_size = normal_size;
+
+	if (cache->normal.batch == NULL) {
+		/* create batch from Curve */
+		CurveRenderData *lrdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_NORMAL);
+
+		cache->normal.batch = Batch_create(
+		        PRIM_LINES,
+		        curve_batch_cache_get_normal_verts(lrdata, cache),
+		        curve_batch_cache_get_normal_edges(lrdata, cache));
+
+		curve_render_data_free(lrdata);
+		cache->normal_size = normal_size;
+	}
+	return cache->normal.batch;
 }
 
 Batch *BKE_curve_batch_cache_get_overlay_edges(Curve *cu)

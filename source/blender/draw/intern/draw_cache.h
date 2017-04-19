@@ -90,6 +90,7 @@ struct Batch *DRW_cache_mesh_verts_get(struct Object *ob);
 
 /* Curve */
 struct Batch *DRW_cache_curve_edge_wire_get(struct Object *ob);
+struct Batch *DRW_cache_curve_edge_normal_get(struct Object *ob, float normal_size);
 struct Batch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
 struct Batch *DRW_cache_curve_vert_overlay_get(struct Object *ob);
 
