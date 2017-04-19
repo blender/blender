@@ -33,7 +33,7 @@ in ivec4 vData[];
 /* these are the same for all vertices
  * and does not need interpolation */
 flat out vec3 edgesCrease;
-flat out vec3 edgesSharp;
+flat out vec3 edgesBweight;
 flat out ivec3 flag;
 flat out vec4 faceColor;
 flat out int clipCase;
@@ -126,11 +126,11 @@ void main()
 		return;
 
 	/* Edge */
-	ivec3 eflag; vec3 ecrease, esharp;
+	ivec3 eflag; vec3 ecrease, ebweight;
 	for (int v = 0; v < 3; ++v) {
 		flag[v] = eflag[v] = vData[v].y | (vData[v].x << 8);
 		edgesCrease[v] = ecrease[v] = vData[v].z / 255.0;
-		edgesSharp[v] = esharp[v] = vData[v].w / 255.0;
+		edgesBweight[v] = ebweight[v] = vData[v].w / 255.0;
 	}
 
 	/* Face */
@@ -244,7 +244,7 @@ void main()
 			flag[1] = (vData[vaf].x << 8);
 			flag[2] = eflag[vbe];
 			edgesCrease[2] = ecrease[vbe];
-			edgesSharp[2] = esharp[vbe];
+			edgesBweight[2] = ebweight[vbe];
 
 			doVertex(vaf, pPos[vaf]);
 			doVertex(vaf, pPos[vaf] + vec4(fixvecaf[v], 0.0, 0.0));
