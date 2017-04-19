@@ -600,6 +600,31 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 }
 
 /**
+ * Same as IDP_MergeGroup but recursively
+ */
+void IDP_MergeGroupValues(IDProperty *dest, IDProperty *src)
+{
+	IDProperty *prop;
+
+	BLI_assert(dest->type == IDP_GROUP);
+	BLI_assert(src->type == IDP_GROUP);
+
+	for (prop = src->data.group.first; prop; prop = prop->next) {
+		if (prop->type == IDP_GROUP) {
+			IDProperty *prop_exist = IDP_GetPropertyFromGroup(dest, prop->name);
+
+			if (prop_exist != NULL) {
+				IDP_MergeGroupValues(prop_exist, prop);
+				continue;
+			}
+		}
+
+		IDProperty *copy = IDP_CopyProperty(prop);
+		IDP_ReplaceInGroup(dest, copy);
+	}
+}
+
+/**
  * If a property is missing in \a dest, add it.
  */
 void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overwrite)
