@@ -56,9 +56,10 @@ void EEVEE_lights_init(EEVEE_StorageList *stl)
 	                                     sizeof(EEVEE_ShadowCascade) * MAX_SHADOW_CASCADE;
 
 	if (!stl->lamps) {
-		stl->lamps  = MEM_callocN(sizeof(EEVEE_LampsInfo), "EEVEE_LampsInfo");
-		stl->light_ubo   = DRW_uniformbuffer_create(sizeof(EEVEE_Light) * MAX_LIGHT, NULL);
-		stl->shadow_ubo  = DRW_uniformbuffer_create(shadow_ubo_size, NULL);
+		stl->lamps              = MEM_callocN(sizeof(EEVEE_LampsInfo), "EEVEE_LampsInfo");
+		stl->light_ubo          = DRW_uniformbuffer_create(sizeof(EEVEE_Light) * MAX_LIGHT, NULL);
+		stl->shadow_ubo         = DRW_uniformbuffer_create(shadow_ubo_size, NULL);
+		stl->shadow_render_ubo  = DRW_uniformbuffer_create(sizeof(EEVEE_ShadowRender), NULL);
 	}
 }
 
@@ -325,6 +326,7 @@ void EEVEE_lights_update(EEVEE_StorageList *stl)
 /* this refresh lamps shadow buffers */
 void EEVEE_draw_shadows(EEVEE_Data *vedata)
 {
+	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_LampsInfo *linfo = stl->lamps;
@@ -342,27 +344,30 @@ void EEVEE_draw_shadows(EEVEE_Data *vedata)
 	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
 		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
 		EEVEE_ShadowCubeData *evscd = (EEVEE_ShadowCubeData *)led->sto;
+		EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
 
+		srd->layer = i;
 		for (int j = 0; j < 6; ++j) {
-			linfo->layer = i * 6 + j;
-			copy_m4_m4(linfo->shadowmat, evscd->viewprojmat[j]);
-			DRW_draw_pass(vedata->psl->shadow_pass);
+			copy_m4_m4(srd->shadowmat[j], evscd->viewprojmat[j]);
 		}
+		DRW_uniformbuffer_update(stl->shadow_render_ubo, &linfo->shadow_render_data);
+
+		DRW_draw_pass(psl->shadow_cube_pass);
 	}
 
 	/* Standard Shadow Maps */
-	DRW_framebuffer_bind(fbl->shadow_map_fb);
-	DRW_framebuffer_clear(false, true, false, NULL, 1.0);
+	// DRW_framebuffer_bind(fbl->shadow_map_fb);
+	// DRW_framebuffer_clear(false, true, false, NULL, 1.0);
 
-	/* Render each shadow to one layer of the array */
-	for (i = 0; (ob = linfo->shadow_map_ref[i]) && (i < MAX_SHADOW_MAP); i++) {
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
-		EEVEE_ShadowMapData *evsmd = (EEVEE_ShadowMapData *)led->sto;
+	// /* Render each shadow to one layer of the array */
+	// for (i = 0; (ob = linfo->shadow_map_ref[i]) && (i < MAX_SHADOW_MAP); i++) {
+	// 	EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+	// 	EEVEE_ShadowMapData *evsmd = (EEVEE_ShadowMapData *)led->sto;
 
-		linfo->layer = i;
-		copy_m4_m4(linfo->shadowmat, evsmd->viewprojmat);
-		DRW_draw_pass(vedata->psl->shadow_pass);
-	}
+	// 	linfo->layer = i;
+	// 	copy_m4_m4(linfo->shadowmat, evsmd->viewprojmat);
+	// 	DRW_draw_pass(vedata->psl->shadow_pass);
+	// }
 
 	// DRW_framebuffer_bind(e_data.shadow_cascade_fb);
 }

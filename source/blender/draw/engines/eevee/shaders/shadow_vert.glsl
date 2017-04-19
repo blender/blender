@@ -1,10 +1,12 @@
 
-uniform mat4 ModelMatrix;
+uniform mat4 ShadowModelMatrix;
 
 in vec3 pos;
 
 out vec4 vPos;
+out int face;
 
 void main() {
-	vPos = ModelMatrix * vec4(pos, 1.0);
+	vPos = ShadowModelMatrix * vec4(pos, 1.0);
+	face = gl_InstanceID;
 }

@@ -35,6 +35,7 @@ struct Object;
 typedef struct EEVEE_PassList {
 	/* Shadows */
 	struct DRWPass *shadow_pass;
+	struct DRWPass *shadow_cube_pass;
 
 	/* Probes */
 	struct DRWPass *probe_background;
@@ -80,6 +81,7 @@ typedef struct EEVEE_StorageList {
 	struct EEVEE_LampsInfo *lamps;
 	struct GPUUniformBuffer *light_ubo;
 	struct GPUUniformBuffer *shadow_ubo;
+	struct GPUUniformBuffer *shadow_render_ubo;
 
 	/* Probes */
 	struct EEVEE_ProbesInfo *probes;
@@ -114,12 +116,13 @@ typedef struct EEVEE_ShadowCascade {
 	float far[MAX_CASCADE_NUM];
 } EEVEE_ShadowCascade;
 
+typedef struct EEVEE_ShadowRender {
+	float shadowmat[6][4][4]; /* World->Lamp->NDC : used to render the shadow map. 6 frustrum for cubemap shadow */
+	int layer;
+} EEVEE_ShadowRender;
+
 /* ************ LIGHT DATA ************* */
 typedef struct EEVEE_LampsInfo {
-	/* For rendering shadows */
-	float shadowmat[4][4];
-	int layer;
-
 	int num_light, cache_num_light;
 	int num_cube, cache_num_cube;
 	int num_map, cache_num_map;
@@ -131,6 +134,7 @@ typedef struct EEVEE_LampsInfo {
 	struct Object *shadow_cascade_ref[MAX_SHADOW_CASCADE];
 	/* UBO Storage : data used by UBO */
 	struct EEVEE_Light         light_data[MAX_LIGHT];
+	struct EEVEE_ShadowRender  shadow_render_data;
 	struct EEVEE_ShadowCube    shadow_cube_data[MAX_SHADOW_CUBE];
 	struct EEVEE_ShadowMap     shadow_map_data[MAX_SHADOW_MAP];
 	struct EEVEE_ShadowCascade shadow_cascade_data[MAX_SHADOW_CASCADE];
