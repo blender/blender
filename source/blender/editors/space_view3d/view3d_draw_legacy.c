@@ -1880,7 +1880,7 @@ void ED_view3d_draw_offscreen(
 	ar->winy = bwiny;
 	ar->winrct = brect;
 
-	gpuPopMatrix();
+	gpuPopProjectionMatrix();
 	gpuPopMatrix();
 
 	UI_Theme_Restore(&theme_state);
