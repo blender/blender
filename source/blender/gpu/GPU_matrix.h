@@ -44,9 +44,9 @@ extern "C" {
  * Will remove this after switching to core profile, which can happen after
  * we convert all code to use the API in this file. */
 #ifdef WITH_GL_PROFILE_CORE
-	#define SUPPORT_LEGACY_MATRIX 0
+#  define SUPPORT_LEGACY_MATRIX 0
 #else
-	#define SUPPORT_LEGACY_MATRIX 1
+#  define SUPPORT_LEGACY_MATRIX 1
 #endif
 
 
