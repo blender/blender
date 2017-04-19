@@ -3883,22 +3883,11 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 
 static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	wmWindow *win = CTX_wm_window(C);
-	rcti rect;
-	int sizex, sizey;
-	
-	sizex = 800 * UI_DPI_WINDOW_FAC;
-	sizey = 480 * UI_DPI_WINDOW_FAC;
-	
-	/* some magic to calculate postition */
-	/* pixelsize: mouse coords are in U.pixelsize units :/ */
-	rect.xmin = (event->x / U.pixelsize) + win->posx - sizex / 2;
-	rect.ymin = (event->y / U.pixelsize) + win->posy - sizey / 2;
-	rect.xmax = rect.xmin + sizex;
-	rect.ymax = rect.ymin + sizey;
+	int sizex = 800 * UI_DPI_FAC;
+	int sizey = 480 * UI_DPI_FAC;
 	
 	/* changes context! */
-	if (WM_window_open_temp(C, &rect, WM_WINDOW_USERPREFS) != NULL) {
+	if (WM_window_open_temp(C, event->x, event->y, sizex, sizey, WM_WINDOW_USERPREFS) != NULL) {
 		return OPERATOR_FINISHED;
 	}
 	else {
