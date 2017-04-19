@@ -1765,11 +1765,9 @@ static void new_id_matar(Main *bmain, Material **matar, const int totcol)
 
 static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 {
-	Object *ob;
 	Lamp *la;
 	Curve *cu;
 	/* Camera *cam; */
-	BaseLegacy *base;
 	Mesh *me;
 	Lattice *lat;
 	ID *id;

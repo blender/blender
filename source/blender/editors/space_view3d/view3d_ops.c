@@ -200,7 +200,6 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_camera_to_view);
 	WM_operatortype_append(VIEW3D_OT_camera_to_view_selected);
 	WM_operatortype_append(VIEW3D_OT_object_as_camera);
-	WM_operatortype_append(VIEW3D_OT_localview);
 	WM_operatortype_append(VIEW3D_OT_game_start);
 	WM_operatortype_append(VIEW3D_OT_fly);
 	WM_operatortype_append(VIEW3D_OT_walk);
@@ -354,8 +353,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
 	RNA_boolean_set(kmi->ptr, "align_active", true);
-
-	WM_keymap_add_item(keymap, "VIEW3D_OT_localview", PADSLASHKEY, KM_PRESS, 0, 0);
 	
 #ifdef WITH_INPUT_NDOF
 	/* note: positioned here so keymaps show keyboard keys if assigned */
