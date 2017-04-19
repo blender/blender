@@ -61,7 +61,6 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
-#include "GPU_basic_shader.h"
 
 #include "UI_resources.h"
 
@@ -352,8 +351,6 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 		target->old_col = col;
 	}
 
-	GPU_basic_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -469,8 +466,6 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 		if (buffer)
 			MEM_freeN(buffer);
 	}
-
-	GPU_basic_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -807,7 +802,6 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	}
 
 	gpuRestoreState(&attribs);
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
 
