@@ -991,13 +991,20 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				}
 				break;
 			}
+			case ID_GD:
+			{
+				bGPdata *gpencil = (bGPdata *) id;
+
+				for (bGPDlayer *gp_layer = gpencil->layers.first; gp_layer; gp_layer = gp_layer->next) {
+					CALLBACK_INVOKE(gp_layer->parent, IDWALK_CB_NOP);
+				}
+			}
 
 			/* Nothing needed for those... */
 			case ID_IM:
 			case ID_VF:
 			case ID_TXT:
 			case ID_SO:
-			case ID_GD:
 			case ID_WM:
 			case ID_PAL:
 			case ID_PC:
