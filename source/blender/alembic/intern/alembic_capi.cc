@@ -49,6 +49,7 @@ extern "C" {
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -617,6 +618,7 @@ enum {
 struct ImportJobData {
 	Main *bmain;
 	Scene *scene;
+	SceneLayer *sl;
 
 	char filename[1024];
 	ImportSettings settings;
@@ -812,13 +814,28 @@ static void import_endjob(void *user_data)
 	}
 	else {
 		/* Add object to scene. */
-		BKE_scene_base_deselect_all(data->scene);
+		Base *base;
+		LayerCollection *lc;
+		SceneLayer *sl = data->sl;
+
+		BKE_scene_layer_base_deselect_all(sl);
+
+		lc = BKE_layer_collection_active(sl);
+		if (lc == NULL) {
+			BLI_assert(BLI_listbase_count_ex(&sl->layer_collections, 1) == 0);
+			/* when there is no collection linked to this SceneLayer, create one */
+			SceneCollection *sc = BKE_collection_add(data->scene, NULL, NULL);
+			lc = BKE_collection_link(sl, sc);
+		}
 
 		for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 			Object *ob = (*iter)->object();
 			ob->lay = data->scene->lay;
 
-			BKE_scene_base_add(data->scene, ob);
+			BKE_collection_object_add(data->scene, lc->scene_collection, ob);
+
+			base = BKE_scene_layer_base_find(sl, ob);
+			BKE_scene_layer_base_select(sl, base);
 
 			DEG_id_tag_update_ex(data->bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		}
@@ -863,6 +880,7 @@ bool ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 	ImportJobData *job = new ImportJobData();
 	job->bmain = CTX_data_main(C);
 	job->scene = CTX_data_scene(C);
+	job->sl = CTX_data_scene_layer(C);
 	job->import_ok = false;
 	BLI_strncpy(job->filename, filepath, 1024);
 
