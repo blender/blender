@@ -605,21 +605,20 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		glDepthMask(GL_FALSE);
 		glDepthFunc(GL_ALWAYS);
 
-		glMatrixMode(GL_TEXTURE);
-		glPushMatrix(); /* TEXTURE */
-		glLoadIdentity(); /* TEXTURE */
-
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+			gpuPushMatrix();
+
 			/* brush rotation */
-			glTranslatef(0.5, 0.5, 0); /* TEXTURE */
-			glRotatef(RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec), 0, 0, 1);  /* TEXTURE */
-			glTranslatef(-0.5f, -0.5f, 0); /* TEXTURE */
+			gpuTranslate2f(x, y);
+			gpuRotate2D(-RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
+			gpuTranslate2f(-x, -y);
 
 			/* scale based on tablet pressure */
 			if (primary && ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
-				glTranslatef(0.5f, 0.5f, 0); /* TEXTURE */
-				glScalef(1.0f / ups->size_pressure_value, 1.0f / ups->size_pressure_value, 1.0f / ups->size_pressure_value); /* TEXTURE */
-				glTranslatef(-0.5f, -0.5f, 0); /* TEXTURE */
+				const float scale = ups->size_pressure_value;
+				gpuTranslate2f(x, y);
+				gpuScale2f(scale, scale);
+				gpuTranslate2f(-x, -y);
 			}
 
 			if (ups->draw_anchored) {
@@ -657,14 +656,12 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 				quad.xmax = brush->mask_stencil_dimension[0];
 				quad.ymax = brush->mask_stencil_dimension[1];
 			}
-			glMatrixMode(GL_MODELVIEW);
 			gpuPushMatrix();
 			if (primary)
 				gpuTranslate2fv(brush->stencil_pos);
 			else
 				gpuTranslate2fv(brush->mask_stencil_pos);
 			gpuRotate2D(RAD2DEGF(mtex->rot));
-			glMatrixMode(GL_TEXTURE);
 		}
 
 		/* set quad color. Colored overlay does not get blending */
@@ -697,10 +694,7 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 
 		immUnbindProgram();
 
-		glPopMatrix(); /* TEXTURE */
-		glMatrixMode(GL_MODELVIEW);
-
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
+		if (ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_VIEW)) {
 			gpuPopMatrix();
 		}
 	}
