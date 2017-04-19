@@ -1365,7 +1365,7 @@ static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
 	*props = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 
 	if (props_ref) {
-		IDP_MergeGroup(*props, props_ref, true);
+		IDP_MergeGroupValues(*props, props_ref);
 	}
 }
 
@@ -1383,7 +1383,6 @@ void BKE_layer_eval_layer_collection_pre(struct EvaluationContext *UNUSED(eval_c
 }
 
 void BKE_layer_eval_layer_collection(struct EvaluationContext *UNUSED(eval_ctx),
-                                     Scene *scene,
                                      LayerCollection *layer_collection,
                                      LayerCollection *parent_layer_collection)
 {
@@ -1404,25 +1403,21 @@ void BKE_layer_eval_layer_collection(struct EvaluationContext *UNUSED(eval_ctx),
 	}
 
 	/* overrides */
-	if (parent_layer_collection != NULL) {
-		idproperty_reset(&layer_collection->properties_evaluated, parent_layer_collection->properties_evaluated);
-	}
-	else if (layer_collection->prev != NULL) {
-		    idproperty_reset(&layer_collection->properties_evaluated, NULL);
-	}
-	else {
-		idproperty_reset(&layer_collection->properties_evaluated, scene->collection_properties);
-	}
-
 	if (is_visible) {
-		IDP_MergeGroup(layer_collection->properties_evaluated, layer_collection->properties, true);
+		if (parent_layer_collection == NULL) {
+			idproperty_reset(&layer_collection->properties_evaluated, layer_collection->properties);
+		}
+		else {
+			idproperty_reset(&layer_collection->properties_evaluated, parent_layer_collection->properties_evaluated);
+			IDP_MergeGroupValues(layer_collection->properties_evaluated, layer_collection->properties);
+		}
 	}
 
 	for (LinkData *link = layer_collection->object_bases.first; link != NULL; link = link->next) {
 		Base *base = link->data;
 
 		if (is_visible) {
-			IDP_SyncGroupValues(base->collection_properties, layer_collection->properties_evaluated);
+			IDP_MergeGroupValues(base->collection_properties, layer_collection->properties_evaluated);
 			base->flag |= BASE_VISIBLED;
 		}
 
