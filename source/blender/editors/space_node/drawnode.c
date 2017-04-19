@@ -3176,7 +3176,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		float x, y; 
 
 		glMatrixMode(GL_PROJECTION);
-		gpuPushMatrix();
+		gpuPushProjectionMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		gpuPushMatrix();
 
@@ -3264,7 +3264,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		}
 
 		glMatrixMode(GL_PROJECTION);
-		gpuPopMatrix();
+		gpuPopProjectionMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		gpuPopMatrix();
 	}

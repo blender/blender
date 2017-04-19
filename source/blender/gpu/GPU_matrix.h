@@ -87,6 +87,10 @@ void gpuScale2f(float x, float y);
 void gpuScale2fv(const float vec[2]);
 void gpuRotate2D(float deg);
 
+/* Projection Matrix (2D or 3D) */
+
+void gpuPushProjectionMatrix(void);
+void gpuPopProjectionMatrix(void);
 
 /* 3D Projection Matrix */
 

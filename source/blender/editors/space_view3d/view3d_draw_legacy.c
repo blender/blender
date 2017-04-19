@@ -755,7 +755,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 
 			glMatrixMode(GL_PROJECTION);
-			gpuPushMatrix();
+			gpuPushProjectionMatrix();
 			glMatrixMode(GL_MODELVIEW);
 			gpuPushMatrix();
 			ED_region_pixelspace(ar);
@@ -778,7 +778,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			                 zoomx, zoomy, col);
 
 			glMatrixMode(GL_PROJECTION);
-			gpuPopMatrix();
+			gpuPopProjectionMatrix();
 			glMatrixMode(GL_MODELVIEW);
 			gpuPopMatrix();
 
@@ -1823,7 +1823,7 @@ void ED_view3d_draw_offscreen(
 	}
 
 	glMatrixMode(GL_PROJECTION);
-	gpuPushMatrix();
+	gpuPushProjectionMatrix();
 	gpuLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	gpuPushMatrix();
@@ -2533,7 +2533,7 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 	bool clip_border = (render_border && !BLI_rcti_compare(&ar->drawrct, &border_rect));
 
 	glMatrixMode(GL_PROJECTION);
-	gpuPushMatrix();
+	gpuPushProjectionMatrix();
 	gpuLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	gpuPushMatrix();
@@ -2565,7 +2565,7 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 	view3d_main_region_draw_info(C, scene, ar, v3d, grid_unit, render_border);
 
 	glMatrixMode(GL_PROJECTION);
-	gpuPopMatrix();
+	gpuPopProjectionMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	gpuPopMatrix();
 

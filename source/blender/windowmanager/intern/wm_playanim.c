@@ -361,7 +361,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 
 		fac = 2.0f * fac - 1.0f;
 		glMatrixMode(GL_PROJECTION); /* TODO: convert this nasty code */
-		gpuPushMatrix();
+		gpuPushProjectionMatrix();
 		gpuLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
 		gpuPushMatrix();
@@ -381,7 +381,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 
 		gpuPopMatrix();
 		glMatrixMode(GL_PROJECTION);
-		gpuPopMatrix();
+		gpuPopProjectionMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
 
