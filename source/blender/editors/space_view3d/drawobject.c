@@ -7345,14 +7345,20 @@ static void draw_editnurb(
 		glLineWidth(1.0f);
 
 		int count = 0;
+		int count_used = 0;
 		for (bl = ob->curve_cache->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
 			int nr = bl->nr;
 			int skip = nu->resolu / 16;
-			
+
+#if 0
 			while (nr-- > 0) { /* accounts for empty bevel lists */
 				count += 4;
 				nr -= skip;
 			}
+#else
+			/* Same as loop above */
+			count += 4 * max_ii((nr + max_ii(skip - 1, 0)) / (skip + 1), 0);
+#endif
 		}
 
 		if (count > 2) {
@@ -7361,7 +7367,7 @@ static void draw_editnurb(
 				BevPoint *bevp = bl->bevpoints;
 				int nr = bl->nr;
 				int skip = nu->resolu / 16;
-				
+
 				while (nr-- > 0) { /* accounts for empty bevel lists */
 					const float fac = bevp->radius * ts->normalsize;
 					float vec_a[3]; /* Offset perpendicular to the curve */
@@ -7390,8 +7396,12 @@ static void draw_editnurb(
 
 					bevp += skip + 1;
 					nr -= skip;
+					count_used += 4;
 				}
 			}
+			BLI_assert(count == count_used);
+			UNUSED_VARS_NDEBUG(count_used);
+
 			immEnd();
 		}
 		immUnbindProgram();
