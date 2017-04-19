@@ -1188,20 +1188,10 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2])
 
 void node_draw_default(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node, bNodeInstanceKey key)
 {
-	glMatrixMode(GL_PROJECTION);
-	gpuPushProjectionMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	gpuPushMatrix();
-
 	if (node->flag & NODE_HIDDEN)
 		node_draw_hidden(C, ar, snode, ntree, node, key);
 	else
 		node_draw_basis(C, ar, snode, ntree, node, key);
-
-	glMatrixMode(GL_PROJECTION);
-	gpuPopProjectionMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	gpuPopMatrix();
 }
 
 static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
