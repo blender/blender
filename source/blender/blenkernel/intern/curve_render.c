@@ -45,7 +45,7 @@
  * TODO
  * - Ensure `CurveCache`, `SEQUENCER_DAG_WORKAROUND`.
  * - Check number of verts/edges to see if cache is valid.
- * - Check if 'overlay_edges' can use single attribyte per edge, not 2 (for selection drawing).
+ * - Check if 'overlay.edges' can use single attribyte per edge, not 2 (for selection drawing).
  */
 
 /* ---------------------------------------------------------------------- */
@@ -242,15 +242,19 @@ enum {
 /* Curve Batch Cache */
 
 typedef struct CurveBatchCache {
-	VertexBuffer *wire_verts;
-	VertexBuffer *wire_edges;
-	Batch *wire_batch;
-
-	ElementList *wire_elem;
+	/* center-line */
+	struct {
+		VertexBuffer *verts;
+		VertexBuffer *edges;
+		Batch *batch;
+		ElementList *elem;
+	} wire;
 
 	/* control handles and vertices */
-	Batch *overlay_edges;
-	Batch *overlay_verts;
+	struct {
+		Batch *edges;
+		Batch *verts;
+	} overlay;
 
 	/* settings to determine if cache is invalid */
 	bool is_dirty;
@@ -340,8 +344,8 @@ void BKE_curve_batch_selection_dirty(Curve *cu)
 {
 	CurveBatchCache *cache = cu->batch_cache;
 	if (cache) {
-		BATCH_DISCARD_ALL_SAFE(cache->overlay_verts);
-		BATCH_DISCARD_ALL_SAFE(cache->overlay_edges);
+		BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
+		BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
 	}
 }
 
@@ -352,17 +356,17 @@ void BKE_curve_batch_cache_clear(Curve *cu)
 		return;
 	}
 
-	BATCH_DISCARD_ALL_SAFE(cache->overlay_verts);
-	BATCH_DISCARD_ALL_SAFE(cache->overlay_edges);
+	BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
+	BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
 
-	if (cache->wire_batch) {
-		/* Also handles: 'cache->wire_verts', 'cache->wire_edges', 'cache->wire_elem' */
-		BATCH_DISCARD_ALL_SAFE(cache->wire_batch);
+	if (cache->wire.batch) {
+		/* Also handles: 'cache->wire.verts', 'cache->wire.edges', 'cache->wire.elem' */
+		BATCH_DISCARD_ALL_SAFE(cache->wire.batch);
 	}
 	else {
-		VERTEXBUFFER_DISCARD_SAFE(cache->wire_verts);
-		VERTEXBUFFER_DISCARD_SAFE(cache->wire_edges);
-		ELEMENTLIST_DISCARD_SAFE(cache->wire_elem);
+		VERTEXBUFFER_DISCARD_SAFE(cache->wire.verts);
+		VERTEXBUFFER_DISCARD_SAFE(cache->wire.edges);
+		ELEMENTLIST_DISCARD_SAFE(cache->wire.elem);
 	}
 }
 
@@ -378,7 +382,7 @@ static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *lrdata, C
 	BLI_assert(lrdata->types & CU_DATATYPE_WIRE);
 	BLI_assert(lrdata->ob_curve_cache != NULL);
 
-	if (cache->wire_verts == NULL) {
+	if (cache->wire.verts == NULL) {
 		static VertexFormat format = { 0 };
 		static unsigned pos_id;
 		if (format.attrib_ct == 0) {
@@ -388,7 +392,7 @@ static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *lrdata, C
 
 		const int vert_len = curve_render_data_wire_verts_len_get(lrdata);
 
-		VertexBuffer *vbo = cache->wire_verts = VertexBuffer_create_with_format(&format);
+		VertexBuffer *vbo = cache->wire.verts = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, vert_len);
 		int vbo_len_used = 0;
 		for (const BevList *bl = lrdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
@@ -402,7 +406,7 @@ static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *lrdata, C
 		BLI_assert(vbo_len_used == vert_len);
 	}
 
-	return cache->wire_verts;
+	return cache->wire.verts;
 }
 
 static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *lrdata, CurveBatchCache *cache)
@@ -410,7 +414,7 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *lrdata, Cu
 	BLI_assert(lrdata->types & CU_DATATYPE_WIRE);
 	BLI_assert(lrdata->ob_curve_cache != NULL);
 
-	if (cache->wire_edges == NULL) {
+	if (cache->wire.edges == NULL) {
 		const int vert_len = curve_render_data_wire_verts_len_get(lrdata);
 		const int edge_len = curve_render_data_wire_edges_len_get(lrdata);
 		int edge_len_real = 0;
@@ -445,10 +449,10 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *lrdata, Cu
 			BLI_assert(edge_len_real == edge_len);
 		}
 
-		cache->wire_elem = ElementList_build(&elb);
+		cache->wire.elem = ElementList_build(&elb);
 	}
 
-	return cache->wire_elem;
+	return cache->wire.elem;
 }
 
 static void curve_batch_cache_create_overlay_batches(Curve *cu)
@@ -459,7 +463,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 	CurveRenderData *lrdata = curve_render_data_create(cu, NULL, options);
 
-	if (cache->overlay_verts == NULL) {
+	if (cache->overlay.verts == NULL) {
 		static VertexFormat format = { 0 };
 		static unsigned pos_id, data_id;
 		if (format.attrib_ct == 0) {
@@ -521,11 +525,11 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 			VertexBuffer_resize_data(vbo, vbo_len_used);
 		}
 
-		cache->overlay_verts = Batch_create(PRIM_POINTS, vbo, NULL);
+		cache->overlay.verts = Batch_create(PRIM_POINTS, vbo, NULL);
 	}
 
 
-	if ((cache->overlay_edges == NULL) && (lrdata->hide_handles == false)) {
+	if ((cache->overlay.edges == NULL) && (lrdata->hide_handles == false)) {
 		/* Note: we could reference indices to vertices (above) */
 
 		static VertexFormat format = { 0 };
@@ -593,7 +597,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 			VertexBuffer_resize_data(vbo, vbo_len_used);
 		}
 
-		cache->overlay_edges = Batch_create(PRIM_LINES, vbo, NULL);
+		cache->overlay.edges = Batch_create(PRIM_LINES, vbo, NULL);
 	}
 
 	curve_render_data_free(lrdata);
@@ -603,11 +607,11 @@ Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
-	if (cache->wire_batch == NULL) {
+	if (cache->wire.batch == NULL) {
 		/* create batch from Curve */
 		CurveRenderData *lrdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_WIRE);
 
-		cache->wire_batch = Batch_create(
+		cache->wire.batch = Batch_create(
 		        PRIM_LINES,
 		        curve_batch_cache_get_wire_verts(lrdata, cache),
 		        curve_batch_cache_get_wire_edges(lrdata, cache));
@@ -615,27 +619,27 @@ Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache
 		curve_render_data_free(lrdata);
 	}
 
-	return cache->wire_batch;
+	return cache->wire.batch;
 }
 
 Batch *BKE_curve_batch_cache_get_overlay_edges(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
-	if (cache->overlay_edges == NULL) {
+	if (cache->overlay.edges == NULL) {
 		curve_batch_cache_create_overlay_batches(cu);
 	}
 
-	return cache->overlay_edges;
+	return cache->overlay.edges;
 }
 
 Batch *BKE_curve_batch_cache_get_overlay_verts(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
-	if (cache->overlay_verts == NULL) {
+	if (cache->overlay.verts == NULL) {
 		curve_batch_cache_create_overlay_batches(cu);
 	}
 
-	return cache->overlay_verts;
+	return cache->overlay.verts;
 }
