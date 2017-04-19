@@ -1856,7 +1856,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 static void single_object_action_users(Scene *scene, SceneLayer *sl, const int flag)
 {
 	FOREACH_OBJECT_FLAG(scene, sl, flag, ob)
-	    if (!ID_IS_LINKED_DATABLOCK(ob)) {
+		if (!ID_IS_LINKED_DATABLOCK(ob)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			BKE_animdata_copy_id_action(&ob->id, false);
 		}
@@ -1870,7 +1870,7 @@ static void single_mat_users(Main *bmain, Scene *scene, SceneLayer *sl, const in
 	int a, b;
 
 	FOREACH_OBJECT_FLAG(scene, sl, flag, ob)
-	    if (!ID_IS_LINKED_DATABLOCK(ob)) {
+		if (!ID_IS_LINKED_DATABLOCK(ob)) {
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
 				if (ma) {
