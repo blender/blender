@@ -402,6 +402,40 @@ static DRWShadingGroup *shgroup_wire(DRWPass *pass, const float col[4], struct G
 	return grp;
 }
 
+static DRWShadingGroup *shgroup_theme_id_to_outline_shgroup_or(
+        OBJECT_StorageList *stl, int theme_id, DRWShadingGroup *fallback)
+{
+	switch (theme_id) {
+		case TH_ACTIVE:
+			return stl->g_data->outlines_active;
+		case TH_SELECT:
+			return stl->g_data->outlines_select;
+		case TH_GROUP_ACTIVE:
+			return stl->g_data->outlines_select_group;
+		case TH_TRANSFORM:
+			return stl->g_data->outlines_transform;
+		default:
+			return fallback;
+	}
+}
+
+static DRWShadingGroup *shgroup_theme_id_to_wire_shgroup_or(
+        OBJECT_StorageList *stl, int theme_id, DRWShadingGroup *fallback)
+{
+	switch (theme_id) {
+		case TH_ACTIVE:
+			return stl->g_data->wire_active;
+		case TH_SELECT:
+			return stl->g_data->wire_select;
+		case TH_GROUP_ACTIVE:
+			return stl->g_data->wire_select_group;
+		case TH_TRANSFORM:
+			return stl->g_data->wire_transform;
+		default:
+			return fallback;
+	}
+}
+
 static void OBJECT_cache_init(void *vedata)
 {
 	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
@@ -1136,21 +1170,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				if (do_outlines) {
 					struct Batch *geom = DRW_cache_mesh_surface_get(ob);
 					int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
-					DRWShadingGroup *shgroup = NULL;
-					switch (theme_id) {
-						case TH_ACTIVE:
-							shgroup = stl->g_data->outlines_active;
-							break;
-						case TH_SELECT:
-							shgroup = stl->g_data->outlines_select;
-							break;
-						case TH_GROUP_ACTIVE:
-							shgroup = stl->g_data->outlines_select_group;
-							break;
-						case TH_TRANSFORM:
-							shgroup = stl->g_data->outlines_transform;
-							break;
-					}
+					DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_shgroup_or(stl, theme_id, NULL);
 					if (shgroup != NULL) {
 						DRW_shgroup_call_add(shgroup, geom, ob->obmat);
 					}
@@ -1165,25 +1185,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				struct Batch *geom = DRW_cache_lattice_wire_get(ob);
 				int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
 
-				DRWShadingGroup *shgroup;
-				switch (theme_id) {
-					case TH_ACTIVE:
-						shgroup = stl->g_data->wire_active;
-						break;
-					case TH_SELECT:
-						shgroup = stl->g_data->wire_select;
-						break;
-					case TH_GROUP_ACTIVE:
-						shgroup = stl->g_data->wire_select_group;
-						break;
-					case TH_TRANSFORM:
-						shgroup = stl->g_data->wire_transform;
-						break;
-					default:
-						shgroup = stl->g_data->wire;
-						break;
-				}
-
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_shgroup_or(stl, theme_id, stl->g_data->wire);
 				DRW_shgroup_call_add(shgroup, geom, ob->obmat);
 			}
 			break;
