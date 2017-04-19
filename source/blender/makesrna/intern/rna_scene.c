@@ -1985,8 +1985,9 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 	}
 }
 
-static void rna_UnifiedPaintSettings_update(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_UnifiedPaintSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Brush *br = BKE_paint_brush(BKE_paint_get_active(scene, sl));
 	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
@@ -2011,11 +2012,11 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	ups->unprojected_radius = value;
 }
 
-static void rna_UnifiedPaintSettings_radius_update(Main *bmain, bContext *C, Scene *scene, PointerRNA *ptr)
+static void rna_UnifiedPaintSettings_radius_update(bContext *C, PointerRNA *ptr)
 {
 	/* changing the unified size should invalidate the overlay but also update the brush */
 	BKE_paint_invalidate_overlay_all();
-	rna_UnifiedPaintSettings_update(bmain, C, scene, ptr);
+	rna_UnifiedPaintSettings_update(C, ptr);
 }
 
 static char *rna_UnifiedPaintSettings_path(PointerRNA *UNUSED(ptr))

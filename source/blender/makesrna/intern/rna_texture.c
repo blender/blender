@@ -225,7 +225,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 	BKE_texture_type_set(tex, value);
 }
 
-void rna_TextureSlot_update(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *ptr)
+void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
 
@@ -245,6 +245,7 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), bContext *C, Scene *scene, Poin
 			break;
 		case ID_BR:
 		{
+			Scene *scene = CTX_data_scene(C);
 			MTex *mtex = ptr->data;
 			SceneLayer *sl = CTX_data_scene_layer(C);
 			BKE_paint_invalidate_overlay_tex(scene, sl, mtex->tex);

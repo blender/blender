@@ -148,8 +148,9 @@ static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, NULL);
 }
 
-static void rna_ParticleEdit_redo(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
 {
+	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = OBACT_NEW;
 	PTCacheEdit *edit = PE_get_current(scene, sl, ob);
@@ -166,6 +167,7 @@ static void rna_ParticleEdit_update(Main *UNUSED(bmain), Scene *scene, PointerRN
 
 	if (ob) DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
+
 static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
@@ -330,8 +332,9 @@ static void rna_ImaPaint_viewport_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
-static void rna_ImaPaint_mode_update(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_ImaPaint_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+	Scene *scene = CTX_data_scene(C);\
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = OBACT_NEW;
 
@@ -346,8 +349,9 @@ static void rna_ImaPaint_mode_update(Main *UNUSED(bmain), bContext *C, Scene *sc
 	}
 }
 
-static void rna_ImaPaint_stencil_update(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_ImaPaint_stencil_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = OBACT_NEW;
 
@@ -358,8 +362,10 @@ static void rna_ImaPaint_stencil_update(Main *UNUSED(bmain), bContext *C, Scene 
 	}
 }
 
-static void rna_ImaPaint_canvas_update(Main *bmain, bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = OBACT_NEW;
 	bScreen *sc;
@@ -927,7 +933,6 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop = RNA_def_property(srna, "fade_frames", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Frames", "How many frames to fade");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_update");

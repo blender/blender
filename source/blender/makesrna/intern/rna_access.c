@@ -1799,7 +1799,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 			 * parts of the code that need it still, so we have this exception */
 			if (prop->flag & PROP_CONTEXT_UPDATE) {
 				if (C) {
-					if (prop->flag & PROP_CONTEXT_PROPERTY_UPDATE) {
+					if ((prop->flag & PROP_CONTEXT_PROPERTY_UPDATE) == PROP_CONTEXT_PROPERTY_UPDATE) {
 						((ContextPropUpdateFunc)prop->update)(C, ptr, prop);
 					}
 					else {
