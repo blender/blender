@@ -360,10 +360,8 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		float fac = ps->picture->frame / (double)(((PlayAnimPict *)picsbase.last)->frame - ((PlayAnimPict *)picsbase.first)->frame);
 
 		fac = 2.0f * fac - 1.0f;
-		glMatrixMode(GL_PROJECTION); /* TODO: convert this nasty code */
 		gpuPushProjectionMatrix();
-		gpuLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
+		gpuLoadIdentityProjectionMatrix();
 		gpuPushMatrix();
 		gpuLoadIdentity();
 
@@ -380,9 +378,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		immUnbindProgram();
 
 		gpuPopMatrix();
-		glMatrixMode(GL_PROJECTION);
 		gpuPopProjectionMatrix();
-		glMatrixMode(GL_MODELVIEW);
 	}
 
 	GHOST_SwapWindowBuffers(g_WS.ghost_window);

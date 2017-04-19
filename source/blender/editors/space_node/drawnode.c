@@ -3175,9 +3175,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	if (ibuf) {
 		float x, y; 
 
-		glMatrixMode(GL_PROJECTION);
 		gpuPushProjectionMatrix();
-		glMatrixMode(GL_MODELVIEW);
 		gpuPushMatrix();
 
 		/* somehow the offset has to be calculated inverse */
@@ -3263,9 +3261,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 			}
 		}
 
-		glMatrixMode(GL_PROJECTION);
 		gpuPopProjectionMatrix();
-		glMatrixMode(GL_MODELVIEW);
 		gpuPopMatrix();
 	}
 	

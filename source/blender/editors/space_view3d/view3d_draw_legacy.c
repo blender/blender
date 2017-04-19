@@ -754,9 +754,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 
-			glMatrixMode(GL_PROJECTION);
 			gpuPushProjectionMatrix();
-			glMatrixMode(GL_MODELVIEW);
 			gpuPushMatrix();
 			ED_region_pixelspace(ar);
 
@@ -777,9 +775,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			immDrawPixelsTex(&state, x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect,
 			                 zoomx, zoomy, col);
 
-			glMatrixMode(GL_PROJECTION);
 			gpuPopProjectionMatrix();
-			glMatrixMode(GL_MODELVIEW);
 			gpuPopMatrix();
 
 			glDisable(GL_BLEND);
@@ -1822,10 +1818,8 @@ void ED_view3d_draw_offscreen(
 		GPU_free_images_anim();
 	}
 
-	glMatrixMode(GL_PROJECTION);
 	gpuPushProjectionMatrix();
 	gpuLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
 	gpuPushMatrix();
 	gpuLoadIdentity();
 
@@ -1886,9 +1880,7 @@ void ED_view3d_draw_offscreen(
 	ar->winy = bwiny;
 	ar->winrct = brect;
 
-	glMatrixMode(GL_PROJECTION);
 	gpuPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
 	gpuPopMatrix();
 
 	UI_Theme_Restore(&theme_state);
@@ -2532,10 +2524,8 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 	bool render_border = ED_view3d_calc_render_border(scene, v3d, ar, &border_rect);
 	bool clip_border = (render_border && !BLI_rcti_compare(&ar->drawrct, &border_rect));
 
-	glMatrixMode(GL_PROJECTION);
 	gpuPushProjectionMatrix();
-	gpuLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
+	gpuLoadIdentityProjectionMatrix();
 	gpuPushMatrix();
 	gpuLoadIdentity();
 
@@ -2564,9 +2554,7 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 
 	view3d_main_region_draw_info(C, scene, ar, v3d, grid_unit, render_border);
 
-	glMatrixMode(GL_PROJECTION);
 	gpuPopProjectionMatrix();
-	glMatrixMode(GL_MODELVIEW);
 	gpuPopMatrix();
 
 	v3d->flag |= V3D_INVALID_BACKBUF;

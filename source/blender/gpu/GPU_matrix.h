@@ -94,6 +94,7 @@ void gpuPopProjectionMatrix(void);
 
 /* 3D Projection Matrix */
 
+void gpuLoadIdentityProjectionMatrix(void);
 void gpuLoadProjectionMatrix(const float m[4][4]);
 
 void gpuOrtho(float left, float right, float bottom, float top, float near, float far);

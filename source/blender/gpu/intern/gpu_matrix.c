@@ -119,7 +119,18 @@ void gpuPushMatrix(void)
 {
 #if SUPPORT_LEGACY_MATRIX
 	{
+		GLenum mode;
+		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
+		if (mode != GL_MODELVIEW) {
+			glMatrixMode(GL_MODELVIEW);
+		}
+
 		glPushMatrix();
+
+		if (mode != GL_MODELVIEW) {
+			glMatrixMode(mode); /* restore */
+		}
+
 		state.dirty = true;
 		return;
 	}
@@ -134,7 +145,18 @@ void gpuPopMatrix(void)
 {
 #if SUPPORT_LEGACY_MATRIX
 	{
+		GLenum mode;
+		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
+		if (mode != GL_MODELVIEW) {
+			glMatrixMode(GL_MODELVIEW);
+		}
+
 		glPopMatrix();
+
+		if (mode != GL_MODELVIEW) {
+			glMatrixMode(mode); /* restore */
+		}
+
 		state.dirty = true;
 		return;
 	}
@@ -149,7 +171,18 @@ void gpuPushProjectionMatrix(void)
 {
 #if SUPPORT_LEGACY_MATRIX
 	{
+		GLenum mode;
+		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
+		if (mode != GL_PROJECTION) {
+			glMatrixMode(GL_PROJECTION);
+		}
+
 		glPushMatrix();
+
+		if (mode != GL_PROJECTION) {
+			glMatrixMode(mode); /* restore */
+		}
+
 		state.dirty = true;
 		return;
 	}
@@ -164,7 +197,18 @@ void gpuPopProjectionMatrix(void)
 {
 #if SUPPORT_LEGACY_MATRIX
 	{
+		GLenum mode;
+		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
+		if (mode != GL_PROJECTION) {
+			glMatrixMode(GL_PROJECTION);
+		}
+
 		glPopMatrix();
+
+		if (mode != GL_PROJECTION) {
+			glMatrixMode(mode); /* restore */
+		}
+
 		state.dirty = true;
 		return;
 	}
@@ -187,6 +231,32 @@ void gpuLoadMatrix(const float m[4][4])
 
 	copy_m4_m4(ModelView, m);
 	CHECKMAT(ModelView3D);
+	state.dirty = true;
+}
+
+void gpuLoadIdentityProjectionMatrix(void)
+{
+#if SUPPORT_LEGACY_MATRIX
+	{
+		GLenum mode;
+		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
+		if (mode != GL_PROJECTION) {
+			glMatrixMode(GL_PROJECTION);
+		}
+
+		glLoadIdentity();
+
+		if (mode != GL_PROJECTION_MATRIX) {
+			glMatrixMode(mode); /* restore */
+		}
+
+		state.dirty = true;
+		return;
+	}
+#endif
+
+	unit_m4(Projection);
+	CHECKMAT(Projection3D);
 	state.dirty = true;
 }
 
