@@ -18,11 +18,12 @@ class UnitTesting(RenderLayerTesting):
         """
         See if the depsgraph evaluation is correct
         """
-        clay = Clay()
+        clay = Clay(extra_kid_layer=True)
         self.assertEqual(clay.get('object', 'matcap_icon'), '01')
 
-        clay.set('mom', 'matcap_icon', '02')
-        self.assertEqual(clay.get('object', 'matcap_icon'), '02')
+        clay.set('kid', 'matcap_icon', '02')
+        clay.set('extra', 'matcap_icon', '04')
+        self.assertEqual(clay.get('object', 'matcap_icon'), '04')
 
 
 # ############################################################

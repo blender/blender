@@ -740,6 +740,11 @@ class Clay:
         while bpy.data.objects:
             bpy.data.objects.remove(bpy.data.objects[0])
 
+        # remove all the other collections
+        while self._scene.master_collection.collections:
+            self._scene.master_collection.collections.remove(
+                    self._scene.master_collection.collections[0])
+
         layer = self._scene.render_layers.new('Evaluation Test')
         layer.collections.unlink(layer.collections[0])
         self._scene.render_layers.active = layer

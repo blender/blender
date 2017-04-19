@@ -22,6 +22,7 @@ class UnitTesting(RenderLayerTesting):
         self.assertEqual(clay.get('object', 'matcap_icon'), '01')
 
         clay.set('mom', 'matcap_icon', '02')
+        self.assertEqual(clay.get('extra', 'matcap_icon'), '01')
         self.assertEqual(clay.get('object', 'matcap_icon'), '02')
 
 
