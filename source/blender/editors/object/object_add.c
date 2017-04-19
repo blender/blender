@@ -1162,9 +1162,9 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		 * custom scene/object/base handling, and use generic lib remap/query for that.
 		 * But this is for later (aka 2.8, once layers & co are settled and working).
 		 */
-		if (use_global && base->object->id.lib == NULL) {
+		if (use_global && ob->id.lib == NULL) {
 			/* We want to nuke the object, let's nuke it the easy way (not for linked data though)... */
-			BKE_libblock_delete(bmain, &base->object->id);
+			BKE_libblock_delete(bmain, &ob->id);
 			changed = true;
 			continue;
 		}
