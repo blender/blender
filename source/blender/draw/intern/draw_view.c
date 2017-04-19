@@ -553,6 +553,9 @@ void DRW_draw_background(void)
 	glStencilMask(0xFF);
 
 	if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
+		float m[4][4];
+		unit_m4(m);
+
 		/* Gradient background Color */
 		glDisable(GL_DEPTH_TEST);
 
@@ -560,6 +563,10 @@ void DRW_draw_background(void)
 		unsigned pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		unsigned color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 		unsigned char col_hi[3], col_lo[3];
+
+		gpuPushMatrix();
+		gpuLoadIdentity();
+		gpuLoadProjectionMatrix(m);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
@@ -577,6 +584,8 @@ void DRW_draw_background(void)
 		immEnd();
 
 		immUnbindProgram();
+
+		gpuPopMatrix();
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
