@@ -133,9 +133,10 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	    .global_scale = RNA_float_get(op->ptr, "global_scale"),
 	};
 
-	ABC_export(CTX_data_scene(C), C, filename, &params);
+	const bool as_background_job = RNA_boolean_get(op->ptr, "as_background_job");
+	bool ok = ABC_export(CTX_data_scene(C), C, filename, &params, as_background_job);
 
-	return OPERATOR_FINISHED;
+	return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
@@ -363,6 +364,9 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "export_hair", 1, "Export Hair", "Exports hair particle systems as animated curves");
 	RNA_def_boolean(ot->srna, "export_particles", 1, "Export Particles", "Exports non-hair particle systems");
 
+	RNA_def_boolean(ot->srna, "as_background_job", true, "Run as Background Job",
+	                "Enable this to run the import in the background, disable to block Blender while importing");
+
 	/* This dummy prop is used to check whether we need to init the start and
      * end frame values to that of the scene's, otherwise they are reset at
      * every change, draw update. */
@@ -497,6 +501,7 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 	const bool is_sequence = RNA_boolean_get(op->ptr, "is_sequence");
 	const bool set_frame_range = RNA_boolean_get(op->ptr, "set_frame_range");
 	const bool validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
+	const bool as_background_job = RNA_boolean_get(op->ptr, "as_background_job");
 
 	int offset = 0;
 	int sequence_len = 1;
@@ -505,9 +510,11 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 		sequence_len = get_sequence_len(filename, &offset);
 	}
 
-	ABC_import(C, filename, scale, is_sequence, set_frame_range, sequence_len, offset, validate_meshes);
+	bool ok = ABC_import(C, filename, scale, is_sequence, set_frame_range,
+	                     sequence_len, offset, validate_meshes,
+	                     as_background_job);
 
-	return OPERATOR_FINISHED;
+	return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void WM_OT_alembic_import(wmOperatorType *ot)
@@ -538,6 +545,9 @@ void WM_OT_alembic_import(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "is_sequence", false, "Is Sequence",
 	                "Set to true if the cache is split into separate files");
+
+	RNA_def_boolean(ot->srna, "as_background_job", true, "Run as Background Job",
+	                "Enable this to run the export in the background, disable to block Blender while exporting");
 }
 
 #endif

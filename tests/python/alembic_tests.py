@@ -317,7 +317,8 @@ class HairParticlesExportTest(AbstractAlembicTest):
         abc = tempdir / 'hair-particles.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
                  "renderable_only=True, visible_layers_only=True, flatten=False, " \
-                 "export_hair=%r, export_particles=%r)" % (abc, export_hair, export_particles)
+                 "export_hair=%r, export_particles=%r, as_background_job=False)" \
+                 % (abc, export_hair, export_particles)
         self.run_blender('hair-particles.blend', script)
         return abc
 

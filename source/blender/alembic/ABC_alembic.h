@@ -78,20 +78,32 @@ struct AlembicExportParams {
 	float global_scale;
 };
 
-void ABC_export(
+/* The ABC_export and ABC_import functions both take a as_background_job
+ * parameter, and return a boolean.
+ *
+ * When as_background_job=true, returns false immediately after scheduling
+ * a background job.
+ *
+ * When as_background_job=false, performs the export synchronously, and returns
+ * true when the export was ok, and false if there were any errors.
+ */
+
+bool ABC_export(
         struct Scene *scene,
         struct bContext *C,
         const char *filepath,
-        const struct AlembicExportParams *params);
+        const struct AlembicExportParams *params,
+        bool as_background_job);
 
-void ABC_import(struct bContext *C,
+bool ABC_import(struct bContext *C,
                 const char *filepath,
                 float scale,
                 bool is_sequence,
                 bool set_frame_range,
                 int sequence_len,
                 int offset,
-                bool validate_meshes);
+                bool validate_meshes,
+                bool as_background_job);
 
 AbcArchiveHandle *ABC_create_handle(const char *filename, struct ListBase *object_paths);
 
