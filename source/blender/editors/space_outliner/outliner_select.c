@@ -98,14 +98,14 @@ static eOLDrawState tree_element_active_renderlayer(
  * CTRL+LMB: Select/Deselect object and all cildren
  * CTRL+SHIFT+LMB: Add/Remove object and all children
  */
-static void do_outliner_object_select_recursive(Scene *scene, Object *ob_parent, bool select)
+static void do_outliner_object_select_recursive(SceneLayer *sl, Object *ob_parent, bool select)
 {
-	BaseLegacy *base;
+	Base *base;
 
-	for (base = FIRSTBASE; base; base = base->next) {
+	for (base = FIRSTBASE_NEW; base; base = base->next) {
 		Object *ob = base->object;
-		if ((((ob->restrictflag & OB_RESTRICT_VIEW) == 0) && BKE_object_is_child_recursive(ob_parent, ob))) {
-			ED_base_object_select(base, select ? BA_SELECT : BA_DESELECT);
+		if ((((base->flag & BASE_VISIBLED) == 0) && BKE_object_is_child_recursive(ob_parent, ob))) {
+			ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
 		}
 	}
 }
@@ -183,7 +183,7 @@ static eOLDrawState tree_element_set_active_object(
 
 		if (recursive) {
 			/* Recursive select/deselect for Object hierarchies */
-			do_outliner_object_select_recursive(scene, ob, (ob->flag & SELECT) != 0);
+			do_outliner_object_select_recursive(sl, ob, (ob->flag & SELECT) != 0);
 		}
 
 		if (set != OL_SETSEL_NONE) {

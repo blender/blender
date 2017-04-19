@@ -56,12 +56,14 @@
 #include "DNA_view3d_types.h"
 #include "DNA_gpencil_types.h"
 
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -1121,14 +1123,15 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
                               const bool norm_weights, const float rad_fac, const bool link_strokes, tGpTimingData *gtd)
 {
 	struct Main *bmain = CTX_data_main(C);
-	View3D *v3d = CTX_wm_view3d(C);  /* may be NULL */
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneCollection *sc = CTX_data_scene_collection(C);
 	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0);
 	bGPDstroke *gps, *prev_gps = NULL;
 	Object *ob;
 	Curve *cu;
 	Nurb *nu = NULL;
-	BaseLegacy *base_orig = BASACT, *base_new = NULL;
+	Base *base_new = NULL;
 	float minmax_weights[2] = {1.0f, 0.0f};
 	
 	/* camera framing */
@@ -1152,7 +1155,8 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	 */
 	ob = BKE_object_add_only_object(bmain, OB_CURVE, gpl->info);
 	cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVE);
-	base_new = BKE_scene_base_add(scene, ob);
+	BKE_collection_object_add(scene, sc, ob);
+	base_new = BKE_scene_layer_base_find(sl, ob);
 	
 	cu->flag |= CU_3D;
 	
@@ -1216,9 +1220,8 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	}
 	
 	/* set the layer and select */
-	base_new->lay  = ob->lay  = base_orig ? base_orig->lay : BKE_screen_view3d_layer_active(v3d, scene);
-	base_new->flag_legacy |= SELECT;
-	BKE_scene_base_flag_sync_from_base(base_new);
+	base_new->flag |= SELECT;
+	BKE_scene_object_base_flag_sync_from_base(base_new);
 }
 
 /* --- */

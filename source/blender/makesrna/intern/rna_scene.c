@@ -2056,9 +2056,11 @@ static char *rna_MeshStatVis_path(PointerRNA *UNUSED(ptr))
  * is not for general use and only for the few cases where changing scene
  * settings and NOT for general purpose updates, possibly this should be
  * given its own notifier. */
-static void rna_Scene_update_active_object_data(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(ptr))
 {
-	Object *ob = OBACT;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = OBACT_NEW;
+
 	if (ob) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
@@ -3303,6 +3305,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Sculpt", "");
 	
 	prop = RNA_def_property(srna, "use_auto_normalize", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_boolean_sdna(prop, NULL, "auto_normalize", 1);
 	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize",
 	                         "Ensure all bone-deforming vertex groups add up "
@@ -3310,6 +3313,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
 	prop = RNA_def_property(srna, "use_multipaint", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_boolean_sdna(prop, NULL, "multipaint", 1);
 	RNA_def_property_ui_text(prop, "WPaint Multi-Paint",
 	                         "Paint across the weights of all selected bones, "
@@ -3317,12 +3321,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
 	prop = RNA_def_property(srna, "vertex_group_user", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_enum_sdna(prop, NULL, "weightuser");
 	RNA_def_property_enum_items(prop, draw_groupuser_items);
 	RNA_def_property_ui_text(prop, "Mask Non-Group Vertices", "Display unweighted vertices");
 	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
 	prop = RNA_def_property(srna, "vertex_group_subset", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_enum_sdna(prop, NULL, "vgroupsubset");
 	RNA_def_property_enum_items(prop, vertex_group_select_items);
 	RNA_def_property_ui_text(prop, "Subset", "Filter Vertex groups for Display");

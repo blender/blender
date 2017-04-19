@@ -33,6 +33,7 @@
 
 #include "BKE_context.h"
 #include "BKE_sketch.h"
+#include "BKE_layer.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -144,9 +145,8 @@ static RigGraph *TEMPLATE_RIGG = NULL;
 void BIF_makeListTemplates(const bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	BaseLegacy *base;
 	int index = 0;
 
 	if (TEMPLATES_HASH != NULL) {
@@ -156,9 +156,8 @@ void BIF_makeListTemplates(const bContext *C)
 	TEMPLATES_HASH = BLI_ghash_int_new("makeListTemplates gh");
 	TEMPLATES_CURRENT = 0;
 
-	for (base = FIRSTBASE; base; base = base->next) {
-		Object *ob = base->object;
-
+	FOREACH_OBJECT(sl, ob)
+	{
 		if (ob != obedit && ob->type == OB_ARMATURE) {
 			index++;
 			BLI_ghash_insert(TEMPLATES_HASH, SET_INT_IN_POINTER(index), ob);
@@ -168,6 +167,7 @@ void BIF_makeListTemplates(const bContext *C)
 			}
 		}
 	}
+	FOREACH_OBJECT_END
 }
 
 #if 0  /* UNUSED */
