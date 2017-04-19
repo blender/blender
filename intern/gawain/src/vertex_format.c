@@ -121,6 +121,8 @@ static const char* copy_attrib_name(VertexFormat* format, const char* name)
 #if TRUST_NO_ONE
 	assert(terminated);
 	assert(format->name_offset <= VERTEX_ATTRIB_NAMES_BUFFER_LEN);
+#else
+	(void)terminated;
 #endif
 
 	return name_copy;
