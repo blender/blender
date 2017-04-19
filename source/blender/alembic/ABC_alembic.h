@@ -53,24 +53,26 @@ struct AlembicExportParams {
 	double shutter_open;
 	double shutter_close;
 
-	/* bools */
-	unsigned int selected_only : 1;
-	unsigned int uvs : 1;
-	unsigned int normals : 1;
-	unsigned int vcolors : 1;
-	unsigned int apply_subdiv : 1;
-	unsigned int flatten_hierarchy : 1;
-	unsigned int visible_layers_only : 1;
-	unsigned int renderable_only : 1;
-	unsigned int face_sets : 1;
-	unsigned int use_subdiv_schema : 1;
-	unsigned int packuv : 1;
-	unsigned int triangulate : 1;
+	bool selected_only;
+	bool uvs;
+	bool normals;
+	bool vcolors;
+	bool apply_subdiv;
+	bool flatten_hierarchy;
+	bool visible_layers_only;
+	bool renderable_only;
+	bool face_sets;
+	bool use_subdiv_schema;
+	bool packuv;
+	bool triangulate;
 
 	unsigned int compression_type : 1;
 
+	/* See MOD_TRIANGULATE_NGON_xxx and MOD_TRIANGULATE_QUAD_xxx
+	 * in DNA_modifier_types.h */
 	int quad_method;
 	int ngon_method;
+
 	float global_scale;
 };
 
