@@ -65,6 +65,8 @@ struct AlembicExportParams {
 	bool use_subdiv_schema;
 	bool packuv;
 	bool triangulate;
+	bool export_hair;
+	bool export_particles;
 
 	unsigned int compression_type : 1;
 

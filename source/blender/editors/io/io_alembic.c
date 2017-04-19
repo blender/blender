@@ -122,6 +122,8 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	    .renderable_only = RNA_boolean_get(op->ptr, "renderable_only"),
 	    .face_sets = RNA_boolean_get(op->ptr, "face_sets"),
 	    .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
+	    .export_hair = RNA_boolean_get(op->ptr, "export_hair"),
+	    .export_particles = RNA_boolean_get(op->ptr, "export_particles"),
 	    .compression_type = RNA_enum_get(op->ptr, "compression_type"),
 	    .packuv = RNA_boolean_get(op->ptr, "packuv"),
 	    .triangulate = RNA_boolean_get(op->ptr, "triangulate"),
@@ -140,6 +142,7 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 {
 	uiLayout *box;
 	uiLayout *row;
+	uiLayout *col;
 
 #ifdef WITH_ALEMBIC_HDF5
 	box = uiLayoutBox(layout);
@@ -231,6 +234,15 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 	row = uiLayoutRow(box, false);
 	uiLayoutSetEnabled(row, triangulate);
 	uiItemR(row, imfptr, "ngon_method", 0, NULL, ICON_NONE);
+
+	/* Object Data */
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, false);
+	uiItemL(row, IFACE_("Particle Systems:"), ICON_PARTICLE_DATA);
+
+	col = uiLayoutColumn(box, true);
+	uiItemR(col, imfptr, "export_hair", 0, NULL, ICON_NONE);
+	uiItemR(col, imfptr, "export_particles", 0, NULL, ICON_NONE);
 }
 
 static void wm_alembic_export_draw(bContext *C, wmOperator *op)
@@ -347,6 +359,9 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 
 	RNA_def_enum(ot->srna, "ngon_method", rna_enum_modifier_triangulate_quad_method_items,
 	             MOD_TRIANGULATE_NGON_BEAUTY, "Polygon Method", "Method for splitting the polygons into triangles");
+
+	RNA_def_boolean(ot->srna, "export_hair", 1, "Export Hair", "Exports hair particle systems as animated curves");
+	RNA_def_boolean(ot->srna, "export_particles", 1, "Export Particles", "Exports non-hair particle systems");
 
 	/* This dummy prop is used to check whether we need to init the start and
      * end frame values to that of the scene's, otherwise they are reset at

@@ -336,6 +336,8 @@ void ABC_export(
 	job->settings.export_normals = params->normals;
 	job->settings.export_uvs = params->uvs;
 	job->settings.export_vcols = params->vcolors;
+	job->settings.export_hair = params->export_hair;
+	job->settings.export_particles = params->export_particles;
 	job->settings.apply_subdiv = params->apply_subdiv;
 	job->settings.flatten_hierarchy = params->flatten_hierarchy;
 	job->settings.visible_layers_only = params->visible_layers_only;

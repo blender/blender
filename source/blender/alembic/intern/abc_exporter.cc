@@ -83,6 +83,8 @@ ExportSettings::ExportSettings()
     , export_vcols(false)
     , export_face_sets(false)
     , export_vweigths(false)
+    , export_hair(true)
+    , export_particles(true)
     , apply_subdiv(false)
     , use_subdiv_schema(false)
     , export_child_hairs(true)
@@ -525,6 +527,29 @@ void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Object *ob, Object 
 	free_object_duplilist(lb);
 }
 
+void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *xform)
+{
+	if (!m_settings.export_hair && !m_settings.export_particles) {
+		return;
+	}
+
+	ParticleSystem *psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
+
+	for (; psys; psys = psys->next) {
+		if (!psys_check_enabled(ob, psys, G.is_rendering) || !psys->part) {
+			continue;
+		}
+
+		if (m_settings.export_hair && psys->part->type == PART_HAIR) {
+			m_settings.export_child_hairs = true;
+			m_shapes.push_back(new AbcHairWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
+		}
+		else if (m_settings.export_particles && psys->part->type == PART_EMITTER) {
+			m_shapes.push_back(new AbcPointsWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
+		}
+	}
+}
+
 void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 {
 	if (!object_is_shape(ob)) {
@@ -547,21 +572,7 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 		return;
 	}
 
-	ParticleSystem *psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
-
-	for (; psys; psys = psys->next) {
-		if (!psys_check_enabled(ob, psys, G.is_rendering) || !psys->part) {
-			continue;
-		}
-
-		if (psys->part->type == PART_HAIR) {
-			m_settings.export_child_hairs = true;
-			m_shapes.push_back(new AbcHairWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
-		}
-		else if (psys->part->type == PART_EMITTER) {
-			m_shapes.push_back(new AbcPointsWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
-		}
-	}
+	createParticleSystemsWriters(ob, xform);
 
 	switch (ob->type) {
 		case OB_MESH:
