@@ -6419,18 +6419,15 @@ static void draw_editnurb(
 				vec_a[0] = fac;
 				vec_a[1] = 0.0f;
 				vec_a[2] = 0.0f;
-
-				vec_b[0] = -fac;
-				vec_b[1] = 0.0f;
-				vec_b[2] = 0.0f;
 				
 				mul_qt_v3(bevp->quat, vec_a);
-				mul_qt_v3(bevp->quat, vec_b);
+				madd_v3_v3fl(vec_a, bevp->dir, -fac);
+
+				reflect_v3_v3v3(vec_b, vec_a, bevp->dir);
+				negate_v3(vec_b);
+
 				add_v3_v3(vec_a, bevp->vec);
 				add_v3_v3(vec_b, bevp->vec);
-
-				madd_v3_v3fl(vec_a, bevp->dir, -fac);
-				madd_v3_v3fl(vec_b, bevp->dir, -fac);
 
 				glBegin(GL_LINE_STRIP);
 				glVertex3fv(vec_a);
