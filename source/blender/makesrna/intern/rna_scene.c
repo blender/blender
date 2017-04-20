@@ -485,6 +485,9 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "ED_keyframing.h"
 #include "ED_image.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #ifdef WITH_FREESTYLE
 #include "FRS_freestyle.h"
 #endif
@@ -2842,9 +2845,10 @@ static int rna_SceneLayer_multiple_engines_get(PointerRNA *UNUSED(ptr))
 	return (BLI_listbase_count(&R_engines) > 1);
 }
 
-static void rna_SceneLayer_update_tagged(SceneLayer *sl)
+static void rna_SceneLayer_update_tagged(SceneLayer *UNUSED(sl), bContext *C)
 {
-	DEG_OBJECT_ITER(sl, ob)
+	Depsgraph *graph = CTX_data_depsgraph(C);
+	DEG_OBJECT_ITER(graph, ob)
 	{
 		/* Don't do anything, we just need to run the iterator to flush
 		 * the base info to the objects. */
@@ -6382,6 +6386,7 @@ static void rna_def_scene_layer(BlenderRNA *brna)
 
 	/* debug update routine */
 	func = RNA_def_function(srna, "update", "rna_SceneLayer_update_tagged");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func,
 	                                "Update data tagged to be updated from previous access to data or operators");
 }

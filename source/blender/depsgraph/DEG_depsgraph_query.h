@@ -48,6 +48,9 @@ bool DEG_id_type_tagged(struct Main *bmain, short idtype);
 /* Get additional evaluation flags for the given ID. */
 short DEG_get_eval_flags_for_id(struct Depsgraph *graph, struct ID *id);
 
+/* Get scene the despgraph is created for. */
+struct Scene *DAG_get_scene(struct Depsgraph *graph);
+
 /* Get scene layer the despgraph is created for. */
 struct SceneLayer *DAG_get_scene_layer(struct Depsgraph *graph);
 

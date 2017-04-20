@@ -216,20 +216,30 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 }
 
 /* temporary hacky solution waiting for CoW depsgraph implementation */
-#define DEG_OBJECT_ITER(sl_, instance_)                                       \
+#define DEG_OBJECT_ITER(graph_, instance_)                                    \
 {                                                                             \
+	Scene *sce_, *scene_ = DAG_get_scene(graph_);                             \
+	SceneLayer *sl_ = DAG_get_scene_layer(graph_);                            \
+	int flag_ = ~(BASE_FROM_SET);                                             \
+                                                                              \
 	/* flush all the depsgraph data to objects */                             \
 	Object *instance_;                                                        \
 	Base *base_;                                                              \
-	for (base_ = (sl_)->object_bases.first; base_; base_ = base_->next) {     \
-	    if ((base_->flag & BASE_VISIBLED) != 0) {                             \
-	        instance_ = base_->object;                                        \
-	        instance_->base_flag = base_->flag;                               \
-	        instance_->base_collection_properties = base_->collection_properties;
+	for(sce_ = scene_; sce_; sce_ = sce_->set) {                              \
+		for (base_ = (sl_)->object_bases.first; base_; base_ = base_->next) { \
+			if ((base_->flag & BASE_VISIBLED) != 0) {                         \
+				instance_ = base_->object;                                    \
+				instance_->base_flag = (base_->flag | BASE_FROM_SET) & flag_; \
+				instance_->base_collection_properties = base_->collection_properties;
 
 #define DEG_OBJECT_ITER_END                                                   \
-        }                                                                     \
-    }                                                                         \
+			}                                                                 \
+		}                                                                     \
+		if (sce_->set) {                                                      \
+			sl_ = BKE_scene_layer_render_active(sce_->set);                   \
+			flag_ = ~(BASE_SELECTED | BASE_SELECTABLED);                      \
+		}                                                                     \
+	}                                                                         \
 }
 
 #ifdef __cplusplus

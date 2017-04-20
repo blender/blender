@@ -67,6 +67,9 @@
 #include "clay.h"
 #include "eevee.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #define MAX_ATTRIB_NAME 32
 #define MAX_PASS_NAME 32
 
@@ -1820,23 +1823,6 @@ static void DRW_debug_gpu_stats(void)
 	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
 }
 
-static void drw_draw_view_set_recursive(Scene *scene)
-{
-	if (scene->set) {
-		drw_draw_view_set_recursive(scene->set);
-	}
-
-	SceneLayer *sl = BKE_scene_layer_render_active(scene);
-	DEG_OBJECT_ITER(sl, ob);
-	{
-		/* XXX FIXME!!! - dont de-select users data!
-		 * (set drawing should use a fixed color - ignoring select and other theme colors) */
-		ob->base_flag &= ~BASE_SELECTED;
-		DRW_engines_cache_populate(ob);
-	}
-	DEG_OBJECT_ITER_END
-}
-
 /* Everything starts here.
  * This function takes care of calling all cache and rendering functions
  * for each relevant engine / mode engine. */
@@ -1865,18 +1851,10 @@ void DRW_draw_view(const bContext *C)
 	/* ideally only refresh when objects are added/removed */
 	/* or render properties / materials change */
 	if (cache_is_dirty) {
-		SceneLayer *sl;
-		Scene *scene = CTX_data_scene(C);
-
 		DRW_engines_cache_init();
 
-		/* draw set first */
-		if (scene->set) {
-			drw_draw_view_set_recursive(scene->set);
-		}
-
-		sl = CTX_data_scene_layer(C);
-		DEG_OBJECT_ITER(sl, ob);
+		Depsgraph *depsgraph = CTX_data_depsgraph(C);
+		DEG_OBJECT_ITER(depsgraph, ob);
 		{
 			DRW_engines_cache_populate(ob);
 		}

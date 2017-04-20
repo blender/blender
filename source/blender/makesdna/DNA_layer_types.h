@@ -96,6 +96,7 @@ enum {
 	BASE_SELECTABLED      = (1 << 2),
 	BASE_FROMDUPLI        = (1 << 3),
 	BASE_DIRTY_ENGINE_SETTINGS = (1 << 4),
+	BASE_FROM_SET         = (1 << 5), /* To be set only by the depsgraph */
 };
 
 /* LayerCollection->flag */

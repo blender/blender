@@ -73,14 +73,23 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 	return id_node->eval_flags;
 }
 
-SceneLayer *DAG_get_scene_layer(Depsgraph *graph)
+Scene *DAG_get_scene(Depsgraph *graph)
 {
 	Main *bmain = G.main;
 	LINKLIST_FOREACH (Scene*, scene, &bmain->scene) {
 		if (scene->depsgraph == graph) {
 			/* Got the scene! */
-			return BKE_scene_layer_context_active(scene);
+			return scene;
 		}
+	}
+	return NULL;
+}
+
+SceneLayer *DAG_get_scene_layer(Depsgraph *graph)
+{
+	Scene *scene = DAG_get_scene(graph);
+	if (scene) {
+		return BKE_scene_layer_context_active(scene);
 	}
 	return NULL;
 }
