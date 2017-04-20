@@ -41,8 +41,10 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_report.h"
+#include "DNA_object_types.h"
 
 #include "DEG_depsgraph_debug.h"
+#include "DEG_depsgraph_query.h"
 
 static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
 {
@@ -79,6 +81,32 @@ static void rna_Depsgraph_debug_stats(Depsgraph *graph, ReportList *reports)
 	            ops, rels, outer);
 }
 
+static int rna_Depsgraph_objects_skip(CollectionPropertyIterator *iter, void *UNUSED(data))
+{
+	ListBaseIterator *internal = &iter->internal.listbase;
+	Base *base = (Base *)internal->link;
+
+	return ((base->flag & BASE_VISIBLED) == 0);
+}
+
+static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Depsgraph *depsgraph = (Depsgraph *)ptr->data;
+	SceneLayer *sl = DAG_get_scene_layer(depsgraph);
+	rna_iterator_listbase_begin(iter, &sl->object_bases, rna_Depsgraph_objects_skip);
+}
+
+static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
+{
+	ListBaseIterator *internal = &iter->internal.listbase;
+	Base *base = (Base *)internal->link;
+	Object *ob = base->object;
+
+	ob->base_flag = base->flag;
+	ob->base_collection_properties = base->collection_properties;
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ob);
+}
+
 #else
 
 static void rna_def_depsgraph(BlenderRNA *brna)
@@ -86,6 +114,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *parm;
+	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "Depsgraph", NULL);
 	RNA_def_struct_ui_text(srna, "Dependency Graph", "");
@@ -101,6 +130,12 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	func = RNA_def_function(srna, "debug_stats", "rna_Depsgraph_debug_stats");
 	RNA_def_function_ui_description(func, "Report the number of elements in the Dependency Graph");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+
+	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_collection_funcs(prop, "rna_Depsgraph_objects_begin", "rna_iterator_listbase_next",
+	                                  "rna_iterator_listbase_end", "rna_Depsgraph_objects_get",
+	                                  NULL, NULL, NULL, NULL);
 }
 
 void RNA_def_depsgraph(BlenderRNA *brna)
