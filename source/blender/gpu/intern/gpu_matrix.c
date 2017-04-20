@@ -348,14 +348,17 @@ void gpuTranslate3fv(const float vec[3])
 
 void gpuScaleUniform(float factor)
 {
+#if SUPPORT_LEGACY_MATRIX
+	{
+		glScalef(factor, factor, factor); /* always scale Z since we can't distinguish 2D from 3D */
+		state.dirty = true;
+		return;
+	}
+#endif
 	Mat4 m;
 	scale_m4_fl(m, factor);
+	m[2][2] = 1.0;
 	gpuMultMatrix(m);
-
-#if SUPPORT_LEGACY_MATRIX
-	glScalef(factor, factor, factor); /* always scale Z since we can't distinguish 2D from 3D */
-	state.dirty = true;
-#endif
 }
 
 void gpuScale2f(float x, float y)
