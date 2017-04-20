@@ -92,9 +92,9 @@ static int node_group_operator_editable(bContext *C)
 		 * Disabled otherwise to allow pynodes define their own operators
 		 * with same keymap.
 		 */
-		if (STREQ(snode->tree_idname, "ShaderNodeTree") ||
-		    STREQ(snode->tree_idname, "CompositorNodeTree") ||
-		    STREQ(snode->tree_idname, "TextureNodeTree"))
+		if (ED_node_is_shader(snode) ||
+		    ED_node_is_compositor(snode) ||
+		    ED_node_is_texture(snode))
 		{
 			return true;
 		}
@@ -112,11 +112,11 @@ static const char *group_node_idname(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	if (STREQ(snode->tree_idname, "ShaderNodeTree"))
+	if (ED_node_is_shader(snode))
 		return "ShaderNodeGroup";
-	else if (STREQ(snode->tree_idname, "CompositorNodeTree"))
+	else if (ED_node_is_compositor(snode))
 		return "CompositorNodeGroup";
-	else if (STREQ(snode->tree_idname, "TextureNodeTree"))
+	else if (ED_node_is_texture(snode))
 		return "TextureNodeGroup";
 	
 	return "";
