@@ -5599,12 +5599,13 @@ static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
 	}
 }
 
-char *RNA_pointer_as_string(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *prop_ptr, PointerRNA *ptr_prop)
+char *RNA_pointer_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop_ptr, PointerRNA *ptr_prop)
 {
+	IDProperty *prop;
 	if (ptr_prop->data == NULL) {
 		return BLI_strdup("None");
 	}
-	else if (RNA_property_flag(prop_ptr) & PROP_IDPROPERTY) {
+	else if ((prop = rna_idproperty_check(&prop_ptr, ptr)) && prop->type != IDP_ID) {
 		return RNA_pointer_as_string_id(C, ptr_prop);
 	}
 	else {
