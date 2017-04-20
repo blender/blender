@@ -56,6 +56,7 @@ AbcHairWriter::AbcHairWriter(Scene *scene,
                              ExportSettings &settings,
                              ParticleSystem *psys)
     : AbcObjectWriter(scene, ob, time_sampling, settings, parent)
+    , m_uv_warning_shown(false)
 {
 	m_psys = psys;
 
@@ -132,8 +133,10 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 	MFace *mface = dm->getTessFaceArray(dm);
 	MVert *mverts = dm->getVertArray(dm);
 
-	if (!mtface || !mface) {
-		std::fprintf(stderr, "Warning, no UV set found for underlying geometry.\n");
+	if ((!mtface || !mface) && !m_uv_warning_shown) {
+		std::fprintf(stderr, "Warning, no UV set found for underlying geometry of %s.\n",
+		             m_object->id.name + 2);
+		m_uv_warning_shown = true;
 	}
 
 	ParticleData * pa = m_psys->particles;
@@ -240,10 +243,6 @@ void AbcHairWriter::write_hair_child_sample(DerivedMesh *dm,
 	MTFace *mtface = static_cast<MTFace *>(CustomData_get_layer(&dm->faceData, CD_MTFACE));
 	MFace *mface = dm->getTessFaceArray(dm);
 	MVert *mverts = dm->getVertArray(dm);
-
-	if (!mtface || !mface) {
-		std::fprintf(stderr, "Warning, no UV set found for underlying geometry.\n");
-	}
 
 	ParticleCacheKey **cache = m_psys->childcache;
 	ParticleCacheKey *path;
