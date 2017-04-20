@@ -181,10 +181,10 @@ typedef struct g_data{
 } g_data; /* Transient data */
 
 static struct {
-	struct GPUShader *outline_resolve_sh;
-	struct GPUShader *outline_detect_sh;
-	struct GPUShader *outline_fade_sh;
-	struct GPUShader *grid_sh;
+	GPUShader *outline_resolve_sh;
+	GPUShader *outline_detect_sh;
+	GPUShader *outline_fade_sh;
+	GPUShader *grid_sh;
 	float camera_pos[3];
 	float grid_settings[5];
 	float grid_mat[4][4];
@@ -215,16 +215,20 @@ static void OBJECT_engine_init(void *vedata)
 
 	const float *viewport_size = DRW_viewport_size_get();
 
-	DRWFboTexture tex[2] = {{&txl->outlines_depth_tx, DRW_BUF_DEPTH_24, 0},
-	                        {&txl->outlines_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER}};
-	DRW_framebuffer_init(&fbl->outlines,
-	                     (int)viewport_size[0], (int)viewport_size[1],
-	                     tex, 2);
+	DRWFboTexture tex[2] = {
+		{&txl->outlines_depth_tx, DRW_BUF_DEPTH_24, 0},
+		{&txl->outlines_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER},
+	};
+	DRW_framebuffer_init(
+	        &fbl->outlines,
+	        (int)viewport_size[0], (int)viewport_size[1],
+	        tex, 2);
 
 	DRWFboTexture blur_tex = {&txl->outlines_blur_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER};
-	DRW_framebuffer_init(&fbl->blur,
-	                     (int)viewport_size[0], (int)viewport_size[1],
-	                     &blur_tex, 1);
+	DRW_framebuffer_init(
+	        &fbl->blur,
+	        (int)viewport_size[0], (int)viewport_size[1],
+	        &blur_tex, 1);
 
 	if (!e_data.outline_resolve_sh) {
 		e_data.outline_resolve_sh = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
@@ -239,9 +243,10 @@ static void OBJECT_engine_init(void *vedata)
 	}
 
 	if (!e_data.grid_sh) {
-		e_data.grid_sh = DRW_shader_create_with_lib(datatoc_object_grid_vert_glsl, NULL,
-		                                            datatoc_object_grid_frag_glsl,
-		                                            datatoc_common_globals_lib_glsl, NULL);
+		e_data.grid_sh = DRW_shader_create_with_lib(
+		        datatoc_object_grid_vert_glsl, NULL,
+		        datatoc_object_grid_frag_glsl,
+		        datatoc_common_globals_lib_glsl, NULL);
 	}
 
 	{
@@ -385,7 +390,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.grid_sh);
 }
 
-static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], struct GPUShader *sh)
+static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], GPUShader *sh)
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
@@ -394,7 +399,7 @@ static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], struc
 }
 
 /* currently same as 'shgroup_outline', new function to avoid confustion */
-static DRWShadingGroup *shgroup_wire(DRWPass *pass, const float col[4], struct GPUShader *sh)
+static DRWShadingGroup *shgroup_wire(DRWPass *pass, const float col[4], GPUShader *sh)
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
@@ -452,7 +457,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE;
 		psl->outlines = DRW_pass_create("Outlines Pass", state);
 
-		struct GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 
 		/* Select */
 		stl->g_data->outlines_select = shgroup_outline(psl->outlines, ts.colorSelect, sh);
@@ -598,7 +603,9 @@ static void OBJECT_cache_init(void *vedata)
 		/* Non Meshes Pass (Camera, empties, lamps ...) */
 		struct Batch *geom;
 
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND | DRW_STATE_POINT;
+		DRWState state =
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+		        DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND | DRW_STATE_POINT;
 		state |= DRW_STATE_WIRE;
 		psl->non_meshes = DRW_pass_create("Non Meshes Pass", state);
 
@@ -668,7 +675,7 @@ static void OBJECT_cache_init(void *vedata)
 	}
 
 	{
-		struct GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 
 		/* Unselected */
 		stl->g_data->wire = shgroup_wire(psl->non_meshes, ts.colorWire, sh);
@@ -766,7 +773,7 @@ static void OBJECT_cache_init(void *vedata)
 		outlineWidth = 1.0f * U.pixelsize;
 		size = U.obcenter_dia * U.pixelsize + outlineWidth;
 
-		struct GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
+		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 
 		/* Active */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
@@ -942,7 +949,9 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, SceneLayer *
 
 	/* Active cam */
 	if (is_active) {
-		DRW_shgroup_dynamic_call_add(stl->g_data->camera_tria, color, cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
+		DRW_shgroup_dynamic_call_add(
+		        stl->g_data->camera_tria, color,
+		        cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
 	}
 
 	/* draw the rest in normalize object space */
@@ -959,10 +968,16 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, SceneLayer *
 		size_to_mat4(sizemat, size);
 		mul_m4_m4m4(cam->drwfocusmat, cam->drwfocusmat, sizemat);
 
-		DRW_shgroup_dynamic_call_add(stl->g_data->camera_focus, (is_active ? col_hi : col), &cam->drawsize, cam->drwfocusmat);
+		DRW_shgroup_dynamic_call_add(
+		        stl->g_data->camera_focus, (is_active ? col_hi : col),
+		        &cam->drawsize, cam->drwfocusmat);
 
-		DRW_shgroup_dynamic_call_add(stl->g_data->camera_clip, color, &cam->clipsta, &cam->clipend, cam->drwnormalmat);
-		DRW_shgroup_dynamic_call_add(stl->g_data->camera_clip_points, (is_active ? col_hi : col), &cam->clipsta, &cam->clipend, cam->drwnormalmat);
+		DRW_shgroup_dynamic_call_add(
+		        stl->g_data->camera_clip, color,
+		        &cam->clipsta, &cam->clipend, cam->drwnormalmat);
+		DRW_shgroup_dynamic_call_add(
+		        stl->g_data->camera_clip_points, (is_active ? col_hi : col),
+		        &cam->clipsta, &cam->clipend, cam->drwnormalmat);
 	}
 
 	if (cam->flag & CAM_SHOWMIST) {
@@ -971,8 +986,12 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, SceneLayer *
 		if (world) {
 			static float col[3] = {0.5f, 0.5f, 0.5f}, col_hi[3] = {1.0f, 1.0f, 1.0f};
 			world->mistend = world->miststa + world->mistdist;
-			DRW_shgroup_dynamic_call_add(stl->g_data->camera_mist,        color, &world->miststa, &world->mistend, cam->drwnormalmat);
-			DRW_shgroup_dynamic_call_add(stl->g_data->camera_mist_points, (is_active ? col_hi : col), &world->miststa, &world->mistend, cam->drwnormalmat);
+			DRW_shgroup_dynamic_call_add(
+			        stl->g_data->camera_mist, color,
+			        &world->miststa, &world->mistend, cam->drwnormalmat);
+			DRW_shgroup_dynamic_call_add(
+			        stl->g_data->camera_mist_points, (is_active ? col_hi : col),
+			        &world->miststa, &world->mistend, cam->drwnormalmat);
 		}
 	}
 }

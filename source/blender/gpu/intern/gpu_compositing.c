@@ -1350,7 +1350,7 @@ void GPU_fx_compositor_init_ssao_settings(GPUSSAOSettings *fx_ssao)
 	fx_ssao->samples = 20;
 }
 
-void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect effect)
+void GPU_fx_shader_init_interface(GPUShader *shader, GPUFXShaderEffect effect)
 {
 	if (!shader)
 		return;

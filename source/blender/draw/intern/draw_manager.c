@@ -159,8 +159,8 @@ typedef struct DRWDynamicCall {
 struct DRWShadingGroup {
 	struct DRWShadingGroup *next, *prev;
 
-	struct GPUShader *shader;        /* Shader to bind */
-	struct DRWInterface *interface;  /* Uniforms pointers */
+	GPUShader *shader;               /* Shader to bind */
+	DRWInterface *interface;         /* Uniforms pointers */
 	ListBase calls;                  /* DRWCall or DRWDynamicCall depending of type*/
 	DRWState state;                  /* State changes for this batch only */
 	int type;

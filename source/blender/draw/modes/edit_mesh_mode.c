@@ -87,19 +87,19 @@ typedef struct EDIT_MESH_Data {
 /* *********** STATIC *********** */
 
 static struct {
-	struct GPUShader *overlay_tri_sh;
-	struct GPUShader *overlay_tri_fast_sh;
-	struct GPUShader *overlay_tri_vcol_sh;
-	struct GPUShader *overlay_tri_vcol_fast_sh;
-	struct GPUShader *overlay_edge_sh;
-	struct GPUShader *overlay_edge_vcol_sh;
-	struct GPUShader *overlay_vert_sh;
-	struct GPUShader *overlay_facedot_sh;
-	struct GPUShader *overlay_mix_sh;
-	struct GPUShader *overlay_facefill_sh;
-	struct GPUShader *normals_face_sh;
-	struct GPUShader *normals_sh;
-	struct GPUShader *depth_sh;
+	GPUShader *overlay_tri_sh;
+	GPUShader *overlay_tri_fast_sh;
+	GPUShader *overlay_tri_vcol_sh;
+	GPUShader *overlay_tri_vcol_fast_sh;
+	GPUShader *overlay_edge_sh;
+	GPUShader *overlay_edge_vcol_sh;
+	GPUShader *overlay_vert_sh;
+	GPUShader *overlay_facedot_sh;
+	GPUShader *overlay_mix_sh;
+	GPUShader *overlay_facefill_sh;
+	GPUShader *normals_face_sh;
+	GPUShader *normals_sh;
+	GPUShader *depth_sh;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct g_data {
@@ -231,7 +231,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
         DRWShadingGroup **r_face_shgrp, DRWShadingGroup **r_ledges_shgrp,
         DRWShadingGroup **r_lverts_shgrp, DRWShadingGroup **r_facedot_shgrp)
 {
-	static struct GPUShader *tri_sh, *ledge_sh;
+	GPUShader *tri_sh, *ledge_sh;
 	const struct bContext *C = DRW_get_context();
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);

@@ -102,9 +102,9 @@ static struct {
 	 * Add sources to source/blender/draw/modes/shaders
 	 * init in EDIT_LATTICE_engine_init();
 	 * free in EDIT_LATTICE_engine_free(); */
-	struct GPUShader *wire_sh;
+	GPUShader *wire_sh;
 
-	struct GPUShader *overlay_vert_sh;
+	GPUShader *overlay_vert_sh;
 
 } e_data = {NULL}; /* Engine data */
 

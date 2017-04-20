@@ -107,12 +107,12 @@ static struct {
 	 * Add sources to source/blender/draw/modes/shaders
 	 * init in EDIT_CURVE_engine_init();
 	 * free in EDIT_CURVE_engine_free(); */
-	struct GPUShader *surface_sh;
+	GPUShader *surface_sh;
 
-	struct GPUShader *wire_sh;
+	GPUShader *wire_sh;
 
-	struct GPUShader *overlay_edge_sh;  /* handles and nurbs control cage */
-	struct GPUShader *overlay_vert_sh;
+	GPUShader *overlay_edge_sh;  /* handles and nurbs control cage */
+	GPUShader *overlay_vert_sh;
 
 } e_data = {NULL}; /* Engine data */
 
