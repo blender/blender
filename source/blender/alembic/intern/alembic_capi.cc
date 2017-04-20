@@ -795,13 +795,16 @@ static void import_endjob(void *user_data)
 	}
 	else {
 		/* Add object to scene. */
+		Base *base;
+
 		BKE_scene_base_deselect_all(data->scene);
 
 		for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 			Object *ob = (*iter)->object();
 			ob->lay = data->scene->lay;
 
-			BKE_scene_base_add(data->scene, ob);
+			base = BKE_scene_base_add(data->scene, ob);
+			BKE_scene_base_select(data->scene, base);
 
 			DAG_id_tag_update_ex(data->bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		}

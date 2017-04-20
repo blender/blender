@@ -63,6 +63,28 @@ class SimpleImportTest(unittest.TestCase):
         self.assertEqual(objects['Cube_003'], objects['Cube_005'].parent)
         self.assertEqual(objects['Cube_003'], objects['Cube_006'].parent)
 
+    def test_select_after_import(self):
+        # Add a sphere, so that there is something in the scene, selected, and active,
+        # before we do the Alembic import.
+        bpy.ops.mesh.primitive_uv_sphere_add()
+        sphere = bpy.context.active_object
+        self.assertEqual('Sphere', sphere.name)
+        self.assertEqual([sphere], bpy.context.selected_objects)
+
+        bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "cubes-hierarchy.abc"),
+            as_background_job=False)
+
+        # The active object is probably the first one that was imported, but this
+        # behaviour is not defined. At least it should be one of the cubes, and
+        # not the sphere.
+        self.assertNotEqual(sphere, bpy.context.active_object)
+        self.assertTrue('Cube' in bpy.context.active_object.name)
+
+        # All cubes should be selected, but the sphere shouldn't be.
+        for ob in bpy.data.objects:
+            self.assertEqual('Cube' in ob.name, ob.select)
+
 
 def main():
     global args
