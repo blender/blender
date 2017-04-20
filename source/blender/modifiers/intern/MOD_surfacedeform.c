@@ -1195,7 +1195,7 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
-	return !smd->target;
+	return !smd->target && !(smd->verts && !(smd->flags & MOD_SDEF_BIND));
 }
 
 ModifierTypeInfo modifierType_SurfaceDeform = {
