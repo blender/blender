@@ -199,8 +199,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 
 		psl->overlay_vert_pass = DRW_pass_create(
 		        "Curve Vert Overlay",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH);
-
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_POINT);
 		stl->g_data->overlay_vert_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->overlay_vert_pass);
 	}
 

@@ -34,6 +34,6 @@ void main()
 
 	vertFlag = data;
 
-	gl_PointSize = sizeEdgeFix;
+	gl_PointSize = sizeVertex;
 	gl_Position = pPos;
 }
