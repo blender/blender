@@ -180,90 +180,90 @@ enum {
  */
 static CurveRenderData *curve_render_data_create(Curve *cu, CurveCache *ob_curve_cache, const int types)
 {
-	CurveRenderData *lrdata = MEM_callocN(sizeof(*lrdata), __func__);
-	lrdata->types = types;
+	CurveRenderData *rdata = MEM_callocN(sizeof(*rdata), __func__);
+	rdata->types = types;
 	ListBase *nurbs;
 
-	lrdata->hide_handles = (cu->drawflag & CU_HIDE_HANDLES) != 0;
-	lrdata->hide_normals = (cu->drawflag & CU_HIDE_NORMALS) != 0;
+	rdata->hide_handles = (cu->drawflag & CU_HIDE_HANDLES) != 0;
+	rdata->hide_normals = (cu->drawflag & CU_HIDE_NORMALS) != 0;
 
-	lrdata->actnu = cu->actnu;
-	lrdata->actvert = cu->actvert;
+	rdata->actnu = cu->actnu;
+	rdata->actvert = cu->actvert;
 
-	lrdata->ob_curve_cache = ob_curve_cache;
+	rdata->ob_curve_cache = ob_curve_cache;
 
 	if (types & CU_DATATYPE_WIRE) {
 		curve_render_wire_verts_edges_len_get(
-		        lrdata->ob_curve_cache,
-		        &lrdata->wire.vert_len, &lrdata->wire.edge_len);
+		        rdata->ob_curve_cache,
+		        &rdata->wire.vert_len, &rdata->wire.edge_len);
 	}
 
 	if (cu->editnurb) {
 		EditNurb *editnurb = cu->editnurb;
 		nurbs = &editnurb->nurbs;
 
-		lrdata->edit_latt = editnurb;
+		rdata->edit_latt = editnurb;
 
 		if (types & CU_DATATYPE_OVERLAY) {
 			curve_render_overlay_verts_edges_len_get(
-			        nurbs, lrdata->hide_handles,
-			        &lrdata->overlay.vert_len,
-			        lrdata->hide_handles ? NULL : &lrdata->overlay.edge_len);
+			        nurbs, rdata->hide_handles,
+			        &rdata->overlay.vert_len,
+			        rdata->hide_handles ? NULL : &rdata->overlay.edge_len);
 
-			lrdata->actnu = cu->actnu;
-			lrdata->actvert = cu->actvert;
+			rdata->actnu = cu->actnu;
+			rdata->actvert = cu->actvert;
 		}
 		if (types & CU_DATATYPE_NORMAL) {
-			lrdata->normal.len = curve_render_normal_len_get(nurbs, lrdata->ob_curve_cache);
+			rdata->normal.len = curve_render_normal_len_get(nurbs, rdata->ob_curve_cache);
 		}
 	}
 	else {
 		nurbs = &cu->nurb;
 	}
 
-	lrdata->nurbs = nurbs;
+	rdata->nurbs = nurbs;
 
-	return lrdata;
+	return rdata;
 }
 
-static void curve_render_data_free(CurveRenderData *lrdata)
+static void curve_render_data_free(CurveRenderData *rdata)
 {
 #if 0
-	if (lrdata->loose_verts) {
-		MEM_freeN(lrdata->loose_verts);
+	if (rdata->loose_verts) {
+		MEM_freeN(rdata->loose_verts);
 	}
 #endif
-	MEM_freeN(lrdata);
+	MEM_freeN(rdata);
 }
 
-static int curve_render_data_overlay_verts_len_get(const CurveRenderData *lrdata)
+static int curve_render_data_overlay_verts_len_get(const CurveRenderData *rdata)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_OVERLAY);
-	return lrdata->overlay.vert_len;
+	BLI_assert(rdata->types & CU_DATATYPE_OVERLAY);
+	return rdata->overlay.vert_len;
 }
 
-static int curve_render_data_overlay_edges_len_get(const CurveRenderData *lrdata)
+static int curve_render_data_overlay_edges_len_get(const CurveRenderData *rdata)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_OVERLAY);
-	return lrdata->overlay.edge_len;
+	BLI_assert(rdata->types & CU_DATATYPE_OVERLAY);
+	return rdata->overlay.edge_len;
 }
 
-static int curve_render_data_wire_verts_len_get(const CurveRenderData *lrdata)
+static int curve_render_data_wire_verts_len_get(const CurveRenderData *rdata)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_WIRE);
-	return lrdata->wire.vert_len;
+	BLI_assert(rdata->types & CU_DATATYPE_WIRE);
+	return rdata->wire.vert_len;
 }
 
-static int curve_render_data_wire_edges_len_get(const CurveRenderData *lrdata)
+static int curve_render_data_wire_edges_len_get(const CurveRenderData *rdata)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_WIRE);
-	return lrdata->wire.edge_len;
+	BLI_assert(rdata->types & CU_DATATYPE_WIRE);
+	return rdata->wire.edge_len;
 }
 
-static int curve_render_data_normal_len_get(const CurveRenderData *lrdata)
+static int curve_render_data_normal_len_get(const CurveRenderData *rdata)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_NORMAL);
-	return lrdata->normal.len;
+	BLI_assert(rdata->types & CU_DATATYPE_NORMAL);
+	return rdata->normal.len;
 }
 
 enum {
@@ -442,10 +442,10 @@ void BKE_curve_batch_cache_free(Curve *cu)
 }
 
 /* Batch cache usage. */
-static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *lrdata, CurveBatchCache *cache)
+static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *rdata, CurveBatchCache *cache)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_WIRE);
-	BLI_assert(lrdata->ob_curve_cache != NULL);
+	BLI_assert(rdata->types & CU_DATATYPE_WIRE);
+	BLI_assert(rdata->ob_curve_cache != NULL);
 
 	if (cache->wire.verts == NULL) {
 		static VertexFormat format = { 0 };
@@ -455,12 +455,12 @@ static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *lrdata, C
 			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
-		const int vert_len = curve_render_data_wire_verts_len_get(lrdata);
+		const int vert_len = curve_render_data_wire_verts_len_get(rdata);
 
 		VertexBuffer *vbo = cache->wire.verts = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, vert_len);
 		int vbo_len_used = 0;
-		for (const BevList *bl = lrdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
+		for (const BevList *bl = rdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
 			if (bl->nr > 0) {
 				const int i_end = vbo_len_used + bl->nr;
 				for (const BevPoint *bevp = bl->bevpoints; vbo_len_used < i_end; vbo_len_used++, bevp++) {
@@ -474,21 +474,21 @@ static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *lrdata, C
 	return cache->wire.verts;
 }
 
-static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *lrdata, CurveBatchCache *cache)
+static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *rdata, CurveBatchCache *cache)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_WIRE);
-	BLI_assert(lrdata->ob_curve_cache != NULL);
+	BLI_assert(rdata->types & CU_DATATYPE_WIRE);
+	BLI_assert(rdata->ob_curve_cache != NULL);
 
 	if (cache->wire.edges == NULL) {
-		const int vert_len = curve_render_data_wire_verts_len_get(lrdata);
-		const int edge_len = curve_render_data_wire_edges_len_get(lrdata);
+		const int vert_len = curve_render_data_wire_verts_len_get(rdata);
+		const int edge_len = curve_render_data_wire_edges_len_get(rdata);
 		int edge_len_used = 0;
 
 		ElementListBuilder elb;
 		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, vert_len);
 
 		int i = 0;
-		for (const BevList *bl = lrdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
+		for (const BevList *bl = rdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
 			if (bl->nr > 0) {
 				const bool is_cyclic = bl->poly != -1;
 				const int i_end = i + (bl->nr);
@@ -507,7 +507,7 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *lrdata, Cu
 			}
 		}
 
-		if (lrdata->hide_handles) {
+		if (rdata->hide_handles) {
 			BLI_assert(edge_len_used <= edge_len);
 		}
 		else {
@@ -520,10 +520,10 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *lrdata, Cu
 	return cache->wire.elem;
 }
 
-static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *lrdata, CurveBatchCache *cache)
+static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *rdata, CurveBatchCache *cache)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_NORMAL);
-	BLI_assert(lrdata->ob_curve_cache != NULL);
+	BLI_assert(rdata->types & CU_DATATYPE_NORMAL);
+	BLI_assert(rdata->ob_curve_cache != NULL);
 
 	if (cache->normal.verts == NULL) {
 		static VertexFormat format = { 0 };
@@ -533,7 +533,7 @@ static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *lrdata,
 			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
-		const int normal_len = curve_render_data_normal_len_get(lrdata);
+		const int normal_len = curve_render_data_normal_len_get(rdata);
 		const int vert_len = normal_len * 3;
 
 		VertexBuffer *vbo = cache->normal.verts = VertexBuffer_create_with_format(&format);
@@ -543,7 +543,7 @@ static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *lrdata,
 		const BevList *bl;
 		const Nurb *nu;
 
-		for (bl = lrdata->ob_curve_cache->bev.first, nu = lrdata->nurbs->first;
+		for (bl = rdata->ob_curve_cache->bev.first, nu = rdata->nurbs->first;
 		     nu && bl;
 		     bl = bl->next, nu = nu->next)
 		{
@@ -586,13 +586,13 @@ static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *lrdata,
 	return cache->normal.verts;
 }
 
-static ElementList *curve_batch_cache_get_normal_edges(CurveRenderData *lrdata, CurveBatchCache *cache)
+static ElementList *curve_batch_cache_get_normal_edges(CurveRenderData *rdata, CurveBatchCache *cache)
 {
-	BLI_assert(lrdata->types & CU_DATATYPE_NORMAL);
-	BLI_assert(lrdata->ob_curve_cache != NULL);
+	BLI_assert(rdata->types & CU_DATATYPE_NORMAL);
+	BLI_assert(rdata->ob_curve_cache != NULL);
 
 	if (cache->normal.edges == NULL) {
-		const int normal_len = curve_render_data_normal_len_get(lrdata);
+		const int normal_len = curve_render_data_normal_len_get(rdata);
 		const int edge_len = normal_len * 2;
 
 		ElementListBuilder elb;
@@ -619,7 +619,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 	int options = CU_DATATYPE_OVERLAY;
 
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
-	CurveRenderData *lrdata = curve_render_data_create(cu, NULL, options);
+	CurveRenderData *rdata = curve_render_data_create(cu, NULL, options);
 
 	if (cache->overlay.verts == NULL) {
 		static VertexFormat format = { 0 };
@@ -631,19 +631,19 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		const int vbo_len_capacity = curve_render_data_overlay_verts_len_get(lrdata);
+		const int vbo_len_capacity = curve_render_data_overlay_verts_len_get(rdata);
 		int vbo_len_used = 0;
 		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
 		int i = 0;
-		for (Nurb *nu = lrdata->nurbs->first; nu; nu = nu->next) {
+		for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next) {
 			if (nu->bezt) {
 				int a = 0;
 				for (const BezTriple *bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
 					if (bezt->hide == false) {
-						const bool is_active = (i == lrdata->actvert);
+						const bool is_active = (i == rdata->actvert);
 						char vflag;
 
-						if (lrdata->hide_handles) {
+						if (rdata->hide_handles) {
 							vflag = (bezt->f2 & SELECT) ?
 							        (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
 							VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bezt->vec[1]);
@@ -667,7 +667,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 				int a = 0;
 				for (const BPoint *bp = nu->bp; a < nu->pntsu; a++, bp++) {
 					if (bp->hide == false) {
-						const bool is_active = (i == lrdata->actvert);
+						const bool is_active = (i == rdata->actvert);
 						char vflag;
 						vflag = (bp->f1 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
 						VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bp->vec);
@@ -687,7 +687,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 	}
 
 
-	if ((cache->overlay.edges == NULL) && (lrdata->hide_handles == false)) {
+	if ((cache->overlay.edges == NULL) && (rdata->hide_handles == false)) {
 		/* Note: we could reference indices to vertices (above) */
 
 		static VertexFormat format = { 0 };
@@ -699,17 +699,17 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		const int edge_len =  curve_render_data_overlay_edges_len_get(lrdata);
+		const int edge_len =  curve_render_data_overlay_edges_len_get(rdata);
 		const int vbo_len_capacity = edge_len * 2;
 		int vbo_len_used = 0;
 		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
 		int i = 0;
-		for (Nurb *nu = lrdata->nurbs->first; nu; nu = nu->next) {
+		for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next) {
 			if (nu->bezt) {
 				int a = 0;
 				for (const BezTriple *bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
 					if (bezt->hide == false) {
-						const bool is_active = (i == lrdata->actvert);
+						const bool is_active = (i == rdata->actvert);
 						char vflag;
 
 						vflag = (bezt->f1 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
@@ -758,7 +758,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 		cache->overlay.edges = Batch_create(PRIM_LINES, vbo, NULL);
 	}
 
-	curve_render_data_free(lrdata);
+	curve_render_data_free(rdata);
 }
 
 Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache)
@@ -767,14 +767,14 @@ Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache
 
 	if (cache->wire.batch == NULL) {
 		/* create batch from Curve */
-		CurveRenderData *lrdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_WIRE);
+		CurveRenderData *rdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_WIRE);
 
 		cache->wire.batch = Batch_create(
 		        PRIM_LINES,
-		        curve_batch_cache_get_wire_verts(lrdata, cache),
-		        curve_batch_cache_get_wire_edges(lrdata, cache));
+		        curve_batch_cache_get_wire_verts(rdata, cache),
+		        curve_batch_cache_get_wire_edges(rdata, cache));
 
-		curve_render_data_free(lrdata);
+		curve_render_data_free(rdata);
 	}
 	return cache->wire.batch;
 }
@@ -793,14 +793,14 @@ Batch *BKE_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cac
 
 	if (cache->normal.batch == NULL) {
 		/* create batch from Curve */
-		CurveRenderData *lrdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_NORMAL);
+		CurveRenderData *rdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_NORMAL);
 
 		cache->normal.batch = Batch_create(
 		        PRIM_LINES,
-		        curve_batch_cache_get_normal_verts(lrdata, cache),
-		        curve_batch_cache_get_normal_edges(lrdata, cache));
+		        curve_batch_cache_get_normal_verts(rdata, cache),
+		        curve_batch_cache_get_normal_edges(rdata, cache));
 
-		curve_render_data_free(lrdata);
+		curve_render_data_free(rdata);
 		cache->normal_size = normal_size;
 	}
 	return cache->normal.batch;
