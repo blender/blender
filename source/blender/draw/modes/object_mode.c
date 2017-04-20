@@ -1162,22 +1162,24 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	//bool do_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_wire");
 	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
 
-	switch (ob->type) {
-		case OB_MESH:
-		{
-			Object *obedit = scene->obedit;
-			if (ob != obedit) {
-				if (do_outlines) {
-					struct Batch *geom = DRW_cache_mesh_surface_get(ob);
-					int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
-					DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_shgroup_or(stl, theme_id, NULL);
-					if (shgroup != NULL) {
-						DRW_shgroup_call_add(shgroup, geom, ob->obmat);
-					}
+	if (do_outlines) {
+		Object *obedit = scene->obedit;
+		if (ob != obedit) {
+			struct Batch *geom = DRW_cache_object_surface_get(ob);
+			if (geom) {
+				int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_shgroup_or(stl, theme_id, NULL);
+				if (shgroup != NULL) {
+					DRW_shgroup_call_add(shgroup, geom, ob->obmat);
 				}
 			}
-			break;
 		}
+	}
+
+	switch (ob->type) {
+		case OB_MESH:
+		case OB_SURF:
+			break;
 		case OB_LATTICE:
 		{
 			Object *obedit = scene->obedit;

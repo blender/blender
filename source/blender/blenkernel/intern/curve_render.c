@@ -37,6 +37,8 @@
 #include "BKE_curve.h"
 #include "BKE_curve_render.h"
 
+#include "BKE_displist_render.h"
+
 #include "GPU_batch.h"
 
 #define SELECT   1
@@ -173,6 +175,8 @@ enum {
 	CU_DATATYPE_OVERLAY     = 1 << 1,
 	/* Edit-mode normals */
 	CU_DATATYPE_NORMAL      = 1 << 2,
+	/* Geometry */
+	CU_DATATYPE_SURFACE     = 1 << 3,
 };
 
 /*
@@ -297,6 +301,10 @@ typedef struct CurveBatchCache {
 		Batch *verts;
 	} overlay;
 
+	struct {
+		Batch *batch;
+	} surface;
+
 	/* settings to determine if cache is invalid */
 	bool is_dirty;
 
@@ -409,6 +417,10 @@ void BKE_curve_batch_cache_clear(Curve *cu)
 
 	BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
+
+	if (cache->surface.batch) {
+		BATCH_DISCARD_ALL_SAFE(cache->surface.batch);
+	}
 
 	if (cache->wire.batch) {
 		BATCH_DISCARD_ALL_SAFE(cache->wire.batch);
@@ -759,6 +771,15 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 	curve_render_data_free(rdata);
 }
 
+static Batch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, CurveBatchCache *cache)
+{
+	BLI_assert(rdata->types & CU_DATATYPE_SURFACE);
+	if (cache->surface.batch == NULL) {
+		cache->surface.batch = BLI_displist_batch_calc_surface(&rdata->ob_curve_cache->disp);
+	}
+	return cache->surface.batch;
+}
+
 Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
@@ -824,4 +845,20 @@ Batch *BKE_curve_batch_cache_get_overlay_verts(Curve *cu)
 	}
 
 	return cache->overlay.verts;
+}
+
+struct Batch *BKE_curve_batch_cache_get_triangles_with_normals(
+        struct Curve *cu, struct CurveCache *ob_curve_cache)
+{
+	CurveBatchCache *cache = curve_batch_cache_get(cu);
+
+	if (cache->surface.batch == NULL) {
+		CurveRenderData *rdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_SURFACE);
+
+		curve_batch_cache_get_pos_and_normals(rdata, cache);
+
+		curve_render_data_free(rdata);
+	}
+
+	return cache->surface.batch;
 }

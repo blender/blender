@@ -38,6 +38,9 @@ struct Batch *DRW_cache_single_line_get(void);
 struct Batch *DRW_cache_single_line_endpoints_get(void);
 struct Batch *DRW_cache_screenspace_circle_get(void);
 
+/* Common Object */
+struct Batch *DRW_cache_object_surface_get(struct Object *ob);
+
 /* Empties */
 struct Batch *DRW_cache_plain_axes_get(void);
 struct Batch *DRW_cache_single_arrow_get(void);
@@ -93,6 +96,14 @@ struct Batch *DRW_cache_curve_edge_wire_get(struct Object *ob);
 struct Batch *DRW_cache_curve_edge_normal_get(struct Object *ob, float normal_size);
 struct Batch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
 struct Batch *DRW_cache_curve_vert_overlay_get(struct Object *ob);
+struct Batch *DRW_cache_curve_surface_get(struct Object *ob);
+struct Batch *DRW_cache_curve_surface_verts_get(struct Object *ob);
+
+/* Font */
+struct Batch *DRW_cache_text_surface_get(struct Object *ob);
+
+/* Surface */
+struct Batch *DRW_cache_surf_surface_get(struct Object *ob);
 
 /* Lattice */
 struct Batch *DRW_cache_lattice_verts_get(struct Object *ob);

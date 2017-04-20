@@ -353,6 +353,8 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 			BKE_lattice_batch_cache_dirty(ob->data);
 			break;
 		case OB_CURVE:
+		case OB_FONT:
+		case OB_SURF:
 			BKE_curve_batch_cache_dirty(ob->data);
 			break;
 	}

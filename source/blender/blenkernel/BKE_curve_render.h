@@ -37,4 +37,6 @@ struct Batch *BKE_curve_batch_cache_get_normal_edge(
 struct Batch *BKE_curve_batch_cache_get_overlay_edges(struct Curve *cu);
 struct Batch *BKE_curve_batch_cache_get_overlay_verts(struct Curve *cu);
 
+struct Batch *BKE_curve_batch_cache_get_triangles_with_normals(struct Curve *cu, struct CurveCache *ob_curve_cache);
+
 #endif /* __BKE_CURVE_RENDER_H__ */

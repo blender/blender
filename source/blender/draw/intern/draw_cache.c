@@ -452,6 +452,30 @@ Batch *DRW_cache_screenspace_circle_get(void)
 
 /* -------------------------------------------------------------------- */
 
+/** \name Common Object API
+ * \{ */
+
+Batch *DRW_cache_object_surface_get(Object *ob)
+{
+	switch (ob->type) {
+		case OB_MESH:
+			return DRW_cache_mesh_surface_get(ob);
+		case OB_CURVE:
+			return DRW_cache_curve_surface_get(ob);
+		case OB_SURF:
+			return DRW_cache_surf_surface_get(ob);
+		case OB_FONT:
+			return DRW_cache_text_surface_get(ob);
+		default:
+			return NULL;
+	}
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
 /** \name Empties
  * \{ */
 
@@ -1582,7 +1606,7 @@ Batch *DRW_cache_mesh_verts_get(Object *ob)
 
 Batch *DRW_cache_curve_edge_wire_get(Object *ob)
 {
-	BLI_assert(ob->type == OB_CURVE);
+	BLI_assert(ELEM(ob->type, OB_CURVE, OB_FONT));
 
 	struct Curve *cu = ob->data;
 	return BKE_curve_batch_cache_get_wire_edge(cu, ob->curve_cache);
@@ -1611,6 +1635,46 @@ Batch *DRW_cache_curve_vert_overlay_get(Object *ob)
 	struct Curve *cu = ob->data;
 	return BKE_curve_batch_cache_get_overlay_verts(cu);
 }
+
+Batch *DRW_cache_curve_surface_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_CURVE);
+
+	struct Curve *cu = ob->data;
+	return BKE_curve_batch_cache_get_triangles_with_normals(cu, ob->curve_cache);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name Font
+ * \{ */
+
+Batch *DRW_cache_text_surface_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_FONT);
+
+	struct Curve *cu = ob->data;
+	return BKE_curve_batch_cache_get_triangles_with_normals(cu, ob->curve_cache);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name Surface
+ * \{ */
+
+Batch *DRW_cache_surf_surface_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_SURF);
+
+	struct Curve *cu = ob->data;
+	return BKE_curve_batch_cache_get_triangles_with_normals(cu, ob->curve_cache);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 

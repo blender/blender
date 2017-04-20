@@ -100,6 +100,7 @@ set(SRC
 	intern/deform.c
 	intern/depsgraph.c
 	intern/displist.c
+	intern/displist_render.c
 	intern/dynamicpaint.c
 	intern/editderivedmesh.c
 	intern/editmesh.c
@@ -233,6 +234,7 @@ set(SRC
 	BKE_deform.h
 	BKE_depsgraph.h
 	BKE_displist.h
+	BKE_displist_render.h
 	BKE_dynamicpaint.h
 	BKE_editmesh.h
 	BKE_editmesh_bvh.h

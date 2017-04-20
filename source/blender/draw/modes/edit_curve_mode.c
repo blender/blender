@@ -30,6 +30,7 @@
 
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
+#include "GPU_batch.h"
 
 #include "draw_common.h"
 
@@ -60,6 +61,7 @@ typedef struct EDIT_CURVE_PassList {
 	/* Declare all passes here and init them in
 	 * EDIT_CURVE_cache_init().
 	 * Only contains (DRWPass *) */
+	struct DRWPass *surface_pass;
 	struct DRWPass *wire_pass;
 	struct DRWPass *overlay_edge_pass;
 	struct DRWPass *overlay_vert_pass;
@@ -105,6 +107,8 @@ static struct {
 	 * Add sources to source/blender/draw/modes/shaders
 	 * init in EDIT_CURVE_engine_init();
 	 * free in EDIT_CURVE_engine_free(); */
+	struct GPUShader *surface_sh;
+
 	struct GPUShader *wire_sh;
 
 	struct GPUShader *overlay_edge_sh;  /* handles and nurbs control cage */
@@ -115,6 +119,8 @@ static struct {
 typedef struct g_data {
 	/* This keeps the references of the shading groups for
 	 * easy access in EDIT_CURVE_cache_populate() */
+
+	DRWShadingGroup *surface_shgrp;
 
 	/* resulting curve as 'wire' for curves (and optionally normals) */
 	DRWShadingGroup *wire_shgrp;
@@ -151,6 +157,11 @@ static void EDIT_CURVE_engine_init(void *vedata)
 	 *                     tex, 2);
 	 */
 
+
+	if (!e_data.surface_sh) {
+		e_data.surface_sh = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING);
+	}
+
 	if (!e_data.wire_sh) {
 		e_data.wire_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 	}
@@ -180,6 +191,12 @@ static void EDIT_CURVE_cache_init(void *vedata)
 	}
 
 	{
+		/* Surface */
+		psl->surface_pass = DRW_pass_create(
+		        "Surface",
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		stl->g_data->surface_shgrp = DRW_shgroup_create(e_data.surface_sh, psl->surface_pass);
+
 		/* Center-Line (wire) */
 		psl->wire_pass = DRW_pass_create(
 		        "Curve Wire",
@@ -222,7 +239,13 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 			/* Get geometry cache */
 			struct Batch *geom;
 
-//			geom = DRW_cache_mesh_surface_get(ob);
+			geom = DRW_cache_curve_surface_get(ob);
+			if (geom) {
+				Batch_set_builtin_program(geom, GPU_SHADER_SIMPLE_LIGHTING);
+				Batch_Uniform4f(geom, "color", 1, 1, 1, 1);
+				Batch_Uniform3f(geom, "light", 0, 0, 1);
+				DRW_shgroup_call_add(stl->g_data->surface_shgrp, geom, ob->obmat);
+			}
 
 			geom = DRW_cache_curve_edge_wire_get(ob);
 			DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);
@@ -276,6 +299,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 	 */
 
 	/* ... or just render passes on default framebuffer. */
+	DRW_draw_pass(psl->surface_pass);
 	DRW_draw_pass(psl->wire_pass);
 	DRW_draw_pass(psl->overlay_edge_pass);
 	DRW_draw_pass(psl->overlay_vert_pass);
