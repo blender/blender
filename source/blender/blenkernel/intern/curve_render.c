@@ -590,10 +590,11 @@ static ElementList *curve_batch_cache_get_normal_edges(CurveRenderData *rdata, C
 
 	if (cache->normal.edges == NULL) {
 		const int normal_len = curve_render_data_normal_len_get(rdata);
+		const int vert_len = normal_len * 3;
 		const int edge_len = normal_len * 2;
 
 		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, normal_len * 2);
+		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, vert_len);
 
 		int vbo_len_used = 0;
 		for (int i = 0; i < normal_len; i++) {
@@ -602,7 +603,7 @@ static ElementList *curve_batch_cache_get_normal_edges(CurveRenderData *rdata, C
 			vbo_len_used += 3;
 		}
 
-		BLI_assert(vbo_len_used == normal_len * 3);
+		BLI_assert(vbo_len_used == vert_len);
 
 		cache->normal.elem = ElementList_build(&elb);
 	}
