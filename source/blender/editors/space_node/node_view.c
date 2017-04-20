@@ -417,13 +417,11 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	}
 }
 
-/* Returns color in the display space, matching ED_space_image_color_sample().
+/* Returns color in linear space, matching ED_space_image_color_sample().
  * And here we've got recursion in the comments tips...
  */
-bool ED_space_node_color_sample(Scene *scene, SpaceNode *snode, ARegion *ar, int mval[2], float r_col[3])
+bool ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float r_col[3])
 {
-	const char *display_device = scene->display_settings.display_device;
-	struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 	void *lock;
 	Image *ima;
 	ImBuf *ibuf;
@@ -469,10 +467,6 @@ bool ED_space_node_color_sample(Scene *scene, SpaceNode *snode, ARegion *ar, int
 			IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
 			ret = true;
 		}
-	}
-
-	if (ret) {
-		IMB_colormanagement_scene_linear_to_display_v3(r_col, display);
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);
