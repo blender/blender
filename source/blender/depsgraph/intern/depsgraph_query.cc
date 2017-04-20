@@ -34,12 +34,16 @@
 
 extern "C" {
 #include "BKE_idcode.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
+
+#include "DNA_scene_types.h"
 
 #include "DEG_depsgraph_query.h"
 } /* extern "C" */
 
 #include "intern/depsgraph_intern.h"
+#include "util/deg_util_foreach.h"
 
 bool DEG_id_type_tagged(Main *bmain, short idtype)
 {
@@ -67,4 +71,16 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 	}
 
 	return id_node->eval_flags;
+}
+
+SceneLayer *DAG_get_scene_layer(Depsgraph *graph)
+{
+	Main *bmain = G.main;
+	LINKLIST_FOREACH (Scene*, scene, &bmain->scene) {
+		if (scene->depsgraph == graph) {
+			/* Got the scene! */
+			return BKE_scene_layer_context_active(scene);
+		}
+	}
+	return NULL;
 }
