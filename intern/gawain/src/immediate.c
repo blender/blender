@@ -208,9 +208,8 @@ void immBegin(PrimitiveType prim_type, unsigned vertex_ct)
 	else
 		{
 		// orphan this buffer & start with a fresh one
-#if APPLE_LEGACY
 		glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
-#else
+#if !APPLE_LEGACY
 		if (GLEW_VERSION_4_3 || GLEW_ARB_invalidate_subdata)
 			glInvalidateBufferData(imm.vbo_id);
 		else
