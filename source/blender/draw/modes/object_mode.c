@@ -402,7 +402,7 @@ static DRWShadingGroup *shgroup_wire(DRWPass *pass, const float col[4], struct G
 	return grp;
 }
 
-static DRWShadingGroup *shgroup_theme_id_to_outline_shgroup_or(
+static DRWShadingGroup *shgroup_theme_id_to_outline_or(
         OBJECT_StorageList *stl, int theme_id, DRWShadingGroup *fallback)
 {
 	switch (theme_id) {
@@ -419,7 +419,7 @@ static DRWShadingGroup *shgroup_theme_id_to_outline_shgroup_or(
 	}
 }
 
-static DRWShadingGroup *shgroup_theme_id_to_wire_shgroup_or(
+static DRWShadingGroup *shgroup_theme_id_to_wire_or(
         OBJECT_StorageList *stl, int theme_id, DRWShadingGroup *fallback)
 {
 	switch (theme_id) {
@@ -1168,7 +1168,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			struct Batch *geom = DRW_cache_object_surface_get(ob);
 			if (geom) {
 				int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
-				DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_shgroup_or(stl, theme_id, NULL);
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_or(stl, theme_id, NULL);
 				if (shgroup != NULL) {
 					DRW_shgroup_call_add(shgroup, geom, ob->obmat);
 				}
@@ -1187,7 +1187,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				struct Batch *geom = DRW_cache_lattice_wire_get(ob);
 				int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
 
-				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_shgroup_or(stl, theme_id, stl->g_data->wire);
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
 				DRW_shgroup_call_add(shgroup, geom, ob->obmat);
 			}
 			break;
@@ -1199,7 +1199,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (ob != obedit) {
 				struct Batch *geom = DRW_cache_curve_edge_wire_get(ob);
 				int theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
-				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_shgroup_or(stl, theme_id, stl->g_data->wire);
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
 				DRW_shgroup_call_add(shgroup, geom, ob->obmat);
 			}
 			break;
