@@ -3373,7 +3373,6 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 		/* store current linewidth */
 		float linew;
 		float arrow[2], arrow1[2], arrow2[2];
-		const float px_fac = UI_DPI_WINDOW_FAC;
 		glGetFloatv(GL_LINE_WIDTH, &linew);
 		unsigned int pos;
 		
@@ -3407,7 +3406,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 
 		if (do_triple) {
 			immUniformThemeColorShadeAlpha(th_col3, -80, -120);
-			glLineWidth(4.0f * px_fac);
+			glLineWidth(4.0f);
 
 			immBegin(PRIM_LINE_STRIP, (LINK_RESOL + 1));
 
@@ -3426,7 +3425,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 			}
 		}
 
-		glLineWidth(1.5f * px_fac);
+		glLineWidth(1.5f);
 
 		if (drawarrow) {
 			immUniformThemeColorBlend(th_col1, th_col2, 0.5f);

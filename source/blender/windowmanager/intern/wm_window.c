@@ -666,14 +666,27 @@ wmWindow *WM_window_open(bContext *C, const rcti *rect)
  * \param type: WM_WINDOW_RENDER, WM_WINDOW_USERPREFS...
  * \return the window or NULL.
  */
-wmWindow *WM_window_open_temp(bContext *C, const rcti *rect_init, int type)
+wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, int type)
 {
 	wmWindow *win_prev = CTX_wm_window(C);
 	wmWindow *win;
 	ScrArea *sa;
 	Scene *scene = CTX_data_scene(C);
 	const char *title;
-	rcti rect = *rect_init;
+
+	/* convert to native OS window coordinates */
+	const float native_pixel_size = GHOST_GetNativePixelSize(win_prev->ghostwin);
+	x /= native_pixel_size;
+	y /= native_pixel_size;
+	sizex /= native_pixel_size;
+	sizey /= native_pixel_size;
+
+	/* calculate postition */
+	rcti rect;
+	rect.xmin = x + win_prev->posx - sizex / 2;
+	rect.ymin = y + win_prev->posy - sizey / 2;
+	rect.xmax = rect.xmin + sizex;
+	rect.ymax = rect.ymin + sizey;
 
 	/* changes rect to fit within desktop */
 	wm_window_check_position(&rect);
