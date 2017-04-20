@@ -13,7 +13,7 @@ uniform sampler2D brdfLut;
 #endif
 uniform sampler2DArrayShadow shadowCubes;
 uniform sampler2DArrayShadow shadowMaps;
-// uniform sampler2DArrayShadow shadowCascades;
+uniform sampler2DArrayShadow shadowCascades;
 
 layout(std140) uniform light_block {
 	LightData lights_data[MAX_LIGHT];
@@ -88,6 +88,20 @@ float light_visibility(LightData ld, ShadingData sd)
 	/* shadowing */
 	if (ld.l_shadowid >= (MAX_SHADOW_MAP + MAX_SHADOW_CUBE)) {
 		/* Shadow Cascade */
+		float shid = ld.l_shadowid - (MAX_SHADOW_CUBE + MAX_SHADOW_MAP);
+		ShadowCascadeData smd = shadows_cascade_data[int(shid)];
+
+		for (int i = 0; i < int(smd.sh_cascade_count); i++) {
+			vec4 shpos = smd.shadowmat[i] * vec4(sd.W, 1.0);
+			shpos.z -= smd.sh_cascade_bias * shpos.w;
+			shpos.xyz /= shpos.w;
+
+			if (shpos.w > 0.0 && min(shpos.x, shpos.y) > 0.0 && max(shpos.x, shpos.y) < 1.0) {
+				vis *= texture(shadowCascades, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + float(i), shpos.z));
+				// vis = float(i) / float(MAX_CASCADE_NUM);
+				break;
+			}
+		}
 	}
 	else if (ld.l_shadowid >= MAX_SHADOW_CUBE) {
 		/* Shadow Map */

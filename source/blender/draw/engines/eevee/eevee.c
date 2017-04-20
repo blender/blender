@@ -316,6 +316,18 @@ static DRWShadingGroup *eevee_cube_shadow_shgroup(EEVEE_PassList *psl, EEVEE_Sto
 	return grp;
 }
 
+static DRWShadingGroup *eevee_cascade_shadow_shgroup(EEVEE_PassList *psl, EEVEE_StorageList *stl, struct Batch *geom, float (*obmat)[4])
+{
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cascade_pass, geom);
+	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo, 0);
+	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
+
+	for (int i = 0; i < MAX_CASCADE_NUM; ++i)
+		DRW_shgroup_dynamic_call_add_empty(grp);
+
+	return grp;
+}
+
 static void EEVEE_cache_init(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
@@ -329,6 +341,10 @@ static void EEVEE_cache_init(void *vedata)
 
 	{
 		psl->shadow_cube_pass = DRW_pass_create("Shadow Cube Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+	}
+
+	{
+		psl->shadow_cascade_pass = DRW_pass_create("Shadow Cascade Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 	}
 
 	{
@@ -430,6 +446,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 
 		DRW_shgroup_call_add(stl->g_data->default_lit_grp, geom, ob->obmat);
 		// DRW_shgroup_call_add(stl->g_data->shadow_shgrp, geom, ob->obmat);
+		eevee_cascade_shadow_shgroup(psl, stl, geom, ob->obmat);
 		eevee_cube_shadow_shgroup(psl, stl, geom, ob->obmat);
 	}
 	else if (ob->type == OB_LAMP) {
@@ -448,6 +465,7 @@ static void EEVEE_cache_finish(void *vedata)
 	/* Shadows binding */
 	DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "shadowMaps", txl->shadow_depth_map_pool, 4);
 	DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "shadowCubes", txl->shadow_depth_cube_pool, 5);
+	DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "shadowCascades", txl->shadow_depth_cascade_pool, 6);
 }
 
 static void EEVEE_draw_scene(void *vedata)

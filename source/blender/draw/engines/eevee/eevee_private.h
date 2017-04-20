@@ -36,6 +36,7 @@ typedef struct EEVEE_PassList {
 	/* Shadows */
 	struct DRWPass *shadow_pass;
 	struct DRWPass *shadow_cube_pass;
+	struct DRWPass *shadow_cascade_pass;
 
 	/* Probes */
 	struct DRWPass *probe_background;
