@@ -64,6 +64,9 @@
 
 #include "UI_resources.h"
 
+/* only for callbacks */
+#include "draw_cache_impl.h"
+
 #include "draw_mode_engines.h"
 #include "clay.h"
 #include "eevee.h"
@@ -1919,6 +1922,28 @@ void DRW_engines_register(void)
 	DRW_engine_register(&draw_engine_pose_type);
 	DRW_engine_register(&draw_engine_sculpt_type);
 #endif
+
+	/* setup callbacks */
+	{
+		/* BKE: curve.c */
+		extern void *BKE_curve_batch_cache_dirty_cb;
+		extern void *BKE_curve_batch_cache_free_cb;
+		/* BKE: mesh.c */
+		extern void *BKE_mesh_batch_cache_dirty_cb;
+		extern void *BKE_mesh_batch_cache_free_cb;
+		/* BKE: lattice.c */
+		extern void *BKE_lattice_batch_cache_dirty_cb;
+		extern void *BKE_lattice_batch_cache_free_cb;
+
+		BKE_curve_batch_cache_dirty_cb = DRW_curve_batch_cache_dirty;
+		BKE_curve_batch_cache_free_cb = DRW_curve_batch_cache_free;
+
+		BKE_mesh_batch_cache_dirty_cb = DRW_mesh_batch_cache_dirty;
+		BKE_mesh_batch_cache_free_cb = DRW_mesh_batch_cache_free;
+
+		BKE_lattice_batch_cache_dirty_cb = DRW_lattice_batch_cache_dirty;
+		BKE_lattice_batch_cache_free_cb = DRW_lattice_batch_cache_free;
+	}
 }
 
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */

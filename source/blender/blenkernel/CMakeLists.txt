@@ -93,14 +93,12 @@ set(SRC
 	intern/context.c
 	intern/crazyspace.c
 	intern/curve.c
-	intern/curve_render.c
 	intern/customdata.c
 	intern/customdata_file.c
 	intern/data_transfer.c
 	intern/deform.c
 	intern/depsgraph.c
 	intern/displist.c
-	intern/displist_render.c
 	intern/dynamicpaint.c
 	intern/editderivedmesh.c
 	intern/editmesh.c
@@ -122,7 +120,6 @@ set(SRC
 	intern/key.c
 	intern/lamp.c
 	intern/lattice.c
-	intern/lattice_render.c
 	intern/library.c
 	intern/library_idmap.c
 	intern/library_query.c
@@ -138,7 +135,6 @@ set(SRC
 	intern/mesh_evaluate.c
 	intern/mesh_mapping.c
 	intern/mesh_remap.c
-	intern/mesh_render.c
 	intern/mesh_validate.c
 	intern/modifier.c
 	intern/modifiers_bmesh.c
@@ -227,14 +223,12 @@ set(SRC
 	BKE_context.h
 	BKE_crazyspace.h
 	BKE_curve.h
-	BKE_curve_render.h
 	BKE_customdata.h
 	BKE_customdata_file.h
 	BKE_data_transfer.h
 	BKE_deform.h
 	BKE_depsgraph.h
 	BKE_displist.h
-	BKE_displist_render.h
 	BKE_dynamicpaint.h
 	BKE_editmesh.h
 	BKE_editmesh_bvh.h
@@ -254,7 +248,6 @@ set(SRC
 	BKE_key.h
 	BKE_lamp.h
 	BKE_lattice.h
-	BKE_lattice_render.h
 	BKE_library.h
 	BKE_library_idmap.h
 	BKE_library_query.h
@@ -268,7 +261,6 @@ set(SRC
 	BKE_mesh.h
 	BKE_mesh_mapping.h
 	BKE_mesh_remap.h
-	BKE_mesh_render.h
 	BKE_modifier.h
 	BKE_movieclip.h
 	BKE_multires.h

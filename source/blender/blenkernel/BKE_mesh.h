@@ -407,6 +407,14 @@ struct EvaluationContext;
 void BKE_mesh_eval_geometry(struct EvaluationContext *eval_ctx,
                             struct Mesh *mesh);
 
+/* Draw Cache */
+enum {
+	BKE_MESH_BATCH_DIRTY_ALL = 0,
+	BKE_MESH_BATCH_DIRTY_SELECT,
+};
+void BKE_mesh_batch_cache_dirty(struct Mesh *me, int mode);
+void BKE_mesh_batch_cache_free(struct Mesh *me);
+
 #ifdef __cplusplus
 }
 #endif

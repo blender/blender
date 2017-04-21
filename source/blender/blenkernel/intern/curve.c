@@ -52,7 +52,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
-#include "BKE_curve_render.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -4658,5 +4657,22 @@ void BKE_curve_eval_path(EvaluationContext *UNUSED(eval_ctx),
 	 */
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
 		printf("%s on %s\n", __func__, curve->id.name);
+	}
+}
+
+/* Draw Engine */
+void (*BKE_curve_batch_cache_dirty_cb)(Curve *cu, int mode) = NULL;
+void (*BKE_curve_batch_cache_free_cb)(Curve *cu) = NULL;
+
+void BKE_curve_batch_cache_dirty(Curve *cu, int mode)
+{
+	if (cu->batch_cache) {
+		BKE_curve_batch_cache_dirty_cb(cu, mode);
+	}
+}
+void BKE_curve_batch_cache_free(Curve *cu)
+{
+	if (cu->batch_cache) {
+		BKE_curve_batch_cache_free_cb(cu);
 	}
 }

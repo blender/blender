@@ -34,13 +34,14 @@ set(INC
 	../blenkernel
 	../blenlib
 	../blentranslation
-	../imbuf
+	../bmesh
 	../depsgraph
-	../makesdna
-	../makesrna
-	../gpu
 	../editors/include
 	../editors/space_view3d
+	../gpu
+	../imbuf
+	../makesdna
+	../makesrna
 	../render/extern/include
 	../render/intern/include
 	../windowmanager
@@ -59,6 +60,11 @@ set(SRC
 	intern/draw_cache.c
 	intern/draw_view.c
 	intern/draw_armature.c
+
+	intern/draw_cache_impl_curve.c
+	intern/draw_cache_impl_displist.c
+	intern/draw_cache_impl_lattice.c
+	intern/draw_cache_impl_mesh.c
 
 	engines/clay/clay.c
 	engines/clay/clay.h
@@ -87,6 +93,7 @@ set(SRC
 	intern/DRW_render.h
 	intern/draw_common.h
 	intern/draw_cache.h
+	intern/draw_cache_impl.h
 	intern/draw_view.h
 	modes/draw_mode_engines.h
 

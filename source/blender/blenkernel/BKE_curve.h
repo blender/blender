@@ -219,4 +219,12 @@ void BKE_curve_eval_geometry(struct EvaluationContext *eval_ctx,
 void BKE_curve_eval_path(struct EvaluationContext *eval_ctx,
                          struct Curve *curve);
 
+/* Draw Cache */
+enum {
+	BKE_CURVE_BATCH_DIRTY_ALL = 0,
+	BKE_CURVE_BATCH_DIRTY_SELECT,
+};
+void BKE_curve_batch_cache_dirty(struct Curve *cu, int mode);
+void BKE_curve_batch_cache_free(struct Curve *cu);
+
 #endif  /* __BKE_CURVE_H__ */

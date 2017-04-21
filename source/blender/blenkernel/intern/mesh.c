@@ -50,7 +50,6 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_render.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
@@ -2677,5 +2676,22 @@ void BKE_mesh_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
 	}
 	if (mesh->bb == NULL || (mesh->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(mesh);
+	}
+}
+
+/* Draw Engine */
+void (*BKE_mesh_batch_cache_dirty_cb)(Mesh *me, int mode) = NULL;
+void (*BKE_mesh_batch_cache_free_cb)(Mesh *me) = NULL;
+
+void BKE_mesh_batch_cache_dirty(Mesh *me, int mode)
+{
+	if (me->batch_cache) {
+		BKE_mesh_batch_cache_dirty_cb(me, mode);
+	}
+}
+void BKE_mesh_batch_cache_free(Mesh *me)
+{
+	if (me->batch_cache) {
+		BKE_mesh_batch_cache_free_cb(me);
 	}
 }

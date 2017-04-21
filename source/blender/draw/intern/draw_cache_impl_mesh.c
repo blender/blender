@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/mesh_render.c
- *  \ingroup bke
+/** \file draw_cache_impl_mesh.c
+ *  \ingroup draw
  *
  * \brief Mesh API for render engines
  */
@@ -41,11 +41,14 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_render.h"
 
 #include "bmesh.h"
 
 #include "GPU_batch.h"
+
+#include "draw_cache_impl.h"  /* own include */
+
+static void mesh_batch_cache_clear(Mesh *me);
 
 /* ---------------------------------------------------------------------- */
 /* Mesh/BMesh Interface, direct access to basic data. */
@@ -927,33 +930,35 @@ static void mesh_batch_cache_init(Mesh *me)
 static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
 {
 	if (!mesh_batch_cache_valid(me)) {
-		BKE_mesh_batch_cache_clear(me);
+		mesh_batch_cache_clear(me);
 		mesh_batch_cache_init(me);
 	}
 	return me->batch_cache;
 }
 
-void BKE_mesh_batch_cache_dirty(Mesh *me)
+void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 {
 	MeshBatchCache *cache = me->batch_cache;
-	if (cache) {
-		cache->is_dirty = true;
+	if (cache == NULL) {
+		return;
+	}
+	switch (mode) {
+		case BKE_MESH_BATCH_DIRTY_ALL:
+			cache->is_dirty = true;
+			break;
+		case BKE_MESH_BATCH_DIRTY_SELECT:
+			/* TODO Separate Flag vbo */
+			BATCH_DISCARD_ALL_SAFE(cache->overlay_triangles);
+			BATCH_DISCARD_ALL_SAFE(cache->overlay_loose_verts);
+			BATCH_DISCARD_ALL_SAFE(cache->overlay_loose_edges);
+			BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
+			break;
+		default:
+			BLI_assert(0);
 	}
 }
 
-void BKE_mesh_batch_selection_dirty(Mesh *me)
-{
-	MeshBatchCache *cache = me->batch_cache;
-	if (cache) {
-		/* TODO Separate Flag vbo */
-		BATCH_DISCARD_ALL_SAFE(cache->overlay_triangles);
-		BATCH_DISCARD_ALL_SAFE(cache->overlay_loose_verts);
-		BATCH_DISCARD_ALL_SAFE(cache->overlay_loose_edges);
-		BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
-	}
-}
-
-void BKE_mesh_batch_cache_clear(Mesh *me)
+static void mesh_batch_cache_clear(Mesh *me)
 {
 	MeshBatchCache *cache = me->batch_cache;
 	if (!cache) {
@@ -980,9 +985,9 @@ void BKE_mesh_batch_cache_clear(Mesh *me)
 	BATCH_DISCARD_ALL_SAFE(cache->fancy_edges);
 }
 
-void BKE_mesh_batch_cache_free(Mesh *me)
+void DRW_mesh_batch_cache_free(Mesh *me)
 {
-	BKE_mesh_batch_cache_clear(me);
+	mesh_batch_cache_clear(me);
 	MEM_SAFE_FREE(me->batch_cache);
 }
 
@@ -1113,7 +1118,7 @@ static ElementList *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdat
 	return cache->triangles_in_order;
 }
 
-Batch *BKE_mesh_batch_cache_get_all_edges(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1130,7 +1135,7 @@ Batch *BKE_mesh_batch_cache_get_all_edges(Mesh *me)
 	return cache->all_edges;
 }
 
-Batch *BKE_mesh_batch_cache_get_all_triangles(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_all_triangles(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1147,7 +1152,7 @@ Batch *BKE_mesh_batch_cache_get_all_triangles(Mesh *me)
 	return cache->all_triangles;
 }
 
-Batch *BKE_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1162,7 +1167,7 @@ Batch *BKE_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 	return cache->triangles_with_normals;
 }
 
-Batch *BKE_mesh_batch_cache_get_points_with_normals(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_points_with_normals(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1177,7 +1182,7 @@ Batch *BKE_mesh_batch_cache_get_points_with_normals(Mesh *me)
 	return cache->points_with_normals;
 }
 
-Batch *BKE_mesh_batch_cache_get_all_verts(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1193,7 +1198,7 @@ Batch *BKE_mesh_batch_cache_get_all_verts(Mesh *me)
 	return cache->all_verts;
 }
 
-Batch *BKE_mesh_batch_cache_get_fancy_edges(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1349,7 +1354,7 @@ static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 	mesh_render_data_free(rdata);
 }
 
-Batch *BKE_mesh_batch_cache_get_overlay_triangles(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_overlay_triangles(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1360,7 +1365,7 @@ Batch *BKE_mesh_batch_cache_get_overlay_triangles(Mesh *me)
 	return cache->overlay_triangles;
 }
 
-Batch *BKE_mesh_batch_cache_get_overlay_loose_edges(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_overlay_loose_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1371,7 +1376,7 @@ Batch *BKE_mesh_batch_cache_get_overlay_loose_edges(Mesh *me)
 	return cache->overlay_loose_edges;
 }
 
-Batch *BKE_mesh_batch_cache_get_overlay_loose_verts(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_overlay_loose_verts(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -1382,7 +1387,7 @@ Batch *BKE_mesh_batch_cache_get_overlay_loose_verts(Mesh *me)
 	return cache->overlay_loose_verts;
 }
 
-Batch *BKE_mesh_batch_cache_get_overlay_facedots(Mesh *me)
+Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 

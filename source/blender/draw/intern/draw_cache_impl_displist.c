@@ -21,8 +21,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/displist_render.c
- *  \ingroup bke
+/** \file draw_cache_impl_displist.c
+ *  \ingroup draw
  *
  * \brief DispList API for render engines
  *
@@ -37,9 +37,10 @@
 #include "DNA_curve_types.h"
 
 #include "BKE_displist.h"
-#include "BKE_displist_render.h"
 
 #include "GPU_batch.h"
+
+#include "draw_cache_impl.h"  /* own include */
 
 static int dl_vert_len(const DispList *dl)
 {

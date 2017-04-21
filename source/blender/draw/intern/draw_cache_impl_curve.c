@@ -21,8 +21,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/curve_render.c
- *  \ingroup bke
+/** \file draw_cache_impl_curve.c
+ *  \ingroup draw
  *
  * \brief Curve API for render engines
  */
@@ -35,12 +35,12 @@
 #include "DNA_curve_types.h"
 
 #include "BKE_curve.h"
-#include "BKE_curve_render.h"
 
 #include "BKE_font.h"
-#include "BKE_displist_render.h"
 
 #include "GPU_batch.h"
+
+#include "draw_cache_impl.h"  /* own include */
 
 #define SELECT   1
 
@@ -50,6 +50,8 @@
  * - Check number of verts/edges to see if cache is valid.
  * - Check if 'overlay.edges' can use single attribyte per edge, not 2 (for selection drawing).
  */
+
+static void curve_batch_cache_clear(Curve *cu);
 
 /* ---------------------------------------------------------------------- */
 /* Curve Interface, direct access to basic data. */
@@ -402,35 +404,37 @@ static void curve_batch_cache_init(Curve *cu)
 static CurveBatchCache *curve_batch_cache_get(Curve *cu)
 {
 	if (!curve_batch_cache_valid(cu)) {
-		BKE_curve_batch_cache_clear(cu);
+		curve_batch_cache_clear(cu);
 		curve_batch_cache_init(cu);
 	}
 	return cu->batch_cache;
 }
 
-void BKE_curve_batch_cache_dirty(Curve *cu)
+void DRW_curve_batch_cache_dirty(Curve *cu, int mode)
 {
 	CurveBatchCache *cache = cu->batch_cache;
-	if (cache) {
-		cache->is_dirty = true;
+	if (cache == NULL) {
+		return;
+	}
+	switch (mode) {
+		case BKE_CURVE_BATCH_DIRTY_ALL:
+			cache->is_dirty = true;
+			break;
+		case BKE_CURVE_BATCH_DIRTY_SELECT:
+			/* editnurb */
+			BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
+			BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
+
+			/* editfont */
+			BATCH_DISCARD_ALL_SAFE(cache->text.select);
+			BATCH_DISCARD_ALL_SAFE(cache->text.cursor);
+			break;
+		default:
+			BLI_assert(0);
 	}
 }
 
-void BKE_curve_batch_selection_dirty(Curve *cu)
-{
-	CurveBatchCache *cache = cu->batch_cache;
-	if (cache) {
-		/* editnurb */
-		BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
-		BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
-
-		/* editfont */
-		BATCH_DISCARD_ALL_SAFE(cache->text.select);
-		BATCH_DISCARD_ALL_SAFE(cache->text.cursor);
-	}
-}
-
-void BKE_curve_batch_cache_clear(Curve *cu)
+static void curve_batch_cache_clear(Curve *cu)
 {
 	CurveBatchCache *cache = cu->batch_cache;
 	if (!cache) {
@@ -471,9 +475,9 @@ void BKE_curve_batch_cache_clear(Curve *cu)
 	BATCH_DISCARD_ALL_SAFE(cache->text.select);
 }
 
-void BKE_curve_batch_cache_free(Curve *cu)
+void DRW_curve_batch_cache_free(Curve *cu)
 {
-	BKE_curve_batch_cache_clear(cu);
+	curve_batch_cache_clear(cu);
 	MEM_SAFE_FREE(cu->batch_cache);
 }
 
@@ -921,7 +925,7 @@ static Batch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, Curve
 /** \name Public Object/Curve API
  * \{ */
 
-Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache)
+Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -939,7 +943,7 @@ Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache
 	return cache->wire.batch;
 }
 
-Batch *BKE_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cache, float normal_size)
+Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cache, float normal_size)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -966,7 +970,7 @@ Batch *BKE_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cac
 	return cache->normal.batch;
 }
 
-Batch *BKE_curve_batch_cache_get_overlay_edges(Curve *cu)
+Batch *DRW_curve_batch_cache_get_overlay_edges(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -977,7 +981,7 @@ Batch *BKE_curve_batch_cache_get_overlay_edges(Curve *cu)
 	return cache->overlay.edges;
 }
 
-Batch *BKE_curve_batch_cache_get_overlay_verts(Curve *cu)
+Batch *DRW_curve_batch_cache_get_overlay_verts(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -988,7 +992,7 @@ Batch *BKE_curve_batch_cache_get_overlay_verts(Curve *cu)
 	return cache->overlay.verts;
 }
 
-Batch *BKE_curve_batch_cache_get_triangles_with_normals(
+Batch *DRW_curve_batch_cache_get_triangles_with_normals(
         struct Curve *cu, struct CurveCache *ob_curve_cache)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
@@ -1010,7 +1014,7 @@ Batch *BKE_curve_batch_cache_get_triangles_with_normals(
 /** \name Public Object/Font API
  * \{ */
 
-Batch *BKE_curve_batch_cache_get_overlay_select(Curve *cu)
+Batch *DRW_curve_batch_cache_get_overlay_select(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -1025,7 +1029,7 @@ Batch *BKE_curve_batch_cache_get_overlay_select(Curve *cu)
 	return cache->text.select;
 }
 
-Batch *BKE_curve_batch_cache_get_overlay_cursor(Curve *cu)
+Batch *DRW_curve_batch_cache_get_overlay_cursor(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 

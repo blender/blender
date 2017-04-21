@@ -65,7 +65,6 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_render.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
@@ -109,6 +108,8 @@
 #include "BLF_api.h"
 
 #include "view3d_intern.h"  /* bad level include */
+
+#include "../../draw/intern/draw_cache_impl.h"  /* bad level include (temporary) */
 
 /* prototypes */
 static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos);
@@ -4111,7 +4112,7 @@ static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *UNUSED(ar), View3D 
                               Object *UNUSED(ob), Mesh *me, BMEditMesh *UNUSED(em), DerivedMesh *UNUSED(cageDM), DerivedMesh *UNUSED(finalDM), const char UNUSED(dt))
 {
 	/* for now... something simple! */
-	Batch *surface = BKE_mesh_batch_cache_get_all_triangles(me);
+	Batch *surface = DRW_mesh_batch_cache_get_all_triangles(me);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -4146,7 +4147,7 @@ static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *UNUSED(ar), View3D 
 
 	if (GLEW_VERSION_3_2) {
 #if 0
-		Batch *overlay = BKE_mesh_batch_cache_get_overlay_edges(me);
+		Batch *overlay = DRW_mesh_batch_cache_get_overlay_edges(me);
 		Batch_set_builtin_program(overlay, GPU_SHADER_EDGES_OVERLAY);
 		Batch_Uniform2f(overlay, "viewportSize", ar->winx, ar->winy);
 		Batch_draw(overlay);
@@ -4165,7 +4166,7 @@ static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *UNUSED(ar), View3D 
 #endif
 	}
 	else {
-		Batch *edges = BKE_mesh_batch_cache_get_all_edges(me);
+		Batch *edges = DRW_mesh_batch_cache_get_all_edges(me);
 		Batch_set_builtin_program(edges, GPU_SHADER_3D_UNIFORM_COLOR);
 		Batch_Uniform4f(edges, "color", 0.0f, 0.0f, 0.0f, 1.0f);
 		glEnable(GL_LINE_SMOOTH);
@@ -4227,7 +4228,7 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 		UI_GetThemeColor4fv((is_active ? TH_ACTIVE : TH_SELECT), outline_color);
 
 #if 1 /* new version that draws only silhouette edges */
-		Batch *fancy_edges = BKE_mesh_batch_cache_get_fancy_edges(me);
+		Batch *fancy_edges = DRW_mesh_batch_cache_get_fancy_edges(me);
 
 		if (rv3d->persp == RV3D_ORTHO) {
 			Batch_set_builtin_program(fancy_edges, GPU_SHADER_EDGES_FRONT_BACK_ORTHO);
@@ -4751,7 +4752,7 @@ static void draw_mesh_fancy_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3
 
 #if 1 /* fancy wireframes */
 
-		Batch *fancy_edges = BKE_mesh_batch_cache_get_fancy_edges(me);
+		Batch *fancy_edges = DRW_mesh_batch_cache_get_fancy_edges(me);
 
 		if (rv3d->persp == RV3D_ORTHO) {
 			Batch_set_builtin_program(fancy_edges, GPU_SHADER_EDGES_FRONT_BACK_ORTHO);

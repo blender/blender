@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/lattice_render.c
- *  \ingroup bke
+/** \file draw_cache_impl_lattice.c
+ *  \ingroup draw
  *
  * \brief Lattice API for render engines
  */
@@ -37,9 +37,11 @@
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 
-#include "BKE_lattice_render.h"
+#include "BKE_lattice.h"
 
 #include "GPU_batch.h"
+
+#include "draw_cache_impl.h"  /* own include */
 
 #define SELECT   1
 
@@ -48,6 +50,8 @@
  * - 'DispList' is currently not used
  *   (we could avoid using since it will be removed)
  */
+
+static void lattice_batch_cache_clear(Lattice *lt);
 
 /* ---------------------------------------------------------------------- */
 /* Lattice Interface, direct access to basic data. */
@@ -290,30 +294,32 @@ static void lattice_batch_cache_init(Lattice *lt)
 static LatticeBatchCache *lattice_batch_cache_get(Lattice *lt)
 {
 	if (!lattice_batch_cache_valid(lt)) {
-		BKE_lattice_batch_cache_clear(lt);
+		lattice_batch_cache_clear(lt);
 		lattice_batch_cache_init(lt);
 	}
 	return lt->batch_cache;
 }
 
-void BKE_lattice_batch_cache_dirty(Lattice *lt)
+void DRW_lattice_batch_cache_dirty(Lattice *lt, int mode)
 {
 	LatticeBatchCache *cache = lt->batch_cache;
-	if (cache) {
-		cache->is_dirty = true;
+	if (cache == NULL) {
+		return;
+	}
+	switch (mode) {
+		case BKE_LATTICE_BATCH_DIRTY_ALL:
+			cache->is_dirty = true;
+			break;
+		case BKE_LATTICE_BATCH_DIRTY_SELECT:
+			/* TODO Separate Flag vbo */
+			BATCH_DISCARD_ALL_SAFE(cache->overlay_verts);
+			break;
+		default:
+			BLI_assert(0);
 	}
 }
 
-void BKE_lattice_batch_selection_dirty(Lattice *lt)
-{
-	LatticeBatchCache *cache = lt->batch_cache;
-	if (cache) {
-		/* TODO Separate Flag vbo */
-		BATCH_DISCARD_ALL_SAFE(cache->overlay_verts);
-	}
-}
-
-void BKE_lattice_batch_cache_clear(Lattice *lt)
+static void lattice_batch_cache_clear(Lattice *lt)
 {
 	LatticeBatchCache *cache = lt->batch_cache;
 	if (!cache) {
@@ -328,9 +334,9 @@ void BKE_lattice_batch_cache_clear(Lattice *lt)
 	ELEMENTLIST_DISCARD_SAFE(cache->edges);
 }
 
-void BKE_lattice_batch_cache_free(Lattice *lt)
+void DRW_lattice_batch_cache_free(Lattice *lt)
 {
-	BKE_lattice_batch_cache_clear(lt);
+	lattice_batch_cache_clear(lt);
 	MEM_SAFE_FREE(lt->batch_cache);
 }
 
@@ -460,7 +466,7 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 	lattice_render_data_free(rdata);
 }
 
-Batch *BKE_lattice_batch_cache_get_all_edges(Lattice *lt)
+Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt)
 {
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
@@ -477,7 +483,7 @@ Batch *BKE_lattice_batch_cache_get_all_edges(Lattice *lt)
 	return cache->all_edges;
 }
 
-Batch *BKE_lattice_batch_cache_get_all_verts(Lattice *lt)
+Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
 {
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
@@ -492,7 +498,7 @@ Batch *BKE_lattice_batch_cache_get_all_verts(Lattice *lt)
 	return cache->all_verts;
 }
 
-Batch *BKE_lattice_batch_cache_get_overlay_verts(Lattice *lt)
+Batch *DRW_lattice_batch_cache_get_overlay_verts(Lattice *lt)
 {
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 

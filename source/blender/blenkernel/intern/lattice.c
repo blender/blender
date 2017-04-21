@@ -57,7 +57,6 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
-#include "BKE_lattice_render.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
@@ -1234,3 +1233,19 @@ void BKE_lattice_eval_geometry(struct EvaluationContext *UNUSED(eval_ctx),
 {
 }
 
+/* Draw Engine */
+void (*BKE_lattice_batch_cache_dirty_cb)(Lattice *lt, int mode) = NULL;
+void (*BKE_lattice_batch_cache_free_cb)(Lattice *lt) = NULL;
+
+void BKE_lattice_batch_cache_dirty(Lattice *lt, int mode)
+{
+	if (lt->batch_cache) {
+		BKE_lattice_batch_cache_dirty_cb(lt, mode);
+	}
+}
+void BKE_lattice_batch_cache_free(Lattice *lt)
+{
+	if (lt->batch_cache) {
+		BKE_lattice_batch_cache_free_cb(lt);
+	}
+}
