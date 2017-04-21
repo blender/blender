@@ -1188,37 +1188,37 @@ void BKE_collection_engine_property_add_bool(IDProperty *props, const char *name
 int BKE_collection_engine_property_value_get_int(IDProperty *props, const char *name)
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	return idprop ? idprop->data.val : 0;
+	return idprop ? IDP_Int(idprop) : 0;
 }
 
 float BKE_collection_engine_property_value_get_float(IDProperty *props, const char *name)
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	return idprop ? *((float *)&idprop->data.val) : 0.0f;
+	return idprop ? IDP_Float(idprop) : 0.0f;
 }
 
 bool BKE_collection_engine_property_value_get_bool(IDProperty *props, const char *name)
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	return idprop ? idprop->data.val : 0;
+	return idprop ? IDP_Int(idprop) : 0;
 }
 
 void BKE_collection_engine_property_value_set_int(IDProperty *props, const char *name, int value)
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	idprop->data.val = value;
+	IDP_Int(idprop) = value;
 }
 
 void BKE_collection_engine_property_value_set_float(IDProperty *props, const char *name, float value)
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	*(float *)&idprop->data.val = value;
+	IDP_Float(idprop) = value;
 }
 
 void BKE_collection_engine_property_value_set_bool(IDProperty *props, const char *name, bool value)
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	idprop->data.val = value;
+	IDP_Int(idprop) = value;
 }
 
 /* Engine Settings recalculate  */
