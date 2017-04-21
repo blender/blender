@@ -97,9 +97,9 @@ CCL_NAMESPACE_BEGIN
 #  define __SUBSURFACE__
 #  define __PRINCIPLED__
 #  define __SHADOW_RECORD_ALL__
+#  define __CMJ__
 #  ifndef __SPLIT_KERNEL__
 #    define __BRANCHED_PATH__
-#    define __CMJ__
 #  endif
 #endif  /* __KERNEL_CUDA__ */
 
@@ -115,21 +115,17 @@ CCL_NAMESPACE_BEGIN
 #    define __VOLUME__
 #    define __VOLUME_SCATTER__
 #    define __SHADOW_RECORD_ALL__
-#    ifdef __KERNEL_EXPERIMENTAL__
-#      define __CMJ__
-#    endif
+#    define __CMJ__
 #  endif  /* __KERNEL_OPENCL_NVIDIA__ */
 
 #  ifdef __KERNEL_OPENCL_APPLE__
 #    define __KERNEL_SHADING__
 #    define __KERNEL_ADV_SHADING__
+#    define __CMJ__
 /* TODO(sergey): Currently experimental section is ignored here,
  * this is because megakernel in device_opencl does not support
  * custom cflags depending on the scene features.
  */
-#    ifdef __KERNEL_EXPERIMENTAL__
-#      define __CMJ__
-#    endif
 #  endif  /* __KERNEL_OPENCL_NVIDIA__ */
 
 #  ifdef __KERNEL_OPENCL_AMD__
@@ -141,15 +137,14 @@ CCL_NAMESPACE_BEGIN
 #    define __VOLUME__
 #    define __VOLUME_SCATTER__
 #    define __SHADOW_RECORD_ALL__
+#    define __CMJ__
 #  endif  /* __KERNEL_OPENCL_AMD__ */
 
 #  ifdef __KERNEL_OPENCL_INTEL_CPU__
 #    define __CL_USE_NATIVE__
 #    define __KERNEL_SHADING__
 #    define __KERNEL_ADV_SHADING__
-#    ifdef __KERNEL_EXPERIMENTAL__
-#      define __CMJ__
-#    endif
+#    define __CMJ__
 #  endif  /* __KERNEL_OPENCL_INTEL_CPU__ */
 
 #endif  /* __KERNEL_OPENCL__ */
