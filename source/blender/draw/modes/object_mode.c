@@ -259,10 +259,10 @@ static void OBJECT_engine_init(void *vedata)
 		float grid_scale = ED_view3d_grid_scale(scene, v3d, NULL);
 		float grid_res, offs;
 
-		const bool show_axis_x = v3d->gridflag & V3D_SHOW_X;
-		const bool show_axis_y = v3d->gridflag & V3D_SHOW_Y;
-		const bool show_axis_z = v3d->gridflag & V3D_SHOW_Z;
-		const bool show_floor = (v3d->gridflag & V3D_SHOW_FLOOR);
+		const bool show_axis_x = (v3d->gridflag & V3D_SHOW_X) != 0;
+		const bool show_axis_y = (v3d->gridflag & V3D_SHOW_Y) != 0;
+		const bool show_axis_z = (v3d->gridflag & V3D_SHOW_Z) != 0;
+		const bool show_floor = (v3d->gridflag & V3D_SHOW_FLOOR) != 0;
 
 		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
 		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);

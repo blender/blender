@@ -351,9 +351,9 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 		const bool show_floor = (v3d->gridflag & V3D_SHOW_FLOOR) && gridlines >= 1;
 
-		bool show_axis_x = v3d->gridflag & V3D_SHOW_X;
-		bool show_axis_y = v3d->gridflag & V3D_SHOW_Y;
-		bool show_axis_z = v3d->gridflag & V3D_SHOW_Z;
+		bool show_axis_x = (v3d->gridflag & V3D_SHOW_X) != 0;
+		bool show_axis_y = (v3d->gridflag & V3D_SHOW_Y) != 0;
+		bool show_axis_z = (v3d->gridflag & V3D_SHOW_Z) != 0;
 
 		unsigned char col_grid[3], col_axis[3];
 

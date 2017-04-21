@@ -348,7 +348,7 @@ static void CLAY_engine_init(void *vedata)
 		int ssao_samples = 32; /* XXX get from render settings */
 		float invproj[4][4];
 		float dfdyfacs[2];
-		bool is_persp = DRW_viewport_is_persp_get();
+		const bool is_persp = DRW_viewport_is_persp_get();
 		/* view vectors for the corners of the view frustum. Can be used to recreate the world space position easily */
 		float viewvecs[3][4] = {
 		    {-1.0f, -1.0f, -1.0f, 1.0f},
