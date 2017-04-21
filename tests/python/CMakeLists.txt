@@ -444,6 +444,13 @@ if(WITH_CYCLES)
 endif()
 
 if(WITH_ALEMBIC)
+	find_package_wrapper(Alembic)
+	if(NOT ALEMBIC_FOUND)
+		message(FATAL_ERROR "Alembic is enabled but cannot be found")
+	endif()
+	get_filename_component(real_include_dir ${ALEMBIC_INCLUDE_DIR} REALPATH)
+	get_filename_component(ALEMBIC_ROOT_DIR ${real_include_dir} DIRECTORY)
+
 	add_test(script_alembic_import ${TEST_BLENDER_EXE}
 		--python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
 		--
