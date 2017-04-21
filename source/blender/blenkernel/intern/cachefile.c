@@ -82,6 +82,7 @@ void BKE_cachefile_init(CacheFile *cache_file)
 	cache_file->is_sequence = false;
 	cache_file->scale = 1.0f;
 	cache_file->handle_mutex = BLI_mutex_alloc();
+	BLI_listbase_clear(&cache_file->object_paths);
 }
 
 /** Free (or release) any data used by this cachefile (does not free the cachefile itself). */
