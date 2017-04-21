@@ -216,9 +216,6 @@ static void makeAttribList(
 	attribs.push_back(NSOpenGLPFADepthSize);
 	attribs.push_back((NSOpenGLPixelFormatAttribute) 32);
 
-	attribs.push_back(NSOpenGLPFAAccumSize);
-	attribs.push_back((NSOpenGLPixelFormatAttribute) 32);
-
 	if (stereoVisual)
 		attribs.push_back(NSOpenGLPFAStereo);
 
