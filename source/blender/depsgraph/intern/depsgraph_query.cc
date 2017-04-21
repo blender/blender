@@ -136,7 +136,7 @@ void DAG_objects_iterator_next(Iterator *iter)
 	Base *base = data->base->next;
 
 	while (base) {
-		if ((base->flag & data->flag) != BASE_VISIBLED) {
+		if ((base->flag & BASE_VISIBLED) != 0) {
 			Object *ob = DAG_get_object(data->graph, base->object);
 			iter->current = ob;
 
