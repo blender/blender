@@ -934,7 +934,9 @@ static void view3d_main_region_listener(bScreen *sc, ScrArea *sa, ARegion *ar, w
 							case OB_MESH:
 								BKE_mesh_batch_selection_dirty(ob->data);
 								break;
+							// case OB_FONT:  /* handled by text_update_edited */
 							case OB_CURVE:
+							case OB_SURF:
 								BKE_curve_batch_selection_dirty(ob->data);
 								break;
 							case OB_LATTICE:

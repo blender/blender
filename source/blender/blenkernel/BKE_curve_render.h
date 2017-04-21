@@ -39,4 +39,8 @@ struct Batch *BKE_curve_batch_cache_get_overlay_verts(struct Curve *cu);
 
 struct Batch *BKE_curve_batch_cache_get_triangles_with_normals(struct Curve *cu, struct CurveCache *ob_curve_cache);
 
+/* OB_FONT */
+struct Batch *BKE_curve_batch_cache_get_overlay_cursor(struct Curve *cu);
+struct Batch *BKE_curve_batch_cache_get_overlay_select(struct Curve *cu);
+
 #endif /* __BKE_CURVE_RENDER_H__ */

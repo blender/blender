@@ -26,6 +26,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
@@ -1606,7 +1607,7 @@ Batch *DRW_cache_mesh_verts_get(Object *ob)
 
 Batch *DRW_cache_curve_edge_wire_get(Object *ob)
 {
-	BLI_assert(ELEM(ob->type, OB_CURVE, OB_FONT));
+	BLI_assert(ob->type == OB_CURVE);
 
 	struct Curve *cu = ob->data;
 	return BKE_curve_batch_cache_get_wire_edge(cu, ob->curve_cache);
@@ -1651,12 +1652,36 @@ Batch *DRW_cache_curve_surface_get(Object *ob)
 /** \name Font
  * \{ */
 
-Batch *DRW_cache_text_surface_get(Object *ob)
+Batch *DRW_cache_text_edge_wire_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_FONT);
 
 	struct Curve *cu = ob->data;
+	return BKE_curve_batch_cache_get_wire_edge(cu, ob->curve_cache);
+}
+
+Batch *DRW_cache_text_surface_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_FONT);
+	struct Curve *cu = ob->data;
+	if (cu->editfont && (cu->flag & CU_FAST)) {
+		return NULL;
+	}
 	return BKE_curve_batch_cache_get_triangles_with_normals(cu, ob->curve_cache);
+}
+
+Batch *DRW_cache_text_cursor_overlay_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_FONT);
+	struct Curve *cu = ob->data;
+	return BKE_curve_batch_cache_get_overlay_cursor(cu);
+}
+
+Batch *DRW_cache_text_select_overlay_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_FONT);
+	struct Curve *cu = ob->data;
+	return BKE_curve_batch_cache_get_overlay_select(cu);
 }
 
 /** \} */

@@ -37,6 +37,7 @@
 #include "BKE_curve.h"
 #include "BKE_curve_render.h"
 
+#include "BKE_font.h"
 #include "BKE_displist_render.h"
 
 #include "GPU_batch.h"
@@ -152,6 +153,10 @@ typedef struct CurveRenderData {
 		int len;
 	} normal;
 
+	struct {
+		EditFont *edit_font;
+	} text;
+
 	bool hide_handles;
 	bool hide_normals;
 
@@ -159,7 +164,6 @@ typedef struct CurveRenderData {
 	CurveCache *ob_curve_cache;
 
 	/* borrow from 'Curve' */
-	struct EditNurb *edit_latt;
 	ListBase *nurbs;
 
 	/* edit, index in nurb list */
@@ -177,6 +181,8 @@ enum {
 	CU_DATATYPE_NORMAL      = 1 << 2,
 	/* Geometry */
 	CU_DATATYPE_SURFACE     = 1 << 3,
+	/* Text */
+	CU_DATATYPE_TEXT_SELECT = 1 << 4,
 };
 
 /*
@@ -206,8 +212,6 @@ static CurveRenderData *curve_render_data_create(Curve *cu, CurveCache *ob_curve
 		EditNurb *editnurb = cu->editnurb;
 		nurbs = &editnurb->nurbs;
 
-		rdata->edit_latt = editnurb;
-
 		if (types & CU_DATATYPE_OVERLAY) {
 			curve_render_overlay_verts_edges_len_get(
 			        nurbs, rdata->hide_handles,
@@ -226,6 +230,8 @@ static CurveRenderData *curve_render_data_create(Curve *cu, CurveCache *ob_curve
 	}
 
 	rdata->nurbs = nurbs;
+
+	rdata->text.edit_font = cu->editfont;
 
 	return rdata;
 }
@@ -305,6 +311,12 @@ typedef struct CurveBatchCache {
 		Batch *batch;
 	} surface;
 
+	/* 3d text */
+	struct {
+		Batch *select;
+		Batch *cursor;
+	} text;
+
 	/* settings to determine if cache is invalid */
 	bool is_dirty;
 
@@ -326,16 +338,21 @@ static bool curve_batch_cache_valid(Curve *cu)
 		return false;
 	}
 
-	if (cache->is_editmode != (cu->editnurb != NULL)) {
+	if (cache->is_editmode != ((cu->editnurb != NULL) || (cu->editfont != NULL))) {
 		return false;
 	}
 
 	if (cache->is_editmode) {
-		if ((cache->hide_handles != ((cu->drawflag & CU_HIDE_HANDLES) != 0))) {
-			return false;
+		if (cu->editnurb) {
+			if ((cache->hide_handles != ((cu->drawflag & CU_HIDE_HANDLES) != 0))) {
+				return false;
+			}
+			else if ((cache->hide_normals != ((cu->drawflag & CU_HIDE_NORMALS) != 0))) {
+				return false;
+			}
 		}
-		else if ((cache->hide_normals != ((cu->drawflag & CU_HIDE_NORMALS) != 0))) {
-			return false;
+		else if (cu->editfont) {
+			/* TODO */
 		}
 	}
 
@@ -377,7 +394,7 @@ static void curve_batch_cache_init(Curve *cu)
 	}
 #endif
 
-	cache->is_editmode = cu->editnurb != NULL;
+	cache->is_editmode = (cu->editnurb != NULL) || (cu->editfont != NULL);
 
 	cache->is_dirty = false;
 }
@@ -403,8 +420,13 @@ void BKE_curve_batch_selection_dirty(Curve *cu)
 {
 	CurveBatchCache *cache = cu->batch_cache;
 	if (cache) {
+		/* editnurb */
 		BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
 		BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
+
+		/* editfont */
+		BATCH_DISCARD_ALL_SAFE(cache->text.select);
+		BATCH_DISCARD_ALL_SAFE(cache->text.cursor);
 	}
 }
 
@@ -418,9 +440,7 @@ void BKE_curve_batch_cache_clear(Curve *cu)
 	BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
 
-	if (cache->surface.batch) {
-		BATCH_DISCARD_ALL_SAFE(cache->surface.batch);
-	}
+	BATCH_DISCARD_ALL_SAFE(cache->surface.batch);
 
 	if (cache->wire.batch) {
 		BATCH_DISCARD_ALL_SAFE(cache->wire.batch);
@@ -445,6 +465,10 @@ void BKE_curve_batch_cache_clear(Curve *cu)
 		VERTEXBUFFER_DISCARD_SAFE(cache->normal.edges);
 		ELEMENTLIST_DISCARD_SAFE(cache->normal.elem);
 	}
+
+	/* 3d text */
+	BATCH_DISCARD_ALL_SAFE(cache->text.cursor);
+	BATCH_DISCARD_ALL_SAFE(cache->text.select);
 }
 
 void BKE_curve_batch_cache_free(Curve *cu)
@@ -452,6 +476,11 @@ void BKE_curve_batch_cache_free(Curve *cu)
 	BKE_curve_batch_cache_clear(cu);
 	MEM_SAFE_FREE(cu->batch_cache);
 }
+
+/* -------------------------------------------------------------------- */
+
+/** \name Private Curve Cache API
+ * \{ */
 
 /* Batch cache usage. */
 static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *rdata, CurveBatchCache *cache)
@@ -780,6 +809,118 @@ static Batch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, Curv
 	return cache->surface.batch;
 }
 
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Private Object/Font Cache API
+ * \{ */
+
+
+static Batch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, CurveBatchCache *cache)
+{
+	BLI_assert(rdata->types & CU_DATATYPE_TEXT_SELECT);
+	if (cache->text.select == NULL) {
+		EditFont *ef = rdata->text.edit_font;
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		const int vbo_len_capacity = ef->selboxes_len * 6;
+		int vbo_len_used = 0;
+		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+
+		float box[4][3];
+
+		/* fill in xy below */
+		box[0][2] = box[1][2] = box[2][2] = box[3][2] = 0.001;
+
+		for (int i = 0; i < ef->selboxes_len; i++) {
+			EditFontSelBox *sb = &ef->selboxes[i];
+
+			float selboxw;
+			if (i + 1 != ef->selboxes_len) {
+				if (ef->selboxes[i + 1].y == sb->y)
+					selboxw = ef->selboxes[i + 1].x - sb->x;
+				else
+					selboxw = sb->w;
+			}
+			else {
+				selboxw = sb->w;
+			}
+
+			if (sb->rot == 0.0f) {
+				copy_v2_fl2(box[0], sb->x, sb->y);
+				copy_v2_fl2(box[1], sb->x + selboxw, sb->y);
+				copy_v2_fl2(box[2], sb->x + selboxw, sb->y + sb->h);
+				copy_v2_fl2(box[3], sb->x, sb->y + sb->h);
+			}
+			else {
+				float mat[2][2];
+
+				angle_to_mat2(mat, sb->rot);
+
+				copy_v2_fl2(box[0], sb->x, sb->y);
+
+				copy_v2_fl2(box[1], selboxw, 0.0f);
+				mul_m2v2(mat, box[1]);
+				add_v2_v2(box[1], &sb->x);
+
+				copy_v2_fl2(box[2], selboxw, sb->h);
+				mul_m2v2(mat, box[2]);
+				add_v2_v2(box[2], &sb->x);
+
+				copy_v2_fl2(box[3], 0.0f, sb->h);
+				mul_m2v2(mat, box[3]);
+				add_v2_v2(box[3], &sb->x);
+			}
+
+			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[0]);
+			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[1]);
+			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[2]);
+
+			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[0]);
+			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[2]);
+			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[3]);
+		}
+		BLI_assert(vbo_len_used == vbo_len_capacity);
+		cache->text.select = Batch_create(PRIM_TRIANGLES, vbo, NULL);
+	}
+	return cache->text.select;
+}
+
+static Batch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, CurveBatchCache *cache)
+{
+	BLI_assert(rdata->types & CU_DATATYPE_TEXT_SELECT);
+	if (cache->text.cursor == NULL) {
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		const int vbo_len_capacity = 4;
+		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		for (int i = 0; i < 4; i++) {
+			VertexBuffer_set_attrib(vbo, pos_id, i, rdata->text.edit_font->textcurs[i]);
+		}
+		cache->text.cursor = Batch_create(PRIM_TRIANGLE_FAN, vbo, NULL);
+	}
+	return cache->text.cursor;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name Public Object/Curve API
+ * \{ */
+
 Batch *BKE_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
@@ -847,7 +988,7 @@ Batch *BKE_curve_batch_cache_get_overlay_verts(Curve *cu)
 	return cache->overlay.verts;
 }
 
-struct Batch *BKE_curve_batch_cache_get_triangles_with_normals(
+Batch *BKE_curve_batch_cache_get_triangles_with_normals(
         struct Curve *cu, struct CurveCache *ob_curve_cache)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
@@ -862,3 +1003,41 @@ struct Batch *BKE_curve_batch_cache_get_triangles_with_normals(
 
 	return cache->surface.batch;
 }
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Public Object/Font API
+ * \{ */
+
+Batch *BKE_curve_batch_cache_get_overlay_select(Curve *cu)
+{
+	CurveBatchCache *cache = curve_batch_cache_get(cu);
+
+	if (cache->text.select == NULL) {
+		CurveRenderData *rdata = curve_render_data_create(cu, NULL, CU_DATATYPE_TEXT_SELECT);
+
+		curve_batch_cache_get_overlay_select(rdata, cache);
+
+		curve_render_data_free(rdata);
+	}
+
+	return cache->text.select;
+}
+
+Batch *BKE_curve_batch_cache_get_overlay_cursor(Curve *cu)
+{
+	CurveBatchCache *cache = curve_batch_cache_get(cu);
+
+	if (cache->text.cursor == NULL) {
+		CurveRenderData *rdata = curve_render_data_create(cu, NULL, CU_DATATYPE_TEXT_SELECT);
+
+		curve_batch_cache_get_overlay_cursor(rdata, cache);
+
+		curve_render_data_free(rdata);
+	}
+
+	return cache->text.cursor;
+}
+
+/** \} */

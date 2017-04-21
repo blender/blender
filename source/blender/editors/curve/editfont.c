@@ -49,6 +49,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curve_render.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_library.h"
@@ -272,6 +273,8 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
 			obedit->actcol = 1;
 		}
 	}
+
+	BKE_curve_batch_selection_dirty(cu);
 
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 }
