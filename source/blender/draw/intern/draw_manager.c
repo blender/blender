@@ -1319,6 +1319,7 @@ void DRW_framebuffer_read_data(int x, int y, int w, int h, int channels, int slo
 		case 4: type = GL_RGBA;	break;
 		default:
 			BLI_assert(false && "wrong number of read channels");
+			return;
 	}
 	glReadBuffer(GL_COLOR_ATTACHMENT0 + slot);
 	glReadPixels(x, y, w, h, type, GL_FLOAT, data);
