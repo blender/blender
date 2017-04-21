@@ -695,10 +695,14 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 		if (ef->selboxes)
 			MEM_freeN(ef->selboxes);
 
-		if (BKE_vfont_select_get(ob, &selstart, &selend))
-			ef->selboxes = MEM_callocN((selend - selstart + 1) * sizeof(EditFontSelBox), "font selboxes");
-		else
+		if (BKE_vfont_select_get(ob, &selstart, &selend)) {
+			ef->selboxes_len = (selend - selstart) + 1;
+			ef->selboxes = MEM_callocN(ef->selboxes_len * sizeof(EditFontSelBox), "font selboxes");
+		}
+		else {
+			ef->selboxes_len = 0;
 			ef->selboxes = NULL;
+		}
 
 		selboxes = ef->selboxes;
 	}
