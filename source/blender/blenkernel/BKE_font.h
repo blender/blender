@@ -60,8 +60,9 @@ typedef struct EditFont {
 	struct CharInfo *textbufinfo;
 	
 	/* array of rectangles & rotation */
-	EditFontSelBox *selboxes;
 	float textcurs[4][2];
+	EditFontSelBox *selboxes;
+	int selboxes_len;
 
 	/* positional vars relative to the textbuf, textbufinfo (not utf8 bytes)
 	 * a copy of these is kept in Curve, but use these in editmode */

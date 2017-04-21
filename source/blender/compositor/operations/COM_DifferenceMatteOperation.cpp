@@ -65,11 +65,11 @@ void DifferenceMatteOperation::executePixelSampled(float output[4], float x, flo
 	difference = difference / 3.0f;
 
 	/* make 100% transparent */
-	if (difference < tolerance) {
+	if (difference <= tolerance) {
 		output[0] = 0.0f;
 	}
 	/*in the falloff region, make partially transparent */
-	else if (difference < falloff + tolerance) {
+	else if (difference <= falloff + tolerance) {
 		difference = difference - tolerance;
 		alpha = difference / falloff;
 		/*only change if more transparent than before */

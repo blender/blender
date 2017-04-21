@@ -7436,7 +7436,6 @@ static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3
 	Curve *cu = ob->data;
 	EditFont *ef = cu->editfont;
 	float vec1[3], vec2[3];
-	int selstart, selend;
 
 	draw_editfont_textcurs(rv3d, ef->textcurs);
 
@@ -7495,19 +7494,18 @@ static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3
 	setlinestyle(0);
 
 
-	if (BKE_vfont_select_get(ob, &selstart, &selend) && ef->selboxes) {
-		const int seltot = selend - selstart;
+	if (ef->selboxes && ef->selboxes_len) {
 		float selboxw;
 
 		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		imm_cpack(0xffffff);
 		set_inverted_drawing(1);
-		for (int i = 0; i <= seltot; i++) {
+		for (int i = 0; i < ef->selboxes_len; i++) {
 			EditFontSelBox *sb = &ef->selboxes[i];
 			float tvec[3];
 
-			if (i != seltot) {
+			if (i + 1 != ef->selboxes_len) {
 				if (ef->selboxes[i + 1].y == sb->y)
 					selboxw = ef->selboxes[i + 1].x - sb->x;
 				else

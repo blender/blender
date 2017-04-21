@@ -3618,9 +3618,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 						psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
 					}
 
-					if ((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0) &&
-					    (render || bake))
-					{
+					if (((cache->flag & PTCACHE_BAKED) == 0) && (render || bake)) {
 						BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
 					}
 

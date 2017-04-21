@@ -259,11 +259,9 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
 	return NULL;
 }
 
-/* Returns color in the display space, matching ED_space_image_color_sample(). */
-bool ED_space_clip_color_sample(Scene *scene, SpaceClip *sc, ARegion *ar, int mval[2], float r_col[3])
+/* Returns color in linear space, matching ED_space_image_color_sample(). */
+bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *ar, int mval[2], float r_col[3])
 {
-	const char *display_device = scene->display_settings.display_device;
-	struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 	ImBuf *ibuf;
 	float fx, fy, co[2];
 	bool ret = false;
@@ -299,11 +297,7 @@ bool ED_space_clip_color_sample(Scene *scene, SpaceClip *sc, ARegion *ar, int mv
 			ret = true;
 		}
 	}
-
-	if (ret) {
-		IMB_colormanagement_scene_linear_to_display_v3(r_col, display);
-	}
-
+	
 	IMB_freeImBuf(ibuf);
 
 	return ret;

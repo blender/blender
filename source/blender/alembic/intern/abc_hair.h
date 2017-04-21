@@ -37,6 +37,8 @@ class AbcHairWriter : public AbcObjectWriter {
 	Alembic::AbcGeom::OCurvesSchema m_schema;
 	Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
 
+	bool m_uv_warning_shown;
+
 public:
 	AbcHairWriter(Scene *scene,
 	              Object *ob,
