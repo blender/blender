@@ -134,6 +134,12 @@ void add_triangle_vertices(ElementListBuilder* builder, unsigned v1, unsigned v2
 
 static unsigned index_range(const unsigned values[], unsigned value_ct, unsigned* min_out, unsigned* max_out)
 	{
+	if (value_ct == 0)
+		{
+		*min_out = 0;
+		*max_out = 0;
+		return 0;
+		}
 	unsigned min_value = values[0];
 	unsigned max_value = values[0];
 	for (unsigned i = 1; i < value_ct; ++i)
