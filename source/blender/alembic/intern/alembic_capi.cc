@@ -618,7 +618,7 @@ enum {
 struct ImportJobData {
 	Main *bmain;
 	Scene *scene;
-	SceneLayer *sl;
+	SceneLayer *scene_layer;
 
 	char filename[1024];
 	ImportSettings settings;
@@ -816,7 +816,7 @@ static void import_endjob(void *user_data)
 		/* Add object to scene. */
 		Base *base;
 		LayerCollection *lc;
-		SceneLayer *sl = data->sl;
+		SceneLayer *sl = data->scene_layer;
 
 		BKE_scene_layer_base_deselect_all(sl);
 
@@ -880,7 +880,7 @@ bool ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 	ImportJobData *job = new ImportJobData();
 	job->bmain = CTX_data_main(C);
 	job->scene = CTX_data_scene(C);
-	job->sl = CTX_data_scene_layer(C);
+	job->scene_layer = CTX_data_scene_layer(C);
 	job->import_ok = false;
 	BLI_strncpy(job->filename, filepath, 1024);
 
