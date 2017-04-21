@@ -1791,12 +1791,19 @@ void ConvertNode::compile(OSLCompiler& compiler)
 		assert(0);
 }
 
+/* Base type for all closure-type nodes */
+
+BsdfBaseNode::BsdfBaseNode(const NodeType *node_type)
+        : ShaderNode(node_type)
+{
+	special_type = SHADER_SPECIAL_TYPE_CLOSURE;
+}
+
 /* BSDF Closure */
 
 BsdfNode::BsdfNode(const NodeType *node_type)
-: ShaderNode(node_type)
+: BsdfBaseNode(node_type)
 {
-	special_type = SHADER_SPECIAL_TYPE_CLOSURE;
 }
 
 void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3, ShaderInput *param4)
@@ -2323,9 +2330,8 @@ NODE_DEFINE(PrincipledBsdfNode)
 }
 
 PrincipledBsdfNode::PrincipledBsdfNode()
-	: ShaderNode(node_type)
+	: BsdfBaseNode(node_type)
 {
-	special_type = SHADER_SPECIAL_TYPE_CLOSURE;
 	closure = CLOSURE_BSDF_PRINCIPLED_ID;
 	distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
 	distribution_orig = NBUILTIN_CLOSURES;

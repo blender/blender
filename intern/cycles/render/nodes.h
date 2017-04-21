@@ -321,7 +321,14 @@ private:
 	static bool initialized;
 };
 
-class BsdfNode : public ShaderNode {
+class BsdfBaseNode : public ShaderNode {
+public:
+	BsdfBaseNode(const NodeType *node_type);
+
+	ClosureType closure;
+};
+
+class BsdfNode : public BsdfBaseNode {
 public:
 	explicit BsdfNode(const NodeType *node_type);
 	SHADER_NODE_BASE_CLASS(BsdfNode)
@@ -333,7 +340,6 @@ public:
 	float3 color;
 	float3 normal;
 	float surface_mix_weight;
-	ClosureType closure;
 
 	virtual bool equals(const ShaderNode& /*other*/)
 	{
@@ -362,7 +368,7 @@ public:
 };
 
 /* Disney principled BRDF */
-class PrincipledBsdfNode : public ShaderNode {
+class PrincipledBsdfNode : public BsdfBaseNode {
 public:
 	SHADER_NODE_CLASS(PrincipledBsdfNode)
 
@@ -381,7 +387,7 @@ public:
 		anisotropic_rotation, refraction_roughness;
 	float3 normal, clearcoat_normal, tangent;
 	float surface_mix_weight;
-	ClosureType closure, distribution, distribution_orig;
+	ClosureType distribution, distribution_orig;
 
 	virtual bool equals(const ShaderNode * /*other*/)
 	{

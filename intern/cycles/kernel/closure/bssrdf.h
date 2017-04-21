@@ -362,6 +362,7 @@ ccl_device int bssrdf_setup(Bssrdf *bssrdf, ClosureType type)
 	if(bssrdf->radius < BSSRDF_MIN_RADIUS) {
 		/* revert to diffuse BSDF if radius too small */
 		int flag;
+#ifdef __PRINCIPLED__
 		if(type == CLOSURE_BSSRDF_PRINCIPLED_ID) {
 			float roughness = bssrdf->roughness;
 			float3 N = bssrdf->N;
@@ -377,7 +378,9 @@ ccl_device int bssrdf_setup(Bssrdf *bssrdf, ClosureType type)
 			flag = bsdf_principled_diffuse_setup(bsdf);
 			bsdf->type = CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID;
 		}
-		else {
+		else
+#endif  /* __PRINCIPLED__ */
+		{
 			DiffuseBsdf *bsdf = (DiffuseBsdf*)bssrdf;
 			bsdf->N = bssrdf->N;
 			flag = bsdf_diffuse_setup(bsdf);
@@ -391,7 +394,9 @@ ccl_device int bssrdf_setup(Bssrdf *bssrdf, ClosureType type)
 		bssrdf->sharpness = saturate(bssrdf->sharpness);
 		bssrdf->type = type;
 
-		if(type == CLOSURE_BSSRDF_BURLEY_ID || type == CLOSURE_BSSRDF_PRINCIPLED_ID) {
+		if(type == CLOSURE_BSSRDF_BURLEY_ID ||
+		   type == CLOSURE_BSSRDF_PRINCIPLED_ID)
+		{
 			bssrdf_burley_setup(bssrdf);
 		}
 

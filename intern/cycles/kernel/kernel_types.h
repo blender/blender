@@ -78,6 +78,7 @@ CCL_NAMESPACE_BEGIN
 #    define __OSL__
 #  endif
 #  define __SUBSURFACE__
+#  define __PRINCIPLED__
 #  define __CMJ__
 #  define __VOLUME__
 #  define __VOLUME_SCATTER__
@@ -94,6 +95,7 @@ CCL_NAMESPACE_BEGIN
 #  define __VOLUME__
 #  define __VOLUME_SCATTER__
 #  define __SUBSURFACE__
+#  define __PRINCIPLED__
 #  define __SHADOW_RECORD_ALL__
 #  ifndef __SPLIT_KERNEL__
 #    define __BRANCHED_PATH__
@@ -109,6 +111,7 @@ CCL_NAMESPACE_BEGIN
 #    define __KERNEL_SHADING__
 #    define __KERNEL_ADV_SHADING__
 #    define __SUBSURFACE__
+#    define __PRINCIPLED__
 #    define __VOLUME__
 #    define __VOLUME_SCATTER__
 #    define __SHADOW_RECORD_ALL__
@@ -134,6 +137,7 @@ CCL_NAMESPACE_BEGIN
 #    define __KERNEL_SHADING__
 #    define __KERNEL_ADV_SHADING__
 #    define __SUBSURFACE__
+#    define __PRINCIPLED__
 #    define __VOLUME__
 #    define __VOLUME_SCATTER__
 #    define __SHADOW_RECORD_ALL__
@@ -221,6 +225,9 @@ CCL_NAMESPACE_BEGIN
 #endif
 #ifdef __NO_SHADOW_TRICKS__
 #  undef __SHADOW_TRICKS__
+#endif
+#ifdef __NO_PRINCIPLED__
+#  undef __PRINCIPLED__
 #endif
 
 /* Random Numbers */
