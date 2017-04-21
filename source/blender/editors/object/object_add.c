@@ -2286,6 +2286,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	BKE_main_id_clear_newpoins(bmain);
 
 	DAG_relations_tag_update(bmain);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&CTX_data_scene(C)->id, 0);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
