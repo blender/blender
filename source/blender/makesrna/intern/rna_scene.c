@@ -2634,28 +2634,12 @@ static int rna_LayerCollection_move_into(ID *id, LayerCollection *lc_src, Main *
 	return 1;
 }
 
-static void rna_LayerCollection_hide_update(bContext *C, PointerRNA *UNUSED(ptr))
+static void rna_LayerCollection_flag_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	Scene *scene = CTX_data_scene(C);
-
-	/* hide and deselect bases that are directly influenced by this LayerCollection */
 	/* TODO(sergey): Use proper flag for tagging here. */
 	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-}
-
-static void rna_LayerCollection_hide_select_update(bContext *C, PointerRNA *ptr)
-{
-	LayerCollection *lc = ptr->data;
-
-	if ((lc->flag & COLLECTION_SELECTABLE) == 0) {
-		Scene *scene = CTX_data_scene(C);
-
-		/* deselect bases that are directly influenced by this LayerCollection */
-		/* TODO(sergey): Use proper flag for tagging here. */
-		DAG_id_tag_update(&scene->id, 0);
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
-	}
 }
 
 static int rna_LayerCollections_active_collection_index_get(PointerRNA *ptr)
@@ -6248,14 +6232,14 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
 	RNA_def_property_ui_text(prop, "Hide", "Restrict visiblity");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_hide_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_flag_update");
 
 	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", COLLECTION_SELECTABLE);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
 	RNA_def_property_ui_text(prop, "Hide Selectable", "Restrict selection");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_hide_select_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_flag_update");
 
 	/* TODO_LAYER_OVERRIDE */
 }
