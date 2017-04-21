@@ -2852,6 +2852,7 @@ static void rna_SceneLayer_update_tagged(SceneLayer *UNUSED(sl), bContext *C)
 	{
 		/* Don't do anything, we just need to run the iterator to flush
 		 * the base info to the objects. */
+		UNUSED_VARS(ob);
 	}
 	DEG_OBJECT_ITER_END
 }

@@ -32,6 +32,7 @@
 
 #include "BIF_glutil.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 
 #include "BLT_translation.h"
@@ -1853,8 +1854,8 @@ void DRW_draw_view(const bContext *C)
 	if (cache_is_dirty) {
 		DRW_engines_cache_init();
 
-		Depsgraph *depsgraph = CTX_data_depsgraph(C);
-		DEG_OBJECT_ITER(depsgraph, ob);
+		Depsgraph *graph = CTX_data_depsgraph(C);
+		DEG_OBJECT_ITER(graph, ob);
 		{
 			DRW_engines_cache_populate(ob);
 		}
