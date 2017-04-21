@@ -513,22 +513,25 @@ static void singleuser_world_cb(
 }
 
 static void group_linkobs2scene_cb(
-        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
+        bContext *C, ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneCollection *sc = CTX_data_scene_collection(C);
 	Group *group = (Group *)tselem->id;
 	GroupObject *gob;
-	BaseLegacy *base;
+	Base *base;
 
 	for (gob = group->gobject.first; gob; gob = gob->next) {
-		base = BKE_scene_base_find(scene, gob->ob);
+		base = BKE_scene_layer_base_find(sl, gob->ob);
 		if (!base) {
 			/* link to scene */
-			base = BKE_scene_base_add(scene, gob->ob);
+			BKE_collection_object_add(scene, sc, gob->ob);
+			base = BKE_scene_layer_base_find(sl, gob->ob);
 			id_us_plus(&gob->ob->id);
 		}
-		base->object->flag |= SELECT;
-		base->flag_legacy |= SELECT;
+
+		base->flag |= BASE_SELECTED;
 	}
 }
 

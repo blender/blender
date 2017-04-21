@@ -38,6 +38,7 @@ struct DagForest;
 struct DagNode;
 struct Object;
 struct Scene;
+struct SceneLayer;
 struct ListBase;
 struct bArmature;
 struct Main;

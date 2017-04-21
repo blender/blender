@@ -2179,7 +2179,7 @@ int GPU_default_lights(void)
 	return count;
 }
 
-int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][4], int ortho)
+int GPU_scene_object_lights(SceneLayer *sl, float viewmat[4][4], int ortho)
 {
 	/* disable all lights */
 	for (int count = 0; count < 8; count++)
@@ -2191,11 +2191,8 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 
 	int count = 0;
 
-	for (BaseLegacy *base = scene->base.first; base; base = base->next) {
+	for (Base *base = FIRSTBASE_NEW; base; base = base->next) {
 		if (base->object->type != OB_LAMP)
-			continue;
-
-		if (!(base->lay & lay) || !(base->lay & ob->lay))
 			continue;
 
 		Lamp *la = base->object->data;

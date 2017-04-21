@@ -78,6 +78,7 @@
 #include "BKE_particle.h"
 #include "BKE_global.h"
 
+#include "BKE_collection.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
@@ -2895,7 +2896,6 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
-	BaseLegacy *base;
 	int distr=0, alloc=0, skip=0;
 
 	if ((psys->part->childtype && psys->totchild != psys_get_tot_child(sim->scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
@@ -2940,8 +2940,9 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 
 
 	/* particle instance modifier with "path" option need cached paths even if particle system doesn't */
-	for (base = sim->scene->base.first; base; base= base->next) {
-		ModifierData *md = modifiers_findByType(base->object, eModifierType_ParticleInstance);
+	FOREACH_SCENE_OBJECT(sim->scene, ob)
+	{
+		ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleInstance);
 		if (md) {
 			ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 			if (pimd->flag & eParticleInstanceFlag_Path && pimd->ob == sim->ob && pimd->psys == (psys - (ParticleSystem*)sim->ob->particlesystem.first)) {
@@ -2950,6 +2951,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 			}
 		}
 	}
+	FOREACH_SCENE_OBJECT_END
 
 	if (!skip) {
 		psys_cache_paths(sim, cfra, use_render_params);

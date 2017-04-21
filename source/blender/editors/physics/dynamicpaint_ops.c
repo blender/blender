@@ -286,6 +286,7 @@ typedef struct DynamicPaintBakeJob {
 
 	struct Main *bmain;
 	Scene *scene;
+	SceneLayer *scene_layer;
 	Object *ob;
 
 	DynamicPaintSurface *surface;
@@ -384,7 +385,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;
 		ED_update_for_newframe(job->bmain, scene, 1);
-		if (!dynamicPaint_calculateFrame(surface, scene, cObject, frame)) {
+		if (!dynamicPaint_calculateFrame(surface, scene, job->scene_layer, cObject, frame)) {
 			job->success = 0;
 			return;
 		}
@@ -452,6 +453,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	DynamicPaintCanvasSettings *canvas;
 	Object *ob = ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 
 	DynamicPaintSurface *surface;
 
@@ -479,6 +481,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	DynamicPaintBakeJob *job = MEM_mallocN(sizeof(DynamicPaintBakeJob), "DynamicPaintBakeJob");
 	job->bmain = CTX_data_main(C);
 	job->scene = scene;
+	job->scene_layer = sl;
 	job->ob = ob;
 	job->canvas = canvas;
 	job->surface = surface;

@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_layer.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
 
@@ -53,7 +54,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
-	sbObjectStep(md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
+	sbObjectStep(md->scene, BKE_scene_layer_context_active(md->scene), ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

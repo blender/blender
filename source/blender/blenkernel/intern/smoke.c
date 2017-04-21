@@ -693,16 +693,16 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 #ifdef WITH_SMOKE
 
 // forward decleration
-static void smoke_calc_transparency(SmokeDomainSettings *sds, Scene *scene);
+static void smoke_calc_transparency(SmokeDomainSettings *sds, SceneLayer *sl);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 
-static int get_lamp(Scene *scene, float *light)
+static int get_lamp(SceneLayer *sl, float *light)
 {
-	BaseLegacy *base_tmp = NULL;
+	Base *base_tmp = NULL;
 	int found_lamp = 0;
 
 	// try to find a lamp, preferably local
-	for (base_tmp = scene->base.first; base_tmp; base_tmp = base_tmp->next) {
+	for (base_tmp = FIRSTBASE_NEW; base_tmp; base_tmp = base_tmp->next) {
 		if (base_tmp->object->type == OB_LAMP) {
 			Lamp *la = base_tmp->object->data;
 
@@ -2683,7 +2683,7 @@ static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 	return result;
 }
 
-static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
+static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, SceneLayer *sl, Object *ob, DerivedMesh *dm)
 {
 	if ((smd->type & MOD_SMOKE_TYPE_FLOW))
 	{
@@ -2810,7 +2810,7 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		}
 
 		// create shadows before writing cache so they get stored
-		smoke_calc_transparency(sds, scene);
+		smoke_calc_transparency(sds, sl);
 
 		if (sds->wt && sds->total_cells > 1) {
 			smoke_turbulence_step(sds->wt, sds->fluid);
@@ -2827,13 +2827,13 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 	}
 }
 
-struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
+struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, SceneLayer *sl, Object *ob, DerivedMesh *dm)
 {
 	/* lock so preview render does not read smoke data while it gets modified */
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 		BLI_rw_mutex_lock(smd->domain->fluid_mutex, THREAD_LOCK_WRITE);
 
-	smokeModifier_process(smd, scene, ob, dm);
+	smokeModifier_process(smd, scene, sl, ob, dm);
 
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 		BLI_rw_mutex_unlock(smd->domain->fluid_mutex);
@@ -2948,7 +2948,7 @@ static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, f
 	cb(result, input, res, pixel, tRay, correct);
 }
 
-static void smoke_calc_transparency(SmokeDomainSettings *sds, Scene *scene)
+static void smoke_calc_transparency(SmokeDomainSettings *sds, SceneLayer *sl)
 {
 	float bv[6] = {0};
 	float light[3];
@@ -2956,7 +2956,7 @@ static void smoke_calc_transparency(SmokeDomainSettings *sds, Scene *scene)
 	float *density = smoke_get_density(sds->fluid);
 	float correct = -7.0f * sds->dx;
 
-	if (!get_lamp(scene, light)) return;
+	if (!get_lamp(sl, light)) return;
 
 	/* convert light pos to sim cell space */
 	mul_m4_v3(sds->imat, light);

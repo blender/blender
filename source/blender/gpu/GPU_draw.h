@@ -107,8 +107,7 @@ void GPU_clear_tpage(bool force);
 
 int GPU_default_lights(void);
 int GPU_scene_object_lights(
-        struct Scene *scene, struct Object *ob,
-        int lay, float viewmat[4][4], int ortho);
+        struct SceneLayer *sl, float viewmat[4][4], int ortho);
 
 /* Text render
  * - based on moving uv coordinates */

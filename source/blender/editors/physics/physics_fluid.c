@@ -329,7 +329,8 @@ static void free_all_fluidobject_channels(ListBase *fobjects)
 static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), FluidsimSettings *domainSettings, FluidAnimChannels *channels, ListBase *fobjects)
 {
 	Scene *scene = CTX_data_scene(C);
-	BaseLegacy *base;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Base *base;
 	int i;
 	int length = channels->length;
 	float eval_time;
@@ -343,7 +344,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 	channels->DomainTime = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainTime");
 	
 	/* allocate fluid objects */
-	for (base=scene->base.first; base; base= base->next) {
+	for (base = FIRSTBASE_NEW; base; base = base->next) {
 		Object *ob = base->object;
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 		
@@ -570,14 +571,14 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 	}
 }
 
-static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDomain)
+static int fluid_validate_scene(ReportList *reports, SceneLayer *sl, Object *fsDomain)
 {
-	BaseLegacy *base;
+	Base *base;
 	Object *newdomain = NULL;
 	int channelObjCount = 0;
 	int fluidInputCount = 0;
 
-	for (base=scene->base.first; base; base= base->next) {
+	for (base = FIRSTBASE_NEW; base; base = base->next) {
 		Object *ob = base->object;
 		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 
@@ -835,7 +836,8 @@ static void fluidsim_delete_until_lastframe(FluidsimSettings *fss, const char *r
 
 static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, short do_job)
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	int i;
 	FluidsimSettings *domainSettings;
 
@@ -882,7 +884,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	}
 	
 	/* check scene for sane object/modifier settings */
-	if (!fluid_validate_scene(reports, scene, fsDomain)) {
+	if (!fluid_validate_scene(reports, sl, fsDomain)) {
 		fluidbake_free_data(channels, fobjects, fsset, fb);
 		return 0;
 	}

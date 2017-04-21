@@ -2120,20 +2120,21 @@ static void tag_localizable_objects(bContext *C, const int mode)
  * Instance indirectly referenced zero user objects,
  * otherwise they're lost on reload, see T40595.
  */
-static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene)
+static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene, SceneLayer *sl, SceneCollection *sc)
 {
 	Object *ob;
 	bool changed = false;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ID_IS_LINKED_DATABLOCK(ob) && (ob->id.us == 0)) {
-			BaseLegacy *base;
+			Base *base;
 
 			id_us_plus(&ob->id);
 
-			base = BKE_scene_base_add(scene, ob);
-			base->flag_legacy |= SELECT;
-			BKE_scene_base_flag_sync_from_base(base);
+			BKE_collection_object_add(scene, sc, ob);
+			base = BKE_scene_layer_base_find(sl, ob);
+			base->flag |= BASE_SELECTED;
+			BKE_scene_object_base_flag_sync_from_base(base);
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 			changed = true;
@@ -2147,6 +2148,8 @@ static int make_local_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneCollection *sc = CTX_data_scene_collection(C);
 	AnimData *adt;
 	ParticleSystem *psys;
 	Material *ma, ***matarar;
@@ -2159,7 +2162,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 		/* de-select so the user can differentiate newly instanced from existing objects */
 		BKE_scene_base_deselect_all(scene);
 
-		if (make_local_all__instance_indirect_unused(bmain, scene)) {
+		if (make_local_all__instance_indirect_unused(bmain, scene, sl, sc)) {
 			BKE_report(op->reports, RPT_INFO,
 			           "Orphan library objects added to the current scene to avoid loss");
 		}

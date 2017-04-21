@@ -36,6 +36,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_dynamicpaint.h"
+#include "BKE_layer.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
@@ -108,7 +109,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* dont apply dynamic paint on orco dm stack */
 	if (!(flag & MOD_APPLY_ORCO)) {
-		return dynamicPaint_Modifier_do(pmd, md->scene, ob, dm);
+		return dynamicPaint_Modifier_do(pmd, md->scene, BKE_scene_layer_context_active(md->scene), ob, dm);
 	}
 	return dm;
 }

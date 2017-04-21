@@ -630,7 +630,7 @@ static bool select_grouped_group(bContext *C, Object *ob)  /* Select objects in 
 
 static bool select_grouped_object_hooks(bContext *C, Object *ob)
 {
-	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 
 	bool changed = false;
 	Base *base;
@@ -641,7 +641,7 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
 		if (md->type == eModifierType_Hook) {
 			hmd = (HookModifierData *) md;
 			if (hmd->object && !(hmd->object->flag & SELECT)) {
-				base = BKE_scene_base_find(scene, hmd->object);
+				base = BKE_scene_layer_base_find(sl, hmd->object);
 				if (base && (BASE_SELECTABLE_NEW(base))) {
 					ED_base_object_select(base, BA_SELECT);
 					changed = true;

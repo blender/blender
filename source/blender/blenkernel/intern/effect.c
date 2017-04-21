@@ -64,6 +64,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -209,7 +210,8 @@ static void add_particles_to_effectors(ListBase **effectors, Scene *scene, Effec
 ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src,
                           EffectorWeights *weights, bool for_simulation)
 {
-	BaseLegacy *base;
+	SceneLayer *sl = BKE_scene_layer_context_active(scene); /* Can't get sl from the calling modifiers yet */
+	Base *base;
 	unsigned int layer= ob_src->lay;
 	ListBase *effectors = NULL;
 	
@@ -231,17 +233,15 @@ ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src
 		}
 	}
 	else {
-		for (base = scene->base.first; base; base= base->next) {
-			if ( (base->lay & layer) ) {
-				if ( base->object->pd && base->object->pd->forcefield )
-					add_object_to_effectors(&effectors, scene, weights, base->object, ob_src, for_simulation);
+		for (base = FIRSTBASE_NEW; base; base = base->next) {
+			if ( base->object->pd && base->object->pd->forcefield )
+				add_object_to_effectors(&effectors, scene, weights, base->object, ob_src, for_simulation);
 
-				if ( base->object->particlesystem.first ) {
-					ParticleSystem *psys= base->object->particlesystem.first;
+			if ( base->object->particlesystem.first ) {
+				ParticleSystem *psys= base->object->particlesystem.first;
 
-					for ( ; psys; psys=psys->next )
-						add_particles_to_effectors(&effectors, scene, weights, base->object, psys, psys_src, for_simulation);
-				}
+				for ( ; psys; psys=psys->next )
+					add_particles_to_effectors(&effectors, scene, weights, base->object, psys, psys_src, for_simulation);
 			}
 		}
 	}
