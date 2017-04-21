@@ -220,7 +220,7 @@ CCL_NAMESPACE_BEGIN
 #  undef __TRANSPARENT_SHADOWS__
 #endif
 #ifdef __NO_SHADOW_TRICKS__
-#undef __SHADOW_TRICKS__
+#  undef __SHADOW_TRICKS__
 #endif
 
 /* Random Numbers */

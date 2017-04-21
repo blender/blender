@@ -6,6 +6,7 @@ if(WITH_GTESTS)
 
 	add_definitions(${GFLAGS_DEFINES})
 	add_definitions(${GLOG_DEFINES})
+	add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 
 	# Otherwise we get warnings here that we cant fix in external projects
 	remove_strict_flags()

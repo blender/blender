@@ -29,27 +29,29 @@
 #include "libmv/logging/logging.h"
 
 void libmv_initLogging(const char* argv0) {
+  using LIBMV_GFLAGS_NAMESPACE::SetCommandLineOption;
   // Make it so FATAL messages are always print into console.
   char severity_fatal[32];
   snprintf(severity_fatal, sizeof(severity_fatal), "%d",
            google::GLOG_FATAL);
-
   google::InitGoogleLogging(argv0);
-  gflags::SetCommandLineOption("logtostderr", "1");
-  gflags::SetCommandLineOption("v", "0");
-  gflags::SetCommandLineOption("stderrthreshold", severity_fatal);
-  gflags::SetCommandLineOption("minloglevel", severity_fatal);
+  SetCommandLineOption("logtostderr", "1");
+  SetCommandLineOption("v", "0");
+  SetCommandLineOption("stderrthreshold", severity_fatal);
+  SetCommandLineOption("minloglevel", severity_fatal);
 }
 
 void libmv_startDebugLogging(void) {
-  gflags::SetCommandLineOption("logtostderr", "1");
-  gflags::SetCommandLineOption("v", "2");
-  gflags::SetCommandLineOption("stderrthreshold", "1");
-  gflags::SetCommandLineOption("minloglevel", "0");
+  using LIBMV_GFLAGS_NAMESPACE::SetCommandLineOption;
+  SetCommandLineOption("logtostderr", "1");
+  SetCommandLineOption("v", "2");
+  SetCommandLineOption("stderrthreshold", "1");
+  SetCommandLineOption("minloglevel", "0");
 }
 
 void libmv_setLoggingVerbosity(int verbosity) {
+  using LIBMV_GFLAGS_NAMESPACE::SetCommandLineOption;
   char val[10];
   snprintf(val, sizeof(val), "%d", verbosity);
-  gflags::SetCommandLineOption("v", val);
+  SetCommandLineOption("v", val);
 }

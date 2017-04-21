@@ -239,7 +239,7 @@ static bool set_knots(const FloatArraySamplePtr &knots, float *&nu_knots)
 	return true;
 }
 
-void AbcNurbsReader::readObjectData(Main *bmain, float time)
+void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
 	Curve *cu = static_cast<Curve *>(BKE_curve_add(bmain, "abc_curve", OB_SURF));
 	cu->actvert = CU_ACT_NONE;
@@ -253,7 +253,6 @@ void AbcNurbsReader::readObjectData(Main *bmain, float time)
 		nu->resolu = cu->resolu;
 		nu->resolv = cu->resolv;
 
-		const ISampleSelector sample_sel(time);
 		const INuPatchSchema &schema = it->first;
 		const INuPatchSchema::Sample smp = schema.getValue(sample_sel);
 

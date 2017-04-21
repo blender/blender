@@ -697,7 +697,19 @@ void bisect_v3_v3v3v3(float out[3], const float v1[3], const float v2[3], const 
 
 /**
  * Returns a reflection vector from a vector and a normal vector
- * reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
+ * reflect = vec - ((2 * dot(vec, mirror)) * mirror).
+ *
+ * <pre>
+ * v
+ * +  ^
+ *  \ |
+ *   \|
+ *    + normal: axis of reflection
+ *   /
+ *  /
+ * +
+ * out: result (negate for a 'bounce').
+ * </pre>
  */
 void reflect_v3_v3v3(float out[3], const float v[3], const float normal[3])
 {
