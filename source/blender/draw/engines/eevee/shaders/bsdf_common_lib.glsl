@@ -59,15 +59,10 @@ struct ShadowMapData {
 
 struct ShadowCascadeData {
 	mat4 shadowmat[MAX_CASCADE_NUM];
-	vec4 bias_count;
-	float near[MAX_CASCADE_NUM];
-	float far[MAX_CASCADE_NUM];
+	/* arrays of float are not aligned so use vec4 */
+	vec4 split_distances;
+	vec4 bias;
 };
-
-/* convenience aliases */
-#define sh_cascade_bias   bias_count.x
-#define sh_cascade_count  bias_count.y
-
 
 struct AreaData {
 	vec3 corner[4];

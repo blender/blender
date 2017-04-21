@@ -91,17 +91,38 @@ float light_visibility(LightData ld, ShadingData sd)
 		float shid = ld.l_shadowid - (MAX_SHADOW_CUBE + MAX_SHADOW_MAP);
 		ShadowCascadeData smd = shadows_cascade_data[int(shid)];
 
-		for (int i = 0; i < int(smd.sh_cascade_count); i++) {
-			vec4 shpos = smd.shadowmat[i] * vec4(sd.W, 1.0);
-			shpos.z -= smd.sh_cascade_bias * shpos.w;
-			shpos.xyz /= shpos.w;
+		/* Finding Cascade index */
+		vec4 z = vec4(-dot(cameraPos - worldPosition, normalize(eye)));
+		vec4 comp = step(z, smd.split_distances);
+		float cascade = dot(comp, comp);
+		mat4 shadowmat;
+		float bias;
 
-			if (shpos.w > 0.0 && min(shpos.x, shpos.y) > 0.0 && max(shpos.x, shpos.y) < 1.0) {
-				vis *= texture(shadowCascades, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + float(i), shpos.z));
-				// vis = float(i) / float(MAX_CASCADE_NUM);
-				break;
-			}
+		/* Manual Unrolling of a loop for better performance.
+		 * Doing fetch directly with cascade index leads to
+		 * major performance impact. (0.27ms -> 10.0ms for 1 light) */
+		if (cascade == 0.0) {
+			shadowmat = smd.shadowmat[0];
+			bias = smd.bias[0];
 		}
+		else if (cascade == 1.0) {
+			shadowmat = smd.shadowmat[1];
+			bias = smd.bias[1];
+		}
+		else if (cascade == 2.0) {
+			shadowmat = smd.shadowmat[2];
+			bias = smd.bias[2];
+		}
+		else {
+			shadowmat = smd.shadowmat[3];
+			bias = smd.bias[3];
+		}
+
+		vec4 shpos = shadowmat * vec4(sd.W, 1.0);
+		shpos.z -= bias * shpos.w;
+		shpos.xyz /= shpos.w;
+
+		vis *= texture(shadowCascades, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + cascade, shpos.z));
 	}
 	else if (ld.l_shadowid >= MAX_SHADOW_CUBE) {
 		/* Shadow Map */
