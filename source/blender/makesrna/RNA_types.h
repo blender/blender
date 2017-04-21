@@ -282,6 +282,7 @@ typedef struct CollectionPropertyIterator {
 	union {
 		ArrayIterator array;
 		ListBaseIterator listbase;
+		void *custom;
 	} internal;
 	int idprop;
 	int level;
