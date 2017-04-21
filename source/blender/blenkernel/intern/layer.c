@@ -267,7 +267,7 @@ static Base *object_base_add(SceneLayer *sl, Object *ob)
 	if (base == NULL) {
 		base = MEM_callocN(sizeof(Base), "Object Base");
 
-		/* do not bump user count, leave it for SceneCollections */
+		/* Do not bump user count, leave it for SceneCollections. */
 		base->object = ob;
 		BLI_addtail(&sl->object_bases, base);
 
@@ -775,11 +775,22 @@ static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Obj
 {
 	Base *base = object_base_add(sl, ob);
 
-	/* only add an object once - prevent SceneCollection->objects and
-	 * SceneCollection->filter_objects to add the same object */
+	/* Only add an object once - prevent SceneCollection->objects and
+	 * SceneCollection->filter_objects to add the same object. */
 
 	if (BLI_findptr(&lc->object_bases, base, offsetof(LinkData, data))) {
 		return;
+	}
+
+	bool is_visible = (lc->flag & COLLECTION_VISIBLE) != 0;
+	bool is_selectable = is_visible && ((lc->flag & COLLECTION_SELECTABLE) != 0);
+
+	if (is_visible) {
+		base->flag |= BASE_VISIBLED;
+	}
+
+	if (is_selectable) {
+		base->flag |= BASE_SELECTABLED;
 	}
 
 	BLI_addtail(&lc->object_bases, BLI_genericNodeN(base));
