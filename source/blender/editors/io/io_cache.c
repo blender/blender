@@ -143,7 +143,7 @@ static int cachefile_reload_exec(bContext *C, wmOperator *op)
 
 	Main *bmain = CTX_data_main(C);
 
-	BLI_listbase_clear(&cache_file->object_paths);
+	BLI_freelistN(&cache_file->object_paths);
 	BKE_cachefile_reload(bmain, cache_file);
 
 	return OPERATOR_FINISHED;
