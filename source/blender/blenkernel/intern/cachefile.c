@@ -221,7 +221,6 @@ void BKE_cachefile_clean(Scene *scene, CacheFile *cache_file)
 				}
 #endif
 				mcmd->reader = NULL;
-				mcmd->object_path[0] = '\0';
 			}
 		}
 
@@ -239,7 +238,6 @@ void BKE_cachefile_clean(Scene *scene, CacheFile *cache_file)
 				}
 #endif
 				data->reader = NULL;
-				data->object_path[0] = '\0';
 			}
 		}
 	}

@@ -85,6 +85,43 @@ class SimpleImportTest(unittest.TestCase):
         for ob in bpy.data.objects:
             self.assertEqual('Cube' in ob.name, ob.select)
 
+    def test_change_path(self):
+        import math
+
+        fname = 'cube-rotating1.abc'
+        abc = self.testdir / fname
+        relpath = bpy.path.relpath(str(abc))
+
+        res = bpy.ops.wm.alembic_import(filepath=str(abc), as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+        cube = bpy.context.active_object
+
+        # Check that the file loaded ok.
+        bpy.context.scene.frame_set(10)
+        x, y, z = cube.matrix_world.to_euler('XYZ')
+        self.assertAlmostEqual(x, 0)
+        self.assertAlmostEqual(y, 0)
+        self.assertAlmostEqual(z, math.pi / 2, places=5)
+
+        # Change path from absolute to relative. This should not break the animation.
+        bpy.context.scene.frame_set(1)
+        bpy.data.cache_files[fname].filepath = relpath
+        bpy.context.scene.frame_set(10)
+
+        x, y, z = cube.matrix_world.to_euler('XYZ')
+        self.assertAlmostEqual(x, 0)
+        self.assertAlmostEqual(y, 0)
+        self.assertAlmostEqual(z, math.pi / 2, places=5)
+
+        # Replace the Alembic file; this should apply new animation.
+        bpy.data.cache_files[fname].filepath = relpath.replace('1.abc', '2.abc')
+        bpy.context.scene.update()
+
+        x, y, z = cube.matrix_world.to_euler('XYZ')
+        self.assertAlmostEqual(x, math.pi / 2, places=5)
+        self.assertAlmostEqual(y, 0)
+        self.assertAlmostEqual(z, 0)
+
 
 def main():
     global args
