@@ -46,7 +46,6 @@
 #include "BLI_buffer.h"
 #include "BLI_bitmap.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_material.h"
@@ -56,6 +55,7 @@
 #include "BIF_glutil.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

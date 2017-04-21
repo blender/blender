@@ -54,6 +54,9 @@ struct Scene *DAG_get_scene(struct Depsgraph *graph);
 /* Get scene layer the despgraph is created for. */
 struct SceneLayer *DAG_get_scene_layer(struct Depsgraph *graph);
 
+/* Get the object as properly evaluated by depsgraph. */
+struct Object *DAG_get_object(struct Depsgraph *depsgraph, struct Object *ob);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

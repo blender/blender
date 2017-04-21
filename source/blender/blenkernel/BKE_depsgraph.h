@@ -128,10 +128,6 @@ void DAG_print_dependencies(struct Main *bmain, struct Scene *scene, struct Obje
 
 short DAG_get_eval_flags_for_object(struct Scene *scene, void *object);
 
-/* ************************ DAG ********************* */
-
-struct Object *DAG_get_object(struct Depsgraph *depsgraph, struct Object *ob);
-
 #ifdef __cplusplus
 }
 #endif

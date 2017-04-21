@@ -93,3 +93,9 @@ SceneLayer *DAG_get_scene_layer(Depsgraph *graph)
 	}
 	return NULL;
 }
+
+Object *DAG_get_object(Depsgraph * /*depsgraph*/, Object *ob)
+{
+	/* XXX TODO */
+	return ob;
+}
