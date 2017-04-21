@@ -162,7 +162,9 @@ ccl_device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, ShaderClos
 				bsdf->type = CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID;
 			}
 		}
-		else if(CLOSURE_IS_BSSRDF(bssrdf->type)) {
+		else if(CLOSURE_IS_BSDF_BSSRDF(bssrdf->type) ||
+		        CLOSURE_IS_BSSRDF(bssrdf->type))
+		{
 			DiffuseBsdf *bsdf = (DiffuseBsdf*)bsdf_alloc(sd, sizeof(DiffuseBsdf), weight);
 
 			if(bsdf) {
