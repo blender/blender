@@ -63,9 +63,7 @@ class SimpleImportTest(unittest.TestCase):
         self.assertEqual(objects['Cube_003'], objects['Cube_005'].parent)
         self.assertEqual(objects['Cube_003'], objects['Cube_006'].parent)
 
-    def DISABLED_test_select_after_import(self):
-        self.fail('FIXME: Disabled until https://developer.blender.org/T51261 is fixed')
-
+    def test_select_after_import(self):
         # Add a sphere, so that there is something in the scene, selected, and active,
         # before we do the Alembic import.
         bpy.ops.mesh.primitive_uv_sphere_add()
