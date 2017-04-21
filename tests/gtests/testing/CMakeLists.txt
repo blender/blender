@@ -24,7 +24,7 @@
 set(INC
 	.
 	..
-	../../../extern/gflags/src
+	${GFLAGS_INCLUDE_DIRS}
 	../../../extern/gtest/include
 )
 

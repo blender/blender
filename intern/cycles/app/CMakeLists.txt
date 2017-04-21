@@ -45,7 +45,7 @@ if(CYCLES_STANDALONE_REPOSITORY)
 else()
 	list(APPEND LIBRARIES bf_intern_glew_mx bf_intern_guardedalloc)
 	if(WITH_CYCLES_LOGGING)
-		list(APPEND LIBRARIES extern_glog extern_gflags)
+		list(APPEND LIBRARIES extern_glog ${GFLAGS_LIBRARIES})
 	endif()
 endif()
 

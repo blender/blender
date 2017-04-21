@@ -122,7 +122,7 @@ if(WITH_LIBMV)
 	add_definitions(\${CERES_DEFINES})
 
 	list(APPEND INC
-		../../extern/gflags/src
+		\${GFLAGS_INCLUDE_DIRS}
 		../../extern/glog/src
 		../../extern/ceres/include
 		../../extern/ceres/config

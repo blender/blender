@@ -177,9 +177,12 @@ endif()
 		extern_wcwidth
 		bf_intern_libmv
 		extern_glog
-		extern_gflags
 		extern_sdlew
 	)
+
+	if(NOT WITH_SYSTEM_GFLAGS)
+		list(APPEND BLENDER_SORTED_LIBS extern_gflags)
+	endif()
 
 	if(WITH_MOD_CLOTH_ELTOPO)
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)

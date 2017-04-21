@@ -41,9 +41,10 @@ if(WITH_LIBMV)
 	add_definitions(${GFLAGS_DEFINES})
 	add_definitions(${GLOG_DEFINES})
 	add_definitions(${CERES_DEFINES})
+	add_definitions(-DLIBMV_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 
 	list(APPEND INC
-		../../extern/gflags/src
+		${GFLAGS_INCLUDE_DIRS}
 		../../extern/glog/src
 		../../extern/ceres/include
 		../../extern/ceres/config
