@@ -176,9 +176,12 @@ endif()
 		extern_rangetree
 		extern_wcwidth
 		bf_intern_libmv
-		extern_glog
 		extern_sdlew
 	)
+
+	if(NOT WITH_SYSTEM_GLOG)
+		list(APPEND BLENDER_SORTED_LIBS extern_glog)
+	endif()
 
 	if(NOT WITH_SYSTEM_GFLAGS)
 		list(APPEND BLENDER_SORTED_LIBS extern_gflags)
