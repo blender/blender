@@ -13,7 +13,7 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 	float u = -atan(nco.y, nco.x) / (2.0 * 3.1415) + 0.5;
 	float v = atan(nco.z, hypot(nco.x, nco.y)) / 3.1415 + 0.5;
 
-	color = texture2D(ima, vec2(u, v));
+	color = texture(ima, vec2(u, v));
 }
 
 void main() {
