@@ -137,6 +137,7 @@ ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
 			label = bsdf_hair_transmission_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
+#ifdef __PRINCIPLED__
 		case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
 		case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
 			label = bsdf_principled_diffuse_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
@@ -146,6 +147,7 @@ ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
 			label = bsdf_principled_sheen_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
+#endif  /* __PRINCIPLED__ */
 #endif
 #ifdef __VOLUME__
 		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
@@ -243,6 +245,7 @@ float3 bsdf_eval(KernelGlobals *kg,
 			case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
 				eval = bsdf_hair_transmission_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
+#ifdef __PRINCIPLED__
 			case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
 			case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
 				eval = bsdf_principled_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
@@ -250,6 +253,7 @@ float3 bsdf_eval(KernelGlobals *kg,
 			case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
 				eval = bsdf_principled_sheen_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
+#endif  /* __PRINCIPLED__ */
 #endif
 #ifdef __VOLUME__
 			case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
@@ -323,6 +327,7 @@ float3 bsdf_eval(KernelGlobals *kg,
 			case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
 				eval = bsdf_hair_transmission_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
+#ifdef __PRINCIPLED__
 			case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
 			case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
 				eval = bsdf_principled_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
@@ -330,6 +335,7 @@ float3 bsdf_eval(KernelGlobals *kg,
 			case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
 				eval = bsdf_principled_sheen_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
+#endif  /* __PRINCIPLED__ */
 #endif
 #ifdef __VOLUME__
 			case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:

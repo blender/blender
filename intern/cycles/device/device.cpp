@@ -66,6 +66,8 @@ std::ostream& operator <<(std::ostream &os,
 	   << string_from_bool(requested_features.use_patch_evaluation) << std::endl;
 	os << "Use Transparent Shadows: "
 	   << string_from_bool(requested_features.use_transparent) << std::endl;
+	os << "Use Principled BSDF: "
+	   << string_from_bool(requested_features.use_principled) << std::endl;
 	return os;
 }
 

@@ -569,6 +569,9 @@ void ShaderManager::get_requested_graph_features(ShaderGraph *graph,
 			if(CLOSURE_IS_VOLUME(bsdf_node->closure)) {
 				requested_features->nodes_features |= NODE_FEATURE_VOLUME;
 			}
+			else if(CLOSURE_IS_PRINCIPLED(bsdf_node->closure)) {
+				requested_features->use_principled = true;
+			}
 		}
 		if(node->has_surface_bssrdf()) {
 			requested_features->use_subsurface = true;

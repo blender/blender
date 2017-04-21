@@ -76,6 +76,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
 
 	switch(type) {
+#ifdef __PRINCIPLED__
 		case CLOSURE_BSDF_PRINCIPLED_ID: {
 			uint specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset, sheen_offset,
 				sheen_tint_offset, clearcoat_offset, clearcoat_gloss_offset, eta_offset, transparency_offset,
@@ -408,6 +409,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			break;
 		}
+#endif  /* __PRINCIPLED__ */
 		case CLOSURE_BSDF_DIFFUSE_ID: {
 			float3 weight = sd->svm_closure_weight * mix_weight;
 			OrenNayarBsdf *bsdf = (OrenNayarBsdf*)bsdf_alloc(sd, sizeof(OrenNayarBsdf), weight);
