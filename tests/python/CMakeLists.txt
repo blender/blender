@@ -443,7 +443,7 @@ if(WITH_CYCLES)
 	endif()
 endif()
 
-if(WITH_ALEMBIC AND NOT APPLE)
+if(WITH_ALEMBIC)
 	find_package_wrapper(Alembic)
 	if(NOT ALEMBIC_FOUND)
 		message(FATAL_ERROR "Alembic is enabled but cannot be found")
