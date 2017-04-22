@@ -84,8 +84,6 @@ GHOST_ContextGLX::GHOST_ContextGLX(
 GHOST_ContextGLX::~GHOST_ContextGLX()
 {
 	if (m_display != NULL) {
-		activateGLXEW();
-
 		if (m_context != None) {
 			if (m_window != 0 && m_context == ::glXGetCurrentContext())
 				::glXMakeCurrent(m_display, None, NULL);
