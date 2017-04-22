@@ -710,17 +710,8 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 		params.shadingsystem = SHADINGSYSTEM_OSL;
 	
 	/* color managagement */
-#ifdef GLEW_MX
-	/* When using GLEW MX we need to check whether we've got an OpenGL
-	 * context for current window. This is because command line rendering
-	 * doesn't have OpenGL context actually.
-	 */
-	if(glewGetContext() != NULL)
-#endif
-	{
-		params.display_buffer_linear = GLEW_ARB_half_float_pixel &&
-		                               b_engine.support_display_space_shader(b_scene);
-	}
+	params.display_buffer_linear = GLEW_ARB_half_float_pixel &&
+	                               b_engine.support_display_space_shader(b_scene);
 
 	if(b_engine.is_preview()) {
 		/* For preview rendering we're using same timeout as

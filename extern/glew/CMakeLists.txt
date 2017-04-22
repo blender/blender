@@ -48,8 +48,4 @@ set(SRC
 
 add_definitions(${GL_DEFINITIONS})
 
-if(WITH_GLEW_MX)
-	add_definitions(-DGLEW_MX)
-endif()
-
 blender_add_lib(extern_glew "${SRC}" "${INC}" "${INC_SYS}")

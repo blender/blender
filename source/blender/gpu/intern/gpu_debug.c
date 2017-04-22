@@ -161,21 +161,21 @@ void gpu_debug_init(void)
 		fprintf(stderr, "Using %s\n", GLEW_VERSION_4_3 ? "OpenGL 4.3 debug facilities" : "KHR_debug extension");
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback((GLDEBUGPROC)gpu_debug_proc, mxGetCurrentContext());
+		glDebugMessageCallback((GLDEBUGPROC)gpu_debug_proc, NULL);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(success);
 	}
 	else if (GLEW_ARB_debug_output) {
 		fprintf(stderr, "Using ARB_debug_output extension\n");
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallbackARB((GLDEBUGPROCARB)gpu_debug_proc, mxGetCurrentContext());
+		glDebugMessageCallbackARB((GLDEBUGPROCARB)gpu_debug_proc, NULL);
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(success);
 	}
 #  if LEGACY_DEBUG
 	else if (GLEW_AMD_debug_output) {
 		fprintf(stderr, "Using AMD_debug_output extension\n");
-		glDebugMessageCallbackAMD(gpu_debug_proc_amd, mxGetCurrentContext());
+		glDebugMessageCallbackAMD(gpu_debug_proc_amd, NULL);
 		glDebugMessageEnableAMD(GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(success);
 	}

@@ -48,10 +48,6 @@ static GLuint _glewStrLen(const GLubyte *s);
 static GLboolean _glewSearchExtension(const char *name, const GLubyte *start, const GLubyte *end);
 #endif
 
-#ifdef WITH_GLEW_MX
-GLXEWContext *glxewContext = NULL;
-#endif
-
 GLXContext GHOST_ContextGLX::s_sharedContext = None;
 int        GHOST_ContextGLX::s_sharedCount   = 0;
 
@@ -79,10 +75,6 @@ GHOST_ContextGLX::GHOST_ContextGLX(
       m_contextFlags(contextFlags),
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
       m_context(None)
-#ifdef WITH_GLEW_MX
-      ,
-      m_glxewContext(NULL)
-#endif
 {
 	assert(m_window  != 0);
 	assert(m_display != NULL);
@@ -109,11 +101,6 @@ GHOST_ContextGLX::~GHOST_ContextGLX()
 				::glXDestroyContext(m_display, m_context);
 			}
 		}
-
-#ifdef WITH_GLEW_MX
-		if (m_glxewContext)
-			delete m_glxewContext;
-#endif
 	}
 }
 
@@ -129,9 +116,6 @@ GHOST_TSuccess GHOST_ContextGLX::swapBuffers()
 GHOST_TSuccess GHOST_ContextGLX::activateDrawingContext()
 {
 	if (m_display) {
-		activateGLXEW();
-		activateGLEW();
-
 		return ::glXMakeCurrent(m_display, m_window, m_context) ? GHOST_kSuccess : GHOST_kFailure;
 	}
 	else {
@@ -141,15 +125,6 @@ GHOST_TSuccess GHOST_ContextGLX::activateDrawingContext()
 
 void GHOST_ContextGLX::initContextGLXEW()
 {
-#ifdef WITH_GLEW_MX
-	glxewContext = new GLXEWContext;
-	memset(glxewContext, 0, sizeof(GLXEWContext));
-
-	if (m_glxewContext)
-		delete m_glxewContext;
-	m_glxewContext = glxewContext;
-#endif
-
 	initContextGLEW();
 }
 

@@ -97,8 +97,6 @@ GHOST_TSuccess GHOST_ContextSDL::swapBuffers()
 GHOST_TSuccess GHOST_ContextSDL::activateDrawingContext()
 {
 	if (m_context) {
-		activateGLEW();
-
 		return SDL_GL_MakeCurrent(m_window, m_context) ? GHOST_kSuccess : GHOST_kFailure;
 	}
 	else {

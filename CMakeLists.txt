@@ -466,7 +466,6 @@ endif()
 
 # OpenGL
 
-option(WITH_GLEW_MX             "Support multiple GLEW contexts (experimental)"                                                                     OFF )
 option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
 option(WITH_GL_EGL              "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, glX, or WGL)"       OFF)
 option(WITH_GL_PROFILE_COMPAT   "Support using the OpenGL 'compatibility' profile. (deprecated)"                                                    ON )
@@ -474,7 +473,6 @@ option(WITH_GL_PROFILE_CORE     "Support using the OpenGL 3.3+ 'core' profile." 
 option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (thru either EGL or the AGL/WGL/XGL 'es20' profile)"                                  OFF)
 
 mark_as_advanced(
-	WITH_GLEW_MX
 	WITH_GLEW_ES
 	WITH_GL_EGL
 	WITH_GL_PROFILE_COMPAT
@@ -1224,10 +1222,6 @@ endif()
 #-----------------------------------------------------------------------------
 # Configure GLEW
 
-if(WITH_GLEW_MX)
-	list(APPEND GL_DEFINITIONS -DWITH_GLEW_MX)
-endif()
-
 if(WITH_SYSTEM_GLEW)
 	find_package(GLEW)
 
@@ -1237,11 +1231,7 @@ if(WITH_SYSTEM_GLEW)
 		message(FATAL_ERROR "GLEW is required to build Blender. Install it or disable WITH_SYSTEM_GLEW.")
 	endif()
 
-	if(WITH_GLEW_MX)
-		set(BLENDER_GLEW_LIBRARIES ${GLEW_MX_LIBRARY})
-	else()
-		set(BLENDER_GLEW_LIBRARIES ${GLEW_LIBRARY})
-	endif()
+	set(BLENDER_GLEW_LIBRARIES ${GLEW_LIBRARY})
 else()
 	if(WITH_GLEW_ES)
 		set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew-es/include")

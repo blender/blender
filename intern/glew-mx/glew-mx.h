@@ -49,35 +49,12 @@
 #ifndef __GLEW_MX_H__
 #define __GLEW_MX_H__
 
-#ifdef WITH_GLEW_MX
-/* glew itself expects this */
-#  define GLEW_MX 1
-#  define glewGetContext() (&(_mx_context->glew_context))
-#endif
-
 #include <GL/glew.h>
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* MXContext is used instead of GLEWContext directly so that
-   extending what data is held by a context is easier.
- */
-typedef struct MXContext {
-#ifdef WITH_GLEW_MX
-	GLEWContext glew_context;
-#endif
-
-	int reserved; /* structs need at least one member */
-
-} MXContext;
-
-#ifdef WITH_GLEW_MX
-extern MXContext *_mx_context;
-#endif
-
 
 #include "intern/symbol-binding.h"
 
@@ -88,12 +65,6 @@ extern MXContext *_mx_context;
 #if (!defined(WITH_LEGACY_OPENGL)) || defined(WITH_GL_PROFILE_CORE) && !defined(WITH_GL_PROFILE_COMPAT) && !defined(WITH_GL_PROFILE_ES20)
 #  include "intern/gl-deprecated.h"
 #endif
-
-
-MXContext *mxCreateContext     (void);
-MXContext *mxGetCurrentContext (void);
-void       mxMakeCurrentContext(MXContext *ctx);
-void       mxDestroyContext    (MXContext *ctx);
 
 GLenum glew_chk(GLenum error, const char *file, int line, const char *text);
 

@@ -34,16 +34,7 @@
 
 #include "GHOST_Context.h"
 
-#ifdef WITH_GLEW_MX
-#  define eglewGetContext() eglewContext
-#endif
-
 #include <GL/eglew.h>
-
-#ifdef WITH_GLEW_MX
-extern "C" EGLEWContext *eglewContext;
-#endif
-
 
 #ifndef GHOST_OPENGL_EGL_CONTEXT_FLAGS
 #define GHOST_OPENGL_EGL_CONTEXT_FLAGS 0
@@ -116,13 +107,6 @@ public:
 	 */
 	GHOST_TSuccess getSwapInterval(int &intervalOut);
 
-protected:
-	inline void activateEGLEW() const {
-#ifdef WITH_GLEW_MX
-		eglewContext = m_eglewContext;
-#endif
-	}
-
 private:
 	void initContextEGLEW();
 
@@ -142,10 +126,6 @@ private:
 	EGLDisplay m_display;
 
 	EGLint m_swap_interval;
-
-#ifdef WITH_GLEW_MX
-	EGLEWContext *m_eglewContext;
-#endif
 
 	EGLContext &m_sharedContext;
 	EGLint     &m_sharedCount;

@@ -36,15 +36,7 @@
 
 #include "GHOST_Context.h"
 
-#ifdef WITH_GLEW_MX
-#define wglewGetContext() wglewContext
-#endif
-
 #include <GL/wglew.h>
-
-#ifdef WITH_GLEW_MX 
-extern "C" WGLEWContext *wglewContext;
-#endif
 
 #ifndef GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY
 #define GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY 0
@@ -113,13 +105,6 @@ public:
 	 */
 	GHOST_TSuccess getSwapInterval(int &intervalOut);
 
-protected:
-	inline void activateWGLEW() const {
-#ifdef WITH_GLEW_MX 
-		wglewContext = m_wglewContext;
-#endif
-	}
-
 private:
 	int choose_pixel_format(
 	        bool stereoVisual,
@@ -163,10 +148,6 @@ private:
 	const int m_contextResetNotificationStrategy;
 
 	HGLRC m_hGLRC;
-
-#ifdef WITH_GLEW_MX 
-	WGLEWContext *m_wglewContext;
-#endif
 	
 #ifndef NDEBUG
 	const char *m_dummyVendor;

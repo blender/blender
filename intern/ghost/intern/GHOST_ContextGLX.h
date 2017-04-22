@@ -34,15 +34,7 @@
 
 #include "GHOST_Context.h"
 
-#ifdef WITH_GLEW_MX
-#  define glxewGetContext() glxewContext
-#endif
-
 #include <GL/glxew.h>
-
-#ifdef WITH_GLEW_MX
-extern "C" GLXEWContext *glxewContext;
-#endif
 
 
 #ifndef GHOST_OPENGL_GLX_CONTEXT_FLAGS
@@ -117,13 +109,6 @@ public:
 	 */
 	GHOST_TSuccess getSwapInterval(int &intervalOut);
 
-protected:
-	inline void activateGLXEW() const {
-#ifdef WITH_GLEW_MX
-		glxewContext = m_glxewContext;
-#endif
-	}
-
 private:
 	void initContextGLXEW();
 
@@ -139,10 +124,6 @@ private:
 	const int m_contextResetNotificationStrategy;
 
 	GLXContext m_context;
-
-#ifdef WITH_GLEW_MX
-	GLXEWContext *m_glxewContext;
-#endif
 
 	/** The first created OpenGL context (for sharing display lists) */
 	static GLXContext s_sharedContext;
