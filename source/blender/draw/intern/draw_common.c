@@ -193,7 +193,7 @@ DRWShadingGroup *shgroup_instance_objspace_wire(DRWPass *pass, struct Batch *geo
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
 	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
 	DRW_shgroup_attrib_float(grp, "color", 4);
-	DRW_shgroup_uniform_mat4(grp, "ModelMatrix", (float *)obmat);
+	DRW_shgroup_uniform_mat4(grp, "ObjectModelMatrix", (float *)obmat);
 
 	return grp;
 }
