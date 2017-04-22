@@ -299,7 +299,8 @@ GPUTexture *DRW_texture_create_2D(int w, int h, DRWTextureFormat format, DRWText
 	return tex;
 }
 
-GPUTexture *DRW_texture_create_2D_array(int w, int h, int d, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels)
+GPUTexture *DRW_texture_create_2D_array(
+        int w, int h, int d, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels)
 {
 	GPUTexture *tex;
 	GPUTextureFormat data_type;
@@ -362,7 +363,8 @@ GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *fra
 	return GPU_shader_create(vert, frag, geom, NULL, defines);
 }
 
-GPUShader *DRW_shader_create_with_lib(const char *vert, const char *geom, const char *frag, const char *lib, const char *defines)
+GPUShader *DRW_shader_create_with_lib(
+        const char *vert, const char *geom, const char *frag, const char *lib, const char *defines)
 {
 	GPUShader *sh;
 	char *vert_with_lib = NULL;
@@ -700,10 +702,12 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next) {
 			BLI_assert(attrib->size <= 4); /* matrices have no place here for now */
 			if (attrib->type == DRW_ATTRIB_FLOAT) {
-				attrib->format_id = VertexFormat_add_attrib(&interface->vbo_format, attrib->name, COMP_F32, attrib->size, KEEP_FLOAT);
+				attrib->format_id = VertexFormat_add_attrib(
+				        &interface->vbo_format, attrib->name, COMP_F32, attrib->size, KEEP_FLOAT);
 			}
 			else if (attrib->type == DRW_ATTRIB_INT) {
-				attrib->format_id = VertexFormat_add_attrib(&interface->vbo_format, attrib->name, COMP_I8, attrib->size, KEEP_INT);
+				attrib->format_id = VertexFormat_add_attrib(
+				        &interface->vbo_format, attrib->name, COMP_I8, attrib->size, KEEP_INT);
 			}
 			else {
 				BLI_assert(false);
@@ -1060,12 +1064,14 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 		switch (uni->type) {
 			case DRW_UNIFORM_BOOL:
 			case DRW_UNIFORM_INT:
-				GPU_shader_uniform_vector_int(shgroup->shader, uni->location, uni->length, uni->arraysize, (int *)uni->value);
+				GPU_shader_uniform_vector_int(
+				        shgroup->shader, uni->location, uni->length, uni->arraysize, (int *)uni->value);
 				break;
 			case DRW_UNIFORM_FLOAT:
 			case DRW_UNIFORM_MAT3:
 			case DRW_UNIFORM_MAT4:
-				GPU_shader_uniform_vector(shgroup->shader, uni->location, uni->length, uni->arraysize, (float *)uni->value);
+				GPU_shader_uniform_vector(
+				        shgroup->shader, uni->location, uni->length, uni->arraysize, (float *)uni->value);
 				break;
 			case DRW_UNIFORM_TEXTURE:
 				tex = (GPUTexture *)uni->value;
@@ -1250,16 +1256,17 @@ static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *
 	}
 }
 
-void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX],
-                          int texnbr)
+void DRW_framebuffer_init(
+        struct GPUFrameBuffer **fb, int width, int height,
+        DRWFboTexture textures[MAX_FBO_TEX], int textures_len)
 {
-	BLI_assert(texnbr <= MAX_FBO_TEX);
+	BLI_assert(textures_len <= MAX_FBO_TEX);
 
 	if (!*fb) {
 		int color_attachment = -1;
 		*fb = GPU_framebuffer_create();
 
-		for (int i = 0; i < texnbr; ++i) {
+		for (int i = 0; i < textures_len; ++i) {
 			int channels;
 			bool is_depth;
 

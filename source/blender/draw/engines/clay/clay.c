@@ -372,7 +372,8 @@ static void CLAY_engine_init(void *vedata)
 		/* convert the view vectors to view space */
 		for (i = 0; i < 3; i++) {
 			mul_m4_v4(invproj, viewvecs[i]);
-			/* normalized trick see http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
+			/* normalized trick see:
+			 * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
 			mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][3]);
 			if (is_persp)
 				mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]);
@@ -429,9 +430,10 @@ static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *vedata, DRWPass *pass, in
 	return grp;
 }
 
-static int search_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                             float matcap_val, float ssao_distance, float ssao_factor_cavity,
-                             float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
+static int search_mat_to_ubo(
+        CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
+        float matcap_val, float ssao_distance, float ssao_factor_cavity,
+        float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
 {
 	/* For now just use a linear search and test all parameters */
 	/* TODO make a hash table */
@@ -547,7 +549,9 @@ static void CLAY_cache_init(void *vedata)
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
-		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
+		psl->depth_pass_cull = DRW_pass_create(
+		        "Depth Pass Cull",
+		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
 		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
 	}
 

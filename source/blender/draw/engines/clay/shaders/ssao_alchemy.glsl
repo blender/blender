@@ -6,7 +6,9 @@
 /*  from The Alchemy screen-space ambient obscurance algorithm
  * http://graphics.cs.williams.edu/papers/AlchemyHPG11/VV11AlchemyAO.pdf */
 
-void ssao_factors(in float depth, in vec3 normal, in vec3 position, in vec2 screenco, out float cavities, out float edges)
+void ssao_factors(
+        in float depth, in vec3 normal, in vec3 position, in vec2 screenco,
+        out float cavities, out float edges)
 {
 	/* take the normalized ray direction here */
 	vec2 rotX = texture(ssao_jitter, screenco.xy * jitter_tilling).rg;

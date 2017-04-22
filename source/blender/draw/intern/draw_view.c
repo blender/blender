@@ -103,7 +103,9 @@ static int gridline_count(ARegion *ar, double x0, double y0, double dx)
 	return total_ct;
 }
 
-static bool drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip_mod, unsigned pos, unsigned col, GLubyte col_value[3])
+static bool drawgrid_draw(
+        ARegion *ar, double x0, double y0, double dx, int skip_mod,
+        unsigned pos, unsigned col, GLubyte col_value[3])
 {
 	/* skip every skip_mod lines relative to each axis; they will be overlaid by another drawgrid_draw
 	* always skip exact x0 & y0 axes; they will be drawn later in color
@@ -297,8 +299,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 		if (grids_to_draw == 2) {
 			UI_GetThemeColorBlend3ubv(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0), col2);
-			if (drawgrid_draw(ar, x, y, dx, v3d->gridsubdiv, pos, color, col2))
+			if (drawgrid_draw(ar, x, y, dx, v3d->gridsubdiv, pos, color, col2)) {
 				drawgrid_draw(ar, x, y, dx * sublines, 0, pos, color, col);
+			}
 		}
 		else if (grids_to_draw == 1) {
 			drawgrid_draw(ar, x, y, dx, 0, pos, color, col);

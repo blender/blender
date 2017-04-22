@@ -190,7 +190,9 @@ typedef struct DRWFboTexture {
 	DRWTextureFlag flag;
 } DRWFboTexture;
 
-void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRWFboTexture textures[MAX_FBO_TEX], int texnbr);
+void DRW_framebuffer_init(
+        struct GPUFrameBuffer **fb, int width, int height,
+        DRWFboTexture textures[MAX_FBO_TEX], int textures_len);
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
 void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col[4], float clear_depth);
 void DRW_framebuffer_read_data(int x, int y, int w, int h, int channels, int slot, float *data);
@@ -200,8 +202,10 @@ void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer 
 void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *UNUSED(fb_read), int w, int h);
 
 /* Shaders */
-struct GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *frag, const char *defines);
-struct GPUShader *DRW_shader_create_with_lib(const char *vert, const char *geom, const char *frag, const char *lib, const char *defines);
+struct GPUShader *DRW_shader_create(
+        const char *vert, const char *geom, const char *frag, const char *defines);
+struct GPUShader *DRW_shader_create_with_lib(
+        const char *vert, const char *geom, const char *frag, const char *lib, const char *defines);
 struct GPUShader *DRW_shader_create_2D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);

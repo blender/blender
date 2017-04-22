@@ -403,7 +403,8 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 /* this function set the object space to use
  * for all subsequent DRW_shgroup_bone_*** calls */
 static void DRW_shgroup_armature(
-    Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWShadingGroup *shgrp_relationship_lines)
+        Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire,
+        DRWShadingGroup *shgrp_relationship_lines)
 {
 	current_armature = ob;
 	bone_octahedral_solid = NULL;
@@ -418,7 +419,8 @@ static void DRW_shgroup_armature(
 }
 
 void DRW_shgroup_armature_object(
-    Object *ob, SceneLayer *sl, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWShadingGroup *shgrp_relationship_lines)
+        Object *ob, SceneLayer *sl, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire,
+        DRWShadingGroup *shgrp_relationship_lines)
 {
 	float *color;
 	DRW_object_wire_theme_get(ob, sl, &color);
@@ -428,14 +430,16 @@ void DRW_shgroup_armature_object(
 }
 
 void DRW_shgroup_armature_pose(
-    Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWShadingGroup *shgrp_relationship_lines)
+        Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire,
+        DRWShadingGroup *shgrp_relationship_lines)
 {
 	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, shgrp_relationship_lines);
 	draw_armature_pose(ob, NULL);
 }
 
 void DRW_shgroup_armature_edit(
-    Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWShadingGroup *shgrp_relationship_lines)
+        Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire,
+        DRWShadingGroup *shgrp_relationship_lines)
 {
 	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, shgrp_relationship_lines);
 	draw_armature_edit(ob);

@@ -49,7 +49,9 @@ float get_max_horizon(in vec2 co, in vec3 x, in vec3 omega_o, in float h)
 	return h;
 }
 
-void ssao_factors(in float depth, in vec3 normal, in vec3 position, in vec2 screenco, out float cavities, out float edges)
+void ssao_factors(
+        in float depth, in vec3 normal, in vec3 position, in vec2 screenco,
+        out float cavities, out float edges)
 {
 	/* Renaming */
 	vec3 omega_o = -normalize(position); /* viewvec */

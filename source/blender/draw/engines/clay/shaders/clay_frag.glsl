@@ -153,7 +153,9 @@ void hue_sat(float hue, float sat, float value, inout vec3 col)
 
 #ifdef USE_AO
 /* Prototype */
-void ssao_factors(in float depth, in vec3 normal, in vec3 position, in vec2 screenco, out float cavities, out float edges);
+void ssao_factors(
+        in float depth, in vec3 normal, in vec3 position, in vec2 screenco,
+        out float cavities, out float edges);
 #endif
 
 void main() {
