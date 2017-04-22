@@ -82,7 +82,7 @@ static void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const 
 		bone_octahedral_solid = shgroup_instance_objspace_solid(bone_solid, geom, current_armature->obmat);
 	}
 
-	DRW_shgroup_dynamic_call_add(bone_octahedral_solid, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(bone_octahedral_solid, bone_mat, color);
 }
 
 static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const float color[4])
@@ -92,7 +92,7 @@ static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const f
 		bone_octahedral_wire = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
 	}
 
-	DRW_shgroup_dynamic_call_add(bone_octahedral_wire, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(bone_octahedral_wire, bone_mat, color);
 }
 
 /* Head and tail sphere */
@@ -103,7 +103,7 @@ static void DRW_shgroup_bone_point_solid(const float (*bone_mat)[4], const float
 		bone_point_solid = shgroup_instance_objspace_solid(bone_solid, geom, current_armature->obmat);
 	}
 
-	DRW_shgroup_dynamic_call_add(bone_point_solid, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(bone_point_solid, bone_mat, color);
 }
 
 static void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float color[4])
@@ -113,7 +113,7 @@ static void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float 
 		bone_point_wire = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
 	}
 
-	DRW_shgroup_dynamic_call_add(bone_point_wire, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(bone_point_wire, bone_mat, color);
 }
 
 /* Axes */
@@ -124,14 +124,14 @@ static void DRW_shgroup_bone_axes(const float (*bone_mat)[4], const float color[
 		bone_axes = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
 	}
 
-	DRW_shgroup_dynamic_call_add(bone_axes, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(bone_axes, bone_mat, color);
 }
 
 /* Relationship lines */
 static void UNUSED_FUNCTION(DRW_shgroup_bone_relationship_lines)(const float head[3], const float tail[3])
 {
-	DRW_shgroup_dynamic_call_add(relationship_lines, head);
-	DRW_shgroup_dynamic_call_add(relationship_lines, tail);
+	DRW_shgroup_call_dynamic_add(relationship_lines, head);
+	DRW_shgroup_call_dynamic_add(relationship_lines, tail);
 }
 
 /* *************** Armature Drawing - Coloring API ***************************** */

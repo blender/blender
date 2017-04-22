@@ -299,7 +299,7 @@ static DRWShadingGroup *eevee_cube_shgroup(struct GPUShader *sh, DRWPass *pass, 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
 
 	for (int i = 0; i < 6; ++i)
-		DRW_shgroup_dynamic_call_add_empty(grp);
+		DRW_shgroup_call_dynamic_add_empty(grp);
 
 	return grp;
 }
@@ -311,7 +311,7 @@ static DRWShadingGroup *eevee_cube_shadow_shgroup(EEVEE_PassList *psl, EEVEE_Sto
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 
 	for (int i = 0; i < 6; ++i)
-		DRW_shgroup_dynamic_call_add_empty(grp);
+		DRW_shgroup_call_dynamic_add_empty(grp);
 
 	return grp;
 }
@@ -323,7 +323,7 @@ static DRWShadingGroup *eevee_cascade_shadow_shgroup(EEVEE_PassList *psl, EEVEE_
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 
 	for (int i = 0; i < MAX_CASCADE_NUM; ++i)
-		DRW_shgroup_dynamic_call_add_empty(grp);
+		DRW_shgroup_call_dynamic_add_empty(grp);
 
 	return grp;
 }

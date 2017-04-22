@@ -158,17 +158,17 @@ typedef struct DRWCall {
 	float (*obmat)[4];
 } DRWCall;
 
-typedef struct DRWDynamicCall {
-	struct DRWDynamicCall *next, *prev;
+typedef struct DRWCallDynamic {
+	struct DRWCallDynamic *next, *prev;
 	const void *data[];
-} DRWDynamicCall;
+} DRWCallDynamic;
 
 struct DRWShadingGroup {
 	struct DRWShadingGroup *next, *prev;
 
 	GPUShader *shader;               /* Shader to bind */
 	DRWInterface *interface;         /* Uniforms pointers */
-	ListBase calls;                  /* DRWCall or DRWDynamicCall depending of type*/
+	ListBase calls;                  /* DRWCall or DRWCallDynamic depending of type */
 	DRWState state;                  /* State changes for this batch only */
 	int type;
 
@@ -588,13 +588,13 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 	BLI_addtail(&shgroup->calls, call);
 }
 
-void DRW_shgroup_dynamic_call_add_array(DRWShadingGroup *shgroup, const void *attr[], unsigned int attr_len)
+void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *attr[], unsigned int attr_len)
 {
 	DRWInterface *interface = shgroup->interface;
 	unsigned int data_size = sizeof(void *) * interface->attribs_count;
 	int size = sizeof(ListBase) + data_size;
 
-	DRWDynamicCall *call = MEM_callocN(size, "DRWDynamicCall");
+	DRWCallDynamic *call = MEM_callocN(size, "DRWCallDynamic");
 
 	BLI_assert(attr_len == interface->attribs_count);
 
@@ -684,7 +684,7 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
 
 #ifdef WITH_CLAY_ENGINE
 
-/* Creates a VBO containing OGL primitives for all DRWDynamicCall */
+/* Creates a VBO containing OGL primitives for all DRWCallDynamic */
 static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 {
 	DRWInterface *interface = shgroup->interface;
@@ -715,7 +715,7 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 	VertexBuffer_allocate_data(vbo, nbr);
 
 	int j = 0;
-	for (DRWDynamicCall *call = shgroup->calls.first; call; call = call->next, j++) {
+	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->next, j++) {
 		int i = 0;
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, i++) {
 			VertexBuffer_set_attrib(vbo, attrib->format_id, j, call->data[i]);
@@ -759,7 +759,7 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	buffer_size = sizeof(float) * interface->attribs_stride * vert_nbr;
 	float *data = MEM_mallocN(buffer_size, "Instance VBO data");
 
-	for (DRWDynamicCall *call = shgroup->calls.first; call; call = call->next) {
+	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->next) {
 		for (int j = 0; j < interface->attribs_count; ++j) {
 			memcpy(data + offset, call->data[j], sizeof(float) * interface->attribs_size[j]);
 			offset += interface->attribs_size[j];
