@@ -17,6 +17,7 @@ set BUILD_CMAKE_ARGS=
 set BUILD_ARCH=
 set BUILD_VS_VER=
 set BUILD_VS_YEAR=
+set BUILD_NGE=
 set KEY_NAME=
 set MSBUILD_PLATFORM=
 set MUST_CLEAN=
@@ -36,6 +37,9 @@ if NOT "%1" == "" (
 	if "%1" == "debug" (
 		set BUILD_TYPE=Debug
 	REM Build Configurations
+	) else if "%1" == "noge" (
+		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_GAMEENGINE=OFF -DWITH_PLAYER=OFF
+		set BUILD_NGE=_noge
 	) else if "%1" == "builddir" (
 		set BUILD_DIR_OVERRRIDE="%BLENDER_DIR%..\%2"
 		shift /1
@@ -189,7 +193,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 
-set BUILD_DIR=%BUILD_DIR%_%TARGET%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
+set BUILD_DIR=%BUILD_DIR%_%TARGET%%BUILD_NGE%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
 if NOT "%BUILD_DIR_OVERRRIDE%"=="" (
 	set BUILD_DIR=%BUILD_DIR_OVERRRIDE%
 )
@@ -293,6 +297,7 @@ goto EOF
 		echo.
 		echo Configuration options
 		echo - with_tests ^(enable building unit tests^)
+		echo - noge ^(disable building game enginge and player^)
 		echo - debug ^(Build an unoptimized debuggable build^)
 		echo - packagename [newname] ^(override default cpack package name^)
 		echo - buildir [newdir] ^(override default build folder^)
