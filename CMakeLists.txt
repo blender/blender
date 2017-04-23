@@ -736,7 +736,9 @@ if(WITH_AUDASPACE)
 	endif()
 endif()
 
-apple_check_quicktime()
+if(APPLE)
+	apple_check_quicktime()
+endif()
 
 #-----------------------------------------------------------------------------
 # Check for valid directories
