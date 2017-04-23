@@ -25,6 +25,10 @@
 
 set(MACOSX_DEPLOYMENT_TARGET "10.9")
 
+macro(find_package_wrapper)
+# do nothing, just satisfy the macro
+endmacro()
+
 if(NOT DEFINED LIBDIR)
 	if(WITH_CXX11)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
@@ -54,6 +58,7 @@ if(WITH_ALEMBIC)
 	set(ALEMBIC_INCLUDE_DIRS ${ALEMBIC_INCLUDE_DIR})
 	set(ALEMBIC_LIBPATH ${ALEMBIC}/lib)
 	set(ALEMBIC_LIBRARIES Alembic)
+	set(ALEMBIC_FOUND ON)
 endif()
 
 if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
