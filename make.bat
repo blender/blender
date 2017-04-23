@@ -1,7 +1,7 @@
 @echo off
 REM This batch file does an out-of-source CMake build in ../build_windows
 REM This is for users who like to configure & build Blender with a single command.
-
+setlocal EnableDelayedExpansion
 setlocal ENABLEEXTENSIONS
 set BLENDER_DIR=%~dp0
 set BLENDER_DIR_NOSPACES=%BLENDER_DIR: =%
@@ -12,6 +12,7 @@ if not "%BLENDER_DIR%"=="%BLENDER_DIR_NOSPACES%" (
 set BUILD_DIR=%BLENDER_DIR%..\build_windows
 set BUILD_TYPE=Release
 rem reset all variables so they do not get accidentally get carried over from previous builds
+set BUILD_DIR_OVERRRIDE=
 set BUILD_CMAKE_ARGS=
 set BUILD_ARCH=
 set BUILD_VS_VER=
@@ -35,6 +36,9 @@ if NOT "%1" == "" (
 	if "%1" == "debug" (
 		set BUILD_TYPE=Debug
 	REM Build Configurations
+	) else if "%1" == "builddir" (
+		set BUILD_DIR_OVERRRIDE="%BLENDER_DIR%..\%2"
+		shift /1
 	) else if "%1" == "with_tests" (
 		set TESTS_CMAKE_ARGS=-DWITH_GTESTS=On
 	) else if "%1" == "full" (
@@ -186,7 +190,9 @@ if %ERRORLEVEL% NEQ 0 (
 
 
 set BUILD_DIR=%BUILD_DIR%_%TARGET%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
-
+if NOT "%BUILD_DIR_OVERRRIDE%"=="" (
+	set BUILD_DIR=%BUILD_DIR_OVERRRIDE%
+)
 
 where /Q cmake
 if %ERRORLEVEL% NEQ 0 (
@@ -289,6 +295,7 @@ goto EOF
 		echo - with_tests ^(enable building unit tests^)
 		echo - debug ^(Build an unoptimized debuggable build^)
 		echo - packagename [newname] ^(override default cpack package name^)
+		echo - buildir [newdir] ^(override default build folder^)
 		echo - x86 ^(override host auto-detect and build 32 bit code^)
 		echo - x64 ^(override host auto-detect and build 64 bit code^)
 		echo - 2013 ^(build with visual studio 2013^)
