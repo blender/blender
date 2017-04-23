@@ -75,16 +75,8 @@ elseif(APPLE)
 	set(WITH_JACK                ON  CACHE BOOL "" FORCE)
 	set(WITH_CODEC_QUICKTIME     ON  CACHE BOOL "" FORCE)
 	set(WITH_OPENSUBDIV          OFF CACHE BOOL "" FORCE)
+	set(WITH_CODEC_QUICKTIME     ON  CACHE BOOL "" FORCE)
 
-	if(NOT DEFINED OSX_SYSTEM)
-		execute_process(
-			COMMAND xcodebuild -version -sdk macosx SDKVersion
-			OUTPUT_VARIABLE OSX_SYSTEM
-			OUTPUT_STRIP_TRAILING_WHITESPACE)
-	endif()
-
-	if(${OSX_SYSTEM} VERSION_GREATER 10.11)
-		set(WITH_CODEC_QUICKTIME     OFF  CACHE BOOL "" FORCE)
-		message(STATUS "QuickTime not supported by SDK ${OSX_SYSTEM}, disabling WITH_CODEC_QUICKTIME")
-	endif()
+	include("${CMAKE_SOURCE_DIR}/build_files/cmake/platform/platform_apple_xcode.cmake")
+	apple_check_quicktime()
 endif()
