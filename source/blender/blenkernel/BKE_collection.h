@@ -67,27 +67,27 @@ void BKE_scene_collections_callback(struct Scene *scene, BKE_scene_collections_C
 void BKE_scene_objects_callback(struct Scene *scene, BKE_scene_objects_Cb callback, void *data);
 
 /* iterators */
-void BKE_scene_collections_Iterator_begin(struct Iterator *iter, void *data_in);
-void BKE_scene_collections_Iterator_next(struct Iterator *iter);
-void BKE_scene_collections_Iterator_end(struct Iterator *iter);
+void BKE_scene_collections_iterator_begin(struct Iterator *iter, void *data_in);
+void BKE_scene_collections_iterator_next(struct Iterator *iter);
+void BKE_scene_collections_iterator_end(struct Iterator *iter);
 
-void BKE_scene_objects_Iterator_begin(struct Iterator *iter, void *data_in);
-void BKE_scene_objects_Iterator_next(struct Iterator *iter);
-void BKE_scene_objects_Iterator_end(struct Iterator *iter);
+void BKE_scene_objects_iterator_begin(struct Iterator *iter, void *data_in);
+void BKE_scene_objects_iterator_next(struct Iterator *iter);
+void BKE_scene_objects_iterator_end(struct Iterator *iter);
 
 #define FOREACH_SCENE_COLLECTION(scene, _instance)                            \
-	ITER_BEGIN(BKE_scene_collections_Iterator_begin,                          \
-	           BKE_scene_collections_Iterator_next,                           \
-	           BKE_scene_collections_Iterator_end,                            \
+	ITER_BEGIN(BKE_scene_collections_iterator_begin,                          \
+	           BKE_scene_collections_iterator_next,                           \
+	           BKE_scene_collections_iterator_end,                            \
 	           scene, SceneCollection *, _instance)
 
 #define FOREACH_SCENE_COLLECTION_END                                          \
 	ITER_END
 
 #define FOREACH_SCENE_OBJECT(scene, _instance)                                \
-	ITER_BEGIN(BKE_scene_objects_Iterator_begin,                              \
-	           BKE_scene_objects_Iterator_next,                               \
-	           BKE_scene_objects_Iterator_end,                                \
+	ITER_BEGIN(BKE_scene_objects_iterator_begin,                              \
+	           BKE_scene_objects_iterator_next,                               \
+	           BKE_scene_objects_iterator_end,                                \
 	           scene, Object *, _instance)
 
 #define FOREACH_SCENE_OBJECT_END                                              \

@@ -138,53 +138,53 @@ void BKE_layer_eval_layer_collection_post(struct EvaluationContext *eval_ctx,
 
 /* iterators */
 
-void BKE_selected_objects_Iterator_begin(Iterator *iter, void *data_in);
-void BKE_selected_objects_Iterator_next(Iterator *iter);
-void BKE_selected_objects_Iterator_end(Iterator *iter);
+void BKE_selected_objects_iterator_begin(Iterator *iter, void *data_in);
+void BKE_selected_objects_iterator_next(Iterator *iter);
+void BKE_selected_objects_iterator_end(Iterator *iter);
 
-void BKE_visible_objects_Iterator_begin(Iterator *iter, void *data_in);
-void BKE_visible_objects_Iterator_next(Iterator *iter);
-void BKE_visible_objects_Iterator_end(Iterator *iter);
+void BKE_visible_objects_iterator_begin(Iterator *iter, void *data_in);
+void BKE_visible_objects_iterator_next(Iterator *iter);
+void BKE_visible_objects_iterator_end(Iterator *iter);
 
-void BKE_selected_bases_Iterator_begin(Iterator *iter, void *data_in);
-void BKE_selected_bases_Iterator_next(Iterator *iter);
-void BKE_selected_bases_Iterator_end(Iterator *iter);
+void BKE_selected_bases_iterator_begin(Iterator *iter, void *data_in);
+void BKE_selected_bases_iterator_next(Iterator *iter);
+void BKE_selected_bases_iterator_end(Iterator *iter);
 
-void BKE_visible_bases_Iterator_begin(Iterator *iter, void *data_in);
-void BKE_visible_bases_Iterator_next(Iterator *iter);
-void BKE_visible_bases_Iterator_end(Iterator *iter);
+void BKE_visible_bases_iterator_begin(Iterator *iter, void *data_in);
+void BKE_visible_bases_iterator_next(Iterator *iter);
+void BKE_visible_bases_iterator_end(Iterator *iter);
 
 #define FOREACH_SELECTED_OBJECT(sl, _instance)                                \
-	ITER_BEGIN(BKE_selected_objects_Iterator_begin,                           \
-	           BKE_selected_objects_Iterator_next,                            \
-	           BKE_selected_objects_Iterator_end,                             \
+	ITER_BEGIN(BKE_selected_objects_iterator_begin,                           \
+	           BKE_selected_objects_iterator_next,                            \
+	           BKE_selected_objects_iterator_end,                             \
 	           sl, Object *, _instance)
 
 #define FOREACH_SELECTED_OBJECT_END                                           \
 	ITER_END
 
 #define FOREACH_VISIBLE_OBJECT(sl, _instance)                                 \
-	ITER_BEGIN(BKE_visible_objects_Iterator_begin,                            \
-	           BKE_visible_objects_Iterator_next,                             \
-	           BKE_visible_objects_Iterator_end,                              \
+	ITER_BEGIN(BKE_visible_objects_iterator_begin,                            \
+	           BKE_visible_objects_iterator_next,                             \
+	           BKE_visible_objects_iterator_end,                              \
 	           sl, Object *, _instance)
 
 #define FOREACH_VISIBLE_OBJECT_END                                            \
 	ITER_END
 
 #define FOREACH_SELECTED_BASE(sl, _instance)                                   \
-	ITER_BEGIN(BKE_selected_bases_Iterator_begin,                              \
-	           BKE_selected_bases_Iterator_next,                               \
-	           BKE_selected_bases_Iterator_end,                                \
+	ITER_BEGIN(BKE_selected_bases_iterator_begin,                              \
+	           BKE_selected_bases_iterator_next,                               \
+	           BKE_selected_bases_iterator_end,                                \
 	           sl, Base *, _instance)
 
 #define FOREACH_SELECTED_BASE_END                                              \
 	ITER_END
 
 #define FOREACH_VISIBLE_BASE(sl, _instance)                                   \
-	ITER_BEGIN(BKE_visible_bases_Iterator_begin,                              \
-	           BKE_visible_bases_Iterator_next,                               \
-	           BKE_visible_bases_Iterator_end,                                \
+	ITER_BEGIN(BKE_visible_bases_iterator_begin,                              \
+	           BKE_visible_bases_iterator_next,                               \
+	           BKE_visible_bases_iterator_end,                                \
 	           sl, Base *, _instance)
 
 #define FOREACH_VISIBLE_BASE_END                                              \
@@ -209,15 +209,15 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	void *data_in;                                                            \
 	                                                                          \
 	if (flag == SELECT) {                                                     \
-	    func_begin = &BKE_selected_objects_Iterator_begin;                    \
-	    func_next = &BKE_selected_objects_Iterator_next;                      \
-	    func_end = &BKE_selected_objects_Iterator_end;                        \
+	    func_begin = &BKE_selected_objects_iterator_begin;                    \
+	    func_next = &BKE_selected_objects_iterator_next;                      \
+	    func_end = &BKE_selected_objects_iterator_end;                        \
 	    data_in = (sl);                                                       \
 	}                                                                         \
 	else {                                                                    \
-	    func_begin = BKE_scene_objects_Iterator_begin;                        \
-	    func_next = BKE_scene_objects_Iterator_next;                          \
-	    func_end = BKE_scene_objects_Iterator_end;                            \
+	    func_begin = BKE_scene_objects_iterator_begin;                        \
+	    func_next = BKE_scene_objects_iterator_next;                          \
+	    func_end = BKE_scene_objects_iterator_end;                            \
 	    data_in = (scene);                                                    \
 	}                                                                         \
 	ITER_BEGIN(func_begin, func_next, func_end, data_in, Object *, _instance)

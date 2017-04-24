@@ -1313,62 +1313,62 @@ static void objects_Iterator_next(Iterator *iter, const int flag)
 	}
 }
 
-void BKE_selected_objects_Iterator_begin(Iterator *iter, void *data_in)
+void BKE_selected_objects_iterator_begin(Iterator *iter, void *data_in)
 {
 	objects_Iterator_begin(iter, data_in, BASE_SELECTED);
 }
 
-void BKE_selected_objects_Iterator_next(Iterator *iter)
+void BKE_selected_objects_iterator_next(Iterator *iter)
 {
 	objects_Iterator_next(iter, BASE_SELECTED);
 }
 
-void BKE_selected_objects_Iterator_end(Iterator *UNUSED(iter))
+void BKE_selected_objects_iterator_end(Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_visible_objects_Iterator_begin(Iterator *iter, void *data_in)
+void BKE_visible_objects_iterator_begin(Iterator *iter, void *data_in)
 {
 	objects_Iterator_begin(iter, data_in, BASE_VISIBLED);
 }
 
-void BKE_visible_objects_Iterator_next(Iterator *iter)
+void BKE_visible_objects_iterator_next(Iterator *iter)
 {
 	objects_Iterator_next(iter, BASE_VISIBLED);
 }
 
-void BKE_visible_objects_Iterator_end(Iterator *UNUSED(iter))
+void BKE_visible_objects_iterator_end(Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_selected_bases_Iterator_begin(Iterator *iter, void *data_in)
+void BKE_selected_bases_iterator_begin(Iterator *iter, void *data_in)
 {
 	object_bases_Iterator_begin(iter, data_in, BASE_SELECTED);
 }
 
-void BKE_selected_bases_Iterator_next(Iterator *iter)
+void BKE_selected_bases_iterator_next(Iterator *iter)
 {
 	object_bases_Iterator_next(iter, BASE_SELECTED);
 }
 
-void BKE_selected_bases_Iterator_end(Iterator *UNUSED(iter))
+void BKE_selected_bases_iterator_end(Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_visible_bases_Iterator_begin(Iterator *iter, void *data_in)
+void BKE_visible_bases_iterator_begin(Iterator *iter, void *data_in)
 {
 	object_bases_Iterator_begin(iter, data_in, BASE_VISIBLED);
 }
 
-void BKE_visible_bases_Iterator_next(Iterator *iter)
+void BKE_visible_bases_iterator_next(Iterator *iter)
 {
 	object_bases_Iterator_next(iter, BASE_VISIBLED);
 }
 
-void BKE_visible_bases_Iterator_end(Iterator *UNUSED(iter))
+void BKE_visible_bases_iterator_end(Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
