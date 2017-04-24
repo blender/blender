@@ -1343,6 +1343,21 @@ void BKE_visible_objects_Iterator_end(Iterator *UNUSED(iter))
 	/* do nothing */
 }
 
+void BKE_selected_bases_Iterator_begin(Iterator *iter, void *data_in)
+{
+	object_bases_Iterator_begin(iter, data_in, BASE_SELECTED);
+}
+
+void BKE_selected_bases_Iterator_next(Iterator *iter)
+{
+	object_bases_Iterator_next(iter, BASE_SELECTED);
+}
+
+void BKE_selected_bases_Iterator_end(Iterator *UNUSED(iter))
+{
+	/* do nothing */
+}
+
 void BKE_visible_bases_Iterator_begin(Iterator *iter, void *data_in)
 {
 	object_bases_Iterator_begin(iter, data_in, BASE_VISIBLED);

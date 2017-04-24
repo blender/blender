@@ -146,6 +146,10 @@ void BKE_visible_objects_Iterator_begin(Iterator *iter, void *data_in);
 void BKE_visible_objects_Iterator_next(Iterator *iter);
 void BKE_visible_objects_Iterator_end(Iterator *iter);
 
+void BKE_selected_bases_Iterator_begin(Iterator *iter, void *data_in);
+void BKE_selected_bases_Iterator_next(Iterator *iter);
+void BKE_selected_bases_Iterator_end(Iterator *iter);
+
 void BKE_visible_bases_Iterator_begin(Iterator *iter, void *data_in);
 void BKE_visible_bases_Iterator_next(Iterator *iter);
 void BKE_visible_bases_Iterator_end(Iterator *iter);
@@ -168,6 +172,14 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 #define FOREACH_VISIBLE_OBJECT_END                                            \
 	ITER_END
 
+#define FOREACH_SELECTED_BASE(sl, _instance)                                   \
+	ITER_BEGIN(BKE_selected_bases_Iterator_begin,                              \
+	           BKE_selected_bases_Iterator_next,                               \
+	           BKE_selected_bases_Iterator_end,                                \
+	           sl, Base *, _instance)
+
+#define FOREACH_SELECTED_BASE_END                                              \
+	ITER_END
 
 #define FOREACH_VISIBLE_BASE(sl, _instance)                                   \
 	ITER_BEGIN(BKE_visible_bases_Iterator_begin,                              \
