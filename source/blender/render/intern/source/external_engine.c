@@ -125,7 +125,8 @@ void RE_engines_register(Main *bmain, RenderEngineType *render_type)
 		DRW_engine_register(render_type->draw_engine);
 	}
 	if (render_type->collection_settings_create) {
-		BKE_layer_collection_engine_settings_callback_register(bmain, render_type->idname, render_type->collection_settings_create);
+		BKE_layer_collection_engine_settings_callback_register(
+		            bmain, render_type->idname, render_type->collection_settings_create);
 	}
 	BLI_addtail(&R_engines, render_type);
 }
@@ -202,7 +203,8 @@ static RenderPart *get_part_from_result(Render *re, RenderResult *result)
 	return NULL;
 }
 
-RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname)
+RenderResult *RE_engine_begin_result(
+        RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname)
 {
 	Render *re = engine->re;
 	RenderResult *result;
@@ -414,7 +416,8 @@ float RE_engine_get_camera_shift_x(RenderEngine *engine, Object *camera, int use
 	return BKE_camera_multiview_shift_x(re ? &re->r : NULL, camera, re->viewname);
 }
 
-void RE_engine_get_camera_model_matrix(RenderEngine *engine, Object *camera, int use_spherical_stereo, float *r_modelmat)
+void RE_engine_get_camera_model_matrix(
+        RenderEngine *engine, Object *camera, int use_spherical_stereo, float *r_modelmat)
 {
 	Render *re = engine->re;
 
@@ -544,8 +547,19 @@ bool RE_bake_engine(
 	if (type->update)
 		type->update(engine, re->main, re->scene);
 
-	if (type->bake)
-		type->bake(engine, re->scene, object, pass_type, pass_filter, object_id, pixel_array, num_pixels, depth, result);
+	if (type->bake) {
+		type->bake(
+		            engine,
+		            re->scene,
+		            object,
+		            pass_type,
+		            pass_filter,
+		            object_id,
+		            pixel_array,
+		            num_pixels,
+		            depth,
+		            result);
+	}
 
 	engine->tile_x = 0;
 	engine->tile_y = 0;
