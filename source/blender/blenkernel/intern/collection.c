@@ -511,7 +511,7 @@ static void scene_collections_array(Scene *scene, SceneCollection ***collections
 void BKE_scene_collections_iterator_begin(Iterator *iter, void *data_in)
 {
 	Scene *scene = data_in;
-	SceneCollectionsIteratorData *data = MEM_callocN(sizeof(SceneCollectionsIteratorData), __FUNCTION__);
+	SceneCollectionsIteratorData *data = MEM_callocN(sizeof(SceneCollectionsIteratorData), __func__);
 
 	data->scene = scene;
 	iter->data = data;
@@ -561,7 +561,7 @@ typedef struct SceneObjectsIteratorData {
 void BKE_scene_objects_iterator_begin(Iterator *iter, void *data_in)
 {
 	Scene *scene = data_in;
-	SceneObjectsIteratorData *data = MEM_callocN(sizeof(SceneObjectsIteratorData), __FUNCTION__);
+	SceneObjectsIteratorData *data = MEM_callocN(sizeof(SceneObjectsIteratorData), __func__);
 	iter->data = data;
 
 	/* lookup list ot make sure each object is object called once */
