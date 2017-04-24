@@ -7107,8 +7107,8 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 				    RNA_struct_idprops_contains_datablock(type_srna))
 				{
 					PyErr_Format(PyExc_ValueError,
-								 "bpy_struct \"%.200s\" doesn't support datablock properties \n",
-								 RNA_struct_identifier(srna));
+					             "bpy_struct \"%.200s\" doesn't support datablock properties \n",
+					             RNA_struct_identifier(srna));
 					return -1;
 				}
 			}

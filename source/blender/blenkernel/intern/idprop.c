@@ -953,7 +953,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
 				prop->len = prop->totallen = val->array.len;
 				break;
 			}
-			printf("%s: bad array type.\n",__func__);
+			printf("%s: bad array type.\n", __func__);
 			return NULL;
 		}
 		case IDP_STRING:

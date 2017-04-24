@@ -1912,7 +1912,7 @@ static void GPU_get_object_info(float oi[3], Material *mat)
 	else {
 		random = BLI_hash_int_2d(BLI_hash_string(GMS.gob->id.name + 2), 0);
 	}
-	oi[2] = random * (1.0f/(float)0xFFFFFFFF);
+	oi[2] = random * (1.0f / (float)0xFFFFFFFF);
 }
 
 int GPU_object_material_bind(int nr, void *attribs)
