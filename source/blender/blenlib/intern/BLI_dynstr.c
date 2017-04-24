@@ -35,6 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_utildefines.h"
+#include "BLI_memarena.h"
 #include "BLI_string.h"
 #include "BLI_dynstr.h"
 
@@ -64,6 +65,7 @@ struct DynStrElem {
 struct DynStr {
 	DynStrElem *elems, *last;
 	int curlen;
+	MemArena *memarena;
 };
 
 /***/
@@ -78,8 +80,29 @@ DynStr *BLI_dynstr_new(void)
 	DynStr *ds = MEM_mallocN(sizeof(*ds), "DynStr");
 	ds->elems = ds->last = NULL;
 	ds->curlen = 0;
+	ds->memarena = NULL;
 	
 	return ds;
+}
+
+/**
+ * Create a new DynStr.
+ *
+ * \return Pointer to a new DynStr.
+ */
+DynStr *BLI_dynstr_new_memarena(void)
+{
+	DynStr *ds = MEM_mallocN(sizeof(*ds), "DynStr");
+	ds->elems = ds->last = NULL;
+	ds->curlen = 0;
+	ds->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+
+	return ds;
+}
+
+BLI_INLINE void *dynstr_alloc(DynStr *__restrict ds, size_t size)
+{
+	return ds->memarena ? BLI_memarena_alloc(ds->memarena, size) : malloc(size);
 }
 
 /**
@@ -90,10 +113,10 @@ DynStr *BLI_dynstr_new(void)
  */
 void BLI_dynstr_append(DynStr *__restrict ds, const char *cstr)
 {
-	DynStrElem *dse = malloc(sizeof(*dse));
+	DynStrElem *dse = dynstr_alloc(ds, sizeof(*dse));
 	int cstrlen = strlen(cstr);
 	
-	dse->str = malloc(cstrlen + 1);
+	dse->str = dynstr_alloc(ds, cstrlen + 1);
 	memcpy(dse->str, cstr, cstrlen + 1);
 	dse->next = NULL;
 	
@@ -114,10 +137,10 @@ void BLI_dynstr_append(DynStr *__restrict ds, const char *cstr)
  */
 void BLI_dynstr_nappend(DynStr *__restrict ds, const char *cstr, int len)
 {
-	DynStrElem *dse = malloc(sizeof(*dse));
+	DynStrElem *dse = dynstr_alloc(ds, sizeof(*dse));
 	int cstrlen = BLI_strnlen(cstr, len);
 
-	dse->str = malloc(cstrlen + 1);
+	dse->str = dynstr_alloc(ds, cstrlen + 1);
 	memcpy(dse->str, cstr, cstrlen);
 	dse->str[cstrlen] = '\0';
 	dse->next = NULL;
@@ -296,22 +319,41 @@ char *BLI_dynstr_get_cstring(DynStr *ds)
 }
 
 /**
+ * Clear the DynStr
+ *
+ * \param ds The DynStr to clear.
+ */
+void BLI_dynstr_clear(DynStr *ds)
+{
+	if (ds->memarena) {
+		BLI_memarena_clear(ds->memarena);
+	}
+	else {
+		for (DynStrElem *dse_next, *dse = ds->elems; dse; dse = dse_next) {
+			dse_next = dse->next;
+
+			free(dse->str);
+			free(dse);
+		}
+	}
+
+	ds->elems = ds->last = NULL;
+	ds->curlen = 0;
+}
+
+/**
  * Free the DynStr
  *
  * \param ds The DynStr to free.
  */
 void BLI_dynstr_free(DynStr *ds)
 {
-	DynStrElem *dse;
-	
-	for (dse = ds->elems; dse; ) {
-		DynStrElem *n = dse->next;
-		
-		free(dse->str);
-		free(dse);
-		
-		dse = n;
+	if (ds->memarena) {
+		BLI_memarena_free(ds->memarena);
 	}
-	
+	else {
+		BLI_dynstr_clear(ds);
+	}
+
 	MEM_freeN(ds);
 }

@@ -2013,7 +2013,7 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 		for (Base *base = scene->base.first; base; base = base->next) {
 			Object *ob = base->object;
 			if (!ID_IS_LINKED_DATABLOCK(ob)) {
-					IDP_RelinkProperty(ob->id.properties);
+				IDP_RelinkProperty(ob->id.properties);
 			}
 		}
 

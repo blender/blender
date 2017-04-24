@@ -1259,7 +1259,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		for (Camera *camera = main->camera.first; camera != NULL; camera = camera->id.next) {
 			if (camera->stereo.pole_merge_angle_from == 0.0f &&
-				camera->stereo.pole_merge_angle_to == 0.0f)
+			    camera->stereo.pole_merge_angle_to == 0.0f)
 			{
 				camera->stereo.pole_merge_angle_from = DEG2RADF(60.0f);
 				camera->stereo.pole_merge_angle_to = DEG2RADF(75.0f);

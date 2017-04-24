@@ -14,51 +14,37 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2008, Blender Foundation
+# The Original Code is Copyright (C) 2017, Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
+# Contributor(s): Bastien Montagne.
+#
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC
-	.
-	../blenkernel
-	../blenlib
-	../makesdna
-	../makesrna
-	../../../intern/guardedalloc
-	../../../intern/locale
-)
+# -----------------------------------------------------------------------------
+# Build msgfmt executable
 
-set(INC_SYS
+blender_include_dirs(
+	../../../../intern/guardedalloc
+	../../blenlib
 )
 
 set(SRC
-	intern/blt_lang.c
-	intern/blt_translation.c
-
-	BLT_lang.h
-	BLT_translation.h
+	msgfmt.c
 )
 
-if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
-endif()
+add_cc_flags_custom_test(msgfmt)
 
-if(WITH_PYTHON)
-	add_definitions(-DWITH_PYTHON)
-	list(APPEND INC
-		../python
-	)
-endif()
+add_executable(msgfmt ${SRC})
+
+target_link_libraries(msgfmt bf_blenlib)
+target_link_libraries(msgfmt bf_intern_guardedalloc)
 
 if(WIN32)
-	if(WITH_INPUT_IME)
-		add_definitions(-DWITH_INPUT_IME)
-	endif()
+	target_link_libraries(msgfmt bf_intern_utfconv)
 endif()
 
-blender_add_lib(bf_blentranslation "${SRC}" "${INC}" "${INC_SYS}")
-
-add_subdirectory(msgfmt)
+target_link_libraries(msgfmt ${ZLIB_LIBRARIES})
+target_link_libraries(msgfmt ${PLATFORM_LINKLIBS})

@@ -458,7 +458,7 @@ if(WITH_ALEMBIC)
 	)
 
 	if(MSVC)
-		add_test(NAME cycles_${subject}_test
+		add_test(NAME alembic_tests
 			COMMAND
 				"$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}/python/bin/python$<$<CONFIG:Debug>:_d>"
 				${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py

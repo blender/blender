@@ -43,11 +43,14 @@
 #include "BLI_compiler_attrs.h"
 
 struct DynStr;
+struct MemArena;
 
 /** The abstract DynStr type */
 typedef struct DynStr DynStr;
 
 DynStr *BLI_dynstr_new(void) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+DynStr *BLI_dynstr_new_memarena(void) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+
 void    BLI_dynstr_append(DynStr *__restrict ds, const char *cstr) ATTR_NONNULL();
 void    BLI_dynstr_nappend(DynStr *__restrict ds, const char *cstr, int len) ATTR_NONNULL();
 
@@ -56,8 +59,9 @@ void    BLI_dynstr_vappendf(DynStr *__restrict ds, const char *__restrict format
 
 int     BLI_dynstr_get_len(DynStr *ds) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 char   *BLI_dynstr_get_cstring(DynStr *ds) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-
 void    BLI_dynstr_get_cstring_ex(DynStr *__restrict ds, char *__restrict str) ATTR_NONNULL();
+
+void    BLI_dynstr_clear(DynStr *ds) ATTR_NONNULL();
 void    BLI_dynstr_free(DynStr *ds) ATTR_NONNULL();
 
 #endif  /* __BLI_DYNSTR_H__ */

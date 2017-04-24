@@ -1026,7 +1026,7 @@ static bool loop_split_generator_check_cyclic_smooth_fan(
 	BLI_assert(!BLI_BITMAP_TEST(skip_loops, mlfan_vert_index));
 	BLI_BITMAP_ENABLE(skip_loops, mlfan_vert_index);
 
-	while(true) {
+	while (true) {
 		/* Find next loop of the smooth fan. */
 		loop_manifold_fan_around_vert_next(
 		            mloops, mpolys, loop_to_poly, e2lfan_curr, mv_pivot_index,

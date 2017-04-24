@@ -998,6 +998,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				for (bGPDlayer *gp_layer = gpencil->layers.first; gp_layer; gp_layer = gp_layer->next) {
 					CALLBACK_INVOKE(gp_layer->parent, IDWALK_CB_NOP);
 				}
+				break;
 			}
 
 			/* Nothing needed for those... */
