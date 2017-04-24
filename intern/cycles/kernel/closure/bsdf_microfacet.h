@@ -258,7 +258,7 @@ ccl_device_forceinline float3 reflection_color(const MicrofacetBsdf *bsdf, float
 
 ccl_device_forceinline float D_GTR1(float NdotH, float alpha)
 {
-	if (alpha >= 1.0f) return M_1_PI_F;
+	if(alpha >= 1.0f) return M_1_PI_F;
 	float alpha2 = alpha*alpha;
 	float t = 1.0f + (alpha2 - 1.0f) * NdotH*NdotH;
 	return (alpha2 - 1.0f) / (M_PI_F * logf(alpha2) * t);
