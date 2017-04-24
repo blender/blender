@@ -1370,7 +1370,9 @@ static void outliner_add_layer_collections_recursive(
 
 		outliner_add_layer_collections_recursive(soops, &ten->subtree, &collection->layer_collections, ten);
 		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
-			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, ten, 0, 0);
+			Base *base = (Base *)link->data;
+			TreeElement *te_object = outliner_add_element(soops, &ten->subtree, base->object, ten, 0, 0);
+			te_object->directdata = base;
 		}
 		outliner_make_hierarchy(&ten->subtree);
 	}
@@ -1788,7 +1790,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 
 			FOREACH_SCENE_OBJECT(scene, ob)
 			{
-				ten = outliner_add_element(soops, &te->subtree, ob, te, 0, 0);
+				outliner_add_element(soops, &te->subtree, ob, te, 0, 0);
 			}
 			FOREACH_SCENE_OBJECT_END
 
@@ -1808,17 +1810,19 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 
 		FOREACH_SCENE_OBJECT(scene, ob)
 		{
-			ten = outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
+			outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
 		}
 		FOREACH_SCENE_OBJECT_END
 		outliner_make_hierarchy(&soops->tree);
 	}
 	else if (soops->outlinevis == SO_VISIBLE) {
-		FOREACH_VISIBLE_OBJECT(sl, ob)
+		FOREACH_VISIBLE_BASE(sl, base)
 		{
-			outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
+			ten = outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+			ten->directdata = base;
+
 		}
-		FOREACH_VISIBLE_OBJECT_END
+		FOREACH_VISIBLE_BASE_END
 		outliner_make_hierarchy(&soops->tree);
 	}
 	else if (soops->outlinevis == SO_GROUPS) {
@@ -1830,7 +1834,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 				te = outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
 				
 				for (go = group->gobject.first; go; go = go->next) {
-					ten = outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
+					outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
 				}
 				outliner_make_hierarchy(&te->subtree);
 				/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
@@ -1844,7 +1848,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 			FOREACH_SCENE_OBJECT(scene, ob)
 			{
 				if (ob->type == ob_active->type) {
-					ten = outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
+					outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
 				}
 			}
 			FOREACH_SCENE_OBJECT_END
@@ -1852,11 +1856,12 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		}
 	}
 	else if (soops->outlinevis == SO_SELECTED) {
-		FOREACH_SELECTED_OBJECT(sl, ob)
+		FOREACH_SELECTED_BASE(sl, base)
 		{
-			ten = outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
+			ten = outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+			ten->directdata = base;
 		}
-		FOREACH_SELECTED_OBJECT_END
+		FOREACH_SELECTED_BASE_END
 		outliner_make_hierarchy(&soops->tree);
 	}
 	else if (soops->outlinevis == SO_SEQUENCE) {
@@ -1918,6 +1923,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 	}
 	else {
 		ten = outliner_add_element(soops, &soops->tree, OBACT_NEW, NULL, 0, 0);
+		ten->directdata = BASACT_NEW;
 	}
 
 	if ((soops->flag & SO_SKIP_SORT_ALPHA) == 0) {
