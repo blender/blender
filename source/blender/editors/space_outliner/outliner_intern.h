@@ -39,6 +39,7 @@
 struct wmOperatorType;
 struct TreeElement;
 struct TreeStoreElem;
+struct Main;
 struct bContext;
 struct Scene;
 struct SceneLayer;
@@ -68,7 +69,8 @@ typedef enum TreeTraversalAction {
  * Callback type for reinserting elements at a different position, used to allow user customizable element order.
  * Passing scene right now, may be better to allow some custom data.
  */
-typedef void (*TreeElementReinsertFunc)(const struct Scene *scene, struct TreeElement *insert_element,
+typedef void (*TreeElementReinsertFunc)(struct Main *bmain, const struct Scene *scene,
+                                        struct TreeElement *insert_element,
                                         struct TreeElement *insert_handle, TreeElementInsertType action);
 /**
  * Executed on (almost) each mouse move while dragging. It's supposed to give info

@@ -29,6 +29,7 @@
  */
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -164,7 +165,7 @@ static void outliner_item_drag_handle(
 	te_dragged->drag_data->insert_handle = te_insert_handle;
 }
 
-static bool outliner_item_drag_drop_apply(const Scene *scene, TreeElement *dragged_te)
+static bool outliner_item_drag_drop_apply(Main *bmain, const Scene *scene, TreeElement *dragged_te)
 {
 	TreeElement *insert_handle = dragged_te->drag_data->insert_handle;
 	TreeElementInsertType insert_type = dragged_te->drag_data->insert_type;
@@ -178,7 +179,7 @@ static bool outliner_item_drag_drop_apply(const Scene *scene, TreeElement *dragg
 		/* call of assert above should not have changed insert_handle and insert_type at this point */
 		BLI_assert(dragged_te->drag_data->insert_handle == insert_handle &&
 		           dragged_te->drag_data->insert_type == insert_type);
-		dragged_te->reinsert(scene, dragged_te, insert_handle, insert_type);
+		dragged_te->reinsert(bmain, scene, dragged_te, insert_handle, insert_type);
 		return true;
 	}
 
@@ -187,6 +188,7 @@ static bool outliner_item_drag_drop_apply(const Scene *scene, TreeElement *dragg
 
 static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -198,7 +200,7 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	switch (event->type) {
 		case EVT_MODAL_MAP:
 			if (event->val == OUTLINER_ITEM_DRAG_CONFIRM) {
-				if (outliner_item_drag_drop_apply(scene, te_dragged)) {
+				if (outliner_item_drag_drop_apply(bmain, scene, te_dragged)) {
 					skip_rebuild = false;
 				}
 				retval = OPERATOR_FINISHED;

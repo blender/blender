@@ -61,6 +61,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
 #include "BKE_layer.h"
@@ -389,7 +390,8 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 }
 
 static void outliner_object_reorder(
-        const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
+        Main *UNUSED(bmain), const Scene *scene,
+        TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
 	TreeStoreElem *tselem_insert = TREESTORE(insert_element);
 	Object *ob = (Object *)tselem_insert->id;
@@ -413,6 +415,7 @@ static void outliner_object_reorder(
 	}
 	BKE_collection_object_move(scene, sc, sc_ob_parent, ob);
 }
+
 static bool outliner_object_reorder_poll(
         const Scene *UNUSED(scene), const TreeElement *insert_element,
         TreeElement **io_insert_handle, TreeElementInsertType *io_action)
@@ -1331,7 +1334,8 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 }
 
 static void outliner_layer_collections_reorder(
-        const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
+        Main *bmain, const Scene *scene,
+        TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
 	LayerCollection *lc_insert = insert_element->directdata;
 	LayerCollection *lc_handle = insert_handle->directdata;
@@ -1348,6 +1352,8 @@ static void outliner_layer_collections_reorder(
 	else {
 		BLI_assert(0);
 	}
+
+	DAG_relations_tag_update(bmain);
 }
 static bool outliner_layer_collections_reorder_poll(
         const Scene *UNUSED(scene), const TreeElement *UNUSED(insert_element),
@@ -1383,7 +1389,8 @@ static void outliner_add_collections_act_layer(SpaceOops *soops, SceneLayer *lay
 }
 
 static void outliner_scene_collections_reorder(
-        const Scene *scene, TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
+        Main *bmain, const Scene *scene,
+        TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
 	SceneCollection *sc_insert = insert_element->directdata;
 	SceneCollection *sc_handle = insert_handle->directdata;
@@ -1401,6 +1408,8 @@ static void outliner_scene_collections_reorder(
 	else {
 		BLI_assert(0);
 	}
+
+	DAG_relations_tag_update(bmain);
 }
 static bool outliner_scene_collections_reorder_poll(
         const Scene *scene, const TreeElement *UNUSED(insert_element),
