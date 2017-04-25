@@ -78,6 +78,6 @@ elseif(APPLE)
 	set(WITH_OPENSUBDIV          OFF CACHE BOOL "" FORCE)
 	set(WITH_CODEC_QUICKTIME     ON  CACHE BOOL "" FORCE)
 
-	include("${CMAKE_SOURCE_DIR}/build_files/cmake/platform/platform_apple_xcode.cmake")
+	include("${CMAKE_CURRENT_SOURCE_DIR}/../platform/platform_apple_xcode.cmake")
 	apple_check_quicktime()
 endif()
