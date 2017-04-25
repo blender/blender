@@ -67,6 +67,7 @@ struct Batch *DRW_lattice_batch_cache_get_overlay_verts(struct Lattice *lt);
 
 /* Mesh */
 
+struct Batch **DRW_mesh_batch_cache_get_surface_shaded(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_all_triangles(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);

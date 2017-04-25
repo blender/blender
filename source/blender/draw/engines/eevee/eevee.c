@@ -54,6 +54,7 @@ static struct {
 	float camera_pos[3];
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_default_frag_glsl[];
 extern char datatoc_ltc_lib_glsl[];
 extern char datatoc_bsdf_lut_frag_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
@@ -70,6 +71,8 @@ extern char datatoc_probe_sh_frag_glsl[];
 extern char datatoc_probe_frag_glsl[];
 extern char datatoc_probe_geom_glsl[];
 extern char datatoc_probe_vert_glsl[];
+
+extern Material defmaterial;
 
 /* Van der Corput sequence */
  /* From http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
@@ -213,24 +216,26 @@ static void EEVEE_engine_init(void *ved)
 	}
 
 	if (!e_data.default_lit) {
-		char *lib_str = NULL;
+		char *frag_str = NULL;
 
-		DynStr *ds_vert = BLI_dynstr_new();
-		BLI_dynstr_append(ds_vert, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_vert, datatoc_ltc_lib_glsl);
-		BLI_dynstr_append(ds_vert, datatoc_bsdf_direct_lib_glsl);
-		lib_str = BLI_dynstr_get_cstring(ds_vert);
-		BLI_dynstr_free(ds_vert);
+		DynStr *ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_ltc_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_lit_surface_frag_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_default_frag_glsl);
+		frag_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
 
-		e_data.default_lit = DRW_shader_create_with_lib(
-		        datatoc_lit_surface_vert_glsl, NULL, datatoc_lit_surface_frag_glsl, lib_str,
+		e_data.default_lit = DRW_shader_create(
+		        datatoc_lit_surface_vert_glsl, NULL, frag_str,
 		        "#define MAX_LIGHT 128\n"
 		        "#define MAX_SHADOW_CUBE 42\n"
 		        "#define MAX_SHADOW_MAP 64\n"
 		        "#define MAX_SHADOW_CASCADE 8\n"
 		        "#define MAX_CASCADE_NUM 4\n");
 
-		MEM_freeN(lib_str);
+		MEM_freeN(frag_str);
 	}
 
 	if (!e_data.shadow_sh) {
@@ -409,10 +414,11 @@ static void EEVEE_cache_init(void *vedata)
 	}
 
 	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_EQUAL;
-		psl->pass = DRW_pass_create("Default Light Pass", state);
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+		psl->default_pass = DRW_pass_create("Default Shader Pass", state);
 
-		stl->g_data->default_lit_grp = DRW_shgroup_create(e_data.default_lit, psl->pass);
+		/* NOTE : this shading grp does not contain any geom, it's just here to setup uniforms & textures. */
+		stl->g_data->default_lit_grp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
 		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "light_block", stl->light_ubo, 0);
 		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "shadow_block", stl->shadow_ubo, 1);
 		DRW_shgroup_uniform_int(stl->g_data->default_lit_grp, "light_count", &stl->lamps->num_light, 1);
@@ -425,6 +431,23 @@ static void EEVEE_cache_init(void *vedata)
 		/* NOTE : Adding Shadow Map textures uniform in EEVEE_cache_finish */
 	}
 
+	{
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+		psl->material_pass = DRW_pass_create("Material Shader Pass", state);
+
+		/* NOTE : this shading grp does not contain any geom, it's just here to setup uniforms & textures. */
+		stl->g_data->material_lit_grp = DRW_shgroup_create(e_data.default_lit, psl->material_pass);
+		DRW_shgroup_uniform_block(stl->g_data->material_lit_grp, "light_block", stl->light_ubo, 0);
+		DRW_shgroup_uniform_block(stl->g_data->material_lit_grp, "shadow_block", stl->shadow_ubo, 1);
+		DRW_shgroup_uniform_int(stl->g_data->material_lit_grp, "light_count", &stl->lamps->num_light, 1);
+		DRW_shgroup_uniform_float(stl->g_data->material_lit_grp, "lodMax", &stl->probes->lodmax, 1);
+		DRW_shgroup_uniform_vec3(stl->g_data->material_lit_grp, "shCoefs[0]", (float *)stl->probes->shcoefs, 9);
+		DRW_shgroup_uniform_vec3(stl->g_data->material_lit_grp, "cameraPos", e_data.camera_pos, 1);
+		DRW_shgroup_uniform_texture(stl->g_data->material_lit_grp, "ltcMat", e_data.ltc_mat, 0);
+		DRW_shgroup_uniform_texture(stl->g_data->material_lit_grp, "brdfLut", e_data.brdf_lut, 1);
+		DRW_shgroup_uniform_texture(stl->g_data->material_lit_grp, "probeFiltered", txl->probe_pool, 2);
+		/* NOTE : Adding Shadow Map textures uniform in EEVEE_cache_finish */
+	}
 	{
 		/* Final pass : Map HDR color to LDR color.
 		 * Write result to the default color buffer */
@@ -453,7 +476,22 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		/* Depth Prepass */
 		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
 
-		DRW_shgroup_call_add(stl->g_data->default_lit_grp, geom, ob->obmat);
+		/* Get per-material split surface */
+		struct Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
+		for (int i = 0; i < MAX2(1, ob->totcol); ++i) {
+			Material *ma = give_current_material(ob, i + 1);
+
+			if (ma == NULL)
+				ma = &defmaterial;
+
+			DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit, psl->material_pass);
+			DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", &ma->r, 1);
+			DRW_shgroup_uniform_vec3(shgrp, "specular_col", &ma->specr, 1);
+			DRW_shgroup_uniform_short(shgrp, "hardness", &ma->har, 1);
+			DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+		}
+		// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
+
 		// DRW_shgroup_call_add(stl->g_data->shadow_shgrp, geom, ob->obmat);
 		eevee_cascade_shadow_shgroup(psl, stl, geom, ob->obmat);
 		eevee_cube_shadow_shgroup(psl, stl, geom, ob->obmat);
@@ -475,6 +513,10 @@ static void EEVEE_cache_finish(void *vedata)
 	DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "shadowMaps", txl->shadow_depth_map_pool, 4);
 	DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "shadowCubes", txl->shadow_depth_cube_pool, 5);
 	DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "shadowCascades", txl->shadow_depth_cascade_pool, 6);
+
+	DRW_shgroup_uniform_texture(stl->g_data->material_lit_grp, "shadowMaps", txl->shadow_depth_map_pool, 4);
+	DRW_shgroup_uniform_texture(stl->g_data->material_lit_grp, "shadowCubes", txl->shadow_depth_cube_pool, 5);
+	DRW_shgroup_uniform_texture(stl->g_data->material_lit_grp, "shadowCascades", txl->shadow_depth_cascade_pool, 6);
 }
 
 static void EEVEE_draw_scene(void *vedata)
@@ -505,7 +547,8 @@ static void EEVEE_draw_scene(void *vedata)
 
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->depth_pass_cull);
-	DRW_draw_pass(psl->pass);
+	DRW_draw_pass(psl->default_pass);
+	DRW_draw_pass(psl->material_pass);
 
 	/* Restore default framebuffer */
 	DRW_framebuffer_texture_detach(dtxl->depth);

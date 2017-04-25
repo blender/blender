@@ -40,6 +40,7 @@ struct Batch *DRW_cache_screenspace_circle_get(void);
 
 /* Common Object */
 struct Batch *DRW_cache_object_surface_get(struct Object *ob);
+struct Batch **DRW_cache_object_surface_material_get(struct Object *ob);
 
 /* Empties */
 struct Batch *DRW_cache_plain_axes_get(void);
@@ -91,6 +92,7 @@ struct Batch *DRW_cache_mesh_wire_outline_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_surface_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_surface_verts_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_verts_get(struct Object *ob);
+struct Batch **DRW_cache_mesh_surface_shaded_get(struct Object *ob);
 
 
 /* Curve */

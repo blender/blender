@@ -109,6 +109,7 @@ data_to_c_simple(engines/clay/shaders/clay_vert.glsl SRC)
 data_to_c_simple(engines/clay/shaders/ssao_alchemy.glsl SRC)
 data_to_c_simple(engines/clay/shaders/ssao_groundtruth.glsl SRC)
 
+data_to_c_simple(engines/eevee/shaders/default_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lit_surface_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lit_surface_vert.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/probe_filter_frag.glsl SRC)

@@ -271,6 +271,13 @@ vec3 mrp_area(LightData ld, ShadingData sd, vec3 dir, inout float roughness, out
 	return closest_point_on_rectangle / len;
 }
 
+/* Fresnel */
+vec3 F_schlick(vec3 f0, float cos_theta)
+{
+	float fac = pow(1.0 - cos_theta, 5);
+	return f0 + (1.0 - f0) * fac;
+}
+
 /* GGX */
 float D_ggx_opti(float NH, float a2)
 {

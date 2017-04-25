@@ -30,6 +30,7 @@
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
+#include "BKE_material.h"
 #include "BKE_scene.h"
 
 #include "BLI_listbase.h"
@@ -270,6 +271,7 @@ void DRW_shgroup_uniform_float(DRWShadingGroup *shgroup, const char *name, const
 void DRW_shgroup_uniform_vec2(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize);
 void DRW_shgroup_uniform_vec3(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize);
 void DRW_shgroup_uniform_vec4(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize);
+void DRW_shgroup_uniform_short(DRWShadingGroup *shgroup, const char *name, const short *value, int arraysize);
 void DRW_shgroup_uniform_int(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize);
 void DRW_shgroup_uniform_ivec2(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize);
 void DRW_shgroup_uniform_ivec3(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize);

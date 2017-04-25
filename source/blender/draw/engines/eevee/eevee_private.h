@@ -45,7 +45,8 @@ typedef struct EEVEE_PassList {
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
-	struct DRWPass *pass;
+	struct DRWPass *default_pass;
+	struct DRWPass *material_pass;
 	struct DRWPass *tonemap;
 } EEVEE_PassList;
 
@@ -174,6 +175,7 @@ typedef struct EEVEE_LampEngineData {
 
 typedef struct g_data{
 	struct DRWShadingGroup *default_lit_grp;
+	struct DRWShadingGroup *material_lit_grp;
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
 	struct DRWShadingGroup *depth_shgrp_cull;

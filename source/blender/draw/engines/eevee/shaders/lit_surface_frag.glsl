@@ -198,6 +198,14 @@ float light_visibility(LightData ld, ShadingData sd)
 	return vis;
 }
 
+vec3 light_fresnel(LightData ld, ShadingData sd, vec3 f0)
+{
+	vec3 H = normalize(sd.L + sd.V);
+	float NH = max(dot(sd.N, H), 1e-8);
+
+	return F_schlick(f0, NH);
+}
+
 /* Calculation common to all bsdfs */
 float light_common(inout LightData ld, inout ShadingData sd)
 {
@@ -223,22 +231,15 @@ float light_common(inout LightData ld, inout ShadingData sd)
 	return vis;
 }
 
-void main()
+vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness)
 {
 	ShadingData sd;
-	sd.N = normalize(worldNormal);
+	sd.N = normalize(world_normal);
 	sd.V = (ProjectionMatrix[3][3] == 0.0) /* if perspective */
 	            ? normalize(cameraPos - worldPosition)
 	            : normalize(eye);
 	sd.W = worldPosition;
 	sd.R = reflect(-sd.V, sd.N);
-
-	/* hardcoded test vars */
-	vec3 albedo = mix(vec3(0.0, 0.0, 0.0), vec3(0.8, 0.8, 0.8), saturate(worldPosition.y/2));
-	vec3 f0 = mix(vec3(0.83, 0.5, 0.1), vec3(0.03, 0.03, 0.03), saturate(worldPosition.y/2));
-	vec3 specular = mix(f0, vec3(1.0), pow(max(0.0, 1.0 - dot(sd.N, sd.V)), 5.0));
-	float roughness = saturate(worldPosition.x/lodMax);
-
 	sd.spec_dominant_dir = get_specular_dominant_dir(sd.N, sd.R, roughness);
 
 	vec3 radiance = vec3(0.0);
@@ -255,8 +256,9 @@ void main()
 		float vis = light_visibility(ld, sd);
 		float spec = light_specular(ld, sd, roughness);
 		float diff = light_diffuse(ld, sd);
+		vec3 fresnel = light_fresnel(ld, sd, f0);
 
-		radiance += vis * (albedo * diff + specular * spec) * ld.l_color;
+		radiance += vis * (albedo * diff + fresnel * spec) * ld.l_color;
 	}
 
 	/* Envmaps */
@@ -267,5 +269,5 @@ void main()
 
 	radiance += spherical_harmonics(sd.N, shCoefs) * albedo;
 
-	fragColor = vec4(radiance, 1.0);
+	return radiance;
 }
