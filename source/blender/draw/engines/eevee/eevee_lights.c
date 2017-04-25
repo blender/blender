@@ -89,6 +89,7 @@ void EEVEE_lights_cache_add(EEVEE_StorageList *stl, Object *ob)
 
 		DRW_lamp_engine_data_free((void *)led);
 
+#if 0 /* TODO Waiting for notified refresh. only on scene change. Else too much perf cost. */
 		if (la->mode & (LA_SHAD_BUF | LA_SHAD_RAY)) {
 			if (la->type == LA_SUN && linfo->num_cascade < MAX_SHADOW_CASCADE) {
 				led->sto = MEM_mallocN(sizeof(EEVEE_ShadowCascadeData), "EEVEE_ShadowCascadeData");
@@ -104,7 +105,7 @@ void EEVEE_lights_cache_add(EEVEE_StorageList *stl, Object *ob)
 				linfo->num_cube++;
 			}
 		}
-
+#endif
 		if (!led->sto) {
 			led->sto = MEM_mallocN(sizeof(EEVEE_LightData), "EEVEE_LightData");
 			((EEVEE_LightData *)led->sto)->shadow_id = -1;
