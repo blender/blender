@@ -122,6 +122,15 @@ class SimpleImportTest(unittest.TestCase):
         self.assertAlmostEqual(y, 0)
         self.assertAlmostEqual(z, 0)
 
+    def test_import_long_names(self):
+        # This file contains very long names. The longest name is 4047 chars.
+        bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "long-names.abc"),
+            as_background_job=False)
+
+        self.assertIn('Cube', bpy.data.objects)
+        self.assertEqual('CubeShape', bpy.data.objects['Cube'].data.name)
+
 
 def main():
     global args

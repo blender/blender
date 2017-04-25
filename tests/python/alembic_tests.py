@@ -372,6 +372,95 @@ class HairParticlesExportTest(AbstractAlembicTest):
         self.assertIn('.faceIndices', abcprop)
 
 
+class LongNamesExportTest(AbstractAlembicTest):
+    @with_tempdir
+    def test_export_long_names(self, tempdir: pathlib.Path):
+        abc = tempdir / 'long-names.abc'
+        script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
+                 "renderable_only=False, visible_layers_only=False, flatten=False)" % abc
+        self.run_blender('long-names.blend', script)
+
+        name_parts = [
+            'foG9aeLahgoh5goacee1dah6Hethaghohjaich5pasizairuWigee1ahPeekiGh',
+            'yoNgoisheedah2ua0eigh2AeCaiTee5bo0uphoo7Aixephah9racahvaingeeH4',
+            'zuthohnoi1thooS3eezoo8seuph2Boo5aefacaethuvee1aequoonoox1sookie',
+            'wugh4ciTh3dipiepeequait5uug7thiseek5ca7Eijei5ietaizokohhaecieto',
+            'up9aeheenein9oteiX6fohP3thiez6Ahvah0oohah1ep2Eesho4Beboechaipoh',
+            'coh4aehiacheTh0ue0eegho9oku1lohl4loht9ohPoongoow7dasiego6yimuis',
+            'lohtho8eigahfeipohviepajaix4it2peeQu6Iefee1nevihaes4cee2soh4noy',
+            'kaht9ahv0ieXaiyih7ohxe8bah7eeyicahjoa2ohbu7Choxua7oongah6sei4bu',
+            'deif0iPaechohkee5nahx6oi2uJeeN7ze3seunohJibe4shai0mah5Iesh3Quai',
+            'ChohDahshooNee0NeNohthah0eiDeese3Vu6ohShil1Iey9ja0uebi2quiShae6',
+            'Dee1kai7eiph2ahh2nufah3zai3eexeengohQue1caj0eeW0xeghi3eshuadoot',
+            'aeshiup3aengajoog0AhCoo5tiu3ieghaeGhie4Tu1ohh1thee8aepheingah1E',
+            'ooRa6ahciolohshaifoopeo9ZeiGhae2aech4raisheiWah9AaNga0uas9ahquo',
+            'thaepheip2aip6shief4EaXopei8ohPo0ighuiXah2ashowai9nohp4uach6Mei',
+            'ohph4yaev3quieji3phophiem3OoNuisheepahng4waithae3Naichai7aw3noo',
+            'aibeawaneBahmieyuph8ieng8iopheereeD2uu9Uyee5bei2phahXeir8eeJ8oo',
+            'ooshahphei2hoh3uth5chaen7ohsai6uutiesucheichai8ungah9Gie1Aiphie',
+            'eiwohchoo7ere2iebohn4Aapheichaelooriiyaoxaik7ooqua7aezahx0aeJei',
+            'Vah0ohgohphiefohTheshieghichaichahch5moshoo0zai5eeva7eisi4yae8T',
+            'EibeeN0fee0Gohnguz8iec6yeigh7shuNg4eingu3siph9joucahpeidoom4ree',
+            'iejiu3shohheeZahHusheimeefaihoh5eecachu5eeZie9ceisugu9taidohT3U',
+            'eex6dilakaix5Eetai7xiCh5Jaa8aiD4Ag3tuij1aijohv5fo0heevah8hohs3m',
+            'ohqueeNgahraew6uraemohtoo5qua3oojiex6ohqu6Aideibaithaiphuriquie',
+            'cei0eiN4Shiey7Aeluy3unohboo5choiphahc2mahbei5paephaiKeso1thoog1',
+            'ieghif4ohKequ7ong0jah5ooBah0eiGh1caechahnahThae9Shoo0phopashoo4',
+            'roh9er3thohwi5am8iequeequuSh3aic0voocai3ihi5nie2abahphupiegh7vu',
+            'uv3Quei7wujoo5beingei2aish5op4VaiX0aebai7iwoaPee5pei8ko9IepaPig',
+            'co7aegh5beitheesi9lu7jeeQu3johgeiphee9cheichi8aithuDehu2gaeNein',
+            'thai3Tiewoo4nuir1ohy4aithiuZ7shae1luuwei5phibohriepe2paeci1Ach8',
+            'phoi3ribah7ufuvoh8eigh1oB6deeBaiPohphaghiPieshahfah5EiCi3toogoo',
+            'aiM8geil7ooreinee4Cheiwea4yeec8eeshi7Sei4Shoo3wu6ohkaNgooQu1mai',
+            'agoo3faciewah9ZeesiXeereek7am0eigaeShie3Tisu8haReeNgoo0ci2Hae5u',
+            'Aesatheewiedohshaephaenohbooshee8eu7EiJ8isal1laech2eiHo0noaV3ta',
+            'liunguep3ooChoo4eir8ahSie8eenee0oo1TooXu8Cais8Aimo4eir6Phoo3xei',
+            'toe9heepeobein3teequachemei0Cejoomef9ujie3ohwae9AiNgiephi3ep0de',
+            'ua6xooY9uzaeB3of6sheiyaedohoiS5Eev0Aequ9ahm1zoa5Aegh3ooz9ChahDa',
+            'eevasah6Bu9wi7EiwiequumahkaeCheegh6lui8xoh4eeY4ieneavah8phaibun',
+            'AhNgei2sioZeeng6phaecheemeehiShie5eFeiTh6ooV8iiphabud0die4siep4',
+            'kushe6Xieg6ahQuoo9aex3aipheefiec1esa7OhBuG0ueziep9phai5eegh1vie',
+            'Jie5yu8aafuQuoh9shaep3moboh3Pooy7och8oC6obeik6jaew2aiLooweib3ch',
+            'ohohjajaivaiRail3odaimei6aekohVaicheip2wu7phieg5Gohsaing2ahxaiy',
+            'hahzaht6yaiYu9re9jah9loisiit4ahtoh2quoh9xohishioz4oo4phofu3ogha',
+            'pu4oorea0uh2tahB8aiZoonge1aophaes6ogaiK9ailaigeej4zoVou8ielotee',
+            'cae2thei3Luphuqu0zeeG8leeZuchahxaicai4ui4Eedohte9uW6gae8Geeh0ea',
+            'air7tuy7ohw5sho2Tahpai8aep4so5ria7eaShus5weaqu0Naquei2xaeyoo2ae',
+            'vohge4aeCh7ahwoo7Jaex6sohl0Koong4Iejisei8Coir0iemeiz9uru9Iebaep',
+            'aepeidie8aiw6waish9gie4Woolae2thuj5phae4phexux7gishaeph4Deu7ooS',
+            'vahc5ia0xohHooViT0uyuxookiaquu2ogueth0ahquoudeefohshai8aeThahba',
+            'mun3oagah2eequaenohfoo8DaigeghoozaV2eiveeQuee7kah0quaa6tiesheet',
+            'ooSet4IdieC4ugow3za0die4ohGoh1oopoh6luaPhaeng4Eechea1hae0eimie5',
+            'iedeimadaefu2NeiPaey2jooloov5iehiegeakoo4ueso7aeK9ahqu2Thahkaes',
+            'nahquah9Quuu2uuf0aJah7eishi2siegh8ue5eiJa2EeVu8ebohkepoh4dahNgo',
+            'io1bie7chioPiej5ae2oohe2fee6ooP2thaeJohjohb9Se8tang3eipaifeimai',
+            'oungoqu6dieneejiechez1xeD2Zi9iox2Ahchaiy9ithah3ohVoolu2euQuuawo',
+            'thaew0veigei4neishohd8mecaixuqu7eeshiex1chaigohmoThoghoitoTa0Eo',
+            'ahroob2phohvaiz0Ohteik2ohtakie6Iu1vitho8IyiyeeleeShae9defaiw9ki',
+            'DohHoothohzeaxolai3Toh5eJie7ahlah9reF0ohn1chaipoogain2aibahw4no',
+            'aif8lo5she4aich5cho2rie8ieJaujeem2Joongeedae4vie3tah1Leequaix1O',
+            'Aang0Shaih6chahthie1ahZ7aewei9thiethee7iuThah3yoongi8ahngiobaa5',
+            'iephoBuayoothah0Ru6aichai4aiw8deg1umongauvaixai3ohy6oowohlee8ei',
+            'ohn5shigoameer0aejohgoh8oChohlaecho9jie6shu0ahg9Bohngau6paevei9',
+            'edahghaishak0paigh1eecuich3aad7yeB0ieD6akeeliem2beifufaekee6eat',
+            'hiechahgheloh2zo7Ieghaiph0phahhu8aeyuiKie1xeipheech9zai4aeme0ee',
+            'Cube'
+        ]
+        name = '/' + '/'.join(name_parts)
+
+        # Now check the resulting Alembic file.
+        abcprop = self.abcprop(abc, '%s/.xform' % name)
+        self.assertEqual(abcprop['.vals'], [
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 3.0, 0.0, 1.0,
+        ])
+
+        abcprop = self.abcprop(abc, '%s/CubeShape/.geom' % name)
+        self.assertIn('.faceCounts', abcprop)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--blender', required=True)

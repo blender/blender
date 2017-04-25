@@ -50,7 +50,7 @@ enum {
 typedef struct AlembicObjectPath {
 	struct AlembicObjectPath *next, *prev;
 
-	char path[1024];  /* 1024 = FILE_MAX, might use PATH_MAX in the future. */
+	char path[4096];  /* 4096 = PATH_MAX */
 } AlembicObjectPath;
 
 typedef struct CacheFile {
@@ -64,7 +64,7 @@ typedef struct CacheFile {
 	 * CacheFile. */
 	ListBase object_paths;
 
-	char filepath[1024];  /* 1024 = FILE_MAX */
+	char filepath[4096];  /* 4096 = PATH_MAX */
 
 	char is_sequence;
 	char forward_axis;
