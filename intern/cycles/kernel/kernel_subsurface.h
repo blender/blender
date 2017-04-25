@@ -399,6 +399,12 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
 #else
 	Ray *ray = &ss_isect->ray;
 #endif
+
+	/* Workaround for AMD GPU OpenCL compiler. Most probably cache bypass issue. */
+#if defined(__SPLIT_KERNEL__) && defined(__KERNEL_OPENCL_AMD__) && defined(__KERNEL_GPU__)
+	kernel_split_params.dummy_sd_flag = sd->flag;
+#endif
+
 	/* Setup new shading point. */
 	shader_setup_from_subsurface(kg, sd, &ss_isect->hits[hit], ray);
 

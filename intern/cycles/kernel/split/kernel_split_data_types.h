@@ -43,6 +43,9 @@ typedef struct SplitParams {
 	ccl_global char *use_queues_flag;
 
 	ccl_global float *buffer;
+
+	/* Place for storing sd->flag. AMD GPU OpenCL compiler workaround */
+	int dummy_sd_flag;
 } SplitParams;
 
 /* Global memory variables [porting]; These memory is used for
