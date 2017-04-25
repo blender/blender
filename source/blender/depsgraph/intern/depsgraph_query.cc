@@ -76,14 +76,8 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 
 Scene *DAG_get_scene(Depsgraph *graph)
 {
-	Main *bmain = G.main;
-	LINKLIST_FOREACH (Scene*, scene, &bmain->scene) {
-		if (scene->depsgraph == graph) {
-			/* Got the scene! */
-			return scene;
-		}
-	}
-	return NULL;
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	return deg_graph->scene;
 }
 
 SceneLayer *DAG_get_scene_layer(Depsgraph *graph)
