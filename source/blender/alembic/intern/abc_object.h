@@ -172,10 +172,10 @@ public:
 
 	virtual void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) = 0;
 
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                              const Alembic::Abc::ISampleSelector &sample_sel,
-	                              int read_flag,
-	                              const char **err_str);
+	virtual DerivedMesh *read_derivedmesh(DerivedMesh *dm,
+	                                      const Alembic::Abc::ISampleSelector &sample_sel,
+	                                      int read_flag,
+	                                      const char **err_str);
 
 	/** Reads the object matrix and sets up an object transform if animated. */
 	void setupObjectTransform(const float time);
