@@ -44,11 +44,20 @@ class ArchiveReader {
 	Alembic::Abc::IArchive m_archive;
 	std::ifstream m_infile;
 	std::vector<std::istream *> m_streams;
+	bool m_is_hdf5;
 
 public:
 	explicit ArchiveReader(const char *filename);
 
 	bool valid() const;
+
+	/**
+	 * Returns true when either Blender is compiled with HDF5 support and
+	 * the archive was succesfully opened (valid() will also return true),
+	 * or when Blender was built without HDF5 support but a HDF5 file was
+	 * detected (valid() will return false).
+	 */
+	bool is_hdf5() const;
 
 	Alembic::Abc::IObject getTop();
 };
