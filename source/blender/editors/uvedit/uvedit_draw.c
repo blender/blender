@@ -553,7 +553,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, SceneLayer *sl, Ob
 
 	ma = give_current_material(ob, ob->actcol);
 
-	if (me->mtpoly) {
+	if (me->mloopuv) {
 		MPoly *mpoly = me->mpoly;
 		MLoopUV *mloopuv, *mloopuv_base;
 		int a, b;

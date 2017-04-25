@@ -159,15 +159,6 @@ void AbcObjectReader::object(Object *ob)
 	m_object = ob;
 }
 
-DerivedMesh *AbcObjectReader::read_derivedmesh(DerivedMesh *dm,
-                                               const Alembic::Abc::ISampleSelector &UNUSED(sample_sel),
-                                               int UNUSED(read_flag),
-                                               const char **UNUSED(err_str))
-{
-	return dm;
-}
-
-
 static Imath::M44d blend_matrices(const Imath::M44d &m0, const Imath::M44d &m1, const float weight)
 {
 	float mat0[4][4], mat1[4][4], ret[4][4];
@@ -221,6 +212,14 @@ Imath::M44d get_matrix(const IXformSchema &schema, const float time)
 	}
 
 	return s0.getMatrix();
+}
+
+DerivedMesh *AbcObjectReader::read_derivedmesh(DerivedMesh *dm,
+                                                       const float UNUSED(time),
+                                                       int UNUSED(read_flag),
+                                                       const char **UNUSED(err_str))
+{
+	return dm;
 }
 
 void AbcObjectReader::setupObjectTransform(const float time)

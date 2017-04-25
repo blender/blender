@@ -55,11 +55,8 @@ public:
 
 	bool valid() const;
 
-	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                              const Alembic::Abc::ISampleSelector &sample_sel,
-	                              int read_flag,
-	                              const char **err_str);
+	void readObjectData(Main *bmain, float time);
+	DerivedMesh *read_derivedmesh(DerivedMesh *, const float time, int read_flag, const char **err_str);
 };
 
 /* ************************************************************************** */

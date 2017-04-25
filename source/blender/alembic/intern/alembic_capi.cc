@@ -613,6 +613,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 enum {
 	ABC_NO_ERROR = 0,
 	ABC_ARCHIVE_FAIL,
+	ABC_UNSUPPORTED_HDF5,
 };
 
 struct ImportJobData {
@@ -678,8 +679,12 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	ArchiveReader *archive = new ArchiveReader(data->filename);
 
 	if (!archive->valid()) {
-		delete archive;
+#ifndef WITH_ALEMBIC_HDF5
+		data->error_code = archive->is_hdf5() ? ABC_UNSUPPORTED_HDF5 : ABC_ARCHIVE_FAIL;
+#else
 		data->error_code = ABC_ARCHIVE_FAIL;
+#endif
+		delete archive;
 		return;
 	}
 
@@ -723,13 +728,12 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	chrono_t min_time = std::numeric_limits<chrono_t>::max();
 	chrono_t max_time = std::numeric_limits<chrono_t>::min();
 
-	ISampleSelector sample_sel(0.0f);
 	std::vector<AbcObjectReader *>::iterator iter;
 	for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 		AbcObjectReader *reader = *iter;
 
 		if (reader->valid()) {
-			reader->readObjectData(data->bmain, sample_sel);
+			reader->readObjectData(data->bmain, 0.0f);
 
 			min_time = std::min(min_time, reader->minTime());
 			max_time = std::max(max_time, reader->maxTime());
@@ -861,6 +865,9 @@ static void import_endjob(void *user_data)
 		case ABC_ARCHIVE_FAIL:
 			WM_report(RPT_ERROR, "Could not open Alembic archive for reading! See console for detail.");
 			break;
+		case ABC_UNSUPPORTED_HDF5:
+			WM_report(RPT_ERROR, "Alembic archive in obsolete HDF5 format is not supported.");
+			break;
 	}
 
 	WM_main_add_notifier(NC_SCENE | ND_FRAME, data->scene);
@@ -955,7 +962,6 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 	}
 
 	const ObjectHeader &header = iobject.getHeader();
-	ISampleSelector sample_sel(time);
 
 	if (IPolyMesh::matches(header)) {
 		if (ob->type != OB_MESH) {
@@ -963,7 +969,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (ISubD::matches(header)) {
 		if (ob->type != OB_MESH) {
@@ -971,7 +977,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (IPoints::matches(header)) {
 		if (ob->type != OB_MESH) {
@@ -979,7 +985,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (ICurves::matches(header)) {
 		if (ob->type != OB_CURVE) {
@@ -987,7 +993,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 
 	*err_str = "Unsupported object type: verify object path"; // or poke developer

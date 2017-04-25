@@ -69,7 +69,7 @@ public:
 
 	bool valid() const;
 
-	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+	void readObjectData(Main *bmain, float time);
 };
 
 #endif  /* __ABC_TRANSFORM_H__ */
