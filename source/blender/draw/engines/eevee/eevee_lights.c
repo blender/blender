@@ -220,7 +220,7 @@ static void eevee_light_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngi
 			evli->sizey = MAX2(0.0001f, la->area_sizey * scale[1] * 0.5f);
 		}
 		else {
-			evli->sizey = evli->sizex;
+			evli->sizey = MAX2(0.0001f, la->area_size * scale[1] * 0.5f);
 		}
 	}
 	else {
