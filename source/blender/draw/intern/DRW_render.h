@@ -295,6 +295,8 @@ const float *DRW_viewport_size_get(void);
 const float *DRW_viewport_screenvecs_get(void);
 const float *DRW_viewport_pixelsize_get(void);
 bool DRW_viewport_is_persp_get(void);
+bool DRW_viewport_is_fbo(void);
+bool DRW_viewport_is_select(void);
 bool DRW_viewport_cache_is_dirty(void);
 
 struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);

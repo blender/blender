@@ -62,6 +62,8 @@
 #include "ED_screen.h"
 #include "ED_armature.h"
 
+#include "DRW_engine.h"
+
 
 #ifdef WITH_GAMEENGINE
 #  include "BLI_listbase.h"
@@ -1180,7 +1182,12 @@ int view3d_opengl_select(
 	
 	GPU_select_begin(buffer, bufsize, &rect, gpu_select_mode, 0);
 
-	ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
+	if (IS_VIEWPORT_LEGACY(vc->v3d)) {
+		ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
+	}
+	else {
+		DRW_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
+	}
 
 	hits = GPU_select_end();
 	
@@ -1188,7 +1195,12 @@ int view3d_opengl_select(
 	if (do_passes) {
 		GPU_select_begin(buffer, bufsize, &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 
-		ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
+		if (IS_VIEWPORT_LEGACY(vc->v3d)) {
+			ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
+		}
+		else {
+			DRW_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
+		}
 
 		GPU_select_end();
 	}

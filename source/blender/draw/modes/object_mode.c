@@ -219,16 +219,19 @@ static void OBJECT_engine_init(void *vedata)
 		{&txl->outlines_depth_tx, DRW_BUF_DEPTH_24, 0},
 		{&txl->outlines_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER},
 	};
-	DRW_framebuffer_init(
-	        &fbl->outlines,
-	        (int)viewport_size[0], (int)viewport_size[1],
-	        tex, 2);
 
-	DRWFboTexture blur_tex = {&txl->outlines_blur_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER};
-	DRW_framebuffer_init(
-	        &fbl->blur,
-	        (int)viewport_size[0], (int)viewport_size[1],
-	        &blur_tex, 1);
+	if (DRW_viewport_is_fbo()) {
+		DRW_framebuffer_init(
+		        &fbl->outlines,
+		        (int)viewport_size[0], (int)viewport_size[1],
+		        tex, 2);
+
+		DRWFboTexture blur_tex = {&txl->outlines_blur_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER};
+		DRW_framebuffer_init(
+		        &fbl->blur,
+		        (int)viewport_size[0], (int)viewport_size[1],
+		        &blur_tex, 1);
+	}
 
 	if (!e_data.outline_resolve_sh) {
 		e_data.outline_resolve_sh = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
@@ -1268,50 +1271,55 @@ static void OBJECT_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	/* Render filled polygon on a separate framebuffer */
-	DRW_framebuffer_bind(fbl->outlines);
-	DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
-	DRW_draw_pass(psl->outlines);
+	if (!DRW_viewport_is_select()) {
+		/* Render filled polygon on a separate framebuffer */
+		DRW_framebuffer_bind(fbl->outlines);
+		DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
+		DRW_draw_pass(psl->outlines);
 
-	/* detach textures */
-	DRW_framebuffer_texture_detach(txl->outlines_depth_tx);
+		/* detach textures */
+		DRW_framebuffer_texture_detach(txl->outlines_depth_tx);
 
-	/* Search outline pixels */
-	DRW_framebuffer_bind(fbl->blur);
-	DRW_draw_pass(psl->outlines_search);
+		/* Search outline pixels */
+		DRW_framebuffer_bind(fbl->blur);
+		DRW_draw_pass(psl->outlines_search);
 
-	/* Expand and fade gradually */
-	DRW_framebuffer_bind(fbl->outlines);
-	DRW_draw_pass(psl->outlines_expand);
+		/* Expand and fade gradually */
+		DRW_framebuffer_bind(fbl->outlines);
+		DRW_draw_pass(psl->outlines_expand);
 
-	DRW_framebuffer_bind(fbl->blur);
-	DRW_draw_pass(psl->outlines_fade1);
+		DRW_framebuffer_bind(fbl->blur);
+		DRW_draw_pass(psl->outlines_fade1);
 
-	DRW_framebuffer_bind(fbl->outlines);
-	DRW_draw_pass(psl->outlines_fade2);
+		DRW_framebuffer_bind(fbl->outlines);
+		DRW_draw_pass(psl->outlines_fade2);
 
-	DRW_framebuffer_bind(fbl->blur);
-	DRW_draw_pass(psl->outlines_fade3);
+		DRW_framebuffer_bind(fbl->blur);
+		DRW_draw_pass(psl->outlines_fade3);
 
-	DRW_framebuffer_bind(fbl->outlines);
-	DRW_draw_pass(psl->outlines_fade4);
+		DRW_framebuffer_bind(fbl->outlines);
+		DRW_draw_pass(psl->outlines_fade4);
 
-	DRW_framebuffer_bind(fbl->blur);
-	DRW_draw_pass(psl->outlines_fade5);
+		DRW_framebuffer_bind(fbl->blur);
+		DRW_draw_pass(psl->outlines_fade5);
 
-	/* reattach */
-	DRW_framebuffer_texture_attach(fbl->outlines, txl->outlines_depth_tx, 0, 0);
-	DRW_framebuffer_bind(dfbl->default_fb);
+		/* reattach */
+		DRW_framebuffer_texture_attach(fbl->outlines, txl->outlines_depth_tx, 0, 0);
+		DRW_framebuffer_bind(dfbl->default_fb);
+	}
 
 	/* This needs to be drawn after the oultine */
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->non_meshes);
 	DRW_draw_pass(psl->ob_center);
-	DRW_draw_pass(psl->grid);
 
-	/* Combine with scene buffer last */
-	DRW_draw_pass(psl->outlines_resolve);
+	if (!DRW_viewport_is_select()) {
+		DRW_draw_pass(psl->grid);
+
+		/* Combine with scene buffer last */
+		DRW_draw_pass(psl->outlines_resolve);
+	}
 }
 
 void OBJECT_collection_settings_create(IDProperty *props)

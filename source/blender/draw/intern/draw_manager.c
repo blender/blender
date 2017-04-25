@@ -77,6 +77,14 @@
 #define MAX_ATTRIB_NAME 32
 #define MAX_PASS_NAME 32
 
+/* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
+#define USE_GPU_SELECT
+
+#ifdef USE_GPU_SELECT
+#  include "ED_view3d.h"
+#  include "GPU_select.h"
+#endif
+
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_fullscreen_vert_glsl[];
@@ -155,12 +163,18 @@ struct DRWPass {
 
 typedef struct DRWCall {
 	struct DRWCall *next, *prev;
+#ifdef USE_GPU_SELECT
+	int select_id;
+#endif
 	Batch *geometry;
 	float (*obmat)[4];
 } DRWCall;
 
 typedef struct DRWCallDynamic {
 	struct DRWCallDynamic *next, *prev;
+#ifdef USE_GPU_SELECT
+	int select_id;
+#endif
 	const void *data[];
 } DRWCallDynamic;
 
@@ -175,6 +189,11 @@ struct DRWShadingGroup {
 
 	Batch *instance_geom;  /* Geometry to instance */
 	Batch *batch_geom;     /* Result of call batching */
+
+#ifdef USE_GPU_SELECT
+	/* backlink to pass we're in */
+	DRWPass *pass_parent;
+#endif
 };
 
 /* Used by DRWShadingGroup.type */
@@ -212,6 +231,15 @@ static struct DRWGlobalState {
 } DST = {NULL};
 
 ListBase DRW_engines = {NULL, NULL};
+
+#ifdef USE_GPU_SELECT
+static unsigned int g_DRW_select_id = (unsigned int)-1;
+
+static void DRW_select_id_set(unsigned int id)
+{
+	g_DRW_select_id = id;
+}
+#endif
 
 /* ***************************************** TEXTURES ******************************************/
 static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *data_type, int *channels)
@@ -457,6 +485,16 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	return interface;
 }
 
+#ifdef USE_GPU_SELECT
+static DRWInterface *DRW_interface_duplicate(DRWInterface *interface_src)
+{
+	DRWInterface *interface_dst = MEM_dupallocN(interface_src);
+	BLI_duplicatelist(&interface_dst->uniforms, &interface_src->uniforms);
+	BLI_duplicatelist(&interface_dst->attribs, &interface_src->attribs);
+	return interface_dst;
+}
+#endif
+
 static void DRW_interface_uniform(DRWShadingGroup *shgroup, const char *name,
                                   DRWUniformType type, const void *value, int length, int arraysize, int bindloc)
 {
@@ -532,6 +570,10 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	BLI_addtail(&pass->shgroups, shgroup);
 	BLI_listbase_clear(&shgroup->calls);
 
+#ifdef USE_GPU_SELECT
+	shgroup->pass_parent = pass;
+#endif
+
 	return shgroup;
 }
 
@@ -589,18 +631,39 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 	call->obmat = obmat;
 	call->geometry = geom;
 
+#ifdef USE_GPU_SELECT
+	call->select_id = g_DRW_select_id;
+#endif
+
 	BLI_addtail(&shgroup->calls, call);
 }
 
 void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *attr[], unsigned int attr_len)
 {
 	DRWInterface *interface = shgroup->interface;
+
+#ifdef USE_GPU_SELECT
+	if ((G.f & G_PICKSEL) && (interface->instance_count > 0)) {
+		shgroup = MEM_dupallocN(shgroup);
+		BLI_listbase_clear(&shgroup->calls);
+
+		shgroup->interface = interface = DRW_interface_duplicate(interface);
+		interface->instance_count = 0;
+
+		BLI_addtail(&shgroup->pass_parent->shgroups, shgroup);
+	}
+#endif
+
 	unsigned int data_size = sizeof(void *) * interface->attribs_count;
-	int size = sizeof(ListBase) + data_size;
+	int size = sizeof(DRWCallDynamic) + data_size;
 
 	DRWCallDynamic *call = MEM_callocN(size, "DRWCallDynamic");
 
 	BLI_assert(attr_len == interface->attribs_count);
+
+#ifdef USE_GPU_SELECT
+	call->select_id = g_DRW_select_id;
+#endif
 
 	memcpy((void *)call->data, attr, data_size);
 
@@ -1097,6 +1160,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BUFFER:
+				if (!DRW_viewport_is_fbo()) {
+					break;
+				}
 				tex = *((GPUTexture **)uni->value);
 				GPU_texture_bind(tex, uni->bindloc);
 				GPU_texture_compare_mode(tex, false);
@@ -1115,6 +1181,22 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 		}
 	}
 
+#ifdef USE_GPU_SELECT
+	/* use the first item because of selection we only ever add one */
+#  define GPU_SELECT_LOAD_IF_PICKSEL(_call) \
+	if ((G.f & G_PICKSEL) && (_call)) { \
+		GPU_select_load_id((_call)->select_id); \
+	} ((void)0)
+#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_call_ls) \
+	if ((G.f & G_PICKSEL) && (_call_ls)->first) { \
+		BLI_assert(BLI_listbase_is_single(_call_ls)); \
+		GPU_select_load_id(((DRWCall *)(_call_ls)->first)->select_id); \
+	} ((void)0)
+#else
+#  define GPU_SELECT_LOAD_IF_PICKSEL(call)
+#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(call)
+#endif
+
 	/* Rendering Calls */
 	if (shgroup->type != DRW_SHG_NORMAL) {
 		/* Replacing multiple calls with only one */
@@ -1122,17 +1204,20 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 		unit_m4(obmat);
 
 		if (shgroup->type == DRW_SHG_INSTANCE && interface->instance_count > 0) {
+			GPU_SELECT_LOAD_IF_PICKSEL_LIST(&shgroup->calls);
 			draw_geometry(shgroup, shgroup->instance_geom, obmat);
 		}
 		else {
 			/* Some dynamic batch can have no geom (no call to aggregate) */
 			if (shgroup->batch_geom) {
+				GPU_SELECT_LOAD_IF_PICKSEL_LIST(&shgroup->calls);
 				draw_geometry(shgroup, shgroup->batch_geom, obmat);
 			}
 		}
 	}
 	else {
 		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
+			GPU_SELECT_LOAD_IF_PICKSEL(call);
 			draw_geometry(shgroup, call->geometry, call->obmat);
 		}
 	}
@@ -1410,22 +1495,26 @@ const float *DRW_viewport_pixelsize_get(void)
  * This is because a cache uniform only store reference
  * to its value. And we don't want to invalidate the cache
  * if this value change per viewport */
-static void DRW_viewport_var_init(const bContext *C)
+static void DRW_viewport_var_init(void)
 {
-	/* Save context for all later needs */
-	DRW_context_state_init(C, &DST.draw_ctx);
-
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
 
 	/* Refresh DST.size */
-	int size[2];
-	GPU_viewport_size_get(DST.viewport, size);
-	DST.size[0] = size[0];
-	DST.size[1] = size[1];
+	if (DST.viewport) {
+		int size[2];
+		GPU_viewport_size_get(DST.viewport, size);
+		DST.size[0] = size[0];
+		DST.size[1] = size[1];
 
-	DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(DST.viewport);
-	DST.default_framebuffer = fbl->default_fb;
+		DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(DST.viewport);
+		DST.default_framebuffer = fbl->default_fb;
+	}
+	else {
+		DST.size[0] = 0;
+		DST.size[1] = 0;
 
+		DST.default_framebuffer = NULL;
+	}
 	/* Refresh DST.screenvecs */
 	copy_v3_v3(DST.screenvecs[0], rv3d->viewinv[0]);
 	copy_v3_v3(DST.screenvecs[1], rv3d->viewinv[1]);
@@ -1454,6 +1543,23 @@ bool DRW_viewport_is_persp_get(void)
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
 	return rv3d->is_persp;
+}
+
+/**
+ * When false, drawing doesn't output to a pixel buffer
+ * eg: Occlusion queries, or when we have setup a context to draw in already.
+ */
+bool DRW_viewport_is_fbo(void)
+{
+	return (G.f & G_PICKSEL) == 0;
+}
+
+/**
+ * For when engines need to know if this is drawing for selection or not.
+ */
+bool DRW_viewport_is_select(void)
+{
+	return (G.f & G_PICKSEL) != 0;
 }
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void)
@@ -1629,10 +1735,9 @@ static void use_drw_engine(DrawEngineType *engine)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void DRW_engines_enable(const bContext *C)
+static void DRW_engines_enable_no_modes(const Scene *scene)
 {
 	/* TODO layers */
-	Scene *scene = CTX_data_scene(C);
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	use_drw_engine(type->draw_engine);
 
@@ -1640,6 +1745,12 @@ static void DRW_engines_enable(const bContext *C)
 	 * not on global state.
 	 * Order is important */
 	use_drw_engine(&draw_engine_object_type);
+}
+
+static void DRW_engines_enable(const bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	DRW_engines_enable_no_modes(scene);
 
 	switch (CTX_data_mode_enum(C)) {
 		case CTX_MODE_EDIT_MESH:
@@ -1858,7 +1969,10 @@ void DRW_draw_view(const bContext *C)
 
 	/* Setup viewport */
 	cache_is_dirty = GPU_viewport_cache_validate(DST.viewport, DRW_engines_get_hash());
-	DRW_viewport_var_init(C);
+
+	/* Save context for all later needs */
+	DRW_context_state_init(C, &DST.draw_ctx);
+	DRW_viewport_var_init();
 
 	/* Update ubos */
 	DRW_globals_update();
@@ -1907,6 +2021,89 @@ void DRW_draw_view(const bContext *C)
 
 	/* avoid accidental reuse */
 	memset(&DST, 0x0, sizeof(DST));
+}
+
+/**
+ * object mode select-loop, see: ED_view3d_draw_select_loop (legacy drawing).
+ */
+void DRW_draw_select_loop(
+        struct ViewContext *vc, Scene *scene, struct SceneLayer *sl, View3D *v3d, ARegion *ar,
+        bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect)
+{
+#ifndef USE_GPU_SELECT
+	UNUSED_VARS(vc, scene, sl, v3d, ar, rect);
+#else
+	RegionView3D *rv3d = vc->rv3d;
+
+	/* backup (_never_ use rv3d->viewport) */
+	void *backup_viewport = vc->rv3d->viewport;
+	rv3d->viewport = NULL;
+
+	struct GPUViewport *viewport = GPU_viewport_create();
+	GPU_viewport_size_set(viewport, (const int[2]){BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)});
+
+	bool cache_is_dirty;
+	DST.viewport = viewport;
+	v3d->zbuf = true;
+
+	/* Get list of enabled engines */
+	DRW_engines_enable_no_modes(scene);
+
+	/* Setup viewport */
+	cache_is_dirty = true;
+
+	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
+	DST.draw_ctx = (DRWContextState){
+		ar, rv3d, v3d, scene, sl, (bContext *)NULL,
+	};
+
+	DRW_viewport_var_init();
+
+	/* Update ubos */
+	DRW_globals_update();
+
+	/* Init engines */
+	DRW_engines_init();
+
+	/* TODO : tag to refresh by the deps graph */
+	/* ideally only refresh when objects are added/removed */
+	/* or render properties / materials change */
+	if (cache_is_dirty) {
+		int code = 1;
+
+		DRW_engines_cache_init();
+
+		/* TODO, use DEG_OBJECT_ITER or similar.
+		 * Currently its not well suited for selection
+		 * since it loops over Objects instead of bases and does so recursively. */
+		for (Base *base = sl->object_bases.first; base; base = base->next) {
+			base->selcol = code++;
+			DRW_select_id_set(base->selcol);
+
+			DRW_engines_cache_populate(base->object);
+		}
+
+		DRW_engines_cache_finish();
+	}
+
+	/* Start Drawing */
+	DRW_draw_callbacks_pre_scene();
+	DRW_engines_draw_scene();
+	DRW_draw_callbacks_post_scene();
+
+	DRW_state_reset();
+	DRW_engines_disable();
+
+	/* avoid accidental reuse */
+	memset(&DST, 0x0, sizeof(DST));
+
+	/* Cleanup for selection state */
+	GPU_viewport_free(viewport);
+	MEM_freeN(viewport);
+
+	/* restore */
+	rv3d->viewport = backup_viewport;
+#endif  /* USE_GPU_SELECT */
 }
 
 /* ****************************************** OTHER ***************************************** */

@@ -151,10 +151,20 @@ void *GPU_viewport_texture_list_get(GPUViewport *viewport)
 	return viewport->txl;
 }
 
-void GPU_viewport_size_get(GPUViewport *viewport, int *size)
+void GPU_viewport_size_get(const GPUViewport *viewport, int size[2])
 {
 	size[0] = viewport->size[0];
 	size[1] = viewport->size[1];
+}
+
+/**
+ * Special case, this is needed for when we have a viewport without a frame-buffer output
+ * (occlusion queries for eg) but still need to set the size since it may be used for other calculations.
+ */
+void GPU_viewport_size_set(GPUViewport *viewport, const int size[2])
+{
+	viewport->size[0] = size[0];
+	viewport->size[1] = size[1];
 }
 
 bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash)
