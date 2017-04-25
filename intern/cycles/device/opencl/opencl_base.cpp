@@ -612,7 +612,7 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 
 string OpenCLDeviceBase::kernel_build_options(const string *debug_src)
 {
-	string build_options = "-cl-fast-relaxed-math ";
+	string build_options = "-cl-no-signed-zeros -cl-mad-enable ";
 
 	if(platform_name == "NVIDIA CUDA") {
 		build_options += "-D__KERNEL_OPENCL_NVIDIA__ "
