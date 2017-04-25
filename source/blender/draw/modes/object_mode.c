@@ -252,10 +252,10 @@ static void OBJECT_engine_init(void *vedata)
 	{
 		/* Grid precompute */
 		float viewinvmat[4][4], winmat[4][4], invwinmat[4][4], viewmat[4][4];
-		const bContext *C = DRW_get_context();
-		View3D *v3d = CTX_wm_view3d(C);
-		Scene *scene = CTX_data_scene(C);
-		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		View3D *v3d = draw_ctx->v3d;
+		Scene *scene = draw_ctx->scene;
+		RegionView3D *rv3d = draw_ctx->rv3d;
 		float grid_scale = ED_view3d_grid_scale(scene, v3d, NULL);
 		float grid_res, offs;
 
@@ -912,9 +912,9 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 
 static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl)
 {
-	const struct bContext *C = DRW_get_context();
-	View3D *v3d = CTX_wm_view3d(C);
-	Scene *scene = CTX_data_scene(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
+	Scene *scene = draw_ctx->scene;
 
 	Camera *cam = ob->data;
 	const bool is_active = (ob == v3d->camera);
@@ -1172,9 +1172,9 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob)
 static void OBJECT_cache_populate(void *vedata, Object *ob)
 {
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
-	const struct bContext *C = DRW_get_context();
-	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
+	SceneLayer *sl = draw_ctx->sl;
 
 	//CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
 

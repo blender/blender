@@ -212,9 +212,9 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 {
 	EDIT_CURVE_PassList *psl = ((EDIT_CURVE_Data *)vedata)->psl;
 	EDIT_CURVE_StorageList *stl = ((EDIT_CURVE_Data *)vedata)->stl;
-	const struct bContext *C = DRW_get_context();
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit = scene->obedit;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const Scene *scene = draw_ctx->scene;
+	const Object *obedit = scene->obedit;
 
 	UNUSED_VARS(psl, stl);
 

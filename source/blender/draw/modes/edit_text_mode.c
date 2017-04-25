@@ -189,8 +189,8 @@ static void EDIT_TEXT_cache_populate(void *vedata, Object *ob)
 {
 	EDIT_TEXT_PassList *psl = ((EDIT_TEXT_Data *)vedata)->psl;
 	EDIT_TEXT_StorageList *stl = ((EDIT_TEXT_Data *)vedata)->stl;
-	const struct bContext *C = DRW_get_context();
-	Scene *scene = CTX_data_scene(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
 	Object *obedit = scene->obedit;
 
 	UNUSED_VARS(psl, stl);

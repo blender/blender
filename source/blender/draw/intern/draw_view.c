@@ -59,11 +59,11 @@
 
 void DRW_draw_region_info(void)
 {
-	const bContext *C = DRW_get_context();
-	ARegion *ar = CTX_wm_region(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ARegion *ar = draw_ctx->ar;
 
 	DRW_draw_cursor();
-	view3d_draw_region_info(C, ar);
+	view3d_draw_region_info(draw_ctx->evil_C, ar);
 }
 
 /* ************************* Grid ************************** */
@@ -511,11 +511,11 @@ void DRW_draw_grid(void)
 	 *
 	 * 'RegionView3D.pixsize' is used for viewport drawing, not rendering.
 	 */
-	const bContext *C = DRW_get_context();
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar = CTX_wm_region(C);
-	RegionView3D *rv3d = ar->regiondata;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
+	View3D *v3d = draw_ctx->v3d;
+	ARegion *ar = draw_ctx->ar;
+	RegionView3D *rv3d = draw_ctx->rv3d;
 
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
 	const char *grid_unit = NULL;
@@ -633,11 +633,11 @@ static bool is_cursor_visible(Scene *scene, SceneLayer *sl)
 
 void DRW_draw_cursor(void)
 {
-	const bContext *C = DRW_get_context();
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
+	RegionView3D *rv3d = draw_ctx->rv3d;
+	Scene *scene = draw_ctx->scene;
+	SceneLayer *sl = draw_ctx->sl;
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_FALSE);
@@ -707,10 +707,10 @@ void DRW_draw_cursor(void)
 
 void DRW_draw_manipulator(void)
 {
-	const bContext *C = DRW_get_context();
-	View3D *v3d = CTX_wm_view3d(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
 	v3d->zbuf = false;
-	ARegion *ar = CTX_wm_region(C);
+	ARegion *ar = draw_ctx->ar;
 
 
 	/* TODO, only draws 3D manipulators right now, need to see how 2D drawing will work in new viewport */
@@ -718,5 +718,5 @@ void DRW_draw_manipulator(void)
 	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
 	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
 	 * later become _IN_SCENE (and draw _3D separate) */
-	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_3D);
+	WM_manipulatormap_draw(ar->manipulator_map, draw_ctx->evil_C, WM_MANIPULATORMAP_DRAWSTEP_3D);
 }

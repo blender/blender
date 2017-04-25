@@ -232,9 +232,9 @@ static DRWPass *edit_mesh_create_overlay_pass(
         DRWShadingGroup **r_lverts_shgrp, DRWShadingGroup **r_facedot_shgrp)
 {
 	GPUShader *tri_sh, *ledge_sh;
-	const struct bContext *C = DRW_get_context();
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	Scene *scene = CTX_data_scene(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	RegionView3D *rv3d = draw_ctx->rv3d;
+	Scene *scene = draw_ctx->scene;
 	ToolSettings *tsettings = scene->toolsettings;
 
 	if ((tsettings->selectmode & SCE_SELECT_VERTEX) != 0) {
@@ -289,8 +289,8 @@ static void EDIT_MESH_cache_init(void *vedata)
 	EDIT_MESH_StorageList *stl = ((EDIT_MESH_Data *)vedata)->stl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	const struct bContext *C = DRW_get_context();
-	View3D *v3d = CTX_wm_view3d(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
 
 	bool do_zbufclip = ((v3d->flag & V3D_ZBUF_SELECT) == 0);
 
@@ -392,9 +392,9 @@ static void edit_mesh_add_ob_to_pass(
 static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 {
 	EDIT_MESH_StorageList *stl = ((EDIT_MESH_Data *)vedata)->stl;
-	const struct bContext *C = DRW_get_context();
-	View3D *v3d = CTX_wm_view3d(C);
-	Scene *scene = CTX_data_scene(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
+	Scene *scene = draw_ctx->scene;
 	Object *obedit = scene->obedit;
 	struct Batch *geom;
 

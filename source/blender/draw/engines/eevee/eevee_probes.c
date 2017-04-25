@@ -133,8 +133,8 @@ void EEVEE_refresh_probe(EEVEE_Data *vedata)
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_ProbesInfo *pinfo = stl->probes;
 
-	const bContext *C = DRW_get_context();
-	Scene *scene = CTX_data_scene(C);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
 	World *world = scene->world;
 
 	float projmat[4][4];

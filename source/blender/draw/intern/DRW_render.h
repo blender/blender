@@ -316,5 +316,21 @@ void DRW_state_reset(void);
 
 /* Other */
 void DRW_get_dfdy_factors(float dfdyfac[2]);
-const struct bContext *DRW_get_context(void);
+
+/* Avoid too many lookups while drawing */
+typedef struct DRWContextState {
+	struct ARegion *ar;
+	struct RegionView3D *rv3d;
+	struct View3D *v3d;
+
+	struct Scene *scene;    /* CTX_data_scene(C) */
+	struct SceneLayer *sl;  /* CTX_data_scene_layer(C) */
+
+	/* last resort (some functions take this as an arg so we can't easily avoid) */
+	const struct bContext *evil_C;
+} DRWContextState;
+
+void DRW_context_state_init(const struct bContext *C, DRWContextState *r_draw_ctx);
+const DRWContextState *DRW_context_state_get(void);
+
 #endif /* __DRW_RENDER_H__ */
