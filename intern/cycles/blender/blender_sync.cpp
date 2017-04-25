@@ -44,6 +44,7 @@ CCL_NAMESPACE_BEGIN
 
 BlenderSync::BlenderSync(BL::RenderEngine& b_engine,
                          BL::BlendData& b_data,
+                         BL::Depsgraph& b_depsgraph,
                          BL::Scene& b_scene,
                          Scene *scene,
                          bool preview,
@@ -51,6 +52,7 @@ BlenderSync::BlenderSync(BL::RenderEngine& b_engine,
                          bool is_cpu)
 : b_engine(b_engine),
   b_data(b_data),
+  b_depsgraph(b_depsgraph),
   b_scene(b_scene),
   shader_map(&scene->shaders),
   object_map(&scene->objects),
@@ -210,10 +212,9 @@ void BlenderSync::sync_data(BL::RenderSettings& b_render,
 	   scene->need_motion() == Scene::MOTION_NONE ||
 	   scene->camera->motion_position == Camera::MOTION_POSITION_CENTER)
 	{
-		sync_objects(b_v3d);
+		sync_objects();
 	}
 	sync_motion(b_render,
-	            b_v3d,
 	            b_override,
 	            width, height,
 	            python_thread_state);

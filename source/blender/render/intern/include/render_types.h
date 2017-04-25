@@ -185,6 +185,8 @@ struct Render {
 	/* shadow counter, detect shadow-reuse for shaders */
 	int shadowsamplenr[BLENDER_MAX_THREADS];
 	
+	struct Depsgraph *depsgraph;
+
 	/* main, scene, and its full copy of renderdata and world */
 	struct Main *main;
 	Scene *scene;

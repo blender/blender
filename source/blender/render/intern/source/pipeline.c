@@ -551,6 +551,7 @@ void RE_FreeRender(Render *re)
 	/* main dbase can already be invalid now, some database-free code checks it */
 	re->main = NULL;
 	re->scene = NULL;
+	re->depsgraph = NULL;
 	
 	RE_Database_Free(re);	/* view render can still have full database */
 	free_sample_tables(re);
@@ -1933,6 +1934,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 
 	/* still unsure entity this... */
 	resc->main = re->main;
+	resc->depsgraph = re->depsgraph;
 	resc->scene = sce;
 	resc->lay = sce->lay;
 	resc->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
@@ -3804,6 +3806,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 	re->scene = sce;
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	re->lay = sce->lay;
+	re->depsgraph = sce->depsgraph;
 
 	camera = RE_GetCamera(re);
 	RE_SetCamera(re, camera);

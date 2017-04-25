@@ -49,6 +49,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RNA_access.h"
 
 #ifdef WITH_PYTHON
@@ -494,8 +496,9 @@ RenderData *RE_engine_get_render_data(Render *re)
 }
 
 /* Bake */
-void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
+void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Depsgraph *graph, Scene *scene)
 {
+	re->depsgraph = graph;
 	re->scene = scene;
 	re->main = bmain;
 	render_copy_renderdata(&re->r, &scene->r);
@@ -545,7 +548,7 @@ bool RE_bake_engine(
 
 	/* update is only called so we create the engine.session */
 	if (type->update)
-		type->update(engine, re->main, re->scene);
+		type->update(engine, re->main, re->depsgraph, re->scene);
 
 	if (type->bake) {
 		type->bake(
@@ -696,16 +699,18 @@ int RE_engine_render(Render *re, int do_all)
 	if (re->result->do_exr_tile)
 		render_result_exr_file_begin(re);
 
-	if (type->update)
-		type->update(engine, re->main, re->scene);
+	if (type->update) {
+		type->update(engine, re->main, re->depsgraph, re->scene);
+	}
 
 	/* Clear UI drawing locks. */
 	if (re->draw_lock) {
 		re->draw_lock(re->dlh, 0);
 	}
 
-	if (type->render)
-		type->render(engine, re->scene);
+	if (type->render) {
+		type->render(engine, re->depsgraph);
+	}
 
 	engine->tile_x = 0;
 	engine->tile_y = 0;

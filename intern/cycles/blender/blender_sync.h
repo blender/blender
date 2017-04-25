@@ -51,6 +51,7 @@ class BlenderSync {
 public:
 	BlenderSync(BL::RenderEngine& b_engine,
 	            BL::BlendData& b_data,
+	            BL::Depsgraph& b_graph,
 	            BL::Scene& b_scene,
 	            Scene *scene,
 	            bool preview,
@@ -97,9 +98,8 @@ private:
 	/* sync */
 	void sync_lamps(bool update_all);
 	void sync_materials(bool update_all);
-	void sync_objects(BL::SpaceView3D& b_v3d, float motion_time = 0.0f);
+	void sync_objects(float motion_time = 0.0f);
 	void sync_motion(BL::RenderSettings& b_render,
-	                 BL::SpaceView3D& b_v3d,
 	                 BL::Object& b_override,
 	                 int width, int height,
 	                 void **python_thread_state);
@@ -156,6 +156,7 @@ private:
 	/* variables */
 	BL::RenderEngine b_engine;
 	BL::BlendData b_data;
+	BL::Depsgraph b_depsgraph;
 	BL::Scene b_scene;
 
 	id_map<void*, Shader> shader_map;

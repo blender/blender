@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Cycles Render Engine",
     "author": "",
-    "blender": (2, 76, 0),
+    "blender": (2, 80, 0),
     "location": "Info header, render engine menu",
     "description": "Cycles Render Engine integration",
     "warning": "",
@@ -66,21 +66,21 @@ class CyclesRender(bpy.types.RenderEngine):
         engine.free(self)
 
     # final render
-    def update(self, data, scene):
+    def update(self, data, depsgraph, scene):
         if not self.session:
             if self.is_preview:
                 cscene = bpy.context.scene.cycles
                 use_osl = cscene.shading_system and cscene.device == 'CPU'
 
-                engine.create(self, data, scene,
+                engine.create(self, data, depsgraph, scene,
                               None, None, None, use_osl)
             else:
-                engine.create(self, data, scene)
+                engine.create(self, data, depsgraph, scene)
         else:
             engine.reset(self, data, scene)
 
-    def render(self, scene):
-        engine.render(self)
+    def render(self, depsgraph):
+        engine.render(self, depsgraph)
 
     def bake(self, scene, obj, pass_type, pass_filter, object_id, pixel_array, num_pixels, depth, result):
         engine.bake(self, obj, pass_type, pass_filter, object_id, pixel_array, num_pixels, depth, result)
@@ -88,12 +88,12 @@ class CyclesRender(bpy.types.RenderEngine):
     # viewport render
     def view_update(self, context):
         if not self.session:
-            engine.create(self, context.blend_data, context.scene,
+            engine.create(self, context.blend_data, context.depsgraph, context.scene,
                           context.region, context.space_data, context.region_data)
         engine.update(self, context.blend_data, context.scene)
 
     def view_draw(self, context):
-        engine.draw(self, context.region, context.space_data, context.region_data)
+        engine.draw(self, context.depsgraph, context.region, context.space_data, context.region_data)
 
     def update_script_node(self, node):
         if engine.with_osl():

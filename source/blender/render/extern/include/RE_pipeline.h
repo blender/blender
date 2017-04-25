@@ -37,6 +37,7 @@
 
 struct bMovieHandle;
 struct bNodeTree;
+struct Depsgraph;
 struct Image;
 struct ImageFormatData;
 struct Main;
@@ -252,6 +253,7 @@ void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetOverrideCamera(struct Render *re, struct Object *camera);
 void RE_SetCamera(struct Render *re, struct Object *camera);
+void RE_SetDepsgraph(struct Render *re, struct Depsgraph *graph);
 void RE_SetEnvmapCamera(struct Render *re, struct Object *cam_ob, float viewscale, float clipsta, float clipend);
 void RE_SetWindow(struct Render *re, const rctf *viewplane, float clipsta, float clipend);
 void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clipsta, float clipend);

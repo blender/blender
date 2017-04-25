@@ -58,6 +58,8 @@
 #include "BKE_screen.h"
 #include "BKE_depsgraph.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
@@ -82,6 +84,7 @@ static void bake_set_props(wmOperator *op, Scene *scene);
 typedef struct BakeAPIRender {
 	Object *ob;
 	Main *main;
+	Depsgraph *depsgraph;
 	Scene *scene;
 	ReportList *reports;
 	ListBase selected_objects;
@@ -630,7 +633,7 @@ static Mesh *bake_mesh_new_from_object(Main *bmain, Scene *scene, Object *ob)
 }
 
 static int bake(
-        Render *re, Main *bmain, Scene *scene, Object *ob_low, ListBase *selected_objects, ReportList *reports,
+        Render *re, Main *bmain, Depsgraph *graph, Scene *scene, Object *ob_low, ListBase *selected_objects, ReportList *reports,
         const ScenePassType pass_type, const int pass_filter, const int margin,
         const BakeSaveMode save_mode, const bool is_clear, const bool is_split_materials,
         const bool is_automatic_name, const bool is_selected_to_active, const bool is_cage,
@@ -669,7 +672,7 @@ static int bake(
 	size_t num_pixels;
 	int tot_materials;
 
-	RE_bake_engine_set_engine_parameters(re, bmain, scene);
+	RE_bake_engine_set_engine_parameters(re, bmain, graph, scene);
 
 	if (!RE_bake_has_engine(re)) {
 		BKE_report(reports, RPT_ERROR, "Current render engine does not support baking");
@@ -1117,6 +1120,7 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 
 	bkr->ob = CTX_data_active_object(C);
 	bkr->main = CTX_data_main(C);
+	bkr->depsgraph = CTX_data_depsgraph(C);
 	bkr->scene = CTX_data_scene(C);
 	bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL;
 
@@ -1197,7 +1201,7 @@ static int bake_exec(bContext *C, wmOperator *op)
 
 	if (bkr.is_selected_to_active) {
 		result = bake(
-		        bkr.render, bkr.main, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports,
+		        bkr.render, bkr.main, bkr.depsgraph, bkr.scene, bkr.ob, &bkr.selected_objects, bkr.reports,
 		        bkr.pass_type, bkr.pass_filter, bkr.margin, bkr.save_mode,
 		        bkr.is_clear, bkr.is_split_materials, bkr.is_automatic_name, true, bkr.is_cage,
 		        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
@@ -1210,7 +1214,7 @@ static int bake_exec(bContext *C, wmOperator *op)
 		for (link = bkr.selected_objects.first; link; link = link->next) {
 			Object *ob_iter = link->ptr.data;
 			result = bake(
-			        bkr.render, bkr.main, bkr.scene, ob_iter, NULL, bkr.reports,
+			        bkr.render, bkr.main, bkr.depsgraph, bkr.scene, ob_iter, NULL, bkr.reports,
 			        bkr.pass_type, bkr.pass_filter, bkr.margin, bkr.save_mode,
 			        is_clear, bkr.is_split_materials, bkr.is_automatic_name, false, bkr.is_cage,
 			        bkr.cage_extrusion, bkr.normal_space, bkr.normal_swizzle,
@@ -1254,7 +1258,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
 
 	if (bkr->is_selected_to_active) {
 		bkr->result = bake(
-		        bkr->render, bkr->main, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports,
+		        bkr->render, bkr->main, bkr->depsgraph, bkr->scene, bkr->ob, &bkr->selected_objects, bkr->reports,
 		        bkr->pass_type, bkr->pass_filter, bkr->margin, bkr->save_mode,
 		        bkr->is_clear, bkr->is_split_materials, bkr->is_automatic_name, true, bkr->is_cage,
 		        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,
@@ -1267,7 +1271,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
 		for (link = bkr->selected_objects.first; link; link = link->next) {
 			Object *ob_iter = link->ptr.data;
 			bkr->result = bake(
-			        bkr->render, bkr->main, bkr->scene, ob_iter, NULL, bkr->reports,
+			        bkr->render, bkr->main, bkr->depsgraph, bkr->scene, ob_iter, NULL, bkr->reports,
 			        bkr->pass_type, bkr->pass_filter, bkr->margin, bkr->save_mode,
 			        is_clear, bkr->is_split_materials, bkr->is_automatic_name, false, bkr->is_cage,
 			        bkr->cage_extrusion, bkr->normal_space, bkr->normal_swizzle,

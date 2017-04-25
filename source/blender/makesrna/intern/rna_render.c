@@ -32,6 +32,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -146,7 +148,7 @@ static void engine_unbind_display_space_shader(RenderEngine *UNUSED(engine))
 	IMB_colormanagement_finish_glsl_draw();
 }
 
-static void engine_update(RenderEngine *engine, Main *bmain, Scene *scene)
+static void engine_update(RenderEngine *engine, Main *bmain, Depsgraph *graph, Scene *scene)
 {
 	extern FunctionRNA rna_RenderEngine_update_func;
 	PointerRNA ptr;
@@ -158,13 +160,14 @@ static void engine_update(RenderEngine *engine, Main *bmain, Scene *scene)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "data", &bmain);
+	RNA_parameter_set_lookup(&list, "depsgraph", &graph);
 	RNA_parameter_set_lookup(&list, "scene", &scene);
 	engine->type->ext.call(NULL, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_render(RenderEngine *engine, struct Scene *scene)
+static void engine_render(RenderEngine *engine, struct Depsgraph *depsgraph)
 {
 	extern FunctionRNA rna_RenderEngine_render_func;
 	PointerRNA ptr;
@@ -175,7 +178,7 @@ static void engine_render(RenderEngine *engine, struct Scene *scene)
 	func = &rna_RenderEngine_render_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
-	RNA_parameter_set_lookup(&list, "scene", &scene);
+	RNA_parameter_set_lookup(&list, "depsgraph", &depsgraph);
 	engine->type->ext.call(NULL, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
@@ -459,12 +462,13 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Export scene data for render");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	RNA_def_pointer(func, "data", "BlendData", "", "");
+	RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
 
 	func = RNA_def_function(srna, "render", NULL);
 	RNA_def_function_ui_description(func, "Render scene into an image");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-	RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_pointer(func, "desgraph", "Depsgraph", "", "");
 
 	func = RNA_def_function(srna, "bake", NULL);
 	RNA_def_function_ui_description(func, "Bake passes");
