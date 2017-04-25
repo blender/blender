@@ -612,35 +612,70 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 {
 	if (type == GHOST_kDrawingContextTypeOpenGL) {
 
-		const int profile_mask =
-#if defined(WITH_GL_PROFILE_CORE)
-			WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-#elif defined(WITH_GL_PROFILE_COMPAT)
-			WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-#else
-#  error // must specify either core or compat at build time
-#endif
+		// During development:
+		//   ask for 2.1 context, driver gives latest compatibility profile
+		//   (we check later to ensure it's >= 3.3 on Windows)
+		//
+		// Final Blender 2.8:
+		//   try 4.x core profile
+		//   try 3.3 core profile
+		//   no fallbacks
 
-		GHOST_Context *context = new GHOST_ContextWGL(
+		// TODO(merwin): query version of initial dummy context, request that + profile + debug
+
+		GHOST_Context *context;
+
+#if defined(WITH_GL_PROFILE_CORE)
+		// our minimum requirement is 3.3 core profile
+		// when we request a specific GL version:
+		//   - AMD and Intel give us exactly this version
+		//   - NVIDIA gives at least this version <-- desired behavior
+		// so we ask for 4.5, 4.4 ... 3.3 in descending order to get the best version on the user's system
+		for (int minor = 5; minor >= 0; --minor) {
+			context = new GHOST_ContextWGL(
+			        m_wantStereoVisual,
+			        m_wantAlphaBackground,
+			        m_wantNumOfAASamples,
+			        m_hWnd,
+			        m_hDC,
+			        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+			        4, minor,
+			        (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+			        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+			if (context->initializeDrawingContext())
+				return context;
+			else
+				delete context;
+		}
+
+		context = new GHOST_ContextWGL(
 		        m_wantStereoVisual,
 		        m_wantAlphaBackground,
 		        m_wantNumOfAASamples,
 		        m_hWnd,
 		        m_hDC,
-		        profile_mask,
-#if 0
-		        3, 3, // specific GL version requested
-		              // AMD gives us exactly this version
-		              // NVIDIA gives at least this version <-- desired behavior
-#else
-		        2, 1, // any GL version >= 2.1 (hopefully the latest)
-		              // we check later to ensure it's >= 3.3 on Windows
-		              // TODO(merwin): fix properly!
-		              //               2.1 ignores the profile bit & is incompatible with core profile
-		              //               query version of initial dummy context, request that + profile + debug
-#endif
+		        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		        3, 3,
 		        (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
 		        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+#elif defined(WITH_GL_PROFILE_COMPAT)
+		// ask for 2.1 context, driver gives any GL version >= 2.1 (hopefully the latest compatibility profile)
+		// 2.1 ignores the profile bit & is incompatible with core profile
+		context = new GHOST_ContextWGL(
+		        m_wantStereoVisual,
+		        m_wantAlphaBackground,
+		        m_wantNumOfAASamples,
+		        m_hWnd,
+		        m_hDC,
+		        0, // no profile bit
+		        2, 1,
+		        (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+		        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+#else
+#  error // must specify either core or compat at build time
+#endif
 
 		if (context->initializeDrawingContext())
 			return context;

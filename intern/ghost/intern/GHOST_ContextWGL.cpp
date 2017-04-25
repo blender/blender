@@ -878,6 +878,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 		else
 			m_hGLRC = s_sharedHGLRC;
 	}
+#ifdef WITH_LEGACY_OPENGL
 	else {
 		if (m_contextProfileMask  != 0)
 			fprintf(stderr, "Warning! Legacy WGL is unable to select between OpenGL profiles.");
@@ -893,6 +894,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 		else
 			m_hGLRC = s_sharedHGLRC;
 	}
+#endif // WITH_LEGACY_OPENGL
 
 	if (!WIN32_CHK(m_hGLRC != NULL)) {
 		::wglMakeCurrent(prevHDC, prevHGLRC);
@@ -944,7 +946,13 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 		           MB_OK | MB_ICONERROR);
 		exit(0);
 	}
+#if defined(WITH_LEGACY_OPENGL)
+	else if (version[0] < '3') {
+		// relax requirements for Mesa, which uses GL 3.0
+		// while other drivers use GL 3.3+ compatibility profile
+#else
 	else if (version[0] < '3' || (version[0] == '3' && version[2] < '3')) {
+#endif
 		MessageBox(m_hWnd, "Blender requires a graphics driver with OpenGL 3.3 support.\n\n"
 		                   "The program will now close.",
 		           "Blender - Unsupported Graphics Driver!",
