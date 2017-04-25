@@ -574,6 +574,6 @@ void ED_render_internal_init(void)
 	RenderEngineType *ret = RE_engines_find(RE_engine_id_BLENDER_RENDER);
 	
 	ret->view_update = render_view3d_update;
-	ret->view_draw = render_view3d_draw;
+	ret->render_to_view = render_view3d_draw;
 	
 }

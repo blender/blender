@@ -757,7 +757,7 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 
 		type = RE_engines_find(scene->r.engine);
 
-		if (!(type->view_update && type->view_draw))
+		if (!(type->view_update && type->render_to_view))
 			return false;
 
 		engine = RE_engine_create_ex(type, true);
@@ -794,7 +794,7 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 
 	/* render result draw */
 	type = rv3d->render_engine->type;
-	type->view_draw(rv3d->render_engine, C);
+	type->render_to_view(rv3d->render_engine, C);
 
 	if (clip_border) {
 		/* restore scissor as it was before */

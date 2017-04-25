@@ -147,7 +147,7 @@ RenderEngineType *RE_engines_find(const char *idname)
 bool RE_engine_is_external(Render *re)
 {
 	RenderEngineType *type = RE_engines_find(re->r.engine);
-	return (type && type->render);
+	return (type && type->render_to_image);
 }
 
 /* Create, Free */
@@ -616,7 +616,7 @@ int RE_engine_render(Render *re, int do_all)
 	bool persistent_data = (re->r.mode & R_PERSISTENT_DATA) != 0;
 
 	/* verify if we can render */
-	if (!type->render)
+	if (!type->render_to_image)
 		return 0;
 	if ((re->r.scemode & R_BUTS_PREVIEW) && !(type->flag & RE_USE_PREVIEW))
 		return 0;
@@ -708,8 +708,8 @@ int RE_engine_render(Render *re, int do_all)
 		re->draw_lock(re->dlh, 0);
 	}
 
-	if (type->render) {
-		type->render(engine, re->depsgraph);
+	if (type->render_to_image) {
+		type->render_to_image(engine, re->depsgraph);
 	}
 
 	engine->tile_x = 0;

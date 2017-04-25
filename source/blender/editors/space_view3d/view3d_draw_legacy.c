@@ -2182,7 +2182,7 @@ static bool view3d_main_region_do_render_draw(Scene *scene)
 {
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 
-	return (type && type->view_update && type->view_draw);
+	return (type && type->view_update && type->render_to_view);
 }
 
 bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *rect)
@@ -2244,7 +2244,7 @@ static bool view3d_main_region_draw_engine(const bContext *C, Scene *scene,
 
 		type = RE_engines_find(scene->r.engine);
 
-		if (!(type->view_update && type->view_draw))
+		if (!(type->view_update && type->render_to_view))
 			return false;
 
 		engine = RE_engine_create_ex(type, true);
@@ -2285,7 +2285,7 @@ static bool view3d_main_region_draw_engine(const bContext *C, Scene *scene,
 
 	/* render result draw */
 	type = rv3d->render_engine->type;
-	type->view_draw(rv3d->render_engine, C);
+	type->render_to_view(rv3d->render_engine, C);
 
 	if (v3d->flag & V3D_DISPBGPICS)
 		view3d_draw_bgpic_test(scene, ar, v3d, true, true);
