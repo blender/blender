@@ -26,14 +26,12 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_GPU__
 __forceinline uint uint2::operator[](uint i) const
 {
-	util_assert(i >= 0);
 	util_assert(i < 2);
 	return *(&x + i);
 }
 
 __forceinline uint& uint2::operator[](uint i)
 {
-	util_assert(i >= 0);
 	util_assert(i < 2);
 	return *(&x + i);
 }
