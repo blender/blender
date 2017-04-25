@@ -724,7 +724,7 @@ int wm_homefile_read(
 	if (filepath_startup_override != NULL) {
 		/* pass */
 	}
-	else if (app_template_override) {
+	else if (app_template_override && app_template_override[0]) {
 		app_template = app_template_override;
 	}
 	else if (!use_factory_settings && U.app_template[0]) {
