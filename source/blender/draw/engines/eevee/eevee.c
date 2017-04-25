@@ -25,6 +25,8 @@
 
 #include "DRW_render.h"
 
+#include "DNA_world_types.h"
+
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 #include "GPU_glew.h"
@@ -38,11 +40,11 @@
 /* *********** STATIC *********** */
 static struct {
 	struct GPUShader *default_lit;
+	struct GPUShader *default_world;
 	struct GPUShader *depth_sh;
 	struct GPUShader *tonemap;
 	struct GPUShader *shadow_sh;
-	/* Temp : use world shader */
-	struct GPUShader *probe_sh;
+
 	struct GPUShader *probe_filter_sh;
 	struct GPUShader *probe_spherical_harmonic_sh;
 
@@ -55,6 +57,7 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_default_frag_glsl[];
+extern char datatoc_default_world_frag_glsl[];
 extern char datatoc_ltc_lib_glsl[];
 extern char datatoc_bsdf_lut_frag_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
@@ -68,11 +71,11 @@ extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_vert_glsl[];
 extern char datatoc_probe_filter_frag_glsl[];
 extern char datatoc_probe_sh_frag_glsl[];
-extern char datatoc_probe_frag_glsl[];
 extern char datatoc_probe_geom_glsl[];
 extern char datatoc_probe_vert_glsl[];
 
 extern Material defmaterial;
+extern GlobalsUboStorage ts;
 
 /* Van der Corput sequence */
  /* From http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
@@ -211,7 +214,7 @@ static void EEVEE_engine_init(void *ved)
 	                    (int)viewport_size[0], (int)viewport_size[1],
 	                    &tex, 1);
 
-	if (!e_data.default_lit) {
+	if (!e_data.depth_sh) {
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
 	}
 
@@ -243,9 +246,9 @@ static void EEVEE_engine_init(void *ved)
 		        datatoc_shadow_vert_glsl, datatoc_shadow_geom_glsl, datatoc_shadow_frag_glsl, NULL);
 	}
 
-	if (!e_data.probe_sh) {
-		e_data.probe_sh = DRW_shader_create(
-		        datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, datatoc_probe_frag_glsl, NULL);
+	if (!e_data.default_world) {
+		e_data.default_world = DRW_shader_create(
+		        datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, datatoc_default_world_frag_glsl, NULL);
 	}
 
 	if (!e_data.probe_filter_sh) {
@@ -370,9 +373,27 @@ static void EEVEE_cache_init(void *vedata)
 		psl->probe_background = DRW_pass_create("Probe Background Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
 
 		struct Batch *geom = DRW_cache_fullscreen_quad_get();
-		DRWShadingGroup *grp = eevee_cube_shgroup(e_data.probe_sh, psl->probe_background, geom);
-		DRW_shgroup_uniform_int(grp, "Layer", &stl->probes->layer, 1);
-		DRW_shgroup_uniform_buffer(grp, "probeLatLong", &stl->probes->backgroundtex, 0);
+		DRWShadingGroup *grp;
+
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		Scene *scene = draw_ctx->scene;
+		World *wo = scene->world;
+
+		if (false) { /* TODO check for world nodetree */
+			// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
+		}
+		else {
+			float *col = ts.colorBackground;
+			static int zero = 0;
+
+			if (wo) {
+				col = &wo->horr;
+			}
+
+			grp = eevee_cube_shgroup(e_data.default_world, psl->probe_background, geom);
+			DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
+			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
+		}
 	}
 
 	{
@@ -562,7 +583,7 @@ static void EEVEE_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.default_lit);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_sh);
+	DRW_SHADER_FREE_SAFE(e_data.default_world);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_spherical_harmonic_sh);
 	DRW_SHADER_FREE_SAFE(e_data.tonemap);

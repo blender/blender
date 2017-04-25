@@ -147,19 +147,8 @@ void EEVEE_refresh_probe(EEVEE_Data *vedata)
 		mul_m4_m4m4(pinfo->probemat[i], projmat, cubefacemat[i]);
 	}
 
-	/* Debug Tex : Use World 1st Tex Slot */
-	if (world && world->mtex[0]) {
-		MTex *mtex = world->mtex[0];
-		if (mtex && mtex->tex) {
-			Tex *tex = mtex->tex;
-			if (tex->ima) {
-				pinfo->backgroundtex = GPU_texture_from_blender(tex->ima, &tex->iuser, GL_TEXTURE_2D, true, 0.0, 0);
-
-				DRW_framebuffer_bind(fbl->probe_fb);
-				DRW_draw_pass(psl->probe_background);
-			}
-		}
-	}
+	DRW_framebuffer_bind(fbl->probe_fb);
+	DRW_draw_pass(psl->probe_background);
 
 	/* 2 - Let gpu create Mipmaps for Filtered Importance Sampling. */
 	/* Bind next framebuffer to be able to write to probe_rt. */

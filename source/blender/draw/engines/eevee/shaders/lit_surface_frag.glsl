@@ -37,30 +37,30 @@ out vec4 fragColor;
 #define HEMI     3.0
 #define AREA     4.0
 
-float light_diffuse(LightData ld, ShadingData sd)
+vec3 light_diffuse(LightData ld, ShadingData sd, vec3 albedo)
 {
 	if (ld.l_type == SUN) {
-		return direct_diffuse_sun(ld, sd);
+		return direct_diffuse_sun(ld, sd) * albedo;
 	}
 	else if (ld.l_type == AREA) {
-		return direct_diffuse_rectangle(ld, sd);
+		return direct_diffuse_rectangle(ld, sd) * albedo;
 	}
 	else {
-		return direct_diffuse_sphere(ld, sd);
+		return direct_diffuse_sphere(ld, sd) * albedo;
 	}
 }
 
-float light_specular(LightData ld, ShadingData sd, float roughness)
+vec3 light_specular(LightData ld, ShadingData sd, float roughness, vec3 f0)
 {
 	if (ld.l_type == SUN) {
-		return direct_ggx_point(sd, roughness);
+		return direct_ggx_point(sd, roughness, f0);
 	}
 	else if (ld.l_type == AREA) {
-		return direct_ggx_rectangle(ld, sd, roughness);
+		return direct_ggx_rectangle(ld, sd, roughness, f0);
 	}
 	else {
-		// return direct_ggx_point(sd, roughness);
-		return direct_ggx_sphere(ld, sd, roughness);
+		// return direct_ggx_point(sd, roughness, f0);
+		return direct_ggx_sphere(ld, sd, roughness, f0);
 	}
 }
 
@@ -254,11 +254,10 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness)
 		light_common(ld, sd);
 
 		float vis = light_visibility(ld, sd);
-		float spec = light_specular(ld, sd, roughness);
-		float diff = light_diffuse(ld, sd);
-		vec3 fresnel = light_fresnel(ld, sd, f0);
+		vec3 spec = light_specular(ld, sd, roughness, f0);
+		vec3 diff = light_diffuse(ld, sd, albedo);
 
-		radiance += vis * (albedo * diff + fresnel * spec) * ld.l_color;
+		radiance += vis * (diff + spec) * ld.l_color;
 	}
 
 	/* Envmaps */

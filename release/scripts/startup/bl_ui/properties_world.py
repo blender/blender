@@ -249,6 +249,24 @@ class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
     _property_type = bpy.types.World
 
 
+class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
+    bl_label = "Surface"
+    bl_context = "world"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        return context.world and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        world = context.world
+
+        layout.prop(world, "horizon_color", text="Color")
+
+
 classes = (
     WORLD_PT_context_world,
     WORLD_PT_preview,
@@ -259,6 +277,7 @@ classes = (
     WORLD_PT_gather,
     WORLD_PT_mist,
     WORLD_PT_custom_props,
+    EEVEE_WORLD_PT_surface,
 )
 
 if __name__ == "__main__":  # only for live edit.
