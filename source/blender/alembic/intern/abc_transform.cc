@@ -36,7 +36,6 @@ extern "C" {
 
 using Alembic::AbcGeom::OObject;
 using Alembic::AbcGeom::OXform;
-using Alembic::Abc::ISampleSelector;
 
 /* ************************************************************************** */
 
@@ -154,7 +153,7 @@ bool AbcEmptyReader::valid() const
 	return m_schema.valid();
 }
 
-void AbcEmptyReader::readObjectData(Main *bmain, const ISampleSelector &UNUSED(sample_sel))
+void AbcEmptyReader::readObjectData(Main *bmain, float /*time*/)
 {
 	m_object = BKE_object_add_only_object(bmain, OB_EMPTY,
 	                                      m_object_name.c_str());

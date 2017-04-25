@@ -59,16 +59,14 @@ public:
 
 	bool valid() const;
 
-	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+	void readObjectData(Main *bmain, float time);
 
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                              const Alembic::Abc::ISampleSelector &sample_sel,
-	                              int read_flag,
-	                              const char **err_str);
+	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str);
 };
 
 void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,
                         const Alembic::AbcGeom::ISampleSelector &selector,
-                        CDStreamConfig &config);
+                        CDStreamConfig &config,
+                        float time);
 
 #endif  /* __ABC_POINTS_H__ */

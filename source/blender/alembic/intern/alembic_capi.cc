@@ -704,13 +704,12 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	chrono_t min_time = std::numeric_limits<chrono_t>::max();
 	chrono_t max_time = std::numeric_limits<chrono_t>::min();
 
-	ISampleSelector sample_sel(0.0f);
 	std::vector<AbcObjectReader *>::iterator iter;
 	for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 		AbcObjectReader *reader = *iter;
 
 		if (reader->valid()) {
-			reader->readObjectData(data->bmain, sample_sel);
+			reader->readObjectData(data->bmain, 0.0f);
 
 			min_time = std::min(min_time, reader->minTime());
 			max_time = std::max(max_time, reader->maxTime());
@@ -923,7 +922,6 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 	}
 
 	const ObjectHeader &header = iobject.getHeader();
-	ISampleSelector sample_sel(time);
 
 	if (IPolyMesh::matches(header)) {
 		if (ob->type != OB_MESH) {
@@ -931,7 +929,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (ISubD::matches(header)) {
 		if (ob->type != OB_MESH) {
@@ -939,7 +937,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (IPoints::matches(header)) {
 		if (ob->type != OB_MESH) {
@@ -947,7 +945,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (ICurves::matches(header)) {
 		if (ob->type != OB_CURVE) {
@@ -955,7 +953,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 
 	*err_str = "Unsupported object type: verify object path"; // or poke developer

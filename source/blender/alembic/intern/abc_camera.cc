@@ -117,10 +117,11 @@ bool AbcCameraReader::valid() const
 	return m_schema.valid();
 }
 
-void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_sel)
+void AbcCameraReader::readObjectData(Main *bmain, float time)
 {
 	Camera *bcam = static_cast<Camera *>(BKE_camera_add(bmain, m_data_name.c_str()));
 
+	ISampleSelector sample_sel(time);
 	CameraSample cam_sample;
 	m_schema.get(cam_sample, sample_sel);
 
