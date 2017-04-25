@@ -1892,6 +1892,9 @@ void DRW_draw_view(const bContext *C)
 
 	DRW_state_reset();
 	DRW_engines_disable();
+
+	/* avoid accidental reuse */
+	memset(&DST, 0x0, sizeof(DST));
 }
 
 /* ****************************************** OTHER ***************************************** */
