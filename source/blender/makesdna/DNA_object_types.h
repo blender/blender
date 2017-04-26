@@ -306,6 +306,8 @@ typedef struct Object {
 	struct IDProperty *base_collection_properties; /* used by depsgraph, flushed from base */
 
 	ListBase drawdata;		/* runtime, for draw engine datas */
+	int base_selection_color; /* flushed by depsgraph only */
+	int pad3[3];
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */

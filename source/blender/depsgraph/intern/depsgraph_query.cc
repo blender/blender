@@ -137,6 +137,7 @@ void DAG_objects_iterator_next(Iterator *iter)
 			/* Flushing depsgraph data. */
 			ob->base_flag = (base->flag | BASE_FROM_SET) & data->flag;
 			ob->base_collection_properties = base->collection_properties;
+			ob->base_selection_color = base->selcol;
 			data->base = base;
 			return;
 		}

@@ -2109,23 +2109,21 @@ void DRW_draw_select_loop(
 	/* or render properties / materials change */
 	if (cache_is_dirty) {
 
-		int code = 1;
-
 		DRW_engines_cache_init();
 
 		if (use_obedit) {
 			DRW_engines_cache_populate(vc->obedit);
 		}
 		else {
-			/* TODO, use DEG_OBJECT_ITER or similar.
-			 * Currently its not well suited for selection
-			 * since it loops over Objects instead of bases and does so recursively. */
-			for (Base *base = sl->object_bases.first; base; base = base->next) {
-				base->selcol = code++;
-				DRW_select_load_id(base->selcol);
-
-				DRW_engines_cache_populate(base->object);
+			Depsgraph *graph = scene->depsgraph; // CTX_data_depsgraph(C);
+			DEG_OBJECT_ITER(graph, ob)
+			{
+				if ((ob->base_flag & BASE_SELECTABLED) != 0) {
+					DRW_select_load_id(ob->base_selection_color);
+					DRW_engines_cache_populate(ob);
+				}
 			}
+			DEG_OBJECT_ITER_END
 		}
 
 		DRW_engines_cache_finish();

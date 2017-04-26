@@ -43,6 +43,7 @@ extern "C" {
 #include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -80,12 +81,14 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* scene objects */
-	FOREACH_SCENE_OBJECT(scene, ob)
-	{
-		/* object itself */
-		build_object(scene, ob);
+	int selection_color = 1;
+	for (SceneLayer *sl = (SceneLayer *)scene->render_layers.first; sl; sl = sl->next) {
+		for (Base *base = (Base *)sl->object_bases.first; base; base = base->next) {
+			/* object itself */
+			build_object(scene, base->object);
+			base->selcol = selection_color++;
+		}
 	}
-	FOREACH_SCENE_OBJECT_END
 
 	/* rigidbody */
 	if (scene->rigidbody_world) {
