@@ -2605,7 +2605,7 @@ void gpuRestoreState(GPUStateValues *values)
 		restore_mask(GL_DEPTH_TEST, values->is_depth_test);
 		restore_mask(GL_DITHER, values->is_dither);
 
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 8; i++) {
 			restore_mask(GL_LIGHT0 + i, values->is_light[i]);
 		}
 
