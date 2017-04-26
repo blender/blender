@@ -47,6 +47,8 @@ enum {
 	CACHEFILE_KEYFRAME_DRAWN = (1 << 0),
 };
 
+/* Representation of an object's path inside the Alembic file.
+ * Note that this is not a file path. */
 typedef struct AlembicObjectPath {
 	struct AlembicObjectPath *next, *prev;
 
@@ -64,7 +66,7 @@ typedef struct CacheFile {
 	 * CacheFile. */
 	ListBase object_paths;
 
-	char filepath[4096];  /* 4096 = PATH_MAX */
+	char filepath[1024];  /* 1024 = FILE_MAX */
 
 	char is_sequence;
 	char forward_axis;
