@@ -1360,7 +1360,6 @@ void drawnodespace(const bContext *C, ARegion *ar)
 
 	/* only set once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_MAP1_VERTEX_3);
 	
 	/* nodes */
 	snode_set_context(C);

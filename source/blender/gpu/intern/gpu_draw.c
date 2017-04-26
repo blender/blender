@@ -2547,7 +2547,6 @@ void gpuSaveState(GPUStateValues *values, eGPUStateMask mask)
 
 		values->is_line_smooth = glIsEnabled(GL_LINE_SMOOTH);
 		values->is_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
-		values->is_map1_vertex3 = glIsEnabled(GL_MAP1_VERTEX_3);
 		values->is_multisample = glIsEnabled(GL_MULTISAMPLE);
 		values->is_normalize = glIsEnabled(GL_NORMALIZE);
 		values->is_polygon_offset_line = glIsEnabled(GL_POLYGON_OFFSET_LINE);
@@ -2612,7 +2611,6 @@ void gpuRestoreState(GPUStateValues *values)
 
 		restore_mask(GL_LINE_SMOOTH, values->is_line_smooth);
 		restore_mask(GL_COLOR_LOGIC_OP, values->is_color_logic_op);
-		restore_mask(GL_MAP1_VERTEX_3, values->is_map1_vertex3);
 		restore_mask(GL_MULTISAMPLE, values->is_multisample);
 		restore_mask(GL_NORMALIZE, values->is_normalize);
 		restore_mask(GL_POLYGON_OFFSET_LINE, values->is_polygon_offset_line);
