@@ -878,11 +878,11 @@ bool ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 	bool import_ok = false;
 	if (as_background_job) {
 		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
-									CTX_wm_window(C),
-									job->scene,
-									"Alembic Import",
-									WM_JOB_PROGRESS,
-									WM_JOB_TYPE_ALEMBIC);
+		                            CTX_wm_window(C),
+		                            job->scene,
+		                            "Alembic Import",
+		                            WM_JOB_PROGRESS,
+		                            WM_JOB_TYPE_ALEMBIC);
 
 		/* setup job */
 		WM_jobs_customdata_set(wm_job, job, import_freejob);
