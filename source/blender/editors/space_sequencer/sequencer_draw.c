@@ -1044,6 +1044,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 
 	/* safety border */
 	if (sseq->flag & SEQ_SHOW_SAFE_MARGINS) {
+#if 0 /* Disabled just for this commit, will be fixed in next one. */
 		UI_draw_safe_areas(
 		        pos, x1, x2, y1, y2,
 		        scene->safe_areas.title,
@@ -1055,6 +1056,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 			        scene->safe_areas.title_center,
 			        scene->safe_areas.action_center);
 		}
+#endif
 	}
 
 	immUnbindProgram();

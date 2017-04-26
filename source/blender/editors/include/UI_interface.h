@@ -324,7 +324,7 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4]);
 
 void UI_draw_safe_areas(
-        unsigned pos, float x1, float x2, float y1, float y2,
+        uint pos, uint line_origin, float x1, float x2, float y1, float y2,
         const float title_aspect[2], const float action_aspect[2]);
 
 /* state for scrolldrawing */

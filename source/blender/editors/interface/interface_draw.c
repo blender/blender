@@ -577,11 +577,15 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 /**
  * Draw title and text safe areas.
  *
- * The first parameter is a PRIM_FLOAT, 2, KEEP_FLOAT vertex attrib
+ * \Note This functionn is to be used with the 2D dashed shader enabled.
+ *
+ * \param pos is a PRIM_FLOAT, 2, KEEP_FLOAT vertex attrib
+ * \param line_origin is a PRIM_FLOAT, 2, KEEP_FLOAT vertex attrib
+ *
  * The next 4 parameters are the offsets for the view, not the zones.
  */
 void UI_draw_safe_areas(
-        unsigned pos, float x1, float x2, float y1, float y2,
+        uint pos, uint line_origin, float x1, float x2, float y1, float y2,
         const float title_aspect[2], const float action_aspect[2])
 {
 	const float size_x_half = (x2 - x1) * 0.5f;
@@ -589,15 +593,9 @@ void UI_draw_safe_areas(
 
 	const float *safe_areas[] = {title_aspect, action_aspect};
 	const int safe_len = ARRAY_SIZE(safe_areas);
-	bool is_first = true;
 
 	for (int i = 0; i < safe_len; i++) {
 		if (safe_areas[i][0] || safe_areas[i][1]) {
-			if (is_first) {
-				immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
-				is_first = false;
-			}
-
 			float margin_x = safe_areas[i][0] * size_x_half;
 			float margin_y = safe_areas[i][1] * size_y_half;
 
@@ -606,7 +604,7 @@ void UI_draw_safe_areas(
 			float maxx = x2 - margin_x;
 			float maxy = y2 - margin_y;
 
-			imm_draw_line_box(pos, minx, miny, maxx, maxy);
+			imm_draw_line_box_dashed(pos, line_origin, minx, miny, maxx, maxy);
 		}
 	}
 }
