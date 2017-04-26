@@ -242,7 +242,7 @@ endif()
 option(WITH_PLAYER        "Build Player" OFF)
 option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ${_init_OPENCOLORIO})
 
-option(WITH_CLAY_ENGINE    "Enable New Clay engine (Breaks Mac and Intel compatibility)" ON)
+option(WITH_CLAY_ENGINE    "Enable New Clay engine (Breaks Mac and Mesa compatibility)" ON)
 
 option(WITH_LEGACY_OPENGL  "Enable build of legacy OpenGL" ON)
 
