@@ -52,7 +52,7 @@ enum {
 typedef struct AlembicObjectPath {
 	struct AlembicObjectPath *next, *prev;
 
-	char path[4096];  /* 4096 = PATH_MAX */
+	char path[4096];
 } AlembicObjectPath;
 
 typedef struct CacheFile {

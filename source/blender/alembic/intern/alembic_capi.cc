@@ -172,7 +172,7 @@ static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
 		void *abc_path_void = MEM_callocN(sizeof(AlembicObjectPath), "AlembicObjectPath");
 		AlembicObjectPath *abc_path = static_cast<AlembicObjectPath *>(abc_path_void);
 
-		BLI_strncpy(abc_path->path, object.getFullName().c_str(), PATH_MAX);
+		BLI_strncpy(abc_path->path, object.getFullName().c_str(), sizeof(abc_path->path));
 		BLI_addtail(object_paths, abc_path);
 	}
 
@@ -542,7 +542,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 
 		AlembicObjectPath *abc_path = static_cast<AlembicObjectPath *>(
 		                                  MEM_callocN(sizeof(AlembicObjectPath), "AlembicObjectPath"));
-		BLI_strncpy(abc_path->path, full_name.c_str(), PATH_MAX);
+		BLI_strncpy(abc_path->path, full_name.c_str(), sizeof(abc_path->path));
 		BLI_addtail(&settings.cache_file->object_paths, abc_path);
 
 		/* We can now assign this reader as parent for our children. */
