@@ -108,7 +108,7 @@ static bool object_is_smoke_sim(Object *ob)
 	return false;
 }
 
-static bool object_is_shape(Object *ob)
+static bool object_type_is_exportable(Object *ob)
 {
 	switch (ob->type) {
 		case OB_MESH:
@@ -117,6 +117,7 @@ static bool object_is_shape(Object *ob)
 			}
 
 			return true;
+		case OB_EMPTY:
 		case OB_CURVE:
 		case OB_SURF:
 		case OB_CAMERA:
@@ -387,7 +388,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, O
 		return;
 	}
 
-	if (object_is_shape(ob)) {
+	if (object_type_is_exportable(ob)) {
 		createTransformWriter(ob, parent, dupliObParent);
 	}
 
@@ -557,7 +558,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 {
 	Object *ob = ob_base->object;
 
-	if (!object_is_shape(ob)) {
+	if (!object_type_is_exportable(ob)) {
 		return;
 	}
 

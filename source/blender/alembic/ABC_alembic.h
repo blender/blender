@@ -121,6 +121,7 @@ struct DerivedMesh *ABC_read_mesh(struct CacheReader *reader,
                                   const char **err_str,
                                   int flags);
 
+void CacheReader_incref(struct CacheReader *reader);
 void CacheReader_free(struct CacheReader *reader);
 
 struct CacheReader *CacheReader_open_alembic_object(struct AbcArchiveHandle *handle,

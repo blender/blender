@@ -369,4 +369,5 @@ void AbcObjectReader::incref()
 void AbcObjectReader::decref()
 {
 	--m_refcount;
+	BLI_assert(m_refcount >= 0);
 }
