@@ -70,6 +70,7 @@ typedef struct SELECT_TextureList {
 typedef struct SELECT_PassList {
 #ifdef USE_DEPTH
 	struct DRWPass *depth_pass;
+	struct DRWPass *depth_pass_cull;
 #endif
 	struct DRWPass *color_pass;
 	struct g_data *g_data;
@@ -95,12 +96,11 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 typedef struct g_data {
+#ifdef USE_DEPTH
 	DRWShadingGroup *depth_shgrp;
-	DRWShadingGroup *depth_shgrp_select;
-	DRWShadingGroup *depth_shgrp_active;
 	DRWShadingGroup *depth_shgrp_cull;
-	DRWShadingGroup *depth_shgrp_cull_select;
-	DRWShadingGroup *depth_shgrp_cull_active;
+#endif
+	DRWShadingGroup *color_shgrp;
 } g_data; /* Transient data */
 
 /* Functions */
@@ -111,10 +111,12 @@ static void SELECT_engine_init(void *vedata)
 	SELECT_TextureList *txl = ((SELECT_Data *)vedata)->txl;
 	SELECT_FramebufferList *fbl = ((SELECT_Data *)vedata)->fbl;
 
+#ifdef USE_DEPTH
 	/* Depth prepass */
 	if (!e_data.depth_sh) {
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
 	}
+#endif
 
 	/* Shading pass */
 	if (!e_data.color_sh) {
@@ -125,6 +127,7 @@ static void SELECT_engine_init(void *vedata)
 		stl->storage = MEM_callocN(sizeof(SELECT_Storage), "SELECT_Storage");
 	}
 
+#ifdef USE_DEPTH
 	if (DRW_viewport_is_fbo()) {
 		const float *viewport_size = DRW_viewport_size_get();
 		DRWFboTexture tex = {&txl->depth_dup, DRW_BUF_DEPTH_24, 0};
@@ -132,6 +135,7 @@ static void SELECT_engine_init(void *vedata)
 		                     (int)viewport_size[0], (int)viewport_size[1],
 		                     &tex, 1);
 	}
+#endif
 }
 
 static void SELECT_cache_init(void *vedata)
@@ -149,18 +153,23 @@ static void SELECT_cache_init(void *vedata)
 	{
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+
+		psl->depth_pass_cull = DRW_pass_create(
+		        "Depth Pass Cull",
+		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
+		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
 	}
 #endif
 
 	/* Color Pass */
 	{
 		psl->color_pass = DRW_pass_create("Color Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
+		stl->g_data->color_shgrp = DRW_shgroup_create(e_data.color_sh, psl->color_pass);
 	}
 }
 
 static void SELECT_cache_populate(void *vedata, Object *ob)
 {
-	SELECT_PassList *psl = ((SELECT_Data *)vedata)->psl;
 	SELECT_StorageList *stl = ((SELECT_Data *)vedata)->stl;
 
 	if (!DRW_is_object_renderable(ob))
@@ -168,16 +177,13 @@ static void SELECT_cache_populate(void *vedata, Object *ob)
 
 	struct Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
-		IDProperty *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
-		bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
-
+		bool do_cull = false;  /* TODO (we probably wan't to take this from the viewport?) */
+#ifdef USE_DEPTH
 		/* Depth Prepass */
 		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
-
+#endif
 		/* Shading */
-		DRWShadingGroup *color_shgrp = DRW_shgroup_create(e_data.color_sh, psl->color_pass);
-
-		DRW_shgroup_call_add(color_shgrp, geom, ob->obmat);
+		DRW_shgroup_call_add(stl->g_data->color_shgrp, geom, ob->obmat);
 	}
 }
 
@@ -198,6 +204,7 @@ static void SELECT_draw_scene(void *vedata)
 #ifdef USE_DEPTH
 	/* Pass 1 : Depth pre-pass */
 	DRW_draw_pass(psl->depth_pass);
+	DRW_draw_pass(psl->depth_pass_cull);
 
 	/* Pass 2 : Duplicate depth */
 	/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
