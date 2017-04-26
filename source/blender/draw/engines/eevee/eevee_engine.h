@@ -19,17 +19,13 @@
  *
  */
 
-/** \file clay.h
+/** \file eevee_engine.h
  *  \ingroup DNA
  */
 
-#ifndef __CLAY_H__
-#define __CLAY_H__
+#ifndef __EEVEE_ENGINE_H__
+#define __EEVEE_ENGINE_H__
 
-extern RenderEngineType viewport_clay_type;
+extern RenderEngineType DRW_engine_viewport_eevee_type;
 
-struct IDProperty;
-
-struct IDProperty *CLAY_render_settings_create(void);
-
-#endif /* __CLAY_H__ */
+#endif /* __EEVEE_ENGINE_H__ */

@@ -19,8 +19,8 @@
  *
  */
 
-/** \file eevee.c
- *  \ingroup DNA
+/** \file eevee_engine.c
+ *  \ingroup draw_engine
  */
 
 #include "DRW_render.h"
@@ -31,7 +31,7 @@
 #include "BLI_rand.h"
 #include "GPU_glew.h"
 
-#include "eevee.h"
+#include "eevee_engine.h"
 #include "eevee_private.h"
 #include "eevee_lut.h"
 
@@ -616,7 +616,7 @@ DrawEngineType draw_engine_eevee_type = {
 	NULL//&EEVEE_draw_scene
 };
 
-RenderEngineType viewport_eevee_type = {
+RenderEngineType DRW_engine_viewport_eevee_type = {
 	NULL, NULL,
 	EEVEE_ENGINE, N_("Eevee"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
 	NULL, NULL, NULL, NULL, NULL, NULL, &EEVEE_collection_settings_create,

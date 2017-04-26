@@ -25,7 +25,7 @@
 
 #include "DRW_render.h"
 
-#include "eevee.h"
+#include "eevee_engine.h"
 #include "eevee_private.h"
 
 typedef struct EEVEE_LightData {
@@ -85,7 +85,7 @@ void EEVEE_lights_cache_add(EEVEE_StorageList *stl, Object *ob)
 	}
 	else {
 		Lamp *la = (Lamp *)ob->data;
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &DRW_engine_viewport_eevee_type);
 
 		DRW_lamp_engine_data_free((void *)led);
 
@@ -483,22 +483,22 @@ void EEVEE_lights_update(EEVEE_StorageList *stl)
 	int i;
 
 	for (i = 0; (ob = linfo->light_ref[i]) && (i < MAX_LIGHT); i++) {
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &DRW_engine_viewport_eevee_type);
 		eevee_light_setup(ob, linfo, led);
 	}
 
 	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &DRW_engine_viewport_eevee_type);
 		eevee_shadow_cube_setup(ob, linfo, led);
 	}
 
 	for (i = 0; (ob = linfo->shadow_map_ref[i]) && (i < MAX_SHADOW_MAP); i++) {
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &DRW_engine_viewport_eevee_type);
 		eevee_shadow_map_setup(ob, linfo, led);
 	}
 
 	for (i = 0; (ob = linfo->shadow_cascade_ref[i]) && (i < MAX_SHADOW_CASCADE); i++) {
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &DRW_engine_viewport_eevee_type);
 		eevee_shadow_cascade_setup(ob, linfo, led);
 	}
 
@@ -525,7 +525,7 @@ void EEVEE_draw_shadows(EEVEE_Data *vedata)
 
 	/* Render each shadow to one layer of the array */
 	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &DRW_engine_viewport_eevee_type);
 		EEVEE_ShadowCubeData *evscd = (EEVEE_ShadowCubeData *)led->sto;
 		EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
 
@@ -545,7 +545,7 @@ void EEVEE_draw_shadows(EEVEE_Data *vedata)
 
 	/* Render each shadow to one layer of the array */
 	for (i = 0; (ob = linfo->shadow_map_ref[i]) && (i < MAX_SHADOW_MAP); i++) {
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &DRW_engine_viewport_eevee_type);
 		EEVEE_ShadowMapData *evsmd = (EEVEE_ShadowMapData *)led->sto;
 
 		linfo->layer = i;
@@ -560,7 +560,7 @@ void EEVEE_draw_shadows(EEVEE_Data *vedata)
 
 	/* Render each shadow to one layer of the array */
 	for (i = 0; (ob = linfo->shadow_cascade_ref[i]) && (i < MAX_SHADOW_CASCADE); i++) {
-		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &viewport_eevee_type);
+		EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)DRW_lamp_engine_data_get(ob, &DRW_engine_viewport_eevee_type);
 		EEVEE_ShadowCascadeData *evscd = (EEVEE_ShadowCascadeData *)led->sto;
 		EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
 

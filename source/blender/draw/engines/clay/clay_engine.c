@@ -34,7 +34,7 @@
 #include "UI_resources.h"
 #include "UI_interface_icons.h"
 
-#include "clay.h"
+#include "clay_engine.h"
 #ifdef WITH_CLAY_ENGINE
 /* Shaders */
 
@@ -656,7 +656,7 @@ DrawEngineType draw_engine_clay_type = {
 	&CLAY_draw_scene
 };
 
-RenderEngineType viewport_clay_type = {
+RenderEngineType DRW_engine_viewport_clay_type = {
 	NULL, NULL,
 	CLAY_ENGINE, N_("Clay"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
 	NULL, NULL, NULL, NULL, NULL, NULL, &CLAY_collection_settings_create,

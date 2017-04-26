@@ -26,9 +26,6 @@
 set(INC
 	.
 	intern
-	engines/clay
-	engines/eevee
-	engines/select
 	modes
 
 	../blenfont
@@ -67,13 +64,13 @@ set(SRC
 	intern/draw_cache_impl_lattice.c
 	intern/draw_cache_impl_mesh.c
 
-	engines/clay/clay.c
-	engines/clay/clay.h
+	engines/clay/clay_engine.c
+	engines/clay/clay_engine.h
 
-	engines/eevee/eevee.c
+	engines/eevee/eevee_engine.c
+	engines/eevee/eevee_engine.h
 	engines/eevee/eevee_lights.c
 	engines/eevee/eevee_probes.c
-	engines/eevee/eevee.h
 	engines/eevee/eevee_private.h
 
 	engines/select/select_engine.c

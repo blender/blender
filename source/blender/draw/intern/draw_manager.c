@@ -68,9 +68,10 @@
 #include "draw_cache_impl.h"
 
 #include "draw_mode_engines.h"
-#include "clay.h"
-#include "eevee.h"
-#include "select_engine.h"
+
+#include "engines/clay/clay_engine.h"
+#include "engines/eevee/eevee_engine.h"
+#include "engines/select/select_engine.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -1802,7 +1803,7 @@ static void DRW_engines_enable_from_mode(int mode)
 
 static void DRW_engines_enable_select(void)
 {
-	use_drw_engine(viewport_select_type.draw_engine);
+	use_drw_engine(DRW_engine_viewport_select_type.draw_engine);
 }
 
 static void DRW_engines_enable(const bContext *C)
@@ -2180,8 +2181,8 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 void DRW_engines_register(void)
 {
 #ifdef WITH_CLAY_ENGINE
-	RE_engines_register(NULL, &viewport_clay_type);
-	RE_engines_register(NULL, &viewport_eevee_type);
+	RE_engines_register(NULL, &DRW_engine_viewport_clay_type);
+	RE_engines_register(NULL, &DRW_engine_viewport_eevee_type);
 
 	DRW_engine_register(&draw_engine_object_type);
 	DRW_engine_register(&draw_engine_edit_armature_type);
@@ -2241,6 +2242,6 @@ void DRW_engines_free(void)
 	if (globals_ubo)
 		GPU_uniformbuffer_free(globals_ubo);
 
-	BLI_remlink(&R_engines, &viewport_clay_type);
+	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
 #endif
 }

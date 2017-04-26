@@ -29,7 +29,7 @@
 
 #include "DRW_render.h"
 
-#include "eevee.h"
+#include "eevee_engine.h"
 #include "eevee_private.h"
 #include "GPU_texture.h"
 #include "GPU_glew.h"

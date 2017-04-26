@@ -230,7 +230,7 @@ DrawEngineType draw_engine_select_type = {
 	&SELECT_draw_scene
 };
 
-RenderEngineType viewport_select_type = {
+RenderEngineType DRW_engine_viewport_select_type = {
 	NULL, NULL,
 	SELECT_ENGINE, N_("SelectID"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,

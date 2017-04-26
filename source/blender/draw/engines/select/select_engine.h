@@ -26,6 +26,6 @@
 #ifndef __SELECT_ENGINE_H__
 #define __SELECT_ENGINE_H__
 
-extern RenderEngineType viewport_select_type;
+extern RenderEngineType DRW_engine_viewport_select_type;
 
 #endif /* __SELECT_ENGINE_H__ */
