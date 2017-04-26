@@ -223,6 +223,7 @@ void scale_m4_fl(float R[4][4], float scale);
 
 float mat3_to_scale(const float M[3][3]);
 float mat4_to_scale(const float M[4][4]);
+float mat4_to_xy_scale(const float M[4][4]);
 
 void size_to_mat3(float R[3][3], const float size[3]);
 void size_to_mat4(float R[4][4], const float size[3]);

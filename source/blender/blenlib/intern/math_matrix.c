@@ -1578,6 +1578,15 @@ float mat4_to_scale(const float mat[4][4])
 	return len_v3(unit_vec);
 }
 
+/** Return 2D scale (in XY plane) of given mat4. */
+float mat4_to_xy_scale(const float M[4][4])
+{
+	/* unit length vector in xy plane */
+	float unit_vec[3] = {(float)M_SQRT1_2, (float)M_SQRT1_2, 0.0f};
+	mul_mat3_m4_v3(M, unit_vec);
+	return len_v3(unit_vec);
+}
+
 void mat3_to_rot_size(float rot[3][3], float size[3], const float mat3[3][3])
 {
 	/* keep rot as a 3x3 matrix, the caller can convert into a quat or euler */
