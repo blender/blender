@@ -359,6 +359,7 @@ bool ABC_export(
 		std::swap(job->settings.frame_start, job->settings.frame_end);
 	}
 
+	bool export_ok = false;
 	if (as_background_job) {
 		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
 		                            CTX_wm_window(C),
@@ -381,9 +382,12 @@ bool ABC_export(
 
 		export_startjob(job, &stop, &do_update, &progress);
 		export_endjob(job);
+		export_ok = job->export_ok;
+
+		MEM_freeN(job);
 	}
 
-	return job->export_ok;
+	return export_ok;
 }
 
 /* ********************** Import file ********************** */
@@ -871,6 +875,7 @@ bool ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 
 	G.is_break = false;
 
+	bool import_ok = false;
 	if (as_background_job) {
 		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
 									CTX_wm_window(C),
@@ -893,9 +898,12 @@ bool ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 
 		import_startjob(job, &stop, &do_update, &progress);
 		import_endjob(job);
+		import_ok = job->import_ok;
+
+		import_freejob(job);
 	}
 
-	return job->import_ok;
+	return import_ok;
 }
 
 /* ************************************************************************** */
