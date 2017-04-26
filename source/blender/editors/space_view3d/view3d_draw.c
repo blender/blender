@@ -621,7 +621,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			x4 = floorf(x1 + (scene->r.border.xmax * (x2 - x1))) + (U.pixelsize - 1);
 			y4 = floorf(y1 + (scene->r.border.ymax * (y2 - y1))) + (U.pixelsize - 1);
 
-			immUniform4f("color1", 0.25f, 0.25f, 1.0f, 1.0f);
+			immUniform4f("color1", 1.0f, 0.25f, 0.25f, 1.0f);
 			imm_draw_line_box_dashed(pos, line_origin, x3, y3, x4, y4);
 		}
 
@@ -760,18 +760,26 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 static void drawrenderborder(ARegion *ar, View3D *v3d)
 {
 	/* use the same program for everything */
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
 	glLineWidth(1.0f);
-	setlinestyle(3);
-	imm_cpack(0x4040FF);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
 
-	imm_draw_line_box(
-	    pos, v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
-	    v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
-	setlinestyle(0);
+	immUniform1f("view_scale", 1.0f);
+
+	immUniform4f("color1", 1.0f, 0.25f, 0.25f, 1.0f);
+	immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+	immUniform1f("dash_width", 6.0f);
+	immUniform1f("dash_width_on", 3.0f);
+
+	imm_draw_line_box_dashed(pos, line_origin,
+	                         v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
+	                         v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
 
 	immUnbindProgram();
 }

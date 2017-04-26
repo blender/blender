@@ -36,6 +36,8 @@
 /**
 * Pack color into 3 bytes
 *
+* \Note BGR format (i.e. 0xBBGGRR)...
+*
 * \param x color.
 */
 void imm_cpack(unsigned int x)
