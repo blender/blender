@@ -118,7 +118,7 @@ void DebugFlags::OpenCL::reset()
 	}
 	/* Initialize other flags from environment variables. */
 	debug = (getenv("CYCLES_OPENCL_DEBUG") != NULL);
-	single_program = (getenv("CYCLES_OPENCL_SINGLE_PROGRAM") != NULL);
+	single_program = (getenv("CYCLES_OPENCL_MULTI_PROGRAM") == NULL);
 }
 
 DebugFlags::DebugFlags()
