@@ -199,24 +199,6 @@ static void wm_gesture_draw_line(wmGesture *gt)
 	immUnbindProgram();
 }
 
-static void imm_draw_line_box_dashed(unsigned pos, unsigned line_origin, float x1, float y1, float x2, float y2)
-{
-	immBegin(PRIM_LINES, 8);
-	immAttrib2f(line_origin, x1, y1);
-	immVertex2f(pos, x1, y1);
-	immVertex2f(pos, x1, y2);
-	immAttrib2f(line_origin, x1, y2);
-	immVertex2f(pos, x1, y2);
-	immVertex2f(pos, x2, y2);
-	immAttrib2f(line_origin, x2, y1);
-	immVertex2f(pos, x2, y2);
-	immVertex2f(pos, x2, y1);
-	immAttrib2f(line_origin, x1, y1);
-	immVertex2f(pos, x2, y1);
-	immVertex2f(pos, x1, y1);
-	immEnd();
-}
-
 static void wm_gesture_draw_rect(wmGesture *gt)
 {
 	rcti *rect = (rcti *)gt->customdata;

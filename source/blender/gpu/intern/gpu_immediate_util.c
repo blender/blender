@@ -181,6 +181,32 @@ void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2)
 	immEnd();
 }
 
+/** Same as \a imm_draw_line_box, but for dashed shader. */
+/* TODO find a way to generate screen-space dashed lines without that line_origin ugly hack
+ * (would not bet it's possible with current GLSL though :( ). */
+void imm_draw_line_box_dashed(uint pos, uint line_origin, float x1, float y1, float x2, float y2)
+{
+	immBegin(PRIM_LINES, 8);
+
+	immAttrib2f(line_origin, x1, y1);
+	immVertex2f(pos, x1, y1);
+	immVertex2f(pos, x1, y2);
+
+	immAttrib2f(line_origin, x1, y2);
+	immVertex2f(pos, x1, y2);
+	immVertex2f(pos, x2, y2);
+
+	immAttrib2f(line_origin, x2, y1);
+	immVertex2f(pos, x2, y2);
+	immVertex2f(pos, x2, y1);
+
+	immAttrib2f(line_origin, x1, y1);
+	immVertex2f(pos, x2, y1);
+	immVertex2f(pos, x1, y1);
+
+	immEnd();
+}
+
 /**
  * Draw a standard checkerboard to indicate transparent backgrounds.
  */

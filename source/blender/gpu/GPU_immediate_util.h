@@ -44,6 +44,8 @@ void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2);
 
 void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2);
 
+void imm_draw_line_box_dashed(uint pos, uint line_origin, float x1, float y1, float x2, float y2);
+
 void imm_draw_checker_box(float x1, float y1, float x2, float y2);
 
 void imm_draw_cylinder_fill_normal_3d(
