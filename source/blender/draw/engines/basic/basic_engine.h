@@ -19,13 +19,13 @@
  *
  */
 
-/** \file select_engine.h
+/** \file basic_engine.h
  *  \ingroup draw_engine
  */
 
-#ifndef __SELECT_ENGINE_H__
-#define __SELECT_ENGINE_H__
+#ifndef __BASIC_ENGINE_H__
+#define __BASIC_ENGINE_H__
 
-extern RenderEngineType DRW_engine_viewport_select_type;
+extern RenderEngineType DRW_engine_viewport_basic_type;
 
 #endif /* __SELECT_ENGINE_H__ */

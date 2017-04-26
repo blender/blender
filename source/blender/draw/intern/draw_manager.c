@@ -71,7 +71,7 @@
 
 #include "engines/clay/clay_engine.h"
 #include "engines/eevee/eevee_engine.h"
-#include "engines/select/select_engine.h"
+#include "engines/basic/basic_engine.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -1848,9 +1848,12 @@ static void DRW_engines_enable_from_mode(int mode)
 	}
 }
 
-static void DRW_engines_enable_select(void)
+/**
+ * Use for select and depth-drawing.
+ */
+static void DRW_engines_enable_basic(void)
 {
-	use_drw_engine(DRW_engine_viewport_select_type.draw_engine);
+	use_drw_engine(DRW_engine_viewport_basic_type.draw_engine);
 }
 
 static void DRW_engines_enable(const bContext *C)
@@ -2138,7 +2141,7 @@ void DRW_draw_select_loop(
 		DRW_engines_enable_from_mode(obedit_mode);
 	}
 	else {
-		DRW_engines_enable_select();
+		DRW_engines_enable_basic();
 		DRW_engines_enable_from_object_mode();
 	}
 
@@ -2224,7 +2227,7 @@ void DRW_draw_depth_loop(
 
 	/* Get list of enabled engines */
 	{
-		DRW_engines_enable_select();
+		DRW_engines_enable_basic();
 		DRW_engines_enable_from_object_mode();
 	}
 

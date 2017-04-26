@@ -19,6 +19,13 @@
  *
  */
 
+/** \file basic_engine.h
+ *  \ingroup draw_engine
+ *
+ * Simple engine for drawing color and/or depth.
+ * When we only need simple flat shaders.
+ */
+
 #include "DRW_render.h"
 
 #include "BKE_icons.h"
@@ -27,10 +34,10 @@
 
 #include "GPU_shader.h"
 
-#include "select_engine.h"
+#include "basic_engine.h"
 /* Shaders */
 
-#define SELECT_ENGINE "BLENDER_SELECT"
+#define BASIC_ENGINE "BLENDER_BASIC"
 
 /* we may want this later? */
 #define USE_DEPTH
@@ -39,25 +46,25 @@
 
 /* GPUViewport.storage
  * Is freed everytime the viewport engine changes */
-typedef struct SELECT_Storage {
+typedef struct BASIC_Storage {
 	int dummy;
-} SELECT_Storage;
+} BASIC_Storage;
 
-typedef struct SELECT_StorageList {
-	struct SELECT_Storage *storage;
+typedef struct BASIC_StorageList {
+	struct BASIC_Storage *storage;
 	struct g_data *g_data;
-} SELECT_StorageList;
+} BASIC_StorageList;
 
-typedef struct SELECT_FramebufferList {
+typedef struct BASIC_FramebufferList {
 	/* default */
 	struct GPUFrameBuffer *default_fb;
 	/* engine specific */
 #ifdef USE_DEPTH
 	struct GPUFrameBuffer *dupli_depth;
 #endif
-} SELECT_FramebufferList;
+} BASIC_FramebufferList;
 
-typedef struct SELECT_TextureList {
+typedef struct BASIC_TextureList {
 	/* default */
 	struct GPUTexture *color;
 #ifdef USE_DEPTH
@@ -65,24 +72,24 @@ typedef struct SELECT_TextureList {
 	/* engine specific */
 	struct GPUTexture *depth_dup;
 #endif
-} SELECT_TextureList;
+} BASIC_TextureList;
 
-typedef struct SELECT_PassList {
+typedef struct BASIC_PassList {
 #ifdef USE_DEPTH
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
 #endif
 	struct DRWPass *color_pass;
 	struct g_data *g_data;
-} SELECT_PassList;
+} BASIC_PassList;
 
-typedef struct SELECT_Data {
+typedef struct BASIC_Data {
 	void *engine_type;
-	SELECT_FramebufferList *fbl;
-	SELECT_TextureList *txl;
-	SELECT_PassList *psl;
-	SELECT_StorageList *stl;
-} SELECT_Data;
+	BASIC_FramebufferList *fbl;
+	BASIC_TextureList *txl;
+	BASIC_PassList *psl;
+	BASIC_StorageList *stl;
+} BASIC_Data;
 
 /* *********** STATIC *********** */
 
@@ -105,11 +112,11 @@ typedef struct g_data {
 
 /* Functions */
 
-static void SELECT_engine_init(void *vedata)
+static void BASIC_engine_init(void *vedata)
 {
-	SELECT_StorageList *stl = ((SELECT_Data *)vedata)->stl;
-	SELECT_TextureList *txl = ((SELECT_Data *)vedata)->txl;
-	SELECT_FramebufferList *fbl = ((SELECT_Data *)vedata)->fbl;
+	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
+	BASIC_TextureList *txl = ((BASIC_Data *)vedata)->txl;
+	BASIC_FramebufferList *fbl = ((BASIC_Data *)vedata)->fbl;
 
 #ifdef USE_DEPTH
 	/* Depth prepass */
@@ -124,7 +131,7 @@ static void SELECT_engine_init(void *vedata)
 	}
 
 	if (!stl->storage) {
-		stl->storage = MEM_callocN(sizeof(SELECT_Storage), "SELECT_Storage");
+		stl->storage = MEM_callocN(sizeof(BASIC_Storage), "BASIC_Storage");
 	}
 
 #ifdef USE_DEPTH
@@ -138,10 +145,10 @@ static void SELECT_engine_init(void *vedata)
 #endif
 }
 
-static void SELECT_cache_init(void *vedata)
+static void BASIC_cache_init(void *vedata)
 {
-	SELECT_PassList *psl = ((SELECT_Data *)vedata)->psl;
-	SELECT_StorageList *stl = ((SELECT_Data *)vedata)->stl;
+	BASIC_PassList *psl = ((BASIC_Data *)vedata)->psl;
+	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -168,9 +175,9 @@ static void SELECT_cache_init(void *vedata)
 	}
 }
 
-static void SELECT_cache_populate(void *vedata, Object *ob)
+static void BASIC_cache_populate(void *vedata, Object *ob)
 {
-	SELECT_StorageList *stl = ((SELECT_Data *)vedata)->stl;
+	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
 
 	if (!DRW_is_object_renderable(ob))
 		return;
@@ -187,18 +194,18 @@ static void SELECT_cache_populate(void *vedata, Object *ob)
 	}
 }
 
-static void SELECT_cache_finish(void *vedata)
+static void BASIC_cache_finish(void *vedata)
 {
-	SELECT_StorageList *stl = ((SELECT_Data *)vedata)->stl;
+	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
 
 	UNUSED_VARS(stl);
 }
 
-static void SELECT_draw_scene(void *vedata)
+static void BASIC_draw_scene(void *vedata)
 {
 
-	SELECT_PassList *psl = ((SELECT_Data *)vedata)->psl;
-	SELECT_FramebufferList *fbl = ((SELECT_Data *)vedata)->fbl;
+	BASIC_PassList *psl = ((BASIC_Data *)vedata)->psl;
+	BASIC_FramebufferList *fbl = ((BASIC_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
 #ifdef USE_DEPTH
@@ -217,33 +224,35 @@ static void SELECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->color_pass);
 }
 
-static void SELECT_engine_free(void)
+static void BASIC_engine_free(void)
 {
 	/* all shaders are builtin */
 }
 
-static const DrawEngineDataSize SELECT_data_size = DRW_VIEWPORT_DATA_SIZE(SELECT_Data);
+static const DrawEngineDataSize BASIC_data_size = DRW_VIEWPORT_DATA_SIZE(BASIC_Data);
 
-DrawEngineType draw_engine_select_type = {
+DrawEngineType draw_engine_basic_type = {
 	NULL, NULL,
-	N_("SelectID"),
-	&SELECT_data_size,
-	&SELECT_engine_init,
-	&SELECT_engine_free,
-	&SELECT_cache_init,
-	&SELECT_cache_populate,
-	&SELECT_cache_finish,
+	N_("Basic"),
+	&BASIC_data_size,
+	&BASIC_engine_init,
+	&BASIC_engine_free,
+	&BASIC_cache_init,
+	&BASIC_cache_populate,
+	&BASIC_cache_finish,
 	NULL,
-	&SELECT_draw_scene
+	&BASIC_draw_scene
 };
 
-RenderEngineType DRW_engine_viewport_select_type = {
+/* Note: currently unused, we may want to register so we can see this when debugging the view. */
+
+RenderEngineType DRW_engine_viewport_basic_type = {
 	NULL, NULL,
-	SELECT_ENGINE, N_("SelectID"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
+	BASIC_ENGINE, N_("Basic"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	&draw_engine_select_type,
+	&draw_engine_basic_type,
 	{NULL, NULL, NULL}
 };
 
 
-#undef SELECT_ENGINE
+#undef BASIC_ENGINE

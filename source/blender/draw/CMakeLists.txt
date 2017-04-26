@@ -73,8 +73,8 @@ set(SRC
 	engines/eevee/eevee_probes.c
 	engines/eevee/eevee_private.h
 
-	engines/select/select_engine.c
-	engines/select/select_engine.h
+	engines/basic/basic_engine.c
+	engines/basic/basic_engine.h
 
 	modes/object_mode.c
 	modes/edit_armature_mode.c
