@@ -168,11 +168,16 @@ void gpu_extensions_init(void)
 	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &GG.maxubobinds);
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GG.maxubosize);
 
+#ifdef WITH_LEGACY_OPENGL
 	GLint r, g, b;
 	glGetIntegerv(GL_RED_BITS, &r);
 	glGetIntegerv(GL_GREEN_BITS, &g);
 	glGetIntegerv(GL_BLUE_BITS, &b);
 	GG.colordepth = r + g + b; /* assumes same depth for RGB */
+#else
+	GG.colordepth = 24; /* cheat. */
+	/* TODO: get this value another way */
+#endif
 
 	if (GLEW_VERSION_3_2 || GLEW_ARB_texture_multisample) {
 		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &GG.samples_color_texture_max);
