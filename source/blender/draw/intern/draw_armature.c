@@ -358,7 +358,7 @@ static void draw_armature_edit(Object *ob)
 {
 	EditBone *eBone;
 	bArmature *arm = ob->data;
-	unsigned int index;
+	int index;
 	const bool is_select = DRW_viewport_is_select();
 
 	update_color(NULL);
@@ -400,13 +400,27 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 {
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan;
+	int index = -1;
 	Bone *bone;
+	const bool is_select = DRW_viewport_is_select();
 
 	update_color(const_color);
 
 	/* We can't safely draw non-updated pose, might contain NULL bone pointers... */
 	if (ob->pose->flag & POSE_RECALC) {
 		BKE_pose_rebuild(ob, arm);
+	}
+
+	if (!(base->flag_legacy & OB_FROMDUPLI)) {
+		if (is_select) {
+			if (ob->mode & OB_MODE_POSE) {
+				arm->flag |= ARM_POSEMODE;
+			}
+
+			if (arm->flag & ARM_POSEMODE) {
+				index = ob->base_selection_color;
+			}
+		}
 	}
 
 	/* being set below */
@@ -419,7 +433,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 		/* bone must be visible */
 		if ((bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0) {
 			if (bone->layer & arm->layer) {
-				const int select_id = -1;  /* TODO: see 'draw_pose_bones' */
+				const int select_id = is_select ? index : (unsigned int)-1;
 
 				draw_bone_update_disp_matrix(NULL, pchan, arm->drawtype);
 
@@ -445,9 +459,15 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				/*	Draw additional axes */
 				if (arm->flag & ARM_DRAWAXES)
 					draw_axes(NULL, pchan);
+
+				if (is_select) {
+					index += 0x10000;
+				}
 			}
 		}
 	}
+
+	arm->flag &= ~ARM_POSEMODE;
 }
 
 /* this function set the object space to use
