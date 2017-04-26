@@ -1742,10 +1742,10 @@ static void DRW_engines_enable_from_engine(const Scene *scene)
 	/* TODO layers */
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	use_drw_engine(type->draw_engine);
+}
 
-	/* TODO Refine the folowing logic based on objects states
-	 * not on global state.
-	 * Order is important */
+static void DRW_engines_enable_from_object_mode(void)
+{
 	use_drw_engine(&draw_engine_object_type);
 }
 
@@ -1799,11 +1799,18 @@ static void DRW_engines_enable_from_mode(int mode)
 	}
 }
 
+static void DRW_engines_enable_select(void)
+{
+	/* TODO, add select engine */
+	use_drw_engine(viewport_clay_type.draw_engine);
+}
+
 static void DRW_engines_enable(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	const int mode = CTX_data_mode_enum(C);
 	DRW_engines_enable_from_engine(scene);
+	DRW_engines_enable_from_object_mode();
 	DRW_engines_enable_from_mode(mode);
 }
 
@@ -2076,7 +2083,8 @@ void DRW_draw_select_loop(
 		DRW_engines_enable_from_mode(obedit_mode);
 	}
 	else {
-		DRW_engines_enable_from_engine(scene);
+		DRW_engines_enable_select();
+		DRW_engines_enable_from_object_mode();
 	}
 
 	/* Setup viewport */
