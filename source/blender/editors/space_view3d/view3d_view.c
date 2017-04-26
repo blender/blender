@@ -1202,12 +1202,16 @@ int view3d_opengl_select(
 	if (do_passes) {
 		GPU_select_begin(buffer, bufsize, &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 
+#ifdef WITH_OPENGL_LEGACY
 		if (IS_VIEWPORT_LEGACY(vc->v3d)) {
 			ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
 		}
 		else {
 			DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
 		}
+#else
+		DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
+#endif /* WITH_OPENGL_LEGACY */
 
 		GPU_select_end();
 	}
