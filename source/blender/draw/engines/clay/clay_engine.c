@@ -335,7 +335,7 @@ static void CLAY_engine_init(void *vedata)
 		}
 	}
 
-	if (DRW_viewport_is_fbo()) {
+	if (DRW_state_is_fbo()) {
 		const float *viewport_size = DRW_viewport_size_get();
 		DRWFboTexture tex = {&txl->depth_dup, DRW_BUF_DEPTH_24, 0};
 		DRW_framebuffer_init(&fbl->dupli_depth,
@@ -358,7 +358,7 @@ static void CLAY_engine_init(void *vedata)
 		int i;
 		const float *size = DRW_viewport_size_get();
 
-		DRW_get_dfdy_factors(dfdyfacs);
+		DRW_state_dfdy_factors_get(dfdyfacs);
 
 		e_data.ssao_params[0] = ssao_samples;
 		e_data.ssao_params[1] = size[0] / 64.0;
@@ -607,7 +607,7 @@ static void CLAY_draw_scene(void *vedata)
 
 	/* Pass 2 : Duplicate depth */
 	/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
-	if (DRW_viewport_is_fbo()) {
+	if (DRW_state_is_fbo()) {
 		DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true);
 	}
 

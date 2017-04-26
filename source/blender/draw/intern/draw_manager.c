@@ -245,7 +245,12 @@ void DRW_select_load_id(unsigned int id)
 }
 #endif
 
-/* ***************************************** TEXTURES ******************************************/
+
+/* -------------------------------------------------------------------- */
+
+/** \name Textures (DRW_texture)
+ * \{ */
+
 static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *data_type, int *channels)
 {
 	switch (format) {
@@ -372,8 +377,13 @@ void DRW_texture_free(GPUTexture *tex)
 	GPU_texture_free(tex);
 }
 
+/** \} */
 
-/* ************************************ UNIFORM BUFFER OBJECT **********************************/
+
+/* -------------------------------------------------------------------- */
+
+/** \name Uniform Buffer Object (DRW_uniformbuffer)
+ * \{ */
 
 GPUUniformBuffer *DRW_uniformbuffer_create(int size, const void *data)
 {
@@ -390,7 +400,13 @@ void DRW_uniformbuffer_free(GPUUniformBuffer *ubo)
 	GPU_uniformbuffer_free(ubo);
 }
 
-/* ****************************************** SHADERS ******************************************/
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Shaders (DRW_shader)
+ * \{ */
 
 GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *frag, const char *defines)
 {
@@ -461,7 +477,13 @@ void DRW_shader_free(GPUShader *shader)
 	GPU_shader_free(shader);
 }
 
-/* ***************************************** INTERFACE ******************************************/
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Interface (DRW_interface)
+ * \{ */
 
 static DRWInterface *DRW_interface_create(GPUShader *shader)
 {
@@ -553,12 +575,13 @@ static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRW
 	BLI_addtail(&shgroup->interface->attribs, attrib);
 }
 
-void DRW_get_dfdy_factors(float dfdyfac[2])
-{
-	GPU_get_dfdy_factors(dfdyfac);
-}
+/** \} */
 
-/* ***************************************** SHADING GROUP ******************************************/
+
+/* -------------------------------------------------------------------- */
+
+/** \name Shading Group (DRW_shgroup)
+ * \{ */
 
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 {
@@ -874,7 +897,13 @@ static void shgroup_dynamic_batch_from_calls(DRWShadingGroup *shgroup)
 }
 #endif  /* WITH_CLAY_ENGINE */
 
-/* ***************************************** PASSES ******************************************/
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Passes (DRW_pass)
+ * \{ */
 
 DRWPass *DRW_pass_create(const char *name, DRWState state)
 {
@@ -897,7 +926,13 @@ void DRW_pass_free(DRWPass *pass)
 	BLI_freelistN(&pass->shgroups);
 }
 
-/* ****************************************** DRAW ******************************************/
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Draw (DRW_draw)
+ * \{ */
 
 #ifdef WITH_CLAY_ENGINE
 static void set_state(DRWState flag, const bool reset)
@@ -1164,7 +1199,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BUFFER:
-				if (!DRW_viewport_is_fbo()) {
+				if (!DRW_state_is_fbo()) {
 					break;
 				}
 				tex = *((GPUTexture **)uni->value);
@@ -1313,8 +1348,13 @@ void DRW_state_reset(void) {}
 
 #endif  /* WITH_CLAY_ENGINE */
 
+/** \} */
 
-/* ****************************************** Settings ******************************************/
+
+/* -------------------------------------------------------------------- */
+
+/** \name Settings
+ * \{ */
 
 bool DRW_is_object_renderable(Object *ob)
 {
@@ -1334,7 +1374,13 @@ bool DRW_is_object_renderable(Object *ob)
 	return true;
 }
 
-/* ****************************************** Framebuffers ******************************************/
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Framebuffers (DRW_framebuffer)
+ * \{ */
 
 static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *is_depth)
 {
@@ -1448,7 +1494,13 @@ void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *UNUSED(fb_read), int w
 	glViewport(0, 0, w, h);
 }
 
-/* ****************************************** Viewport ******************************************/
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Viewport (DRW_viewport)
+ * \{ */
 
 static void *DRW_viewport_engine_data_get(void *engine_type)
 {
@@ -1549,23 +1601,6 @@ bool DRW_viewport_is_persp_get(void)
 	return rv3d->is_persp;
 }
 
-/**
- * When false, drawing doesn't output to a pixel buffer
- * eg: Occlusion queries, or when we have setup a context to draw in already.
- */
-bool DRW_viewport_is_fbo(void)
-{
-	return (DST.default_framebuffer != NULL);
-}
-
-/**
- * For when engines need to know if this is drawing for selection or not.
- */
-bool DRW_viewport_is_select(void)
-{
-	return (G.f & G_PICKSEL) != 0;
-}
-
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void)
 {
 	return GPU_viewport_framebuffer_list_get(DST.viewport);
@@ -1576,7 +1611,13 @@ DefaultTextureList *DRW_viewport_texture_list_get(void)
 	return GPU_viewport_texture_list_get(DST.viewport);
 }
 
-/* **************************************** OBJECTS *************************************** */
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Objects (DRW_object)
+ * \{ */
 
 typedef struct ObjectEngineData {
 	struct ObjectEngineData *next, *prev;
@@ -1627,7 +1668,13 @@ void DRW_lamp_engine_data_free(LampEngineData *led)
 	GPU_lamp_engine_data_free(led);
 }
 
-/* **************************************** RENDERING ************************************** */
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Rendering (DRW_engines)
+ * \{ */
 
 #define TIMER_FALLOFF 0.1f
 
@@ -1971,6 +2018,12 @@ static void DRW_debug_gpu_stats(void)
 	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
 }
 
+
+/* -------------------------------------------------------------------- */
+
+/** \name Main Draw Loops (DRW_draw)
+ * \{ */
+
 /* Everything starts here.
  * This function takes care of calling all cache and rendering functions
  * for each relevant engine / mode engine. */
@@ -2225,7 +2278,43 @@ void DRW_draw_depth_loop(
 	rv3d->viewport = backup_viewport;
 }
 
-/* ****************************************** OTHER ***************************************** */
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Draw Manager State (DRW_state)
+ * \{ */
+
+void DRW_state_dfdy_factors_get(float dfdyfac[2])
+{
+	GPU_get_dfdy_factors(dfdyfac);
+}
+
+/**
+ * When false, drawing doesn't output to a pixel buffer
+ * eg: Occlusion queries, or when we have setup a context to draw in already.
+ */
+bool DRW_state_is_fbo(void)
+{
+	return (DST.default_framebuffer != NULL);
+}
+
+/**
+ * For when engines need to know if this is drawing for selection or not.
+ */
+bool DRW_state_is_select(void)
+{
+	return (G.f & G_PICKSEL) != 0;
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Context State (DRW_context_state)
+ * \{ */
 
 void DRW_context_state_init(const bContext *C, DRWContextState *r_draw_ctx)
 {
@@ -2245,7 +2334,13 @@ const DRWContextState *DRW_context_state_get(void)
 	return &DST.draw_ctx;
 }
 
-/* ****************************************** INIT ***************************************** */
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Init/Exit (DRW_engines)
+ * \{ */
 
 void DRW_engine_register(DrawEngineType *draw_engine_type)
 {
@@ -2319,3 +2414,5 @@ void DRW_engines_free(void)
 	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
 #endif
 }
+
+/** \} */

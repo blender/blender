@@ -128,7 +128,7 @@ static void SELECT_engine_init(void *vedata)
 	}
 
 #ifdef USE_DEPTH
-	if (DRW_viewport_is_fbo()) {
+	if (DRW_state_is_fbo()) {
 		const float *viewport_size = DRW_viewport_size_get();
 		DRWFboTexture tex = {&txl->depth_dup, DRW_BUF_DEPTH_24, 0};
 		DRW_framebuffer_init(&fbl->dupli_depth,
@@ -208,7 +208,7 @@ static void SELECT_draw_scene(void *vedata)
 
 	/* Pass 2 : Duplicate depth */
 	/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
-	if (DRW_viewport_is_fbo()) {
+	if (DRW_state_is_fbo()) {
 		DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true);
 	}
 #endif

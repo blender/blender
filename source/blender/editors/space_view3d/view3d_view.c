@@ -1189,11 +1189,11 @@ int view3d_opengl_select(
 	if (IS_VIEWPORT_LEGACY(vc->v3d)) {
 		ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
 	}
-	else {
+	else
+#else
+	{
 		DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
 	}
-#else
-	DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
 #endif /* WITH_OPENGL_LEGACY */
 
 	hits = GPU_select_end();
@@ -1206,11 +1206,11 @@ int view3d_opengl_select(
 		if (IS_VIEWPORT_LEGACY(vc->v3d)) {
 			ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
 		}
-		else {
+		else
+#else
+		{
 			DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
 		}
-#else
-		DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
 #endif /* WITH_OPENGL_LEGACY */
 
 		GPU_select_end();

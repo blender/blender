@@ -359,7 +359,7 @@ static void draw_armature_edit(Object *ob)
 	EditBone *eBone;
 	bArmature *arm = ob->data;
 	int index;
-	const bool is_select = DRW_viewport_is_select();
+	const bool is_select = DRW_state_is_select();
 
 	update_color(NULL);
 
@@ -421,7 +421,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 		}
 	}
 
-	bool is_pose_select = (arm->flag & ARM_POSEMODE) && DRW_viewport_is_select();
+	bool is_pose_select = (arm->flag & ARM_POSEMODE) && DRW_state_is_select();
 
 	/* being set below */
 	arm->layer_used = 0;

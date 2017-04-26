@@ -220,7 +220,7 @@ static void OBJECT_engine_init(void *vedata)
 		{&txl->outlines_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER},
 	};
 
-	if (DRW_viewport_is_fbo()) {
+	if (DRW_state_is_fbo()) {
 		DRW_framebuffer_init(
 		        &fbl->outlines,
 		        (int)viewport_size[0], (int)viewport_size[1],
@@ -1271,7 +1271,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	if (DRW_viewport_is_fbo()) {
+	if (DRW_state_is_fbo()) {
 		/* Render filled polygon on a separate framebuffer */
 		DRW_framebuffer_bind(fbl->outlines);
 		DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
@@ -1314,7 +1314,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->non_meshes);
 	DRW_draw_pass(psl->ob_center);
 
-	if (!DRW_viewport_is_select()) {
+	if (!DRW_state_is_select()) {
 		DRW_draw_pass(psl->grid);
 
 		/* Combine with scene buffer last */
