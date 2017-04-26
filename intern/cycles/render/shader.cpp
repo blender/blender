@@ -53,10 +53,10 @@ static float beckmann_table_slope_max()
 /* MSVC 2015 needs this ugly hack to prevent a codegen bug on x86
  * see T50176 for details
  */
-#if _MSC_VER==1900
-#  define MSVC_VOLATILE volatile  
+#if defined(_MSC_VER) && (_MSC_VER == 1900)
+#  define MSVC_VOLATILE volatile
 #else
-#  define MSVC_VOLATILE 
+#  define MSVC_VOLATILE
 #endif
 
 /* Paper used: Importance Sampling Microfacet-Based BSDFs with the
