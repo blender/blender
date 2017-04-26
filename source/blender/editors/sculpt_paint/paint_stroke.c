@@ -168,39 +168,32 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	PaintStroke *stroke = customdata;
 
 	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
 
-	setlinestyle(3);
-	glLineWidth(3.0f);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	
-	immUniformColor4ub(0, 0, 0, paint->paint_cursor_col[3]);
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
-	immBegin(PRIM_LINES, 2);
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-	if (stroke->constrain_line) {
-		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
-		immVertex2f(pos, stroke->constrained_pos[0], stroke->constrained_pos[1]);
-	}
-	else {
-		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
-		immVertex2f(pos, x, y);
-	}
-
-	immEnd();
-
-	glLineWidth(1.0f);
-	immUniformColor4ub(255, 255, 255, paint->paint_cursor_col[3]);
+	const float alpha = (float)paint->paint_cursor_col[3] / 255.0f;
+	immUniform4f("color1", 0.0f, 0.0f, 0.0f, alpha);
+	immUniform4f("color2", 1.0f, 1.0f, 1.0f, alpha);
+	immUniform1f("dash_width", 6.0f);
+	immUniform1f("dash_width_on", 3.0f);
 
 	immBegin(PRIM_LINES, 2);
 
 	if (stroke->constrain_line) {
+		immAttrib2f(line_origin, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
 		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
 		immVertex2f(pos, stroke->constrained_pos[0], stroke->constrained_pos[1]);
 	}
 	else {
+		immAttrib2f(line_origin, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
 		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
 		immVertex2f(pos, x, y);
 	}
@@ -209,9 +202,6 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 	immUnbindProgram();
 
-	setlinestyle(0);
-
-	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 }
 
