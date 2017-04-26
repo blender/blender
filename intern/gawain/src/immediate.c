@@ -563,6 +563,11 @@ void immAttrib2s(unsigned attrib_id, short x, short y)
 	data[1] = y;
 	}
 
+void immAttrib2fv(unsigned attrib_id, const float data[2])
+	{
+	immAttrib2f(attrib_id, data[0], data[1]);
+	}
+
 void immAttrib3fv(unsigned attrib_id, const float data[3])
 	{
 	immAttrib3f(attrib_id, data[0], data[1], data[2]);
