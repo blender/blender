@@ -66,6 +66,8 @@ void DRW_draw_select_loop(
         struct ViewContext *vc, struct Depsgraph *graph,
         struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d, struct ARegion *ar,
         bool use_obedit_skip, bool use_nearest, const struct rcti *rect);
+void DRW_draw_depth_loop(
+        struct Scene *scene, struct ARegion *ar, struct View3D *v3d);
 
 void DRW_object_engine_data_free(struct Object *ob);
 

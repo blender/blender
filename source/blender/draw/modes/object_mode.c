@@ -1271,7 +1271,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	if (!DRW_viewport_is_select()) {
+	if (DRW_viewport_is_fbo()) {
 		/* Render filled polygon on a separate framebuffer */
 		DRW_framebuffer_bind(fbl->outlines);
 		DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);

@@ -818,8 +818,16 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	v3d->zbuf = true;
 	glEnable(GL_DEPTH_TEST);
 
-	/* temp, calls into view3d_draw_legacy.c */
-	ED_view3d_draw_depth_loop(scene, ar, v3d);
+#ifdef WITH_OPENGL_LEGACY
+	if (IS_VIEWPORT_LEGACY(vc->v3d)) {
+		/* temp, calls into view3d_draw_legacy.c */
+		ED_view3d_draw_depth_loop(scene, ar, v3d);
+	}
+	else
+#endif /* WITH_OPENGL_LEGACY */
+	{
+		DRW_draw_depth_loop(scene, ar, v3d);
+	}
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		ED_view3d_clipping_disable();

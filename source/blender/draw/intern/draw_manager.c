@@ -1555,7 +1555,7 @@ bool DRW_viewport_is_persp_get(void)
  */
 bool DRW_viewport_is_fbo(void)
 {
-	return (G.f & G_PICKSEL) == 0;
+	return (DST.default_framebuffer != NULL);
 }
 
 /**
@@ -2147,6 +2147,82 @@ void DRW_draw_select_loop(
 	/* restore */
 	rv3d->viewport = backup_viewport;
 #endif  /* USE_GPU_SELECT */
+}
+
+/**
+ * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
+ */
+void DRW_draw_depth_loop(
+        Scene *scene, ARegion *ar, View3D *v3d)
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	/* backup (_never_ use rv3d->viewport) */
+	void *backup_viewport = rv3d->viewport;
+	rv3d->viewport = NULL;
+
+	struct GPUViewport *viewport = GPU_viewport_create();
+	GPU_viewport_size_set(viewport, (const int[2]){ar->winx, ar->winy});
+
+	bool cache_is_dirty;
+	DST.viewport = viewport;
+	v3d->zbuf = true;
+
+	/* Get list of enabled engines */
+	{
+		DRW_engines_enable_select();
+		DRW_engines_enable_from_object_mode();
+	}
+
+	/* Setup viewport */
+	cache_is_dirty = true;
+
+	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
+	DST.draw_ctx = (DRWContextState){
+		ar, rv3d, v3d, scene, BKE_scene_layer_context_active(scene), (bContext *)NULL,
+	};
+
+	DRW_viewport_var_init();
+
+	/* Update ubos */
+	DRW_globals_update();
+
+	/* Init engines */
+	DRW_engines_init();
+
+	/* TODO : tag to refresh by the deps graph */
+	/* ideally only refresh when objects are added/removed */
+	/* or render properties / materials change */
+	if (cache_is_dirty) {
+
+		DRW_engines_cache_init();
+
+		DEG_OBJECT_ITER(scene->depsgraph, ob)
+		{
+			DRW_engines_cache_populate(ob);
+		}
+		DEG_OBJECT_ITER_END
+
+		DRW_engines_cache_finish();
+	}
+
+	/* Start Drawing */
+	DRW_draw_callbacks_pre_scene();
+	DRW_engines_draw_scene();
+	DRW_draw_callbacks_post_scene();
+
+	DRW_state_reset();
+	DRW_engines_disable();
+
+	/* avoid accidental reuse */
+	memset(&DST, 0x0, sizeof(DST));
+
+	/* Cleanup for selection state */
+	GPU_viewport_free(viewport);
+	MEM_freeN(viewport);
+
+	/* restore */
+	rv3d->viewport = backup_viewport;
 }
 
 /* ****************************************** OTHER ***************************************** */
