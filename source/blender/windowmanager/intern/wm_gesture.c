@@ -178,6 +178,7 @@ static void wm_gesture_draw_line(wmGesture *gt)
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
+	immUniform1f("view_scale", 1.0f);
 	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
 	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
 	immUniform1f("dash_width", 8.0f);
@@ -240,6 +241,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
+	immUniform1f("view_scale", 1.0f);
 	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
 	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
 	immUniform1f("dash_width", 8.0f);
@@ -301,6 +303,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
+	immUniform1f("view_scale", 1.0f);
 	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
 	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
 	immUniform1f("dash_width", 4.0f);
@@ -401,7 +404,7 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 		numverts++;
 	}
 
-	/* Nothing to drawe, do early output. */
+	/* Nothing to draw, do early output. */
 	if (numverts < 2) {
 		return;
 	}
@@ -412,6 +415,7 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
+	immUniform1f("view_scale", 1.0f);
 	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
 	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
 	immUniform1f("dash_width", 2.0f);
@@ -456,6 +460,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
+	immUniform1f("view_scale", 1.0f);
 	immUniform4f("color1", 0.4f, 0.4f, 0.4f, 1.0f);
 	immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
 	immUniform1f("dash_width", 8.0f);
