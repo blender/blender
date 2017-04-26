@@ -131,6 +131,7 @@
 #endif
 
 #include "CCGSubSurf.h"
+#include "atomic_ops.h"
 
 #include "GPU_lamp.h"
 
@@ -323,19 +324,24 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
 /* free data derived from mesh, called when mesh changes or is freed */
 void BKE_object_free_derived_caches(Object *ob)
 {
-	/* also serves as signal to remake texspace */
+	/* Also serves as signal to remake texspace.
+	 *
+	 * NOTE: This function can be called from threads on different objects
+	 * sharing same data datablock. So we need to ensure atomic nature of
+	 * data modification here.
+	 */
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
 		if (me && me->bb) {
-			me->bb->flag |= BOUNDBOX_DIRTY;
+			atomic_fetch_and_or_uint32((uint*)&me->bb->flag, BOUNDBOX_DIRTY);
 		}
 	}
 	else if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
 		Curve *cu = ob->data;
 
 		if (cu && cu->bb) {
-			cu->bb->flag |= BOUNDBOX_DIRTY;
+			atomic_fetch_and_or_uint32((uint*)&cu->bb->flag, BOUNDBOX_DIRTY);
 		}
 	}
 

@@ -247,10 +247,8 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 		}
 	}
 
-	BLI_lock_thread(LOCK_DRAW_IMAGE);
 	if (!(is_multiview && BKE_scene_multiview_is_stereo3d(rd)))
 		oglrender->iuser.flag &= ~IMA_SHOW_STEREO;
-	BLI_unlock_thread(LOCK_DRAW_IMAGE);
 
 	/* will only work for non multiview correctly */
 	if (v3d) {
@@ -866,7 +864,7 @@ static bool screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 
 typedef struct WriteTaskData {
 	RenderResult *rr;
-	int cfra;
+	Scene tmp_scene;
 } WriteTaskData;
 
 static void write_result_func(TaskPool * __restrict pool,
@@ -875,10 +873,10 @@ static void write_result_func(TaskPool * __restrict pool,
 {
 	OGLRender *oglrender = (OGLRender *) BLI_task_pool_userdata(pool);
 	WriteTaskData *task_data = (WriteTaskData *) task_data_v;
-	Scene *scene = oglrender->scene;
+	Scene *scene = &task_data->tmp_scene;
 	RenderResult *rr = task_data->rr;
 	const bool is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
-	const int cfra = task_data->cfra;
+	const int cfra = scene->r.cfra;
 	bool ok;
 	/* Don't attempt to write if we've got an error. */
 	if (!oglrender->pool_ok) {
@@ -900,13 +898,11 @@ static void write_result_func(TaskPool * __restrict pool,
 	 * This is because underlying calls do not use r.cfra but use scene
 	 * for that.
 	 */
-	Scene tmp_scene = *scene;
-	tmp_scene.r.cfra = cfra;
 	if (is_movie) {
 		ok = RE_WriteRenderViewsMovie(&reports,
 		                              rr,
-		                              &tmp_scene,
-		                              &tmp_scene.r,
+		                              scene,
+		                              &scene->r,
 		                              oglrender->mh,
 		                              oglrender->movie_ctx_arr,
 		                              oglrender->totvideos,
@@ -926,8 +922,8 @@ static void write_result_func(TaskPool * __restrict pool,
 		                             true,
 		                             NULL);
 
-		BKE_render_result_stamp_info(&tmp_scene, tmp_scene.camera, rr, false);
-		ok = RE_WriteRenderViewsImage(NULL, rr, &tmp_scene, true, name);
+		BKE_render_result_stamp_info(scene, scene->camera, rr, false);
+		ok = RE_WriteRenderViewsImage(NULL, rr, scene, true, name);
 		if (!ok) {
 			BKE_reportf(&reports,
 			            RPT_ERROR,
@@ -966,7 +962,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
 	Scene *scene = oglrender->scene;
 	WriteTaskData *task_data = MEM_mallocN(sizeof(WriteTaskData), "write task data");
 	task_data->rr = rr;
-	task_data->cfra = scene->r.cfra;
+	task_data->tmp_scene = *scene;
 	BLI_mutex_lock(&oglrender->task_mutex);
 	oglrender->num_scheduled_frames++;
 	if (oglrender->num_scheduled_frames > MAX_SCHEDULED_FRAMES) {

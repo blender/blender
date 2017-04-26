@@ -813,6 +813,11 @@ void BLI_begin_threaded_malloc(void)
 	unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
 	if (level == 0) {
 		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
+		/* There is a little chance that two threads will meed to acces to a
+		 * scheduler which was not yet created from main thread. which could
+		 * cause scheduler created multiple times.
+		 */
+		BLI_task_scheduler_get();
 	}
 }
 
