@@ -4386,6 +4386,12 @@ static void transformcache_copy(bConstraint *con, bConstraint *srccon)
 
 	BLI_strncpy(dst->object_path, src->object_path, sizeof(dst->object_path));
 	dst->cache_file = src->cache_file;
+
+#ifdef WITH_ALEMBIC
+	if (dst->reader) {
+		CacheReader_incref(dst->reader);
+	}
+#endif
 }
 
 static void transformcache_free(bConstraint *con)

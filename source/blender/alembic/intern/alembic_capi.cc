@@ -980,6 +980,12 @@ void CacheReader_free(CacheReader *reader)
 	}
 }
 
+void CacheReader_incref(CacheReader *reader)
+{
+	AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
+	abc_reader->incref();
+}
+
 CacheReader *CacheReader_open_alembic_object(AbcArchiveHandle *handle, CacheReader *reader, Object *object, const char *object_path)
 {
 	if (object_path[0] == '\0') {
