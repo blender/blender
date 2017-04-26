@@ -170,10 +170,10 @@ public:
 
 	virtual bool valid() const = 0;
 
-	virtual void readObjectData(Main *bmain, float time) = 0;
+	virtual void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) = 0;
 
 	virtual DerivedMesh *read_derivedmesh(DerivedMesh *dm,
-	                                      const float time,
+	                                      const Alembic::Abc::ISampleSelector &sample_sel,
 	                                      int read_flag,
 	                                      const char **err_str);
 

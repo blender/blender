@@ -151,12 +151,12 @@ bool AbcPointsReader::valid() const
 	return m_schema.valid();
 }
 
-void AbcPointsReader::readObjectData(Main *bmain, float time)
+void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
 	Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
 	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, time, 0, NULL);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, sample_sel, 0, NULL);
 
 	if (ndm != dm) {
 		dm->release(dm);
@@ -178,8 +178,7 @@ void AbcPointsReader::readObjectData(Main *bmain, float time)
 
 void read_points_sample(const IPointsSchema &schema,
                         const ISampleSelector &selector,
-                        CDStreamConfig &config,
-                        float time)
+                        CDStreamConfig &config)
 {
 	Alembic::AbcGeom::IPointsSchema::Sample sample = schema.getValue(selector);
 
@@ -189,7 +188,7 @@ void read_points_sample(const IPointsSchema &schema,
 	N3fArraySamplePtr vnormals;
 
 	if (has_property(prop, "N")) {
-		const Alembic::Util::uint32_t itime = static_cast<Alembic::Util::uint32_t>(time);
+		const Alembic::Util::uint32_t itime = static_cast<Alembic::Util::uint32_t>(selector.getRequestedTime());
 		const IN3fArrayProperty &normals_prop = IN3fArrayProperty(prop, "N", itime);
 
 		if (normals_prop) {
@@ -200,9 +199,11 @@ void read_points_sample(const IPointsSchema &schema,
 	read_mverts(config.mvert, positions, vnormals);
 }
 
-DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm, const float time, int /*read_flag*/, const char ** /*err_str*/)
+DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm,
+                                               const ISampleSelector &sample_sel,
+                                               int /*read_flag*/,
+                                               const char ** /*err_str*/)
 {
-	ISampleSelector sample_sel(time);
 	const IPointsSchema::Sample sample = m_schema.getValue(sample_sel);
 
 	const P3fArraySamplePtr &positions = sample.getPositions();
@@ -214,7 +215,7 @@ DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm, const float time
 	}
 
 	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
-	read_points_sample(m_schema, sample_sel, config, time);
+	read_points_sample(m_schema, sample_sel, config);
 
 	return new_dm ? new_dm : dm;
 }
