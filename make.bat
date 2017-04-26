@@ -250,6 +250,23 @@ if "%MUST_CONFIGURE%"=="1" (
 		goto EOF
 	)
 )
+if DEFINED MSVC_VC_DIR echo call "%MSVC_VC_DIR%\vcvarsall.bat" > %BUILD_DIR%\rebuild.cmd 
+if DEFINED MSVC_VS_DIR echo call "%MSVC_VS_DIR%\Common7\Tools\VsDevCmd.bat" > %BUILD_DIR%\rebuild.cmd 
+echo cmake . >> %BUILD_DIR%\rebuild.cmd
+echo msbuild ^
+	%BUILD_DIR%\Blender.sln ^
+	/target:build ^
+	/property:Configuration=%BUILD_TYPE% ^
+	/maxcpucount ^
+	/verbosity:minimal ^
+	/p:platform=%MSBUILD_PLATFORM% ^
+	/flp:Summary;Verbosity=minimal;LogFile=%BUILD_DIR%\Build.log >> %BUILD_DIR%\rebuild.cmd
+echo msbuild ^
+	%BUILD_DIR%\INSTALL.vcxproj ^
+	/property:Configuration=%BUILD_TYPE% ^
+	/verbosity:minimal ^
+	/p:platform=%MSBUILD_PLATFORM% >> %BUILD_DIR%\rebuild.cmd
+
 if "%NOBUILD%"=="1" goto EOF
 
 msbuild ^
@@ -274,7 +291,7 @@ msbuild ^
 
 echo.
 echo At any point you can optionally modify your build configuration by editing:
-echo "%BUILD_DIR%\CMakeCache.txt", then run "make" again to build with the changes applied.
+echo "%BUILD_DIR%\CMakeCache.txt", then run "rebuild.cmd" in the build folder to build with the changes applied.
 echo.
 echo Blender successfully built, run from: "%BUILD_DIR%\bin\%BUILD_TYPE%\blender.exe"
 echo.
