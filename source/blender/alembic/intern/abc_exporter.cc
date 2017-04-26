@@ -108,7 +108,7 @@ static bool object_is_smoke_sim(Object *ob)
 	return false;
 }
 
-static bool object_is_shape(Object *ob)
+static bool object_type_is_exportable(Object *ob)
 {
 	switch (ob->type) {
 		case OB_MESH:
@@ -387,7 +387,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 		return;
 	}
 
-	if (object_is_shape(ob)) {
+	if (object_type_is_exportable(ob)) {
 		createTransformWriter(ob, parent, dupliObParent);
 	}
 
@@ -552,7 +552,7 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
 
 void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 {
-	if (!object_is_shape(ob)) {
+	if (!object_type_is_exportable(ob)) {
 		return;
 	}
 
