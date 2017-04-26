@@ -40,6 +40,7 @@ struct BPoint;
 struct BaseLegacy;
 struct BezTriple;
 struct BoundBox;
+struct Depsgraph;
 struct EditBone;
 struct ImBuf;
 struct MVert;
@@ -70,6 +71,7 @@ enum eGPUFXFlags;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
+	struct Depsgraph *depsgraph;
 	struct Scene *scene;
 	struct SceneLayer *scene_layer;
 	struct Object *obact;

@@ -2045,7 +2045,8 @@ void DRW_draw_view(const bContext *C)
  * object mode select-loop, see: ED_view3d_draw_select_loop (legacy drawing).
  */
 void DRW_draw_select_loop(
-        struct ViewContext *vc, Scene *scene, struct SceneLayer *sl, View3D *v3d, ARegion *ar,
+        struct ViewContext *vc, Depsgraph *graph,
+        Scene *scene, struct SceneLayer *sl, View3D *v3d, ARegion *ar,
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect)
 {
 #ifndef USE_GPU_SELECT
@@ -2115,7 +2116,6 @@ void DRW_draw_select_loop(
 			DRW_engines_cache_populate(vc->obedit);
 		}
 		else {
-			Depsgraph *graph = scene->depsgraph; // CTX_data_depsgraph(C);
 			DEG_OBJECT_ITER(graph, ob)
 			{
 				if ((ob->base_flag & BASE_SELECTABLED) != 0) {

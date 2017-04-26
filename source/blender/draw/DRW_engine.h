@@ -28,6 +28,7 @@
 
 struct ARegion;
 struct CollectionEngineSettings;
+struct Depsgraph;
 struct DRWPass;
 struct Material;
 struct Scene;
@@ -62,7 +63,8 @@ void DRW_engine_viewport_data_size_get(
 
 void DRW_draw_view(const struct bContext *C);
 void DRW_draw_select_loop(
-        struct ViewContext *vc, struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d, struct ARegion *ar,
+        struct ViewContext *vc, struct Depsgraph *graph,
+        struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d, struct ARegion *ar,
         bool use_obedit_skip, bool use_nearest, const struct rcti *rect);
 
 void DRW_object_engine_data_free(struct Object *ob);

@@ -51,6 +51,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
+#include "DEG_depsgraph.h"
+
 #include "BIF_glutil.h"
 
 #include "GPU_select.h"
@@ -1113,6 +1115,7 @@ int view3d_opengl_select(
         ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input,
         eV3DSelectMode select_mode)
 {
+	Depsgraph *graph = vc->depsgraph;
 	Scene *scene = vc->scene;
 	SceneLayer *sl = vc->scene_layer;
 	View3D *v3d = vc->v3d;
@@ -1187,10 +1190,10 @@ int view3d_opengl_select(
 		ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
 	}
 	else {
-		DRW_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
+		DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
 	}
 #else
-	DRW_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
+	DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
 #endif /* WITH_OPENGL_LEGACY */
 
 	hits = GPU_select_end();
@@ -1203,7 +1206,7 @@ int view3d_opengl_select(
 			ED_view3d_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest);
 		}
 		else {
-			DRW_draw_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
+			DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
 		}
 
 		GPU_select_end();

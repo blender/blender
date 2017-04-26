@@ -109,6 +109,7 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
 	vc->ar = CTX_wm_region(C);
+	vc->depsgraph = CTX_data_depsgraph(C);
 	vc->scene = CTX_data_scene(C);
 	vc->scene_layer = CTX_data_scene_layer(C);
 	vc->v3d = CTX_wm_view3d(C);
