@@ -109,6 +109,8 @@ extern char datatoc_gpu_shader_2D_point_uniform_size_varying_color_outline_aa_ve
 
 extern char datatoc_gpu_shader_2D_line_dashed_vert_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_frag_glsl[];
+extern char datatoc_gpu_shader_3D_line_dashed_vert_glsl[];
+extern char datatoc_gpu_shader_3D_line_dashed_frag_glsl[];
 
 extern char datatoc_gpu_shader_edges_front_back_persp_vert_glsl[];
 extern char datatoc_gpu_shader_edges_front_back_persp_geom_glsl[];
@@ -709,6 +711,8 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 
 		[GPU_SHADER_2D_LINE_DASHED_COLOR] = { datatoc_gpu_shader_2D_line_dashed_vert_glsl,
 		                                      datatoc_gpu_shader_2D_line_dashed_frag_glsl },
+	    [GPU_SHADER_3D_LINE_DASHED_COLOR] = { datatoc_gpu_shader_3D_line_dashed_vert_glsl,
+		                                      datatoc_gpu_shader_3D_line_dashed_frag_glsl },
 
 		[GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR] =
 		    { datatoc_gpu_shader_instance_objectspace_variying_color_vert_glsl,
