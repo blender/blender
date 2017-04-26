@@ -82,6 +82,7 @@
 
 #ifdef USE_GPU_SELECT
 #  include "ED_view3d.h"
+#  include "ED_armature.h"
 #  include "GPU_select.h"
 #endif
 
@@ -235,8 +236,9 @@ ListBase DRW_engines = {NULL, NULL};
 #ifdef USE_GPU_SELECT
 static unsigned int g_DRW_select_id = (unsigned int)-1;
 
-static void DRW_select_id_set(unsigned int id)
+void DRW_select_load_id(unsigned int id)
 {
+	BLI_assert(G.f & G_PICKSEL);
 	g_DRW_select_id = id;
 }
 #endif
@@ -1735,7 +1737,7 @@ static void use_drw_engine(DrawEngineType *engine)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void DRW_engines_enable_no_modes(const Scene *scene)
+static void DRW_engines_enable_from_engine(const Scene *scene)
 {
 	/* TODO layers */
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
@@ -1747,12 +1749,9 @@ static void DRW_engines_enable_no_modes(const Scene *scene)
 	use_drw_engine(&draw_engine_object_type);
 }
 
-static void DRW_engines_enable(const bContext *C)
+static void DRW_engines_enable_from_mode(int mode)
 {
-	Scene *scene = CTX_data_scene(C);
-	DRW_engines_enable_no_modes(scene);
-
-	switch (CTX_data_mode_enum(C)) {
+	switch (mode) {
 		case CTX_MODE_EDIT_MESH:
 			use_drw_engine(&draw_engine_edit_mesh_type);
 			break;
@@ -1794,7 +1793,18 @@ static void DRW_engines_enable(const bContext *C)
 			break;
 		case CTX_MODE_OBJECT:
 			break;
+		default:
+			BLI_assert(0);
+			break;
 	}
+}
+
+static void DRW_engines_enable(const bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	const int mode = CTX_data_mode_enum(C);
+	DRW_engines_enable_from_engine(scene);
+	DRW_engines_enable_from_mode(mode);
 }
 
 static void DRW_engines_disable(void)
@@ -2039,6 +2049,21 @@ void DRW_draw_select_loop(
 	void *backup_viewport = vc->rv3d->viewport;
 	rv3d->viewport = NULL;
 
+	bool use_obedit = false;
+	int obedit_mode = 0;
+	if (vc->obedit && vc->obedit->type == OB_MBALL) {
+		use_obedit = true;
+		DRW_engines_cache_populate(vc->obedit);
+		obedit_mode = CTX_MODE_EDIT_METABALL;
+	}
+	else if ((vc->obedit && vc->obedit->type == OB_ARMATURE)) {
+		/* if not drawing sketch, draw bones */
+		if (!BDR_drawSketchNames(vc)) {
+			use_obedit = true;
+			obedit_mode = CTX_MODE_EDIT_ARMATURE;
+		}
+	}
+
 	struct GPUViewport *viewport = GPU_viewport_create();
 	GPU_viewport_size_set(viewport, (const int[2]){BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)});
 
@@ -2047,7 +2072,12 @@ void DRW_draw_select_loop(
 	v3d->zbuf = true;
 
 	/* Get list of enabled engines */
-	DRW_engines_enable_no_modes(scene);
+	if (use_obedit) {
+		DRW_engines_enable_from_mode(obedit_mode);
+	}
+	else {
+		DRW_engines_enable_from_engine(scene);
+	}
 
 	/* Setup viewport */
 	cache_is_dirty = true;
@@ -2069,18 +2099,24 @@ void DRW_draw_select_loop(
 	/* ideally only refresh when objects are added/removed */
 	/* or render properties / materials change */
 	if (cache_is_dirty) {
+
 		int code = 1;
 
 		DRW_engines_cache_init();
 
-		/* TODO, use DEG_OBJECT_ITER or similar.
-		 * Currently its not well suited for selection
-		 * since it loops over Objects instead of bases and does so recursively. */
-		for (Base *base = sl->object_bases.first; base; base = base->next) {
-			base->selcol = code++;
-			DRW_select_id_set(base->selcol);
+		if (use_obedit) {
+			DRW_engines_cache_populate(vc->obedit);
+		}
+		else {
+			/* TODO, use DEG_OBJECT_ITER or similar.
+			 * Currently its not well suited for selection
+			 * since it loops over Objects instead of bases and does so recursively. */
+			for (Base *base = sl->object_bases.first; base; base = base->next) {
+				base->selcol = code++;
+				DRW_select_load_id(base->selcol);
 
-			DRW_engines_cache_populate(base->object);
+				DRW_engines_cache_populate(base->object);
+			}
 		}
 
 		DRW_engines_cache_finish();

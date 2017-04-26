@@ -318,6 +318,9 @@ void DRW_draw_callbacks_post_scene(void);
 
 void DRW_state_reset(void);
 
+/* Selection */
+void DRW_select_load_id(unsigned int id);
+
 /* Other */
 void DRW_get_dfdy_factors(float dfdyfac[2]);
 

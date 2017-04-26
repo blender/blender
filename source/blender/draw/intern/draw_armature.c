@@ -55,6 +55,8 @@
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 
+#include "GPU_select.h"
+
 #include "UI_resources.h"
 
 #include "draw_common.h"
@@ -242,7 +244,9 @@ static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 	DRW_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_tail_mat), col);
 }
 
-static void draw_points(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static void draw_points(
+        const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm,
+        const int select_id)
 {
 	const float *col_solid_root = colorBoneSolid;
 	const float *col_solid_tail = colorBoneSolid;
@@ -263,6 +267,10 @@ static void draw_points(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
 
 	/*	Draw root point if we are not connected and parent are not hidden */
 	if ((BONE_FLAG(eBone, pchan) & BONE_CONNECTED) == 0) {
+		if (select_id != -1) {
+			DRW_select_load_id(select_id | BONESEL_ROOT);
+		}
+
 		if (eBone) {
 			if (!((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent))) {
 				DRW_shgroup_bone_point_solid(eBone->disp_mat, col_solid_root);
@@ -279,44 +287,71 @@ static void draw_points(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
 	}
 
 	/*	Draw tip point */
+	if (select_id != -1) {
+		DRW_select_load_id(select_id | BONESEL_TIP);
+	}
 	DRW_shgroup_bone_point_solid(BONE_VAR(eBone, pchan, disp_tail_mat), col_solid_tail);
 	DRW_shgroup_bone_point_wire(BONE_VAR(eBone, pchan, disp_tail_mat), col_wire_tail);
+
+	if (select_id != -1) {
+		DRW_select_load_id(-1);
+	}
 }
 
-static void draw_bone_custom_shape(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
+static void draw_bone_custom_shape(
+        EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm),
+        const int UNUSED(select_id))
 {
 	/* work in progress  -- fclem */
 }
 
-static void draw_bone_envelope(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
+static void draw_bone_envelope(
+        EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm),
+        const int UNUSED(select_id))
 {
 	/* work in progress  -- fclem */
 }
 
-static void draw_bone_line(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
+static void draw_bone_line(
+        EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm),
+        const int UNUSED(select_id))
 {
 	/* work in progress  -- fclem */
 }
 
-static void draw_bone_wire(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
+static void draw_bone_wire(
+        EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm),
+        const int UNUSED(select_id))
 {
 	/* work in progress  -- fclem */
 }
 
-static void draw_bone_box(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
+static void draw_bone_box(
+        EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm),
+        const int UNUSED(select_id))
 {
 	/* work in progress  -- fclem */
 }
 
-static void draw_bone_octahedral(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static void draw_bone_octahedral(
+        EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
+        const int select_id)
 {
 	const float *col_solid = get_bone_solid_color(eBone, pchan, arm);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm);
 
+	if (select_id != -1) {
+		DRW_select_load_id(select_id | BONESEL_BONE);
+	}
+
 	DRW_shgroup_bone_octahedral_solid(BONE_VAR(eBone, pchan, disp_mat), col_solid);
 	DRW_shgroup_bone_octahedral_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire);
 
-	draw_points(eBone, pchan, arm);
+	if (select_id != -1) {
+		DRW_select_load_id(-1);
+	}
+
+	draw_points(eBone, pchan, arm, select_id);
 }
 
 static void draw_armature_edit(Object *ob)
@@ -324,29 +359,37 @@ static void draw_armature_edit(Object *ob)
 	EditBone *eBone;
 	bArmature *arm = ob->data;
 	unsigned int index;
+	const bool is_select = DRW_viewport_is_select();
 
 	update_color(NULL);
 
 	for (eBone = arm->edbo->first, index = 0; eBone; eBone = eBone->next, index++) {
 		if (eBone->layer & arm->layer) {
 			if ((eBone->flag & BONE_HIDDEN_A) == 0) {
+				const int select_id = is_select ? index : (unsigned int)-1;
 
 				draw_bone_update_disp_matrix(eBone, NULL, arm->drawtype);
 
-				if (arm->drawtype == ARM_ENVELOPE)
-					draw_bone_envelope(eBone, NULL, arm);
-				else if (arm->drawtype == ARM_LINE)
-					draw_bone_line(eBone, NULL, arm);
-				else if (arm->drawtype == ARM_WIRE)
-					draw_bone_wire(eBone, NULL, arm);
-				else if (arm->drawtype == ARM_B_BONE)
-					draw_bone_box(eBone, NULL, arm);
-				else
-					draw_bone_octahedral(eBone, NULL, arm);
+				if (arm->drawtype == ARM_ENVELOPE) {
+					draw_bone_envelope(eBone, NULL, arm, select_id);
+				}
+				else if (arm->drawtype == ARM_LINE) {
+					draw_bone_line(eBone, NULL, arm, select_id);
+				}
+				else if (arm->drawtype == ARM_WIRE) {
+					draw_bone_wire(eBone, NULL, arm, select_id);
+				}
+				else if (arm->drawtype == ARM_B_BONE) {
+					draw_bone_box(eBone, NULL, arm, select_id);
+				}
+				else {
+					draw_bone_octahedral(eBone, NULL, arm, select_id);
+				}
 
 				/*	Draw additional axes */
-				if (arm->flag & ARM_DRAWAXES)
+				if (arm->flag & ARM_DRAWAXES) {
 					draw_axes(eBone, NULL);
+				}
 			}
 		}
 	}
@@ -376,21 +419,28 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 		/* bone must be visible */
 		if ((bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0) {
 			if (bone->layer & arm->layer) {
+				const int select_id = -1;  /* TODO: see 'draw_pose_bones' */
 
 				draw_bone_update_disp_matrix(NULL, pchan, arm->drawtype);
 
-				if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM))
-					draw_bone_custom_shape(NULL, pchan, arm);
-				else if (arm->drawtype == ARM_ENVELOPE)
-					draw_bone_envelope(NULL, pchan, arm);
-				else if (arm->drawtype == ARM_LINE)
-					draw_bone_line(NULL, pchan, arm);
-				else if (arm->drawtype == ARM_WIRE)
-					draw_bone_wire(NULL, pchan, arm);
-				else if (arm->drawtype == ARM_B_BONE)
-					draw_bone_box(NULL, pchan, arm);
-				else
-					draw_bone_octahedral(NULL, pchan, arm);
+				if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
+					draw_bone_custom_shape(NULL, pchan, arm, select_id);
+				}
+				else if (arm->drawtype == ARM_ENVELOPE) {
+					draw_bone_envelope(NULL, pchan, arm, select_id);
+				}
+				else if (arm->drawtype == ARM_LINE) {
+					draw_bone_line(NULL, pchan, arm, select_id);
+				}
+				else if (arm->drawtype == ARM_WIRE) {
+					draw_bone_wire(NULL, pchan, arm, select_id);
+				}
+				else if (arm->drawtype == ARM_B_BONE) {
+					draw_bone_box(NULL, pchan, arm, select_id);
+				}
+				else {
+					draw_bone_octahedral(NULL, pchan, arm, select_id);
+				}
 
 				/*	Draw additional axes */
 				if (arm->flag & ARM_DRAWAXES)
