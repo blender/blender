@@ -68,7 +68,7 @@ static IArchive open_archive(const std::string &filename,
 #else
 		/* Inspect the file to see whether it's really a HDF5 file. */
 		char header[4];  /* char(0x89) + "HDF" */
-		std::ifstream the_file(filename, std::ios::in | std::ios::binary);
+		std::ifstream the_file(filename.c_str(), std::ios::in | std::ios::binary);
 		if (!the_file) {
 			std::cerr << "Unable to open " << filename << std::endl;
 		}
