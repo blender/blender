@@ -105,6 +105,8 @@ void EEVEE_lights_cache_add(EEVEE_StorageList *stl, Object *ob)
 				linfo->num_cube++;
 			}
 		}
+#else
+		UNUSED_VARS(la);
 #endif
 		if (!led->sto) {
 			led->sto = MEM_mallocN(sizeof(EEVEE_LightData), "EEVEE_LightData");
