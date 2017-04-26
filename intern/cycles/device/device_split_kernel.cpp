@@ -227,6 +227,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		ENQUEUE_SPLIT_KERNEL(path_init, global_size, local_size);
 
 		bool activeRaysAvailable = true;
+		double cancel_time = DBL_MAX;
 
 		while(activeRaysAvailable) {
 			/* Do path-iteration in host [Enqueue Path-iteration kernels. */
@@ -247,7 +248,14 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 				ENQUEUE_SPLIT_KERNEL(queue_enqueue, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(buffer_update, global_size, local_size);
 
-				if(task->get_cancel()) {
+				if(task->get_cancel() && cancel_time == DBL_MAX) {
+					/* Wait up to twice as many seconds for current samples to finish 
+					 * to avoid artifacts in render result from ending too soon.
+					 */
+					cancel_time = time_dt() + 2.0 * time_multiplier;
+				}
+
+				if(time_dt() > cancel_time) {
 					return true;
 				}
 			}
@@ -271,7 +279,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 				}
 			}
 
-			if(task->get_cancel()) {
+			if(time_dt() > cancel_time) {
 				return true;
 			}
 		}
