@@ -117,6 +117,7 @@ static bool object_type_is_exportable(Object *ob)
 			}
 
 			return true;
+		case OB_EMPTY:
 		case OB_CURVE:
 		case OB_SURF:
 		case OB_CAMERA:
