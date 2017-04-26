@@ -402,7 +402,6 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 	bPoseChannel *pchan;
 	int index = -1;
 	Bone *bone;
-	const bool is_select = DRW_viewport_is_select();
 
 	update_color(const_color);
 
@@ -411,17 +410,18 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 		BKE_pose_rebuild(ob, arm);
 	}
 
-	if (!(base->flag_legacy & OB_FROMDUPLI)) {
-		if (is_select) {
-			if (ob->mode & OB_MODE_POSE) {
-				arm->flag |= ARM_POSEMODE;
-			}
+	// if (!(base->flag & OB_FROMDUPLI)) // TODO
+	{
+		if (ob->mode & OB_MODE_POSE) {
+			arm->flag |= ARM_POSEMODE;
+		}
 
-			if (arm->flag & ARM_POSEMODE) {
-				index = ob->base_selection_color;
-			}
+		if (arm->flag & ARM_POSEMODE) {
+			index = ob->base_selection_color;
 		}
 	}
+
+	bool is_pose_select = (arm->flag & ARM_POSEMODE) && DRW_viewport_is_select();
 
 	/* being set below */
 	arm->layer_used = 0;
@@ -433,7 +433,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 		/* bone must be visible */
 		if ((bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0) {
 			if (bone->layer & arm->layer) {
-				const int select_id = is_select ? index : (unsigned int)-1;
+				const int select_id = is_pose_select ? index : (unsigned int)-1;
 
 				draw_bone_update_disp_matrix(NULL, pchan, arm->drawtype);
 
@@ -460,7 +460,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				if (arm->flag & ARM_DRAWAXES)
 					draw_axes(NULL, pchan);
 
-				if (is_select) {
+				if (is_pose_select) {
 					index += 0x10000;
 				}
 			}
