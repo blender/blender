@@ -1376,6 +1376,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		else
 			delete context;
 
+#ifdef WITH_LEGACY_OPENGL
 		// since that failed try 3.0 (mostly for Mesa, which doesn't implement compatibility profile)
 		context = new GHOST_ContextGLX(
 		        m_wantStereoVisual,
@@ -1393,6 +1394,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 			return context;
 		else
 			delete context;
+#endif // WITH_LEGACY_OPENGL
 	}
 
 	return NULL;
