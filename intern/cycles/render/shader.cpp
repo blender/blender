@@ -49,6 +49,16 @@ static float beckmann_table_slope_max()
 	return 6.0;
 }
 
+
+/* MSVC 2015 needs this ugly hack to prevent a codegen bug on x86
+ * see T50176 for details
+ */
+#if defined(_MSC_VER) && (_MSC_VER == 1900)
+#  define MSVC_VOLATILE volatile
+#else
+#  define MSVC_VOLATILE
+#endif
+
 /* Paper used: Importance Sampling Microfacet-Based BSDFs with the
  * Distribution of Visible Normals. Supplemental Material 2/2.
  *
@@ -72,7 +82,7 @@ static void beckmann_table_rows(float *table, int row_from, int row_to)
 		slope_x[0] = (double)-beckmann_table_slope_max();
 		CDF_P22_omega_i[0] = 0;
 
-		for(int index_slope_x = 1; index_slope_x < DATA_TMP_SIZE; ++index_slope_x) {
+		for(MSVC_VOLATILE int index_slope_x = 1; index_slope_x < DATA_TMP_SIZE; ++index_slope_x) {
 			/* slope_x */
 			slope_x[index_slope_x] = (double)(-beckmann_table_slope_max() + 2.0f * beckmann_table_slope_max() * index_slope_x/(DATA_TMP_SIZE - 1.0f));
 
@@ -115,6 +125,8 @@ static void beckmann_table_rows(float *table, int row_from, int row_to)
 		}
 	}
 }
+
+#undef MSVC_VOLATILE
 
 static void beckmann_table_build(vector<float>& table)
 {
