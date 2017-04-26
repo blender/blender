@@ -257,10 +257,8 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 		}
 	}
 
-	BLI_lock_thread(LOCK_DRAW_IMAGE);
 	if (!(is_multiview && BKE_scene_multiview_is_stereo3d(rd)))
 		oglrender->iuser.flag &= ~IMA_SHOW_STEREO;
-	BLI_unlock_thread(LOCK_DRAW_IMAGE);
 
 	/* will only work for non multiview correctly */
 	if (v3d) {
