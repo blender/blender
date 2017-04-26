@@ -596,7 +596,10 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
-		immUniform1f("view_scale", 1.0f);
+		float viewport_size[4];
+		glGetFloatv(GL_VIEWPORT, viewport_size);
+		immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
+
 		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_width_on", 3.0f);
@@ -770,7 +773,9 @@ static void drawrenderborder(ARegion *ar, View3D *v3d)
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
-	immUniform1f("view_scale", 1.0f);
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
 	immUniform4f("color1", 1.0f, 0.25f, 0.25f, 1.0f);
 	immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);

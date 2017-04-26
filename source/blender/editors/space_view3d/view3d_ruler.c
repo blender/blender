@@ -465,11 +465,14 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
-			immUniform1f("view_scale", 1.0f);
+			float viewport_size[4];
+			glGetFloatv(GL_VIEWPORT, viewport_size);
+			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
+
 			immUniform4f("color1", 0.67f, 0.67f, 0.67f, 1.0f);
 			immUniform4fv("color2", is_act ? color_act : color_base);
-			immUniform1f("dash_width", 8.0f);
-			immUniform1f("dash_width_on", 4.0f);
+			immUniform1f("dash_width", 6.0f);
+			immUniform1f("dash_width_on", 3.0f);
 
 			immBegin(PRIM_LINES, 4);
 
@@ -611,11 +614,14 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
-			immUniform1f("view_scale", 1.0f);
+			float viewport_size[4];
+			glGetFloatv(GL_VIEWPORT, viewport_size);
+			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
+
 			immUniform4f("color1", 0.67f, 0.67f, 0.67f, 1.0f);
 			immUniform4fv("color2", is_act ? color_act : color_base);
-			immUniform1f("dash_width", 8.0f);
-			immUniform1f("dash_width_on", 4.0f);
+			immUniform1f("dash_width", 6.0f);
+			immUniform1f("dash_width_on", 3.0f);
 
 			immBegin(PRIM_LINES, 2);
 

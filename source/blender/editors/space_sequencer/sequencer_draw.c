@@ -1033,10 +1033,6 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	glLineWidth(1.0f);
 
 	/* border */
-	float mvp[4][4];
-	gpuGetModelViewProjectionMatrix(mvp);
-	const float view_scale = mat4_to_xy_scale(mvp) * (U.pixelsize * 72.0f);
-
 	VertexFormat *format = immVertexFormat();
 	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	unsigned int line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
@@ -1047,13 +1043,15 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
-	immUniform1f("view_scale", view_scale);
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 	UI_GetThemeColor4fv(TH_BACK, color1);
 	immUniform4fv("color1", color1);
 	immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
-	immUniform1f("dash_width", 1.0f);
-	immUniform1f("dash_width_on", 0.5f);
+	immUniform1f("dash_width", 6.0f);
+	immUniform1f("dash_width_on", 3.0f);
 
 	imm_draw_line_box_dashed(pos, line_origin, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
