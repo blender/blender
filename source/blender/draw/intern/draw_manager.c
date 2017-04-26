@@ -70,6 +70,7 @@
 #include "draw_mode_engines.h"
 #include "clay.h"
 #include "eevee.h"
+#include "select_engine.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -1801,8 +1802,7 @@ static void DRW_engines_enable_from_mode(int mode)
 
 static void DRW_engines_enable_select(void)
 {
-	/* TODO, add select engine */
-	use_drw_engine(viewport_clay_type.draw_engine);
+	use_drw_engine(viewport_select_type.draw_engine);
 }
 
 static void DRW_engines_enable(const bContext *C)

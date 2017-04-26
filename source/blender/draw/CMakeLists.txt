@@ -28,6 +28,7 @@ set(INC
 	intern
 	engines/clay
 	engines/eevee
+	engines/select
 	modes
 
 	../blenfont
@@ -75,6 +76,9 @@ set(SRC
 	engines/eevee/eevee.h
 	engines/eevee/eevee_private.h
 
+	engines/select/select_engine.c
+	engines/select/select_engine.h
+
 	modes/object_mode.c
 	modes/edit_armature_mode.c
 	modes/edit_curve_mode.c
@@ -97,7 +101,7 @@ set(SRC
 	intern/draw_view.h
 	modes/draw_mode_engines.h
 
-	./DRW_engine.h
+	DRW_engine.h
 )
 
 if(WITH_CLAY_ENGINE)
