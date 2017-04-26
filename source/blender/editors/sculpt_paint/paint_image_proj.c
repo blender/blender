@@ -5017,6 +5017,7 @@ void paint_proj_stroke(
 	/* clone gets special treatment here to avoid going through image initialization */
 	if (ps_handle->is_clone_cursor_pick) {
 		Scene *scene = ps_handle->scene;
+		struct Depsgraph *graph = CTX_data_depsgraph(C);
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
 		float *cursor = ED_view3d_cursor3d_get(scene, v3d);
@@ -5024,7 +5025,7 @@ void paint_proj_stroke(
 
 		view3d_operator_needs_opengl(C);
 
-		if (!ED_view3d_autodist(scene, ar, v3d, mval_i, cursor, false, NULL))
+		if (!ED_view3d_autodist(graph, scene, ar, v3d, mval_i, cursor, false, NULL))
 			return;
 
 		ED_region_tag_redraw(ar);

@@ -2206,6 +2206,7 @@ void DRW_draw_select_loop(
  * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
  */
 void DRW_draw_depth_loop(
+        Depsgraph *graph,
         Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -2250,7 +2251,7 @@ void DRW_draw_depth_loop(
 
 		DRW_engines_cache_init();
 
-		DEG_OBJECT_ITER(scene->depsgraph, ob)
+		DEG_OBJECT_ITER(graph, ob)
 		{
 			DRW_engines_cache_populate(ob);
 		}

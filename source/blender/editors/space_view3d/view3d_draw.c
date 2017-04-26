@@ -784,7 +784,9 @@ static void drawrenderborder(ARegion *ar, View3D *v3d)
 	immUnbindProgram();
 }
 
-void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaoverride)
+void ED_view3d_draw_depth(
+        struct Depsgraph *graph,
+        Scene *scene, ARegion *ar, View3D *v3d, bool alphaoverride)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -826,7 +828,7 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	else
 #endif /* WITH_OPENGL_LEGACY */
 	{
-		DRW_draw_depth_loop(scene, ar, v3d);
+		DRW_draw_depth_loop(graph, scene, ar, v3d);
 	}
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
