@@ -784,6 +784,56 @@ static void drawrenderborder(ARegion *ar, View3D *v3d)
 	immUnbindProgram();
 }
 
+void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaoverride)
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	short zbuf = v3d->zbuf;
+	short flag = v3d->flag;
+	float glalphaclip = U.glalphaclip;
+	int obcenter_dia = U.obcenter_dia;
+	/* temp set drawtype to solid */
+	/* Setting these temporarily is not nice */
+	v3d->flag &= ~V3D_SELECT_OUTLINE;
+	U.glalphaclip = alphaoverride ? 0.5f : glalphaclip; /* not that nice but means we wont zoom into billboards */
+	U.obcenter_dia = 0;
+
+	view3d_winmatrix_set(ar, v3d, NULL);
+	view3d_viewmatrix_set(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
+
+	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
+	invert_m4_m4(rv3d->persinv, rv3d->persmat);
+	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	gpuLoadMatrix(rv3d->viewmat);
+
+	if (rv3d->rflag & RV3D_CLIPPING) {
+		ED_view3d_clipping_set(rv3d);
+	}
+	/* get surface depth without bias */
+	rv3d->rflag |= RV3D_ZOFFSET_DISABLED;
+
+	v3d->zbuf = true;
+	glEnable(GL_DEPTH_TEST);
+
+	/* temp, calls into view3d_draw_legacy.c */
+	ED_view3d_draw_depth_loop(scene, ar, v3d);
+
+	if (rv3d->rflag & RV3D_CLIPPING) {
+		ED_view3d_clipping_disable();
+	}
+	rv3d->rflag &= ~RV3D_ZOFFSET_DISABLED;
+
+	v3d->zbuf = zbuf;
+	if (!v3d->zbuf) glDisable(GL_DEPTH_TEST);
+
+	U.glalphaclip = glalphaclip;
+	v3d->flag = flag;
+	U.obcenter_dia = obcenter_dia;
+}
+
 /* ******************** offline engine ***************** */
 
 static bool view3d_draw_render_draw(const bContext *C, Scene *scene,

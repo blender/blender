@@ -211,13 +211,17 @@ void draw_sim_debug_data(Scene *scene, View3D *v3d, ARegion *ar);
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *ar);
 void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar);
 
+void ED_view3d_draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, bool alphaoverride);
+
 /* view3d_draw_legacy.c */
 void view3d_main_region_draw_legacy(const struct bContext *C, struct ARegion *ar);
-void ED_view3d_draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, bool alphaoverride);
 void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
+
 void ED_view3d_draw_select_loop(
         ViewContext *vc, Scene *scene, struct SceneLayer *sl, View3D *v3d, ARegion *ar,
         bool use_obedit_skip, bool use_nearest);
+
+void ED_view3d_draw_depth_loop(Scene *scene, ARegion *ar, View3D *v3d);
 
 void ED_view3d_after_add(ListBase *lb, BaseLegacy *base, const short dflag);
 
