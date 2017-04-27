@@ -144,7 +144,7 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 	/* Initialize Textures Arrays first so DRW_framebuffer_init just bind them */
 	if (!txl->shadow_depth_cube_pool) {
 		txl->shadow_depth_cube_pool = DRW_texture_create_2D_array(
-		        512, 512, MAX2(1, linfo->num_cube * 6), DRW_TEX_DEPTH_24,
+		        512, 512, max_ff(1, linfo->num_cube * 6), DRW_TEX_DEPTH_24,
 		        DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
 		if (fbl->shadow_cube_fb) {
 			DRW_framebuffer_texture_attach(fbl->shadow_cube_fb, txl->shadow_depth_cube_pool, 0, 0);
@@ -152,7 +152,7 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 	}
 	if (!txl->shadow_depth_map_pool) {
 		txl->shadow_depth_map_pool = DRW_texture_create_2D_array(
-		        512, 512, MAX2(1, linfo->num_map), DRW_TEX_DEPTH_24,
+		        512, 512, max_ff(1, linfo->num_map), DRW_TEX_DEPTH_24,
 		        DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
 		if (fbl->shadow_map_fb) {
 			DRW_framebuffer_texture_attach(fbl->shadow_map_fb, txl->shadow_depth_map_pool, 0, 0);
@@ -160,7 +160,7 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 	}
 	if (!txl->shadow_depth_cascade_pool) {
 		txl->shadow_depth_cascade_pool = DRW_texture_create_2D_array(
-		        512, 512, MAX2(1, linfo->num_cascade * MAX_CASCADE_NUM), DRW_TEX_DEPTH_24,
+		        512, 512, max_ff(1, linfo->num_cascade * MAX_CASCADE_NUM), DRW_TEX_DEPTH_24,
 		        DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
 		if (fbl->shadow_cascade_fb) {
 			DRW_framebuffer_texture_attach(fbl->shadow_cascade_fb, txl->shadow_depth_map_pool, 0, 0);
@@ -215,19 +215,19 @@ static void eevee_light_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngi
 		evli->sizey = scale[1] / scale[2];
 		evli->spotsize = cosf(la->spotsize * 0.5f);
 		evli->spotblend = (1.0f - evli->spotsize) * la->spotblend;
-		evli->radius = MAX2(0.001f, la->area_size);
+		evli->radius = max_ff(0.001f, la->area_size);
 	}
 	else if (la->type == LA_AREA) {
-		evli->sizex = MAX2(0.0001f, la->area_size * scale[0] * 0.5f);
+		evli->sizex = max_ff(0.0001f, la->area_size * scale[0] * 0.5f);
 		if (la->area_shape == LA_AREA_RECT) {
-			evli->sizey = MAX2(0.0001f, la->area_sizey * scale[1] * 0.5f);
+			evli->sizey = max_ff(0.0001f, la->area_sizey * scale[1] * 0.5f);
 		}
 		else {
-			evli->sizey = MAX2(0.0001f, la->area_size * scale[1] * 0.5f);
+			evli->sizey = max_ff(0.0001f, la->area_size * scale[1] * 0.5f);
 		}
 	}
 	else {
-		evli->radius = MAX2(0.001f, la->area_size);
+		evli->radius = max_ff(0.001f, la->area_size);
 	}
 
 	/* Make illumination power constant */
