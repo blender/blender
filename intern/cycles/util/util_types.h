@@ -154,6 +154,25 @@ enum InterpolationType {
 	INTERPOLATION_NUM_TYPES,
 };
 
+/* Texture types
+ * Since we store the type in the lower bits of a flat index,
+ * the shift and bit mask constant below need to be kept in sync. 
+ */
+
+enum ImageDataType {
+	IMAGE_DATA_TYPE_FLOAT4 = 0,
+	IMAGE_DATA_TYPE_BYTE4 = 1,
+	IMAGE_DATA_TYPE_HALF4 = 2,
+	IMAGE_DATA_TYPE_FLOAT = 3,
+	IMAGE_DATA_TYPE_BYTE = 4,
+	IMAGE_DATA_TYPE_HALF = 5,
+	
+	IMAGE_DATA_NUM_TYPES
+};
+
+#define IMAGE_DATA_TYPE_SHIFT 3
+#define IMAGE_DATA_TYPE_MASK 0x7
+
 /* Extension types for textures.
  *
  * Defines how the image is extrapolated past its original bounds.

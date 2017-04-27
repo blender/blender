@@ -20,18 +20,19 @@
 
 ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int id, int offset)
 {
+	const texture_type = kernel_tex_type(id);
 	/* Float4 */
-	if(id < TEX_START_BYTE4_OPENCL) {
+	if(texture_type == IMAGE_DATA_TYPE_FLOAT4) {
 		return kernel_tex_fetch(__tex_image_float4_packed, offset);
 	}
 	/* Byte4 */
-	else if(id < TEX_START_FLOAT_OPENCL) {
+	else if(texture_type == IMAGE_DATA_TYPE_BYTE4) {
 		uchar4 r = kernel_tex_fetch(__tex_image_byte4_packed, offset);
 		float f = 1.0f/255.0f;
 		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
 	}
 	/* Float */
-	else if(id < TEX_START_BYTE_OPENCL) {
+	else if(texture_type == IMAGE_DATA_TYPE_FLOAT) {
 		float f = kernel_tex_fetch(__tex_image_float_packed, offset);
 		return make_float4(f, f, f, 1.0f);
 	}
