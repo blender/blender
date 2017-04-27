@@ -53,30 +53,16 @@ set(INC_SYS
 )
 
 set(SRC
-	intern/draw_manager.c
-	intern/draw_common.c
-	intern/draw_cache.c
-	intern/draw_view.c
 	intern/draw_armature.c
-
+	intern/draw_cache.c
 	intern/draw_cache_impl_curve.c
 	intern/draw_cache_impl_displist.c
 	intern/draw_cache_impl_lattice.c
 	intern/draw_cache_impl_mesh.c
-
-	engines/clay/clay_engine.c
-	engines/clay/clay_engine.h
-
-	engines/eevee/eevee_engine.c
-	engines/eevee/eevee_engine.h
-	engines/eevee/eevee_lights.c
-	engines/eevee/eevee_probes.c
-	engines/eevee/eevee_private.h
-
-	engines/basic/basic_engine.c
-	engines/basic/basic_engine.h
-
-	modes/object_mode.c
+	intern/draw_common.c
+	intern/draw_manager.c
+	intern/draw_manager_text.c
+	intern/draw_view.c
 	modes/edit_armature_mode.c
 	modes/edit_curve_mode.c
 	modes/edit_lattice_mode.c
@@ -84,21 +70,31 @@ set(SRC
 	modes/edit_metaball_mode.c
 	modes/edit_surface_mode.c
 	modes/edit_text_mode.c
+	modes/object_mode.c
 	modes/paint_texture_mode.c
 	modes/paint_vertex_mode.c
 	modes/paint_weight_mode.c
 	modes/particle_mode.c
 	modes/pose_mode.c
 	modes/sculpt_mode.c
-
-	intern/DRW_render.h
-	intern/draw_common.h
-	intern/draw_cache.h
-	intern/draw_cache_impl.h
-	intern/draw_view.h
-	modes/draw_mode_engines.h
+	engines/basic/basic_engine.c
+	engines/clay/clay_engine.c
+	engines/eevee/eevee_engine.c
+	engines/eevee/eevee_lights.c
+	engines/eevee/eevee_probes.c
 
 	DRW_engine.h
+	intern/DRW_render.h
+	intern/draw_cache.h
+	intern/draw_cache_impl.h
+	intern/draw_common.h
+	intern/draw_manager_text.h
+	intern/draw_view.h
+	modes/draw_mode_engines.h
+	engines/basic/basic_engine.h
+	engines/clay/clay_engine.h
+	engines/eevee/eevee_engine.h
+	engines/eevee/eevee_private.h
 )
 
 if(WITH_CLAY_ENGINE)
