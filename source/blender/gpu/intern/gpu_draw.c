@@ -2271,7 +2271,7 @@ void GPU_state_init(void)
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_LOGIC_OP);
+	glDisable(GL_COLOR_LOGIC_OP);
 	glDisable(GL_STENCIL_TEST);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
