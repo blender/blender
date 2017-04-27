@@ -171,7 +171,7 @@ void draw_sim_debug_data(Scene *UNUSED(scene), View3D *v3d, ARegion *ar)
 	
 	view3d_cached_text_draw_begin();
 	draw_sim_debug_elements(_sim_debug_data, imat);
-	view3d_cached_text_draw_end(v3d, ar, false, NULL);
+	view3d_cached_text_draw_end(v3d, ar, false);
 	
 	glPopMatrix();
 	
