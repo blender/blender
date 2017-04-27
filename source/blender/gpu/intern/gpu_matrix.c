@@ -357,7 +357,6 @@ void gpuScaleUniform(float factor)
 #endif
 	Mat4 m;
 	scale_m4_fl(m, factor);
-	m[2][2] = 1.0;
 	gpuMultMatrix(m);
 }
 
