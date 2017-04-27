@@ -42,8 +42,8 @@ struct Intersection;
 struct VolumeStep;
 
 typedef struct KernelGlobals {
-	vector<texture_image_uchar4> texture_byte4_images;
 	vector<texture_image_float4> texture_float4_images;
+	vector<texture_image_uchar4> texture_byte4_images;
 	vector<texture_image_half4> texture_half4_images;
 	vector<texture_image_float> texture_float_images;
 	vector<texture_image_uchar> texture_byte_images;

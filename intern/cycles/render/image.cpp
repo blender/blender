@@ -285,17 +285,22 @@ int ImageManager::add_image(const string& filename,
 	is_float = (type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4);
 
 	/* No single channel and half textures on CUDA (Fermi) and no half on OpenCL, use available slots */
-	if(type == IMAGE_DATA_TYPE_HALF4 && !has_half_images) {
-		type = IMAGE_DATA_TYPE_FLOAT4;
-	} else if(type == IMAGE_DATA_TYPE_HALF && !has_half_images) {
-		type = IMAGE_DATA_TYPE_FLOAT;
+	if(!has_half_images) {
+		if(type == IMAGE_DATA_TYPE_HALF4) {
+			type = IMAGE_DATA_TYPE_FLOAT4;
+		}
+		else if(type == IMAGE_DATA_TYPE_HALF) {
+			type = IMAGE_DATA_TYPE_FLOAT;
+		}
 	}
 
-	if(type == IMAGE_DATA_TYPE_FLOAT && cuda_fermi_limits) {
-		type = IMAGE_DATA_TYPE_FLOAT4;
-	}
-	else if(type == IMAGE_DATA_TYPE_BYTE && cuda_fermi_limits) {
-		type = IMAGE_DATA_TYPE_BYTE4;
+	if(cuda_fermi_limits) {
+		if(type == IMAGE_DATA_TYPE_FLOAT) {
+			type = IMAGE_DATA_TYPE_FLOAT4;
+		}
+		else if(type == IMAGE_DATA_TYPE_BYTE) {
+			type = IMAGE_DATA_TYPE_BYTE4;
+		}
 	}
 
 	/* Fnd existing image. */
@@ -877,6 +882,14 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 					tex_img = dscene->tex_float4_image[slot];
 					dscene->tex_float4_image[slot] = NULL;
 					break;
+				case IMAGE_DATA_TYPE_BYTE4:
+					tex_img = dscene->tex_byte4_image[slot];
+					dscene->tex_byte4_image[slot]= NULL;
+					break;
+				case IMAGE_DATA_TYPE_HALF4:
+					tex_img = dscene->tex_half4_image[slot];
+					dscene->tex_half4_image[slot]= NULL;
+					break;
 				case IMAGE_DATA_TYPE_FLOAT:
 					tex_img = dscene->tex_float_image[slot];
 					dscene->tex_float_image[slot] = NULL;
@@ -885,17 +898,9 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 					tex_img = dscene->tex_byte_image[slot];
 					dscene->tex_byte_image[slot]= NULL;
 					break;
-				case IMAGE_DATA_TYPE_BYTE4:
-					tex_img = dscene->tex_byte4_image[slot];
-					dscene->tex_byte4_image[slot]= NULL;
-					break;
 				case IMAGE_DATA_TYPE_HALF:
 					tex_img = dscene->tex_half_image[slot];
 					dscene->tex_half_image[slot]= NULL;
-					break;
-				case IMAGE_DATA_TYPE_HALF4:
-					tex_img = dscene->tex_half4_image[slot];
-					dscene->tex_half4_image[slot]= NULL;
 					break;
 				default:
 					assert(0);
@@ -929,13 +934,17 @@ void ImageManager::device_update(Device *device,
 
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		switch(type) {
+			case IMAGE_DATA_TYPE_FLOAT4:
+				if(dscene->tex_float4_image.size() <= tex_num_images[IMAGE_DATA_TYPE_FLOAT4])
+					dscene->tex_float4_image.resize(tex_num_images[IMAGE_DATA_TYPE_FLOAT4]);
+				break;
 			case IMAGE_DATA_TYPE_BYTE4:
 				if(dscene->tex_byte4_image.size() <= tex_num_images[IMAGE_DATA_TYPE_BYTE4])
 					dscene->tex_byte4_image.resize(tex_num_images[IMAGE_DATA_TYPE_BYTE4]);
 				break;
-			case IMAGE_DATA_TYPE_FLOAT4:
-				if(dscene->tex_float4_image.size() <= tex_num_images[IMAGE_DATA_TYPE_FLOAT4])
-					dscene->tex_float4_image.resize(tex_num_images[IMAGE_DATA_TYPE_FLOAT4]);
+			case IMAGE_DATA_TYPE_HALF4:
+				if(dscene->tex_half4_image.size() <= tex_num_images[IMAGE_DATA_TYPE_HALF4])
+					dscene->tex_half4_image.resize(tex_num_images[IMAGE_DATA_TYPE_HALF4]);
 				break;
 			case IMAGE_DATA_TYPE_BYTE:
 				if(dscene->tex_byte_image.size() <= tex_num_images[IMAGE_DATA_TYPE_BYTE])
@@ -944,10 +953,6 @@ void ImageManager::device_update(Device *device,
 			case IMAGE_DATA_TYPE_FLOAT:
 				if(dscene->tex_float_image.size() <= tex_num_images[IMAGE_DATA_TYPE_FLOAT])
 					dscene->tex_float_image.resize(tex_num_images[IMAGE_DATA_TYPE_FLOAT]);
-				break;
-			case IMAGE_DATA_TYPE_HALF4:
-				if(dscene->tex_half4_image.size() <= tex_num_images[IMAGE_DATA_TYPE_HALF4])
-					dscene->tex_half4_image.resize(tex_num_images[IMAGE_DATA_TYPE_HALF4]);
 				break;
 			case IMAGE_DATA_TYPE_HALF:
 				if(dscene->tex_half_image.size() <= tex_num_images[IMAGE_DATA_TYPE_HALF])
@@ -1220,24 +1225,24 @@ void ImageManager::device_free(Device *device, DeviceScene *dscene)
 		}
 		images[type].clear();
 	}
-	
-	dscene->tex_byte4_image.clear();
-	dscene->tex_byte_image.clear();
+
 	dscene->tex_float4_image.clear();
-	dscene->tex_float_image.clear();
+	dscene->tex_byte4_image.clear();
 	dscene->tex_half4_image.clear();
+	dscene->tex_float_image.clear();
+	dscene->tex_byte_image.clear();
 	dscene->tex_half_image.clear();
 
-	device->tex_free(dscene->tex_image_byte4_packed);
 	device->tex_free(dscene->tex_image_float4_packed);
-	device->tex_free(dscene->tex_image_byte_packed);
+	device->tex_free(dscene->tex_image_byte4_packed);
 	device->tex_free(dscene->tex_image_float_packed);
+	device->tex_free(dscene->tex_image_byte_packed);
 	device->tex_free(dscene->tex_image_packed_info);
 
-	dscene->tex_image_byte4_packed.clear();
 	dscene->tex_image_float4_packed.clear();
-	dscene->tex_image_byte_packed.clear();
+	dscene->tex_image_byte4_packed.clear();
 	dscene->tex_image_float_packed.clear();
+	dscene->tex_image_byte_packed.clear();
 	dscene->tex_image_packed_info.clear();
 }
 
