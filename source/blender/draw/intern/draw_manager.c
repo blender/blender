@@ -1270,6 +1270,11 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 			draw_geometry(shgroup, call->geometry, call->obmat);
 		}
 	}
+
+	/* reset the state for the next group, note - we could only reset states we changed! */
+	if (shgroup->state != 0) {
+		DRW_state_reset();
+	}
 }
 
 void DRW_draw_pass(DRWPass *pass)
