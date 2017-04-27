@@ -171,7 +171,7 @@ static const float *get_bone_solid_color(EditBone *eBone, bPoseChannel *UNUSED(p
 	return colorBoneSolid;
 }
 
-static const float *get_bone_wire_color(EditBone *eBone, bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
+static const float *get_bone_wire_color(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
 {
 	if (constColor)
 		return constColor;
@@ -179,6 +179,12 @@ static const float *get_bone_wire_color(EditBone *eBone, bPoseChannel *UNUSED(pc
 	if (eBone) {
 		if (eBone->flag & BONE_SELECTED)
 			return colorVertexSelect;
+	}
+	else {
+		if ((arm->flag & ARM_POSEMODE) && (pchan->bone->flag & BONE_SELECTED)) {
+			return colorVertexSelect;
+		}
+
 	}
 
 	return colorVertex;

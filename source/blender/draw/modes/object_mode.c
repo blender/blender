@@ -1174,6 +1174,7 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob)
 
 static void OBJECT_cache_populate(void *vedata, Object *ob)
 {
+	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
@@ -1242,11 +1243,16 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		{
 			bArmature *arm = ob->data;
 			if (arm->edbo == NULL) {
-				DRW_shgroup_armature_object(
-				        ob, sl,
-				        ((OBJECT_Data *)vedata)->psl->bone_solid,
-				        ((OBJECT_Data *)vedata)->psl->bone_wire,
-				        stl->g_data->relationship_lines);
+				if ((ob->mode & OB_MODE_POSE) && (ob == OBACT_NEW)) {
+					DRW_shgroup_armature_pose(
+					        ob, psl->bone_solid, psl->bone_wire,
+					        stl->g_data->relationship_lines);
+				}
+				else {
+					DRW_shgroup_armature_object(
+					        ob, sl, psl->bone_solid, psl->bone_wire,
+					        stl->g_data->relationship_lines);
+				}
 			}
 			break;
 		}
