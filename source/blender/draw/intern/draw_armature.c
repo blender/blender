@@ -76,6 +76,12 @@ static DRWShadingGroup *relationship_lines;
 static DRWPass *bone_solid;
 static DRWPass *bone_wire;
 
+
+/* -------------------------------------------------------------------- */
+
+/** \name Shader Groups (DRW_shgroup)
+ * \{ */
+
 /* Octahedral */
 static void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const float color[4])
 {
@@ -136,7 +142,13 @@ static void UNUSED_FUNCTION(DRW_shgroup_bone_relationship_lines)(const float hea
 	DRW_shgroup_call_dynamic_add(relationship_lines, tail);
 }
 
-/* *************** Armature Drawing - Coloring API ***************************** */
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Drawing Color Helpers
+ * \{ */
 
 static float colorBoneSolid[4];
 static float colorTextHi[4];
@@ -190,7 +202,13 @@ static const float *get_bone_wire_color(EditBone *eBone, bPoseChannel *pchan, bA
 	return colorVertex;
 }
 
-/* *************** Armature drawing, helper calls for parts ******************* */
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Helper Utils
+ * \{ */
 
 static void draw_bone_update_disp_matrix(EditBone *eBone, bPoseChannel *pchan, int drawtype)
 {
@@ -304,6 +322,14 @@ static void draw_points(
 	}
 }
 
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Draw Bones
+ * \{ */
+
 static void draw_bone_custom_shape(
         EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm),
         const int UNUSED(select_id))
@@ -359,6 +385,14 @@ static void draw_bone_octahedral(
 
 	draw_points(eBone, pchan, arm, select_id);
 }
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Main Draw Loops
+ * \{ */
 
 static void draw_armature_edit(Object *ob)
 {
@@ -476,8 +510,9 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 	arm->flag &= ~ARM_POSEMODE;
 }
 
-/* this function set the object space to use
- * for all subsequent DRW_shgroup_bone_*** calls */
+/**
+ * This function set the object space to use for all subsequent `DRW_shgroup_bone_*` calls.
+ */
 static void DRW_shgroup_armature(
         Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire,
         DRWShadingGroup *shgrp_relationship_lines)
@@ -520,3 +555,5 @@ void DRW_shgroup_armature_edit(
 	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, shgrp_relationship_lines);
 	draw_armature_edit(ob);
 }
+
+/** \} */
