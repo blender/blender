@@ -37,17 +37,6 @@ public:
 	explicit ImageManager(const DeviceInfo& info);
 	~ImageManager();
 
-	enum ImageDataType {
-		IMAGE_DATA_TYPE_FLOAT4 = 0,
-		IMAGE_DATA_TYPE_BYTE4 = 1,
-		IMAGE_DATA_TYPE_HALF4 = 2,
-		IMAGE_DATA_TYPE_FLOAT = 3,
-		IMAGE_DATA_TYPE_BYTE = 4,
-		IMAGE_DATA_TYPE_HALF = 5,
-
-		IMAGE_DATA_NUM_TYPES
-	};
-
 	int add_image(const string& filename,
 	              void *builtin_data,
 	              bool animated,
@@ -124,7 +113,9 @@ public:
 
 private:
 	int tex_num_images[IMAGE_DATA_NUM_TYPES];
-	int tex_start_images[IMAGE_DATA_NUM_TYPES];
+	int max_num_images;
+	bool has_half_images;
+	bool cuda_fermi_limits;
 
 	thread_mutex device_mutex;
 	int animation_frame;

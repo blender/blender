@@ -151,8 +151,10 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 #  else
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
 	/* float4, byte4 and half4 */
-	if(id < TEX_START_FLOAT_CUDA_KEPLER)
+	const int texture_type = kernel_tex_type(id);
+	if(texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 || texture_type == IMAGE_DATA_TYPE_HALF4) {
 		r = kernel_tex_image_interp_float4(tex, x, y);
+	}
 	/* float, byte and half */
 	else {
 		float f = kernel_tex_image_interp_float(tex, x, y);
@@ -166,8 +168,10 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 
 	if(use_alpha && alpha != 1.0f && alpha != 0.0f) {
 		r_ssef = r_ssef / ssef(alpha);
-		if(id >= TEX_NUM_FLOAT4_IMAGES)
+		const int texture_type = kernel_tex_type(id);
+		if(texture_type == IMAGE_DATA_TYPE_BYTE4 || texture_type == IMAGE_DATA_TYPE_BYTE) {
 			r_ssef = min(r_ssef, ssef(1.0f));
+		}
 		r.w = alpha;
 	}
 
@@ -181,8 +185,9 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 		r.x *= invw;
 		r.y *= invw;
 		r.z *= invw;
-
-		if(id >= TEX_NUM_FLOAT4_IMAGES) {
+		
+		const int texture_type = kernel_tex_type(id);
+		if(texture_type == IMAGE_DATA_TYPE_BYTE4 || texture_type == IMAGE_DATA_TYPE_BYTE) {
 			r.x = min(r.x, 1.0f);
 			r.y = min(r.y, 1.0f);
 			r.z = min(r.z, 1.0f);

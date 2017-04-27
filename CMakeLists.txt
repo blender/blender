@@ -192,7 +192,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Options
 
-# First platform spesific non-cached vars
+# First platform specific non-cached vars
 if(UNIX AND NOT APPLE)
 	set(WITH_X11 ON)
 endif()
@@ -916,16 +916,16 @@ endif()
 if(MSVC)
 	# for some reason this fails on msvc
 	add_definitions(-D__LITTLE_ENDIAN__)
-	
-# OSX-Note: as we do crosscompiling with specific set architecture,
-# endianess-detection and autosetting is counterproductive
+
+# OSX-Note: as we do cross-compiling with specific set architecture,
+# endianess-detection and auto-setting is counterproductive
 # so we just set endianess according CMAKE_OSX_ARCHITECTURES
 
 elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
 	add_definitions(-D__LITTLE_ENDIAN__)
-elseif(CMAKE_OSX_ARCHITECTURES MATCHES ppc OR CMAKE_OSX_ARCHITECTURES MATCHES ppc64)		
+elseif(CMAKE_OSX_ARCHITECTURES MATCHES ppc OR CMAKE_OSX_ARCHITECTURES MATCHES ppc64)
 	add_definitions(-D__BIG_ENDIAN__)
-	
+
 else()
 	include(TestBigEndian)
 	test_big_endian(_SYSTEM_BIG_ENDIAN)
@@ -1526,7 +1526,7 @@ endif()
 set(CMAKE_C_FLAGS "${C_WARNINGS} ${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CXX_WARNINGS} ${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS}")
 
-# defined above, platform spesific but shared names
+# defined above, platform specific but shared names
 mark_as_advanced(
 	CYCLES_OSL
 	OSL_LIB_EXEC
