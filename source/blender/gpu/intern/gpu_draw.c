@@ -422,14 +422,18 @@ static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 {
 	if (alphablend == GPU_BLEND_SOLID) {
 		glDisable(GL_BLEND);
+#ifdef WITH_LEGACY_OPENGL
 		glDisable(GL_ALPHA_TEST);
+#endif
 		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (alphablend == GPU_BLEND_ADD) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
+#ifdef WITH_LEGACY_OPENGL
 		glDisable(GL_ALPHA_TEST);
+#endif
 		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 	}
 	else if (ELEM(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ALPHA_SORT)) {
@@ -442,6 +446,7 @@ static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 		/* if U.glalphaclip == 1.0, some cards go bonkers...
 		 * turn off alpha test in this case */
 
+#ifdef WITH_LEGACY_OPENGL
 		/* added after 2.45 to clip alpha */
 		if (U.glalphaclip == 1.0f) {
 			glDisable(GL_ALPHA_TEST);
@@ -450,16 +455,21 @@ static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 			glEnable(GL_ALPHA_TEST);
 			glAlphaFunc(GL_GREATER, U.glalphaclip);
 		}
+#endif
 	}
 	else if (alphablend == GPU_BLEND_CLIP) {
 		glDisable(GL_BLEND);
 		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+#ifdef WITH_LEGACY_OPENGL
 		glEnable(GL_ALPHA_TEST);
 		glAlphaFunc(GL_GREATER, 0.5f);
+#endif
 	}
 	else if (alphablend == GPU_BLEND_ALPHA_TO_COVERAGE) {
+#ifdef WITH_LEGACY_OPENGL
 		glEnable(GL_ALPHA_TEST);
 		glAlphaFunc(GL_GREATER, U.glalphaclip);
+#endif
 		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 	}
 }
@@ -2261,19 +2271,26 @@ void GPU_state_init(void)
 
 	GPU_disable_program_point_size();
 
+#ifndef WITH_GL_PROFILE_CORE
 	/* TODO: remove this when we switch to core profile */
-	glEnable(GL_POINT_SPRITE);
+	if (!GLEW_VERSION_3_2) {
+		glEnable(GL_POINT_SPRITE);
+	}
+#endif
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	glDepthFunc(GL_LEQUAL);
 
-	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_COLOR_LOGIC_OP);
 	glDisable(GL_STENCIL_TEST);
+
+#ifdef WITH_LEGACY_OPENGL
+	glDisable(GL_ALPHA_TEST);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+#endif
 
 	glDepthRange(0.0, 1.0);
 
@@ -2292,7 +2309,7 @@ void GPU_state_init(void)
 
 void GPU_enable_program_point_size(void)
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(WITH_LEGACY_OPENGL)
 	/* TODO: remove this when we switch to core profile */
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 #else
@@ -2302,7 +2319,7 @@ void GPU_enable_program_point_size(void)
 
 void GPU_disable_program_point_size(void)
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(WITH_LEGACY_OPENGL)
 	/* TODO: remove this when we switch to core profile */
 	glDisable(GL_VERTEX_PROGRAM_POINT_SIZE);
 #else
@@ -2502,7 +2519,6 @@ void gpuSaveState(GPUStateValues *values, eGPUStateMask mask)
 	}
 
 	if ((mask & GPU_ENABLE_BIT) != 0) {
-		values->is_alpha_test = glIsEnabled(GL_ALPHA_TEST);
 		values->is_blend = glIsEnabled(GL_BLEND);
 
 		for (int i = 0; i < 6; i++) {
@@ -2513,9 +2529,13 @@ void gpuSaveState(GPUStateValues *values, eGPUStateMask mask)
 		values->is_depth_test = glIsEnabled(GL_DEPTH_TEST);
 		values->is_dither = glIsEnabled(GL_DITHER);
 
+#ifdef WITH_LEGACY_OPENGL
+		values->is_alpha_test = glIsEnabled(GL_ALPHA_TEST);
+
 		for (int i = 0; i < 8; i++) {
 			values->is_light[i] = glIsEnabled(GL_LIGHT0 + i);
 		}
+#endif
 
 		values->is_line_smooth = glIsEnabled(GL_LINE_SMOOTH);
 		values->is_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
@@ -2564,7 +2584,6 @@ void gpuRestoreState(GPUStateValues *values)
 	}
 
 	if ((mask & GPU_ENABLE_BIT) != 0) {
-		restore_mask(GL_ALPHA_TEST, values->is_alpha_test);
 		restore_mask(GL_BLEND, values->is_blend);
 
 		for (int i = 0; i < 6; i++) {
@@ -2575,9 +2594,13 @@ void gpuRestoreState(GPUStateValues *values)
 		restore_mask(GL_DEPTH_TEST, values->is_depth_test);
 		restore_mask(GL_DITHER, values->is_dither);
 
+#ifdef WITH_LEGACY_OPENGL
+		restore_mask(GL_ALPHA_TEST, values->is_alpha_test);
+
 		for (int i = 0; i < 8; i++) {
 			restore_mask(GL_LIGHT0 + i, values->is_light[i]);
 		}
+#endif
 
 		restore_mask(GL_LINE_SMOOTH, values->is_line_smooth);
 		restore_mask(GL_COLOR_LOGIC_OP, values->is_color_logic_op);

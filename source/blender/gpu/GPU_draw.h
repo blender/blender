@@ -187,13 +187,10 @@ typedef struct GPUStateValues
 	eGPUStateMask mask;
 
 	/* GL_ENABLE_BIT */
-	unsigned int is_alpha_test : 1;
 	unsigned int is_blend : 1;
-	bool is_clip_plane[6];
 	unsigned int is_cull_face : 1;
 	unsigned int is_depth_test : 1;
 	unsigned int is_dither : 1;
-	bool is_light[8];
 	unsigned int is_lighting : 1;
 	unsigned int is_line_smooth : 1;
 	unsigned int is_color_logic_op : 1;
@@ -204,6 +201,13 @@ typedef struct GPUStateValues
 	unsigned int is_sample_alpha_to_coverage : 1;
 	unsigned int is_scissor_test : 1;
 	unsigned int is_stencil_test : 1;
+
+#ifdef WITH_LEGACY_OPENGL
+	unsigned int is_alpha_test : 1;
+	bool is_light[8];
+#endif
+
+	bool is_clip_plane[6];
 
 	/* GL_DEPTH_BUFFER_BIT */
 	/* unsigned int is_depth_test : 1; */
