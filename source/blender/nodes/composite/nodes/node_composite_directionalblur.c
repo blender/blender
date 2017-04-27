@@ -46,6 +46,7 @@ static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeDBlurData *ndbd = MEM_callocN(sizeof(NodeDBlurData), "node dblur data");
 	node->storage = ndbd;
+	ndbd->iter = 1;
 	ndbd->center_x = 0.5;
 	ndbd->center_y = 0.5;
 }
