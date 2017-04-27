@@ -84,7 +84,7 @@ def create_nb_project_main():
         make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
         make_exe_basename = os.path.basename(make_exe)
 
-        # --------------- NB spesific
+        # --------------- NB specific
         defines = [("%s=%s" % cdef) if cdef[1] else cdef[0] for cdef in defines]
         defines += [cdef.replace("#define", "").strip() for cdef in cmake_compiler_defines()]
 
