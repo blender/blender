@@ -2291,8 +2291,6 @@ void GPU_state_init(void)
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	glDepthFunc(GL_LEQUAL);
-	/* scaling matrices */
-	glEnable(GL_NORMALIZE);
 
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_BLEND);
@@ -2548,7 +2546,6 @@ void gpuSaveState(GPUStateValues *values, eGPUStateMask mask)
 		values->is_line_smooth = glIsEnabled(GL_LINE_SMOOTH);
 		values->is_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
 		values->is_multisample = glIsEnabled(GL_MULTISAMPLE);
-		values->is_normalize = glIsEnabled(GL_NORMALIZE);
 		values->is_polygon_offset_line = glIsEnabled(GL_POLYGON_OFFSET_LINE);
 		values->is_polygon_offset_fill = glIsEnabled(GL_POLYGON_OFFSET_FILL);
 		values->is_polygon_smooth = glIsEnabled(GL_POLYGON_SMOOTH);
@@ -2612,7 +2609,6 @@ void gpuRestoreState(GPUStateValues *values)
 		restore_mask(GL_LINE_SMOOTH, values->is_line_smooth);
 		restore_mask(GL_COLOR_LOGIC_OP, values->is_color_logic_op);
 		restore_mask(GL_MULTISAMPLE, values->is_multisample);
-		restore_mask(GL_NORMALIZE, values->is_normalize);
 		restore_mask(GL_POLYGON_OFFSET_LINE, values->is_polygon_offset_line);
 		restore_mask(GL_POLYGON_OFFSET_FILL, values->is_polygon_offset_fill);
 		restore_mask(GL_POLYGON_SMOOTH, values->is_polygon_smooth);

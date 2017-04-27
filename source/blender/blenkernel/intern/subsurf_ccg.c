@@ -1901,7 +1901,8 @@ static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 	no[1] = b_dZ * a_cX - b_dX * a_cZ;
 	no[2] = b_dX * a_cY - b_dY * a_cX;
 
-	/* don't normalize, GL_NORMALIZE is enabled */
+	normalize_v3(no); /* we no longer rely on GL_NORMALIZE */
+
 	glNormal3fv(no);
 }
 

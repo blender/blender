@@ -198,7 +198,6 @@ typedef struct GPUStateValues
 	unsigned int is_line_smooth : 1;
 	unsigned int is_color_logic_op : 1;
 	unsigned int is_multisample : 1;
-	unsigned int is_normalize : 1;
 	unsigned int is_polygon_offset_line : 1;
 	unsigned int is_polygon_offset_fill : 1;
 	unsigned int is_polygon_smooth : 1;
