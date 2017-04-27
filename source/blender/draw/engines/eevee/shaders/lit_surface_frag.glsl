@@ -28,8 +28,6 @@ layout(std140) uniform shadow_block {
 in vec3 worldPosition;
 in vec3 worldNormal;
 
-out vec4 fragColor;
-
 /* type */
 #define POINT    0.0
 #define SUN      1.0

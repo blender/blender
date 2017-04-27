@@ -56,6 +56,7 @@
 struct bContext;
 struct GPUFrameBuffer;
 struct GPUShader;
+struct GPUMaterial;
 struct GPUTexture;
 struct GPUUniformBuffer;
 struct Object;
@@ -245,6 +246,8 @@ typedef enum {
 } DRWState;
 
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
+DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass);
+DRWShadingGroup *DRW_shgroup_material_instance_create(struct GPUMaterial *material, DRWPass *pass, struct Batch *geom);
 DRWShadingGroup *DRW_shgroup_instance_create(struct GPUShader *shader, DRWPass *pass, struct Batch *geom);
 DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass);

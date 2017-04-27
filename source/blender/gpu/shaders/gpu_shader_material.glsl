@@ -1,6 +1,8 @@
 
 uniform mat4 ModelViewMatrix;
+#ifndef PROBE_CAPTURE
 uniform mat4 ProjectionMatrix;
+#endif
 uniform mat4 ModelViewMatrixInverse;
 uniform mat4 ProjectionMatrixInverse;
 uniform mat3 NormalMatrix;
@@ -172,7 +174,7 @@ void color_to_blender_normal_new_shading(vec3 color, out vec3 normal)
 }
 
 #define M_PI 3.14159265358979323846
-#define M_1_PI 0.31830988618379069
+#define M_1_PI 0.318309886183790671538
 
 /*********** SHADER NODES ***************/
 
@@ -2812,6 +2814,13 @@ void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
 	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
 	worldvec = (ModelViewMatrixInverse * co).xyz;
 }
+
+#ifdef PROBE_CAPTURE
+void environment_default_vector(out vec3 worldvec)
+{
+	worldvec = normalize(worldPosition);
+}
+#endif
 
 void node_background(vec4 color, float strength, vec3 N, out vec4 result)
 {

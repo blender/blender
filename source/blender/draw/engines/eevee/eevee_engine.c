@@ -29,6 +29,8 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
+
+#include "GPU_material.h"
 #include "GPU_glew.h"
 
 #include "eevee_engine.h"
@@ -39,6 +41,8 @@
 
 /* *********** STATIC *********** */
 static struct {
+	char *frag_shader_lib;
+
 	struct GPUShader *default_lit;
 	struct GPUShader *default_world;
 	struct GPUShader *depth_sh;
@@ -214,6 +218,16 @@ static void EEVEE_engine_init(void *ved)
 	                    (int)viewport_size[0], (int)viewport_size[1],
 	                    &tex, 1);
 
+	if (!e_data.frag_shader_lib) {
+		DynStr *ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_ltc_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_lit_surface_frag_glsl);
+		e_data.frag_shader_lib = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+	}
+
 	if (!e_data.depth_sh) {
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
 	}
@@ -222,10 +236,7 @@ static void EEVEE_engine_init(void *ved)
 		char *frag_str = NULL;
 
 		DynStr *ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_ltc_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lit_surface_frag_glsl);
+		BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
 		BLI_dynstr_append(ds_frag, datatoc_default_frag_glsl);
 		frag_str = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);
@@ -345,6 +356,8 @@ static DRWShadingGroup *eevee_cascade_shadow_shgroup(
 
 static void EEVEE_cache_init(void *vedata)
 {
+	static int zero = 0;
+
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
@@ -373,26 +386,48 @@ static void EEVEE_cache_init(void *vedata)
 		psl->probe_background = DRW_pass_create("Probe Background Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
 
 		struct Batch *geom = DRW_cache_fullscreen_quad_get();
-		DRWShadingGroup *grp;
+		DRWShadingGroup *grp = NULL;
 
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		Scene *scene = draw_ctx->scene;
 		World *wo = scene->world;
 
-		if (false) { /* TODO check for world nodetree */
-			// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
+		float *col = ts.colorBackground;
+		if (wo) {
+			col = &wo->horr;
 		}
-		else {
-			float *col = ts.colorBackground;
-			static int zero = 0;
 
-			if (wo) {
-				col = &wo->horr;
+		if (wo && wo->use_nodes && wo->nodetree) {
+			struct GPUMaterial *gpumat = GPU_material_from_nodetree(
+				wo->nodetree, &wo->gpumaterial, &DRW_engine_viewport_eevee_type, 0,
+			    datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, e_data.frag_shader_lib,
+			    "#define PROBE_CAPTURE\n"
+			    "#define MAX_LIGHT 128\n"
+			    "#define MAX_SHADOW_CUBE 42\n"
+			    "#define MAX_SHADOW_MAP 64\n"
+			    "#define MAX_SHADOW_CASCADE 8\n"
+			    "#define MAX_CASCADE_NUM 4\n");
+
+			grp = DRW_shgroup_material_instance_create(gpumat, psl->probe_background, geom);
+
+			if (grp) {
+				DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
+
+				for (int i = 0; i < 6; ++i)
+					DRW_shgroup_call_dynamic_add_empty(grp);
 			}
+			else {
+				/* Shader failed : pink background */
+				static float pink[3] = {1.0f, 0.0f, 1.0f};
+				col = pink;
+			}
+		}
 
+		/* Fallback if shader fails or if not using nodetree. */
+		if (grp == NULL) {
 			grp = eevee_cube_shgroup(e_data.default_world, psl->probe_background, geom);
-			DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
 			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
+			DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
 		}
 	}
 
@@ -591,6 +626,7 @@ static void EEVEE_draw_scene(void *vedata)
 
 static void EEVEE_engine_free(void)
 {
+	MEM_SAFE_FREE(e_data.frag_shader_lib);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_world);
@@ -628,7 +664,7 @@ DrawEngineType draw_engine_eevee_type = {
 
 RenderEngineType DRW_engine_viewport_eevee_type = {
 	NULL, NULL,
-	EEVEE_ENGINE, N_("Eevee"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
+	EEVEE_ENGINE, N_("Eevee"), RE_INTERNAL | RE_USE_OGL_PIPELINE | RE_USE_SHADING_NODES,
 	NULL, NULL, NULL, NULL, NULL, NULL, &EEVEE_collection_settings_create,
 	&draw_engine_eevee_type,
 	{NULL, NULL, NULL}

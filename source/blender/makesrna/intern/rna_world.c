@@ -119,6 +119,7 @@ static void rna_World_use_nodes_update(bContext *C, PointerRNA *ptr)
 		ED_node_shader_default(C, &wrld->id);
 	
 	rna_World_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+	rna_World_draw_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 #else

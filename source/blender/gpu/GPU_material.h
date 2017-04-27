@@ -56,6 +56,7 @@ struct GPUTexture;
 struct GPULamp;
 struct PreviewImage;
 struct World;
+struct bNodeTree;
 
 typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
@@ -218,7 +219,9 @@ GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4]);
 
 /* High level functions to create and use GPU materials */
 GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo);
-
+GPUMaterial *GPU_material_from_nodetree(
+        struct bNodeTree *ntree, struct ListBase *gpumaterials, void *engine_type, int options,
+        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines);
 GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma, bool use_opensubdiv);
 GPUMaterial *GPU_material_matcap(struct Scene *scene, struct Material *ma, bool use_opensubdiv);
 void GPU_material_free(struct ListBase *gpumaterial);
@@ -235,6 +238,7 @@ void GPU_material_unbind(GPUMaterial *material);
 bool GPU_material_bound(GPUMaterial *material);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 GPUMatType GPU_Material_get_type(GPUMaterial *material);
+struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 
 void GPU_material_vertex_attributes(GPUMaterial *material,
 	struct GPUVertexAttribs *attrib);

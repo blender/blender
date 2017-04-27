@@ -8,7 +8,7 @@ in vec4 vPos[];
 in int face[];
 
 out vec3 worldPosition;
-out vec3 worldNormal;
+out vec3 worldNormal; /* Required. otherwise generate linking error on AMD. */
 
 const vec3 maj_axes[6] = vec3[6](vec3(1.0,  0.0,  0.0), vec3(-1.0,  0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, -1.0,  0.0), vec3( 0.0,  0.0, 1.0), vec3( 0.0,  0.0, -1.0));
 const vec3 x_axis[6]   = vec3[6](vec3(0.0,  0.0, -1.0), vec3( 0.0,  0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(1.0,  0.0,  0.0), vec3( 1.0,  0.0, 0.0), vec3(-1.0,  0.0,  0.0));

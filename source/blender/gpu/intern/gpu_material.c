@@ -94,12 +94,15 @@ static struct GPUWorld {
 } GPUWorld;
 
 struct GPUMaterial {
-	Scene *scene;
+	Scene *scene; /* DEPRECATED was only usefull for lamps */
 	Material *ma;
 
 	/* material for mesh surface, worlds or something else.
 	 * some code generation is done differently depending on the use case */
-	int type;
+	int type; /* DEPRECATED */
+
+	void *engine;   /* attached engine type */
+	int options;    /* to identify shader variations (shadow, probe, world background...) */
 	
 	/* for creating the material */
 	ListBase nodes;
@@ -436,6 +439,10 @@ GPUMatType GPU_Material_get_type(GPUMaterial *material)
 	return material->type;
 }
 
+GPUPass *GPU_material_get_pass(GPUMaterial *material)
+{
+	return material->pass;
+}
 
 void GPU_material_vertex_attributes(GPUMaterial *material, GPUVertexAttribs *attribs)
 {
@@ -470,6 +477,10 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 
 bool GPU_material_do_color_management(GPUMaterial *mat)
 {
+	/* XXX mat->scene == NULL in that case */
+	if (mat->engine)
+		return true;
+
 	if (!BKE_scene_check_color_management_enabled(mat->scene))
 		return false;
 
@@ -2096,6 +2107,47 @@ GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo)
 	return mat;
 }
 
+/* TODO : This is supposed to replace GPU_material_from_blender/_world in the future */
+GPUMaterial *GPU_material_from_nodetree(
+        struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options,
+        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
+{
+	GPUMaterial *mat;
+	GPUNodeLink *outlink;
+	LinkData *link;
+
+	for (link = gpumaterials->first; link; link = link->next) {
+		GPUMaterial *current_material = (GPUMaterial *)link->data;
+		if (current_material->engine == engine_type &&
+		    current_material->options == options)
+		{
+			return current_material;
+		}
+	}
+
+	/* allocate material */
+	mat = GPU_material_construct_begin(NULL); /* TODO remove GPU_material_construct_begin */
+	mat->engine = engine_type;
+	mat->options = options;
+
+	ntreeGPUMaterialNodes(ntree, mat, NODE_NEWER_SHADING);
+
+	/* Let Draw manager finish the construction. */
+	if (mat->outlink) {
+		outlink = mat->outlink;
+		mat->pass = GPU_generate_pass_new(&mat->nodes, outlink, vert_code, geom_code, frag_lib, defines);
+	}
+
+	/* note that even if building the shader fails in some way, we still keep
+	 * it to avoid trying to compile again and again, and simple do not use
+	 * the actual shader on drawing */
+
+	link = MEM_callocN(sizeof(LinkData), "GPUMaterialLink");
+	link->data = mat;
+	BLI_addtail(gpumaterials, link);
+
+	return mat;
+}
 
 GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, bool use_opensubdiv)
 {

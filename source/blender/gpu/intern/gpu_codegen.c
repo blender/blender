@@ -928,6 +928,67 @@ GPUShader *GPU_pass_shader(GPUPass *pass)
 	return pass->shader;
 }
 
+static void gpu_nodes_extract_dynamic_inputs_new(GPUPass *pass, ListBase *nodes)
+{
+	GPUShader *shader = pass->shader;
+	GPUNode *node;
+	GPUInput *next, *input;
+	ListBase *inputs = &pass->inputs;
+	int extract, z;
+
+	memset(inputs, 0, sizeof(*inputs));
+
+	if (!shader)
+		return;
+
+	GPU_shader_bind(shader);
+
+	for (node = nodes->first; node; node = node->next) {
+		z = 0;
+		for (input = node->inputs.first; input; input = next, z++) {
+			next = input->next;
+
+			/* attributes don't need to be bound, they already have
+			 * an id that the drawing functions will use */
+			if (input->source == GPU_SOURCE_ATTRIB) {
+				continue;
+			}
+
+			if (input->source == GPU_SOURCE_BUILTIN ||
+			    input->source == GPU_SOURCE_OPENGL_BUILTIN)
+			{
+				continue;
+			}
+
+			if (input->ima || input->tex || input->prv)
+				BLI_snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
+			else
+				BLI_snprintf(input->shadername, sizeof(input->shadername), "unf%d", input->id);
+
+			/* pass non-dynamic uniforms to opengl */
+			extract = 0;
+
+			if (input->ima || input->tex || input->prv) {
+				if (input->bindtex)
+					extract = 1;
+			}
+			else if (input->dynamicvec)
+				extract = 1;
+
+			if (extract)
+				input->shaderloc = GPU_shader_get_uniform(shader, input->shadername);
+
+			/* extract nodes */
+			if (extract) {
+				BLI_remlink(&node->inputs, input);
+				BLI_addtail(inputs, input);
+			}
+		}
+	}
+
+	GPU_shader_unbind();
+}
+
 static void gpu_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
 {
 	GPUShader *shader = pass->shader;
@@ -1647,6 +1708,67 @@ static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 	}
 }
 
+GPUPass *GPU_generate_pass_new(ListBase *nodes, struct GPUNodeLink *frag_outlink,
+                               const char *vert_code, const char *geom_code,
+                               const char *frag_lib, const char *defines)
+{
+	GPUShader *shader;
+	GPUPass *pass;
+	char *vertexgen, *geometrygen, *fragmentgen, *tmp;
+	char *vertexcode, *geometrycode, *fragmentcode;
+
+	/* prune unused nodes */
+	gpu_nodes_prune(nodes, frag_outlink);
+
+	/* generate code and compile with opengl */
+	fragmentgen = code_generate_fragment(nodes, frag_outlink->output);
+	// vertexgen = code_generate_vertex(nodes, GPU_MATERIAL_TYPE_MESH);
+	// geometrygen = code_generate_geometry(nodes, false);
+	UNUSED_VARS(vertexgen, geometrygen);
+
+	tmp = BLI_strdupcat(frag_lib, glsl_material_library);
+	fragmentcode = BLI_strdupcat(tmp, fragmentgen);
+	vertexcode = BLI_strdup(vert_code);
+	geometrycode = BLI_strdup(geom_code);
+
+	shader = GPU_shader_create(vertexcode,
+	                           fragmentcode,
+	                           geometrycode,
+	                           NULL,
+	                           defines);
+
+	MEM_freeN(tmp);
+
+	/* failed? */
+	if (!shader) {
+		if (fragmentcode)
+			MEM_freeN(fragmentcode);
+		if (vertexcode)
+			MEM_freeN(vertexcode);
+		if (geometrycode)
+			MEM_freeN(geometrycode);
+		MEM_freeN(fragmentgen);
+		gpu_nodes_free(nodes);
+		return NULL;
+	}
+
+	/* create pass */
+	pass = MEM_callocN(sizeof(GPUPass), "GPUPass");
+	pass->shader = shader;
+	pass->fragmentcode = fragmentcode;
+	pass->geometrycode = geometrycode;
+	pass->vertexcode = vertexcode;
+	pass->libcode = glsl_material_library;
+
+	/* extract dynamic inputs and throw away nodes */
+	gpu_nodes_extract_dynamic_inputs_new(pass, nodes);
+	gpu_nodes_free(nodes);
+
+	MEM_freeN(fragmentgen);
+
+	return pass;
+}
+
 GPUPass *GPU_generate_pass(
         ListBase *nodes, GPUNodeLink *outlink,
         GPUVertexAttribs *attribs, int *builtins,
@@ -1705,7 +1827,6 @@ GPUPass *GPU_generate_pass(
 	/* create pass */
 	pass = MEM_callocN(sizeof(GPUPass), "GPUPass");
 
-	pass->output = outlink->output;
 	pass->shader = shader;
 	pass->fragmentcode = fragmentcode;
 	pass->geometrycode = geometrycode;

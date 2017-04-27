@@ -54,7 +54,7 @@ struct ShadowMapData {
 #define sh_map_bias   near_far_bias.z
 
 #ifndef MAX_CASCADE_NUM
-#define MAX_CASCADE_NUM 1
+#define MAX_CASCADE_NUM 4
 #endif
 
 struct ShadowCascadeData {
@@ -93,8 +93,6 @@ vec4 saturate(vec4 a) { return vec4(saturate(a.x), saturate(a.y), saturate(a.z),
 
 float distance_squared(vec2 a, vec2 b) { a -= b; return dot(a, a); }
 float distance_squared(vec3 a, vec3 b) { a -= b; return dot(a, a); }
-
-float hypot(float x, float y) { return sqrt(x*x + y*y); }
 
 float inverse_distance(vec3 V) { return max( 1 / length(V), 1e-8); }
 
