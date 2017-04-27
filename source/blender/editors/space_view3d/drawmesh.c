@@ -323,7 +323,6 @@ static bool set_draw_settings_cached(
 			if (texpaint) {
 				c_badtex = false;
 				if (GPU_verify_image(ima, NULL, GL_TEXTURE_2D, 0, 1, 0, false)) {
-					glEnable(GL_TEXTURE_2D);
 					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
 					glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_TEXTURE);
@@ -332,7 +331,6 @@ static bool set_draw_settings_cached(
 					glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);
 					
 					glActiveTexture(GL_TEXTURE1);
-					glEnable(GL_TEXTURE_2D);
 					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
 					glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
@@ -346,14 +344,12 @@ static bool set_draw_settings_cached(
 				}
 				else {
 					glActiveTexture(GL_TEXTURE1);
-					glDisable(GL_TEXTURE_2D);
 					glBindTexture(GL_TEXTURE_2D, 0);
 					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 					glActiveTexture(GL_TEXTURE0);									
 
 					c_badtex = true;
 					GPU_clear_tpage(true);
-					glDisable(GL_TEXTURE_2D);
 					glBindTexture(GL_TEXTURE_2D, 0);
 					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 				}
@@ -459,7 +455,6 @@ static void draw_textured_begin(Scene *scene, SceneLayer *sl, View3D *v3d, Regio
 	 * in new texpaint code. The better solution here would be to support GLSL */
 	if (Gtexdraw.is_texpaint) {			
 		glActiveTexture(GL_TEXTURE1);
-		glEnable(GL_TEXTURE_2D);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
@@ -474,7 +469,6 @@ static void draw_textured_begin(Scene *scene, SceneLayer *sl, View3D *v3d, Regio
 			glActiveTexture(GL_TEXTURE2);
 			if (GPU_verify_image(Gtexdraw.stencil, NULL, GL_TEXTURE_2D, false, false, false, false)) {
 				float col[4] = {imapaint->stencil_col[0], imapaint->stencil_col[1], imapaint->stencil_col[2], 1.0f};
-				glEnable(GL_TEXTURE_2D);
 				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
 				glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
@@ -509,14 +503,12 @@ static void draw_textured_end(void)
 {
 	if (Gtexdraw.ob->mode & OB_MODE_TEXTURE_PAINT) {
 		glActiveTexture(GL_TEXTURE1);
-		glDisable(GL_TEXTURE_2D);
 		glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		if (Gtexdraw.stencil != NULL) {
 			glActiveTexture(GL_TEXTURE2);
-			glDisable(GL_TEXTURE_2D);
 			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_COLOR);
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glBindTexture(GL_TEXTURE_2D, 0);

@@ -286,25 +286,6 @@ void GPU_set_gpu_mipmapping(int gpu_mipmap)
 	}
 }
 
-static void gpu_generate_mipmap(GLenum target)
-{
-	const bool is_ati = GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY);
-	int target_enabled = 0;
-
-	/* work around bug in ATI driver, need to have GL_TEXTURE_2D enabled
-	 * http://www.opengl.org/wiki/Common_Mistakes#Automatic_mipmap_generation */
-	if (is_ati) {
-		target_enabled = glIsEnabled(target);
-		if (!target_enabled)
-			glEnable(target);
-	}
-
-	glGenerateMipmap(target);
-
-	if (is_ati && !target_enabled)
-		glDisable(target);
-}
-
 void GPU_set_mipmap(bool mipmap)
 {
 	if (GTS.domipmap != mipmap) {
@@ -432,7 +413,6 @@ void GPU_clear_tpage(bool force)
 	GTS.alphablend = -1;
 
 	glDisable(GL_BLEND);
-	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_GEN_S);
 	glDisable(GL_TEXTURE_GEN_T);
 	glDisable(GL_ALPHA_TEST);
@@ -876,7 +856,7 @@ void GPU_create_gl_tex(
 
 		if (GPU_get_mipmap() && mipmap) {
 			if (GTS.gpu_mipmap) {
-				gpu_generate_mipmap(GL_TEXTURE_2D);
+				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 			else {
 				int i;
@@ -927,7 +907,7 @@ void GPU_create_gl_tex(
 
 			if (GPU_get_mipmap() && mipmap) {
 				if (GTS.gpu_mipmap) {
-					gpu_generate_mipmap(GL_TEXTURE_CUBE_MAP);
+					glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 				}
 				else {
 					if (!ibuf) {
@@ -1101,12 +1081,8 @@ int GPU_set_tpage(MTexPoly *mtexpoly, int mipmap, int alphablend)
 		GTS.curtilemode = GTS.tilemode;
 		GTS.curtileXRep = GTS.tileXRep;
 		GTS.curtileYRep = GTS.tileYRep;
-
-		glEnable(GL_TEXTURE_2D);
 	}
 	else {
-		glDisable(GL_TEXTURE_2D);
-
 		GTS.curtile = 0;
 		GTS.curima = NULL;
 		GTS.curtilemode = 0;
@@ -1235,7 +1211,7 @@ static bool gpu_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 		}
 
 		if (GPU_get_mipmap()) {
-			gpu_generate_mipmap(GL_TEXTURE_2D);
+			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else {
 			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
@@ -1285,7 +1261,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 			/* we have already accounted for the case where GTS.gpu_mipmap is false
 			 * so we will be using GPU mipmap generation here */
 			if (GPU_get_mipmap()) {
-				gpu_generate_mipmap(GL_TEXTURE_2D);
+				glGenerateMipmap(GL_TEXTURE_2D);
 			}
 			else {
 				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
@@ -1319,7 +1295,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 
 		/* see comment above as to why we are using gpu mipmap generation here */
 		if (GPU_get_mipmap()) {
-			gpu_generate_mipmap(GL_TEXTURE_2D);
+			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else {
 			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
@@ -2297,8 +2273,6 @@ void GPU_state_init(void)
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LOGIC_OP);
 	glDisable(GL_STENCIL_TEST);
-	glDisable(GL_TEXTURE_1D);
-	glDisable(GL_TEXTURE_2D);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	glDepthRange(0.0, 1.0);
@@ -2552,7 +2526,6 @@ void gpuSaveState(GPUStateValues *values, eGPUStateMask mask)
 		values->is_sample_alpha_to_coverage = glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE);
 		values->is_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
 		values->is_stencil_test = glIsEnabled(GL_STENCIL_TEST);
-		values->is_texture_2d = glIsEnabled(GL_TEXTURE_2D);
 	}
 
 	if ((mask & GPU_SCISSOR_BIT) != 0) {
@@ -2615,7 +2588,6 @@ void gpuRestoreState(GPUStateValues *values)
 		restore_mask(GL_SAMPLE_ALPHA_TO_COVERAGE, values->is_sample_alpha_to_coverage);
 		restore_mask(GL_SCISSOR_TEST, values->is_scissor_test);
 		restore_mask(GL_STENCIL_TEST, values->is_stencil_test);
-		restore_mask(GL_TEXTURE_2D, values->is_texture_2d);
 	}
 
 	if ((mask & GPU_VIEWPORT_BIT) != 0) {

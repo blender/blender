@@ -204,7 +204,6 @@ typedef struct GPUStateValues
 	unsigned int is_sample_alpha_to_coverage : 1;
 	unsigned int is_scissor_test : 1;
 	unsigned int is_stencil_test : 1;
-	unsigned int is_texture_2d : 1;
 
 	/* GL_DEPTH_BUFFER_BIT */
 	/* unsigned int is_depth_test : 1; */
