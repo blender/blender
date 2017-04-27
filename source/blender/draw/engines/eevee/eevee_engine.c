@@ -499,18 +499,28 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 
 		/* Get per-material split surface */
 		struct Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
-		for (int i = 0; i < MAX2(1, ob->totcol); ++i) {
-			Material *ma = give_current_material(ob, i + 1);
+		if (mat_geom) {
+			for (int i = 0; i < MAX2(1, ob->totcol); ++i) {
+				Material *ma = give_current_material(ob, i + 1);
 
-			if (ma == NULL)
-				ma = &defmaterial;
+				if (ma == NULL)
+					ma = &defmaterial;
 
-			DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit, psl->material_pass);
-			DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", &ma->r, 1);
-			DRW_shgroup_uniform_vec3(shgrp, "specular_col", &ma->specr, 1);
-			DRW_shgroup_uniform_short(shgrp, "hardness", &ma->har, 1);
-			DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+				DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit, psl->material_pass);
+				DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", &ma->r, 1);
+				DRW_shgroup_uniform_vec3(shgrp, "specular_col", &ma->specr, 1);
+				DRW_shgroup_uniform_short(shgrp, "hardness", &ma->har, 1);
+				DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+			}
 		}
+		else {
+			/* TODO, support for all geometry types (non mesh geometry) */
+			DRW_shgroup_call_add(stl->g_data->default_lit_grp, geom, ob->obmat);
+			// DRW_shgroup_call_add(stl->g_data->shadow_shgrp, geom, ob->obmat);
+			eevee_cascade_shadow_shgroup(psl, stl, geom, ob->obmat);
+			eevee_cube_shadow_shgroup(psl, stl, geom, ob->obmat);
+		}
+
 		// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
 
 		// DRW_shgroup_call_add(stl->g_data->shadow_shgrp, geom, ob->obmat);
