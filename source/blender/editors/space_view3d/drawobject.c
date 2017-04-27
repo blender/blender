@@ -936,10 +936,12 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write)
 			glDepthMask(GL_FALSE);
 		}
 		
+		const int font_id = BLF_default();
+
 		for (vos = g_v3d_strings[g_v3d_string_level]; vos; vos = vos->next) {
 			if (vos->sco[0] != IS_CLIPPED) {
 				if (col_pack_prev != vos->col.pack) {
-					//glColor3ubv(vos->col.ub);
+					BLF_color3ubv(font_id, vos->col.ub);
 					col_pack_prev = vos->col.pack;
 				}
 
