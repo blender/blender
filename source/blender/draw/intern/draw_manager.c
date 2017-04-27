@@ -2081,6 +2081,9 @@ void DRW_draw_view(const bContext *C)
 	DRW_draw_callbacks_post_scene();
 	ED_region_draw_cb_draw(C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
 
+	/* needed so manipulator isn't obscured */
+	glClear(GL_DEPTH_BUFFER_BIT);
+
 	DRW_draw_manipulator();
 
 	DRW_draw_region_info();
