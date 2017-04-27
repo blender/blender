@@ -607,6 +607,7 @@ void UI_GetThemeColor3fv(int colorid, float col[4]) RET_NONE
 void UI_GetThemeColor4fv(int colorid, float col[4]) RET_NONE
 void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4]) RET_NONE
 void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]) RET_NONE
+void UI_GetThemeColorBlendShade3fv(int colorid1, int colorid2, float fac, int offset, float col[3]) RET_NONE
 void UI_GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int offset, float col[4]) RET_NONE
 void UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, unsigned char col[3]) RET_NONE
 void UI_GetThemeColorShadeAlpha4ubv(int colorid, int coloffset, int alphaoffset, unsigned char col[4]) RET_NONE

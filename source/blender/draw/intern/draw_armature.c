@@ -181,20 +181,24 @@ static void update_color(const float const_color[4])
 {
 	g_theme.const_color = const_color;
 
-	UI_GetThemeColor4fv(TH_SELECT, g_theme.select_color);
-	UI_GetThemeColor4fv(TH_EDGE_SELECT, g_theme.edge_select_color);
-	UI_GetThemeColorShade4fv(TH_EDGE_SELECT, -20, g_theme.bone_select_color);
-	UI_GetThemeColor4fv(TH_WIRE, g_theme.wire_color);
-	UI_GetThemeColor4fv(TH_WIRE_EDIT, g_theme.wire_edit_color);
-	UI_GetThemeColor4fv(TH_BONE_SOLID, g_theme.bone_solid_color);
-	UI_GetThemeColorBlendShade4fv(TH_WIRE_EDIT, TH_EDGE_SELECT, 0.15f, 0, g_theme.bone_active_unselect_color);
-	UI_GetThemeColor4fv(TH_BONE_POSE, g_theme.bone_pose_color);
-	UI_GetThemeColor4fv(TH_BONE_POSE_ACTIVE, g_theme.bone_pose_active_color);
-	UI_GetThemeColorBlendShade4fv(TH_WIRE, TH_BONE_POSE, 0.15f, 0, g_theme.bone_pose_active_unselect_color);
-	UI_GetThemeColor4fv(TH_TEXT_HI, g_theme.text_hi_color);
-	UI_GetThemeColor4fv(TH_TEXT, g_theme.text_color);
-	UI_GetThemeColor4fv(TH_VERTEX_SELECT, g_theme.vertex_select_color);
-	UI_GetThemeColor4fv(TH_VERTEX, g_theme.vertex_color);
+#define NO_ALPHA(c) (((c)[3] = 1.0f), (c))
+
+	UI_GetThemeColor3fv(TH_SELECT, NO_ALPHA(g_theme.select_color));
+	UI_GetThemeColor3fv(TH_EDGE_SELECT, NO_ALPHA(g_theme.edge_select_color));
+	UI_GetThemeColorShade3fv(TH_EDGE_SELECT, -20, NO_ALPHA(g_theme.bone_select_color));
+	UI_GetThemeColor3fv(TH_WIRE, NO_ALPHA(g_theme.wire_color));
+	UI_GetThemeColor3fv(TH_WIRE_EDIT, NO_ALPHA(g_theme.wire_edit_color));
+	UI_GetThemeColor3fv(TH_BONE_SOLID, NO_ALPHA(g_theme.bone_solid_color));
+	UI_GetThemeColorBlendShade3fv(TH_WIRE_EDIT, TH_EDGE_SELECT, 0.15f, 0, NO_ALPHA(g_theme.bone_active_unselect_color));
+	UI_GetThemeColor3fv(TH_BONE_POSE, NO_ALPHA(g_theme.bone_pose_color));
+	UI_GetThemeColor3fv(TH_BONE_POSE_ACTIVE, NO_ALPHA(g_theme.bone_pose_active_color));
+	UI_GetThemeColorBlendShade3fv(TH_WIRE, TH_BONE_POSE, 0.15f, 0, NO_ALPHA(g_theme.bone_pose_active_unselect_color));
+	UI_GetThemeColor3fv(TH_TEXT_HI, NO_ALPHA(g_theme.text_hi_color));
+	UI_GetThemeColor3fv(TH_TEXT, NO_ALPHA(g_theme.text_color));
+	UI_GetThemeColor3fv(TH_VERTEX_SELECT, NO_ALPHA(g_theme.vertex_select_color));
+	UI_GetThemeColor3fv(TH_VERTEX, NO_ALPHA(g_theme.vertex_color));
+
+#undef NO_ALPHA
 }
 
 static const float *get_bone_solid_color(const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm)

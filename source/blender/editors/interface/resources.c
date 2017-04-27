@@ -1563,6 +1563,28 @@ void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, 
 	col[3] = ((float)a) / 255.0f;
 }
 
+void UI_GetThemeColorBlendShade3fv(int colorid1, int colorid2, float fac, int offset, float col[3])
+{
+	int r, g, b;
+	const unsigned char *cp1, *cp2;
+
+	cp1 = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
+	cp2 = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
+
+	CLAMP(fac, 0.0f, 1.0f);
+
+	r = offset + floorf((1.0f - fac) * cp1[0] + fac * cp2[0]);
+	CLAMP(r, 0, 255);
+	g = offset + floorf((1.0f - fac) * cp1[1] + fac * cp2[1]);
+	CLAMP(g, 0, 255);
+	b = offset + floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
+	CLAMP(b, 0, 255);
+
+	col[0] = ((float)r) / 255.0f;
+	col[1] = ((float)g) / 255.0f;
+	col[2] = ((float)b) / 255.0f;
+}
+
 void UI_GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int offset, float col[4])
 {
 	int r, g, b, a;
