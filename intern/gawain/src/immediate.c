@@ -208,12 +208,26 @@ void immBegin(PrimitiveType prim_type, unsigned vertex_ct)
 	else
 		{
 		// orphan this buffer & start with a fresh one
+#if 1 || APPLE_LEGACY
+		// this method works on all platforms, old & new
 		glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
-#if !APPLE_LEGACY
+#else
+		// TODO: use other (more recent) methods after thorough testing
 		if (GLEW_VERSION_4_3 || GLEW_ARB_invalidate_subdata)
 			glInvalidateBufferData(imm.vbo_id);
 		else
-			glMapBufferRange(GL_ARRAY_BUFFER, 0, IMM_BUFFER_SIZE, GL_MAP_INVALIDATE_BUFFER_BIT);
+			{
+			// glitches!
+//			glMapBufferRange(GL_ARRAY_BUFFER, 0, IMM_BUFFER_SIZE, GL_MAP_INVALIDATE_BUFFER_BIT);
+
+			// works
+//			glMapBufferRange(GL_ARRAY_BUFFER, 0, IMM_BUFFER_SIZE,
+//			                 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
+//			glUnmapBuffer(GL_ARRAY_BUFFER);
+
+			// also works
+			glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+			}
 #endif
 
 		imm.buffer_offset = 0;
