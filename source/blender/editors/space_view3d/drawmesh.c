@@ -1171,6 +1171,11 @@ static bool tex_mat_set_face_editmesh_cb(void *userData, int index)
 void draw_mesh_textured(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d,
                         Object *ob, DerivedMesh *dm, const int draw_flags)
 {
+#ifndef WITH_LEGACY_OPENGL
+	/* some legacy GL calls here will *crash* blender */
+	return;
+#endif
+
 	/* if not cycles, or preview-modifiers, or drawing matcaps */
 	if ((draw_flags & DRAW_MODIFIERS_PREVIEW) ||
 	    (v3d->flag2 & V3D_SHOW_SOLID_MATCAP) ||

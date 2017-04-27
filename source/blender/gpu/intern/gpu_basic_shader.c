@@ -190,31 +190,6 @@ static bool solid_compatible_lighting(void)
 	return ((directional & enabled) == enabled);
 }
 
-#if 0
-static int detect_options()
-{
-	GLint two_sided;
-	int options = 0;
-
-	if (glIsEnabled(GL_TEXTURE_2D))
-		options |= GPU_SHADER_TEXTURE_2D;
-	if (glIsEnabled(GL_TEXTURE_RECTANGLE))
-		options |= GPU_SHADER_TEXTURE_RECT;
-	GPU_SHADER_TEXTURE_RECT
-	if (glIsEnabled(GL_COLOR_MATERIAL))
-		options |= GPU_SHADER_USE_COLOR;
-
-	if (glIsEnabled(GL_LIGHTING))
-		options |= GPU_SHADER_LIGHTING;
-
-	glGetIntegerv(GL_LIGHT_MODEL_TWO_SIDE, &two_sided);
-	if (two_sided == GL_TRUE)
-		options |= GPU_SHADER_TWO_SIDED;
-	
-	return options;
-}
-#endif
-
 static GPUShader *gpu_basic_shader(int options)
 {
 	/* glsl code */
@@ -332,6 +307,10 @@ void GPU_basic_shader_colors(
         const float diffuse[3], const float specular[3],
         int shininess, float alpha)
 {
+#ifdef WITH_GL_PROFILE_CORE
+	return;
+#endif
+
 	float gl_diffuse[4], gl_specular[4];
 
 	if (diffuse)
@@ -353,6 +332,10 @@ void GPU_basic_shader_colors(
 
 void GPU_basic_shader_light_set(int light_num, GPULightData *light)
 {
+#ifdef WITH_GL_PROFILE_CORE
+	return;
+#endif
+
 	int light_bit = (1 << light_num);
 
 	/* note that light position is affected by the current modelview matrix! */
@@ -426,6 +409,10 @@ void GPU_basic_shader_light_set(int light_num, GPULightData *light)
 
 void GPU_basic_shader_light_set_viewer(bool local)
 {
+#ifdef WITH_GL_PROFILE_CORE
+	return;
+#endif
+
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (local) ? GL_TRUE: GL_FALSE);
 }
 
