@@ -1024,9 +1024,6 @@ static void icon_draw_texture(
 	y1 = iy * icongltex.invh;
 	y2 = (iy + ih) * icongltex.invh;
 
-	/* sharper downscaling, has no effect when scale matches with a mip level */
-	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, -0.5f);
-
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
 	VertexFormat *format = immVertexFormat();
 	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
@@ -1053,8 +1050,6 @@ static void icon_draw_texture(
 	immEnd();
 
 	immUnbindProgram();
-
-	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, 0.0f);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
