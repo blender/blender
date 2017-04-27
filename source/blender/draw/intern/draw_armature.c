@@ -64,18 +64,21 @@
 #define BONE_VAR(eBone, pchan, var) ((eBone) ? (eBone->var) : (pchan->var))
 #define BONE_FLAG(eBone, pchan) ((eBone) ? (eBone->flag) : (pchan->bone->flag))
 
-static Object *current_armature;
-/* Reset when changing current_armature */
-static DRWShadingGroup *bone_octahedral_solid;
-static DRWShadingGroup *bone_octahedral_wire;
-static DRWShadingGroup *bone_point_solid;
-static DRWShadingGroup *bone_point_wire;
-static DRWShadingGroup *bone_axes;
-static DRWShadingGroup *relationship_lines;
+/* Reset for drawing each armature object */
+static struct {
+	/* Current armature object */
+	Object *ob;
+	/* Reset when changing current_armature */
+	DRWShadingGroup *bone_octahedral_solid;
+	DRWShadingGroup *bone_octahedral_wire;
+	DRWShadingGroup *bone_point_solid;
+	DRWShadingGroup *bone_point_wire;
+	DRWShadingGroup *bone_axes;
+	DRWShadingGroup *relationship_lines;
 
-static DRWPass *bone_solid;
-static DRWPass *bone_wire;
-
+	DRWPass *bone_solid;
+	DRWPass *bone_wire;
+} g_data = {NULL};
 
 /* -------------------------------------------------------------------- */
 
@@ -85,61 +88,61 @@ static DRWPass *bone_wire;
 /* Octahedral */
 static void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const float color[4])
 {
-	if (bone_octahedral_solid == NULL) {
+	if (g_data.bone_octahedral_solid == NULL) {
 		struct Batch *geom = DRW_cache_bone_octahedral_get();
-		bone_octahedral_solid = shgroup_instance_objspace_solid(bone_solid, geom, current_armature->obmat);
+		g_data.bone_octahedral_solid = shgroup_instance_objspace_solid(g_data.bone_solid, geom, g_data.ob->obmat);
 	}
 
-	DRW_shgroup_call_dynamic_add(bone_octahedral_solid, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(g_data.bone_octahedral_solid, bone_mat, color);
 }
 
 static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const float color[4])
 {
-	if (bone_octahedral_wire == NULL) {
+	if (g_data.bone_octahedral_wire == NULL) {
 		struct Batch *geom = DRW_cache_bone_octahedral_wire_outline_get();
-		bone_octahedral_wire = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+		g_data.bone_octahedral_wire = shgroup_instance_objspace_wire(g_data.bone_wire, geom, g_data.ob->obmat);
 	}
 
-	DRW_shgroup_call_dynamic_add(bone_octahedral_wire, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(g_data.bone_octahedral_wire, bone_mat, color);
 }
 
 /* Head and tail sphere */
 static void DRW_shgroup_bone_point_solid(const float (*bone_mat)[4], const float color[4])
 {
-	if (bone_point_solid == NULL) {
+	if (g_data.bone_point_solid == NULL) {
 		struct Batch *geom = DRW_cache_bone_point_get();
-		bone_point_solid = shgroup_instance_objspace_solid(bone_solid, geom, current_armature->obmat);
+		g_data.bone_point_solid = shgroup_instance_objspace_solid(g_data.bone_solid, geom, g_data.ob->obmat);
 	}
 
-	DRW_shgroup_call_dynamic_add(bone_point_solid, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(g_data.bone_point_solid, bone_mat, color);
 }
 
 static void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float color[4])
 {
-	if (bone_point_wire == NULL) {
+	if (g_data.bone_point_wire == NULL) {
 		struct Batch *geom = DRW_cache_bone_point_wire_outline_get();
-		bone_point_wire = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+		g_data.bone_point_wire = shgroup_instance_objspace_wire(g_data.bone_wire, geom, g_data.ob->obmat);
 	}
 
-	DRW_shgroup_call_dynamic_add(bone_point_wire, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(g_data.bone_point_wire, bone_mat, color);
 }
 
 /* Axes */
 static void DRW_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
 {
-	if (bone_axes == NULL) {
+	if (g_data.bone_axes == NULL) {
 		struct Batch *geom = DRW_cache_bone_arrows_get();
-		bone_axes = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+		g_data.bone_axes = shgroup_instance_objspace_wire(g_data.bone_wire, geom, g_data.ob->obmat);
 	}
 
-	DRW_shgroup_call_dynamic_add(bone_axes, bone_mat, color);
+	DRW_shgroup_call_dynamic_add(g_data.bone_axes, bone_mat, color);
 }
 
 /* Relationship lines */
 static void UNUSED_FUNCTION(DRW_shgroup_bone_relationship_lines)(const float head[3], const float tail[3])
 {
-	DRW_shgroup_call_dynamic_add(relationship_lines, head);
-	DRW_shgroup_call_dynamic_add(relationship_lines, tail);
+	DRW_shgroup_call_dynamic_add(g_data.relationship_lines, head);
+	DRW_shgroup_call_dynamic_add(g_data.relationship_lines, tail);
 }
 
 /** \} */
@@ -150,56 +153,127 @@ static void UNUSED_FUNCTION(DRW_shgroup_bone_relationship_lines)(const float hea
 /** \name Drawing Color Helpers
  * \{ */
 
-static float colorBoneSolid[4];
-static float colorTextHi[4];
-static float colorText[4];
-static float colorVertexSelect[4];
-static float colorVertex[4];
+/**
+ * Follow `TH_*` naming except for mixed colors.
+ */
+static struct {
+	float select_color[4];
+	float edge_select_color[4];
+	float bone_select_color[4];  /* tint */
+	float wire_color[4];
+	float wire_edit_color[4];
+	float bone_solid_color[4];
+	float bone_active_unselect_color[4];  /* mix */
+	float bone_pose_color[4];
+	float bone_pose_active_color[4];
+	float bone_pose_active_unselect_color[4];  /* mix */
+	float text_hi_color[4];
+	float text_color[4];
+	float vertex_select_color[4];
+	float vertex_color[4];
 
-static const float *constColor;
+	/* not a theme, this is an override */
+	const float *const_color;
+} g_theme;
 
+/** See: 'set_pchan_color'*/
 static void update_color(const float const_color[4])
 {
-	constColor = const_color;
+	g_theme.const_color = const_color;
 
-	UI_GetThemeColor4fv(TH_BONE_SOLID, colorBoneSolid);
-	UI_GetThemeColor4fv(TH_TEXT_HI, colorTextHi);
-	UI_GetThemeColor4fv(TH_TEXT, colorText);
-	UI_GetThemeColor4fv(TH_VERTEX_SELECT, colorVertexSelect);
-	UI_GetThemeColor4fv(TH_VERTEX, colorVertex);
+	UI_GetThemeColor4fv(TH_SELECT, g_theme.select_color);
+	UI_GetThemeColor4fv(TH_EDGE_SELECT, g_theme.edge_select_color);
+	UI_GetThemeColorShade4fv(TH_EDGE_SELECT, -20, g_theme.bone_select_color);
+	UI_GetThemeColor4fv(TH_WIRE, g_theme.wire_color);
+	UI_GetThemeColor4fv(TH_WIRE_EDIT, g_theme.wire_edit_color);
+	UI_GetThemeColor4fv(TH_BONE_SOLID, g_theme.bone_solid_color);
+	UI_GetThemeColorBlendShade4fv(TH_WIRE_EDIT, TH_EDGE_SELECT, 0.15f, 0, g_theme.bone_active_unselect_color);
+	UI_GetThemeColor4fv(TH_BONE_POSE, g_theme.bone_pose_color);
+	UI_GetThemeColor4fv(TH_BONE_POSE_ACTIVE, g_theme.bone_pose_active_color);
+	UI_GetThemeColorBlendShade4fv(TH_WIRE, TH_BONE_POSE, 0.15f, 0, g_theme.bone_pose_active_unselect_color);
+	UI_GetThemeColor4fv(TH_TEXT_HI, g_theme.text_hi_color);
+	UI_GetThemeColor4fv(TH_TEXT, g_theme.text_color);
+	UI_GetThemeColor4fv(TH_VERTEX_SELECT, g_theme.vertex_select_color);
+	UI_GetThemeColor4fv(TH_VERTEX, g_theme.vertex_color);
 }
 
-static const float *get_bone_solid_color(EditBone *eBone, bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
+static const float *get_bone_solid_color(const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm)
 {
-	if (constColor)
-		return colorBoneSolid;
+	if (g_theme.const_color)
+		return g_theme.bone_solid_color;
 
 	/* Edit Mode */
 	if (eBone) {
-		if (eBone->flag & BONE_SELECTED)
-			return colorVertexSelect;
+		bool is_active = (arm->act_edbone == eBone);
+		if (eBone->flag & BONE_SELECTED) {
+			if (is_active) {
+				return g_theme.edge_select_color;
+			}
+			else {
+				return g_theme.bone_select_color;
+			}
+		}
+	}
+	else if (arm->flag & ARM_POSEMODE) {
+		bool is_active = (arm->act_bone == pchan->bone);
+		if (pchan->bone->flag & BONE_SELECTED) {
+			if (is_active) {
+				return g_theme.bone_pose_active_color;
+			}
+			else {
+				return g_theme.bone_pose_color;
+			}
+		}
 	}
 
-	return colorBoneSolid;
+	return g_theme.bone_solid_color;
 }
 
-static const float *get_bone_wire_color(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static const float *get_bone_wire_color(const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm)
 {
-	if (constColor)
-		return constColor;
+	if (g_theme.const_color)
+		return g_theme.const_color;
 
 	if (eBone) {
-		if (eBone->flag & BONE_SELECTED)
-			return colorVertexSelect;
-	}
-	else {
-		if ((arm->flag & ARM_POSEMODE) && (pchan->bone->flag & BONE_SELECTED)) {
-			return colorVertexSelect;
+		bool is_active = (arm->act_edbone == eBone);
+		if (eBone->flag & BONE_SELECTED) {
+			if (is_active) {
+				return g_theme.edge_select_color;
+			}
+			else {
+				return g_theme.bone_select_color;
+			}
 		}
-
+		else {
+			if (is_active) {
+				return g_theme.bone_active_unselect_color;
+			}
+			else {
+				return g_theme.wire_edit_color;
+			}
+		}
+	}
+	else if (arm->flag & ARM_POSEMODE) {
+		bool is_active = (arm->act_bone == pchan->bone);
+		if (pchan->bone->flag & BONE_SELECTED) {
+			if (is_active) {
+				return g_theme.bone_pose_active_color;
+			}
+			else {
+				return g_theme.bone_pose_color;
+			}
+		}
+		else {
+			if (is_active) {
+				return g_theme.bone_pose_active_unselect_color;
+			}
+			else {
+				return g_theme.wire_color;
+			}
+		}
 	}
 
-	return colorVertex;
+	return g_theme.vertex_color;
 }
 
 /** \} */
@@ -262,8 +336,8 @@ static void draw_bone_update_disp_matrix(EditBone *eBone, bPoseChannel *pchan, i
 
 static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 {
-	const float *col = (constColor) ? constColor :
-	                   (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? colorTextHi : colorText;
+	const float *col = (g_theme.const_color) ? g_theme.const_color :
+	                   (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? g_theme.text_hi_color : g_theme.text_color;
 
 	DRW_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_tail_mat), col);
 }
@@ -272,21 +346,25 @@ static void draw_points(
         const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm,
         const int select_id)
 {
-	const float *col_solid_root = colorBoneSolid;
-	const float *col_solid_tail = colorBoneSolid;
-	const float *col_wire_root = (constColor) ? constColor : colorVertex;
-	const float *col_wire_tail = (constColor) ? constColor : colorVertex;
+	const float *col_solid_root = g_theme.bone_solid_color;
+	const float *col_solid_tail = g_theme.bone_solid_color;
+	const float *col_wire_root = (g_theme.const_color) ? g_theme.const_color : g_theme.vertex_color;
+	const float *col_wire_tail = (g_theme.const_color) ? g_theme.const_color : g_theme.vertex_color;
 
 	/* Edit bone points can be selected */
 	if (eBone) {
 		if (eBone->flag & BONE_ROOTSEL) {
-			col_solid_root = colorVertexSelect;
-			col_wire_root = colorVertexSelect;
+			col_solid_root = g_theme.vertex_select_color;
+			col_wire_root = g_theme.vertex_select_color;
 		}
 		if (eBone->flag & BONE_TIPSEL) {
-			col_solid_tail = colorVertexSelect;
-			col_wire_tail = colorVertexSelect;
+			col_solid_tail = g_theme.vertex_select_color;
+			col_wire_tail = g_theme.vertex_select_color;
 		}
+	}
+	else if (arm->flag & ARM_POSEMODE) {
+		col_solid_root = col_solid_tail = get_bone_solid_color(eBone, pchan, arm);
+		col_wire_root = col_wire_tail = get_bone_wire_color(eBone, pchan, arm);
 	}
 
 	/*	Draw root point if we are not connected and parent are not hidden */
@@ -517,16 +595,12 @@ static void DRW_shgroup_armature(
         Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire,
         DRWShadingGroup *shgrp_relationship_lines)
 {
-	current_armature = ob;
-	bone_octahedral_solid = NULL;
-	bone_octahedral_wire = NULL;
-	bone_point_solid = NULL;
-	bone_point_wire = NULL;
-	bone_axes = NULL;
+	memset(&g_data, 0x0, sizeof(g_data));
+	g_data.ob = ob;
 
-	bone_solid = pass_bone_solid;
-	bone_wire = pass_bone_wire;
-	relationship_lines = shgrp_relationship_lines;
+	g_data.bone_solid = pass_bone_solid;
+	g_data.bone_wire = pass_bone_wire;
+	g_data.relationship_lines = shgrp_relationship_lines;
 }
 
 void DRW_shgroup_armature_object(
