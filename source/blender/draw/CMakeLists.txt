@@ -61,7 +61,6 @@ set(SRC
 	intern/draw_cache_impl_mesh.c
 	intern/draw_common.c
 	intern/draw_manager.c
-	intern/draw_manager_text.c
 	intern/draw_view.c
 	modes/edit_armature_mode.c
 	modes/edit_curve_mode.c
@@ -88,7 +87,6 @@ set(SRC
 	intern/draw_cache.h
 	intern/draw_cache_impl.h
 	intern/draw_common.h
-	intern/draw_manager_text.h
 	intern/draw_view.h
 	modes/draw_mode_engines.h
 	engines/basic/basic_engine.h
