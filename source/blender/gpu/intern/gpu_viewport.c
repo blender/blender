@@ -123,6 +123,13 @@ static void gpu_viewport_engines_data_free(GPUViewport *viewport)
 		MEM_freeN(data->psl);
 		MEM_freeN(data->stl);
 
+		/* We could handle this in the DRW module */
+		if (data->text_draw_cache) {
+			extern void DRW_text_cache_destroy(struct DRWTextStore *dt);
+			DRW_text_cache_destroy(data->text_draw_cache);
+			data->text_draw_cache = NULL;
+		}
+
 		MEM_freeN(data);
 
 		BLI_remlink(&viewport->data, link);

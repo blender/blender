@@ -62,6 +62,7 @@ struct Object;
 struct Batch;
 struct DefaultFramebufferList;
 struct DefaultTextureList;
+struct DRWTextStore;
 struct LampEngineData;
 struct RenderEngineType;
 struct ViewportEngineData;
@@ -310,6 +311,8 @@ bool DRW_is_object_renderable(struct Object *ob);
 /* Draw commands */
 void DRW_draw_pass(DRWPass *pass);
 
+void DRW_draw_text_cache_queue(struct DRWTextStore *dt);
+
 void DRW_draw_callbacks_pre_scene(void);
 void DRW_draw_callbacks_post_scene(void);
 
@@ -322,6 +325,10 @@ void DRW_select_load_id(unsigned int id);
 void DRW_state_dfdy_factors_get(float dfdyfac[2]);
 bool DRW_state_is_fbo(void);
 bool DRW_state_is_select(void);
+bool DRW_state_is_depth(void);
+bool DRW_state_show_text(void);
+
+struct DRWTextStore *DRW_state_text_cache_get(void);
 
 /* Avoid too many lookups while drawing */
 typedef struct DRWContextState {

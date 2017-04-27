@@ -38,6 +38,7 @@ struct bContext;
 struct Object;
 struct SceneLayer;
 struct ViewContext;
+struct ViewportEngineData;
 struct View3D;
 struct rcti;
 

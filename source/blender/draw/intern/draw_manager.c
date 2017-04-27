@@ -64,6 +64,8 @@
 
 #include "UI_resources.h"
 
+#include "draw_manager_text.h"
+
 /* only for callbacks */
 #include "draw_cache_impl.h"
 
@@ -227,8 +229,16 @@ static struct DRWGlobalState {
 	float screenvecs[2][3];
 	float pixsize;
 
+	struct {
+		unsigned int is_select : 1;
+		unsigned int is_depth : 1;
+	} options;
+
 	/* Current rendering context */
 	DRWContextState draw_ctx;
+
+	/* Convenience pointer to text_store owned by the viewport */
+	struct DRWTextStore **text_store_p;
 
 	ListBase enabled_engines; /* RenderEngineType */
 } DST = {NULL};
@@ -1351,6 +1361,16 @@ void DRW_state_reset(void) {}
 /** \} */
 
 
+struct DRWTextStore *DRW_text_cache_ensure(void)
+{
+	BLI_assert(DST.text_store_p);
+	if (*DST.text_store_p == NULL) {
+		*DST.text_store_p = DRW_text_cache_create();
+	}
+	return *DST.text_store_p;
+}
+
+
 /* -------------------------------------------------------------------- */
 
 /** \name Settings
@@ -1699,6 +1719,15 @@ static void DRW_engines_cache_init(void)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+
+		if (data->text_draw_cache) {
+			DRW_text_cache_destroy(data->text_draw_cache);
+			data->text_draw_cache = NULL;
+		}
+		if (DST.text_store_p == NULL) {
+			DST.text_store_p = &data->text_draw_cache;
+		}
+
 		double stime = PIL_check_seconds_timer();
 		data->cache_time = 0.0;
 
@@ -1769,6 +1798,22 @@ static void DRW_engines_draw_scene(void)
 
 		if (engine->draw_scene) {
 			engine->draw_scene(data);
+		}
+
+		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
+		data->render_time = data->render_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
+	}
+}
+
+static void DRW_engines_draw_text(void)
+{
+	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		double stime = PIL_check_seconds_timer();
+
+		if (data->text_draw_cache) {
+			DRW_text_cache_draw(data->text_draw_cache, DST.draw_ctx.v3d, DST.draw_ctx.ar, false);
 		}
 
 		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
@@ -2081,6 +2126,8 @@ void DRW_draw_view(const bContext *C)
 	DRW_draw_callbacks_post_scene();
 	ED_region_draw_cb_draw(C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
 
+	DRW_engines_draw_text();
+
 	/* needed so manipulator isn't obscured */
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -2138,6 +2185,8 @@ void DRW_draw_select_loop(
 	bool cache_is_dirty;
 	DST.viewport = viewport;
 	v3d->zbuf = true;
+
+	DST.options.is_select = true;
 
 	/* Get list of enabled engines */
 	if (use_obedit) {
@@ -2228,6 +2277,8 @@ void DRW_draw_depth_loop(
 	DST.viewport = viewport;
 	v3d->zbuf = true;
 
+	DST.options.is_depth = true;
+
 	/* Get list of enabled engines */
 	{
 		DRW_engines_enable_basic();
@@ -2312,7 +2363,21 @@ bool DRW_state_is_fbo(void)
  */
 bool DRW_state_is_select(void)
 {
-	return (G.f & G_PICKSEL) != 0;
+	return DST.options.is_select;
+}
+
+bool DRW_state_is_depth(void)
+{
+	return DST.options.is_depth;
+}
+
+/**
+ * Should text draw in this mode?
+ */
+bool DRW_state_show_text(void)
+{
+	return (DST.options.is_select) == 0 &&
+	       (DST.options.is_depth) == 0;
 }
 
 /** \} */

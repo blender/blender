@@ -60,6 +60,7 @@
 #include "UI_resources.h"
 
 #include "draw_common.h"
+#include "draw_manager_text.h"
 
 #define BONE_VAR(eBone, pchan, var) ((eBone) ? (eBone->var) : (pchan->var))
 #define BONE_FLAG(eBone, pchan) ((eBone) ? (eBone->flag) : (pchan->bone->flag))
@@ -485,6 +486,8 @@ static void draw_armature_edit(Object *ob)
 
 	update_color(NULL);
 
+	const bool show_text = DRW_state_show_text();
+
 	for (eBone = arm->edbo->first, index = 0; eBone; eBone = eBone->next, index++) {
 		if (eBone->layer & arm->layer) {
 			if ((eBone->flag & BONE_HIDDEN_A) == 0) {
@@ -506,6 +509,21 @@ static void draw_armature_edit(Object *ob)
 				}
 				else {
 					draw_bone_octahedral(eBone, NULL, arm, select_id);
+				}
+
+				/* Draw names of bone */
+				if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+					unsigned char color[4];
+					UI_GetThemeColor4ubv((eBone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, color);
+
+					float vec[3];
+					mid_v3_v3v3(vec, eBone->head, eBone->tail);
+					mul_m4_v3(ob->obmat, vec);
+
+					struct DRWTextStore *dt = DRW_text_cache_ensure();
+					DRW_text_cache_add(
+					        dt, vec, eBone->name, strlen(eBone->name),
+					        10, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
 				}
 
 				/*	Draw additional axes */
@@ -543,7 +561,8 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 		}
 	}
 
-	bool is_pose_select = (arm->flag & ARM_POSEMODE) && DRW_state_is_select();
+	const bool is_pose_select = (arm->flag & ARM_POSEMODE) && DRW_state_is_select();
+	const bool show_text = DRW_state_show_text();
 
 	/* being set below */
 	arm->layer_used = 0;
@@ -578,9 +597,25 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 					draw_bone_octahedral(NULL, pchan, arm, select_id);
 				}
 
+				/* Draw names of bone */
+				if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+					unsigned char color[4];
+					UI_GetThemeColor4ubv((arm->flag & ARM_POSEMODE) &&
+					                     (pchan->bone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, color);
+					float vec[3];
+					mid_v3_v3v3(vec, pchan->pose_head, pchan->pose_tail);
+					mul_m4_v3(ob->obmat, vec);
+
+					struct DRWTextStore *dt = DRW_text_cache_ensure();
+					DRW_text_cache_add(
+					        dt, vec, pchan->name, strlen(pchan->name),
+					        10, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
+				}
+
 				/*	Draw additional axes */
-				if (arm->flag & ARM_DRAWAXES)
+				if (arm->flag & ARM_DRAWAXES) {
 					draw_axes(NULL, pchan);
+				}
 
 				if (is_pose_select) {
 					index += 0x10000;

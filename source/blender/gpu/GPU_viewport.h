@@ -66,6 +66,9 @@ typedef struct ViewportEngineData {
 	PassList *psl;
 	StorageList *stl;
 
+	/* we may want to put this elsewhere */
+	struct DRWTextStore *text_draw_cache;
+
 	/* Profiling data */
 	double init_time;
 	double cache_time;
