@@ -371,7 +371,11 @@ void DisplayBuffer::draw(Device *device, const DeviceDrawParams& draw_params)
 	if(draw_width != 0 && draw_height != 0) {
 		device_memory& rgba = rgba_data();
 
-		device->draw_pixels(rgba, 0, draw_width, draw_height, params.full_x, params.full_y, params.width, params.height, transparent, draw_params);
+		device->draw_pixels(
+		            rgba, 0,
+		            draw_width, draw_height, params.width, params.height,
+		            params.full_x, params.full_y, params.full_width, params.full_height,
+		            transparent, draw_params);
 	}
 }
 
