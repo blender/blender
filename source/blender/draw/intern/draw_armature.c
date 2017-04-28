@@ -122,7 +122,7 @@ static void DRW_shgroup_bone_custom_solid(const float (*bone_mat)[4], const floa
 static void DRW_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct Batch *geom = DRW_cache_object_wire_get(custom);
+	struct Batch *geom = DRW_cache_object_wire_outline_get(custom);
 	if (geom) {
 		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_objspace_wire(g_data.bone_wire, geom, g_data.ob->obmat);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_wire, bone_mat, color);

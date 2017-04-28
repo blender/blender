@@ -453,11 +453,10 @@ Batch *DRW_cache_screenspace_circle_get(void)
 /** \name Common Object API
  * \{ */
 
-Batch *DRW_cache_object_wire_get(Object *ob)
+Batch *DRW_cache_object_wire_outline_get(Object *ob)
 {
 	switch (ob->type) {
 		case OB_MESH:
-			/* TODO, return regular edges (fails with pose-mode custom drawing. needs investigation) */
 			return DRW_cache_mesh_wire_outline_get(ob);
 
 		/* TODO, should match 'DRW_cache_object_surface_get' */
