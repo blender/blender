@@ -201,7 +201,7 @@ ImageDataType ImageManager::get_image_metadata(const string& filename,
  * to device ones and vice versa.
  *
  * There are special cases for CUDA Fermi, since there we have only 90 image texture
- * slots available and shold keep the flattended numbers in the 0-89 range.
+ * slots available and should keep the flattended numbers in the 0-89 range.
  */
 int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 {

@@ -75,12 +75,15 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 	/* Image Options */
 	uint interpolation = (info.w & (1 << 0)) ? INTERPOLATION_CLOSEST : INTERPOLATION_LINEAR;
 	uint extension;
-	if(info.w & (1 << 1))
+	if(info.w & (1 << 1)) {
 		extension = EXTENSION_REPEAT;
-	else if(info.w & (1 << 2))
+	}
+	else if(info.w & (1 << 2)) {
 		extension = EXTENSION_EXTEND;
-	else
+	}
+	else {
 		extension = EXTENSION_CLIP;
+	}
 
 	float4 r;
 	int ix, iy, nix, niy;
@@ -151,12 +154,15 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 	/* Image Options */
 	uint interpolation = (info.w & (1 << 0)) ? INTERPOLATION_CLOSEST : INTERPOLATION_LINEAR;
 	uint extension;
-	if(info.w & (1 << 1))
+	if(info.w & (1 << 1)) {
 		extension = EXTENSION_REPEAT;
-	else if(info.w & (1 << 2))
+	}
+	else if(info.w & (1 << 2)) {
 		extension = EXTENSION_EXTEND;
-	else
+	}
+	else {
 		extension = EXTENSION_CLIP;
+	}
 
 	float4 r;
 	int ix, iy, iz, nix, niy, niz;
@@ -174,7 +180,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 			if(extension == EXTENSION_CLIP) {
 				if(x < 0.0f || y < 0.0f || z < 0.0f ||
 				   x > 1.0f || y > 1.0f || z > 1.0f)
-				 {
+				{
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 				}
 			}
@@ -201,12 +207,13 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 			niz = svm_image_texture_wrap_periodic(iz+1, depth);
 		}
 		else {
-			if(extension == EXTENSION_CLIP)
+			if(extension == EXTENSION_CLIP) {
 				if(x < 0.0f || y < 0.0f || z < 0.0f ||
 				   x > 1.0f || y > 1.0f || z > 1.0f)
 				{
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 				}
+			}
 			/* Fall through. */
 			/*  EXTENSION_EXTEND */
 			nix = svm_image_texture_wrap_clamp(ix+1, width);
