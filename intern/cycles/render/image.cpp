@@ -1045,8 +1045,17 @@ void ImageManager::device_pack_images(Device *device,
 	size_t size = 0, offset = 0;
 	ImageDataType type;
 
-	int info_size = tex_num_images[IMAGE_DATA_TYPE_FLOAT4] + tex_num_images[IMAGE_DATA_TYPE_BYTE4]
-	                + tex_num_images[IMAGE_DATA_TYPE_FLOAT] + tex_num_images[IMAGE_DATA_TYPE_BYTE];
+	/* TODO(sergey): This will over-allocate a bit, but this is constant memory
+	 * so should be fine for a short term.
+	 */
+	size_t info_size = max4(type_index_to_flattened_slot(tex_num_images[IMAGE_DATA_TYPE_FLOAT4],
+	                                                     IMAGE_DATA_TYPE_FLOAT4),
+	                        type_index_to_flattened_slot(tex_num_images[IMAGE_DATA_TYPE_BYTE4],
+	                                                     IMAGE_DATA_TYPE_BYTE4),
+	                        type_index_to_flattened_slot(tex_num_images[IMAGE_DATA_TYPE_FLOAT],
+	                                                     IMAGE_DATA_TYPE_FLOAT),
+	                        type_index_to_flattened_slot(tex_num_images[IMAGE_DATA_TYPE_BYTE],
+	                                                     IMAGE_DATA_TYPE_BYTE));
 	uint4 *info = dscene->tex_image_packed_info.resize(info_size*2);
 
 	/* Byte4 Textures*/
