@@ -196,9 +196,18 @@ ImageDataType ImageManager::get_image_metadata(const string& filename,
 	}
 }
 
+int ImageManager::max_flattened_slot(ImageDataType type)
+{
+	if(tex_num_images[type] == 0) {
+		/* No textures for the type, no slots needs allocation. */
+		return 0;
+	}
+	return type_index_to_flattened_slot(tex_num_images[type], type);
+}
+
 /* The lower three bits of a device texture slot number indicate its type.
  * These functions convert the slot ids from ImageManager "images" ones
- * to device ones and vice versa.
+ * to device ones and vice verse.
  *
  * There are special cases for CUDA Fermi, since there we have only 90 image texture
  * slots available and should keep the flattended numbers in the 0-89 range.
@@ -1084,14 +1093,10 @@ void ImageManager::device_pack_images(Device *device,
 	/* TODO(sergey): This will over-allocate a bit, but this is constant memory
 	 * so should be fine for a short term.
 	 */
-	size_t info_size = max4(type_index_to_flattened_slot(tex_num_images[IMAGE_DATA_TYPE_FLOAT4],
-	                                                     IMAGE_DATA_TYPE_FLOAT4),
-	                        type_index_to_flattened_slot(tex_num_images[IMAGE_DATA_TYPE_BYTE4],
-	                                                     IMAGE_DATA_TYPE_BYTE4),
-	                        type_index_to_flattened_slot(tex_num_images[IMAGE_DATA_TYPE_FLOAT],
-	                                                     IMAGE_DATA_TYPE_FLOAT),
-	                        type_index_to_flattened_slot(tex_num_images[IMAGE_DATA_TYPE_BYTE],
-	                                                     IMAGE_DATA_TYPE_BYTE));
+	const size_t info_size = max4(max_flattened_slot(IMAGE_DATA_TYPE_FLOAT4),
+	                              max_flattened_slot(IMAGE_DATA_TYPE_BYTE4),
+	                              max_flattened_slot(IMAGE_DATA_TYPE_FLOAT),
+	                              max_flattened_slot(IMAGE_DATA_TYPE_BYTE));
 	uint4 *info = dscene->tex_image_packed_info.resize(info_size*2);
 
 	/* Pack byte4 textures. */
