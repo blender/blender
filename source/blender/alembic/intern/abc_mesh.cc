@@ -1048,6 +1048,23 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 	}
 }
 
+bool AbcMeshReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                                        const Object *const ob,
+                                        const char **err_str) const
+{
+	if (!Alembic::AbcGeom::IPolyMesh::matches(alembic_header)) {
+		*err_str = "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not any more.";
+		return false;
+	}
+
+	if (ob->type != OB_MESH) {
+		*err_str = "Object type mismatch, Alembic object path points to PolyMesh.";
+		return false;
+	}
+
+	return true;
+}
+
 DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
                                              const ISampleSelector &sample_sel,
                                              int read_flag,
@@ -1237,6 +1254,23 @@ AbcSubDReader::AbcSubDReader(const IObject &object, ImportSettings &settings)
 bool AbcSubDReader::valid() const
 {
 	return m_schema.valid();
+}
+
+bool AbcSubDReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                                        const Object *const ob,
+                                        const char **err_str) const
+{
+	if (!Alembic::AbcGeom::ISubD::matches(alembic_header)) {
+		*err_str = "Object type mismatch, Alembic object path pointed to SubD when importing, but not any more.";
+		return false;
+	}
+
+	if (ob->type != OB_MESH) {
+		*err_str = "Object type mismatch, Alembic object path points to SubD.";
+		return false;
+	}
+
+	return true;
 }
 
 void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)

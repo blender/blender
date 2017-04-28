@@ -211,6 +211,23 @@ bool AbcCurveReader::valid() const
 	return m_curves_schema.valid();
 }
 
+bool AbcCurveReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                                         const Object *const ob,
+                                         const char **err_str) const
+{
+	if (!Alembic::AbcGeom::ICurves::matches(alembic_header)) {
+		*err_str = "Object type mismatch, Alembic object path pointed to Curves when importing, but not any more.";
+		return false;
+	}
+
+	if (ob->type != OB_EMPTY) {
+		*err_str = "Object type mismatch, Alembic object path points to Curves.";
+		return false;
+	}
+
+	return true;
+}
+
 void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
 	Curve *cu = BKE_curve_add(bmain, m_data_name.c_str(), OB_CURVE);

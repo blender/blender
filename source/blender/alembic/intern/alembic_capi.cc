@@ -939,43 +939,13 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 	}
 
 	const ObjectHeader &header = iobject.getHeader();
+	if (!abc_reader->accepts_object_type(header, ob, err_str)) {
+		/* err_str is set by acceptsObjectType() */
+		return NULL;
+	}
+
 	ISampleSelector sample_sel(time);
-
-	if (IPolyMesh::matches(header)) {
-		if (ob->type != OB_MESH) {
-			*err_str = "Object type mismatch: object path points to a mesh!";
-			return NULL;
-		}
-
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
-	}
-	else if (ISubD::matches(header)) {
-		if (ob->type != OB_MESH) {
-			*err_str = "Object type mismatch: object path points to a subdivision mesh!";
-			return NULL;
-		}
-
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
-	}
-	else if (IPoints::matches(header)) {
-		if (ob->type != OB_MESH) {
-			*err_str = "Object type mismatch: object path points to a point cloud (requires a mesh object)!";
-			return NULL;
-		}
-
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
-	}
-	else if (ICurves::matches(header)) {
-		if (ob->type != OB_CURVE) {
-			*err_str = "Object type mismatch: object path points to a curve!";
-			return NULL;
-		}
-
-		return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
-	}
-
-	*err_str = "Unsupported object type: verify object path"; // or poke developer
-	return NULL;
+	return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
 }
 
 /* ************************************************************************** */

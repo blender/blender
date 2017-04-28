@@ -151,6 +151,23 @@ bool AbcPointsReader::valid() const
 	return m_schema.valid();
 }
 
+bool AbcPointsReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                                          const Object *const ob,
+                                          const char **err_str) const
+{
+	if (!Alembic::AbcGeom::IPoints::matches(alembic_header)) {
+		*err_str = "Object type mismatch, Alembic object path pointed to Points when importing, but not any more.";
+		return false;
+	}
+
+	if (ob->type != OB_EMPTY) {
+		*err_str = "Object type mismatch, Alembic object path points to Points.";
+		return false;
+	}
+
+	return true;
+}
+
 void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
 	Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
