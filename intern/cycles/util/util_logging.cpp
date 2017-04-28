@@ -33,7 +33,7 @@ void util_logging_init(const char *argv0)
 	/* Make it so FATAL messages are always print into console. */
 	char severity_fatal[32];
 	snprintf(severity_fatal, sizeof(severity_fatal), "%d",
-	         google::GLOG_FATAL);
+	         google::GLOG_ERROR);
 
 	google::InitGoogleLogging(argv0);
 	SetCommandLineOption("logtostderr", "1");
