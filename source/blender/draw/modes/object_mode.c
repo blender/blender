@@ -1270,22 +1270,25 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		DRW_shgroup_forcefield(stl, ob, sl);
 	}
 
-	DRW_shgroup_object_center(stl, ob);
-	DRW_shgroup_relationship_lines(stl, ob);
+	/* don't show object extras in set's */
+	if ((ob->base_flag & BASE_FROM_SET) == 0) {
+		DRW_shgroup_object_center(stl, ob);
+		DRW_shgroup_relationship_lines(stl, ob);
 
-	if ((ob->dtx & OB_DRAWNAME) && DRW_state_show_text()) {
-		struct DRWTextStore *dt = DRW_text_cache_ensure();
-		if (theme_id == TH_UNDEFINED) {
-			theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
+		if ((ob->dtx & OB_DRAWNAME) && DRW_state_show_text()) {
+			struct DRWTextStore *dt = DRW_text_cache_ensure();
+			if (theme_id == TH_UNDEFINED) {
+				theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
+			}
+
+			unsigned char color[4];
+			UI_GetThemeColor4ubv(theme_id, color);
+
+			DRW_text_cache_add(
+			        dt, ob->obmat[3],
+			        ob->id.name + 2, strlen(ob->id.name + 2),
+			        10, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
 		}
-
-		unsigned char color[4];
-		UI_GetThemeColor4ubv(theme_id, color);
-
-		DRW_text_cache_add(
-		        dt, ob->obmat[3],
-		        ob->id.name + 2, strlen(ob->id.name + 2),
-		        10, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
 	}
 }
 
