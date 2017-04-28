@@ -115,7 +115,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 		texture_image_float *tex = NULL;
 		int id = atoi(name + strlen("__tex_image_float_"));
 		int array_index = kernel_tex_index(id);
-		
+
 		if(array_index >= 0) {
 			if(array_index >= kg->texture_float_images.size()) {
 				kg->texture_float_images.resize(array_index+1);
@@ -134,7 +134,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 		texture_image_uchar4 *tex = NULL;
 		int id = atoi(name + strlen("__tex_image_byte4_"));
 		int array_index = kernel_tex_index(id);
-		
+
 		if(array_index >= 0) {
 			if(array_index >= kg->texture_byte4_images.size()) {
 				kg->texture_byte4_images.resize(array_index+1);
@@ -153,7 +153,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 		texture_image_uchar *tex = NULL;
 		int id = atoi(name + strlen("__tex_image_byte_"));
 		int array_index = kernel_tex_index(id);
-		
+
 		if(array_index >= 0) {
 			if(array_index >= kg->texture_byte_images.size()) {
 				kg->texture_byte_images.resize(array_index+1);
@@ -172,7 +172,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 		texture_image_half4 *tex = NULL;
 		int id = atoi(name + strlen("__tex_image_half4_"));
 		int array_index = kernel_tex_index(id);
-		
+
 		if(array_index >= 0) {
 			if(array_index >= kg->texture_half4_images.size()) {
 				kg->texture_half4_images.resize(array_index+1);
@@ -191,7 +191,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 		texture_image_half *tex = NULL;
 		int id = atoi(name + strlen("__tex_image_half_"));
 		int array_index = kernel_tex_index(id);
-		
+
 		if(array_index >= 0) {
 			if(array_index >= kg->texture_half_images.size()) {
 				kg->texture_half_images.resize(array_index+1);

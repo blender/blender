@@ -1020,17 +1020,15 @@ bool AbcMeshReader::valid() const
 	return m_schema.valid();
 }
 
-void AbcMeshReader::readObjectData(Main *bmain, float time)
+void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
 	Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
 	m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
 	m_object->data = mesh;
 
-	const ISampleSelector sample_sel(time);
-
 	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, time, MOD_MESHSEQ_READ_ALL, NULL);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
 
 	if (ndm != dm) {
 		dm->release(dm);
@@ -1049,9 +1047,28 @@ void AbcMeshReader::readObjectData(Main *bmain, float time)
 	}
 }
 
-DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str)
+bool AbcMeshReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                                        const Object *const ob,
+                                        const char **err_str) const
 {
-	ISampleSelector sample_sel(time);
+	if (!Alembic::AbcGeom::IPolyMesh::matches(alembic_header)) {
+		*err_str = "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not any more.";
+		return false;
+	}
+
+	if (ob->type != OB_MESH) {
+		*err_str = "Object type mismatch, Alembic object path points to PolyMesh.";
+		return false;
+	}
+
+	return true;
+}
+
+DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
+                                             const ISampleSelector &sample_sel,
+                                             int read_flag,
+                                             const char **err_str)
+{
 	const IPolyMeshSchema::Sample sample = m_schema.getValue(sample_sel);
 
 	const P3fArraySamplePtr &positions = sample.getPositions();
@@ -1091,7 +1108,7 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm, const float time, 
 	}
 
 	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
-	config.time = time;
+	config.time = sample_sel.getRequestedTime();
 
 	bool do_normals = false;
 	read_mesh_sample(&settings, m_schema, sample_sel, config, do_normals);
@@ -1238,7 +1255,24 @@ bool AbcSubDReader::valid() const
 	return m_schema.valid();
 }
 
-void AbcSubDReader::readObjectData(Main *bmain, float time)
+bool AbcSubDReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                                        const Object *const ob,
+                                        const char **err_str) const
+{
+	if (!Alembic::AbcGeom::ISubD::matches(alembic_header)) {
+		*err_str = "Object type mismatch, Alembic object path pointed to SubD when importing, but not any more.";
+		return false;
+	}
+
+	if (ob->type != OB_MESH) {
+		*err_str = "Object type mismatch, Alembic object path points to SubD.";
+		return false;
+	}
+
+	return true;
+}
+
+void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
 	Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
@@ -1246,7 +1280,7 @@ void AbcSubDReader::readObjectData(Main *bmain, float time)
 	m_object->data = mesh;
 
 	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, time, MOD_MESHSEQ_READ_ALL, NULL);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
 
 	if (ndm != dm) {
 		dm->release(dm);
@@ -1254,7 +1288,6 @@ void AbcSubDReader::readObjectData(Main *bmain, float time)
 
 	DM_to_mesh(ndm, mesh, m_object, CD_MASK_MESH, true);
 
-	const ISampleSelector sample_sel(time);
 	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
 	Int32ArraySamplePtr indices = sample.getCreaseIndices();
 	Alembic::Abc::FloatArraySamplePtr sharpnesses = sample.getCreaseSharpnesses();
@@ -1285,9 +1318,11 @@ void AbcSubDReader::readObjectData(Main *bmain, float time)
 	}
 }
 
-DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str)
+DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm,
+                                             const ISampleSelector &sample_sel,
+                                             int read_flag,
+                                             const char **err_str)
 {
-	ISampleSelector sample_sel(time);
 	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
 
 	const P3fArraySamplePtr &positions = sample.getPositions();
@@ -1327,7 +1362,7 @@ DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm, const float time, 
 
 	/* Only read point data when streaming meshes, unless we need to create new ones. */
 	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
-	config.time = time;
+	config.time = sample_sel.getRequestedTime();
 	read_subd_sample(&settings, m_schema, sample_sel, config);
 
 	if (new_dm) {

@@ -99,10 +99,15 @@ public:
 	AbcMeshReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
 	bool valid() const;
+	bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+	                       const Object *const ob,
+	                       const char **err_str) const;
+	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 
-	void readObjectData(Main *bmain, float time);
-
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str);
+	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
+	                              const Alembic::Abc::ISampleSelector &sample_sel,
+	                              int read_flag,
+	                              const char **err_str);
 
 private:
 	void readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_start,
@@ -120,9 +125,14 @@ public:
 	AbcSubDReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
 	bool valid() const;
-
-	void readObjectData(Main *bmain, float time);
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str);
+	bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+	                         const Object *const ob,
+	                         const char **err_str) const;
+	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+	DerivedMesh *read_derivedmesh(DerivedMesh *dm,
+	                              const Alembic::Abc::ISampleSelector &sample_sel,
+	                              int read_flag,
+	                              const char **err_str);
 };
 
 /* ************************************************************************** */

@@ -211,15 +211,30 @@ bool AbcCurveReader::valid() const
 	return m_curves_schema.valid();
 }
 
-void AbcCurveReader::readObjectData(Main *bmain, float time)
+bool AbcCurveReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+                                         const Object *const ob,
+                                         const char **err_str) const
+{
+	if (!Alembic::AbcGeom::ICurves::matches(alembic_header)) {
+		*err_str = "Object type mismatch, Alembic object path pointed to Curves when importing, but not any more.";
+		return false;
+	}
+
+	if (ob->type != OB_EMPTY) {
+		*err_str = "Object type mismatch, Alembic object path points to Curves.";
+		return false;
+	}
+
+	return true;
+}
+
+void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
 	Curve *cu = BKE_curve_add(bmain, m_data_name.c_str(), OB_CURVE);
 
 	cu->flag |= CU_DEFORM_FILL | CU_3D;
 	cu->actvert = CU_ACT_NONE;
 	cu->resolu = 1;
-
-	const ISampleSelector sample_sel(time);
 
 	ICompoundProperty user_props = m_curves_schema.getUserProperties();
 	if (user_props) {
@@ -389,9 +404,11 @@ void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const ISampleSele
  * object directly and create a new DerivedMesh from that. Also we might need to
  * create new or delete existing NURBS in the curve.
  */
-DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh * /*dm*/, const float time, int /*read_flag*/, const char ** /*err_str*/)
+DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh * /*dm*/,
+                                              const ISampleSelector &sample_sel,
+                                              int /*read_flag*/,
+                                              const char ** /*err_str*/)
 {
-	ISampleSelector sample_sel(time);
 	const ICurvesSchema::Sample sample = m_curves_schema.getValue(sample_sel);
 
 	const P3fArraySamplePtr &positions = sample.getPositions();

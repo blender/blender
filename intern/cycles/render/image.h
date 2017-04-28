@@ -134,6 +134,7 @@ private:
 	                     int texture_limit,
 	                     device_vector<DeviceType>& tex_img);
 
+	int max_flattened_slot(ImageDataType type);
 	int type_index_to_flattened_slot(int slot, ImageDataType type);
 	int flattened_slot_to_type_index(int flat_slot, ImageDataType *type);
 	string name_from_type(int type);
@@ -150,6 +151,13 @@ private:
 	                       DeviceScene *dscene,
 	                       ImageDataType type,
 	                       int slot);
+
+	template<typename T>
+	void device_pack_images_type(
+	        ImageDataType type,
+	        const vector<device_vector<T>*>& cpu_textures,
+	        device_vector<T> *device_image,
+	        uint4 *info);
 
 	void device_pack_images(Device *device,
 	                        DeviceScene *dscene,

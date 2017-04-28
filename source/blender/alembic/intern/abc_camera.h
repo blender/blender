@@ -54,8 +54,11 @@ public:
 	AbcCameraReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
 	bool valid() const;
+	bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
+	                         const Object *const ob,
+	                         const char **err_str) const;
 
-	void readObjectData(Main *bmain, float time);
+	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 };
 
 #endif  /* __ABC_CAMERA_H__ */

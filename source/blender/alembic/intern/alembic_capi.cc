@@ -732,12 +732,13 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	chrono_t min_time = std::numeric_limits<chrono_t>::max();
 	chrono_t max_time = std::numeric_limits<chrono_t>::min();
 
+	ISampleSelector sample_sel(0.0f);
 	std::vector<AbcObjectReader *>::iterator iter;
 	for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 		AbcObjectReader *reader = *iter;
 
 		if (reader->valid()) {
-			reader->readObjectData(data->bmain, 0.0f);
+			reader->readObjectData(data->bmain, sample_sel);
 
 			min_time = std::min(min_time, reader->minTime());
 			max_time = std::max(max_time, reader->maxTime());
@@ -970,42 +971,13 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 	}
 
 	const ObjectHeader &header = iobject.getHeader();
-
-	if (IPolyMesh::matches(header)) {
-		if (ob->type != OB_MESH) {
-			*err_str = "Object type mismatch: object path points to a mesh!";
-			return NULL;
-		}
-
-		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
-	}
-	else if (ISubD::matches(header)) {
-		if (ob->type != OB_MESH) {
-			*err_str = "Object type mismatch: object path points to a subdivision mesh!";
-			return NULL;
-		}
-
-		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
-	}
-	else if (IPoints::matches(header)) {
-		if (ob->type != OB_MESH) {
-			*err_str = "Object type mismatch: object path points to a point cloud (requires a mesh object)!";
-			return NULL;
-		}
-
-		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
-	}
-	else if (ICurves::matches(header)) {
-		if (ob->type != OB_CURVE) {
-			*err_str = "Object type mismatch: object path points to a curve!";
-			return NULL;
-		}
-
-		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
+	if (!abc_reader->accepts_object_type(header, ob, err_str)) {
+		/* err_str is set by acceptsObjectType() */
+		return NULL;
 	}
 
-	*err_str = "Unsupported object type: verify object path"; // or poke developer
-	return NULL;
+	ISampleSelector sample_sel(time);
+	return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
 }
 
 /* ************************************************************************** */

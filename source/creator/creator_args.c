@@ -1160,7 +1160,6 @@ static const char arg_handle_threads_set_doc[] =
 "<threads>\n"
 "\tUse amount of <threads> for rendering and other operations\n"
 "\t[1-" STRINGIFY(BLENDER_MAX_THREADS) "], 0 for systems processor count."
-"(This must be the first argument)"
 ;
 static int arg_handle_threads_set(int argc, const char **argv, void *UNUSED(data))
 {

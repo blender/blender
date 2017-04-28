@@ -47,6 +47,7 @@ static void node_composit_init_bilateralblur(bNodeTree *UNUSED(ntree), bNode *no
 {
 	NodeBilateralBlurData *nbbd = MEM_callocN(sizeof(NodeBilateralBlurData), "node bilateral blur data");
 	node->storage = nbbd;
+	nbbd->iter = 1;
 	nbbd->sigma_color = 0.3;
 	nbbd->sigma_space = 5.0;
 }

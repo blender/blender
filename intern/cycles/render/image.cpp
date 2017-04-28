@@ -52,7 +52,7 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	max_num_images = TEX_NUM_MAX;
 	has_half_images = true;
 	cuda_fermi_limits = false;
-	
+
 	if(device_type == DEVICE_CUDA) {
 		if(!info.has_bindless_textures) {
 			/* CUDA Fermi hardware (SM 2.x) has a hard limit on the number of textures */
@@ -63,7 +63,7 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	else if(device_type == DEVICE_OPENCL) {
 		has_half_images = false;
 	}
-	
+
 	for(size_t type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		tex_num_images[type] = 0;
 	}
@@ -104,8 +104,8 @@ bool ImageManager::set_animation_frame_update(int frame)
 }
 
 ImageDataType ImageManager::get_image_metadata(const string& filename,
-                                                             void *builtin_data,
-                                                             bool& is_linear)
+                                               void *builtin_data,
+                                               bool& is_linear)
 {
 	bool is_float = false, is_half = false;
 	is_linear = false;
@@ -196,12 +196,21 @@ ImageDataType ImageManager::get_image_metadata(const string& filename,
 	}
 }
 
+int ImageManager::max_flattened_slot(ImageDataType type)
+{
+	if(tex_num_images[type] == 0) {
+		/* No textures for the type, no slots needs allocation. */
+		return 0;
+	}
+	return type_index_to_flattened_slot(tex_num_images[type], type);
+}
+
 /* The lower three bits of a device texture slot number indicate its type.
  * These functions convert the slot ids from ImageManager "images" ones
- * to device ones and vice versa.
+ * to device ones and vice verse.
  *
  * There are special cases for CUDA Fermi, since there we have only 90 image texture
- * slots available and shold keep the flattended numbers in the 0-89 range.
+ * slots available and should keep the flattended numbers in the 0-89 range.
  */
 int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 {
@@ -354,7 +363,7 @@ int ImageManager::add_image(const string& filename,
 			return -1;
 		}
 	}
-	
+
 	if(slot == images[type].size()) {
 		images[type].resize(images[type].size() + 1);
 	}
@@ -372,7 +381,7 @@ int ImageManager::add_image(const string& filename,
 	img->use_alpha = use_alpha;
 
 	images[type][slot] = img;
-	
+
 	++tex_num_images[type];
 
 	need_update = true;
@@ -1017,21 +1026,60 @@ void ImageManager::device_update_slot(Device *device,
 uint8_t ImageManager::pack_image_options(ImageDataType type, size_t slot)
 {
 	uint8_t options = 0;
-
 	/* Image Options are packed into one uint:
 	 * bit 0 -> Interpolation
-	 * bit 1 + 2  + 3-> Extension */
-	if(images[type][slot]->interpolation == INTERPOLATION_CLOSEST)
+	 * bit 1 + 2 + 3 -> Extension
+	 */
+	if(images[type][slot]->interpolation == INTERPOLATION_CLOSEST) {
 		options |= (1 << 0);
-
-	if(images[type][slot]->extension == EXTENSION_REPEAT)
+	}
+	if(images[type][slot]->extension == EXTENSION_REPEAT) {
 		options |= (1 << 1);
-	else if(images[type][slot]->extension == EXTENSION_EXTEND)
+	}
+	else if(images[type][slot]->extension == EXTENSION_EXTEND) {
 		options |= (1 << 2);
-	else /* EXTENSION_CLIP */
+	}
+	else /* EXTENSION_CLIP */ {
 		options |= (1 << 3);
-
+	}
 	return options;
+}
+
+template<typename T>
+void ImageManager::device_pack_images_type(
+        ImageDataType type,
+        const vector<device_vector<T>*>& cpu_textures,
+        device_vector<T> *device_image,
+        uint4 *info)
+{
+	size_t size = 0, offset = 0;
+	/* First step is to calculate size of the texture we need. */
+	for(size_t slot = 0; slot < images[type].size(); slot++) {
+		if(images[type][slot] == NULL) {
+			continue;
+		}
+		device_vector<T>& tex_img = *cpu_textures[slot];
+		size += tex_img.size();
+	}
+	/* Now we know how much memory we need, so we can allocate and fill. */
+	T *pixels = device_image->resize(size);
+	for(size_t slot = 0; slot < images[type].size(); slot++) {
+		if(images[type][slot] == NULL) {
+			continue;
+		}
+		device_vector<T>& tex_img = *cpu_textures[slot];
+		uint8_t options = pack_image_options(type, slot);
+		const int index = type_index_to_flattened_slot(slot, type) * 2;
+		info[index] = make_uint4(tex_img.data_width,
+		                         tex_img.data_height,
+		                         offset,
+		                         options);
+		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
+		memcpy(pixels + offset,
+		       (void*)tex_img.data_pointer,
+		       tex_img.memory_size());
+		offset += tex_img.size();
+	}
 }
 
 void ImageManager::device_pack_images(Device *device,
@@ -1039,137 +1087,40 @@ void ImageManager::device_pack_images(Device *device,
                                       Progress& /*progess*/)
 {
 	/* For OpenCL, we pack all image textures into a single large texture, and
-	 * do our own interpolation in the kernel. */
-	size_t size = 0, offset = 0;
-	ImageDataType type;
+	 * do our own interpolation in the kernel.
+	 */
 
-	int info_size = tex_num_images[IMAGE_DATA_TYPE_FLOAT4] + tex_num_images[IMAGE_DATA_TYPE_BYTE4]
-	                + tex_num_images[IMAGE_DATA_TYPE_FLOAT] + tex_num_images[IMAGE_DATA_TYPE_BYTE];
+	/* TODO(sergey): This will over-allocate a bit, but this is constant memory
+	 * so should be fine for a short term.
+	 */
+	const size_t info_size = max4(max_flattened_slot(IMAGE_DATA_TYPE_FLOAT4),
+	                              max_flattened_slot(IMAGE_DATA_TYPE_BYTE4),
+	                              max_flattened_slot(IMAGE_DATA_TYPE_FLOAT),
+	                              max_flattened_slot(IMAGE_DATA_TYPE_BYTE));
 	uint4 *info = dscene->tex_image_packed_info.resize(info_size*2);
 
-	/* Byte4 Textures*/
-	type = IMAGE_DATA_TYPE_BYTE4;
+	/* Pack byte4 textures. */
+	device_pack_images_type(IMAGE_DATA_TYPE_BYTE4,
+	                        dscene->tex_byte4_image,
+	                        &dscene->tex_image_byte4_packed,
+	                        info);
+	/* Pack float4 textures. */
+	device_pack_images_type(IMAGE_DATA_TYPE_FLOAT4,
+	                        dscene->tex_float4_image,
+	                        &dscene->tex_image_float4_packed,
+	                        info);
+	/* Pack byte textures. */
+	device_pack_images_type(IMAGE_DATA_TYPE_BYTE,
+	                        dscene->tex_byte_image,
+	                        &dscene->tex_image_byte_packed,
+	                        info);
+	/* Pack float textures. */
+	device_pack_images_type(IMAGE_DATA_TYPE_FLOAT,
+	                        dscene->tex_float_image,
+	                        &dscene->tex_image_float_packed,
+	                        info);
 
-	for(size_t slot = 0; slot < images[type].size(); slot++) {
-		if(!images[type][slot])
-			continue;
-
-		device_vector<uchar4>& tex_img = *dscene->tex_byte4_image[slot];
-		size += tex_img.size();
-	}
-
-	uchar4 *pixels_byte4 = dscene->tex_image_byte4_packed.resize(size);
-
-	for(size_t slot = 0; slot < images[type].size(); slot++) {
-		if(!images[type][slot])
-			continue;
-
-		device_vector<uchar4>& tex_img = *dscene->tex_byte4_image[slot];
-
-		uint8_t options = pack_image_options(type, slot);
-
-		int index = type_index_to_flattened_slot(slot, type) * 2;
-		info[index] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
-		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
-
-		memcpy(pixels_byte4+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
-		offset += tex_img.size();
-	}
-
-	/* Float4 Textures*/
-	type = IMAGE_DATA_TYPE_FLOAT4;
-	size = 0, offset = 0;
-
-	for(size_t slot = 0; slot < images[type].size(); slot++) {
-		if(!images[type][slot])
-			continue;
-
-		device_vector<float4>& tex_img = *dscene->tex_float4_image[slot];
-		size += tex_img.size();
-	}
-
-	float4 *pixels_float4 = dscene->tex_image_float4_packed.resize(size);
-
-	for(size_t slot = 0; slot < images[type].size(); slot++) {
-		if(!images[type][slot])
-			continue;
-
-		device_vector<float4>& tex_img = *dscene->tex_float4_image[slot];
-
-		/* todo: support 3D textures, only CPU for now */
-
-		uint8_t options = pack_image_options(type, slot);
-
-		int index = type_index_to_flattened_slot(slot, type) * 2;
-		info[index] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
-		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
-
-		memcpy(pixels_float4+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
-		offset += tex_img.size();
-	}
-
-	/* Byte Textures*/
-	type = IMAGE_DATA_TYPE_BYTE;
-	size = 0, offset = 0;
-
-	for(size_t slot = 0; slot < images[type].size(); slot++) {
-		if(!images[type][slot])
-			continue;
-
-		device_vector<uchar>& tex_img = *dscene->tex_byte_image[slot];
-		size += tex_img.size();
-	}
-
-	uchar *pixels_byte = dscene->tex_image_byte_packed.resize(size);
-
-	for(size_t slot = 0; slot < images[type].size(); slot++) {
-		if(!images[type][slot])
-			continue;
-
-		device_vector<uchar>& tex_img = *dscene->tex_byte_image[slot];
-
-		uint8_t options = pack_image_options(type, slot);
-
-		int index = type_index_to_flattened_slot(slot, type) * 2;
-		info[index] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
-		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
-
-		memcpy(pixels_byte+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
-		offset += tex_img.size();
-	}
-
-	/* Float Textures*/
-	type = IMAGE_DATA_TYPE_FLOAT;
-	size = 0, offset = 0;
-
-	for(size_t slot = 0; slot < images[type].size(); slot++) {
-		if(!images[type][slot])
-			continue;
-
-		device_vector<float>& tex_img = *dscene->tex_float_image[slot];
-		size += tex_img.size();
-	}
-
-	float *pixels_float = dscene->tex_image_float_packed.resize(size);
-
-	for(size_t slot = 0; slot < images[type].size(); slot++) {
-		if(!images[type][slot])
-			continue;
-
-		device_vector<float>& tex_img = *dscene->tex_float_image[slot];
-
-		/* todo: support 3D textures, only CPU for now */
-
-		uint8_t options = pack_image_options(type, slot);
-
-		int index = type_index_to_flattened_slot(slot, type) * 2;
-		info[index] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
-		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
-
-		memcpy(pixels_float+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
-		offset += tex_img.size();
-	}
-
+	/* Push textures to the device. */
 	if(dscene->tex_image_byte4_packed.size()) {
 		if(dscene->tex_image_byte4_packed.device_pointer) {
 			thread_scoped_lock device_lock(device_mutex);

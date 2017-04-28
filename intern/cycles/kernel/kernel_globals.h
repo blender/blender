@@ -20,7 +20,7 @@
 #define __KERNEL_GLOBALS_H__
 
 #ifdef __KERNEL_CPU__
-#include "util/util_vector.h"
+#  include "util/util_vector.h"
 #endif
 
 CCL_NAMESPACE_BEGIN

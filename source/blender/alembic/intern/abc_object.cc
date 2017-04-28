@@ -215,9 +215,9 @@ Imath::M44d get_matrix(const IXformSchema &schema, const float time)
 }
 
 DerivedMesh *AbcObjectReader::read_derivedmesh(DerivedMesh *dm,
-                                                       const float UNUSED(time),
-                                                       int UNUSED(read_flag),
-                                                       const char **UNUSED(err_str))
+                                               const Alembic::Abc::ISampleSelector &UNUSED(sample_sel),
+                                               int UNUSED(read_flag),
+                                               const char **UNUSED(err_str))
 {
 	return dm;
 }

@@ -54,7 +54,7 @@ public:
 
 	bool valid() const;
 
-	void readObjectData(Main *bmain, float time);
+	void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 
 private:
 	void getNurbsPatches(const Alembic::Abc::IObject &obj);
