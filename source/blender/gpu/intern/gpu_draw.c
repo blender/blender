@@ -2273,7 +2273,7 @@ void GPU_state_init(void)
 
 #ifndef WITH_GL_PROFILE_CORE
 	/* TODO: remove this when we switch to core profile */
-	if (!GLEW_VERSION_3_2) {
+	{
 		glEnable(GL_POINT_SPRITE);
 	}
 #endif
