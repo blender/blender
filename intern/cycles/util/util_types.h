@@ -156,7 +156,7 @@ enum InterpolationType {
 
 /* Texture types
  * Since we store the type in the lower bits of a flat index,
- * the shift and bit mask constant below need to be kept in sync. 
+ * the shift and bit mask constant below need to be kept in sync.
  */
 
 enum ImageDataType {
@@ -166,7 +166,7 @@ enum ImageDataType {
 	IMAGE_DATA_TYPE_FLOAT = 3,
 	IMAGE_DATA_TYPE_BYTE = 4,
 	IMAGE_DATA_TYPE_HALF = 5,
-	
+
 	IMAGE_DATA_NUM_TYPES
 };
 

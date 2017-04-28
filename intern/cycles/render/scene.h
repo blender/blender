@@ -120,7 +120,7 @@ public:
 	std::vector<device_vector<float>* > tex_float_image;
 	std::vector<device_vector<uchar>* > tex_byte_image;
 	std::vector<device_vector<half>* > tex_half_image;
-	
+
 	/* opencl images */
 	device_vector<float4> tex_image_float4_packed;
 	device_vector<uchar4> tex_image_byte4_packed;

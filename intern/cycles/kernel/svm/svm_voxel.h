@@ -46,8 +46,13 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 #  if defined(__KERNEL_CUDA__)
 #    if __CUDA_ARCH__ >= 300
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
-	if(kernel_tex_type(id) == IMAGE_DATA_TYPE_FLOAT4 || kernel_tex_type(id) == IMAGE_DATA_TYPE_BYTE4 || kernel_tex_type(id) == IMAGE_DATA_TYPE_HALF4)
+	const int texture_type = kernel_tex_type(id);
+	if(texture_type == IMAGE_DATA_TYPE_FLOAT4 ||
+	   texture_type == IMAGE_DATA_TYPE_BYTE4 ||
+	   texture_type == IMAGE_DATA_TYPE_HALF4)
+	{
 		r = kernel_tex_image_interp_3d_float4(tex, co.x, co.y, co.z);
+	}
 	else {
 		float f = kernel_tex_image_interp_3d_float(tex, co.x, co.y, co.z);
 		r = make_float4(f, f, f, 1.0f);

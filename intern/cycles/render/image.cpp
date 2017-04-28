@@ -52,7 +52,7 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	max_num_images = TEX_NUM_MAX;
 	has_half_images = true;
 	cuda_fermi_limits = false;
-	
+
 	if(device_type == DEVICE_CUDA) {
 		if(!info.has_bindless_textures) {
 			/* CUDA Fermi hardware (SM 2.x) has a hard limit on the number of textures */
@@ -63,7 +63,7 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	else if(device_type == DEVICE_OPENCL) {
 		has_half_images = false;
 	}
-	
+
 	for(size_t type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		tex_num_images[type] = 0;
 	}
@@ -104,8 +104,8 @@ bool ImageManager::set_animation_frame_update(int frame)
 }
 
 ImageDataType ImageManager::get_image_metadata(const string& filename,
-                                                             void *builtin_data,
-                                                             bool& is_linear)
+                                               void *builtin_data,
+                                               bool& is_linear)
 {
 	bool is_float = false, is_half = false;
 	is_linear = false;
@@ -354,7 +354,7 @@ int ImageManager::add_image(const string& filename,
 			return -1;
 		}
 	}
-	
+
 	if(slot == images[type].size()) {
 		images[type].resize(images[type].size() + 1);
 	}
@@ -372,7 +372,7 @@ int ImageManager::add_image(const string& filename,
 	img->use_alpha = use_alpha;
 
 	images[type][slot] = img;
-	
+
 	++tex_num_images[type];
 
 	need_update = true;
