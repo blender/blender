@@ -66,8 +66,7 @@ ccl_device_inline float svm_image_texture_frac(float x, int *ix)
 
 ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, float y)
 {
-	const int texture_id = kernel_tex_index(id);
-	uint4 info = kernel_tex_fetch(__tex_image_packed_info, texture_id*2);
+	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id*2);
 	uint width = info.x;
 	uint height = info.y;
 	uint offset = info.z;
@@ -144,12 +143,11 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 
 ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z)
 {
-	const int texture_id = kernel_tex_index(id);
-	uint4 info = kernel_tex_fetch(__tex_image_packed_info, texture_id*2);
+	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id*2);
 	uint width = info.x;
 	uint height = info.y;
 	uint offset = info.z;
-	uint depth = kernel_tex_fetch(__tex_image_packed_info, texture_id*2+1).x;
+	uint depth = kernel_tex_fetch(__tex_image_packed_info, id*2+1).x;
 
 	/* Image Options */
 	uint interpolation = (info.w & (1 << 0)) ? INTERPOLATION_CLOSEST : INTERPOLATION_LINEAR;
