@@ -151,6 +151,13 @@ private:
 	                       ImageDataType type,
 	                       int slot);
 
+	template<typename T>
+	void device_pack_images_type(
+	        ImageDataType type,
+	        const vector<device_vector<T>*>& cpu_textures,
+	        device_vector<T> *device_image,
+	        uint4 *info);
+
 	void device_pack_images(Device *device,
 	                        DeviceScene *dscene,
 	                        Progress& progess);
