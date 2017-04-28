@@ -30,7 +30,7 @@ void util_logging_init(const char *argv0)
 #ifdef WITH_CYCLES_LOGGING
 	using CYCLES_GFLAGS_NAMESPACE::SetCommandLineOption;
 
-	/* Make it so FATAL messages are always print into console. */
+	/* Make it so ERROR messages are always print into console. */
 	char severity_fatal[32];
 	snprintf(severity_fatal, sizeof(severity_fatal), "%d",
 	         google::GLOG_ERROR);
