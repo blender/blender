@@ -65,6 +65,9 @@
 #define BONE_VAR(eBone, pchan, var) ((eBone) ? (eBone->var) : (pchan->var))
 #define BONE_FLAG(eBone, pchan) ((eBone) ? (eBone->flag) : (pchan->bone->flag))
 
+/* For now just match 2.7x where possible. */
+// #define USE_SOLID_COLOR
+
 /* Reset for drawing each armature object */
 static struct {
 	/* Current armature object */
@@ -229,6 +232,7 @@ static const float *get_bone_solid_color(const EditBone *eBone, const bPoseChann
 	if (g_theme.const_color)
 		return g_theme.bone_solid_color;
 
+#ifdef USE_SOLID_COLOR
 	/* Edit Mode */
 	if (eBone) {
 		bool is_active = (arm->act_edbone == eBone);
@@ -252,6 +256,9 @@ static const float *get_bone_solid_color(const EditBone *eBone, const bPoseChann
 			}
 		}
 	}
+#else
+	UNUSED_VARS(eBone, pchan, arm);
+#endif
 
 	return g_theme.bone_solid_color;
 }
@@ -384,11 +391,15 @@ static void draw_points(
 	/* Edit bone points can be selected */
 	if (eBone) {
 		if (eBone->flag & BONE_ROOTSEL) {
+#ifdef USE_SOLID_COLOR
 			col_solid_root = g_theme.vertex_select_color;
+#endif
 			col_wire_root = g_theme.vertex_select_color;
 		}
 		if (eBone->flag & BONE_TIPSEL) {
+#ifdef USE_SOLID_COLOR
 			col_solid_tail = g_theme.vertex_select_color;
+#endif
 			col_wire_tail = g_theme.vertex_select_color;
 		}
 	}
