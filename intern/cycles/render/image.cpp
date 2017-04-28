@@ -1017,20 +1017,22 @@ void ImageManager::device_update_slot(Device *device,
 uint8_t ImageManager::pack_image_options(ImageDataType type, size_t slot)
 {
 	uint8_t options = 0;
-
 	/* Image Options are packed into one uint:
 	 * bit 0 -> Interpolation
-	 * bit 1 + 2  + 3-> Extension */
-	if(images[type][slot]->interpolation == INTERPOLATION_CLOSEST)
+	 * bit 1 + 2 + 3 -> Extension
+	 */
+	if(images[type][slot]->interpolation == INTERPOLATION_CLOSEST) {
 		options |= (1 << 0);
-
-	if(images[type][slot]->extension == EXTENSION_REPEAT)
+	}
+	if(images[type][slot]->extension == EXTENSION_REPEAT) {
 		options |= (1 << 1);
-	else if(images[type][slot]->extension == EXTENSION_EXTEND)
+	}
+	else if(images[type][slot]->extension == EXTENSION_EXTEND) {
 		options |= (1 << 2);
-	else /* EXTENSION_CLIP */
+	}
+	else /* EXTENSION_CLIP */ {
 		options |= (1 << 3);
-
+	}
 	return options;
 }
 
