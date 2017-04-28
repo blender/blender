@@ -977,9 +977,8 @@ static void set_state(DRWState flag, const bool reset)
 			glDisable(GL_CULL_FACE);
 		}
 
-		/* Depht Test */
-		if (flag & (DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER))
-		{
+		/* Depth Test */
+		if ((flag & (DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER)) != 0) {
 			glEnable(GL_DEPTH_TEST);
 
 			if (flag & DRW_STATE_DEPTH_LESS)
@@ -995,15 +994,15 @@ static void set_state(DRWState flag, const bool reset)
 	}
 
 	/* Wire Width */
-	if (flag & DRW_STATE_WIRE) {
+	if ((flag & DRW_STATE_WIRE) != 0) {
 		glLineWidth(1.0f);
 	}
-	else if (flag & DRW_STATE_WIRE_LARGE) {
+	else if ((flag & DRW_STATE_WIRE_LARGE) != 0) {
 		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 	}
 
 	/* Points Size */
-	if (flag & DRW_STATE_POINT) {
+	if ((flag & DRW_STATE_POINT) != 0) {
 		GPU_enable_program_point_size();
 		glPointSize(5.0f);
 	}
@@ -1012,7 +1011,7 @@ static void set_state(DRWState flag, const bool reset)
 	}
 
 	/* Blending (all buffer) */
-	if (flag & DRW_STATE_BLEND) {
+	if ((flag & DRW_STATE_BLEND) != 0) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
@@ -1021,13 +1020,13 @@ static void set_state(DRWState flag, const bool reset)
 	}
 
 	/* Line Stipple */
-	if (flag & DRW_STATE_STIPPLE_2) {
+	if ((flag & DRW_STATE_STIPPLE_2) != 0) {
 		setlinestyle(2);
 	}
-	else if (flag & DRW_STATE_STIPPLE_3) {
+	else if ((flag & DRW_STATE_STIPPLE_3) != 0) {
 		setlinestyle(3);
 	}
-	else if (flag & DRW_STATE_STIPPLE_4) {
+	else if ((flag & DRW_STATE_STIPPLE_4) != 0) {
 		setlinestyle(4);
 	}
 	else if (reset) {
@@ -1035,28 +1034,28 @@ static void set_state(DRWState flag, const bool reset)
 	}
 
 	/* Stencil */
-	if (flag & (DRW_STATE_WRITE_STENCIL_SELECT | DRW_STATE_WRITE_STENCIL_ACTIVE |
-	            DRW_STATE_TEST_STENCIL_SELECT | DRW_STATE_TEST_STENCIL_ACTIVE))
+	if ((flag & (DRW_STATE_WRITE_STENCIL_SELECT | DRW_STATE_WRITE_STENCIL_ACTIVE |
+	            DRW_STATE_TEST_STENCIL_SELECT | DRW_STATE_TEST_STENCIL_ACTIVE)) != 0)
 	{
 		glEnable(GL_STENCIL_TEST);
 
 		/* Stencil Write */
-		if (flag & DRW_STATE_WRITE_STENCIL_SELECT) {
+		if ((flag & DRW_STATE_WRITE_STENCIL_SELECT) != 0) {
 			glStencilMask(STENCIL_SELECT);
 			glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 			glStencilFunc(GL_ALWAYS, 0xFF, STENCIL_SELECT);
 		}
-		else if (flag & DRW_STATE_WRITE_STENCIL_ACTIVE) {
+		else if ((flag & DRW_STATE_WRITE_STENCIL_ACTIVE) != 0) {
 			glStencilMask(STENCIL_ACTIVE);
 			glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 			glStencilFunc(GL_ALWAYS, 0xFF, STENCIL_ACTIVE);
 		}
 		/* Stencil Test */
-		else if (flag & DRW_STATE_TEST_STENCIL_SELECT) {
+		else if ((flag & DRW_STATE_TEST_STENCIL_SELECT) != 0) {
 			glStencilMask(0x00); /* disable write */
 			glStencilFunc(GL_NOTEQUAL, 0xFF, STENCIL_SELECT);
 		}
-		else if (flag & DRW_STATE_TEST_STENCIL_ACTIVE) {
+		else if ((flag & DRW_STATE_TEST_STENCIL_ACTIVE) != 0) {
 			glStencilMask(0x00); /* disable write */
 			glStencilFunc(GL_NOTEQUAL, 0xFF, STENCIL_ACTIVE);
 		}
@@ -1409,8 +1408,7 @@ bool DRW_is_object_renderable(Object *ob)
 
 static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *is_depth)
 {
-	*is_depth = ((fbo_format == DRW_BUF_DEPTH_16) ||
-	             (fbo_format == DRW_BUF_DEPTH_24));
+	*is_depth = ELEM(fbo_format, DRW_BUF_DEPTH_16, DRW_BUF_DEPTH_24);
 
 	switch (fbo_format) {
 		case DRW_BUF_RG_16:    *channels = 2; return GPU_RG16F;
@@ -1610,14 +1608,23 @@ void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
 
-	if (type == DRW_MAT_PERS)
-		copy_m4_m4(mat, rv3d->persmat);
-	else if (type == DRW_MAT_VIEW)
-		copy_m4_m4(mat, rv3d->viewmat);
-	else if (type == DRW_MAT_VIEWINV)
-		copy_m4_m4(mat, rv3d->viewinv);
-	else if (type == DRW_MAT_WIN)
-		copy_m4_m4(mat, rv3d->winmat);
+	switch (type) {
+		case DRW_MAT_PERS:
+			copy_m4_m4(mat, rv3d->persmat);
+			break;
+		case DRW_MAT_VIEW:
+			copy_m4_m4(mat, rv3d->viewmat);
+			break;
+		case DRW_MAT_VIEWINV:
+			copy_m4_m4(mat, rv3d->viewinv);
+			break;
+		case DRW_MAT_WIN:
+			copy_m4_m4(mat, rv3d->winmat);
+			break;
+		default:
+			BLI_assert(!"Matrix type invalid");
+			break;
+	}
 }
 
 bool DRW_viewport_is_persp_get(void)
@@ -1893,7 +1900,7 @@ static void DRW_engines_enable_from_mode(int mode)
 		case CTX_MODE_OBJECT:
 			break;
 		default:
-			BLI_assert(0);
+			BLI_assert(!"Draw mode invalid");
 			break;
 	}
 }
