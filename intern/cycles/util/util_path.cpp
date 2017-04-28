@@ -768,9 +768,17 @@ bool path_remove(const string& path)
 	return remove(path.c_str()) == 0;
 }
 
-static string line_directive(const string& path, int line)
+static string line_directive(const string& base, const string& path, int line)
 {
 	string escaped_path = path;
+	/* First we make path relative. */
+	if(string_startswith(escaped_path, base.c_str())) {
+		const string base_file = path_filename(base);
+		const size_t base_len = base.length();
+		escaped_path = base_file + escaped_path.substr(base_len,
+		                                               escaped_path.length() - base_len);
+	}
+	/* Second, we replace all unsafe characters. */
 	string_replace(escaped_path, "\"", "\\\"");
 	string_replace(escaped_path, "\'", "\\\'");
 	string_replace(escaped_path, "\?", "\\\?");
@@ -779,12 +787,14 @@ static string line_directive(const string& path, int line)
 }
 
 
-string path_source_replace_includes(const string& source,
-                                    const string& path,
-                                    const string& source_filename)
+static string path_source_replace_includes_recursive(
+        const string& base,
+        const string& source,
+        const string& path,
+        const string& source_filename)
 {
 	/* Our own little c preprocessor that replaces #includes with the file
-	 * contents, to work around issue of opencl drivers not supporting
+	 * contents, to work around issue of OpenCL drivers not supporting
 	 * include paths with spaces in them.
 	 */
 
@@ -813,9 +823,9 @@ string path_source_replace_includes(const string& source,
 						        text, path_dirname(filepath), filename);
 						text = path_source_replace_includes(text, path, filename);
 						/* Use line directives for better error messages. */
-						line = line_directive(filepath, 1)
+						line = line_directive(base, filepath, 1)
 						     + token.replace(0, n_end + 1, "\n" + text + "\n")
-						     + line_directive(path_join(path, source_filename), i + 1);
+						     + line_directive(base, path_join(path, source_filename), i + 1);
 					}
 				}
 			}
@@ -824,6 +834,13 @@ string path_source_replace_includes(const string& source,
 	}
 
 	return result;
+}
+
+string path_source_replace_includes(const string& source,
+                                    const string& path,
+                                    const string& source_filename)
+{
+	return path_source_replace_includes_recursive(path, source, path, source_filename);
 }
 
 FILE *path_fopen(const string& path, const string& mode)
