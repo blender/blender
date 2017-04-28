@@ -462,7 +462,7 @@ if(WITH_ALEMBIC)
 			COMMAND
 				"$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}/python/bin/python$<$<CONFIG:Debug>:_d>"
 				${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py
-			--blender "${TEST_BLENDER_EXE_BARE}"
+			--blender "$<TARGET_FILE:blender>"
 			--testdir "${TEST_SRC_DIR}/alembic"
 			--alembic-root "${ALEMBIC_ROOT_DIR}"
 		)
