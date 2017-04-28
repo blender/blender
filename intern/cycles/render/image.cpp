@@ -888,26 +888,44 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 			device_memory *tex_img = NULL;
 			switch(type) {
 				case IMAGE_DATA_TYPE_FLOAT4:
+					if(slot >= dscene->tex_float4_image.size()) {
+						break;
+					}
 					tex_img = dscene->tex_float4_image[slot];
 					dscene->tex_float4_image[slot] = NULL;
 					break;
 				case IMAGE_DATA_TYPE_BYTE4:
+					if(slot >= dscene->tex_byte4_image.size()) {
+						break;
+					}
 					tex_img = dscene->tex_byte4_image[slot];
 					dscene->tex_byte4_image[slot]= NULL;
 					break;
 				case IMAGE_DATA_TYPE_HALF4:
+					if(slot >= dscene->tex_half4_image.size()) {
+						break;
+					}
 					tex_img = dscene->tex_half4_image[slot];
 					dscene->tex_half4_image[slot]= NULL;
 					break;
 				case IMAGE_DATA_TYPE_FLOAT:
+					if(slot >= dscene->tex_float_image.size()) {
+						break;
+					}
 					tex_img = dscene->tex_float_image[slot];
 					dscene->tex_float_image[slot] = NULL;
 					break;
 				case IMAGE_DATA_TYPE_BYTE:
+					if(slot >= dscene->tex_byte_image.size()) {
+						break;
+					}
 					tex_img = dscene->tex_byte_image[slot];
 					dscene->tex_byte_image[slot]= NULL;
 					break;
 				case IMAGE_DATA_TYPE_HALF:
+					if(slot >= dscene->tex_half_image.size()) {
+						break;
+					}
 					tex_img = dscene->tex_half_image[slot];
 					dscene->tex_half_image[slot]= NULL;
 					break;
