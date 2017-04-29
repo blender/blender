@@ -207,7 +207,7 @@ struct KnotCornerState {
 
 /* Utility functions */
 
-#ifdef USE_KNOT_REFIT
+#if defined(USE_KNOT_REFIT) && !defined(USE_KNOT_REFIT_REMOVE)
 /**
  * Find the most distant point between the 2 knots.
  */
@@ -269,7 +269,7 @@ static uint knot_find_split_point(
 
 	return split_point;
 }
-#endif  /* USE_KNOT_REFIT */
+#endif  /* USE_KNOT_REFIT && !USE_KNOT_REFIT_REMOVE */
 
 
 #ifdef USE_CORNER_DETECT
@@ -322,7 +322,7 @@ static double knot_remove_error_value(
         const double *points_offset_length_cache,
         const uint dims,
         /* Avoid having to re-calculate again */
-        double r_handle_factors[2])
+        double r_handle_factors[2], uint *r_error_index)
 {
 	double error_sq = FLT_MAX;
 
@@ -338,7 +338,7 @@ static double knot_remove_error_value(
 	        points_offset, points_offset_len, points_offset_length_cache, dims, 0.0,
 	        tan_l, tan_r,
 	        handle_factor_l, handle_factor_r,
-	        &error_sq);
+	        &error_sq, r_error_index);
 
 	assert(error_sq != FLT_MAX);
 
@@ -363,6 +363,7 @@ static double knot_calc_curve_error_value(
 	        ((knot_r->index + pd->points_len) - knot_l->index)) + 1;
 
 	if (points_offset_len != 2) {
+		uint error_index_dummy;
 		return knot_remove_error_value(
 		        tan_l, tan_r,
 		        &pd->points[knot_l->index * dims], points_offset_len,
@@ -372,7 +373,7 @@ static double knot_calc_curve_error_value(
 		        NULL,
 #endif
 		        dims,
-		        r_handle_factors);
+		        r_handle_factors, &error_index_dummy);
 	}
 	else {
 		/* No points between, use 1/3 handle length with no error as a fallback. */
@@ -387,6 +388,56 @@ static double knot_calc_curve_error_value(
 		return 0.0;
 	}
 }
+
+#ifdef USE_KNOT_REFIT_REMOVE
+
+static double knot_calc_curve_error_value_and_index(
+        const struct PointData *pd,
+        const struct Knot *knot_l, const struct Knot *knot_r,
+        const double *tan_l, const double *tan_r,
+        const uint dims,
+        double r_handle_factors[2],
+        uint *r_error_index)
+{
+	const uint points_offset_len = ((knot_l->index < knot_r->index) ?
+	        (knot_r->index - knot_l->index) :
+	        ((knot_r->index + pd->points_len) - knot_l->index)) + 1;
+
+	if (points_offset_len != 2) {
+		const double error_sq = knot_remove_error_value(
+		        tan_l, tan_r,
+		        &pd->points[knot_l->index * dims], points_offset_len,
+#ifdef USE_LENGTH_CACHE
+		        &pd->points_length_cache[knot_l->index],
+#else
+		        NULL,
+#endif
+		        dims,
+		        r_handle_factors, r_error_index);
+
+		/* Adjust the offset index to the global index & wrap if needed. */
+		*r_error_index += knot_l->index;
+		if (*r_error_index >= pd->points_len) {
+			*r_error_index -= pd->points_len;
+		}
+
+		return error_sq;
+	}
+	else {
+		/* No points between, use 1/3 handle length with no error as a fallback. */
+		assert(points_offset_len == 2);
+#ifdef USE_LENGTH_CACHE
+		r_handle_factors[0] = r_handle_factors[1] = pd->points_length_cache[knot_l->index] / 3.0;
+#else
+		r_handle_factors[0] = r_handle_factors[1] = len_vnvn(
+		        &pd->points[(knot_l->index + 0) * dims],
+		        &pd->points[(knot_l->index + 1) * dims], dims) / 3.0;
+#endif
+		*r_error_index = 0;
+		return 0.0;
+	}
+}
+#endif  /* USE_KNOT_REFIT_REMOVE */
 
 struct KnotRemove_Params {
 	Heap *heap;
@@ -556,15 +607,18 @@ static void knot_refit_error_recalculate(
 	assert(k->can_remove);
 
 #ifdef USE_KNOT_REFIT_REMOVE
+	(void)knots_len;
+
+	uint refit_index = SPLIT_POINT_INVALID;
 	{
 		double handles[2];
 
 		/* First check if we can remove, this allows to refit and remove as we go. */
-		const double cost_sq = knot_calc_curve_error_value(
+		const double cost_sq = knot_calc_curve_error_value_and_index(
 		        p->pd, k->prev, k->next,
 		        k->prev->tan[1], k->next->tan[0],
 		        dims,
-		        handles);
+		        handles, &refit_index);
 
 		if (cost_sq < error_sq_max) {
 			struct KnotRefitState *r;
@@ -598,12 +652,13 @@ static void knot_refit_error_recalculate(
 	}
 #else
 	(void)error_sq_max;
-#endif  /* USE_KNOT_REFIT_REMOVE */
 
 	const uint refit_index = knot_find_split_point(
 	         p->pd, k->prev, k->next,
 	         knots_len,
 	         dims);
+
+#endif  /* USE_KNOT_REFIT_REMOVE */
 
 	if ((refit_index == SPLIT_POINT_INVALID) ||
 	    (refit_index == k->index))
