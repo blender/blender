@@ -700,22 +700,21 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 }
 
 enum eViewOpsOrbit {
-	VIEWOPS_ORBIT_DEFAULT = 0,
-	VIEWOPS_ORBIT_SELECT = 1,
-	VIEWOPS_ORBIT_DEPTH = 2,
+	VIEWOPS_ORBIT_SELECT = (1 << 0),
+	VIEWOPS_ORBIT_DEPTH = (1 << 1),
 };
 
 static enum eViewOpsOrbit viewops_orbit_mode_ex(bool use_select, bool use_depth)
 {
+	enum eViewOpsOrbit flag = 0;
 	if (use_select) {
-		return VIEWOPS_ORBIT_SELECT;
+		flag |= VIEWOPS_ORBIT_SELECT;
 	}
-	else if (use_depth) {
-		return VIEWOPS_ORBIT_DEPTH;
+	if (use_depth) {
+		flag |= VIEWOPS_ORBIT_DEPTH;
 	}
-	else {
-		return VIEWOPS_ORBIT_DEFAULT;
-	}
+
+	return flag;
 }
 
 static enum eViewOpsOrbit viewops_orbit_mode(void)
@@ -736,7 +735,7 @@ static void viewops_data_create_ex(
 	RegionView3D *rv3d = vod->rv3d;
 
 	/* we need the depth info before changing any viewport options */
-	if (orbit_mode == VIEWOPS_ORBIT_DEPTH) {
+	if (orbit_mode & VIEWOPS_ORBIT_DEPTH) {
 		float fallback_depth_pt[3];
 
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
@@ -775,15 +774,16 @@ static void viewops_data_create_ex(
 	vod->origkey = event->type; /* the key that triggered the operator.  */
 	copy_v3_v3(vod->ofs, rv3d->ofs);
 
-	if (orbit_mode == VIEWOPS_ORBIT_SELECT) {
-
-		vod->use_dyn_ofs = true;
-
-		view3d_orbit_calc_center(C, vod->dyn_ofs);
-
-		negate_v3(vod->dyn_ofs);
+	if (orbit_mode & VIEWOPS_ORBIT_SELECT) {
+		float ofs[3];
+		if (view3d_orbit_calc_center(C, ofs) || (vod->use_dyn_ofs == false)) {
+			vod->use_dyn_ofs = true;
+			negate_v3_v3(vod->dyn_ofs, ofs);
+			orbit_mode &= ~VIEWOPS_ORBIT_DEPTH;
+		}
 	}
-	else if (orbit_mode == VIEWOPS_ORBIT_DEPTH) {
+
+	if (orbit_mode & VIEWOPS_ORBIT_DEPTH) {
 		if (vod->use_dyn_ofs) {
 			if (rv3d->is_persp) {
 				float my_origin[3]; /* original G.vd->ofs */
