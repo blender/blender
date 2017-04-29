@@ -168,31 +168,78 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 /* Strip Markers ------------------------ */
 
 /* Markers inside an action strip */
-static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymaxc, int shade, unsigned int pos)
+static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymaxc, int shade, const bool dashed)
 {
 	const bAction *act = strip->act;
 
 	if (!(act && act->markers.first))
 		return;
 
-	immUniformThemeColorShade(TH_STRIP_SELECT, shade);
+	float color[4];
+	UI_GetThemeColorShade4fv(TH_STRIP_SELECT, shade, color);
 
-	immBeginAtMost(PRIM_POINTS, BLI_listbase_count(&act->markers));
-	for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
-		if ((marker->frame > strip->actstart) && (marker->frame < strip->actend)) {
-			float frame = nlastrip_get_frame(strip, marker->frame, NLATIME_CONVERT_MAP);
+	if (dashed) {
+		VertexFormat *format = immVertexFormat();
+		const uint shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		const uint shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
-			/* just a simple line for now */
-			/* XXX: draw a triangle instead... */
-			immVertex2f(pos, frame, yminc + 1);
-			immVertex2f(pos, frame, ymaxc - 1);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+		float viewport_size[4];
+		glGetFloatv(GL_VIEWPORT, viewport_size);
+		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+		immUniform4fv("color1", color);
+		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+		immUniform1f("dash_width", 6.0f);
+		immUniform1f("dash_width_on", 3.0f);
+
+		immBeginAtMost(PRIM_LINES, BLI_listbase_count(&act->markers) * 2);
+		for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
+			if ((marker->frame > strip->actstart) && (marker->frame < strip->actend)) {
+				float frame = nlastrip_get_frame(strip, marker->frame, NLATIME_CONVERT_MAP);
+
+				/* just a simple line for now */
+				/* XXX: draw a triangle instead... */
+				immAttrib2f(shdr_dashed_origin, frame, yminc + 1);
+				immVertex2f(shdr_dashed_pos, frame, yminc + 1);
+				immVertex2f(shdr_dashed_pos, frame, ymaxc - 1);
+			}
 		}
+		immEnd();
+
+		immUnbindProgram();
+
+		glDisable(GL_BLEND);
 	}
-	immEnd();
+	else {
+		const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+		immUniformColor4fv(color);
+
+		immBeginAtMost(PRIM_LINES, BLI_listbase_count(&act->markers) * 2);
+		for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
+			if ((marker->frame > strip->actstart) && (marker->frame < strip->actend)) {
+				float frame = nlastrip_get_frame(strip, marker->frame, NLATIME_CONVERT_MAP);
+
+				/* just a simple line for now */
+				/* XXX: draw a triangle instead... */
+				immVertex2f(shdr_pos, frame, yminc + 1);
+				immVertex2f(shdr_pos, frame, ymaxc - 1);
+			}
+		}
+		immEnd();
+
+		immUnbindProgram();
+	}
 }
 
 /* Markers inside a NLA-Strip */
-static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc, unsigned int pos)
+static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc)
 {
 	glLineWidth(2.0f);
 	
@@ -200,12 +247,8 @@ static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc, un
 		/* try not to be too conspicuous, while being visible enough when transforming */
 		int shade = (strip->flag & NLASTRIP_FLAG_SELECT) ? -60 : -40;
 
-		setlinestyle(3);
-		
 		/* just draw the markers in this clip */
-		nla_actionclip_draw_markers(strip, yminc, ymaxc, shade, pos);
-		
-		setlinestyle(0);
+		nla_actionclip_draw_markers(strip, yminc, ymaxc, shade, true);
 	}
 	else if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
 		/* just a solid color, so that it is very easy to spot */
@@ -213,7 +256,7 @@ static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc, un
 		/* draw the markers in the first level of strips only (if they are actions) */
 		for (NlaStrip *nls = strip->strips.first; nls; nls = nls->next) {
 			if (nls->type == NLASTRIP_TYPE_CLIP) {
-				nla_actionclip_draw_markers(nls, yminc, ymaxc, shade, pos);
+				nla_actionclip_draw_markers(nls, yminc, ymaxc, shade, false);
 			}
 		}
 	}
@@ -424,12 +467,11 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
 		nla_draw_strip_curves(strip, yminc, ymaxc, pos);
 
+	immUnbindProgram();
 
 	/* draw markings indicating locations of local markers (useful for lining up different actions) */
 	if ((snla->flag & SNLA_NOLOCALMARKERS) == 0)
-		nla_strip_draw_markers(strip, yminc, ymaxc, pos);
-
-	immUnbindProgram();
+		nla_strip_draw_markers(strip, yminc, ymaxc);
 
 	/* draw strip outline
 	 *	- color used here is to indicate active vs non-active
