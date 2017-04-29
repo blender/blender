@@ -528,15 +528,15 @@ static void gp_draw_stroke_fill(
 	}
 	else {
 		/* As an initial implementation, we use the OpenGL filled polygon drawing
-		* here since it's the easiest option to implement for this case. It does
-		* come with limitations (notably for concave shapes), though it shouldn't
-		* be much of an issue in most cases.
-		*
-		* We keep this legacy implementation around despite now having the high quality
-		* fills, as this is necessary for keeping everything working nicely for files
-		* created using old versions of Blender which may have depended on the artifacts
-		* the old fills created.
-		*/
+		 * here since it's the easiest option to implement for this case. It does
+		 * come with limitations (notably for concave shapes), though it shouldn't
+		 * be much of an issue in most cases.
+		 *
+		 * We keep this legacy implementation around despite now having the high quality
+		 * fills, as this is necessary for keeping everything working nicely for files
+		 * created using old versions of Blender which may have depended on the artifacts
+		 * the old fills created.
+		 */
 		bGPDspoint *pt;
 
 		glBegin(GL_POLYGON);
