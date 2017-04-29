@@ -225,8 +225,6 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 		float oldpressure = points[0].pressure;
 
 		/* draw stroke curve */
-		if (G.debug & G_DEBUG) setlinestyle(2);
-
 		glLineWidth(max_ff(oldpressure * thickness, 1.0));
 		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 		immBeginAtMost(PRIM_LINE_STRIP, totpoints);
@@ -270,8 +268,6 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 			gp_set_tpoint_varying_color(pt - 1, ink, color);
 			immVertex2iv(pos, &(pt - 1)->x);
 		}
-
-		if (G.debug & G_DEBUG) setlinestyle(0);
 	}
 
 	immEnd();
