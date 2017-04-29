@@ -183,7 +183,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
 		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
-		* because of float point precision problems at large values [#23908] */
+		 * because of float point precision problems at large values [#23908] */
 		float v1[3], v2[3];
 		float len_px, len_sc;
 
@@ -960,8 +960,8 @@ static void view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D
 
 		if (GPU_material_bound(gpumat)) {
 			/* TODO viewport (dfelinto): GPU_material_bind relies on immediate mode,
-			* we can't get rid of the following code without a bigger refactor
-			* or we dropping this functionality. */
+			 * we can't get rid of the following code without a bigger refactor
+			 * or we dropping this functionality. */
 
 			glBegin(GL_TRIANGLE_STRIP);
 			glVertex2f(-1.0f, -1.0f);
@@ -1058,8 +1058,8 @@ static void view3d_draw_outline_plates(const bContext *UNUSED(C))
 static void gridline_range(double x0, double dx, double max, int *r_first, int *r_count)
 {
 	/* determine range of gridlines that appear in this Area -- similar calc but separate ranges for x & y
-	* x0 is gridline 0, the axis in screen space
-	* Area covers [0 .. max) pixels */
+	 * x0 is gridline 0, the axis in screen space
+	 * Area covers [0 .. max) pixels */
 
 	int first = (int)ceil(-x0 / dx);
 	int last = (int)floor((max - x0) / dx);
@@ -1083,8 +1083,8 @@ static void gridline_range(double x0, double dx, double max, int *r_first, int *
 static int gridline_count(ARegion *ar, double x0, double y0, double dx)
 {
 	/* x0 & y0 establish the "phase" of the grid within this 2D region
-	* dx is the frequency, shared by x & y directions
-	* pass in dx of smallest (highest precision) grid we want to draw */
+	 * dx is the frequency, shared by x & y directions
+	 * pass in dx of smallest (highest precision) grid we want to draw */
 
 #if DEBUG_GRID
 	printf("  %s(%f, %f, dx:%f)\n", __FUNCTION__, x0, y0, dx);
@@ -1107,11 +1107,11 @@ static int gridline_count(ARegion *ar, double x0, double y0, double dx)
 static bool drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip_mod, unsigned pos, unsigned col, GLubyte col_value[3])
 {
 	/* skip every skip_mod lines relative to each axis; they will be overlaid by another drawgrid_draw
-	* always skip exact x0 & y0 axes; they will be drawn later in color
-	*
-	* set grid color once, just before the first line is drawn
-	* it's harmless to set same color for every line, or every vertex
-	* but if no lines are drawn, color must not be set! */
+	 * always skip exact x0 & y0 axes; they will be drawn later in color
+	 *
+	 * set grid color once, just before the first line is drawn
+	 * it's harmless to set same color for every line, or every vertex
+	 * but if no lines are drawn, color must not be set! */
 
 #if DEBUG_GRID
 	printf("  %s(%f, %f, dx:%f, skip_mod:%d)\n", __FUNCTION__, x0, y0, dx, skip_mod);
@@ -1206,8 +1206,8 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	y += wy;
 
 	/* now x, y, and dx have their final values
-	* (x,y) is the world origin (0,0,0) mapped to Area-relative screen space
-	* dx is the distance in pixels between grid lines -- same for horiz or vert grid lines */
+	 * (x,y) is the world origin (0,0,0) mapped to Area-relative screen space
+	 * dx is the distance in pixels between grid lines -- same for horiz or vert grid lines */
 
 	glLineWidth(1.0f);
 
@@ -1362,10 +1362,10 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 	/* draw only if there is something to draw */
 	if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
 		/* draw how many lines?
-		* trunc(v3d->gridlines / 2) * 4
-		* + 2 for xy axes (possibly with special colors)
-		* + 1 for z axis (the only line not in xy plane)
-		* even v3d->gridlines are honored, odd rounded down */
+		 * trunc(v3d->gridlines / 2) * 4
+		 * + 2 for xy axes (possibly with special colors)
+		 * + 1 for z axis (the only line not in xy plane)
+		 * even v3d->gridlines are honored, odd rounded down */
 		const int gridlines = v3d->gridlines / 2;
 		const float grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
 		const float grid = gridlines * grid_scale;
@@ -1872,7 +1872,7 @@ RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 	gpuPushMatrix(); /* necessary? --merwin */
 
 	/* multiply view with object matrix.
-	* local viewmat and persmat, to calculate projections */
+	 * local viewmat and persmat, to calculate projections */
 	ED_view3d_init_mats_rv3d_gl(ob, rv3d);
 
 	switch (ob->type) {

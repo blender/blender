@@ -71,8 +71,8 @@ void DRW_draw_region_info(void)
 static void gridline_range(double x0, double dx, double max, int *r_first, int *r_count)
 {
 	/* determine range of gridlines that appear in this Area -- similar calc but separate ranges for x & y
-	* x0 is gridline 0, the axis in screen space
-	* Area covers [0 .. max) pixels */
+	 * x0 is gridline 0, the axis in screen space
+	 * Area covers [0 .. max) pixels */
 
 	int first = (int)ceil(-x0 / dx);
 	int last = (int)floor((max - x0) / dx);
@@ -90,8 +90,8 @@ static void gridline_range(double x0, double dx, double max, int *r_first, int *
 static int gridline_count(ARegion *ar, double x0, double y0, double dx)
 {
 	/* x0 & y0 establish the "phase" of the grid within this 2D region
-	* dx is the frequency, shared by x & y directions
-	* pass in dx of smallest (highest precision) grid we want to draw */
+	 * dx is the frequency, shared by x & y directions
+	 * pass in dx of smallest (highest precision) grid we want to draw */
 
 	int first, x_ct, y_ct;
 
@@ -108,11 +108,11 @@ static bool drawgrid_draw(
         unsigned pos, unsigned col, GLubyte col_value[3])
 {
 	/* skip every skip_mod lines relative to each axis; they will be overlaid by another drawgrid_draw
-	* always skip exact x0 & y0 axes; they will be drawn later in color
-	*
-	* set grid color once, just before the first line is drawn
-	* it's harmless to set same color for every line, or every vertex
-	* but if no lines are drawn, color must not be set! */
+	 * always skip exact x0 & y0 axes; they will be drawn later in color
+	 *
+	 * set grid color once, just before the first line is drawn
+	 * it's harmless to set same color for every line, or every vertex
+	 * but if no lines are drawn, color must not be set! */
 
 	const float x_max = (float)ar->winx;
 	const float y_max = (float)ar->winy;
@@ -194,8 +194,8 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	y += wy;
 
 	/* now x, y, and dx have their final values
-	* (x,y) is the world origin (0,0,0) mapped to Area-relative screen space
-	* dx is the distance in pixels between grid lines -- same for horiz or vert grid lines */
+	 * (x,y) is the world origin (0,0,0) mapped to Area-relative screen space
+	 * dx is the distance in pixels between grid lines -- same for horiz or vert grid lines */
 
 	glLineWidth(1.0f);
 
@@ -344,10 +344,10 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	/* draw only if there is something to draw */
 	if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
 		/* draw how many lines?
-		* trunc(v3d->gridlines / 2) * 4
-		* + 2 for xy axes (possibly with special colors)
-		* + 1 for z axis (the only line not in xy plane)
-		* even v3d->gridlines are honored, odd rounded down */
+		 * trunc(v3d->gridlines / 2) * 4
+		 * + 2 for xy axes (possibly with special colors)
+		 * + 1 for z axis (the only line not in xy plane)
+		 * even v3d->gridlines are honored, odd rounded down */
 		const int gridlines = v3d->gridlines / 2;
 		const float grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
 		const float grid = gridlines * grid_scale;
