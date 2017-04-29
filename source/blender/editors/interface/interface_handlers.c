@@ -6752,6 +6752,7 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
+	MenuType *mt = WM_menutype_find("WM_MT_button_context", true);
 	bool is_array, is_array_component;
 	uiStringInfo label = {BUT_GET_LABEL, NULL};
 
@@ -6782,6 +6783,12 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		bool is_editable = RNA_property_editable(ptr, prop);
 		/*bool is_idprop = RNA_property_is_idprop(prop);*/ /* XXX does not work as expected, not strictly needed */
 		bool is_set = RNA_property_is_set(ptr, prop);
+
+		/* set the prop and pointer data for python access to the hovered ui element; TODO, index could be supported as well*/
+		PointerRNA temp_ptr;
+		RNA_pointer_create(NULL, &RNA_Property, but->rnaprop, &temp_ptr);
+		uiLayoutSetContextPointer(layout,"button_prop", &temp_ptr);
+		uiLayoutSetContextPointer(layout,"button_pointer", ptr);
 
 		/* second slower test, saved people finding keyframe items in menus when its not possible */
 		if (is_anim)
@@ -6998,7 +7005,10 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 			                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 			UI_but_func_set(but2, popup_add_shortcut_func, but, NULL);
 		}
-		
+
+		/* Set the operator pointer for python access */
+		uiLayoutSetContextPointer(layout,"button_operator", but->opptr);
+
 		uiItemS(layout);
 	}
 
@@ -7044,6 +7054,14 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		uiItemFullO(layout, "UI_OT_editsource", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
 	}
 	uiItemFullO(layout, "UI_OT_edittranslation_init", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
+
+	mt = WM_menutype_find("WM_MT_button_context", false);
+	if (mt) {
+		Menu menu = {NULL};
+		menu.layout = uiLayoutColumn(layout, false);
+		menu.type = mt;
+		mt->draw(C, &menu);
+	}
 
 	UI_popup_menu_end(C, pup);
 
