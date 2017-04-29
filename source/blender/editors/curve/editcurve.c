@@ -5850,6 +5850,7 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 					BLI_assert(points_stride + dims == points + (points_len * dims));
 
 					float tan_l[3], tan_r[3], error_sq_dummy;
+					unsigned int error_index_dummy;
 
 					sub_v3_v3v3(tan_l, bezt_prev->vec[1], bezt_prev->vec[2]);
 					normalize_v3(tan_l);
@@ -5860,7 +5861,7 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 					        points, points_len, NULL, dims, FLT_EPSILON,
 					        tan_l, tan_r,
 					        bezt_prev->vec[2], bezt_next->vec[0],
-					        &error_sq_dummy);
+					        &error_sq_dummy, &error_index_dummy);
 
 					if (!ELEM(bezt_prev->h2, HD_FREE, HD_ALIGN)) {
 						bezt_prev->h2 = (bezt_prev->h2 == HD_VECT) ? HD_FREE : HD_ALIGN;

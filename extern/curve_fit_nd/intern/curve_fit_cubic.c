@@ -554,8 +554,8 @@ static void cubic_from_points_fallback(
 	r_cubic->orig_span = (points_offset_len - 1);
 #endif
 
-	/* p1 = p0 - (tan_l * alpha_l);
-	 * p2 = p3 + (tan_r * alpha_r);
+	/* p1 = p0 - (tan_l * alpha);
+	 * p2 = p3 + (tan_r * alpha);
 	 */
 	msub_vn_vnvn_fl(p1, p0, tan_l, alpha, dims);
 	madd_vn_vnvn_fl(p2, p3, tan_r, alpha, dims);
@@ -1436,11 +1436,10 @@ int curve_fit_cubic_to_points_single_db(
 
         double  r_handle_l[],
         double  r_handle_r[],
-        double  *r_error_max_sq)
+        double *r_error_max_sq,
+        uint   *r_error_index)
 {
 	Cubic *cubic = alloca(cubic_alloc_size(dims));
-
-	uint split_index;
 
 	/* in this instance theres no advantage in using length cache,
 	 * since we're not recursively calculating values. */
@@ -1462,7 +1461,7 @@ int curve_fit_cubic_to_points_single_db(
 #endif
 	        tan_l, tan_r, error_threshold, dims,
 
-	        cubic, r_error_max_sq, &split_index);
+	        cubic, r_error_max_sq, r_error_index);
 
 #ifdef USE_LENGTH_CACHE
 	if (points_length_cache_alloc) {
@@ -1487,7 +1486,8 @@ int curve_fit_cubic_to_points_single_fl(
 
         float   r_handle_l[],
         float   r_handle_r[],
-        float  *r_error_sq)
+        float  *r_error_sq,
+        uint   *r_error_index)
 {
 	const uint points_flat_len = points_len * dims;
 	double *points_db = malloc(sizeof(double) * points_flat_len);
@@ -1521,7 +1521,8 @@ int curve_fit_cubic_to_points_single_fl(
 	        (double)error_threshold,
 	        tan_l_db, tan_r_db,
 	        r_handle_l_db, r_handle_r_db,
-	        &r_error_sq_db);
+	        &r_error_sq_db,
+	        r_error_index);
 
 	free(points_db);
 
