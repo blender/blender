@@ -318,21 +318,35 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
 	const float mval_dst[2] = {win->eventstate->x - ar->winrct.xmin,
 	                           win->eventstate->y - ar->winrct.ymin};
 
-	setlinestyle(3);
-
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+	float color1[4];
 
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniformThemeColor(TH_VIEW_OVERLAY);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+	UI_GetThemeColor4fv(TH_VIEW_OVERLAY, color1);
+	immUniform4fv("color1", color1);
+	immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+	immUniform1f("dash_width", 6.0f);
+	immUniform1f("dash_width_on", 3.0f);
 
 	immBegin(PRIM_LINES, 2);
-	immVertex2fv(pos, mval_dst);
-	immVertex2fv(pos, mval_src);
+	immAttrib2fv(shdr_dashed_origin, mval_src);
+	immVertex2fv(shdr_dashed_pos, mval_src);
+	immVertex2fv(shdr_dashed_pos, mval_dst);
 	immEnd();
+
 	immUnbindProgram();
 
-	setlinestyle(0);
+	glDisable(GL_BLEND);
 }
 
 /**
