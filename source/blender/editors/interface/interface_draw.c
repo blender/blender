@@ -1202,7 +1202,7 @@ static void ui_draw_colorband_handle_box(unsigned int pos, float x1, float y1, f
 }
 
 static void ui_draw_colorband_handle(
-        unsigned int pos, const rcti *rect, float x,
+        uint shdr_pos, const rcti *rect, float x,
         const float rgb[3], struct ColorManagedDisplay *display,
         bool active)
 {
@@ -1221,19 +1221,36 @@ static void ui_draw_colorband_handle(
 	y1 = floorf(y1 + 0.5f);
 
 	if (active || half_width < min_width) {
-		immUniformColor3ub(0, 0, 0);
+		immUnbindProgram();
+
+		VertexFormat *format = immVertexFormat();
+		const uint shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		const uint shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+		float viewport_size[4];
+		glGetFloatv(GL_VIEWPORT, viewport_size);
+		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+		immUniform4f("color1", 0.8f, 0.8f, 0.8f, 1.0f);
+		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+		immUniform1f("dash_width", active ? 4.0f : 2.0f);
+		immUniform1f("dash_width_on", active ? 2.0f : 1.0f);
+
 		immBegin(PRIM_LINES, 2);
-		immVertex2f(pos, x, y1);
-		immVertex2f(pos, x, y2);
+		immAttrib2f(shdr_dashed_origin, x, y1);
+		immVertex2f(shdr_dashed_pos, x, y1);
+		immVertex2f(shdr_dashed_pos, x, y2);
 		immEnd();
 
-		setlinestyle(active ? 2 : 1);
-		immUniformColor3ub(200, 200, 200);
-		immBegin(PRIM_LINES, 2);
-		immVertex2f(pos, x, y1);
-		immVertex2f(pos, x, y2);
-		immEnd();
-		setlinestyle(0);
+		immUnbindProgram();
+
+		const uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		BLI_assert(pos == shdr_pos);
+		UNUSED_VARS_NDEBUG(pos);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		/* hide handles when zoomed out too far */
 		if (half_width < min_width) {
@@ -1245,39 +1262,39 @@ static void ui_draw_colorband_handle(
 	y1 -= half_width;
 
 	immUniformColor3ub(0, 0, 0);
-	ui_draw_colorband_handle_box(pos, x - half_width, y1 - 1, x + half_width, y1 + height, false);
+	ui_draw_colorband_handle_box(shdr_pos, x - half_width, y1 - 1, x + half_width, y1 + height, false);
 
 	/* draw all triangles blended */
 	glEnable(GL_BLEND);
 
-	ui_draw_colorband_handle_tri(pos, x, y1 + height, half_width, half_width, true);
+	ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width, half_width, true);
 
 	if (active)
 		immUniformColor3ub(196, 196, 196);
 	else
 		immUniformColor3ub(96, 96, 96);
-	ui_draw_colorband_handle_tri(pos, x, y1 + height, half_width, half_width, true);
+	ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width, half_width, true);
 
 	if (active)
 		immUniformColor3ub(255, 255, 255);
 	else
 		immUniformColor3ub(128, 128, 128);
-	ui_draw_colorband_handle_tri_hlight(pos, x, y1 + height - 1, (half_width - 1), (half_width - 1));
+	ui_draw_colorband_handle_tri_hlight(shdr_pos, x, y1 + height - 1, (half_width - 1), (half_width - 1));
 
 	immUniformColor3ub(0, 0, 0);
-	ui_draw_colorband_handle_tri_hlight(pos, x, y1 + height, half_width, half_width);
+	ui_draw_colorband_handle_tri_hlight(shdr_pos, x, y1 + height, half_width, half_width);
 
 	glDisable(GL_BLEND);
 
 	immUniformColor3ub(128, 128, 128);
-	ui_draw_colorband_handle_box(pos, x - (half_width - 1), y1, x + (half_width - 1), y1 + height, true);
+	ui_draw_colorband_handle_box(shdr_pos, x - (half_width - 1), y1, x + (half_width - 1), y1 + height, true);
 
 	if (display) {
 		IMB_colormanagement_scene_linear_to_display_v3(colf, display);
 	}
 
 	immUniformColor3fv(colf);
-	ui_draw_colorband_handle_box(pos, x - (half_width - 2), y1 + 1, x + (half_width - 2), y1 + height - 2, true);
+	ui_draw_colorband_handle_box(shdr_pos, x - (half_width - 2), y1 + 1, x + (half_width - 2), y1 + height - 2, true);
 }
 
 void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *rect)
