@@ -89,7 +89,7 @@ typedef struct EEVEE_StorageList {
 	struct EEVEE_ProbesInfo *probes;
 	struct GPUUniformBuffer *probe_ubo;
 
-	struct g_data *g_data;
+	struct EEVEE_PrivateData *g_data;
 } EEVEE_StorageList;
 
 /* ************ LIGHT UBO ************* */
@@ -173,7 +173,7 @@ typedef struct EEVEE_LampEngineData {
 	void *pad;
 } EEVEE_LampEngineData;
 
-typedef struct g_data{
+typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *default_lit_grp;
 	struct DRWShadingGroup *material_lit_grp;
 	struct DRWShadingGroup *shadow_shgrp;
@@ -181,7 +181,7 @@ typedef struct g_data{
 	struct DRWShadingGroup *depth_shgrp_cull;
 
 	struct ListBase lamps; /* Lamps gathered during cache iteration */
-} g_data; /* Transient data */
+} EEVEE_PrivateData; /* Transient data */
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_StorageList *stl);

@@ -42,7 +42,7 @@ typedef struct EDIT_ARMATURE_PassList {
 } EDIT_ARMATURE_PassList;
 
 typedef struct EDIT_ARMATURE_StorageList {
-	struct g_data *g_data;
+	struct EDIT_ARMATURE_PrivateData *g_data;
 } EDIT_ARMATURE_StorageList;
 
 typedef struct EDIT_ARMATURE_Data {
@@ -55,9 +55,9 @@ typedef struct EDIT_ARMATURE_Data {
 
 /* *********** STATIC *********** */
 
-typedef struct g_data {
+typedef struct EDIT_ARMATURE_PrivateData {
 	DRWShadingGroup *relationship_lines;
-} g_data; /* Transient data */
+} EDIT_ARMATURE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
@@ -68,7 +68,7 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 	{

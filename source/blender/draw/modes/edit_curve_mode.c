@@ -85,7 +85,7 @@ typedef struct EDIT_CURVE_StorageList {
 	 * free with MEM_freeN() when viewport is freed.
 	 * (not per object) */
 	struct CustomStruct *block;
-	struct g_data *g_data;
+	struct EDIT_CURVE_PrivateData *g_data;
 } EDIT_CURVE_StorageList;
 
 typedef struct EDIT_CURVE_Data {
@@ -114,7 +114,7 @@ static struct {
 
 } e_data = {NULL}; /* Engine data */
 
-typedef struct g_data {
+typedef struct EDIT_CURVE_PrivateData {
 	/* This keeps the references of the shading groups for
 	 * easy access in EDIT_CURVE_cache_populate() */
 
@@ -123,7 +123,7 @@ typedef struct g_data {
 
 	DRWShadingGroup *overlay_edge_shgrp;
 	DRWShadingGroup *overlay_vert_shgrp;
-} g_data; /* Transient data */
+} EDIT_CURVE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
@@ -178,7 +178,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 	{

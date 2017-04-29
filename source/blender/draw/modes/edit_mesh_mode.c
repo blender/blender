@@ -73,7 +73,7 @@ typedef struct EDIT_MESH_TextureList {
 } EDIT_MESH_TextureList;
 
 typedef struct EDIT_MESH_StorageList {
-	struct g_data *g_data;
+	struct EDIT_MESH_PrivateData *g_data;
 } EDIT_MESH_StorageList;
 
 typedef struct EDIT_MESH_Data {
@@ -102,7 +102,7 @@ static struct {
 	GPUShader *depth_sh;
 } e_data = {NULL}; /* Engine data */
 
-typedef struct g_data {
+typedef struct EDIT_MESH_PrivateData {
 	DRWShadingGroup *depth_shgrp_hidden_wire;
 
 	DRWShadingGroup *fnormals_shgrp;
@@ -120,7 +120,7 @@ typedef struct g_data {
 	DRWShadingGroup *facedot_occluded_shgrp;
 	DRWShadingGroup *facefill_occluded_shgrp;
 
-} g_data; /* Transient data */
+} EDIT_MESH_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
@@ -298,7 +298,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 	{

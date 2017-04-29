@@ -90,7 +90,7 @@ typedef struct OBJECT_TextureList {
 } OBJECT_TextureList;
 
 typedef struct OBJECT_StorageList {
-	struct g_data *g_data;
+	struct OBJECT_PrivateData *g_data;
 } OBJECT_StorageList;
 
 typedef struct OBJECT_Data {
@@ -103,7 +103,7 @@ typedef struct OBJECT_Data {
 
 /* *********** STATIC *********** */
 
-typedef struct g_data{
+typedef struct OBJECT_PrivateData{
 	/* Empties */
 	DRWShadingGroup *plain_axes;
 	DRWShadingGroup *cube;
@@ -179,7 +179,7 @@ typedef struct g_data{
 	DRWShadingGroup *wire_select_group;
 	DRWShadingGroup *wire_transform;
 
-} g_data; /* Transient data */
+} OBJECT_PrivateData; /* Transient data */
 
 static struct {
 	GPUShader *outline_resolve_sh;
@@ -454,7 +454,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 	{

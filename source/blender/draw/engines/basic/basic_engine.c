@@ -52,7 +52,7 @@ typedef struct BASIC_Storage {
 
 typedef struct BASIC_StorageList {
 	struct BASIC_Storage *storage;
-	struct g_data *g_data;
+	struct BASIC_PrivateData *g_data;
 } BASIC_StorageList;
 
 typedef struct BASIC_FramebufferList {
@@ -80,7 +80,6 @@ typedef struct BASIC_PassList {
 	struct DRWPass *depth_pass_cull;
 #endif
 	struct DRWPass *color_pass;
-	struct g_data *g_data;
 } BASIC_PassList;
 
 typedef struct BASIC_Data {
@@ -102,13 +101,13 @@ static struct {
 	struct GPUShader *color_sh;
 } e_data = {NULL}; /* Engine data */
 
-typedef struct g_data {
+typedef struct BASIC_PrivateData {
 #ifdef USE_DEPTH
 	DRWShadingGroup *depth_shgrp;
 	DRWShadingGroup *depth_shgrp_cull;
 #endif
 	DRWShadingGroup *color_shgrp;
-} g_data; /* Transient data */
+} BASIC_PrivateData; /* Transient data */
 
 /* Functions */
 
@@ -152,7 +151,7 @@ static void BASIC_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 #ifdef USE_DEPTH

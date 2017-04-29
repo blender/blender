@@ -72,7 +72,7 @@ typedef struct PAINT_VERTEX_StorageList {
 	 * free with MEM_freeN() when viewport is freed.
 	 * (not per object) */
 	struct CustomStruct *block;
-	struct g_data *g_data;
+	struct PAINT_VERTEX_PrivateData *g_data;
 } PAINT_VERTEX_StorageList;
 
 typedef struct PAINT_VERTEX_Data {
@@ -96,11 +96,11 @@ static struct {
 	struct GPUShader *custom_shader;
 } e_data = {NULL}; /* Engine data */
 
-typedef struct g_data {
+typedef struct PAINT_VERTEX_PrivateData {
 	/* This keeps the references of the shading groups for
 	 * easy access in PAINT_VERTEX_cache_populate() */
 	DRWShadingGroup *group;
-} g_data; /* Transient data */
+} PAINT_VERTEX_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
@@ -144,7 +144,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 	{

@@ -79,7 +79,7 @@ typedef struct EDIT_TEXT_StorageList {
 	 * free with MEM_freeN() when viewport is freed.
 	 * (not per object) */
 	struct CustomStruct *block;
-	struct g_data *g_data;
+	struct EDIT_TEXT_PrivateData *g_data;
 } EDIT_TEXT_StorageList;
 
 typedef struct EDIT_TEXT_Data {
@@ -105,12 +105,12 @@ static struct {
 	GPUShader *overlay_cursor_sh;
 } e_data = {NULL}; /* Engine data */
 
-typedef struct g_data {
+typedef struct EDIT_TEXT_PrivateData {
 	/* resulting curve as 'wire' for fast editmode drawing */
 	DRWShadingGroup *wire_shgrp;
 	DRWShadingGroup *overlay_select_shgrp;
 	DRWShadingGroup *overlay_cursor_shgrp;
-} g_data; /* Transient data */
+} EDIT_TEXT_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
@@ -162,7 +162,7 @@ static void EDIT_TEXT_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 	{

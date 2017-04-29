@@ -76,7 +76,7 @@ typedef struct CLAY_Storage {
 typedef struct CLAY_StorageList {
 	struct CLAY_Storage *storage;
 	struct GPUUniformBuffer *mat_ubo;
-	struct g_data *g_data;
+	struct CLAY_PrivateData *g_data;
 } CLAY_StorageList;
 
 typedef struct CLAY_FramebufferList {
@@ -98,7 +98,6 @@ typedef struct CLAY_PassList {
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
 	struct DRWPass *clay_pass;
-	struct g_data *g_data;
 } CLAY_PassList;
 
 typedef struct CLAY_Data {
@@ -133,14 +132,14 @@ static struct {
 	int ubo_mat_idxs[MAX_CLAY_MAT];
 } e_data = {NULL}; /* Engine data */
 
-typedef struct g_data {
+typedef struct CLAY_PrivateData {
 	DRWShadingGroup *depth_shgrp;
 	DRWShadingGroup *depth_shgrp_select;
 	DRWShadingGroup *depth_shgrp_active;
 	DRWShadingGroup *depth_shgrp_cull;
 	DRWShadingGroup *depth_shgrp_cull_select;
 	DRWShadingGroup *depth_shgrp_cull_active;
-} g_data; /* Transient data */
+} CLAY_PrivateData; /* Transient data */
 
 /* Functions */
 
@@ -541,7 +540,7 @@ static void CLAY_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(g_data), "g_data");
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
 	/* Depth Pass */
