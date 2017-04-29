@@ -263,7 +263,7 @@ bool ED_texture_context_check_linestyle(const struct bContext *C) RET_ZERO
 void FRS_free_view_map_cache(void) RET_NONE
 
 /* texture.c */
-int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, short thread, struct ImagePool *pool, bool scene_color_manage, const bool skip_load_image) RET_ZERO
+int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, const short thread, struct ImagePool *pool, bool scene_color_manage, const bool skip_load_image) RET_ZERO
 int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage, const bool skip_load_image) RET_ZERO
 int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex, struct ImagePool *pool) RET_ZERO
 
@@ -368,7 +368,7 @@ void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone
 void object_test_constraints(struct Object *owner) RET_NONE
 void ED_armature_ebone_to_mat4(struct EditBone *ebone, float mat[4][4]) RET_NONE
 void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4]) RET_NONE
-void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr) RET_NONE
+void ED_object_parent(struct Object *ob, struct Object *par, const int type, const char *substr) RET_NONE
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con) RET_NONE
 void ED_node_composit_default(const struct bContext *C, struct Scene *scene) RET_NONE
 void *ED_region_draw_cb_activate(struct ARegionType *art, void(*draw)(const struct bContext *, struct ARegion *, void *), void *custumdata, int type) RET_ZERO /* XXX this one looks weird */
@@ -688,7 +688,7 @@ void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe)
 void RE_FreePersistentData(void) RET_NONE
 void RE_point_density_cache(struct Scene *scene, struct PointDensity *pd, const bool use_render_params) RET_NONE
 void RE_point_density_minmax(struct Scene *scene, struct PointDensity *pd, const bool use_render_params, float r_min[3], float r_max[3]) RET_NONE
-void RE_point_density_sample(struct Scene *scene, struct PointDensity *pd, int resolution, const bool use_render_params, float *values) RET_NONE
+void RE_point_density_sample(struct Scene *scene, struct PointDensity *pd, const int resolution, const bool use_render_params, float *values) RET_NONE
 void RE_point_density_free(struct PointDensity *pd) RET_NONE
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
 void RE_FreeAllPersistentData(void) RET_NONE
