@@ -47,12 +47,31 @@ void imm_cpack(unsigned int x)
 	                   (((x) >> 16) & 0xFF));
 }
 
-static void imm_draw_circle(PrimitiveType prim_type, unsigned pos, float x, float y, float rad, int nsegments)
+static void imm_draw_circle(
+        PrimitiveType prim_type, const uint shdr_pos, const bool use_dashed, const uint shdr_dashed_origin,
+        float x, float y, float rad, int nsegments)
 {
-	immBegin(prim_type, nsegments);
+	const bool use_prim_lines = (prim_type == PRIM_LINES);
+	float prev_x, prev_y;
+
+	if (use_prim_lines || use_dashed) {
+		const float angle = 2.0f * M_PI * ((float)(nsegments - 1) / (float)nsegments);
+		prev_x = x + rad * cosf(angle);
+		prev_y = y + rad * sinf(angle);
+	}
+
+	immBegin(prim_type, use_prim_lines ? nsegments * 2 : nsegments);
 	for (int i = 0; i < nsegments; ++i) {
-		float angle = 2 * M_PI * ((float)i / (float)nsegments);
-		immVertex2f(pos, x + rad * cosf(angle), y + rad * sinf(angle));
+		const float angle = 2 * M_PI * ((float)i / (float)nsegments);
+		if (use_dashed) {
+			immAttrib2f(shdr_dashed_origin, prev_x, prev_y);
+		}
+		if (use_prim_lines) {
+			immVertex2f(shdr_pos, prev_x, prev_y);
+		}
+		prev_x = x + rad * cosf(angle);
+		prev_y = y + rad * sinf(angle);
+		immVertex2f(shdr_pos, prev_x, prev_y);
 	}
 	immEnd();
 }
@@ -61,30 +80,46 @@ static void imm_draw_circle(PrimitiveType prim_type, unsigned pos, float x, floa
  * Draw a circle outline with the given \a radius.
  * The circle is centered at \a x, \a y and drawn in the XY plane.
  *
+ * \param shdr_pos The vertex attribute number for position.
+ * \param x Horizontal center.
+ * \param y Vertical center.
+ * \param radius The circle's radius.
+ * \param nsegments The number of segments to use in drawing (more = smoother).
+ */
+void imm_draw_circle_wire(uint shdr_pos, float x, float y, float rad, int nsegments)
+{
+	imm_draw_circle(PRIM_LINE_LOOP, shdr_pos, false, 0, x, y, rad, nsegments);
+}
+
+/**
+ * Draw a circle dashed outline with the given \a radius.
+ * The circle is centered at \a x, \a y and drawn in the XY plane.
+ *
+ * \param shdr_pos The vertex attribute number for position.
  * \param pos The vertex attribute number for position.
  * \param x Horizontal center.
  * \param y Vertical center.
  * \param radius The circle's radius.
  * \param nsegments The number of segments to use in drawing (more = smoother).
  */
-void imm_draw_circle_wire(unsigned pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_wire_dashed(uint shdr_pos, uint shdr_dashed_origin, float x, float y, float rad, int nsegments)
 {
-	imm_draw_circle(PRIM_LINE_LOOP, pos, x, y, rad, nsegments);
+	imm_draw_circle(PRIM_LINES, shdr_pos, true, shdr_dashed_origin, x, y, rad, nsegments);
 }
 
 /**
  * Draw a filled circle with the given \a radius.
  * The circle is centered at \a x, \a y and drawn in the XY plane.
  *
- * \param pos The vertex attribute number for position.
+ * \param shdr_pos The vertex attribute number for position.
  * \param x Horizontal center.
  * \param y Vertical center.
  * \param radius The circle's radius.
  * \param nsegments The number of segments to use in drawing (more = smoother).
  */
-void imm_draw_circle_fill(unsigned pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_fill(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
-	imm_draw_circle(PRIM_TRIANGLE_FAN, pos, x, y, rad, nsegments);
+	imm_draw_circle(PRIM_TRIANGLE_FAN, shdr_pos, false, 0, x, y, rad, nsegments);
 }
 
 /**
