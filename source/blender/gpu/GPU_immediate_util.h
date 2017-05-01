@@ -30,7 +30,6 @@
 void imm_cpack(unsigned int x);
 
 void imm_draw_circle_wire(uint shdr_pos, float x, float y, float radius, int nsegments);
-void imm_draw_circle_wire_dashed(uint shdr_pos, uint shdr_dashed_origin, float x, float y, float rad, int nsegments);
 void imm_draw_circle_fill(uint shdr_pos, float x, float y, float radius, int nsegments);
 
 /* use this version when VertexFormat has a vec3 position */
@@ -44,8 +43,6 @@ void imm_draw_disk_partial_fill(
 void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2);
 
 void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2);
-
-void imm_draw_line_box_dashed(uint pos, uint line_origin, float x1, float y1, float x2, float y2);
 
 void imm_draw_checker_box(float x1, float y1, float x2, float y2);
 
