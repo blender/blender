@@ -1418,13 +1418,19 @@ static bool check_rendered_viewport_visible(Main *bmain)
 	wmWindow *window;
 	for (window = wm->windows.first; window != NULL; window = window->next) {
 		bScreen *screen = window->screen;
+		Scene *scene = screen->scene;
 		ScrArea *area;
+		RenderEngineType *type = RE_engines_find(scene->r.engine);
+		if ((type->draw_engine != NULL) || (type->render_to_view == NULL)) {
+			continue;
+		}
+		const bool use_legacy = (type->flag & RE_USE_LEGACY_PIPELINE) != 0;
 		for (area = screen->areabase.first; area != NULL; area = area->next) {
 			View3D *v3d = area->spacedata.first;
 			if (area->spacetype != SPACE_VIEW3D) {
 				continue;
 			}
-			if (v3d->drawtype == OB_RENDER) {
+			if (v3d->drawtype == OB_RENDER || !use_legacy) {
 				return true;
 			}
 		}

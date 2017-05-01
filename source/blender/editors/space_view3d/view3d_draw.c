@@ -2413,7 +2413,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	/* TODO layers - In the future we should get RE from Layers */
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 
-	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_OGL_PIPELINE) == 0)) {
+	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_LEGACY_PIPELINE) != 0)) {
 		view3d_main_region_draw_legacy(C, ar);
 		return;
 	}
@@ -2429,10 +2429,12 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 
 	GPU_viewport_bind(rv3d->viewport, &ar->winrct);
 
-	if (type->flag & RE_USE_OGL_PIPELINE)
+	if ((type->flag & RE_USE_LEGACY_PIPELINE) == 0) {
 		view3d_draw_view_new(C, ar, &draw_data);
-	else
+	}
+	else {
 		view3d_draw_view(C, ar, &draw_data);
+	}
 
 	GPU_viewport_unbind(rv3d->viewport);
 

@@ -76,6 +76,7 @@
 #include "engines/clay/clay_engine.h"
 #include "engines/eevee/eevee_engine.h"
 #include "engines/basic/basic_engine.h"
+#include "engines/external/external_engine.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -95,6 +96,9 @@
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_fullscreen_vert_glsl[];
+
+/* Prototypes. */
+static void DRW_engines_enable_external(void);
 
 /* Structures */
 typedef enum {
@@ -1919,7 +1923,13 @@ static void DRW_engines_enable_from_engine(const Scene *scene)
 {
 	/* TODO layers */
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	use_drw_engine(type->draw_engine);
+	if (type->draw_engine != NULL) {
+		use_drw_engine(type->draw_engine);
+	}
+
+	if ((type->flag & RE_INTERNAL) == 0) {
+		DRW_engines_enable_external();
+	}
 }
 
 static void DRW_engines_enable_from_object_mode(void)
@@ -1983,6 +1993,14 @@ static void DRW_engines_enable_from_mode(int mode)
 static void DRW_engines_enable_basic(void)
 {
 	use_drw_engine(DRW_engine_viewport_basic_type.draw_engine);
+}
+
+/**
+ * Use for external render engines.
+ */
+static void DRW_engines_enable_external(void)
+{
+	use_drw_engine(DRW_engine_viewport_external_type.draw_engine);
 }
 
 static void DRW_engines_enable(const bContext *C)

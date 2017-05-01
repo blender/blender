@@ -82,6 +82,7 @@ set(SRC
 	engines/eevee/eevee_engine.c
 	engines/eevee/eevee_lights.c
 	engines/eevee/eevee_probes.c
+	engines/external/external_engine.c
 
 	DRW_engine.h
 	intern/DRW_render.h
@@ -95,6 +96,7 @@ set(SRC
 	engines/clay/clay_engine.h
 	engines/eevee/eevee_engine.h
 	engines/eevee/eevee_private.h
+	engines/external/external_engine.h
 )
 
 if(WITH_CLAY_ENGINE)

@@ -1651,10 +1651,11 @@ def draw_pause(self, context):
     if scene.render.engine == "CYCLES":
         view = context.space_data
 
+        cscene = scene.cycles
+        layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
+
         if view.viewport_shade == 'RENDERED':
-            cscene = scene.cycles
             layername = scene.render.layers.active.name
-            layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
             layout.prop(cscene, "preview_active_layer", icon="RENDERLAYERS", text=layername)
 
 
