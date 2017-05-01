@@ -85,45 +85,58 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 	const float fac = 0.05f * BLI_rctf_size_x(&v2d->cur);
 	int i;
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+
+	glLineWidth(1.0f);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniformColor3f(0.0f, 0.0f, 0.0f);
+	immUniform1f("dash_width", 10.0f);
+	immUniform1f("dash_factor", 0.5f);
 
 	/* draw two black lines showing the standard reference levels */
-	immUniformColor3f(0.0f, 0.0f, 0.0f);
-	glLineWidth(1);
-	setlinestyle(5);
-	
+
 	immBegin(PRIM_LINES, 4);
-	immVertex2f(pos, v2d->cur.xmin, env->midval + env->min);
-	immVertex2f(pos, v2d->cur.xmax, env->midval + env->min);
-		
-	immVertex2f(pos, v2d->cur.xmin, env->midval + env->max);
-	immVertex2f(pos, v2d->cur.xmax, env->midval + env->max);
-	immEnd();
+	immVertex2f(shdr_pos, v2d->cur.xmin, env->midval + env->min);
+	immVertex2f(shdr_pos, v2d->cur.xmax, env->midval + env->min);
 
-	setlinestyle(0);
-
-	/* set size of vertices (non-adjustable for now) */
-	glPointSize(2.0f);
-	
-	/* for now, point color is fixed, and is white */
-	immUniformColor3f(1.0f, 1.0f, 1.0f);
-	
-	immBeginAtMost(PRIM_POINTS, env->totvert * 2);
-
-	for (i = 0, fed = env->data; i < env->totvert; i++, fed++) {
-		/* only draw if visible
-		 *	- min/max here are fixed, not relative
-		 */
-		if (IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
-			immVertex2f(pos, fed->time, fed->min);
-			immVertex2f(pos, fed->time, fed->max);
-		}
-	}
-
+	immVertex2f(shdr_pos, v2d->cur.xmin, env->midval + env->max);
+	immVertex2f(shdr_pos, v2d->cur.xmax, env->midval + env->max);
 	immEnd();
 
 	immUnbindProgram();
+
+	if (env->totvert > 0) {
+		/* set size of vertices (non-adjustable for now) */
+		glPointSize(2.0f);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+		/* for now, point color is fixed, and is white */
+		immUniformColor3f(1.0f, 1.0f, 1.0f);
+
+		immBeginAtMost(PRIM_POINTS, env->totvert * 2);
+
+		for (i = 0, fed = env->data; i < env->totvert; i++, fed++) {
+			/* only draw if visible
+			 *	- min/max here are fixed, not relative
+			 */
+			if (IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
+				immVertex2f(shdr_pos, fed->time, fed->min);
+				immVertex2f(shdr_pos, fed->time, fed->max);
+			}
+		}
+
+		immEnd();
+
+		immUnbindProgram();
+	}
 }
 
 /* *************************** */
@@ -549,7 +562,7 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 }
 
 /* helper func - draw a samples-based F-Curve */
-static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, unsigned int pos)
+static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, const uint shdr_pos)
 {
 	FPoint *prevfpt = fcu->fpt;
 	FPoint *fpt = prevfpt + 1;
@@ -591,14 +604,14 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 			v[1] = prevfpt->vec[1] - fac * (prevfpt->vec[1] - fpt->vec[1]);
 		}
 		
-		immVertex2fv(pos, v);
+		immVertex2fv(shdr_pos, v);
 	}
 	
 	/* loop over samples, drawing segments */
 	/* draw curve between first and last keyframe (if there are enough to do so) */
 	while (b--) {
 		/* Linear interpolation: just add one point (which should add a new line segment) */
-		immVertex2fv(pos, prevfpt->vec);
+		immVertex2fv(shdr_pos, prevfpt->vec);
 		
 		/* get next pointers */
 		if (b > 0) {
@@ -623,7 +636,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 			v[1] = prevfpt->vec[1] - fac * (prevfpt->vec[1] - fpt->vec[1]);
 		}
 		
-		immVertex2fv(pos, v);
+		immVertex2fv(shdr_pos, v);
 	}
 	
 	immEnd();
@@ -832,8 +845,14 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 	//if ((driver->flag & DRIVER_FLAG_SHOWDEBUG) == 0)
 	//	return;
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+	immUniform1i("num_colors", 0);  /* Simple dashes. */
 
 	/* No curve to modify/visualize the result?
 	 * => We still want to show the 1-1 default... 
@@ -844,7 +863,8 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 		/* draw with thin dotted lines in style of what curve would have been */
 		immUniformColor3fv(fcu->color);
 		
-		setlinestyle(20);
+		immUniform1f("dash_width", 40.0f);
+		immUniform1f("dash_factor", 0.5f);
 		glLineWidth(2.0f);
 		
 		/* draw 1-1 line, stretching just past the screen limits 
@@ -853,15 +873,12 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 		immBegin(PRIM_LINES, 2);
 
 		t = v2d->cur.xmin;
-		immVertex2f(pos, t, (t + offset) * unitfac);
+		immVertex2f(shdr_pos, t, (t + offset) * unitfac);
 
 		t = v2d->cur.xmax;
-		immVertex2f(pos, t, (t + offset) * unitfac);
+		immVertex2f(shdr_pos, t, (t + offset) * unitfac);
 
 		immEnd();
-		
-		/* cleanup line drawing */
-		setlinestyle(0);
 	}
 	
 	/* draw driver only if actually functional */
@@ -876,8 +893,9 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			
 			/* draw dotted lines leading towards this point from both axes ....... */
 			immUniformColor3f(0.9f, 0.9f, 0.9f);
-			setlinestyle(5);
-			
+			immUniform1f("dash_width", 10.0f);
+			immUniform1f("dash_factor", 0.5f);
+
 			immBegin(PRIM_LINES, (y >= v2d->cur.ymin) ? 4 : 2);
 
 			/* x-axis lookup */
@@ -885,32 +903,35 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 
 			if (y >= v2d->cur.ymin) {
 				co[1] = v2d->cur.ymin - 1.0f;
-				immVertex2fv(pos, co);
+				immVertex2fv(shdr_pos, co);
 
 				co[1] = y;
-				immVertex2fv(pos, co);
+				immVertex2fv(shdr_pos, co);
 			}
 
 			/* y-axis lookup */
 			co[1] = y;
 
 			co[0] = v2d->cur.xmin - 1.0f;
-			immVertex2fv(pos, co);
+			immVertex2fv(shdr_pos, co);
 
 			co[0] = x;
-			immVertex2fv(pos, co);
+			immVertex2fv(shdr_pos, co);
 
 			immEnd();
 			
-			setlinestyle(0);
-			
+			immUnbindProgram();
+
+			/* PRIM_POINTS do not survive dashed line geometry shader... */
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 			/* x marks the spot .................................................... */
 			/* -> outer frame */
 			immUniformColor3f(0.9f, 0.9f, 0.9f);
 			glPointSize(7.0);
 			
 			immBegin(PRIM_POINTS, 1);
-			immVertex2f(pos, x, y);
+			immVertex2f(shdr_pos, x, y);
 			immEnd();
 			
 			/* inner frame */
@@ -918,7 +939,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			glPointSize(3.0);
 			
 			immBegin(PRIM_POINTS, 1);
-			immVertex2f(pos, x, y);
+			immVertex2f(shdr_pos, x, y);
 			immEnd();
 		}
 	}
@@ -936,15 +957,25 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	FCurve *fcu;
 	
 	/* draw with thick dotted lines */
-	setlinestyle(10);
 	glLineWidth(3.0f);
 	
 	/* anti-aliased lines for less jagged appearance */
-	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
+	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+		glEnable(GL_LINE_SMOOTH);
+	}
 	glEnable(GL_BLEND);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniform1f("dash_width", 20.0f);
+	immUniform1f("dash_factor", 0.5f);
 
 	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
 	for (fcu = sipo->ghostCurves.first; fcu; fcu = fcu->next) {
@@ -955,15 +986,14 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		immUniformColor3fvAlpha(fcu->color, 0.5f);
 		
 		/* simply draw the stored samples */
-		draw_fcurve_curve_samples(ac, NULL, fcu, &ar->v2d, pos);
+		draw_fcurve_curve_samples(ac, NULL, fcu, &ar->v2d, shdr_pos);
 	}
 
 	immUnbindProgram();
 
-	/* restore settings */
-	setlinestyle(0);
-	
-	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glDisable(GL_LINE_SMOOTH);
+	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+		glDisable(GL_LINE_SMOOTH);
+	}
 	glDisable(GL_BLEND);
 }
 
@@ -1007,11 +1037,6 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 		    (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)))
 		{
 			/* set color/drawing style for curve itself */
-			if (BKE_fcurve_is_protected(fcu)) {
-				/* protected curves (non editable) are drawn with dotted lines */
-				setlinestyle(2);
-			}
-			
 			/* draw active F-Curve thicker than the rest to make it stand out */
 			if (fcu->flag & FCURVE_ACTIVE) {
 				glLineWidth(2.0);
@@ -1021,11 +1046,29 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			}
 			
 			/* anti-aliased lines for less jagged appearance */
-			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
+			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+				glEnable(GL_LINE_SMOOTH);
+			}
 			glEnable(GL_BLEND);
 
-			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+			const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+			float viewport_size[4];
+			glGetFloatv(GL_VIEWPORT, viewport_size);
+			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+			immUniform1i("num_colors", 0);  /* Simple dashes. */
+
+			if (BKE_fcurve_is_protected(fcu)) {
+				/* protected curves (non editable) are drawn with dotted lines */
+				immUniform1f("dash_width", 4.0f);
+				immUniform1f("dash_factor", 0.5f);
+			}
+			else {
+				immUniform1f("dash_factor", 2.0f);  /* solid line */
+			}
 
 			if (((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED)) {
 				/* muted curves are drawn in a grayish hue */
@@ -1044,29 +1087,28 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				/* draw a curve affected by modifiers or only allowed to have integer values 
 				 * by sampling it at various small-intervals over the visible region 
 				 */
-				draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid, pos);
+				draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid, shdr_pos);
 			}
 			else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
 				/* just draw curve based on defined data (i.e. no modifiers) */
 				if (fcu->bezt) {
 					if (fcurve_can_use_simple_bezt_drawing(fcu)) {
-						draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d, pos);
+						draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d, shdr_pos);
 					}
 					else {
-						draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid, pos);
+						draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid, shdr_pos);
 					}
 				}
 				else if (fcu->fpt) {
-					draw_fcurve_curve_samples(ac, ale->id, fcu, &ar->v2d, pos);
+					draw_fcurve_curve_samples(ac, ale->id, fcu, &ar->v2d, shdr_pos);
 				}
 			}
 
 			immUnbindProgram();
 
-			/* restore settings */
-			setlinestyle(0);
-			
-			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glDisable(GL_LINE_SMOOTH);
+			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+				glDisable(GL_LINE_SMOOTH);
+			}
 			glDisable(GL_BLEND);
 		}
 		
