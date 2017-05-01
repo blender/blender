@@ -348,9 +348,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 
 	/* draw boundary border for frame if stabilization is enabled */
 	if (sc->flag & SC_SHOW_STABLE && clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
-		VertexFormat *format = immVertexFormat();
-		const uint shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		const uint shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+		const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 		/* Exclusive OR allows to get orig value when second operand is 0,
 		 * and negative of orig value when second operand is 1. */
@@ -369,12 +367,12 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		glGetFloatv(GL_VIEWPORT, viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform4f("color1", 1.0f, 1.0f, 1.0f, 0.0f);
-		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+		immUniform1i("num_colors", 0);  /* "simple" mode */
+		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 		immUniform1f("dash_width", 6.0f);
-		immUniform1f("dash_width_on", 3.0f);
+		immUniform1f("dash_factor", 0.5f);
 
-		imm_draw_line_box_dashed(shdr_dashed_pos, shdr_dashed_origin, 0.0f, 0.0f, width, height);
+		imm_draw_line_box(shdr_pos, 0.0f, 0.0f, width, height);
 
 		immUnbindProgram();
 
@@ -640,12 +638,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 {
 	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
 	bool show_search = false;
-	float *curr_col, other_col[3], col[3], scol[3];
+	float col[3], scol[3];
 	float px[2];
-	bool is_dashed_shader = false;
-
-	/* Vertex attributes ids for dashed shader... */
-	uint shdr_dashed_pos, shdr_dashed_origin;
 
 	track_colors(track, act, col, scol);
 
@@ -654,26 +648,35 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	glLineWidth(1.0f);
 
+	/* Since we are switching solid and dashed lines in rather complex logic here, just always go with dashed shader. */
+	immUnbindProgram();
+
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+	immUniform1i("num_colors", 0);  /* "simple" mode */
+
 	/* marker position and offset position */
 	if ((track->flag & SELECT) == sel && (marker->flag & MARKER_DISABLED) == 0) {
 		float pos[2], p[2];
 
 		if (track->flag & TRACK_LOCKED) {
 			if (act) {
-				UI_GetThemeColor3fv(TH_ACT_MARKER, other_col);
+				immUniformThemeColor(TH_ACT_MARKER);
 			}
 			else if (track->flag & SELECT) {
-				UI_GetThemeColorShade3fv(TH_LOCK_MARKER, 64, other_col);
+				immUniformThemeColorShade(TH_LOCK_MARKER, 64);
 			}
 			else {
-				UI_GetThemeColor3fv(TH_LOCK_MARKER, other_col);
+				immUniformThemeColor(TH_LOCK_MARKER);
 			}
-			curr_col = other_col;
 		}
 		else {
-			curr_col = (track->flag & SELECT) ? scol : col;
+			immUniformColor3fv((track->flag & SELECT) ? scol : col);
 		}
-		immUniformColor3fv(curr_col);
 
 		add_v2_v2v2(pos, marker->pos, track->offset);
 		ED_clip_point_undistorted_pos(sc, pos, pos);
@@ -685,11 +688,15 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		{
 			glPointSize(tiny ? 1.0f : 2.0f);
 
+			immUniform1f("dash_factor", 2.0f);  /* Solid "line" */
+
 			immBegin(PRIM_POINTS, 1);
 			immVertex2f(shdr_pos, pos[0], pos[1]);
 			immEnd();
 		}
 		else {
+			immUniform1f("dash_factor", 2.0f);  /* Solid line */
+
 			immBegin(PRIM_LINES, 8);
 
 			immVertex2f(shdr_pos, pos[0] + px[0] * 3, pos[1]);
@@ -706,31 +713,16 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 			immEnd();
 
-			immUnbindProgram();
-
-			is_dashed_shader = true;
-			VertexFormat *format = immVertexFormat();
-			shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
-
-			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
-
-			float viewport_size[4];
-			glGetFloatv(GL_VIEWPORT, viewport_size);
-			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
-
-			immUniform4f("color1", 1.0f, 1.0f, 1.0f, 0.0f);
-			immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.0f);
 			immUniform1f("dash_width", 6.0f);
-			immUniform1f("dash_width_on", 3.0f);
+			immUniform1f("dash_factor", 0.5f);
 
 			glEnable(GL_COLOR_LOGIC_OP);
 			glLogicOp(GL_XOR);
 
 			immBegin(PRIM_LINES, 2);
-			immAttrib2fv(shdr_dashed_origin, pos);
-			immVertex2fv(shdr_dashed_pos, pos);
-			immVertex2fv(shdr_dashed_pos, marker_pos);
+			immVertex2fv(shdr_pos, pos);
+			immVertex2fv(shdr_pos, marker_pos);
 			immEnd();
 
 			glDisable(GL_COLOR_LOGIC_OP);
@@ -743,124 +735,66 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	if (track->flag & TRACK_LOCKED) {
 		if (act) {
-			UI_GetThemeColor3fv(TH_ACT_MARKER, other_col);
+			immUniformThemeColor(TH_ACT_MARKER);
 		}
 		else if (track->pat_flag & SELECT) {
-			UI_GetThemeColorShade3fv(TH_LOCK_MARKER, 64, other_col);
+			immUniformThemeColorShade(TH_LOCK_MARKER, 64);
 		}
 		else {
-			UI_GetThemeColor3fv(TH_LOCK_MARKER, other_col);
+			immUniformThemeColor(TH_LOCK_MARKER);
 		}
-		curr_col = other_col;
 	}
 	else if (marker->flag & MARKER_DISABLED) {
 		if (act) {
-			UI_GetThemeColor3fv(TH_ACT_MARKER, other_col);
+			immUniformThemeColor(TH_ACT_MARKER);
 		}
 		else if (track->pat_flag & SELECT) {
-			UI_GetThemeColorShade3fv(TH_DIS_MARKER, 128, other_col);
+			immUniformThemeColorShade(TH_DIS_MARKER, 128);
 		}
 		else {
-			UI_GetThemeColor3fv(TH_DIS_MARKER, other_col);
+			immUniformThemeColor(TH_DIS_MARKER);
 		}
-		curr_col = other_col;
 	}
 	else {
-		curr_col = (track->pat_flag & SELECT) ? scol : col;
+		immUniformColor3fv((track->pat_flag & SELECT) ? scol : col);
 	}
 
 	if (tiny) {
-		if (!is_dashed_shader) {
-			immUnbindProgram();
-
-			is_dashed_shader = true;
-			VertexFormat *format = immVertexFormat();
-			shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
-
-			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
-		}
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		float viewport_size[4];
-		glGetFloatv(GL_VIEWPORT, viewport_size);
-		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
-
-		immUniform4f("color1", curr_col[0], curr_col[1], curr_col[2], 1.0f);
-		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
 		immUniform1f("dash_width", 6.0f);
-		immUniform1f("dash_width_on", 3.0f);
-
-		if ((track->pat_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
-			immBegin(PRIM_LINES, 8);
-			immAttrib2fv(shdr_dashed_origin, marker->pattern_corners[0]);
-			immVertex2fv(shdr_dashed_pos, marker->pattern_corners[0]);
-			immVertex2fv(shdr_dashed_pos, marker->pattern_corners[1]);
-
-			immAttrib2fv(shdr_dashed_origin, marker->pattern_corners[1]);
-			immVertex2fv(shdr_dashed_pos, marker->pattern_corners[1]);
-			immVertex2fv(shdr_dashed_pos, marker->pattern_corners[2]);
-
-			immAttrib2fv(shdr_dashed_origin, marker->pattern_corners[3]);
-			immVertex2fv(shdr_dashed_pos, marker->pattern_corners[2]);
-			immVertex2fv(shdr_dashed_pos, marker->pattern_corners[3]);
-
-			immAttrib2fv(shdr_dashed_origin, marker->pattern_corners[0]);
-			immVertex2fv(shdr_dashed_pos, marker->pattern_corners[3]);
-			immVertex2fv(shdr_dashed_pos, marker->pattern_corners[0]);
-			immEnd();
-		}
-
-		/* search */
-		show_search = (TRACK_VIEW_SELECTED(sc, track) &&
-		               ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0)) != 0;
-
-		if ((track->search_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_SEARCH) && show_search) {
-			imm_draw_line_box_dashed(shdr_dashed_pos, shdr_dashed_origin, marker->search_min[0], marker->search_min[1],
-			                                           marker->search_max[0], marker->search_max[1]);
-		}
-
-		glDisable(GL_BLEND);
+		immUniform1f("dash_factor", 0.5f);
+	}
+	else {
+		immUniform1f("dash_factor", 2.0f);  /* Solid line */
 	}
 
-	if (is_dashed_shader) {
-		immUnbindProgram();
-
-		uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-		BLI_assert(pos == shdr_pos);
-		UNUSED_VARS_NDEBUG(pos);
-
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		is_dashed_shader = false;
+	if ((track->pat_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
+		immBegin(PRIM_LINE_LOOP, 4);
+		immVertex2fv(shdr_pos, marker->pattern_corners[0]);
+		immVertex2fv(shdr_pos, marker->pattern_corners[1]);
+		immVertex2fv(shdr_pos, marker->pattern_corners[2]);
+		immVertex2fv(shdr_pos, marker->pattern_corners[3]);
+		immEnd();
 	}
 
-	if (!tiny) {
-		immUniformColor3fv(curr_col);
+	/* search */
+	show_search = (TRACK_VIEW_SELECTED(sc, track) &&
+	               ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0)) != 0;
 
-		if ((track->pat_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
-			immBegin(PRIM_LINE_LOOP, 4);
-			immVertex2fv(shdr_pos, marker->pattern_corners[0]);
-			immVertex2fv(shdr_pos, marker->pattern_corners[1]);
-			immVertex2fv(shdr_pos, marker->pattern_corners[2]);
-			immVertex2fv(shdr_pos, marker->pattern_corners[3]);
-			immEnd();
-		}
-
-		/* search */
-		show_search = (TRACK_VIEW_SELECTED(sc, track) &&
-		               ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0)) != 0;
-
-		if ((track->search_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_SEARCH) && show_search) {
-			imm_draw_line_box(shdr_pos, marker->search_min[0],
-			                            marker->search_min[1],
-			                            marker->search_max[0],
-			                            marker->search_max[1]);
-		}
+	if ((track->search_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_SEARCH) && show_search) {
+		imm_draw_line_box(shdr_pos, marker->search_min[0], marker->search_min[1],
+		                            marker->search_max[0], marker->search_max[1]);
 	}
 
 	gpuPopMatrix();
+
+	/* Restore default shader */
+	immUnbindProgram();
+
+	const uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	BLI_assert(pos == shdr_pos);
+	UNUSED_VARS_NDEBUG(pos);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 }
 
 static float get_shortest_pattern_side(MovieTrackingMarker *marker)
@@ -1245,7 +1179,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 	                       BKE_image_has_ibuf(plane_track->image, NULL);
 	const bool draw_plane_quad = !has_image || plane_track->image_opacity == 0.0f;
 	float px[2];
-	float *curr_color, other_color[3], color[3], selected_color[3];
+	float color[3], selected_color[3];
 
 	px[0] = 1.0f / width / sc->zoom;
 	px[1] = 1.0f / height / sc->zoom;
@@ -1256,8 +1190,15 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 	}
 
 	if (draw_plane_quad || is_selected_track) {
-		uint shdr_pos;
-		bool is_uniform_shader_defined = false;
+		const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+
+		float viewport_size[4];
+		glGetFloatv(GL_VIEWPORT, viewport_size);
+		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+		immUniform1i("num_colors", 0);  /* "simple" mode */
 
 		if (draw_plane_quad) {
 			const bool stipple = !draw_outline && tiny;
@@ -1265,137 +1206,60 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 
 			glLineWidth(thick ? 3.0f : 1.0f);
 
+			if (stipple) {
+				immUniform1f("dash_width", 6.0f);
+				immUniform1f("dash_factor", 0.5f);
+			}
+			else {
+				immUniform1f("dash_factor", 2.0f);  /* Solid line */
+			}
+
 			if (draw_outline) {
-				UI_GetThemeColor3fv(TH_MARKER_OUTLINE, other_color);
-				curr_color = other_color;
+				immUniformThemeColor(TH_MARKER_OUTLINE);
 			}
 			else {
 				plane_track_colors(is_active_track, color, selected_color);
-				curr_color = is_selected_track ? selected_color : color;
+				immUniformColor3fv(is_selected_track ? selected_color : color);
 			}
 
-			if (stipple) {
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			/* Draw rectangle itself. */
+			immBegin(PRIM_LINE_LOOP, 4);
+			immVertex2fv(shdr_pos, plane_marker->corners[0]);
+			immVertex2fv(shdr_pos, plane_marker->corners[1]);
+			immVertex2fv(shdr_pos, plane_marker->corners[2]);
+			immVertex2fv(shdr_pos, plane_marker->corners[3]);
+			immEnd();
 
-				VertexFormat *format = immVertexFormat();
-				uint shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-				uint shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+			/* Draw axis. */
+			if (!draw_outline) {
+				float end_point[2];
 
-				immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+				immUniformColor3f(1.0f, 0.0f, 0.0f);
 
-				float viewport_size[4];
-				glGetFloatv(GL_VIEWPORT, viewport_size);
-				immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+				immBegin(PRIM_LINES, 2);
 
-				immUniform4f("color1", curr_color[0], curr_color[1], curr_color[2], 1.0f);
-				immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
-				immUniform1f("dash_width", 6.0f);
-				immUniform1f("dash_width_on", 3.0f);
-
-				/* Draw rectangle itself. */
-				immBegin(PRIM_LINES, 8);
-				immAttrib2fv(shdr_dashed_origin, plane_marker->corners[0]);
-				immVertex2fv(shdr_dashed_pos, plane_marker->corners[0]);
-				immVertex2fv(shdr_dashed_pos, plane_marker->corners[1]);
-
-				immAttrib2fv(shdr_dashed_origin, plane_marker->corners[1]);
-				immVertex2fv(shdr_dashed_pos, plane_marker->corners[1]);
-				immVertex2fv(shdr_dashed_pos, plane_marker->corners[2]);
-
-				immAttrib2fv(shdr_dashed_origin, plane_marker->corners[3]);
-				immVertex2fv(shdr_dashed_pos, plane_marker->corners[2]);
-				immVertex2fv(shdr_dashed_pos, plane_marker->corners[3]);
-
-				immAttrib2fv(shdr_dashed_origin, plane_marker->corners[0]);
-				immVertex2fv(shdr_dashed_pos, plane_marker->corners[3]);
-				immVertex2fv(shdr_dashed_pos, plane_marker->corners[0]);
-				immEnd();
-
-				/* Draw axis. */
-				if (!draw_outline) {
-					float end_point[2];
-
-					immUniform4f("color1", 1.0f, 0.0f, 0.0f, 1.0f);
-
-					immBegin(PRIM_LINES, 2);
-
-					getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[1], end_point);
-					immAttrib2fv(shdr_dashed_origin, plane_marker->corners[0]);
-					immVertex2fv(shdr_dashed_pos, plane_marker->corners[0]);
-					immVertex2fv(shdr_dashed_pos, end_point);
-
-					immEnd();
-
-					immUniform4f("color1", 0.0f, 1.0f, 0.0f, 1.0f);
-
-					immBegin(PRIM_LINES, 2);
-
-					getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[3], end_point);
-					immAttrib2fv(shdr_dashed_origin, plane_marker->corners[0]);
-					immVertex2fv(shdr_dashed_pos, plane_marker->corners[0]);
-					immVertex2fv(shdr_dashed_pos, end_point);
-
-					immEnd();
-				}
-
-				immUnbindProgram();
-
-				glDisable(GL_BLEND);
-			}
-
-			shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-
-			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-			is_uniform_shader_defined = true;
-
-			immUniformColor3fv(curr_color);
-
-			if (!stipple) {
-				/* Draw rectangle itself. */
-				immBegin(PRIM_LINE_LOOP, 4);
+				getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[1], end_point);
 				immVertex2fv(shdr_pos, plane_marker->corners[0]);
-				immVertex2fv(shdr_pos, plane_marker->corners[1]);
-				immVertex2fv(shdr_pos, plane_marker->corners[2]);
-				immVertex2fv(shdr_pos, plane_marker->corners[3]);
+				immVertex2fv(shdr_pos, end_point);
+
 				immEnd();
 
-				/* Draw axis. */
-				if (!draw_outline) {
-					float end_point[2];
+				immUniformColor3f(0.0f, 1.0f, 0.0f);
 
-					immUniformColor3f(1.0f, 0.0f, 0.0f);
+				immBegin(PRIM_LINES, 2);
 
-					immBegin(PRIM_LINES, 2);
+				getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[3], end_point);
+				immVertex2fv(shdr_pos, plane_marker->corners[0]);
+				immVertex2fv(shdr_pos, end_point);
 
-					getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[1], end_point);
-					immVertex2fv(shdr_pos, plane_marker->corners[0]);
-					immVertex2fv(shdr_pos, end_point);
-
-					immEnd();
-
-					immUniformColor3f(0.0f, 1.0f, 0.0f);
-
-					immBegin(PRIM_LINES, 2);
-
-					getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[3], end_point);
-					immVertex2fv(shdr_pos, plane_marker->corners[0]);
-					immVertex2fv(shdr_pos, end_point);
-
-					immEnd();
-				}
+				immEnd();
 			}
-		}
-
-		if (!is_uniform_shader_defined) {
-			shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-
-			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-			is_uniform_shader_defined = true;
 		}
 
 		/* Draw sliders. */
 		if (is_selected_track) {
+			immUniform1f("dash_factor", 2.0f);  /* Solid line */
+
 			if (draw_outline) {
 				immUniformThemeColor(TH_MARKER_OUTLINE);
 			}

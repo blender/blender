@@ -688,7 +688,6 @@ void draw_image_sample_line(SpaceImage *sima)
 
 		VertexFormat *format = immVertexFormat();
 		unsigned int shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned int shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
@@ -696,13 +695,11 @@ void draw_image_sample_line(SpaceImage *sima)
 		glGetFloatv(GL_VIEWPORT, viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform4f("color1", 1.0f, 1.0f, 1.0f, 1.0f);
-		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 1.0f);
+		immUniform1i("num_colors", 2);  /* Advanced dashes. */
+		immUniformArray4fv("colors", (float *)(float[][4]){{1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
 		immUniform1f("dash_width", 2.0f);
-		immUniform1f("dash_width_on", 1.0f);
 
 		immBegin(PRIM_LINES, 2);
-		immAttrib2fv(shdr_dashed_origin, hist->co[0]);
 		immVertex2fv(shdr_dashed_pos, hist->co[0]);
 		immVertex2fv(shdr_dashed_pos, hist->co[1]);
 		immEnd();

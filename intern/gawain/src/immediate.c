@@ -807,6 +807,24 @@ void immUniform4fv(const char* name, const float data[4])
 	glUniform4fv(uniform->location, 1, data);
 	}
 
+void immUniformArray4fv(const char* bare_name, const float *data, int count)
+	{
+	// look up "name[0]" when given "name"
+	const size_t len = strlen(bare_name);
+#if TRUST_NO_ONE
+	assert(len <= MAX_UNIFORM_NAME_LEN);
+#endif
+	char name[MAX_UNIFORM_NAME_LEN];
+	strcpy(name, bare_name);
+	name[len + 0] = '[';
+	name[len + 1] = '0';
+	name[len + 2] = ']';
+	name[len + 3] = '\0';
+
+	GET_UNIFORM
+	glUniform4fv(uniform->location, count, data);
+	}
+
 void immUniformMatrix4fv(const char* name, const float data[4][4])
 	{
 	GET_UNIFORM

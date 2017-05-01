@@ -1501,12 +1501,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		margin_column_x = x + st->cwidth * (st->margin_column - st->left);
 		
 		if (margin_column_x >= x) {
-			VertexFormat *format = immVertexFormat();
-			uint shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
-			uint shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
-
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
@@ -1514,21 +1509,16 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 			glGetFloatv(GL_VIEWPORT, viewport_size);
 			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-			float color1[4];
-			UI_GetThemeColor4fv(TH_GRID, color1);  /* same color as line number background */
-			immUniform4fv("color1", color1);
-			immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+			immUniform1i("num_colors", 0);  /* "simple" mode */
+			immUniformThemeColor(TH_GRID);  /* same color as line number background */
 			immUniform1f("dash_width", 2.0f);
-			immUniform1f("dash_width_on", 1.0f);
+			immUniform1f("dash_factor", 0.5f);
 
 			immBegin(PRIM_LINES, 2);
-			immAttrib2i(shdr_dashed_origin, margin_column_x, 0);
-			immVertex2i(shdr_dashed_pos, margin_column_x, 0);
-			immVertex2i(shdr_dashed_pos, margin_column_x, ar->winy - 2);
+			immVertex2i(shdr_pos, margin_column_x, 0);
+			immVertex2i(shdr_pos, margin_column_x, ar->winy - 2);
 			immEnd();
 			immUnbindProgram();
-
-			glDisable(GL_BLEND);
 		}
 	}
 

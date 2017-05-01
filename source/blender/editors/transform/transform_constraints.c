@@ -728,12 +728,7 @@ void drawConstraint(TransInfo *t)
 			if (depth_test_enabled)
 				glDisable(GL_DEPTH_TEST);
 
-			VertexFormat *format = immVertexFormat();
-			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			unsigned int line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 3, KEEP_FLOAT);
-
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
+			const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_COLOR);
 
@@ -741,20 +736,17 @@ void drawConstraint(TransInfo *t)
 			glGetFloatv(GL_VIEWPORT, viewport_size);
 			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-			immUniform4f("color1", 1.0f, 1.0f, 1.0f, 1.0f);
-			immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+			immUniform1i("num_colors", 0);  /* "simple" mode */
+			immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			immUniform1f("dash_width", 2.0f);
-			immUniform1f("dash_width_on", 1.0f);
+			immUniform1f("dash_factor", 0.5f);
 
 			immBegin(PRIM_LINES, 2);
-			immAttrib3fv(line_origin, t->center_global);
-			immVertex3fv(pos, t->center_global);
-			immVertex3fv(pos, vec);
+			immVertex3fv(shdr_pos, t->center_global);
+			immVertex3fv(shdr_pos, vec);
 			immEnd();
 
 			immUnbindProgram();
-
-			glDisable(GL_BLEND);
 
 			if (depth_test_enabled)
 				glEnable(GL_DEPTH_TEST);

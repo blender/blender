@@ -458,37 +458,29 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 		glEnable(GL_BLEND);
 
-		if (ruler_item->flag & RULERITEM_USE_ANGLE) {
-			VertexFormat *format = immVertexFormat();
-			uint pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			uint line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
+		const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
+		if (ruler_item->flag & RULERITEM_USE_ANGLE) {
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
 			float viewport_size[4];
 			glGetFloatv(GL_VIEWPORT, viewport_size);
 			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-			immUniform4f("color1", 0.67f, 0.67f, 0.67f, 1.0f);
-			immUniform4fv("color2", is_act ? color_act : color_base);
+			immUniform1i("num_colors", 2);  /* "advanced" mode */
+			const float *col = is_act ? color_act : color_base;
+			immUniformArray4fv("colors", (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}}, 2);
 			immUniform1f("dash_width", 6.0f);
-			immUniform1f("dash_width_on", 3.0f);
 
-			immBegin(PRIM_LINES, 4);
+			immBegin(PRIM_LINE_STRIP, 3);
 
-			immAttrib2fv(line_origin, co_ss[0]);
-			immVertex2fv(pos, co_ss[0]);
-			immVertex2fv(pos, co_ss[1]);
-
-			immAttrib2fv(line_origin, co_ss[1]);
-			immVertex2fv(pos, co_ss[1]);
-			immVertex2fv(pos, co_ss[2]);
+			immVertex2fv(shdr_pos, co_ss[0]);
+			immVertex2fv(shdr_pos, co_ss[1]);
+			immVertex2fv(shdr_pos, co_ss[2]);
 
 			immEnd();
 
 			immUnbindProgram();
-
-			pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -529,7 +521,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 					ED_view3d_project_float_global(ar, co_tmp, arc_ss_coord, V3D_PROJ_TEST_NOP);
 					mul_qt_v3(quat, dir_tmp);
 
-					immVertex2fv(pos, arc_ss_coord);
+					immVertex2fv(shdr_pos, arc_ss_coord);
 				}
 
 				immEnd();
@@ -558,20 +550,20 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				immBegin(PRIM_LINES, 8);
 
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, cap_size);
-				immVertex2fv(pos, cap);
+				immVertex2fv(shdr_pos, cap);
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, -cap_size);
-				immVertex2fv(pos, cap);
+				immVertex2fv(shdr_pos, cap);
 
 				madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, cap_size);
-				immVertex2fv(pos, cap);
+				immVertex2fv(shdr_pos, cap);
 				madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, -cap_size);
-				immVertex2fv(pos, cap);
+				immVertex2fv(shdr_pos, cap);
 
 				/* angle vertex */
-				immVertex2f(pos, co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
-				immVertex2f(pos, co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
-				immVertex2f(pos, co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
-				immVertex2f(pos, co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
+				immVertex2f(shdr_pos, co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
+				immVertex2f(shdr_pos, co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
+				immVertex2f(shdr_pos, co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
+				immVertex2f(shdr_pos, co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
 
 				immEnd();
 
@@ -608,32 +600,25 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			}
 		}
 		else {
-			VertexFormat *format = immVertexFormat();
-			uint pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			uint line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
-
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
 			float viewport_size[4];
 			glGetFloatv(GL_VIEWPORT, viewport_size);
 			immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-			immUniform4f("color1", 0.67f, 0.67f, 0.67f, 1.0f);
-			immUniform4fv("color2", is_act ? color_act : color_base);
+			immUniform1i("num_colors", 2);  /* "advanced" mode */
+			const float *col = is_act ? color_act : color_base;
+			immUniformArray4fv("colors", (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}}, 2);
 			immUniform1f("dash_width", 6.0f);
-			immUniform1f("dash_width_on", 3.0f);
 
 			immBegin(PRIM_LINES, 2);
 
-			immAttrib2fv(line_origin, co_ss[0]);
-			immVertex2fv(pos, co_ss[0]);
-			immVertex2fv(pos, co_ss[2]);
+			immVertex2fv(shdr_pos, co_ss[0]);
+			immVertex2fv(shdr_pos, co_ss[2]);
 
 			immEnd();
 
 			immUnbindProgram();
-
-			pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -653,14 +638,14 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				immBegin(PRIM_LINES, 4);
 
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, cap_size);
-				immVertex2fv(pos, cap);
+				immVertex2fv(shdr_pos, cap);
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, -cap_size);
-				immVertex2fv(pos, cap);
+				immVertex2fv(shdr_pos, cap);
 
 				madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, cap_size);
-				immVertex2fv(pos, cap);
+				immVertex2fv(shdr_pos, cap);
 				madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, -cap_size);
-				immVertex2fv(pos, cap);
+				immVertex2fv(shdr_pos, cap);
 
 				immEnd();
 

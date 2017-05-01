@@ -1632,12 +1632,7 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 	bConstraint *con;
 	bPoseChannel *parchan;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	unsigned int line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 3, KEEP_FLOAT);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_COLOR);
 
@@ -1645,10 +1640,10 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 	glGetFloatv(GL_VIEWPORT, viewport_size);
 	immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-	immUniform4fv("color1", fcolor);
-	immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+	immUniform1i("num_colors", 0);  /* "simple" mode */
+	immUniformColor4fv(fcolor);
 	immUniform1f("dash_width", 6.0f);
-	immUniform1f("dash_width_on", 3.0f);
+	immUniform1f("dash_factor", 0.5f);
 
 	for (con = pchan->constraints.first; con; con = con->next) {
 		if (con->enforce == 0.0f)
@@ -1683,9 +1678,8 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 
 				if (parchan) {
 					immBegin(PRIM_LINES, 2);
-					immAttrib3fv(line_origin, ik_tip);
-					immVertex3fv(pos, ik_tip);
-					immVertex3fv(pos, parchan->pose_head);
+					immVertex3fv(shdr_pos, ik_tip);
+					immVertex3fv(shdr_pos, parchan->pose_head);
 					immEnd();
 				}
 				
@@ -1710,9 +1704,8 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 				/* Only draw line in case our chain is more than one bone long! */
 				if (parchan != pchan) { /* XXX revise the breaking conditions to only stop at the tail? */
 					immBegin(PRIM_LINES, 2);
-					immAttrib3fv(line_origin, ik_tip);
-					immVertex3fv(pos, ik_tip);
-					immVertex3fv(pos, parchan->pose_head);
+					immVertex3fv(shdr_pos, ik_tip);
+					immVertex3fv(shdr_pos, parchan->pose_head);
 					immEnd();
 				}
 				break;
@@ -1721,8 +1714,6 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 	}
 
 	immUnbindProgram();
-
-	glDisable(GL_BLEND);
 }
 
 static void imm_sphere_project(unsigned int pos, float ax, float az)
@@ -2216,12 +2207,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 						 * - only if V3D_HIDE_HELPLINES is enabled...
 						 */
 						if ((do_dashed & DASH_HELP_LINES) && ((bone->flag & BONE_CONNECTED) == 0)) {
-							VertexFormat *format = immVertexFormat();
-							unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-							unsigned int line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 3, KEEP_FLOAT);
-
-							glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-							glEnable(GL_BLEND);
+							const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 							immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_COLOR);
 
@@ -2229,26 +2215,22 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 							glGetFloatv(GL_VIEWPORT, viewport_size);
 							immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-							immUniform4fv("color1", fcolor);
-							immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+							immUniform1i("num_colors", 0);  /* "simple" mode */
+							immUniformColor4fv(fcolor);
 							immUniform1f("dash_width", 6.0f);
-							immUniform1f("dash_width_on", 3.0f);
+							immUniform1f("dash_factor", 0.5f);
 
 							if (arm->flag & ARM_POSEMODE) {
 								GPU_select_load_id(index & 0xFFFF);  /* object tag, for bordersel optim */
-								UI_GetThemeColor4fv(TH_WIRE, fcolor);
-								immUniform4fv("color1", fcolor);
+								immUniformThemeColor(TH_WIRE);
 							}
 
 							immBegin(PRIM_LINES, 2);
-							immAttrib3fv(line_origin, pchan->parent->pose_tail);
-							immVertex3fv(pos, pchan->parent->pose_tail);
-							immVertex3fv(pos, pchan->pose_head);
+							immVertex3fv(shdr_pos, pchan->parent->pose_tail);
+							immVertex3fv(shdr_pos, pchan->pose_head);
 							immEnd();
 
 							immUnbindProgram();
-
-							glDisable(GL_BLEND);
 						}
 						
 						/* Draw a line to IK root bone 
@@ -2530,12 +2512,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 				
 				/* offset to parent */
 				if (eBone->parent) {
-					VertexFormat *format = immVertexFormat();
-					unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-					unsigned int line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 3, KEEP_FLOAT);
-
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glEnable(GL_BLEND);
+					const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 
 					GPU_select_load_id(-1);  /* -1 here is OK! */
 
@@ -2545,21 +2522,17 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 					glGetFloatv(GL_VIEWPORT, viewport_size);
 					immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-					UI_GetThemeColor4fv(TH_WIRE_EDIT, fcolor);
-					immUniform4fv("color1", fcolor);
-					immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+					immUniform1i("num_colors", 0);  /* "simple" mode */
+					immUniformThemeColor(TH_WIRE_EDIT);
 					immUniform1f("dash_width", 6.0f);
-					immUniform1f("dash_width_on", 3.0f);
+					immUniform1f("dash_factor", 0.5f);
 
 					immBegin(PRIM_LINES, 2);
-					immAttrib3fv(line_origin, eBone->parent->tail);
-					immVertex3fv(pos, eBone->parent->tail);
-					immVertex3fv(pos, eBone->head);
+					immVertex3fv(shdr_pos, eBone->parent->tail);
+					immVertex3fv(shdr_pos, eBone->head);
 					immEnd();
 
 					immUnbindProgram();
-
-					glDisable(GL_BLEND);
 				}
 			}
 		}

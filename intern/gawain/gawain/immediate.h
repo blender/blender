@@ -90,6 +90,7 @@ void immUniform3fv(const char* name, const float data[3]);
 void immUniformArray3fv(const char* name, const float *data, int count);
 void immUniform4f(const char* name, float x, float y, float z, float w);
 void immUniform4fv(const char* name, const float data[4]);
+void immUniformArray4fv(const char* bare_name, const float *data, int count);
 void immUniformMatrix4fv(const char* name, const float data[4][4]);
 
 

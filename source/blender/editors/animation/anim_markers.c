@@ -353,7 +353,6 @@ static void draw_marker(
 	{
 		VertexFormat *format = immVertexFormat();
 		uint pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		uint line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
@@ -362,17 +361,15 @@ static void draw_marker(
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
 		if (marker->flag & SELECT) {
-			immUniform4f("color1", 1.0f, 1.0f, 1.0f, 0.38f);
+			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.38f);
 		}
 		else {
-			immUniform4f("color1", 0.0f, 0.0f, 0.0f, 0.38f);
+			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.38f);
 		}
-		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
 		immUniform1f("dash_width", 6.0f);
-		immUniform1f("dash_width_on", 3.0f);
+		immUniform1f("dash_factor", 0.5f);
 
 		immBegin(PRIM_LINES, 2);
-		immAttrib2f(line_origin, xpos + 0.5f, 12.0f);
 		immVertex2f(pos, xpos + 0.5f, 12.0f);
 		immVertex2f(pos, xpos + 0.5f, (v2d->cur.ymax + 12.0f) * yscale);
 		immEnd();

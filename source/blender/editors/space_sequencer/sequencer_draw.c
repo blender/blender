@@ -1033,13 +1033,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	glLineWidth(1.0f);
 
 	/* border */
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int line_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
-	float color1[4];
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
@@ -1047,36 +1041,31 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	glGetFloatv(GL_VIEWPORT, viewport_size);
 	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-	UI_GetThemeColor4fv(TH_BACK, color1);
-	immUniform4fv("color1", color1);
-	immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+	immUniformThemeColor(TH_BACK);
+	immUniform1i("num_colors", 0);  /* Simple dashes. */
 	immUniform1f("dash_width", 6.0f);
-	immUniform1f("dash_width_on", 3.0f);
+	immUniform1f("dash_factor", 0.5f);
 
-	imm_draw_line_box_dashed(pos, line_origin, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
+	imm_draw_line_box(shdr_pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
 	/* safety border */
 	if (sseq->flag & SEQ_SHOW_SAFE_MARGINS) {
-		UI_GetThemeColorBlend3f(TH_VIEW_OVERLAY, TH_BACK, 0.25f, color1);
-		color1[3] = 1.0f;
-		immUniform4fv("color1", color1);
+		immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
 
 		UI_draw_safe_areas(
-		        pos, line_origin, x1, x2, y1, y2,
+		        shdr_pos, x1, x2, y1, y2,
 		        scene->safe_areas.title,
 		        scene->safe_areas.action);
 
 		if (sseq->flag & SEQ_SHOW_SAFE_CENTER) {
 			UI_draw_safe_areas(
-			        pos, line_origin, x1, x2, y1, y2,
+			        shdr_pos, x1, x2, y1, y2,
 			        scene->safe_areas.title_center,
 			        scene->safe_areas.action_center);
 		}
 	}
 
 	immUnbindProgram();
-
-	glDisable(GL_BLEND);
 }
 
 /* draws checkerboard background for transparent content */

@@ -585,7 +585,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
  * The next 4 parameters are the offsets for the view, not the zones.
  */
 void UI_draw_safe_areas(
-        uint pos, uint line_origin, float x1, float x2, float y1, float y2,
+        uint pos, float x1, float x2, float y1, float y2,
         const float title_aspect[2], const float action_aspect[2])
 {
 	const float size_x_half = (x2 - x1) * 0.5f;
@@ -604,7 +604,7 @@ void UI_draw_safe_areas(
 			float maxx = x2 - margin_x;
 			float maxy = y2 - margin_y;
 
-			imm_draw_line_box_dashed(pos, line_origin, minx, miny, maxx, maxy);
+			imm_draw_line_box(pos, minx, miny, maxx, maxy);
 		}
 	}
 }
@@ -1223,32 +1223,22 @@ static void ui_draw_colorband_handle(
 	if (active || half_width < min_width) {
 		immUnbindProgram();
 
-		VertexFormat *format = immVertexFormat();
-		const uint shdr_dashed_pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		const uint shdr_dashed_origin = VertexFormat_add_attrib(format, "line_origin", COMP_F32, 2, KEEP_FLOAT);
-
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
 		float viewport_size[4];
 		glGetFloatv(GL_VIEWPORT, viewport_size);
 		immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-		immUniform4f("color1", 0.8f, 0.8f, 0.8f, 1.0f);
-		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+		immUniform1i("num_colors", 2);  /* "advanced" mode */
+		immUniformArray4fv("colors", (float *)(float[][4]){{0.8f, 0.8f, 0.8f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
 		immUniform1f("dash_width", active ? 4.0f : 2.0f);
-		immUniform1f("dash_width_on", active ? 2.0f : 1.0f);
 
 		immBegin(PRIM_LINES, 2);
-		immAttrib2f(shdr_dashed_origin, x, y1);
-		immVertex2f(shdr_dashed_pos, x, y1);
-		immVertex2f(shdr_dashed_pos, x, y2);
+		immVertex2f(shdr_pos, x, y1);
+		immVertex2f(shdr_pos, x, y2);
 		immEnd();
 
 		immUnbindProgram();
-
-		const uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-		BLI_assert(pos == shdr_pos);
-		UNUSED_VARS_NDEBUG(pos);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
