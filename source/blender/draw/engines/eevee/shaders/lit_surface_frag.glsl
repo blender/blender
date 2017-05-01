@@ -26,7 +26,9 @@ layout(std140) uniform shadow_block {
 };
 
 in vec3 worldPosition;
+in vec3 viewPosition;
 in vec3 worldNormal;
+in vec3 viewNormal;
 
 /* type */
 #define POINT    0.0

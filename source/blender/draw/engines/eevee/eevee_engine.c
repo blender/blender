@@ -399,7 +399,7 @@ static void EEVEE_cache_init(void *vedata)
 
 		if (wo && wo->use_nodes && wo->nodetree) {
 			struct GPUMaterial *gpumat = GPU_material_from_nodetree(
-				wo->nodetree, &wo->gpumaterial, &DRW_engine_viewport_eevee_type, 0,
+				scene, wo->nodetree, &wo->gpumaterial, &DRW_engine_viewport_eevee_type, 0,
 			    datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, e_data.frag_shader_lib,
 			    "#define PROBE_CAPTURE\n"
 			    "#define MAX_LIGHT 128\n"
@@ -541,11 +541,44 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 				if (ma == NULL)
 					ma = &defmaterial;
 
-				DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit, psl->material_pass);
-				DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", &ma->r, 1);
-				DRW_shgroup_uniform_vec3(shgrp, "specular_col", &ma->specr, 1);
-				DRW_shgroup_uniform_short(shgrp, "hardness", &ma->har, 1);
-				DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+				if (ma->use_nodes && ma->nodetree) {
+					const DRWContextState *draw_ctx = DRW_context_state_get();
+					Scene *scene = draw_ctx->scene;
+					struct GPUMaterial *gpumat = GPU_material_from_nodetree(
+					    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type, 0,
+					    datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
+					    "#define PROBE_CAPTURE\n"
+					    "#define MAX_LIGHT 128\n"
+					    "#define MAX_SHADOW_CUBE 42\n"
+					    "#define MAX_SHADOW_MAP 64\n"
+					    "#define MAX_SHADOW_CASCADE 8\n"
+					    "#define MAX_CASCADE_NUM 4\n");
+
+					DRWShadingGroup *shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
+
+					if (shgrp) {
+						DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+					}
+					else {
+						/* Shader failed : pink color */
+						static float col[3] = {1.0f, 0.0f, 1.0f};
+						static float spec[3] = {1.0f, 0.0f, 1.0f};
+						static short hardness = 1;
+						shgrp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
+						DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", col, 1);
+						DRW_shgroup_uniform_vec3(shgrp, "specular_col", spec, 1);
+						DRW_shgroup_uniform_short(shgrp, "hardness", &hardness, 1);
+						DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+					}
+				}
+				else {
+					DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
+					DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", &ma->r, 1);
+					DRW_shgroup_uniform_vec3(shgrp, "specular_col", &ma->specr, 1);
+					DRW_shgroup_uniform_short(shgrp, "hardness", &ma->har, 1);
+					DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+				}
+
 			}
 		}
 		else {
@@ -555,7 +588,6 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 			eevee_cascade_shadow_shgroup(psl, stl, geom, ob->obmat);
 			eevee_cube_shadow_shgroup(psl, stl, geom, ob->obmat);
 		}
-
 		// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
 
 		// DRW_shgroup_call_add(stl->g_data->shadow_shgrp, geom, ob->obmat);
