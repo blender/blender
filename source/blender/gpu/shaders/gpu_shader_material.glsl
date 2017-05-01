@@ -4,6 +4,7 @@ uniform mat4 ModelViewMatrix;
 uniform mat4 ProjectionMatrix;
 #endif
 uniform mat4 ModelViewMatrixInverse;
+uniform mat4 ViewMatrixInverse;
 uniform mat4 ProjectionMatrixInverse;
 uniform mat3 NormalMatrix;
 

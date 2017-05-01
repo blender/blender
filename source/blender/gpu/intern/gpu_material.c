@@ -477,10 +477,6 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 
 bool GPU_material_do_color_management(GPUMaterial *mat)
 {
-	/* XXX mat->scene == NULL in that case */
-	if (mat->engine)
-		return true;
-
 	if (!BKE_scene_check_color_management_enabled(mat->scene))
 		return false;
 
@@ -2109,7 +2105,7 @@ GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo)
 
 /* TODO : This is supposed to replace GPU_material_from_blender/_world in the future */
 GPUMaterial *GPU_material_from_nodetree(
-        struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options,
+        Scene *scene, struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options,
         const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
 {
 	GPUMaterial *mat;
@@ -2127,6 +2123,7 @@ GPUMaterial *GPU_material_from_nodetree(
 
 	/* allocate material */
 	mat = GPU_material_construct_begin(NULL); /* TODO remove GPU_material_construct_begin */
+	mat->scene = scene;
 	mat->engine = engine_type;
 	mat->options = options;
 

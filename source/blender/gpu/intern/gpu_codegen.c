@@ -622,7 +622,11 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					"tmp", input->link->output->id);
 			}
 			else if (input->source == GPU_SOURCE_BUILTIN) {
-				if (input->builtin == GPU_VIEW_NORMAL)
+				if (input->builtin == GPU_INVERSE_VIEW_MATRIX)
+					BLI_dynstr_append(ds, "viewinv");
+				else if (input->builtin == GPU_VIEW_POSITION)
+					BLI_dynstr_append(ds, "viewposition");
+				else if (input->builtin == GPU_VIEW_NORMAL)
 					BLI_dynstr_append(ds, "facingnormal");
 				else
 					BLI_dynstr_append(ds, GPU_builtin_name(input->builtin));
@@ -660,7 +664,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 	BLI_dynstr_append(ds, ";\n");
 }
 
-static char *code_generate_fragment(ListBase *nodes, GPUOutput *output)
+static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use_new_shading)
 {
 	DynStr *ds = BLI_dynstr_new();
 	char *code;
@@ -686,8 +690,23 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output)
 
 	BLI_dynstr_append(ds, "void main()\n{\n");
 
-	if (builtins & GPU_VIEW_NORMAL)
-		BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? varnormal: -varnormal;\n");
+	if (use_new_shading) {
+		if (builtins & GPU_INVERSE_VIEW_MATRIX)
+			BLI_dynstr_append(ds, "\tmat4 viewinv = ViewMatrixInverse;\n");
+		if (builtins & GPU_VIEW_NORMAL)
+			BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? viewNormal: -viewNormal;\n");
+		if (builtins & GPU_VIEW_POSITION)
+			BLI_dynstr_append(ds, "\tvec3 viewposition = viewPosition;\n");
+
+	}
+	else {
+		if (builtins & GPU_INVERSE_VIEW_MATRIX)
+			BLI_dynstr_append(ds, "\tmat4 viewinv = unfinvviewmat;\n");
+		if (builtins & GPU_VIEW_NORMAL)
+			BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? varnormal: -varnormal;\n");
+		if (builtins & GPU_VIEW_POSITION)
+			BLI_dynstr_append(ds, "\tvec3 viewposition = varposition;\n");
+	}
 
 	/* Calculate tangent space. */
 #ifdef WITH_OPENSUBDIV
@@ -724,6 +743,87 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output)
 
 	/* create shader */
 	code = BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+
+#if 0
+	if (G.debug & G_DEBUG) printf("%s\n", code);
+#endif
+
+	return code;
+}
+
+static const char *attrib_prefix_get(CustomDataType type)
+{
+	switch (type) {
+		case CD_ORCO:           return "orco";
+		case CD_MTFACE:         return "u";
+		case CD_TANGENT:        return "t";
+		case CD_MCOL:           return "c";
+		case CD_AUTO_FROM_NAME: return "a";
+		default: BLI_assert(false && "Attrib Prefix type not found : This should not happen!"); return "";
+	}
+}
+
+static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code)
+{
+	DynStr *ds = BLI_dynstr_new();
+	GPUNode *node;
+	GPUInput *input;
+	char *code;
+
+	for (node = nodes->first; node; node = node->next) {
+		for (input = node->inputs.first; input; input = input->next) {
+			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+				/* XXX FIXME : see notes in mesh_render_data_create() */
+				/* NOTE : Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
+				if (input->attribname[0] == '\0') {
+					BLI_dynstr_appendf(ds, "in %s %s;\n", GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype));
+					BLI_dynstr_appendf(ds, "#define att%d %s\n", input->attribid, attrib_prefix_get(input->attribtype));
+				}
+				else {
+					unsigned int hash = BLI_ghashutil_strhash_p(input->attribname);
+					BLI_dynstr_appendf(ds, "in %s %s%u;\n",
+						GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype), hash);
+					BLI_dynstr_appendf(ds, "#define att%d %s%u\n",
+						input->attribid, attrib_prefix_get(input->attribtype), hash);
+				}
+				BLI_dynstr_appendf(ds, "out %s var%d;\n",
+					GPU_DATATYPE_STR[input->type], input->attribid);
+			}
+		}
+	}
+
+	BLI_dynstr_append(ds, "\n");
+
+	BLI_dynstr_append(ds, "#define ATTRIB\n");
+	BLI_dynstr_append(ds, "uniform mat3 NormalMatrix;\n");
+	BLI_dynstr_append(ds, "void pass_attrib(void) {\n");
+
+	for (node = nodes->first; node; node = node->next) {
+		for (input = node->inputs.first; input; input = input->next) {
+			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+				if (input->attribtype == CD_TANGENT) { /* silly exception */
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d.xyz = normalize(NormalMatrix * att%d.xyz);\n",
+					        input->attribid, input->attribid);
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d.w = att%d.w;\n",
+					        input->attribid, input->attribid);
+				}
+				else {
+					BLI_dynstr_appendf(ds, "\tvar%d = att%d;\n",
+					                   input->attribid, input->attribid);
+				}
+			}
+		}
+	}
+
+	BLI_dynstr_append(ds, "}\n");
+
+	BLI_dynstr_append(ds, vert_code);
+
+	code = BLI_dynstr_get_cstring(ds);
+
 	BLI_dynstr_free(ds);
 
 #if 0
@@ -1448,7 +1548,14 @@ GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 
-	link->attribtype = type;
+	/* Fall back to the UV layer, which matches old behavior. */
+	if (type == CD_AUTO_FROM_NAME && name[0] == '\0') {
+		link->attribtype = CD_MTFACE;
+	}
+	else {
+		link->attribtype = type;
+	}
+
 	link->attribname = name;
 
 	return link;
@@ -1720,16 +1827,20 @@ GPUPass *GPU_generate_pass_new(ListBase *nodes, struct GPUNodeLink *frag_outlink
 	/* prune unused nodes */
 	gpu_nodes_prune(nodes, frag_outlink);
 
+	/* Hacky */
+	GPUVertexAttribs attribs;
+	gpu_nodes_get_vertex_attributes(nodes, &attribs);
+
 	/* generate code and compile with opengl */
-	fragmentgen = code_generate_fragment(nodes, frag_outlink->output);
-	// vertexgen = code_generate_vertex(nodes, GPU_MATERIAL_TYPE_MESH);
+	fragmentgen = code_generate_fragment(nodes, frag_outlink->output, true);
+	vertexgen = code_generate_vertex_new(nodes, vert_code);
 	// geometrygen = code_generate_geometry(nodes, false);
-	UNUSED_VARS(vertexgen, geometrygen);
+	UNUSED_VARS(geometrygen);
 
 	tmp = BLI_strdupcat(frag_lib, glsl_material_library);
 	fragmentcode = BLI_strdupcat(tmp, fragmentgen);
-	vertexcode = BLI_strdup(vert_code);
-	geometrycode = BLI_strdup(geom_code);
+	vertexcode = BLI_strdup(vertexgen);
+	geometrycode = (geom_code) ? BLI_strdup(geom_code) : NULL;
 
 	shader = GPU_shader_create(vertexcode,
 	                           fragmentcode,
@@ -1748,6 +1859,7 @@ GPUPass *GPU_generate_pass_new(ListBase *nodes, struct GPUNodeLink *frag_outlink
 		if (geometrycode)
 			MEM_freeN(geometrycode);
 		MEM_freeN(fragmentgen);
+		MEM_freeN(vertexgen);
 		gpu_nodes_free(nodes);
 		return NULL;
 	}
@@ -1765,6 +1877,7 @@ GPUPass *GPU_generate_pass_new(ListBase *nodes, struct GPUNodeLink *frag_outlink
 	gpu_nodes_free(nodes);
 
 	MEM_freeN(fragmentgen);
+	MEM_freeN(vertexgen);
 
 	return pass;
 }
@@ -1794,7 +1907,7 @@ GPUPass *GPU_generate_pass(
 	gpu_nodes_get_builtin_flag(nodes, builtins);
 
 	/* generate code and compile with opengl */
-	fragmentcode = code_generate_fragment(nodes, outlink->output);
+	fragmentcode = code_generate_fragment(nodes, outlink->output, false);
 	vertexcode = code_generate_vertex(nodes, type);
 	geometrycode = code_generate_geometry(nodes, use_opensubdiv);
 

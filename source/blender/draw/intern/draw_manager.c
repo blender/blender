@@ -145,6 +145,7 @@ struct DRWInterface {
 	int modelview;
 	int projection;
 	int view;
+	int viewinverse;
 	int modelviewprojection;
 	int viewprojection;
 	int normal;
@@ -505,6 +506,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->modelview = GPU_shader_get_uniform(shader, "ModelViewMatrix");
 	interface->projection = GPU_shader_get_uniform(shader, "ProjectionMatrix");
 	interface->view = GPU_shader_get_uniform(shader, "ViewMatrix");
+	interface->viewinverse = GPU_shader_get_uniform(shader, "ViewMatrixInverse");
 	interface->viewprojection = GPU_shader_get_uniform(shader, "ViewProjectionMatrix");
 	interface->modelviewprojection = GPU_shader_get_uniform(shader, "ModelViewProjectionMatrix");
 	interface->normal = GPU_shader_get_uniform(shader, "NormalMatrix");
@@ -647,6 +649,10 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 				/* TODO maybe track texture slot usage to avoid clash with engine textures */
 				DRW_shgroup_uniform_texture(grp, input->shadername, tex, max_tex - input->texid);
 			}
+		}
+		/* Color Ramps */
+		else if (input->tex) {
+			DRW_shgroup_uniform_texture(grp, input->shadername, input->tex, max_tex - input->texid);
 		}
 		/* Floats */
 		else {
@@ -1190,6 +1196,9 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	}
 	if (interface->modelviewprojection != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->modelviewprojection, 16, 1, (float *)mvp);
+	}
+	if (interface->viewinverse != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->viewinverse, 16, 1, (float *)rv3d->viewinv);
 	}
 	if (interface->viewprojection != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->viewprojection, 16, 1, (float *)rv3d->persmat);
