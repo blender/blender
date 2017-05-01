@@ -367,7 +367,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	/* get color of strip */
 	nla_strip_get_color_inside(adt, strip, color);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw extrapolation info first (as backdrop)
@@ -389,7 +389,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 					immUniformColor3fvAlpha(color, 0.15f);
 
 					/* draw the rect to the edge of the screen */
-					immRectf(pos, v2d->cur.xmin, yminc, strip->start, ymaxc);
+					immRectf(shdr_pos, v2d->cur.xmin, yminc, strip->start, ymaxc);
 				}
 				/* fall-through */
 
@@ -402,7 +402,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 					
 					/* draw the rect to the next strip or the edge of the screen */
 					float x2 = strip->next ? strip->next->start : v2d->cur.xmax;
-					immRectf(pos, strip->end, yminc, x2, ymaxc);
+					immRectf(shdr_pos, strip->end, yminc, x2, ymaxc);
 				}
 				break;
 		}
@@ -420,7 +420,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		UI_draw_roundbox_shade_x(true, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1, color);
 
 		/* restore current vertex format & program (roundbox trashes it) */
-		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	}
 	else {
@@ -428,7 +428,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		immUniformColor3fvAlpha(color, 0.1f);
 		
 		glEnable(GL_BLEND);
-		immRectf(pos, strip->start, yminc, strip->end, ymaxc);
+		immRectf(shdr_pos, strip->start, yminc, strip->end, ymaxc);
 		glDisable(GL_BLEND);
 	}
 
@@ -437,7 +437,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	 *	- only if user hasn't hidden them...
 	 */
 	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
-		nla_draw_strip_curves(strip, yminc, ymaxc, pos);
+		nla_draw_strip_curves(strip, yminc, ymaxc, shdr_pos);
 
 	immUnbindProgram();
 
@@ -459,18 +459,30 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		color[0] = color[1] = color[2] = 0.0f; /* FIXME: or 1.0f ?? */
 	}
 
-	/* - line style: dotted for muted */
-	if ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED))
-		setlinestyle(4);
-
 	/* draw outline */
+	/* XXX TODO Was dashed like code below, not implemented for now so kept solid... */
 	UI_draw_roundbox_shade_x(false, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1, color);
 
 	/* restore current vertex format & program (roundbox trashes it) */
-	pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	/* Note that we use dahsed shader here, and make it draw solid lines if not muted... */
+	shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+	immUniform1i("num_colors", 0);  /* Simple dashes. */
 	immUniformColor3fv(color);
+
+	/* - line style: dotted for muted */
+	if ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED)) {
+		immUniform1f("dash_width", 4.0f);
+		immUniform1f("dash_factor", 0.5f);
+	}
+	else {
+		immUniform1f("dash_factor", 2.0f);  /* solid line */
+	}
 
 	/* if action-clip strip, draw lines delimiting repeats too (in the same color as outline) */
 	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQF(strip->repeat, 1.0f) == 0) {
@@ -485,8 +497,8 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 
 			/* don't draw if line would end up on or after the end of the strip */
 			if (repeatPos < strip->end) {
-				immVertex2f(pos, repeatPos, yminc + 4);
-				immVertex2f(pos, repeatPos, ymaxc - 4);
+				immVertex2f(shdr_pos, repeatPos, yminc + 4);
+				immVertex2f(shdr_pos, repeatPos, ymaxc - 4);
 			}
 		}
 		immEnd();
@@ -503,24 +515,22 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 			 *	- on upper half of strip
 			 */
 			if ((cs->prev) && IS_EQF(cs->prev->end, cs->start) == 0) {
-				immVertex2f(pos, cs->start, y);
-				immVertex2f(pos, cs->start, ymaxc);
+				immVertex2f(shdr_pos, cs->start, y);
+				immVertex2f(shdr_pos, cs->start, ymaxc);
 			}
 
 			/* draw end-line if not the last strip
 			 *	- on lower half of strip
 			 */
 			if (cs->next) {
-				immVertex2f(pos, cs->end, yminc);
-				immVertex2f(pos, cs->end, y);
+				immVertex2f(shdr_pos, cs->end, yminc);
+				immVertex2f(shdr_pos, cs->end, y);
 			}
 		}
 
 		immEnd();
 	}
 
-	/* reset linestyle */
-	setlinestyle(0);
 	immUnbindProgram();
 }
 
