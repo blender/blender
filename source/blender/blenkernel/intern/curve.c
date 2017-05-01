@@ -209,6 +209,7 @@ Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 	cun->strinfo = MEM_dupallocN(cu->strinfo);
 	cun->tb = MEM_dupallocN(cu->tb);
 	cun->bb = MEM_dupallocN(cu->bb);
+	cun->batch_cache = NULL;
 
 	if (cu->key) {
 		cun->key = BKE_key_copy(bmain, cu->key);
