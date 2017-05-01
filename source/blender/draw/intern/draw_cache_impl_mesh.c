@@ -33,6 +33,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -115,13 +116,34 @@ typedef struct MeshRenderData {
 	MEdge *medge;
 	MLoop *mloop;
 	MPoly *mpoly;
+	float (*orco)[3];
+	MLoopUV **mloopuv;
+	MCol **mcol;
+	float (**mtangent)[4];
 
 	BMVert *eve_act;
 	BMEdge *eed_act;
 	BMFace *efa_act;
 
+	int uv_ct;
+	int vcol_ct;
+
+	bool *auto_vcol;
+
+	int uv_active;
+	int vcol_active;
+	int tangent_active;
+
 	int crease_ofs;
 	int bweight_ofs;
+	int *uv_ofs;
+	int *vcol_ofs;
+	int *tangent_ofs;
+
+	char (*auto_names)[32];
+	char (*uv_names)[32];
+	char (*vcol_names)[32];
+	char (*tangent_names)[32];
 
 	/* Data created on-demand (usually not for bmesh-based data). */
 	EdgeAdjacentPolys *edges_adjacent_polys;
@@ -141,6 +163,7 @@ enum {
 	MR_DATATYPE_LOOP       = 1 << 3,
 	MR_DATATYPE_POLY       = 1 << 4,
 	MR_DATATYPE_OVERLAY    = 1 << 5,
+	MR_DATATYPE_SHADING    = 1 << 6,
 };
 
 /**
@@ -277,33 +300,187 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 		}
 	}
 
+	if (types & MR_DATATYPE_SHADING) {
+		rdata->uv_ct = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+		rdata->vcol_ct = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+
+		rdata->mloopuv = MEM_mallocN(sizeof(*rdata->mloopuv) * rdata->uv_ct, "rdata->mloopuv");
+		rdata->mcol = MEM_mallocN(sizeof(*rdata->mcol) * rdata->vcol_ct, "rdata->mcol");
+		rdata->mtangent = MEM_mallocN(sizeof(*rdata->mtangent) * rdata->uv_ct, "rdata->mtangent");
+
+		rdata->uv_names = MEM_mallocN(sizeof(*rdata->uv_names) * rdata->uv_ct, "rdata->uv_names");
+		rdata->vcol_names = MEM_mallocN(sizeof(*rdata->vcol_names) * rdata->vcol_ct, "rdata->vcol_names");
+		rdata->tangent_names = MEM_mallocN(sizeof(*rdata->tangent_names) * rdata->uv_ct, "rdata->tangent_names");
+
+		rdata->uv_ofs = MEM_mallocN(sizeof(*rdata->uv_ofs) * rdata->uv_ct, "rdata->uv_ofs");
+		rdata->vcol_ofs = MEM_mallocN(sizeof(*rdata->vcol_ofs) * rdata->vcol_ct, "rdata->vcol_ofs");
+		rdata->tangent_ofs = MEM_mallocN(sizeof(*rdata->tangent_ofs) * rdata->uv_ct, "rdata->tangent_ofs");
+
+		/* Allocate max */
+		rdata->auto_vcol = MEM_callocN(sizeof(*rdata->auto_vcol) * rdata->vcol_ct, "rdata->auto_vcol");
+		rdata->auto_names = MEM_mallocN(sizeof(*rdata->auto_names) * (rdata->vcol_ct + rdata->uv_ct), "rdata->auto_names");
+
+		/* XXX FIXME XXX */
+		/* We use a hash to identify each data layer based on its name.
+		 * Gawain then search for this name in the current shader and bind if it exists.
+		 * NOTE : This is prone to hash collision.
+		 * One solution to hash collision would be to format the cd layer name
+		 * to a safe glsl var name, but without name clash.
+		 * NOTE 2 : Replicate changes to code_generate_vertex_new() in gpu_codegen.c */
+		for (int i = 0; i < rdata->vcol_ct; ++i) {
+			const char *name = CustomData_get_layer_name(&me->ldata, CD_MLOOPCOL, i);
+			unsigned int hash = BLI_ghashutil_strhash_p(name);
+			BLI_snprintf(rdata->vcol_names[i], sizeof(*rdata->vcol_names), "c%u", hash);
+			rdata->mcol[i] = CustomData_get_layer_n(&me->ldata, CD_MLOOPCOL, i);
+			if (rdata->edit_bmesh) {
+				rdata->vcol_ofs[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPCOL, i);
+			}
+
+			/* Gather number of auto layers. */
+			/* We only do vcols that are not overridden by uvs */
+			if (CustomData_get_named_layer_index(&me->ldata, CD_MLOOPUV, name) == -1) {
+				BLI_snprintf(rdata->auto_names[rdata->uv_ct + i], sizeof(*rdata->auto_names), "a%u", hash);
+				rdata->auto_vcol[i] = true;
+			}
+		}
+
+		/* Start Fresh */
+		CustomData_free_layers(&me->ldata, CD_MLOOPTANGENT, me->totloop);
+		for (int i = 0; i < rdata->uv_ct; ++i) {
+			const char *name = CustomData_get_layer_name(&me->ldata, CD_MLOOPUV, i);
+			unsigned int hash = BLI_ghashutil_strhash_p(name);
+
+			{
+				/* UVs */
+				BLI_snprintf(rdata->uv_names[i], sizeof(*rdata->uv_names), "u%u", hash);
+				rdata->mloopuv[i] = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, i);
+				if (rdata->edit_bmesh) {
+					rdata->uv_ofs[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPUV, i);
+				}
+				BLI_snprintf(rdata->auto_names[i], sizeof(*rdata->auto_names), "a%u", hash);
+			}
+
+			{
+				/* Tangents*/
+				BLI_snprintf(rdata->tangent_names[i], sizeof(*rdata->tangent_names), "t%u", hash);
+
+				if (rdata->edit_bmesh) {
+#if 0 /* TODO Waiting for the port of emDM_calc_loop_tangents */
+					BMesh *bm = rdata->edit_bmesh->bm;
+
+					float (*loopnors)[3] = CustomData_get_layer(&bm->ldata, CD_NORMAL);
+
+					rdata->mtangent[i] = CustomData_add_layer(&bm->ldata, CD_MLOOPTANGENT, CD_CALLOC, NULL, bm->totloop);
+					CustomData_set_layer_flag(&bm->ldata, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
+
+					BKE_mesh_loop_tangents_ex(bm->mvert, bm->totvert, bm->mloop, rdata->mtangent[i],
+					      loopnors, rdata->mloopuv[i], bm->totloop, bm->mpoly, bm->totpoly, NULL);
+
+					rdata->tangent_ofs[i] = CustomData_get_n_offset(&bm->ldata, CD_MLOOPTANGENT, i);
+#else
+					rdata->tangent_ofs[i] = -1;
+#endif
+				}
+				else {
+					if (!CustomData_has_layer(&me->ldata, CD_NORMAL)) {
+						BKE_mesh_calc_normals_split(me);
+					}
+
+					float (*loopnors)[3] = CustomData_get_layer(&me->ldata, CD_NORMAL);
+
+					rdata->mtangent[i] = CustomData_add_layer(&me->ldata, CD_MLOOPTANGENT, CD_CALLOC, NULL, me->totloop);
+					CustomData_set_layer_flag(&me->ldata, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
+
+					BKE_mesh_loop_tangents_ex(me->mvert, me->totvert, me->mloop, rdata->mtangent[i],
+					      loopnors, rdata->mloopuv[i], me->totloop, me->mpoly, me->totpoly, NULL);
+				}
+			}
+		}
+
+		rdata->uv_active = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) - CustomData_get_layer_index(&me->ldata, CD_MLOOPUV);
+		rdata->vcol_active = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL) - CustomData_get_layer_index(&me->ldata, CD_MLOOPCOL);
+		rdata->tangent_active = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPTANGENT) - CustomData_get_layer_index(&me->ldata, CD_MLOOPTANGENT);
+
+		rdata->orco = CustomData_get_layer(&me->vdata, CD_ORCO);
+
+		/* If orco is not available compute it ourselves */
+		if (!rdata->orco) {
+			if (me->edit_btmesh) {
+				BMesh *bm = me->edit_btmesh->bm;
+				rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
+				BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
+				BMVert **vtable = bm->vtable;
+				for (int i = 0; i < bm->totvert; i++) {
+					copy_v3_v3(rdata->orco[i], vtable[i]->co);
+				}
+				BKE_mesh_orco_verts_transform(me, rdata->orco, rdata->vert_len, 0);
+			}
+			else {
+				rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
+				MVert *mvert = rdata->mvert;
+				for (int a = 0; a < rdata->vert_len; a++, mvert++) {
+					copy_v3_v3(rdata->orco[a], mvert->co);
+				}
+				BKE_mesh_orco_verts_transform(me, rdata->orco, rdata->vert_len, 0);
+			}
+		}
+	}
+
 	return rdata;
 }
 
 static void mesh_render_data_free(MeshRenderData *rdata)
 {
-	if (rdata->loose_verts) {
-		MEM_freeN(rdata->loose_verts);
-	}
-	if (rdata->loose_edges) {
-		MEM_freeN(rdata->loose_edges);
-	}
-	if (rdata->edges_adjacent_polys) {
-		MEM_freeN(rdata->edges_adjacent_polys);
-	}
-	if (rdata->mlooptri) {
-		MEM_freeN(rdata->mlooptri);
-	}
-	if (rdata->poly_normals) {
-		MEM_freeN(rdata->poly_normals);
-	}
-	if (rdata->poly_normals_short) {
-		MEM_freeN(rdata->poly_normals_short);
-	}
-	if (rdata->vert_normals_short) {
-		MEM_freeN(rdata->vert_normals_short);
-	}
+	MEM_SAFE_FREE(rdata->auto_vcol);
+	MEM_SAFE_FREE(rdata->auto_names);
+	MEM_SAFE_FREE(rdata->uv_ofs);
+	MEM_SAFE_FREE(rdata->vcol_ofs);
+	MEM_SAFE_FREE(rdata->tangent_ofs);
+	MEM_SAFE_FREE(rdata->orco);
+	MEM_SAFE_FREE(rdata->mloopuv);
+	MEM_SAFE_FREE(rdata->mcol);
+	MEM_SAFE_FREE(rdata->mtangent);
+	MEM_SAFE_FREE(rdata->loose_verts);
+	MEM_SAFE_FREE(rdata->loose_edges);
+	MEM_SAFE_FREE(rdata->edges_adjacent_polys);
+	MEM_SAFE_FREE(rdata->mlooptri);
+	MEM_SAFE_FREE(rdata->poly_normals);
+	MEM_SAFE_FREE(rdata->poly_normals_short);
+	MEM_SAFE_FREE(rdata->vert_normals_short);
+	MEM_SAFE_FREE(rdata->uv_names);
+	MEM_SAFE_FREE(rdata->vcol_names);
+	MEM_SAFE_FREE(rdata->tangent_names);
 	MEM_freeN(rdata);
+}
+
+static const char *mesh_render_data_uv_auto_layer_name_get(const MeshRenderData *rdata, int layer)
+{
+	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
+	return rdata->auto_names[layer];
+}
+
+static const char *mesh_render_data_vcol_auto_layer_name_get(const MeshRenderData *rdata, int layer)
+{
+	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
+	return rdata->auto_names[rdata->uv_ct + layer];
+}
+
+static const char *mesh_render_data_uv_layer_name_get(const MeshRenderData *rdata, int layer)
+{
+	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
+	return rdata->uv_names[layer];
+}
+
+static const char *mesh_render_data_vcol_layer_name_get(const MeshRenderData *rdata, int layer)
+{
+	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
+	return rdata->vcol_names[layer];
+}
+
+static const char *mesh_render_data_tangent_layer_name_get(const MeshRenderData *rdata, int layer)
+{
+	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
+	return rdata->tangent_names[layer];
 }
 
 static int mesh_render_data_verts_len_get(const MeshRenderData *rdata)
@@ -619,6 +796,86 @@ static bool mesh_render_data_looptri_vert_edge_indices_get(
 	return true;
 }
 
+static void mesh_render_data_looptri_uvs_get(
+        MeshRenderData *rdata, const int tri_idx, const int uv_layer,
+        float *(*r_vert_uvs)[3])
+{
+	if (rdata->edit_bmesh) {
+		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
+		(*r_vert_uvs)[0] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->uv_ofs[uv_layer]))->uv;
+		(*r_vert_uvs)[1] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->uv_ofs[uv_layer]))->uv;
+		(*r_vert_uvs)[2] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->uv_ofs[uv_layer]))->uv;
+	}
+	else {
+		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
+		(*r_vert_uvs)[0] = rdata->mloopuv[uv_layer][mlt->tri[0]].uv;
+		(*r_vert_uvs)[1] = rdata->mloopuv[uv_layer][mlt->tri[1]].uv;
+		(*r_vert_uvs)[2] = rdata->mloopuv[uv_layer][mlt->tri[2]].uv;
+	}
+}
+
+static void mesh_render_data_looptri_cols_get(
+        MeshRenderData *rdata, const int tri_idx, const int vcol_layer,
+        unsigned char *(*r_vert_cols)[3])
+{
+	if (rdata->edit_bmesh) {
+		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
+		(*r_vert_cols)[0] = &((MCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->vcol_ofs[vcol_layer]))->a;
+		(*r_vert_cols)[1] = &((MCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->vcol_ofs[vcol_layer]))->a;
+		(*r_vert_cols)[2] = &((MCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->vcol_ofs[vcol_layer]))->a;
+	}
+	else {
+		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
+		(*r_vert_cols)[0] = &rdata->mcol[vcol_layer][mlt->tri[0]].a;
+		(*r_vert_cols)[1] = &rdata->mcol[vcol_layer][mlt->tri[1]].a;
+		(*r_vert_cols)[2] = &rdata->mcol[vcol_layer][mlt->tri[2]].a;
+	}
+}
+
+static void mesh_render_data_looptri_tans_get(
+        MeshRenderData *rdata, const int tri_idx, const int tangent_layer,
+        float *(*r_vert_tans)[3])
+{
+	if (rdata->edit_bmesh) {
+#if 0 /* waiting for edit mesh tangent calculation */
+		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
+		(*r_vert_tans)[0] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->tangent_ofs[tangent_layer]));
+		(*r_vert_tans)[1] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->tangent_ofs[tangent_layer]));
+		(*r_vert_tans)[2] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->tangent_ofs[tangent_layer]));
+#else
+		static float tan[4] = {0.0f};
+		(*r_vert_tans)[0] = tan;
+		(*r_vert_tans)[1] = tan;
+		(*r_vert_tans)[2] = tan;
+#endif
+	}
+	else {
+		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
+		(*r_vert_tans)[0] = rdata->mtangent[tangent_layer][mlt->tri[0]];
+		(*r_vert_tans)[1] = rdata->mtangent[tangent_layer][mlt->tri[1]];
+		(*r_vert_tans)[2] = rdata->mtangent[tangent_layer][mlt->tri[2]];
+	}
+}
+
+static void mesh_render_data_looptri_orcos_get(
+        MeshRenderData *rdata, const int tri_idx,
+        float *(*r_vert_orcos)[3])
+{
+	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_SHADING));
+	if (rdata->edit_bmesh) {
+		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
+		(*r_vert_orcos)[0] = rdata->orco[BM_elem_index_get(bm_looptri[0]->v)];
+		(*r_vert_orcos)[1] = rdata->orco[BM_elem_index_get(bm_looptri[1]->v)];
+		(*r_vert_orcos)[2] = rdata->orco[BM_elem_index_get(bm_looptri[2]->v)];
+	}
+	else {
+		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
+		(*r_vert_orcos)[0] = rdata->orco[rdata->mloop[mlt->tri[0]].v];
+		(*r_vert_orcos)[1] = rdata->orco[rdata->mloop[mlt->tri[1]].v];
+		(*r_vert_orcos)[2] = rdata->orco[rdata->mloop[mlt->tri[2]].v];
+	}
+}
+
 static bool mesh_render_data_looptri_cos_nors_smooth_get(
         MeshRenderData *rdata, const int tri_idx,
         float *(*r_vert_cos)[3], short **r_tri_nor, short *(*r_vert_nors)[3], bool *r_is_smooth)
@@ -890,6 +1147,7 @@ typedef struct MeshBatchCache {
 
 	/* Maybe have shaded_triangles_data split into pos_nor and uv_tangent
 	 * to minimise data transfer for skinned mesh. */
+	VertexFormat shaded_triangles_format;
 	VertexBuffer *shaded_triangles_data;
 	ElementList **shaded_triangles_in_order;
 	Batch **shaded_triangles;
@@ -1064,19 +1322,57 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 
 	if (cache->shaded_triangles_data == NULL) {
 		unsigned int vidx = 0, nidx = 0;
+		const char *attrib_name;
 
-		static VertexFormat format = { 0 };
-		static unsigned int pos_id, nor_id;
-		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			/* TODO add tangent, UVs */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+		VertexFormat *format = &cache->shaded_triangles_format;
+
+		VertexFormat_clear(format);
+
+		/* initialize vertex format */
+		unsigned int pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		unsigned int nor_id = VertexFormat_add_attrib(format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+		unsigned int orco_id = VertexFormat_add_attrib(format, "orco", COMP_F32, 3, KEEP_FLOAT);
+		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_ct, "UV attrib format");
+		unsigned int *uv_auto_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_ct, "UV attrib format");
+		unsigned int *vcol_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_ct, "Vcol attrib format");
+		unsigned int *vcol_auto_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_ct, "Vcol attrib format");
+		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->uv_ct, "Tangent attrib format");
+		/* XXX TODO : We are allocating for the active layers
+		 * but we only need to bind the right layer to the default attrib.
+		 * This is a gawain limitation to solve. */
+		unsigned int active_uv_id = VertexFormat_add_attrib(format, "u", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int active_vcol_id = VertexFormat_add_attrib(format, "c", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+		unsigned int active_tangent_id = VertexFormat_add_attrib(format, "t", COMP_F32, 4, KEEP_FLOAT);
+
+		for (int i = 0; i < rdata->uv_ct; i++) {
+			/* UV */
+			attrib_name = mesh_render_data_uv_layer_name_get(rdata, i);
+			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 2, KEEP_FLOAT);
+
+			/* Auto Name */
+			/* TODO Remove when when have aliases */
+			attrib_name = mesh_render_data_uv_auto_layer_name_get(rdata, i);
+			uv_auto_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
+
+			/* Tangent */
+			attrib_name = mesh_render_data_tangent_layer_name_get(rdata, i);
+			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		for (int i = 0; i < rdata->vcol_ct; i++) {
+			attrib_name = mesh_render_data_vcol_layer_name_get(rdata, i);
+			vcol_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+
+			/* Auto layer */
+			if (rdata->auto_vcol[i]) {
+				attrib_name = mesh_render_data_vcol_auto_layer_name_get(rdata, i);
+				vcol_auto_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			}
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		VertexBuffer *vbo = cache->shaded_triangles_data = VertexBuffer_create_with_format(&format);
+		VertexBuffer *vbo = cache->shaded_triangles_data = VertexBuffer_create_with_format(format);
 
 		const int vbo_len_capacity = tri_len * 3;
 		int vbo_len_used = 0;
@@ -1085,12 +1381,15 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 		/* TODO deduplicate all verts and make use of ElementList in mesh_batch_cache_get_shaded_triangles_in_order. */
 		for (int i = 0; i < tri_len; i++) {
 			float *tri_vert_cos[3];
+			float *tri_uvs[3], *tri_tans[3], *tri_orcos[3];
+			unsigned char *tri_cols[3];
 			short *tri_nor, *tri_vert_nors[3];
 			bool is_smooth;
 
 			if (mesh_render_data_looptri_cos_nors_smooth_get(
 			        rdata, i, &tri_vert_cos, &tri_nor, &tri_vert_nors, &is_smooth))
 			{
+				/* NORs */
 				if (is_smooth) {
 					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_vert_nors[0]);
 					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_vert_nors[1]);
@@ -1102,6 +1401,68 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_nor);
 				}
 
+				/* UVs & TANGENTs */
+				for (int j = 0; j < rdata->uv_ct; j++) {
+					mesh_render_data_looptri_uvs_get(rdata, i, j, &tri_uvs);
+					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 0, tri_uvs[0]);
+					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 1, tri_uvs[1]);
+					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 2, tri_uvs[2]);
+
+					/* TODO remove this when aliases will be implemented */
+					VertexBuffer_set_attrib(vbo, uv_auto_id[j], vidx + 0, tri_uvs[0]);
+					VertexBuffer_set_attrib(vbo, uv_auto_id[j], vidx + 1, tri_uvs[1]);
+					VertexBuffer_set_attrib(vbo, uv_auto_id[j], vidx + 2, tri_uvs[2]);
+
+					mesh_render_data_looptri_tans_get(rdata, i, j, &tri_tans);
+					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 0, tri_tans[0]);
+					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 1, tri_tans[1]);
+					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 2, tri_tans[2]);
+				}
+
+				/* TODO remove this when aliases will be implemented */
+				if (rdata->uv_ct != 0) {
+					mesh_render_data_looptri_uvs_get(rdata, i, rdata->uv_active, &tri_uvs);
+					VertexBuffer_set_attrib(vbo, active_uv_id, vidx + 0, tri_uvs[0]);
+					VertexBuffer_set_attrib(vbo, active_uv_id, vidx + 1, tri_uvs[1]);
+					VertexBuffer_set_attrib(vbo, active_uv_id, vidx + 2, tri_uvs[2]);
+
+					mesh_render_data_looptri_tans_get(rdata, i, rdata->tangent_active, &tri_tans);
+					VertexBuffer_set_attrib(vbo, active_tangent_id, vidx + 0, tri_tans[0]);
+					VertexBuffer_set_attrib(vbo, active_tangent_id, vidx + 1, tri_tans[1]);
+					VertexBuffer_set_attrib(vbo, active_tangent_id, vidx + 2, tri_tans[2]);
+				}
+
+				/* VCOLs */
+				for (int j = 0; j < rdata->vcol_ct; j++) {
+					mesh_render_data_looptri_cols_get(rdata, i, j, &tri_cols);
+					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 0, tri_cols[0]);
+					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 1, tri_cols[1]);
+					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 2, tri_cols[2]);
+
+					/* Auto layer */
+					if (rdata->auto_vcol[j]) {
+						/* TODO remove this when aliases will be implemented */
+						VertexBuffer_set_attrib(vbo, vcol_auto_id[j], vidx + 0, tri_cols[0]);
+						VertexBuffer_set_attrib(vbo, vcol_auto_id[j], vidx + 1, tri_cols[1]);
+						VertexBuffer_set_attrib(vbo, vcol_auto_id[j], vidx + 2, tri_cols[2]);
+					}
+				}
+
+				/* TODO remove this when aliases will be implemented */
+				if (rdata->vcol_ct != 0) {
+					mesh_render_data_looptri_cols_get(rdata, i, rdata->vcol_active, &tri_cols);
+					VertexBuffer_set_attrib(vbo, active_vcol_id, vidx + 0, tri_cols[0]);
+					VertexBuffer_set_attrib(vbo, active_vcol_id, vidx + 1, tri_cols[1]);
+					VertexBuffer_set_attrib(vbo, active_vcol_id, vidx + 2, tri_cols[2]);
+				}
+
+				/* ORCO */
+				mesh_render_data_looptri_orcos_get(rdata, i, &tri_orcos);
+				VertexBuffer_set_attrib(vbo, orco_id, vidx + 0, tri_orcos[0]);
+				VertexBuffer_set_attrib(vbo, orco_id, vidx + 1, tri_orcos[1]);
+				VertexBuffer_set_attrib(vbo, orco_id, vidx + 2, tri_orcos[2]);
+
+				/* COs */
 				VertexBuffer_set_attrib(vbo, pos_id, vidx++, tri_vert_cos[0]);
 				VertexBuffer_set_attrib(vbo, pos_id, vidx++, tri_vert_cos[1]);
 				VertexBuffer_set_attrib(vbo, pos_id, vidx++, tri_vert_cos[2]);
@@ -1112,6 +1473,12 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 		if (vbo_len_capacity != vbo_len_used) {
 			VertexBuffer_resize_data(vbo, vbo_len_used);
 		}
+
+		MEM_freeN(uv_id);
+		MEM_freeN(uv_auto_id);
+		MEM_freeN(vcol_id);
+		MEM_freeN(vcol_auto_id);
+		MEM_freeN(tangent_id);
 	}
 	return cache->shaded_triangles_data;
 }
@@ -1623,7 +1990,8 @@ Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 
 	if (cache->shaded_triangles == NULL) {
 		/* create batch from DM */
-		MeshRenderData *rdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_POLY);
+		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_POLY | MR_DATATYPE_SHADING;
+		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
 		const int mat_ct = mesh_render_data_mat_ct_get(rdata);
 
