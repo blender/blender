@@ -791,8 +791,6 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
 	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_MAT4, value, 16, 1, 0);
 }
 
-#ifdef WITH_CLAY_ENGINE
-
 /* Creates a VBO containing OGL primitives for all DRWCallDynamic */
 static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 {
@@ -905,7 +903,6 @@ static void shgroup_dynamic_batch_from_calls(DRWShadingGroup *shgroup)
 		shgroup_dynamic_batch(shgroup);
 	}
 }
-#endif  /* WITH_CLAY_ENGINE */
 
 /** \} */
 
@@ -944,7 +941,6 @@ void DRW_pass_free(DRWPass *pass)
 /** \name Draw (DRW_draw)
  * \{ */
 
-#ifdef WITH_CLAY_ENGINE
 static void set_state(DRWState flag, const bool reset)
 {
 	/* TODO Keep track of the state and only revert what is needed */
@@ -1352,15 +1348,6 @@ void DRW_state_reset(void)
 	state |= DRW_STATE_DEPTH_LESS;
 	set_state(state, true);
 }
-
-#else  /* !WITH_CLAY_ENGINE */
-
-void DRW_draw_pass(DRWPass *UNUSED(pass)) {}
-void DRW_draw_callbacks_pre_scene(void) {}
-void DRW_draw_callbacks_post_scene(void) {}
-void DRW_state_reset(void) {}
-
-#endif  /* WITH_CLAY_ENGINE */
 
 /** \} */
 
@@ -2435,6 +2422,7 @@ void DRW_engines_register(void)
 {
 #ifdef WITH_CLAY_ENGINE
 	RE_engines_register(NULL, &DRW_engine_viewport_clay_type);
+#endif
 	RE_engines_register(NULL, &DRW_engine_viewport_eevee_type);
 
 	DRW_engine_register(&draw_engine_object_type);
@@ -2451,7 +2439,6 @@ void DRW_engines_register(void)
 	DRW_engine_register(&draw_engine_particle_type);
 	DRW_engine_register(&draw_engine_pose_type);
 	DRW_engine_register(&draw_engine_sculpt_type);
-#endif
 
 	/* setup callbacks */
 	{
@@ -2479,7 +2466,6 @@ void DRW_engines_register(void)
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 void DRW_engines_free(void)
 {
-#ifdef WITH_CLAY_ENGINE
 	DRW_shape_cache_free();
 
 	DrawEngineType *next;
@@ -2495,6 +2481,7 @@ void DRW_engines_free(void)
 	if (globals_ubo)
 		GPU_uniformbuffer_free(globals_ubo);
 
+#ifdef WITH_CLAY_ENGINE
 	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
 #endif
 }

@@ -2465,6 +2465,7 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 	RNA_LAYER_ENGINE_GET_SET(bool, EditMode, COLLECTION_MODE_EDIT, _NAME_)
 
 /* clay engine */
+#ifdef WITH_CLAY_ENGINE
 RNA_LAYER_ENGINE_CLAY_GET_SET_INT(matcap_icon)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(matcap_rotation)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(matcap_hue)
@@ -2474,6 +2475,7 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_cavity)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_edge)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_distance)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_attenuation)
+#endif /* WITH_CLAY_ENGINE */
 
 /* object engine */
 RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
