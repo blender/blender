@@ -338,12 +338,13 @@ void wm_event_do_notifiers(bContext *C)
 	/* the notifiers are sent without context, to keep it clean */
 	while ((note = BLI_pophead(&wm->queue))) {
 		for (win = wm->windows.first; win; win = win->next) {
+			Scene *scene = win->screen->scene;
 			
 			/* filter out notifiers */
 			if (note->category == NC_SCREEN && note->reference && note->reference != win->screen) {
 				/* pass */
 			}
-			else if (note->category == NC_SCENE && note->reference && note->reference != win->screen->scene) {
+			else if (note->category == NC_SCENE && note->reference && note->reference != scene) {
 				/* pass */
 			}
 			else {
@@ -357,13 +358,13 @@ void wm_event_do_notifiers(bContext *C)
 				ED_screen_do_listen(C, note);
 
 				for (ar = win->screen->regionbase.first; ar; ar = ar->next) {
-					ED_region_do_listen(win->screen, NULL, ar, note);
+					ED_region_do_listen(win->screen, NULL, ar, note, scene);
 				}
 				
 				for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-					ED_area_do_listen(win->screen, sa, note);
+					ED_area_do_listen(win->screen, sa, note, scene);
 					for (ar = sa->regionbase.first; ar; ar = ar->next) {
-						ED_region_do_listen(win->screen, sa, ar, note);
+						ED_region_do_listen(win->screen, sa, ar, note, scene);
 					}
 				}
 			}

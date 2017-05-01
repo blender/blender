@@ -52,7 +52,9 @@ struct rcti;
 struct Main;
 
 /* regions */
-void    ED_region_do_listen(struct bScreen *sc, struct ScrArea *sa, struct ARegion *ar, struct wmNotifier *note);
+void    ED_region_do_listen(
+        struct bScreen *sc, struct ScrArea *sa, struct ARegion *ar,
+        struct wmNotifier *note, const Scene *scene);
 void    ED_region_do_draw(struct bContext *C, struct ARegion *ar);
 void    ED_region_exit(struct bContext *C, struct ARegion *ar);
 void    ED_region_pixelspace(struct ARegion *ar);
@@ -87,7 +89,7 @@ int     ED_area_header_switchbutton(const struct bContext *C, struct uiBlock *bl
 void    ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
 void    ED_area_exit(struct bContext *C, struct ScrArea *sa);
 int     ED_screen_area_active(const struct bContext *C);
-void    ED_area_do_listen(struct bScreen *sc, ScrArea *sa, struct wmNotifier *note);
+void    ED_area_do_listen(struct bScreen *sc, ScrArea *sa, struct wmNotifier *note, const Scene *scene);
 void    ED_area_tag_redraw(ScrArea *sa);
 void    ED_area_tag_redraw_regiontype(ScrArea *sa, int type);
 void    ED_area_tag_refresh(ScrArea *sa);

@@ -82,7 +82,8 @@ typedef struct SpaceType {
 	/* exit is called when the area is hidden or removed */
 	void (*exit)(struct wmWindowManager *, struct ScrArea *);
 	/* Listeners can react to bContext changes */
-	void (*listener)(struct bScreen *sc, struct ScrArea *, struct wmNotifier *);
+	void (*listener)(struct bScreen *sc, struct ScrArea *,
+	                 struct wmNotifier *, const struct Scene *scene);
 	
 	/* refresh context, called after filereads, ED_area_tag_refresh() */
 	void (*refresh)(const struct bContext *, struct ScrArea *);
@@ -133,8 +134,9 @@ typedef struct ARegionType {
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *, struct ARegion *);
 	/* contextual changes should be handled here */
-	void (*listener)(struct bScreen *sc, struct ScrArea *, struct ARegion *, struct wmNotifier *);
-	
+	void (*listener)(struct bScreen *, struct ScrArea *, struct ARegion *,
+	                 struct wmNotifier *, const struct Scene *scene);
+
 	void (*free)(struct ARegion *);
 
 	/* split region, copy data optionally */
