@@ -111,6 +111,7 @@
 const char *RE_engine_id_BLENDER_RENDER = "BLENDER_RENDER";
 const char *RE_engine_id_BLENDER_GAME = "BLENDER_GAME";
 const char *RE_engine_id_BLENDER_CLAY = "BLENDER_CLAY";
+const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_CYCLES = "CYCLES";
 
 void free_avicodecdata(AviCodecData *acd)
@@ -1789,6 +1790,11 @@ bool BKE_scene_uses_blender_internal(const  Scene *scene)
 bool BKE_scene_uses_blender_game(const Scene *scene)
 {
 	return STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME);
+}
+
+bool BKE_scene_uses_blender_eevee(const Scene *scene)
+{
+	return STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 }
 
 void BKE_scene_base_flag_to_objects(SceneLayer *sl)

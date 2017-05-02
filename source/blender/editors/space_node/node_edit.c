@@ -397,6 +397,14 @@ void ED_node_shader_default(const bContext *C, ID *id)
 			Material *ma = (Material *)id;
 			ma->nodetree = ntree;
 
+			if (BKE_scene_uses_blender_eevee(scene)) {
+				out = nodeAddStaticNode(C, ntree, SH_NODE_OUTPUT_METALLIC);
+				out->locx = 300.0f; out->locy = 300.0f;
+				nodeSetActive(ntree, out);
+				ntreeUpdateTree(CTX_data_main(C), ntree);
+				return;
+			}
+
 			if (BKE_scene_use_new_shading_nodes(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;
 				shader_type = SH_NODE_BSDF_DIFFUSE;

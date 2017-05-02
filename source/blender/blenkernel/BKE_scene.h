@@ -153,6 +153,7 @@ bool BKE_scene_use_spherical_stereo(struct Scene *scene);
 
 bool BKE_scene_uses_blender_internal(const struct Scene *scene);
 bool BKE_scene_uses_blender_game(const struct Scene *scene);
+bool BKE_scene_uses_blender_eevee(const struct Scene *scene);
 
 void BKE_scene_disable_color_management(struct Scene *scene);
 bool BKE_scene_check_color_management_enabled(const struct Scene *scene);
