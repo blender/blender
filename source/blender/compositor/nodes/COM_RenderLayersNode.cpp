@@ -27,76 +27,61 @@
 #include "COM_ScaleOperation.h"
 #include "COM_SetValueOperation.h"
 
-#ifdef WITH_CYCLES_DEBUG
-#  include "RE_pipeline.h"
-#endif
-
 RenderLayersNode::RenderLayersNode(bNode *editorNode) : Node(editorNode)
 {
 	/* pass */
 }
 
 void RenderLayersNode::testSocketLink(NodeConverter &converter, const CompositorContext &context,
-                                            int outputSocketNumber, RenderLayersBaseProg *operation) const
+                                      NodeOutput *output, RenderLayersProg *operation,
+                                      Scene *scene, int layerId, bool is_preview) const
 {
-	NodeOutput *outputSocket = this->getOutputSocket(outputSocketNumber);
-	Scene *scene = (Scene *)this->getbNode()->id;
-	short layerId = this->getbNode()->custom1;
-
 	operation->setScene(scene);
 	operation->setLayerId(layerId);
 	operation->setRenderData(context.getRenderData());
 	operation->setViewName(context.getViewName());
 
-	converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
+	converter.mapOutputSocket(output, operation->getOutputSocket());
 	converter.addOperation(operation);
 	
-	if (outputSocketNumber == 0) /* only for image socket */
+	if (is_preview) /* only for image socket */
 		converter.addPreview(operation->getOutputSocket());
 }
 
 void RenderLayersNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
-	testSocketLink(converter, context, 0, new RenderLayersColorProg());
-	testSocketLink(converter, context, 1, new RenderLayersAlphaProg());
-	testSocketLink(converter, context, 2, new RenderLayersDepthProg());
-	testSocketLink(converter, context, 3, new RenderLayersNormalOperation());
-	testSocketLink(converter, context, 4, new RenderLayersUVOperation());
-	testSocketLink(converter, context, 5, new RenderLayersSpeedOperation());
-	testSocketLink(converter, context, 6, new RenderLayersColorOperation());
-	testSocketLink(converter, context, 7, new RenderLayersDiffuseOperation());
-	testSocketLink(converter, context, 8, new RenderLayersSpecularOperation());
-	testSocketLink(converter, context, 9, new RenderLayersShadowOperation());
-	testSocketLink(converter, context, 10, new RenderLayersAOOperation());
-	testSocketLink(converter, context, 11, new RenderLayersReflectionOperation());
-	testSocketLink(converter, context, 12, new RenderLayersRefractionOperation());
-	testSocketLink(converter, context, 13, new RenderLayersIndirectOperation());
-	testSocketLink(converter, context, 14, new RenderLayersObjectIndexOperation());
-	testSocketLink(converter, context, 15, new RenderLayersMaterialIndexOperation());
-	testSocketLink(converter, context, 16, new RenderLayersMistOperation());
-	testSocketLink(converter, context, 17, new RenderLayersEmitOperation());
-	testSocketLink(converter, context, 18, new RenderLayersEnvironmentOperation());
+	Scene *scene = (Scene *)this->getbNode()->id;
+	short layerId = this->getbNode()->custom1;
+	Render *re = (scene) ? RE_GetRender(scene->id.name) : NULL;
+	int numberOfOutputs = this->getNumberOfOutputSockets();
 	
-	// cycles passes
-	testSocketLink(converter, context, 19, new RenderLayersCyclesOperation(SCE_PASS_DIFFUSE_DIRECT));
-	testSocketLink(converter, context, 20, new RenderLayersCyclesOperation(SCE_PASS_DIFFUSE_INDIRECT));
-	testSocketLink(converter, context, 21, new RenderLayersCyclesOperation(SCE_PASS_DIFFUSE_COLOR));
-	testSocketLink(converter, context, 22, new RenderLayersCyclesOperation(SCE_PASS_GLOSSY_DIRECT));
-	testSocketLink(converter, context, 23, new RenderLayersCyclesOperation(SCE_PASS_GLOSSY_INDIRECT));
-	testSocketLink(converter, context, 24, new RenderLayersCyclesOperation(SCE_PASS_GLOSSY_COLOR));
-	testSocketLink(converter, context, 25, new RenderLayersCyclesOperation(SCE_PASS_TRANSM_DIRECT));
-	testSocketLink(converter, context, 26, new RenderLayersCyclesOperation(SCE_PASS_TRANSM_INDIRECT));
-	testSocketLink(converter, context, 27, new RenderLayersCyclesOperation(SCE_PASS_TRANSM_COLOR));
-	testSocketLink(converter, context, 28, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_DIRECT));
-	testSocketLink(converter, context, 29, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_INDIRECT));
-	testSocketLink(converter, context, 30, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_COLOR));
-
-#ifdef WITH_CYCLES_DEBUG
-	{
-		Scene *scene = (Scene *)this->getbNode()->id;
-		Render *re = RE_GetRender(scene->id.name);
-		int debug_pass_type = ((re != NULL) ? RE_debug_pass_type_get(re) : scene->r.debug_pass_type);
-		testSocketLink(converter, context, 31, new RenderLayersCyclesDebugOperation(SCE_PASS_DEBUG, debug_pass_type));
+	if (re) {
+		RenderResult *rr = RE_AcquireResultRead(re);
+		if (rr) {
+			SceneRenderLayer *srl = (SceneRenderLayer *)BLI_findlink(&scene->r.layers, layerId);
+			if (srl) {
+				RenderLayer *rl = RE_GetRenderLayer(rr, srl->name);
+				if (rl) {
+					for (int i = 0; i < numberOfOutputs; i++) {
+						NodeOutput *output = this->getOutputSocket(i);
+						NodeImageLayer *storage = (NodeImageLayer*) output->getbNodeSocket()->storage;
+						RenderPass *rpass = (RenderPass*) BLI_findstring(&rl->passes, storage->pass_name, offsetof(RenderPass, name));
+						if (rpass) {
+							if (STREQ(rpass->name, RE_PASSNAME_COMBINED) && STREQ(output->getbNodeSocket()->name, "Alpha")) {
+								testSocketLink(converter, context, output, new RenderLayersAlphaProg(rpass->name, COM_DT_VALUE, rpass->channels), scene, layerId, false);
+							}
+							else if (STREQ(rpass->name, RE_PASSNAME_Z)) {
+								testSocketLink(converter, context, output, new RenderLayersDepthProg(rpass->name, COM_DT_VALUE, rpass->channels), scene, layerId, false);
+							}
+							else {
+								DataType type = ((rpass->channels == 4)? COM_DT_COLOR : ((rpass->channels == 3)? COM_DT_VECTOR : COM_DT_VALUE));
+								testSocketLink(converter, context, output, new RenderLayersProg(rpass->name, type, rpass->channels), scene, layerId, STREQ(output->getbNodeSocket()->name, "Image"));
+							}
+						}
+					}
+				}
+			}
+		}
+		RE_ReleaseResult(re);
 	}
-#endif
 }

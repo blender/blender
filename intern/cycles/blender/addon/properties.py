@@ -1166,6 +1166,39 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
     def unregister(cls):
         del bpy.types.Scene.cycles_curves
 
+class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
+    @classmethod
+    def register(cls):
+        bpy.types.SceneRenderLayer.cycles = PointerProperty(
+                name="Cycles SceneRenderLayer Settings",
+                description="Cycles SceneRenderLayer Settings",
+                type=cls,
+                )
+        cls.pass_debug_bvh_traversed_nodes = BoolProperty(
+                name="Debug BVH Traversed Nodes",
+                description="Store Debug BVH Traversed Nodes pass",
+                default=False,
+                )
+        cls.pass_debug_bvh_traversed_instances = BoolProperty(
+                name="Debug BVH Traversed Instances",
+                description="Store Debug BVH Traversed Instances pass",
+                default=False,
+                )
+        cls.pass_debug_bvh_intersections = BoolProperty(
+                name="Debug BVH Intersections",
+                description="Store Debug BVH Intersections",
+                default=False,
+                )
+        cls.pass_debug_ray_bounces = BoolProperty(
+                name="Debug Ray Bounces",
+                description="Store Debug Ray Bounces pass",
+                default=False,
+                )
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.SceneRenderLayer.cycles
+
 
 class CyclesCurveSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -1324,6 +1357,7 @@ def register():
     bpy.utils.register_class(CyclesCurveSettings)
     bpy.utils.register_class(CyclesDeviceSettings)
     bpy.utils.register_class(CyclesPreferences)
+    bpy.utils.register_class(CyclesRenderLayerSettings)
 
 
 def unregister():
@@ -1339,3 +1373,4 @@ def unregister():
     bpy.utils.unregister_class(CyclesCurveSettings)
     bpy.utils.unregister_class(CyclesDeviceSettings)
     bpy.utils.unregister_class(CyclesPreferences)
+    bpy.utils.unregister_class(CyclesRenderLayerSettings)

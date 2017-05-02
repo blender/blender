@@ -189,8 +189,12 @@ void ED_render_engine_changed(Main *bmain)
 
 	RE_FreePersistentData();
 
-	for (scene = bmain->scene.first; scene; scene = scene->id.next)
+	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		ED_render_id_flush_update(bmain, &scene->id);
+		if (scene->nodetree) {
+			ntreeCompositUpdateRLayers(scene->nodetree);
+		}
+	}
 }
 
 /***************************** Updates ***********************************

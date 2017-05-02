@@ -811,6 +811,14 @@ void *CCL_python_module_init()
 	PyModule_AddStringConstant(mod, "osl_version_string", "unknown");
 #endif
 
+#ifdef WITH_CYCLES_DEBUG
+	PyModule_AddObject(mod, "with_cycles_debug", Py_True);
+	Py_INCREF(Py_True);
+#else
+	PyModule_AddObject(mod, "with_cycles_debug", Py_False);
+	Py_INCREF(Py_False);
+#endif
+
 #ifdef WITH_NETWORK
 	PyModule_AddObject(mod, "with_network", Py_True);
 	Py_INCREF(Py_True);

@@ -229,7 +229,9 @@ typedef struct SceneRenderLayer {
 
 	int samples;
 	float pass_alpha_threshold;
-	
+
+	IDProperty *prop;
+
 	struct FreestyleConfig freestyleConfig;
 } SceneRenderLayer;
 
@@ -283,8 +285,42 @@ typedef enum ScenePassType {
 	SCE_PASS_SUBSURFACE_DIRECT        = (1 << 28),
 	SCE_PASS_SUBSURFACE_INDIRECT      = (1 << 29),
 	SCE_PASS_SUBSURFACE_COLOR         = (1 << 30),
-	SCE_PASS_DEBUG                    = (1 << 31),  /* This is a virtual pass. */
 } ScenePassType;
+
+#define RE_PASSNAME_COMBINED "Combined"
+#define RE_PASSNAME_Z "Depth"
+#define RE_PASSNAME_VECTOR "Vector"
+#define RE_PASSNAME_NORMAL "Normal"
+#define RE_PASSNAME_UV "UV"
+#define RE_PASSNAME_RGBA "Color"
+#define RE_PASSNAME_EMIT "Emit"
+#define RE_PASSNAME_DIFFUSE "Diffuse"
+#define RE_PASSNAME_SPEC "Spec"
+#define RE_PASSNAME_SHADOW "Shadow"
+
+#define RE_PASSNAME_AO "AO"
+#define RE_PASSNAME_ENVIRONMENT "Env"
+#define RE_PASSNAME_INDIRECT "Indirect"
+#define RE_PASSNAME_REFLECT "Reflect"
+#define RE_PASSNAME_REFRACT "Refract"
+#define RE_PASSNAME_INDEXOB "IndexOB"
+#define RE_PASSNAME_INDEXMA "IndexMA"
+#define RE_PASSNAME_MIST "Mist"
+
+#define RE_PASSNAME_RAYHITS "RayHits"
+#define RE_PASSNAME_DIFFUSE_DIRECT "DiffDir"
+#define RE_PASSNAME_DIFFUSE_INDIRECT "DiffInd"
+#define RE_PASSNAME_DIFFUSE_COLOR "DiffCol"
+#define RE_PASSNAME_GLOSSY_DIRECT "GlossDir"
+#define RE_PASSNAME_GLOSSY_INDIRECT "GlossInd"
+#define RE_PASSNAME_GLOSSY_COLOR "GlossCol"
+#define RE_PASSNAME_TRANSM_DIRECT "TransDir"
+#define RE_PASSNAME_TRANSM_INDIRECT "TransInd"
+#define RE_PASSNAME_TRANSM_COLOR "TransCol"
+
+#define RE_PASSNAME_SUBSURFACE_DIRECT "SubsurfaceDir"
+#define RE_PASSNAME_SUBSURFACE_INDIRECT "SubsurfaceInd"
+#define RE_PASSNAME_SUBSURFACE_COLOR "SubsurfaceCol"
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 

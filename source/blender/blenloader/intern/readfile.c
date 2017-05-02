@@ -3109,7 +3109,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 			else if (ntree->type==NTREE_COMPOSIT) {
 				if (ELEM(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 					direct_link_curvemapping(fd, node->storage);
-				else if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
+				else if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 					((ImageUser *)node->storage)->ok = 1;
 			}
 			else if ( ntree->type==NTREE_TEXTURE) {
@@ -6162,6 +6162,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->r.layers));
 	link_list(fd, &(sce->r.views));
 
+
+	for (srl = sce->r.layers.first; srl; srl = srl->next) {
+		srl->prop = newdataadr(fd, srl->prop);
+		IDP_DirectLinkGroup_OrFree(&srl->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+	}
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		link_list(fd, &(srl->freestyleConfig.modules));
 	}

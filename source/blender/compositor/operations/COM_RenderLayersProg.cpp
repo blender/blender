@@ -34,17 +34,18 @@ extern "C" {
 
 /* ******** Render Layers Base Prog ******** */
 
-RenderLayersBaseProg::RenderLayersBaseProg(int renderpass, int elementsize) : NodeOperation()
+RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elementsize) : NodeOperation(), m_passName(passName)
 {
-	this->m_renderpass = renderpass;
 	this->setScene(NULL);
 	this->m_inputBuffer = NULL;
 	this->m_elementsize = elementsize;
 	this->m_rd = NULL;
+
+	this->addOutputSocket(type);
 }
 
 
-void RenderLayersBaseProg::initExecution()
+void RenderLayersProg::initExecution()
 {
 	Scene *scene = this->getScene();
 	Render *re = (scene) ? RE_GetRender(scene->id.name) : NULL;
@@ -59,10 +60,7 @@ void RenderLayersBaseProg::initExecution()
 
 			RenderLayer *rl = RE_GetRenderLayer(rr, srl->name);
 			if (rl) {
-				this->m_inputBuffer = RE_RenderLayerGetPass(rl, this->m_renderpass, this->m_viewName);
-				if (this->m_inputBuffer == NULL && this->m_renderpass == SCE_PASS_COMBINED) {
-					this->m_inputBuffer = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, this->m_viewName);
-				}
+				this->m_inputBuffer = RE_RenderLayerGetPass(rl, this->m_passName.c_str(), this->m_viewName);
 			}
 		}
 	}
@@ -72,7 +70,7 @@ void RenderLayersBaseProg::initExecution()
 	}
 }
 
-void RenderLayersBaseProg::doInterpolation(float output[4], float x, float y, PixelSampler sampler)
+void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelSampler sampler)
 {
 	unsigned int offset;
 	int width = this->getWidth(), height = this->getHeight();
@@ -111,7 +109,7 @@ void RenderLayersBaseProg::doInterpolation(float output[4], float x, float y, Pi
 	}
 }
 
-void RenderLayersBaseProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void RenderLayersProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 #if 0
 	const RenderData *rd = this->m_rd;
@@ -173,12 +171,12 @@ void RenderLayersBaseProg::executePixelSampled(float output[4], float x, float y
 	}
 }
 
-void RenderLayersBaseProg::deinitExecution()
+void RenderLayersProg::deinitExecution()
 {
 	this->m_inputBuffer = NULL;
 }
 
-void RenderLayersBaseProg::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
+void RenderLayersProg::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	Scene *sce = this->getScene();
 	Render *re = (sce) ? RE_GetRender(sce->id.name) : NULL;
@@ -207,13 +205,6 @@ void RenderLayersBaseProg::determineResolution(unsigned int resolution[2], unsig
 }
 
 /* ******** Render Layers AO Operation ******** */
-
-RenderLayersAOOperation::RenderLayersAOOperation() : RenderLayersBaseProg(SCE_PASS_AO, 3)
-{
-	this->addOutputSocket(COM_DT_COLOR);
-}
-
-
 void RenderLayersAOOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float *inputBuffer = this->getInputBuffer();
@@ -227,12 +218,6 @@ void RenderLayersAOOperation::executePixelSampled(float output[4], float x, floa
 }
 
 /* ******** Render Layers Alpha Operation ******** */
-
-RenderLayersAlphaProg::RenderLayersAlphaProg() : RenderLayersBaseProg(SCE_PASS_COMBINED, 4)
-{
-	this->addOutputSocket(COM_DT_VALUE);
-}
-
 void RenderLayersAlphaProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	float *inputBuffer = this->getInputBuffer();
@@ -247,27 +232,7 @@ void RenderLayersAlphaProg::executePixelSampled(float output[4], float x, float 
 	}
 }
 
-/* ******** Render Layers Color Operation ******** */
-
-RenderLayersColorOperation::RenderLayersColorOperation() : RenderLayersBaseProg(SCE_PASS_RGBA, 4)
-{
-	this->addOutputSocket(COM_DT_COLOR);
-}
-
-/* ******** Render Layers Cycles Operation ******** */
-
-RenderLayersCyclesOperation::RenderLayersCyclesOperation(int pass) : RenderLayersBaseProg(pass, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
 /* ******** Render Layers Depth Operation ******** */
-
-RenderLayersDepthProg::RenderLayersDepthProg() : RenderLayersBaseProg(SCE_PASS_Z, 1)
-{
-	this->addOutputSocket(COM_DT_VALUE);
-}
-
 void RenderLayersDepthProg::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	int ix = x;
@@ -282,134 +247,3 @@ void RenderLayersDepthProg::executePixelSampled(float output[4], float x, float 
 		output[0] = inputBuffer[offset];
 	}
 }
-
-/* ******** Render Layers Diffuse Operation ******** */
-
-RenderLayersDiffuseOperation::RenderLayersDiffuseOperation() : RenderLayersBaseProg(SCE_PASS_DIFFUSE, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Emit Operation ******** */
-
-RenderLayersEmitOperation::RenderLayersEmitOperation() : RenderLayersBaseProg(SCE_PASS_EMIT, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Environment Operation ******** */
-
-RenderLayersEnvironmentOperation::RenderLayersEnvironmentOperation() : RenderLayersBaseProg(SCE_PASS_ENVIRONMENT, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Image Operation ******** */
-
-RenderLayersColorProg::RenderLayersColorProg() : RenderLayersBaseProg(SCE_PASS_COMBINED, 4)
-{
-	this->addOutputSocket(COM_DT_COLOR);
-}
-
-/* ******** Render Layers Indirect Operation ******** */
-
-RenderLayersIndirectOperation::RenderLayersIndirectOperation() : RenderLayersBaseProg(SCE_PASS_INDIRECT, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Material Index Operation ******** */
-
-RenderLayersMaterialIndexOperation::RenderLayersMaterialIndexOperation() : RenderLayersBaseProg(SCE_PASS_INDEXMA, 1)
-{
-	this->addOutputSocket(COM_DT_VALUE);
-}
-
-/* ******** Render Layers Mist Operation ******** */
-
-RenderLayersMistOperation::RenderLayersMistOperation() : RenderLayersBaseProg(SCE_PASS_MIST, 1)
-{
-	this->addOutputSocket(COM_DT_VALUE);
-}
-
-/* ******** Render Layers Normal Operation ******** */
-
-RenderLayersNormalOperation::RenderLayersNormalOperation() : RenderLayersBaseProg(SCE_PASS_NORMAL, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Object Index Operation ******** */
-
-RenderLayersObjectIndexOperation::RenderLayersObjectIndexOperation() : RenderLayersBaseProg(SCE_PASS_INDEXOB, 1)
-{
-	this->addOutputSocket(COM_DT_VALUE);
-}
-
-/* ******** Render Layers Reflection Operation ******** */
-
-RenderLayersReflectionOperation::RenderLayersReflectionOperation() : RenderLayersBaseProg(SCE_PASS_REFLECT, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Refraction Operation ******** */
-
-RenderLayersRefractionOperation::RenderLayersRefractionOperation() : RenderLayersBaseProg(SCE_PASS_REFRACT, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Shadow Operation ******** */
-
-RenderLayersShadowOperation::RenderLayersShadowOperation() : RenderLayersBaseProg(SCE_PASS_SHADOW, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Specular Operation ******** */
-
-RenderLayersSpecularOperation::RenderLayersSpecularOperation() : RenderLayersBaseProg(SCE_PASS_SPEC, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Render Layers Speed Operation ******** */
-
-RenderLayersSpeedOperation::RenderLayersSpeedOperation() : RenderLayersBaseProg(SCE_PASS_VECTOR, 4)
-{
-	this->addOutputSocket(COM_DT_COLOR);
-}
-
-/* ******** Render Layers UV Operation ******** */
-
-RenderLayersUVOperation::RenderLayersUVOperation() : RenderLayersBaseProg(SCE_PASS_UV, 3)
-{
-	this->addOutputSocket(COM_DT_VECTOR);
-}
-
-/* ******** Debug Render Layers Cycles Operation ******** */
-
-#ifdef WITH_CYCLES_DEBUG
-
-RenderLayersCyclesDebugOperation::RenderLayersCyclesDebugOperation(
-        int pass,
-        int debug_pass_type)
-	: RenderLayersBaseProg(pass, RE_debug_pass_num_channels_get(debug_pass_type))
-{
-	switch (m_elementsize) {
-		case 1:
-			this->addOutputSocket(COM_DT_VALUE);
-			break;
-		case 3:
-			this->addOutputSocket(COM_DT_VECTOR);
-			break;
-		case 4:
-			this->addOutputSocket(COM_DT_COLOR);
-			break;
-		default:
-			BLI_assert(!"Unkown debug pass type element size.");
-	}
-}
-
-#endif

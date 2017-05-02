@@ -3494,7 +3494,7 @@ static void add_transp_speed(RenderLayer *rl, int offset, float speed[4], float 
 	RenderPass *rpass;
 	
 	for (rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		if (rpass->passtype==SCE_PASS_VECTOR) {
+		if (STREQ(rpass->name, RE_PASSNAME_VECTOR)) {
 			float *fp= rpass->rect + 4*offset;
 			
 			if (speed==NULL) {
@@ -3528,7 +3528,7 @@ static void add_transp_obindex(RenderLayer *rl, int offset, Object *ob)
 	RenderPass *rpass;
 	
 	for (rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		if (rpass->passtype == SCE_PASS_INDEXOB) {
+		if (STREQ(rpass->name, RE_PASSNAME_INDEXOB)) {
 			float *fp= rpass->rect + offset;
 			*fp= (float)ob->index;
 			break;
@@ -3541,7 +3541,7 @@ static void add_transp_material_index(RenderLayer *rl, int offset, Material *mat
 	RenderPass *rpass;
 	
 	for (rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		if (rpass->passtype == SCE_PASS_INDEXMA) {
+		if (STREQ(rpass->name, RE_PASSNAME_INDEXMA)) {
 			float *fp= rpass->rect + offset;
 			*fp= (float)mat->index;
 			break;
@@ -3558,78 +3558,74 @@ static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 	int delta= sizeof(ShadeResult)/4;
 	
 	for (rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		float *col= NULL;
-		int pixsize= 3;
+		float *col = NULL;
+		int pixsize = 3;
 		
-		switch (rpass->passtype) {
-			case SCE_PASS_RGBA:
-				col= shr->col;
-				pixsize= 4;
-				break;
-			case SCE_PASS_EMIT:
-				col= shr->emit;
-				break;
-			case SCE_PASS_DIFFUSE:
-				col= shr->diff;
-				break;
-			case SCE_PASS_SPEC:
-				col= shr->spec;
-				break;
-			case SCE_PASS_SHADOW:
-				col= shr->shad;
-				break;
-			case SCE_PASS_AO:
-				col= shr->ao;
-				break;
-			case SCE_PASS_ENVIRONMENT:
-				col= shr->env;
-				break;
-			case SCE_PASS_INDIRECT:
-				col= shr->indirect;
-				break;
-			case SCE_PASS_REFLECT:
-				col= shr->refl;
-				break;
-			case SCE_PASS_REFRACT:
-				col= shr->refr;
-				break;
-			case SCE_PASS_NORMAL:
-				col= shr->nor;
-				break;
-			case SCE_PASS_MIST:
-				col= &shr->mist;
-				pixsize= 1;
-				break;
-			case SCE_PASS_Z:
-				col= &shr->z;
-				pixsize= 1;
-				break;
-			case SCE_PASS_VECTOR:
+		if (STREQ(rpass->name, RE_PASSNAME_RGBA)) {
+			col = shr->col;
+			pixsize = 4;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_EMIT)) {
+			col = shr->emit;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE)) {
+			col = shr->diff;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_SPEC)) {
+			col = shr->spec;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_SHADOW)) {
+			col = shr->shad;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_AO)) {
+			col = shr->ao;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_ENVIRONMENT)) {
+			col = shr->env;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_INDIRECT)) {
+			col = shr->indirect;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_REFLECT)) {
+			col = shr->refl;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_REFRACT)) {
+			col = shr->refr;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_NORMAL)) {
+			col = shr->nor;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_MIST)) {
+			col = &shr->mist;
+			pixsize = 1;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_Z)) {
+			col = &shr->z;
+			pixsize = 1;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_VECTOR)) {
+			ShadeResult *shr_t = shr+1;
+			float *fp = shr->winspeed;	/* was initialized */
+			int samp;
+
+			/* add minimum speed in pixel */
+			for (samp = 1; samp<R.osa; samp++, shr_t++) {
 				
-				{
-					ShadeResult *shr_t= shr+1;
-					float *fp= shr->winspeed;	/* was initialized */
-					int samp;
+				if (shr_t->combined[3] > 0.0f) {
+					const float *speed = shr_t->winspeed;
 					
-					/* add minimum speed in pixel */
-					for (samp= 1; samp<R.osa; samp++, shr_t++) {
-						
-						if (shr_t->combined[3] > 0.0f) {
-							const float *speed= shr_t->winspeed;
-							
-							if ( (ABS(speed[0]) + ABS(speed[1]))< (ABS(fp[0]) + ABS(fp[1])) ) {
-								fp[0]= speed[0];
-								fp[1]= speed[1];
-							}
-							if ( (ABS(speed[2]) + ABS(speed[3]))< (ABS(fp[2]) + ABS(fp[3])) ) {
-								fp[2]= speed[2];
-								fp[3]= speed[3];
-							}
-						}
+					if ( (ABS(speed[0]) + ABS(speed[1]))< (ABS(fp[0]) + ABS(fp[1])) ) {
+						fp[0] = speed[0];
+						fp[1] = speed[1];
+					}
+					if ( (ABS(speed[2]) + ABS(speed[3]))< (ABS(fp[2]) + ABS(fp[3])) ) {
+						fp[2] = speed[2];
+						fp[3] = speed[3];
 					}
 				}
-				break;
+				}
 		}
+
 		if (col) {
 			const float *fp= col+delta;
 			int samp;
@@ -3661,53 +3657,51 @@ static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, flo
 		float *fp, *col= NULL;
 		int pixsize= 3;
 		
-		switch (rpass->passtype) {
-			case SCE_PASS_Z:
-				fp= rpass->rect + offset;
-				if (shr->z < *fp)
-					*fp= shr->z;
-				break;
-			case SCE_PASS_RGBA:
-				fp= rpass->rect + 4*offset;
-				addAlphaOverFloat(fp, shr->col);
-				break;
-			case SCE_PASS_EMIT:
-				col= shr->emit;
-				break;
-			case SCE_PASS_DIFFUSE:
-				col= shr->diff;
-				break;
-			case SCE_PASS_SPEC:
-				col= shr->spec;
-				break;
-			case SCE_PASS_SHADOW:
-				col= shr->shad;
-				break;
-			case SCE_PASS_AO:
-				col= shr->ao;
-				break;
-			case SCE_PASS_ENVIRONMENT:
-				col= shr->env;
-				break;
-			case SCE_PASS_INDIRECT:
-				col= shr->indirect;
-				break;
-			case SCE_PASS_REFLECT:
-				col= shr->refl;
-				break;
-			case SCE_PASS_REFRACT:
-				col= shr->refr;
-				break;
-			case SCE_PASS_NORMAL:
-				col= shr->nor;
-				break;
-			case SCE_PASS_MIST:
-				col= &shr->mist;
-				pixsize= 1;
-				break;
+		if (STREQ(rpass->name, RE_PASSNAME_Z)) {
+			fp = rpass->rect + offset;
+			if (shr->z < *fp)
+				*fp = shr->z;
 		}
-		if (col) {
+		else if (STREQ(rpass->name, RE_PASSNAME_RGBA)) {
+			fp = rpass->rect + 4*offset;
+			addAlphaOverFloat(fp, shr->col);
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_EMIT)) {
+			col = shr->emit;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE)) {
+			col = shr->diff;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_SPEC)) {
+			col = shr->spec;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_SHADOW)) {
+			col = shr->shad;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_AO)) {
+			col = shr->ao;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_ENVIRONMENT)) {
+			col = shr->env;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_INDIRECT)) {
+			col = shr->indirect;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_REFLECT)) {
+			col = shr->refl;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_REFRACT)) {
+			col = shr->refr;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_NORMAL)) {
+			col = shr->nor;
+		}
+		else if (STREQ(rpass->name, RE_PASSNAME_MIST)) {
+			col = &shr->mist;
+			pixsize = 1;
+		}
 
+		if (col) {
 			fp= rpass->rect + pixsize*offset;
 			fp[0]= col[0] + (1.0f-alpha)*fp[0];
 			if (pixsize==3) {
@@ -3964,7 +3958,7 @@ static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf
 	float *fp, *col;
 	int a;
 	
-	fp = RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR, R.viewname);
+	fp = RE_RenderLayerGetPass(rl, RE_PASSNAME_VECTOR, R.viewname);
 	if (fp==NULL) return;
 	col= rectf+3;
 	
@@ -4058,7 +4052,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	/* zero alpha pixels get speed vector max again */
 	if (addpassflag & SCE_PASS_VECTOR)
 		if (rl->layflag & SCE_LAY_SOLID) {
-			float *rect = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, R.viewname);
+			float *rect = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, R.viewname);
 			reset_sky_speedvectors(pa, rl, rl->acolrect ? rl->acolrect : rect);	/* if acolrect is set we use it */
 		}
 	/* filtered render, for now we assume only 1 filter size */
@@ -4246,7 +4240,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 							if (alpha != 0.0f) {
 								RenderLayer *rl_other = ssamp.rlpp[a];
 
-								float *rect = RE_RenderLayerGetPass(rl_other , SCE_PASS_COMBINED, R.viewname);
+								float *rect = RE_RenderLayerGetPass(rl_other , RE_PASSNAME_COMBINED, R.viewname);
 								addAlphaOverFloat(rect + 4 * od, samp_shr[a].combined);
 				
 								add_transp_passes(rl_other , od, &samp_shr[a], alpha);

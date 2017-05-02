@@ -34,6 +34,12 @@
 
 #include "render_types.h"
 
+#include "RE_engine.h"
+
+#include "DNA_node_types.h"
+
+#include "NOD_composite.h"
+
 struct ShadeInput;
 struct ShadeResult;
 struct World;
@@ -76,6 +82,8 @@ void zbufshadeDA_tile(struct RenderPart *pa);
 void zbufshade_sss_tile(struct RenderPart *pa);
 
 int get_sample_layers(struct RenderPart *pa, struct RenderLayer *rl, struct RenderLayer **rlpp);
+
+void render_internal_update_passes(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl);
 
 
 /* -------- ray.c ------- */

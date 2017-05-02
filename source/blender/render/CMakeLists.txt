@@ -34,6 +34,7 @@ set(INC
 	../depsgraph
 	../makesdna
 	../makesrna
+	../nodes
 	../physics
 	../../../intern/atomic
 	../../../intern/guardedalloc
@@ -163,10 +164,6 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
-if(WITH_CYCLES AND WITH_CYCLES_DEBUG)
-	add_definitions(-DWITH_CYCLES_DEBUG)
 endif()
 
 if(APPLE)
