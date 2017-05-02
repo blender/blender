@@ -70,6 +70,8 @@
 #include "ED_transform.h"
 #include "ED_gpencil.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -755,8 +757,9 @@ static void drawrenderborder(ARegion *ar, View3D *v3d)
 
 void ED_view3d_draw_depth(
         struct Depsgraph *graph,
-        Scene *scene, ARegion *ar, View3D *v3d, bool alphaoverride)
+        ARegion *ar, View3D *v3d, bool alphaoverride)
 {
+	Scene *scene = DAG_get_scene(graph);
 	RegionView3D *rv3d = ar->regiondata;
 
 	short zbuf = v3d->zbuf;
@@ -797,7 +800,7 @@ void ED_view3d_draw_depth(
 	else
 #endif /* WITH_OPENGL_LEGACY */
 	{
-		DRW_draw_depth_loop(graph, scene, ar, v3d);
+		DRW_draw_depth_loop(graph, ar, v3d);
 	}
 
 	if (rv3d->rflag & RV3D_CLIPPING) {

@@ -1117,7 +1117,6 @@ int view3d_opengl_select(
 {
 	Depsgraph *graph = vc->depsgraph;
 	Scene *scene = vc->scene;
-	SceneLayer *sl = vc->scene_layer;
 	View3D *v3d = vc->v3d;
 	ARegion *ar = vc->ar;
 	rcti rect;
@@ -1192,7 +1191,7 @@ int view3d_opengl_select(
 	else
 #else
 	{
-		DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
+		DRW_draw_select_loop(graph, v3d, ar, use_obedit_skip, use_nearest, &rect);
 	}
 #endif /* WITH_OPENGL_LEGACY */
 
@@ -1209,7 +1208,7 @@ int view3d_opengl_select(
 		else
 #else
 		{
-			DRW_draw_select_loop(vc, graph, scene, sl, v3d, ar, use_obedit_skip, use_nearest, &rect);
+			DRW_draw_select_loop(graph, v3d, ar, use_obedit_skip, use_nearest, &rect);
 		}
 #endif /* WITH_OPENGL_LEGACY */
 

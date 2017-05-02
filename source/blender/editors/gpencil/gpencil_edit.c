@@ -2012,7 +2012,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 	if (mode == GP_REPROJECT_SURFACE) {
 		struct Depsgraph *graph = CTX_data_depsgraph(C);
 		view3d_region_operator_needs_opengl(CTX_wm_window(C), gsc.ar);
-		ED_view3d_autodist_init(graph, scene, gsc.ar, CTX_wm_view3d(C), 0);
+		ED_view3d_autodist_init(graph, gsc.ar, CTX_wm_view3d(C), 0);
 	}
 	
 	// TODO: For deforming geometry workflow, create new frames?

@@ -213,7 +213,7 @@ void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar);
 
 void ED_view3d_draw_depth(
         struct Depsgraph *graph,
-        Scene *scene, struct ARegion *ar, View3D *v3d, bool alphaoverride);
+        struct ARegion *ar, View3D *v3d, bool alphaoverride);
 
 /* view3d_draw_legacy.c */
 void view3d_main_region_draw_legacy(const struct bContext *C, struct ARegion *ar);

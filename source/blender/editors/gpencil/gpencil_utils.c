@@ -529,7 +529,7 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 		view3d_operator_needs_opengl(C);
 		
 		view3d_region_operator_needs_opengl(win, ar);
-		ED_view3d_autodist_init(graph, scene, ar, v3d, 0);
+		ED_view3d_autodist_init(graph, ar, v3d, 0);
 		
 		/* for camera view set the subrect */
 		if (rv3d->persp == RV3D_CAMOB) {

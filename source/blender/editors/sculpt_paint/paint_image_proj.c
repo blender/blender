@@ -5025,8 +5025,9 @@ void paint_proj_stroke(
 
 		view3d_operator_needs_opengl(C);
 
-		if (!ED_view3d_autodist(graph, scene, ar, v3d, mval_i, cursor, false, NULL))
+		if (!ED_view3d_autodist(graph, ar, v3d, mval_i, cursor, false, NULL)) {
 			return;
+		}
 
 		ED_region_tag_redraw(ar);
 

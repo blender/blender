@@ -2253,29 +2253,32 @@ void DRW_draw_view(const bContext *C)
  * object mode select-loop, see: ED_view3d_draw_select_loop (legacy drawing).
  */
 void DRW_draw_select_loop(
-        struct ViewContext *vc, Depsgraph *graph,
-        Scene *scene, struct SceneLayer *sl, View3D *v3d, ARegion *ar,
+        struct Depsgraph *graph,
+        View3D *v3d, ARegion *ar,
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect)
 {
+	Scene *scene = DAG_get_scene(graph);
+	SceneLayer *sl = DAG_get_scene_layer(graph);
 #ifndef USE_GPU_SELECT
 	UNUSED_VARS(vc, scene, sl, v3d, ar, rect);
 #else
-	RegionView3D *rv3d = vc->rv3d;
+	RegionView3D *rv3d = ar->regiondata;
 
 	/* backup (_never_ use rv3d->viewport) */
-	void *backup_viewport = vc->rv3d->viewport;
+	void *backup_viewport = rv3d->viewport;
 	rv3d->viewport = NULL;
 
 	bool use_obedit = false;
 	int obedit_mode = 0;
-	if (vc->obedit && vc->obedit->type == OB_MBALL) {
+	if (scene->obedit && scene->obedit->type == OB_MBALL) {
 		use_obedit = true;
-		DRW_engines_cache_populate(vc->obedit);
+		DRW_engines_cache_populate(scene->obedit);
 		obedit_mode = CTX_MODE_EDIT_METABALL;
 	}
-	else if ((vc->obedit && vc->obedit->type == OB_ARMATURE)) {
+	else if ((scene->obedit && scene->obedit->type == OB_ARMATURE)) {
 		/* if not drawing sketch, draw bones */
-		if (!BDR_drawSketchNames(vc)) {
+		// if (!BDR_drawSketchNames(vc))
+		{
 			use_obedit = true;
 			obedit_mode = CTX_MODE_EDIT_ARMATURE;
 		}
@@ -2323,7 +2326,7 @@ void DRW_draw_select_loop(
 		DRW_engines_cache_init();
 
 		if (use_obedit) {
-			DRW_engines_cache_populate(vc->obedit);
+			DRW_engines_cache_populate(scene->obedit);
 		}
 		else {
 			DEG_OBJECT_ITER(graph, ob)
@@ -2364,8 +2367,10 @@ void DRW_draw_select_loop(
  */
 void DRW_draw_depth_loop(
         Depsgraph *graph,
-        Scene *scene, ARegion *ar, View3D *v3d)
+        ARegion *ar, View3D *v3d)
 {
+	Scene *scene = DAG_get_scene(graph);
+	SceneLayer *sl = DAG_get_scene_layer(graph);
 	RegionView3D *rv3d = ar->regiondata;
 
 	/* backup (_never_ use rv3d->viewport) */
@@ -2392,7 +2397,7 @@ void DRW_draw_depth_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, BKE_scene_layer_context_active(scene), (bContext *)NULL,
+		ar, rv3d, v3d, scene, sl, (bContext *)NULL,
 	};
 
 	DRW_viewport_var_init();

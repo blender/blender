@@ -920,7 +920,7 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 
 				view3d_operator_needs_opengl(C);
 
-				if (ED_view3d_autodist(graph, scene, ar, v3d, mval, co, true, NULL)) {
+				if (ED_view3d_autodist(graph, ar, v3d, mval, co, true, NULL)) {
 					const float mval_center_fl[2] = {
 					    (float)ar->winx / 2,
 					    (float)ar->winy / 2};

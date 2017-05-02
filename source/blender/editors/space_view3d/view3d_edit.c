@@ -77,6 +77,8 @@
 #include "ED_gpencil.h"
 #include "ED_view3d.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "UI_resources.h"
 
 #include "PIL_time.h" /* smoothview */
@@ -742,7 +744,7 @@ static void viewops_data_create_ex(
 		negate_v3_v3(fallback_depth_pt, rv3d->ofs);
 
 		vod->use_dyn_ofs = ED_view3d_autodist(
-		        graph, vod->scene, vod->ar, vod->v3d,
+		        graph, vod->ar, vod->v3d,
 		        event->mval, vod->dyn_ofs, true, fallback_depth_pt);
 	}
 	else {
@@ -3310,7 +3312,6 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 
 	if (rv3d) {
@@ -3322,7 +3323,7 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
 		view3d_operator_needs_opengl(C);
 
-		if (ED_view3d_autodist(graph, scene, ar, v3d, event->mval, new_ofs, false, NULL)) {
+		if (ED_view3d_autodist(graph, ar, v3d, event->mval, new_ofs, false, NULL)) {
 			/* pass */
 		}
 		else {
@@ -3580,7 +3581,6 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	Scene *scene = CTX_data_scene(C);
 	int gesture_mode;
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
@@ -3609,7 +3609,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	ED_view3d_dist_range_get(v3d, dist_range);
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	ED_view3d_draw_depth(CTX_data_depsgraph(C), scene, ar, v3d, true);
+	ED_view3d_draw_depth(CTX_data_depsgraph(C), ar, v3d, true);
 	
 	{
 		/* avoid allocating the whole depth buffer */
@@ -4688,7 +4688,6 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 /* note: cannot use event->mval here (called by object_add() */
 void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 {
-	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
@@ -4712,8 +4711,9 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
 		struct Depsgraph *graph = CTX_data_depsgraph(C);
 		view3d_operator_needs_opengl(C);
-		if (ED_view3d_autodist(graph, scene, ar, v3d, mval, fp, true, NULL))
+		if (ED_view3d_autodist(graph, ar, v3d, mval, fp, true, NULL)) {
 			depth_used = true;
+		}
 	}
 
 	if (depth_used == false) {
@@ -4888,7 +4888,7 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
  * \param fallback_depth_pt: Use this points depth when no depth can be found.
  */
 bool ED_view3d_autodist(
-        struct Depsgraph *graph, Scene *scene, ARegion *ar, View3D *v3d,
+        struct Depsgraph *graph, ARegion *ar, View3D *v3d,
         const int mval[2], float mouse_worldloc[3],
         const bool alphaoverride, const float fallback_depth_pt[3])
 {
@@ -4898,7 +4898,7 @@ bool ED_view3d_autodist(
 	bool depth_ok = false;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	ED_view3d_draw_depth(graph, scene, ar, v3d, alphaoverride);
+	ED_view3d_draw_depth(graph, ar, v3d, alphaoverride);
 
 	/* Attempt with low margin's first */
 	i = 0;
@@ -4928,16 +4928,19 @@ bool ED_view3d_autodist(
 
 void ED_view3d_autodist_init(
         struct Depsgraph *graph,
-        Scene *scene, ARegion *ar, View3D *v3d, int mode)
+        ARegion *ar, View3D *v3d, int mode)
 {
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	switch (mode) {
 		case 0:
-			ED_view3d_draw_depth(graph, scene, ar, v3d, true);
+			ED_view3d_draw_depth(graph, ar, v3d, true);
 			break;
 		case 1:
+		{
+			Scene *scene = DAG_get_scene(graph);
 			ED_view3d_draw_depth_gpencil(scene, ar, v3d);
 			break;
+		}
 	}
 }
 
