@@ -119,6 +119,7 @@ public:
 	int cuDevId;
 	int cuDevArchitecture;
 	bool first_error;
+	CUDASplitKernel *split_kernel;
 
 	struct PixelMem {
 		GLuint cuPBO;
@@ -221,6 +222,8 @@ public:
 		cuDevice = 0;
 		cuContext = 0;
 
+		split_kernel = NULL;
+
 		need_bindless_mapping = false;
 
 		/* intialize */
@@ -259,6 +262,8 @@ public:
 	~CUDADevice()
 	{
 		task_pool.stop();
+
+		delete split_kernel;
 
 		if(info.has_bindless_textures) {
 			tex_free(bindless_mapping);
@@ -1336,12 +1341,14 @@ public:
 					requested_features.max_closure = 64;
 				}
 
-				CUDASplitKernel split_kernel(this);
-				split_kernel.load_kernels(requested_features);
+				if(split_kernel == NULL) {
+					split_kernel = new CUDASplitKernel(this);
+					split_kernel->load_kernels(requested_features);
+				}
 
 				while(task->acquire_tile(this, tile)) {
 					device_memory void_buffer;
-					split_kernel.path_trace(task, tile, void_buffer, void_buffer);
+					split_kernel->path_trace(task, tile, void_buffer, void_buffer);
 
 					task->release_tile(tile);
 
