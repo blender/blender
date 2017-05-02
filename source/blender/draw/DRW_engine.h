@@ -67,14 +67,14 @@ void DRW_draw_view(const struct bContext *C);
 
 void DRW_draw_render_loop(
         struct Depsgraph *graph,
-        struct View3D *v3d, struct ARegion *ar);
+        struct ARegion *ar, struct View3D *v3d);
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *graph,
-        struct View3D *v3d, struct ARegion *ar,
+        struct ARegion *ar, struct View3D *v3d,
         struct GPUOffScreen *ofs);
 void DRW_draw_select_loop(
         struct Depsgraph *graph,
-        struct View3D *v3d, struct ARegion *ar,
+        struct ARegion *ar, struct View3D *v3d,
         bool use_obedit_skip, bool use_nearest, const struct rcti *rect);
 void DRW_draw_depth_loop(
         struct Depsgraph *graph,

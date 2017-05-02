@@ -1821,7 +1821,7 @@ void ED_view3d_draw_offscreen(
 	}
 	else {
 		/* XXX, should take depsgraph as arg */
-		DRW_draw_render_loop_offscreen(scene->depsgraph, v3d, ar, ofs);
+		DRW_draw_render_loop_offscreen(scene->depsgraph, ar, v3d, ofs);
 	}
 
 	/* post process */

@@ -2180,12 +2180,11 @@ void DRW_draw_view(const bContext *C)
 {
 	struct Depsgraph *graph = CTX_data_depsgraph(C);
 	ARegion *ar = CTX_wm_region(C);
-//	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
 
 	DST.draw_ctx.evil_C = C;
 
-	DRW_draw_render_loop(graph, v3d, ar);
+	DRW_draw_render_loop(graph, ar, v3d);
 }
 
 /**
@@ -2195,7 +2194,7 @@ void DRW_draw_view(const bContext *C)
  */
 void DRW_draw_render_loop(
         struct Depsgraph *graph,
-        View3D *v3d, ARegion *ar)
+        ARegion *ar, View3D *v3d)
 {
 	Scene *scene = DAG_get_scene(graph);
 	SceneLayer *sl = DAG_get_scene_layer(graph);
@@ -2280,7 +2279,7 @@ void DRW_draw_render_loop(
 
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *graph,
-        View3D *v3d, ARegion *ar, GPUOffScreen *ofs)
+        ARegion *ar, View3D *v3d, GPUOffScreen *ofs)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -2293,7 +2292,7 @@ void DRW_draw_render_loop_offscreen(
 
 	DST.draw_ctx.evil_C = NULL;
 
-	DRW_draw_render_loop(graph, v3d, ar);
+	DRW_draw_render_loop(graph, ar, v3d);
 
 	/* restore */
 	{
@@ -2314,7 +2313,7 @@ void DRW_draw_render_loop_offscreen(
  */
 void DRW_draw_select_loop(
         struct Depsgraph *graph,
-        View3D *v3d, ARegion *ar,
+        ARegion *ar, View3D *v3d,
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect)
 {
 	Scene *scene = DAG_get_scene(graph);

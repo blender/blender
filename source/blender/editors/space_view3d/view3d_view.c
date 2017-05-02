@@ -1191,7 +1191,7 @@ int view3d_opengl_select(
 	else
 #else
 	{
-		DRW_draw_select_loop(graph, v3d, ar, use_obedit_skip, use_nearest, &rect);
+		DRW_draw_select_loop(graph, ar, v3d, use_obedit_skip, use_nearest, &rect);
 	}
 #endif /* WITH_OPENGL_LEGACY */
 
@@ -1208,7 +1208,7 @@ int view3d_opengl_select(
 		else
 #else
 		{
-			DRW_draw_select_loop(graph, v3d, ar, use_obedit_skip, use_nearest, &rect);
+			DRW_draw_select_loop(graph, ar, v3d, use_obedit_skip, use_nearest, &rect);
 		}
 #endif /* WITH_OPENGL_LEGACY */
 
