@@ -196,7 +196,7 @@ struct DRWShadingGroup {
 	GPUShader *shader;               /* Shader to bind */
 	DRWInterface *interface;         /* Uniforms pointers */
 	ListBase calls;                  /* DRWCall or DRWCallDynamic depending of type */
-	DRWState state;                  /* State changes for this batch only */
+	DRWState state_extra;            /* State changes for this batch only (or'd with the pass's state) */
 	int type;
 
 	Batch *instance_geom;  /* Geometry to instance */
@@ -228,6 +228,9 @@ static struct DRWGlobalState {
 	GPUShader *shader;
 	ListBase bound_texs;
 	int tex_bind_id;
+
+	/* Managed by `DRW_state_set`, `DRW_state_reset` */
+	DRWState state;
 
 	/* Per viewport */
 	GPUViewport *viewport;
@@ -608,7 +611,7 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	shgroup->type = DRW_SHG_NORMAL;
 	shgroup->shader = shader;
 	shgroup->interface = DRW_interface_create(shader);
-	shgroup->state = 0;
+	shgroup->state_extra = 0;
 	shgroup->batch_geom = NULL;
 	shgroup->instance_geom = NULL;
 
@@ -797,9 +800,10 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 
 /* Make sure you know what you do when using this,
  * State is not revert back at the end of the shgroup */
-void DRW_shgroup_state_set(DRWShadingGroup *shgroup, DRWState state)
+
+void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state)
 {
-	shgroup->state = state;
+	shgroup->state_extra |= state;
 }
 
 void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int size)
@@ -1027,127 +1031,226 @@ void DRW_pass_free(DRWPass *pass)
 /** \name Draw (DRW_draw)
  * \{ */
 
-static void set_state(DRWState flag, const bool reset)
+static void DRW_state_set(DRWState state)
 {
-	/* TODO Keep track of the state and only revert what is needed */
+	if (DST.state == state) {
+		return;
+	}
 
-	if (reset) {
-		/* Depth Write */
-		if (flag & DRW_STATE_WRITE_DEPTH)
-			glDepthMask(GL_TRUE);
-		else
-			glDepthMask(GL_FALSE);
 
-		/* Color Write */
-		if (flag & DRW_STATE_WRITE_COLOR)
-			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		else
-			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+#define CHANGED_TO(f) \
+	((DST.state & (f)) ? \
+		((state & (f)) ?  0 : -1) : \
+		((state & (f)) ?  1 :  0))
 
-		/* Backface Culling */
-		if (flag & DRW_STATE_CULL_BACK ||
-		    flag & DRW_STATE_CULL_FRONT)
+#define CHANGED_ANY(f) \
+	((DST.state & (f)) != (state & (f)))
+
+#define CHANGED_ANY_STORE_VAR(f, enabled) \
+	((DST.state & (f)) != (enabled = (state & (f))))
+
+	/* Depth Write */
+	{
+		int test;
+		if ((test = CHANGED_TO(DRW_STATE_WRITE_DEPTH))) {
+			if (test == 1) {
+				glDepthMask(GL_TRUE);
+			}
+			else {
+				glDepthMask(GL_FALSE);
+			}
+		}
+	}
+
+	/* Color Write */
+	{
+		int test;
+		if ((test = CHANGED_TO(DRW_STATE_WRITE_COLOR))) {
+			if (test == 1) {
+				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			}
+			else {
+				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+			}
+		}
+	}
+
+	/* Cull */
+	{
+		DRWState test;
+		if (CHANGED_ANY_STORE_VAR(
+		        DRW_STATE_CULL_BACK | DRW_STATE_CULL_FRONT,
+		        test))
 		{
-			glEnable(GL_CULL_FACE);
+			if (test) {
+				glEnable(GL_CULL_FACE);
 
-			if (flag & DRW_STATE_CULL_BACK)
-				glCullFace(GL_BACK);
-			else if (flag & DRW_STATE_CULL_FRONT)
-				glCullFace(GL_FRONT);
+				if ((state & DRW_STATE_CULL_BACK) != 0) {
+					glCullFace(GL_BACK);
+				}
+				else if ((state & DRW_STATE_CULL_FRONT) != 0) {
+					glCullFace(GL_FRONT);
+				}
+				else {
+					BLI_assert(0);
+				}
+			}
+			else {
+				glDisable(GL_CULL_FACE);
+			}
 		}
-		else {
-			glDisable(GL_CULL_FACE);
-		}
+	}
 
-		/* Depth Test */
-		if ((flag & (DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER)) != 0) {
-			glEnable(GL_DEPTH_TEST);
+	/* Depth Test */
+	{
+		DRWState test;
+		if (CHANGED_ANY_STORE_VAR(
+		        DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER,
+		        test))
+		{
+			if (test) {
+				glEnable(GL_DEPTH_TEST);
 
-			if (flag & DRW_STATE_DEPTH_LESS)
-				glDepthFunc(GL_LEQUAL);
-			else if (flag & DRW_STATE_DEPTH_EQUAL)
-				glDepthFunc(GL_EQUAL);
-			else if (flag & DRW_STATE_DEPTH_GREATER)
-				glDepthFunc(GL_GREATER);
-		}
-		else {
-			glDisable(GL_DEPTH_TEST);
+				if (state & DRW_STATE_DEPTH_LESS) {
+					glDepthFunc(GL_LEQUAL);
+				}
+				else if (state & DRW_STATE_DEPTH_EQUAL) {
+					glDepthFunc(GL_EQUAL);
+				}
+				else if (state & DRW_STATE_DEPTH_GREATER) {
+					glDepthFunc(GL_GREATER);
+				}
+				else {
+					BLI_assert(0);
+				}
+			}
+			else {
+				glDisable(GL_DEPTH_TEST);
+			}
 		}
 	}
 
 	/* Wire Width */
-	if ((flag & DRW_STATE_WIRE) != 0) {
-		glLineWidth(1.0f);
-	}
-	else if ((flag & DRW_STATE_WIRE_LARGE) != 0) {
-		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
+	{
+		if (CHANGED_ANY(DRW_STATE_WIRE | DRW_STATE_WIRE_LARGE)) {
+			if ((state & DRW_STATE_WIRE) != 0) {
+				glLineWidth(1.0f);
+			}
+			else if ((state & DRW_STATE_WIRE_LARGE) != 0) {
+				glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
+			}
+			else {
+				/* do nothing */
+			}
+		}
 	}
 
 	/* Points Size */
-	if ((flag & DRW_STATE_POINT) != 0) {
-		GPU_enable_program_point_size();
-		glPointSize(5.0f);
-	}
-	else if (reset) {
-		GPU_disable_program_point_size();
+	{
+		int test;
+		if ((test = CHANGED_TO(DRW_STATE_POINT))) {
+			if (test == 1) {
+				GPU_enable_program_point_size();
+				glPointSize(5.0f);
+			}
+			else {
+				GPU_disable_program_point_size();
+			}
+		}
 	}
 
 	/* Blending (all buffer) */
-	if ((flag & DRW_STATE_BLEND) != 0) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	else if (reset) {
-		glDisable(GL_BLEND);
+	{
+		int test;
+		if ((test = CHANGED_TO(DRW_STATE_BLEND))) {
+			if (test == 1) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			}
+			else {
+				glDisable(GL_BLEND);
+			}
+		}
 	}
 
 	/* Line Stipple */
-	if ((flag & DRW_STATE_STIPPLE_2) != 0) {
-		setlinestyle(2);
-	}
-	else if ((flag & DRW_STATE_STIPPLE_3) != 0) {
-		setlinestyle(3);
-	}
-	else if ((flag & DRW_STATE_STIPPLE_4) != 0) {
-		setlinestyle(4);
-	}
-	else if (reset) {
-		setlinestyle(0);
+	{
+		int test;
+		if (CHANGED_ANY_STORE_VAR(
+		        DRW_STATE_STIPPLE_2 | DRW_STATE_STIPPLE_3 | DRW_STATE_STIPPLE_4,
+		        test))
+		{
+			if (test) {
+				if ((state & DRW_STATE_STIPPLE_2) != 0) {
+					setlinestyle(2);
+				}
+				else if ((state & DRW_STATE_STIPPLE_3) != 0) {
+					setlinestyle(3);
+				}
+				else if ((state & DRW_STATE_STIPPLE_4) != 0) {
+					setlinestyle(4);
+				}
+				else {
+					BLI_assert(0);
+				}
+			}
+			else {
+				setlinestyle(0);
+			}
+		}
 	}
 
 	/* Stencil */
-	if ((flag & (DRW_STATE_WRITE_STENCIL_SELECT | DRW_STATE_WRITE_STENCIL_ACTIVE |
-	            DRW_STATE_TEST_STENCIL_SELECT | DRW_STATE_TEST_STENCIL_ACTIVE)) != 0)
 	{
-		glEnable(GL_STENCIL_TEST);
+		DRWState test;
+		if (CHANGED_ANY_STORE_VAR(
+		        DRW_STATE_WRITE_STENCIL_SELECT |
+		        DRW_STATE_WRITE_STENCIL_ACTIVE |
+		        DRW_STATE_TEST_STENCIL_SELECT |
+		        DRW_STATE_TEST_STENCIL_ACTIVE,
+		        test))
+		{
+			if (test) {
+				glEnable(GL_STENCIL_TEST);
 
-		/* Stencil Write */
-		if ((flag & DRW_STATE_WRITE_STENCIL_SELECT) != 0) {
-			glStencilMask(STENCIL_SELECT);
-			glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-			glStencilFunc(GL_ALWAYS, 0xFF, STENCIL_SELECT);
-		}
-		else if ((flag & DRW_STATE_WRITE_STENCIL_ACTIVE) != 0) {
-			glStencilMask(STENCIL_ACTIVE);
-			glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-			glStencilFunc(GL_ALWAYS, 0xFF, STENCIL_ACTIVE);
-		}
-		/* Stencil Test */
-		else if ((flag & DRW_STATE_TEST_STENCIL_SELECT) != 0) {
-			glStencilMask(0x00); /* disable write */
-			glStencilFunc(GL_NOTEQUAL, 0xFF, STENCIL_SELECT);
-		}
-		else if ((flag & DRW_STATE_TEST_STENCIL_ACTIVE) != 0) {
-			glStencilMask(0x00); /* disable write */
-			glStencilFunc(GL_NOTEQUAL, 0xFF, STENCIL_ACTIVE);
+				/* Stencil Write */
+				if ((state & DRW_STATE_WRITE_STENCIL_SELECT) != 0) {
+					glStencilMask(STENCIL_SELECT);
+					glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+					glStencilFunc(GL_ALWAYS, 0xFF, STENCIL_SELECT);
+				}
+				else if ((state & DRW_STATE_WRITE_STENCIL_ACTIVE) != 0) {
+					glStencilMask(STENCIL_ACTIVE);
+					glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+					glStencilFunc(GL_ALWAYS, 0xFF, STENCIL_ACTIVE);
+				}
+				/* Stencil Test */
+				else if ((state & DRW_STATE_TEST_STENCIL_SELECT) != 0) {
+					glStencilMask(0x00); /* disable write */
+					glStencilFunc(GL_NOTEQUAL, 0xFF, STENCIL_SELECT);
+				}
+				else if ((state & DRW_STATE_TEST_STENCIL_ACTIVE) != 0) {
+					glStencilMask(0x00); /* disable write */
+					glStencilFunc(GL_NOTEQUAL, 0xFF, STENCIL_ACTIVE);
+				}
+				else {
+					BLI_assert(0);
+				}
+			}
+			else {
+				/* disable write & test */
+				glStencilMask(0x00);
+				glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				glDisable(GL_STENCIL_TEST);
+			}
 		}
 	}
-	else if (reset) {
-		/* disable write & test */
-		glStencilMask(0x00);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glDisable(GL_STENCIL_TEST);
-	}
+
+#undef CHANGED_TO
+#undef CHANGED_ANY
+#undef CHANGED_ANY_STORE_VAR
+
+	DST.state = state;
 }
 
 typedef struct DRWBoundTexture {
@@ -1237,7 +1340,7 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	}
 }
 
-static void draw_shgroup(DRWShadingGroup *shgroup)
+static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 {
 	BLI_assert(shgroup->shader);
 	BLI_assert(shgroup->interface);
@@ -1256,9 +1359,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 		shgroup_dynamic_batch_from_calls(shgroup);
 	}
 
-	if (shgroup->state != 0) {
-		set_state(shgroup->state, false);
-	}
+	DRW_state_set(pass_state | shgroup->state_extra);
 
 	/* Binding Uniform */
 	/* Don't check anything, Interface should already contain the least uniform as possible */
@@ -1355,10 +1456,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 		}
 	}
 
-	/* reset the state for the next group, note - we could only reset states we changed! */
-	if (shgroup->state != 0) {
-		DRW_state_reset();
-	}
+	DRW_state_reset();
 }
 
 void DRW_draw_pass(DRWPass *pass)
@@ -1367,7 +1465,7 @@ void DRW_draw_pass(DRWPass *pass)
 	DST.shader = NULL;
 	DST.tex_bind_id = 0;
 
-	set_state(pass->state, true);
+	DRW_state_set(pass->state);
 	BLI_listbase_clear(&DST.bound_texs);
 
 	pass->wasdrawn = true;
@@ -1394,7 +1492,7 @@ void DRW_draw_pass(DRWPass *pass)
 	glBeginQuery(GL_TIME_ELAPSED, pass->timer_queries[pass->back_idx]);
 
 	for (DRWShadingGroup *shgroup = pass->shgroups.first; shgroup; shgroup = shgroup->next) {
-		draw_shgroup(shgroup);
+		draw_shgroup(shgroup, pass->state);
 	}
 
 	/* Clear Bound textures */
@@ -1431,11 +1529,12 @@ void DRW_draw_callbacks_post_scene(void)
 /* Reset state to not interfer with other UI drawcall */
 void DRW_state_reset(void)
 {
-	DRWState state = 0;
-	state |= DRW_STATE_WRITE_DEPTH;
-	state |= DRW_STATE_WRITE_COLOR;
-	state |= DRW_STATE_DEPTH_LESS;
-	set_state(state, true);
+	DRWState state =
+	        DRW_STATE_WRITE_DEPTH |
+	        DRW_STATE_WRITE_COLOR |
+	        DRW_STATE_DEPTH_LESS;
+	DST.state = ~state;
+	DRW_state_set(state);
 }
 
 /** \} */
@@ -2238,6 +2337,7 @@ void DRW_draw_render_loop(
 	}
 
 	/* Start Drawing */
+	DRW_state_reset();
 	DRW_engines_draw_background();
 
 	DRW_draw_callbacks_pre_scene();
@@ -2251,6 +2351,8 @@ void DRW_draw_render_loop(
 	if (DST.draw_ctx.evil_C) {
 		ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
 	}
+
+	DRW_state_reset();
 
 	DRW_engines_draw_text();
 
@@ -2400,6 +2502,7 @@ void DRW_draw_select_loop(
 	}
 
 	/* Start Drawing */
+	DRW_state_reset();
 	DRW_draw_callbacks_pre_scene();
 	DRW_engines_draw_scene();
 	DRW_draw_callbacks_post_scene();
@@ -2482,6 +2585,7 @@ void DRW_draw_depth_loop(
 	}
 
 	/* Start Drawing */
+	DRW_state_reset();
 	DRW_draw_callbacks_pre_scene();
 	DRW_engines_draw_scene();
 	DRW_draw_callbacks_post_scene();

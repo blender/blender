@@ -752,7 +752,7 @@ static void OBJECT_cache_init(void *vedata)
 
 		/* Relationship Lines */
 		stl->g_data->relationship_lines = shgroup_dynlines_uniform_color(psl->non_meshes, ts.colorWire);
-		DRW_shgroup_state_set(stl->g_data->relationship_lines, DRW_STATE_STIPPLE_3);
+		DRW_shgroup_state_enable(stl->g_data->relationship_lines, DRW_STATE_STIPPLE_3);
 
 		/* Force Field Curve Guide End (here because of stipple) */
 		geom = DRW_cache_screenspace_circle_get();

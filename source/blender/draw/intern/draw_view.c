@@ -591,6 +591,8 @@ void DRW_draw_background(void)
 		gpuPopMatrix();
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		glEnable(GL_DEPTH_TEST);
 	}
 	else {
 		/* Solid background Color */

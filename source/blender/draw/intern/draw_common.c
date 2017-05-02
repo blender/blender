@@ -131,7 +131,7 @@ DRWShadingGroup *shgroup_dynpoints_uniform_color(DRWPass *pass, float color[4], 
 	DRWShadingGroup *grp = DRW_shgroup_point_batch_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", color, 1);
 	DRW_shgroup_uniform_float(grp, "size", size, 1);
-	DRW_shgroup_state_set(grp, DRW_STATE_POINT);
+	DRW_shgroup_state_enable(grp, DRW_STATE_POINT);
 
 	return grp;
 }
@@ -152,7 +152,7 @@ DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, float color[4
 
 	DRWShadingGroup *grp = DRW_shgroup_point_batch_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", color, 1);
-	DRW_shgroup_state_set(grp, DRW_STATE_POINT);
+	DRW_shgroup_state_enable(grp, DRW_STATE_POINT);
 
 	return grp;
 }
@@ -167,7 +167,7 @@ DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct Batch *geom,
 	DRW_shgroup_uniform_float(grp, "size", size, 1);
 	DRW_shgroup_uniform_float(grp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
 	DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
-	DRW_shgroup_state_set(grp, DRW_STATE_STIPPLE_3);
+	DRW_shgroup_state_enable(grp, DRW_STATE_STIPPLE_3);
 
 	return grp;
 }

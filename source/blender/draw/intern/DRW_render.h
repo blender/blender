@@ -249,6 +249,7 @@ typedef enum {
 	DRW_STATE_TEST_STENCIL_ACTIVE  = (1 << 17),
 } DRWState;
 
+
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_material_instance_create(struct GPUMaterial *material, DRWPass *pass, struct Batch *geom);
@@ -267,7 +268,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	DRW_shgroup_call_dynamic_add_array(shgroup, NULL, 0); \
 } while (0)
 
-void DRW_shgroup_state_set(DRWShadingGroup *shgroup, DRWState state);
+void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_attrib_int(DRWShadingGroup *shgroup, const char *name, int size);
 void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int size);
 
