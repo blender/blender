@@ -32,6 +32,8 @@
 
 #include "node_shader_util.h"
 
+#include "BKE_scene.h"
+
 /* **************** OUTPUT ******************** */
 static bNodeSocketTemplate sh_node_output_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.0f, 0.0f, 0.0f, 1.0f},
@@ -73,6 +75,10 @@ static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDat
 	if (in[1].hasinput)
 		GPU_material_enable_alpha(mat);
 #endif
+
+	if (BKE_scene_uses_blender_eevee(GPU_material_scene(mat))) {
+		return false;
+	}
 
 	GPU_stack_link(mat, "output_node", in, out, &outlink);
 	GPU_material_output_link(mat, outlink);

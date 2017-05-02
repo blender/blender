@@ -27,6 +27,8 @@
 
 #include "../node_shader_util.h"
 
+#include "BKE_scene.h"
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_output_material_in[] = {
@@ -39,6 +41,10 @@ static bNodeSocketTemplate sh_node_output_material_in[] = {
 static int node_shader_gpu_output_material(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	GPUNodeLink *outlink;
+
+	if (BKE_scene_uses_blender_eevee(GPU_material_scene(mat))) {
+		return false;
+	}
 
 	GPU_stack_link(mat, "node_output_material", in, out, &outlink);
 	GPU_material_output_link(mat, outlink);
