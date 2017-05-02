@@ -175,8 +175,15 @@ static void external_draw_scene(void *UNUSED(vedata))
 
 static void EXTERNAL_draw_scene(void *vedata)
 {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
 	EXTERNAL_PassList *psl = ((EXTERNAL_Data *)vedata)->psl;
-	external_draw_scene(vedata);
+
+	/* Will be NULL during OpenGL render.
+	 * OpenGL render is used for quick preview (thumbnails or sequencer preview)
+	 * where using the rendering engine to preview doesn't make so much sense. */
+	if (draw_ctx->evil_C) {
+		external_draw_scene(vedata);
+	}
 	DRW_draw_pass(psl->depth_pass);
 }
 

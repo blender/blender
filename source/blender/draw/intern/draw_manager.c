@@ -2188,9 +2188,7 @@ void DRW_draw_view(const bContext *C)
 }
 
 /**
- * Used for both regular drawing and off-screen drawing.
- *
- * \param ofs: When not NULL, use this data to create the viewport.
+ * Used for both regular and off-screen drawing.
  */
 void DRW_draw_render_loop(
         struct Depsgraph *graph,
