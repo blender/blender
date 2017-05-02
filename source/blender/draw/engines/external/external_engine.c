@@ -142,19 +142,9 @@ static void external_draw_scene(void *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
-	View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	ARegion *ar = draw_ctx->ar;
-
 	RenderEngineType *type;
-	GLint scissor[4];
-
-	rcti border_rect;
-	bool render_border;
-	bool clip_border;
-
-	render_border = ED_view3d_calc_render_border(scene, v3d, ar, &border_rect);
-	clip_border = render_border && !BLI_rcti_compare(&ar->drawrct, &border_rect);
 
 	/* Create render engine. */
 	if (!rv3d->render_engine) {
@@ -176,26 +166,9 @@ static void external_draw_scene(void *UNUSED(vedata))
 	gpuPushProjectionMatrix();
 	ED_region_pixelspace(ar);
 
-	if (clip_border) {
-		/* For border draw, we only need to clear a subset of the 3d view. */
-		if (border_rect.xmax > border_rect.xmin && border_rect.ymax > border_rect.ymin) {
-			glGetIntegerv(GL_SCISSOR_BOX, scissor);
-			glScissor(border_rect.xmin, border_rect.ymin,
-			BLI_rcti_size_x(&border_rect), BLI_rcti_size_y(&border_rect));
-		}
-		else {
-			return;
-		}
-	}
-
 	/* Render result draw. */
 	type = rv3d->render_engine->type;
 	type->render_to_view(rv3d->render_engine, draw_ctx->evil_C);
-
-	if (clip_border) {
-		/* Restore scissor as it was before. */
-		glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-	}
 
 	gpuPopProjectionMatrix();
 }
