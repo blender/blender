@@ -63,6 +63,10 @@ void DRW_engine_viewport_data_size_get(
         int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len);
 
 void DRW_draw_view(const struct bContext *C);
+
+void DRW_draw_render_loop(
+        struct Depsgraph *graph,
+        struct View3D *v3d, struct ARegion *ar);
 void DRW_draw_select_loop(
         struct Depsgraph *graph,
         struct View3D *v3d, struct ARegion *ar,

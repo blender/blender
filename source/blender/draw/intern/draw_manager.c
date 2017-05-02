@@ -2003,10 +2003,9 @@ static void DRW_engines_enable_external(void)
 	use_drw_engine(DRW_engine_viewport_external_type.draw_engine);
 }
 
-static void DRW_engines_enable(const bContext *C)
+static void DRW_engines_enable(const Scene *scene, SceneLayer *sl)
 {
-	Scene *scene = CTX_data_scene(C);
-	const int mode = CTX_data_mode_enum(C);
+	const int mode = CTX_data_mode_enum_ex(scene->obedit, OBACT_NEW);
 	DRW_engines_enable_from_engine(scene);
 	DRW_engines_enable_from_object_mode();
 	DRW_engines_enable_from_mode(mode);
@@ -2179,20 +2178,40 @@ static void DRW_debug_gpu_stats(void)
  * for each relevant engine / mode engine. */
 void DRW_draw_view(const bContext *C)
 {
-	bool cache_is_dirty;
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	struct Depsgraph *graph = CTX_data_depsgraph(C);
+	ARegion *ar = CTX_wm_region(C);
+//	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
+
+	DST.draw_ctx.evil_C = C;
+
+	DRW_draw_render_loop(graph, v3d, ar);
+}
+
+void DRW_draw_render_loop(
+        struct Depsgraph *graph,
+        View3D *v3d, ARegion *ar)
+{
+	Scene *scene = DAG_get_scene(graph);
+	SceneLayer *sl = DAG_get_scene_layer(graph);
+	RegionView3D *rv3d = ar->regiondata;
+
+	bool cache_is_dirty;
 	DST.viewport = rv3d->viewport;
 	v3d->zbuf = true;
 
 	/* Get list of enabled engines */
-	DRW_engines_enable(C);
+	DRW_engines_enable(scene, sl);
 
 	/* Setup viewport */
 	cache_is_dirty = GPU_viewport_cache_validate(DST.viewport, DRW_engines_get_hash());
 
-	/* Save context for all later needs */
-	DRW_context_state_init(C, &DST.draw_ctx);
+	DST.draw_ctx = (DRWContextState){
+		ar, rv3d, v3d, scene, sl,
+		/* reuse if caller sets */
+		DST.draw_ctx.evil_C,
+	};
+
 	DRW_viewport_var_init();
 
 	/* Update ubos */
@@ -2207,7 +2226,6 @@ void DRW_draw_view(const bContext *C)
 	if (cache_is_dirty) {
 		DRW_engines_cache_init();
 
-		Depsgraph *graph = CTX_data_depsgraph(C);
 		DEG_OBJECT_ITER(graph, ob);
 		{
 			DRW_engines_cache_populate(ob);
@@ -2221,21 +2239,27 @@ void DRW_draw_view(const bContext *C)
 	DRW_engines_draw_background();
 
 	DRW_draw_callbacks_pre_scene();
-	ED_region_draw_cb_draw(C, DST.draw_ctx.ar, REGION_DRAW_PRE_VIEW);
+	if (DST.draw_ctx.evil_C) {
+		ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.ar, REGION_DRAW_PRE_VIEW);
+	}
 
 	DRW_engines_draw_scene();
 
 	DRW_draw_callbacks_post_scene();
-	ED_region_draw_cb_draw(C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
+	if (DST.draw_ctx.evil_C) {
+		ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
+	}
 
 	DRW_engines_draw_text();
 
 	/* needed so manipulator isn't obscured */
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	DRW_draw_manipulator();
+	if (DST.draw_ctx.evil_C) {
+		DRW_draw_manipulator();
 
-	DRW_draw_region_info();
+		DRW_draw_region_info();
+	}
 
 	if (G.debug_value > 20) {
 		DRW_debug_cpu_stats();
@@ -2507,6 +2531,7 @@ void DRW_context_state_init(const bContext *C, DRWContextState *r_draw_ctx)
 	/* grr, cant avoid! */
 	r_draw_ctx->evil_C = C;
 }
+
 
 const DRWContextState *DRW_context_state_get(void)
 {

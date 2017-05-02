@@ -250,6 +250,7 @@ struct SceneLayer *CTX_data_scene_layer(const bContext *C);
 struct ToolSettings *CTX_data_tool_settings(const bContext *C);
 
 const char *CTX_data_mode_string(const bContext *C);
+int CTX_data_mode_enum_ex(const struct Object *obedit, const struct Object *ob);
 int CTX_data_mode_enum(const bContext *C);
 
 void CTX_data_main_set(bContext *C, struct Main *bmain);
