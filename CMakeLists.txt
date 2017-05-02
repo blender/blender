@@ -369,7 +369,7 @@ mark_as_advanced(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 
 # Logging/unbit test libraries.
 option(WITH_SYSTEM_GFLAGS   "Use system-wide Gflags instead of a bundled one" OFF)
-option(WITH_SYSTEM_GFLOG    "Use system-wide Glog instead of a bundled one" OFF)
+option(WITH_SYSTEM_GLOG     "Use system-wide Glog instead of a bundled one" OFF)
 mark_as_advanced(WITH_SYSTEM_GFLAGS)
 mark_as_advanced(WITH_SYSTEM_GLOG)
 
