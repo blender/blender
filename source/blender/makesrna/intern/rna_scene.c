@@ -1747,23 +1747,25 @@ static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
 static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	BaseLegacy *base;
-
-	for (base = scene->base.first; base; base = base->next)
-		BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
+	FOREACH_SCENE_OBJECT(scene, ob)
+	{
+		BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
+	}
+	FOREACH_SCENE_OBJECT_END
 }
 
 static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
+	SceneLayer *sl = BKE_scene_layer_context_active(scene);
 	ToolSettings *ts = (ToolSettings *)ptr->data;
 	int flag = (value[0] ? SCE_SELECT_VERTEX : 0) | (value[1] ? SCE_SELECT_EDGE : 0) | (value[2] ? SCE_SELECT_FACE : 0);
 
 	if (flag) {
 		ts->selectmode = flag;
 
-		if (scene->basact) {
-			Mesh *me = BKE_mesh_from_object(scene->basact->object);
+		if (sl->basact) {
+			Mesh *me = BKE_mesh_from_object(sl->basact->object);
 			if (me && me->edit_btmesh && me->edit_btmesh->selectmode != flag) {
 				me->edit_btmesh->selectmode = flag;
 				EDBM_selectmode_set(me->edit_btmesh);
@@ -1772,12 +1774,13 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 	}
 }
 
-static void rna_Scene_editmesh_select_mode_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_editmesh_select_mode_update(Main *UNUSED(bmain), bContext *C, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Mesh *me = NULL;
 
-	if (scene->basact) {
-		me = BKE_mesh_from_object(scene->basact->object);
+	if (sl->basact) {
+		me = BKE_mesh_from_object(sl->basact->object);
 		if (me && me->edit_btmesh == NULL)
 			me = NULL;
 	}
@@ -1818,7 +1821,7 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *UNUSED(scene), Poi
 {
 	Scene *sce = ptr->id.data;
 	Scene *sce_iter;
-	BaseLegacy *base;
+	Base *base;
 
 	BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
 	for (SETLOOPER(sce, sce_iter, base))
@@ -2033,12 +2036,13 @@ static char *rna_CurvePaintSettings_path(PointerRNA *UNUSED(ptr))
 }
 
 /* generic function to recalc geometry */
-static void rna_EditMesh_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_EditMesh_update(Main *UNUSED(bmain), bContext *C, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Mesh *me = NULL;
 
-	if (scene->basact) {
-		me = BKE_mesh_from_object(scene->basact->object);
+	if (sl->basact) {
+		me = BKE_mesh_from_object(sl->basact->object);
 		if (me && me->edit_btmesh == NULL)
 			me = NULL;
 	}
@@ -3630,6 +3634,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_editmesh_select_mode_set");
 	RNA_def_property_ui_text(prop, "Mesh Selection Mode", "Which mesh elements selection works on");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Scene_editmesh_select_mode_update");
 
 	prop = RNA_def_property(srna, "vertex_group_weight", PROP_FLOAT, PROP_FACTOR);
@@ -3947,6 +3952,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, stat_type);
 	RNA_def_property_ui_text(prop, "Type", "Type of data to visualize/check");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 
@@ -3957,6 +3963,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 0.001, 3);
 	RNA_def_property_ui_text(prop, "Overhang Min", "Minimum angle to display");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	prop = RNA_def_property(srna, "overhang_max", PROP_FLOAT, PROP_ANGLE);
@@ -3965,12 +3972,14 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 10, 3);
 	RNA_def_property_ui_text(prop, "Overhang Max", "Maximum angle to display");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	prop = RNA_def_property(srna, "overhang_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "overhang_axis");
 	RNA_def_property_enum_items(prop, rna_enum_object_axis_items);
 	RNA_def_property_ui_text(prop, "Axis", "");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 
@@ -3981,6 +3990,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, 1000.0);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Thickness Min", "Minimum for measuring thickness");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	prop = RNA_def_property(srna, "thickness_max", PROP_FLOAT, PROP_DISTANCE);
@@ -3989,12 +3999,14 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, 1000.0);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Thickness Max", "Maximum for measuring thickness");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	prop = RNA_def_property(srna, "thickness_samples", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "thickness_samples");
 	RNA_def_property_range(prop, 1, 32);
 	RNA_def_property_ui_text(prop, "Samples", "Number of samples to test per face");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	/* distort */
@@ -4004,6 +4016,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 10, 3);
 	RNA_def_property_ui_text(prop, "Distort Min", "Minimum angle to display");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	prop = RNA_def_property(srna, "distort_max", PROP_FLOAT, PROP_ANGLE);
@@ -4012,6 +4025,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 10, 3);
 	RNA_def_property_ui_text(prop, "Distort Max", "Maximum angle to display");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	/* sharp */
@@ -4021,6 +4035,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f));
 	RNA_def_property_ui_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f), 10, 3);
 	RNA_def_property_ui_text(prop, "Distort Min", "Minimum angle to display");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
 	prop = RNA_def_property(srna, "sharp_max", PROP_FLOAT, PROP_ANGLE);
@@ -4029,6 +4044,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f));
 	RNA_def_property_ui_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f), 10, 3);
 	RNA_def_property_ui_text(prop, "Distort Max", "Maximum angle to display");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 }
 

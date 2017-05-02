@@ -161,9 +161,10 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
 	psys_free_path_cache(edit->psys, edit);
 }
 
-static void rna_ParticleEdit_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_ParticleEdit_update(Main *UNUSED(bmain), Scene *UNUSED(scene), bContext *C, PointerRNA *UNUSED(ptr))
 {
-	Object *ob = (scene->basact) ? scene->basact->object : NULL;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = OBACT_NEW;
 
 	if (ob) DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
@@ -173,8 +174,8 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 	
 	/* redraw hair completely if weight brush is/was used */
-	if ((pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) && pset->scene) {
-		Object *ob = (pset->scene->basact) ? pset->scene->basact->object : NULL;
+	if ((pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) && pset->scene_layer) {
+		Object *ob = (pset->scene_layer->basact) ? pset->scene_layer->basact->object : NULL;
 		if (ob) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
@@ -186,9 +187,10 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                      PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = (scene->basact) ? scene->basact->object : NULL;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = OBACT_NEW;
 #if 0
+	Scene *scene = CTX_data_scene(C);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	ParticleSystem *psys = edit ? edit->psys : NULL;
 #else
@@ -256,9 +258,10 @@ static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 	return brush->ob_mode & mode;
 }
 
-static void rna_Sculpt_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Sculpt_update(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	Object *ob = (scene->basact) ? scene->basact->object : NULL;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = OBACT_NEW;
 
 	if (ob) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -271,9 +274,10 @@ static void rna_Sculpt_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNU
 	}
 }
 
-static void rna_Sculpt_ShowDiffuseColor_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Sculpt_ShowDiffuseColor_update(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	Object *ob = (scene->basact) ? scene->basact->object : NULL;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = OBACT_NEW;
 
 	if (ob && ob->sculpt) {
 		Sculpt *sd = scene->toolsettings->sculpt;
@@ -592,12 +596,14 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Use Deform Only",
 	                         "Use only deformation modifiers (temporary disable all "
 	                         "constructive modifiers except multi-resolution)");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
 	prop = RNA_def_property(srna, "show_diffuse_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SHOW_DIFFUSE);
 	RNA_def_property_ui_text(prop, "Show Diffuse Color",
 	                         "Show diffuse color of object and overlay sculpt mask on top of it");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowDiffuseColor_update");
 
 	prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
@@ -623,6 +629,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Smooth Shading",
 	                         "Show faces in dynamic-topology mode with smooth "
 	                         "shading rather than flat shaded");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
 	prop = RNA_def_property(srna, "symmetrize_direction", PROP_ENUM, PROP_NONE);
@@ -877,6 +884,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "selectmode");
 	RNA_def_property_enum_items(prop, select_mode_items);
 	RNA_def_property_ui_text(prop, "Selection Mode", "Particle select and display mode");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_update");
 
 	prop = RNA_def_property(srna, "use_preserve_length", PROP_BOOLEAN, PROP_NONE);
@@ -899,6 +907,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_fade_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_FADE_TIME);
 	RNA_def_property_ui_text(prop, "Fade Time", "Fade paths and keys further away from current frame");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_update");
 
 	prop = RNA_def_property(srna, "use_auto_velocity", PROP_BOOLEAN, PROP_NONE);
@@ -935,6 +944,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "fade_frames", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Frames", "How many frames to fade");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_update");
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
