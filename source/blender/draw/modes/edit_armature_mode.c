@@ -47,8 +47,8 @@ typedef struct EDIT_ARMATURE_StorageList {
 
 typedef struct EDIT_ARMATURE_Data {
 	void *engine_type;
-	char *fbl;
-	char *txl;
+	DRWViewportEmptyList *fbl;
+	DRWViewportEmptyList *txl;
 	EDIT_ARMATURE_PassList *psl;
 	EDIT_ARMATURE_StorageList *stl;
 } EDIT_ARMATURE_Data;

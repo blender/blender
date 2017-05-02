@@ -74,7 +74,11 @@ typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
 typedef struct DRWShadingGroup DRWShadingGroup;
 
-#define DRW_VIEWPORT_LIST_SIZE(list) (sizeof(list) == sizeof(char) ? 0 : ((sizeof(list)) / sizeof(void *)))
+/* declare members as empty (unused) */
+typedef char DRWViewportEmptyList;
+
+#define DRW_VIEWPORT_LIST_SIZE(list) \
+	(sizeof(list) == sizeof(DRWViewportEmptyList) ? 0 : ((sizeof(list)) / sizeof(void *)))
 
 /* Unused members must be either pass list or 'char *' when not usd. */
 #define DRW_VIEWPORT_DATA_SIZE(ty) { \
