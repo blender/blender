@@ -20,7 +20,7 @@
 
 ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int id, int offset)
 {
-	const texture_type = kernel_tex_type(id);
+	const int texture_type = kernel_tex_type(id);
 	/* Float4 */
 	if(texture_type == IMAGE_DATA_TYPE_FLOAT4) {
 		return kernel_tex_fetch(__tex_image_float4_packed, offset);
