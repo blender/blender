@@ -41,6 +41,7 @@ struct ViewContext;
 struct ViewportEngineData;
 struct View3D;
 struct rcti;
+struct GPUOffScreen;
 
 #include "BLI_sys_types.h"  /* for bool */
 
@@ -67,6 +68,10 @@ void DRW_draw_view(const struct bContext *C);
 void DRW_draw_render_loop(
         struct Depsgraph *graph,
         struct View3D *v3d, struct ARegion *ar);
+void DRW_draw_render_loop_offscreen(
+        struct Depsgraph *graph,
+        struct View3D *v3d, struct ARegion *ar,
+        struct GPUOffScreen *ofs);
 void DRW_draw_select_loop(
         struct Depsgraph *graph,
         struct View3D *v3d, struct ARegion *ar,

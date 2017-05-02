@@ -84,6 +84,10 @@ int GPU_offscreen_width(const GPUOffScreen *ofs);
 int GPU_offscreen_height(const GPUOffScreen *ofs);
 int GPU_offscreen_color_texture(const GPUOffScreen *ofs);
 
+void GPU_offscreen_viewport_data_get(
+        GPUOffScreen *ofs,
+        GPUFrameBuffer **r_fb, struct GPUTexture **r_color, struct GPUTexture **r_depth);
+
 #ifdef __cplusplus
 }
 #endif

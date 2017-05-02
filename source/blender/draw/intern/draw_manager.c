@@ -2188,6 +2188,11 @@ void DRW_draw_view(const bContext *C)
 	DRW_draw_render_loop(graph, v3d, ar);
 }
 
+/**
+ * Used for both regular drawing and off-screen drawing.
+ *
+ * \param ofs: When not NULL, use this data to create the viewport.
+ */
 void DRW_draw_render_loop(
         struct Depsgraph *graph,
         View3D *v3d, ARegion *ar)
@@ -2271,6 +2276,37 @@ void DRW_draw_render_loop(
 
 	/* avoid accidental reuse */
 	memset(&DST, 0x0, sizeof(DST));
+}
+
+void DRW_draw_render_loop_offscreen(
+        struct Depsgraph *graph,
+        View3D *v3d, ARegion *ar, GPUOffScreen *ofs)
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	/* backup */
+	void *backup_viewport = rv3d->viewport;
+	{
+		/* backup (_never_ use rv3d->viewport) */
+		rv3d->viewport = GPU_viewport_create_from_offscreen(ofs);
+	}
+
+	DST.draw_ctx.evil_C = NULL;
+
+	DRW_draw_render_loop(graph, v3d, ar);
+
+	/* restore */
+	{
+		/* don't free data owned by 'ofs' */
+		GPU_viewport_clear_from_offscreen(rv3d->viewport);
+		GPU_viewport_free(rv3d->viewport);
+		MEM_freeN(rv3d->viewport);
+
+		rv3d->viewport = backup_viewport;
+	}
+
+	/* we need to re-bind (annoying!) */
+	GPU_offscreen_bind(ofs, false);
 }
 
 /**

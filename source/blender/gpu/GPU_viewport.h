@@ -88,6 +88,9 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect);
 void GPU_viewport_unbind(GPUViewport *viewport);
 void GPU_viewport_free(GPUViewport *viewport);
 
+GPUViewport *GPU_viewport_create_from_offscreen(struct GPUOffScreen *ofs);
+void GPU_viewport_clear_from_offscreen(GPUViewport *viewport);
+
 void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type);
 void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_type);
 void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport);

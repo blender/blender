@@ -83,6 +83,24 @@ GPUViewport *GPU_viewport_create(void)
 	return viewport;
 }
 
+GPUViewport *GPU_viewport_create_from_offscreen(struct GPUOffScreen *ofs)
+{
+	GPUViewport *viewport = GPU_viewport_create();
+	GPU_offscreen_viewport_data_get(ofs, &viewport->fbl->default_fb, &viewport->txl->color, &viewport->txl->depth);
+	viewport->size[0] = GPU_offscreen_width(ofs);
+	viewport->size[1] = GPU_offscreen_height(ofs);
+	return viewport;
+}
+/**
+ * Clear vars assigned from offscreen, so we don't free data owned by `GPUOffScreen`.
+ */
+void GPU_viewport_clear_from_offscreen(GPUViewport *viewport)
+{
+	viewport->fbl->default_fb = NULL;
+	viewport->txl->color = NULL;
+	viewport->txl->depth = NULL;
+}
+
 void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
 {
 	LinkData *ld = MEM_callocN(sizeof(LinkData), "LinkData");

@@ -107,6 +107,10 @@
 #include "GPU_select.h"
 #include "GPU_matrix.h"
 
+#include "RE_engine.h"
+
+#include "DRW_engine.h"
+
 #include "view3d_intern.h"  /* own include */
 
 /* prototypes */
@@ -1811,7 +1815,14 @@ void ED_view3d_draw_offscreen(
 	}
 
 	/* main drawing call */
-	view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, do_compositing ? fx : NULL);
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_LEGACY_PIPELINE) != 0)) {
+		view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, do_compositing ? fx : NULL);
+	}
+	else {
+		/* XXX, should take depsgraph as arg */
+		DRW_draw_render_loop_offscreen(scene->depsgraph, v3d, ar, ofs);
+	}
 
 	/* post process */
 	if (do_compositing) {

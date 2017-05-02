@@ -682,3 +682,12 @@ int GPU_offscreen_color_texture(const GPUOffScreen *ofs)
 	return GPU_texture_opengl_bindcode(ofs->color);
 }
 
+/* only to be used by viewport code! */
+void GPU_offscreen_viewport_data_get(
+        GPUOffScreen *ofs,
+        GPUFrameBuffer **r_fb, GPUTexture **r_color, GPUTexture **r_depth)
+{
+	*r_fb = ofs->fb;
+	*r_color = ofs->color;
+	*r_depth = ofs->depth;
+}
