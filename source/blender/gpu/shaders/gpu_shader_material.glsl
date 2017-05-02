@@ -3828,6 +3828,37 @@ void node_output_world(vec4 surface, vec4 volume, out vec4 result)
 	result = surface;
 }
 
+void convert_metallic_to_specular(vec4 basecol, float metallic, float specular_fac, out vec4 diffuse, out vec4 f0)
+{
+	vec4 dielectric = vec4(0.034) * specular_fac * 2.0;
+	diffuse = mix(basecol, vec4(0.0), metallic);
+	f0 = mix(dielectric, basecol, metallic);
+}
+
+void world_normals_get(out vec3 N)
+{
+	N = gl_FrontFacing ? worldNormal : -worldNormal;
+}
+
+void node_output_metallic(
+        vec4 basecol, float metallic, float specular, float roughness, vec4 emissive, float transp, vec3 normal,
+        float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
+        float occlusion, out vec4 result)
+{
+	vec4 diffuse, f0;
+	convert_metallic_to_specular(basecol, metallic, specular, diffuse, f0);
+
+	result = vec4(eevee_surface_lit(normal, diffuse.rgb, f0.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
+}
+
+void node_output_specular(
+        vec4 diffuse, vec4 specular, float roughness, vec4 emissive, float transp, vec3 normal,
+        float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
+        float occlusion, out vec4 result)
+{
+	result = vec4(eevee_surface_lit(normal, diffuse.rgb, specular.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
+}
+
 /* ********************** matcap style render ******************** */
 
 void material_preview_matcap(vec4 color, sampler2D ima, vec4 N, vec4 mask, out vec4 result)

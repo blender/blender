@@ -67,6 +67,8 @@ DefNode( ShaderNode,     SH_NODE_COMBRGB,         0,                      "COMBR
 DefNode( ShaderNode,     SH_NODE_HUE_SAT,         0,                      "HUE_SAT",        HueSaturation,    "Hue/Saturation",    ""              )
 
 DefNode( ShaderNode,     SH_NODE_OUTPUT_MATERIAL,    def_sh_output,          "OUTPUT_MATERIAL",    OutputMaterial,   "Material Output",   ""       )
+DefNode( ShaderNode,     SH_NODE_OUTPUT_METALLIC,    def_sh_output,          "OUTPUT_METALLIC",    OutputMetallic,   "Material Metallic Output", "")
+DefNode( ShaderNode,     SH_NODE_OUTPUT_SPECULAR,    def_sh_output,          "OUTPUT_SPECULAR",    OutputSpecular,   "Material Specular Output", "")
 DefNode( ShaderNode,     SH_NODE_OUTPUT_LAMP,        def_sh_output,          "OUTPUT_LAMP",        OutputLamp,       "Lamp Output",       ""       )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_WORLD,       def_sh_output,          "OUTPUT_WORLD",       OutputWorld,      "World Output",      ""       )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_LINESTYLE,   def_sh_output_linestyle,"OUTPUT_LINESTYLE",   OutputLineStyle,  "Line Style Output", ""       )

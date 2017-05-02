@@ -231,7 +231,7 @@ float light_common(inout LightData ld, inout ShadingData sd)
 	return vis;
 }
 
-vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness)
+vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness, float ao)
 {
 	ShadingData sd;
 	sd.N = normalize(world_normal);
@@ -243,6 +243,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness)
 	sd.spec_dominant_dir = get_specular_dominant_dir(sd.N, sd.R, roughness);
 
 	vec3 radiance = vec3(0.0);
+	vec3 indirect_radiance = vec3(0.0);
 
 	/* Analitic Lights */
 	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
@@ -264,9 +265,9 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness)
 	vec2 uv = ltc_coords(dot(sd.N, sd.V), sqrt(roughness));
 	vec2 brdf_lut = texture(brdfLut, uv).rg;
 	vec3 Li = textureLod(probeFiltered, sd.spec_dominant_dir, roughness * lodMax).rgb;
-	radiance += Li * brdf_lut.y + f0 * Li * brdf_lut.x;
+	indirect_radiance += Li * brdf_lut.y + f0 * Li * brdf_lut.x;
 
-	radiance += spherical_harmonics(sd.N, shCoefs) * albedo;
+	indirect_radiance += spherical_harmonics(sd.N, shCoefs) * albedo;
 
-	return radiance;
+	return radiance + indirect_radiance * ao;
 }
