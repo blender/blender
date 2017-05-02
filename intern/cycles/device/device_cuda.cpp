@@ -1634,7 +1634,8 @@ int2 CUDASplitKernel::split_kernel_global_size(device_memory& kg, device_memory&
 	        << string_human_readable_size(free) << ").";
 
 	size_t num_elements = max_elements_for_max_buffer_size(kg, data, free / 2);
-	int2 global_size = make_int2(round_down((int)sqrt(num_elements), 32), (int)sqrt(num_elements));
+	size_t side = round_down((int)sqrt(num_elements), 32);
+	int2 global_size = make_int2(side, round_down(num_elements / side, 16));
 	VLOG(1) << "Global size: " << global_size << ".";
 	return global_size;
 }
