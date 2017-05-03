@@ -146,6 +146,8 @@ static void external_draw_scene(void *UNUSED(vedata))
 	ARegion *ar = draw_ctx->ar;
 	RenderEngineType *type;
 
+	DRW_state_reset_ex(DRW_STATE_DEFAULT & ~DRW_STATE_DEPTH_LESS);
+
 	/* Create render engine. */
 	if (!rv3d->render_engine) {
 		RenderEngine *engine;

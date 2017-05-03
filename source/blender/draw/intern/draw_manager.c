@@ -1527,14 +1527,15 @@ void DRW_draw_callbacks_post_scene(void)
 }
 
 /* Reset state to not interfer with other UI drawcall */
-void DRW_state_reset(void)
+void DRW_state_reset_ex(DRWState state)
 {
-	DRWState state =
-	        DRW_STATE_WRITE_DEPTH |
-	        DRW_STATE_WRITE_COLOR |
-	        DRW_STATE_DEPTH_LESS;
 	DST.state = ~state;
 	DRW_state_set(state);
+}
+
+void DRW_state_reset(void)
+{
+	DRW_state_reset_ex(DRW_STATE_DEFAULT);
 }
 
 /** \} */

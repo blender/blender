@@ -249,6 +249,8 @@ typedef enum {
 	DRW_STATE_TEST_STENCIL_ACTIVE  = (1 << 17),
 } DRWState;
 
+#define DRW_STATE_DEFAULT (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS)
+
 
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass);
@@ -324,6 +326,7 @@ void DRW_draw_text_cache_queue(struct DRWTextStore *dt);
 void DRW_draw_callbacks_pre_scene(void);
 void DRW_draw_callbacks_post_scene(void);
 
+void DRW_state_reset_ex(DRWState state);
 void DRW_state_reset(void);
 
 /* Selection */
