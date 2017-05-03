@@ -870,7 +870,7 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 		mul_m4_m4m4(spotblendmat, shapemat, sizemat);
 
 		if (la->mode & LA_SQUARE) {
-			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_spot_pyramid,    color, &one, shapemat);
+			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_spot_pyramid, color, &one, shapemat);
 
 			/* hide line if it is zero size or overlaps with outer border,
 			 * previously it adjusted to always to show it but that seems
@@ -880,7 +880,7 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 			}
 		}
 		else {
-			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_spot_cone,  color, shapemat);
+			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_spot_cone, color, shapemat);
 
 			/* hide line if it is zero size or overlaps with outer border,
 			 * previously it adjusted to always to show it but that seems
@@ -890,7 +890,7 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 			}
 		}
 
-		DRW_shgroup_call_dynamic_add(stl->g_data->lamp_buflimit,        color, &la->clipsta, &la->clipend, ob->obmat);
+		DRW_shgroup_call_dynamic_add(stl->g_data->lamp_buflimit, color, &la->clipsta, &la->clipend, ob->obmat);
 		DRW_shgroup_call_dynamic_add(stl->g_data->lamp_buflimit_points, color, &la->clipsta, &la->clipend, ob->obmat);
 	}
 	else if (la->type == LA_HEMI) {
