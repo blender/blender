@@ -551,7 +551,7 @@ static const float *get_bone_solid_color(
 #endif
 
 	if (arm->flag & ARM_POSEMODE) {
-		float *disp_color = (float *)pchan->disp_solid_color;
+		float *disp_color = pchan->draw_data->solid_color;
 		set_pchan_color(PCHAN_COLOR_SOLID, boneflag, constflag, disp_color);
 		disp_color[3] = 1.0;
 		return disp_color;
@@ -586,7 +586,7 @@ static const float *get_bone_wire_color(
 		}
 	}
 	else if (arm->flag & ARM_POSEMODE) {
-		float *disp_color = (float *)pchan->disp_wire_color;
+		float *disp_color = pchan->draw_data->wire_color;
 		set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag, disp_color);
 		disp_color[3] = 1.0;
 		return disp_color;
@@ -622,6 +622,23 @@ static const float *get_bone_wire_color(
 
 /** \name Helper Utils
  * \{ */
+
+static void pchan_draw_data_init(bPoseChannel *pchan)
+{
+
+	if (pchan->draw_data != NULL) {
+		if (pchan->draw_data->bbone_matrix_len != pchan->bone->segments) {
+			MEM_SAFE_FREE(pchan->draw_data);
+		}
+	}
+
+	if (pchan->draw_data == NULL) {
+		bPoseChannelDrawData *draw_data;
+		/* We just allocate max allowed segcount, we can always refine this later if really needed. */
+		pchan->draw_data = MEM_mallocN(sizeof(*draw_data) + sizeof(Mat4) * pchan->bone->segments, __func__);
+		pchan->draw_data->bbone_matrix_len = pchan->bone->segments;
+	}
+}
 
 static void draw_bone_update_disp_matrix_default(EditBone *eBone, bPoseChannel *pchan)
 {
@@ -737,7 +754,6 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 	float length, xwidth, zwidth;
 	float (*bone_mat)[4];
 	float (*disp_mat)[4];
-	float (*disp_tail_mat)[4];
 	short bbone_segments;
 
 	/* TODO : This should be moved to depsgraph or armature refresh
@@ -749,7 +765,6 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 		zwidth = pchan->bone->zwidth;
 		bone_mat = pchan->pose_mat;
 		disp_mat = pchan->disp_mat;
-		disp_tail_mat = pchan->disp_tail_mat;
 		bbone_segments = pchan->bone->segments;
 	}
 	else {
@@ -761,7 +776,6 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 		zwidth = eBone->zwidth;
 		bone_mat = ebmat;
 		disp_mat = eBone->disp_mat;
-		disp_tail_mat = eBone->disp_tail_mat;
 		bbone_segments = eBone->segments;
 	}
 
@@ -771,12 +785,7 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 	/* Note that we need this even for one-segment bones, because box drawing need specific weirdo matrix for the box,
 	 * that we cannot use to draw end points & co. */
 	if (pchan) {
-		Mat4 *bbones_mat = pchan->draw_data;
-		if (bbones_mat == NULL) {
-			/* We just allocate max allowed segcount, we can always refine this later if really needed. */
-			bbones_mat = pchan->draw_data = MEM_mallocN(sizeof(*bbones_mat) * MAX_BBONE_SUBDIV, __func__);
-		}
-
+		Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
 		if (bbone_segments > 1) {
 			b_bone_spline_setup(pchan, 0, bbones_mat);
 
@@ -957,7 +966,7 @@ static void draw_bone_wire(
 	}
 
 	if (pchan) {
-		Mat4 *bbones_mat = pchan->draw_data;
+		Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
@@ -992,7 +1001,7 @@ static void draw_bone_box(
 	}
 
 	if (pchan) {
-		Mat4 *bbones_mat = pchan->draw_data;
+		Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
@@ -1162,6 +1171,8 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				const int select_id = is_pose_select ? index : (unsigned int)-1;
 
 				const short constflag = pchan->constflag;
+
+				pchan_draw_data_init(pchan);
 
 				if (const_color) {
 					/* keep color */

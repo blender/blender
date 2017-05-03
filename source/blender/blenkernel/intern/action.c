@@ -580,7 +580,7 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
 			pchan->prop = IDP_CopyProperty(pchan->prop);
 		}
 
-		pchan->draw_data = NULL;  /* Drawing cache of bbone matrices, no need to copy. */
+		pchan->draw_data = NULL;  /* Drawing cache, no need to copy. */
 	}
 
 	/* for now, duplicate Bone Groups too when doing this */
@@ -770,7 +770,7 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
 		MEM_freeN(pchan->prop);
 	}
 
-	/* Cached bbone matrices, for new draw manager rendering code. */
+	/* Cached data, for new draw manager rendering code. */
 	MEM_SAFE_FREE(pchan->draw_data);
 }
 
