@@ -121,7 +121,7 @@ typedef struct MeshRenderData {
 	MPoly *mpoly;
 	float (*orco)[3];
 	MLoopUV **mloopuv;
-	MCol **mcol;
+	MLoopCol **mloopcol;
 	float (**mtangent)[4];
 	MDeformVert *dvert;
 
@@ -320,7 +320,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 		rdata->vcol_ct = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
 
 		rdata->mloopuv = MEM_mallocN(sizeof(*rdata->mloopuv) * rdata->uv_ct, "rdata->mloopuv");
-		rdata->mcol = MEM_mallocN(sizeof(*rdata->mcol) * rdata->vcol_ct, "rdata->mcol");
+		rdata->mloopcol = MEM_mallocN(sizeof(*rdata->mloopcol) * rdata->vcol_ct, "rdata->mloopcol");
 		rdata->mtangent = MEM_mallocN(sizeof(*rdata->mtangent) * rdata->uv_ct, "rdata->mtangent");
 
 		rdata->uv_names = MEM_mallocN(sizeof(*rdata->uv_names) * rdata->uv_ct, "rdata->uv_names");
@@ -346,7 +346,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			const char *name = CustomData_get_layer_name(&me->ldata, CD_MLOOPCOL, i);
 			unsigned int hash = BLI_ghashutil_strhash_p(name);
 			BLI_snprintf(rdata->vcol_names[i], sizeof(*rdata->vcol_names), "c%u", hash);
-			rdata->mcol[i] = CustomData_get_layer_n(&me->ldata, CD_MLOOPCOL, i);
+			rdata->mloopcol[i] = CustomData_get_layer_n(&me->ldata, CD_MLOOPCOL, i);
 			if (rdata->edit_bmesh) {
 				rdata->vcol_ofs[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPCOL, i);
 			}
@@ -453,7 +453,7 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 	MEM_SAFE_FREE(rdata->tangent_ofs);
 	MEM_SAFE_FREE(rdata->orco);
 	MEM_SAFE_FREE(rdata->mloopuv);
-	MEM_SAFE_FREE(rdata->mcol);
+	MEM_SAFE_FREE(rdata->mloopcol);
 	MEM_SAFE_FREE(rdata->mtangent);
 	MEM_SAFE_FREE(rdata->loose_verts);
 	MEM_SAFE_FREE(rdata->loose_edges);
@@ -837,15 +837,15 @@ static void mesh_render_data_looptri_cols_get(
 {
 	if (rdata->edit_bmesh) {
 		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		(*r_vert_cols)[0] = &((MCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->vcol_ofs[vcol_layer]))->a;
-		(*r_vert_cols)[1] = &((MCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->vcol_ofs[vcol_layer]))->a;
-		(*r_vert_cols)[2] = &((MCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->vcol_ofs[vcol_layer]))->a;
+		(*r_vert_cols)[0] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->vcol_ofs[vcol_layer]))->r;
+		(*r_vert_cols)[1] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->vcol_ofs[vcol_layer]))->r;
+		(*r_vert_cols)[2] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->vcol_ofs[vcol_layer]))->r;
 	}
 	else {
 		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
-		(*r_vert_cols)[0] = &rdata->mcol[vcol_layer][mlt->tri[0]].a;
-		(*r_vert_cols)[1] = &rdata->mcol[vcol_layer][mlt->tri[1]].a;
-		(*r_vert_cols)[2] = &rdata->mcol[vcol_layer][mlt->tri[2]].a;
+		(*r_vert_cols)[0] = &rdata->mloopcol[vcol_layer][mlt->tri[0]].r;
+		(*r_vert_cols)[1] = &rdata->mloopcol[vcol_layer][mlt->tri[1]].r;
+		(*r_vert_cols)[2] = &rdata->mloopcol[vcol_layer][mlt->tri[2]].r;
 	}
 }
 
@@ -1053,7 +1053,7 @@ static bool mesh_render_data_looptri_cos_weights_get(
 			BMesh *bm = rdata->edit_bmesh->bm;
 
 			if (CustomData_has_layer(&bm->vdata, CD_MDEFORMVERT)) {
-			    BMIter viter;
+				BMIter viter;
 				BMVert *vert;
 				int i;
 
