@@ -791,9 +791,6 @@ static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Obj
 
 	if (is_selectable) {
 		base->flag |= BASE_SELECTABLED;
-	}
-
-	if (ob->base_flag) {
 		base->flag |= BASE_SELECTED;
 	}
 
