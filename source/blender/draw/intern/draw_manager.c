@@ -798,9 +798,12 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	BLI_addtail(&shgroup->calls, call);
 }
 
-/* Make sure you know what you do when using this,
- * State is not revert back at the end of the shgroup */
-
+/**
+ * State is added to #Pass.state while drawing.
+ * Use to temporarily enable draw options.
+ *
+ * Currently there is no way to disable (could add if needed).
+ */
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state)
 {
 	shgroup->state_extra |= state;
