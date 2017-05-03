@@ -170,6 +170,10 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 
 	UNUSED_VARS(psl, stl);
 
+	/* In the future this will allow us to implement face manipulators,
+	 * and similar functionalities. For now however, this is getting
+	 * on the way of using pose mode, so disabling it. */
+#if 0
 	if (ob->type == OB_MESH) {
 		/* Get geometry cache */
 		struct Batch *geom = DRW_cache_mesh_surface_get(ob);
@@ -177,6 +181,9 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 		/* Add geom to a shading group */
 		DRW_shgroup_call_add(stl->g_data->group, geom, ob->obmat);
 	}
+#else
+	UNUSED_VARS(ob);
+#endif
 }
 
 /* Optional: Post-cache_populate callback */
