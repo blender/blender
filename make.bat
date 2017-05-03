@@ -257,7 +257,7 @@ echo msbuild ^
 	%BUILD_DIR%\Blender.sln ^
 	/target:build ^
 	/property:Configuration=%BUILD_TYPE% ^
-	/maxcpucount ^
+	/maxcpucount:2 ^
 	/verbosity:minimal ^
 	/p:platform=%MSBUILD_PLATFORM% ^
 	/flp:Summary;Verbosity=minimal;LogFile=%BUILD_DIR%\Build.log >> %BUILD_DIR%\rebuild.cmd
@@ -273,7 +273,7 @@ msbuild ^
 	%BUILD_DIR%\Blender.sln ^
 	/target:build ^
 	/property:Configuration=%BUILD_TYPE% ^
-	/maxcpucount ^
+	/maxcpucount:2 ^
 	/verbosity:minimal ^
 	/p:platform=%MSBUILD_PLATFORM% ^
 	/flp:Summary;Verbosity=minimal;LogFile=%BUILD_DIR%\Build.log

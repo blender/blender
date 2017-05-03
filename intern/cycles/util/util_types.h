@@ -94,6 +94,7 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_OPENCL__
 typedef unsigned char uchar;
 typedef unsigned int uint;
+typedef unsigned short ushort;
 #endif
 
 /* Fixed Bits Types */
