@@ -113,10 +113,6 @@
 
 #include "view3d_intern.h"  /* own include */
 
-/* prototypes */
-static void view3d_stereo3d_setup_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
-                                            float winmat[4][4], const char *viewname);
-
 /* ********* custom clipping *********** */
 
 static void view3d_draw_clipping(RegionView3D *rv3d)
@@ -1720,375 +1716,6 @@ void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixSto
 	rv3d->pixsize = rv3dmat->pixsize;
 }
 
-void ED_view3d_draw_offscreen_init(Scene *scene, SceneLayer *sl, View3D *v3d)
-{
-	/* shadow buffers, before we setup matrices */
-	if (draw_glsl_material(scene, sl, NULL, v3d, v3d->drawtype))
-		gpu_update_lamps_shadows_world(scene, v3d);
-}
-
-/*
- * Function to clear the view
- */
-static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
-{
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {
-		VP_view3d_draw_background_world(scene, v3d, ar->regiondata);
-	}
-	else {
-		VP_view3d_draw_background_none();
-	}
-}
-
-/* ED_view3d_draw_offscreen_init should be called before this to initialize
- * stuff like shadow buffers
- */
-void ED_view3d_draw_offscreen(
-        Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy,
-        float viewmat[4][4], float winmat[4][4],
-        bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
-        GPUFX *fx, GPUFXSettings *fx_settings,
-        GPUOffScreen *ofs)
-{
-	bool do_compositing = false;
-	RegionView3D *rv3d = ar->regiondata;
-
-	/* set temporary new size */
-	int bwinx = ar->winx;
-	int bwiny = ar->winy;
-	rcti brect = ar->winrct;
-
-	ar->winx = winx;
-	ar->winy = winy;
-	ar->winrct.xmin = 0;
-	ar->winrct.ymin = 0;
-	ar->winrct.xmax = winx;
-	ar->winrct.ymax = winy;
-
-	struct bThemeState theme_state;
-	UI_Theme_Store(&theme_state);
-	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
-
-	/* set flags */
-	G.f |= G_RENDER_OGL;
-
-	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
-		/* free images which can have changed on frame-change
-		 * warning! can be slow so only free animated images - campbell */
-		GPU_free_images_anim();
-	}
-
-	gpuPushProjectionMatrix();
-	gpuLoadIdentity();
-	gpuPushMatrix();
-	gpuLoadIdentity();
-
-	/* clear opengl buffers */
-	if (do_sky) {
-		view3d_main_region_clear(scene, v3d, ar);
-	}
-	else {
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-
-	if ((viewname != NULL && viewname[0] != '\0') && (viewmat == NULL) && rv3d->persp == RV3D_CAMOB && v3d->camera)
-		view3d_stereo3d_setup_offscreen(scene, v3d, ar, winmat, viewname);
-	else
-		VP_legacy_view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
-
-	/* framebuffer fx needed, we need to draw offscreen first */
-	if (v3d->fx_settings.fx_flag && fx) {
-		GPUSSAOSettings *ssao = NULL;
-
-		if (v3d->drawtype < OB_SOLID) {
-			ssao = v3d->fx_settings.ssao;
-			v3d->fx_settings.ssao = NULL;
-		}
-
-		do_compositing = GPU_fx_compositor_initialize_passes(fx, &ar->winrct, NULL, fx_settings);
-
-		if (ssao)
-			v3d->fx_settings.ssao = ssao;
-	}
-
-	/* main drawing call */
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_LEGACY_PIPELINE) != 0)) {
-		view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, do_compositing ? fx : NULL);
-	}
-	else {
-		/* XXX, should take depsgraph as arg */
-		DRW_draw_render_loop_offscreen(scene->depsgraph, ar, v3d, ofs);
-	}
-
-	/* post process */
-	if (do_compositing) {
-		if (!winmat)
-			is_persp = rv3d->is_persp;
-		GPU_fx_do_composite_pass(fx, winmat, is_persp, scene, ofs);
-	}
-
-	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
-		/* draw grease-pencil stuff */
-		ED_region_pixelspace(ar);
-
-		if (v3d->flag2 & V3D_SHOW_GPENCIL) {
-			/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-			ED_gpencil_draw_view3d(NULL, scene, v3d, ar, false);
-		}
-
-		/* freeing the images again here could be done after the operator runs, leaving for now */
-		GPU_free_images_anim();
-	}
-
-	/* restore size */
-	ar->winx = bwinx;
-	ar->winy = bwiny;
-	ar->winrct = brect;
-
-	gpuPopProjectionMatrix();
-	gpuPopMatrix();
-
-	UI_Theme_Restore(&theme_state);
-
-	G.f &= ~G_RENDER_OGL;
-}
-
-/**
- * Utility func for ED_view3d_draw_offscreen
- *
- * \param ofs: Optional off-screen buffer, can be NULL.
- * (avoids re-creating when doing multiple GL renders).
- */
-ImBuf *ED_view3d_draw_offscreen_imbuf(
-        Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, int sizex, int sizey,
-        unsigned int flag, bool draw_background,
-        int alpha_mode, int samples, bool full_samples, const char *viewname,
-        /* output vars */
-        GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
-{
-	RegionView3D *rv3d = ar->regiondata;
-	const bool draw_sky = (alpha_mode == R_ADDSKY);
-
-	/* view state */
-	GPUFXSettings fx_settings = v3d->fx_settings;
-	bool is_ortho = false;
-	float winmat[4][4];
-
-	if (ofs && ((GPU_offscreen_width(ofs) != sizex) || (GPU_offscreen_height(ofs) != sizey))) {
-		/* sizes differ, can't reuse */
-		ofs = NULL;
-	}
-
-	const bool own_ofs = (ofs == NULL);
-
-	if (own_ofs) {
-		/* bind */
-		ofs = GPU_offscreen_create(sizex, sizey, full_samples ? 0 : samples, err_out);
-		if (ofs == NULL) {
-			return NULL;
-		}
-	}
-
-	ED_view3d_draw_offscreen_init(scene, sl, v3d);
-
-	GPU_offscreen_bind(ofs, true);
-
-	/* read in pixels & stamp */
-	ImBuf *ibuf = IMB_allocImBuf(sizex, sizey, 32, flag);
-
-	/* render 3d view */
-	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
-		CameraParams params;
-		Object *camera = BKE_camera_multiview_render(scene, v3d->camera, viewname);
-
-		BKE_camera_params_init(&params);
-		/* fallback for non camera objects */
-		params.clipsta = v3d->near;
-		params.clipend = v3d->far;
-		BKE_camera_params_from_object(&params, camera);
-		BKE_camera_multiview_params(&scene->r, &params, camera, viewname);
-		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
-		BKE_camera_params_compute_matrix(&params);
-
-		BKE_camera_to_gpu_dof(camera, &fx_settings);
-
-		is_ortho = params.is_ortho;
-		copy_m4_m4(winmat, params.winmat);
-	}
-	else {
-		rctf viewplane;
-		float clipsta, clipend;
-
-		is_ortho = ED_view3d_viewplane_get(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
-		if (is_ortho) {
-			orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
-		}
-		else {
-			perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
-		}
-	}
-
-	if ((samples && full_samples) == 0) {
-		/* Single-pass render, common case */
-		ED_view3d_draw_offscreen(
-		        scene, v3d, ar, sizex, sizey, NULL, winmat,
-		        draw_background, draw_sky, !is_ortho, viewname,
-		        fx, &fx_settings, ofs);
-
-		if (ibuf->rect_float) {
-			GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
-		}
-		else if (ibuf->rect) {
-			GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
-		}
-	}
-	else {
-		/* Multi-pass render, use accumulation buffer & jitter for 'full' oversampling.
-		 * Use because OpenGL may use a lower quality MSAA, and only over-sample edges. */
-		static float jit_ofs[32][2];
-		float winmat_jitter[4][4];
-		/* use imbuf as temp storage, before writing into it from accumulation buffer */
-		unsigned char *rect_temp = ibuf->rect ? (void *)ibuf->rect : (void *)ibuf->rect_float;
-		unsigned int *accum_buffer = MEM_mallocN(sizex * sizey * sizeof(int[4]), "accum1");
-
-		BLI_jitter_init(jit_ofs, samples);
-
-		/* first sample buffer, also initializes 'rv3d->persmat' */
-		ED_view3d_draw_offscreen(
-		        scene, v3d, ar, sizex, sizey, NULL, winmat,
-		        draw_background, draw_sky, !is_ortho, viewname,
-		        fx, &fx_settings, ofs);
-		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, rect_temp);
-
-		unsigned i = sizex * sizey * 4;
-		while (i--) {
-			accum_buffer[i] = rect_temp[i];
-		}
-
-		/* skip the first sample */
-		for (int j = 1; j < samples; j++) {
-			copy_m4_m4(winmat_jitter, winmat);
-			window_translate_m4(
-			        winmat_jitter, rv3d->persmat,
-			        (jit_ofs[j][0] * 2.0f) / sizex,
-			        (jit_ofs[j][1] * 2.0f) / sizey);
-
-			ED_view3d_draw_offscreen(
-			        scene, v3d, ar, sizex, sizey, NULL, winmat_jitter,
-			        draw_background, draw_sky, !is_ortho, viewname,
-			        fx, &fx_settings, ofs);
-			GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, rect_temp);
-
-			i = sizex * sizey * 4;
-			while (i--) {
-				accum_buffer[i] += rect_temp[i];
-			}
-		}
-
-		if (ibuf->rect_float) {
-			float *rect_float = ibuf->rect_float;
-			i = sizex * sizey * 4;
-			while (i--) {
-				rect_float[i] = (float)(accum_buffer[i] / samples) * (1.0f / 255.0f);
-			}
-		}
-		else {
-			unsigned char *rect_ub = (unsigned char *)ibuf->rect;
-			i = sizex * sizey * 4;
-			while (i--) {
-				rect_ub[i] = accum_buffer[i] / samples;
-			}
-		}
-
-		MEM_freeN(accum_buffer);
-	}
-
-	/* unbind */
-	GPU_offscreen_unbind(ofs, true);
-
-	if (own_ofs) {
-		GPU_offscreen_free(ofs);
-	}
-
-	if (ibuf->rect_float && ibuf->rect)
-		IMB_rect_from_float(ibuf);
-
-	return ibuf;
-}
-
-/**
- * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen_imbuf)
- *
- * \param ofs: Optional off-screen buffer can be NULL.
- * (avoids re-creating when doing multiple GL renders).
- *
- * \note used by the sequencer
- */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
-        Scene *scene, SceneLayer *sl, Object *camera, int width, int height,
-        unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
-        int alpha_mode, int samples, bool full_samples, const char *viewname,
-        GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
-{
-	View3D v3d = {NULL};
-	ARegion ar = {NULL};
-	RegionView3D rv3d = {{{0}}};
-
-	/* connect data */
-	v3d.regionbase.first = v3d.regionbase.last = &ar;
-	ar.regiondata = &rv3d;
-	ar.regiontype = RGN_TYPE_WINDOW;
-
-	v3d.camera = camera;
-	v3d.lay = scene->lay;
-	v3d.drawtype = drawtype;
-	v3d.flag2 = V3D_RENDER_OVERRIDE;
-	
-	if (use_gpencil)
-		v3d.flag2 |= V3D_SHOW_GPENCIL;
-
-	if (use_solid_tex)
-		v3d.flag2 |= V3D_SOLID_TEX;
-		
-	if (draw_background)
-		v3d.flag3 |= V3D_SHOW_WORLD;
-
-	rv3d.persp = RV3D_CAMOB;
-
-	copy_m4_m4(rv3d.viewinv, v3d.camera->obmat);
-	normalize_m4(rv3d.viewinv);
-	invert_m4_m4(rv3d.viewmat, rv3d.viewinv);
-
-	{
-		CameraParams params;
-		Object *view_camera = BKE_camera_multiview_render(scene, v3d.camera, viewname);
-
-		BKE_camera_params_init(&params);
-		BKE_camera_params_from_object(&params, view_camera);
-		BKE_camera_multiview_params(&scene->r, &params, view_camera, viewname);
-		BKE_camera_params_compute_viewplane(&params, width, height, scene->r.xasp, scene->r.yasp);
-		BKE_camera_params_compute_matrix(&params);
-
-		copy_m4_m4(rv3d.winmat, params.winmat);
-		v3d.near = params.clipsta;
-		v3d.far = params.clipend;
-		v3d.lens = params.lens;
-	}
-
-	mul_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
-	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
-
-	return ED_view3d_draw_offscreen_imbuf(
-	        scene, sl, &v3d, &ar, width, height, flag,
-	        draw_background, alpha_mode, samples, full_samples, viewname,
-	        fx, ofs, err_out);
-}
-
-
 /**
  * \note The info that this uses is updated in #ED_refresh_viewport_fps,
  * which currently gets called during #SCREEN_OT_animation_step.
@@ -2294,26 +1921,6 @@ static void view3d_main_region_draw_engine_info(View3D *v3d, RegionView3D *rv3d,
 	ED_region_info_draw(ar, rv3d->render_engine->text, fill_color, true);
 }
 
-static void view3d_stereo3d_setup_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
-                                            float winmat[4][4], const char *viewname)
-{
-	/* update the viewport matrices with the new camera */
-	if (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D) {
-		float viewmat[4][4];
-		const bool is_left = STREQ(viewname, STEREO_LEFT_NAME);
-
-		BKE_camera_multiview_view_matrix(&scene->r, v3d->camera, is_left, viewmat);
-		VP_legacy_view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
-	}
-	else { /* SCE_VIEWS_FORMAT_MULTIVIEW */
-		float viewmat[4][4];
-		Object *camera = BKE_camera_multiview_render(scene, v3d->camera, viewname);
-
-		BKE_camera_multiview_view_matrix(&scene->r, camera, false, viewmat);
-		VP_legacy_view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
-	}
-}
-
 #ifdef WITH_GAMEENGINE
 static void update_lods(Scene *scene, float camera_pos[3])
 {
@@ -2500,7 +2107,7 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_region_do_render_draw(scene) || clip_border) {
-		view3d_main_region_clear(scene, v3d, ar); /* background */
+		VP_view3d_main_region_clear(scene, v3d, ar); /* background */
 		view3d_main_region_draw_objects(C, scene, sl, v3d, ar, &grid_unit);
 
 		if (G.debug & G_DEBUG_SIMDATA)
@@ -2532,3 +2139,30 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 	BLI_assert(BLI_listbase_is_empty(&v3d->afterdraw_xray));
 	BLI_assert(BLI_listbase_is_empty(&v3d->afterdraw_xraytransp));
 }
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Deprecated Interface
+ *
+ * New viewport sometimes has a check for new/old viewport code.
+ * Use these functions so new viewport can *optionally* call.
+ *
+ * \{ */
+
+
+void VP_deprecated_view3d_draw_objects(
+        const bContext *C,
+        Scene *scene, View3D *v3d, ARegion *ar,
+        const char **grid_unit,
+        const bool do_bgpic, const bool draw_offscreen, GPUFX *fx)
+{
+	view3d_draw_objects(C, scene, v3d, ar, grid_unit, do_bgpic, draw_offscreen, fx);
+}
+
+void VP_deprecated_gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
+{
+	gpu_update_lamps_shadows_world(scene, v3d);
+}
+
+/** \} */
