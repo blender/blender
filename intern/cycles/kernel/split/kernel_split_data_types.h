@@ -162,6 +162,11 @@ typedef struct BackgroundAOLocals {
 	uint queue_atomics_ao;
 } BackgroundAOLocals;
 
+typedef struct ShaderSortLocals {
+	uint local_value[SHADER_SORT_BLOCK_SIZE];
+	ushort local_index[SHADER_SORT_BLOCK_SIZE];
+} ShaderSortLocals;
+
 CCL_NAMESPACE_END
 
 #endif  /* __KERNEL_SPLIT_DATA_TYPES_H__ */

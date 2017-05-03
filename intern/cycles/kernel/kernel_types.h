@@ -64,6 +64,18 @@ CCL_NAMESPACE_BEGIN
 #  define WORK_POOL_SIZE WORK_POOL_SIZE_CPU
 #endif
 
+
+#define SHADER_SORT_BLOCK_SIZE 2048
+
+#ifdef __KERNEL_OPENCL__
+#  define SHADER_SORT_LOCAL_SIZE 64
+#elif defined(__KERNEL_CUDA__)
+#  define SHADER_SORT_LOCAL_SIZE 32
+#else
+#  define SHADER_SORT_LOCAL_SIZE 1
+#endif
+
+
 /* device capabilities */
 #ifdef __KERNEL_CPU__
 #  ifdef __KERNEL_SSE2__
@@ -1320,6 +1332,9 @@ enum QueueNumber {
 	 * contributing for direct lighting are enqueued here.
 	 */
 	QUEUE_SHADOW_RAY_CAST_DL_RAYS,
+
+	/* Rays sorted according to shader->id */
+	QUEUE_SHADER_SORTED_RAYS,
 
 #ifdef __BRANCHED_PATH__
 	/* All rays moving to next iteration of the indirect loop for light */

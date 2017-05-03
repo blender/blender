@@ -39,6 +39,8 @@ DeviceSplitKernel::DeviceSplitKernel(Device *device) : device(device)
 	kernel_do_volume = NULL;
 	kernel_queue_enqueue = NULL;
 	kernel_indirect_background = NULL;
+	kernel_shader_setup = NULL;
+	kernel_shader_sort = NULL;
 	kernel_shader_eval = NULL;
 	kernel_holdout_emission_blurring_pathtermination_ao = NULL;
 	kernel_subsurface_scatter = NULL;
@@ -64,6 +66,8 @@ DeviceSplitKernel::~DeviceSplitKernel()
 	delete kernel_do_volume;
 	delete kernel_queue_enqueue;
 	delete kernel_indirect_background;
+	delete kernel_shader_setup;
+	delete kernel_shader_sort;
 	delete kernel_shader_eval;
 	delete kernel_holdout_emission_blurring_pathtermination_ao;
 	delete kernel_subsurface_scatter;
@@ -89,6 +93,8 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 	LOAD_KERNEL(do_volume);
 	LOAD_KERNEL(queue_enqueue);
 	LOAD_KERNEL(indirect_background);
+	LOAD_KERNEL(shader_setup);
+	LOAD_KERNEL(shader_sort);
 	LOAD_KERNEL(shader_eval);
 	LOAD_KERNEL(holdout_emission_blurring_pathtermination_ao);
 	LOAD_KERNEL(subsurface_scatter);
@@ -241,6 +247,8 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 				ENQUEUE_SPLIT_KERNEL(do_volume, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(queue_enqueue, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(indirect_background, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(shader_setup, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(shader_sort, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(shader_eval, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(holdout_emission_blurring_pathtermination_ao, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(subsurface_scatter, global_size, local_size);

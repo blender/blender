@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 Blender Foundation
+ * Copyright 2011-2017 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 #include "kernel/kernel_compat_opencl.h"
 #include "kernel/split/kernel_split_common.h"
-#include "kernel/split/kernel_shader_eval.h"
+#include "kernel/split/kernel_shader_setup.h"
 
-__kernel void kernel_ocl_path_trace_shader_eval(
+__kernel void kernel_ocl_path_trace_shader_setup(
         ccl_global char *kg,
         ccl_constant KernelData *data)
 {
-	kernel_shader_eval((KernelGlobals*)kg);
+	ccl_local unsigned int local_queue_atomics;
+	kernel_shader_setup((KernelGlobals*)kg, &local_queue_atomics);
 }
