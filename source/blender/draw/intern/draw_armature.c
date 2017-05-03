@@ -765,21 +765,19 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 		bbone_segments = eBone->segments;
 	}
 
-	copy_m4_m4(disp_mat, bone_mat);
-	copy_m4_m4(disp_tail_mat, disp_mat);
-	translate_m4(disp_tail_mat, 0.0f, length, 0.0f);
-
 	size_to_mat4(s, (const float[3]){xwidth, length / bbone_segments, zwidth});
 
 	/* Compute BBones segment matrices... */
-	if (bbone_segments > 1) {
-		if (pchan) {
-			Mat4 *bbones_mat = pchan->bbone_matrices;
-			if (bbones_mat == NULL) {
-				/* We just allocate max allowed segcount, we can always refine this later if really needed. */
-				bbones_mat = pchan->bbone_matrices = MEM_mallocN(sizeof(*bbones_mat) * MAX_BBONE_SUBDIV, __func__);
-			}
+	/* Note that we need this even for one-segment bones, because box drawing need specific weirdo matrix for the box,
+	 * that we cannot use to draw end points & co. */
+	if (pchan) {
+		Mat4 *bbones_mat = pchan->bbone_matrices;
+		if (bbones_mat == NULL) {
+			/* We just allocate max allowed segcount, we can always refine this later if really needed. */
+			bbones_mat = pchan->bbone_matrices = MEM_mallocN(sizeof(*bbones_mat) * MAX_BBONE_SUBDIV, __func__);
+		}
 
+		if (bbone_segments > 1) {
 			b_bone_spline_setup(pchan, 0, bbones_mat);
 
 			for (int i = bbone_segments; i--; bbones_mat++) {
@@ -788,8 +786,13 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 			}
 		}
 		else {
-			float (*bbones_mat)[4][4] = eBone->disp_bbone_mat;
+			mul_m4_m4m4(bbones_mat->mat, bone_mat, s);
+		}
+	}
+	else {
+		float (*bbones_mat)[4][4] = eBone->disp_bbone_mat;
 
+		if (bbone_segments > 1) {
 			ebone_spline_preview(eBone, bbones_mat);
 
 			for (int i = bbone_segments; i--; bbones_mat++) {
@@ -797,10 +800,13 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 				mul_m4_m4m4(*bbones_mat, disp_mat, *bbones_mat);
 			}
 		}
+		else {
+			mul_m4_m4m4(*bbones_mat, bone_mat, s);
+		}
 	}
-	else {
-		mul_m4_m4m4(disp_mat, disp_mat, s);
-	}
+
+	/* Grrr... We need default display matrix to draw end points, axes, etc. :( */
+	draw_bone_update_disp_matrix_default(eBone, pchan);
 }
 
 static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
@@ -950,7 +956,7 @@ static void draw_bone_wire(
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
-	if (pchan && pchan->bone->segments > 1) {
+	if (pchan) {
 		Mat4 *bbones_mat = pchan->bbone_matrices;
 		BLI_assert(bbones_mat != NULL);
 
@@ -958,21 +964,15 @@ static void draw_bone_wire(
 			DRW_shgroup_bone_wire_wire(bbones_mat->mat, col_wire);
 		}
 	}
-	else if (eBone && eBone->segments > 1) {
+	else if (eBone) {
 		for (int i = 0; i < eBone->segments; i++) {
 			DRW_shgroup_bone_wire_wire(eBone->disp_bbone_mat[i], col_wire);
 		}
-	}
-	else {
-		DRW_shgroup_bone_wire_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire);
 	}
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);
 	}
-
-	/* Grrr... We need to restore default display matrix to draw end points, axes, etc. :( */
-	draw_bone_update_disp_matrix_default(eBone, pchan);
 
 	if (eBone) {
 		draw_points(eBone, pchan, arm, boneflag, constflag, select_id);
@@ -991,7 +991,7 @@ static void draw_bone_box(
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
-	if (pchan && pchan->bone->segments > 1) {
+	if (pchan) {
 		Mat4 *bbones_mat = pchan->bbone_matrices;
 		BLI_assert(bbones_mat != NULL);
 
@@ -1000,23 +1000,16 @@ static void draw_bone_box(
 			DRW_shgroup_bone_box_wire(bbones_mat->mat, col_wire);
 		}
 	}
-	else if (eBone && eBone->segments > 1) {
+	else if (eBone) {
 		for (int i = 0; i < eBone->segments; i++) {
 			DRW_shgroup_bone_box_solid(eBone->disp_bbone_mat[i], col_solid);
 			DRW_shgroup_bone_box_wire(eBone->disp_bbone_mat[i], col_wire);
 		}
 	}
-	else {
-		DRW_shgroup_bone_box_solid(BONE_VAR(eBone, pchan, disp_mat), col_solid);
-		DRW_shgroup_bone_box_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire);
-	}
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);
 	}
-
-	/* Grrr... We need to restore default display matrix to draw end points, axes, etc. :( */
-	// draw_bone_update_disp_matrix_default(eBone, pchan);
 
 	if (eBone) {
 		draw_points(eBone, pchan, arm, boneflag, constflag, select_id);
