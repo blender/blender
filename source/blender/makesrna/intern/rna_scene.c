@@ -2538,7 +2538,12 @@ static void rna_LayerCollectionEngineSettings_weight_wire_update(bContext *C, Po
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	BKE_mesh_batch_cache_dirty(sl->basact->object->data, BKE_MESH_BATCH_DIRTY_WEIGHT);
+	Object *ob = OBACT_NEW;
+
+	if (ob != NULL) {
+		BKE_mesh_batch_cache_dirty(ob, BKE_MESH_BATCH_DIRTY_WEIGHT);
+	}
+
 	/* TODO(sergey): Use proper flag for tagging here. */
 	DAG_id_tag_update(&scene->id, 0);
 }
