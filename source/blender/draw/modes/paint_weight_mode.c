@@ -49,20 +49,14 @@ typedef struct PAINT_WEIGHT_PassList {
 	struct DRWPass *vert_overlay;
 } PAINT_WEIGHT_PassList;
 
-typedef struct PAINT_WEIGHT_FramebufferList {
-} PAINT_WEIGHT_FramebufferList;
-
-typedef struct PAINT_WEIGHT_TextureList {
-} PAINT_WEIGHT_TextureList;
-
 typedef struct PAINT_WEIGHT_StorageList {
 	struct PAINT_WEIGHT_PrivateData *g_data;
 } PAINT_WEIGHT_StorageList;
 
 typedef struct PAINT_WEIGHT_Data {
 	void *engine_type;
-	PAINT_WEIGHT_FramebufferList *fbl;
-	PAINT_WEIGHT_TextureList *txl;
+	DRWViewportEmptyList *fbl;
+	DRWViewportEmptyList *txl;
 	PAINT_WEIGHT_PassList *psl;
 	PAINT_WEIGHT_StorageList *stl;
 } PAINT_WEIGHT_Data;
@@ -209,7 +203,6 @@ void PAINT_WEIGHT_collection_settings_create(IDProperty *properties)
 	BKE_collection_engine_property_add_bool(properties, "use_shading", true);
 	BKE_collection_engine_property_add_bool(properties, "use_wire", false);
 }
-
 
 static const DrawEngineDataSize PAINT_WEIGHT_data_size = DRW_VIEWPORT_DATA_SIZE(PAINT_WEIGHT_Data);
 
