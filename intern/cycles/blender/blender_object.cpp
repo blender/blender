@@ -478,7 +478,7 @@ static bool object_render_hide_duplis(BL::Object& b_ob)
 
 /* Object Loop */
 
-void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
+void BlenderSync::sync_objects(float motion_time)
 {
 	/* layer data */
 	uint scene_layer = render_layer.scene_layer;
@@ -506,7 +506,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 	 * 1 : DAG_EVAL_PREVIEW
 	 * 2 : DAG_EVAL_RENDER
 	 */
-	int dupli_settings = preview ? 1 : 2;
+	int dupli_settings = (render_layer.use_viewport_visibility) ? 1 : 2;
 
 	bool cancel = false;
 	bool use_portal = false;
@@ -541,7 +541,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 					for(b_ob.dupli_list.begin(b_dup); b_dup != b_ob.dupli_list.end(); ++b_dup) {
 						Transform tfm = get_transform(b_dup->matrix());
 						BL::Object b_dup_ob = b_dup->object();
-						bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
+						bool dup_hide = (render_layer.use_viewport_visibility)? b_dup_ob.hide(): b_dup_ob.hide_render();
 						bool in_dupli_group = (b_dup->type() == BL::DupliObject::type_GROUP);
 						bool hide_tris;
 
@@ -617,7 +617,6 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 }
 
 void BlenderSync::sync_motion(BL::RenderSettings& b_render,
-                              BL::SpaceView3D& b_v3d,
                               BL::Object& b_override,
                               int width, int height,
                               void **python_thread_state)
@@ -654,7 +653,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		b_engine.frame_set(frame, subframe);
 		python_thread_state_save(python_thread_state);
 		sync_camera_motion(b_render, b_cam, width, height, 0.0f);
-		sync_objects(b_v3d, 0.0f);
+		sync_objects(0.0f);
 	}
 
 	/* always sample these times for camera motion */
@@ -688,7 +687,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		}
 
 		/* sync object */
-		sync_objects(b_v3d, relative_time);
+		sync_objects(relative_time);
 	}
 
 	/* we need to set the python thread state again because this

@@ -210,10 +210,9 @@ void BlenderSync::sync_data(BL::RenderSettings& b_render,
 	   scene->need_motion() == Scene::MOTION_NONE ||
 	   scene->camera->motion_position == Camera::MOTION_POSITION_CENTER)
 	{
-		sync_objects(b_v3d);
+		sync_objects();
 	}
 	sync_motion(b_render,
-	            b_v3d,
 	            b_override,
 	            width, height,
 	            python_thread_state);
