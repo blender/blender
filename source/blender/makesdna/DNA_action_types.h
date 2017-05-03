@@ -265,7 +265,7 @@ typedef struct bPoseChannel {
 	float disp_wire_color[4];
 
 	void        *temp;              /* use for outliner */
-	void *bbone_matrices;           /* Used to cache each bbone's segment matrix. */
+	void *draw_data;                /* Used to cache each bbone's segment matrix. */
 } bPoseChannel;
 
 

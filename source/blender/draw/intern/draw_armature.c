@@ -771,10 +771,10 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 	/* Note that we need this even for one-segment bones, because box drawing need specific weirdo matrix for the box,
 	 * that we cannot use to draw end points & co. */
 	if (pchan) {
-		Mat4 *bbones_mat = pchan->bbone_matrices;
+		Mat4 *bbones_mat = pchan->draw_data;
 		if (bbones_mat == NULL) {
 			/* We just allocate max allowed segcount, we can always refine this later if really needed. */
-			bbones_mat = pchan->bbone_matrices = MEM_mallocN(sizeof(*bbones_mat) * MAX_BBONE_SUBDIV, __func__);
+			bbones_mat = pchan->draw_data = MEM_mallocN(sizeof(*bbones_mat) * MAX_BBONE_SUBDIV, __func__);
 		}
 
 		if (bbone_segments > 1) {
@@ -957,7 +957,7 @@ static void draw_bone_wire(
 	}
 
 	if (pchan) {
-		Mat4 *bbones_mat = pchan->bbone_matrices;
+		Mat4 *bbones_mat = pchan->draw_data;
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
@@ -992,7 +992,7 @@ static void draw_bone_box(
 	}
 
 	if (pchan) {
-		Mat4 *bbones_mat = pchan->bbone_matrices;
+		Mat4 *bbones_mat = pchan->draw_data;
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
