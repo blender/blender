@@ -118,4 +118,8 @@ void DRW_shgroup_armature_edit(
     struct Object *ob, struct DRWPass *pass_bone_solid,
     struct DRWPass *pass_bone_wire, struct DRWShadingGroup *shgrp_relationship_lines);
 
+/* pose_mode.c */
+bool DRW_pose_mode_armature(
+    struct Object *ob, struct Object *active_ob);
+
 #endif /* __DRAW_COMMON__ */

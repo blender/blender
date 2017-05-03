@@ -1249,15 +1249,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		{
 			bArmature *arm = ob->data;
 			if (arm->edbo == NULL) {
-				if ((ob->mode & OB_MODE_POSE) && (ob == OBACT_NEW)) {
-					DRW_shgroup_armature_pose(
-					        ob, psl->bone_solid, psl->bone_wire,
-					        stl->g_data->relationship_lines);
-				}
-				else {
+				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, OBACT_NEW)) {
 					DRW_shgroup_armature_object(
-					        ob, sl, psl->bone_solid, psl->bone_wire,
-					        stl->g_data->relationship_lines);
+							ob, sl, psl->bone_solid, psl->bone_wire,
+							stl->g_data->relationship_lines);
 				}
 			}
 			break;

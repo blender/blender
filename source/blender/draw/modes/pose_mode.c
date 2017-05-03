@@ -33,6 +33,8 @@
 
 #include "draw_mode_engines.h"
 
+extern GlobalsUboStorage ts;
+
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.
  * They are all free when viewport changes engines
@@ -41,93 +43,30 @@
  * for POSE_PassList */
 
 typedef struct POSE_PassList {
-	/* Declare all passes here and init them in
-	 * POSE_cache_init().
-	 * Only contains (DRWPass *) */
-	struct DRWPass *pass;
+	struct DRWPass *bone_solid;
+	struct DRWPass *bone_wire;
+	struct DRWPass *relationship;
 } POSE_PassList;
 
-typedef struct POSE_FramebufferList {
-	/* Contains all framebuffer objects needed by this engine.
-	 * Only contains (GPUFrameBuffer *) */
-	struct GPUFrameBuffer *fb;
-} POSE_FramebufferList;
-
-typedef struct POSE_TextureList {
-	/* Contains all framebuffer textures / utility textures
-	 * needed by this engine. Only viewport specific textures
-	 * (not per object). Only contains (GPUTexture *) */
-	struct GPUTexture *texture;
-} POSE_TextureList;
-
 typedef struct POSE_StorageList {
-	/* Contains any other memory block that the engine needs.
-	 * Only directly MEM_(m/c)allocN'ed blocks because they are
-	 * free with MEM_freeN() when viewport is freed.
-	 * (not per object) */
-	struct CustomStruct *block;
 	struct POSE_PrivateData *g_data;
 } POSE_StorageList;
 
 typedef struct POSE_Data {
-	/* Struct returned by DRW_viewport_engine_data_get.
-	 * If you don't use one of these, just make it a (void *) */
-	// void *fbl;
-	void *engine_type; /* Required */
-	POSE_FramebufferList *fbl;
-	POSE_TextureList *txl;
+	void *engine_type;
+	DRWViewportEmptyList *fbl;
+	DRWViewportEmptyList *txl;
 	POSE_PassList *psl;
 	POSE_StorageList *stl;
 } POSE_Data;
 
 /* *********** STATIC *********** */
 
-static struct {
-	/* Custom shaders :
-	 * Add sources to source/blender/draw/modes/shaders
-	 * init in POSE_engine_init();
-	 * free in POSE_engine_free(); */
-	struct GPUShader *custom_shader;
-} e_data = {NULL}; /* Engine data */
-
 typedef struct POSE_PrivateData {
-	/* This keeps the references of the shading groups for
-	 * easy access in POSE_cache_populate() */
-	DRWShadingGroup *group;
+	DRWShadingGroup *relationship_lines;
 } POSE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
-
-/* Init Textures, Framebuffers, Storage and Shaders.
- * It is called for every frames.
- * (Optional) */
-static void POSE_engine_init(void *vedata)
-{
-	POSE_TextureList *txl = ((POSE_Data *)vedata)->txl;
-	POSE_FramebufferList *fbl = ((POSE_Data *)vedata)->fbl;
-	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
-
-	UNUSED_VARS(txl, fbl, stl);
-
-	/* Init Framebuffers like this: order is attachment order (for color texs) */
-	/*
-	 * DRWFboTexture tex[2] = {{&txl->depth, DRW_BUF_DEPTH_24, 0},
-	 *                         {&txl->color, DRW_BUF_RGBA_8, DRW_TEX_FILTER}};
-	 */
-
-	/* DRW_framebuffer_init takes care of checking if
-	 * the framebuffer is valid and has the right size*/
-	/*
-	 * float *viewport_size = DRW_viewport_size_get();
-	 * DRW_framebuffer_init(&fbl->occlude_wire_fb,
-	 *                     (int)viewport_size[0], (int)viewport_size[1],
-	 *                     tex, 2);
-	 */
-
-	if (!e_data.custom_shader) {
-		e_data.custom_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
-	}
-}
 
 /* Here init all passes and shading groups
  * Assume that all Passes are NULL */
@@ -142,24 +81,26 @@ static void POSE_cache_init(void *vedata)
 	}
 
 	{
-		/* Create a pass */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND | DRW_STATE_WIRE;
-		psl->pass = DRW_pass_create("My Pass", state);
-
-		/* Create a shadingGroup using a function in draw_common.c or custom one */
-		/*
-		 * stl->g_data->group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
-		 * -- or --
-		 * stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
-		 */
-		stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
-
-		/* Uniforms need a pointer to it's value so be sure it's accessible at
-		 * any given time (i.e. use static vars) */
-		static float color[4] = {0.2f, 0.5f, 0.3f, 1.0};
-		DRW_shgroup_uniform_vec4(stl->g_data->group, "color", color, 1);
+		/* Solid bones */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->bone_solid = DRW_pass_create("Bone Solid Pass", state);
 	}
 
+	{
+		/* Wire bones */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		psl->bone_wire = DRW_pass_create("Bone Wire Pass", state);
+	}
+
+	{
+		/* Non Meshes Pass (Camera, empties, lamps ...) */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND | DRW_STATE_WIRE;
+		psl->relationship = DRW_pass_create("Bone Relationship Pass", state);
+
+		/* Relationship Lines */
+		stl->g_data->relationship_lines = shgroup_dynlines_uniform_color(psl->relationship, ts.colorWire);
+		DRW_shgroup_state_enable(stl->g_data->relationship_lines, DRW_STATE_STIPPLE_3);
+	}
 }
 
 /* Add geometry to shadingGroups. Execute for each objects */
@@ -167,70 +108,49 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 {
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
 	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
-
-	UNUSED_VARS(psl, stl);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	SceneLayer *sl = draw_ctx->sl;
 
 	/* In the future this will allow us to implement face manipulators,
-	 * and similar functionalities. For now however, this is getting
-	 * on the way of using pose mode, so disabling it. */
-#if 0
-	if (ob->type == OB_MESH) {
-		/* Get geometry cache */
-		struct Batch *geom = DRW_cache_mesh_surface_get(ob);
+	 * and similar functionalities. For now we handle only pose bones. */
 
-		/* Add geom to a shading group */
-		DRW_shgroup_call_add(stl->g_data->group, geom, ob->obmat);
+	if (ob->type == OB_ARMATURE) {
+		if (DRW_pose_mode_armature(ob, OBACT_NEW)) {
+			DRW_shgroup_armature_pose(
+						ob, psl->bone_solid, psl->bone_wire,
+						stl->g_data->relationship_lines);
+		}
 	}
-#else
-	UNUSED_VARS(ob);
-#endif
 }
 
-/* Optional: Post-cache_populate callback */
-static void POSE_cache_finish(void *vedata)
+/**
+ * Return true if armature should be handled by the pose mode engine.
+ */
+bool DRW_pose_mode_armature(Object *ob, Object *active_ob)
 {
-	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
-	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
+	/* Pode armature is handled by pose mode engine. */
+	if ((ob == active_ob) && ((ob->mode & OB_MODE_POSE) != 0)) {
+		return true;
+	}
 
-	/* Do something here! dependant on the objects gathered */
-	UNUSED_VARS(psl, stl);
+	/* Armature parent is also handled by pose mode engine. */
+	if ((active_ob != NULL) && ((active_ob->mode & OB_MODE_WEIGHT_PAINT) != 0)) {
+		if (active_ob->parent == ob) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /* Draw time ! Control rendering pipeline from here */
 static void POSE_draw_scene(void *vedata)
 {
-
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
-	POSE_FramebufferList *fbl = ((POSE_Data *)vedata)->fbl;
 
-	/* Default framebuffer and texture */
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-
-	UNUSED_VARS(fbl, dfbl, dtxl);
-
-	/* Show / hide entire passes, swap framebuffers ... whatever you fancy */
-	/*
-	 * DRW_framebuffer_texture_detach(dtxl->depth);
-	 * DRW_framebuffer_bind(fbl->custom_fb);
-	 * DRW_draw_pass(psl->pass);
-	 * DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
-	 * DRW_framebuffer_bind(dfbl->default_fb);
-	 */
-
-	/* ... or just render passes on default framebuffer. */
-	DRW_draw_pass(psl->pass);
-
-	/* If you changed framebuffer, double check you rebind
-	 * the default one with its textures attached before finishing */
-}
-
-/* Cleanup when destroying the engine.
- * This is not per viewport ! only when quitting blender.
- * Mostly used for freeing shaders */
-static void POSE_engine_free(void)
-{
-	// DRW_SHADER_FREE_SAFE(custom_shader);
+	DRW_draw_pass(psl->bone_wire);
+	DRW_draw_pass(psl->bone_solid);
+	DRW_draw_pass(psl->relationship);
 }
 
 /* Create collection settings here.
@@ -248,9 +168,7 @@ static void POSE_engine_free(void)
 void POSE_collection_settings_create(CollectionEngineSettings *ces)
 {
 	BLI_assert(ces);
-	// BKE_collection_engine_property_add_int(ces, "my_bool_prop", false);
-	// BKE_collection_engine_property_add_int(ces, "my_int_prop", 0);
-	// BKE_collection_engine_property_add_float(ces, "my_float_prop", 0.0f);
+	// BKE_collection_engine_property_add_int(ces, "foo", 37);
 }
 #endif
 
@@ -260,11 +178,11 @@ DrawEngineType draw_engine_pose_type = {
 	NULL, NULL,
 	N_("PoseMode"),
 	&POSE_data_size,
-	&POSE_engine_init,
-	&POSE_engine_free,
+	NULL,
+	NULL,
 	&POSE_cache_init,
 	&POSE_cache_populate,
-	&POSE_cache_finish,
-	NULL, /* draw_background but not needed by mode engines */
+	NULL,
+	NULL,
 	&POSE_draw_scene
 };
