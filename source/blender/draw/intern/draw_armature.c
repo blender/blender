@@ -212,6 +212,9 @@ static void UNUSED_FUNCTION(DRW_shgroup_bone_relationship_lines)(const float hea
 /* -------------------------------------------------------------------- */
 
 /** \name Drawing Theme Helpers
+ *
+ * Note, this section is duplicate of code in 'drawarmature.c'.
+ *
  * \{ */
 
 /* global here is reset before drawing each bone */
@@ -512,7 +515,9 @@ static void update_color(const float const_color[4])
 #undef NO_ALPHA
 }
 
-static const float *get_bone_solid_color(const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm)
+static const float *get_bone_solid_color(
+        const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm,
+        const int boneflag, const short constflag)
 {
 	if (g_theme.const_color)
 		return g_theme.bone_solid_color;
@@ -545,12 +550,18 @@ static const float *get_bone_solid_color(const EditBone *eBone, const bPoseChann
 	UNUSED_VARS(eBone, pchan, arm);
 #endif
 
+	if (arm->flag & ARM_POSEMODE) {
+		float *disp_color = (float *)pchan->disp_solid_color;
+		set_pchan_color(PCHAN_COLOR_SOLID, boneflag, constflag, disp_color);
+		disp_color[3] = 1.0;
+		return disp_color;
+	}
+
 	return g_theme.bone_solid_color;
 }
 
 static const float *get_bone_wire_color(
-        const EditBone *eBone, const bPoseChannel *pchan,
-        const bArmature *arm,
+        const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm,
         const int boneflag, const short constflag)
 {
 	if (g_theme.const_color)
@@ -575,9 +586,10 @@ static const float *get_bone_wire_color(
 		}
 	}
 	else if (arm->flag & ARM_POSEMODE) {
-		set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag, (float *)pchan->disp_color);
-		((float *)pchan->disp_color)[3] = 1.0;
-		return pchan->disp_color;
+		float *disp_color = (float *)pchan->disp_wire_color;
+		set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag, disp_color);
+		disp_color[3] = 1.0;
+		return disp_color;
 
 
 #if 0
@@ -845,7 +857,7 @@ static void draw_points(
 		}
 	}
 	else if (arm->flag & ARM_POSEMODE) {
-		col_solid_root = col_solid_tail = get_bone_solid_color(eBone, pchan, arm);
+		col_solid_root = col_solid_tail = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 		col_wire_root = col_wire_tail = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
 	}
 
@@ -895,7 +907,7 @@ static void draw_bone_custom_shape(
         const int boneflag, const short constflag,
         const int select_id)
 {
-	const float *col_solid = get_bone_solid_color(eBone, pchan, arm);
+	const float *col_solid = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
 	const float (*disp_mat)[4] = pchan->custom_tx ? pchan->custom_tx->disp_mat : pchan->disp_mat;
 
@@ -972,7 +984,7 @@ static void draw_bone_box(
         const int boneflag, const short constflag,
         const int select_id)
 {
-	const float *col_solid = get_bone_solid_color(eBone, pchan, arm);
+	const float *col_solid = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
 
 	if (select_id != -1) {
@@ -1016,7 +1028,7 @@ static void draw_bone_octahedral(
         const int boneflag, const short constflag,
         const int select_id)
 {
-	const float *col_solid = get_bone_solid_color(eBone, pchan, arm);
+	const float *col_solid = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
 
 	if (select_id != -1) {

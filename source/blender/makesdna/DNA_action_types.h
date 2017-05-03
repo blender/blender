@@ -261,7 +261,8 @@ typedef struct bPoseChannel {
 	struct bPoseChannel *bbone_prev; /* next/prev bones to use as handle references when calculating bbones (optional) */
 	struct bPoseChannel *bbone_next;
 
-	float disp_color[4];            /* for display only */
+	float disp_solid_color[4];      /* for display only */
+	float disp_wire_color[4];
 
 	void        *temp;              /* use for outliner */
 	void *bbone_matrices;           /* Used to cache each bbone's segment matrix. */
