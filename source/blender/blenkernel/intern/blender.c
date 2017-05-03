@@ -54,6 +54,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
@@ -97,6 +98,8 @@ void BKE_blender_free(void)
 
 	BKE_sequencer_cache_destruct();
 	IMB_moviecache_destruct();
+
+	BKE_layer_exit();
 	
 	free_nodesystem();
 }

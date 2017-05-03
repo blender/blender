@@ -6297,6 +6297,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	sce->collection_properties = newdataadr(fd, sce->collection_properties);
 	IDP_DirectLinkGroup_OrFree(&sce->collection_properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+	BKE_layer_collection_engine_settings_validate(sce);
 }
 
 /* ************ READ WM ***************** */

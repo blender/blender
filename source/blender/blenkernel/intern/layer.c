@@ -1253,6 +1253,55 @@ void BKE_layer_collection_engine_settings_create(IDProperty *root)
 	collection_engine_settings_init(root, true);
 }
 
+/**
+ * Reference of IDProperty group scene collection settings
+ * Used when reading blendfiles, to see if there is any missing settings.
+ */
+static IDProperty *root_reference = NULL;
+
+/**
+ * Free the reference scene collection settings IDProperty group.
+ */
+static void layer_collection_engine_settings_validate_init(void)
+{
+	if (root_reference == NULL) {
+		IDPropertyTemplate val = {0};
+		root_reference = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		BKE_layer_collection_engine_settings_create(root_reference);
+	}
+}
+
+/**
+ * Free the reference scene collection settings IDProperty group.
+ */
+static void layer_collection_engine_settings_validate_free(void)
+{
+	if (root_reference != NULL) {
+		IDP_FreeProperty(root_reference);
+		MEM_freeN(root_reference);
+		root_reference = NULL;
+	}
+}
+
+/**
+ * Make sure Scene has all required collection settings.
+ */
+void BKE_layer_collection_engine_settings_validate(Scene *scene)
+{
+	if (root_reference == NULL) {
+		layer_collection_engine_settings_validate_init();
+	}
+
+	if (scene->collection_properties == NULL) {
+		IDPropertyTemplate val = {0};
+		scene->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		BKE_layer_collection_engine_settings_create(scene->collection_properties);
+	}
+	else {
+		IDP_MergeGroup(scene->collection_properties, root_reference, false);
+	}
+}
+
 /* ---------------------------------------------------------------------- */
 /* Iterators */
 
@@ -1463,4 +1512,12 @@ void BKE_layer_eval_layer_collection_post(struct EvaluationContext *UNUSED(eval_
 			base->flag &= ~BASE_SELECTED;
 		}
 	}
+}
+
+/**
+ * Free any static allocated memory.
+ */
+void BKE_layer_exit()
+{
+	layer_collection_engine_settings_validate_free();
 }

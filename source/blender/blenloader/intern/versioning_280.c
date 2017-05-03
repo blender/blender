@@ -212,14 +212,6 @@ void do_versions_after_linking_280(Main *main)
 			}
 		}
 	}
-
-	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
-		IDPropertyTemplate val = {0};
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-			scene->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-			BKE_layer_collection_engine_settings_create(scene->collection_properties);
-		}
-	}
 }
 
 static void do_version_layer_collections_idproperties(ListBase *lb)
