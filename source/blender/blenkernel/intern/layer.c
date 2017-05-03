@@ -793,6 +793,10 @@ static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Obj
 		base->flag |= BASE_SELECTABLED;
 	}
 
+	if (ob->base_flag) {
+		base->flag |= BASE_SELECTED;
+	}
+
 	BLI_addtail(&lc->object_bases, BLI_genericNodeN(base));
 }
 
