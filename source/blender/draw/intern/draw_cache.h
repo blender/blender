@@ -94,11 +94,14 @@ void DRW_cache_mesh_wire_overlay_get(
 struct Batch *DRW_cache_face_centers_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_wire_outline_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_surface_get(struct Object *ob);
+struct Batch *DRW_cache_mesh_surface_weights_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_surface_verts_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_edges_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_verts_get(struct Object *ob);
+struct Batch *DRW_cache_mesh_edges_weight_overlay_get(struct Object *ob, bool use_wire, bool use_sel);
+struct Batch *DRW_cache_mesh_faces_weight_overlay_get(struct Object *ob);
+struct Batch *DRW_cache_mesh_verts_weight_overlay_get(struct Object *ob);
 struct Batch **DRW_cache_mesh_surface_shaded_get(struct Object *ob);
-
 
 /* Curve */
 struct Batch *DRW_cache_curve_surface_get(struct Object *ob);

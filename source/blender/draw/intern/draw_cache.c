@@ -1769,6 +1769,14 @@ Batch *DRW_cache_mesh_surface_get(Object *ob)
 	return DRW_mesh_batch_cache_get_triangles_with_normals(me);
 }
 
+Batch *DRW_cache_mesh_surface_weights_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(me, ob->actdef - 1);
+}
+
 /* Return list of batches */
 Batch **DRW_cache_mesh_surface_shaded_get(Object *ob)
 {
@@ -1800,6 +1808,30 @@ Batch *DRW_cache_mesh_verts_get(Object *ob)
 
 	Mesh *me = ob->data;
 	return DRW_mesh_batch_cache_get_all_verts(me);
+}
+
+Batch *DRW_cache_mesh_edges_weight_overlay_get(Object *ob, bool use_wire, bool use_sel)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_weight_overlay_edges(me, use_wire, use_sel);
+}
+
+Batch *DRW_cache_mesh_faces_weight_overlay_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_weight_overlay_faces(me);
+}
+
+Batch *DRW_cache_mesh_verts_weight_overlay_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_weight_overlay_verts(me);
 }
 
 /** \} */

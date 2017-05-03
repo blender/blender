@@ -441,6 +441,7 @@ EnumPropertyItem rna_enum_gpencil_interpolation_mode_items[] = {
 EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 	{COLLECTION_MODE_OBJECT, "OBJECT", 0, "Object", ""},
 	{COLLECTION_MODE_EDIT, "EDIT", 0, "Edit", ""},
+	{COLLECTION_MODE_PAINT_WEIGHT, "PAINT_WIGHT", 0, "Weight Paint", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1949,7 +1950,11 @@ static StructRNA *rna_LayerCollectionSettings_refine(PointerRNA *ptr)
 		case IDP_GROUP_SUB_MODE_EDIT:
 			return &RNA_LayerCollectionModeSettingsEdit;
 			break;
+		case IDP_GROUP_SUB_MODE_PAINT_WEIGHT:
+			return &RNA_LayerCollectionModeSettingsPaintWeight;
+			break;
 		default:
+			BLI_assert(!"Mode not fully implemented");
 			break;
 	}
 
@@ -2488,6 +2493,9 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 #define RNA_LAYER_MODE_EDIT_GET_SET_BOOL(_NAME_) \
 	RNA_LAYER_ENGINE_GET_SET(bool, EditMode, COLLECTION_MODE_EDIT, _NAME_)
 
+#define RNA_LAYER_MODE_PAINT_WEIGHT_GET_SET_BOOL(_NAME_) \
+	RNA_LAYER_ENGINE_GET_SET(bool, PaintWeightMode, COLLECTION_MODE_PAINT_WEIGHT, _NAME_)
+
 /* clay engine */
 #ifdef WITH_CLAY_ENGINE
 RNA_LAYER_ENGINE_CLAY_GET_SET_INT(matcap_icon)
@@ -2513,11 +2521,24 @@ RNA_LAYER_MODE_EDIT_GET_SET_BOOL(loop_normals_show)
 RNA_LAYER_MODE_EDIT_GET_SET_FLOAT(normals_length)
 RNA_LAYER_MODE_EDIT_GET_SET_FLOAT(backwire_opacity)
 
+/* weight paint engine */
+RNA_LAYER_MODE_PAINT_WEIGHT_GET_SET_BOOL(use_shading)
+RNA_LAYER_MODE_PAINT_WEIGHT_GET_SET_BOOL(use_wire)
+
 #undef RNA_LAYER_ENGINE_GET_SET
 
 static void rna_LayerCollectionEngineSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	Scene *scene = CTX_data_scene(C);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DAG_id_tag_update(&scene->id, 0);
+}
+
+static void rna_LayerCollectionEngineSettings_weight_wire_update(bContext *C, PointerRNA *UNUSED(ptr))
+{
+	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	BKE_mesh_batch_cache_dirty(sl->basact->object->data, BKE_MESH_BATCH_DIRTY_WEIGHT);
 	/* TODO(sergey): Use proper flag for tagging here. */
 	DAG_id_tag_update(&scene->id, 0);
 }
@@ -6154,6 +6175,32 @@ static void rna_def_layer_collection_mode_settings_edit(BlenderRNA *brna)
 	RNA_define_verify_sdna(1); /* not in sdna */
 }
 
+static void rna_def_layer_collection_mode_settings_paint_weight(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "LayerCollectionModeSettingsPaintWeight", "LayerCollectionSettings");
+	RNA_def_struct_ui_text(srna, "Collections Weight Paint Mode Settings", "Weight Paint Mode specific settings to be overridden per collection");
+	RNA_define_verify_sdna(0); /* not in sdna */
+
+	/* see RNA_LAYER_ENGINE_GET_SET macro */
+
+	prop = RNA_def_property(srna, "use_shading", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Use Shading", "Whether to use shaded or shadeless drawing");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_PaintWeightMode_use_shading_get", "rna_LayerEngineSettings_PaintWeightMode_use_shading_set");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+
+	prop = RNA_def_property(srna, "use_wire", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Wire", "Whether to overlay wireframe onto the mesh");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_PaintWeightMode_use_wire_get", "rna_LayerEngineSettings_PaintWeightMode_use_wire_set");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_weight_wire_update");
+
+	RNA_define_verify_sdna(1); /* not in sdna */
+}
+
 static void rna_def_layer_collection_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -6193,6 +6240,7 @@ static void rna_def_layer_collection_settings(BlenderRNA *brna)
 
 	rna_def_layer_collection_mode_settings_object(brna);
 	rna_def_layer_collection_mode_settings_edit(brna);
+	rna_def_layer_collection_mode_settings_paint_weight(brna);
 
 	RNA_define_verify_sdna(1);
 }

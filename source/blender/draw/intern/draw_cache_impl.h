@@ -68,9 +68,13 @@ struct Batch *DRW_lattice_batch_cache_get_overlay_verts(struct Lattice *lt);
 /* Mesh */
 
 struct Batch **DRW_mesh_batch_cache_get_surface_shaded(struct Mesh *me);
+struct Batch *DRW_mesh_batch_cache_get_weight_overlay_edges(struct Mesh *me, bool use_wire, bool use_sel);
+struct Batch *DRW_mesh_batch_cache_get_weight_overlay_faces(struct Mesh *me);
+struct Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_all_triangles(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);
+struct Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me, int index);
 struct Batch *DRW_mesh_batch_cache_get_points_with_normals(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_all_verts(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_fancy_edges(struct Mesh *me);

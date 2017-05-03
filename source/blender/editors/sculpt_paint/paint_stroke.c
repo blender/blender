@@ -51,6 +51,7 @@
 #include "BKE_curve.h"
 #include "BKE_colortools.h"
 #include "BKE_image.h"
+#include "BKE_mesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

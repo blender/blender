@@ -51,6 +51,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_object_deform.h"  /* own include */
 #include "BKE_object.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
 /** \name Misc helpers
@@ -405,6 +406,8 @@ void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 		object_defgroup_remove_edit_mode(ob, defgroup);
 	else
 		object_defgroup_remove_object_mode(ob, defgroup);
+
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_WEIGHT);
 }
 
 /**

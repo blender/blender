@@ -1088,6 +1088,22 @@ static void layer_collection_create_mode_settings_edit(IDProperty *root, const b
 	IDP_AddToGroup(root, props);
 }
 
+static void layer_collection_create_mode_settings_paint_weight(IDProperty *root, const bool populate)
+{
+	IDProperty *props;
+	IDPropertyTemplate val = {0};
+
+	props = IDP_New(IDP_GROUP, &val, "WeightPaintMode");
+	props->subtype = IDP_GROUP_SUB_MODE_PAINT_WEIGHT;
+
+	/* properties */
+	if (populate) {
+		PAINT_WEIGHT_collection_settings_create(props);
+	}
+
+	IDP_AddToGroup(root, props);
+}
+
 static void collection_create_render_settings(IDProperty *root, const bool populate)
 {
 	CollectionEngineSettingsCB_Type *ces_type;
@@ -1103,6 +1119,7 @@ static void collection_create_mode_settings(IDProperty *root, const bool populat
 	 * and have IDP_AddToGroup outside the callbacks */
 	layer_collection_create_mode_settings_object(root, populate);
 	layer_collection_create_mode_settings_edit(root, populate);
+	layer_collection_create_mode_settings_paint_weight(root, populate);
 }
 
 static int idproperty_group_subtype(const int mode_type)
@@ -1115,6 +1132,9 @@ static int idproperty_group_subtype(const int mode_type)
 			break;
 		case COLLECTION_MODE_EDIT:
 			idgroup_type = IDP_GROUP_SUB_MODE_EDIT;
+			break;
+		case COLLECTION_MODE_PAINT_WEIGHT:
+			idgroup_type = IDP_GROUP_SUB_MODE_PAINT_WEIGHT;
 			break;
 		default:
 		case COLLECTION_MODE_NONE:

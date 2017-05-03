@@ -98,11 +98,12 @@ enum {
 
 /* IDP_GROUP */
 enum {
-	IDP_GROUP_SUB_NONE          = 0,  /* default */
-	IDP_GROUP_SUB_MODE_OBJECT   = 1,  /* object mode settings */
-	IDP_GROUP_SUB_MODE_EDIT     = 2,  /* mesh edit mode settings */
-	IDP_GROUP_SUB_ENGINE_RENDER = 3,  /* render engine settings */
-	IDP_GROUP_SUB_OVERRIDE      = 4,  /* data override */
+	IDP_GROUP_SUB_NONE              = 0,  /* default */
+	IDP_GROUP_SUB_MODE_OBJECT       = 1,  /* object mode settings */
+	IDP_GROUP_SUB_MODE_EDIT         = 2,  /* mesh edit mode settings */
+	IDP_GROUP_SUB_ENGINE_RENDER     = 3,  /* render engine settings */
+	IDP_GROUP_SUB_OVERRIDE          = 4,  /* data override */
+	IDP_GROUP_SUB_MODE_PAINT_WEIGHT = 5,  /* weight paint mode settings */
 };
 
 /*->flag*/

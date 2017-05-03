@@ -54,6 +54,7 @@
 #include "BKE_customdata.h"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"  /* own include */
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object_deform.h"
 
@@ -72,6 +73,8 @@ bDeformGroup *BKE_defgroup_new(Object *ob, const char *name)
 
 	BLI_addtail(&ob->defbase, defgroup);
 	defgroup_unique_name(defgroup, ob);
+
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_WEIGHT);
 
 	return defgroup;
 }
