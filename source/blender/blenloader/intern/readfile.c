@@ -2107,8 +2107,19 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
 				BLI_endian_switch_int32(&prop->data.val2);
 				BLI_endian_switch_int64((int64_t *)&prop->data.val);
 			}
-			
 			break;
+		case IDP_INT:
+		case IDP_FLOAT:
+		case IDP_ID:
+			break;  /* Nothing special to do here. */
+		default:
+			/* Unknown IDP type, nuke it (we cannot handle unknown types everywhere in code,
+			 * IDP are way too polymorphic to do it safely. */
+			printf("%s: found unknown IDProperty type %d, reset to Integer one !\n", __func__, prop->type);
+			/* Note: we do not attempt to free unknown prop, we have no way to know how to do that! */
+			prop->type = IDP_INT;
+			prop->subtype = 0;
+			IDP_Int(prop) = 0;
 	}
 }
 
