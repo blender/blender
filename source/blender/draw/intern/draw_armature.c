@@ -1252,7 +1252,7 @@ static void DRW_shgroup_armature(
 	g_data.bone_wire = pass_bone_wire;
 	g_data.relationship_lines = shgrp_relationship_lines;
 
-	memset(&g_color, 0x0, sizeof(g_data));
+	memset(&g_color, 0x0, sizeof(g_color));
 }
 
 void DRW_shgroup_armature_object(
