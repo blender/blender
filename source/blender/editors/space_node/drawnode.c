@@ -3608,7 +3608,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 			return;
 		if (link->fromsock->flag & SOCK_UNAVAIL)
 			return;
-		if ((link->fromsock->flag & SOCK_VIRTUAL) || (link->fromsock->flag & SOCK_VIRTUAL))
+		if ((link->fromsock->flag & SOCK_VIRTUAL) || (link->tosock->flag & SOCK_VIRTUAL))
 			do_dashed = true;
 
 		if (link->flag & NODE_LINK_VALID) {

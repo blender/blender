@@ -193,7 +193,7 @@ void node_cmp_rlayers_register_pass(bNodeTree *ntree, bNode *node, Scene *scene,
 {
 	RLayerUpdateData *data = node->storage;
 
-	if (scene == NULL || srl == NULL || data == NULL || node->id != scene) {
+	if (scene == NULL || srl == NULL || data == NULL || node->id != (ID *)scene) {
 		return;
 	}
 
