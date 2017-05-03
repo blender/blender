@@ -2467,14 +2467,14 @@ static void view3d_stereo3d_setup_offscreen(
 		const bool is_left = STREQ(viewname, STEREO_LEFT_NAME);
 
 		BKE_camera_multiview_view_matrix(&scene->r, v3d->camera, is_left, viewmat);
-		VP_legacy_view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
 	}
 	else { /* SCE_VIEWS_FORMAT_MULTIVIEW */
 		float viewmat[4][4];
 		Object *camera = BKE_camera_multiview_render(scene, v3d->camera, viewname);
 
 		BKE_camera_multiview_view_matrix(&scene->r, camera, false, viewmat);
-		VP_legacy_view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
 	}
 }
 
@@ -2559,51 +2559,52 @@ void ED_view3d_draw_offscreen(
 	if ((viewname != NULL && viewname[0] != '\0') && (viewmat == NULL) && rv3d->persp == RV3D_CAMOB && v3d->camera)
 		view3d_stereo3d_setup_offscreen(scene, v3d, ar, winmat, viewname);
 	else
-		VP_legacy_view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
-
-	/* framebuffer fx needed, we need to draw offscreen first */
-	if (v3d->fx_settings.fx_flag && fx) {
-		GPUSSAOSettings *ssao = NULL;
-
-		if (v3d->drawtype < OB_SOLID) {
-			ssao = v3d->fx_settings.ssao;
-			v3d->fx_settings.ssao = NULL;
-		}
-
-		do_compositing = GPU_fx_compositor_initialize_passes(fx, &ar->winrct, NULL, fx_settings);
-
-		if (ssao)
-			v3d->fx_settings.ssao = ssao;
-	}
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
 
 	/* main drawing call */
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_LEGACY_PIPELINE) != 0)) {
+
+		/* framebuffer fx needed, we need to draw offscreen first */
+		if (v3d->fx_settings.fx_flag && fx) {
+			GPUSSAOSettings *ssao = NULL;
+
+			if (v3d->drawtype < OB_SOLID) {
+				ssao = v3d->fx_settings.ssao;
+				v3d->fx_settings.ssao = NULL;
+			}
+
+			do_compositing = GPU_fx_compositor_initialize_passes(fx, &ar->winrct, NULL, fx_settings);
+
+			if (ssao)
+				v3d->fx_settings.ssao = ssao;
+		}
+
 		VP_deprecated_view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, do_compositing ? fx : NULL);
+
+		/* post process */
+		if (do_compositing) {
+			if (!winmat)
+				is_persp = rv3d->is_persp;
+			GPU_fx_do_composite_pass(fx, winmat, is_persp, scene, ofs);
+		}
+
+		if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
+			/* draw grease-pencil stuff */
+			ED_region_pixelspace(ar);
+
+			if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+				/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+				ED_gpencil_draw_view3d(NULL, scene, v3d, ar, false);
+			}
+
+			/* freeing the images again here could be done after the operator runs, leaving for now */
+			GPU_free_images_anim();
+		}
 	}
 	else {
 		/* XXX, should take depsgraph as arg */
 		DRW_draw_render_loop_offscreen(scene->depsgraph, ar, v3d, ofs);
-	}
-
-	/* post process */
-	if (do_compositing) {
-		if (!winmat)
-			is_persp = rv3d->is_persp;
-		GPU_fx_do_composite_pass(fx, winmat, is_persp, scene, ofs);
-	}
-
-	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
-		/* draw grease-pencil stuff */
-		ED_region_pixelspace(ar);
-
-		if (v3d->flag2 & V3D_SHOW_GPENCIL) {
-			/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-			ED_gpencil_draw_view3d(NULL, scene, v3d, ar, false);
-		}
-
-		/* freeing the images again here could be done after the operator runs, leaving for now */
-		GPU_free_images_anim();
 	}
 
 	/* restore size */
