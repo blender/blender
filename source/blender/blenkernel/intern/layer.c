@@ -1391,7 +1391,7 @@ static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
 	*props = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 
 	if (props_ref) {
-		IDP_MergeGroupValues(*props, props_ref);
+		IDP_MergeGroup(*props, props_ref, true);
 	}
 }
 
@@ -1435,7 +1435,7 @@ void BKE_layer_eval_layer_collection(struct EvaluationContext *UNUSED(eval_ctx),
 		}
 		else {
 			idproperty_reset(&layer_collection->properties_evaluated, parent_layer_collection->properties_evaluated);
-			IDP_MergeGroupValues(layer_collection->properties_evaluated, layer_collection->properties);
+			IDP_MergeGroup(layer_collection->properties_evaluated, layer_collection->properties, true);
 		}
 	}
 
@@ -1443,7 +1443,7 @@ void BKE_layer_eval_layer_collection(struct EvaluationContext *UNUSED(eval_ctx),
 		Base *base = link->data;
 
 		if (is_visible) {
-			IDP_MergeGroupValues(base->collection_properties, layer_collection->properties_evaluated);
+			IDP_MergeGroup(base->collection_properties, layer_collection->properties_evaluated, true);
 			base->flag |= BASE_VISIBLED;
 		}
 
