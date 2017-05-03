@@ -193,6 +193,11 @@ void do_versions_after_linking_280(Main *main)
 						soutliner->outlinevis = SO_ACT_LAYER;
 
 						if (BLI_listbase_count_ex(&layer->layer_collections, 2) == 1) {
+							if (soutliner->treestore == NULL) {
+								soutliner->treestore = BLI_mempool_create(
+								        sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
+							}
+
 							/* Create a tree store element for the collection. This is normally
 							 * done in check_persistent (outliner_tree.c), but we need to access
 							 * it here :/ (expand element if it's the only one) */
