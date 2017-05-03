@@ -5064,6 +5064,8 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		
 		/* in case this value changes in future, clamp else we get undefined behavior */
 		CLAMP(pchan->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
+
+		pchan->bbone_matrices = NULL;
 	}
 	pose->ikdata = NULL;
 	if (pose->ikparam != NULL) {

@@ -79,6 +79,9 @@ struct Batch *DRW_cache_speaker_get(void);
 /* Bones */
 struct Batch *DRW_cache_bone_octahedral_get(void);
 struct Batch *DRW_cache_bone_octahedral_wire_outline_get(void);
+struct Batch *DRW_cache_bone_box_get(void);
+struct Batch *DRW_cache_bone_box_wire_outline_get(void);
+struct Batch *DRW_cache_bone_wire_wire_outline_get(void);
 struct Batch *DRW_cache_bone_point_get(void);
 struct Batch *DRW_cache_bone_point_wire_outline_get(void);
 struct Batch *DRW_cache_bone_arrows_get(void);

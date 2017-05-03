@@ -75,6 +75,9 @@ static struct {
 	/* Reset when changing current_armature */
 	DRWShadingGroup *bone_octahedral_solid;
 	DRWShadingGroup *bone_octahedral_wire;
+	DRWShadingGroup *bone_box_solid;
+	DRWShadingGroup *bone_box_wire;
+	DRWShadingGroup *bone_wire_wire;
 	DRWShadingGroup *bone_point_solid;
 	DRWShadingGroup *bone_point_wire;
 	DRWShadingGroup *bone_axes;
@@ -108,6 +111,38 @@ static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const f
 	}
 
 	DRW_shgroup_call_dynamic_add(g_data.bone_octahedral_wire, bone_mat, color);
+}
+
+/* Box / B-Bone */
+static void DRW_shgroup_bone_box_solid(const float (*bone_mat)[4], const float color[4])
+{
+	if (g_data.bone_box_solid == NULL) {
+		struct Batch *geom = DRW_cache_bone_box_get();
+		g_data.bone_box_solid = shgroup_instance_objspace_solid(g_data.bone_solid, geom, g_data.ob->obmat);
+	}
+
+	DRW_shgroup_call_dynamic_add(g_data.bone_box_solid, bone_mat, color);
+}
+
+static void DRW_shgroup_bone_box_wire(const float (*bone_mat)[4], const float color[4])
+{
+	if (g_data.bone_box_wire == NULL) {
+		struct Batch *geom = DRW_cache_bone_box_wire_outline_get();
+		g_data.bone_box_wire = shgroup_instance_objspace_wire(g_data.bone_wire, geom, g_data.ob->obmat);
+	}
+
+	DRW_shgroup_call_dynamic_add(g_data.bone_box_wire, bone_mat, color);
+}
+
+/* Wire */
+static void DRW_shgroup_bone_wire_wire(const float (*bone_mat)[4], const float color[4])
+{
+	if (g_data.bone_wire_wire == NULL) {
+		struct Batch *geom = DRW_cache_bone_wire_wire_outline_get();
+		g_data.bone_wire_wire = shgroup_instance_objspace_wire(g_data.bone_wire, geom, g_data.ob->obmat);
+	}
+
+	DRW_shgroup_call_dynamic_add(g_data.bone_wire_wire, bone_mat, color);
 }
 
 /* Custom (geometry) */
@@ -351,6 +386,153 @@ static void draw_bone_update_disp_matrix_default(EditBone *eBone, bPoseChannel *
 	translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
 }
 
+/* XXX Direct copy from drawarmature.c... This is ugly! */
+/* A partial copy of b_bone_spline_setup(), with just the parts for previewing editmode curve settings
+ *
+ * This assumes that prev/next bones don't have any impact (since they should all still be in the "straight"
+ * position here anyway), and that we can simply apply the bbone settings to get the desired effect...
+ */
+static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_SUBDIV][4][4])
+{
+	float h1[3], h2[3], length, hlength1, hlength2, roll1 = 0.0f, roll2 = 0.0f;
+	float mat3[3][3];
+	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
+	int a;
+
+	length = ebone->length;
+
+	hlength1 = ebone->ease1 * length * 0.390464f; /* 0.5f * sqrt(2) * kappa, the handle length for near-perfect circles */
+	hlength2 = ebone->ease2 * length * 0.390464f;
+
+	/* find the handle points, since this is inside bone space, the
+	 * first point = (0, 0, 0)
+	 * last point =  (0, length, 0)
+	 *
+	 * we also just apply all the "extra effects", since they're the whole reason we're doing this...
+	 */
+	h1[0] = ebone->curveInX;
+	h1[1] = hlength1;
+	h1[2] = ebone->curveInY;
+	roll1 = ebone->roll1;
+
+	h2[0] = ebone->curveOutX;
+	h2[1] = -hlength2;
+	h2[2] = ebone->curveOutY;
+	roll2 = ebone->roll2;
+
+	/* make curve */
+	if (ebone->segments > MAX_BBONE_SUBDIV)
+		ebone->segments = MAX_BBONE_SUBDIV;
+
+	BKE_curve_forward_diff_bezier(0.0f,  h1[0],                               h2[0],                               0.0f,   data[0],     MAX_BBONE_SUBDIV, 4 * sizeof(float));
+	BKE_curve_forward_diff_bezier(0.0f,  h1[1],                               length + h2[1],                      length, data[0] + 1, MAX_BBONE_SUBDIV, 4 * sizeof(float));
+	BKE_curve_forward_diff_bezier(0.0f,  h1[2],                               h2[2],                               0.0f,   data[0] + 2, MAX_BBONE_SUBDIV, 4 * sizeof(float));
+	BKE_curve_forward_diff_bezier(roll1, roll1 + 0.390464f * (roll2 - roll1), roll2 - 0.390464f * (roll2 - roll1), roll2,  data[0] + 3, MAX_BBONE_SUBDIV, 4 * sizeof(float));
+
+	equalize_bbone_bezier(data[0], ebone->segments); /* note: does stride 4! */
+
+	/* make transformation matrices for the segments for drawing */
+	for (a = 0, fp = data[0]; a < ebone->segments; a++, fp += 4) {
+		sub_v3_v3v3(h1, fp + 4, fp);
+		vec_roll_to_mat3(h1, fp[3], mat3); /* fp[3] is roll */
+
+		copy_m4_m3(result_array[a], mat3);
+		copy_v3_v3(result_array[a][3], fp);
+
+		/* "extra" scale facs... */
+		{
+			const int num_segments = ebone->segments;
+
+			const float scaleFactorIn  = 1.0f + (ebone->scaleIn  - 1.0f) * ((float)(num_segments - a) / (float)num_segments);
+			const float scaleFactorOut = 1.0f + (ebone->scaleOut - 1.0f) * ((float)(a + 1)            / (float)num_segments);
+
+			const float scalefac = scaleFactorIn * scaleFactorOut;
+			float bscalemat[4][4], bscale[3];
+
+			bscale[0] = scalefac;
+			bscale[1] = 1.0f;
+			bscale[2] = scalefac;
+
+			size_to_mat4(bscalemat, bscale);
+
+			/* Note: don't multiply by inverse scale mat here, as it causes problems with scaling shearing and breaking segment chains */
+			mul_m4_series(result_array[a], result_array[a], bscalemat);
+		}
+	}
+}
+
+static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pchan)
+{
+	float s[4][4], ebmat[4][4];
+	float length, xwidth, zwidth;
+	float (*bone_mat)[4];
+	float (*disp_mat)[4];
+	float (*disp_tail_mat)[4];
+	short bbone_segments;
+
+	/* TODO : This should be moved to depsgraph or armature refresh
+	 * and not be tight to the draw pass creation.
+	 * This would refresh armature without invalidating the draw cache */
+	if (pchan) {
+		length = pchan->bone->length;
+		xwidth = pchan->bone->xwidth;
+		zwidth = pchan->bone->zwidth;
+		bone_mat = pchan->pose_mat;
+		disp_mat = pchan->disp_mat;
+		disp_tail_mat = pchan->disp_tail_mat;
+		bbone_segments = pchan->bone->segments;
+	}
+	else {
+		eBone->length = len_v3v3(eBone->tail, eBone->head);
+		ED_armature_ebone_to_mat4(eBone, ebmat);
+
+		length = eBone->length;
+		xwidth = eBone->xwidth;
+		zwidth = eBone->zwidth;
+		bone_mat = ebmat;
+		disp_mat = eBone->disp_mat;
+		disp_tail_mat = eBone->disp_tail_mat;
+		bbone_segments = eBone->segments;
+	}
+
+	copy_m4_m4(disp_mat, bone_mat);
+	copy_m4_m4(disp_tail_mat, disp_mat);
+	translate_m4(disp_tail_mat, 0.0f, length, 0.0f);
+
+	size_to_mat4(s, (const float[3]){xwidth, length / bbone_segments, zwidth});
+
+	/* Compute BBones segment matrices... */
+	if (bbone_segments > 1) {
+		if (pchan) {
+			Mat4 *bbones_mat = pchan->bbone_matrices;
+			if (bbones_mat == NULL) {
+				/* We just allocate max allowed segcount, we can always refine this later if really needed. */
+				bbones_mat = pchan->bbone_matrices = MEM_mallocN(sizeof(*bbones_mat) * MAX_BBONE_SUBDIV, __func__);
+			}
+
+			b_bone_spline_setup(pchan, 0, bbones_mat);
+
+			for (int i = bbone_segments; i--; bbones_mat++) {
+				mul_m4_m4m4(bbones_mat->mat, bbones_mat->mat, s);
+				mul_m4_m4m4(bbones_mat->mat, disp_mat, bbones_mat->mat);
+			}
+		}
+		else {
+			float (*bbones_mat)[4][4] = eBone->disp_bbone_mat;
+
+			ebone_spline_preview(eBone, bbones_mat);
+
+			for (int i = bbone_segments; i--; bbones_mat++) {
+				mul_m4_m4m4(*bbones_mat, *bbones_mat, s);
+				mul_m4_m4m4(*bbones_mat, disp_mat, *bbones_mat);
+			}
+		}
+	}
+	else {
+		mul_m4_m4m4(disp_mat, disp_mat, s);
+	}
+}
+
 static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
 {
 	float s[4][4];
@@ -484,17 +666,85 @@ static void draw_bone_line(
 }
 
 static void draw_bone_wire(
-        EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm),
-        const int UNUSED(select_id))
+        EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
+        const int select_id)
 {
-	/* work in progress  -- fclem */
+	const float *col_wire = get_bone_wire_color(eBone, pchan, arm);
+
+	if (select_id != -1) {
+		DRW_select_load_id(select_id | BONESEL_BONE);
+	}
+
+	if (pchan && pchan->bone->segments > 1) {
+		Mat4 *bbones_mat = pchan->bbone_matrices;
+		BLI_assert(bbones_mat != NULL);
+
+		for (int i = pchan->bone->segments; i--; bbones_mat++) {
+			DRW_shgroup_bone_wire_wire(bbones_mat->mat, col_wire);
+		}
+	}
+	else if (eBone && eBone->segments > 1) {
+		for (int i = 0; i < eBone->segments; i++) {
+			DRW_shgroup_bone_wire_wire(eBone->disp_bbone_mat[i], col_wire);
+		}
+	}
+	else {
+		DRW_shgroup_bone_wire_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire);
+	}
+
+	if (select_id != -1) {
+		DRW_select_load_id(-1);
+	}
+
+	/* Grrr... We need to restore default display matrix to draw end points, axes, etc. :( */
+	draw_bone_update_disp_matrix_default(eBone, pchan);
+
+	if (eBone) {
+		draw_points(eBone, pchan, arm, select_id);
+	}
 }
 
 static void draw_bone_box(
-        EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm),
-        const int UNUSED(select_id))
+        EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
+        const int select_id)
 {
-	/* work in progress  -- fclem */
+	const float *col_solid = get_bone_solid_color(eBone, pchan, arm);
+	const float *col_wire = get_bone_wire_color(eBone, pchan, arm);
+
+	if (select_id != -1) {
+		DRW_select_load_id(select_id | BONESEL_BONE);
+	}
+
+	if (pchan && pchan->bone->segments > 1) {
+		Mat4 *bbones_mat = pchan->bbone_matrices;
+		BLI_assert(bbones_mat != NULL);
+
+		for (int i = pchan->bone->segments; i--; bbones_mat++) {
+			DRW_shgroup_bone_box_solid(bbones_mat->mat, col_solid);
+			DRW_shgroup_bone_box_wire(bbones_mat->mat, col_wire);
+		}
+	}
+	else if (eBone && eBone->segments > 1) {
+		for (int i = 0; i < eBone->segments; i++) {
+			DRW_shgroup_bone_box_solid(eBone->disp_bbone_mat[i], col_solid);
+			DRW_shgroup_bone_box_wire(eBone->disp_bbone_mat[i], col_wire);
+		}
+	}
+	else {
+		DRW_shgroup_bone_box_solid(BONE_VAR(eBone, pchan, disp_mat), col_solid);
+		DRW_shgroup_bone_box_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire);
+	}
+
+	if (select_id != -1) {
+		DRW_select_load_id(-1);
+	}
+
+	/* Grrr... We need to restore default display matrix to draw end points, axes, etc. :( */
+	draw_bone_update_disp_matrix_default(eBone, pchan);
+
+	if (eBone) {
+		draw_points(eBone, pchan, arm, select_id);
+	}
 }
 
 static void draw_bone_octahedral(
@@ -551,11 +801,11 @@ static void draw_armature_edit(Object *ob)
 					draw_bone_line(eBone, NULL, arm, select_id);
 				}
 				else if (arm->drawtype == ARM_WIRE) {
-					draw_bone_update_disp_matrix_default(eBone, NULL);
+					draw_bone_update_disp_matrix_bbone(eBone, NULL);
 					draw_bone_wire(eBone, NULL, arm, select_id);
 				}
 				else if (arm->drawtype == ARM_B_BONE) {
-					draw_bone_update_disp_matrix_default(eBone, NULL);
+					draw_bone_update_disp_matrix_bbone(eBone, NULL);
 					draw_bone_box(eBone, NULL, arm, select_id);
 				}
 				else {
@@ -642,11 +892,11 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 					draw_bone_line(NULL, pchan, arm, select_id);
 				}
 				else if (arm->drawtype == ARM_WIRE) {
-					draw_bone_update_disp_matrix_default(NULL, pchan);
+					draw_bone_update_disp_matrix_bbone(NULL, pchan);
 					draw_bone_wire(NULL, pchan, arm, select_id);
 				}
 				else if (arm->drawtype == ARM_B_BONE) {
-					draw_bone_update_disp_matrix_default(NULL, pchan);
+					draw_bone_update_disp_matrix_bbone(NULL, pchan);
 					draw_bone_box(NULL, pchan, arm, select_id);
 				}
 				else {
