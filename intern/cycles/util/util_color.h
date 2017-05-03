@@ -157,16 +157,6 @@ ccl_device float3 xyz_to_rgb(float x, float y, float z)
 	                   0.055648f * x + -0.204043f * y +  1.057311f * z);
 }
 
-#ifndef __KERNEL_OPENCL__
-
-ccl_device float3 color_srgb_to_scene_linear(float3 c)
-{
-	return make_float3(
-		color_srgb_to_scene_linear(c.x),
-		color_srgb_to_scene_linear(c.y),
-		color_srgb_to_scene_linear(c.z));
-}
-
 #ifdef __KERNEL_SSE2__
 /*
  * Calculate initial guess for arg^exp based on float representation
@@ -222,17 +212,38 @@ ccl_device ssef color_srgb_to_scene_linear(const ssef &c)
 	ssef gte = fastpow24(gtebase);
 	return select(cmp, lt, gte);
 }
-#endif
+#endif  /* __KERNEL_SSE2__ */
 
-ccl_device float3 color_scene_linear_to_srgb(float3 c)
+ccl_device float3 color_srgb_to_scene_linear_v3(float3 c)
 {
-	return make_float3(
-		color_scene_linear_to_srgb(c.x),
-		color_scene_linear_to_srgb(c.y),
-		color_scene_linear_to_srgb(c.z));
+	return make_float3(color_srgb_to_scene_linear(c.x),
+	                   color_srgb_to_scene_linear(c.y),
+	                   color_srgb_to_scene_linear(c.z));
 }
 
+ccl_device float3 color_scene_linear_to_srgb_v3(float3 c)
+{
+	return make_float3(color_scene_linear_to_srgb(c.x),
+	                   color_scene_linear_to_srgb(c.y),
+	                   color_scene_linear_to_srgb(c.z));
+}
+
+ccl_device float4 color_srgb_to_scene_linear_v4(float4 c)
+{
+#ifdef __KERNEL_SSE2__
+	ssef r_ssef;
+	float4 &r = (float4 &)r_ssef;
+	r = c;
+	r_ssef = color_srgb_to_scene_linear(r_ssef);
+	r.w = c.w;
+	return r;
+#else
+	return make_float4(color_srgb_to_scene_linear(c.x),
+	                   color_srgb_to_scene_linear(c.y),
+	                   color_srgb_to_scene_linear(c.z),
+	                   c.w);
 #endif
+}
 
 ccl_device float linear_rgb_to_gray(float3 c)
 {

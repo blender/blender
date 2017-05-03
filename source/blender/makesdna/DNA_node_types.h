@@ -159,7 +159,8 @@ typedef enum eNodeSocketFlag {
 	SOCK_COLLAPSED = 64,				/* socket collapsed in UI */
 	SOCK_HIDE_VALUE = 128,				/* hide socket value, if it gets auto default */
 	SOCK_AUTO_HIDDEN__DEPRECATED = 256,	/* socket hidden automatically, to distinguish from manually hidden */
-	SOCK_NO_INTERNAL_LINK = 512
+	SOCK_NO_INTERNAL_LINK = 512,
+	SOCK_VIRTUAL = 1024			/* socket behaves like SOCK_UNAVAIL, but is drawn with dashed links */
 } eNodeSocketFlag;
 
 /* limit data in bNode to what we want to see saved? */
@@ -569,9 +570,9 @@ typedef struct NodeEllipseMask {
 /* layer info for image node outputs */
 typedef struct NodeImageLayer {
 	/* index in the Image->layers->passes lists */
-	int pass_index;
-	/* render pass flag, in case this is an original render pass */
-	int pass_flag;
+	int pass_index  DNA_DEPRECATED;
+	/* render pass name */
+	char pass_name[64]; /* amount defined in openexr_multi.h */
 } NodeImageLayer;
 
 typedef struct NodeBlurData {

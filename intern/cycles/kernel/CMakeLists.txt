@@ -21,6 +21,8 @@ set(SRC
 	kernels/opencl/kernel_lamp_emission.cl
 	kernels/opencl/kernel_do_volume.cl
 	kernels/opencl/kernel_indirect_background.cl
+	kernels/opencl/kernel_shader_setup.cl
+	kernels/opencl/kernel_shader_sort.cl
 	kernels/opencl/kernel_shader_eval.cl
 	kernels/opencl/kernel_holdout_emission_blurring_pathtermination_ao.cl
 	kernels/opencl/kernel_subsurface_scatter.cl
@@ -235,6 +237,7 @@ set(SRC_UTIL_HEADERS
 )
 
 set(SRC_SPLIT_HEADERS
+	split/kernel_branched.h
 	split/kernel_buffer_update.h
 	split/kernel_data_init.h
 	split/kernel_direct_lighting.h
@@ -247,6 +250,8 @@ set(SRC_SPLIT_HEADERS
 	split/kernel_path_init.h
 	split/kernel_queue_enqueue.h
 	split/kernel_scene_intersect.h
+	split/kernel_shader_setup.h
+	split/kernel_shader_sort.h
 	split/kernel_shader_eval.h
 	split/kernel_shadow_blocked_ao.h
 	split/kernel_shadow_blocked_dl.h
@@ -456,6 +461,8 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_scene_interse
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_lamp_emission.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_do_volume.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_indirect_background.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shader_setup.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shader_sort.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shader_eval.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_holdout_emission_blurring_pathtermination_ao.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_subsurface_scatter.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)

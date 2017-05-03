@@ -49,26 +49,29 @@ ccl_device void kernel_indirect_subsurface(KernelGlobals *kg)
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 
-	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
-		ccl_addr_space SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
-		kernel_path_subsurface_accum_indirect(ss_indirect, L);
+#ifdef __BRANCHED_PATH__
+	if(!kernel_data.integrator.branched) {
+#endif
+		if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
+			ccl_addr_space SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
+			kernel_path_subsurface_accum_indirect(ss_indirect, L);
 
-		/* Trace indirect subsurface rays by restarting the loop. this uses less
-		 * stack memory than invoking kernel_path_indirect.
-		 */
-		if(ss_indirect->num_rays) {
-			kernel_path_subsurface_setup_indirect(kg,
-			                                      ss_indirect,
-			                                      state,
-			                                      ray,
-			                                      L,
-			                                      throughput);
-			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
+			/* Trace indirect subsurface rays by restarting the loop. this uses less
+			 * stack memory than invoking kernel_path_indirect.
+			 */
+			if(ss_indirect->num_rays) {
+				kernel_path_subsurface_setup_indirect(kg,
+					                                  ss_indirect,
+					                                  state,
+					                                  ray,
+					                                  L,
+					                                  throughput);
+				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
+			}
 		}
-		else {
-			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-		}
+#ifdef __BRANCHED_PATH__
 	}
+#endif
 
 #endif  /* __SUBSURFACE__ */
 

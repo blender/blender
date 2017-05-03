@@ -356,7 +356,7 @@ static void attr_create_vertex_color(Scene *scene,
 				int n = p->loop_total();
 				for(int i = 0; i < n; i++) {
 					float3 color = get_float3(l->data[p->loop_start() + i].color());
-					*(cdata++) = color_float_to_byte(color_srgb_to_scene_linear(color));
+					*(cdata++) = color_float_to_byte(color_srgb_to_scene_linear_v3(color));
 				}
 			}
 		}
@@ -380,11 +380,11 @@ static void attr_create_vertex_color(Scene *scene,
 				face_split_tri_indices(nverts[i], face_flags[i], tri_a, tri_b);
 
 				uchar4 colors[4];
-				colors[0] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color1())));
-				colors[1] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color2())));
-				colors[2] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color3())));
+				colors[0] = color_float_to_byte(color_srgb_to_scene_linear_v3(get_float3(c->color1())));
+				colors[1] = color_float_to_byte(color_srgb_to_scene_linear_v3(get_float3(c->color2())));
+				colors[2] = color_float_to_byte(color_srgb_to_scene_linear_v3(get_float3(c->color3())));
 				if(nverts[i] == 4) {
-					colors[3] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color4())));
+					colors[3] = color_float_to_byte(color_srgb_to_scene_linear_v3(get_float3(c->color4())));
 				}
 
 				cdata[0] = colors[tri_a[0]];

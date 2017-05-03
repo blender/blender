@@ -52,6 +52,7 @@ CCL_NAMESPACE_BEGIN
  *   - QUEUE_SHADOW_RAY_CAST_AO_RAYS will be filled with rays marked with
  *     flag RAY_SHADOW_RAY_CAST_AO
  */
+
 ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
         KernelGlobals *kg,
         ccl_local_param BackgroundAOLocals *locals)
@@ -62,8 +63,9 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 	}
 	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
+#ifdef __AO__
 	char enqueue_flag = 0;
-	char enqueue_flag_AO_SHADOW_RAY_CAST = 0;
+#endif
 	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
 	ray_index = get_ray_index(kg, ray_index,
 	                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
@@ -155,8 +157,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 				kernel_split_state.L_transparent[ray_index] += average(holdout_weight*throughput);
 			}
 			if(sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
-				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-				enqueue_flag = 1;
+				kernel_split_path_end(kg, ray_index);
 			}
 		}
 #endif  /* __HOLDOUT__ */
@@ -164,18 +165,31 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-		/* Holdout mask objects do not write data passes. */
-		kernel_write_data_passes(kg,
-		                         buffer,
-		                         L,
-		                         sd,
-		                         sample,
-		                         state,
-		                         throughput);
+
+#ifdef __BRANCHED_PATH__
+		if(!IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT))
+#endif  /* __BRANCHED_PATH__ */
+		{
+			/* Holdout mask objects do not write data passes. */
+			kernel_write_data_passes(kg,
+				                     buffer,
+				                     L,
+				                     sd,
+				                     sample,
+				                     state,
+				                     throughput);
+		}
+
 		/* Blurring of bsdf after bounces, for rays that have a small likelihood
 		 * of following this particular path (diffuse, rough glossy.
 		 */
-		if(kernel_data.integrator.filter_glossy != FLT_MAX) {
+#ifndef __BRANCHED_PATH__
+		if(kernel_data.integrator.filter_glossy != FLT_MAX)
+#else
+		if(kernel_data.integrator.filter_glossy != FLT_MAX &&
+		   (!kernel_data.integrator.branched || IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)))
+#endif  /* __BRANCHED_PATH__ */
+		{
 			float blur_pdf = kernel_data.integrator.filter_glossy*state->min_ray_pdf;
 			if(blur_pdf < 1.0f) {
 				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
@@ -201,19 +215,32 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
 		 * shader evaluations, only need emission if we are going to terminate.
 		 */
+#ifndef __BRANCHED_PATH__
 		float probability = path_state_terminate_probability(kg, state, throughput);
+#else
+		float probability = 1.0f;
+
+		if(!kernel_data.integrator.branched) {
+			probability = path_state_terminate_probability(kg, state, throughput);
+		}
+		else if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
+			int num_samples = kernel_split_state.branched_state[ray_index].num_samples;
+			probability = path_state_terminate_probability(kg, state, throughput*num_samples);
+		}
+		else if(state->flag & PATH_RAY_TRANSPARENT) {
+			probability = path_state_terminate_probability(kg, state, throughput);
+		}
+#endif
 
 		if(probability == 0.0f) {
-			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-			enqueue_flag = 1;
+			kernel_split_path_end(kg, ray_index);
 		}
 
 		if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 			if(probability != 1.0f) {
 				float terminate = path_state_rng_1D_for_decision(kg, &rng, state, PRNG_TERMINATE);
 				if(terminate >= probability) {
-					ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-					enqueue_flag = 1;
+					kernel_split_path_end(kg, ray_index);
 				}
 				else {
 					kernel_split_state.throughput[ray_index] = throughput/probability;
@@ -225,61 +252,23 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 #ifdef __AO__
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		/* ambient occlusion */
-		if(kernel_data.integrator.use_ambient_occlusion ||
-		   (sd->flag & SD_AO))
-		{
-			/* todo: solve correlation */
-			float bsdf_u, bsdf_v;
-			path_state_rng_2D(kg, &rng, state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
-
-			float ao_factor = kernel_data.background.ao_factor;
-			float3 ao_N;
-			kernel_split_state.ao_bsdf[ray_index] = shader_bsdf_ao(kg, sd, ao_factor, &ao_N);
-			kernel_split_state.ao_alpha[ray_index] = shader_bsdf_alpha(kg, sd);
-
-			float3 ao_D;
-			float ao_pdf;
-			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
-
-			if(dot(sd->Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
-				Ray _ray;
-				_ray.P = ray_offset(sd->P, sd->Ng);
-				_ray.D = ao_D;
-				_ray.t = kernel_data.background.ao_distance;
-#ifdef __OBJECT_MOTION__
-				_ray.time = sd->time;
-#endif
-				_ray.dP = sd->dP;
-				_ray.dD = differential3_zero();
-				kernel_split_state.ao_light_ray[ray_index] = _ray;
-
-				ADD_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO);
-				enqueue_flag_AO_SHADOW_RAY_CAST = 1;
-			}
+		if(kernel_data.integrator.use_ambient_occlusion || (sd->flag & SD_AO)) {
+			enqueue_flag = 1;
 		}
 	}
 #endif  /* __AO__ */
-	kernel_split_state.rng[ray_index] = rng;
 
+	kernel_split_state.rng[ray_index] = rng;
 
 #ifndef __COMPUTE_DEVICE_GPU__
 	}
 #endif
 
-	/* Enqueue RAY_UPDATE_BUFFER rays. */
-	enqueue_ray_index_local(ray_index,
-	                        QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
-	                        enqueue_flag,
-	                        kernel_split_params.queue_size,
-	                        &locals->queue_atomics_bg,
-	                        kernel_split_state.queue_data,
-	                        kernel_split_params.queue_index);
-
 #ifdef __AO__
 	/* Enqueue to-shadow-ray-cast rays. */
 	enqueue_ray_index_local(ray_index,
 	                        QUEUE_SHADOW_RAY_CAST_AO_RAYS,
-	                        enqueue_flag_AO_SHADOW_RAY_CAST,
+	                        enqueue_flag,
 	                        kernel_split_params.queue_size,
 	                        &locals->queue_atomics_ao,
 	                        kernel_split_state.queue_data,

@@ -105,21 +105,16 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 
 	/* Initialize queue data and queue index. */
 	if(thread_index < queuesize) {
-		/* Initialize active ray queue. */
-		kernel_split_state.queue_data[QUEUE_ACTIVE_AND_REGENERATED_RAYS * queuesize + thread_index] = QUEUE_EMPTY_SLOT;
-		/* Initialize background and buffer update queue. */
-		kernel_split_state.queue_data[QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS * queuesize + thread_index] = QUEUE_EMPTY_SLOT;
-		/* Initialize shadow ray cast of AO queue. */
-		kernel_split_state.queue_data[QUEUE_SHADOW_RAY_CAST_AO_RAYS * queuesize + thread_index] = QUEUE_EMPTY_SLOT;
-		/* Initialize shadow ray cast of direct lighting queue. */
-		kernel_split_state.queue_data[QUEUE_SHADOW_RAY_CAST_DL_RAYS * queuesize + thread_index] = QUEUE_EMPTY_SLOT;
+		for(int i = 0; i < NUM_QUEUES; i++) {
+			kernel_split_state.queue_data[i * queuesize + thread_index] = QUEUE_EMPTY_SLOT;
+		}
 	}
 
 	if(thread_index == 0) {
-		Queue_index[QUEUE_ACTIVE_AND_REGENERATED_RAYS] = 0;
-		Queue_index[QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS] = 0;
-		Queue_index[QUEUE_SHADOW_RAY_CAST_AO_RAYS] = 0;
-		Queue_index[QUEUE_SHADOW_RAY_CAST_DL_RAYS] = 0;
+		for(int i = 0; i < NUM_QUEUES; i++) {
+			Queue_index[i] = 0;
+		}
+
 		/* The scene-intersect kernel should not use the queues very first time.
 		 * since the queue would be empty.
 		 */

@@ -80,6 +80,7 @@
 
 #include "NOD_common.h"
 #include "NOD_socket.h"
+#include "NOD_composite.h"
 
 #include "readfile.h"
 
@@ -1559,8 +1560,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	/* To be added to next subversion bump! */
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 278, 5)) {
 		/* Mask primitive adding code was not initializing correctly id_type of its points' parent. */
 		for (Mask *mask = main->mask.first; mask; mask = mask->id.next) {
 			for (MaskLayer *mlayer = mask->masklayers.first; mlayer; mlayer = mlayer->next) {
@@ -1609,6 +1609,30 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_R_LAYERS) {
+						int pass_index = 0;
+						const char *sockname;
+						for (bNodeSocket *sock = node->outputs.first; sock && pass_index < 31; sock = sock->next, pass_index++) {
+							if (sock->storage == NULL) {
+								NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
+								sock->storage = sockdata;
+								BLI_strncpy(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(pass_index), sizeof(sockdata->pass_name));
+
+								if (pass_index == 0) sockname = "Image";
+								else if (pass_index == 1) sockname = "Alpha";
+								else sockname = node_cmp_rlayers_sock_to_pass(pass_index);
+								BLI_strncpy(sock->name, sockname, sizeof(sock->name));
+							}
+						}
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
 	}
 
 	{

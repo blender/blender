@@ -64,6 +64,8 @@
 
 #include "RE_render_ext.h"
 
+#include "NOD_composite.h"
+
 EnumPropertyItem rna_enum_node_socket_in_out_items[] = {
 	{ SOCK_IN, "IN", 0, "Input", "" },
 	{ SOCK_OUT, "OUT", 0, "Output", "" },
@@ -2608,7 +2610,7 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
 	rna_Node_update(bmain, scene, ptr);
 
 	if (scene->nodetree != NULL) {
-		ntreeCompositForceHidden(scene->nodetree);
+		ntreeCompositUpdateRLayers(scene->nodetree);
 	}
 }
 
@@ -2747,7 +2749,7 @@ static void rna_Node_scene_layer_update(Main *bmain, Scene *scene, PointerRNA *p
 {
 	rna_Node_update(bmain, scene, ptr);
 	if (scene->nodetree != NULL) {
-		ntreeCompositForceHidden(scene->nodetree);
+		ntreeCompositUpdateRLayers(scene->nodetree);
 	}
 }
 
@@ -4796,7 +4798,7 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Scene", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_scene_layer_update");
 	
 	prop = RNA_def_property(srna, "layer", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
@@ -6920,6 +6922,11 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SOCK_UNAVAIL);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable the socket");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+
+	prop = RNA_def_property(srna, "is_virtual", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_VIRTUAL);
+	RNA_def_property_ui_text(prop, "Virtual", "Socket is Virtual");
 	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "link_limit", PROP_INT, PROP_NONE);

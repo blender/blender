@@ -68,6 +68,8 @@ public:
 	               void **python_thread_state,
 	               const char *layer = 0);
 	void sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer);
+	array<Pass> sync_render_passes(BL::RenderLayer& b_rlay,
+	                               BL::SceneRenderLayer& b_srlay);
 	void sync_integrator();
 	void sync_camera(BL::RenderSettings& b_render,
 	                 BL::Object& b_override,
@@ -93,6 +95,8 @@ public:
 	                                      BL::RegionView3D& b_rv3d,
 	                                      Camera *cam,
 	                                      int width, int height);
+
+	static PassType get_pass_type(BL::RenderPass& b_pass);
 
 private:
 	/* sync */

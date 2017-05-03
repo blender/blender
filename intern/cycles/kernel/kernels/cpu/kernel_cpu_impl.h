@@ -44,6 +44,8 @@
 #  include "kernel/split/kernel_do_volume.h"
 #  include "kernel/split/kernel_queue_enqueue.h"
 #  include "kernel/split/kernel_indirect_background.h"
+#  include "kernel/split/kernel_shader_setup.h"
+#  include "kernel/split/kernel_shader_sort.h"
 #  include "kernel/split/kernel_shader_eval.h"
 #  include "kernel/split/kernel_holdout_emission_blurring_pathtermination_ao.h"
 #  include "kernel/split/kernel_subsurface_scatter.h"
@@ -181,9 +183,11 @@ DEFINE_SPLIT_KERNEL_FUNCTION(lamp_emission)
 DEFINE_SPLIT_KERNEL_FUNCTION(do_volume)
 DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(queue_enqueue, QueueEnqueueLocals)
 DEFINE_SPLIT_KERNEL_FUNCTION(indirect_background)
-DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(shader_eval, uint)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(shader_setup, uint)
+DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(shader_sort, ShaderSortLocals)
+DEFINE_SPLIT_KERNEL_FUNCTION(shader_eval)
 DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(holdout_emission_blurring_pathtermination_ao, BackgroundAOLocals)
-DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(subsurface_scatter, uint)
+DEFINE_SPLIT_KERNEL_FUNCTION(subsurface_scatter)
 DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(direct_lighting, uint)
 DEFINE_SPLIT_KERNEL_FUNCTION(shadow_blocked_ao)
 DEFINE_SPLIT_KERNEL_FUNCTION(shadow_blocked_dl)
@@ -209,6 +213,8 @@ void KERNEL_FUNCTION_FULL_NAME(register_functions)(void(*reg)(const char* name, 
 	REGISTER(do_volume);
 	REGISTER(queue_enqueue);
 	REGISTER(indirect_background);
+	REGISTER(shader_setup);
+	REGISTER(shader_sort);
 	REGISTER(shader_eval);
 	REGISTER(holdout_emission_blurring_pathtermination_ao);
 	REGISTER(subsurface_scatter);

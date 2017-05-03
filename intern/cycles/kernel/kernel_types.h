@@ -64,6 +64,18 @@ CCL_NAMESPACE_BEGIN
 #  define WORK_POOL_SIZE WORK_POOL_SIZE_CPU
 #endif
 
+
+#define SHADER_SORT_BLOCK_SIZE 2048
+
+#ifdef __KERNEL_OPENCL__
+#  define SHADER_SORT_LOCAL_SIZE 64
+#elif defined(__KERNEL_CUDA__)
+#  define SHADER_SORT_LOCAL_SIZE 32
+#else
+#  define SHADER_SORT_LOCAL_SIZE 1
+#endif
+
+
 /* device capabilities */
 #ifdef __KERNEL_CPU__
 #  ifdef __KERNEL_SSE2__
@@ -71,22 +83,18 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #  define __KERNEL_SHADING__
 #  define __KERNEL_ADV_SHADING__
-#  ifndef __SPLIT_KERNEL__
-#    define __BRANCHED_PATH__
-#  endif
+#  define __BRANCHED_PATH__
 #  ifdef WITH_OSL
 #    define __OSL__
 #  endif
-#  define __SUBSURFACE__
 #  define __PRINCIPLED__
+#  define __SUBSURFACE__
 #  define __CMJ__
 #  define __VOLUME__
 #  define __VOLUME_SCATTER__
 #  define __SHADOW_RECORD_ALL__
-#  ifndef __SPLIT_KERNEL__
-#    define __VOLUME_DECOUPLED__
-#    define __VOLUME_RECORD_ALL__
-#  endif
+#  define __VOLUME_DECOUPLED__
+#  define __VOLUME_RECORD_ALL__
 #endif  /* __KERNEL_CPU__ */
 
 #ifdef __KERNEL_CUDA__
@@ -138,6 +146,7 @@ CCL_NAMESPACE_BEGIN
 #    define __VOLUME_SCATTER__
 #    define __SHADOW_RECORD_ALL__
 #    define __CMJ__
+#    define __BRANCHED_PATH__
 #  endif  /* __KERNEL_OPENCL_AMD__ */
 
 #  ifdef __KERNEL_OPENCL_INTEL_CPU__
@@ -1300,7 +1309,6 @@ typedef ccl_addr_space struct DebugData {
  * Queue 3 - Shadow ray cast kernel - AO
  * Queeu 4 - Shadow ray cast kernel - direct lighting
  */
-#define NUM_QUEUES 4
 
 /* Queue names */
 enum QueueNumber {
@@ -1313,22 +1321,40 @@ enum QueueNumber {
 	 * 3. Rays to be regenerated
 	 * are enqueued here.
 	 */
-	QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS = 1,
+	QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
 
 	/* All rays for which a shadow ray should be cast to determine radiance
 	 * contribution for AO are enqueued here.
 	 */
-	QUEUE_SHADOW_RAY_CAST_AO_RAYS = 2,
+	QUEUE_SHADOW_RAY_CAST_AO_RAYS,
 
 	/* All rays for which a shadow ray should be cast to determine radiance
 	 * contributing for direct lighting are enqueued here.
 	 */
-	QUEUE_SHADOW_RAY_CAST_DL_RAYS = 3,
+	QUEUE_SHADOW_RAY_CAST_DL_RAYS,
+
+	/* Rays sorted according to shader->id */
+	QUEUE_SHADER_SORTED_RAYS,
+
+#ifdef __BRANCHED_PATH__
+	/* All rays moving to next iteration of the indirect loop for light */
+	QUEUE_LIGHT_INDIRECT_ITER,
+#  ifdef __VOLUME__
+	/* All rays moving to next iteration of the indirect loop for volumes */
+	QUEUE_VOLUME_INDIRECT_ITER,
+#  endif
+#  ifdef __SUBSURFACE__
+	/* All rays moving to next iteration of the indirect loop for subsurface */
+	QUEUE_SUBSURFACE_INDIRECT_ITER,
+#  endif
+#endif  /* __BRANCHED_PATH__ */
+
+	NUM_QUEUES
 };
 
-/* We use RAY_STATE_MASK to get ray_state (enums 0 to 5) */
-#define RAY_STATE_MASK 0x007
-#define RAY_FLAG_MASK 0x0F8
+/* We use RAY_STATE_MASK to get ray_state */
+#define RAY_STATE_MASK 0x0F
+#define RAY_FLAG_MASK 0xF0
 enum RayState {
 	RAY_INVALID = 0,
 	/* Denotes ray is actively involved in path-iteration. */
@@ -1343,14 +1369,22 @@ enum RayState {
 	RAY_TO_REGENERATE,
 	/* Denotes ray has been regenerated */
 	RAY_REGENERATED,
-	/* Flag's ray has to execute shadow blocked function in AO part */
-	RAY_SHADOW_RAY_CAST_AO = 16,
-	/* Flag's ray has to execute shadow blocked function in direct lighting part. */
-	RAY_SHADOW_RAY_CAST_DL = 32,
+	/* Denotes ray is moving to next iteration of the branched indirect loop */
+	RAY_LIGHT_INDIRECT_NEXT_ITER,
+	RAY_VOLUME_INDIRECT_NEXT_ITER,
+	RAY_SUBSURFACE_INDIRECT_NEXT_ITER,
+
+	/* Ray flags */
+
+	/* Flags to denote that the ray is currently evaluating the branched indirect loop */
+	RAY_BRANCHED_LIGHT_INDIRECT = (1 << 4),
+	RAY_BRANCHED_VOLUME_INDIRECT = (1 << 5),
+	RAY_BRANCHED_SUBSURFACE_INDIRECT = (1 << 6),
+	RAY_BRANCHED_INDIRECT = (RAY_BRANCHED_LIGHT_INDIRECT | RAY_BRANCHED_VOLUME_INDIRECT | RAY_BRANCHED_SUBSURFACE_INDIRECT),
 };
 
 #define ASSIGN_RAY_STATE(ray_state, ray_index, state) (ray_state[ray_index] = ((ray_state[ray_index] & RAY_FLAG_MASK) | state))
-#define IS_STATE(ray_state, ray_index, state) ((ray_state[ray_index] & RAY_STATE_MASK) == state)
+#define IS_STATE(ray_state, ray_index, state) ((ray_index) != QUEUE_EMPTY_SLOT && ((ray_state)[(ray_index)] & RAY_STATE_MASK) == (state))
 #define ADD_RAY_FLAG(ray_state, ray_index, flag) (ray_state[ray_index] = (ray_state[ray_index] | flag))
 #define REMOVE_RAY_FLAG(ray_state, ray_index, flag) (ray_state[ray_index] = (ray_state[ray_index] & (~flag)))
 #define IS_FLAG(ray_state, ray_index, flag) (ray_state[ray_index] & flag)

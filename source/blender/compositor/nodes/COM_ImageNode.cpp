@@ -95,17 +95,9 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 					NodeOperation *operation = NULL;
 					socket = this->getOutputSocket(index);
 					bNodeSocket *bnodeSocket = socket->getbNodeSocket();
-					RenderPass *rpass = (RenderPass *)BLI_findstring(&rl->passes, bnodeSocket->identifier, offsetof(RenderPass, internal_name));
+					NodeImageLayer *storage = (NodeImageLayer *)bnodeSocket->storage;
+					RenderPass *rpass = (RenderPass *)BLI_findstring(&rl->passes, storage->pass_name, offsetof(RenderPass, name));
 					int view = 0;
-
-					/* Passes in the file can differ from passes stored in sockets (#36755).
-					 * Look up the correct file pass using the socket identifier instead.
-					 */
-#if 0
-					NodeImageLayer *storage = (NodeImageLayer *)bnodeSocket->storage;*/
-					int passindex = storage->pass_index;*/
-					RenderPass *rpass = (RenderPass *)BLI_findlink(&rl->passes, passindex);
-#endif
 
 					/* returns the image view to use for the current active view */
 					if (BLI_listbase_count_ex(&image->rr->views, 2) > 1) {
@@ -147,7 +139,7 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 						if (index == 0 && operation) {
 							converter.addPreview(operation->getOutputSocket());
 						}
-						if (rpass->passtype == SCE_PASS_COMBINED) {
+						if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
 							BLI_assert(operation != NULL);
 							BLI_assert(index < numberOfOutputs - 1);
 							NodeOutput *outputSocket = this->getOutputSocket(index + 1);

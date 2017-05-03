@@ -428,7 +428,6 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 	RenderPass *rpass;
 	const char *fake_name;
 	int nr;
-	int passflag = 0;
 
 	/* may have been freed since drawing */
 	rr = BKE_image_acquire_renderresult(scene, image);
@@ -450,30 +449,31 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 	fake_name = ui_imageuser_pass_fake_name(rl);
 
 	if (fake_name) {
-		BLI_strncpy(rpass_fake.internal_name, fake_name, sizeof(rpass_fake.internal_name));
+		BLI_strncpy(rpass_fake.name, fake_name, sizeof(rpass_fake.name));
 		nr += 1;
 	}
+
+	ListBase added_passes;
+	BLI_listbase_clear(&added_passes);
 
 	/* rendered results don't have a Combined pass */
 	/* multiview: the ordering must be ascending, so the left-most pass is always the one picked */
 	for (rpass = rl ? rl->passes.first : NULL; rpass; rpass = rpass->next, nr++) {
-
 		/* just show one pass of each kind */
-		if (passflag & rpass->passtype)
+		if (BLI_findstring_ptr(&added_passes, rpass->name, offsetof(LinkData, data))) {
 			continue;
+		}
+		BLI_addtail(&added_passes, BLI_genericNodeN(rpass->name));
 
-		passflag |= rpass->passtype;
-
-final:
-		uiDefButS(block, UI_BTYPE_BUT_MENU, B_NOP, IFACE_(rpass->internal_name), 0, 0,
+		uiDefButS(block, UI_BTYPE_BUT_MENU, B_NOP, IFACE_(rpass->name), 0, 0,
 		          UI_UNIT_X * 5, UI_UNIT_X, &iuser->pass, (float) nr, 0.0, 0, -1, "");
 	}
 
+	BLI_freelistN(&added_passes);
+
 	if (fake_name) {
-		fake_name = NULL;
-		rpass = &rpass_fake;
-		nr = 0;
-		goto final;
+		uiDefButS(block, UI_BTYPE_BUT_MENU, B_NOP, IFACE_(rpass_fake.name), 0, 0,
+		          UI_UNIT_X * 5, UI_UNIT_X, &iuser->pass, 0.0f, 0.0, 0, -1, "");
 	}
 
 	BKE_image_release_renderresult(scene, image);
@@ -633,7 +633,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 		int rp_index = iuser->pass + 1;
 
 		for (rp = rpass->next; rp; rp = rp->next, rp_index++) {
-			if (rp->passtype != rpass->passtype) {
+			if (!STREQ(rp->name, rpass->name)) {
 				iuser->pass = rp_index;
 				changed = true;
 				break;
@@ -650,7 +650,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 		}
 
 		for (rp = rl->passes.first; rp; rp = rp->next, rp_index++) {
-			if (rp->passtype == rpass->passtype) {
+			if (STREQ(rp->name, rpass->name)) {
 				iuser->pass = rp_index - 1;
 				changed = true;
 				break;
@@ -769,7 +769,7 @@ static void uiblock_layer_pass_buttons(
 		fake_name = ui_imageuser_pass_fake_name(rl);
 		rpass = (rl ? BLI_findlink(&rl->passes, iuser->pass  - (fake_name ? 1 : 0)) : NULL);
 
-		display_name = rpass ? rpass->internal_name : (fake_name ? fake_name : "");
+		display_name = rpass ? rpass->name : (fake_name ? fake_name : "");
 		rnd_pt = ui_imageuser_data_copy(&rnd_pt_local);
 		but = uiDefMenuBut(
 		        block, ui_imageuser_pass_menu, rnd_pt, IFACE_(display_name),

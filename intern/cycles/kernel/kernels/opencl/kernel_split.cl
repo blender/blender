@@ -23,6 +23,8 @@
 #include "kernel/kernels/opencl/kernel_do_volume.cl"
 #include "kernel/kernels/opencl/kernel_indirect_background.cl"
 #include "kernel/kernels/opencl/kernel_queue_enqueue.cl"
+#include "kernel/kernels/opencl/kernel_shader_setup.cl"
+#include "kernel/kernels/opencl/kernel_shader_sort.cl"
 #include "kernel/kernels/opencl/kernel_shader_eval.cl"
 #include "kernel/kernels/opencl/kernel_holdout_emission_blurring_pathtermination_ao.cl"
 #include "kernel/kernels/opencl/kernel_subsurface_scatter.cl"

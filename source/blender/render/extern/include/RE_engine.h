@@ -102,6 +102,7 @@ typedef struct RenderEngineType {
 	void (*render_to_view)(struct RenderEngine *engine, const struct bContext *context);
 
 	void (*update_script_node)(struct RenderEngine *engine, struct bNodeTree *ntree, struct bNode *node);
+	void (*update_render_passes)(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl);
 
 	void (*collection_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
 
@@ -149,6 +150,7 @@ void RE_result_load_from_file(struct RenderResult *result, struct ReportList *re
 
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
+void RE_engine_add_pass(RenderEngine *engine, const char *name, int channels, const char *chan_id, const char *layername);
 void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel, int merge_results);
 
 const char *RE_engine_active_view_get(RenderEngine *engine);
@@ -169,6 +171,9 @@ int RE_engine_render(struct Render *re, int do_all);
 bool RE_engine_is_external(struct Render *re);
 
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe);
+
+void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl,
+                             const char *name, int channels, const char *chanid, int type);
 
 /* Engine Types */
 

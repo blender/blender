@@ -62,7 +62,46 @@ typedef struct SplitParams {
 	SPLIT_DATA_ENTRY(DebugData, debug_data, 1)
 #else
 #  define SPLIT_DATA_DEBUG_ENTRIES
-#endif
+#endif  /* DEBUG */
+
+#ifdef __BRANCHED_PATH__
+
+typedef ccl_global struct SplitBranchedState {
+	/* various state that must be kept and restored after an indirect loop */
+	PathState path_state;
+	float3 throughput;
+	Ray ray;
+
+	struct ShaderData sd;
+	Intersection isect;
+
+	char ray_state;
+
+	/* indirect loop state */
+	int next_closure;
+	int next_sample;
+	int num_samples;
+
+#ifdef __SUBSURFACE__
+	int ss_next_closure;
+	int ss_next_sample;
+	int next_hit;
+	int num_hits;
+
+	uint lcg_state;
+	SubsurfaceIntersection ss_isect;
+
+#  ifdef __VOLUME__
+	VolumeStack volume_stack[VOLUME_STACK_SIZE];
+#  endif  /* __VOLUME__ */
+#endif  /*__SUBSURFACE__ */
+} SplitBranchedState;
+
+#define SPLIT_DATA_BRANCHED_ENTRIES \
+	SPLIT_DATA_ENTRY( SplitBranchedState, branched_state, 1)
+#else
+#define SPLIT_DATA_BRANCHED_ENTRIES
+#endif  /* __BRANCHED_PATH__ */
 
 #define SPLIT_DATA_ENTRIES \
 	SPLIT_DATA_ENTRY(ccl_global RNG, rng, 1) \
@@ -72,9 +111,6 @@ typedef struct SplitParams {
 	SPLIT_DATA_ENTRY(ccl_global Ray, ray, 1) \
 	SPLIT_DATA_ENTRY(ccl_global PathState, path_state, 1) \
 	SPLIT_DATA_ENTRY(ccl_global Intersection, isect, 1) \
-	SPLIT_DATA_ENTRY(ccl_global float3, ao_alpha, 1) \
-	SPLIT_DATA_ENTRY(ccl_global float3, ao_bsdf, 1) \
-	SPLIT_DATA_ENTRY(ccl_global Ray, ao_light_ray, 1) \
 	SPLIT_DATA_ENTRY(ccl_global BsdfEval, bsdf_eval, 1) \
 	SPLIT_DATA_ENTRY(ccl_global int, is_lamp, 1) \
 	SPLIT_DATA_ENTRY(ccl_global Ray, light_ray, 1) \
@@ -82,6 +118,7 @@ typedef struct SplitParams {
 	SPLIT_DATA_ENTRY(ccl_global uint, work_array, 1) \
 	SPLIT_DATA_ENTRY(ShaderData, sd, 1) \
 	SPLIT_DATA_ENTRY(ShaderData, sd_DL_shadow, 1) \
+	SPLIT_DATA_BRANCHED_ENTRIES \
 	SPLIT_DATA_DEBUG_ENTRIES \
 
 /* struct that holds pointers to data in the shared state buffer */
@@ -124,6 +161,11 @@ typedef struct BackgroundAOLocals {
 	uint queue_atomics_bg;
 	uint queue_atomics_ao;
 } BackgroundAOLocals;
+
+typedef struct ShaderSortLocals {
+	uint local_value[SHADER_SORT_BLOCK_SIZE];
+	ushort local_index[SHADER_SORT_BLOCK_SIZE];
+} ShaderSortLocals;
 
 CCL_NAMESPACE_END
 

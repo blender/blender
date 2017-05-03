@@ -61,6 +61,8 @@ private:
 	SplitKernelFunction *kernel_do_volume;
 	SplitKernelFunction *kernel_queue_enqueue;
 	SplitKernelFunction *kernel_indirect_background;
+	SplitKernelFunction *kernel_shader_setup;
+	SplitKernelFunction *kernel_shader_sort;
 	SplitKernelFunction *kernel_shader_eval;
 	SplitKernelFunction *kernel_holdout_emission_blurring_pathtermination_ao;
 	SplitKernelFunction *kernel_subsurface_scatter;

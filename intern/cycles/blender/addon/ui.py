@@ -78,7 +78,7 @@ def use_cuda(context):
 def use_branched_path(context):
     cscene = context.scene.cycles
 
-    return (cscene.progressive == 'BRANCHED_PATH' and not use_opencl(context))
+    return (cscene.progressive == 'BRANCHED_PATH')
 
 
 def use_sample_all_lights(context):
@@ -156,7 +156,6 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         row = layout.row()
         sub = row.row()
-        sub.active = get_device_type(context) != 'OPENCL' or use_cpu(context)
         sub.prop(cscene, "progressive", text="")
         row.prop(cscene, "use_square_samples")
 
@@ -477,11 +476,14 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
+        import _cycles
+
         layout = self.layout
 
         scene = context.scene
         rd = scene.render
         rl = rd.layers.active
+        crl = rl.cycles
 
         split = layout.split()
 
@@ -528,8 +530,12 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_emit", text="Emission")
         col.prop(rl, "use_pass_environment")
 
-        if hasattr(rd, "debug_pass_type"):
-            layout.prop(rd, "debug_pass_type")
+        if _cycles.with_cycles_debug:
+          col = layout.column()
+          col.prop(crl, "pass_debug_bvh_traversed_nodes")
+          col.prop(crl, "pass_debug_bvh_traversed_instances")
+          col.prop(crl, "pass_debug_bvh_intersections")
+          col.prop(crl, "pass_debug_ray_bounces")
 
 
 class CyclesRender_PT_views(CyclesButtonsPanel, Panel):

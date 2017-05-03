@@ -658,7 +658,7 @@ DrawEngineType draw_engine_clay_type = {
 RenderEngineType DRW_engine_viewport_clay_type = {
 	NULL, NULL,
 	CLAY_ENGINE, N_("Clay"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL, NULL, &CLAY_collection_settings_create,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, &CLAY_collection_settings_create,
 	&draw_engine_clay_type,
 	{NULL, NULL, NULL}
 };

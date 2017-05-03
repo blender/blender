@@ -31,19 +31,16 @@ CCL_NAMESPACE_BEGIN
 /* Work around AMD driver hangs by ensuring each command is finished before doing anything else. */
 #  undef clEnqueueNDRangeKernel
 #  define clEnqueueNDRangeKernel(a, b, c, d, e, f, g, h, i) \
-	clFinish(a); \
 	CLEW_GET_FUN(__clewEnqueueNDRangeKernel)(a, b, c, d, e, f, g, h, i); \
 	clFinish(a);
 
 #  undef clEnqueueWriteBuffer
 #  define clEnqueueWriteBuffer(a, b, c, d, e, f, g, h, i) \
-	clFinish(a); \
 	CLEW_GET_FUN(__clewEnqueueWriteBuffer)(a, b, c, d, e, f, g, h, i); \
 	clFinish(a);
 
 #  undef clEnqueueReadBuffer
 #  define clEnqueueReadBuffer(a, b, c, d, e, f, g, h, i) \
-	clFinish(a); \
 	CLEW_GET_FUN(__clewEnqueueReadBuffer)(a, b, c, d, e, f, g, h, i); \
 	clFinish(a);
 #endif  /* CYCLES_DISABLE_DRIVER_WORKAROUNDS */

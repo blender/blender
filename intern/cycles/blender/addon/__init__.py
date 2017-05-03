@@ -102,6 +102,9 @@ class CyclesRender(bpy.types.RenderEngine):
         else:
             self.report({'ERROR'}, "OSL support disabled in this build.")
 
+    def update_render_passes(self, scene, srl):
+        engine.register_passes(self, scene, srl)
+
 
 def engine_exit():
     engine.exit()

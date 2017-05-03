@@ -32,13 +32,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
 #ifdef __KERNEL_CPU__
-#  ifdef __KERNEL_SSE2__
-	ssef r_ssef;
-	float4 &r = (float4 &)r_ssef;
-	r = kernel_tex_image_interp(id, x, y);
-#  else
 	float4 r = kernel_tex_image_interp(id, x, y);
-#  endif
 #elif defined(__KERNEL_OPENCL__)
 	float4 r = kernel_tex_image_interp(kg, id, x, y);
 #else
@@ -152,7 +146,10 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
 	/* float4, byte4 and half4 */
 	const int texture_type = kernel_tex_type(id);
-	if(texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 || texture_type == IMAGE_DATA_TYPE_HALF4) {
+	if(texture_type == IMAGE_DATA_TYPE_FLOAT4 ||
+	   texture_type == IMAGE_DATA_TYPE_BYTE4 ||
+	   texture_type == IMAGE_DATA_TYPE_HALF4)
+	{
 		r = kernel_tex_image_interp_float4(tex, x, y);
 	}
 	/* float, byte and half */
@@ -163,43 +160,22 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 #  endif
 #endif
 
-#ifdef __KERNEL_SSE2__
-	float alpha = r.w;
+	const float alpha = r.w;
 
 	if(use_alpha && alpha != 1.0f && alpha != 0.0f) {
-		r_ssef = r_ssef / ssef(alpha);
+		r /= alpha;
 		const int texture_type = kernel_tex_type(id);
-		if(texture_type == IMAGE_DATA_TYPE_BYTE4 || texture_type == IMAGE_DATA_TYPE_BYTE) {
-			r_ssef = min(r_ssef, ssef(1.0f));
+		if(texture_type == IMAGE_DATA_TYPE_BYTE4 ||
+		   texture_type == IMAGE_DATA_TYPE_BYTE)
+		{
+			r = min(r, make_float4(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 		r.w = alpha;
 	}
 
 	if(srgb) {
-		r_ssef = color_srgb_to_scene_linear(r_ssef);
-		r.w = alpha;
+		r = color_srgb_to_scene_linear_v4(r);
 	}
-#else
-	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
-		float invw = 1.0f/r.w;
-		r.x *= invw;
-		r.y *= invw;
-		r.z *= invw;
-		
-		const int texture_type = kernel_tex_type(id);
-		if(texture_type == IMAGE_DATA_TYPE_BYTE4 || texture_type == IMAGE_DATA_TYPE_BYTE) {
-			r.x = min(r.x, 1.0f);
-			r.y = min(r.y, 1.0f);
-			r.z = min(r.z, 1.0f);
-		}
-	}
-
-	if(srgb) {
-		r.x = color_srgb_to_scene_linear(r.x);
-		r.y = color_srgb_to_scene_linear(r.y);
-		r.z = color_srgb_to_scene_linear(r.z);
-	}
-#endif
 
 	return r;
 }

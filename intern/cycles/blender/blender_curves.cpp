@@ -776,17 +776,17 @@ static void ExportCurveTriangleVcol(ParticleCurveData *CData,
 
 			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1; curvekey++) {
 				for(int section = 0; section < resol; section++) {
-					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear_v3(CData->curve_vcol[curve]));
 					vertexindex++;
-					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear_v3(CData->curve_vcol[curve]));
 					vertexindex++;
-					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear_v3(CData->curve_vcol[curve]));
 					vertexindex++;
-					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear_v3(CData->curve_vcol[curve]));
 					vertexindex++;
-					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear_v3(CData->curve_vcol[curve]));
 					vertexindex++;
-					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear(CData->curve_vcol[curve]));
+					cdata[vertexindex] = color_float_to_byte(color_srgb_to_scene_linear_v3(CData->curve_vcol[curve]));
 					vertexindex++;
 				}
 			}
@@ -1004,7 +1004,7 @@ void BlenderSync::sync_curves(Mesh *mesh,
 
 					for(size_t curve = 0; curve < CData.curve_vcol.size(); curve++)
 						if(!(CData.curve_keynum[curve] <= 1 || CData.curve_length[curve] == 0.0f))
-							fdata[i++] = color_srgb_to_scene_linear(CData.curve_vcol[curve]);
+							fdata[i++] = color_srgb_to_scene_linear_v3(CData.curve_vcol[curve]);
 				}
 			}
 		}
