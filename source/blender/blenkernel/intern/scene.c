@@ -233,6 +233,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		/* copy Freestyle settings */
 		new_srl = scen->r.layers.first;
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
+			if (new_srl->prop != NULL) {
+				new_srl->prop = IDP_CopyProperty(new_srl->prop);
+			}
 			BKE_freestyle_config_copy(&new_srl->freestyleConfig, &srl->freestyleConfig);
 			if (type == SCE_COPY_FULL) {
 				for (lineset = new_srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
