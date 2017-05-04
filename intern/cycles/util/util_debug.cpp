@@ -184,7 +184,7 @@ std::ostream& operator <<(std::ostream &os,
 	   << "  Device type    : " << opencl_device_type << "\n"
 	   << "  Kernel type    : " << opencl_kernel_type << "\n"
 	   << "  Debug          : " << string_from_bool(debug_flags.opencl.debug) << "\n"
-	   << "  Signle program : " << string_from_bool(debug_flags.opencl.single_program)
+	   << "  Single program : " << string_from_bool(debug_flags.opencl.single_program)
 	   << "\n";
 	return os;
 }

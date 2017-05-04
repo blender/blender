@@ -291,6 +291,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		/* copy Freestyle settings */
 		new_srl = scen->r.layers.first;
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
+			if (new_srl->prop != NULL) {
+				new_srl->prop = IDP_CopyProperty(new_srl->prop);
+			}
 			BKE_freestyle_config_copy(&new_srl->freestyleConfig, &srl->freestyleConfig);
 			if (type == SCE_COPY_FULL) {
 				for (lineset = new_srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
@@ -513,11 +516,15 @@ void BKE_scene_free(Scene *sce)
 		MEM_freeN(sce->r.ffcodecdata.properties);
 		sce->r.ffcodecdata.properties = NULL;
 	}
-	
+
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
+		if (srl->prop != NULL) {
+			IDP_FreeProperty(srl->prop);
+			MEM_freeN(srl->prop);
+		}
 		BKE_freestyle_config_free(&srl->freestyleConfig);
 	}
-	
+
 	BLI_freelistN(&sce->markers);
 	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);

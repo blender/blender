@@ -1164,6 +1164,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
+	id_us_plus((ID *)obn->poselib);
 	id_us_plus((ID *)obn->gpd);
 	id_us_plus((ID *)obn->dup_group);
 

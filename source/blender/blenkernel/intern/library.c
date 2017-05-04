@@ -132,6 +132,12 @@
 
 #include "atomic_ops.h"
 
+//#define DEBUG_TIME
+
+#ifdef DEBUG_TIME
+#  include "PIL_time_utildefines.h"
+#endif
+
 /* GS reads the memory pointed at in a specific ordering. 
  * only use this definition, makes little and big endian systems
  * work fine, in conjunction with MAKE_ID */
@@ -1776,9 +1782,18 @@ void BKE_library_make_local(
 	LinkNode *copied_ids = NULL;
 	MemArena *linklist_mem = BLI_memarena_new(512 * sizeof(*todo_ids), __func__);
 
+	GSet *done_ids = BLI_gset_ptr_new(__func__);
+
+#ifdef DEBUG_TIME
+	TIMEIT_START(make_local);
+#endif
+
 	BKE_main_relations_create(bmain);
 
-	GSet *done_ids = BLI_gset_ptr_new(__func__);
+#ifdef DEBUG_TIME
+	printf("Pre-compute current ID relations: Done.\n");
+	TIMEIT_VALUE_PRINT(make_local);
+#endif
 
 	/* Step 1: Detect datablocks to make local. */
 	for (a = set_listbasepointers(bmain, lbarray); a--; ) {
@@ -1829,6 +1844,11 @@ void BKE_library_make_local(
 		}
 	}
 
+#ifdef DEBUG_TIME
+	printf("Step 1: Detect datablocks to make local: Done.\n");
+	TIMEIT_VALUE_PRINT(make_local);
+#endif
+
 	/* Step 2: Check which datablocks we can directly make local (because they are only used by already, or future,
 	 * local data), others will need to be duplicated. */
 	GSet *loop_tags = BLI_gset_ptr_new(__func__);
@@ -1841,6 +1861,11 @@ void BKE_library_make_local(
 
 	/* Next step will most likely add new IDs, better to get rid of this mapping now. */
 	BKE_main_relations_free(bmain);
+
+#ifdef DEBUG_TIME
+	printf("Step 2: Check which datablocks we can directly make local: Done.\n");
+	TIMEIT_VALUE_PRINT(make_local);
+#endif
 
 	/* Step 3: Make IDs local, either directly (quick and simple), or using generic process,
 	 * which involves more complex checks and might instead create a local copy of original linked ID. */
@@ -1882,11 +1907,16 @@ void BKE_library_make_local(
 		}
 	}
 
+#ifdef DEBUG_TIME
+	printf("Step 3: Make IDs local: Done.\n");
+	TIMEIT_VALUE_PRINT(make_local);
+#endif
+
 	/* At this point, we are done with directly made local IDs. Now we have to handle duplicated ones, since their
 	 * remaining linked original counterpart may not be needed anymore... */
 	todo_ids = NULL;
 
-	/* Step 4: We have to remap local usages of old (linked) ID to new (local) id in a separated loop,
+	/* Step 4: We have to remap local usages of old (linked) ID to new (local) ID in a separated loop,
 	 * as lbarray ordering is not enough to ensure us we did catch all dependencies
 	 * (e.g. if making local a parent object before its child...). See T48907. */
 	/* TODO This is now the biggest step by far (in term of processing time). We may be able to gain here by
@@ -1909,6 +1939,11 @@ void BKE_library_make_local(
 			id_us_ensure_real(id->newid);
 		}
 	}
+
+#ifdef DEBUG_TIME
+	printf("Step 4: Remap local usages of old (linked) ID to new (local) ID: Done.\n");
+	TIMEIT_VALUE_PRINT(make_local);
+#endif
 
 	/* Note: Keeping both version of the code (old one being safer, since it still has checks against unused IDs)
 	 * for now, we can remove old one once it has been tested for some time in master... */
@@ -1954,6 +1989,12 @@ void BKE_library_make_local(
 			}
 		}
 	}
+
+#ifdef DEBUG_TIME
+	printf("Step 5: Proxy 'remapping' hack: Done.\n");
+	TIMEIT_VALUE_PRINT(make_local);
+#endif
+
 #else
 	LinkNode *linked_loop_candidates = NULL;
 
@@ -2032,6 +2073,11 @@ void BKE_library_make_local(
 		}
 	}
 
+#ifdef DEBUG_TIME
+	printf("Step 5: Remove linked datablocks that have been copied and ended fully localized: Done.\n");
+	TIMEIT_VALUE_PRINT(make_local);
+#endif
+
 	/* Step 6: Try to find circle dependencies between indirectly-linked-only datablocks.
 	 * Those are fake 'usages' that prevent their deletion. See T49775 for nice ugly case. */
 	BKE_library_unused_linked_data_set_tag(bmain, false);
@@ -2068,10 +2114,21 @@ void BKE_library_make_local(
 			it->link = NULL;
 		}
 	}
+
+#ifdef DEBUG_TIME
+	printf("Step 6: Try to find circle dependencies between indirectly-linked-only datablocks: Done.\n");
+	TIMEIT_END(make_local);
+#endif
+
 #endif
 
 	BKE_main_id_clear_newpoins(bmain);
 	BLI_memarena_free(linklist_mem);
+
+#ifdef DEBUG_TIME
+	printf("Cleanup and finish: Done.\n");
+	TIMEIT_END(make_local);
+#endif
 }
 
 /**
