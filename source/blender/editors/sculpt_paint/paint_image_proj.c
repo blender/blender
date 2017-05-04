@@ -5205,7 +5205,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
 
 		project_state_init(C, ob, ps, mode);
 
-		if (ps->ob == NULL || !(ob->base_flag & BASE_VISIBLED)) {
+		if (ps->ob == NULL) {
 			ps_handle->ps_views_tot = i + 1;
 			goto fail;
 		}
