@@ -446,8 +446,7 @@ public:
 		kgbuffer.resize(sizeof(KernelGlobals));
 		mem_alloc("kernel_globals", kgbuffer, MEM_READ_WRITE);
 
-		KernelGlobals *kg = (KernelGlobals*)kgbuffer.device_pointer;
-		*kg = thread_kernel_globals_init();
+		KernelGlobals *kg = new ((void*) kgbuffer.device_pointer) KernelGlobals(thread_kernel_globals_init());
 
 		requested_features.max_closure = MAX_CLOSURE;
 		if(!split_kernel.load_kernels(requested_features)) {
