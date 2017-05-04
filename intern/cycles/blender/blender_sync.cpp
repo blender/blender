@@ -384,26 +384,9 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 
 	/* 3d view */
 	if(b_v3d) {
-		if(RNA_boolean_get(&cscene, "preview_active_layer")) {
-			BL::RenderLayers layers(b_scene.render().ptr);
-			layername = layers.active().name();
-			layer = layername.c_str();
-		}
-		else {
-			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view());
-			render_layer.layer = render_layer.scene_layer;
-			render_layer.exclude_layer = 0;
-			render_layer.holdout_layer = 0;
-			render_layer.material_override = PointerRNA_NULL;
-			render_layer.use_background_shader = true;
-			render_layer.use_background_ao = true;
-			render_layer.use_hair = true;
-			render_layer.use_surfaces = true;
-			render_layer.use_viewport_visibility = true;
-			render_layer.samples = 0;
-			render_layer.bound_samples = false;
-			return;
-		}
+		BL::RenderLayers layers(b_scene.render().ptr);
+		layername = layers.active().name();
+		layer = layername.c_str();
 	}
 
 	/* render layer */
@@ -432,7 +415,6 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 			render_layer.use_background_ao = b_rlay->use_ao();
 			render_layer.use_surfaces = b_rlay->use_solid();
 			render_layer.use_hair = b_rlay->use_strand();
-			render_layer.use_viewport_visibility = false;
 
 			render_layer.bound_samples = (use_layer_samples == 1);
 			if(use_layer_samples != 2) {

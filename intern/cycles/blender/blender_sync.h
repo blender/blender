@@ -191,7 +191,6 @@ private:
 		  use_background_ao(true),
 		  use_surfaces(true),
 		  use_hair(true),
-		  use_viewport_visibility(false),
 		  samples(0), bound_samples(false)
 		{}
 
@@ -205,7 +204,6 @@ private:
 		bool use_background_ao;
 		bool use_surfaces;
 		bool use_hair;
-		bool use_viewport_visibility;
 		int samples;
 		bool bound_samples;
 	} render_layer;

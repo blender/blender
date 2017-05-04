@@ -195,12 +195,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Pause all viewport preview renders",
                 default=False,
                 )
-        cls.preview_active_layer = BoolProperty(
-                name="Preview Active Layer",
-                description="Preview active render layer in viewport",
-                default=False,
-                )
-
         cls.aa_samples = IntProperty(
                 name="AA Samples",
                 description="Number of antialiasing samples to render for each pixel",
