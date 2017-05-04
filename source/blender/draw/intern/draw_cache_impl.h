@@ -76,6 +76,7 @@ struct Batch *DRW_mesh_batch_cache_get_all_triangles(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me, int defgroup);
 struct Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(struct Mesh *me);
+struct Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide);
 struct Batch *DRW_mesh_batch_cache_get_points_with_normals(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_all_verts(struct Mesh *me);
 struct Batch *DRW_mesh_batch_cache_get_fancy_edges(struct Mesh *me);

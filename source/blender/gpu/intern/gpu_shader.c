@@ -702,6 +702,8 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_3D_UNIFORM_COLOR] = { datatoc_gpu_shader_3D_vert_glsl, datatoc_gpu_shader_uniform_color_frag_glsl },
 		[GPU_SHADER_3D_FLAT_COLOR] = { datatoc_gpu_shader_3D_flat_color_vert_glsl,
 		                               datatoc_gpu_shader_flat_color_frag_glsl },
+		[GPU_SHADER_3D_FLAT_COLOR_U32] = { datatoc_gpu_shader_3D_flat_color_vert_glsl,
+		                                   datatoc_gpu_shader_flat_color_frag_glsl },
 		[GPU_SHADER_3D_SMOOTH_COLOR] = { datatoc_gpu_shader_3D_smooth_color_vert_glsl,
 		                                 datatoc_gpu_shader_3D_smooth_color_frag_glsl },
 		[GPU_SHADER_3D_DEPTH_ONLY] = { datatoc_gpu_shader_3D_vert_glsl, datatoc_gpu_shader_depth_only_frag_glsl },
@@ -781,10 +783,26 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 
 	if (builtin_shaders[shader] == NULL) {
 		/* just a few special cases */
-		const char *defines = (shader == GPU_SHADER_SMOKE_COBA) ? "#define USE_COBA;\n" :
-		                      (shader == GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE) ? "#define UNIFORM_SCALE;\n" :
-		                      (shader == GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS) ? "#define AXIS_NAME;\n" :
-		                      (shader == GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR) ? "#define USE_INSTANCE_COLOR;\n" : NULL;
+		const char *defines = NULL;
+		switch (shader) {
+			case GPU_SHADER_SMOKE_COBA:
+				defines = "#define USE_COBA;\n";
+				break;
+			case GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE:
+				defines = "#define UNIFORM_SCALE;\n";
+				break;
+			case GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS:
+				defines = "#define AXIS_NAME;\n";
+				break;
+			case GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR:
+				defines = "#define USE_INSTANCE_COLOR;\n";
+				break;
+			case GPU_SHADER_3D_FLAT_COLOR_U32:
+				defines = "#define USE_COLOR_U32;\n";
+				break;
+			default:
+				break;
+		}
 
 		const GPUShaderStages *stages = builtin_shader_stages + shader;
 

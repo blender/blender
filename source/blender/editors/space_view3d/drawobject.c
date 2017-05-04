@@ -9542,8 +9542,9 @@ static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
 
 static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 {
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	Mesh *me = ob->data;
+#if defined(WITH_LEGACY_OPENGL)
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	
 	DM_update_materials(dm, ob);
 
@@ -9553,6 +9554,19 @@ static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, NULL, NULL, me, 0);
 
 	dm->release(dm);
+#else
+	UNUSED_VARS(scene, bbs_mesh_solid_hide__setDrawOpts, bbs_mesh_solid__setDrawOpts);
+	Batch *batch;
+	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
+		batch = DRW_mesh_batch_cache_get_triangles_with_select_id(me, true);
+	}
+	else {
+		batch = DRW_mesh_batch_cache_get_triangles_with_select_id(me, false);
+	}
+	Batch_set_builtin_program(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+	Batch_draw(batch);
+
+#endif
 }
 
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
