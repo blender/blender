@@ -526,7 +526,7 @@ PassType BlenderSync::get_pass_type(BL::RenderPass& b_pass)
 }
 
 array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
-	                                        BL::SceneRenderLayer& b_srlay)
+                                            BL::SceneRenderLayer& b_srlay)
 {
 	array<Pass> passes;
 	Pass::add(PASS_COMBINED, passes);
@@ -562,6 +562,8 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 		b_engine.add_pass("Debug Ray Bounces", 1, "X", b_srlay.name().c_str());
 		Pass::add(PASS_RAY_BOUNCES, passes);
 	}
+#else
+	(void) b_srlay;  /* Ignored. */
 #endif
 
 	return passes;
