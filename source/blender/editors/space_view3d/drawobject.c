@@ -9565,7 +9565,6 @@ static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 	}
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
 	Batch_draw(batch);
-
 #endif
 }
 
