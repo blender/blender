@@ -327,6 +327,9 @@ void DRW_draw_text_cache_queue(struct DRWTextStore *dt);
 void DRW_draw_callbacks_pre_scene(void);
 void DRW_draw_callbacks_post_scene(void);
 
+int DRW_draw_region_engine_info_offset(void);
+void DRW_draw_region_engine_info(void);
+
 void DRW_state_reset_ex(DRWState state);
 void DRW_state_reset(void);
 

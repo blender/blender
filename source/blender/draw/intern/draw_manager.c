@@ -41,6 +41,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "DNA_camera_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 
@@ -64,6 +65,7 @@
 
 #include "RE_engine.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "draw_manager_text.h"
@@ -2016,6 +2018,45 @@ static void DRW_engines_draw_text(void)
 
 		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
 		data->render_time = data->render_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
+	}
+}
+
+/**
+ * Returns the offset required for the drawing of engines info.
+ */
+int DRW_draw_region_engine_info_offset()
+{
+	int offset = 0;
+	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+
+		if (data->info[0] != '\0') {
+			offset += UI_UNIT_Y;
+		}
+	}
+	return offset;
+}
+
+/**
+ * Actual drawing;
+ */
+void DRW_draw_region_engine_info()
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ARegion *ar = draw_ctx->ar;
+	float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
+
+	UI_GetThemeColor3fv(TH_HIGH_GRAD, fill_color);
+	mul_v3_fl(fill_color, fill_color[3]);
+
+	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+
+		if (data->info[0] != '\0') {
+			ED_region_info_draw(ar, data->info, fill_color, true);
+		}
 	}
 }
 

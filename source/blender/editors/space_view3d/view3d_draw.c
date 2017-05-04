@@ -2311,7 +2311,7 @@ static void view3d_draw_manipulators(const bContext *C, const ARegion *ar)
 /**
 * Information drawn on top of the solid plates and composed data
 */
-void view3d_draw_region_info(const bContext *C, ARegion *ar)
+void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
@@ -2324,6 +2324,9 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 	/* local coordinate visible rect inside region, to accomodate overlapping ui */
 	rcti rect;
 	ED_region_visible_rect(ar, &rect);
+
+	/* Leave room for previously drawn info. */
+	rect.ymax -= offset;
 
 	view3d_draw_border(C, ar);
 	view3d_draw_grease_pencil(C);
@@ -2400,7 +2403,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 
 	glDisable(GL_DEPTH_TEST);
 
-	view3d_draw_region_info(C, ar);
+	view3d_draw_region_info(C, ar, 0);
 
 #if VIEW3D_DRAW_DEBUG
 	view3d_draw_debug(C, ar, draw_data);

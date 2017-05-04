@@ -209,7 +209,7 @@ void draw_sim_debug_data(Scene *scene, View3D *v3d, ARegion *ar);
 
 /* view3d_draw.c */
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *ar);
-void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar);
+void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar, const int offset);
 
 void ED_view3d_draw_depth(
         struct Depsgraph *graph,

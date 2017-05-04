@@ -39,6 +39,8 @@
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
 
+#define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT */
+
 typedef struct GPUViewport GPUViewport;
 
 /* All FramebufferLists are just the same pointers with different names */
@@ -65,6 +67,7 @@ typedef struct ViewportEngineData {
 	TextureList *txl;
 	PassList *psl;
 	StorageList *stl;
+	char info[GPU_INFO_SIZE];
 
 	/* we may want to put this elsewhere */
 	struct DRWTextStore *text_draw_cache;

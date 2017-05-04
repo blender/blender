@@ -61,9 +61,17 @@ void DRW_draw_region_info(void)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ARegion *ar = draw_ctx->ar;
+	int offset;
 
 	DRW_draw_cursor();
-	view3d_draw_region_info(draw_ctx->evil_C, ar);
+
+	offset = DRW_draw_region_engine_info_offset();
+
+	view3d_draw_region_info(draw_ctx->evil_C, ar, offset);
+
+	if (offset > 0) {
+		DRW_draw_region_engine_info();
+	}
 }
 
 /* ************************* Grid ************************** */

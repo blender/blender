@@ -80,6 +80,7 @@ typedef struct EXTERNAL_Data {
 	EXTERNAL_TextureList *txl;
 	EXTERNAL_PassList *psl;
 	EXTERNAL_StorageList *stl;
+	char info[GPU_INFO_SIZE];
 } EXTERNAL_Data;
 
 /* *********** STATIC *********** */
@@ -138,7 +139,7 @@ static void EXTERNAL_cache_finish(void *UNUSED(vedata))
 {
 }
 
-static void external_draw_scene(void *UNUSED(vedata))
+static void external_draw_scene(void *vedata)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
@@ -173,6 +174,15 @@ static void external_draw_scene(void *UNUSED(vedata))
 	type->render_to_view(rv3d->render_engine, draw_ctx->evil_C);
 
 	gpuPopProjectionMatrix();
+
+	/* Set render info. */
+	EXTERNAL_Data *data = vedata;
+	if (rv3d->render_engine->text) {
+		BLI_strncpy(data->info, rv3d->render_engine->text, sizeof(data->info));
+	}
+	else {
+		data->info[0] = '\0';
+	}
 }
 
 static void EXTERNAL_draw_scene(void *vedata)
