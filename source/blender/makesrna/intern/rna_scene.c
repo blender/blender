@@ -2540,8 +2540,8 @@ static void rna_LayerCollectionEngineSettings_weight_wire_update(bContext *C, Po
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = OBACT_NEW;
 
-	if (ob != NULL) {
-		BKE_mesh_batch_cache_dirty(ob, BKE_MESH_BATCH_DIRTY_WEIGHT);
+	if (ob != NULL && ob->type == OB_MESH) {
+		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_WEIGHT);
 	}
 
 	/* TODO(sergey): Use proper flag for tagging here. */
