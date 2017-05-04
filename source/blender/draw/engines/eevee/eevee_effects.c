@@ -42,7 +42,7 @@ typedef struct EEVEE_ProbeData {
 } EEVEE_ProbeData;
 
 /* TODO Option */
-#define PROBE_SIZE 512
+#define ENABLE_EFFECT_MOTION_BLUR 1
 
 static struct {
 	struct GPUShader *motion_blur_sh;
