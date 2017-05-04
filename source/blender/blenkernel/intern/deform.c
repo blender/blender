@@ -74,7 +74,7 @@ bDeformGroup *BKE_defgroup_new(Object *ob, const char *name)
 	BLI_addtail(&ob->defbase, defgroup);
 	defgroup_unique_name(defgroup, ob);
 
-	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_WEIGHT);
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_PAINT);
 
 	return defgroup;
 }

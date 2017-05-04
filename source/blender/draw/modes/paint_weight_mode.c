@@ -86,7 +86,7 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 	if (e_data.actdef != draw_ctx->sl->basact->object->actdef) {
 		e_data.actdef = draw_ctx->sl->basact->object->actdef;
 
-		BKE_mesh_batch_cache_dirty(draw_ctx->sl->basact->object->data, BKE_MESH_BATCH_DIRTY_WEIGHT);
+		BKE_mesh_batch_cache_dirty(draw_ctx->sl->basact->object->data, BKE_MESH_BATCH_DIRTY_PAINT);
 	}
 
 	if (!e_data.weight_face_shader) {
@@ -164,7 +164,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 		DRW_shgroup_call_add(stl->g_data->fweights_shgrp, geom, ob->obmat);
 
 		if (flag & ME_EDIT_PAINT_FACE_SEL || use_wire) {
-			geom = DRW_cache_mesh_edges_weight_overlay_get(ob, use_wire, flag & ME_EDIT_PAINT_FACE_SEL);
+			geom = DRW_cache_mesh_edges_paint_overlay_get(ob, use_wire, flag & ME_EDIT_PAINT_FACE_SEL, false);
 			DRW_shgroup_call_add(stl->g_data->lwire_shgrp, geom, ob->obmat);
 		}
 

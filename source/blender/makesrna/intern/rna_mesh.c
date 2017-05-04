@@ -239,11 +239,18 @@ static void rna_Mesh_update_data_edit_color(Main *bmain, Scene *scene, PointerRN
 
 static void rna_Mesh_update_data_edit_weight(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	BKE_mesh_batch_cache_dirty(rna_mesh(ptr), BKE_MESH_BATCH_DIRTY_WEIGHT);
+	BKE_mesh_batch_cache_dirty(rna_mesh(ptr), BKE_MESH_BATCH_DIRTY_PAINT);
 
 	rna_Mesh_update_data(bmain, scene, ptr);
 }
 
+
+static void rna_Mesh_update_data_edit_active_color(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	BKE_mesh_batch_cache_dirty(rna_mesh(ptr), BKE_MESH_BATCH_DIRTY_PAINT);
+
+	rna_Mesh_update_data(bmain, scene, ptr);
+}
 static void rna_Mesh_update_select(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
@@ -270,7 +277,7 @@ static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 		me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;
 	}
 
-	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_WEIGHT);
+	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_PAINT);
 
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
@@ -282,7 +289,7 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
 	}
 
-	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_WEIGHT);
+	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_PAINT);
 
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
@@ -2940,13 +2947,13 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	                               "rna_Mesh_vertex_color_active_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Vertex Color Layer", "Active vertex color layer");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data_edit_active_color");
 
 	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Mesh_vertex_color_active_index_get",
 	                           "rna_Mesh_vertex_color_active_index_set", "rna_Mesh_vertex_color_index_range");
 	RNA_def_property_ui_text(prop, "Active Vertex Color Index", "Active vertex color index");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data_edit_active_color");
 }
 
 static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)

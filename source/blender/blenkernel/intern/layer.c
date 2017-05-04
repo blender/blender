@@ -1105,6 +1105,22 @@ static void layer_collection_create_mode_settings_paint_weight(IDProperty *root,
 	IDP_AddToGroup(root, props);
 }
 
+static void layer_collection_create_mode_settings_paint_vertex(IDProperty *root, const bool populate)
+{
+	IDProperty *props;
+	IDPropertyTemplate val = {0};
+
+	props = IDP_New(IDP_GROUP, &val, "VertexPaintMode");
+	props->subtype = IDP_GROUP_SUB_MODE_PAINT_VERTEX;
+
+	/* properties */
+	if (populate) {
+		PAINT_VERTEX_collection_settings_create(props);
+	}
+
+	IDP_AddToGroup(root, props);
+}
+
 static void collection_create_render_settings(IDProperty *root, const bool populate)
 {
 	CollectionEngineSettingsCB_Type *ces_type;
@@ -1121,6 +1137,7 @@ static void collection_create_mode_settings(IDProperty *root, const bool populat
 	layer_collection_create_mode_settings_object(root, populate);
 	layer_collection_create_mode_settings_edit(root, populate);
 	layer_collection_create_mode_settings_paint_weight(root, populate);
+	layer_collection_create_mode_settings_paint_vertex(root, populate);
 }
 
 static int idproperty_group_subtype(const int mode_type)
@@ -1136,6 +1153,9 @@ static int idproperty_group_subtype(const int mode_type)
 			break;
 		case COLLECTION_MODE_PAINT_WEIGHT:
 			idgroup_type = IDP_GROUP_SUB_MODE_PAINT_WEIGHT;
+			break;
+		case COLLECTION_MODE_PAINT_VERTEX:
+			idgroup_type = IDP_GROUP_SUB_MODE_PAINT_VERTEX;
 			break;
 		default:
 		case COLLECTION_MODE_NONE:

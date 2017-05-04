@@ -1777,6 +1777,14 @@ Batch *DRW_cache_mesh_surface_weights_get(Object *ob)
 	return DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(me, ob->actdef - 1);
 }
 
+Batch *DRW_cache_mesh_surface_vert_colors_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(me);
+}
+
 /* Return list of batches */
 Batch **DRW_cache_mesh_surface_shaded_get(Object *ob)
 {
@@ -1810,12 +1818,12 @@ Batch *DRW_cache_mesh_verts_get(Object *ob)
 	return DRW_mesh_batch_cache_get_all_verts(me);
 }
 
-Batch *DRW_cache_mesh_edges_weight_overlay_get(Object *ob, bool use_wire, bool use_sel)
+Batch *DRW_cache_mesh_edges_paint_overlay_get(Object *ob, bool use_wire, bool use_sel, bool use_theme)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_weight_overlay_edges(me, use_wire, use_sel);
+	return DRW_mesh_batch_cache_get_weight_overlay_edges(me, use_wire, use_sel, use_theme);
 }
 
 Batch *DRW_cache_mesh_faces_weight_overlay_get(Object *ob)

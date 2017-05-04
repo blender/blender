@@ -90,5 +90,6 @@ void OBJECT_collection_settings_create(struct IDProperty *properties);
 void EDIT_MESH_collection_settings_create(struct IDProperty *properties);
 void EDIT_ARMATURE_collection_settings_create(struct IDProperty *properties);
 void PAINT_WEIGHT_collection_settings_create(struct IDProperty *properties);
+void PAINT_VERTEX_collection_settings_create(struct IDProperty *properties);
 
 #endif /* __DRW_ENGINE_H__ */

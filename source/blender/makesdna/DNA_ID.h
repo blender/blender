@@ -104,6 +104,7 @@ enum {
 	IDP_GROUP_SUB_ENGINE_RENDER     = 3,  /* render engine settings */
 	IDP_GROUP_SUB_OVERRIDE          = 4,  /* data override */
 	IDP_GROUP_SUB_MODE_PAINT_WEIGHT = 5,  /* weight paint mode settings */
+	IDP_GROUP_SUB_MODE_PAINT_VERTEX = 6,  /* vertex paint mode settings */
 };
 
 /*->flag*/
