@@ -416,11 +416,15 @@ void BKE_scene_free(Scene *sce)
 		MEM_freeN(sce->r.ffcodecdata.properties);
 		sce->r.ffcodecdata.properties = NULL;
 	}
-	
+
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
+		if (srl->prop != NULL) {
+			IDP_FreeProperty(srl->prop);
+			MEM_freeN(srl->prop);
+		}
 		BKE_freestyle_config_free(&srl->freestyleConfig);
 	}
-	
+
 	BLI_freelistN(&sce->markers);
 	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
