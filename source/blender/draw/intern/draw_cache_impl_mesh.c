@@ -1114,31 +1114,11 @@ static bool mesh_render_data_looptri_cos_nors_smooth_get(
 			return false;
 		}
 
+		mesh_render_data_ensure_poly_normals_short(rdata);
+		mesh_render_data_ensure_vert_normals_short(rdata);
+
 		short (*pnors_short)[3] = rdata->poly_normals_short;
 		short (*vnors_short)[3] = rdata->vert_normals_short;
-
-		if (!pnors_short) {
-			BMesh *bm = rdata->edit_bmesh->bm;
-			BMIter fiter;
-			BMFace *face;
-			int i;
-
-			pnors_short = rdata->poly_normals_short = MEM_mallocN(sizeof(*pnors_short) * rdata->poly_len, __func__);
-			BM_ITER_MESH_INDEX(face, &fiter, bm, BM_FACES_OF_MESH, i) {
-				normal_float_to_short_v3(pnors_short[i], face->no);
-			}
-		}
-		if (!vnors_short) {
-			BMesh *bm = rdata->edit_bmesh->bm;
-			BMIter viter;
-			BMVert *vert;
-			int i;
-
-			vnors_short = rdata->vert_normals_short = MEM_mallocN(sizeof(*vnors_short) * rdata->vert_len, __func__);
-			BM_ITER_MESH_INDEX(vert, &viter, bm, BM_VERT, i) {
-				normal_float_to_short_v3(vnors_short[i], vert->no);
-			}
-		}
 
 		(*r_vert_cos)[0] = bm_looptri[0]->v->co;
 		(*r_vert_cos)[1] = bm_looptri[1]->v->co;
@@ -1152,23 +1132,10 @@ static bool mesh_render_data_looptri_cos_nors_smooth_get(
 	}
 	else {
 		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
+
+		mesh_render_data_ensure_poly_normals_short(rdata);
+
 		short (*pnors_short)[3] = rdata->poly_normals_short;
-
-		if (!pnors_short) {
-			float (*pnors)[3] = rdata->poly_normals;
-
-			if (!pnors) {
-				pnors = rdata->poly_normals = MEM_mallocN(sizeof(*pnors) * rdata->poly_len, __func__);
-				BKE_mesh_calc_normals_poly(
-				            rdata->mvert, NULL, rdata->vert_len,
-				            rdata->mloop, rdata->mpoly, rdata->loop_len, rdata->poly_len, pnors, true);
-			}
-
-			pnors_short = rdata->poly_normals_short = MEM_mallocN(sizeof(*pnors_short) * rdata->poly_len, __func__);
-			for (int i = 0; i < rdata->poly_len; i++) {
-				normal_float_to_short_v3(pnors_short[i], pnors[i]);
-			}
-		}
 
 		(*r_vert_cos)[0] = rdata->mvert[rdata->mloop[mlt->tri[0]].v].co;
 		(*r_vert_cos)[1] = rdata->mvert[rdata->mloop[mlt->tri[1]].v].co;
