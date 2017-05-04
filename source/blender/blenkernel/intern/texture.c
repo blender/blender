@@ -549,11 +549,11 @@ int colorband_element_remove(struct ColorBand *coba, int index)
 	if (index < 0 || index >= coba->tot)
 		return 0;
 
+	coba->tot--;
 	for (a = index; a < coba->tot; a++) {
 		coba->data[a] = coba->data[a + 1];
 	}
 	if (coba->cur) coba->cur--;
-	coba->tot--;
 	return 1;
 }
 
