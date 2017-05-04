@@ -2119,22 +2119,37 @@ int ED_area_headersize(void)
 	return (int)(HEADERY * UI_DPI_FAC);
 }
 
-void ED_region_info_draw(ARegion *ar, const char *text, float fill_color[4], const bool full_redraw)
+void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float fill_color[4], const bool full_redraw)
 {
 	const int header_height = UI_UNIT_Y;
 	uiStyle *style = UI_style_get_dpi();
 	int fontid = style->widget.uifont_id;
 	GLint scissor[4];
 	rcti rect;
+	int num_lines = 0;
 
 	/* background box */
 	ED_region_visible_rect(ar, &rect);
-	rect.ymin = BLI_rcti_size_y(&ar->winrct) - header_height;
 
-	/* box fill entire width or just around text */
-	if (!full_redraw)
-		rect.xmax = min_ii(rect.xmax, rect.xmin + BLF_width(fontid, text, BLF_DRAW_STR_DUMMY_MAX) + 1.2f * U.widget_unit);
+	/* Box fill entire width or just around text. */
+	if (!full_redraw) {
+		const char **text = &text_array[0];
+		while (*text) {
+			rect.xmax = min_ii(rect.xmax, rect.xmin + BLF_width(fontid, *text, BLF_DRAW_STR_DUMMY_MAX) + 1.2f * U.widget_unit);
+			text++;
+			num_lines++;
+		}
+	}
+	/* Just count the line number. */
+	else {
+		const char **text = &text_array[0];
+		while (*text) {
+			text++;
+			num_lines++;
+		}
+	}
 
+	rect.ymin = BLI_rcti_size_y(&ar->winrct) - header_height * num_lines;
 	rect.ymax = BLI_rcti_size_y(&ar->winrct);
 
 	/* setup scissor */
@@ -2156,14 +2171,26 @@ void ED_region_info_draw(ARegion *ar, const char *text, float fill_color[4], con
 	UI_FontThemeColor(fontid, TH_TEXT_HI);
 	BLF_clipping(fontid, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	BLF_enable(fontid, BLF_CLIPPING);
-	BLF_position(fontid, rect.xmin + 0.6f * U.widget_unit, rect.ymin + 0.3f * U.widget_unit, 0.0f);
-
-	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
+	int offset = num_lines - 1;
+	{
+		const char **text = &text_array[0];
+		while (*text) {
+			BLF_position(fontid, rect.xmin + 0.6f * U.widget_unit, rect.ymin + 0.3f * U.widget_unit + offset * header_height, 0.0f);
+			BLF_draw(fontid, *text, BLF_DRAW_STR_DUMMY_MAX);
+			text++;
+			offset--;
+		}
+	}
 
 	BLF_disable(fontid, BLF_CLIPPING);
 
 	/* restore scissor as it was before */
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+}
+
+void ED_region_info_draw(ARegion *ar, const char *text, float fill_color[4], const bool full_redraw)
+{
+	ED_region_info_draw_multiline(ar, (const char *[2]){text, NULL}, fill_color, full_redraw);
 }
 
 #define MAX_METADATA_STR    1024

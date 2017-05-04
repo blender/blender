@@ -75,6 +75,7 @@ void    ED_region_header(const struct bContext *C, struct ARegion *ar);
 void    ED_region_cursor_set(struct wmWindow *win, struct ScrArea *sa, struct ARegion *ar);
 void    ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
 void    ED_region_info_draw(struct ARegion *ar, const char *text, float fill_color[4], const bool full_redraw);
+void    ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float fill_color[4], const bool full_redraw);
 void    ED_region_image_metadata_draw(int x, int y, struct ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
 void    ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
 float	ED_region_blend_factor(struct ARegion *ar);
