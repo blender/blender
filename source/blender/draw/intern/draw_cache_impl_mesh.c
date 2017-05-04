@@ -57,7 +57,9 @@
 static void mesh_batch_cache_clear(Mesh *me);
 
 /* ---------------------------------------------------------------------- */
-/* Mesh/BMesh Interface, direct access to basic data. */
+
+/** \name Mesh/BMesh Interface (direct access to basic data).
+ * \{ */
 
 static int mesh_render_verts_len_get(Mesh *me)
 {
@@ -89,8 +91,13 @@ static int UNUSED_FUNCTION(mesh_render_loops_len_get)(Mesh *me)
 	return me->edit_btmesh ? me->edit_btmesh->bm->totloop : me->totloop;
 }
 
+/** \} */
+
+
 /* ---------------------------------------------------------------------- */
-/* Mesh/BMesh Interface, indirect, partially cached access to complex data. */
+
+/** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
+ * \{ */
 
 typedef struct EdgeAdjacentPolys {
 	int count;
@@ -487,6 +494,14 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 	MEM_freeN(rdata);
 }
 
+/** \} */
+
+
+/* ---------------------------------------------------------------------- */
+
+/** \name Accessor Functions
+ * \{ */
+
 static const char *mesh_render_data_uv_auto_layer_name_get(const MeshRenderData *rdata, int layer)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
@@ -616,6 +631,8 @@ static bool mesh_render_data_edge_verts_indices_get(
 	}
 	return true;
 }
+
+/** \} */
 
 
 /* ---------------------------------------------------------------------- */
@@ -807,6 +824,11 @@ fallback:
 }
 
 /** \} */
+
+/* ---------------------------------------------------------------------- */
+
+/** \name Internal Cache Generation
+ * \{ */
 
 static bool mesh_render_data_pnors_pcenter_select_get(
         MeshRenderData *rdata, const int poly,
@@ -1541,8 +1563,13 @@ static void add_overlay_loose_vert(
 	VertexBuffer_set_attrib(vbo, edgeMod_id, base_vert_idx + 0, vflag);
 }
 
+/** \} */
+
+
 /* ---------------------------------------------------------------------- */
-/* Mesh Batch Cache */
+
+/** \name Mesh Batch Cache
+ * \{ */
 
 typedef struct MeshBatchCache {
 	VertexBuffer *pos_in_order;
@@ -2367,6 +2394,14 @@ static VertexBuffer *mesh_batch_cache_get_pos_with_sel(MeshRenderData *rdata, Me
 	return cache->pos_with_sel;
 }
 
+/** \} */
+
+
+/* ---------------------------------------------------------------------- */
+
+/** \name Public API
+ * \{ */
+
 Batch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
@@ -2820,5 +2855,7 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
 
 	return cache->overlay_weight_verts;
 }
+
+/** \} */
 
 #undef MESH_RENDER_FUNCTION
