@@ -77,7 +77,7 @@ static int mesh_render_polys_len_get(Mesh *me)
 	return me->edit_btmesh ? me->edit_btmesh->bm->totface : me->totpoly;
 }
 
-static int mesh_render_mat_ct_get(Mesh *me)
+static int mesh_render_mat_len_get(Mesh *me)
 {
 	return MAX2(1, me->totcol);
 }
@@ -110,7 +110,7 @@ typedef struct MeshRenderData {
 	int tri_len;
 	int loop_len;
 	int poly_len;
-	int mat_ct;
+	int mat_len;
 	int loose_vert_len;
 	int loose_edge_len;
 
@@ -129,8 +129,8 @@ typedef struct MeshRenderData {
 	BMEdge *eed_act;
 	BMFace *efa_act;
 
-	int uv_ct;
-	int vcol_ct;
+	int uv_len;
+	int vcol_len;
 
 	bool *auto_vcol;
 
@@ -207,7 +207,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 {
 	MeshRenderData *rdata = MEM_callocN(sizeof(*rdata), __func__);
 	rdata->types = types;
-	rdata->mat_ct = mesh_render_mat_ct_get(me);
+	rdata->mat_len = mesh_render_mat_len_get(me);
 
 	if (me->edit_btmesh) {
 		BMEditMesh *embm = me->edit_btmesh;
@@ -316,26 +316,26 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 	}
 
 	if (types & MR_DATATYPE_SHADING) {
-		rdata->uv_ct = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
-		rdata->vcol_ct = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+		rdata->uv_len = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+		rdata->vcol_len = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
 
-		rdata->mloopuv = MEM_mallocN(sizeof(*rdata->mloopuv) * rdata->uv_ct, "rdata->mloopuv");
-		rdata->mloopcol = MEM_mallocN(sizeof(*rdata->mloopcol) * rdata->vcol_ct, "rdata->mloopcol");
-		rdata->mtangent = MEM_mallocN(sizeof(*rdata->mtangent) * rdata->uv_ct, "rdata->mtangent");
+		rdata->mloopuv = MEM_mallocN(sizeof(*rdata->mloopuv) * rdata->uv_len, "rdata->mloopuv");
+		rdata->mloopcol = MEM_mallocN(sizeof(*rdata->mloopcol) * rdata->vcol_len, "rdata->mloopcol");
+		rdata->mtangent = MEM_mallocN(sizeof(*rdata->mtangent) * rdata->uv_len, "rdata->mtangent");
 
-		rdata->uv_names = MEM_mallocN(sizeof(*rdata->uv_names) * rdata->uv_ct, "rdata->uv_names");
-		rdata->vcol_names = MEM_mallocN(sizeof(*rdata->vcol_names) * rdata->vcol_ct, "rdata->vcol_names");
-		rdata->tangent_names = MEM_mallocN(sizeof(*rdata->tangent_names) * rdata->uv_ct, "rdata->tangent_names");
+		rdata->uv_names = MEM_mallocN(sizeof(*rdata->uv_names) * rdata->uv_len, "rdata->uv_names");
+		rdata->vcol_names = MEM_mallocN(sizeof(*rdata->vcol_names) * rdata->vcol_len, "rdata->vcol_names");
+		rdata->tangent_names = MEM_mallocN(sizeof(*rdata->tangent_names) * rdata->uv_len, "rdata->tangent_names");
 
-		rdata->uv_ofs = MEM_mallocN(sizeof(*rdata->uv_ofs) * rdata->uv_ct, "rdata->uv_ofs");
-		rdata->vcol_ofs = MEM_mallocN(sizeof(*rdata->vcol_ofs) * rdata->vcol_ct, "rdata->vcol_ofs");
-		rdata->tangent_ofs = MEM_mallocN(sizeof(*rdata->tangent_ofs) * rdata->uv_ct, "rdata->tangent_ofs");
+		rdata->uv_ofs = MEM_mallocN(sizeof(*rdata->uv_ofs) * rdata->uv_len, "rdata->uv_ofs");
+		rdata->vcol_ofs = MEM_mallocN(sizeof(*rdata->vcol_ofs) * rdata->vcol_len, "rdata->vcol_ofs");
+		rdata->tangent_ofs = MEM_mallocN(sizeof(*rdata->tangent_ofs) * rdata->uv_len, "rdata->tangent_ofs");
 
 		/* Allocate max */
 		rdata->auto_vcol = MEM_callocN(
-		        sizeof(*rdata->auto_vcol) * rdata->vcol_ct, "rdata->auto_vcol");
+		        sizeof(*rdata->auto_vcol) * rdata->vcol_len, "rdata->auto_vcol");
 		rdata->auto_names = MEM_mallocN(
-		        sizeof(*rdata->auto_names) * (rdata->vcol_ct + rdata->uv_ct), "rdata->auto_names");
+		        sizeof(*rdata->auto_names) * (rdata->vcol_len + rdata->uv_len), "rdata->auto_names");
 
 		/* XXX FIXME XXX */
 		/* We use a hash to identify each data layer based on its name.
@@ -344,7 +344,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 		 * One solution to hash collision would be to format the cd layer name
 		 * to a safe glsl var name, but without name clash.
 		 * NOTE 2 : Replicate changes to code_generate_vertex_new() in gpu_codegen.c */
-		for (int i = 0; i < rdata->vcol_ct; ++i) {
+		for (int i = 0; i < rdata->vcol_len; ++i) {
 			const char *name = CustomData_get_layer_name(&me->ldata, CD_MLOOPCOL, i);
 			unsigned int hash = BLI_ghashutil_strhash_p(name);
 			BLI_snprintf(rdata->vcol_names[i], sizeof(*rdata->vcol_names), "c%u", hash);
@@ -356,14 +356,14 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			/* Gather number of auto layers. */
 			/* We only do vcols that are not overridden by uvs */
 			if (CustomData_get_named_layer_index(&me->ldata, CD_MLOOPUV, name) == -1) {
-				BLI_snprintf(rdata->auto_names[rdata->uv_ct + i], sizeof(*rdata->auto_names), "a%u", hash);
+				BLI_snprintf(rdata->auto_names[rdata->uv_len + i], sizeof(*rdata->auto_names), "a%u", hash);
 				rdata->auto_vcol[i] = true;
 			}
 		}
 
 		/* Start Fresh */
 		CustomData_free_layers(&me->ldata, CD_MLOOPTANGENT, me->totloop);
-		for (int i = 0; i < rdata->uv_ct; ++i) {
+		for (int i = 0; i < rdata->uv_len; ++i) {
 			const char *name = CustomData_get_layer_name(&me->ldata, CD_MLOOPUV, i);
 			unsigned int hash = BLI_ghashutil_strhash_p(name);
 
@@ -486,7 +486,7 @@ static const char *mesh_render_data_uv_auto_layer_name_get(const MeshRenderData 
 static const char *mesh_render_data_vcol_auto_layer_name_get(const MeshRenderData *rdata, int layer)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
-	return rdata->auto_names[rdata->uv_ct + layer];
+	return rdata->auto_names[rdata->uv_len + layer];
 }
 
 static const char *mesh_render_data_uv_layer_name_get(const MeshRenderData *rdata, int layer)
@@ -537,10 +537,10 @@ static int mesh_render_data_looptri_len_get(const MeshRenderData *rdata)
 	return rdata->tri_len;
 }
 
-static int mesh_render_data_mat_ct_get(const MeshRenderData *rdata)
+static int mesh_render_data_mat_len_get(const MeshRenderData *rdata)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_POLY);
-	return rdata->mat_ct;
+	return rdata->mat_len;
 }
 
 static int UNUSED_FUNCTION(mesh_render_data_loops_len_get)(const MeshRenderData *rdata)
@@ -1018,7 +1018,7 @@ static void rgb_from_weight(float r_rgb[3], const float weight)
 static bool mesh_render_data_looptri_cos_weights_get(
         MeshRenderData *rdata, const int tri_idx,
         float *(*r_vert_cos)[3], float *(*r_vert_weights)[3],
-        short **r_tri_nor, short *(*r_vert_nors)[3], bool *r_is_smooth, int index)
+        short **r_tri_nor, short *(*r_vert_nors)[3], bool *r_is_smooth, int defgroup)
 {
 	BLI_assert(
 	        rdata->types &
@@ -1072,7 +1072,7 @@ static bool mesh_render_data_looptri_cos_weights_get(
 				vweight = rdata->vert_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
 				BM_ITER_MESH_INDEX(vert, &viter, bm, BM_VERT, i) {
 					const MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(vert, cd_dvert_offset);
-					float weight = defvert_find_weight(dvert, index);
+					float weight = defvert_find_weight(dvert, defgroup);
 					if (U.flag & USER_CUSTOM_RANGE) {
 						do_colorband(&U.coba_weight, weight, vweight[i]);
 					}
@@ -1129,7 +1129,7 @@ static bool mesh_render_data_looptri_cos_weights_get(
 				vweight = rdata->vert_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
 
 				for (int i = 0; i < rdata->vert_len; i++) {
-					float weight = defvert_find_weight(&rdata->dvert[i], index);
+					float weight = defvert_find_weight(&rdata->dvert[i], defgroup);
 					if (U.flag & USER_CUSTOM_RANGE) {
 						do_colorband(&U.coba_weight, weight, vweight[i]);
 					}
@@ -1497,7 +1497,7 @@ typedef struct MeshBatchCache {
 	int tri_len;
 	int poly_len;
 	int vert_len;
-	int mat_ct;
+	int mat_len;
 	bool is_editmode;
 } MeshBatchCache;
 
@@ -1512,7 +1512,7 @@ static bool mesh_batch_cache_valid(Mesh *me)
 	}
 
 	/* XXX find another place for this */
-	if (cache->mat_ct != mesh_render_mat_ct_get(me)) {
+	if (cache->mat_len != mesh_render_mat_len_get(me)) {
 		cache->is_dirty = true;
 	}
 
@@ -1535,7 +1535,7 @@ static bool mesh_batch_cache_valid(Mesh *me)
 		         (cache->edge_len != mesh_render_edges_len_get(me)) ||
 		         (cache->tri_len  != mesh_render_looptri_len_get(me)) ||
 		         (cache->poly_len != mesh_render_polys_len_get(me)) ||
-		         (cache->mat_ct   != mesh_render_mat_ct_get(me)))
+		         (cache->mat_len   != mesh_render_mat_len_get(me)))
 		{
 			return false;
 		}
@@ -1564,7 +1564,7 @@ static void mesh_batch_cache_init(Mesh *me)
 		cache->vert_len = mesh_render_verts_len_get(me);
 	}
 
-	cache->mat_ct = mesh_render_mat_ct_get(me);
+	cache->mat_len = mesh_render_mat_len_get(me);
 
 	cache->is_dirty = false;
 	cache->is_weight_dirty = false;
@@ -1636,12 +1636,12 @@ static void mesh_batch_cache_clear(Mesh *me)
 
 	VERTEXBUFFER_DISCARD_SAFE(cache->shaded_triangles_data);
 	if (cache->shaded_triangles_in_order) {
-		for (int i = 0; i < cache->mat_ct; ++i) {
+		for (int i = 0; i < cache->mat_len; ++i) {
 			ELEMENTLIST_DISCARD_SAFE(cache->shaded_triangles_in_order[i]);
 		}
 	}
 	if (cache->shaded_triangles) {
-		for (int i = 0; i < cache->mat_ct; ++i) {
+		for (int i = 0; i < cache->mat_len; ++i) {
 			BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
 		}
 	}
@@ -1674,11 +1674,11 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 		unsigned int pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		unsigned int nor_id = VertexFormat_add_attrib(format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
 		unsigned int orco_id = VertexFormat_add_attrib(format, "orco", COMP_F32, 3, KEEP_FLOAT);
-		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_ct, "UV attrib format");
-		unsigned int *uv_auto_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_ct, "UV attrib format");
-		unsigned int *vcol_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_ct, "Vcol attrib format");
-		unsigned int *vcol_auto_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_ct, "Vcol attrib format");
-		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->uv_ct, "Tangent attrib format");
+		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_len, "UV attrib format");
+		unsigned int *uv_auto_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_len, "UV attrib format");
+		unsigned int *vcol_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_len, "Vcol attrib format");
+		unsigned int *vcol_auto_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_len, "Vcol attrib format");
+		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->uv_len, "Tangent attrib format");
 		/* XXX TODO : We are allocating for the active layers
 		 * but we only need to bind the right layer to the default attrib.
 		 * This is a gawain limitation to solve. */
@@ -1686,7 +1686,7 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 		unsigned int active_vcol_id = VertexFormat_add_attrib(format, "c", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 		unsigned int active_tangent_id = VertexFormat_add_attrib(format, "t", COMP_F32, 4, KEEP_FLOAT);
 
-		for (int i = 0; i < rdata->uv_ct; i++) {
+		for (int i = 0; i < rdata->uv_len; i++) {
 			/* UV */
 			attrib_name = mesh_render_data_uv_layer_name_get(rdata, i);
 			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 2, KEEP_FLOAT);
@@ -1701,7 +1701,7 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
 		}
 
-		for (int i = 0; i < rdata->vcol_ct; i++) {
+		for (int i = 0; i < rdata->vcol_len; i++) {
 			attrib_name = mesh_render_data_vcol_layer_name_get(rdata, i);
 			vcol_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
@@ -1744,7 +1744,7 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 				}
 
 				/* UVs & TANGENTs */
-				for (int j = 0; j < rdata->uv_ct; j++) {
+				for (int j = 0; j < rdata->uv_len; j++) {
 					mesh_render_data_looptri_uvs_get(rdata, i, j, &tri_uvs);
 					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 0, tri_uvs[0]);
 					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 1, tri_uvs[1]);
@@ -1762,7 +1762,7 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 				}
 
 				/* TODO remove this when aliases will be implemented */
-				if (rdata->uv_ct != 0) {
+				if (rdata->uv_len != 0) {
 					mesh_render_data_looptri_uvs_get(rdata, i, rdata->uv_active, &tri_uvs);
 					VertexBuffer_set_attrib(vbo, active_uv_id, vidx + 0, tri_uvs[0]);
 					VertexBuffer_set_attrib(vbo, active_uv_id, vidx + 1, tri_uvs[1]);
@@ -1775,7 +1775,7 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 				}
 
 				/* VCOLs */
-				for (int j = 0; j < rdata->vcol_ct; j++) {
+				for (int j = 0; j < rdata->vcol_len; j++) {
 					mesh_render_data_looptri_cols_get(rdata, i, j, &tri_cols);
 					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 0, tri_cols[0]);
 					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 1, tri_cols[1]);
@@ -1791,7 +1791,7 @@ static VertexBuffer *mesh_batch_cache_get_shading_data(MeshRenderData *rdata, Me
 				}
 
 				/* TODO remove this when aliases will be implemented */
-				if (rdata->vcol_ct != 0) {
+				if (rdata->vcol_len != 0) {
 					mesh_render_data_looptri_cols_get(rdata, i, rdata->vcol_active, &tri_cols);
 					VertexBuffer_set_attrib(vbo, active_vcol_id, vidx + 0, tri_cols[0]);
 					VertexBuffer_set_attrib(vbo, active_vcol_id, vidx + 1, tri_cols[1]);
@@ -1882,7 +1882,7 @@ static VertexBuffer *mesh_batch_cache_get_pos_and_normals(MeshRenderData *rdata,
 }
 
 static VertexBuffer *mesh_batch_cache_get_pos_normals_and_weights(
-        MeshRenderData *rdata, MeshBatchCache *cache, int index)
+        MeshRenderData *rdata, MeshBatchCache *cache, int defgroup)
 {
 	BLI_assert(
 	        rdata->types &
@@ -1914,7 +1914,7 @@ static VertexBuffer *mesh_batch_cache_get_pos_normals_and_weights(
 			bool is_smooth;
 
 			if (mesh_render_data_looptri_cos_weights_get(
-			        rdata, i, &tri_vert_cos, &tri_vert_weights, &tri_nor, &tri_vert_nors, &is_smooth, index))
+			        rdata, i, &tri_vert_cos, &tri_vert_weights, &tri_nor, &tri_vert_nors, &is_smooth, defgroup))
 			{
 				VertexBuffer_set_attrib(vbo, col_id, cidx++, tri_vert_weights[0]);
 				VertexBuffer_set_attrib(vbo, col_id, cidx++, tri_vert_weights[1]);
@@ -2022,11 +2022,11 @@ static ElementList **mesh_batch_cache_get_shaded_triangles_in_order(MeshRenderDa
 
 	if (cache->shaded_triangles_in_order == NULL) {
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
-		const int mat_ct = mesh_render_data_mat_ct_get(rdata);
+		const int mat_len = mesh_render_data_mat_len_get(rdata);
 
-		int *mat_tri_len = MEM_callocN(sizeof(*mat_tri_len) * mat_ct, __func__);
-		cache->shaded_triangles_in_order = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_ct, __func__);
-		ElementListBuilder *elb = MEM_callocN(sizeof(*elb) * mat_ct, __func__);
+		int *mat_tri_len = MEM_callocN(sizeof(*mat_tri_len) * mat_len, __func__);
+		cache->shaded_triangles_in_order = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_len, __func__);
+		ElementListBuilder *elb = MEM_callocN(sizeof(*elb) * mat_len, __func__);
 
 		for (int i = 0; i < tri_len; ++i) {
 			short ma_id;
@@ -2036,7 +2036,7 @@ static ElementList **mesh_batch_cache_get_shaded_triangles_in_order(MeshRenderDa
 		}
 
 		/* Init ELBs. */
-		for (int i = 0; i < mat_ct; ++i) {
+		for (int i = 0; i < mat_len; ++i) {
 			ElementListBuilder_init(&elb[i], PRIM_TRIANGLES, mat_tri_len[i], tri_len * 3);
 		}
 
@@ -2053,7 +2053,7 @@ static ElementList **mesh_batch_cache_get_shaded_triangles_in_order(MeshRenderDa
 		}
 
 		/* Build ELBs. */
-		for (int i = 0; i < mat_ct; ++i) {
+		for (int i = 0; i < mat_len; ++i) {
 			cache->shaded_triangles_in_order[i] = ElementList_build(&elb[i]);
 		}
 
@@ -2260,7 +2260,7 @@ Batch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 	return cache->triangles_with_normals;
 }
 
-Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, int index)
+Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, int defgroup)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2270,7 +2270,7 @@ Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, int
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
 		cache->triangles_with_weights = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_pos_normals_and_weights(rdata, cache, index), NULL);
+		        PRIM_TRIANGLES, mesh_batch_cache_get_pos_normals_and_weights(rdata, cache, defgroup), NULL);
 
 		mesh_render_data_free(rdata);
 	}
@@ -2571,7 +2571,7 @@ Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 		        MR_DATATYPE_POLY | MR_DATATYPE_SHADING;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		const int mat_ct = mesh_render_data_mat_ct_get(rdata);
+		const int mat_ct = mesh_render_data_mat_len_get(rdata);
 
 		cache->shaded_triangles = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_ct, __func__);
 
