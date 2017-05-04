@@ -2329,16 +2329,18 @@ static void DRW_debug_gpu_stats(void)
 			if (pass != NULL) {
 				GLuint64 time;
 				glGetQueryObjectui64v(pass->timer_queries[pass->front_idx], GL_QUERY_RESULT, &time);
-				tot_time += time;
-				engine_time += time;
 
 				sprintf(pass_name, "   |--> %s", pass->name);
 				draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
 
-				if (pass->wasdrawn)
+				if (pass->wasdrawn) {
 					sprintf(time_to_txt, "%.2fms", time / 1000000.0);
-				else
+					engine_time += time;
+					tot_time += time;
+				}
+				else {
 					sprintf(time_to_txt, "Not drawn");
+				}
 				draw_stat(&rect, 2, v++, time_to_txt, sizeof(time_to_txt));
 
 				pass->wasdrawn = false;
