@@ -1800,6 +1800,9 @@ void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 		case DRW_MAT_PERS:
 			copy_m4_m4(mat, rv3d->persmat);
 			break;
+		case DRW_MAT_PERSINV:
+			copy_m4_m4(mat, rv3d->persinv);
+			break;
 		case DRW_MAT_VIEW:
 			copy_m4_m4(mat, rv3d->viewmat);
 			break;

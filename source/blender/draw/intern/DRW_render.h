@@ -296,6 +296,7 @@ void DRW_pass_foreach_shgroup(DRWPass *pass, void (*callback)(void *userData, DR
 /* Viewport */
 typedef enum {
 	DRW_MAT_PERS,
+	DRW_MAT_PERSINV,
 	DRW_MAT_VIEW,
 	DRW_MAT_VIEWINV,
 	DRW_MAT_WIN,

@@ -69,7 +69,6 @@ extern char datatoc_bsdf_direct_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 extern char datatoc_lit_surface_frag_glsl[];
 extern char datatoc_lit_surface_vert_glsl[];
-extern char datatoc_tonemap_frag_glsl[];
 extern char datatoc_shadow_frag_glsl[];
 extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_vert_glsl[];
@@ -284,9 +283,6 @@ static void EEVEE_engine_init(void *ved)
 		e_data.probe_spherical_harmonic_sh = DRW_shader_create_fullscreen(datatoc_probe_sh_frag_glsl, NULL);
 	}
 
-	if (!e_data.tonemap) {
-		e_data.tonemap = DRW_shader_create_fullscreen(datatoc_tonemap_frag_glsl, NULL);
-	}
 
 	if (!e_data.ltc_mat) {
 		e_data.ltc_mat = DRW_texture_create_2D(64, 64, DRW_TEX_RGBA_16, DRW_TEX_FILTER, ltc_mat_ggx);
@@ -314,6 +310,8 @@ static void EEVEE_engine_init(void *ved)
 	EEVEE_lights_init(stl);
 
 	EEVEE_probes_init(vedata);
+
+	EEVEE_effects_init(vedata);
 
 	// EEVEE_lights_update(stl);
 }
@@ -492,19 +490,10 @@ static void EEVEE_cache_init(void *vedata)
 		psl->material_pass = DRW_pass_create("Material Shader Pass", state);
 	}
 
-	{
-		/* Final pass : Map HDR color to LDR color.
-		 * Write result to the default color buffer */
-		psl->tonemap = DRW_pass_create("Tone Mapping", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
-
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.tonemap, psl->tonemap);
-		DRW_shgroup_uniform_buffer(grp, "hdrColorBuf", &txl->color, 0);
-
-		struct Batch *geom = DRW_cache_fullscreen_quad_get();
-		DRW_shgroup_call_add(grp, geom, NULL);
-	}
 
 	EEVEE_lights_cache_init(stl);
+
+	EEVEE_effects_cache_init(vedata);
 }
 
 static void EEVEE_cache_populate(void *vedata, Object *ob)
@@ -584,8 +573,8 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 			/* TODO, support for all geometry types (non mesh geometry) */
 			DRW_shgroup_call_add(stl->g_data->default_lit_grp, geom, ob->obmat);
 			// DRW_shgroup_call_add(stl->g_data->shadow_shgrp, geom, ob->obmat);
-			eevee_cascade_shadow_shgroup(psl, stl, geom, ob->obmat);
-			eevee_cube_shadow_shgroup(psl, stl, geom, ob->obmat);
+			// eevee_cascade_shadow_shgroup(psl, stl, geom, ob->obmat);
+			// eevee_cube_shadow_shgroup(psl, stl, geom, ob->obmat);
 		}
 		// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
 
@@ -638,7 +627,6 @@ static void EEVEE_draw_scene(void *vedata)
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
 
 	/* Default framebuffer and texture */
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	/* Refresh Probes */
@@ -663,23 +651,19 @@ static void EEVEE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->default_pass);
 	DRW_draw_pass(psl->material_pass);
 
-	/* Restore default framebuffer */
-	DRW_framebuffer_texture_detach(dtxl->depth);
-	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
-	DRW_framebuffer_bind(dfbl->default_fb);
-
-	DRW_draw_pass(psl->tonemap);
+	EEVEE_draw_effects(vedata);
 }
 
 static void EEVEE_engine_free(void)
 {
+	EEVEE_effects_free();
+
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_world);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_spherical_harmonic_sh);
-	DRW_SHADER_FREE_SAFE(e_data.tonemap);
 	DRW_TEXTURE_FREE_SAFE(e_data.ltc_mat);
 	DRW_TEXTURE_FREE_SAFE(e_data.brdf_lut);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);

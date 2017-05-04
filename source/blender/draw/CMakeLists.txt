@@ -82,6 +82,7 @@ set(SRC
 	engines/eevee/eevee_engine.c
 	engines/eevee/eevee_lights.c
 	engines/eevee/eevee_probes.c
+	engines/eevee/eevee_effects.c
 	engines/external/external_engine.c
 
 	DRW_engine.h
@@ -112,6 +113,7 @@ data_to_c_simple(engines/eevee/shaders/default_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/default_world_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lit_surface_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lit_surface_vert.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_motion_blur_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/probe_filter_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/probe_sh_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/probe_geom.glsl SRC)
