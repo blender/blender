@@ -624,6 +624,8 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 			else if (input->source == GPU_SOURCE_BUILTIN) {
 				if (input->builtin == GPU_INVERSE_VIEW_MATRIX)
 					BLI_dynstr_append(ds, "viewinv");
+				else if (input->builtin == GPU_INVERSE_OBJECT_MATRIX)
+					BLI_dynstr_append(ds, "objinv");
 				else if (input->builtin == GPU_VIEW_POSITION)
 					BLI_dynstr_append(ds, "viewposition");
 				else if (input->builtin == GPU_VIEW_NORMAL)
@@ -691,6 +693,8 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 	BLI_dynstr_append(ds, "void main()\n{\n");
 
 	if (use_new_shading) {
+		if (builtins & GPU_INVERSE_OBJECT_MATRIX)
+			BLI_dynstr_append(ds, "\tmat4 objinv = ModelMatrixInverse;\n");
 		if (builtins & GPU_INVERSE_VIEW_MATRIX)
 			BLI_dynstr_append(ds, "\tmat4 viewinv = ViewMatrixInverse;\n");
 		if (builtins & GPU_VIEW_NORMAL)
@@ -700,6 +704,8 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 
 	}
 	else {
+		if (builtins & GPU_INVERSE_OBJECT_MATRIX)
+			BLI_dynstr_append(ds, "\tmat4 objinv = unfinvobmat;\n");
 		if (builtins & GPU_INVERSE_VIEW_MATRIX)
 			BLI_dynstr_append(ds, "\tmat4 viewinv = unfinvviewmat;\n");
 		if (builtins & GPU_VIEW_NORMAL)

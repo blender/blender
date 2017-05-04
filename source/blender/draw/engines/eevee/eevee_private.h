@@ -51,6 +51,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *depth_pass_cull;
 	struct DRWPass *default_pass;
 	struct DRWPass *material_pass;
+	struct DRWPass *background_pass;
 } EEVEE_PassList;
 
 typedef struct EEVEE_FramebufferList {

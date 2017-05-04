@@ -1,8 +1,11 @@
 
 uniform mat4 ModelViewMatrix;
 #ifndef PROBE_CAPTURE
+#ifndef WORLD_BACKGROUND
 uniform mat4 ProjectionMatrix;
 #endif
+#endif
+uniform mat4 ModelMatrixInverse;
 uniform mat4 ModelViewMatrixInverse;
 uniform mat4 ViewMatrixInverse;
 uniform mat4 ProjectionMatrixInverse;
@@ -2816,10 +2819,20 @@ void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
 	worldvec = (ModelViewMatrixInverse * co).xyz;
 }
 
-#ifdef PROBE_CAPTURE
+#if defined(PROBE_CAPTURE) || defined(WORLD_BACKGROUND)
 void environment_default_vector(out vec3 worldvec)
 {
+#ifdef WORLD_BACKGROUND
+	vec4 v = (ProjectionMatrix[3][3] == 0.0) ? vec4(viewPosition, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
+	vec4 co_homogenous = (ProjectionMatrixInverse * v);
+
+	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
+
+	co = normalize(co);
+	worldvec = (ViewMatrixInverse * co).xyz;
+#else
 	worldvec = normalize(worldPosition);
+#endif
 }
 #endif
 
@@ -2951,7 +2964,12 @@ void node_tex_coord_background(
 	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
 
 	co = normalize(co);
+
+#ifdef PROBE_CAPTURE
+	vec3 coords = normalize(worldPosition);
+#else
 	vec3 coords = (ModelViewMatrixInverse * co).xyz;
+#endif
 
 	generated = coords;
 	normal = -coords;
@@ -2965,6 +2983,10 @@ void node_tex_coord_background(
 
 	reflection = -coords;
 }
+
+#if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
+#define node_tex_coord node_tex_coord_background
+#endif
 
 /* textures */
 

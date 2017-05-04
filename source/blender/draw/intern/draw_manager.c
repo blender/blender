@@ -148,12 +148,16 @@ struct DRWInterface {
 	int attribs_loc[16];
 	/* matrices locations */
 	int model;
+	int modelinverse;
 	int modelview;
+	int modelviewinverse;
 	int projection;
+	int projectioninverse;
 	int view;
 	int viewinverse;
 	int modelviewprojection;
 	int viewprojection;
+	int viewprojectioninverse;
 	int normal;
 	int worldnormal;
 	int eye;
@@ -512,11 +516,15 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	DRWInterface *interface = MEM_mallocN(sizeof(DRWInterface), "DRWInterface");
 
 	interface->model = GPU_shader_get_uniform(shader, "ModelMatrix");
+	interface->modelinverse = GPU_shader_get_uniform(shader, "ModelMatrixInverse");
 	interface->modelview = GPU_shader_get_uniform(shader, "ModelViewMatrix");
+	interface->modelviewinverse = GPU_shader_get_uniform(shader, "ModelViewMatrixInverse");
 	interface->projection = GPU_shader_get_uniform(shader, "ProjectionMatrix");
+	interface->projectioninverse = GPU_shader_get_uniform(shader, "ProjectionMatrixInverse");
 	interface->view = GPU_shader_get_uniform(shader, "ViewMatrix");
 	interface->viewinverse = GPU_shader_get_uniform(shader, "ViewMatrixInverse");
 	interface->viewprojection = GPU_shader_get_uniform(shader, "ViewProjectionMatrix");
+	interface->viewprojectioninverse = GPU_shader_get_uniform(shader, "ViewProjectionMatrixInverse");
 	interface->modelviewprojection = GPU_shader_get_uniform(shader, "ModelViewProjectionMatrix");
 	interface->normal = GPU_shader_get_uniform(shader, "NormalMatrix");
 	interface->worldnormal = GPU_shader_get_uniform(shader, "WorldNormalMatrix");
@@ -1275,20 +1283,32 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
 	DRWInterface *interface = shgroup->interface;
 
-	float mvp[4][4], mv[4][4], n[3][3], wn[3][3];
+	float mvp[4][4], mv[4][4], mi[4][4], mvi[4][4], pi[4][4], n[3][3], wn[3][3];
 	float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
 
+	bool do_pi = (interface->projectioninverse != -1);
 	bool do_mvp = (interface->modelviewprojection != -1);
+	bool do_mi = (interface->modelinverse != -1);
 	bool do_mv = (interface->modelview != -1);
+	bool do_mvi = (interface->modelviewinverse != -1);
 	bool do_n = (interface->normal != -1);
 	bool do_wn = (interface->worldnormal != -1);
 	bool do_eye = (interface->eye != -1);
 
+	if (do_pi) {
+		invert_m4_m4(pi, rv3d->winmat);
+	}
+	if (do_mi) {
+		invert_m4_m4(mi, obmat);
+	}
 	if (do_mvp) {
 		mul_m4_m4m4(mvp, rv3d->persmat, obmat);
 	}
-	if (do_mv || do_n || do_eye) {
+	if (do_mv || do_mvi || do_n || do_eye) {
 		mul_m4_m4m4(mv, rv3d->viewmat, obmat);
+	}
+	if (do_mvi) {
+		invert_m4_m4(mvi, mv);
 	}
 	if (do_n || do_eye) {
 		copy_m3_m4(n, mv);
@@ -1313,6 +1333,9 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	if (interface->model != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->model, 16, 1, (float *)obmat);
 	}
+	if (interface->modelinverse != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->modelinverse, 16, 1, (float *)mi);
+	}
 	if (interface->modelviewprojection != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->modelviewprojection, 16, 1, (float *)mvp);
 	}
@@ -1322,14 +1345,23 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	if (interface->viewprojection != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->viewprojection, 16, 1, (float *)rv3d->persmat);
 	}
+	if (interface->viewprojectioninverse != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->viewprojectioninverse, 16, 1, (float *)rv3d->persinv);
+	}
 	if (interface->projection != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->projection, 16, 1, (float *)rv3d->winmat);
+	}
+	if (interface->projectioninverse != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->projectioninverse, 16, 1, (float *)pi);
 	}
 	if (interface->view != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->view, 16, 1, (float *)rv3d->viewmat);
 	}
 	if (interface->modelview != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->modelview, 16, 1, (float *)mv);
+	}
+	if (interface->modelviewinverse != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->modelviewinverse, 16, 1, (float *)mvi);
 	}
 	if (interface->normal != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->normal, 9, 1, (float *)n);
