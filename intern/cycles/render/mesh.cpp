@@ -1944,6 +1944,7 @@ void MeshManager::device_update_displacement_images(Device *device,
 			}
 		}
 	}
+	image_manager->device_prepare_update(dscene);
 	foreach(int slot, bump_images) {
 		pool.push(function_bind(&ImageManager::device_update_slot,
 		                        image_manager,

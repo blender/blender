@@ -949,16 +949,8 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 	}
 }
 
-void ImageManager::device_update(Device *device,
-                                 DeviceScene *dscene,
-                                 Scene *scene,
-                                 Progress& progress)
+void ImageManager::device_prepare_update(DeviceScene *dscene)
 {
-	if(!need_update)
-		return;
-
-	TaskPool pool;
-
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		switch(type) {
 			case IMAGE_DATA_TYPE_FLOAT4:
@@ -986,6 +978,23 @@ void ImageManager::device_update(Device *device,
 					dscene->tex_half_image.resize(tex_num_images[IMAGE_DATA_TYPE_HALF]);
 				break;
 		}
+	}
+}
+
+void ImageManager::device_update(Device *device,
+                                 DeviceScene *dscene,
+                                 Scene *scene,
+                                 Progress& progress)
+{
+	if(!need_update) {
+		return;
+	}
+
+	/* Make sure arrays are proper size. */
+	device_prepare_update(dscene);
+
+	TaskPool pool;
+	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		for(size_t slot = 0; slot < images[type].size(); slot++) {
 			if(!images[type][slot])
 				continue;
