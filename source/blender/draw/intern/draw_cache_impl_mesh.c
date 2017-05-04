@@ -617,6 +617,197 @@ static bool mesh_render_data_edge_verts_indices_get(
 	return true;
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+/** \name Internal Cache (Lazy Initialization)
+ * \{ */
+
+/** Ensure #MeshRenderData.poly_normals_short */
+static void mesh_render_data_ensure_poly_normals_short(MeshRenderData *rdata)
+{
+	short (*pnors_short)[3] = rdata->poly_normals_short;
+	if (pnors_short == NULL) {
+		if (rdata->edit_bmesh) {
+			BMesh *bm = rdata->edit_bmesh->bm;
+			BMIter fiter;
+			BMFace *face;
+			int i;
+
+			pnors_short = rdata->poly_normals_short = MEM_mallocN(sizeof(*pnors_short) * rdata->poly_len, __func__);
+			BM_ITER_MESH_INDEX(face, &fiter, bm, BM_FACES_OF_MESH, i) {
+				normal_float_to_short_v3(pnors_short[i], face->no);
+			}
+		}
+		else {
+			float (*pnors)[3] = rdata->poly_normals;
+
+			if (!pnors) {
+				pnors = rdata->poly_normals = MEM_mallocN(sizeof(*pnors) * rdata->poly_len, __func__);
+				BKE_mesh_calc_normals_poly(
+				        rdata->mvert, NULL, rdata->vert_len,
+				        rdata->mloop, rdata->mpoly, rdata->loop_len, rdata->poly_len, pnors, true);
+			}
+
+			pnors_short = rdata->poly_normals_short = MEM_mallocN(sizeof(*pnors_short) * rdata->poly_len, __func__);
+			for (int i = 0; i < rdata->poly_len; i++) {
+				normal_float_to_short_v3(pnors_short[i], pnors[i]);
+			}
+		}
+	}
+}
+
+/** Ensure #MeshRenderData.vert_normals_short */
+static void mesh_render_data_ensure_vert_normals_short(MeshRenderData *rdata)
+{
+	short (*vnors_short)[3] = rdata->vert_normals_short;
+	if (vnors_short == NULL) {
+		if (rdata->edit_bmesh) {
+			BMesh *bm = rdata->edit_bmesh->bm;
+			BMIter viter;
+			BMVert *vert;
+			int i;
+
+			vnors_short = rdata->vert_normals_short = MEM_mallocN(sizeof(*vnors_short) * rdata->vert_len, __func__);
+			BM_ITER_MESH_INDEX(vert, &viter, bm, BM_VERT, i) {
+				normal_float_to_short_v3(vnors_short[i], vert->no);
+			}
+		}
+		else {
+			/* data from mesh used directly */
+			BLI_assert(0);
+		}
+	}
+}
+
+
+/** Ensure #MeshRenderData.vert_color */
+static void mesh_render_data_ensure_vert_color(MeshRenderData *rdata)
+{
+	char (*vcol)[3] = rdata->vert_color;
+	if (vcol == NULL) {
+		if (rdata->edit_bmesh) {
+			/* TODO */
+			BLI_assert(0);
+		}
+		else {
+			if (rdata->loopcol == NULL) {
+				goto fallback;
+			}
+
+			vcol = rdata->vert_color = MEM_mallocN(sizeof(*vcol) * rdata->loop_len, __func__);
+
+			for (int i = 0; i < rdata->loop_len; i++) {
+				vcol[i][0] = rdata->loopcol[i].r;
+				vcol[i][1] = rdata->loopcol[i].g;
+				vcol[i][2] = rdata->loopcol[i].b;
+			}
+		}
+	}
+	return;
+
+fallback:
+	vcol = rdata->vert_color = MEM_mallocN(sizeof(*vcol) * rdata->loop_len, __func__);
+
+	for (int i = 0; i < rdata->loop_len; i++) {
+		vcol[i][0] = 255;
+		vcol[i][1] = 255;
+		vcol[i][2] = 255;
+	}
+}
+
+/* TODO, move into shader? */
+static void rgb_from_weight(float r_rgb[3], const float weight)
+{
+	const float blend = ((weight / 2.0f) + 0.5f);
+
+	if (weight <= 0.25f) {    /* blue->cyan */
+		r_rgb[0] = 0.0f;
+		r_rgb[1] = blend * weight * 4.0f;
+		r_rgb[2] = blend;
+	}
+	else if (weight <= 0.50f) {  /* cyan->green */
+		r_rgb[0] = 0.0f;
+		r_rgb[1] = blend;
+		r_rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
+	}
+	else if (weight <= 0.75f) {  /* green->yellow */
+		r_rgb[0] = blend * ((weight - 0.50f) * 4.0f);
+		r_rgb[1] = blend;
+		r_rgb[2] = 0.0f;
+	}
+	else if (weight <= 1.0f) {  /* yellow->red */
+		r_rgb[0] = blend;
+		r_rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
+		r_rgb[2] = 0.0f;
+	}
+	else {
+		/* exceptional value, unclamped or nan,
+		 * avoid uninitialized memory use */
+		r_rgb[0] = 1.0f;
+		r_rgb[1] = 0.0f;
+		r_rgb[2] = 1.0f;
+	}
+}
+
+
+/** Ensure #MeshRenderData.vert_color */
+static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, const int defgroup)
+{
+	float (*vweight)[3] = rdata->vert_weight_color;
+	if (vweight == NULL) {
+		if (rdata->edit_bmesh) {
+			BMesh *bm = rdata->edit_bmesh->bm;
+			const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+			if (cd_dvert_offset == -1) {
+				goto fallback;
+			}
+
+			BMIter viter;
+			BMVert *vert;
+			int i;
+
+			vweight = rdata->vert_weight_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
+			BM_ITER_MESH_INDEX(vert, &viter, bm, BM_VERT, i) {
+				const MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(vert, cd_dvert_offset);
+				float weight = defvert_find_weight(dvert, defgroup);
+				if (U.flag & USER_CUSTOM_RANGE) {
+					do_colorband(&U.coba_weight, weight, vweight[i]);
+				}
+				else {
+					rgb_from_weight(vweight[i], weight);
+				}
+			}
+		}
+		else {
+			if (rdata->dvert == NULL) {
+				goto fallback;
+			}
+
+			vweight = rdata->vert_weight_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
+			for (int i = 0; i < rdata->vert_len; i++) {
+				float weight = defvert_find_weight(&rdata->dvert[i], defgroup);
+				if (U.flag & USER_CUSTOM_RANGE) {
+					do_colorband(&U.coba_weight, weight, vweight[i]);
+				}
+				else {
+					rgb_from_weight(vweight[i], weight);
+				}
+			}
+		}
+	}
+	return;
+
+fallback:
+	vweight = rdata->vert_weight_color = MEM_callocN(sizeof(*vweight) * rdata->vert_len, __func__);
+
+	for (int i = 0; i < rdata->vert_len; i++) {
+		vweight[i][2] = 0.5f;
+	}
+}
+
+/** \} */
+
 static bool mesh_render_data_pnors_pcenter_select_get(
         MeshRenderData *rdata, const int poly,
         float r_pnors[3], float r_center[3], bool *r_selected)
@@ -992,39 +1183,6 @@ static bool mesh_render_data_looptri_cos_nors_smooth_get(
 	return true;
 }
 
-static void rgb_from_weight(float r_rgb[3], const float weight)
-{
-	const float blend = ((weight / 2.0f) + 0.5f);
-
-	if (weight <= 0.25f) {    /* blue->cyan */
-		r_rgb[0] = 0.0f;
-		r_rgb[1] = blend * weight * 4.0f;
-		r_rgb[2] = blend;
-	}
-	else if (weight <= 0.50f) {  /* cyan->green */
-		r_rgb[0] = 0.0f;
-		r_rgb[1] = blend;
-		r_rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
-	}
-	else if (weight <= 0.75f) {  /* green->yellow */
-		r_rgb[0] = blend * ((weight - 0.50f) * 4.0f);
-		r_rgb[1] = blend;
-		r_rgb[2] = 0.0f;
-	}
-	else if (weight <= 1.0f) {  /* yellow->red */
-		r_rgb[0] = blend;
-		r_rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
-		r_rgb[2] = 0.0f;
-	}
-	else {
-		/* exceptional value, unclamped or nan,
-		 * avoid uninitialized memory use */
-		r_rgb[0] = 1.0f;
-		r_rgb[1] = 0.0f;
-		r_rgb[2] = 1.0f;
-	}
-}
-
 static bool mesh_render_data_looptri_cos_weights_get(
         MeshRenderData *rdata, const int tri_idx,
         float *(*r_vert_cos)[3], float *(*r_vert_weights)[3],
@@ -1041,64 +1199,13 @@ static bool mesh_render_data_looptri_cos_weights_get(
 			return false;
 		}
 
-		float (*vweight)[3] = rdata->vert_weight_color;
+		mesh_render_data_ensure_poly_normals_short(rdata);
+		mesh_render_data_ensure_vert_normals_short(rdata);
+		mesh_render_data_ensure_vert_weight_color(rdata, defgroup);
+
 		short (*pnors_short)[3] = rdata->poly_normals_short;
 		short (*vnors_short)[3] = rdata->vert_normals_short;
-
-		if (!pnors_short) {
-			BMesh *bm = rdata->edit_bmesh->bm;
-			BMIter fiter;
-			BMFace *face;
-			int i;
-
-			pnors_short = rdata->poly_normals_short = MEM_mallocN(sizeof(*pnors_short) * rdata->poly_len, __func__);
-			BM_ITER_MESH_INDEX(face, &fiter, bm, BM_FACES_OF_MESH, i) {
-				normal_float_to_short_v3(pnors_short[i], face->no);
-			}
-		}
-		if (!vnors_short) {
-			BMesh *bm = rdata->edit_bmesh->bm;
-			BMIter viter;
-			BMVert *vert;
-			int i;
-
-			vnors_short = rdata->vert_normals_short = MEM_mallocN(sizeof(*vnors_short) * rdata->vert_len, __func__);
-			BM_ITER_MESH_INDEX(vert, &viter, bm, BM_VERT, i) {
-				normal_float_to_short_v3(vnors_short[i], vert->no);
-			}
-		}
-
-		if (!vweight) {
-			BMesh *bm = rdata->edit_bmesh->bm;
-
-			if (CustomData_has_layer(&bm->vdata, CD_MDEFORMVERT)) {
-				BMIter viter;
-				BMVert *vert;
-				int i;
-
-				const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
-				BLI_assert(cd_dvert_offset != -1);
-
-				vweight = rdata->vert_weight_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
-				BM_ITER_MESH_INDEX(vert, &viter, bm, BM_VERT, i) {
-					const MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(vert, cd_dvert_offset);
-					float weight = defvert_find_weight(dvert, defgroup);
-					if (U.flag & USER_CUSTOM_RANGE) {
-						do_colorband(&U.coba_weight, weight, vweight[i]);
-					}
-					else {
-						rgb_from_weight(vweight[i], weight);
-					}
-				}
-			}
-			else {
-				vweight = rdata->vert_weight_color = MEM_callocN(sizeof(*vweight) * rdata->vert_len, __func__);
-
-				for (int i = 0; i < rdata->vert_len; i++) {
-					vweight[i][2] = 0.5f;
-				}
-			}
-		}
+		float (*vweight)[3] = rdata->vert_weight_color;
 
 		(*r_vert_cos)[0] = bm_looptri[0]->v->co;
 		(*r_vert_cos)[1] = bm_looptri[1]->v->co;
@@ -1115,47 +1222,12 @@ static bool mesh_render_data_looptri_cos_weights_get(
 	}
 	else {
 		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
-		float (*vweight)[3] = rdata->vert_weight_color;
+
+		mesh_render_data_ensure_poly_normals_short(rdata);
+		mesh_render_data_ensure_vert_weight_color(rdata, defgroup);
+
 		short (*pnors_short)[3] = rdata->poly_normals_short;
-
-		if (!pnors_short) {
-			float (*pnors)[3] = rdata->poly_normals;
-
-			if (!pnors) {
-				pnors = rdata->poly_normals = MEM_mallocN(sizeof(*pnors) * rdata->poly_len, __func__);
-				BKE_mesh_calc_normals_poly(
-				            rdata->mvert, NULL, rdata->vert_len,
-				            rdata->mloop, rdata->mpoly, rdata->loop_len, rdata->poly_len, pnors, true);
-			}
-
-			pnors_short = rdata->poly_normals_short = MEM_mallocN(sizeof(*pnors_short) * rdata->poly_len, __func__);
-			for (int i = 0; i < rdata->poly_len; i++) {
-				normal_float_to_short_v3(pnors_short[i], pnors[i]);
-			}
-		}
-
-		if (!vweight) {
-			if (rdata->dvert) {
-				vweight = rdata->vert_weight_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
-
-				for (int i = 0; i < rdata->vert_len; i++) {
-					float weight = defvert_find_weight(&rdata->dvert[i], defgroup);
-					if (U.flag & USER_CUSTOM_RANGE) {
-						do_colorband(&U.coba_weight, weight, vweight[i]);
-					}
-					else {
-						rgb_from_weight(vweight[i], weight);
-					}
-				}
-			}
-			else {
-				vweight = rdata->vert_weight_color = MEM_callocN(sizeof(*vweight) * rdata->vert_len, __func__);
-
-				for (int i = 0; i < rdata->vert_len; i++) {
-					vweight[i][2] = 0.5f;
-				}
-			}
-		}
+		float (*vweight)[3] = rdata->vert_weight_color;
 
 		(*r_vert_cos)[0] = rdata->mvert[rdata->mloop[mlt->tri[0]].v].co;
 		(*r_vert_cos)[1] = rdata->mvert[rdata->mloop[mlt->tri[1]].v].co;
@@ -1184,49 +1256,18 @@ static bool mesh_render_data_looptri_cos_vert_colors_get(
 	        (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPCOL));
 
 	if (rdata->edit_bmesh) {
+		/* TODO */
 		return false;
 	}
 	else {
 		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
-		char (*vcol)[3] = rdata->vert_color;
+
+		mesh_render_data_ensure_poly_normals_short(rdata);
+		mesh_render_data_ensure_vert_color(rdata);
+
 		short (*pnors_short)[3] = rdata->poly_normals_short;
+		char (*vcol)[3] = rdata->vert_color;
 
-		if (!pnors_short) {
-			float (*pnors)[3] = rdata->poly_normals;
-
-			if (!pnors) {
-				pnors = rdata->poly_normals = MEM_mallocN(sizeof(*pnors) * rdata->poly_len, __func__);
-				BKE_mesh_calc_normals_poly(
-				            rdata->mvert, NULL, rdata->vert_len,
-				            rdata->mloop, rdata->mpoly, rdata->loop_len, rdata->poly_len, pnors, true);
-			}
-
-			pnors_short = rdata->poly_normals_short = MEM_mallocN(sizeof(*pnors_short) * rdata->poly_len, __func__);
-			for (int i = 0; i < rdata->poly_len; i++) {
-				normal_float_to_short_v3(pnors_short[i], pnors[i]);
-			}
-		}
-
-		if (!vcol) {
-			if (rdata->loopcol) {
-				vcol = rdata->vert_color = MEM_mallocN(sizeof(*vcol) * rdata->loop_len, __func__);
-
-				for (int i = 0; i < rdata->loop_len; i++) {
-					vcol[i][0] = rdata->loopcol[i].r;
-					vcol[i][1] = rdata->loopcol[i].g;
-					vcol[i][2] = rdata->loopcol[i].b;
-				}
-			}
-			else {
-				vcol = rdata->vert_color = MEM_mallocN(sizeof(*vcol) * rdata->loop_len, __func__);
-
-				for (int i = 0; i < rdata->loop_len; i++) {
-					vcol[i][0] = 255;
-					vcol[i][1] = 255;
-					vcol[i][2] = 255;
-				}
-			}
-		}
 		(*r_vert_cos)[0] = rdata->mvert[rdata->mloop[mlt->tri[0]].v].co;
 		(*r_vert_cos)[1] = rdata->mvert[rdata->mloop[mlt->tri[1]].v].co;
 		(*r_vert_cos)[2] = rdata->mvert[rdata->mloop[mlt->tri[2]].v].co;
