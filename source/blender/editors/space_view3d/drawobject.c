@@ -62,6 +62,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -9179,13 +9180,16 @@ afterdraw:
 			draw_hooks(ob, pos);
 
 		/* help lines and so */
-		if (ob != scene->obedit && ob->parent && (ob->parent->lay & v3d->lay)) {
-			setlinestyle(3);
-			immBegin(PRIM_LINES, 2);
-			immVertex3fv(pos, ob->obmat[3]);
-			immVertex3fv(pos, ob->orig);
-			immEnd();
-			setlinestyle(0);
+		if (ob != scene->obedit && ob->parent) {
+			Base *base_parent = BKE_scene_layer_base_find(sl, ob->parent);
+			if ((base_parent->flag & BASE_VISIBLED) != 0) {
+				setlinestyle(3);
+				immBegin(PRIM_LINES, 2);
+				immVertex3fv(pos, ob->obmat[3]);
+				immVertex3fv(pos, ob->orig);
+				immEnd();
+				setlinestyle(0);
+			}
 		}
 
 		/* Drawing the constraint lines */
