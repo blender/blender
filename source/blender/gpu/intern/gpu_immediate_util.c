@@ -34,12 +34,16 @@
 #include "GPU_matrix.h"
 
 /**
-* Pack color into 3 bytes
-*
-* \Note BGR format (i.e. 0xBBGGRR)...
-*
-* \param x color.
-*/
+ * Pack color into 3 bytes
+ *
+ * This define converts a numerical value to the equivalent 24-bit
+ * color, while not being endian-sensitive. On little-endians, this
+ * is the same as doing a 'naive' indexing, on big-endian, it is not!
+ *
+ * \note BGR format (i.e. 0xBBGGRR)...
+ *
+ * \param x color.
+ */
 void imm_cpack(unsigned int x)
 {
 	immUniformColor3ub(((x) & 0xFF),

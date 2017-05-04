@@ -7441,7 +7441,7 @@ static void draw_editfont(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3
 	draw_editfont_textcurs(rv3d, ef->textcurs);
 
 	if (cu->flag & CU_FAST) {
-		cpack(0xFFFFFF);
+		imm_cpack(0xFFFFFF);
 		set_inverted_drawing(1);
 		drawDispList(scene, sl, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
 		set_inverted_drawing(0);
@@ -8524,7 +8524,6 @@ void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *b
 	Object *ob = base->object;
 	Curve *cu;
 	RegionView3D *rv3d = ar->regiondata;
-	unsigned int col = 0;
 	unsigned char _ob_wire_col[4];            /* dont initialize this */
 	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	bool zbufoff = false, is_paint = false, empty_object = false;
@@ -8890,12 +8889,6 @@ afterdraw:
 	{
 		ParticleSystem *psys;
 
-		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			/* for visibility, also while wpaint */
-			if (col || (base->flag & BASE_SELECTED)) {
-				cpack(0xFFFFFF);
-			}
-		}
 		//glDepthMask(GL_FALSE);
 
 		gpuLoadMatrix(rv3d->viewmat);
@@ -8918,7 +8911,6 @@ afterdraw:
 		gpuMultMatrix(ob->obmat);
 		
 		//glDepthMask(GL_TRUE);
-		if (col) cpack(col);
 	}
 
 	/* draw edit particles last so that they can draw over child particles */
@@ -9474,8 +9466,6 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, const float ce
 static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
                               Object *ob, DerivedMesh *dm, bool use_faceselect)
 {
-	cpack(0);
-
 	if (use_faceselect) {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, NULL, NULL, em->bm, DM_DRAW_SKIP_HIDDEN | DM_DRAW_SELECT_USE_EDITMODE);
 

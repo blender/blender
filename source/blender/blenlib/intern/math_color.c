@@ -359,8 +359,10 @@ void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int 
 	}
 }
 
-/* we define a 'cpack' here as a (3 byte color code) number that can be expressed like 0xFFAA66 or so.
- * for that reason it is sensitive for endianness... with this function it works correctly
+/**
+ * We define a 'cpack' here as a (3 byte color code) number that can be expressed like 0xFFAA66 or so.
+ * for that reason it is sensitive for endianness... with this function it works correctly.
+ * \see #imm_cpack
  */
 
 unsigned int hsv_to_cpack(float h, float s, float v)

@@ -677,14 +677,6 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 	glaDrawImBuf_glsl_ctx_clipping(C, ibuf, x, y, zoomfilter, 0.0f, 0.0f, 0.0f, 0.0f, zoom_x, zoom_y);
 }
 
-void cpack(unsigned int x)
-{
-	/* DEPRECATED: use imm_cpack */
-	glColor3ub(( (x)        & 0xFF),
-	           (((x) >>  8) & 0xFF),
-	           (((x) >> 16) & 0xFF));
-}
-
 /* don't move to GPU_immediate_util.h because this uses user-prefs
  * and isn't very low level */
 void immDrawBorderCorners(unsigned int pos, const rcti *border, float zoomx, float zoomy)

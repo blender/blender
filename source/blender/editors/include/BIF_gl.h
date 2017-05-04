@@ -36,18 +36,6 @@
 #include "GPU_glew.h"
 #include "BLI_utildefines.h"
 
-/*
- * these should be phased out. cpack should be replaced in
- * code with calls to glColor3ub. - zr
- */
-/* 
- *
- * This define converts a numerical value to the equivalent 24-bit
- * color, while not being endian-sensitive. On little-endians, this
- * is the same as doing a 'naive' indexing, on big-endian, it is not!
- * */
-void cpack(unsigned int x);
-
 /* hacking pointsize and linewidth */
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define glPointSize(f)  glPointSize(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
