@@ -2061,16 +2061,23 @@ static void DRW_engines_draw_text(void)
  */
 int DRW_draw_region_engine_info_offset()
 {
-	int offset = 0;
+	int lines = 0;
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
 
+		/* Count the number of lines. */
 		if (data->info[0] != '\0') {
-			offset += UI_UNIT_Y;
+			lines++;
+			char *c = data->info;
+			while (*c++ != '\0') {
+				if (*c == '\n') {
+					lines++;
+				}
+			}
 		}
 	}
-	return offset;
+	return lines * UI_UNIT_Y;
 }
 
 /**
@@ -2078,6 +2085,9 @@ int DRW_draw_region_engine_info_offset()
  */
 void DRW_draw_region_engine_info()
 {
+	char info[GPU_INFO_SIZE * 5] = {0}; /* This should be maxium number of engines running at the same time. */
+	char *str_start = info;
+
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ARegion *ar = draw_ctx->ar;
 	float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
@@ -2090,8 +2100,17 @@ void DRW_draw_region_engine_info()
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
 
 		if (data->info[0] != '\0') {
-			ED_region_info_draw(ar, data->info, fill_color, true);
+			BLI_strncpy(str_start, data->info, sizeof(info) - (str_start - info));
+			str_start += BLI_strnlen(data->info, sizeof(data->info));
+			*str_start++ = '\n';
 		}
+	}
+
+	if (info[0] != '\0') {
+		if (str_start != info) {
+			*(str_start - 1) = '\0';
+		}
+		ED_region_info_draw(ar, info, fill_color, true);
 	}
 }
 
