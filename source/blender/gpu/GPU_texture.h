@@ -143,6 +143,8 @@ typedef enum GPUTextureFormat {
 	GPU_DEPTH_COMPONENT16,
 } GPUTextureFormat;
 
+unsigned int GPU_texture_memory_usage_get(void);
+
 GPUTexture *GPU_texture_create_1D(int w, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_1D_custom(
         int w, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);

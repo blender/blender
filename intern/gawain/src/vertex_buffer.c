@@ -17,6 +17,8 @@
 
 #define KEEP_SINGLE_COPY 1
 
+static unsigned vbo_memory_usage;
+
 VertexBuffer* VertexBuffer_create(void)
 	{
 	VertexBuffer* verts = malloc(sizeof(VertexBuffer));
@@ -51,13 +53,16 @@ void VertexBuffer_init_with_format(VertexBuffer* verts, const VertexFormat* form
 
 void VertexBuffer_discard(VertexBuffer* verts)
 	{
-	if (verts->vbo_id)
+	if (verts->vbo_id) {
 		buffer_id_free(verts->vbo_id);
+		vbo_memory_usage -= VertexBuffer_size(verts);
+	}
 #if KEEP_SINGLE_COPY
 	else
 #endif
 	if (verts->data)
 		free(verts->data);
+
 
 	free(verts);
 	}
@@ -155,6 +160,8 @@ static void VertexBuffer_prime(VertexBuffer* verts)
 	// fill with delicious data & send to GPU the first time only
 	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size(format, verts->vertex_ct), verts->data, GL_STATIC_DRAW);
 
+	vbo_memory_usage += VertexBuffer_size(verts);
+
 #if KEEP_SINGLE_COPY
 	// now that GL has a copy, discard original
 	free(verts->data);
@@ -168,4 +175,9 @@ void VertexBuffer_use(VertexBuffer* verts)
 		glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	else
 		VertexBuffer_prime(verts);
+	}
+
+unsigned VertexBuffer_get_memory_usage(void)
+	{
+		return vbo_memory_usage;
 	}

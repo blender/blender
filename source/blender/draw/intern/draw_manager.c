@@ -2330,7 +2330,7 @@ static void DRW_debug_gpu_stats(void)
 	UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
 
 	char time_to_txt[16];
-	char pass_name[MAX_PASS_NAME + 8];
+	char pass_name[MAX_PASS_NAME + 16];
 	int v = BLI_listbase_count(&DST.enabled_engines) + 3;
 	GLuint64 tot_time = 0;
 
@@ -2372,7 +2372,25 @@ static void DRW_debug_gpu_stats(void)
 	}
 
 	sprintf(pass_name, "Total GPU time %.2fms (%.1f fps)", tot_time / 1000000.0, 1000000000.0 / tot_time);
+	draw_stat(&rect, 0, v++, pass_name, sizeof(pass_name));
+	v++;
+
+	/* Memory Stats */
+	unsigned int tex_mem = GPU_texture_memory_usage_get();
+	unsigned int vbo_mem = VertexBuffer_get_memory_usage();
+
+	sprintf(pass_name, "GPU Memory");
 	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
+	sprintf(pass_name, "%.2fMB", (float)(tex_mem + vbo_mem) / 1000000.0);
+	draw_stat(&rect, 1, v++, pass_name, sizeof(pass_name));
+	sprintf(pass_name, "   |--> Textures");
+	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
+	sprintf(pass_name, "%.2fMB", (float)tex_mem / 1000000.0);
+	draw_stat(&rect, 1, v++, pass_name, sizeof(pass_name));
+	sprintf(pass_name, "   |--> Meshes");
+	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
+	sprintf(pass_name, "%.2fMB", (float)vbo_mem / 1000000.0);
+	draw_stat(&rect, 1, v++, pass_name, sizeof(pass_name));
 }
 
 

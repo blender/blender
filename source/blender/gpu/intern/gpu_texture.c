@@ -63,11 +63,55 @@ struct GPUTexture {
 	int fb_attachment;  /* slot the texture is attached to */
 	bool depth;         /* is a depth texture? */
 	bool stencil;       /* is a stencil texture? */
+
+	unsigned int bytesize; /* number of byte for one pixel */
 };
+
+/* ------ Memory Management ------- */
+/* Records every texture allocation / free
+ * to estimate the Texture Pool Memory consumption */
+static unsigned int memory_usage;
+
+static unsigned int gpu_texture_memory_footprint_compute(GPUTexture *tex)
+{
+	switch (tex->target) {
+		case GL_TEXTURE_1D:
+			return tex->bytesize * tex->w;
+		case GL_TEXTURE_1D_ARRAY:
+		case GL_TEXTURE_2D:
+			return tex->bytesize * tex->w * tex->h;
+		case GL_TEXTURE_2D_ARRAY:
+		case GL_TEXTURE_3D:
+			return tex->bytesize * tex->w * tex->h * tex->d;
+		case GL_TEXTURE_CUBE_MAP:
+			return tex->bytesize * 6 * tex->w * tex->h;
+		case GL_TEXTURE_CUBE_MAP_ARRAY:
+			return tex->bytesize * 6 * tex->w * tex->h * tex->d;
+		default:
+			return 0;
+	}
+}
+
+static void gpu_texture_memory_footprint_add(GPUTexture *tex)
+{
+	memory_usage += gpu_texture_memory_footprint_compute(tex);
+}
+
+static void gpu_texture_memory_footprint_remove(GPUTexture *tex)
+{
+	memory_usage -= gpu_texture_memory_footprint_compute(tex);
+}
+
+unsigned int GPU_texture_memory_usage_get(void)
+{
+	return memory_usage;
+}
+
+/* -------------------------------- */
 
 static GLenum gpu_texture_get_format(
         int components, GPUTextureFormat data_type,
-        GLenum *format, GLenum *data_format, bool *is_depth, bool *is_stencil)
+        GLenum *format, GLenum *data_format, bool *is_depth, bool *is_stencil, unsigned int *bytesize)
 {
 	if (data_type == GPU_DEPTH_COMPONENT24 ||
 	    data_type == GPU_DEPTH_COMPONENT16 ||
@@ -96,6 +140,35 @@ static GLenum gpu_texture_get_format(
 			case 4: *format = GL_RGBA; break;
 			default: break;
 		}
+	}
+
+	switch (data_type) {
+		case GPU_RG32F:
+		case GPU_RGBA16F:
+			*bytesize = 16;
+			break;
+		case GPU_RGB16F:
+			*bytesize = 12;
+			break;
+		case GPU_RG16F:
+		case GPU_DEPTH24_STENCIL8:
+		case GPU_DEPTH_COMPONENT32F:
+		case GPU_RGBA8:
+			*bytesize = 4;
+			break;
+		case GPU_DEPTH_COMPONENT24:
+			*bytesize = 3;
+			break;
+		case GPU_DEPTH_COMPONENT16:
+		case GPU_R16F:
+			*bytesize = 2;
+			break;
+		case GPU_R8:
+			*bytesize = 1;
+			break;
+		default:
+			*bytesize = 0;
+			break;
 	}
 
 	/* You can add any of the available type to this list
@@ -267,7 +340,9 @@ static GPUTexture *GPU_texture_create_nD(
 		tex->target = GL_TEXTURE_2D_MULTISAMPLE;
 
 	GLenum format, internalformat, data_format;
-	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
+	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil, &tex->bytesize);
+
+	gpu_texture_memory_footprint_add(tex);
 
 	/* Generate Texture object */
 	glGenTextures(1, &tex->bindcode);
@@ -392,7 +467,9 @@ static GPUTexture *GPU_texture_cube_create(
 		// tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP_ARRAY;
 	}
 
-	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil);
+	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format, &tex->depth, &tex->stencil, &tex->bytesize);
+
+	gpu_texture_memory_footprint_add(tex);
 
 	/* Generate Texture object */
 	glGenTextures(1, &tex->bindcode);
@@ -622,6 +699,7 @@ GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char
 
 void GPU_invalid_tex_init(void)
 {
+	memory_usage = 0;
 	const float color[4] = {1.0f, 0.0f, 1.0f, 1.0f};
 	GG.invalid_tex_1D = GPU_texture_create_1D(1, color, NULL);
 	GG.invalid_tex_2D = GPU_texture_create_2D(1, 1, color, NULL);
@@ -827,6 +905,8 @@ void GPU_texture_free(GPUTexture *tex)
 			GPU_framebuffer_texture_detach(tex);
 		if (tex->bindcode && !tex->fromblender)
 			glDeleteTextures(1, &tex->bindcode);
+
+		gpu_texture_memory_footprint_remove(tex);
 
 		MEM_freeN(tex);
 	}
