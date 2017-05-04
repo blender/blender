@@ -6027,6 +6027,7 @@ static void direct_link_layer_collections(FileData *fd, ListBase *lb)
 		if (lc->properties) {
 			lc->properties = newdataadr(fd, lc->properties);
 			IDP_DirectLinkGroup_OrFree(&lc->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			BKE_layer_collection_engine_settings_validate_collection(lc);
 		}
 		lc->properties_evaluated = NULL;
 
@@ -6313,7 +6314,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	sce->collection_properties = newdataadr(fd, sce->collection_properties);
 	IDP_DirectLinkGroup_OrFree(&sce->collection_properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-	BKE_layer_collection_engine_settings_validate(sce);
+	BKE_layer_collection_engine_settings_validate_scene(sce);
 }
 
 /* ************ READ WM ***************** */

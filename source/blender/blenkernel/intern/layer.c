@@ -1278,17 +1278,29 @@ void BKE_layer_collection_engine_settings_create(IDProperty *root)
  * Reference of IDProperty group scene collection settings
  * Used when reading blendfiles, to see if there is any missing settings.
  */
-static IDProperty *root_reference = NULL;
+static struct {
+	IDProperty *scene;
+	IDProperty *layer_collection;
+} root_reference = {
+	.scene = NULL,
+	.layer_collection = NULL,
+};
 
 /**
  * Free the reference scene collection settings IDProperty group.
  */
 static void layer_collection_engine_settings_validate_init(void)
 {
-	if (root_reference == NULL) {
-		IDPropertyTemplate val = {0};
-		root_reference = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		BKE_layer_collection_engine_settings_create(root_reference);
+	IDPropertyTemplate val = {0};
+
+	if (root_reference.scene == NULL) {
+		root_reference.scene = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		collection_engine_settings_init(root_reference.scene, true);
+	}
+
+	if (root_reference.layer_collection == NULL) {
+		root_reference.layer_collection = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		collection_engine_settings_init(root_reference.layer_collection, false);
 	}
 }
 
@@ -1297,19 +1309,25 @@ static void layer_collection_engine_settings_validate_init(void)
  */
 static void layer_collection_engine_settings_validate_free(void)
 {
-	if (root_reference != NULL) {
-		IDP_FreeProperty(root_reference);
-		MEM_freeN(root_reference);
-		root_reference = NULL;
+	if (root_reference.scene != NULL) {
+		IDP_FreeProperty(root_reference.scene);
+		MEM_freeN(root_reference.scene);
+		root_reference.scene = NULL;
+	}
+
+	if (root_reference.layer_collection != NULL) {
+		IDP_FreeProperty(root_reference.layer_collection);
+		MEM_freeN(root_reference.layer_collection);
+		root_reference.layer_collection = NULL;
 	}
 }
 
 /**
  * Make sure Scene has all required collection settings.
  */
-void BKE_layer_collection_engine_settings_validate(Scene *scene)
+void BKE_layer_collection_engine_settings_validate_scene(Scene *scene)
 {
-	if (root_reference == NULL) {
+	if (root_reference.scene == NULL) {
 		layer_collection_engine_settings_validate_init();
 	}
 
@@ -1319,8 +1337,21 @@ void BKE_layer_collection_engine_settings_validate(Scene *scene)
 		BKE_layer_collection_engine_settings_create(scene->collection_properties);
 	}
 	else {
-		IDP_MergeGroup(scene->collection_properties, root_reference, false);
+		IDP_MergeGroup(scene->collection_properties, root_reference.scene, false);
 	}
+}
+
+/**
+ * Maker sure LayerCollection has all required collection settings.
+ */
+void BKE_layer_collection_engine_settings_validate_collection(LayerCollection *lc)
+{
+	if (root_reference.layer_collection == NULL) {
+		layer_collection_engine_settings_validate_init();
+	}
+
+	BLI_assert(lc->properties != NULL);
+	IDP_MergeGroup(lc->properties, root_reference.layer_collection, false);
 }
 
 /* ---------------------------------------------------------------------- */

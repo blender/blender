@@ -115,7 +115,8 @@ struct IDProperty *BKE_scene_collection_engine_get(struct Scene *scene, const in
 void BKE_layer_collection_engine_settings_callback_register(struct Main *bmain, const char *engine_name, CollectionEngineSettingsCB func);
 void BKE_layer_collection_engine_settings_callback_free(void);
 void BKE_layer_collection_engine_settings_create(struct IDProperty *root);
-void BKE_layer_collection_engine_settings_validate(struct Scene *scene);
+void BKE_layer_collection_engine_settings_validate_scene(struct Scene *scene);
+void BKE_layer_collection_engine_settings_validate_collection(struct LayerCollection *lc);
 
 void BKE_collection_engine_property_add_float(struct IDProperty *props, const char *name, float value);
 void BKE_collection_engine_property_add_int(struct IDProperty *props, const char *name, int value);
