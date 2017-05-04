@@ -3133,7 +3133,19 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 	float u = -atan(nco.y, nco.x) / (2.0 * M_PI) + 0.5;
 	float v = atan(nco.z, hypot(nco.x, nco.y)) / M_PI + 0.5;
 
+#if __VERSION__ > 120
+	/* Fix pole bleeding */
+	float half_width = 0.5 / float(textureSize(ima, 0).x);
+	v = clamp(v, half_width, 1.0 - half_width);
+
+	/* Fix u = 0 seam */
+	/* This is caused by texture filtering, since uv don't have smooth derivatives
+	 * at u = 0 or 2PI, hardware filtering is using the smallest mipmap for certain
+	 * texels. So we force the highest mipmap and don't do anisotropic filtering. */
+	color = textureLod(ima, vec2(u, v), 0.0);
+#else
 	color = texture2D(ima, vec2(u, v));
+#endif
 }
 
 void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
