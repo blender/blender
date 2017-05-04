@@ -2836,7 +2836,7 @@ void environment_default_vector(out vec3 worldvec)
 }
 #endif
 
-void node_background(vec4 color, float strength, vec3 N, out vec4 result)
+void node_background(vec4 color, float strength, out vec4 result)
 {
 	result = color * strength;
 }
