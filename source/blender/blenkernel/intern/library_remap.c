@@ -526,8 +526,12 @@ void BKE_libblock_remap_locked(
 		id_us_clear_real(old_id);
 	}
 
-	BLI_assert(old_id->us - skipped_refcounted >= 0);
-	UNUSED_VARS_NDEBUG(skipped_refcounted);
+	if (old_id->us - skipped_refcounted < 0) {
+		printf("Error in remapping process from '%s' (%p) to '%s' (%p): "
+		       "wrong user count in old ID after process (summing up to %d)\n",
+		       old_id->name, old_id, new_id ? new_id->name : "<NULL>", new_id, old_id->us - skipped_refcounted);
+		BLI_assert(0);
+	}
 
 	if (skipped_direct == 0) {
 		/* old_id is assumed to not be used directly anymore... */
