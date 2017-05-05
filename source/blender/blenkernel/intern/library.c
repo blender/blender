@@ -1948,7 +1948,7 @@ void BKE_library_make_local(
 
 	/* Note: Keeping both version of the code (old one being safer, since it still has checks against unused IDs)
 	 * for now, we can remove old one once it has been tested for some time in master... */
-#if 1
+#if 0
 	/* Step 5: proxy 'remapping' hack. */
 	for (LinkNode *it = copied_ids; it; it = it->next) {
 		/* Attempt to re-link copied proxy objects. This allows appending of an entire scene
