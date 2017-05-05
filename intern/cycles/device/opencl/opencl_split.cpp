@@ -70,6 +70,10 @@ public:
 		delete split_kernel;
 	}
 
+	virtual bool show_samples() const {
+		return true;
+	}
+
 	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features,
 	                          vector<OpenCLDeviceBase::OpenCLProgram*> &programs)
 	{
