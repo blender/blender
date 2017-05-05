@@ -254,4 +254,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "SceneLayer", "IDProperty", "properties")) {
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+				IDPropertyTemplate val = {0};
+				sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+				BKE_scene_layer_engine_settings_create(sl->properties);
+			}
+		}
+	}
 }

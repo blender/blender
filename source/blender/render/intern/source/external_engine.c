@@ -74,7 +74,7 @@
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
 	"BLENDER_RENDER", N_("Blender Render"), RE_INTERNAL | RE_USE_LEGACY_PIPELINE,
-	NULL, NULL, NULL, NULL, NULL, NULL, render_internal_update_passes, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, render_internal_update_passes, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -83,7 +83,7 @@ static RenderEngineType internal_render_type = {
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
 	"BLENDER_GAME", N_("Blender Game"), RE_INTERNAL | RE_GAME | RE_USE_LEGACY_PIPELINE,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -107,6 +107,7 @@ void RE_engines_exit(void)
 	DRW_engines_free();
 
 	BKE_layer_collection_engine_settings_callback_free();
+	BKE_scene_layer_engine_settings_callback_free();
 
 	for (type = R_engines.first; type; type = next) {
 		next = type->next;
@@ -130,6 +131,10 @@ void RE_engines_register(Main *bmain, RenderEngineType *render_type)
 	if (render_type->collection_settings_create) {
 		BKE_layer_collection_engine_settings_callback_register(
 		            bmain, render_type->idname, render_type->collection_settings_create);
+	}
+	if (render_type->render_settings_create) {
+		BKE_scene_layer_engine_settings_callback_register(
+		            bmain, render_type->idname, render_type->render_settings_create);
 	}
 	BLI_addtail(&R_engines, render_type);
 }

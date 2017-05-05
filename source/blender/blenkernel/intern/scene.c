@@ -317,12 +317,15 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		BLI_duplicatelist(&scen->render_layers, &sce->render_layers);
 		SceneLayer *new_sl = scen->render_layers.first;
 		for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
+			new_sl->properties = IDP_New(IDP_GROUP, (const IDPropertyTemplate *){0}, ROOT_PROP);
+			new_sl->properties_evaluated = NULL;
 
 			/* we start fresh with no overrides and no visibility flags set
 			 * instead of syncing both trees we simply unlink and relink the scene collection */
 			BLI_listbase_clear(&new_sl->layer_collections);
 			BLI_listbase_clear(&new_sl->object_bases);
 			layer_collections_recreate(new_sl, &sl->layer_collections, mcn, mc);
+
 
 			if (sl->basact) {
 				Object *active_ob = sl->basact->object;
@@ -336,8 +339,8 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			new_sl = new_sl->next;
 		}
 
-		IDPropertyTemplate val = {0};
-		scen->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		scen->collection_properties = IDP_New(IDP_GROUP, (const IDPropertyTemplate *){0}, ROOT_PROP);
+		scen->layer_properties = IDP_New(IDP_GROUP, (const IDPropertyTemplate *){0}, ROOT_PROP);
 	}
 
 	/* copy color management settings */
@@ -454,6 +457,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 	if (type != SCE_COPY_NEW) {
 		if (sce->collection_properties) {
 			IDP_MergeGroup(scen->collection_properties, sce->collection_properties, true);
+		}
+		if (sce->layer_properties) {
+			IDP_MergeGroup(scen->layer_properties, sce->layer_properties, true);
 		}
 	}
 
@@ -586,11 +592,18 @@ void BKE_scene_free(Scene *sce)
 	MEM_freeN(sce->collection);
 	sce->collection = NULL;
 
-	/* Runtime Engine Data */
+	/* LayerCollection engine settings. */
 	if (sce->collection_properties) {
 		IDP_FreeProperty(sce->collection_properties);
 		MEM_freeN(sce->collection_properties);
 		sce->collection_properties = NULL;
+	}
+
+	/* Render engine setting. */
+	if (sce->layer_properties) {
+		IDP_FreeProperty(sce->layer_properties);
+		MEM_freeN(sce->layer_properties);
+		sce->layer_properties = NULL;
 	}
 }
 
@@ -946,9 +959,12 @@ void BKE_scene_init(Scene *sce)
 	sce->collection = MEM_callocN(sizeof(SceneCollection), "Master Collection");
 	BLI_strncpy(sce->collection->name, "Master Collection", sizeof(sce->collection->name));
 
-	IDPropertyTemplate val = {0};
-	sce->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+	/* Engine settings */
+	sce->collection_properties = IDP_New(IDP_GROUP, (const IDPropertyTemplate *){0}, ROOT_PROP);
 	BKE_layer_collection_engine_settings_create(sce->collection_properties);
+
+	sce->layer_properties = IDP_New(IDP_GROUP, (const IDPropertyTemplate *){0}, ROOT_PROP);
+	BKE_scene_layer_engine_settings_create(sce->layer_properties);
 
 	BKE_scene_layer_add(sce, "Render Layer");
 }

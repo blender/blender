@@ -2775,7 +2775,14 @@ static void write_scene(WriteData *wd, Scene *sce)
 	for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
 		writestruct(wd, DATA, SceneLayer, 1, sl);
 		writelist(wd, DATA, Base, &sl->object_bases);
+		if (sl->properties) {
+			IDP_WriteProperty(sl->properties, wd);
+		}
 		write_layer_collections(wd, &sl->layer_collections);
+	}
+
+	if (sce->layer_properties) {
+		IDP_WriteProperty(sce->layer_properties, wd);
 	}
 
 	if (sce->collection_properties) {

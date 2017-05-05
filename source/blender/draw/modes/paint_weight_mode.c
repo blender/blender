@@ -168,7 +168,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 	SceneLayer *sl = draw_ctx->sl;
 
 	if (ob->type == OB_MESH && ob == sl->basact->object) {
-		IDProperty *ces_mode_pw = BKE_object_collection_engine_get(ob, COLLECTION_MODE_PAINT_WEIGHT, "");
+		IDProperty *ces_mode_pw = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_PAINT_WEIGHT, "");
 		bool use_wire = BKE_collection_engine_property_value_get_bool(ces_mode_pw, "use_wire");
 		char flag = ((Mesh *)ob->data)->editflag;
 		struct Batch *geom;

@@ -108,15 +108,25 @@ void BKE_layer_sync_object_unlink(const struct Scene *scene, struct SceneCollect
 void BKE_collection_override_datablock_add(struct LayerCollection *lc, const char *data_path, struct ID *id);
 
 /* engine settings */
-typedef void (*CollectionEngineSettingsCB)(struct RenderEngine *engine, struct IDProperty *props);
-struct IDProperty *BKE_layer_collection_engine_get(struct LayerCollection *lc, const int type, const char *engine_name);
-struct IDProperty *BKE_object_collection_engine_get(struct Object *ob, const int type, const char *engine_name);
-struct IDProperty *BKE_scene_collection_engine_get(struct Scene *scene, const int type, const char *engine_name);
-void BKE_layer_collection_engine_settings_callback_register(struct Main *bmain, const char *engine_name, CollectionEngineSettingsCB func);
+typedef void (*EngineSettingsCB)(struct RenderEngine *engine, struct IDProperty *props);
+
+struct IDProperty *BKE_layer_collection_engine_evaluated_get(struct Object *ob, const int type, const char *engine_name);
+struct IDProperty *BKE_layer_collection_engine_collection_get(struct LayerCollection *lc, const int type, const char *engine_name);
+struct IDProperty *BKE_layer_collection_engine_scene_get(struct Scene *scene, const int type, const char *engine_name);
+void BKE_layer_collection_engine_settings_callback_register(struct Main *bmain, const char *engine_name, EngineSettingsCB func);
 void BKE_layer_collection_engine_settings_callback_free(void);
 void BKE_layer_collection_engine_settings_create(struct IDProperty *root);
 void BKE_layer_collection_engine_settings_validate_scene(struct Scene *scene);
 void BKE_layer_collection_engine_settings_validate_collection(struct LayerCollection *lc);
+
+struct IDProperty *BKE_scene_layer_engine_evaluated_get(struct SceneLayer *sl, const int type, const char *engine_name);
+struct IDProperty *BKE_scene_layer_engine_layer_get(struct SceneLayer *sl, const int type, const char *engine_name);
+struct IDProperty *BKE_scene_layer_engine_scene_get(struct Scene *scene, const int type, const char *engine_name);
+void BKE_scene_layer_engine_settings_callback_register(struct Main *bmain, const char *engine_name, EngineSettingsCB func);
+void BKE_scene_layer_engine_settings_callback_free(void);
+void BKE_scene_layer_engine_settings_validate_scene(struct Scene *scene);
+void BKE_scene_layer_engine_settings_validate_layer(struct SceneLayer *sl);
+void BKE_scene_layer_engine_settings_create(struct IDProperty *root);
 
 void BKE_collection_engine_property_add_float(struct IDProperty *props, const char *name, float value);
 void BKE_collection_engine_property_add_int(struct IDProperty *props, const char *name, int value);

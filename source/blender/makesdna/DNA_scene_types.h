@@ -1753,6 +1753,8 @@ typedef struct Scene {
 	int pad4;
 
 	IDProperty *collection_properties;  /* settings to be overriden by layer collections */
+	IDProperty *layer_properties;  /* settings to be override by workspaces */
+
 	int pad5[2];
 } Scene;
 

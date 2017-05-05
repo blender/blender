@@ -1607,7 +1607,7 @@ bool DRW_is_object_renderable(Object *ob)
 
 	if (ob->type == OB_MESH) {
 		if (ob == obedit) {
-			IDProperty *props = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
+			IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
 			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(props, "show_occlude_wire");
 
 			if (do_occlude_wire)

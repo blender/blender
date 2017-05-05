@@ -555,7 +555,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 
 	struct Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
-		IDProperty *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
+		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 		const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 
 		/* Depth Prepass */
@@ -717,12 +717,22 @@ static void EEVEE_engine_free(void)
 	DRW_TEXTURE_FREE_SAFE(e_data.jitter);
 }
 
-static void EEVEE_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+static void EEVEE_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
 	// BKE_collection_engine_property_add_int(props, "high_quality_sphere_lamps", false);
+	UNUSED_VARS_NDEBUG(props);
+}
+
+
+static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+{
+	BLI_assert(props &&
+	           props->type == IDP_GROUP &&
+	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
+	UNUSED_VARS_NDEBUG(props);
 }
 
 static const DrawEngineDataSize EEVEE_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);
@@ -743,7 +753,8 @@ DrawEngineType draw_engine_eevee_type = {
 RenderEngineType DRW_engine_viewport_eevee_type = {
 	NULL, NULL,
 	EEVEE_ENGINE, N_("Eevee"), RE_INTERNAL | RE_USE_SHADING_NODES,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, &EEVEE_collection_settings_create,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	&EEVEE_layer_collection_settings_create, &EEVEE_scene_layer_settings_create,
 	&draw_engine_eevee_type,
 	{NULL, NULL, NULL}
 };

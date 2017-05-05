@@ -76,6 +76,8 @@ typedef struct SceneLayer {
 	ListBase object_bases;      /* ObjectBase */
 	struct Base *basact;
 	ListBase layer_collections; /* LayerCollection */
+	struct IDProperty *properties;  /* overrides */
+	struct IDProperty *properties_evaluated;
 } SceneLayer;
 
 typedef struct SceneCollection {

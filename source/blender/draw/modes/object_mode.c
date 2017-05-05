@@ -1182,7 +1182,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	SceneLayer *sl = draw_ctx->sl;
 	int theme_id = TH_UNDEFINED;
 
-	//CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
+	//CollectionEngineSettings *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 
 	//bool do_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_wire");
 	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);

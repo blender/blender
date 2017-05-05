@@ -105,6 +105,7 @@ typedef struct RenderEngineType {
 	void (*update_render_passes)(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl);
 
 	void (*collection_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
+	void (*render_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
 
 	struct DrawEngineType *draw_engine;
 

@@ -6310,11 +6310,25 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		link_list(fd, &sl->object_bases);
 		sl->basact = newdataadr(fd, sl->basact);
 		direct_link_layer_collections(fd, &sl->layer_collections);
+
+		if (sl->properties != NULL) {
+			sl->properties = newdataadr(fd, sl->properties);
+			BLI_assert(sl->properties != NULL);
+			IDP_DirectLinkGroup_OrFree(&sl->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			BKE_scene_layer_engine_settings_validate_layer(sl);
+		}
+
+		sl->properties_evaluated = NULL;
 	}
 
 	sce->collection_properties = newdataadr(fd, sce->collection_properties);
 	IDP_DirectLinkGroup_OrFree(&sce->collection_properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+
+	sce->layer_properties = newdataadr(fd, sce->layer_properties);
+	IDP_DirectLinkGroup_OrFree(&sce->layer_properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+
 	BKE_layer_collection_engine_settings_validate_scene(sce);
+	BKE_scene_layer_engine_settings_validate_scene(sce);
 }
 
 /* ************ READ WM ***************** */

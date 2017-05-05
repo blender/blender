@@ -400,7 +400,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		if (ob == obedit) {
-			IDProperty *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
+			IDProperty *ces_mode_ed = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
 			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
 			/* Updating uniform */
 			backwire_opacity = BKE_collection_engine_property_value_get_float(ces_mode_ed, "backwire_opacity");

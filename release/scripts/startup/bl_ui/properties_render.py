@@ -584,6 +584,18 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
             sub.prop(rd, "bake_user_scale", text="User Scale")
 
 
+class RENDER_PT_clay_layer_settings(RenderButtonsPanel, Panel):
+    bl_label = "Clay Layer Settings"
+    COMPAT_ENGINES = {'BLENDER_CLAY'}
+
+    def draw(self, context):
+        layout = self.layout
+        props = context.scene.layer_properties['BLENDER_CLAY']
+
+        col = layout.column()
+        col.prop(props, "ssao_samples")
+
+
 class RENDER_PT_clay_collection_settings(RenderButtonsPanel, Panel):
     bl_label = "Clay Collection Settings"
     COMPAT_ENGINES = {'BLENDER_CLAY'}
@@ -619,6 +631,7 @@ classes = (
     RENDER_PT_output,
     RENDER_PT_encoding,
     RENDER_PT_bake,
+    RENDER_PT_clay_layer_settings,
     RENDER_PT_clay_collection_settings,
 )
 
