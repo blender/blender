@@ -1189,7 +1189,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	if (do_outlines) {
 		Object *obedit = scene->obedit;
-		if (ob != obedit && !(sl->basact->object == ob && ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT))) {
+		if (ob != obedit && !(OBACT_NEW == ob && ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT))) {
 			struct Batch *geom = DRW_cache_object_surface_get(ob);
 			if (geom) {
 				theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
