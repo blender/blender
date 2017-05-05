@@ -47,6 +47,8 @@ void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w);
 
 void immAttrib2i(unsigned attrib_id, int x, int y);
 
+void immAttrib1u(unsigned attrib_id, unsigned x);
+
 void immAttrib2s(unsigned attrib_id, short x, short y);
 
 void immAttrib2fv(unsigned attrib_id, const float data[2]);

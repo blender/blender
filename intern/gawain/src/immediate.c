@@ -537,6 +537,25 @@ void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w)
 	data[3] = w;
 	}
 
+void immAttrib1u(unsigned attrib_id, unsigned x)
+	{
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
+
+#if TRUST_NO_ONE
+	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib->comp_type == COMP_U32);
+	assert(attrib->comp_ct == 1);
+	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(imm.prim_type != PRIM_NONE); // make sure we're between a Begin/End pair
+#endif
+
+	setAttribValueBit(attrib_id);
+
+	unsigned* data = (unsigned*)(imm.vertex_data + attrib->offset);
+
+	data[0] = x;
+	}
+
 void immAttrib2i(unsigned attrib_id, int x, int y)
 	{
 	Attrib* attrib = imm.vertex_format.attribs + attrib_id;

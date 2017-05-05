@@ -9348,10 +9348,11 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 	data.mvert = mvert;
 	data.offset = offset;
 
+	const int imm_len = dm->getNumVerts(dm);
+
+	if (imm_len == 0) return;
+
 	VertexFormat *format = immVertexFormat();
-
-	if (dm->getNumVerts(dm) == 0) return;
-
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
 	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
@@ -9359,7 +9360,7 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
-	immBeginAtMost(PRIM_POINTS, dm->getNumVerts(dm));
+	immBeginAtMost(PRIM_POINTS, imm_len);
 	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
 	immEnd();
 
@@ -9399,6 +9400,7 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	immUnbindProgram();
 }
 
+#if defined(WITH_LEGACY_OPENGL)
 static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 {
 	drawBMOffset_userData *data = userData;
@@ -9412,15 +9414,52 @@ static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	}
 }
+#else
+static void bbs_mesh_wire__mapFunc(void *userData, int index, const float v0co[3], const float v1co[3])
+{
+	drawBMOffset_userData *data = userData;
+	BMEdge *eed = BM_edge_at_index(data->bm, index);
+
+	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+		int selcol;
+		GPU_select_index_get(data->offset + index, &selcol);
+		immAttrib3ubv(data->col, (unsigned char *)&selcol);
+		immVertex3fv(data->pos, v0co);
+		immVertex3fv(data->pos, v1co);
+	}
+}
+#endif
 static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	drawBMOffset_userData data;
 	data.bm = em->bm;
 	data.offset = offset;
 
+#if defined(WITH_LEGACY_OPENGL)
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, &data);
+#else
+	VertexFormat *format = immVertexFormat();
+
+	const int imm_len = dm->getNumEdges(dm) * 2;
+
+	if (imm_len == 0) return;
+
+	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
+	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
+
+	immBeginAtMost(PRIM_LINES, imm_len);
+	dm->foreachMappedEdge(dm, bbs_mesh_wire__mapFunc, &data);
+	immEnd();
+
+	immUnbindProgram();
+#endif
 }
 
+#if defined(WITH_LEGACY_OPENGL)
 /**
  * dont set #GPU_framebuffer_index_set. just use to mask other
  */
@@ -9448,6 +9487,73 @@ static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int inde
 		return DM_DRAW_OPTION_SKIP;
 	}
 }
+#endif
+
+static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select)
+{
+#if defined(WITH_LEGACY_OPENGL)
+	if (use_select) {
+		dm->drawMappedFaces(
+		        dm, bbs_mesh_solid__setSolidDrawOptions, NULL, NULL, em->bm,
+		        DM_DRAW_SKIP_HIDDEN | DM_DRAW_SELECT_USE_EDITMODE);
+	}
+	else {
+		dm->drawMappedFaces(
+		        dm, bbs_mesh_mask__setSolidDrawOptions, NULL, NULL, em->bm,
+		        DM_DRAW_SKIP_HIDDEN | DM_DRAW_SELECT_USE_EDITMODE | DM_DRAW_SKIP_SELECT);
+	}
+#else
+	UNUSED_VARS(dm);
+
+	drawBMOffset_userData data;
+	data.bm = em->bm;
+
+	const int tri_len = em->tottri;
+	const int imm_len = tri_len * 3;
+	const char hflag_skip = use_select ? BM_ELEM_SELECT : (BM_ELEM_HIDDEN | BM_ELEM_SELECT);
+
+	if (imm_len == 0) return;
+
+	VertexFormat *format = immVertexFormat();
+	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
+	immBeginAtMost(PRIM_TRIANGLES, imm_len);
+
+	if (use_select == false) {
+		int selcol;
+		GPU_select_index_get(0, &selcol);
+		immAttrib3ubv(data.col, (unsigned char *)&selcol);
+	}
+
+	int index = 0;
+	while (index < tri_len) {
+		const BMFace *f = em->looptris[index][0]->f;
+		const int ntris = f->len - 2;
+		if (!BM_elem_flag_test(f, hflag_skip)) {
+			if (use_select) {
+				int selcol;
+				GPU_select_index_get(BM_elem_index_get(f) + 1, &selcol);
+				immAttrib3ubv(data.col, (unsigned char *)&selcol);
+			}
+			for (int t = 0; t < ntris; t++) {
+				immVertex3fv(data.pos, em->looptris[index][0]->v->co);
+				immVertex3fv(data.pos, em->looptris[index][1]->v->co);
+				immVertex3fv(data.pos, em->looptris[index][2]->v->co);
+				index++;
+			}
+		}
+		else {
+			index += ntris;
+		}
+	}
+	immEnd();
+
+	immUnbindProgram();
+#endif
+}
 
 static void bbs_mesh_solid__drawCenter(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
 {
@@ -9462,34 +9568,38 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, const float ce
 	}
 }
 
+static void bbs_mesh_face_dot(BMEditMesh *em, DerivedMesh *dm)
+{
+	drawBMOffset_userData data; /* don't use offset */
+	data.bm = em->bm;
+	VertexFormat *format = immVertexFormat();
+	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
+	glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
+
+	immBeginAtMost(PRIM_POINTS, em->bm->totface);
+	dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, &data, DM_FOREACH_NOP);
+	immEnd();
+
+	immUnbindProgram();
+}
+
 /* two options, facecolors or black */
 static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
                               Object *ob, DerivedMesh *dm, bool use_faceselect)
 {
 	if (use_faceselect) {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, NULL, NULL, em->bm, DM_DRAW_SKIP_HIDDEN | DM_DRAW_SELECT_USE_EDITMODE);
+		bbs_mesh_face(em, dm, true);
 
 		if (check_ob_drawface_dot(scene, v3d, ob->dt)) {
-			drawBMOffset_userData data; /* don't use offset */
-			data.bm = em->bm;
-			VertexFormat *format = immVertexFormat();
-			data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
-
-			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
-
-			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
-
-			immBeginAtMost(PRIM_POINTS, em->bm->totface);
-			dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, &data, DM_FOREACH_NOP);
-			immEnd();
-
-			immUnbindProgram();
+			bbs_mesh_face_dot(em, dm);
 		}
-
 	}
 	else {
-		dm->drawMappedFaces(dm, bbs_mesh_mask__setSolidDrawOptions, NULL, NULL, em->bm, DM_DRAW_SKIP_SELECT | DM_DRAW_SKIP_HIDDEN | DM_DRAW_SELECT_USE_EDITMODE);
+		bbs_mesh_face(em, dm, false);
 	}
 }
 
