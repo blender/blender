@@ -45,20 +45,14 @@ typedef struct PAINT_VERTEX_PassList {
 	struct DRWPass *wire_overlay;
 } PAINT_VERTEX_PassList;
 
-typedef struct PAINT_VERTEX_FramebufferList {
-} PAINT_VERTEX_FramebufferList;
-
-typedef struct PAINT_VERTEX_TextureList {
-} PAINT_VERTEX_TextureList;
-
 typedef struct PAINT_VERTEX_StorageList {
 	struct PAINT_VERTEX_PrivateData *g_data;
 } PAINT_VERTEX_StorageList;
 
 typedef struct PAINT_VERTEX_Data {
 	void *engine_type; /* Required */
-	PAINT_VERTEX_FramebufferList *fbl;
-	PAINT_VERTEX_TextureList *txl;
+	DRWViewportEmptyList *fbl;
+	DRWViewportEmptyList *txl;
 	PAINT_VERTEX_PassList *psl;
 	PAINT_VERTEX_StorageList *stl;
 } PAINT_VERTEX_Data;
