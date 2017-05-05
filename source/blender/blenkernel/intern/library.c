@@ -2118,9 +2118,26 @@ void BKE_library_make_local(
 
 #ifdef DEBUG_TIME
 	printf("Step 6: Try to find circle dependencies between indirectly-linked-only datablocks: Done.\n");
-	TIMEIT_END(make_local);
+	TIMEIT_VALUE_PRINT(make_local);
 #endif
 
+#endif
+
+	/* This is probably more of a hack than something we should do here, but...
+	 * Issue is, the whole copying + remapping done in complex cases above may leave pose channels of armatures
+	 * in complete invalid state (more precisely, the bone pointers of the pchans - very crappy cross-datablocks
+	 * relationship), se we tag it to be fully recomputed, but this does not seems to be enough in some cases,
+	 * and evaluation code ends up trying to evaluate a not-yet-updated armature object's deformations.
+	 * Try "make all local" in 04_01_H.lighting.blend from Agent327 without this, e.g. */
+	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		if (ob->data != NULL && ob->type == OB_ARMATURE && ob->pose != NULL && ob->pose->flag & POSE_RECALC) {
+			BKE_pose_rebuild(ob, ob->data);
+		}
+	}
+
+#ifdef DEBUG_TIME
+	printf("Hack: Forcefully rebuild armature object poses: Done.\n");
+	TIMEIT_VALUE_PRINT(make_local);
 #endif
 
 	BKE_main_id_clear_newpoins(bmain);
