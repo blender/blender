@@ -981,6 +981,11 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 		return;
 	}
 
+	if ((armOb->pose->flag & POSE_RECALC) != 0) {
+		printf("ERROR! Trying to evaluate influence of armature '%s' which needs Pose recalc!", armOb->id.name);
+		BLI_assert(0);
+	}
+
 	invert_m4_m4(obinv, target->obmat);
 	copy_m4_m4(premat, target->obmat);
 	mul_m4_m4m4(postmat, obinv, armOb->obmat);

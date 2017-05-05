@@ -64,6 +64,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	WarpModifierData *wmd = (WarpModifierData *) md;
 	WarpModifierData *twmd = (WarpModifierData *) target;
 
+	if (twmd->curfalloff != NULL) {
+		curvemapping_free(twmd->curfalloff);
+	}
+
 	modifier_copyData_generic(md, target);
 
 	twmd->curfalloff = curvemapping_copy(wmd->curfalloff);
