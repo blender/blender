@@ -702,6 +702,7 @@ void OBJECT_collection_settings_create(struct IDProperty *properties) RET_NONE
 void EDIT_MESH_collection_settings_create(struct IDProperty *properties) RET_NONE
 void EDIT_ARMATURE_collection_settings_create(struct IDProperty *properties) RET_NONE
 void PAINT_WEIGHT_collection_settings_create(struct IDProperty *properties) RET_NONE
+void PAINT_VERTEX_collection_settings_create(struct IDProperty *properties) RET_NONE
 void DRW_object_engine_data_free(struct Object *ob) RET_NONE
 
 /* python */
