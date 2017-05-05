@@ -479,6 +479,10 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_g
 	if(ss_isect.num_hits > 0) {
 		float3 origP = sd->P;
 
+		/* Workaround for AMD GPU OpenCL compiler. Most probably cache bypass issue. */
+#if defined(__SPLIT_KERNEL__) && defined(__KERNEL_OPENCL_AMD__) && defined(__KERNEL_GPU__)
+		kernel_split_params.dummy_sd_flag = sd->flag;
+#endif
 		/* setup new shading point */
 		shader_setup_from_subsurface(kg, sd, &ss_isect.hits[0], &ray);
 
