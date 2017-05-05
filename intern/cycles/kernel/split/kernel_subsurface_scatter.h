@@ -233,14 +233,15 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 			if(!kernel_data.integrator.branched) {
 #endif
 				if(kernel_path_subsurface_scatter(kg,
-					                              sd,
-					                              emission_sd,
-					                              L,
-					                              state,
-					                              &rng,
-					                              ray,
-					                              throughput,
-					                              ss_indirect)) {
+				                                  sd,
+				                                  emission_sd,
+				                                  L,
+				                                  state,
+				                                  &rng,
+				                                  ray,
+				                                  throughput,
+				                                  ss_indirect))
+				{
 					kernel_split_path_end(kg, ray_index);
 				}
 #ifdef __BRANCHED_PATH__
