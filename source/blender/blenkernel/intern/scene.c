@@ -1493,9 +1493,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 {
 	Scene *sce_iter;
 
-	/* keep this first */
-	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
-
 	/* (re-)build dependency graph if needed */
 	for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set) {
 		DEG_scene_relations_update(bmain, sce_iter);
@@ -1540,9 +1537,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 
-	/* notify editors and python about recalc */
-	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
-
 	/* Inform editors about possible changes. */
 	DEG_ids_check_recalc(bmain, scene, false);
 
@@ -1560,7 +1554,6 @@ void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Sce
 
 	/* keep this first */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
-	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	/* update animated image textures for particles, modifiers, gpu, etc,
 	 * call this at the start so modifiers with textures don't lag 1 frame */
@@ -1596,7 +1589,6 @@ void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Sce
 	BKE_sound_update_scene(bmain, sce);
 
 	/* notify editors and python about recalc */
-	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 
 	/* Inform editors about possible changes. */
