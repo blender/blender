@@ -2266,6 +2266,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		/* note that this is safe to do with this context iterator,
 		 * the list is made in advance */
 		ED_object_base_select(base, BA_DESELECT);
+		ED_object_base_select(basen, BA_SELECT);
 
 		if (basen == NULL) {
 			continue;
