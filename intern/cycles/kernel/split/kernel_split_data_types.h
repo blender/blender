@@ -103,6 +103,20 @@ typedef ccl_global struct SplitBranchedState {
 #define SPLIT_DATA_BRANCHED_ENTRIES
 #endif  /* __BRANCHED_PATH__ */
 
+#ifdef __SUBSURFACE__
+#  define SPLIT_DATA_SUBSURFACE_ENTRIES \
+	SPLIT_DATA_ENTRY(ccl_global SubsurfaceIndirectRays, ss_rays, 1)
+#else
+#  define SPLIT_DATA_SUBSURFACE_ENTRIES
+#endif /* __SUBSURFACE__ */
+
+#ifdef __VOLUME__
+#  define SPLIT_DATA_VOLUME_ENTRIES \
+	SPLIT_DATA_ENTRY(ccl_global PathState, state_shadow, 1)
+#else
+#  define SPLIT_DATA_VOLUME_ENTRIES
+#endif /* __VOLUME__ */
+
 #define SPLIT_DATA_ENTRIES \
 	SPLIT_DATA_ENTRY(ccl_global RNG, rng, 1) \
 	SPLIT_DATA_ENTRY(ccl_global float3, throughput, 1) \
@@ -118,6 +132,8 @@ typedef ccl_global struct SplitBranchedState {
 	SPLIT_DATA_ENTRY(ccl_global uint, work_array, 1) \
 	SPLIT_DATA_ENTRY(ShaderData, sd, 1) \
 	SPLIT_DATA_ENTRY(ShaderData, sd_DL_shadow, 1) \
+	SPLIT_DATA_SUBSURFACE_ENTRIES \
+	SPLIT_DATA_VOLUME_ENTRIES \
 	SPLIT_DATA_BRANCHED_ENTRIES \
 	SPLIT_DATA_DEBUG_ENTRIES \
 
@@ -126,14 +142,6 @@ typedef struct SplitData {
 #define SPLIT_DATA_ENTRY(type, name, num) type *name;
 	SPLIT_DATA_ENTRIES
 #undef SPLIT_DATA_ENTRY
-
-#ifdef __SUBSURFACE__
-	ccl_global SubsurfaceIndirectRays *ss_rays;
-#endif
-
-#ifdef __VOLUME__
-	ccl_global PathState *state_shadow;
-#endif
 
 	/* this is actually in a separate buffer from the rest of the split state data (so it can be read back from
 	 * the host easily) but is still used the same as the other data so we have it here in this struct as well
