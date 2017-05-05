@@ -217,16 +217,17 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 
 #ifdef __SUBSURFACE__
 	ccl_global char *ray_state = kernel_split_state.ray_state;
-	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
-	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-	RNG rng = kernel_split_state.rng[ray_index];
-	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
-	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
-	ccl_global SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
-	ShaderData *sd = &kernel_split_state.sd[ray_index];
-	ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
+		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
+		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+		RNG rng = kernel_split_state.rng[ray_index];
+		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
+		ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
+		ccl_global SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
+		ShaderData *sd = &kernel_split_state.sd[ray_index];
+		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
+
 		if(sd->flag & SD_BSSRDF) {
 
 #ifdef __BRANCHED_PATH__

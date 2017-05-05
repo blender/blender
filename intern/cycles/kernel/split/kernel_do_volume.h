@@ -118,15 +118,14 @@ ccl_device void kernel_do_volume(KernelGlobals *kg)
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 
-	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
-	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
-	RNG rng = kernel_split_state.rng[ray_index];
-	ccl_global Intersection *isect = &kernel_split_state.isect[ray_index];
-	ShaderData *sd = &kernel_split_state.sd[ray_index];
-	ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
-
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE) ||
 	   IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
+		ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
+		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
+		RNG rng = kernel_split_state.rng[ray_index];
+		ccl_global Intersection *isect = &kernel_split_state.isect[ray_index];
+		ShaderData *sd = &kernel_split_state.sd[ray_index];
+		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
 
 		bool hit = ! IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND);
 
