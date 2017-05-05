@@ -153,6 +153,7 @@ data_to_c_simple(modes/shaders/object_grid_frag.glsl SRC)
 data_to_c_simple(modes/shaders/object_grid_vert.glsl SRC)
 data_to_c_simple(modes/shaders/paint_wire_frag.glsl SRC)
 data_to_c_simple(modes/shaders/paint_wire_vert.glsl SRC)
+data_to_c_simple(modes/shaders/paint_vert_frag.glsl SRC)
 
 list(APPEND INC
 )

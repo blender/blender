@@ -1403,7 +1403,7 @@ static bool mesh_render_data_tri_cos_sel_get(
 
 static bool mesh_render_data_vert_cos_sel_get(
         MeshRenderData *rdata, const int vert_idx,
-        float r_vert_co[3], float r_vert_col[3])
+        float r_vert_co[3], int *r_vert_sel)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT));
 
@@ -1414,14 +1414,10 @@ static bool mesh_render_data_vert_cos_sel_get(
 		const MVert *mv = &rdata->mvert[vert_idx];
 
 		if (mv->flag & SELECT) {
-			r_vert_col[0] = 1.0f;
-			r_vert_col[1] = 1.0f;
-			r_vert_col[2] = 1.0f;
+			*r_vert_sel = true;
 		}
 		else {
-			r_vert_col[0] = 0.4f;
-			r_vert_col[1] = 0.4f;
-			r_vert_col[2] = 0.4f;
+			*r_vert_sel = false;
 		}
 
 		copy_v3_v3(r_vert_co, mv->co);
@@ -2364,11 +2360,11 @@ static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
 		unsigned int vidx = 0, cidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, col_id;
+		static unsigned int pos_id, sel_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
 			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			col_id = VertexFormat_add_attrib(&format, "select", COMP_U8, 1, KEEP_INT);
+			sel_id = VertexFormat_add_attrib(&format, "select", COMP_U8, 1, KEEP_INT);
 		}
 
 		const int edge_len = mesh_render_data_edges_len_get(rdata);
@@ -2386,8 +2382,8 @@ static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
 			if (mesh_render_data_edge_cos_sel_get(
 			        rdata, i, edge_vert_cos, &edge_vert_sel, use_wire, use_sel))
 			{
-				VertexBuffer_set_attrib(vbo, col_id, cidx++, &edge_vert_sel);
-				VertexBuffer_set_attrib(vbo, col_id, cidx++, &edge_vert_sel);
+				VertexBuffer_set_attrib(vbo, sel_id, cidx++, &edge_vert_sel);
+				VertexBuffer_set_attrib(vbo, sel_id, cidx++, &edge_vert_sel);
 
 				VertexBuffer_set_attrib(vbo, pos_id, vidx++, edge_vert_cos[0]);
 				VertexBuffer_set_attrib(vbo, pos_id, vidx++, edge_vert_cos[1]);
@@ -2456,11 +2452,11 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 		unsigned int vidx = 0, cidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, col_id;
+		static unsigned int pos_id, sel_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
 			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			col_id = VertexFormat_add_attrib(&format, "color", COMP_F32, 3, KEEP_FLOAT);
+			sel_id = VertexFormat_add_attrib(&format, "select", COMP_I8, 1, KEEP_INT);
 		}
 
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
@@ -2472,12 +2468,13 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
 
 		for (int i = 0; i < vert_len; i++) {
-			static float vert_co[3], vert_col[3];
+			static float vert_co[3];
+			static int vert_sel;
 
 			if (mesh_render_data_vert_cos_sel_get(
-			        rdata, i, vert_co, vert_col))
+			        rdata, i, vert_co, &vert_sel))
 			{
-				VertexBuffer_set_attrib(vbo, col_id, cidx++, vert_col);
+				VertexBuffer_set_attrib(vbo, sel_id, cidx++, &vert_sel);
 				VertexBuffer_set_attrib(vbo, pos_id, vidx++, vert_co);
 			}
 		}

@@ -42,6 +42,7 @@ extern struct GlobalsUboStorage ts; /* draw_common.c */
 
 extern char datatoc_paint_wire_vert_glsl[];
 extern char datatoc_paint_wire_frag_glsl[];
+extern char datatoc_paint_vert_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 
 /* *********** LISTS *********** */
@@ -110,7 +111,10 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 	}
 
 	if (!e_data.vert_overlay_shader) {
-		e_data.vert_overlay_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
+		e_data.vert_overlay_shader = DRW_shader_create_with_lib(
+		        datatoc_paint_wire_vert_glsl, NULL,
+		        datatoc_paint_vert_frag_glsl,
+		        datatoc_common_globals_lib_glsl, NULL);
 	}
 }
 
@@ -208,6 +212,7 @@ static void PAINT_WEIGHT_draw_scene(void *vedata)
 static void PAINT_WEIGHT_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.wire_overlay_shader);
+	DRW_SHADER_FREE_SAFE(e_data.vert_overlay_shader);
 }
 
 void PAINT_WEIGHT_collection_settings_create(IDProperty *properties)
