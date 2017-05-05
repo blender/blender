@@ -151,6 +151,8 @@ data_to_c_simple(modes/shaders/object_outline_expand_frag.glsl SRC)
 data_to_c_simple(modes/shaders/object_outline_detect_frag.glsl SRC)
 data_to_c_simple(modes/shaders/object_grid_frag.glsl SRC)
 data_to_c_simple(modes/shaders/object_grid_vert.glsl SRC)
+data_to_c_simple(modes/shaders/paint_wire_frag.glsl SRC)
+data_to_c_simple(modes/shaders/paint_wire_vert.glsl SRC)
 
 list(APPEND INC
 )

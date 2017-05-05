@@ -99,7 +99,7 @@ struct Batch *DRW_cache_mesh_surface_vert_colors_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_surface_verts_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_edges_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_verts_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_edges_paint_overlay_get(struct Object *ob, bool use_wire, bool use_sel,  bool use_theme);
+struct Batch *DRW_cache_mesh_edges_paint_overlay_get(struct Object *ob, bool use_wire, bool use_sel);
 struct Batch *DRW_cache_mesh_faces_weight_overlay_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_verts_weight_overlay_get(struct Object *ob);
 struct Batch **DRW_cache_mesh_surface_shaded_get(struct Object *ob);

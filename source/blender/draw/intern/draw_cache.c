@@ -1818,12 +1818,12 @@ Batch *DRW_cache_mesh_verts_get(Object *ob)
 	return DRW_mesh_batch_cache_get_all_verts(me);
 }
 
-Batch *DRW_cache_mesh_edges_paint_overlay_get(Object *ob, bool use_wire, bool use_sel, bool use_theme)
+Batch *DRW_cache_mesh_edges_paint_overlay_get(Object *ob, bool use_wire, bool use_sel)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_weight_overlay_edges(me, use_wire, use_sel, use_theme);
+	return DRW_mesh_batch_cache_get_weight_overlay_edges(me, use_wire, use_sel);
 }
 
 Batch *DRW_cache_mesh_faces_weight_overlay_get(Object *ob)
