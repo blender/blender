@@ -2900,13 +2900,13 @@ Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 		        MR_DATATYPE_POLY | MR_DATATYPE_SHADING;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		const int mat_ct = mesh_render_data_mat_len_get(rdata);
+		const int mat_len = mesh_render_data_mat_len_get(rdata);
 
-		cache->shaded_triangles = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_ct, __func__);
+		cache->shaded_triangles = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_len, __func__);
 
 		ElementList **el = mesh_batch_cache_get_shaded_triangles_in_order(rdata, cache);
 
-		for (int i = 0; i < mat_ct; ++i) {
+		for (int i = 0; i < mat_len; ++i) {
 			cache->shaded_triangles[i] = Batch_create(
 			        PRIM_TRIANGLES, mesh_batch_cache_get_tri_pos_shading_data(rdata, cache), el[i]);
 		}
