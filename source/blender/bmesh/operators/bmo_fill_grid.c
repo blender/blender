@@ -187,15 +187,15 @@ static void bm_loop_interp_from_grid_boundary_2(BMesh *bm, BMLoop *l, BMLoop *l_
  * Avoids calling #barycentric_weights_v2_quad often by caching weights into an array.
  */
 static void barycentric_weights_v2_grid_cache(
-        const unsigned int xtot, const unsigned int ytot,
+        const uint xtot, const uint ytot,
         float (*weight_table)[4])
 {
 	float x_step = 1.0f / (float)(xtot - 1);
 	float y_step = 1.0f / (float)(ytot - 1);
-	unsigned int i = 0;
+	uint i = 0;
 	float xy_fl[2];
 
-	unsigned int x, y;
+	uint x, y;
 	for (y = 0; y < ytot; y++) {
 		xy_fl[1] = y_step * (float)y;
 		for (x = 0; x < xtot; x++) {
@@ -219,13 +219,13 @@ static void barycentric_weights_v2_grid_cache(
  * \param v_grid  2d array of verts, all boundary verts must be set, we fill in the middle.
  */
 static void bm_grid_fill_array(
-        BMesh *bm, BMVert **v_grid, const unsigned int xtot, unsigned const int ytot,
+        BMesh *bm, BMVert **v_grid, const uint xtot, unsigned const int ytot,
         const short mat_nr, const bool use_smooth,
         const bool use_flip, const bool use_interp_simple)
 {
 	const bool use_vert_interp = CustomData_has_interp(&bm->vdata);
 	const bool use_loop_interp = CustomData_has_interp(&bm->ldata);
-	unsigned int x, y;
+	uint x, y;
 
 	/* for use_loop_interp */
 	BMLoop *((*larr_x_a)[2]), *((*larr_x_b)[2]), *((*larr_y_a)[2]), *((*larr_y_b)[2]);
@@ -393,7 +393,7 @@ static void bm_grid_fill_array(
 				BMLoop *l_quad[4];
 				BMLoop *l_bound[4];
 				BMLoop *l_tmp;
-				unsigned int x_side, y_side, i;
+				uint x_side, y_side, i;
 				char interp_from;
 
 
@@ -496,12 +496,12 @@ static void bm_grid_fill(
 {
 #define USE_FLIP_DETECT
 
-	const unsigned int xtot = (unsigned int)BM_edgeloop_length_get(estore_a);
-	const unsigned int ytot = (unsigned int)BM_edgeloop_length_get(estore_rail_a);
+	const uint xtot = (uint)BM_edgeloop_length_get(estore_a);
+	const uint ytot = (uint)BM_edgeloop_length_get(estore_rail_a);
 	//BMVert *v;
-	unsigned int i;
+	uint i;
 #ifdef DEBUG
-	unsigned int x, y;
+	uint x, y;
 #endif
 	LinkData *el;
 	bool use_flip = false;

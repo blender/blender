@@ -146,7 +146,7 @@ struct ISectState {
  */
 struct LinkBase {
 	LinkNode    *list;
-	unsigned int list_len;
+	uint list_len;
 };
 
 static bool ghash_insert_link(
@@ -187,7 +187,7 @@ struct vert_sort_t {
 static void edge_verts_sort(const float co[3], struct LinkBase *v_ls_base)
 {
 	/* not optimal but list will be typically < 5 */
-	unsigned int i;
+	uint i;
 	struct vert_sort_t *vert_sort = BLI_array_alloca(vert_sort, v_ls_base->list_len);
 	LinkNode *node;
 
@@ -240,8 +240,8 @@ static void face_edges_split(
         bool use_island_connect,
         MemArena *mem_arena_edgenet)
 {
-	unsigned int i;
-	unsigned int edge_arr_len = e_ls_base->list_len;
+	uint i;
+	uint edge_arr_len = e_ls_base->list_len;
 	BMEdge **edge_arr = BLI_array_alloca(edge_arr, edge_arr_len);
 	LinkNode *node;
 	BLI_assert(f->head.htype == BM_FACE);
@@ -257,7 +257,7 @@ static void face_edges_split(
 
 #ifdef USE_NET_ISLAND_CONNECT
 	if (use_island_connect) {
-		unsigned int edge_arr_holes_len;
+		uint edge_arr_holes_len;
 		BMEdge **edge_arr_holes;
 		if (BM_face_split_edgenet_connect_islands(
 		        bm, f,
@@ -299,14 +299,14 @@ static enum ISectType intersect_line_tri(
         const struct ISectEpsilon *e)
 {
 	float p_dir[3];
-	unsigned int i_t0;
+	uint i_t0;
 	float fac;
 
 	sub_v3_v3v3(p_dir, p0, p1);
 	normalize_v3(p_dir);
 
 	for (i_t0 = 0; i_t0 < 3; i_t0++) {
-		const unsigned int i_t1 = (i_t0 + 1) % 3;
+		const uint i_t1 = (i_t0 + 1) % 3;
 		float te_dir[3];
 
 		sub_v3_v3v3(te_dir, t_cos[i_t0], t_cos[i_t1]);
@@ -369,7 +369,7 @@ static BMVert *bm_isect_edge_tri(
 {
 	BMesh *bm = s->bm;
 	int k_arr[IX_TOT][4];
-	unsigned int i;
+	uint i;
 	const int ti[3] = {UNPACK3_EX(BM_elem_index_get, t, )};
 	float ix[3];
 
@@ -464,7 +464,7 @@ static BMVert *bm_isect_edge_tri(
 		}
 
 		if ((*r_side >= IX_EDGE_TRI_EDGE0) && (*r_side <= IX_EDGE_TRI_EDGE2)) {
-			i = (unsigned int)(*r_side - IX_EDGE_TRI_EDGE0);
+			i = (uint)(*r_side - IX_EDGE_TRI_EDGE0);
 			e = BM_edge_exists(t[i], t[(i + 1) % 3]);
 			if (e) {
 				edge_verts_add(s, e, iv, false);
@@ -531,7 +531,7 @@ static void bm_isect_tri_tri(
 	const float *f_b_cos[3] = {UNPACK3_EX(, fv_b, ->co)};
 	float f_a_nor[3];
 	float f_b_nor[3];
-	unsigned int i;
+	uint i;
 
 
 	/* should be enough but may need to bump */
@@ -572,9 +572,9 @@ static void bm_isect_tri_tri(
 		/* first check in any verts are touching
 		 * (any case where we wont create new verts)
 		 */
-		unsigned int i_a;
+		uint i_a;
 		for (i_a = 0; i_a < 3; i_a++) {
-			unsigned int i_b;
+			uint i_b;
 			for (i_b = 0; i_b < 3; i_b++) {
 				if (len_squared_v3v3(fv_a[i_a]->co, fv_b[i_b]->co) <= s->epsilon.eps2x_sq) {
 #ifdef USE_DUMP
@@ -597,12 +597,12 @@ static void bm_isect_tri_tri(
 	/* vert-edge
 	 * --------- */
 	{
-		unsigned int i_a;
+		uint i_a;
 		for (i_a = 0; i_a < 3; i_a++) {
 			if (BM_ELEM_API_FLAG_TEST(fv_a[i_a], VERT_VISIT_A) == 0) {
-				unsigned int i_b_e0;
+				uint i_b_e0;
 				for (i_b_e0 = 0; i_b_e0 < 3; i_b_e0++) {
-					unsigned int i_b_e1 = (i_b_e0 + 1) % 3;
+					uint i_b_e1 = (i_b_e0 + 1) % 3;
 
 					if (BM_ELEM_API_FLAG_TEST(fv_b[i_b_e0], VERT_VISIT_B) ||
 					    BM_ELEM_API_FLAG_TEST(fv_b[i_b_e1], VERT_VISIT_B))
@@ -638,12 +638,12 @@ static void bm_isect_tri_tri(
 	}
 
 	{
-		unsigned int i_b;
+		uint i_b;
 		for (i_b = 0; i_b < 3; i_b++) {
 			if (BM_ELEM_API_FLAG_TEST(fv_b[i_b], VERT_VISIT_B) == 0) {
-				unsigned int i_a_e0;
+				uint i_a_e0;
 				for (i_a_e0 = 0; i_a_e0 < 3; i_a_e0++) {
-					unsigned int i_a_e1 = (i_a_e0 + 1) % 3;
+					uint i_a_e1 = (i_a_e0 + 1) % 3;
 
 					if (BM_ELEM_API_FLAG_TEST(fv_a[i_a_e0], VERT_VISIT_A) ||
 					    BM_ELEM_API_FLAG_TEST(fv_a[i_a_e1], VERT_VISIT_A))
@@ -683,7 +683,7 @@ static void bm_isect_tri_tri(
 	{
 
 		float t_scale[3][3];
-		unsigned int i_a;
+		uint i_a;
 
 		copy_v3_v3(t_scale[0], fv_b[0]->co);
 		copy_v3_v3(t_scale[1], fv_b[1]->co);
@@ -711,7 +711,7 @@ static void bm_isect_tri_tri(
 
 	{
 		float t_scale[3][3];
-		unsigned int i_b;
+		uint i_b;
 
 		copy_v3_v3(t_scale[0], fv_a[0]->co);
 		copy_v3_v3(t_scale[1], fv_a[1]->co);
@@ -751,8 +751,8 @@ static void bm_isect_tri_tri(
 	/* edge-tri & edge-edge
 	 * -------------------- */
 	{
-		for (unsigned int i_a_e0 = 0; i_a_e0 < 3; i_a_e0++) {
-			unsigned int i_a_e1 = (i_a_e0 + 1) % 3;
+		for (uint i_a_e0 = 0; i_a_e0 < 3; i_a_e0++) {
+			uint i_a_e1 = (i_a_e0 + 1) % 3;
 			enum ISectType side;
 			BMVert *iv;
 
@@ -772,8 +772,8 @@ static void bm_isect_tri_tri(
 			}
 		}
 
-		for (unsigned int i_b_e0 = 0; i_b_e0 < 3; i_b_e0++) {
-			unsigned int i_b_e1 = (i_b_e0 + 1) % 3;
+		for (uint i_b_e0 = 0; i_b_e0 < 3; i_b_e0++) {
+			uint i_b_e1 = (i_b_e0 + 1) % 3;
 			enum ISectType side;
 			BMVert *iv;
 
@@ -950,7 +950,7 @@ static int isect_bvhtree_point_v3(
 		const float *depth_arr = z_buffer.data;
 		float        depth_last = depth_arr[0];
 
-		for (unsigned int i = 1; i < z_buffer.count; i++) {
+		for (uint i = 1; i < z_buffer.count; i++) {
 			if (depth_arr[i] - depth_last > eps) {
 				depth_last = depth_arr[i];
 				num_isect++;
@@ -994,7 +994,7 @@ bool BM_mesh_intersect(
 
 #ifdef USE_BVH
 	BVHTree *tree_a, *tree_b;
-	unsigned int tree_overlap_tot;
+	uint tree_overlap_tot;
 	BVHTreeOverlap *overlap;
 #else
 	int i_a, i_b;
@@ -1107,7 +1107,7 @@ bool BM_mesh_intersect(
 	overlap = BLI_bvhtree_overlap(tree_b, tree_a, &tree_overlap_tot, NULL, NULL);
 
 	if (overlap) {
-		unsigned int i;
+		uint i;
 
 		for (i = 0; i < tree_overlap_tot; i++) {
 #ifdef USE_DUMP
@@ -1380,7 +1380,7 @@ bool BM_mesh_intersect(
 			GHASH_ITER (gh_iter, s.face_edges) {
 				struct LinkBase *e_ls_base = BLI_ghashIterator_getValue(&gh_iter);
 				LinkNode **node_prev_p;
-				unsigned int i;
+				uint i;
 
 				node_prev_p = &e_ls_base->list;
 				for (i = 0, node = e_ls_base->list; node; i++, node = node->next) {
@@ -1445,7 +1445,7 @@ bool BM_mesh_intersect(
 			}
 
 			{
-				unsigned int i;
+				uint i;
 				for (i = 0; i < STACK_SIZE(splice_ls); i++) {
 					if (!BLI_gset_haskey(verts_invalid, splice_ls[i][0]) &&
 					    !BLI_gset_haskey(verts_invalid, splice_ls[i][1]))

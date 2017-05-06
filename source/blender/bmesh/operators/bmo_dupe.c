@@ -83,7 +83,7 @@ static BMEdge *bmo_edge_copy(
 {
 	BMEdge *e_dst;
 	BMVert *e_dst_v1, *e_dst_v2;
-	unsigned int rlen;
+	uint rlen;
 
 	/* see if any of the neighboring faces are
 	 * not being duplicated.  in that case,

@@ -77,7 +77,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	GHash *sf_vert_map;
 	float normal[3];
 	const int scanfill_flag = BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_POLYS | BLI_SCANFILL_CALC_LOOSE;
-	unsigned int nors_tot;
+	uint nors_tot;
 	bool calc_winding = false;
 
 	sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_count(op->slots_in, "edges"));
@@ -89,7 +89,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 		ScanFillVert *sf_verts[2];
 		BMVert **e_verts = &e->v1;
-		unsigned int i;
+		uint i;
 
 		BMO_edge_flag_enable(bm, e, EDGE_MARK);
 
@@ -115,7 +115,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		 * Since we don't know winding, just accumulate */
 		ScanFillVert *sf_vert;
 		struct SortNormal *nors;
-		unsigned int i;
+		uint i;
 		bool is_degenerate = true;
 
 		nors = MEM_mallocN(sizeof(*nors) * nors_tot, __func__);
@@ -124,7 +124,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 			BMVert *v = sf_vert->tmp.p;
 			BMIter eiter;
 			BMEdge *e_pair[2];
-			unsigned int e_index = 0;
+			uint e_index = 0;
 
 			nors[i].value = -1.0f;
 
@@ -199,7 +199,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		int winding_votes = 0;
 		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 			BMVert *v_tri[3] = {sf_tri->v1->tmp.p, sf_tri->v2->tmp.p, sf_tri->v3->tmp.p};
-			unsigned int i, i_prev;
+			uint i, i_prev;
 
 			for (i = 0, i_prev = 2; i < 3; i_prev = i++) {
 				e = BM_edge_exists(v_tri[i], v_tri[i_prev]);

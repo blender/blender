@@ -225,7 +225,7 @@ typedef struct BMesh {
 	/* operator api stuff (must be all NULL or all alloc'd) */
 	struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
 
-	unsigned int use_toolflags : 1;
+	uint use_toolflags : 1;
 
 	int toolflag_index;
 	struct BMOperator *currentop;
@@ -382,7 +382,7 @@ typedef bool (*BMLoopFilterFunc)(const BMLoop *, void *user_data);
 	(assert(offset != -1), *((float *)((char *)(ele)->head.data + (offset))))
 
 #define BM_ELEM_CD_GET_FLOAT_AS_UCHAR(ele, offset) \
-	(assert(offset != -1), (unsigned char)(BM_ELEM_CD_GET_FLOAT(ele, offset) * 255.0f))
+	(assert(offset != -1), (uchar)(BM_ELEM_CD_GET_FLOAT(ele, offset) * 255.0f))
 
 /*forward declarations*/
 

@@ -770,14 +770,17 @@ static int create_primitive_from_points(bContext *C, wmOperator *op, const float
 
 	new_spline = BKE_mask_spline_add(mask_layer);
 	new_spline->flag = MASK_SPLINE_CYCLIC | SELECT;
-	new_spline->tot_point = num_points;
 	new_spline->points = MEM_recallocN(new_spline->points,
-	                                   sizeof(MaskSplinePoint) * new_spline->tot_point);
+	                                   sizeof(MaskSplinePoint) * num_points);
 
 	mask_layer->act_spline = new_spline;
 	mask_layer->act_point = NULL;
 
+	const int spline_index = BKE_mask_layer_shape_spline_to_index(mask_layer, new_spline);
+
 	for (i = 0; i < num_points; i++) {
+		new_spline->tot_point = i + 1;
+
 		MaskSplinePoint *new_point = &new_spline->points[i];
 		BKE_mask_parent_init(&new_point->parent);
 
@@ -788,6 +791,12 @@ static int create_primitive_from_points(bContext *C, wmOperator *op, const float
 		new_point->bezt.h1 = handle_type;
 		new_point->bezt.h2 = handle_type;
 		BKE_mask_point_select_set(new_point, true);
+
+		if (mask_layer->splines_shapes.first) {
+			BKE_mask_layer_shape_changed_add(mask_layer,
+			                                 spline_index + i,
+			                                 true, true);
+		}
 	}
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);

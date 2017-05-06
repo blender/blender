@@ -27,7 +27,7 @@
 
 int BM_mesh_region_match(
         BMesh *bm,
-        BMFace **faces_region, unsigned int faces_region_len,
+        BMFace **faces_region, uint faces_region_len,
         ListBase *r_face_regions);
 
 #endif /* __BMESH_REGION_MATCH_H__ */

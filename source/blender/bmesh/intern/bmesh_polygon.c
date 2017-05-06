@@ -132,7 +132,7 @@ static void bm_face_calc_poly_center_mean_vertex_cos(
  */
 void BM_face_calc_tessellation(
         const BMFace *f, const bool use_fixed_quad,
-        BMLoop **r_loops, unsigned int (*r_index)[3])
+        BMLoop **r_loops, uint (*r_index)[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter;
@@ -196,7 +196,7 @@ void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
 		 * but without this we can't be sure the point is inside a concave face. */
 		const int tottri = f->len - 2;
 		BMLoop **loops = BLI_array_alloca(loops, f->len);
-		unsigned int  (*index)[3] = BLI_array_alloca(index, tottri);
+		uint (*index)[3] = BLI_array_alloca(index, tottri);
 		int j;
 		int j_best = 0;  /* use as fallback when unset */
 		float area_best  = -1.0f;
@@ -575,11 +575,11 @@ void BM_face_calc_center_mean_weighted(const BMFace *f, float r_cent[3])
  * Rotates a polygon so that it's
  * normal is pointing towards the mesh Z axis
  */
-void poly_rotate_plane(const float normal[3], float (*verts)[3], const unsigned int nverts)
+void poly_rotate_plane(const float normal[3], float (*verts)[3], const uint nverts)
 {
 	float mat[3][3];
 	float co[3];
-	unsigned int i;
+	uint i;
 
 	co[2] = 0.0f;
 
@@ -941,7 +941,7 @@ void BM_face_triangulate(
 
 	{
 		BMLoop **loops = BLI_array_alloca(loops, f->len);
-		unsigned int (*tris)[3] = BLI_array_alloca(tris, f->len);
+		uint (*tris)[3] = BLI_array_alloca(tris, f->len);
 		const int totfilltri = f->len - 2;
 		const int last_tri = f->len - 3;
 		int i;
@@ -1425,7 +1425,7 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptri
 
 			float axis_mat[3][3];
 			float (*projverts)[2];
-			unsigned int (*tris)[3];
+			uint (*tris)[3];
 
 			const int totfilltri = efa->len - 2;
 
@@ -1451,7 +1451,7 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptri
 
 			for (j = 0; j < totfilltri; j++) {
 				BMLoop **l_ptr = looptris[i++];
-				unsigned int *tri = tris[j];
+				uint *tri = tris[j];
 
 				l_ptr[0] = l_arr[tri[0]];
 				l_ptr[1] = l_arr[tri[1]];

@@ -51,6 +51,11 @@ enum {
 	 * This means callback shall not *do* anything, only use this as informative data if it needs it. */
 	IDWALK_CB_PRIVATE = (1 << 3),
 
+	/** That ID is not really used by its owner, it's just an internal hint/helper.
+	 * This addresses Their Highest Ugliness the 'from' pointers: Object->from_proxy and Key->from.
+	 * How to handle that kind of cases totally depends on what caller code is doing... */
+	IDWALK_CB_LOOPBACK = (1 << 4),
+
 	/**
 	 * Adjusts #ID.us reference-count.
 	 * \note keep in sync with 'newlibadr_us' use in readfile.c

@@ -309,7 +309,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
 		BMFace *f_pair[2];
 		if (BM_edge_face_pair(e, &f_pair[0], &f_pair[1])) {
-			unsigned int j;
+			uint j;
 			for (j = 0; j < 2; j++) {
 				BMLoop *l_first, *l_iter;
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f_pair[j]);

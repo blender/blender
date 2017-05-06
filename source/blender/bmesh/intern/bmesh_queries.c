@@ -2326,7 +2326,7 @@ static void bm_mesh_calc_volume_face(const BMFace *f, float *r_vol)
 {
 	const int tottri = f->len - 2;
 	BMLoop **loops = BLI_array_alloca(loops, f->len);
-	unsigned int (*index)[3] = BLI_array_alloca(index, tottri);
+	uint (*index)[3] = BLI_array_alloca(index, tottri);
 	int j;
 
 	BM_face_calc_tessellation(f, false, loops, index);
@@ -2395,8 +2395,8 @@ int BM_mesh_calc_face_groups(
 
 	int group_curr = 0;
 
-	unsigned int tot_faces = 0;
-	unsigned int tot_touch = 0;
+	uint tot_faces = 0;
+	uint tot_touch = 0;
 
 	BMFace **stack;
 	STACK_DECLARE(stack);
@@ -2553,8 +2553,8 @@ int BM_mesh_calc_edge_groups(
 
 	int group_curr = 0;
 
-	unsigned int tot_edges = 0;
-	unsigned int tot_touch = 0;
+	uint tot_edges = 0;
+	uint tot_touch = 0;
 
 	BMEdge **stack;
 	STACK_DECLARE(stack);

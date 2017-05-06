@@ -560,7 +560,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				if (object->proxy_from) {
 					data.cb_flag = ID_IS_LINKED_DATABLOCK(object->proxy_from) ? IDWALK_CB_INDIRECT_USAGE : 0;
 				}
-				CALLBACK_INVOKE(object->proxy_from, IDWALK_CB_NOP);
+				CALLBACK_INVOKE(object->proxy_from, IDWALK_CB_LOOPBACK);
 				data.cb_flag = data_cb_flag;
 
 				CALLBACK_INVOKE(object->poselib, IDWALK_CB_USER);
@@ -765,12 +765,8 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 			case ID_KE:
 			{
-				/* XXX Only ID pointer from shapekeys is the 'from' one, which is not actually ID usage.
-				 * Maybe we should even nuke it from here, not 100% sure yet...
-				 * (see also foreach_libblock_id_users_callback).
-				 */
 				Key *key = (Key *) id;
-				CALLBACK_INVOKE_ID(key->from, IDWALK_CB_NOP);
+				CALLBACK_INVOKE_ID(key->from, IDWALK_CB_LOOPBACK);
 				break;
 			}
 
@@ -1166,20 +1162,15 @@ typedef struct IDUsersIter {
 	int count_direct, count_indirect;  /* Set by callback. */
 } IDUsersIter;
 
-static int foreach_libblock_id_users_callback(void *user_data, ID *self_id, ID **id_p, int cb_flag)
+static int foreach_libblock_id_users_callback(void *user_data, ID *UNUSED(self_id), ID **id_p, int cb_flag)
 {
 	IDUsersIter *iter = user_data;
 
 	if (*id_p) {
-		/* XXX This is actually some kind of hack...
-		 * Issue is, shapekeys' 'from' ID pointer is not actually ID usage.
-		 * Maybe we should even nuke it from BKE_library_foreach_ID_link, not 100% sure yet...
+		/* 'Loopback' ID pointers (the ugly 'from' ones, Object->proxy_from and Key->from).
+		 * Those are not actually ID usage, we can ignore them here.
 		 */
-		if ((GS(self_id->name) == ID_KE) && (((Key *)self_id)->from == *id_p)) {
-			return IDWALK_RET_NOP;
-		}
-		/* XXX another hack, for similar reasons as above one. */
-		if ((GS(self_id->name) == ID_OB) && (((Object *)self_id)->proxy_from == (Object *)*id_p)) {
+		if (cb_flag & IDWALK_CB_LOOPBACK) {
 			return IDWALK_RET_NOP;
 		}
 

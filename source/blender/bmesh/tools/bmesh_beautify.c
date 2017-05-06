@@ -62,7 +62,7 @@ typedef struct EdRotState {
 
 #if 0
 /* use BLI_ghashutil_inthash_v4 direct */
-static unsigned int erot_gsetutil_hash(const void *ptr)
+static uint erot_gsetutil_hash(const void *ptr)
 {
 	const EdRotState *e_state = (const EdRotState *)ptr;
 	return BLI_ghashutil_inthash_v4(&e_state->v1);
@@ -368,7 +368,7 @@ void BM_mesh_beautify_fill(
 	TIMEIT_START(beautify_fill);
 #endif
 
-	eheap = BLI_heap_new_ex((unsigned int)edge_array_len);
+	eheap = BLI_heap_new_ex((uint)edge_array_len);
 	eheap_table = MEM_mallocN(sizeof(HeapNode *) * (size_t)edge_array_len, __func__);
 
 	/* build heap */

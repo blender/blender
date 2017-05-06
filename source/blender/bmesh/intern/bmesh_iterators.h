@@ -211,12 +211,12 @@ void    *BMO_iter_as_arrayN(
 
 int BM_iter_mesh_bitmap_from_filter(
         const char itype, BMesh *bm,
-        unsigned int *bitmap,
+        uint *bitmap,
         bool (*test_fn)(BMElem *, void *user_data),
         void *user_data);
 int BM_iter_mesh_bitmap_from_filter_tessface(
         BMesh *bm,
-        unsigned int *bitmap,
+        uint *bitmap,
         bool (*test_fn)(BMFace *, void *user_data),
         void *user_data);
 

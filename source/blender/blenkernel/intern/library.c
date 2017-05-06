@@ -1721,10 +1721,19 @@ static void library_make_local_copying_check(ID *id, GSet *loop_tags, MainIDRela
 	for (; entry != NULL; entry = entry->next) {
 		ID *par_id = (ID *)entry->id_pointer;  /* used_to_user stores ID pointer, not pointer to ID pointer... */
 
-		/* Shapekeys are considered 'private' to their owner ID here, and never tagged (since they cannot be linked),
-		 * so we have to switch effective parent to their owner. */
-		if (GS(par_id->name) == ID_KE) {
-			par_id = ((Key *)par_id)->from;
+		/* Our oh-so-beloved 'from' pointers... */
+		if (entry->usage_flag & IDWALK_CB_LOOPBACK) {
+			/* We totally disregard Object->proxy_from 'usage' here, this one would only generate fake positives. */
+			if (GS(par_id->name) == ID_OB) {
+				BLI_assert(((Object *)par_id)->proxy_from == (Object *)id);
+				continue;
+			}
+
+			/* Shapekeys are considered 'private' to their owner ID here, and never tagged (since they cannot be linked),
+			 * so we have to switch effective parent to their owner. */
+			if (GS(par_id->name) == ID_KE) {
+				par_id = ((Key *)par_id)->from;
+			}
 		}
 
 		if (par_id->lib == NULL) {
@@ -1947,7 +1956,7 @@ void BKE_library_make_local(
 
 	/* Note: Keeping both version of the code (old one being safer, since it still has checks against unused IDs)
 	 * for now, we can remove old one once it has been tested for some time in master... */
-#if 0
+#if 1
 	/* Step 5: proxy 'remapping' hack. */
 	for (LinkNode *it = copied_ids; it; it = it->next) {
 		/* Attempt to re-link copied proxy objects. This allows appending of an entire scene

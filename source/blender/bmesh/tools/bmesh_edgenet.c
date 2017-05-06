@@ -100,13 +100,13 @@ static BMEdge *bm_edgenet_edge_get_next(
  *
  * This function returns half a loop, the caller needs to run twice to get both sides.
  */
-static unsigned int bm_edgenet_path_from_pass(
+static uint bm_edgenet_path_from_pass(
         BMVert *v, LinkNode **v_ls,
         VertNetInfo *vnet_info, BLI_mempool *path_pool)
 {
 	VertNetInfo *vn = &vnet_info[BM_elem_index_get(v)];
 	const int pass = vn->pass;
-	unsigned int v_ls_tot = 0;
+	uint v_ls_tot = 0;
 
 	do {
 		BLI_linklist_prepend_pool(v_ls, v, path_pool);
@@ -127,10 +127,10 @@ static bool bm_edgenet_path_check_overlap(
         VertNetInfo *vnet_info)
 {
 	/* vert order doesn't matter */
-	unsigned int v_ls_tot = 0;
+	uint v_ls_tot = 0;
 	LinkNode *v_ls = NULL;
 	BMVert *v_pair[2] = {v1, v2};
-	unsigned int i;
+	uint i;
 
 	for (i = 0; i < 2; i++) {
 		BMVert *v = v_pair[i];
@@ -162,7 +162,7 @@ static bool bm_edgenet_path_check_overlap(
  * Create a face from the path.
  */
 static BMFace *bm_edgenet_face_from_path(
-        BMesh *bm, LinkNode *path, const unsigned int path_len)
+        BMesh *bm, LinkNode *path, const uint path_len)
 {
 	BMFace *f;
 	LinkNode *v_lnk;
@@ -205,8 +205,8 @@ static BMEdge *bm_edgenet_path_step(
 
 	BMEdge *e;
 	BMIter iter;
-	unsigned int tot;
-	unsigned int v_ls_tot;
+	uint tot;
+	uint v_ls_tot;
 
 
 begin:
@@ -277,8 +277,8 @@ begin:
  * \return A linked list of verts.
  */
 static LinkNode *bm_edgenet_path_calc(
-        BMEdge *e, const int pass_nr, const unsigned int path_cost_max,
-        unsigned int *r_path_len, unsigned int *r_path_cost,
+        BMEdge *e, const int pass_nr, const uint path_cost_max,
+        uint *r_path_len, uint *r_path_cost,
         VertNetInfo *vnet_info, BLI_mempool *path_pool)
 {
 	VertNetInfo *vn_1, *vn_2;
@@ -288,7 +288,7 @@ static LinkNode *bm_edgenet_path_calc(
 	LinkNode *v_ls_prev = NULL;
 	LinkNode *v_ls_next = NULL;
 
-	unsigned int path_cost_accum = 0;
+	uint path_cost_accum = 0;
 
 	BLI_assert(bm_edge_step_ok(e));
 
@@ -331,7 +331,7 @@ static LinkNode *bm_edgenet_path_calc(
 
 			if (e_found) {
 				LinkNode *path = NULL;
-				unsigned int path_len;
+				uint path_len;
 				BLI_linklist_free_pool(v_ls_next, NULL, path_pool);
 				BLI_linklist_free_pool(v_ls_prev, NULL, path_pool);
 
@@ -376,12 +376,12 @@ static LinkNode *bm_edgenet_path_calc(
  * _don't_ have a better option.
  */
 static LinkNode *bm_edgenet_path_calc_best(
-        BMEdge *e, int *pass_nr, unsigned int path_cost_max,
-        unsigned int *r_path_len, unsigned int *r_path_cost,
+        BMEdge *e, int *pass_nr, uint path_cost_max,
+        uint *r_path_len, uint *r_path_cost,
         VertNetInfo *vnet_info, BLI_mempool *path_pool)
 {
 	LinkNode *path;
-	unsigned int path_cost;
+	uint path_cost;
 
 	path = bm_edgenet_path_calc(e, *pass_nr, path_cost_max,
 	                            r_path_len, &path_cost,
@@ -399,8 +399,8 @@ static LinkNode *bm_edgenet_path_calc_best(
 		/* Check every edge to see if any can give a better path.
 		 * This avoids very strange/long paths from being created. */
 
-		const unsigned int path_len = *r_path_len;
-		unsigned int i, i_prev;
+		const uint path_len = *r_path_len;
+		uint i, i_prev;
 		BMVert **vert_arr = BLI_array_alloca(vert_arr, path_len);
 		LinkNode *v_lnk;
 
@@ -413,8 +413,8 @@ static LinkNode *bm_edgenet_path_calc_best(
 			BMEdge *e_other = BM_edge_exists(vert_arr[i], vert_arr[i_prev]);
 			if (e_other != e) {
 				LinkNode *path_test;
-				unsigned int path_len_test;
-				unsigned int path_cost_test;
+				uint path_len_test;
+				uint path_cost_test;
 
 				path_test = bm_edgenet_path_calc(e_other, *pass_nr, path_cost,
 				                                 &path_len_test, &path_cost_test,
@@ -471,8 +471,8 @@ void BM_mesh_edgenet(
 
 	while (true) {
 		LinkNode *path = NULL;
-		unsigned int path_len;
-		unsigned int path_cost;
+		uint path_len;
+		uint path_cost;
 
 		e = bm_edgenet_edge_get_next(bm, &edge_queue, edge_queue_pool);
 		if (e == NULL) {

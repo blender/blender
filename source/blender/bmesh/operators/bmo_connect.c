@@ -55,7 +55,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 
 	BMLoop *l_tag_prev = NULL, *l_tag_first = NULL;
 	BMLoop *l_iter, *l_first;
-	unsigned int i;
+	uint i;
 
 	STACK_INIT(loops_split, pair_split_max);
 	STACK_INIT(verts_pair, pair_split_max);

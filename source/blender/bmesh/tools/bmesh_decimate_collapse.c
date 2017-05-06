@@ -180,7 +180,7 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
 {
 	BMIter liter;
 	BMLoop *l;
-	unsigned int i;
+	uint i;
 
 	for (i = 0; i < 2; i++) {
 		/* loop over both verts */
@@ -367,7 +367,7 @@ static void bm_decim_build_edge_cost(
 {
 	BMIter iter;
 	BMEdge *e;
-	unsigned int i;
+	uint i;
 
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 		eheap_table[i] = NULL;  /* keep sanity check happy */
@@ -418,12 +418,12 @@ static bool bm_edge_symmetry_check_cb(void *user_data, int index, const float UN
 	return false;
 }
 
-static int *bm_edge_symmetry_map(BMesh *bm, unsigned int symmetry_axis, float limit)
+static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
 {
 	struct KD_Symmetry_Data sym_data;
 	BMIter iter;
 	BMEdge *e, **etable;
-	unsigned int i;
+	uint i;
 	int *edge_symmetry_map;
 	const float limit_sq = SQUARE(limit);
 	KDTree *tree;
