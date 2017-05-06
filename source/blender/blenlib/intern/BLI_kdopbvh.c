@@ -321,11 +321,16 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode *x, int axis)
 {
 	int i = lo, j = hi;
 	while (1) {
-		while ((a[i])->bv[axis] < x->bv[axis]) i++;
+		while (a[i]->bv[axis] < x->bv[axis]) {
+			i++;
+		}
 		j--;
-		while (x->bv[axis] < (a[j])->bv[axis]) j--;
-		if (!(i < j))
+		while (x->bv[axis] < a[j]->bv[axis]) {
+			j--;
+		}
+		if (!(i < j)) {
 			return i;
+		}
 		SWAP(BVHNode *, a[i], a[j]);
 		i++;
 	}
@@ -427,19 +432,18 @@ static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
  * \note after a call to this function you can expect one of:
  * - every node to left of a[n] are smaller or equal to it
  * - every node to the right of a[n] are greater or equal to it */
-static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis)
+static void partition_nth_element(BVHNode **a, int begin, int end, const int n, const int axis)
 {
-	int begin = _begin, end = _end, cut;
 	while (end - begin > 3) {
-		cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin + end) / 2, end - 1, axis), axis);
-		if (cut <= n)
+		const int cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin + end) / 2, end - 1, axis), axis);
+		if (cut <= n) {
 			begin = cut;
-		else
+		}
+		else {
 			end = cut;
+		}
 	}
 	bvh_insertionsort(a, begin, end, axis);
-
-	return n;
 }
 
 #ifdef USE_SKIP_LINKS
