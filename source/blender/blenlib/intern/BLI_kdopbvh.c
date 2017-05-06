@@ -55,8 +55,9 @@
 #include "BLI_stack.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
-#include "BLI_strict_flags.h"
 #include "BLI_task.h"
+
+#include "BLI_strict_flags.h"
 
 /* used for iterative_raycast */
 // #define USE_SKIP_LINKS
@@ -468,7 +469,7 @@ static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNod
 /*
  * BVHTree bounding volumes functions
  */
-static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int numpoints, int moving)
+static void create_kdop_hull(const BVHTree *tree, BVHNode *node, const float *co, int numpoints, int moving)
 {
 	float newminmax;
 	float *bv = node->bv;
@@ -495,7 +496,7 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int 
 /**
  * \note depends on the fact that the BVH's for each face is already build
  */
-static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
+static void refit_kdop_hull(const BVHTree *tree, BVHNode *node, int start, int end)
 {
 	float newmin, newmax;
 	float *bv = node->bv;
@@ -676,7 +677,7 @@ typedef struct BVHBuildHelper {
 
 } BVHBuildHelper;
 
-static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
+static void build_implicit_tree_helper(const BVHTree *tree, BVHBuildHelper *data)
 {
 	int depth = 0;
 	int remain;
@@ -706,7 +707,7 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 }
 
 // return the min index of all the leafs archivable with the given branch
-static int implicit_leafs_index(BVHBuildHelper *data, int depth, int child_index)
+static int implicit_leafs_index(const BVHBuildHelper *data, const int depth, const int child_index)
 {
 	int min_leaf_index = child_index * data->leafs_per_child[depth - 1];
 	if (min_leaf_index <= data->remain_leafs)
@@ -775,14 +776,14 @@ static void split_leafs(BVHNode **leafs_array, const int nth[], const int partit
 }
 
 typedef struct BVHDivNodesData {
-	BVHTree *tree;
+	const BVHTree *tree;
 	BVHNode *branches_array;
 	BVHNode **leafs_array;
 
 	int tree_type;
 	int tree_offset;
 
-	BVHBuildHelper *data;
+	const BVHBuildHelper *data;
 
 	int depth;
 	int i;
@@ -865,7 +866,8 @@ static void non_recursive_bvh_div_nodes_task_cb(void *userdata, const int j)
  * To archive this is necessary to find how much leafs are accessible from a certain branch, BVHBuildHelper
  * implicit_needed_branches and implicit_leafs_index are auxiliary functions to solve that "optimal-split".
  */
-static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, BVHNode **leafs_array, int num_leafs)
+static void non_recursive_bvh_div_nodes(
+        const BVHTree *tree, BVHNode *branches_array, BVHNode **leafs_array, int num_leafs)
 {
 	int i;
 
