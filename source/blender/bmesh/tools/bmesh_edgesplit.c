@@ -96,7 +96,7 @@ void BM_mesh_edgesplit(
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-			unsigned int i;
+			uint i;
 			for (i = 0; i < 2; i++) {
 				BMVert *v = ((&e->v1)[i]);
 				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {

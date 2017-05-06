@@ -91,7 +91,7 @@ static void bm_face_copy_shared_all(
 /**
  * Flood fill attributes.
  */
-static unsigned int bmesh_face_attribute_fill(
+static uint bmesh_face_attribute_fill(
         BMesh *bm,
         const bool use_normals, const bool use_data)
 {
@@ -102,7 +102,7 @@ static unsigned int bmesh_face_attribute_fill(
 	BMIter iter;
 	BMLoop *l;
 
-	unsigned int face_tot = 0;
+	uint face_tot = 0;
 
 
 	BLI_LINKSTACK_INIT(loop_queue_prev);

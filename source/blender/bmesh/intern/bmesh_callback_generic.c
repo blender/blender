@@ -32,7 +32,7 @@
 
 bool BM_elem_cb_check_hflag_ex(BMElem *ele, void *user_data)
 {
-	const unsigned int hflag_pair = GET_INT_FROM_POINTER(user_data);
+	const uint hflag_pair = GET_INT_FROM_POINTER(user_data);
 	const char hflag_p = (hflag_pair & 0xff);
 	const char hflag_n = (hflag_pair >> 8);
 

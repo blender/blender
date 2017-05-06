@@ -172,7 +172,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 	float w1, w2, w3, w4;
 	int i, j;
 	bool has_4_vert;
-	unsigned int idv1, idv2, idv3, idv4, idv[4];
+	uint idv1, idv2, idv3, idv4, idv[4];
 	BMEdge *e;
 	BMFace *f;
 	BMIter eiter;
@@ -289,7 +289,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 	float w2, w3, w4;
 	int i, j;
 	bool has_4_vert;
-	unsigned int idv1, idv2, idv3, idv4, idv[4];
+	uint idv1, idv2, idv3, idv4, idv[4];
 
 	BMEdge *e;
 	BMFace *f;
@@ -420,7 +420,7 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 	float leni, lene;
 	float vini, vend;
 	float *vi1, *vi2, ve1[3], ve2[3];
-	unsigned int idv1, idv2;
+	uint idv1, idv2;
 	BMOIter siter;
 	BMVert *v;
 	BMEdge *e;

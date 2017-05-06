@@ -128,7 +128,7 @@ void BMO_pop(BMesh *bm)
 static void bmo_op_slots_init(const BMOSlotType *slot_types, BMOpSlot *slot_args)
 {
 	BMOpSlot *slot;
-	unsigned int i;
+	uint i;
 	for (i = 0; slot_types[i].type; i++) {
 		slot = &slot_args[i];
 		slot->slot_name    = slot_types[i].name;
@@ -149,7 +149,7 @@ static void bmo_op_slots_init(const BMOSlotType *slot_types, BMOpSlot *slot_args
 static void bmo_op_slots_free(const BMOSlotType *slot_types, BMOpSlot *slot_args)
 {
 	BMOpSlot *slot;
-	unsigned int i;
+	uint i;
 	for (i = 0; slot_types[i].type; i++) {
 		slot = &slot_args[i];
 		switch (slot->slot_type) {
@@ -311,9 +311,9 @@ void _bmo_slot_copy(
 			}
 			else {
 				/* check types */
-				const unsigned int tot = slot_src->len;
-				unsigned int i;
-				unsigned int out = 0;
+				const uint tot = slot_src->len;
+				uint i;
+				uint out = 0;
 				BMElem **ele_src = (BMElem **)slot_src->data.buf;
 				for (i = 0; i < tot; i++, ele_src++) {
 					if ((*ele_src)->head.htype & dst_elem_flag) {
@@ -333,8 +333,8 @@ void _bmo_slot_copy(
 				}
 				else {
 					/* only copy compatible elements */
-					const unsigned int tot = slot_src->len;
-					unsigned int i;
+					const uint tot = slot_src->len;
+					uint i;
 					BMElem **ele_src = (BMElem **)slot_src->data.buf;
 					BMElem **ele_dst = (BMElem **)slot_dst->data.buf;
 					for (i = 0; i < tot; i++, ele_src++) {
@@ -1639,8 +1639,8 @@ static int bmo_name_to_slotcode_check(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], cons
 int BMO_opcode_from_opname(const char *opname)
 {
 
-	const unsigned int tot = bmo_opdefines_total;
-	unsigned int i;
+	const uint tot = bmo_opdefines_total;
+	uint i;
 	for (i = 0; i < tot; i++) {
 		if (STREQ(bmo_opdefines[i]->opname, opname)) {
 			return i;

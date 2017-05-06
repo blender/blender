@@ -67,8 +67,8 @@ static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r
 {
 	BMLoop *l_iter, *l_first;
 	BMLoop **l_arr = BLI_array_alloca(l_arr, f->len);
-	const unsigned int f_len = f->len;
-	unsigned int i_a, i_b;
+	const uint f_len = f->len;
+	uint i_a, i_b;
 	bool found = false;
 
 	/* angle finding */

@@ -32,10 +32,10 @@ bool BM_face_split_edgenet(
 
 bool BM_face_split_edgenet_connect_islands(
         BMesh *bm,
-        BMFace *f, BMEdge **edge_net_init, const unsigned int edge_net_init_len,
+        BMFace *f, BMEdge **edge_net_init, const uint edge_net_init_len,
         bool use_partial_connect,
         struct MemArena *arena,
-        BMEdge ***r_edge_net_new, unsigned int *r_edge_net_new_len)
+        BMEdge ***r_edge_net_new, uint *r_edge_net_new_len)
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3, 6, 7, 8);
 
 #endif  /* __BMESH_POLYGON_EDGENET_H__ */

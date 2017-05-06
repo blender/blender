@@ -153,7 +153,7 @@ static BMFace *remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_target
 
 finally:
 	{
-		unsigned int i;
+		uint i;
 		for (i = 0; i < STACK_SIZE(verts); i++) {
 			BMO_vert_flag_disable(bm, verts[i], VERT_IN_FACE);
 		}
@@ -165,7 +165,7 @@ finally:
 			BLI_assert(f_new != f);
 
 			if (f_new) {
-				unsigned int i = 0;
+				uint i = 0;
 				BMLoop *l_iter, *l_first;
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
 				do {
@@ -469,7 +469,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 			v_tar = e->v1;
 
 			while (!BLI_stack_is_empty(edge_stack)) {
-				unsigned int j;
+				uint j;
 				BLI_stack_pop(edge_stack, &e);
 
 				for (j = 0; j < 2; j++) {

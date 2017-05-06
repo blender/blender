@@ -73,7 +73,7 @@ enum {
 };
 
 #define BM_ELEM_API_FLAG_ENABLE(element, f)  { ((element)->head.api_flag |=  (f)); } (void)0
-#define BM_ELEM_API_FLAG_DISABLE(element, f) { ((element)->head.api_flag &= (unsigned char)~(f)); } (void)0
+#define BM_ELEM_API_FLAG_DISABLE(element, f) { ((element)->head.api_flag &= (uchar)~(f)); } (void)0
 #define BM_ELEM_API_FLAG_TEST(element, f)      ((element)->head.api_flag &   (f))
 #define BM_ELEM_API_FLAG_CLEAR(element)      { ((element)->head.api_flag = 0); } (void)0
 

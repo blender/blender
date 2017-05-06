@@ -66,7 +66,7 @@
 /* Specialized Utility Funcs */
 
 #ifndef NDEBUG
-static unsigned int bm_verts_tag_count(BMesh *bm)
+static uint bm_verts_tag_count(BMesh *bm)
 {
 	int count = 0;
 	BMIter iter;
@@ -390,9 +390,9 @@ static void bm_vert_calc_surface_tangent(BMesh *bm, BMVert *v, float r_no[3])
  * Tag faces connected to an edge loop as FACE_SHARED
  * if all vertices are VERT_SHARED.
  */
-static void bm_faces_share_tag_flush(BMesh *bm, BMEdge **e_arr, const unsigned int e_arr_len)
+static void bm_faces_share_tag_flush(BMesh *bm, BMEdge **e_arr, const uint e_arr_len)
 {
-	unsigned int i;
+	uint i;
 
 	for (i = 0; i < e_arr_len; i++) {
 		BMEdge *e = e_arr[i];
@@ -412,9 +412,9 @@ static void bm_faces_share_tag_flush(BMesh *bm, BMEdge **e_arr, const unsigned i
 /**
  * Un-Tag faces connected to an edge loop, clearing FACE_SHARED
  */
-static void bm_faces_share_tag_clear(BMesh *bm, BMEdge **e_arr_iter, const unsigned int e_arr_len_iter)
+static void bm_faces_share_tag_clear(BMesh *bm, BMEdge **e_arr_iter, const uint e_arr_len_iter)
 {
-	unsigned int i;
+	uint i;
 
 	for (i = 0; i < e_arr_len_iter; i++) {
 		BMEdge *e = e_arr_iter[i];
@@ -454,16 +454,16 @@ static LoopPairStore *bm_edgering_pair_store_create(
 	LoopPairStore *lpair = MEM_mallocN(sizeof(*lpair), __func__);
 
 	if (interp_mode == SUBD_RING_INTERP_SURF) {
-		const unsigned int len_a = BM_edgeloop_length_get(el_store_a);
-		const unsigned int len_b = BM_edgeloop_length_get(el_store_b);
-		const unsigned int e_arr_a_len = len_a - (BM_edgeloop_is_closed(el_store_a) ? 0 : 1);
-		const unsigned int e_arr_b_len = len_b - (BM_edgeloop_is_closed(el_store_b) ? 0 : 1);
+		const uint len_a = BM_edgeloop_length_get(el_store_a);
+		const uint len_b = BM_edgeloop_length_get(el_store_b);
+		const uint e_arr_a_len = len_a - (BM_edgeloop_is_closed(el_store_a) ? 0 : 1);
+		const uint e_arr_b_len = len_b - (BM_edgeloop_is_closed(el_store_b) ? 0 : 1);
 		BMEdge **e_arr_a = BLI_array_alloca(e_arr_a, e_arr_a_len);
 		BMEdge **e_arr_b = BLI_array_alloca(e_arr_b, e_arr_b_len);
-		unsigned int i;
+		uint i;
 
 		struct BMEdgeLoopStore *el_store_pair[2] = {el_store_a, el_store_b};
-		unsigned int side_index;
+		uint side_index;
 		float (*nors_pair[2])[3];
 		GHash *nors_gh_pair[2];
 
@@ -768,8 +768,8 @@ static void bm_edgering_pair_interpolate(
 				bm_vert_calc_surface_tangent(bm, v_b, no_b);
 #else
 				{
-					const unsigned int index_a = GET_UINT_FROM_POINTER(BLI_ghash_lookup(lpair->nors_gh_a, v_a));
-					const unsigned int index_b = GET_UINT_FROM_POINTER(BLI_ghash_lookup(lpair->nors_gh_b, v_b));
+					const uint index_a = GET_UINT_FROM_POINTER(BLI_ghash_lookup(lpair->nors_gh_a, v_a));
+					const uint index_b = GET_UINT_FROM_POINTER(BLI_ghash_lookup(lpair->nors_gh_b, v_b));
 
 					BLI_assert(BLI_ghash_haskey(lpair->nors_gh_a, v_a));
 					BLI_assert(BLI_ghash_haskey(lpair->nors_gh_b, v_b));

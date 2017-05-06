@@ -34,7 +34,7 @@ void   BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void   BM_mesh_elem_toolflags_clear(BMesh *bm);
 
 struct BMeshCreateParams {
-	unsigned int use_toolflags : 1;
+	uint use_toolflags : 1;
 };
 
 BMesh *BM_mesh_create(
@@ -88,9 +88,9 @@ int  BM_mesh_elem_count(BMesh *bm, const char htype);
 
 void BM_mesh_remap(
         BMesh *bm,
-        const unsigned int *vert_idx,
-        const unsigned int *edge_idx,
-        const unsigned int *face_idx);
+        const uint *vert_idx,
+        const uint *edge_idx,
+        const uint *face_idx);
 
 void BM_mesh_rebuild(
         BMesh *bm, const struct BMeshCreateParams *params,

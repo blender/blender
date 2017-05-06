@@ -36,7 +36,7 @@
 void bmo_holes_fill_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator op_attr;
-	const unsigned int sides = BMO_slot_int_get(op->slots_in,  "sides");
+	const uint sides = BMO_slot_int_get(op->slots_in,  "sides");
 
 
 	BM_mesh_elem_hflag_disable_all(bm, BM_EDGE | BM_FACE, BM_ELEM_TAG, false);

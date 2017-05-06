@@ -58,8 +58,8 @@ void BM_mesh_separate_faces(
 	BMFace *f;
 	BMIter iter;
 
-	unsigned int faces_a_len = 0;
-	unsigned int faces_b_len = 0;
+	uint faces_a_len = 0;
+	uint faces_b_len = 0;
 	{
 		int i_a = 0;
 		int i_b = bm->totface;
@@ -77,7 +77,7 @@ void BM_mesh_separate_faces(
 	BM_mesh_elem_hflag_enable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
 	/* Disable vert tag on faces_b */
-	for (unsigned int i = 0; i < faces_b_len; i++) {
+	for (uint i = 0; i < faces_b_len; i++) {
 		BMLoop *l_iter, *l_first;
 		l_iter = l_first = BM_FACE_FIRST_LOOP(faces_b[i]);
 		do {
@@ -89,7 +89,7 @@ void BM_mesh_separate_faces(
 	BLI_buffer_declare_static(BMLoop **, loop_split, 0, 128);
 
 	/* Check shared verts ('faces_a' tag and disable) */
-	for (unsigned int i = 0; i < faces_a_len; i++) {
+	for (uint i = 0; i < faces_a_len; i++) {
 		BMLoop *l_iter, *l_first;
 		l_iter = l_first = BM_FACE_FIRST_LOOP(faces_a[i]);
 		do {

@@ -43,10 +43,10 @@ static bool bm_vert_dissolve_fan_test(BMVert *v)
 
 	BMVert *varr[4];
 
-	unsigned int tot_edge = 0;
-	unsigned int tot_edge_boundary = 0;
-	unsigned int tot_edge_manifold = 0;
-	unsigned int tot_edge_wire     = 0;
+	uint tot_edge = 0;
+	uint tot_edge_boundary = 0;
+	uint tot_edge_manifold = 0;
+	uint tot_edge_wire     = 0;
 
 	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 		if (BM_edge_is_boundary(e)) {
@@ -97,11 +97,11 @@ static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 	BMIter iter;
 	BMEdge *e;
 
-	unsigned int tot_loop = 0;
-	unsigned int tot_edge = 0;
-	unsigned int tot_edge_boundary = 0;
-	unsigned int tot_edge_manifold = 0;
-	unsigned int tot_edge_wire     = 0;
+	uint tot_loop = 0;
+	uint tot_edge = 0;
+	uint tot_edge_boundary = 0;
+	uint tot_edge_manifold = 0;
+	uint tot_edge_wire     = 0;
 
 	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 		if (BM_edge_is_boundary(e)) {
@@ -143,7 +143,7 @@ static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 
 	if (tot_loop) {
 		BMLoop *f_loop[4];
-		unsigned int i;
+		uint i;
 
 		/* ensure there are exactly tot_loop loops */
 		BLI_assert(BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v, tot_loop) == NULL);
@@ -192,8 +192,8 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 
 	BMIter iter;
 
-	const unsigned int offset = 0;
-	const unsigned int nth = 2;
+	const uint offset = 0;
+	const uint nth = 2;
 
 	int iter_step;
 
@@ -229,8 +229,8 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 #ifdef USE_WALKER
 			BMWalker walker;
 #else
-			unsigned int depth = 1;
-			unsigned int i;
+			uint depth = 1;
+			uint i;
 #endif
 			BMVert *v_first = NULL;
 

@@ -1527,9 +1527,9 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
  */
 void BM_mesh_remap(
         BMesh *bm,
-        const unsigned int *vert_idx,
-        const unsigned int *edge_idx,
-        const unsigned int *face_idx)
+        const uint *vert_idx,
+        const uint *edge_idx,
+        const uint *face_idx)
 {
 	/* Mapping old to new pointers. */
 	GHash *vptr_map = NULL, *eptr_map = NULL, *fptr_map = NULL;
@@ -1552,7 +1552,7 @@ void BM_mesh_remap(
 	if (vert_idx) {
 		BMVert **verts_pool, *verts_copy, **vep;
 		int i, totvert = bm->totvert;
-		const unsigned int *new_idx;
+		const uint *new_idx;
 		/* Special case: Python uses custom - data layers to hold PyObject references.
 		 * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
 		const int cd_vert_pyptr  = CustomData_get_offset(&bm->vdata, CD_BM_ELEM_PYPTR);
@@ -1600,7 +1600,7 @@ void BM_mesh_remap(
 	if (edge_idx) {
 		BMEdge **edges_pool, *edges_copy, **edp;
 		int i, totedge = bm->totedge;
-		const unsigned int *new_idx;
+		const uint *new_idx;
 		/* Special case: Python uses custom - data layers to hold PyObject references.
 		 * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
 		const int cd_edge_pyptr  = CustomData_get_offset(&bm->edata, CD_BM_ELEM_PYPTR);
@@ -1647,7 +1647,7 @@ void BM_mesh_remap(
 	if (face_idx) {
 		BMFace **faces_pool, *faces_copy, **fap;
 		int i, totface = bm->totface;
-		const unsigned int *new_idx;
+		const uint *new_idx;
 		/* Special case: Python uses custom - data layers to hold PyObject references.
 		 * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
 		const int cd_poly_pyptr  = CustomData_get_offset(&bm->pdata, CD_BM_ELEM_PYPTR);

@@ -760,8 +760,8 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 	BMOpSlot *slot_verts_out = BMO_slot_get(op->slots_out, "verts.out");
 
 	const float dia = BMO_slot_float_get(op->slots_in, "size");
-	const unsigned int xtot = max_ii(2, BMO_slot_int_get(op->slots_in, "x_segments"));
-	const unsigned int ytot = max_ii(2, BMO_slot_int_get(op->slots_in, "y_segments"));
+	const uint xtot = max_ii(2, BMO_slot_int_get(op->slots_in, "x_segments"));
+	const uint ytot = max_ii(2, BMO_slot_int_get(op->slots_in, "y_segments"));
 	const float xtot_inv2 = 2.0f / (xtot - 1);
 	const float ytot_inv2 = 2.0f / (ytot - 1);
 	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
@@ -772,7 +772,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 	float mat[4][4];
 	float vec[3], tvec[3];
 
-	unsigned int x, y, i;
+	uint x, y, i;
 
 
 	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
@@ -826,7 +826,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
  * \param y_segments The y-resolution of the grid
  * \param oflag The flag to check faces with.
  */
-void BM_mesh_calc_uvs_grid(BMesh *bm, const unsigned int x_segments, const unsigned int y_segments, const short oflag)
+void BM_mesh_calc_uvs_grid(BMesh *bm, const uint x_segments, const uint y_segments, const short oflag)
 {
 	BMFace *f;
 	BMLoop *l;
