@@ -1512,8 +1512,6 @@ void DRW_draw_pass(DRWPass *pass)
 	DRW_state_set(pass->state);
 	BLI_listbase_clear(&DST.bound_texs);
 
-	pass->wasdrawn = true;
-
 	/* Init Timer queries */
 	if (pass->timer_queries[0] == 0) {
 		pass->front_idx = 0;
@@ -1532,8 +1530,10 @@ void DRW_draw_pass(DRWPass *pass)
 		pass->front_idx = tmp;
 	}
 
-	/* issue query for the next frame */
-	glBeginQuery(GL_TIME_ELAPSED, pass->timer_queries[pass->back_idx]);
+	if (!pass->wasdrawn) {
+		/* issue query for the next frame */
+		glBeginQuery(GL_TIME_ELAPSED, pass->timer_queries[pass->back_idx]);
+	}
 
 	for (DRWShadingGroup *shgroup = pass->shgroups.first; shgroup; shgroup = shgroup->next) {
 		draw_shgroup(shgroup, pass->state);
@@ -1551,7 +1551,11 @@ void DRW_draw_pass(DRWPass *pass)
 		DST.shader = NULL;
 	}
 
-	glEndQuery(GL_TIME_ELAPSED);
+	if (!pass->wasdrawn) {
+		glEndQuery(GL_TIME_ELAPSED);
+	}
+
+	pass->wasdrawn = true;
 }
 
 void DRW_draw_callbacks_pre_scene(void)
