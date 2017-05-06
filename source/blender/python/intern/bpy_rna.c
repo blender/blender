@@ -3271,13 +3271,17 @@ static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObje
 		return -1;
 	}
 
-	BPy_StructRNA *val = (BPy_StructRNA *)value;
-	if (val && self->ptr.type && val->ptr.type) {
-		if (!RNA_struct_idprops_datablock_allowed(self->ptr.type) &&
-		    RNA_struct_idprops_contains_datablock(val->ptr.type))
-		{
-			PyErr_SetString(PyExc_TypeError, "bpy_struct[key] = val: datablock id properties not supported for this type");
-			return -1;
+	if (value && BPy_StructRNA_Check(value)) {
+		BPy_StructRNA *val = (BPy_StructRNA *)value;
+		if (val && self->ptr.type && val->ptr.type) {
+			if (!RNA_struct_idprops_datablock_allowed(self->ptr.type) &&
+			    RNA_struct_idprops_contains_datablock(val->ptr.type))
+			{
+				PyErr_SetString(
+				        PyExc_TypeError,
+				        "bpy_struct[key] = val: datablock id properties not supported for this type");
+				return -1;
+			}
 		}
 	}
 
