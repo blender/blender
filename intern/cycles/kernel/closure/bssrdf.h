@@ -28,7 +28,6 @@ typedef ccl_addr_space struct Bssrdf {
 	float texture_blur;
 	float albedo;
 	float roughness;
-	float3 N;
 } Bssrdf;
 
 /* Planar Truncated Gaussian

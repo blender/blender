@@ -108,40 +108,52 @@ public:
 		else if(task->type == DeviceTask::SHADER) {
 			shader(*task);
 		}
-		else if(task->type == DeviceTask::PATH_TRACE) {
+		else if(task->type == DeviceTask::RENDER) {
 			RenderTile tile;
 			/* Keep rendering tiles until done. */
 			while(task->acquire_tile(this, tile)) {
-				int start_sample = tile.start_sample;
-				int end_sample = tile.start_sample + tile.num_samples;
+				if(tile.task == RenderTile::PATH_TRACE) {
+					int start_sample = tile.start_sample;
+					int end_sample = tile.start_sample + tile.num_samples;
 
-				for(int sample = start_sample; sample < end_sample; sample++) {
-					if(task->get_cancel()) {
-						if(task->need_finish_queue == false)
-							break;
+					for(int sample = start_sample; sample < end_sample; sample++) {
+						if(task->get_cancel()) {
+							if(task->need_finish_queue == false)
+								break;
+						}
+
+						path_trace(tile, sample);
+
+						tile.sample = sample + 1;
+
+						task->update_progress(&tile, tile.w*tile.h);
 					}
 
-					path_trace(tile, sample);
-
-					tile.sample = sample + 1;
-
+					/* Complete kernel execution before release tile */
+					/* This helps in multi-device render;
+					 * The device that reaches the critical-section function
+					 * release_tile waits (stalling other devices from entering
+					 * release_tile) for all kernels to complete. If device1 (a
+					 * slow-render device) reaches release_tile first then it would
+					 * stall device2 (a fast-render device) from proceeding to render
+					 * next tile.
+					 */
+					clFinish(cqCommandQueue);
+				}
+				else if(tile.task == RenderTile::DENOISE) {
+					tile.sample = tile.start_sample + tile.num_samples;
+					denoise(tile, *task);
 					task->update_progress(&tile, tile.w*tile.h);
 				}
-
-				/* Complete kernel execution before release tile */
-				/* This helps in multi-device render;
-				 * The device that reaches the critical-section function
-				 * release_tile waits (stalling other devices from entering
-				 * release_tile) for all kernels to complete. If device1 (a
-				 * slow-render device) reaches release_tile first then it would
-				 * stall device2 (a fast-render device) from proceeding to render
-				 * next tile.
-				 */
-				clFinish(cqCommandQueue);
 
 				task->release_tile(tile);
 			}
 		}
+	}
+
+	bool is_split_kernel()
+	{
+		return false;
 	}
 };
 

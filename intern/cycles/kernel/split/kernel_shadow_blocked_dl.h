@@ -89,10 +89,10 @@ ccl_device void kernel_shadow_blocked_dl(KernelGlobals *kg)
 			               &shadow))
 		{
 			/* accumulate */
-			path_radiance_accum_light(L, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
+			path_radiance_accum_light(L, state, throughput, &L_light, shadow, 1.0f, is_lamp);
 		}
 		else {
-			path_radiance_accum_total_light(L, throughput, &L_light);
+			path_radiance_accum_total_light(L, state, throughput, &L_light);
 		}
 	}
 

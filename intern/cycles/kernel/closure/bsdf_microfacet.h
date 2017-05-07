@@ -46,7 +46,6 @@ typedef ccl_addr_space struct MicrofacetBsdf {
 	float alpha_x, alpha_y, ior;
 	MicrofacetExtra *extra;
 	float3 T;
-	float3 N;
 } MicrofacetBsdf;
 
 /* Beckmann and GGX microfacet importance sampling. */

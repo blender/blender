@@ -549,6 +549,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't mark tile as done, don't merge results unless forced");
+	RNA_def_boolean(func, "highlight", 0, "Highlight", "Don't mark tile as done yet");
 	RNA_def_boolean(func, "do_merge_results", 0, "Merge Results", "Merge results even if cancel=true");
 
 	func = RNA_def_function(srna, "add_pass", "RE_engine_add_pass");

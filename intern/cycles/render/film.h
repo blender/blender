@@ -57,7 +57,14 @@ public:
 
 	float exposure;
 	array<Pass> passes;
+	bool denoising_data_pass;
+	bool denoising_clean_pass;
+	int denoising_flags;
 	float pass_alpha_threshold;
+
+	int pass_stride;
+	int denoising_data_offset;
+	int denoising_clean_offset;
 
 	FilterType filter_type;
 	float filter_width;

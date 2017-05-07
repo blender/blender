@@ -18,19 +18,21 @@
  * optimization flags and nearly all functions inlined, while kernel.cpp
  * is compiled without for other CPU's. */
 
-/* SSE optimization disabled for now on 32 bit, see bug #36316 */
-#if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
-#  define __KERNEL_SSE2__
-#  define __KERNEL_SSE3__
-#  define __KERNEL_SSSE3__
-#endif
-
 #define __SPLIT_KERNEL__
 
 #include "util/util_optimization.h"
 
-#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
-#  include "kernel/kernel.h"
-#  define KERNEL_ARCH cpu_sse3
-#  include "kernel/kernels/cpu/kernel_cpu_impl.h"
+#ifndef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
+#  define KERNEL_STUB
+#else
+/* SSE optimization disabled for now on 32 bit, see bug #36316 */
+#  if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
+#    define __KERNEL_SSE2__
+#    define __KERNEL_SSE3__
+#    define __KERNEL_SSSE3__
+#  endif
 #endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE3 */
+
+#include "kernel/kernel.h"
+#define KERNEL_ARCH cpu_sse3
+#include "kernel/kernels/cpu/kernel_cpu_impl.h"

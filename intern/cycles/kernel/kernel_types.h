@@ -173,6 +173,8 @@ CCL_NAMESPACE_BEGIN
 #define __PATCH_EVAL__
 #define __SHADOW_TRICKS__
 
+#define __DENOISING_FEATURES__
+
 #ifdef __KERNEL_SHADING__
 #  define __SVM__
 #  define __EMISSION__
@@ -314,31 +316,32 @@ enum SamplingPattern {
 /* these flags values correspond to raytypes in osl.cpp, so keep them in sync! */
 
 enum PathRayFlag {
-	PATH_RAY_CAMERA = 1,
-	PATH_RAY_REFLECT = 2,
-	PATH_RAY_TRANSMIT = 4,
-	PATH_RAY_DIFFUSE = 8,
-	PATH_RAY_GLOSSY = 16,
-	PATH_RAY_SINGULAR = 32,
-	PATH_RAY_TRANSPARENT = 64,
+	PATH_RAY_CAMERA              = (1 << 0),
+	PATH_RAY_REFLECT             = (1 << 1),
+	PATH_RAY_TRANSMIT            = (1 << 2),
+	PATH_RAY_DIFFUSE             = (1 << 3),
+	PATH_RAY_GLOSSY              = (1 << 4),
+	PATH_RAY_SINGULAR            = (1 << 5),
+	PATH_RAY_TRANSPARENT         = (1 << 6),
 
-	PATH_RAY_SHADOW_OPAQUE = 128,
-	PATH_RAY_SHADOW_TRANSPARENT = 256,
+	PATH_RAY_SHADOW_OPAQUE       = (1 << 7),
+	PATH_RAY_SHADOW_TRANSPARENT  = (1 << 8),
 	PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE|PATH_RAY_SHADOW_TRANSPARENT),
 
-	PATH_RAY_CURVE = 512, /* visibility flag to define curve segments */
-	PATH_RAY_VOLUME_SCATTER = 1024, /* volume scattering */
+	PATH_RAY_CURVE               = (1 << 9), /* visibility flag to define curve segments */
+	PATH_RAY_VOLUME_SCATTER      = (1 << 10), /* volume scattering */
 
 	/* Special flag to tag unaligned BVH nodes. */
-	PATH_RAY_NODE_UNALIGNED = 2048,
+	PATH_RAY_NODE_UNALIGNED = (1 << 11),
 
-	PATH_RAY_ALL_VISIBILITY = (1|2|4|8|16|32|64|128|256|512|1024|2048),
+	PATH_RAY_ALL_VISIBILITY = ((1 << 12)-1),
 
-	PATH_RAY_MIS_SKIP = 4096,
-	PATH_RAY_DIFFUSE_ANCESTOR = 8192,
-	PATH_RAY_SINGLE_PASS_DONE = 16384,
-	PATH_RAY_SHADOW_CATCHER = 32768,
-	PATH_RAY_SHADOW_CATCHER_ONLY = 65536,
+	PATH_RAY_MIS_SKIP            = (1 << 12),
+	PATH_RAY_DIFFUSE_ANCESTOR    = (1 << 13),
+	PATH_RAY_SINGLE_PASS_DONE    = (1 << 14),
+	PATH_RAY_SHADOW_CATCHER      = (1 << 15),
+	PATH_RAY_SHADOW_CATCHER_ONLY = (1 << 16),
+	PATH_RAY_STORE_SHADOW_INFO   = (1 << 17),
 };
 
 /* Closure Label */
@@ -394,6 +397,22 @@ typedef enum PassType {
 
 #define PASS_ALL (~0)
 
+typedef enum DenoisingPassOffsets {
+	DENOISING_PASS_NORMAL             = 0,
+	DENOISING_PASS_NORMAL_VAR         = 3,
+	DENOISING_PASS_ALBEDO             = 6,
+	DENOISING_PASS_ALBEDO_VAR         = 9,
+	DENOISING_PASS_DEPTH              = 12,
+	DENOISING_PASS_DEPTH_VAR          = 13,
+	DENOISING_PASS_SHADOW_A           = 14,
+	DENOISING_PASS_SHADOW_B           = 17,
+	DENOISING_PASS_COLOR              = 20,
+	DENOISING_PASS_COLOR_VAR          = 23,
+
+	DENOISING_PASS_SIZE_BASE          = 26,
+	DENOISING_PASS_SIZE_CLEAN         = 3,
+} DenoisingPassOffsets;
+
 typedef enum BakePassFilter {
 	BAKE_FILTER_NONE = 0,
 	BAKE_FILTER_DIRECT = (1 << 0),
@@ -426,6 +445,18 @@ typedef enum BakePassFilterCombos {
 	BAKE_FILTER_TRANSMISSION_INDIRECT = (BAKE_FILTER_INDIRECT | BAKE_FILTER_TRANSMISSION),
 	BAKE_FILTER_SUBSURFACE_INDIRECT = (BAKE_FILTER_INDIRECT | BAKE_FILTER_SUBSURFACE),
 } BakePassFilterCombos;
+
+typedef enum DenoiseFlag {
+	DENOISING_CLEAN_DIFFUSE_DIR      = (1 << 0),
+	DENOISING_CLEAN_DIFFUSE_IND      = (1 << 1),
+	DENOISING_CLEAN_GLOSSY_DIR       = (1 << 2),
+	DENOISING_CLEAN_GLOSSY_IND       = (1 << 3),
+	DENOISING_CLEAN_TRANSMISSION_DIR = (1 << 4),
+	DENOISING_CLEAN_TRANSMISSION_IND = (1 << 5),
+	DENOISING_CLEAN_SUBSURFACE_DIR   = (1 << 6),
+	DENOISING_CLEAN_SUBSURFACE_IND   = (1 << 7),
+	DENOISING_CLEAN_ALL_PASSES       = (1 << 8)-1,
+} DenoiseFlag;
 
 typedef ccl_addr_space struct PathRadiance {
 #ifdef __PASSES__
@@ -482,6 +513,12 @@ typedef ccl_addr_space struct PathRadiance {
 	/* Color of the background on which shadow is alpha-overed. */
 	float3 shadow_color;
 #endif
+
+#ifdef __DENOISING_FEATURES__
+	float3 denoising_normal;
+	float3 denoising_albedo;
+	float denoising_depth;
+#endif  /* __DENOISING_FEATURES__ */
 } PathRadiance;
 
 typedef struct BsdfEval {
@@ -724,12 +761,13 @@ typedef struct AttributeDescriptor {
 #define SHADER_CLOSURE_BASE \
 	float3 weight; \
 	ClosureType type; \
-	float sample_weight \
+	float sample_weight; \
+	float3 N
 
 typedef ccl_addr_space struct ccl_align(16) ShaderClosure {
 	SHADER_CLOSURE_BASE;
 
-	float data[14]; /* pad to 80 bytes */
+	float data[10]; /* pad to 80 bytes */
 } ShaderClosure;
 
 /* Shader Context
@@ -960,6 +998,10 @@ typedef struct PathState {
 	int transmission_bounce;
 	int transparent_bounce;
 
+#ifdef __DENOISING_FEATURES__
+	float denoising_feature_weight;
+#endif  /* __DENOISING_FEATURES__ */
+
 	/* multiple importance sampling */
 	float min_ray_pdf; /* smallest bounce pdf over entire path up to now */
 	float ray_pdf;     /* last bounce pdf */
@@ -1136,6 +1178,11 @@ typedef struct KernelFilm {
 	float mist_start;
 	float mist_inv_depth;
 	float mist_falloff;
+
+	int pass_denoising_data;
+	int pass_denoising_clean;
+	int denoising_flags;
+	int pad;
 
 #ifdef __KERNEL_DEBUG__
 	int pass_bvh_traversed_nodes;

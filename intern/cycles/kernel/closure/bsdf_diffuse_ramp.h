@@ -40,7 +40,6 @@ CCL_NAMESPACE_BEGIN
 typedef ccl_addr_space struct DiffuseRampBsdf {
 	SHADER_CLOSURE_BASE;
 
-	float3 N;
 	float3 *colors;
 } DiffuseRampBsdf;
 

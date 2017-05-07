@@ -76,7 +76,7 @@ ccl_device_inline void triangle_vertices(KernelGlobals *kg, int prim, float3 P[3
 
 /* Interpolate smooth vertex normal from vertices */
 
-ccl_device_inline float3 triangle_smooth_normal(KernelGlobals *kg, int prim, float u, float v)
+ccl_device_inline float3 triangle_smooth_normal(KernelGlobals *kg, float3 Ng, int prim, float u, float v)
 {
 	/* load triangle vertices */
 	const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
@@ -84,7 +84,9 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals *kg, int prim, flo
 	float3 n1 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.y));
 	float3 n2 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
 
-	return normalize((1.0f - u - v)*n2 + u*n0 + v*n1);
+	float3 N = safe_normalize((1.0f - u - v)*n2 + u*n0 + v*n1);
+
+	return is_zero(N)? Ng: N;
 }
 
 /* Ray differentials on triangle */

@@ -141,7 +141,7 @@ void RE_result_load_from_file(struct RenderResult *result, struct ReportList *re
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
 void RE_engine_add_pass(RenderEngine *engine, const char *name, int channels, const char *chan_id, const char *layername);
-void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel, int merge_results);
+void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel, int highlight, int merge_results);
 
 const char *RE_engine_active_view_get(RenderEngine *engine);
 void RE_engine_active_view_set(RenderEngine *engine, const char *viewname);

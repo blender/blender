@@ -34,7 +34,7 @@ class Tile;
 
 class DeviceTask : public Task {
 public:
-	typedef enum { PATH_TRACE, FILM_CONVERT, SHADER } Type;
+	typedef enum { RENDER, FILM_CONVERT, SHADER } Type;
 	Type type;
 
 	int x, y, w, h;
@@ -53,7 +53,7 @@ public:
 
 	int passes_size;
 
-	explicit DeviceTask(Type type = PATH_TRACE);
+	explicit DeviceTask(Type type = RENDER);
 
 	int get_subtask_count(int num, int max_size = 0);
 	void split(list<DeviceTask>& tasks, int num, int max_size = 0);
@@ -65,6 +65,16 @@ public:
 	function<void(RenderTile&)> update_tile_sample;
 	function<void(RenderTile&)> release_tile;
 	function<bool(void)> get_cancel;
+	function<void(RenderTile*, Device*)> map_neighbor_tiles;
+	function<void(RenderTile*, Device*)> unmap_neighbor_tiles;
+
+	int denoising_radius;
+	float denoising_strength;
+	float denoising_feature_strength;
+	bool denoising_relative_pca;
+	int pass_stride;
+	int pass_denoising_data;
+	int pass_denoising_clean;
 
 	bool need_finish_queue;
 	bool integrator_branched;

@@ -37,6 +37,7 @@ ccl_device_inline void svm_node_geometry(KernelGlobals *kg,
 #ifdef __UV__
 		case NODE_GEOM_uv: data = make_float3(sd->u, sd->v, 0.0f); break;
 #endif
+		default: data = make_float3(0.0f, 0.0f, 0.0f);
 	}
 
 	stack_store_float3(stack, out_offset, data);

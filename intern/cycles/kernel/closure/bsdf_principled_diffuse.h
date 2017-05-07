@@ -28,7 +28,6 @@ typedef ccl_addr_space struct PrincipledDiffuseBsdf {
 	SHADER_CLOSURE_BASE;
 
 	float roughness;
-	float3 N;
 } PrincipledDiffuseBsdf;
 
 ccl_device float3 calculate_principled_diffuse_brdf(const PrincipledDiffuseBsdf *bsdf,

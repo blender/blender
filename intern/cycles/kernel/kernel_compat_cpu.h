@@ -42,6 +42,8 @@
 #include "util/util_types.h"
 #include "util/util_texture.h"
 
+#define ccl_restrict_ptr const * __restrict
+
 #define ccl_addr_space
 
 #define ccl_local_id(d) 0

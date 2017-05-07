@@ -76,6 +76,26 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 	RNG rng = kernel_split_state.rng[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	float3 throughput = branched_state->throughput;
+	ccl_global PathState *ps = &kernel_split_state.path_state[ray_index];
+
+	float sum_sample_weight = 0.0f;
+#ifdef __DENOISING_FEATURES__
+	if(ps->denoising_feature_weight > 0.0f) {
+		for(int i = 0; i < sd->num_closure; i++) {
+			const ShaderClosure *sc = &sd->closure[i];
+
+			/* transparency is not handled here, but in outer loop */
+			if(!CLOSURE_IS_BSDF(sc->type) || CLOSURE_IS_BSDF_TRANSPARENT(sc->type)) {
+				continue;
+			}
+
+			sum_sample_weight += sc->sample_weight;
+		}
+	}
+	else {
+		sum_sample_weight = 1.0f;
+	}
+#endif  /* __DENOISING_FEATURES__ */
 
 	for(int i = branched_state->next_closure; i < sd->num_closure; i++) {
 		const ShaderClosure *sc = &sd->closure[i];
@@ -103,7 +123,6 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 		RNG bsdf_rng = cmj_hash(rng, i);
 
 		for(int j = branched_state->next_sample; j < num_samples; j++) {
-			ccl_global PathState *ps = &kernel_split_state.path_state[ray_index];
 			if(reset_path_state) {
 				*ps = branched_state->path_state;
 			}
@@ -122,7 +141,8 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 			                                        tp,
 			                                        ps,
 			                                        L,
-			                                        bsdf_ray))
+			                                        bsdf_ray,
+			                                        sum_sample_weight))
 			{
 				continue;
 			}

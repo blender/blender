@@ -42,7 +42,7 @@ ccl_device_forceinline float D_ggx_aniso(const float3 wm, const float2 alpha)
 /* Sample slope distribution (based on page 14 of the supplemental implementation). */
 ccl_device_forceinline float2 mf_sampleP22_11(const float cosI, const float2 randU)
 {
-	if(cosI > 0.9999f || cosI < 1e-6f) {
+	if(cosI > 0.9999f || fabsf(cosI) < 1e-6f) {
 		const float r = sqrtf(randU.x / max(1.0f - randU.x, 1e-7f));
 		const float phi = M_2PI_F * randU.y;
 		return make_float2(r*cosf(phi), r*sinf(phi));

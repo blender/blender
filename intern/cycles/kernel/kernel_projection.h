@@ -57,6 +57,9 @@ ccl_device float3 spherical_to_direction(float theta, float phi)
 
 ccl_device float2 direction_to_equirectangular_range(float3 dir, float4 range)
 {
+	if(is_zero(dir))
+		return make_float2(0.0f, 0.0f);
+
 	float u = (atan2f(dir.y, dir.x) - range.y) / range.x;
 	float v = (acosf(dir.z / len(dir)) - range.w) / range.z;
 

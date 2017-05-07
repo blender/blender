@@ -96,6 +96,7 @@ public:
 	                                      int width, int height);
 
 	static PassType get_pass_type(BL::RenderPass& b_pass);
+	static int get_denoising_pass(BL::RenderPass& b_pass);
 
 private:
 	/* sync */

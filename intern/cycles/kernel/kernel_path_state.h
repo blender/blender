@@ -35,6 +35,16 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
 	state->transmission_bounce = 0;
 	state->transparent_bounce = 0;
 
+#ifdef __DENOISING_FEATURES__
+	if(kernel_data.film.pass_denoising_data) {
+		state->flag |= PATH_RAY_STORE_SHADOW_INFO;
+		state->denoising_feature_weight = 1.0f;
+	}
+	else {
+		state->denoising_feature_weight = 0.0f;
+	}
+#endif  /* __DENOISING_FEATURES__ */
+
 	state->min_ray_pdf = FLT_MAX;
 	state->ray_pdf = 0.0f;
 #ifdef __LAMP_MIS__
@@ -128,6 +138,10 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 
 	/* random number generator next bounce */
 	state->rng_offset += PRNG_BOUNCE_NUM;
+
+	if((state->denoising_feature_weight == 0.0f) && !(state->flag & PATH_RAY_SHADOW_CATCHER)) {
+		state->flag &= ~PATH_RAY_STORE_SHADOW_INFO;
+	}
 }
 
 ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *state)

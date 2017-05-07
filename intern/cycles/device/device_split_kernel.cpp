@@ -166,13 +166,13 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		unsigned int max_work_groups = num_global_elements / work_pool_size + 1;
 
 		/* Allocate work_pool_wgs memory. */
-		work_pool_wgs.resize(max_work_groups * sizeof(unsigned int));
+		work_pool_wgs.resize(max_work_groups);
 		device->mem_alloc("work_pool_wgs", work_pool_wgs, MEM_READ_WRITE);
 
-		queue_index.resize(NUM_QUEUES * sizeof(int));
+		queue_index.resize(NUM_QUEUES);
 		device->mem_alloc("queue_index", queue_index, MEM_READ_WRITE);
 
-		use_queues_flag.resize(sizeof(char));
+		use_queues_flag.resize(1);
 		device->mem_alloc("use_queues_flag", use_queues_flag, MEM_READ_WRITE);
 
 		ray_state.resize(num_global_elements);
