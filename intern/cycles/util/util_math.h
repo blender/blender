@@ -492,17 +492,17 @@ ccl_device float safe_powf(float a, float b)
 	return compatible_powf(a, b);
 }
 
-ccl_device float safe_logf(float a, float b)
-{
-	if(UNLIKELY(a < 0.0f || b < 0.0f))
-		return 0.0f;
-
-	return logf(a)/logf(b);
-}
-
 ccl_device float safe_divide(float a, float b)
 {
 	return (b != 0.0f)? a/b: 0.0f;
+}
+
+ccl_device float safe_logf(float a, float b)
+{
+	if(UNLIKELY(a <= 0.0f || b <= 0.0f))
+		return 0.0f;
+
+	return safe_divide(logf(a),logf(b));
 }
 
 ccl_device float safe_modulo(float a, float b)
