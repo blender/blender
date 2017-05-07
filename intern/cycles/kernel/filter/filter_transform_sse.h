@@ -81,10 +81,6 @@ ccl_device void kernel_filter_construct_transform(float ccl_restrict_ptr buffer,
 				break;
 			float s = feature_matrix[i*DENOISE_FEATURES+i];
 			reduced_energy += s;
-			/* Bake the feature scaling into the transformation matrix. */
-			for(int j = 0; j < DENOISE_FEATURES; j++) {
-				transform[(*rank)*DENOISE_FEATURES + j] *= _mm_cvtss_f32(feature_scale[j]);
-			}
 		}
 	}
 	else {
@@ -92,10 +88,6 @@ ccl_device void kernel_filter_construct_transform(float ccl_restrict_ptr buffer,
 			float s = feature_matrix[i*DENOISE_FEATURES+i];
 			if(i >= 2 && sqrtf(s) < pca_threshold)
 				break;
-			/* Bake the feature scaling into the transformation matrix. */
-			for(int j = 0; j < DENOISE_FEATURES; j++) {
-				transform[(*rank)*DENOISE_FEATURES + j] *= _mm_cvtss_f32(feature_scale[j]);
-			}
 		}
 	}
 

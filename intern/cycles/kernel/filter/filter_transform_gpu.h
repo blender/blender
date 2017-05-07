@@ -109,7 +109,7 @@ ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_
 	/* Bake the feature scaling into the transformation matrix. */
 	for(int i = 0; i < DENOISE_FEATURES; i++) {
 		for(int j = 0; j < (*rank); j++) {
-			transform[i*DENOISE_FEATURES + j] *= feature_scale[i];
+			transform[(i*DENOISE_FEATURES + j)*transform_stride] *= feature_scale[i];
 		}
 	}
 }
