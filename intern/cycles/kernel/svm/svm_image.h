@@ -317,8 +317,8 @@ ccl_device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, floa
 	float3 co = stack_load_float3(stack, co_offset);
 	float2 uv;
 
-	co = normalize(co);
-	
+	co = safe_normalize(co);
+
 	if(projection == 0)
 		uv = direction_to_equirectangular(co);
 	else

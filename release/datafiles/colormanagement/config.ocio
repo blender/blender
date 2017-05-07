@@ -2,11 +2,16 @@
 #
 # Based on aces, nuke-default and spi configurations from OpenColorIO-Config
 #
+# Filmic Dynamic Range LUT configuration crafted by Troy James Sobotka with
+# special thanks and feedback from Guillermo, Claudio Rocha, Bassam Kurdali,
+# Eugenio Pignataro, Henri Hebeisen, Jason Clarke, Haarm-Peter Duiker, Thomas
+# Mansencal, and Timothy Lottes.
+#
 # See ocio-license.txt for details.
 
 ocio_profile_version: 1
 
-search_path: luts
+search_path: "luts:filmic"
 strictparsing: true
 luma: [0.2126, 0.7152, 0.0722]
 
@@ -17,6 +22,7 @@ roles:
 
   # Internal scene linear space
   scene_linear: Linear
+  rendering: Linear
 
   # Default color space for byte image
   default_byte: sRGB
@@ -31,13 +37,18 @@ roles:
   color_picking: Raw
   texture_paint: Raw
 
+  # Non-color data
+  data: Non-Color
+
 displays:
   sRGB:
     - !<View> {name: Default, colorspace: sRGB}
+    - !<View> {name: Filmic, colorspace: Filmic sRGB}
     - !<View> {name: RRT, colorspace: rrt_srgb}
     - !<View> {name: Film, colorspace: srgb8}
     - !<View> {name: Raw, colorspace: Raw}
     - !<View> {name: Log, colorspace: lg10}
+    - !<View> {name: False Color, colorspace: False Color}
   DCI-P3:
     - !<View> {name: RRT, colorspace: rrt_p3dci}
     - !<View> {name: Film, colorspace: p3dci8}
@@ -61,7 +72,7 @@ active_views: [Default, RRT, Raw, Log]
 colorspaces:
   - !<ColorSpace>
     name: Linear
-    family: aces
+    family: linear
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -101,7 +112,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear ACES
-    family:
+    family: linear
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -113,7 +124,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: rrt_srgb
-    family: rrt
+    family: display
     equalitygroup:
     bitdepth: 32f
     isdata: false
@@ -141,7 +152,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: rrt_rec709
-    family: rrt
+    family: display
     equalitygroup:
     bitdepth: 32f
     isdata: false
@@ -155,7 +166,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: rrt_p3dci
-    family: rrt
+    family: display
     equalitygroup:
     bitdepth: 32f
     isdata: false
@@ -169,7 +180,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: XYZ
-    family:
+    family: linear
     equalitygroup:
     bitdepth: 32f
     isdata: false
@@ -182,7 +193,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: rrt_xyz
-    family: rrt
+    family: display
     equalitygroup:
     bitdepth: 32f
     isdata: false
@@ -287,7 +298,107 @@ colorspaces:
         - !<ColorSpaceTransform> {src: Linear, dst: lg10}
         - !<FileTransform> {src: colorworks_filmlg_to_p3.3dl, interpolation: linear}
 
+  - !<ColorSpace>
+    name: Filmic Log
+    family: log
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range.
+    isdata: false
+    allocation: lg2
+    allocationvars: [-12.473931188, 12.526068812]
+    from_reference: !<GroupTransform>
+        children:
+            - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 12.526068812]}
+            - !<FileTransform> {src: filmic_desat65cube.spi3d, interpolation: best}
+            - !<AllocationTransform> {allocation: uniform, vars: [0, 0.66]}
+    to_reference: !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 4.026068812], direction: inverse}
+
+  - !<ColorSpace>
+    name: Filmic sRGB
+    family: display
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Filmic sRGB view transform
+    isdata: false
+    allocation: lg2
+    allocationvars: [-12.473931188, 12.526068812]
+    from_reference: !<GroupTransform>
+        children:
+            - !<ColorSpaceTransform> {src: Linear, dst: Filmic Log}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear}
+
+  - !<ColorSpace>
+    name: False Color
+    family: display
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Filmic false color view transform
+    isdata: false
+    allocation: lg2
+    allocationvars: [-12.473931188, 12.526068812]
+    from_reference: !<GroupTransform>
+        children:
+            - !<ColorSpaceTransform> {src: Linear, dst: Filmic Log}
+            - !<FileTransform> {src: filmic_false_color.spi3d, interpolation: best}
 looks:
+  - !<Look>
+    name: Filmic - Very High Contrast
+    process_space: Filmic Log
+    transform: !<GroupTransform>
+        children:
+            - !<FileTransform> {src: filmic_to_1.20_1-00.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+
+  - !<Look>
+    name: Filmic - High Contrast
+    process_space: Filmic Log
+    transform: !<GroupTransform>
+        children:
+            - !<FileTransform> {src: filmic_to_0.99_1-0075.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+
+  - !<Look>
+    name: Filmic - Medium High Contrast
+    process_space: Filmic Log
+    transform: !<GroupTransform>
+        children:
+            - !<FileTransform> {src: filmic_to_0-85_1-011.spi1d, interpolation: best}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+
+  - !<Look>
+    name: Filmic - Base Contrast
+    process_space: Filmic Log
+    transform: !<GroupTransform>
+        children:
+
+  - !<Look>
+    name: Filmic - Medium Low Contrast
+    process_space: Filmic Log
+    transform: !<GroupTransform>
+        children:
+            - !<FileTransform> {src: filmic_to_0-60_1-04.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+
+  - !<Look>
+    name: Filmic - Low Contrast
+    process_space: Filmic Log
+    transform: !<GroupTransform>
+        children:
+            - !<FileTransform> {src: filmic_to_0-48_1-09.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+
+  - !<Look>
+    name: Filmic - Very Low Contrast
+    process_space: Filmic Log
+    transform: !<GroupTransform>
+        children:
+            - !<FileTransform> {src: filmic_to_0-35_1-30.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+
   - !<Look>
     name: Agfa Agfacolor Futura 100
     process_space: linear

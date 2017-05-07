@@ -17,21 +17,23 @@
 /* Optimized CPU kernel entry points. This file is compiled with AVX
  * optimization flags and nearly all functions inlined, while kernel.cpp
  * is compiled without for other CPU's. */
- 
-/* SSE optimization disabled for now on 32 bit, see bug #36316 */
-#if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
-#  define __KERNEL_SSE__
-#  define __KERNEL_SSE2__
-#  define __KERNEL_SSE3__
-#  define __KERNEL_SSSE3__
-#  define __KERNEL_SSE41__
-#  define __KERNEL_AVX__
-#endif
 
 #include "util/util_optimization.h"
 
-#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
-#  include "kernel/kernel.h"
-#  define KERNEL_ARCH cpu_avx
-#  include "kernel/kernels/cpu/kernel_cpu_impl.h"
+#ifndef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
+#  define KERNEL_STUB
+#else
+/* SSE optimization disabled for now on 32 bit, see bug #36316 */
+#  if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
+#    define __KERNEL_SSE__
+#    define __KERNEL_SSE2__
+#    define __KERNEL_SSE3__
+#    define __KERNEL_SSSE3__
+#    define __KERNEL_SSE41__
+#    define __KERNEL_AVX__
+#  endif
 #endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_AVX */
+
+#include "kernel/kernel.h"
+#define KERNEL_ARCH cpu_avx
+#include "kernel/kernels/cpu/kernel_cpu_impl.h"

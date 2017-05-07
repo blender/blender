@@ -40,7 +40,6 @@ typedef ccl_addr_space struct VelvetBsdf {
 
 	float sigma;
 	float invsigma2;
-	float3 N;
 } VelvetBsdf;
 
 ccl_device int bsdf_ashikhmin_velvet_setup(VelvetBsdf *bsdf)

@@ -222,6 +222,12 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 	L->path_total_shaded = make_float3(0.0f, 0.0f, 0.0f);
 	L->shadow_color = make_float3(0.0f, 0.0f, 0.0f);
 #endif
+
+#ifdef __DENOISING_FEATURES__
+	L->denoising_normal = make_float3(0.0f, 0.0f, 0.0f);
+	L->denoising_albedo = make_float3(0.0f, 0.0f, 0.0f);
+	L->denoising_depth = 0.0f;
+#endif  /* __DENOISING_FEATURES__ */
 }
 
 ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, ccl_addr_space float3 *throughput,
@@ -277,15 +283,15 @@ ccl_device_inline void path_radiance_accum_emission(PathRadiance *L, float3 thro
 }
 
 ccl_device_inline void path_radiance_accum_ao(PathRadiance *L,
+                                              ccl_addr_space PathState *state,
                                               float3 throughput,
                                               float3 alpha,
                                               float3 bsdf,
-                                              float3 ao,
-                                              int bounce)
+                                              float3 ao)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
-		if(bounce == 0) {
+		if(state->bounce == 0) {
 			/* directly visible lighting */
 			L->direct_diffuse += throughput*bsdf*ao;
 			L->ao += alpha*throughput*ao;
@@ -302,31 +308,43 @@ ccl_device_inline void path_radiance_accum_ao(PathRadiance *L,
 	}
 
 #ifdef __SHADOW_TRICKS__
-	float3 light = throughput * bsdf;
-	L->path_total += light;
-	L->path_total_shaded += ao * light;
+	if(state->flag & PATH_RAY_STORE_SHADOW_INFO) {
+		float3 light = throughput * bsdf;
+		L->path_total += light;
+		L->path_total_shaded += ao * light;
+	}
 #endif
 }
 
 ccl_device_inline void path_radiance_accum_total_ao(
         PathRadiance *L,
+        ccl_addr_space PathState *state,
         float3 throughput,
         float3 bsdf)
 {
 #ifdef __SHADOW_TRICKS__
-	L->path_total += throughput * bsdf;
+	if(state->flag & PATH_RAY_STORE_SHADOW_INFO) {
+		L->path_total += throughput * bsdf;
+	}
 #else
 	(void) L;
+	(void) state;
 	(void) throughput;
 	(void) bsdf;
 #endif
 }
 
-ccl_device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughput, BsdfEval *bsdf_eval, float3 shadow, float shadow_fac, int bounce, bool is_lamp)
+ccl_device_inline void path_radiance_accum_light(PathRadiance *L,
+                                                 ccl_addr_space PathState *state,
+                                                 float3 throughput,
+                                                 BsdfEval *bsdf_eval,
+                                                 float3 shadow,
+                                                 float shadow_fac,
+                                                 bool is_lamp)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
-		if(bounce == 0) {
+		if(state->bounce == 0) {
 			/* directly visible lighting */
 			L->direct_diffuse += throughput*bsdf_eval->diffuse*shadow;
 			L->direct_glossy += throughput*bsdf_eval->glossy*shadow;
@@ -352,21 +370,27 @@ ccl_device_inline void path_radiance_accum_light(PathRadiance *L, float3 through
 	}
 
 #ifdef __SHADOW_TRICKS__
-	float3 light = throughput * bsdf_eval->sum_no_mis;
-	L->path_total += light;
-	L->path_total_shaded += shadow * light;
+	if(state->flag & PATH_RAY_STORE_SHADOW_INFO) {
+		float3 light = throughput * bsdf_eval->sum_no_mis;
+		L->path_total += light;
+		L->path_total_shaded += shadow * light;
+	}
 #endif
 }
 
 ccl_device_inline void path_radiance_accum_total_light(
         PathRadiance *L,
+        ccl_addr_space PathState *state,
         float3 throughput,
         const BsdfEval *bsdf_eval)
 {
 #ifdef __SHADOW_TRICKS__
-	L->path_total += throughput * bsdf_eval->sum_no_mis;
+	if(state->flag & PATH_RAY_STORE_SHADOW_INFO) {
+		L->path_total += throughput * bsdf_eval->sum_no_mis;
+	}
 #else
 	(void) L;
+	(void) state;
 	(void) throughput;
 	(void) bsdf_eval;
 #endif
@@ -393,11 +417,17 @@ ccl_device_inline void path_radiance_accum_background(PathRadiance *L,
 	}
 
 #ifdef __SHADOW_TRICKS__
-	L->path_total += throughput * value;
-	if(state->flag & PATH_RAY_SHADOW_CATCHER_ONLY) {
-		L->path_total_shaded += throughput * value;
+	if(state->flag & PATH_RAY_STORE_SHADOW_INFO) {
+		L->path_total += throughput * value;
+		if(state->flag & PATH_RAY_SHADOW_CATCHER_ONLY) {
+			L->path_total_shaded += throughput * value;
+		}
 	}
 #endif
+
+#ifdef __DENOISING_FEATURES__
+	L->denoising_albedo += state->denoising_feature_weight * value;
+#endif  /* __DENOISING_FEATURES__ */
 }
 
 ccl_device_inline void path_radiance_sum_indirect(PathRadiance *L)
@@ -555,6 +585,38 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 	return L_sum;
 }
 
+ccl_device_inline void path_radiance_split_denoising(KernelGlobals *kg, PathRadiance *L, float3 *noisy, float3 *clean)
+{
+#ifdef __PASSES__
+	kernel_assert(L->use_light_pass);
+
+	*clean = L->emission + L->background;
+	*noisy = L->direct_scatter + L->indirect_scatter;
+
+#  define ADD_COMPONENT(flag, component)     \
+	if(kernel_data.film.denoising_flags & flag) \
+		*clean += component;                 \
+	else                                     \
+		*noisy += component;
+
+	ADD_COMPONENT(DENOISING_CLEAN_DIFFUSE_DIR,      L->direct_diffuse);
+	ADD_COMPONENT(DENOISING_CLEAN_DIFFUSE_IND,      L->indirect_diffuse);
+	ADD_COMPONENT(DENOISING_CLEAN_GLOSSY_DIR,       L->direct_glossy);
+	ADD_COMPONENT(DENOISING_CLEAN_GLOSSY_IND,       L->indirect_glossy);
+	ADD_COMPONENT(DENOISING_CLEAN_TRANSMISSION_DIR, L->direct_transmission);
+	ADD_COMPONENT(DENOISING_CLEAN_TRANSMISSION_IND, L->indirect_transmission);
+	ADD_COMPONENT(DENOISING_CLEAN_SUBSURFACE_DIR,   L->direct_subsurface);
+	ADD_COMPONENT(DENOISING_CLEAN_SUBSURFACE_IND,   L->indirect_subsurface);
+#  undef ADD_COMPONENT
+#else
+	*noisy = L->emission;
+	*clean = make_float3(0.0f, 0.0f, 0.0f);
+#endif
+
+	*noisy = ensure_finite3(*noisy);
+	*clean = ensure_finite3(*clean);
+}
+
 ccl_device_inline void path_radiance_accum_sample(PathRadiance *L, PathRadiance *L_sample, int num_samples)
 {
 	float fac = 1.0f/num_samples;
@@ -595,12 +657,12 @@ ccl_device_inline float path_radiance_sum_shadow(const PathRadiance *L)
 /* Calculate final light sum and transparency for shadow catcher object. */
 ccl_device_inline float3 path_radiance_sum_shadowcatcher(KernelGlobals *kg,
                                                          const PathRadiance *L,
-                                                         ccl_addr_space float* L_transparent)
+                                                         float* alpha)
 {
 	const float shadow = path_radiance_sum_shadow(L);
 	float3 L_sum;
 	if(kernel_data.background.transparent) {
-		*L_transparent = shadow;
+		*alpha = 1.0f-shadow;
 		L_sum = make_float3(0.0f, 0.0f, 0.0f);
 	}
 	else {

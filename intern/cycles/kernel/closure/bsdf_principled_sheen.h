@@ -26,7 +26,6 @@ CCL_NAMESPACE_BEGIN
 
 typedef ccl_addr_space struct PrincipledSheenBsdf {
 	SHADER_CLOSURE_BASE;
-	float3 N;
 } PrincipledSheenBsdf;
 
 ccl_device float3 calculate_principled_sheen_brdf(const PrincipledSheenBsdf *bsdf,

@@ -10,7 +10,23 @@ set(INC_SYS
 
 set(SRC
 	kernels/cpu/kernel.cpp
+	kernels/cpu/kernel_sse2.cpp
+	kernels/cpu/kernel_sse3.cpp
+	kernels/cpu/kernel_sse41.cpp
+	kernels/cpu/kernel_avx.cpp
+	kernels/cpu/kernel_avx2.cpp
 	kernels/cpu/kernel_split.cpp
+	kernels/cpu/kernel_split_sse2.cpp
+	kernels/cpu/kernel_split_sse3.cpp
+	kernels/cpu/kernel_split_sse41.cpp
+	kernels/cpu/kernel_split_avx.cpp
+	kernels/cpu/kernel_split_avx2.cpp
+	kernels/cpu/filter.cpp
+	kernels/cpu/filter_sse2.cpp
+	kernels/cpu/filter_sse3.cpp
+	kernels/cpu/filter_sse41.cpp
+	kernels/cpu/filter_avx.cpp
+	kernels/cpu/filter_avx2.cpp
 	kernels/opencl/kernel.cl
 	kernels/opencl/kernel_state_buffer_size.cl
 	kernels/opencl/kernel_split.cl
@@ -32,8 +48,10 @@ set(SRC
 	kernels/opencl/kernel_next_iteration_setup.cl
 	kernels/opencl/kernel_indirect_subsurface.cl
 	kernels/opencl/kernel_buffer_update.cl
+	kernels/opencl/filter.cl
 	kernels/cuda/kernel.cu
 	kernels/cuda/kernel_split.cu
+	kernels/cuda/filter.cu
 )
 
 set(SRC_BVH_HEADERS
@@ -95,6 +113,8 @@ set(SRC_KERNELS_CPU_HEADERS
 	kernels/cpu/kernel_cpu.h
 	kernels/cpu/kernel_cpu_impl.h
 	kernels/cpu/kernel_cpu_image.h
+	kernels/cpu/filter_cpu.h
+	kernels/cpu/filter_cpu_impl.h
 )
 
 set(SRC_KERNELS_CUDA_HEADERS
@@ -190,6 +210,21 @@ set(SRC_GEOM_HEADERS
 	geom/geom_volume.h
 )
 
+set(SRC_FILTER_HEADERS
+	filter/filter.h
+	filter/filter_defines.h
+	filter/filter_features.h
+	filter/filter_features_sse.h
+	filter/filter_kernel.h
+	filter/filter_nlm_cpu.h
+	filter/filter_nlm_gpu.h
+	filter/filter_prefilter.h
+	filter/filter_reconstruction.h
+	filter/filter_transform.h
+	filter/filter_transform_gpu.h
+	filter/filter_transform_sse.h
+)
+
 set(SRC_UTIL_HEADERS
 	../util/util_atomic.h
 	../util/util_color.h
@@ -204,6 +239,7 @@ set(SRC_UTIL_HEADERS
 	../util/util_math_int2.h
 	../util/util_math_int3.h
 	../util/util_math_int4.h
+	../util/util_math_matrix.h
 	../util/util_static_assert.h
 	../util/util_transform.h
 	../util/util_texture.h
@@ -295,23 +331,21 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		${SRC_CLOSURE_HEADERS}
 		${SRC_UTIL_HEADERS}
 	)
+	set(cuda_filter_sources kernels/cuda/filter.cu
+		${SRC_HEADERS}
+		${SRC_KERNELS_CUDA_HEADERS}
+		${SRC_FILTER_HEADERS}
+		${SRC_UTIL_HEADERS}
+	)
 	set(cuda_cubins)
 
-	macro(CYCLES_CUDA_KERNEL_ADD arch split experimental)
-		if(${split})
-			set(cuda_extra_flags "-D__SPLIT__")
-			set(cuda_cubin kernel_split)
-		else()
-			set(cuda_extra_flags "")
-			set(cuda_cubin kernel)
-		endif()
-
+	macro(CYCLES_CUDA_KERNEL_ADD arch name flags sources experimental)
 		if(${experimental})
-			set(cuda_extra_flags ${cuda_extra_flags} -D__KERNEL_EXPERIMENTAL__)
-			set(cuda_cubin ${cuda_cubin}_experimental)
+			set(flags ${flags} -D__KERNEL_EXPERIMENTAL__)
+			set(name ${name}_experimental)
 		endif()
 
-		set(cuda_cubin ${cuda_cubin}_${arch}.cubin)
+		set(cuda_cubin ${name}_${arch}.cubin)
 
 		if(WITH_CYCLES_DEBUG)
 			set(cuda_debug_flags "-D__KERNEL_DEBUG__")
@@ -325,11 +359,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		set(cuda_version_flags "-D__KERNEL_CUDA_VERSION__=${cuda_nvcc_version}")
 		set(cuda_math_flags "--use_fast_math")
 
-		if(split)
-			set(cuda_kernel_src "/kernels/cuda/kernel_split.cu")
-		else()
-			set(cuda_kernel_src "/kernels/cuda/kernel.cu")
-		endif()
+		set(cuda_kernel_src "/kernels/cuda/${name}.cu")
 
 		add_custom_command(
 			OUTPUT ${cuda_cubin}
@@ -343,13 +373,13 @@ if(WITH_CYCLES_CUDA_BINARIES)
 					${cuda_arch_flags}
 					${cuda_version_flags}
 					${cuda_math_flags}
-					${cuda_extra_flags}
+					${flags}
 					${cuda_debug_flags}
 					-I${CMAKE_CURRENT_SOURCE_DIR}/..
 					-DCCL_NAMESPACE_BEGIN=
 					-DCCL_NAMESPACE_END=
 					-DNVCC
-			DEPENDS ${cuda_sources})
+			DEPENDS ${sources})
 
 		delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)
 		list(APPEND cuda_cubins ${cuda_cubin})
@@ -363,11 +393,12 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
 		# Compile regular kernel
-		CYCLES_CUDA_KERNEL_ADD(${arch} FALSE FALSE)
+		CYCLES_CUDA_KERNEL_ADD(${arch} kernel "" "${cuda_sources}" FALSE)
+		CYCLES_CUDA_KERNEL_ADD(${arch} filter "" "${cuda_filter_sources}" FALSE)
 
 		if(WITH_CYCLES_CUDA_SPLIT_KERNEL_BINARIES)
 			# Compile split kernel
-			CYCLES_CUDA_KERNEL_ADD(${arch} TRUE FALSE)
+			CYCLES_CUDA_KERNEL_ADD(${arch} kernel_split "-D__SPLIT__" ${cuda_sources} FALSE)
 		endif()
 	endforeach()
 
@@ -388,41 +419,30 @@ include_directories(SYSTEM ${INC_SYS})
 
 set_source_files_properties(kernels/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
 set_source_files_properties(kernels/cpu/kernel_split.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
+set_source_files_properties(kernels/cpu/filter.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
 
 if(CXX_HAS_SSE)
-	list(APPEND SRC
-		kernels/cpu/kernel_sse2.cpp
-		kernels/cpu/kernel_sse3.cpp
-		kernels/cpu/kernel_sse41.cpp
-		kernels/cpu/kernel_split_sse2.cpp
-		kernels/cpu/kernel_split_sse3.cpp
-		kernels/cpu/kernel_split_sse41.cpp
-	)
-
 	set_source_files_properties(kernels/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_split_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_split_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_split_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX)
-	list(APPEND SRC
-		kernels/cpu/kernel_avx.cpp
-		kernels/cpu/kernel_split_avx.cpp
-	)
 	set_source_files_properties(kernels/cpu/kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_split_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)
-	list(APPEND SRC
-		kernels/cpu/kernel_avx2.cpp
-		kernels/cpu/kernel_split_avx2.cpp
-	)
 	set_source_files_properties(kernels/cpu/kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_split_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 endif()
 
 add_library(cycles_kernel
@@ -432,6 +452,7 @@ add_library(cycles_kernel
 	${SRC_KERNELS_CUDA_HEADERS}
 	${SRC_BVH_HEADERS}
 	${SRC_CLOSURE_HEADERS}
+	${SRC_FILTER_HEADERS}
 	${SRC_SVM_HEADERS}
 	${SRC_GEOM_HEADERS}
 	${SRC_SPLIT_HEADERS}
@@ -472,12 +493,15 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocke
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_next_iteration_setup.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_indirect_subsurface.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_buffer_update.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/filter.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel.cu" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel_split.cu" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/filter.cu" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNELS_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/bvh)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/closure)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_FILTER_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/filter)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/svm)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/geom)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/util)

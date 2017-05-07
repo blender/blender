@@ -435,5 +435,23 @@ ccl_device bool bsdf_merge(ShaderClosure *a, ShaderClosure *b)
 #endif
 }
 
+/* Classifies a closure as diffuse-like or specular-like.
+ * This is needed for the denoising feature pass generation,
+ * which are written on the first bounce where more than 25%
+ * of the sampling weight belongs to diffuse-line closures. */
+ccl_device_inline bool bsdf_is_specular_like(ShaderClosure *sc)
+{
+	if(CLOSURE_IS_BSDF_TRANSPARENT(sc->type)) {
+		return true;
+	}
+
+	if(CLOSURE_IS_BSDF_MICROFACET(sc->type)) {
+		MicrofacetBsdf *bsdf = (MicrofacetBsdf*) sc;
+		return (bsdf->alpha_x*bsdf->alpha_y <= 0.075f*0.075f);
+	}
+
+	return false;
+}
+
 CCL_NAMESPACE_END
 

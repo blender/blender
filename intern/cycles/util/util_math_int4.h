@@ -103,6 +103,15 @@ ccl_device_inline int4 select(const int4& mask, const int4& a, const int4& b)
 	                 (mask.w)? a.w: b.w);
 #endif
 }
+
+ccl_device_inline int4 load_int4(const int *v)
+{
+#ifdef __KERNEL_SSE__
+	return int4(_mm_loadu_si128((__m128i*)v));
+#else
+	return make_int4(v[0], v[1], v[2], v[3]);
+#endif
+}
 #endif  /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END

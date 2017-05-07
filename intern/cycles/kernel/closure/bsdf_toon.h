@@ -38,7 +38,6 @@ CCL_NAMESPACE_BEGIN
 typedef ccl_addr_space struct ToonBsdf {
 	SHADER_CLOSURE_BASE;
 
-	float3 N;
 	float size;
 	float smooth;
 } ToonBsdf;

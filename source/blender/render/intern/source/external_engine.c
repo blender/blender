@@ -287,7 +287,7 @@ void RE_engine_add_pass(RenderEngine *engine, const char *name, int channels, co
 	render_result_add_pass(re->result, name, channels, chan_id, layername, NULL);
 }
 
-void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel, int merge_results)
+void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel, int highlight, int merge_results)
 {
 	Render *re = engine->re;
 
@@ -296,7 +296,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 	}
 
 	/* merge. on break, don't merge in result for preview renders, looks nicer */
-	if (!cancel) {
+	if (!highlight) {
 		/* for exr tile render, detect tiles that are done */
 		RenderPart *pa = get_part_from_result(re, result);
 

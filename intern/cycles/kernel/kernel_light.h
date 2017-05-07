@@ -102,7 +102,7 @@ ccl_device_inline float area_light_sample(float3 P,
 		float cu = 1.0f / sqrtf(fu * fu + b0sq) * (fu > 0.0f ? 1.0f : -1.0f);
 		cu = clamp(cu, -1.0f, 1.0f);
 		/* Compute xu. */
-		float xu = -(cu * z0) / sqrtf(1.0f - cu * cu);
+		float xu = -(cu * z0) / max(sqrtf(1.0f - cu * cu), 1e-7f);
 		xu = clamp(xu, x0, x1);
 		/* Compute yv. */
 		float z0sq = z0 * z0;

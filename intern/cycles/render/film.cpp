@@ -279,6 +279,10 @@ NODE_DEFINE(Film)
 
 	SOCKET_BOOLEAN(use_sample_clamp, "Use Sample Clamp", false);
 
+	SOCKET_BOOLEAN(denoising_data_pass,  "Generate Denoising Data Pass",  false);
+	SOCKET_BOOLEAN(denoising_clean_pass, "Generate Denoising Clean Pass", false);
+	SOCKET_INT(denoising_flags, "Denoising Flags", 0);
+
 	return type;
 }
 
@@ -437,6 +441,20 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 		kfilm->pass_stride += pass.components;
 	}
 
+	kfilm->pass_denoising_data = 0;
+	kfilm->pass_denoising_clean = 0;
+	kfilm->denoising_flags = 0;
+	if(denoising_data_pass) {
+		kfilm->pass_denoising_data = kfilm->pass_stride;
+		kfilm->pass_stride += DENOISING_PASS_SIZE_BASE;
+		kfilm->denoising_flags = denoising_flags;
+		if(denoising_clean_pass) {
+			kfilm->pass_denoising_clean = kfilm->pass_stride;
+			kfilm->pass_stride += DENOISING_PASS_SIZE_CLEAN;
+			kfilm->use_light_pass = 1;
+		}
+	}
+
 	kfilm->pass_stride = align_up(kfilm->pass_stride, 4);
 	kfilm->pass_alpha_threshold = pass_alpha_threshold;
 
@@ -450,6 +468,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kfilm->mist_start = mist_start;
 	kfilm->mist_inv_depth = (mist_depth > 0.0f)? 1.0f/mist_depth: 0.0f;
 	kfilm->mist_falloff = mist_falloff;
+
+	pass_stride = kfilm->pass_stride;
+	denoising_data_offset = kfilm->pass_denoising_data;
+	denoising_clean_offset = kfilm->pass_denoising_clean;
 
 	need_update = false;
 }

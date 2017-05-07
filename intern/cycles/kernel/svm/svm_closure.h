@@ -444,6 +444,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			ShaderClosure *bsdf = bsdf_alloc(sd, sizeof(ShaderClosure), weight);
 
 			if(bsdf) {
+				bsdf->N = N;
 				sd->flag |= bsdf_transparent_setup(bsdf);
 			}
 			break;
@@ -704,6 +705,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				ShaderClosure *bsdf = bsdf_alloc(sd, sizeof(ShaderClosure), weight);
 
 				if(bsdf) {
+					bsdf->N = N;
 					/* todo: giving a fixed weight here will cause issues when
 					 * mixing multiple BSDFS. energy will not be conserved and
 					 * the throughput can blow up after multiple bounces. we

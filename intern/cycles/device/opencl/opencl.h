@@ -17,6 +17,7 @@
 #ifdef WITH_OPENCL
 
 #include "device/device.h"
+#include "device/device_denoising.h"
 
 #include "util/util_map.h"
 #include "util/util_param.h"
@@ -129,6 +130,8 @@ public:
 	                            cl_int* error = NULL);
 	static cl_device_type get_device_type(cl_device_id device_id);
 
+	static int mem_address_alignment(cl_device_id device_id);
+
 	/* Get somewhat more readable device name.
 	 * Main difference is AMD OpenCL here which only gives code name
 	 * for the regular device name. This will give more sane device
@@ -218,7 +221,7 @@ public:
 		cl_int err = stmt; \
 		\
 		if(err != CL_SUCCESS) { \
-			string message = string_printf("OpenCL error: %s in %s", clewErrorString(err), #stmt); \
+			string message = string_printf("OpenCL error: %s in %s (%s:%d)", clewErrorString(err), #stmt, __FILE__, __LINE__); \
 			if(error_msg == "") \
 				error_msg = message; \
 			fprintf(stderr, "%s\n", message.c_str()); \
@@ -282,7 +285,7 @@ public:
 		map<ustring, cl_kernel> kernels;
 	};
 
-	OpenCLProgram base_program;
+	OpenCLProgram base_program, denoising_program;
 
 	typedef map<string, device_vector<uchar>*> ConstMemMap;
 	typedef map<string, device_ptr> MemMap;
@@ -320,6 +323,9 @@ public:
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem);
 	void mem_zero(device_memory& mem);
 	void mem_free(device_memory& mem);
+
+	int mem_address_alignment();
+
 	void const_copy_to(const char *name, void *host, size_t size);
 	void tex_alloc(const char *name,
 	               device_memory& mem,
@@ -328,11 +334,13 @@ public:
 	void tex_free(device_memory& mem);
 
 	size_t global_size_round_up(int group_size, int global_size);
-	void enqueue_kernel(cl_kernel kernel, size_t w, size_t h);
+	void enqueue_kernel(cl_kernel kernel, size_t w, size_t h, size_t max_workgroup_size = -1);
 	void set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const char *name);
 
 	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half);
 	void shader(DeviceTask& task);
+
+	void denoise(RenderTile& tile, const DeviceTask& task);
 
 	class OpenCLDeviceTask : public DeviceTask {
 	public:
@@ -367,8 +375,47 @@ public:
 
 	virtual void thread_run(DeviceTask * /*task*/) = 0;
 
+	virtual bool is_split_kernel() = 0;
+
 protected:
 	string kernel_build_options(const string *debug_src = NULL);
+
+	void mem_zero_kernel(device_ptr ptr, size_t size);
+
+	bool denoising_non_local_means(device_ptr image_ptr,
+	                               device_ptr guide_ptr,
+	                               device_ptr variance_ptr,
+	                               device_ptr out_ptr,
+	                               DenoisingTask *task);
+	bool denoising_construct_transform(DenoisingTask *task);
+	bool denoising_reconstruct(device_ptr color_ptr,
+	                           device_ptr color_variance_ptr,
+	                           device_ptr guide_ptr,
+	                           device_ptr guide_variance_ptr,
+	                           device_ptr output_ptr,
+	                           DenoisingTask *task);
+	bool denoising_combine_halves(device_ptr a_ptr,
+	                              device_ptr b_ptr,
+	                              device_ptr mean_ptr,
+	                              device_ptr variance_ptr,
+	                              int r, int4 rect,
+	                              DenoisingTask *task);
+	bool denoising_divide_shadow(device_ptr a_ptr,
+	                             device_ptr b_ptr,
+	                             device_ptr sample_variance_ptr,
+	                             device_ptr sv_variance_ptr,
+	                             device_ptr buffer_variance_ptr,
+	                             DenoisingTask *task);
+	bool denoising_get_feature(int mean_offset,
+	                           int variance_offset,
+	                           device_ptr mean_ptr,
+	                           device_ptr variance_ptr,
+	                           DenoisingTask *task);
+	bool denoising_set_tiles(device_ptr *buffers,
+	                         DenoisingTask *task);
+
+	device_ptr mem_alloc_sub_ptr(device_memory& mem, int offset, int size, MemoryType type);
+	void mem_free_sub_ptr(device_ptr ptr);
 
 	class ArgumentWrapper {
 	public:

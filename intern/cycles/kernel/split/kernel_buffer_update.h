@@ -111,24 +111,15 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
-		float3 L_sum;
-#ifdef __SHADOW_TRICKS__
-		if(state->flag & PATH_RAY_SHADOW_CATCHER) {
-			L_sum = path_radiance_sum_shadowcatcher(kg, L, L_transparent);
-		}
-		else
-#endif  /* __SHADOW_TRICKS__ */
-		{
-			L_sum = path_radiance_clamp_and_sum(kg, L);
-		}
 		kernel_write_light_passes(kg, buffer, L, sample);
 #ifdef __KERNEL_DEBUG__
 		kernel_write_debug_passes(kg, buffer, state, debug_data, sample);
 #endif
-		float4 L_rad = make_float4(L_sum.x, L_sum.y, L_sum.z, 1.0f - (*L_transparent));
 
 		/* accumulate result in output buffer */
-		kernel_write_pass_float4(buffer, sample, L_rad);
+		bool is_shadow_catcher = (state->flag & PATH_RAY_SHADOW_CATCHER);
+		kernel_write_result(kg, buffer, sample, L, 1.0f - (*L_transparent), is_shadow_catcher);
+
 		path_rng_end(kg, rng_state, rng);
 
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);

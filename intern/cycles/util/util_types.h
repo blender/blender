@@ -133,6 +133,11 @@ ccl_device_inline size_t align_up(size_t offset, size_t alignment)
 	return (offset + alignment - 1) & ~(alignment - 1);
 }
 
+ccl_device_inline size_t divide_up(size_t x, size_t y)
+{
+	return (x + y - 1) / y;
+}
+
 ccl_device_inline size_t round_up(size_t x, size_t multiple)
 {
 	return ((x + multiple - 1) / multiple) * multiple;

@@ -79,6 +79,8 @@ typedef struct ColorManagedLook {
 	struct ColorManagedLook *next, *prev;
 	int index;
 	char name[MAX_COLORSPACE_NAME];
+	char ui_name[MAX_COLORSPACE_NAME];
+	char view[MAX_COLORSPACE_NAME];
 	char process_space[MAX_COLORSPACE_NAME];
 	bool is_noop;
 } ColorManagedLook;

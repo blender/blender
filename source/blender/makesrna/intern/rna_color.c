@@ -508,12 +508,13 @@ static void rna_ColorManagedViewSettings_look_set(PointerRNA *ptr, int value)
 }
 
 static EnumPropertyItem *rna_ColorManagedViewSettings_look_itemf(
-        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
+	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
 	EnumPropertyItem *items = NULL;
 	int totitem = 0;
 
-	IMB_colormanagement_look_items_add(&items, &totitem);
+	IMB_colormanagement_look_items_add(&items, &totitem, view->view_transform);
 	RNA_enum_item_end(&items, &totitem);
 
 	*r_free = true;

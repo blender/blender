@@ -37,7 +37,6 @@ CCL_NAMESPACE_BEGIN
 
 typedef ccl_addr_space struct DiffuseBsdf {
 	SHADER_CLOSURE_BASE;
-	float3 N;
 } DiffuseBsdf;
 
 /* DIFFUSE */

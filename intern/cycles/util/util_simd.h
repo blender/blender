@@ -331,9 +331,9 @@ __forceinline size_t __bscf(size_t& v)
 static const unsigned int BITSCAN_NO_BIT_SET_32 = 32;
 static const size_t       BITSCAN_NO_BIT_SET_64 = 64;
 
+#ifdef __KERNEL_SSE3__
 /* Emulation of SSE4 functions with SSE3 */
-
-#if defined(__KERNEL_SSE3) && !defined(__KERNEL_SSE4__)
+#  ifndef __KERNEL_SSE41__
 
 #define _MM_FROUND_TO_NEAREST_INT    0x00
 #define _MM_FROUND_TO_NEG_INF        0x01
@@ -362,7 +362,7 @@ __forceinline __m128i _mm_mullo_epi32( __m128i value, __m128i input ) {
   char* _r = (char*)(&rvalue + 1);
   char* _v = (char*)(& value + 1);
   char* _i = (char*)(& input + 1);
-  for( ssize_t i = -16 ; i != 0 ; i += 4 ) *((int32*)(_r + i)) = *((int32*)(_v + i))*  *((int32*)(_i + i));
+  for( ssize_t i = -16 ; i != 0 ; i += 4 ) *((int32_t*)(_r + i)) = *((int32_t*)(_v + i))*  *((int32_t*)(_i + i));
   return rvalue;
 }
 
@@ -395,7 +395,7 @@ __forceinline __m128i _mm_insert_epi32( __m128i value, int input, const int inde
 
 #define _mm_extract_ps __emu_mm_extract_ps
 __forceinline int _mm_extract_ps( __m128 input, const int index ) {
-  int32* ptr = (int32*)&input; return ptr[index];
+  int32_t* ptr = (int32_t*)&input; return ptr[index];
 }
 
 #define _mm_insert_ps __emu_mm_insert_ps
@@ -415,7 +415,7 @@ __forceinline __m128 _mm_round_ps( __m128 value, const int flags )
   return value;
 }
 
-#ifdef _M_X64
+#    ifdef _M_X64
 #define _mm_insert_epi64 __emu_mm_insert_epi64
 __forceinline __m128i _mm_insert_epi64( __m128i value, __int64 input, const int index ) { 
     assert(size_t(index) < 4); ((__int64*)&value)[index] = input; return value; 
@@ -426,7 +426,40 @@ __forceinline __int64 _mm_extract_epi64( __m128i input, const int index ) {
     assert(size_t(index) < 2); 
     return index == 0 ? _mm_cvtsi128_si64x(input) : _mm_cvtsi128_si64x(_mm_unpackhi_epi64(input, input)); 
 }
-#endif
+#    endif
+
+#  endif
+
+#define _mm_fabs_ps(x) _mm_and_ps(x, _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff)))
+
+/* Return a __m128 with every element set to the largest element of v. */
+ccl_device_inline __m128 _mm_hmax_ps(__m128 v)
+{
+  /* v[0, 1, 2, 3] => [0, 1, 0, 1] and [2, 3, 2, 3] => v[max(0, 2), max(1, 3), max(0, 2), max(1, 3)] */
+  v = _mm_max_ps(_mm_movehl_ps(v, v), _mm_movelh_ps(v, v));
+  /* v[max(0, 2), max(1, 3), max(0, 2), max(1, 3)] => [4 times max(1, 3)] and [4 times max(0, 2)] => v[4 times max(0, 1, 2, 3)] */
+  v = _mm_max_ps(_mm_movehdup_ps(v), _mm_moveldup_ps(v));
+  return v;
+}
+
+/* Return the sum of the four elements of x. */
+ccl_device_inline float _mm_hsum_ss(__m128 x)
+{
+    __m128 a = _mm_movehdup_ps(x);
+    __m128 b = _mm_add_ps(x, a);
+    return _mm_cvtss_f32(_mm_add_ss(_mm_movehl_ps(a, b), b));
+}
+
+/* Return a __m128 with every element set to the sum of the four elements of x. */
+ccl_device_inline __m128 _mm_hsum_ps(__m128 x)
+{
+    x = _mm_hadd_ps(x, x);
+    x = _mm_hadd_ps(x, x);
+    return x;
+}
+
+/* Replace elements of x with zero where mask isn't set. */
+#define _mm_mask_ps(x, mask) _mm_blendv_ps(_mm_setzero_ps(), x, mask)
 
 #endif
 

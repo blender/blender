@@ -1189,6 +1189,80 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
                 default=False,
                 )
 
+        cls.use_denoising = BoolProperty(
+                name="Use Denoising",
+                description="Denoise the rendered image",
+                default=False,
+                )
+        cls.denoising_diffuse_direct = BoolProperty(
+                name="Diffuse Direct",
+                description="Denoise the direct diffuse lighting",
+                default=True,
+                )
+        cls.denoising_diffuse_indirect = BoolProperty(
+                name="Diffuse Indirect",
+                description="Denoise the indirect diffuse lighting",
+                default=True,
+                )
+        cls.denoising_glossy_direct = BoolProperty(
+                name="Glossy Direct",
+                description="Denoise the direct glossy lighting",
+                default=True,
+                )
+        cls.denoising_glossy_indirect = BoolProperty(
+                name="Glossy Indirect",
+                description="Denoise the indirect glossy lighting",
+                default=True,
+                )
+        cls.denoising_transmission_direct = BoolProperty(
+                name="Transmission Direct",
+                description="Denoise the direct transmission lighting",
+                default=True,
+                )
+        cls.denoising_transmission_indirect = BoolProperty(
+                name="Transmission Indirect",
+                description="Denoise the indirect transmission lighting",
+                default=True,
+                )
+        cls.denoising_subsurface_direct = BoolProperty(
+                name="Subsurface Direct",
+                description="Denoise the direct subsurface lighting",
+                default=True,
+                )
+        cls.denoising_subsurface_indirect = BoolProperty(
+                name="Subsurface Indirect",
+                description="Denoise the indirect subsurface lighting",
+                default=True,
+                )
+        cls.denoising_strength = FloatProperty(
+                name="Denoising Strength",
+                description="Controls neighbor pixel weighting for the denoising filter (lower values preserve more detail, but aren't as smooth)",
+                min=0.0, max=1.0,
+                default=0.5,
+                )
+        cls.denoising_feature_strength = FloatProperty(
+                name="Denoising Feature Strength",
+                description="Controls removal of noisy image feature passes (lower values preserve more detail, but aren't as smooth)",
+                min=0.0, max=1.0,
+                default=0.5,
+                )
+        cls.denoising_radius = IntProperty(
+                name="Denoising Radius",
+                description="Size of the image area that's used to denoise a pixel (higher values are smoother, but might lose detail and are slower)",
+                min=1, max=50,
+                default=8,
+        )
+        cls.denoising_relative_pca = BoolProperty(
+                name="Relative filter",
+                description="When removing that don't carry information, use a relative threshold instead of an absolute one (can help to reduce artifacts, but might cause detail loss around edges)",
+                default=False,
+        )
+        cls.denoising_store_passes = BoolProperty(
+                name="Store denoising passes",
+                description="Store the denoising feature passes and the noisy image",
+                default=False,
+        )
+
     @classmethod
     def unregister(cls):
         del bpy.types.SceneRenderLayer.cycles

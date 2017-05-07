@@ -80,16 +80,16 @@ private:
 	 */
 	device_memory split_data;
 	device_vector<uchar> ray_state;
-	device_memory queue_index; /* Array of size num_queues * sizeof(int) that tracks the size of each queue. */
+	device_only_memory<int> queue_index; /* Array of size num_queues that tracks the size of each queue. */
 
 	/* Flag to make sceneintersect and lampemission kernel use queues. */
-	device_memory use_queues_flag;
+	device_only_memory<char> use_queues_flag;
 
 	/* Approximate time it takes to complete one sample */
 	double avg_time_per_sample;
 
 	/* Work pool with respect to each work group. */
-	device_memory work_pool_wgs;
+	device_only_memory<unsigned int> work_pool_wgs;
 
 	/* clos_max value for which the kernels have been loaded currently. */
 	int current_max_closure;

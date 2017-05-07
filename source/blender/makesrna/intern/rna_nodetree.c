@@ -6924,11 +6924,6 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enabled", "Enable the socket");
 	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
-	prop = RNA_def_property(srna, "is_virtual", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_VIRTUAL);
-	RNA_def_property_ui_text(prop, "Virtual", "Socket is Virtual");
-	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
-
 	prop = RNA_def_property(srna, "link_limit", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "limit");
 	RNA_def_property_int_funcs(prop, NULL, "rna_NodeSocket_link_limit_set", NULL);

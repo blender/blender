@@ -57,6 +57,12 @@ public:
 
 	bool display_buffer_linear;
 
+	bool use_denoising;
+	int denoising_radius;
+	float denoising_strength;
+	float denoising_feature_strength;
+	bool denoising_relative_pca;
+
 	double cancel_timeout;
 	double reset_timeout;
 	double text_timeout;
@@ -76,6 +82,12 @@ public:
 		tile_size = make_int2(64, 64);
 		start_resolution = INT_MAX;
 		threads = 0;
+
+		use_denoising = false;
+		denoising_radius = 8;
+		denoising_strength = 0.0f;
+		denoising_feature_strength = 0.0f;
+		denoising_relative_pca = false;
 
 		display_buffer_linear = false;
 
@@ -99,6 +111,11 @@ public:
 		&& tile_size == params.tile_size
 		&& start_resolution == params.start_resolution
 		&& threads == params.threads
+		&& use_denoising == params.use_denoising
+		&& denoising_radius == params.denoising_radius
+		&& denoising_strength == params.denoising_strength
+		&& denoising_feature_strength == params.denoising_feature_strength
+		&& denoising_relative_pca == params.denoising_relative_pca
 		&& display_buffer_linear == params.display_buffer_linear
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
@@ -126,7 +143,7 @@ public:
 	Stats stats;
 
 	function<void(RenderTile&)> write_render_tile_cb;
-	function<void(RenderTile&)> update_render_tile_cb;
+	function<void(RenderTile&, bool)> update_render_tile_cb;
 
 	explicit Session(const SessionParams& params);
 	~Session();
@@ -162,7 +179,7 @@ protected:
 	void update_status_time(bool show_pause = false, bool show_done = false);
 
 	void tonemap(int sample);
-	void path_trace();
+	void render();
 	void reset_(BufferParams& params, int samples);
 
 	void run_cpu();
@@ -176,6 +193,9 @@ protected:
 	bool acquire_tile(Device *tile_device, RenderTile& tile);
 	void update_tile_sample(RenderTile& tile);
 	void release_tile(RenderTile& tile);
+
+	void map_neighbor_tiles(RenderTile *tiles, Device *tile_device);
+	void unmap_neighbor_tiles(RenderTile *tiles, Device *tile_device);
 
 	bool device_use_gl;
 
@@ -202,7 +222,7 @@ protected:
 	double last_update_time;
 	bool update_progressive_refine(bool cancel);
 
-	vector<RenderBuffers *> tile_buffers;
+	vector<RenderTile> render_tiles;
 
 	DeviceRequestedFeatures get_requested_device_features();
 

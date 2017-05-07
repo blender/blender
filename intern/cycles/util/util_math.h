@@ -160,6 +160,78 @@ ccl_device_inline float max4(float a, float b, float c, float d)
 }
 
 #ifndef __KERNEL_OPENCL__
+/* Int/Float conversion */
+
+ccl_device_inline int as_int(uint i)
+{
+	union { uint ui; int i; } u;
+	u.ui = i;
+	return u.i;
+}
+
+ccl_device_inline uint as_uint(int i)
+{
+	union { uint ui; int i; } u;
+	u.i = i;
+	return u.ui;
+}
+
+ccl_device_inline uint as_uint(float f)
+{
+	union { uint i; float f; } u;
+	u.f = f;
+	return u.i;
+}
+
+ccl_device_inline int __float_as_int(float f)
+{
+	union { int i; float f; } u;
+	u.f = f;
+	return u.i;
+}
+
+ccl_device_inline float __int_as_float(int i)
+{
+	union { int i; float f; } u;
+	u.i = i;
+	return u.f;
+}
+
+ccl_device_inline uint __float_as_uint(float f)
+{
+	union { uint i; float f; } u;
+	u.f = f;
+	return u.i;
+}
+
+ccl_device_inline float __uint_as_float(uint i)
+{
+	union { uint i; float f; } u;
+	u.i = i;
+	return u.f;
+}
+#endif /* __KERNEL_OPENCL__ */
+
+/* Versions of functions which are safe for fast math. */
+ccl_device_inline bool isnan_safe(float f)
+{
+	unsigned int x = __float_as_uint(f);
+	return (x << 1) > 0xff000000u;
+}
+
+ccl_device_inline bool isfinite_safe(float f)
+{
+	/* By IEEE 754 rule, 2*Inf equals Inf */
+	unsigned int x = __float_as_uint(f);
+	return (f == f) && (x == 0 || (f != 2.0f*f)) && !((x << 1) > 0xff000000u);
+}
+
+ccl_device_inline float ensure_finite(float v)
+{
+	return isfinite_safe(v)? v : 0.0f;
+}
+
+#ifndef __KERNEL_OPENCL__
 ccl_device_inline int clamp(int a, int mn, int mx)
 {
 	return min(max(a, mn), mx);
@@ -250,57 +322,6 @@ CCL_NAMESPACE_END
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_OPENCL__
-/* Int/Float conversion */
-
-ccl_device_inline int as_int(uint i)
-{
-	union { uint ui; int i; } u;
-	u.ui = i;
-	return u.i;
-}
-
-ccl_device_inline uint as_uint(int i)
-{
-	union { uint ui; int i; } u;
-	u.i = i;
-	return u.ui;
-}
-
-ccl_device_inline uint as_uint(float f)
-{
-	union { uint i; float f; } u;
-	u.f = f;
-	return u.i;
-}
-
-ccl_device_inline int __float_as_int(float f)
-{
-	union { int i; float f; } u;
-	u.f = f;
-	return u.i;
-}
-
-ccl_device_inline float __int_as_float(int i)
-{
-	union { int i; float f; } u;
-	u.i = i;
-	return u.f;
-}
-
-ccl_device_inline uint __float_as_uint(float f)
-{
-	union { uint i; float f; } u;
-	u.f = f;
-	return u.i;
-}
-
-ccl_device_inline float __uint_as_float(uint i)
-{
-	union { uint i; float f; } u;
-	u.i = i;
-	return u.f;
-}
-
 /* Interpolation */
 
 template<class A, class B> A lerp(const A& a, const A& b, const B& t)
@@ -317,20 +338,6 @@ ccl_device_inline float triangle_area(const float3& v1,
 	return len(cross(v3 - v2, v1 - v2))*0.5f;
 }
 #endif  /* __KERNEL_OPENCL__ */
-
-/* Versions of functions which are safe for fast math. */
-ccl_device_inline bool isnan_safe(float f)
-{
-	unsigned int x = __float_as_uint(f);
-	return (x << 1) > 0xff000000u;
-}
-
-ccl_device_inline bool isfinite_safe(float f)
-{
-	/* By IEEE 754 rule, 2*Inf equals Inf */
-	unsigned int x = __float_as_uint(f);
-	return (f == f) && (x == 0 || (f != 2.0f*f)) && !((x << 1) > 0xff000000u);
-}
 
 /* Orthonormal vectors */
 
@@ -485,17 +492,17 @@ ccl_device float safe_powf(float a, float b)
 	return compatible_powf(a, b);
 }
 
-ccl_device float safe_logf(float a, float b)
-{
-	if(UNLIKELY(a < 0.0f || b < 0.0f))
-		return 0.0f;
-
-	return logf(a)/logf(b);
-}
-
 ccl_device float safe_divide(float a, float b)
 {
 	return (b != 0.0f)? a/b: 0.0f;
+}
+
+ccl_device float safe_logf(float a, float b)
+{
+	if(UNLIKELY(a <= 0.0f || b <= 0.0f))
+		return 0.0f;
+
+	return safe_divide(logf(a),logf(b));
 }
 
 ccl_device float safe_modulo(float a, float b)

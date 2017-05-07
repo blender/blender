@@ -509,6 +509,30 @@ PassType BlenderSync::get_pass_type(BL::RenderPass& b_pass)
 	return PASS_NONE;
 }
 
+int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
+{
+	string name = b_pass.name();
+	if(name.substr(0, 10) != "Denoising ") {
+		return -1;
+	}
+	name = name.substr(10);
+
+#define MAP_PASS(passname, offset) if(name == passname) return offset;
+	MAP_PASS("Normal", DENOISING_PASS_NORMAL);
+	MAP_PASS("Normal Variance", DENOISING_PASS_NORMAL_VAR);
+	MAP_PASS("Albedo", DENOISING_PASS_ALBEDO);
+	MAP_PASS("Albedo Variance", DENOISING_PASS_ALBEDO_VAR);
+	MAP_PASS("Depth", DENOISING_PASS_DEPTH);
+	MAP_PASS("Depth Variance", DENOISING_PASS_DEPTH_VAR);
+	MAP_PASS("Shadow A", DENOISING_PASS_SHADOW_A);
+	MAP_PASS("Shadow B", DENOISING_PASS_SHADOW_B);
+	MAP_PASS("Image", DENOISING_PASS_COLOR);
+	MAP_PASS("Image Variance", DENOISING_PASS_COLOR_VAR);
+#undef MAP_PASS
+
+	return -1;
+}
+
 array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
                                             BL::SceneRenderLayer& b_srlay)
 {
@@ -528,8 +552,20 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 			Pass::add(pass_type, passes);
 	}
 
-#ifdef __KERNEL_DEBUG__
 	PointerRNA crp = RNA_pointer_get(&b_srlay.ptr, "cycles");
+	if(get_boolean(crp, "denoising_store_passes")) {
+		b_engine.add_pass("Denoising Normal",          3, "XYZ", b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Albedo",          3, "RGB", b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Albedo Variance", 3, "RGB", b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Depth",           1, "Z",   b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Depth Variance",  1, "Z",   b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Shadow A",        3, "XYV", b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Shadow B",        3, "XYV", b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Image",           3, "RGB", b_srlay.name().c_str());
+		b_engine.add_pass("Denoising Image Variance",  3, "RGB", b_srlay.name().c_str());
+	}
+#ifdef __KERNEL_DEBUG__
 	if(get_boolean(crp, "pass_debug_bvh_traversed_nodes")) {
 		b_engine.add_pass("Debug BVH Traversed Nodes", 1, "X", b_srlay.name().c_str());
 		Pass::add(PASS_BVH_TRAVERSED_NODES, passes);

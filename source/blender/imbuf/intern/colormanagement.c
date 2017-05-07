@@ -2568,8 +2568,16 @@ ColorManagedLook *colormanage_look_add(const char *name, const char *process_spa
 	look = MEM_callocN(sizeof(ColorManagedLook), "ColorManagedLook");
 	look->index = index + 1;
 	BLI_strncpy(look->name, name, sizeof(look->name));
+	BLI_strncpy(look->ui_name, name, sizeof(look->ui_name));
 	BLI_strncpy(look->process_space, process_space, sizeof(look->process_space));
 	look->is_noop = is_noop;
+
+	/* Detect view specific looks. */
+	const char *separator_offset = strstr(look->name, " - ");
+	if (separator_offset) {
+		BLI_strncpy(look->view, look->name, separator_offset - look->name + 1);
+		BLI_strncpy(look->ui_name, separator_offset + strlen(" - "), sizeof(look->ui_name));
+	}
 
 	BLI_addtail(&global_looks, look);
 
@@ -2671,15 +2679,27 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items, int *totitem, 
 	}
 }
 
-void IMB_colormanagement_look_items_add(struct EnumPropertyItem **items, int *totitem)
+void IMB_colormanagement_look_items_add(struct EnumPropertyItem **items, int *totitem, const char *view_name)
 {
 	ColorManagedLook *look;
+	const char *view_filter = NULL;
+
+	/* Test if this view transform is limited to specific looks. */
+	for (look = global_looks.first; look; look = look->next) {
+		if (STREQ(look->view, view_name)) {
+			view_filter = view_name;
+		}
+	}
 
 	for (look = global_looks.first; look; look = look->next) {
+		if (!look->is_noop && view_filter && !STREQ(look->view, view_filter)) {
+			continue;
+		}
+
 		EnumPropertyItem item;
 
 		item.value = look->index;
-		item.name = look->name;
+		item.name = look->ui_name;
 		item.identifier = look->name;
 		item.icon = 0;
 		item.description = "";
