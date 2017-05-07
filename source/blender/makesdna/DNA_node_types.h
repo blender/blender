@@ -159,8 +159,7 @@ typedef enum eNodeSocketFlag {
 	SOCK_COLLAPSED = 64,				/* socket collapsed in UI */
 	SOCK_HIDE_VALUE = 128,				/* hide socket value, if it gets auto default */
 	SOCK_AUTO_HIDDEN__DEPRECATED = 256,	/* socket hidden automatically, to distinguish from manually hidden */
-	SOCK_NO_INTERNAL_LINK = 512,
-	SOCK_VIRTUAL = 1024			/* socket behaves like SOCK_UNAVAIL, but is drawn with dashed links */
+	SOCK_NO_INTERNAL_LINK = 512
 } eNodeSocketFlag;
 
 /* limit data in bNode to what we want to see saved? */
