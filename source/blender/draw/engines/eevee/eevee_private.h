@@ -31,6 +31,7 @@ struct Object;
 #define MAX_SHADOW_MAP 64
 #define MAX_SHADOW_CASCADE 8
 #define MAX_CASCADE_NUM 4
+#define MAX_BLOOM_STEP 16
 
 typedef struct EEVEE_PassList {
 	/* Shadows */
@@ -45,6 +46,11 @@ typedef struct EEVEE_PassList {
 
 	/* Effects */
 	struct DRWPass *motion_blur;
+	struct DRWPass *bloom_blit;
+	struct DRWPass *bloom_downsample_first;
+	struct DRWPass *bloom_downsample;
+	struct DRWPass *bloom_upsample;
+	struct DRWPass *bloom_resolve;
 	struct DRWPass *tonemap;
 
 	struct DRWPass *depth_pass;
@@ -65,6 +71,9 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *probe_sh_fb;
 	/* Effects */
 	struct GPUFrameBuffer *effect_fb; /* HDR */
+	struct GPUFrameBuffer *bloom_blit_fb; /* HDR */
+	struct GPUFrameBuffer *bloom_down_fb[MAX_BLOOM_STEP]; /* HDR */
+	struct GPUFrameBuffer *bloom_accum_fb[MAX_BLOOM_STEP-1]; /* HDR */
 
 	struct GPUFrameBuffer *main; /* HDR */
 } EEVEE_FramebufferList;
@@ -79,9 +88,13 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *probe_depth_rt;
 	struct GPUTexture *probe_pool; /* R11_G11_B10 */
 	struct GPUTexture *probe_sh; /* R16_G16_B16 */
+	/* Effects */
+	struct GPUTexture *color_post; /* R16_G16_B16 */
+	struct GPUTexture *bloom_blit; /* R16_G16_B16 */
+	struct GPUTexture *bloom_downsample[MAX_BLOOM_STEP]; /* R16_G16_B16 */
+	struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP-1]; /* R16_G16_B16 */
 
 	struct GPUTexture *color; /* R16_G16_B16 */
-	struct GPUTexture *color_post; /* R16_G16_B16 */
 } EEVEE_TextureList;
 
 typedef struct EEVEE_StorageList {
@@ -169,20 +182,34 @@ typedef struct EEVEE_ProbesInfo {
 
 /* ************ EFFECTS DATA ************* */
 typedef struct EEVEE_EffectsInfo {
+	int enabled_effects;
+
+	/* Motion Blur */
 	float current_ndc_to_world[4][4];
 	float past_world_to_ndc[4][4];
 	float tmp_mat[4][4];
 	float blur_amount;
 
-	int enabled_effects;
+	/* Bloom */
+	int bloom_iteration_ct;
+	float source_texel_size[2];
+	float blit_texel_size[2];
+	float downsamp_texel_size[MAX_BLOOM_STEP][2];
+	float bloom_intensity;
+	float bloom_sample_scale;
+	float bloom_curve_threshold[4];
+	float unf_source_texel_size[2];
+	struct GPUTexture *unf_source_buffer; /* pointer copy */
+	struct GPUTexture *unf_base_buffer; /* pointer copy */
 
-	/* not alloced, just a pointer to a texture in EEVEE_TextureList.
-	 * Point to the final color buffer to transform to display color space. */
-	struct GPUTexture *final_color;
+	/* Not alloced, just a copy of a *GPUtexture in EEVEE_TextureList. */
+	struct GPUTexture *source_buffer;       /* latest updated texture */
+	struct GPUFrameBuffer *target_buffer;   /* next target to render to */
 } EEVEE_EffectsInfo;
 
 enum {
-	EFFECT_MOTION_BLUR = (1 << 0),
+	EFFECT_MOTION_BLUR         = (1 << 0),
+	EFFECT_BLOOM               = (1 << 1),
 };
 
 /* *********************************** */
