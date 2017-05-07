@@ -162,7 +162,7 @@ void IMB_colormanagment_colorspace_from_ibuf_ftype(struct ColorManagedColorspace
 /* ** RNA helper functions ** */
 void IMB_colormanagement_display_items_add(struct EnumPropertyItem **items, int *totitem);
 void IMB_colormanagement_view_items_add(struct EnumPropertyItem **items, int *totitem, const char *display_name);
-void IMB_colormanagement_look_items_add(struct EnumPropertyItem **items, int *totitem);
+void IMB_colormanagement_look_items_add(struct EnumPropertyItem **items, int *totitem, const char *view_name);
 void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, int *totitem);
 
 /* ** Tile-based buffer management ** */
