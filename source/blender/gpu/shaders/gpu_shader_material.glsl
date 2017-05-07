@@ -10,6 +10,7 @@ uniform mat4 ModelViewMatrixInverse;
 uniform mat4 ViewMatrixInverse;
 uniform mat4 ProjectionMatrixInverse;
 uniform mat3 NormalMatrix;
+uniform vec4 CameraTexCoFactors;
 
 #if __VERSION__ == 120
   #define fragColor gl_FragColor
@@ -2837,20 +2838,18 @@ void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
 	vec4 co_homogenous = (ProjectionMatrixInverse * v);
 
 	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
+#ifdef WORLD_BACKGROUND
+	worldvec = (ViewMatrixInverse * co).xyz;
+#else
 	worldvec = (ModelViewMatrixInverse * co).xyz;
+#endif
 }
 
 #if defined(PROBE_CAPTURE) || defined(WORLD_BACKGROUND)
 void environment_default_vector(out vec3 worldvec)
 {
 #ifdef WORLD_BACKGROUND
-	vec4 v = (ProjectionMatrix[3][3] == 0.0) ? vec4(viewPosition, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
-	vec4 co_homogenous = (ProjectionMatrixInverse * v);
-
-	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
-
-	co = normalize(co);
-	worldvec = (ViewMatrixInverse * co).xyz;
+	background_transform_to_world(viewPosition, worldvec);
 #else
 	worldvec = normalize(worldPosition);
 #endif
@@ -2988,6 +2987,8 @@ void node_tex_coord_background(
 
 #ifdef PROBE_CAPTURE
 	vec3 coords = normalize(worldPosition);
+#elif defined(WORLD_BACKGROUND)
+	vec3 coords = (ViewMatrixInverse * co).xyz;
 #else
 	vec3 coords = (ModelViewMatrixInverse * co).xyz;
 #endif

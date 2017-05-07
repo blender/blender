@@ -160,6 +160,7 @@ struct DRWInterface {
 	int viewprojectioninverse;
 	int normal;
 	int worldnormal;
+	int camtexfac;
 	int eye;
 	/* Dynamic batch */
 	GLuint instance_vbo;
@@ -528,6 +529,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->modelviewprojection = GPU_shader_get_uniform(shader, "ModelViewProjectionMatrix");
 	interface->normal = GPU_shader_get_uniform(shader, "NormalMatrix");
 	interface->worldnormal = GPU_shader_get_uniform(shader, "WorldNormalMatrix");
+	interface->camtexfac = GPU_shader_get_uniform(shader, "CameraTexCoFactors");
 	interface->eye = GPU_shader_get_uniform(shader, "eye");
 	interface->instance_count = 0;
 	interface->attribs_count = 0;
@@ -1368,6 +1370,9 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	}
 	if (interface->worldnormal != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->worldnormal, 9, 1, (float *)wn);
+	}
+	if (interface->camtexfac != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->camtexfac, 4, 1, (float *)rv3d->viewcamtexcofac);
 	}
 	if (interface->eye != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->eye, 3, 1, (float *)eye);
