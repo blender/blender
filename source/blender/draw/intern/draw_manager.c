@@ -1443,7 +1443,6 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				}
 				tex = *((GPUTexture **)uni->value);
 				GPU_texture_bind(tex, uni->bindloc);
-				GPU_texture_compare_mode(tex, false);
 
 				bound_tex = MEM_callocN(sizeof(DRWBoundTexture), "DRWBoundTexture");
 				bound_tex->tex = tex;

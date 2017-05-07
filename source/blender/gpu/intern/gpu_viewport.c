@@ -267,11 +267,20 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 
 		/* Depth */
 		dtxl->depth = GPU_texture_create_depth(rect_w, rect_h, NULL);
-		if (!dtxl->depth) {
+
+		if (dtxl->depth) {
+			/* Define texture parameters */
+			GPU_texture_bind(dtxl->depth, 0);
+			GPU_texture_compare_mode(dtxl->depth, false);
+			GPU_texture_filter_mode(dtxl->depth, true);
+			GPU_texture_unbind(dtxl->depth);
+		}
+		else {
 			ok = false;
 			goto cleanup;
 		}
-		else if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0)) {
+
+		if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0)) {
 			ok = false;
 			goto cleanup;
 		}
