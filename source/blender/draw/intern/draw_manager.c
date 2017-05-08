@@ -1607,7 +1607,7 @@ struct DRWTextStore *DRW_text_cache_ensure(void)
 /** \name Settings
  * \{ */
 
-bool DRW_is_object_renderable(Object *ob)
+bool DRW_object_is_renderable(Object *ob)
 {
 	Scene *scene = DST.draw_ctx.scene;
 	Object *obedit = scene->obedit;

@@ -573,7 +573,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 
 	DRWShadingGroup *clay_shgrp;
 
-	if (!DRW_is_object_renderable(ob))
+	if (!DRW_object_is_renderable(ob))
 		return;
 
 	struct Batch *geom = DRW_cache_object_surface_get(ob);

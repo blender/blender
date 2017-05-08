@@ -318,7 +318,7 @@ struct LampEngineData *DRW_lamp_engine_data_get(Object *ob, struct RenderEngineT
 void DRW_lamp_engine_data_free(struct LampEngineData *led);
 
 /* Settings */
-bool DRW_is_object_renderable(struct Object *ob);
+bool DRW_object_is_renderable(struct Object *ob);
 
 /* Draw commands */
 void DRW_draw_pass(DRWPass *pass);
