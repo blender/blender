@@ -429,7 +429,7 @@ void wm_manipulatormaps_handled_modal_update(
 	/* regular update for running operator */
 	if (modal_running) {
 		if (manipulator && manipulator->handler && manipulator->opname &&
-			STREQ(manipulator->opname, handler->op->idname))
+		    STREQ(manipulator->opname, handler->op->idname))
 		{
 			manipulator->handler(C, event, manipulator, 0);
 		}

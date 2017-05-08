@@ -107,8 +107,8 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree, bNode *node,
 
 		BLI_strncpy(sockdata->pass_name, passname, sizeof(sockdata->pass_name));
 
-		sock_index = BLI_listbase_count(&node->outputs)-1;
-		if (sock_index != after_index+1) {
+		sock_index = BLI_listbase_count(&node->outputs) - 1;
+		if (sock_index != after_index + 1) {
 			bNodeSocket *after_sock = BLI_findlink(&node->outputs, after_index);
 			BLI_remlink(&node->outputs, sock);
 			BLI_insertlinkafter(&node->outputs, after_sock, sock);
@@ -218,9 +218,9 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree, bNode *node, LinkNo
 
 	if (scene) {
 		RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
-		if(engine_type && engine_type->update_render_passes) {
+		if (engine_type && engine_type->update_render_passes) {
 			SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, node->custom1);
-			if(srl) {
+			if (srl) {
 				RLayerUpdateData *data = MEM_mallocN(sizeof(RLayerUpdateData), "render layer update data");
 				data->available_sockets = available_sockets;
 				data->prev_index = -1;

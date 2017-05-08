@@ -23,8 +23,8 @@
  *  \ingroup draw
  */
 
-#ifndef __DRAW_COMMON__
-#define __DRAW_COMMON__
+#ifndef __DRAW_COMMON_H__
+#define __DRAW_COMMON_H__
 
 struct DRWPass;
 struct DRWShadingGroup;
@@ -122,4 +122,4 @@ void DRW_shgroup_armature_edit(
 bool DRW_pose_mode_armature(
     struct Object *ob, struct Object *active_ob);
 
-#endif /* __DRAW_COMMON__ */
+#endif /* __DRAW_COMMON_H__ */

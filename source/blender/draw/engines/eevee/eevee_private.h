@@ -23,6 +23,9 @@
  *  \ingroup DNA
  */
 
+#ifndef __EEVEE_PRIVATE_H__
+#define __EEVEE_PRIVATE_H__
+
 struct Object;
 
 /* Minimum UBO is 16384 bytes */
@@ -300,3 +303,5 @@ static const float cubefacemat[6][4][4] = {
 	 {0.0, 0.0, 1.0, 0.0},
 	 {0.0, 0.0, 0.0, 1.0}},
 };
+
+#endif /* __EEVEE_PRIVATE_H__ */

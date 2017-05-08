@@ -518,10 +518,10 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	bool copytex = false;
 
 	if (drawdata && drawdata->triple) {
-		#if 0 /* why do we need to clear before overwriting? */
+#if 0 /* why do we need to clear before overwriting? */
 		glClearColor(1, 1, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		#endif
+#endif
 
 		wmSubWindowSet(win, screen->mainwin);
 
@@ -659,10 +659,10 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, StereoVi
 
 		if (drawdata && drawdata->triple) {
 			if (id == 0) {
-				#if 0 /* why do we need to clear before overwriting? */
+#if 0 /* why do we need to clear before overwriting? */
 				glClearColor(0, 0, 0, 0);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				#endif
+#endif
 
 				wmSubWindowSet(win, screen->mainwin);
 
