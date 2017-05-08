@@ -147,11 +147,14 @@ typedef struct MeshRenderData {
 	int vcol_active;
 	int tangent_active;
 
-	int crease_ofs;
-	int bweight_ofs;
-	int *uv_ofs;
-	int *vcol_ofs;
-	int *tangent_ofs;
+	/* Custom-data offsets (only needed for BMesh access) */
+	struct {
+		int crease;
+		int bweight;
+		int *uv;
+		int *vcol;
+		int *tangent;
+	} cd_offset;
 
 	char (*auto_names)[32];
 	char (*uv_names)[32];
@@ -251,8 +254,8 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			rdata->efa_act = BM_mesh_active_face_get(bm, false, true);
 			rdata->eed_act = BM_mesh_active_edge_get(bm);
 			rdata->eve_act = BM_mesh_active_vert_get(bm);
-			rdata->crease_ofs = CustomData_get_offset(&bm->edata, CD_CREASE);
-			rdata->bweight_ofs = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+			rdata->cd_offset.crease = CustomData_get_offset(&bm->edata, CD_CREASE);
+			rdata->cd_offset.bweight = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
 		}
 		if (types & (MR_DATATYPE_DVERT)) {
 			bm_ensure_types |= BM_VERT;
@@ -342,9 +345,9 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 		rdata->vcol_names = MEM_mallocN(sizeof(*rdata->vcol_names) * rdata->vcol_len, "rdata->vcol_names");
 		rdata->tangent_names = MEM_mallocN(sizeof(*rdata->tangent_names) * rdata->uv_len, "rdata->tangent_names");
 
-		rdata->uv_ofs = MEM_mallocN(sizeof(*rdata->uv_ofs) * rdata->uv_len, "rdata->uv_ofs");
-		rdata->vcol_ofs = MEM_mallocN(sizeof(*rdata->vcol_ofs) * rdata->vcol_len, "rdata->vcol_ofs");
-		rdata->tangent_ofs = MEM_mallocN(sizeof(*rdata->tangent_ofs) * rdata->uv_len, "rdata->tangent_ofs");
+		rdata->cd_offset.uv = MEM_mallocN(sizeof(*rdata->cd_offset.uv) * rdata->uv_len, "rdata->uv_ofs");
+		rdata->cd_offset.vcol = MEM_mallocN(sizeof(*rdata->cd_offset.vcol) * rdata->vcol_len, "rdata->vcol_ofs");
+		rdata->cd_offset.tangent = MEM_mallocN(sizeof(*rdata->cd_offset.tangent) * rdata->uv_len, "rdata->tangent_ofs");
 
 		/* Allocate max */
 		rdata->auto_vcol = MEM_callocN(
@@ -365,7 +368,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			BLI_snprintf(rdata->vcol_names[i], sizeof(*rdata->vcol_names), "c%u", hash);
 			rdata->mloopcol[i] = CustomData_get_layer_n(&me->ldata, CD_MLOOPCOL, i);
 			if (rdata->edit_bmesh) {
-				rdata->vcol_ofs[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPCOL, i);
+				rdata->cd_offset.vcol[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPCOL, i);
 			}
 
 			/* Gather number of auto layers. */
@@ -387,7 +390,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 				BLI_snprintf(rdata->uv_names[i], sizeof(*rdata->uv_names), "u%u", hash);
 				rdata->mloopuv[i] = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, i);
 				if (rdata->edit_bmesh) {
-					rdata->uv_ofs[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPUV, i);
+					rdata->cd_offset.uv[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPUV, i);
 				}
 				BLI_snprintf(rdata->auto_names[i], sizeof(*rdata->auto_names), "a%u", hash);
 			}
@@ -411,7 +414,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 
 					rdata->tangent_ofs[i] = CustomData_get_n_offset(&bm->ldata, CD_MLOOPTANGENT, i);
 #else
-					rdata->tangent_ofs[i] = -1;
+					rdata->cd_offset.tangent[i] = -1;
 #endif
 				}
 				else {
@@ -470,9 +473,9 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 {
 	MEM_SAFE_FREE(rdata->auto_vcol);
 	MEM_SAFE_FREE(rdata->auto_names);
-	MEM_SAFE_FREE(rdata->uv_ofs);
-	MEM_SAFE_FREE(rdata->vcol_ofs);
-	MEM_SAFE_FREE(rdata->tangent_ofs);
+	MEM_SAFE_FREE(rdata->cd_offset.uv);
+	MEM_SAFE_FREE(rdata->cd_offset.vcol);
+	MEM_SAFE_FREE(rdata->cd_offset.tangent);
 	MEM_SAFE_FREE(rdata->orco);
 	MEM_SAFE_FREE(rdata->mloopuv);
 	MEM_SAFE_FREE(rdata->mloopcol);
@@ -1070,9 +1073,9 @@ static void mesh_render_data_looptri_uvs_get(
 {
 	if (rdata->edit_bmesh) {
 		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		(*r_vert_uvs)[0] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->uv_ofs[uv_layer]))->uv;
-		(*r_vert_uvs)[1] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->uv_ofs[uv_layer]))->uv;
-		(*r_vert_uvs)[2] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->uv_ofs[uv_layer]))->uv;
+		(*r_vert_uvs)[0] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->cd_offset.uv[uv_layer]))->uv;
+		(*r_vert_uvs)[1] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->cd_offset.uv[uv_layer]))->uv;
+		(*r_vert_uvs)[2] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->cd_offset.uv[uv_layer]))->uv;
 	}
 	else {
 		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
@@ -1088,9 +1091,9 @@ static void mesh_render_data_looptri_cols_get(
 {
 	if (rdata->edit_bmesh) {
 		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		(*r_vert_cols)[0] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->vcol_ofs[vcol_layer]))->r;
-		(*r_vert_cols)[1] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->vcol_ofs[vcol_layer]))->r;
-		(*r_vert_cols)[2] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->vcol_ofs[vcol_layer]))->r;
+		(*r_vert_cols)[0] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->cd_offset.vcol[vcol_layer]))->r;
+		(*r_vert_cols)[1] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->cd_offset.vcol[vcol_layer]))->r;
+		(*r_vert_cols)[2] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->cd_offset.vcol[vcol_layer]))->r;
 	}
 	else {
 		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
@@ -1107,9 +1110,9 @@ static void mesh_render_data_looptri_tans_get(
 	if (rdata->edit_bmesh) {
 #if 0 /* waiting for edit mesh tangent calculation */
 		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		(*r_vert_tans)[0] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->tangent_ofs[tangent_layer]));
-		(*r_vert_tans)[1] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->tangent_ofs[tangent_layer]));
-		(*r_vert_tans)[2] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->tangent_ofs[tangent_layer]));
+		(*r_vert_tans)[0] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->cd_offset.tangent[tangent_layer]));
+		(*r_vert_tans)[1] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->cd_offset.tangent[tangent_layer]));
+		(*r_vert_tans)[2] = ((float *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->cd_offset.tangent[tangent_layer]));
 #else
 		static float tan[4] = {0.0f};
 		(*r_vert_tans)[0] = tan;
@@ -1535,16 +1538,16 @@ static EdgeDrawAttr *mesh_render_data_edge_flag(MeshRenderData *rdata, const int
 			eattr.e_flag |= VFLAG_EDGE_SHARP;
 
 		/* Use a byte for value range */
-		if (rdata->crease_ofs != -1) {
-			float crease = BM_ELEM_CD_GET_FLOAT(be, rdata->crease_ofs);
+		if (rdata->cd_offset.crease != -1) {
+			float crease = BM_ELEM_CD_GET_FLOAT(be, rdata->cd_offset.crease);
 			if (crease > 0) {
 				eattr.crease = (char)(crease * 255.0f);
 			}
 		}
 
 		/* Use a byte for value range */
-		if (rdata->bweight_ofs != -1) {
-			float bweight = BM_ELEM_CD_GET_FLOAT(be, rdata->bweight_ofs);
+		if (rdata->cd_offset.bweight != -1) {
+			float bweight = BM_ELEM_CD_GET_FLOAT(be, rdata->cd_offset.bweight);
 			if (bweight > 0) {
 				eattr.bweight = (char)(bweight * 255.0f);
 			}
