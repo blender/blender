@@ -1221,6 +1221,13 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
+	/* Format needs to be created prior to any immBindProgram call.
+	 * Do it here because OCIO binds it's own shader.
+	 */
+	VertexFormat *imm_format = immVertexFormat();
+	unsigned int pos = VertexFormat_add_attrib(imm_format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int texCoord = VertexFormat_add_attrib(imm_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+
 	if (scope) {
 		IMB_freeImBuf(ibuf);
 		ibuf = scope;
@@ -1311,13 +1318,11 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	else
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, format, type, display_buffer);
 
-	VertexFormat *imm_format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(imm_format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int texCoord = VertexFormat_add_attrib(imm_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
-
-	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-	immUniformColor3f(1.0f, 1.0f, 1.0f);
-	immUniform1i("image", GL_TEXTURE0);
+	if (!glsl_used) {
+		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+		immUniformColor3f(1.0f, 1.0f, 1.0f);
+		immUniform1i("image", GL_TEXTURE0);
+	}
 
 	immBegin(PRIM_TRIANGLE_FAN, 4);
 
@@ -1403,7 +1408,9 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	immUnbindProgram();
+	if (!glsl_used) {
+		immUnbindProgram();
+	}
 
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
 		glDisable(GL_BLEND);
