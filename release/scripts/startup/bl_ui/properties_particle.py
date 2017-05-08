@@ -312,7 +312,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
 
 
 class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
-    bl_label = "Hair dynamics"
+    bl_label = "Hair Dynamics"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 

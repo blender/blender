@@ -243,7 +243,7 @@ static bool missing_files_find__recursive(
 			continue;  /* cant stat, don't bother with this file, could print debug info here */
 
 		if (S_ISREG(status.st_mode)) { /* is file */
-			if (STREQLEN(filename, de->d_name, FILE_MAX)) { /* name matches */
+			if (BLI_path_ncmp(filename, de->d_name, FILE_MAX) == 0) { /* name matches */
 				/* open the file to read its size */
 				size = status.st_size;
 				if ((size > 0) && (size > *r_filesize)) { /* find the biggest file */
