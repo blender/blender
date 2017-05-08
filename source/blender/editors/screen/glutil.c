@@ -159,6 +159,7 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
 	/* Shader will be unbind by immUnbindProgram in immDrawPixelsTexScaled_clipping */
 	immBindBuiltinProgram(builtin);
 	immUniform1i("image", 0);
+	state.do_shader_unbind = true;
 
 	return state;
 }
@@ -318,7 +319,9 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
 		}
 	}
 
-	immUnbindProgram();
+	if (state->do_shader_unbind) {
+		immUnbindProgram();
+	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, unpack_row_length);
@@ -571,6 +574,8 @@ void glaDrawImBuf_glsl_clipping(ImBuf *ibuf, float x, float y, int zoomfilter,
 		int ok;
 
 		IMMDrawPixelsTexState state = {0};
+		/* We want GLSL state to be fully handled by OCIO. */
+		state.do_shader_unbind = false;
 		immDrawPixelsTexSetupAttributes(&state);
 
 		if (ibuf->rect_float) {
