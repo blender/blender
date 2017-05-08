@@ -242,7 +242,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, format, GL_UNSIGNED_BYTE, NULL);
 	}
 
-	unsigned int pos = 0, texco = 1;
+	unsigned int pos = state->pos, texco = state->texco;
 
 	/* optional */
 	/* NOTE: Shader could be null for GLSL OCIO drawing, it is fine, since
