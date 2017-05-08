@@ -2895,11 +2895,10 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 		}
 
 		const int vbo_len_capacity = mesh_render_data_polys_len_get(rdata);
-		int vbo_len_used = 0;
+		int vidx = 0;
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
-
 		for (int i = 0; i < vbo_len_capacity; ++i) {
 			float pcenter[3], pnor[3];
 			bool selected = false;
@@ -2910,17 +2909,19 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 				PackedNormal nor = { .x = 0, .y = 0, .z = -511 };
 				nor = convert_i10_v3(pnor);
 				nor.w = selected ? 1 : 0;
-				VertexBuffer_set_attrib(vbo, data_id, i, &nor);
+				VertexBuffer_set_attrib(vbo, data_id, vidx, &nor);
 #else
 				float nor[4] = {pnor[0], pnor[1], pnor[2], selected ? 1 : 0};
-				VertexBuffer_set_attrib(vbo, data_id, i, nor);
+				VertexBuffer_set_attrib(vbo, data_id, vidx, nor);
 #endif
 
-				VertexBuffer_set_attrib(vbo, pos_id, i, pcenter);
+				VertexBuffer_set_attrib(vbo, pos_id, vidx, pcenter);
 
-				vbo_len_used += 1;
+				vidx += 1;
+
 			}
 		}
+		const int vbo_len_used = vidx;
 		if (vbo_len_used != vbo_len_capacity) {
 			VertexBuffer_resize_data(vbo, vbo_len_used);
 		}
