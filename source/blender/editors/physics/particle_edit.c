@@ -4733,6 +4733,9 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 	const int mode_flag = OB_MODE_PARTICLE_EDIT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
+	BKE_report(op->reports, RPT_INFO, "Particles are changing, editing is not possible");
+	return OPERATOR_CANCELLED;
+
 	if (!is_mode_set) {
 		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
