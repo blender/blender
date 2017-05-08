@@ -523,7 +523,7 @@ void EDIT_MESH_collection_settings_create(IDProperty *properties)
 	           properties->type == IDP_GROUP &&
 	           properties->subtype == IDP_GROUP_SUB_MODE_EDIT);
 	BKE_collection_engine_property_add_int(properties, "show_occlude_wire", false);
-	BKE_collection_engine_property_add_int(properties, "show_weight", true);
+	BKE_collection_engine_property_add_int(properties, "show_weight", false);
 	BKE_collection_engine_property_add_int(properties, "face_normals_show", false);
 	BKE_collection_engine_property_add_int(properties, "vert_normals_show", false);
 	BKE_collection_engine_property_add_int(properties, "loop_normals_show", false);
