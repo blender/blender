@@ -2551,6 +2551,7 @@ RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_backface_culling)
 
 /* mesh engine */
 RNA_LAYER_MODE_EDIT_GET_SET_BOOL(show_occlude_wire)
+RNA_LAYER_MODE_EDIT_GET_SET_BOOL(show_weight)
 RNA_LAYER_MODE_EDIT_GET_SET_BOOL(face_normals_show)
 RNA_LAYER_MODE_EDIT_GET_SET_BOOL(vert_normals_show)
 RNA_LAYER_MODE_EDIT_GET_SET_BOOL(loop_normals_show)
@@ -6253,6 +6254,12 @@ static void rna_def_layer_collection_mode_settings_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_occlude_wire", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Hidden Wire", "Use hidden wireframe display");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_show_occlude_wire_get", "rna_LayerEngineSettings_EditMode_show_occlude_wire_set");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+
+	prop = RNA_def_property(srna, "show_weight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Weights", "Draw weights in editmode");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_show_weight_get", "rna_LayerEngineSettings_EditMode_show_weight_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
 

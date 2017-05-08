@@ -1615,10 +1615,14 @@ bool DRW_object_is_renderable(Object *ob)
 	if (ob->type == OB_MESH) {
 		if (ob == obedit) {
 			IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
-			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(props, "show_occlude_wire");
-
-			if (do_occlude_wire)
+			bool do_show_occlude_wire = BKE_collection_engine_property_value_get_bool(props, "show_occlude_wire");
+			if (do_show_occlude_wire) {
 				return false;
+			}
+			bool do_show_weight = BKE_collection_engine_property_value_get_bool(props, "show_weight");
+			if (do_show_weight) {
+				return false;
+			}
 		}
 	}
 
