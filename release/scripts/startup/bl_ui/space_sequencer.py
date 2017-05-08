@@ -1007,7 +1007,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.prop(strip, "use_reverse_frames", text="Reverse")
         col.prop(strip, "use_deinterlace")
 
-        col = row.column()
+        col = split.column()
         col.prop(strip, "use_flip_x", text="X Flip")
         col.prop(strip, "use_flip_y", text="Y Flip")
 
