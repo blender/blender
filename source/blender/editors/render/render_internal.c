@@ -116,6 +116,7 @@ typedef struct RenderJob {
 	ScrArea *sa;
 	ColorManagedViewSettings view_settings;
 	ColorManagedDisplaySettings display_settings;
+	bool supports_glsl_draw;
 	bool interface_locked;
 } RenderJob;
 
@@ -569,6 +570,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		 * operate with.
 		 */
 		if (rr->do_exr_tile ||
+		    !rj->supports_glsl_draw ||
 		    ibuf->channels == 1 ||
 		    U.image_draw_method != IMAGE_DRAW_METHOD_GLSL)
 		{
@@ -904,6 +906,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj->orig_layer = 0;
 	rj->last_layer = 0;
 	rj->sa = sa;
+	rj->supports_glsl_draw = IMB_colormanagement_support_glsl_draw(&scene->view_settings);
 
 	BKE_color_managed_display_settings_copy(&rj->display_settings, &scene->display_settings);
 	BKE_color_managed_view_settings_copy(&rj->view_settings, &scene->view_settings);
