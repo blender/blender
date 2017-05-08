@@ -341,21 +341,25 @@ static const size_t       BITSCAN_NO_BIT_SET_64 = 64;
 #define _MM_FROUND_TO_ZERO           0x03
 #define _MM_FROUND_CUR_DIRECTION     0x04
 
+#undef _mm_blendv_ps
 #define _mm_blendv_ps __emu_mm_blendv_ps
 __forceinline __m128 _mm_blendv_ps( __m128 value, __m128 input, __m128 mask ) { 
     return _mm_or_ps(_mm_and_ps(mask, input), _mm_andnot_ps(mask, value)); 
 }
 
+#undef _mm_blend_ps
 #define _mm_blend_ps __emu_mm_blend_ps
 __forceinline __m128 _mm_blend_ps( __m128 value, __m128 input, const int mask ) { 
     assert(mask < 0x10); return _mm_blendv_ps(value, input, _mm_lookupmask_ps[mask]); 
 }
 
+#undef _mm_blendv_epi8
 #define _mm_blendv_epi8 __emu_mm_blendv_epi8
 __forceinline __m128i _mm_blendv_epi8( __m128i value, __m128i input, __m128i mask ) { 
     return _mm_or_si128(_mm_and_si128(mask, input), _mm_andnot_si128(mask, value)); 
 }
 
+#undef _mm_mullo_epi32
 #define _mm_mullo_epi32 __emu_mm_mullo_epi32
 __forceinline __m128i _mm_mullo_epi32( __m128i value, __m128i input ) {
   __m128i rvalue;
@@ -366,17 +370,19 @@ __forceinline __m128i _mm_mullo_epi32( __m128i value, __m128i input ) {
   return rvalue;
 }
 
-
+#undef _mm_min_epi32
 #define _mm_min_epi32 __emu_mm_min_epi32
 __forceinline __m128i _mm_min_epi32( __m128i value, __m128i input ) { 
     return _mm_blendv_epi8(input, value, _mm_cmplt_epi32(value, input)); 
 }
 
+#undef _mm_max_epi32
 #define _mm_max_epi32 __emu_mm_max_epi32
 __forceinline __m128i _mm_max_epi32( __m128i value, __m128i input ) { 
     return _mm_blendv_epi8(value, input, _mm_cmplt_epi32(value, input)); 
 }
 
+#undef _mm_extract_epi32
 #define _mm_extract_epi32 __emu_mm_extract_epi32
 __forceinline int _mm_extract_epi32( __m128i input, const int index ) {
   switch ( index ) {
@@ -388,20 +394,24 @@ __forceinline int _mm_extract_epi32( __m128i input, const int index ) {
   }
 }
 
+#undef _mm_insert_epi32
 #define _mm_insert_epi32 __emu_mm_insert_epi32
 __forceinline __m128i _mm_insert_epi32( __m128i value, int input, const int index ) { 
     assert(index >= 0 && index < 4); ((int*)&value)[index] = input; return value; 
 }
 
+#undef _mm_extract_ps
 #define _mm_extract_ps __emu_mm_extract_ps
 __forceinline int _mm_extract_ps( __m128 input, const int index ) {
   int32_t* ptr = (int32_t*)&input; return ptr[index];
 }
 
+#undef _mm_insert_ps
 #define _mm_insert_ps __emu_mm_insert_ps
 __forceinline __m128 _mm_insert_ps( __m128 value, __m128 input, const int index )
 { assert(index < 0x100); ((float*)&value)[(index >> 4)&0x3] = ((float*)&input)[index >> 6]; return _mm_andnot_ps(_mm_lookupmask_ps[index&0xf], value); }
 
+#undef _mm_round_ps
 #define _mm_round_ps __emu_mm_round_ps
 __forceinline __m128 _mm_round_ps( __m128 value, const int flags )
 {
@@ -416,11 +426,13 @@ __forceinline __m128 _mm_round_ps( __m128 value, const int flags )
 }
 
 #    ifdef _M_X64
+#undef _mm_insert_epi64
 #define _mm_insert_epi64 __emu_mm_insert_epi64
 __forceinline __m128i _mm_insert_epi64( __m128i value, __int64 input, const int index ) { 
     assert(size_t(index) < 4); ((__int64*)&value)[index] = input; return value; 
 }
 
+#undef _mm_extract_epi64
 #define _mm_extract_epi64 __emu_mm_extract_epi64
 __forceinline __int64 _mm_extract_epi64( __m128i input, const int index ) { 
     assert(size_t(index) < 2); 
@@ -430,6 +442,7 @@ __forceinline __int64 _mm_extract_epi64( __m128i input, const int index ) {
 
 #  endif
 
+#undef _mm_fabs_ps
 #define _mm_fabs_ps(x) _mm_and_ps(x, _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff)))
 
 /* Return a __m128 with every element set to the largest element of v. */
@@ -459,6 +472,7 @@ ccl_device_inline __m128 _mm_hsum_ps(__m128 x)
 }
 
 /* Replace elements of x with zero where mask isn't set. */
+#undef _mm_mask_ps
 #define _mm_mask_ps(x, mask) _mm_blendv_ps(_mm_setzero_ps(), x, mask)
 
 #endif
