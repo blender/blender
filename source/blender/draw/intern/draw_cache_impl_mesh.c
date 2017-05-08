@@ -703,8 +703,30 @@ static void mesh_render_data_ensure_vert_color(MeshRenderData *rdata)
 	char (*vcol)[3] = rdata->vert_color;
 	if (vcol == NULL) {
 		if (rdata->edit_bmesh) {
-			/* TODO */
-			BLI_assert(0);
+			BMesh *bm = rdata->edit_bmesh->bm;
+			const int cd_loop_color_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
+			if (cd_loop_color_offset == -1) {
+				goto fallback;
+			}
+
+			vcol = rdata->vert_color = MEM_mallocN(sizeof(*vcol) * rdata->loop_len, __func__);
+
+			BMIter fiter;
+			BMFace *face;
+			int i = 0;
+
+			BM_ITER_MESH(face, &fiter, bm, BM_FACES_OF_MESH) {
+				BMLoop *l_iter, *l_first;
+				l_iter = l_first = BM_FACE_FIRST_LOOP(face);
+				do {
+					const MLoopCol *lcol = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_color_offset);
+					vcol[i][0] = lcol->r;
+					vcol[i][1] = lcol->g;
+					vcol[i][2] = lcol->b;
+					i += 1;
+				} while ((l_iter = l_iter->next) != l_first);
+			}
+			BLI_assert(i == rdata->loop_len);
 		}
 		else {
 			if (rdata->loopcol == NULL) {
@@ -1244,8 +1266,27 @@ static bool mesh_render_data_looptri_cos_vert_colors_get(
 	        (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPCOL));
 
 	if (rdata->edit_bmesh) {
-		/* TODO */
-		return false;
+		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
+
+		mesh_render_data_ensure_poly_normals_short(rdata);
+		mesh_render_data_ensure_vert_color(rdata);
+
+		short (*pnors_short)[3] = rdata->poly_normals_short;
+		short (*vnors_short)[3] = rdata->vert_normals_short;
+		char (*vcol)[3] = rdata->vert_color;
+
+		(*r_vert_cos)[0] = bm_looptri[0]->v->co;
+		(*r_vert_cos)[1] = bm_looptri[1]->v->co;
+		(*r_vert_cos)[2] = bm_looptri[2]->v->co;
+		(*r_vert_colors)[0] = vcol[BM_elem_index_get(bm_looptri[0]->v)];
+		(*r_vert_colors)[1] = vcol[BM_elem_index_get(bm_looptri[1]->v)];
+		(*r_vert_colors)[2] = vcol[BM_elem_index_get(bm_looptri[2]->v)];
+		*r_tri_nor = pnors_short[BM_elem_index_get(bm_looptri[0]->f)];
+		(*r_vert_nors)[0] = vnors_short[BM_elem_index_get(bm_looptri[0]->v)];
+		(*r_vert_nors)[1] = vnors_short[BM_elem_index_get(bm_looptri[1]->v)];
+		(*r_vert_nors)[2] = vnors_short[BM_elem_index_get(bm_looptri[2]->v)];
+
+		*r_is_smooth = BM_elem_flag_test_bool(bm_looptri[0]->f, BM_ELEM_SMOOTH);
 	}
 	else {
 		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
