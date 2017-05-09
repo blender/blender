@@ -335,7 +335,7 @@ static DRWShadingGroup *eevee_cube_shadow_shgroup(
         EEVEE_PassList *psl, EEVEE_StorageList *stl, struct Batch *geom, float (*obmat)[4])
 {
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cube_pass, geom);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo, 0);
+	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 
 	for (int i = 0; i < 6; ++i)
@@ -348,7 +348,7 @@ static DRWShadingGroup *eevee_cascade_shadow_shgroup(
         EEVEE_PassList *psl, EEVEE_StorageList *stl, struct Batch *geom, float (*obmat)[4])
 {
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cascade_pass, geom);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo, 0);
+	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 
 	for (int i = 0; i < MAX_CASCADE_NUM; ++i)
@@ -523,8 +523,8 @@ static void EEVEE_cache_init(void *vedata)
 		psl->default_pass = DRW_pass_create("Default Shader Pass", state);
 
 		stl->g_data->default_lit_grp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
-		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "light_block", stl->light_ubo, 0);
-		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "shadow_block", stl->shadow_ubo, 1);
+		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "light_block", stl->light_ubo);
+		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "shadow_block", stl->shadow_ubo);
 		DRW_shgroup_uniform_int(stl->g_data->default_lit_grp, "light_count", &stl->lamps->num_light, 1);
 		DRW_shgroup_uniform_float(stl->g_data->default_lit_grp, "lodMax", &stl->probes->lodmax, 1);
 		DRW_shgroup_uniform_vec3(stl->g_data->default_lit_grp, "shCoefs[0]", (float *)stl->probes->shcoefs, 9);
@@ -587,8 +587,8 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					if (shgrp) {
 						DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
 
-						DRW_shgroup_uniform_block(shgrp, "light_block", stl->light_ubo, 0);
-						DRW_shgroup_uniform_block(shgrp, "shadow_block", stl->shadow_ubo, 1);
+						DRW_shgroup_uniform_block(shgrp, "light_block", stl->light_ubo);
+						DRW_shgroup_uniform_block(shgrp, "shadow_block", stl->shadow_ubo);
 						DRW_shgroup_uniform_int(shgrp, "light_count", &stl->lamps->num_light, 1);
 						DRW_shgroup_uniform_float(shgrp, "lodMax", &stl->probes->lodmax, 1);
 						DRW_shgroup_uniform_vec3(shgrp, "shCoefs[0]", (float *)stl->probes->shcoefs, 9);
@@ -606,6 +606,9 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", col, 1);
 						DRW_shgroup_uniform_vec3(shgrp, "specular_col", spec, 1);
 						DRW_shgroup_uniform_short(shgrp, "hardness", &hardness, 1);
+						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "ltcMat", e_data.ltc_mat);
+						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut);
+						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "probeFiltered", txl->probe_pool);
 						DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
 					}
 				}
@@ -614,6 +617,9 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", &ma->r, 1);
 					DRW_shgroup_uniform_vec3(shgrp, "specular_col", &ma->specr, 1);
 					DRW_shgroup_uniform_short(shgrp, "hardness", &ma->har, 1);
+					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "ltcMat", e_data.ltc_mat);
+					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut);
+					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "probeFiltered", txl->probe_pool);
 					DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
 				}
 

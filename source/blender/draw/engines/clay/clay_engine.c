@@ -529,7 +529,7 @@ static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLA
 		shgrps[id] = CLAY_shgroup_create(vedata, psl->clay_pass, &e_data.ubo_mat_idxs[id]);
 		/* if it's the first shgrp, pass bind the material UBO */
 		if (stl->storage->ubo_current_id == 1) {
-			DRW_shgroup_uniform_block(shgrps[0], "material_block", stl->mat_ubo, 0);
+			DRW_shgroup_uniform_block(shgrps[0], "material_block", stl->mat_ubo);
 		}
 	}
 

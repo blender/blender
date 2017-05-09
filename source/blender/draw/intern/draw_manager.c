@@ -163,7 +163,9 @@ struct DRWInterface {
 	int camtexfac;
 	int eye;
 	/* Textures */
-	int next_bind; /* next texture binding point */
+	int tex_bind; /* next texture binding point */
+	/* UBO */
+	int ubo_bind; /* next ubo binding point */
 	/* Dynamic batch */
 	GLuint instance_vbo;
 	int instance_count;
@@ -538,7 +540,8 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->attribs_count = 0;
 	interface->attribs_stride = 0;
 	interface->instance_vbo = 0;
-	interface->next_bind = GPU_max_textures() - 1;
+	interface->tex_bind = GPU_max_textures() - 1;
+	interface->ubo_bind = GPU_max_ubo_binds() - 1;
 
 	memset(&interface->vbo_format, 0, sizeof(VertexFormat));
 
@@ -856,30 +859,41 @@ void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int si
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
 {
 	DRWInterface *interface = shgroup->interface;
-	if (interface->next_bind < 0) {
+
+	if (interface->tex_bind < 0) {
 		/* TODO alert user */
 		printf("Not enough texture slot for %s\n", name);
+		return;
 	}
-	else {
-		DRW_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1, interface->next_bind--);
-	}
+
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1, interface->tex_bind--);
 }
 
-void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo, int loc)
+void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1, loc);
+	DRWInterface *interface = shgroup->interface;
+
+	/* Be carefull: there is also a limit per shader stage. Usually 1/3 of normal limit. */
+	if (interface->ubo_bind < 0) {
+		/* TODO alert user */
+		printf("Not enough ubo slots for %s\n", name);
+		return;
+	}
+
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1, interface->ubo_bind--);
 }
 
 void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
 {
 	DRWInterface *interface = shgroup->interface;
-	if (interface->next_bind < 0) {
+
+	if (interface->tex_bind < 0) {
 		/* TODO alert user */
 		printf("Not enough texture slot for %s\n", name);
+		return;
 	}
-	else {
-		DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 1, interface->next_bind--);
-	}
+
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 1, interface->tex_bind--);
 }
 
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup, const char *name, const bool *value, int arraysize)

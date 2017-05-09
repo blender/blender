@@ -268,7 +268,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	        DRW_STATE_WRITE_COLOR | DRW_STATE_POINT | statemod);
 
 	*r_face_shgrp = DRW_shgroup_create(tri_sh, pass);
-	DRW_shgroup_uniform_block(*r_face_shgrp, "globalsBlock", globals_ubo, 0);
+	DRW_shgroup_uniform_block(*r_face_shgrp, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_vec2(*r_face_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float(*r_face_shgrp, "faceAlphaMod", faceAlpha, 1);
 
@@ -371,7 +371,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 		        "Front Face Color",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
 		stl->g_data->facefill_occluded_shgrp = DRW_shgroup_create(e_data.overlay_facefill_sh, psl->facefill_occlude);
-		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", globals_ubo, 0);
+		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", globals_ubo);
 
 		/* we need a full screen pass to combine the result */
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
