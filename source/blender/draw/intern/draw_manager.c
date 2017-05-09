@@ -220,6 +220,7 @@ enum {
 	DRW_SHG_NORMAL,
 	DRW_SHG_POINT_BATCH,
 	DRW_SHG_LINE_BATCH,
+	DRW_SHG_TRIANGLE_BATCH,
 	DRW_SHG_INSTANCE,
 };
 
@@ -583,7 +584,7 @@ static void DRW_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 	BLI_addtail(&shgroup->interface->uniforms, uni);
 }
 
-static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRWAttribType type, int size)
+static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRWAttribType type, int size, bool dummy)
 {
 	DRWAttrib *attrib = MEM_mallocN(sizeof(DRWAttrib), "DRWAttrib");
 	GLuint program = GPU_shader_get_program(shgroup->shader);
@@ -592,7 +593,7 @@ static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRW
 	attrib->type = type;
 	attrib->size = size;
 
-	if (attrib->location == -1) {
+	if (attrib->location == -1 && !dummy) {
 		if (G.debug & G_DEBUG)
 			fprintf(stderr, "Attribute '%s' not found!\n", name);
 
@@ -745,6 +746,20 @@ DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass
 	return shgroup;
 }
 
+/* Very special batch. Use this if you position
+ * your vertices with the vertex shader
+ * and dont need any VBO attrib */
+DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DRWPass *pass, int size)
+{
+	DRWShadingGroup *shgroup = DRW_shgroup_create(shader, pass);
+
+	shgroup->type = DRW_SHG_TRIANGLE_BATCH;
+	shgroup->interface->instance_count = size * 3;
+	DRW_interface_attrib(shgroup, "dummy", DRW_ATTRIB_FLOAT, 1, true);
+
+	return shgroup;
+}
+
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 {
 	BLI_freelistN(&shgroup->calls);
@@ -808,6 +823,16 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	interface->instance_count += 1;
 
 	BLI_addtail(&shgroup->calls, call);
+}
+
+/* Used for instancing with no attributes */
+void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, int count)
+{
+	DRWInterface *interface = shgroup->interface;
+
+	BLI_assert(interface->attribs_count == 0);
+
+	interface->instance_count = count;
 }
 
 /**
@@ -902,7 +927,8 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 	DRWInterface *interface = shgroup->interface;
 	int nbr = interface->instance_count;
 
-	PrimitiveType type = (shgroup->type == DRW_SHG_POINT_BATCH) ? PRIM_POINTS : PRIM_LINES;
+	PrimitiveType type = (shgroup->type == DRW_SHG_POINT_BATCH) ? PRIM_POINTS :
+	                     (shgroup->type == DRW_SHG_TRIANGLE_BATCH) ? PRIM_TRIANGLES : PRIM_LINES;
 
 	if (nbr == 0)
 		return;
@@ -948,10 +974,10 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	int i = 0;
 	int offset = 0;
 	DRWInterface *interface = shgroup->interface;
-	int vert_nbr = interface->instance_count;
+	int instance_ct = interface->instance_count;
 	int buffer_size = 0;
 
-	if (vert_nbr == 0) {
+	if (instance_ct == 0) {
 		if (interface->instance_vbo) {
 			glDeleteBuffers(1, &interface->instance_vbo);
 			interface->instance_vbo = 0;
@@ -970,7 +996,7 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	}
 
 	/* Gather Data */
-	buffer_size = sizeof(float) * interface->attribs_stride * vert_nbr;
+	buffer_size = sizeof(float) * interface->attribs_stride * instance_ct;
 	float *data = MEM_mallocN(buffer_size, "Instance VBO data");
 
 	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->next) {
