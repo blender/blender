@@ -242,11 +242,12 @@ typedef enum {
 	DRW_STATE_STIPPLE_3     = (1 << 11),
 	DRW_STATE_STIPPLE_4     = (1 << 12),
 	DRW_STATE_BLEND         = (1 << 13),
+	DRW_STATE_ADDITIVE      = (1 << 14),
 
-	DRW_STATE_WRITE_STENCIL_SELECT = (1 << 14),
-	DRW_STATE_WRITE_STENCIL_ACTIVE = (1 << 15),
-	DRW_STATE_TEST_STENCIL_SELECT  = (1 << 16),
-	DRW_STATE_TEST_STENCIL_ACTIVE  = (1 << 17),
+	DRW_STATE_WRITE_STENCIL_SELECT = (1 << 27),
+	DRW_STATE_WRITE_STENCIL_ACTIVE = (1 << 28),
+	DRW_STATE_TEST_STENCIL_SELECT  = (1 << 29),
+	DRW_STATE_TEST_STENCIL_ACTIVE  = (1 << 30),
 } DRWState;
 
 #define DRW_STATE_DEFAULT (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS)
@@ -258,6 +259,7 @@ DRWShadingGroup *DRW_shgroup_material_instance_create(struct GPUMaterial *materi
 DRWShadingGroup *DRW_shgroup_instance_create(struct GPUShader *shader, DRWPass *pass, struct Batch *geom);
 DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass);
+DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DRWPass *pass, int size);
 
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Batch *geom, float (*obmat)[4]);
@@ -269,6 +271,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 #define DRW_shgroup_call_dynamic_add_empty(shgroup) do { \
 	DRW_shgroup_call_dynamic_add_array(shgroup, NULL, 0); \
 } while (0)
+void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, int count);
 
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_attrib_int(DRWShadingGroup *shgroup, const char *name, int size);

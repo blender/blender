@@ -1210,10 +1210,22 @@ static void DRW_state_set(DRWState state)
 	/* Blending (all buffer) */
 	{
 		int test;
-		if ((test = CHANGED_TO(DRW_STATE_BLEND))) {
-			if (test == 1) {
+		if (CHANGED_ANY_STORE_VAR(
+		        DRW_STATE_BLEND | DRW_STATE_ADDITIVE,
+		        test))
+		{
+			if (test) {
 				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				if ((state & DRW_STATE_BLEND) != 0) {
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				}
+				else if ((state & DRW_STATE_ADDITIVE) != 0) {
+					glBlendFunc(GL_ONE, GL_ONE);
+				}
+				else {
+					BLI_assert(0);
+				}
 			}
 			else {
 				glDisable(GL_BLEND);
