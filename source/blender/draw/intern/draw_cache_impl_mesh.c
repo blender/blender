@@ -154,8 +154,14 @@ typedef struct MeshRenderData {
 		int bweight;
 		int *uv;
 		int *vcol;
-//		int *tangent;
 	} cd_offset;
+
+	struct {
+		char (*auto_mix)[32];
+		char (*uv)[32];
+		char (*vcol)[32];
+		char (*tangent)[32];
+	} cd_uuid;
 
 	/* for certain cases we need an output loop-data storage (bmesh tangents) */
 	struct {
@@ -163,11 +169,6 @@ typedef struct MeshRenderData {
 		/* grr, special case variable (use in place of 'dm->tangent_mask') */
 		char tangent_mask;
 	} cd_output;
-
-	char (*auto_names)[32];
-	char (*uv_names)[32];
-	char (*vcol_names)[32];
-	char (*tangent_names)[32];
 
 	/* Data created on-demand (usually not for bmesh-based data). */
 	EdgeAdjacentPolys *edges_adjacent_polys;
@@ -385,22 +386,22 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 		rdata->uv_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPUV);
 		rdata->vcol_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPCOL);
 
-		rdata->mloopuv = MEM_mallocN(sizeof(*rdata->mloopuv) * rdata->uv_len, "rdata->mloopuv");
-		rdata->mloopcol = MEM_mallocN(sizeof(*rdata->mloopcol) * rdata->vcol_len, "rdata->mloopcol");
-		rdata->mtangent = MEM_mallocN(sizeof(*rdata->mtangent) * rdata->uv_len, "rdata->mtangent");
+		rdata->mloopuv = MEM_mallocN(sizeof(*rdata->mloopuv) * rdata->uv_len, __func__);
+		rdata->mloopcol = MEM_mallocN(sizeof(*rdata->mloopcol) * rdata->vcol_len, __func__);
+		rdata->mtangent = MEM_mallocN(sizeof(*rdata->mtangent) * rdata->uv_len, __func__);
 
-		rdata->uv_names = MEM_mallocN(sizeof(*rdata->uv_names) * rdata->uv_len, "rdata->uv_names");
-		rdata->vcol_names = MEM_mallocN(sizeof(*rdata->vcol_names) * rdata->vcol_len, "rdata->vcol_names");
-		rdata->tangent_names = MEM_mallocN(sizeof(*rdata->tangent_names) * rdata->uv_len, "rdata->tangent_names");
+		rdata->cd_uuid.uv = MEM_mallocN(sizeof(*rdata->cd_uuid.uv) * rdata->uv_len, __func__);
+		rdata->cd_uuid.vcol = MEM_mallocN(sizeof(*rdata->cd_uuid.vcol) * rdata->vcol_len, __func__);
+		rdata->cd_uuid.tangent = MEM_mallocN(sizeof(*rdata->cd_uuid.tangent) * rdata->uv_len, __func__);
 
-		rdata->cd_offset.uv = MEM_mallocN(sizeof(*rdata->cd_offset.uv) * rdata->uv_len, "rdata->uv_ofs");
-		rdata->cd_offset.vcol = MEM_mallocN(sizeof(*rdata->cd_offset.vcol) * rdata->vcol_len, "rdata->vcol_ofs");
+		rdata->cd_offset.uv = MEM_mallocN(sizeof(*rdata->cd_offset.uv) * rdata->uv_len, __func__);
+		rdata->cd_offset.vcol = MEM_mallocN(sizeof(*rdata->cd_offset.vcol) * rdata->vcol_len, __func__);
 
 		/* Allocate max */
 		rdata->auto_vcol = MEM_callocN(
-		        sizeof(*rdata->auto_vcol) * rdata->vcol_len, "rdata->auto_vcol");
-		rdata->auto_names = MEM_mallocN(
-		        sizeof(*rdata->auto_names) * (rdata->vcol_len + rdata->uv_len), "rdata->auto_names");
+		        sizeof(*rdata->auto_vcol) * rdata->vcol_len, __func__);
+		rdata->cd_uuid.auto_mix = MEM_mallocN(
+		        sizeof(*rdata->cd_uuid.auto_mix) * (rdata->vcol_len + rdata->uv_len), __func__);
 
 		/* XXX FIXME XXX */
 		/* We use a hash to identify each data layer based on its name.
@@ -412,7 +413,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 		for (int i = 0; i < rdata->vcol_len; ++i) {
 			const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i);
 			unsigned int hash = BLI_ghashutil_strhash_p(name);
-			BLI_snprintf(rdata->vcol_names[i], sizeof(*rdata->vcol_names), "c%u", hash);
+			BLI_snprintf(rdata->cd_uuid.vcol[i], sizeof(*rdata->cd_uuid.vcol), "c%u", hash);
 			rdata->mloopcol[i] = CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i);
 			if (rdata->edit_bmesh) {
 				rdata->cd_offset.vcol[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPCOL, i);
@@ -421,7 +422,9 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			/* Gather number of auto layers. */
 			/* We only do vcols that are not overridden by uvs */
 			if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, name) == -1) {
-				BLI_snprintf(rdata->auto_names[rdata->uv_len + i], sizeof(*rdata->auto_names), "a%u", hash);
+				BLI_snprintf(
+				        rdata->cd_uuid.auto_mix[rdata->uv_len + i],
+				        sizeof(*rdata->cd_uuid.auto_mix), "a%u", hash);
 				rdata->auto_vcol[i] = true;
 			}
 		}
@@ -434,17 +437,17 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 
 			{
 				/* UVs */
-				BLI_snprintf(rdata->uv_names[i], sizeof(*rdata->uv_names), "u%u", hash);
+				BLI_snprintf(rdata->cd_uuid.uv[i], sizeof(*rdata->cd_uuid.uv), "u%u", hash);
 				rdata->mloopuv[i] = CustomData_get_layer_n(cd_ldata, CD_MLOOPUV, i);
 				if (rdata->edit_bmesh) {
 					rdata->cd_offset.uv[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPUV, i);
 				}
-				BLI_snprintf(rdata->auto_names[i], sizeof(*rdata->auto_names), "a%u", hash);
+				BLI_snprintf(rdata->cd_uuid.auto_mix[i], sizeof(*rdata->cd_uuid.auto_mix), "a%u", hash);
 			}
 
 			{
 				/* Tangents*/
-				BLI_snprintf(rdata->tangent_names[i], sizeof(*rdata->tangent_names), "t%u", hash);
+				BLI_snprintf(rdata->cd_uuid.tangent[i], sizeof(*rdata->cd_uuid.tangent), "t%u", hash);
 
 				if (rdata->edit_bmesh) {
 					BMEditMesh *em = rdata->edit_bmesh;
@@ -513,9 +516,12 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 static void mesh_render_data_free(MeshRenderData *rdata)
 {
 	MEM_SAFE_FREE(rdata->auto_vcol);
-	MEM_SAFE_FREE(rdata->auto_names);
 	MEM_SAFE_FREE(rdata->cd_offset.uv);
 	MEM_SAFE_FREE(rdata->cd_offset.vcol);
+	MEM_SAFE_FREE(rdata->cd_uuid.auto_mix);
+	MEM_SAFE_FREE(rdata->cd_uuid.uv);
+	MEM_SAFE_FREE(rdata->cd_uuid.vcol);
+	MEM_SAFE_FREE(rdata->cd_uuid.tangent);
 	MEM_SAFE_FREE(rdata->orco);
 	MEM_SAFE_FREE(rdata->mloopuv);
 	MEM_SAFE_FREE(rdata->mloopcol);
@@ -527,9 +533,6 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 	MEM_SAFE_FREE(rdata->poly_normals);
 	MEM_SAFE_FREE(rdata->poly_normals_short);
 	MEM_SAFE_FREE(rdata->vert_normals_short);
-	MEM_SAFE_FREE(rdata->uv_names);
-	MEM_SAFE_FREE(rdata->vcol_names);
-	MEM_SAFE_FREE(rdata->tangent_names);
 	MEM_SAFE_FREE(rdata->vert_weight_color);
 	MEM_SAFE_FREE(rdata->edge_selection);
 	MEM_SAFE_FREE(rdata->vert_color);
@@ -547,34 +550,34 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 /** \name Accessor Functions
  * \{ */
 
-static const char *mesh_render_data_uv_auto_layer_name_get(const MeshRenderData *rdata, int layer)
+static const char *mesh_render_data_uv_auto_layer_uuid_get(const MeshRenderData *rdata, int layer)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
-	return rdata->auto_names[layer];
+	return rdata->cd_uuid.auto_mix[layer];
 }
 
-static const char *mesh_render_data_vcol_auto_layer_name_get(const MeshRenderData *rdata, int layer)
+static const char *mesh_render_data_vcol_auto_layer_uuid_get(const MeshRenderData *rdata, int layer)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
-	return rdata->auto_names[rdata->uv_len + layer];
+	return rdata->cd_uuid.auto_mix[rdata->uv_len + layer];
 }
 
-static const char *mesh_render_data_uv_layer_name_get(const MeshRenderData *rdata, int layer)
+static const char *mesh_render_data_uv_layer_uuid_get(const MeshRenderData *rdata, int layer)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
-	return rdata->uv_names[layer];
+	return rdata->cd_uuid.uv[layer];
 }
 
-static const char *mesh_render_data_vcol_layer_name_get(const MeshRenderData *rdata, int layer)
+static const char *mesh_render_data_vcol_layer_uuid_get(const MeshRenderData *rdata, int layer)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
-	return rdata->vcol_names[layer];
+	return rdata->cd_uuid.vcol[layer];
 }
 
-static const char *mesh_render_data_tangent_layer_name_get(const MeshRenderData *rdata, int layer)
+static const char *mesh_render_data_tangent_layer_uuid_get(const MeshRenderData *rdata, int layer)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_SHADING);
-	return rdata->tangent_names[layer];
+	return rdata->cd_uuid.tangent[layer];
 }
 
 static int mesh_render_data_verts_len_get(const MeshRenderData *rdata)
@@ -1858,26 +1861,26 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_shading_data(MeshRenderData *r
 
 		for (int i = 0; i < rdata->uv_len; i++) {
 			/* UV */
-			attrib_name = mesh_render_data_uv_layer_name_get(rdata, i);
+			attrib_name = mesh_render_data_uv_layer_uuid_get(rdata, i);
 			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 2, KEEP_FLOAT);
 
 			/* Auto Name */
 			/* TODO Remove when when have aliases */
-			attrib_name = mesh_render_data_uv_auto_layer_name_get(rdata, i);
+			attrib_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
 			uv_auto_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
 
 			/* Tangent */
-			attrib_name = mesh_render_data_tangent_layer_name_get(rdata, i);
+			attrib_name = mesh_render_data_tangent_layer_uuid_get(rdata, i);
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		for (int i = 0; i < rdata->vcol_len; i++) {
-			attrib_name = mesh_render_data_vcol_layer_name_get(rdata, i);
+			attrib_name = mesh_render_data_vcol_layer_uuid_get(rdata, i);
 			vcol_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 			/* Auto layer */
 			if (rdata->auto_vcol[i]) {
-				attrib_name = mesh_render_data_vcol_auto_layer_name_get(rdata, i);
+				attrib_name = mesh_render_data_vcol_auto_layer_uuid_get(rdata, i);
 				vcol_auto_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 			}
 		}
