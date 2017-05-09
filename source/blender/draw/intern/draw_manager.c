@@ -1671,6 +1671,7 @@ static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *
 		case DRW_BUF_RG_16:    *channels = 2; return GPU_RG16F;
 		case DRW_BUF_RGBA_8:   *channels = 4; return GPU_RGBA8;
 		case DRW_BUF_RGBA_16:  *channels = 4; return GPU_RGBA16F;
+		case DRW_BUF_RGBA_32:  *channels = 4; return GPU_RGBA32F;
 		case DRW_BUF_DEPTH_24: *channels = 1; return GPU_DEPTH_COMPONENT24;
 		default:
 			BLI_assert(false);

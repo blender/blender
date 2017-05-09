@@ -143,6 +143,9 @@ static GLenum gpu_texture_get_format(
 	}
 
 	switch (data_type) {
+		case GPU_RGBA32F:
+			*bytesize = 32;
+			break;
 		case GPU_RG32F:
 		case GPU_RGBA16F:
 			*bytesize = 16;
@@ -175,6 +178,7 @@ static GLenum gpu_texture_get_format(
 	 * For available types see GPU_texture.h */
 	switch (data_type) {
 		/* Formats texture & renderbuffer */
+		case GPU_RGBA32F: return GL_RGBA32F;
 		case GPU_RGBA16F: return GL_RGBA16F;
 		case GPU_RG32F: return GL_RG32F;
 		case GPU_RGB16F: return GL_RGB16F;

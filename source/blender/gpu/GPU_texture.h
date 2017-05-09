@@ -62,6 +62,7 @@ typedef struct GPUTexture GPUTexture;
  * specification. */
 typedef enum GPUTextureFormat {
 	/* Formats texture & renderbuffer */
+	GPU_RGBA32F,
 	GPU_RGBA16F,
 	GPU_RGBA8,
 	GPU_RG32F,
@@ -69,7 +70,6 @@ typedef enum GPUTextureFormat {
 	GPU_R16F,
 	GPU_R8,
 #if 0
-	GPU_RGBA32F,
 	GPU_RGBA32I,
 	GPU_RGBA32UI,
 	GPU_RGBA16,
