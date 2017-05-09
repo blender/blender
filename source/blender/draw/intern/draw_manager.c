@@ -162,6 +162,8 @@ struct DRWInterface {
 	int worldnormal;
 	int camtexfac;
 	int eye;
+	/* Textures */
+	int next_bind; /* next texture binding point */
 	/* Dynamic batch */
 	GLuint instance_vbo;
 	int instance_count;
@@ -536,6 +538,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->attribs_count = 0;
 	interface->attribs_stride = 0;
 	interface->instance_vbo = 0;
+	interface->next_bind = GPU_max_textures() - 1;
 
 	memset(&interface->vbo_format, 0, sizeof(VertexFormat));
 
@@ -566,6 +569,8 @@ static void DRW_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 	else {
 		uni->location = GPU_shader_get_uniform(shgroup->shader, name);
 	}
+
+	BLI_assert(arraysize > 0);
 
 	uni->type = type;
 	uni->value = value;
@@ -641,7 +646,6 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass)
 {
 	double time = 0.0; /* TODO make time variable */
-	const int max_tex = GPU_max_textures() - 1;
 
 	/* TODO : Ideally we should not convert. But since the whole codegen
 	 * is relying on GPUPass we keep it as is for now. */
@@ -667,12 +671,12 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 
 			if (input->bindtex) {
 				/* TODO maybe track texture slot usage to avoid clash with engine textures */
-				DRW_shgroup_uniform_texture(grp, input->shadername, tex, max_tex - input->texid);
+				DRW_shgroup_uniform_texture(grp, input->shadername, tex);
 			}
 		}
 		/* Color Ramps */
 		else if (input->tex) {
-			DRW_shgroup_uniform_texture(grp, input->shadername, input->tex, max_tex - input->texid);
+			DRW_shgroup_uniform_texture(grp, input->shadername, input->tex);
 		}
 		/* Floats */
 		else {
@@ -848,22 +852,36 @@ void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state)
 
 void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int size)
 {
-	DRW_interface_attrib(shgroup, name, DRW_ATTRIB_FLOAT, size);
+	DRW_interface_attrib(shgroup, name, DRW_ATTRIB_FLOAT, size, false);
 }
 
-void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex, int loc)
+void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 0, loc);
+	DRWInterface *interface = shgroup->interface;
+	if (interface->next_bind < 0) {
+		/* TODO alert user */
+		printf("Not enough texture slot for %s\n", name);
+	}
+	else {
+		DRW_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1, interface->next_bind--);
+	}
 }
 
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo, int loc)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 0, loc);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1, loc);
 }
 
-void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex, int loc)
+void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 0, loc);
+	DRWInterface *interface = shgroup->interface;
+	if (interface->next_bind < 0) {
+		/* TODO alert user */
+		printf("Not enough texture slot for %s\n", name);
+	}
+	else {
+		DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 1, interface->next_bind--);
+	}
 }
 
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup, const char *name, const bool *value, int arraysize)

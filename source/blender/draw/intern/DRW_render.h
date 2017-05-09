@@ -277,9 +277,9 @@ void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_attrib_int(DRWShadingGroup *shgroup, const char *name, int size);
 void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int size);
 
-void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const struct GPUTexture *tex, int loc);
+void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const struct GPUTexture *tex);
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const struct GPUUniformBuffer *ubo, int loc);
-void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, struct GPUTexture **tex, int loc);
+void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, struct GPUTexture **tex);
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup, const char *name, const bool *value, int arraysize);
 void DRW_shgroup_uniform_float(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize);
 void DRW_shgroup_uniform_vec2(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize);

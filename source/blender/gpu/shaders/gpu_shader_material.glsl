@@ -17,6 +17,7 @@ uniform vec4 CameraTexCoFactors;
 #else
   out vec4 fragColor;
   #define texture2D texture
+  #define shadow2D shadow
   #define textureCube texture
 #endif
 

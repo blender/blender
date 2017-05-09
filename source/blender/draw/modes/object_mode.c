@@ -494,17 +494,17 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_search = DRW_pass_create("Outlines Expand Pass", state);
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_detect_sh, psl->outlines_search);
-		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx, 0);
-		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
-		DRW_shgroup_uniform_buffer(grp, "sceneDepth", &dtxl->depth, 2);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx);
+		DRW_shgroup_uniform_buffer(grp, "sceneDepth", &dtxl->depth);
 		DRW_shgroup_uniform_float(grp, "alphaOcclu", &alphaOcclu, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->outlines_expand = DRW_pass_create("Outlines Expand Pass", state);
 
 		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_expand);
-		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_blur_tx, 0);
-		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_blur_tx);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx);
 		DRW_shgroup_uniform_float(grp, "alpha", &one, 1);
 		DRW_shgroup_uniform_bool(grp, "doExpand", &bTrue, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -512,8 +512,8 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_fade1 = DRW_pass_create("Outlines Fade 1 Pass", state);
 
 		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_fade1);
-		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx, 0);
-		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx);
 		DRW_shgroup_uniform_float(grp, "alpha", &alpha1, 1);
 		DRW_shgroup_uniform_bool(grp, "doExpand", &bFalse, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -521,8 +521,8 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_fade2 = DRW_pass_create("Outlines Fade 2 Pass", state);
 
 		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_fade2);
-		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_blur_tx, 0);
-		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_blur_tx);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx);
 		DRW_shgroup_uniform_float(grp, "alpha", &alpha2, 1);
 		DRW_shgroup_uniform_bool(grp, "doExpand", &bFalse, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -530,8 +530,8 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_fade3 = DRW_pass_create("Outlines Fade 3 Pass", state);
 
 		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_fade3);
-		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx, 0);
-		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx);
 		DRW_shgroup_uniform_float(grp, "alpha", &alpha3, 1);
 		DRW_shgroup_uniform_bool(grp, "doExpand", &bFalse, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -539,8 +539,8 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_fade4 = DRW_pass_create("Outlines Fade 4 Pass", state);
 
 		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_fade4);
-		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_blur_tx, 0);
-		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_blur_tx);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx);
 		DRW_shgroup_uniform_float(grp, "alpha", &alpha4, 1);
 		DRW_shgroup_uniform_bool(grp, "doExpand", &bFalse, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -548,8 +548,8 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_fade5 = DRW_pass_create("Outlines Fade 5 Pass", state);
 
 		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_fade5);
-		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx, 0);
-		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx, 1);
+		DRW_shgroup_uniform_buffer(grp, "outlineColor", &txl->outlines_color_tx);
+		DRW_shgroup_uniform_buffer(grp, "outlineDepth", &txl->outlines_depth_tx);
 		DRW_shgroup_uniform_float(grp, "alpha", &alpha5, 1);
 		DRW_shgroup_uniform_bool(grp, "doExpand", &bFalse, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -562,7 +562,7 @@ static void OBJECT_cache_init(void *vedata)
 		struct Batch *quad = DRW_cache_fullscreen_quad_get();
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_resolve_sh, psl->outlines_resolve);
-		DRW_shgroup_uniform_buffer(grp, "outlineBluredColor", &txl->outlines_blur_tx, 0);
+		DRW_shgroup_uniform_buffer(grp, "outlineBluredColor", &txl->outlines_blur_tx);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 

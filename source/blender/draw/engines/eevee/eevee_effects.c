@@ -327,10 +327,10 @@ static DRWShadingGroup *eevee_create_bloom_pass(const char *name, EEVEE_EffectsI
 
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, *pass);
 	DRW_shgroup_call_add(grp, quad, NULL);
-	DRW_shgroup_uniform_buffer(grp, "sourceBuffer", &effects->unf_source_buffer, 0);
+	DRW_shgroup_uniform_buffer(grp, "sourceBuffer", &effects->unf_source_buffer);
 	DRW_shgroup_uniform_vec2(grp, "sourceBufferTexelSize", effects->unf_source_texel_size, 1);
 	if (upsample) {
-		DRW_shgroup_uniform_buffer(grp, "baseBuffer", &effects->unf_base_buffer, 1);
+		DRW_shgroup_uniform_buffer(grp, "baseBuffer", &effects->unf_base_buffer);
 		DRW_shgroup_uniform_float(grp, "sampleScale", &effects->bloom_sample_scale, 1);
 	}
 
@@ -354,8 +354,8 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 		DRW_shgroup_uniform_float(grp, "blurAmount", &effects->blur_amount, 1);
 		DRW_shgroup_uniform_mat4(grp, "currInvViewProjMatrix", (float *)effects->current_ndc_to_world);
 		DRW_shgroup_uniform_mat4(grp, "pastViewProjMatrix", (float *)effects->past_world_to_ndc);
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer, 0);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth, 1);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
@@ -415,8 +415,8 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 		psl->dof_down = DRW_pass_create("DoF Downsample", DRW_STATE_WRITE_COLOR);
 
 		grp = DRW_shgroup_create(e_data.dof_downsample_sh, psl->dof_down);
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer, 0);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth, 1);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
 		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -429,18 +429,18 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 		const int sprite_ct = ((int)viewport_size[0]/2) * ((int)viewport_size[1]/2); /* brackets matters */
 		grp = DRW_shgroup_empty_tri_batch_create(e_data.dof_scatter_sh, psl->dof_scatter, sprite_ct);
 
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->unf_source_buffer, 0);
-		DRW_shgroup_uniform_buffer(grp, "cocBuffer", &txl->dof_coc, 1);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->unf_source_buffer);
+		DRW_shgroup_uniform_buffer(grp, "cocBuffer", &txl->dof_coc);
 		DRW_shgroup_uniform_vec2(grp, "layerSelection", effects->dof_layer_select, 1);
 		DRW_shgroup_uniform_vec3(grp, "bokehParams", effects->dof_bokeh, 1);
 
 		psl->dof_resolve = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR);
 
 		grp = DRW_shgroup_create(e_data.dof_resolve_sh, psl->dof_resolve);
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer, 0);
-		DRW_shgroup_uniform_buffer(grp, "nearBuffer", &txl->dof_near_blur, 1);
-		DRW_shgroup_uniform_buffer(grp, "farBuffer", &txl->dof_far_blur, 2);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth, 3);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer);
+		DRW_shgroup_uniform_buffer(grp, "nearBuffer", &txl->dof_near_blur);
+		DRW_shgroup_uniform_buffer(grp, "farBuffer", &txl->dof_far_blur);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
 		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -452,7 +452,7 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 		psl->tonemap = DRW_pass_create("Tone Mapping", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.tonemap_sh, psl->tonemap);
-		DRW_shgroup_uniform_buffer(grp, "hdrColorBuf", &effects->source_buffer, 0);
+		DRW_shgroup_uniform_buffer(grp, "hdrColorBuf", &effects->source_buffer);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 }

@@ -382,9 +382,9 @@ static void EDIT_MESH_cache_init(void *vedata)
 		DRWShadingGroup *mix_shgrp = DRW_shgroup_create(e_data.overlay_mix_sh, psl->mix_occlude);
 		DRW_shgroup_call_add(mix_shgrp, quad, NULL);
 		DRW_shgroup_uniform_float(mix_shgrp, "alpha", &backwire_opacity, 1);
-		DRW_shgroup_uniform_buffer(mix_shgrp, "wireColor", &txl->occlude_wire_color_tx, 0);
-		DRW_shgroup_uniform_buffer(mix_shgrp, "wireDepth", &txl->occlude_wire_depth_tx, 2);
-		DRW_shgroup_uniform_buffer(mix_shgrp, "sceneDepth", &dtxl->depth, 3);
+		DRW_shgroup_uniform_buffer(mix_shgrp, "wireColor", &txl->occlude_wire_color_tx);
+		DRW_shgroup_uniform_buffer(mix_shgrp, "wireDepth", &txl->occlude_wire_depth_tx);
+		DRW_shgroup_uniform_buffer(mix_shgrp, "sceneDepth", &dtxl->depth);
 	}
 }
 
