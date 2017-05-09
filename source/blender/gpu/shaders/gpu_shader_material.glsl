@@ -2281,7 +2281,11 @@ void test_shadowbuf(
 		co.z -= shadowbias * co.w;
 
 		if (co.w > 0.0 && co.x > 0.0 && co.x / co.w < 1.0 && co.y > 0.0 && co.y / co.w < 1.0)
+#if __VERSION__ == 120
 			result = shadow2DProj(shadowmap, co).x;
+#else
+			result = textureProj(shadowmap, co);
+#endif
 		else
 			result = 1.0;
 	}
