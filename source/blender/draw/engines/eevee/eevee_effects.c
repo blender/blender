@@ -29,8 +29,10 @@
 #include "DRW_render.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_camera.h"
 #include "BKE_object.h"
 #include "BKE_animsys.h"
 
@@ -44,8 +46,10 @@ typedef struct EEVEE_ProbeData {
 /* TODO Option */
 #define ENABLE_EFFECT_MOTION_BLUR 1
 #define ENABLE_EFFECT_BLOOM 1
+#define ENABLE_EFFECT_DOF 1
 
 static struct {
+	/* Motion Blur */
 	struct GPUShader *motion_blur_sh;
 
 	/* Bloom */
@@ -54,11 +58,19 @@ static struct {
 	struct GPUShader *bloom_upsample_sh[2];
 	struct GPUShader *bloom_resolve_sh[2];
 
+	/* Depth Of Field */
+	struct GPUShader *dof_downsample_sh;
+	struct GPUShader *dof_scatter_sh;
+	struct GPUShader *dof_resolve_sh;
+
 	struct GPUShader *tonemap_sh;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_effect_motion_blur_frag_glsl[];
 extern char datatoc_effect_bloom_frag_glsl[];
+extern char datatoc_effect_dof_vert_glsl[];
+extern char datatoc_effect_dof_geom_glsl[];
+extern char datatoc_effect_dof_frag_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
 
 void EEVEE_effects_init(EEVEE_Data *vedata)
@@ -66,17 +78,26 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_TextureList *txl = vedata->txl;
+	EEVEE_EffectsInfo *effects;
 
-	/* Ping Pong buffer */
-	DRWFboTexture tex = {&txl->color_post, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
+	View3D *v3d = draw_ctx->v3d;
+	RegionView3D *rv3d = draw_ctx->rv3d;
 
 	const float *viewport_size = DRW_viewport_size_get();
-	DRW_framebuffer_init(&fbl->effect_fb,
-	                    (int)viewport_size[0], (int)viewport_size[1],
-	                    &tex, 1);
 
 	if (!e_data.motion_blur_sh) {
 		e_data.motion_blur_sh = DRW_shader_create_fullscreen(datatoc_effect_motion_blur_frag_glsl, NULL);
+	}
+
+	if (!e_data.dof_downsample_sh) {
+		e_data.dof_downsample_sh = DRW_shader_create(datatoc_effect_dof_vert_glsl, NULL,
+		                                                datatoc_effect_dof_frag_glsl, "#define STEP_DOWNSAMPLE\n");
+		e_data.dof_scatter_sh = DRW_shader_create(datatoc_effect_dof_vert_glsl, NULL,
+		                                             datatoc_effect_dof_frag_glsl, "#define STEP_SCATTER\n");
+		e_data.dof_resolve_sh = DRW_shader_create(datatoc_effect_dof_vert_glsl, NULL,
+		                                             datatoc_effect_dof_frag_glsl, "#define STEP_RESOLVE\n");
 	}
 
 	if (!e_data.bloom_blit_sh[0]) {
@@ -103,18 +124,15 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 	if (!stl->effects) {
 		stl->effects = MEM_callocN(sizeof(EEVEE_EffectsInfo), "EEVEE_EffectsInfo");
-		stl->effects->enabled_effects = 0;
 	}
+
+	effects = stl->effects;
+
+	effects->enabled_effects = 0;
 
 #if ENABLE_EFFECT_MOTION_BLUR
 	{
 		/* Update Motion Blur Matrices */
-		EEVEE_EffectsInfo *effects = stl->effects;
-		const DRWContextState *draw_ctx = DRW_context_state_get();
-		Scene *scene = draw_ctx->scene;
-		View3D *v3d = draw_ctx->v3d;
-		RegionView3D *rv3d = draw_ctx->rv3d;
-
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 			float ctime = BKE_scene_frame_get(scene);
 			float past_obmat[4][4], future_obmat[4][4], winmat[4][4];
@@ -157,9 +175,9 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 	}
 #endif /* ENABLE_EFFECT_MOTION_BLUR */
 
+#if ENABLE_EFFECT_BLOOM
 	{
 		/* Bloom */
-		EEVEE_EffectsInfo *effects = stl->effects;
 		int blitsize[2], texsize[2];
 
 		/* Blit Buffer */
@@ -229,6 +247,76 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 		effects->enabled_effects |= EFFECT_BLOOM;
 	}
+#endif /* ENABLE_EFFECT_BLOOM */
+
+#if ENABLE_EFFECT_DOF
+	{
+		/* Depth Of Field */
+		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+			Camera *cam = (Camera *)v3d->camera->data;
+
+			/* Retreive Near and Far distance */
+			effects->dof_near_far[0] = -cam->clipsta;
+			effects->dof_near_far[1] = -cam->clipend;
+
+			int buffer_size[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
+
+			/* Setup buffers */
+			DRWFboTexture tex_down[3] = {{&txl->dof_down_near, DRW_BUF_RGBA_16, 0},
+			                             {&txl->dof_down_far, DRW_BUF_RGBA_16, 0},
+			                             {&txl->dof_coc, DRW_BUF_RG_16, 0}};
+			DRW_framebuffer_init(&fbl->dof_down_fb, buffer_size[0], buffer_size[1], tex_down, 3);
+
+			DRWFboTexture tex_scatter_far = {&txl->dof_far_blur, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+			DRW_framebuffer_init(&fbl->dof_scatter_far_fb, buffer_size[0], buffer_size[1], &tex_scatter_far, 1);
+
+			DRWFboTexture tex_scatter_near = {&txl->dof_near_blur, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+			DRW_framebuffer_init(&fbl->dof_scatter_near_fb, buffer_size[0], buffer_size[1], &tex_scatter_near, 1);
+
+			/* Parameters */
+			/* TODO UI Options */
+			float fstop = cam->gpu_dof.fstop;
+			float blades = cam->gpu_dof.num_blades;
+			float rotation = 0.0f;
+			float ratio = 1.0f;
+			float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+			float focus_dist = BKE_camera_object_dof_distance(v3d->camera);
+			float focal_len = cam->lens;
+
+			UNUSED_VARS(rotation, ratio);
+
+			/* this is factor that converts to the scene scale. focal length and sensor are expressed in mm
+			 * unit.scale_length is how many meters per blender unit we have. We want to convert to blender units though
+			 * because the shader reads coordinates in world space, which is in blender units.
+			 * Note however that focus_distance is already in blender units and shall not be scaled here (see T48157). */
+			float scale = (scene->unit.system) ? scene->unit.scale_length : 1.0f;
+			float scale_camera = 0.001f / scale;
+			/* we want radius here for the aperture number  */
+			float aperture = 0.5f * scale_camera * focal_len / fstop;
+			float focal_len_scaled = scale_camera * focal_len;
+			float sensor_scaled = scale_camera * sensor;
+
+			effects->dof_params[0] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));
+			effects->dof_params[1] = -focus_dist;
+			effects->dof_params[2] = viewport_size[0] / sensor_scaled;
+			effects->dof_bokeh[0] = blades;
+			effects->dof_bokeh[1] = rotation;
+			effects->dof_bokeh[2] = ratio;
+
+			effects->enabled_effects |= EFFECT_DOF;
+		}
+	}
+#endif /* ENABLE_EFFECT_DOF */
+
+	/* Only allocate if at least one effect is activated */
+	if (effects->enabled_effects != 0) {
+		/* Ping Pong buffer */
+		DRWFboTexture tex = {&txl->color_post, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+
+		DRW_framebuffer_init(&fbl->effect_fb,
+		                    (int)viewport_size[0], (int)viewport_size[1],
+		                    &tex, 1);
+	}
 }
 
 static DRWShadingGroup *eevee_create_bloom_pass(const char *name, EEVEE_EffectsInfo *effects, struct GPUShader *sh, DRWPass **pass, bool upsample)
@@ -266,7 +354,7 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 		DRW_shgroup_uniform_float(grp, "blurAmount", &effects->blur_amount, 1);
 		DRW_shgroup_uniform_mat4(grp, "currInvViewProjMatrix", (float *)effects->current_ndc_to_world);
 		DRW_shgroup_uniform_mat4(grp, "pastViewProjMatrix", (float *)effects->past_world_to_ndc);
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &txl->color, 0);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer, 0);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
@@ -313,6 +401,52 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 	}
 
 	{
+		/**  Depth of Field algorithm
+		 *
+		 * Overview :
+		 * - Downsample the color buffer into 2 buffers weighted with
+		 *   CoC values. Also output CoC into a texture.
+		 * - Shoot quads for every pixel and expand it depending on the CoC.
+		 *   Do one pass for near Dof and one pass for far Dof.
+		 * - Finally composite the 2 blurred buffers with the original render.
+		 **/
+		DRWShadingGroup *grp;
+
+		psl->dof_down = DRW_pass_create("DoF Downsample", DRW_STATE_WRITE_COLOR);
+
+		grp = DRW_shgroup_create(e_data.dof_downsample_sh, psl->dof_down);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer, 0);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth, 1);
+		DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
+		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		psl->dof_scatter = DRW_pass_create("DoF Scatter", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
+
+		/* This create an empty batch of N triangles to be positioned
+		 * by the vertex shader 0.4ms against 6ms with instancing */
+		const float *viewport_size = DRW_viewport_size_get();
+		const int sprite_ct = ((int)viewport_size[0]/2) * ((int)viewport_size[1]/2); /* brackets matters */
+		grp = DRW_shgroup_empty_tri_batch_create(e_data.dof_scatter_sh, psl->dof_scatter, sprite_ct);
+
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->unf_source_buffer, 0);
+		DRW_shgroup_uniform_buffer(grp, "cocBuffer", &txl->dof_coc, 1);
+		DRW_shgroup_uniform_vec2(grp, "layerSelection", effects->dof_layer_select, 1);
+		DRW_shgroup_uniform_vec3(grp, "bokehParams", effects->dof_bokeh, 1);
+
+		psl->dof_resolve = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR);
+
+		grp = DRW_shgroup_create(e_data.dof_resolve_sh, psl->dof_resolve);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer, 0);
+		DRW_shgroup_uniform_buffer(grp, "nearBuffer", &txl->dof_near_blur, 1);
+		DRW_shgroup_uniform_buffer(grp, "farBuffer", &txl->dof_far_blur, 2);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth, 3);
+		DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
+		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
+		DRW_shgroup_call_add(grp, quad, NULL);
+	}
+
+	{
 		/* Final pass : Map HDR color to LDR color.
 		 * Write result to the default color buffer */
 		psl->tonemap = DRW_pass_create("Tone Mapping", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
@@ -323,24 +457,16 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 	}
 }
 
-/* Ping pong between 2 buffers */
-static void eevee_effect_framebuffer_bind(EEVEE_Data *vedata)
-{
-	EEVEE_TextureList *txl = vedata->txl;
-	EEVEE_FramebufferList *fbl = vedata->fbl;
-	EEVEE_EffectsInfo *effects = vedata->stl->effects;
-
-	DRW_framebuffer_bind(effects->target_buffer);
-
-	if (effects->source_buffer == txl->color) {
-		effects->source_buffer = txl->color_post;
-		effects->target_buffer = fbl->main;
-	}
-	else {
-		effects->source_buffer = txl->color;
-		effects->target_buffer = fbl->effect_fb;
-	}
-}
+#define SWAP_BUFFERS() {                           \
+	if (effects->source_buffer == txl->color) {    \
+		effects->source_buffer = txl->color_post;  \
+		effects->target_buffer = fbl->main;        \
+	}                                              \
+	else {                                         \
+		effects->source_buffer = txl->color;       \
+		effects->target_buffer = fbl->effect_fb;   \
+	}                                              \
+} ((void)0)
 
 void EEVEE_draw_effects(EEVEE_Data *vedata)
 {
@@ -358,10 +484,42 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	effects->source_buffer = txl->color; /* latest updated texture */
 	effects->target_buffer = fbl->effect_fb; /* next target to render to */
 
+	/* Detach depth for effects to use it */
+	DRW_framebuffer_texture_detach(dtxl->depth);
+
 	/* Motion Blur */
 	if ((effects->enabled_effects & EFFECT_MOTION_BLUR) != 0) {
-		eevee_effect_framebuffer_bind(vedata);
+		DRW_framebuffer_bind(effects->target_buffer);
 		DRW_draw_pass(psl->motion_blur);
+		SWAP_BUFFERS();
+	}
+
+	/* Depth Of Field */
+	if ((effects->enabled_effects & EFFECT_DOF) != 0) {
+		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		/* Downsample */
+		DRW_framebuffer_bind(fbl->dof_down_fb);
+		DRW_draw_pass(psl->dof_down);
+
+		/* Scatter Far */
+		effects->unf_source_buffer = txl->dof_down_far;
+		copy_v2_fl2(effects->dof_layer_select, 0.0f, 1.0f);
+		DRW_framebuffer_bind(fbl->dof_scatter_far_fb);
+		DRW_framebuffer_clear(true, false, false, clear_col, 0.0f);
+		DRW_draw_pass(psl->dof_scatter);
+
+		/* Scatter Near */
+		effects->unf_source_buffer = txl->dof_down_near;
+		copy_v2_fl2(effects->dof_layer_select, 1.0f, 0.0f);
+		DRW_framebuffer_bind(fbl->dof_scatter_near_fb);
+		DRW_framebuffer_clear(true, false, false, clear_col, 0.0f);
+		DRW_draw_pass(psl->dof_scatter);
+
+		/* Resolve */
+		DRW_framebuffer_bind(effects->target_buffer);
+		DRW_draw_pass(psl->dof_resolve);
+		SWAP_BUFFERS();
 	}
 
 	/* Bloom */
@@ -412,12 +570,12 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 		effects->unf_source_buffer = last;
 		effects->unf_base_buffer = effects->source_buffer;
 
-		eevee_effect_framebuffer_bind(vedata);
+		DRW_framebuffer_bind(effects->target_buffer);
 		DRW_draw_pass(psl->bloom_resolve);
+		SWAP_BUFFERS();
 	}
 
 	/* Restore default framebuffer */
-	DRW_framebuffer_texture_detach(dtxl->depth);
 	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
 	DRW_framebuffer_bind(dfbl->default_fb);
 
@@ -430,6 +588,9 @@ void EEVEE_effects_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.tonemap_sh);
 	DRW_SHADER_FREE_SAFE(e_data.motion_blur_sh);
+	DRW_SHADER_FREE_SAFE(e_data.dof_downsample_sh);
+	DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh);
+	DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh);
 
 	DRW_SHADER_FREE_SAFE(e_data.bloom_blit_sh[0]);
 	DRW_SHADER_FREE_SAFE(e_data.bloom_downsample_sh[0]);

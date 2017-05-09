@@ -54,6 +54,9 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *bloom_downsample;
 	struct DRWPass *bloom_upsample;
 	struct DRWPass *bloom_resolve;
+	struct DRWPass *dof_down;
+	struct DRWPass *dof_scatter;
+	struct DRWPass *dof_resolve;
 	struct DRWPass *tonemap;
 
 	struct DRWPass *depth_pass;
@@ -77,6 +80,9 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *bloom_blit_fb; /* HDR */
 	struct GPUFrameBuffer *bloom_down_fb[MAX_BLOOM_STEP]; /* HDR */
 	struct GPUFrameBuffer *bloom_accum_fb[MAX_BLOOM_STEP-1]; /* HDR */
+	struct GPUFrameBuffer *dof_down_fb;
+	struct GPUFrameBuffer *dof_scatter_far_fb;
+	struct GPUFrameBuffer *dof_scatter_near_fb;
 
 	struct GPUFrameBuffer *main; /* HDR */
 } EEVEE_FramebufferList;
@@ -93,6 +99,11 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *probe_sh; /* R16_G16_B16 */
 	/* Effects */
 	struct GPUTexture *color_post; /* R16_G16_B16 */
+	struct GPUTexture *dof_down_near; /* R16_G16_B16_A16 */
+	struct GPUTexture *dof_down_far; /* R16_G16_B16_A16 */
+	struct GPUTexture *dof_coc; /* R16_G16 */
+	struct GPUTexture *dof_near_blur; /* R16_G16_B16_A16 */
+	struct GPUTexture *dof_far_blur; /* R16_G16_B16_A16 */
 	struct GPUTexture *bloom_blit; /* R16_G16_B16 */
 	struct GPUTexture *bloom_downsample[MAX_BLOOM_STEP]; /* R16_G16_B16 */
 	struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP-1]; /* R16_G16_B16 */
@@ -193,6 +204,13 @@ typedef struct EEVEE_EffectsInfo {
 	float tmp_mat[4][4];
 	float blur_amount;
 
+	/* Depth Of Field */
+	float dof_near_far[2];
+	float dof_params[3];
+	float dof_bokeh[3];
+	float dof_layer_select[2];
+	int dof_target_size[2];
+
 	/* Bloom */
 	int bloom_iteration_ct;
 	float source_texel_size[2];
@@ -213,6 +231,7 @@ typedef struct EEVEE_EffectsInfo {
 enum {
 	EFFECT_MOTION_BLUR         = (1 << 0),
 	EFFECT_BLOOM               = (1 << 1),
+	EFFECT_DOF                 = (1 << 2),
 };
 
 /* *********************************** */
