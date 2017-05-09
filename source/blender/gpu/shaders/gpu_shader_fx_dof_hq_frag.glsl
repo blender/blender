@@ -14,7 +14,7 @@ uniform sampler2D depthbuffer;
 
 uniform sampler2D cocbuffer;
 
-/* this includes focal distance in x and aperture size in y */
+/* this includes aperture size in x and focal distance in y */
 uniform vec4 dof_params;
 
 /* viewvectors for reconstruction of world space */

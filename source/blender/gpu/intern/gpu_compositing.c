@@ -557,7 +557,7 @@ bool GPU_fx_compositor_initialize_passes(
 				GPU_texture_unbind(fx->dof_nearfar_coc);
 
 				if (!(fx->dof_near_blur = GPU_texture_create_2D_custom(
-				    fx->dof_downsampled_w, fx->dof_downsampled_h, 2, GPU_RGBA16F, NULL, err_out)))
+				    fx->dof_downsampled_w, fx->dof_downsampled_h, 4, GPU_RGBA16F, NULL, err_out)))
 				{
 					printf("%.256s\n", err_out);
 					cleanup_fx_gl_data(fx, true);
@@ -565,7 +565,7 @@ bool GPU_fx_compositor_initialize_passes(
 				}
 
 				if (!(fx->dof_far_blur = GPU_texture_create_2D_custom(
-				    fx->dof_downsampled_w, fx->dof_downsampled_h, 2, GPU_RGBA16F, NULL, err_out)))
+				    fx->dof_downsampled_w, fx->dof_downsampled_h, 4, GPU_RGBA16F, NULL, err_out)))
 				{
 					printf("%.256s\n", err_out);
 					cleanup_fx_gl_data(fx, true);
