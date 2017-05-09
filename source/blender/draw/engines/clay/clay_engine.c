@@ -21,9 +21,12 @@
 
 #include "DRW_render.h"
 
+#include "DNA_particle_types.h"
+
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
+#include "BKE_particle.h"
 
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
@@ -43,6 +46,8 @@
 extern char datatoc_clay_frag_glsl[];
 extern char datatoc_clay_vert_glsl[];
 extern char datatoc_ssao_alchemy_glsl[];
+extern char datatoc_particle_vert_glsl[];
+extern char datatoc_particle_strand_frag_glsl[];
 
 /* *********** LISTS *********** */
 
@@ -59,24 +64,45 @@ typedef struct CLAY_UBO_Material {
 } CLAY_UBO_Material; /* 48 bytes */
 BLI_STATIC_ASSERT_ALIGN(CLAY_UBO_Material, 16);
 
+typedef struct CLAY_HAIR_UBO_Material {
+	float hair_world;
+	float hair_diffuse;
+	float hair_specular;
+	float hair_hardness;
+	float hair_randomicity;
+	float pad1[3];
+	float hair_diffuse_color[3];
+	float pad2;
+	float hair_specular_color[3];
+	float pad3;
+} CLAY_HAIR_UBO_Material; /* 48 bytes */
+
 #define MAX_CLAY_MAT 512 /* 512 = 9 bit material id */
 
 typedef struct CLAY_UBO_Storage {
 	CLAY_UBO_Material materials[MAX_CLAY_MAT];
 } CLAY_UBO_Storage;
 
+typedef struct CLAY_HAIR_UBO_Storage {
+	CLAY_HAIR_UBO_Material materials[MAX_CLAY_MAT];
+} CLAY_HAIR_UBO_Storage;
+
 /* GPUViewport.storage
  * Is freed everytime the viewport engine changes */
 typedef struct CLAY_Storage {
 	/* Materials Parameter UBO */
 	CLAY_UBO_Storage mat_storage;
+	CLAY_HAIR_UBO_Storage hair_mat_storage;
 	int ubo_current_id;
+	int hair_ubo_current_id;
 	DRWShadingGroup *shgrps[MAX_CLAY_MAT];
+	DRWShadingGroup *hair_shgrps[MAX_CLAY_MAT];
 } CLAY_Storage;
 
 typedef struct CLAY_StorageList {
 	struct CLAY_Storage *storage;
 	struct GPUUniformBuffer *mat_ubo;
+	struct GPUUniformBuffer *hair_mat_ubo;
 	struct CLAY_PrivateData *g_data;
 } CLAY_StorageList;
 
@@ -99,6 +125,7 @@ typedef struct CLAY_PassList {
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
 	struct DRWPass *clay_pass;
+	struct DRWPass *hair_pass;
 } CLAY_PassList;
 
 typedef struct CLAY_Data {
@@ -116,6 +143,7 @@ static struct {
 	struct GPUShader *depth_sh;
 	/* Shading Pass */
 	struct GPUShader *clay_sh;
+	struct GPUShader *hair_sh;
 
 	/* Matcap textures */
 	struct GPUTexture *matcap_array;
@@ -129,8 +157,12 @@ static struct {
 	struct GPUTexture *jitter_tx;
 	struct GPUTexture *sampling_tx;
 
+	/* hair */
+	float hair_light[3];
+
 	/* Just a serie of int from 0 to MAX_CLAY_MAT-1 */
 	int ubo_mat_idxs[MAX_CLAY_MAT];
+	int hair_ubo_mat_idxs[MAX_CLAY_MAT];
 } e_data = {NULL}; /* Engine data */
 
 typedef struct CLAY_PrivateData {
@@ -140,6 +172,7 @@ typedef struct CLAY_PrivateData {
 	DRWShadingGroup *depth_shgrp_cull;
 	DRWShadingGroup *depth_shgrp_cull_select;
 	DRWShadingGroup *depth_shgrp_cull_active;
+	DRWShadingGroup *hair;
 } CLAY_PrivateData; /* Transient data */
 
 /* Functions */
@@ -324,12 +357,20 @@ static void CLAY_engine_init(void *vedata)
 		MEM_freeN(matcap_with_ao);
 	}
 
+	if (!e_data.hair_sh) {
+		e_data.hair_sh = DRW_shader_create(datatoc_particle_vert_glsl, NULL, datatoc_particle_strand_frag_glsl, "#define MAX_MATERIAL 512\n");
+	}
+
 	if (!stl->storage) {
 		stl->storage = MEM_callocN(sizeof(CLAY_Storage), "CLAY_Storage");
 	}
 
 	if (!stl->mat_ubo) {
 		stl->mat_ubo = DRW_uniformbuffer_create(sizeof(CLAY_UBO_Storage), NULL);
+	}
+
+	if (!stl->hair_mat_ubo) {
+		stl->hair_mat_ubo = DRW_uniformbuffer_create(sizeof(CLAY_HAIR_UBO_Storage), NULL);
 	}
 
 	if (e_data.ubo_mat_idxs[1] == 0) {
@@ -413,6 +454,13 @@ static void CLAY_engine_init(void *vedata)
 			e_data.cached_sample_num = ssao_samples;
 		}
 	}
+
+	/* hair setup */
+	{
+		e_data.hair_light[0] = 1.0f;
+		e_data.hair_light[1] = -0.5f;
+		e_data.hair_light[2] = -0.7f;
+	}
 }
 
 static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *vedata, DRWPass *pass, int *material_id)
@@ -437,6 +485,16 @@ static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *vedata, DRWPass *pass, in
 	return grp;
 }
 
+static DRWShadingGroup *CLAY_hair_shgroup_create(DRWPass *pass, int *material_id)
+{
+	DRWShadingGroup *grp = DRW_shgroup_create(e_data.hair_sh, pass);
+
+	DRW_shgroup_uniform_vec3(grp, "light", e_data.hair_light, 1);
+	DRW_shgroup_uniform_int(grp, "mat_id", material_id, 1);
+
+	return grp;
+}
+
 static int search_mat_to_ubo(
         CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
         float matcap_val, float ssao_distance, float ssao_factor_cavity,
@@ -456,6 +514,36 @@ static int search_mat_to_ubo(
 		    (ubo->ssao_params_var[2] == ssao_factor_edge) &&
 		    (ubo->ssao_params_var[3] == ssao_attenuation) &&
 		    (ubo->matcap_id == matcap_to_index(matcap_icon)))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+static int search_hair_mat_to_ubo(CLAY_Storage *storage, float hair_world, float hair_diffuse, float hair_specular,
+                                  float hair_hardness, float hair_randomicity, const float *hair_diff_color,
+                                  const float *hair_spec_color)
+{
+	/* For now just use a linear search and test all parameters */
+	/* TODO make a hash table */
+	for (int i = 0; i < storage->hair_ubo_current_id; ++i) {
+		CLAY_HAIR_UBO_Material *ubo = &storage->hair_mat_storage.materials[i];
+
+		if ((ubo->hair_world == hair_world) &&
+		    (ubo->hair_diffuse == hair_diffuse) &&
+		    (ubo->hair_specular == hair_specular) &&
+		    (ubo->hair_hardness == hair_hardness) &&
+		    (ubo->hair_randomicity == hair_randomicity) &&
+		    (ubo->hair_diffuse_color[0] == hair_diff_color[0]) &&
+		    (ubo->hair_diffuse_color[1] == hair_diff_color[1]) &&
+		    (ubo->hair_diffuse_color[2] == hair_diff_color[2]) &&
+		    (ubo->hair_diffuse_color[3] == hair_diff_color[3]) &&
+		    (ubo->hair_specular_color[0] == hair_spec_color[0]) &&
+		    (ubo->hair_specular_color[1] == hair_spec_color[1]) &&
+		    (ubo->hair_specular_color[2] == hair_spec_color[2]) &&
+		    (ubo->hair_specular_color[3] == hair_spec_color[3]))
 		{
 			return i;
 		}
@@ -491,6 +579,32 @@ static int push_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap
 	return id;
 }
 
+static int push_hair_mat_to_ubo(CLAY_Storage *storage, float hair_world, float hair_diffuse, float hair_specular,
+                                  float hair_hardness, float hair_randomicity, const float *hair_diff_color,
+                                const float *hair_spec_color)
+{
+	int id = storage->hair_ubo_current_id;
+	CLAY_HAIR_UBO_Material *ubo = &storage->hair_mat_storage.materials[id];
+
+	ubo->hair_world = hair_world;
+	ubo->hair_diffuse = hair_diffuse;
+	ubo->hair_specular = hair_specular;
+	ubo->hair_hardness = hair_hardness;
+	ubo->hair_randomicity = hair_randomicity;
+	ubo->hair_diffuse_color[0] = hair_diff_color[0];
+	ubo->hair_diffuse_color[1] = hair_diff_color[1];
+	ubo->hair_diffuse_color[2] = hair_diff_color[2];
+	ubo->hair_diffuse_color[3] = hair_diff_color[3];
+	ubo->hair_specular_color[0] = hair_spec_color[0];
+	ubo->hair_specular_color[1] = hair_spec_color[1];
+	ubo->hair_specular_color[2] = hair_spec_color[2];
+	ubo->hair_specular_color[3] = hair_spec_color[3];
+
+	storage->hair_ubo_current_id++;
+
+	return id;
+}
+
 static int mat_in_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
                       float matcap_val, float ssao_distance, float ssao_factor_cavity,
                       float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
@@ -505,6 +619,23 @@ static int mat_in_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue,
 		id = push_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
 		                     ssao_distance, ssao_factor_cavity, ssao_factor_edge,
 		                     ssao_attenuation, matcap_icon);
+	}
+
+	return id;
+}
+
+static int hair_mat_in_ubo(CLAY_Storage *storage, float hair_world, float hair_diffuse, float hair_specular,
+                           float hair_hardness, float hair_randomicity, const float *hair_diff_color,
+                           const float *hair_spec_color)
+{
+	/* Search material in UBO */
+	int id = search_hair_mat_to_ubo(storage, hair_world, hair_diffuse, hair_specular,
+	                                hair_hardness, hair_randomicity, hair_diff_color, hair_spec_color);
+
+	/* if not found create it */
+	if (id == -1) {
+		id = push_hair_mat_to_ubo(storage, hair_world, hair_diffuse, hair_specular,
+		                          hair_hardness, hair_randomicity, hair_diff_color, hair_spec_color);
 	}
 
 	return id;
@@ -541,6 +672,34 @@ static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLA
 	return shgrps[id];
 }
 
+static DRWShadingGroup *CLAY_hair_shgrp_get(Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
+{
+	DRWShadingGroup **hair_shgrps = stl->storage->hair_shgrps;
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
+
+	/* Default Settings */
+	float hair_world = BKE_collection_engine_property_value_get_float(props, "world_intensity");
+	float hair_diffuse = BKE_collection_engine_property_value_get_float(props, "diffuse_intensity");
+	float hair_specular = BKE_collection_engine_property_value_get_float(props, "specular_intensity");
+	float hair_hardness = BKE_collection_engine_property_value_get_float(props, "specular_hardness");
+	float hair_randomicity = BKE_collection_engine_property_value_get_float(props, "color_randomicity");
+	const float *hair_diff_color = BKE_collection_engine_property_value_get_float_array(props, "hair_diffuse_color");
+	const float *hair_spec_color = BKE_collection_engine_property_value_get_float_array(props, "hair_specular_color");
+
+	int hair_id = hair_mat_in_ubo(stl->storage, hair_world, hair_diffuse, hair_specular,
+	                              hair_hardness, hair_randomicity, hair_diff_color, hair_spec_color);
+
+	if (hair_shgrps[hair_id] == NULL) {
+		hair_shgrps[hair_id] = CLAY_hair_shgroup_create(psl->hair_pass, &e_data.hair_ubo_mat_idxs[hair_id]);
+		/* if it's the first shgrp, pass bind the material UBO */
+		if (stl->storage->hair_ubo_current_id == 1) {
+			DRW_shgroup_uniform_block(hair_shgrps[0], "material_block", stl->hair_mat_ubo);
+		}
+	}
+
+	return hair_shgrps[hair_id];
+}
+
 static void CLAY_cache_init(void *vedata)
 {
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
@@ -568,6 +727,13 @@ static void CLAY_cache_init(void *vedata)
 		stl->storage->ubo_current_id = 0;
 		memset(stl->storage->shgrps, 0, sizeof(DRWShadingGroup *) * MAX_CLAY_MAT);
 	}
+
+	/* Hair Pass */
+	{
+		psl->hair_pass = DRW_pass_create("Hair Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		stl->storage->hair_ubo_current_id = 0;
+		memset(stl->storage->hair_shgrps, 0, sizeof(DRWShadingGroup *) * MAX_CLAY_MAT);
+	}
 }
 
 static void CLAY_cache_populate(void *vedata, Object *ob)
@@ -575,7 +741,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 
-	DRWShadingGroup *clay_shgrp;
+	DRWShadingGroup *clay_shgrp, *hair_shgrp;
 
 	if (!DRW_object_is_renderable(ob))
 		return;
@@ -592,6 +758,35 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 		clay_shgrp = CLAY_object_shgrp_get(vedata, ob, stl, psl);
 		DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
 	}
+
+	if (ob->type == OB_MESH) {
+		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+			if (psys_check_enabled(ob, psys, false)) {
+				ParticleSettings *part = psys->part;
+				int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+
+				if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+					draw_as = PART_DRAW_DOT;
+				}
+
+				switch (draw_as) {
+					case PART_DRAW_PATH:
+						geom = DRW_cache_particles_get_hair(psys);
+						break;
+					default:
+						geom = NULL;
+						break;
+				}
+
+				if (geom) {
+					static float mat[4][4];
+					unit_m4(mat);
+					hair_shgrp = CLAY_hair_shgrp_get(ob, stl, psl);
+					DRW_shgroup_call_add(hair_shgrp, geom, mat);
+				}
+			}
+		}
+	}
 }
 
 static void CLAY_cache_finish(void *vedata)
@@ -599,6 +794,7 @@ static void CLAY_cache_finish(void *vedata)
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 
 	DRW_uniformbuffer_update(stl->mat_ubo, &stl->storage->mat_storage);
+	DRW_uniformbuffer_update(stl->hair_mat_ubo, &stl->storage->hair_mat_storage);
 }
 
 static void CLAY_draw_scene(void *vedata)
@@ -620,6 +816,7 @@ static void CLAY_draw_scene(void *vedata)
 
 	/* Pass 3 : Shading */
 	DRW_draw_pass(psl->clay_pass);
+	DRW_draw_pass(psl->hair_pass);
 }
 
 static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
@@ -627,6 +824,9 @@ static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), 
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
+
+	static float default_hair_diffuse_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+	static float default_hair_specular_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	BKE_collection_engine_property_add_int(props, "matcap_icon", ICON_MATCAP_01);
 	BKE_collection_engine_property_add_int(props, "type", CLAY_MATCAP_NONE);
@@ -637,7 +837,13 @@ static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), 
 	BKE_collection_engine_property_add_float(props, "ssao_distance", 0.2f);
 	BKE_collection_engine_property_add_float(props, "ssao_attenuation", 1.0f);
 	BKE_collection_engine_property_add_float(props, "ssao_factor_cavity", 1.0f);
-	BKE_collection_engine_property_add_float(props, "ssao_factor_edge", 1.0f);
+	BKE_collection_engine_property_add_float(props, "world_intensity", 0.1f);
+	BKE_collection_engine_property_add_float(props, "diffuse_intensity", 0.2f);
+	BKE_collection_engine_property_add_float(props, "specular_intensity", 0.3f);
+	BKE_collection_engine_property_add_float(props, "specular_hardness", 4.0f);
+	BKE_collection_engine_property_add_float(props, "color_randomicity", 0.0f);
+	BKE_collection_engine_property_add_float_array(props, "hair_diffuse_color", default_hair_diffuse_color, 4);
+	BKE_collection_engine_property_add_float_array(props, "hair_specular_color", default_hair_specular_color, 4);
 }
 
 static void CLAY_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
@@ -652,6 +858,7 @@ static void CLAY_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 static void CLAY_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.clay_sh);
+	DRW_SHADER_FREE_SAFE(e_data.hair_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.matcap_array);
 	DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
 	DRW_TEXTURE_FREE_SAFE(e_data.sampling_tx);

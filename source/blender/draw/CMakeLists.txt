@@ -59,6 +59,7 @@ set(SRC
 	intern/draw_cache_impl_displist.c
 	intern/draw_cache_impl_lattice.c
 	intern/draw_cache_impl_mesh.c
+	intern/draw_cache_impl_particles.c
 	intern/draw_common.c
 	intern/draw_manager.c
 	intern/draw_manager_text.c
@@ -108,6 +109,8 @@ data_to_c_simple(engines/clay/shaders/clay_frag.glsl SRC)
 data_to_c_simple(engines/clay/shaders/clay_vert.glsl SRC)
 data_to_c_simple(engines/clay/shaders/ssao_alchemy.glsl SRC)
 data_to_c_simple(engines/clay/shaders/ssao_groundtruth.glsl SRC)
+data_to_c_simple(engines/clay/shaders/particle_vert.glsl SRC)
+data_to_c_simple(engines/clay/shaders/particle_strand_frag.glsl SRC)
 
 data_to_c_simple(engines/eevee/shaders/default_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/default_world_frag.glsl SRC)

@@ -128,4 +128,7 @@ struct Batch *DRW_cache_lattice_verts_get(struct Object *ob);
 struct Batch *DRW_cache_lattice_wire_get(struct Object *ob);
 struct Batch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
 
+/* Particles */
+struct Batch *DRW_cache_particles_get_hair(struct ParticleSystem *psys);
+
 #endif /* __DRAW_CACHE_H__ */

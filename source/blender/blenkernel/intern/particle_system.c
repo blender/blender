@@ -4321,6 +4321,8 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys, cons
 	/* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
 	if (psys->renderdata==0)
 		invert_m4_m4(psys->imat, ob->obmat);
+
+	BKE_particle_batch_cache_dirty(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 }
 
 /* ID looper */

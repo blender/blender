@@ -3100,6 +3100,9 @@ void DRW_engines_register(void)
 		/* BKE: lattice.c */
 		extern void *BKE_lattice_batch_cache_dirty_cb;
 		extern void *BKE_lattice_batch_cache_free_cb;
+		/* BKE: particle.c */
+		extern void *BKE_particle_batch_cache_dirty_cb;
+		extern void *BKE_particle_batch_cache_free_cb;
 
 		BKE_curve_batch_cache_dirty_cb = DRW_curve_batch_cache_dirty;
 		BKE_curve_batch_cache_free_cb = DRW_curve_batch_cache_free;
@@ -3109,6 +3112,9 @@ void DRW_engines_register(void)
 
 		BKE_lattice_batch_cache_dirty_cb = DRW_lattice_batch_cache_dirty;
 		BKE_lattice_batch_cache_free_cb = DRW_lattice_batch_cache_free;
+
+		BKE_particle_batch_cache_dirty_cb = DRW_particle_batch_cache_dirty;
+		BKE_particle_batch_cache_free_cb = DRW_particle_batch_cache_free;
 	}
 }
 

@@ -68,6 +68,16 @@ class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
         col.template_override_property(collection_props, scene_props, "ssao_factor_edge")
         col.template_override_property(collection_props, scene_props, "ssao_distance")
         col.template_override_property(collection_props, scene_props, "ssao_attenuation")
+        col.template_override_property(collection_props, scene_props, "world_intensity")
+
+        col.separator()
+        col.label("Hair Settings:")
+        col.template_override_property(collection_props, scene_props, "diffuse_intensity")
+        col.template_override_property(collection_props, scene_props, "specular_intensity")
+        col.template_override_property(collection_props, scene_props, "specular_hardness")
+        col.template_override_property(collection_props, scene_props, "color_randomicity")
+        col.template_override_property(collection_props, scene_props, "hair_diffuse_color")
+        col.template_override_property(collection_props, scene_props, "hair_specular_color")
 
 
 class COLLECTION_PT_object_mode_settings(CollectionButtonsPanel, Panel):

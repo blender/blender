@@ -324,6 +324,8 @@ typedef struct ParticleSystem {
 
 	float dt_frac;							/* current time step, as a fraction of a frame */
 	float _pad;								/* spare capacity */
+
+	void *batch_cache;
 } ParticleSystem;
 
 typedef enum eParticleDrawFlag {

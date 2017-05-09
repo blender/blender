@@ -615,6 +615,16 @@ class RENDER_PT_clay_collection_settings(RenderButtonsPanel, Panel):
         col.prop(props, "ssao_distance")
         col.prop(props, "ssao_attenuation")
 
+        col.separator()
+        col.label("Hair Settings:")
+        col.prop(props, "world_intensity")
+        col.prop(props, "diffuse_intensity")
+        col.prop(props, "specular_intensity")
+        col.prop(props, "specular_hardness")
+        col.prop(props, "color_randomicity")
+        col.prop(props, "hair_diffuse_color")
+        col.prop(props, "hair_specular_color")
+
 class RENDER_PT_eevee_poststack_settings(RenderButtonsPanel, Panel):
     bl_label = "Post Process Stack"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}

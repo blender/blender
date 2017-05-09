@@ -4305,3 +4305,22 @@ void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys)
 		psys->flag |= PSYS_EDITED;
 	}
 }
+
+
+
+/* Draw Engine */
+void (*BKE_particle_batch_cache_dirty_cb)(ParticleSystem *psys, int mode) = NULL;
+void (*BKE_particle_batch_cache_free_cb)(ParticleSystem *psys) = NULL;
+
+void BKE_particle_batch_cache_dirty(ParticleSystem *psys, int mode)
+{
+	if (psys->batch_cache) {
+		BKE_particle_batch_cache_dirty_cb(psys, mode);
+	}
+}
+void BKE_particle_batch_cache_free(ParticleSystem *psys)
+{
+	if (psys->batch_cache) {
+		BKE_particle_batch_cache_free_cb(psys);
+	}
+}

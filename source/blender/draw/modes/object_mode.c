@@ -31,6 +31,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
@@ -178,7 +179,6 @@ typedef struct OBJECT_PrivateData{
 	DRWShadingGroup *wire_select;
 	DRWShadingGroup *wire_select_group;
 	DRWShadingGroup *wire_transform;
-
 } OBJECT_PrivateData; /* Transient data */
 
 static struct {
