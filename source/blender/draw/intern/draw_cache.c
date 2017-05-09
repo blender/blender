@@ -246,8 +246,10 @@ static VertexBuffer *sphere_wire_vbo(const float rad)
 Batch *DRW_cache_fullscreen_quad_get(void)
 {
 	if (!SHC.drw_fullscreen_quad) {
-		float pos[4][2] = {{-1.0f, -1.0f}, { 1.0f, -1.0f}, {-1.0f,  1.0f}, { 1.0f,  1.0f}};
-		float uvs[4][2] = {{ 0.0f,  0.0f}, { 1.0f,  0.0f}, { 0.0f,  1.0f}, { 1.0f,  1.0f}};
+		/* Use a triangle instead of a real quad */
+		/* https://www.slideshare.net/DevCentralAMD/vertex-shader-tricks-bill-bilodeau - slide 14 */
+		float pos[3][2] = {{-1.0f, -1.0f}, { 3.0f, -1.0f}, {-1.0f,  3.0f}};
+		float uvs[3][2] = {{ 0.0f,  0.0f}, { 2.0f,  0.0f}, { 0.0f,  2.0f}};
 
 		/* Position Only 2D format */
 		static VertexFormat format = { 0 };
@@ -258,14 +260,14 @@ Batch *DRW_cache_fullscreen_quad_get(void)
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, 4);
+		VertexBuffer_allocate_data(vbo, 3);
 
-		for (int i = 0; i < 4; ++i)	{
+		for (int i = 0; i < 3; ++i)	{
 			VertexBuffer_set_attrib(vbo, pos_id, i, pos[i]);
 			VertexBuffer_set_attrib(vbo, uvs_id, i, uvs[i]);
 		}
 
-		SHC.drw_fullscreen_quad = Batch_create(PRIM_TRIANGLE_STRIP, vbo, NULL);
+		SHC.drw_fullscreen_quad = Batch_create(PRIM_TRIANGLES, vbo, NULL);
 	}
 	return SHC.drw_fullscreen_quad;
 }
