@@ -378,7 +378,10 @@ static void OBJECT_engine_init(void *vedata)
 		winmat[3][2] -= offs;
 		mul_m4_m4m4(e_data.grid_mat, winmat, viewmat);
 
-		e_data.grid_settings[0] = v3d->far / 2.0f; /* gridDistance */
+		float dist = (rv3d->persp == RV3D_CAMOB && v3d->camera)
+		             ? ((Camera *)v3d->camera)->clipend : v3d->far;
+
+		e_data.grid_settings[0] = dist / 2.0f; /* gridDistance */
 		e_data.grid_settings[1] = grid_res; /* gridResolution */
 		e_data.grid_settings[2] = grid_scale; /* gridScale */
 		e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
