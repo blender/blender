@@ -1254,7 +1254,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         )
         cls.denoising_relative_pca = BoolProperty(
                 name="Relative filter",
-                description="When removing that don't carry information, use a relative threshold instead of an absolute one (can help to reduce artifacts, but might cause detail loss around edges)",
+                description="When removing pixels that don't carry information, use a relative threshold instead of an absolute one (can help to reduce artifacts, but might cause detail loss around edges)",
                 default=False,
         )
         cls.denoising_store_passes = BoolProperty(

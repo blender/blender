@@ -702,6 +702,7 @@ public:
 		}
 
 		thread_kernel_globals_free((KernelGlobals*)kgbuffer.device_pointer);
+		kg->~KernelGlobals();
 		mem_free(kgbuffer);
 		delete split_kernel;
 	}
