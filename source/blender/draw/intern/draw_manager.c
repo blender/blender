@@ -1566,8 +1566,20 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	}
 	else {
 		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
+			bool neg_scale = call->obmat && is_negative_m4(call->obmat);
+
+			/* Negative scale objects */
+			if (neg_scale) {
+				glFrontFace(GL_CW);
+			}
+
 			GPU_SELECT_LOAD_IF_PICKSEL(call);
 			draw_geometry(shgroup, call->geometry, call->obmat);
+
+			/* Reset state */
+			if (neg_scale) {
+				glFrontFace(GL_CCW);
+			}
 		}
 	}
 
