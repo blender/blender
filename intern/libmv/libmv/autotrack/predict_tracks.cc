@@ -66,6 +66,7 @@ const double velocity_state_transition_data[] = {
   0,  0,       0,  0,  0,        1
 };
 
+#if 0
 // This 3rd-order system also models acceleration. This makes for "jerky"
 // predictions, but that tend to be more accurate.
 const double acceleration_state_transition_data[] = {
@@ -87,6 +88,7 @@ const double angular_state_transition_data[] = {
   0,  0,       0,  0,  1,        0,   // Velocity y
   0,  0,       0,  0,  0,        1    // Ignored
 };
+#endif
 
 const double* state_transition_data = velocity_state_transition_data;
 

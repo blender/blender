@@ -124,6 +124,7 @@ CCL_NAMESPACE_BEGIN
 #    define __VOLUME_SCATTER__
 #    define __SHADOW_RECORD_ALL__
 #    define __CMJ__
+#    define __BRANCHED_PATH__
 #  endif  /* __KERNEL_OPENCL_NVIDIA__ */
 
 #  ifdef __KERNEL_OPENCL_APPLE__
