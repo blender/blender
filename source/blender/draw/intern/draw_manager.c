@@ -649,7 +649,6 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 
 	/* TODO : Ideally we should not convert. But since the whole codegen
 	 * is relying on GPUPass we keep it as is for now. */
-
 	GPUPass *gpupass = GPU_material_get_pass(material);
 
 	if (!gpupass) {
@@ -670,7 +669,6 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 			GPUTexture *tex = GPU_texture_from_blender(input->ima, input->iuser, input->textarget, input->image_isdata, time, 1);
 
 			if (input->bindtex) {
-				/* TODO maybe track texture slot usage to avoid clash with engine textures */
 				DRW_shgroup_uniform_texture(grp, input->shadername, tex);
 			}
 		}

@@ -522,7 +522,6 @@ static void EEVEE_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
 		psl->default_pass = DRW_pass_create("Default Shader Pass", state);
 
-		/* NOTE : this shading grp does not contain any geom, it's just here to setup uniforms & textures. */
 		stl->g_data->default_lit_grp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
 		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "light_block", stl->light_ubo, 0);
 		DRW_shgroup_uniform_block(stl->g_data->default_lit_grp, "shadow_block", stl->shadow_ubo, 1);
@@ -619,13 +618,6 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 				}
 
 			}
-		}
-		else {
-			/* TODO, support for all geometry types (non mesh geometry) */
-			DRW_shgroup_call_add(stl->g_data->default_lit_grp, geom, ob->obmat);
-			// DRW_shgroup_call_add(stl->g_data->shadow_shgrp, geom, ob->obmat);
-			// eevee_cascade_shadow_shgroup(psl, stl, geom, ob->obmat);
-			// eevee_cube_shadow_shgroup(psl, stl, geom, ob->obmat);
 		}
 		// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
 
