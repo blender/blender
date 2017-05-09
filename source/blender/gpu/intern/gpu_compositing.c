@@ -197,8 +197,6 @@ struct GPUFX {
 
 	Batch *quad_batch;
 	Batch *point_batch;
-
-	struct GPUStateValues attribs;
 };
 
 #if 0
@@ -645,7 +643,7 @@ bool GPU_fx_compositor_initialize_passes(
 	if (scissor_rect) {
 		int w_sc = BLI_rcti_size_x(scissor_rect) + 1;
 		int h_sc = BLI_rcti_size_y(scissor_rect) + 1;
-		gpuSaveState(&fx->attribs, GPU_SCISSOR_BIT);
+		gpuPushAttrib(GPU_SCISSOR_BIT);
 		glEnable(GL_SCISSOR_TEST);
 		glScissor(scissor_rect->xmin - rect->xmin, scissor_rect->ymin - rect->ymin,
 		          w_sc, h_sc);
@@ -721,7 +719,7 @@ void GPU_fx_compositor_XRay_resolve(GPUFX *fx)
 	GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer, 0, 0);
 
 	/* full screen quad where we will always write to depth buffer */
-	gpuSaveState(&fx->attribs, GPU_DEPTH_BUFFER_BIT | GPU_SCISSOR_BIT);
+	gpuPushAttrib(GPU_DEPTH_BUFFER_BIT | GPU_SCISSOR_BIT);
 	glDepthFunc(GL_ALWAYS);
 	/* disable scissor from sculpt if any */
 	glDisable(GL_SCISSOR_TEST);
@@ -754,7 +752,7 @@ void GPU_fx_compositor_XRay_resolve(GPUFX *fx)
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-	gpuRestoreState(&fx->attribs);
+	gpuPopAttrib();
 }
 
 
@@ -785,7 +783,7 @@ bool GPU_fx_do_composite_pass(
 	GPU_framebuffer_texture_detach(fx->depth_buffer);
 
 	if (fx->restore_stencil) {
-		gpuRestoreState(&fx->attribs);
+		gpuPopAttrib();
 	}
 
 	src = fx->color_buffer;

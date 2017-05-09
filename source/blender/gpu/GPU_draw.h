@@ -174,58 +174,16 @@ void	GPU_select_index_get(int index, int *r_col);
 int		GPU_select_to_index(unsigned int col);
 void	GPU_select_to_index_array(unsigned int *col, const unsigned int size);
 
-typedef enum eGPUStateMask {
+typedef enum eGPUAttribMask {
 	GPU_DEPTH_BUFFER_BIT = (1 << 0),
 	GPU_ENABLE_BIT = (1 << 1),
 	GPU_SCISSOR_BIT = (1 << 2),
 	GPU_VIEWPORT_BIT = (1 << 3),
 	GPU_BLEND_BIT = (1 << 4),
-} eGPUStateMask;
+} eGPUAttribMask;
 
-typedef struct GPUStateValues
-{
-	eGPUStateMask mask;
-
-	/* GL_ENABLE_BIT */
-	unsigned int is_blend : 1;
-	unsigned int is_cull_face : 1;
-	unsigned int is_depth_test : 1;
-	unsigned int is_dither : 1;
-	unsigned int is_lighting : 1;
-	unsigned int is_line_smooth : 1;
-	unsigned int is_color_logic_op : 1;
-	unsigned int is_multisample : 1;
-	unsigned int is_polygon_offset_line : 1;
-	unsigned int is_polygon_offset_fill : 1;
-	unsigned int is_polygon_smooth : 1;
-	unsigned int is_sample_alpha_to_coverage : 1;
-	unsigned int is_scissor_test : 1;
-	unsigned int is_stencil_test : 1;
-
-#ifdef WITH_LEGACY_OPENGL
-	unsigned int is_alpha_test : 1;
-	bool is_light[8];
-#endif
-
-	bool is_clip_plane[6];
-
-	/* GL_DEPTH_BUFFER_BIT */
-	/* unsigned int is_depth_test : 1; */
-	int depth_func;
-	double depth_clear_value;
-	bool depth_write_mask;
-
-	/* GL_SCISSOR_BIT */
-	int scissor_box[4];
-	/* unsigned int is_scissor_test : 1; */
-
-	/* GL_VIEWPORT_BIT */
-	int viewport[4];
-	double near_far[2];
-} GPUStateValues;
-
-void gpuSaveState(GPUStateValues *attribs, eGPUStateMask mask);
-void gpuRestoreState(GPUStateValues *attribs);
+void gpuPushAttrib(eGPUAttribMask mask);
+void gpuPopAttrib(void);
 
 #ifdef __cplusplus
 }

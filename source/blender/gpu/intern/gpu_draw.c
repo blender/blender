@@ -2501,66 +2501,124 @@ void GPU_select_to_index_array(unsigned int *col, const unsigned int size)
 #undef INDEX_BUF_ARRAY
 }
 
+#define STATE_STACK_DEPTH 16
+
+typedef struct {
+	eGPUAttribMask mask;
+
+	/* GL_ENABLE_BIT */
+	unsigned int is_blend : 1;
+	unsigned int is_cull_face : 1;
+	unsigned int is_depth_test : 1;
+	unsigned int is_dither : 1;
+	unsigned int is_lighting : 1;
+	unsigned int is_line_smooth : 1;
+	unsigned int is_color_logic_op : 1;
+	unsigned int is_multisample : 1;
+	unsigned int is_polygon_offset_line : 1;
+	unsigned int is_polygon_offset_fill : 1;
+	unsigned int is_polygon_smooth : 1;
+	unsigned int is_sample_alpha_to_coverage : 1;
+	unsigned int is_scissor_test : 1;
+	unsigned int is_stencil_test : 1;
+
+#ifdef WITH_LEGACY_OPENGL
+	unsigned int is_alpha_test : 1;
+	bool is_light[8];
+#endif
+
+	bool is_clip_plane[6];
+
+	/* GL_DEPTH_BUFFER_BIT */
+	/* unsigned int is_depth_test : 1; */
+	int depth_func;
+	double depth_clear_value;
+	bool depth_write_mask;
+
+	/* GL_SCISSOR_BIT */
+	int scissor_box[4];
+	/* unsigned int is_scissor_test : 1; */
+
+	/* GL_VIEWPORT_BIT */
+	int viewport[4];
+	double near_far[2];
+}  GPUAttribValues;
+
+typedef struct {
+	GPUAttribValues attrib_stack[STATE_STACK_DEPTH];
+	unsigned int top;
+} GPUAttribStack;
+
+static GPUAttribStack state = {
+	.top = 0
+};
+
+#define AttribStack state
+#define Attrib state.attrib_stack[state.top]
+
 /**
  * Replacement for glPush/PopAttributes
  *
  * We don't need to cover all the options of legacy OpenGL
  * but simply the ones used by Blender.
  */
-void gpuSaveState(GPUStateValues *values, eGPUStateMask mask)
+void gpuPushAttrib(eGPUAttribMask mask)
 {
-	values->mask = mask;
+	Attrib.mask = mask;
 
 	if ((mask & GPU_DEPTH_BUFFER_BIT) != 0) {
-		values->is_depth_test = glIsEnabled(GL_DEPTH_TEST);
-		glGetIntegerv(GL_DEPTH_FUNC, &values->depth_func);
-		glGetDoublev(GL_DEPTH_CLEAR_VALUE, &values->depth_clear_value);
-		glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean *)&values->depth_write_mask);
+		Attrib.is_depth_test = glIsEnabled(GL_DEPTH_TEST);
+		glGetIntegerv(GL_DEPTH_FUNC, &Attrib.depth_func);
+		glGetDoublev(GL_DEPTH_CLEAR_VALUE, &Attrib.depth_clear_value);
+		glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean *)&Attrib.depth_write_mask);
 	}
 
 	if ((mask & GPU_ENABLE_BIT) != 0) {
-		values->is_blend = glIsEnabled(GL_BLEND);
+		Attrib.is_blend = glIsEnabled(GL_BLEND);
 
 		for (int i = 0; i < 6; i++) {
-			values->is_clip_plane[i] = glIsEnabled(GL_CLIP_PLANE0 + i);
+			Attrib.is_clip_plane[i] = glIsEnabled(GL_CLIP_PLANE0 + i);
 		}
 
-		values->is_cull_face = glIsEnabled(GL_CULL_FACE);
-		values->is_depth_test = glIsEnabled(GL_DEPTH_TEST);
-		values->is_dither = glIsEnabled(GL_DITHER);
+		Attrib.is_cull_face = glIsEnabled(GL_CULL_FACE);
+		Attrib.is_depth_test = glIsEnabled(GL_DEPTH_TEST);
+		Attrib.is_dither = glIsEnabled(GL_DITHER);
 
 #ifdef WITH_LEGACY_OPENGL
-		values->is_alpha_test = glIsEnabled(GL_ALPHA_TEST);
+		Attrib.is_alpha_test = glIsEnabled(GL_ALPHA_TEST);
 
 		for (int i = 0; i < 8; i++) {
-			values->is_light[i] = glIsEnabled(GL_LIGHT0 + i);
+			Attrib.is_light[i] = glIsEnabled(GL_LIGHT0 + i);
 		}
 #endif
 
-		values->is_line_smooth = glIsEnabled(GL_LINE_SMOOTH);
-		values->is_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
-		values->is_multisample = glIsEnabled(GL_MULTISAMPLE);
-		values->is_polygon_offset_line = glIsEnabled(GL_POLYGON_OFFSET_LINE);
-		values->is_polygon_offset_fill = glIsEnabled(GL_POLYGON_OFFSET_FILL);
-		values->is_polygon_smooth = glIsEnabled(GL_POLYGON_SMOOTH);
-		values->is_sample_alpha_to_coverage = glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE);
-		values->is_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-		values->is_stencil_test = glIsEnabled(GL_STENCIL_TEST);
+		Attrib.is_line_smooth = glIsEnabled(GL_LINE_SMOOTH);
+		Attrib.is_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
+		Attrib.is_multisample = glIsEnabled(GL_MULTISAMPLE);
+		Attrib.is_polygon_offset_line = glIsEnabled(GL_POLYGON_OFFSET_LINE);
+		Attrib.is_polygon_offset_fill = glIsEnabled(GL_POLYGON_OFFSET_FILL);
+		Attrib.is_polygon_smooth = glIsEnabled(GL_POLYGON_SMOOTH);
+		Attrib.is_sample_alpha_to_coverage = glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE);
+		Attrib.is_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+		Attrib.is_stencil_test = glIsEnabled(GL_STENCIL_TEST);
 	}
 
 	if ((mask & GPU_SCISSOR_BIT) != 0) {
-		values->is_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-		glGetIntegerv(GL_SCISSOR_BOX, (GLint *)&values->scissor_box);
+		Attrib.is_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+		glGetIntegerv(GL_SCISSOR_BOX, (GLint *)&Attrib.scissor_box);
 	}
 
 	if ((mask & GPU_VIEWPORT_BIT) != 0) {
-		glGetDoublev(GL_DEPTH_RANGE, (GLdouble *)&values->near_far);
-		glGetIntegerv(GL_VIEWPORT, (GLint *)&values->viewport);
+		glGetDoublev(GL_DEPTH_RANGE, (GLdouble *)&Attrib.near_far);
+		glGetIntegerv(GL_VIEWPORT, (GLint *)&Attrib.viewport);
 	}
 
 	if ((mask & GPU_BLEND_BIT) != 0) {
-		values->is_blend = glIsEnabled(GL_BLEND);
+		Attrib.is_blend = glIsEnabled(GL_BLEND);
 	}
+
+	BLI_assert(AttribStack.top < STATE_STACK_DEPTH);
+	AttribStack.top++;
 }
 
 static void restore_mask(GLenum cap, const bool value) {
@@ -2572,60 +2630,66 @@ static void restore_mask(GLenum cap, const bool value) {
 	}
 }
 
-void gpuRestoreState(GPUStateValues *values)
+void gpuPopAttrib()
 {
-	GLint mask = values->mask;
+	BLI_assert(AttribStack.top > 0);
+	AttribStack.top--;
+
+	GLint mask = Attrib.mask;
 
 	if ((mask & GPU_DEPTH_BUFFER_BIT) != 0) {
-		restore_mask(GL_DEPTH_TEST, values->is_depth_test);
-		glDepthFunc(values->depth_func);
-		glClearDepth(values->depth_clear_value);
-		glDepthMask(values->depth_write_mask);
+		restore_mask(GL_DEPTH_TEST, Attrib.is_depth_test);
+		glDepthFunc(Attrib.depth_func);
+		glClearDepth(Attrib.depth_clear_value);
+		glDepthMask(Attrib.depth_write_mask);
 	}
 
 	if ((mask & GPU_ENABLE_BIT) != 0) {
-		restore_mask(GL_BLEND, values->is_blend);
+		restore_mask(GL_BLEND, Attrib.is_blend);
 
 		for (int i = 0; i < 6; i++) {
-			restore_mask(GL_CLIP_PLANE0 + i, values->is_clip_plane[i]);
+			restore_mask(GL_CLIP_PLANE0 + i, Attrib.is_clip_plane[i]);
 		}
 
-		restore_mask(GL_CULL_FACE, values->is_cull_face);
-		restore_mask(GL_DEPTH_TEST, values->is_depth_test);
-		restore_mask(GL_DITHER, values->is_dither);
+		restore_mask(GL_CULL_FACE, Attrib.is_cull_face);
+		restore_mask(GL_DEPTH_TEST, Attrib.is_depth_test);
+		restore_mask(GL_DITHER, Attrib.is_dither);
 
 #ifdef WITH_LEGACY_OPENGL
-		restore_mask(GL_ALPHA_TEST, values->is_alpha_test);
+		restore_mask(GL_ALPHA_TEST, Attrib.is_alpha_test);
 
 		for (int i = 0; i < 8; i++) {
-			restore_mask(GL_LIGHT0 + i, values->is_light[i]);
+			restore_mask(GL_LIGHT0 + i, Attrib.is_light[i]);
 		}
 #endif
 
-		restore_mask(GL_LINE_SMOOTH, values->is_line_smooth);
-		restore_mask(GL_COLOR_LOGIC_OP, values->is_color_logic_op);
-		restore_mask(GL_MULTISAMPLE, values->is_multisample);
-		restore_mask(GL_POLYGON_OFFSET_LINE, values->is_polygon_offset_line);
-		restore_mask(GL_POLYGON_OFFSET_FILL, values->is_polygon_offset_fill);
-		restore_mask(GL_POLYGON_SMOOTH, values->is_polygon_smooth);
-		restore_mask(GL_SAMPLE_ALPHA_TO_COVERAGE, values->is_sample_alpha_to_coverage);
-		restore_mask(GL_SCISSOR_TEST, values->is_scissor_test);
-		restore_mask(GL_STENCIL_TEST, values->is_stencil_test);
+		restore_mask(GL_LINE_SMOOTH, Attrib.is_line_smooth);
+		restore_mask(GL_COLOR_LOGIC_OP, Attrib.is_color_logic_op);
+		restore_mask(GL_MULTISAMPLE, Attrib.is_multisample);
+		restore_mask(GL_POLYGON_OFFSET_LINE, Attrib.is_polygon_offset_line);
+		restore_mask(GL_POLYGON_OFFSET_FILL, Attrib.is_polygon_offset_fill);
+		restore_mask(GL_POLYGON_SMOOTH, Attrib.is_polygon_smooth);
+		restore_mask(GL_SAMPLE_ALPHA_TO_COVERAGE, Attrib.is_sample_alpha_to_coverage);
+		restore_mask(GL_SCISSOR_TEST, Attrib.is_scissor_test);
+		restore_mask(GL_STENCIL_TEST, Attrib.is_stencil_test);
 	}
 
 	if ((mask & GPU_VIEWPORT_BIT) != 0) {
-		glViewport(values->viewport[0], values->viewport[1], values->viewport[2], values->viewport[3]);
-		glDepthRange(values->near_far[0], values->near_far[1]);
+		glViewport(Attrib.viewport[0], Attrib.viewport[1], Attrib.viewport[2], Attrib.viewport[3]);
+		glDepthRange(Attrib.near_far[0], Attrib.near_far[1]);
 	}
 
 	if ((mask & GPU_SCISSOR_BIT) != 0) {
-		restore_mask(GL_SCISSOR_TEST, values->is_scissor_test);
-		glScissor(values->scissor_box[0], values->scissor_box[1], values->scissor_box[2], values->scissor_box[3]);
+		restore_mask(GL_SCISSOR_TEST, Attrib.is_scissor_test);
+		glScissor(Attrib.scissor_box[0], Attrib.scissor_box[1], Attrib.scissor_box[2], Attrib.scissor_box[3]);
 	}
 
 	if ((mask & GPU_BLEND_BIT) != 0) {
-		restore_mask(GL_BLEND, values->is_blend);
+		restore_mask(GL_BLEND, Attrib.is_blend);
 	}
 }
+
+#undef Attrib
+#undef AttribStack
 
 /** \} */

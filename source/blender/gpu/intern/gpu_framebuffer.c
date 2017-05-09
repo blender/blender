@@ -51,7 +51,6 @@ struct GPUFrameBuffer {
 	GLuint object;
 	GPUTexture *colortex[GPU_FB_MAX_SLOTS];
 	GPUTexture *depthtex;
-	struct GPUStateValues attribs;
 };
 
 static void gpu_print_framebuffer_error(GLenum status, char err_out[256])
@@ -217,7 +216,7 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 	}
 
 	/* push attributes */
-	gpuSaveState(&fb->attribs, GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
+	gpuPushAttrib(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
 	glDisable(GL_SCISSOR_TEST);
 
 	/* bind framebuffer */
@@ -260,7 +259,7 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 	}
 	
 	/* push attributes */
-	gpuSaveState(&fb->attribs, GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
+	gpuPushAttrib(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
 	glDisable(GL_SCISSOR_TEST);
 
 	/* bind framebuffer */
@@ -312,11 +311,10 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 	GG.currentfb = fb->object;
 }
 
-
-void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *UNUSED(tex))
+void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUSED(tex))
 {
-	/* restore attributes */
-	gpuRestoreState(&fb->attribs);
+	/* Restore attributes. */
+	gpuPopAttrib();
 }
 
 void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot)

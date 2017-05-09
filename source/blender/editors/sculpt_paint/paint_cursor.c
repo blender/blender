@@ -782,8 +782,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
 	bool col = ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex) ? true : false;
 	OverlayControlFlags flags = BKE_paint_get_overlay_flags();
-	GPUStateValues attribs;
-	gpuSaveState(&attribs, GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
+	gpuPushAttrib(GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
 
 	/* coloured overlay should be drawn separately */
 	if (col) {
@@ -801,7 +800,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
 	}
 
-	gpuRestoreState(&attribs);
+	gpuPopAttrib();
 }
 
 

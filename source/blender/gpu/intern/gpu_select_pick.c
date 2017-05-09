@@ -293,8 +293,6 @@ typedef struct GPUPickState {
 			unsigned int *rect_id;
 		} nearest;
 	};
-
-	struct GPUStateValues attribs;
 } GPUPickState;
 
 
@@ -320,7 +318,7 @@ void gpu_select_pick_begin(
 
 	/* Restrict OpenGL operations for when we don't have cache */
 	if (ps->is_cached == false) {
-		gpuSaveState(&ps->attribs, GPU_DEPTH_BUFFER_BIT | GPU_VIEWPORT_BIT);
+		gpuPushAttrib(GPU_DEPTH_BUFFER_BIT | GPU_VIEWPORT_BIT);
 
 		/* disable writing to the framebuffer */
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -540,7 +538,7 @@ unsigned int gpu_select_pick_end(void)
 			gpu_select_pick_load_id(ps->gl.prev_id);
 		}
 
-		gpuRestoreState(&ps->attribs);
+		gpuPopAttrib();
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}
 
