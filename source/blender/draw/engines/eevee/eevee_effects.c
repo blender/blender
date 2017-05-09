@@ -298,7 +298,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 			effects->dof_params[0] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));
 			effects->dof_params[1] = -focus_dist;
-			effects->dof_params[2] = viewport_size[0] / sensor_scaled;
+			effects->dof_params[2] = viewport_size[0] / (rv3d->viewcamtexcofac[0] * sensor_scaled);
 			effects->dof_bokeh[0] = blades;
 			effects->dof_bokeh[1] = rotation;
 			effects->dof_bokeh[2] = ratio;
