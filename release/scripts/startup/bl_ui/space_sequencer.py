@@ -530,7 +530,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
 
         else:
             row = layout.row()
-            row.prop(strip, "mute", toggle=True, icon_only=True, text='Mute', icon='MUTE_IPO_OFF')
+            row.prop(strip, "mute", toggle=True, icon_only=True, icon='MUTE_IPO_OFF')
 
         col = layout.column()
         col.enabled = not strip.lock
