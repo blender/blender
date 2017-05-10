@@ -99,6 +99,7 @@
 
 /* prototypes */
 static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_depth, const bool use_depth);
+static bool view3d_stereo3d_active(wmWindow *win, Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 typedef struct DrawData {
 	rcti border_rect;
@@ -222,28 +223,40 @@ static void view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar
 	gpuLoadMatrix(rv3d->viewmat);
 }
 
-static bool view3d_stereo3d_active(const bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d)
+static bool view3d_stereo3d_active(wmWindow *win, Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
-	wmWindow *win = CTX_wm_window(C);
-
-	if ((scene->r.scemode & R_MULTIVIEW) == 0)
+	if ((scene->r.scemode & R_MULTIVIEW) == 0) {
 		return false;
-
-	if (WM_stereo3d_enabled(win, true) == false)
-		return false;
-
-	if ((v3d->camera == NULL) || (v3d->camera->type != OB_CAMERA) || rv3d->persp != RV3D_CAMOB)
-		return false;
-
-	if (scene->r.views_format & SCE_VIEWS_FORMAT_MULTIVIEW) {
-		if (v3d->stereo3d_camera == STEREO_MONO_ID)
-			return false;
-
-		return BKE_scene_multiview_is_stereo3d(&scene->r);
 	}
 
+	if ((v3d->camera == NULL) || (v3d->camera->type != OB_CAMERA) || rv3d->persp != RV3D_CAMOB) {
+		return false;
+	}
+
+	switch (v3d->stereo3d_camera) {
+		case STEREO_MONO_ID:
+			return false;
+			break;
+		case STEREO_3D_ID:
+			/* win will be NULL when calling this from the selection or draw loop. */
+			if ((win == NULL) || (WM_stereo3d_enabled(win, true) == false)) {
+				return false;
+			}
+			if (((scene->r.views_format & SCE_VIEWS_FORMAT_MULTIVIEW) != 0) &&
+			    !BKE_scene_multiview_is_stereo3d(&scene->r))
+			{
+				return false;
+			}
+			break;
+		/* We always need the stereo calculation for left and right cameras. */
+		case STEREO_LEFT_ID:
+		case STEREO_RIGHT_ID:
+		default:
+			break;
+	}
 	return true;
 }
+
 
 /* setup the view and win matrices for the multiview cameras
  *
@@ -297,6 +310,22 @@ static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 
 		v3d->camera = view_ob;
 		BLI_unlock_thread(LOCK_VIEW3D);
+	}
+}
+
+/**
+ * Set the correct matrices
+ */
+void ED_view3d_draw_setup_view(wmWindow *win, Scene *scene, ARegion *ar, View3D *v3d, float viewmat[4][4], float winmat[4][4])
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	/* Setup the view matrix. */
+	if (view3d_stereo3d_active(win, scene, v3d, rv3d)) {
+		view3d_stereo3d_setup(scene, v3d, ar);
+	}
+	else {
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
 	}
 }
 
@@ -779,16 +808,9 @@ void ED_view3d_draw_depth(
 	U.glalphaclip = alphaoverride ? 0.5f : glalphaclip; /* not that nice but means we wont zoom into billboards */
 	U.obcenter_dia = 0;
 
-	view3d_winmatrix_set(ar, v3d, NULL);
-	view3d_viewmatrix_set(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
-
-	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
-	invert_m4_m4(rv3d->persinv, rv3d->persmat);
-	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
+	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, NULL, NULL);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-
-	gpuLoadMatrix(rv3d->viewmat);
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		ED_view3d_clipping_set(rv3d);
@@ -2118,22 +2140,6 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 
 /* ******************** view loop ***************** */
 
-/**
- * Set the correct matrices
- */
-static void view3d_draw_setup_view(const bContext *C, ARegion *ar)
-{
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ar->regiondata;
-
-	/* setup the view matrix */
-	if (view3d_stereo3d_active(C, scene, v3d, rv3d))
-		view3d_stereo3d_setup(scene, v3d, ar);
-	else
-		view3d_main_region_setup_view(scene, v3d, ar, NULL, NULL);
-}
-
 static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_depth, const bool use_depth)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -2381,7 +2387,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 
 	view3d_draw_background(C); /* clears/overwrites entire color buffer */
 
-	view3d_draw_setup_view(C, ar);
+	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_scene(C), ar, CTX_wm_view3d(C), NULL, NULL);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -2412,7 +2418,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 
 static void view3d_draw_view_new(const bContext *C, ARegion *ar, DrawData *UNUSED(draw_data))
 {
-	view3d_draw_setup_view(C, ar);
+	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_scene(C), ar, CTX_wm_view3d(C), NULL, NULL);
 
 	/* Only 100% compliant on new spec goes bellow */
 	DRW_draw_view(C);
@@ -2905,7 +2911,7 @@ void VP_legacy_view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion 
 
 bool VP_legacy_view3d_stereo3d_active(const bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
-	return view3d_stereo3d_active(C, scene, v3d, rv3d);
+	return view3d_stereo3d_active(CTX_wm_window(C), scene, v3d, rv3d);
 }
 
 void VP_legacy_view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)

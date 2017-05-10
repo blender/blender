@@ -1178,18 +1178,11 @@ float view3d_depth_near(ViewDepths *d)
 void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	bool zbuf = v3d->zbuf;
-	RegionView3D *rv3d = ar->regiondata;
 
-	view3d_winmatrix_set(ar, v3d, NULL);
-	view3d_viewmatrix_set(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
-
-	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
-	invert_m4_m4(rv3d->persinv, rv3d->persmat);
-	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
+	/* Setup view matrix. */
+	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, NULL, NULL);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-
-	gpuLoadMatrix(rv3d->viewmat);
 
 	v3d->zbuf = true;
 	glEnable(GL_DEPTH_TEST);
