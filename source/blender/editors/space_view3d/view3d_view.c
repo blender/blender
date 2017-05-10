@@ -1171,7 +1171,7 @@ int view3d_opengl_select(
 
 	G.f |= G_PICKSEL;
 
-	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, NULL, NULL, &rect);
+	ED_view3d_draw_setup_view(vc->win, scene, ar, v3d, NULL, NULL, &rect);
 	
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
@@ -1215,7 +1215,7 @@ int view3d_opengl_select(
 	}
 
 	G.f &= ~G_PICKSEL;
-	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, NULL, NULL, NULL);
+	ED_view3d_draw_setup_view(vc->win, scene, ar, v3d, NULL, NULL, NULL);
 	
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = 0;

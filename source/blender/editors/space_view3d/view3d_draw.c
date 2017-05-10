@@ -99,7 +99,6 @@
 
 /* prototypes */
 static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_depth, const bool use_depth);
-static bool view3d_stereo3d_active(wmWindow *win, Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 typedef struct DrawData {
 	rcti border_rect;

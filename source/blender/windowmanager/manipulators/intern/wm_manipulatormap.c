@@ -300,8 +300,6 @@ static int manipulator_find_intersected_3D_intern(
 	short hits;
 	const bool do_passes = GPU_select_query_check_active();
 
-	extern void view3d_winmatrix_set(ARegion *ar, View3D *v3d, const rcti *rect);
-
 	rect.xmin = co[0] - hotspot;
 	rect.xmax = co[0] + hotspot;
 	rect.ymin = co[1] - hotspot;
