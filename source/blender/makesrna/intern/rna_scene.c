@@ -2498,7 +2498,23 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 {                                                                                  \
 	IDProperty *props = (IDProperty *)ptr->data;                                   \
 	BKE_collection_engine_property_value_set_##_TYPE_(props, #_NAME_, value);      \
+}
+
+#define RNA_LAYER_ENGINE_GET_SET_ARRAY(_TYPE_, _ENGINE_, _MODE_, _NAME_, _LEN_)    \
+static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_get(PointerRNA *ptr, _TYPE_ *values) \
+{                                                                                  \
+	IDProperty *props = (IDProperty *)ptr->data;                                   \
+	IDProperty *idprop = IDP_GetPropertyFromGroup(props, #_NAME_);                 \
+	if (idprop != NULL) {                                                          \
+		memcpy(values, IDP_Array(idprop), sizeof(_TYPE_) * idprop->len);           \
+	}                                                                              \
 }                                                                                  \
+	                                                                               \
+static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr, const _TYPE_ *values) \
+{                                                                                  \
+	IDProperty *props = (IDProperty *)ptr->data;                                   \
+	BKE_collection_engine_property_value_set_##_TYPE_##_array(props, #_NAME_, values); \
+}
 
 #define RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(_NAME_) \
 	RNA_LAYER_ENGINE_GET_SET(float, Clay, COLLECTION_MODE_NONE, _NAME_)
