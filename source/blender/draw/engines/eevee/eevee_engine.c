@@ -688,6 +688,7 @@ static void EEVEE_draw_scene(void *vedata)
 	DRW_framebuffer_texture_detach(dtxl->depth);
 	DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
 	DRW_framebuffer_bind(fbl->main);
+	DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
 
 	DRW_draw_pass(psl->background_pass);
 	DRW_draw_pass(psl->depth_pass);

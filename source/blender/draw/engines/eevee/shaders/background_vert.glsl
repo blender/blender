@@ -1,6 +1,4 @@
 
-mat4 ViewProjectionMatrixInverse;
-
 in vec2 pos;
 
 out vec3 varposition;

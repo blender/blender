@@ -2605,11 +2605,11 @@ void DRW_draw_render_loop(
 
 	DRW_engines_draw_text();
 
-	/* needed so manipulator isn't obscured */
-	glClear(GL_DEPTH_BUFFER_BIT);
-
 	if (DST.draw_ctx.evil_C) {
+		/* needed so manipulator isn't obscured */
+		glDisable(GL_DEPTH_TEST);
 		DRW_draw_manipulator();
+		glEnable(GL_DEPTH_TEST);
 
 		DRW_draw_region_info();
 	}

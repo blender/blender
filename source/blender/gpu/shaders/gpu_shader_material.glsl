@@ -3896,6 +3896,9 @@ void convert_metallic_to_specular(vec4 basecol, float metallic, float specular_f
 	f0 = mix(dielectric, basecol, metallic);
 }
 
+/* TODO : clean this ifdef mess */
+/* EEVEE output */
+#ifdef PROBE_CAPTURE
 void world_normals_get(out vec3 N)
 {
 	N = gl_FrontFacing ? worldNormal : -worldNormal;
@@ -3919,6 +3922,7 @@ void node_output_specular(
 {
 	result = vec4(eevee_surface_lit(normal, diffuse.rgb, specular.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
 }
+#endif
 
 /* ********************** matcap style render ******************** */
 
