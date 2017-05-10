@@ -356,7 +356,9 @@ void ED_view3d_draw_offscreen(
         float winmat[4][4], bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
         struct GPUFX *fx, struct GPUFXSettings *fx_settings,
         struct GPUOffScreen *ofs);
-void ED_view3d_draw_setup_view(struct wmWindow *win, struct Scene *scene, struct ARegion *ar, struct View3D *v3d);
+void ED_view3d_draw_setup_view(
+        struct wmWindow *win, struct Scene *scene, struct ARegion *ar, struct View3D *v3d,
+        float viewmat[4][4], float winmat[4][4]);
 
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(
         struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey,

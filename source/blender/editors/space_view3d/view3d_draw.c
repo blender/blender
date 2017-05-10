@@ -2370,9 +2370,10 @@ float view3d_depth_near(ViewDepths *d)
 void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	short zbuf = v3d->zbuf;
+	RegionView3D *rv3d = ar->regiondata;
 
 	/* Setup view matrix. */
-	ED_view3d_draw_setup_view(NULL, scene, ar, v3d);
+	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, rv3d->winmat, rv3d->viewmat);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -2483,7 +2484,7 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	U.obcenter_dia = 0;
 	
 	/* Setup view matrix. */
-	ED_view3d_draw_setup_view(NULL, scene, ar, v3d);
+	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, rv3d->viewmat, rv3d->winmat);
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
@@ -3254,7 +3255,7 @@ void ED_view3d_draw_offscreen(
 /**
  * Set the correct matrices
  */
-void ED_view3d_draw_setup_view(wmWindow *win, Scene *scene, ARegion *ar, View3D *v3d)
+void ED_view3d_draw_setup_view(wmWindow *win, Scene *scene, ARegion *ar, View3D *v3d, float viewmat[4][4], float winmat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -3263,7 +3264,7 @@ void ED_view3d_draw_setup_view(wmWindow *win, Scene *scene, ARegion *ar, View3D 
 		view3d_stereo3d_setup(scene, v3d, ar);
 	}
 	else {
-		view3d_main_region_setup_view(scene, v3d, ar, NULL, NULL);
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
 	}
 }
 
@@ -3845,7 +3846,7 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Vie
 	}
 
 	/* Setup the view matrix. */
-	ED_view3d_draw_setup_view(CTX_wm_window(C), scene, ar, v3d);
+	ED_view3d_draw_setup_view(CTX_wm_window(C), scene, ar, v3d, NULL, NULL);
 
 	rv3d->rflag &= ~RV3D_IS_GAME_ENGINE;
 #ifdef WITH_GAMEENGINE
