@@ -1582,8 +1582,6 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			}
 		}
 	}
-
-	DRW_state_reset();
 }
 
 void DRW_draw_pass(DRWPass *pass)
