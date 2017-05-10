@@ -653,12 +653,13 @@ void DepsgraphNodeBuilder::build_world(World *world)
 		return;
 	}
 
-	/* world itself */
-	add_id_node(world_id); /* world shading/params? */
-
 	build_animdata(world_id);
 
-	/* TODO: other settings? */
+	/* world itself */
+	add_component_node(world_id, DEPSNODE_TYPE_PARAMETERS);
+
+	add_operation_node(world_id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
+	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 
 	/* textures */
 	build_texture_stack(world->mtex);
