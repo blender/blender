@@ -1946,6 +1946,7 @@ enum {
 extern const char *RE_engine_id_BLENDER_RENDER;
 extern const char *RE_engine_id_BLENDER_GAME;
 extern const char *RE_engine_id_BLENDER_CLAY;
+extern const char *RE_engine_id_BLENDER_EEVEE;
 extern const char *RE_engine_id_CYCLES;
 
 /* **************** SCENE ********************* */

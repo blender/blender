@@ -202,12 +202,12 @@ typedef struct EEVEE_EffectsInfo {
 	float current_ndc_to_world[4][4];
 	float past_world_to_ndc[4][4];
 	float tmp_mat[4][4];
-	float blur_amount;
+	int motion_blur_samples;
 
 	/* Depth Of Field */
 	float dof_near_far[2];
 	float dof_params[3];
-	float dof_bokeh[3];
+	float dof_bokeh[4];
 	float dof_layer_select[2];
 	int dof_target_size[2];
 

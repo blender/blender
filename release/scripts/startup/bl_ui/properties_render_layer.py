@@ -48,7 +48,7 @@ class RENDERLAYER_UL_renderlayers(UIList):
 class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
     bl_label = "Layer List"
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -150,12 +150,69 @@ class RENDERLAYER_PT_clay_settings(RenderLayerButtonsPanel, Panel):
         col.template_override_property(layer_props, scene_props, "ssao_samples")
 
 
+class RENDERLAYER_PT_eevee_poststack_settings(RenderLayerButtonsPanel, Panel):
+    bl_label = "Post Process Stack"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        scene_props = scene.layer_properties['BLENDER_EEVEE']
+        layer = bpy.context.render_layer
+        layer_props = layer.engine_overrides['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.template_override_property(layer_props, scene_props, "motion_blur_enable")
+        col.template_override_property(layer_props, scene_props, "dof_enable")
+        col.template_override_property(layer_props, scene_props, "bloom_enable")
+
+class RENDERLAYER_PT_eevee_postprocess_settings(RenderLayerButtonsPanel, Panel):
+    bl_label = "Post Process Settings"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        scene_props = scene.layer_properties['BLENDER_EEVEE']
+        layer = bpy.context.render_layer
+        layer_props = layer.engine_overrides['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.label("Motion Blur:")
+        col.template_override_property(layer_props, scene_props, "motion_blur_samples")
+        col.template_override_property(layer_props, scene_props, "motion_blur_shutter")
+
+        col.label("Depth of Field:")
+        col.template_override_property(layer_props, scene_props, "bokeh_max_size")
+        col.template_override_property(layer_props, scene_props, "bokeh_threshold")
+        col.separator()
+
+        col.label("Bloom:")
+        col.template_override_property(layer_props, scene_props, "bloom_threshold")
+        col.template_override_property(layer_props, scene_props, "bloom_knee")
+        col.template_override_property(layer_props, scene_props, "bloom_radius")
+        col.template_override_property(layer_props, scene_props, "bloom_intensity")
+        col.separator()
+
+
 classes = (
     RENDERLAYER_UL_renderlayers,
     RENDERLAYER_PT_layers,
     RENDERLAYER_UL_renderviews,
     RENDERLAYER_PT_views,
     RENDERLAYER_PT_clay_settings,
+    RENDERLAYER_PT_eevee_poststack_settings,
+    RENDERLAYER_PT_eevee_postprocess_settings,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -2,7 +2,6 @@
 uniform sampler2D colorBuffer;
 uniform sampler2D depthBuffer;
 
-uniform float blurAmount;
 
 /* current frame */
 uniform mat4 currInvViewProjMatrix;
@@ -14,7 +13,9 @@ in vec4 uvcoordsvar;
 
 out vec4 FragColor;
 
-#define MAX_SAMPLE 16
+#define MAX_SAMPLE 64
+
+uniform int samples;
 
 float wang_hash_noise(uint s)
 {
@@ -37,7 +38,8 @@ void main()
 	ndc_pos.xy = uvcoordsvar.xy;
 	ndc_pos.z = texture(depthBuffer, uvcoordsvar.xy).x;
 
-	float noise = 2.0 * wang_hash_noise(0u) / MAX_SAMPLE;
+	float inv_samples = 1.0 / float(samples);
+	float noise = 2.0 * wang_hash_noise(0u) * inv_samples;
 
 	/* Normalize Device Coordinates are [-1, +1]. */
 	ndc_pos = ndc_pos * 2.0 - 1.0;
@@ -50,10 +52,12 @@ void main()
 	vec4 old_ndc = pastViewProjMatrix * vec4(world_pos, 1.0);
 	old_ndc.xyz /= old_ndc.w; /* Perspective divide */
 
-	vec2 motion = (ndc_pos.xy - old_ndc.xy) * blurAmount;
+	vec2 motion = (ndc_pos.xy - old_ndc.xy) * 0.25; /* 0.25 fit cycles ref */
 
-	const float inc = 2.0 / MAX_SAMPLE;
-	for (float i = -1.0 + noise; i < 1.0; i += inc) {
-		FragColor += texture(colorBuffer, uvcoordsvar.xy + motion * i) / MAX_SAMPLE;
+	float inc = 2.0 * inv_samples;
+	float i = -1.0 + noise;
+	for (int j = 0; j < samples && j < MAX_SAMPLE; j++) {
+		FragColor += texture(colorBuffer, uvcoordsvar.xy + motion * i) * inv_samples;
+		i += inc;
 	}
 }

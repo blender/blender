@@ -1944,6 +1944,9 @@ static StructRNA *rna_SceneLayerSettings_refine(PointerRNA *ptr)
 				return &RNA_SceneLayerEngineSettingsClay;
 			}
 #endif
+			if (STREQ(props->name, RE_engine_id_BLENDER_EEVEE)) {
+				return &RNA_SceneLayerEngineSettingsEevee;
+			}
 			break;
 		case IDP_GROUP_SUB_MODE_OBJECT:
 		case IDP_GROUP_SUB_MODE_EDIT:
@@ -1969,6 +1972,10 @@ static StructRNA *rna_LayerCollectionSettings_refine(PointerRNA *ptr)
 				return &RNA_LayerCollectionEngineSettingsClay;
 			}
 #endif
+			if (STREQ(props->name, RE_engine_id_BLENDER_EEVEE)) {
+				printf("Mode not fully implemented\n");
+				return &RNA_LayerCollectionSettings;
+			}
 			break;
 		case IDP_GROUP_SUB_MODE_OBJECT:
 			return &RNA_LayerCollectionModeSettingsObject;
@@ -2502,6 +2509,15 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 #define RNA_LAYER_ENGINE_CLAY_GET_SET_BOOL(_NAME_) \
 	RNA_LAYER_ENGINE_GET_SET(bool, Clay, COLLECTION_MODE_NONE, _NAME_)
 
+#define RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(_NAME_) \
+	RNA_LAYER_ENGINE_GET_SET(float, Eevee, COLLECTION_MODE_NONE, _NAME_)
+
+#define RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(_NAME_) \
+	RNA_LAYER_ENGINE_GET_SET(int, Eevee, COLLECTION_MODE_NONE, _NAME_)
+
+#define RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(_NAME_) \
+	RNA_LAYER_ENGINE_GET_SET(bool, Eevee, COLLECTION_MODE_NONE, _NAME_)
+
 /* mode engines */
 
 #define RNA_LAYER_MODE_OBJECT_GET_SET_FLOAT(_NAME_) \
@@ -2544,6 +2560,20 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_edge)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_distance)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_attenuation)
 #endif /* WITH_CLAY_ENGINE */
+
+/* eevee engine */
+/* SceneLayer settings. */
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(dof_enable)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bokeh_max_size)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bokeh_threshold)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(bloom_enable)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bloom_threshold)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bloom_knee)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bloom_radius)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bloom_intensity)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(motion_blur_enable)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(motion_blur_samples)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(motion_blur_shutter)
 
 /* object engine */
 RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
@@ -6105,6 +6135,113 @@ static void rna_def_scene_layer_engine_settings_clay(BlenderRNA *brna)
 }
 #endif /* WITH_CLAY_ENGINE */
 
+static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "SceneLayerEngineSettingsEevee", "SceneLayerSettings");
+	RNA_def_struct_ui_text(srna, "Eevee Scene Layer Settings", "Eevee Engine settings");
+
+	RNA_define_verify_sdna(0); /* not in sdna */
+
+	/* see RNA_LAYER_ENGINE_GET_SET macro */
+	/* Depth of Field */
+	prop = RNA_def_property(srna, "dof_enable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_dof_enable_get",
+	                               "rna_LayerEngineSettings_Eevee_dof_enable_set");
+	RNA_def_property_ui_text(prop, "Enable Depth of Field", "Enable depth of field using the values from the active camera");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "bokeh_max_size", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_bokeh_max_size_get",
+	                             "rna_LayerEngineSettings_Eevee_bokeh_max_size_set", NULL);
+	RNA_def_property_ui_text(prop, "Max Size", "Max size of the bokeh shape for the depth of field (lower values increase performance)");
+	RNA_def_property_range(prop, 0.0f, 2000.0f);
+	RNA_def_property_ui_range(prop, 2.0f, 200.0f, 1, 3);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "bokeh_threshold", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_bokeh_threshold_get",
+	                             "rna_LayerEngineSettings_Eevee_bokeh_threshold_set", NULL);
+	RNA_def_property_ui_text(prop, "Sprite Threshold", "Brightness threshold for using sprite base depth of field");
+	RNA_def_property_range(prop, 0.0f, 100000.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	/* Bloom */
+	prop = RNA_def_property(srna, "bloom_enable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_bloom_enable_get",
+	                               "rna_LayerEngineSettings_Eevee_bloom_enable_set");
+	RNA_def_property_ui_text(prop, "Enable Bloom", "High brighness pixels generate a glowing effect");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "bloom_threshold", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_bloom_threshold_get",
+	                             "rna_LayerEngineSettings_Eevee_bloom_threshold_set", NULL);
+	RNA_def_property_ui_text(prop, "Threshold", "Filters out pixels under this level of brightness");
+	RNA_def_property_range(prop, 0.0f, 100000.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "bloom_knee", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_bloom_knee_get",
+	                             "rna_LayerEngineSettings_Eevee_bloom_knee_set", NULL);
+	RNA_def_property_ui_text(prop, "Knee", "Makes transition between under/over-threshold gradual");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "bloom_radius", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_bloom_radius_get",
+	                             "rna_LayerEngineSettings_Eevee_bloom_radius_set", NULL);
+	RNA_def_property_ui_text(prop, "Radius", "Bloom spread distance");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "bloom_intensity", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_bloom_intensity_get",
+	                             "rna_LayerEngineSettings_Eevee_bloom_intensity_set", NULL);
+	RNA_def_property_ui_text(prop, "Intensity", "Blend factor");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	/* Motion blur */
+	prop = RNA_def_property(srna, "motion_blur_enable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_motion_blur_enable_get",
+	                               "rna_LayerEngineSettings_Eevee_motion_blur_enable_set");
+	RNA_def_property_ui_text(prop, "Enable Motion Blur", "Enable motion blur effect (only in camera view)");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_motion_blur_samples_get",
+	                           "rna_LayerEngineSettings_Eevee_motion_blur_samples_set", NULL);
+	RNA_def_property_ui_text(prop, "Samples", "Number of samples to take with motion blur");
+	RNA_def_property_range(prop, 1, 64);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "motion_blur_shutter", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_motion_blur_shutter_get",
+	                             "rna_LayerEngineSettings_Eevee_motion_blur_shutter_set", NULL);
+	RNA_def_property_ui_text(prop, "Shutter", "Time taken in frames between shutter open and close");
+	RNA_def_property_ui_range(prop, 0.01f, 2.0f, 1, 2);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	RNA_define_verify_sdna(1); /* not in sdna */
+}
+
 #ifdef WITH_CLAY_ENGINE
 static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 {
@@ -6387,6 +6524,7 @@ static void rna_def_scene_layer_settings(BlenderRNA *brna)
 #ifdef WITH_CLAY_ENGINE
 	rna_def_scene_layer_engine_settings_clay(brna);
 #endif
+	rna_def_scene_layer_engine_settings_eevee(brna);
 
 #if 0
 	rna_def_scene_layer_mode_settings_object(brna);

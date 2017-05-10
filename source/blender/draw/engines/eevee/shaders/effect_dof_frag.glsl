@@ -10,10 +10,12 @@ uniform vec3 dofParams;
 #define dof_distance        dofParams.y
 #define dof_invsensorsize   dofParams.z
 
-uniform vec3 bokehParams;
+uniform vec4 bokehParams;
 
 #define bokeh_sides         bokehParams.x /* Polygon Bokeh shape number of sides */
 #define bokeh_rotation      bokehParams.y
+#define bokeh_ratio         bokehParams.z
+#define bokeh_maxsize       bokehParams.w
 
 uniform vec2 nearFar; /* Near & far view depths values */
 

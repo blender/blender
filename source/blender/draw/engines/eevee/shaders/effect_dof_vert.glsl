@@ -4,6 +4,13 @@ in vec2 uvs;
 
 uniform vec2 layerSelection;
 
+uniform vec4 bokehParams;
+
+#define bokeh_sides         bokehParams.x /* Polygon Bokeh shape number of sides */
+#define bokeh_rotation      bokehParams.y
+#define bokeh_ratio         bokehParams.z
+#define bokeh_maxsize       bokehParams.w
+
 uniform sampler2D colorBuffer;
 uniform sampler2D cocBuffer;
 
@@ -28,7 +35,7 @@ void step_scatter()
 	float coc = dot(layerSelection, texelFetch(cocBuffer, texelco, 0).rg);
 
 	/* Clamp to max size for performance */
-	coc = min(coc, 100.0);
+	coc = min(coc, bokeh_maxsize);
 
 	if (coc >= 1.0) {
 		color = texelFetch(colorBuffer, texelco, 0);

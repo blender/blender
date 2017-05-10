@@ -30,11 +30,13 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_camera.h"
 #include "BKE_object.h"
 #include "BKE_animsys.h"
+#include "BKE_screen.h"
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
@@ -81,9 +83,12 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 	EEVEE_EffectsInfo *effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	SceneLayer *scene_layer = draw_ctx->sl;
 	Scene *scene = draw_ctx->scene;
 	View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;
+	ARegion *ar = draw_ctx->ar;
+	IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
 	const float *viewport_size = DRW_viewport_size_get();
 
@@ -131,27 +136,58 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 	effects->enabled_effects = 0;
 
 #if ENABLE_EFFECT_MOTION_BLUR
-	{
+	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable")) {
 		/* Update Motion Blur Matrices */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 			float ctime = BKE_scene_frame_get(scene);
-			float past_obmat[4][4], future_obmat[4][4], winmat[4][4];
-
-			DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
+			float delta = BKE_collection_engine_property_value_get_float(props, "motion_blur_shutter");
+			float past_obmat[4][4], future_obmat[4][4];
 
 			/* HACK */
-			Object cam_cpy;
+			Object cam_cpy; Camera camdata_cpy;
 			memcpy(&cam_cpy, v3d->camera, sizeof(cam_cpy));
+			memcpy(&camdata_cpy, v3d->camera->data, sizeof(camdata_cpy));
+			cam_cpy.data = &camdata_cpy;
 
 			/* Past matrix */
 			/* FIXME : This is a temporal solution that does not take care of parent animations */
 			/* Recalc Anim manualy */
-			BKE_animsys_evaluate_animdata(scene, &cam_cpy.id, cam_cpy.adt, ctime - 1.0, ADT_RECALC_ANIM);
-			BKE_object_where_is_calc_time(scene, &cam_cpy, ctime - 1.0);
+			BKE_animsys_evaluate_animdata(scene, &cam_cpy.id, cam_cpy.adt, ctime - delta, ADT_RECALC_ALL);
+			BKE_animsys_evaluate_animdata(scene, &camdata_cpy.id, camdata_cpy.adt, ctime - delta, ADT_RECALC_ALL);
+			BKE_object_where_is_calc_time(scene, &cam_cpy, ctime - delta);
 
+			/* Compute winmat */
+			CameraParams params;
+			BKE_camera_params_init(&params);
+
+			/* copy of BKE_camera_params_from_view3d */
+			{
+				params.lens = v3d->lens;
+				params.clipsta = v3d->near;
+				params.clipend = v3d->far;
+
+				/* camera view */
+				BKE_camera_params_from_object(&params, &cam_cpy);
+
+				params.zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
+
+				params.offsetx = 2.0f * rv3d->camdx * params.zoom;
+				params.offsety = 2.0f * rv3d->camdy * params.zoom;
+
+				params.shiftx *= params.zoom;
+				params.shifty *= params.zoom;
+
+				params.zoom = CAMERA_PARAM_ZOOM_INIT_CAMOB / params.zoom;
+			}
+
+			BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
+			BKE_camera_params_compute_matrix(&params);
+
+			/* FIXME Should be done per view (MULTIVIEW) */
 			normalize_m4_m4(past_obmat, cam_cpy.obmat);
 			invert_m4(past_obmat);
-			mul_m4_m4m4(effects->past_world_to_ndc, winmat, past_obmat);
+			mul_m4_m4m4(effects->past_world_to_ndc, params.winmat, past_obmat);
+
 
 #if 0       /* for future high quality blur */
 			/* Future matrix */
@@ -169,14 +205,14 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			/* Current matrix */
 			DRW_viewport_matrix_get(effects->current_ndc_to_world, DRW_MAT_PERSINV);
 
-			effects->blur_amount = 0.5f;
+			effects->motion_blur_samples = BKE_collection_engine_property_value_get_int(props, "motion_blur_samples");
 			effects->enabled_effects |= EFFECT_MOTION_BLUR;
 		}
 	}
 #endif /* ENABLE_EFFECT_MOTION_BLUR */
 
 #if ENABLE_EFFECT_BLOOM
-	{
+	if (BKE_collection_engine_property_value_get_bool(props, "bloom_enable")) {
 		/* Bloom */
 		int blitsize[2], texsize[2];
 
@@ -196,11 +232,10 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		                    &tex_blit, 1);
 
 		/* Parameters */
-		/* TODO UI Options */
-		float threshold = 0.8f;
-		float knee = 0.5f;
-		float intensity = 0.8f;
-		float radius = 8.5f;
+		float threshold = BKE_collection_engine_property_value_get_float(props, "bloom_threshold");
+		float knee = BKE_collection_engine_property_value_get_float(props, "bloom_knee");
+		float intensity = BKE_collection_engine_property_value_get_float(props, "bloom_intensity");
+		float radius = BKE_collection_engine_property_value_get_float(props, "bloom_radius");
 
 		/* determine the iteration count */
 		const float minDim = (float)MIN2(blitsize[0], blitsize[1]);
@@ -212,7 +247,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		effects->bloom_sample_scale = 0.5f + maxIter - (float)maxIterInt;
 		effects->bloom_curve_threshold[0] = threshold - knee;
 		effects->bloom_curve_threshold[1] = knee * 2.0f;
-		effects->bloom_curve_threshold[2] = 0.25f / knee;
+		effects->bloom_curve_threshold[2] = 0.25f / max_ff(1e-5f, knee);
 		effects->bloom_curve_threshold[3] = threshold;
 		effects->bloom_intensity = intensity;
 
@@ -250,7 +285,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 #endif /* ENABLE_EFFECT_BLOOM */
 
 #if ENABLE_EFFECT_DOF
-	{
+	if (BKE_collection_engine_property_value_get_bool(props, "dof_enable")) {
 		/* Depth Of Field */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 			Camera *cam = (Camera *)v3d->camera->data;
@@ -302,6 +337,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			effects->dof_bokeh[0] = blades;
 			effects->dof_bokeh[1] = rotation;
 			effects->dof_bokeh[2] = ratio;
+			effects->dof_bokeh[3] = BKE_collection_engine_property_value_get_float(props, "bokeh_max_size");
 
 			effects->enabled_effects |= EFFECT_DOF;
 		}
@@ -351,7 +387,7 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 		psl->motion_blur = DRW_pass_create("Motion Blur", DRW_STATE_WRITE_COLOR);
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.motion_blur_sh, psl->motion_blur);
-		DRW_shgroup_uniform_float(grp, "blurAmount", &effects->blur_amount, 1);
+		DRW_shgroup_uniform_int(grp, "samples", &effects->motion_blur_samples, 1);
 		DRW_shgroup_uniform_mat4(grp, "currInvViewProjMatrix", (float *)effects->current_ndc_to_world);
 		DRW_shgroup_uniform_mat4(grp, "pastViewProjMatrix", (float *)effects->past_world_to_ndc);
 		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer);
@@ -432,7 +468,7 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->unf_source_buffer);
 		DRW_shgroup_uniform_buffer(grp, "cocBuffer", &txl->dof_coc);
 		DRW_shgroup_uniform_vec2(grp, "layerSelection", effects->dof_layer_select, 1);
-		DRW_shgroup_uniform_vec3(grp, "bokehParams", effects->dof_bokeh, 1);
+		DRW_shgroup_uniform_vec4(grp, "bokehParams", effects->dof_bokeh, 1);
 
 		psl->dof_resolve = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR);
 

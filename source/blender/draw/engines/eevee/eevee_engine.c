@@ -731,7 +731,20 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-	UNUSED_VARS_NDEBUG(props);
+
+	BKE_collection_engine_property_add_bool(props, "dof_enable", false);
+	BKE_collection_engine_property_add_float(props, "bokeh_max_size", 100.0f);
+	BKE_collection_engine_property_add_float(props, "bokeh_threshold", 1.0f);
+
+	BKE_collection_engine_property_add_bool(props, "bloom_enable", false);
+	BKE_collection_engine_property_add_float(props, "bloom_threshold", 0.8f);
+	BKE_collection_engine_property_add_float(props, "bloom_knee", 0.5f);
+	BKE_collection_engine_property_add_float(props, "bloom_intensity", 0.8f);
+	BKE_collection_engine_property_add_float(props, "bloom_radius", 6.5f);
+
+	BKE_collection_engine_property_add_bool(props, "motion_blur_enable", false);
+	BKE_collection_engine_property_add_int(props, "motion_blur_samples", 8);
+	BKE_collection_engine_property_add_float(props, "motion_blur_shutter", 1.0f);
 }
 
 static const DrawEngineDataSize EEVEE_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);
