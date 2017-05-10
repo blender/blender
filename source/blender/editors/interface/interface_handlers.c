@@ -7007,7 +7007,8 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		}
 
 		/* Set the operator pointer for python access */
-		uiLayoutSetContextPointer(layout,"button_operator", but->opptr);
+		if (but->opptr)
+			uiLayoutSetContextPointer(layout,"button_operator", but->opptr);
 
 		uiItemS(layout);
 	}

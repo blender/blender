@@ -42,7 +42,7 @@ def draw_color_balance(layout, color_balance):
     col.label(text="Lift:")
     col.separator()
     col.separator()
-    col.prop(color_balance, "lift")
+    col.prop(color_balance, "")
     col.prop(color_balance, "invert_lift", text="Invert", icon="ARROW_LEFTRIGHT")
     split.template_color_picker(color_balance, "lift", value_slider=True,  cubic=True)
 
@@ -52,7 +52,7 @@ def draw_color_balance(layout, color_balance):
     col.label(text="Gamma:")
     col.separator()
     col.separator()
-    col.prop(color_balance, "gamma")
+    col.prop(color_balance, "")
     col.prop(color_balance, "invert_gamma", text="Invert", icon="ARROW_LEFTRIGHT")
     split.template_color_picker(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
 
@@ -62,7 +62,7 @@ def draw_color_balance(layout, color_balance):
     col.label(text="Gain:")
     col.separator()
     col.separator()
-    col.prop(color_balance, "gain", text="Gain")
+    col.prop(color_balance, "gain", text="")
     col.prop(color_balance, "invert_gain", text="Invert", icon="ARROW_LEFTRIGHT")
     split.template_color_picker(color_balance, "gain", value_slider=True, lock_luminosity=True, cubic=True)
 
@@ -509,7 +509,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         frame_current = scene.frame_current
         strip = act_strip(context)
 
-        split = layout.split(percentage=0.25, align=True)
+        split = layout.split(percentage=0.25)
         split.label(text="Name:")
         split.prop(strip, "name", text="")
 
@@ -532,15 +532,17 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
             row = layout.row()
             row.prop(strip, "mute", toggle=True, icon_only=True, icon='MUTE_IPO_OFF')
 
-        col = layout.column()
-        col.enabled = not strip.lock
-        sub = col.row(align=True)
 
-        sub = col.column(align=True)
-        row = sub.row(align=True)
-        row.prop(strip, "channel")
+        col = layout.column(align=True)
+        row = col.row(align=True)
+
+        row_sub = row.row(align=True)
+        row_sub.enabled = not strip.lock
+        row_sub.prop(strip, "channel")
         row.prop(strip, "lock", toggle=True, icon_only=True)
 
+        sub = col.column(align=True)
+        sub.enabled = not strip.lock
         sub.prop(strip, "frame_start")
         sub.prop(strip, "frame_final_duration")
 
