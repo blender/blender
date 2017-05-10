@@ -781,7 +781,13 @@ void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, s
 		return;
 	}
 
-	if (scene->nodetree) {
-		ntreeCompositRegisterPass(scene->nodetree, scene, srl, name, type);
+	/* Register the pass in all scenes that have a render layer node for this layer.
+	 * Since multiple scenes can be used in the compositor, the code must loop over all scenes
+	 * and check whether their nodetree has a node that needs to be updated. */
+	Scene *sce;
+	for (sce = G.main->scene.first; sce; sce = sce->id.next) {
+		if (sce->nodetree) {
+			ntreeCompositRegisterPass(sce->nodetree, scene, srl, name, type);
+		}
 	}
 }
