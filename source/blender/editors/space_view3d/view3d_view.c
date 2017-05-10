@@ -451,7 +451,7 @@ void ED_view3d_smooth_view_force_finish(
 		/* force update of view matrix so tools that run immediately after
 		 * can use them without redrawing first */
 		Scene *scene = CTX_data_scene(C);
-		ED_view3d_update_viewmat(scene, v3d, ar, NULL, NULL);
+		ED_view3d_update_viewmat(scene, v3d, ar, NULL, NULL, NULL);
 	}
 }
 

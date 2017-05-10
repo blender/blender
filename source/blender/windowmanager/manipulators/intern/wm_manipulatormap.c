@@ -295,7 +295,6 @@ static int manipulator_find_intersected_3D_intern(
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = sa->spacedata.first;
-	RegionView3D *rv3d = ar->regiondata;
 	rcti rect;
 	GLuint buffer[64];      // max 4 items per select, so large enuf
 	short hits;
@@ -308,8 +307,7 @@ static int manipulator_find_intersected_3D_intern(
 	rect.ymin = co[1] - hotspot;
 	rect.ymax = co[1] + hotspot;
 
-	view3d_winmatrix_set(ar, v3d, &rect);
-	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
+	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_scene(C), ar, v3d, NULL, NULL, &rect);
 
 	if (do_passes)
 		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
@@ -326,8 +324,7 @@ static int manipulator_find_intersected_3D_intern(
 		GPU_select_end();
 	}
 
-	view3d_winmatrix_set(ar, v3d, NULL);
-	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
+	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_scene(C), ar, v3d, NULL, NULL, NULL);
 
 	return hits > 0 ? buffer[3] : -1;
 }

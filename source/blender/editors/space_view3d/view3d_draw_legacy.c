@@ -1180,7 +1180,7 @@ void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	bool zbuf = v3d->zbuf;
 
 	/* Setup view matrix. */
-	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, NULL, NULL);
+	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, NULL, NULL, NULL);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 

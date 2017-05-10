@@ -363,7 +363,7 @@ void ED_view3d_draw_offscreen(
         struct GPUOffScreen *ofs);
 void ED_view3d_draw_setup_view(
         struct wmWindow *win, struct Scene *scene, struct ARegion *ar, struct View3D *v3d,
-        float viewmat[4][4], float winmat[4][4]);
+        float viewmat[4][4], float winmat[4][4], const struct rcti *rect);
 
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(
         struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey,
@@ -378,7 +378,9 @@ struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 
 struct BaseLegacy *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, bool do_clip);
-void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4]);
+void ED_view3d_update_viewmat(
+        struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
+        float viewmat[4][4], float winmat[4][4], const struct rcti *rect);
 bool ED_view3d_quat_from_axis_view(const char view, float quat[4]);
 char ED_view3d_quat_to_axis_view(const float quat[4], const float epsilon);
 char ED_view3d_lock_view_from_index(int index);
