@@ -1171,8 +1171,7 @@ int view3d_opengl_select(
 
 	G.f |= G_PICKSEL;
 
-	view3d_winmatrix_set(ar, v3d, &rect);
-	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->winmat, vc->rv3d->viewmat);
+	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, NULL, NULL, &rect);
 	
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
@@ -1216,8 +1215,7 @@ int view3d_opengl_select(
 	}
 
 	G.f &= ~G_PICKSEL;
-	view3d_winmatrix_set(ar, v3d, NULL);
-	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->winmat, vc->rv3d->viewmat);
+	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, NULL, NULL, NULL);
 	
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = 0;
