@@ -45,15 +45,6 @@ struct GHash;
 struct Main;
 struct Scene;
 
-#ifdef UNIT_TEST
-#define RNA_MAX_ARRAY_LENGTH 64
-#else
-#define RNA_MAX_ARRAY_LENGTH 32
-#endif
-
-#define RNA_MAX_ARRAY_DIMENSION 3
-
-
 /* store local properties here */
 #define RNA_IDP_UI "_RNA_UI"
 

@@ -353,11 +353,21 @@ static int use_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	}
 
+	int array_len = RNA_property_array_length(&scene_props_ptr, prop);
+	bool is_array = array_len != 0;
+
 	switch (RNA_property_type(prop)) {
 		case PROP_FLOAT:
 		{
-			float value = RNA_property_float_get(&scene_props_ptr, prop);
-			BKE_collection_engine_property_add_float(props, identifier, value);
+			if (is_array) {
+				float values[RNA_MAX_ARRAY_LENGTH];
+				RNA_property_float_get_array(&scene_props_ptr, prop, values);
+				BKE_collection_engine_property_add_float_array(props, identifier, values, array_len);
+			}
+			else {
+				float value = RNA_property_float_get(&scene_props_ptr, prop);
+				BKE_collection_engine_property_add_float(props, identifier, value);
+			}
 			break;
 		}
 		case PROP_ENUM:
