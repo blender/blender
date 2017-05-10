@@ -1690,9 +1690,16 @@ struct DRWTextStore *DRW_text_cache_ensure(void)
 bool DRW_object_is_renderable(Object *ob)
 {
 	Scene *scene = DST.draw_ctx.scene;
+	SceneLayer *sl = DST.draw_ctx.sl;
 	Object *obedit = scene->obedit;
+	Object *obact = OBACT_NEW;
 
 	if (ob->type == OB_MESH) {
+		if (ob == obact) {
+			if (ob->mode & OB_MODE_SCULPT) {
+				return false;
+			}
+		}
 		if (ob == obedit) {
 			IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
 			bool do_show_occlude_wire = BKE_collection_engine_property_value_get_bool(props, "show_occlude_wire");

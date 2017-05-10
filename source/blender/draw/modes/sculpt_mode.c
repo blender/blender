@@ -26,8 +26,14 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "DNA_object_types.h"
+
+#include "BKE_pbvh.h"
+#include "BKE_paint.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
+#include "GPU_matrix.h"
 
 #include "draw_common.h"
 
@@ -192,7 +198,7 @@ static void SCULPT_cache_finish(void *vedata)
 /* Draw time ! Control rendering pipeline from here */
 static void SCULPT_draw_scene(void *vedata)
 {
-	SCULPT_PassList *psl = ((SCULPT_Data *)vedata)->psl;
+//	SCULPT_PassList *psl = ((SCULPT_Data *)vedata)->psl;
 	SCULPT_FramebufferList *fbl = ((SCULPT_Data *)vedata)->fbl;
 
 	/* Default framebuffer and texture */
@@ -211,7 +217,21 @@ static void SCULPT_draw_scene(void *vedata)
 	 */
 
 	/* ... or just render passes on default framebuffer. */
-	DRW_draw_pass(psl->pass);
+//	DRW_draw_pass(psl->pass);
+
+	{
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		SceneLayer *sl = draw_ctx->sl;
+		Object *ob = OBACT_NEW;
+
+		PBVH *pbvh = ob->sculpt->pbvh;
+
+		/* this shader is used inside draw call */
+		gpuPushMatrix();
+		gpuMultMatrix(ob->obmat);
+		BKE_pbvh_draw(pbvh, NULL, NULL, NULL, false, false);
+		gpuPopMatrix();
+	}
 
 	/* If you changed framebuffer, double check you rebind
 	 * the default one with its textures attached before finishing */
