@@ -1104,6 +1104,9 @@ void GPU_update_mesh_pbvh_buffers(
 
 		copy_v4_v4(buffers->diffuse_color, diffuse_color);
 
+		uchar diffuse_color_ub[4];
+		rgba_float_to_uchar(diffuse_color_ub, diffuse_color);
+
 		/* Build VBO */
 		VERTEXBUFFER_DISCARD_SAFE(buffers->vert_buf);
 
@@ -1129,16 +1132,16 @@ void GPU_update_mesh_pbvh_buffers(
 				for (uint i = 0; i < buffers->face_indices_len; i++) {
 					const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
 					for (uint j = 0; j < 3; j++) {
-						int v_orig = buffers->mloop[lt->tri[j]].v;
-						int v_index = face_vert_indices[i][j];
-						uchar color_ub[3];
+						int vidx = face_vert_indices[i][j];
 						if (vmask) {
-							gpu_color_from_mask_copy(vmask[v_orig], diffuse_color, color_ub);
+							int v_index = buffers->mloop[lt->tri[j]].v;
+							uchar color_ub[3];
+							gpu_color_from_mask_copy(vmask[v_index], diffuse_color, color_ub);
+							VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, vidx, color_ub);
 						}
 						else {
-							rgb_float_to_uchar(color_ub, diffuse_color);
+							VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, vidx, diffuse_color_ub);
 						}
-						VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, v_index, color_ub);
 					}
 				}
 			}
@@ -1156,8 +1159,6 @@ void GPU_update_mesh_pbvh_buffers(
 					    buffers->mloop[lt->tri[2]].v,
 					};
 
-					float fmask;
-
 					if (paint_is_face_hidden(lt, mvert, buffers->mloop))
 						continue;
 
@@ -1170,10 +1171,13 @@ void GPU_update_mesh_pbvh_buffers(
 						mpoly_prev = lt->poly;
 					}
 
+					uchar color_ub[3];
 					if (vmask) {
-						fmask = (vmask[vtri[0]] +
-						         vmask[vtri[1]] +
-						         vmask[vtri[2]]) / 3.0f;
+						float fmask = (vmask[vtri[0]] + vmask[vtri[1]] + vmask[vtri[2]]) / 3.0f;
+						gpu_color_from_mask_copy(fmask, diffuse_color, color_ub);
+					}
+					else {
+						copy_v3_v3_uchar(color_ub, diffuse_color_ub);
 					}
 
 					for (uint j = 0; j < 3; j++) {
@@ -1181,13 +1185,6 @@ void GPU_update_mesh_pbvh_buffers(
 
 						VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.pos, vbo_index, v->co);
 						VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.nor, vbo_index, no);
-
-						uchar color_ub[3]; \
-						if (vmask)
-							gpu_color_from_mask_copy(fmask, diffuse_color, color_ub);
-						else
-							rgb_float_to_uchar(color_ub, diffuse_color);
-
 						VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
 
 						vbo_index++;
