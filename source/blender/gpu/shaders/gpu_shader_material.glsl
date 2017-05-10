@@ -3813,13 +3813,21 @@ void node_light_path(
 	out float transparent_depth,
 	out float transmission_depth)
 {
+#ifndef PROBE_CAPTURE
 	is_camera_ray = 1.0;
-	is_shadow_ray = 0.0;
-	is_diffuse_ray = 0.0;
 	is_glossy_ray = 0.0;
-	is_singular_ray = 0.0;
+	is_diffuse_ray = 0.0;
 	is_reflection_ray = 0.0;
 	is_transmission_ray = 0.0;
+#else
+	is_camera_ray = 0.0;
+	is_glossy_ray = 1.0;
+	is_diffuse_ray = 1.0;
+	is_reflection_ray = 1.0;
+	is_transmission_ray = 1.0;
+#endif
+	is_shadow_ray = 0.0;
+	is_singular_ray = 0.0;
 	ray_length = 1.0;
 	ray_depth = 1.0;
 	diffuse_depth = 1.0;
