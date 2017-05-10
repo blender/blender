@@ -1333,6 +1333,18 @@ void BKE_collection_engine_property_add_float(IDProperty *props, const char *nam
 	IDP_AddToGroup(props, IDP_New(IDP_FLOAT, &val, name));
 }
 
+void BKE_collection_engine_property_add_float_array(
+        IDProperty *props, const char *name, const float *values, const int array_length)
+{
+	IDPropertyTemplate val = {0};
+	val.array.len = array_length;
+	val.array.type = IDP_FLOAT;
+
+	IDProperty *idprop= IDP_New(IDP_ARRAY, &val, name);
+	memcpy(IDP_Array(idprop), values, sizeof(float) * idprop->len);
+	IDP_AddToGroup(props, idprop);
+}
+
 void BKE_collection_engine_property_add_int(IDProperty *props, const char *name, int value)
 {
 	IDPropertyTemplate val = {0};
@@ -1359,6 +1371,12 @@ float BKE_collection_engine_property_value_get_float(IDProperty *props, const ch
 	return idprop ? IDP_Float(idprop) : 0.0f;
 }
 
+const float *BKE_collection_engine_property_value_get_float_array(IDProperty *props, const char *name)
+{
+	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
+	return idprop ? IDP_Array(idprop) : NULL;
+}
+
 bool BKE_collection_engine_property_value_get_bool(IDProperty *props, const char *name)
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
@@ -1375,6 +1393,12 @@ void BKE_collection_engine_property_value_set_float(IDProperty *props, const cha
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
 	IDP_Float(idprop) = value;
+}
+
+void BKE_collection_engine_property_value_set_float_array(IDProperty *props, const char *name, const float *values)
+{
+	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
+	memcpy(IDP_Array(idprop), values, sizeof(float) * idprop->len);
 }
 
 void BKE_collection_engine_property_value_set_bool(IDProperty *props, const char *name, bool value)

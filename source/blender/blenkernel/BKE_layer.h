@@ -129,14 +129,18 @@ void BKE_scene_layer_engine_settings_validate_layer(struct SceneLayer *sl);
 void BKE_scene_layer_engine_settings_create(struct IDProperty *root);
 
 void BKE_collection_engine_property_add_float(struct IDProperty *props, const char *name, float value);
+void BKE_collection_engine_property_add_float_array(
+        struct IDProperty *props, const char *name, const float *values, const int array_length);
 void BKE_collection_engine_property_add_int(struct IDProperty *props, const char *name, int value);
 void BKE_collection_engine_property_add_bool(struct IDProperty *props, const char *name, bool value);
 
 int BKE_collection_engine_property_value_get_int(struct IDProperty *props, const char *name);
 float BKE_collection_engine_property_value_get_float(struct IDProperty *props, const char *name);
+const float *BKE_collection_engine_property_value_get_float_array(struct IDProperty *props, const char *name);
 bool BKE_collection_engine_property_value_get_bool(struct IDProperty *props, const char *name);
 void BKE_collection_engine_property_value_set_int(struct IDProperty *props, const char *name, int value);
 void BKE_collection_engine_property_value_set_float(struct IDProperty *props, const char *name, float value);
+void BKE_collection_engine_property_value_set_float_array(struct IDProperty *props, const char *name, const float *values);
 void BKE_collection_engine_property_value_set_bool(struct IDProperty *props, const char *name, bool value);
 
 /* evaluation */
