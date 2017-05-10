@@ -1129,7 +1129,13 @@ void DepsgraphRelationBuilder::build_world(World *world)
 	build_texture_stack(world->mtex);
 
 	/* world's nodetree */
-	build_nodetree(world->nodetree);
+	if (world->nodetree != NULL) {
+		build_nodetree(world->nodetree);
+		ComponentKey ntree_key(&world->nodetree->id, DEPSNODE_TYPE_PARAMETERS);
+		ComponentKey world_key(world_id, DEPSNODE_TYPE_PARAMETERS);
+		add_relation(ntree_key, world_key,
+		             DEPSREL_TYPE_COMPONENT_ORDER, "NTree->World Parameters");
+	}
 }
 
 void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
