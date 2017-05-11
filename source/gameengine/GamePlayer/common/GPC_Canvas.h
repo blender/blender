@@ -40,7 +40,7 @@
 #  include <windows.h>
 #endif  /* WIN32 */
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 #include <map>
 

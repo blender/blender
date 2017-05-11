@@ -30,7 +30,7 @@
  *  \ingroup ketsji
  */
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 #ifdef _MSC_VER
 #  pragma warning (disable:4786)

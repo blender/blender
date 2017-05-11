@@ -27,7 +27,7 @@
 
 #include "RAS_StorageVA.h"
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 RAS_StorageVA::RAS_StorageVA(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib, int *attrib_layer) :
 	m_drawingmode(RAS_IRasterizer::KX_TEXTURED),

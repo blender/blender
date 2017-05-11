@@ -40,7 +40,7 @@
 
 #include "FilterBase.h"
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 // forward declarations
 struct PyImage;
