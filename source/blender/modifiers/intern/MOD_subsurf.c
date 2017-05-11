@@ -157,6 +157,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		result = cddm;
 	}
 
+#if defined(WITH_GL_PROFILE_CORE) && !defined(WITH_OPESUBDIV)
+	(void) do_cddm_convert;
+#endif
+
 	return result;
 }
 
