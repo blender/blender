@@ -75,6 +75,57 @@ extern char datatoc_effect_dof_geom_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
 
+static void eevee_motion_blur_camera_get_matrix_at_time(
+        Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, Object *camera, float time, float r_mat[4][4])
+{
+	float obmat[4][4];
+
+	/* HACK */
+	Object cam_cpy; Camera camdata_cpy;
+	memcpy(&cam_cpy, camera, sizeof(cam_cpy));
+	memcpy(&camdata_cpy, camera->data, sizeof(camdata_cpy));
+	cam_cpy.data = &camdata_cpy;
+
+	/* Past matrix */
+	/* FIXME : This is a temporal solution that does not take care of parent animations */
+	/* Recalc Anim manualy */
+	BKE_animsys_evaluate_animdata(scene, &cam_cpy.id, cam_cpy.adt, time, ADT_RECALC_ALL);
+	BKE_animsys_evaluate_animdata(scene, &camdata_cpy.id, camdata_cpy.adt, time, ADT_RECALC_ALL);
+	BKE_object_where_is_calc_time(scene, &cam_cpy, time);
+
+	/* Compute winmat */
+	CameraParams params;
+	BKE_camera_params_init(&params);
+
+	/* copy of BKE_camera_params_from_view3d */
+	{
+		params.lens = v3d->lens;
+		params.clipsta = v3d->near;
+		params.clipend = v3d->far;
+
+		/* camera view */
+		BKE_camera_params_from_object(&params, &cam_cpy);
+
+		params.zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
+
+		params.offsetx = 2.0f * rv3d->camdx * params.zoom;
+		params.offsety = 2.0f * rv3d->camdy * params.zoom;
+
+		params.shiftx *= params.zoom;
+		params.shifty *= params.zoom;
+
+		params.zoom = CAMERA_PARAM_ZOOM_INIT_CAMOB / params.zoom;
+	}
+
+	BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
+	BKE_camera_params_compute_matrix(&params);
+
+	/* FIXME Should be done per view (MULTIVIEW) */
+	normalize_m4_m4(obmat, cam_cpy.obmat);
+	invert_m4(obmat);
+	mul_m4_m4m4(r_mat, params.winmat, obmat);
+}
+
 void EEVEE_effects_init(EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
@@ -141,69 +192,18 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 			float ctime = BKE_scene_frame_get(scene);
 			float delta = BKE_collection_engine_property_value_get_float(props, "motion_blur_shutter");
-			float past_obmat[4][4], future_obmat[4][4];
-
-			/* HACK */
-			Object cam_cpy; Camera camdata_cpy;
-			memcpy(&cam_cpy, v3d->camera, sizeof(cam_cpy));
-			memcpy(&camdata_cpy, v3d->camera->data, sizeof(camdata_cpy));
-			cam_cpy.data = &camdata_cpy;
 
 			/* Past matrix */
-			/* FIXME : This is a temporal solution that does not take care of parent animations */
-			/* Recalc Anim manualy */
-			BKE_animsys_evaluate_animdata(scene, &cam_cpy.id, cam_cpy.adt, ctime - delta, ADT_RECALC_ALL);
-			BKE_animsys_evaluate_animdata(scene, &camdata_cpy.id, camdata_cpy.adt, ctime - delta, ADT_RECALC_ALL);
-			BKE_object_where_is_calc_time(scene, &cam_cpy, ctime - delta);
-
-			/* Compute winmat */
-			CameraParams params;
-			BKE_camera_params_init(&params);
-
-			/* copy of BKE_camera_params_from_view3d */
-			{
-				params.lens = v3d->lens;
-				params.clipsta = v3d->near;
-				params.clipend = v3d->far;
-
-				/* camera view */
-				BKE_camera_params_from_object(&params, &cam_cpy);
-
-				params.zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
-
-				params.offsetx = 2.0f * rv3d->camdx * params.zoom;
-				params.offsety = 2.0f * rv3d->camdy * params.zoom;
-
-				params.shiftx *= params.zoom;
-				params.shifty *= params.zoom;
-
-				params.zoom = CAMERA_PARAM_ZOOM_INIT_CAMOB / params.zoom;
-			}
-
-			BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
-			BKE_camera_params_compute_matrix(&params);
-
-			/* FIXME Should be done per view (MULTIVIEW) */
-			normalize_m4_m4(past_obmat, cam_cpy.obmat);
-			invert_m4(past_obmat);
-			mul_m4_m4m4(effects->past_world_to_ndc, params.winmat, past_obmat);
-
+			eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime - delta, effects->past_world_to_ndc);
 
 #if 0       /* for future high quality blur */
 			/* Future matrix */
-			/* Recalc Anim manualy */
-			BKE_animsys_evaluate_animdata(scene, &cam_cpy.id, cam_cpy.adt, ctime + 1.0, ADT_RECALC_ANIM);
-			BKE_object_where_is_calc_time(scene, &cam_cpy, ctime + 1.0);
-
-			normalize_m4_m4(past_obmat, cam_cpy.obmat);
-			invert_m4(past_obmat);
-			mul_m4_m4m4(effects->past_world_to_ndc, winmat, past_obmat);
-#else
-			UNUSED_VARS(future_obmat);
+			eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime + delta, effects->future_world_to_ndc);
 #endif
 
 			/* Current matrix */
-			DRW_viewport_matrix_get(effects->current_ndc_to_world, DRW_MAT_PERSINV);
+			eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime, effects->current_ndc_to_world);
+			invert_m4(effects->current_ndc_to_world);
 
 			effects->motion_blur_samples = BKE_collection_engine_property_value_get_int(props, "motion_blur_samples");
 			effects->enabled_effects |= EFFECT_MOTION_BLUR;
