@@ -24,7 +24,7 @@
  *  \ingroup bgerast
  */
 
-#define STRINGIFY(A)  #A
+#include "BLI_utildefines.h"
 
 #include "RAS_OpenGLFilters/RAS_Blur2DFilter.h"
 #include "RAS_OpenGLFilters/RAS_Sharpen2DFilter.h"
