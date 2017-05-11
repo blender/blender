@@ -615,6 +615,58 @@ class RENDER_PT_clay_collection_settings(RenderButtonsPanel, Panel):
         col.prop(props, "ssao_distance")
         col.prop(props, "ssao_attenuation")
 
+class RENDER_PT_eevee_poststack_settings(RenderButtonsPanel, Panel):
+    bl_label = "Post Process Stack"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.prop(props, "motion_blur_enable")
+        col.prop(props, "dof_enable")
+        col.prop(props, "bloom_enable")
+
+
+class RENDER_PT_eevee_postprocess_settings(RenderButtonsPanel, Panel):
+    bl_label = "Post Process Settings"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+
+        col = layout.column()
+
+        col.label("Motion Blur:")
+        col.prop(props, "motion_blur_samples")
+        col.prop(props, "motion_blur_shutter")
+        col.separator()
+
+        col.label("Depth of Field:")
+        col.prop(props, "bokeh_max_size")
+        col.prop(props, "bokeh_threshold")
+        col.separator()
+
+        col.label("Bloom:")
+        col.prop(props, "bloom_threshold")
+        col.prop(props, "bloom_knee")
+        col.prop(props, "bloom_radius")
+        col.prop(props, "bloom_intensity")
+
 
 classes = (
     RENDER_MT_presets,
@@ -633,6 +685,8 @@ classes = (
     RENDER_PT_bake,
     RENDER_PT_clay_layer_settings,
     RENDER_PT_clay_collection_settings,
+    RENDER_PT_eevee_poststack_settings,
+    RENDER_PT_eevee_postprocess_settings,
 )
 
 if __name__ == "__main__":  # only for live edit.

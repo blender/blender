@@ -171,6 +171,7 @@ class RENDERLAYER_PT_eevee_poststack_settings(RenderLayerButtonsPanel, Panel):
         col.template_override_property(layer_props, scene_props, "dof_enable")
         col.template_override_property(layer_props, scene_props, "bloom_enable")
 
+
 class RENDERLAYER_PT_eevee_postprocess_settings(RenderLayerButtonsPanel, Panel):
     bl_label = "Post Process Settings"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
@@ -191,6 +192,7 @@ class RENDERLAYER_PT_eevee_postprocess_settings(RenderLayerButtonsPanel, Panel):
         col.label("Motion Blur:")
         col.template_override_property(layer_props, scene_props, "motion_blur_samples")
         col.template_override_property(layer_props, scene_props, "motion_blur_shutter")
+        col.separator()
 
         col.label("Depth of Field:")
         col.template_override_property(layer_props, scene_props, "bokeh_max_size")
@@ -202,7 +204,6 @@ class RENDERLAYER_PT_eevee_postprocess_settings(RenderLayerButtonsPanel, Panel):
         col.template_override_property(layer_props, scene_props, "bloom_knee")
         col.template_override_property(layer_props, scene_props, "bloom_radius")
         col.template_override_property(layer_props, scene_props, "bloom_intensity")
-        col.separator()
 
 
 classes = (
