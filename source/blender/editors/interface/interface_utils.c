@@ -214,6 +214,91 @@ int uiDefAutoButsRNA(
 
 	return tot;
 }
+/* *** RNA collection search menu *** */
+
+typedef struct CollItemSearch {
+	struct CollItemSearch *next, *prev;
+	ID *id;
+	char *name;
+	int index;
+	int iconid;
+} CollItemSearch;
+
+static int sort_search_items_list(const void *a, const void *b)
+{
+	const CollItemSearch *cis1 = a;
+	const CollItemSearch *cis2 = b;
+
+	if (BLI_strcasecmp(cis1->name, cis2->name) > 0)
+		return 1;
+	else
+		return 0;
+}
+
+void ui_rna_collection_search_cb(const struct bContext *C, void *arg, const char *str, uiSearchItems *items)
+{
+	uiRNACollectionSearch *data = arg;
+	char *name;
+	int i = 0, iconid = 0, flag = RNA_property_flag(data->target_prop);
+	ListBase *items_list = MEM_callocN(sizeof(ListBase), "items_list");
+	CollItemSearch *cis;
+	const bool skip_filter = !(data->but_changed && *data->but_changed);
+
+	/* build a temporary list of relevant items first */
+	RNA_PROP_BEGIN (&data->search_ptr, itemptr, data->search_prop)
+	{
+		ID *id = NULL;
+
+		if (flag & PROP_ID_SELF_CHECK)
+			if (itemptr.data == data->target_ptr.id.data)
+				continue;
+
+		/* use filter */
+		if (RNA_property_type(data->target_prop) == PROP_POINTER) {
+			if (RNA_property_pointer_poll(&data->target_ptr, data->target_prop, &itemptr) == 0)
+				continue;
+		}
+
+		name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL); /* could use the string length here */
+		iconid = 0;
+		if (itemptr.type && RNA_struct_is_ID(itemptr.type)) {
+			id = itemptr.data;
+			iconid = ui_id_icon_get(C, id, false);
+		}
+
+		if (name) {
+			if (skip_filter || BLI_strcasestr(name, str)) {
+				cis = MEM_callocN(sizeof(CollItemSearch), "CollectionItemSearch");
+				cis->id = id;
+				cis->name = MEM_dupallocN(name);
+				cis->index = i;
+				cis->iconid = iconid;
+				BLI_addtail(items_list, cis);
+			}
+			MEM_freeN(name);
+		}
+
+		i++;
+	}
+	RNA_PROP_END;
+
+	BLI_listbase_sort(items_list, sort_search_items_list);
+
+	/* add search items from temporary list */
+	for (cis = items_list->first; cis; cis = cis->next) {
+		void *poin = cis->id ? cis->id : SET_INT_IN_POINTER(cis->index);
+		if (UI_search_item_add(items, cis->name, poin, cis->iconid) == false) {
+			break;
+		}
+	}
+
+	for (cis = items_list->first; cis; cis = cis->next) {
+		MEM_freeN(cis->name);
+	}
+	BLI_freelistN(items_list);
+	MEM_freeN(items_list);
+}
+
 
 /***************************** ID Utilities *******************************/
 

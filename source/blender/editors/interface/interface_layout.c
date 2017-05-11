@@ -1574,95 +1574,6 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 
 /* Pointer RNA button with search */
 
-typedef struct CollItemSearch {
-	struct CollItemSearch *next, *prev;
-	char *name;
-	int index;
-	int iconid;
-} CollItemSearch;
-
-static int sort_search_items_list(const void *a, const void *b)
-{
-	const CollItemSearch *cis1 = a;
-	const CollItemSearch *cis2 = b;
-	
-	if (BLI_strcasecmp(cis1->name, cis2->name) > 0)
-		return 1;
-	else
-		return 0;
-}
-
-static void rna_search_cb(const struct bContext *C, void *arg_but, const char *str, uiSearchItems *items)
-{
-	uiBut *but = arg_but;
-	char *name;
-	int i = 0, iconid = 0, flag = RNA_property_flag(but->rnaprop);
-	ListBase *items_list = MEM_callocN(sizeof(ListBase), "items_list");
-	CollItemSearch *cis;
-	const bool skip_filter = !but->changed;
-
-	/* build a temporary list of relevant items first */
-	RNA_PROP_BEGIN (&but->rnasearchpoin, itemptr, but->rnasearchprop)
-	{
-		if (flag & PROP_ID_SELF_CHECK)
-			if (itemptr.data == but->rnapoin.id.data)
-				continue;
-
-		/* use filter */
-		if (RNA_property_type(but->rnaprop) == PROP_POINTER) {
-			if (RNA_property_pointer_poll(&but->rnapoin, but->rnaprop, &itemptr) == 0)
-				continue;
-		}
-
-		if (itemptr.type && RNA_struct_is_ID(itemptr.type)) {
-			ID *id = itemptr.data;
-			char name_ui[MAX_ID_NAME];
-
-#if 0       /* this name is used for a string comparison and can't be modified, TODO */
-			/* if ever enabled, make name_ui be MAX_ID_NAME+1 */
-			BKE_id_ui_prefix(name_ui, id);
-#else
-			BLI_strncpy(name_ui, id->name + 2, sizeof(name_ui));
-#endif
-			name = BLI_strdup(name_ui);
-			iconid = ui_id_icon_get(C, id, false);
-		}
-		else {
-			name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL); /* could use the string length here */
-			iconid = 0;
-		}
-
-		if (name) {
-			if (skip_filter || BLI_strcasestr(name, str)) {
-				cis = MEM_callocN(sizeof(CollItemSearch), "CollectionItemSearch");
-				cis->name = MEM_dupallocN(name);
-				cis->index = i;
-				cis->iconid = iconid;
-				BLI_addtail(items_list, cis);
-			}
-			MEM_freeN(name);
-		}
-
-		i++;
-	}
-	RNA_PROP_END;
-	
-	BLI_listbase_sort(items_list, sort_search_items_list);
-	
-	/* add search items from temporary list */
-	for (cis = items_list->first; cis; cis = cis->next) {
-		if (false == UI_search_item_add(items, cis->name, SET_INT_IN_POINTER(cis->index), cis->iconid)) {
-			break;
-		}
-	}
-
-	for (cis = items_list->first; cis; cis = cis->next) {
-		MEM_freeN(cis->name);
-	}
-	BLI_freelistN(items_list);
-	MEM_freeN(items_list);
-}
-
 static void search_id_collection(StructRNA *ptype, PointerRNA *ptr, PropertyRNA **prop)
 {
 	StructRNA *srna;
@@ -1703,6 +1614,8 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 
 	/* turn button into search button */
 	if (searchprop) {
+		uiRNACollectionSearch *coll_search = MEM_mallocN(sizeof(*coll_search), __func__);
+
 		but->type = UI_BTYPE_SEARCH_MENU;
 		but->hardmax = MAX2(but->hardmax, 256.0f);
 		but->rnasearchpoin = *searchptr;
@@ -1712,13 +1625,22 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 			but->flag |= UI_BUT_VALUE_CLEAR;
 		}
 
+		coll_search->target_ptr = *ptr;
+		coll_search->target_prop = prop;
+		coll_search->search_ptr = *searchptr;
+		coll_search->search_prop = searchprop;
+		coll_search->but_changed = &but->changed;
+
 		if (RNA_property_type(prop) == PROP_ENUM) {
 			/* XXX, this will have a menu string,
 			 * but in this case we just want the text */
 			but->str[0] = 0;
 		}
 
-		UI_but_func_search_set(but, ui_searchbox_create_generic, rna_search_cb, but, NULL, NULL);
+		UI_but_func_search_set(
+		            but, ui_searchbox_create_generic, ui_rna_collection_search_cb,
+		            coll_search, NULL, NULL);
+		but->free_search_arg = true;
 	}
 }
 

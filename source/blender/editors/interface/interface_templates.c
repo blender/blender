@@ -89,8 +89,124 @@
 
 #include "PIL_time.h"
 
+/* defines for templateID/TemplateSearch */
+#define TEMPLATE_SEARCH_TEXTBUT_WIDTH  (UI_UNIT_X * 6)
+#define TEMPLATE_SEARCH_TEXTBUT_HEIGHT  UI_UNIT_Y
+
+
 void UI_template_fix_linking(void)
 {
+}
+
+/**
+ * Add a block button for the search menu for templateID and templateSearch.
+ */
+static void template_add_button_search_menu(
+        const bContext *C, uiLayout *layout, uiBlock *block,
+        PointerRNA *ptr, PropertyRNA *prop,
+        uiBlockCreateFunc block_func, void *block_argN, const char * const tip,
+        const bool use_previews, const bool editable)
+{
+	PointerRNA active_ptr = RNA_property_pointer_get(ptr, prop);
+	ID *id = (active_ptr.data && RNA_struct_is_ID(active_ptr.type)) ? active_ptr.data : NULL;
+	const ID *idfrom = ptr->id.data;
+	const StructRNA *type = active_ptr.type ? active_ptr.type : RNA_property_pointer_type(ptr, prop);
+	uiBut *but;
+
+	if (use_previews) {
+		ARegion *region = CTX_wm_region(C);
+		const bool use_big_size = (region->regiontype != RGN_TYPE_HEADER); /* silly check, could be more generic */
+		/* Ugly exception for screens here, drawing their preview in icon size looks ugly/useless */
+		const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
+		const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
+		const short height = UI_UNIT_Y * (use_big_size ? 6: 1);
+
+		but = uiDefBlockButN(block, block_func, block_argN, "", 0, 0, width, height, tip);
+		if (use_preview_icon) {
+			int icon = id ? ui_id_icon_get(C, id, use_big_size) : RNA_struct_ui_icon(type);
+			ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+		}
+		else {
+			ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
+			UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+		}
+
+		if ((idfrom && idfrom->lib) || !editable)
+			UI_but_flag_enable(but, UI_BUT_DISABLED);
+		if (use_big_size) {
+			uiLayoutRow(layout, true);
+		}
+	}
+	else {
+		but = uiDefBlockButN(block, block_func, block_argN, "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y, tip);
+		ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
+		if (id) {
+			/* default dragging of icon for id browse buttons */
+			UI_but_drag_set_id(but, id);
+		}
+		UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+
+		if ((idfrom && idfrom->lib) || !editable)
+			UI_but_flag_enable(but, UI_BUT_DISABLED);
+	}
+}
+
+static uiBlock *template_common_search_menu(
+        const bContext *C, ARegion *region,
+        uiButSearchFunc search_func, void *search_arg,
+        uiButHandleFunc handle_func, void *active_item,
+        const int preview_rows, const int preview_cols)
+{
+	static char search[256];
+	wmWindow *win = CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+
+	/* clear initial search string, then all items show */
+	search[0] = 0;
+
+	block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
+
+	/* preview thumbnails */
+	if (preview_rows > 0 && preview_cols > 0) {
+		const int w = 4 * U.widget_unit * preview_cols;
+		const int h = 5 * U.widget_unit * preview_rows;
+
+		/* fake button, it holds space for search items */
+		uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, NULL, 0, 0, 0, 0, NULL);
+
+		but = uiDefSearchBut(
+		        block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y,
+		        preview_rows, preview_cols, "");
+	}
+	/* list view */
+	else {
+		const int searchbox_width  = UI_searchbox_size_x();
+		const int searchbox_height = UI_searchbox_size_y();
+
+		/* fake button, it holds space for search items */
+		uiDefBut(
+		        block, UI_BTYPE_LABEL, 0, "", 10, 15, searchbox_width, searchbox_height,
+		        NULL, 0, 0, 0, 0, NULL);
+		but = uiDefSearchBut(
+		        block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0,
+		        searchbox_width, UI_UNIT_Y - 1, 0, 0, "");
+	}
+	UI_but_func_search_set(
+	        but, ui_searchbox_create_generic, search_func,
+	        search_arg, handle_func, active_item);
+
+
+	UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
+	UI_block_direction_set(block, UI_DIR_DOWN);
+
+	/* give search-field focus */
+	UI_but_focus_on_enter_event(win, but);
+	/* this type of search menu requires undo */
+	but->flag |= UI_BUT_UNDO;
+
+	return block;
 }
 
 /********************** Header Template *************************/
@@ -174,61 +290,16 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 /* ID Search browse menu, open */
 static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 {
-	static char search[256];
 	static TemplateID template;
-	PointerRNA idptr;
-	wmWindow *win = CTX_wm_window(C);
-	uiBlock *block;
-	uiBut *but;
-	
-	/* clear initial search string, then all items show */
-	search[0] = 0;
+	PointerRNA active_item_ptr;
+
 	/* arg_litem is malloced, can be freed by parent button */
 	template = *((TemplateID *)arg_litem);
-	
-	/* get active id for showing first item */
-	idptr = RNA_property_pointer_get(&template.ptr, template.prop);
+	active_item_ptr = RNA_property_pointer_get(&template.ptr, template.prop);
 
-	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
-	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
-	
-	/* preview thumbnails */
-	if (template.prv_rows > 0 && template.prv_cols > 0) {
-		int w = 4 * U.widget_unit * template.prv_cols;
-		int h = 5 * U.widget_unit * template.prv_rows;
-		
-		/* fake button, it holds space for search items */
-		uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, NULL, 0, 0, 0, 0, NULL);
-		
-		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y,
-		                     template.prv_rows, template.prv_cols, "");
-		UI_but_func_search_set(
-		        but, ui_searchbox_create_generic, id_search_cb,
-		        &template, id_search_call_cb, idptr.data);
-	}
-	/* list view */
-	else {
-		const int searchbox_width  = UI_searchbox_size_x();
-		const int searchbox_height = UI_searchbox_size_y();
-		
-		/* fake button, it holds space for search items */
-		uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 15, searchbox_width, searchbox_height, NULL, 0, 0, 0, 0, NULL);
-		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, searchbox_width, UI_UNIT_Y - 1, 0, 0, "");
-		UI_but_func_search_set(
-		        but, ui_searchbox_create_generic, id_search_cb,
-		        &template, id_search_call_cb, idptr.data);
-	}
-		
-	
-	UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
-	UI_block_direction_set(block, UI_DIR_DOWN);
-	
-	/* give search-field focus */
-	UI_but_focus_on_enter_event(win, but);
-	/* this type of search menu requires undo */
-	but->flag |= UI_BUT_UNDO;
-	
-	return block;
+	return template_common_search_menu(
+	               C, ar, id_search_cb, &template, id_search_call_cb, active_item_ptr.data,
+	               template.prv_rows, template.prv_cols);
 }
 
 /************************ ID Template ***************************/
@@ -345,7 +416,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
-static const char *template_id_browse_tip(StructRNA *type)
+static const char *template_id_browse_tip(const StructRNA *type)
 {
 	if (type) {
 		switch (RNA_type_to_ID_code(type)) {
@@ -406,6 +477,7 @@ static void template_ID(
 	// ListBase *lb; // UNUSED
 	ID *id, *idfrom;
 	const bool editable = RNA_property_editable(&template->ptr, template->prop);
+	const bool use_previews = template->preview = (flag & UI_ID_PREVIEWS) != 0;
 
 	idptr = RNA_property_pointer_get(&template->ptr, template->prop);
 	id = idptr.data;
@@ -418,43 +490,11 @@ static void template_ID(
 	if (idptr.type)
 		type = idptr.type;
 
-	if (flag & UI_ID_PREVIEWS) {
-		ARegion *region = CTX_wm_region(C);
-		const bool use_big_size = (region->regiontype != RGN_TYPE_HEADER); /* silly check, could be more generic */
-		/* Ugly exception for screens here, drawing their preview in icon size looks ugly/useless */
-		const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
-		const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
-		const short height = UI_UNIT_Y * (use_big_size ? 6: 1);
-
-		template->preview = true;
-
-		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, width, height,
-		                     TIP_(template_id_browse_tip(type)));
-		if (use_preview_icon) {
-			int icon = id ? ui_id_icon_get(C, id, use_big_size) : RNA_struct_ui_icon(type);
-			ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
-		}
-		else {
-			ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
-			UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
-		}
-
-		if ((idfrom && idfrom->lib) || !editable)
-			UI_but_flag_enable(but, UI_BUT_DISABLED);
-		if (use_big_size) {
-			uiLayoutRow(layout, true);
-		}
-	}
-	else if (flag & UI_ID_BROWSE) {
-		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
-		                     TIP_(template_id_browse_tip(type)));
-		ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
-		/* default dragging of icon for id browse buttons */
-		UI_but_drag_set_id(but, id);
-		UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
-
-		if ((idfrom && idfrom->lib) || !editable)
-			UI_but_flag_enable(but, UI_BUT_DISABLED);
+	if (flag & UI_ID_BROWSE) {
+		template_add_button_search_menu(
+		        C, layout, block, &template->ptr, template->prop,
+		        id_search_menu, MEM_dupallocN(template), TIP_(template_id_browse_tip(type)),
+		        use_previews, editable);
 	}
 
 	/* text button with name */
@@ -464,8 +504,9 @@ static void template_ID(
 
 		//text_idbutton(id, name);
 		name[0] = '\0';
-		but = uiDefButR(block, UI_BTYPE_TEXT, 0, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y,
-		                &idptr, "name", -1, 0, 0, -1, -1, RNA_struct_ui_description(type));
+		but = uiDefButR(
+		        block, UI_BTYPE_TEXT, 0, name, 0, 0, TEMPLATE_SEARCH_TEXTBUT_WIDTH, TEMPLATE_SEARCH_TEXTBUT_HEIGHT,
+		        &idptr, "name", -1, 0, 0, -1, -1, RNA_struct_ui_description(type));
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
 		if (user_alert) UI_but_flag_enable(but, UI_BUT_REDALERT);
 
@@ -749,6 +790,204 @@ void uiTemplateAnyID(
 	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);  /*       enum, which now pushes everything too far right         */
 	
 	uiItemFullR(sub, ptr, propID, 0, 0, 0, "", ICON_NONE);
+}
+
+/********************* Search Template ********************/
+
+typedef struct TemplateSearch {
+	uiRNACollectionSearch search_data;
+
+	bool use_previews;
+	int preview_rows, preview_cols;
+} TemplateSearch;
+
+static void template_search_handle_cb(bContext *C, void *arg_template, void *item)
+{
+	TemplateSearch *template_search = arg_template;
+	uiRNACollectionSearch *coll_search = &template_search->search_data;
+	StructRNA *type = RNA_property_pointer_type(&coll_search->target_ptr, coll_search->target_prop);
+	PointerRNA item_ptr;
+
+	RNA_pointer_create(NULL, type, item, &item_ptr);
+	RNA_property_pointer_set(&coll_search->target_ptr, coll_search->target_prop, item_ptr);
+	RNA_property_update(C, &coll_search->target_ptr, coll_search->target_prop);
+}
+
+static uiBlock *template_search_menu(bContext *C, ARegion *region, void *arg_template)
+{
+	static TemplateSearch template_search;
+	PointerRNA active_ptr;
+
+	/* arg_template is malloced, can be freed by parent button */
+	template_search = *((TemplateSearch *)arg_template);
+	active_ptr = RNA_property_pointer_get(&template_search.search_data.target_ptr,
+	                                      template_search.search_data.target_prop);
+
+	return template_common_search_menu(
+	               C, region, ui_rna_collection_search_cb, &template_search,
+	               template_search_handle_cb, active_ptr.data,
+	               template_search.preview_rows, template_search.preview_cols);
+}
+
+static void template_search_add_button_searchmenu(
+        const bContext *C, uiLayout *layout, uiBlock *block,
+        TemplateSearch *template_search, const bool editable)
+{
+	const char *ui_description = RNA_property_ui_description(template_search->search_data.target_prop);
+
+	template_add_button_search_menu(
+	        C, layout, block,
+	        &template_search->search_data.target_ptr, template_search->search_data.target_prop,
+	        template_search_menu, MEM_dupallocN(template_search), ui_description,
+	        template_search->use_previews, editable);
+}
+
+static void template_search_add_button_name(
+        uiBlock *block, PointerRNA *active_ptr, const StructRNA *type)
+{
+	uiDefAutoButR(
+	        block, active_ptr, RNA_struct_name_property(type), 0, "", ICON_NONE,
+	        0, 0, TEMPLATE_SEARCH_TEXTBUT_WIDTH, TEMPLATE_SEARCH_TEXTBUT_HEIGHT);
+}
+
+static void template_search_add_button_operator(
+        uiBlock *block, const char * const operator_name,
+        const int opcontext, const int icon, const bool editable)
+{
+	if (!operator_name) {
+		return;
+	}
+
+	uiBut *but = uiDefIconButO(
+	        block, UI_BTYPE_BUT, operator_name, opcontext, icon,
+	        0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+
+	if (!editable) {
+		UI_but_drawflag_enable(but, UI_BUT_DISABLED);
+	}
+}
+
+static void template_search_buttons(
+        const bContext *C, uiLayout *layout, TemplateSearch *template_search,
+        const char *newop, const char *unlinkop)
+{
+	uiBlock *block = uiLayoutGetBlock(layout);
+	uiRNACollectionSearch *search_data = &template_search->search_data;
+	StructRNA *type = RNA_property_pointer_type(&search_data->target_ptr, search_data->target_prop);
+	const bool editable = RNA_property_editable(&search_data->target_ptr, search_data->target_prop);
+	PointerRNA active_ptr = RNA_property_pointer_get(&search_data->target_ptr, search_data->target_prop);
+
+	if (active_ptr.type) {
+		/* can only get correct type when there is an active item */
+		type = active_ptr.type;
+	}
+
+	uiLayoutRow(layout, true);
+	UI_block_align_begin(block);
+
+	template_search_add_button_searchmenu(C, layout, block, template_search, editable);
+	template_search_add_button_name(block, &active_ptr, type);
+	template_search_add_button_operator(block, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN, editable);
+	template_search_add_button_operator(block, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, editable);
+
+	UI_block_align_end(block);
+}
+
+static PropertyRNA *template_search_get_searchprop(
+        PointerRNA *targetptr, PropertyRNA *targetprop,
+        PointerRNA *searchptr, const char * const searchpropname)
+{
+	PropertyRNA *searchprop;
+
+	if (searchptr && !searchptr->data) {
+		searchptr = NULL;
+	}
+
+	if (!searchptr && !searchpropname) {
+		/* both NULL means we don't use a custom rna collection to search in */
+	}
+	else if (!searchptr && searchpropname) {
+		RNA_warning("searchpropname defined (%s) but searchptr is missing", searchpropname);
+	}
+	else if (searchptr && !searchpropname) {
+		RNA_warning("searchptr defined (%s) but searchpropname is missing", RNA_struct_identifier(searchptr->type));
+	}
+	else if (!(searchprop = RNA_struct_find_property(searchptr, searchpropname))) {
+		RNA_warning("search collection property not found: %s.%s",
+		            RNA_struct_identifier(searchptr->type), searchpropname);
+	}
+	else if (RNA_property_type(searchprop) != PROP_COLLECTION) {
+		RNA_warning("search collection property is not a collection type: %s.%s",
+		            RNA_struct_identifier(searchptr->type), searchpropname);
+	}
+	/* check if searchprop has same type as targetprop */
+	else if (RNA_property_pointer_type(searchptr, searchprop) != RNA_property_pointer_type(targetptr, targetprop)) {
+		RNA_warning("search collection items from %s.%s are not of type %s",
+		            RNA_struct_identifier(searchptr->type), searchpropname,
+		            RNA_struct_identifier(RNA_property_pointer_type(targetptr, targetprop)));
+	}
+	else {
+		return searchprop;
+	}
+
+	return NULL;
+}
+
+static TemplateSearch *template_search_setup(
+        PointerRNA *ptr, const char * const propname,
+        PointerRNA *searchptr, const char * const searchpropname)
+{
+	TemplateSearch *template_search;
+	PropertyRNA *prop, *searchprop;
+
+	prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop || RNA_property_type(prop) != PROP_POINTER) {
+		RNA_warning("pointer property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return NULL;
+	}
+	searchprop = template_search_get_searchprop(ptr, prop, searchptr, searchpropname);
+
+	template_search = MEM_callocN(sizeof(*template_search), __func__);
+	template_search->search_data.target_ptr = *ptr;
+	template_search->search_data.target_prop = prop;
+	template_search->search_data.search_ptr = *searchptr;
+	template_search->search_data.search_prop = searchprop;
+
+	return template_search;
+}
+
+/**
+ * Search menu to pick an item from a collection.
+ * A version of uiTemplateID that works for non-ID types.
+ */
+void uiTemplateSearch(
+        uiLayout *layout, bContext *C,
+        PointerRNA *ptr, const char *propname,
+        PointerRNA *searchptr, const char *searchpropname,
+        const char *newop, const char *unlinkop)
+{
+	TemplateSearch *template_search = template_search_setup(ptr, propname, searchptr, searchpropname);
+	template_search_buttons(C, layout, template_search, newop, unlinkop);
+	MEM_freeN(template_search);
+}
+
+void uiTemplateSearchPreview(
+        uiLayout *layout, bContext *C,
+        PointerRNA *ptr, const char *propname,
+        PointerRNA *searchptr, const char *searchpropname,
+        const char *newop, const char *unlinkop,
+        const int rows, const int cols)
+{
+	TemplateSearch *template_search = template_search_setup(ptr, propname, searchptr, searchpropname);
+
+	template_search->use_previews = true;
+	template_search->preview_rows = rows;
+	template_search->preview_cols = cols;
+
+	template_search_buttons(C, layout, template_search, newop, unlinkop);
+
+	MEM_freeN(template_search);
 }
 
 /********************* RNA Path Builder Template ********************/

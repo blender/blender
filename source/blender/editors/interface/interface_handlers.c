@@ -3159,6 +3159,9 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 			ui_searchbox_free(C, data->searchbox);
 			data->searchbox = NULL;
+			if (but->free_search_arg) {
+				MEM_SAFE_FREE(but->search_arg);
+			}
 		}
 		
 		but->editstr = NULL;

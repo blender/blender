@@ -2373,7 +2373,7 @@ static void ui_but_string_free_internal(uiBut *but)
 
 bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 {
-	if (but->rnaprop && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
+	if (but->rnaprop && but->rnapoin.data && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
 		if (RNA_property_editable(&but->rnapoin, but->rnaprop)) {
 			PropertyType type;
 
@@ -2420,8 +2420,15 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 	}
 	else if (but->type == UI_BTYPE_TEXT) {
 		/* string */
-		if (ui_but_is_utf8(but)) BLI_strncpy_utf8(but->poin, str, but->hardmax);
-		else BLI_strncpy(but->poin, str, but->hardmax);
+		if (!but->poin || (str[0] == '\0')) {
+			str = "";
+		}
+		else if (ui_but_is_utf8(but)) {
+			BLI_strncpy_utf8(but->poin, str, but->hardmax);
+		}
+		else {
+			BLI_strncpy(but->poin, str, but->hardmax);
+		}
 
 		return true;
 	}
@@ -2625,6 +2632,10 @@ static void ui_but_free(const bContext *C, uiBut *but)
 
 	if (but->tip_argN) {
 		MEM_freeN(but->tip_argN);
+	}
+
+	if (!but->editstr && but->free_search_arg) {
+		MEM_SAFE_FREE(but->search_arg);
 	}
 
 	if (but->active) {
@@ -3499,7 +3510,7 @@ static uiBut *ui_def_but_rna(
 	}
 
 	const char *info;
-	if (!RNA_property_editable_info(&but->rnapoin, prop, &info)) {
+	if (but->rnapoin.data && !RNA_property_editable_info(&but->rnapoin, prop, &info)) {
 		ui_def_but_rna__disable(but, info);
 	}
 
@@ -4522,7 +4533,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 				tmp = BLI_strdup(RNA_property_identifier(but->rnaprop));
 		}
 		else if (type == BUT_GET_RNASTRUCT_IDENTIFIER) {
-			if (but->rnaprop)
+			if (but->rnaprop && but->rnapoin.data)
 				tmp = BLI_strdup(RNA_struct_identifier(but->rnapoin.type));
 			else if (but->optype)
 				tmp = BLI_strdup(but->optype->idname);

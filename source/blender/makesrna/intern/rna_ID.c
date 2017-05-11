@@ -136,7 +136,7 @@ static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 	return PROP_EDITABLE;
 }
 
-short RNA_type_to_ID_code(StructRNA *type)
+short RNA_type_to_ID_code(const StructRNA *type)
 {
 	if (RNA_struct_is_a(type, &RNA_Action)) return ID_AC;
 	if (RNA_struct_is_a(type, &RNA_Armature)) return ID_AR;

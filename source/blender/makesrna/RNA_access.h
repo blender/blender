@@ -751,7 +751,7 @@ const char *RNA_struct_ui_description_raw(const StructRNA *type);
 const char *RNA_struct_translation_context(const StructRNA *type);
 int RNA_struct_ui_icon(const StructRNA *type);
 
-PropertyRNA *RNA_struct_name_property(StructRNA *type);
+PropertyRNA *RNA_struct_name_property(const StructRNA *type);
 PropertyRNA *RNA_struct_iterator_property(StructRNA *type);
 StructRNA *RNA_struct_base(StructRNA *type);
 
@@ -1191,7 +1191,7 @@ int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *re
 
 /* ID */
 
-short RNA_type_to_ID_code(StructRNA *type);
+short RNA_type_to_ID_code(const StructRNA *type);
 StructRNA *ID_code_to_RNA_type(short idcode);
 
 

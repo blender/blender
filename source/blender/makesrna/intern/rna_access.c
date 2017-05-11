@@ -560,7 +560,7 @@ const char *RNA_struct_translation_context(const StructRNA *type)
 	return type->translation_context;
 }
 
-PropertyRNA *RNA_struct_name_property(StructRNA *type)
+PropertyRNA *RNA_struct_name_property(const StructRNA *type)
 {
 	return type->nameproperty;
 }
@@ -2765,6 +2765,9 @@ char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop,
 	int length;
 
 	BLI_assert(RNA_property_type(prop) == PROP_STRING);
+	if (!ptr->data) {
+		return NULL;
+	}
 
 	length = RNA_property_string_length(ptr, prop);
 

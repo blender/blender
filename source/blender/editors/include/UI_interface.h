@@ -912,6 +912,17 @@ void uiTemplateIDPreview(uiLayout *layout, struct bContext *C, struct PointerRNA
                          const char *newop, const char *openop, const char *unlinkop, int rows, int cols);
 void uiTemplateAnyID(uiLayout *layout, struct PointerRNA *ptr, const char *propname, 
                      const char *proptypename, const char *text);
+void uiTemplateSearch(
+        uiLayout *layout, struct bContext *C,
+        struct PointerRNA *ptr, const char *propname,
+        struct PointerRNA *searchptr, const char *searchpropname,
+        const char *newop, const char *unlinkop);
+void uiTemplateSearchPreview(
+        uiLayout *layout, struct bContext *C,
+        struct PointerRNA *ptr, const char *propname,
+        struct PointerRNA *searchptr, const char *searchpropname,
+        const char *newop, const char *unlinkop,
+        const int rows, const int cols);
 void uiTemplatePathBuilder(uiLayout *layout, struct PointerRNA *ptr, const char *propname, 
                            struct PointerRNA *root_ptr, const char *text);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
