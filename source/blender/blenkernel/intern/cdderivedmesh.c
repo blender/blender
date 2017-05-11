@@ -61,6 +61,10 @@
 #include "GPU_shader.h"
 #include "GPU_basic_shader.h"
 
+#ifdef WITH_GL_PROFILE_CORE
+#  include "GPU_immediate.h"
+#endif
+
 #include <string.h>
 #include <limits.h>
 #include <math.h>
@@ -375,7 +379,7 @@ static void cdDM_drawVerts(DerivedMesh *dm)
 static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdges)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	GPUDrawObject *gdo;
+
 	if (cddm->pbvh && cddm->pbvh_draw &&
 	    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH)
 	{
@@ -383,7 +387,10 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 
 		return;
 	}
-	
+
+#ifndef WITH_GL_PROFILE_CORE
+	GPUDrawObject *gdo;
+
 	GPU_edge_setup(dm);
 	gdo = dm->drawObject;
 	if (gdo->edges && gdo->points) {
@@ -399,6 +406,41 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 		}
 	}
 	GPU_buffers_unbind();
+#else
+	(void) drawLooseEdges;
+	(void) drawAllEdges;
+
+	MVert *vert = cddm->mvert;
+	MEdge *edge = cddm->medge;
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+
+	/* NOTE: This is active object color, which is not really perfect.
+	 * But we can't query color set by glColor() :(
+	 */
+	float color[4] = {1.0f, 0.667f, 0.251f, 1.0f};
+
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformColor4fv(color);
+
+	const int chunk_size = 1024;
+	const int num_chunks = (dm->numEdgeData + chunk_size - 1) / chunk_size;
+
+	for (int chunk = 0; chunk < num_chunks; ++chunk) {
+		const int num_current_edges = (chunk < num_chunks - 1)
+		        ? chunk_size
+		        : dm->numEdgeData - chunk_size * (num_chunks - 1);
+		immBeginAtMost(PRIM_LINES, num_current_edges * 2);
+		for (int i = 0; i < num_current_edges; i++, edge++) {
+			immVertex3fv(pos, vert[edge->v1].co);
+			immVertex3fv(pos, vert[edge->v2].co);
+		}
+		immEnd();
+	}
+
+	immUnbindProgram();
+#endif
 }
 
 static void cdDM_drawLooseEdges(DerivedMesh *dm)
@@ -435,7 +477,8 @@ static void cdDM_drawFacesSolid(
 			return;
 		}
 	}
-	
+
+#ifndef WITH_GL_PROFILE_CORE
 	GPU_vertex_setup(dm);
 	GPU_normal_setup(dm);
 	GPU_triangle_setup(dm);
@@ -446,7 +489,83 @@ static void cdDM_drawFacesSolid(
 			            dm->drawObject->materials[a].start, dm->drawObject->materials[a].totelements);
 		}
 	}
-	GPU_buffers_unbind();
+#else
+	(void) partial_redraw_planes;
+	(void) setMaterial;
+
+	const MVert *mvert = cddm->mvert;
+	const MLoop *mloop = cddm->mloop;
+	const MPoly *mpoly = cddm->mpoly;
+	const int num_looptris = dm->getNumLoopTri(dm);
+	const MLoopTri *looptri = dm->getLoopTriArray(dm);
+	const float (*nors)[3] = dm->getPolyDataArray(dm, CD_NORMAL);
+	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int nor = VertexFormat_add_attrib(format, "nor", COMP_F32, 3, KEEP_FLOAT);
+
+	float color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
+
+	immBindBuiltinProgram(GPU_SHADER_SIMPLE_LIGHTING);
+	immUniformColor4fv(color);
+	immUniform3fv("light", light_vec);
+
+	const int chunk_size = 1024;
+	const int num_chunks = (num_looptris + chunk_size - 1) / chunk_size;
+
+	for (int chunk = 0; chunk < num_chunks; ++chunk) {
+		const int num_current_looptris = (chunk < num_chunks - 1)
+		        ? chunk_size
+		        : num_looptris - chunk_size * (num_chunks - 1);
+
+		immBeginAtMost(PRIM_TRIANGLES, num_current_looptris * 3);
+
+		for (a = 0; a < num_current_looptris; a++, looptri++) {
+			const MPoly *mp = &mpoly[looptri->poly];
+			const bool smoothnormal = (lnors != NULL) || (mp->flag & ME_SMOOTH);
+			const unsigned int vtri[3] = {mloop[looptri->tri[0]].v,
+			                              mloop[looptri->tri[1]].v,
+			                              mloop[looptri->tri[2]].v};
+			const unsigned int *ltri = looptri->tri;
+			float normals[3][3];
+			if (!smoothnormal) {
+				if (nors != NULL) {
+					copy_v3_v3(normals[0], nors[looptri->poly]);
+				}
+				else {
+					normal_tri_v3(normals[0],
+					              mvert[vtri[0]].co,
+					              mvert[vtri[1]].co,
+					              mvert[vtri[2]].co);
+				}
+				copy_v3_v3(normals[1], normals[0]);
+				copy_v3_v3(normals[2], normals[0]);
+			}
+			else if (lnors != NULL) {
+				copy_v3_v3(normals[0], lnors[ltri[0]]);
+				copy_v3_v3(normals[1], lnors[ltri[1]]);
+				copy_v3_v3(normals[2], lnors[ltri[2]]);
+			}
+			else {
+				normal_short_to_float_v3(normals[0], mvert[vtri[0]].no);
+				normal_short_to_float_v3(normals[1], mvert[vtri[1]].no);
+				normal_short_to_float_v3(normals[2], mvert[vtri[2]].no);
+			}
+
+			immAttrib3fv(nor, normals[0]);
+			immVertex3fv(pos, mvert[vtri[0]].co);
+			immAttrib3fv(nor, normals[1]);
+			immVertex3fv(pos, mvert[vtri[1]].co);
+			immAttrib3fv(nor, normals[2]);
+			immVertex3fv(pos, mvert[vtri[2]].co);
+		}
+		immEnd();
+	}
+
+	immUnbindProgram();
+#endif
 }
 
 static void cdDM_drawFacesTex_common(
