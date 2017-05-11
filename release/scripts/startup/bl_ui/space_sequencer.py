@@ -642,8 +642,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col.prop(strip, "translation_unit")
             col = layout.column(align=True)
             col.label(text="Position:")
-            col.prop(strip, "translate_start_x", text="X")
-            col.prop(strip, "translate_start_y", text="Y")
+            row = col.row(align=True)
+            row.prop(strip, "translate_start_x", text="X")
+            row.prop(strip, "translate_start_y", text="Y")
 
             layout.separator()
 
@@ -655,8 +656,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             else:
                 col = layout.column(align=True)
                 col.label(text="Scale:")
-                col.prop(strip, "scale_start_x", text="X")
-                col.prop(strip, "scale_start_y", text="Y")
+                row = col.row(align=True)
+                row.prop(strip, "scale_start_x", text="X")
+                row.prop(strip, "scale_start_y", text="Y")
 
             layout.separator()
 
@@ -714,7 +716,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
             col.prop(strip, "align_x")
             col.prop(strip, "align_y")
-            col.prop(strip, "location")
+            col.label("Location")
+            row = col.row(align=True)
+            row.prop(strip, "location", text="")
             col.prop(strip, "wrap_width")
             layout.operator("sequencer.export_subtitles")
 
@@ -726,8 +730,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect fader")
         elif strip.type == 'GAUSSIAN_BLUR':
-            col.prop(strip, "size_x")
-            col.prop(strip, "size_y")
+            row = col.row(align=True)
+            row.prop(strip, "size_x")
+            row.prop(strip, "size_y")
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):

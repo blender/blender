@@ -364,7 +364,7 @@ ccl_device_inline void kernel_write_result(KernelGlobals *kg, ccl_global float *
 			}
 			else {
 				kernel_write_pass_float3_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_COLOR,
-				                                  sample, L_sum);
+				                                  sample, ensure_finite3(L_sum));
 			}
 
 			kernel_write_pass_float3_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_NORMAL,

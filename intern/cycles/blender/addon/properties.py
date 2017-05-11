@@ -1249,7 +1249,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         cls.denoising_radius = IntProperty(
                 name="Denoising Radius",
                 description="Size of the image area that's used to denoise a pixel (higher values are smoother, but might lose detail and are slower)",
-                min=1, max=50,
+                min=1, max=25,
                 default=8,
         )
         cls.denoising_relative_pca = BoolProperty(

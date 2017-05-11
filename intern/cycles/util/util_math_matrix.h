@@ -176,7 +176,10 @@ ccl_device void math_trimatrix_cholesky(ccl_global float *A, int n, int stride)
  * symmetrical positive-semidefinite by construction, so we can just use this function with A=Xt*W*X and y=Xt*W*y. */
 ccl_device_inline void math_trimatrix_vec3_solve(ccl_global float *A, ccl_global float3 *y, int n, int stride)
 {
-	math_trimatrix_add_diagonal(A, n, 1e-4f, stride); /* Improve the numerical stability. */
+	/* Since the first entry of the design row is always 1, the upper-left element of XtWX is a good
+	 * heuristic for the amount of pixels considered (with weighting), therefore the amount of correction
+	 * is scaled based on it. */
+	math_trimatrix_add_diagonal(A, n, 3e-7f*A[0], stride); /* Improve the numerical stability. */
 	math_trimatrix_cholesky(A, n, stride); /* Replace A with L so that L*Lt = A. */
 
 	/* Use forward substitution to solve L*b = y, replacing y by b. */

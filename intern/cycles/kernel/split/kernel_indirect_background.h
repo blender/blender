@@ -23,7 +23,7 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
 	int thread_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
 	int ray_index;
 
-	if(kernel_data.integrator.ao_bounces) {
+	if(kernel_data.integrator.ao_bounces != INT_MAX) {
 		ray_index = get_ray_index(kg, thread_index,
 		                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
 		                          kernel_split_state.queue_data,
