@@ -35,6 +35,9 @@ void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src)
 	{
 	// copy regular struct fields
 	memcpy(dest, src, sizeof(VertexFormat));
+
+	for (unsigned i = 0; i < dest->attrib_ct; i++)
+		dest->attribs[i].name = (char *)dest + (dest->attribs[i].name - ((char *)src));
 	}
 
 static GLenum convert_comp_type_to_gl(VertexCompType type)
