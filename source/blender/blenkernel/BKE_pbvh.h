@@ -30,6 +30,7 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
+struct Batch;
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
@@ -118,6 +119,9 @@ void BKE_pbvh_raycast_project_ray_root(
 void BKE_pbvh_node_draw(PBVHNode *node, void *data);
 void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
                    int (*setMaterial)(int matnr, void *attribs), bool wireframe, bool fast);
+void BKE_pbvh_draw_cb(
+        PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast,
+        void (*draw_fn)(void *user_data, struct Batch *batch), void *user_data);
 
 /* PBVH Access */
 typedef enum {

@@ -1845,6 +1845,67 @@ void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*fnors)[3],
 		pbvh_draw_BB(bvh);
 }
 
+struct PBVHNodeDrawCallbackData {
+
+	void (*draw_fn)(void *user_data, Batch *batch);
+	void *user_data;
+	bool fast;
+};
+
+static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
+{
+	struct PBVHNodeDrawCallbackData *data = data_v;
+
+	if (!(node->flag & PBVH_FullyHidden)) {
+		Batch *triangles = GPU_draw_pbvh_buffers_get_batch(node->draw_buffers, data->fast);
+		if (triangles != NULL) {
+			data->draw_fn(data->user_data, triangles);
+		}
+	}
+}
+
+/**
+ * Version of #BKE_pbvh_draw that runs a callback.
+ */
+void BKE_pbvh_draw_cb(
+        PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast,
+        void (*draw_fn)(void *user_data, Batch *batch), void *user_data)
+{
+	struct PBVHNodeDrawCallbackData draw_data = {
+		.fast = fast,
+		.draw_fn = draw_fn,
+		.user_data = user_data,
+	};
+	PBVHNode **nodes;
+	int totnode;
+
+	for (int a = 0; a < bvh->totnode; a++)
+		pbvh_node_check_diffuse_changed(bvh, &bvh->nodes[a]);
+
+	BKE_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
+	                       &nodes, &totnode);
+
+	pbvh_update_normals(bvh, nodes, totnode, fnors);
+	pbvh_update_draw_buffers(bvh, nodes, totnode);
+
+	if (nodes) MEM_freeN(nodes);
+
+	if (planes) {
+		BKE_pbvh_search_callback(
+		        bvh, BKE_pbvh_node_planes_contain_AABB,
+		        planes, pbvh_node_draw_cb, &draw_data);
+	}
+	else {
+		BKE_pbvh_search_callback(
+		        bvh, NULL,
+		        NULL, pbvh_node_draw_cb, &draw_data);
+	}
+#if 0
+	if (G.debug_value == 14)
+		pbvh_draw_BB(bvh);
+#endif
+}
+
 void BKE_pbvh_grids_update(PBVH *bvh, CCGElem **grids, void **gridfaces,
                            DMFlagMat *flagmats, BLI_bitmap **grid_hidden)
 {

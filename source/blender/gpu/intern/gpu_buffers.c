@@ -1015,10 +1015,6 @@ static void gpu_pbvh_vert_format_init__gwn(VertexFormat *format, VertexBufferAtt
 
 static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers)
 {
-	GPUBuiltinShader shader_id =
-	        buffers->smooth ? GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR : GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR;
-	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-
 	/* force flushing to the GPU */
 	if (buffers->vert_buf->data) {
 		VertexBuffer_use(buffers->vert_buf);
@@ -1029,10 +1025,6 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers)
 	        PRIM_TRIANGLES, buffers->vert_buf,
 	        /* can be NULL */
 	        buffers->index_buf);
-	Batch_set_program(
-	        buffers->triangles,
-	        GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
-
 
 	BATCH_DISCARD_SAFE(buffers->triangles_fast);
 	if (buffers->index_buf_fast) {
@@ -1040,10 +1032,6 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers)
 		        PRIM_TRIANGLES, buffers->vert_buf,
 		        /* can be NULL */
 		        buffers->index_buf_fast);
-
-		Batch_set_program(
-		        buffers->triangles_fast,
-		        GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
 	}
 }
 
@@ -1214,7 +1202,13 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
 
 	buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
 
+	/* smooth or flat for all */
+#if 0
 	buffers->smooth = mpoly[looptri[face_indices[0]].poly].flag & ME_SMOOTH;
+#else
+	/* for DrawManager we dont support mixed smooth/flat */
+	buffers->smooth = (mpoly[0].flag & ME_SMOOTH) != 0;
+#endif
 
 	buffers->show_diffuse_color = false;
 	buffers->use_matcaps = false;
@@ -1830,27 +1824,27 @@ void GPU_draw_pbvh_buffers(
         bool wireframe, bool fast)
 {
 	UNUSED_VARS(wireframe, fast, setMaterial);
-
-	{
-		GPUBuiltinShader shader_id =
-		        buffers->smooth ? GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR : GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR;
-		GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-
-		static float light[3] = {-0.3f, 0.5f, 1.0f};
-		static float alpha = 1.0f;
-		static float world_light = 1.0f;
-
-		GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "light"), 3, 1, light);
-		GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "alpha"), 1, 1, &alpha);
-		GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "global"), 1, 1, &world_light);
-	}
-
 	bool do_fast = fast && buffers->triangles_fast;
 	Batch *triangles = do_fast ? buffers->triangles_fast : buffers->triangles;
 
 	if (triangles) {
+		if (triangles->interface == NULL) {
+			GPUBuiltinShader shader_id =
+			        buffers->smooth ? GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR : GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR;
+			GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
+
+			Batch_set_program(
+			        triangles,
+			        GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
+		}
 		Batch_draw(triangles);
 	}
+}
+
+Batch *GPU_draw_pbvh_buffers_get_batch(GPU_PBVH_Buffers *buffers, bool fast)
+{
+	return (fast && buffers->triangles_fast) ?
+	        buffers->triangles_fast : buffers->triangles;
 }
 
 bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces, bool show_diffuse_color)

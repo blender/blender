@@ -51,6 +51,7 @@ struct GPUVertPointLink;
 struct GPUDrawObject;
 struct GridCommonGPUBuffer;
 struct PBVH;
+struct Batch;
 struct MVert;
 
 typedef struct GPUBuffer {
@@ -257,6 +258,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, struct CCGElem **gr
 /* draw */
 void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
                            bool wireframe, bool fast);
+struct Batch *GPU_draw_pbvh_buffers_get_batch(GPU_PBVH_Buffers *buffers, bool fast);
 
 /* debug PBVH draw */
 void GPU_draw_pbvh_BB(float min[3], float max[3], bool leaf, unsigned int pos);

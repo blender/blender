@@ -27,6 +27,8 @@
 #include "DRW_render.h"
 
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
@@ -93,13 +95,15 @@ static struct {
 	 * Add sources to source/blender/draw/modes/shaders
 	 * init in SCULPT_engine_init();
 	 * free in SCULPT_engine_free(); */
-	struct GPUShader *custom_shader;
+	struct GPUShader *shader_flat;
+	struct GPUShader *shader_smooth;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct SCULPT_PrivateData {
 	/* This keeps the references of the shading groups for
 	 * easy access in SCULPT_cache_populate() */
-	DRWShadingGroup *group;
+	DRWShadingGroup *group_flat;
+	DRWShadingGroup *group_smooth;
 } SCULPT_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -130,8 +134,11 @@ static void SCULPT_engine_init(void *vedata)
 	 *                     tex, 2);
 	 */
 
-	if (!e_data.custom_shader) {
-		e_data.custom_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+	if (!e_data.shader_flat) {
+		e_data.shader_flat = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR);
+	}
+	if (!e_data.shader_smooth) {
+		e_data.shader_smooth = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR);
 	}
 }
 
@@ -149,8 +156,8 @@ static void SCULPT_cache_init(void *vedata)
 
 	{
 		/* Create a pass */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND | DRW_STATE_WIRE;
-		psl->pass = DRW_pass_create("My Pass", state);
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->pass = DRW_pass_create("Sculpt Pass", state);
 
 		/* Create a shadingGroup using a function in draw_common.c or custom one */
 		/*
@@ -158,14 +165,53 @@ static void SCULPT_cache_init(void *vedata)
 		 * -- or --
 		 * stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
 		 */
-		stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
+		stl->g_data->group_flat = DRW_shgroup_create_fn(e_data.shader_flat, psl->pass);
+		stl->g_data->group_smooth = DRW_shgroup_create_fn(e_data.shader_smooth, psl->pass);
 
 		/* Uniforms need a pointer to it's value so be sure it's accessible at
 		 * any given time (i.e. use static vars) */
-		static float color[4] = {0.2f, 0.5f, 0.3f, 1.0};
-		DRW_shgroup_uniform_vec4(stl->g_data->group, "color", color, 1);
-	}
+		static float light[3] = {-0.3f, 0.5f, 1.0f};
+		static float alpha = 1.0f;
+		static float world_light = 1.0f;
 
+		DRWShadingGroup *group_arr[2] = {
+			stl->g_data->group_flat,
+			stl->g_data->group_smooth,
+		};
+
+		for (uint i = 0; i < 2; i++) {
+			DRWShadingGroup *group = group_arr[i];
+			DRW_shgroup_uniform_vec3(group, "light", light, 1);
+			DRW_shgroup_uniform_float(group, "global", &world_light, 1);
+			DRW_shgroup_uniform_float(group, "alpha", &alpha, 1);
+		}
+	}
+}
+
+static bool object_is_flat(const Object *ob)
+{
+	Mesh *me = ob->data;
+	if (me->mpoly && me->mpoly[0].flag & ME_SMOOTH) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+static void sculpt_draw_cb(
+        DRWShadingGroup *shgroup,
+        void (*draw_fn)(DRWShadingGroup *shgroup, struct Batch *geom),
+        void *user_data)
+{
+	Object *ob = user_data;
+	PBVH *pbvh = ob->sculpt->pbvh;
+
+	if (pbvh) {
+		BKE_pbvh_draw_cb(
+		        pbvh, NULL, NULL, false,
+		        (void (*)(void *, struct Batch *))draw_fn, shgroup);
+	}
 }
 
 /* Add geometry to shadingGroups. Execute for each objects */
@@ -177,11 +223,16 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 	UNUSED_VARS(psl, stl);
 
 	if (ob->type == OB_MESH) {
-		/* Get geometry cache */
-		struct Batch *geom = DRW_cache_mesh_surface_get(ob);
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		SceneLayer *sl = draw_ctx->sl;
 
-		/* Add geom to a shading group */
-		DRW_shgroup_call_add(stl->g_data->group, geom, ob->obmat);
+		if (ob == OBACT_NEW) {
+			/* Get geometry cache */
+			DRWShadingGroup *shgroup = object_is_flat(ob) ? stl->g_data->group_flat : stl->g_data->group_smooth;
+
+			/* Add geom to a shading group */
+			DRW_shgroup_call_generate_add(shgroup, sculpt_draw_cb, ob, ob->obmat);
+		}
 	}
 }
 
@@ -198,7 +249,7 @@ static void SCULPT_cache_finish(void *vedata)
 /* Draw time ! Control rendering pipeline from here */
 static void SCULPT_draw_scene(void *vedata)
 {
-//	SCULPT_PassList *psl = ((SCULPT_Data *)vedata)->psl;
+	SCULPT_PassList *psl = ((SCULPT_Data *)vedata)->psl;
 	SCULPT_FramebufferList *fbl = ((SCULPT_Data *)vedata)->fbl;
 
 	/* Default framebuffer and texture */
@@ -217,21 +268,7 @@ static void SCULPT_draw_scene(void *vedata)
 	 */
 
 	/* ... or just render passes on default framebuffer. */
-//	DRW_draw_pass(psl->pass);
-
-	{
-		const DRWContextState *draw_ctx = DRW_context_state_get();
-		SceneLayer *sl = draw_ctx->sl;
-		Object *ob = OBACT_NEW;
-
-		PBVH *pbvh = ob->sculpt->pbvh;
-
-		/* this shader is used inside draw call */
-		gpuPushMatrix();
-		gpuMultMatrix(ob->obmat);
-		BKE_pbvh_draw(pbvh, NULL, NULL, NULL, false, false);
-		gpuPopMatrix();
-	}
+	DRW_draw_pass(psl->pass);
 
 	/* If you changed framebuffer, double check you rebind
 	 * the default one with its textures attached before finishing */

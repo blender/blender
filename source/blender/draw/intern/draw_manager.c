@@ -189,9 +189,20 @@ typedef struct DRWCall {
 #ifdef USE_GPU_SELECT
 	int select_id;
 #endif
-	Batch *geometry;
 	float (*obmat)[4];
+	Batch *geometry;
 } DRWCall;
+
+typedef struct DRWCallGenerate {
+	struct DRWCallGenerate *next, *prev;
+#ifdef USE_GPU_SELECT
+	int select_id;
+#endif
+	float (*obmat)[4];
+
+	DRWCallGenerateFn *geometry_fn;
+	void *user_data;
+} DRWCallGenerate;
 
 typedef struct DRWCallDynamic {
 	struct DRWCallDynamic *next, *prev;
@@ -222,6 +233,8 @@ struct DRWShadingGroup {
 /* Used by DRWShadingGroup.type */
 enum {
 	DRW_SHG_NORMAL,
+	/* same as 'DRW_SHG_NORMAL' but use a callback to generate geometry */
+	DRW_SHG_NORMAL_GENERATE,
 	DRW_SHG_POINT_BATCH,
 	DRW_SHG_LINE_BATCH,
 	DRW_SHG_TRIANGLE_BATCH,
@@ -646,6 +659,15 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	return shgroup;
 }
 
+DRWShadingGroup *DRW_shgroup_create_fn(struct GPUShader *shader, DRWPass *pass)
+{
+	DRWShadingGroup *shgroup = DRW_shgroup_create(shader, pass);
+
+	shgroup->type = DRW_SHG_NORMAL_GENERATE;
+
+	return shgroup;
+}
+
 DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass)
 {
 	double time = 0.0; /* TODO make time variable */
@@ -788,6 +810,28 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 
 	call->obmat = obmat;
 	call->geometry = geom;
+
+#ifdef USE_GPU_SELECT
+	call->select_id = g_DRW_select_id;
+#endif
+
+	BLI_addtail(&shgroup->calls, call);
+}
+
+void DRW_shgroup_call_generate_add(
+        DRWShadingGroup *shgroup,
+        DRWCallGenerateFn *geometry_fn, void *user_data,
+        float (*obmat)[4])
+{
+	BLI_assert(geometry_fn != NULL);
+	BLI_assert(shgroup->type == DRW_SHG_NORMAL_GENERATE);
+
+	DRWCallGenerate *call = MEM_callocN(sizeof(DRWCallGenerate), "DRWCallGenerate");
+
+	call->obmat = obmat;
+
+	call->geometry_fn = geometry_fn;
+	call->user_data = user_data;
 
 #ifdef USE_GPU_SELECT
 	call->select_id = g_DRW_select_id;
@@ -1348,7 +1392,7 @@ typedef struct DRWBoundTexture {
 	GPUTexture *tex;
 } DRWBoundTexture;
 
-static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*obmat)[4])
+static void draw_geometry_prepare(DRWShadingGroup *shgroup, const float (*obmat)[4])
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
 	DRWInterface *interface = shgroup->interface;
@@ -1445,7 +1489,11 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	if (interface->eye != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->eye, 3, 1, (float *)eye);
 	}
+}
 
+static void draw_geometry_execute(DRWShadingGroup *shgroup, Batch *geom)
+{
+	DRWInterface *interface = shgroup->interface;
 	/* step 2 : bind vertex array & draw */
 	Batch_set_program(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
 	if (interface->instance_vbo) {
@@ -1455,6 +1503,13 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	else {
 		Batch_draw_stupid(geom);
 	}
+}
+
+static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*obmat)[4])
+{
+	draw_geometry_prepare(shgroup, obmat);
+
+	draw_geometry_execute(shgroup, geom);
 }
 
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
@@ -1472,7 +1527,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		DST.shader = shgroup->shader;
 	}
 
-	if (shgroup->type != DRW_SHG_NORMAL) {
+	const bool is_normal = ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_NORMAL_GENERATE);
+
+	if (!is_normal) {
 		shgroup_dynamic_batch_from_calls(shgroup);
 	}
 
@@ -1547,7 +1604,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 #endif
 
 	/* Rendering Calls */
-	if (shgroup->type != DRW_SHG_NORMAL) {
+	if (!is_normal) {
 		/* Replacing multiple calls with only one */
 		float obmat[4][4];
 		unit_m4(obmat);
@@ -1564,7 +1621,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			}
 		}
 	}
-	else {
+	else if (shgroup->type == DRW_SHG_NORMAL) {
 		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
 			bool neg_scale = call->obmat && is_negative_m4(call->obmat);
 
@@ -1581,6 +1638,29 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				glFrontFace(GL_CCW);
 			}
 		}
+	}
+	else if (shgroup->type == DRW_SHG_NORMAL_GENERATE) {
+		/* Same as 'DRW_SHG_NORMAL' but generate batches */
+		for (DRWCallGenerate *call = shgroup->calls.first; call; call = call->next) {
+			bool neg_scale = call->obmat && is_negative_m4(call->obmat);
+
+			/* Negative scale objects */
+			if (neg_scale) {
+				glFrontFace(GL_CW);
+			}
+
+			GPU_SELECT_LOAD_IF_PICKSEL(call);
+			draw_geometry_prepare(shgroup, call->obmat);
+			call->geometry_fn(shgroup, draw_geometry_execute, call->user_data);
+
+			/* Reset state */
+			if (neg_scale) {
+				glFrontFace(GL_CCW);
+			}
+		}
+	}
+	else {
+		BLI_assert(0);
 	}
 
 	/* TODO: remove, (currently causes alpha issue with sculpt, need to investigate) */
