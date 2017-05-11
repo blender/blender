@@ -623,7 +623,7 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 	OperationDepsNode *driver_op = find_operation_node(id,
 	                                                   DEPSNODE_TYPE_PARAMETERS,
 	                                                   DEG_OPCODE_DRIVER,
-	                                                   fcu->rna_path,
+	                                                   fcu->rna_path ? fcu->rna_path : "",
 	                                                   fcu->array_index);
 
 	if (driver_op == NULL) {
@@ -632,7 +632,7 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 		                               DEPSOP_TYPE_EXEC,
 		                               function_bind(BKE_animsys_eval_driver, _1, id, fcu),
 		                               DEG_OPCODE_DRIVER,
-		                               fcu->rna_path,
+		                               fcu->rna_path ? fcu->rna_path : "",
 		                               fcu->array_index);
 	}
 
