@@ -38,6 +38,8 @@ typedef struct GPUDOFSettings {
 	float fstop;
 	float focal_length;
 	float sensor;
+	float rotation;
+	float ratio;
 	int num_blades;
 	int high_quality;
 } GPUDOFSettings;

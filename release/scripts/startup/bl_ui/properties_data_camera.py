@@ -234,15 +234,25 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         sub.active = (cam.dof_object is None)
         sub.prop(cam, "dof_distance", text="Distance")
 
-        hq_support = dof_options.is_hq_supported
-        col = split.column(align=True)
-        col.label("Viewport:")
-        sub = col.column()
-        sub.active = hq_support
-        sub.prop(dof_options, "use_high_quality")
-        col.prop(dof_options, "fstop")
-        if dof_options.use_high_quality and hq_support:
-            col.prop(dof_options, "blades")
+        if context.scene.render.engine == 'BLENDER_EEVEE':
+            col = split.column(align=True)
+            col.label("Aperture:")
+            engine = context.scene.render.engine
+            sub = col.column(align=True)
+            sub.prop(dof_options, "fstop")
+            sub.prop(dof_options, "blades")
+            sub.prop(dof_options, "rotation")
+            sub.prop(dof_options, "ratio")
+        else:
+            hq_support = dof_options.is_hq_supported
+            col = split.column(align=True)
+            col.label("Viewport:")
+            sub = col.column()
+            sub.active = hq_support
+            sub.prop(dof_options, "use_high_quality")
+            col.prop(dof_options, "fstop")
+            if dof_options.use_high_quality and hq_support:
+                col.prop(dof_options, "blades")
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):

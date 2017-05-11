@@ -314,8 +314,8 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			/* TODO UI Options */
 			float fstop = cam->gpu_dof.fstop;
 			float blades = cam->gpu_dof.num_blades;
-			float rotation = 0.0f;
-			float ratio = 1.0f;
+			float rotation = cam->gpu_dof.rotation;
+			float ratio = 1.0f / cam->gpu_dof.ratio;
 			float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 			float focus_dist = BKE_camera_object_dof_distance(v3d->camera);
 			float focal_len = cam->lens;

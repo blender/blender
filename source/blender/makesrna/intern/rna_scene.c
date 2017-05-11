@@ -5911,6 +5911,17 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_GPUDOFSettings_blades_set", NULL);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation of blades in apperture");
+	RNA_def_property_range(prop, -M_PI, M_PI);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Ratio", "Distortion to simulate anamorphic lens bokeh");
+	RNA_def_property_range(prop, 0.0000001f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.25f, 4.0f, 0.1, 3);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	prop = RNA_def_property(srna, "use_high_quality", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "high_quality", 1);
 	RNA_def_property_ui_text(prop, "High Quality", "Use high quality depth of field");

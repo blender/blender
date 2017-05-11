@@ -74,7 +74,7 @@ void step_scatter()
 	/* Generate Triangle */
 	particlecoord = gl_Position.xy;
 
-	gl_Position.xy *= coc * texel_size;
+	gl_Position.xy *= coc * texel_size * vec2(bokeh_ratio, 1.0);
 	gl_Position.xy -= 1.0 - 0.5 * texel_size; /* NDC Bottom left */
 	gl_Position.xy += (0.5 + vec2(texelco) * 2.0) * texel_size;
 }
