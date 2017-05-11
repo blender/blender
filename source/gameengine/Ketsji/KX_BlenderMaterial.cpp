@@ -22,7 +22,7 @@
  *  \ingroup ketsji
  */
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 #include "KX_BlenderMaterial.h"
 #include "BL_Material.h"

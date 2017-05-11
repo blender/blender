@@ -31,6 +31,7 @@ set(INC
 	../../blender/makesdna
 	../../blender/blenlib
 	../../blender/blenkernel
+	../../blender/gpu
 	../../blender/imbuf
 	../../../intern/container
 	../../../intern/glew-mx

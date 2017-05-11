@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 #include <stdio.h>
 

@@ -28,7 +28,7 @@
 #include "RAS_StorageVBO.h"
 #include "RAS_MeshObject.h"
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 VBO::VBO(RAS_DisplayArray *data, unsigned int indices)
 {

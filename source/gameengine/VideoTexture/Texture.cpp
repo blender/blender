@@ -55,7 +55,7 @@
 #include "Exception.h"
 
 #include <memory.h>
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 extern "C" {
 	#include "IMB_imbuf.h"

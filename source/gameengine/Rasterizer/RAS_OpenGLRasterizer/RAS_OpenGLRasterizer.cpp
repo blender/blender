@@ -35,7 +35,7 @@
  
 #include "RAS_OpenGLRasterizer.h"
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"

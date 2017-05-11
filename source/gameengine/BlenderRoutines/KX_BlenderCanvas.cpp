@@ -29,7 +29,7 @@
  *  \ingroup blroutines
  */
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 #include "MEM_guardedalloc.h"
 

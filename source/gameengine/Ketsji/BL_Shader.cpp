@@ -22,7 +22,7 @@
  *  \ingroup ketsji
  */
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 #include <iostream>
 #include "BL_Shader.h"

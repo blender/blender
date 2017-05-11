@@ -43,7 +43,7 @@
 #include "RAS_2DFilterManager.h"
 #include <iostream>
 
-#include "glew-mx.h"
+#include "GPU_glew.h"
 
 #include <stdio.h>
 
