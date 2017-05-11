@@ -1582,6 +1582,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			}
 		}
 	}
+
+	/* TODO: remove, (currently causes alpha issue with sculpt, need to investigate) */
+	DRW_state_reset();
 }
 
 void DRW_draw_pass(DRWPass *pass)
