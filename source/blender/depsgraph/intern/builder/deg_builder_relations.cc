@@ -847,7 +847,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 		OperationKey driver_key(id,
 		                        DEPSNODE_TYPE_PARAMETERS,
 		                        DEG_OPCODE_DRIVER,
-		                        fcu->rna_path,
+		                        fcu->rna_path ? fcu->rna_path : "",
 		                        fcu->array_index);
 
 		/* create the driver's relations to targets */
@@ -869,7 +869,8 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 			FCurve *fcu_prev = NULL;
 			LINKLIST_FOREACH (FCurve *, fcu_candidate, &adt->drivers) {
 				/* Writing to different RNA paths is  */
-				if (!STREQ(fcu_candidate->rna_path, fcu->rna_path)) {
+				const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
+				if (!STREQ(fcu_candidate->rna_path, rna_path)) {
 					continue;
 				}
 				/* We only do relation from previous fcurve to previous one. */
@@ -887,12 +888,12 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 				OperationKey prev_driver_key(id,
 				                             DEPSNODE_TYPE_PARAMETERS,
 				                             DEG_OPCODE_DRIVER,
-				                             fcu_prev->rna_path,
+				                             fcu_prev->rna_path ? fcu_prev->rna_path : "",
 				                             fcu_prev->array_index);
 				OperationKey driver_key(id,
 				                        DEPSNODE_TYPE_PARAMETERS,
 				                        DEG_OPCODE_DRIVER,
-				                        fcu->rna_path,
+				                        fcu->rna_path ? fcu->rna_path : "",
 				                        fcu->array_index);
 				add_relation(prev_driver_key,
 				             driver_key,
@@ -915,9 +916,11 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	OperationKey driver_key(id,
 	                        DEPSNODE_TYPE_PARAMETERS,
 	                        DEG_OPCODE_DRIVER,
-	                        fcu->rna_path,
+	                        fcu->rna_path ? fcu->rna_path : "",
 	                        fcu->array_index);
 	bPoseChannel *pchan = NULL;
+
+	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
 
 	/* create dependency between driver and data affected by it */
 	/* - direct property relationship... */
@@ -926,13 +929,13 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 
 	/* driver -> data components (for interleaved evaluation - bones/constraints/modifiers) */
 	// XXX: this probably should probably be moved out into a separate function
-	if (strstr(fcu->rna_path, "pose.bones[") != NULL) {
+	if (strstr(rna_path, "pose.bones[") != NULL) {
 		/* interleaved drivers during bone eval */
 		// TODO: ideally, if this is for a constraint, it goes to said constraint
 		Object *ob = (Object *)id;
 		char *bone_name;
 
-		bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
+		bone_name = BLI_str_quoted_substrN(rna_path, "pose.bones[");
 		pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 
 		if (bone_name) {
@@ -947,15 +950,15 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		else {
 			fprintf(stderr,
 			        "Couldn't find bone name for driver path - '%s'\n",
-			        fcu->rna_path);
+			        rna_path);
 		}
 	}
-	else if (GS(id->name) == ID_AR && strstr(fcu->rna_path, "bones[")) {
+	else if (GS(id->name) == ID_AR && strstr(rna_path, "bones[")) {
 		/* drivers on armature-level bone settings (i.e. bbone stuff),
 		 * which will affect the evaluation of corresponding pose bones
 		 */
 		IDDepsNode *arm_node = m_graph->find_id_node(id);
-		char *bone_name = BLI_str_quoted_substrN(fcu->rna_path, "bones[");
+		char *bone_name = BLI_str_quoted_substrN(rna_path, "bones[");
 
 		if (arm_node && bone_name) {
 			/* find objects which use this, and make their eval callbacks depend on this */
@@ -981,12 +984,12 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		else {
 			fprintf(stderr,
 			        "Couldn't find armature bone name for driver path - '%s'\n",
-			        fcu->rna_path);
+			        rna_path);
 		}
 	}
-	else if (GS(id->name) == ID_OB && strstr(fcu->rna_path, "modifiers[")) {
+	else if (GS(id->name) == ID_OB && strstr(rna_path, "modifiers[")) {
 		/* modifier driver - connect directly to the modifier */
-		char *modifier_name = BLI_str_quoted_substrN(fcu->rna_path, "modifiers[");
+		char *modifier_name = BLI_str_quoted_substrN(rna_path, "modifiers[");
 		if (modifier_name) {
 			OperationKey modifier_key(id,
 			                          DEPSNODE_TYPE_GEOMETRY,
@@ -996,13 +999,13 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				add_relation(driver_key, modifier_key, DEPSREL_TYPE_DRIVER, "[Driver -> Modifier]");
 			}
 			else {
-				printf("Unexisting driver RNA path: %s\n", fcu->rna_path);
+				printf("Unexisting driver RNA path: %s\n", rna_path);
 			}
 
 			MEM_freeN(modifier_name);
 		}
 	}
-	else if (GS(id->name) == ID_KE && strstr(fcu->rna_path, "key_blocks[")) {
+	else if (GS(id->name) == ID_KE && strstr(rna_path, "key_blocks[")) {
 		/* shape key driver - hook into the base geometry operation */
 		// XXX: double check where this points
 		Key *shape_key = (Key *)id;
@@ -1010,7 +1013,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		ComponentKey geometry_key(shape_key->from, DEPSNODE_TYPE_GEOMETRY);
 		add_relation(driver_key, geometry_key, DEPSREL_TYPE_DRIVER, "[Driver -> ShapeKey Geom]");
 	}
-	else if (strstr(fcu->rna_path, "key_blocks[")) {
+	else if (strstr(rna_path, "key_blocks[")) {
 		ComponentKey geometry_key(id, DEPSNODE_TYPE_GEOMETRY);
 		add_relation(driver_key, geometry_key, DEPSREL_TYPE_DRIVER, "[Driver -> ShapeKey Geom]");
 	}
