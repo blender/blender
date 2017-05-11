@@ -190,23 +190,31 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable")) {
 		/* Update Motion Blur Matrices */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+			float persmat[4][4];
 			float ctime = BKE_scene_frame_get(scene);
 			float delta = BKE_collection_engine_property_value_get_float(props, "motion_blur_shutter");
 
-			/* Past matrix */
-			eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime - delta, effects->past_world_to_ndc);
-
-#if 0       /* for future high quality blur */
-			/* Future matrix */
-			eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime + delta, effects->future_world_to_ndc);
-#endif
-
 			/* Current matrix */
 			eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime, effects->current_ndc_to_world);
-			invert_m4(effects->current_ndc_to_world);
 
-			effects->motion_blur_samples = BKE_collection_engine_property_value_get_int(props, "motion_blur_samples");
-			effects->enabled_effects |= EFFECT_MOTION_BLUR;
+			/* Viewport Matrix */
+			DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
+
+			/* Only continue if camera is not being keyed */
+			if (compare_m4m4(persmat, effects->current_ndc_to_world, 0.0001f)) {
+
+				/* Past matrix */
+				eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime - delta, effects->past_world_to_ndc);
+
+#if 0       /* for future high quality blur */
+				/* Future matrix */
+				eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime + delta, effects->future_world_to_ndc);
+#endif
+				invert_m4(effects->current_ndc_to_world);
+
+				effects->motion_blur_samples = BKE_collection_engine_property_value_get_int(props, "motion_blur_samples");
+				effects->enabled_effects |= EFFECT_MOTION_BLUR;
+			}
 		}
 	}
 #endif /* ENABLE_EFFECT_MOTION_BLUR */
