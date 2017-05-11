@@ -57,7 +57,6 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *dof_down;
 	struct DRWPass *dof_scatter;
 	struct DRWPass *dof_resolve;
-	struct DRWPass *tonemap;
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;

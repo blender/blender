@@ -64,8 +64,6 @@ static struct {
 	struct GPUShader *dof_downsample_sh;
 	struct GPUShader *dof_scatter_sh;
 	struct GPUShader *dof_resolve_sh;
-
-	struct GPUShader *tonemap_sh;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_effect_motion_blur_frag_glsl[];
@@ -172,10 +170,6 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		e_data.bloom_resolve_sh[0] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_RESOLVE\n");
 		e_data.bloom_resolve_sh[1] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_RESOLVE\n"
 		                                                                                          "#define HIGH_QUALITY\n");
-	}
-
-	if (!e_data.tonemap_sh) {
-		e_data.tonemap_sh = DRW_shader_create_fullscreen(datatoc_tonemap_frag_glsl, NULL);
 	}
 
 	if (!stl->effects) {
@@ -489,16 +483,6 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
-
-	{
-		/* Final pass : Map HDR color to LDR color.
-		 * Write result to the default color buffer */
-		psl->tonemap = DRW_pass_create("Tone Mapping", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
-
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.tonemap_sh, psl->tonemap);
-		DRW_shgroup_uniform_buffer(grp, "hdrColorBuf", &effects->source_buffer);
-		DRW_shgroup_call_add(grp, quad, NULL);
-	}
 }
 
 #define SWAP_BUFFERS() {                           \
@@ -624,13 +608,11 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	DRW_framebuffer_bind(dfbl->default_fb);
 
 	/* Tonemapping */
-	/* TODO : use OCIO */
-	DRW_draw_pass(psl->tonemap);
+	DRW_transform_to_display(effects->source_buffer);
 }
 
 void EEVEE_effects_free(void)
 {
-	DRW_SHADER_FREE_SAFE(e_data.tonemap_sh);
 	DRW_SHADER_FREE_SAFE(e_data.motion_blur_sh);
 	DRW_SHADER_FREE_SAFE(e_data.dof_downsample_sh);
 	DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh);

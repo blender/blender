@@ -1,7 +1,9 @@
 
-uniform sampler2D hdrColorBuf;
+/* Display a linear image texture into sRGB space */
 
-in vec4 uvcoordsvar;
+uniform sampler2D image;
+
+in vec2 texCoord_interp;
 
 out vec4 fragColor;
 
@@ -22,7 +24,7 @@ void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
 }
 
 void main() {
-	fragColor = texture(hdrColorBuf, uvcoordsvar.st);
+	fragColor = texture(image, texCoord_interp.st);
 
 	linearrgb_to_srgb(fragColor, fragColor);
 }

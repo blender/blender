@@ -53,6 +53,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
+#include "GPU_immediate.h"
 #include "GPU_lamp.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
@@ -60,6 +61,8 @@
 #include "GPU_uniformbuffer.h"
 #include "GPU_viewport.h"
 #include "GPU_matrix.h"
+
+#include "IMB_colormanagement.h"
 
 #include "PIL_time.h"
 
@@ -1915,6 +1918,52 @@ void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer 
 void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *UNUSED(fb_read), int w, int h)
 {
 	glViewport(0, 0, w, h);
+}
+
+/* Use color management profile to draw texture to framebuffer */
+void DRW_transform_to_display(GPUTexture *tex)
+{
+	DRW_state_set(DRW_STATE_WRITE_COLOR);
+
+	VertexFormat *vert_format = immVertexFormat();
+	unsigned int pos = VertexFormat_add_attrib(vert_format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int texco = VertexFormat_add_attrib(vert_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+
+	const float dither = 1.0f;
+
+	bool use_ocio = IMB_colormanagement_setup_glsl_draw_from_space_ctx(DST.draw_ctx.evil_C, NULL, dither, false);
+
+	if (!use_ocio) {
+		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_LINEAR_TO_SRGB);
+		immUniform1i("image", 0);
+	}
+
+	GPU_texture_bind(tex, 0); /* OCIO texture bind point is 0 */
+
+	float mat[4][4];
+	unit_m4(mat);
+	immUniformMatrix4fv("ModelViewProjectionMatrix", mat);
+
+	/* Full screen triangle */
+	immBegin(PRIM_TRIANGLES, 3);
+	immAttrib2f(texco, 0.0f, 0.0f);
+	immVertex2f(pos, -1.0f, -1.0f);
+
+	immAttrib2f(texco, 2.0f, 0.0f);
+	immVertex2f(pos, 3.0f, -1.0f);
+
+	immAttrib2f(texco, 0.0f, 2.0f);
+	immVertex2f(pos, -1.0f, 3.0f);
+	immEnd();
+
+	GPU_texture_unbind(tex);
+
+	if (use_ocio) {
+		IMB_colormanagement_finish_glsl_draw();
+	}
+	else {
+		immUnbindProgram();
+	}
 }
 
 /** \} */
