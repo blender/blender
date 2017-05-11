@@ -352,7 +352,7 @@ static void pbvh_bmesh_node_split(PBVH *bvh, const BBC *bbc_array, int node_inde
 	n->layer_disp = NULL;
 
 	if (n->draw_buffers) {
-		GPU_free_pbvh_buffers(n->draw_buffers);
+		GPU_pbvh_buffers_free(n->draw_buffers);
 		n->draw_buffers = NULL;
 	}
 	n->flag &= ~PBVH_Leaf;
