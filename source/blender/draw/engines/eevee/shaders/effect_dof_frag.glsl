@@ -174,6 +174,41 @@ void step_scatter(void)
 uniform sampler2D farBuffer;
 uniform sampler2D nearBuffer;
 
+vec4 upsample_filter_high(sampler2D tex, vec2 uv, vec2 texelSize)
+{
+	/* 9-tap bilinear upsampler (tent filter) */
+	vec4 d = texelSize.xyxy * vec4(1, 1, -1, 0);
+
+	vec4 s;
+	s  = texture(tex, uv - d.xy);
+	s += texture(tex, uv - d.wy) * 2;
+	s += texture(tex, uv - d.zy);
+
+	s += texture(tex, uv + d.zw) * 2;
+	s += texture(tex, uv       ) * 4;
+	s += texture(tex, uv + d.xw) * 2;
+
+	s += texture(tex, uv + d.zy);
+	s += texture(tex, uv + d.wy) * 2;
+	s += texture(tex, uv + d.xy);
+
+	return s * (1.0 / 16.0);
+}
+
+vec4 upsample_filter(sampler2D tex, vec2 uv, vec2 texelSize)
+{
+	/* 4-tap bilinear upsampler */
+	vec4 d = texelSize.xyxy * vec4(-1, -1, +1, +1) * 0.5;
+
+	vec4 s;
+	s  = texture(tex, uv + d.xy);
+	s += texture(tex, uv + d.zy);
+	s += texture(tex, uv + d.xw);
+	s += texture(tex, uv + d.zw);
+
+	return s * (1.0 / 4.0);
+}
+
 /* Combine the Far and Near color buffers */
 void step_resolve(void)
 {
@@ -185,9 +220,10 @@ void step_resolve(void)
 	float coc_near = max(coc_signed, 0.0);
 
 	/* Recompute Near / Far CoC */
+	vec2 texelSize = 1.0 / vec2(textureSize(farBuffer, 0));
 	vec4 srccolor = texture(colorBuffer, uvcoord);
-	vec4 farcolor = texture(farBuffer, uvcoord);
-	vec4 nearcolor = texture(nearBuffer, uvcoord);
+	vec4 farcolor = upsample_filter_high(farBuffer, uvcoord, texelSize);
+	vec4 nearcolor = upsample_filter_high(nearBuffer, uvcoord, texelSize);
 
 	float farweight = farcolor.a;
 	if (farweight > 0.0)
@@ -203,7 +239,8 @@ void step_resolve(void)
 	}
 
 	if (coc_near > 1.0) {
-		fragData0 = nearcolor;
+		mixfac = smoothstep(1.0, MERGE_THRESHOLD, coc_near);
+		fragData0 = mix(srccolor, nearcolor, mixfac);
 	}
 	else {
 		float totalweight = nearweight + farweight;
