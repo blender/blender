@@ -19,10 +19,9 @@
 #include "kernel/split/kernel_shader_sort.h"
 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-__kernel void kernel_ocl_path_trace_shader_sort(
-        ccl_global char *kg,
-        ccl_constant KernelData *data)
-{
-	ccl_local ShaderSortLocals locals;
-	kernel_shader_sort((KernelGlobals*)kg, &locals);
-}
+#define KERNEL_NAME shader_sort
+#define LOCALS_TYPE ShaderSortLocals
+#include "kernel/kernels/opencl/kernel_split_function.h"
+#undef KERNEL_NAME
+#undef LOCALS_TYPE
+

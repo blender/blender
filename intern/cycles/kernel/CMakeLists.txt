@@ -122,6 +122,10 @@ set(SRC_KERNELS_CUDA_HEADERS
 	kernels/cuda/kernel_config.h
 )
 
+set(SRC_KERNELS_OPENCL_HEADERS
+	kernels/opencl/kernel_split_function.h
+)
+
 set(SRC_CLOSURE_HEADERS
 	closure/alloc.h
 	closure/bsdf.h
@@ -452,6 +456,7 @@ add_library(cycles_kernel
 	${SRC_HEADERS}
 	${SRC_KERNELS_CPU_HEADERS}
 	${SRC_KERNELS_CUDA_HEADERS}
+	${SRC_KERNELS_OPENCL_HEADERS}
 	${SRC_BVH_HEADERS}
 	${SRC_CLOSURE_HEADERS}
 	${SRC_FILTER_HEADERS}
@@ -496,6 +501,7 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_enqueue_inact
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_next_iteration_setup.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_indirect_subsurface.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_buffer_update.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_split_function.h" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/filter.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel.cu" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel_split.cu" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)

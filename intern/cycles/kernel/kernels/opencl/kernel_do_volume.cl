@@ -18,9 +18,7 @@
 #include "kernel/split/kernel_split_common.h"
 #include "kernel/split/kernel_do_volume.h"
 
-__kernel void kernel_ocl_path_trace_do_volume(
-        ccl_global char *kg,
-        ccl_constant KernelData *data)
-{
-	kernel_do_volume((KernelGlobals*)kg);
-}
+#define KERNEL_NAME do_volume
+#include "kernel/kernels/opencl/kernel_split_function.h"
+#undef KERNEL_NAME
+
