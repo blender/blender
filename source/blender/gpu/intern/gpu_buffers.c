@@ -1030,7 +1030,7 @@ static void gpu_color_from_mask_quad_copy(const CCGKey *key,
 	out[2] = diffuse_color[2] * mask_color;
 }
 
-void GPU_update_mesh_pbvh_buffers(
+void GPU_pbvh_mesh_buffers_update(
         GPU_PBVH_Buffers *buffers, const MVert *mvert,
         const int *vert_indices, int totvert, const float *vmask,
         const int (*face_vert_indices)[3], bool show_diffuse_color)
@@ -1152,7 +1152,7 @@ void GPU_update_mesh_pbvh_buffers(
 	buffers->mvert = mvert;
 }
 
-GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
+GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
         const int (*face_vert_indices)[3],
         const MPoly *mpoly, const MLoop *mloop, const MLoopTri *looptri,
         const MVert *mvert,
@@ -1236,9 +1236,10 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
 	return buffers;
 }
 
-void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
-                                  const DMFlagMat *grid_flag_mats, int *grid_indices,
-                                  int totgrid, const CCGKey *key, bool show_diffuse_color)
+void GPU_pbvh_grid_buffers_update(
+        GPU_PBVH_Buffers *buffers, CCGElem **grids,
+        const DMFlagMat *grid_flag_mats, int *grid_indices,
+        int totgrid, const CCGKey *key, bool show_diffuse_color)
 {
 	VertexBufferFormat *vert_data;
 	int i, j, k, x, y;
@@ -1458,7 +1459,7 @@ static GPUBuffer *gpu_get_grid_buffer(
 	} \
 } (void)0
 
-GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(
+GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
         int *grid_indices, int totgrid, BLI_bitmap **grid_hidden, int gridsize, const CCGKey *key,
         GridCommonGPUBuffer **grid_common_gpu_buffer)
 {
@@ -1604,12 +1605,13 @@ static int gpu_bmesh_face_visible_count(GSet *bm_faces)
 
 /* Creates a vertex buffer (coordinate, normal, color) and, if smooth
  * shading, an element index buffer. */
-void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
-                                   BMesh *bm,
-                                   GSet *bm_faces,
-                                   GSet *bm_unique_verts,
-                                   GSet *bm_other_verts,
-                                   bool show_diffuse_color)
+void GPU_pbvh_bmesh_buffers_update(
+        GPU_PBVH_Buffers *buffers,
+        BMesh *bm,
+        GSet *bm_faces,
+        GSet *bm_unique_verts,
+        GSet *bm_other_verts,
+        bool show_diffuse_color)
 {
 	VertexBufferFormat *vert_data;
 	void *tri_data;
@@ -1795,7 +1797,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 	}
 }
 
-GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(bool smooth_shading)
+GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading)
 {
 	GPU_PBVH_Buffers *buffers;
 
@@ -1808,8 +1810,9 @@ GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(bool smooth_shading)
 	return buffers;
 }
 
-void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
-                           bool wireframe, bool fast)
+void GPU_pbvh_buffers_draw(
+        GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
+        bool wireframe, bool fast)
 {
 	bool do_fast = fast && buffers->index_buf_fast;
 	/* sets material from the first face, to solve properly face would need to
@@ -1948,7 +1951,8 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 	}
 }
 
-bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces, bool show_diffuse_color)
+bool GPU_pbvh_buffers_diffuse_changed(
+        GPU_PBVH_Buffers *buffers, GSet *bm_faces, bool show_diffuse_color)
 {
 	float diffuse_color[4];
 	bool use_matcaps = GPU_material_use_matcaps_get();
@@ -1991,7 +1995,7 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces,
 	return !equals_v3v3(diffuse_color, buffers->diffuse_color);
 }
 
-void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers)
+void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers)
 {
 	if (buffers) {
 		if (buffers->vert_buf)
@@ -2009,7 +2013,7 @@ void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers)
 	}
 }
 
-void GPU_free_pbvh_buffer_multires(GridCommonGPUBuffer **grid_common_gpu_buffer)
+void GPU_pbvh_multires_buffers_free(GridCommonGPUBuffer **grid_common_gpu_buffer)
 {
 	GridCommonGPUBuffer *gridbuff = *grid_common_gpu_buffer;
 
@@ -2025,7 +2029,7 @@ void GPU_free_pbvh_buffer_multires(GridCommonGPUBuffer **grid_common_gpu_buffer)
 }
 
 /* debug function, draws the pbvh BB */
-void GPU_draw_pbvh_BB(float min[3], float max[3], bool leaf)
+void GPU_pbvh_BB_draw(float min[3], float max[3], bool leaf)
 {
 	const float quads[4][4][3] = {
 		{
@@ -2066,7 +2070,7 @@ void GPU_draw_pbvh_BB(float min[3], float max[3], bool leaf)
 	glDrawArrays(GL_QUADS, 0, 16);
 }
 
-void GPU_init_draw_pbvh_BB(void)
+void GPU_pbvh_BB_draw_init(void)
 {
 	glPushAttrib(GL_ENABLE_BIT);
 	glDisable(GL_CULL_FACE);
@@ -2076,7 +2080,7 @@ void GPU_init_draw_pbvh_BB(void)
 	glEnable(GL_BLEND);
 }
 
-void GPU_end_draw_pbvh_BB(void)
+void GPU_pbvh_BB_draw_end(void)
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glPopAttrib();
