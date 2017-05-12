@@ -603,6 +603,8 @@ void psys_free(Object *ob, ParticleSystem *psys)
 			MEM_freeN(psys->pdd);
 		}
 
+		BKE_particle_batch_cache_free(psys);
+
 		MEM_freeN(psys);
 	}
 }
