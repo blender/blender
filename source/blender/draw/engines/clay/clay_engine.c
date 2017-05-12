@@ -186,29 +186,33 @@ static struct GPUTexture *load_matcaps(PreviewImage *prv[24], int nbr)
 
 static int matcap_to_index(int matcap)
 {
-	if (matcap == ICON_MATCAP_02) return 1;
-	else if (matcap == ICON_MATCAP_03) return 2;
-	else if (matcap == ICON_MATCAP_04) return 3;
-	else if (matcap == ICON_MATCAP_05) return 4;
-	else if (matcap == ICON_MATCAP_06) return 5;
-	else if (matcap == ICON_MATCAP_07) return 6;
-	else if (matcap == ICON_MATCAP_08) return 7;
-	else if (matcap == ICON_MATCAP_09) return 8;
-	else if (matcap == ICON_MATCAP_10) return 9;
-	else if (matcap == ICON_MATCAP_11) return 10;
-	else if (matcap == ICON_MATCAP_12) return 11;
-	else if (matcap == ICON_MATCAP_13) return 12;
-	else if (matcap == ICON_MATCAP_14) return 13;
-	else if (matcap == ICON_MATCAP_15) return 14;
-	else if (matcap == ICON_MATCAP_16) return 15;
-	else if (matcap == ICON_MATCAP_17) return 16;
-	else if (matcap == ICON_MATCAP_18) return 17;
-	else if (matcap == ICON_MATCAP_19) return 18;
-	else if (matcap == ICON_MATCAP_20) return 19;
-	else if (matcap == ICON_MATCAP_21) return 20;
-	else if (matcap == ICON_MATCAP_22) return 21;
-	else if (matcap == ICON_MATCAP_23) return 22;
-	else if (matcap == ICON_MATCAP_24) return 23;
+	switch (matcap) {
+		case ICON_MATCAP_01: return 0;
+		case ICON_MATCAP_02: return 1;
+		case ICON_MATCAP_03: return 2;
+		case ICON_MATCAP_04: return 3;
+		case ICON_MATCAP_05: return 4;
+		case ICON_MATCAP_06: return 5;
+		case ICON_MATCAP_07: return 6;
+		case ICON_MATCAP_08: return 7;
+		case ICON_MATCAP_09: return 8;
+		case ICON_MATCAP_10: return 9;
+		case ICON_MATCAP_11: return 10;
+		case ICON_MATCAP_12: return 11;
+		case ICON_MATCAP_13: return 12;
+		case ICON_MATCAP_14: return 13;
+		case ICON_MATCAP_15: return 14;
+		case ICON_MATCAP_16: return 15;
+		case ICON_MATCAP_17: return 16;
+		case ICON_MATCAP_18: return 17;
+		case ICON_MATCAP_19: return 18;
+		case ICON_MATCAP_20: return 19;
+		case ICON_MATCAP_21: return 20;
+		case ICON_MATCAP_22: return 21;
+		case ICON_MATCAP_23: return 22;
+		case ICON_MATCAP_24: return 23;
+	}
+	BLI_assert(!"Should not happen");
 	return 0;
 }
 
