@@ -1993,36 +1993,54 @@ float BKE_mesh_calc_poly_area(
 	}
 }
 
-/* note, results won't be correct if polygon is non-planar */
-static float mesh_calc_poly_planar_area_centroid(
+/**
+ * Calculate the volume and volume-weighted centroid of the volume formed by the polygon and the origin.
+ * Results will be negative if the origin is "outside" the polygon
+ * (+ve normal side), but the polygon may be non-planar with no effect.
+ *
+ * Method from:
+ * - http://forums.cgsociety.org/archive/index.php?t-756235.html
+ * - http://www.globalspec.com/reference/52702/203279/4-8-the-centroid-of-a-tetrahedron
+ *
+ * \note volume is 6x actual volume, and centroid is 4x actual volume-weighted centroid
+ * (so division can be done once at the end)
+ * \note results will have bias if polygon is non-planar.
+ */
+static float mesh_calc_poly_volume_and_weighted_centroid(
         const MPoly *mpoly, const MLoop *loopstart, const MVert *mvarray,
         float r_cent[3])
 {
-	int i;
-	float tri_area;
-	float total_area = 0.0f;
-	float v1[3], v2[3], v3[3], normal[3], tri_cent[3];
+	const float *v_pivot, *v_step1;
+	float total_volume = 0.0f;
 
-	BKE_mesh_calc_poly_normal(mpoly, loopstart, mvarray, normal);
-	copy_v3_v3(v1, mvarray[loopstart[0].v].co);
-	copy_v3_v3(v2, mvarray[loopstart[1].v].co);
 	zero_v3(r_cent);
 
-	for (i = 2; i < mpoly->totloop; i++) {
-		copy_v3_v3(v3, mvarray[loopstart[i].v].co);
+	v_pivot = mvarray[loopstart[0].v].co;
+	v_step1 = mvarray[loopstart[1].v].co;
 
-		tri_area = area_tri_signed_v3(v1, v2, v3, normal);
-		total_area += tri_area;
+	for (int i = 2; i < mpoly->totloop; i++) {
+		const float *v_step2 = mvarray[loopstart[i].v].co;
 
-		mid_v3_v3v3v3(tri_cent, v1, v2, v3);
-		madd_v3_v3fl(r_cent, tri_cent, tri_area);
+		/* Calculate the 6x volume of the tetrahedron formed by the 3 vertices
+		 * of the triangle and the origin as the fourth vertex */
+		float v_cross[3];
+		cross_v3_v3v3(v_cross, v_pivot, v_step1);
+		const float tetra_volume = dot_v3v3 (v_cross, v_step2);
+		total_volume += tetra_volume;
 
-		copy_v3_v3(v2, v3);
+		/* Calculate the centroid of the tetrahedron formed by the 3 vertices
+		 * of the triangle and the origin as the fourth vertex.
+		 * The centroid is simply the average of the 4 vertices.
+		 *
+		 * Note that the vector is 4x the actual centroid so the division can be done once at the end. */
+		for (uint j = 0; j < 3; j++) {
+			r_cent[j] += tetra_volume * (v_pivot[j] + v_step1[j] + v_step2[j]);
+		}
+
+		v_step1 = v_step2;
 	}
 
-	mul_v3_fl(r_cent, 1.0f / total_area);
-
-	return total_area;
+	return total_volume;
 }
 
 #if 0 /* slow version of the function below */
@@ -2143,25 +2161,28 @@ bool BKE_mesh_center_centroid(const Mesh *me, float r_cent[3])
 {
 	int i = me->totpoly;
 	MPoly *mpoly;
-	float poly_area;
-	float total_area = 0.0f;
+	float poly_volume;
+	float total_volume = 0.0f;
 	float poly_cent[3];
 
 	zero_v3(r_cent);
 
-	/* calculate a weighted average of polygon centroids */
+	/* calculate a weighted average of polyhedron centroids */
 	for (mpoly = me->mpoly; i--; mpoly++) {
-		poly_area = mesh_calc_poly_planar_area_centroid(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
+		poly_volume = mesh_calc_poly_volume_and_weighted_centroid(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
 
-		madd_v3_v3fl(r_cent, poly_cent, poly_area);
-		total_area += poly_area;
+		/* poly_cent is already volume-weighted, so no need to multiply by the volume */
+		add_v3_v3(r_cent, poly_cent);
+		total_volume += poly_volume;
 	}
 	/* otherwise we get NAN for 0 polys */
-	if (me->totpoly) {
-		mul_v3_fl(r_cent, 1.0f / total_area);
+	if (total_volume != 0.0f) {
+		/* multipy by 0.25 to get the correct centroid */
+		/* no need to divide volume by 6 as the centroid is weighted by 6x the volume, so it all cancels out */
+		mul_v3_fl(r_cent, 0.25f / total_volume);
 	}
 
-	/* zero area faces cause this, fallback to median */
+	/* this can happen for non-manifold objects, fallback to median */
 	if (UNLIKELY(!is_finite_v3(r_cent))) {
 		return BKE_mesh_center_median(me, r_cent);
 	}
