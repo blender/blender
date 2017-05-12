@@ -625,7 +625,6 @@ static const float *get_bone_wire_color(
 
 static void pchan_draw_data_init(bPoseChannel *pchan)
 {
-
 	if (pchan->draw_data != NULL) {
 		if (pchan->draw_data->bbone_matrix_len != pchan->bone->segments) {
 			MEM_SAFE_FREE(pchan->draw_data);
@@ -633,9 +632,7 @@ static void pchan_draw_data_init(bPoseChannel *pchan)
 	}
 
 	if (pchan->draw_data == NULL) {
-		bPoseChannelDrawData *draw_data;
-		/* We just allocate max allowed segcount, we can always refine this later if really needed. */
-		pchan->draw_data = MEM_mallocN(sizeof(*draw_data) + sizeof(Mat4) * pchan->bone->segments, __func__);
+		pchan->draw_data = MEM_mallocN(sizeof(*pchan->draw_data) + sizeof(Mat4) * pchan->bone->segments, __func__);
 		pchan->draw_data->bbone_matrix_len = pchan->bone->segments;
 	}
 }
