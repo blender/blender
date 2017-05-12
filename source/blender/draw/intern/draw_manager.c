@@ -1931,7 +1931,11 @@ void DRW_transform_to_display(GPUTexture *tex)
 
 	const float dither = 1.0f;
 
-	bool use_ocio = IMB_colormanagement_setup_glsl_draw_from_space_ctx(DST.draw_ctx.evil_C, NULL, dither, false);
+	bool use_ocio = false;
+
+	if (DST.draw_ctx.evil_C != NULL) {
+		use_ocio = IMB_colormanagement_setup_glsl_draw_from_space_ctx(DST.draw_ctx.evil_C, NULL, dither, false);
+	}
 
 	if (!use_ocio) {
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_LINEAR_TO_SRGB);
