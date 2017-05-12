@@ -746,17 +746,30 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	if (!DRW_object_is_renderable(ob))
 		return;
 
+	bool sculpt_mode = ob->mode & OB_MODE_SCULPT;
+
 	struct Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 		bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 
 		/* Depth Prepass */
-		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
+		if (sculpt_mode) {
+			DRW_shgroup_call_sculpt_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, ob, ob->obmat);
+		}
+		else {
+			DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
+		}
 
 		/* Shading */
 		clay_shgrp = CLAY_object_shgrp_get(vedata, ob, stl, psl);
-		DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
+
+		if (sculpt_mode) {
+			DRW_shgroup_call_sculpt_add(clay_shgrp, ob, ob->obmat);
+		}
+		else {
+			DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
+		}
 	}
 
 	if (ob->type == OB_MESH) {

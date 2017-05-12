@@ -34,6 +34,8 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_pbvh.h"
+#include "BKE_paint.h"
 
 #include "BLT_translation.h"
 #include "BLF_api.h"
@@ -192,6 +194,7 @@ typedef struct DRWCall {
 #ifdef USE_GPU_SELECT
 	int select_id;
 #endif
+	int type;
 	float (*obmat)[4];
 	Batch *geometry;
 } DRWCall;
@@ -201,6 +204,7 @@ typedef struct DRWCallGenerate {
 #ifdef USE_GPU_SELECT
 	int select_id;
 #endif
+	int type;
 	float (*obmat)[4];
 
 	DRWCallGenerateFn *geometry_fn;
@@ -236,12 +240,16 @@ struct DRWShadingGroup {
 /* Used by DRWShadingGroup.type */
 enum {
 	DRW_SHG_NORMAL,
-	/* same as 'DRW_SHG_NORMAL' but use a callback to generate geometry */
-	DRW_SHG_NORMAL_GENERATE,
 	DRW_SHG_POINT_BATCH,
 	DRW_SHG_LINE_BATCH,
 	DRW_SHG_TRIANGLE_BATCH,
 	DRW_SHG_INSTANCE,
+};
+
+/* Used by DRWCall.type */
+enum {
+	DRW_CALL_SINGLE,
+	DRW_CALL_GENERATE,
 };
 
 /* only 16 bits long */
@@ -662,15 +670,6 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	return shgroup;
 }
 
-DRWShadingGroup *DRW_shgroup_create_fn(struct GPUShader *shader, DRWPass *pass)
-{
-	DRWShadingGroup *shgroup = DRW_shgroup_create(shader, pass);
-
-	shgroup->type = DRW_SHG_NORMAL_GENERATE;
-
-	return shgroup;
-}
-
 DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass)
 {
 	double time = 0.0; /* TODO make time variable */
@@ -811,6 +810,7 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 
 	DRWCall *call = MEM_callocN(sizeof(DRWCall), "DRWCall");
 
+	call->type = DRW_CALL_SINGLE;
 	call->obmat = obmat;
 	call->geometry = geom;
 
@@ -827,12 +827,12 @@ void DRW_shgroup_call_generate_add(
         float (*obmat)[4])
 {
 	BLI_assert(geometry_fn != NULL);
-	BLI_assert(shgroup->type == DRW_SHG_NORMAL_GENERATE);
 
 	DRWCallGenerate *call = MEM_callocN(sizeof(DRWCallGenerate), "DRWCallGenerate");
 
 	call->obmat = obmat;
 
+	call->type = DRW_CALL_GENERATE;
 	call->geometry_fn = geometry_fn;
 	call->user_data = user_data;
 
@@ -841,6 +841,26 @@ void DRW_shgroup_call_generate_add(
 #endif
 
 	BLI_addtail(&shgroup->calls, call);
+}
+
+static void sculpt_draw_cb(
+        DRWShadingGroup *shgroup,
+        void (*draw_fn)(DRWShadingGroup *shgroup, Batch *geom),
+        void *user_data)
+{
+	Object *ob = user_data;
+	PBVH *pbvh = ob->sculpt->pbvh;
+
+	if (pbvh) {
+		BKE_pbvh_draw_cb(
+		        pbvh, NULL, NULL, false,
+		        (void (*)(void *, Batch *))draw_fn, shgroup);
+	}
+}
+
+void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shgroup, Object *ob, float (*obmat)[4])
+{
+	DRW_shgroup_call_generate_add(shgroup, sculpt_draw_cb, ob, obmat);
 }
 
 void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *attr[], unsigned int attr_len)
@@ -1288,7 +1308,7 @@ static void DRW_state_set(DRWState state)
 	{
 		int test;
 		if (CHANGED_ANY_STORE_VAR(
-		        DRW_STATE_BLEND | DRW_STATE_ADDITIVE,
+		        DRW_STATE_BLEND | DRW_STATE_ADDITIVE | DRW_STATE_MULTIPLY,
 		        test))
 		{
 			if (test) {
@@ -1296,6 +1316,9 @@ static void DRW_state_set(DRWState state)
 
 				if ((state & DRW_STATE_BLEND) != 0) {
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				}
+				else if ((state & DRW_STATE_MULTIPLY) != 0) {
+					glBlendFunc(GL_DST_COLOR, GL_ZERO);
 				}
 				else if ((state & DRW_STATE_ADDITIVE) != 0) {
 					glBlendFunc(GL_ONE, GL_ONE);
@@ -1530,7 +1553,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		DST.shader = shgroup->shader;
 	}
 
-	const bool is_normal = ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_NORMAL_GENERATE);
+	const bool is_normal = ELEM(shgroup->type, DRW_SHG_NORMAL);
 
 	if (!is_normal) {
 		shgroup_dynamic_batch_from_calls(shgroup);
@@ -1624,7 +1647,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			}
 		}
 	}
-	else if (shgroup->type == DRW_SHG_NORMAL) {
+	else {
 		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
 			bool neg_scale = call->obmat && is_negative_m4(call->obmat);
 
@@ -1634,36 +1657,21 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			}
 
 			GPU_SELECT_LOAD_IF_PICKSEL(call);
-			draw_geometry(shgroup, call->geometry, call->obmat);
+
+			if (call->type == DRW_CALL_SINGLE) {
+				draw_geometry(shgroup, call->geometry, call->obmat);
+			}
+			else {
+				DRWCallGenerate *callgen = ((DRWCallGenerate *)call);
+				draw_geometry_prepare(shgroup, callgen->obmat);
+				callgen->geometry_fn(shgroup, draw_geometry_execute, callgen->user_data);
+			}
 
 			/* Reset state */
 			if (neg_scale) {
 				glFrontFace(GL_CCW);
 			}
 		}
-	}
-	else if (shgroup->type == DRW_SHG_NORMAL_GENERATE) {
-		/* Same as 'DRW_SHG_NORMAL' but generate batches */
-		for (DRWCallGenerate *call = shgroup->calls.first; call; call = call->next) {
-			bool neg_scale = call->obmat && is_negative_m4(call->obmat);
-
-			/* Negative scale objects */
-			if (neg_scale) {
-				glFrontFace(GL_CW);
-			}
-
-			GPU_SELECT_LOAD_IF_PICKSEL(call);
-			draw_geometry_prepare(shgroup, call->obmat);
-			call->geometry_fn(shgroup, draw_geometry_execute, call->user_data);
-
-			/* Reset state */
-			if (neg_scale) {
-				glFrontFace(GL_CCW);
-			}
-		}
-	}
-	else {
-		BLI_assert(0);
 	}
 
 	/* TODO: remove, (currently causes alpha issue with sculpt, need to investigate) */
@@ -1774,16 +1782,9 @@ struct DRWTextStore *DRW_text_cache_ensure(void)
 bool DRW_object_is_renderable(Object *ob)
 {
 	Scene *scene = DST.draw_ctx.scene;
-	SceneLayer *sl = DST.draw_ctx.sl;
 	Object *obedit = scene->obedit;
-	Object *obact = OBACT_NEW;
 
 	if (ob->type == OB_MESH) {
-		if (ob == obact) {
-			if (ob->mode & OB_MODE_SCULPT) {
-				return false;
-			}
-		}
 		if (ob == obedit) {
 			IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
 			bool do_show_occlude_wire = BKE_collection_engine_property_value_get_bool(props, "show_occlude_wire");

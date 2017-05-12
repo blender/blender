@@ -135,10 +135,10 @@ static void SCULPT_engine_init(void *vedata)
 	 */
 
 	if (!e_data.shader_flat) {
-		e_data.shader_flat = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR);
+		e_data.shader_flat = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
 	}
 	if (!e_data.shader_smooth) {
-		e_data.shader_smooth = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR);
+		e_data.shader_smooth = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SMOOTH_COLOR);
 	}
 }
 
@@ -156,7 +156,7 @@ static void SCULPT_cache_init(void *vedata)
 
 	{
 		/* Create a pass */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_MULTIPLY;
 		psl->pass = DRW_pass_create("Sculpt Pass", state);
 
 		/* Create a shadingGroup using a function in draw_common.c or custom one */
@@ -165,26 +165,8 @@ static void SCULPT_cache_init(void *vedata)
 		 * -- or --
 		 * stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
 		 */
-		stl->g_data->group_flat = DRW_shgroup_create_fn(e_data.shader_flat, psl->pass);
-		stl->g_data->group_smooth = DRW_shgroup_create_fn(e_data.shader_smooth, psl->pass);
-
-		/* Uniforms need a pointer to it's value so be sure it's accessible at
-		 * any given time (i.e. use static vars) */
-		static float light[3] = {-0.3f, 0.5f, 1.0f};
-		static float alpha = 1.0f;
-		static float world_light = 1.0f;
-
-		DRWShadingGroup *group_arr[2] = {
-			stl->g_data->group_flat,
-			stl->g_data->group_smooth,
-		};
-
-		for (uint i = 0; i < 2; i++) {
-			DRWShadingGroup *group = group_arr[i];
-			DRW_shgroup_uniform_vec3(group, "light", light, 1);
-			DRW_shgroup_uniform_float(group, "global", &world_light, 1);
-			DRW_shgroup_uniform_float(group, "alpha", &alpha, 1);
-		}
+		stl->g_data->group_flat = DRW_shgroup_create(e_data.shader_flat, psl->pass);
+		stl->g_data->group_smooth = DRW_shgroup_create(e_data.shader_smooth, psl->pass);
 	}
 }
 
@@ -196,21 +178,6 @@ static bool object_is_flat(const Object *ob)
 	}
 	else {
 		return true;
-	}
-}
-
-static void sculpt_draw_cb(
-        DRWShadingGroup *shgroup,
-        void (*draw_fn)(DRWShadingGroup *shgroup, struct Batch *geom),
-        void *user_data)
-{
-	Object *ob = user_data;
-	PBVH *pbvh = ob->sculpt->pbvh;
-
-	if (pbvh) {
-		BKE_pbvh_draw_cb(
-		        pbvh, NULL, NULL, false,
-		        (void (*)(void *, struct Batch *))draw_fn, shgroup);
 	}
 }
 
@@ -226,12 +193,15 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		SceneLayer *sl = draw_ctx->sl;
 
-		if (ob == OBACT_NEW) {
-			/* Get geometry cache */
-			DRWShadingGroup *shgroup = object_is_flat(ob) ? stl->g_data->group_flat : stl->g_data->group_smooth;
+		if (ob->sculpt && ob == OBACT_NEW) {
+			PBVH *pbvh = ob->sculpt->pbvh;
+			if (pbvh && pbvh_has_mask(pbvh)) {
+				/* Get geometry cache */
+				DRWShadingGroup *shgroup = object_is_flat(ob) ? stl->g_data->group_flat : stl->g_data->group_smooth;
 
-			/* Add geom to a shading group */
-			DRW_shgroup_call_generate_add(shgroup, sculpt_draw_cb, ob, ob->obmat);
+				/* Add geom to a shading group */
+				DRW_shgroup_call_sculpt_add(shgroup, ob, ob->obmat);
+			}
 		}
 	}
 }

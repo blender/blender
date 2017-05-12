@@ -552,18 +552,25 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 
+	bool sculpt_mode = ob->mode & OB_MODE_SCULPT;
+
 	struct Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 		const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 
 		/* Depth Prepass */
-		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
+		if (sculpt_mode) {
+			DRW_shgroup_call_sculpt_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, ob, ob->obmat);
+		}
+		else {
+			DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
+		}
 
 		/* Get per-material split surface */
 		struct Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
 		if (mat_geom) {
-			for (int i = 0; i < MAX2(1, ob->totcol); ++i) {
+			for (int i = 0; i < MAX2(1, (sculpt_mode ? 1 : ob->totcol)); ++i) {
 				Material *ma = give_current_material(ob, i + 1);
 
 				if (ma == NULL)
@@ -583,10 +590,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					    "#define MAX_CASCADE_NUM 4\n");
 
 					DRWShadingGroup *shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
-
 					if (shgrp) {
-						DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
-
 						DRW_shgroup_uniform_block(shgrp, "light_block", stl->light_ubo);
 						DRW_shgroup_uniform_block(shgrp, "shadow_block", stl->shadow_ubo);
 						DRW_shgroup_uniform_int(shgrp, "light_count", &stl->lamps->num_light, 1);
@@ -596,6 +600,13 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_uniform_texture(shgrp, "ltcMat", e_data.ltc_mat);
 						DRW_shgroup_uniform_texture(shgrp, "brdfLut", e_data.brdf_lut);
 						DRW_shgroup_uniform_texture(shgrp, "probeFiltered", txl->probe_pool);
+
+						if (sculpt_mode) {
+							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
+						}
+						else {
+							DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+						}
 					}
 					else {
 						/* Shader failed : pink color */
@@ -609,7 +620,13 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "ltcMat", e_data.ltc_mat);
 						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut);
 						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "probeFiltered", txl->probe_pool);
-						DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+
+						if (sculpt_mode) {
+							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
+						}
+						else {
+							DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+						}
 					}
 				}
 				else {
@@ -620,9 +637,14 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "ltcMat", e_data.ltc_mat);
 					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut);
 					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "probeFiltered", txl->probe_pool);
-					DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
-				}
 
+					if (sculpt_mode) {
+						DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
+					}
+					else {
+						DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+					}
+				}
 			}
 		}
 		// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
