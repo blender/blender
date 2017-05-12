@@ -362,7 +362,7 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit fr
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
     _context_path = "object"
     _property_type = bpy.types.Object
 

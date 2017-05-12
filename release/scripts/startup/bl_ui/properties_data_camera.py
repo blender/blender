@@ -114,7 +114,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
                     sub = row.column(align=True)
                     sub.prop(ccam, "longitude_min")
                     sub.prop(ccam, "longitude_max")
-            elif engine == 'BLENDER_RENDER':
+            elif engine in {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}:
                 row = col.row()
                 if cam.lens_unit == 'MILLIMETERS':
                     row.prop(cam, "lens")
@@ -137,7 +137,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
 
 class DATA_PT_camera_stereoscopy(CameraButtonsPanel, Panel):
     bl_label = "Stereoscopy"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
