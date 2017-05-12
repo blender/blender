@@ -992,7 +992,7 @@ int CTX_data_mode_enum_ex(const Object *obedit, const Object *ob)
 int CTX_data_mode_enum(const bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Object *obact = obedit ? CTX_data_active_object(C) : NULL;
+	Object *obact = obedit ? NULL : CTX_data_active_object(C);
 	return CTX_data_mode_enum_ex(obedit, obact);
 }
 
