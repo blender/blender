@@ -504,7 +504,9 @@ static GPUTexture *GPU_texture_cube_create(
 		glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 		glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+#ifdef WITH_LEGACY_OPENGL
 		glTexParameteri(tex->target_base, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+#endif
 	}
 	else {
 		glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -568,10 +570,16 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
 		glBindTexture(textarget, tex->bindcode);
 		glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_WIDTH, &w);
 		glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_HEIGHT, &h);
+#ifdef WITH_LEGACY_OPENGL
 		glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_BORDER, &border);
 
 		tex->w = w - border;
 		tex->h = h - border;
+#else
+		tex->w = w;
+		tex->h = h;
+		UNUSED_VARS(border);
+#endif
 	}
 
 	glBindTexture(textarget, 0);
