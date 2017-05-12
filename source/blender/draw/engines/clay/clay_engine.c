@@ -57,6 +57,7 @@ typedef struct CLAY_UBO_Material {
 	float matcap_rot[2];
 	float pad[2]; /* ensure 16 bytes alignement */
 } CLAY_UBO_Material; /* 48 bytes */
+BLI_STATIC_ASSERT_ALIGN(CLAY_UBO_Material, 16);
 
 #define MAX_CLAY_MAT 512 /* 512 = 9 bit material id */
 
