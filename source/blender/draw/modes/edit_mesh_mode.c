@@ -281,10 +281,12 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	DRW_shgroup_uniform_float(*r_face_shgrp, "faceAlphaMod", faceAlpha, 1);
 
 	*r_ledges_shgrp = DRW_shgroup_create(ledge_sh, pass);
+	DRW_shgroup_uniform_block(*r_ledges_shgrp, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_vec2(*r_ledges_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 
 	if ((tsettings->selectmode & (SCE_SELECT_VERTEX)) != 0) {
 		*r_lverts_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, pass);
+		DRW_shgroup_uniform_block(*r_lverts_shgrp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_vec2(*r_lverts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 	}
 
