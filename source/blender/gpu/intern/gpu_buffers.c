@@ -51,14 +51,9 @@
 #include "BKE_mesh.h"
 #include "BKE_pbvh.h"
 
-#include "GPU_glew.h"
-#include "GPU_shader.h"
-
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
-#include "GPU_basic_shader.h"
 #include "GPU_immediate.h"
-
 #include "GPU_batch.h"
 
 #include "bmesh.h"
