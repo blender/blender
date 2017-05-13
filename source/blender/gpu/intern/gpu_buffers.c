@@ -949,19 +949,6 @@ void GPU_buffer_draw_elements(GPUBuffer *UNUSED(elements), unsigned int mode, in
 /* XXX: the rest of the code in this file is used for optimized PBVH
  * drawing and doesn't interact at all with the buffer code above */
 
-/* Convenience struct for building the VBO. */
-typedef struct {
-	float co[3];
-	short no[3];
-
-	/* inserting this to align the 'color' field to a four-byte
-	 * boundary; drastically increases viewport performance on my
-	 * drivers (Gallium/Radeon) --nicholasbishop */
-	char pad[2];
-	
-	unsigned char color[3];
-} VertexBufferFormat;
-
 struct GPU_PBVH_Buffers {
 	ElementList *index_buf, *index_buf_fast;
 	VertexBuffer *vert_buf;
