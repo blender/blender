@@ -569,8 +569,6 @@ void BlenderSession::bake(BL::Object& b_object,
                           float result[])
 {
 	ShaderEvalType shader_type = get_shader_type(pass_type);
-	size_t object_index = OBJECT_NONE;
-	int tri_offset = 0;
 
 	/* Set baking flag in advance, so kernel loading can check if we need
 	 * any baking capabilities.
@@ -579,9 +577,6 @@ void BlenderSession::bake(BL::Object& b_object,
 
 	/* ensure kernels are loaded before we do any scene updates */
 	session->load_kernels();
-
-	if(session->progress.get_cancel())
-		return;
 
 	if(shader_type == SHADER_EVAL_UV) {
 		/* force UV to be available */
@@ -600,50 +595,61 @@ void BlenderSession::bake(BL::Object& b_object,
 	scene->film->tag_update(scene);
 	scene->integrator->tag_update(scene);
 
-	/* update scene */
-	BL::Object b_camera_override(b_engine.camera_override());
-	sync->sync_camera(b_render, b_camera_override, width, height, "");
-	sync->sync_data(b_render,
-	                b_v3d,
-	                b_camera_override,
-	                width, height,
-	                &python_thread_state,
-	                b_rlay_name.c_str());
-
-	/* get buffer parameters */
-	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
-
-	scene->bake_manager->set_shader_limit((size_t)b_engine.tile_x(), (size_t)b_engine.tile_y());
-
-	/* set number of samples */
-	session->tile_manager.set_samples(session_params.samples);
-	session->reset(buffer_params, session_params.samples);
-	session->update_scene();
-
-	/* find object index. todo: is arbitrary - copied from mesh_displace.cpp */
-	for(size_t i = 0; i < scene->objects.size(); i++) {
-		if(strcmp(scene->objects[i]->name.c_str(), b_object.name().c_str()) == 0) {
-			object_index = i;
-			tri_offset = scene->objects[i]->mesh->tri_offset;
-			break;
-		}
+	if(!session->progress.get_cancel()) {
+		/* update scene */
+		BL::Object b_camera_override(b_engine.camera_override());
+		sync->sync_camera(b_render, b_camera_override, width, height, "");
+		sync->sync_data(b_render,
+						b_v3d,
+						b_camera_override,
+						width, height,
+						&python_thread_state,
+						b_rlay_name.c_str());
 	}
 
-	int object = object_index;
+	BakeData *bake_data = NULL;
 
-	BakeData *bake_data = scene->bake_manager->init(object, tri_offset, num_pixels);
+	if(!session->progress.get_cancel()) {
+		/* get buffer parameters */
+		SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+		BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
-	populate_bake_data(bake_data, object_id, pixel_array, num_pixels);
+		scene->bake_manager->set_shader_limit((size_t)b_engine.tile_x(), (size_t)b_engine.tile_y());
 
-	/* set number of samples */
-	session->tile_manager.set_samples(session_params.samples);
-	session->reset(buffer_params, session_params.samples);
-	session->update_scene();
+		/* set number of samples */
+		session->tile_manager.set_samples(session_params.samples);
+		session->reset(buffer_params, session_params.samples);
+		session->update_scene();
 
-	session->progress.set_update_callback(function_bind(&BlenderSession::update_bake_progress, this));
+		/* find object index. todo: is arbitrary - copied from mesh_displace.cpp */
+		size_t object_index = OBJECT_NONE;
+		int tri_offset = 0;
 
-	scene->bake_manager->bake(scene->device, &scene->dscene, scene, session->progress, shader_type, bake_pass_filter, bake_data, result);
+		for(size_t i = 0; i < scene->objects.size(); i++) {
+			if(strcmp(scene->objects[i]->name.c_str(), b_object.name().c_str()) == 0) {
+				object_index = i;
+				tri_offset = scene->objects[i]->mesh->tri_offset;
+				break;
+			}
+		}
+
+		int object = object_index;
+
+		bake_data = scene->bake_manager->init(object, tri_offset, num_pixels);
+		populate_bake_data(bake_data, object_id, pixel_array, num_pixels);
+
+		/* set number of samples */
+		session->tile_manager.set_samples(session_params.samples);
+		session->reset(buffer_params, session_params.samples);
+		session->update_scene();
+
+		session->progress.set_update_callback(function_bind(&BlenderSession::update_bake_progress, this));
+	}
+
+	/* Perform bake. Check cancel to avoid crash with incomplete scene data. */
+	if(!session->progress.get_cancel()) {
+		scene->bake_manager->bake(scene->device, &scene->dscene, scene, session->progress, shader_type, bake_pass_filter, bake_data, result);
+	}
 
 	/* free all memory used (host and device), so we wouldn't leave render
 	 * engine with extra memory allocated
