@@ -271,4 +271,14 @@ PackedNormal convert_i10_v3(const float data[3])
 	return n;
 	}
 
+PackedNormal convert_i10_s3(const short data[3])
+	{
+	PackedNormal n = {
+		.x = quantize((float)data[0] / 32767.0f),
+		.y = quantize((float)data[1] / 32767.0f),
+		.z = quantize((float)data[2] / 32767.0f)
+	};
+	return n;
+	}
+
 #endif // USE_10_10_10

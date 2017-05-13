@@ -87,5 +87,6 @@ typedef struct {
 } PackedNormal;
 
 PackedNormal convert_i10_v3(const float data[3]);
+PackedNormal convert_i10_s3(const short data[3]);
 
 #endif // USE_10_10_10
