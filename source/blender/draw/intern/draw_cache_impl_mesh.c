@@ -1932,16 +1932,8 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		/* initialize vertex format */
 		unsigned int orco_id = VertexFormat_add_attrib(format, "orco", COMP_F32, 3, KEEP_FLOAT);
 		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_len, "UV attrib format");
-		unsigned int *uv_auto_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_len, "UV attrib format");
 		unsigned int *vcol_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_len, "Vcol attrib format");
-		unsigned int *vcol_auto_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_len, "Vcol attrib format");
 		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->uv_len, "Tangent attrib format");
-		/* XXX TODO : We are allocating for the active layers
-		 * but we only need to bind the right layer to the default attrib.
-		 * This is a gawain limitation to solve. */
-		unsigned int active_uv_id = VertexFormat_add_attrib(format, "u", COMP_F32, 2, KEEP_FLOAT);
-		unsigned int active_vcol_id = VertexFormat_add_attrib(format, "c", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
-		unsigned int active_tangent_id = VertexFormat_add_attrib(format, "t", COMP_F32, 4, KEEP_FLOAT);
 
 		for (int i = 0; i < rdata->uv_len; i++) {
 			/* UV */
@@ -1949,13 +1941,20 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 2, KEEP_FLOAT);
 
 			/* Auto Name */
-			/* TODO Remove when when have aliases */
 			attrib_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
-			uv_auto_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
+			VertexFormat_add_alias(format, attrib_name);
+
+			if (i == rdata->uv_active) {
+				VertexFormat_add_alias(format, "u");
+			}
 
 			/* Tangent */
 			attrib_name = mesh_render_data_tangent_layer_uuid_get(rdata, i);
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
+
+			if (i == rdata->uv_active) {
+				VertexFormat_add_alias(format, "t");
+			}
 		}
 
 		for (int i = 0; i < rdata->vcol_len; i++) {
@@ -1965,7 +1964,11 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 			/* Auto layer */
 			if (rdata->auto_vcol[i]) {
 				attrib_name = mesh_render_data_vcol_auto_layer_uuid_get(rdata, i);
-				vcol_auto_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+				VertexFormat_add_alias(format, attrib_name);
+			}
+
+			if (i == rdata->vcol_active) {
+				VertexFormat_add_alias(format, "c");
 			}
 		}
 
@@ -1992,28 +1995,10 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 1, tri_uvs[1]);
 					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 2, tri_uvs[2]);
 
-					/* TODO remove this when aliases will be implemented */
-					VertexBuffer_set_attrib(vbo, uv_auto_id[j], vidx + 0, tri_uvs[0]);
-					VertexBuffer_set_attrib(vbo, uv_auto_id[j], vidx + 1, tri_uvs[1]);
-					VertexBuffer_set_attrib(vbo, uv_auto_id[j], vidx + 2, tri_uvs[2]);
-
 					mesh_render_data_looptri_tans_get(rdata, i, j, &tri_tans);
 					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 0, tri_tans[0]);
 					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 1, tri_tans[1]);
 					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 2, tri_tans[2]);
-				}
-
-				/* TODO remove this when aliases will be implemented */
-				if (rdata->uv_len != 0) {
-					mesh_render_data_looptri_uvs_get(rdata, i, rdata->uv_active, &tri_uvs);
-					VertexBuffer_set_attrib(vbo, active_uv_id, vidx + 0, tri_uvs[0]);
-					VertexBuffer_set_attrib(vbo, active_uv_id, vidx + 1, tri_uvs[1]);
-					VertexBuffer_set_attrib(vbo, active_uv_id, vidx + 2, tri_uvs[2]);
-
-					mesh_render_data_looptri_tans_get(rdata, i, rdata->tangent_active, &tri_tans);
-					VertexBuffer_set_attrib(vbo, active_tangent_id, vidx + 0, tri_tans[0]);
-					VertexBuffer_set_attrib(vbo, active_tangent_id, vidx + 1, tri_tans[1]);
-					VertexBuffer_set_attrib(vbo, active_tangent_id, vidx + 2, tri_tans[2]);
 				}
 
 				/* VCOLs */
@@ -2022,22 +2007,6 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 0, tri_cols[0]);
 					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 1, tri_cols[1]);
 					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 2, tri_cols[2]);
-
-					/* Auto layer */
-					if (rdata->auto_vcol[j]) {
-						/* TODO remove this when aliases will be implemented */
-						VertexBuffer_set_attrib(vbo, vcol_auto_id[j], vidx + 0, tri_cols[0]);
-						VertexBuffer_set_attrib(vbo, vcol_auto_id[j], vidx + 1, tri_cols[1]);
-						VertexBuffer_set_attrib(vbo, vcol_auto_id[j], vidx + 2, tri_cols[2]);
-					}
-				}
-
-				/* TODO remove this when aliases will be implemented */
-				if (rdata->vcol_len != 0) {
-					mesh_render_data_looptri_cols_get(rdata, i, rdata->vcol_active, &tri_cols);
-					VertexBuffer_set_attrib(vbo, active_vcol_id, vidx + 0, tri_cols[0]);
-					VertexBuffer_set_attrib(vbo, active_vcol_id, vidx + 1, tri_cols[1]);
-					VertexBuffer_set_attrib(vbo, active_vcol_id, vidx + 2, tri_cols[2]);
 				}
 
 				/* ORCO */
@@ -2054,9 +2023,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		}
 
 		MEM_freeN(uv_id);
-		MEM_freeN(uv_auto_id);
 		MEM_freeN(vcol_id);
-		MEM_freeN(vcol_auto_id);
 		MEM_freeN(tangent_id);
 	}
 	return cache->shaded_triangles_data;
