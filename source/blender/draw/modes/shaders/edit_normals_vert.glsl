@@ -6,11 +6,17 @@ uniform float normalSize;
 
 in vec3 pos;
 
-#ifdef FACE_NORMALS
+#ifdef LOOP_NORMALS
+in vec3 lnor;
+#define nor lnor
+
+#elif defined(FACE_NORMALS)
 in vec4 norAndFlag;
 #define nor norAndFlag.xyz
 #else
-in vec3 nor;
+
+in vec3 vnor;
+#define nor vnor
 #endif
 
 flat out vec4 v1;

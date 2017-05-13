@@ -1747,6 +1747,19 @@ void DRW_cache_mesh_wire_overlay_get(
 	*r_lverts = DRW_mesh_batch_cache_get_overlay_loose_verts(me);
 }
 
+void DRW_cache_mesh_normals_overlay_get(
+        Object *ob,
+        Batch **r_tris, Batch **r_ledges, Batch **r_lverts)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+
+	*r_tris = DRW_mesh_batch_cache_get_overlay_triangles_nor(me);
+	*r_ledges = DRW_mesh_batch_cache_get_overlay_loose_edges_nor(me);
+	*r_lverts = DRW_mesh_batch_cache_get_overlay_loose_verts(me);
+}
+
 Batch *DRW_cache_face_centers_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
