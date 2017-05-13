@@ -127,23 +127,26 @@ static void Batch_update_program_bindings(Batch* batch)
 
 			const GLvoid* pointer = (const GLubyte*)0 + a->offset;
 
-			const ShaderInput* input = ShaderInterface_attrib(batch->interface, a->name);
-
-			if (input == NULL) continue;
-
-			glEnableVertexAttribArray(input->location);
-
-			switch (a->fetch_mode)
+			for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
 				{
-				case KEEP_FLOAT:
-				case CONVERT_INT_TO_FLOAT:
-					glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
-					break;
-				case NORMALIZE_INT_TO_FLOAT:
-					glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
-					break;
-				case KEEP_INT:
-					glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
+				const ShaderInput* input = ShaderInterface_attrib(batch->interface, a->name[n_idx]);
+
+				if (input == NULL) continue;
+
+				glEnableVertexAttribArray(input->location);
+
+				switch (a->fetch_mode)
+					{
+					case KEEP_FLOAT:
+					case CONVERT_INT_TO_FLOAT:
+						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
+						break;
+					case NORMALIZE_INT_TO_FLOAT:
+						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
+						break;
+					case KEEP_INT:
+						glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
+					}
 				}
 			}
 		}

@@ -14,6 +14,7 @@
 #include "common.h"
 
 #define MAX_VERTEX_ATTRIBS 16
+#define MAX_ATTRIB_NAMES 3
 #define AVG_VERTEX_ATTRIB_NAME_LEN 11
 #define VERTEX_ATTRIB_NAMES_BUFFER_LEN ((AVG_VERTEX_ATTRIB_NAME_LEN + 1) * MAX_VERTEX_ATTRIBS)
 
@@ -54,7 +55,8 @@ typedef struct {
 	unsigned sz; // size in bytes, 1 to 16
 	unsigned offset; // from beginning of vertex, in bytes
 	VertexFetchMode fetch_mode;
-	const char* name;
+	const char* name[MAX_ATTRIB_NAMES];
+	unsigned name_ct;
 } Attrib;
 
 typedef struct {
@@ -70,6 +72,7 @@ void VertexFormat_clear(VertexFormat*);
 void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src);
 
 unsigned VertexFormat_add_attrib(VertexFormat*, const char* name, VertexCompType, unsigned comp_ct, VertexFetchMode);
+void VertexFormat_add_alias(VertexFormat*, const char* alias);
 
 // Memory Management
 

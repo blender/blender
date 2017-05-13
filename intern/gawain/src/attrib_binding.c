@@ -55,13 +55,16 @@ void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, co
 	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
 		{
 		const Attrib* a = format->attribs + a_idx;
-		const ShaderInput* input = ShaderInterface_attrib(shaderface, a->name);
+		for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
+			{
+			const ShaderInput* input = ShaderInterface_attrib(shaderface, a->name[n_idx]);
 
 #if TRUST_NO_ONE
-		assert(input != NULL);
-		// TODO: make this a recoverable runtime error? indicates mismatch between vertex format and program
+			assert(input != NULL);
+			// TODO: make this a recoverable runtime error? indicates mismatch between vertex format and program
 #endif
 
-		write_attrib_location(binding, a_idx, input->location);
+			write_attrib_location(binding, a_idx, input->location);
+			}
 		}
 	}

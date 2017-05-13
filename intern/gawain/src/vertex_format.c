@@ -28,6 +28,7 @@ void VertexFormat_clear(VertexFormat* format)
 	format->attrib_ct = 0;
 	format->packed = false;
 	format->name_offset = 0;
+	format->name_ct = 0;
 #endif
 	}
 
@@ -37,7 +38,13 @@ void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src)
 	memcpy(dest, src, sizeof(VertexFormat));
 
 	for (unsigned i = 0; i < dest->attrib_ct; i++)
-		dest->attribs[i].name = (char *)dest + (dest->attribs[i].name - ((char *)src));
+		{
+		dest->attribs[i].name_ct = dest->attribs[i].name_ct;
+		for (unsigned j = 0; j < dest->attribs[i].name_ct; j++)
+			{
+			dest->attribs[i].name[j] = (char *)dest + (src->attribs[i].name[j] - ((char *)src));
+			}
+		}
 	}
 
 static GLenum convert_comp_type_to_gl(VertexCompType type)
@@ -160,7 +167,7 @@ unsigned VertexFormat_add_attrib(VertexFormat* format, const char* name, VertexC
 	const unsigned attrib_id = format->attrib_ct++;
 	Attrib* attrib = format->attribs + attrib_id;
 
-	attrib->name = copy_attrib_name(format, name);
+	attrib->name[attrib->name_ct++] = copy_attrib_name(format, name);
 	attrib->comp_type = comp_type;
 	attrib->gl_comp_type = convert_comp_type_to_gl(comp_type);
 #if USE_10_10_10
@@ -173,6 +180,15 @@ unsigned VertexFormat_add_attrib(VertexFormat* format, const char* name, VertexC
 	attrib->fetch_mode = fetch_mode;
 
 	return attrib_id;
+	}
+
+void VertexFormat_add_alias(VertexFormat* format, const char* alias)
+	{
+	Attrib* attrib = format->attribs + (format->attrib_ct - 1);
+#if TRUST_NO_ONE
+	assert(attrib->name_ct < MAX_ATTRIB_NAMES);
+#endif
+	attrib->name[attrib->name_ct++] = copy_attrib_name(format, alias);
 	}
 
 unsigned padding(unsigned offset, unsigned alignment)
