@@ -54,8 +54,11 @@ void VertexBuffer_init_with_format(VertexBuffer* verts, const VertexFormat* form
 void VertexBuffer_discard(VertexBuffer* verts)
 	{
 	if (verts->vbo_id) {
+		int size;
+		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+		vbo_memory_usage -= size;
+
 		buffer_id_free(verts->vbo_id);
-		vbo_memory_usage -= VertexBuffer_size(verts);
 	}
 #if KEEP_SINGLE_COPY
 	else
@@ -160,7 +163,10 @@ static void VertexBuffer_prime(VertexBuffer* verts)
 	// fill with delicious data & send to GPU the first time only
 	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size(format, verts->vertex_ct), verts->data, GL_STATIC_DRAW);
 
-	vbo_memory_usage += VertexBuffer_size(verts);
+	int size;
+	glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+
+	vbo_memory_usage += size;
 
 #if KEEP_SINGLE_COPY
 	// now that GL has a copy, discard original
