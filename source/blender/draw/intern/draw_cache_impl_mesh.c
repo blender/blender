@@ -1917,6 +1917,7 @@ void DRW_mesh_batch_cache_free(Mesh *me)
 
 /* Batch cache usage. */
 
+//#define USE_COMP_MESH_DATA
 static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
@@ -1930,7 +1931,11 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		VertexFormat_clear(format);
 
 		/* initialize vertex format */
+#ifdef USE_COMP_MESH_DATA
+		unsigned int orco_id = VertexFormat_add_attrib(format, "orco", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+#else
 		unsigned int orco_id = VertexFormat_add_attrib(format, "orco", COMP_F32, 3, KEEP_FLOAT);
+#endif
 		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_len, "UV attrib format");
 		unsigned int *vcol_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_len, "Vcol attrib format");
 		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->uv_len, "Tangent attrib format");
@@ -1938,7 +1943,11 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		for (int i = 0; i < rdata->uv_len; i++) {
 			/* UV */
 			attrib_name = mesh_render_data_uv_layer_uuid_get(rdata, i);
+#ifdef USE_COMP_MESH_DATA
+			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I16, 2, NORMALIZE_INT_TO_FLOAT);
+#else
 			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 2, KEEP_FLOAT);
+#endif
 
 			/* Auto Name */
 			attrib_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
@@ -1950,7 +1959,15 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 
 			/* Tangent */
 			attrib_name = mesh_render_data_tangent_layer_uuid_get(rdata, i);
+#ifdef USE_COMP_MESH_DATA
+#  if USE_10_10_10
+			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+#  else
+			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+#  endif
+#else
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
+#endif
 
 			if (i == rdata->uv_active) {
 				VertexFormat_add_alias(format, "t");
@@ -1990,15 +2007,41 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 			{
 				/* UVs & TANGENTs */
 				for (int j = 0; j < rdata->uv_len; j++) {
+					/* UVs */
 					mesh_render_data_looptri_uvs_get(rdata, i, j, &tri_uvs);
-					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 0, tri_uvs[0]);
-					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 1, tri_uvs[1]);
-					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 2, tri_uvs[2]);
+#ifdef USE_COMP_MESH_DATA
+					short s_uvs[3][2];
+					normal_float_to_short_v2(s_uvs[0], tri_uvs[0]);
+					normal_float_to_short_v2(s_uvs[1], tri_uvs[1]);
+					normal_float_to_short_v2(s_uvs[2], tri_uvs[2]);
+#else
+					float **s_uvs = tri_uvs;
+#endif
+					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 0, s_uvs[0]);
+					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 1, s_uvs[1]);
+					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 2, s_uvs[2]);
 
+					/* Tangent */
 					mesh_render_data_looptri_tans_get(rdata, i, j, &tri_tans);
-					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 0, tri_tans[0]);
-					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 1, tri_tans[1]);
-					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 2, tri_tans[2]);
+#ifdef USE_COMP_MESH_DATA
+#  if USE_10_10_10
+					PackedNormal s_tan[3] = {
+					    convert_i10_v3(tri_tans[0]),
+					    convert_i10_v3(tri_tans[1]),
+					    convert_i10_v3(tri_tans[2])
+					};
+#  else
+					short s_tan[3][3];
+					normal_float_to_short_v3(s_tan[0], tri_tans[0]);
+					normal_float_to_short_v3(s_tan[1], tri_tans[1]);
+					normal_float_to_short_v3(s_tan[2], tri_tans[2]);
+#  endif
+#else
+					float **s_tan = tri_tans;
+#endif
+					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 0, s_tan[0]);
+					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 1, s_tan[1]);
+					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 2, s_tan[2]);
 				}
 
 				/* VCOLs */
@@ -2011,9 +2054,17 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 
 				/* ORCO */
 				mesh_render_data_looptri_orcos_get(rdata, i, &tri_orcos);
-				VertexBuffer_set_attrib(vbo, orco_id, vidx++, tri_orcos[0]);
-				VertexBuffer_set_attrib(vbo, orco_id, vidx++, tri_orcos[1]);
-				VertexBuffer_set_attrib(vbo, orco_id, vidx++, tri_orcos[2]);
+#ifdef USE_COMP_MESH_DATA
+				short s_orco[3][3];
+				normal_float_to_short_v3(s_orco[0], tri_orcos[0]);
+				normal_float_to_short_v3(s_orco[1], tri_orcos[1]);
+				normal_float_to_short_v3(s_orco[2], tri_orcos[2]);
+#else
+				float **s_orco = tri_orcos;
+#endif
+				VertexBuffer_set_attrib(vbo, orco_id, vidx++, s_orco[0]);
+				VertexBuffer_set_attrib(vbo, orco_id, vidx++, s_orco[1]);
+				VertexBuffer_set_attrib(vbo, orco_id, vidx++, s_orco[2]);
 			}
 		}
 		vbo_len_used = vidx;
@@ -2042,7 +2093,11 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals(
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
 			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+#if USE_10_10_10
+			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+#else
 			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+#endif
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
@@ -2062,14 +2117,28 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals(
 			        rdata, i, &tri_vert_cos, &tri_nor, &tri_vert_nors, &is_smooth))
 			{
 				if (is_smooth) {
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_vert_nors[0]);
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_vert_nors[1]);
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_vert_nors[2]);
+#if USE_10_10_10
+					PackedNormal snor[3] = {
+						convert_i10_s3(tri_vert_nors[0]),
+						convert_i10_s3(tri_vert_nors[1]),
+						convert_i10_s3(tri_vert_nors[2])
+					}
+#else
+					short **snor = tri_vert_nors;
+#endif
+					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor[0]);
+					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor[1]);
+					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor[2]);
 				}
 				else {
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_nor);
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_nor);
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, tri_nor);
+#if USE_10_10_10
+					PackedNormal snor = convert_i10_s3(tri_nor);
+#else
+					short *snor = tri_nor;
+#endif
+					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor);
+					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor);
+					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor);
 				}
 
 				VertexBuffer_set_attrib(vbo, pos_id, vidx++, tri_vert_cos[0]);
