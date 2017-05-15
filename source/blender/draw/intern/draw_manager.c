@@ -34,6 +34,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_object.h"
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
 
@@ -166,6 +167,7 @@ struct DRWInterface {
 	int normal;
 	int worldnormal;
 	int camtexfac;
+	int orcotexfac;
 	int eye;
 	/* Textures */
 	int tex_bind; /* next texture binding point */
@@ -197,6 +199,8 @@ typedef struct DRWCall {
 	int type;
 	float (*obmat)[4];
 	Batch *geometry;
+
+	Object *ob; /* Optionnal */
 } DRWCall;
 
 typedef struct DRWCallGenerate {
@@ -559,6 +563,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->normal = GPU_shader_get_uniform(shader, "NormalMatrix");
 	interface->worldnormal = GPU_shader_get_uniform(shader, "WorldNormalMatrix");
 	interface->camtexfac = GPU_shader_get_uniform(shader, "CameraTexCoFactors");
+	interface->orcotexfac = GPU_shader_get_uniform(shader, "OrcoTexCoFactors[0]");
 	interface->eye = GPU_shader_get_uniform(shader, "eye");
 	interface->instance_count = 0;
 	interface->attribs_count = 0;
@@ -813,6 +818,24 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 	call->type = DRW_CALL_SINGLE;
 	call->obmat = obmat;
 	call->geometry = geom;
+
+#ifdef USE_GPU_SELECT
+	call->select_id = g_DRW_select_id;
+#endif
+
+	BLI_addtail(&shgroup->calls, call);
+}
+
+void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Batch *geom, Object *ob)
+{
+	BLI_assert(geom != NULL);
+
+	DRWCall *call = MEM_callocN(sizeof(DRWCall), "DRWCall");
+
+	call->type = DRW_CALL_SINGLE;
+	call->obmat = ob->obmat;
+	call->geometry = geom;
+	call->ob = ob;
 
 #ifdef USE_GPU_SELECT
 	call->select_id = g_DRW_select_id;
@@ -1418,12 +1441,14 @@ typedef struct DRWBoundTexture {
 	GPUTexture *tex;
 } DRWBoundTexture;
 
-static void draw_geometry_prepare(DRWShadingGroup *shgroup, const float (*obmat)[4])
+static void draw_geometry_prepare(
+        DRWShadingGroup *shgroup, const float (*obmat)[4], const float *texcoloc, const float *texcosize)
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
 	DRWInterface *interface = shgroup->interface;
 
 	float mvp[4][4], mv[4][4], mi[4][4], mvi[4][4], pi[4][4], n[3][3], wn[3][3];
+	float orcofacs[2][3] = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}};
 	float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
 
 	bool do_pi = (interface->projectioninverse != -1);
@@ -1434,6 +1459,7 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, const float (*obmat)
 	bool do_n = (interface->normal != -1);
 	bool do_wn = (interface->worldnormal != -1);
 	bool do_eye = (interface->eye != -1);
+	bool do_orco = (interface->orcotexfac != -1) && (texcoloc != NULL) && (texcosize != NULL);
 
 	if (do_pi) {
 		invert_m4_m4(pi, rv3d->winmat);
@@ -1466,6 +1492,13 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, const float (*obmat)
 		invert_m3_m3(tmp, n);
 		/* set eye vector, transformed to object coords */
 		mul_m3_v3(tmp, eye);
+	}
+	if (do_orco) {
+		mul_v3_v3fl(orcofacs[1], texcosize, 2.0f);
+		invert_v3(orcofacs[1]);
+		sub_v3_v3v3(orcofacs[0], texcoloc, texcosize);
+		negate_v3(orcofacs[0]);
+		mul_v3_v3(orcofacs[0], orcofacs[1]); /* result in a nice MADD in the shader */
 	}
 
 	/* Should be really simple */
@@ -1512,6 +1545,9 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, const float (*obmat)
 	if (interface->camtexfac != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->camtexfac, 4, 1, (float *)rv3d->viewcamtexcofac);
 	}
+	if (interface->orcotexfac != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->orcotexfac, 3, 2, (float *)orcofacs);
+	}
 	if (interface->eye != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->eye, 3, 1, (float *)eye);
 	}
@@ -1531,9 +1567,16 @@ static void draw_geometry_execute(DRWShadingGroup *shgroup, Batch *geom)
 	}
 }
 
-static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*obmat)[4])
+static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*obmat)[4], Object *ob)
 {
-	draw_geometry_prepare(shgroup, obmat);
+	float *texcoloc = NULL;
+	float *texcosize = NULL;
+
+	if (ob != NULL) {
+		BKE_object_obdata_texspace_get(ob, NULL, &texcoloc, &texcosize, NULL);
+	}
+
+	draw_geometry_prepare(shgroup, obmat, texcoloc, texcosize);
 
 	draw_geometry_execute(shgroup, geom);
 }
@@ -1637,13 +1680,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 		if (shgroup->type == DRW_SHG_INSTANCE && interface->instance_count > 0) {
 			GPU_SELECT_LOAD_IF_PICKSEL_LIST(&shgroup->calls);
-			draw_geometry(shgroup, shgroup->instance_geom, obmat);
+			draw_geometry(shgroup, shgroup->instance_geom, obmat, NULL);
 		}
 		else {
 			/* Some dynamic batch can have no geom (no call to aggregate) */
 			if (shgroup->batch_geom) {
 				GPU_SELECT_LOAD_IF_PICKSEL_LIST(&shgroup->calls);
-				draw_geometry(shgroup, shgroup->batch_geom, obmat);
+				draw_geometry(shgroup, shgroup->batch_geom, obmat, NULL);
 			}
 		}
 	}
@@ -1659,11 +1702,11 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			GPU_SELECT_LOAD_IF_PICKSEL(call);
 
 			if (call->type == DRW_CALL_SINGLE) {
-				draw_geometry(shgroup, call->geometry, call->obmat);
+				draw_geometry(shgroup, call->geometry, call->obmat, call->ob);
 			}
 			else {
 				DRWCallGenerate *callgen = ((DRWCallGenerate *)call);
-				draw_geometry_prepare(shgroup, callgen->obmat);
+				draw_geometry_prepare(shgroup, callgen->obmat, NULL, NULL);
 				callgen->geometry_fn(shgroup, draw_geometry_execute, callgen->user_data);
 			}
 

@@ -23,6 +23,6 @@ void main() {
 	worldNormal = normalize(WorldNormalMatrix * nor);
 
 #ifdef ATTRIB
-	pass_attrib();
+	pass_attrib(pos);
 #endif
 }

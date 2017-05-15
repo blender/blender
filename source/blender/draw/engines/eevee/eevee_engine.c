@@ -564,7 +564,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_call_sculpt_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, ob, ob->obmat);
 		}
 		else {
-			DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
+			DRW_shgroup_call_object_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob);
 		}
 
 		/* Get per-material split surface */
@@ -605,7 +605,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
 						}
 						else {
-							DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+							DRW_shgroup_call_object_add(shgrp, mat_geom[i], ob);
 						}
 					}
 					else {
@@ -625,7 +625,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
 						}
 						else {
-							DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+							DRW_shgroup_call_object_add(shgrp, mat_geom[i], ob);
 						}
 					}
 				}
@@ -642,7 +642,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
 					}
 					else {
-						DRW_shgroup_call_add(shgrp, mat_geom[i], ob->obmat);
+						DRW_shgroup_call_object_add(shgrp, mat_geom[i], ob);
 					}
 				}
 			}

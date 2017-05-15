@@ -1167,25 +1167,6 @@ static void mesh_render_data_looptri_tans_get(
 	}
 }
 
-static void mesh_render_data_looptri_orcos_get(
-        MeshRenderData *rdata, const int tri_idx,
-        float *(*r_vert_orcos)[3])
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_SHADING));
-	if (rdata->edit_bmesh) {
-		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		(*r_vert_orcos)[0] = rdata->orco[BM_elem_index_get(bm_looptri[0]->v)];
-		(*r_vert_orcos)[1] = rdata->orco[BM_elem_index_get(bm_looptri[1]->v)];
-		(*r_vert_orcos)[2] = rdata->orco[BM_elem_index_get(bm_looptri[2]->v)];
-	}
-	else {
-		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
-		(*r_vert_orcos)[0] = rdata->orco[rdata->mloop[mlt->tri[0]].v];
-		(*r_vert_orcos)[1] = rdata->orco[rdata->mloop[mlt->tri[1]].v];
-		(*r_vert_orcos)[2] = rdata->orco[rdata->mloop[mlt->tri[2]].v];
-	}
-}
-
 static bool mesh_render_data_looptri_cos_nors_smooth_get(
         MeshRenderData *rdata, const int tri_idx,
         float *(*r_vert_cos)[3], short **r_tri_nor, short *(*r_vert_nors)[3], bool *r_is_smooth)
@@ -1926,16 +1907,15 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		unsigned int vidx = 0;
 		const char *attrib_name;
 
+		if (rdata->uv_len + rdata->vcol_len == 0) {
+			return NULL;
+		}
+
 		VertexFormat *format = &cache->shaded_triangles_format;
 
 		VertexFormat_clear(format);
 
 		/* initialize vertex format */
-#ifdef USE_COMP_MESH_DATA
-		unsigned int orco_id = VertexFormat_add_attrib(format, "orco", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
-#else
-		unsigned int orco_id = VertexFormat_add_attrib(format, "orco", COMP_F32, 3, KEEP_FLOAT);
-#endif
 		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->uv_len, "UV attrib format");
 		unsigned int *vcol_id = MEM_mallocN(sizeof(*vcol_id) * rdata->vcol_len, "Vcol attrib format");
 		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->uv_len, "Tangent attrib format");
@@ -1999,7 +1979,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 
 		/* TODO deduplicate all verts and make use of ElementList in mesh_batch_cache_get_shaded_triangles_in_order. */
 		for (int i = 0; i < tri_len; i++) {
-			float *tri_uvs[3], *tri_tans[3], *tri_orcos[3];
+			float *tri_uvs[3], *tri_tans[3];
 			unsigned char *tri_cols[3];
 
 			if (rdata->edit_bmesh == NULL ||
@@ -2052,19 +2032,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 2, tri_cols[2]);
 				}
 
-				/* ORCO */
-				mesh_render_data_looptri_orcos_get(rdata, i, &tri_orcos);
-#ifdef USE_COMP_MESH_DATA
-				short s_orco[3][3];
-				normal_float_to_short_v3(s_orco[0], tri_orcos[0]);
-				normal_float_to_short_v3(s_orco[1], tri_orcos[1]);
-				normal_float_to_short_v3(s_orco[2], tri_orcos[2]);
-#else
-				float **s_orco = tri_orcos;
-#endif
-				VertexBuffer_set_attrib(vbo, orco_id, vidx++, s_orco[0]);
-				VertexBuffer_set_attrib(vbo, orco_id, vidx++, s_orco[1]);
-				VertexBuffer_set_attrib(vbo, orco_id, vidx++, s_orco[2]);
+				vidx += 3;
 			}
 		}
 		vbo_len_used = vidx;
@@ -3298,8 +3266,11 @@ Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
 		for (int i = 0; i < mat_len; ++i) {
 			cache->shaded_triangles[i] = Batch_create(
-			        PRIM_TRIANGLES, mesh_batch_cache_get_tri_shading_data(rdata, cache), el[i]);
-			Batch_add_VertexBuffer(cache->shaded_triangles[i], vbo);
+			        PRIM_TRIANGLES, vbo, el[i]);
+			VertexBuffer *vbo_shading = mesh_batch_cache_get_tri_shading_data(rdata, cache);
+			if (vbo_shading) {
+				Batch_add_VertexBuffer(cache->shaded_triangles[i], vbo_shading);
+			}
 		}
 
 

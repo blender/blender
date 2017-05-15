@@ -787,7 +787,11 @@ static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code)
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				/* XXX FIXME : see notes in mesh_render_data_create() */
 				/* NOTE : Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
-				if (input->attribname[0] == '\0') {
+				if (input->attribtype == CD_ORCO) {
+					/* orco is computed from local positions, see bellow */
+					BLI_dynstr_appendf(ds, "uniform vec3 OrcoTexCoFactors[2];\n");
+				}
+				else if (input->attribname[0] == '\0') {
 					BLI_dynstr_appendf(ds, "in %s %s;\n", GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype));
 					BLI_dynstr_appendf(ds, "#define att%d %s\n", input->attribid, attrib_prefix_get(input->attribtype));
 				}
@@ -808,7 +812,7 @@ static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code)
 
 	BLI_dynstr_append(ds, "#define ATTRIB\n");
 	BLI_dynstr_append(ds, "uniform mat3 NormalMatrix;\n");
-	BLI_dynstr_append(ds, "void pass_attrib(void) {\n");
+	BLI_dynstr_append(ds, "void pass_attrib(in vec3 position) {\n");
 
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
@@ -820,6 +824,10 @@ static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code)
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d.w = att%d.w;\n",
 					        input->attribid, input->attribid);
+				}
+				else if (input->attribtype == CD_ORCO) {
+					BLI_dynstr_appendf(ds, "\tvar%d = OrcoTexCoFactors[0] + position * OrcoTexCoFactors[1];\n",
+					                   input->attribid);
 				}
 				else {
 					BLI_dynstr_appendf(ds, "\tvar%d = att%d;\n",
