@@ -5,6 +5,8 @@
 #define M_1_2PI     0.159154943091895335768  /* 1/(2*pi) */
 #define M_1_PI2     0.101321183642337771443  /* 1/(pi^2) */
 
+#define LUT_SIZE 64
+
 /* ------- Structures -------- */
 
 struct LightData {
@@ -125,6 +127,16 @@ vec3 line_aligned_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 plan
 		dist = 1e16;
 	}
 	return lineorigin + linedirection * dist;
+}
+
+/* Return texture coordinates to sample Surface LUT */
+vec2 lut_coords(float cosTheta, float roughness)
+{
+	float theta = acos(cosTheta);
+	vec2 coords = vec2(roughness, theta / M_PI_2);
+
+	/* scale and bias coordinates, for correct filtered lookup */
+	return coords * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
 }
 
 /* -- Tangent Space conversion -- */

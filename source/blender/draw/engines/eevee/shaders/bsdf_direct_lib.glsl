@@ -96,13 +96,13 @@ vec3 direct_ggx_point(ShadingData sd, float roughness, vec3 f0)
 vec3 direct_ggx_sphere(LightData ld, ShadingData sd, float roughness, vec3 f0)
 {
 #ifdef USE_LTC
+	float NV = max(dot(sd.N, sd.V), 1e-8);
 	vec3 P = line_aligned_plane_intersect(vec3(0.0), sd.spec_dominant_dir, sd.l_vector);
 
 	vec3 Px = normalize(P - sd.l_vector) * ld.l_radius;
 	vec3 Py = cross(Px, sd.L);
 
-	float NV = max(dot(sd.N, sd.V), 1e-8);
-	vec2 uv = ltc_coords(NV, sqrt(roughness));
+	vec2 uv = lut_coords(NV, sqrt(roughness));
 	mat3 ltcmat = ltc_matrix(uv);
 
 // #define HIGHEST_QUALITY
@@ -148,7 +148,7 @@ vec3 direct_ggx_sphere(LightData ld, ShadingData sd, float roughness, vec3 f0)
 
 	/* Fresnel */
 	float VH = max(dot(sd.V, normalize(sd.V + sd.L)), 0.0);
-	vec3 spec = F_schlick(f0, NV) * bsdf;
+	vec3 spec = F_schlick(f0, VH) * bsdf;
 #endif
 	return spec;
 }
@@ -157,7 +157,7 @@ vec3 direct_ggx_rectangle(LightData ld, ShadingData sd, float roughness, vec3 f0
 {
 #ifdef USE_LTC
 	float NV = max(dot(sd.N, sd.V), 1e-8);
-	vec2 uv = ltc_coords(NV, sqrt(roughness));
+	vec2 uv = lut_coords(NV, sqrt(roughness));
 	mat3 ltcmat = ltc_matrix(uv);
 
 	float bsdf = ltc_evaluate(sd.N, sd.V, ltcmat, sd.area_data.corner);
@@ -180,7 +180,7 @@ vec3 direct_ggx_rectangle(LightData ld, ShadingData sd, float roughness, vec3 f0
 
 	/* Fresnel */
 	float VH = max(dot(sd.V, normalize(sd.V + sd.L)), 0.0);
-	vec3 spec = F_schlick(f0, NV) * bsdf;
+	vec3 spec = F_schlick(f0, VH) * bsdf;
 #endif
 	return spec;
 }

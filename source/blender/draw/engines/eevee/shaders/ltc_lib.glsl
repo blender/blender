@@ -1,7 +1,6 @@
 /* Mainly From https://eheitzresearch.wordpress.com/415-2/ */
 
 #define USE_LTC
-#define LTC_LUT_SIZE 64
 
 uniform sampler2D ltcMat;
 uniform sampler2D brdfLut;
@@ -144,15 +143,6 @@ int clip_quad_to_horizon(inout vec3 L[5])
 		L[4] = L[0];
 
 	return n;
-}
-
-vec2 ltc_coords(float cosTheta, float roughness)
-{
-	float theta = acos(cosTheta);
-	vec2 coords = vec2(roughness, theta/(0.5*3.14159));
-
-	/* scale and bias coordinates, for correct filtered lookup */
-	return coords * (LTC_LUT_SIZE - 1.0) / LTC_LUT_SIZE + 0.5 / LTC_LUT_SIZE;
 }
 
 mat3 ltc_matrix(vec2 coord)
