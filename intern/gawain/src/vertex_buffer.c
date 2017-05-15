@@ -55,8 +55,10 @@ void VertexBuffer_discard(VertexBuffer* verts)
 	{
 	if (verts->vbo_id) {
 		int size;
+		glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 		vbo_memory_usage -= size;
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		buffer_id_free(verts->vbo_id);
 	}
