@@ -2578,13 +2578,7 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_cavity)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_edge)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_distance)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_attenuation)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(world_intensity)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(diffuse_intensity)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(specular_intensity)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(specular_hardness)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(color_randomicity)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT_ARRAY(hair_diffuse_color, 4)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT_ARRAY(hair_specular_color, 4)
 #endif /* WITH_CLAY_ENGINE */
 
 /* eevee engine */
@@ -6336,7 +6330,7 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "matcap_hue", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_hue_get", "rna_LayerEngineSettings_Clay_matcap_hue_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Hue shift", "Hue correction of the matcap");
+	RNA_def_property_ui_text(prop, "Matcap Hue Shift", "Hue correction of the matcap");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
 
@@ -6384,54 +6378,10 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
 
-	prop = RNA_def_property(srna, "world_intensity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_world_intensity_get", "rna_LayerEngineSettings_Clay_world_intensity_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair World Light", "World lighting intensity for hair");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "diffuse_intensity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_diffuse_intensity_get", "rna_LayerEngineSettings_Clay_diffuse_intensity_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair Diffuse", "Diffuse lighting intensity for hair");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "specular_intensity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_specular_intensity_get", "rna_LayerEngineSettings_Clay_specular_intensity_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair Specular", "Specular lighting intensity for hair");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "specular_hardness", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_specular_hardness_get", "rna_LayerEngineSettings_Clay_specular_hardness_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair Specular Hardness", "Specular hardness for hair");
-	RNA_def_property_range(prop, 0.0f, 1000.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
-
 	prop = RNA_def_property(srna, "color_randomicity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_color_randomicity_get", "rna_LayerEngineSettings_Clay_color_randomicity_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair Color Randomicity", "Color randomicity for hair");
+	RNA_def_property_ui_text(prop, "Hair Brightness Randomicity", "Brightness randomicity for hair");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "hair_diffuse_color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_hair_diffuse_color_get",
-	                             "rna_LayerEngineSettings_Clay_hair_diffuse_color_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair Diffuse Color", "Diffuse component of hair shading color");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "hair_specular_color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_hair_specular_color_get",
-	                             "rna_LayerEngineSettings_Clay_hair_specular_color_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair Specular Color", "Specular component of hair shading color");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
 

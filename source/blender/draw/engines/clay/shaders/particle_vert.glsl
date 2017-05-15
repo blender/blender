@@ -4,9 +4,9 @@ uniform mat3 NormalMatrix;
 uniform mat4 ModelViewMatrix;
 
 in vec3 pos;
-in vec3 nor;
+in vec3 tang;
 in int ind;
-out vec3 normal;
+out vec3 tangent;
 out vec3 viewPosition;
 flat out float colRand;
 
@@ -28,7 +28,7 @@ float rand(int seed)
 void main()
 {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	normal = normalize(NormalMatrix * nor);
+	tangent = normalize(NormalMatrix * tang);
 	viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
 	colRand = rand(ind);
 }

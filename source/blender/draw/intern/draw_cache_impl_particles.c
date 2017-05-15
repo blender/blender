@@ -174,7 +174,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 {
 	if (cache->pos == NULL || cache->segments == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, nor_id, ind_id;
+		static unsigned pos_id, tan_id, ind_id;
 		int curr_point = 0;
 
 		VERTEXBUFFER_DISCARD_SAFE(cache->pos);
@@ -183,7 +183,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
 			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+			tan_id = VertexFormat_add_attrib(&format, "tang", COMP_F32, 3, KEEP_FLOAT);
 			ind_id = VertexFormat_add_attrib(&format, "ind", COMP_I32, 1, KEEP_INT);
 		}
 
@@ -209,7 +209,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 						}
 
 						VertexBuffer_set_attrib(cache->pos, pos_id, curr_point, path[j].co);
-						VertexBuffer_set_attrib(cache->pos, nor_id, curr_point, tangent);
+						VertexBuffer_set_attrib(cache->pos, tan_id, curr_point, tangent);
 						VertexBuffer_set_attrib(cache->pos, ind_id, curr_point, &i);
 
 						add_line_vertices(&elb, curr_point, curr_point + 1);
@@ -220,7 +220,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 					sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
 
 					VertexBuffer_set_attrib(cache->pos, pos_id, curr_point, path[path->segments].co);
-					VertexBuffer_set_attrib(cache->pos, nor_id, curr_point, tangent);
+					VertexBuffer_set_attrib(cache->pos, tan_id, curr_point, tangent);
 					VertexBuffer_set_attrib(cache->pos, ind_id, curr_point, &i);
 
 					curr_point++;
@@ -245,7 +245,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 						}
 
 						VertexBuffer_set_attrib(cache->pos, pos_id, curr_point, path[j].co);
-						VertexBuffer_set_attrib(cache->pos, nor_id, curr_point, tangent);
+						VertexBuffer_set_attrib(cache->pos, tan_id, curr_point, tangent);
 						VertexBuffer_set_attrib(cache->pos, ind_id, curr_point, &x);
 
 						add_line_vertices(&elb, curr_point, curr_point + 1);
@@ -256,7 +256,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 					sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
 
 					VertexBuffer_set_attrib(cache->pos, pos_id, curr_point, path[path->segments].co);
-					VertexBuffer_set_attrib(cache->pos, nor_id, curr_point, tangent);
+					VertexBuffer_set_attrib(cache->pos, tan_id, curr_point, tangent);
 					VertexBuffer_set_attrib(cache->pos, ind_id, curr_point, &x);
 
 					curr_point++;
