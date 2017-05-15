@@ -1753,7 +1753,7 @@ static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *activescene, Po
 
 static void rna_SceneRenderLayer_update_render_passes(ID *id)
 {
-	Scene *scene = (Scene*) id;
+	Scene *scene = (Scene *)id;
 	if (scene->nodetree)
 		ntreeCompositUpdateRLayers(scene->nodetree);
 }

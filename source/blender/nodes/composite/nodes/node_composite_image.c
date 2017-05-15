@@ -351,9 +351,9 @@ void node_cmp_rlayers_outputs(bNodeTree *ntree, bNode *node)
 	cmp_node_image_verify_outputs(ntree, node, true);
 }
 
-const char* node_cmp_rlayers_sock_to_pass(int sock_index)
+const char *node_cmp_rlayers_sock_to_pass(int sock_index)
 {
-	const char* sock_to_passname[] = {
+	const char *sock_to_passname[] = {
 		RE_PASSNAME_COMBINED, RE_PASSNAME_COMBINED,
 		RE_PASSNAME_Z, RE_PASSNAME_NORMAL, RE_PASSNAME_UV, RE_PASSNAME_VECTOR, RE_PASSNAME_RGBA,
 		RE_PASSNAME_DIFFUSE, RE_PASSNAME_SPEC, RE_PASSNAME_SHADOW, RE_PASSNAME_AO,
@@ -378,8 +378,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
 
 	node->id = &scene->id;
 
-	for (bNodeSocket *sock = node->outputs.first; sock; sock = sock->next, sock_index++)
-	{
+	for (bNodeSocket *sock = node->outputs.first; sock; sock = sock->next, sock_index++) {
 		NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
 		sock->storage = sockdata;
 

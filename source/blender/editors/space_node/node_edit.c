@@ -589,7 +589,8 @@ void snode_set_context(const bContext *C)
 	}
 	
 	if (snode->nodetree != ntree || snode->id != id || snode->from != from ||
-	    (snode->treepath.last == NULL && ntree)) {
+	    (snode->treepath.last == NULL && ntree))
+	{
 		ED_node_tree_start(snode, ntree, id, from);
 	}
 }

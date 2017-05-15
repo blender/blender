@@ -165,12 +165,10 @@ def import_from_id(template_id, ignore_not_found=False):
 def activate(template_id=None):
     template_id_prev = _app_template["id"]
 
-    # not needed but may as well avoid activating same template
-    # ... in fact keep this, it will show errors early on!
-    """
+    # not needed but may as well avoids redundant
+    # disable/enable for all add-ons on 'File -> New'
     if template_id_prev == template_id:
         return
-    """
 
     if template_id_prev:
         _disable(template_id_prev)
