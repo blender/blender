@@ -820,14 +820,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 	
 
-#ifdef WITH_COMPOSITOR
-	if (ntree->type == NTREE_COMPOSIT && (snode->flag & SNODE_SHOW_HIGHLIGHT)) {
-		if (COM_isHighlightedbNode(node)) {
-			UI_ThemeColorBlend(color_id, TH_ACTIVE, 0.5f);
-		}
-	}
-#endif
-
 	glLineWidth(1.0f);
 
 	UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
@@ -989,16 +981,6 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	if (node->flag & NODE_MUTED)
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 
-#ifdef WITH_COMPOSITOR
-	if (ntree->type == NTREE_COMPOSIT && (snode->flag & SNODE_SHOW_HIGHLIGHT)) {
-		if (COM_isHighlightedbNode(node)) {
-			UI_ThemeColorBlend(color_id, TH_ACTIVE, 0.5f);
-		}
-	}
-#else
-	(void)ntree;
-#endif
-	
 	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active and selected emphasis */
@@ -1253,15 +1235,9 @@ static void snode_setup_v2d(SpaceNode *snode, ARegion *ar, const float center[2]
 static void draw_nodetree(const bContext *C, ARegion *ar, bNodeTree *ntree, bNodeInstanceKey parent_key)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
-	
+
 	node_uiblocks_init(C, ntree);
-	
-#ifdef WITH_COMPOSITOR
-	if (ntree->type == NTREE_COMPOSIT) {
-		COM_startReadHighlights();
-	}
-#endif
-	
+
 	node_update_nodetree(C, ntree);
 	node_draw_nodetree(C, ar, snode, ntree, parent_key);
 }

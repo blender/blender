@@ -1151,7 +1151,7 @@ typedef enum eSpaceNode_Flag {
 	SNODE_SHOW_G         = (1 << 8),
 	SNODE_SHOW_B         = (1 << 9),
 	SNODE_AUTO_RENDER    = (1 << 5),
-	SNODE_SHOW_HIGHLIGHT = (1 << 6),
+//	SNODE_SHOW_HIGHLIGHT = (1 << 6), DNA_DEPRECATED
 //	SNODE_USE_HIDDEN_PREVIEW = (1 << 10), DNA_DEPRECATED December2013 
 	SNODE_NEW_SHADERS    = (1 << 11),
 	SNODE_PIN            = (1 << 12),

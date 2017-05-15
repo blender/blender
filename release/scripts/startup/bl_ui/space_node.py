@@ -428,7 +428,6 @@ class NODE_PT_quality(bpy.types.Panel):
         col.prop(tree, "use_groupnode_buffer")
         col.prop(tree, "use_two_pass")
         col.prop(tree, "use_viewer_border")
-        col.prop(snode, "show_highlight")
 
 
 class NODE_UL_interface_sockets(bpy.types.UIList):
