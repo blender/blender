@@ -141,6 +141,7 @@ static const char* copy_attrib_name(VertexFormat* format, const char* name)
 unsigned VertexFormat_add_attrib(VertexFormat* format, const char* name, VertexCompType comp_type, unsigned comp_ct, VertexFetchMode fetch_mode)
 	{
 #if TRUST_NO_ONE
+	assert(format->name_ct < MAX_VERTEX_ATTRIBS); // there's room for more
 	assert(format->attrib_ct < MAX_VERTEX_ATTRIBS); // there's room for more
 	assert(!format->packed); // packed means frozen/locked
 	assert(comp_ct >= 1 && comp_ct <= 4);
@@ -163,6 +164,7 @@ unsigned VertexFormat_add_attrib(VertexFormat* format, const char* name, VertexC
 			assert(fetch_mode != KEEP_FLOAT);
 		}
 #endif
+	format->name_ct++; // multiname support
 
 	const unsigned attrib_id = format->attrib_ct++;
 	Attrib* attrib = format->attribs + attrib_id;
@@ -186,8 +188,10 @@ void VertexFormat_add_alias(VertexFormat* format, const char* alias)
 	{
 	Attrib* attrib = format->attribs + (format->attrib_ct - 1);
 #if TRUST_NO_ONE
+	assert(format->name_ct < MAX_VERTEX_ATTRIBS); // there's room for more
 	assert(attrib->name_ct < MAX_ATTRIB_NAMES);
 #endif
+	format->name_ct++; // multiname support
 	attrib->name[attrib->name_ct++] = copy_attrib_name(format, alias);
 	}
 

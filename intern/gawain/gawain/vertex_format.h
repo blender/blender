@@ -61,6 +61,7 @@ typedef struct {
 
 typedef struct {
 	unsigned attrib_ct; // 0 to 16 (MAX_VERTEX_ATTRIBS)
+	unsigned name_ct; // total count of active vertex attrib
 	unsigned stride; // stride in bytes, 1 to 256
 	bool packed;
 	Attrib attribs[MAX_VERTEX_ATTRIBS]; // TODO: variable-size attribs array
