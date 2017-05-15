@@ -153,14 +153,14 @@ void VertexBuffer_fill_attrib_stride(VertexBuffer* verts, unsigned a_idx, unsign
 
 static void VertexBuffer_prime(VertexBuffer* verts)
 	{
-	const VertexFormat* format = &verts->format;
+	const unsigned buffer_sz = VertexBuffer_size(verts);
 
 	verts->vbo_id = buffer_id_alloc();
 	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	// fill with delicious data & send to GPU the first time only
-	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size(format, verts->vertex_ct), verts->data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, buffer_sz, verts->data, GL_STATIC_DRAW);
 
-	vbo_memory_usage += VertexBuffer_size(verts);
+	vbo_memory_usage += buffer_sz;
 
 #if KEEP_SINGLE_COPY
 	// now that GL has a copy, discard original
