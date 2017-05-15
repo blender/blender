@@ -712,6 +712,10 @@ static void uiblock_layer_pass_buttons(
 	const char *display_name = "";
 	const bool show_stereo = (iuser->flag & IMA_SHOW_STEREO) != 0;
 
+	if (iuser->scene == NULL) {
+		return;
+	}
+
 	uiLayoutRow(layout, true);
 
 	/* layer menu is 1/3 larger than pass */
