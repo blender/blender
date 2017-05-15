@@ -2364,7 +2364,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "hair_step", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 2, INT_MAX);
-	RNA_def_property_ui_range(prop, 2, 50, 1, -1);
+	RNA_def_property_ui_range(prop, 2, 50, 1, 1);
 	RNA_def_property_ui_text(prop, "Segments", "Number of hair segments");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
