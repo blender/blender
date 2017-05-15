@@ -1630,7 +1630,7 @@ static void add_overlay_loose_vert(
 	if (vbo_nor) {
 		short *nor = mesh_render_data_vert_nor(rdata, v);
 #if USE_10_10_10
-		PackedNormal vnor = convert_i10_s3(edge_nor);
+		PackedNormal vnor = convert_i10_s3(nor);
 		VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx, &vnor);
 #else
 		VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx, nor);
@@ -1898,7 +1898,7 @@ void DRW_mesh_batch_cache_free(Mesh *me)
 
 /* Batch cache usage. */
 
-//#define USE_COMP_MESH_DATA
+#define USE_COMP_MESH_DATA
 static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
@@ -1923,7 +1923,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		for (int i = 0; i < rdata->uv_len; i++) {
 			/* UV */
 			attrib_name = mesh_render_data_uv_layer_uuid_get(rdata, i);
-#ifdef USE_COMP_MESH_DATA
+#if defined(USE_COMP_MESH_DATA) && 0 /* these are clamped. Maybe use them as an option in the future */
 			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I16, 2, NORMALIZE_INT_TO_FLOAT);
 #else
 			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 2, KEEP_FLOAT);
@@ -1940,7 +1940,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 			/* Tangent */
 			attrib_name = mesh_render_data_tangent_layer_uuid_get(rdata, i);
 #ifdef USE_COMP_MESH_DATA
-#  if USE_10_10_10
+#  if USE_10_10_10 && 0 /* Tangents need more precision than this */
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
 #  else
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
@@ -1989,7 +1989,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 				for (int j = 0; j < rdata->uv_len; j++) {
 					/* UVs */
 					mesh_render_data_looptri_uvs_get(rdata, i, j, &tri_uvs);
-#ifdef USE_COMP_MESH_DATA
+#if defined(USE_COMP_MESH_DATA) && 0 /* these are clamped. Maybe use them as an option in the future */
 					short s_uvs[3][2];
 					normal_float_to_short_v2(s_uvs[0], tri_uvs[0]);
 					normal_float_to_short_v2(s_uvs[1], tri_uvs[1]);
@@ -2004,12 +2004,13 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 					/* Tangent */
 					mesh_render_data_looptri_tans_get(rdata, i, j, &tri_tans);
 #ifdef USE_COMP_MESH_DATA
-#  if USE_10_10_10
-					PackedNormal s_tan[3] = {
+#  if USE_10_10_10 && 0 /* Tangents need more precision than this */
+					PackedNormal s_tan_pack[3] = {
 					    convert_i10_v3(tri_tans[0]),
 					    convert_i10_v3(tri_tans[1]),
 					    convert_i10_v3(tri_tans[2])
 					};
+					PackedNormal *s_tan[3] = { &s_tan_pack[0], &s_tan_pack[1], &s_tan_pack[2] };
 #  else
 					short s_tan[3][3];
 					normal_float_to_short_v3(s_tan[0], tri_tans[0]);
@@ -2086,11 +2087,12 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals(
 			{
 				if (is_smooth) {
 #if USE_10_10_10
-					PackedNormal snor[3] = {
+					PackedNormal snor_pack[3] = {
 						convert_i10_s3(tri_vert_nors[0]),
 						convert_i10_s3(tri_vert_nors[1]),
 						convert_i10_s3(tri_vert_nors[2])
-					}
+					};
+					PackedNormal *snor[3] = { &snor_pack[0], &snor_pack[1], &snor_pack[2] };
 #else
 					short **snor = tri_vert_nors;
 #endif
@@ -2100,7 +2102,8 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals(
 				}
 				else {
 #if USE_10_10_10
-					PackedNormal snor = convert_i10_s3(tri_nor);
+					PackedNormal snor_pack = convert_i10_s3(tri_nor);
+					PackedNormal *snor = &snor_pack;
 #else
 					short *snor = tri_nor;
 #endif
