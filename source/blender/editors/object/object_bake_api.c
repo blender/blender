@@ -1172,6 +1172,9 @@ static int bake_exec(bContext *C, wmOperator *op)
 	BakeAPIRender bkr = {NULL};
 	Scene *scene = CTX_data_scene(C);
 
+	G.is_break = false;
+	G.is_rendering = true;
+
 	bake_set_props(op, scene);
 
 	bake_init_api_data(op, C, &bkr);
@@ -1223,6 +1226,7 @@ static int bake_exec(bContext *C, wmOperator *op)
 
 
 finally:
+	G.is_rendering = false;
 	BLI_freelistN(&bkr.selected_objects);
 	return result;
 }
