@@ -635,7 +635,7 @@ static void bm_mesh_loops_calc_normals(
 			BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
 		} while ((l_curr = l_curr->next) != l_first);
 	}
-	bm->elem_index_dirty &= ~(BM_FACE|BM_LOOP);
+	bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
 	/* We now know edges that can be smoothed (they are tagged), and edges that will be hard (they aren't).
 	 * Now, time to generate the normals.

@@ -2244,8 +2244,9 @@ static void write_mesh(WriteData *wd, Mesh *mesh)
 			 *     outside of save process itself.
 			 *     Maybe we can live with this, though?
 			 */
-			mesh->totface = BKE_mesh_mpoly_to_mface(&mesh->fdata, &old_mesh->ldata, &old_mesh->pdata,
-													mesh->totface, old_mesh->totloop, old_mesh->totpoly);
+			mesh->totface = BKE_mesh_mpoly_to_mface(
+			        &mesh->fdata, &old_mesh->ldata, &old_mesh->pdata,
+			        mesh->totface, old_mesh->totloop, old_mesh->totpoly);
 
 			BKE_mesh_update_customdata_pointers(mesh, false);
 

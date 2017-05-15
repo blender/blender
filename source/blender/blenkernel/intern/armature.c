@@ -1985,6 +1985,8 @@ void BKE_pose_rebuild_ex(Object *ob, bArmature *arm, const bool sort_bones)
 	if (counter > 1 && sort_bones) {
 		DAG_pose_sort(ob);
 	}
+#else
+	UNUSED_VARS(sort_bones);
 #endif
 
 	ob->pose->flag &= ~POSE_RECALC;

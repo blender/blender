@@ -107,8 +107,8 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree, bNode *node,
 
 		BLI_strncpy(sockdata->pass_name, passname, sizeof(sockdata->pass_name));
 
-		sock_index = BLI_listbase_count(&node->outputs)-1;
-		if (sock_index != after_index+1) {
+		sock_index = BLI_listbase_count(&node->outputs) - 1;
+		if (sock_index != after_index + 1) {
 			bNodeSocket *after_sock = BLI_findlink(&node->outputs, after_index);
 			BLI_remlink(&node->outputs, sock);
 			BLI_insertlinkafter(&node->outputs, after_sock, sock);
@@ -218,9 +218,9 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree, bNode *node, LinkNo
 
 	if (scene) {
 		RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
-		if(engine_type && engine_type->update_render_passes) {
+		if (engine_type && engine_type->update_render_passes) {
 			SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, node->custom1);
-			if(srl) {
+			if (srl) {
 				RLayerUpdateData *data = MEM_mallocN(sizeof(RLayerUpdateData), "render layer update data");
 				data->available_sockets = available_sockets;
 				data->prev_index = -1;
@@ -351,9 +351,9 @@ void node_cmp_rlayers_outputs(bNodeTree *ntree, bNode *node)
 	cmp_node_image_verify_outputs(ntree, node, true);
 }
 
-const char* node_cmp_rlayers_sock_to_pass(int sock_index)
+const char *node_cmp_rlayers_sock_to_pass(int sock_index)
 {
-	const char* sock_to_passname[] = {
+	const char *sock_to_passname[] = {
 		RE_PASSNAME_COMBINED, RE_PASSNAME_COMBINED,
 		RE_PASSNAME_Z, RE_PASSNAME_NORMAL, RE_PASSNAME_UV, RE_PASSNAME_VECTOR, RE_PASSNAME_RGBA,
 		RE_PASSNAME_DIFFUSE, RE_PASSNAME_SPEC, RE_PASSNAME_SHADOW, RE_PASSNAME_AO,
@@ -378,8 +378,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
 
 	node->id = &scene->id;
 
-	for (bNodeSocket *sock = node->outputs.first; sock; sock = sock->next, sock_index++)
-	{
+	for (bNodeSocket *sock = node->outputs.first; sock; sock = sock->next, sock_index++) {
 		NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
 		sock->storage = sockdata;
 
