@@ -120,6 +120,7 @@ class COLLECTION_PT_edit_mode_settings(CollectionButtonsPanel, Panel):
         col.template_override_property(collection_props, scene_props, "vert_normals_show")
         col.template_override_property(collection_props, scene_props, "loop_normals_show")
         col.template_override_property(collection_props, scene_props, "normals_length")
+        col.template_override_property(collection_props, scene_props, "show_weight")
 
 
 class COLLECTION_PT_paint_weight_mode_settings(CollectionButtonsPanel, Panel):
