@@ -64,7 +64,12 @@ void VertexBuffer_fill_attrib_stride(VertexBuffer*, unsigned a_idx, unsigned str
 void VertexBuffer_use(VertexBuffer*);
 
 
-/* Macros */
+// Metrics
+
+unsigned VertexBuffer_get_memory_usage(void);
+
+
+// Macros
 
 #define VERTEXBUFFER_DISCARD_SAFE(verts) do { \
 	if (verts != NULL) { \

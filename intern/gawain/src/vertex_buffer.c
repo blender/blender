@@ -179,5 +179,5 @@ void VertexBuffer_use(VertexBuffer* verts)
 
 unsigned VertexBuffer_get_memory_usage(void)
 	{
-		return vbo_memory_usage;
+	return vbo_memory_usage;
 	}

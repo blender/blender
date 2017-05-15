@@ -75,10 +75,6 @@ void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src);
 unsigned VertexFormat_add_attrib(VertexFormat*, const char* name, VertexCompType, unsigned comp_ct, VertexFetchMode);
 void VertexFormat_add_alias(VertexFormat*, const char* alias);
 
-// Memory Management
-
-unsigned VertexBuffer_get_memory_usage(void);
-
 // format conversion
 
 #if USE_10_10_10
