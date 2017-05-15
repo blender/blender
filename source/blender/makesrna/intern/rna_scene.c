@@ -2578,7 +2578,7 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_cavity)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_edge)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_distance)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_attenuation)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(color_randomicity)
+RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
 #endif /* WITH_CLAY_ENGINE */
 
 /* eevee engine */
@@ -6378,9 +6378,9 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
 
-	prop = RNA_def_property(srna, "color_randomicity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_color_randomicity_get", "rna_LayerEngineSettings_Clay_color_randomicity_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair Brightness Randomicity", "Brightness randomicity for hair");
+	prop = RNA_def_property(srna, "hair_brightness_randomness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_hair_brightness_randomness_get", "rna_LayerEngineSettings_Clay_hair_brightness_randomness_set", NULL);
+	RNA_def_property_ui_text(prop, "Hair Brightness Randomness", "Brightness randomness for hair");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");

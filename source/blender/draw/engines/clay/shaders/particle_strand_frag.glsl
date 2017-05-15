@@ -12,7 +12,7 @@ layout(std140) uniform material_block {
 uniform sampler2DArray matcaps;
 uniform int mat_id;
 
-#define randomicity			shader_param[mat_id].one.x
+#define randomness			shader_param[mat_id].one.x
 #define matcap_index		shader_param[mat_id].one.y
 #define matcap_rotation		shader_param[mat_id].one.zw
 #define matcap_hsv			shader_param[mat_id].two.xyz
@@ -136,7 +136,7 @@ void main()
 
 	float maxChan = max(max(col.r, col.g), col.b);
 
-	col += (colRand * maxChan * randomicity * 2.0) - (maxChan * randomicity);
+	col += (colRand * maxChan * randomness * 1.5) - (maxChan * randomness * 0.75);
 
 	fragColor.rgb = col;
 	fragColor.a = 1.0;

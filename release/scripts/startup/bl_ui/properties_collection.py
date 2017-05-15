@@ -68,7 +68,7 @@ class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
         col.template_override_property(collection_props, scene_props, "ssao_factor_edge")
         col.template_override_property(collection_props, scene_props, "ssao_distance")
         col.template_override_property(collection_props, scene_props, "ssao_attenuation")
-        col.template_override_property(collection_props, scene_props, "color_randomicity")
+        col.template_override_property(collection_props, scene_props, "hair_brightness_randomness")
 
 
 class COLLECTION_PT_object_mode_settings(CollectionButtonsPanel, Panel):

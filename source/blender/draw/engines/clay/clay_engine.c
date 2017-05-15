@@ -65,7 +65,7 @@ typedef struct CLAY_UBO_Material {
 BLI_STATIC_ASSERT_ALIGN(CLAY_UBO_Material, 16);
 
 typedef struct CLAY_HAIR_UBO_Material {
-	float hair_randomicity;
+	float hair_randomness;
 	float matcap_id;
 	float matcap_rot[2];
 	float matcap_hsv[3];
@@ -508,7 +508,7 @@ static int search_mat_to_ubo(
 }
 
 static int search_hair_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                                  float matcap_val, float hair_randomicity, int matcap_icon)
+                                  float matcap_val, float hair_randomness, int matcap_icon)
 {
 	/* For now just use a linear search and test all parameters */
 	/* TODO make a hash table */
@@ -519,7 +519,7 @@ static int search_hair_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float
 		    (ubo->matcap_hsv[0] == matcap_hue + 0.5f) &&
 		    (ubo->matcap_hsv[1] == matcap_sat * 2.0f) &&
 		    (ubo->matcap_hsv[2] == matcap_val * 2.0f) &&
-		    (ubo->hair_randomicity == hair_randomicity) &&
+		    (ubo->hair_randomness == hair_randomness) &&
 		    (ubo->matcap_id == matcap_to_index(matcap_icon)))
 		{
 			return i;
@@ -557,7 +557,7 @@ static int push_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap
 }
 
 static int push_hair_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                                float matcap_val, float hair_randomicity, int matcap_icon)
+                                float matcap_val, float hair_randomness, int matcap_icon)
 {
 	int id = storage->hair_ubo_current_id;
 	CLAY_HAIR_UBO_Material *ubo = &storage->hair_mat_storage.materials[id];
@@ -569,7 +569,7 @@ static int push_hair_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float m
 	ubo->matcap_hsv[1] = matcap_sat * 2.0f;
 	ubo->matcap_hsv[2] = matcap_val * 2.0f;
 
-	ubo->hair_randomicity = hair_randomicity;
+	ubo->hair_randomness = hair_randomness;
 
 	ubo->matcap_id = matcap_to_index(matcap_icon);
 
@@ -598,16 +598,16 @@ static int mat_in_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue,
 }
 
 static int hair_mat_in_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                           float matcap_val, float hair_randomicity, int matcap_icon)
+                           float matcap_val, float hair_randomness, int matcap_icon)
 {
 	/* Search material in UBO */
 	int id = search_hair_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat,
-	                                matcap_val, hair_randomicity, matcap_icon);
+	                                matcap_val, hair_randomness, matcap_icon);
 
 	/* if not found create it */
 	if (id == -1) {
 		id = push_hair_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat,
-		                          matcap_val, hair_randomicity, matcap_icon);
+		                          matcap_val, hair_randomness, matcap_icon);
 	}
 
 	return id;
@@ -654,11 +654,11 @@ static DRWShadingGroup *CLAY_hair_shgrp_get(Object *ob, CLAY_StorageList *stl, C
 	float matcap_hue = BKE_collection_engine_property_value_get_float(props, "matcap_hue");
 	float matcap_sat = BKE_collection_engine_property_value_get_float(props, "matcap_saturation");
 	float matcap_val = BKE_collection_engine_property_value_get_float(props, "matcap_value");
-	float hair_randomicity = BKE_collection_engine_property_value_get_float(props, "color_randomicity");
+	float hair_randomness = BKE_collection_engine_property_value_get_float(props, "hair_brightness_randomness");
 	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
 
 	int hair_id = hair_mat_in_ubo(stl->storage, matcap_rot, matcap_hue, matcap_sat,
-	                              matcap_val, hair_randomicity, matcap_icon);
+	                              matcap_val, hair_randomness, matcap_icon);
 
 	if (hair_shgrps[hair_id] == NULL) {
 		hair_shgrps[hair_id] = CLAY_hair_shgroup_create(psl->hair_pass, &e_data.hair_ubo_mat_idxs[hair_id]);
@@ -818,7 +818,7 @@ static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), 
 	BKE_collection_engine_property_add_float(props, "ssao_distance", 0.2f);
 	BKE_collection_engine_property_add_float(props, "ssao_attenuation", 1.0f);
 	BKE_collection_engine_property_add_float(props, "ssao_factor_cavity", 1.0f);
-	BKE_collection_engine_property_add_float(props, "color_randomicity", 0.0f);
+	BKE_collection_engine_property_add_float(props, "hair_brightness_randomness", 0.0f);
 }
 
 static void CLAY_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
