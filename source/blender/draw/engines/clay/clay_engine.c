@@ -753,29 +753,35 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	}
 
 	if (ob->type == OB_MESH) {
-		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
-			if (psys_check_enabled(ob, psys, false)) {
-				ParticleSettings *part = psys->part;
-				int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		Scene *scene = draw_ctx->scene;
+		Object *obedit = scene->obedit;
 
-				if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
-					draw_as = PART_DRAW_DOT;
-				}
+		if (ob != obedit) {
+			for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+				if (psys_check_enabled(ob, psys, false)) {
+					ParticleSettings *part = psys->part;
+					int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
-				switch (draw_as) {
-					case PART_DRAW_PATH:
-						geom = DRW_cache_particles_get_hair(psys);
-						break;
-					default:
-						geom = NULL;
-						break;
-				}
+					if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+						draw_as = PART_DRAW_DOT;
+					}
 
-				if (geom) {
-					static float mat[4][4];
-					unit_m4(mat);
-					hair_shgrp = CLAY_hair_shgrp_get(ob, stl, psl);
-					DRW_shgroup_call_add(hair_shgrp, geom, mat);
+					switch (draw_as) {
+						case PART_DRAW_PATH:
+							geom = DRW_cache_particles_get_hair(psys);
+							break;
+						default:
+							geom = NULL;
+							break;
+					}
+
+					if (geom) {
+						static float mat[4][4];
+						unit_m4(mat);
+						hair_shgrp = CLAY_hair_shgrp_get(ob, stl, psl);
+						DRW_shgroup_call_add(hair_shgrp, geom, mat);
+					}
 				}
 			}
 		}
