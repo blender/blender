@@ -1854,8 +1854,10 @@ static void mesh_batch_cache_clear(Mesh *me)
 	VERTEXBUFFER_DISCARD_SAFE(cache->ed_fcenter_pos);
 	VERTEXBUFFER_DISCARD_SAFE(cache->ed_fcenter_nor);
 	BATCH_DISCARD_SAFE(cache->overlay_triangles);
+	BATCH_DISCARD_SAFE(cache->overlay_triangles_nor);
 	BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
 	BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
+	BATCH_DISCARD_SAFE(cache->overlay_loose_edges_nor);
 	BATCH_DISCARD_SAFE(cache->overlay_facedots);
 
 	BATCH_DISCARD_ALL_SAFE(cache->overlay_paint_edges);
