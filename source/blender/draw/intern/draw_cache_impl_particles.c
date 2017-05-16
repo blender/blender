@@ -147,7 +147,7 @@ static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 			for (int i = 0; i < psys->totpart; i++) {
 				ParticleCacheKey *path = psys->pathcache[i];
 
-				if (path->segments) {
+				if (path->segments > 0) {
 					cache->segment_count += path->segments;
 					cache->point_count += path->segments + 1;
 				}
@@ -160,7 +160,7 @@ static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 			for (int i = 0; i < child_count; i++) {
 				ParticleCacheKey *path = psys->childcache[i];
 
-				if (path->segments) {
+				if (path->segments > 0) {
 					cache->segment_count += path->segments;
 					cache->point_count += path->segments + 1;
 				}
@@ -197,7 +197,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 			for (int i = 0; i < psys->totpart; i++) {
 				ParticleCacheKey *path = psys->pathcache[i];
 
-				if (path->segments) {
+				if (path->segments > 0) {
 					float tangent[3];
 
 					for (int j = 0; j < path->segments; j++) {
@@ -235,7 +235,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 				ParticleCacheKey *path = psys->childcache[i];
 				float tangent[3];
 
-				if (path->segments) {
+				if (path->segments > 0) {
 					for (int j = 0; j < path->segments; j++) {
 						if (j == 0) {
 							sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
