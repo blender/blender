@@ -126,7 +126,7 @@ void main()
 
 	for (int i = 0; i < 9; i++) {
 		vec3 rotNorm = rotate(norm, ortho, -0.5 + (i * 0.125));
-		vec3 ray = viewvec - ((2.0 * dot(viewvec, rotNorm)) * rotNorm);
+		vec3 ray = reflect(viewvec, rotNorm);
 		vec2 texco = abs(vec2(dot(ray.xy, matcap_rotation), dot(ray.xy, rotY)) * .49 + 0.5);
 
 		col += texture(matcaps, vec3(texco, matcap_index)).rgb / 9.0;
