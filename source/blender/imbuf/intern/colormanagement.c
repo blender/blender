@@ -2065,6 +2065,10 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, bool save_as_render, boo
 		}
 	}
 
+	if (colormanaged_ibuf != ibuf) {
+		IMB_metadata_copy(colormanaged_ibuf, ibuf);
+	}
+
 	return colormanaged_ibuf;
 }
 
