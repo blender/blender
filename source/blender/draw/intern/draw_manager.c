@@ -2650,46 +2650,44 @@ static void DRW_debug_gpu_stats(void)
 	int v = BLI_listbase_count(&DST.enabled_engines) + 3;
 	GLuint64 tot_time = 0;
 
-	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
-		GLuint64 engine_time = 0;
-		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
-		int vsta = v;
+	if (G.debug_value > 666) {
+		for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+			GLuint64 engine_time = 0;
+			DrawEngineType *engine = link->data;
+			ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+			int vsta = v;
 
-		draw_stat(&rect, 0, v, engine->idname, sizeof(engine->idname));
-		v++;
+			draw_stat(&rect, 0, v, engine->idname, sizeof(engine->idname));
+			v++;
 
-		for (int i = 0; i < engine->vedata_size->psl_len; ++i) {
-			DRWPass *pass = data->psl->passes[i];
-			if (pass != NULL) {
-				GLuint64 time;
-				glGetQueryObjectui64v(pass->timer_queries[pass->front_idx], GL_QUERY_RESULT, &time);
+			for (int i = 0; i < engine->vedata_size->psl_len; ++i) {
+				DRWPass *pass = data->psl->passes[i];
+				if (pass != NULL && pass->wasdrawn) {
+					GLuint64 time;
+					glGetQueryObjectui64v(pass->timer_queries[pass->front_idx], GL_QUERY_RESULT, &time);
 
-				sprintf(pass_name, "   |--> %s", pass->name);
-				draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
+					sprintf(pass_name, "   |--> %s", pass->name);
+					draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
 
-				if (pass->wasdrawn) {
 					sprintf(time_to_txt, "%.2fms", time / 1000000.0);
 					engine_time += time;
 					tot_time += time;
-				}
-				else {
-					sprintf(time_to_txt, "Not drawn");
-				}
-				draw_stat(&rect, 2, v++, time_to_txt, sizeof(time_to_txt));
 
-				pass->wasdrawn = false;
+					draw_stat(&rect, 2, v++, time_to_txt, sizeof(time_to_txt));
+
+					pass->wasdrawn = false;
+				}
 			}
+			/* engine total time */
+			sprintf(time_to_txt, "%.2fms", engine_time / 1000000.0);
+			draw_stat(&rect, 2, vsta, time_to_txt, sizeof(time_to_txt));
+			v++;
 		}
-		/* engine total time */
-		sprintf(time_to_txt, "%.2fms", engine_time / 1000000.0);
-		draw_stat(&rect, 2, vsta, time_to_txt, sizeof(time_to_txt));
+
+		sprintf(pass_name, "Total GPU time %.2fms (%.1f fps)", tot_time / 1000000.0, 1000000000.0 / tot_time);
+		draw_stat(&rect, 0, v++, pass_name, sizeof(pass_name));
 		v++;
 	}
-
-	sprintf(pass_name, "Total GPU time %.2fms (%.1f fps)", tot_time / 1000000.0, 1000000000.0 / tot_time);
-	draw_stat(&rect, 0, v++, pass_name, sizeof(pass_name));
-	v++;
 
 	/* Memory Stats */
 	unsigned int tex_mem = GPU_texture_memory_usage_get();
