@@ -2533,12 +2533,14 @@ static void DRW_engines_enable_external(void)
 	use_drw_engine(DRW_engine_viewport_external_type.draw_engine);
 }
 
-static void DRW_engines_enable(const Scene *scene, SceneLayer *sl)
+static void DRW_engines_enable(const Scene *scene, SceneLayer *sl, const View3D *v3d)
 {
 	const int mode = CTX_data_mode_enum_ex(scene->obedit, OBACT_NEW);
 	DRW_engines_enable_from_engine(scene);
-	DRW_engines_enable_from_object_mode();
-	DRW_engines_enable_from_mode(mode);
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+		DRW_engines_enable_from_object_mode();
+		DRW_engines_enable_from_mode(mode);
+	}
 }
 
 static void DRW_engines_disable(void)
@@ -2751,7 +2753,7 @@ void DRW_draw_render_loop(
 	v3d->zbuf = true;
 
 	/* Get list of enabled engines */
-	DRW_engines_enable(scene, sl);
+	DRW_engines_enable(scene, sl, v3d);
 
 	/* Setup viewport */
 	cache_is_dirty = GPU_viewport_cache_validate(DST.viewport, DRW_engines_get_hash());
