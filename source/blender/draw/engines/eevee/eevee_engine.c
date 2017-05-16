@@ -166,7 +166,7 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 	tex = DRW_texture_create_2D(w, h, DRW_TEX_RG_16, DRW_TEX_FILTER, (float *)texels);
 
 	DRWFboTexture tex_filter = {&tex, DRW_BUF_RG_16, DRW_TEX_FILTER};
-	DRW_framebuffer_init(&fb, w, h, &tex_filter, 1);
+	DRW_framebuffer_init(&fb, &draw_engine_eevee_type, w, h, &tex_filter, 1);
 
 	DRW_framebuffer_bind(fb);
 	DRW_draw_pass(pass);
@@ -215,7 +215,7 @@ static void EEVEE_engine_init(void *ved)
 	DRWFboTexture tex = {&txl->color, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
 
 	const float *viewport_size = DRW_viewport_size_get();
-	DRW_framebuffer_init(&fbl->main,
+	DRW_framebuffer_init(&fbl->main, &draw_engine_eevee_type,
 	                    (int)viewport_size[0], (int)viewport_size[1],
 	                    &tex, 1);
 

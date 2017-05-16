@@ -68,11 +68,6 @@ typedef struct EDIT_MESH_FramebufferList {
 	struct GPUFrameBuffer *occlude_wire_fb;
 } EDIT_MESH_FramebufferList;
 
-typedef struct EDIT_MESH_TextureList {
-	struct GPUTexture *occlude_wire_depth_tx;
-	struct GPUTexture *occlude_wire_color_tx;
-} EDIT_MESH_TextureList;
-
 typedef struct EDIT_MESH_StorageList {
 	struct EDIT_MESH_PrivateData *g_data;
 } EDIT_MESH_StorageList;
@@ -80,7 +75,7 @@ typedef struct EDIT_MESH_StorageList {
 typedef struct EDIT_MESH_Data {
 	void *engine_type;
 	EDIT_MESH_FramebufferList *fbl;
-	EDIT_MESH_TextureList *txl;
+	DRWViewportEmptyList *txl;
 	EDIT_MESH_PassList *psl;
 	EDIT_MESH_StorageList *stl;
 } EDIT_MESH_Data;
@@ -104,6 +99,9 @@ static struct {
 	GPUShader *normals_loop_sh;
 	GPUShader *normals_sh;
 	GPUShader *depth_sh;
+	/* temp buffer texture */
+	struct GPUTexture *occlude_wire_depth_tx;
+	struct GPUTexture *occlude_wire_color_tx;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct EDIT_MESH_PrivateData {
@@ -132,17 +130,16 @@ typedef struct EDIT_MESH_PrivateData {
 
 static void EDIT_MESH_engine_init(void *vedata)
 {
-	EDIT_MESH_TextureList *txl = ((EDIT_MESH_Data *)vedata)->txl;
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 
 	const float *viewport_size = DRW_viewport_size_get();
 
 	DRWFboTexture tex[2] = {{
-	    &txl->occlude_wire_depth_tx, DRW_BUF_DEPTH_24, 0},
-	    {&txl->occlude_wire_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER}
+	    &e_data.occlude_wire_depth_tx, DRW_BUF_DEPTH_24, DRW_TEX_TEMP},
+	    {&e_data.occlude_wire_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER | DRW_TEX_TEMP}
 	};
 	DRW_framebuffer_init(
-	        &fbl->occlude_wire_fb,
+	        &fbl->occlude_wire_fb, &draw_engine_edit_mesh_type,
 	        (int)viewport_size[0], (int)viewport_size[1],
 	        tex, ARRAY_SIZE(tex));
 
@@ -304,7 +301,6 @@ static float size_normal;
 
 static void EDIT_MESH_cache_init(void *vedata)
 {
-	EDIT_MESH_TextureList *txl = ((EDIT_MESH_Data *)vedata)->txl;
 	EDIT_MESH_PassList *psl = ((EDIT_MESH_Data *)vedata)->psl;
 	EDIT_MESH_StorageList *stl = ((EDIT_MESH_Data *)vedata)->stl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
@@ -393,8 +389,8 @@ static void EDIT_MESH_cache_init(void *vedata)
 		DRWShadingGroup *mix_shgrp = DRW_shgroup_create(e_data.overlay_mix_sh, psl->mix_occlude);
 		DRW_shgroup_call_add(mix_shgrp, quad, NULL);
 		DRW_shgroup_uniform_float(mix_shgrp, "alpha", &backwire_opacity, 1);
-		DRW_shgroup_uniform_buffer(mix_shgrp, "wireColor", &txl->occlude_wire_color_tx);
-		DRW_shgroup_uniform_buffer(mix_shgrp, "wireDepth", &txl->occlude_wire_depth_tx);
+		DRW_shgroup_uniform_buffer(mix_shgrp, "wireColor", &e_data.occlude_wire_color_tx);
+		DRW_shgroup_uniform_buffer(mix_shgrp, "wireDepth", &e_data.occlude_wire_depth_tx);
 		DRW_shgroup_uniform_buffer(mix_shgrp, "sceneDepth", &dtxl->depth);
 	}
 }
@@ -510,6 +506,10 @@ static void EDIT_MESH_draw_scene(void *vedata)
 		float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		/* render facefill */
 		DRW_draw_pass(psl->facefill_occlude);
+
+		/* attach temp textures */
+		DRW_framebuffer_texture_attach(fbl->occlude_wire_fb, e_data.occlude_wire_depth_tx, 0, 0);
+		DRW_framebuffer_texture_attach(fbl->occlude_wire_fb, e_data.occlude_wire_color_tx, 0, 0);
 		
 		/* Render wires on a separate framebuffer */
 		DRW_framebuffer_bind(fbl->occlude_wire_fb);
@@ -523,6 +523,10 @@ static void EDIT_MESH_draw_scene(void *vedata)
 		/* Combine with scene buffer */
 		DRW_framebuffer_bind(dfbl->default_fb);
 		DRW_draw_pass(psl->mix_occlude);
+
+		/* detach temp textures */
+		DRW_framebuffer_texture_detach(e_data.occlude_wire_depth_tx);
+		DRW_framebuffer_texture_detach(e_data.occlude_wire_color_tx);
 
 		/* reattach */
 		DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);

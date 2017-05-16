@@ -26,6 +26,7 @@
 #ifndef __BASIC_ENGINE_H__
 #define __BASIC_ENGINE_H__
 
+extern DrawEngineType draw_engine_basic_type;
 extern RenderEngineType DRW_engine_viewport_basic_type;
 
 #endif /* __BASIC_ENGINE_H__ */

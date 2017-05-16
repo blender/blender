@@ -229,7 +229,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		effects->blit_texel_size[1] = 1.0f / (float)blitsize[1];
 
 		DRWFboTexture tex_blit = {&txl->bloom_blit, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
-		DRW_framebuffer_init(&fbl->bloom_blit_fb,
+		DRW_framebuffer_init(&fbl->bloom_blit_fb, &draw_engine_eevee_type,
 		                    (int)blitsize[0], (int)blitsize[1],
 		                    &tex_blit, 1);
 
@@ -264,7 +264,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			effects->downsamp_texel_size[i][1] = 1.0f / (float)texsize[1];
 
 			DRWFboTexture tex_bloom = {&txl->bloom_downsample[i], DRW_BUF_RGBA_16, DRW_TEX_FILTER};
-			DRW_framebuffer_init(&fbl->bloom_down_fb[i],
+			DRW_framebuffer_init(&fbl->bloom_down_fb[i], &draw_engine_eevee_type,
 			                    (int)texsize[0], (int)texsize[1],
 			                    &tex_bloom, 1);
 		}
@@ -277,7 +277,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			texsize[1] = MAX2(texsize[1], 2);
 
 			DRWFboTexture tex_bloom = {&txl->bloom_upsample[i], DRW_BUF_RGBA_16, DRW_TEX_FILTER};
-			DRW_framebuffer_init(&fbl->bloom_accum_fb[i],
+			DRW_framebuffer_init(&fbl->bloom_accum_fb[i], &draw_engine_eevee_type,
 			                    (int)texsize[0], (int)texsize[1],
 			                    &tex_bloom, 1);
 		}
@@ -302,13 +302,13 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			DRWFboTexture tex_down[3] = {{&txl->dof_down_near, DRW_BUF_RGBA_16, 0},
 			                             {&txl->dof_down_far, DRW_BUF_RGBA_16, 0},
 			                             {&txl->dof_coc, DRW_BUF_RG_16, 0}};
-			DRW_framebuffer_init(&fbl->dof_down_fb, buffer_size[0], buffer_size[1], tex_down, 3);
+			DRW_framebuffer_init(&fbl->dof_down_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], tex_down, 3);
 
 			DRWFboTexture tex_scatter_far = {&txl->dof_far_blur, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
-			DRW_framebuffer_init(&fbl->dof_scatter_far_fb, buffer_size[0], buffer_size[1], &tex_scatter_far, 1);
+			DRW_framebuffer_init(&fbl->dof_scatter_far_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], &tex_scatter_far, 1);
 
 			DRWFboTexture tex_scatter_near = {&txl->dof_near_blur, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
-			DRW_framebuffer_init(&fbl->dof_scatter_near_fb, buffer_size[0], buffer_size[1], &tex_scatter_near, 1);
+			DRW_framebuffer_init(&fbl->dof_scatter_near_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], &tex_scatter_near, 1);
 
 			/* Parameters */
 			/* TODO UI Options */
@@ -351,7 +351,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		/* Ping Pong buffer */
 		DRWFboTexture tex = {&txl->color_post, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
 
-		DRW_framebuffer_init(&fbl->effect_fb,
+		DRW_framebuffer_init(&fbl->effect_fb, &draw_engine_eevee_type,
 		                    (int)viewport_size[0], (int)viewport_size[1],
 		                    &tex, 1);
 	}

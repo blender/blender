@@ -75,7 +75,7 @@ void EEVEE_probes_init(EEVEE_Data *vedata)
 	DRWFboTexture tex_probe[2] = {{&txl->probe_depth_rt, DRW_BUF_DEPTH_24, DRW_TEX_FILTER},
 	                              {&txl->probe_rt, DRW_BUF_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP}};
 
-	DRW_framebuffer_init(&fbl->probe_fb, PROBE_SIZE, PROBE_SIZE, tex_probe, 2);
+	DRW_framebuffer_init(&fbl->probe_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, tex_probe, 2);
 
 	if (!txl->probe_pool) {
 		float *test_tex;
@@ -97,12 +97,12 @@ void EEVEE_probes_init(EEVEE_Data *vedata)
 
 	DRWFboTexture tex_filter = {&txl->probe_pool, DRW_BUF_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
-	DRW_framebuffer_init(&fbl->probe_filter_fb, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
+	DRW_framebuffer_init(&fbl->probe_filter_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
 
 	/* Spherical Harmonic Buffer */
 	DRWFboTexture tex_sh = {&txl->probe_sh, DRW_BUF_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
-	DRW_framebuffer_init(&fbl->probe_sh_fb, 9, 1, &tex_sh, 1);
+	DRW_framebuffer_init(&fbl->probe_sh_fb, &draw_engine_eevee_type, 9, 1, &tex_sh, 1);
 }
 
 void EEVEE_probes_cache_init(EEVEE_Data *UNUSED(vedata))

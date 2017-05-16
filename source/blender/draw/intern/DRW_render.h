@@ -150,6 +150,7 @@ typedef enum {
 	DRW_TEX_WRAP = (1 << 1),
 	DRW_TEX_COMPARE = (1 << 2),
 	DRW_TEX_MIPMAP = (1 << 3),
+	DRW_TEX_TEMP = (1 << 4),
 } DRWTextureFlag;
 
 struct GPUTexture *DRW_texture_create_1D(
@@ -198,7 +199,7 @@ typedef struct DRWFboTexture {
 } DRWFboTexture;
 
 void DRW_framebuffer_init(
-        struct GPUFrameBuffer **fb, int width, int height,
+        struct GPUFrameBuffer **fb, void *engine_type, int width, int height,
         DRWFboTexture textures[MAX_FBO_TEX], int textures_len);
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
 void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col[4], float clear_depth);

@@ -137,7 +137,7 @@ static void BASIC_engine_init(void *vedata)
 	if (DRW_state_is_fbo()) {
 		const float *viewport_size = DRW_viewport_size_get();
 		DRWFboTexture tex = {&txl->depth_dup, DRW_BUF_DEPTH_24, 0};
-		DRW_framebuffer_init(&fbl->dupli_depth,
+		DRW_framebuffer_init(&fbl->dupli_depth, &draw_engine_basic_type,
 		                     (int)viewport_size[0], (int)viewport_size[1],
 		                     &tex, 1);
 	}

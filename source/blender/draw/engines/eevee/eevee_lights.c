@@ -168,13 +168,13 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 	}
 
 	DRWFboTexture tex_cube = {&txl->shadow_depth_cube_pool, DRW_BUF_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE};
-	DRW_framebuffer_init(&fbl->shadow_cube_fb, 512, 512, &tex_cube, 1);
+	DRW_framebuffer_init(&fbl->shadow_cube_fb, &draw_engine_eevee_type, 512, 512, &tex_cube, 1);
 
 	DRWFboTexture tex_map = {&txl->shadow_depth_map_pool, DRW_BUF_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE};
-	DRW_framebuffer_init(&fbl->shadow_map_fb, 512, 512, &tex_map, 1);
+	DRW_framebuffer_init(&fbl->shadow_map_fb, &draw_engine_eevee_type, 512, 512, &tex_map, 1);
 
 	DRWFboTexture tex_cascade = {&txl->shadow_depth_cascade_pool, DRW_BUF_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE};
-	DRW_framebuffer_init(&fbl->shadow_cascade_fb, 512, 512, &tex_cascade, 1);
+	DRW_framebuffer_init(&fbl->shadow_cascade_fb, &draw_engine_eevee_type, 512, 512, &tex_cascade, 1);
 }
 
 /* Update buffer with lamp data */

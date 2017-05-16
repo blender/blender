@@ -26,6 +26,7 @@
 #ifndef __CLAY_ENGINE_H__
 #define __CLAY_ENGINE_H__
 
+extern DrawEngineType draw_engine_clay_type;
 extern RenderEngineType DRW_engine_viewport_clay_type;
 
 struct IDProperty;
