@@ -1817,7 +1817,8 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 			BATCH_DISCARD_SAFE(cache->overlay_triangles);
 			BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
 			BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
-			BATCH_DISCARD_SAFE(cache->overlay_facedots);
+
+			BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
 			break;
 		case BKE_MESH_BATCH_DIRTY_PAINT:
 			cache->is_paint_dirty = true;
