@@ -673,7 +673,8 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                               datatoc_gpu_shader_edges_overlay_frag_glsl,
 		                               datatoc_gpu_shader_edges_overlay_geom_glsl },
 		[GPU_SHADER_SIMPLE_LIGHTING] = { datatoc_gpu_shader_3D_normal_vert_glsl, datatoc_gpu_shader_simple_lighting_frag_glsl },
-		[GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR] = { datatoc_gpu_shader_3D_normal_flat_color_vert_glsl, datatoc_gpu_shader_simple_lighting_flat_color_frag_glsl },
+		/* Use 'USE_FLAT_NORMAL' to make flat shader from smooth  */
+		[GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR] = { datatoc_gpu_shader_3D_normal_smooth_color_vert_glsl, datatoc_gpu_shader_simple_lighting_smooth_color_frag_glsl },
 		[GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR] = { datatoc_gpu_shader_3D_normal_smooth_color_vert_glsl, datatoc_gpu_shader_simple_lighting_smooth_color_frag_glsl },
 		[GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR_ALPHA] = { datatoc_gpu_shader_3D_normal_smooth_color_vert_glsl, datatoc_gpu_shader_simple_lighting_smooth_color_alpha_frag_glsl },
 
@@ -805,6 +806,9 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				break;
 			case GPU_SHADER_3D_FLAT_COLOR_U32:
 				defines = "#define USE_COLOR_U32;\n";
+				break;
+			case GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR:
+				defines = "#define USE_FLAT_NORMAL;\n";
 				break;
 			default:
 				break;
