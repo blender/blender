@@ -331,19 +331,6 @@ void COM_deinitialize(void);
  */
 // void COM_clearCaches(void); // NOT YET WRITTEN
 
-/**
- * @brief Return a list of highlighted bnodes pointers.
- * @return 
- */
-void COM_startReadHighlights(void);
-
-/**
- * @brief check if a bnode is highlighted
- * @param bnode
- * @return 
- */
-int COM_isHighlightedbNode(bNode *bnode);
-
 #ifdef __cplusplus
 }
 #endif

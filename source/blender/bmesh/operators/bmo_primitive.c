@@ -764,7 +764,9 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 	const uint ytot = max_ii(2, BMO_slot_int_get(op->slots_in, "y_segments"));
 	const float xtot_inv2 = 2.0f / (xtot - 1);
 	const float ytot_inv2 = 2.0f / (ytot - 1);
-	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	BMVert **varr;
 	BMVert *vquad[4];
@@ -814,7 +816,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 #undef XY
 
 	if (calc_uvs) {
-		BM_mesh_calc_uvs_grid(bm, xtot, ytot, FACE_MARK);
+		BM_mesh_calc_uvs_grid(bm, xtot, ytot, FACE_MARK, cd_loop_uv_offset);
 	}
 }
 
@@ -826,7 +828,9 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
  * \param y_segments The y-resolution of the grid
  * \param oflag The flag to check faces with.
  */
-void BM_mesh_calc_uvs_grid(BMesh *bm, const uint x_segments, const uint y_segments, const short oflag)
+void BM_mesh_calc_uvs_grid(
+        BMesh *bm, const uint x_segments, const uint y_segments,
+        const short oflag, const int cd_loop_uv_offset)
 {
 	BMFace *f;
 	BMLoop *l;
@@ -836,8 +840,6 @@ void BM_mesh_calc_uvs_grid(BMesh *bm, const uint x_segments, const uint y_segmen
 	const float dy = 1.0f / (float)(y_segments - 1);
 	float x = 0.0f;
 	float y = 0.0f;
-
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
 	int loop_index;
 
@@ -884,7 +886,9 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	const float dia = BMO_slot_float_get(op->slots_in, "diameter");
 	const int seg = BMO_slot_int_get(op->slots_in, "u_segments");
 	const int tot = BMO_slot_int_get(op->slots_in, "v_segments");
-	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	BMOperator bmop, prevop;
 	BMVert *eve, *preveve;
@@ -982,7 +986,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		BM_mesh_calc_uvs_sphere(bm, FACE_MARK);
+		BM_mesh_calc_uvs_sphere(bm, FACE_MARK, cd_loop_uv_offset);
 	}
 
 	/* and now do imat */
@@ -1000,7 +1004,9 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	const float dia = BMO_slot_float_get(op->slots_in, "diameter");
 	const float dia_div = dia / 200.0f;
 	const int subdiv = BMO_slot_int_get(op->slots_in, "subdivisions");
-	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	BMVert *eva[12];
 	BMVert *v;
@@ -1026,7 +1032,6 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	}
 
 	int uvi = 0;
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	for (a = 0; a < 20; a++) {
 		BMFace *f;
 		BMVert *v1, *v2, *v3;
@@ -1157,12 +1162,12 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
  * \param bm The BMesh to operate on
  * \param oflag The flag to check faces with.
  */
-void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag)
+void BM_mesh_calc_uvs_sphere(
+        BMesh *bm,
+        const short oflag, const int cd_loop_uv_offset)
 {
 	BMFace *f;
 	BMIter iter;
-
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
 	BLI_assert(cd_loop_uv_offset != -1); /* caller is responsible for giving us UVs */
 
@@ -1206,7 +1211,9 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 	int i;
 
 	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
-	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	for (i = 0; i < monkeynv; i++) {
 		float v[3];
@@ -1234,7 +1241,6 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 	}
 
 	int uvi = 0;
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	for (i = 0; i < monkeynf; i++) {
 		BMFace *f_new_a = BM_face_create_quad_tri(bm,
 		                        tv[monkeyf[i][0] + i - monkeyo],
@@ -1283,7 +1289,9 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	const int segs = BMO_slot_int_get(op->slots_in, "segments");
 	const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
 	const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
-	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	BMVert *v1, *lastv1 = NULL, *cent1, *firstv1 = NULL;
 	float vec[3], mat[4][4], phi, phid;
@@ -1343,7 +1351,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 		BMO_face_flag_enable(bm, f, FACE_NEW);
 
 		if (calc_uvs) {
-			BM_mesh_calc_uvs_circle(bm, mat, dia, FACE_NEW);
+			BM_mesh_calc_uvs_circle(bm, mat, dia, FACE_NEW, cd_loop_uv_offset);
 		}
 	}
 	
@@ -1362,13 +1370,13 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
  * \param radius The size of the circle.
  * \param oflag The flag to check faces with.
  */
-void BM_mesh_calc_uvs_circle(BMesh *bm, float mat[4][4], const float radius, const short oflag)
+void BM_mesh_calc_uvs_circle(
+        BMesh *bm, float mat[4][4], const float radius,
+        const short oflag, const int cd_loop_uv_offset)
 {
 	BMFace *f;
 	BMLoop *l;
 	BMIter fiter, liter;
-
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
 	const float uv_scale = 0.5f / radius;
 	const float uv_center = 0.5f;
@@ -1409,7 +1417,9 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	int segs = BMO_slot_int_get(op->slots_in, "segments");
 	const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
 	const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
-	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 	int a;
 	
 	if (!segs)
@@ -1506,7 +1516,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (calc_uvs) {
-		BM_mesh_calc_uvs_cone(bm, mat, dia2, dia1, segs, cap_ends, FACE_MARK);
+		BM_mesh_calc_uvs_cone(bm, mat, dia2, dia1, segs, cap_ends, FACE_MARK, cd_loop_uv_offset);
 	}
 
 	if (!cap_tris) {
@@ -1530,12 +1540,12 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
  */
 void BM_mesh_calc_uvs_cone(
         BMesh *bm, float mat[4][4],
-        const float radius_top, const float radius_bottom, const int segments, const bool cap_ends, const short oflag)
+        const float radius_top, const float radius_bottom, const int segments, const bool cap_ends,
+        const short oflag, const int cd_loop_uv_offset)
 {
 	BMFace *f;
 	BMLoop *l;
 	BMIter fiter, liter;
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
 	const float uv_width = 1.0f / (float)segments;
 	const float uv_height = cap_ends ? 0.5f : 1.0f;
@@ -1627,8 +1637,10 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 	BMVert *verts[8];
 	float mat[4][4];
 	float off = BMO_slot_float_get(op->slots_in, "size") / 2.0f;
-	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
-	int i, x, y, z;
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
+
 	/* rotation order set to match 'BM_mesh_calc_uvs_cube' */
 	const char faces[6][4] = {
 		{0, 1, 3, 2},
@@ -1642,11 +1654,11 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
 	if (!off) off = 0.5f;
-	i = 0;
+	int i = 0;
 
-	for (x = -1; x < 2; x += 2) {
-		for (y = -1; y < 2; y += 2) {
-			for (z = -1; z < 2; z += 2) {
+	for (int x = -1; x < 2; x += 2) {
+		for (int y = -1; y < 2; y += 2) {
+			for (int z = -1; z < 2; z += 2) {
 				float vec[3] = {(float)x * off, (float)y * off, (float)z * off};
 				mul_m4_v3(mat, vec);
 				verts[i] = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);

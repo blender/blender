@@ -75,82 +75,6 @@ static bool g_openclInitialized = false;
 #endif
 #endif
 
-#define MAX_HIGHLIGHT 8
-static bool g_highlightInitialized = false;
-extern "C" {
-static int g_highlightIndex;
-static void **g_highlightedNodes;
-static void **g_highlightedNodesRead;
-
-/* XXX highlighting disabled for now
- * This requires pointers back to DNA data (bNodeTree/bNode) in operations, which is bad!
- * Instead IF we want to keep this feature it should use a weak reference such as bNodeInstanceKey
- */
-#if 0
-#if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-#define HIGHLIGHT(wp) \
-{ \
-	ExecutionGroup *group = wp->getExecutionGroup(); \
-	if (group->isComplex()) { \
-		NodeOperation *operation = group->getOutputOperation(); \
-		if (operation->isWriteBufferOperation()) { \
-			WriteBufferOperation *writeOperation = (WriteBufferOperation *)operation; \
-			NodeOperation *complexOperation = writeOperation->getInput(); \
-			bNode *node = complexOperation->getbNode(); \
-			if (node) { \
-				if (node->original) { \
-					node = node->original; \
-				} \
-				if (g_highlightInitialized && g_highlightedNodes) { \
-					if (g_highlightIndex < MAX_HIGHLIGHT) { \
-						g_highlightedNodes[g_highlightIndex++] = node; \
-					} \
-				} \
-			} \
-		} \
-	} \
-}
-#endif  /* COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE */
-#else
-#  if COM_CURRENT_THREADING_MODEL != COM_TM_NOTHREAD
-#define HIGHLIGHT(wp) {}
-#  endif
-#endif
-
-void COM_startReadHighlights()
-{
-	if (!g_highlightInitialized) {
-		return;
-	}
-	
-	if (g_highlightedNodesRead) {
-		MEM_freeN(g_highlightedNodesRead);
-	}
-	
-	g_highlightedNodesRead = g_highlightedNodes;
-	g_highlightedNodes = (void **)MEM_callocN(sizeof(void *) * MAX_HIGHLIGHT, __func__);
-	g_highlightIndex = 0;
-}
-
-int COM_isHighlightedbNode(bNode *bnode)
-{
-	if (!g_highlightInitialized) {
-		return false;
-	}
-	
-	if (!g_highlightedNodesRead) {
-		return false;
-	}
-
-	for (int i = 0; i < MAX_HIGHLIGHT; i++) {
-		void *p = g_highlightedNodesRead[i];
-		if (!p) return false;
-		if (p == bnode) return true;
-	}
-	return false;
-}
-} // end extern "C"
-
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 void *WorkScheduler::thread_execute_cpu(void *data)
 {
@@ -158,7 +82,6 @@ void *WorkScheduler::thread_execute_cpu(void *data)
 	WorkPackage *work;
 	BLI_thread_local_set(g_thread_device, device);
 	while ((work = (WorkPackage *)BLI_thread_queue_pop(g_cpuqueue))) {
-		HIGHLIGHT(work);
 		device->execute(work);
 		delete work;
 	}
@@ -172,7 +95,6 @@ void *WorkScheduler::thread_execute_gpu(void *data)
 	WorkPackage *work;
 	
 	while ((work = (WorkPackage *)BLI_thread_queue_pop(g_gpuqueue))) {
-		HIGHLIGHT(work);
 		device->execute(work);
 		delete work;
 	}
@@ -289,19 +211,6 @@ static void CL_CALLBACK clContextError(const char *errinfo,
 
 void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
 {
-	/* initialize highlighting */
-	if (!g_highlightInitialized) {
-		if (g_highlightedNodesRead) MEM_freeN(g_highlightedNodesRead);
-		if (g_highlightedNodes)     MEM_freeN(g_highlightedNodes);
-
-		g_highlightedNodesRead = NULL;
-		g_highlightedNodes = NULL;
-
-		COM_startReadHighlights();
-
-		g_highlightInitialized = true;
-	}
-
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 	/* deinitialize if number of threads doesn't match */
 	if (g_cpudevices.size() != num_cpu_threads) {
@@ -439,20 +348,6 @@ void WorkScheduler::deinitialize()
 	}
 #endif
 #endif
-
-	/* deinitialize highlighting */
-	if (g_highlightInitialized) {
-		g_highlightInitialized = false;
-		if (g_highlightedNodes) {
-			MEM_freeN(g_highlightedNodes);
-			g_highlightedNodes = NULL;
-		}
-
-		if (g_highlightedNodesRead) {
-			MEM_freeN(g_highlightedNodesRead);
-			g_highlightedNodesRead = NULL;
-		}
-	}
 }
 
 int WorkScheduler::current_thread_id()
