@@ -372,6 +372,13 @@ static void CLAY_engine_init(void *vedata)
 		}
 	}
 
+	if (e_data.hair_ubo_mat_idxs[1] == 0) {
+		/* Just int to have pointers to them */
+		for (int i = 0; i < MAX_CLAY_MAT; ++i) {
+			e_data.hair_ubo_mat_idxs[i] = i;
+		}
+	}
+
 	if (DRW_state_is_fbo()) {
 		const float *viewport_size = DRW_viewport_size_get();
 		DRWFboTexture tex = {&txl->depth_dup, DRW_BUF_DEPTH_24, 0};
