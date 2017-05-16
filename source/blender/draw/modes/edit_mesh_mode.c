@@ -292,6 +292,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 
 	if ((tsettings->selectmode & (SCE_SELECT_FACE)) != 0) {
 		*r_facedot_shgrp = DRW_shgroup_create(e_data.overlay_facedot_sh, pass);
+		DRW_shgroup_uniform_block(*r_facedot_shgrp, "globalsBlock", globals_ubo);
 	}
 
 	return pass;
