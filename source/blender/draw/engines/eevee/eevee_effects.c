@@ -178,7 +178,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 	effects = stl->effects;
 
-	effects->enabled_effects = 0;
+	int enabled_effects = 0;
 
 #if ENABLE_EFFECT_MOTION_BLUR
 	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable")) {
@@ -207,7 +207,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 				invert_m4(effects->current_ndc_to_world);
 
 				effects->motion_blur_samples = BKE_collection_engine_property_value_get_int(props, "motion_blur_samples");
-				effects->enabled_effects |= EFFECT_MOTION_BLUR;
+				enabled_effects |= EFFECT_MOTION_BLUR;
 			}
 		}
 	}
@@ -228,7 +228,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		effects->blit_texel_size[0] = 1.0f / (float)blitsize[0];
 		effects->blit_texel_size[1] = 1.0f / (float)blitsize[1];
 
-		DRWFboTexture tex_blit = {&txl->bloom_blit, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+		DRWFboTexture tex_blit = {&txl->bloom_blit, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
 		DRW_framebuffer_init(&fbl->bloom_blit_fb, &draw_engine_eevee_type,
 		                    (int)blitsize[0], (int)blitsize[1],
 		                    &tex_blit, 1);
@@ -263,7 +263,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			effects->downsamp_texel_size[i][0] = 1.0f / (float)texsize[0];
 			effects->downsamp_texel_size[i][1] = 1.0f / (float)texsize[1];
 
-			DRWFboTexture tex_bloom = {&txl->bloom_downsample[i], DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+			DRWFboTexture tex_bloom = {&txl->bloom_downsample[i], DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
 			DRW_framebuffer_init(&fbl->bloom_down_fb[i], &draw_engine_eevee_type,
 			                    (int)texsize[0], (int)texsize[1],
 			                    &tex_bloom, 1);
@@ -276,13 +276,13 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			texsize[0] = MAX2(texsize[0], 2);
 			texsize[1] = MAX2(texsize[1], 2);
 
-			DRWFboTexture tex_bloom = {&txl->bloom_upsample[i], DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+			DRWFboTexture tex_bloom = {&txl->bloom_upsample[i], DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
 			DRW_framebuffer_init(&fbl->bloom_accum_fb[i], &draw_engine_eevee_type,
 			                    (int)texsize[0], (int)texsize[1],
 			                    &tex_bloom, 1);
 		}
 
-		effects->enabled_effects |= EFFECT_BLOOM;
+		enabled_effects |= EFFECT_BLOOM;
 	}
 #endif /* ENABLE_EFFECT_BLOOM */
 
@@ -298,16 +298,31 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 			int buffer_size[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
 
+			struct GPUTexture **dof_down_near = &txl->dof_down_near;
+
+			/* Reuse buffer from Bloom if available */
+			/* WATCH IT : must have the same size */
+			if ((enabled_effects & EFFECT_BLOOM) != 0) {
+				dof_down_near = &txl->bloom_downsample[0]; /* should always exists */
+			}
+			else if ((effects->enabled_effects & EFFECT_BLOOM) != 0) {
+				/* if framebuffer was configured to share buffer with bloom last frame */
+				if (fbl->dof_down_fb != NULL) {
+					DRW_framebuffer_free(fbl->dof_down_fb);
+					fbl->dof_down_fb = NULL;
+				}
+			}
+
 			/* Setup buffers */
-			DRWFboTexture tex_down[3] = {{&txl->dof_down_near, DRW_BUF_RGBA_16, 0},
-			                             {&txl->dof_down_far, DRW_BUF_RGBA_16, 0},
-			                             {&txl->dof_coc, DRW_BUF_RG_16, 0}};
+			DRWFboTexture tex_down[3] = {{dof_down_near, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER}, /* filter to not interfeer with bloom */
+			                             {&txl->dof_down_far, DRW_TEX_RGB_11_11_10, 0},
+			                             {&txl->dof_coc, DRW_TEX_RG_16, 0}};
 			DRW_framebuffer_init(&fbl->dof_down_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], tex_down, 3);
 
-			DRWFboTexture tex_scatter_far = {&txl->dof_far_blur, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+			DRWFboTexture tex_scatter_far = {&txl->dof_far_blur, DRW_TEX_RGBA_16, DRW_TEX_FILTER};
 			DRW_framebuffer_init(&fbl->dof_scatter_far_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], &tex_scatter_far, 1);
 
-			DRWFboTexture tex_scatter_near = {&txl->dof_near_blur, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+			DRWFboTexture tex_scatter_near = {&txl->dof_near_blur, DRW_TEX_RGBA_16, DRW_TEX_FILTER};
 			DRW_framebuffer_init(&fbl->dof_scatter_near_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], &tex_scatter_near, 1);
 
 			/* Parameters */
@@ -341,15 +356,17 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			effects->dof_bokeh[2] = ratio;
 			effects->dof_bokeh[3] = BKE_collection_engine_property_value_get_float(props, "bokeh_max_size");
 
-			effects->enabled_effects |= EFFECT_DOF;
+			enabled_effects |= EFFECT_DOF;
 		}
 	}
 #endif /* ENABLE_EFFECT_DOF */
 
+	effects->enabled_effects = enabled_effects;
+
 	/* Only allocate if at least one effect is activated */
 	if (effects->enabled_effects != 0) {
 		/* Ping Pong buffer */
-		DRWFboTexture tex = {&txl->color_post, DRW_BUF_RGBA_16, DRW_TEX_FILTER};
+		DRWFboTexture tex = {&txl->color_post, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
 
 		DRW_framebuffer_init(&fbl->effect_fb, &draw_engine_eevee_type,
 		                    (int)viewport_size[0], (int)viewport_size[1],
@@ -538,7 +555,13 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 		DRW_draw_pass(psl->dof_scatter);
 
 		/* Scatter Near */
-		effects->unf_source_buffer = txl->dof_down_near;
+		if ((effects->enabled_effects & EFFECT_BLOOM) != 0) {
+			/* Reuse bloom half res buffer */
+			effects->unf_source_buffer = txl->bloom_downsample[0];
+		}
+		else {
+			effects->unf_source_buffer = txl->dof_down_near;
+		}
 		copy_v2_fl2(effects->dof_layer_select, 1.0f, 0.0f);
 		DRW_framebuffer_bind(fbl->dof_scatter_near_fb);
 		DRW_framebuffer_clear(true, false, false, clear_col, 0.0f);

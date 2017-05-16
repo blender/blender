@@ -317,6 +317,7 @@ static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *da
 		case DRW_TEX_RGBA_8: *data_type = GPU_RGBA8; break;
 		case DRW_TEX_RGBA_16: *data_type = GPU_RGBA16F; break;
 		case DRW_TEX_RGB_16: *data_type = GPU_RGB16F; break;
+		case DRW_TEX_RGB_11_11_10: *data_type = GPU_R11F_G11F_B10F; break;
 		case DRW_TEX_RG_16: *data_type = GPU_RG16F; break;
 		case DRW_TEX_RG_32: *data_type = GPU_RG32F; break;
 		case DRW_TEX_R_8: *data_type = GPU_R8; break;
@@ -346,6 +347,7 @@ static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *da
 		case DRW_TEX_RGB_8:
 		case DRW_TEX_RGB_16:
 		case DRW_TEX_RGB_32:
+		case DRW_TEX_RGB_11_11_10:
 			*channels = 3;
 			break;
 		case DRW_TEX_RG_8:
@@ -1854,16 +1856,17 @@ bool DRW_object_is_renderable(Object *ob)
 
 static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *is_depth)
 {
-	*is_depth = ELEM(fbo_format, DRW_BUF_DEPTH_16, DRW_BUF_DEPTH_24);
+	*is_depth = ELEM(fbo_format, DRW_TEX_DEPTH_16, DRW_TEX_DEPTH_24);
 
 	switch (fbo_format) {
-		case DRW_BUF_RG_16:    *channels = 2; return GPU_RG16F;
-		case DRW_BUF_RGBA_8:   *channels = 4; return GPU_RGBA8;
-		case DRW_BUF_RGBA_16:  *channels = 4; return GPU_RGBA16F;
-		case DRW_BUF_RGBA_32:  *channels = 4; return GPU_RGBA32F;
-		case DRW_BUF_DEPTH_24: *channels = 1; return GPU_DEPTH_COMPONENT24;
+		case DRW_TEX_RG_16:    *channels = 2; return GPU_RG16F;
+		case DRW_TEX_RGBA_8:   *channels = 4; return GPU_RGBA8;
+		case DRW_TEX_RGBA_16:  *channels = 4; return GPU_RGBA16F;
+		case DRW_TEX_RGBA_32:  *channels = 4; return GPU_RGBA32F;
+		case DRW_TEX_DEPTH_24: *channels = 1; return GPU_DEPTH_COMPONENT24;
+		case DRW_TEX_RGB_11_11_10: *channels = 3; return GPU_R11F_G11F_B10F;
 		default:
-			BLI_assert(false);
+			BLI_assert(false && "Texture format unsupported as render target!");
 			*channels = 4; return GPU_RGBA8;
 	}
 }
@@ -1901,7 +1904,7 @@ void DRW_framebuffer_init(
 				++color_attachment;
 			}
 
-				GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
+			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
 		}
 
 		if (!GPU_framebuffer_check_valid(*fb, NULL)) {
@@ -1919,6 +1922,11 @@ void DRW_framebuffer_init(
 
 		GPU_framebuffer_bind(DST.default_framebuffer);
 	}
+}
+
+void DRW_framebuffer_free(struct GPUFrameBuffer *fb)
+{
+	GPU_framebuffer_free(fb);
 }
 
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb)

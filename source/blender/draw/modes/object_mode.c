@@ -215,8 +215,8 @@ static void OBJECT_engine_init(void *vedata)
 
 	if (DRW_state_is_fbo()) {
 		DRWFboTexture tex[2] = {
-			{&e_data.outlines_depth_tx, DRW_BUF_DEPTH_24, DRW_TEX_TEMP},
-			{&e_data.outlines_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER | DRW_TEX_TEMP},
+			{&e_data.outlines_depth_tx, DRW_TEX_DEPTH_24, DRW_TEX_TEMP},
+			{&e_data.outlines_color_tx, DRW_TEX_RGBA_8, DRW_TEX_FILTER | DRW_TEX_TEMP},
 		};
 
 		DRW_framebuffer_init(
@@ -224,7 +224,7 @@ static void OBJECT_engine_init(void *vedata)
 		        (int)viewport_size[0], (int)viewport_size[1],
 		        tex, 2);
 
-		DRWFboTexture blur_tex = {&e_data.outlines_blur_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER | DRW_TEX_TEMP};
+		DRWFboTexture blur_tex = {&e_data.outlines_blur_tx, DRW_TEX_RGBA_8, DRW_TEX_FILTER | DRW_TEX_TEMP};
 		DRW_framebuffer_init(
 		        &fbl->blur, &draw_engine_object_type,
 		        (int)viewport_size[0], (int)viewport_size[1],

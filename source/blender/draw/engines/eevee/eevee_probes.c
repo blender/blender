@@ -54,53 +54,26 @@ void EEVEE_probes_init(EEVEE_Data *vedata)
 	}
 
 	if (!txl->probe_rt) {
-		float *test_tex;
-		const float face_col[6][4] = {{1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f},
-		                              {1.0f, 0.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 1.0f, 1.0f}};
-
-		test_tex = MEM_mallocN(sizeof(float) * 6 * PROBE_SIZE * PROBE_SIZE * 4, "test tex");
-
-		for (int i = 0; i < 6; ++i)	{
-			for (int j = 0; j < PROBE_SIZE * PROBE_SIZE; ++j) {
-				copy_v4_v4(test_tex + i * PROBE_SIZE * PROBE_SIZE * 4 + j * 4, face_col[i]);
-			}
-		}
-
-		txl->probe_rt = DRW_texture_create_cube(PROBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, (float *)test_tex);
+		txl->probe_rt = DRW_texture_create_cube(PROBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 		txl->probe_depth_rt = DRW_texture_create_cube(PROBE_SIZE, DRW_TEX_DEPTH_24, DRW_TEX_FILTER, NULL);
-
-		MEM_freeN(test_tex);
 	}
 
-	DRWFboTexture tex_probe[2] = {{&txl->probe_depth_rt, DRW_BUF_DEPTH_24, DRW_TEX_FILTER},
-	                              {&txl->probe_rt, DRW_BUF_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP}};
+	DRWFboTexture tex_probe[2] = {{&txl->probe_depth_rt, DRW_TEX_DEPTH_24, DRW_TEX_FILTER},
+	                              {&txl->probe_rt, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP}};
 
 	DRW_framebuffer_init(&fbl->probe_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, tex_probe, 2);
 
 	if (!txl->probe_pool) {
-		float *test_tex;
-		const float face_col[6][4] = {{1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f},
-		                              {1.0f, 0.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 1.0f, 1.0f}};
-
-		test_tex = MEM_mallocN(sizeof(float) * 6 * PROBE_SIZE * PROBE_SIZE * 4, "test tex");
-
-		for (int i = 0; i < 6; ++i)	{
-			for (int j = 0; j < PROBE_SIZE * PROBE_SIZE; ++j) {
-				copy_v4_v4(test_tex + i * PROBE_SIZE * PROBE_SIZE * 4 + j * 4, face_col[i]);
-			}
-		}
-
 		/* TODO array */
-		txl->probe_pool = DRW_texture_create_cube(PROBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, (float *)test_tex);
-		MEM_freeN(test_tex);
+		txl->probe_pool = DRW_texture_create_cube(PROBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 	}
 
-	DRWFboTexture tex_filter = {&txl->probe_pool, DRW_BUF_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+	DRWFboTexture tex_filter = {&txl->probe_pool, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 	DRW_framebuffer_init(&fbl->probe_filter_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
 
 	/* Spherical Harmonic Buffer */
-	DRWFboTexture tex_sh = {&txl->probe_sh, DRW_BUF_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+	DRWFboTexture tex_sh = {&txl->probe_sh, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 	DRW_framebuffer_init(&fbl->probe_sh_fb, &draw_engine_eevee_type, 9, 1, &tex_sh, 1);
 }

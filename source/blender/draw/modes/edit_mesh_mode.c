@@ -135,8 +135,8 @@ static void EDIT_MESH_engine_init(void *vedata)
 	const float *viewport_size = DRW_viewport_size_get();
 
 	DRWFboTexture tex[2] = {{
-	    &e_data.occlude_wire_depth_tx, DRW_BUF_DEPTH_24, DRW_TEX_TEMP},
-	    {&e_data.occlude_wire_color_tx, DRW_BUF_RGBA_8, DRW_TEX_FILTER | DRW_TEX_TEMP}
+	    &e_data.occlude_wire_depth_tx, DRW_TEX_DEPTH_24, DRW_TEX_TEMP},
+	    {&e_data.occlude_wire_color_tx, DRW_TEX_RGBA_8, DRW_TEX_FILTER | DRW_TEX_TEMP}
 	};
 	DRW_framebuffer_init(
 	        &fbl->occlude_wire_fb, &draw_engine_edit_mesh_type,

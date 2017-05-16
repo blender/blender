@@ -158,6 +158,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_DEPTH24_STENCIL8:
 		case GPU_DEPTH_COMPONENT32F:
 		case GPU_RGBA8:
+		case GPU_R11F_G11F_B10F:
 			*bytesize = 4;
 			break;
 		case GPU_DEPTH_COMPONENT24:
@@ -188,6 +189,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_R16F: return GL_R16F;
 		case GPU_R8: return GL_R8;
 		/* Special formats texture & renderbuffer */
+		case GPU_R11F_G11F_B10F: return GL_R11F_G11F_B10F;
 		case GPU_DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
 		/* Texture only format */
 		/* ** Add Format here **/

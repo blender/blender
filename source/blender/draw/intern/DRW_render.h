@@ -131,6 +131,7 @@ typedef enum {
 	DRW_TEX_RGBA_8,
 	DRW_TEX_RGBA_16,
 	DRW_TEX_RGBA_32,
+	DRW_TEX_RGB_11_11_10,
 	DRW_TEX_RGB_8,
 	DRW_TEX_RGB_16,
 	DRW_TEX_RGB_32,
@@ -176,20 +177,6 @@ void DRW_uniformbuffer_update(struct GPUUniformBuffer *ubo, const void *data);
 void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
 
 /* Buffers */
-
-/* DRWFboTexture->format */
-#define DRW_BUF_DEPTH_16		1
-#define DRW_BUF_DEPTH_24		2
-#define DRW_BUF_R_8				3
-#define DRW_BUF_R_16			4
-#define DRW_BUF_R_32			5
-#define DRW_BUF_RG_8			6
-#define DRW_BUF_RG_16			7
-#define DRW_BUF_RG_32			8
-#define DRW_BUF_RGBA_8			12
-#define DRW_BUF_RGBA_16			13
-#define DRW_BUF_RGBA_32			14
-
 #define MAX_FBO_TEX			5
 
 typedef struct DRWFboTexture {
@@ -201,6 +188,7 @@ typedef struct DRWFboTexture {
 void DRW_framebuffer_init(
         struct GPUFrameBuffer **fb, void *engine_type, int width, int height,
         DRWFboTexture textures[MAX_FBO_TEX], int textures_len);
+void DRW_framebuffer_free(struct GPUFrameBuffer *fb);
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
 void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col[4], float clear_depth);
 void DRW_framebuffer_read_data(int x, int y, int w, int h, int channels, int slot, float *data);
