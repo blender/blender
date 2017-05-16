@@ -194,11 +194,10 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 		SceneLayer *sl = draw_ctx->sl;
 
 		if (ob->sculpt && ob == OBACT_NEW) {
-			PBVH *pbvh = ob->sculpt->pbvh;
 
 			/* XXX, needed for dyntopo-undo (which clears).
 			 * probably depsgraph should handlle? in 2.7x getting derived-mesh does this (mesh_build_data) */
-			if (pbvh == NULL) {
+			if (ob->sculpt->pbvh == NULL) {
 				/* create PBVH immediately (would be created on the fly too,
 				 * but this avoids waiting on first stroke) */
 				Scene *scene = draw_ctx->scene;
@@ -206,6 +205,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 				BKE_sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, false, false);
 			}
 
+			PBVH *pbvh = ob->sculpt->pbvh;
 			if (pbvh && pbvh_has_mask(pbvh)) {
 				/* Get geometry cache */
 				DRWShadingGroup *shgroup = object_is_flat(ob) ? stl->g_data->group_flat : stl->g_data->group_smooth;
