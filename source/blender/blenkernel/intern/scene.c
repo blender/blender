@@ -254,7 +254,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		scen->theDag = NULL;
 		scen->depsgraph = NULL;
 		scen->obedit = NULL;
-		scen->stats = NULL;
 		scen->fps_info = NULL;
 
 		if (sce->rigidbody_world)
@@ -317,6 +316,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		BLI_duplicatelist(&scen->render_layers, &sce->render_layers);
 		SceneLayer *new_sl = scen->render_layers.first;
 		for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
+			new_sl->stats = NULL;
 			new_sl->properties = IDP_New(IDP_GROUP, (const IDPropertyTemplate *){0}, ROOT_PROP);
 			new_sl->properties_evaluated = NULL;
 
@@ -571,8 +571,7 @@ void BKE_scene_free(Scene *sce)
 	DEG_scene_graph_free(sce);
 	if (sce->depsgraph)
 		DEG_graph_free(sce->depsgraph);
-	
-	MEM_SAFE_FREE(sce->stats);
+
 	MEM_SAFE_FREE(sce->fps_info);
 
 	BKE_sound_destroy_scene(sce);

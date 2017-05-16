@@ -175,6 +175,8 @@ void BKE_scene_layer_free(SceneLayer *sl)
 		IDP_FreeProperty(sl->properties_evaluated);
 		MEM_freeN(sl->properties_evaluated);
 	}
+
+	MEM_SAFE_FREE(sl->stats);
 }
 
 /**

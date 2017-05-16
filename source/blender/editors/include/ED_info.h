@@ -28,7 +28,7 @@
 #define __ED_INFO_H__
 
 /* info_stats.c */
-void ED_info_stats_clear(struct Scene *scene);
-const char *ED_info_stats_string(struct Scene *scene);
+void ED_info_stats_clear(struct SceneLayer *sl);
+const char *ED_info_stats_string(struct Scene *scene, struct SceneLayer *sl);
 
 #endif /*  __ED_INFO_H__ */

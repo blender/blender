@@ -74,6 +74,7 @@ typedef struct SceneLayer {
 	short flag;
 	short pad[2];
 	ListBase object_bases;      /* ObjectBase */
+	struct SceneStats *stats;   /* default allocated now */
 	struct Base *basact;
 	ListBase layer_collections; /* LayerCollection */
 	struct IDProperty *properties;  /* overrides */

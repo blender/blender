@@ -1689,7 +1689,7 @@ typedef struct Scene {
 	struct Editing *ed;								/* sequence editor data is allocated here */
 	
 	struct ToolSettings *toolsettings;		/* default allocated now */
-	struct SceneStats *stats;				/* default allocated now */
+	void *pad2;
 	struct DisplaySafeAreas safe_areas;
 
 	/* migrate or replace? depends on some internal things... */

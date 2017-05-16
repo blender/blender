@@ -69,7 +69,7 @@ class INFO_HT_header(Header):
             return
 
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
-        row.label(text=scene.statistics(), translate=False)
+        row.label(text=scene.statistics(context.render_layer), translate=False)
 
 
 class INFO_MT_editor_menus(Menu):

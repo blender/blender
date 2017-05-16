@@ -49,6 +49,7 @@
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_editmesh.h"
@@ -269,9 +270,9 @@ static void stats_object_sculpt_dynamic_topology(Object *ob, SceneStats *stats)
 	stats->tottri = ob->sculpt->bm->totface;
 }
 
-static void stats_dupli_object(BaseLegacy *base, Object *ob, SceneStats *stats)
+static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 {
-	if (base->flag_legacy & SELECT) stats->totobjsel++;
+	if (base->flag & BASE_SELECTED) stats->totobjsel++;
 
 	if (ob->transflag & OB_DUPLIPARTS) {
 		/* Dupli Particles */
@@ -344,11 +345,11 @@ static bool stats_is_object_dynamic_topology_sculpt(Object *ob)
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(Scene *scene)
+static void stats_update(Scene *scene, SceneLayer *sl)
 {
 	SceneStats stats = {0};
-	Object *ob = (scene->basact) ? scene->basact->object : NULL;
-	BaseLegacy *base;
+	Object *ob = (sl->basact) ? sl->basact->object : NULL;
+	Base *base;
 	
 	if (scene->obedit) {
 		/* Edit Mode */
@@ -364,23 +365,25 @@ static void stats_update(Scene *scene)
 	}
 	else {
 		/* Objects */
-		for (base = scene->base.first; base; base = base->next)
-			if (scene->lay & base->lay)
+		for (base = sl->object_bases.first; base; base = base->next)
+			if (base->flag & BASE_VISIBLED) {
 				stats_dupli_object(base, base->object, &stats);
+			}
 	}
 
-	if (!scene->stats)
-		scene->stats = MEM_callocN(sizeof(SceneStats), "SceneStats");
+	if (!sl->stats) {
+		sl->stats = MEM_callocN(sizeof(SceneStats), "SceneStats");
+	}
 
-	*(scene->stats) = stats;
+	*(sl->stats) = stats;
 }
 
-static void stats_string(Scene *scene)
+static void stats_string(Scene *scene, SceneLayer *sl)
 {
 #define MAX_INFO_MEM_LEN  64
-	SceneStats *stats = scene->stats;
+	SceneStats *stats = sl->stats;
 	SceneStatsFmt stats_fmt;
-	Object *ob = (scene->basact) ? scene->basact->object : NULL;
+	Object *ob = (sl->basact) ? sl->basact->object : NULL;
 	uintptr_t mem_in_use, mmap_in_use;
 	char memstr[MAX_INFO_MEM_LEN];
 	char gpumemstr[MAX_INFO_MEM_LEN] = "";
@@ -487,19 +490,20 @@ static void stats_string(Scene *scene)
 
 #undef MAX_INFO_LEN
 
-void ED_info_stats_clear(Scene *scene)
+void ED_info_stats_clear(SceneLayer *sl)
 {
-	if (scene->stats) {
-		MEM_freeN(scene->stats);
-		scene->stats = NULL;
+	if (sl->stats) {
+		MEM_freeN(sl->stats);
+		sl->stats = NULL;
 	}
 }
 
-const char *ED_info_stats_string(Scene *scene)
+const char *ED_info_stats_string(Scene *scene, SceneLayer *sl)
 {
-	if (!scene->stats)
-		stats_update(scene);
-	stats_string(scene);
+	if (!sl->stats) {
+		stats_update(scene, sl);
+	}
+	stats_string(scene, sl);
 
-	return scene->stats->infostr;
+	return sl->stats->infostr;
 }
