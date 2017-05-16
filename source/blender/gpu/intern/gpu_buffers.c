@@ -1810,6 +1810,8 @@ void GPU_pbvh_buffers_draw(
 	Batch *triangles = do_fast ? buffers->triangles_fast : buffers->triangles;
 
 	if (triangles) {
+
+		/* Simple Shader: use when drawing without the draw-manager (old 2.7x viewport) */
 		if (triangles->interface == NULL) {
 			GPUBuiltinShader shader_id =
 			        buffers->smooth ? GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR : GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR;
@@ -1818,6 +1820,15 @@ void GPU_pbvh_buffers_draw(
 			Batch_set_program(
 			        triangles,
 			        GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
+
+			static float light[3] = {-0.3f, 0.5f, 1.0f};
+			static float alpha = 1.0f;
+			static float world_light = 1.0f;
+
+			GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "light"), 3, 1, light);
+			GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "alpha"), 1, 1, &alpha);
+			GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "global"), 1, 1, &world_light);
+
 		}
 		Batch_draw(triangles);
 	}
