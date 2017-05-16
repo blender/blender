@@ -407,7 +407,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		}
 #endif  /* __SUBSURFACE__ */
 
-#if defined(__EMISSION__) && defined(__BRANCHED_PATH__)
+#if defined(__EMISSION__)
 		if(kernel_data.integrator.use_direct_light) {
 			int all = (kernel_data.integrator.sample_all_lights_indirect) ||
 			          (state->flag & PATH_RAY_SHADOW_CATCHER);
@@ -421,7 +421,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			                                           L,
 			                                           all);
 		}
-#endif  /* defined(__EMISSION__) && defined(__BRANCHED_PATH__) */
+#endif  /* defined(__EMISSION__) */
 
 		if(!kernel_path_surface_bounce(kg, rng, sd, &throughput, state, L, ray))
 			break;
