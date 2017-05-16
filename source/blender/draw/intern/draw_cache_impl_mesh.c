@@ -1858,8 +1858,8 @@ static void mesh_batch_cache_clear(Mesh *me)
 	BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
 	BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
 	BATCH_DISCARD_SAFE(cache->overlay_loose_edges_nor);
-	BATCH_DISCARD_SAFE(cache->overlay_facedots);
 
+	BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay_paint_edges);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay_weight_faces);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay_weight_verts);
