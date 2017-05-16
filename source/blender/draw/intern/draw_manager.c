@@ -174,7 +174,8 @@ struct DRWInterface {
 	/* UBO */
 	int ubo_bind; /* next ubo binding point */
 	/* Dynamic batch */
-	GLuint instance_vbo;
+	Batch *instance_batch; /* contains instances attributes */
+	GLuint instance_vbo; /* same as instance_batch but generated from DRWCalls */
 	int instance_count;
 	VertexFormat vbo_format;
 };
@@ -571,6 +572,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->attribs_count = 0;
 	interface->attribs_stride = 0;
 	interface->instance_vbo = 0;
+	interface->instance_batch = NULL;
 	interface->tex_bind = GPU_max_textures() - 1;
 	interface->ubo_bind = GPU_max_ubo_binds() - 1;
 
@@ -809,6 +811,13 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 	MEM_freeN(shgroup->interface);
 
 	BATCH_DISCARD_ALL_SAFE(shgroup->batch_geom);
+}
+
+void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Batch *instances)
+{
+	BLI_assert(shgroup->type == DRW_SHG_INSTANCE);
+
+	shgroup->interface->instance_batch = instances;
 }
 
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[4])
@@ -1099,6 +1108,18 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	int instance_ct = interface->instance_count;
 	int buffer_size = 0;
 
+	/* XXX All of this is pretty garbage. Better revisit it later. */
+	if (interface->instance_batch != NULL) {
+		VertexBuffer *vert = interface->instance_batch->verts[0];
+		/* This is double check but we don't want
+		 * VertexBuffer_use() to bind the buffer if it exists. */
+		if (vert->vbo_id == 0) {
+			VertexBuffer_use(vert);
+		}
+		interface->instance_vbo = vert->vbo_id;
+		interface->instance_count = vert->vertex_ct;
+	}
+
 	if (instance_ct == 0) {
 		if (interface->instance_vbo) {
 			glDeleteBuffers(1, &interface->instance_vbo);
@@ -1115,6 +1136,11 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 			interface->attribs_size[i] = attrib->size;
 			interface->attribs_loc[i] = attrib->location;
 		}
+	}
+
+	if (interface->instance_batch != NULL) {
+		/* Quit just after attribs where specified */
+		return;
 	}
 
 	/* Gather Data */
