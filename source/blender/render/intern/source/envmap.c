@@ -142,8 +142,8 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	/* set up renderdata */
 	render_copy_renderdata(&envre->r, &re->r);
 	envre->r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
-	BLI_listbase_clear(&envre->r.layers);
-	BLI_listbase_clear(&envre->r.views);
+	BLI_freelistN(&envre->r.layers);
+	BLI_freelistN(&envre->r.views);
 	envre->r.filtertype = 0;
 	envre->r.tilex = envre->r.xsch / 2;
 	envre->r.tiley = envre->r.ysch / 2;
