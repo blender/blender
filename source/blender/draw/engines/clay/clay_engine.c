@@ -701,7 +701,9 @@ static void CLAY_cache_init(void *vedata)
 
 	/* Hair Pass */
 	{
-		psl->hair_pass = DRW_pass_create("Hair Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		psl->hair_pass = DRW_pass_create(
+		                     "Hair Pass",
+		                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE);
 		stl->storage->hair_ubo_current_id = 0;
 		memset(stl->storage->hair_shgrps, 0, sizeof(DRWShadingGroup *) * MAX_CLAY_MAT);
 	}
