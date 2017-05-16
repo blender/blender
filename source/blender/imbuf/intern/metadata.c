@@ -83,7 +83,7 @@ void IMB_metadata_copy(struct ImBuf *dimb, struct ImBuf *simb)
 {
 	BLI_assert(dimb != simb);
 	if (simb->metadata) {
-		IDP_FreeProperty(dimb->metadata);
+		IMB_metadata_free(dimb);
 		dimb->metadata = IDP_CopyProperty(simb->metadata);
 	}
 }
