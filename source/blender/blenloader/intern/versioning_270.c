@@ -1634,6 +1634,14 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		} FOREACH_NODETREE_END
 	}
+
+	{
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			if (scene->r.im_format.exr_codec == R_IMF_EXR_CODEC_DWAB) {
+				scene->r.im_format.exr_codec = R_IMF_EXR_CODEC_DWAA;
+			}
+		}
+	}
 }
 
 void do_versions_after_linking_270(Main *main)
