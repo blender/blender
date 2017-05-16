@@ -67,6 +67,10 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
         unsigned int num_samples,
         ccl_global float *buffer)
 {
+#ifdef KERNEL_STUB
+	STUB_ASSERT(KERNEL_ARCH, data_init);
+#else
+
 #ifdef __KERNEL_OPENCL__
 	kg->data = data;
 #endif
@@ -143,6 +147,8 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 			*(rng_state + index) = hash_int_2d(x, y);
 		}
 	}
+
+#endif  /* KERENL_STUB */
 }
 
 CCL_NAMESPACE_END

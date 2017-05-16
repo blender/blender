@@ -22,45 +22,49 @@
 
 #include "kernel/kernel_compat_cpu.h"
 
-#ifndef __SPLIT_KERNEL__
-#  include "kernel/kernel_math.h"
-#  include "kernel/kernel_types.h"
+#ifndef KERNEL_STUB
+#  ifndef __SPLIT_KERNEL__
+#    include "kernel/kernel_math.h"
+#    include "kernel/kernel_types.h"
 
-#  include "kernel/split/kernel_split_data.h"
-#  include "kernel/kernel_globals.h"
+#    include "kernel/split/kernel_split_data.h"
+#    include "kernel/kernel_globals.h"
 
-#  include "kernel/kernels/cpu/kernel_cpu_image.h"
-#  include "kernel/kernel_film.h"
-#  include "kernel/kernel_path.h"
-#  include "kernel/kernel_path_branched.h"
-#  include "kernel/kernel_bake.h"
+#    include "kernel/kernels/cpu/kernel_cpu_image.h"
+#    include "kernel/kernel_film.h"
+#    include "kernel/kernel_path.h"
+#    include "kernel/kernel_path_branched.h"
+#    include "kernel/kernel_bake.h"
+#  else
+#    include "kernel/split/kernel_split_common.h"
+
+#    include "kernel/split/kernel_data_init.h"
+#    include "kernel/split/kernel_path_init.h"
+#    include "kernel/split/kernel_scene_intersect.h"
+#    include "kernel/split/kernel_lamp_emission.h"
+#    include "kernel/split/kernel_do_volume.h"
+#    include "kernel/split/kernel_queue_enqueue.h"
+#    include "kernel/split/kernel_indirect_background.h"
+#    include "kernel/split/kernel_shader_setup.h"
+#    include "kernel/split/kernel_shader_sort.h"
+#    include "kernel/split/kernel_shader_eval.h"
+#    include "kernel/split/kernel_holdout_emission_blurring_pathtermination_ao.h"
+#    include "kernel/split/kernel_subsurface_scatter.h"
+#    include "kernel/split/kernel_direct_lighting.h"
+#    include "kernel/split/kernel_shadow_blocked_ao.h"
+#    include "kernel/split/kernel_shadow_blocked_dl.h"
+#    include "kernel/split/kernel_next_iteration_setup.h"
+#    include "kernel/split/kernel_indirect_subsurface.h"
+#    include "kernel/split/kernel_buffer_update.h"
+#  endif  /* __SPLIT_KERNEL__ */
 #else
-#  include "kernel/split/kernel_split_common.h"
-
-#  include "kernel/split/kernel_data_init.h"
-#  include "kernel/split/kernel_path_init.h"
-#  include "kernel/split/kernel_scene_intersect.h"
-#  include "kernel/split/kernel_lamp_emission.h"
-#  include "kernel/split/kernel_do_volume.h"
-#  include "kernel/split/kernel_queue_enqueue.h"
-#  include "kernel/split/kernel_indirect_background.h"
-#  include "kernel/split/kernel_shader_setup.h"
-#  include "kernel/split/kernel_shader_sort.h"
-#  include "kernel/split/kernel_shader_eval.h"
-#  include "kernel/split/kernel_holdout_emission_blurring_pathtermination_ao.h"
-#  include "kernel/split/kernel_subsurface_scatter.h"
-#  include "kernel/split/kernel_direct_lighting.h"
-#  include "kernel/split/kernel_shadow_blocked_ao.h"
-#  include "kernel/split/kernel_shadow_blocked_dl.h"
-#  include "kernel/split/kernel_next_iteration_setup.h"
-#  include "kernel/split/kernel_indirect_subsurface.h"
-#  include "kernel/split/kernel_buffer_update.h"
-#endif
-
-#ifdef KERNEL_STUB
 #  include "util/util_debug.h"
 #  define STUB_ASSERT(arch, name) assert(!(#name " kernel stub for architecture " #arch " was called!"))
-#endif
+
+#  ifdef __SPLIT_KERNEL__
+#    include "kernel/split/kernel_data_init.h"
+#  endif  /* __SPLIT_KERNEL__ */
+#endif  /* KERNEL_STUB */
 
 CCL_NAMESPACE_BEGIN
 
@@ -191,20 +195,26 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 	{ \
 		STUB_ASSERT(KERNEL_ARCH, name); \
 	}
+
+#  define DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(name, type) \
+	void KERNEL_FUNCTION_FULL_NAME(name)(KernelGlobals *kg, KernelData* /*data*/) \
+	{ \
+		STUB_ASSERT(KERNEL_ARCH, name); \
+	}
 #else
 #  define DEFINE_SPLIT_KERNEL_FUNCTION(name) \
 	void KERNEL_FUNCTION_FULL_NAME(name)(KernelGlobals *kg, KernelData* /*data*/) \
 	{ \
 		kernel_##name(kg); \
 	}
-#endif /* KERNEL_STUB */
 
-#define DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(name, type) \
+#  define DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(name, type) \
 	void KERNEL_FUNCTION_FULL_NAME(name)(KernelGlobals *kg, KernelData* /*data*/) \
 	{ \
 		ccl_local type locals; \
 		kernel_##name(kg, &locals); \
 	}
+#endif /* KERNEL_STUB */
 
 DEFINE_SPLIT_KERNEL_FUNCTION(path_init)
 DEFINE_SPLIT_KERNEL_FUNCTION(scene_intersect)
