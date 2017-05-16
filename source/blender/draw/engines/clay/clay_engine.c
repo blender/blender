@@ -62,7 +62,7 @@ typedef struct CLAY_UBO_Material {
 	float matcap_rot[2];
 	float pad[2]; /* ensure 16 bytes alignement */
 } CLAY_UBO_Material; /* 48 bytes */
-BLI_STATIC_ASSERT_ALIGN(CLAY_UBO_Material, 16);
+BLI_STATIC_ASSERT_ALIGN(CLAY_UBO_Material, 16)
 
 typedef struct CLAY_HAIR_UBO_Material {
 	float hair_randomness;
@@ -70,7 +70,8 @@ typedef struct CLAY_HAIR_UBO_Material {
 	float matcap_rot[2];
 	float matcap_hsv[3];
 	float pad;
-} CLAY_HAIR_UBO_Material; /* 48 bytes */
+} CLAY_HAIR_UBO_Material; /* 32 bytes */
+BLI_STATIC_ASSERT_ALIGN(CLAY_UBO_Material, 16)
 
 #define MAX_CLAY_MAT 512 /* 512 = 9 bit material id */
 
@@ -154,7 +155,6 @@ static struct {
 
 	/* Just a serie of int from 0 to MAX_CLAY_MAT-1 */
 	int ubo_mat_idxs[MAX_CLAY_MAT];
-	int hair_ubo_mat_idxs[MAX_CLAY_MAT];
 } e_data = {NULL}; /* Engine data */
 
 typedef struct CLAY_PrivateData {
@@ -369,13 +369,6 @@ static void CLAY_engine_init(void *vedata)
 		/* Just int to have pointers to them */
 		for (int i = 0; i < MAX_CLAY_MAT; ++i) {
 			e_data.ubo_mat_idxs[i] = i;
-		}
-	}
-
-	if (e_data.hair_ubo_mat_idxs[1] == 0) {
-		/* Just int to have pointers to them */
-		for (int i = 0; i < MAX_CLAY_MAT; ++i) {
-			e_data.hair_ubo_mat_idxs[i] = i;
 		}
 	}
 
@@ -668,7 +661,7 @@ static DRWShadingGroup *CLAY_hair_shgrp_get(Object *ob, CLAY_StorageList *stl, C
 	                              matcap_val, hair_randomness, matcap_icon);
 
 	if (hair_shgrps[hair_id] == NULL) {
-		hair_shgrps[hair_id] = CLAY_hair_shgroup_create(psl->hair_pass, &e_data.hair_ubo_mat_idxs[hair_id]);
+		hair_shgrps[hair_id] = CLAY_hair_shgroup_create(psl->hair_pass, &e_data.ubo_mat_idxs[hair_id]);
 		/* if it's the first shgrp, pass bind the material UBO */
 		if (stl->storage->hair_ubo_current_id == 1) {
 			DRW_shgroup_uniform_block(hair_shgrps[0], "material_block", stl->hair_mat_ubo);
