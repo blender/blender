@@ -1026,15 +1026,16 @@ void IMB_exr_set_channel(void *handle, const char *layname, const char *passname
 	ExrChannel *echan;
 	char name[EXR_TOT_MAXNAME + 1];
 
-	if (layname) {
+	if (layname && layname[0] != '\0') {
 		char lay[EXR_LAY_MAXNAME + 1], pass[EXR_PASS_MAXNAME + 1];
 		BLI_strncpy(lay, layname, EXR_LAY_MAXNAME);
 		BLI_strncpy(pass, passname, EXR_PASS_MAXNAME);
 
 		BLI_snprintf(name, sizeof(name), "%s.%s", lay, pass);
 	}
-	else
+	else {
 		BLI_strncpy(name, passname, EXR_TOT_MAXNAME - 1);
+	}
 
 	echan = (ExrChannel *)BLI_findstring(&data->channels, name, offsetof(ExrChannel, name));
 
@@ -1043,8 +1044,9 @@ void IMB_exr_set_channel(void *handle, const char *layname, const char *passname
 		echan->ystride = ystride;
 		echan->rect = rect;
 	}
-	else
+	else {
 		printf("IMB_exr_set_channel error %s\n", name);
+	}
 }
 
 float  *IMB_exr_channel_rect(void *handle, const char *layname, const char *passname, const char *viewname)

@@ -61,6 +61,7 @@
 #include "renderpipeline.h"
 #include "texture.h"
 #include "zbuf.h"
+#include "render_result.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -493,10 +494,17 @@ static void render_envmap(Render *re, EnvMap *env)
 		env_rotate_scene(envre, tmat, 0);
 
 		if (re->test_break(re->tbh) == 0) {
-			RenderLayer *rl = envre->result->layers.first;
 			int y;
 			float *alpha;
 			float *rect;
+
+			if (envre->result->do_exr_tile) {
+				BLI_rw_mutex_lock(&envre->resultmutex, THREAD_LOCK_WRITE);
+				render_result_exr_file_end(envre);
+				BLI_rw_mutex_unlock(&envre->resultmutex);
+			}
+
+			RenderLayer *rl = envre->result->layers.first;
 
 			/* envmap is rendered independently of multiview  */
 			rect = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, "");
