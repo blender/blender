@@ -878,7 +878,7 @@ static hash_key key_from_chunk_ref(
 {
 	/* in C, will fill in a reusable array */
 	BChunk *chunk = cref->link;
-	BLI_assert(info->accum_read_ahead_bytes * info->chunk_stride);
+	BLI_assert((info->accum_read_ahead_bytes * info->chunk_stride) != 0);
 
 	if (info->accum_read_ahead_bytes <= chunk->data_len) {
 		hash_key key;
