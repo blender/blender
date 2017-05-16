@@ -29,6 +29,11 @@ void VertexFormat_clear(VertexFormat* format)
 	format->packed = false;
 	format->name_offset = 0;
 	format->name_ct = 0;
+
+	for (unsigned i = 0; i < MAX_VERTEX_ATTRIBS; i++)
+		{
+		format->attribs[i].name_ct = 0;
+		}
 #endif
 	}
 
