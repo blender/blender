@@ -726,7 +726,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	if (!DRW_object_is_renderable(ob))
 		return;
 
-	bool sculpt_mode = ob->mode & OB_MODE_SCULPT;
+	bool sculpt_mode = (ob->mode & OB_MODE_SCULPT) != 0;
 
 	struct Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
