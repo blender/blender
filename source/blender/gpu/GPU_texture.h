@@ -191,6 +191,7 @@ void GPU_texture_framebuffer_set(GPUTexture *tex, struct GPUFrameBuffer *fb, int
 int GPU_texture_target(const GPUTexture *tex);
 int GPU_texture_width(const GPUTexture *tex);
 int GPU_texture_height(const GPUTexture *tex);
+int GPU_texture_format(const GPUTexture *tex);
 bool GPU_texture_depth(const GPUTexture *tex);
 bool GPU_texture_stencil(const GPUTexture *tex);
 int GPU_texture_opengl_bindcode(const GPUTexture *tex);

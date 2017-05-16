@@ -101,6 +101,9 @@ void *GPU_viewport_texture_list_get(GPUViewport *viewport);
 void  GPU_viewport_size_get(const GPUViewport *viewport, int size[2]);
 void  GPU_viewport_size_set(GPUViewport *viewport, const int size[2]);
 
+/* Texture pool */
+GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine, int width, int height, int channels, int format);
+
 bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash);
 
 /* debug */
