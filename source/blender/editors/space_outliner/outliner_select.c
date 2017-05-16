@@ -165,7 +165,11 @@ static eOLDrawState tree_element_set_active_object(
 	}
 	
 	/* find associated base in current scene */
-	base = BKE_scene_base_find(scene, ob);
+	if (te->directdata) {
+		base = te->directdata;
+	} else {
+		base = BKE_scene_layer_base_find(sl, ob);
+	}
 
 	if (base) {
 		if (set == OL_SETSEL_EXTEND) {
