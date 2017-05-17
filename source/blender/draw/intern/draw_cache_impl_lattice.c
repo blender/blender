@@ -347,10 +347,10 @@ static VertexBuffer *lattice_batch_cache_get_pos(LatticeRenderData *rdata, Latti
 
 	if (cache->pos == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		const int vert_len = lattice_render_data_verts_len_get(rdata);
@@ -359,7 +359,7 @@ static VertexBuffer *lattice_batch_cache_get_pos(LatticeRenderData *rdata, Latti
 		VertexBuffer_allocate_data(cache->pos, vert_len);
 		for (int i = 0; i < vert_len; ++i) {
 			const BPoint *bp = lattice_render_data_vert_bpoint(rdata, i);
-			VertexBuffer_set_attrib(cache->pos, pos_id, i, bp->vec);
+			VertexBuffer_set_attrib(cache->pos, attr_id.pos, i, bp->vec);
 		}
 	}
 
@@ -432,11 +432,11 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 
 	if (cache->overlay_verts == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, data_id;
+		static struct { uint pos, data; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			data_id = VertexFormat_add_attrib(&format, "data", COMP_U8, 1, KEEP_INT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.data = VertexFormat_add_attrib(&format, "data", COMP_U8, 1, KEEP_INT);
 		}
 
 		const int vert_len = lattice_render_data_verts_len_get(rdata);
@@ -456,8 +456,8 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 				}
 			}
 
-			VertexBuffer_set_attrib(vbo, pos_id, i, bp->vec);
-			VertexBuffer_set_attrib(vbo, data_id, i, &vflag);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i, bp->vec);
+			VertexBuffer_set_attrib(vbo, attr_id.data, i, &vflag);
 		}
 
 		cache->overlay_verts = Batch_create(PRIM_POINTS, vbo, NULL);

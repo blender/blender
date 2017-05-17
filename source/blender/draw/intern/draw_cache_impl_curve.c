@@ -494,10 +494,10 @@ static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *rdata, Cu
 
 	if (cache->wire.verts == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		const int vert_len = curve_render_data_wire_verts_len_get(rdata);
@@ -509,7 +509,7 @@ static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *rdata, Cu
 			if (bl->nr > 0) {
 				const int i_end = vbo_len_used + bl->nr;
 				for (const BevPoint *bevp = bl->bevpoints; vbo_len_used < i_end; vbo_len_used++, bevp++) {
-					VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bevp->vec);
+					VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bevp->vec);
 				}
 			}
 		}
@@ -572,10 +572,10 @@ static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *rdata, 
 
 	if (cache->normal.verts == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		const int normal_len = curve_render_data_normal_len_get(rdata);
@@ -614,9 +614,9 @@ static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *rdata, 
 				add_v3_v3(vec_a, bevp->vec);
 				add_v3_v3(vec_b, bevp->vec);
 
-				VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, vec_a);
-				VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, bevp->vec);
-				VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, vec_b);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, vec_a);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, bevp->vec);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, vec_b);
 
 				bevp += skip + 1;
 				nr -= skip;
@@ -666,11 +666,11 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 
 	if (cache->overlay.verts == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, data_id;
+		static struct { uint pos, data; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			data_id = VertexFormat_add_attrib(&format, "data", COMP_U8, 1, KEEP_INT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.data = VertexFormat_add_attrib(&format, "data", COMP_U8, 1, KEEP_INT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -689,16 +689,16 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 						if (rdata->hide_handles) {
 							vflag = (bezt->f2 & SELECT) ?
 							        (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-							VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bezt->vec[1]);
-							VertexBuffer_set_attrib(vbo, data_id, vbo_len_used, &vflag);
+							VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[1]);
+							VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
 							vbo_len_used += 1;
 						}
 						else {
 							for (int j = 0; j < 3; j++) {
 								vflag = ((&bezt->f1)[j] & SELECT) ?
 								        (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-								VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bezt->vec[j]);
-								VertexBuffer_set_attrib(vbo, data_id, vbo_len_used, &vflag);
+								VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[j]);
+								VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
 								vbo_len_used += 1;
 							}
 						}
@@ -713,8 +713,8 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 						const bool is_active = (i == rdata->actvert);
 						char vflag;
 						vflag = (bp->f1 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-						VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bp->vec);
-						VertexBuffer_set_attrib(vbo, data_id, vbo_len_used, &vflag);
+						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bp->vec);
+						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
 					}
 					i += 1;
@@ -734,11 +734,11 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 		/* Note: we could reference indices to vertices (above) */
 
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, data_id;
+		static struct { uint pos, data; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			data_id = VertexFormat_add_attrib(&format, "data", COMP_U8, 1, KEEP_INT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.data = VertexFormat_add_attrib(&format, "data", COMP_U8, 1, KEEP_INT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -756,22 +756,22 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 						char vflag;
 
 						vflag = (bezt->f1 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-						VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bezt->vec[0]);
-						VertexBuffer_set_attrib(vbo, data_id, vbo_len_used, &vflag);
+						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[0]);
+						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
 
 						/* same vertex twice, only check different selection */
 						for (int j = 0; j < 2; j++) {
 							vflag = ((j ? bezt->f3 : bezt->f1) & SELECT) ?
 							        (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-							VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bezt->vec[1]);
-							VertexBuffer_set_attrib(vbo, data_id, vbo_len_used, &vflag);
+							VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[1]);
+							VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
 							vbo_len_used += 1;
 						}
 
 						vflag = (bezt->f3 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-						VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bezt->vec[2]);
-						VertexBuffer_set_attrib(vbo, data_id, vbo_len_used, &vflag);
+						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[2]);
+						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
 					}
 					i += 1;
@@ -783,11 +783,11 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 					if ((bp_prev->hide == false) && (bp_curr->hide == false)) {
 						char vflag;
 						vflag = ((bp_prev->f1 & SELECT) && (bp_curr->f1 & SELECT)) ? VFLAG_VERTEX_SELECTED : 0;
-						VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bp_prev->vec);
-						VertexBuffer_set_attrib(vbo, data_id, vbo_len_used, &vflag);
+						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bp_prev->vec);
+						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
-						VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, bp_curr->vec);
-						VertexBuffer_set_attrib(vbo, data_id, vbo_len_used, &vflag);
+						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bp_curr->vec);
+						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
 
 					}
@@ -828,9 +828,9 @@ static Batch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, Curve
 	if (cache->text.select == NULL) {
 		EditFont *ef = rdata->text.edit_font;
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -883,13 +883,13 @@ static Batch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, Curve
 				add_v2_v2(box[3], &sb->x);
 			}
 
-			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[0]);
-			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[1]);
-			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[2]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[0]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[1]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[2]);
 
-			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[0]);
-			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[2]);
-			VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used++, box[3]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[0]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[2]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[3]);
 		}
 		BLI_assert(vbo_len_used == vbo_len_capacity);
 		cache->text.select = Batch_create(PRIM_TRIANGLES, vbo, NULL);
@@ -902,16 +902,16 @@ static Batch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, Curve
 	BLI_assert(rdata->types & CU_DATATYPE_TEXT_SELECT);
 	if (cache->text.cursor == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		const int vbo_len_capacity = 4;
 		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
 		for (int i = 0; i < 4; i++) {
-			VertexBuffer_set_attrib(vbo, pos_id, i, rdata->text.edit_font->textcurs[i]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i, rdata->text.edit_font->textcurs[i]);
 		}
 		cache->text.cursor = Batch_create(PRIM_TRIANGLE_FAN, vbo, NULL);
 	}

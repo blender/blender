@@ -94,11 +94,11 @@ Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 	}
 
 	static VertexFormat format = { 0 };
-	static unsigned int pos_id, nor_id;
+	static struct { uint pos, nor; } attr_id;
 	if (format.attrib_ct == 0) {
 		/* initialize vertex format */
-		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+		attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 	}
 
 	const int vert_len = curve_render_surface_vert_len_get(lb);
@@ -117,9 +117,9 @@ Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 				const float *fp_no = dl->nors;
 				const int vbo_end = vbo_len_used + dl_vert_len(dl);
 				while (vbo_len_used < vbo_end) {
-					VertexBuffer_set_attrib(vbo, pos_id, vbo_len_used, fp_co);
+					VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, fp_co);
 					if (fp_no) {
-						VertexBuffer_set_attrib(vbo, nor_id, vbo_len_used, fp_no);
+						VertexBuffer_set_attrib(vbo, attr_id.nor, vbo_len_used, fp_no);
 						if (ndata_is_single == false) {
 							fp_no += 3;
 						}

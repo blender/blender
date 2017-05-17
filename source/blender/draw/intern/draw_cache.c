@@ -156,9 +156,9 @@ static VertexBuffer *fill_arrows_vbo(const float scale)
 {
 	/* Position Only 3D format */
 	static VertexFormat format = { 0 };
-	static unsigned int pos_id;
+	static struct { uint pos; } attr_id;
 	if (format.attrib_ct == 0) {
-		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 	}
 
 	/* Line */
@@ -175,21 +175,21 @@ static VertexBuffer *fill_arrows_vbo(const float scale)
 		v2[axis] = 1.0f;
 		mul_v3_v3fl(vtmp1, v1, scale);
 		mul_v3_v3fl(vtmp2, v2, scale);
-		VertexBuffer_set_attrib(vbo, pos_id, axis * 6 + 0, vtmp1);
-		VertexBuffer_set_attrib(vbo, pos_id, axis * 6 + 1, vtmp2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, axis * 6 + 0, vtmp1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, axis * 6 + 1, vtmp2);
 
 		v1[axis] = 0.85f;
 		v1[arrow_axis] = -0.08f;
 		mul_v3_v3fl(vtmp1, v1, scale);
 		mul_v3_v3fl(vtmp2, v2, scale);
-		VertexBuffer_set_attrib(vbo, pos_id, axis * 6 + 2, vtmp1);
-		VertexBuffer_set_attrib(vbo, pos_id, axis * 6 + 3, vtmp2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, axis * 6 + 2, vtmp1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, axis * 6 + 3, vtmp2);
 
 		v1[arrow_axis] = 0.08f;
 		mul_v3_v3fl(vtmp1, v1, scale);
 		mul_v3_v3fl(vtmp2, v2, scale);
-		VertexBuffer_set_attrib(vbo, pos_id, axis * 6 + 4, vtmp1);
-		VertexBuffer_set_attrib(vbo, pos_id, axis * 6 + 5, vtmp2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, axis * 6 + 4, vtmp1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, axis * 6 + 5, vtmp2);
 
 		/* reset v1 & v2 to zero */
 		v1[arrow_axis] = v1[axis] = v2[axis] = 0.0f;
@@ -203,9 +203,9 @@ static VertexBuffer *sphere_wire_vbo(const float rad)
 #define NSEGMENTS 16
 	/* Position Only 3D format */
 	static VertexFormat format = { 0 };
-	static unsigned int pos_id;
+	static struct { uint pos; } attr_id;
 	if (format.attrib_ct == 0) {
-		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 	}
 
 	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -234,7 +234,7 @@ static VertexBuffer *sphere_wire_vbo(const float rad)
 				else
 					v[0] = 0.0f,  v[1] = cv[0], v[2] = cv[1];
 
-				VertexBuffer_set_attrib(vbo, pos_id, i * 2 + j + (NSEGMENTS * 2 * axis), v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, i * 2 + j + (NSEGMENTS * 2 * axis), v);
 			}
 		}
 	}
@@ -254,18 +254,18 @@ Batch *DRW_cache_fullscreen_quad_get(void)
 
 		/* Position Only 2D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, uvs_id;
+		static struct { uint pos, uvs; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			uvs_id = VertexFormat_add_attrib(&format, "uvs", COMP_F32, 2, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			attr_id.uvs = VertexFormat_add_attrib(&format, "uvs", COMP_F32, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 3);
 
 		for (int i = 0; i < 3; ++i)	{
-			VertexBuffer_set_attrib(vbo, pos_id, i, pos[i]);
-			VertexBuffer_set_attrib(vbo, uvs_id, i, uvs[i]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i, pos[i]);
+			VertexBuffer_set_attrib(vbo, attr_id.uvs, i, uvs[i]);
 		}
 
 		SHC.drw_fullscreen_quad = Batch_create(PRIM_TRIANGLES, vbo, NULL);
@@ -298,16 +298,16 @@ Batch *DRW_cache_cube_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 24);
 
 		for (int i = 0; i < 24; ++i) {
-			VertexBuffer_set_attrib(vbo, pos_id, i, verts[indices[i]]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i, verts[indices[i]]);
 		}
 
 		SHC.drw_cube = Batch_create(PRIM_LINES, vbo, NULL);
@@ -323,9 +323,9 @@ Batch *DRW_cache_circle_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -335,12 +335,12 @@ Batch *DRW_cache_circle_get(void)
 			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[2] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[1] = 0.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, a * 2, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, a * 2, v);
 
 			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 			v[2] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 			v[1] = 0.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, a * 2 + 1, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, a * 2 + 1, v);
 		}
 
 		SHC.drw_circle = Batch_create(PRIM_LINES, vbo, NULL);
@@ -359,17 +359,17 @@ Batch *DRW_cache_square_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 8);
 
 		for (int i = 0; i < 4; i++) {
-			VertexBuffer_set_attrib(vbo, pos_id, i * 2,     p[i % 4]);
-			VertexBuffer_set_attrib(vbo, pos_id, i * 2 + 1, p[(i+1) % 4]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 2,     p[i % 4]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 2 + 1, p[(i+1) % 4]);
 		}
 
 		SHC.drw_square = Batch_create(PRIM_LINES, vbo, NULL);
@@ -386,16 +386,16 @@ Batch *DRW_cache_single_line_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 2);
 
-		VertexBuffer_set_attrib(vbo, pos_id, 0, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 1, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 0, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 1, v2);
 
 		SHC.drw_line = Batch_create(PRIM_LINES, vbo, NULL);
 	}
@@ -411,16 +411,16 @@ Batch *DRW_cache_single_line_endpoints_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 2);
 
-		VertexBuffer_set_attrib(vbo, pos_id, 0, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 1, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 0, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 1, v2);
 
 		SHC.drw_line_endpoints = Batch_create(PRIM_POINTS, vbo, NULL);
 	}
@@ -435,9 +435,9 @@ Batch *DRW_cache_screenspace_circle_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -446,7 +446,7 @@ Batch *DRW_cache_screenspace_circle_get(void)
 		for (int a = 0; a <= CIRCLE_RESOL; a++) {
 			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-			VertexBuffer_set_attrib(vbo, pos_id, a, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, a, v);
 		}
 
 		SHC.drw_screenspace_circle = Batch_create(PRIM_LINE_STRIP, vbo, NULL);
@@ -517,9 +517,9 @@ Batch *DRW_cache_plain_axes_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -529,8 +529,8 @@ Batch *DRW_cache_plain_axes_get(void)
 			v1[axis] = 1.0f;
 			v2[axis] = -1.0f;
 
-			VertexBuffer_set_attrib(vbo, pos_id, axis * 2, v1);
-			VertexBuffer_set_attrib(vbo, pos_id, axis * 2 + 1, v2);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, axis * 2, v1);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, axis * 2 + 1, v2);
 
 			/* reset v1 & v2 to zero for next axis */
 			v1[axis] = v2[axis] = 0.0f;
@@ -548,9 +548,9 @@ Batch *DRW_cache_single_arrow_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Square Pyramid */
@@ -571,9 +571,9 @@ Batch *DRW_cache_single_arrow_get(void)
 				v3[0] = -v3[0];
 			}
 
-			VertexBuffer_set_attrib(vbo, pos_id, sides * 3 + 0, v1);
-			VertexBuffer_set_attrib(vbo, pos_id, sides * 3 + 1, v2);
-			VertexBuffer_set_attrib(vbo, pos_id, sides * 3 + 2, v3);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, sides * 3 + 0, v1);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, sides * 3 + 1, v2);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, sides * 3 + 2, v3);
 		}
 
 		SHC.drw_single_arrow = Batch_create(PRIM_TRIANGLES, vbo, NULL);
@@ -604,9 +604,9 @@ Batch *DRW_cache_empty_cone_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -619,17 +619,17 @@ Batch *DRW_cache_empty_cone_get(void)
 
 			/* cone sides */
 			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
-			VertexBuffer_set_attrib(vbo, pos_id, i * 4, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 4, v);
 			v[0] = 0.0f, v[1] = 2.0f, v[2] = 0.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, i * 4 + 1, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 4 + 1, v);
 
 			/* end ring */
 			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
-			VertexBuffer_set_attrib(vbo, pos_id, i * 4 + 2, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 4 + 2, v);
 			cv[0] = p[(i + 1) % NSEGMENTS][0];
 			cv[1] = p[(i + 1) % NSEGMENTS][1];
 			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
-			VertexBuffer_set_attrib(vbo, pos_id, i * 4 + 3, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 4 + 3, v);
 		}
 
 		SHC.drw_empty_cone = Batch_create(PRIM_LINES, vbo, NULL);
@@ -656,10 +656,10 @@ Batch *DRW_cache_axis_names_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* Using 3rd component as axis indicator */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Line */
@@ -669,40 +669,40 @@ Batch *DRW_cache_axis_names_get(void)
 		/* X */
 		copy_v3_fl3(v1, -size,  size, 0.0f);
 		copy_v3_fl3(v2,  size, -size, 0.0f);
-		VertexBuffer_set_attrib(vbo, pos_id, 0, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 1, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 0, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 1, v2);
 
 		copy_v3_fl3(v1,  size,  size, 0.0f);
 		copy_v3_fl3(v2, -size, -size, 0.0f);
-		VertexBuffer_set_attrib(vbo, pos_id, 2, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 3, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 2, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 3, v2);
 
 		/* Y */
 		copy_v3_fl3(v1, -size + 0.25f * size,  size, 1.0f);
 		copy_v3_fl3(v2,  0.0f,  0.0f, 1.0f);
-		VertexBuffer_set_attrib(vbo, pos_id, 4, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 5, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 4, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 5, v2);
 
 		copy_v3_fl3(v1,  size - 0.25f * size,  size, 1.0f);
 		copy_v3_fl3(v2, -size + 0.25f * size, -size, 1.0f);
-		VertexBuffer_set_attrib(vbo, pos_id, 6, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 7, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 6, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 7, v2);
 
 		/* Z */
 		copy_v3_fl3(v1, -size,  size, 2.0f);
 		copy_v3_fl3(v2,  size,  size, 2.0f);
-		VertexBuffer_set_attrib(vbo, pos_id, 8, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 9, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 8, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 9, v2);
 
 		copy_v3_fl3(v1,  size,  size, 2.0f);
 		copy_v3_fl3(v2, -size, -size, 2.0f);
-		VertexBuffer_set_attrib(vbo, pos_id, 10, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 11, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 10, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 11, v2);
 
 		copy_v3_fl3(v1, -size, -size, 2.0f);
 		copy_v3_fl3(v2,  size, -size, 2.0f);
-		VertexBuffer_set_attrib(vbo, pos_id, 12, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 13, v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 12, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 13, v2);
 
 		SHC.drw_axis_names = Batch_create(PRIM_LINES, vbo, NULL);
 	}
@@ -718,9 +718,9 @@ Batch *DRW_cache_field_wind_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -732,12 +732,12 @@ Batch *DRW_cache_field_wind_get(void)
 				v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 				v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 				v[2] = z;
-				VertexBuffer_set_attrib(vbo, pos_id, i * CIRCLE_RESOL * 2 + a * 2, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, i * CIRCLE_RESOL * 2 + a * 2, v);
 
 				v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 				v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 				v[2] = z;
-				VertexBuffer_set_attrib(vbo, pos_id, i * CIRCLE_RESOL * 2 + a * 2 + 1, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, i * CIRCLE_RESOL * 2 + a * 2 + 1, v);
 			}
 		}
 
@@ -755,9 +755,9 @@ Batch *DRW_cache_field_force_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -769,12 +769,12 @@ Batch *DRW_cache_field_force_get(void)
 				v[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 				v[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 				v[2] = 0.0f;
-				VertexBuffer_set_attrib(vbo, pos_id, i * CIRCLE_RESOL * 2 + a * 2, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, i * CIRCLE_RESOL * 2 + a * 2, v);
 
 				v[0] = radius * sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 				v[1] = radius * cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 				v[2] = 0.0f;
-				VertexBuffer_set_attrib(vbo, pos_id, i * CIRCLE_RESOL * 2 + a * 2 + 1, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, i * CIRCLE_RESOL * 2 + a * 2 + 1, v);
 			}
 		}
 
@@ -793,9 +793,9 @@ Batch *DRW_cache_field_vortex_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -805,14 +805,14 @@ Batch *DRW_cache_field_vortex_get(void)
 			v[0] = sinf((2.0f * M_PI * a) / ((float)SPIRAL_RESOL)) * (a / (float)SPIRAL_RESOL);
 			v[1] = cosf((2.0f * M_PI * a) / ((float)SPIRAL_RESOL)) * (a / (float)SPIRAL_RESOL);
 
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 		}
 
 		for (int a = 1; a <= SPIRAL_RESOL; a++) {
 			v[0] = -sinf((2.0f * M_PI * a) / ((float)SPIRAL_RESOL)) * (a / (float)SPIRAL_RESOL);
 			v[1] = -cosf((2.0f * M_PI * a) / ((float)SPIRAL_RESOL)) * (a / (float)SPIRAL_RESOL);
 
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 		}
 
 		SHC.drw_field_vortex = Batch_create(PRIM_LINE_STRIP, vbo, NULL);
@@ -830,9 +830,9 @@ Batch *DRW_cache_field_tube_limit_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -845,12 +845,12 @@ Batch *DRW_cache_field_tube_limit_get(void)
 				v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 				v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 				v[2] = z;
-				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 
 				v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 				v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 				v[2] = z;
-				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 			}
 		}
 		/* Side Edges */
@@ -860,7 +860,7 @@ Batch *DRW_cache_field_tube_limit_get(void)
 				v[0] = sinf((2.0f * M_PI * a) / 4.0f);
 				v[1] = cosf((2.0f * M_PI * a) / 4.0f);
 				v[2] = z;
-				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 			}
 		}
 
@@ -879,9 +879,9 @@ Batch *DRW_cache_field_cone_limit_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -894,12 +894,12 @@ Batch *DRW_cache_field_cone_limit_get(void)
 				v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 				v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 				v[2] = z;
-				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 
 				v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 				v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 				v[2] = z;
-				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 			}
 		}
 		/* Side Edges */
@@ -909,7 +909,7 @@ Batch *DRW_cache_field_cone_limit_get(void)
 				v[0] = z * sinf((2.0f * M_PI * a) / 4.0f);
 				v[1] = z * cosf((2.0f * M_PI * a) / 4.0f);
 				v[2] = z;
-				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 			}
 		}
 
@@ -934,9 +934,9 @@ Batch *DRW_cache_lamp_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -945,11 +945,11 @@ Batch *DRW_cache_lamp_get(void)
 		for (int a = 0; a < NSEGMENTS; a++) {
 			v[0] = sinf((2.0f * M_PI * a) / ((float)NSEGMENTS));
 			v[1] = cosf((2.0f * M_PI * a) / ((float)NSEGMENTS));
-			VertexBuffer_set_attrib(vbo, pos_id, a * 2, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, a * 2, v);
 
 			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)NSEGMENTS));
 			v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)NSEGMENTS));
-			VertexBuffer_set_attrib(vbo, pos_id, a * 2 + 1, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, a * 2 + 1, v);
 		}
 
 		SHC.drw_lamp = Batch_create(PRIM_LINES, vbo, NULL);
@@ -965,9 +965,9 @@ Batch *DRW_cache_lamp_sunrays_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -980,8 +980,8 @@ Batch *DRW_cache_lamp_sunrays_get(void)
 			mul_v2_v2fl(v1, v, 1.2f);
 			mul_v2_v2fl(v2, v, 2.5f);
 
-			VertexBuffer_set_attrib(vbo, pos_id, a * 2, v1);
-			VertexBuffer_set_attrib(vbo, pos_id, a * 2 + 1, v2);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, a * 2, v1);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, a * 2 + 1, v2);
 		}
 
 		SHC.drw_lamp_sunrays = Batch_create(PRIM_LINES, vbo, NULL);
@@ -996,27 +996,27 @@ Batch *DRW_cache_lamp_area_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 8);
 
 		v1[0] = v1[1] = 0.5f;
-		VertexBuffer_set_attrib(vbo, pos_id, 0, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 0, v1);
 		v1[0] = -0.5f;
-		VertexBuffer_set_attrib(vbo, pos_id, 1, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 2, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 1, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 2, v1);
 		v1[1] = -0.5f;
-		VertexBuffer_set_attrib(vbo, pos_id, 3, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 4, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 3, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 4, v1);
 		v1[0] = 0.5f;
-		VertexBuffer_set_attrib(vbo, pos_id, 5, v1);
-		VertexBuffer_set_attrib(vbo, pos_id, 6, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 5, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 6, v1);
 		v1[1] = 0.5f;
-		VertexBuffer_set_attrib(vbo, pos_id, 7, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 7, v1);
 
 		SHC.drw_lamp_area = Batch_create(PRIM_LINES, vbo, NULL);
 	}
@@ -1032,9 +1032,9 @@ Batch *DRW_cache_lamp_hemi_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -1045,12 +1045,12 @@ Batch *DRW_cache_lamp_hemi_get(void)
 			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL) - M_PI / 2);
 			v[2] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL) - M_PI / 2) - 1.0f;
 			v[1] = 0.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 
 			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL) - M_PI / 2);
 			v[2] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL) - M_PI / 2) - 1.0f;
 			v[1] = 0.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 		}
 
 		/* XY plane */
@@ -1058,12 +1058,12 @@ Batch *DRW_cache_lamp_hemi_get(void)
 			v[2] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL)) - 1.0f;
 			v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[0] = 0.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 
 			v[2] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL)) - 1.0f;
 			v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 			v[0] = 0.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 		}
 
 		/* YZ plane full circle */
@@ -1072,11 +1072,11 @@ Batch *DRW_cache_lamp_hemi_get(void)
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v[1] = rad * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[0] = rad * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 
 			v[1] = rad * sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
 			v[0] = rad * cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 		}
 
 
@@ -1110,11 +1110,11 @@ Batch *DRW_cache_lamp_spot_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, n1_id, n2_id;
+		static struct { uint pos, n1, n2; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
-			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -1127,27 +1127,27 @@ Batch *DRW_cache_lamp_spot_get(void)
 
 			/* cone sides */
 			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, i * 4, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 4, v);
 			v[0] = 0.0f, v[1] = 0.0f, v[2] = 0.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, i * 4 + 1, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 4 + 1, v);
 
-			VertexBuffer_set_attrib(vbo, n1_id, i * 4,     n[(i) % NSEGMENTS]);
-			VertexBuffer_set_attrib(vbo, n1_id, i * 4 + 1, n[(i) % NSEGMENTS]);
-			VertexBuffer_set_attrib(vbo, n2_id, i * 4,     n[(i+1) % NSEGMENTS]);
-			VertexBuffer_set_attrib(vbo, n2_id, i * 4 + 1, n[(i+1) % NSEGMENTS]);
+			VertexBuffer_set_attrib(vbo, attr_id.n1, i * 4,     n[(i) % NSEGMENTS]);
+			VertexBuffer_set_attrib(vbo, attr_id.n1, i * 4 + 1, n[(i) % NSEGMENTS]);
+			VertexBuffer_set_attrib(vbo, attr_id.n2, i * 4,     n[(i+1) % NSEGMENTS]);
+			VertexBuffer_set_attrib(vbo, attr_id.n2, i * 4 + 1, n[(i+1) % NSEGMENTS]);
 
 			/* end ring */
 			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, i * 4 + 2, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 4 + 2, v);
 			cv[0] = p[(i + 1) % NSEGMENTS][0];
 			cv[1] = p[(i + 1) % NSEGMENTS][1];
 			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
-			VertexBuffer_set_attrib(vbo, pos_id, i * 4 + 3, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, i * 4 + 3, v);
 
-			VertexBuffer_set_attrib(vbo, n1_id, i * 4 + 2, n[(i) % NSEGMENTS]);
-			VertexBuffer_set_attrib(vbo, n1_id, i * 4 + 3, n[(i) % NSEGMENTS]);
-			VertexBuffer_set_attrib(vbo, n2_id, i * 4 + 2, neg[(i) % NSEGMENTS]);
-			VertexBuffer_set_attrib(vbo, n2_id, i * 4 + 3, neg[(i) % NSEGMENTS]);
+			VertexBuffer_set_attrib(vbo, attr_id.n1, i * 4 + 2, n[(i) % NSEGMENTS]);
+			VertexBuffer_set_attrib(vbo, attr_id.n1, i * 4 + 3, n[(i) % NSEGMENTS]);
+			VertexBuffer_set_attrib(vbo, attr_id.n2, i * 4 + 2, neg[(i) % NSEGMENTS]);
+			VertexBuffer_set_attrib(vbo, attr_id.n2, i * 4 + 3, neg[(i) % NSEGMENTS]);
 		}
 
 		SHC.drw_lamp_spot = Batch_create(PRIM_LINES, vbo, NULL);
@@ -1169,9 +1169,9 @@ Batch *DRW_cache_lamp_spot_square_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -1179,11 +1179,11 @@ Batch *DRW_cache_lamp_spot_square_get(void)
 
 		/* piramid sides */
 		for (int i = 1; i <= 4; ++i) {
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, p[0]);
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, p[i]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, p[0]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, p[i]);
 
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, p[(i % 4)+1]);
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, p[((i+1) % 4)+1]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, p[(i % 4)+1]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, p[((i+1) % 4)+1]);
 		}
 
 		SHC.drw_lamp_spot_square = Batch_create(PRIM_LINES, vbo, NULL);
@@ -1207,9 +1207,9 @@ Batch *DRW_cache_speaker_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -1220,16 +1220,16 @@ Batch *DRW_cache_speaker_get(void)
 			float r = (j == 0 ? 0.5f : 0.25f);
 
 			copy_v3_fl3(v, r, 0.0f, z);
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 			for (int i = 1; i < segments; i++) {
 				float x = cosf(2.f * (float)M_PI * i / segments) * r;
 				float y = sinf(2.f * (float)M_PI * i / segments) * r;
 				copy_v3_fl3(v, x, y, z);
-				VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
-				VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 			}
 			copy_v3_fl3(v, r, 0.0f, z);
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 		}
 
 		for (int j = 0; j < 4; j++) {
@@ -1243,9 +1243,9 @@ Batch *DRW_cache_speaker_get(void)
 
 				float z = 0.25f * i - 0.125f;
 				copy_v3_fl3(v, x, y, z);
-				VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 				if (i == 1) {
-					VertexBuffer_set_attrib(vbo, pos_id, vidx++, v);
+					VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, v);
 				}
 			}
 		}
@@ -1315,10 +1315,10 @@ Batch *DRW_cache_bone_octahedral_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, nor_id;
+		static struct { uint pos, nor; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1326,12 +1326,12 @@ Batch *DRW_cache_bone_octahedral_get(void)
 		VertexBuffer_allocate_data(vbo, 24);
 
 		for (int i = 0; i < 8; i++) {
-			VertexBuffer_set_attrib(vbo, nor_id, v_idx, bone_octahedral_solid_normals[i]);
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][0]]);
-			VertexBuffer_set_attrib(vbo, nor_id, v_idx, bone_octahedral_solid_normals[i]);
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][1]]);
-			VertexBuffer_set_attrib(vbo, nor_id, v_idx, bone_octahedral_solid_normals[i]);
-			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
+			VertexBuffer_set_attrib(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][0]]);
+			VertexBuffer_set_attrib(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][1]]);
+			VertexBuffer_set_attrib(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
 		}
 
 		SHC.drw_bone_octahedral = Batch_create(PRIM_TRIANGLES, vbo, NULL);
@@ -1345,11 +1345,11 @@ Batch *DRW_cache_bone_octahedral_wire_outline_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, n1_id, n2_id;
+		static struct { uint pos, n1, n2; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
-			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1361,7 +1361,7 @@ Batch *DRW_cache_bone_octahedral_wire_outline_get(void)
 			const float *co2 = bone_octahedral_verts[bone_octahedral_wire[i * 2 + 1]];
 			const float *n1 = bone_octahedral_solid_normals[bone_octahedral_wire_adjacent_face[i * 2]];
 			const float *n2 = bone_octahedral_solid_normals[bone_octahedral_wire_adjacent_face[i * 2 + 1]];
-			add_fancy_edge(vbo, pos_id, n1_id, n2_id, &v_idx, co1, co2, n1, n2);
+			add_fancy_edge(vbo, attr_id.pos, attr_id.n1, attr_id.n2, &v_idx, co1, co2, n1, n2);
 		}
 
 		SHC.drw_bone_octahedral_wire = Batch_create(PRIM_LINES, vbo, NULL);
@@ -1443,10 +1443,10 @@ Batch *DRW_cache_bone_box_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, nor_id;
+		static struct { uint pos, nor; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1455,8 +1455,8 @@ Batch *DRW_cache_bone_box_get(void)
 
 		for (int i = 0; i < 12; i++) {
 			for (int j = 0; j < 3; j++) {
-				VertexBuffer_set_attrib(vbo, nor_id, v_idx, bone_box_solid_normals[i]);
-				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, bone_box_verts[bone_box_solid_tris[i][j]]);
+				VertexBuffer_set_attrib(vbo, attr_id.nor, v_idx, bone_box_solid_normals[i]);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, bone_box_verts[bone_box_solid_tris[i][j]]);
 			}
 		}
 
@@ -1471,11 +1471,11 @@ Batch *DRW_cache_bone_box_wire_outline_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, n1_id, n2_id;
+		static struct { uint pos, n1, n2; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
-			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1487,7 +1487,7 @@ Batch *DRW_cache_bone_box_wire_outline_get(void)
 			const float *co2 = bone_box_verts[bone_box_wire[i * 2 + 1]];
 			const float *n1 = bone_box_solid_normals[bone_box_wire_adjacent_face[i * 2]];
 			const float *n2 = bone_box_solid_normals[bone_box_wire_adjacent_face[i * 2 + 1]];
-			add_fancy_edge(vbo, pos_id, n1_id, n2_id, &v_idx, co1, co2, n1, n2);
+			add_fancy_edge(vbo, attr_id.pos, attr_id.n1, attr_id.n2, &v_idx, co1, co2, n1, n2);
 		}
 
 		SHC.drw_bone_box_wire = Batch_create(PRIM_LINES, vbo, NULL);
@@ -1502,11 +1502,11 @@ Batch *DRW_cache_bone_wire_wire_outline_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, n1_id, n2_id;
+		static struct { uint pos, n1, n2; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
-			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1516,7 +1516,7 @@ Batch *DRW_cache_bone_wire_wire_outline_get(void)
 		const float co1[3] = {0.0f, 0.0f, 0.0f};
 		const float co2[3] = {0.0f, 1.0f, 0.0f};
 		const float n[3] = {1.0f, 0.0f, 0.0f};
-		add_fancy_edge(vbo, pos_id, n1_id, n2_id, &v_idx, co1, co2, n, n);
+		add_fancy_edge(vbo, attr_id.pos, attr_id.n1, attr_id.n2, &v_idx, co1, co2, n, n);
 
 		SHC.drw_bone_wire_wire = Batch_create(PRIM_LINES, vbo, NULL);
 	}
@@ -1535,10 +1535,10 @@ Batch *DRW_cache_bone_point_get(void)
 		unsigned int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, nor_id;
+		static struct { uint pos, nor; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1550,15 +1550,15 @@ Batch *DRW_cache_bone_point_get(void)
 			float lat = 0.0f;
 			for (int j = 0; j < lat_res; j++, lat += lat_inc) {
 				if (j != lat_res - 1) { /* Pole */
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat + lat_inc, lon + lon_inc);
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat + lat_inc, lon);
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,           lon);
+					add_lat_lon_vert(vbo, attr_id.pos, attr_id.nor, &v_idx, rad, lat + lat_inc, lon + lon_inc);
+					add_lat_lon_vert(vbo, attr_id.pos, attr_id.nor, &v_idx, rad, lat + lat_inc, lon);
+					add_lat_lon_vert(vbo, attr_id.pos, attr_id.nor, &v_idx, rad, lat,           lon);
 				}
 
 				if (j != 0) { /* Pole */
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,           lon + lon_inc);
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat + lat_inc, lon + lon_inc);
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,           lon);
+					add_lat_lon_vert(vbo, attr_id.pos, attr_id.nor, &v_idx, rad, lat,           lon + lon_inc);
+					add_lat_lon_vert(vbo, attr_id.pos, attr_id.nor, &v_idx, rad, lat + lat_inc, lon + lon_inc);
+					add_lat_lon_vert(vbo, attr_id.pos, attr_id.nor, &v_idx, rad, lat,           lon);
 				}
 			}
 		}
@@ -1607,52 +1607,52 @@ Batch *DRW_cache_camera_get(void)
 		int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* use x coordinate to identify the vertex
 			 * the vertex shader take care to place it
 			 * appropriatelly */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 1, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 1, KEEP_FLOAT);
 		}
 
 		/* Vertices */
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 22);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v0);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v0);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v1);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v0);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v0);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v2);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v0);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v3);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v0);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v3);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v0);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v4);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v0);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v4);
 
 		/* camera frame */
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v1);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v2);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v2);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v3);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v2);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v3);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v3);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v4);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v3);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v4);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v4);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v4);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v1);
 
 		/* tria */
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v5);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v6);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v5);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v6);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v6);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v7);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v6);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v7);
 
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v7);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v5);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v7);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v5);
 
 		SHC.drw_camera = Batch_create(PRIM_LINES, vbo, NULL);
 	}
@@ -1668,12 +1668,12 @@ Batch *DRW_cache_camera_tria_get(void)
 		int v_idx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* use x coordinate to identify the vertex
 			 * the vertex shader take care to place it
 			 * appropriatelly */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 1, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 1, KEEP_FLOAT);
 		}
 
 		/* Vertices */
@@ -1681,9 +1681,9 @@ Batch *DRW_cache_camera_tria_get(void)
 		VertexBuffer_allocate_data(vbo, 6);
 
 		/* tria */
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v5);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v6);
-		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, &v7);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v5);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v6);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, &v7);
 
 		SHC.drw_camera_tria = Batch_create(PRIM_TRIANGLES, vbo, NULL);
 	}
@@ -1705,15 +1705,15 @@ Batch *DRW_cache_single_vert_get(void)
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 1);
 
-		VertexBuffer_set_attrib(vbo, pos_id, 0, v1);
+		VertexBuffer_set_attrib(vbo, attr_id.pos, 0, v1);
 
 		SHC.drw_single_vertice = Batch_create(PRIM_POINTS, vbo, NULL);
 	}

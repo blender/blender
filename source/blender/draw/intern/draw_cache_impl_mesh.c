@@ -1859,14 +1859,13 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals(
 		unsigned int vidx = 0, nidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, nor_id;
+		static struct { uint pos, nor; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 #if USE_10_10_10
-			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
 #else
-			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
 #endif
 		}
 
@@ -1897,9 +1896,9 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals(
 #else
 					short **snor = tri_vert_nors;
 #endif
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor[0]);
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor[1]);
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor[2]);
+					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[0]);
+					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[1]);
+					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[2]);
 				}
 				else {
 #if USE_10_10_10
@@ -1908,14 +1907,14 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals(
 #else
 					short *snor = tri_nor;
 #endif
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor);
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor);
-					VertexBuffer_set_attrib(vbo, nor_id, nidx++, snor);
+					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
+					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
+					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
 				}
 
-				VertexBuffer_set_attrib(vbo, pos_id, vidx++, tri_vert_cos[0]);
-				VertexBuffer_set_attrib(vbo, pos_id, vidx++, tri_vert_cos[1]);
-				VertexBuffer_set_attrib(vbo, pos_id, vidx++, tri_vert_cos[2]);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, tri_vert_cos[0]);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, tri_vert_cos[1]);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, tri_vert_cos[2]);
 			}
 		}
 		vbo_len_used = vidx;
@@ -1938,10 +1937,9 @@ static VertexBuffer *mesh_batch_cache_get_tri_weights(
 		unsigned int cidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int col_id;
+		static struct { uint col; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			col_id = VertexFormat_add_attrib(&format, "color", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.col = VertexFormat_add_attrib(&format, "color", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
@@ -1961,7 +1959,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_weights(
 				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 						const int v_index = BM_elem_index_get(ltri[tri_corner]->v);
-						VertexBuffer_set_attrib(vbo, col_id, cidx++, vert_weight_color[v_index]);
+						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_weight_color[v_index]);
 					}
 				}
 			}
@@ -1971,7 +1969,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_weights(
 				const MLoopTri *mlt = &rdata->mlooptri[i];
 				for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 					const uint v_index = rdata->mloop[mlt->tri[tri_corner]].v;
-					VertexBuffer_set_attrib(vbo, col_id, cidx++, vert_weight_color[v_index]);
+					VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_weight_color[v_index]);
 				}
 			}
 		}
@@ -1996,10 +1994,9 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 		unsigned int cidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int col_id;
+		static struct { uint col; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			col_id = VertexFormat_add_attrib(&format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.col = VertexFormat_add_attrib(&format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
@@ -2018,7 +2015,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 						const int v_index = BM_elem_index_get(ltri[tri_corner]->v);
-						VertexBuffer_set_attrib(vbo, col_id, cidx++, vert_color[v_index]);
+						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_color[v_index]);
 					}
 				}
 			}
@@ -2028,7 +2025,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 				const MLoopTri *mlt = &rdata->mlooptri[i];
 				for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 					const uint v_index = rdata->mloop[mlt->tri[tri_corner]].v;
-					VertexBuffer_set_attrib(vbo, col_id, cidx++, vert_color[v_index]);
+					VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_color[v_index]);
 				}
 			}
 		}
@@ -2053,10 +2050,9 @@ static VertexBuffer *mesh_batch_cache_get_tri_select_id(
 		unsigned int cidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int col_id;
+		static struct { uint col; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			col_id = VertexFormat_add_attrib(&format, "color", COMP_I32, 1, KEEP_INT);
+			attr_id.col = VertexFormat_add_attrib(&format, "color", COMP_I32, 1, KEEP_INT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
@@ -2075,7 +2071,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_select_id(
 					int select_id;
 					GPU_select_index_get(poly_index + 1, &select_id);
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						VertexBuffer_set_attrib(vbo, col_id, cidx++, &select_id);
+						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, &select_id);
 					}
 				}
 			}
@@ -2088,7 +2084,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_select_id(
 					int select_id;
 					GPU_select_index_get(poly_index + 1, &select_id);
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						VertexBuffer_set_attrib(vbo, col_id, cidx++, &select_id);
+						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, &select_id);
 					}
 				}
 			}
@@ -2110,11 +2106,10 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_and_nor_in_order(
 
 	if (cache->pos_in_order == NULL) {
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, nor_id;
+		static struct { uint pos, nor; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
 		}
 
 		VertexBuffer *vbo = cache->pos_in_order = VertexBuffer_create_with_format(&format);
@@ -2131,15 +2126,15 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_and_nor_in_order(
 				static short no_short[3];
 				normal_float_to_short_v3(no_short, eve->no);
 
-				VertexBuffer_set_attrib(vbo, pos_id, i, eve->co);
-				VertexBuffer_set_attrib(vbo, nor_id, i, no_short);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, i, eve->co);
+				VertexBuffer_set_attrib(vbo, attr_id.nor, i, no_short);
 			}
 			BLI_assert(i == vbo_len_capacity);
 		}
 		else {
 			for (int i = 0; i < vbo_len_capacity; ++i) {
-				VertexBuffer_set_attrib(vbo, pos_id, i, rdata->mvert[i].co);
-				VertexBuffer_set_attrib(vbo, nor_id, i, rdata->mvert[i].no);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, i, rdata->mvert[i].co);
+				VertexBuffer_set_attrib(vbo, attr_id.nor, i, rdata->mvert[i].no);
 			}
 		}
 	}
@@ -2208,25 +2203,26 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 
 	/* Positions */
 	VertexBuffer *vbo_pos = NULL;
-	static unsigned pos_id;
+	static struct { uint pos, vnor, lnor, data; } attr_id;
 	if (cache->ed_tri_pos == NULL) {
-		vbo_pos = cache->ed_tri_pos = VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&pos_id));
+		vbo_pos = cache->ed_tri_pos =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
 		VertexBuffer_allocate_data(vbo_pos, vbo_len_capacity);
 	}
 
 	/* Normals */
 	VertexBuffer *vbo_nor = NULL;
-	static unsigned vnor_id, lnor_id;
 	if (cache->ed_tri_nor == NULL) {
-		vbo_nor = cache->ed_tri_nor = VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&vnor_id, &lnor_id));
+		vbo_nor = cache->ed_tri_nor =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, &attr_id.lnor));
 		VertexBuffer_allocate_data(vbo_nor, vbo_len_capacity);
 	}
 
 	/* Data */
 	VertexBuffer *vbo_data = NULL;
-	static unsigned data_id;
 	if (cache->ed_tri_data == NULL) {
-		vbo_data = cache->ed_tri_data = VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&data_id));
+		vbo_data = cache->ed_tri_data =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
 		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
 	}
 
@@ -2235,7 +2231,7 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 		if (mesh_render_data_looptri_vert_edge_indices_get(rdata, i, tri_vert_idx, tri_edge_idx)) {
 			add_overlay_tri(
 			        rdata, vbo_pos, vbo_nor, vbo_data,
-			        pos_id, vnor_id, lnor_id, data_id,
+			        attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
 			        tri_vert_idx, tri_edge_idx, i, vbo_len_used);
 
 			vbo_len_used += 3;
@@ -2268,25 +2264,26 @@ static void mesh_batch_cache_create_overlay_ledge_buffers(
 
 	/* Positions */
 	VertexBuffer *vbo_pos = NULL;
-	static unsigned pos_id;
+	static struct { uint pos, vnor, data; } attr_id;
 	if (cache->ed_ledge_pos == NULL) {
-		vbo_pos = cache->ed_ledge_pos = VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&pos_id));
+		vbo_pos = cache->ed_ledge_pos =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
 		VertexBuffer_allocate_data(vbo_pos, vbo_len_capacity);
 	}
 
 	/* Normals */
 	VertexBuffer *vbo_nor = NULL;
-	static unsigned vnor_id;
 	if (cache->ed_ledge_nor == NULL) {
-		vbo_nor = cache->ed_ledge_nor = VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&vnor_id, NULL));
+		vbo_nor = cache->ed_ledge_nor =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, NULL));
 		VertexBuffer_allocate_data(vbo_nor, vbo_len_capacity);
 	}
 
 	/* Data */
 	VertexBuffer *vbo_data = NULL;
-	static unsigned data_id;
 	if (cache->ed_ledge_data == NULL) {
-		vbo_data = cache->ed_ledge_data = VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&data_id));
+		vbo_data = cache->ed_ledge_data =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
 		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
 	}
 
@@ -2296,7 +2293,7 @@ static void mesh_batch_cache_create_overlay_ledge_buffers(
 		BLI_assert(ok);  /* we don't add */
 		add_overlay_loose_edge(
 		        rdata, vbo_pos, vbo_nor, vbo_data,
-		        pos_id, vnor_id, data_id,
+		        attr_id.pos, attr_id.vnor, attr_id.data,
 		        vert_idx, i, vbo_len_used);
 		vbo_len_used += 2;
 	}
@@ -2325,34 +2322,36 @@ static void mesh_batch_cache_create_overlay_lvert_buffers(
 	const int vbo_len_capacity = lvert_len;
 	int vbo_len_used = 0;
 
+	static struct { uint pos, vnor, data; } attr_id;
+
 	/* Positions */
 	VertexBuffer *vbo_pos = NULL;
-	static unsigned pos_id;
 	if (cache->ed_lvert_pos == NULL) {
-		vbo_pos = cache->ed_lvert_pos = VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&pos_id));
+		vbo_pos = cache->ed_lvert_pos =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
 		VertexBuffer_allocate_data(vbo_pos, vbo_len_capacity);
 	}
 
 	/* Normals */
 	VertexBuffer *vbo_nor = NULL;
-	static unsigned vnor_id;
 	if (cache->ed_lvert_nor == NULL) {
-		vbo_nor = cache->ed_lvert_nor = VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&vnor_id, NULL));
+		vbo_nor = cache->ed_lvert_nor =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, NULL));
 		VertexBuffer_allocate_data(vbo_nor, vbo_len_capacity);
 	}
 
 	/* Data */
 	VertexBuffer *vbo_data = NULL;
-	static unsigned data_id;
 	if (cache->ed_lvert_data == NULL) {
-		vbo_data = cache->ed_lvert_data = VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&data_id));
+		vbo_data = cache->ed_lvert_data =
+		        VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
 		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
 	}
 
 	for (int i = 0; i < lvert_len; ++i) {
 		add_overlay_loose_vert(
 		        rdata, vbo_pos, vbo_nor, vbo_data,
-		        pos_id, vnor_id, data_id,
+		        attr_id.pos, attr_id.vnor, attr_id.data,
 		        rdata->loose_verts[i], vbo_len_used);
 		vbo_len_used += 1;
 	}
@@ -2598,11 +2597,10 @@ static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
 		unsigned int vidx = 0, cidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, sel_id;
+		static struct { uint pos, sel; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			sel_id = VertexFormat_add_attrib(&format, "select", COMP_U8, 1, KEEP_INT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.sel = VertexFormat_add_attrib(&format, "select", COMP_U8, 1, KEEP_INT);
 		}
 
 		const int edge_len = mesh_render_data_edges_len_get(rdata);
@@ -2632,11 +2630,11 @@ static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
 				continue;
 			}
 
-			VertexBuffer_set_attrib(vbo, sel_id, cidx++, &edge_vert_sel);
-			VertexBuffer_set_attrib(vbo, sel_id, cidx++, &edge_vert_sel);
+			VertexBuffer_set_attrib(vbo, attr_id.sel, cidx++, &edge_vert_sel);
+			VertexBuffer_set_attrib(vbo, attr_id.sel, cidx++, &edge_vert_sel);
 
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, rdata->mvert[ed->v1].co);
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, rdata->mvert[ed->v2].co);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, rdata->mvert[ed->v1].co);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, rdata->mvert[ed->v2].co);
 		}
 		vbo_len_used = vidx;
 
@@ -2661,10 +2659,9 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_with_unselect_only(
 		unsigned int vidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
@@ -2680,7 +2677,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_with_unselect_only(
 			if (!(rdata->mpoly[mlt->poly].flag & ME_FACE_SEL)) {
 				for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 					const uint v_index = rdata->mloop[mlt->tri[tri_corner]].v;
-					VertexBuffer_set_attrib(vbo, pos_id, vidx++, rdata->mvert[v_index].co);
+					VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, rdata->mvert[v_index].co);
 				}
 			}
 		}
@@ -2703,11 +2700,10 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 		unsigned int vidx = 0, cidx = 0;
 
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, sel_id;
+		static struct { uint pos, sel; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			sel_id = VertexFormat_add_attrib(&format, "select", COMP_I8, 1, KEEP_INT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.sel = VertexFormat_add_attrib(&format, "select", COMP_I8, 1, KEEP_INT);
 		}
 
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
@@ -2721,8 +2717,8 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 		for (int i = 0; i < vert_len; i++) {
 			const MVert *mv = &rdata->mvert[i];
 			const char vert_sel = (mv->flag & SELECT) != 0;
-			VertexBuffer_set_attrib(vbo, sel_id, cidx++, &vert_sel);
-			VertexBuffer_set_attrib(vbo, pos_id, vidx++, mv->co);
+			VertexBuffer_set_attrib(vbo, attr_id.sel, cidx++, &vert_sel);
+			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, mv->co);
 		}
 		vbo_len_used = vidx;
 
@@ -2902,17 +2898,16 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 	if (cache->fancy_edges == NULL) {
 		/* create batch from DM */
 		static VertexFormat format = { 0 };
-		static unsigned int pos_id, n1_id, n2_id;
+		static struct { uint pos, n1, n2; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
 #if USE_10_10_10 /* takes 1/3 the space */
-			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
 #else
-			n1_id = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
-			n2_id = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
 #endif
 		}
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
@@ -2951,13 +2946,13 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 				const float *n2 = (is_manifold) ? pnor2 : dummy2;
 #endif
 
-				VertexBuffer_set_attrib(vbo, pos_id, 2 * i, vcos1);
-				VertexBuffer_set_attrib(vbo, n1_id, 2 * i, n1);
-				VertexBuffer_set_attrib(vbo, n2_id, 2 * i, n2);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, 2 * i, vcos1);
+				VertexBuffer_set_attrib(vbo, attr_id.n1, 2 * i, n1);
+				VertexBuffer_set_attrib(vbo, attr_id.n2, 2 * i, n2);
 
-				VertexBuffer_set_attrib(vbo, pos_id, 2 * i + 1, vcos2);
-				VertexBuffer_set_attrib(vbo, n1_id, 2 * i + 1, n1);
-				VertexBuffer_set_attrib(vbo, n2_id, 2 * i + 1, n2);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, 2 * i + 1, vcos2);
+				VertexBuffer_set_attrib(vbo, attr_id.n1, 2 * i + 1, n1);
+				VertexBuffer_set_attrib(vbo, attr_id.n2, 2 * i + 1, n2);
 
 				vbo_len_used += 2;
 			}
@@ -3076,14 +3071,13 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 		MeshRenderData *rdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
 
 		static VertexFormat format = { 0 };
-		static unsigned pos_id, data_id;
+		static struct { uint pos, data; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* initialize vertex format */
-			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 #if USE_10_10_10
-			data_id = VertexFormat_add_attrib(&format, "norAndFlag", COMP_I10, 4, NORMALIZE_INT_TO_FLOAT);
+			attr_id.data = VertexFormat_add_attrib(&format, "norAndFlag", COMP_I10, 4, NORMALIZE_INT_TO_FLOAT);
 #else
-			data_id = VertexFormat_add_attrib(&format, "norAndFlag", COMP_F32, 4, KEEP_FLOAT);
+			attr_id.data = VertexFormat_add_attrib(&format, "norAndFlag", COMP_F32, 4, KEEP_FLOAT);
 #endif
 		}
 
@@ -3102,13 +3096,13 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 				PackedNormal nor = { .x = 0, .y = 0, .z = -511 };
 				nor = convert_i10_v3(pnor);
 				nor.w = selected ? 1 : 0;
-				VertexBuffer_set_attrib(vbo, data_id, vidx, &nor);
+				VertexBuffer_set_attrib(vbo, attr_id.data, vidx, &nor);
 #else
 				float nor[4] = {pnor[0], pnor[1], pnor[2], selected ? 1 : 0};
-				VertexBuffer_set_attrib(vbo, data_id, vidx, nor);
+				VertexBuffer_set_attrib(vbo, attr_id.data, vidx, nor);
 #endif
 
-				VertexBuffer_set_attrib(vbo, pos_id, vidx, pcenter);
+				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx, pcenter);
 
 				vidx += 1;
 
