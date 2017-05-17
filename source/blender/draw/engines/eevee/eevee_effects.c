@@ -299,18 +299,24 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			int buffer_size[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
 
 			struct GPUTexture **dof_down_near = &txl->dof_down_near;
+			bool fb_reset = false;
 
 			/* Reuse buffer from Bloom if available */
 			/* WATCH IT : must have the same size */
 			if ((enabled_effects & EFFECT_BLOOM) != 0) {
 				dof_down_near = &txl->bloom_downsample[0]; /* should always exists */
+				if ((effects->enabled_effects & EFFECT_BLOOM) == 0) {
+					fb_reset = true;
+				}
 			}
 			else if ((effects->enabled_effects & EFFECT_BLOOM) != 0) {
-				/* if framebuffer was configured to share buffer with bloom last frame */
-				if (fbl->dof_down_fb != NULL) {
-					DRW_framebuffer_free(fbl->dof_down_fb);
-					fbl->dof_down_fb = NULL;
-				}
+				fb_reset = true;
+			}
+
+			/* if framebuffer config must be changed */
+			if (fb_reset && (fbl->dof_down_fb != NULL)) {
+				DRW_framebuffer_free(fbl->dof_down_fb);
+				fbl->dof_down_fb = NULL;
 			}
 
 			/* Setup buffers */
