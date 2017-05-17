@@ -9510,7 +9510,7 @@ static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select
 
 	const int tri_len = em->tottri;
 	const int imm_len = tri_len * 3;
-	const char hflag_skip = use_select ? BM_ELEM_SELECT : (BM_ELEM_HIDDEN | BM_ELEM_SELECT);
+	const char hflag_skip = use_select ? BM_ELEM_HIDDEN : (BM_ELEM_HIDDEN | BM_ELEM_SELECT);
 
 	if (imm_len == 0) return;
 
