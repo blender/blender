@@ -838,7 +838,7 @@ static void rgb_from_weight(float r_rgb[3], const float weight)
 }
 
 
-/** Ensure #MeshRenderData.vert_color */
+/** Ensure #MeshRenderData.vert_weight_color */
 static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, const int defgroup)
 {
 	float (*vweight)[3] = rdata->vert_weight_color;
@@ -2046,8 +2046,8 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 				/* Assume 'use_hide' */
 				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						const int v_index = BM_elem_index_get(ltri[tri_corner]->v);
-						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_color[v_index]);
+						const int l_index = BM_elem_index_get(ltri[tri_corner]);
+						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_color[l_index]);
 					}
 				}
 			}
@@ -2057,8 +2057,8 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 				const MLoopTri *mlt = &rdata->mlooptri[i];
 				if (!(use_hide && (rdata->mpoly[mlt->poly].flag & ME_HIDE))) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						const uint v_index = rdata->mloop[mlt->tri[tri_corner]].v;
-						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_color[v_index]);
+						const uint l_index = mlt->tri[tri_corner];
+						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_color[l_index]);
 					}
 				}
 			}
