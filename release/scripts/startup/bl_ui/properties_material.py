@@ -1135,9 +1135,11 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
         layout.separator()
 
         if not mat.use_nodes:
+            raym = mat.raytrace_mirror
             layout.prop(mat, "diffuse_color", text="Diffuse")
-            layout.prop(mat, "specular_color", text="Specular")
-            layout.prop(mat, "specular_hardness", text="Glossiness")
+            layout.prop(raym, "reflect_factor", text="Metallic")
+            layout.prop(mat, "specular_intensity", text="Specular")
+            layout.prop(raym, "gloss_factor", text="Roughness")
 
 
 classes = (

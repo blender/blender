@@ -620,12 +620,13 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					else {
 						/* Shader failed : pink color */
 						static float col[3] = {1.0f, 0.0f, 1.0f};
-						static float spec[3] = {1.0f, 0.0f, 1.0f};
-						static short hardness = 1;
+						static float half = 0.5f;
+
 						shgrp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
-						DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", col, 1);
-						DRW_shgroup_uniform_vec3(shgrp, "specular_col", spec, 1);
-						DRW_shgroup_uniform_short(shgrp, "hardness", &hardness, 1);
+						DRW_shgroup_uniform_vec3(shgrp, "basecol", col, 1);
+						DRW_shgroup_uniform_float(shgrp, "metallic", &half, 1);
+						DRW_shgroup_uniform_float(shgrp, "specular", &half, 1);
+						DRW_shgroup_uniform_float(shgrp, "roughness", &half, 1);
 						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "ltcMat", e_data.ltc_mat);
 						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut);
 						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "probeFiltered", txl->probe_pool);
@@ -640,9 +641,10 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 				}
 				else {
 					DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
-					DRW_shgroup_uniform_vec3(shgrp, "diffuse_col", &ma->r, 1);
-					DRW_shgroup_uniform_vec3(shgrp, "specular_col", &ma->specr, 1);
-					DRW_shgroup_uniform_short(shgrp, "hardness", &ma->har, 1);
+					DRW_shgroup_uniform_vec3(shgrp, "basecol", &ma->r, 1);
+					DRW_shgroup_uniform_float(shgrp, "metallic", &ma->ray_mirror, 1);
+					DRW_shgroup_uniform_float(shgrp, "specular", &ma->spec, 1);
+					DRW_shgroup_uniform_float(shgrp, "roughness", &ma->gloss_mir, 1);
 					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "ltcMat", e_data.ltc_mat);
 					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut);
 					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "probeFiltered", txl->probe_pool);
