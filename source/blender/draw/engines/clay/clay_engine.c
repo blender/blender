@@ -712,25 +712,35 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	if (!DRW_object_is_renderable(ob))
 		return;
 
-	bool sculpt_mode = (ob->mode & OB_MODE_SCULPT) != 0;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const bool is_active = (ob == draw_ctx->obact);
+	if (is_active) {
+		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) {
+			return;
+		}
+	}
 
 	struct Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
-		bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
+		const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
+		const bool is_sculpt_mode = is_active && (ob->mode & OB_MODE_SCULPT) != 0;
 
 		/* Depth Prepass */
-		if (sculpt_mode) {
-			DRW_shgroup_call_sculpt_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, ob, ob->obmat);
-		}
-		else {
-			DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
+		{
+			DRWShadingGroup *depth_shgrp = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
+			if (is_sculpt_mode) {
+				DRW_shgroup_call_sculpt_add(depth_shgrp, ob, ob->obmat);
+			}
+			else {
+				DRW_shgroup_call_add(depth_shgrp, geom, ob->obmat);
+			}
 		}
 
 		/* Shading */
 		clay_shgrp = CLAY_object_shgrp_get(vedata, ob, stl, psl);
 
-		if (sculpt_mode) {
+		if (is_sculpt_mode) {
 			DRW_shgroup_call_sculpt_add(clay_shgrp, ob, ob->obmat);
 		}
 		else {
@@ -739,7 +749,6 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	}
 
 	if (ob->type == OB_MESH) {
-		const DRWContextState *draw_ctx = DRW_context_state_get();
 		Scene *scene = draw_ctx->scene;
 		Object *obedit = scene->obedit;
 

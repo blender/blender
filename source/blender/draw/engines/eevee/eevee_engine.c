@@ -552,32 +552,41 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 
-	bool sculpt_mode = ob->mode & OB_MODE_SCULPT;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const bool is_active = (ob == draw_ctx->obact);
+	if (is_active) {
+		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) {
+			return;
+		}
+	}
 
 	struct Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 		const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
+		const bool is_sculpt_mode = is_active && (ob->mode & OB_MODE_SCULPT) != 0;
 
 		/* Depth Prepass */
-		if (sculpt_mode) {
-			DRW_shgroup_call_sculpt_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, ob, ob->obmat);
-		}
-		else {
-			DRW_shgroup_call_object_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob);
+		{
+			DRWShadingGroup *depth_shgrp = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
+			if (is_sculpt_mode) {
+				DRW_shgroup_call_sculpt_add(depth_shgrp, ob, ob->obmat);
+			}
+			else {
+				DRW_shgroup_call_object_add(depth_shgrp, geom, ob);
+			}
 		}
 
 		/* Get per-material split surface */
 		struct Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
 		if (mat_geom) {
-			for (int i = 0; i < MAX2(1, (sculpt_mode ? 1 : ob->totcol)); ++i) {
+			for (int i = 0; i < MAX2(1, (is_sculpt_mode ? 1 : ob->totcol)); ++i) {
 				Material *ma = give_current_material(ob, i + 1);
 
 				if (ma == NULL)
 					ma = &defmaterial;
 
 				if (ma->use_nodes && ma->nodetree) {
-					const DRWContextState *draw_ctx = DRW_context_state_get();
 					Scene *scene = draw_ctx->scene;
 					struct GPUMaterial *gpumat = GPU_material_from_nodetree(
 					    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type, 0,
@@ -601,7 +610,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_uniform_texture(shgrp, "brdfLut", e_data.brdf_lut);
 						DRW_shgroup_uniform_texture(shgrp, "probeFiltered", txl->probe_pool);
 
-						if (sculpt_mode) {
+						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
 						}
 						else {
@@ -621,7 +630,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut);
 						DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "probeFiltered", txl->probe_pool);
 
-						if (sculpt_mode) {
+						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
 						}
 						else {
@@ -638,7 +647,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "brdfLut", e_data.brdf_lut);
 					DRW_shgroup_uniform_texture(stl->g_data->default_lit_grp, "probeFiltered", txl->probe_pool);
 
-					if (sculpt_mode) {
+					if (is_sculpt_mode) {
 						DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
 					}
 					else {
