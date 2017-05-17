@@ -30,6 +30,16 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Some helpers to silence warning in templated function. */
+static bool isfinite(uchar /*value*/)
+{
+	return false;
+}
+static bool isfinite(half /*value*/)
+{
+	return false;
+}
+
 ImageManager::ImageManager(const DeviceInfo& info)
 {
 	need_update = true;
