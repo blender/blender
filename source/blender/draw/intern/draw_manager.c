@@ -923,6 +923,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	DRWCallDynamic *call = MEM_callocN(size, "DRWCallDynamic");
 
 	BLI_assert(attr_len == interface->attribs_count);
+	UNUSED_VARS_NDEBUG(attr_len);
 
 	call->head.type = DRW_CALL_DYNAMIC;
 #ifdef USE_GPU_SELECT
