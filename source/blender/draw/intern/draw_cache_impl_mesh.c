@@ -181,7 +181,7 @@ typedef struct MeshRenderData {
 	char (*vert_color)[3];
 	short (*poly_normals_short)[3];
 	short (*vert_normals_short)[3];
-	bool *edge_selection;
+	bool *edge_select_bool;
 } MeshRenderData;
 
 enum {
@@ -534,7 +534,7 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 	MEM_SAFE_FREE(rdata->poly_normals_short);
 	MEM_SAFE_FREE(rdata->vert_normals_short);
 	MEM_SAFE_FREE(rdata->vert_weight_color);
-	MEM_SAFE_FREE(rdata->edge_selection);
+	MEM_SAFE_FREE(rdata->edge_select_bool);
 	MEM_SAFE_FREE(rdata->vert_color);
 
 	CustomData_free(&rdata->cd_output.ldata, rdata->loop_len);
@@ -893,12 +893,13 @@ fallback:
 	}
 }
 
-/** Ensure #MeshRenderData.edge_selection */
-static void mesh_render_data_ensure_edge_selection(MeshRenderData *rdata, bool use_wire)
+/** Ensure #MeshRenderData.edge_select_bool */
+static void mesh_render_data_ensure_edge_select_bool(MeshRenderData *rdata, bool use_wire)
 {
-	bool *edge_selection = rdata->edge_selection;
-	if (edge_selection == NULL) {
-		edge_selection = rdata->edge_selection = MEM_callocN(sizeof(*edge_selection) * rdata->edge_len, __func__);
+	bool *edge_select_bool = rdata->edge_select_bool;
+	if (edge_select_bool == NULL) {
+		edge_select_bool = rdata->edge_select_bool =
+		        MEM_callocN(sizeof(*edge_select_bool) * rdata->edge_len, __func__);
 
 		for (int i = 0; i < rdata->poly_len; i++) {
 			MPoly *poly = &rdata->mpoly[i];
@@ -907,10 +908,11 @@ static void mesh_render_data_ensure_edge_selection(MeshRenderData *rdata, bool u
 				for (int j = 0; j < poly->totloop; j++) {
 					MLoop *loop = &rdata->mloop[poly->loopstart + j];
 					if (use_wire) {
-						edge_selection[loop->e] = true;
+						edge_select_bool[loop->e] = true;
 					}
 					else {
-						edge_selection[loop->e] = !edge_selection[loop->e];
+						/* Not totally correct, will cause problems for edges with 3x faces. */
+						edge_select_bool[loop->e] = !edge_select_bool[loop->e];
 					}
 				}
 			}
@@ -1462,9 +1464,9 @@ typedef struct MeshBatchCache {
 	VertexBuffer *tri_aligned_weights;
 	VertexBuffer *tri_aligned_vert_colors;
 	VertexBuffer *tri_aligned_select_id;
-	VertexBuffer *edge_pos_with_sel;
-	VertexBuffer *tri_pos_with_sel;
-	VertexBuffer *pos_with_sel;
+	VertexBuffer *edge_pos_with_select_bool;
+	VertexBuffer *tri_pos_with_unselect_only;
+	VertexBuffer *pos_with_select_bool;
 	Batch *triangles_with_normals;
 	Batch *triangles_with_weights;
 	Batch *triangles_with_vert_colors;
@@ -2587,12 +2589,12 @@ static ElementList **mesh_batch_cache_get_shaded_triangles_in_order(MeshRenderDa
 }
 
 static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
-        MeshRenderData *rdata, MeshBatchCache *cache, bool use_wire, bool use_sel)
+        MeshRenderData *rdata, MeshBatchCache *cache, bool use_wire, bool use_select_bool)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_POLY | MR_DATATYPE_LOOP));
 	BLI_assert(rdata->edit_bmesh == NULL);
 
-	if (!cache->edge_pos_with_sel) {
+	if (!cache->edge_pos_with_select_bool) {
 		unsigned int vidx = 0, cidx = 0;
 
 		static VertexFormat format = { 0 };
@@ -2605,22 +2607,22 @@ static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
 
 		const int edge_len = mesh_render_data_edges_len_get(rdata);
 
-		VertexBuffer *vbo = cache->edge_pos_with_sel = VertexBuffer_create_with_format(&format);
+		VertexBuffer *vbo = cache->edge_pos_with_select_bool = VertexBuffer_create_with_format(&format);
 
 		const int vbo_len_capacity = edge_len * 2;
 		int vbo_len_used = 0;
 		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
 
-		if (use_sel) {
-			mesh_render_data_ensure_edge_selection(rdata, use_wire);
+		if (use_select_bool) {
+			mesh_render_data_ensure_edge_select_bool(rdata, use_wire);
 		}
-		bool *edge_selection = use_sel ? rdata->edge_selection : NULL;
+		bool *edge_select_bool = use_select_bool ? rdata->edge_select_bool : NULL;
 
 		for (int i = 0; i < edge_len; i++) {
 			const MEdge *ed = &rdata->medge[i];
 
 			uchar edge_vert_sel;
-			if (use_sel && edge_selection[i]) {
+			if (use_select_bool && edge_select_bool[i]) {
 				edge_vert_sel = true;
 			}
 			else if (use_wire) {
@@ -2643,18 +2645,19 @@ static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
 		}
 	}
 
-	return cache->edge_pos_with_sel;
+	return cache->edge_pos_with_select_bool;
 }
 
 /**
  * TODO, reuse pos VBO with elements.
  */
-static VertexBuffer *mesh_batch_cache_get_tri_pos_with_sel(MeshRenderData *rdata, MeshBatchCache *cache)
+static VertexBuffer *mesh_batch_cache_get_tri_pos_with_unselect_only(
+        MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI));
 	BLI_assert(rdata->edit_bmesh == NULL);
 
-	if (cache->tri_pos_with_sel == NULL) {
+	if (cache->tri_pos_with_unselect_only == NULL) {
 		unsigned int vidx = 0;
 
 		static VertexFormat format = { 0 };
@@ -2666,7 +2669,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_with_sel(MeshRenderData *rdata
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		VertexBuffer *vbo = cache->tri_pos_with_sel = VertexBuffer_create_with_format(&format);
+		VertexBuffer *vbo = cache->tri_pos_with_unselect_only = VertexBuffer_create_with_format(&format);
 
 		const int vbo_len_capacity = tri_len * 3;
 		int vbo_len_used = 0;
@@ -2688,7 +2691,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_with_sel(MeshRenderData *rdata
 		}
 	}
 
-	return cache->tri_pos_with_sel;
+	return cache->tri_pos_with_unselect_only;
 }
 
 static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdata, MeshBatchCache *cache)
@@ -2696,7 +2699,7 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT));
 	BLI_assert(rdata->edit_bmesh == NULL);
 
-	if (cache->pos_with_sel == NULL) {
+	if (cache->pos_with_select_bool == NULL) {
 		unsigned int vidx = 0, cidx = 0;
 
 		static VertexFormat format = { 0 };
@@ -2709,7 +2712,7 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
 
-		VertexBuffer *vbo = cache->pos_with_sel = VertexBuffer_create_with_format(&format);
+		VertexBuffer *vbo = cache->pos_with_select_bool = VertexBuffer_create_with_format(&format);
 
 		const int vbo_len_capacity = vert_len;
 		int vbo_len_used = 0;
@@ -2728,7 +2731,7 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 		}
 	}
 
-	return cache->pos_with_sel;
+	return cache->pos_with_select_bool;
 }
 
 /** \} */
@@ -3186,7 +3189,7 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_faces(Mesh *me)
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
 		cache->overlay_weight_faces = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_tri_pos_with_sel(rdata, cache), NULL);
+		        PRIM_TRIANGLES, mesh_batch_cache_get_tri_pos_with_unselect_only(rdata, cache), NULL);
 
 		mesh_render_data_free(rdata);
 	}
