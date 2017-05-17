@@ -39,6 +39,17 @@
 
 #define EEVEE_ENGINE "BLENDER_EEVEE"
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+#define SHADER_DEFINES \
+	"#define EEVEE_ENGINE\n" \
+	"#define MAX_LIGHT " STR(MAX_LIGHT) "\n" \
+	"#define MAX_SHADOW_CUBE " STR(MAX_SHADOW_CUBE) "\n" \
+	"#define MAX_SHADOW_MAP " STR(MAX_SHADOW_MAP) "\n" \
+	"#define MAX_SHADOW_CASCADE " STR(MAX_SHADOW_CASCADE) "\n" \
+	"#define MAX_CASCADE_NUM " STR(MAX_CASCADE_NUM) "\n"
+
 /* *********** STATIC *********** */
 static struct {
 	char *frag_shader_lib;
@@ -243,12 +254,7 @@ static void EEVEE_engine_init(void *ved)
 		BLI_dynstr_free(ds_frag);
 
 		e_data.default_lit = DRW_shader_create(
-		        datatoc_lit_surface_vert_glsl, NULL, frag_str,
-		        "#define MAX_LIGHT 128\n"
-		        "#define MAX_SHADOW_CUBE 42\n"
-		        "#define MAX_SHADOW_MAP 64\n"
-		        "#define MAX_SHADOW_CASCADE 8\n"
-		        "#define MAX_CASCADE_NUM 4\n");
+		        datatoc_lit_surface_vert_glsl, NULL, frag_str, SHADER_DEFINES "#define MESH_SHADER\n");
 
 		MEM_freeN(frag_str);
 	}
@@ -404,12 +410,7 @@ static void EEVEE_cache_init(void *vedata)
 			struct GPUMaterial *gpumat = GPU_material_from_nodetree(
 				scene, wo->nodetree, &wo->gpumaterial, &DRW_engine_viewport_eevee_type, 0,
 			    datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, e_data.frag_shader_lib,
-			    "#define PROBE_CAPTURE\n"
-			    "#define MAX_LIGHT 128\n"
-			    "#define MAX_SHADOW_CUBE 42\n"
-			    "#define MAX_SHADOW_MAP 64\n"
-			    "#define MAX_SHADOW_CASCADE 8\n"
-			    "#define MAX_CASCADE_NUM 4\n");
+			    SHADER_DEFINES "#define PROBE_CAPTURE\n");
 
 			grp = DRW_shgroup_material_instance_create(gpumat, psl->probe_background, geom);
 
@@ -453,12 +454,7 @@ static void EEVEE_cache_init(void *vedata)
 			struct GPUMaterial *gpumat = GPU_material_from_nodetree(
 				scene, wo->nodetree, &wo->gpumaterial, &DRW_engine_viewport_eevee_type, 1,
 			    datatoc_background_vert_glsl, NULL, e_data.frag_shader_lib,
-			    "#define WORLD_BACKGROUND\n"
-			    "#define MAX_LIGHT 128\n"
-			    "#define MAX_SHADOW_CUBE 42\n"
-			    "#define MAX_SHADOW_MAP 64\n"
-			    "#define MAX_SHADOW_CASCADE 8\n"
-			    "#define MAX_CASCADE_NUM 4\n");
+			    SHADER_DEFINES "#define WORLD_BACKGROUND\n");
 
 			grp = DRW_shgroup_material_create(gpumat, psl->background_pass);
 
@@ -591,12 +587,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					struct GPUMaterial *gpumat = GPU_material_from_nodetree(
 					    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type, 0,
 					    datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
-					    "#define PROBE_CAPTURE\n"
-					    "#define MAX_LIGHT 128\n"
-					    "#define MAX_SHADOW_CUBE 42\n"
-					    "#define MAX_SHADOW_MAP 64\n"
-					    "#define MAX_SHADOW_CASCADE 8\n"
-					    "#define MAX_CASCADE_NUM 4\n");
+					    SHADER_DEFINES "#define MESH_SHADER\n");
 
 					DRWShadingGroup *shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
 					if (shgrp) {

@@ -1,9 +1,7 @@
 
 uniform mat4 ModelViewMatrix;
-#ifndef PROBE_CAPTURE
-#ifndef WORLD_BACKGROUND
+#ifndef EEVEE_ENGINE
 uniform mat4 ProjectionMatrix;
-#endif
 #endif
 uniform mat4 ModelMatrixInverse;
 uniform mat4 ModelViewMatrixInverse;
@@ -2998,7 +2996,7 @@ void node_tex_coord_background(
 	reflection = -coords;
 }
 
-#if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
+#if defined(WORLD_BACKGROUND) || (defined(PROBE_CAPTURE) && !defined(MESH_SHADER))
 #define node_tex_coord node_tex_coord_background
 #endif
 
@@ -3889,7 +3887,7 @@ void convert_metallic_to_specular(vec4 basecol, float metallic, float specular_f
 
 /* TODO : clean this ifdef mess */
 /* EEVEE output */
-#ifdef PROBE_CAPTURE
+#ifdef EEVEE_ENGINE
 void world_normals_get(out vec3 N)
 {
 	N = gl_FrontFacing ? worldNormal : -worldNormal;
