@@ -2443,7 +2443,7 @@ float hypot(float x, float y)
 
 void generated_from_orco(vec3 orco, out vec3 generated)
 {
-	generated = orco * 0.5 + vec3(0.5);
+	generated = orco;
 }
 
 int floor_to_int(float x)
@@ -2948,7 +2948,7 @@ void node_tex_coord(
         out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
         out vec3 camera, out vec3 window, out vec3 reflection)
 {
-	generated = attr_orco * 0.5 + vec3(0.5);
+	generated = attr_orco;
 	normal = normalize((obinvmat * (viewinvmat * vec4(N, 0.0))).xyz);
 	uv = attr_uv;
 	object = (obinvmat * (viewinvmat * vec4(I, 1.0))).xyz;
