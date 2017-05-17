@@ -70,6 +70,9 @@ static struct DRWShapeCache {
 	Batch *drw_bone_box;
 	Batch *drw_bone_box_wire;
 	Batch *drw_bone_wire_wire;
+	Batch *drw_bone_envelope_distance;
+	Batch *drw_bone_envelope_wire;
+	Batch *drw_bone_envelope_head_wire;
 	Batch *drw_bone_point;
 	Batch *drw_bone_point_wire;
 	Batch *drw_bone_arrows;
@@ -110,6 +113,9 @@ void DRW_shape_cache_free(void)
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_box);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_box_wire);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_wire_wire);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_envelope_distance);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_envelope_wire);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_envelope_head_wire);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_point);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_point_wire);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_arrows);
@@ -1521,6 +1527,111 @@ Batch *DRW_cache_bone_wire_wire_outline_get(void)
 		SHC.drw_bone_wire_wire = Batch_create(PRIM_LINES, vbo, NULL);
 	}
 	return SHC.drw_bone_wire_wire;
+}
+
+
+Batch *DRW_cache_bone_envelope_distance_outline_get(void)
+{
+#define CIRCLE_RESOL 32
+	if (!SHC.drw_bone_envelope_distance) {
+		unsigned int v_idx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 4, KEEP_FLOAT);
+		}
+
+		/* Vertices */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL * 2 + 6);
+
+		/* Encoded triangle strip, vertex shader gives them final correct value. */
+		for (int i = 0; i < CIRCLE_RESOL + 1; i++) {
+			const bool is_headtail_transition = ELEM(i, CIRCLE_RESOL / 2, CIRCLE_RESOL);
+			const float head_tail = (i > CIRCLE_RESOL / 2) ? 1.0f : 0.0f;
+			const float alpha = 2.0f * M_PI * i / CIRCLE_RESOL;
+			const float x = cosf(alpha);
+			const float y = -sinf(alpha);
+
+			/*                                                           { X, Y, head/tail, inner/outer border } */
+			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){x, y, head_tail, 0.0f});
+			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){x, y, head_tail, 1.0f});
+			if (is_headtail_transition) {
+				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){x, y, 1.0f - head_tail, 0.0f});
+				VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){x, y, 1.0f - head_tail, 1.0f});
+			}
+		}
+
+		SHC.drw_bone_envelope_distance = Batch_create(PRIM_TRIANGLE_STRIP, vbo, NULL);
+	}
+	return SHC.drw_bone_envelope_distance;
+#undef CIRCLE_RESOL
+}
+
+
+/* Bone body and tail. */
+Batch *DRW_cache_bone_envelope_wire_outline_get(void)
+{
+	if (!SHC.drw_bone_envelope_wire) {
+		unsigned int v_idx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 4, KEEP_FLOAT);
+		}
+
+		/* Vertices */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 4);
+
+		/* Two lines between head and tail circles. */
+		/* Encoded lines, vertex shader gives them final correct value. */
+		/*                                                           {     X,    Y, head/tail, inner/outer border } */
+		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){ 1.0f, 0.0f,       0.0f, 0.0f});
+		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){ 1.0f, 0.0f,       1.0f, 0.0f});
+		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){-1.0f, 0.0f,       0.0f, 0.0f});
+		VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){-1.0f, 0.0f,       1.0f, 0.0f});
+
+		SHC.drw_bone_envelope_wire = Batch_create(PRIM_LINES, vbo, NULL);
+	}
+	return SHC.drw_bone_envelope_wire;
+}
+
+
+/* Bone head. */
+Batch *DRW_cache_bone_envelope_head_wire_outline_get(void)
+{
+#define CIRCLE_RESOL 32
+	if (!SHC.drw_bone_envelope_head_wire) {
+		unsigned int v_idx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned int pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 4, KEEP_FLOAT);
+		}
+
+		/* Vertices */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL);
+
+		/* Encoded lines, vertex shader gives them final correct value. */
+		/* Only head circle (tail is drawn in disp_tail_mat space as a head one by draw_armature.c's draw_point()). */
+		for (int i = 0; i < CIRCLE_RESOL; i++) {
+			const float alpha = 2.0f * M_PI * i / CIRCLE_RESOL;
+			const float x = cosf(alpha);
+			const float y = -sinf(alpha);
+
+			/*                                                           {      X,      Y, head/tail, inner/outer border } */
+			VertexBuffer_set_attrib(vbo, pos_id, v_idx++, (const float[4]){     x,      y,      0.0f, 0.0f});
+		}
+
+		SHC.drw_bone_envelope_head_wire = Batch_create(PRIM_LINE_LOOP, vbo, NULL);
+	}
+	return SHC.drw_bone_envelope_head_wire;
+#undef CIRCLE_RESOL
 }
 
 

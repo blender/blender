@@ -293,6 +293,22 @@ DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct Batch *geom)
 	return grp;
 }
 
+DRWShadingGroup *shgroup_instance_bone_envelope(DRWPass *pass, struct Batch *geom, float (*obmat)[4])
+{
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE);
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
+	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
+	DRW_shgroup_attrib_float(grp, "color", 4);
+	DRW_shgroup_attrib_float(grp, "radius_head", 1);
+	DRW_shgroup_attrib_float(grp, "radius_tail", 1);
+	DRW_shgroup_attrib_float(grp, "distance", 1);
+	DRW_shgroup_uniform_mat4(grp, "ObjectModelMatrix", (float *)obmat);
+
+	return grp;
+}
+
+
 /* ******************************************** COLOR UTILS *********************************************** */
 
 /* TODO FINISH */
