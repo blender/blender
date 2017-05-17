@@ -354,14 +354,18 @@ struct DRWTextStore *DRW_state_text_cache_get(void);
 
 /* Avoid too many lookups while drawing */
 typedef struct DRWContextState {
-	struct ARegion *ar;
-	struct RegionView3D *rv3d;
-	struct View3D *v3d;
+	struct ARegion *ar;         /* 'CTX_wm_region(C)' */
+	struct RegionView3D *rv3d;  /* 'CTX_wm_region_view3d(C)' */
+	struct View3D *v3d;     /* 'CTX_wm_view3d(C)' */
 
-	struct Scene *scene;    /* CTX_data_scene(C) */
-	struct SceneLayer *sl;  /* CTX_data_scene_layer(C) */
+	struct Scene *scene;    /* 'CTX_data_scene(C)' */
+	struct SceneLayer *sl;  /* 'CTX_data_scene_layer(C)' */
 
-	/* last resort (some functions take this as an arg so we can't easily avoid) */
+	/* Use 'scene->obedit' for edit-mode */
+	struct Object *obact;   /* 'OBACT_NEW' */
+
+	/* Last resort (some functions take this as an arg so we can't easily avoid).
+	 * May be NULL when used for selection or depth buffer. */
 	const struct bContext *evil_C;
 } DRWContextState;
 

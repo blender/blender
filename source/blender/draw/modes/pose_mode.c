@@ -109,16 +109,15 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
 	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	SceneLayer *sl = draw_ctx->sl;
 
 	/* In the future this will allow us to implement face manipulators,
 	 * and similar functionalities. For now we handle only pose bones. */
 
 	if (ob->type == OB_ARMATURE) {
-		if (DRW_pose_mode_armature(ob, OBACT_NEW)) {
+		if (DRW_pose_mode_armature(ob, draw_ctx->obact)) {
 			DRW_shgroup_armature_pose(
-						ob, psl->bone_solid, psl->bone_wire,
-						stl->g_data->relationship_lines);
+			        ob, psl->bone_solid, psl->bone_wire,
+			        stl->g_data->relationship_lines);
 		}
 	}
 }

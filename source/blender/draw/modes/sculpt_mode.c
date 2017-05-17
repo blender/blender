@@ -191,9 +191,8 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
-		SceneLayer *sl = draw_ctx->sl;
 
-		if (ob->sculpt && ob == OBACT_NEW) {
+		if (ob->sculpt && (ob == draw_ctx->obact)) {
 
 			/* XXX, needed for dyntopo-undo (which clears).
 			 * probably depsgraph should handlle? in 2.7x getting derived-mesh does this (mesh_build_data) */

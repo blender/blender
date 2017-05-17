@@ -2785,7 +2785,7 @@ void DRW_draw_render_loop(
 	cache_is_dirty = GPU_viewport_cache_validate(DST.viewport, DRW_engines_get_hash());
 
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl,
+		ar, rv3d, v3d, scene, sl, OBACT_NEW,
 		/* reuse if caller sets */
 		DST.draw_ctx.evil_C,
 	};
@@ -2943,7 +2943,7 @@ void DRW_draw_select_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, (bContext *)NULL,
+		ar, rv3d, v3d, scene, sl, OBACT_NEW, (bContext *)NULL,
 	};
 
 	DRW_viewport_var_init();
@@ -3034,7 +3034,7 @@ void DRW_draw_depth_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, (bContext *)NULL,
+		ar, rv3d, v3d, scene, sl, OBACT_NEW, (bContext *)NULL,
 	};
 
 	DRW_viewport_var_init();
@@ -3141,6 +3141,7 @@ void DRW_context_state_init(const bContext *C, DRWContextState *r_draw_ctx)
 
 	r_draw_ctx->scene = CTX_data_scene(C);
 	r_draw_ctx->sl = CTX_data_scene_layer(C);
+	r_draw_ctx->obact = r_draw_ctx->sl->basact ? r_draw_ctx->sl->basact->object : NULL;
 
 	/* grr, cant avoid! */
 	r_draw_ctx->evil_C = C;

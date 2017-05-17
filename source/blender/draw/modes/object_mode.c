@@ -1188,7 +1188,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	if (do_outlines) {
 		Object *obedit = scene->obedit;
-		if (ob != obedit && !(OBACT_NEW == ob && (ob->mode & OB_MODE_ALL_PAINT))) {
+		if (ob != obedit && !((ob == draw_ctx->obact) && (ob->mode & OB_MODE_ALL_PAINT))) {
 			struct Batch *geom = DRW_cache_object_surface_get(ob);
 			if (geom) {
 				theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
@@ -1248,10 +1248,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		{
 			bArmature *arm = ob->data;
 			if (arm->edbo == NULL) {
-				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, OBACT_NEW)) {
+				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
 					DRW_shgroup_armature_object(
-							ob, sl, psl->bone_solid, psl->bone_wire,
-							stl->g_data->relationship_lines);
+					        ob, sl, psl->bone_solid, psl->bone_wire,
+					        stl->g_data->relationship_lines);
 				}
 			}
 			break;
