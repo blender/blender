@@ -458,7 +458,7 @@ bool ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rn
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock) RET_NONE
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock) RET_NULL
 void ED_space_image_get_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy) RET_NONE
-const char *ED_info_stats_string(struct Scene *scene) RET_NULL
+const char *ED_info_stats_string(struct Scene *scene, struct SceneLayer *sl) RET_NULL
 void ED_area_tag_redraw(struct ScrArea *sa) RET_NONE
 void ED_area_tag_refresh(struct ScrArea *sa) RET_NONE
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type, const bool skip_ar_exit) RET_NONE
