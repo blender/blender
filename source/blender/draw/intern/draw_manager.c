@@ -192,12 +192,17 @@ struct DRWPass {
 	bool wasdrawn; /* if it was drawn during this frame */
 };
 
-typedef struct DRWCall {
-	struct DRWCall *next, *prev;
+typedef struct DRWCallHeader {
+	void *next, *prev;
 #ifdef USE_GPU_SELECT
 	int select_id;
 #endif
-	int type;
+	uchar type;
+} DRWCallHeader;
+
+typedef struct DRWCall {
+	DRWCallHeader head;
+
 	float (*obmat)[4];
 	Batch *geometry;
 
@@ -205,11 +210,8 @@ typedef struct DRWCall {
 } DRWCall;
 
 typedef struct DRWCallGenerate {
-	struct DRWCallGenerate *next, *prev;
-#ifdef USE_GPU_SELECT
-	int select_id;
-#endif
-	int type;
+	DRWCallHeader head;
+
 	float (*obmat)[4];
 
 	DRWCallGenerateFn *geometry_fn;
@@ -217,10 +219,8 @@ typedef struct DRWCallGenerate {
 } DRWCallGenerate;
 
 typedef struct DRWCallDynamic {
-	struct DRWCallDynamic *next, *prev;
-#ifdef USE_GPU_SELECT
-	int select_id;
-#endif
+	DRWCallHeader head;
+
 	const void *data[];
 } DRWCallDynamic;
 
@@ -253,8 +253,12 @@ enum {
 
 /* Used by DRWCall.type */
 enum {
+	/* A single batch */
 	DRW_CALL_SINGLE,
+	/* Uses a callback to draw with any number of batches. */
 	DRW_CALL_GENERATE,
+	/* Arbitrary number of multiple args. */
+	DRW_CALL_DYNAMIC,
 };
 
 /* only 16 bits long */
@@ -826,13 +830,13 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 
 	DRWCall *call = MEM_callocN(sizeof(DRWCall), "DRWCall");
 
-	call->type = DRW_CALL_SINGLE;
+	call->head.type = DRW_CALL_SINGLE;
+#ifdef USE_GPU_SELECT
+	call->head.select_id = g_DRW_select_id;
+#endif
+
 	call->obmat = obmat;
 	call->geometry = geom;
-
-#ifdef USE_GPU_SELECT
-	call->select_id = g_DRW_select_id;
-#endif
 
 	BLI_addtail(&shgroup->calls, call);
 }
@@ -843,14 +847,14 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Batch *geom, Object *
 
 	DRWCall *call = MEM_callocN(sizeof(DRWCall), "DRWCall");
 
-	call->type = DRW_CALL_SINGLE;
+	call->head.type = DRW_CALL_SINGLE;
+#ifdef USE_GPU_SELECT
+	call->head.select_id = g_DRW_select_id;
+#endif
+
 	call->obmat = ob->obmat;
 	call->geometry = geom;
 	call->ob = ob;
-
-#ifdef USE_GPU_SELECT
-	call->select_id = g_DRW_select_id;
-#endif
 
 	BLI_addtail(&shgroup->calls, call);
 }
@@ -864,15 +868,15 @@ void DRW_shgroup_call_generate_add(
 
 	DRWCallGenerate *call = MEM_callocN(sizeof(DRWCallGenerate), "DRWCallGenerate");
 
+	call->head.type = DRW_CALL_GENERATE;
+#ifdef USE_GPU_SELECT
+	call->head.select_id = g_DRW_select_id;
+#endif
+
 	call->obmat = obmat;
 
-	call->type = DRW_CALL_GENERATE;
 	call->geometry_fn = geometry_fn;
 	call->user_data = user_data;
-
-#ifdef USE_GPU_SELECT
-	call->select_id = g_DRW_select_id;
-#endif
 
 	BLI_addtail(&shgroup->calls, call);
 }
@@ -920,8 +924,9 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 
 	BLI_assert(attr_len == interface->attribs_count);
 
+	call->head.type = DRW_CALL_DYNAMIC;
 #ifdef USE_GPU_SELECT
-	call->select_id = g_DRW_select_id;
+	call->head.select_id = g_DRW_select_id;
 #endif
 
 	memcpy((void *)call->data, attr, data_size);
@@ -1086,7 +1091,7 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 	VertexBuffer_allocate_data(vbo, nbr);
 
 	int j = 0;
-	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->next, j++) {
+	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->head.next, j++) {
 		int i = 0;
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, i++) {
 			VertexBuffer_set_attrib(vbo, attrib->format_id, j, call->data[i]);
@@ -1147,7 +1152,7 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	buffer_size = sizeof(float) * interface->attribs_stride * instance_ct;
 	float *data = MEM_mallocN(buffer_size, "Instance VBO data");
 
-	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->next) {
+	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->head.next) {
 		for (int j = 0; j < interface->attribs_count; ++j) {
 			memcpy(data + offset, call->data[j], sizeof(float) * interface->attribs_size[j]);
 			offset += interface->attribs_size[j];
@@ -1688,12 +1693,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	/* use the first item because of selection we only ever add one */
 #  define GPU_SELECT_LOAD_IF_PICKSEL(_call) \
 	if ((G.f & G_PICKSEL) && (_call)) { \
-		GPU_select_load_id((_call)->select_id); \
+		GPU_select_load_id((_call)->head.select_id); \
 	} ((void)0)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_call_ls) \
 	if ((G.f & G_PICKSEL) && (_call_ls)->first) { \
 		BLI_assert(BLI_listbase_is_single(_call_ls)); \
-		GPU_select_load_id(((DRWCall *)(_call_ls)->first)->select_id); \
+		GPU_select_load_id(((DRWCall *)(_call_ls)->first)->head.select_id); \
 	} ((void)0)
 #else
 #  define GPU_SELECT_LOAD_IF_PICKSEL(call)
@@ -1719,7 +1724,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		}
 	}
 	else {
-		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
+		for (DRWCall *call = shgroup->calls.first; call; call = call->head.next) {
 			bool neg_scale = call->obmat && is_negative_m4(call->obmat);
 
 			/* Negative scale objects */
@@ -1729,10 +1734,11 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 			GPU_SELECT_LOAD_IF_PICKSEL(call);
 
-			if (call->type == DRW_CALL_SINGLE) {
+			if (call->head.type == DRW_CALL_SINGLE) {
 				draw_geometry(shgroup, call->geometry, call->obmat, call->ob);
 			}
 			else {
+				BLI_assert(call->head.type == DRW_CALL_GENERATE);
 				DRWCallGenerate *callgen = ((DRWCallGenerate *)call);
 				draw_geometry_prepare(shgroup, callgen->obmat, NULL, NULL);
 				callgen->geometry_fn(shgroup, draw_geometry_execute, callgen->user_data);
