@@ -929,7 +929,9 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	call->head.select_id = g_DRW_select_id;
 #endif
 
-	memcpy((void *)call->data, attr, data_size);
+	if (data_size != 0) {
+		memcpy((void *)call->data, attr, data_size);
+	}
 
 	interface->instance_count += 1;
 
