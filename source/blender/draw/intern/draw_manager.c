@@ -1113,7 +1113,6 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	int i = 0;
 	int offset = 0;
 	DRWInterface *interface = shgroup->interface;
-	int instance_ct = interface->instance_count;
 	int buffer_size = 0;
 
 	/* XXX All of this is pretty garbage. Better revisit it later. */
@@ -1128,7 +1127,7 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 		interface->instance_count = vert->vertex_ct;
 	}
 
-	if (instance_ct == 0) {
+	if (interface->instance_count == 0) {
 		if (interface->instance_vbo) {
 			glDeleteBuffers(1, &interface->instance_vbo);
 			interface->instance_vbo = 0;
@@ -1152,7 +1151,7 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	}
 
 	/* Gather Data */
-	buffer_size = sizeof(float) * interface->attribs_stride * instance_ct;
+	buffer_size = sizeof(float) * interface->attribs_stride * interface->instance_count;
 	float *data = MEM_mallocN(buffer_size, "Instance VBO data");
 
 	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->head.next) {
