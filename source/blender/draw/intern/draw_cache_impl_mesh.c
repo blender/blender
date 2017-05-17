@@ -2894,8 +2894,10 @@ struct Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me,
 		cache->triangles_with_select_id = Batch_create(
 		        PRIM_TRIANGLES, mesh_batch_cache_get_tri_select_id(rdata, cache, use_hide), NULL);
 
-		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals_visible_only(rdata, cache);
-		Batch_add_VertexBuffer(cache->triangles_with_select_id, vbo);
+		VertexBuffer *vbo_tris = use_hide ?
+		        mesh_batch_cache_get_tri_pos_and_normals_visible_only(rdata, cache) :
+		        mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
+		Batch_add_VertexBuffer(cache->triangles_with_select_id, vbo_tris);
 
 		mesh_render_data_free(rdata);
 	}
