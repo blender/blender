@@ -2726,7 +2726,11 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_with_unselect_only(
 	return cache->tri_pos_with_unselect_only;
 }
 
-static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdata, MeshBatchCache *cache)
+/**
+ * Non-edit mode vertices (only used for weight-paint mode).
+ */
+static VertexBuffer *mesh_batch_cache_get_vert_pos_with_overlay_data(
+        MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT));
 	BLI_assert(rdata->edit_bmesh == NULL);
@@ -2738,7 +2742,7 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 		static struct { uint pos, sel; } attr_id;
 		if (format.attrib_ct == 0) {
 			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.sel = VertexFormat_add_attrib(&format, "select", COMP_I8, 1, KEEP_INT);
+			attr_id.sel = VertexFormat_add_attrib(&format, "data", COMP_I8, 1, KEEP_INT);
 		}
 
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
@@ -2751,8 +2755,8 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_sel(MeshRenderData *rdat
 
 		for (int i = 0; i < vert_len; i++) {
 			const MVert *mv = &rdata->mvert[i];
-			const char vert_sel = (mv->flag & SELECT) != 0;
-			VertexBuffer_set_attrib(vbo, attr_id.sel, cidx++, &vert_sel);
+			const char data = mv->flag & (SELECT | ME_HIDE);
+			VertexBuffer_set_attrib(vbo, attr_id.sel, cidx++, &data);
 			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, mv->co);
 		}
 		vbo_len_used = vidx;
@@ -3242,7 +3246,7 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
 		MeshRenderData *rdata = mesh_render_data_create(me, MR_DATATYPE_VERT);
 
 		cache->overlay_weight_verts = Batch_create(
-		        PRIM_POINTS, mesh_batch_cache_get_vert_pos_with_sel(rdata, cache), NULL);
+		        PRIM_POINTS, mesh_batch_cache_get_vert_pos_with_overlay_data(rdata, cache), NULL);
 
 		mesh_render_data_free(rdata);
 	}

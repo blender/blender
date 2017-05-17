@@ -2,12 +2,13 @@
 uniform mat4 ModelViewProjectionMatrix;
 
 in vec3 pos;
-in int select;
+in int data;
 
-flat out int finalSelect;
+flat out int finalFlag;
 
 void main()
 {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	finalSelect = select;
+
+	finalFlag = data;
 }
