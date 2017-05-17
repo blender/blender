@@ -43,11 +43,4 @@ void main()
 {
 	outpt.v.position = modelViewMatrix * position;
 	outpt.v.normal = normalize(normalMatrix * normal);
-
-#if __VERSION__ < 140
-	/* Some compilers expects gl_Position to be written.
-	 * It's not needed once we explicitly switch to GLSL 1.40 or above.
-	 */
-	gl_Position = outpt.v.position;
-#endif
 }

@@ -1,11 +1,7 @@
 uniform sampler2D depthbuffer;
 
-#if __VERSION__ == 120
-	varying vec4 uvcoordsvar;
-#else
-	in vec4 uvcoordsvar;
-	#define texture2D texture
-#endif
+in vec4 uvcoordsvar;
+#define texture2D texture
 
 void main(void)
 {

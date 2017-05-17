@@ -1,11 +1,7 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 
-#if __VERSION__ == 120
-  attribute vec2 pos;
-#else
-  in vec2 pos;
-#endif
+in vec2 pos;
 
 void main()
 {

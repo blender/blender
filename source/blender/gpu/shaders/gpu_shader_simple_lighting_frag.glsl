@@ -4,20 +4,12 @@ uniform vec4 color;
 #endif
 uniform vec3 light;
 
-#if __VERSION__ == 120
-  varying vec3 normal;
+in vec3 normal;
 #ifdef USE_INSTANCE_COLOR
-  varying vec4 finalColor;
+flat in vec4 finalColor;
+#  define color finalColor
 #endif
-  #define fragColor gl_FragColor
-#else
-  in vec3 normal;
-#ifdef USE_INSTANCE_COLOR
-  flat in vec4 finalColor;
-  #define color finalColor
-#endif
-  out vec4 fragColor;
-#endif
+out vec4 fragColor;
 
 void main()
 {

@@ -1,33 +1,17 @@
 
-#if __VERSION__ == 120
-	attribute vec2 pos;
-	attribute vec2 uvs;
-	/* initial uv coordinate */
-	varying vec2 uvcoord;
+in vec2 pos;
+in vec2 uvs;
+/* initial uv coordinate */
+out vec2 uvcoord;
 
-	/* coordinate used for calculating radius et al set in geometry shader */
-	varying vec2 particlecoord;
+/* coordinate used for calculating radius et al set in geometry shader */
+out vec2 particlecoord;
 
-	/* downsampling coordinates */
-	varying vec2 downsample1;
-	varying vec2 downsample2;
-	varying vec2 downsample3;
-	varying vec2 downsample4;
-#else
-	in vec2 pos;
-	in vec2 uvs;
-	/* initial uv coordinate */
-	out vec2 uvcoord;
-
-	/* coordinate used for calculating radius et al set in geometry shader */
-	out vec2 particlecoord;
-
-	/* downsampling coordinates */
-	out vec2 downsample1;
-	out vec2 downsample2;
-	out vec2 downsample3;
-	out vec2 downsample4;
-#endif
+/* downsampling coordinates */
+out vec2 downsample1;
+out vec2 downsample2;
+out vec2 downsample3;
+out vec2 downsample4;
 
 uniform vec2 invrendertargetdim;
 uniform ivec2 rendertargetdim;

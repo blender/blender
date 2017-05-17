@@ -26,23 +26,13 @@ uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat3 NormalMatrix;
 
-#if __VERSION__ == 120
-	attribute vec3 pos;
+in vec3 pos;
 
-	// normals of faces this edge joins (object coords)
-	attribute vec3 N1;
-	attribute vec3 N2;
+// normals of faces this edge joins (object coords)
+in vec3 N1;
+in vec3 N2;
 
-	flat varying vec4 finalColor;
-#else
-	in vec3 pos;
-
-	// normals of faces this edge joins (object coords)
-	in vec3 N1;
-	in vec3 N2;
-
-	flat out vec4 finalColor;
-#endif
+flat out vec4 finalColor;
 
 // TODO: in float angle; // [-pi .. +pi], + peak, 0 flat, - valley
 

@@ -1,13 +1,8 @@
 
 // Draw dashed lines, perforated in screen space.
 
-#if __VERSION__ == 120
-  noperspective varying float distance_along_line;
-  #define fragColor gl_FragColor
-#else
-  noperspective in float distance_along_line;
-  out vec4 fragColor;
-#endif
+noperspective in float distance_along_line;
+out vec4 fragColor;
 
 uniform float dash_width;
 

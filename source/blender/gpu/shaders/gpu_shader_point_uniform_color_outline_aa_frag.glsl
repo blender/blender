@@ -2,13 +2,8 @@
 uniform vec4 color;
 uniform vec4 outlineColor;
 
-#if __VERSION__ == 120
-  varying vec4 radii;
-  #define fragColor gl_FragColor
-#else
-  in vec4 radii;
-  out vec4 fragColor;
-#endif
+in vec4 radii;
+out vec4 fragColor;
 
 void main() {
 	float dist = length(gl_PointCoord - vec2(0.5));

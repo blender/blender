@@ -1,15 +1,8 @@
 
-#if __VERSION__ == 120
-  varying vec4 radii;
-  varying vec4 finalColor;
-  varying vec4 finalOutlineColor;
-  #define fragColor gl_FragColor
-#else
-  in vec4 radii;
-  in vec4 finalColor;
-  in vec4 finalOutlineColor;
-  out vec4 fragColor;
-#endif
+in vec4 radii;
+in vec4 finalColor;
+in vec4 finalOutlineColor;
+out vec4 fragColor;
 
 void main() {
 	vec2 quad = abs(gl_PointCoord - vec2(0.5));

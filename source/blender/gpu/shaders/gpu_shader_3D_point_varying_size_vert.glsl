@@ -1,13 +1,8 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 
-#if __VERSION__ == 120
-  attribute vec3 pos;
-  attribute float size;
-#else
-  in vec3 pos;
-  in float size;
-#endif
+in vec3 pos;
+in float size;
 
 void main()
 {

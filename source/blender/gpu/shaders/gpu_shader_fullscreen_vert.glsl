@@ -1,13 +1,7 @@
 
-#if __VERSION__ == 120
-	attribute vec2 pos;
-	attribute vec2 uvs;
-	varying vec4 uvcoordsvar;
-#else
-	in vec2 pos;
-	in vec2 uvs;
-	out vec4 uvcoordsvar;
-#endif
+in vec2 pos;
+in vec2 uvs;
+out vec4 uvcoordsvar;
 
 void main()
 {

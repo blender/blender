@@ -11,16 +11,11 @@ uniform sampler1D ssao_concentric_tex;
 // depth buffer
 uniform sampler2D depthbuffer;
 
-#if __VERSION__ == 120
-	// coordinates on framebuffer in normalized (0.0-1.0) uv space
-	varying vec4 uvcoordsvar;
-	#define FragColor gl_FragColor
-#else
-	in vec4 uvcoordsvar;
-	out vec4 FragColor;
-	#define texture1D texture
-	#define texture2D texture
-#endif
+// coordinates on framebuffer in normalized (0.0-1.0) uv space
+in vec4 uvcoordsvar;
+out vec4 FragColor;
+#define texture1D texture
+#define texture2D texture
 
 /* ssao_params.x : pixel scale for the ssao radious */
 /* ssao_params.y : factor for the ssao darkening */

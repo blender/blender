@@ -2,13 +2,8 @@
  * This fragment shader was initially found at http://fabiensanglard.net/shadowmappingVSM/index.php
  */
 
-#if __VERSION__ == 120
-  varying vec4 v_position;
-  #define fragColor gl_FragColor
-#else
-  in vec4 v_position;
-  out vec4 fragColor;
-#endif
+in vec4 v_position;
+out vec4 fragColor;
 
 void main()
 {

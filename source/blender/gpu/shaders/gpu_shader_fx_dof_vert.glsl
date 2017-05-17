@@ -1,37 +1,19 @@
 uniform vec2 invrendertargetdim;
 
+in vec2 pos;
+in vec2 uvs;
 
-#if __VERSION__ == 120
-	attribute vec2 pos;
-	attribute vec2 uvs;
+/* texture coordinates for framebuffer read */
+out vec4 uvcoordsvar;
 
-	//texture coordinates for framebuffer read
-	varying vec4 uvcoordsvar;
+/* color texture coordinates, offset by a small amount */
+out vec2 color_uv1;
+out vec2 color_uv2;
 
-	/* color texture coordinates, offset by a small amount */
-	varying vec2 color_uv1;
-	varying vec2 color_uv2;
-
-	varying vec2 depth_uv1;
-	varying vec2 depth_uv2;
-	varying vec2 depth_uv3;
-	varying vec2 depth_uv4;
-#else
-	in vec2 pos;
-	in vec2 uvs;
-
-	//texture coordinates for framebuffer read
-	out vec4 uvcoordsvar;
-
-	/* color texture coordinates, offset by a small amount */
-	out vec2 color_uv1;
-	out vec2 color_uv2;
-
-	out vec2 depth_uv1;
-	out vec2 depth_uv2;
-	out vec2 depth_uv3;
-	out vec2 depth_uv4;
-#endif
+out vec2 depth_uv1;
+out vec2 depth_uv2;
+out vec2 depth_uv3;
+out vec2 depth_uv4;
 
 //very simple shader for gull screen FX, just pass values on
 

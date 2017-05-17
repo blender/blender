@@ -1,14 +1,9 @@
 uniform vec2 ScaleU;
 uniform sampler2D textureSource;
 
-#if __VERSION__ == 120
-  varying vec2 texCoord_interp;
-  #define fragColor gl_FragColor
-#else
-  in vec2 texCoord_interp;
-  out vec4 fragColor;
-  #define texture2D texture
-#endif
+in vec2 texCoord_interp;
+out vec4 fragColor;
+#define texture2D texture
 
 void main()
 {

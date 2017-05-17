@@ -16,37 +16,20 @@ uniform vec4 dof_params;
 // viewvectors for reconstruction of world space
 uniform vec4 viewvecs[3];
 
-#if __VERSION__ == 120
-	// coordinates on framebuffer in normalized (0.0-1.0) uv space
-	varying vec4 uvcoordsvar;
+// coordinates on framebuffer in normalized (0.0-1.0) uv space
+in vec4 uvcoordsvar;
 
-	/* color texture coordinates, offset by a small amount */
-	varying vec2 color_uv1;
-	varying vec2 color_uv2;
+/* color texture coordinates, offset by a small amount */
+in vec2 color_uv1;
+in vec2 color_uv2;
 
-	varying vec2 depth_uv1;
-	varying vec2 depth_uv2;
-	varying vec2 depth_uv3;
-	varying vec2 depth_uv4;
+in vec2 depth_uv1;
+in vec2 depth_uv2;
+in vec2 depth_uv3;
+in vec2 depth_uv4;
 
-	#define FragColor gl_FragColor
-#else
-	// coordinates on framebuffer in normalized (0.0-1.0) uv space
-	in vec4 uvcoordsvar;
-
-	/* color texture coordinates, offset by a small amount */
-	in vec2 color_uv1;
-	in vec2 color_uv2;
-
-	in vec2 depth_uv1;
-	in vec2 depth_uv2;
-	in vec2 depth_uv3;
-	in vec2 depth_uv4;
-
-	out vec4 FragColor;
-	#define texture2D texture
-#endif
-
+out vec4 FragColor;
+#define texture2D texture
 
 float calculate_far_coc(in float zdepth)
 {

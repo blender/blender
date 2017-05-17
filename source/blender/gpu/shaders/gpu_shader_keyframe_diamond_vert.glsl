@@ -4,23 +4,13 @@ uniform mat4 ModelViewProjectionMatrix;
 const float pixel_fudge = sqrt(2.0);
 const float outline_width = 1.25 * pixel_fudge;
 
-#if __VERSION__ == 120
-  attribute vec2 pos;
-  attribute float size;
-  attribute vec4 color;
-  attribute vec4 outlineColor;
-  varying vec4 finalColor;
-  varying vec4 finalOutlineColor;
-  varying vec4 radii;
-#else
-  in vec2 pos;
-  in float size;
-  in vec4 color;
-  in vec4 outlineColor;
-  out vec4 finalColor;
-  out vec4 finalOutlineColor;
-  out vec4 radii;
-#endif
+in vec2 pos;
+in float size;
+in vec4 color;
+in vec4 outlineColor;
+out vec4 finalColor;
+out vec4 finalOutlineColor;
+out vec4 radii;
 
 void main() {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);

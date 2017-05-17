@@ -1,11 +1,6 @@
 
-#if __VERSION__ == 120
-  varying vec3 varposition;
-  varying vec3 varnormal;
-#else
-  out vec3 varposition;
-  out vec3 varnormal;
-#endif
+out vec3 varposition;
+out vec3 varnormal;
 
 /* Color, keep in sync with: gpu_shader_vertex.glsl */
 

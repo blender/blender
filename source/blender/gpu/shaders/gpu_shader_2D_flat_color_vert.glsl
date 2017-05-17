@@ -1,17 +1,10 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 
-#if __VERSION__ == 120
-  attribute vec2 pos;
-  attribute vec4 color;
+in vec2 pos;
+in vec4 color;
 
-  flat varying vec4 finalColor;
-#else
-  in vec2 pos;
-  in vec4 color;
-
-  flat out vec4 finalColor;
-#endif
+flat out vec4 finalColor;
 
 void main()
 {

@@ -2,13 +2,8 @@
 uniform mat4 ModelViewProjectionMatrix;
 uniform float size;
 
-#if __VERSION__ == 120
-  attribute vec2 pos;
-  varying vec2 radii;
-#else
-  in vec2 pos;
-  out vec2 radii;
-#endif
+in vec2 pos;
+out vec2 radii;
 
 void main() {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);

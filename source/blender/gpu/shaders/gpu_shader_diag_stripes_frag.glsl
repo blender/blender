@@ -4,11 +4,7 @@ uniform vec4 color2;
 uniform int size1;
 uniform int size2;
 
-#if __VERSION__ == 120
-  #define fragColor gl_FragColor
-#else
-  out vec4 fragColor;
-#endif
+out vec4 fragColor;
 
 void main()
 {

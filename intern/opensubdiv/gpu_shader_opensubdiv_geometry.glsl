@@ -29,22 +29,11 @@ struct VertexData {
 	vec2 uv;
 };
 
-#if __VERSION__ >= 150
 layout(lines_adjacency) in;
-  #ifdef WIREFRAME
+#ifdef WIREFRAME
 layout(line_strip, max_vertices = 8) out;
-  #else
-layout(triangle_strip, max_vertices = 4) out;
-  #endif
 #else
-  #extension GL_EXT_geometry_shader4: require
-  /* application provides input/output layout info */
-#endif
-
-#if __VERSION__ < 140
-  #extension GL_ARB_uniform_buffer_object: require
-  #extension GL_ARB_texture_buffer_object: enable
-  #extension GL_EXT_texture_buffer_object: enable
+layout(triangle_strip, max_vertices = 4) out;
 #endif
 
 uniform mat4 modelViewMatrix;

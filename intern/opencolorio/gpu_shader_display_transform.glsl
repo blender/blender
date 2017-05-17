@@ -10,14 +10,9 @@ uniform float image_texture_width;
 uniform float image_texture_height;
 #endif
 
-#if __VERSION__ < 130
-  varying vec2 texCoord_interp;
-  #define fragColor gl_FragColor
-#else
-  in vec2 texCoord_interp;
-  out vec4 fragColor;
-  #define texture2D texture
-#endif
+in vec2 texCoord_interp;
+out vec4 fragColor;
+#define texture2D texture
 
 #ifdef USE_CURVE_MAPPING
 /* Curve mapping parameters

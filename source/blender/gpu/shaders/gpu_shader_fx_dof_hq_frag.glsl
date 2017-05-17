@@ -20,43 +20,24 @@ uniform vec4 dof_params;
 /* viewvectors for reconstruction of world space */
 uniform vec4 viewvecs[3];
 
-#if __VERSION__ == 120
-	/* initial uv coordinate */
-	varying vec2 uvcoord;
+/* initial uv coordinate */
+in vec2 uvcoord;
 
-	/* coordinate used for calculating radius et al set in geometry shader */
-	varying vec2 particlecoord;
-	varying vec4 color;
+/* coordinate used for calculating radius et al set in geometry shader */
+in vec2 particlecoord;
+flat in vec4 color;
 
-	/* downsampling coordinates */
-	varying vec2 downsample1;
-	varying vec2 downsample2;
-	varying vec2 downsample3;
-	varying vec2 downsample4;
+/* downsampling coordinates */
+in vec2 downsample1;
+in vec2 downsample2;
+in vec2 downsample3;
+in vec2 downsample4;
 
-	#define fragData0 gl_FragData[0]
-	#define fragData1 gl_FragData[1]
-	#define fragData2 gl_FragData[2]
-#else
-	/* initial uv coordinate */
-	in vec2 uvcoord;
+layout(location = 0) out vec4 fragData0;
+layout(location = 1) out vec4 fragData1;
+layout(location = 2) out vec4 fragData2;
 
-	/* coordinate used for calculating radius et al set in geometry shader */
-	in vec2 particlecoord;
-	flat in vec4 color;
-
-	/* downsampling coordinates */
-	in vec2 downsample1;
-	in vec2 downsample2;
-	in vec2 downsample3;
-	in vec2 downsample4;
-
-	layout(location = 0) out vec4 fragData0;
-	layout(location = 1) out vec4 fragData1;
-	layout(location = 2) out vec4 fragData2;
-
-	#define texture2D texture
-#endif
+#define texture2D texture
 
 
 #define M_PI 3.1415926535897932384626433832795

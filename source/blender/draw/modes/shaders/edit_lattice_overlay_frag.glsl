@@ -4,11 +4,7 @@ flat in int vertFlag;
 #define VERTEX_SELECTED	(1 << 0)
 #define VERTEX_ACTIVE	(1 << 1)
 
-#if __VERSION__ == 120
-  #define FragColor gl_FragColor
-#else
-  out vec4 FragColor;
-#endif
+out vec4 FragColor;
 
 void main()
 {

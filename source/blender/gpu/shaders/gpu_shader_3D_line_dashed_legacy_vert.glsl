@@ -4,13 +4,8 @@
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 viewport_size;
 
-#if __VERSION__ == 120
-  attribute vec3 pos;
-  noperspective varying float distance_along_line;
-#else
-  in vec3 pos;
-  noperspective out float distance_along_line;
-#endif
+in vec3 pos;
+noperspective out float distance_along_line;
 
 void main()
 {

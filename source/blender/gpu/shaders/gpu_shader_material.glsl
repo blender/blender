@@ -12,14 +12,10 @@ uniform mat4 ProjectionMatrixInverse;
 uniform mat3 NormalMatrix;
 uniform vec4 CameraTexCoFactors;
 
-#if __VERSION__ == 120
-  #define fragColor gl_FragColor
-#else
-  out vec4 fragColor;
-  #define texture2D texture
-  #define shadow2D shadow
-  #define textureCube texture
-#endif
+out vec4 fragColor;
+#define texture2D texture
+#define shadow2D shadow
+#define textureCube texture
 
 /* Converters */
 
@@ -2281,14 +2277,12 @@ void test_shadowbuf(
 		//float bias = (1.5 - inp*inp)*shadowbias;
 		co.z -= shadowbias * co.w;
 
-		if (co.w > 0.0 && co.x > 0.0 && co.x / co.w < 1.0 && co.y > 0.0 && co.y / co.w < 1.0)
-#if __VERSION__ == 120
-			result = shadow2DProj(shadowmap, co).x;
-#else
+		if (co.w > 0.0 && co.x > 0.0 && co.x / co.w < 1.0 && co.y > 0.0 && co.y / co.w < 1.0) {
 			result = textureProj(shadowmap, co);
-#endif
-		else
+		}
+		else {
 			result = 1.0;
+		}
 	}
 }
 
@@ -2592,7 +2586,6 @@ vec3 rotate_vector(vec3 p, vec3 n, float theta) {
 
 #define NUM_LIGHTS 3
 
-#if __VERSION__ > 120
 struct glLight {
 	vec4 position;
 	vec4 diffuse;
@@ -2603,12 +2596,6 @@ struct glLight {
 layout(std140) uniform lightSource {
 	glLight glLightSource[NUM_LIGHTS];
 };
-
-#define gl_NormalMatrix NormalMatrix
-
-#else
-#define glLightSource gl_LightSource
-#endif
 
 /* bsdfs */
 
@@ -2711,7 +2698,7 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	/* directional lights */
 	for (int i = 0; i < NUM_LIGHTS; i++) {
 		vec3 light_position_world = glLightSource[i].position.xyz;
-		vec3 light_position = normalize(gl_NormalMatrix * light_position_world);
+		vec3 light_position = normalize(NormalMatrix * light_position_world);
 
 		vec3 H = normalize(light_position + V);
 
@@ -3160,7 +3147,6 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 	float u = -atan(nco.y, nco.x) / (2.0 * M_PI) + 0.5;
 	float v = atan(nco.z, hypot(nco.x, nco.y)) / M_PI + 0.5;
 
-#if __VERSION__ > 120
 	/* Fix pole bleeding */
 	float half_width = 0.5 / float(textureSize(ima, 0).x);
 	v = clamp(v, half_width, 1.0 - half_width);
@@ -3170,9 +3156,6 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 	 * at u = 0 or 2PI, hardware filtering is using the smallest mipmap for certain
 	 * texels. So we force the highest mipmap and don't do anisotropic filtering. */
 	color = textureLod(ima, vec2(u, v), 0.0);
-#else
-	color = texture2D(ima, vec2(u, v));
-#endif
 }
 
 void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
