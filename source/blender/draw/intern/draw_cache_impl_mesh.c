@@ -2325,8 +2325,9 @@ static void mesh_batch_cache_create_overlay_ledge_buffers(
 
 	for (int i = 0; i < ledge_len; ++i) {
 		int vert_idx[2];
-		bool ok = mesh_render_data_edge_verts_indices_get(rdata, rdata->loose_edges[i], vert_idx);
+		const bool ok = mesh_render_data_edge_verts_indices_get(rdata, rdata->loose_edges[i], vert_idx);
 		BLI_assert(ok);  /* we don't add */
+		UNUSED_VARS_NDEBUG(ok);
 		add_overlay_loose_edge(
 		        rdata, vbo_pos, vbo_nor, vbo_data,
 		        attr_id.pos, attr_id.vnor, attr_id.data,

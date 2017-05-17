@@ -575,6 +575,8 @@ static void blf_draw_gl__start(FontBLF *font)
 	BLI_assert(texCoord == BLF_COORD_ID);
 	BLI_assert(color == BLF_COLOR_ID);
 
+	UNUSED_VARS_NDEBUG(pos, texCoord, color);
+
 	immBindBuiltinProgram(GPU_SHADER_TEXT);
 #endif
 
