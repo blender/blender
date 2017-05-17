@@ -1131,9 +1131,13 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
 
         mat = context.material
 
-        layout.prop(mat, "diffuse_color", text="Diffuse")
-        layout.prop(mat, "specular_color", text="Specular")
-        layout.prop(mat, "specular_hardness", text="Glossiness")
+        layout.prop(mat, "use_nodes", icon='NODETREE', text="Use node tree")
+        layout.separator()
+
+        if not mat.use_nodes:
+            layout.prop(mat, "diffuse_color", text="Diffuse")
+            layout.prop(mat, "specular_color", text="Specular")
+            layout.prop(mat, "specular_hardness", text="Glossiness")
 
 
 classes = (
