@@ -89,10 +89,10 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
-	if (e_data.actdef != draw_ctx->sl->basact->object->actdef) {
-		e_data.actdef = draw_ctx->sl->basact->object->actdef;
+	if (e_data.actdef != draw_ctx->obact->actdef) {
+		e_data.actdef = draw_ctx->obact->actdef;
 
-		BKE_mesh_batch_cache_dirty(draw_ctx->sl->basact->object->data, BKE_MESH_BATCH_DIRTY_PAINT);
+		BKE_mesh_batch_cache_dirty(draw_ctx->obact->data, BKE_MESH_BATCH_DIRTY_PAINT);
 	}
 
 	if (!e_data.weight_face_shader) {
@@ -169,9 +169,8 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 {
 	PAINT_WEIGHT_StorageList *stl = ((PAINT_WEIGHT_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	SceneLayer *sl = draw_ctx->sl;
 
-	if (ob->type == OB_MESH && ob == sl->basact->object) {
+	if ((ob->type == OB_MESH) && (ob == draw_ctx->obact)) {
 		IDProperty *ces_mode_pw = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_PAINT_WEIGHT, "");
 		bool use_wire = BKE_collection_engine_property_value_get_bool(ces_mode_pw, "use_wire");
 		char flag = ((Mesh *)ob->data)->editflag;

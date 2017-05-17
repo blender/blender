@@ -141,9 +141,8 @@ static void PAINT_VERTEX_cache_populate(void *vedata, Object *ob)
 {
 	PAINT_VERTEX_StorageList *stl = ((PAINT_VERTEX_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	SceneLayer *sl = draw_ctx->sl;
 
-	if (ob->type == OB_MESH && ob == sl->basact->object) {
+	if ((ob->type == OB_MESH) && (ob == draw_ctx->obact)) {
 		IDProperty *ces_mode_pw = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_PAINT_VERTEX, "");
 		bool use_wire = BKE_collection_engine_property_value_get_bool(ces_mode_pw, "use_wire");
 		char flag = ((Mesh *)ob->data)->editflag;
