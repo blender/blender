@@ -2709,7 +2709,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_with_unselect_only(
 
 		for (int i = 0; i < tri_len; i++) {
 			const MLoopTri *mlt = &rdata->mlooptri[i];
-			if (!(rdata->mpoly[mlt->poly].flag & ME_FACE_SEL)) {
+			if (!(rdata->mpoly[mlt->poly].flag & (ME_FACE_SEL | ME_HIDE))) {
 				for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 					const uint v_index = rdata->mloop[mlt->tri[tri_corner]].v;
 					VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, rdata->mvert[v_index].co);
