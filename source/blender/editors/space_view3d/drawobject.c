@@ -9354,9 +9354,9 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 
 	VertexFormat *format = immVertexFormat();
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
@@ -9387,9 +9387,9 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	data.offset = offset;
 	VertexFormat *format = immVertexFormat();
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
@@ -9445,9 +9445,9 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 	if (imm_len == 0) return;
 
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
@@ -9516,9 +9516,9 @@ static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select
 
 	VertexFormat *format = immVertexFormat();
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	immBeginAtMost(PRIM_TRIANGLES, imm_len);
 
@@ -9574,9 +9574,9 @@ static void bbs_mesh_face_dot(BMEditMesh *em, DerivedMesh *dm)
 	data.bm = em->bm;
 	VertexFormat *format = immVertexFormat();
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
 
