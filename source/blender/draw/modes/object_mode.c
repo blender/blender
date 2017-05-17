@@ -77,6 +77,7 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *grid;
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_wire;
+	struct DRWPass *bone_envelope;
 } OBJECT_PassList;
 
 typedef struct OBJECT_FramebufferList {
@@ -600,6 +601,12 @@ static void OBJECT_cache_init(void *vedata)
 		/* Wire bones */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		psl->bone_wire = DRW_pass_create("Bone Wire Pass", state);
+	}
+
+	{
+		/* distance outline around envelope bones */
+		DRWState state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		psl->bone_envelope = DRW_pass_create("Bone Envelope Outline Pass", state);
 	}
 
 	{
@@ -1250,7 +1257,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (arm->edbo == NULL) {
 				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
 					DRW_shgroup_armature_object(
-					        ob, sl, psl->bone_solid, psl->bone_wire,
+					        ob, sl, psl->bone_solid, psl->bone_wire, psl->bone_envelope,
 					        stl->g_data->relationship_lines);
 				}
 			}
@@ -1340,6 +1347,7 @@ static void OBJECT_draw_scene(void *vedata)
 	}
 
 	/* This needs to be drawn after the oultine */
+//	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->non_meshes);
