@@ -275,24 +275,6 @@ GLuint linkProgram(const char *version, const char *define)
 	glBindAttribLocation(program, 0, "position");
 	glBindAttribLocation(program, 1, "normal");
 
-
-	if (!GLEW_VERSION_3_2) {
-		/* provide input/output layout info */
-		glProgramParameteriEXT(program,
-		                       GL_GEOMETRY_INPUT_TYPE_EXT,
-		                       GL_LINES_ADJACENCY_EXT);
-
-		bool wireframe = strstr(define, "WIREFRAME") != NULL;
-
-		glProgramParameteriEXT(program,
-		                       GL_GEOMETRY_OUTPUT_TYPE_EXT,
-		                       wireframe ? GL_LINE_STRIP : GL_TRIANGLE_STRIP);
-
-		glProgramParameteriEXT(program,
-		                       GL_GEOMETRY_VERTICES_OUT_EXT,
-		                       8);
-	}
-
 	glLinkProgram(program);
 
 	glDeleteShader(vertexShader);
