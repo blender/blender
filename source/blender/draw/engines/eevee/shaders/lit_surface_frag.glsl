@@ -273,7 +273,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	vec2 uv = lut_coords(dot(sd.N, sd.V), sqrt(roughness));
 	vec2 brdf_lut = texture(brdfLut, uv).rg;
 	vec3 Li = textureLod(probeFiltered, sd.spec_dominant_dir, roughness * lodMax).rgb;
-	indirect_radiance += Li * brdf_lut.y + f0 * Li * brdf_lut.x;
+	indirect_radiance += Li * F_ibl(f0, brdf_lut);
 
 	indirect_radiance += spherical_harmonics(sd.N, shCoefs) * albedo;
 

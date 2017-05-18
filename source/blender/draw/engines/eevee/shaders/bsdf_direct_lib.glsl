@@ -135,9 +135,7 @@ vec3 direct_ggx_sphere(LightData ld, ShadingData sd, float roughness, vec3 f0)
 	bsdf *= lut.b; /* Bsdf intensity */
 	bsdf *= M_1_2PI * M_1_PI;
 
-	/* Rough fresnel approximation using the LUT */
-	lut.xy = normalize(lut.xy);
-	vec3 spec = bsdf * lut.y + f0 * bsdf * lut.x;
+	vec3 spec = F_area(f0, lut.xy) * bsdf;
 #else
 	float energy_conservation;
 	vec3 L = mrp_sphere(ld, sd, sd.spec_dominant_dir, roughness, energy_conservation);
@@ -165,9 +163,7 @@ vec3 direct_ggx_rectangle(LightData ld, ShadingData sd, float roughness, vec3 f0
 	bsdf *= lut.b; /* Bsdf intensity */
 	bsdf *= M_1_2PI;
 
-	/* Rough fresnel approximation using the LUT */
-	lut.xy = normalize(lut.xy);
-	vec3 spec = bsdf * lut.y + f0 * bsdf * lut.x;
+	vec3 spec = F_area(f0, lut.xy) * bsdf;
 #else
 	float energy_conservation;
 	vec3 L = mrp_area(ld, sd, sd.spec_dominant_dir, roughness, energy_conservation);

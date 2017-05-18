@@ -89,9 +89,9 @@ vec3 mul(mat3 m, vec3 v) { return m * v; }
 mat3 mul(mat3 m1, mat3 m2) { return m1 * m2; }
 
 float saturate(float a) { return clamp(a, 0.0, 1.0); }
-vec2 saturate(vec2 a) { return vec2(saturate(a.x), saturate(a.y)); }
-vec3 saturate(vec3 a) { return vec3(saturate(a.x), saturate(a.y), saturate(a.z)); }
-vec4 saturate(vec4 a) { return vec4(saturate(a.x), saturate(a.y), saturate(a.z), saturate(a.w)); }
+vec2 saturate(vec2 a) { return clamp(a, 0.0, 1.0); }
+vec3 saturate(vec3 a) { return clamp(a, 0.0, 1.0); }
+vec4 saturate(vec4 a) { return clamp(a, 0.0, 1.0); }
 
 float distance_squared(vec2 a, vec2 b) { a -= b; return dot(a, a); }
 float distance_squared(vec3 a, vec3 b) { a -= b; return dot(a, a); }
@@ -285,7 +285,28 @@ vec3 mrp_area(LightData ld, ShadingData sd, vec3 dir, inout float roughness, out
 vec3 F_schlick(vec3 f0, float cos_theta)
 {
 	float fac = pow(1.0 - cos_theta, 5);
-	return f0 + (1.0 - f0) * fac;
+
+	/* Unreal specular matching : if specular color is below 2% intensity,
+	 * (using green channel for intensity) treat as shadowning */
+	return saturate(50.0 * f0.g) * fac + (1.0 - fac) * f0;
+}
+
+/* Fresnel approximation for LTC area lights (not MRP) */
+vec3 F_area(vec3 f0, vec2 lut)
+{
+	vec2 fac = normalize(lut.xy);
+
+	/* Unreal specular matching : if specular color is below 2% intensity,
+	 * (using green channel for intensity) treat as shadowning */
+	return saturate(50.0 * f0.g) * fac.y + fac.x * f0;
+}
+
+/* Fresnel approximation for LTC area lights (not MRP) */
+vec3 F_ibl(vec3 f0, vec2 lut)
+{
+	/* Unreal specular matching : if specular color is below 2% intensity,
+	 * (using green channel for intensity) treat as shadowning */
+	return saturate(50.0 * f0.g) * lut.y + lut.x * f0;
 }
 
 /* GGX */
