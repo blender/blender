@@ -296,6 +296,7 @@ GLuint linkProgram(const char *version, const char *define)
 	                      glGetUniformBlockIndex(program, "Lighting"),
 	                      0);
 
+	/* TODO: use glUseProgram, glUniform */
 	glProgramUniform1i(program,
 	                   glGetUniformLocation(program, "texture_buffer"),
 	                   0);  /* GL_TEXTURE0 */
@@ -357,6 +358,7 @@ void bindProgram(OpenSubdiv_GLMesh *gl_mesh, int program)
 	}
 #else
 	{
+		/* TODO: stop using glGetMaterial */
 		float color[4];
 		glGetMaterialfv(GL_FRONT, GL_DIFFUSE, color);
 		glUniform4fv(glGetUniformLocation(program, "diffuse"), 1, color);
@@ -533,6 +535,7 @@ void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
 			g_lighting_data.num_enabled++;
 		}
 
+		/* TODO: stop using glGetLight */
 		glGetLightfv(GL_LIGHT0 + i,
 		             GL_POSITION,
 		             g_lighting_data.lights[i].position);
