@@ -1560,7 +1560,7 @@ static void benv_add_tri(VertexBuffer *vbo, uint pos_id, uint *v_idx, float *co1
 	}
 }
 
-Batch *DRW_cache_bone_envelope_get(void)
+Batch *DRW_cache_bone_envelope_solid_get(void)
 {
 #define CIRCLE_RESOL 32  /* Must be multiple of 4 */
 	if (!SHC.drw_bone_envelope) {

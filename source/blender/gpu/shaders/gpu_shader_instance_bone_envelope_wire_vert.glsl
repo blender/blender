@@ -3,7 +3,9 @@
 /* This shader takes a 2D shape, puts it in 3D Object space such that is stays aligned with view and bone,
  * and scales head/tail/distance according to per-instance attributes
  * (and 'role' of current vertex, encoded in zw input, head or tail, and inner or outer for distance outline).
- * It is used for both the distance outline drawing, and the wire version of envelope bone. */
+ * It is used for both the distance outline drawing, and the wire version of envelope bone.
+ * Note that if one of head/tail radius is negative, it assumes it only works on the other end of the bone
+ * (used to draw head/tail spheres). */
 
 
 uniform mat4 ViewMatrix;
@@ -58,8 +60,11 @@ void main()
 	head.xyz *= size;
 	tail.xyz *= size;
 
-	float head_fac = pos.z;  // == 0: head; == 1: tail; in-between: along bone.
-	bool do_distance_offset = (pos.w != 0.0f);
+	bool head_only = (radius_tail < 0.0f);
+	bool tail_only = (radius_head < 0.0f);
+	/* == 0: head; == 1: tail; in-between: along bone. */
+	float head_fac = head_only ? 0.0f : (tail_only ? 1.0f : pos.z);
+	bool do_distance_offset = (pos.w != 0.0f) && (distance >= 0.0f);
 
 	vec2 xy_pos = pos.xy;
 	vec4 ob_pos;

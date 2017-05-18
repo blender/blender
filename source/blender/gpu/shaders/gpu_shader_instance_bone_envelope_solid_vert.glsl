@@ -1,9 +1,9 @@
 
 
-/* This shader takes a 2D shape, puts it in 3D Object space such that is stays aligned with view and bone,
- * and scales head/tail/distance according to per-instance attributes
- * (and 'role' of current vertex, encoded in zw input, head or tail, and inner or outer for distance outline).
- * It is used for both the distance outline drawing, and the wire version of envelope bone. */
+/* This shader essentially operates in Object space, where it aligns given geometry with bone, scales it accordingly
+ * to given radii, and then does usual basic solid operations.
+ * Note that if one of head/tail radius is negative, it assumes it only works on the other end of the bone
+ * (used to draw head/tail spheres). */
 
 
 uniform mat4 ViewMatrix;
@@ -28,11 +28,6 @@ flat out vec4 finalColor;
 
 void main()
 {
-//	gl_Position = ViewProjectionMatrix * ObjectModelMatrix * InstanceModelMatrix * vec4(pos.xyz, 1.0f);
-//	normal = pos.xyz;
-//	finalColor = color;
-//	return;
-
 	/* We get head/tail in object space. */
 	vec4 head = InstanceModelMatrix * vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	vec4 tail = InstanceModelMatrix * vec4(0.0f, 1.0f, 0.0f, 1.0f);

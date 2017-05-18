@@ -82,7 +82,7 @@ struct Batch *DRW_cache_bone_octahedral_wire_outline_get(void);
 struct Batch *DRW_cache_bone_box_get(void);
 struct Batch *DRW_cache_bone_box_wire_outline_get(void);
 struct Batch *DRW_cache_bone_wire_wire_outline_get(void);
-struct Batch *DRW_cache_bone_envelope_get(void);
+struct Batch *DRW_cache_bone_envelope_solid_get(void);
 struct Batch *DRW_cache_bone_envelope_distance_outline_get(void);
 struct Batch *DRW_cache_bone_envelope_wire_outline_get(void);
 struct Batch *DRW_cache_bone_envelope_head_wire_outline_get(void);
