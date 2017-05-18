@@ -726,16 +726,20 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	return requested_features;
 }
 
-void Session::load_kernels()
+void Session::load_kernels(bool lock_scene)
 {
-	thread_scoped_lock scene_lock(scene->mutex);
+	thread_scoped_lock scene_lock;
+	if(lock_scene) {
+		scene_lock = thread_scoped_lock(scene->mutex);
+	}
 
-	if(!kernels_loaded) {
+	DeviceRequestedFeatures requested_features = get_requested_device_features();
+
+	if(!kernels_loaded || loaded_kernel_features.modified(requested_features)) {
 		progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
 		scoped_timer timer;
 
-		DeviceRequestedFeatures requested_features = get_requested_device_features();
 		VLOG(2) << "Requested features:\n" << requested_features;
 		if(!device->load_kernels(requested_features)) {
 			string message = device->error_message();
@@ -752,6 +756,7 @@ void Session::load_kernels()
 		VLOG(1) << "Total time spent loading kernels: " << time_dt() - timer.get_start();
 
 		kernels_loaded = true;
+		loaded_kernel_features = requested_features;
 	}
 }
 
@@ -902,6 +907,8 @@ void Session::update_scene()
 
 	/* update scene */
 	if(scene->need_update()) {
+		load_kernels(false);
+
 		progress.set_status("Updating Scene");
 		MEM_GUARDED_CALL(&progress, scene->device_update, device, progress);
 	}
