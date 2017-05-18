@@ -2404,13 +2404,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem debug_background_items[] = {
-		{V3D_DEBUG_BACKGROUND_NONE, "NONE", 0, "None", ""},
-		{V3D_DEBUG_BACKGROUND_GRADIENT, "GRADIENT", 0, "Gradient", ""},
-		{V3D_DEBUG_BACKGROUND_WORLD, "WORLD", 0, "World", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
@@ -2801,42 +2794,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "stereo_3d_volume_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "stereo3d_volume_alpha");
 	RNA_def_property_ui_text(prop, "Volume Alpha", "Opacity (alpha) of the cameras' frustum volume");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	/* *** Blender 2.8 Viewport temporary *** */
-	prop = RNA_def_property(srna, "use_modern_viewport", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "tmp_compat_flag", V3D_NEW_VIEWPORT);
-	RNA_def_property_ui_text(prop, "Modern Viewport", "Use modern viewport");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_scene_depth", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "tmp_compat_flag", V3D_DEBUG_SHOW_SCENE_DEPTH);
-	RNA_def_property_ui_text(prop, "Show Scene Depth", "Debug option to show the depth in the viewport");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_combined_depth", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "tmp_compat_flag", V3D_DEBUG_SHOW_COMBINED_DEPTH);
-	RNA_def_property_ui_text(prop, "Show Combined Depth", "Debug option to show the depth in the viewport");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "debug_near", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "debug.znear");
-	RNA_def_property_ui_text(prop, "Near", "Near distance for depth debugging");
-	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "debug_far", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "debug.zfar");
-	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
-	RNA_def_property_ui_text(prop, "Far", "Far distance for depth debugging");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "debug_background", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "debug.background");
-	RNA_def_property_enum_items(prop, debug_background_items);
-	RNA_def_property_ui_text(prop, "Background", "");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	/* *** Animated *** */

@@ -3128,48 +3128,6 @@ class VIEW3D_MT_edit_gpencil_interpolate(Menu):
 
 # ********** Panel **********
 
-
-class VIEW3D_PT_viewport_debug(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_label = "Modern Viewport"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        return (view)
-
-    def draw_header(self, context):
-        view = context.space_data
-        self.layout.prop(view, "use_modern_viewport", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        view = context.space_data
-
-        layout.active = view.use_modern_viewport
-
-        col = layout.column()
-        col.label(text="Placeholder for debugging options")
-        col.separator()
-
-        row = col.row()
-        row.active = not view.show_combined_depth
-        row.prop(view, "show_scene_depth")
-        row = col.row()
-        row.active = not view.show_scene_depth
-        row.prop(view, "show_combined_depth")
-
-        row = col.row(align=True)
-        row.active = view.show_scene_depth or view.show_combined_depth
-        row.prop(view, "debug_near")
-        row.prop(view, "debug_far")
-
-        col.label(text="Background:")
-        col.row(align=True).prop(view, "debug_background", expand=True)
-
-
 class VIEW3D_PT_grease_pencil(GreasePencilDataPanel, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -3283,7 +3241,7 @@ class VIEW3D_PT_view3d_display(Panel):
     @classmethod
     def poll(cls, context):
         view = context.space_data
-        return (view) and not view.use_modern_viewport
+        return (view)
 
     def draw(self, context):
         layout = self.layout
@@ -3382,11 +3340,6 @@ class VIEW3D_PT_view3d_shading(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Shading"
-
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        return (view) and not view.use_modern_viewport
 
     def draw(self, context):
         layout = self.layout
@@ -3944,7 +3897,6 @@ classes = (
     VIEW3D_MT_edit_armature_delete,
     VIEW3D_MT_edit_gpencil_transform,
     VIEW3D_MT_edit_gpencil_interpolate,
-    VIEW3D_PT_viewport_debug,
     VIEW3D_PT_grease_pencil,
     VIEW3D_PT_grease_pencil_palettecolor,
     VIEW3D_PT_view3d_properties,

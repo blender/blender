@@ -97,30 +97,6 @@
 
 #include "view3d_intern.h"  /* own include */
 
-/* prototypes */
-static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_depth, const bool use_depth);
-
-typedef struct DrawData {
-	rcti border_rect;
-	bool render_border;
-	bool clip_border;
-	bool is_render;
-	GPUViewport *viewport;
-} DrawData;
-
-static void view3d_draw_data_init(const bContext *C, ARegion *ar, RegionView3D *rv3d, DrawData *draw_data)
-{
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-
-	draw_data->is_render = (v3d->drawtype == OB_RENDER);
-
-	draw_data->render_border = ED_view3d_calc_render_border(scene, v3d, ar, &draw_data->border_rect);
-	draw_data->clip_border = (draw_data->render_border && !BLI_rcti_compare(&ar->drawrct, &draw_data->border_rect));
-
-	draw_data->viewport = rv3d->viewport;
-}
-
 /* ******************** general functions ***************** */
 
 static bool use_depth_doit(Scene *scene, View3D *v3d)
@@ -138,13 +114,6 @@ static bool use_depth_doit(Scene *scene, View3D *v3d)
 		}
 	}
 	return false;
-}
-
-static bool use_depth(const bContext *C)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	Scene *scene = CTX_data_scene(C);
-	return use_depth_doit(scene, v3d);
 }
 
 /**
@@ -330,77 +299,6 @@ void ED_view3d_draw_setup_view(
 		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat, rect);
 	}
 }
-
-/* ******************** debug ***************** */
-
-#define VIEW3D_DRAW_DEBUG 1
-/* TODO: expand scope of this flag so UI reflects the underlying code */
-
-#if VIEW3D_DRAW_DEBUG
-
-static void view3d_draw_debug_store_depth(ARegion *UNUSED(ar), DrawData *draw_data)
-{
-	GPUViewport *viewport = draw_data->viewport;
-	GLint viewport_size[4];
-	glGetIntegerv(GL_VIEWPORT, viewport_size);
-
-	const int x = viewport_size[0];
-	const int y = viewport_size[1];
-	const int w = viewport_size[2];
-	const int h = viewport_size[3];
-
-	if (GPU_viewport_debug_depth_is_valid(viewport)) {
-		if ((GPU_viewport_debug_depth_width(viewport) != w) ||
-		    (GPU_viewport_debug_depth_height(viewport) != h))
-		{
-			GPU_viewport_debug_depth_free(viewport);
-		}
-	}
-
-	if (!GPU_viewport_debug_depth_is_valid(viewport)) {
-		char error[256];
-		if (!GPU_viewport_debug_depth_create(viewport, w, h, error)) {
-			fprintf(stderr, "Failed to create depth buffer for debug: %s\n", error);
-			return;
-		}
-	}
-
-	GPU_viewport_debug_depth_store(viewport, x, y);
-}
-
-static void view3d_draw_debug_post_solid(const bContext *C, ARegion *ar, DrawData *draw_data)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-
-	if ((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_SCENE_DEPTH) != 0) {
-		view3d_draw_debug_store_depth(ar, draw_data);
-	}
-}
-
-static void view3d_draw_debug(const bContext *C, ARegion *ar, DrawData *draw_data)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-
-	if ((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_COMBINED_DEPTH) != 0) {
-		/* store */
-		view3d_draw_debug_store_depth(ar, draw_data);
-	}
-
-	if (((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_SCENE_DEPTH) != 0) ||
-	    ((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_COMBINED_DEPTH) != 0))
-	{
-		/* draw */
-		if (GPU_viewport_debug_depth_is_valid(draw_data->viewport)) {
-			GPU_viewport_debug_depth_draw(draw_data->viewport, v3d->debug.znear, v3d->debug.zfar);
-		}
-	}
-	else {
-		/* cleanup */
-		GPU_viewport_debug_depth_free(draw_data->viewport);
-	}
-}
-
-#endif /* VIEW3D_DRAW_DEBUG */
 
 /* ******************** view border ***************** */
 
@@ -847,72 +745,6 @@ void ED_view3d_draw_depth(
 	U.obcenter_dia = obcenter_dia;
 }
 
-/* ******************** offline engine ***************** */
-
-static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
-    ARegion *ar, View3D *UNUSED(v3d),
-    bool clip_border, const rcti *border_rect)
-{
-	RegionView3D *rv3d = ar->regiondata;
-	RenderEngineType *type;
-	GLint scissor[4];
-
-	/* create render engine */
-	if (!rv3d->render_engine) {
-		RenderEngine *engine;
-
-		type = RE_engines_find(scene->r.engine);
-
-		if (!(type->view_update && type->render_to_view))
-			return false;
-
-		engine = RE_engine_create_ex(type, true);
-
-		engine->tile_x = scene->r.tilex;
-		engine->tile_y = scene->r.tiley;
-
-		type->view_update(engine, C);
-
-		rv3d->render_engine = engine;
-	}
-
-	/* rendered draw */
-	gpuPushMatrix();
-	float original_proj[4][4];
-	gpuGetProjectionMatrix(original_proj);
-	ED_region_pixelspace(ar);
-
-	if (clip_border) {
-		/* for border draw, we only need to clear a subset of the 3d view */
-		if (border_rect->xmax > border_rect->xmin && border_rect->ymax > border_rect->ymin) {
-			glGetIntegerv(GL_SCISSOR_BOX, scissor);
-			glScissor(border_rect->xmin, border_rect->ymin,
-				BLI_rcti_size_x(border_rect), BLI_rcti_size_y(border_rect));
-		}
-		else {
-			return false;
-		}
-	}
-
-	/* don't change depth buffer */
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT); /* is this necessary? -- merwin */
-
-	/* render result draw */
-	type = rv3d->render_engine->type;
-	type->render_to_view(rv3d->render_engine, C);
-
-	if (clip_border) {
-		/* restore scissor as it was before */
-		glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-	}
-
-	gpuLoadProjectionMatrix(original_proj);
-	gpuPopMatrix();
-
-	return true;
-}
-
 /* ******************** background plates ***************** */
 
 static void view3d_draw_background_gradient(void)
@@ -975,77 +807,6 @@ static void view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D
 
 	/* if any of the above fails */
 	view3d_draw_background_none();
-}
-
-/* ******************** solid plates ***************** */
-
-/**
- * Clear the buffer and draw the proper shader
- */
-static void view3d_draw_background(const bContext *C)
-{
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
-	/* Background functions do not read or write depth, but they do clear or completely
-	 * overwrite color buffer.
-	 */
-
-	switch (v3d->debug.background) {
-		case V3D_DEBUG_BACKGROUND_WORLD:
-			view3d_draw_background_world(scene, v3d, rv3d);
-			break;
-		case V3D_DEBUG_BACKGROUND_GRADIENT:
-			view3d_draw_background_gradient();
-			break;
-		case V3D_DEBUG_BACKGROUND_NONE:
-		default:
-			view3d_draw_background_none();
-	}
-}
-
-/**
- *
- */
-static void view3d_draw_render_solid_surfaces(const bContext *C, ARegion *ar, const bool UNUSED(run_screen_shaders))
-{
-	/* TODO viewport */
-	draw_all_objects(C, ar, false, use_depth(C));
-}
-
-/**
- *
- */
-static void view3d_draw_render_transparent_surfaces(const bContext *UNUSED(C))
-{
-	/* TODO viewport */
-}
-
-/**
- *
- */
-static void view3d_draw_post_draw(const bContext *UNUSED(C))
-{
-	/* TODO viewport */
-}
-
-/* ******************** geometry overlay ***************** */
-
-/**
- * Front/back wire frames
- */
-static void view3d_draw_wire_plates(const bContext *UNUSED(C))
-{
-	/* TODO viewport */
-}
-
-/**
- * Special treatment for selected objects
- */
-static void view3d_draw_outline_plates(const bContext *UNUSED(C))
-{
-	/* TODO viewport */
 }
 
 /* ******************** other elements ***************** */
@@ -1540,57 +1301,6 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 	return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
-
-static void view3d_draw_grid(const bContext *C, ARegion *ar)
-{
-	/* TODO viewport
-	 * Missing is the flags to check whether to draw it
-	 * for now now we are using the flags in v3d itself.
-	 *
-	 * Also for now always assume depth is there, so we
-	 * draw on top of it.
-	 */
-	/**
-	 * Calculate pixel-size factor once, is used for lamps and object centers.
-	 * Used by #ED_view3d_pixel_size and typically not accessed directly.
-	 *
-	 * \note #BKE_camera_params_compute_viewplane' also calculates a pixel-size value,
-	 * passed to #RE_SetPixelSize, in ortho mode this is compatible with this value,
-	 * but in perspective mode its offset by the near-clip.
-	 *
-	 * 'RegionView3D.pixsize' is used for viewport drawing, not rendering.
-	 */
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ar->regiondata;
-
-	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
-	const char *grid_unit = NULL;
-
-	/* ortho grid goes first, does not write to depth buffer and doesn't need depth test so it will override
-	 * objects if done last
-	 * needs to be done always, gridview is adjusted in drawgrid() now, but only for ortho views.
-	 */
-	rv3d->gridview = ED_view3d_grid_scale(scene, v3d, &grid_unit);
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE); /* read & test depth, but don't alter it. TODO: separate UI depth buffer */
-
-	if (!draw_floor) {
-		ED_region_pixelspace(ar);
-		*(&grid_unit) = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
-		drawgrid(&scene->unit, ar, v3d, &grid_unit);
-
-		gpuLoadProjectionMatrix(rv3d->winmat);
-		gpuLoadMatrix(rv3d->viewmat);
-	}
-	else {
-		drawfloor(scene, v3d, &grid_unit, false);
-	}
-
-	glDisable(GL_DEPTH_TEST);
-}
-
 static bool is_cursor_visible(Scene *scene, SceneLayer *sl)
 {
 	Object *ob = OBACT_NEW;
@@ -1861,60 +1571,6 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 }
 #endif /* WITH_INPUT_NDOF */
 
-/* ******************** non-meshes ***************** */
-
-static void view3d_draw_non_mesh(
-Scene *scene, SceneLayer *sl, Object *ob, Base *base, View3D *v3d,
-RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
-{
-	gpuPushMatrix(); /* necessary? --merwin */
-
-	/* multiply view with object matrix.
-	 * local viewmat and persmat, to calculate projections */
-	ED_view3d_init_mats_rv3d_gl(ob, rv3d);
-
-	switch (ob->type) {
-		case OB_MESH:
-		case OB_FONT:
-		case OB_CURVE:
-		case OB_SURF:
-		case OB_MBALL:
-			if (is_boundingbox) {
-				draw_bounding_volume(ob, ob->boundtype, color);
-			}
-			break;
-		case OB_EMPTY:
-			drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, color);
-			break;
-		case OB_LAMP:
-			drawlamp(v3d, rv3d, base, OB_SOLID, DRAW_CONSTCOLOR, color, ob == OBACT_NEW);
-			break;
-		case OB_CAMERA:
-			drawcamera(scene, v3d, rv3d, base, DRAW_CONSTCOLOR, color);
-			break;
-		case OB_SPEAKER:
-			drawspeaker(color);
-			break;
-		case OB_LATTICE:
-			/* TODO */
-			break;
-		case OB_ARMATURE:
-			/* TODO */
-			break;
-		default:
-		/* TODO Viewport: handle the other cases*/
-			break;
-	}
-
-	if (ob->rigidbody_object) {
-		draw_rigidbody_shape(ob, color);
-	}
-
-	ED_view3d_clear_mats_rv3d(rv3d); /* no effect in release builds */
-
-	gpuPopMatrix(); /* see above */
-}
-
 /* ******************** info ***************** */
 
 /**
@@ -2142,180 +1798,6 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 
 /* ******************** view loop ***************** */
 
-static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_depth, const bool use_depth)
-{
-	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	View3D *v3d = CTX_wm_view3d(C);
-
-	if (only_depth)
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-
-	if (only_depth || use_depth) {
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glDepthMask(GL_TRUE);
-		v3d->zbuf = true;
-	}
-
-	for (Base *base = sl->object_bases.first; base; base = base->next) {
-		if ((base->flag & BASE_VISIBLED) != 0) {
-			/* dupli drawing */
-			if (base->object->transflag & OB_DUPLI)
-				draw_dupli_objects(scene, sl, ar, v3d, base);
-
-			draw_object(scene, sl, ar, v3d, base, 0);
-		}
-	}
-
-	if (only_depth)
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-	if (only_depth || use_depth) {
-		glDisable(GL_DEPTH_TEST);
-		v3d->zbuf = false;
-	}
-}
-
-/**
- * Draw only the scene depth buffer
- */
-static void draw_depth_buffer(const bContext *C, ARegion *ar)
-{
-	draw_all_objects(C, ar, true, true);
-}
-
-/**
- * Required if the shaders need it or external engines
- * (e.g., Cycles requires depth buffer handled separately).
- */
-static void view3d_draw_prerender_buffers(const bContext *C, ARegion *ar, DrawData *draw_data)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-
-	/* TODO viewport */
-	if (draw_data->is_render && ((!draw_data->clip_border) || (v3d->drawtype <= OB_WIRE))) {
-		draw_depth_buffer(C, ar);
-	}
-}
-
-/**
- * Draw all the plates that will fill the RGBD buffer
- */
-static void view3d_draw_solid_plates(const bContext *C, ARegion *ar, DrawData *draw_data)
-{
-	/* realtime plates */
-	if ((!draw_data->is_render) || draw_data->clip_border) {
-		view3d_draw_render_solid_surfaces(C, ar, true);
-		view3d_draw_render_transparent_surfaces(C);
-		view3d_draw_post_draw(C);
-	}
-
-	/* offline plates */
-	if (draw_data->is_render) {
-		Scene *scene = CTX_data_scene(C);
-		View3D *v3d = CTX_wm_view3d(C);
-
-		/* TODO: move this outside of solid plates, after solid & before other 3D elements */
-		view3d_draw_render_draw(C, scene, ar, v3d, draw_data->clip_border, &draw_data->border_rect);
-	}
-
-#if VIEW3D_DRAW_DEBUG
-	view3d_draw_debug_post_solid(C, ar, draw_data);
-#endif
-}
-
-/**
- * Wires, outline, ...
- */
-static void view3d_draw_geometry_overlay(const bContext *C)
-{
-	view3d_draw_wire_plates(C);
-	view3d_draw_outline_plates(C);
-}
-
-/* drawing cameras, lamps, ... */
-static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
-{
-	/* TODO viewport
-	 * for now we draw them all, in the near future
-	 * we filter them based on the plates/layers
-	 */
-	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ar->regiondata;
-
-	bool is_boundingbox = ((v3d->drawtype == OB_BOUNDBOX) ||
-	                        ((v3d->drawtype == OB_RENDER) && (v3d->prev_drawtype == OB_BOUNDBOX)));
-
-	glEnable(GL_DEPTH_TEST);
-	/* TODO Viewport
-	 * we are already temporarily writing to zbuffer in draw_object()
-	 * for now let's avoid writing again to zbuffer to prevent glitches
-	 */
-
-	for (Base *base = sl->object_bases.first; base; base = base->next) {
-		if ((base->flag & BASE_VISIBLED) != 0) {
-			Object *ob = base->object;
-
-			unsigned char ob_wire_col[4];
-			draw_object_wire_color(scene, sl, base, ob_wire_col);
-			view3d_draw_non_mesh(scene, sl, ob, base, v3d, rv3d, is_boundingbox, ob_wire_col);
-		}
-	}
-
-	glDisable(GL_DEPTH_TEST);
-}
-
-/**
-* Parent lines, grid, ...
-*/
-static void view3d_draw_other_elements(const bContext *C, ARegion *ar)
-{
-	view3d_draw_grid(C, ar);
-
-#ifdef WITH_INPUT_NDOF
-	RegionView3D *rv3d = ar->regiondata;
-
-	if ((U.ndof_flag & NDOF_SHOW_GUIDE) && ((rv3d->viewlock & RV3D_LOCKED) == 0) && (rv3d->persp != RV3D_CAMOB))
-		/* TODO: draw something else (but not this) during fly mode */
-		draw_rotation_guide(rv3d);
-#endif
-}
-
-/**
- * Paint brushes, armatures, ...
- */
-static void view3d_draw_tool_ui(const bContext *UNUSED(C))
-{
-	/* TODO viewport */
-}
-
-/**
- * Blueprint images
- */
-static void view3d_draw_reference_images(const bContext *UNUSED(C))
-{
-	/* TODO viewport */
-}
-
-/**
-* 3D manipulators
- */
-static void view3d_draw_manipulators(const bContext *C, const ARegion *ar)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	v3d->zbuf = false;
-
-	/* TODO, only draws 3D manipulators right now, need to see how 2D drawing will work in new viewport */
-
-	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
-	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
-	 * later become _IN_SCENE (and draw _3D separate) */
-	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_3D);
-}
-
 /**
 * Information drawn on top of the solid plates and composed data
 */
@@ -2371,54 +1853,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 #endif
 }
 
-/**
- * This could run once per view, or even in parallel
- * for each of them. What is a "view"?
- * - a viewport with the camera elsewhere
- * - left/right stereo
- * - panorama / fisheye individual cubemap faces
- */
-static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data)
-{
-	/* TODO - Technically this should be drawn to a few FBO, so we can handle
-	 * compositing better, but for now this will get the ball rolling (dfelinto) */
-
-	glDepthMask(GL_TRUE); /* should be set by default */
-	glClear(GL_DEPTH_BUFFER_BIT);
-//	glDisable(GL_DEPTH_TEST); /* should be set by default */
-
-	view3d_draw_background(C); /* clears/overwrites entire color buffer */
-
-	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_scene(C), ar, CTX_wm_view3d(C), NULL, NULL, NULL);
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	view3d_draw_prerender_buffers(C, ar, draw_data); /* depth pre-pass */
-
-//	glDepthFunc(GL_EQUAL); /* TODO: do this after separating surfaces from wires */
-//	glDepthMask(GL_FALSE); /* same TODO as above */
-	view3d_draw_solid_plates(C, ar, draw_data);
-
-//	glDepthFunc(GL_LEQUAL); /* same TODO as above */
-//	glDepthMask(GL_TRUE); /* same TODO as above */
-
-	view3d_draw_geometry_overlay(C);
-	view3d_draw_non_meshes(C, ar);
-	view3d_draw_other_elements(C, ar);
-	view3d_draw_tool_ui(C);
-	view3d_draw_reference_images(C);
-	view3d_draw_manipulators(C, ar);
-
-	glDisable(GL_DEPTH_TEST);
-
-	view3d_draw_region_info(C, ar, 0);
-
-#if VIEW3D_DRAW_DEBUG
-	view3d_draw_debug(C, ar, draw_data);
-#endif
-}
-
-static void view3d_draw_view_new(const bContext *C, ARegion *ar, DrawData *UNUSED(draw_data))
+static void view3d_draw_view(const bContext *C, ARegion *ar)
 {
 	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_scene(C), ar, CTX_wm_view3d(C), NULL, NULL, NULL);
 
@@ -2431,32 +1866,21 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
-	/* TODO layers - In the future we should get RE from Layers */
+	/* XXX: In the future we should get RE from Layers/Depsgraph */
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 
-	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_LEGACY_PIPELINE) != 0)) {
+	/* Provisory Blender Internal drawing */
+	if (type->flag & RE_USE_LEGACY_PIPELINE) {
 		view3d_main_region_draw_legacy(C, ar);
 		return;
 	}
 
-	if (!rv3d->viewport)
+	if (!rv3d->viewport) {
 		rv3d->viewport = GPU_viewport_create();
-
-	/* TODO viewport - there is so much to be done, in fact a lot will need to happen in the space_view3d.c
-	 * before we even call the drawing routine, but let's move on for now (dfelinto)
-	 * but this is a provisory way to start seeing things in the viewport */
-	DrawData draw_data;
-	view3d_draw_data_init(C, ar, rv3d, &draw_data);
+	}
 
 	GPU_viewport_bind(rv3d->viewport, &ar->winrct);
-
-	if ((type->flag & RE_USE_LEGACY_PIPELINE) == 0) {
-		view3d_draw_view_new(C, ar, &draw_data);
-	}
-	else {
-		view3d_draw_view(C, ar, &draw_data);
-	}
-
+	view3d_draw_view(C, ar);
 	GPU_viewport_unbind(rv3d->viewport);
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
@@ -2492,7 +1916,7 @@ static void view3d_stereo3d_setup_offscreen(
 void ED_view3d_draw_offscreen_init(Scene *scene, SceneLayer *sl, View3D *v3d)
 {
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_LEGACY_PIPELINE) != 0)) {
+	if (type->flag & RE_USE_LEGACY_PIPELINE) {
 		/* shadow buffers, before we setup matrices */
 		if (draw_glsl_material(scene, sl, NULL, v3d, v3d->drawtype)) {
 			VP_deprecated_gpu_update_lamps_shadows_world(scene, v3d);
@@ -2574,7 +1998,7 @@ void ED_view3d_draw_offscreen(
 
 	/* main drawing call */
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_LEGACY_PIPELINE) != 0)) {
+	if (type->flag & RE_USE_LEGACY_PIPELINE) {
 
 		/* framebuffer fx needed, we need to draw offscreen first */
 		if (v3d->fx_settings.fx_flag && fx) {

@@ -225,11 +225,7 @@ typedef struct View3D {
 
 	char multiview_eye;				/* multiview current eye - for internal use */
 
-	/* XXX tmp flags for 2.8 viewport transition to avoid compatibility issues that would be caused by
-	 * using usual flag bitfields (which are saved to files). Can be removed when not needed anymore. */
-	char tmp_compat_flag;
-
-	char pad3[3];
+	char pad3[4];
 
 	/* note, 'fx_settings.dof' is currently _not_ allocated,
 	 * instead set (temporarily) from camera */
@@ -331,13 +327,6 @@ typedef struct View3D {
 
 /* View3d->flag3 (short) */
 #define V3D_SHOW_WORLD			(1 << 0)
-
-/* View3d->tmp_compat_flag */
-enum {
-	V3D_NEW_VIEWPORT              = (1 << 0),
-	V3D_DEBUG_SHOW_SCENE_DEPTH    = (1 << 1),
-	V3D_DEBUG_SHOW_COMBINED_DEPTH = (1 << 2),
-};
 
 /* View3d->debug.background */
 enum {

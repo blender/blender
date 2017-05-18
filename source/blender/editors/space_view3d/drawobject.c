@@ -4990,7 +4990,7 @@ static void draw_mesh_fancy_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3
 	dm->release(dm);
 }
 
-static bool draw_mesh_object_new(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+static bool UNUSED_FUNCTION(draw_mesh_object_new)(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
                                  const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
@@ -8706,22 +8706,15 @@ void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *b
 		}
 
 		/* TODO Viewport: draw only for selection */
-		if (!IS_VIEWPORT_LEGACY(v3d)) {
-			if ((dflag & DRAW_PICKING) == 0) {
-				if ((dt == OB_BOUNDBOX) || ELEM(ob->type, OB_EMPTY, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
-					goto afterdraw;
+		if ((dflag & DRAW_PICKING) == 0) {
+			if ((dt == OB_BOUNDBOX) || ELEM(ob->type, OB_EMPTY, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
+				goto afterdraw;
 				}
-			}
 		}
 
 		switch (ob->type) {
 			case OB_MESH:
-				if (IS_VIEWPORT_LEGACY(v3d)) {
-					empty_object = draw_mesh_object(scene, sl, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
-				}
-				else {
-					empty_object = draw_mesh_object_new(scene, sl, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
-				}
+				empty_object = draw_mesh_object(scene, sl, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					/* mesh draws wire itself */
 					dtx &= ~OB_DRAWWIRE;

@@ -335,11 +335,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiItemMenuEnumO(row, C, "OBJECT_OT_mode_set", "mode", name, icon);
 	}
 
-	if (IS_VIEWPORT_LEGACY(v3d)) {
-		/* Draw type */
-		uiItemR(layout, &v3dptr, "viewport_shade", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-	}
-
 	row = uiLayoutRow(layout, true);
 	uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	if (!ob || ELEM(ob->mode, OB_MODE_OBJECT, OB_MODE_POSE, OB_MODE_WEIGHT_PAINT)) {
