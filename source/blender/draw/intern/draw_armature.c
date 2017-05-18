@@ -78,6 +78,7 @@ static struct {
 	DRWShadingGroup *bone_box_solid;
 	DRWShadingGroup *bone_box_wire;
 	DRWShadingGroup *bone_wire_wire;
+	DRWShadingGroup *bone_envelope_solid;
 	DRWShadingGroup *bone_envelope_distance;
 	DRWShadingGroup *bone_envelope_wire;
 	DRWShadingGroup *bone_envelope_head_wire;
@@ -163,6 +164,18 @@ static void DRW_shgroup_bone_envelope_distance(
 
 		DRW_shgroup_call_dynamic_add(g_data.bone_envelope_distance, bone_mat, color, radius_head, radius_tail, distance);
 	}
+}
+
+static void DRW_shgroup_bone_envelope_solid(
+        const float (*bone_mat)[4], const float color[4],
+        const float *radius_head, const float *radius_tail)
+{
+	if (g_data.bone_envelope_solid == NULL) {
+		struct Batch *geom = DRW_cache_bone_envelope_get();
+		g_data.bone_envelope_solid = shgroup_instance_bone_envelope_solid(g_data.pass_bone_solid, geom, g_data.ob->obmat);
+	}
+
+	DRW_shgroup_call_dynamic_add(g_data.bone_envelope_solid, bone_mat, color, radius_head, radius_tail);
 }
 
 static void DRW_shgroup_bone_envelope_wire(
@@ -591,7 +604,31 @@ static const float *get_bone_solid_color(
 		}
 	}
 #else
-	UNUSED_VARS(eBone, pchan, arm);
+	if (arm->drawtype == ARM_ENVELOPE) {
+		/* Edit Mode */
+		if (eBone) {
+			bool is_active = (arm->act_edbone == eBone);
+			if (eBone->flag & BONE_SELECTED) {
+				if (is_active) {
+					return g_theme.edge_select_color;
+				}
+				else {
+					return g_theme.bone_select_color;
+				}
+			}
+		}
+		else if (arm->flag & ARM_POSEMODE) {
+			bool is_active = (arm->act_bone == pchan->bone);
+			if (pchan->bone->flag & BONE_SELECTED) {
+				if (is_active) {
+					return g_theme.bone_pose_active_color;
+				}
+				else {
+					return g_theme.bone_pose_color;
+				}
+			}
+		}
+	}
 #endif
 
 	if (arm->flag & ARM_POSEMODE) {
@@ -895,18 +932,27 @@ static void draw_points(
 	const float *col_wire_tail = (g_theme.const_color) ? g_theme.const_color : g_theme.vertex_color;
 
 	const bool is_envelope_draw = (arm->drawtype == ARM_ENVELOPE);
+	static const float envelope_ignore = -1.0f;
 
 	/* Edit bone points can be selected */
 	if (eBone) {
 		if (eBone->flag & BONE_ROOTSEL) {
 #ifdef USE_SOLID_COLOR
 			col_solid_root = g_theme.vertex_select_color;
+#else
+			if (is_envelope_draw) {
+				col_solid_root = g_theme.vertex_select_color;
+			}
 #endif
 			col_wire_root = g_theme.vertex_select_color;
 		}
 		if (eBone->flag & BONE_TIPSEL) {
 #ifdef USE_SOLID_COLOR
 			col_solid_tail = g_theme.vertex_select_color;
+#else
+			if (is_envelope_draw) {
+				col_solid_tail = g_theme.vertex_select_color;
+			}
 #endif
 			col_wire_tail = g_theme.vertex_select_color;
 		}
@@ -925,6 +971,8 @@ static void draw_points(
 		if (eBone) {
 			if (!((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent))) {
 				if (is_envelope_draw) {
+					DRW_shgroup_bone_envelope_solid(eBone->disp_mat, col_solid_root,
+					                                &eBone->rad_head, &envelope_ignore);
 					DRW_shgroup_bone_envelope_head_wire(eBone->disp_mat, col_wire_root,
 					                                    &eBone->rad_head, &eBone->rad_tail, &eBone->dist);
 				}
@@ -938,6 +986,8 @@ static void draw_points(
 			Bone *bone = pchan->bone;
 			if (!((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)))) {
 				if (is_envelope_draw) {
+					DRW_shgroup_bone_envelope_solid(pchan->disp_mat, col_solid_root,
+					                                &bone->rad_head, &envelope_ignore);
 					DRW_shgroup_bone_envelope_head_wire(pchan->disp_mat, col_wire_root,
 					                                    &bone->rad_head, &bone->rad_tail, &bone->dist);
 				}
@@ -964,6 +1014,8 @@ static void draw_points(
 			rad_tail = &pchan->bone->rad_tail;
 			dist = &pchan->bone->dist;
 		}
+		DRW_shgroup_bone_envelope_solid(
+		            BONE_VAR(eBone, pchan, disp_mat), col_solid_tail, &envelope_ignore, rad_tail);
 		DRW_shgroup_bone_envelope_head_wire(
 		            BONE_VAR(eBone, pchan, disp_tail_mat), col_wire_tail, rad_tail, rad_tail, dist);
 	}
@@ -1011,7 +1063,7 @@ static void draw_bone_envelope(
         const int boneflag, const short constflag,
         const int select_id)
 {
-//	const float *col_solid = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
+	const float *col_solid = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
 
 	static const float col_white[4] = {1.0f, 1.0f, 1.0f, 0.2f};
@@ -1038,6 +1090,7 @@ static void draw_bone_envelope(
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
+	DRW_shgroup_bone_envelope_solid(BONE_VAR(eBone, pchan, disp_mat), col_solid, rad_head, rad_tail);
 	DRW_shgroup_bone_envelope_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire, rad_head, rad_tail, distance);
 
 	if (select_id != -1) {

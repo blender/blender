@@ -308,6 +308,22 @@ DRWShadingGroup *shgroup_instance_bone_envelope(DRWPass *pass, struct Batch *geo
 	return grp;
 }
 
+DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, struct Batch *geom, float (*obmat)[4])
+{
+	static float light[3] = {0.0f, 0.0f, 1.0f};
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_SOLID);
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
+	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
+	DRW_shgroup_attrib_float(grp, "color", 4);
+	DRW_shgroup_attrib_float(grp, "radius_head", 1);
+	DRW_shgroup_attrib_float(grp, "radius_tail", 1);
+	DRW_shgroup_uniform_mat4(grp, "ObjectModelMatrix", (float *)obmat);
+	DRW_shgroup_uniform_vec3(grp, "light", light, 1);
+
+	return grp;
+}
+
 
 /* ******************************************** COLOR UTILS *********************************************** */
 
