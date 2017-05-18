@@ -70,9 +70,7 @@
 
 #include "WM_api.h"
 
-#include "GPU_basic_shader.h"
 #include "GPU_draw.h"
-#include "GPU_extensions.h"
 
 /* for passing information between creator and gameengine */
 #ifdef WITH_GAMEENGINE
@@ -567,7 +565,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--env-system-python");
 	printf("\n");
 	BLI_argsPrintArgDoc(ba, "-nojoystick");
-	BLI_argsPrintArgDoc(ba, "-noglsl");
 	BLI_argsPrintArgDoc(ba, "-noaudio");
 	BLI_argsPrintArgDoc(ba, "-setaudio");
 
@@ -585,7 +582,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
 	printf("\n");
 	printf("Experimental Features:\n");
-	BLI_argsPrintArgDoc(ba, "--enable-new-basic-shader-glsl");
 
 	/* Other options _must_ be last (anything not handled will show here) */
 	printf("\n");
@@ -1007,15 +1003,6 @@ static int arg_handle_joystick_disable(int UNUSED(argc), const char **UNUSED(arg
 	if (G.debug & G_DEBUG) printf("disabling nojoystick\n");
 #endif
 
-	return 0;
-}
-
-static const char arg_handle_glsl_disable_doc[] =
-"\n\tDisable GLSL shading"
-;
-static int arg_handle_glsl_disable(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
-{
-	GPU_extensions_disable();
 	return 0;
 }
 
@@ -1839,7 +1826,6 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	/* third pass: disabling things and forcing settings */
 	BLI_argsAddCase(ba, 3, "-nojoystick", 1, NULL, 0, CB(arg_handle_joystick_disable), syshandle);
-	BLI_argsAddCase(ba, 3, "-noglsl", 1, NULL, 0, CB(arg_handle_glsl_disable), NULL);
 	BLI_argsAddCase(ba, 3, "-noaudio", 1, NULL, 0, CB(arg_handle_audio_disable), NULL);
 	BLI_argsAddCase(ba, 3, "-setaudio", 1, NULL, 0, CB(arg_handle_audio_set), NULL);
 

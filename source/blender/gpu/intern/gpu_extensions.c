@@ -70,7 +70,6 @@ static struct GPUGlobal {
 	GLint maxtextures;
 	GLint maxubosize;
 	GLint maxubobinds;
-	bool extdisabled;
 	int colordepth;
 	int samples_color_texture_max;
 	GPUDeviceType device;
@@ -91,11 +90,6 @@ bool GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
 }
 
 /* GPU Extensions */
-
-void GPU_extensions_disable(void)
-{
-	GG.extdisabled = true;
-}
 
 int GPU_max_texture_size(void)
 {
