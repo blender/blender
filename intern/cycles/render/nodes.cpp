@@ -2316,8 +2316,8 @@ NODE_DEFINE(PrincipledBsdfNode)
 	SOCKET_IN_FLOAT(clearcoat, "Clearcoat", 0.0f);
 	SOCKET_IN_FLOAT(clearcoat_gloss, "Clearcoat Gloss", 0.0f);
 	SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
-	SOCKET_IN_FLOAT(transparency, "Transparency", 0.0f);
-	SOCKET_IN_FLOAT(refraction_roughness, "Refraction Roughness", 0.0f);
+	SOCKET_IN_FLOAT(transmission, "Transmission", 0.0f);
+	SOCKET_IN_FLOAT(transmission_roughness, "Transmission Roughness", 0.0f);
 	SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
 	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
 	SOCKET_IN_NORMAL(clearcoat_normal, "Clearcoat Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
@@ -2352,7 +2352,7 @@ void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attribu
 void PrincipledBsdfNode::compile(SVMCompiler& compiler, ShaderInput *p_metallic, ShaderInput *p_subsurface, ShaderInput *p_subsurface_radius,
 	ShaderInput *p_specular, ShaderInput *p_roughness, ShaderInput *p_specular_tint, ShaderInput *p_anisotropic,
 	ShaderInput *p_sheen, ShaderInput *p_sheen_tint, ShaderInput *p_clearcoat, ShaderInput *p_clearcoat_gloss,
-	ShaderInput *p_ior, ShaderInput *p_transparency, ShaderInput *p_anisotropic_rotation, ShaderInput *p_refraction_roughness)
+	ShaderInput *p_ior, ShaderInput *p_transmission, ShaderInput *p_anisotropic_rotation, ShaderInput *p_transmission_roughness)
 {
 	ShaderInput *base_color_in = input("Base Color");
 	ShaderInput *subsurface_color_in = input("Subsurface Color");
@@ -2376,8 +2376,8 @@ void PrincipledBsdfNode::compile(SVMCompiler& compiler, ShaderInput *p_metallic,
 	int clearcoat_offset = compiler.stack_assign(p_clearcoat);
 	int clearcoat_gloss_offset = compiler.stack_assign(p_clearcoat_gloss);
 	int ior_offset = compiler.stack_assign(p_ior);
-	int transparency_offset = compiler.stack_assign(p_transparency);
-	int refraction_roughness_offset = compiler.stack_assign(p_refraction_roughness);
+	int transmission_offset = compiler.stack_assign(p_transmission);
+	int transmission_roughness_offset = compiler.stack_assign(p_transmission_roughness);
 	int anisotropic_rotation_offset = compiler.stack_assign(p_anisotropic_rotation);
 	int subsurface_radius_offset = compiler.stack_assign(p_subsurface_radius);
 
@@ -2393,7 +2393,7 @@ void PrincipledBsdfNode::compile(SVMCompiler& compiler, ShaderInput *p_metallic,
 		compiler.encode_uchar4(specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
 		compiler.encode_uchar4(sheen_offset, sheen_tint_offset, clearcoat_offset, clearcoat_gloss_offset));
 
-	compiler.add_node(compiler.encode_uchar4(ior_offset, transparency_offset, anisotropic_rotation_offset, refraction_roughness_offset),
+	compiler.add_node(compiler.encode_uchar4(ior_offset, transmission_offset, anisotropic_rotation_offset, transmission_roughness_offset),
 		distribution, SVM_STACK_INVALID, SVM_STACK_INVALID);
 
 	float3 bc_default = get_float3(base_color_in->socket_type);
@@ -2419,8 +2419,8 @@ void PrincipledBsdfNode::compile(SVMCompiler& compiler)
 {
 	compile(compiler, input("Metallic"), input("Subsurface"), input("Subsurface Radius"), input("Specular"),
 		input("Roughness"), input("Specular Tint"), input("Anisotropic"), input("Sheen"), input("Sheen Tint"),
-		input("Clearcoat"), input("Clearcoat Gloss"), input("IOR"), input("Transparency"),
-		input("Anisotropic Rotation"), input("Refraction Roughness"));
+		input("Clearcoat"), input("Clearcoat Gloss"), input("IOR"), input("Transmission"),
+		input("Anisotropic Rotation"), input("Transmission Roughness"));
 }
 
 void PrincipledBsdfNode::compile(OSLCompiler& compiler)

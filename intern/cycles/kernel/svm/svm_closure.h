@@ -79,14 +79,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #ifdef __PRINCIPLED__
 		case CLOSURE_BSDF_PRINCIPLED_ID: {
 			uint specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset, sheen_offset,
-				sheen_tint_offset, clearcoat_offset, clearcoat_gloss_offset, eta_offset, transparency_offset,
-				anisotropic_rotation_offset, refraction_roughness_offset;
+				sheen_tint_offset, clearcoat_offset, clearcoat_gloss_offset, eta_offset, transmission_offset,
+				anisotropic_rotation_offset, transmission_roughness_offset;
 			uint4 data_node2 = read_node(kg, offset);
 
 			float3 T = stack_load_float3(stack, data_node.y);
 			decode_node_uchar4(data_node.z, &specular_offset, &roughness_offset, &specular_tint_offset, &anisotropic_offset);
 			decode_node_uchar4(data_node.w, &sheen_offset, &sheen_tint_offset, &clearcoat_offset, &clearcoat_gloss_offset);
-			decode_node_uchar4(data_node2.x, &eta_offset, &transparency_offset, &anisotropic_rotation_offset, &refraction_roughness_offset);
+			decode_node_uchar4(data_node2.x, &eta_offset, &transmission_offset, &anisotropic_rotation_offset, &transmission_roughness_offset);
 
 			// get Disney principled parameters
 			float metallic = param1;
@@ -99,9 +99,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			float sheen_tint = stack_load_float(stack, sheen_tint_offset);
 			float clearcoat = stack_load_float(stack, clearcoat_offset);
 			float clearcoat_gloss = stack_load_float(stack, clearcoat_gloss_offset);
-			float transparency = stack_load_float(stack, transparency_offset);
+			float transmission = stack_load_float(stack, transmission_offset);
 			float anisotropic_rotation = stack_load_float(stack, anisotropic_rotation_offset);
-			float refraction_roughness = stack_load_float(stack, refraction_roughness_offset);
+			float transmission_roughness = stack_load_float(stack, transmission_roughness_offset);
 			float eta = fmaxf(stack_load_float(stack, eta_offset), 1e-5f);
 
 			ClosureType distribution = stack_valid(data_node2.y) ? (ClosureType) data_node2.y : CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
@@ -118,10 +118,10 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			float fresnel = fresnel_dielectric_cos(cosNO, ior);
 
 			// calculate weights of the diffuse and specular part
-			float diffuse_weight = (1.0f - saturate(metallic)) * (1.0f - saturate(transparency));
+			float diffuse_weight = (1.0f - saturate(metallic)) * (1.0f - saturate(transmission));
 			
-			float transp = saturate(transparency) * (1.0f - saturate(metallic));
-			float specular_weight = (1.0f - transp);
+			float final_transmission = saturate(transmission) * (1.0f - saturate(metallic));
+			float specular_weight = (1.0f - final_transmission);
 
 			// get the base color
 			uint4 data_base_color = read_node(kg, offset);
@@ -300,8 +300,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #ifdef __CAUSTICS_TRICKS__
 			if(kernel_data.integrator.caustics_reflective || kernel_data.integrator.caustics_refractive || (path_flag & PATH_RAY_DIFFUSE) == 0) {
 #endif
-				if(transp > CLOSURE_WEIGHT_CUTOFF) {
-					float3 glass_weight = weight * transp;
+				if(final_transmission > CLOSURE_WEIGHT_CUTOFF) {
+					float3 glass_weight = weight * final_transmission;
 					float3 cspec0 = base_color * specular_tint + make_float3(1.0f, 1.0f, 1.0f) * (1.0f - specular_tint);
 
 					if(roughness <= 5e-2f || distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID) { /* use single-scatter GGX */
@@ -342,12 +342,12 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 								bsdf->N = N;
 
 								if(distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID)
-									refraction_roughness = 1.0f - (1.0f - refl_roughness) * (1.0f - refraction_roughness);
+									transmission_roughness = 1.0f - (1.0f - refl_roughness) * (1.0f - transmission_roughness);
 								else
-									refraction_roughness = refl_roughness;
+									transmission_roughness = refl_roughness;
 
-								bsdf->alpha_x = refraction_roughness * refraction_roughness;
-								bsdf->alpha_y = refraction_roughness * refraction_roughness;
+								bsdf->alpha_x = transmission_roughness * transmission_roughness;
+								bsdf->alpha_y = transmission_roughness * transmission_roughness;
 								bsdf->ior = ior;
 
 								/* setup bsdf */
