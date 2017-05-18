@@ -60,7 +60,7 @@ static IDProperty *collection_engine_settings_create(struct EngineSettingsCB_Typ
 static IDProperty *collection_engine_get(IDProperty *root, const int type, const char *engine_name);
 static void collection_engine_settings_init(IDProperty *root, const bool populate);
 static void layer_engine_settings_init(IDProperty *root, const bool populate);
-static void object_bases_Iterator_next(Iterator *iter, const int flag);
+static void object_bases_Iterator_next(BLI_Iterator *iter, const int flag);
 
 /* RenderLayer */
 
@@ -1586,7 +1586,7 @@ void BKE_scene_layer_engine_settings_validate_layer(SceneLayer *sl)
 /* ---------------------------------------------------------------------- */
 /* Iterators */
 
-static void object_bases_Iterator_begin(Iterator *iter, void *data_in, const int flag)
+static void object_bases_Iterator_begin(BLI_Iterator *iter, void *data_in, const int flag)
 {
 	SceneLayer *sl = data_in;
 	Base *base = sl->object_bases.first;
@@ -1608,7 +1608,7 @@ static void object_bases_Iterator_begin(Iterator *iter, void *data_in, const int
 	}
 }
 
-static void object_bases_Iterator_next(Iterator *iter, const int flag)
+static void object_bases_Iterator_next(BLI_Iterator *iter, const int flag)
 {
 	Base *base = ((Base *)iter->data)->next;
 
@@ -1625,7 +1625,7 @@ static void object_bases_Iterator_next(Iterator *iter, const int flag)
 	iter->valid = false;
 }
 
-static void objects_Iterator_begin(Iterator *iter, void *data_in, const int flag)
+static void objects_Iterator_begin(BLI_Iterator *iter, void *data_in, const int flag)
 {
 	object_bases_Iterator_begin(iter, data_in, flag);
 
@@ -1634,7 +1634,7 @@ static void objects_Iterator_begin(Iterator *iter, void *data_in, const int flag
 	}
 }
 
-static void objects_Iterator_next(Iterator *iter, const int flag)
+static void objects_Iterator_next(BLI_Iterator *iter, const int flag)
 {
 	object_bases_Iterator_next(iter, flag);
 
@@ -1643,62 +1643,62 @@ static void objects_Iterator_next(Iterator *iter, const int flag)
 	}
 }
 
-void BKE_selected_objects_iterator_begin(Iterator *iter, void *data_in)
+void BKE_selected_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	objects_Iterator_begin(iter, data_in, BASE_SELECTED);
 }
 
-void BKE_selected_objects_iterator_next(Iterator *iter)
+void BKE_selected_objects_iterator_next(BLI_Iterator *iter)
 {
 	objects_Iterator_next(iter, BASE_SELECTED);
 }
 
-void BKE_selected_objects_iterator_end(Iterator *UNUSED(iter))
+void BKE_selected_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_visible_objects_iterator_begin(Iterator *iter, void *data_in)
+void BKE_visible_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	objects_Iterator_begin(iter, data_in, BASE_VISIBLED);
 }
 
-void BKE_visible_objects_iterator_next(Iterator *iter)
+void BKE_visible_objects_iterator_next(BLI_Iterator *iter)
 {
 	objects_Iterator_next(iter, BASE_VISIBLED);
 }
 
-void BKE_visible_objects_iterator_end(Iterator *UNUSED(iter))
+void BKE_visible_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_selected_bases_iterator_begin(Iterator *iter, void *data_in)
+void BKE_selected_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	object_bases_Iterator_begin(iter, data_in, BASE_SELECTED);
 }
 
-void BKE_selected_bases_iterator_next(Iterator *iter)
+void BKE_selected_bases_iterator_next(BLI_Iterator *iter)
 {
 	object_bases_Iterator_next(iter, BASE_SELECTED);
 }
 
-void BKE_selected_bases_iterator_end(Iterator *UNUSED(iter))
+void BKE_selected_bases_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_visible_bases_iterator_begin(Iterator *iter, void *data_in)
+void BKE_visible_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	object_bases_Iterator_begin(iter, data_in, BASE_VISIBLED);
 }
 
-void BKE_visible_bases_iterator_next(Iterator *iter)
+void BKE_visible_bases_iterator_next(BLI_Iterator *iter)
 {
 	object_bases_Iterator_next(iter, BASE_VISIBLED);
 }
 
-void BKE_visible_bases_iterator_end(Iterator *UNUSED(iter))
+void BKE_visible_bases_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }

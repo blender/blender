@@ -105,7 +105,7 @@ typedef struct DAGObjectsIteratorData {
 	int flag;
 } DAGObjectsIteratorData;
 
-void DAG_objects_iterator_begin(Iterator *iter, void *data_in)
+void DAG_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	SceneLayer *scene_layer;
 	Depsgraph *graph = (Depsgraph *) data_in;
@@ -124,7 +124,7 @@ void DAG_objects_iterator_begin(Iterator *iter, void *data_in)
 	DAG_objects_iterator_next(iter);
 }
 
-void DAG_objects_iterator_next(Iterator *iter)
+void DAG_objects_iterator_next(BLI_Iterator *iter)
 {
 	DAGObjectsIteratorData *data = (DAGObjectsIteratorData *)iter->data;
 	Base *base = data->base->next;
@@ -163,7 +163,7 @@ void DAG_objects_iterator_next(Iterator *iter)
 	iter->valid = false;
 }
 
-void DAG_objects_iterator_end(Iterator *iter)
+void DAG_objects_iterator_end(BLI_Iterator *iter)
 {
 	DAGObjectsIteratorData *data = (DAGObjectsIteratorData *)iter->data;
 	if (data) {

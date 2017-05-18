@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-struct Iterator;
+struct BLI_Iterator;
 struct SceneCollection;
 struct Object;
 struct Base;
@@ -67,13 +67,13 @@ void BKE_scene_collections_callback(struct Scene *scene, BKE_scene_collections_C
 void BKE_scene_objects_callback(struct Scene *scene, BKE_scene_objects_Cb callback, void *data);
 
 /* iterators */
-void BKE_scene_collections_iterator_begin(struct Iterator *iter, void *data_in);
-void BKE_scene_collections_iterator_next(struct Iterator *iter);
-void BKE_scene_collections_iterator_end(struct Iterator *iter);
+void BKE_scene_collections_iterator_begin(struct BLI_Iterator *iter, void *data_in);
+void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter);
+void BKE_scene_collections_iterator_end(struct BLI_Iterator *iter);
 
-void BKE_scene_objects_iterator_begin(struct Iterator *iter, void *data_in);
-void BKE_scene_objects_iterator_next(struct Iterator *iter);
-void BKE_scene_objects_iterator_end(struct Iterator *iter);
+void BKE_scene_objects_iterator_begin(struct BLI_Iterator *iter, void *data_in);
+void BKE_scene_objects_iterator_next(struct BLI_Iterator *iter);
+void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
 #define FOREACH_SCENE_COLLECTION(scene, _instance)                            \
 	ITER_BEGIN(BKE_scene_collections_iterator_begin,                          \

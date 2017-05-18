@@ -27,20 +27,20 @@
  *  \ingroup bli
  */
 
-typedef struct Iterator {
+typedef struct BLI_Iterator {
 	void *current; /* current pointer we iterate over */
 	void *data;    /* stored data required for this iterator */
 	bool valid;
-} Iterator;
+} BLI_Iterator;
 
-typedef void (*IteratorCb)(Iterator *iter);
-typedef void (*IteratorBeginCb)(Iterator *iter, void *data_in);
+typedef void (*IteratorCb)(BLI_Iterator *iter);
+typedef void (*IteratorBeginCb)(BLI_Iterator *iter, void *data_in);
 
 #define ITER_BEGIN(callback_begin, callback_next, callback_end, _data_in, _type, _instance) \
 {                                                                                    \
 	_type _instance;                                                                 \
 	IteratorCb callback_end_func = callback_end;                                     \
-	Iterator iter_macro;                                                             \
+	BLI_Iterator iter_macro;                                                             \
 	for (callback_begin(&iter_macro, (_data_in));                                    \
 	     iter_macro.valid;                                                           \
 	     callback_next(&iter_macro))                                                 \

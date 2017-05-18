@@ -87,15 +87,15 @@ static void rna_Depsgraph_debug_stats(Depsgraph *graph, ReportList *reports)
 static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Depsgraph *graph = (Depsgraph *)ptr->data;
-	iter->internal.custom = MEM_callocN(sizeof(Iterator), __func__);
+	iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
 	DAG_objects_iterator_begin(iter->internal.custom, graph);
-	iter->valid = ((Iterator *)iter->internal.custom)->valid;
+	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
 
 static void rna_Depsgraph_objects_next(CollectionPropertyIterator *iter)
 {
 	DAG_objects_iterator_next(iter->internal.custom);
-	iter->valid = ((Iterator *)iter->internal.custom)->valid;
+	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
 
 static void rna_Depsgraph_objects_end(CollectionPropertyIterator *iter)
@@ -106,7 +106,7 @@ static void rna_Depsgraph_objects_end(CollectionPropertyIterator *iter)
 
 static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
 {
-	Object *ob = ((Iterator *)iter->internal.custom)->current;
+	Object *ob = ((BLI_Iterator *)iter->internal.custom)->current;
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ob);
 }
 

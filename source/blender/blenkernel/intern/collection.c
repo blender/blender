@@ -508,7 +508,7 @@ static void scene_collections_array(Scene *scene, SceneCollection ***collections
  * Only use this in non-performance critical situations
  * (it iterates over all scene collections twice)
  */
-void BKE_scene_collections_iterator_begin(Iterator *iter, void *data_in)
+void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	Scene *scene = data_in;
 	SceneCollectionsIteratorData *data = MEM_callocN(sizeof(SceneCollectionsIteratorData), __func__);
@@ -524,7 +524,7 @@ void BKE_scene_collections_iterator_begin(Iterator *iter, void *data_in)
 	iter->valid = true;
 }
 
-void BKE_scene_collections_iterator_next(struct Iterator *iter)
+void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter)
 {
 	SceneCollectionsIteratorData *data = iter->data;
 
@@ -536,7 +536,7 @@ void BKE_scene_collections_iterator_next(struct Iterator *iter)
 	}
 }
 
-void BKE_scene_collections_iterator_end(struct Iterator *iter)
+void BKE_scene_collections_iterator_end(struct BLI_Iterator *iter)
 {
 	SceneCollectionsIteratorData *data = iter->data;
 
@@ -555,10 +555,10 @@ void BKE_scene_collections_iterator_end(struct Iterator *iter)
 typedef struct SceneObjectsIteratorData {
 	GSet *visited;
 	LinkData *link;
-	Iterator scene_collection_iter;
+	BLI_Iterator scene_collection_iter;
 } SceneObjectsIteratorData;
 
-void BKE_scene_objects_iterator_begin(Iterator *iter, void *data_in)
+void BKE_scene_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	Scene *scene = data_in;
 	SceneObjectsIteratorData *data = MEM_callocN(sizeof(SceneObjectsIteratorData), __func__);
@@ -598,7 +598,7 @@ static LinkData *object_base_unique(GSet *gs, LinkData *link)
 	}
 }
 
-void BKE_scene_objects_iterator_next(Iterator *iter)
+void BKE_scene_objects_iterator_next(BLI_Iterator *iter)
 {
 	SceneObjectsIteratorData *data = iter->data;
 	LinkData *link = data->link ? object_base_unique(data->visited, data->link->next) : NULL;
@@ -629,7 +629,7 @@ void BKE_scene_objects_iterator_next(Iterator *iter)
 	}
 }
 
-void BKE_scene_objects_iterator_end(Iterator *iter)
+void BKE_scene_objects_iterator_end(BLI_Iterator *iter)
 {
 	SceneObjectsIteratorData *data = iter->data;
 	if (data) {

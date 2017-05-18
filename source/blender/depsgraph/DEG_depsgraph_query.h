@@ -36,7 +36,7 @@
 struct ID;
 
 struct Depsgraph;
-struct Iterator;
+struct BLI_Iterator;
 struct SceneLayer;
 
 #ifdef __cplusplus
@@ -60,9 +60,9 @@ struct Object *DAG_get_object(struct Depsgraph *depsgraph, struct Object *ob);
 
 /* ************************ DAG iterators ********************* */
 
-void DAG_objects_iterator_begin(struct Iterator *iter, void *data_in);
-void DAG_objects_iterator_next(struct Iterator *iter);
-void DAG_objects_iterator_end(struct Iterator *iter);
+void DAG_objects_iterator_begin(struct BLI_Iterator *iter, void *data_in);
+void DAG_objects_iterator_next(struct BLI_Iterator *iter);
+void DAG_objects_iterator_end(struct BLI_Iterator *iter);
 
 /* Temporary hacky solution waiting for cow depsgrpah implementation. */
 #define DEG_OBJECT_ITER(graph_, instance_)                                    \
