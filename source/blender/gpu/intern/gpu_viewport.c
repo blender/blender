@@ -246,6 +246,27 @@ GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine,
 	return tex;
 }
 
+static void gpu_viewport_texture_pool_clear_users(GPUViewport *viewport)
+{
+	ViewportTempTexture *tmp_tex_next;
+
+	for (ViewportTempTexture *tmp_tex = viewport->tex_pool.first; tmp_tex; tmp_tex = tmp_tex_next) {
+		tmp_tex_next = tmp_tex->next;
+		bool no_user = true;
+		for (int i = 0; i < MAX_ENGINE_BUFFER_SHARING; ++i) {
+			if (tmp_tex->user[i] != NULL) {
+				tmp_tex->user[i] = NULL;
+				no_user = false;
+			}
+		}
+
+		if (no_user) {
+			GPU_texture_free(tmp_tex->texture);
+			BLI_freelinkN(&viewport->tex_pool, tmp_tex);
+		}
+	}
+}
+
 static void gpu_viewport_texture_pool_free(GPUViewport *viewport)
 {
 	for (ViewportTempTexture *tmp_tex = viewport->tex_pool.first; tmp_tex; tmp_tex = tmp_tex->next) {
@@ -305,6 +326,8 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 			gpu_viewport_texture_pool_free(viewport);
 		}
 	}
+
+	gpu_viewport_texture_pool_clear_users(viewport);
 
 	if (!dfbl->default_fb) {
 		bool ok = true;
