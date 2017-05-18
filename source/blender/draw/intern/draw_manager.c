@@ -810,7 +810,9 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 	BLI_freelistN(&shgroup->interface->uniforms);
 	BLI_freelistN(&shgroup->interface->attribs);
 
-	if (shgroup->interface->instance_vbo) {
+	if (shgroup->interface->instance_vbo &&
+		(shgroup->interface->instance_batch == 0))
+	{
 		glDeleteBuffers(1, &shgroup->interface->instance_vbo);
 	}
 
