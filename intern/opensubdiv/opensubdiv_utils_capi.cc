@@ -41,14 +41,8 @@
 #  include "opensubdiv_device_context_cuda.h"
 #endif  /* OPENSUBDIV_HAS_CUDA */
 
-static bool gpu_legacy_support_global = false;
-
 int openSubdiv_getAvailableEvaluators(void)
 {
-	if (!openSubdiv_supportGPUDisplay()) {
-		return 0;
-	}
-
 	int flags = OPENSUBDIV_EVALUATOR_CPU;
 
 #ifdef OPENSUBDIV_HAS_OPENMP
@@ -82,19 +76,13 @@ int openSubdiv_getAvailableEvaluators(void)
 	return flags;
 }
 
-void openSubdiv_init(bool gpu_legacy_support)
+void openSubdiv_init(void)
 {
 	/* Ensure all OpenGL strings are cached. */
 	(void)openSubdiv_getAvailableEvaluators();
-	gpu_legacy_support_global = gpu_legacy_support;
 }
 
 void openSubdiv_cleanup(void)
 {
 	openSubdiv_osdGLDisplayDeinit();
-}
-
-bool openSubdiv_gpu_legacy_support(void)
-{
-	return gpu_legacy_support_global;
 }

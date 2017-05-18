@@ -993,7 +993,7 @@ void ccgSubSurf__sync_subdivUvs(CCGSubSurf *ss, bool subdiv_uvs)
 
 void BKE_subsurf_osd_init(void)
 {
-	openSubdiv_init(false);
+	openSubdiv_init();
 	BLI_spin_init(&delete_spin);
 }
 

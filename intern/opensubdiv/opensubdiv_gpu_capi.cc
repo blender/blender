@@ -423,11 +423,10 @@ bool openSubdiv_osdGLDisplayInit(void)
 {
 	static bool need_init = true;
 	static bool init_success = false;
-	if (need_init) {
 
-		if (!openSubdiv_supportGPUDisplay()) {
-			return false;
-		}
+	if (need_init) {
+		/* TODO: update OSD drawing to OpenGL 3.3 core, then remove following line */
+		return false;
 
 		const char *version = "";
 		if (GLEW_VERSION_3_2) {

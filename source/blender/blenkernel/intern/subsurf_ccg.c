@@ -5014,8 +5014,7 @@ static bool subsurf_use_gpu_backend(SubsurfFlags flags)
 	 */
 	return
 	        (flags & SUBSURF_USE_GPU_BACKEND) != 0 &&
-	        (U.opensubdiv_compute_type != USER_OPENSUBDIV_COMPUTE_NONE) &&
-	        (openSubdiv_supportGPUDisplay());
+	        (U.opensubdiv_compute_type != USER_OPENSUBDIV_COMPUTE_NONE);
 #else
 	(void)flags;
 	return false;
