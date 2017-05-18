@@ -139,9 +139,9 @@ bool DenoisingTask::run_denoising()
 		nlm_state.temporary_2_ptr = *nlm_temporary_2;
 		nlm_state.temporary_3_ptr = *nlm_temporary_3;
 
-		int mean_from[]     = { 0, 1, 2, 6,  7,  8, 12 };
-		int variance_from[] = { 3, 4, 5, 9, 10, 11, 13 };
-		int pass_to[]       = { 1, 2, 3, 0,  5,  6,  7 };
+		int mean_from[]     = { 0, 1, 2, 12, 6,  7, 8 };
+		int variance_from[] = { 3, 4, 5, 13, 9, 10, 11};
+		int pass_to[]       = { 1, 2, 3, 0,  5,  6,  7};
 		for(int pass = 0; pass < 7; pass++) {
 			device_sub_ptr feature_pass(device, buffer.mem, pass_to[pass]*buffer.pass_stride, buffer.pass_stride, MEM_READ_WRITE);
 			/* Get the unfiltered pass and its variance from the RenderBuffers. */
