@@ -435,14 +435,22 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 
 #ifdef WITH_OPENSUBDIV
 	/* TODO(sergey): Find a better place for this. */
-	if (use_opensubdiv && GLEW_VERSION_4_1) {
-		glProgramUniform1i(shader->program,
-		                   ShaderInterface_uniform(shader->interface, "FVarDataOffsetBuffer")->location,
-		                   30);  /* GL_TEXTURE30 */
+	if (use_opensubdiv) {
+		if (GLEW_VERSION_4_1) {
+			glProgramUniform1i(shader->program,
+			                   ShaderInterface_uniform(shader->interface, "FVarDataOffsetBuffer")->location,
+			                   30);  /* GL_TEXTURE30 */
 
-		glProgramUniform1i(shader->program,
-		                   ShaderInterface_uniform(shader->interface, "FVarDataBuffer")->location,
-		                   31);  /* GL_TEXTURE31 */
+			glProgramUniform1i(shader->program,
+			                   ShaderInterface_uniform(shader->interface, "FVarDataBuffer")->location,
+			                   31);  /* GL_TEXTURE31 */
+		}
+		else {
+			glUseProgram(shader->program);
+			glUniform1i(ShaderInterface_uniform(shader->interface, "FVarDataOffsetBuffer")->location, 30);
+			glUniform1i(ShaderInterface_uniform(shader->interface, "FVarDataBuffer")->location, 31);
+			glUseProgram(0);
+		}
 	}
 #endif
 

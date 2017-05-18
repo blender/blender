@@ -296,18 +296,26 @@ GLuint linkProgram(const char *version, const char *define)
 	                      glGetUniformBlockIndex(program, "Lighting"),
 	                      0);
 
-	/* TODO: use glUseProgram, glUniform */
-	glProgramUniform1i(program,
-	                   glGetUniformLocation(program, "texture_buffer"),
-	                   0);  /* GL_TEXTURE0 */
+	if (GLEW_VERSION_4_1) {
+		glProgramUniform1i(program,
+		                   glGetUniformLocation(program, "texture_buffer"),
+		                   0);  /* GL_TEXTURE0 */
 
-	glProgramUniform1i(program,
-	                   glGetUniformLocation(program, "FVarDataOffsetBuffer"),
-	                   30);  /* GL_TEXTURE30 */
+		glProgramUniform1i(program,
+		                   glGetUniformLocation(program, "FVarDataOffsetBuffer"),
+		                   30);  /* GL_TEXTURE30 */
 
-	glProgramUniform1i(program,
-	                   glGetUniformLocation(program, "FVarDataBuffer"),
-	                   31);  /* GL_TEXTURE31 */
+		glProgramUniform1i(program,
+		                   glGetUniformLocation(program, "FVarDataBuffer"),
+		                   31);  /* GL_TEXTURE31 */
+	}
+	else {
+		glUseProgram(program);
+		glUniform1i(glGetUniformLocation(program, "texture_buffer"), 0);  /* GL_TEXTURE0 */
+		glUniform1i(glGetUniformLocation(program, "FVarDataOffsetBuffer"), 30);  /* GL_TEXTURE30 */
+		glUniform1i(glGetUniformLocation(program, "FVarDataBuffer"), 31);  /* GL_TEXTURE31 */
+		glUseProgram(0);
+	}
 
 	return program;
 }
