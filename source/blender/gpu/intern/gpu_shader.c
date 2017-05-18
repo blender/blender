@@ -191,33 +191,7 @@ static void shader_print_errors(const char *task, const char *log, const char **
 
 static const char *gpu_shader_version(void)
 {
-#ifdef WITH_LEGACY_OPENGL
-	if (GLEW_VERSION_3_3) {
-		if (GPU_legacy_support()) {
-			return "#version 330 compatibility\n";
-			/* highest version that is widely supported
-			 * gives us native geometry shaders!
-			 * use compatibility profile so we can continue using builtin shader input/output names
-			 */
-		}
-		else {
-			return "#version 130\n";
-			/* latest version that is compatible with existing shaders */
-		}
-	}
-	else if (GLEW_VERSION_3_0) {
-		return "#version 130\n";
-		/* GLSL 1.3 has modern syntax/keywords/datatypes so use if available
-		 * older features are deprecated but still available without compatibility extension or profile
-		 */
-	}
-	else {
-		return "#version 120\n";
-		/* minimum supported */
-	}
-#else
 	return "#version 330\n";
-#endif
 }
 
 static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
@@ -227,25 +201,9 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
 	 */
 
 	if (GLEW_ARB_texture_query_lod) {
-		/* a #version 400 feature, but we use #version 150 maximum so use extension */
+		/* a #version 400 feature, but we use #version 330 maximum so use extension */
 		strcat(defines, "#extension GL_ARB_texture_query_lod: enable\n");
 	}
-
-#ifdef WITH_LEGACY_OPENGL
-	if (GLEW_VERSION_3_1 && !GLEW_VERSION_3_2 && GLEW_ARB_compatibility) {
-		strcat(defines, "#extension GL_ARB_compatibility: enable\n");
-	}
-
-	if (!GLEW_VERSION_3_1) {
-		if (GLEW_ARB_draw_instanced) {
-			strcat(defines, "#extension GL_ARB_draw_instanced: enable\n");
-		}
-
-		if (!GLEW_VERSION_3_0) {
-			strcat(defines, "#extension GL_EXT_gpu_shader4: require\n");
-		}
-	}
-#endif
 }
 
 static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH],
@@ -322,10 +280,6 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
                                 const int flags)
 {
 #ifdef WITH_OPENSUBDIV
-	/* TODO(sergey): used to add #version 150 to the geometry shader.
-	 * Could safely be renamed to "use_geometry_code" since it's very
-	 * likely any of geometry code will want to use GLSL 1.5.
-	 */
 	bool use_opensubdiv = (flags & GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV) != 0;
 #else
 	UNUSED_VARS(flags);
