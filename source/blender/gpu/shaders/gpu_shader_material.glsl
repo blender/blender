@@ -3,6 +3,7 @@ uniform mat4 ModelViewMatrix;
 #ifndef EEVEE_ENGINE
 uniform mat4 ProjectionMatrix;
 #endif
+uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
 uniform mat4 ModelViewMatrixInverse;
 uniform mat4 ViewMatrixInverse;
@@ -2922,15 +2923,43 @@ void node_uvmap(vec3 attr_uv, out vec3 outvec)
 	outvec = attr_uv;
 }
 
+void tangent_orco_x(vec3 orco_in, out vec3 orco_out)
+{
+	orco_out = vec3(0.0, (orco_in.z - 0.5) * -0.5, (orco_in.y - 0.5) * 0.5);
+}
+
+void tangent_orco_y(vec3 orco_in, out vec3 orco_out)
+{
+	orco_out = vec3((orco_in.z - 0.5) * -0.5, 0.0, (orco_in.x - 0.5) * 0.5);
+}
+
+void tangent_orco_z(vec3 orco_in, out vec3 orco_out)
+{
+	orco_out = vec3((orco_in.y - 0.5) * -0.5, (orco_in.x - 0.5) * 0.5, 0.0);
+}
+
+void node_tangentmap(vec4 attr_tangent, mat4 toworld, out vec3 tangent)
+{
+	tangent = (toworld * vec4(attr_tangent.xyz, 0.0)).xyz;
+}
+
+void node_tangent(vec3 N, vec3 orco, mat4 objmat, mat4 toworld, out vec3 T)
+{
+	N = (toworld * vec4(N, 0.0)).xyz;
+	T = (objmat * vec4(orco, 0.0)).xyz;
+	T = cross(N, normalize(cross(T, N)));
+}
+
 void node_geometry(
-        vec3 I, vec3 N, mat4 toworld,
+        vec3 I, vec3 N, vec3 orco, mat4 objmat, mat4 toworld,
         out vec3 position, out vec3 normal, out vec3 tangent,
         out vec3 true_normal, out vec3 incoming, out vec3 parametric,
         out float backfacing, out float pointiness)
 {
 	position = (toworld * vec4(I, 1.0)).xyz;
 	normal = (toworld * vec4(N, 0.0)).xyz;
-	tangent = vec3(0.0);
+	tangent_orco_z(orco, orco);
+	node_tangent(N, orco, objmat, toworld, tangent);
 	true_normal = normal;
 
 	/* handle perspective/orthographic */

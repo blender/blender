@@ -1754,6 +1754,8 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 
 			/* Tangent */
 			attrib_name = mesh_render_data_tangent_layer_uuid_get(rdata, i);
+			/* WATCH IT : only specifying 3 component instead of 4 (4th is sign).
+			 * That may cause some problem but I could not make it to fail (fclem) */
 #ifdef USE_COMP_MESH_DATA
 #  if USE_10_10_10 && 0 /* Tangents need more precision than this */
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);

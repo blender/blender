@@ -626,6 +626,8 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					BLI_dynstr_append(ds, "viewinv");
 				else if (input->builtin == GPU_CAMERA_TEXCO_FACTORS)
 					BLI_dynstr_append(ds, "camtexfac");
+				else if (input->builtin == GPU_OBJECT_MATRIX)
+					BLI_dynstr_append(ds, "objmat");
 				else if (input->builtin == GPU_INVERSE_OBJECT_MATRIX)
 					BLI_dynstr_append(ds, "objinv");
 				else if (input->builtin == GPU_VIEW_POSITION)
@@ -697,6 +699,8 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 	if (use_new_shading) {
 		if (builtins & GPU_CAMERA_TEXCO_FACTORS)
 			BLI_dynstr_append(ds, "\tvec4 camtexfac = CameraTexCoFactors;\n");
+		if (builtins & GPU_OBJECT_MATRIX)
+			BLI_dynstr_append(ds, "\tmat4 objmat = ModelMatrix;\n");
 		if (builtins & GPU_INVERSE_OBJECT_MATRIX)
 			BLI_dynstr_append(ds, "\tmat4 objinv = ModelMatrixInverse;\n");
 		if (builtins & GPU_INVERSE_VIEW_MATRIX)
@@ -709,6 +713,8 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 	else {
 		if (builtins & GPU_CAMERA_TEXCO_FACTORS)
 			BLI_dynstr_append(ds, "\tvec4 camtexfac = unfcameratexfactors;\n");
+		if (builtins & GPU_OBJECT_MATRIX)
+			BLI_dynstr_append(ds, "\tmat4 objmat = unfobmat;\n");
 		if (builtins & GPU_INVERSE_OBJECT_MATRIX)
 			BLI_dynstr_append(ds, "\tmat4 objinv = unfinvobmat;\n");
 		if (builtins & GPU_INVERSE_VIEW_MATRIX)
