@@ -1649,6 +1649,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 	BATCH_DISCARD_SAFE(cache->all_triangles);
 
 	VERTEXBUFFER_DISCARD_SAFE(cache->pos_in_order);
+	VERTEXBUFFER_DISCARD_SAFE(cache->pos_with_select_bool);
 	ELEMENTLIST_DISCARD_SAFE(cache->edges_in_order);
 	ELEMENTLIST_DISCARD_SAFE(cache->triangles_in_order);
 	ELEMENTLIST_DISCARD_SAFE(cache->overlay_triangles_vpaint);
@@ -1671,7 +1672,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 	BATCH_DISCARD_SAFE(cache->overlay_loose_edges_nor);
 
 	BATCH_DISCARD_SAFE(cache->overlay_weight_faces);
-	BATCH_DISCARD_ALL_SAFE(cache->overlay_weight_verts);
+	BATCH_DISCARD_SAFE(cache->overlay_weight_verts);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay_paint_edges);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
 
@@ -2719,13 +2720,12 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_overlay_data(
 	BLI_assert(rdata->edit_bmesh == NULL);
 
 	if (cache->pos_with_select_bool == NULL) {
-		unsigned int vidx = 0, cidx = 0;
+		unsigned int cidx = 0;
 
 		static VertexFormat format = { 0 };
-		static struct { uint pos, sel; } attr_id;
+		static struct { uint data; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.sel = VertexFormat_add_attrib(&format, "data", COMP_I8, 1, KEEP_INT);
+			attr_id.data = VertexFormat_add_attrib(&format, "data", COMP_I8, 1, KEEP_INT);
 		}
 
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
@@ -2739,10 +2739,9 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_overlay_data(
 		for (int i = 0; i < vert_len; i++) {
 			const MVert *mv = &rdata->mvert[i];
 			const char data = mv->flag & (SELECT | ME_HIDE);
-			VertexBuffer_set_attrib(vbo, attr_id.sel, cidx++, &data);
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, mv->co);
+			VertexBuffer_set_attrib(vbo, attr_id.data, cidx++, &data);
 		}
-		vbo_len_used = vidx;
+		vbo_len_used = cidx;
 
 		if (vbo_len_capacity != vbo_len_used) {
 			VertexBuffer_resize_data(vbo, vbo_len_used);
@@ -3232,8 +3231,11 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
 		MeshRenderData *rdata = mesh_render_data_create(me, MR_DATATYPE_VERT);
 
 		cache->overlay_weight_verts = Batch_create(
-		        PRIM_POINTS, mesh_batch_cache_get_vert_pos_with_overlay_data(rdata, cache), NULL);
+		        PRIM_POINTS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache), NULL);
 
+		Batch_add_VertexBuffer(
+		        cache->overlay_weight_verts,
+		        mesh_batch_cache_get_vert_pos_with_overlay_data(rdata, cache));
 		mesh_render_data_free(rdata);
 	}
 
