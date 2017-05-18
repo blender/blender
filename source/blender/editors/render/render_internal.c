@@ -307,6 +307,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	}
 
 	re = RE_NewRender(scene->id.name);
+	RE_SetDepsgraph(re, CTX_data_depsgraph(C));
 	lay_override = (v3d && v3d->lay != scene->lay) ? v3d->lay : 0;
 
 	G.is_break = false;

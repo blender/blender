@@ -948,7 +948,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	return ob;
 }
 
-Render *BlenderStrokeRenderer::RenderScene(Render * /*re*/, bool render)
+Render *BlenderStrokeRenderer::RenderScene(Render *re, bool render)
 {
 	Camera *camera = (Camera *)freestyle_scene->camera->data;
 	if (camera->clipend < _z)
@@ -960,6 +960,7 @@ Render *BlenderStrokeRenderer::RenderScene(Render * /*re*/, bool render)
 #endif
 
 	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name);
+	freestyle_render->depsgraph = re->depsgraph;
 
 	RE_RenderFreestyleStrokes(freestyle_render, freestyle_bmain, freestyle_scene,
 	                          render && get_stroke_count() > 0);
