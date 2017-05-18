@@ -43,6 +43,14 @@
 
 #define CLAY_ENGINE "BLENDER_CLAY"
 
+#define MAX_CLAY_MAT 512 /* 512 = 9 bit material id */
+
+#define SHADER_DEFINES \
+	"#define MAX_MATERIAL " STRINGIFY(MAX_CLAY_MAT) "\n" \
+	"#define USE_ROTATION\n" \
+	"#define USE_AO\n" \
+	"#define USE_HSV\n"
+
 extern char datatoc_clay_frag_glsl[];
 extern char datatoc_clay_vert_glsl[];
 extern char datatoc_ssao_alchemy_glsl[];
@@ -72,8 +80,6 @@ typedef struct CLAY_HAIR_UBO_Material {
 	float pad;
 } CLAY_HAIR_UBO_Material; /* 32 bytes */
 BLI_STATIC_ASSERT_ALIGN(CLAY_UBO_Material, 16)
-
-#define MAX_CLAY_MAT 512 /* 512 = 9 bit material id */
 
 typedef struct CLAY_UBO_Storage {
 	CLAY_UBO_Material materials[MAX_CLAY_MAT];
@@ -327,10 +333,7 @@ static void CLAY_engine_init(void *vedata)
 	if (!e_data.clay_sh) {
 		DynStr *ds = BLI_dynstr_new();
 		const char *max_mat =
-			"#define MAX_MATERIAL 512\n"
-			"#define USE_ROTATION\n"
-			"#define USE_AO\n"
-			"#define USE_HSV\n";
+			SHADER_DEFINES;
 		char *matcap_with_ao;
 
 		BLI_dynstr_append(ds, datatoc_clay_frag_glsl);

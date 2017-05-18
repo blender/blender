@@ -39,16 +39,13 @@
 
 #define EEVEE_ENGINE "BLENDER_EEVEE"
 
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-
 #define SHADER_DEFINES \
 	"#define EEVEE_ENGINE\n" \
-	"#define MAX_LIGHT " STR(MAX_LIGHT) "\n" \
-	"#define MAX_SHADOW_CUBE " STR(MAX_SHADOW_CUBE) "\n" \
-	"#define MAX_SHADOW_MAP " STR(MAX_SHADOW_MAP) "\n" \
-	"#define MAX_SHADOW_CASCADE " STR(MAX_SHADOW_CASCADE) "\n" \
-	"#define MAX_CASCADE_NUM " STR(MAX_CASCADE_NUM) "\n"
+	"#define MAX_LIGHT " STRINGIFY(MAX_LIGHT) "\n" \
+	"#define MAX_SHADOW_CUBE " STRINGIFY(MAX_SHADOW_CUBE) "\n" \
+	"#define MAX_SHADOW_MAP " STRINGIFY(MAX_SHADOW_MAP) "\n" \
+	"#define MAX_SHADOW_CASCADE " STRINGIFY(MAX_SHADOW_CASCADE) "\n" \
+	"#define MAX_CASCADE_NUM " STRINGIFY(MAX_CASCADE_NUM) "\n"
 
 /* *********** STATIC *********** */
 static struct {
