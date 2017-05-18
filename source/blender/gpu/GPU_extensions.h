@@ -42,7 +42,6 @@ void GPU_extensions_disable(void);
 
 bool GPU_legacy_support(void);
 bool GPU_full_non_power_of_two_support(void);
-bool GPU_display_list_support(void);
 bool GPU_bicubic_bump_support(void);
 bool GPU_geometry_shader_support(void);
 bool GPU_instanced_drawing_support(void);

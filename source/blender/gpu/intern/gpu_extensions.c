@@ -322,19 +322,6 @@ bool GPU_full_non_power_of_two_support(void)
 	return true;
 }
 
-bool GPU_display_list_support(void)
-{
-#ifdef WITH_LEGACY_OPENGL
-	/* deprecated in GL 3
-	 * supported on older GL and compatibility profile
-	 * still queried by game engine
-	 */
-	return true;
-#else
-	return false;
-#endif
-}
-
 bool GPU_bicubic_bump_support(void)
 {
 	return GLEW_VERSION_4_0 || (GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0);
