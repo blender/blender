@@ -159,11 +159,25 @@ bool DenoisingTask::run_denoising()
 		int mean_to[]       = { 8,  9, 10};
 		int variance_to[]   = {11, 12, 13};
 		int num_color_passes = 3;
+
+		device_only_memory<float> temp_color;
+		temp_color.resize(3*buffer.pass_stride);
+		device->mem_alloc("Denoising temporary color", temp_color, MEM_READ_WRITE);
+
 		for(int pass = 0; pass < num_color_passes; pass++) {
-			device_sub_ptr color_pass    (device, buffer.mem,     mean_to[pass]*buffer.pass_stride, buffer.pass_stride, MEM_READ_WRITE);
+			device_sub_ptr color_pass(device, temp_color, pass*buffer.pass_stride, buffer.pass_stride, MEM_READ_WRITE);
 			device_sub_ptr color_var_pass(device, buffer.mem, variance_to[pass]*buffer.pass_stride, buffer.pass_stride, MEM_READ_WRITE);
 			functions.get_feature(mean_from[pass], variance_from[pass], *color_pass, *color_var_pass);
 		}
+
+		{
+			device_sub_ptr depth_pass    (device, buffer.mem,                                 0,   buffer.pass_stride, MEM_READ_WRITE);
+			device_sub_ptr color_var_pass(device, buffer.mem, variance_to[0]*buffer.pass_stride, 3*buffer.pass_stride, MEM_READ_WRITE);
+			device_sub_ptr output_pass   (device, buffer.mem,     mean_to[0]*buffer.pass_stride, 3*buffer.pass_stride, MEM_READ_WRITE);
+			functions.detect_outliers(temp_color.device_pointer, *color_var_pass, *depth_pass, *output_pass);
+		}
+
+		device->mem_free(temp_color);
 	}
 
 	storage.w = filter_area.z;
