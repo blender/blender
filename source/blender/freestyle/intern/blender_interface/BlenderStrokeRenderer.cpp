@@ -43,6 +43,7 @@ extern "C" {
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_collection.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_library.h" /* free_libblock */
@@ -168,7 +169,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	// compositor has finished.
 
 	// release objects and data blocks
-	for (BaseLegacy *b = (BaseLegacy *)freestyle_scene->base.first; b; b = b->next) {
+	for (Base *b = (Base *)((SceneLayer *)(freestyle_scene->render_layers.first))->object_bases.first; b; b = b->next) {
 		Object *ob = b->object;
 		void *data = ob->data;
 		char *name = ob->id.name;
@@ -191,7 +192,6 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 			cerr << "Warning: unexpected object in the scene: " << name[0] << name[1] << ":" << (name + 2) << endl;
 		}
 	}
-	BLI_freelistN(&freestyle_scene->base);
 
 	// release materials
 	Link *lnk = (Link *)freestyle_bmain->mat.first;
@@ -924,7 +924,6 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 Object *BlenderStrokeRenderer::NewMesh() const
 {
 	Object *ob;
-	BaseLegacy *base;
 	char name[MAX_ID_NAME];
 	unsigned int mesh_id = get_stroke_mesh_id();
 
@@ -934,14 +933,11 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	ob->data = BKE_mesh_add(freestyle_bmain, name);
 	ob->lay = 1;
 
-	base = BKE_scene_base_add(freestyle_scene, ob);
+	SceneCollection *sc_master = BKE_collection_master(freestyle_scene);
+	BKE_collection_object_add(freestyle_scene, sc_master, ob);
+
+	BKE_scene_base_add(freestyle_scene, ob);
 	DEG_relations_tag_update(freestyle_bmain);
-#if 0
-	BKE_scene_base_deselect_all(scene);
-	BKE_scene_base_select(scene, base);
-#else
-	(void)base;
-#endif
 
 	DEG_id_tag_update_ex(freestyle_bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 

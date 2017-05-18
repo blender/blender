@@ -105,8 +105,6 @@ NodeGroup *BlenderFileLoader::Load()
 			cnt++;
 		}
 
-		if (!(obi->lay & _srl->lay))
-			continue;
 		char *name = obi->ob->id.name;
 		//printf("%c%c:%s\n", name[0], name[1], name+2);
 		//print_m4("obi->mat", obi->mat);
