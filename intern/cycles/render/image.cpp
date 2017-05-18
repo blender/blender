@@ -672,7 +672,7 @@ bool ImageManager::file_load_image(Image *img,
 		}
 		else {
 			for(size_t i = 0; i < num_pixels; ++i) {
-				StorageType *pixel = &pixels[i*4];
+				StorageType *pixel = &pixels[i];
 				if(!isfinite(pixel[0])) {
 					pixel[0] = 0;
 				}
