@@ -514,8 +514,7 @@ bool GPU_fx_compositor_initialize_passes(
 
 	/* create textures for dof effect */
 	if (fx_flag & GPU_FX_FLAG_DOF) {
-		bool dof_high_quality = (fx_settings->dof->high_quality != 0) &&
-		                        GPU_geometry_shader_support() && GPU_instanced_drawing_support();
+		bool dof_high_quality = (fx_settings->dof->high_quality != 0);
 
 		/* cleanup buffers if quality setting has changed (no need to keep more buffers around than necessary ) */
 		if (dof_high_quality != fx->dof_high_quality)

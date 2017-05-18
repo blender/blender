@@ -338,9 +338,6 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 	char standard_defines[MAX_DEFINE_LENGTH] = "";
 	char standard_extensions[MAX_EXT_DEFINE_LENGTH] = "";
 
-	if (geocode && !GPU_geometry_shader_support())
-		return NULL;
-
 	shader = MEM_callocN(sizeof(GPUShader), "GPUShader");
 
 	if (vertexcode)

@@ -2317,7 +2317,7 @@ static void rna_Stereo3dFormat_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 
 static int rna_gpu_is_hq_supported_get(PointerRNA *UNUSED(ptr))
 {
-	return GPU_instanced_drawing_support() && GPU_geometry_shader_support();
+	return true;
 }
 
 static void rna_SceneCollection_name_set(PointerRNA *ptr, const char *value)
@@ -5921,6 +5921,7 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "High Quality", "Use high quality depth of field");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	/* NOTE: high quality is always supported */
 	prop = RNA_def_property(srna, "is_hq_supported", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_gpu_is_hq_supported_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

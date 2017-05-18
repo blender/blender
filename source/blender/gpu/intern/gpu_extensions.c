@@ -327,22 +327,6 @@ bool GPU_bicubic_bump_support(void)
 	return GLEW_VERSION_4_0 || (GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0);
 }
 
-bool GPU_geometry_shader_support(void)
-{
-	/* starting with GL 3.2 geometry shaders are fully supported */
-#ifdef WITH_LEGACY_OPENGL
-	/* core profile clashes with our other shaders so accept compatibility only */
-	return GLEW_VERSION_3_2 && GPU_legacy_support();
-#else
-	return GLEW_VERSION_3_2;
-#endif
-}
-
-bool GPU_instanced_drawing_support(void)
-{
-	return GLEW_VERSION_3_1 || GLEW_ARB_draw_instanced;
-}
-
 int GPU_color_depth(void)
 {
 	return GG.colordepth;
