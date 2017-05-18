@@ -119,7 +119,7 @@ void meshobject_foreachScreenVert(
 	data.clip_flag = clip_flag;
 
 	if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
-		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
+		ED_view3d_clipping_local(vc->rv3d, vc->obact->obmat);
 	}
 
 	dm->foreachMappedVert(dm, meshobject_foreachScreenVert__mapFunc, &data, DM_FOREACH_NOP);
