@@ -38,7 +38,12 @@ uniform int mat_id;
 #define matcap_index		matcaps_param[mat_id].matcap_hsv_id.w
 #define matcap_rotation		matcaps_param[mat_id].matcap_rot.xy
 
+#ifdef USE_FLAT_NORMAL
+flat in vec3 normal;
+#else
 in vec3 normal;
+#endif
+
 out vec4 fragColor;
 
 /* TODO Move this to SSAO modules */

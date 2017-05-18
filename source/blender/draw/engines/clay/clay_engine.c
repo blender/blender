@@ -104,6 +104,7 @@ typedef struct CLAY_Storage {
 	int ubo_current_id;
 	int hair_ubo_current_id;
 	DRWShadingGroup *shgrps[MAX_CLAY_MAT];
+	DRWShadingGroup *shgrps_flat[MAX_CLAY_MAT];
 	DRWShadingGroup *hair_shgrps[MAX_CLAY_MAT];
 } CLAY_Storage;
 
@@ -125,6 +126,7 @@ typedef struct CLAY_PassList {
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
 	struct DRWPass *clay_pass;
+	struct DRWPass *clay_pass_flat;
 	struct DRWPass *hair_pass;
 } CLAY_PassList;
 
@@ -143,6 +145,7 @@ static struct {
 	struct GPUShader *depth_sh;
 	/* Shading Pass */
 	struct GPUShader *clay_sh;
+	struct GPUShader *clay_flat_sh;
 	struct GPUShader *hair_sh;
 
 	/* Matcap textures */
@@ -338,8 +341,6 @@ static void CLAY_engine_init(void *vedata)
 	/* Shading pass */
 	if (!e_data.clay_sh) {
 		DynStr *ds = BLI_dynstr_new();
-		const char *max_mat =
-			SHADER_DEFINES;
 		char *matcap_with_ao;
 
 		BLI_dynstr_append(ds, datatoc_clay_frag_glsl);
@@ -347,7 +348,13 @@ static void CLAY_engine_init(void *vedata)
 
 		matcap_with_ao = BLI_dynstr_get_cstring(ds);
 
-		e_data.clay_sh = DRW_shader_create(datatoc_clay_vert_glsl, NULL, matcap_with_ao, max_mat);
+		e_data.clay_sh = DRW_shader_create(
+		        datatoc_clay_vert_glsl, NULL, matcap_with_ao,
+		        SHADER_DEFINES);
+		e_data.clay_flat_sh = DRW_shader_create(
+		        datatoc_clay_vert_glsl, NULL, matcap_with_ao,
+		        SHADER_DEFINES
+		        "#define USE_FLAT_NORMAL\n");
 
 		BLI_dynstr_free(ds);
 		MEM_freeN(matcap_with_ao);
@@ -452,9 +459,9 @@ static void CLAY_engine_init(void *vedata)
 	}
 }
 
-static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *UNUSED(vedata), DRWPass *pass, int *material_id)
+static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *UNUSED(vedata), DRWPass *pass, int *material_id, bool use_flat)
 {
-	DRWShadingGroup *grp = DRW_shgroup_create(e_data.clay_sh, pass);
+	DRWShadingGroup *grp = DRW_shgroup_create(use_flat ? e_data.clay_flat_sh : e_data.clay_sh, pass);
 
 	DRW_shgroup_uniform_vec2(grp, "screenres", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_buffer(grp, "depthtex", &e_data.depth_dup);
@@ -614,9 +621,10 @@ static void hair_ubo_mat_from_object(Object *ob,  CLAY_HAIR_UBO_Material *r_ubo)
 	r_ubo->matcap_id = matcap_to_index(matcap_icon);
 }
 
-static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
+static DRWShadingGroup *CLAY_object_shgrp_get(
+        CLAY_Data *vedata, Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl, bool use_flat)
 {
-	DRWShadingGroup **shgrps = stl->storage->shgrps;
+	DRWShadingGroup **shgrps = use_flat ? stl->storage->shgrps_flat : stl->storage->shgrps;
 	CLAY_UBO_Material mat_ubo_test;
 
 	ubo_mat_from_object(ob, &mat_ubo_test);
@@ -624,7 +632,8 @@ static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLA
 	int id = mat_in_ubo(stl->storage, &mat_ubo_test);
 
 	if (shgrps[id] == NULL) {
-		shgrps[id] = CLAY_shgroup_create(vedata, psl->clay_pass, &e_data.ubo_mat_idxs[id]);
+		shgrps[id] = CLAY_shgroup_create(
+		        vedata, use_flat ? psl->clay_pass_flat : psl->clay_pass, &e_data.ubo_mat_idxs[id], use_flat);
 		/* if it's the first shgrp, pass bind the material UBO */
 		if (stl->storage->ubo_current_id == 1) {
 			DRW_shgroup_uniform_block(shgrps[0], "material_block", stl->mat_ubo);
@@ -654,6 +663,13 @@ static DRWShadingGroup *CLAY_hair_shgrp_get(Object *ob, CLAY_StorageList *stl, C
 	return hair_shgrps[hair_id];
 }
 
+static DRWShadingGroup *CLAY_object_shgrp_default_mode_get(
+        CLAY_Data *vedata, Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
+{
+	bool use_flat = DRW_object_is_flat_normal(ob);
+	return CLAY_object_shgrp_get(vedata, ob, stl, psl, use_flat);
+}
+
 static void CLAY_cache_init(void *vedata)
 {
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
@@ -680,6 +696,12 @@ static void CLAY_cache_init(void *vedata)
 		psl->clay_pass = DRW_pass_create("Clay Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 		stl->storage->ubo_current_id = 0;
 		memset(stl->storage->shgrps, 0, sizeof(DRWShadingGroup *) * MAX_CLAY_MAT);
+	}
+
+	/* Clay Pass (Flat) */
+	{
+		psl->clay_pass_flat = DRW_pass_create("Clay Pass Flat", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
+		memset(stl->storage->shgrps_flat, 0, sizeof(DRWShadingGroup *) * MAX_CLAY_MAT);
 	}
 
 	/* Hair Pass */
@@ -715,6 +737,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 		const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 		const bool is_sculpt_mode = is_active && (ob->mode & OB_MODE_SCULPT) != 0;
+		const bool is_default_mode_shader = is_sculpt_mode;
 
 		/* Depth Prepass */
 		{
@@ -728,7 +751,12 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 		}
 
 		/* Shading */
-		clay_shgrp = CLAY_object_shgrp_get(vedata, ob, stl, psl);
+		if (is_default_mode_shader) {
+			clay_shgrp = CLAY_object_shgrp_default_mode_get(vedata, ob, stl, psl);
+		}
+		else {
+			clay_shgrp = CLAY_object_shgrp_get(vedata, ob, stl, psl, false);
+		}
 
 		if (is_sculpt_mode) {
 			DRW_shgroup_call_sculpt_add(clay_shgrp, ob, ob->obmat);
@@ -809,6 +837,7 @@ static void CLAY_draw_scene(void *vedata)
 
 	/* Pass 3 : Shading */
 	DRW_draw_pass(psl->clay_pass);
+	DRW_draw_pass(psl->clay_pass_flat);
 	DRW_draw_pass(psl->hair_pass);
 }
 
@@ -842,6 +871,7 @@ static void CLAY_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 static void CLAY_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.clay_sh);
+	DRW_SHADER_FREE_SAFE(e_data.clay_flat_sh);
 	DRW_SHADER_FREE_SAFE(e_data.hair_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.matcap_array);
 	DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);

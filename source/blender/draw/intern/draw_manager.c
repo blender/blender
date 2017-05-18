@@ -47,6 +47,8 @@
 #include "DNA_camera_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -1877,6 +1879,18 @@ bool DRW_object_is_renderable(Object *ob)
 		}
 	}
 
+	return true;
+}
+
+
+bool DRW_object_is_flat_normal(Object *ob)
+{
+	if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		if (me->mpoly && me->mpoly[0].flag & ME_SMOOTH) {
+			return false;
+		}
+	}
 	return true;
 }
 

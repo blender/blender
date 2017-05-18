@@ -27,8 +27,14 @@ layout(std140) uniform shadow_block {
 
 in vec3 worldPosition;
 in vec3 viewPosition;
+
+#ifdef USE_FLAT_NORMAL
+flat in vec3 worldNormal;
+flat in vec3 viewNormal;
+#else
 in vec3 worldNormal;
 in vec3 viewNormal;
+#endif
 
 /* type */
 #define POINT    0.0
