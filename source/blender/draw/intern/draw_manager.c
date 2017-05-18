@@ -1927,36 +1927,43 @@ void DRW_framebuffer_init(
 {
 	BLI_assert(textures_len <= MAX_FBO_TEX);
 
+	bool create_fb = false;
+	int color_attachment = -1;
+
 	if (!*fb) {
-		int color_attachment = -1;
 		*fb = GPU_framebuffer_create();
+		create_fb = true;
+	}
 
-		for (int i = 0; i < textures_len; ++i) {
-			int channels;
-			bool is_depth;
+	for (int i = 0; i < textures_len; ++i) {
+		int channels;
+		bool is_depth;
 
-			DRWFboTexture fbotex = textures[i];
-			bool is_temp = (fbotex.flag & DRW_TEX_TEMP) != 0;
+		DRWFboTexture fbotex = textures[i];
+		bool is_temp = (fbotex.flag & DRW_TEX_TEMP) != 0;
 
-			GPUTextureFormat gpu_format = convert_tex_format(fbotex.format, &channels, &is_depth);
+		GPUTextureFormat gpu_format = convert_tex_format(fbotex.format, &channels, &is_depth);
 
-			if (!*fbotex.tex || is_temp) {
-				if (is_temp) {
-					*fbotex.tex = GPU_viewport_texture_pool_query(DST.viewport, engine_type, width, height, channels, gpu_format);
-				}
-				else {
-					*fbotex.tex = GPU_texture_create_2D_custom(width, height, channels, gpu_format, NULL, NULL);
-				}
-				drw_texture_set_parameters(*fbotex.tex, fbotex.flag);
+		if (!*fbotex.tex || is_temp) {
+			/* Temp textures need to be queried each frame, others not. */
+			if (is_temp) {
+				*fbotex.tex = GPU_viewport_texture_pool_query(DST.viewport, engine_type, width, height, channels, gpu_format);
 			}
+			else if (create_fb) {
+				*fbotex.tex = GPU_texture_create_2D_custom(width, height, channels, gpu_format, NULL, NULL);
+			}
+		}
 
+		if (create_fb) {
 			if (!is_depth) {
 				++color_attachment;
 			}
-
+			drw_texture_set_parameters(*fbotex.tex, fbotex.flag);
 			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
 		}
+	}
 
+	if (create_fb) {
 		if (!GPU_framebuffer_check_valid(*fb, NULL)) {
 			printf("Error invalid framebuffer\n");
 		}
