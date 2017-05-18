@@ -266,49 +266,6 @@ void gpu_extensions_exit(void)
 	GPU_invalid_tex_free();
 }
 
-bool GPU_legacy_support(void)
-{
-#ifdef WITH_LEGACY_OPENGL 
-	/* return whether or not current GL context is compatible with legacy OpenGL */
-	/* (will be removed after switching to core profile) */
-
-	static bool checked = false;
-	static bool support = true;
-
-	if (!checked) {
-		if (GLEW_VERSION_3_2) {
-			GLint profile;
-			glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
-
-			if (G.debug & G_DEBUG_GPU) {
-				printf("GL_CONTEXT_PROFILE_MASK = %#x (%s profile)\n", (unsigned int)profile,
-				       (profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) ? "compatibility" :
-				       (profile & GL_CONTEXT_CORE_PROFILE_BIT) ? "core" : "unknown");
-			}
-
-			if (profile == 0) {
-				/* workaround for nVidia's Linux driver */
-				support = GLEW_ARB_compatibility;
-			}
-			else {
-				support = profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
-			}
-		}
-		else if (GLEW_VERSION_3_1) {
-			support = GLEW_ARB_compatibility;
-		}
-
-		/* any OpenGL version <= 3.0 is legacy, so support remains true */
-
-		checked = true;
-	}
-
-	return support;
-#else
-	return false;
-#endif
-}
-
 bool GPU_full_non_power_of_two_support(void)
 {
 	/* always supported on full GL but still relevant for OpenGL ES 2.0 where
