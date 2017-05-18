@@ -9335,7 +9335,7 @@ static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, const floa
 	if (!(mv->flag & ME_HIDE)) {
 		int selcol;
 		GPU_select_index_get(data->offset + index, &selcol);
-		immAttrib3ubv(data->col, (unsigned char *)&selcol);
+		immAttrib1u(data->col, selcol);
 		immVertex3fv(data->pos, co);
 	}
 }
@@ -9354,7 +9354,7 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 
 	VertexFormat *format = immVertexFormat();
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U32, 1, KEEP_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
@@ -9376,7 +9376,7 @@ static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3]
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 		int selcol;
 		GPU_select_index_get(data->offset + index, &selcol);
-		immAttrib3ubv(data->col, (unsigned char *)&selcol);
+		immAttrib1u(data->col, selcol);
 		immVertex3fv(data->pos, co);
 	}
 }
@@ -9387,7 +9387,7 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	data.offset = offset;
 	VertexFormat *format = immVertexFormat();
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U32, 1, KEEP_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
@@ -9423,7 +9423,7 @@ static void bbs_mesh_wire__mapFunc(void *userData, int index, const float v0co[3
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 		int selcol;
 		GPU_select_index_get(data->offset + index, &selcol);
-		immAttrib3ubv(data->col, (unsigned char *)&selcol);
+		immAttrib1u(data->col, selcol);
 		immVertex3fv(data->pos, v0co);
 		immVertex3fv(data->pos, v1co);
 	}
@@ -9445,7 +9445,7 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 	if (imm_len == 0) return;
 
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U32, 1, KEEP_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
@@ -9516,7 +9516,7 @@ static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select
 
 	VertexFormat *format = immVertexFormat();
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U32, 1, KEEP_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
@@ -9525,7 +9525,7 @@ static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select
 	if (use_select == false) {
 		int selcol;
 		GPU_select_index_get(0, &selcol);
-		immAttrib3ubv(data.col, (unsigned char *)&selcol);
+		immAttrib1u(data.col, selcol);
 	}
 
 	int index = 0;
@@ -9536,7 +9536,7 @@ static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select
 			if (use_select) {
 				int selcol;
 				GPU_select_index_get(BM_elem_index_get(f) + 1, &selcol);
-				immAttrib3ubv(data.col, (unsigned char *)&selcol);
+				immAttrib1u(data.col, selcol);
 			}
 			for (int t = 0; t < ntris; t++) {
 				immVertex3fv(data.pos, em->looptris[index][0]->v->co);
@@ -9563,7 +9563,7 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, const float ce
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		int selcol;
 		GPU_select_index_get(index + 1, &selcol);
-		immAttrib3ubv(data->col, (unsigned char *)&selcol);
+		immAttrib1u(data->col, selcol);
 		immVertex3fv(data->pos, cent);
 	}
 }
@@ -9574,7 +9574,7 @@ static void bbs_mesh_face_dot(BMEditMesh *em, DerivedMesh *dm)
 	data.bm = em->bm;
 	VertexFormat *format = immVertexFormat();
 	data.pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	data.col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, KEEP_INT);
+	data.col = VertexFormat_add_attrib(format, "color", COMP_U32, 1, KEEP_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
