@@ -1131,7 +1131,7 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
 
         mat = context.material
 
-        layout.prop(mat, "use_nodes", icon='NODETREE', text="Use node tree")
+        layout.prop(mat, "use_nodes", icon='NODETREE')
         layout.separator()
 
         if not mat.use_nodes:
