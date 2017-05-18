@@ -59,8 +59,14 @@ extern char datatoc_particle_strand_frag_glsl[];
 
 /* *********** LISTS *********** */
 
-/* UBOs data needs to be 16 byte aligned (size of vec4) */
-/* Reminder : float, int, bool are 4 bytes */
+/**
+ * UBOs data needs to be 16 byte aligned (size of vec4)
+ *
+ * Reminder: float, int, bool are 4 bytes
+ *
+ * \note struct is expected to be initialized with all pad-bits zero'd
+ * so we can use 'memcmp' to check for duplicates. Possibly hash data later.
+ */
 typedef struct CLAY_UBO_Material {
 	float ssao_params_var[4];
 	/* - 16 -*/
@@ -476,26 +482,13 @@ static DRWShadingGroup *CLAY_hair_shgroup_create(DRWPass *pass, int *material_id
 	return grp;
 }
 
-static int search_mat_to_ubo(
-        CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-        float matcap_val, float ssao_distance, float ssao_factor_cavity,
-        float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
+static int search_mat_to_ubo(CLAY_Storage *storage, const CLAY_UBO_Material *mat_ubo_test)
 {
 	/* For now just use a linear search and test all parameters */
 	/* TODO make a hash table */
 	for (int i = 0; i < storage->ubo_current_id; ++i) {
 		CLAY_UBO_Material *ubo = &storage->mat_storage.materials[i];
-
-		if ((ubo->matcap_rot[0] == cosf(matcap_rot * 3.14159f * 2.0f)) &&
-		    (ubo->matcap_hsv[0] == matcap_hue + 0.5f) &&
-		    (ubo->matcap_hsv[1] == matcap_sat * 2.0f) &&
-		    (ubo->matcap_hsv[2] == matcap_val * 2.0f) &&
-		    (ubo->ssao_params_var[0] == ssao_distance) &&
-		    (ubo->ssao_params_var[1] == ssao_factor_cavity) &&
-		    (ubo->ssao_params_var[2] == ssao_factor_edge) &&
-		    (ubo->ssao_params_var[3] == ssao_attenuation) &&
-		    (ubo->matcap_id == matcap_to_index(matcap_icon)))
-		{
+		if (memcmp(ubo, mat_ubo_test, sizeof(*mat_ubo_test)) == 0) {
 			return i;
 		}
 	}
@@ -503,21 +496,13 @@ static int search_mat_to_ubo(
 	return -1;
 }
 
-static int search_hair_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                                  float matcap_val, float hair_randomness, int matcap_icon)
+static int search_hair_mat_to_ubo(CLAY_Storage *storage, const CLAY_HAIR_UBO_Material *hair_mat_ubo_test)
 {
 	/* For now just use a linear search and test all parameters */
 	/* TODO make a hash table */
 	for (int i = 0; i < storage->hair_ubo_current_id; ++i) {
 		CLAY_HAIR_UBO_Material *ubo = &storage->hair_mat_storage.materials[i];
-
-		if ((ubo->matcap_rot[0] == cosf(matcap_rot * 3.14159f * 2.0f)) &&
-		    (ubo->matcap_hsv[0] == matcap_hue + 0.5f) &&
-		    (ubo->matcap_hsv[1] == matcap_sat * 2.0f) &&
-		    (ubo->matcap_hsv[2] == matcap_val * 2.0f) &&
-		    (ubo->hair_randomness == hair_randomness) &&
-		    (ubo->matcap_id == matcap_to_index(matcap_icon)))
-		{
+		if (memcmp(ubo, hair_mat_ubo_test, sizeof(*hair_mat_ubo_test)) == 0) {
 			return i;
 		}
 	}
@@ -525,93 +510,58 @@ static int search_hair_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float
 	return -1;
 }
 
-static int push_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                            float matcap_val, float ssao_distance, float ssao_factor_cavity,
-                            float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
+static int push_mat_to_ubo(CLAY_Storage *storage, const CLAY_UBO_Material *mat_ubo_test)
 {
 	int id = storage->ubo_current_id;
 	CLAY_UBO_Material *ubo = &storage->mat_storage.materials[id];
 
-	ubo->matcap_rot[0] = cosf(matcap_rot * 3.14159f * 2.0f);
-	ubo->matcap_rot[1] = sinf(matcap_rot * 3.14159f * 2.0f);
-
-	ubo->matcap_hsv[0] = matcap_hue + 0.5f;
-	ubo->matcap_hsv[1] = matcap_sat * 2.0f;
-	ubo->matcap_hsv[2] = matcap_val * 2.0f;
-
-	/* small optimisation : make samples not spread if we don't need ssao */
-	ubo->ssao_params_var[0] = (ssao_factor_cavity + ssao_factor_edge > 0.0f) ? ssao_distance : 0.0f;
-	ubo->ssao_params_var[1] = ssao_factor_cavity;
-	ubo->ssao_params_var[2] = ssao_factor_edge;
-	ubo->ssao_params_var[3] = ssao_attenuation;
-
-	ubo->matcap_id = matcap_to_index(matcap_icon);
+	*ubo = *mat_ubo_test;
 
 	storage->ubo_current_id++;
 
 	return id;
 }
 
-static int push_hair_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                                float matcap_val, float hair_randomness, int matcap_icon)
+static int push_hair_mat_to_ubo(CLAY_Storage *storage, const CLAY_HAIR_UBO_Material *hair_mat_ubo_test)
 {
 	int id = storage->hair_ubo_current_id;
 	CLAY_HAIR_UBO_Material *ubo = &storage->hair_mat_storage.materials[id];
 
-	ubo->matcap_rot[0] = cosf(matcap_rot * 3.14159f * 2.0f);
-	ubo->matcap_rot[1] = sinf(matcap_rot * 3.14159f * 2.0f);
-
-	ubo->matcap_hsv[0] = matcap_hue + 0.5f;
-	ubo->matcap_hsv[1] = matcap_sat * 2.0f;
-	ubo->matcap_hsv[2] = matcap_val * 2.0f;
-
-	ubo->hair_randomness = hair_randomness;
-
-	ubo->matcap_id = matcap_to_index(matcap_icon);
+	*ubo = *hair_mat_ubo_test;
 
 	storage->hair_ubo_current_id++;
 
 	return id;
 }
 
-static int mat_in_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                      float matcap_val, float ssao_distance, float ssao_factor_cavity,
-                      float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
+static int mat_in_ubo(CLAY_Storage *storage, const CLAY_UBO_Material *mat_ubo_test)
 {
 	/* Search material in UBO */
-	int id = search_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
-	                           ssao_distance, ssao_factor_cavity, ssao_factor_edge,
-	                           ssao_attenuation, matcap_icon);
+	int id = search_mat_to_ubo(storage, mat_ubo_test);
 
 	/* if not found create it */
 	if (id == -1) {
-		id = push_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
-		                     ssao_distance, ssao_factor_cavity, ssao_factor_edge,
-		                     ssao_attenuation, matcap_icon);
+		id = push_mat_to_ubo(storage, mat_ubo_test);
 	}
 
 	return id;
 }
 
-static int hair_mat_in_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
-                           float matcap_val, float hair_randomness, int matcap_icon)
+static int hair_mat_in_ubo(CLAY_Storage *storage, const CLAY_HAIR_UBO_Material *hair_mat_ubo_test)
 {
 	/* Search material in UBO */
-	int id = search_hair_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat,
-	                                matcap_val, hair_randomness, matcap_icon);
+	int id = search_hair_mat_to_ubo(storage, hair_mat_ubo_test);
 
 	/* if not found create it */
 	if (id == -1) {
-		id = push_hair_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat,
-		                          matcap_val, hair_randomness, matcap_icon);
+		id = push_hair_mat_to_ubo(storage, hair_mat_ubo_test);
 	}
 
 	return id;
 }
 
-static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
+static void ubo_mat_from_object(Object *ob,  CLAY_UBO_Material *r_ubo)
 {
-	DRWShadingGroup **shgrps = stl->storage->shgrps;
 	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 
 	/* Default Settings */
@@ -625,9 +575,53 @@ static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLA
 	float ssao_attenuation = BKE_collection_engine_property_value_get_float(props, "ssao_attenuation");
 	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
 
-	int id = mat_in_ubo(stl->storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
-	                    ssao_distance, ssao_factor_cavity, ssao_factor_edge,
-	                    ssao_attenuation, matcap_icon);
+	memset(r_ubo, 0x0, sizeof(*r_ubo));
+
+	r_ubo->matcap_rot[0] = cosf(matcap_rot * 3.14159f * 2.0f);
+	r_ubo->matcap_rot[1] = sinf(matcap_rot * 3.14159f * 2.0f);
+
+	r_ubo->matcap_hsv[0] = matcap_hue + 0.5f;
+	r_ubo->matcap_hsv[1] = matcap_sat * 2.0f;
+	r_ubo->matcap_hsv[2] = matcap_val * 2.0f;
+
+	r_ubo->ssao_params_var[0] = ssao_distance;
+	r_ubo->ssao_params_var[1] = ssao_factor_cavity;
+	r_ubo->ssao_params_var[2] = ssao_factor_edge;
+	r_ubo->ssao_params_var[3] = ssao_attenuation;
+	r_ubo->matcap_id = matcap_to_index(matcap_icon);
+}
+
+static void hair_ubo_mat_from_object(Object *ob,  CLAY_HAIR_UBO_Material *r_ubo)
+{
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
+
+	/* Default Settings */
+	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");
+	float matcap_hue = BKE_collection_engine_property_value_get_float(props, "matcap_hue");
+	float matcap_sat = BKE_collection_engine_property_value_get_float(props, "matcap_saturation");
+	float matcap_val = BKE_collection_engine_property_value_get_float(props, "matcap_value");
+	float hair_randomness = BKE_collection_engine_property_value_get_float(props, "hair_brightness_randomness");
+	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
+
+	memset(r_ubo, 0x0, sizeof(*r_ubo));
+
+	r_ubo->matcap_rot[0] = cosf(matcap_rot * 3.14159f * 2.0f);
+	r_ubo->matcap_rot[1] = sinf(matcap_rot * 3.14159f * 2.0f);
+	r_ubo->matcap_hsv[0] = matcap_hue + 0.5f;
+	r_ubo->matcap_hsv[1] = matcap_sat * 2.0f;
+	r_ubo->matcap_hsv[2] = matcap_val * 2.0f;
+	r_ubo->hair_randomness = hair_randomness;
+	r_ubo->matcap_id = matcap_to_index(matcap_icon);
+}
+
+static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
+{
+	DRWShadingGroup **shgrps = stl->storage->shgrps;
+	CLAY_UBO_Material mat_ubo_test;
+
+	ubo_mat_from_object(ob, &mat_ubo_test);
+
+	int id = mat_in_ubo(stl->storage, &mat_ubo_test);
 
 	if (shgrps[id] == NULL) {
 		shgrps[id] = CLAY_shgroup_create(vedata, psl->clay_pass, &e_data.ubo_mat_idxs[id]);
@@ -643,18 +637,11 @@ static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, CLA
 static DRWShadingGroup *CLAY_hair_shgrp_get(Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
 {
 	DRWShadingGroup **hair_shgrps = stl->storage->hair_shgrps;
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 
-	/* Default Settings */
-	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");
-	float matcap_hue = BKE_collection_engine_property_value_get_float(props, "matcap_hue");
-	float matcap_sat = BKE_collection_engine_property_value_get_float(props, "matcap_saturation");
-	float matcap_val = BKE_collection_engine_property_value_get_float(props, "matcap_value");
-	float hair_randomness = BKE_collection_engine_property_value_get_float(props, "hair_brightness_randomness");
-	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
+	CLAY_HAIR_UBO_Material hair_mat_ubo_test;
+	hair_ubo_mat_from_object(ob, &hair_mat_ubo_test);
 
-	int hair_id = hair_mat_in_ubo(stl->storage, matcap_rot, matcap_hue, matcap_sat,
-	                              matcap_val, hair_randomness, matcap_icon);
+	int hair_id = hair_mat_in_ubo(stl->storage, &hair_mat_ubo_test);
 
 	if (hair_shgrps[hair_id] == NULL) {
 		hair_shgrps[hair_id] = CLAY_hair_shgroup_create(psl->hair_pass, &e_data.ubo_mat_idxs[hair_id]);
