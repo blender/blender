@@ -760,6 +760,7 @@ static void EEVEE_engine_free(void)
 
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit);
+	DRW_SHADER_FREE_SAFE(e_data.default_lit_flat);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_world);
 	DRW_SHADER_FREE_SAFE(e_data.default_background);
