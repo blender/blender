@@ -400,13 +400,6 @@ void GPU_clear_tpage(bool force)
 	GTS.lasttface = NULL;
 	GTS.curtile = 0;
 	GTS.curima = NULL;
-	if (GTS.curtilemode != 0) {
-#if SUPPORT_LEGACY_MATRIX
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity(); /* TEXTURE */
-		glMatrixMode(GL_MODELVIEW);
-#endif
-	}
 	GTS.curtilemode = 0;
 	GTS.curtileXRep = 0;
 	GTS.curtileYRep = 0;
@@ -590,21 +583,6 @@ int GPU_verify_image(
 	    GTS.curtileYRep == GTS.tileYRep)
 	{
 		return (ima != NULL);
-	}
-
-	/* if tiling mode or repeat changed, change texture matrix to fit */
-	if (GTS.tilemode != GTS.curtilemode || GTS.curtileXRep != GTS.tileXRep ||
-	    GTS.curtileYRep != GTS.tileYRep)
-	{
-#if SUPPORT_LEGACY_MATRIX
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity(); /* TEXTURE */
-
-		if (ima && (ima->tpageflag & IMA_TILES))
-			glScalef(ima->xrep, ima->yrep, 0); /* TEXTURE */
-
-		glMatrixMode(GL_MODELVIEW);
-#endif
 	}
 
 	/* check if we have a valid image */
@@ -2104,15 +2082,6 @@ void GPU_end_object_materials(void)
 	GMS.gmatbuf = NULL;
 	GMS.alphablend = NULL;
 	GMS.two_sided_lighting = false;
-
-	/* resetting the texture matrix after the scaling needed for tiled textures */
-	if (GTS.tilemode) {
-#if SUPPORT_LEGACY_MATRIX
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity(); /* TEXTURE */
-		glMatrixMode(GL_MODELVIEW);
-#endif
-	}
 }
 
 /* Lights */
@@ -2286,12 +2255,6 @@ void GPU_state_init(void)
 #endif
 
 	glDepthRange(0.0, 1.0);
-
-#if SUPPORT_LEGACY_MATRIX
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity(); /* TEXTURE */
-	glMatrixMode(GL_MODELVIEW);
-#endif
 
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);

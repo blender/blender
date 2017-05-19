@@ -117,25 +117,6 @@ static void checkmat(cosnt float *m)
 
 void gpuPushMatrix(void)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_MODELVIEW) {
-			glMatrixMode(GL_MODELVIEW);
-		}
-
-		glPushMatrix();
-
-		if (mode != GL_MODELVIEW) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	BLI_assert(ModelViewStack.top < MATRIX_STACK_DEPTH);
 	ModelViewStack.top++;
 	copy_m4_m4(ModelView, ModelViewStack.stack[ModelViewStack.top - 1]);
@@ -143,25 +124,6 @@ void gpuPushMatrix(void)
 
 void gpuPopMatrix(void)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_MODELVIEW) {
-			glMatrixMode(GL_MODELVIEW);
-		}
-
-		glPopMatrix();
-
-		if (mode != GL_MODELVIEW) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	BLI_assert(ModelViewStack.top > 0);
 	ModelViewStack.top--;
 	state.dirty = true;
@@ -169,25 +131,6 @@ void gpuPopMatrix(void)
 
 void gpuPushProjectionMatrix(void)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(GL_PROJECTION);
-		}
-
-		glPushMatrix();
-
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	BLI_assert(ProjectionStack.top < MATRIX_STACK_DEPTH);
 	ProjectionStack.top++;
 	copy_m4_m4(Projection, ProjectionStack.stack[ProjectionStack.top - 1]);
@@ -195,25 +138,6 @@ void gpuPushProjectionMatrix(void)
 
 void gpuPopProjectionMatrix(void)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(GL_PROJECTION);
-		}
-
-		glPopMatrix();
-
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	BLI_assert(ProjectionStack.top > 0);
 	ProjectionStack.top--;
 	state.dirty = true;
@@ -221,14 +145,6 @@ void gpuPopProjectionMatrix(void)
 
 void gpuLoadMatrix(const float m[4][4])
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glLoadMatrixf((const float*) m);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	copy_m4_m4(ModelView, m);
 	CHECKMAT(ModelView3D);
 	state.dirty = true;
@@ -236,25 +152,6 @@ void gpuLoadMatrix(const float m[4][4])
 
 void gpuLoadIdentityProjectionMatrix(void)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(GL_PROJECTION);
-		}
-
-		glLoadIdentity();
-
-		if (mode != GL_PROJECTION_MATRIX) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	unit_m4(Projection);
 	CHECKMAT(Projection3D);
 	state.dirty = true;
@@ -262,25 +159,6 @@ void gpuLoadIdentityProjectionMatrix(void)
 
 void gpuLoadProjectionMatrix(const float m[4][4])
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(GL_PROJECTION);
-		}
-
-		glLoadMatrixf((const float*) m);
-
-		if (mode != GL_PROJECTION_MATRIX) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	copy_m4_m4(Projection, m);
 	CHECKMAT(Projection3D);
 	state.dirty = true;
@@ -289,22 +167,11 @@ void gpuLoadProjectionMatrix(const float m[4][4])
 void gpuLoadIdentity(void)
 {
 	unit_m4(ModelView);
-#if SUPPORT_LEGACY_MATRIX
-	glLoadIdentity();
-#endif
 	state.dirty = true;
 }
 
 void gpuTranslate2f(float x, float y)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glTranslatef(x, y, 0.0f);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	Mat4 m;
 	unit_m4(m);
 	m[3][0] = x;
@@ -319,14 +186,6 @@ void gpuTranslate2fv(const float vec[2])
 
 void gpuTranslate3f(float x, float y, float z)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glTranslatef(x, y, z);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 #if 1
 	translate_m4(ModelView, x, y, z);
 	CHECKMAT(ModelView);
@@ -348,13 +207,6 @@ void gpuTranslate3fv(const float vec[3])
 
 void gpuScaleUniform(float factor)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glScalef(factor, factor, factor); /* always scale Z since we can't distinguish 2D from 3D */
-		state.dirty = true;
-		return;
-	}
-#endif
 	Mat4 m;
 	scale_m4_fl(m, factor);
 	gpuMultMatrix(m);
@@ -362,14 +214,6 @@ void gpuScaleUniform(float factor)
 
 void gpuScale2f(float x, float y)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glScalef(x, y, 1.0f);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	Mat4 m = {{0.0f}};
 	m[0][0] = x;
 	m[1][1] = y;
@@ -385,14 +229,6 @@ void gpuScale2fv(const float vec[2])
 
 void gpuScale3f(float x, float y, float z)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glScalef(x, y, z);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	Mat4 m = {{0.0f}};
 	m[0][0] = x;
 	m[1][1] = y;
@@ -408,14 +244,6 @@ void gpuScale3fv(const float vec[3])
 
 void gpuMultMatrix(const float m[4][4])
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glMultMatrixf((const float*) m);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	mul_m4_m4_post(ModelView, m);
 	CHECKMAT(ModelView);
 	state.dirty = true;
@@ -423,14 +251,6 @@ void gpuMultMatrix(const float m[4][4])
 
 void gpuRotate2D(float deg)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glRotatef(deg, 0.0f, 0.0f, 1.0f);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	/* essentially RotateAxis('Z')
 	 * TODO: simpler math for 2D case
 	 */
@@ -445,14 +265,6 @@ void gpuRotate3f(float deg, float x, float y, float z)
 
 void gpuRotate3fv(float deg, const float axis[3])
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		glRotatef(deg, axis[0], axis[1], axis[2]);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	Mat4 m;
 	axis_angle_to_mat4(m, axis, DEG2RADF(deg));
 	gpuMultMatrix(m);
@@ -460,21 +272,6 @@ void gpuRotate3fv(float deg, const float axis[3])
 
 void gpuRotateAxis(float deg, char axis)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		float a[3] = { 0.0f };
-		switch (axis) {
-			case 'X': a[0] = 1.0f; break;
-			case 'Y': a[1] = 1.0f; break;
-			case 'Z': a[2] = 1.0f; break;
-			default: BLI_assert(false); /* bad axis */
-		}
-		glRotatef(deg, a[0], a[1], a[2]);
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	/* rotate_m4 works in place */
 	rotate_m4(ModelView, axis, DEG2RADF(deg));
 	CHECKMAT(ModelView);
@@ -599,26 +396,6 @@ static void mat4_look_from_origin(float m[4][4], float lookdir[3], float camup[3
 
 void gpuOrtho(float left, float right, float bottom, float top, float near, float far)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(GL_PROJECTION);
-		}
-
-		glLoadIdentity();
-		glOrtho(left, right, bottom, top, near, far);
-
-		if (mode != GL_PROJECTION_MATRIX) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	mat4_ortho_set(Projection, left, right, bottom, top, near, far);
 	CHECKMAT(Projection);
 	state.dirty = true;
@@ -626,26 +403,6 @@ void gpuOrtho(float left, float right, float bottom, float top, float near, floa
 
 void gpuOrtho2D(float left, float right, float bottom, float top)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(GL_PROJECTION);
-		}
-
-		glLoadIdentity();
-		glOrtho(left, right, bottom, top, -1.0f, 1.0f);
-
-		if (mode != GL_PROJECTION_MATRIX) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	Mat4 m;
 	mat4_ortho_set(m, left, right, bottom, top, -1.0f, 1.0f);
 	CHECKMAT(Projection2D);
@@ -654,26 +411,6 @@ void gpuOrtho2D(float left, float right, float bottom, float top)
 
 void gpuFrustum(float left, float right, float bottom, float top, float near, float far)
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		GLenum mode;
-		glGetIntegerv(GL_MATRIX_MODE, (GLint*)&mode);
-		if (mode != GL_PROJECTION) {
-			glMatrixMode(GL_PROJECTION);
-		}
-
-		glLoadIdentity();
-		glFrustum(left, right, bottom, top, near, far);
-
-		if (mode != GL_PROJECTION_MATRIX) {
-			glMatrixMode(mode); /* restore */
-		}
-
-		state.dirty = true;
-		return;
-	}
-#endif
-
 	mat4_frustum_set(Projection, left, right, bottom, top, near, far);
 	CHECKMAT(Projection);
 	state.dirty = true;
@@ -758,18 +495,6 @@ bool gpuUnProject(const float win[3], const float model[4][4], const float proj[
 
 const float (*gpuGetModelViewMatrix(float m[4][4]))[4]
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		if (m == NULL) {
-			static Mat4 temp;
-			m = temp;
-		}
-
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)m);
-		return m;
-	}
-#endif
-
 	if (m) {
 		copy_m4_m4(m, ModelView);
 		return m;
@@ -781,18 +506,6 @@ const float (*gpuGetModelViewMatrix(float m[4][4]))[4]
 
 const float (*gpuGetProjectionMatrix(float m[4][4]))[4]
 {
-#if SUPPORT_LEGACY_MATRIX
-	{
-		if (m == NULL) {
-			static Mat4 temp;
-			m = temp;
-		}
-
-		glGetFloatv(GL_PROJECTION_MATRIX, (float*)m);
-		return m;
-	}
-#endif
-
 	if (m) {
 		copy_m4_m4(m, Projection);
 		return m;
@@ -808,16 +521,6 @@ const float (*gpuGetModelViewProjectionMatrix(float m[4][4]))[4]
 		static Mat4 temp;
 		m = temp;
 	}
-
-#if SUPPORT_LEGACY_MATRIX
-	{
-		Mat4 proj;
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)m);
-		glGetFloatv(GL_PROJECTION_MATRIX, (float*)proj);
-		mul_m4_m4_pre(m, proj);
-		return m;
-	}
-#endif
 
 	mul_m4_m4m4(m, Projection, ModelView);
 	return m;

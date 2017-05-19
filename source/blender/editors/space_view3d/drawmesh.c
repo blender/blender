@@ -1085,21 +1085,11 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 		int bindcode = (ima) ? GPU_verify_image(ima, iuser, GL_TEXTURE_2D, 0, 0, mipmap, false) : 0;
 
 		if (bindcode) {
-			NodeTexBase *texbase = node->storage;
-
 			/* disable existing material */
 			GPU_object_material_unbind();
 
 			/* bind texture */
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode[TEXTARGET_TEXTURE_2D]);
-
-#if SUPPORT_LEGACY_MATRIX
-			glMatrixMode(GL_TEXTURE);
-			glLoadMatrixf((float*) texbase->tex_mapping.mat); /* TEXTURE */
-			glMatrixMode(GL_MODELVIEW);
-#else
-			(void)texbase;
-#endif
 
 			/* use active UV texture layer */
 			memset(gattribs, 0, sizeof(*gattribs));

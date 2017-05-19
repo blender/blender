@@ -40,12 +40,6 @@
 extern "C" {
 #endif
 
-/* For now we support the legacy matrix stack in gpuGetMatrix functions.
- * Will remove this after switching to core profile, which can happen after
- * we convert all code to use the API in this file. */
-#define SUPPORT_LEGACY_MATRIX 0
-
-
 void gpuMatrixReset(void); /* to Identity transform & empty stack */
 
 /* ModelView Matrix (2D or 3D) */
