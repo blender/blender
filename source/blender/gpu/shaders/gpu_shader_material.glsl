@@ -12,9 +12,6 @@ uniform mat3 NormalMatrix;
 uniform vec4 CameraTexCoFactors;
 
 out vec4 fragColor;
-#define texture2D texture
-#define shadow2D shadow
-#define textureCube texture
 
 /* Converters */
 
@@ -504,9 +501,9 @@ void normal_new_shading(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
 
 void curves_vec(float fac, vec3 vec, sampler2D curvemap, out vec3 outvec)
 {
-	outvec.x = texture2D(curvemap, vec2((vec.x + 1.0) * 0.5, 0.0)).x;
-	outvec.y = texture2D(curvemap, vec2((vec.y + 1.0) * 0.5, 0.0)).y;
-	outvec.z = texture2D(curvemap, vec2((vec.z + 1.0) * 0.5, 0.0)).z;
+	outvec.x = texture(curvemap, vec2((vec.x + 1.0) * 0.5, 0.0)).x;
+	outvec.y = texture(curvemap, vec2((vec.y + 1.0) * 0.5, 0.0)).y;
+	outvec.z = texture(curvemap, vec2((vec.z + 1.0) * 0.5, 0.0)).z;
 
 	if (fac != 1.0)
 		outvec = (outvec * fac) + (vec * (1.0 - fac));
@@ -515,9 +512,9 @@ void curves_vec(float fac, vec3 vec, sampler2D curvemap, out vec3 outvec)
 
 void curves_rgb(float fac, vec4 col, sampler2D curvemap, out vec4 outcol)
 {
-	outcol.r = texture2D(curvemap, vec2(texture2D(curvemap, vec2(col.r, 0.0)).a, 0.0)).r;
-	outcol.g = texture2D(curvemap, vec2(texture2D(curvemap, vec2(col.g, 0.0)).a, 0.0)).g;
-	outcol.b = texture2D(curvemap, vec2(texture2D(curvemap, vec2(col.b, 0.0)).a, 0.0)).b;
+	outcol.r = texture(curvemap, vec2(texture(curvemap, vec2(col.r, 0.0)).a, 0.0)).r;
+	outcol.g = texture(curvemap, vec2(texture(curvemap, vec2(col.g, 0.0)).a, 0.0)).g;
+	outcol.b = texture(curvemap, vec2(texture(curvemap, vec2(col.b, 0.0)).a, 0.0)).b;
 
 	if (fac != 1.0)
 		outcol = (outcol * fac) + (col * (1.0 - fac));
@@ -837,7 +834,7 @@ void mix_linear(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void valtorgb(float fac, sampler2D colormap, out vec4 outcol, out float outalpha)
 {
-	outcol = texture2D(colormap, vec2(fac, 0.0));
+	outcol = texture(colormap, vec2(fac, 0.0));
 	outalpha = outcol.a;
 }
 
@@ -958,7 +955,7 @@ void texture_wood_sin(vec3 vec, out float value, out vec4 color, out vec3 normal
 
 void texture_image(vec3 vec, sampler2D ima, out float value, out vec4 color, out vec3 normal)
 {
-	color = texture2D(ima, (vec.xy + vec2(1.0, 1.0)) * 0.5);
+	color = texture(ima, (vec.xy + vec2(1.0, 1.0)) * 0.5);
 	value = color.a;
 
 	normal.x = 2.0 * (color.r - 0.5);
@@ -1371,14 +1368,14 @@ vec3 mtex_2d_mapping(vec3 vec)
 
 void mtex_cube_map(vec3 co, samplerCube ima, out float value, out vec4 color)
 {
-	color = textureCube(ima, co);
+	color = texture(ima, co);
 	value = 1.0;
 }
 
 void mtex_cube_map_refl_from_refldir(
         samplerCube ima, vec3 reflecteddirection, out float value, out vec4 color)
 {
-        color = textureCube(ima, reflecteddirection);
+        color = texture(ima, reflecteddirection);
         value = color.a;
 }
 
@@ -1389,13 +1386,13 @@ void mtex_cube_map_refl(
 	vec3 viewdirection = vec3(viewmatrixinverse * vec4(vp, 0.0));
 	vec3 normaldirection = normalize(vec3(vec4(vn, 0.0) * viewmatrix));
 	vec3 reflecteddirection = reflect(viewdirection, normaldirection);
-	color = textureCube(ima, reflecteddirection);
+	color = texture(ima, reflecteddirection);
 	value = 1.0;
 }
 
 void mtex_image(vec3 texco, sampler2D ima, out float value, out vec4 color)
 {
-	color = texture2D(ima, texco.xy);
+	color = texture(ima, texco.xy);
 	value = 1.0;
 }
 
@@ -1406,7 +1403,7 @@ void mtex_normal(vec3 texco, sampler2D ima, out vec3 normal)
 	// It needs to be done because in Blender
 	// the normal used points inward.
 	// Should this ever change this negate must be removed.
-	vec4 color = texture2D(ima, texco.xy);
+	vec4 color = texture(ima, texco.xy);
 	normal = 2.0 * (vec3(-color.r, color.g, color.b) - vec3(-0.5, 0.5, 0.5));
 }
 
@@ -1502,9 +1499,9 @@ void mtex_bump_tap3(
 	vec2 STul = texco.xy + dFdy(texco.xy);
 
 	float Hll, Hlr, Hul;
-	rgbtobw(texture2D(ima, STll), Hll);
-	rgbtobw(texture2D(ima, STlr), Hlr);
-	rgbtobw(texture2D(ima, STul), Hul);
+	rgbtobw(texture(ima, STll), Hll);
+	rgbtobw(texture(ima, STlr), Hlr);
+	rgbtobw(texture(ima, STul), Hul);
 
 	dBs = hScale * (Hlr - Hll);
 	dBt = hScale * (Hul - Hll);
@@ -1529,10 +1526,10 @@ void mtex_bump_bicubic(
 	vec2 STd = texco.xy - 0.5 * TexDy;
 	vec2 STu = texco.xy + 0.5 * TexDy;
 
-	rgbtobw(texture2D(ima, STl), Hl);
-	rgbtobw(texture2D(ima, STr), Hr);
-	rgbtobw(texture2D(ima, STd), Hd);
-	rgbtobw(texture2D(ima, STu), Hu);
+	rgbtobw(texture(ima, STl), Hl);
+	rgbtobw(texture(ima, STr), Hr);
+	rgbtobw(texture(ima, STd), Hd);
+	rgbtobw(texture(ima, STu), Hu);
 
 	vec2 dHdxy = vec2(Hr - Hl, Hu - Hd);
 	float fBlend = clamp(1.0 - textureQueryLOD(ima, texco.xy).x, 0.0, 1.0);
@@ -1618,11 +1615,11 @@ void mtex_bump_tap5(
 	vec2 STu = texco.xy + 0.5 * TexDy;
 
 	float Hc, Hl, Hr, Hd, Hu;
-	rgbtobw(texture2D(ima, STc), Hc);
-	rgbtobw(texture2D(ima, STl), Hl);
-	rgbtobw(texture2D(ima, STr), Hr);
-	rgbtobw(texture2D(ima, STd), Hd);
-	rgbtobw(texture2D(ima, STu), Hu);
+	rgbtobw(texture(ima, STc), Hc);
+	rgbtobw(texture(ima, STl), Hl);
+	rgbtobw(texture(ima, STr), Hr);
+	rgbtobw(texture(ima, STd), Hd);
+	rgbtobw(texture(ima, STu), Hu);
 
 	dBs = hScale * (Hr - Hl);
 	dBt = hScale * (Hu - Hd);
@@ -1639,7 +1636,7 @@ void mtex_bump_deriv(
 	// this variant using a derivative map is described here
 	// http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
 	vec2 dim = vec2(ima_x, ima_y);
-	vec2 dBduv = hScale * dim * (2.0 * texture2D(ima, texco.xy).xy - 1.0);
+	vec2 dBduv = hScale * dim * (2.0 * texture(ima, texco.xy).xy - 1.0);
 
 	dBs = dBduv.x * TexDx.x + s * dBduv.y * TexDx.y;
 	dBt = dBduv.x * TexDy.x + s * dBduv.y * TexDy.y;
@@ -1748,7 +1745,7 @@ void lamp_falloff_invcoefficients(float coeff_const, float coeff_lin, float coef
 
 void lamp_falloff_curve(float lampdist, sampler2D curvemap, float dist, out float visifac)
 {
-	visifac = texture2D(curvemap, vec2(dist / lampdist, 0.0)).x;
+	visifac = texture(curvemap, vec2(dist / lampdist, 0.0)).x;
 }
 
 void lamp_visibility_sphere(float lampdist, float dist, float visifac, out float outvisifac)
@@ -2295,7 +2292,7 @@ void test_shadowbuf_vsm(
 	else {
 		vec4 co = shadowpersmat * vec4(rco, 1.0);
 		if (co.w > 0.0 && co.x > 0.0 && co.x / co.w < 1.0 && co.y > 0.0 && co.y / co.w < 1.0) {
-			vec2 moments = texture2DProj(shadowmap, co).rg;
+			vec2 moments = textureProj(shadowmap, co).rg;
 			float dist = co.z / co.w;
 			float p = 0.0;
 
@@ -2354,7 +2351,7 @@ void shade_light_texture(vec3 rco, sampler2D cookie, mat4 shadowpersmat, out vec
 
 	vec4 co = shadowpersmat * vec4(rco, 1.0);
 
-	result = texture2DProj(cookie, co);
+	result = textureProj(cookie, co);
 }
 
 void shade_exposure_correct(vec3 col, float linfac, float logfac, out vec3 outcol)
@@ -3198,7 +3195,7 @@ void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
 	float u = 0.5 * (nco.x + 1.0);
 	float v = 0.5 * (nco.z + 1.0);
 
-	color = texture2D(ima, vec2(u, v));
+	color = texture(ima, vec2(u, v));
 }
 
 void node_tex_environment_empty(vec3 co, out vec4 color)
@@ -3208,7 +3205,7 @@ void node_tex_environment_empty(vec3 co, out vec4 color)
 
 void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
-	color = texture2D(ima, co.xy);
+	color = texture(ima, co.xy);
 	alpha = color.a;
 }
 
@@ -3276,13 +3273,13 @@ void node_tex_image_box(vec3 texco,
 	}
 	color = vec4(0);
 	if (weight.x > 0.0) {
-		color += weight.x * texture2D(ima, texco.yz);
+		color += weight.x * texture(ima, texco.yz);
 	}
 	if (weight.y > 0.0) {
-		color += weight.y * texture2D(ima, texco.xz);
+		color += weight.y * texture(ima, texco.xz);
 	}
 	if (weight.z > 0.0) {
-		color += weight.z * texture2D(ima, texco.yx);
+		color += weight.z * texture(ima, texco.yx);
 	}
 
 	alpha = color.a;
@@ -3964,5 +3961,5 @@ void material_preview_matcap(vec4 color, sampler2D ima, vec4 N, vec4 mask, out v
 
 	tex.x = 0.5 + 0.49 * normal.x;
 	tex.y = 0.5 + 0.49 * normal.y;
-	result = texture2D(ima, tex) * mask;
+	result = texture(ima, tex) * mask;
 }
