@@ -14,8 +14,6 @@ uniform sampler2D depthbuffer;
 // coordinates on framebuffer in normalized (0.0-1.0) uv space
 in vec4 uvcoordsvar;
 out vec4 FragColor;
-#define texture1D texture
-#define texture2D texture
 
 /* ssao_params.x : pixel scale for the ssao radious */
 /* ssao_params.y : factor for the ssao darkening */
@@ -38,7 +36,7 @@ vec3 calculate_view_space_normal(in vec3 viewposition)
 float calculate_ssao_factor(float depth)
 {
 	/* take the normalized ray direction here */
-	vec2 rotX = texture2D(jitter_tex, uvcoordsvar.xy * ssao_sample_params.yz).rg;
+	vec2 rotX = texture(jitter_tex, uvcoordsvar.xy * ssao_sample_params.yz).rg;
 	vec2 rotY = vec2(-rotX.y, rotX.x);
 
 	/* occlusion is zero in full depth */
@@ -62,7 +60,7 @@ float calculate_ssao_factor(float depth)
 	int num_samples = int(ssao_sample_params.x);
 
 	for (x = 0; x < num_samples; x++) {
-		vec2 dir_sample = texture1D(ssao_concentric_tex, (float(x) + 0.5) / ssao_sample_params.x).rg;
+		vec2 dir_sample = texture(ssao_concentric_tex, (float(x) + 0.5) / ssao_sample_params.x).rg;
 
 		/* rotate with random direction to get jittered result */
 		vec2 dir_jittered = vec2(dot(dir_sample, rotX), dot(dir_sample, rotY));
@@ -72,7 +70,7 @@ float calculate_ssao_factor(float depth)
 		if (uvcoords.x > 1.0 || uvcoords.x < 0.0 || uvcoords.y > 1.0 || uvcoords.y < 0.0)
 			continue;
 
-		float depth_new = texture2D(depthbuffer, uvcoords).r;
+		float depth_new = texture(depthbuffer, uvcoords).r;
 		if (depth_new != 1.0) {
 			vec3 pos_new = get_view_space_from_depth(uvcoords, viewvecs[0].xyz, viewvecs[1].xyz, depth_new);
 			vec3 dir = pos_new - position;
@@ -92,8 +90,8 @@ float calculate_ssao_factor(float depth)
 
 void main()
 {
-	float depth = texture2D(depthbuffer, uvcoordsvar.xy).r;
-	vec4 scene_col = texture2D(colorbuffer, uvcoordsvar.xy);
+	float depth = texture(depthbuffer, uvcoordsvar.xy).r;
+	vec4 scene_col = texture(colorbuffer, uvcoordsvar.xy);
 	vec3 final_color = mix(scene_col.rgb, ssao_color.rgb, calculate_ssao_factor(depth));
 	FragColor = vec4(final_color.rgb, scene_col.a);
 }

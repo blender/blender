@@ -37,9 +37,6 @@ layout(location = 0) out vec4 fragData0;
 layout(location = 1) out vec4 fragData1;
 layout(location = 2) out vec4 fragData2;
 
-#define texture2D texture
-
-
 #define M_PI 3.1415926535897932384626433832795
 
 /* calculate 4 samples at once */
@@ -62,15 +59,15 @@ void downsample_pass()
 	float far_coc, near_coc;
 
 	/* custom downsampling. We need to be careful to sample nearest here to avoid leaks */
-	vec4 color1 = texture2D(colorbuffer, downsample1);
-	vec4 color2 = texture2D(colorbuffer, downsample2);
-	vec4 color3 = texture2D(colorbuffer, downsample3);
-	vec4 color4 = texture2D(colorbuffer, downsample4);
+	vec4 color1 = texture(colorbuffer, downsample1);
+	vec4 color2 = texture(colorbuffer, downsample2);
+	vec4 color3 = texture(colorbuffer, downsample3);
+	vec4 color4 = texture(colorbuffer, downsample4);
 
-	depth.r = texture2D(depthbuffer, downsample1).r;
-	depth.g = texture2D(depthbuffer, downsample2).r;
-	depth.b = texture2D(depthbuffer, downsample3).r;
-	depth.a = texture2D(depthbuffer, downsample4).r;
+	depth.r = texture(depthbuffer, downsample1).r;
+	depth.g = texture(depthbuffer, downsample2).r;
+	depth.b = texture(depthbuffer, downsample3).r;
+	depth.a = texture(depthbuffer, downsample4).r;
 
 	zdepth = get_view_space_z_from_depth(vec4(viewvecs[0].z), vec4(viewvecs[1].z), depth);
 	coc = calculate_coc(zdepth);
@@ -123,22 +120,22 @@ void accumulate_pass(void) {
 void final_pass(void) {
 	vec4 finalcolor;
 	float totalweight;
-	float depth = texture2D(depthbuffer, uvcoord).r;
+	float depth = texture(depthbuffer, uvcoord).r;
 
 	vec4 zdepth = get_view_space_z_from_depth(vec4(viewvecs[0].z), vec4(viewvecs[1].z), vec4(depth));
 	float coc_near = calculate_coc(zdepth).r;
 	float coc_far = max(-coc_near, 0.0);
 	coc_near = max(coc_near, 0.0);
 
-	vec4 farcolor = texture2D(farbuffer, uvcoord);
+	vec4 farcolor = texture(farbuffer, uvcoord);
 	float farweight = farcolor.a;
 	if (farweight > 0.0)
 		farcolor /= farweight;
-	vec4 nearcolor = texture2D(nearbuffer, uvcoord);
+	vec4 nearcolor = texture(nearbuffer, uvcoord);
 
-	vec4 srccolor = texture2D(colorbuffer, uvcoord);
+	vec4 srccolor = texture(colorbuffer, uvcoord);
 
-	vec4 coc = texture2D(cocbuffer, uvcoord);
+	vec4 coc = texture(cocbuffer, uvcoord);
 
 	float mixfac = smoothstep(1.0, MERGE_THRESHOLD, coc_far);
 	finalcolor =  mix(srccolor, farcolor, mixfac);
