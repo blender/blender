@@ -2454,7 +2454,6 @@ int quick_floor(float x)
 	return int(x) - ((x < 0) ? 1 : 0);
 }
 
-#ifdef BIT_OPERATIONS
 float integer_noise(int n)
 {
 	int nn;
@@ -2519,7 +2518,6 @@ vec3 cellnoise_color(vec3 p)
 
 	return vec3(r, g, b);
 }
-#endif  // BIT_OPERATIONS
 
 float floorfrac(float x, out int i)
 {
@@ -3092,7 +3090,6 @@ void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 c
 	fac = check ? 1.0 : 0.0;
 }
 
-#ifdef BIT_OPERATIONS
 vec2 calc_brick_texture(vec3 p, float mortar_size, float mortar_smooth, float bias,
                         float brick_width, float row_height,
                         float offset_amount, int offset_frequency,
@@ -3128,7 +3125,6 @@ vec2 calc_brick_texture(vec3 p, float mortar_size, float mortar_smooth, float bi
 		return vec2(tint, smoothstep(0.0, mortar_smooth, min_dist));
 	}
 }
-#endif
 
 void node_tex_brick(vec3 co,
                     vec4 color1, vec4 color2,
@@ -3139,7 +3135,6 @@ void node_tex_brick(vec3 co,
                     float squash_amount, float squash_frequency,
                     out vec4 color, out float fac)
 {
-#ifdef BIT_OPERATIONS
 	vec2 f2 = calc_brick_texture(co * scale,
 	                             mortar_size, mortar_smooth, bias,
 	                             brick_width, row_height,
@@ -3153,10 +3148,6 @@ void node_tex_brick(vec3 co,
 	}
 	color = mix(color1, mortar, f);
 	fac = f;
-#else
-	color = vec4(1.0);
-	fac = 1.0;
-#endif
 }
 
 void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
@@ -3352,7 +3343,6 @@ void node_tex_magic(vec3 co, float scale, float distortion, float depth, out vec
 	fac = (color.x + color.y + color.z) / 3.0;
 }
 
-#ifdef BIT_OPERATIONS
 float noise_fade(float t)
 {
 	return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
@@ -3443,11 +3433,9 @@ float noise_turbulence(vec3 p, float octaves, int hard)
 		return sum;
 	}
 }
-#endif  // BIT_OPERATIONS
 
 void node_tex_noise(vec3 co, float scale, float detail, float distortion, out vec4 color, out float fac)
 {
-#ifdef BIT_OPERATIONS
 	vec3 p = co * scale;
 	int hard = 0;
 	if (distortion != 0.0) {
@@ -3463,14 +3451,7 @@ void node_tex_noise(vec3 co, float scale, float detail, float distortion, out ve
 	             noise_turbulence(vec3(p.y, p.x, p.z), detail, hard),
 	             noise_turbulence(vec3(p.y, p.z, p.x), detail, hard),
 	             1);
-#else  // BIT_OPERATIONS
-	color = vec4(1.0);
-	fac = 1.0;
-#endif  // BIT_OPERATIONS
 }
-
-
-#ifdef BIT_OPERATIONS
 
 /* Musgrave fBm
  *
@@ -3656,7 +3637,6 @@ float svm_musgrave(int type,
 		return intensity * noise_musgrave_hetero_terrain(p, dimension, lacunarity, octaves, offset);
 	return 0.0;
 }
-#endif  // #ifdef BIT_OPERATIONS
 
 void node_tex_musgrave(vec3 co,
                        float scale,
@@ -3669,7 +3649,6 @@ void node_tex_musgrave(vec3 co,
                        out vec4 color,
                        out float fac)
 {
-#ifdef BIT_OPERATIONS
 	fac = svm_musgrave(int(type),
 	                   dimension,
 	                   lacunarity,
@@ -3678,9 +3657,6 @@ void node_tex_musgrave(vec3 co,
 	                   1.0,
 	                   gain,
 	                   co * scale);
-#else
-	fac = 1.0;
-#endif
 
 	color = vec4(fac, fac, fac, 1.0);
 }
@@ -3692,7 +3668,6 @@ void node_tex_sky(vec3 co, out vec4 color)
 
 void node_tex_voronoi(vec3 co, float scale, float coloring, out vec4 color, out float fac)
 {
-#ifdef BIT_OPERATIONS
 	vec3 p = co * scale;
 	int xx, yy, zz, xi, yi, zi;
 	float da[4];
@@ -3757,13 +3732,8 @@ void node_tex_voronoi(vec3 co, float scale, float coloring, out vec4 color, out 
 		color = vec4(cellnoise_color(pa[0]), 1);
 		fac = (color.x + color.y + color.z) * (1.0 / 3.0);
 	}
-#else  // BIT_OPERATIONS
-	color = vec4(1.0);
-	fac = 1.0;
-#endif  // BIT_OPERATIONS
 }
 
-#ifdef BIT_OPERATIONS
 float calc_wave(vec3 p, float distortion, float detail, float detail_scale, int wave_type, int wave_profile)
 {
 	float n;
@@ -3785,22 +3755,16 @@ float calc_wave(vec3 p, float distortion, float detail, float detail_scale, int 
 		return (n < 0.0) ? n + 1.0 : n;
 	}
 }
-#endif  // BIT_OPERATIONS
 
 void node_tex_wave(
         vec3 co, float scale, float distortion, float detail, float detail_scale, float wave_type, float wave_profile,
         out vec4 color, out float fac)
 {
-#ifdef BIT_OPERATIONS
 	float f;
 	f = calc_wave(co * scale, distortion, detail, detail_scale, int(wave_type), int(wave_profile));
 
 	color = vec4(f, f, f, 1.0);
 	fac = f;
-#else  // BIT_OPERATIONS
-	color = vec4(1.0);
-	fac = 1;
-#endif  // BIT_OPERATIONS
 }
 
 /* light path */
