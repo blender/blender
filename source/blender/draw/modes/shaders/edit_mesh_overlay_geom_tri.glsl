@@ -198,7 +198,7 @@ void main()
 				perp = -perp;
 			}
 
-			/* Make it view independant */
+			/* Make it view independent */
 			perp *= sizeEdgeFix / viewportSize;
 			cornervec[i] *= sizeEdgeFix / viewportSize;
 			fixvec[i] = fixvecaf[i] = perp;
@@ -214,9 +214,9 @@ void main()
 		}
 
 		/* to not let face color bleed */
-		faceColor = vec4(0.0, 0.0, 0.0, 0.0);
+		faceColor = vec4(0.0);
 
-		/* we don't want other edges : make them far*/
+		/* we don't want other edges : make them far */
 		eData1 = vec4(1e10);
 
 		/* Start with the same last vertex to create a
@@ -227,7 +227,7 @@ void main()
 			int vaf = (i + 1) % 3;
 			int v = i % 3;
 
-			/* Position of the "hidden" thrid vertex */
+			/* Position of the "hidden" third vertex */
 			eData1.zw = pos[vbe];
 
 			doVertex(v, pPos[v]);
@@ -249,7 +249,7 @@ void main()
 			doVertex(vaf, pPos[vaf]);
 			doVertex(vaf, pPos[vaf] + vec4(fixvecaf[v], 0.0, 0.0));
 
-			/* corner vertices should not drax edges but draw point only */
+			/* corner vertices should not draw edges but draw point only */
 			flag[2] = (vData[vbe].x << 8);
 #ifdef VERTEX_SELECTION
 			doVertex(vaf, pPos[vaf]);

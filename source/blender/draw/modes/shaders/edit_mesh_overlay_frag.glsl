@@ -19,7 +19,7 @@ smooth in vec3 vertexColor;
 /* We use a vec4[2] interface to pass edge data
  * (without fragmenting memory accesses)
  *
- * There is 2 cases :
+ * There are 2 cases :
  *
  * - Simple case : geometry shader return edge distances
  *   in the first 2 components of the first vec4.
@@ -38,19 +38,19 @@ flat in vec4 eData2;
 
 out vec4 FragColor;
 
-#define EDGE_EXISTS		(1 << 0)
-#define EDGE_ACTIVE		(1 << 1)
-#define EDGE_SELECTED	(1 << 2)
-#define EDGE_SEAM		(1 << 3)
-#define EDGE_SHARP		(1 << 4)
+#define EDGE_EXISTS     (1 << 0)
+#define EDGE_ACTIVE     (1 << 1)
+#define EDGE_SELECTED   (1 << 2)
+#define EDGE_SEAM       (1 << 3)
+#define EDGE_SHARP      (1 << 4)
 /* Vertex flag is shifted and combined with the edge flag */
-#define VERTEX_ACTIVE	(1 << (0 + 8))
-#define VERTEX_SELECTED	(1 << (1 + 8))
-#define FACE_ACTIVE		(1 << (2 + 8))
+#define VERTEX_ACTIVE   (1 << (0 + 8))
+#define VERTEX_SELECTED (1 << (1 + 8))
+#define FACE_ACTIVE     (1 << (2 + 8))
 
 /* Style Parameters in pixel */
 
-/* Array to retreive vert/edge indices */
+/* Array to retrieve vert/edge indices */
 const ivec3 clipEdgeIdx[6] = ivec3[6](
 	ivec3(1, 0, 2),
 	ivec3(2, 0, 1),

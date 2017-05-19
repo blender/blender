@@ -7,8 +7,8 @@ in ivec4 data;
 flat out vec4 faceColor;
 flat out int faceActive;
 
-#define FACE_ACTIVE     (1 << 2)
-#define FACE_SELECTED   (1 << 3)
+#define FACE_ACTIVE   (1 << 2)
+#define FACE_SELECTED (1 << 3)
 
 void main()
 {

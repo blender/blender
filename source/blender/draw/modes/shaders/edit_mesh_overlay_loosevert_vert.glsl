@@ -47,7 +47,7 @@ void main()
 	vertexColor = vec3(0.0);
 #endif
 
-	/* only verterx position 0 is used */
+	/* only vertex position 0 is used */
 	eData1 = eData2 = vec4(1e10);
 	eData2.zw = proj(pPos);
 
