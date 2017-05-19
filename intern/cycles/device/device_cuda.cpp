@@ -949,7 +949,7 @@ public:
 		cuda_push_context();
 
 		int4 rect = task->rect;
-		int w = rect.z-rect.x;
+		int w = align_up(rect.z-rect.x, 4);
 		int h = rect.w-rect.y;
 		int r = task->nlm_state.r;
 		int f = task->nlm_state.f;
