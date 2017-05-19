@@ -59,8 +59,6 @@ protected:
 	 * Constructor
 	 */
 	TextureBaseOperation();
-
-	MemoryBuffer *createMemoryBuffer(rcti *rect2);
 public:
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
