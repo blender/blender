@@ -37,7 +37,7 @@ ccl_device_inline void filter_get_features_sse(__m128 x, __m128 y, __m128 active
 {
 	features[0] = x;
 	features[1] = y;
-	features[2] = ccl_get_feature_sse(0);
+	features[2] = _mm_fabs_ps(ccl_get_feature_sse(0));
 	features[3] = ccl_get_feature_sse(1);
 	features[4] = ccl_get_feature_sse(2);
 	features[5] = ccl_get_feature_sse(3);
@@ -58,7 +58,7 @@ ccl_device_inline void filter_get_feature_scales_sse(__m128 x, __m128 y, __m128 
 	scales[0] = _mm_mask_ps(_mm_fabs_ps(_mm_sub_ps(x, mean[0])), active_pixels);
 	scales[1] = _mm_mask_ps(_mm_fabs_ps(_mm_sub_ps(y, mean[1])), active_pixels);
 
-	scales[2] = _mm_mask_ps(_mm_fabs_ps(_mm_sub_ps(ccl_get_feature_sse(0), mean[2])), active_pixels);
+	scales[2] = _mm_mask_ps(_mm_fabs_ps(_mm_sub_ps(_mm_fabs_ps(ccl_get_feature_sse(0)), mean[2])), active_pixels);
 
 	__m128 diff, scale;
 	diff = _mm_sub_ps(ccl_get_feature_sse(1), mean[3]);

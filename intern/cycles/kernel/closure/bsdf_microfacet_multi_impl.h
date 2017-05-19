@@ -26,24 +26,16 @@
  * the balance heuristic isn't necessarily optimal anymore.
  */
 ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
-        float3 wi,
-        float3 wo,
-        const bool wo_outside,
-        const float3 color,
-        const float alpha_x,
-        const float alpha_y,
-         ccl_addr_space uint *lcg_state
-#ifdef MF_MULTI_GLASS
-        , const float eta
-        , bool use_fresnel
-        , const float3 cspec0
-#elif defined(MF_MULTI_GLOSSY)
-         , float3 *n, float3 *k
-         , const float eta
-         , bool use_fresnel
-         , const float3 cspec0
-#endif
-)
+	float3 wi,
+	float3 wo,
+	const bool wo_outside,
+	const float3 color,
+	const float alpha_x,
+	const float alpha_y,
+	ccl_addr_space uint *lcg_state,
+	const float eta,
+	bool use_fresnel,
+	const float3 cspec0)
 {
 	/* Evaluating for a shallower incoming direction produces less noise, and the properties of the BSDF guarantee reciprocity. */
 	bool swapped = false;
@@ -77,44 +69,29 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 	/* Analytically compute single scattering for lower noise. */
 	float3 eval;
 	float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
+	const float3 wh = normalize(wi+wo);
 #ifdef MF_MULTI_GLASS
 	eval = mf_eval_phase_glass(-wi, lambda_r, wo, wo_outside, alpha, eta);
 	if(wo_outside)
 		eval *= -lambda_r / (shadowing_lambda - lambda_r);
 	else
 		eval *= -lambda_r * beta(-lambda_r, shadowing_lambda+1.0f);
-
-	float F0 = fresnel_dielectric_cos(1.0f, eta);
-	if(use_fresnel) {
-		throughput = interpolate_fresnel_color(wi, normalize(wi + wo), eta, F0, cspec0);
-
-		eval *= throughput;
-	}
-#elif defined(MF_MULTI_DIFFUSE)
-	/* Diffuse has no special closed form for the single scattering bounce */
-	eval = make_float3(0.0f, 0.0f, 0.0f);
 #else /* MF_MULTI_GLOSSY */
-	const float3 wh = normalize(wi+wo);
 	const float G2 = 1.0f / (1.0f - (lambda_r + 1.0f) + shadowing_lambda);
 	float val = G2 * 0.25f / wi.z;
 	if(alpha.x == alpha.y)
 		val *= D_ggx(wh, alpha.x);
 	else
 		val *= D_ggx_aniso(wh, alpha);
-	if(n && k) {
-		eval = fresnel_conductor(dot(wh, wi), *n, *k) * val;
-	}
-	else {
-		eval = make_float3(val, val, val);
-	}
+	eval = make_float3(val, val, val);
+#endif
 
 	float F0 = fresnel_dielectric_cos(1.0f, eta);
 	if(use_fresnel) {
 		throughput = interpolate_fresnel_color(wi, wh, eta, F0, cspec0);
 
-		eval = throughput * val;
+		eval *= throughput;
 	}
-#endif
 
 	float3 wr = -wi;
 	float hr = 1.0f;
@@ -129,13 +106,6 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 		float3 wm = mf_sample_vndf(-wr, alpha, make_float2(lcg_step_float_addrspace(lcg_state),
 		                                                   lcg_step_float_addrspace(lcg_state)));
 
-#ifdef MF_MULTI_DIFFUSE
-		if(order == 0) {
-			/* Compute single-scattering for diffuse. */
-			const float G2_G1 = -lambda_r / (shadowing_lambda - lambda_r);
-			eval += throughput * G2_G1 * mf_eval_phase_diffuse(wo, wm);
-		}
-#endif
 #ifdef MF_MULTI_GLASS
 		if(order == 0 && use_fresnel) {
 			/* Evaluate amount of scattering towards wo on this microfacet. */
@@ -156,10 +126,8 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 				phase = mf_eval_phase_glass(wr, lambda_r,  wo,  wo_outside, alpha, eta);
 			else
 				phase = mf_eval_phase_glass(wr, lambda_r, -wo, !wo_outside, alpha, 1.0f/eta);
-#elif defined(MF_MULTI_DIFFUSE)
-			phase = mf_eval_phase_diffuse(wo, wm);
 #else /* MF_MULTI_GLOSSY */
-			phase = mf_eval_phase_glossy(wr, lambda_r, wo, alpha, n, k) * throughput;
+			phase = mf_eval_phase_glossy(wr, lambda_r, wo, alpha) * throughput;
 #endif
 			eval += throughput * phase * mf_G1(wo_outside? wo: -wo, mf_C1((outside == wo_outside)? hr: -hr), shadowing_lambda);
 		}
@@ -181,25 +149,17 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 			else if(use_fresnel && order > 0) {
 				throughput *= interpolate_fresnel_color(wi_prev, wm, eta, F0, cspec0);
 			}
-#elif defined(MF_MULTI_DIFFUSE)
-			wr = mf_sample_phase_diffuse(wm,
-			                             lcg_step_float_addrspace(lcg_state),
-			                             lcg_step_float_addrspace(lcg_state));
 #else /* MF_MULTI_GLOSSY */
 			if(use_fresnel && order > 0) {
 				throughput *= interpolate_fresnel_color(-wr, wm, eta, F0, cspec0);
 			}
-			wr = mf_sample_phase_glossy(-wr, n, k, &throughput, wm);
+			wr = mf_sample_phase_glossy(-wr, &throughput, wm);
 #endif
 
 			lambda_r = mf_lambda(wr, alpha);
 
-#if defined(MF_MULTI_GLOSSY) || defined(MF_MULTI_GLASS)
 			if(!use_fresnel)
 				throughput *= color;
-#else
-			throughput *= color;
-#endif
 
 			C1_r = mf_C1(hr);
 			G1_r = mf_G1(wr, C1_r, lambda_r);
@@ -215,18 +175,16 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
  * escaped the surface in wo. The function returns the throughput between wi and wo.
  * Without reflection losses due to coloring or fresnel absorption in conductors, the sampling is optimal.
  */
-ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3 *wo, const float3 color, const float alpha_x, const float alpha_y, ccl_addr_space uint *lcg_state
-#ifdef MF_MULTI_GLASS
-	, const float eta
-	, bool use_fresnel
-	, const float3 cspec0
-#elif defined(MF_MULTI_GLOSSY)
-	, float3 *n, float3 *k
-	, const float eta
-	, bool use_fresnel
-	, const float3 cspec0
-#endif
-)
+ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(
+	float3 wi,
+	float3 *wo,
+	const float3 color,
+	const float alpha_x,
+	const float alpha_y,
+	ccl_addr_space uint *lcg_state,
+	const float eta,
+	bool use_fresnel,
+	const float3 cspec0)
 {
 	const float2 alpha = make_float2(alpha_x, alpha_y);
 
@@ -237,17 +195,11 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3
 	float C1_r = 1.0f;
 	float G1_r = 0.0f;
 	bool outside = true;
-#ifdef MF_MULTI_GLASS
+
 	float F0 = fresnel_dielectric_cos(1.0f, eta);
 	if(use_fresnel) {
 		throughput = interpolate_fresnel_color(wi, normalize(wi + wr), eta, F0, cspec0);
 	}
-#elif defined(MF_MULTI_GLOSSY)
-	float F0 = fresnel_dielectric_cos(1.0f, eta);
-	if(use_fresnel) {
-		throughput = interpolate_fresnel_color(wi, normalize(wi + wr), eta, F0, cspec0);
-	}
-#endif
 
 	int order;
 	for(order = 0; order < 10; order++) {
@@ -262,13 +214,8 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3
 		                                                   lcg_step_float_addrspace(lcg_state)));
 
 		/* First-bounce color is already accounted for in mix weight. */
-#if defined(MF_MULTI_GLASS) || defined(MF_MULTI_GLOSSY)
 		if(!use_fresnel && order > 0)
 			throughput *= color;
-#else
-		if(order > 0)
-			throughput *= color;
-#endif
 
 		/* Bounce from the microfacet. */
 #ifdef MF_MULTI_GLASS
@@ -294,10 +241,6 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3
 					throughput *= t_color;
 			}
 		}
-#elif defined(MF_MULTI_DIFFUSE)
-		wr = mf_sample_phase_diffuse(wm,
-		                             lcg_step_float_addrspace(lcg_state),
-		                             lcg_step_float_addrspace(lcg_state));
 #else /* MF_MULTI_GLOSSY */
 		if(use_fresnel) {
 			float3 t_color = interpolate_fresnel_color(-wr, wm, eta, F0, cspec0);
@@ -307,7 +250,7 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3
 			else
 				throughput *= t_color;
 		}
-		wr = mf_sample_phase_glossy(-wr, n, k, &throughput, wm);
+		wr = mf_sample_phase_glossy(-wr, &throughput, wm);
 #endif
 
 		/* Update random walk parameters. */
@@ -319,6 +262,5 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3
 }
 
 #undef MF_MULTI_GLASS
-#undef MF_MULTI_DIFFUSE
 #undef MF_MULTI_GLOSSY
 #undef MF_PHASE_FUNCTION

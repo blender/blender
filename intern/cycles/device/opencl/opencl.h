@@ -411,6 +411,11 @@ protected:
 	                           device_ptr mean_ptr,
 	                           device_ptr variance_ptr,
 	                           DenoisingTask *task);
+	bool denoising_detect_outliers(device_ptr image_ptr,
+	                               device_ptr variance_ptr,
+	                               device_ptr depth_ptr,
+	                               device_ptr output_ptr,
+	                               DenoisingTask *task);
 	bool denoising_set_tiles(device_ptr *buffers,
 	                         DenoisingTask *task);
 

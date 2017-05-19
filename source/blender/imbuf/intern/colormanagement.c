@@ -1759,9 +1759,14 @@ void IMB_colormanagement_transform_from_byte_threaded(float *float_buffer, unsig
 		return;
 	}
 	if (STREQ(from_colorspace, to_colorspace)) {
-		/* If source and destination color spaces are identical, skip
-		 * threading overhead and simply do nothing
+		/* Because this function always takes a byte buffer and returns a float buffer, it must
+		 * always do byte-to-float conversion of some kind. To avoid threading overhead
+		 * IMB_buffer_float_from_byte is used when color spaces are identical. See T51002.
 		 */
+		IMB_buffer_float_from_byte(float_buffer, byte_buffer,
+		                           IB_PROFILE_SRGB, IB_PROFILE_SRGB,
+		                           true,
+		                           width, height, width, width);
 		return;
 	}
 	cm_processor = IMB_colormanagement_colorspace_processor_new(from_colorspace, to_colorspace);
@@ -2058,6 +2063,10 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, bool save_as_render, boo
 			 */
 			colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(view_settings, display_settings);
 		}
+	}
+
+	if (colormanaged_ibuf != ibuf) {
+		IMB_metadata_copy(colormanaged_ibuf, ibuf);
 	}
 
 	return colormanaged_ibuf;

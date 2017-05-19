@@ -105,6 +105,15 @@ public:
 	bool need_update;
 	bool need_update_attributes;
 
+	/* If the shader has only volume components, the surface is assumed to
+	 * be transparent.
+	 * However, graph optimization might remove the volume subgraph, but
+	 * since the user connected something to the volume output the surface
+	 * should still be transparent.
+	 * Therefore, has_volume_connected stores whether some volume subtree
+	 * was connected before optimization. */
+	bool has_volume_connected;
+
 	/* information about shader after compiling */
 	bool has_surface;
 	bool has_surface_emission;

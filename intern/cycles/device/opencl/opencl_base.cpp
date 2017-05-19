@@ -216,6 +216,7 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	denoising_program = OpenCLProgram(this, "denoising", "filter.cl", "");
 	denoising_program.add_kernel(ustring("filter_divide_shadow"));
 	denoising_program.add_kernel(ustring("filter_get_feature"));
+	denoising_program.add_kernel(ustring("filter_detect_outliers"));
 	denoising_program.add_kernel(ustring("filter_combine_halves"));
 	denoising_program.add_kernel(ustring("filter_construct_transform"));
 	denoising_program.add_kernel(ustring("filter_nlm_calc_difference"));
@@ -910,6 +911,33 @@ bool OpenCLDeviceBase::denoising_get_feature(int mean_offset,
 	return true;
 }
 
+bool OpenCLDeviceBase::denoising_detect_outliers(device_ptr image_ptr,
+                                                 device_ptr variance_ptr,
+                                                 device_ptr depth_ptr,
+                                                 device_ptr output_ptr,
+                                                 DenoisingTask *task)
+{
+	cl_mem image_mem = CL_MEM_PTR(image_ptr);
+	cl_mem variance_mem = CL_MEM_PTR(variance_ptr);
+	cl_mem depth_mem = CL_MEM_PTR(depth_ptr);
+	cl_mem output_mem = CL_MEM_PTR(output_ptr);
+
+	cl_kernel ckFilterDetectOutliers = denoising_program(ustring("filter_detect_outliers"));
+
+	kernel_set_args(ckFilterDetectOutliers, 0,
+	                image_mem,
+	                variance_mem,
+	                depth_mem,
+	                output_mem,
+	                task->rect,
+	                task->buffer.pass_stride);
+	enqueue_kernel(ckFilterDetectOutliers,
+	               task->rect.z-task->rect.x,
+	               task->rect.w-task->rect.y);
+
+	return true;
+}
+
 bool OpenCLDeviceBase::denoising_set_tiles(device_ptr *buffers,
                                            DenoisingTask *task)
 {
@@ -942,6 +970,7 @@ void OpenCLDeviceBase::denoise(RenderTile &rtile, const DeviceTask &task)
 	denoising.functions.non_local_means = function_bind(&OpenCLDeviceBase::denoising_non_local_means, this, _1, _2, _3, _4, &denoising);
 	denoising.functions.combine_halves = function_bind(&OpenCLDeviceBase::denoising_combine_halves, this, _1, _2, _3, _4, _5, _6, &denoising);
 	denoising.functions.get_feature = function_bind(&OpenCLDeviceBase::denoising_get_feature, this, _1, _2, _3, _4, &denoising);
+	denoising.functions.detect_outliers = function_bind(&OpenCLDeviceBase::denoising_detect_outliers, this, _1, _2, _3, _4, &denoising);
 
 	denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
 	denoising.render_buffer.samples = rtile.sample;

@@ -2655,7 +2655,7 @@ void node_bsdf_toon(vec4 color, float size, float tsmooth, vec3 N, out vec4 resu
 
 void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
-	float clearcoat_gloss, float ior, float transparency, float refraction_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
+	float clearcoat_gloss, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
 {
 	/* ambient light */
 	// TODO: set ambient light to an appropriate value

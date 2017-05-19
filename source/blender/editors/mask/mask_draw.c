@@ -784,13 +784,12 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 
 	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
 	gpuPushMatrix();
-
+	gpuTranslate2f(x + xofs, y + yofs);
+	gpuScale2f(zoomx, zoomy);
 	if (stabmat) {
 		gpuMultMatrix(stabmat);
 	}
-
-	gpuTranslate2f(x + xofs, y + yofs);
-	gpuScale2f(maxdim * zoomx, maxdim * zoomy);
+	gpuScale2f(maxdim, maxdim);
 
 	if (do_draw_cb) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);

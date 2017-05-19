@@ -949,7 +949,7 @@ public:
 		cuda_push_context();
 
 		int4 rect = task->rect;
-		int w = rect.z-rect.x;
+		int w = align_up(rect.z-rect.x, 4);
 		int h = rect.w-rect.y;
 		int r = task->nlm_state.r;
 		int f = task->nlm_state.f;
@@ -1248,6 +1248,38 @@ public:
 		return !have_error();
 	}
 
+	bool denoising_detect_outliers(device_ptr image_ptr,
+	                               device_ptr variance_ptr,
+	                               device_ptr depth_ptr,
+	                               device_ptr output_ptr,
+	                               DenoisingTask *task)
+	{
+		if(have_error())
+			return false;
+
+		cuda_push_context();
+
+		CUfunction cuFilterDetectOutliers;
+		cuda_assert(cuModuleGetFunction(&cuFilterDetectOutliers, cuFilterModule, "kernel_cuda_filter_detect_outliers"));
+		cuda_assert(cuFuncSetCacheConfig(cuFilterDetectOutliers, CU_FUNC_CACHE_PREFER_L1));
+		CUDA_GET_BLOCKSIZE(cuFilterDetectOutliers,
+		                   task->rect.z-task->rect.x,
+		                   task->rect.w-task->rect.y);
+
+		void *args[] = {&image_ptr,
+		                &variance_ptr,
+		                &depth_ptr,
+		                &output_ptr,
+		                &task->rect,
+		                &task->buffer.pass_stride};
+
+		CUDA_LAUNCH_KERNEL(cuFilterDetectOutliers, args);
+		cuda_assert(cuCtxSynchronize());
+
+		cuda_pop_context();
+		return !have_error();
+	}
+
 	void denoise(RenderTile &rtile, const DeviceTask &task)
 	{
 		DenoisingTask denoising(this);
@@ -1258,6 +1290,7 @@ public:
 		denoising.functions.non_local_means = function_bind(&CUDADevice::denoising_non_local_means, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.combine_halves = function_bind(&CUDADevice::denoising_combine_halves, this, _1, _2, _3, _4, _5, _6, &denoising);
 		denoising.functions.get_feature = function_bind(&CUDADevice::denoising_get_feature, this, _1, _2, _3, _4, &denoising);
+		denoising.functions.detect_outliers = function_bind(&CUDADevice::denoising_detect_outliers, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.set_tiles = function_bind(&CUDADevice::denoising_set_tiles, this, _1, &denoising);
 
 		denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);

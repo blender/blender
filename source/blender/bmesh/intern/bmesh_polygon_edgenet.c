@@ -62,6 +62,7 @@
 #define EDGE_NET   _FLAG_WALK
 /* tag verts we've visit */
 #define VERT_VISIT _FLAG_WALK
+#define VERT_IN_QUEUE _FLAG_WALK_ALT
 
 struct VertOrder {
 	float   angle;
@@ -512,13 +513,21 @@ bool BM_face_split_edgenet(
 	} while ((l_iter = l_iter->next) != l_first);
 #endif
 
+	/* Note: 'VERT_IN_QUEUE' is often not needed at all,
+	 * however in rare cases verts are added multiple times to the queue,
+	 * that on it's own is harmless but in _very_ rare cases,
+	 * the queue will overflow its maximum size,
+	 * so we better be strict about this! see: T51539 */
 
 	for (i = 0; i < edge_net_len; i++) {
 		BM_ELEM_API_FLAG_ENABLE(edge_net[i], EDGE_NET);
+		BM_ELEM_API_FLAG_DISABLE(edge_net[i]->v1, VERT_IN_QUEUE);
+		BM_ELEM_API_FLAG_DISABLE(edge_net[i]->v2, VERT_IN_QUEUE);
 	}
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		BM_ELEM_API_FLAG_ENABLE(l_iter->e, EDGE_NET);
+		BM_ELEM_API_FLAG_DISABLE(l_iter->v, VERT_IN_QUEUE);
 	} while ((l_iter = l_iter->next) != l_first);
 
 	float face_normal_matrix[3][3];
@@ -527,8 +536,10 @@ bool BM_face_split_edgenet(
 
 	/* any vert can be used to begin with */
 	STACK_PUSH(vert_queue, l_first->v);
+	BM_ELEM_API_FLAG_ENABLE(l_first->v, VERT_IN_QUEUE);
 
 	while ((v = STACK_POP(vert_queue))) {
+		BM_ELEM_API_FLAG_DISABLE(v, VERT_IN_QUEUE);
 		if (bm_face_split_edgenet_find_loop(
 		        v, f->no, face_normal_matrix,
 		        edge_order, edge_order_len, face_verts, &face_verts_len))
@@ -558,8 +569,12 @@ bool BM_face_split_edgenet(
 				 * (verts between boundary and manifold edges) */
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
 				do {
-					if (bm_face_split_edgenet_find_loop_pair_exists(l_iter->v)) {
+					/* Avoid adding to queue multiple times (not common but happens). */
+					if (!BM_ELEM_API_FLAG_TEST(l_iter->v, VERT_IN_QUEUE) &&
+					    bm_face_split_edgenet_find_loop_pair_exists(l_iter->v))
+					{
 						STACK_PUSH(vert_queue, l_iter->v);
+						BM_ELEM_API_FLAG_ENABLE(l_iter->v, VERT_IN_QUEUE);
 					}
 				} while ((l_iter = l_iter->next) != l_first);
 			}

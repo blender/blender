@@ -378,13 +378,13 @@ public:
 	void compile(SVMCompiler& compiler, ShaderInput *metallic, ShaderInput *subsurface, ShaderInput *subsurface_radius,
 		ShaderInput *specular, ShaderInput *roughness, ShaderInput *specular_tint, ShaderInput *anisotropic,
 		ShaderInput *sheen, ShaderInput *sheen_tint, ShaderInput *clearcoat, ShaderInput *clearcoat_gloss,
-		ShaderInput *ior, ShaderInput *transparency, ShaderInput *anisotropic_rotation, ShaderInput *refraction_roughness);
+		ShaderInput *ior, ShaderInput *transmission, ShaderInput *anisotropic_rotation, ShaderInput *transmission_roughness);
 
 	float3 base_color;
 	float3 subsurface_color, subsurface_radius;
 	float metallic, subsurface, specular, roughness, specular_tint, anisotropic,
-		sheen, sheen_tint, clearcoat, clearcoat_gloss, ior, transparency,
-		anisotropic_rotation, refraction_roughness;
+		sheen, sheen_tint, clearcoat, clearcoat_gloss, ior, transmission,
+		anisotropic_rotation, transmission_roughness;
 	float3 normal, clearcoat_normal, tangent;
 	float surface_mix_weight;
 	ClosureType distribution, distribution_orig;

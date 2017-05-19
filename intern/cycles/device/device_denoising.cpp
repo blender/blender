@@ -139,9 +139,9 @@ bool DenoisingTask::run_denoising()
 		nlm_state.temporary_2_ptr = *nlm_temporary_2;
 		nlm_state.temporary_3_ptr = *nlm_temporary_3;
 
-		int mean_from[]     = { 0, 1, 2, 6,  7,  8, 12 };
-		int variance_from[] = { 3, 4, 5, 9, 10, 11, 13 };
-		int pass_to[]       = { 1, 2, 3, 0,  5,  6,  7 };
+		int mean_from[]     = { 0, 1, 2, 12, 6,  7, 8 };
+		int variance_from[] = { 3, 4, 5, 13, 9, 10, 11};
+		int pass_to[]       = { 1, 2, 3, 0,  5,  6,  7};
 		for(int pass = 0; pass < 7; pass++) {
 			device_sub_ptr feature_pass(device, buffer.mem, pass_to[pass]*buffer.pass_stride, buffer.pass_stride, MEM_READ_WRITE);
 			/* Get the unfiltered pass and its variance from the RenderBuffers. */
@@ -159,11 +159,25 @@ bool DenoisingTask::run_denoising()
 		int mean_to[]       = { 8,  9, 10};
 		int variance_to[]   = {11, 12, 13};
 		int num_color_passes = 3;
+
+		device_only_memory<float> temp_color;
+		temp_color.resize(3*buffer.pass_stride);
+		device->mem_alloc("Denoising temporary color", temp_color, MEM_READ_WRITE);
+
 		for(int pass = 0; pass < num_color_passes; pass++) {
-			device_sub_ptr color_pass    (device, buffer.mem,     mean_to[pass]*buffer.pass_stride, buffer.pass_stride, MEM_READ_WRITE);
+			device_sub_ptr color_pass(device, temp_color, pass*buffer.pass_stride, buffer.pass_stride, MEM_READ_WRITE);
 			device_sub_ptr color_var_pass(device, buffer.mem, variance_to[pass]*buffer.pass_stride, buffer.pass_stride, MEM_READ_WRITE);
 			functions.get_feature(mean_from[pass], variance_from[pass], *color_pass, *color_var_pass);
 		}
+
+		{
+			device_sub_ptr depth_pass    (device, buffer.mem,                                 0,   buffer.pass_stride, MEM_READ_WRITE);
+			device_sub_ptr color_var_pass(device, buffer.mem, variance_to[0]*buffer.pass_stride, 3*buffer.pass_stride, MEM_READ_WRITE);
+			device_sub_ptr output_pass   (device, buffer.mem,     mean_to[0]*buffer.pass_stride, 3*buffer.pass_stride, MEM_READ_WRITE);
+			functions.detect_outliers(temp_color.device_pointer, *color_var_pass, *depth_pass, *output_pass);
+		}
+
+		device->mem_free(temp_color);
 	}
 
 	storage.w = filter_area.z;

@@ -37,7 +37,8 @@ public:
 		pixel_samples = 0;
 		total_pixel_samples = 0;
 		current_tile_sample = 0;
-		finished_tiles = 0;
+		rendered_tiles = 0;
+		denoised_tiles = 0;
 		start_time = time_dt();
 		render_start_time = time_dt();
 		status = "Initializing";
@@ -75,7 +76,8 @@ public:
 		pixel_samples = 0;
 		total_pixel_samples = 0;
 		current_tile_sample = 0;
-		finished_tiles = 0;
+		rendered_tiles = 0;
+		denoised_tiles = 0;
 		start_time = time_dt();
 		render_start_time = time_dt();
 		status = "Initializing";
@@ -177,7 +179,8 @@ public:
 
 		pixel_samples = 0;
 		current_tile_sample = 0;
-		finished_tiles = 0;
+		rendered_tiles = 0;
+		denoised_tiles = 0;
 	}
 
 	void set_total_pixel_samples(uint64_t total_pixel_samples_)
@@ -209,11 +212,16 @@ public:
 		set_update();
 	}
 
-	void add_finished_tile()
+	void add_finished_tile(bool denoised)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		finished_tiles++;
+		if(denoised) {
+			denoised_tiles++;
+		}
+		else {
+			rendered_tiles++;
+		}
 	}
 
 	int get_current_sample()
@@ -223,9 +231,14 @@ public:
 		return current_tile_sample;
 	}
 
-	int get_finished_tiles()
+	int get_rendered_tiles()
 	{
-		return finished_tiles;
+		return rendered_tiles;
+	}
+
+	int get_denoised_tiles()
+	{
+		return denoised_tiles;
 	}
 
 	/* status messages */
@@ -318,7 +331,7 @@ protected:
 	int current_tile_sample;
 	/* Stores the number of tiles that's already finished.
 	 * Used to determine whether all but the last tile are finished rendering, in which case the current_tile_sample is displayed. */
-	int finished_tiles;
+	int rendered_tiles, denoised_tiles;
 
 	double start_time, render_start_time;
 

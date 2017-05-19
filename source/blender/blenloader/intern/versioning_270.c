@@ -1636,6 +1636,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	{
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			if (scene->r.im_format.exr_codec == R_IMF_EXR_CODEC_DWAB) {
+				scene->r.im_format.exr_codec = R_IMF_EXR_CODEC_DWAA;
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DDebug", "char", "background")) {
 			bScreen *screen;
 

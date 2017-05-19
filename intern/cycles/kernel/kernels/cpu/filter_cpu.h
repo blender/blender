@@ -43,6 +43,14 @@ void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
                                                    int buffer_denoising_offset,
                                                    bool use_split_variance);
 
+void KERNEL_FUNCTION_FULL_NAME(filter_detect_outliers)(int x, int y,
+                                                       ccl_global float *image,
+                                                       ccl_global float *variance,
+                                                       ccl_global float *depth,
+                                                       ccl_global float *output,
+                                                       int *rect,
+                                                       int pass_stride);
+
 void KERNEL_FUNCTION_FULL_NAME(filter_combine_halves)(int x, int y,
                                                       float *mean,
                                                       float *variance,

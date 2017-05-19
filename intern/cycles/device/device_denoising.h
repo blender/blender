@@ -82,6 +82,11 @@ public:
 		              device_ptr mean_ptr,
 		              device_ptr variance_ptr
 		              )> get_feature;
+		function<bool(device_ptr image_ptr,
+		              device_ptr variance_ptr,
+		              device_ptr depth_ptr,
+		              device_ptr output_ptr
+		              )> detect_outliers;
 		function<bool(device_ptr*)> set_tiles;
 	} functions;
 

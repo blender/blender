@@ -81,7 +81,9 @@ bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, con
 
 void IMB_metadata_copy(struct ImBuf *dimb, struct ImBuf *simb)
 {
+	BLI_assert(dimb != simb);
 	if (simb->metadata) {
+		IMB_metadata_free(dimb);
 		dimb->metadata = IDP_CopyProperty(simb->metadata);
 	}
 }

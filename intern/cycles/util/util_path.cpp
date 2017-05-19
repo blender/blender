@@ -786,12 +786,10 @@ static string line_directive(const string& base, const string& path, int line)
 	return string_printf("#line %d \"%s\"", line, escaped_path.c_str());
 }
 
-
 static string path_source_replace_includes_recursive(
         const string& base,
         const string& source,
-        const string& path,
-        const string& source_filename)
+        const string& source_filepath)
 {
 	/* Our own little c preprocessor that replaces #includes with the file
 	 * contents, to work around issue of OpenCL drivers not supporting
@@ -809,23 +807,22 @@ static string path_source_replace_includes_recursive(
 			if(string_startswith(token, "include")) {
 				token = string_strip(token.substr(7, token.size() - 7));
 				if(token[0] == '"') {
-					size_t n_start = 1;
-					size_t n_end = token.find("\"", n_start);
-					string filename = token.substr(n_start, n_end - n_start);
-					string text, filepath = path_join(path, filename);
+					const size_t n_start = 1;
+					const size_t n_end = token.find("\"", n_start);
+					const string filename = token.substr(n_start, n_end - n_start);
+					string filepath = path_join(base, filename);
+					if(!path_exists(filepath)) {
+						filepath = path_join(path_dirname(source_filepath),
+						                     filename);
+					}
+					string text;
 					if(path_read_text(filepath, text)) {
-						/* Replace include directories with both current path
-						 * and path extracted from the include file.
-						 * Not totally robust, but works fine for Cycles kernel
-						 * and avoids having list of include directories.x
-						 */
-						text = path_source_replace_includes(
-						        text, path_dirname(filepath), filename);
-						text = path_source_replace_includes(text, path, filename);
+						text = path_source_replace_includes_recursive(
+						        base, text, filepath);
 						/* Use line directives for better error messages. */
 						line = line_directive(base, filepath, 1)
 						     + token.replace(0, n_end + 1, "\n" + text + "\n")
-						     + line_directive(base, path_join(path, source_filename), i + 1);
+						     + line_directive(base, source_filepath, i + 1);
 					}
 				}
 			}
@@ -840,7 +837,10 @@ string path_source_replace_includes(const string& source,
                                     const string& path,
                                     const string& source_filename)
 {
-	return path_source_replace_includes_recursive(path, source, path, source_filename);
+	return path_source_replace_includes_recursive(
+	        path,
+	        source,
+	        path_join(path, source_filename));
 }
 
 FILE *path_fopen(const string& path, const string& mode)

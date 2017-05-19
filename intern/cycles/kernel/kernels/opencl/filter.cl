@@ -78,6 +78,20 @@ __kernel void kernel_ocl_filter_get_feature(int sample,
 	}
 }
 
+__kernel void kernel_ocl_filter_detect_outliers(ccl_global float *image,
+                                                ccl_global float *variance,
+                                                ccl_global float *depth,
+                                                ccl_global float *output,
+                                                int4 prefilter_rect,
+                                                int pass_stride)
+{
+	int x = prefilter_rect.x + get_global_id(0);
+	int y = prefilter_rect.y + get_global_id(1);
+	if(x < prefilter_rect.z && y < prefilter_rect.w) {
+		kernel_filter_detect_outliers(x, y, image, variance, depth, output, prefilter_rect, pass_stride);
+	}
+}
+
 __kernel void kernel_ocl_filter_combine_halves(ccl_global float *mean,
                                                ccl_global float *variance,
                                                ccl_global float *a,

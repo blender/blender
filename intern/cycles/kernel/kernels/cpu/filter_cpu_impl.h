@@ -91,6 +91,21 @@ void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
 #endif
 }
 
+void KERNEL_FUNCTION_FULL_NAME(filter_detect_outliers)(int x, int y,
+                                                       ccl_global float *image,
+                                                       ccl_global float *variance,
+                                                       ccl_global float *depth,
+                                                       ccl_global float *output,
+                                                       int *rect,
+                                                       int pass_stride)
+{
+#ifdef KERNEL_STUB
+	STUB_ASSERT(KERNEL_ARCH, filter_detect_outliers);
+#else
+	kernel_filter_detect_outliers(x, y, image, variance, depth, output, load_int4(rect), pass_stride);
+#endif
+}
+
 void KERNEL_FUNCTION_FULL_NAME(filter_combine_halves)(int x, int y,
                                                       float *mean,
                                                       float *variance,

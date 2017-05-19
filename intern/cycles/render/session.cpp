@@ -479,7 +479,7 @@ void Session::release_tile(RenderTile& rtile)
 {
 	thread_scoped_lock tile_lock(tile_mutex);
 
-	progress.add_finished_tile();
+	progress.add_finished_tile(rtile.task == RenderTile::DENOISE);
 
 	bool delete_tile;
 
@@ -912,7 +912,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	int progressive_sample = tile_manager.state.sample;
 	int num_samples = tile_manager.get_num_effective_samples();
 
-	int tile = progress.get_finished_tiles();
+	int tile = progress.get_rendered_tiles();
 	int num_tiles = tile_manager.state.num_tiles;
 
 	/* update status */
@@ -920,11 +920,12 @@ void Session::update_status_time(bool show_pause, bool show_done)
 
 	if(!params.progressive) {
 		const bool is_cpu = params.device.type == DEVICE_CPU;
+		const bool rendering_finished = (tile == num_tiles);
 		const bool is_last_tile = (tile + 1) == num_tiles;
 
 		substatus = string_printf("Path Tracing Tile %d/%d", tile, num_tiles);
 
-		if(device->show_samples() || (is_cpu && is_last_tile)) {
+		if(!rendering_finished && (device->show_samples() || (is_cpu && is_last_tile))) {
 			/* Some devices automatically support showing the sample number:
 			 * - CUDADevice
 			 * - OpenCLDevice when using the megakernel (the split kernel renders multiple
@@ -935,6 +936,9 @@ void Session::update_status_time(bool show_pause, bool show_done)
 			 * The other option is when the last tile is currently being rendered by the CPU.
 			 */
 			substatus += string_printf(", Sample %d/%d", progress.get_current_sample(), num_samples);
+		}
+		if(params.use_denoising) {
+			substatus += string_printf(", Denoised %d tiles", progress.get_denoised_tiles());
 		}
 	}
 	else if(tile_manager.num_samples == INT_MAX)

@@ -10,8 +10,23 @@ set(INC_SYS
 
 set(SRC
 	kernels/cpu/kernel.cpp
+	kernels/cpu/kernel_sse2.cpp
+	kernels/cpu/kernel_sse3.cpp
+	kernels/cpu/kernel_sse41.cpp
+	kernels/cpu/kernel_avx.cpp
+	kernels/cpu/kernel_avx2.cpp
 	kernels/cpu/kernel_split.cpp
+	kernels/cpu/kernel_split_sse2.cpp
+	kernels/cpu/kernel_split_sse3.cpp
+	kernels/cpu/kernel_split_sse41.cpp
+	kernels/cpu/kernel_split_avx.cpp
+	kernels/cpu/kernel_split_avx2.cpp
 	kernels/cpu/filter.cpp
+	kernels/cpu/filter_sse2.cpp
+	kernels/cpu/filter_sse3.cpp
+	kernels/cpu/filter_sse41.cpp
+	kernels/cpu/filter_avx.cpp
+	kernels/cpu/filter_avx2.cpp
 	kernels/opencl/kernel.cl
 	kernels/opencl/kernel_state_buffer_size.cl
 	kernels/opencl/kernel_split.cl
@@ -406,48 +421,28 @@ set_source_files_properties(kernels/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${C
 set_source_files_properties(kernels/cpu/kernel_split.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
 set_source_files_properties(kernels/cpu/filter.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
 
-if(NOT WITH_CYCLES_NATIVE_ONLY)
-	list(APPEND SRC
-		kernels/cpu/kernel_sse2.cpp
-		kernels/cpu/kernel_sse3.cpp
-		kernels/cpu/kernel_sse41.cpp
-		kernels/cpu/kernel_avx.cpp
-		kernels/cpu/kernel_avx2.cpp
-		kernels/cpu/kernel_split_sse2.cpp
-		kernels/cpu/kernel_split_sse3.cpp
-		kernels/cpu/kernel_split_sse41.cpp
-		kernels/cpu/kernel_split_avx.cpp
-		kernels/cpu/kernel_split_avx2.cpp
-		kernels/cpu/filter_sse2.cpp
-		kernels/cpu/filter_sse3.cpp
-		kernels/cpu/filter_sse41.cpp
-		kernels/cpu/filter_avx.cpp
-		kernels/cpu/filter_avx2.cpp
-	)
+if(CXX_HAS_SSE)
+	set_source_files_properties(kernels/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
+endif()
 
-	if(CXX_HAS_SSE)
-		set_source_files_properties(kernels/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/kernel_split_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/kernel_split_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/kernel_split_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/filter_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/filter_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/filter_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
-	endif()
+if(CXX_HAS_AVX)
+	set_source_files_properties(kernels/cpu/kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+endif()
 
-	if(CXX_HAS_AVX)
-		set_source_files_properties(kernels/cpu/kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/kernel_split_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/filter_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-	endif()
-
-	if(CXX_HAS_AVX2)
-		set_source_files_properties(kernels/cpu/kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/kernel_split_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
-		set_source_files_properties(kernels/cpu/filter_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
-	endif()
+if(CXX_HAS_AVX2)
+	set_source_files_properties(kernels/cpu/kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/filter_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 endif()
 
 add_library(cycles_kernel

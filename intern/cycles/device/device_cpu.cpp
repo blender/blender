@@ -176,6 +176,7 @@ public:
 
 	KernelFunctions<void(*)(int, TilesInfo*, int, int, float*, float*, float*, float*, float*, int*, int, int, bool)> filter_divide_shadow_kernel;
 	KernelFunctions<void(*)(int, TilesInfo*, int, int, int, int, float*, float*, int*, int, int, bool)>               filter_get_feature_kernel;
+	KernelFunctions<void(*)(int, int, float*, float*, float*, float*, int*, int)>                                     filter_detect_outliers_kernel;
 	KernelFunctions<void(*)(int, int, float*, float*, float*, float*, int*, int)>                                     filter_combine_halves_kernel;
 
 	KernelFunctions<void(*)(int, int, float*, float*, float*, int*, int, int, float, float)> filter_nlm_calc_difference_kernel;
@@ -210,6 +211,7 @@ public:
 	  REGISTER_KERNEL(shader),
 	  REGISTER_KERNEL(filter_divide_shadow),
 	  REGISTER_KERNEL(filter_get_feature),
+	  REGISTER_KERNEL(filter_detect_outliers),
 	  REGISTER_KERNEL(filter_combine_halves),
 	  REGISTER_KERNEL(filter_nlm_calc_difference),
 	  REGISTER_KERNEL(filter_nlm_blur),
@@ -594,6 +596,26 @@ public:
 		return true;
 	}
 
+	bool denoising_detect_outliers(device_ptr image_ptr,
+	                               device_ptr variance_ptr,
+	                               device_ptr depth_ptr,
+	                               device_ptr output_ptr,
+	                               DenoisingTask *task)
+	{
+		for(int y = task->rect.y; y < task->rect.w; y++) {
+			for(int x = task->rect.x; x < task->rect.z; x++) {
+				filter_detect_outliers_kernel()(x, y,
+				                                (float*) image_ptr,
+				                                (float*) variance_ptr,
+				                                (float*) depth_ptr,
+				                                (float*) output_ptr,
+				                                &task->rect.x,
+				                                task->buffer.pass_stride);
+			}
+		}
+		return true;
+	}
+
 	void path_trace(DeviceTask &task, RenderTile &tile, KernelGlobals *kg)
 	{
 		float *render_buffer = (float*)tile.buffer;
@@ -632,6 +654,7 @@ public:
 		denoising.functions.non_local_means = function_bind(&CPUDevice::denoising_non_local_means, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.combine_halves = function_bind(&CPUDevice::denoising_combine_halves, this, _1, _2, _3, _4, _5, _6, &denoising);
 		denoising.functions.get_feature = function_bind(&CPUDevice::denoising_get_feature, this, _1, _2, _3, _4, &denoising);
+		denoising.functions.detect_outliers = function_bind(&CPUDevice::denoising_detect_outliers, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.set_tiles = function_bind(&CPUDevice::denoising_set_tiles, this, _1, &denoising);
 
 		denoising.filter_area = make_int4(tile.x, tile.y, tile.w, tile.h);

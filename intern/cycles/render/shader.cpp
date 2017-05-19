@@ -241,6 +241,10 @@ void Shader::set_graph(ShaderGraph *graph_)
 	delete graph_bump;
 	graph = graph_;
 	graph_bump = NULL;
+
+	/* Store info here before graph optimization to make sure that
+	 * nodes that get optimized away still count. */
+	has_volume_connected = (graph->output()->input("Volume")->link != NULL);
 }
 
 void Shader::tag_update(Scene *scene)
@@ -432,15 +436,14 @@ void ShaderManager::device_update_common(Device *device,
 			flag |= SD_HAS_VOLUME;
 			has_volumes = true;
 
-			/* in this case we can assume transparent surface */
-			if(!shader->has_surface)
-				flag |= SD_HAS_ONLY_VOLUME;
-
 			/* todo: this could check more fine grained, to skip useless volumes
 			 * enclosed inside an opaque bsdf.
 			 */
 			flag |= SD_HAS_TRANSPARENT_SHADOW;
 		}
+		/* in this case we can assume transparent surface */
+		if(shader->has_volume_connected && !shader->has_surface)
+			flag |= SD_HAS_ONLY_VOLUME;
 		if(shader->heterogeneous_volume && shader->has_volume_spatial_varying)
 			flag |= SD_HETEROGENEOUS_VOLUME;
 		if(shader->has_bssrdf_bump)
