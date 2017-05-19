@@ -55,7 +55,6 @@
 #define ccl_restrict __restrict__
 #define ccl_align(n) __align__(n)
 
-#define ccl_restrict_ptr const * __restrict__
 #define CCL_MAX_LOCAL_SIZE (CUDA_THREADS_BLOCK_WIDTH*CUDA_THREADS_BLOCK_WIDTH)
 
 

@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void kernel_filter_construct_transform(float ccl_restrict_ptr buffer,
+ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buffer,
                                                   int x, int y, int4 rect,
                                                   int pass_stride,
                                                   float *transform, int *rank,
@@ -25,7 +25,7 @@ ccl_device void kernel_filter_construct_transform(float ccl_restrict_ptr buffer,
 	int buffer_w = align_up(rect.z - rect.x, 4);
 
 	__m128 features[DENOISE_FEATURES];
-	float ccl_restrict_ptr pixel_buffer;
+	const float *ccl_restrict pixel_buffer;
 	int2 pixel;
 
 	int2 low  = make_int2(max(rect.x, x - radius),

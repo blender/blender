@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_ptr buffer,
+ccl_device void kernel_filter_construct_transform(const ccl_global float *ccl_restrict buffer,
                                                   int x, int y, int4 rect,
                                                   int pass_stride,
                                                   ccl_global float *transform,
@@ -38,7 +38,7 @@ ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_
 	                      max(rect.y, y - radius));
 	int2 high = make_int2(min(rect.z, x + radius + 1),
 	                      min(rect.w, y + radius + 1));
-	ccl_global float ccl_restrict_ptr pixel_buffer;
+	const ccl_global float *ccl_restrict pixel_buffer;
 	int2 pixel;
 
 

@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void kernel_filter_construct_transform(float ccl_restrict_ptr buffer,
+ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buffer,
                                                   int x, int y, int4 rect,
                                                   int pass_stride,
                                                   float *transform, int *rank,
@@ -29,7 +29,7 @@ ccl_device void kernel_filter_construct_transform(float ccl_restrict_ptr buffer,
 	/* Temporary storage, used in different steps of the algorithm. */
 	float tempmatrix[DENOISE_FEATURES*DENOISE_FEATURES];
 	float tempvector[2*DENOISE_FEATURES];
-	float ccl_restrict_ptr pixel_buffer;
+	const float *ccl_restrict pixel_buffer;
 	int2 pixel;
 
 

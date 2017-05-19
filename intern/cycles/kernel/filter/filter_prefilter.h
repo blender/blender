@@ -44,7 +44,7 @@ ccl_device void kernel_filter_divide_shadow(int sample,
 
 	int offset = tiles->offsets[tile];
 	int stride = tiles->strides[tile];
-	ccl_global float ccl_restrict_ptr center_buffer = (ccl_global float*) tiles->buffers[tile];
+	const ccl_global float *ccl_restrict center_buffer = (ccl_global float*) tiles->buffers[tile];
 	center_buffer += (y*stride + x + offset)*buffer_pass_stride;
 	center_buffer += buffer_denoising_offset + 14;
 

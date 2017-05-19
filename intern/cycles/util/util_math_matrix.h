@@ -50,19 +50,19 @@ ccl_device_inline void math_matrix_zero(float *A, int n)
 
 /* Elementary vector operations. */
 
-ccl_device_inline void math_vector_add(float *a, float ccl_restrict_ptr b, int n)
+ccl_device_inline void math_vector_add(float *a, const float *ccl_restrict b, int n)
 {
 	for(int i = 0; i < n; i++)
 		a[i] += b[i];
 }
 
-ccl_device_inline void math_vector_mul(float *a, float ccl_restrict_ptr b, int n)
+ccl_device_inline void math_vector_mul(float *a, const float *ccl_restrict b, int n)
 {
 	for(int i = 0; i < n; i++)
 		a[i] *= b[i];
 }
 
-ccl_device_inline void math_vector_mul_strided(ccl_global float *a, float ccl_restrict_ptr b, int astride, int n)
+ccl_device_inline void math_vector_mul_strided(ccl_global float *a, const float *ccl_restrict b, int astride, int n)
 {
 	for(int i = 0; i < n; i++)
 		a[i*astride] *= b[i];
@@ -74,7 +74,7 @@ ccl_device_inline void math_vector_scale(float *a, float b, int n)
 		a[i] *= b;
 }
 
-ccl_device_inline void math_vector_max(float *a, float ccl_restrict_ptr b, int n)
+ccl_device_inline void math_vector_max(float *a, const float *ccl_restrict b, int n)
 {
 	for(int i = 0; i < n; i++)
 		a[i] = max(a[i], b[i]);
@@ -105,7 +105,7 @@ ccl_device_inline void math_trimatrix_add_diagonal(ccl_global float *A, int n, f
  * The Gramian matrix of v is vt*v, so element (i,j) is v[i]*v[j]. */
 ccl_device_inline void math_matrix_add_gramian(float *A,
                                                   int n,
-                                                  float ccl_restrict_ptr v,
+                                                  const float *ccl_restrict v,
                                                   float weight)
 {
 	for(int row = 0; row < n; row++)
@@ -117,7 +117,7 @@ ccl_device_inline void math_matrix_add_gramian(float *A,
  * The Gramian matrix of v is vt*v, so element (i,j) is v[i]*v[j]. */
 ccl_device_inline void math_trimatrix_add_gramian_strided(ccl_global float *A,
                                                           int n,
-                                                          float ccl_restrict_ptr v,
+                                                          const float *ccl_restrict v,
                                                           float weight,
                                                           int stride)
 {
@@ -342,32 +342,32 @@ ccl_device_inline void math_matrix_zero_sse(__m128 *A, int n)
 
 /* Add Gramian matrix of v to A.
  * The Gramian matrix of v is v^T*v, so element (i,j) is v[i]*v[j]. */
-ccl_device_inline void math_matrix_add_gramian_sse(__m128 *A, int n, __m128 ccl_restrict_ptr v, __m128 weight)
+ccl_device_inline void math_matrix_add_gramian_sse(__m128 *A, int n, const __m128 *ccl_restrict v, __m128 weight)
 {
 	for(int row = 0; row < n; row++)
 		for(int col = 0; col <= row; col++)
 			MAT(A, n, row, col) = _mm_add_ps(MAT(A, n, row, col), _mm_mul_ps(_mm_mul_ps(v[row], v[col]), weight));
 }
 
-ccl_device_inline void math_vector_add_sse(__m128 *V, int n, __m128 ccl_restrict_ptr a)
+ccl_device_inline void math_vector_add_sse(__m128 *V, int n, const __m128 *ccl_restrict a)
 {
 	for(int i = 0; i < n; i++)
 		V[i] = _mm_add_ps(V[i], a[i]);
 }
 
-ccl_device_inline void math_vector_mul_sse(__m128 *V, int n, __m128 ccl_restrict_ptr a)
+ccl_device_inline void math_vector_mul_sse(__m128 *V, int n, const __m128 *ccl_restrict a)
 {
 	for(int i = 0; i < n; i++)
 		V[i] = _mm_mul_ps(V[i], a[i]);
 }
 
-ccl_device_inline void math_vector_max_sse(__m128 *a, __m128 ccl_restrict_ptr b, int n)
+ccl_device_inline void math_vector_max_sse(__m128 *a, const __m128 *ccl_restrict b, int n)
 {
 	for(int i = 0; i < n; i++)
 		a[i] = _mm_max_ps(a[i], b[i]);
 }
 
-ccl_device_inline void math_matrix_hsum(float *A, int n, __m128 ccl_restrict_ptr B)
+ccl_device_inline void math_matrix_hsum(float *A, int n, const __m128 *ccl_restrict B)
 {
 	for(int row = 0; row < n; row++)
 		for(int col = 0; col <= row; col++)
