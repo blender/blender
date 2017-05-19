@@ -6,7 +6,6 @@
 
 :n vec2 texCoord_interp;
 out vec4 fragColor;
-#define texture2DRect texture
 
 uniform int interlace_id;
 uniform sampler2DRect image_a;
@@ -28,8 +27,8 @@ bool interlace()
 void main()
 {
 	if (interlace()) {
-		fragColor = texture2DRect(image_a, texCoord_interp);
+		fragColor = texture(image_a, texCoord_interp);
 	} else {
-		fragColor = texture2DRect(image_b, texCoord_interp);
+		fragColor = texture(image_b, texCoord_interp);
 	}
 }
