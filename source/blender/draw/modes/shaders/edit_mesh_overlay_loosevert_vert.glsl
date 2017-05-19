@@ -19,7 +19,7 @@ flat out ivec3 flag;
 flat out vec4 faceColor;
 flat out int clipCase;
 #ifdef VERTEX_SELECTION
-smooth out vec3 vertexColor;
+out vec3 vertexColor;
 #endif
 
 /* See fragment shader */
@@ -42,6 +42,10 @@ void main()
 
 	/* there is no face */
 	faceColor = vec4(0.0);
+
+#ifdef VERTEX_SELECTION
+	vertexColor = vec3(0.0);
+#endif
 
 	/* only verterx position 0 is used */
 	eData1 = eData2 = vec4(1e10);
