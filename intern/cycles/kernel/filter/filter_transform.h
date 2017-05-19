@@ -32,17 +32,11 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
 	const float *ccl_restrict pixel_buffer;
 	int2 pixel;
 
-
-
-
 	/* === Calculate denoising window. === */
 	int2 low  = make_int2(max(rect.x, x - radius),
 	                      max(rect.y, y - radius));
 	int2 high = make_int2(min(rect.z, x + radius + 1),
 	                      min(rect.w, y + radius + 1));
-
-
-
 
 	/* === Shift feature passes to have mean 0. === */
 	float feature_means[DENOISE_FEATURES];
@@ -65,7 +59,6 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
 	} END_FOR_PIXEL_WINDOW
 
 	filter_calculate_scale(feature_scale);
-
 
 	/* === Generate the feature transformation. ===
 	 * This transformation maps the DENOISE_FEATURES-dimentional feature space to a reduced feature (r-feature) space
