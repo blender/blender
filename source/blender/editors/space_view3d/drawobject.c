@@ -9422,21 +9422,6 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	immUnbindProgram();
 }
 
-#if defined(WITH_LEGACY_OPENGL)
-static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
-{
-	drawBMOffset_userData *data = userData;
-	BMEdge *eed = BM_edge_at_index(data->bm, index);
-
-	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-		GPU_select_index_set(data->offset + index);
-		return DM_DRAW_OPTION_NORMAL;
-	}
-	else {
-		return DM_DRAW_OPTION_SKIP;
-	}
-}
-#else
 static void bbs_mesh_wire__mapFunc(void *userData, int index, const float v0co[3], const float v1co[3])
 {
 	drawBMOffset_userData *data = userData;
@@ -9450,16 +9435,13 @@ static void bbs_mesh_wire__mapFunc(void *userData, int index, const float v0co[3
 		immVertex3fv(data->pos, v1co);
 	}
 }
-#endif
+
 static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	drawBMOffset_userData data;
 	data.bm = em->bm;
 	data.offset = offset;
 
-#if defined(WITH_LEGACY_OPENGL)
-	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, &data);
-#else
 	VertexFormat *format = immVertexFormat();
 
 	const int imm_len = dm->getNumEdges(dm) * 2;
@@ -9478,53 +9460,10 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 	immEnd();
 
 	immUnbindProgram();
-#endif
 }
-
-#if defined(WITH_LEGACY_OPENGL)
-/**
- * dont set #GPU_framebuffer_index_set. just use to mask other
- */
-static DMDrawOption bbs_mesh_mask__setSolidDrawOptions(void *userData, int index)
-{
-	BMFace *efa = BM_face_at_index(userData, index);
-	
-	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		return DM_DRAW_OPTION_NORMAL;
-	}
-	else {
-		return DM_DRAW_OPTION_SKIP;
-	}
-}
-
-static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int index)
-{
-	BMFace *efa = BM_face_at_index(userData, index);
-
-	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		GPU_select_index_set(index + 1);
-		return DM_DRAW_OPTION_NORMAL;
-	}
-	else {
-		return DM_DRAW_OPTION_SKIP;
-	}
-}
-#endif
 
 static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select)
 {
-#if defined(WITH_LEGACY_OPENGL)
-	if (use_select) {
-		dm->drawMappedFaces(
-		        dm, bbs_mesh_solid__setSolidDrawOptions, NULL, NULL, em->bm,
-		        DM_DRAW_SKIP_HIDDEN | DM_DRAW_SELECT_USE_EDITMODE);
-	}
-	else {
-		dm->drawMappedFaces(
-		        dm, bbs_mesh_mask__setSolidDrawOptions, NULL, NULL, em->bm,
-		        DM_DRAW_SKIP_HIDDEN | DM_DRAW_SELECT_USE_EDITMODE | DM_DRAW_SKIP_SELECT);
-	}
-#else
 	UNUSED_VARS(dm);
 
 	drawBMOffset_userData data;
@@ -9574,7 +9513,6 @@ static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select
 	immEnd();
 
 	immUnbindProgram();
-#endif
 }
 
 static void bbs_mesh_solid__drawCenter(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
@@ -9675,18 +9613,6 @@ static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
 static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 {
 	Mesh *me = ob->data;
-#if defined(WITH_LEGACY_OPENGL)
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
-	
-	DM_update_materials(dm, ob);
-
-	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL))
-		dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, NULL, NULL, me, DM_DRAW_SKIP_HIDDEN);
-	else
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, NULL, NULL, me, 0);
-
-	dm->release(dm);
-#else
 	UNUSED_VARS(scene, bbs_mesh_solid_hide__setDrawOpts, bbs_mesh_solid__setDrawOpts);
 	Batch *batch;
 	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
@@ -9697,7 +9623,6 @@ static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 	}
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
 	Batch_draw(batch);
-#endif
 }
 
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)

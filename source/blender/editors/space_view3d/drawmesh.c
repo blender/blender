@@ -1161,85 +1161,8 @@ static bool tex_mat_set_face_editmesh_cb(void *userData, int index)
 void draw_mesh_textured(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d,
                         Object *ob, DerivedMesh *dm, const int draw_flags)
 {
-#ifndef WITH_LEGACY_OPENGL
-	/* some legacy GL calls here will *crash* blender */
+	UNUSED_VARS(scene, sl, v3d, rv3d, ob, dm, draw_flags);
 	return;
-#endif
-
-	/* if not cycles, or preview-modifiers, or drawing matcaps */
-	if ((draw_flags & DRAW_MODIFIERS_PREVIEW) ||
-	    (v3d->flag2 & V3D_SHOW_SOLID_MATCAP) ||
-	    (BKE_scene_use_new_shading_nodes(scene) == false) ||
-	    ((ob->mode & OB_MODE_TEXTURE_PAINT) && ELEM(v3d->drawtype, OB_TEXTURE, OB_SOLID)))
-	{
-		draw_mesh_textured_old(scene, sl, v3d, rv3d, ob, dm, draw_flags);
-		return;
-	}
-	else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-		draw_mesh_paint(v3d, rv3d, ob, dm, draw_flags);
-		return;
-	}
-
-	/* set opengl state for negative scale & color */
-	if (ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
-	else glFrontFace(GL_CCW);
-
-	Mesh *me = ob->data;
-
-	bool shadeless = ((v3d->flag2 & V3D_SHADELESS_TEX) &&
-	    ((v3d->drawtype == OB_TEXTURE) || (ob->mode & OB_MODE_TEXTURE_PAINT)));
-	bool two_sided_lighting = (me->flag & ME_TWOSIDED) != 0;
-
-	TexMatCallback data = {scene, ob, me, dm, shadeless, two_sided_lighting};
-	bool (*set_face_cb)(void *, int);
-	bool picking = (G.f & G_PICKSEL) != 0;
-	
-	/* face hiding callback depending on mode */
-	if (ob == scene->obedit)
-		set_face_cb = tex_mat_set_face_editmesh_cb;
-	else if (draw_flags & DRAW_FACE_SELECT)
-		set_face_cb = tex_mat_set_face_mesh_cb;
-	else
-		set_face_cb = NULL;
-
-	/* test if we can use glsl */
-	const int drawtype = view3d_effective_drawtype(v3d);
-	bool glsl = (drawtype == OB_MATERIAL) && !picking;
-
-	GPU_begin_object_materials(v3d, rv3d, scene, sl, ob, glsl, NULL);
-
-	if (glsl || picking) {
-		/* draw glsl or solid */
-		dm->drawMappedFacesMat(dm,
-		                       tex_mat_set_material_cb,
-		                       set_face_cb, &data);
-	}
-	else {
-		/* draw textured */
-		dm->drawMappedFacesMat(dm,
-		                       tex_mat_set_texture_cb,
-		                       set_face_cb, &data);
-	}
-
-	GPU_end_object_materials();
-
-	/* reset opengl state */
-	GPU_end_object_materials();
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glFrontFace(GL_CCW);
-
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity(); /* TEXTURE */
-	glMatrixMode(GL_MODELVIEW);
-
-	/* faceselect mode drawing over textured mesh */
-	if (!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT)) {
-		bool draw_select_edges = (ob->mode & OB_MODE_TEXTURE_PAINT) == 0;
-		draw_mesh_face_select(rv3d, ob->data, dm, draw_select_edges);
-	}
 }
 
 /* Vertex Paint and Weight Paint */
