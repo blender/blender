@@ -4701,6 +4701,12 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	if (ob->particlesystem.first) {
 		psysindex= 1;
 		for (psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
+			/* It seems that we may generate psys->renderdata recursively in some nasty intricated cases of
+			 * several levels of bupliobject (see T51524).
+			 * For now, basic rule is, do not restore psys if it was already in 'render state'.
+			 * Another, more robust solution could be to add some reference counting to that renderdata... */
+			const bool psys_has_renderdata = (psys->renderdata != NULL);
+
 			if (!psys_check_enabled(ob, psys, G.is_rendering))
 				continue;
 			
@@ -4712,8 +4718,9 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			if (dob)
 				psys->flag |= PSYS_USE_IMAT;
 			init_render_object_data(re, obr, timeoffset);
-			if (!(re->r.scemode & R_VIEWPORT_PREVIEW))
+			if (!(re->r.scemode & R_VIEWPORT_PREVIEW) && !psys_has_renderdata) {
 				psys_render_restore(ob, psys);
+			}
 			psys->flag &= ~PSYS_USE_IMAT;
 
 			/* only add instance for objects that have not been used for dupli */
