@@ -37,7 +37,7 @@ ccl_device_inline void filter_get_features_sse(__m128 x, __m128 y,
                                                __m128 active_pixels,
                                                const float *ccl_restrict buffer,
                                                __m128 *features,
-                                               const __m128 ccl_restrict *mean,
+                                               const __m128 *ccl_restrict mean,
                                                int pass_stride)
 {
 	features[0] = x;
