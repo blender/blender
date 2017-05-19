@@ -163,15 +163,24 @@ void gpu_extensions_init(void)
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GG.maxubosize);
 
 #ifdef WITH_LEGACY_OPENGL
-	GLint r, g, b;
 	glGetIntegerv(GL_RED_BITS, &r);
 	glGetIntegerv(GL_GREEN_BITS, &g);
 	glGetIntegerv(GL_BLUE_BITS, &b);
-	GG.colordepth = r + g + b; /* assumes same depth for RGB */
 #else
-	GG.colordepth = 24; /* cheat. */
-	/* TODO: get this value another way */
+#ifndef NDEBUG
+	GLint ret;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &ret);
+	/* We expect FRONT_LEFT to be the default buffer. */
+	BLI_assert(ret == GL_NONE);
 #endif
+
+	GLint r, g, b;
+	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, &r);
+	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE, &g);
+	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, &b);
+#endif
+	GG.colordepth = r + g + b; /* Assumes same depth for RGB. */
 
 	if (GLEW_VERSION_3_2 || GLEW_ARB_texture_multisample) {
 		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &GG.samples_color_texture_max);
