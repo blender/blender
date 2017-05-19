@@ -144,7 +144,8 @@ kernel_cuda_filter_nlm_calc_difference(int dx, int dy,
                                        float *differenceImage,
                                        int4 rect, int w,
                                        int channel_offset,
-                                       float a, float k_2) {
+                                       float a, float k_2)
+{
 	int x = blockDim.x*blockIdx.x + threadIdx.x + rect.x;
 	int y = blockDim.y*blockIdx.y + threadIdx.y + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -154,7 +155,8 @@ kernel_cuda_filter_nlm_calc_difference(int dx, int dy,
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
-kernel_cuda_filter_nlm_blur(const float *ccl_restrict differenceImage, float *outImage, int4 rect, int w, int f) {
+kernel_cuda_filter_nlm_blur(const float *ccl_restrict differenceImage, float *outImage, int4 rect, int w, int f)
+{
 	int x = blockDim.x*blockIdx.x + threadIdx.x + rect.x;
 	int y = blockDim.y*blockIdx.y + threadIdx.y + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -164,7 +166,8 @@ kernel_cuda_filter_nlm_blur(const float *ccl_restrict differenceImage, float *ou
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
-kernel_cuda_filter_nlm_calc_weight(const float *ccl_restrict differenceImage, float *outImage, int4 rect, int w, int f) {
+kernel_cuda_filter_nlm_calc_weight(const float *ccl_restrict differenceImage, float *outImage, int4 rect, int w, int f)
+{
 	int x = blockDim.x*blockIdx.x + threadIdx.x + rect.x;
 	int y = blockDim.y*blockIdx.y + threadIdx.y + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -179,7 +182,8 @@ kernel_cuda_filter_nlm_update_output(int dx, int dy,
                                      const float *ccl_restrict image,
                                      float *outImage, float *accumImage,
                                      int4 rect, int w,
-                                     int f) {
+                                     int f)
+{
 	int x = blockDim.x*blockIdx.x + threadIdx.x + rect.x;
 	int y = blockDim.y*blockIdx.y + threadIdx.y + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -189,7 +193,8 @@ kernel_cuda_filter_nlm_update_output(int dx, int dy,
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
-kernel_cuda_filter_nlm_normalize(float *outImage, const float *ccl_restrict accumImage, int4 rect, int w) {
+kernel_cuda_filter_nlm_normalize(float *outImage, const float *ccl_restrict accumImage, int4 rect, int w)
+{
 	int x = blockDim.x*blockIdx.x + threadIdx.x + rect.x;
 	int y = blockDim.y*blockIdx.y + threadIdx.y + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -211,7 +216,8 @@ kernel_cuda_filter_nlm_construct_gramian(int dx, int dy,
                                          int4 rect,
                                          int4 filter_rect,
                                          int w, int h, int f,
-                                         int pass_stride) {
+                                         int pass_stride)
+{
 	int x = blockDim.x*blockIdx.x + threadIdx.x + max(0, rect.x-filter_rect.x);
 	int y = blockDim.y*blockIdx.y + threadIdx.y + max(0, rect.y-filter_rect.y);
 	if(x < min(filter_rect.z, rect.z-filter_rect.x) && y < min(filter_rect.w, rect.w-filter_rect.y)) {
@@ -235,7 +241,8 @@ kernel_cuda_filter_finalize(int w, int h,
                             float *buffer, int *rank,
                             float *XtWX, float3 *XtWY,
                             int4 filter_area, int4 buffer_params,
-                            int sample) {
+                            int sample)
+{
 	int x = blockDim.x*blockIdx.x + threadIdx.x;
 	int y = blockDim.y*blockIdx.y + threadIdx.y;
 	if(x < filter_area.z && y < filter_area.w) {

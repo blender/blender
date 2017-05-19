@@ -139,7 +139,8 @@ __kernel void kernel_ocl_filter_nlm_calc_difference(int dx,
                                                     int w,
                                                     int channel_offset,
                                                     float a,
-                                                    float k_2) {
+                                                    float k_2)
+{
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -151,7 +152,8 @@ __kernel void kernel_ocl_filter_nlm_blur(const ccl_global float *ccl_restrict di
                                          ccl_global float *outImage,
                                          int4 rect,
                                          int w,
-                                         int f) {
+                                         int f)
+{
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -163,7 +165,8 @@ __kernel void kernel_ocl_filter_nlm_calc_weight(const ccl_global float *ccl_rest
                                                 ccl_global float *outImage,
                                                 int4 rect,
                                                 int w,
-                                                int f) {
+                                                int f)
+{
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -179,7 +182,8 @@ __kernel void kernel_ocl_filter_nlm_update_output(int dx,
                                                   ccl_global float *accumImage,
                                                   int4 rect,
                                                   int w,
-                                                  int f) {
+                                                  int f)
+{
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -190,7 +194,8 @@ __kernel void kernel_ocl_filter_nlm_update_output(int dx,
 __kernel void kernel_ocl_filter_nlm_normalize(ccl_global float *outImage,
                                               const ccl_global float *ccl_restrict accumImage,
                                               int4 rect,
-                                              int w) {
+                                              int w)
+{
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
@@ -213,7 +218,8 @@ __kernel void kernel_ocl_filter_nlm_construct_gramian(int dx,
                                                       int w,
                                                       int h,
                                                       int f,
-                                                      int pass_stride) {
+                                                      int pass_stride)
+{
 	int x = get_global_id(0) + max(0, rect.x-filter_rect.x);
 	int y = get_global_id(1) + max(0, rect.y-filter_rect.y);
 	if(x < min(filter_rect.z, rect.z-filter_rect.x) && y < min(filter_rect.w, rect.w-filter_rect.y)) {
@@ -239,7 +245,8 @@ __kernel void kernel_ocl_filter_finalize(int w,
                                          ccl_global float3 *XtWY,
                                          int4 filter_area,
                                          int4 buffer_params,
-                                         int sample) {
+                                         int sample)
+{
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	if(x < filter_area.z && y < filter_area.w) {
