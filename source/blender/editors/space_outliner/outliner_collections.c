@@ -320,7 +320,6 @@ struct CollectionDeleteData {
 static TreeTraversalAction collection_delete_cb(TreeElement *te, void *customdata)
 {
 	struct CollectionDeleteData *data = customdata;
-	TreeStoreElem *tselem = TREESTORE(te);
 	SceneCollection *scene_collection = outliner_scene_collection_from_tree_element(te);
 
 	if (!scene_collection) {
@@ -332,13 +331,6 @@ static TreeTraversalAction collection_delete_cb(TreeElement *te, void *customdat
 		 * when deleting multiple collections, so just do nothing */
 	}
 	else {
-		/* XXX removing the treestore element shouldn't be done, it makes us loose information after
-		 * undo/file-read. We do need it here however, because non-ID elements don't have an ID pointer
-		 * that can be used to lookup the TreeStoreElem when recreating the TreeElement. This index
-		 * won't be correct after removing a collection from the list though.
-		 * This works as workaround, but having a proper way to find the TreeStoreElem for a recreated
-		 * TreeElement would be better. It could use an idname or the directdata pointer for that. */
-		outliner_remove_treestore_element(data->soops, tselem);
 		BKE_collection_remove(data->scene, scene_collection);
 	}
 
