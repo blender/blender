@@ -406,6 +406,10 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals *kg, const ShaderC
 		*omega_in = 2*dot(Z, I)*Z - I;
 		*pdf = 1e6f;
 		*eval = make_float3(1e6f, 1e6f, 1e6f);
+#ifdef __RAY_DIFFERENTIALS__
+		*domega_in_dx = (2 * dot(Z, dIdx)) * Z - dIdx;
+		*domega_in_dy = (2 * dot(Z, dIdy)) * Z - dIdy;
+#endif
 		return LABEL_REFLECT|LABEL_SINGULAR;
 	}
 
