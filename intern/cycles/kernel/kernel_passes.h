@@ -356,7 +356,16 @@ ccl_device_inline void kernel_write_result(KernelGlobals *kg, ccl_global float *
 #  endif
 			if(kernel_data.film.pass_denoising_clean) {
 				float3 noisy, clean;
-				path_radiance_split_denoising(kg, L, &noisy, &clean);
+#ifdef __SHADOW_TRICKS__
+				if(is_shadow_catcher) {
+					noisy = L_sum;
+					clean = make_float3(0.0f, 0.0f, 0.0f);
+				}
+				else
+#endif  /* __SHADOW_TRICKS__ */
+				{
+					path_radiance_split_denoising(kg, L, &noisy, &clean);
+				}
 				kernel_write_pass_float3_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_COLOR,
 				                                  sample, noisy);
 				kernel_write_pass_float3_unaligned(buffer + kernel_data.film.pass_denoising_clean,
