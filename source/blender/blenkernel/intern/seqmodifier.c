@@ -202,21 +202,22 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
 			int pixel_index = (y * width + x) * 4;
-			float result[4], mask[3] = {1.0f, 1.0f, 1.0f};
+			float rgba[4], result[4], mask[3] = {1.0f, 1.0f, 1.0f};
 
 			if (rect_float) {
-				copy_v3_v3(result, rect_float + pixel_index);
+				copy_v3_v3(rgba, rect_float + pixel_index);
 			}
 			else {
-				straight_uchar_to_premul_float(result, rect + pixel_index);
+				straight_uchar_to_premul_float(rgba, rect + pixel_index);
 			}
 
+			copy_v4_v4(result, rgba);
 #if 0
 			mul_v3_v3(result, multiplier);
 #else
 			/* similar to division without the clipping */
 			for (int i = 0; i < 3; i++) {
-				result[i] = 1.0f - powf(1.0f - result[i], multiplier[i]);
+				result[i] = 1.0f - powf(1.0f - rgba[i], multiplier[i]);
 			}
 #endif
 
@@ -227,9 +228,9 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 				rgb_uchar_to_float(mask, mask_rect + pixel_index);
 			}
 
-			result[0] = result[0] * (1.0f - mask[0]) + result[0] * mask[0];
-			result[1] = result[1] * (1.0f - mask[1]) + result[1] * mask[1];
-			result[2] = result[2] * (1.0f - mask[2]) + result[2] * mask[2];
+			result[0] = rgba[0] * (1.0f - mask[0]) + result[0] * mask[0];
+			result[1] = rgba[1] * (1.0f - mask[1]) + result[1] * mask[1];
+			result[2] = rgba[2] * (1.0f - mask[2]) + result[2] * mask[2];
 
 			if (rect_float) {
 				copy_v3_v3(rect_float + pixel_index, result);
