@@ -885,6 +885,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			break;
 		}
 		default:
+		{
 			if ((event->val == KM_PRESS) && handleNumInput(C, &pso->num, event)) {
 				float value;
 				
@@ -972,6 +973,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* allow to pass through */
 				return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
 			}
+		}
 	}
 	
 	

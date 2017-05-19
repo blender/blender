@@ -625,6 +625,7 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 			break;
 		}
 		default:
+		{
 			if ((event->val == KM_PRESS) && handleNumInput(C, &tgpi->num, event)) {
 				const float factor = tgpi->init_factor;
 				float value;
@@ -649,6 +650,7 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 				/* unhandled event - allow to pass through */
 				return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
 			}
+		}
 	}
 	
 	/* still running... */

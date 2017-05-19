@@ -660,7 +660,7 @@ static void makecubetable(void)
 	for (i = 0; i < 256; i++) {
 		for (e = 0; e < 12; e++) done[e] = 0;
 		for (c = 0; c < 8; c++) pos[c] = MB_BIT(i, c);
-		for (e = 0; e < 12; e++)
+		for (e = 0; e < 12; e++) {
 			if (!done[e] && (pos[corner1[e]] != pos[corner2[e]])) {
 				INTLIST *ints = NULL;
 				INTLISTS *lists = MEM_callocN(sizeof(INTLISTS), "mball_intlist");
@@ -687,6 +687,7 @@ static void makecubetable(void)
 				lists->next = cubetable[i];
 				cubetable[i] = lists;
 			}
+		}
 	}
 
 	for (i = 0; i < 256; i++) {

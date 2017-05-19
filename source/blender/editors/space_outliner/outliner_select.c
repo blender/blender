@@ -470,10 +470,11 @@ static eOLDrawState tree_element_active_defgroup(
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
 	}
 	else {
-		if (ob == OBACT)
+		if (ob == OBACT) {
 			if (ob->actdef == te->index + 1) {
 				return OL_DRAWSEL_NORMAL;
 			}
+		}
 	}
 	return OL_DRAWSEL_NONE;
 }
