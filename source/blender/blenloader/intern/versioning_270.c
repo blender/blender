@@ -1615,6 +1615,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				bNode *node;
 				for (node = ntree->nodes.first; node; node = node->next) {
 					if (node->type == CMP_NODE_R_LAYERS) {
+						/* Make sure new sockets are properly created. */
+						node_verify_socket_templates(ntree, node);
 						int pass_index = 0;
 						const char *sockname;
 						for (bNodeSocket *sock = node->outputs.first; sock && pass_index < 31; sock = sock->next, pass_index++) {
