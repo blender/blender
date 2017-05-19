@@ -856,6 +856,7 @@ static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), 
 	BKE_collection_engine_property_add_float(props, "ssao_distance", 0.2f);
 	BKE_collection_engine_property_add_float(props, "ssao_attenuation", 1.0f);
 	BKE_collection_engine_property_add_float(props, "ssao_factor_cavity", 1.0f);
+	BKE_collection_engine_property_add_float(props, "ssao_factor_edge", 1.0f);
 	BKE_collection_engine_property_add_float(props, "hair_brightness_randomness", 0.0f);
 }
 
