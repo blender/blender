@@ -4,7 +4,7 @@
 #define INTERLACE_COLUMN                   1
 #define INTERLACE_CHECKERBOARD             2
 
-:n vec2 texCoord_interp;
+in vec2 texCoord_interp;
 out vec4 fragColor;
 
 uniform int interlace_id;
