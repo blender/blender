@@ -5741,11 +5741,6 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	                         "Respect the frame rate from the Physics panel in the world properties "
 	                         "rather than rendering as many frames as possible");
 
-	prop = RNA_def_property(srna, "use_display_lists", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_DISPLAY_LISTS);
-	RNA_def_property_ui_text(prop, "Display Lists",
-	                         "Use display lists to speed up rendering by keeping geometry on the GPU");
-
 	prop = RNA_def_property(srna, "use_deprecation_warnings", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_IGNORE_DEPRECATION_WARNINGS);
 	RNA_def_property_ui_text(prop, "Deprecation Warnings",

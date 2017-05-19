@@ -1350,10 +1350,6 @@ static void game_set_commmandline_options(GameData *gm)
 		SYS_WriteCommandLineInt(syshandle, "blender_material", test);
 		test = (gm->matmode == GAME_MAT_GLSL);
 		SYS_WriteCommandLineInt(syshandle, "blender_glsl_material", test);
-		test = (gm->flag & GAME_DISPLAY_LISTS);
-		SYS_WriteCommandLineInt(syshandle, "displaylists", test);
-
-
 	}
 }
 

@@ -422,10 +422,8 @@ class RENDER_PT_game_system(RenderButtonsPanel, Panel):
         col = row.column()
         col.prop(gs, "use_frame_rate")
         col.prop(gs, "use_restrict_animation_updates")
-        col.prop(gs, "use_material_caching")
         col = row.column()
-        col.prop(gs, "use_display_lists")
-        col.active = gs.raster_storage != 'VERTEX_BUFFER_OBJECT'
+        col.prop(gs, "use_material_caching")
 
         row = layout.row()
         row.prop(gs, "vsync")
