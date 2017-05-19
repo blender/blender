@@ -132,7 +132,6 @@ typedef struct CLAY_PassList {
 	struct DRWPass *clay_pass;
 	struct DRWPass *clay_pass_flat;
 	struct DRWPass *hair_pass;
-	struct DRWPass *part_pass;
 } CLAY_PassList;
 
 typedef struct CLAY_Data {
@@ -152,8 +151,6 @@ static struct {
 	struct GPUShader *clay_sh;
 	struct GPUShader *clay_flat_sh;
 	struct GPUShader *hair_sh;
-	struct GPUShader *part_dot_sh;
-	struct GPUShader *part_prim_sh;
 
 	/* Matcap textures */
 	struct GPUTexture *matcap_array;
@@ -182,10 +179,6 @@ typedef struct CLAY_PrivateData {
 	DRWShadingGroup *depth_shgrp_cull;
 	DRWShadingGroup *depth_shgrp_cull_select;
 	DRWShadingGroup *depth_shgrp_cull_active;
-	DRWShadingGroup *part_dot_shgrp;
-	DRWShadingGroup *part_cross_shgrp;
-	DRWShadingGroup *part_circle_shgrp;
-	DRWShadingGroup *part_axis_shgrp;
 } CLAY_PrivateData; /* Transient data */
 
 /* Functions */
@@ -372,14 +365,6 @@ static void CLAY_engine_init(void *vedata)
 
 	if (!e_data.hair_sh) {
 		e_data.hair_sh = DRW_shader_create(datatoc_particle_vert_glsl, NULL, datatoc_particle_strand_frag_glsl, "#define MAX_MATERIAL 512\n");
-	}
-
-	if (!e_data.part_prim_sh) {
-		e_data.part_prim_sh = DRW_shader_create(datatoc_particle_prim_vert_glsl, NULL, datatoc_particle_prim_frag_glsl, NULL);
-	}
-
-	if (!e_data.part_dot_sh) {
-		e_data.part_dot_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 	}
 
 	if (!stl->storage) {
@@ -730,32 +715,6 @@ static void CLAY_cache_init(void *vedata)
 		stl->storage->hair_ubo_current_id = 0;
 		memset(stl->storage->hair_shgrps, 0, sizeof(DRWShadingGroup *) * MAX_CLAY_MAT);
 	}
-
-	{
-		psl->part_pass = DRW_pass_create("Particle Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_POINT | DRW_STATE_BLEND);
-
-		static int screen_space[2] = {0, 1};
-
-		stl->g_data->part_dot_shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->part_pass);
-
-		stl->g_data->part_cross_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->part_pass, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
-		DRW_shgroup_uniform_int(stl->g_data->part_cross_shgrp, "screen_space", &screen_space[0], 1);
-		DRW_shgroup_uniform_float(stl->g_data->part_cross_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-		DRW_shgroup_attrib_float(stl->g_data->part_cross_shgrp, "pos", 3);
-		DRW_shgroup_attrib_float(stl->g_data->part_cross_shgrp, "rot", 4);
-
-		stl->g_data->part_circle_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->part_pass, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
-		DRW_shgroup_uniform_int(stl->g_data->part_circle_shgrp, "screen_space", &screen_space[1], 1);
-		DRW_shgroup_uniform_float(stl->g_data->part_circle_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-		DRW_shgroup_attrib_float(stl->g_data->part_circle_shgrp, "pos", 3);
-		DRW_shgroup_attrib_float(stl->g_data->part_circle_shgrp, "rot", 4);
-
-		stl->g_data->part_axis_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->part_pass, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
-		DRW_shgroup_uniform_int(stl->g_data->part_axis_shgrp, "screen_space", &screen_space[0], 1);
-		DRW_shgroup_uniform_float(stl->g_data->part_axis_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-		DRW_shgroup_attrib_float(stl->g_data->part_axis_shgrp, "pos", 3);
-		DRW_shgroup_attrib_float(stl->g_data->part_axis_shgrp, "rot", 4);
-	}
 }
 
 static void CLAY_cache_populate(void *vedata, Object *ob)
@@ -810,85 +769,33 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 		}
 	}
 
-	if (ob->type == OB_MESH) {
-		Scene *scene = draw_ctx->scene;
-		Object *obedit = scene->obedit;
+   if (ob->type == OB_MESH) {
+		   Scene *scene = draw_ctx->scene;
+		   Object *obedit = scene->obedit;
 
-		if (ob != obedit) {
-			for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
-				if (psys_check_enabled(ob, psys, false)) {
-					ParticleSettings *part = psys->part;
-					int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+		   if (ob != obedit) {
+				   for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+						   if (psys_check_enabled(ob, psys, false)) {
+								   ParticleSettings *part = psys->part;
+								   int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
-					if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
-						draw_as = PART_DRAW_DOT;
-					}
+								   if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+										   draw_as = PART_DRAW_DOT;
+								   }
 
-					static float mat[4][4];
-					unit_m4(mat);
+								   static float mat[4][4];
+								   unit_m4(mat);
 
-					if (draw_as == PART_DRAW_PATH) {
-						geom = DRW_cache_particles_get_hair(psys);
-						hair_shgrp = CLAY_hair_shgrp_get(ob, stl, psl);
-						DRW_shgroup_call_add(hair_shgrp, geom, mat);
-					}
-					else {
-						IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
-						int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
-						float matcap_hue = BKE_collection_engine_property_value_get_float(props, "matcap_hue");
-						float matcap_sat = BKE_collection_engine_property_value_get_float(props, "matcap_saturation");
-						float matcap_val = BKE_collection_engine_property_value_get_float(props, "matcap_value");
-						static float size;
-						static float axis_size;
-						static float col[4];
-						float hsv[3];
+								   if (draw_as == PART_DRAW_PATH) {
+										   geom = DRW_cache_particles_get_hair(psys);
+										   hair_shgrp = CLAY_hair_shgrp_get(ob, stl, psl);
+										   DRW_shgroup_call_add(hair_shgrp, geom, mat);
+								   }
+						   }
+				   }
+		   }
+   }
 
-						size = (float)part->draw_size;
-						axis_size = size * 2.0f;
-
-						copy_v3_v3(col, e_data.matcap_colors[matcap_to_index(matcap_icon)]);
-						rgb_to_hsv_v(col, hsv);
-
-						hsv[0] = fmod(hsv[0] + matcap_hue - 0.5f, 1.0f);
-						hsv[1] *= matcap_sat * 2.0f;
-						CLAMP(hsv[1], 0.0f, 1.0f);
-						hsv[2] *= matcap_val * 2.0f;
-						CLAMP(hsv[2], 0.0f, 1.0f);
-
-						hsv_to_rgb_v(hsv, col);
-						col[3] = 1.0f;
-
-						geom = DRW_cache_particles_get_dots(psys);
-
-						switch (draw_as) {
-							case PART_DRAW_DOT:
-								DRW_shgroup_uniform_vec4(stl->g_data->part_dot_shgrp, "color", col, 1);
-								DRW_shgroup_uniform_float(stl->g_data->part_dot_shgrp, "size", &size, 1);
-								DRW_shgroup_call_add(stl->g_data->part_dot_shgrp, geom, mat);
-								break;
-							case PART_DRAW_CROSS:
-								DRW_shgroup_uniform_vec4(stl->g_data->part_cross_shgrp, "color", col, 1);
-								DRW_shgroup_uniform_float(stl->g_data->part_cross_shgrp, "draw_size", &size, 1);
-								DRW_shgroup_instance_batch(stl->g_data->part_cross_shgrp, geom);
-								break;
-							case PART_DRAW_CIRC:
-								DRW_shgroup_uniform_vec4(stl->g_data->part_circle_shgrp, "color", col, 1);
-								DRW_shgroup_uniform_float(stl->g_data->part_circle_shgrp, "draw_size", &size, 1);
-								DRW_shgroup_instance_batch(stl->g_data->part_circle_shgrp, geom);
-								break;
-							case PART_DRAW_AXIS:
-								DRW_shgroup_uniform_vec4(stl->g_data->part_axis_shgrp, "color", col, 1);
-								DRW_shgroup_uniform_float(stl->g_data->part_axis_shgrp, "draw_size", &axis_size, 1);
-								DRW_shgroup_instance_batch(stl->g_data->part_axis_shgrp, geom);
-								break;
-							default:
-								break;
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 static void CLAY_cache_finish(void *vedata)
@@ -929,7 +836,6 @@ static void CLAY_draw_scene(void *vedata)
 	DRW_draw_pass(psl->clay_pass);
 	DRW_draw_pass(psl->clay_pass_flat);
 	DRW_draw_pass(psl->hair_pass);
-	DRW_draw_pass(psl->part_pass);
 }
 
 static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
@@ -965,7 +871,6 @@ static void CLAY_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.clay_sh);
 	DRW_SHADER_FREE_SAFE(e_data.clay_flat_sh);
 	DRW_SHADER_FREE_SAFE(e_data.hair_sh);
-	DRW_SHADER_FREE_SAFE(e_data.part_prim_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.matcap_array);
 	DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
 	DRW_TEXTURE_FREE_SAFE(e_data.sampling_tx);

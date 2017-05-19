@@ -39,6 +39,7 @@
 #include "BKE_camera.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_particle.h"
 
 #include "ED_view3d.h"
 #include "ED_view3d.h"
@@ -59,6 +60,8 @@ extern char datatoc_object_outline_detect_frag_glsl[];
 extern char datatoc_object_outline_expand_frag_glsl[];
 extern char datatoc_object_grid_frag_glsl[];
 extern char datatoc_object_grid_vert_glsl[];
+extern char datatoc_particle_prim_vert_glsl[];
+extern char datatoc_particle_prim_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 
 /* *********** LISTS *********** */
@@ -78,6 +81,7 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
+	struct DRWPass *particle;
 } OBJECT_PassList;
 
 typedef struct OBJECT_FramebufferList {
@@ -174,6 +178,12 @@ typedef struct OBJECT_PrivateData{
 	DRWShadingGroup *wire_select;
 	DRWShadingGroup *wire_select_group;
 	DRWShadingGroup *wire_transform;
+
+	/* Particles */
+	DRWShadingGroup *part_dot_shgrp;
+	DRWShadingGroup *part_cross_shgrp;
+	DRWShadingGroup *part_circle_shgrp;
+	DRWShadingGroup *part_axis_shgrp;
 } OBJECT_PrivateData; /* Transient data */
 
 static struct {
@@ -181,6 +191,8 @@ static struct {
 	GPUShader *outline_detect_sh;
 	GPUShader *outline_fade_sh;
 	GPUShader *grid_sh;
+	GPUShader *part_dot_sh;
+	GPUShader *part_prim_sh;
 	float camera_pos[3];
 	float grid_settings[5];
 	float grid_mat[4][4];
@@ -249,6 +261,14 @@ static void OBJECT_engine_init(void *vedata)
 		        datatoc_object_grid_vert_glsl, NULL,
 		        datatoc_object_grid_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
+	}
+
+	if (!e_data.part_prim_sh) {
+		e_data.part_prim_sh = DRW_shader_create(datatoc_particle_prim_vert_glsl, NULL, datatoc_particle_prim_frag_glsl, NULL);
+	}
+
+	if (!e_data.part_dot_sh) {
+		e_data.part_dot_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 	}
 
 	{
@@ -393,6 +413,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.outline_detect_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_fade_sh);
 	DRW_SHADER_FREE_SAFE(e_data.grid_sh);
+	DRW_SHADER_FREE_SAFE(e_data.part_prim_sh);
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], GPUShader *sh)
@@ -813,6 +834,33 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_vec4(grp, "color", ts.colorLibrary, 1);
 		stl->g_data->center_deselected_lib = grp;
 	}
+
+	{
+		/* Particle Pass */
+		psl->particle = DRW_pass_create("Particle Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_POINT | DRW_STATE_BLEND);
+
+		static int screen_space[2] = {0, 1};
+
+		stl->g_data->part_dot_shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
+
+		stl->g_data->part_cross_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
+		DRW_shgroup_uniform_int(stl->g_data->part_cross_shgrp, "screen_space", &screen_space[0], 1);
+		DRW_shgroup_uniform_float(stl->g_data->part_cross_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+		DRW_shgroup_attrib_float(stl->g_data->part_cross_shgrp, "pos", 3);
+		DRW_shgroup_attrib_float(stl->g_data->part_cross_shgrp, "rot", 4);
+
+		stl->g_data->part_circle_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
+		DRW_shgroup_uniform_int(stl->g_data->part_circle_shgrp, "screen_space", &screen_space[1], 1);
+		DRW_shgroup_uniform_float(stl->g_data->part_circle_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+		DRW_shgroup_attrib_float(stl->g_data->part_circle_shgrp, "pos", 3);
+		DRW_shgroup_attrib_float(stl->g_data->part_circle_shgrp, "rot", 4);
+
+		stl->g_data->part_axis_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
+		DRW_shgroup_uniform_int(stl->g_data->part_axis_shgrp, "screen_space", &screen_space[0], 1);
+		DRW_shgroup_uniform_float(stl->g_data->part_axis_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+		DRW_shgroup_attrib_float(stl->g_data->part_axis_shgrp, "pos", 3);
+		DRW_shgroup_attrib_float(stl->g_data->part_axis_shgrp, "rot", 4);
+	}
 }
 
 static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl)
@@ -1209,6 +1257,63 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	switch (ob->type) {
 		case OB_MESH:
+			for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+				if (psys_check_enabled(ob, psys, false)) {
+					ParticleSettings *part = psys->part;
+					int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+
+					if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+						draw_as = PART_DRAW_DOT;
+					}
+
+					static float mat[4][4];
+					unit_m4(mat);
+
+					if (draw_as != PART_DRAW_PATH) {
+						static float size;
+						static float axis_size;
+						static float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+						static float o_col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
+						struct Batch *geom = DRW_cache_particles_get_dots(psys);
+
+						Material *ma = give_current_material(ob, part->omat);
+
+						if (ma) {
+							copy_v3_v3(col, &ma->r);
+							copy_v3_v3(o_col, &ma->specr);
+						}
+
+						size = (float)part->draw_size;
+						axis_size = size * 2.0f;
+
+						switch (draw_as) {
+							case PART_DRAW_DOT:
+								DRW_shgroup_uniform_vec4(stl->g_data->part_dot_shgrp, "color", col, 1);
+								DRW_shgroup_uniform_vec4(stl->g_data->part_dot_shgrp, "outlineColor", o_col, 1);
+								DRW_shgroup_uniform_float(stl->g_data->part_dot_shgrp, "size", &size, 1);
+								DRW_shgroup_call_add(stl->g_data->part_dot_shgrp, geom, mat);
+								break;
+							case PART_DRAW_CROSS:
+								DRW_shgroup_uniform_vec4(stl->g_data->part_cross_shgrp, "color", col, 1);
+								DRW_shgroup_uniform_float(stl->g_data->part_cross_shgrp, "draw_size", &size, 1);
+								DRW_shgroup_instance_batch(stl->g_data->part_cross_shgrp, geom);
+								break;
+							case PART_DRAW_CIRC:
+								DRW_shgroup_uniform_vec4(stl->g_data->part_circle_shgrp, "color", col, 1);
+								DRW_shgroup_uniform_float(stl->g_data->part_circle_shgrp, "draw_size", &size, 1);
+								DRW_shgroup_instance_batch(stl->g_data->part_circle_shgrp, geom);
+								break;
+							case PART_DRAW_AXIS:
+								DRW_shgroup_uniform_vec4(stl->g_data->part_axis_shgrp, "color", col, 1);
+								DRW_shgroup_uniform_float(stl->g_data->part_axis_shgrp, "draw_size", &axis_size, 1);
+								DRW_shgroup_instance_batch(stl->g_data->part_axis_shgrp, geom);
+								break;
+							default:
+								break;
+						}
+					}
+				}
+			}
 		case OB_SURF:
 			break;
 		case OB_LATTICE:
@@ -1352,6 +1457,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->non_meshes);
 	DRW_draw_pass(psl->ob_center);
+	DRW_draw_pass(psl->particle);
 
 	if (!DRW_state_is_select()) {
 		DRW_draw_pass(psl->grid);
