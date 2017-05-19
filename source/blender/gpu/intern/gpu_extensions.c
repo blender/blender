@@ -157,7 +157,7 @@ void gpu_extensions_init(void)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &ret);
 	/* We expect FRONT_LEFT to be the default buffer. */
-	BLI_assert(ret == GL_NONE);
+	BLI_assert(ret == GL_FRAMEBUFFER_DEFAULT);
 #endif
 
 	GLint r, g, b;
