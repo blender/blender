@@ -38,7 +38,7 @@ flat out ivec3 flag;
 flat out vec4 faceColor;
 flat out int clipCase;
 #ifdef VERTEX_SELECTION
-smooth out vec3 vertexColor;
+out vec3 vertexColor;
 #endif
 
 /* See fragment shader */

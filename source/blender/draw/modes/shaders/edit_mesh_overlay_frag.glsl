@@ -13,7 +13,7 @@ flat in ivec3 flag;
 flat in vec4 faceColor;
 flat in int clipCase;
 #ifdef VERTEX_SELECTION
-smooth in vec3 vertexColor;
+in vec3 vertexColor;
 #endif
 
 /* We use a vec4[2] interface to pass edge data
