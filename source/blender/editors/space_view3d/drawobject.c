@@ -650,7 +650,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	Image *ima = ob->data;
 
 	const float ob_alpha = ob->col[3];
-	float width, height;
+	float ima_x, ima_y;
 
 	int bindcode = 0;
 
@@ -671,20 +671,49 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 
 		int w, h;
 		BKE_image_get_size(ima, &iuser, &w, &h);
-		width = w;
-		height = h;
+		ima_x = w;
+		ima_y = h;
 	}
 	else {
 		/* if no image, make it a 1x1 empty square, honor scale & offset */
-		width = height = 1.0f;
+		ima_x = ima_y = 1.0f;
 	}
 
-	const float aspect = height / width;
+	/* Get the image aspect even if the buffer is invalid */
+	float sca_x = 1.0f, sca_y = 1.0f;
+	if (ima) {
+		if (ima->aspx > ima->aspy) {
+			sca_y = ima->aspy / ima->aspx;
+		}
+		else if (ima->aspx < ima->aspy) {
+			sca_x = ima->aspx / ima->aspy;
+		}
+	}
 
-	float left = ob->ima_ofs[0];
-	float right = ob->ima_ofs[0] + ob->empty_drawsize;
-	float top = ob->ima_ofs[1] + ob->empty_drawsize * aspect;
-	float bottom = ob->ima_ofs[1];
+	float scale_x;
+	float scale_y;
+	{
+		const float scale_x_inv = ima_x * sca_x;
+		const float scale_y_inv = ima_y * sca_y;
+		if (scale_x_inv > scale_y_inv) {
+			scale_x = ob->empty_drawsize;
+			scale_y = ob->empty_drawsize * (scale_y_inv / scale_x_inv);
+		}
+		else {
+			scale_x = ob->empty_drawsize * (scale_x_inv / scale_y_inv);
+			scale_y = ob->empty_drawsize;
+		}
+	}
+
+	const float ofs_x = ob->ima_ofs[0] * scale_x;
+	const float ofs_y = ob->ima_ofs[1] * scale_y;
+
+	const rctf rect = {
+		.xmin = ofs_x,
+		.xmax = ofs_x + scale_x,
+		.ymin = ofs_y,
+		.ymax = ofs_y + scale_y,
+	};
 
 	bool use_blend = false;
 
@@ -705,16 +734,16 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 
 		immBegin(PRIM_TRIANGLE_FAN, 4);
 		immAttrib2f(texCoord, 0.0f, 0.0f);
-		immVertex2f(pos, left, bottom);
+		immVertex2f(pos, rect.xmin, rect.ymin);
 
 		immAttrib2f(texCoord, 1.0f, 0.0f);
-		immVertex2f(pos, right, bottom);
+		immVertex2f(pos, rect.xmax, rect.ymin);
 
 		immAttrib2f(texCoord, 1.0f, 1.0f);
-		immVertex2f(pos, right, top);
+		immVertex2f(pos, rect.xmax, rect.ymax);
 
 		immAttrib2f(texCoord, 0.0f, 1.0f);
-		immVertex2f(pos, left, top);
+		immVertex2f(pos, rect.xmin, rect.ymax);
 		immEnd();
 
 		immUnbindProgram();
@@ -734,7 +763,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 			glDisable(GL_BLEND);
 		}
 
-		imm_draw_line_box(pos, left, bottom, right, top);
+		imm_draw_line_box(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	}
 	else {
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -746,7 +775,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
-		imm_draw_line_box(pos, left, bottom, right, top);
+		imm_draw_line_box(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
