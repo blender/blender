@@ -23,14 +23,14 @@ CCL_NAMESPACE_BEGIN
 
 /* Variants that use a constant stride on GPUS. */
 #ifdef __KERNEL_GPU__
-#define MATS(A, n, r, c, s) A[((r)*(n)+(c))*(s)]
+#  define MATS(A, n, r, c, s) A[((r)*(n)+(c))*(s)]
 /* Element access when only the lower-triangular elements are stored. */
-#define MATHS(A, r, c, s) A[((r)*((r)+1)/2+(c))*(s)]
-#define VECS(V, i, s) V[(i)*(s)]
+#  define MATHS(A, r, c, s) A[((r)*((r)+1)/2+(c))*(s)]
+#  define VECS(V, i, s) V[(i)*(s)]
 #else
-#define MATS(A, n, r, c, s) MAT(A, n, r, c)
-#define MATHS(A, r, c, s) A[(r)*((r)+1)/2+(c)]
-#define VECS(V, i, s) V[i]
+#  define MATS(A, n, r, c, s) MAT(A, n, r, c)
+#  define MATHS(A, r, c, s) A[(r)*((r)+1)/2+(c)]
+#  define VECS(V, i, s) V[i]
 #endif
 
 /* Zeroing helpers. */
