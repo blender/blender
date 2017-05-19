@@ -123,6 +123,9 @@ def object_data_add(context, obdata, operator=None, name=None):
     layer = context.render_layer
     layer_collection = context.layer_collection
 
+    for ob in layer.objects:
+        ob.select_set(action='DESELECT')
+
     if not layer_collection:
         # when there is no collection linked to this render_layer create one
         scene_collection = scene.master_collection.collections.new("")
@@ -130,18 +133,14 @@ def object_data_add(context, obdata, operator=None, name=None):
     else:
         scene_collection = layer_collection.collection
 
-    bpy.ops.object.select_all(action='DESELECT')
-
     if name is None:
         name = "Object" if obdata is None else obdata.name
 
+    obj_act = layer.objects.active
     obj_new = bpy.data.objects.new(name, obdata)
     scene_collection.objects.link(obj_new)
     obj_new.select_set(action='SELECT')
-
     obj_new.matrix_world = add_object_align_init(context, operator)
-
-    obj_act = layer.objects.active
 
     # XXX
     # caused because entering edit-mode does not add a empty undo slot!
@@ -162,6 +161,7 @@ def object_data_add(context, obdata, operator=None, name=None):
 
     if obj_act and obj_act.mode == 'EDIT' and obj_act.type == obj_new.type:
         bpy.ops.mesh.select_all(action='DESELECT')
+        obj_act.select_set(action='SELECT')
         bpy.ops.object.mode_set(mode='OBJECT')
 
         obj_act.select_set(action='SELECT')
