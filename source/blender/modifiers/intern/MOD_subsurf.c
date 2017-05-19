@@ -148,16 +148,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, subsurf_flags);
 	result->cd_flag = derivedData->cd_flag;
 
-#ifndef WITH_GL_PROFILE_CORE
-	if (do_cddm_convert)
-#endif
 	{
 		DerivedMesh *cddm = CDDM_copy(result);
 		result->release(result);
 		result = cddm;
 	}
 
-#if defined(WITH_GL_PROFILE_CORE) && !defined(WITH_OPESUBDIV)
+#ifndef WITH_OPESUBDIV
 	(void) do_cddm_convert;
 #endif
 

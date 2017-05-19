@@ -2271,13 +2271,6 @@ void GPU_state_init(void)
 
 	GPU_disable_program_point_size();
 
-#ifndef WITH_GL_PROFILE_CORE
-	/* TODO: remove this when we switch to core profile */
-	{
-		glEnable(GL_POINT_SPRITE);
-	}
-#endif
-
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	glDepthFunc(GL_LEQUAL);

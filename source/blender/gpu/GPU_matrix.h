@@ -43,11 +43,7 @@ extern "C" {
 /* For now we support the legacy matrix stack in gpuGetMatrix functions.
  * Will remove this after switching to core profile, which can happen after
  * we convert all code to use the API in this file. */
-#ifdef WITH_GL_PROFILE_CORE
-#  define SUPPORT_LEGACY_MATRIX 0
-#else
-#  define SUPPORT_LEGACY_MATRIX 1
-#endif
+#define SUPPORT_LEGACY_MATRIX 0
 
 
 void gpuMatrixReset(void); /* to Identity transform & empty stack */

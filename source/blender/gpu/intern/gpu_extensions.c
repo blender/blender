@@ -137,17 +137,7 @@ void gpu_extensions_init(void)
 	 * final 2.8 release will be unified on OpenGL 3.3 core profile, no required extensions
 	 * see developer.blender.org/T49012 for details
 	 */
-#if defined(WITH_GL_PROFILE_CORE) || defined(_WIN32)
 	BLI_assert(GLEW_VERSION_3_3);
-#elif defined(__APPLE__)
-	BLI_assert(GLEW_VERSION_2_1 && GLEW_EXT_gpu_shader4
-	                            && GLEW_ARB_framebuffer_object
-	                            && GLEW_ARB_draw_elements_base_vertex
-	                            && GLEW_APPLE_flush_buffer_range);
-#else
-	BLI_assert(GLEW_VERSION_3_3 || (GLEW_VERSION_3_0 && GLEW_ARB_draw_elements_base_vertex));
-	/*           vendor driver  ||  Mesa compatibility profile */
-#endif
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &GG.maxtextures);
 

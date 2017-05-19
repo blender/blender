@@ -58,12 +58,9 @@
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_glew.h"
+#include "GPU_immediate.h"
 #include "GPU_shader.h"
 #include "GPU_basic_shader.h"
-
-#ifdef WITH_GL_PROFILE_CORE
-#  include "GPU_immediate.h"
-#endif
 
 #include <string.h>
 #include <limits.h>
@@ -376,7 +373,7 @@ static void cdDM_drawVerts(DerivedMesh *dm)
 	GPU_buffers_unbind();
 }
 
-static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdges)
+static void cdDM_drawEdges(DerivedMesh *dm, bool UNUSED(drawLooseEdges), bool UNUSED(drawAllEdges))
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 
@@ -387,28 +384,6 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 
 		return;
 	}
-
-#ifndef WITH_GL_PROFILE_CORE
-	GPUDrawObject *gdo;
-
-	GPU_edge_setup(dm);
-	gdo = dm->drawObject;
-	if (gdo->edges && gdo->points) {
-		if (drawAllEdges && drawLooseEdges) {
-			GPU_buffer_draw_elements(gdo->edges, GL_LINES, 0, gdo->totedge * 2);
-		}
-		else if (drawAllEdges) {
-			GPU_buffer_draw_elements(gdo->edges, GL_LINES, 0, gdo->loose_edge_offset * 2);
-		}
-		else {
-			GPU_buffer_draw_elements(gdo->edges, GL_LINES, 0, gdo->tot_edge_drawn * 2);
-			GPU_buffer_draw_elements(gdo->edges, GL_LINES, gdo->loose_edge_offset * 2, dm->drawObject->tot_loose_edge_drawn * 2);
-		}
-	}
-	GPU_buffers_unbind();
-#else
-	(void) drawLooseEdges;
-	(void) drawAllEdges;
 
 	MVert *vert = cddm->mvert;
 	MEdge *edge = cddm->medge;
@@ -440,7 +415,6 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 	}
 
 	immUnbindProgram();
-#endif
 }
 
 static void cdDM_drawLooseEdges(DerivedMesh *dm)
@@ -463,8 +437,9 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 static void cdDM_drawFacesSolid(
         DerivedMesh *dm,
         float (*partial_redraw_planes)[4],
-        bool UNUSED(fast), DMSetMaterial setMaterial)
+        bool fast, DMSetMaterial setMaterial)
 {
+	UNUSED_VARS(partial_redraw_planes, fast, setMaterial);
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	int a;
 
@@ -477,21 +452,6 @@ static void cdDM_drawFacesSolid(
 			return;
 		}
 	}
-
-#ifndef WITH_GL_PROFILE_CORE
-	GPU_vertex_setup(dm);
-	GPU_normal_setup(dm);
-	GPU_triangle_setup(dm);
-	for (a = 0; a < dm->drawObject->totmaterial; a++) {
-		if (!setMaterial || setMaterial(dm->drawObject->materials[a].mat_nr + 1, NULL)) {
-			GPU_buffer_draw_elements(
-			            dm->drawObject->triangles, GL_TRIANGLES,
-			            dm->drawObject->materials[a].start, dm->drawObject->materials[a].totelements);
-		}
-	}
-#else
-	(void) partial_redraw_planes;
-	(void) setMaterial;
 
 	const MVert *mvert = cddm->mvert;
 	const MLoop *mloop = cddm->mloop;
@@ -565,7 +525,6 @@ static void cdDM_drawFacesSolid(
 	}
 
 	immUnbindProgram();
-#endif
 }
 
 static void cdDM_drawFacesTex_common(
