@@ -111,7 +111,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
-		kernel_write_light_passes(kg, buffer, L, sample);
 #ifdef __KERNEL_DEBUG__
 		kernel_write_debug_passes(kg, buffer, state, debug_data, sample);
 #endif
