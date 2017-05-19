@@ -93,5 +93,6 @@ struct Batch *DRW_mesh_batch_cache_get_overlay_facedots(struct Mesh *me);
 
 /* Particles */
 struct Batch *DRW_particles_batch_cache_get_hair(struct ParticleSystem *psys);
+struct Batch *DRW_particles_batch_cache_get_dots(struct ParticleSystem *psys);
 
 #endif /* __DRAW_CACHE_IMPL_H__ */

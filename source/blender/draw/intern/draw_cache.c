@@ -80,6 +80,9 @@ static struct DRWShapeCache {
 	Batch *drw_camera;
 	Batch *drw_camera_tria;
 	Batch *drw_camera_focus;
+	Batch *drw_particle_cross;
+	Batch *drw_particle_circle;
+	Batch *drw_particle_axis;
 } SHC = {NULL};
 
 void DRW_shape_cache_free(void)
@@ -124,6 +127,9 @@ void DRW_shape_cache_free(void)
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_camera);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_camera_tria);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_camera_focus);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_particle_cross);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_particle_circle);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_particle_axis);
 }
 
 
@@ -2205,4 +2211,138 @@ Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 Batch *DRW_cache_particles_get_hair(ParticleSystem *psys)
 {
 	return DRW_particles_batch_cache_get_hair(psys);
+}
+
+Batch *DRW_cache_particles_get_dots(ParticleSystem *psys)
+{
+	return DRW_particles_batch_cache_get_dots(psys);
+}
+
+Batch *DRW_cache_particles_get_prim(int type)
+{
+	switch (type) {
+		case PART_DRAW_CROSS:
+			if (!SHC.drw_particle_cross) {
+				static VertexFormat format = { 0 };
+				static unsigned pos_id, axis_id;
+
+				if (format.attrib_ct == 0) {
+					pos_id = VertexFormat_add_attrib(&format, "inst_pos", COMP_F32, 3, KEEP_FLOAT);
+					axis_id = VertexFormat_add_attrib(&format, "axis", COMP_I32, 1, KEEP_INT);
+				}
+
+				VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+				VertexBuffer_allocate_data(vbo, 6);
+
+				/* X axis */
+				float co[3] = {-1.0f, 0.0f, 0.0f};
+				int axis = -1;
+				VertexBuffer_set_attrib(vbo, pos_id, 0, co);
+
+				co[0] = 1.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, 1, co);
+				VertexBuffer_set_attrib(vbo, axis_id, 1, &axis);
+
+				/* Y axis */
+				co[0] = 0.0f;
+				co[1] = -1.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, 2, co);
+
+				co[1] = 1.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, 3, co);
+				VertexBuffer_set_attrib(vbo, axis_id, 3, &axis);
+
+				/* Z axis */
+				co[1] = 0.0f;
+				co[2] = -1.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, 4, co);
+
+				co[2] = 1.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, 5, co);
+				VertexBuffer_set_attrib(vbo, axis_id, 5, &axis);
+
+				SHC.drw_particle_cross = Batch_create(PRIM_LINES, vbo, NULL);
+			}
+
+			return SHC.drw_particle_cross;
+		case PART_DRAW_AXIS:
+			if (!SHC.drw_particle_axis) {
+				static VertexFormat format = { 0 };
+				static unsigned pos_id, axis_id;
+
+				if (format.attrib_ct == 0) {
+					pos_id = VertexFormat_add_attrib(&format, "inst_pos", COMP_F32, 3, KEEP_FLOAT);
+					axis_id = VertexFormat_add_attrib(&format, "axis", COMP_I32, 1, KEEP_INT);
+				}
+
+				VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+				VertexBuffer_allocate_data(vbo, 6);
+
+				/* X axis */
+				float co[3] = {0.0f, 0.0f, 0.0f};
+				int axis = 0;
+				VertexBuffer_set_attrib(vbo, pos_id, 0, co);
+
+				co[0] = 1.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, 1, co);
+				VertexBuffer_set_attrib(vbo, axis_id, 1, &axis);
+
+				/* Y axis */
+				co[0] = 0.0f;
+				axis = 1;
+				VertexBuffer_set_attrib(vbo, pos_id, 2, co);
+
+				co[1] = 1.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, 3, co);
+				VertexBuffer_set_attrib(vbo, axis_id, 3, &axis);
+
+				/* Z axis */
+				co[1] = 0.0f;
+				axis = 2;
+				VertexBuffer_set_attrib(vbo, pos_id, 4, co);
+
+				co[2] = 1.0f;
+				VertexBuffer_set_attrib(vbo, pos_id, 5, co);
+				VertexBuffer_set_attrib(vbo, axis_id, 5, &axis);
+
+				SHC.drw_particle_axis = Batch_create(PRIM_LINES, vbo, NULL);
+			}
+
+			return SHC.drw_particle_axis;
+		case PART_DRAW_CIRC:
+#define CIRCLE_RESOL 32
+			if (!SHC.drw_particle_circle) {
+				float v[3] = {0.0f, 0.0f, 0.0f};
+				int axis = -1;
+
+				static VertexFormat format = { 0 };
+				static unsigned pos_id, axis_id;
+
+				if (format.attrib_ct == 0) {
+					pos_id = VertexFormat_add_attrib(&format, "inst_pos", COMP_F32, 3, KEEP_FLOAT);
+					axis_id = VertexFormat_add_attrib(&format, "axis", COMP_I32, 1, KEEP_INT);
+				}
+
+				VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+				VertexBuffer_allocate_data(vbo, CIRCLE_RESOL);
+
+				for (int a = 0; a < CIRCLE_RESOL; a++) {
+					v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+					v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+					v[2] = 0.0f;
+					VertexBuffer_set_attrib(vbo, pos_id, a, v);
+					VertexBuffer_set_attrib(vbo, axis_id, a, &axis);
+				}
+
+				SHC.drw_particle_circle = Batch_create(PRIM_LINE_LOOP, vbo, NULL);
+			}
+
+			return SHC.drw_particle_circle;
+#undef CIRCLE_RESOL
+		default:
+			BLI_assert(false);
+			break;
+	}
+
+	return NULL;
 }

@@ -268,6 +268,43 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 	}
 }
 
+static void particle_batch_cache_ensure_pos(ParticleSystem *psys, ParticleBatchCache *cache)
+{
+	if (cache->pos == NULL) {
+		static VertexFormat format = { 0 };
+		static unsigned pos_id, rot_id;
+		int i, curr_point;
+		ParticleData *pa;
+
+		VERTEXBUFFER_DISCARD_SAFE(cache->pos);
+		ELEMENTLIST_DISCARD_SAFE(cache->segments);
+
+		if (format.attrib_ct == 0) {
+			/* initialize vertex format */
+			pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			rot_id = VertexFormat_add_attrib(&format, "rot", COMP_F32, 4, KEEP_FLOAT);
+		}
+
+		cache->pos = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(cache->pos, psys->totpart);
+
+		for (curr_point = 0, i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
+			if (pa->state.time >= pa->time && pa->state.time < pa->dietime &&
+			    !(pa->flag & (PARS_NO_DISP | PARS_UNEXIST)))
+			{
+				VertexBuffer_set_attrib(cache->pos, pos_id, curr_point, pa->state.co);
+				VertexBuffer_set_attrib(cache->pos, rot_id, curr_point, pa->state.rot);
+
+				curr_point++;
+			}
+		}
+
+		if (curr_point != psys->totpart) {
+			VertexBuffer_resize_data(cache->pos, curr_point);
+		}
+	}
+}
+
 Batch *DRW_particles_batch_cache_get_hair(ParticleSystem *psys)
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
@@ -276,6 +313,18 @@ Batch *DRW_particles_batch_cache_get_hair(ParticleSystem *psys)
 		ensure_seg_pt_count(psys, cache);
 		particle_batch_cache_ensure_pos_and_seg(psys, cache);
 		cache->hairs = Batch_create(PRIM_LINES, cache->pos, cache->segments);
+	}
+
+	return cache->hairs;
+}
+
+Batch *DRW_particles_batch_cache_get_dots(ParticleSystem *psys)
+{
+	ParticleBatchCache *cache = particle_batch_cache_get(psys);
+
+	if (cache->hairs == NULL) {
+		particle_batch_cache_ensure_pos(psys, cache);
+		cache->hairs = Batch_create(PRIM_POINTS, cache->pos, NULL);
 	}
 
 	return cache->hairs;
