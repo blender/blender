@@ -43,6 +43,7 @@ struct Main;
 struct MemFile;
 struct ReportList;
 struct Scene;
+struct SceneLayer;
 struct UserDef;
 struct View3D;
 struct bContext;
@@ -114,9 +115,9 @@ struct ID *BLO_library_link_named_part(struct Main *mainl, BlendHandle **bh, con
 struct ID *BLO_library_link_named_part_ex(
         struct Main *mainl, BlendHandle **bh,
         const short idcode, const char *name, const short flag,
-        struct Scene *scene, struct View3D *v3d,
+        struct Scene *scene, struct SceneLayer *sl,
         const bool use_placeholders, const bool force_indirect);
-void BLO_library_link_end(struct Main *mainl, BlendHandle **bh, short flag, struct Scene *scene, struct View3D *v3d);
+void BLO_library_link_end(struct Main *mainl, BlendHandle **bh, short flag, struct Scene *scene, struct SceneLayer *sl);
 
 void BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh);
 

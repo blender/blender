@@ -119,7 +119,7 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
 
 	if (RNA_boolean_get(op->ptr, "autoselect"))
 		flag |= FILE_AUTOSELECT;
-	if (RNA_boolean_get(op->ptr, "active_layer"))
+	if (RNA_boolean_get(op->ptr, "active_collection"))
 		flag |= FILE_ACTIVELAY;
 
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
@@ -152,7 +152,7 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "autoselect", true, "Select", "Select pasted objects");
-	RNA_def_boolean(ot->srna, "active_layer", true, "Active Layer", "Put pasted objects on the active layer");
+	RNA_def_boolean(ot->srna, "active_collection", true, "Active Collection", "Put pasted objects on the active collection");
 }
 
 /* ************************** registration **********************************/

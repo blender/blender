@@ -118,7 +118,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Main *mainl = NULL;
 	Library *lib;
 	BlendHandle *bh;
@@ -143,7 +143,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 
 	BLO_library_link_copypaste(mainl, bh);
 
-	BLO_library_link_end(mainl, &bh, flag, scene, v3d);
+	BLO_library_link_end(mainl, &bh, flag, scene, sl);
 
 	/* mark all library linked objects to be updated */
 	BKE_main_lib_objects_recalc_all(bmain);

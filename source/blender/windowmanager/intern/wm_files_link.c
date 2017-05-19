@@ -59,6 +59,7 @@
 #include "BLO_readfile.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_remap.h"
 #include "BKE_global.h"
@@ -68,6 +69,7 @@
 
 #include "BKE_idcode.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "IMB_colormanagement.h"
@@ -131,7 +133,7 @@ static short wm_link_append_flag(wmOperator *op)
 
 	if (RNA_boolean_get(op->ptr, "autoselect"))
 		flag |= FILE_AUTOSELECT;
-	if (RNA_boolean_get(op->ptr, "active_layer"))
+	if (RNA_boolean_get(op->ptr, "active_collection"))
 		flag |= FILE_ACTIVELAY;
 	if ((prop = RNA_struct_find_property(op->ptr, "relative_path")) && RNA_property_boolean_get(op->ptr, prop))
 		flag |= FILE_RELPATH;
@@ -212,7 +214,7 @@ static WMLinkAppendDataItem *wm_link_append_data_item_add(
 }
 
 static void wm_link_do(
-        WMLinkAppendData *lapp_data, ReportList *reports, Main *bmain, Scene *scene, View3D *v3d,
+        WMLinkAppendData *lapp_data, ReportList *reports, Main *bmain, Scene *scene, SceneLayer *sl,
         const bool use_placeholders, const bool force_indirect)
 {
 	Main *mainl;
@@ -261,7 +263,7 @@ static void wm_link_do(
 			}
 
 			new_id = BLO_library_link_named_part_ex(
-			             mainl, &bh, item->idcode, item->name, flag, scene, v3d, use_placeholders, force_indirect);
+			             mainl, &bh, item->idcode, item->name, flag, scene, sl, use_placeholders, force_indirect);
 
 			if (new_id) {
 				/* If the link is successful, clear item's libs 'todo' flags.
@@ -271,7 +273,7 @@ static void wm_link_do(
 			}
 		}
 
-		BLO_library_link_end(mainl, &bh, flag, scene, v3d);
+		BLO_library_link_end(mainl, &bh, flag, scene, sl);
 		BLO_blendhandle_close(bh);
 	}
 }
@@ -280,6 +282,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	PropertyRNA *prop;
 	WMLinkAppendData *lapp_data;
 	char path[FILE_MAX_LIBEXTRA], root[FILE_MAXDIR], libname[FILE_MAX], relname[FILE_MAX];
@@ -334,8 +337,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* from here down, no error returns */
 
-	if (scene && RNA_boolean_get(op->ptr, "autoselect")) {
-		BKE_scene_base_deselect_all(scene);
+	if (sl && RNA_boolean_get(op->ptr, "autoselect")) {
+		BKE_scene_layer_base_deselect_all(sl);
 	}
 	
 	/* tag everything, all untagged data can be made local
@@ -405,7 +408,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* XXX We'd need re-entrant locking on Main for this to work... */
 	/* BKE_main_lock(bmain); */
 
-	wm_link_do(lapp_data, op->reports, bmain, scene, CTX_wm_view3d(C), false, false);
+	wm_link_do(lapp_data, op->reports, bmain, scene, sl, false, false);
 
 	/* BKE_main_unlock(bmain); */
 
@@ -445,6 +448,15 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	 * link into other scenes from this blend file */
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
+	/* TODO(sergey): Use proper flag for tagging here. */
+
+	/* TODO (dalai): Temporary solution!
+	 * Ideally we only need to tag the new objects themselves, not the scene. This way we'll avoid flush of
+	 * collection properties to all objects and limit update to the particular object only.
+	 * But afraid first we need to change collection evaluation in DEG according to depsgraph manifesto.
+	 */
+	DEG_id_tag_update(&scene->id, 0);
+
 	/* recreate dependency graph to include new objects */
 	DEG_scene_relations_rebuild(bmain, scene);
 	
@@ -471,8 +483,8 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
 	prop = RNA_def_boolean(ot->srna, "autoselect", true,
 	                       "Select", "Select new objects");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "active_layer", true,
-	                       "Active Layer", "Put new objects on the active layer");
+	prop = RNA_def_boolean(ot->srna, "active_collection", true,
+	                       "Active Collection", "Put new objects on the active collection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "instance_groups", is_link,
 	                       "Instance Groups", "Create Dupli-Group instances for each group");
