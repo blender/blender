@@ -17,9 +17,9 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void kernel_filter_nlm_calc_difference(int dx, int dy,
-                                                         const float *ccl_restrict weightImage,
-                                                         const float *ccl_restrict varianceImage,
-                                                         float *differenceImage,
+                                                         const float *ccl_restrict weight_image,
+                                                         const float *ccl_restrict variance_image,
+                                                         float *difference_image,
                                                          int4 rect,
                                                          int w,
                                                          int channel_offset,
@@ -31,21 +31,21 @@ ccl_device_inline void kernel_filter_nlm_calc_difference(int dx, int dy,
 			float diff = 0.0f;
 			int numChannels = channel_offset? 3 : 1;
 			for(int c = 0; c < numChannels; c++) {
-				float cdiff = weightImage[c*channel_offset + y*w+x] - weightImage[c*channel_offset + (y+dy)*w+(x+dx)];
-				float pvar = varianceImage[c*channel_offset + y*w+x];
-				float qvar = varianceImage[c*channel_offset + (y+dy)*w+(x+dx)];
+				float cdiff = weight_image[c*channel_offset + y*w+x] - weight_image[c*channel_offset + (y+dy)*w+(x+dx)];
+				float pvar = variance_image[c*channel_offset + y*w+x];
+				float qvar = variance_image[c*channel_offset + (y+dy)*w+(x+dx)];
 				diff += (cdiff*cdiff - a*(pvar + min(pvar, qvar))) / (1e-8f + k_2*(pvar+qvar));
 			}
 			if(numChannels > 1) {
 				diff *= 1.0f/numChannels;
 			}
-			differenceImage[y*w+x] = diff;
+			difference_image[y*w+x] = diff;
 		}
 	}
 }
 
-ccl_device_inline void kernel_filter_nlm_blur(const float *ccl_restrict differenceImage,
-                                              float *outImage,
+ccl_device_inline void kernel_filter_nlm_blur(const float *ccl_restrict difference_image,
+                                              float *out_image,
                                               int4 rect,
                                               int w,
                                               int f)
@@ -58,34 +58,34 @@ ccl_device_inline void kernel_filter_nlm_blur(const float *ccl_restrict differen
 		const int low = max(rect.y, y-f);
 		const int high = min(rect.w, y+f+1);
 		for(int x = rect.x; x < rect.z; x++) {
-			outImage[y*w+x] = 0.0f;
+			out_image[y*w+x] = 0.0f;
 		}
 		for(int y1 = low; y1 < high; y1++) {
 #ifdef __KERNEL_SSE3__
 			for(int x = aligned_lowx; x < aligned_highx; x+=4) {
-				_mm_store_ps(outImage + y*w+x, _mm_add_ps(_mm_load_ps(outImage + y*w+x), _mm_load_ps(differenceImage + y1*w+x)));
+				_mm_store_ps(out_image + y*w+x, _mm_add_ps(_mm_load_ps(out_image + y*w+x), _mm_load_ps(difference_image + y1*w+x)));
 			}
 #else
 			for(int x = rect.x; x < rect.z; x++) {
-				outImage[y*w+x] += differenceImage[y1*w+x];
+				out_image[y*w+x] += difference_image[y1*w+x];
 			}
 #endif
 		}
 		for(int x = rect.x; x < rect.z; x++) {
-			outImage[y*w+x] *= 1.0f/(high - low);
+			out_image[y*w+x] *= 1.0f/(high - low);
 		}
 	}
 }
 
-ccl_device_inline void kernel_filter_nlm_calc_weight(const float *ccl_restrict differenceImage,
-                                                     float *outImage,
+ccl_device_inline void kernel_filter_nlm_calc_weight(const float *ccl_restrict difference_image,
+                                                     float *out_image,
                                                      int4 rect,
                                                      int w,
                                                      int f)
 {
 	for(int y = rect.y; y < rect.w; y++) {
 		for(int x = rect.x; x < rect.z; x++) {
-			outImage[y*w+x] = 0.0f;
+			out_image[y*w+x] = 0.0f;
 		}
 	}
 	for(int dx = -f; dx <= f; dx++) {
@@ -93,7 +93,7 @@ ccl_device_inline void kernel_filter_nlm_calc_weight(const float *ccl_restrict d
 		int neg_dx = min(0, dx);
 		for(int y = rect.y; y < rect.w; y++) {
 			for(int x = rect.x-neg_dx; x < rect.z-pos_dx; x++) {
-				outImage[y*w+x] += differenceImage[y*w+dx+x];
+				out_image[y*w+x] += difference_image[y*w+dx+x];
 			}
 		}
 	}
@@ -101,16 +101,16 @@ ccl_device_inline void kernel_filter_nlm_calc_weight(const float *ccl_restrict d
 		for(int x = rect.x; x < rect.z; x++) {
 			const int low = max(rect.x, x-f);
 			const int high = min(rect.z, x+f+1);
-			outImage[y*w+x] = expf(-max(outImage[y*w+x] * (1.0f/(high - low)), 0.0f));
+			out_image[y*w+x] = expf(-max(out_image[y*w+x] * (1.0f/(high - low)), 0.0f));
 		}
 	}
 }
 
 ccl_device_inline void kernel_filter_nlm_update_output(int dx, int dy,
-                                                       const float *ccl_restrict differenceImage,
+                                                       const float *ccl_restrict difference_image,
                                                        const float *ccl_restrict image,
-                                                       float *outImage,
-                                                       float *accumImage,
+                                                       float *out_image,
+                                                       float *accum_image,
                                                        int4 rect,
                                                        int w,
                                                        int f)
@@ -121,17 +121,17 @@ ccl_device_inline void kernel_filter_nlm_update_output(int dx, int dy,
 			const int high = min(rect.z, x+f+1);
 			float sum = 0.0f;
 			for(int x1 = low; x1 < high; x1++) {
-				sum += differenceImage[y*w+x1];
+				sum += difference_image[y*w+x1];
 			}
 			float weight = sum * (1.0f/(high - low));
-			accumImage[y*w+x] += weight;
-			outImage[y*w+x] += weight*image[(y+dy)*w+(x+dx)];
+			accum_image[y*w+x] += weight;
+			out_image[y*w+x] += weight*image[(y+dy)*w+(x+dx)];
 		}
 	}
 }
 
 ccl_device_inline void kernel_filter_nlm_construct_gramian(int dx, int dy,
-                                                           const float *ccl_restrict differenceImage,
+                                                           const float *ccl_restrict difference_image,
                                                            const float *ccl_restrict buffer,
                                                            float *color_pass,
                                                            float *variance_pass,
@@ -153,7 +153,7 @@ ccl_device_inline void kernel_filter_nlm_construct_gramian(int dx, int dy,
 			const int high = min(rect.z, x+f+1);
 			float sum = 0.0f;
 			for(int x1 = low; x1 < high; x1++) {
-				sum += differenceImage[y*w+x1];
+				sum += difference_image[y*w+x1];
 			}
 			float weight = sum * (1.0f/(high - low));
 
@@ -174,14 +174,14 @@ ccl_device_inline void kernel_filter_nlm_construct_gramian(int dx, int dy,
 	}
 }
 
-ccl_device_inline void kernel_filter_nlm_normalize(float *outImage,
-                                                   const float *ccl_restrict accumImage,
+ccl_device_inline void kernel_filter_nlm_normalize(float *out_image,
+                                                   const float *ccl_restrict accum_image,
                                                    int4 rect,
                                                    int w)
 {
 	for(int y = rect.y; y < rect.w; y++) {
 		for(int x = rect.x; x < rect.z; x++) {
-			outImage[y*w+x] /= accumImage[y*w+x];
+			out_image[y*w+x] /= accum_image[y*w+x];
 		}
 	}
 }

@@ -132,9 +132,9 @@ __kernel void kernel_ocl_filter_construct_transform(const ccl_global float *ccl_
 
 __kernel void kernel_ocl_filter_nlm_calc_difference(int dx,
                                                     int dy,
-                                                    const ccl_global float *ccl_restrict weightImage,
-                                                    const ccl_global float *ccl_restrict varianceImage,
-                                                    ccl_global float *differenceImage,
+                                                    const ccl_global float *ccl_restrict weight_image,
+                                                    const ccl_global float *ccl_restrict variance_image,
+                                                    ccl_global float *difference_image,
                                                     int4 rect,
                                                     int w,
                                                     int channel_offset,
@@ -144,12 +144,12 @@ __kernel void kernel_ocl_filter_nlm_calc_difference(int dx,
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
-		kernel_filter_nlm_calc_difference(x, y, dx, dy, weightImage, varianceImage, differenceImage, rect, w, channel_offset, a, k_2);
+		kernel_filter_nlm_calc_difference(x, y, dx, dy, weight_image, variance_image, difference_image, rect, w, channel_offset, a, k_2);
 	}
 }
 
-__kernel void kernel_ocl_filter_nlm_blur(const ccl_global float *ccl_restrict differenceImage,
-                                         ccl_global float *outImage,
+__kernel void kernel_ocl_filter_nlm_blur(const ccl_global float *ccl_restrict difference_image,
+                                         ccl_global float *out_image,
                                          int4 rect,
                                          int w,
                                          int f)
@@ -157,12 +157,12 @@ __kernel void kernel_ocl_filter_nlm_blur(const ccl_global float *ccl_restrict di
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
-		kernel_filter_nlm_blur(x, y, differenceImage, outImage, rect, w, f);
+		kernel_filter_nlm_blur(x, y, difference_image, out_image, rect, w, f);
 	}
 }
 
-__kernel void kernel_ocl_filter_nlm_calc_weight(const ccl_global float *ccl_restrict differenceImage,
-                                                ccl_global float *outImage,
+__kernel void kernel_ocl_filter_nlm_calc_weight(const ccl_global float *ccl_restrict difference_image,
+                                                ccl_global float *out_image,
                                                 int4 rect,
                                                 int w,
                                                 int f)
@@ -170,16 +170,16 @@ __kernel void kernel_ocl_filter_nlm_calc_weight(const ccl_global float *ccl_rest
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
-		kernel_filter_nlm_calc_weight(x, y, differenceImage, outImage, rect, w, f);
+		kernel_filter_nlm_calc_weight(x, y, difference_image, out_image, rect, w, f);
 	}
 }
 
 __kernel void kernel_ocl_filter_nlm_update_output(int dx,
                                                   int dy,
-                                                  const ccl_global float *ccl_restrict differenceImage,
+                                                  const ccl_global float *ccl_restrict difference_image,
                                                   const ccl_global float *ccl_restrict image,
-                                                  ccl_global float *outImage,
-                                                  ccl_global float *accumImage,
+                                                  ccl_global float *out_image,
+                                                  ccl_global float *accum_image,
                                                   int4 rect,
                                                   int w,
                                                   int f)
@@ -187,25 +187,25 @@ __kernel void kernel_ocl_filter_nlm_update_output(int dx,
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
-		kernel_filter_nlm_update_output(x, y, dx, dy, differenceImage, image, outImage, accumImage, rect, w, f);
+		kernel_filter_nlm_update_output(x, y, dx, dy, difference_image, image, out_image, accum_image, rect, w, f);
 	}
 }
 
-__kernel void kernel_ocl_filter_nlm_normalize(ccl_global float *outImage,
-                                              const ccl_global float *ccl_restrict accumImage,
+__kernel void kernel_ocl_filter_nlm_normalize(ccl_global float *out_image,
+                                              const ccl_global float *ccl_restrict accum_image,
                                               int4 rect,
                                               int w)
 {
 	int x = get_global_id(0) + rect.x;
 	int y = get_global_id(1) + rect.y;
 	if(x < rect.z && y < rect.w) {
-		kernel_filter_nlm_normalize(x, y, outImage, accumImage, rect, w);
+		kernel_filter_nlm_normalize(x, y, out_image, accum_image, rect, w);
 	}
 }
 
 __kernel void kernel_ocl_filter_nlm_construct_gramian(int dx,
                                                       int dy,
-                                                      const ccl_global float *ccl_restrict differenceImage,
+                                                      const ccl_global float *ccl_restrict difference_image,
                                                       const ccl_global float *ccl_restrict buffer,
                                                       ccl_global float *color_pass,
                                                       ccl_global float *variance_pass,
@@ -225,7 +225,7 @@ __kernel void kernel_ocl_filter_nlm_construct_gramian(int dx,
 	if(x < min(filter_rect.z, rect.z-filter_rect.x) && y < min(filter_rect.w, rect.w-filter_rect.y)) {
 		kernel_filter_nlm_construct_gramian(x, y,
 		                                    dx, dy,
-		                                    differenceImage,
+		                                    difference_image,
 		                                    buffer,
 		                                    color_pass, variance_pass,
 		                                    transform, rank,
