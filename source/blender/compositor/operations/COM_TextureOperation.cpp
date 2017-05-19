@@ -41,6 +41,7 @@ TextureBaseOperation::TextureBaseOperation() : NodeOperation()
 	this->m_rd = NULL;
 	this->m_pool = NULL;
 	this->m_sceneColorManage = false;
+	setComplex(true);
 }
 TextureOperation::TextureOperation() : TextureBaseOperation()
 {
