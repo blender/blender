@@ -2,7 +2,7 @@
 in vec3 pos;
 
 out vec4 vPos;
-out int face;
+flat out int face;
 
 void main() {
 	vPos = vec4(pos, 1.0);

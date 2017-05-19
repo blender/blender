@@ -5,7 +5,7 @@ layout(triangle_strip, max_vertices=3) out;
 uniform int Layer;
 
 in vec4 vPos[];
-in int face[];
+flat in int face[];
 
 out vec3 worldPosition;
 out vec3 worldNormal; /* Required. otherwise generate linking error on AMD. */

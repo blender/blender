@@ -4,7 +4,7 @@ uniform mat4 ShadowModelMatrix;
 in vec3 pos;
 
 out vec4 vPos;
-out int face;
+flat out int face;
 
 void main() {
 	vPos = ShadowModelMatrix * vec4(pos, 1.0);

@@ -8,7 +8,7 @@ layout(std140) uniform shadow_render_block {
 };
 
 in vec4 vPos[];
-in int face[];
+flat in int face[];
 
 void main() {
 	int f = face[0];
