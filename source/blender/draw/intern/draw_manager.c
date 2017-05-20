@@ -623,7 +623,7 @@ static void DRW_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 	if (uni->location == -1) {
 		if (G.debug & G_DEBUG)
 			fprintf(stderr, "Uniform '%s' not found!\n", name);
-
+		BLI_assert(0);
 		MEM_freeN(uni);
 		return;
 	}
@@ -643,7 +643,7 @@ static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRW
 	if (attrib->location == -1 && !dummy) {
 		if (G.debug & G_DEBUG)
 			fprintf(stderr, "Attribute '%s' not found!\n", name);
-
+		BLI_assert(0);
 		MEM_freeN(attrib);
 		return;
 	}
