@@ -2419,7 +2419,7 @@ static void DRW_engines_draw_text(void)
 /**
  * Returns the offset required for the drawing of engines info.
  */
-int DRW_draw_region_engine_info_offset()
+int DRW_draw_region_engine_info_offset(void)
 {
 	int lines = 0;
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
@@ -2443,7 +2443,7 @@ int DRW_draw_region_engine_info_offset()
 /**
  * Actual drawing;
  */
-void DRW_draw_region_engine_info()
+void DRW_draw_region_engine_info(void)
 {
 	const char *info_array_final[MAX_INFO_LINES + 1];
 	char info_array[MAX_INFO_LINES][GPU_INFO_SIZE]; /* This should be maxium number of engines running at the same time. */

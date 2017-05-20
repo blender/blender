@@ -1802,7 +1802,7 @@ void BKE_layer_eval_layer_collection_post(struct EvaluationContext *UNUSED(eval_
 /**
  * Free any static allocated memory.
  */
-void BKE_layer_exit()
+void BKE_layer_exit(void)
 {
 	layer_collection_engine_settings_validate_free();
 }

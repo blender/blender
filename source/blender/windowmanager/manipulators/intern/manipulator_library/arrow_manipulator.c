@@ -256,8 +256,6 @@ static void manipulator_arrow_draw(const bContext *UNUSED(C), wmManipulator *man
  * Calculate arrow offset independent from prop min value,
  * meaning the range will not be offset by min value first.
  */
-#define USE_ABS_HANDLE_RANGE
-
 static int manipulator_arrow_handler(bContext *C, const wmEvent *event, wmManipulator *manipulator, const int flag)
 {
 	ArrowManipulator *arrow = (ArrowManipulator *)manipulator;

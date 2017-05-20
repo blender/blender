@@ -2533,7 +2533,7 @@ static void restore_mask(GLenum cap, const bool value) {
 	}
 }
 
-void gpuPopAttrib()
+void gpuPopAttrib(void)
 {
 	BLI_assert(AttribStack.top > 0);
 	AttribStack.top--;

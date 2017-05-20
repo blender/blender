@@ -382,6 +382,8 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 
 		/* don't access mesh directly, instead use vars taken from BMesh or Mesh */
 #define me DONT_USE_THIS
+#ifdef  me /* quiet warning */
+#endif
 
 		rdata->uv_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPUV);
 		rdata->vcol_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPCOL);
@@ -496,6 +498,8 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 					BKE_mesh_loop_tangents_ex(me->mvert, me->totvert, me->mloop, rdata->mtangent[i],
 					      loopnors, rdata->mloopuv[i], me->totloop, me->mpoly, me->totpoly, NULL);
 #define me DONT_USE_THIS
+#ifdef  me /* quiet warning */
+#endif
 				}
 			}
 		}

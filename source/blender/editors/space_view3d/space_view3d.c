@@ -944,6 +944,7 @@ static void view3d_main_region_listener(
 								break;
 						}
 					}
+					ATTR_FALLTHROUGH;
 				}
 				case ND_DATA:
 				case ND_VERTEX_GROUP:

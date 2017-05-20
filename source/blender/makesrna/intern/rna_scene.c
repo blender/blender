@@ -82,8 +82,6 @@
 
 #include "BLI_threads.h"
 
-#define NO_ENGINE "NO_ENGINE"
-
 #ifdef WITH_OPENEXR
 EnumPropertyItem rna_enum_exr_codec_items[] = {
 	{R_IMF_EXR_CODEC_NONE, "NONE", 0, "None", ""},
@@ -9322,5 +9320,3 @@ void RNA_def_scene(BlenderRNA *brna)
 }
 
 #endif
-
-#undef NO_ENGINE
