@@ -53,6 +53,8 @@ struct Batch *DRW_cache_empty_sphere_get(void);
 struct Batch *DRW_cache_empty_cone_get(void);
 struct Batch *DRW_cache_arrows_get(void);
 struct Batch *DRW_cache_axis_names_get(void);
+struct Batch *DRW_cache_image_plane_get(void);
+struct Batch *DRW_cache_image_plane_wire_get(void);
 
 /* Force Field */
 struct Batch *DRW_cache_field_wind_get(void);

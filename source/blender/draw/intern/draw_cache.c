@@ -53,6 +53,8 @@ static struct DRWShapeCache {
 	Batch *drw_empty_cone;
 	Batch *drw_arrows;
 	Batch *drw_axis_names;
+	Batch *drw_image_plane;
+	Batch *drw_image_plane_wire;
 	Batch *drw_field_wind;
 	Batch *drw_field_force;
 	Batch *drw_field_vortex;
@@ -100,6 +102,8 @@ void DRW_shape_cache_free(void)
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_empty_cone);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_arrows);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_axis_names);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_image_plane);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_image_plane_wire);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_field_wind);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_field_force);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_field_vortex);
@@ -721,6 +725,46 @@ Batch *DRW_cache_axis_names_get(void)
 		SHC.drw_axis_names = Batch_create(PRIM_LINES, vbo, NULL);
 	}
 	return SHC.drw_axis_names;
+}
+
+Batch *DRW_cache_image_plane_get(void)
+{
+	if (!SHC.drw_image_plane) {
+		const float quad[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
+		static VertexFormat format = { 0 };
+		static struct { uint pos, texCoords; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			attr_id.texCoords = VertexFormat_add_attrib(&format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+		}
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 4);
+		for (uint j = 0; j < 4; j++) {
+			VertexBuffer_set_attrib(vbo, attr_id.pos, j, quad[j]);
+			VertexBuffer_set_attrib(vbo, attr_id.texCoords, j, quad[j]);
+		}
+		SHC.drw_image_plane = Batch_create(PRIM_TRIANGLE_FAN, vbo, NULL);
+	}
+	return SHC.drw_image_plane;
+}
+
+Batch *DRW_cache_image_plane_wire_get(void)
+{
+	if (!SHC.drw_image_plane_wire) {
+		const float quad[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
+		static VertexFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		}
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 4);
+		for (uint j = 0; j < 4; j++) {
+			VertexBuffer_set_attrib(vbo, attr_id.pos, j, quad[j]);
+		}
+		SHC.drw_image_plane_wire = Batch_create(PRIM_LINE_LOOP, vbo, NULL);
+	}
+	return SHC.drw_image_plane_wire;
 }
 
 /* Force Field */

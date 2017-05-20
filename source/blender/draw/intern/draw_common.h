@@ -96,6 +96,7 @@ struct DRWShadingGroup *shgroup_instance_objspace_solid(struct DRWPass *pass, st
 struct DRWShadingGroup *shgroup_instance_objspace_wire(struct DRWPass *pass, struct Batch *geom, float (*obmat)[4]);
 struct DRWShadingGroup *shgroup_instance_screen_aligned(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_instance_axis_names(struct DRWPass *pass, struct Batch *geom);
+struct DRWShadingGroup *shgroup_instance_image_plane(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct Batch *geom);
 struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct Batch *geom);
