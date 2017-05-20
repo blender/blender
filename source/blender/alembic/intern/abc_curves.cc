@@ -297,6 +297,7 @@ void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const ISampleSele
 					nu->orderu = static_cast<short>((*orders)[i]);
 					break;
 				}
+				ATTR_FALLTHROUGH;
 			case Alembic::AbcGeom::kLinear:
 			default:
 				nu->orderu = 2;

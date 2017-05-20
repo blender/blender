@@ -38,6 +38,14 @@
 
 #include "STR_String.h"
 
+/* copied from 'BLI_compiler_attrs.h' */
+/* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
+#if defined(__GNUC__) && (__GNUC__ >= 7)  /* gcc7.0+ only */
+#define ATTR_FALLTHROUGH __attribute__((fallthrough))
+#else
+#define ATTR_FALLTHROUGH ((void)0)
+#endif
+
 
 // Hash Mix utility function, by Bob Jenkins - Mix 3 32-bit values reversibly
 //
@@ -102,16 +110,16 @@ static dword STR_gHash(const void *in, int len, dword init_val)
 	// Handle the last 11 bytes
 	c += len;
 	switch (length) {
-		case 11: c += ((dword)p_in[10] << 24);
-		case 10: c += ((dword)p_in[9]  << 16);
-		case  9: c += ((dword)p_in[8]  << 8);  /* the first byte of c is reserved for the length */
-		case  8: b += ((dword)p_in[7]  << 24);
-		case  7: b += ((dword)p_in[6]  << 16);
-		case  6: b += ((dword)p_in[5]  << 8);
-		case  5: b += p_in[4];
-		case  4: a += ((dword)p_in[3]  << 24);
-		case  3: a += ((dword)p_in[2]  << 16);
-		case  2: a += ((dword)p_in[1]  << 8);
+		case 11: c += ((dword)p_in[10] << 24); ATTR_FALLTHROUGH;
+		case 10: c += ((dword)p_in[9]  << 16); ATTR_FALLTHROUGH;
+		case  9: c += ((dword)p_in[8]  << 8);  ATTR_FALLTHROUGH; /* the first byte of c is reserved for the length */
+		case  8: b += ((dword)p_in[7]  << 24); ATTR_FALLTHROUGH;
+		case  7: b += ((dword)p_in[6]  << 16); ATTR_FALLTHROUGH;
+		case  6: b += ((dword)p_in[5]  << 8);  ATTR_FALLTHROUGH;
+		case  5: b += p_in[4];                 ATTR_FALLTHROUGH;
+		case  4: a += ((dword)p_in[3]  << 24); ATTR_FALLTHROUGH;
+		case  3: a += ((dword)p_in[2]  << 16); ATTR_FALLTHROUGH;
+		case  2: a += ((dword)p_in[1]  << 8);  ATTR_FALLTHROUGH;
 		case  1: a += p_in[0];
 	}
 	STR_gHashMix(a, b, c);

@@ -367,6 +367,11 @@ ccl_device_inline bool isequal_float3(const float3 a, const float3 b)
 #endif
 }
 
+ccl_device_inline bool isfinite3_safe(float3 v)
+{
+	return isfinite_safe(v.x) && isfinite_safe(v.y) && isfinite_safe(v.z);
+}
+
 ccl_device_inline float3 ensure_finite3(float3 v)
 {
 	if(!isfinite_safe(v.x)) v.x = 0.0;

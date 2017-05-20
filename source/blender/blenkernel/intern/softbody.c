@@ -1856,19 +1856,21 @@ static void dfdx_spring(int ia, int ic, int op, float dir[3], float L, float len
 	float m, delta_ij;
 	int i, j;
 	if (L < len) {
-		for (i=0;i<3;i++)
+		for (i=0;i<3;i++) {
 			for (j=0;j<3;j++) {
 				delta_ij = (i==j ? (1.0f): (0.0f));
 				m=factor*(dir[i]*dir[j] + (1-L/len)*(delta_ij - dir[i]*dir[j]));
 				EIG_linear_solver_matrix_add(ia+i, op+ic+j, m);
 			}
+		}
 	}
 	else {
-		for (i=0;i<3;i++)
+		for (i=0;i<3;i++) {
 			for (j=0;j<3;j++) {
 				m=factor*dir[i]*dir[j];
 				EIG_linear_solver_matrix_add(ia+i, op+ic+j, m);
 			}
+		}
 	}
 }
 

@@ -36,6 +36,8 @@
  *          for temporary data.
  */
 
+#include "BLI_compiler_attrs.h"
+
 #include "BLI_hash_mm2a.h"  /* own include */
 
 /* Helpers. */
@@ -128,10 +130,10 @@ uint32_t BLI_hash_mm2(const unsigned char *data, size_t len, uint32_t seed)
 	switch (len) {
 		case 3:
 			h ^= data[2] << 16;
-			/* fall through */
+			ATTR_FALLTHROUGH;
 		case 2:
 			h ^= data[1] << 8;
-			/* fall through */
+			ATTR_FALLTHROUGH;
 		case 1:
 			h ^= data[0];
 			h *= MM2A_M;

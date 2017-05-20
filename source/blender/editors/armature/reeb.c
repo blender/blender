@@ -2240,8 +2240,8 @@ static void glueByMergeSort(ReebGraph *rg, ReebArc *a0, ReebArc *a1, ReebEdge *e
 			else {
 				a1 = nextArcMappedToEdge(a1, e1);
 			}
+		}
 	}
-}
 }
 
 static void mergePaths(ReebGraph *rg, ReebEdge *e0, ReebEdge *e1, ReebEdge *e2)

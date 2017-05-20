@@ -340,13 +340,14 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
 			}
 			if (((beg - j) > 1) && ((beg - j) < MINRUN)) {
 				c2 = j + 1;
-				while (rgbe_scan[c2++][i] == rgbe_scan[j][i])
+				while (rgbe_scan[c2++][i] == rgbe_scan[j][i]) {
 					if (c2 == beg) {        /* short run */
 						putc((unsigned char)(128 + beg - j), file);
 						putc((unsigned char)(rgbe_scan[j][i]), file);
 						j = beg;
 						break;
 					}
+				}
 			}
 			while (j < beg) {     /* write out non-run */
 				if ((c2 = beg - j) > 128) c2 = 128;

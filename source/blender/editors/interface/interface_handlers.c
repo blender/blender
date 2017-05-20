@@ -3371,7 +3371,7 @@ static void ui_do_but_textedit(
 				if (event->type == WHEELDOWNMOUSE) {
 					break;
 				}
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 			case ENDKEY:
 				ui_textedit_move(but, data, STRCUR_DIR_NEXT,
 				                 event->shift != 0, STRCUR_JUMP_ALL);
@@ -3389,7 +3389,7 @@ static void ui_do_but_textedit(
 				if (event->type == WHEELUPMOUSE) {
 					break;
 				}
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 			case HOMEKEY:
 				ui_textedit_move(but, data, STRCUR_DIR_PREV,
 				                 event->shift != 0, STRCUR_JUMP_ALL);
@@ -8409,7 +8409,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 			case MIDDLEMOUSE:
 			case MOUSEPAN:
 				UI_but_tooltip_timer_remove(C, but);
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 			default:
 				/* handle button type specific events */
 				retval = ui_do_button(C, block, but, event);
@@ -9203,23 +9203,23 @@ static int ui_handle_menu_event(
 					break;
 
 				case ONEKEY:    case PAD1:
-					act = 1;
+					act = 1; ATTR_FALLTHROUGH;
 				case TWOKEY:    case PAD2:
-					if (act == 0) act = 2;
+					if (act == 0) act = 2; ATTR_FALLTHROUGH;
 				case THREEKEY:  case PAD3:
-					if (act == 0) act = 3;
+					if (act == 0) act = 3; ATTR_FALLTHROUGH;
 				case FOURKEY:   case PAD4:
-					if (act == 0) act = 4;
+					if (act == 0) act = 4; ATTR_FALLTHROUGH;
 				case FIVEKEY:   case PAD5:
-					if (act == 0) act = 5;
+					if (act == 0) act = 5; ATTR_FALLTHROUGH;
 				case SIXKEY:    case PAD6:
-					if (act == 0) act = 6;
+					if (act == 0) act = 6; ATTR_FALLTHROUGH;
 				case SEVENKEY:  case PAD7:
-					if (act == 0) act = 7;
+					if (act == 0) act = 7; ATTR_FALLTHROUGH;
 				case EIGHTKEY:  case PAD8:
-					if (act == 0) act = 8;
+					if (act == 0) act = 8; ATTR_FALLTHROUGH;
 				case NINEKEY:   case PAD9:
-					if (act == 0) act = 9;
+					if (act == 0) act = 9; ATTR_FALLTHROUGH;
 				case ZEROKEY:   case PAD0:
 					if (act == 0) act = 10;
 
@@ -9814,13 +9814,13 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 			case (ZEROKEY + n): case (PAD0 + n): \
 				{ if (num_dir == UI_RADIAL_NONE) num_dir = d; } (void)0
 
-				CASE_NUM_TO_DIR(1, UI_RADIAL_SW);
-				CASE_NUM_TO_DIR(2, UI_RADIAL_S);
-				CASE_NUM_TO_DIR(3, UI_RADIAL_SE);
-				CASE_NUM_TO_DIR(4, UI_RADIAL_W);
-				CASE_NUM_TO_DIR(6, UI_RADIAL_E);
-				CASE_NUM_TO_DIR(7, UI_RADIAL_NW);
-				CASE_NUM_TO_DIR(8, UI_RADIAL_N);
+				CASE_NUM_TO_DIR(1, UI_RADIAL_SW); ATTR_FALLTHROUGH;
+				CASE_NUM_TO_DIR(2, UI_RADIAL_S);  ATTR_FALLTHROUGH;
+				CASE_NUM_TO_DIR(3, UI_RADIAL_SE); ATTR_FALLTHROUGH;
+				CASE_NUM_TO_DIR(4, UI_RADIAL_W);  ATTR_FALLTHROUGH;
+				CASE_NUM_TO_DIR(6, UI_RADIAL_E);  ATTR_FALLTHROUGH;
+				CASE_NUM_TO_DIR(7, UI_RADIAL_NW); ATTR_FALLTHROUGH;
+				CASE_NUM_TO_DIR(8, UI_RADIAL_N);  ATTR_FALLTHROUGH;
 				CASE_NUM_TO_DIR(9, UI_RADIAL_NE);
 				{
 					but = ui_block_pie_dir_activate(block, event, num_dir);

@@ -317,12 +317,12 @@ static float densfunc(const MetaElem *ball, float x, float y, float z)
 			if      (dvec[2] > ball->expz)  dvec[2] -= ball->expz;
 			else if (dvec[2] < -ball->expz) dvec[2] += ball->expz;
 			else                            dvec[2] = 0.0;
-			/* fall through */
+			ATTR_FALLTHROUGH;
 		case MB_PLANE:
 			if      (dvec[1] >  ball->expy) dvec[1] -= ball->expy;
 			else if (dvec[1] < -ball->expy) dvec[1] += ball->expy;
 			else                            dvec[1] = 0.0;
-			/* fall through */
+			ATTR_FALLTHROUGH;
 		case MB_TUBE:
 			if      (dvec[0] >  ball->expx) dvec[0] -= ball->expx;
 			else if (dvec[0] < -ball->expx) dvec[0] += ball->expx;
@@ -661,7 +661,7 @@ static void makecubetable(void)
 	for (i = 0; i < 256; i++) {
 		for (e = 0; e < 12; e++) done[e] = 0;
 		for (c = 0; c < 8; c++) pos[c] = MB_BIT(i, c);
-		for (e = 0; e < 12; e++)
+		for (e = 0; e < 12; e++) {
 			if (!done[e] && (pos[corner1[e]] != pos[corner2[e]])) {
 				INTLIST *ints = NULL;
 				INTLISTS *lists = MEM_callocN(sizeof(INTLISTS), "mball_intlist");
@@ -688,6 +688,7 @@ static void makecubetable(void)
 				lists->next = cubetable[i];
 				cubetable[i] = lists;
 			}
+		}
 	}
 
 	for (i = 0; i < 256; i++) {
@@ -1194,10 +1195,10 @@ static void init_meta(EvaluationContext *eval_ctx, PROCESS *process, Scene *scen
 								break;
 							case MB_CUBE: /* cube is "expanded" by expz, expy and expx */
 								expz += ml->expz;
-								/* fall through */
+								ATTR_FALLTHROUGH;
 							case MB_PLANE: /* plane is "expanded" by expy and expx */
 								expy += ml->expy;
-								/* fall through */
+								ATTR_FALLTHROUGH;
 							case MB_TUBE: /* tube is "expanded" by expx */
 								expx += ml->expx;
 								break;

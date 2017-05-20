@@ -391,7 +391,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 					/* draw the rect to the edge of the screen */
 					immRectf(shdr_pos, v2d->cur.xmin, yminc, strip->start, ymaxc);
 				}
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 
 			/* this only draws after the strip */
 			case NLASTRIP_EXTEND_HOLD_FORWARD: 

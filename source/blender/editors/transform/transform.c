@@ -1616,7 +1616,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			offset = -offset;
 			length = -length;
 			size = -size;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case RIGHT:
 			immVertex2f(POS_INDEX, offset, 0);
 			immVertex2f(POS_INDEX, offset + length, 0);
@@ -1630,7 +1630,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			offset = -offset;
 			length = -length;
 			size = -size;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case UP:
 			immVertex2f(POS_INDEX, 0, offset);
 			immVertex2f(POS_INDEX, 0, offset + length);
@@ -1651,7 +1651,7 @@ static void drawArrowHead(ArrowDirection d, short size)
 	switch (d) {
 		case LEFT:
 			size = -size;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case RIGHT:
 			immVertex2f(POS_INDEX, 0, 0);
 			immVertex2f(POS_INDEX, -size, -size);
@@ -1661,7 +1661,7 @@ static void drawArrowHead(ArrowDirection d, short size)
 
 		case DOWN:
 			size = -size;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case UP:
 			immVertex2f(POS_INDEX, 0, 0);
 			immVertex2f(POS_INDEX, -size, -size);

@@ -107,13 +107,15 @@ static bool add_reroute_intersect_check(bNodeLink *link, float mcoords[][2], int
 
 	if (node_link_bezier_points(NULL, NULL, link, coord_array, NODE_LINK_RESOL)) {
 
-		for (i = 0; i < tot - 1; i++)
-			for (b = 0; b < NODE_LINK_RESOL; b++)
+		for (i = 0; i < tot - 1; i++) {
+			for (b = 0; b < NODE_LINK_RESOL; b++) {
 				if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1]) > 0) {
 					result[0] = (mcoords[i][0] + mcoords[i + 1][0]) / 2.0f;
 					result[1] = (mcoords[i][1] + mcoords[i + 1][1]) / 2.0f;
 					return 1;
 				}
+			}
+		}
 	}
 	return 0;
 }

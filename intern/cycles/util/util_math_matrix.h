@@ -23,73 +23,83 @@ CCL_NAMESPACE_BEGIN
 
 /* Variants that use a constant stride on GPUS. */
 #ifdef __KERNEL_GPU__
-#define MATS(A, n, r, c, s) A[((r)*(n)+(c))*(s)]
+#  define MATS(A, n, r, c, s) A[((r)*(n)+(c))*(s)]
 /* Element access when only the lower-triangular elements are stored. */
-#define MATHS(A, r, c, s) A[((r)*((r)+1)/2+(c))*(s)]
-#define VECS(V, i, s) V[(i)*(s)]
+#  define MATHS(A, r, c, s) A[((r)*((r)+1)/2+(c))*(s)]
+#  define VECS(V, i, s) V[(i)*(s)]
 #else
-#define MATS(A, n, r, c, s) MAT(A, n, r, c)
-#define MATHS(A, r, c, s) A[(r)*((r)+1)/2+(c)]
-#define VECS(V, i, s) V[i]
+#  define MATS(A, n, r, c, s) MAT(A, n, r, c)
+#  define MATHS(A, r, c, s) A[(r)*((r)+1)/2+(c)]
+#  define VECS(V, i, s) V[i]
 #endif
 
 /* Zeroing helpers. */
 
 ccl_device_inline void math_vector_zero(float *v, int n)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		v[i] = 0.0f;
+	}
 }
 
 ccl_device_inline void math_matrix_zero(float *A, int n)
 {
-	for(int row = 0; row < n; row++)
-		for(int col = 0; col <= row; col++)
+	for(int row = 0; row < n; row++) {
+		for(int col = 0; col <= row; col++) {
 			MAT(A, n, row, col) = 0.0f;
+		}
+	}
 }
 
 /* Elementary vector operations. */
 
-ccl_device_inline void math_vector_add(float *a, float ccl_restrict_ptr b, int n)
+ccl_device_inline void math_vector_add(float *a, const float *ccl_restrict b, int n)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		a[i] += b[i];
+	}
 }
 
-ccl_device_inline void math_vector_mul(float *a, float ccl_restrict_ptr b, int n)
+ccl_device_inline void math_vector_mul(float *a, const float *ccl_restrict b, int n)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		a[i] *= b[i];
+	}
 }
 
-ccl_device_inline void math_vector_mul_strided(ccl_global float *a, float ccl_restrict_ptr b, int astride, int n)
+ccl_device_inline void math_vector_mul_strided(ccl_global float *a, const float *ccl_restrict b, int astride, int n)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		a[i*astride] *= b[i];
+	}
 }
 
 ccl_device_inline void math_vector_scale(float *a, float b, int n)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		a[i] *= b;
+	}
 }
 
-ccl_device_inline void math_vector_max(float *a, float ccl_restrict_ptr b, int n)
+ccl_device_inline void math_vector_max(float *a, const float *ccl_restrict b, int n)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		a[i] = max(a[i], b[i]);
+	}
 }
 
 ccl_device_inline void math_vec3_add(float3 *v, int n, float *x, float3 w)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		v[i] += w*x[i];
+	}
 }
 
 ccl_device_inline void math_vec3_add_strided(ccl_global float3 *v, int n, float *x, float3 w, int stride)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		v[i*stride] += w*x[i];
+	}
 }
 
 /* Elementary matrix operations.
@@ -97,33 +107,38 @@ ccl_device_inline void math_vec3_add_strided(ccl_global float3 *v, int n, float 
 
 ccl_device_inline void math_trimatrix_add_diagonal(ccl_global float *A, int n, float val, int stride)
 {
-	for(int row = 0; row < n; row++)
+	for(int row = 0; row < n; row++) {
 		MATHS(A, row, row, stride) += val;
+	}
 }
 
 /* Add Gramian matrix of v to A.
  * The Gramian matrix of v is vt*v, so element (i,j) is v[i]*v[j]. */
 ccl_device_inline void math_matrix_add_gramian(float *A,
                                                   int n,
-                                                  float ccl_restrict_ptr v,
+                                                  const float *ccl_restrict v,
                                                   float weight)
 {
-	for(int row = 0; row < n; row++)
-		for(int col = 0; col <= row; col++)
+	for(int row = 0; row < n; row++) {
+		for(int col = 0; col <= row; col++) {
 			MAT(A, n, row, col) += v[row]*v[col]*weight;
+		}
+	}
 }
 
 /* Add Gramian matrix of v to A.
  * The Gramian matrix of v is vt*v, so element (i,j) is v[i]*v[j]. */
 ccl_device_inline void math_trimatrix_add_gramian_strided(ccl_global float *A,
                                                           int n,
-                                                          float ccl_restrict_ptr v,
+                                                          const float *ccl_restrict v,
                                                           float weight,
                                                           int stride)
 {
-	for(int row = 0; row < n; row++)
-		for(int col = 0; col <= row; col++)
+	for(int row = 0; row < n; row++) {
+		for(int col = 0; col <= row; col++) {
 			MATHS(A, row, col, stride) += v[row]*v[col]*weight;
+		}
+	}
 }
 
 /* Transpose matrix A inplace. */
@@ -137,9 +152,6 @@ ccl_device_inline void math_matrix_transpose(ccl_global float *A, int n, int str
 		}
 	}
 }
-
-
-
 
 /* Solvers for matrix problems */
 
@@ -199,10 +211,6 @@ ccl_device_inline void math_trimatrix_vec3_solve(ccl_global float *A, ccl_global
 	}
 }
 
-
-
-
-
 /* Perform the Jacobi Eigenvalue Methon on matrix A.
  * A is assumed to be a symmetrical matrix, therefore only the lower-triangular part is ever accessed.
  * The algorithm overwrites the contents of A.
@@ -215,15 +223,19 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A, ccl_global float
 {
 	const float singular_epsilon = 1e-9f;
 
-	for (int row = 0; row < n; row++)
-		for (int col = 0; col < n; col++)
+	for (int row = 0; row < n; row++) {
+		for (int col = 0; col < n; col++) {
 			MATS(V, n, row, col, v_stride) = (col == row) ? 1.0f : 0.0f;
+		}
+	}
 
 	for (int sweep = 0; sweep < 8; sweep++) {
 		float off_diagonal = 0.0f;
-		for (int row = 1; row < n; row++)
-			for (int col = 0; col < row; col++)
+		for (int row = 1; row < n; row++) {
+			for (int col = 0; col < row; col++) {
 				off_diagonal += fabsf(MAT(A, n, row, col));
+			}
+		}
 		if (off_diagonal < 1e-7f) {
 			/* The matrix has nearly reached diagonal form.
 			 * Since the eigenvalues are only used to determine truncation, their exact values aren't required - a relative error of a few ULPs won't matter at all. */
@@ -327,51 +339,61 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A, ccl_global float
 }
 
 #ifdef __KERNEL_SSE3__
-
 ccl_device_inline void math_vector_zero_sse(__m128 *A, int n)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		A[i] = _mm_setzero_ps();
+	}
 }
+
 ccl_device_inline void math_matrix_zero_sse(__m128 *A, int n)
 {
-	for(int row = 0; row < n; row++)
-		for(int col = 0; col <= row; col++)
+	for(int row = 0; row < n; row++) {
+		for(int col = 0; col <= row; col++) {
 			MAT(A, n, row, col) = _mm_setzero_ps();
+		}
+	}
 }
 
 /* Add Gramian matrix of v to A.
  * The Gramian matrix of v is v^T*v, so element (i,j) is v[i]*v[j]. */
-ccl_device_inline void math_matrix_add_gramian_sse(__m128 *A, int n, __m128 ccl_restrict_ptr v, __m128 weight)
+ccl_device_inline void math_matrix_add_gramian_sse(__m128 *A, int n, const __m128 *ccl_restrict v, __m128 weight)
 {
-	for(int row = 0; row < n; row++)
-		for(int col = 0; col <= row; col++)
+	for(int row = 0; row < n; row++) {
+		for(int col = 0; col <= row; col++) {
 			MAT(A, n, row, col) = _mm_add_ps(MAT(A, n, row, col), _mm_mul_ps(_mm_mul_ps(v[row], v[col]), weight));
+		}
+	}
 }
 
-ccl_device_inline void math_vector_add_sse(__m128 *V, int n, __m128 ccl_restrict_ptr a)
+ccl_device_inline void math_vector_add_sse(__m128 *V, int n, const __m128 *ccl_restrict a)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		V[i] = _mm_add_ps(V[i], a[i]);
+	}
 }
 
-ccl_device_inline void math_vector_mul_sse(__m128 *V, int n, __m128 ccl_restrict_ptr a)
+ccl_device_inline void math_vector_mul_sse(__m128 *V, int n, const __m128 *ccl_restrict a)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		V[i] = _mm_mul_ps(V[i], a[i]);
+	}
 }
 
-ccl_device_inline void math_vector_max_sse(__m128 *a, __m128 ccl_restrict_ptr b, int n)
+ccl_device_inline void math_vector_max_sse(__m128 *a, const __m128 *ccl_restrict b, int n)
 {
-	for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++) {
 		a[i] = _mm_max_ps(a[i], b[i]);
+	}
 }
 
-ccl_device_inline void math_matrix_hsum(float *A, int n, __m128 ccl_restrict_ptr B)
+ccl_device_inline void math_matrix_hsum(float *A, int n, const __m128 *ccl_restrict B)
 {
-	for(int row = 0; row < n; row++)
-		for(int col = 0; col <= row; col++)
+	for(int row = 0; row < n; row++) {
+		for(int col = 0; col <= row; col++) {
 			MAT(A, n, row, col) = _mm_hsum_ss(MAT(B, n, row, col));
+		}
+	}
 }
 #endif
 

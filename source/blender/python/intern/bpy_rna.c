@@ -806,7 +806,7 @@ static PyObject *pyrna_struct_richcmp(PyObject *a, PyObject *b, int op)
 	switch (op) {
 		case Py_NE:
 			ok = !ok;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case Py_EQ:
 			res = ok ? Py_False : Py_True;
 			break;
@@ -836,7 +836,7 @@ static PyObject *pyrna_prop_richcmp(PyObject *a, PyObject *b, int op)
 	switch (op) {
 		case Py_NE:
 			ok = !ok;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case Py_EQ:
 			res = ok ? Py_False : Py_True;
 			break;
@@ -5168,7 +5168,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 							ret = Matrix_CreatePyObject(data, 3, 3, NULL);
 							break;
 						}
-						/* fall-through */
+						ATTR_FALLTHROUGH;
 #endif
 					default:
 						ret = PyTuple_New(len);

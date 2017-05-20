@@ -1495,6 +1495,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 		
 	case MTEX_SUB:
 		fact= -fact;
+		ATTR_FALLTHROUGH;
 	case MTEX_ADD:
 		fact*= facg;
 		in[0]= (fact*tex[0] + out[0]);
@@ -1609,6 +1610,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 
 	case MTEX_SUB:
 		fact= -fact;
+		ATTR_FALLTHROUGH;
 	case MTEX_ADD:
 		in= fact*tex + out;
 		break;

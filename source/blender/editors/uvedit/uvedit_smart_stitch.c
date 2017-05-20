@@ -2173,6 +2173,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 				break;
 			}
+			ATTR_FALLTHROUGH;
 		case PADENTER:
 		case RETKEY:
 			if (event->val == KM_PRESS) {

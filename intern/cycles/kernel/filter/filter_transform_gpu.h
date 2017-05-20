@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_ptr buffer,
+ccl_device void kernel_filter_construct_transform(const ccl_global float *ccl_restrict buffer,
                                                   int x, int y, int4 rect,
                                                   int pass_stride,
                                                   ccl_global float *transform,
@@ -38,7 +38,8 @@ ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_
 	                      max(rect.y, y - radius));
 	int2 high = make_int2(min(rect.z, x + radius + 1),
 	                      min(rect.w, y + radius + 1));
-	ccl_global float ccl_restrict_ptr pixel_buffer;
+	int num_pixels = (high.y - low.y) * (high.x - low.x);
+	const ccl_global float *ccl_restrict pixel_buffer;
 	int2 pixel;
 
 
@@ -52,8 +53,7 @@ ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_
 		math_vector_add(feature_means, features, DENOISE_FEATURES);
 	} END_FOR_PIXEL_WINDOW
 
-	float pixel_scale = 1.0f / ((high.y - low.y) * (high.x - low.x));
-	math_vector_scale(feature_means, pixel_scale, DENOISE_FEATURES);
+	math_vector_scale(feature_means, 1.0f / num_pixels, DENOISE_FEATURES);
 
 	/* === Scale the shifted feature passes to a range of [-1; 1], will be baked into the transform later. === */
 	float feature_scale[DENOISE_FEATURES];
@@ -81,6 +81,8 @@ ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_
 
 	math_matrix_jacobi_eigendecomposition(feature_matrix, transform, DENOISE_FEATURES, transform_stride);
 	*rank = 0;
+	/* Prevent overfitting when a small window is used. */
+	int max_rank = min(DENOISE_FEATURES, num_pixels/3);
 	if(pca_threshold < 0.0f) {
 		float threshold_energy = 0.0f;
 		for(int i = 0; i < DENOISE_FEATURES; i++) {
@@ -89,7 +91,7 @@ ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_
 		threshold_energy *= 1.0f - (-pca_threshold);
 
 		float reduced_energy = 0.0f;
-		for(int i = 0; i < DENOISE_FEATURES; i++, (*rank)++) {
+		for(int i = 0; i < max_rank; i++, (*rank)++) {
 			if(i >= 2 && reduced_energy >= threshold_energy)
 				break;
 			float s = feature_matrix[i*DENOISE_FEATURES+i];
@@ -97,7 +99,7 @@ ccl_device void kernel_filter_construct_transform(ccl_global float ccl_restrict_
 		}
 	}
 	else {
-		for(int i = 0; i < DENOISE_FEATURES; i++, (*rank)++) {
+		for(int i = 0; i < max_rank; i++, (*rank)++) {
 			float s = feature_matrix[i*DENOISE_FEATURES+i];
 			if(i >= 2 && sqrtf(s) < pca_threshold)
 				break;

@@ -180,11 +180,12 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 				flarec= 0;
 
 				if (fullsample) {
-					for (sample=0; sample<totsample; sample++)
+					for (sample=0; sample<totsample; sample++) {
 						if (ps->mask & (1 << sample)) {
 							float *pass = RE_RenderLayerGetPass(rlpp[sample], RE_PASSNAME_COMBINED, R.viewname);
 							addalphaAddfacFloat(pass + od*4, col, har->add);
 						}
+					}
 				}
 				else {
 					fac= ((float)amountm)/(float)R.osa;
@@ -215,11 +216,12 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 	}
 
 	if (fullsample) {
-		for (sample=0; sample<totsample; sample++)
+		for (sample=0; sample<totsample; sample++) {
 			if (!(mask & (1 << sample))) {
 				float *pass = RE_RenderLayerGetPass(rlpp[sample], RE_PASSNAME_COMBINED, R.viewname);
 				addalphaAddfacFloat(pass + od*4, col, har->add);
 			}
+		}
 	}
 	else {
 		col[0]= accol[0];

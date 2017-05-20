@@ -72,40 +72,40 @@ void KERNEL_FUNCTION_FULL_NAME(filter_construct_transform)(float* buffer,
 
 void KERNEL_FUNCTION_FULL_NAME(filter_nlm_calc_difference)(int dx,
                                                            int dy,
-                                                           float *weightImage,
+                                                           float *weight_image,
                                                            float *variance,
-                                                           float *differenceImage,
+                                                           float *difference_image,
                                                            int* rect,
                                                            int w,
                                                            int channel_offset,
                                                            float a,
                                                            float k_2);
 
-void KERNEL_FUNCTION_FULL_NAME(filter_nlm_blur)(float *differenceImage,
-                                                float *outImage,
+void KERNEL_FUNCTION_FULL_NAME(filter_nlm_blur)(float *difference_image,
+                                                float *out_image,
                                                 int* rect,
                                                 int w,
                                                 int f);
 
-void KERNEL_FUNCTION_FULL_NAME(filter_nlm_calc_weight)(float *differenceImage,
-                                                       float *outImage,
+void KERNEL_FUNCTION_FULL_NAME(filter_nlm_calc_weight)(float *difference_image,
+                                                       float *out_image,
                                                        int* rect,
                                                        int w,
                                                        int f);
 
 void KERNEL_FUNCTION_FULL_NAME(filter_nlm_update_output)(int dx,
                                                          int dy,
-                                                         float *differenceImage,
+                                                         float *difference_image,
                                                          float *image,
-                                                         float *outImage,
-                                                         float *accumImage,
+                                                         float *out_image,
+                                                         float *accum_image,
                                                          int* rect,
                                                          int w,
                                                          int f);
 
 void KERNEL_FUNCTION_FULL_NAME(filter_nlm_construct_gramian)(int dx,
                                                              int dy,
-                                                             float *differenceImage,
+                                                             float *difference_image,
                                                              float *buffer,
                                                              float *color_pass,
                                                              float *variance_pass,
@@ -120,8 +120,8 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_construct_gramian)(int dx,
                                                              int f,
                                                              int pass_stride);
 
-void KERNEL_FUNCTION_FULL_NAME(filter_nlm_normalize)(float *outImage,
-                                                     float *accumImage,
+void KERNEL_FUNCTION_FULL_NAME(filter_nlm_normalize)(float *out_image,
+                                                     float *accum_image,
                                                      int* rect,
                                                      int w);
 

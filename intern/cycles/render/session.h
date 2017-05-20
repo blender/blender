@@ -158,7 +158,7 @@ public:
 	void set_pause(bool pause);
 
 	void update_scene();
-	void load_kernels();
+	void load_kernels(bool lock_scene=true);
 
 	void device_free();
 
@@ -215,6 +215,7 @@ protected:
 	thread_mutex display_mutex;
 
 	bool kernels_loaded;
+	DeviceRequestedFeatures loaded_kernel_features;
 
 	double reset_time;
 

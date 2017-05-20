@@ -33,7 +33,12 @@ CCL_NAMESPACE_BEGIN
                                      pixel_buffer += buffer_w - (pixel.x - low.x); \
                                  }
 
-ccl_device_inline void filter_get_features_sse(__m128 x, __m128 y, __m128 active_pixels, float ccl_restrict_ptr buffer, __m128 *features, __m128 ccl_restrict_ptr mean, int pass_stride)
+ccl_device_inline void filter_get_features_sse(__m128 x, __m128 y,
+                                               __m128 active_pixels,
+                                               const float *ccl_restrict buffer,
+                                               __m128 *features,
+                                               const __m128 *ccl_restrict mean,
+                                               int pass_stride)
 {
 	features[0] = x;
 	features[1] = y;
@@ -53,7 +58,12 @@ ccl_device_inline void filter_get_features_sse(__m128 x, __m128 y, __m128 active
 		features[i] = _mm_mask_ps(features[i], active_pixels);
 }
 
-ccl_device_inline void filter_get_feature_scales_sse(__m128 x, __m128 y, __m128 active_pixels, float ccl_restrict_ptr buffer, __m128 *scales, __m128 ccl_restrict_ptr mean, int pass_stride)
+ccl_device_inline void filter_get_feature_scales_sse(__m128 x, __m128 y,
+                                                     __m128 active_pixels,
+                                                     const float *ccl_restrict buffer,
+                                                     __m128 *scales,
+                                                     const __m128 *ccl_restrict mean,
+                                                     int pass_stride)
 {
 	scales[0] = _mm_mask_ps(_mm_fabs_ps(_mm_sub_ps(x, mean[0])), active_pixels);
 	scales[1] = _mm_mask_ps(_mm_fabs_ps(_mm_sub_ps(y, mean[1])), active_pixels);

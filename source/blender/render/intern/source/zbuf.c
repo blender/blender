@@ -3623,7 +3623,7 @@ static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 						fp[3] = speed[3];
 					}
 				}
-				}
+			}
 		}
 
 		if (col) {
