@@ -200,7 +200,7 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 	if (!txl->shadow_depth_cube_target) {
 		/* Render Cubemap */
 		txl->shadow_depth_cube_target = DRW_texture_create_cube(512, DRW_TEX_DEPTH_24, 0, NULL);
-		txl->shadow_color_cube_target = DRW_texture_create_cube(512, DRW_TEX_R_32, 0, NULL);
+		txl->shadow_color_cube_target = DRW_texture_create_cube(512, DRW_TEX_R_32, DRW_TEX_FILTER, NULL);
 		if (fbl->shadow_cube_fb) {
 			DRW_framebuffer_texture_attach(fbl->shadow_cube_fb, txl->shadow_depth_cube_target, 0, 0);
 			DRW_framebuffer_texture_attach(fbl->shadow_cube_fb, txl->shadow_color_cube_target, 0, 0);
@@ -235,7 +235,7 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 
 	DRWFboTexture tex_cube_target[2] = {
 	        {&txl->shadow_depth_cube_target, DRW_TEX_DEPTH_24, 0},
-	        {&txl->shadow_color_cube_target, DRW_TEX_R_32, 0}};
+	        {&txl->shadow_color_cube_target, DRW_TEX_R_32, DRW_TEX_FILTER}};
 	DRW_framebuffer_init(&fbl->shadow_cube_target_fb, &draw_engine_eevee_type, 512, 512, tex_cube_target, 2);
 
 	DRWFboTexture tex_cube = {&txl->shadow_depth_cube_pool, DRW_TEX_R_32, DRW_TEX_FILTER};

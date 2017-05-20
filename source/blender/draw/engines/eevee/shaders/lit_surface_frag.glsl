@@ -129,7 +129,7 @@ float light_visibility(LightData ld, ShadingData sd)
 
 		vis *= texture(shadowCascades, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + cascade, shpos.z));
 	}
-	else {
+	else if (ld.l_shadowid >= 0.0) {
 		/* Shadow Cube */
 		float shid = ld.l_shadowid;
 		ShadowCubeData scd = shadows_cube_data[int(shid)];
@@ -150,9 +150,12 @@ float light_visibility(LightData ld, ShadingData sd)
 		vec2 uvs = cubevec.xy * (0.5) + 0.5;
 		uvs = uvs * (1.0 - 2.0 * texelSize) + 1.0 * texelSize; /* edge filtering fix */
 
-		float sh_test = step(0, texture(shadowCubes, vec3(uvs, shid)).r - dist);
+		float z = texture(shadowCubes, vec3(uvs, shid)).r;
 
-		vis *= sh_test;
+		float esm_test = min(1.0, exp(-5.0 * dist) * z);
+		float sh_test = step(0, z - dist);
+
+		vis *= esm_test;
 	}
 
 	return vis;

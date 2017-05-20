@@ -17,6 +17,13 @@ vec3 octahedral_to_cubemap_proj(vec2 co)
 	return v;
 }
 
+void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
+{
+	vec3 UpVector = abs(N.z) < 0.99999 ? vec3(0.0,0.0,1.0) : vec3(1.0,0.0,0.0);
+	T = normalize( cross(UpVector, N) );
+	B = cross(N, T);
+}
+
 void main() {
 	const vec2 texelSize = vec2(1.0 / 512.0);
 
@@ -42,6 +49,16 @@ void main() {
 	/* get cubemap vector */
 	vec3 cubevec = octahedral_to_cubemap_proj(uvs.xy);
 
-	/* get cubemap vector */
-	FragColor = texture(shadowCube, cubevec).rrrr;
+	vec3 T, B;
+	make_orthonormal_basis(cubevec, T, B);
+
+	vec2 offsetvec = texelSize.xy * vec2(-1.0, 1.0); /* Totally arbitrary */
+
+	/* get cubemap shadow value */
+	FragColor  = texture(shadowCube, cubevec + offsetvec.x * T + offsetvec.x * B).rrrr;
+	FragColor += texture(shadowCube, cubevec + offsetvec.x * T + offsetvec.y * B).rrrr;
+	FragColor += texture(shadowCube, cubevec + offsetvec.y * T + offsetvec.x * B).rrrr;
+	FragColor += texture(shadowCube, cubevec + offsetvec.y * T + offsetvec.y * B).rrrr;
+
+	FragColor /= 4.0;
 }

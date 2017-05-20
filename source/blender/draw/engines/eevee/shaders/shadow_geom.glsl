@@ -9,10 +9,9 @@ layout(triangles) in;
 layout(triangle_strip, max_vertices=3) out;
 
 in vec4 vPos[];
-in float lDist[];
 flat in int face[];
 
-out float linearDistance;
+out vec3 worldPosition;
 
 void main() {
 	int f = face[0];
@@ -20,7 +19,7 @@ void main() {
 
 	for (int v = 0; v < 3; ++v) {
 		gl_Position = ShadowMatrix[f] * vPos[v];
-		linearDistance = lDist[v];
+		worldPosition = vPos[v].xyz;
 		EmitVertex();
 	}
 
