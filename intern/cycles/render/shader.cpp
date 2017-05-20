@@ -335,11 +335,14 @@ ShaderManager *ShaderManager::create(Scene *scene, int shadingsystem)
 	(void)shadingsystem;  /* Ignored when built without OSL. */
 
 #ifdef WITH_OSL
-	if(shadingsystem == SHADINGSYSTEM_OSL)
+	if(shadingsystem == SHADINGSYSTEM_OSL) {
 		manager = new OSLShaderManager();
+	}
 	else
 #endif
+	{
 		manager = new SVMShaderManager();
+	}
 	
 	add_default(scene);
 

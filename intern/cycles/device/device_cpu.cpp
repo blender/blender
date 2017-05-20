@@ -532,9 +532,8 @@ public:
 
 	bool denoising_combine_halves(device_ptr a_ptr, device_ptr b_ptr,
 	                              device_ptr mean_ptr, device_ptr variance_ptr,
-	                              int r, int4 rect, DenoisingTask *task)
+	                              int r, int4 rect, DenoisingTask * /*task*/)
 	{
-		(void) task;
 		for(int y = rect.y; y < rect.w; y++) {
 			for(int x = rect.x; x < rect.z; x++) {
 				filter_combine_halves_kernel()(x, y,

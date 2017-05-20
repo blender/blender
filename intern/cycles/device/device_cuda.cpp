@@ -1148,8 +1148,6 @@ public:
 	                              device_ptr mean_ptr, device_ptr variance_ptr,
 	                              int r, int4 rect, DenoisingTask *task)
 	{
-		(void) task;
-
 		if(have_error())
 			return false;
 
@@ -1179,8 +1177,6 @@ public:
 	                             device_ptr sample_variance_ptr, device_ptr sv_variance_ptr,
 	                             device_ptr buffer_variance_ptr, DenoisingTask *task)
 	{
-		(void) task;
-
 		if(have_error())
 			return false;
 
