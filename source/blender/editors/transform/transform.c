@@ -1605,7 +1605,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			offset = -offset;
 			length = -length;
 			size = -size;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case RIGHT:
 			glBegin(GL_LINES);
 			glVertex2s(offset, 0);
@@ -1621,7 +1621,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			offset = -offset;
 			length = -length;
 			size = -size;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case UP:
 			glBegin(GL_LINES);
 			glVertex2s(0, offset);
@@ -1640,7 +1640,7 @@ static void drawArrowHead(ArrowDirection d, short size)
 	switch (d) {
 		case LEFT:
 			size = -size;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case RIGHT:
 			glBegin(GL_LINES);
 			glVertex2s(0, 0);
@@ -1652,7 +1652,7 @@ static void drawArrowHead(ArrowDirection d, short size)
 
 		case DOWN:
 			size = -size;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case UP:
 			glBegin(GL_LINES);
 			glVertex2s(0, 0);

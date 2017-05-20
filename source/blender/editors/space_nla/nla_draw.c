@@ -362,7 +362,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 					glVertex2f(strip->start, yminc);
 					glEnd();
 				}
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 
 			/* this only draws after the strip */
 			case NLASTRIP_EXTEND_HOLD_FORWARD: 

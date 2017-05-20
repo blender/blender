@@ -1083,7 +1083,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent
 			/* render frame? */
 			if (oglrender->timer == event->customdata)
 				break;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		default:
 			/* nothing to do */
 			return OPERATOR_RUNNING_MODAL;

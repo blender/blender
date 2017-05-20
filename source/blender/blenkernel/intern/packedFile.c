@@ -450,7 +450,7 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 					break;
 				}
 				/* else create it */
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 			}
 			case PF_WRITE_LOCAL:
 				if (writePackedFile(reports, local_name, pf, 1) == RET_OK) {
@@ -471,7 +471,7 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 					break;
 				}
 				/* else create it */
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 			}
 			case PF_WRITE_ORIGINAL:
 				if (writePackedFile(reports, abs_name, pf, 1) == RET_OK) {

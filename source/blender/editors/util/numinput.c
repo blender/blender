@@ -296,7 +296,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			}
 			/* Else, common behavior with DELKEY, only difference is remove char(s) before/after the cursor. */
 			dir = STRCUR_DIR_PREV;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case DELKEY:
 			if ((n->val_flag[idx] & NUM_EDITED) && n->str[0]) {
 				int t_cur = cur = n->str_cur;
@@ -322,7 +322,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			break;
 		case LEFTARROWKEY:
 			dir = STRCUR_DIR_PREV;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case RIGHTARROWKEY:
 			cur = n->str_cur;
 			if (event->ctrl) {

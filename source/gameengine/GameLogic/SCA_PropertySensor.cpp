@@ -133,7 +133,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 	{
 	case KX_PROPSENSOR_NOTEQUAL:
 		reverse = true;
-		/* fall-through */
+		ATTR_FALLTHROUGH;
 	case KX_PROPSENSOR_EQUAL:
 		{
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
@@ -231,7 +231,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 		}
 	case KX_PROPSENSOR_LESSTHAN:
 		reverse = true;
-		/* fall-through */
+		ATTR_FALLTHROUGH;
 	case KX_PROPSENSOR_GREATERTHAN:
 		{
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);

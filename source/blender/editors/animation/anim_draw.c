@@ -579,6 +579,7 @@ void ANIM_center_frame(struct bContext *C, int smooth_viewtx)
 				break;
 			}
 			/* else drop through, keep range instead */
+			ATTR_FALLTHROUGH;
 
 		case ZOOM_FRAME_MODE_KEEP_RANGE:
 		default:

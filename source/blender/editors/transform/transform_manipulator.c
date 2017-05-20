@@ -619,7 +619,7 @@ static int calc_manipulator_stats(const bContext *C)
 					break;
 				}
 				/* if not gimbal, fall through to normal */
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 			}
 			case V3D_MANIP_NORMAL:
 			{
@@ -630,7 +630,7 @@ static int calc_manipulator_stats(const bContext *C)
 					break;
 				}
 				/* no break we define 'normal' as 'local' in Object mode */
-				/* fall-through */
+				ATTR_FALLTHROUGH;
 			}
 			case V3D_MANIP_LOCAL:
 			{

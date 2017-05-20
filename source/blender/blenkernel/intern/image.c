@@ -1238,7 +1238,7 @@ char BKE_imtype_valid_channels(const char imtype, bool write_file)
 	switch (imtype) {
 		case R_IMF_IMTYPE_BMP:
 			if (write_file) break;
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case R_IMF_IMTYPE_TARGA:
 		case R_IMF_IMTYPE_RAWTGA:
 		case R_IMF_IMTYPE_IRIS:

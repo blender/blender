@@ -1208,7 +1208,7 @@ void uiTemplateImageStereo3d(uiLayout *layout, PointerRNA *stereo3d_format_ptr)
 		case S3D_DISPLAY_SIDEBYSIDE:
 		{
 			uiItemR(col, stereo3d_format_ptr, "use_sidebyside_crosseyed", 0, NULL, ICON_NONE);
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		}
 		case S3D_DISPLAY_TOPBOTTOM:
 		{

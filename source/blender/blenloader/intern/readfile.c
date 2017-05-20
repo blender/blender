@@ -8685,7 +8685,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 			/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
 		case ID_SCRN:
 			bhead->code = ID_SCR;
-			/* deliberate pass on to default */
+			/* pass on to default */
+			ATTR_FALLTHROUGH;
 		default:
 			if (fd->skip_flags & BLO_READ_SKIP_DATA) {
 				bhead = blo_nextbhead(fd, bhead);

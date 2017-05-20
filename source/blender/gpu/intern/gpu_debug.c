@@ -29,6 +29,7 @@
  *  \ingroup gpu
  */
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 #include "BLI_sys_types.h"
 #include "BLI_system.h"
@@ -219,7 +220,7 @@ static void APIENTRY gpu_debug_proc(
 	switch (severity) {
 		case GL_DEBUG_SEVERITY_HIGH:
 			backtrace = true;
-			/* fall through */
+			ATTR_FALLTHROUGH;
 		case GL_DEBUG_SEVERITY_MEDIUM:
 		case GL_DEBUG_SEVERITY_LOW:
 		case GL_DEBUG_SEVERITY_NOTIFICATION: /* KHR has this, ARB does not */
@@ -249,7 +250,7 @@ static void APIENTRY gpu_debug_proc_amd(
 	switch (severity) {
 		case GL_DEBUG_SEVERITY_HIGH:
 			backtrace = true;
-			/* fall through */
+			ATTR_FALLTHROUGH;
 		case GL_DEBUG_SEVERITY_MEDIUM:
 		case GL_DEBUG_SEVERITY_LOW:
 			fprintf(stderr, "GL %s: %s\n", category_name_amd(category), message);

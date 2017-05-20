@@ -301,8 +301,7 @@ static int slide_plane_marker_modal(bContext *C,
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY)) {
 				data->accurate = event->val == KM_PRESS;
 			}
-
-			/* fall-through */
+			ATTR_FALLTHROUGH;
 		case MOUSEMOVE:
 			mdelta[0] = event->mval[0] - data->previous_mval[0];
 			mdelta[1] = event->mval[1] - data->previous_mval[1];

@@ -888,7 +888,8 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 					ed_marker_move_cancel(C, op);
 					return OPERATOR_CANCELLED;
 				}
-			/* else continue; <--- see if release event should be caught for tweak-end */
+				/* else continue; <--- see if release event should be caught for tweak-end */
+				ATTR_FALLTHROUGH;
 
 			case RETKEY:
 			case PADENTER:

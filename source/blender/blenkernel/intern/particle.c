@@ -3466,7 +3466,8 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 				case TEXCO_UV:
 					if (fw && get_particle_uv(dm, NULL, face_index, fw, mtex->uvname, texvec))
 						break;
-				/* no break, failed to get uv's, so let's try orco's */
+					/* no break, failed to get uv's, so let's try orco's */
+					ATTR_FALLTHROUGH;
 				case TEXCO_ORCO:
 					copy_v3_v3(texvec, orco);
 					break;
@@ -3538,7 +3539,8 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 				case TEXCO_UV:
 					if (get_particle_uv(sim->psmd->dm_final, pa, 0, pa->fuv, mtex->uvname, texvec))
 						break;
-				/* no break, failed to get uv's, so let's try orco's */
+					/* no break, failed to get uv's, so let's try orco's */
+					ATTR_FALLTHROUGH;
 				case TEXCO_ORCO:
 					psys_particle_on_emitter(sim->psmd, sim->psys->part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, 0, 0, 0, texvec, 0);
 					

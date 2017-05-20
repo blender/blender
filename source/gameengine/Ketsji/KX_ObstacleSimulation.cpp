@@ -345,6 +345,7 @@ static MT_Point3 nearestPointToObstacle(MT_Point3& pos ,KX_Obstacle* obstacle)
 			MT_Point3 res = obstacle->m_pos + abdir*proj;
 			return res;
 		}
+		ATTR_FALLTHROUGH;
 	}
 	case KX_OBSTACLE_CIRCLE :
 	default:

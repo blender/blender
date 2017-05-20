@@ -822,7 +822,7 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
 					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->spring_damping_ang_z);
 
 					RB_constraint_set_equilibrium_6dof_spring(rbc->physics_constraint);
-					/* fall-through */
+					ATTR_FALLTHROUGH;
 				case RBC_TYPE_6DOF:
 					if (rbc->type == RBC_TYPE_6DOF) /* a litte awkward but avoids duplicate code for limits */
 						rbc->physics_constraint = RB_constraint_new_6dof(loc, rot, rb1, rb2);
