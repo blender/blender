@@ -56,8 +56,6 @@ static struct {
 	struct GPUShader *default_world;
 	struct GPUShader *default_background;
 	struct GPUShader *depth_sh;
-	struct GPUShader *tonemap;
-	struct GPUShader *shadow_sh;
 
 	struct GPUShader *probe_filter_sh;
 	struct GPUShader *probe_spherical_harmonic_sh;
@@ -263,11 +261,6 @@ static void EEVEE_engine_init(void *ved)
 		MEM_freeN(frag_str);
 	}
 
-	if (!e_data.shadow_sh) {
-		e_data.shadow_sh = DRW_shader_create(
-		        datatoc_shadow_vert_glsl, datatoc_shadow_geom_glsl, datatoc_shadow_frag_glsl, NULL);
-	}
-
 	if (!e_data.default_world) {
 		e_data.default_world = DRW_shader_create(
 		        datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, datatoc_default_world_frag_glsl, NULL);
@@ -341,32 +334,6 @@ static DRWShadingGroup *eevee_cube_shgroup(struct GPUShader *sh, DRWPass *pass, 
 	return grp;
 }
 
-static DRWShadingGroup *eevee_cube_shadow_shgroup(
-        EEVEE_PassList *psl, EEVEE_StorageList *stl, struct Batch *geom, float (*obmat)[4])
-{
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cube_pass, geom);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo);
-	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
-
-	for (int i = 0; i < 6; ++i)
-		DRW_shgroup_call_dynamic_add_empty(grp);
-
-	return grp;
-}
-
-static DRWShadingGroup *eevee_cascade_shadow_shgroup(
-        EEVEE_PassList *psl, EEVEE_StorageList *stl, struct Batch *geom, float (*obmat)[4])
-{
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cascade_pass, geom);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo);
-	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
-
-	for (int i = 0; i < MAX_CASCADE_NUM; ++i)
-		DRW_shgroup_call_dynamic_add_empty(grp);
-
-	return grp;
-}
-
 static void EEVEE_cache_init(void *vedata)
 {
 	static int zero = 0;
@@ -378,14 +345,6 @@ static void EEVEE_cache_init(void *vedata)
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
 		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
-	}
-
-	{
-		psl->shadow_cube_pass = DRW_pass_create("Shadow Cube Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-	}
-
-	{
-		psl->shadow_cascade_pass = DRW_pass_create("Shadow Cascade Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 	}
 
 	{
@@ -556,7 +515,7 @@ static void EEVEE_cache_init(void *vedata)
 	}
 
 
-	EEVEE_lights_cache_init(stl);
+	EEVEE_lights_cache_init(stl, psl, txl);
 
 	EEVEE_effects_cache_init(vedata);
 }
@@ -683,8 +642,11 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		// GPUMaterial *gpumat = GPU_material_from_nodetree(struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options)
 
 		// DRW_shgroup_call_add(stl->g_data->shadow_shgrp, geom, ob->obmat);
-		eevee_cascade_shadow_shgroup(psl, stl, geom, ob->obmat);
-		eevee_cube_shadow_shgroup(psl, stl, geom, ob->obmat);
+		const bool cast_shadow = true;
+
+		if (cast_shadow) {
+			EEVEE_lights_cache_shcaster_add(psl, stl, geom, ob->obmat);
+		}
 	}
 	else if (ob->type == OB_LAMP) {
 		EEVEE_lights_cache_add(stl, ob);
@@ -692,7 +654,6 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 }
 
 typedef struct eevee_bind_shadow_data {
-	struct GPUTexture *shadow_depth_map_pool;
 	struct GPUTexture *shadow_depth_cube_pool;
 	struct GPUTexture *shadow_depth_cascade_pool;
 } eevee_bind_shadow_data;
@@ -700,7 +661,6 @@ typedef struct eevee_bind_shadow_data {
 static void eevee_bind_shadow(void *data, DRWShadingGroup *shgrp)
 {
 	eevee_bind_shadow_data *shdw_data = data;
-	DRW_shgroup_uniform_texture(shgrp, "shadowMaps", shdw_data->shadow_depth_map_pool);
 	DRW_shgroup_uniform_texture(shgrp, "shadowCubes", shdw_data->shadow_depth_cube_pool);
 	DRW_shgroup_uniform_texture(shgrp, "shadowCascades", shdw_data->shadow_depth_cascade_pool);
 }
@@ -717,7 +677,6 @@ static void EEVEE_cache_finish(void *vedata)
 	/* Shadows binding */
 	eevee_bind_shadow_data data;
 
-	data.shadow_depth_map_pool = txl->shadow_depth_map_pool;
 	data.shadow_depth_cube_pool = txl->shadow_depth_cube_pool;
 	data.shadow_depth_cascade_pool = txl->shadow_depth_cascade_pool;
 
@@ -757,11 +716,11 @@ static void EEVEE_draw_scene(void *vedata)
 static void EEVEE_engine_free(void)
 {
 	EEVEE_effects_free();
+	EEVEE_lights_free();
 
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit_flat);
-	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_world);
 	DRW_SHADER_FREE_SAFE(e_data.default_background);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_sh);

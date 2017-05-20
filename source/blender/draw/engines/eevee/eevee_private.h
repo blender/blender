@@ -42,6 +42,7 @@ typedef struct EEVEE_PassList {
 	/* Shadows */
 	struct DRWPass *shadow_pass;
 	struct DRWPass *shadow_cube_pass;
+	struct DRWPass *shadow_cube_store_pass;
 	struct DRWPass *shadow_cascade_pass;
 
 	/* Probes */
@@ -69,6 +70,7 @@ typedef struct EEVEE_PassList {
 
 typedef struct EEVEE_FramebufferList {
 	/* Shadows */
+	struct GPUFrameBuffer *shadow_cube_target_fb;
 	struct GPUFrameBuffer *shadow_cube_fb;
 	struct GPUFrameBuffer *shadow_map_fb;
 	struct GPUFrameBuffer *shadow_cascade_fb;
@@ -90,6 +92,8 @@ typedef struct EEVEE_FramebufferList {
 
 typedef struct EEVEE_TextureList {
 	/* Shadows */
+	struct GPUTexture *shadow_depth_cube_target;
+	struct GPUTexture *shadow_color_cube_target;
 	struct GPUTexture *shadow_depth_cube_pool;
 	struct GPUTexture *shadow_depth_map_pool;
 	struct GPUTexture *shadow_depth_cascade_pool;
@@ -157,6 +161,8 @@ typedef struct EEVEE_ShadowCascade {
 
 typedef struct EEVEE_ShadowRender {
 	float shadowmat[6][4][4]; /* World->Lamp->NDC : used to render the shadow map. 6 frustrum for cubemap shadow */
+	float position[3];
+	float pad;
 	int layer;
 } EEVEE_ShadowRender;
 
@@ -263,11 +269,13 @@ typedef struct EEVEE_PrivateData {
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_StorageList *stl);
-void EEVEE_lights_cache_init(EEVEE_StorageList *stl);
+void EEVEE_lights_cache_init(EEVEE_StorageList *stl, EEVEE_PassList *psl, EEVEE_TextureList *txl);
 void EEVEE_lights_cache_add(EEVEE_StorageList *stl, struct Object *ob);
+void EEVEE_lights_cache_shcaster_add(EEVEE_PassList *psl, EEVEE_StorageList *stl, struct Batch *geom, float (*obmat)[4]);
 void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, EEVEE_FramebufferList *fbl);
 void EEVEE_lights_update(EEVEE_StorageList *stl);
 void EEVEE_draw_shadows(EEVEE_Data *vedata);
+void EEVEE_lights_free(void);
 
 /* eevee_probes.c */
 void EEVEE_probes_init(EEVEE_Data *vedata);
@@ -305,13 +313,13 @@ static const float cubefacemat[6][4][4] = {
 	 {0.0, 0.0, 0.0, 1.0}},
 	/* Pos Y */
 	{{1.0, 0.0, 0.0, 0.0},
-	 {0.0, 0.0, 1.0, 0.0},
-	 {0.0, -1.0, 0.0, 0.0},
+	 {0.0, 0.0, -1.0, 0.0},
+	 {0.0, 1.0, 0.0, 0.0},
 	 {0.0, 0.0, 0.0, 1.0}},
 	/* Neg Y */
 	{{1.0, 0.0, 0.0, 0.0},
-	 {0.0, 0.0, -1.0, 0.0},
-	 {0.0, 1.0, 0.0, 0.0},
+	 {0.0, 0.0, 1.0, 0.0},
+	 {0.0, -1.0, 0.0, 0.0},
 	 {0.0, 0.0, 0.0, 1.0}},
 	/* Pos Z */
 	{{1.0, 0.0, 0.0, 0.0},

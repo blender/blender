@@ -11,8 +11,7 @@ uniform vec3 shCoefs[9];
 #ifndef USE_LTC
 uniform sampler2D brdfLut;
 #endif
-uniform sampler2DArrayShadow shadowCubes;
-uniform sampler2DArrayShadow shadowMaps;
+uniform sampler2DArray shadowCubes;
 uniform sampler2DArrayShadow shadowCascades;
 
 layout(std140) uniform light_block {
@@ -130,75 +129,30 @@ float light_visibility(LightData ld, ShadingData sd)
 
 		vis *= texture(shadowCascades, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + cascade, shpos.z));
 	}
-	else if (ld.l_shadowid >= MAX_SHADOW_CUBE) {
-		/* Shadow Map */
-		float shid = ld.l_shadowid - MAX_SHADOW_CUBE;
-		ShadowMapData smd = shadows_map_data[int(shid)];
-		vec4 shpos = smd.shadowmat * vec4(sd.W, 1.0);
-		shpos.z -= smd.sh_map_bias * shpos.w;
-		shpos.xyz /= shpos.w;
-
-		if (shpos.w > 0.0 && min(shpos.x, shpos.y) > 0.0 && max(shpos.x, shpos.y) < 1.0) {
-			vis *= texture(shadowMaps, vec4(shpos.xy, shid, shpos.z));
-		}
-	}
 	else {
 		/* Shadow Cube */
 		float shid = ld.l_shadowid;
 		ShadowCubeData scd = shadows_cube_data[int(shid)];
 
-		float face;
-		vec2 uvs;
-		vec3 Linv = sd.L;
-		vec3 Labs = abs(Linv);
-		vec3 maj_axis;
+		vec3 cubevec = sd.W - ld.l_position;
+		float dist = length(cubevec);
 
-		if (max(Labs.y, Labs.z) < Labs.x) {
-			if (Linv.x > 0.0) {
-				face = 1.0;
-				uvs = vec2(1.0, -1.0) * Linv.zy / -Linv.x;
-				maj_axis = vec3(1.0, 0.0, 0.0);
-			}
-			else {
-				face = 0.0;
-				uvs = -Linv.zy / Linv.x;
-				maj_axis = vec3(-1.0, 0.0, 0.0);
-			}
+		/* projection onto octahedron */
+		cubevec /= dot( vec3(1), abs(cubevec) );
+
+		/* out-folding of the downward faces */
+		if ( cubevec.z < 0.0 ) {
+			cubevec.xy = (1.0 - abs(cubevec.yx)) * sign(cubevec.xy);
 		}
-		else if (max(Labs.x, Labs.z) < Labs.y) {
-			if (Linv.y > 0.0) {
-				face = 2.0;
-				uvs = vec2(-1.0, 1.0) * Linv.xz / Linv.y;
-				maj_axis = vec3(0.0, 1.0, 0.0);
-			}
-			else {
-				face = 3.0;
-				uvs = -Linv.xz / -Linv.y;
-				maj_axis = vec3(0.0, -1.0, 0.0);
-			}
-		}
-		else {
-			if (Linv.z > 0.0) {
-				face = 5.0;
-				uvs = Linv.xy / Linv.z;
-				maj_axis = vec3(0.0, 0.0, 1.0);
-			}
-			else {
-				face = 4.0;
-				uvs = vec2(-1.0, 1.0) * Linv.xy / -Linv.z;
-				maj_axis = vec3(0.0, 0.0, -1.0);
-			}
-		}
+		vec2 texelSize = vec2(1.0 / 512.0);
 
-		uvs = uvs * 0.5 + 0.5;
+		/* mapping to [0;1]ˆ2 texture space */
+		vec2 uvs = cubevec.xy * (0.5) + 0.5;
+		uvs = uvs * (1.0 - 2.0 * texelSize) + 1.0 * texelSize; /* edge filtering fix */
 
-		/* Depth in lightspace to compare against shadow map */
-		float w = dot(maj_axis, sd.l_vector);
-		w -= scd.sh_map_bias * w;
-		bool is_persp = (ProjectionMatrix[3][3] == 0.0);
-		float shdepth = buffer_depth(is_persp, w, scd.sh_cube_far, scd.sh_cube_near);
+		float sh_test = step(0, texture(shadowCubes, vec3(uvs, shid)).r - dist);
 
-		vis *= texture(shadowCubes, vec4(uvs, shid * 6.0 + face, shdepth));
+		vis *= sh_test;
 	}
 
 	return vis;
