@@ -329,12 +329,12 @@ static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *da
 		case DRW_TEX_RG_32: *data_type = GPU_RG32F; break;
 		case DRW_TEX_R_8: *data_type = GPU_R8; break;
 		case DRW_TEX_R_16: *data_type = GPU_R16F; break;
+		case DRW_TEX_R_32: *data_type = GPU_R32F; break;
 #if 0
 		case DRW_TEX_RGBA_32: *data_type = GPU_RGBA32F; break;
 		case DRW_TEX_RGB_8: *data_type = GPU_RGB8; break;
 		case DRW_TEX_RGB_32: *data_type = GPU_RGB32F; break;
 		case DRW_TEX_RG_8: *data_type = GPU_RG8; break;
-		case DRW_TEX_R_32: *data_type = GPU_R32F; break;
 #endif
 		case DRW_TEX_DEPTH_16: *data_type = GPU_DEPTH_COMPONENT16; break;
 		case DRW_TEX_DEPTH_24: *data_type = GPU_DEPTH_COMPONENT24; break;
@@ -1909,6 +1909,8 @@ static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *
 	*is_depth = ELEM(fbo_format, DRW_TEX_DEPTH_16, DRW_TEX_DEPTH_24);
 
 	switch (fbo_format) {
+		case DRW_TEX_R_16:     *channels = 1; return GPU_R16F;
+		case DRW_TEX_R_32:     *channels = 1; return GPU_R32F;
 		case DRW_TEX_RG_16:    *channels = 2; return GPU_RG16F;
 		case DRW_TEX_RGBA_8:   *channels = 4; return GPU_RGBA8;
 		case DRW_TEX_RGBA_16:  *channels = 4; return GPU_RGBA16F;

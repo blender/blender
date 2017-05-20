@@ -159,6 +159,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_DEPTH_COMPONENT32F:
 		case GPU_RGBA8:
 		case GPU_R11F_G11F_B10F:
+		case GPU_R32F:
 			*bytesize = 4;
 			break;
 		case GPU_DEPTH_COMPONENT24:
@@ -186,6 +187,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_RGB16F: return GL_RGB16F;
 		case GPU_RG16F: return GL_RG16F;
 		case GPU_RGBA8: return GL_RGBA8;
+		case GPU_R32F: return GL_R32F;
 		case GPU_R16F: return GL_R16F;
 		case GPU_R8: return GL_R8;
 		/* Special formats texture & renderbuffer */
