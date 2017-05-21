@@ -15,6 +15,16 @@
 
 #define KEEP_SINGLE_COPY 1
 
+static GLenum convert_index_type_to_gl(IndexType type)
+	{
+	static const GLenum table[] = {
+		[INDEX_U8] = GL_UNSIGNED_BYTE, // GL has this, Vulkan does not
+		[INDEX_U16] = GL_UNSIGNED_SHORT,
+		[INDEX_U32] = GL_UNSIGNED_INT
+		};
+	return table[type];
+	}
+
 unsigned ElementList_size(const ElementList* elem)
 	{
 #if TRACK_INDEX_RANGE
@@ -23,11 +33,6 @@ unsigned ElementList_size(const ElementList* elem)
 		case INDEX_U8: return elem->index_ct * sizeof(GLubyte);
 		case INDEX_U16: return elem->index_ct * sizeof(GLushort);
 		case INDEX_U32: return elem->index_ct * sizeof(GLuint);
-		default:
-	#if TRUST_NO_ONE
-			assert(false);
-	#endif
-			return 0;
 		}
 
 #else
@@ -252,6 +257,8 @@ void ElementList_build_in_place(ElementListBuilder* builder, ElementList* elem)
 
 		elem->data = builder->data;
 		}
+
+	elem->gl_index_type = convert_index_type_to_gl(elem->index_type);
 #else
 	if (builder->index_ct < builder->max_index_ct)
 		{

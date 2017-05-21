@@ -273,9 +273,9 @@ void Batch_draw(Batch* batch)
 
 #if TRACK_INDEX_RANGE
 		if (el->base_index)
-			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0, el->base_index);
+			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->gl_index_type, 0, el->base_index);
 		else
-			glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0);
+			glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->gl_index_type, 0);
 #else
 		glDrawElements(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0);
 #endif
@@ -310,9 +310,9 @@ void Batch_draw_stupid(Batch* batch)
 
 #if TRACK_INDEX_RANGE
 		if (el->base_index)
-			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0, el->base_index);
+			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->gl_index_type, 0, el->base_index);
 		else
-			glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->index_type, 0);
+			glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->gl_index_type, 0);
 #else
 		glDrawElements(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0);
 #endif

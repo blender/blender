@@ -16,15 +16,16 @@
 #define TRACK_INDEX_RANGE 1
 
 typedef enum {
-	INDEX_U8 = GL_UNSIGNED_BYTE, // GL has this, Vulkan does not
-	INDEX_U16 = GL_UNSIGNED_SHORT,
-	INDEX_U32 = GL_UNSIGNED_INT
+	INDEX_U8, // GL has this, Vulkan does not
+	INDEX_U16,
+	INDEX_U32
 } IndexType;
 
 typedef struct {
 	unsigned index_ct;
 #if TRACK_INDEX_RANGE
 	IndexType index_type;
+	GLenum gl_index_type;
 	unsigned min_index;
 	unsigned max_index;
 	unsigned base_index;
