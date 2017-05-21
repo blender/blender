@@ -69,11 +69,6 @@ void immInit(void)
 	glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
 	glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 
-#if APPLE_LEGACY
-	glBufferParameteriAPPLE(GL_ARRAY_BUFFER, GL_BUFFER_SERIALIZED_MODIFY_APPLE, GL_FALSE);
-	glBufferParameteriAPPLE(GL_ARRAY_BUFFER, GL_BUFFER_FLUSHING_UNMAP_APPLE, GL_FALSE);
-#endif
-
 	imm.prim_type = PRIM_NONE;
 	imm.strict_vertex_ct = true;
 
@@ -208,7 +203,7 @@ void immBegin(PrimitiveType prim_type, unsigned vertex_ct)
 	else
 		{
 		// orphan this buffer & start with a fresh one
-#if 1 || APPLE_LEGACY
+#if 1
 		// this method works on all platforms, old & new
 		glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 #else
@@ -235,12 +230,8 @@ void immBegin(PrimitiveType prim_type, unsigned vertex_ct)
 
 //	printf("mapping %u to %u\n", imm.buffer_offset, imm.buffer_offset + bytes_needed - 1);
 
-#if APPLE_LEGACY
-	imm.buffer_data = (GLubyte*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY) + imm.buffer_offset;
-#else
 	imm.buffer_data = glMapBufferRange(GL_ARRAY_BUFFER, imm.buffer_offset, bytes_needed,
 	                                   GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | (imm.strict_vertex_ct ? 0 : GL_MAP_FLUSH_EXPLICIT_BIT));
-#endif
 
 #if TRUST_NO_ONE
 	assert(imm.buffer_data != NULL);
@@ -390,11 +381,10 @@ void immEnd(void)
 			// unused buffer bytes are available to the next immBegin
 			// printf(" %u of %u bytes\n", buffer_bytes_used, imm.buffer_bytes_mapped);
 			}
-#if !APPLE_LEGACY
+
 		// tell OpenGL what range was modified so it doesn't copy the whole mapped range
 		// printf("flushing %u to %u\n", imm.buffer_offset, imm.buffer_offset + buffer_bytes_used - 1);
 		glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, buffer_bytes_used);
-#endif
 		}
 
 #if IMM_BATCH_COMBO
@@ -412,11 +402,6 @@ void immEnd(void)
 	else
 #endif
 		{
-#if APPLE_LEGACY
-		// tell OpenGL what range was modified so it doesn't copy the whole buffer
-		// printf("flushing %u to %u\n", imm.buffer_offset, imm.buffer_offset + buffer_bytes_used - 1);
-		glFlushMappedBufferRangeAPPLE(GL_ARRAY_BUFFER, imm.buffer_offset, buffer_bytes_used);
-#endif
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 
 		if (imm.vertex_ct > 0)
