@@ -749,12 +749,10 @@ void immVertex2iv(unsigned attrib_id, const int data[2])
     #define GET_UNIFORM const ShaderInput* uniform = ShaderInterface_uniform(imm.shader_interface, name);
   #endif
 #else
-/* NOTE: It is possible to have uniform fully optimized out from the shader.
- * In this case we can't assert failure or allow NULL-pointer dereference.
- *
- * TODO(sergey): How can we detect existing-but-optimized-out uniform but still
- * catch typos in uniform names passed to immUniform*() functions?
- */
+	// NOTE: It is possible to have uniform fully optimized out from the shader.
+	//       In this case we can't assert failure or allow NULL-pointer dereference.
+	// TODO(sergey): How can we detect existing-but-optimized-out uniform but still
+	//               catch typos in uniform names passed to immUniform*() functions?
   #define GET_UNIFORM const ShaderInput* uniform = ShaderInterface_uniform(imm.shader_interface, name); if (uniform == NULL) return;
 #endif
 
@@ -765,16 +763,16 @@ void immUniform1f(const char* name, float x)
 	}
 
 void immUniform2f(const char* name, float x, float y)
-{
+	{
 	GET_UNIFORM
 	glUniform2f(uniform->location, x, y);
-}
+	}
 
 void immUniform2fv(const char* name, const float data[2])
-{
+	{
 	GET_UNIFORM
 	glUniform2fv(uniform->location, 1, data);
-}
+	}
 
 void immUniform3f(const char* name, float x, float y, float z)
 	{
