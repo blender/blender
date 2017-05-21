@@ -18,8 +18,6 @@
 #define AVG_VERTEX_ATTRIB_NAME_LEN 11
 #define VERTEX_ATTRIB_NAMES_BUFFER_LEN ((AVG_VERTEX_ATTRIB_NAME_LEN + 1) * MAX_VERTEX_ATTRIBS)
 
-#define USE_10_10_10 1
-
 typedef enum {
 	COMP_I8,
 	COMP_U8,
@@ -30,9 +28,7 @@ typedef enum {
 
 	COMP_F32,
 
-#if USE_10_10_10
 	COMP_I10
-#endif
 } VertexCompType;
 
 typedef enum {
@@ -71,8 +67,6 @@ void VertexFormat_add_alias(VertexFormat*, const char* alias);
 
 // format conversion
 
-#if USE_10_10_10
-
 typedef struct {
 	int x : 10;
 	int y : 10;
@@ -82,5 +76,3 @@ typedef struct {
 
 PackedNormal convert_i10_v3(const float data[3]);
 PackedNormal convert_i10_s3(const short data[3]);
-
-#endif // USE_10_10_10

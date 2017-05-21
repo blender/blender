@@ -1367,15 +1367,11 @@ static void add_overlay_tri(
 			const short *svnor = mesh_render_data_vert_nor(rdata, tri_vert_idx[i]);
 			const short *slnor = tri_vert_nors[i];
 			fflag = mesh_render_data_looptri_flag(rdata, f);
-#if USE_10_10_10
+
 			PackedNormal vnor = convert_i10_s3(svnor);
 			PackedNormal lnor = convert_i10_s3(slnor);
 			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
 			VertexBuffer_set_attrib(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
-#else
-			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, svnor);
-			VertexBuffer_set_attrib(vbo_nor, lnor_id, base_vert_idx + i, slnor);
-#endif
 		}
 	}
 
@@ -1406,12 +1402,8 @@ static void add_overlay_loose_edge(
 	if (vbo_nor) {
 		for (int i = 0; i < 2; ++i) {
 			short *nor = mesh_render_data_vert_nor(rdata, edge_vert_idx[i]);
-#if USE_10_10_10
 			PackedNormal vnor = convert_i10_s3(nor);
 			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
-#else
-			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, &nor);
-#endif
 		}
 	}
 
@@ -1436,12 +1428,8 @@ static void add_overlay_loose_vert(
 
 	if (vbo_nor) {
 		short *nor = mesh_render_data_vert_nor(rdata, v);
-#if USE_10_10_10
 		PackedNormal vnor = convert_i10_s3(nor);
 		VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx, &vnor);
-#else
-		VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx, nor);
-#endif
 	}
 
 	if (vbo_data) {
@@ -1761,11 +1749,8 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 			/* WATCH IT : only specifying 3 component instead of 4 (4th is sign).
 			 * That may cause some problem but I could not make it to fail (fclem) */
 #ifdef USE_COMP_MESH_DATA
-#  if USE_10_10_10 && 0 /* Tangents need more precision than this */
-			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-#  else
+			/* Tangents need more precision than 10_10_10 */
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
-#  endif
 #else
 			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
 #endif
@@ -1825,19 +1810,11 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 					/* Tangent */
 					mesh_render_data_looptri_tans_get(rdata, i, j, &tri_tans);
 #ifdef USE_COMP_MESH_DATA
-#  if USE_10_10_10 && 0 /* Tangents need more precision than this */
-					PackedNormal s_tan_pack[3] = {
-					    convert_i10_v3(tri_tans[0]),
-					    convert_i10_v3(tri_tans[1]),
-					    convert_i10_v3(tri_tans[2])
-					};
-					PackedNormal *s_tan[3] = { &s_tan_pack[0], &s_tan_pack[1], &s_tan_pack[2] };
-#  else
+					/* Tangents need more precision than 10_10_10 */
 					short s_tan[3][3];
 					normal_float_to_short_v3(s_tan[0], tri_tans[0]);
 					normal_float_to_short_v3(s_tan[1], tri_tans[1]);
 					normal_float_to_short_v3(s_tan[2], tri_tans[2]);
-#  endif
 #else
 					float **s_tan = tri_tans;
 #endif
@@ -1883,11 +1860,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals_ex(
 		static struct { uint pos, nor; } attr_id;
 		if (format.attrib_ct == 0) {
 			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-#if USE_10_10_10
 			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-#else
-			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
-#endif
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
@@ -1907,27 +1880,21 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals_ex(
 			        rdata, i, use_hide, &tri_vert_cos, &tri_nor, &tri_vert_nors, &is_smooth))
 			{
 				if (is_smooth) {
-#if USE_10_10_10
 					PackedNormal snor_pack[3] = {
 						convert_i10_s3(tri_vert_nors[0]),
 						convert_i10_s3(tri_vert_nors[1]),
 						convert_i10_s3(tri_vert_nors[2])
 					};
 					PackedNormal *snor[3] = { &snor_pack[0], &snor_pack[1], &snor_pack[2] };
-#else
-					short **snor = tri_vert_nors;
-#endif
+
 					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[0]);
 					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[1]);
 					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[2]);
 				}
 				else {
-#if USE_10_10_10
 					PackedNormal snor_pack = convert_i10_s3(tri_nor);
 					PackedNormal *snor = &snor_pack;
-#else
-					short *snor = tri_nor;
-#endif
+
 					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
 					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
 					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
@@ -2202,15 +2169,9 @@ static VertexFormat *edit_mesh_overlay_nor_format(unsigned int *r_vnor_id, unsig
 	static VertexFormat format_nor_loop = { 0 };
 	static unsigned vnor_id, vnor_loop_id, lnor_id;
 	if (format_nor.attrib_ct == 0) {
-#if USE_10_10_10
 		vnor_id = VertexFormat_add_attrib(&format_nor, "vnor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
 		vnor_loop_id = VertexFormat_add_attrib(&format_nor_loop, "vnor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
 		lnor_id = VertexFormat_add_attrib(&format_nor_loop, "lnor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-#else
-		vnor_id = VertexFormat_add_attrib(&format_nor, "vnor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
-		vnor_loop_id = VertexFormat_add_attrib(&format_nor_loop, "vnor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
-		lnor_id = VertexFormat_add_attrib(&format_nor_loop, "lnor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
-#endif
 	}
 	if (r_lnor_id) {
 		*r_vnor_id = vnor_loop_id;
@@ -2938,13 +2899,8 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 		if (format.attrib_ct == 0) {
 			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
 
-#if USE_10_10_10 /* takes 1/3 the space */
 			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
 			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-#else
-			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
-#endif
 		}
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 
@@ -2963,7 +2919,6 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 
 			if (mesh_render_data_edge_vcos_manifold_pnors(rdata, i, &vcos1, &vcos2, &pnor1, &pnor2, &is_manifold)) {
 
-#if USE_10_10_10
 				PackedNormal n1value = { .x = 0, .y = 0, .z = +511 };
 				PackedNormal n2value = { .x = 0, .y = 0, .z = -511 };
 
@@ -2974,13 +2929,6 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 
 				const PackedNormal *n1 = &n1value;
 				const PackedNormal *n2 = &n2value;
-#else
-				const float dummy1[3] = { 0.0f, 0.0f, +1.0f };
-				const float dummy2[3] = { 0.0f, 0.0f, -1.0f };
-
-				const float *n1 = (is_manifold) ? pnor1 : dummy1;
-				const float *n2 = (is_manifold) ? pnor2 : dummy2;
-#endif
 
 				VertexBuffer_set_attrib(vbo, attr_id.pos, 2 * i, vcos1);
 				VertexBuffer_set_attrib(vbo, attr_id.n1, 2 * i, n1);
@@ -3110,11 +3058,7 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 		static struct { uint pos, data; } attr_id;
 		if (format.attrib_ct == 0) {
 			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-#if USE_10_10_10
 			attr_id.data = VertexFormat_add_attrib(&format, "norAndFlag", COMP_I10, 4, NORMALIZE_INT_TO_FLOAT);
-#else
-			attr_id.data = VertexFormat_add_attrib(&format, "norAndFlag", COMP_F32, 4, KEEP_FLOAT);
-#endif
 		}
 
 		const int vbo_len_capacity = mesh_render_data_polys_len_get(rdata);
@@ -3128,15 +3072,10 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 
 			if (mesh_render_data_pnors_pcenter_select_get(rdata, i, pnor, pcenter, &selected)) {
 
-#if USE_10_10_10
 				PackedNormal nor = { .x = 0, .y = 0, .z = -511 };
 				nor = convert_i10_v3(pnor);
 				nor.w = selected ? 1 : 0;
 				VertexBuffer_set_attrib(vbo, attr_id.data, vidx, &nor);
-#else
-				float nor[4] = {pnor[0], pnor[1], pnor[2], selected ? 1 : 0};
-				VertexBuffer_set_attrib(vbo, attr_id.data, vidx, nor);
-#endif
 
 				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx, pcenter);
 
