@@ -276,6 +276,13 @@ static int quantize(float x)
 	return clampi(qx, SIGNED_INT_10_MIN, SIGNED_INT_10_MAX);
 	}
 
+static int convert_i16(short x)
+	{
+	// 16-bit signed --> 10-bit signed
+	return x >> 6;
+	// TODO: round?
+	}
+
 PackedNormal convert_i10_v3(const float data[3])
 	{
 	PackedNormal n = { .x = quantize(data[0]), .y = quantize(data[1]), .z = quantize(data[2]) };
@@ -284,10 +291,6 @@ PackedNormal convert_i10_v3(const float data[3])
 
 PackedNormal convert_i10_s3(const short data[3])
 	{
-	PackedNormal n = {
-		.x = quantize((float)data[0] / 32767.0f),
-		.y = quantize((float)data[1] / 32767.0f),
-		.z = quantize((float)data[2] / 32767.0f)
-	};
+	PackedNormal n = { .x = convert_i16(data[0]), .y = convert_i16(data[1]), .z = convert_i16(data[2]) };
 	return n;
 	}
