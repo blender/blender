@@ -31,14 +31,3 @@
 #else
   #define APPLE_LEGACY 0
 #endif
-
-#if APPLE_LEGACY
-  #undef glGenVertexArrays
-  #define glGenVertexArrays glGenVertexArraysAPPLE
-
-  #undef glDeleteVertexArrays
-  #define glDeleteVertexArrays glDeleteVertexArraysAPPLE
-
-  #undef glBindVertexArray
-  #define glBindVertexArray glBindVertexArrayAPPLE
-#endif
