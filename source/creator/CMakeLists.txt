@@ -721,9 +721,9 @@ elseif(WIN32)
 				add_custom_command(
 					OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages/numpy
 					COMMAND ${CMAKE_COMMAND} -E
-					        tar xzvf "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_numpy_${PYTHON_NUMPY_VERSION}.tar.gz"
+					        tar xzvf "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_numpy_${PYTHON_NUMPY_VERSION}$<$<CONFIG:Debug>:d>.tar.gz"
 					DEPENDS
-						${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_numpy_${PYTHON_NUMPY_VERSION}.tar.gz
+						${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_numpy_${PYTHON_NUMPY_VERSION}$<$<CONFIG:Debug>:d>.tar.gz
 						${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages
 					WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages
 				)
