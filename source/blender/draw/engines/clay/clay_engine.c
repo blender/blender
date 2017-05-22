@@ -364,7 +364,9 @@ static void CLAY_engine_init(void *vedata)
 	}
 
 	if (!e_data.hair_sh) {
-		e_data.hair_sh = DRW_shader_create(datatoc_particle_vert_glsl, NULL, datatoc_particle_strand_frag_glsl, "#define MAX_MATERIAL 512\n");
+		e_data.hair_sh = DRW_shader_create(
+		        datatoc_particle_vert_glsl, NULL, datatoc_particle_strand_frag_glsl,
+		        "#define MAX_MATERIAL 512\n");
 	}
 
 	if (!stl->storage) {
@@ -398,13 +400,15 @@ static void CLAY_engine_init(void *vedata)
 	{
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		SceneLayer *scene_layer = draw_ctx->sl;
-		IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
+		IDProperty *props = BKE_scene_layer_engine_evaluated_get(
+		        scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 		int ssao_samples = BKE_collection_engine_property_value_get_int(props, "ssao_samples");
 
 		float invproj[4][4];
 		float dfdyfacs[2];
 		const bool is_persp = DRW_viewport_is_persp_get();
-		/* view vectors for the corners of the view frustum. Can be used to recreate the world space position easily */
+		/* view vectors for the corners of the view frustum.
+		 * Can be used to recreate the world space position easily */
 		float viewvecs[3][4] = {
 		    {-1.0f, -1.0f, -1.0f, 1.0f},
 		    {1.0f, -1.0f, -1.0f, 1.0f},

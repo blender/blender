@@ -2959,36 +2959,43 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 {
 	/* Since MR_DATATYPE_OVERLAY is slow to generate, generate them all at once */
-	int options = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI | MR_DATATYPE_OVERLAY;
+	const int options =
+	        MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_POLY |
+	        MR_DATATYPE_LOOPTRI | MR_DATATYPE_OVERLAY;
 
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 	MeshRenderData *rdata = mesh_render_data_create(me, options);
 
 	if (cache->overlay_triangles == NULL) {
-		cache->overlay_triangles = Batch_create(PRIM_TRIANGLES, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
+		cache->overlay_triangles = Batch_create(
+		        PRIM_TRIANGLES, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
 		Batch_add_VertexBuffer(cache->overlay_triangles, mesh_batch_cache_get_edit_tri_nor(rdata, cache));
 		Batch_add_VertexBuffer(cache->overlay_triangles, mesh_batch_cache_get_edit_tri_data(rdata, cache));
 	}
 
 	if (cache->overlay_loose_edges == NULL) {
-		cache->overlay_loose_edges = Batch_create(PRIM_LINES, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
+		cache->overlay_loose_edges = Batch_create(
+		        PRIM_LINES, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
 		Batch_add_VertexBuffer(cache->overlay_loose_edges, mesh_batch_cache_get_edit_ledge_nor(rdata, cache));
 		Batch_add_VertexBuffer(cache->overlay_loose_edges, mesh_batch_cache_get_edit_ledge_data(rdata, cache));
 	}
 
 	if (cache->overlay_loose_verts == NULL) {
-		cache->overlay_loose_verts = Batch_create(PRIM_POINTS, mesh_batch_cache_get_edit_lvert_pos(rdata, cache), NULL);
+		cache->overlay_loose_verts = Batch_create(
+		        PRIM_POINTS, mesh_batch_cache_get_edit_lvert_pos(rdata, cache), NULL);
 		Batch_add_VertexBuffer(cache->overlay_loose_verts, mesh_batch_cache_get_edit_lvert_nor(rdata, cache));
 		Batch_add_VertexBuffer(cache->overlay_loose_verts, mesh_batch_cache_get_edit_lvert_data(rdata, cache));
 	}
 
 	if (cache->overlay_triangles_nor == NULL) {
-		cache->overlay_triangles_nor = Batch_create(PRIM_POINTS, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
+		cache->overlay_triangles_nor = Batch_create(
+		        PRIM_POINTS, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
 		Batch_add_VertexBuffer(cache->overlay_triangles_nor, mesh_batch_cache_get_edit_tri_nor(rdata, cache));
 	}
 
 	if (cache->overlay_loose_edges_nor == NULL) {
-		cache->overlay_loose_edges_nor = Batch_create(PRIM_POINTS, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
+		cache->overlay_loose_edges_nor = Batch_create(
+		        PRIM_POINTS, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
 		Batch_add_VertexBuffer(cache->overlay_loose_edges_nor, mesh_batch_cache_get_edit_ledge_nor(rdata, cache));
 	}
 
