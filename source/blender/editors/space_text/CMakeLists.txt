@@ -43,6 +43,8 @@ set(SRC
 	text_format.c
 	text_format_lua.c
 	text_format_osl.c
+	text_format_pov.c
+	text_format_pov_ini.c
 	text_format_py.c
 	text_header.c
 	text_ops.c
