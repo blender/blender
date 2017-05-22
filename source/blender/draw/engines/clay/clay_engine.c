@@ -89,7 +89,7 @@ typedef struct CLAY_HAIR_UBO_Material {
 	float matcap_hsv[3];
 	float pad;
 } CLAY_HAIR_UBO_Material; /* 32 bytes */
-BLI_STATIC_ASSERT_ALIGN(CLAY_UBO_Material, 16)
+BLI_STATIC_ASSERT_ALIGN(CLAY_HAIR_UBO_Material, 16)
 
 typedef struct CLAY_UBO_Storage {
 	CLAY_UBO_Material materials[MAX_CLAY_MAT];
@@ -166,7 +166,6 @@ static struct {
 
 	/* Just a serie of int from 0 to MAX_CLAY_MAT-1 */
 	int ubo_mat_idxs[MAX_CLAY_MAT];
-	int hair_ubo_mat_idxs[MAX_CLAY_MAT];
 
 	/* engine specific */
 	struct GPUTexture *depth_dup;
