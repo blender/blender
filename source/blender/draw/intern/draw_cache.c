@@ -2065,6 +2065,23 @@ Batch **DRW_cache_mesh_surface_shaded_get(Object *ob)
 	return DRW_mesh_batch_cache_get_surface_shaded(me);
 }
 
+/* Return list of batches */
+Batch **DRW_cache_mesh_surface_texpaint_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_surface_texpaint(me);
+}
+
+Batch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_surface_texpaint_single(me);
+}
+
 Batch *DRW_cache_mesh_surface_verts_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);

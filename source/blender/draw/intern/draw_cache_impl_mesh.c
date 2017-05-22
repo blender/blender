@@ -130,6 +130,7 @@ typedef struct MeshRenderData {
 	MPoly *mpoly;
 	float (*orco)[3];
 	MDeformVert *dvert;
+	MLoopUV *mloopuv;
 	MLoopCol *mloopcol;
 
 	/* CustomData 'cd' cache for efficient access. */
@@ -200,6 +201,7 @@ enum {
 	MR_DATATYPE_SHADING    = 1 << 6,
 	MR_DATATYPE_DVERT      = 1 << 7,
 	MR_DATATYPE_LOOPCOL    = 1 << 8,
+	MR_DATATYPE_LOOPUV     = 1 << 9,
 };
 
 /**
@@ -347,6 +349,10 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 		if (types & MR_DATATYPE_LOOPCOL) {
 			rdata->loop_len = me->totloop;
 			rdata->mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
+		}
+		if (types & MR_DATATYPE_LOOPUV) {
+			rdata->loop_len = me->totloop;
+			rdata->mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
 		}
 	}
 
@@ -1469,6 +1475,7 @@ typedef struct MeshBatchCache {
 	VertexBuffer *tri_aligned_weights;
 	VertexBuffer *tri_aligned_vert_colors;
 	VertexBuffer *tri_aligned_select_id;
+	VertexBuffer *tri_aligned_uv;  /* Active UV layer (mloopuv) */
 	VertexBuffer *edge_pos_with_select_bool;
 	VertexBuffer *pos_with_select_bool;
 	Batch *triangles_with_normals;
@@ -1489,6 +1496,11 @@ typedef struct MeshBatchCache {
 	VertexBuffer *shaded_triangles_data;
 	ElementList **shaded_triangles_in_order;
 	Batch **shaded_triangles;
+
+	/* Texture Paint.*/
+	/* per-texture batch */
+	Batch **texpaint_triangles;
+	Batch  *texpaint_triangles_single;
 
 	/* Edit Cage Mesh buffers */
 	VertexBuffer *ed_tri_pos;
@@ -1683,6 +1695,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 	BATCH_DISCARD_SAFE(cache->triangles_with_weights);
 	BATCH_DISCARD_SAFE(cache->triangles_with_vert_colors);
 	VERTEXBUFFER_DISCARD_SAFE(cache->tri_aligned_select_id);
+	VERTEXBUFFER_DISCARD_SAFE(cache->tri_aligned_uv);
 	BATCH_DISCARD_SAFE(cache->triangles_with_select_id);
 
 	BATCH_DISCARD_ALL_SAFE(cache->fancy_edges);
@@ -1701,6 +1714,16 @@ static void mesh_batch_cache_clear(Mesh *me)
 
 	MEM_SAFE_FREE(cache->shaded_triangles_in_order);
 	MEM_SAFE_FREE(cache->shaded_triangles);
+
+	if (cache->texpaint_triangles) {
+		for (int i = 0; i < cache->mat_len; ++i) {
+			BATCH_DISCARD_SAFE(cache->texpaint_triangles[i]);
+		}
+	}
+	MEM_SAFE_FREE(cache->texpaint_triangles);
+
+	BATCH_DISCARD_SAFE(cache->texpaint_triangles_single);
+
 }
 
 void DRW_mesh_batch_cache_free(Mesh *me)
@@ -1854,6 +1877,45 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 #undef USE_COMP_MESH_DATA
 
 	return cache->shaded_triangles_data;
+}
+
+static VertexBuffer *mesh_batch_cache_get_tri_uv_active(
+        MeshRenderData *rdata, MeshBatchCache *cache)
+{
+	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPUV));
+	BLI_assert(rdata->edit_bmesh == NULL);
+
+	if (cache->tri_aligned_uv == NULL) {
+		unsigned int vidx = 0;
+
+		static VertexFormat format = { 0 };
+		static struct { uint uv; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.uv = VertexFormat_add_attrib(&format, "uv", COMP_F32, 2, KEEP_FLOAT);
+		}
+
+		const int tri_len = mesh_render_data_looptri_len_get(rdata);
+
+		VertexBuffer *vbo = cache->tri_aligned_uv = VertexBuffer_create_with_format(&format);
+
+		const int vbo_len_capacity = tri_len * 3;
+		int vbo_len_used = 0;
+		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+
+		const MLoopUV *mloopuv = rdata->mloopuv;
+
+		for (int i = 0; i < tri_len; i++) {
+			const MLoopTri *mlt = &rdata->mlooptri[i];
+			VertexBuffer_set_attrib(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[0]].uv);
+			VertexBuffer_set_attrib(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[1]].uv);
+			VertexBuffer_set_attrib(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[2]].uv);
+		}
+		vbo_len_used = vidx;
+
+		BLI_assert(vbo_len_capacity == vbo_len_used);
+	}
+
+	return cache->tri_aligned_uv;
 }
 
 static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals_ex(
@@ -3144,6 +3206,60 @@ Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 	}
 
 	return cache->shaded_triangles;
+}
+
+Batch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->texpaint_triangles == NULL) {
+		/* create batch from DM */
+		const int datatype =
+		        MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOPUV;
+		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
+
+		const int mat_len = mesh_render_data_mat_len_get(rdata);
+
+		cache->texpaint_triangles = MEM_callocN(sizeof(*cache->texpaint_triangles) * mat_len, __func__);
+
+		ElementList **el = mesh_batch_cache_get_shaded_triangles_in_order(rdata, cache);
+
+		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
+		for (int i = 0; i < mat_len; ++i) {
+			cache->texpaint_triangles[i] = Batch_create(
+			        PRIM_TRIANGLES, vbo, el[i]);
+			VertexBuffer *vbo_uv = mesh_batch_cache_get_tri_uv_active(rdata, cache);
+			if (vbo_uv) {
+				Batch_add_VertexBuffer(cache->texpaint_triangles[i], vbo_uv);
+			}
+		}
+		mesh_render_data_free(rdata);
+	}
+
+	return cache->texpaint_triangles;
+}
+
+Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->texpaint_triangles_single == NULL) {
+		/* create batch from DM */
+		const int datatype =
+		        MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOPUV;
+		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
+
+		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
+
+		cache->texpaint_triangles_single = Batch_create(
+		        PRIM_TRIANGLES, vbo, NULL);
+		VertexBuffer *vbo_uv = mesh_batch_cache_get_tri_uv_active(rdata, cache);
+		if (vbo_uv) {
+			Batch_add_VertexBuffer(cache->texpaint_triangles_single, vbo_uv);
+		}
+		mesh_render_data_free(rdata);
+	}
+	return cache->texpaint_triangles_single;
 }
 
 Batch *DRW_mesh_batch_cache_get_weight_overlay_edges(Mesh *me, bool use_wire, bool use_sel)

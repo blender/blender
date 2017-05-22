@@ -112,6 +112,8 @@ struct Batch *DRW_cache_mesh_edges_paint_overlay_get(struct Object *ob, bool use
 struct Batch *DRW_cache_mesh_faces_weight_overlay_get(struct Object *ob);
 struct Batch *DRW_cache_mesh_verts_weight_overlay_get(struct Object *ob);
 struct Batch **DRW_cache_mesh_surface_shaded_get(struct Object *ob);
+struct Batch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
+struct Batch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
 
 /* Curve */
 struct Batch *DRW_cache_curve_surface_get(struct Object *ob);
