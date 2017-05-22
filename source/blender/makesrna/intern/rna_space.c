@@ -1346,7 +1346,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, bContext *C, Sce
 	}
 }
 
-static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), bContext *C, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
 	SceneLayer *sl = CTX_data_scene_layer(C);
