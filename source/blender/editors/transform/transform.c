@@ -4969,7 +4969,7 @@ static void initPushPull(TransInfo *t)
 
 static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 {
-	float vec[3], axis[3];
+	float vec[3], axis_global[3];
 	float distance;
 	int i;
 	char str[UI_MAX_DRAW_STR];
@@ -4997,7 +4997,7 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	if (t->con.applyRot && t->con.mode & CON_APPLY) {
-		t->con.applyRot(t, NULL, axis, NULL);
+		t->con.applyRot(t, NULL, axis_global, NULL);
 	}
 
 	for (i = 0; i < t->total; i++, td++) {
@@ -5009,7 +5009,11 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 
 		sub_v3_v3v3(vec, t->center, td->center);
 		if (t->con.applyRot && t->con.mode & CON_APPLY) {
+			float axis[3];
+			copy_v3_v3(axis, axis_global);
 			t->con.applyRot(t, td, axis, NULL);
+
+			mul_m3_v3(td->smtx, axis);
 			if (isLockConstraint(t)) {
 				float dvec[3];
 				project_v3_v3v3(dvec, vec, axis);

@@ -50,9 +50,9 @@ public:
 
 	T *allocate(size_t n, const void *hint = 0)
 	{
+		(void)hint;
 		size_t size = n * sizeof(T);
 		util_guarded_mem_alloc(size);
-		(void)hint;
 		if(n == 0) {
 			return NULL;
 		}

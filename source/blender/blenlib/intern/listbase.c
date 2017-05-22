@@ -692,7 +692,7 @@ void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
 }
 
 /**
- * Returns the 1-based index of the first element of listbase which contains the specified
+ * Returns the 0-based index of the first element of listbase which contains the specified
  * null-terminated string at the specified offset, or -1 if not found.
  */
 int BLI_findstringindex(const ListBase *listbase, const char *id, const int offset)

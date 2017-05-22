@@ -55,9 +55,14 @@ ccl_device_inline void kernel_filter_construct_gramian(int x, int y,
 	float q_std_dev = sqrtf(filter_get_pixel_variance(variance_pass + q_offset, pass_stride));
 
 	/* If the pixel was flagged as an outlier during prefiltering, skip it.
-	 * Otherwise, perform the regular confidence interval test. */
-	if(ccl_get_feature(buffer + q_offset, 0) < 0.0f ||
-	   average(fabs(p_color - q_color)) > 2.0f*(p_std_dev + q_std_dev + 1e-3f)) {
+	 * Otherwise, perform the regular confidence interval test unless
+	 * the center pixel is an outlier (in that case, using the confidence
+	 * interval test could result in no pixels being used at all). */
+	bool p_outlier = (ccl_get_feature(buffer + p_offset, 0) < 0.0f);
+	bool q_outlier = (ccl_get_feature(buffer + q_offset, 0) < 0.0f);
+	bool outside_of_interval = (average(fabs(p_color - q_color)) > 2.0f*(p_std_dev + q_std_dev + 1e-3f));
+
+	if(q_outlier || (!p_outlier && outside_of_interval)) {
 		return;
 	}
 

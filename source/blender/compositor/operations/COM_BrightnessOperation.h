@@ -34,6 +34,8 @@ private:
 	SocketReader *m_inputBrightnessProgram;
 	SocketReader *m_inputContrastProgram;
 
+	bool m_use_premultiply;
+
 public:
 	BrightnessOperation();
 	
@@ -52,5 +54,6 @@ public:
 	 */
 	void deinitExecution();
 
+	void setUsePremultiply(bool use_premultiply);
 };
 #endif

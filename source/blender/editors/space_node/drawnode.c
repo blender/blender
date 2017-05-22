@@ -2446,6 +2446,11 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), P
 	uiItemR(layout, ptr, "ray_length", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_brightcontrast(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "use_premultiply", 0, NULL, ICON_NONE);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2673,6 +2678,8 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_SUNBEAMS:
 			ntype->draw_buttons = node_composit_buts_sunbeams;
 			break;
+		case CMP_NODE_BRIGHTCONTRAST:
+			ntype->draw_buttons = node_composit_buts_brightcontrast;
 	}
 }
 

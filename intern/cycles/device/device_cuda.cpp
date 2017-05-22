@@ -225,6 +225,9 @@ public:
 		cuDevice = 0;
 		cuContext = 0;
 
+		cuModule = 0;
+		cuFilterModule = 0;
+
 		split_kernel = NULL;
 
 		need_bindless_mapping = false;
@@ -487,6 +490,16 @@ public:
 
 	bool load_kernels(const DeviceRequestedFeatures& requested_features)
 	{
+		/* TODO(sergey): Support kernels re-load for CUDA devices.
+		 *
+		 * Currently re-loading kernel will invalidate memory pointers,
+		 * causing problems in cuCtxSynchronize.
+		 */
+		if(cuFilterModule && cuModule) {
+			VLOG(1) << "Skipping kernel reload, not currently supported.";
+			return true;
+		}
+
 		/* check if cuda init succeeded */
 		if(cuContext == 0)
 			return false;
@@ -1148,8 +1161,6 @@ public:
 	                              device_ptr mean_ptr, device_ptr variance_ptr,
 	                              int r, int4 rect, DenoisingTask *task)
 	{
-		(void) task;
-
 		if(have_error())
 			return false;
 
@@ -1179,8 +1190,6 @@ public:
 	                             device_ptr sample_variance_ptr, device_ptr sv_variance_ptr,
 	                             device_ptr buffer_variance_ptr, DenoisingTask *task)
 	{
-		(void) task;
-
 		if(have_error())
 			return false;
 

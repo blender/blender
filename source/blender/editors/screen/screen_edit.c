@@ -766,7 +766,9 @@ static void screen_test_scale(bScreen *sc, int winsize_x, int winsize_y)
 				/* lower edge */
 				const int yval = sa->v2->vec.y - headery_init;
 				se = screen_findedge(sc, sa->v4, sa->v1);
-				select_connected_scredge(sc, se);
+				if (se != NULL) {
+					select_connected_scredge(sc, se);
+				}
 				for (sv = sc->vertbase.first; sv; sv = sv->next) {
 					if (sv != sa->v2 && sv != sa->v3) {
 						if (sv->flag) {
@@ -779,7 +781,9 @@ static void screen_test_scale(bScreen *sc, int winsize_x, int winsize_y)
 				/* upper edge */
 				const int yval = sa->v1->vec.y + headery_init;
 				se = screen_findedge(sc, sa->v2, sa->v3);
-				select_connected_scredge(sc, se);
+				if (se != NULL) {
+					select_connected_scredge(sc, se);
+				}
 				for (sv = sc->vertbase.first; sv; sv = sv->next) {
 					if (sv != sa->v1 && sv != sa->v4) {
 						if (sv->flag) {

@@ -817,8 +817,6 @@ bool OpenCLDeviceBase::denoising_combine_halves(device_ptr a_ptr,
                                                 int r, int4 rect,
                                                 DenoisingTask *task)
 {
-	(void) task;
-
 	cl_mem a_mem = CL_MEM_PTR(a_ptr);
 	cl_mem b_mem = CL_MEM_PTR(b_ptr);
 	cl_mem mean_mem = CL_MEM_PTR(mean_ptr);
@@ -847,8 +845,6 @@ bool OpenCLDeviceBase::denoising_divide_shadow(device_ptr a_ptr,
                                                device_ptr buffer_variance_ptr,
                                                DenoisingTask *task)
 {
-	(void) task;
-
 	cl_mem a_mem = CL_MEM_PTR(a_ptr);
 	cl_mem b_mem = CL_MEM_PTR(b_ptr);
 	cl_mem sample_variance_mem = CL_MEM_PTR(sample_variance_ptr);

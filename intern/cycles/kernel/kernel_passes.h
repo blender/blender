@@ -152,6 +152,11 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
 
 	L->denoising_depth += ensure_finite(state->denoising_feature_weight * sd->ray_length);
 
+	/* Skip implicitly transparent surfaces. */
+	if(sd->flag & SD_HAS_ONLY_VOLUME) {
+		return;
+	}
+
 	float3 normal = make_float3(0.0f, 0.0f, 0.0f);
 	float3 albedo = make_float3(0.0f, 0.0f, 0.0f);
 	float sum_weight = 0.0f, sum_nonspecular_weight = 0.0f;
