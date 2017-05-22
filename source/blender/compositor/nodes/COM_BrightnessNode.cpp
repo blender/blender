@@ -31,7 +31,9 @@ BrightnessNode::BrightnessNode(bNode *editorNode) : Node(editorNode)
 
 void BrightnessNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
+	bNode *bnode = this->getbNode();
 	BrightnessOperation *operation = new BrightnessOperation();
+	operation->setUsePremultiply((bnode->custom1 & 1) != 0);
 	converter.addOperation(operation);
 	
 	converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));

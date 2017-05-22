@@ -29,7 +29,14 @@ BrightnessOperation::BrightnessOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->m_inputProgram = NULL;
+	this->m_use_premultiply = false;
 }
+
+void BrightnessOperation::setUsePremultiply(bool use_premultiply)
+{
+	this->m_use_premultiply = use_premultiply;
+}
+
 void BrightnessOperation::initExecution()
 {
 	this->m_inputProgram = this->getInputSocketReader(0);
@@ -64,11 +71,16 @@ void BrightnessOperation::executePixelSampled(float output[4], float x, float y,
 		delta *= -1;
 		b = a * (brightness + delta);
 	}
-	
+	if (this->m_use_premultiply) {
+		premul_to_straight_v4(inputValue);
+	}
 	output[0] = a * inputValue[0] + b;
 	output[1] = a * inputValue[1] + b;
 	output[2] = a * inputValue[2] + b;
 	output[3] = inputValue[3];
+	if (this->m_use_premultiply) {
+		straight_to_premul_v4(output);
+	}
 }
 
 void BrightnessOperation::deinitExecution()

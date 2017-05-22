@@ -179,7 +179,7 @@ DefNode( CompositorNode, CMP_NODE_DISPLACE,       0,                      "DISPL
 DefNode( CompositorNode, CMP_NODE_COMBHSVA,       0,                      "COMBHSVA",       CombHSVA,         "Combine HSVA",      ""              )
 DefNode( CompositorNode, CMP_NODE_MATH,           def_math,               "MATH",           Math,             "Math",              ""              )
 DefNode( CompositorNode, CMP_NODE_LUMA_MATTE,     def_cmp_luma_matte,     "LUMA_MATTE",     LumaMatte,        "Luminance Key",     ""              )
-DefNode( CompositorNode, CMP_NODE_BRIGHTCONTRAST, 0,                      "BRIGHTCONTRAST", BrightContrast,   "Bright/Contrast",   ""              )
+DefNode( CompositorNode, CMP_NODE_BRIGHTCONTRAST, def_cmp_brightcontrast, "BRIGHTCONTRAST", BrightContrast,   "Bright/Contrast",   ""              )
 DefNode( CompositorNode, CMP_NODE_GAMMA,          0,                      "GAMMA",          Gamma,            "Gamma",             ""              )
 DefNode( CompositorNode, CMP_NODE_INVERT,         def_cmp_invert,         "INVERT",         Invert,           "Invert",            ""              )
 DefNode( CompositorNode, CMP_NODE_NORMALIZE,      0,                      "NORMALIZE",      Normalize,        "Normalize",         ""              )
