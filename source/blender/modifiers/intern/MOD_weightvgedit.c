@@ -226,8 +226,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		if (!do_add)
 			return dm;
 		/* Else, add a valid data layer! */
-		dvert = CustomData_add_layer_named(&dm->vertData, CD_MDEFORMVERT, CD_CALLOC,
-		                                   NULL, numVerts, wmd->defgrp_name);
+		dvert = CustomData_add_layer(&dm->vertData, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
 		/* Ultimate security check. */
 		if (!dvert)
 			return dm;

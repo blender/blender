@@ -282,8 +282,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		if (wmd->mix_set != MOD_WVG_SET_ALL)
 			return dm;
 		/* Else, add a valid data layer! */
-		dvert = CustomData_add_layer_named(&dm->vertData, CD_MDEFORMVERT, CD_CALLOC,
-		                                   NULL, numVerts, wmd->defgrp_name_a);
+		dvert = CustomData_add_layer(&dm->vertData, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
 		/* Ultimate security check. */
 		if (!dvert)
 			return dm;

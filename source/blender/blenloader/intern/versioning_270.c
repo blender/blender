@@ -1643,6 +1643,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				scene->r.im_format.exr_codec = R_IMF_EXR_CODEC_DWAA;
 			}
 		}
+
+		/* Fix related to VGroup modifiers creating named defgroup CD layers! See T51520. */
+		for (Mesh *me = main->mesh.first; me; me = me->id.next) {
+			CustomData_set_layer_name(&me->vdata, CD_MDEFORMVERT, 0, "");
+		}
 	}
 }
 
