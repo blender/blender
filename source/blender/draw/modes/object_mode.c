@@ -56,6 +56,8 @@
 #include "draw_manager_text.h"
 #include "draw_common.h"
 
+#define MAX_OBJECT_MAT 512 /* 512 = 9 bit material id */
+
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern GlobalsUboStorage ts;
 
@@ -68,9 +70,30 @@ extern char datatoc_object_empty_image_frag_glsl[];
 extern char datatoc_object_empty_image_vert_glsl[];
 extern char datatoc_particle_prim_vert_glsl[];
 extern char datatoc_particle_prim_frag_glsl[];
+extern char datatoc_particle_dot_vert_glsl[];
+extern char datatoc_particle_dot_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 
 /* *********** LISTS *********** */
+
+/**
+ * UBOs data needs to be 16 byte aligned (size of vec4)
+ *
+ * Reminder: float, int, bool are 4 bytes
+ *
+ * \note struct is expected to be initialized with all pad-bits zero'd
+ * so we can use 'memcmp' to check for duplicates. Possibly hash data later.
+ */
+typedef struct OBJECT_PARTICLE_UBO_Material {
+	float prim_color[3];
+	float pad1;
+	/* - 16 -*/
+	float sec_color[3];
+	float size;
+	/* - 16 -*/
+} OBJECT_PARTICLE_UBO_Material; /* 32 bytes */
+BLI_STATIC_ASSERT_ALIGN(OBJECT_PARTICLE_UBO_Material, 16)
+
 typedef struct OBJECT_PassList {
 	struct DRWPass *non_meshes;
 	struct DRWPass *ob_center;
@@ -95,7 +118,19 @@ typedef struct OBJECT_FramebufferList {
 	struct GPUFrameBuffer *blur;
 } OBJECT_FramebufferList;
 
+typedef struct OBJECT_Storage {
+	/* Materials Parameter UBO */
+	OBJECT_PARTICLE_UBO_Material materials[MAX_OBJECT_MAT];
+	int particle_ubo_current_id;
+	DRWShadingGroup *part_dot_shgrps[MAX_OBJECT_MAT];
+	DRWShadingGroup *part_cross_shgrps[MAX_OBJECT_MAT];
+	DRWShadingGroup *part_circle_shgrps[MAX_OBJECT_MAT];
+	DRWShadingGroup *part_axis_shgrps[MAX_OBJECT_MAT];
+} OBJECT_Storage;
+
 typedef struct OBJECT_StorageList {
+	struct OBJECT_Storage *storage;
+	struct GPUUniformBuffer *part_mat_ubo;
 	struct OBJECT_PrivateData *g_data;
 } OBJECT_StorageList;
 
@@ -186,12 +221,6 @@ typedef struct OBJECT_PrivateData{
 	DRWShadingGroup *wire_select;
 	DRWShadingGroup *wire_select_group;
 	DRWShadingGroup *wire_transform;
-
-	/* Particles */
-	DRWShadingGroup *part_dot_shgrp;
-	DRWShadingGroup *part_cross_shgrp;
-	DRWShadingGroup *part_circle_shgrp;
-	DRWShadingGroup *part_axis_shgrp;
 } OBJECT_PrivateData; /* Transient data */
 
 static struct {
@@ -216,6 +245,8 @@ static struct {
 	struct GPUTexture *outlines_depth_tx;
 	struct GPUTexture *outlines_color_tx;
 	struct GPUTexture *outlines_blur_tx;
+	/* Just a serie of int from 0 to MAX_CLAY_MAT-1 */
+	int ubo_mat_idxs[MAX_OBJECT_MAT];
 } e_data = {NULL}; /* Engine data */
 
 
@@ -235,6 +266,7 @@ enum {
 
 static void OBJECT_engine_init(void *vedata)
 {
+	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
 
 	const float *viewport_size = DRW_viewport_size_get();
@@ -292,11 +324,26 @@ static void OBJECT_engine_init(void *vedata)
 	}
 
 	if (!e_data.part_prim_sh) {
-		e_data.part_prim_sh = DRW_shader_create(datatoc_particle_prim_vert_glsl, NULL, datatoc_particle_prim_frag_glsl, NULL);
+		e_data.part_prim_sh = DRW_shader_create(datatoc_particle_prim_vert_glsl, NULL, datatoc_particle_prim_frag_glsl, "#define MAX_MATERIAL " STRINGIFY(MAX_OBJECT_MAT) "\n");
 	}
 
 	if (!e_data.part_dot_sh) {
-		e_data.part_dot_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
+		e_data.part_dot_sh = DRW_shader_create(datatoc_particle_dot_vert_glsl, NULL, datatoc_particle_dot_frag_glsl, "#define MAX_MATERIAL " STRINGIFY(MAX_OBJECT_MAT) "\n");
+	}
+
+	if (e_data.ubo_mat_idxs[1] == 0) {
+		/* Just int to have pointers to them */
+		for (int i = 0; i < MAX_OBJECT_MAT; ++i) {
+			e_data.ubo_mat_idxs[i] = i;
+		}
+	}
+
+	if (!stl->storage) {
+		stl->storage = MEM_callocN(sizeof(OBJECT_Storage), "OBJECT_Storage");
+	}
+
+	if (!stl->part_mat_ubo) {
+		stl->part_mat_ubo = DRW_uniformbuffer_create(sizeof(OBJECT_PARTICLE_UBO_Material) * MAX_OBJECT_MAT, NULL);
 	}
 
 	{
@@ -444,6 +491,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_wire_sh);
 	DRW_SHADER_FREE_SAFE(e_data.grid_sh);
 	DRW_SHADER_FREE_SAFE(e_data.part_prim_sh);
+	DRW_SHADER_FREE_SAFE(e_data.part_dot_sh);
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], GPUShader *sh)
@@ -989,29 +1037,15 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Particle Pass */
-		psl->particle = DRW_pass_create("Particle Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_POINT | DRW_STATE_BLEND);
+		psl->particle = DRW_pass_create(
+		                     "Particle Pass",
+		                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_POINT | DRW_STATE_BLEND);
 
-		static int screen_space[2] = {0, 1};
-
-		stl->g_data->part_dot_shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
-
-		stl->g_data->part_cross_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
-		DRW_shgroup_uniform_int(stl->g_data->part_cross_shgrp, "screen_space", &screen_space[0], 1);
-		DRW_shgroup_uniform_float(stl->g_data->part_cross_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-		DRW_shgroup_attrib_float(stl->g_data->part_cross_shgrp, "pos", 3);
-		DRW_shgroup_attrib_float(stl->g_data->part_cross_shgrp, "rot", 4);
-
-		stl->g_data->part_circle_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
-		DRW_shgroup_uniform_int(stl->g_data->part_circle_shgrp, "screen_space", &screen_space[1], 1);
-		DRW_shgroup_uniform_float(stl->g_data->part_circle_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-		DRW_shgroup_attrib_float(stl->g_data->part_circle_shgrp, "pos", 3);
-		DRW_shgroup_attrib_float(stl->g_data->part_circle_shgrp, "rot", 4);
-
-		stl->g_data->part_axis_shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
-		DRW_shgroup_uniform_int(stl->g_data->part_axis_shgrp, "screen_space", &screen_space[0], 1);
-		DRW_shgroup_uniform_float(stl->g_data->part_axis_shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-		DRW_shgroup_attrib_float(stl->g_data->part_axis_shgrp, "pos", 3);
-		DRW_shgroup_attrib_float(stl->g_data->part_axis_shgrp, "rot", 4);
+		stl->storage->particle_ubo_current_id = 0;
+		memset(stl->storage->part_dot_shgrps, 0, sizeof(DRWShadingGroup *) * MAX_OBJECT_MAT);
+		memset(stl->storage->part_cross_shgrps, 0, sizeof(DRWShadingGroup *) * MAX_OBJECT_MAT);
+		memset(stl->storage->part_circle_shgrps, 0, sizeof(DRWShadingGroup *) * MAX_OBJECT_MAT);
+		memset(stl->storage->part_axis_shgrps, 0, sizeof(DRWShadingGroup *) * MAX_OBJECT_MAT);
 	}
 }
 
@@ -1382,6 +1416,120 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob)
 	DRW_shgroup_call_dynamic_add(shgroup, ob->obmat[3]);
 }
 
+static DRWShadingGroup *OBJECT_particle_shgroup_create(DRWPass *pass, int *material_id, OBJECT_PassList *psl, int part_type)
+{
+	DRWShadingGroup *grp;
+
+	if (part_type == PART_DRAW_DOT) {
+		grp = DRW_shgroup_create(e_data.part_dot_sh, pass);
+	}
+	else {
+		static int screen_space[2] = {0, 1};
+
+		grp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(part_type));
+		DRW_shgroup_uniform_int(grp, "screen_space", &screen_space[part_type == PART_DRAW_CIRC ? 1 : 0], 1);
+		DRW_shgroup_uniform_float(grp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+		DRW_shgroup_attrib_float(grp, "pos", 3);
+		DRW_shgroup_attrib_float(grp, "rot", 4);
+	}
+
+	DRW_shgroup_uniform_int(grp, "mat_id", material_id, 1);
+
+	return grp;
+}
+
+static int search_particle_mat_to_ubo(OBJECT_Storage *storage, const OBJECT_PARTICLE_UBO_Material *particle_mat_ubo_test)
+{
+	for (int i = 0; i < storage->particle_ubo_current_id; i++) {
+		OBJECT_PARTICLE_UBO_Material *ubo = &storage->materials[i];
+		if (memcmp(ubo, particle_mat_ubo_test, sizeof(*particle_mat_ubo_test)) == 0) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+static int push_particle_mat_to_ubo(OBJECT_Storage *storage, const OBJECT_PARTICLE_UBO_Material *particle_mat_ubo_test)
+{
+	int id = storage->particle_ubo_current_id;
+	OBJECT_PARTICLE_UBO_Material *ubo = &storage->materials[id];
+
+	*ubo = *particle_mat_ubo_test;
+
+	storage->particle_ubo_current_id++;
+
+	return id;
+}
+
+static int particle_mat_in_ubo(OBJECT_Storage *storage, const OBJECT_PARTICLE_UBO_Material *particle_mat_ubo_test)
+{
+	/* Search material in UBO */
+	int id = search_particle_mat_to_ubo(storage, particle_mat_ubo_test);
+
+	/* if not found create it */
+	if (id == -1) {
+		id = push_particle_mat_to_ubo(storage, particle_mat_ubo_test);
+	}
+
+	return id;
+}
+
+static void particle_ubo_mat_from_ob(Object *ob, ParticleSystem *psys, OBJECT_PARTICLE_UBO_Material *r_ubo)
+{
+	Material *ma = give_current_material(ob, psys->part->omat);
+
+	memset(r_ubo, 0x0, sizeof(*r_ubo));
+
+	if (ma) {
+		copy_v3_v3(r_ubo->prim_color, &ma->r);
+		copy_v3_v3(r_ubo->sec_color, &ma->specr);
+	}
+	else {
+		r_ubo->prim_color[0] = r_ubo->prim_color[1] = r_ubo->prim_color[2] = 0.5f;
+		r_ubo->sec_color[0] = r_ubo->sec_color[1] = r_ubo->sec_color[2] = 1.0f;
+	}
+
+	r_ubo->size = (float)psys->part->draw_size;
+}
+
+static DRWShadingGroup *OBJECT_particle_shgrp_get(Object *ob, ParticleSystem *psys, OBJECT_StorageList *stl, OBJECT_PassList *psl, int part_type)
+{
+	DRWShadingGroup **part_shgrps;
+
+	switch (part_type) {
+		case PART_DRAW_DOT:
+			part_shgrps = stl->storage->part_dot_shgrps;
+			break;
+		case PART_DRAW_CROSS:
+			part_shgrps = stl->storage->part_cross_shgrps;
+			break;
+		case PART_DRAW_CIRC:
+			part_shgrps = stl->storage->part_circle_shgrps;
+			break;
+		case PART_DRAW_AXIS:
+			part_shgrps = stl->storage->part_axis_shgrps;
+			break;
+		default:
+			return NULL;
+	}
+
+	OBJECT_PARTICLE_UBO_Material particle_mat_ubo_test;
+	particle_ubo_mat_from_ob(ob, psys, &particle_mat_ubo_test);
+
+	int particle_id = particle_mat_in_ubo(stl->storage, &particle_mat_ubo_test);
+
+	if (part_shgrps[particle_id] == NULL) {
+		part_shgrps[particle_id] = OBJECT_particle_shgroup_create(psl->particle, &e_data.ubo_mat_idxs[particle_id], psl, part_type);
+		/* if it's the first shgrp, pass bind the material UBO */
+		if (stl->storage->particle_ubo_current_id == 1) {
+			DRW_shgroup_uniform_block(part_shgrps[0], "material_block", stl->part_mat_ubo);
+		}
+	}
+
+	return part_shgrps[particle_id];
+}
+
 static void OBJECT_cache_populate(void *vedata, Object *ob)
 {
 	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
@@ -1425,46 +1573,14 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					unit_m4(mat);
 
 					if (draw_as != PART_DRAW_PATH) {
-						static float size;
-						static float axis_size;
-						static float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-						static float o_col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 						struct Batch *geom = DRW_cache_particles_get_dots(psys);
+						DRWShadingGroup *part_shgrp = OBJECT_particle_shgrp_get(ob, psys, stl, psl, draw_as);
 
-						Material *ma = give_current_material(ob, part->omat);
-
-						if (ma) {
-							copy_v3_v3(col, &ma->r);
-							copy_v3_v3(o_col, &ma->specr);
+						if (draw_as == PART_DRAW_DOT) {
+							DRW_shgroup_call_add(part_shgrp, geom, mat);
 						}
-
-						size = (float)part->draw_size;
-						axis_size = size * 2.0f;
-
-						switch (draw_as) {
-							case PART_DRAW_DOT:
-								DRW_shgroup_uniform_vec4(stl->g_data->part_dot_shgrp, "color", col, 1);
-								DRW_shgroup_uniform_vec4(stl->g_data->part_dot_shgrp, "outlineColor", o_col, 1);
-								DRW_shgroup_uniform_float(stl->g_data->part_dot_shgrp, "size", &size, 1);
-								DRW_shgroup_call_add(stl->g_data->part_dot_shgrp, geom, mat);
-								break;
-							case PART_DRAW_CROSS:
-								DRW_shgroup_uniform_vec4(stl->g_data->part_cross_shgrp, "color", col, 1);
-								DRW_shgroup_uniform_float(stl->g_data->part_cross_shgrp, "draw_size", &size, 1);
-								DRW_shgroup_instance_batch(stl->g_data->part_cross_shgrp, geom);
-								break;
-							case PART_DRAW_CIRC:
-								DRW_shgroup_uniform_vec4(stl->g_data->part_circle_shgrp, "color", col, 1);
-								DRW_shgroup_uniform_float(stl->g_data->part_circle_shgrp, "draw_size", &size, 1);
-								DRW_shgroup_instance_batch(stl->g_data->part_circle_shgrp, geom);
-								break;
-							case PART_DRAW_AXIS:
-								DRW_shgroup_uniform_vec4(stl->g_data->part_axis_shgrp, "color", col, 1);
-								DRW_shgroup_uniform_float(stl->g_data->part_axis_shgrp, "draw_size", &axis_size, 1);
-								DRW_shgroup_instance_batch(stl->g_data->part_axis_shgrp, geom);
-								break;
-							default:
-								break;
+						else {
+							DRW_shgroup_instance_batch(part_shgrp, geom);
 						}
 					}
 				}
@@ -1559,6 +1675,8 @@ static void OBJECT_cache_finish(void *vedata)
 	if (stl->g_data->image_plane_map) {
 		BLI_ghash_free(stl->g_data->image_plane_map, NULL, MEM_freeN);
 	}
+
+	DRW_uniformbuffer_update(stl->part_mat_ubo, &stl->storage->materials);
 }
 
 static void OBJECT_draw_scene(void *vedata)
