@@ -42,7 +42,7 @@ def draw_color_balance(layout, color_balance):
     col.label(text="Lift:")
     col.separator()
     col.separator()
-    col.prop(color_balance, "")
+    col.prop(color_balance, "lift", text="")
     col.prop(color_balance, "invert_lift", text="Invert", icon="ARROW_LEFTRIGHT")
     split.template_color_picker(color_balance, "lift", value_slider=True,  cubic=True)
 
@@ -52,7 +52,7 @@ def draw_color_balance(layout, color_balance):
     col.label(text="Gamma:")
     col.separator()
     col.separator()
-    col.prop(color_balance, "")
+    col.prop(color_balance, "gamma", text="")
     col.prop(color_balance, "invert_gamma", text="Invert", icon="ARROW_LEFTRIGHT")
     split.template_color_picker(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
 
