@@ -107,13 +107,6 @@ typedef struct OBJECT_Data {
 	OBJECT_StorageList *stl;
 } OBJECT_Data;
 
-/* per-image shading groups for image-type empty objects */
-struct EmptyImageShadingGroupData {
-	DRWShadingGroup *shgrp_image;
-	DRWShadingGroup *shgrp_wire;
-	float image_aspect[2];
-};
-
 /* *********** STATIC *********** */
 
 typedef struct OBJECT_PrivateData{
@@ -540,8 +533,15 @@ static void image_calc_aspect(Image *ima, ImageUser *iuser, float r_image_aspect
 	}
 }
 
+/* per-image shading groups for image-type empty objects */
+struct EmptyImageShadingGroupData {
+	DRWShadingGroup *shgrp_image;
+	DRWShadingGroup *shgrp_wire;
+	float image_aspect[2];
+};
+
 static void DRW_shgroup_empty_image(
-        OBJECT_StorageList *stl, OBJECT_PassList *psl, Object *ob, float color[4])
+        OBJECT_StorageList *stl, OBJECT_PassList *psl, Object *ob, const float color[3])
 {
 	/* TODO: 'StereoViews', see draw_empty_image. */
 

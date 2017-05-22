@@ -1705,10 +1705,10 @@ void DRW_mesh_batch_cache_free(Mesh *me)
 
 /* Batch cache usage. */
 
-#define USE_COMP_MESH_DATA
 static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
+#define USE_COMP_MESH_DATA
 
 	if (cache->shaded_triangles_data == NULL) {
 		unsigned int vidx = 0;
@@ -1844,6 +1844,9 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		MEM_freeN(vcol_id);
 		MEM_freeN(tangent_id);
 	}
+
+#undef USE_COMP_MESH_DATA
+
 	return cache->shaded_triangles_data;
 }
 
