@@ -33,6 +33,12 @@ unsigned ElementList_size(const ElementList* elem)
 		case INDEX_U8: return elem->index_ct * sizeof(GLubyte);
 		case INDEX_U16: return elem->index_ct * sizeof(GLushort);
 		case INDEX_U32: return elem->index_ct * sizeof(GLuint);
+
+		default:
+#if TRUST_NO_ONE
+			assert(false);
+#endif
+			return 0;
 		}
 
 #else
