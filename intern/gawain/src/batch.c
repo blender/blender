@@ -291,7 +291,7 @@ void Batch_draw(Batch* batch)
 
 // clement : temp stuff
 void Batch_draw_stupid(Batch* batch)
-{
+	{
 	if (batch->vao_id)
 		glBindVertexArray(batch->vao_id);
 	else
@@ -322,12 +322,12 @@ void Batch_draw_stupid(Batch* batch)
 
 	// Batch_done_using_program(batch);
 	glBindVertexArray(0);
-}
+	}
 
 // clement : temp stuff
 void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int instance_count,
                                  int attrib_nbr, int attrib_stride, int attrib_size[16], int attrib_loc[16])
-{
+	{
 	if (batch->vao_id)
 		glBindVertexArray(batch->vao_id);
 	else
@@ -338,12 +338,14 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 
 	glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
 	int ptr_ofs = 0;
-	for (int i = 0; i < attrib_nbr; ++i) {
+	for (int i = 0; i < attrib_nbr; ++i)
+		{
 		int size = attrib_size[i];
 		int loc = attrib_loc[i];
 		int atr_ofs = 0;
 
-		while (size > 0) {
+		while (size > 0)
+			{
 			glEnableVertexAttribArray(loc + atr_ofs);
 			glVertexAttribPointer(loc + atr_ofs, (size > 4) ? 4 : size, GL_FLOAT, GL_FALSE,
 			                      sizeof(float) * attrib_stride, (GLvoid*)(sizeof(float) * ptr_ofs));
@@ -351,8 +353,8 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 			atr_ofs++;
 			ptr_ofs += (size > 4) ? 4 : size;
 			size -= 4;
+			}
 		}
-	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// Batch_use_program(batch);
@@ -370,5 +372,4 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 
 	// Batch_done_using_program(batch);
 	glBindVertexArray(0);
-}
-
+	}
