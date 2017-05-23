@@ -1812,7 +1812,8 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		int vbo_len_used = 0;
 		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
 
-		/* TODO deduplicate all verts and make use of ElementList in mesh_batch_cache_get_shaded_triangles_in_order. */
+		/* TODO deduplicate all verts and make use of ElementList in
+		 * mesh_batch_cache_get_triangles_in_order_split_by_material. */
 		for (int i = 0; i < tri_len; i++) {
 			float *tri_uvs[3], *tri_tans[3];
 			unsigned char *tri_cols[3];
@@ -2615,7 +2616,8 @@ static ElementList *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdat
 	return cache->triangles_in_order;
 }
 
-static ElementList **mesh_batch_cache_get_shaded_triangles_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
+static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
+        MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_POLY));
 
@@ -3189,7 +3191,7 @@ Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 
 		cache->shaded_triangles = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_len, __func__);
 
-		ElementList **el = mesh_batch_cache_get_shaded_triangles_in_order(rdata, cache);
+		ElementList **el = mesh_batch_cache_get_triangles_in_order_split_by_material(rdata, cache);
 
 		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
 		for (int i = 0; i < mat_len; ++i) {
@@ -3222,7 +3224,7 @@ Batch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
 
 		cache->texpaint_triangles = MEM_callocN(sizeof(*cache->texpaint_triangles) * mat_len, __func__);
 
-		ElementList **el = mesh_batch_cache_get_shaded_triangles_in_order(rdata, cache);
+		ElementList **el = mesh_batch_cache_get_triangles_in_order_split_by_material(rdata, cache);
 
 		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
 		for (int i = 0; i < mat_len; ++i) {
