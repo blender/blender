@@ -916,8 +916,12 @@ static bool offset_meet_edge(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,  float meetc
 		return false;
 	}
 	cross_v3_v3v3(fno, dir1, dir2);
-	if (dot_v3v3(fno, v->no) < 0.0f)
+	if (dot_v3v3(fno, v->no) < 0.0f) {
 		ang = 2.0f * (float)M_PI - ang;  /* angle is reflex */
+		if (r_angle)
+			*r_angle = ang;
+		return false;
+	}
 	if (r_angle)
 		*r_angle = ang;
 

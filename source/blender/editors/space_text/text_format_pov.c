@@ -56,16 +56,16 @@ static int txtfmt_pov_find_keyword(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "declare",     len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "default",     len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "deprecated",  len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "else",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "elseif",      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "else",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "end",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "error",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fclose",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fopen",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "for",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "if",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "ifdef",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ifndef",      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "ifdef",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "if",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "include",     len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "local",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "macro",       len)) i = len;
@@ -85,38 +85,27 @@ static int txtfmt_pov_find_keyword(const char *string)
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
 
-static int txtfmt_pov_find_reserved(const char *string)
+static int txtfmt_pov_find_reserved_keywords(const char *string)
 {
 	int i, len;
 	/* POV-Ray Built-in Variables
 	 * list is from...
 	 * http://www.povray.org/documentation/view/3.7.0/212/
 	 */
-	if      (STR_LITERAL_STARTSWITH(string, "clock",               len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "clock_delta",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "clock_on",            len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "final_clock",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "final_frame",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "frame_number",        len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "initial_clock",       len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "initial_frame",       len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "image_height",        len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "image_width",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "input_file_name",     len)) i = len;
 	/* Language Keywords */
-	else if (STR_LITERAL_STARTSWITH(string, "aa_level",            len)) i = len;
+	if      (STR_LITERAL_STARTSWITH(string, "aa_level",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "aa_threshold",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "absorption",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "accuracy",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "adc_bailout",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "albedo",              len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "all",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "all_intersections",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "all",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "alpha",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "altitude",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "always_sample",       len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "ambient",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ambient_light",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "ambient",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "angle",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "aperture",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "arc_angle",           len)) i = len;
@@ -144,8 +133,8 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "cutaway_textures",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "diffuse",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "direction",           len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "dispersion",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "dispersion_samples",  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "dispersion",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "dist_exp",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "distance",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "eccentricity",        len)) i = len;
@@ -157,8 +146,8 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "exterior",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "extinction",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "face_indices",        len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "falloff",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "falloff_angle",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "falloff",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "file_gamma",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "finish",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "flatness",            len)) i = len;
@@ -182,8 +171,8 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "internal",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "intervals",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ior",                 len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "irid",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "irid_wavelength",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "irid",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "load_file",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "location",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "look_at",             len)) i = len;
@@ -196,8 +185,8 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "max_intersections",   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "max_iteration",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "max_sample",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "max_trace",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "max_trace_level",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "max_trace",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "maximum_reuse",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "metallic",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "method",              len)) i = len;
@@ -213,8 +202,8 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "orientation",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "pass_through",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "pattern",             len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "phong",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "phong_size",          len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "phong",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "point_at",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "pot",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "precision",           len)) i = len;
@@ -229,8 +218,8 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "ratio",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "reciprocal",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "recursion_limit",     len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "reflection",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "reflection_exponent", len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "reflection",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "refraction",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "repeat",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "right",               len)) i = len;
@@ -270,28 +259,48 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "vertex_vectors",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "water_level",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "width",               len)) i = len;
-	/* Built-in Vectors */
-	else if (STR_LITERAL_STARTSWITH(string, "t",                   len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "u",                   len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "v",                   len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "x",                   len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "y",                   len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "z",                   len)) i = len;
+
+	else                                                                 i = 0;
+
+	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
+}
+
+
+static int txtfmt_pov_find_reserved_builtins(const char *string)
+{
+	int i, len;
+
+	/* POV-Ray Built-in Variables
+	 * list is from...
+	 * http://www.povray.org/documentation/view/3.7.0/212/
+	 */
+	if      (STR_LITERAL_STARTSWITH(string, "clock_delta",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "clock",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "clock_on",            len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "final_clock",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "final_frame",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "frame_number",        len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "initial_clock",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "initial_frame",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "image_height",        len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "image_width",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "input_file_name",     len)) i = len;
 	/* Color Identifiers */
 	else if (STR_LITERAL_STARTSWITH(string, "blue",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "filter",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "gray",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "green",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "red",                 len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "rgb",                 len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "rgbf",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "rgbft",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "rgbf",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "rgbt",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "rgb",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "srgb",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sRGB",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "SRGB",                len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "srgbf",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "srgbft",              len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "srgbf",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "srgbt",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "transmit",            len)) i = len;
 	/* Patterns */
@@ -359,8 +368,8 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "light_group",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "light_source",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "merge",               len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "mesh",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "mesh2",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "mesh",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "object",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ovus",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "parametric",          len)) i = len;
@@ -374,8 +383,8 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "rainbow",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sky_sphere",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "smooth_triangle",     len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "sphere",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sphere_sweep",        len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "sphere",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "spline",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "superellipsoid",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sor",                 len)) i = len;
@@ -424,13 +433,19 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "panoramic",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "perspective",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ultra_wide_angle",    len)) i = len;
+	/* Built-in Vectors */
+	else if (STR_LITERAL_STARTSWITH(string, "t",                   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "u",                   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "v",                   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "x",                   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "y",                   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "z",                   len)) i = len;
 
 	else                                                                 i = 0;
 
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
-
 
 
 /* Checks the specified source string for a POV modifiers. This
@@ -457,15 +472,15 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "circular",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "clipped_by",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "cubic",              len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "color",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "color_map",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "colour",             len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "color",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "colour_map",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "colour",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "control0",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "control1",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "cubic_wave",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "density",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "density_map",        len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "density",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "double_illuminate",  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fade_color",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fade_colour",        len)) i = len;
@@ -475,15 +490,15 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "global_lights",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "hollow",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "image_map",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "interior",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "interior_texture",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "interior",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "interpolate",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "inverse",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "jitter",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "lambda",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "map_type",           len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "material",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "material_map",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "material",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "matrix",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "media",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "media_attenuation",  len)) i = len;
@@ -496,8 +511,8 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "no_reflection",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "no_shadow",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "noise_generator",    len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "normal",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "normal_map",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "normal",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "octaves",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "omega",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "once",               len)) i = len;
@@ -505,8 +520,8 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "parallel",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "phase",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "photons",            len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "pigment",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "pigment_map",        len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "pigment",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "poly_wave",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "projected_through",  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "quick_color",        len)) i = len;
@@ -519,8 +534,8 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "sine_wave",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "slope_map",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "subsurface",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "texture",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "texture_map",        len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "texture",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "transform",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "translate",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "triangle_wave",      len)) i = len;
@@ -531,23 +546,41 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "uv_mapping",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "warp",               len)) i = len;
 
+	/* Vector Functions */
+	else if (STR_LITERAL_STARTSWITH(string, "max_extent",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "min_extent",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "trace",              len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "vaxis_rotate",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "vcross",             len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "vnormalize",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "vrotate",            len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "vturbulence",        len)) i = len;
+	/* String Functions */
+	else if (STR_LITERAL_STARTSWITH(string, "chr",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "concat",             len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "datetime",           len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "str",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "strlwr",             len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "strupr",             len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "substr",             len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "vstr",               len)) i = len;
 	/* Float Functions */
 	else if (STR_LITERAL_STARTSWITH(string, "abs",                len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "acos",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "acosh",              len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "acos",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "asc",                len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "asin",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "asinh",              len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "atan",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "asin",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "atan2",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "atand",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "atanh",              len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "atan",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "bitwise_and",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "bitwise_or",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "bitwise_xor",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ceil",               len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "cos",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "cosh",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "cos",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "defined",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "degrees",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "dimension_size",     len)) i = len;
@@ -568,35 +601,17 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "rand",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "seed",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "select",             len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "sin",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sinh",               len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "sqr",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "sin",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sqrt",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "sqr",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "strcmp",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "strlen",             len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "tan",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "tanh",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "tan",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "val",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "vdot",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "vlength",            len)) i = len;
-	/* Vector Functions */
-	else if (STR_LITERAL_STARTSWITH(string, "max_extent",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "min_extent",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "trace",              len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "vaxis_rotate",       len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "vcross",             len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "vnormalize",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "vrotate",            len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "vturbulence",        len)) i = len;
-	/* String Functions */
-	else if (STR_LITERAL_STARTSWITH(string, "chr",                len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "concat",             len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "datetime",           len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "str",                len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "strlwr",             len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "strupr",             len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "substr",             len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "vstr",               len)) i = len;
 	else                                                                i = 0;
 
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */
@@ -624,10 +639,11 @@ static int txtfmt_pov_find_bool(const char *string)
 static char txtfmt_pov_format_identifier(const char *str)
 {
 	char fmt;
-	if      ((txtfmt_pov_find_specialvar(str)) != -1) fmt = FMT_TYPE_SPECIAL;
-	else if ((txtfmt_pov_find_keyword(str))    != -1) fmt = FMT_TYPE_KEYWORD;
-	else if ((txtfmt_pov_find_reserved(str))   != -1) fmt = FMT_TYPE_RESERVED;
-	else                                              fmt = FMT_TYPE_DEFAULT;
+	if      ((txtfmt_pov_find_specialvar(str))        != -1) fmt = FMT_TYPE_SPECIAL;
+	else if ((txtfmt_pov_find_keyword(str))           != -1) fmt = FMT_TYPE_KEYWORD;
+	else if ((txtfmt_pov_find_reserved_keywords(str)) != -1) fmt = FMT_TYPE_RESERVED;
+	else if ((txtfmt_pov_find_reserved_builtins(str)) != -1) fmt = FMT_TYPE_RESERVED;
+	else                                                     fmt = FMT_TYPE_DEFAULT;
 	return fmt;
 }
 
@@ -748,9 +764,10 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
 			else {
 				/* Special vars(v) or built-in keywords(b) */
 				/* keep in sync with 'txtfmt_pov_format_identifier()' */
-				if      ((i = txtfmt_pov_find_specialvar(str)) != -1) prev = FMT_TYPE_SPECIAL;
-				else if ((i = txtfmt_pov_find_keyword(str))    != -1) prev = FMT_TYPE_KEYWORD;
-				else if ((i = txtfmt_pov_find_reserved(str))   != -1) prev = FMT_TYPE_RESERVED;
+				if      ((i = txtfmt_pov_find_specialvar(str))        != -1) prev = FMT_TYPE_SPECIAL;
+				else if ((i = txtfmt_pov_find_keyword(str))           != -1) prev = FMT_TYPE_KEYWORD;
+				else if ((i = txtfmt_pov_find_reserved_keywords(str)) != -1) prev = FMT_TYPE_RESERVED;
+				else if ((i = txtfmt_pov_find_reserved_builtins(str)) != -1) prev = FMT_TYPE_RESERVED;
 
 				if (i > 0) {
 					text_format_fill_ascii(&str, &fmt, prev, i);

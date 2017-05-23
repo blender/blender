@@ -1964,7 +1964,7 @@ int ED_path_extension_type(const char *path)
 	else if (BLI_testextensie(path, ".py")) {
 		return FILE_TYPE_PYSCRIPT;
 	}
-	else if (BLI_testextensie_n(path, ".txt", ".glsl", ".osl", ".data", NULL)) {
+	else if (BLI_testextensie_n(path, ".txt", ".glsl", ".osl", ".data", ".pov", ".ini", ".mcr", ".inc", NULL)) {
 		return FILE_TYPE_TEXT;
 	}
 	else if (BLI_testextensie_n(path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", NULL)) {

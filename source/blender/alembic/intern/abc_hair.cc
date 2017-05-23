@@ -76,7 +76,7 @@ void AbcHairWriter::do_write()
 		return;
 	}
 
-	DerivedMesh *dm = mesh_create_derived_view(m_scene, m_object, CD_MASK_MESH);
+	DerivedMesh *dm = mesh_create_derived_render(m_scene, m_object, CD_MASK_MESH);
 	DM_ensure_tessface(dm);
 
 	std::vector<Imath::V3f> verts;
@@ -251,44 +251,38 @@ void AbcHairWriter::write_hair_child_sample(DerivedMesh *dm,
 	for (int p = 0; p < m_psys->totchild; ++p, ++pc) {
 		path = cache[p];
 
-		if (part->from == PART_FROM_FACE) {
-			if (part->childtype == PART_CHILD_PARTICLES || !mtface) {
-				/* Face index is unknown for these particles, so just take info
-				 * from the parent. */
-				uv_values.push_back(uv_values[pc->parent]);
-				norm_values.push_back(norm_values[pc->parent]);
+		if (part->from == PART_FROM_FACE &&
+		        part->childtype != PART_CHILD_PARTICLES &&
+		        mtface) {
+			const int num = pc->num;
+			if (num < 0) {
+				ABC_LOG(m_settings.logger)
+				        << "Warning, child particle of hair system " << m_psys->name
+				        << " has unknown face index of geometry of "<< (m_object->id.name + 2)
+				        << ", skipping child hair." << std::endl;
+				continue;
 			}
-			else {
-				const int num = pc->num;
-				if (num < 0) {
-					ABC_LOG(m_settings.logger)
-					        << "Warning, child particle of hair system " << m_psys->name
-					        << " has unknown face index of geometry of "<< (m_object->id.name + 2)
-					        << ", skipping child hair." << std::endl;
-					continue;
-				}
 
-				MFace *face = static_cast<MFace *>(dm->getTessFaceData(dm, num, CD_MFACE));
-				MTFace *tface = mtface + num;
+			MFace *face = static_cast<MFace *>(dm->getTessFaceData(dm, num, CD_MFACE));
+			MTFace *tface = mtface + num;
 
-				float r_uv[2], tmpnor[3], mapfw[4], vec[3];
+			float r_uv[2], tmpnor[3], mapfw[4], vec[3];
 
-				psys_interpolate_uvs(tface, face->v4, pc->fuv, r_uv);
-				uv_values.push_back(Imath::V2f(r_uv[0], r_uv[1]));
+			psys_interpolate_uvs(tface, face->v4, pc->fuv, r_uv);
+			uv_values.push_back(Imath::V2f(r_uv[0], r_uv[1]));
 
-				psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, tmpnor, NULL, NULL, NULL, NULL);
+			psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, tmpnor, NULL, NULL, NULL, NULL);
 
-				/* Convert Z-up to Y-up. */
-				norm_values.push_back(Imath::V3f(tmpnor[0], tmpnor[2], -tmpnor[1]));
-			}
+			/* Convert Z-up to Y-up. */
+			norm_values.push_back(Imath::V3f(tmpnor[0], tmpnor[2], -tmpnor[1]));
 		}
 		else {
-			ABC_LOG(m_settings.logger)
-			        << "Unknown particle type " << part->from
-			        << " for child hair of system " << m_psys->name
-			        << std::endl;
-			uv_values.push_back(uv_values[pc->parent]);
-			norm_values.push_back(norm_values[pc->parent]);
+			if (uv_values.size()) {
+				uv_values.push_back(uv_values[pc->parent]);
+			}
+			if (norm_values.size()) {
+				norm_values.push_back(norm_values[pc->parent]);
+			}
 		}
 
 		int steps = path->segments + 1;
