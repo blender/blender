@@ -2645,9 +2645,10 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 			BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
 				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 					const short ma_id = f->mat_nr < mat_len ? f->mat_nr : 0;
-
-					add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
-					nidx += 3;
+					for (int j = 2; j < f->len; j++) {
+						add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
+						nidx += 3;
+					}
 				}
 			}
 		}
@@ -2655,9 +2656,10 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 			for (uint i = 0; i < poly_len; i++) {
 				const MPoly *mp = &rdata->mpoly[i]; ;
 				const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
-
-				add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
-				nidx += 3;
+				for (int j = 2; j < mp->totloop; j++) {
+					add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
+					nidx += 3;
+				}
 			}
 		}
 
