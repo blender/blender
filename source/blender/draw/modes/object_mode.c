@@ -1400,46 +1400,33 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					unit_m4(mat);
 
 					if (draw_as != PART_DRAW_PATH) {
-						static float size;
-						static float axis_size;
-						static float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-						static float o_col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 						struct Batch *geom = DRW_cache_particles_get_dots(psys);
 						DRWShadingGroup *shgrp;
 						static int screen_space[2] = {0, 1};
+						static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
+						static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
 
 						Material *ma = give_current_material(ob, part->omat);
-
-						if (ma) {
-							copy_v3_v3(col, &ma->r);
-							copy_v3_v3(o_col, &ma->specr);
-						}
-
-						size = (float)part->draw_size;
-						axis_size = size * 2.0f;
 
 						switch (draw_as) {
 							case PART_DRAW_DOT:
 								shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
-								DRW_shgroup_uniform_vec4(shgrp, "color", col, 1);
-								DRW_shgroup_uniform_vec4(shgrp, "outlineColor", o_col, 1);
-								DRW_shgroup_uniform_float(shgrp, "size", &size, 1);
+								DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
+								DRW_shgroup_uniform_vec3(shgrp, "outlineColor", ma ? &ma->specr : def_sec_col, 1);
+								DRW_shgroup_uniform_short_to_int(shgrp, "size", &part->draw_size, 1);
 								DRW_shgroup_call_add(shgrp, geom, mat);
 								break;
 							case PART_DRAW_CROSS:
 								shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
 								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
-								DRW_shgroup_uniform_float(shgrp, "draw_size", &size, 1);
 								break;
 							case PART_DRAW_CIRC:
 								shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
 								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
-								DRW_shgroup_uniform_float(shgrp, "draw_size", &size, 1);
 								break;
 							case PART_DRAW_AXIS:
 								shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
 								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
-								DRW_shgroup_uniform_float(shgrp, "draw_size", &axis_size, 1);
 								break;
 							default:
 								break;
@@ -1448,7 +1435,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 						if (draw_as != PART_DRAW_DOT) {
 							DRW_shgroup_attrib_float(shgrp, "pos", 3);
 							DRW_shgroup_attrib_float(shgrp, "rot", 4);
-							DRW_shgroup_uniform_vec4(shgrp, "color", col, 1);
+							DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
+							DRW_shgroup_uniform_short_to_int(shgrp, "draw_size", &part->draw_size, 1);
 							DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
 							DRW_shgroup_instance_batch(shgrp, geom);
 						}

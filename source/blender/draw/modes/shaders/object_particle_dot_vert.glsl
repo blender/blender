@@ -1,6 +1,6 @@
 
 uniform mat4 ModelViewProjectionMatrix;
-uniform float size;
+uniform int size;
 
 in vec3 pos;
 out vec4 radii;

@@ -5,7 +5,7 @@ uniform mat4 ModelViewMatrix;
 uniform mat4 ProjectionMatrix;
 uniform int screen_space;
 uniform float pixel_size;
-uniform float draw_size;
+uniform int draw_size;
 
 in vec3 pos;
 in vec4 rot;
@@ -36,7 +36,13 @@ void main()
 		gl_Position = ProjectionMatrix * gl_Position;
 	}
 	else {
-		gl_Position = ModelViewProjectionMatrix * vec4(pos + rotate(inst_pos * pix_size * draw_size, rot), 1.0);
+		int size = draw_size;
+
+		if (axis > -1) {
+			size *= 2;
+		}
+
+		gl_Position = ModelViewProjectionMatrix * vec4(pos + rotate(inst_pos * pix_size * size, rot), 1.0);
 	}
 
 	finalAxis = axis;
