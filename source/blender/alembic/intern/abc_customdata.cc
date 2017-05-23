@@ -228,38 +228,34 @@ using Alembic::AbcGeom::IC4fGeomParam;
 using Alembic::AbcGeom::IV2fGeomParam;
 
 static void read_mcols(const CDStreamConfig &config, void *data,
-                       const C3fArraySamplePtr &c3f_ptr, const C4fArraySamplePtr &c4f_ptr)
+                       const C3fArraySamplePtr &c3f_ptr,
+                       const C4fArraySamplePtr &c4f_ptr)
 {
 	MCol *cfaces = static_cast<MCol *>(data);
 	MPoly *polys = config.mpoly;
 	MLoop *mloops = config.mloop;
 
-	if (c3f_ptr) {
-		for (int i = 0; i < config.totpoly; ++i) {
-			MPoly *p = &polys[i];
-			MCol *cface = &cfaces[p->loopstart + p->totloop];
-			MLoop *mloop = &mloops[p->loopstart + p->totloop];
+	/* Either one or the other should be given. */
+	BLI_assert(c3f_ptr || c4f_ptr);
+	const bool use_c3f_ptr = (c3f_ptr.get() != nullptr);
 
-			for (int j = 0; j < p->totloop; ++j) {
-				cface--;
-				mloop--;
+	for (int i = 0; i < config.totpoly; ++i) {
+		MPoly *p = &polys[i];
+		MCol *cface = &cfaces[p->loopstart + p->totloop];
+		MLoop *mloop = &mloops[p->loopstart + p->totloop];
+
+		for (int j = 0; j < p->totloop; ++j) {
+			cface--;
+			mloop--;
+
+			if (use_c3f_ptr) {
 				const Imath::C3f &color = (*c3f_ptr)[mloop->v];
 				cface->a = FTOCHAR(color[0]);
 				cface->r = FTOCHAR(color[1]);
 				cface->g = FTOCHAR(color[2]);
 				cface->b = 255;
 			}
-		}
-	}
-	else if (c4f_ptr) {
-		for (int i = 0; i < config.totpoly; ++i) {
-			MPoly *p = &polys[i];
-			MCol *cface = &cfaces[p->loopstart + p->totloop];
-			MLoop *mloop = &mloops[p->loopstart + p->totloop];
-
-			for (int j = 0; j < p->totloop; ++j) {
-				cface--;
-				mloop--;
+			else {
 				const Imath::C4f &color = (*c4f_ptr)[mloop->v];
 				cface->a = FTOCHAR(color[0]);
 				cface->r = FTOCHAR(color[1]);
