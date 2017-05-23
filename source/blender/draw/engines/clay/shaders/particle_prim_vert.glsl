@@ -1,24 +1,11 @@
 
-/* Material Parameters packed in an UBO */
-struct Material {
-	vec4 prim_color;
-	vec4 sec_color;
-};
-
-layout(std140) uniform material_block {
-	Material shader_param[MAX_MATERIAL];
-};
-
-uniform int mat_id;
-
-#define draw_size		shader_param[mat_id].sec_color.w
-
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ViewProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ProjectionMatrix;
 uniform int screen_space;
 uniform float pixel_size;
+uniform float draw_size;
 
 in vec3 pos;
 in vec4 rot;
