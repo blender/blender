@@ -68,6 +68,8 @@ extern char datatoc_object_empty_image_frag_glsl[];
 extern char datatoc_object_empty_image_vert_glsl[];
 extern char datatoc_object_particle_prim_vert_glsl[];
 extern char datatoc_object_particle_prim_frag_glsl[];
+extern char datatoc_object_particle_dot_vert_glsl[];
+extern char datatoc_object_particle_dot_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 
 /* *********** LISTS *********** */
@@ -290,7 +292,7 @@ static void OBJECT_engine_init(void *vedata)
 	}
 
 	if (!e_data.part_dot_sh) {
-		e_data.part_dot_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
+		e_data.part_dot_sh = DRW_shader_create(datatoc_object_particle_dot_vert_glsl, NULL, datatoc_object_particle_dot_frag_glsl, NULL);
 	}
 
 	{
@@ -438,6 +440,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_wire_sh);
 	DRW_SHADER_FREE_SAFE(e_data.grid_sh);
 	DRW_SHADER_FREE_SAFE(e_data.part_prim_sh);
+	DRW_SHADER_FREE_SAFE(e_data.part_dot_sh);
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], GPUShader *sh)
