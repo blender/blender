@@ -204,6 +204,7 @@ static struct {
 	GPUShader *grid_sh;
 	GPUShader *part_dot_sh;
 	GPUShader *part_prim_sh;
+	GPUShader *part_axis_sh;
 	float camera_pos[3];
 	float grid_settings[5];
 	float grid_mat[4][4];
@@ -291,6 +292,10 @@ static void OBJECT_engine_init(void *vedata)
 
 	if (!e_data.part_prim_sh) {
 		e_data.part_prim_sh = DRW_shader_create(datatoc_object_particle_prim_vert_glsl, NULL, datatoc_object_particle_prim_frag_glsl, NULL);
+	}
+
+	if (!e_data.part_axis_sh) {
+		e_data.part_axis_sh = DRW_shader_create(datatoc_object_particle_prim_vert_glsl, NULL, datatoc_object_particle_prim_frag_glsl, "#define USE_AXIS\n");
 	}
 
 	if (!e_data.part_dot_sh) {
@@ -442,6 +447,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_wire_sh);
 	DRW_SHADER_FREE_SAFE(e_data.grid_sh);
 	DRW_SHADER_FREE_SAFE(e_data.part_prim_sh);
+	DRW_SHADER_FREE_SAFE(e_data.part_axis_sh);
 	DRW_SHADER_FREE_SAFE(e_data.part_dot_sh);
 }
 
@@ -1421,14 +1427,18 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 								break;
 							case PART_DRAW_CROSS:
 								shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
+								DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+								DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
 								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 								break;
 							case PART_DRAW_CIRC:
 								shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
+								DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+								DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
 								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
 								break;
 							case PART_DRAW_AXIS:
-								shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
+								shgrp = DRW_shgroup_instance_create(e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
 								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 								break;
 							default:
@@ -1439,10 +1449,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 							DRW_shgroup_attrib_float(shgrp, "pos", 3);
 							DRW_shgroup_attrib_float(shgrp, "rot", 4);
 							DRW_shgroup_attrib_float(shgrp, "val", 1);
-							DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
 							DRW_shgroup_uniform_short_to_int(shgrp, "draw_size", &part->draw_size, 1);
 							DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-							DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
 							DRW_shgroup_instance_batch(shgrp, geom);
 						}
 					}
