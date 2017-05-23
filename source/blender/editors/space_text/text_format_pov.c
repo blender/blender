@@ -85,26 +85,15 @@ static int txtfmt_pov_find_keyword(const char *string)
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
 
-static int txtfmt_pov_find_reserved(const char *string)
+static int txtfmt_pov_find_reserved_keywords(const char *string)
 {
 	int i, len;
 	/* POV-Ray Built-in Variables
 	 * list is from...
 	 * http://www.povray.org/documentation/view/3.7.0/212/
 	 */
-	if      (STR_LITERAL_STARTSWITH(string, "clock",               len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "clock_delta",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "clock_on",            len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "final_clock",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "final_frame",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "frame_number",        len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "initial_clock",       len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "initial_frame",       len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "image_height",        len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "image_width",         len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "input_file_name",     len)) i = len;
 	/* Language Keywords */
-	else if (STR_LITERAL_STARTSWITH(string, "aa_level",            len)) i = len;
+	if      (STR_LITERAL_STARTSWITH(string, "aa_level",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "aa_threshold",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "absorption",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "accuracy",            len)) i = len;
@@ -270,6 +259,32 @@ static int txtfmt_pov_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "vertex_vectors",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "water_level",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "width",               len)) i = len;
+
+	else                                                                 i = 0;
+
+	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
+}
+
+
+static int txtfmt_pov_find_reserved_builtins(const char *string)
+{
+	int i, len;
+	/* POV-Ray Built-in Variables
+	 * list is from...
+	 * http://www.povray.org/documentation/view/3.7.0/212/
+	 */
+	if      (STR_LITERAL_STARTSWITH(string, "clock",               len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "clock_delta",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "clock_on",            len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "final_clock",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "final_frame",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "frame_number",        len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "initial_clock",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "initial_frame",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "image_height",        len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "image_width",         len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "input_file_name",     len)) i = len;
 	/* Built-in Vectors */
 	else if (STR_LITERAL_STARTSWITH(string, "t",                   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "u",                   len)) i = len;
@@ -430,7 +445,6 @@ static int txtfmt_pov_find_reserved(const char *string)
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
-
 
 
 /* Checks the specified source string for a POV modifiers. This
@@ -624,10 +638,11 @@ static int txtfmt_pov_find_bool(const char *string)
 static char txtfmt_pov_format_identifier(const char *str)
 {
 	char fmt;
-	if      ((txtfmt_pov_find_specialvar(str)) != -1) fmt = FMT_TYPE_SPECIAL;
-	else if ((txtfmt_pov_find_keyword(str))    != -1) fmt = FMT_TYPE_KEYWORD;
-	else if ((txtfmt_pov_find_reserved(str))   != -1) fmt = FMT_TYPE_RESERVED;
-	else                                              fmt = FMT_TYPE_DEFAULT;
+	if      ((txtfmt_pov_find_specialvar(str))        != -1) fmt = FMT_TYPE_SPECIAL;
+	else if ((txtfmt_pov_find_keyword(str))           != -1) fmt = FMT_TYPE_KEYWORD;
+	else if ((txtfmt_pov_find_reserved_keywords(str)) != -1) fmt = FMT_TYPE_RESERVED;
+	else if ((txtfmt_pov_find_reserved_builtins(str)) != -1) fmt = FMT_TYPE_RESERVED;
+	else                                                     fmt = FMT_TYPE_DEFAULT;
 	return fmt;
 }
 
@@ -748,9 +763,10 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
 			else {
 				/* Special vars(v) or built-in keywords(b) */
 				/* keep in sync with 'txtfmt_pov_format_identifier()' */
-				if      ((i = txtfmt_pov_find_specialvar(str)) != -1) prev = FMT_TYPE_SPECIAL;
-				else if ((i = txtfmt_pov_find_keyword(str))    != -1) prev = FMT_TYPE_KEYWORD;
-				else if ((i = txtfmt_pov_find_reserved(str))   != -1) prev = FMT_TYPE_RESERVED;
+				if      ((i = txtfmt_pov_find_specialvar(str))        != -1) prev = FMT_TYPE_SPECIAL;
+				else if ((i = txtfmt_pov_find_keyword(str))           != -1) prev = FMT_TYPE_KEYWORD;
+				else if ((i = txtfmt_pov_find_reserved_keywords(str)) != -1) prev = FMT_TYPE_RESERVED;
+				else if ((i = txtfmt_pov_find_reserved_builtins(str)) != -1) prev = FMT_TYPE_RESERVED;
 
 				if (i > 0) {
 					text_format_fill_ascii(&str, &fmt, prev, i);
