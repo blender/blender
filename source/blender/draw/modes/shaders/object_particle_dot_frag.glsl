@@ -1,8 +1,11 @@
 
 uniform vec3 color;
 uniform vec3 outlineColor;
+uniform sampler1D ramp;
 
 in vec4 radii;
+flat in float finalVal;
+
 out vec4 fragColor;
 
 void main() {
@@ -23,11 +26,23 @@ void main() {
 	float midStroke = 0.5 * (radii[1] + radii[2]);
 
 	if (dist > midStroke) {
-		fragColor.rgb = outlineColor;
+		if (finalVal < 0.0) {
+			fragColor.rgb = outlineColor;
+		}
+		else {
+			fragColor.rgb = texture(ramp, finalVal).rgb;
+		}
+
 		fragColor.a = mix(1.0, 0.0, smoothstep(radii[1], radii[0], dist));
 	}
 	else {
-		fragColor.rgb = mix(color, outlineColor, smoothstep(radii[3], radii[2], dist));
+		if (finalVal < 0.0) {
+			fragColor.rgb = mix(color, outlineColor, smoothstep(radii[3], radii[2], dist));
+		}
+		else {
+			fragColor.rgb = texture(ramp, finalVal).rgb;
+		}
+
 		fragColor.a = 1.0;
 	}
 

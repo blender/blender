@@ -26,10 +26,12 @@
 #include "DRW_render.h"
 
 #include "GPU_shader.h"
+#include "GPU_texture.h"
 
 #include "UI_resources.h"
 
 #include "BKE_global.h"
+#include "BKE_texture.h"
 
 #include "draw_common.h"
 
@@ -44,6 +46,7 @@
 /* Colors & Constant */
 GlobalsUboStorage ts;
 struct GPUUniformBuffer *globals_ubo = NULL;
+struct GPUTexture *globals_ramp = NULL;
 
 void DRW_globals_update(void)
 {
@@ -110,6 +113,26 @@ void DRW_globals_update(void)
 	}
 
 	globals_ubo = DRW_uniformbuffer_create(sizeof(GlobalsUboStorage), &ts);
+
+	ColorBand ramp = {0};
+	float *colors;
+	int col_size;
+
+	ramp.tot = 3;
+	ramp.data[0].a = 1.0f;
+	ramp.data[0].b = 1.0f;
+	ramp.data[0].pos = 0.0f;
+	ramp.data[1].a = 1.0f;
+	ramp.data[1].g = 1.0f;
+	ramp.data[1].pos = 0.5f;
+	ramp.data[2].a = 1.0f;
+	ramp.data[2].r = 1.0f;
+	ramp.data[2].pos = 1.0f;
+
+	colorband_table_RGBA(&ramp, &colors, &col_size);
+	globals_ramp = GPU_texture_create_1D(col_size, colors, NULL);
+
+	MEM_freeN(colors);
 }
 
 /* ********************************* SHGROUP ************************************* */

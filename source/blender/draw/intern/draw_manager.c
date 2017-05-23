@@ -3265,6 +3265,7 @@ void DRW_engines_register(void)
 }
 
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
+extern struct GPUTexture *globals_ramp; /* draw_common.c */
 void DRW_engines_free(void)
 {
 	DRW_shape_cache_free();
@@ -3281,6 +3282,9 @@ void DRW_engines_free(void)
 
 	if (globals_ubo)
 		GPU_uniformbuffer_free(globals_ubo);
+
+	if (globals_ramp)
+		GPU_texture_free(globals_ramp);
 
 #ifdef WITH_CLAY_ENGINE
 	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);

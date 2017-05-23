@@ -9,10 +9,12 @@ uniform int draw_size;
 
 in vec3 pos;
 in vec4 rot;
+in float val;
 in vec3 inst_pos;
 in int axis;
 
 flat out int finalAxis;
+flat out float finalVal;
 
 vec3 rotate(vec3 vec, vec4 quat)
 {
@@ -46,4 +48,5 @@ void main()
 	}
 
 	finalAxis = axis;
+	finalVal = val;
 }

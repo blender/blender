@@ -3,7 +3,10 @@ uniform mat4 ModelViewProjectionMatrix;
 uniform int size;
 
 in vec3 pos;
+in float val;
+
 out vec4 radii;
+flat out float finalVal;
 
 void main() {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
@@ -20,4 +23,6 @@ void main() {
 
 	// convert to PointCoord units
 	radii /= size;
+
+	finalVal = val;
 }
