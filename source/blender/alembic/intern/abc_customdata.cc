@@ -294,57 +294,59 @@ static void read_uvs(const CDStreamConfig &config, void *data,
 	}
 }
 
-static void read_custom_data_ex(const ICompoundProperty &prop,
-                                const PropertyHeader &prop_header,
-                                const CDStreamConfig &config,
-                                const Alembic::Abc::ISampleSelector &iss,
-                                int data_type)
+static void read_custom_data_mcols(const ICompoundProperty &prop,
+                                   const PropertyHeader &prop_header,
+                                   const CDStreamConfig &config,
+                                   const Alembic::Abc::ISampleSelector &iss)
 {
-	if (data_type == CD_MLOOPCOL) {
-		C3fArraySamplePtr c3f_ptr = C3fArraySamplePtr();
-		C4fArraySamplePtr c4f_ptr = C4fArraySamplePtr();
+	C3fArraySamplePtr c3f_ptr = C3fArraySamplePtr();
+	C4fArraySamplePtr c4f_ptr = C4fArraySamplePtr();
 
-		if (IC3fGeomParam::matches(prop_header)) {
-			IC3fGeomParam color_param(prop, prop_header.getName());
-			IC3fGeomParam::Sample sample;
-			color_param.getIndexed(sample, iss);
+	if (IC3fGeomParam::matches(prop_header)) {
+		IC3fGeomParam color_param(prop, prop_header.getName());
+		IC3fGeomParam::Sample sample;
+		color_param.getIndexed(sample, iss);
 
-			c3f_ptr = sample.getVals();
-		}
-		else if (IC4fGeomParam::matches(prop_header)) {
-			IC4fGeomParam color_param(prop, prop_header.getName());
-			IC4fGeomParam::Sample sample;
-			color_param.getIndexed(sample, iss);
-
-			c4f_ptr = sample.getVals();
-		}
-
-		void *cd_data = config.add_customdata_cb(config.user_data,
-		                                         prop_header.getName().c_str(),
-		                                         data_type);
-
-		read_mcols(config, cd_data, c3f_ptr, c4f_ptr);
+		c3f_ptr = sample.getVals();
 	}
-	else if (data_type == CD_MLOOPUV) {
-		IV2fGeomParam uv_param(prop, prop_header.getName());
+	else if (IC4fGeomParam::matches(prop_header)) {
+		IC4fGeomParam color_param(prop, prop_header.getName());
+		IC4fGeomParam::Sample sample;
+		color_param.getIndexed(sample, iss);
 
-		if (!uv_param.isIndexed()) {
-			return;
-		}
-
-		IV2fGeomParam::Sample sample;
-		uv_param.getIndexed(sample, iss);
-
-		if (uv_param.getScope() != kFacevaryingScope) {
-			return;
-		}
-
-		void *cd_data = config.add_customdata_cb(config.user_data,
-		                                         prop_header.getName().c_str(),
-		                                         data_type);
-
-		read_uvs(config, cd_data, sample.getVals(), sample.getIndices());
+		c4f_ptr = sample.getVals();
 	}
+
+	void *cd_data = config.add_customdata_cb(config.user_data,
+	                                         prop_header.getName().c_str(),
+	                                         CD_MLOOPCOL);
+
+	read_mcols(config, cd_data, c3f_ptr, c4f_ptr);
+}
+
+static void read_custom_data_uvs(const ICompoundProperty &prop,
+                                 const PropertyHeader &prop_header,
+                                 const CDStreamConfig &config,
+                                 const Alembic::Abc::ISampleSelector &iss)
+{
+	IV2fGeomParam uv_param(prop, prop_header.getName());
+
+	if (!uv_param.isIndexed()) {
+		return;
+	}
+
+	IV2fGeomParam::Sample sample;
+	uv_param.getIndexed(sample, iss);
+
+	if (uv_param.getScope() != kFacevaryingScope) {
+		return;
+	}
+
+	void *cd_data = config.add_customdata_cb(config.user_data,
+	                                         prop_header.getName().c_str(),
+	                                         CD_MLOOPUV);
+
+	read_uvs(config, cd_data, sample.getVals(), sample.getIndices());
 }
 
 void read_custom_data(const ICompoundProperty &prop, const CDStreamConfig &config, const Alembic::Abc::ISampleSelector &iss)
@@ -367,7 +369,7 @@ void read_custom_data(const ICompoundProperty &prop, const CDStreamConfig &confi
 				continue;
 			}
 
-			read_custom_data_ex(prop, prop_header, config, iss, CD_MLOOPUV);
+			read_custom_data_uvs(prop, prop_header, config, iss);
 			continue;
 		}
 
@@ -377,7 +379,7 @@ void read_custom_data(const ICompoundProperty &prop, const CDStreamConfig &confi
 				continue;
 			}
 
-			read_custom_data_ex(prop, prop_header, config, iss, CD_MLOOPCOL);
+			read_custom_data_mcols(prop, prop_header, config, iss);
 			continue;
 		}
 	}
