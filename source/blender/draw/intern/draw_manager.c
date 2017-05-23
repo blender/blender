@@ -642,6 +642,9 @@ static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRW
 	attrib->type = type;
 	attrib->size = size;
 
+/* Adding attribute even if not found for now (to keep memory alignment).
+ * Should ideally take vertex format automatically from batch eventually */
+#if 0
 	if (attrib->location == -1 && !dummy) {
 		if (G.debug & G_DEBUG)
 			fprintf(stderr, "Attribute '%s' not found!\n", name);
@@ -649,6 +652,7 @@ static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRW
 		MEM_freeN(attrib);
 		return;
 	}
+#endif
 
 	BLI_assert(BLI_strnlen(name, 32) < 32);
 	BLI_strncpy(attrib->name, name, 32);
