@@ -66,8 +66,8 @@ extern char datatoc_object_grid_frag_glsl[];
 extern char datatoc_object_grid_vert_glsl[];
 extern char datatoc_object_empty_image_frag_glsl[];
 extern char datatoc_object_empty_image_vert_glsl[];
-extern char datatoc_particle_prim_vert_glsl[];
-extern char datatoc_particle_prim_frag_glsl[];
+extern char datatoc_object_particle_prim_vert_glsl[];
+extern char datatoc_object_particle_prim_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 
 /* *********** LISTS *********** */
@@ -286,7 +286,7 @@ static void OBJECT_engine_init(void *vedata)
 	}
 
 	if (!e_data.part_prim_sh) {
-		e_data.part_prim_sh = DRW_shader_create(datatoc_particle_prim_vert_glsl, NULL, datatoc_particle_prim_frag_glsl, NULL);
+		e_data.part_prim_sh = DRW_shader_create(datatoc_object_particle_prim_vert_glsl, NULL, datatoc_object_particle_prim_frag_glsl, NULL);
 	}
 
 	if (!e_data.part_dot_sh) {

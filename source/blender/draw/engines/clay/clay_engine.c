@@ -55,11 +55,9 @@
 
 extern char datatoc_clay_frag_glsl[];
 extern char datatoc_clay_vert_glsl[];
+extern char datatoc_clay_particle_vert_glsl[];
+extern char datatoc_clay_particle_strand_frag_glsl[];
 extern char datatoc_ssao_alchemy_glsl[];
-extern char datatoc_particle_vert_glsl[];
-extern char datatoc_particle_strand_frag_glsl[];
-extern char datatoc_particle_prim_vert_glsl[];
-extern char datatoc_particle_prim_frag_glsl[];
 
 /* *********** LISTS *********** */
 
@@ -364,7 +362,7 @@ static void CLAY_engine_init(void *vedata)
 
 	if (!e_data.hair_sh) {
 		e_data.hair_sh = DRW_shader_create(
-		        datatoc_particle_vert_glsl, NULL, datatoc_particle_strand_frag_glsl,
+		        datatoc_clay_particle_vert_glsl, NULL, datatoc_clay_particle_strand_frag_glsl,
 		        "#define MAX_MATERIAL 512\n");
 	}
 
