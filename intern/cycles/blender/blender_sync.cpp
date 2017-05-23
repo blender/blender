@@ -329,6 +329,9 @@ void BlenderSync::sync_integrator()
 			integrator->ao_bounces = get_int(cscene, "ao_bounces_render");
 		}
 	}
+	else {
+		integrator->ao_bounces = 0;
+	}
 
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
