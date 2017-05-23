@@ -825,6 +825,7 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Batch *instances)
 {
 	BLI_assert(shgroup->type == DRW_SHG_INSTANCE);
+	BLI_assert(shgroup->interface->instance_batch == NULL);
 
 	shgroup->interface->instance_batch = instances;
 }
