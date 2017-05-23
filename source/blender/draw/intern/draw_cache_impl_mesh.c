@@ -1044,28 +1044,6 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 	return true;
 }
 
-static bool mesh_render_data_looptri_mat_index_get(
-        const MeshRenderData *rdata, const int tri_idx,
-        short *r_face_mat)
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
-
-	if (rdata->edit_bmesh) {
-		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
-			return false;
-		}
-		*r_face_mat = ((BMFace *)bm_looptri[0]->f)->mat_nr;
-	}
-	else {
-		const int poly_idx = rdata->mlooptri[tri_idx].poly; ;
-		const MPoly *poly = &rdata->mpoly[poly_idx]; ;
-		*r_face_mat = poly->mat_nr;
-	}
-
-	return true;
-}
-
 /**
  * Version of #mesh_render_data_looptri_verts_indices_get that assigns
  * edge indices too \a r_edges_idx (-1 for non-existant edges).
@@ -2619,9 +2597,10 @@ static ElementList *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdat
 static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_POLY));
+	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_POLY));
 
 	if (cache->shaded_triangles_in_order == NULL) {
+		const int poly_len = mesh_render_data_polys_len_get(rdata);
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 		const int mat_len = mesh_render_data_mat_len_get(rdata);
 
@@ -2629,10 +2608,25 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 		cache->shaded_triangles_in_order = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_len, __func__);
 		ElementListBuilder *elb = MEM_callocN(sizeof(*elb) * mat_len, __func__);
 
-		for (int i = 0; i < tri_len; ++i) {
-			short ma_id;
-			if (mesh_render_data_looptri_mat_index_get(rdata, i, &ma_id)) {
-				mat_tri_len[ma_id] += 1;
+		/* Note that polygons (not triangles) are used here.
+		 * This OK because result is _guaranteed_ to be the same. */
+		if (rdata->edit_bmesh) {
+			BMesh *bm = rdata->edit_bmesh->bm;
+			BMIter fiter;
+			BMFace *f;
+
+			BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+					const short ma_id = f->mat_nr < mat_len ? f->mat_nr : 0;
+					mat_tri_len[ma_id] += (f->len - 2);
+				}
+			}
+		}
+		else {
+			for (uint i = 0; i < poly_len; i++) {
+				const MPoly *mp = &rdata->mpoly[i]; ;
+				const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
+				mat_tri_len[ma_id] += (mp->totloop - 2);
 			}
 		}
 
@@ -2642,12 +2636,26 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 		}
 
 		/* Populate ELBs. */
-		unsigned int nidx = 0;
-		for (int i = 0; i < tri_len; ++i) {
-			short ma_id;
+		uint nidx = 0;
+		if (rdata->edit_bmesh) {
+			BMesh *bm = rdata->edit_bmesh->bm;
+			BMIter fiter;
+			BMFace *f;
 
-			/* TODO deduplicate verts see mesh_batch_cache_get_triangle_shading_data */
-			if (mesh_render_data_looptri_mat_index_get(rdata, i, &ma_id)) {
+			BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+					const short ma_id = f->mat_nr < mat_len ? f->mat_nr : 0;
+
+					add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
+					nidx += 3;
+				}
+			}
+		}
+		else {
+			for (uint i = 0; i < poly_len; i++) {
+				const MPoly *mp = &rdata->mpoly[i]; ;
+				const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
+
 				add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
 				nidx += 3;
 			}
