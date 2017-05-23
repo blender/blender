@@ -56,16 +56,16 @@ static int txtfmt_ini_find_keyword(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "declare",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "default",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "deprecated", len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "else",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "elseif",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "else",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "end",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "error",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fclose",     len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fopen",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "for",        len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "if",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ifdef",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ifndef",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "if",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "include",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "local",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "macro",      len)) i = len;
@@ -104,9 +104,9 @@ static int txtfmt_ini_find_reserved(const char *string)
 	 * list is from...
 	 * http://www.povray.org/documentation/view/3.7.0/212/
 	 */
-	if      (STR_LITERAL_STARTSWITH(string, "clock",                        len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "clock_delta",                  len)) i = len;
+	     if (STR_LITERAL_STARTSWITH(string, "clock_delta",                  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "clock_on",                     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "clock",                        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "final_clock",                  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "final_frame",                  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "frame_number",                 len)) i = len;
@@ -127,13 +127,13 @@ static int txtfmt_ini_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "Start_Row",                    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "End_Column",                   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "End_Row",                      len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "Test_Abort",                   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Test_Abort_Count",             len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Test_Abort",                   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Continue_Trace",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Create_Continue_Trace_Log",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Create_Ini",                   len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "Display",                      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Display_Gamma",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Display",                      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Pause_When_Done",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Verbose",                      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Preview_Start_Size",           len)) i = len;
@@ -145,8 +145,8 @@ static int txtfmt_ini_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "Output_Alpha",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Bits_Per_Color",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Compression",                  len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "Dither",                       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Dither_Method",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Dither",                       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Pre_Scene_Command",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Pre_Frame_Command",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Post_Scene_Command",           len)) i = len;
@@ -174,11 +174,9 @@ static int txtfmt_ini_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "Statistic_File",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Warning_File",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "All_File",                     len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "All_File",                     len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "All_File",                     len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Quality",                      len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "Bounding",                     len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Bounding_Threshold",           len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Bounding",                     len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Light_Buffer",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Vista_Buffer",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Remove_Bounds",                len)) i = len;
@@ -186,8 +184,8 @@ static int txtfmt_ini_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "Antialias",                    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Sampling_Method",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Antialias_Threshold",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "Jitter",                       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Jitter_Amount",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Jitter",                       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Antialias_Depth",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "CheckNewVersion",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "RunCount",                     len)) i = len;
