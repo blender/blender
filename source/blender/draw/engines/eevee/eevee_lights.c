@@ -129,10 +129,12 @@ void EEVEE_lights_cache_add(EEVEE_StorageList *stl, Object *ob)
 #if 1 /* TODO Waiting for notified refresh. only on scene change. Else too much perf cost. */
 		if (la->mode & (LA_SHAD_BUF | LA_SHAD_RAY)) {
 			if (la->type == LA_SUN && linfo->num_cascade < MAX_SHADOW_CASCADE) {
+#if 0 /* TODO filter cascaded shadow map */
 				led->sto = MEM_mallocN(sizeof(EEVEE_ShadowCascadeData), "EEVEE_ShadowCascadeData");
 				((EEVEE_ShadowCascadeData *)led->sto)->shadow_id = linfo->num_cascade;
 				linfo->shadow_cascade_ref[linfo->num_cascade] = ob;
 				linfo->num_cascade++;
+#endif
 			}
 			else if ((la->type == LA_SPOT || la->type == LA_LOCAL || la->type == LA_AREA)
 			          && linfo->num_cube < MAX_SHADOW_CUBE) {
