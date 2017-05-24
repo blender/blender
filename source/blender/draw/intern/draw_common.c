@@ -130,6 +130,10 @@ void DRW_globals_update(void)
 	ramp.data[2].pos = 1.0f;
 
 	colorband_table_RGBA(&ramp, &colors, &col_size);
+
+	if (globals_ramp) {
+		GPU_texture_free(globals_ramp);
+	}
 	globals_ramp = GPU_texture_create_1D(col_size, colors, NULL);
 
 	MEM_freeN(colors);
