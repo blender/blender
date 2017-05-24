@@ -1065,7 +1065,7 @@ void MeshImporter::assign_material_to_geom(
 	if (uid_material_map.find(ma_uid) == uid_material_map.end()) {
 		
 		fprintf(stderr, "Cannot find material by UID.\n");
-		return NULL;
+		return;
 	}
 
 	// first time we get geom_uid, ma_uid pair. Save for later check.
