@@ -644,58 +644,6 @@ static int mesh_render_data_polys_len_get(const MeshRenderData *rdata)
 	return rdata->poly_len;
 }
 
-static float *mesh_render_data_vert_co(const MeshRenderData *rdata, const int vert_idx)
-{
-	BLI_assert(rdata->types & MR_DATATYPE_VERT);
-
-	if (rdata->edit_bmesh) {
-		BMesh *bm = rdata->edit_bmesh->bm;
-		BMVert *bv = BM_vert_at_index(bm, vert_idx);
-		return bv->co;
-	}
-	else {
-		return rdata->mvert[vert_idx].co;
-	}
-}
-
-static short *mesh_render_data_vert_nor(const MeshRenderData *rdata, const int vert_idx)
-{
-	BLI_assert(rdata->types & MR_DATATYPE_VERT);
-
-	if (rdata->edit_bmesh) {
-		static short fno[3];
-		BMesh *bm = rdata->edit_bmesh->bm;
-		BMVert *bv = BM_vert_at_index(bm, vert_idx);
-		normal_float_to_short_v3(fno, bv->no);
-		return fno;
-	}
-	else {
-		return rdata->mvert[vert_idx].no;
-	}
-}
-
-static bool mesh_render_data_edge_verts_indices_get(
-        const MeshRenderData *rdata, const int edge_idx,
-        int r_vert_idx[2])
-{
-	BLI_assert(rdata->types & MR_DATATYPE_EDGE);
-
-	if (rdata->edit_bmesh) {
-		const BMEdge *bm_edge = BM_edge_at_index(rdata->edit_bmesh->bm, edge_idx);
-		if (BM_elem_flag_test(bm_edge, BM_ELEM_HIDDEN)) {
-			return false;
-		}
-		r_vert_idx[0] = BM_elem_index_get(bm_edge->v1);
-		r_vert_idx[1] = BM_elem_index_get(bm_edge->v2);
-	}
-	else {
-		const MEdge *me = &rdata->medge[edge_idx];
-		r_vert_idx[0] = me->v1;
-		r_vert_idx[1] = me->v2;
-	}
-	return true;
-}
-
 /** \} */
 
 
@@ -1044,70 +992,6 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 	return true;
 }
 
-/**
- * Version of #mesh_render_data_looptri_verts_indices_get that assigns
- * edge indices too \a r_edges_idx (-1 for non-existant edges).
- */
-static bool mesh_render_data_looptri_vert_edge_indices_get(
-        const MeshRenderData *rdata, const int tri_idx,
-        int r_vert_idx[3], int r_edges_idx[3])
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP));
-
-	unsigned int e_pair_edge[2];
-	unsigned int e_pair_loop[2];
-
-	if (rdata->edit_bmesh) {
-		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-
-		if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
-			return false;
-		}
-
-		/* assign 'r_edges_idx' & 'r_vert_idx' */
-		int j, j_next;
-		for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
-			const BMLoop *l = bm_looptri[j], *l_next = bm_looptri[j_next];
-			const BMEdge *e = l->e;
-			ARRAY_SET_ITEMS(e_pair_edge, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2));
-			ARRAY_SET_ITEMS(e_pair_loop, BM_elem_index_get(l->v), BM_elem_index_get(l_next->v));
-			if ((e_pair_edge[0] == e_pair_loop[0] && e_pair_edge[1] == e_pair_loop[1]) ||
-			    (e_pair_edge[0] == e_pair_loop[1] && e_pair_edge[1] == e_pair_loop[0]))
-			{
-				r_edges_idx[j] = BM_elem_index_get(l->e);
-			}
-			else {
-				r_edges_idx[j] = -1;
-			}
-			r_vert_idx[j] = e_pair_loop[0];  /* BM_elem_index_get(l->v) */
-		}
-	}
-	else {
-		const unsigned int *l_idx = rdata->mlooptri[tri_idx].tri;
-		const MLoop *l_tri[3] = {&rdata->mloop[l_idx[0]], &rdata->mloop[l_idx[1]], &rdata->mloop[l_idx[2]]};
-
-		/* assign 'r_edges_idx' & 'r_vert_idx' */
-		int j, j_next;
-		for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
-			const MLoop *l = l_tri[j], *l_next = l_tri[j_next];
-			const MEdge *e = &rdata->medge[l->e]; \
-			ARRAY_SET_ITEMS(e_pair_edge, e->v1, e->v2);
-			ARRAY_SET_ITEMS(e_pair_loop, l->v, l_next->v);
-			if ((e_pair_edge[0] == e_pair_loop[0] && e_pair_edge[1] == e_pair_loop[1]) ||
-			    (e_pair_edge[0] == e_pair_loop[1] && e_pair_edge[1] == e_pair_loop[0]))
-			{
-				r_edges_idx[j] = l->e;
-			}
-			else {
-				r_edges_idx[j] = -1;
-			}
-			r_vert_idx[j] = e_pair_loop[0];  /* l->v */
-		}
-	}
-
-	return true;
-}
-
 static void mesh_render_data_looptri_uvs_get(
         MeshRenderData *rdata, const int tri_idx, const int uv_layer,
         float *(*r_vert_uvs)[3])
@@ -1239,92 +1123,65 @@ enum {
 	 * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
 };
 
-static unsigned char mesh_render_data_looptri_flag(MeshRenderData *rdata, const int f)
+static unsigned char mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *bf)
 {
 	unsigned char fflag = 0;
 
-	if (rdata->edit_bmesh) {
-		BMFace *bf = rdata->edit_bmesh->looptris[f][0]->f;
+	if (bf == rdata->efa_act)
+		fflag |= VFLAG_FACE_ACTIVE;
 
-		if (bf == rdata->efa_act)
-			fflag |= VFLAG_FACE_ACTIVE;
-
-		if (BM_elem_flag_test(bf, BM_ELEM_SELECT))
-			fflag |= VFLAG_FACE_SELECTED;
-	}
+	if (BM_elem_flag_test(bf, BM_ELEM_SELECT))
+		fflag |= VFLAG_FACE_SELECTED;
 
 	return fflag;
 }
 
-static EdgeDrawAttr *mesh_render_data_edge_flag(MeshRenderData *rdata, const int e)
+static void mesh_render_data_edge_flag(
+        const MeshRenderData *rdata, const BMEdge *be,
+        EdgeDrawAttr *eattr)
 {
-	static EdgeDrawAttr eattr;
-	memset(&eattr, 0, sizeof(eattr));
+	eattr->e_flag |= VFLAG_EDGE_EXISTS;
 
-	if (e == -1) {
-		return &eattr;
-	}
+	if (be == rdata->eed_act)
+		eattr->e_flag |= VFLAG_EDGE_ACTIVE;
 
-	/* if edge exists */
-	if (rdata->edit_bmesh) {
-		BMesh *bm = rdata->edit_bmesh->bm;
-		BMEdge *be = NULL;
+	if (BM_elem_flag_test(be, BM_ELEM_SELECT))
+		eattr->e_flag |= VFLAG_EDGE_SELECTED;
 
-		be = BM_edge_at_index(bm, e);
+	if (BM_elem_flag_test(be, BM_ELEM_SEAM))
+		eattr->e_flag |= VFLAG_EDGE_SEAM;
 
-		eattr.e_flag |= VFLAG_EDGE_EXISTS;
+	if (!BM_elem_flag_test(be, BM_ELEM_SMOOTH))
+		eattr->e_flag |= VFLAG_EDGE_SHARP;
 
-		if (be == rdata->eed_act)
-			eattr.e_flag |= VFLAG_EDGE_ACTIVE;
-
-		if (BM_elem_flag_test(be, BM_ELEM_SELECT))
-			eattr.e_flag |= VFLAG_EDGE_SELECTED;
-
-		if (BM_elem_flag_test(be, BM_ELEM_SEAM))
-			eattr.e_flag |= VFLAG_EDGE_SEAM;
-
-		if (!BM_elem_flag_test(be, BM_ELEM_SMOOTH))
-			eattr.e_flag |= VFLAG_EDGE_SHARP;
-
-		/* Use a byte for value range */
-		if (rdata->cd.offset.crease != -1) {
-			float crease = BM_ELEM_CD_GET_FLOAT(be, rdata->cd.offset.crease);
-			if (crease > 0) {
-				eattr.crease = (char)(crease * 255.0f);
-			}
-		}
-
-		/* Use a byte for value range */
-		if (rdata->cd.offset.bweight != -1) {
-			float bweight = BM_ELEM_CD_GET_FLOAT(be, rdata->cd.offset.bweight);
-			if (bweight > 0) {
-				eattr.bweight = (char)(bweight * 255.0f);
-			}
+	/* Use a byte for value range */
+	if (rdata->cd.offset.crease != -1) {
+		float crease = BM_ELEM_CD_GET_FLOAT(be, rdata->cd.offset.crease);
+		if (crease > 0) {
+			eattr->crease = (char)(crease * 255.0f);
 		}
 	}
-	else {
-		eattr.e_flag |= VFLAG_EDGE_EXISTS;
-	}
 
-	return &eattr;
+	/* Use a byte for value range */
+	if (rdata->cd.offset.bweight != -1) {
+		float bweight = BM_ELEM_CD_GET_FLOAT(be, rdata->cd.offset.bweight);
+		if (bweight > 0) {
+			eattr->bweight = (char)(bweight * 255.0f);
+		}
+	}
 }
 
-static unsigned char mesh_render_data_vertex_flag(MeshRenderData *rdata, const int v)
+static unsigned char mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *bv)
 {
 
 	unsigned char vflag = 0;
 
-	if (rdata->edit_bmesh) {
-		BMesh *bm = rdata->edit_bmesh->bm;
-		BMVert *bv = BM_vert_at_index(bm, v);
+	/* Current vertex */
+	if (bv == rdata->eve_act)
+		vflag |= VFLAG_VERTEX_ACTIVE;
 
-		/* Current vertex */
-		if (bv == rdata->eve_act)
-			vflag |= VFLAG_VERTEX_ACTIVE;
-
-		if (BM_elem_flag_test(bv, BM_ELEM_SELECT))
-			vflag |= VFLAG_VERTEX_SELECTED;
-	}
+	if (BM_elem_flag_test(bv, BM_ELEM_SELECT))
+		vflag |= VFLAG_VERTEX_SELECTED;
 
 	return vflag;
 }
@@ -1332,47 +1189,42 @@ static unsigned char mesh_render_data_vertex_flag(MeshRenderData *rdata, const i
 static void add_overlay_tri(
         MeshRenderData *rdata, VertexBuffer *vbo_pos, VertexBuffer *vbo_nor, VertexBuffer *vbo_data,
         const unsigned int pos_id, const unsigned int vnor_id, const unsigned int lnor_id, const unsigned int data_id,
-        const int tri_vert_idx[3], const int tri_edge_idx[3], const int f, const int base_vert_idx)
+        const BMLoop **bm_looptri, const int base_vert_idx)
 {
-	EdgeDrawAttr *eattr;
 	unsigned char fflag;
 	unsigned char vflag;
 
 	if (vbo_pos) {
-		for (int i = 0; i < 3; ++i) {
-			const float *pos = mesh_render_data_vert_co(rdata, tri_vert_idx[i]);
+		for (uint i = 0; i < 3; i++) {
+			const float *pos = bm_looptri[i]->v->co;
 			VertexBuffer_set_attrib(vbo_pos, pos_id, base_vert_idx + i, pos);
 		}
 	}
 
 	if (vbo_nor) {
-		float *tri_vert_cos[3];
-		short *tri_nor, *tri_vert_nors[3];
-		bool is_smooth;
-
-		mesh_render_data_looptri_cos_nors_smooth_get(
-		        rdata, f, false, &tri_vert_cos, &tri_nor, &tri_vert_nors, &is_smooth);
-		for (int i = 0; i < 3; ++i) {
-			/* TODO real loop normal */
-			const short *svnor = mesh_render_data_vert_nor(rdata, tri_vert_idx[i]);
-			const short *slnor = tri_vert_nors[i];
-			fflag = mesh_render_data_looptri_flag(rdata, f);
-
-			PackedNormal vnor = convert_i10_s3(svnor);
-			PackedNormal lnor = convert_i10_s3(slnor);
+		/* TODO real loop normal */
+		PackedNormal lnor = convert_i10_v3(bm_looptri[0]->f->no);
+		for (uint i = 0; i < 3; i++) {
+			PackedNormal vnor = convert_i10_v3(bm_looptri[i]->v->no);
 			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
 			VertexBuffer_set_attrib(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
 		}
 	}
 
 	if (vbo_data) {
-		fflag = mesh_render_data_looptri_flag(rdata, f);
-		for (int i = 0; i < 3; ++i) {
-			int iedge = (i == 2) ? 0 : i+1;
-			eattr = mesh_render_data_edge_flag(rdata, tri_edge_idx[iedge]);
-			vflag = mesh_render_data_vertex_flag(rdata, tri_vert_idx[i]);
-			eattr->v_flag = fflag | vflag;
-			VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx + i, eattr);
+		fflag = mesh_render_data_looptri_flag(rdata, bm_looptri[0]->f);
+		uint i_prev = 1, i = 2;
+		for (uint i_next = 0; i_next < 3; i_next++) {
+			vflag = mesh_render_data_vertex_flag(rdata, bm_looptri[i]->v);
+			EdgeDrawAttr eattr = {0};
+			if (bm_looptri[i_next] == bm_looptri[i_prev]->prev) {
+				mesh_render_data_edge_flag(rdata, bm_looptri[i_next]->e, &eattr);
+			}
+			eattr.v_flag = fflag | vflag;
+			VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx + i, &eattr);
+
+			i_prev = i;
+			i = i_next;
 		}
 	}
 }
@@ -1380,28 +1232,28 @@ static void add_overlay_tri(
 static void add_overlay_loose_edge(
         MeshRenderData *rdata, VertexBuffer *vbo_pos, VertexBuffer *vbo_nor, VertexBuffer *vbo_data,
         const unsigned int pos_id, const unsigned int vnor_id, const unsigned int data_id,
-        const int edge_vert_idx[2], const int e, const int base_vert_idx)
+        const BMEdge *be, const int base_vert_idx)
 {
 	if (vbo_pos) {
 		for (int i = 0; i < 2; ++i) {
-			const float *pos = mesh_render_data_vert_co(rdata, edge_vert_idx[i]);
+			const float *pos = (&be->v1)[i]->co;
 			VertexBuffer_set_attrib(vbo_pos, pos_id, base_vert_idx + i, pos);
 		}
 	}
 
 	if (vbo_nor) {
 		for (int i = 0; i < 2; ++i) {
-			short *nor = mesh_render_data_vert_nor(rdata, edge_vert_idx[i]);
-			PackedNormal vnor = convert_i10_s3(nor);
+			PackedNormal vnor = convert_i10_v3((&be->v1)[i]->no);
 			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
 		}
 	}
 
 	if (vbo_data) {
-		EdgeDrawAttr *eattr = mesh_render_data_edge_flag(rdata, e);
+		EdgeDrawAttr eattr = {0};
+		mesh_render_data_edge_flag(rdata, be, &eattr);
 		for (int i = 0; i < 2; ++i) {
-			eattr->v_flag = mesh_render_data_vertex_flag(rdata, edge_vert_idx[i]);
-			VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx + i, eattr);
+			eattr.v_flag = mesh_render_data_vertex_flag(rdata, (&be->v1)[i]);
+			VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx + i, &eattr);
 		}
 	}
 }
@@ -1409,22 +1261,21 @@ static void add_overlay_loose_edge(
 static void add_overlay_loose_vert(
         MeshRenderData *rdata, VertexBuffer *vbo_pos, VertexBuffer *vbo_nor, VertexBuffer *vbo_data,
         const unsigned int pos_id, const unsigned int vnor_id, const unsigned int data_id,
-        const int v, const int base_vert_idx)
+        const BMVert *bv, const int base_vert_idx)
 {
 	if (vbo_pos) {
-		const float *pos = mesh_render_data_vert_co(rdata, v);
+		const float *pos = bv->co;
 		VertexBuffer_set_attrib(vbo_pos, pos_id, base_vert_idx, pos);
 	}
 
 	if (vbo_nor) {
-		short *nor = mesh_render_data_vert_nor(rdata, v);
-		PackedNormal vnor = convert_i10_s3(nor);
+		PackedNormal vnor = convert_i10_v3(bv->no);
 		VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx, &vnor);
 	}
 
 	if (vbo_data) {
 		unsigned char vflag[4] = {0, 0, 0, 0};
-		vflag[0] = mesh_render_data_vertex_flag(rdata, v);
+		vflag[0] = mesh_render_data_vertex_flag(rdata, bv);
 		VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx, vflag);
 	}
 }
@@ -2280,13 +2131,13 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
 	}
 
-	for (int i = 0; i < tri_len; ++i) {
-		int tri_vert_idx[3], tri_edge_idx[3];
-		if (mesh_render_data_looptri_vert_edge_indices_get(rdata, i, tri_vert_idx, tri_edge_idx)) {
+	for (int i = 0; i < tri_len; i++) {
+		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
+		if (!BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
 			add_overlay_tri(
 			        rdata, vbo_pos, vbo_nor, vbo_data,
 			        attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
-			        tri_vert_idx, tri_edge_idx, i, vbo_len_used);
+			        bm_looptri, vbo_len_used);
 
 			vbo_len_used += 3;
 		}
@@ -2341,16 +2192,18 @@ static void mesh_batch_cache_create_overlay_ledge_buffers(
 		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
 	}
 
-	for (int i = 0; i < ledge_len; ++i) {
-		int vert_idx[2];
-		const bool ok = mesh_render_data_edge_verts_indices_get(rdata, rdata->loose_edges[i], vert_idx);
-		BLI_assert(ok);  /* we don't add */
-		UNUSED_VARS_NDEBUG(ok);
-		add_overlay_loose_edge(
-		        rdata, vbo_pos, vbo_nor, vbo_data,
-		        attr_id.pos, attr_id.vnor, attr_id.data,
-		        vert_idx, i, vbo_len_used);
-		vbo_len_used += 2;
+	if (rdata->edit_bmesh) {
+		BMesh *bm = rdata->edit_bmesh->bm;
+		for (uint i = 0; i < ledge_len; i++) {
+			const BMEdge *be = BM_edge_at_index(bm, rdata->loose_edges[i]);
+			if (!BM_elem_flag_test(be, BM_ELEM_HIDDEN)) {
+				add_overlay_loose_edge(
+				        rdata, vbo_pos, vbo_nor, vbo_data,
+				        attr_id.pos, attr_id.vnor, attr_id.data,
+				        be, vbo_len_used);
+				vbo_len_used += 2;
+			}
+		}
 	}
 
 	/* Finish */
@@ -2372,6 +2225,7 @@ static void mesh_batch_cache_create_overlay_lvert_buffers(
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
 
+	BMesh *bm = rdata->edit_bmesh->bm;
 	const int lvert_len = mesh_render_data_loose_verts_len_get(rdata);
 
 	const int vbo_len_capacity = lvert_len;
@@ -2403,11 +2257,12 @@ static void mesh_batch_cache_create_overlay_lvert_buffers(
 		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
 	}
 
-	for (int i = 0; i < lvert_len; ++i) {
+	for (uint i = 0; i < lvert_len; i++) {
+		BMVert *bv = BM_vert_at_index(bm, rdata->loose_verts[i]);
 		add_overlay_loose_vert(
 		        rdata, vbo_pos, vbo_nor, vbo_data,
 		        attr_id.pos, attr_id.vnor, attr_id.data,
-		        rdata->loose_verts[i], vbo_len_used);
+		        bv, vbo_len_used);
 		vbo_len_used += 1;
 	}
 
@@ -2547,10 +2402,23 @@ static ElementList *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, M
 
 		ElementListBuilder elb;
 		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, vert_len);
-		for (int i = 0; i < edge_len; ++i) {
-			int vert_idx[2];
-			if (mesh_render_data_edge_verts_indices_get(rdata, i, vert_idx)) {
-				add_line_vertices(&elb, vert_idx[0], vert_idx[1]);
+
+		BLI_assert(rdata->types & MR_DATATYPE_EDGE);
+
+		if (rdata->edit_bmesh) {
+			BMesh *bm = rdata->edit_bmesh->bm;
+			BMIter eiter;
+			BMEdge *e;
+			BM_ITER_MESH(e, &eiter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+					add_line_vertices(&elb, BM_elem_index_get(e->v1),  BM_elem_index_get(e->v2));
+				}
+			}
+		}
+		else {
+			const MEdge *ed = rdata->medge;
+			for (int i = 0; i < edge_len; i++, ed++) {
+				add_line_vertices(&elb, ed->v1, ed->v2);
 			}
 		}
 		cache->edges_in_order = ElementList_build(&elb);
@@ -3038,6 +2906,8 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 
 static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 {
+	BLI_assert(me->edit_btmesh != NULL);
+
 	/* Since MR_DATATYPE_OVERLAY is slow to generate, generate them all at once */
 	const int options =
 	        MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_POLY |
