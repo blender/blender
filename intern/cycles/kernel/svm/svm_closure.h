@@ -150,6 +150,11 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			 * getting lower and lower */
 			if(path_flag & PATH_RAY_DIFFUSE_ANCESTOR) {
 				subsurface = 0.0f;
+
+				/* need to set the base color in this case such that the
+				 * rays get the correctly mixed color after transmitting
+				 * the object */
+				base_color = albedo;
 			}
 
 			/* diffuse */
