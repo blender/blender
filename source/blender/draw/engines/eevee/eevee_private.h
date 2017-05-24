@@ -258,8 +258,6 @@ typedef struct EEVEE_LampEngineData {
 } EEVEE_LampEngineData;
 
 typedef struct EEVEE_PrivateData {
-	struct DRWShadingGroup *default_lit_grp;
-	struct DRWShadingGroup *default_lit_grp_flat;
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
 	struct DRWShadingGroup *depth_shgrp_cull;

@@ -488,12 +488,10 @@ static void EEVEE_cache_init(void *vedata)
 			if (j == 0) {
 				shader = e_data.default_lit;
 				shgrp = DRW_shgroup_create(shader, psl->default_pass);
-				stl->g_data->default_lit_grp = shgrp;
 			}
 			else {
 				shader = e_data.default_lit_flat;
 				shgrp = DRW_shgroup_create(shader, psl->default_pass);
-				stl->g_data->default_lit_grp_flat = shgrp;
 			}
 
 			DRW_shgroup_uniform_block(shgrp, "light_block", stl->light_ubo);
@@ -556,13 +554,11 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		struct Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
 		if (mat_geom) {
 			struct GPUShader *default_shader = e_data.default_lit;
-			struct DRWShadingGroup *default_shgrp = stl->g_data->default_lit_grp;
 
 			if (is_default_mode_shader) {
 				if (is_sculpt_mode) {
 					bool use_flat = DRW_object_is_flat_normal(ob);
 					default_shader = use_flat ? e_data.default_lit_flat : e_data.default_lit;
-					default_shgrp = use_flat ? stl->g_data->default_lit_grp_flat : stl->g_data->default_lit_grp;
 				}
 			}
 
@@ -608,9 +604,9 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_uniform_float(shgrp, "metallic", &half, 1);
 						DRW_shgroup_uniform_float(shgrp, "specular", &half, 1);
 						DRW_shgroup_uniform_float(shgrp, "roughness", &half, 1);
-						DRW_shgroup_uniform_texture(default_shgrp, "ltcMat", e_data.ltc_mat);
-						DRW_shgroup_uniform_texture(default_shgrp, "brdfLut", e_data.brdf_lut);
-						DRW_shgroup_uniform_texture(default_shgrp, "probeFiltered", txl->probe_pool);
+						DRW_shgroup_uniform_texture(shgrp, "ltcMat", e_data.ltc_mat);
+						DRW_shgroup_uniform_texture(shgrp, "brdfLut", e_data.brdf_lut);
+						DRW_shgroup_uniform_texture(shgrp, "probeFiltered", txl->probe_pool);
 
 						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
@@ -626,9 +622,9 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					DRW_shgroup_uniform_float(shgrp, "metallic", &ma->ray_mirror, 1);
 					DRW_shgroup_uniform_float(shgrp, "specular", &ma->spec, 1);
 					DRW_shgroup_uniform_float(shgrp, "roughness", &ma->gloss_mir, 1);
-					DRW_shgroup_uniform_texture(default_shgrp, "ltcMat", e_data.ltc_mat);
-					DRW_shgroup_uniform_texture(default_shgrp, "brdfLut", e_data.brdf_lut);
-					DRW_shgroup_uniform_texture(default_shgrp, "probeFiltered", txl->probe_pool);
+					DRW_shgroup_uniform_texture(shgrp, "ltcMat", e_data.ltc_mat);
+					DRW_shgroup_uniform_texture(shgrp, "brdfLut", e_data.brdf_lut);
+					DRW_shgroup_uniform_texture(shgrp, "probeFiltered", txl->probe_pool);
 
 					if (is_sculpt_mode) {
 						DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
