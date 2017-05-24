@@ -48,6 +48,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_mesh.h"
+#include "BKE_mesh_tangent.h"
 #include "BKE_mesh_mapping.h"
 #include "ED_mesh.h"
 
@@ -92,7 +93,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 		BKE_mesh_calc_normals_split(mesh);
 	}
 
-	BKE_mesh_loop_tangents(mesh, uvmap, r_looptangents, reports);
+	BKE_mesh_calc_loop_tangent_single(mesh, uvmap, r_looptangents, reports);
 }
 
 static void rna_Mesh_free_tangents(Mesh *mesh)

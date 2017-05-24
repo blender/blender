@@ -28,6 +28,7 @@
 #include "BKE_DerivedMesh.h"
 
 #include "BKE_mesh.h"
+#include "BKE_mesh_tangent.h"  /* for utility functions */
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_tangent.h"
 
@@ -268,7 +269,7 @@ static void emDM_calc_loop_tangents_thread(TaskPool * __restrict UNUSED(pool), v
 }
 
 /**
- * \see #DM_calc_loop_tangents, same logic but used arrays instead of #BMesh data.
+ * \see #BKE_mesh_calc_loop_tangent, same logic but used arrays instead of #BMesh data.
  *
  * \note This function is not so normal, its using `bm->ldata` as input, but output's to `dm->loopData`.
  * This is done because #CD_TANGENT is cache data used only for drawing.
@@ -285,8 +286,8 @@ void BKE_editmesh_loop_tangent_calc(
         char *tangent_mask_curr_p)
 {
 	BMesh *bm = em->bm;
-	if (CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV) == 0)
-		return;
+
+	BLI_assert(CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV) != 0);
 
 	int act_uv_n = -1;
 	int ren_uv_n = -1;
@@ -297,18 +298,18 @@ void BKE_editmesh_loop_tangent_calc(
 	char tangent_mask = 0;
 	char tangent_mask_curr = *tangent_mask_curr_p;
 
-	DM_calc_loop_tangents_step_0(
+	BKE_mesh_calc_loop_tangent_step_0(
 	        &bm->ldata, calc_active_tangent, tangent_names, tangent_names_len,
 	        &calc_act, &calc_ren, &act_uv_n, &ren_uv_n, act_uv_name, ren_uv_name, &tangent_mask);
 
 	if ((tangent_mask_curr | tangent_mask) != tangent_mask_curr) {
 		for (int i = 0; i < tangent_names_len; i++)
 			if (tangent_names[i][0])
-				DM_add_named_tangent_layer_for_uv(&bm->ldata, loopdata_out, loopdata_out_len, tangent_names[i]);
+				BKE_mesh_add_loop_tangent_named_layer_for_uv(&bm->ldata, loopdata_out, loopdata_out_len, tangent_names[i]);
 		if (calc_act && act_uv_name[0])
-			DM_add_named_tangent_layer_for_uv(&bm->ldata, loopdata_out, loopdata_out_len, act_uv_name);
+			BKE_mesh_add_loop_tangent_named_layer_for_uv(&bm->ldata, loopdata_out, loopdata_out_len, act_uv_name);
 		if (calc_ren && ren_uv_name[0])
-			DM_add_named_tangent_layer_for_uv(&bm->ldata, loopdata_out, loopdata_out_len, ren_uv_name);
+			BKE_mesh_add_loop_tangent_named_layer_for_uv(&bm->ldata, loopdata_out, loopdata_out_len, ren_uv_name);
 		int totface = em->tottri;
 #ifdef USE_LOOPTRI_DETECT_QUADS
 		int num_face_as_quad_map;

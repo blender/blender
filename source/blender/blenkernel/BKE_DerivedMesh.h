@@ -785,17 +785,11 @@ void DM_draw_attrib_vertex_uniforms(const DMVertexAttribs *attribs);
 void DM_calc_tangents_names_from_gpu(
         const struct GPUVertexAttribs *gattribs,
         char (*tangent_names)[MAX_NAME], int *tangent_names_count);
-void DM_add_named_tangent_layer_for_uv(
-        CustomData *uv_data, CustomData *tan_data, int numLoopData,
-        const char *layer_name);
-void DM_calc_loop_tangents_step_0(
-        const CustomData *loopData, bool calc_active_tangent,
-        const char (*tangent_names)[MAX_NAME], int tangent_names_count,
-        bool *rcalc_act, bool *rcalc_ren, int *ract_uv_n, int *rren_uv_n,
-        char *ract_uv_name, char *rren_uv_name, char *rtangent_mask);
+
 void DM_calc_loop_tangents(
         DerivedMesh *dm, bool calc_active_tangent, const char (*tangent_names)[MAX_NAME],
         int tangent_names_count);
+
 void DM_calc_auto_bump_scale(DerivedMesh *dm);
 
 /** Set object's bounding box based on DerivedMesh min/max data */

@@ -245,6 +245,11 @@ static void emDM_calc_loop_tangents(
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMEditMesh *em = bmdm->em;
+
+	if (CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPUV) == 0) {
+		return;
+	}
+
 	const float (*poly_normals)[3] = bmdm->polyNos;
 	const float (*loop_normals)[3] = CustomData_get_layer(&dm->loopData, CD_NORMAL);
 	const float (*vert_orco)[3] = dm->getVertDataArray(dm, CD_ORCO);  /* can be NULL */

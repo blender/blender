@@ -45,6 +45,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_tangent.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_tangent.h"
 #include "BKE_texture.h"
 
 #include "bmesh.h"
@@ -497,18 +498,45 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 				}
 				else {
 #undef me
-					if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
-						BKE_mesh_calc_normals_split(me);
+
+					if (!CustomData_has_layer(&rdata->cd.output.ldata, CD_MLOOPTANGENT)) {
+						if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
+							BKE_mesh_calc_normals_split(me);
+						}
+
+						bool calc_active_tangent = false;
+						const float (*poly_normals)[3] = rdata->poly_normals;
+						const float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
+						char tangent_names[MAX_MTFACE][MAX_NAME];
+						int tangent_names_len = 0;
+						for (tangent_names_len = 0; tangent_names_len < rdata->cd.layers.uv_len; tangent_names_len++) {
+							BLI_strncpy(
+							        tangent_names[tangent_names_len],
+							        CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, tangent_names_len), MAX_NAME);
+						}
+
+						BKE_mesh_calc_loop_tangent_ex(
+						        me->mvert,
+						        me->mpoly, me->totpoly,
+						        me->mloop,
+						        rdata->mlooptri, rdata->tri_len,
+						        cd_ldata,
+						        calc_active_tangent,
+						        tangent_names, tangent_names_len,
+						        poly_normals, loop_normals,
+						        rdata->orco,
+						        &rdata->cd.output.ldata, me->totloop,
+						        &rdata->cd.output.tangent_mask);
+
+						/* If we store tangents in the mesh, set temporary. */
+#if 0
+						CustomData_set_layer_flag(cd_ldata, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
+#endif
 					}
 
-					float (*loopnors)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
+					rdata->cd.layers.tangent[i] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i);
+					BLI_assert(rdata->cd.layers.tangent[i] != NULL);
 
-					rdata->cd.layers.tangent[i] = CustomData_add_layer(
-					        cd_ldata, CD_MLOOPTANGENT, CD_CALLOC, NULL, me->totloop);
-					CustomData_set_layer_flag(cd_ldata, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
-
-					BKE_mesh_loop_tangents_ex(me->mvert, me->totvert, me->mloop, rdata->cd.layers.tangent[i],
-					      loopnors, rdata->cd.layers.uv[i], me->totloop, me->mpoly, me->totpoly, NULL);
 #define me DONT_USE_THIS
 #ifdef  me /* quiet warning */
 #endif
@@ -526,7 +554,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 #undef me
 	}
 
-	return rdata;
+		return rdata;
 }
 
 static void mesh_render_data_free(MeshRenderData *rdata)
