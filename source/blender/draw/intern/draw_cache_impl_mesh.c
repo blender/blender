@@ -292,10 +292,10 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 				BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
 				BMVert **vtable = bm->vtable;
 				for (int i = 0; i < bm->totvert; i++) {
-					const BMVert *v = vtable[i];
-					if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+					const BMVert *eve = vtable[i];
+					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 						/* Loose vert */
-						if (v->e == NULL || !bm_vert_has_visible_edge(v)) {
+						if (eve->e == NULL || !bm_vert_has_visible_edge(eve)) {
 							lverts[rdata->loose_vert_len++] = i;
 						}
 					}
@@ -306,10 +306,10 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 				BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
 				BMEdge **etable = bm->etable;
 				for (int i = 0; i < bm->totedge; i++) {
-					const BMEdge *e = etable[i];
-					if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+					const BMEdge *eed = etable[i];
+					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 						/* Loose edge */
-						if (e->l == NULL || !bm_edge_has_visible_face(e)) {
+						if (eed->l == NULL || !bm_edge_has_visible_face(eed)) {
 							ledges[rdata->loose_edge_len++] = i;
 						}
 					}
@@ -660,12 +660,12 @@ static void mesh_render_data_ensure_poly_normals_short(MeshRenderData *rdata)
 		if (rdata->edit_bmesh) {
 			BMesh *bm = rdata->edit_bmesh->bm;
 			BMIter fiter;
-			BMFace *face;
+			BMFace *efa;
 			int i;
 
 			pnors_short = rdata->poly_normals_short = MEM_mallocN(sizeof(*pnors_short) * rdata->poly_len, __func__);
-			BM_ITER_MESH_INDEX(face, &fiter, bm, BM_FACES_OF_MESH, i) {
-				normal_float_to_short_v3(pnors_short[i], face->no);
+			BM_ITER_MESH_INDEX(efa, &fiter, bm, BM_FACES_OF_MESH, i) {
+				normal_float_to_short_v3(pnors_short[i], efa->no);
 			}
 		}
 		else {
@@ -694,12 +694,12 @@ static void mesh_render_data_ensure_vert_normals_short(MeshRenderData *rdata)
 		if (rdata->edit_bmesh) {
 			BMesh *bm = rdata->edit_bmesh->bm;
 			BMIter viter;
-			BMVert *vert;
+			BMVert *eve;
 			int i;
 
 			vnors_short = rdata->vert_normals_short = MEM_mallocN(sizeof(*vnors_short) * rdata->vert_len, __func__);
-			BM_ITER_MESH_INDEX(vert, &viter, bm, BM_VERT, i) {
-				normal_float_to_short_v3(vnors_short[i], vert->no);
+			BM_ITER_MESH_INDEX(eve, &viter, bm, BM_VERT, i) {
+				normal_float_to_short_v3(vnors_short[i], eve->no);
 			}
 		}
 		else {
@@ -725,12 +725,12 @@ static void mesh_render_data_ensure_vert_color(MeshRenderData *rdata)
 			vcol = rdata->vert_color = MEM_mallocN(sizeof(*vcol) * rdata->loop_len, __func__);
 
 			BMIter fiter;
-			BMFace *face;
+			BMFace *efa;
 			int i = 0;
 
-			BM_ITER_MESH(face, &fiter, bm, BM_FACES_OF_MESH) {
+			BM_ITER_MESH(efa, &fiter, bm, BM_FACES_OF_MESH) {
 				BMLoop *l_iter, *l_first;
-				l_iter = l_first = BM_FACE_FIRST_LOOP(face);
+				l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
 				do {
 					const MLoopCol *lcol = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_color_offset);
 					vcol[i][0] = lcol->r;
@@ -815,12 +815,12 @@ static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, con
 			}
 
 			BMIter viter;
-			BMVert *vert;
+			BMVert *eve;
 			int i;
 
 			vweight = rdata->vert_weight_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
-			BM_ITER_MESH_INDEX(vert, &viter, bm, BM_VERT, i) {
-				const MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(vert, cd_dvert_offset);
+			BM_ITER_MESH_INDEX(eve, &viter, bm, BM_VERT, i) {
+				const MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 				float weight = defvert_find_weight(dvert, defgroup);
 				if (U.flag & USER_CUSTOM_RANGE) {
 					do_colorband(&U.coba_weight, weight, vweight[i]);
@@ -898,13 +898,13 @@ static bool mesh_render_data_pnors_pcenter_select_get(
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
 
 	if (rdata->edit_bmesh) {
-		const BMFace *bf = BM_face_at_index(rdata->edit_bmesh->bm, poly);
-		if (BM_elem_flag_test(bf, BM_ELEM_HIDDEN)) {
+		const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, poly);
+		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 			return false;
 		}
-		BM_face_calc_center_mean(bf, r_center);
-		BM_face_calc_normal(bf, r_pnors);
-		*r_selected = (BM_elem_flag_test(bf, BM_ELEM_SELECT) != 0) ? true : false;
+		BM_face_calc_center_mean(efa, r_center);
+		BM_face_calc_normal(efa, r_pnors);
+		*r_selected = (BM_elem_flag_test(efa, BM_ELEM_SELECT) != 0) ? true : false;
 	}
 	else {
 		MVert *mvert = rdata->mvert;
@@ -928,15 +928,15 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 
 	if (rdata->edit_bmesh) {
 		BMesh *bm = rdata->edit_bmesh->bm;
-		BMEdge *bm_edge = BM_edge_at_index(bm, edge_index);
-		if (BM_elem_flag_test(bm_edge, BM_ELEM_HIDDEN)) {
+		BMEdge *eed = BM_edge_at_index(bm, edge_index);
+		if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 			return false;
 		}
-		*r_vco1 = bm_edge->v1->co;
-		*r_vco2 = bm_edge->v2->co;
-		if (BM_edge_is_manifold(bm_edge)) {
-			*r_pnor1 = bm_edge->l->f->no;
-			*r_pnor2 = bm_edge->l->radial_next->f->no;
+		*r_vco1 = eed->v1->co;
+		*r_vco2 = eed->v2->co;
+		if (BM_edge_is_manifold(eed)) {
+			*r_pnor1 = eed->l->f->no;
+			*r_pnor2 = eed->l->radial_next->f->no;
 			*r_is_manifold = true;
 		}
 		else {
@@ -1123,40 +1123,40 @@ enum {
 	 * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
 };
 
-static unsigned char mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *bf)
+static unsigned char mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *efa)
 {
 	unsigned char fflag = 0;
 
-	if (bf == rdata->efa_act)
+	if (efa == rdata->efa_act)
 		fflag |= VFLAG_FACE_ACTIVE;
 
-	if (BM_elem_flag_test(bf, BM_ELEM_SELECT))
+	if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
 		fflag |= VFLAG_FACE_SELECTED;
 
 	return fflag;
 }
 
 static void mesh_render_data_edge_flag(
-        const MeshRenderData *rdata, const BMEdge *be,
+        const MeshRenderData *rdata, const BMEdge *eed,
         EdgeDrawAttr *eattr)
 {
 	eattr->e_flag |= VFLAG_EDGE_EXISTS;
 
-	if (be == rdata->eed_act)
+	if (eed == rdata->eed_act)
 		eattr->e_flag |= VFLAG_EDGE_ACTIVE;
 
-	if (BM_elem_flag_test(be, BM_ELEM_SELECT))
+	if (BM_elem_flag_test(eed, BM_ELEM_SELECT))
 		eattr->e_flag |= VFLAG_EDGE_SELECTED;
 
-	if (BM_elem_flag_test(be, BM_ELEM_SEAM))
+	if (BM_elem_flag_test(eed, BM_ELEM_SEAM))
 		eattr->e_flag |= VFLAG_EDGE_SEAM;
 
-	if (!BM_elem_flag_test(be, BM_ELEM_SMOOTH))
+	if (!BM_elem_flag_test(eed, BM_ELEM_SMOOTH))
 		eattr->e_flag |= VFLAG_EDGE_SHARP;
 
 	/* Use a byte for value range */
 	if (rdata->cd.offset.crease != -1) {
-		float crease = BM_ELEM_CD_GET_FLOAT(be, rdata->cd.offset.crease);
+		float crease = BM_ELEM_CD_GET_FLOAT(eed, rdata->cd.offset.crease);
 		if (crease > 0) {
 			eattr->crease = (char)(crease * 255.0f);
 		}
@@ -1164,23 +1164,23 @@ static void mesh_render_data_edge_flag(
 
 	/* Use a byte for value range */
 	if (rdata->cd.offset.bweight != -1) {
-		float bweight = BM_ELEM_CD_GET_FLOAT(be, rdata->cd.offset.bweight);
+		float bweight = BM_ELEM_CD_GET_FLOAT(eed, rdata->cd.offset.bweight);
 		if (bweight > 0) {
 			eattr->bweight = (char)(bweight * 255.0f);
 		}
 	}
 }
 
-static unsigned char mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *bv)
+static unsigned char mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *eve)
 {
 
 	unsigned char vflag = 0;
 
 	/* Current vertex */
-	if (bv == rdata->eve_act)
+	if (eve == rdata->eve_act)
 		vflag |= VFLAG_VERTEX_ACTIVE;
 
-	if (BM_elem_flag_test(bv, BM_ELEM_SELECT))
+	if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
 		vflag |= VFLAG_VERTEX_SELECTED;
 
 	return vflag;
@@ -1232,27 +1232,27 @@ static void add_overlay_tri(
 static void add_overlay_loose_edge(
         MeshRenderData *rdata, VertexBuffer *vbo_pos, VertexBuffer *vbo_nor, VertexBuffer *vbo_data,
         const unsigned int pos_id, const unsigned int vnor_id, const unsigned int data_id,
-        const BMEdge *be, const int base_vert_idx)
+        const BMEdge *eed, const int base_vert_idx)
 {
 	if (vbo_pos) {
 		for (int i = 0; i < 2; ++i) {
-			const float *pos = (&be->v1)[i]->co;
+			const float *pos = (&eed->v1)[i]->co;
 			VertexBuffer_set_attrib(vbo_pos, pos_id, base_vert_idx + i, pos);
 		}
 	}
 
 	if (vbo_nor) {
 		for (int i = 0; i < 2; ++i) {
-			PackedNormal vnor = convert_i10_v3((&be->v1)[i]->no);
+			PackedNormal vnor = convert_i10_v3((&eed->v1)[i]->no);
 			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
 		}
 	}
 
 	if (vbo_data) {
 		EdgeDrawAttr eattr = {0};
-		mesh_render_data_edge_flag(rdata, be, &eattr);
+		mesh_render_data_edge_flag(rdata, eed, &eattr);
 		for (int i = 0; i < 2; ++i) {
-			eattr.v_flag = mesh_render_data_vertex_flag(rdata, (&be->v1)[i]);
+			eattr.v_flag = mesh_render_data_vertex_flag(rdata, (&eed->v1)[i]);
 			VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx + i, &eattr);
 		}
 	}
@@ -1261,21 +1261,21 @@ static void add_overlay_loose_edge(
 static void add_overlay_loose_vert(
         MeshRenderData *rdata, VertexBuffer *vbo_pos, VertexBuffer *vbo_nor, VertexBuffer *vbo_data,
         const unsigned int pos_id, const unsigned int vnor_id, const unsigned int data_id,
-        const BMVert *bv, const int base_vert_idx)
+        const BMVert *eve, const int base_vert_idx)
 {
 	if (vbo_pos) {
-		const float *pos = bv->co;
+		const float *pos = eve->co;
 		VertexBuffer_set_attrib(vbo_pos, pos_id, base_vert_idx, pos);
 	}
 
 	if (vbo_nor) {
-		PackedNormal vnor = convert_i10_v3(bv->no);
+		PackedNormal vnor = convert_i10_v3(eve->no);
 		VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx, &vnor);
 	}
 
 	if (vbo_data) {
 		unsigned char vflag[4] = {0, 0, 0, 0};
-		vflag[0] = mesh_render_data_vertex_flag(rdata, bv);
+		vflag[0] = mesh_render_data_vertex_flag(rdata, eve);
 		VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx, vflag);
 	}
 }
@@ -2195,12 +2195,12 @@ static void mesh_batch_cache_create_overlay_ledge_buffers(
 	if (rdata->edit_bmesh) {
 		BMesh *bm = rdata->edit_bmesh->bm;
 		for (uint i = 0; i < ledge_len; i++) {
-			const BMEdge *be = BM_edge_at_index(bm, rdata->loose_edges[i]);
-			if (!BM_elem_flag_test(be, BM_ELEM_HIDDEN)) {
+			const BMEdge *eed = BM_edge_at_index(bm, rdata->loose_edges[i]);
+			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 				add_overlay_loose_edge(
 				        rdata, vbo_pos, vbo_nor, vbo_data,
 				        attr_id.pos, attr_id.vnor, attr_id.data,
-				        be, vbo_len_used);
+				        eed, vbo_len_used);
 				vbo_len_used += 2;
 			}
 		}
@@ -2258,11 +2258,11 @@ static void mesh_batch_cache_create_overlay_lvert_buffers(
 	}
 
 	for (uint i = 0; i < lvert_len; i++) {
-		BMVert *bv = BM_vert_at_index(bm, rdata->loose_verts[i]);
+		BMVert *eve = BM_vert_at_index(bm, rdata->loose_verts[i]);
 		add_overlay_loose_vert(
 		        rdata, vbo_pos, vbo_nor, vbo_data,
 		        attr_id.pos, attr_id.vnor, attr_id.data,
-		        bv, vbo_len_used);
+		        eve, vbo_len_used);
 		vbo_len_used += 1;
 	}
 
@@ -2408,10 +2408,10 @@ static ElementList *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, M
 		if (rdata->edit_bmesh) {
 			BMesh *bm = rdata->edit_bmesh->bm;
 			BMIter eiter;
-			BMEdge *e;
-			BM_ITER_MESH(e, &eiter, bm, BM_EDGES_OF_MESH) {
-				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-					add_line_vertices(&elb, BM_elem_index_get(e->v1),  BM_elem_index_get(e->v2));
+			BMEdge *eed;
+			BM_ITER_MESH(eed, &eiter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+					add_line_vertices(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
 				}
 			}
 		}
@@ -2481,12 +2481,12 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 		if (rdata->edit_bmesh) {
 			BMesh *bm = rdata->edit_bmesh->bm;
 			BMIter fiter;
-			BMFace *f;
+			BMFace *efa;
 
-			BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
-				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-					const short ma_id = f->mat_nr < mat_len ? f->mat_nr : 0;
-					mat_tri_len[ma_id] += (f->len - 2);
+			BM_ITER_MESH(efa, &fiter, bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+					const short ma_id = efa->mat_nr < mat_len ? efa->mat_nr : 0;
+					mat_tri_len[ma_id] += (efa->len - 2);
 				}
 			}
 		}
@@ -2508,12 +2508,12 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 		if (rdata->edit_bmesh) {
 			BMesh *bm = rdata->edit_bmesh->bm;
 			BMIter fiter;
-			BMFace *f;
+			BMFace *efa;
 
-			BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
-				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-					const short ma_id = f->mat_nr < mat_len ? f->mat_nr : 0;
-					for (int j = 2; j < f->len; j++) {
+			BM_ITER_MESH(efa, &fiter, bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+					const short ma_id = efa->mat_nr < mat_len ? efa->mat_nr : 0;
+					for (int j = 2; j < efa->len; j++) {
 						add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
 						nidx += 3;
 					}
