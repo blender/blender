@@ -134,6 +134,11 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 			Object *ob = DEG_get_object(data->graph, base->object);
 			iter->current = ob;
 
+			/* Make sure we have the base collection settings is already populated.
+			 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
+			 * Which usually means a missing call to DAG_id_tag_update(). */
+			BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
+
 			/* Flushing depsgraph data. */
 			ob->base_flag = (base->flag | BASE_FROM_SET) & data->flag;
 			ob->base_collection_properties = base->collection_properties;
