@@ -41,7 +41,6 @@
 #endif
 
 class RAS_IRasterizer;
-struct MTexPoly;
 struct Material;
 struct Image;
 struct Scene;
@@ -167,7 +166,6 @@ public:
 
 	virtual Material*   GetBlenderMaterial() const;
 	virtual Image*      GetBlenderImage() const;
-	virtual MTexPoly*	GetMTexPoly() const;
 	virtual unsigned int* GetMCol() const;
 	virtual Scene*		GetBlenderScene() const;
 	virtual void		ReleaseMaterial();

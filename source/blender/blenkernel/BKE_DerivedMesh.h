@@ -142,8 +142,6 @@ typedef int (*DMSetMaterial)(int mat_nr, void *attribs);
 typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_index);
 typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
 typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
-typedef DMDrawOption (*DMSetDrawOptionsMappedTex)(void *userData, int origindex, int mat_nr);
-typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTexPoly *mtexpoly, const bool has_vcol, int matnr);
 
 typedef enum DMDrawFlag {
 	DM_DRAW_USE_COLORS          = (1 << 0),
@@ -406,14 +404,6 @@ struct DerivedMesh {
 	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
 	                       bool fast, DMSetMaterial setMaterial);
 
-	/** Draw all faces using MTFace
-	 * - Drawing options too complicated to enumerate, look at code.
-	 */
-	void (*drawFacesTex)(DerivedMesh *dm,
-	                     DMSetDrawOptionsTex setDrawOptions,
-	                     DMCompareDrawOptions compareDrawOptions,
-	                     void *userData, DMDrawFlag flag);
-
 	/** Draw all faces with GLSL materials
 	 *  o setMaterial is called for every different material nr
 	 *  o Only if setMaterial returns true
@@ -439,14 +429,6 @@ struct DerivedMesh {
 	                        DMCompareDrawOptions compareDrawOptions,
 	                        void *userData,
 	                        DMDrawFlag flag);
-
-	/** Draw mapped faces using MTFace
-	 * - Drawing options too complicated to enumerate, look at code.
-	 */
-	void (*drawMappedFacesTex)(DerivedMesh *dm,
-	                           DMSetDrawOptionsMappedTex setDrawOptions,
-	                           DMCompareDrawOptions compareDrawOptions,
-	                           void *userData, DMDrawFlag flag);
 
 	/** Draw mapped faces with GLSL materials
 	 * - setMaterial is called for every different material nr

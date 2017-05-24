@@ -1443,7 +1443,7 @@ static void uv_sphere_project(float target[2], float source[3], float center[3],
 		target[0] -= 1.0f;  
 }
 
-static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
+static void uv_map_mirror(BMEditMesh *em, BMFace *efa)
 {
 	BMLoop *l;
 	BMIter liter;
@@ -1480,7 +1480,6 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	float center[3], rotmat[4][4];
 
@@ -1505,8 +1504,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 			uv_sphere_project(luv->uv, l->v->co, center, rotmat);
 		}
 
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		uv_map_mirror(em, efa, tf);
+		uv_map_mirror(em, efa);
 	}
 
 	uv_map_clip_correct(scene, obedit, em, op);
@@ -1559,7 +1557,6 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	float center[3], rotmat[4][4];
 
@@ -1584,8 +1581,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 			uv_cylinder_project(luv->uv, l->v->co, center, rotmat);
 		}
 
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		uv_map_mirror(em, efa, tf);
+		uv_map_mirror(em, efa);
 	}
 
 	uv_map_clip_correct(scene, obedit, em, op);
@@ -1621,7 +1617,6 @@ void ED_uvedit_unwrap_cube_project(Object *ob, BMesh *bm, float cube_size, bool 
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	/* MTexPoly *tf; */ /* UNUSED */
 	MLoopUV *luv;
 	float *loc, dx, dy;
 	int cox, coy;

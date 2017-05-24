@@ -527,165 +527,6 @@ static void cdDM_drawFacesSolid(
 	immUnbindProgram();
 }
 
-static void cdDM_drawFacesTex_common(
-        DerivedMesh *dm,
-        DMSetDrawOptionsTex drawParams,
-        DMSetDrawOptionsMappedTex drawParamsMapped,
-        DMCompareDrawOptions compareDrawOptions,
-        void *userData, DMDrawFlag flag)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	const MPoly *mpoly = cddm->mpoly;
-	MTexPoly *mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
-	const  MLoopCol *mloopcol = NULL;
-	int i;
-	int colType, start_element, tot_drawn;
-	const bool use_hide = (flag & DM_DRAW_SKIP_HIDDEN) != 0;
-	const bool use_tface = (flag & DM_DRAW_USE_ACTIVE_UV) != 0;
-	const bool use_colors = (flag & DM_DRAW_USE_COLORS) != 0;
-	int totpoly;
-	int next_actualFace;
-	int mat_index;
-	int tot_element;
-
-	/* double lookup */
-	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-
-	/* TODO: not entirely correct, but currently dynamic topology will
-	 *       destroy UVs anyway, so textured display wouldn't work anyway
-	 *
-	 *       this will do more like solid view with lights set up for
-	 *       textured view, but object itself will be displayed gray
-	 *       (the same as it'll display without UV maps in textured view)
-	 */
-	if (cddm->pbvh) {
-		if (cddm->pbvh_draw &&
-		    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH &&
-		    BKE_pbvh_has_faces(cddm->pbvh))
-		{
-			GPU_set_tpage(NULL, false, false);
-			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false, false);
-			return;
-		}
-		else {
-			cdDM_update_normals_from_pbvh(dm);
-		}
-	}
-
-	if (use_colors) {
-		colType = CD_TEXTURE_MLOOPCOL;
-		mloopcol = dm->getLoopDataArray(dm, colType);
-		if (!mloopcol) {
-			colType = CD_PREVIEW_MLOOPCOL;
-			mloopcol = dm->getLoopDataArray(dm, colType);
-		}
-		if (!mloopcol) {
-			colType = CD_MLOOPCOL;
-			mloopcol = dm->getLoopDataArray(dm, colType);
-		}
-	}
-
-	GPU_vertex_setup(dm);
-	GPU_normal_setup(dm);
-	GPU_triangle_setup(dm);
-	if (flag & DM_DRAW_USE_TEXPAINT_UV)
-		GPU_texpaint_uv_setup(dm);
-	else
-		GPU_uv_setup(dm);
-	if (mloopcol) {
-		GPU_color_setup(dm, colType);
-	}
-
-	/* lastFlag = 0; */ /* UNUSED */
-	for (mat_index = 0; mat_index < dm->drawObject->totmaterial; mat_index++) {
-		GPUBufferMaterial *bufmat = dm->drawObject->materials + mat_index;
-		next_actualFace = bufmat->polys[0];
-		totpoly = bufmat->totpolys;
-
-		tot_element = 0;
-		tot_drawn = 0;
-		start_element = 0;
-
-		for (i = 0; i < totpoly; i++) {
-			int actualFace = bufmat->polys[i];
-			DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
-			int flush = 0;
-			int tot_tri_verts;
-
-			if (i != totpoly - 1)
-				next_actualFace = bufmat->polys[i + 1];
-
-			if (use_hide && (mpoly[actualFace].flag & ME_HIDE)) {
-				draw_option = DM_DRAW_OPTION_SKIP;
-			}
-			else if (drawParams) {
-				MTexPoly *tp = use_tface && mtexpoly ? &mtexpoly[actualFace] : NULL;
-				draw_option = drawParams(tp, (mloopcol != NULL), mpoly[actualFace].mat_nr);
-			}
-			else {
-				if (index_mp_to_orig) {
-					const int orig = index_mp_to_orig[actualFace];
-					if (orig == ORIGINDEX_NONE) {
-						/* XXX, this is not really correct
-						 * it will draw the previous faces context for this one when we don't know its settings.
-						 * but better then skipping it altogether. - campbell */
-						draw_option = DM_DRAW_OPTION_NORMAL;
-					}
-					else if (drawParamsMapped) {
-						draw_option = drawParamsMapped(userData, orig, mpoly[actualFace].mat_nr);
-					}
-				}
-				else if (drawParamsMapped) {
-					draw_option = drawParamsMapped(userData, actualFace, mpoly[actualFace].mat_nr);
-				}
-			}
-
-			/* flush buffer if current triangle isn't drawable or it's last triangle */
-			flush = (draw_option == DM_DRAW_OPTION_SKIP) || (i == totpoly - 1);
-
-			if (!flush && compareDrawOptions) {
-				/* also compare draw options and flush buffer if they're different
-				 * need for face selection highlight in edit mode */
-				flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
-			}
-
-			tot_tri_verts = ME_POLY_TRI_TOT(&mpoly[actualFace]) * 3;
-			tot_element += tot_tri_verts;
-
-			if (flush) {
-				if (draw_option != DM_DRAW_OPTION_SKIP)
-					tot_drawn += tot_tri_verts;
-
-				if (tot_drawn) {
-					if (mloopcol && draw_option != DM_DRAW_OPTION_NO_MCOL)
-						GPU_color_switch(1);
-					else
-						GPU_color_switch(0);
-
-					GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, bufmat->start + start_element, tot_drawn);
-					tot_drawn = 0;
-				}
-				start_element = tot_element;
-			}
-			else {
-				tot_drawn += tot_tri_verts;
-			}
-		}
-	}
-
-	GPU_buffers_unbind();
-	
-}
-
-static void cdDM_drawFacesTex(
-        DerivedMesh *dm,
-        DMSetDrawOptionsTex setDrawOptions,
-        DMCompareDrawOptions compareDrawOptions,
-        void *userData, DMDrawFlag flag)
-{
-	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData, flag);
-}
-
 static void cdDM_drawMappedFaces(
         DerivedMesh *dm,
         DMSetDrawOptions setDrawOptions,
@@ -888,15 +729,6 @@ static void cdDM_drawMappedFaces(
 	if (findex_buffer)
 		GPU_buffer_free(findex_buffer);
 
-}
-
-static void cdDM_drawMappedFacesTex(
-        DerivedMesh *dm,
-        DMSetDrawOptionsMappedTex setDrawOptions,
-        DMCompareDrawOptions compareDrawOptions,
-        void *userData, DMDrawFlag flag)
-{
-	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData, flag);
 }
 
 static void cddm_draw_attrib_vertex(
@@ -2061,10 +1893,8 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->drawMappedEdges = cdDM_drawMappedEdges;
 
 	dm->drawFacesSolid = cdDM_drawFacesSolid;
-	dm->drawFacesTex = cdDM_drawFacesTex;
 	dm->drawFacesGLSL = cdDM_drawFacesGLSL;
 	dm->drawMappedFaces = cdDM_drawMappedFaces;
-	dm->drawMappedFacesTex = cdDM_drawMappedFacesTex;
 	dm->drawMappedFacesGLSL = cdDM_drawMappedFacesGLSL;
 	dm->drawMappedFacesMat = cdDM_drawMappedFacesMat;
 
@@ -2219,9 +2049,8 @@ static void loops_to_customdata_corners(
         int numCol, int numTex)
 {
 	const BMLoop *l;
-	BMFace *f = l3[0]->f;
+//	BMFace *f = l3[0]->f;
 	MTFace *texface;
-	MTexPoly *texpoly;
 	MCol *mcol;
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
@@ -2229,9 +2058,6 @@ static void loops_to_customdata_corners(
 
 	for (i = 0; i < numTex; i++) {
 		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
-		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
-		
-		ME_MTEXFACE_CPY(texface, texpoly);
 	
 		for (j = 0; j < 3; j++) {
 			l = l3[j];

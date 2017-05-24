@@ -2161,8 +2161,8 @@ void BKE_mesh_calc_volume(
  */
 void BKE_mesh_loops_to_mface_corners(
         CustomData *fdata, CustomData *ldata,
-        CustomData *pdata, unsigned int lindex[4], int findex,
-        const int polyindex,
+        CustomData *UNUSED(pdata), unsigned int lindex[4], int findex,
+        const int UNUSED(polyindex),
         const int mf_len, /* 3 or 4 */
 
         /* cache values to avoid lookups every time */
@@ -2174,7 +2174,6 @@ void BKE_mesh_loops_to_mface_corners(
 )
 {
 	MTFace *texface;
-	MTexPoly *texpoly;
 	MCol *mcol;
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
@@ -2182,9 +2181,6 @@ void BKE_mesh_loops_to_mface_corners(
 
 	for (i = 0; i < numTex; i++) {
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
-		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
-
-		ME_MTEXFACE_CPY(texface, texpoly);
 
 		for (j = 0; j < mf_len; j++) {
 			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, (int)lindex[j], i);
@@ -2255,15 +2251,12 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 
 	for (i = 0; i < numTex; i++) {
 		MTFace *texface = CustomData_get_layer_n(fdata, CD_MTFACE, i);
-		MTexPoly *texpoly = CustomData_get_layer_n(pdata, CD_MTEXPOLY, i);
 		MLoopUV *mloopuv = CustomData_get_layer_n(ldata, CD_MLOOPUV, i);
 
 		for (findex = 0, pidx = polyindices, lidx = loopindices;
 		     findex < num_faces;
 		     pidx++, lidx++, findex++, texface++)
 		{
-			ME_MTEXFACE_CPY(texface, &texpoly[*pidx]);
-
 			for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
 				copy_v2_v2(texface->uv[j], mloopuv[(*lidx)[j]].uv);
 			}
@@ -2885,11 +2878,11 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 #endif /* USE_BMESH_SAVE_AS_COMPAT */
 
 
-static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
-                                   MFace *mface, int totloop, int findex, int loopstart, int numTex, int numCol)
+static void bm_corners_to_loops_ex(
+        ID *id, CustomData *fdata, CustomData *ldata,
+        MFace *mface, int totloop, int findex, int loopstart, int numTex, int numCol)
 {
 	MTFace *texface;
-	MTexPoly *texpoly;
 	MCol *mcol;
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
@@ -2900,9 +2893,6 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 
 	for (i = 0; i < numTex; i++) {
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
-		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, findex, i);
-
-		ME_MTEXFACE_CPY(texpoly, texface);
 
 		mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
 		copy_v2_v2(mloopuv->uv, texface->uv[0]); mloopuv++;
@@ -3103,7 +3093,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 
 #       undef ML
 
-		bm_corners_to_loops_ex(id, fdata, ldata, pdata, mface, totloop, i, mp->loopstart, numTex, numCol);
+		bm_corners_to_loops_ex(id, fdata, ldata, mface, totloop, i, mp->loopstart, numTex, numCol);
 
 		if (polyindex) {
 			*polyindex = i;

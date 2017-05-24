@@ -132,7 +132,6 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 {
 	float (*coords)[3], (*co)[3];
 	MLoopUV *mloop_uv;
-	MTexPoly *mtexpoly, *mt = NULL;
 	int i, numVerts, numPolys, numLoops;
 	Image *image = umd->image;
 	MPoly *mpoly, *mp;
@@ -221,10 +220,6 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	mloop_uv = CustomData_duplicate_referenced_layer_named(&dm->loopData,
 	                                                       CD_MLOOPUV, uvname, numLoops);
 
-	/* can be NULL */
-	mt = mtexpoly = CustomData_duplicate_referenced_layer_named(&dm->polyData,
-	                                                            CD_MTEXPOLY, uvname, numPolys);
-
 	numVerts = dm->getNumVerts(dm);
 
 	coords = MEM_mallocN(sizeof(*coords) * numVerts,
@@ -249,8 +244,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	}
 
 	/* apply coords as UVs, and apply image if tfaces are new */
-	for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp, ++mt) {
-		if (!image || (mtexpoly == NULL || (mp->mat_nr < ob->totcol ? ob_image_array[mp->mat_nr] : NULL) == image)) {
+	for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
+		if (!image || (mp->mat_nr < ob->totcol ? ob_image_array[mp->mat_nr] : NULL) == image) {
 			if (num_projectors == 1) {
 				if (projectors[0].uci) {
 					unsigned int fidx = mp->totloop - 1;

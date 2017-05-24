@@ -160,12 +160,6 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 		OnExit();
 }
 
-MTexPoly *KX_BlenderMaterial::GetMTexPoly() const
-{
-	// fonts on polys
-	return &mMaterial->mtexpoly;
-}
-
 unsigned int* KX_BlenderMaterial::GetMCol() const
 {
 	// fonts on polys
@@ -290,11 +284,6 @@ void KX_BlenderMaterial::OnExit()
 		mTextures[i].DeleteTex();
 		mTextures[i].DisableUnit();
 	}
-
-	/* used to call with 'mMaterial->tface' but this can be a freed array,
-	 * see: [#30493], so just call with NULL, this is best since it clears
-	 * the 'lastface' pointer in GPU too - campbell */
-	GPU_set_tpage(NULL, 1, mMaterial->alphablend);
 }
 
 
@@ -310,7 +299,7 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 			mLastShader = NULL;
 		}
 
-		ras->SetAlphaBlend(TF_SOLID);
+		ras->SetAlphaBlend(GPU_BLEND_SOLID);
 		BL_Texture::DisableAllTextures();
 		return;
 	}
@@ -334,7 +323,7 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 		ras->SetAlphaBlend(mMaterial->alphablend);
 	}
 	else {
-		ras->SetAlphaBlend(TF_SOLID);
+		ras->SetAlphaBlend(GPU_BLEND_SOLID);
 		ras->SetAlphaBlend(-1); // indicates custom mode
 
 		// tested to be valid enums
@@ -346,7 +335,7 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 void KX_BlenderMaterial::setBlenderShaderData( bool enable, RAS_IRasterizer *ras)
 {
 	if ( !enable || !mBlenderShader->Ok() ) {
-		ras->SetAlphaBlend(TF_SOLID);
+		ras->SetAlphaBlend(GPU_BLEND_SOLID);
 
 		// frame cleanup.
 		if (mLastBlenderShader) {
@@ -377,7 +366,7 @@ void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 	BL_Texture::DisableAllTextures();
 
 	if ( !enable ) {
-		ras->SetAlphaBlend(TF_SOLID);
+		ras->SetAlphaBlend(GPU_BLEND_SOLID);
 		return;
 	}
 
@@ -420,7 +409,7 @@ void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 		ras->SetAlphaBlend(mMaterial->alphablend);
 	}
 	else {
-		ras->SetAlphaBlend(TF_SOLID);
+		ras->SetAlphaBlend(GPU_BLEND_SOLID);
 		ras->SetAlphaBlend(-1); // indicates custom mode
 
 		glEnable(GL_BLEND);

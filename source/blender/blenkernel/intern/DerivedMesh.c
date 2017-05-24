@@ -3556,15 +3556,6 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	immUnbindProgram();
 }
 
-static void navmesh_DM_drawFacesTex(
-        DerivedMesh *dm,
-        DMSetDrawOptionsTex UNUSED(setDrawOptions),
-        DMCompareDrawOptions UNUSED(compareDrawOptions),
-        void *UNUSED(userData), DMDrawFlag UNUSED(flag))
-{
-	navmesh_drawColored(dm);
-}
-
 static void navmesh_DM_drawFacesSolid(
         DerivedMesh *dm,
         float (*partial_redraw_planes)[4],
@@ -3598,7 +3589,6 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 	recastData = (int *)CustomData_get_layer(&result->polyData, CD_RECAST);
 
 	/* note: This is not good design! - really should not be doing this */
-	result->drawFacesTex =  navmesh_DM_drawFacesTex;
 	result->drawFacesSolid = navmesh_DM_drawFacesSolid;
 
 

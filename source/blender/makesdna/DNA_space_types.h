@@ -942,7 +942,7 @@ typedef enum eSpaceImage_Sticky {
 /* SpaceImage->flag */
 typedef enum eSpaceImage_Flag {
 /*	SI_BE_SQUARE          = (1 << 0), */  /* deprecated */
-	SI_EDITTILE           = (1 << 1),     /* XXX - not used but should be? */
+/*	SI_EDITTILE           = (1 << 1), */  /* deprecated */
 	SI_CLIP_UV            = (1 << 2),
 /*	SI_DRAWTOOL           = (1 << 3), */  /* deprecated */
 	SI_NO_DRAWFACES       = (1 << 4),

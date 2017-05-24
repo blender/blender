@@ -266,43 +266,6 @@ void ED_uvedit_assign_image(Main *UNUSED(bmain), Scene *scene, Object *obedit, I
 
 }
 
-/* dotile - 1, set the tile flag (from the space image)
- *          2, set the tile index for the faces. */
-static bool uvedit_set_tile(Object *obedit, Image *ima, int curtile)
-{
-	BMEditMesh *em;
-	BMFace *efa;
-	BMIter iter;
-	MTexPoly *tf;
-	int cd_poly_tex_offset;
-	
-	/* verify if we have something to do */
-	if (!ima || !ED_uvedit_test(obedit))
-		return false;
-
-	if ((ima->tpageflag & IMA_TILES) == 0)
-		return false;
-
-	/* skip assigning these procedural images... */
-	if (ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE)
-		return false;
-	
-	em = BKE_editmesh_from_object(obedit);
-
-	cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
-
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-
-		if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
-			tf->tile = curtile;  /* set tile index */
-	}
-
-	DAG_id_tag_update(obedit->data, 0);
-
-	return true;
-}
-
 /*********************** space conversion *********************/
 
 static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist)
@@ -731,7 +694,6 @@ static bool uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2
 
 void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float co[2], NearestHit *hit)
 {
-	MTexPoly *tf;
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -740,7 +702,6 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 	int i;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	mindist_squared = 1e10f;
 	memset(hit, 0, sizeof(*hit));
@@ -748,7 +709,6 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 		if (!uvedit_face_visible_test(scene, ima, efa))
 			continue;
 		
@@ -759,7 +719,6 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 			dist_squared = dist_squared_to_line_segment_v2(co, luv->uv, luv_next->uv);
 
 			if (dist_squared < mindist_squared) {
-				hit->tf = tf;
 				hit->efa = efa;
 				
 				hit->l = l;
@@ -775,13 +734,11 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 
 static void uv_find_nearest_face(Scene *scene, Image *ima, BMEditMesh *em, const float co[2], NearestHit *hit)
 {
-	MTexPoly *tf;
 	BMFace *efa;
 	BMIter iter;
 	float mindist, dist, cent[2];
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	mindist = 1e10f;
 	memset(hit, 0, sizeof(*hit));
@@ -792,7 +749,6 @@ static void uv_find_nearest_face(Scene *scene, Image *ima, BMEditMesh *em, const
 	hit->luv = hit->luv_next = NULL;
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 		if (!uvedit_face_visible_test(scene, ima, efa))
 			continue;
 
@@ -801,7 +757,6 @@ static void uv_find_nearest_face(Scene *scene, Image *ima, BMEditMesh *em, const
 		dist = len_manhattan_v2v2(co, cent);
 
 		if (dist < mindist) {
-			hit->tf = tf;
 			hit->efa = efa;
 			mindist = dist;
 		}
@@ -825,13 +780,11 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	float mindist, dist;
 	int i;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	/*this will fill in hit.vert1 and hit.vert2*/
 	uv_find_nearest_edge(scene, ima, em, co, hit);
@@ -844,7 +797,6 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 		if (!uvedit_face_visible_test(scene, ima, efa))
 			continue;
 
@@ -867,7 +819,6 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 				hit->l = l;
 				hit->luv = luv;
 				hit->luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
-				hit->tf = tf;
 				hit->efa = efa;
 				hit->lindex = i;
 			}
@@ -2619,7 +2570,6 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima, Scene *scene, Object
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	/* MTexPoly *tf; */
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	
 	if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && sima->sticky == SI_STICKY_VERTEX) {
@@ -2708,7 +2658,6 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	/* MTexPoly *tf; */
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
@@ -3862,73 +3811,6 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 	                     "Cursor location in normalized (0.0-1.0) coordinates", -10.0f, 10.0f);
 }
 
-/********************** set tile operator **********************/
-
-static int set_tile_exec(bContext *C, wmOperator *op)
-{
-	Image *ima = CTX_data_edit_image(C);
-	int tile[2];
-	Object *obedit = CTX_data_edit_object(C);
-
-	RNA_int_get_array(op->ptr, "tile", tile);
-
-	if (uvedit_set_tile(obedit, ima, tile[0] + ima->xrep * tile[1])) {
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
-		return OPERATOR_FINISHED;
-	}
-	
-	return OPERATOR_CANCELLED;
-}
-
-static int set_tile_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	SpaceImage *sima = CTX_wm_space_image(C);
-	Image *ima = CTX_data_edit_image(C);
-	ARegion *ar = CTX_wm_region(C);
-	float fx, fy;
-	int tile[2];
-
-	if (!ima || !(ima->tpageflag & IMA_TILES))
-		return OPERATOR_CANCELLED;
-
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fx, &fy);
-
-	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
-		fx = fx * ima->xrep;
-		fy = fy * ima->yrep;
-		
-		tile[0] = fx;
-		tile[1] = fy;
-		
-		sima->curtile = tile[1] * ima->xrep + tile[0];
-		RNA_int_set_array(op->ptr, "tile", tile);
-	}
-
-	return set_tile_exec(C, op);
-}
-
-static void UV_OT_tile_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Set Tile";
-	ot->description = "Set UV image tile coordinates";
-	ot->idname = "UV_OT_tile_set";
-	
-	/* api callbacks */
-	ot->exec = set_tile_exec;
-	ot->invoke = set_tile_invoke;
-	ot->poll = ED_operator_image_active;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_int_vector(ot->srna, "tile", 2, NULL, 0, INT_MAX, "Tile", "Tile coordinate", 0, 10);
-}
-
-
 static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 {
 	UvVertMap *vmap;
@@ -4183,7 +4065,6 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_hide);
 
 	WM_operatortype_append(UV_OT_cursor_set);
-	WM_operatortype_append(UV_OT_tile_set);
 }
 
 void ED_keymap_uvedit(wmKeyConfig *keyconf)
@@ -4263,7 +4144,6 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 
 	/* cursor */
 	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "UV_OT_tile_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
 	/* menus */
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_snap", SKEY, KM_PRESS, KM_SHIFT, 0);

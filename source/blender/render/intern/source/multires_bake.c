@@ -80,7 +80,6 @@ typedef struct {
 	MLoop *mloop;
 	MLoopUV *mloopuv;
 	const MLoopTri *mlooptri;
-	MTexPoly *mtpoly;
 	float *pvtangent;
 	const float *precomputed_normals;
 	int w, h;
@@ -451,7 +450,6 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 		MPoly *mpoly = dm->getPolyArray(dm);
 		MLoop *mloop = dm->getLoopArray(dm);
 		MLoopUV *mloopuv = dm->getLoopDataArray(dm, CD_MLOOPUV);
-		MTexPoly *mtpoly = dm->getPolyDataArray(dm, CD_MTEXPOLY);
 		const float *precomputed_normals = dm->getPolyDataArray(dm, CD_NORMAL);
 		float *pvtangent = NULL;
 
@@ -495,7 +493,6 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 			handle->data.mvert = mvert;
 			handle->data.mloopuv = mloopuv;
 			handle->data.mlooptri = mlooptri;
-			handle->data.mtpoly = mtpoly;
 			handle->data.mloop = mloop;
 			handle->data.pvtangent = pvtangent;
 			handle->data.precomputed_normals = precomputed_normals;  /* don't strictly need this */

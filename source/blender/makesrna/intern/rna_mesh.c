@@ -2412,18 +2412,6 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL_HLT);
 
 #if 0 /* moved to MeshUVLoopLayer */
-	prop = RNA_def_property(srna, "select_uv", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TF_SEL1);
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "UV Selected", "");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
-
-	prop = RNA_def_property(srna, "pin_uv", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "unwrap", TF_PIN1);
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "UV Pinned", "");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
-
 	prop = RNA_def_property(srna, "uv_raw", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_multi_array(prop, 2, uv_dim);
 	RNA_def_property_float_sdna(prop, NULL, "uv");

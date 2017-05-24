@@ -520,7 +520,6 @@ UvVertMap *BM_uv_vert_map_create(
 	/* vars from original func */
 	UvVertMap *vmap;
 	UvMapVert *buf;
-	/* MTexPoly *tf; */ /* UNUSED */
 	MLoopUV *luv;
 	unsigned int a;
 	int totverts, i, totuv, totfaces;
@@ -929,7 +928,7 @@ UvElement *BM_uv_element_get(UvElementMap *map, BMFace *efa, BMLoop *l)
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for making sure the space image dosnt flicker */
-MTexPoly *EDBM_mtexpoly_active_get(BMEditMesh *em, BMFace **r_act_efa, const bool sloppy, const bool selected)
+BMFace *EDBM_mtexpoly_active_get(BMEditMesh *em, const bool sloppy, const bool selected)
 {
 	BMFace *efa = NULL;
 	
@@ -939,11 +938,9 @@ MTexPoly *EDBM_mtexpoly_active_get(BMEditMesh *em, BMFace **r_act_efa, const boo
 	efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
 
 	if (efa) {
-		if (r_act_efa) *r_act_efa = efa;
-		return CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		return efa;
 	}
 
-	if (r_act_efa) *r_act_efa = NULL;
 	return NULL;
 }
 

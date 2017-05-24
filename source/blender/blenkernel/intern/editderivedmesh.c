@@ -805,223 +805,11 @@ static void emDM_drawMappedFaces(
 	}
 }
 
-static void bmdm_get_tri_uv(BMLoop *ltri[3], MLoopUV *luv[3], const int cd_loop_uv_offset)
-{
-	luv[0] = BM_ELEM_CD_GET_VOID_P(ltri[0], cd_loop_uv_offset);
-	luv[1] = BM_ELEM_CD_GET_VOID_P(ltri[1], cd_loop_uv_offset);
-	luv[2] = BM_ELEM_CD_GET_VOID_P(ltri[2], cd_loop_uv_offset);
-}
-
-static void bmdm_get_tri_col(BMLoop *ltri[3], MLoopCol *lcol[3], const int cd_loop_color_offset)
-{
-	lcol[0] = BM_ELEM_CD_GET_VOID_P(ltri[0], cd_loop_color_offset);
-	lcol[1] = BM_ELEM_CD_GET_VOID_P(ltri[1], cd_loop_color_offset);
-	lcol[2] = BM_ELEM_CD_GET_VOID_P(ltri[2], cd_loop_color_offset);
-}
-
 static void bmdm_get_tri_colpreview(BMLoop *ls[3], MLoopCol *lcol[3], unsigned char(*color_vert_array)[4])
 {
 	lcol[0] = (MLoopCol *)color_vert_array[BM_elem_index_get(ls[0]->v)];
 	lcol[1] = (MLoopCol *)color_vert_array[BM_elem_index_get(ls[1]->v)];
 	lcol[2] = (MLoopCol *)color_vert_array[BM_elem_index_get(ls[2]->v)];
-}
-
-static void emDM_drawFacesTex_common(
-        DerivedMesh *dm,
-        DMSetDrawOptionsTex drawParams,
-        DMSetDrawOptionsMappedTex drawParamsMapped,
-        DMCompareDrawOptions compareDrawOptions,
-        void *userData)
-{
-	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
-	BMEditMesh *em = bmdm->em;
-	BMesh *bm = em->bm;
-	struct BMLoop *(*looptris)[3] = em->looptris;
-	BMFace *efa;
-	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
-	MLoopUV *luv[3], dummyluv = {{0}};
-	MLoopCol *lcol[3] = {NULL} /* , dummylcol = {0} */;
-	const int cd_loop_uv_offset    = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-	const int cd_loop_color_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
-	const int cd_poly_tex_offset   = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
-	unsigned char(*color_vert_array)[4] = em->derivedVertColor;
-	bool has_uv   = (cd_loop_uv_offset    != -1);
-	bool has_vcol_preview = (color_vert_array != NULL);
-	bool has_vcol = (cd_loop_color_offset != -1) && (has_vcol_preview == false);
-	bool has_vcol_any = (has_vcol_preview || has_vcol);
-	int i;
-
-	(void) compareDrawOptions;
-
-	luv[0] = luv[1] = luv[2] = &dummyluv;
-
-	// dummylcol.r = dummylcol.g = dummylcol.b = dummylcol.a = 255;  /* UNUSED */
-
-	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
-	BM_mesh_elem_index_ensure(bm, BM_FACE);
-
-	/* call again below is ok */
-	if (has_vcol_preview) {
-		BM_mesh_elem_index_ensure(bm, BM_VERT);
-	}
-
-	if (bmdm->vertexCos) {
-		/* add direct access */
-		const float (*vertexCos)[3] = bmdm->vertexCos;
-		const float (*vertexNos)[3];
-		const float (*polyNos)[3];
-
-		emDM_ensureVertNormals(bmdm);
-		emDM_ensurePolyNormals(bmdm);
-		vertexNos = bmdm->vertexNos;
-		polyNos = bmdm->polyNos;
-
-		BM_mesh_elem_index_ensure(bm, lnors ? BM_LOOP | BM_VERT : BM_VERT);
-
-		for (i = 0; i < em->tottri; i++) {
-			BMLoop **ltri = looptris[i];
-			MTexPoly *tp = (cd_poly_tex_offset != -1) ? BM_ELEM_CD_GET_VOID_P(ltri[0]->f, cd_poly_tex_offset) : NULL;
-			/*unsigned char *cp = NULL;*/ /*UNUSED*/
-			int drawSmooth = lnors || BM_elem_flag_test(ltri[0]->f, BM_ELEM_SMOOTH);
-			DMDrawOption draw_option;
-
-			efa = ltri[0]->f;
-
-			if (drawParams) {
-				draw_option = drawParams(tp, has_vcol, efa->mat_nr);
-			}
-			else if (drawParamsMapped)
-				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa), efa->mat_nr);
-			else
-				draw_option = DM_DRAW_OPTION_NORMAL;
-
-			if (draw_option != DM_DRAW_OPTION_SKIP) {
-
-				if      (has_uv)            bmdm_get_tri_uv(ltri,  luv,  cd_loop_uv_offset);
-				if      (has_vcol)          bmdm_get_tri_col(ltri, lcol, cd_loop_color_offset);
-				else if (has_vcol_preview)  bmdm_get_tri_colpreview(ltri, lcol, color_vert_array);
-
-				glBegin(GL_TRIANGLES);
-				if (!drawSmooth) {
-					glNormal3fv(polyNos[BM_elem_index_get(efa)]);
-
-					glTexCoord2fv(luv[0]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[0]->r));
-					glVertex3fv(vertexCos[BM_elem_index_get(ltri[0]->v)]);
-
-					glTexCoord2fv(luv[1]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[1]->r));
-					glVertex3fv(vertexCos[BM_elem_index_get(ltri[1]->v)]);
-
-					glTexCoord2fv(luv[2]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[2]->r));
-					glVertex3fv(vertexCos[BM_elem_index_get(ltri[2]->v)]);
-				}
-				else {
-					glTexCoord2fv(luv[0]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[0]->r));
-					if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[0])]);
-					else glNormal3fv(vertexNos[BM_elem_index_get(ltri[0]->v)]);
-					glVertex3fv(vertexCos[BM_elem_index_get(ltri[0]->v)]);
-
-					glTexCoord2fv(luv[1]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[1]->r));
-					if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[1])]);
-					else glNormal3fv(vertexNos[BM_elem_index_get(ltri[1]->v)]);
-					glVertex3fv(vertexCos[BM_elem_index_get(ltri[1]->v)]);
-
-					glTexCoord2fv(luv[2]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[2]->r));
-					if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[2])]);
-					else glNormal3fv(vertexNos[BM_elem_index_get(ltri[2]->v)]);
-					glVertex3fv(vertexCos[BM_elem_index_get(ltri[2]->v)]);
-				}
-				glEnd();
-			}
-		}
-	}
-	else {
-		BM_mesh_elem_index_ensure(bm, lnors ? BM_LOOP | BM_VERT : BM_VERT);
-
-		for (i = 0; i < em->tottri; i++) {
-			BMLoop **ltri = looptris[i];
-			MTexPoly *tp = (cd_poly_tex_offset != -1) ? BM_ELEM_CD_GET_VOID_P(ltri[0]->f, cd_poly_tex_offset) : NULL;
-			/*unsigned char *cp = NULL;*/ /*UNUSED*/
-			int drawSmooth = lnors || BM_elem_flag_test(ltri[0]->f, BM_ELEM_SMOOTH);
-			DMDrawOption draw_option;
-
-			efa = ltri[0]->f;
-
-			if (drawParams)
-				draw_option = drawParams(tp, has_vcol, efa->mat_nr);
-			else if (drawParamsMapped)
-				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa), efa->mat_nr);
-			else
-				draw_option = DM_DRAW_OPTION_NORMAL;
-
-			if (draw_option != DM_DRAW_OPTION_SKIP) {
-
-				if      (has_uv)            bmdm_get_tri_uv(ltri,  luv,  cd_loop_uv_offset);
-				if      (has_vcol)          bmdm_get_tri_col(ltri, lcol, cd_loop_color_offset);
-				else if (has_vcol_preview)  bmdm_get_tri_colpreview(ltri, lcol, color_vert_array);
-
-				glBegin(GL_TRIANGLES);
-				if (!drawSmooth) {
-					glNormal3fv(efa->no);
-
-					glTexCoord2fv(luv[0]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[0]->r));
-					glVertex3fv(ltri[0]->v->co);
-
-					glTexCoord2fv(luv[1]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[1]->r));
-					glVertex3fv(ltri[1]->v->co);
-
-					glTexCoord2fv(luv[2]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[2]->r));
-					glVertex3fv(ltri[2]->v->co);
-				}
-				else {
-					glTexCoord2fv(luv[0]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[0]->r));
-					if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[0])]);
-					else glNormal3fv(ltri[0]->v->no);
-					glVertex3fv(ltri[0]->v->co);
-
-					glTexCoord2fv(luv[1]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[1]->r));
-					if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[1])]);
-					else glNormal3fv(ltri[1]->v->no);
-					glVertex3fv(ltri[1]->v->co);
-
-					glTexCoord2fv(luv[2]->uv);
-					if (has_vcol_any) glColor3ubv((const GLubyte *)&(lcol[2]->r));
-					if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[2])]);
-					else glNormal3fv(ltri[2]->v->no);
-					glVertex3fv(ltri[2]->v->co);
-				}
-				glEnd();
-			}
-		}
-	}
-}
-
-static void emDM_drawFacesTex(
-        DerivedMesh *dm,
-        DMSetDrawOptionsTex setDrawOptions,
-        DMCompareDrawOptions compareDrawOptions,
-        void *userData, DMDrawFlag UNUSED(flag))
-{
-	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
-}
-
-static void emDM_drawMappedFacesTex(
-        DerivedMesh *dm,
-        DMSetDrawOptionsMappedTex setDrawOptions,
-        DMCompareDrawOptions compareDrawOptions,
-        void *userData, DMDrawFlag UNUSED(flag))
-{
-	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
 /**
@@ -1695,7 +1483,6 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 					// bmdata = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 					bmdata = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
-					ME_MTEXFACE_CPY(((MTFace *)data), ((const MTexPoly *)bmdata));
 					for (j = 0; j < 3; j++) {
 						// bmdata = CustomData_bmesh_get(&bm->ldata, looptris[i][j]->head.data, CD_MLOOPUV);
 						bmdata = BM_ELEM_CD_GET_VOID_P(looptris[i][j], cd_loop_uv_offset);
@@ -1889,10 +1676,8 @@ DerivedMesh *getEditDerivedBMesh(
 	bmdm->dm.drawMappedEdges = emDM_drawMappedEdges;
 	bmdm->dm.drawMappedEdgesInterp = emDM_drawMappedEdgesInterp;
 	bmdm->dm.drawMappedFaces = emDM_drawMappedFaces;
-	bmdm->dm.drawMappedFacesTex = emDM_drawMappedFacesTex;
 	bmdm->dm.drawMappedFacesGLSL = emDM_drawMappedFacesGLSL;
 	bmdm->dm.drawMappedFacesMat = emDM_drawMappedFacesMat;
-	bmdm->dm.drawFacesTex = emDM_drawFacesTex;
 	bmdm->dm.drawFacesGLSL = emDM_drawFacesGLSL;
 
 	bmdm->dm.release = emDM_release;

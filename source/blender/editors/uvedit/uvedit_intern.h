@@ -32,7 +32,6 @@
 #ifndef __UVEDIT_INTERN_H__
 #define __UVEDIT_INTERN_H__
 
-struct MTexPoly;
 struct Image;
 struct Object;
 struct Scene;
@@ -53,7 +52,6 @@ void  uv_poly_center(struct BMFace *f, float r_cent[2], const int cd_loop_uv_off
 
 typedef struct NearestHit {
 	struct BMFace *efa;
-	struct MTexPoly *tf;
 	struct BMLoop *l;
 	struct MLoopUV *luv, *luv_next;
 	int lindex;  /* index of loop within face */

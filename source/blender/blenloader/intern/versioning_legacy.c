@@ -319,55 +319,6 @@ static void idproperties_fix_group_lengths(ListBase idlist)
 	}
 }
 
-static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
-{
-	Material *ma;
-	MFace *mf;
-	MTFace *tf;
-	int a, b, texalpha;
-
-	/* verify we have a tface layer */
-	for (b = 0; b < me->fdata.totlayer; b++)
-		if (me->fdata.layers[b].type == CD_MTFACE)
-			break;
-
-	if (b == me->fdata.totlayer)
-		return;
-
-	/* if we do, set alpha sort if the game engine did it before */
-	for (a = 0, mf = me->mface; a < me->totface; a++, mf++) {
-		if (mf->mat_nr < me->totcol) {
-			ma = blo_do_versions_newlibadr(fd, lib, me->mat[mf->mat_nr]);
-			texalpha = 0;
-
-			/* we can't read from this if it comes from a library,
-			 * because direct_link might not have happened on it,
-			 * so ma->mtex is not pointing to valid memory yet */
-			if (ma && ma->id.lib)
-				ma = NULL;
-
-			for (b = 0; ma && b < MAX_MTEX; b++)
-				if (ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
-					texalpha = 1;
-		}
-		else {
-			ma = NULL;
-			texalpha = 0;
-		}
-
-		for (b = 0; b < me->fdata.totlayer; b++) {
-			if (me->fdata.layers[b].type == CD_MTFACE) {
-				tf = ((MTFace*)me->fdata.layers[b].data) + a;
-
-				tf->mode &= ~TF_ALPHASORT;
-				if (ma && (ma->mode & MA_ZTRANSP))
-					if (ELEM(tf->transp, TF_ALPHA, TF_ADD) || (texalpha && (tf->transp != TF_CLIP)))
-						tf->mode |= TF_ALPHASORT;
-			}
-		}
-	}
-}
-
 static void customdata_version_242(Mesh *me)
 {
 	CustomDataLayer *layer;
@@ -403,12 +354,6 @@ static void customdata_version_242(Mesh *me)
 			for (a = 0; a < me->totface; a++, mtf++, tf++, mcol += 4) {
 				memcpy(mcol, tf->col, sizeof(tf->col));
 				memcpy(mtf->uv, tf->uv, sizeof(tf->uv));
-
-				mtf->flag = tf->flag;
-				mtf->unwrap = tf->unwrap;
-				mtf->mode = tf->mode;
-				mtf->tile = tf->tile;
-				mtf->transp = tf->transp;
 			}
 
 			MEM_freeN(me->tface);
@@ -912,23 +857,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			ob->inertia = 1.0f;
 			ob->rdamping = 0.1f;
 			ob = ob->id.next;
-		}
-	}
-
-	if (main->versionfile <= 196) {
-		Mesh *me = main->mesh.first;
-		int a, b;
-		while (me) {
-			if (me->tface) {
-				TFace *tface = me->tface;
-				for (a = 0; a < me->totface; a++, tface++) {
-					for (b = 0; b < 4; b++) {
-						tface->mode |= TF_DYNAMIC;
-						tface->mode &= ~TF_INVISIBLE;
-					}
-				}
-			}
-			me = me->id.next;
 		}
 	}
 
@@ -3287,14 +3215,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				fluidmd->fss->meshVelocities = NULL;
 			}
 		}
-	}
-
-
-	if (main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)) {
-		Mesh *me;
-
-		for (me = main->mesh.first; me; me = me->id.next)
-			alphasort_version_246(fd, lib, me);
 	}
 
 	if (main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)) {

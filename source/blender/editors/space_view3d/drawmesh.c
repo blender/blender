@@ -77,20 +77,6 @@ typedef struct drawMeshFaceSelect_userData {
 	BLI_bitmap *edge_flags; /* pairs of edge options (visible, select) */
 } drawMeshFaceSelect_userData;
 
-typedef struct drawEMTFMapped_userData {
-	BMEditMesh *em;
-	bool has_mcol;
-	int cd_poly_tex_offset;
-	const MPoly *mpoly;
-	const MTexPoly *mtexpoly;
-} drawEMTFMapped_userData;
-
-typedef struct drawTFace_userData {
-	const Mesh *me;
-	const MPoly *mpoly;
-	const MTexPoly *mtexpoly;
-} drawTFace_userData;
-
 /**************************** Face Select Mode *******************************/
 
 /* mainly to be less confusing */

@@ -179,20 +179,18 @@ static void draw_uvs_shadow(Object *obedit)
 	immUnbindProgram();
 }
 
-static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTexPoly *activetf)
+static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, const BMFace *efa_act)
 {
 	BMesh *bm = em->bm;
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	Image *ima = sima->image;
 	float aspx, aspy, col[4];
 	int i;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
 
 	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 	BLI_buffer_declare_static(vec2f, tf_uvorig_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
@@ -208,7 +206,6 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				const int efa_len = efa->len;
 				float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf,     vec2f, efa_len);
 				float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_reinit_data(&tf_uvorig_buf, vec2f, efa_len);
-				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 				BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -224,8 +221,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				}
 				else {
-					if (tf == activetf)
-						activetf = NULL;
+					if (efa == efa_act) {
+						efa_act = NULL;
+					}
 					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 				}
 			}
@@ -316,8 +314,6 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-				
 				if (uvedit_face_visible_test(scene, ima, efa)) {
 					const int efa_len = efa->len;
 					float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf,     vec2f, efa_len);
@@ -367,8 +363,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 					immEnd();
 				}
 				else {
-					if (tf == activetf)
-						activetf = NULL;
+					if (efa == efa_act)
+						efa_act = NULL;
 					BM_elem_flag_disable(efa, BM_ELEM_TAG);
 				}
 			}
@@ -618,7 +614,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	BMFace *efa, *efa_act;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf, *activetf = NULL;
 	MLoopUV *luv;
 	unsigned char col1[4], col2[4];
 	float pointsize;
@@ -626,11 +621,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	Image *ima = sima->image;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
 
 	unsigned int pos;
 
-	activetf = EDBM_mtexpoly_active_get(em, &efa_act, false, false); /* will be set to NULL if hidden */
+	efa_act = EDBM_mtexpoly_active_get(em, false, false); /* will be set to NULL if hidden */
 	ts = scene->toolsettings;
 
 	drawfaces = draw_uvs_face_check(scene);
@@ -675,7 +669,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	/* 2. draw colored faces */
 	
 	if (sima->flag & SI_DRAW_STRETCH) {
-		draw_uvs_stretch(sima, scene, em, activetf);
+		draw_uvs_stretch(sima, scene, em, efa_act);
 	}
 	else if (!(sima->flag & SI_NO_DRAWFACES)) {
 		/* draw transparent faces */
@@ -690,7 +684,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 
 		for (unsigned int i = 0; i < em->tottri; i++) {
 			efa = em->looptris[i][0]->f;
-			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 			if (uvedit_face_visible_test(scene, ima, efa)) {
 				const bool is_select = uvedit_face_select_test(scene, efa, cd_loop_uv_offset);
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -720,14 +713,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
 		
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-
 			if (uvedit_face_visible_test(scene, ima, efa)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 			}
 			else {
-				if (tf == activetf)
-					activetf = NULL;
+				if (efa == efa_act)
+					efa_act = NULL;
 				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			}
 		}
@@ -765,11 +756,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 					continue;
-				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
-				if (tf) {
-					draw_uvs_lineloop_bmface(efa, cd_loop_uv_offset, shdr_pos);
-				}
+				draw_uvs_lineloop_bmface(efa, cd_loop_uv_offset, shdr_pos);
 			}
 
 			immUnbindProgram();

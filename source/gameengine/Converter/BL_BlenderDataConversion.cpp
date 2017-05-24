@@ -834,7 +834,7 @@ static bool ConvertMaterial(
 	/* No material, what to do? let's see what is in the UV and set the material accordingly
 	 * light and visible is always on */
 	if (validface) {
-		material->tile = tface->tile;
+		/* nop */
 	}
 	else {
 		// nothing at all
@@ -872,13 +872,6 @@ static bool ConvertMaterial(
 
 	if (validmat) {
 		material->matname =(mat->id.name);
-	}
-
-	if (tface) {
-		ME_MTEXFACE_CPY(&material->mtexpoly, tface);
-	}
-	else {
-		memset(&material->mtexpoly, 0, sizeof(material->mtexpoly));
 	}
 	material->material = mat;
 	return true;

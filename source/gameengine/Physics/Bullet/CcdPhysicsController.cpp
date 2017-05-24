@@ -2234,7 +2234,9 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 			std::vector<int> vert_remap_array(numverts, 0);
 
 			for (mf = mface, tf = tface, i = 0; i < numpolys; mf++, tf++, i++) {
-				if (tf->mode & TF_DYNAMIC) {
+				// 2.8x TODO: use GEMAT_NOPHYSICS.
+				// if (tf->mode & TF_DYNAMIC)
+				{
 					int flen;
 
 					if (mf->v4) {
@@ -2271,7 +2273,9 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 			int *poly_index_pt = &m_polygonIndexArray[0];
 
 			for (mf = mface, tf = tface, i = 0; i < numpolys; mf++, tf++, i++) {
-				if (tf->mode & TF_DYNAMIC) {
+				// 2.8x TODO: use GEMAT_NOPHYSICS.
+				// if (tf->mode & TF_DYNAMIC)
+				{
 					int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i) : i;
 
 					if (mf->v4) {

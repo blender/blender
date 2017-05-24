@@ -38,7 +38,6 @@ struct BMLoop;
 struct Depsgraph;
 struct Image;
 struct ImageUser;
-struct MTexPoly;
 struct Main;
 struct Object;
 struct Scene;

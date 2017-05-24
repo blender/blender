@@ -108,8 +108,7 @@ static void gpu_mcol(unsigned int ucol)
 }
 
 void GPU_render_text(
-        MTexPoly *mtexpoly, int mode,
-        const char *textstr, int textlen, unsigned int *col,
+        int mode, const char *textstr, int textlen, unsigned int *col,
         const float *v_quad[4], const float *uv_quad[4],
         int glattrib)
 {
@@ -139,9 +138,7 @@ void GPU_render_text(
 
 
 		/* color has been set */
-		if (mtexpoly->mode & TF_OBCOL)
-			col = NULL;
-		else if (!col)
+		if (!col)
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 		gpuPushMatrix();
@@ -274,8 +271,7 @@ static struct GPUTextureState {
 	int alphablend;
 	float anisotropic;
 	int gpu_mipmap;
-	MTexPoly *lasttface;
-} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, 0, -1, 1.0f, 0, NULL};
+} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, 0, -1, 1.0f, 0};
 
 /* Mipmap settings */
 
@@ -397,25 +393,6 @@ static unsigned int *gpu_get_image_bindcode(Image *ima, GLenum textarget)
 	return bind;
 }
 
-void GPU_clear_tpage(bool force)
-{
-	if (GTS.lasttface == NULL && !force)
-		return;
-
-	GTS.lasttface = NULL;
-	GTS.curtile = 0;
-	GTS.curima = NULL;
-	GTS.curtilemode = 0;
-	GTS.curtileXRep = 0;
-	GTS.curtileYRep = 0;
-	GTS.alphablend = -1;
-
-	glDisable(GL_BLEND);
-	glDisable(GL_TEXTURE_GEN_S);
-	glDisable(GL_TEXTURE_GEN_T);
-	glDisable(GL_ALPHA_TEST);
-}
-
 static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 {
 	if (alphablend == GPU_BLEND_SOLID) {
@@ -445,33 +422,6 @@ static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 	}
 	else if (alphablend == GPU_BLEND_ALPHA_TO_COVERAGE) {
 		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-	}
-}
-
-static void gpu_verify_alpha_blend(int alphablend)
-{
-	/* verify alpha blending modes */
-	if (GTS.alphablend == alphablend)
-		return;
-
-	gpu_set_alpha_blend(alphablend);
-	GTS.alphablend = alphablend;
-}
-
-static void gpu_verify_reflection(Image *ima)
-{
-	if (ima && (ima->flag & IMA_REFLECT)) {
-		/* enable reflection mapping */
-		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-
-		glEnable(GL_TEXTURE_GEN_S);
-		glEnable(GL_TEXTURE_GEN_T);
-	}
-	else {
-		/* disable reflection mapping */
-		glDisable(GL_TEXTURE_GEN_S);
-		glDisable(GL_TEXTURE_GEN_T);
 	}
 }
 
@@ -1015,63 +965,6 @@ void GPU_create_gl_tex_compressed(
 		GPU_create_gl_tex(bind, pix, NULL, x, y, textarget, mipmap, 0, ima);
 	}
 #endif
-}
-static void gpu_verify_repeat(Image *ima)
-{
-	/* set either clamp or repeat in X/Y */
-	if (ima->tpageflag & IMA_CLAMP_U)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	else
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-
-	if (ima->tpageflag & IMA_CLAMP_V)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	else
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-}
-
-int GPU_set_tpage(MTexPoly *mtexpoly, int mipmap, int alphablend)
-{
-	/* check if we need to clear the state */
-	if (mtexpoly == NULL) {
-		GPU_clear_tpage(false);
-		return 0;
-	}
-
-	/* XXX, 2.8 removes texface */
-#if 0
-	Image *ima = mtexpoly->tpage;
-#else
-	Image *ima = NULL;
-#endif
-	GTS.lasttface = mtexpoly;
-
-	gpu_verify_alpha_blend(alphablend);
-	gpu_verify_reflection(ima);
-
-	if (GPU_verify_image(ima, NULL, GL_TEXTURE_2D, mtexpoly->tile, 1, mipmap, false)) {
-		GTS.curtile = GTS.tile;
-		GTS.curima = GTS.ima;
-		GTS.curtilemode = GTS.tilemode;
-		GTS.curtileXRep = GTS.tileXRep;
-		GTS.curtileYRep = GTS.tileYRep;
-	}
-	else {
-		GTS.curtile = 0;
-		GTS.curima = NULL;
-		GTS.curtilemode = 0;
-		GTS.curtileXRep = 0;
-		GTS.curtileYRep = 0;
-
-		return 0;
-	}
-
-	gpu_verify_repeat(ima);
-
-	/* Did this get lost in the image recode? */
-	/* BKE_image_tag_time(ima);*/
-
-	return 1;
 }
 
 /* these two functions are called on entering and exiting texture paint mode,

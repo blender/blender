@@ -39,7 +39,6 @@ extern "C" {
 struct ImBuf;
 struct Image;
 struct ImageUser;
-struct MTexPoly;
 struct Object;
 struct Scene;
 struct SceneLayer;
@@ -93,14 +92,6 @@ bool GPU_material_use_matcaps_get(void);
 void GPU_set_material_alpha_blend(int alphablend);
 int GPU_get_material_alpha_blend(void);
 
-/* TexFace drawing
- * - this is mutually exclusive with material drawing, a mesh should
- *   be drawn using one or the other
- * - passing NULL clears the state again */
-
-int GPU_set_tpage(struct MTexPoly *mtexpoly, int mipmap, int transp);
-void GPU_clear_tpage(bool force);
-
 /* Lights
  * - returns how many lights were enabled
  * - this affects fixed functions materials and texface, not glsl */
@@ -113,8 +104,7 @@ int GPU_scene_object_lights(
  * - based on moving uv coordinates */
 
 void GPU_render_text(
-        struct MTexPoly *mtexpoly, int mode,
-        const char *textstr, int textlen, unsigned int *col,
+        int mode, const char *textstr, int textlen, unsigned int *col,
         const float *v_quad[4], const float *uv_quad[4],
         int glattrib);
 

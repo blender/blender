@@ -435,13 +435,6 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 					Image *image = BKE_object_material_edit_image_get(obedit, efa->mat_nr);
 
 					sima->image = image;
-					
-					MTexPoly *tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-					if (tf) {
-						if ((sima->flag & SI_EDITTILE) == 0) {
-							sima->curtile = tf->tile;
-						}
-					}
 				}
 			}
 		}
