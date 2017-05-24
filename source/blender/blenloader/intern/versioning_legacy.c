@@ -408,7 +408,6 @@ static void customdata_version_242(Mesh *me)
 				mtf->unwrap = tf->unwrap;
 				mtf->mode = tf->mode;
 				mtf->tile = tf->tile;
-				mtf->tpage = tf->tpage;
 				mtf->transp = tf->transp;
 			}
 

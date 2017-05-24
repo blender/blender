@@ -190,7 +190,7 @@ Material *KX_BlenderMaterial::GetBlenderMaterial() const
 
 Image *KX_BlenderMaterial::GetBlenderImage() const
 {
-	return mMaterial->mtexpoly.tpage;
+	return mMaterial->material ? mMaterial->material->edit_image : NULL;
 }
 
 Scene* KX_BlenderMaterial::GetBlenderScene() const

@@ -43,6 +43,12 @@ typedef struct MultiresBakeRender {
 	short mode;
 	bool use_lores_mesh;  /* Use low-resolution mesh when baking displacement maps */
 
+	/* material aligned image array (for per-face bake image) */
+	struct {
+		Image **array;
+		int     len;
+	} ob_image;
+
 	int number_of_rays;   /* Number of rays to be cast when doing AO baking */
 	float bias;           /* Bias between object and start ray point when doing AO baking */
 

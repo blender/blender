@@ -989,7 +989,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         split = layout.split()
         col = split.column()
-        col.prop(md, "use_image_override")
         col.prop(md, "projector_count", text="Projectors")
         for proj in md.projectors:
             col.prop(proj, "object", text="")

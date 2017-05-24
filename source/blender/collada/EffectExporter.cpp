@@ -311,58 +311,6 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		}
 	}
 
-	int active_uv_layer = -1;
-	std::set<Image *> uv_textures;
-	if (ob->type == OB_MESH && ob->totcol && this->export_settings->include_uv_textures) {
-		bool active_uv_only = this->export_settings->active_uv_only;
-		Mesh *me     = (Mesh *) ob->data;
-		active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
-
-		BKE_mesh_tessface_ensure(me);
-		for (int i = 0; i < me->pdata.totlayer; i++) {
-			if (!active_uv_only || active_uv_layer == i)
-			{
-				if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-					MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
-					MPoly *mpoly = me->mpoly;
-					for (int j = 0; j < me->totpoly; j++, mpoly++, txface++) {
-
-						Material *mat = give_current_material(ob, mpoly->mat_nr + 1);
-						if (mat != ma) 
-							continue;
-
-						Image *ima = txface->tpage;
-						if (ima == NULL)
-							continue;
-
-
-						bool not_in_list = uv_textures.find(ima)==uv_textures.end();
-						if (not_in_list) {
-							std::string name = id_name(ima);
-							std::string key(name);
-							key = translate_id(key);
-
-							// create only one <sampler>/<surface> pair for each unique image
-							if (im_samp_map.find(key) == im_samp_map.end()) {
-								//<newparam> <sampler> <source>
-								COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-														   key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
-														   key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
-								sampler.setImageId(key);
-								samplers[a] = sampler;
-								samp_surf[b] = &samplers[a];
-								im_samp_map[key] = b;
-								b++;
-								a++;
-								uv_textures.insert(ima);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
 	// used as fallback when MTex->uvname is "" (this is pretty common)
 	// it is indeed the correct value to use in that case
 	std::string active_uv(getActiveUVLayerName(ob));
@@ -383,19 +331,6 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
 		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i];
 		writeTextures(ep, key, sampler, t, ima, uvname);
-	}
-
-	std::set<Image *>::iterator uv_t_iter;
-	int idx;
-	for (idx = 0, uv_t_iter = uv_textures.begin(); uv_t_iter != uv_textures.end(); uv_t_iter++, idx++ ) {
-		if (active_uv_layer>-1 && idx==active_uv_layer) {
-			Image *ima = *uv_t_iter;
-			std::string key(id_name(ima));
-			key = translate_id(key);
-			int i = im_samp_map[key];
-			COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i];
-			ep.setDiffuse(createTexture(ima, active_uv, sampler), false, "diffuse");
-		}
 	}
 
 	// performs the actual writing

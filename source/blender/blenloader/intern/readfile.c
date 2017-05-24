@@ -241,7 +241,6 @@ typedef struct OldNewMap {
 /* local prototypes */
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 static void direct_link_modifiers(FileData *fd, ListBase *lb);
-static void convert_tface_mt(FileData *fd, Main *main);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 
@@ -4380,49 +4379,6 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 
 /* ************ READ MESH ***************** */
 
-static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
-{
-	MTFace *tf= mtface;
-	int i;
-	
-	/* Add pseudo-references (not fake users!) to images used by texface. A
-	 * little bogus; it would be better if each mesh consistently added one ref
-	 * to each image it used. - z0r */
-	for (i = 0; i < totface; i++, tf++) {
-		tf->tpage = newlibadr_real_us(fd, me->id.lib, tf->tpage);
-	}
-}
-
-static void lib_link_customdata_mtface(FileData *fd, Mesh *me, CustomData *fdata, int totface)
-{
-	int i;
-	for (i = 0; i < fdata->totlayer; i++) {
-		CustomDataLayer *layer = &fdata->layers[i];
-		
-		if (layer->type == CD_MTFACE)
-			lib_link_mtface(fd, me, layer->data, totface);
-	}
-
-}
-
-static void lib_link_customdata_mtpoly(FileData *fd, Mesh *me, CustomData *pdata, int totface)
-{
-	int i;
-
-	for (i=0; i < pdata->totlayer; i++) {
-		CustomDataLayer *layer = &pdata->layers[i];
-		
-		if (layer->type == CD_MTEXPOLY) {
-			MTexPoly *tf= layer->data;
-			int j;
-			
-			for (j = 0; j < totface; j++, tf++) {
-				tf->tpage = newlibadr_real_us(fd, me->id.lib, tf->tpage);
-			}
-		}
-	}
-}
-
 static void lib_link_mesh(FileData *fd, Main *main)
 {
 	Mesh *me;
@@ -4449,18 +4405,8 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			me->ipo = newlibadr_us(fd, me->id.lib, me->ipo); // XXX: deprecated: old anim sys
 			me->key = newlibadr_us(fd, me->id.lib, me->key);
 			me->texcomesh = newlibadr_us(fd, me->id.lib, me->texcomesh);
-			
-			lib_link_customdata_mtface(fd, me, &me->fdata, me->totface);
-			lib_link_customdata_mtpoly(fd, me, &me->pdata, me->totpoly);
-			if (me->mr && me->mr->levels.first) {
-				lib_link_customdata_mtface(fd, me, &me->mr->fdata,
-				                           ((MultiresLevel*)me->mr->levels.first)->totface);
-			}
 		}
 	}
-
-	/* convert texface options to material */
-	convert_tface_mt(fd, main);
 
 	for (me = main->mesh.first; me; me = me->id.next) {
 		if (me->id.tag & LIB_TAG_NEED_LINK) {
@@ -8523,26 +8469,6 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 	}
 }
 
-static void convert_tface_mt(FileData *fd, Main *main)
-{
-	Main *gmain;
-	
-	/* this is a delayed do_version (so it can create new materials) */
-	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 3)) {
-		//XXX hack, material.c uses G.main all over the place, instead of main
-		// temporarily set G.main to the current main
-		gmain = G.main;
-		G.main = main;
-		
-		if (!(do_version_tface(main))) {
-			BKE_report(fd->reports, RPT_WARNING, "Texface conversion problem (see error in console)");
-		}
-		
-		//XXX hack, material.c uses G.main allover the place, instead of main
-		G.main = gmain;
-	}
-}
-
 /* initialize userdef with non-UI dependency stuff */
 /* other initializers (such as theme color defaults) go to resources.c */
 static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
@@ -9354,6 +9280,10 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 	
 	if (ma->group)
 		expand_doit(fd, mainvar, ma->group);
+
+	if (ma->edit_image) {
+		expand_doit(fd, mainvar, ma->edit_image);
+	}
 }
 
 static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
@@ -9443,9 +9373,7 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 
 static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 {
-	CustomDataLayer *layer;
-	TFace *tf;
-	int a, i;
+	int a;
 	
 	if (me->adt)
 		expand_animdata(fd, mainvar, me->adt);
@@ -9456,46 +9384,6 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 	
 	expand_doit(fd, mainvar, me->key);
 	expand_doit(fd, mainvar, me->texcomesh);
-	
-	if (me->tface) {
-		tf = me->tface;
-		for (i=0; i<me->totface; i++, tf++) {
-			if (tf->tpage)
-				expand_doit(fd, mainvar, tf->tpage);
-		}
-	}
-
-	if (me->mface && !me->mpoly) {
-		MTFace *mtf;
-
-		for (a = 0; a < me->fdata.totlayer; a++) {
-			layer = &me->fdata.layers[a];
-
-			if (layer->type == CD_MTFACE) {
-				mtf = (MTFace *) layer->data;
-				for (i = 0; i < me->totface; i++, mtf++) {
-					if (mtf->tpage)
-						expand_doit(fd, mainvar, mtf->tpage);
-				}
-			}
-		}
-	}
-	else {
-		MTexPoly *mtp;
-
-		for (a = 0; a < me->pdata.totlayer; a++) {
-			layer = &me->pdata.layers[a];
-
-			if (layer->type == CD_MTEXPOLY) {
-				mtp = (MTexPoly *) layer->data;
-
-				for (i = 0; i < me->totpoly; i++, mtp++) {
-					if (mtp->tpage)
-						expand_doit(fd, mainvar, mtp->tpage);
-				}
-			}
-		}
-	}
 }
 
 /* temp struct used to transport needed info to expand_constraint_cb() */

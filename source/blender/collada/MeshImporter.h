@@ -171,11 +171,11 @@ public:
 
 	void optimize_material_assignements();
 
-	MTFace *assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
-	                                std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
-	                                Object *ob, const COLLADAFW::UniqueId *geom_uid,
-	                                char *layername, MTFace *texture_face,
-	                                std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, short mat_index);
+	void assign_material_to_geom(
+	        COLLADAFW::MaterialBinding cmaterial,
+	        std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
+	        Object *ob, const COLLADAFW::UniqueId *geom_uid,
+	        std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, short mat_index);
 	
 	
 	Object *create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,

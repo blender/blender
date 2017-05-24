@@ -44,6 +44,7 @@
 #include "BKE_ccg.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
@@ -90,6 +91,8 @@ typedef struct {
 	void *bake_data;
 	ImBuf *ibuf;
 	MPassKnownData pass_data;
+	/* material aligned UV array */
+	Image **image_array;
 } MResolvePixelData;
 
 typedef void (*MFlushPixel)(const MResolvePixelData *data, const int x, const int y);
@@ -374,13 +377,15 @@ static void *do_multires_bake_thread(void *data_v)
 
 	while ((tri_index = multires_bake_queue_next_tri(handle->queue)) >= 0) {
 		const MLoopTri *lt = &data->mlooptri[tri_index];
-		MTexPoly *mtpoly = &data->mtpoly[lt->poly];
-		MLoopUV *mloopuv = data->mloopuv;
+		const MPoly *mp = &data->mpoly[lt->poly];
+		const short mat_nr = mp->mat_nr;
+		const MLoopUV *mloopuv = data->mloopuv;
 
 		if (multiresbake_test_break(bkr))
 			break;
 
-		if (mtpoly->tpage != handle->image)
+		Image *tri_image = mat_nr < bkr->ob_image.len ? bkr->ob_image.array[mat_nr] : NULL;
+		if (tri_image != handle->image)
 			continue;
 
 		data->tri_index = tri_index;
@@ -1179,30 +1184,34 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 
 static void count_images(MultiresBakeRender *bkr)
 {
-	int a, totpoly;
-	DerivedMesh *dm = bkr->lores_dm;
-	MTexPoly *mtexpoly = CustomData_get_layer(&dm->polyData, CD_MTEXPOLY);
-
 	BLI_listbase_clear(&bkr->image);
 	bkr->tot_image = 0;
 
-	totpoly = dm->getNumPolys(dm);
-
-	for (a = 0; a < totpoly; a++)
-		mtexpoly[a].tpage->id.tag &= ~LIB_TAG_DOIT;
-
-	for (a = 0; a < totpoly; a++) {
-		Image *ima = mtexpoly[a].tpage;
-		if ((ima->id.tag & LIB_TAG_DOIT) == 0) {
-			LinkData *data = BLI_genericNodeN(ima);
-			BLI_addtail(&bkr->image, data);
-			bkr->tot_image++;
-			ima->id.tag |= LIB_TAG_DOIT;
+	for (int i = 0; i < bkr->ob_image.len; i++) {
+		Image *ima = bkr->ob_image.array[i];
+		if (ima) {
+			ima->id.tag &= ~LIB_TAG_DOIT;
 		}
 	}
 
-	for (a = 0; a < totpoly; a++)
-		mtexpoly[a].tpage->id.tag &= ~LIB_TAG_DOIT;
+	for (int i = 0; i < bkr->ob_image.len; i++) {
+		Image *ima = bkr->ob_image.array[i];
+		if (ima) {
+			if ((ima->id.tag & LIB_TAG_DOIT) == 0) {
+				LinkData *data = BLI_genericNodeN(ima);
+				BLI_addtail(&bkr->image, data);
+				bkr->tot_image++;
+				ima->id.tag |= LIB_TAG_DOIT;
+			}
+		}
+	}
+
+	for (int i = 0; i < bkr->ob_image.len; i++) {
+		Image *ima = bkr->ob_image.array[i];
+		if (ima) {
+			ima->id.tag &= ~LIB_TAG_DOIT;
+		}
+	}
 }
 
 static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)

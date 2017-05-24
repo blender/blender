@@ -66,17 +66,14 @@ static int uvedit_center(Scene *scene, BMEditMesh *em, Image *ima, float center[
 	BMFace *f;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	int tot = 0;
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 	
 	zero_v2(center);
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = BM_ELEM_CD_GET_VOID_P(f, cd_poly_tex_offset);
-		if (!uvedit_face_visible_test(scene, ima, f, tf))
+		if (!uvedit_face_visible_test(scene, ima, f))
 			continue;
 
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
@@ -102,14 +99,11 @@ static void uvedit_translate(Scene *scene, BMEditMesh *em, Image *ima, float del
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
-	MTexPoly *tf;
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 	
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = BM_ELEM_CD_GET_VOID_P(f, cd_poly_tex_offset);
-		if (!uvedit_face_visible_test(scene, ima, f, tf))
+		if (!uvedit_face_visible_test(scene, ima, f))
 			continue;
 
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {

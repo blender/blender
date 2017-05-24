@@ -58,46 +58,14 @@ typedef struct BPy_BMTexPoly {
 	MTexPoly *data;
 } BPy_BMTexPoly;
 
-extern PyObject *pyrna_id_CreatePyObject(ID *id);
-extern bool      pyrna_id_FromPyObject(PyObject *obj, ID **id);
-
-PyDoc_STRVAR(bpy_bmtexpoly_image_doc,
-"Image or None.\n\n:type: :class:`bpy.types.Image`"
-);
-static PyObject *bpy_bmtexpoly_image_get(BPy_BMTexPoly *self, void *UNUSED(closure))
-{
-	return pyrna_id_CreatePyObject((ID *)self->data->tpage);
-}
-
-static int bpy_bmtexpoly_image_set(BPy_BMTexPoly *self, PyObject *value, void *UNUSED(closure))
-{
-	ID *id;
-
-	if (value == Py_None) {
-		id = NULL;
-	}
-	else if (pyrna_id_FromPyObject(value, &id) && id && GS(id->name) == ID_IM) {
-		/* pass */
-	}
-	else {
-		PyErr_Format(PyExc_KeyError, "BMTexPoly.image = x"
-		             "expected an image or None, not '%.200s'",
-		             Py_TYPE(value)->tp_name);
-		return -1;
-	}
-
-	id_lib_extern(id);
-	self->data->tpage = (struct Image *)id;
-
-	return 0;
-}
-
+/* TODO, flag access */
+#if 0
 static PyGetSetDef bpy_bmtexpoly_getseters[] = {
 	/* attributes match rna_def_mtpoly  */
-	{(char *)"image", (getter)bpy_bmtexpoly_image_get, (setter)bpy_bmtexpoly_image_set, (char *)bpy_bmtexpoly_image_doc, NULL},
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
+#endif
 
 static PyTypeObject BPy_BMTexPoly_Type; /* bm.loops.layers.uv.active */
 
@@ -109,7 +77,9 @@ static void bm_init_types_bmtexpoly(void)
 
 	BPy_BMTexPoly_Type.tp_doc = NULL; // todo
 
+#if 0
 	BPy_BMTexPoly_Type.tp_getset = bpy_bmtexpoly_getseters;
+#endif
 
 	BPy_BMTexPoly_Type.tp_flags = Py_TPFLAGS_DEFAULT;
 

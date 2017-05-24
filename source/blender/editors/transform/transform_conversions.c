@@ -2857,7 +2857,6 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
 	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	if (!ED_space_image_show_uvedit(sima, t->obedit))
 		return;
@@ -2881,10 +2880,9 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	}
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		MTexPoly *tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 		BMLoop *l;
 
-		if (!uvedit_face_visible_test(scene, ima, efa, tf)) {
+		if (!uvedit_face_visible_test(scene, ima, efa)) {
 			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			continue;
 		}

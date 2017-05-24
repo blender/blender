@@ -442,7 +442,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			}
 		}
 
-		if ((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL | MA_VERTEXCOLP | MA_FACETEXTURE))) {
+		if ((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL | MA_VERTEXCOLP))) {
 			MCol *mcol;
 			const float *uv;
 			char *name;
@@ -504,15 +504,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 					suv->dyuv[0] = 0.0f;
 					suv->dyuv[1] = 0.0f;
 				}
-
-				if ((mode & MA_FACETEXTURE) && i == obr->actmtface) {
-					if ((mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) == 0) {
-						shi->vcol[0] = 1.0f;
-						shi->vcol[1] = 1.0f;
-						shi->vcol[2] = 1.0f;
-						shi->vcol[3] = 1.0f;
-					}
-				}
 			}
 
 			if (shi->totuv == 0) {
@@ -521,14 +512,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 				suv->uv[0] = 0.0f;
 				suv->uv[1] = spoint->strandco;
 				suv->uv[2] = 0.0f;   /* texture.c assumes there are 3 coords */
-				
-				if (mode & MA_FACETEXTURE) {
-					/* no tface? set at 1.0f */
-					shi->vcol[0] = 1.0f;
-					shi->vcol[1] = 1.0f;
-					shi->vcol[2] = 1.0f;
-					shi->vcol[3] = 1.0f;
-				}
 			}
 
 		}
@@ -570,7 +553,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 	}
 	
 	if (shi->do_manage) {
-		if (mode & (MA_VERTEXCOL | MA_VERTEXCOLP | MA_FACETEXTURE)) {
+		if (mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) {
 			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);
 		}
 	}
@@ -1076,7 +1059,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			}
 		}
 				
-		if ((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL | MA_VERTEXCOLP | MA_FACETEXTURE)) || (R.flag & R_NEED_VCOL)) {
+		if ((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) || (R.flag & R_NEED_VCOL)) {
 			VlakRen *vlr = shi->vlr;
 			MTFace *tface;
 			MCol *mcol;
@@ -1231,18 +1214,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 						suv->dyuv[0] = 2.0f * (dl * uv3[0] - duv[0] * uv1[0] - duv[1] * uv2[0]);
 						suv->dyuv[1] = 2.0f * (dl * uv3[1] - duv[0] * uv1[1] - duv[1] * uv2[1]);
 					}
-
-					if ((mode & MA_FACETEXTURE) && i == obr->actmtface) {
-						if (((mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) == 0) && ((R.flag & R_NEED_VCOL) == 0)) {
-							shi->vcol[0] = 1.0f;
-							shi->vcol[1] = 1.0f;
-							shi->vcol[2] = 1.0f;
-							shi->vcol[3] = 1.0f;
-						}
-						if (tface->tpage) {
-							render_realtime_texture(shi, tface->tpage);
-						}
-					}
 				}
 			}
 
@@ -1256,14 +1227,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				suv->uv[0] = 2.0f * (u + .5f);
 				suv->uv[1] = 2.0f * (v + .5f);
 				suv->uv[2] = 0.0f;   /* texture.c assumes there are 3 coords */
-				
-				if (mode & MA_FACETEXTURE) {
-					/* no tface? set at 1.0f */
-					shi->vcol[0] = 1.0f;
-					shi->vcol[1] = 1.0f;
-					shi->vcol[2] = 1.0f;
-					shi->vcol[3] = 1.0f;
-				}
 			}
 		}
 		
@@ -1319,7 +1282,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	 * else un-initialized values are used
 	 */
 	if (shi->do_manage) {
-		if ((mode & (MA_VERTEXCOL | MA_VERTEXCOLP | MA_FACETEXTURE)) || (R.flag & R_NEED_VCOL)) {
+		if ((mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) || (R.flag & R_NEED_VCOL)) {
 			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);
 		}
 	}

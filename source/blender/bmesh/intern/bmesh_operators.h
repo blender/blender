@@ -77,7 +77,6 @@ enum {
 /* similar face selection slot values */
 enum {
 	SIMFACE_MATERIAL = 201,
-	SIMFACE_IMAGE,
 	SIMFACE_AREA,
 	SIMFACE_SIDES,
 	SIMFACE_PERIMETER,

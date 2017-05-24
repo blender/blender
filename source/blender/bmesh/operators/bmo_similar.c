@@ -145,7 +145,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	 * Save us some computation burden: In case of perimeter/area/coplanar selection we compute
 	 * only once.
 	 */
-	if (type == SIMFACE_PERIMETER || type == SIMFACE_AREA || type == SIMFACE_COPLANAR || type == SIMFACE_IMAGE) {
+	if (type == SIMFACE_PERIMETER || type == SIMFACE_AREA || type == SIMFACE_COPLANAR) {
 		for (i = 0; i < num_total; i++) {
 			switch (type) {
 				case SIMFACE_PERIMETER:
@@ -164,14 +164,6 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 				case SIMFACE_AREA:
 					f_ext[i].area = BM_face_calc_area(f_ext[i].f);
 					break;
-
-				case SIMFACE_IMAGE:
-					f_ext[i].t = NULL;
-					if (CustomData_has_layer(&(bm->pdata), CD_MTEXPOLY)) {
-						MTexPoly *mtpoly = CustomData_bmesh_get(&bm->pdata, f_ext[i].f->head.data, CD_MTEXPOLY);
-						f_ext[i].t = mtpoly->tpage;
-					}
-					break;
 			}
 		}
 	}
@@ -186,13 +178,6 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 				switch (type) {
 					case SIMFACE_MATERIAL:
 						if (fm->mat_nr == fs->mat_nr) {
-							BMO_face_flag_enable(bm, fm, FACE_MARK);
-							cont = false;
-						}
-						break;
-
-					case SIMFACE_IMAGE:
-						if (f_ext[i].t == f_ext[indices[idx]].t) {
 							BMO_face_flag_enable(bm, fm, FACE_MARK);
 							cont = false;
 						}

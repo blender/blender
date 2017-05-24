@@ -643,31 +643,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				for (i = 0; i < mesh->totcol; i++) {
 					CALLBACK_INVOKE(mesh->mat[i], IDWALK_CB_USER);
 				}
-
-				/* XXX Really not happy with this - probably texface should rather use some kind of
-				 * 'texture slots' and just set indices in each poly/face item - would also save some memory.
-				 * Maybe a nice TODO for blender2.8? */
-				if (mesh->mtface || mesh->mtpoly) {
-					for (i = 0; i < mesh->pdata.totlayer; i++) {
-						if (mesh->pdata.layers[i].type == CD_MTEXPOLY) {
-							MTexPoly *txface = (MTexPoly *)mesh->pdata.layers[i].data;
-
-							for (int j = 0; j < mesh->totpoly; j++, txface++) {
-								CALLBACK_INVOKE(txface->tpage, IDWALK_CB_USER_ONE);
-							}
-						}
-					}
-
-					for (i = 0; i < mesh->fdata.totlayer; i++) {
-						if (mesh->fdata.layers[i].type == CD_MTFACE) {
-							MTFace *tface = (MTFace *)mesh->fdata.layers[i].data;
-
-							for (int j = 0; j < mesh->totface; j++, tface++) {
-								CALLBACK_INVOKE(tface->tpage, IDWALK_CB_USER_ONE);
-							}
-						}
-					}
-				}
 				break;
 			}
 
@@ -710,6 +685,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					library_foreach_ID_as_subdata_link((ID **)&material->nodetree, callback, user_data, flag, &data);
 				}
 				CALLBACK_INVOKE(material->group, IDWALK_CB_USER);
+				CALLBACK_INVOKE(material->edit_image, IDWALK_CB_USER);
 				break;
 			}
 

@@ -188,7 +188,6 @@ typedef struct MVertTri {
 
 
 typedef struct MTexPoly {
-	struct Image *tpage;
 	char flag, transp;
 	short mode, tile, pad;
 } MTexPoly;
@@ -196,7 +195,6 @@ typedef struct MTexPoly {
 /* can copy from/to MTexPoly/MTFace */
 #define ME_MTEXFACE_CPY(dst, src)   \
 {                                   \
-	(dst)->tpage  = (src)->tpage;   \
 	(dst)->flag   = (src)->flag;    \
 	(dst)->transp = (src)->transp;  \
 	(dst)->mode   = (src)->mode;    \
@@ -256,7 +254,6 @@ typedef struct MSelect {
 /*tessellation uv face data*/
 typedef struct MTFace {
 	float uv[4][2];
-	struct Image *tpage;
 	char flag, transp;
 	short mode, tile, unwrap;
 } MTFace;

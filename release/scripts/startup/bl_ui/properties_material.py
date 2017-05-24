@@ -794,17 +794,15 @@ class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         row.prop(mat, "use_light_group_local", text="Local")
 
         col = split.column()
-        col.prop(mat, "use_face_texture")
-        sub = col.column()
-        sub.active = mat.use_face_texture
-        sub.prop(mat, "use_face_texture_alpha")
-        col.separator()
         col.prop(mat, "use_vertex_color_paint")
         col.prop(mat, "use_vertex_color_light")
         col.prop(mat, "use_object_color")
         col.prop(mat, "use_uv_project")
         if simple_material(base_mat):
             col.prop(mat, "pass_index")
+
+        col.label("Edit Image")
+        col.template_ID(mat, "edit_image")
 
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel, Panel):

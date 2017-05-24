@@ -58,6 +58,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_editmesh.h"
@@ -214,8 +215,7 @@ void ED_uvedit_get_aspect(Scene *scene, Object *ob, BMesh *bm, float *aspx, floa
 			ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL, NULL);
 		}
 		else {
-			MTexPoly *tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
-			ima = tf->tpage;
+			ima = BKE_object_material_edit_image_get(ob, efa->mat_nr);
 		}
 
 		ED_image_get_uv_aspect(ima, NULL, aspx, aspy);

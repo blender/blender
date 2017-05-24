@@ -60,6 +60,7 @@
 extern "C"{
 	#include "BLF_api.h"
 	#include "BKE_DerivedMesh.h"
+	#include "DNA_material_types.h"
 }
 
 
@@ -785,8 +786,9 @@ static DMDrawOption CheckTexDM(MTexPoly *mtexpoly, const bool has_mcol, int matn
 {
 
 	// index is the original face index, retrieve the polygon
+	Material *bl_material = current_polymat->GetBlenderMaterial();
 	if (matnr == current_blmat_nr &&
-		(mtexpoly == NULL || mtexpoly->tpage == current_image)) {
+		(mtexpoly == NULL || (bl_material ? bl_material->edit_image : NULL) == current_image)) {
 		// must handle color.
 		if (current_wireframe)
 			return DM_DRAW_OPTION_NO_MCOL;

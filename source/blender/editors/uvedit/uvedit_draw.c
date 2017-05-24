@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -218,7 +220,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				totarea += BM_face_calc_area(efa);
 				totuvarea += area_poly_v2((const float (*)[2])tf_uv, efa->len);
 				
-				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
+				if (uvedit_face_visible_test(scene, ima, efa)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				}
 				else {
@@ -316,7 +318,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 				
-				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
+				if (uvedit_face_visible_test(scene, ima, efa)) {
 					const int efa_len = efa->len;
 					float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf,     vec2f, efa_len);
 					float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_reinit_data(&tf_uvorig_buf, vec2f, efa_len);
@@ -421,24 +423,36 @@ static void draw_uvs_other_mesh_texface(Object *ob, const Image *curimage, const
 {
 	Mesh *me = ob->data;
 	MPoly *mpoly = me->mpoly;
-	MTexPoly *mtpoly = me->mtpoly;
 	int a;
 
 	if (me->mloopuv == NULL) {
 		return;
 	}
 
-	for (a = me->totpoly; a != 0; a--, mpoly++, mtpoly++) {
+	Image **image_array = NULL;
+
+	if (other_uv_filter == SI_FILTER_SAME_IMAGE) {
+		image_array = BKE_object_material_edit_image_get_array(ob);
+	}
+
+	for (a = me->totpoly; a != 0; a--, mpoly++) {
 		if (other_uv_filter == SI_FILTER_ALL) {
 			/* Nothing to compare, all UV faces are visible. */
 		}
 		else if (other_uv_filter == SI_FILTER_SAME_IMAGE) {
-			if (mtpoly->tpage != curimage) {
+			if (mpoly[a].mat_nr >= ob->totcol) {
+				continue;
+			}
+			if (image_array[mpoly[a].mat_nr] != curimage) {
 				continue;
 			}
 		}
 
 		draw_uvs_lineloop_mpoly(me, mpoly, pos);
+	}
+
+	if (image_array) {
+		MEM_freeN(image_array);
 	}
 }
 static void draw_uvs_other_mesh_new_shading(Object *ob, const Image *curimage, const int other_uv_filter, unsigned int pos)
@@ -638,7 +652,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 			}
 		}
 		else {
-			curimage = (activetf) ? activetf->tpage : ima;
+			curimage = (efa_act) ? BKE_object_material_edit_image_get(obedit, efa_act->mat_nr) : ima;
 		}
 
 		draw_uvs_other(sl, obedit, curimage, new_shading_nodes, sima->other_uv_filter);
@@ -677,11 +691,11 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		for (unsigned int i = 0; i < em->tottri; i++) {
 			efa = em->looptris[i][0]->f;
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
+			if (uvedit_face_visible_test(scene, ima, efa)) {
 				const bool is_select = uvedit_face_select_test(scene, efa, cd_loop_uv_offset);
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 
-				if (tf == activetf) {
+				if (efa == efa_act) {
 					/* only once */
 					immUniformThemeColor(TH_EDITMESH_ACTIVE);
 				}
@@ -708,7 +722,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
-			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
+			if (uvedit_face_visible_test(scene, ima, efa)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 			}
 			else {

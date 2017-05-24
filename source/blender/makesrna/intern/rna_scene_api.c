@@ -280,7 +280,6 @@ static void rna_Scene_collada_export(
         int include_shapekeys,
         int deform_bones_only,
         int active_uv_only,
-        int include_uv_textures,
         int include_material_textures,
         int use_texture_copies,
         int triangulate,
@@ -306,7 +305,6 @@ static void rna_Scene_collada_export(
 		deform_bones_only,
 
 		active_uv_only,
-		include_uv_textures,
 		include_material_textures,
 		use_texture_copies,
 
@@ -405,9 +403,6 @@ void RNA_api_scene(StructRNA *srna)
 	                "Deform Bones only", "Only export deforming bones with armatures");
 
 	RNA_def_boolean(func, "active_uv_only", false, "Only Selected UV Map", "Export only the selected UV Map");
-
-	RNA_def_boolean(func, "include_uv_textures", false,
-	                "Include UV Textures", "Export textures assigned to the object UV Maps");
 
 	RNA_def_boolean(func, "include_material_textures", false,
 	                "Include Material Textures", "Export textures assigned to the object Materials");

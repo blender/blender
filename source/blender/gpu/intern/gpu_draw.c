@@ -113,12 +113,17 @@ void GPU_render_text(
         const float *v_quad[4], const float *uv_quad[4],
         int glattrib)
 {
-	if ((mode & GEMAT_TEXT) && (textlen > 0) && mtexpoly->tpage) {
+	/* XXX, 2.8 removes texface */
+#if 0
+	Image *ima = mtexpoly->tpage;
+#else
+	Image *ima = NULL;
+#endif
+	if ((mode & GEMAT_TEXT) && (textlen > 0) && ima) {
 		const float *v1 = v_quad[0];
 		const float *v2 = v_quad[1];
 		const float *v3 = v_quad[2];
 		const float *v4 = v_quad[3];
-		Image *ima = (Image *)mtexpoly->tpage;
 		const size_t textlen_st = textlen;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
 
@@ -1033,7 +1038,12 @@ int GPU_set_tpage(MTexPoly *mtexpoly, int mipmap, int alphablend)
 		return 0;
 	}
 
+	/* XXX, 2.8 removes texface */
+#if 0
 	Image *ima = mtexpoly->tpage;
+#else
+	Image *ima = NULL;
+#endif
 	GTS.lasttface = mtexpoly;
 
 	gpu_verify_alpha_blend(alphablend);

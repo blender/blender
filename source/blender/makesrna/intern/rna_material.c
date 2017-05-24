@@ -1887,6 +1887,12 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Light Group", "Limit lighting to lamps in this Group");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
+	prop = RNA_def_property(srna, "edit_image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "edit_image");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Edit Image", "Image to use for UV-mapping");
+
 	prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "index");
 	RNA_def_property_ui_text(prop, "Pass Index", "Index number for the \"Material Index\" render pass");
@@ -1962,18 +1968,6 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "shadowonly_flag");
 	RNA_def_property_enum_items(prop, prop_shadows_only_items);
 	RNA_def_property_ui_text(prop, "Shadow Type", "How to draw shadows");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
-	
-	prop = RNA_def_property(srna, "use_face_texture", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_FACETEXTURE);
-	RNA_def_property_ui_text(prop, "Face Textures",
-	                         "Replace the object's base color with color from UV map image textures");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
-	
-	prop = RNA_def_property(srna, "use_face_texture_alpha", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_FACETEXTURE_ALPHA);
-	RNA_def_property_ui_text(prop, "Face Textures Alpha",
-	                         "Replace the object's base alpha value with alpha from UV map image textures");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop = RNA_def_property(srna, "use_cast_shadows", PROP_BOOLEAN, PROP_NONE);

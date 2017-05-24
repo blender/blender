@@ -87,7 +87,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int include_shapekeys;
 	int deform_bones_only;
 
-	int include_uv_textures;
 	int include_material_textures;
 	int use_texture_copies;
 	int active_uv_only;
@@ -139,7 +138,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	include_shapekeys        = RNA_boolean_get(op->ptr, "include_shapekeys");
 	deform_bones_only        = RNA_boolean_get(op->ptr, "deform_bones_only");
 
-	include_uv_textures      = RNA_boolean_get(op->ptr, "include_uv_textures");
 	include_material_textures = RNA_boolean_get(op->ptr, "include_material_textures");
 	use_texture_copies       = RNA_boolean_get(op->ptr, "use_texture_copies");
 	active_uv_only           = RNA_boolean_get(op->ptr, "active_uv_only");
@@ -170,7 +168,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		deform_bones_only,
 
 		active_uv_only,
-		include_uv_textures,
 		include_material_textures,
 		use_texture_copies,
 
@@ -240,9 +237,6 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "active_uv_only", 0, NULL, ICON_NONE);
-
-	row = uiLayoutRow(box, false);
-	uiItemR(row, imfptr, "include_uv_textures", 0, NULL, ICON_NONE);
 
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "include_material_textures", 0, NULL, ICON_NONE);
@@ -372,9 +366,6 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
 	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 	                "Export only the selected UV Map");
-
-	RNA_def_boolean(func, "include_uv_textures", 0, "Include UV Textures",
-	                "Export textures assigned to the object UV Maps");
 
 	RNA_def_boolean(func, "include_material_textures", 0, "Include Material Textures",
 	                "Export textures assigned to the object Materials");

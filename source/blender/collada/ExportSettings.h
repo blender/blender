@@ -42,7 +42,6 @@ public:
 	bool deform_bones_only;
 
 	bool active_uv_only;
-	bool include_uv_textures;
 	bool include_material_textures;
 	bool use_texture_copies;
 

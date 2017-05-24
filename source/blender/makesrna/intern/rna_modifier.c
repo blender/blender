@@ -2248,11 +2248,6 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertical Scale", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "use_image_override", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_UVPROJECT_OVERRIDEIMAGE);
-	RNA_def_property_ui_text(prop, "Override Image", "Override faces' current images with the given image");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
 	srna = RNA_def_struct(brna, "UVProjector", NULL);
 	RNA_def_struct_ui_text(srna, "UVProjector", "UV projector used by the UV project modifier");
 

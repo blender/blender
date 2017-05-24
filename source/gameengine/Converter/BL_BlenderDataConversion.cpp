@@ -589,17 +589,17 @@ static bool ConvertMaterial(
 		/* In Multitexture use the face texture if and only if
 		 * it is set in the buttons
 		 * In GLSL is not working yet :/ 3.2011 */
-		bool facetex = false;
-		if (validface && mat->mode & MA_FACETEXTURE) {
-			facetex = true;
-		}
 
 		// foreach MTex
 		for (int i = 0; i < MAXTEX; i++) {
 			// use face tex
-			if (i == 0 && facetex ) {
-				facetex = false;
+			if (i == 0) {
+#if 0
 				Image *tmp = (Image *)(tface->tpage);
+#else
+				/* weak but better then nothing */
+				Image *tmp = mat ? mat->edit_image : NULL;
+#endif
 
 				if (tmp) {
 					material->img[i] = tmp;
@@ -789,7 +789,11 @@ static bool ConvertMaterial(
 
 		// check for tface tex to fallback on
 		if (validface) {
+#if 0
 			material->img[0] = (Image *)(tface->tpage);
+#else
+			material->img[0] = mat ? mat->edit_image : NULL;
+#endif
 			// ------------------------
 			if (material->img[0]) {
 				material->texname[0] = material->img[0]->id.name;
@@ -894,7 +898,7 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 		ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
 			converter->GetGLSLMaterials());
 
-		if (ma && (ma->mode & MA_FACETEXTURE) == 0)
+		if (ma)
 			converter->CacheBlenderMaterial(scene, ma, bl_mat);
 	}
 
@@ -910,7 +914,7 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 
 		kx_blmat->Initialize(scene, bl_mat, (ma?&ma->game:NULL), lightlayer);
 		polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
-		if (ma && (ma->mode & MA_FACETEXTURE) == 0)
+		if (ma)
 			converter->CachePolyMaterial(scene, ma, polymat);
 	}
 	

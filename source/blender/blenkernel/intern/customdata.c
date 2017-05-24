@@ -419,7 +419,7 @@ static void layerSwap_tface(void *data, const int *corner_indices)
 
 static void layerDefault_tface(void *data, int count)
 {
-	static MTFace default_tf = {{{0, 0}, {1, 0}, {1, 1}, {0, 1}}, NULL,
+	static MTFace default_tf = {{{0, 0}, {1, 0}, {1, 1}, {0, 1}},
 		                        0, 0, TF_DYNAMIC | TF_CONVERTED, 0, 0};
 	MTFace *tf = (MTFace *)data;
 	int i;

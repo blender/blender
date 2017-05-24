@@ -1203,42 +1203,6 @@ static int rna_MeshPaintMaskLayer_data_length(PointerRNA *ptr)
 
 /* End paint mask */
 
-static void rna_TexturePoly_image_set(PointerRNA *ptr, PointerRNA value)
-{
-	MTexPoly *tf = (MTexPoly *)ptr->data;
-	ID *id = value.data;
-
-	if (id) {
-		/* special exception here, individual faces don't count
-		 * as reference, but we do ensure the refcount is not zero */
-		if (id->us == 0)
-			id_us_plus(id);
-		else
-			id_lib_extern(id);
-	}
-
-	tf->tpage = (struct Image *)id;
-}
-
-/* while this is supposed to be readonly,
- * keep it to support importers that only make tessfaces */
-static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
-{
-	MTFace *tf = (MTFace *)ptr->data;
-	ID *id = value.data;
-
-	if (id) {
-		/* special exception here, individual faces don't count
-		 * as reference, but we do ensure the refcount is not zero */
-		if (id->us == 0)
-			id_us_plus(id);
-		else
-			id_lib_extern(id);
-	}
-
-	tf->tpage = (struct Image *)id;
-}
-
 static int rna_MeshTessFace_verts_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
 	MFace *face = (MFace *)ptr->data;
@@ -2342,13 +2306,6 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_MeshTextureFace_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL_HLT);
 
-	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tpage");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_TextureFace_image_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
 	/* these are for editing only, access at loops now */
 #if 0
 	prop = RNA_def_property(srna, "select_uv", PROP_BOOLEAN, PROP_NONE);
@@ -2453,13 +2410,6 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Mesh UV Map Face", "UV map and image texture for a face");
 	RNA_def_struct_path_func(srna, "rna_MeshTexturePoly_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL_HLT);
-
-	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tpage");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_TexturePoly_image_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 #if 0 /* moved to MeshUVLoopLayer */
 	prop = RNA_def_property(srna, "select_uv", PROP_BOOLEAN, PROP_NONE);
