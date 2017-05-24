@@ -355,7 +355,7 @@ bool AbcMeshWriter::isAnimated() const
 		md = md->next;
 	}
 
-	return false;
+	return me->adt != NULL;
 }
 
 void AbcMeshWriter::do_write()
