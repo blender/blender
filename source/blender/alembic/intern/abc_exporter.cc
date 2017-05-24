@@ -580,7 +580,7 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 		{
 			Mesh *me = static_cast<Mesh *>(ob->data);
 
-			if (!me || me->totvert == 0) {
+			if (!me) {
 				return;
 			}
 
