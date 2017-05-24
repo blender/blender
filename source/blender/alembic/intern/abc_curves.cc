@@ -220,7 +220,7 @@ bool AbcCurveReader::accepts_object_type(const Alembic::AbcCoreAbstract::ObjectH
 		return false;
 	}
 
-	if (ob->type != OB_EMPTY) {
+	if (ob->type != OB_CURVE) {
 		*err_str = "Object type mismatch, Alembic object path points to Curves.";
 		return false;
 	}
