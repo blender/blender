@@ -464,21 +464,24 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 				/* Tangents*/
 				BLI_snprintf(rdata->cd.uuid.tangent[i], sizeof(*rdata->cd.uuid.tangent), "t%u", hash);
 
-				if (rdata->edit_bmesh) {
-					BMEditMesh *em = rdata->edit_bmesh;
-					BMesh *bm = em->bm;
+				if (!CustomData_has_layer(&rdata->cd.output.ldata, CD_MLOOPTANGENT)) {
 
-					if (!CustomData_has_layer(&rdata->cd.output.ldata, CD_MLOOPTANGENT)) {
+					/* Tangent Names */
+					char tangent_names[MAX_MTFACE][MAX_NAME];
+					int tangent_names_len = 0;
+					for (tangent_names_len = 0; tangent_names_len < rdata->cd.layers.uv_len; tangent_names_len++) {
+						BLI_strncpy(
+						        tangent_names[tangent_names_len],
+						        CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, tangent_names_len), MAX_NAME);
+					}
+
+					if (rdata->edit_bmesh) {
+						BMEditMesh *em = rdata->edit_bmesh;
+						BMesh *bm = em->bm;
+
 						bool calc_active_tangent = false;
 						float (*poly_normals)[3] = rdata->poly_normals;
 						float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
-						char tangent_names[MAX_MTFACE][MAX_NAME];
-						int tangent_names_len = 0;
-						for (tangent_names_len = 0; tangent_names_len < rdata->cd.layers.uv_len; tangent_names_len++) {
-							BLI_strncpy(
-							        tangent_names[tangent_names_len],
-							        CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, tangent_names_len), MAX_NAME);
-						}
 
 						BKE_editmesh_loop_tangent_calc(
 						        em, calc_active_tangent,
@@ -488,18 +491,8 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 						        &rdata->cd.output.ldata, bm->totloop,
 						        &rdata->cd.output.tangent_mask);
 					}
-
-					/* note: BKE_editmesh_loop_tangent_calc calculates 'CD_TANGENT',
-					 * not 'CD_MLOOPTANGENT' (as done below). It's OK, they're compatible. */
-					rdata->cd.layers.tangent[i] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i);
-					BLI_assert(rdata->cd.layers.tangent[i] != NULL);
-
-					/* special case, we don't use offsets here */
-				}
-				else {
+					else {
 #undef me
-
-					if (!CustomData_has_layer(&rdata->cd.output.ldata, CD_MLOOPTANGENT)) {
 						if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
 							BKE_mesh_calc_normals_split(me);
 						}
@@ -507,13 +500,6 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 						bool calc_active_tangent = false;
 						const float (*poly_normals)[3] = rdata->poly_normals;
 						const float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
-						char tangent_names[MAX_MTFACE][MAX_NAME];
-						int tangent_names_len = 0;
-						for (tangent_names_len = 0; tangent_names_len < rdata->cd.layers.uv_len; tangent_names_len++) {
-							BLI_strncpy(
-							        tangent_names[tangent_names_len],
-							        CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, tangent_names_len), MAX_NAME);
-						}
 
 						BKE_mesh_calc_loop_tangent_ex(
 						        me->mvert,
@@ -532,15 +518,18 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 #if 0
 						CustomData_set_layer_flag(cd_ldata, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
 #endif
-					}
-
-					rdata->cd.layers.tangent[i] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i);
-					BLI_assert(rdata->cd.layers.tangent[i] != NULL);
 
 #define me DONT_USE_THIS
 #ifdef  me /* quiet warning */
 #endif
+					}
 				}
+				/* Done adding tangents. */
+
+				/* note: BKE_editmesh_loop_tangent_calc calculates 'CD_TANGENT',
+				 * not 'CD_MLOOPTANGENT' (as done below). It's OK, they're compatible. */
+				rdata->cd.layers.tangent[i] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i);
+				BLI_assert(rdata->cd.layers.tangent[i] != NULL);
 			}
 		}
 
@@ -554,7 +543,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 #undef me
 	}
 
-		return rdata;
+	return rdata;
 }
 
 static void mesh_render_data_free(MeshRenderData *rdata)
