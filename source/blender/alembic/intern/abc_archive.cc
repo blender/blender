@@ -24,6 +24,8 @@
 
 #include "abc_archive.h"
 
+#include "BKE_blender_version.h"
+
 #ifdef WIN32
 #  include "utfconv.h"
 #endif
@@ -143,6 +145,7 @@ static OArchive create_archive(std::ostream *ostream,
 {
 	md.set(Alembic::Abc::kApplicationNameKey, "Blender");
 	md.set(Alembic::Abc::kUserDescriptionKey, scene_name);
+	md.set("blender_version", versionstr);
 
 	time_t raw_time;
 	time(&raw_time);
