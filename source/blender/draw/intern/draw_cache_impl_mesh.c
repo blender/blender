@@ -393,6 +393,8 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			}
 		}
 
+		const bool is_auto_smooth = (me->flag & ME_AUTOSMOOTH) != 0;
+
 		/* don't access mesh directly, instead use vars taken from BMesh or Mesh */
 #define me DONT_USE_THIS
 #ifdef  me /* quiet warning */
@@ -479,6 +481,10 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 						BMEditMesh *em = rdata->edit_bmesh;
 						BMesh *bm = em->bm;
 
+						if (is_auto_smooth) {
+							/* TODO: split normals, see below */
+						}
+
 						bool calc_active_tangent = false;
 						float (*poly_normals)[3] = rdata->poly_normals;
 						float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
@@ -493,12 +499,12 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 					}
 					else {
 #undef me
-						/* XXX. this should work, check on this when we add split normals, see: T51561. */
-#if 0
-						if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
-							BKE_mesh_calc_normals_split(me);
+
+						if (is_auto_smooth) {
+							if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
+								BKE_mesh_calc_normals_split(me);
+							}
 						}
-#endif
 
 						bool calc_active_tangent = false;
 						const float (*poly_normals)[3] = rdata->poly_normals;
