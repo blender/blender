@@ -493,9 +493,12 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 					}
 					else {
 #undef me
+						/* XXX. this should work, check on this when we add split normals, see: T51561. */
+#if 0
 						if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
 							BKE_mesh_calc_normals_split(me);
 						}
+#endif
 
 						bool calc_active_tangent = false;
 						const float (*poly_normals)[3] = rdata->poly_normals;
