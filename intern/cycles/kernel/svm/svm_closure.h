@@ -684,6 +684,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #ifdef __CAUSTICS_TRICKS__
 			if(!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
 				break;
+			ATTR_FALLTHROUGH;
 #endif
 		case CLOSURE_BSDF_DIFFUSE_TOON_ID: {
 			float3 weight = sd->svm_closure_weight * mix_weight;

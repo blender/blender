@@ -68,6 +68,13 @@
 #    define ccl_never_inline __attribute__((noinline))
 #    define ccl_maybe_unused __attribute__((used))
 #  endif  /* _WIN32 && !FREE_WINDOWS */
+
+/* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
+#  if defined(__GNUC__) && (__GNUC__ >= 7)  /* gcc7.0+ only */
+#    define ATTR_FALLTHROUGH __attribute__((fallthrough))
+#  else
+#    define ATTR_FALLTHROUGH ((void)0)
+#  endif
 #endif  /* __KERNEL_GPU__ */
 
 /* Standard Integer Types */

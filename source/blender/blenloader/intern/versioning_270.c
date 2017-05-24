@@ -249,6 +249,41 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
 	node->storage = NULL;
 }
 
+static void do_versions_compositor_render_passes_storage(bNode *node)
+{
+	int pass_index = 0;
+	const char *sockname;
+	for (bNodeSocket *sock = node->outputs.first; sock && pass_index < 31; sock = sock->next, pass_index++) {
+		if (sock->storage == NULL) {
+			NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
+			sock->storage = sockdata;
+			BLI_strncpy(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(pass_index), sizeof(sockdata->pass_name));
+
+			if (pass_index == 0) sockname = "Image";
+			else if (pass_index == 1) sockname = "Alpha";
+			else sockname = node_cmp_rlayers_sock_to_pass(pass_index);
+			BLI_strncpy(sock->name, sockname, sizeof(sock->name));
+		}
+	}
+}
+
+static void do_versions_compositor_render_passes(bNodeTree *ntree)
+{
+	for (bNode *node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_R_LAYERS) {
+			/* First we make sure existing sockets have proper names.
+			 * This is important because otherwise verification will
+			 * drop links from sockets which were renamed.
+			 */
+			do_versions_compositor_render_passes_storage(node);
+			/* Make sure new sockets are properly created. */
+			node_verify_socket_templates(ntree, node);
+			/* Make sure all possibly created sockets have proper storage. */
+			do_versions_compositor_render_passes_storage(node);
+		}
+	}
+}
+
 void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 {
 	if (!MAIN_VERSION_ATLEAST(main, 270, 0)) {
@@ -1612,27 +1647,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		FOREACH_NODETREE(main, ntree, id) {
 			if (ntree->type == NTREE_COMPOSIT) {
-				bNode *node;
-				for (node = ntree->nodes.first; node; node = node->next) {
-					if (node->type == CMP_NODE_R_LAYERS) {
-						/* Make sure new sockets are properly created. */
-						node_verify_socket_templates(ntree, node);
-						int pass_index = 0;
-						const char *sockname;
-						for (bNodeSocket *sock = node->outputs.first; sock && pass_index < 31; sock = sock->next, pass_index++) {
-							if (sock->storage == NULL) {
-								NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
-								sock->storage = sockdata;
-								BLI_strncpy(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(pass_index), sizeof(sockdata->pass_name));
-
-								if (pass_index == 0) sockname = "Image";
-								else if (pass_index == 1) sockname = "Alpha";
-								else sockname = node_cmp_rlayers_sock_to_pass(pass_index);
-								BLI_strncpy(sock->name, sockname, sizeof(sock->name));
-							}
-						}
-					}
-				}
+				do_versions_compositor_render_passes(ntree);
 			}
 		} FOREACH_NODETREE_END
 	}

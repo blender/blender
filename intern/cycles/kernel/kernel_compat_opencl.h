@@ -50,6 +50,8 @@
 #  define ccl_addr_space
 #endif
 
+#define ATTR_FALLTHROUGH
+
 #define ccl_local_id(d) get_local_id(d)
 #define ccl_global_id(d) get_global_id(d)
 
