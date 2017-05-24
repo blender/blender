@@ -55,6 +55,8 @@
 #define ccl_restrict __restrict__
 #define ccl_align(n) __align__(n)
 
+#define ATTR_FALLTHROUGH
+
 #define CCL_MAX_LOCAL_SIZE (CUDA_THREADS_BLOCK_WIDTH*CUDA_THREADS_BLOCK_WIDTH)
 
 
