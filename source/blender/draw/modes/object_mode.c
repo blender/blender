@@ -92,6 +92,8 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
 	struct DRWPass *particle;
+	/* use for empty/background images */
+	struct DRWPass *reference_image;
 } OBJECT_PassList;
 
 typedef struct OBJECT_FramebufferList {
@@ -996,6 +998,13 @@ static void OBJECT_cache_init(void *vedata)
 		/* Particle Pass */
 		psl->particle = DRW_pass_create("Particle Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_POINT | DRW_STATE_BLEND);
 	}
+
+	{
+		/* Empty/Background Image Pass */
+		psl->reference_image = DRW_pass_create(
+		        "Refrence Image Pass",
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
+	}
 }
 
 static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl)
@@ -1608,6 +1617,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->non_meshes);
 	DRW_draw_pass(psl->ob_center);
 	DRW_draw_pass(psl->particle);
+	DRW_draw_pass(psl->reference_image);
 
 	if (!DRW_state_is_select()) {
 		DRW_draw_pass(psl->grid);
