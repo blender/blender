@@ -23,8 +23,10 @@
  */
 
 #include "abc_archive.h"
-
-#include "BKE_blender_version.h"
+extern "C"
+{
+	#include "BKE_blender_version.h"
+}
 
 #ifdef WIN32
 #  include "utfconv.h"
