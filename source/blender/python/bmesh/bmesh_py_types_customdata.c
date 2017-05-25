@@ -104,9 +104,6 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__bevel_weight_doc,
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__crease_doc,
 "Edge crease for subsurf - float in [0 - 1].\n\n:type: :class:`BMLayerCollection`"
 );
-PyDoc_STRVAR(bpy_bmlayeraccess_collection__tex_doc,
-"Accessor for :class:`BMTexPoly` layer (TODO).\n\ntype: :class:`BMLayerCollection`" // TYPE DOESN'T EXIST YET
-);
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__uv_doc,
 "Accessor for :class:`BMLoopUV` UV (as a 2D Vector).\n\ntype: :class:`BMLayerCollection`"
 );
@@ -221,8 +218,6 @@ static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
 	{(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
 	{(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
 	{(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
-
-	{(char *)"tex",   (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__tex_doc, (void *)CD_MTEXPOLY},
 
 #ifdef WITH_FREESTYLE
 	{(char *)"freestyle", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__freestyle_face_doc, (void *)CD_FREESTYLE_FACE},
@@ -998,11 +993,6 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 			ret = PyBytes_FromStringAndSize(mstring->s, mstring->s_len);
 			break;
 		}
-		case CD_MTEXPOLY:
-		{
-			ret = BPy_BMTexPoly_CreatePyObject(value);
-			break;
-		}
 		case CD_MLOOPUV:
 		{
 			ret = BPy_BMLoopUV_CreatePyObject(value);
@@ -1099,11 +1089,6 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 				memcpy(mstring->s, tmp_val, tmp_val_len);
 				mstring->s_len = tmp_val_len;
 			}
-			break;
-		}
-		case CD_MTEXPOLY:
-		{
-			ret = BPy_BMTexPoly_AssignPyObject(value, py_value);
 			break;
 		}
 		case CD_MLOOPUV:

@@ -963,7 +963,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
                 split.label(text="Map:")
                 ob = context.object
                 if ob and ob.type == 'MESH':
-                    split.prop_search(tex, "uv_layer", ob.data, "uv_textures", text="")
+                    split.prop_search(tex, "uv_layer", ob.data, "uv_layers", text="")
                 else:
                     split.prop(tex, "uv_layer", text="")
 

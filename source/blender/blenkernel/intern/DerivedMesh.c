@@ -533,7 +533,6 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	MLoop *ml = dm->getLoopArray(dm);
 
 	CustomData *fdata = dm->getTessFaceDataLayout(dm);
-	CustomData *pdata = dm->getPolyDataLayout(dm);
 	CustomData *ldata = dm->getLoopDataLayout(dm);
 
 	const int totface = dm->getNumTessFaces(dm);
@@ -546,7 +545,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	if (!polyindex)
 		return;
 
-	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
+	CustomData_from_bmeshpoly(fdata, ldata, totface);
 
 	if (CustomData_has_layer(fdata, CD_MTFACE) ||
 	    CustomData_has_layer(fdata, CD_MCOL) ||
@@ -578,7 +577,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 		 * 0 for quads (because our quads may have been rotated compared to their org poly, see tessellation code).
 		 * So we pass the MFace's, and BKE_mesh_loops_to_tessdata will use MFace->v4 index as quad test.
 		 */
-		BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, mface, polyindex, loopindex, totface);
+		BKE_mesh_loops_to_tessdata(fdata, ldata, mface, polyindex, loopindex, totface);
 
 		MEM_freeN(loopindex);
 	}
@@ -596,7 +595,6 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 	MLoop *ml = dm->getLoopArray(dm);
 
 	CustomData *fdata = dm->getTessFaceDataLayout(dm);
-	CustomData *pdata = dm->getPolyDataLayout(dm);
 	CustomData *ldata = dm->getLoopDataLayout(dm);
 
 	const int totface = dm->getNumTessFaces(dm);
@@ -613,7 +611,7 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 		for (int j = 0; j < ldata->totlayer; j++) {
 			if (ldata->layers[j].type == CD_TANGENT) {
 				CustomData_add_layer_named(fdata, CD_TANGENT, CD_CALLOC, NULL, totface, ldata->layers[j].name);
-				CustomData_bmesh_update_active_layers(fdata, pdata, ldata);
+				CustomData_bmesh_update_active_layers(fdata, ldata);
 
 				if (!loopindex) {
 					loopindex = MEM_mallocN(sizeof(*loopindex) * totface, __func__);
@@ -643,7 +641,7 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 		}
 		if (loopindex)
 			MEM_freeN(loopindex);
-		BLI_assert(CustomData_from_bmeshpoly_test(fdata, pdata, ldata, true));
+		BLI_assert(CustomData_from_bmeshpoly_test(fdata, ldata, true));
 	}
 
 	if (G.debug & G_DEBUG)

@@ -1784,7 +1784,7 @@ void CDDM_recalc_tessellation_ex(DerivedMesh *dm, const bool do_face_nor_cpy)
 
 	/* Tessellation recreated faceData, and the active layer indices need to get re-propagated
 	 * from loops and polys to faces */
-	CustomData_bmesh_update_active_layers(&dm->faceData, &dm->polyData, &dm->loopData);
+	CustomData_bmesh_update_active_layers(&dm->faceData, &dm->loopData);
 }
 
 void CDDM_recalc_tessellation(DerivedMesh *dm)
@@ -2031,7 +2031,6 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 
 	if (alluv) {
 		const char *uvname = "Orco";
-		CustomData_add_layer_named(&cddm->dm.polyData, CD_MTEXPOLY, CD_DEFAULT, NULL, totpoly, uvname);
 		CustomData_add_layer_named(&cddm->dm.loopData, CD_MLOOPUV, CD_ASSIGN, alluv, totloop, uvname);
 	}
 
@@ -2046,7 +2045,7 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 static void loops_to_customdata_corners(
         BMesh *bm, CustomData *facedata,
         int cdindex, const BMLoop *l3[3],
-        int numCol, int numTex)
+        int numCol, int numUV)
 {
 	const BMLoop *l;
 //	BMFace *f = l3[0]->f;
@@ -2056,7 +2055,7 @@ static void loops_to_customdata_corners(
 	MLoopUV *mloopuv;
 	int i, j, hasPCol = CustomData_has_layer(&bm->ldata, CD_PREVIEW_MLOOPCOL);
 
-	for (i = 0; i < numTex; i++) {
+	for (i = 0; i < numUV; i++) {
 		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
 	
 		for (j = 0; j < 3; j++) {
@@ -2111,7 +2110,7 @@ static DerivedMesh *cddm_from_bmesh_ex(
 	MLoop *mloop = cddm->mloop;
 	MPoly *mpoly = cddm->mpoly;
 	int numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
-	int numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	int numUV  = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
 	int *index, add_orig;
 	CustomDataMask mask;
 	unsigned int i, j;
@@ -2141,7 +2140,7 @@ static DerivedMesh *cddm_from_bmesh_ex(
 
 	/* add tessellation mface layers */
 	if (use_tessface) {
-		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em_tottri);
+		CustomData_from_bmeshpoly(&dm->faceData, &dm->loopData, em_tottri);
 	}
 
 	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
@@ -2213,7 +2212,7 @@ static DerivedMesh *cddm_from_bmesh_ex(
 			/* map mfaces to polygons in the same cddm intentionally */
 			*index++ = BM_elem_index_get(efa);
 
-			loops_to_customdata_corners(bm, &dm->faceData, i, l, numCol, numTex);
+			loops_to_customdata_corners(bm, &dm->faceData, i, l, numCol, numUV);
 			test_index_face(mf, &dm->faceData, i, 3);
 		}
 	}

@@ -1174,9 +1174,9 @@ class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
     def draw(self, context):
         layout = self.layout
 
-        for i, tex in enumerate(context.active_object.data.uv_textures):
-            props = layout.operator("wm.context_set_int", text=tex.name, translate=False)
-            props.data_path = "active_object.data.uv_textures.active_index"
+        for i, uv_layer in enumerate(context.active_object.data.uv_layers):
+            props = layout.operator("wm.context_set_int", text=uv_layer.name, translate=False)
+            props.data_path = "active_object.data.uv_layers.active_index"
             props.value = i
 
 
@@ -1234,11 +1234,11 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
                 if slot and slot.index != -1:
                     col.label("UV Map")
-                    col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
+                    col.prop_search(slot, "uv_layer", ob.data, "uv_layers", text="")
 
         elif settings.mode == 'IMAGE':
             mesh = ob.data
-            uv_text = mesh.uv_textures.active.name if mesh.uv_textures.active else ""
+            uv_text = mesh.uv_layers.active.name if mesh.uv_layers.active else ""
             col.label("Canvas Image")
             col.template_ID(settings, "canvas")
             col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
@@ -1876,8 +1876,8 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
 
     def draw(self, context):
         layout = self.layout
-        for i, tex in enumerate(context.active_object.data.uv_textures):
-            props = layout.operator("wm.context_set_int", text=tex.name, translate=False)
+        for i, uv_layer in enumerate(context.active_object.data.uv_layers):
+            props = layout.operator("wm.context_set_int", text=uv_layer.name, translate=False)
             props.data_path = "active_object.data.uv_texture_stencil_index"
             props.value = i
 

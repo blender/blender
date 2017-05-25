@@ -156,11 +156,6 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
 
 	{
 		extern void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_destructive);
-		BMEditMesh *em = me->edit_btmesh;
-		BMesh *bm = em->bm;
-
-		/* python won't ensure matching uv/mtex */
-		BM_mesh_cd_validate(bm);
 
 		EDBM_update_generic(me->edit_btmesh, do_tessface, is_destructive);
 	}

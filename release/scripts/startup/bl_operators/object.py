@@ -515,7 +515,7 @@ class JoinUVs(Operator):
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        if not mesh.uv_textures:
+        if not mesh.uv_layers:
             self.report({'WARNING'},
                         "Object: %s, Mesh: '%s' has no UVs"
                         % (obj.name, mesh.name))
@@ -553,7 +553,7 @@ class JoinUVs(Operator):
                             else:
                                 uv_other = mesh_other.uv_layers.active
                                 if not uv_other:
-                                    mesh_other.uv_textures.new()
+                                    mesh_other.uv_layers.new()
                                     uv_other = mesh_other.uv_layers.active
                                     if not uv_other:
                                         self.report({'ERROR'}, "Could not add "

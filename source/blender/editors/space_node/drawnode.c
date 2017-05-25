@@ -748,7 +748,7 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 	if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
 		PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
 
-		uiItemPointerR(col, ptr, "uv_layer", &dataptr, "uv_textures", "", ICON_NONE);
+		uiItemPointerR(col, ptr, "uv_layer", &dataptr, "uv_layers", "", ICON_NONE);
 		uiItemPointerR(col, ptr, "color_layer", &dataptr, "vertex_colors", "", ICON_NONE);
 	}
 	else {
@@ -966,7 +966,7 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
 
 		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
 			PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-			uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_textures", "", ICON_NONE);
+			uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
 		}
 	}
 }
@@ -985,7 +985,7 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
 
 		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
 			PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-			uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_textures", "", ICON_NONE);
+			uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
 		}
 		else
 			uiItemR(layout, ptr, "uv_map", 0, "", 0);
@@ -1007,7 +1007,7 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
 
 		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
 			PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-			uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_textures", "", ICON_NONE);
+			uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
 		}
 		else
 			uiItemR(row, ptr, "uv_map", 0, "", 0);

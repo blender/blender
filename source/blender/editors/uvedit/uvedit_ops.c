@@ -106,7 +106,7 @@ bool ED_uvedit_test(Object *obedit)
 		return 0;
 
 	em = BKE_editmesh_from_object(obedit);
-	ret = EDBM_mtexpoly_check(em);
+	ret = EDBM_uv_check(em);
 	
 	return ret;
 }
@@ -218,11 +218,10 @@ void ED_uvedit_assign_image(Main *UNUSED(bmain), Scene *scene, Object *obedit, I
 #endif
 
 		/* ensure we have a uv map */
-		if (!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
-			BM_data_layer_add(em->bm, &em->bm->pdata, CD_MTEXPOLY);
+		if (!CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
 			BM_data_layer_add(em->bm, &em->bm->ldata, CD_MLOOPUV);
 			/* make UVs all nice 0-1 */
-			ED_mesh_uv_loop_reset_ex(obedit->data, CustomData_get_active_layer_index(&em->bm->pdata, CD_MTEXPOLY));
+			ED_mesh_uv_loop_reset_ex(obedit->data, CustomData_get_active_layer_index(&em->bm->ldata, CD_MLOOPUV));
 			update = true;
 		}
 
@@ -3828,7 +3827,7 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 	bm = em->bm;
 
-	if (!EDBM_mtexpoly_check(em)) {
+	if (!EDBM_uv_check(em)) {
 		return OPERATOR_CANCELLED;
 	}
 

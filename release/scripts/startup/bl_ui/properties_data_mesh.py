@@ -332,7 +332,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list("MESH_UL_uvmaps_vcols", "uvmaps", me, "uv_textures", me.uv_textures, "active_index", rows=1)
+        col.template_list("MESH_UL_uvmaps_vcols", "uvmaps", me, "uv_layers", me.uv_layers, "active_index", rows=1)
 
         col = row.column(align=True)
         col.operator("mesh.uv_texture_add", icon='ZOOMIN', text="")

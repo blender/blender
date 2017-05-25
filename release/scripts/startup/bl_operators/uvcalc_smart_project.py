@@ -810,8 +810,8 @@ def main(context,
         # Tag as used
         me.tag = True
 
-        if not me.uv_textures: # Mesh has no UV Coords, don't bother.
-            me.uv_textures.new()
+        if not me.uv_layers: # Mesh has no UV Coords, don't bother.
+            me.uv_layers.new()
 
         uv_layer = me.uv_layers.active.data
         me_verts = list(me.vertices)

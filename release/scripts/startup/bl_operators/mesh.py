@@ -50,7 +50,7 @@ class MeshMirrorUV(Operator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return (obj and obj.type == 'MESH' and obj.data.uv_textures.active)
+        return (obj and obj.type == 'MESH' and obj.data.uv_layers.active)
 
     def execute(self, context):
         DIR = (self.direction == 'NEGATIVE')

@@ -79,7 +79,7 @@ CustomDataMask BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types
 			cddata_mask |= CD_MASK_MDEFORMVERT;  /* Exception for vgroups :/ */
 		}
 		else if (cddata_type == CD_FAKE_UV) {
-			cddata_mask |= CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV;
+			cddata_mask |= CD_MASK_MLOOPUV;
 		}
 		else if (cddata_type == CD_FAKE_LNOR) {
 			cddata_mask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
@@ -962,7 +962,7 @@ static bool data_transfer_layersmapping_generate(
 	}
 	else if (elem_type == ME_POLY) {
 		if (cddata_type == CD_FAKE_UV) {
-			cddata_type = CD_MTEXPOLY;
+			cddata_type = CD_MLOOPUV;
 		}
 
 		if (!(cddata_type & CD_FAKE)) {

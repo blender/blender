@@ -66,7 +66,6 @@ typedef struct Mesh {
 /* BMESH ONLY */
 	/*new face structures*/
 	struct MPoly *mpoly;
-	struct MTexPoly *mtpoly;
 	struct MLoop *mloop;
 	struct MLoopUV *mloopuv;
 	struct MLoopCol *mloopcol;

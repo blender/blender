@@ -30,8 +30,8 @@ def extend(obj, operator, EXTEND_MODE):
     import bmesh
     me = obj.data
     # script will fail without UVs
-    if not me.uv_textures:
-        me.uv_textures.new()
+    if not me.uv_layers:
+        me.uv_layers.new()
 
     bm = bmesh.from_edit_mesh(me)
 

@@ -1457,14 +1457,8 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 	if (type == CD_MTFACE || type == CD_MCOL) {
 		const char *bmdata;
 		char *data;
-		bool has_type_source = false;
 
-		if (type == CD_MTFACE) {
-			has_type_source = CustomData_has_layer(&bm->pdata, CD_MTEXPOLY);
-		}
-		else {
-			has_type_source = CustomData_has_layer(&bm->ldata, CD_MLOOPCOL);
-		}
+		bool has_type_source = CustomData_has_layer(&bm->ldata, (type == CD_MTFACE) ? CD_MLOOPUV : CD_MLOOPCOL);
 
 		if (has_type_source) {
 			/* offset = bm->pdata.layers[index].offset; */ /* UNUSED */
@@ -1480,14 +1474,8 @@ static void *emDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 
 			if (type == CD_MTFACE) {
 				const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-				const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
 
 				for (i = 0; i < bmdm->em->tottri; i++, data += size) {
-					BMFace *efa = looptris[i][0]->f;
-
-					// bmdata = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
-					bmdata = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
-
 					for (j = 0; j < 3; j++) {
 						// bmdata = CustomData_bmesh_get(&bm->ldata, looptris[i][j]->head.data, CD_MLOOPUV);
 						bmdata = BM_ELEM_CD_GET_VOID_P(looptris[i][j], cd_loop_uv_offset);

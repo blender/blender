@@ -222,7 +222,7 @@ class QuickExplode(Operator):
 
             if self.fade:
                 explode.show_dead = False
-                uv = obj.data.uv_textures.new("Explode fade")
+                uv = obj.data.uv_layers.new("Explode fade")
                 explode.particle_uv = uv.name
 
                 mat = object_ensure_material(obj, "Explode Fade")

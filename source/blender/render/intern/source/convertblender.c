@@ -3154,11 +3154,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			/* normalmaps, test if tangents needed, separated from shading */
 			if (ma->mode_l & MA_TANGENT_V) {
 				need_tangent= 1;
-				if (me->mtpoly==NULL)
+				if (me->mloopuv==NULL)
 					need_orco= 1;
 			}
 			if (ma->mode_l & MA_NORMAP_TANG) {
-				if (me->mtpoly==NULL) {
+				if (me->mloopuv==NULL) {
 					need_orco= 1;
 				}
 				need_tangent= 1;
@@ -3171,7 +3171,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (re->flag & R_NEED_TANGENT) {
 		/* exception for tangent space baking */
-		if (me->mtpoly==NULL) {
+		if (me->mloopuv==NULL) {
 			need_orco= 1;
 		}
 		need_tangent= 1;

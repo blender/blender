@@ -601,7 +601,6 @@ UvVertMap *BM_uv_vert_map_create(
 			newvlist = v;
 
 			efa = BM_face_at_index(bm, v->f);
-			/* tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 			
 			l = BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, v->tfindex);
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -613,7 +612,6 @@ UvVertMap *BM_uv_vert_map_create(
 			while (iterv) {
 				next = iterv->next;
 				efa = BM_face_at_index(bm, iterv->f);
-				/* tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 				
 				l = BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, iterv->tfindex);
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -928,11 +926,11 @@ UvElement *BM_uv_element_get(UvElementMap *map, BMFace *efa, BMLoop *l)
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for making sure the space image dosnt flicker */
-BMFace *EDBM_mtexpoly_active_get(BMEditMesh *em, const bool sloppy, const bool selected)
+BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool selected)
 {
 	BMFace *efa = NULL;
 	
-	if (!EDBM_mtexpoly_check(em))
+	if (!EDBM_uv_check(em))
 		return NULL;
 	
 	efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
@@ -945,10 +943,10 @@ BMFace *EDBM_mtexpoly_active_get(BMEditMesh *em, const bool sloppy, const bool s
 }
 
 /* can we edit UV's for this mesh?*/
-bool EDBM_mtexpoly_check(BMEditMesh *em)
+bool EDBM_uv_check(BMEditMesh *em)
 {
 	/* some of these checks could be a touch overkill */
-	return em && em->bm->totface && CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY) &&
+	return em && em->bm->totface &&
 	       CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV);
 }
 

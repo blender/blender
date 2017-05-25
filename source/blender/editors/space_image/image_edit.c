@@ -365,7 +365,7 @@ bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 		struct BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		bool ret;
 
-		ret = EDBM_mtexpoly_check(em);
+		ret = EDBM_uv_check(em);
 
 		return ret;
 	}

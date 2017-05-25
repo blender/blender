@@ -2166,7 +2166,7 @@ void BKE_mesh_loops_to_mface_corners(
         const int mf_len, /* 3 or 4 */
 
         /* cache values to avoid lookups every time */
-        const int numTex, /* CustomData_number_of_layers(pdata, CD_MTEXPOLY) */
+        const int numUV, /* CustomData_number_of_layers(ldata, CD_MLOOPUV) */
         const int numCol, /* CustomData_number_of_layers(ldata, CD_MLOOPCOL) */
         const bool hasPCol, /* CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL) */
         const bool hasOrigSpace, /* CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP) */
@@ -2179,7 +2179,7 @@ void BKE_mesh_loops_to_mface_corners(
 	MLoopUV *mloopuv;
 	int i, j;
 
-	for (i = 0; i < numTex; i++) {
+	for (i = 0; i < numUV; i++) {
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
 
 		for (j = 0; j < mf_len; j++) {
@@ -2232,14 +2232,14 @@ void BKE_mesh_loops_to_mface_corners(
  *
  * \note when mface is not NULL, mface[face_index].v4 is used to test quads, else, loopindices[face_index][3] is used.
  */
-void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData *pdata, MFace *mface,
+void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, MFace *mface,
                                 int *polyindices, unsigned int (*loopindices)[4], const int num_faces)
 {
 	/* Note: performances are sub-optimal when we get a NULL mface, we could be ~25% quicker with dedicated code...
 	 *       Issue is, unless having two different functions with nearly the same code, there's not much ways to solve
 	 *       this. Better imho to live with it for now. :/ --mont29
 	 */
-	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+	const int numUV = CustomData_number_of_layers(ldata, CD_MLOOPUV);
 	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
 	const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
 	const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
@@ -2249,7 +2249,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 	const int *pidx;
 	unsigned int (*lidx)[4];
 
-	for (i = 0; i < numTex; i++) {
+	for (i = 0; i < numUV; i++) {
 		MTFace *texface = CustomData_get_layer_n(fdata, CD_MTFACE, i);
 		MLoopUV *mloopuv = CustomData_get_layer_n(ldata, CD_MLOOPUV, i);
 
@@ -2579,7 +2579,7 @@ int BKE_mesh_recalc_tessellation(
 	/* CD_ORIGINDEX will contain an array of indices from tessfaces to the polygons
 	 * they are directly tessellated from */
 	CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, mface_to_poly_map, totface);
-	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
+	CustomData_from_bmeshpoly(fdata, ldata, totface);
 
 	if (do_face_nor_copy) {
 		/* If polys have a normals layer, copying that to faces can help
@@ -2600,7 +2600,7 @@ int BKE_mesh_recalc_tessellation(
 	 * So we pass NULL as MFace pointer, and BKE_mesh_loops_to_tessdata will use the fourth loop index as quad test.
 	 * ...
 	 */
-	BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, NULL, mface_to_poly_map, lindices, totface);
+	BKE_mesh_loops_to_tessdata(fdata, ldata, NULL, mface_to_poly_map, lindices, totface);
 
 	/* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
 	 * ...However, most TFace code uses 'MFace->v4 == 0' test to check whether it is a tri or quad.
@@ -2779,7 +2779,7 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	MPoly *mp, *mpoly;
 	MFace *mface, *mf;
 
-	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+	const int numUV = CustomData_number_of_layers(ldata, CD_MLOOPUV);
 	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
 	const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
 	const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
@@ -2819,7 +2819,7 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 
 	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);
 
-	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
+	CustomData_from_bmeshpoly(fdata, ldata, totface);
 
 	mp = mpoly;
 	k = 0;
@@ -2841,9 +2841,10 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				mf->v2 = mloop[mf->v2].v;
 				mf->v3 = mloop[mf->v3].v;
 
-				BKE_mesh_loops_to_mface_corners(fdata, ldata, pdata,
-				                                lindex, k, i, 3,
-				                                numTex, numCol, hasPCol, hasOrigSpace, hasLNor);
+				BKE_mesh_loops_to_mface_corners(
+				        fdata, ldata, pdata,
+				        lindex, k, i, 3,
+				        numUV, numCol, hasPCol, hasOrigSpace, hasLNor);
 				test_index_face(mf, fdata, k, 3);
 			}
 			else {
@@ -2861,9 +2862,10 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				mf->v3 = mloop[mf->v3].v;
 				mf->v4 = mloop[mf->v4].v;
 
-				BKE_mesh_loops_to_mface_corners(fdata, ldata, pdata,
-				                                lindex, k, i, 4,
-				                                numTex, numCol, hasPCol, hasOrigSpace, hasLNor);
+				BKE_mesh_loops_to_mface_corners(
+				        fdata, ldata, pdata,
+				        lindex, k, i, 4,
+				        numUV, numCol, hasPCol, hasOrigSpace, hasLNor);
 				test_index_face(mf, fdata, k, 4);
 			}
 
@@ -3000,7 +3002,7 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 	                                     mesh->medge, mesh->mface,
 	                                     &mesh->totloop, &mesh->totpoly, &mesh->mloop, &mesh->mpoly);
 
-	CustomData_bmesh_do_versions_update_active_layers(&mesh->fdata, &mesh->pdata, &mesh->ldata);
+	CustomData_bmesh_do_versions_update_active_layers(&mesh->fdata, &mesh->ldata);
 
 	BKE_mesh_update_customdata_pointers(mesh, true);
 }
@@ -3043,7 +3045,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 
 	CustomData_add_layer(ldata, CD_MLOOP, CD_ASSIGN, mloop, totloop);
 
-	CustomData_to_bmeshpoly(fdata, pdata, ldata, totloop, totpoly);
+	CustomData_to_bmeshpoly(fdata, ldata, totloop);
 
 	if (id) {
 		/* ensure external data is transferred */

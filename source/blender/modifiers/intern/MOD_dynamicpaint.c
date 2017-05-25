@@ -78,7 +78,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ || 
 			    surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE)
 			{
-				dataMask |= CD_MASK_MLOOPUV | CD_MASK_MTEXPOLY;
+				dataMask |= CD_MASK_MLOOPUV;
 			}
 			/* mcol */
 			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||
@@ -95,7 +95,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 	if (pmd->brush) {
 		if (pmd->brush->flags & MOD_DPAINT_USE_MATERIAL) {
-			dataMask |= CD_MASK_MLOOPUV | CD_MASK_MTEXPOLY;
+			dataMask |= CD_MASK_MLOOPUV;
 		}
 	}
 	return dataMask;

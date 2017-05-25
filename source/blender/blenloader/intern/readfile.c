@@ -4563,7 +4563,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->dvert = newdataadr(fd, mesh->dvert);
 	mesh->mloopcol = newdataadr(fd, mesh->mloopcol);
 	mesh->mloopuv = newdataadr(fd, mesh->mloopuv);
-	mesh->mtpoly = newdataadr(fd, mesh->mtpoly);
 	mesh->mselect = newdataadr(fd, mesh->mselect);
 	
 	/* animdata */
@@ -4587,12 +4586,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	/* happens with old files */
 	if (mesh->mselect == NULL) {
 		mesh->totselect = 0;
-	}
-
-	if (mesh->mloopuv || mesh->mtpoly) {
-		/* for now we have to ensure texpoly and mloopuv layers are aligned
-		 * in the future we may allow non-aligned layers */
-		BKE_mesh_cd_validate(mesh);
 	}
 
 	/* Multires data */

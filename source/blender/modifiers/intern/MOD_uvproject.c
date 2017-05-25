@@ -80,7 +80,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(
 	CustomDataMask dataMask = 0;
 
 	/* ask for UV coordinates */
-	dataMask |= CD_MLOOPUV | CD_MTEXPOLY;
+	dataMask |= CD_MLOOPUV;
 
 	return dataMask;
 }

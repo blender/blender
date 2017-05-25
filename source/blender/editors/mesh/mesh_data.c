@@ -251,8 +251,8 @@ void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
 void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 {
 	/* could be ldata or pdata */
-	CustomData *pdata = GET_CD_DATA(me, pdata);
-	const int layernum = CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
+	CustomData *ldata = GET_CD_DATA(me, ldata);
+	const int layernum = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
 	ED_mesh_uv_loop_reset_ex(me, layernum);
 	
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
@@ -269,20 +269,9 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 	if (me->edit_btmesh) {
 		em = me->edit_btmesh;
 
-		layernum_dst = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
+		layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPUV);
 		if (layernum_dst >= MAX_MTFACE)
 			return -1;
-
-		/* CD_MTEXPOLY */
-		BM_data_layer_add_named(em->bm, &em->bm->pdata, CD_MTEXPOLY, name);
-		/* copy data from active UV */
-		if (layernum_dst) {
-			const int layernum_src = CustomData_get_active_layer(&em->bm->pdata, CD_MTEXPOLY);
-			BM_data_layer_copy(em->bm, &em->bm->pdata, CD_MTEXPOLY, layernum_src, layernum_dst);
-		}
-		if (active_set || layernum_dst == 0) {
-			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum_dst);
-		}
 
 		/* CD_MLOOPUV */
 		BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPUV, name);
@@ -298,26 +287,22 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 		}
 	}
 	else {
-		layernum_dst = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
+		layernum_dst = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
 		if (layernum_dst >= MAX_MTFACE)
 			return -1;
 
-		if (me->mtpoly) {
-			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DUPLICATE, me->mtpoly, me->totpoly, name);
+		if (me->mloopuv) {
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface, name);
 			is_init = true;
 		}
 		else {
-			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, name);
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, name);
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface, name);
 		}
 		
 		if (active_set || layernum_dst == 0) {
-			CustomData_set_layer_active(&me->pdata, CD_MTEXPOLY, layernum_dst);
 			CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, layernum_dst);
-
 			CustomData_set_layer_active(&me->fdata, CD_MTFACE, layernum_dst);
 		}
 
@@ -343,12 +328,12 @@ void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name)
 	if (me->edit_btmesh) {
 		em = me->edit_btmesh;
 
-		layernum_dst = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
+		layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPUV);
 		if (layernum_dst == 0)
 			ED_mesh_uv_texture_add(me, name, true);
 	}
 	else {
-		layernum_dst = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
+		layernum_dst = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
 		if (layernum_dst == 0)
 			ED_mesh_uv_texture_add(me, name, true);
 	}
@@ -357,20 +342,16 @@ void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name)
 
 bool ED_mesh_uv_texture_remove_index(Mesh *me, const int n)
 {
-	CustomData *pdata = GET_CD_DATA(me, pdata), *ldata = GET_CD_DATA(me, ldata);
-	CustomDataLayer *cdlp, *cdlu;
+	CustomData *ldata = GET_CD_DATA(me, ldata);
+	CustomDataLayer *cdlu;
 	int index;
-
-	index = CustomData_get_layer_index_n(pdata, CD_MTEXPOLY, n);
-	cdlp = (index == -1) ? NULL : &pdata->layers[index];
 
 	index = CustomData_get_layer_index_n(ldata, CD_MLOOPUV, n);
 	cdlu = (index == -1) ? NULL : &ldata->layers[index];
 
-	if (!cdlp || !cdlu)
+	if (!cdlu)
 		return false;
 
-	delete_customdata_layer(me, cdlp);
 	delete_customdata_layer(me, cdlu);
 
 	DAG_id_tag_update(&me->id, 0);
@@ -381,14 +362,8 @@ bool ED_mesh_uv_texture_remove_index(Mesh *me, const int n)
 bool ED_mesh_uv_texture_remove_active(Mesh *me)
 {
 	/* texpoly/uv are assumed to be in sync */
-	CustomData *pdata = GET_CD_DATA(me, pdata);
-	const int n = CustomData_get_active_layer(pdata, CD_MTEXPOLY);
-
-	/* double check active layers align! */
-#ifdef DEBUG
 	CustomData *ldata = GET_CD_DATA(me, ldata);
-	BLI_assert(CustomData_get_active_layer(ldata, CD_MLOOPUV) == n);
-#endif
+	const int n = CustomData_get_active_layer(ldata, CD_MLOOPUV);
 
 	if (n != -1) {
 		return ED_mesh_uv_texture_remove_index(me, n);
@@ -400,8 +375,8 @@ bool ED_mesh_uv_texture_remove_active(Mesh *me)
 bool ED_mesh_uv_texture_remove_named(Mesh *me, const char *name)
 {
 	/* texpoly/uv are assumed to be in sync */
-	CustomData *pdata = GET_CD_DATA(me, pdata);
-	const int n = CustomData_get_named_layer(pdata, CD_MTEXPOLY, name);
+	CustomData *ldata = GET_CD_DATA(me, ldata);
+	const int n = CustomData_get_named_layer(ldata, CD_MLOOPUV, name);
 	if (n != -1) {
 		return ED_mesh_uv_texture_remove_index(me, n);
 	}
@@ -1292,7 +1267,6 @@ void ED_mesh_calc_tessface(Mesh *mesh, bool free_mpoly)
 		mesh->mloopcol = NULL;
 		mesh->mloopuv = NULL;
 		mesh->mpoly = NULL;
-		mesh->mtpoly = NULL;
 	}
 }
 

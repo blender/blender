@@ -624,7 +624,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 
 	unsigned int pos;
 
-	efa_act = EDBM_mtexpoly_active_get(em, false, false); /* will be set to NULL if hidden */
+	efa_act = EDBM_uv_active_face_get(em, false, false); /* will be set to NULL if hidden */
 	ts = scene->toolsettings;
 
 	drawfaces = draw_uvs_face_check(scene);
@@ -1039,7 +1039,7 @@ static void draw_uv_shadows_get(SpaceImage *sima, Object *ob, Object *obedit, bo
 	if ((sima->mode == SI_MODE_PAINT) && obedit && obedit->type == OB_MESH) {
 		struct BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		
-		*show_shadow = EDBM_mtexpoly_check(em);
+		*show_shadow = EDBM_uv_check(em);
 	}
 	
 	*show_texpaint = (ob && ob->type == OB_MESH && ob->mode == OB_MODE_TEXTURE_PAINT);

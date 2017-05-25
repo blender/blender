@@ -481,7 +481,7 @@ class IMAGE_HT_header(Header):
                 row.prop(toolsettings, "snap_target", text="")
 
             mesh = context.edit_object.data
-            layout.prop_search(mesh.uv_textures, "active", mesh, "uv_textures", text="")
+            layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
 
         if ima:
             if ima.is_stereo_3d:

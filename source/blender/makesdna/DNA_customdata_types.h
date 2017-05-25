@@ -98,7 +98,7 @@ typedef enum CustomDataType {
 	CD_PROP_STR         = 12,
 	CD_ORIGSPACE        = 13,  /* for modifier stack face location mapping */
 	CD_ORCO             = 14,
-	CD_MTEXPOLY         = 15,
+/*	CD_MTEXPOLY         = 15, */  /* deprecated */
 	CD_MLOOPUV          = 16,
 	CD_MLOOPCOL         = 17,
 	CD_TANGENT          = 18,
@@ -149,7 +149,7 @@ typedef enum CustomDataType {
 #define CD_MASK_PROP_STR	(1 << CD_PROP_STR)
 #define CD_MASK_ORIGSPACE	(1 << CD_ORIGSPACE)
 #define CD_MASK_ORCO		(1 << CD_ORCO)
-#define CD_MASK_MTEXPOLY	(1 << CD_MTEXPOLY)
+// #define CD_MASK_MTEXPOLY	(1 << CD_MTEXPOLY)  /* DEPRECATED */
 #define CD_MASK_MLOOPUV		(1 << CD_MLOOPUV)
 #define CD_MASK_MLOOPCOL	(1 << CD_MLOOPCOL)
 #define CD_MASK_TANGENT		(1 << CD_TANGENT)

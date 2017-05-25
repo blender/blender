@@ -135,19 +135,19 @@ static EnumPropertyItem *dt_layers_select_src_itemf(
 
 		if (ob_src) {
 			DerivedMesh *dm_src;
-			CustomData *pdata;
+			CustomData *ldata;
 			int num_data, i;
 
 			/* XXX Is this OK? */
-			dm_src = mesh_get_derived_final(scene, ob_src, CD_MASK_BAREMESH | CD_MTEXPOLY);
-			pdata = dm_src->getPolyDataLayout(dm_src);
-			num_data = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+			dm_src = mesh_get_derived_final(scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPUV);
+			ldata = dm_src->getLoopDataLayout(dm_src);
+			num_data = CustomData_number_of_layers(ldata, CD_MLOOPUV);
 
 			RNA_enum_item_add_separator(&item, &totitem);
 
 			for (i = 0; i < num_data; i++) {
 				tmp_item.value = i;
-				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(pdata, CD_MTEXPOLY, i);
+				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPUV, i);
 				RNA_enum_item_add(&item, &totitem, &tmp_item);
 			}
 		}

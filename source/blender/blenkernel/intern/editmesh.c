@@ -165,26 +165,6 @@ void BKE_editmesh_tessface_calc(BMEditMesh *em)
 #endif
 }
 
-void BKE_editmesh_update_linked_customdata(BMEditMesh *em)
-{
-	BMesh *bm = em->bm;
-	int act;
-
-	if (CustomData_has_layer(&bm->pdata, CD_MTEXPOLY)) {
-		act = CustomData_get_active_layer(&bm->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_active(&bm->ldata, CD_MLOOPUV, act);
-
-		act = CustomData_get_render_layer(&bm->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_render(&bm->ldata, CD_MLOOPUV, act);
-
-		act = CustomData_get_clone_layer(&bm->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_clone(&bm->ldata, CD_MLOOPUV, act);
-
-		act = CustomData_get_stencil_layer(&bm->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_stencil(&bm->ldata, CD_MLOOPUV, act);
-	}
-}
-
 void BKE_editmesh_free_derivedmesh(BMEditMesh *em)
 {
 	if (em->derivedCage) {

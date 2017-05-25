@@ -1210,10 +1210,9 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
 	/* 14: CD_ORCO */
 	{sizeof(float) * 3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
-	/* 15: CD_MTEXPOLY */
+	/* 15: CD_MTEXPOLY */  /* DEPRECATED */
 	/* note, when we expose the UV Map / TexFace split to the user, change this back to face Texture */
-	{sizeof(MTexPoly), "MTexPoly", 1, N_("UVMap") /* "Face Texture" */, NULL, NULL, NULL, NULL, NULL,
-	 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layerMaxNum_tface},
+	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 16: CD_MLOOPUV */
 	{sizeof(MLoopUV), "MLoopUV", 1, N_("UVMap"), NULL, NULL, layerInterp_mloopuv, NULL, NULL,
 	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
@@ -1313,25 +1312,25 @@ const CustomDataMask CD_MASK_MESH =
     CD_MASK_MDEFORMVERT |
     CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS |
     CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MPOLY | CD_MASK_MLOOP |
-    CD_MASK_MTEXPOLY | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
+    CD_MASK_RECAST | CD_MASK_PAINT_MASK |
     CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE |
     CD_MASK_CUSTOMLOOPNORMAL;
 const CustomDataMask CD_MASK_EDITMESH =
     CD_MASK_MDEFORMVERT | CD_MASK_MLOOPUV |
-    CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_SHAPE_KEYINDEX |
+    CD_MASK_MLOOPCOL | CD_MASK_SHAPE_KEYINDEX |
     CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR |
     CD_MASK_MDISPS | CD_MASK_SHAPEKEY | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
     CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_CUSTOMLOOPNORMAL;
 const CustomDataMask CD_MASK_DERIVEDMESH =
     CD_MASK_MDEFORMVERT |
     CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |
-    CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_PREVIEW_MLOOPCOL |
+    CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_PREVIEW_MLOOPCOL |
     CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORIGSPACE_MLOOP | CD_MASK_ORCO | CD_MASK_TANGENT |
     CD_MASK_PREVIEW_MCOL | CD_MASK_SHAPEKEY | CD_MASK_RECAST |
     CD_MASK_ORIGINDEX | CD_MASK_MVERT_SKIN | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE |
     CD_MASK_CUSTOMLOOPNORMAL;
 const CustomDataMask CD_MASK_BMESH =
-    CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
+    CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL |
     CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
     CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS |
     CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
@@ -1341,7 +1340,7 @@ const CustomDataMask CD_MASK_BMESH =
  * cover values copied by #BKE_mesh_loops_to_tessdata
  */
 const CustomDataMask CD_MASK_FACECORNERS =
-    CD_MASK_MTFACE | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
+    CD_MASK_MTFACE | CD_MASK_MLOOPUV |
     CD_MASK_MCOL | CD_MASK_MLOOPCOL |
     CD_MASK_PREVIEW_MCOL | CD_MASK_PREVIEW_MLOOPCOL |
     CD_MASK_ORIGSPACE | CD_MASK_ORIGSPACE_MLOOP |
@@ -1350,7 +1349,7 @@ const CustomDataMask CD_MASK_FACECORNERS =
 const CustomDataMask CD_MASK_EVERYTHING =
     CD_MASK_MVERT | CD_MASK_MDEFORMVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
     CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_NORMAL /* | CD_MASK_POLYINDEX */ | CD_MASK_PROP_FLT |
-    CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
+    CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_MLOOPUV |
     CD_MASK_MLOOPCOL | CD_MASK_TANGENT | CD_MASK_MDISPS | CD_MASK_PREVIEW_MCOL | CD_MASK_CLOTH_ORCO | CD_MASK_RECAST |
     /* BMESH ONLY START */
     CD_MASK_MPOLY | CD_MASK_MLOOP | CD_MASK_SHAPE_KEYINDEX | CD_MASK_SHAPEKEY | CD_MASK_BWEIGHT | CD_MASK_CREASE |
@@ -2478,13 +2477,10 @@ void CustomData_set(const CustomData *data, int index, int type, const void *sou
 
 /* BMesh functions */
 /* needed to convert to/from different face reps */
-void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata,
-                             int totloop, int totpoly)
+void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *ldata, int totloop)
 {
-	int i;
-	for (i = 0; i < fdata->totlayer; i++) {
+	for (int i = 0; i < fdata->totlayer; i++) {
 		if (fdata->layers[i].type == CD_MTFACE) {
-			CustomData_add_layer_named(pdata, CD_MTEXPOLY, CD_CALLOC, NULL, totpoly, fdata->layers[i].name);
 			CustomData_add_layer_named(ldata, CD_MLOOPUV, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
 		}
 		else if (fdata->layers[i].type == CD_MCOL) {
@@ -2499,19 +2495,18 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 	}
 }
 
-void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total)
+void CustomData_from_bmeshpoly(
+        CustomData *fdata, CustomData *ldata, int total)
 {
 	int i;
 
 	/* avoid accumulating extra layers */
-	BLI_assert(!CustomData_from_bmeshpoly_test(fdata, pdata, ldata, false));
+	BLI_assert(!CustomData_from_bmeshpoly_test(fdata, ldata, false));
 
-	for (i = 0; i < pdata->totlayer; i++) {
-		if (pdata->layers[i].type == CD_MTEXPOLY) {
-			CustomData_add_layer_named(fdata, CD_MTFACE, CD_CALLOC, NULL, total, pdata->layers[i].name);
-		}
-	}
 	for (i = 0; i < ldata->totlayer; i++) {
+		if (ldata->layers[i].type == CD_MLOOPUV) {
+			CustomData_add_layer_named(fdata, CD_MTFACE, CD_CALLOC, NULL, total, ldata->layers[i].name);
+		}
 		if (ldata->layers[i].type == CD_MLOOPCOL) {
 			CustomData_add_layer_named(fdata, CD_MCOL, CD_CALLOC, NULL, total, ldata->layers[i].name);
 		}
@@ -2529,7 +2524,7 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 		}
 	}
 
-	CustomData_bmesh_update_active_layers(fdata, pdata, ldata);
+	CustomData_bmesh_update_active_layers(fdata, ldata);
 }
 
 #ifndef NDEBUG
@@ -2539,13 +2534,13 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
  * \param fallback: Use when there are no layers to handle,
  * since callers may expect success or failure.
  */
-bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *pdata, CustomData *ldata, bool fallback)
+bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool fallback)
 {
 	int a_num = 0, b_num = 0;
 #define LAYER_CMP(l_a, t_a, l_b, t_b) \
 	((a_num += CustomData_number_of_layers(l_a, t_a)) == (b_num += CustomData_number_of_layers(l_b, t_b)))
 
-	if (!LAYER_CMP(pdata, CD_MTEXPOLY, fdata, CD_MTFACE))
+	if (!LAYER_CMP(ldata, CD_MLOOPUV, fdata, CD_MTFACE))
 		return false;
 	if (!LAYER_CMP(ldata, CD_MLOOPCOL, fdata, CD_MCOL))
 		return false;
@@ -2567,25 +2562,21 @@ bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *pdata, Custom
 #endif
 
 
-void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata, CustomData *ldata)
+void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)
 {
 	int act;
 
-	if (CustomData_has_layer(pdata, CD_MTEXPOLY)) {
-		act = CustomData_get_active_layer(pdata, CD_MTEXPOLY);
-		CustomData_set_layer_active(ldata, CD_MLOOPUV, act);
+	if (CustomData_has_layer(ldata, CD_MLOOPUV)) {
+		act = CustomData_get_active_layer(ldata, CD_MLOOPUV);
 		CustomData_set_layer_active(fdata, CD_MTFACE, act);
 
-		act = CustomData_get_render_layer(pdata, CD_MTEXPOLY);
-		CustomData_set_layer_render(ldata, CD_MLOOPUV, act);
+		act = CustomData_get_render_layer(ldata, CD_MLOOPUV);
 		CustomData_set_layer_render(fdata, CD_MTFACE, act);
 
-		act = CustomData_get_clone_layer(pdata, CD_MTEXPOLY);
-		CustomData_set_layer_clone(ldata, CD_MLOOPUV, act);
+		act = CustomData_get_clone_layer(ldata, CD_MLOOPUV);
 		CustomData_set_layer_clone(fdata, CD_MTFACE, act);
 
-		act = CustomData_get_stencil_layer(pdata, CD_MTEXPOLY);
-		CustomData_set_layer_stencil(ldata, CD_MLOOPUV, act);
+		act = CustomData_get_stencil_layer(ldata, CD_MLOOPUV);
 		CustomData_set_layer_stencil(fdata, CD_MTFACE, act);
 	}
 
@@ -2609,25 +2600,21 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata,
  * used by do_versions in readfile.c when creating pdata and ldata for pre-bmesh
  * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files
  */
-void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, CustomData *pdata, CustomData *ldata)
+void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, CustomData *ldata)
 {
 	int act;
 
 	if (CustomData_has_layer(fdata, CD_MTFACE)) {
 		act = CustomData_get_active_layer(fdata, CD_MTFACE);
-		CustomData_set_layer_active(pdata, CD_MTEXPOLY, act);
 		CustomData_set_layer_active(ldata, CD_MLOOPUV, act);
 
 		act = CustomData_get_render_layer(fdata, CD_MTFACE);
-		CustomData_set_layer_render(pdata, CD_MTEXPOLY, act);
 		CustomData_set_layer_render(ldata, CD_MLOOPUV, act);
 
 		act = CustomData_get_clone_layer(fdata, CD_MTFACE);
-		CustomData_set_layer_clone(pdata, CD_MTEXPOLY, act);
 		CustomData_set_layer_clone(ldata, CD_MLOOPUV, act);
 
 		act = CustomData_get_stencil_layer(fdata, CD_MTFACE);
-		CustomData_set_layer_stencil(pdata, CD_MTEXPOLY, act);
 		CustomData_set_layer_stencil(ldata, CD_MLOOPUV, act);
 	}
 

@@ -173,7 +173,7 @@ static int uv_sculpt_brush_poll_do(bContext *C, const bool check_region)
 	}
 
 	em = BKE_editmesh_from_object(obedit);
-	ret = EDBM_mtexpoly_check(em);
+	ret = EDBM_uv_check(em);
 
 	if (ret) {
 		ARegion *ar = CTX_wm_region(C);

@@ -3487,7 +3487,7 @@ static void proj_paint_layer_clone_init(
 
 	/* use clone mtface? */
 	if (ps->do_layer_clone) {
-		const int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->pdata, CD_MTEXPOLY);
+		const int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->ldata, CD_MLOOPUV);
 
 		ps->dm_mloopuv_clone = MEM_mallocN(ps->dm_totpoly * sizeof(MLoopUV *), "proj_paint_mtfaces");
 
@@ -3846,7 +3846,7 @@ static void project_paint_begin(
 
 	if (ps->do_layer_stencil || ps->do_stencil_brush) {
 		//int layer_num = CustomData_get_stencil_layer(&ps->dm->loopData, CD_MLOOPUV);
-		int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->pdata, CD_MTEXPOLY);
+		int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->ldata, CD_MLOOPUV);
 		if (layer_num != -1)
 			ps->dm_mloopuv_stencil = CustomData_get_layer_n(&ps->dm->loopData, CD_MLOOPUV, layer_num);
 
@@ -5590,7 +5590,7 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 	}
 	
 	me = BKE_mesh_from_object(ob);
-	layernum = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
+	layernum = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
 
 	if (layernum == 0) {
 		hasuvs = false;

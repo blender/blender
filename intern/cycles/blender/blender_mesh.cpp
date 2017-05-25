@@ -418,7 +418,7 @@ static void attr_create_uv_map(Scene *scene,
 		int i = 0;
 
 		for(b_mesh.uv_layers.begin(l); l != b_mesh.uv_layers.end(); ++l, ++i) {
-			bool active_render = b_mesh.uv_textures[i].active_render();
+			bool active_render = b_mesh.uv_layers[i].active_render();
 			AttributeStandard std = (active_render)? ATTR_STD_UV: ATTR_STD_NONE;
 			ustring name = ustring(l->name().c_str());
 

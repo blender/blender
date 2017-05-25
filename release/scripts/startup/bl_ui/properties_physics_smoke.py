@@ -158,7 +158,7 @@ class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
         sub.label(text="Mapping:")
         sub.prop(flow, "texture_map_type", expand=False, text="")
         if flow.texture_map_type == 'UV':
-            sub.prop_search(flow, "uv_layer", ob.data, "uv_textures", text="")
+            sub.prop_search(flow, "uv_layer", ob.data, "uv_layers", text="")
         if flow.texture_map_type == 'AUTO':
             sub.prop(flow, "texture_size")
         sub.prop(flow, "texture_offset")

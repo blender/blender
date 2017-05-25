@@ -933,19 +933,19 @@ static EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(bConte
 
 		if (ob_src) {
 			DerivedMesh *dm_src;
-			CustomData *pdata;
+			CustomData *ldata;
 			int num_data, i;
 
 			dm_src = object_get_derived_final(ob_src, false);
 			if (dm_src != NULL) {
-				pdata = dm_src->getPolyDataLayout(dm_src);
-				num_data = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+				ldata = dm_src->getLoopDataLayout(dm_src);
+				num_data = CustomData_number_of_layers(ldata, CD_MLOOPUV);
 
 				RNA_enum_item_add_separator(&item, &totitem);
 
 				for (i = 0; i < num_data; i++) {
 					tmp_item.value = i;
-					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(pdata, CD_MTEXPOLY, i);
+					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPUV, i);
 					RNA_enum_item_add(&item, &totitem, &tmp_item);
 				}
 			}
@@ -1024,18 +1024,18 @@ static EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(bConte
 
 			if (ob_dst && ob_dst->data) {
 				Mesh *me_dst;
-				CustomData *pdata;
+				CustomData *ldata;
 				int num_data, i;
 
 				me_dst = ob_dst->data;
-				pdata = &me_dst->pdata;
-				num_data = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+				ldata = &me_dst->ldata;
+				num_data = CustomData_number_of_layers(ldata, CD_MLOOPUV);
 
 				RNA_enum_item_add_separator(&item, &totitem);
 
 				for (i = 0; i < num_data; i++) {
 					tmp_item.value = i;
-					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(pdata, CD_MTEXPOLY, i);
+					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPUV, i);
 					RNA_enum_item_add(&item, &totitem, &tmp_item);
 				}
 			}

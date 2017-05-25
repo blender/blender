@@ -47,66 +47,6 @@
 
 #include "../generic/python_utildefines.h"
 
-
-/* Mesh BMTexPoly
- * ************** */
-
-#define BPy_BMTexPoly_Check(v)  (Py_TYPE(v) == &BPy_BMTexPoly_Type)
-
-typedef struct BPy_BMTexPoly {
-	PyObject_VAR_HEAD
-	MTexPoly *data;
-} BPy_BMTexPoly;
-
-/* TODO, flag access */
-#if 0
-static PyGetSetDef bpy_bmtexpoly_getseters[] = {
-	/* attributes match rna_def_mtpoly  */
-
-	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
-};
-#endif
-
-static PyTypeObject BPy_BMTexPoly_Type; /* bm.loops.layers.uv.active */
-
-static void bm_init_types_bmtexpoly(void)
-{
-	BPy_BMTexPoly_Type.tp_basicsize = sizeof(BPy_BMTexPoly);
-
-	BPy_BMTexPoly_Type.tp_name = "BMTexPoly";
-
-	BPy_BMTexPoly_Type.tp_doc = NULL; // todo
-
-#if 0
-	BPy_BMTexPoly_Type.tp_getset = bpy_bmtexpoly_getseters;
-#endif
-
-	BPy_BMTexPoly_Type.tp_flags = Py_TPFLAGS_DEFAULT;
-
-	PyType_Ready(&BPy_BMTexPoly_Type);
-}
-
-int BPy_BMTexPoly_AssignPyObject(struct MTexPoly *mtpoly, PyObject *value)
-{
-	if (UNLIKELY(!BPy_BMTexPoly_Check(value))) {
-		PyErr_Format(PyExc_TypeError, "expected BMTexPoly, not a %.200s", Py_TYPE(value)->tp_name);
-		return -1;
-	}
-	else {
-		*((MTexPoly *)mtpoly) = *(((BPy_BMTexPoly *)value)->data);
-		return 0;
-	}
-}
-
-PyObject *BPy_BMTexPoly_CreatePyObject(struct MTexPoly *mtpoly)
-{
-	BPy_BMTexPoly *self = PyObject_New(BPy_BMTexPoly, &BPy_BMTexPoly_Type);
-	self->data = mtpoly;
-	return (PyObject *)self;
-}
-
-/* --- End Mesh BMTexPoly --- */
-
 /* Mesh Loop UV
  * ************ */
 
@@ -768,7 +708,6 @@ PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert)
 /* call to init all types */
 void BPy_BM_init_types_meshdata(void)
 {
-	bm_init_types_bmtexpoly();
 	bm_init_types_bmloopuv();
 	bm_init_types_bmloopcol();
 	bm_init_types_bmdvert();

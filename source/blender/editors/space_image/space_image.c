@@ -427,7 +427,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 		}
 		else {
 			/* old shading system, we set texface */
-			if (em && EDBM_mtexpoly_check(em)) {
+			if (em && EDBM_uv_check(em)) {
 				BMFace *efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
 
 				if (efa) {

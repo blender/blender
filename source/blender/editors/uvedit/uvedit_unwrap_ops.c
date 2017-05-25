@@ -117,7 +117,7 @@ static bool ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	if (ED_uvedit_test(obedit))
 		return 1;
 
-	if (em && em->bm->totface && !CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY))
+	if (em && em->bm->totface && !CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV))
 		ED_mesh_uv_texture_add(obedit->data, NULL, true);
 
 	if (!ED_uvedit_test(obedit))
@@ -1632,8 +1632,6 @@ void ED_uvedit_unwrap_cube_project(Object *ob, BMesh *bm, float cube_size, bool 
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		int first = 1;
-
-		/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 		if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT))
 			continue;
 

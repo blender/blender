@@ -113,8 +113,8 @@ struct UvElementMap *BM_uv_element_map_create(
 void                 BM_uv_element_map_free(struct UvElementMap *vmap);
 struct UvElement    *BM_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
 
-bool           EDBM_mtexpoly_check(struct BMEditMesh *em);
-struct BMFace *EDBM_mtexpoly_active_get(struct BMEditMesh *em, const bool sloppy, const bool selected);
+bool           EDBM_uv_check(struct BMEditMesh *em);
+struct BMFace *EDBM_uv_active_face_get(struct BMEditMesh *em, const bool sloppy, const bool selected);
 
 void              BM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *BM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);

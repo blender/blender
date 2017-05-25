@@ -248,7 +248,7 @@ def mesh_uv_add(obj):
            (1.0, 1.0),
            (1.0, 0.0))
 
-    uv_lay = obj.data.uv_textures.new()
+    uv_lay = obj.data.uv_layers.new()
 
     # XXX, odd that we need to do this. until UV's and texface
     # are separated we will need to keep it

@@ -1454,7 +1454,7 @@ CustomDataMask ED_view3d_datamask(const Scene *scene, const View3D *v3d)
 	if (ELEM(drawtype, OB_TEXTURE, OB_MATERIAL) ||
 	    ((drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX)))
 	{
-		mask |= CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
+		mask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			if (drawtype == OB_MATERIAL)

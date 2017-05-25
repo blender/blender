@@ -1058,8 +1058,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
 
             if psys:
                 col = layout.column()
-                col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_textures")
-                col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_textures")
+                col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_layers")
+                col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_layers")
 
             split = layout.split(percentage=0.33)
             split.label(text="Split UVs:")
@@ -1068,7 +1068,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             if psys:
                 col = layout.column()
                 col.active = part.billboard_uv_split > 1
-                col.prop_search(psys, "billboard_split_uv", ob.data, "uv_textures")
+                col.prop_search(psys, "billboard_split_uv", ob.data, "uv_layers")
 
             row = col.row()
             row.label(text="Animate:")

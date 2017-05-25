@@ -79,7 +79,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 def add_uvs(mesh, minor_seg, major_seg):
     from math import fmod
 
-    mesh.uv_textures.new()
+    mesh.uv_layers.new()
     uv_data = mesh.uv_layers.active.data
     polygons = mesh.polygons
     u_step = 1.0 / major_seg
