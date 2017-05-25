@@ -601,8 +601,6 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 		b_engine.add_pass("Debug Ray Bounces", 1, "X", b_srlay.name().c_str());
 		Pass::add(PASS_RAY_BOUNCES, passes);
 	}
-#else
-	(void) b_srlay;  /* Ignored. */
 #endif
 
 	return passes;
