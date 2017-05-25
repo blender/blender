@@ -871,7 +871,7 @@ static void rna_def_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "has_data", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Image_has_data_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Has data", "True if this image has data");
+	RNA_def_property_ui_text(prop, "Has Data", "True if the image data is loaded into memory");
 
 	prop = RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Image_depth_get", NULL, NULL);
