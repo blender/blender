@@ -1087,16 +1087,16 @@ elseif(APPLE)
 		# python
 		if(WITH_PYTHON AND NOT WITH_PYTHON_FRAMEWORK)
 			add_custom_command(
-				OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/python
-				COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/python/"
-				COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/python/"
-				COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_BINARY_DIR}/python/"
+				OUTPUT ${PYTHON_EXTRACT_DIR}
+				COMMAND ${CMAKE_COMMAND} -E remove_directory "${PYTHON_EXTRACT_DIR}/"
+				COMMAND ${CMAKE_COMMAND} -E make_directory "${PYTHON_EXTRACT_DIR}/"
+				COMMAND ${CMAKE_COMMAND} -E chdir "${PYTHON_EXTRACT_DIR}/"
 				        ${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/${PYTHON_ZIP}"
 				DEPENDS ${LIBDIR}/release/${PYTHON_ZIP})
 
 			# copy extracted python files
 			install_dir(
-				${CMAKE_CURRENT_BINARY_DIR}/python
+				${PYTHON_EXTRACT_DIR}
 				\${PLAYER_TARGETDIR_VER}
 			)
 		endif()
