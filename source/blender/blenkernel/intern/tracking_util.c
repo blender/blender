@@ -875,8 +875,64 @@ static void accessor_release_image_callback(libmv_CacheKey cache_key)
 	IMB_freeImBuf(ibuf);
 }
 
+static libmv_CacheKey accessor_get_mask_for_track_callback(
+        libmv_FrameAccessorUserData* user_data,
+        int clip_index,
+        int frame,
+        int track_index,
+        const libmv_Region *region,
+        float **r_destination,
+        int *r_width,
+        int *r_height)
+{
+	/* Perform sanity checks first. */
+	TrackingImageAccessor *accessor = (TrackingImageAccessor *) user_data;
+	BLI_assert(clip_index < accessor->num_clips);
+	BLI_assert(track_index < accessor->num_tracks);
+	MovieTrackingTrack *track = accessor->tracks[track_index];
+	/* Early output, track does not use mask. */
+	if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) == 0) {
+		return NULL;
+	}
+	MovieClip *clip = accessor->clips[clip_index];
+	/* Construct fake user so we can access movie clip. */
+	MovieClipUser user;
+	int scene_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, frame);
+	BKE_movieclip_user_set_frame(&user, scene_frame);
+	user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
+	user.render_flag = 0;
+	/* Get frame width and height so we can convert stroke coordinates
+	 * and other things from normalized to pixel space.
+	 */
+	int frame_width, frame_height;
+	BKE_movieclip_get_size(clip, &user, &frame_width, &frame_height);
+	/* Actual mask sampling. */
+	MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, frame);
+	const float region_min[2] = {region->min[0] - marker->pos[0] * frame_width,
+	                             region->min[1] - marker->pos[1] * frame_height};
+	const float region_max[2] = {region->max[0] - marker->pos[0] * frame_width,
+	                             region->max[1] - marker->pos[1] * frame_height};
+	*r_destination = tracking_track_get_mask_for_region(frame_width, frame_height,
+	                                                    region_min,
+	                                                    region_max,
+	                                                    track);
+	*r_width = region->max[0] - region->min[0];
+	*r_height = region->max[1] - region->min[1];
+	return *r_destination;
+}
+
+static void accessor_release_mask_callback(libmv_CacheKey cache_key)
+{
+	if (cache_key != NULL) {
+		float *mask = (float *)cache_key;
+		MEM_freeN(mask);
+	}
+}
+
 TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR_CLIP],
                                                    int num_clips,
+                                                   MovieTrackingTrack **tracks,
+                                                   int num_tracks,
                                                    int start_frame)
 {
 	TrackingImageAccessor *accessor =
@@ -891,12 +947,16 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
 
 	memcpy(accessor->clips, clips, num_clips * sizeof(MovieClip *));
 	accessor->num_clips = num_clips;
+	accessor->tracks = tracks;
+	accessor->num_tracks = num_tracks;
 	accessor->start_frame = start_frame;
 
 	accessor->libmv_accessor =
 		libmv_FrameAccessorNew((libmv_FrameAccessorUserData *) accessor,
 		                       accessor_get_image_callback,
-		                       accessor_release_image_callback);
+		                       accessor_release_image_callback,
+		                       accessor_get_mask_for_track_callback,
+		                       accessor_release_mask_callback);
 
 	return accessor;
 }
