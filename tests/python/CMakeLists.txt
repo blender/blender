@@ -108,6 +108,13 @@ add_test(split_faces ${TEST_BLENDER_EXE}
 )
 
 # ------------------------------------------------------------------------------
+# MODIFIERS TESTS
+add_test(modifier_array ${TEST_BLENDER_EXE}
+    ${TEST_SRC_DIR}/modifier_stack/array_test.blend
+    --python-text run_tests
+)
+
+# ------------------------------------------------------------------------------
 # IO TESTS
 
 # OBJ Import tests
