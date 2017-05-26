@@ -11,6 +11,7 @@
 
 #include "batch.h"
 #include "buffer_id.h"
+#include "primitive_private.h"
 #include <stdlib.h>
 
 // necessary functions from matrix API

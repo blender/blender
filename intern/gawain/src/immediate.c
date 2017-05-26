@@ -14,6 +14,7 @@
 #include "attrib_binding.h"
 #include "attrib_binding_private.h"
 #include "vertex_format_private.h"
+#include "primitive_private.h"
 #include <string.h>
 
 // necessary functions from matrix API

@@ -10,6 +10,7 @@
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "primitive.h"
+#include "primitive_private.h"
 
 PrimitiveClass prim_class_of_type(PrimitiveType prim_type)
 	{

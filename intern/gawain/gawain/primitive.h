@@ -38,5 +38,3 @@ typedef enum {
 
 PrimitiveClass prim_class_of_type(PrimitiveType);
 bool prim_type_belongs_to_class(PrimitiveType, PrimitiveClass);
-
-GLenum convert_prim_type_to_gl(PrimitiveType);
