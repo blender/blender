@@ -33,18 +33,15 @@
 #include "DNA_gpu_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_genfile.h"
 
 #include "BKE_blender.h"
 #include "BKE_collection.h"
-#include "BKE_customdata.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_scene.h"
 
 #include "BLI_listbase.h"
@@ -273,19 +270,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				IDPropertyTemplate val = {0};
 				sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 				BKE_scene_layer_engine_settings_create(sl->properties);
-			}
-		}
-	}
-
-	/* MTexPoly now removed. */
-	if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
-		const int cd_mtexpoly = 15;  /* CD_MTEXPOLY, deprecated */
-		for (Mesh *me = main->mesh.first; me; me = me->id.next) {
-			/* If we have UV's, so this file will have MTexPoly layers too! */
-			if (me->mloopuv != NULL) {
-				CustomData_update_typemap(&me->pdata);
-				CustomData_free_layers(&me->pdata, cd_mtexpoly, me->totpoly);
-				BKE_mesh_update_customdata_pointers(me, false);
 			}
 		}
 	}
