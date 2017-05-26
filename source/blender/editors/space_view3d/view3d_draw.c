@@ -2373,7 +2373,7 @@ void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d = ar->regiondata;
 
 	/* Setup view matrix. */
-	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, rv3d->winmat, rv3d->viewmat, NULL);
+	ED_view3d_draw_setup_view(NULL, scene, ar, v3d, rv3d->viewmat, rv3d->winmat, NULL);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
