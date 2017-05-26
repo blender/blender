@@ -703,14 +703,7 @@ Object *BKE_object_add(
 
 	ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
 
-	lc = BKE_layer_collection_active(sl);
-
-	if (lc == NULL) {
-		BLI_assert(BLI_listbase_count_ex(&sl->layer_collections, 1) == 0);
-		/* when there is no collection linked to this SceneLayer, create one */
-		SceneCollection *sc = BKE_collection_add(scene, NULL, NULL);
-		lc = BKE_collection_link(sl, sc);
-	}
+	lc = BKE_layer_collection_get_active_ensure(scene, sl);
 
 	BKE_collection_object_add(scene, lc->scene_collection, ob);
 

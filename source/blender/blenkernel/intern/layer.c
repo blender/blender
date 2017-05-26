@@ -370,6 +370,25 @@ LayerCollection *BKE_layer_collection_active(SceneLayer *sl)
 	return collection_from_index(&sl->layer_collections, sl->active_collection, &i);
 }
 
+
+/**
+ * Return layer collection to add new object(s).
+ * Create one if none exists.
+ */
+LayerCollection *BKE_layer_collection_get_active_ensure(Scene *scene, SceneLayer *sl)
+{
+	LayerCollection *lc = BKE_layer_collection_active(sl);
+
+	if (lc == NULL) {
+		BLI_assert(BLI_listbase_is_empty(&sl->layer_collections));
+		/* When there is no collection linked to this SceneLayer, create one. */
+		SceneCollection *sc = BKE_collection_add(scene, NULL, NULL);
+		lc = BKE_collection_link(sl, sc);
+	}
+
+	return lc;
+}
+
 /**
  * Recursively get the count of collections
  */
