@@ -134,7 +134,7 @@ static short wm_link_append_flag(wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "autoselect"))
 		flag |= FILE_AUTOSELECT;
 	if (RNA_boolean_get(op->ptr, "active_collection"))
-		flag |= FILE_ACTIVELAY;
+		flag |= FILE_ACTIVE_COLLECTION;
 	if ((prop = RNA_struct_find_property(op->ptr, "relative_path")) && RNA_property_boolean_get(op->ptr, prop))
 		flag |= FILE_RELPATH;
 	if (RNA_boolean_get(op->ptr, "link"))

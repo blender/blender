@@ -713,7 +713,7 @@ typedef enum eFileSel_Params_Flag {
 	FILE_LINK           = (1 << 2),
 	FILE_HIDE_DOT       = (1 << 3),
 	FILE_AUTOSELECT     = (1 << 4),
-	FILE_ACTIVELAY      = (1 << 5),
+	FILE_ACTIVE_COLLECTION = (1 << 5),
 /*  FILE_ATCURSOR       = (1 << 6), */ /* deprecated */
 	FILE_DIRSEL_ONLY    = (1 << 7),
 	FILE_FILTER         = (1 << 8),

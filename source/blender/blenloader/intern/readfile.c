@@ -10112,7 +10112,7 @@ static SceneCollection *get_scene_collection_active_or_create(struct Scene *scen
 {
 	LayerCollection *lc = NULL;
 
-	if (flag & FILE_ACTIVELAY) {
+	if (flag & FILE_ACTIVE_COLLECTION) {
 		lc = BKE_layer_collection_get_active_ensure(scene, sl);
 	}
 	else {
@@ -10408,7 +10408,7 @@ static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene
 	 * Only directly linked objects & groups are instantiated by `BLO_library_link_named_part_ex()` & co,
 	 * here we handle indirect ones and other possible edge-cases. */
 	if (scene) {
-		SceneCollection *sc = get_scene_collection_active_or_create(scene, sl, FILE_ACTIVELAY);
+		SceneCollection *sc = get_scene_collection_active_or_create(scene, sl, FILE_ACTIVE_COLLECTION);
 		give_base_to_objects(mainvar, scene, sl, sc, curlib, flag);
 
 		if (flag & FILE_GROUP_INSTANCE) {

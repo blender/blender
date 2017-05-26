@@ -228,7 +228,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		if (params->type == FILE_LOADLIB) {
 			params->flag |= RNA_boolean_get(op->ptr, "link") ? FILE_LINK : 0;
 			params->flag |= RNA_boolean_get(op->ptr, "autoselect") ? FILE_AUTOSELECT : 0;
-			params->flag |= RNA_boolean_get(op->ptr, "active_collection") ? FILE_ACTIVELAY : 0;
+			params->flag |= RNA_boolean_get(op->ptr, "active_collection") ? FILE_ACTIVE_COLLECTION : 0;
 		}
 
 		if ((prop = RNA_struct_find_property(op->ptr, "display_type"))) {
