@@ -209,8 +209,10 @@ void AbcExporter::getShutterSamples(double step, bool time_relative,
 		const int nsamples = static_cast<int>(std::max((1.0 / step) - 1.0, 1.0));
 		const double time_inc = (shutter_close - shutter_open) / nsamples;
 
-		for (double t = shutter_open; t <= shutter_close; t += time_inc) {
-			samples.push_back((t + m_settings.frame_start) / time_factor);
+		for (int sample=0; sample < nsamples; ++sample) {
+			double sample_time = shutter_open + time_inc * sample;
+			double time = (m_settings.frame_start + sample_time) / time_factor;
+			samples.push_back(time);
 		}
 	}
 }
