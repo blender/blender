@@ -406,7 +406,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 	const int height = ibuf->y;
 	const int depth = 4;     /* always 4 channels */
 	const int chsize = ibuf->rect_float ? sizeof(float) : sizeof(unsigned char);
-	const int bsize = width * height * depth * chsize;
+	const size_t bsize = ((size_t)width) * height * depth * chsize;
 	const bool is_float = (ibuf->rect_float != NULL);
 	void *dstbuf = (void *) MEM_dupallocN(ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect);
 	char *dstmask = mask == NULL ? NULL : (char *) MEM_dupallocN(mask);
@@ -499,7 +499,9 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 
 		/* keep the original buffer up to date. */
 		memcpy(srcbuf, dstbuf, bsize);
-		if (dstmask != NULL) memcpy(srcmask, dstmask, width * height);
+		if (dstmask != NULL) {
+			memcpy(srcmask, dstmask, ((size_t)width) * height);
+		}
 	}
 
 	/* free memory */

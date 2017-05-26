@@ -35,6 +35,10 @@
 #  include "BLI_endian_switch.h"
 #endif
 
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
+
 #include "MOD_meshcache_util.h"  /* own include */
 
 #include "DNA_modifier_types.h"
@@ -142,7 +146,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
 		return false;
 	}
 
-	if (fseek(fp, index * pc2_head.verts_tot * sizeof(float) * 3, SEEK_CUR) != 0) {
+	if (fseek(fp, sizeof(float) * 3 * index * pc2_head.verts_tot , SEEK_CUR) != 0) {
 		*err_str = "Failed to seek frame";
 		return false;
 	}

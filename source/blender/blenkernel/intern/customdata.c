@@ -1925,11 +1925,16 @@ void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
 
 bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 {
-	const int n = index - CustomData_get_layer_index(data, type);
-	int i;
-	
-	if (index < 0)
+	if (index < 0) {
 		return false;
+	}
+	const int index_first = CustomData_get_layer_index(data, type);
+	if (index_first == -1) {
+		return false;
+	}
+
+	const int n = index - index_first;
+	int i;
 
 	customData_free_layer__internal(&data->layers[index], totelem);
 
@@ -1974,8 +1979,10 @@ bool CustomData_free_layer_active(CustomData *data, int type, int totelem)
 
 void CustomData_free_layers(CustomData *data, int type, int totelem)
 {
-	while (CustomData_has_layer(data, type))
-		CustomData_free_layer_active(data, type, totelem);
+	const int index = CustomData_get_layer_index(data, type);
+	while (CustomData_free_layer(data, type, totelem, index)) {
+		/* pass */
+	}
 }
 
 bool CustomData_has_layer(const CustomData *data, int type)
