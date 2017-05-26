@@ -828,7 +828,9 @@ static void pose_grab_with_ik_clear(Object *ob)
 	bKinematicConstraint *data;
 	bPoseChannel *pchan;
 	bConstraint *con, *next;
+#ifdef WITH_LEGACY_DEPSGRAPH
 	bool need_dependency_update = false;
+#endif
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		/* clear all temporary lock flags */
@@ -843,7 +845,9 @@ static void pose_grab_with_ik_clear(Object *ob)
 				data = con->data;
 				if (data->flag & CONSTRAINT_IK_TEMP) {
 					/* iTaSC needs clear for removed constraints */
+#ifdef WITH_LEGACY_DEPSGRAPH
 					need_dependency_update = true;
+#endif
 					BIK_clear_data(ob->pose);
 
 					BLI_remlink(&pchan->constraints, con);
