@@ -568,7 +568,7 @@ static int buttons_context_path_collection(const bContext *C, ButsContextPath *p
 	}
 
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	LayerCollection *sc = BKE_layer_collection_active(sl);
+	LayerCollection *sc = BKE_layer_collection_get_active(sl);
 
 	if (sc) {
 		RNA_pointer_create(NULL, &RNA_LayerCollection, sc, &path->ptr[path->len]);

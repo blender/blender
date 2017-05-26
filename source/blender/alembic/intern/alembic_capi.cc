@@ -830,7 +830,7 @@ static void import_endjob(void *user_data)
 
 		BKE_scene_layer_base_deselect_all(sl);
 
-		lc = BKE_layer_collection_active(sl);
+		lc = BKE_layer_collection_get_active(sl);
 		if (lc == NULL) {
 			BLI_assert(BLI_listbase_count_ex(&sl->layer_collections, 1) == 0);
 			/* when there is no collection linked to this SceneLayer, create one */

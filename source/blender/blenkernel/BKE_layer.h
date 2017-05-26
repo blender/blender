@@ -78,7 +78,7 @@ void BKE_scene_layer_base_select(struct SceneLayer *sl, struct Base *selbase);
 
 void BKE_layer_collection_free(struct SceneLayer *sl, struct LayerCollection *lc);
 
-struct LayerCollection *BKE_layer_collection_active(struct SceneLayer *sl);
+struct LayerCollection *BKE_layer_collection_get_active(struct SceneLayer *sl);
 struct LayerCollection *BKE_layer_collection_get_active_ensure(struct Scene *scene, struct SceneLayer *sl);
 
 int BKE_layer_collection_count(struct SceneLayer *sl);

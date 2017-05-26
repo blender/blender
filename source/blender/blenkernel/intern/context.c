@@ -931,7 +931,7 @@ LayerCollection *CTX_data_layer_collection(const bContext *C)
 	}
 
 	/* fallback */
-	return BKE_layer_collection_active(sl);
+	return BKE_layer_collection_get_active(sl);
 }
 
 SceneCollection *CTX_data_scene_collection(const bContext *C)

@@ -2856,7 +2856,7 @@ static void rna_LayerCollections_active_collection_index_range(
 static PointerRNA rna_LayerCollections_active_collection_get(PointerRNA *ptr)
 {
 	SceneLayer *sl = (SceneLayer *)ptr->data;
-	LayerCollection *lc = BKE_layer_collection_active(sl);
+	LayerCollection *lc = BKE_layer_collection_get_active(sl);
 	return rna_pointer_inherit_refine(ptr, &RNA_LayerCollection, lc);
 }
 
