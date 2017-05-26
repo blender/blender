@@ -1418,7 +1418,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 					if (draw_as != PART_DRAW_PATH) {
 						struct Batch *geom = DRW_cache_particles_get_dots(psys);
-						DRWShadingGroup *shgrp;
+						DRWShadingGroup *shgrp = NULL;
 						static int screen_space[2] = {0, 1};
 						static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
 						static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
@@ -1454,13 +1454,15 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 								break;
 						}
 
-						if (draw_as != PART_DRAW_DOT) {
-							DRW_shgroup_attrib_float(shgrp, "pos", 3);
-							DRW_shgroup_attrib_float(shgrp, "rot", 4);
-							DRW_shgroup_attrib_float(shgrp, "val", 1);
-							DRW_shgroup_uniform_short_to_int(shgrp, "draw_size", &part->draw_size, 1);
-							DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-							DRW_shgroup_instance_batch(shgrp, geom);
+						if (shgrp) {
+							if (draw_as != PART_DRAW_DOT) {
+								DRW_shgroup_attrib_float(shgrp, "pos", 3);
+								DRW_shgroup_attrib_float(shgrp, "rot", 4);
+								DRW_shgroup_attrib_float(shgrp, "val", 1);
+								DRW_shgroup_uniform_short_to_int(shgrp, "draw_size", &part->draw_size, 1);
+								DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+								DRW_shgroup_instance_batch(shgrp, geom);
+							}
 						}
 					}
 				}
