@@ -108,6 +108,7 @@ void AbcTransformWriter::do_write()
 		scale_m4_fl(scale_mat, m_settings.global_scale);
 		scale_mat[3][3] = m_settings.global_scale;  /* also scale translation */
 		mul_m4_m4m4(yup_mat, yup_mat, scale_mat);
+		yup_mat[3][3] /= m_settings.global_scale;  /* normalise the homogeneous component */
 	}
 
 	m_matrix = convert_matrix(yup_mat);
