@@ -652,6 +652,8 @@ static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRW
 		MEM_freeN(attrib);
 		return;
 	}
+#else
+	UNUSED_VARS(dummy);
 #endif
 
 	BLI_assert(BLI_strnlen(name, 32) < 32);
