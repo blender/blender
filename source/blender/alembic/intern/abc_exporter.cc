@@ -219,20 +219,17 @@ void AbcExporter::getShutterSamples(double step, bool time_relative,
 
 Alembic::Abc::TimeSamplingPtr AbcExporter::createTimeSampling(double step)
 {
-	TimeSamplingPtr time_sampling;
 	std::vector<double> samples;
 
 	if (m_settings.frame_start == m_settings.frame_end) {
-		time_sampling.reset(new Alembic::Abc::TimeSampling());
-		return time_sampling;
+		return TimeSamplingPtr(new Alembic::Abc::TimeSampling());
 	}
 
 	getShutterSamples(step, true, samples);
 
 	Alembic::Abc::TimeSamplingType ts(static_cast<uint32_t>(samples.size()), 1.0 / m_scene->r.frs_sec);
-	time_sampling.reset(new Alembic::Abc::TimeSampling(ts, samples));
 
-	return time_sampling;
+	return TimeSamplingPtr(new Alembic::Abc::TimeSampling(ts, samples));
 }
 
 void AbcExporter::getFrameSet(double step, std::set<double> &frames)
