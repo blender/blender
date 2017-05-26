@@ -1172,7 +1172,9 @@ int view3d_opengl_select(
 
 	G.f |= G_PICKSEL;
 
-	ED_view3d_draw_setup_view(vc->win, scene, ar, v3d, NULL, NULL, &rect);
+	/* Important we use the 'viewmat' and don't re-calculate since
+	 * the object & bone view locking takes 'rect' into account, see: T51629. */
+	ED_view3d_draw_setup_view(vc->win, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
 
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
@@ -1198,7 +1200,7 @@ int view3d_opengl_select(
 	}
 
 	G.f &= ~G_PICKSEL;
-	ED_view3d_draw_setup_view(vc->win, scene, ar, v3d, NULL, NULL, NULL);
+	ED_view3d_draw_setup_view(vc->win, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
 	
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = 0;
