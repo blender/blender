@@ -655,7 +655,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 	/* 1. draw shadow mesh */
 	
 	if (sima->flag & SI_DRAWSHADOW) {
-		Object *ob_cage = DAG_get_object(depsgraph, obedit);
+		Object *ob_cage = DEG_get_object(depsgraph, obedit);
 		/* XXX TODO: Need to check if shadow mesh is different than original mesh. */
 		bool is_cage_like_final_meshes = (ob_cage == obedit);
 

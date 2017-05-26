@@ -74,22 +74,22 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 	return id_node->eval_flags;
 }
 
-Scene *DAG_get_scene(Depsgraph *graph)
+Scene *DEG_get_scene(Depsgraph *graph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	return deg_graph->scene;
 }
 
-SceneLayer *DAG_get_scene_layer(Depsgraph *graph)
+SceneLayer *DEG_get_scene_layer(Depsgraph *graph)
 {
-	Scene *scene = DAG_get_scene(graph);
+	Scene *scene = DEG_get_scene(graph);
 	if (scene) {
 		return BKE_scene_layer_context_active(scene);
 	}
 	return NULL;
 }
 
-Object *DAG_get_object(Depsgraph * /*depsgraph*/, Object *ob)
+Object *DEG_get_object(Depsgraph * /*depsgraph*/, Object *ob)
 {
 	/* XXX TODO */
 	return ob;
@@ -97,41 +97,41 @@ Object *DAG_get_object(Depsgraph * /*depsgraph*/, Object *ob)
 
 /* ************************ DAG ITERATORS ********************* */
 
-typedef struct DAGObjectsIteratorData {
+typedef struct DEGObjectsIteratorData {
 	Depsgraph *graph;
 	Scene *scene;
 	SceneLayer *scene_layer;
 	Base *base;
 	int flag;
-} DAGObjectsIteratorData;
+} DEGObjectsIteratorData;
 
-void DAG_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+void DEG_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	SceneLayer *scene_layer;
 	Depsgraph *graph = (Depsgraph *) data_in;
-	DAGObjectsIteratorData *data = (DAGObjectsIteratorData *)
-	                               MEM_callocN(sizeof(DAGObjectsIteratorData), __func__);
+	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)
+	                               MEM_callocN(sizeof(DEGObjectsIteratorData), __func__);
 	iter->data = data;
 	iter->valid = true;
 
 	data->graph = graph;
-	data->scene = DAG_get_scene(graph);
-	scene_layer = DAG_get_scene_layer(graph);
+	data->scene = DEG_get_scene(graph);
+	scene_layer = DEG_get_scene_layer(graph);
 	data->flag = ~(BASE_FROM_SET);
 
 	Base base = {(Base *)scene_layer->object_bases.first, NULL};
 	data->base = &base;
-	DAG_objects_iterator_next(iter);
+	DEG_objects_iterator_next(iter);
 }
 
-void DAG_objects_iterator_next(BLI_Iterator *iter)
+void DEG_objects_iterator_next(BLI_Iterator *iter)
 {
-	DAGObjectsIteratorData *data = (DAGObjectsIteratorData *)iter->data;
+	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
 	Base *base = data->base->next;
 
 	while (base) {
 		if ((base->flag & BASE_VISIBLED) != 0) {
-			Object *ob = DAG_get_object(data->graph, base->object);
+			Object *ob = DEG_get_object(data->graph, base->object);
 			iter->current = ob;
 
 			/* Flushing depsgraph data. */
@@ -155,7 +155,7 @@ void DAG_objects_iterator_next(BLI_Iterator *iter)
 
 		Base base = {(Base *)scene_layer->object_bases.first, NULL};
 		data->base = &base;
-		DAG_objects_iterator_next(iter);
+		DEG_objects_iterator_next(iter);
 		return;
 	}
 
@@ -163,9 +163,9 @@ void DAG_objects_iterator_next(BLI_Iterator *iter)
 	iter->valid = false;
 }
 
-void DAG_objects_iterator_end(BLI_Iterator *iter)
+void DEG_objects_iterator_end(BLI_Iterator *iter)
 {
-	DAGObjectsIteratorData *data = (DAGObjectsIteratorData *)iter->data;
+	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
 	if (data) {
 		MEM_freeN(data);
 	}
