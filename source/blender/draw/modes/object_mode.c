@@ -214,6 +214,7 @@ static struct {
 	int grid_flag;
 	int zpos_flag;
 	int zneg_flag;
+	bool draw_grid;
 	/* Temp buffer textures */
 	struct GPUTexture *outlines_depth_tx;
 	struct GPUTexture *outlines_color_tx;
@@ -320,6 +321,7 @@ static void OBJECT_engine_init(void *vedata)
 		const bool show_axis_y = (v3d->gridflag & V3D_SHOW_Y) != 0;
 		const bool show_axis_z = (v3d->gridflag & V3D_SHOW_Z) != 0;
 		const bool show_floor = (v3d->gridflag & V3D_SHOW_FLOOR) != 0;
+		e_data.draw_grid = show_axis_x || show_axis_y || show_axis_z || show_floor;
 
 		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
 		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
@@ -1652,7 +1654,9 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->reference_image);
 
 	if (!DRW_state_is_select()) {
-		DRW_draw_pass(psl->grid);
+		if (e_data.draw_grid) {
+			DRW_draw_pass(psl->grid);
+		}
 
 		/* Combine with scene buffer last */
 		DRW_draw_pass(psl->outlines_resolve);
