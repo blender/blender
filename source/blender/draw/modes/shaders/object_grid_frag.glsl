@@ -2,14 +2,14 @@
 /* Infinite grid
  * Clément Foucault */
 
-in vec3 wPos;
-
 out vec4 FragColor;
 
 uniform mat4 ProjectionMatrix;
 uniform vec3 cameraPos;
 uniform vec3 eye;
 uniform vec4 gridSettings;
+uniform vec2 viewportSize;
+uniform vec4 screenvecs[3];
 uniform float gridOneOverLogSubdiv;
 
 #define gridDistance      gridSettings.x
@@ -54,8 +54,45 @@ float axis(float u, float fwidthU, float line_size)
 	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH, axis_domain - line_size);
 }
 
+vec3 get_floor_pos(vec2 uv)
+{
+	/* if perspective */
+	vec3 camera_vec, camera_pos;
+	vec3 pixel_pos = screenvecs[2].xyz + uv.x * screenvecs[0].xyz + uv.y * screenvecs[1].xyz;
+
+	if (ProjectionMatrix[3][3] == 0.0) {
+		camera_vec = normalize(pixel_pos - cameraPos);
+		camera_pos = cameraPos;
+	}
+	else {
+		camera_vec = normalize(eye);
+		camera_pos = pixel_pos;
+	}
+
+	vec3 plane_normal;
+	if ((gridFlag & PLANE_XZ) > 0) {
+		plane_normal = vec3(0.0, 1.0, 0.0);
+	}
+	else if ((gridFlag & PLANE_YZ) > 0) {
+		plane_normal = vec3(1.0, 0.0, 0.0);
+	}
+	else {
+		plane_normal = vec3(0.0, 0.0, 1.0);
+	}
+
+	float p = -dot(plane_normal, camera_pos) / dot(plane_normal, camera_vec);
+	vec3 plane = camera_pos + camera_vec * p;
+
+	/* fix residual imprecision */
+	vec3 mask = vec3(1.0) - plane_normal;
+	return plane * mask;
+}
+
 void main()
 {
+	vec2 sPos = gl_FragCoord.xy / viewportSize; /* Screen [0,1] position */
+	vec3 wPos = get_floor_pos(sPos);
+
 	vec3 fwidthCos = fwidth(wPos);
 
 	float dist, fade;

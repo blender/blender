@@ -208,6 +208,7 @@ static struct {
 	GPUShader *part_prim_sh;
 	GPUShader *part_axis_sh;
 	float camera_pos[3];
+	float screenvecs[3][4];
 	float grid_settings[5];
 	float grid_mat[4][4];
 	int grid_flag;
@@ -306,7 +307,8 @@ static void OBJECT_engine_init(void *vedata)
 
 	{
 		/* Grid precompute */
-		float viewinvmat[4][4], winmat[4][4], invwinmat[4][4], viewmat[4][4];
+		float invviewmat[4][4], invwinmat[4][4];
+		float viewmat[4][4], winmat[4][4];
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		View3D *v3d = draw_ctx->v3d;
 		Scene *scene = draw_ctx->scene;
@@ -321,10 +323,11 @@ static void OBJECT_engine_init(void *vedata)
 
 		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
 		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
-		DRW_viewport_matrix_get(viewinvmat, DRW_MAT_VIEWINV);
+		DRW_viewport_matrix_get(invwinmat, DRW_MAT_WININV);
+		DRW_viewport_matrix_get(invviewmat, DRW_MAT_VIEWINV);
 
 		/* Setup camera pos */
-		copy_v3_v3(e_data.camera_pos, viewinvmat[3]);
+		copy_v3_v3(e_data.camera_pos, invviewmat[3]);
 
 		/* if perps */
 		if (winmat[3][3] == 0.0f) {
@@ -333,13 +336,11 @@ static void OBJECT_engine_init(void *vedata)
 			    {1.0f, -1.0f, -1.0f, 1.0f},
 			    {-1.0f, 1.0f, -1.0f, 1.0f}
 			};
-			/* invert the proj matrix */
-			invert_m4_m4(invwinmat, winmat);
 
 			/* convert the view vectors to view space */
 			for (int i = 0; i < 2; i++) {
 				mul_m4_v4(invwinmat, viewvecs[i]);
-				mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]); /* normalize */
+				mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]); /* perspective divide */
 			}
 
 			fov = angle_v3v3(viewvecs[0], viewvecs[1]) / 2.0f;
@@ -356,6 +357,7 @@ static void OBJECT_engine_init(void *vedata)
 				e_data.grid_flag |= SHOW_AXIS_Y;
 			if (show_floor)
 				e_data.grid_flag |= SHOW_GRID;
+
 		}
 		else {
 			float viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
@@ -393,12 +395,31 @@ static void OBJECT_engine_init(void *vedata)
 			}
 		}
 
+		/* Vectors to recover pixel world position. Fix grid precision issue. */
+		copy_v4_fl4(e_data.screenvecs[0],  1.0f, -1.0f, 0.0f, 1.0f);
+		copy_v4_fl4(e_data.screenvecs[1], -1.0f,  1.0f, 0.0f, 1.0f);
+		copy_v4_fl4(e_data.screenvecs[2], -1.0f, -1.0f, 0.0f, 1.0f);
+
+		for (int i = 0; i < 3; i++) {
+			/* Doing 2 steps to recover world position of the corners of the frustum.
+			 * Using the inverse perspective matrix is giving very low precision output. */
+			mul_m4_v4(invwinmat, e_data.screenvecs[i]);
+			e_data.screenvecs[i][0] /= e_data.screenvecs[i][3]; /* perspective divide */
+			e_data.screenvecs[i][1] /= e_data.screenvecs[i][3]; /* perspective divide */
+			e_data.screenvecs[i][2] /= e_data.screenvecs[i][3]; /* perspective divide */
+			e_data.screenvecs[i][3] = 1.0f;
+			mul_m4_v4(invviewmat, e_data.screenvecs[i]);
+		}
+
+		sub_v3_v3(e_data.screenvecs[0], e_data.screenvecs[2]);
+		sub_v3_v3(e_data.screenvecs[1], e_data.screenvecs[2]);
+
 		/* Z axis if needed */
 		if (((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) && show_axis_z) {
 			e_data.zpos_flag = SHOW_AXIS_Z;
 
 			float zvec[4] = {0.0f, 0.0f, -1.0f, 0.0f};
-			mul_m4_v4(viewinvmat, zvec);
+			mul_m4_v4(invviewmat, zvec);
 
 			/* z axis : chose the most facing plane */
 			if (fabsf(zvec[0]) < fabsf(zvec[1])) {
@@ -754,9 +775,11 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zneg_flag, 1);
 		DRW_shgroup_uniform_mat4(grp, "ViewProjectionOffsetMatrix", (float *)e_data.grid_mat);
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
+		DRW_shgroup_uniform_vec4(grp, "screenvecs[0]", e_data.screenvecs[0], 3);
 		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
 		DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_call_add(grp, quad, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);

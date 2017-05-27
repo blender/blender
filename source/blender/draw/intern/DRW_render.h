@@ -307,6 +307,7 @@ typedef enum {
 	DRW_MAT_VIEW,
 	DRW_MAT_VIEWINV,
 	DRW_MAT_WIN,
+	DRW_MAT_WININV,
 } DRWViewportMatrixType;
 
 void DRW_viewport_init(const bContext *C);

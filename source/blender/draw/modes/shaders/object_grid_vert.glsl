@@ -22,8 +22,6 @@ uniform int gridFlag;
 
 in vec3 pos;
 
-out vec3 wPos;
-
 void main()
 {
 	vec3 vert_pos, proj_camera_pos;
@@ -47,20 +45,19 @@ void main()
 		vert_pos *= gridDistance * 2.0;
 	}
 	else {
-		float viewdist = 1.0f / min(abs(ProjectionMatrix[0][0]), abs(ProjectionMatrix[1][1]));
+		float viewdist = 1.0 / min(abs(ProjectionMatrix[0][0]), abs(ProjectionMatrix[1][1]));
 		vert_pos *= viewdist * gridDistance * 2.0;
 	}
 
-	vec3 realPos = proj_camera_pos +  vert_pos;
+	vec3 realPos = proj_camera_pos + vert_pos;
 
 	/* Used for additional Z axis */
 	if ((gridFlag & CLIP_Z_POS) > 0) {
 		realPos.z = max(realPos.z, 0.0);
 	}
 	if ((gridFlag & CLIP_Z_NEG) > 0) {
-		realPos.z = min(realPos.z, 0.0);
+		realPos.z = min(-realPos.z, 0.0);
 	}
 
 	gl_Position = ViewProjectionOffsetMatrix * vec4(realPos, 1.0);
-	wPos = realPos;
 }

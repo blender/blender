@@ -2224,6 +2224,9 @@ void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 		case DRW_MAT_WIN:
 			copy_m4_m4(mat, rv3d->winmat);
 			break;
+		case DRW_MAT_WININV:
+			invert_m4_m4(mat, rv3d->winmat);
+			break;
 		default:
 			BLI_assert(!"Matrix type invalid");
 			break;
