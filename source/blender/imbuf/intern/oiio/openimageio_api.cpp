@@ -31,7 +31,7 @@
 
 #include <set>
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
+#if defined(WIN32)
 #include "utfconv.h"
 #endif
 

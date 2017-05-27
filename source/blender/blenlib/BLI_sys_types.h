@@ -65,8 +65,8 @@ typedef uint64_t u_int64_t;
 
 #include <inttypes.h>
 
-/* MinGW and MSVC >= 2010 */
-#elif defined(FREE_WINDOWS) || defined(_MSC_VER)
+/* MSVC >= 2010 */
+#elif defined(_MSC_VER)
 #include <stdint.h>
 
 #else

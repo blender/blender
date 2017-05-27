@@ -8,11 +8,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if !defined(__MINGW32__)
 inline int strcasecmp(const char *a, const char *b) {
   return _stricmp(a,b);
 }
-#endif
 
 inline void srandom(unsigned long input) {
   srand(input);
@@ -34,7 +32,7 @@ typedef unsigned long uintptr_t;
 
 #  if _MSC_VER < 1600
 // stdint.h is not available before VS2010
-#if defined(_WIN32) && !defined(__MINGW32__)
+#if defined(_WIN32)
 /* The __intXX are built-in types of the visual complier! So we don't
    need to include anything else here.
    This typedefs should be in sync with types from MEM_sys_types.h */

@@ -59,7 +59,7 @@ if(WITH_OPENCOLORIO)
 		ocio_impl_glsl.cc
 	)
 
-	if(WIN32 AND NOT MINGW)
+	if(WIN32)
 		list(APPEND INC_SYS
 			${BOOST_INCLUDE_DIR}
 		)

@@ -37,7 +37,7 @@
 // cool things like (IF(LOD==1,CCurvedValue,IF(LOD==2,CCurvedValue2)) etc...
 #include "EXP_IfExpr.h"
 
-#if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
+#if defined(WIN32) || defined(WIN64)
 #define strcasecmp	_stricmp
 
 #ifndef strtoll

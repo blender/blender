@@ -38,7 +38,7 @@
 #  include <tchar.h>
 #
 #  ifndef ERROR_PROFILE_DOES_NOT_MATCH_DEVICE
-#    define ERROR_PROFILE_DOES_NOT_MATCH_DEVICE 0x7E7 // Mingw64 headers may have had this
+#    define ERROR_PROFILE_DOES_NOT_MATCH_DEVICE 0x7E7
 #  endif
 #endif
 

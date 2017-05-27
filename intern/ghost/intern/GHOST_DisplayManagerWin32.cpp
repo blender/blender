@@ -41,9 +41,7 @@
 
 // We do not support multiple monitors at the moment
 #define COMPILE_MULTIMON_STUBS
-#ifndef FREE_WINDOWS
 #include <multimon.h>
-#endif
 
 
 GHOST_DisplayManagerWin32::GHOST_DisplayManagerWin32(void)

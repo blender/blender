@@ -35,7 +35,7 @@
 
 #include <sys/stat.h>
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
+#if defined(WIN32)
 typedef unsigned int mode_t;
 #endif
 
@@ -50,10 +50,8 @@ struct direntry {
 	const char   *relname;
 	const char   *path;
 #ifdef WIN32 /* keep in sync with the definition of BLI_stat_t in BLI_fileops.h */
-#  if defined(_MSC_VER) || defined(__MINGW64__)
+#  if defined(_MSC_VER)
 	struct _stat64 s;
-#  elif defined(__MINGW32__)
-	struct _stati64 s;
 #  else
 	struct _stat s;
 #  endif

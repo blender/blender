@@ -32,11 +32,6 @@
 #  define alloca _alloca
 #endif
 
-/* alloca is defined here for MinGW32 */
-#ifdef __MINGW32__
-#  include <malloc.h>
-#endif
-
 #if defined(__cplusplus) && ((__cplusplus >= 201103L) || defined(_MSC_VER))
 #  define HAS_CPP11_FEATURES
 #endif

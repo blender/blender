@@ -89,14 +89,6 @@
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
 // Needed for memalign on Linux and _aligned_alloc on Windows.
-#  ifdef FREE_WINDOWS
-/* make sure _aligned_malloc is included */
-#    ifdef __MSVCRT_VERSION__
-#      undef __MSVCRT_VERSION__
-#    endif
-
-#    define __MSVCRT_VERSION__ 0x0700
-#  endif  // FREE_WINDOWS
 
 #  include <malloc.h>
 #else

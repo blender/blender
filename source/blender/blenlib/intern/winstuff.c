@@ -160,8 +160,6 @@ void RegisterBlendExtension(void)
 	GetSystemDirectory(SysDir, FILE_MAXDIR);
 #ifdef _WIN64
 	ThumbHandlerDLL = "BlendThumb64.dll";
-#elif defined(__MINGW32__)
-	ThumbHandlerDLL = "BlendThumb.dll";
 #else
 	IsWow64Process(GetCurrentProcess(), &IsWOW64);
 	if (IsWOW64 == true)

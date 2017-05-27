@@ -113,24 +113,13 @@ if(WIN32 AND NOT UNIX)
 	string(SUBSTRING ${BLENDER_VERSION} 0 1 bver1)
 	string(SUBSTRING ${BLENDER_VERSION} 2 1 bver2)
 	string(SUBSTRING ${BLENDER_VERSION} 3 1 bver3)
-	if(MINGW)
-		add_definitions(
-			-DWINDRES
-			-DBLEN_VER_RC_STR_M=${BLENDER_VERSION}
-			-DBLEN_VER_RC_1=${bver1}
-			-DBLEN_VER_RC_2=${bver2}
-			-DBLEN_VER_RC_3=${bver3}
-			-DBLEN_VER_RC_4=0
-		)
-	else()
-		add_definitions(
-			-DBLEN_VER_RC_STR=${BLENDER_VERSION}
-			-DBLEN_VER_RC_1=${bver1}
-			-DBLEN_VER_RC_2=${bver2}
-			-DBLEN_VER_RC_3=${bver3}
-			-DBLEN_VER_RC_4=0
-		)
-	endif()
+	add_definitions(
+		-DBLEN_VER_RC_STR=${BLENDER_VERSION}
+		-DBLEN_VER_RC_1=${bver1}
+		-DBLEN_VER_RC_2=${bver2}
+		-DBLEN_VER_RC_3=${bver3}
+		-DBLEN_VER_RC_4=0
+	)
 
 
 	list(APPEND SRC
@@ -652,7 +641,6 @@ elseif(WIN32)
 	if(WITH_PYTHON)
 		string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
-		# MinGW TODO: This bit of Python configuration diverges from MSVC
 		if(NOT CMAKE_COMPILER_IS_GNUCC)
 			install(
 				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
@@ -749,20 +737,6 @@ elseif(WIN32)
 				DESTINATION ${BLENDER_VERSION}/python/bin
 				CONFIGURATIONS Debug
 			)
-
-			# MinGW needs Python DLL
-			if(MINGW)
-				install(
-					FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
-					DESTINATION "."
-					CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-				)
-				install(
-					FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
-					DESTINATION "."
-					CONFIGURATIONS Debug
-				)
-			endif()
 		endif()
 
 		unset(_PYTHON_VERSION_NO_DOTS)
@@ -785,57 +759,19 @@ elseif(WIN32)
 			FILES ${LIBDIR}/pthreads/lib/pthreadVC2.dll
 			DESTINATION "."
 		)
-	else()
-		#MinGW64 comes with own version. For portable builds it will probaly have to be copied to work
-		if(NOT WITH_MINGW64)
-			install(
-				FILES ${LIBDIR}/pthreads/lib/pthreadGC2.dll
-				DESTINATION "."
-			)
-		elseif(WITH_MINGW64)
-			install(
-				FILES 
-					${LIBDIR}/binaries/libgcc_s_sjlj-1.dll
-					${LIBDIR}/binaries/libwinpthread-1.dll
-					${LIBDIR}/binaries/libstdc++-6.dll
-				DESTINATION "."
-			)
-			
-			if(WITH_OPENMP)
-				install(
-					FILES 
-					${LIBDIR}/binaries/libgomp-1.dll
-					DESTINATION "."
-				)
-			endif()
-		endif()
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		if(WITH_MINGW64)
-			install(
-				FILES
-					${LIBDIR}/ffmpeg/lib/avcodec-53.dll
-					${LIBDIR}/ffmpeg/lib/avformat-53.dll
-					${LIBDIR}/ffmpeg/lib/avdevice-53.dll
-					${LIBDIR}/ffmpeg/lib/avutil-51.dll
-					${LIBDIR}/ffmpeg/lib/swscale-2.dll
-					${LIBDIR}/ffmpeg/lib/swresample-0.dll
-					${LIBDIR}/ffmpeg/lib/xvidcore.dll
-				DESTINATION "."
-			)
-		else()
-			install(
-				FILES
-					${LIBDIR}/ffmpeg/lib/avcodec-57.dll
-					${LIBDIR}/ffmpeg/lib/avformat-57.dll
-					${LIBDIR}/ffmpeg/lib/avdevice-57.dll
-					${LIBDIR}/ffmpeg/lib/avutil-55.dll
-					${LIBDIR}/ffmpeg/lib/swscale-4.dll
-					${LIBDIR}/ffmpeg/lib/swresample-2.dll
-				DESTINATION "."
-			)
-		endif()
+		install(
+			FILES
+				${LIBDIR}/ffmpeg/lib/avcodec-57.dll
+				${LIBDIR}/ffmpeg/lib/avformat-57.dll
+				${LIBDIR}/ffmpeg/lib/avdevice-57.dll
+				${LIBDIR}/ffmpeg/lib/avutil-55.dll
+				${LIBDIR}/ffmpeg/lib/swscale-4.dll
+				${LIBDIR}/ffmpeg/lib/swresample-2.dll
+			DESTINATION "."
+		)
 	endif()
 
 	if(WITH_CODEC_SNDFILE)
@@ -851,30 +787,13 @@ elseif(WIN32)
 				${LIBDIR}/openal/lib/OpenAL32.dll
 			DESTINATION "."
 		)
-		# MinGW TODO: Need to update to a newer OpenAL version
-		# which does not depend on wrap_oal.dll
-		if(CMAKE_COMPILER_IS_GNUCC)
-			install(
-				FILES
-					${LIBDIR}/openal/lib/wrap_oal.dll
-				DESTINATION "."
-			)
-		endif()
 	endif()
 
 	if(WITH_SDL)
-		#MinGW TODO: Update to SDL2
-		if(NOT CMAKE_COMPILER_IS_GNUCC)
-			install(
-				FILES ${LIBDIR}/sdl/lib/SDL2.dll
-				DESTINATION "."
-			)
-		else()
-			install(
-				FILES ${LIBDIR}/sdl/lib/SDL.dll
-				DESTINATION "."
-			)
-		endif()
+		install(
+			FILES ${LIBDIR}/sdl/lib/SDL2.dll
+			DESTINATION "."
+		)
 	endif()
 	
 	if(WITH_SYSTEM_AUDASPACE)
@@ -901,19 +820,11 @@ elseif(WIN32)
 
 	if(WITH_OPENCOLORIO)
 		set(OCIOBIN ${LIBDIR}/opencolorio/bin)
-		if(NOT MINGW)
 			install(
 				FILES
 					${OCIOBIN}/OpenColorIO.dll
 				DESTINATION "."
 			)
-		else()
-			install(
-				FILES
-					${OCIOBIN}/libOpenColorIO.dll
-				DESTINATION "."
-			)
-		endif()
 	endif()
 
 elseif(APPLE)

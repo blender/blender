@@ -27,11 +27,9 @@ add_definitions(-DWIN32)
 
 if(MSVC)
 	include(platform_win32_msvc)
-elseif(CMAKE_COMPILER_IS_GNUCC)
-	include(platform_win32_mingw)
+else()
+	message(FATAL_ERROR "Compiler is unsupported")
 endif()
-
-# Things common to both mingw and MSVC  should go here
 
 set(WINTAB_INC ${LIBDIR}/wintab/include)
 

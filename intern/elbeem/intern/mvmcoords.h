@@ -23,11 +23,9 @@
 #define mvmFloat double
 
 #ifdef WIN32
-#ifndef FREE_WINDOWS
 #include "float.h"
 #define isnan(n) _isnan(n)
 #define finite _finite
-#endif
 #endif
 
 #ifdef sun

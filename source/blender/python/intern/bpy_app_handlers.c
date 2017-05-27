@@ -126,7 +126,7 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type), PyO
 /* dummy type because decorators can't be PyCFunctions */
 static PyTypeObject BPyPersistent_Type = {
 
-#if defined(_MSC_VER) || defined(FREE_WINDOWS)
+#if defined(_MSC_VER)
 	PyVarObject_HEAD_INIT(NULL, 0)
 #else
 	PyVarObject_HEAD_INIT(&PyType_Type, 0)
@@ -206,7 +206,7 @@ PyObject *BPY_app_handlers_struct(void)
 {
 	PyObject *ret;
 
-#if defined(_MSC_VER) || defined(FREE_WINDOWS)
+#if defined(_MSC_VER)
 	BPyPersistent_Type.ob_base.ob_base.ob_type = &PyType_Type;
 #endif
 

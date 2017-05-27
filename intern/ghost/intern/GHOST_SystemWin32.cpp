@@ -890,24 +890,14 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
 	// send motion. Mark as 'sent' so motion will always get dispatched.
 	eventSent = true;
 
-#if defined(_MSC_VER) || defined(FREE_WINDOWS64)
+#if defined(_MSC_VER)
 	// using Microsoft compiler & header files
 	// they invented the RawInput API, so this version is (probably) correct.
-	// MinGW64 also works fine with this
 	BYTE const *data = raw.data.hid.bRawData;
 	// struct RAWHID {
 	// DWORD dwSizeHid;
 	// DWORD dwCount;
 	// BYTE  bRawData[1];
-	// };
-#else
-	// MinGW's definition (below) doesn't agree, so we need a slight
-	// workaround until it's fixed
-	BYTE const *data = &raw.data.hid.bRawData;
-	// struct RAWHID {
-	// DWORD dwSizeHid;
-	// DWORD dwCount;
-	// BYTE bRawData; // <== isn't this s'posed to be a BYTE*?
 	// };
 #endif
 

@@ -29,7 +29,7 @@
 #define CONTAINS_INDEX
 #define GRID_DIMENSION 20
 
-#if defined(_WIN32) && !defined(__MINGW32__) && !(_MSC_VER >= 1900)
+#if defined(_WIN32) && !(_MSC_VER >= 1900)
 #define isnan(n) _isnan(n)
 #define LONG __int64
 #define int64_t __int64
