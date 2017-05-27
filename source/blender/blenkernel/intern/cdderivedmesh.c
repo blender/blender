@@ -3213,16 +3213,16 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 		bool need_edge_to_first_valid_ml = false;
 		int created_edges = 0;
 		for (j = 0; j < mp->totloop; j++, ml++) {
-			uint mlv;
-
-			mlv = (vtargetmap[ml->v] != -1) ? vtargetmap[ml->v] : ml->v;
+			const uint mlv = (vtargetmap[ml->v] != -1) ? vtargetmap[ml->v] : ml->v;
 #ifndef NDEBUG
-			MLoop *next_ml = cddm->mloop + mp->loopstart + ((j + 1) % mp->totloop);
-			uint next_mlv = (vtargetmap[next_ml->v] != -1) ? vtargetmap[next_ml->v] : next_ml->v;
-			med = cddm->medge + ml->e;
-			uint v1 = (vtargetmap[med->v1] != -1) ? vtargetmap[med->v1] : med->v1;
-			uint v2 = (vtargetmap[med->v2] != -1) ? vtargetmap[med->v2] : med->v2;
-			BLI_assert((mlv == v1 && next_mlv == v2) || (mlv == v2 && next_mlv == v1));
+			{
+				MLoop *next_ml = cddm->mloop + mp->loopstart + ((j + 1) % mp->totloop);
+				uint next_mlv = (vtargetmap[next_ml->v] != -1) ? vtargetmap[next_ml->v] : next_ml->v;
+				med = cddm->medge + ml->e;
+				uint v1 = (vtargetmap[med->v1] != -1) ? vtargetmap[med->v1] : med->v1;
+				uint v2 = (vtargetmap[med->v2] != -1) ? vtargetmap[med->v2] : med->v2;
+				BLI_assert((mlv == v1 && next_mlv == v2) || (mlv == v2 && next_mlv == v1));
+			}
 #endif
 			/* A loop is only valid if its matching edge is, and it's not reusing a vertex already used by this poly. */
 			if (LIKELY((newe[ml->e] != -1) && ((mv[mlv].flag & ME_VERT_TMP_TAG) == 0))) {
@@ -3232,8 +3232,8 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 					/* We need to create a new edge between last valid loop and this one! */
 					void **val_p;
 
-					v1 = (vtargetmap[last_valid_ml->v] != -1) ? vtargetmap[last_valid_ml->v] : last_valid_ml->v;
-					v2 = mlv;
+					uint v1 = (vtargetmap[last_valid_ml->v] != -1) ? vtargetmap[last_valid_ml->v] : last_valid_ml->v;
+					uint v2 = mlv;
 					BLI_assert(v1 != v2);
 					if (BLI_edgehash_ensure_p(ehash, v1, v2, &val_p)) {
 						last_valid_ml->e = GET_INT_FROM_POINTER(*val_p);
