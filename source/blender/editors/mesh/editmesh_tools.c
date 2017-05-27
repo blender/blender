@@ -5235,8 +5235,10 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 	else {
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				float tin, dum;
-				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum, 0, NULL, false, false);
+				float tin = 0.0f, dum;
+				if (ma->mtex[ma->texact] != NULL) {
+					externtex(ma->mtex[ma->texact], eve->co, &tin, &dum, &dum, &dum, &dum, 0, NULL, false, false);
+				}
 				eve->co[2] += fac * tin;
 			}
 		}
