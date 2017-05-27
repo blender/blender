@@ -2,10 +2,13 @@
 /* Infinite grid
  * Clément Foucault */
 
+
 out vec4 FragColor;
 
 uniform mat4 ProjectionMatrix;
 uniform vec3 cameraPos;
+uniform vec3 planeNormal;
+uniform vec3 planeAxes;
 uniform vec3 eye;
 uniform vec4 gridSettings;
 uniform vec2 viewportSize;
@@ -29,12 +32,12 @@ uniform int gridFlag;
 
 #define GRID_LINE_SMOOTH 1.15
 
-float grid(vec3 uv, vec3 fwidthCos, float grid_size)
+float get_grid(vec3 co, vec3 fwidthCos, float grid_size)
 {
 	float half_size = grid_size / 2.0;
 	/* triangular wave pattern, amplitude is [0, grid_size] */
-	vec3 grid_domain = abs(mod(uv + half_size, grid_size) - half_size);
-	/* modulate by the absolute rate of change of the uvs
+	vec3 grid_domain = abs(mod(co + half_size, grid_size) - half_size);
+	/* modulate by the absolute rate of change of the coordinates
 	 * (make lines have the same width under perspective) */
 	grid_domain /= fwidthCos;
 
@@ -44,56 +47,58 @@ float grid(vec3 uv, vec3 fwidthCos, float grid_size)
 	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH / grid_size, grid_domain.x);
 }
 
-float axis(float u, float fwidthU, float line_size)
+vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
 {
-	float axis_domain = abs(u);
-	/* modulate by the absolute rate of change of the uvs
+	vec3 axes_domain = abs(co);
+	/* modulate by the absolute rate of change of the coordinates
 	 * (make line have the same width under perspective) */
-	axis_domain /= fwidthU;
+	axes_domain /= fwidthCos;
 
-	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH, axis_domain - line_size);
+	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH, axes_domain - line_size);
 }
 
-vec3 get_floor_pos(vec2 uv)
+vec3 get_floor_pos(vec2 uv, out vec3 wPos)
 {
+	vec3 camera_vec, camera_pos, corner_pos;
+	vec3 floored_pos = planeAxes * floor(screenvecs[2].xyz);
+	corner_pos = screenvecs[2].xyz - floored_pos;
+
+	vec3 pixel_pos = corner_pos + uv.x * screenvecs[0].xyz + uv.y * screenvecs[1].xyz;
+
 	/* if perspective */
-	vec3 camera_vec, camera_pos;
-	vec3 pixel_pos = screenvecs[2].xyz + uv.x * screenvecs[0].xyz + uv.y * screenvecs[1].xyz;
-
 	if (ProjectionMatrix[3][3] == 0.0) {
-		camera_vec = normalize(pixel_pos - cameraPos);
-		camera_pos = cameraPos;
+		camera_pos = cameraPos - floored_pos;
+		camera_vec = normalize(pixel_pos - camera_pos);
 	}
 	else {
-		camera_vec = normalize(eye);
 		camera_pos = pixel_pos;
+		camera_vec = normalize(eye);
 	}
 
-	vec3 plane_normal;
-	if ((gridFlag & PLANE_XZ) > 0) {
-		plane_normal = vec3(0.0, 1.0, 0.0);
-	}
-	else if ((gridFlag & PLANE_YZ) > 0) {
-		plane_normal = vec3(1.0, 0.0, 0.0);
-	}
-	else {
-		plane_normal = vec3(0.0, 0.0, 1.0);
-	}
-
-	float p = -dot(plane_normal, camera_pos) / dot(plane_normal, camera_vec);
+	float p = -dot(planeNormal, camera_pos) / dot(planeNormal, camera_vec);
 	vec3 plane = camera_pos + camera_vec * p;
 
 	/* fix residual imprecision */
-	vec3 mask = vec3(1.0) - plane_normal;
-	return plane * mask;
+	plane *= planeAxes;
+
+	/* Recover non-offseted world position */
+	wPos = plane + floored_pos;
+
+	return plane;
 }
 
 void main()
 {
 	vec2 sPos = gl_FragCoord.xy / viewportSize; /* Screen [0,1] position */
-	vec3 wPos = get_floor_pos(sPos);
 
-	vec3 fwidthCos = fwidth(wPos);
+	/* To reduce artifacts, use a local version of the positions
+	 * to compute derivatives since they are not position dependant.
+	 * This gets rid of the blocky artifacts. Unfortunately we still
+	 * need the world position for the grid to scale properly from the origin. */
+	vec3 gPos, wPos; /* Grid pos., World pos. */
+	gPos = get_floor_pos(sPos, wPos);
+
+	vec3 fwidthPos = fwidth(gPos);
 
 	float dist, fade;
 	/* if persp */
@@ -132,14 +137,14 @@ void main()
 		float blend = fract(-max(grid_res, 0.0));
 		float lvl = floor(grid_res);
 
-		/* from smallest to biggest */
+		/* from biggest to smallest */
 		float scaleA = gridScale * pow(gridSubdiv, max(lvl - 1.0, 0.0));
 		float scaleB = gridScale * pow(gridSubdiv, max(lvl + 0.0, 0.0));
 		float scaleC = gridScale * pow(gridSubdiv, max(lvl + 1.0, 1.0));
 
-		float gridA = grid(wPos, fwidthCos, scaleA);
-		float gridB = grid(wPos, fwidthCos, scaleB);
-		float gridC = grid(wPos, fwidthCos, scaleC);
+		float gridA = get_grid(wPos, fwidthPos, scaleA);
+		float gridB = get_grid(wPos, fwidthPos, scaleB);
+		float gridC = get_grid(wPos, fwidthPos, scaleC);
 
 		FragColor = vec4(colorGrid.rgb, gridA * blend);
 		FragColor = mix(FragColor, vec4(mix(colorGrid.rgb, colorGridEmphasise.rgb, blend), 1.0), gridB);
@@ -149,35 +154,35 @@ void main()
 		FragColor = vec4(colorGrid.rgb, 0.0);
 	}
 
-	if ((gridFlag & AXIS_X) > 0) {
-		float xAxis;
-		if ((gridFlag & PLANE_XZ) > 0) {
-			xAxis = axis(wPos.z, fwidthCos.z, 0.1);
+	if ((gridFlag & (AXIS_X | AXIS_Y | AXIS_Z)) > 0) {
+		/* Setup axes 'domains' */
+		vec3 axes_dist, axes_fwidth;
+
+		if ((gridFlag & AXIS_X) > 0) {
+			axes_dist.x = dot(wPos.yz, planeAxes.yz);
+			axes_fwidth.x = dot(fwidthPos.yz, planeAxes.yz);
 		}
-		else {
-			xAxis = axis(wPos.y, fwidthCos.y, 0.1);
+		if ((gridFlag & AXIS_Y) > 0) {
+			axes_dist.y = dot(wPos.xz, planeAxes.xz);
+			axes_fwidth.y = dot(fwidthPos.xz, planeAxes.xz);
 		}
-		FragColor = mix(FragColor, colorGridAxisX, xAxis);
-	}
-	if ((gridFlag & AXIS_Y) > 0) {
-		float yAxis;
-		if ((gridFlag & PLANE_YZ) > 0) {
-			yAxis = axis(wPos.z, fwidthCos.z, 0.1);
+		if ((gridFlag & AXIS_Z) > 0) {
+			axes_dist.z = dot(wPos.xy, planeAxes.xy);
+			axes_fwidth.z = dot(fwidthPos.xy, planeAxes.xy);
 		}
-		else {
-			yAxis = axis(wPos.x, fwidthCos.x, 0.1);
+
+		/* Computing all axes at once using vec3 */
+		vec3 axes = get_axes(axes_dist, axes_fwidth, 0.1);
+
+		if ((gridFlag & AXIS_X) > 0) {
+			FragColor = mix(FragColor, colorGridAxisX, axes.x);
 		}
-		FragColor = mix(FragColor, colorGridAxisY, yAxis);
-	}
-	if ((gridFlag & AXIS_Z) > 0) {
-		float zAxis;
-		if ((gridFlag & PLANE_YZ) > 0) {
-			zAxis = axis(wPos.y, fwidthCos.y, 0.1);
+		if ((gridFlag & AXIS_Y) > 0) {
+			FragColor = mix(FragColor, colorGridAxisY, axes.y);
 		}
-		else {
-			zAxis = axis(wPos.x, fwidthCos.x, 0.1);
+		if ((gridFlag & AXIS_Z) > 0) {
+			FragColor = mix(FragColor, colorGridAxisZ, axes.z);
 		}
-		FragColor = mix(FragColor, colorGridAxisZ, zAxis);
 	}
 
 	FragColor.a *= fade;

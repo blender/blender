@@ -212,8 +212,12 @@ static struct {
 	float grid_settings[5];
 	float grid_mat[4][4];
 	int grid_flag;
+	float grid_normal[3];
+	float grid_axes[3];
 	int zpos_flag;
 	int zneg_flag;
+	float zplane_normal[3];
+	float zplane_axes[3];
 	bool draw_grid;
 	/* Temp buffer textures */
 	struct GPUTexture *outlines_depth_tx;
@@ -397,7 +401,17 @@ static void OBJECT_engine_init(void *vedata)
 			}
 		}
 
+		e_data.grid_normal[0] = (float)((e_data.grid_flag & PLANE_YZ) != 0);
+		e_data.grid_normal[1] = (float)((e_data.grid_flag & PLANE_XZ) != 0);
+		e_data.grid_normal[2] = (float)((e_data.grid_flag & PLANE_XY) != 0);
+
+		e_data.grid_axes[0] = (float)((e_data.grid_flag & (PLANE_XZ | PLANE_XY)) != 0);
+		e_data.grid_axes[1] = (float)((e_data.grid_flag & (PLANE_YZ | PLANE_XY)) != 0);
+		e_data.grid_axes[2] = (float)((e_data.grid_flag & (PLANE_YZ | PLANE_XZ)) != 0);
+
 		/* Vectors to recover pixel world position. Fix grid precision issue. */
+		/* Using pixel at z = 0.0f in ndc space : gives average precision between
+		 * near and far plane. Note that it might not be the best choice. */
 		copy_v4_fl4(e_data.screenvecs[0],  1.0f, -1.0f, 0.0f, 1.0f);
 		copy_v4_fl4(e_data.screenvecs[1], -1.0f,  1.0f, 0.0f, 1.0f);
 		copy_v4_fl4(e_data.screenvecs[2], -1.0f, -1.0f, 0.0f, 1.0f);
@@ -410,6 +424,9 @@ static void OBJECT_engine_init(void *vedata)
 			e_data.screenvecs[i][1] /= e_data.screenvecs[i][3]; /* perspective divide */
 			e_data.screenvecs[i][2] /= e_data.screenvecs[i][3]; /* perspective divide */
 			e_data.screenvecs[i][3] = 1.0f;
+			/* main instability come from this one */
+			/* TODO : to make things even more stable, don't use
+			 * invviewmat and derive vectors from camera properties */
 			mul_m4_v4(invviewmat, e_data.screenvecs[i]);
 		}
 
@@ -444,6 +461,15 @@ static void OBJECT_engine_init(void *vedata)
 				e_data.zpos_flag |= CLIP_ZNEG;
 				e_data.zneg_flag |= CLIP_ZPOS;
 			}
+
+			e_data.zplane_normal[0] = (float)((e_data.zpos_flag & PLANE_YZ) != 0);
+			e_data.zplane_normal[1] = (float)((e_data.zpos_flag & PLANE_XZ) != 0);
+			e_data.zplane_normal[2] = (float)((e_data.zpos_flag & PLANE_XY) != 0);
+
+			e_data.zplane_axes[0] = (float)((e_data.zpos_flag & (PLANE_XZ | PLANE_XY)) != 0);
+			e_data.zplane_axes[1] = (float)((e_data.zpos_flag & (PLANE_YZ | PLANE_XY)) != 0);
+			e_data.zplane_axes[2] = (float)((e_data.zpos_flag & (PLANE_YZ | PLANE_XZ)) != 0);
+
 		}
 		else {
 			e_data.zneg_flag = e_data.zpos_flag = CLIP_ZNEG | CLIP_ZPOS;
@@ -775,6 +801,8 @@ static void OBJECT_cache_init(void *vedata)
 		/* Create 3 quads to render ordered transparency Z axis */
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zneg_flag, 1);
+		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.zplane_normal, 1);
+		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
 		DRW_shgroup_uniform_mat4(grp, "ViewProjectionOffsetMatrix", (float *)e_data.grid_mat);
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
 		DRW_shgroup_uniform_vec4(grp, "screenvecs[0]", e_data.screenvecs[0], 3);
@@ -786,10 +814,14 @@ static void OBJECT_cache_init(void *vedata)
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.grid_flag, 1);
+		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.grid_normal, 1);
+		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.grid_axes, 1);
 		DRW_shgroup_call_add(grp, quad, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zpos_flag, 1);
+		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.zplane_normal, 1);
+		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
 		DRW_shgroup_call_add(grp, quad, mat);
 	}
 
