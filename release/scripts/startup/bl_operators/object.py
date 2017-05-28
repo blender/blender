@@ -864,7 +864,7 @@ class DupliOffsetFromCursor(Operator):
     """Set offset used for DupliGroup based on cursor position"""
     bl_idname = "object.dupli_offset_from_cursor"
     bl_label = "Set Offset From Cursor"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'INTERNAL', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
