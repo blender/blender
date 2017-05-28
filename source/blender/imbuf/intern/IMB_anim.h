@@ -40,10 +40,7 @@
 #  include <mmsystem.h>
 #  include <memory.h>
 #  include <commdlg.h>
-
-#  ifndef FREE_WINDOWS
-#    include <vfw.h>
-#  endif
+#  include <vfw.h>
 
 #  undef AVIIF_KEYFRAME // redefined in AVI_avi.h
 #  undef AVIIF_LIST // redefined in AVI_avi.h
@@ -130,7 +127,7 @@ struct anim {
 	/* avi */
 	struct _AviMovie *avi;
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32)
 	/* windows avi */
 	int avistreams;
 	int firstvideo;

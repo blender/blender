@@ -1173,21 +1173,9 @@ bool BLI_path_program_search(
 void BLI_setenv(const char *env, const char *val)
 {
 	/* free windows */
-#if (defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)
-	char *envstr;
 
-	if (val)
-		envstr = BLI_sprintfN("%s=%s", env, val);
-	else
-		envstr = BLI_sprintfN("%s=", env);
-
-	putenv(envstr);
-	MEM_freeN(envstr);
-
-	/* non-free windows */
-#elif (defined(WIN32) || defined(WIN64)) /* not free windows */
+#if (defined(WIN32) || defined(WIN64))
 	uputenv(env, val);
-
 
 #else
 	/* linux/osx/bsd */

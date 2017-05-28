@@ -80,12 +80,6 @@
 #define DEFAULT_LOGIC_TIC_RATE 60.0
 //#define DEFAULT_PHYSICS_TIC_RATE 60.0
 
-#ifdef FREE_WINDOWS /* XXX mingw64 (gcc 4.7.0) defines a macro for DrawText that translates to DrawTextA. Not good */
-#ifdef DrawText
-#undef DrawText
-#endif
-#endif
-
 const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Physics:",		// tc_physics
 	"Logic:",		// tc_logic

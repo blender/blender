@@ -105,6 +105,13 @@ struct MovieTrackingMarker *tracking_get_keyframed_marker(
 	int current_frame,
 	bool backwards);
 
+/*********************** Masking *************************/
+
+float *tracking_track_get_mask_for_region(int frame_width, int frame_height,
+                                          const float region_min[2],
+                                          const float region_max[2],
+                                          MovieTrackingTrack *track);
+
 /*********************** Frame accessr *************************/
 
 struct libmv_FrameAccessor;
@@ -114,12 +121,16 @@ typedef struct TrackingImageAccessor {
 	struct MovieCache *cache;
 	struct MovieClip *clips[MAX_ACCESSOR_CLIP];
 	int num_clips;
+	struct MovieTrackingTrack **tracks;
+	int num_tracks;
 	int start_frame;
 	struct libmv_FrameAccessor *libmv_accessor;
 } TrackingImageAccessor;
 
 TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR_CLIP],
                                                    int num_clips,
+                                                   MovieTrackingTrack **tracks,
+                                                   int num_tracks,
                                                    int start_frame);
 void tracking_image_accessor_destroy(TrackingImageAccessor *accessor);
 

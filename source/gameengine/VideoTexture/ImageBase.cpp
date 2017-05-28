@@ -43,7 +43,7 @@ extern "C" {
 
 #include "Exception.h"
 
-#if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
+#if (defined(WIN32) || defined(WIN64))
 #define strcasecmp	_stricmp
 #endif
 

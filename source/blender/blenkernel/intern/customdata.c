@@ -1925,16 +1925,15 @@ void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
 
 bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 {
-	if (index < 0) {
-		return false;
-	}
 	const int index_first = CustomData_get_layer_index(data, type);
-	if (index_first == -1) {
-		return false;
-	}
-
 	const int n = index - index_first;
 	int i;
+
+	BLI_assert(index >= index_first);
+	if ((index_first == -1) || (n < 0)) {
+		return false;
+	}
+	BLI_assert(data->layers[index].type == type);
 
 	customData_free_layer__internal(&data->layers[index], totelem);
 

@@ -116,7 +116,6 @@ set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /NODEFAULTLIB:msvcrt.lib /NODEFAUL
 set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /ignore:4049 /ignore:4217 /ignore:4221")
 set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /ignore:4221")
 
-# MSVC only, Mingw doesnt need
 if(CMAKE_CL_64)
 	set(PLATFORM_LINKFLAGS "/MACHINE:X64 ${PLATFORM_LINKFLAGS}")
 else()
@@ -473,12 +472,7 @@ if(WITH_SDL)
 	set(SDL ${LIBDIR}/sdl)
 	set(SDL_INCLUDE_DIR ${SDL}/include)
 	set(SDL_LIBPATH ${SDL}/lib)
-	# MinGW TODO: Update MinGW to SDL2
-	if(NOT CMAKE_COMPILER_IS_GNUCC)
-		set(SDL_LIBRARY SDL2)
-	else()
-		set(SDL_LIBRARY SDL)
-	endif()
+	set(SDL_LIBRARY SDL2)
 endif()
 
 # Audio IO

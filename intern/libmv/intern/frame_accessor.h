@@ -61,10 +61,23 @@ typedef libmv_CacheKey (*libmv_GetImageCallback) (
 
 typedef void (*libmv_ReleaseImageCallback) (libmv_CacheKey cache_key);
 
+typedef libmv_CacheKey (*libmv_GetMaskForTrackCallback) (
+    libmv_FrameAccessorUserData* user_data,
+    int clip,
+    int frame,
+    int track,
+    const libmv_Region* region,
+    float** destination,
+    int* width,
+    int* height);
+typedef void (*libmv_ReleaseMaskCallback) (libmv_CacheKey cache_key);
+
 libmv_FrameAccessor* libmv_FrameAccessorNew(
     libmv_FrameAccessorUserData* user_data,
     libmv_GetImageCallback get_image_callback,
-    libmv_ReleaseImageCallback release_image_callback);
+    libmv_ReleaseImageCallback release_image_callback,
+    libmv_GetMaskForTrackCallback get_mask_for_track_callback,
+    libmv_ReleaseMaskCallback release_mask_callback);
 void libmv_FrameAccessorDestroy(libmv_FrameAccessor* frame_accessor);
 
 int64_t libmv_frameAccessorgetTransformKey(const libmv_FrameTransform *transform);

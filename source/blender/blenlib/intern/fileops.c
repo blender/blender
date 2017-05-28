@@ -42,9 +42,6 @@
 #include "zlib.h"
 
 #ifdef WIN32
-#  ifdef __MINGW32__
-#    include <ctype.h>
-#  endif
 #  include <io.h>
 #  include "BLI_winstuff.h"
 #  include "BLI_callbacks.h"
@@ -265,7 +262,7 @@ void *BLI_gzopen(const char *filename, const char *mode)
 
 	/* temporary #if until we update all libraries to 1.2.7
 	 * for correct wide char path handling */
-#if ZLIB_VERNUM >= 0x1270 && !defined(FREE_WINDOWS)
+#if ZLIB_VERNUM >= 0x1270
 	UTF16_ENCODE(filename);
 
 	gzfile = gzopen_w(filename_16, mode);

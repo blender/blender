@@ -37,10 +37,7 @@
 #include <mmsystem.h>
 #include <memory.h>
 #include <commdlg.h>
-
-#ifndef FREE_WINDOWS
 #include <vfw.h>
-#endif
 
 #undef AVIIF_KEYFRAME /* redefined in AVI_avi.h */
 #undef AVIIF_LIST /* redefined in AVI_avi.h */
@@ -173,7 +170,7 @@ static void an_stringenc(char *string, const char *head, const char *tail, unsig
 #ifdef WITH_AVI
 static void free_anim_avi(struct anim *anim)
 {
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32)
 	int i;
 #endif
 
@@ -184,7 +181,7 @@ static void free_anim_avi(struct anim *anim)
 	MEM_freeN(anim->avi);
 	anim->avi = NULL;
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32)
 
 	if (anim->pgf) {
 		AVIStreamGetFrameClose(anim->pgf);
@@ -283,7 +280,7 @@ static int startavi(struct anim *anim)
 {
 
 	AviError avierror;
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32)
 	HRESULT hr;
 	int i, firstvideo = -1;
 	int streamcount;
@@ -304,7 +301,7 @@ static int startavi(struct anim *anim)
 
 	avierror = AVI_open_movie(anim->name, anim->avi);
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32)
 	if (avierror == AVI_ERROR_COMPRESSION) {
 		AVIFileInit();
 		hr = AVIFileOpen(&anim->pfile, anim->name, OF_READ, 0L);
@@ -401,7 +398,7 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 		return NULL;
 	}
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32)
 	if (anim->avistreams) {
 		LPBITMAPINFOHEADER lpbi;
 

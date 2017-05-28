@@ -29,10 +29,6 @@
 
 /* BLI_array_alloca / alloca */
 
-#if defined(__MINGW32__)
-#  include <malloc.h>  /* mingw needs for alloca() */
-#endif
-
 #if defined(__GNUC__) || defined(__clang__)
 #if defined(__cplusplus) && (__cplusplus > 199711L)
 #define BLI_array_alloca(arr, realsize) \

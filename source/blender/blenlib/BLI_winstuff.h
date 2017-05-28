@@ -37,15 +37,6 @@
 #  error "This include is for Windows only!"
 #endif
 
-#ifdef FREE_WINDOWS
-#  ifdef WINVER
-#    undef WINVER
-#  endif
-
-/* Some stuff requires WINVER 0x500, but mingw's default is 0x400 */
-#  define WINVER 0x0501
-#endif
-
 #define WIN32_LEAN_AND_MEAN
 
 #ifndef WIN32_SKIP_HKEY_PROTECTION
@@ -94,7 +85,7 @@ extern "C" {
 #  define snprintf _snprintf
 #endif
 
-#if defined(_MSC_VER) || (defined(FREE_WINDOWS) && !defined(FREE_WINDOWS64))
+#if defined(_MSC_VER)
 #  define	R_OK	4
 #  define	W_OK	2
 // not accepted by access() on windows
@@ -102,28 +93,22 @@ extern "C" {
 #  define	F_OK	0
 #endif
 
-#ifndef FREE_WINDOWS
 typedef unsigned int mode_t;
-#endif
 
 /* use functions that take a 64 bit offset for files larger than 4GB */
-#ifndef FREE_WINDOWS
-#  include <stdio.h>
-#  define fseek(stream, offset, origin) _fseeki64(stream, offset, origin)
-#  define ftell(stream) _ftelli64(stream)
-#  define lseek(fd, offset, origin) _lseeki64(fd, offset, origin)
-#  define tell(fd) _telli64(fd)
-#endif
+#include <stdio.h>
+#define fseek(stream, offset, origin) _fseeki64(stream, offset, origin)
+#define ftell(stream) _ftelli64(stream)
+#define lseek(fd, offset, origin) _lseeki64(fd, offset, origin)
+#define tell(fd) _telli64(fd)
 
-/* mingw using _SSIZE_T_ to declare ssize_t type */
+
 #ifndef _SSIZE_T_
 #  define _SSIZE_T_
 /* python uses HAVE_SSIZE_T */
 #  ifndef HAVE_SSIZE_T
 #    define HAVE_SSIZE_T 1
-#    ifndef FREE_WINDOWS64
 typedef long ssize_t;
-#    endif
 #  endif
 #endif
 

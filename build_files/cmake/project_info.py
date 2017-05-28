@@ -145,7 +145,7 @@ def cmake_advanced_info():
     def create_eclipse_project():
         print("CMAKE_DIR %r" % CMAKE_DIR)
         if sys.platform == "win32":
-            cmd = 'cmake "%s" -G"Eclipse CDT4 - MinGW Makefiles"' % CMAKE_DIR
+            raise Exception("Error: win32 is not supported")
         else:
             if make_exe_basename.startswith(("make", "gmake")):
                 cmd = 'cmake "%s" -G"Eclipse CDT4 - Unix Makefiles"' % CMAKE_DIR

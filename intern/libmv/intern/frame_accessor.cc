@@ -40,10 +40,14 @@ using mv::Region;
 struct LibmvFrameAccessor : public FrameAccessor {
   LibmvFrameAccessor(libmv_FrameAccessorUserData* user_data,
                      libmv_GetImageCallback get_image_callback,
-                     libmv_ReleaseImageCallback release_image_callback)
+                     libmv_ReleaseImageCallback release_image_callback,
+                     libmv_GetMaskForTrackCallback get_mask_for_track_callback,
+                     libmv_ReleaseMaskCallback release_mask_callback)
     : user_data_(user_data),
       get_image_callback_(get_image_callback),
-      release_image_callback_(release_image_callback) { }
+      release_image_callback_(release_image_callback),
+      get_mask_for_track_callback_(get_mask_for_track_callback),
+      release_mask_callback_(release_mask_callback) { }
 
   virtual ~LibmvFrameAccessor() {
   }
@@ -109,6 +113,41 @@ struct LibmvFrameAccessor : public FrameAccessor {
     release_image_callback_(cache_key);
   }
 
+  Key GetMaskForTrack(int clip,
+                      int frame,
+                      int track,
+                      const Region* region,
+                      FloatImage* destination) {
+    float *float_buffer;
+    int width, height;
+    libmv_Region libmv_region;
+    if (region) {
+      get_libmv_region(*region, &libmv_region);
+    }
+    Key cache_key = get_mask_for_track_callback_(
+        user_data_,
+        clip,
+        frame,
+        track,
+        region != NULL ? &libmv_region : NULL,
+        &float_buffer,
+        &width,
+        &height);
+
+    // TODO(sergey): Dumb code for until we can set data directly.
+    FloatImage temp_image(float_buffer,
+                          height,
+                          width,
+                          1);
+    destination->CopyFrom(temp_image);
+
+    return cache_key;
+  }
+
+  void ReleaseMask(Key key) {
+    release_mask_callback_(key);
+  }
+
   bool GetClipDimensions(int /*clip*/, int * /*width*/, int * /*height*/) {
     return false;
   }
@@ -124,6 +163,8 @@ struct LibmvFrameAccessor : public FrameAccessor {
   libmv_FrameAccessorUserData* user_data_;
   libmv_GetImageCallback get_image_callback_;
   libmv_ReleaseImageCallback release_image_callback_;
+  libmv_GetMaskForTrackCallback get_mask_for_track_callback_;
+  libmv_ReleaseMaskCallback release_mask_callback_;
 };
 
 }  // namespace
@@ -131,11 +172,15 @@ struct LibmvFrameAccessor : public FrameAccessor {
 libmv_FrameAccessor* libmv_FrameAccessorNew(
     libmv_FrameAccessorUserData* user_data,
     libmv_GetImageCallback get_image_callback,
-    libmv_ReleaseImageCallback release_image_callback) {
+    libmv_ReleaseImageCallback release_image_callback,
+    libmv_GetMaskForTrackCallback get_mask_for_track_callback,
+    libmv_ReleaseMaskCallback release_mask_callback) {
   return (libmv_FrameAccessor*) LIBMV_OBJECT_NEW(LibmvFrameAccessor,
                                                  user_data,
                                                  get_image_callback,
-                                                 release_image_callback);
+                                                 release_image_callback,
+                                                 get_mask_for_track_callback,
+                                                 release_mask_callback);
 }
 
 void libmv_FrameAccessorDestroy(libmv_FrameAccessor* frame_accessor) {

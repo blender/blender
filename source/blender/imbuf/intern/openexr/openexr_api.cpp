@@ -69,7 +69,7 @@
 
 #include <openexr_api.h>
 
-#if defined (WIN32) && !defined(FREE_WINDOWS)
+#if defined (WIN32)
 #include "utfconv.h"
 #endif
 
@@ -77,7 +77,7 @@ extern "C"
 {
 
 // The following prevents a linking error in debug mode for MSVC using the libs in CVS
-#if defined(WITH_OPENEXR) && defined(_WIN32) && defined(DEBUG) && !defined(__MINGW32__) && _MSC_VER < 1900
+#if defined(WITH_OPENEXR) && defined(_WIN32) && defined(DEBUG) && _MSC_VER < 1900
 _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 {
 }
@@ -180,7 +180,7 @@ public:
 	: IStream(filename)
 	{
 		/* utf-8 file path support on windows */
-#if defined (WIN32) && !defined(FREE_WINDOWS)
+#if defined (WIN32)
 		wchar_t *wfilename = alloc_utf16_from_8(filename, 0);
 		ifs.open(wfilename, std::ios_base::binary);
 		free(wfilename);
@@ -243,7 +243,7 @@ public:
 	: OStream(filename)
 	{
 		/* utf-8 file path support on windows */
-#if defined (WIN32) && !defined(FREE_WINDOWS)
+#if defined (WIN32)
 		wchar_t *wfilename = alloc_utf16_from_8(filename, 0);
 		ofs.open(wfilename, std::ios_base::binary);
 		free(wfilename);

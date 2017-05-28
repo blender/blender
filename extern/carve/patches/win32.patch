@@ -8,7 +8,7 @@ diff -r e82d852e4fb0 include/carve/win32.h
 -typedef char int8_t;
 -typedef short int16_t;
 -typedef long int32_t;
-+#if defined(_WIN32) && !defined(__MINGW32__)
++#if defined(_WIN32)
 +/* The __intXX are built-in types of the visual complier! So we don't
 +   need to include anything else here.
 +   This typedefs should be in sync with types from MEM_sys_types.h */

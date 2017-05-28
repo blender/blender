@@ -36,8 +36,9 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"   /* SELECT */
 
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_threads.h"
 #include "BLI_math.h"
 
 #include "BKE_movieclip.h"
@@ -75,6 +76,9 @@ typedef struct AutoTrackContext {
 
 	int num_tracks;  /* Number of tracks being tracked. */
 	AutoTrackOptions *options;  /* Per-tracking track options. */
+
+	/* Array of all tracks, indexed by track_index. */
+	MovieTrackingTrack **tracks;
 
 	bool backwards;
 	bool sequence;
@@ -306,8 +310,15 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 
 	BLI_spin_init(&context->spin_lock);
 
+	int num_total_tracks = BLI_listbase_count(tracksbase);
+	context->tracks =
+		MEM_callocN(sizeof(MovieTrackingTrack*) * num_total_tracks,
+		            "auto track pointers");
+
 	context->image_accessor =
-		tracking_image_accessor_new(context->clips, 1, user->framenr);
+		tracking_image_accessor_new(context->clips, 1,
+		                            context->tracks, num_total_tracks,
+		                            user->framenr);
 	context->autotrack =
 		libmv_autoTrackNew(context->image_accessor->libmv_accessor);
 
@@ -361,6 +372,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 			options->use_keyframe_match =
 				track->pattern_match == TRACK_MATCH_KEYFRAME;
 		}
+		context->tracks[track_index] = track;
 		++track_index;
 	}
 
@@ -565,6 +577,7 @@ void BKE_autotrack_context_free(AutoTrackContext *context)
 	libmv_autoTrackDestroy(context->autotrack);
 	tracking_image_accessor_destroy(context->image_accessor);
 	MEM_freeN(context->options);
+	MEM_freeN(context->tracks);
 	BLI_spin_end(&context->spin_lock);
 	MEM_freeN(context);
 }

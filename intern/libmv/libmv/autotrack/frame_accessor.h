@@ -76,6 +76,25 @@ struct FrameAccessor {
   // free the image immediately; others may hold onto the image.
   virtual void ReleaseImage(Key) = 0;
 
+  // Get mask image for the given track.
+  //
+  // Implementation of this method should sample mask associated with the track
+  // within given region to the given destination.
+  //
+  // Result is supposed to be a single channel image.
+  //
+  // If region is NULL, it it assumed to be full-frame.
+  virtual Key GetMaskForTrack(int clip,
+                              int frame,
+                              int track,
+                              const Region* region,
+                              FloatImage* destination) = 0;
+
+  // Release a specified mask.
+  //
+  // Non-caching implementation may free used memory immediately.
+  virtual void ReleaseMask(Key key) = 0;
+
   virtual bool GetClipDimensions(int clip, int* width, int* height) = 0;
   virtual int NumClips() = 0;
   virtual int NumFrames(int clip) = 0;

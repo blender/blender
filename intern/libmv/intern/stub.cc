@@ -375,7 +375,9 @@ int libmv_autoTrackGetMarker(libmv_AutoTrack* /*libmv_autotrack*/,
 libmv_FrameAccessor* libmv_FrameAccessorNew(
     libmv_FrameAccessorUserData* /*user_data**/,
     libmv_GetImageCallback /*get_image_callback*/,
-    libmv_ReleaseImageCallback /*release_image_callback*/)
+    libmv_ReleaseImageCallback /*release_image_callback*/,
+    libmv_GetMaskForTrackCallback /*get_mask_for_track_callback*/,
+    libmv_ReleaseMaskCallback /*release_mask_callback*/)
 {
   return NULL;
 }

@@ -40,10 +40,8 @@ CHashedPtr::CHashedPtr(void* val) : m_valptr(val)
 
 unsigned int CHashedPtr::hash() const
 {
-#if defined(_WIN64) && !defined(FREE_WINDOWS64)
+#if defined(_WIN64)
 	unsigned __int64 key = (unsigned __int64)m_valptr;
-#elif defined(FREE_WINDOWS64)
-	unsigned long long key = (unsigned long long)m_valptr;
 #else
 	unsigned long key = (unsigned long)m_valptr;
 #endif
