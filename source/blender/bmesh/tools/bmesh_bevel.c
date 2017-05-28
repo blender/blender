@@ -1130,16 +1130,24 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 						sub_v3_v3v3(d4, e->next->e->v1->co, e->next->e->v2->co);
 						normalize_v3(d3);
 						normalize_v3(d4);
-						add_v3_v3v3(co3, co1, d3);
-						add_v3_v3v3(co4, co2, d4);
-						isect_kind = isect_line_line_v3(co1, co3, co2, co4, meetco, isect2);
-						if (isect_kind != 0) {
-							copy_v3_v3(pro->midco, meetco);
-						}
-						else {
+						l = dot_v3v3(d3, d4);
+						if (fabsf(1.0f - l) <= BEVEL_EPSILON_BIG || fabsf(-1.0f - l) <= BEVEL_EPSILON_BIG) {
 							/* offset lines are collinear - want linear interpolation */
 							mid_v3_v3v3(pro->midco, co1, co2);
 							do_linear_interp = true;
+						}
+						else {
+							add_v3_v3v3(co3, co1, d3);
+							add_v3_v3v3(co4, co2, d4);
+							isect_kind = isect_line_line_v3(co1, co3, co2, co4, meetco, isect2);
+							if (isect_kind != 0) {
+								copy_v3_v3(pro->midco, meetco);
+							}
+							else {
+								/* offset lines don't intersect - want linear interpolation */
+								mid_v3_v3v3(pro->midco, co1, co2);
+								do_linear_interp = true;
+							}
 						}
 					}
 				}
