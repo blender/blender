@@ -14,11 +14,10 @@
 #include "vertex_format.h"
 
 // How to create a VertexBuffer:
-// 1) verts = create_VertexBuffer() or init_VertexBuffer(verts)
-// 2) add_attrib(verts->format, ...)
-// 3) allocate_vertex_data(verts, vertex_ct) <-- finalizes/packs vertex format
-// 4) fillAttrib(verts, pos, application_pos_buffer)
-// 5) prime_VertexBuffer(verts);
+// 1) verts = VertexBuffer_create() or VertexBuffer_init(verts)
+// 2) VertexFormat_add_attrib(verts->format, ...)
+// 3) VertexBuffer_allocate_data(verts, vertex_ct) <-- finalizes/packs vertex format
+// 4) VertexBuffer_fill_attrib(verts, pos, application_pos_buffer)
 
 // Is VertexBuffer always used as part of a Batch?
 
@@ -41,7 +40,7 @@ unsigned VertexBuffer_size(const VertexBuffer*);
 void VertexBuffer_allocate_data(VertexBuffer*, unsigned v_ct);
 void VertexBuffer_resize_data(VertexBuffer*, unsigned v_ct);
 
-// The most important setAttrib variant is the untyped one. Get it right first.
+// The most important set_attrib variant is the untyped one. Get it right first.
 // It takes a void* so the app developer is responsible for matching their app data types
 // to the vertex attribute's type and component count. They're in control of both, so this
 // should not be a problem.
