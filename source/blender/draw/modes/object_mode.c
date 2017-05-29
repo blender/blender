@@ -1467,13 +1467,13 @@ static void OBJECT_cache_populate_particles(Object *ob,
 					case PART_DRAW_CROSS:
 						shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
 						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
-						DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
+						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 						break;
 					case PART_DRAW_CIRC:
 						shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
 						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
-						DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
+						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
 						break;
 					case PART_DRAW_AXIS:
