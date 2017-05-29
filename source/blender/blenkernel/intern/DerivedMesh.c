@@ -2123,6 +2123,8 @@ static void mesh_calc_modifiers(
 				DM_update_weight_mcol(ob, dm, draw_flag, NULL, 0, NULL);
 				append_mask |= CD_MASK_PREVIEW_MLOOPCOL;
 			}
+
+			dm->deformedOnly = false;
 		}
 
 		isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
@@ -2463,6 +2465,8 @@ static void editbmesh_calc_modifiers(
 					deformedVerts = NULL;
 				}
 			}
+
+			dm->deformedOnly = false;
 		}
 
 		/* In case of active preview modifier, make sure preview mask remains for following modifiers. */
