@@ -179,7 +179,7 @@ static void rect_transform_draw_interaction(
 	VertexFormat *format = immVertexFormat();
 	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	glLineWidth(line_width + 3.0);
 
@@ -198,6 +198,8 @@ static void rect_transform_draw_interaction(
 	immVertex2fv(pos, verts[1]);
 	immVertex2fv(pos, verts[2]);
 	immEnd();
+
+	immUnbindProgram();
 }
 
 static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipulator *manipulator)

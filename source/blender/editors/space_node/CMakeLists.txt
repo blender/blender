@@ -53,6 +53,7 @@ set(SRC
 	node_templates.c
 	node_toolbar.c
 	node_view.c
+	node_widgets.c
 	space_node.c
 
 	node_intern.h
