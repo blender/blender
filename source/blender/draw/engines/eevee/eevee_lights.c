@@ -209,7 +209,7 @@ void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, E
 		}
 	}
 	if (!txl->shadow_depth_cube_pool) {
-		/* Cubemap / octahedra map pool */
+		/* Cubemap / octahedral map pool */
 		/* TODO Cubemap array */
 		txl->shadow_depth_cube_pool = DRW_texture_create_2D_array(
 		        512, 512, max_ff(1, linfo->num_cube), DRW_TEX_R_32,

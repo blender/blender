@@ -190,6 +190,8 @@ typedef struct EEVEE_ProbesInfo {
 	/* For rendering probes */
 	float probemat[6][4][4];
 	int layer;
+	float texel_size;
+	float padding_size;
 	float samples_ct;
 	float invsamples_ct;
 	float roughness;
@@ -282,6 +284,7 @@ void EEVEE_probes_cache_add(EEVEE_Data *vedata, Object *ob);
 void EEVEE_probes_cache_finish(EEVEE_Data *vedata);
 void EEVEE_probes_update(EEVEE_Data *vedata);
 void EEVEE_refresh_probe(EEVEE_Data *vedata);
+void EEVEE_probes_free(void);
 
 /* eevee_effects.c */
 void EEVEE_effects_init(EEVEE_Data *vedata);

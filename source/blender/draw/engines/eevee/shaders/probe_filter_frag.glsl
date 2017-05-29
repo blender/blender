@@ -1,17 +1,54 @@
 
 uniform samplerCube probeHdr;
 uniform float roughnessSquared;
+uniform float texelSize;
 uniform float lodFactor;
 uniform float lodMax;
+uniform float paddingSize;
 
 in vec3 worldPosition;
 
 out vec4 FragColor;
 
+vec3 octahedral_to_cubemap_proj(vec2 co)
+{
+	co = co * 2.0 - 1.0;
+
+	vec2 abs_co = abs(co);
+	vec3 v = vec3(co, 1.0 - (abs_co.x + abs_co.y));
+
+	if ( abs_co.x + abs_co.y > 1.0 ) {
+		v.xy = (abs(co.yx) - 1.0) * -sign(co.xy);
+	}
+
+	return v;
+}
+
 void main() {
+	vec2 uvs = gl_FragCoord.xy * texelSize;
+
+	/* Add a N pixel border to ensure filtering is correct
+	 * for N mipmap levels. */
+	uvs += uvs * texelSize * paddingSize * 2.0;
+	uvs -= texelSize * paddingSize;
+
+	/* edge mirroring : only mirror if directly adjacent
+	 * (not diagonally adjacent) */
+	vec2 m = abs(uvs - 0.5) + 0.5;
+	vec2 f = floor(m);
+	if (f.x - f.y != 0.0) {
+		uvs = 1.0 - uvs;
+	}
+
+	/* clamp to [0-1] */
+	uvs = fract(uvs);
+
+	/* get cubemap vector */
+	vec3 cubevec = octahedral_to_cubemap_proj(uvs);
+
 	vec3 N, T, B, V;
 
-	vec3 R = normalize(worldPosition);
+	vec3 R = normalize(cubevec);
 
 	/* Isotropic assumption */
 	N = V = R;

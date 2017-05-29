@@ -62,7 +62,6 @@ static struct {
 
 	struct GPUTexture *ltc_mat;
 	struct GPUTexture *brdf_lut;
-	struct GPUTexture *hammersley;
 	struct GPUTexture *jitter;
 
 	float camera_pos[3];
@@ -88,35 +87,6 @@ extern char datatoc_background_vert_glsl[];
 
 extern Material defmaterial;
 extern GlobalsUboStorage ts;
-
-/* Van der Corput sequence */
- /* From http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
-static float radical_inverse(int i) {
-	unsigned int bits = (unsigned int)i;
-	bits = (bits << 16u) | (bits >> 16u);
-	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-	return (float)bits * 2.3283064365386963e-10f;
-}
-
-static struct GPUTexture *create_hammersley_sample_texture(int samples)
-{
-	struct GPUTexture *tex;
-	float (*texels)[2] = MEM_mallocN(sizeof(float[2]) * samples, "hammersley_tex");
-	int i;
-
-	for (i = 0; i < samples; i++) {
-		float phi = radical_inverse(i) * 2.0f * M_PI;
-		texels[i][0] = cos(phi);
-		texels[i][1] = sinf(phi);
-	}
-
-	tex = DRW_texture_create_1D(samples, DRW_TEX_RG_16, DRW_TEX_WRAP, (float *)texels);
-	MEM_freeN(texels);
-	return tex;
-}
 
 static struct GPUTexture *create_jitter_texture(int w, int h)
 {
@@ -270,34 +240,8 @@ static void EEVEE_engine_init(void *ved)
 		e_data.default_background = DRW_shader_create_fullscreen(datatoc_default_world_frag_glsl, NULL);
 	}
 
-	if (!e_data.probe_filter_sh) {
-		char *shader_str = NULL;
-
-		DynStr *ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_probe_filter_frag_glsl);
-		shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.probe_filter_sh = DRW_shader_create(
-		        datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, shader_str,
-		        "#define HAMMERSLEY_SIZE 8192\n"
-		        "#define NOISE_SIZE 64\n");
-
-		MEM_freeN(shader_str);
-	}
-
-	if (!e_data.probe_spherical_harmonic_sh) {
-		e_data.probe_spherical_harmonic_sh = DRW_shader_create_fullscreen(datatoc_probe_sh_frag_glsl, NULL);
-	}
-
 	if (!e_data.ltc_mat) {
 		e_data.ltc_mat = DRW_texture_create_2D(64, 64, DRW_TEX_RGBA_16, DRW_TEX_FILTER, ltc_mat_ggx);
-	}
-
-	if (!e_data.hammersley) {
-		e_data.hammersley = create_hammersley_sample_texture(8192);
 	}
 
 	if (!e_data.jitter) {
@@ -440,34 +384,6 @@ static void EEVEE_cache_init(void *vedata)
 	}
 
 	{
-		psl->probe_prefilter = DRW_pass_create("Probe Filtering", DRW_STATE_WRITE_COLOR);
-
-		struct Batch *geom = DRW_cache_fullscreen_quad_get();
-		DRWShadingGroup *grp = eevee_cube_shgroup(e_data.probe_filter_sh, psl->probe_prefilter, geom);
-		DRW_shgroup_uniform_float(grp, "sampleCount", &stl->probes->samples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "invSampleCount", &stl->probes->invsamples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "roughnessSquared", &stl->probes->roughness, 1);
-		DRW_shgroup_uniform_float(grp, "lodFactor", &stl->probes->lodfactor, 1);
-		DRW_shgroup_uniform_float(grp, "lodMax", &stl->probes->lodmax, 1);
-		DRW_shgroup_uniform_int(grp, "Layer", &stl->probes->layer, 1);
-		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
-		// DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
-		DRW_shgroup_uniform_texture(grp, "probeHdr", txl->probe_rt);
-	}
-
-	{
-		psl->probe_sh_compute = DRW_pass_create("Probe SH Compute", DRW_STATE_WRITE_COLOR);
-
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_spherical_harmonic_sh, psl->probe_sh_compute);
-		DRW_shgroup_uniform_int(grp, "probeSize", &stl->probes->shres, 1);
-		DRW_shgroup_uniform_float(grp, "lodBias", &stl->probes->lodfactor, 1);
-		DRW_shgroup_uniform_texture(grp, "probeHdr", txl->probe_rt);
-
-		struct Batch *geom = DRW_cache_fullscreen_quad_get();
-		DRW_shgroup_call_add(grp, geom, NULL);
-	}
-
-	{
 		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
@@ -512,9 +428,8 @@ static void EEVEE_cache_init(void *vedata)
 		psl->material_pass = DRW_pass_create("Material Shader Pass", state);
 	}
 
-
+	EEVEE_probes_cache_init(vedata);
 	EEVEE_lights_cache_init(stl, psl, txl);
-
 	EEVEE_effects_cache_init(vedata);
 }
 
@@ -669,6 +584,7 @@ static void EEVEE_cache_finish(void *vedata)
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
 
 	EEVEE_lights_cache_finish(stl, txl, fbl);
+	EEVEE_probes_cache_finish(vedata);
 
 	/* Shadows binding */
 	eevee_bind_shadow_data data;
@@ -713,6 +629,7 @@ static void EEVEE_engine_free(void)
 {
 	EEVEE_effects_free();
 	EEVEE_lights_free();
+	EEVEE_probes_free();
 
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit);
@@ -723,7 +640,6 @@ static void EEVEE_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.probe_spherical_harmonic_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.ltc_mat);
 	DRW_TEXTURE_FREE_SAFE(e_data.brdf_lut);
-	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
 	DRW_TEXTURE_FREE_SAFE(e_data.jitter);
 }
 

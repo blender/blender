@@ -4,7 +4,7 @@ uniform vec3 cameraPos;
 uniform vec3 eye;
 uniform mat4 ProjectionMatrix;
 
-uniform samplerCube probeFiltered;
+uniform sampler2D probeFiltered;
 uniform float lodMax;
 uniform vec3 shCoefs[9];
 
@@ -41,6 +41,44 @@ in vec3 viewNormal;
 #define SPOT     2.0
 #define HEMI     3.0
 #define AREA     4.0
+
+vec2 mapping_octahedron(vec3 cubevec, vec2 texel_size)
+{
+	/* projection onto octahedron */
+	cubevec /= dot( vec3(1), abs(cubevec) );
+
+	/* out-folding of the downward faces */
+	if ( cubevec.z < 0.0 ) {
+		cubevec.xy = (1.0 - abs(cubevec.yx)) * sign(cubevec.xy);
+	}
+
+	/* mapping to [0;1]ˆ2 texture space */
+	vec2 uvs = cubevec.xy * (0.5) + 0.5;
+
+	/* edge filtering fix */
+	uvs *= 1.0 - 2.0 * texel_size;
+	uvs += texel_size;
+
+	return uvs;
+}
+
+vec4 textureLod_octahedron(sampler2D tex, vec3 cubevec, float lod)
+{
+	vec2 texelSize = 1.0 / vec2(textureSize(tex, int(lodMax)));
+
+	vec2 uvs = mapping_octahedron(cubevec, texelSize);
+
+	return textureLod(tex, uvs, lod);
+}
+
+vec4 texture_octahedron(sampler2DArray tex, vec4 cubevec)
+{
+	vec2 texelSize = 1.0 / vec2(textureSize(tex, 0));
+
+	vec2 uvs = mapping_octahedron(cubevec.xyz, texelSize);
+
+	return texture(tex, vec3(uvs, cubevec.w));
+}
 
 void light_shade(
         LightData ld, ShadingData sd, vec3 albedo, float roughness, vec3 f0,
@@ -139,20 +177,7 @@ void light_visibility(LightData ld, ShadingData sd, out float vis)
 		vec3 cubevec = sd.W - ld.l_position;
 		float dist = length(cubevec);
 
-		/* projection onto octahedron */
-		cubevec /= dot( vec3(1), abs(cubevec) );
-
-		/* out-folding of the downward faces */
-		if ( cubevec.z < 0.0 ) {
-			cubevec.xy = (1.0 - abs(cubevec.yx)) * sign(cubevec.xy);
-		}
-		vec2 texelSize = vec2(1.0 / 512.0);
-
-		/* mapping to [0;1]ˆ2 texture space */
-		vec2 uvs = cubevec.xy * (0.5) + 0.5;
-		uvs = uvs * (1.0 - 2.0 * texelSize) + 1.0 * texelSize; /* edge filtering fix */
-
-		float z = texture(shadowCubes, vec3(uvs, shid)).r;
+		float z = texture_octahedron(shadowCubes, vec4(cubevec, shid)).r;
 
 		float esm_test = min(1.0, exp(-5.0 * dist) * z);
 		float sh_test = step(0, z - dist);
@@ -194,7 +219,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	/* Envmaps */
 	vec2 uv = lut_coords(dot(sd.N, sd.V), roughness);
 	vec3 brdf_lut = texture(brdfLut, uv).rgb;
-	vec3 Li = textureLod(probeFiltered, spec_dir, roughness * lodMax).rgb;
+	vec3 Li = textureLod_octahedron(probeFiltered, spec_dir, roughness * lodMax).rgb;
 	indirect_radiance += Li * F_ibl(f0, brdf_lut.rg);
 	indirect_radiance += spherical_harmonics(sd.N, shCoefs) * albedo;
 
