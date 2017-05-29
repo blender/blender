@@ -260,7 +260,7 @@ static void eevee_light_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngi
 	copy_v3_v3(evli->position, ob->obmat[3]);
 
 	/* Color */
-	srgb_to_linearrgb_v3_v3(evli->color, &la->r);
+	copy_v3_v3(evli->color, &la->r);
 
 	/* Influence Radius */
 	evli->dist = la->dist;
