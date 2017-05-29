@@ -345,7 +345,7 @@ static int backimage_fit_exec(bContext *C, wmOperator *UNUSED(op))
 	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
-	if (ibuf == NULL) {
+	if ((ibuf == NULL) || (ibuf->x == 0) || (ibuf->y == 0)) {
 		BKE_image_release_ibuf(ima, ibuf, lock);
 		return OPERATOR_CANCELLED;
 	}
