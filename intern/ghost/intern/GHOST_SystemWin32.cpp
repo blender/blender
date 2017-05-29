@@ -890,16 +890,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
 	// send motion. Mark as 'sent' so motion will always get dispatched.
 	eventSent = true;
 
-#if defined(_MSC_VER)
-	// using Microsoft compiler & header files
-	// they invented the RawInput API, so this version is (probably) correct.
 	BYTE const *data = raw.data.hid.bRawData;
-	// struct RAWHID {
-	// DWORD dwSizeHid;
-	// DWORD dwCount;
-	// BYTE  bRawData[1];
-	// };
-#endif
 
 	BYTE packetType = data[0];
 	switch (packetType) {
