@@ -258,7 +258,7 @@ static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 	return brush->ob_mode & mode;
 }
 
-static void rna_Sculpt_update(Main *UNUSED(bmain), bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Sculpt_update(bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = OBACT_NEW;
