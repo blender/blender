@@ -374,3 +374,69 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 	// Batch_done_using_program(batch);
 	glBindVertexArray(0);
 	}
+
+void Batch_draw_stupid_instanced_with_batch(Batch* batch_instanced, Batch* batch_instancing)
+	{
+	if (batch_instanced->vao_id)
+		glBindVertexArray(batch_instanced->vao_id);
+	else
+		Batch_prime(batch_instanced);
+
+	if (batch_instanced->program_dirty)
+		Batch_update_program_bindings(batch_instanced);
+
+	VertexBuffer* verts = batch_instancing->verts[0];
+
+	const VertexFormat* format = &verts->format;
+
+	const unsigned attrib_ct = format->attrib_ct;
+	const unsigned stride = format->stride;
+
+	VertexBuffer_use(verts);
+
+	for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
+		{
+		const Attrib* a = format->attribs + a_idx;
+
+		const GLvoid* pointer = (const GLubyte*)0 + a->offset;
+
+		for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
+			{
+			const ShaderInput* input = ShaderInterface_attrib(batch_instanced->interface, a->name[n_idx]);
+
+			if (input == NULL) continue;
+
+			glEnableVertexAttribArray(input->location);
+			glVertexAttribDivisor(input->location, 1);
+
+			switch (a->fetch_mode)
+				{
+				case KEEP_FLOAT:
+				case CONVERT_INT_TO_FLOAT:
+					glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
+					break;
+				case NORMALIZE_INT_TO_FLOAT:
+					glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
+					break;
+				case KEEP_INT:
+					glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
+				}
+			}
+		}
+
+	// Batch_use_program(batch);
+
+	//gpuBindMatrices(batch->program);
+
+	if (batch_instanced->elem)
+		{
+		const ElementList* el = batch_instanced->elem;
+
+		glDrawElementsInstanced(batch_instanced->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, verts->vertex_ct);
+		}
+	else
+		glDrawArraysInstanced(batch_instanced->gl_prim_type, 0, batch_instanced->verts[0]->vertex_ct, verts->vertex_ct);
+
+	// Batch_done_using_program(batch);
+	glBindVertexArray(0);
+	}

@@ -73,7 +73,7 @@ void Batch_draw(Batch*);
 void Batch_draw_stupid(Batch*);
 void Batch_draw_stupid_instanced(Batch*, unsigned int instance_vbo, int instance_count,
                                  int attrib_nbr, int attrib_stride, int attrib_loc[16], int attrib_size[16]);
-
+void Batch_draw_stupid_instanced_with_batch(Batch*, Batch*);
 
 
 

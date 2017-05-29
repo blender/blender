@@ -1486,9 +1486,6 @@ static void OBJECT_cache_populate_particles(Object *ob,
 
 				if (shgrp) {
 					if (draw_as != PART_DRAW_DOT) {
-						DRW_shgroup_attrib_float(shgrp, "pos", 3);
-						DRW_shgroup_attrib_float(shgrp, "rot", 4);
-						DRW_shgroup_attrib_float(shgrp, "val", 1);
 						DRW_shgroup_uniform_short_to_int(shgrp, "draw_size", &part->draw_size, 1);
 						DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
 						DRW_shgroup_instance_batch(shgrp, geom);

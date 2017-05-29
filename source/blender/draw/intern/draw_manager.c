@@ -1133,18 +1133,11 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	DRWInterface *interface = shgroup->interface;
 	int buffer_size = 0;
 
-	/* XXX All of this is pretty garbage. Better revisit it later. */
 	if (interface->instance_batch != NULL) {
-		VertexBuffer *vert = interface->instance_batch->verts[0];
-		/* This is double check but we don't want
-		 * VertexBuffer_use() to bind the buffer if it exists. */
-		if (vert->vbo_id == 0) {
-			VertexBuffer_use(vert);
-		}
-		interface->instance_vbo = vert->vbo_id;
-		interface->instance_count = vert->vertex_ct;
+		return;
 	}
 
+	/* TODO We still need this because gawain does not support Matrix attribs. */
 	if (interface->instance_count == 0) {
 		if (interface->instance_vbo) {
 			glDeleteBuffers(1, &interface->instance_vbo);
@@ -1161,11 +1154,6 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 			interface->attribs_size[i] = attrib->size;
 			interface->attribs_loc[i] = attrib->location;
 		}
-	}
-
-	if (interface->instance_batch != NULL) {
-		/* Quit just after attribs where specified */
-		return;
 	}
 
 	/* Gather Data */
@@ -1611,7 +1599,10 @@ static void draw_geometry_execute(DRWShadingGroup *shgroup, Batch *geom)
 	DRWInterface *interface = shgroup->interface;
 	/* step 2 : bind vertex array & draw */
 	Batch_set_program(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
-	if (interface->instance_vbo) {
+	if (interface->instance_batch) {
+		Batch_draw_stupid_instanced_with_batch(geom, interface->instance_batch);
+	}
+	else if (interface->instance_vbo) {
 		Batch_draw_stupid_instanced(geom, interface->instance_vbo, interface->instance_count, interface->attribs_count,
 		                            interface->attribs_stride, interface->attribs_size, interface->attribs_loc);
 	}
@@ -1737,7 +1728,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		float obmat[4][4];
 		unit_m4(obmat);
 
-		if (shgroup->type == DRW_SHG_INSTANCE && interface->instance_count > 0) {
+		if (shgroup->type == DRW_SHG_INSTANCE &&
+			(interface->instance_count > 0 || interface->instance_batch != NULL))
+		{
 			GPU_SELECT_LOAD_IF_PICKSEL_LIST(&shgroup->calls);
 			draw_geometry(shgroup, shgroup->instance_geom, obmat, NULL);
 		}
