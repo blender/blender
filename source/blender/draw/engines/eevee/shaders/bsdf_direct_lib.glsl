@@ -13,8 +13,10 @@
 
 float direct_diffuse_point(LightData ld, ShadingData sd)
 {
-	float bsdf = max(0.0, dot(sd.N, sd.L));
-	bsdf /= sd.l_distance * sd.l_distance;
+	float dist = length(sd.l_vector);
+	vec3 L = sd.l_vector / dist;
+	float bsdf = max(0.0, dot(sd.N, L));
+	bsdf /= dist * dist;
 	return bsdf;
 }
 
@@ -23,9 +25,11 @@ float direct_diffuse_point(LightData ld, ShadingData sd)
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
 float direct_diffuse_sphere(LightData ld, ShadingData sd)
 {
+	float dist = length(sd.l_vector);
+	vec3 L = sd.l_vector / dist;
 	float radius = max(ld.l_sizex, 0.0001);
-	float costheta = clamp(dot(sd.N, sd.L), -0.999, 0.999);
-	float h = min(ld.l_radius / sd.l_distance , 0.9999);
+	float costheta = clamp(dot(sd.N, L), -0.999, 0.999);
+	float h = min(ld.l_radius / dist , 0.9999);
 	float h2 = h*h;
 	float costheta2 = costheta * costheta;
 	float bsdf;
@@ -51,26 +55,21 @@ float direct_diffuse_sphere(LightData ld, ShadingData sd)
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
 float direct_diffuse_rectangle(LightData ld, ShadingData sd)
 {
-#ifdef USE_LTC
-	float bsdf = ltc_evaluate(sd.N, sd.V, mat3(1.0), sd.area_data.corner);
+	vec3 corners[4];
+	corners[0] = sd.l_vector + ld.l_right * -ld.l_sizex + ld.l_up *  ld.l_sizey;
+	corners[1] = sd.l_vector + ld.l_right * -ld.l_sizex + ld.l_up * -ld.l_sizey;
+	corners[2] = sd.l_vector + ld.l_right *  ld.l_sizex + ld.l_up * -ld.l_sizey;
+	corners[3] = sd.l_vector + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey;
+
+	float bsdf = ltc_evaluate(sd.N, sd.V, mat3(1.0), corners);
 	bsdf *= M_1_2PI;
-#else
-	float bsdf = sd.area_data.solid_angle * 0.2 * (
-		max(0.0, dot(normalize(sd.area_data.corner[0]), sd.N)) +
-		max(0.0, dot(normalize(sd.area_data.corner[1]), sd.N)) +
-		max(0.0, dot(normalize(sd.area_data.corner[2]), sd.N)) +
-		max(0.0, dot(normalize(sd.area_data.corner[3]), sd.N)) +
-		max(0.0, dot(sd.L, sd.N))
-	);
-	bsdf *= M_1_PI;
-#endif
 	return bsdf;
 }
 
 /* infinitly far away point source, no decay */
 float direct_diffuse_sun(LightData ld, ShadingData sd)
 {
-	float bsdf = max(0.0, dot(sd.N, sd.L));
+	float bsdf = max(0.0, dot(sd.N, -ld.l_forward));
 	bsdf *= M_1_PI; /* Normalize */
 	return bsdf;
 }
@@ -85,25 +84,29 @@ float direct_diffuse_unit_disc(vec3 N, vec3 L)
 /* ----------- GGx ------------ */
 vec3 direct_ggx_point(ShadingData sd, float roughness, vec3 f0)
 {
-	float bsdf = bsdf_ggx(sd.N, sd.L, sd.V, roughness);
-	bsdf /= sd.l_distance * sd.l_distance;
+	float dist = length(sd.l_vector);
+	vec3 L = sd.l_vector / dist;
+	float bsdf = bsdf_ggx(sd.N, L, sd.V, roughness);
+	bsdf /= dist * dist;
 
 	/* Fresnel */
-	float VH = max(dot(sd.V, normalize(sd.V + sd.L)), 0.0);
+	float VH = max(dot(sd.V, normalize(sd.V + L)), 0.0);
 	return F_schlick(f0, VH) * bsdf;
 }
 
 vec3 direct_ggx_sphere(LightData ld, ShadingData sd, float roughness, vec3 f0)
 {
-#ifdef USE_LTC
-	float NV = max(dot(sd.N, sd.V), 1e-8);
-	vec3 P = line_aligned_plane_intersect(vec3(0.0), sd.spec_dominant_dir, sd.l_vector);
+	vec3 L = normalize(sd.l_vector);
+	vec3 spec_dir = get_specular_dominant_dir(sd.N, reflect(-sd.V, sd.N), roughness);
+	vec3 P = line_aligned_plane_intersect(vec3(0.0), spec_dir, sd.l_vector);
 
 	vec3 Px = normalize(P - sd.l_vector) * ld.l_radius;
-	vec3 Py = cross(Px, sd.L);
+	vec3 Py = cross(Px, L);
 
-	vec2 uv = lut_coords(NV, sqrt(roughness));
-	mat3 ltcmat = ltc_matrix(uv);
+	vec2 uv = lut_coords(dot(sd.N, sd.V), sqrt(roughness));
+	vec3 brdf_lut = texture(brdfLut, uv).rgb;
+	vec4 ltc_lut = texture(ltcMat, uv).rgba;
+	mat3 ltc_mat = ltc_matrix(ltc_lut);
 
 // #define HIGHEST_QUALITY
 #ifdef HIGHEST_QUALITY
@@ -120,64 +123,44 @@ vec3 direct_ggx_sphere(LightData ld, ShadingData sd, float roughness, vec3 f0)
 	points[5] = sd.l_vector + Pxy2;
 	points[6] = sd.l_vector + Py;
 	points[7] = sd.l_vector + Pxy1;
-	float bsdf = ltc_evaluate_circle(sd.N, sd.V, ltcmat, points);
+	float bsdf = ltc_evaluate_circle(sd.N, sd.V, ltc_mat, points);
 #else
 	vec3 points[4];
 	points[0] = sd.l_vector + Px;
 	points[1] = sd.l_vector - Py;
 	points[2] = sd.l_vector - Px;
 	points[3] = sd.l_vector + Py;
-	float bsdf = ltc_evaluate(sd.N, sd.V, ltcmat, points);
+	float bsdf = ltc_evaluate(sd.N, sd.V, ltc_mat, points);
 	/* sqrt(pi/2) difference between square and disk area */
 	bsdf *= 1.25331413731;
 #endif
-	vec3 lut = texture(brdfLut, uv).rgb;
-	bsdf *= lut.b; /* Bsdf intensity */
+
+	bsdf *= brdf_lut.b; /* Bsdf intensity */
 	bsdf *= M_1_2PI * M_1_PI;
 
-	vec3 spec = F_area(f0, lut.xy) * bsdf;
-#else
-	float energy_conservation;
-	vec3 L = mrp_sphere(ld, sd, sd.spec_dominant_dir, roughness, energy_conservation);
-	float bsdf = bsdf_ggx(sd.N, L, sd.V, roughness);
+	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
 
-	bsdf *= energy_conservation / (sd.l_distance * sd.l_distance);
-	bsdf *= max(ld.l_radius * ld.l_radius, 1e-16); /* radius is already inside energy_conservation */
-
-	/* Fresnel */
-	float VH = max(dot(sd.V, normalize(sd.V + sd.L)), 0.0);
-	vec3 spec = F_schlick(f0, VH) * bsdf;
-#endif
 	return spec;
 }
 
 vec3 direct_ggx_rectangle(LightData ld, ShadingData sd, float roughness, vec3 f0)
 {
-#ifdef USE_LTC
-	float NV = max(dot(sd.N, sd.V), 1e-8);
-	vec2 uv = lut_coords(NV, sqrt(roughness));
-	mat3 ltcmat = ltc_matrix(uv);
+	vec3 corners[4];
+	corners[0] = sd.l_vector + ld.l_right * -ld.l_sizex + ld.l_up *  ld.l_sizey;
+	corners[1] = sd.l_vector + ld.l_right * -ld.l_sizex + ld.l_up * -ld.l_sizey;
+	corners[2] = sd.l_vector + ld.l_right *  ld.l_sizex + ld.l_up * -ld.l_sizey;
+	corners[3] = sd.l_vector + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey;
 
-	float bsdf = ltc_evaluate(sd.N, sd.V, ltcmat, sd.area_data.corner);
-	vec3 lut = texture(brdfLut, uv).rgb;
-	bsdf *= lut.b; /* Bsdf intensity */
+	vec2 uv = lut_coords(dot(sd.N, sd.V), sqrt(roughness));
+	vec3 brdf_lut = texture(brdfLut, uv).rgb;
+	vec4 ltc_lut = texture(ltcMat, uv).rgba;
+	mat3 ltc_mat = ltc_matrix(ltc_lut);
+	float bsdf = ltc_evaluate(sd.N, sd.V, ltc_mat, corners);
+	bsdf *= brdf_lut.b; /* Bsdf intensity */
 	bsdf *= M_1_2PI;
 
-	vec3 spec = F_area(f0, lut.xy) * bsdf;
-#else
-	float energy_conservation;
-	vec3 L = mrp_area(ld, sd, sd.spec_dominant_dir, roughness, energy_conservation);
-	float bsdf = bsdf_ggx(sd.N, L, sd.V, roughness);
+	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
 
-	bsdf *= energy_conservation;
-	/* fade mrp artifacts */
-	bsdf *= max(0.0, dot(-sd.spec_dominant_dir, ld.l_forward));
-	bsdf *= max(0.0, -dot(L, ld.l_forward));
-
-	/* Fresnel */
-	float VH = max(dot(sd.V, normalize(sd.V + sd.L)), 0.0);
-	vec3 spec = F_schlick(f0, VH) * bsdf;
-#endif
 	return spec;
 }
 

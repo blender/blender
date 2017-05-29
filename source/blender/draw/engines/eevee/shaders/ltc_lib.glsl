@@ -145,14 +145,13 @@ int clip_quad_to_horizon(inout vec3 L[5])
 	return n;
 }
 
-mat3 ltc_matrix(vec2 coord)
+mat3 ltc_matrix(vec4 lut)
 {
 	/* load inverse matrix */
-	vec4 t = texture(ltcMat, coord);
 	mat3 Minv = mat3(
-		vec3(  1,   0, t.y),
-		vec3(  0, t.z,   0),
-		vec3(t.w,   0, t.x)
+		vec3(  1,   0, lut.y),
+		vec3(  0, lut.z,   0),
+		vec3(lut.w,   0, lut.x)
 	);
 
 	return Minv;

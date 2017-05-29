@@ -66,21 +66,11 @@ struct ShadowCascadeData {
 	vec4 bias;
 };
 
-struct AreaData {
-	vec3 corner[4];
-	float solid_angle;
-};
-
 struct ShadingData {
 	vec3 V; /* View vector */
 	vec3 N; /* World Normal of the fragment */
 	vec3 W; /* World Position of the fragment */
-	vec3 R; /* Reflection vector */
-	vec3 L; /* Current Light vector (normalized) */
-	vec3 spec_dominant_dir; /* dominant direction of the specular rays */
 	vec3 l_vector; /* Current Light vector */
-	float l_distance; /* distance(l_position, W) */
-	AreaData area_data; /* If current light is an area light */
 };
 
 /* ------- Convenience functions --------- */
@@ -213,72 +203,11 @@ vec3 spherical_harmonics_L2(vec3 N, vec3 shcoefs[9])
 	return sh;
 }
 
-float rectangle_solid_angle(AreaData ad)
-{
-	vec3 n0 = normalize(cross(ad.corner[0], ad.corner[1]));
-	vec3 n1 = normalize(cross(ad.corner[1], ad.corner[2]));
-	vec3 n2 = normalize(cross(ad.corner[2], ad.corner[3]));
-	vec3 n3 = normalize(cross(ad.corner[3], ad.corner[0]));
-
-	float g0 = acos(dot(-n0, n1));
-	float g1 = acos(dot(-n1, n2));
-	float g2 = acos(dot(-n2, n3));
-	float g3 = acos(dot(-n3, n0));
-
-	return max(0.0, (g0 + g1 + g2 + g3 - 2.0 * M_PI));
-}
-
 vec3 get_specular_dominant_dir(vec3 N, vec3 R, float roughness)
 {
 	float smoothness = 1.0 - roughness;
 	float fac = smoothness * (sqrt(smoothness) + roughness);
 	return normalize(mix(N, R, fac));
-}
-
-/* From UE4 paper */
-vec3 mrp_sphere(LightData ld, ShadingData sd, vec3 dir, inout float roughness, out float energy_conservation)
-{
-	roughness = max(3e-3, roughness); /* Artifacts appear with roughness below this threshold */
-
-	/* energy preservation */
-	float sphere_angle = saturate(ld.l_radius / sd.l_distance);
-	energy_conservation = pow(roughness / saturate(roughness + 0.5 * sphere_angle), 2.0);
-
-	/* sphere light */
-	float inter_dist = dot(sd.l_vector, dir);
-	vec3 closest_point_on_ray = inter_dist * dir;
-	vec3 center_to_ray = closest_point_on_ray - sd.l_vector;
-
-	/* closest point on sphere */
-	vec3 closest_point_on_sphere = sd.l_vector + center_to_ray * saturate(ld.l_radius * inverse_distance(center_to_ray));
-
-	return normalize(closest_point_on_sphere);
-}
-
-vec3 mrp_area(LightData ld, ShadingData sd, vec3 dir, inout float roughness, out float energy_conservation)
-{
-	roughness = max(3e-3, roughness); /* Artifacts appear with roughness below this threshold */
-
-	/* FIXME : This needs to be fixed */
-	energy_conservation = pow(roughness / saturate(roughness + 0.5 * sd.area_data.solid_angle), 2.0);
-
-	vec3 refproj = line_plane_intersect(sd.W, dir, ld.l_position, ld.l_forward);
-
-	/* Project the point onto the light plane */
-	vec3 refdir = refproj - ld.l_position;
-	vec2 mrp = vec2(dot(refdir, ld.l_right), dot(refdir, ld.l_up));
-
-	/* clamp to light shape bounds */
-	vec2 area_half_size = vec2(ld.l_sizex, ld.l_sizey);
-	mrp = clamp(mrp, -area_half_size, area_half_size);
-
-	/* go back in world space */
-	vec3 closest_point_on_rectangle = sd.l_vector + mrp.x * ld.l_right + mrp.y * ld.l_up;
-
-	float len = length(closest_point_on_rectangle);
-	energy_conservation /= len * len;
-
-	return closest_point_on_rectangle / len;
 }
 
 /* Fresnel */
