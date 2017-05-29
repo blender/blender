@@ -431,6 +431,13 @@ static void object_delete_cb(
 		tselem->id = NULL;
 #endif
 	}
+	else {
+		/* No base, means object is no more instantiated in any scene.
+		 * Should not happen ideally, but does happens, see T51625.
+		 * Rather than twisting in all kind of ways to address all possible cases leading to that situation, simpler
+		 * to allow deleting such object as a mere generic data-block. */
+		WM_operator_name_call(C, "OUTLINER_OT_id_delete", WM_OP_INVOKE_REGION_WIN, NULL);
+	}
 }
 
 static void id_local_cb(
