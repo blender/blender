@@ -1374,6 +1374,74 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob)
 	DRW_shgroup_call_dynamic_add(shgroup, ob->obmat[3]);
 }
 
+static void OBJECT_cache_populate_particles(Object *ob,
+                                            OBJECT_PassList *psl)
+{
+	for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+		if (psys_check_enabled(ob, psys, false)) {
+			ParticleSettings *part = psys->part;
+			int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+
+			if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+				draw_as = PART_DRAW_DOT;
+			}
+
+			static float mat[4][4];
+			unit_m4(mat);
+
+			if (draw_as != PART_DRAW_PATH) {
+				struct Batch *geom = DRW_cache_particles_get_dots(psys);
+				DRWShadingGroup *shgrp = NULL;
+				static int screen_space[2] = {0, 1};
+				static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
+				static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
+
+				Material *ma = give_current_material(ob, part->omat);
+
+				switch (draw_as) {
+					case PART_DRAW_DOT:
+						shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
+						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
+						DRW_shgroup_uniform_vec3(shgrp, "outlineColor", ma ? &ma->specr : def_sec_col, 1);
+						DRW_shgroup_uniform_short_to_int(shgrp, "size", &part->draw_size, 1);
+						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+						DRW_shgroup_call_add(shgrp, geom, mat);
+						break;
+					case PART_DRAW_CROSS:
+						shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
+						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+						DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
+						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
+						break;
+					case PART_DRAW_CIRC:
+						shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
+						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+						DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
+						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
+						break;
+					case PART_DRAW_AXIS:
+						shgrp = DRW_shgroup_instance_create(e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
+						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
+						break;
+					default:
+						break;
+				}
+
+				if (shgrp) {
+					if (draw_as != PART_DRAW_DOT) {
+						DRW_shgroup_attrib_float(shgrp, "pos", 3);
+						DRW_shgroup_attrib_float(shgrp, "rot", 4);
+						DRW_shgroup_attrib_float(shgrp, "val", 1);
+						DRW_shgroup_uniform_short_to_int(shgrp, "draw_size", &part->draw_size, 1);
+						DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+						DRW_shgroup_instance_batch(shgrp, geom);
+					}
+				}
+			}
+		}
+	}
+}
+
 static void OBJECT_cache_populate(void *vedata, Object *ob)
 {
 	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
@@ -1404,69 +1472,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	switch (ob->type) {
 		case OB_MESH:
-			for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
-				if (psys_check_enabled(ob, psys, false)) {
-					ParticleSettings *part = psys->part;
-					int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
-
-					if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
-						draw_as = PART_DRAW_DOT;
-					}
-
-					static float mat[4][4];
-					unit_m4(mat);
-
-					if (draw_as != PART_DRAW_PATH) {
-						struct Batch *geom = DRW_cache_particles_get_dots(psys);
-						DRWShadingGroup *shgrp = NULL;
-						static int screen_space[2] = {0, 1};
-						static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
-						static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
-
-						Material *ma = give_current_material(ob, part->omat);
-
-						switch (draw_as) {
-							case PART_DRAW_DOT:
-								shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
-								DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
-								DRW_shgroup_uniform_vec3(shgrp, "outlineColor", ma ? &ma->specr : def_sec_col, 1);
-								DRW_shgroup_uniform_short_to_int(shgrp, "size", &part->draw_size, 1);
-								DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
-								DRW_shgroup_call_add(shgrp, geom, mat);
-								break;
-							case PART_DRAW_CROSS:
-								shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
-								DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
-								DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
-								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
-								break;
-							case PART_DRAW_CIRC:
-								shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
-								DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
-								DRW_shgroup_uniform_vec3(shgrp, "color", &ma->r, 1);
-								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
-								break;
-							case PART_DRAW_AXIS:
-								shgrp = DRW_shgroup_instance_create(e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
-								DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
-								break;
-							default:
-								break;
-						}
-
-						if (shgrp) {
-							if (draw_as != PART_DRAW_DOT) {
-								DRW_shgroup_attrib_float(shgrp, "pos", 3);
-								DRW_shgroup_attrib_float(shgrp, "rot", 4);
-								DRW_shgroup_attrib_float(shgrp, "val", 1);
-								DRW_shgroup_uniform_short_to_int(shgrp, "draw_size", &part->draw_size, 1);
-								DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-								DRW_shgroup_instance_batch(shgrp, geom);
-							}
-						}
-					}
-				}
-			}
+			OBJECT_cache_populate_particles(ob, psl);
+			break;
 		case OB_SURF:
 			break;
 		case OB_LATTICE:
