@@ -6177,7 +6177,7 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "dof_enable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_dof_enable_get",
 	                               "rna_LayerEngineSettings_Eevee_dof_enable_set");
-	RNA_def_property_ui_text(prop, "Enable Depth of Field", "Enable depth of field using the values from the active camera");
+	RNA_def_property_ui_text(prop, "Depth of Field", "Enable depth of field using the values from the active camera");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
@@ -6203,7 +6203,7 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bloom_enable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_bloom_enable_get",
 	                               "rna_LayerEngineSettings_Eevee_bloom_enable_set");
-	RNA_def_property_ui_text(prop, "Enable Bloom", "High brighness pixels generate a glowing effect");
+	RNA_def_property_ui_text(prop, "Bloom", "High brighness pixels generate a glowing effect");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
@@ -6246,7 +6246,7 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "motion_blur_enable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_motion_blur_enable_get",
 	                               "rna_LayerEngineSettings_Eevee_motion_blur_enable_set");
-	RNA_def_property_ui_text(prop, "Enable Motion Blur", "Enable motion blur effect (only in camera view)");
+	RNA_def_property_ui_text(prop, "Motion Blur", "Enable motion blur effect (only in camera view)");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
