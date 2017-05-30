@@ -125,6 +125,11 @@ if ((lb)->last && (lb_init || (lb_init = (lb)->last))) { \
 	         (lb_iter != lb_init)); \
 }
 
+#define LINKLIST_FOREACH(type, var, list)          \
+	for (type var = (type)((list)->first);     \
+	     var != NULL;                          \
+	     var = (type)(((Link*)(var))->next))
+
 #ifdef __cplusplus
 }
 #endif

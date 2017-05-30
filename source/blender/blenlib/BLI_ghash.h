@@ -296,6 +296,25 @@ double BLI_ghash_calc_quality(GHash *gh);
 double BLI_gset_calc_quality(GSet *gs);
 #endif  /* GHASH_INTERNAL_API */
 
+#define GHASH_FOREACH_BEGIN(type, var, what) \
+	do { \
+		GHashIterator gh_iter##var; \
+		GHASH_ITER(gh_iter##var, what) { \
+			type var = (type)(BLI_ghashIterator_getValue(&gh_iter##var)); \
+
+#define GHASH_FOREACH_END() \
+		} \
+	} while(0)
+
+#define GSET_FOREACH_BEGIN(type, var, what) \
+	do { \
+		GSetIterator gh_iter##var; \
+		GSET_ITER(gh_iter##var, what) { \
+			type var = (type)(BLI_gsetIterator_getKey(&gh_iter##var));
+
+#define GSET_FOREACH_END() \
+		} \
+	} while(0)
 
 #ifdef __cplusplus
 }
