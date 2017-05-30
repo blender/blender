@@ -1172,6 +1172,15 @@ static void layerSwap_flnor(void *data, const int *corner_indices)
 	memcpy(flnors, nors, sizeof(nors));
 }
 
+static void layerDefault_fmap(void *data, int count)
+{
+	int *fmap_num = (int *)data;
+	int i;
+	for (i = 0; i < count; i++) {
+		*fmap_num = -1;
+	}
+}
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 0: CD_MVERT */
 	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -1197,8 +1206,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 3 floats per normal vector */
 	{sizeof(float) * 3, "vec3f", 1, NULL, NULL, NULL, layerInterp_normal, NULL, NULL,
 	 NULL, NULL, NULL, NULL, NULL, layerCopyValue_normal},
-	/* 9: CD_POLYINDEX */  /* DEPRECATED */
-	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 9: CD_FACEMAP */
+	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, layerDefault_fmap, NULL},
 	/* 10: CD_PROP_FLT */
 	{sizeof(MFloatProperty), "MFloatProperty", 1, N_("Float"), layerCopy_propFloat, NULL, NULL, NULL},
 	/* 11: CD_PROP_INT */
@@ -1291,7 +1300,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace",
-	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags",
+	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFaceMap",
 	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty", "CDMStringProperty", "CDOrigSpace", "CDOrco",
 	/* 15-19 */ "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent", "CDMDisps",
 	/* 20-24 */ "CDPreviewMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco", "CDMRecast",
@@ -1306,7 +1315,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 
 
 const CustomDataMask CD_MASK_BAREMESH =
-    CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MLOOP | CD_MASK_MPOLY | CD_MASK_BWEIGHT;
+    CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MLOOP | CD_MASK_MPOLY | CD_MASK_BWEIGHT | CD_MASK_FACEMAP;
 const CustomDataMask CD_MASK_MESH =
     CD_MASK_MVERT | CD_MASK_MEDGE |
     CD_MASK_MDEFORMVERT |
@@ -1314,13 +1323,13 @@ const CustomDataMask CD_MASK_MESH =
     CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MPOLY | CD_MASK_MLOOP |
     CD_MASK_RECAST | CD_MASK_PAINT_MASK |
     CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE |
-    CD_MASK_CUSTOMLOOPNORMAL;
+    CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_FACEMAP;
 const CustomDataMask CD_MASK_EDITMESH =
     CD_MASK_MDEFORMVERT | CD_MASK_MLOOPUV |
     CD_MASK_MLOOPCOL | CD_MASK_SHAPE_KEYINDEX |
     CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR |
     CD_MASK_MDISPS | CD_MASK_SHAPEKEY | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
-    CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_CUSTOMLOOPNORMAL;
+    CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_FACEMAP;
 const CustomDataMask CD_MASK_DERIVEDMESH =
     CD_MASK_MDEFORMVERT |
     CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |
@@ -1328,14 +1337,14 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
     CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORIGSPACE_MLOOP | CD_MASK_ORCO | CD_MASK_TANGENT |
     CD_MASK_PREVIEW_MCOL | CD_MASK_SHAPEKEY | CD_MASK_RECAST |
     CD_MASK_ORIGINDEX | CD_MASK_MVERT_SKIN | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE |
-    CD_MASK_CUSTOMLOOPNORMAL;
+    CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_FACEMAP;
 const CustomDataMask CD_MASK_BMESH =
     CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL |
     CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
     CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS |
     CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
     CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE |
-    CD_MASK_CUSTOMLOOPNORMAL;
+	CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_FACEMAP;
 /**
  * cover values copied by #BKE_mesh_loops_to_tessdata
  */
@@ -1357,7 +1366,7 @@ const CustomDataMask CD_MASK_EVERYTHING =
     /* BMESH ONLY END */
     CD_MASK_PAINT_MASK | CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN |
     CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE |
-    CD_MASK_MLOOPTANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_CUSTOMLOOPNORMAL;
+    CD_MASK_MLOOPTANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_FACEMAP;
 
 static const LayerTypeInfo *layerType_getInfo(int type)
 {
