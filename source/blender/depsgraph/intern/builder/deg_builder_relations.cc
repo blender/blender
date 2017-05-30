@@ -113,6 +113,41 @@ extern "C" {
 
 namespace DEG {
 
+namespace {
+
+struct BuilderWalkUserData {
+	DepsgraphRelationBuilder *builder;
+	Main *bmain;
+	Scene *scene;
+};
+
+static void modifier_walk(void *user_data,
+                          struct Object * /*ob*/,
+                          struct Object **obpoin,
+                          int /*cb_flag*/)
+{
+	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+	if (*obpoin) {
+		data->builder->build_object(data->bmain, data->scene, *obpoin);
+	}
+}
+
+void constraint_walk(bConstraint * /*con*/,
+                     ID **idpoin,
+                     bool /*is_reference*/,
+                     void *user_data)
+{
+	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+	if (*idpoin) {
+		ID *id = *idpoin;
+		if (GS(id->name) == ID_OB) {
+			data->builder->build_object(data->bmain, data->scene, (Object *)id);
+		}
+	}
+}
+
+}  /* namespace */
+
 /* ***************** */
 /* Relations Builder */
 
@@ -405,6 +440,21 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 		             parent_transform_key,
 		             DEPSREL_TYPE_COMPONENT_ORDER,
 		             "[ObLocal -> ObParent]");
+	}
+
+	if (ob->modifiers.first != NULL) {
+		BuilderWalkUserData data;
+		data.builder = this;
+		data.bmain = bmain;
+		data.scene = scene;
+		modifiers_foreachObjectLink(ob, modifier_walk, &data);
+	}
+	if (ob->constraints.first != NULL) {
+		BuilderWalkUserData data;
+		data.builder = this;
+		data.bmain = bmain;
+		data.scene = scene;
+		BKE_constraints_id_loop(&ob->constraints, constraint_walk, &data);
 	}
 
 	/* object constraints */
