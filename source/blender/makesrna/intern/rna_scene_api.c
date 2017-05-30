@@ -227,8 +227,8 @@ static void rna_Scene_alembic_export(
 	    .frame_start = frame_start,
 	    .frame_end = frame_end,
 
-	    .frame_step_xform = 1.0 / (double)xform_samples,
-	    .frame_step_shape = 1.0 / (double)geom_samples,
+	    .frame_samples_xform = xform_samples,
+	    .frame_samples_shape = geom_samples,
 
 	    .shutter_open = shutter_open,
 	    .shutter_close = shutter_close,

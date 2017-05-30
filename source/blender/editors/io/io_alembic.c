@@ -106,8 +106,8 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	    .frame_start = RNA_int_get(op->ptr, "start"),
 	    .frame_end = RNA_int_get(op->ptr, "end"),
 
-	    .frame_step_xform = 1.0 / (double)RNA_int_get(op->ptr, "xsamples"),
-	    .frame_step_shape = 1.0 / (double)RNA_int_get(op->ptr, "gsamples"),
+	    .frame_samples_xform = RNA_int_get(op->ptr, "xsamples"),
+	    .frame_samples_shape = RNA_int_get(op->ptr, "gsamples"),
 
 	    .shutter_open = RNA_float_get(op->ptr, "sh_open"),
 	    .shutter_close = RNA_float_get(op->ptr, "sh_close"),

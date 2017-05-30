@@ -332,8 +332,8 @@ bool ABC_export(
 	job->settings.scene = job->scene;
 	job->settings.frame_start = params->frame_start;
 	job->settings.frame_end = params->frame_end;
-	job->settings.frame_step_xform = params->frame_step_xform;
-	job->settings.frame_step_shape = params->frame_step_shape;
+	job->settings.frame_samples_xform = params->frame_samples_xform;
+	job->settings.frame_samples_shape = params->frame_samples_shape;
 	job->settings.shutter_open = params->shutter_open;
 	job->settings.shutter_close = params->shutter_close;
 	job->settings.selected_only = params->selected_only;

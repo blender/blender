@@ -47,8 +47,8 @@ struct AlembicExportParams {
 	double frame_start;
 	double frame_end;
 
-	double frame_step_xform;
-	double frame_step_shape;
+	unsigned int frame_samples_xform;
+	unsigned int frame_samples_shape;
 
 	double shutter_open;
 	double shutter_close;
