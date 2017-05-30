@@ -702,4 +702,8 @@ void BKE_pose_eval_proxy_copy(EvaluationContext *UNUSED(eval_ctx), Object *ob)
 		printf("Proxy copy error, lib Object: %s proxy Object: %s\n",
 		       ob->id.name + 2, ob->proxy_from->id.name + 2);
 	}
+	/* Rest of operations are NO-OP in depsgraph, so can clear
+	 * flag now.
+	 */
+	ob->recalc &= ~OB_RECALC_ALL;
 }
