@@ -176,6 +176,16 @@ void BKE_scene_layer_free(SceneLayer *sl)
 		MEM_freeN(sl->properties_evaluated);
 	}
 
+	for (SceneLayerEngineData *sled = sl->drawdata.first; sled; sled = sled->next) {
+		if (sled->storage) {
+			if (sled->free) {
+				sled->free(sled->storage);
+			}
+			MEM_freeN(sled->storage);
+		}
+	}
+	BLI_freelistN(&sl->drawdata);
+
 	MEM_SAFE_FREE(sl->stats);
 }
 

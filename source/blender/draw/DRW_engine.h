@@ -80,8 +80,6 @@ void DRW_draw_depth_loop(
         struct Depsgraph *graph,
         struct ARegion *ar, struct View3D *v3d);
 
-void DRW_object_engine_data_free(struct Object *ob);
-
 /* This is here because GPUViewport needs it */
 void DRW_pass_free(struct DRWPass *pass);
 

@@ -1071,7 +1071,7 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 	int theme_id = DRW_object_wire_theme_get(ob, sl, &color);
 	static float zero = 0.0f;
 
-	float **la_mats = (float **)DRW_object_engine_data_get(ob, &draw_engine_object_type);
+	float **la_mats = (float **)DRW_object_engine_data_get(ob, &draw_engine_object_type, NULL);
 	if (*la_mats == NULL) {
 		/* we need 2 matrices */
 		*la_mats = MEM_mallocN(sizeof(float) * 16 * 2, "Lamp Object Mode Matrices");

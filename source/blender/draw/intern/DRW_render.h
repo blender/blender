@@ -320,8 +320,12 @@ bool DRW_viewport_is_persp_get(void);
 struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);
 struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 
+/* SceneLayers */
+void **DRW_scene_layer_engine_data_get(DrawEngineType *engine_type, void (*callback)(void *storage));
+
 /* Objects */
-void **DRW_object_engine_data_get(Object *ob, DrawEngineType *det);
+void **DRW_object_engine_data_get(
+        Object *ob, DrawEngineType *engine_type, void (*callback)(void *storage));
 struct LampEngineData *DRW_lamp_engine_data_get(Object *ob, struct RenderEngineType *engine_type);
 void DRW_lamp_engine_data_free(struct LampEngineData *led);
 

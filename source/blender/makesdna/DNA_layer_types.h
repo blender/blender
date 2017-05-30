@@ -52,6 +52,13 @@ typedef struct CollectionOverride {
 	/* TODO proper data */
 } CollectionOverride;
 
+typedef struct SceneLayerEngineData {
+	struct SceneLayerEngineData *next, *prev;
+	struct DrawEngineType *engine_type;
+	void *storage;
+	void (*free)(void *storage);
+} SceneLayerEngineData;
+
 typedef struct LayerCollection {
 	struct LayerCollection *next, *prev;
 	struct SceneCollection *scene_collection;
@@ -79,6 +86,9 @@ typedef struct SceneLayer {
 	ListBase layer_collections; /* LayerCollection */
 	struct IDProperty *properties;  /* overrides */
 	struct IDProperty *properties_evaluated;
+
+	/* Runtime data */
+	ListBase drawdata;    /* SceneLayerEngineData */
 } SceneLayer;
 
 typedef struct SceneCollection {

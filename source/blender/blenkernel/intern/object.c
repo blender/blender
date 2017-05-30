@@ -454,7 +454,15 @@ void BKE_object_free(Object *ob)
 	}
 	GPU_lamp_free(ob);
 
-	DRW_object_engine_data_free(ob);
+	for (ObjectEngineData *oed = ob->drawdata.first; oed; oed = oed->next) {
+		if (oed->storage) {
+			if (oed->free) {
+				oed->free(oed->storage);
+			}
+			MEM_freeN(oed->storage);
+		}
+	}
+	BLI_freelistN(&ob->drawdata);
 
 	BKE_sculptsession_free(ob);
 

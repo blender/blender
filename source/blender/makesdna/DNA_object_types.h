@@ -72,6 +72,13 @@ typedef struct bFaceMap {
 	char name[64];  /* MAX_VGROUP_NAME */
 } bFaceMap;
 
+/* Object Runtime display data */
+typedef struct ObjectEngineData {
+	struct ObjectEngineData *next, *prev;
+	struct DrawEngineType *engine_type;
+	void *storage;
+	void (*free)(void *storage);
+} ObjectEngineData;
 
 #define MAX_VGROUP_NAME 64
 
@@ -316,7 +323,7 @@ typedef struct Object {
 
 	struct IDProperty *base_collection_properties; /* used by depsgraph, flushed from base */
 
-	ListBase drawdata;		/* runtime, for draw engine datas */
+	ListBase drawdata;		/* runtime, ObjectEngineData */
 	int base_selection_color; /* flushed by depsgraph only */
 	int pad3[3];
 } Object;

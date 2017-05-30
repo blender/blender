@@ -2246,17 +2246,37 @@ DefaultTextureList *DRW_viewport_texture_list_get(void)
 
 
 /* -------------------------------------------------------------------- */
+/** \name SceneLayers (DRW_scenelayer)
+ * \{ */
+
+void **DRW_scene_layer_engine_data_get(DrawEngineType *engine_type, void (*callback)(void *storage))
+{
+	SceneLayerEngineData *sled;
+
+	for (sled = DST.draw_ctx.sl->drawdata.first; sled; sled = sled->next) {
+		if (sled->engine_type == engine_type) {
+			return &sled->storage;
+		}
+	}
+
+	sled = MEM_callocN(sizeof(SceneLayerEngineData), "SceneLayerEngineData");
+	sled->engine_type = engine_type;
+	sled->free = callback;
+	BLI_addtail(&DST.draw_ctx.sl->drawdata, sled);
+
+	return &sled->storage;
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
 
 /** \name Objects (DRW_object)
  * \{ */
 
-typedef struct ObjectEngineData {
-	struct ObjectEngineData *next, *prev;
-	DrawEngineType *engine_type;
-	void *storage;
-} ObjectEngineData;
-
-void **DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type)
+void **DRW_object_engine_data_get(
+        Object *ob, DrawEngineType *engine_type, void (*callback)(void *storage))
 {
 	ObjectEngineData *oed;
 
@@ -2268,22 +2288,14 @@ void **DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type)
 
 	oed = MEM_callocN(sizeof(ObjectEngineData), "ObjectEngineData");
 	oed->engine_type = engine_type;
+	oed->free = callback;
 	BLI_addtail(&ob->drawdata, oed);
 
 	return &oed->storage;
 }
 
-void DRW_object_engine_data_free(Object *ob)
-{
-	for (ObjectEngineData *oed = ob->drawdata.first; oed; oed = oed->next) {
-		if (oed->storage) {
-			MEM_freeN(oed->storage);
-		}
-	}
-
-	BLI_freelistN(&ob->drawdata);
-}
-
+/* XXX There is definitly some overlap between this and DRW_object_engine_data_get.
+ * We should get rid of one of the two. */
 LampEngineData *DRW_lamp_engine_data_get(Object *ob, RenderEngineType *engine_type)
 {
 	BLI_assert(ob->type == OB_LAMP);
@@ -2291,6 +2303,7 @@ LampEngineData *DRW_lamp_engine_data_get(Object *ob, RenderEngineType *engine_ty
 	Scene *scene = DST.draw_ctx.scene;
 
 	/* TODO Dupliobjects */
+	/* TODO Should be per scenelayer */
 	return GPU_lamp_engine_data_get(scene, ob, NULL, engine_type);
 }
 
