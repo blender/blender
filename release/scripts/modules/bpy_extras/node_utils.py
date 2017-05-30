@@ -18,17 +18,30 @@
 
 # <pep8-80 compliant>
 
-"""
-Utility modules associated with the bpy module.
-"""
-
 __all__ = (
-    "anim_utils",
-    "object_utils",
-    "io_utils",
-    "image_utils",
-    "keyconfig_utils",
-    "mesh_utils",
-    "node_utils",
-    "view3d_utils",
+    "find_node_input",
+    "find_output_node",
     )
+
+
+# XXX Names are not unique. Returns the first match.
+def find_node_input(node, name):
+    for input in node.inputs:
+        if input.name == name:
+            return input
+
+    return None
+
+# Return the output node to display in the UI
+def find_output_node(ntree, nodetype):
+    if ntree:
+        active_output_node = None
+        for node in ntree.nodes:
+            if getattr(node, "type", None) == nodetype:
+                if getattr(node, "is_active_output", True):
+                    return node
+                if not active_output_node:
+                    active_output_node = node
+        return active_output_node
+
+    return None
