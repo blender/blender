@@ -51,6 +51,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_modifier.h"
@@ -411,19 +412,15 @@ static bool bake_object_check(Scene *scene, Object *ob, ReportList *reports)
 			}
 		}
 		else {
-			if (ob->mat[i]) {
+			Material *mat = give_current_material(ob, i);
+			if (mat != NULL) {
 				BKE_reportf(reports, RPT_ERROR,
 				            "No active image found in material \"%s\" (%d) for object \"%s\"",
-				            ob->mat[i]->id.name + 2, i, ob->id.name + 2);
-			}
-			else if (((Mesh *) ob->data)->mat[i]) {
-				BKE_reportf(reports, RPT_ERROR,
-				            "No active image found in material \"%s\" (%d) for object \"%s\"",
-				            ((Mesh *) ob->data)->mat[i]->id.name + 2, i, ob->id.name + 2);
+				            mat->id.name + 2, i, ob->id.name + 2);
 			}
 			else {
 				BKE_reportf(reports, RPT_ERROR,
-				            "No active image found in material (%d) for object \"%s\"",
+				            "No active image found in material slot (%d) for object \"%s\"",
 				            i, ob->id.name + 2);
 			}
 			return false;
