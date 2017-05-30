@@ -384,6 +384,7 @@ static void displaceModifier_do(
 	data.vert_clnors = vert_clnors;
 	if (dmd->texture != NULL) {
 		data.pool = BKE_image_pool_new();
+		BKE_texture_fetch_images_for_pool(dmd->texture, data.pool);
 	}
 	BLI_task_parallel_range(0, numVerts, &data, displaceModifier_do_task, numVerts > 512);
 

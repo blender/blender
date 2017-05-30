@@ -144,6 +144,8 @@ void BKE_texture_get_value(
         const struct Scene *scene, struct Tex *texture,
         float *tex_co, struct TexResult *texres, bool use_color_management);
 
+void BKE_texture_fetch_images_for_pool(struct Tex *texture, struct ImagePool *pool);
+
 #ifdef __cplusplus
 }
 #endif
