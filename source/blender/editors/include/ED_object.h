@@ -35,6 +35,7 @@
 extern "C" {
 #endif
 
+struct bFaceMap;
 struct BaseLegacy;
 struct EnumPropertyItem;
 struct ID;
@@ -220,6 +221,10 @@ struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
         const unsigned int selection_mask);
 
 void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object);
+
+/* object_facemap_ops.c */
+void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int facenum);
+void ED_object_facemap_face_remove(struct Object *ob, struct bFaceMap *fmap, int facenum);
 
 #ifdef __cplusplus
 }
