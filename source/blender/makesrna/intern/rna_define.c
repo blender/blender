@@ -71,8 +71,8 @@ BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1, 1};
 	if (description && (description)[0]) {                                         \
 		int i = strlen(description);                                               \
 		if (i > 3 && (description)[i - 1] == '.' && (description)[i - 3] != '.') { \
-			fprintf(stderr, "%s: '%s' '%s' description ends with a '.' !\n",       \
-			        __func__, id1 ? id1 : "", id2 ? id2 : "");                     \
+			fprintf(stderr, "%s: '%s' description from '%s' '%s' ends with a '.' !\n",       \
+			        __func__, description, id1 ? id1 : "", id2 ? id2 : "");                     \
 		}                                                                          \
 	} (void)0
 
