@@ -750,8 +750,8 @@ void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Insert Blank Frame";
 	ot->idname = "GPENCIL_OT_blank_frame_add";
-	ot->description = "Inserts a blank frame on the current frame. "
-	                  "All subsequently existing frames (if there are any) are shifted right by one frame.";
+	ot->description = "Inserts a blank frame on the current frame "
+	                  "(all subsequently existing frames, if any, are shifted right by one frame)";
 	
 	/* callbacks */
 	ot->exec = gp_blank_frame_add_exec;
