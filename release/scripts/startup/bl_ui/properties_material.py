@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 from bpy.app.translations import pgettext_iface as iface_
-
+from bpy_extras.node_utils import find_node_input, find_output_node
 
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
@@ -1114,6 +1114,28 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
             split.separator()
 
 
+def panel_node_draw(layout, ntree, output_type):
+    node = find_output_node(ntree, output_type)
+
+    if node:
+        def display_input(layout, ntree, node, input_name):
+            input = find_node_input(node, input_name)
+            layout.template_node_view(ntree, node, input)
+
+        display_input(layout, ntree, node, 'Base Color')
+        if output_type == 'OUTPUT_METALLIC':
+            display_input(layout, ntree, node, 'Metallic')
+        display_input(layout, ntree, node, 'Specular')
+        display_input(layout, ntree, node, 'Roughness')
+        display_input(layout, ntree, node, 'Emissive Color')
+        display_input(layout, ntree, node, 'Transparency')
+        display_input(layout, ntree, node, 'Normal')
+        display_input(layout, ntree, node, 'Ambient Occlusion')
+        return True
+
+    return False
+
+
 class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
     bl_label = "Surface"
     bl_context = "material"
@@ -1132,9 +1154,13 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
         layout.prop(mat, "use_nodes", icon='NODETREE')
         layout.separator()
 
-        if not mat.use_nodes:
+        if mat.use_nodes:
+            if not panel_node_draw(layout, mat.node_tree, 'OUTPUT_METALLIC'):
+                if not panel_node_draw(layout, mat.node_tree, 'OUTPUT_SPECULAR'):
+                    layout.label(text="No output node")
+        else:
             raym = mat.raytrace_mirror
-            layout.prop(mat, "diffuse_color", text="Diffuse")
+            layout.prop(mat, "diffuse_color", text="Base Color")
             layout.prop(raym, "reflect_factor", text="Metallic")
             layout.prop(mat, "specular_intensity", text="Specular")
             layout.prop(raym, "gloss_factor", text="Roughness")

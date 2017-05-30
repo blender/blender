@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
+from bpy_extras.node_utils import find_node_input, find_output_node
 
 
 class WorldButtonsPanel:
@@ -264,7 +265,20 @@ class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
 
         world = context.world
 
-        layout.prop(world, "horizon_color", text="Color")
+        layout.prop(world, "use_nodes", icon='NODETREE')
+        layout.separator()
+
+        if world.use_nodes:
+            ntree = world.node_tree
+            node = find_output_node(ntree, 'OUTPUT_WORLD')
+
+            if not node:
+                layout.label(text="No output node")
+            else:
+                input = find_node_input(node, 'Surface')
+                layout.template_node_view(ntree, node, input)
+        else:
+            layout.prop(world, "horizon_color", text="Color")
 
 
 classes = (
