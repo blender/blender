@@ -169,6 +169,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 				                                                          ray_index,
 				                                                          num_samples_inv,
 				                                                          bssrdf_sd,
+				                                                          false,
 				                                                          false))
 				{
 					branched_state->ss_next_closure = i;
@@ -185,6 +186,13 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 		}
 
 		branched_state->ss_next_sample = 0;
+	}
+
+	branched_state->ss_next_closure = sd->num_closure;
+
+	branched_state->waiting_on_shared_samples = (branched_state->shared_sample_count > 0);
+	if(branched_state->waiting_on_shared_samples) {
+		return true;
 	}
 
 	kernel_split_branched_path_indirect_loop_end(kg, ray_index);

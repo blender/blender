@@ -29,6 +29,14 @@ ccl_device void kernel_shadow_blocked_dl(KernelGlobals *kg)
 		                          kernel_split_state.queue_data, kernel_split_params.queue_size, 1);
 	}
 
+#ifdef __BRANCHED_PATH__
+	/* TODO(mai): move this somewhere else? */
+	if(thread_index == 0) {
+		/* Clear QUEUE_INACTIVE_RAYS before next kernel. */
+		kernel_split_params.queue_index[QUEUE_INACTIVE_RAYS] = 0;
+	}
+#endif  /* __BRANCHED_PATH__ */
+
 	if(ray_index == QUEUE_EMPTY_SLOT)
 		return;
 

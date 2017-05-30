@@ -75,9 +75,28 @@ ccl_device_noinline bool kernel_split_branched_path_volume_indirect_light_iter(K
 			branched_state->next_sample = j+1;
 			branched_state->num_samples = num_samples;
 
+			/* Attempting to share too many samples is slow for volumes as it causes us to
+			 * loop here more and have many calls to kernel_volume_integrate which evaluates
+			 * shaders. The many expensive shader evaluations cause the work load to become
+			 * unbalanced and many threads to become idle in this kernel. Limiting the
+			 * number of shared samples here helps quite a lot.
+			 */
+			if(branched_state->shared_sample_count < 2) {
+				if(kernel_split_branched_indirect_start_shared(kg, ray_index)) {
+					continue;
+				}
+			}
+
 			return true;
 		}
 #  endif
+	}
+
+	branched_state->next_sample = num_samples;
+
+	branched_state->waiting_on_shared_samples = (branched_state->shared_sample_count > 0);
+	if(branched_state->waiting_on_shared_samples) {
+		return true;
 	}
 
 	kernel_split_branched_path_indirect_loop_end(kg, ray_index);

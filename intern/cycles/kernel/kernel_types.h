@@ -1431,6 +1431,9 @@ enum RayState {
 	RAY_BRANCHED_VOLUME_INDIRECT = (1 << 5),
 	RAY_BRANCHED_SUBSURFACE_INDIRECT = (1 << 6),
 	RAY_BRANCHED_INDIRECT = (RAY_BRANCHED_LIGHT_INDIRECT | RAY_BRANCHED_VOLUME_INDIRECT | RAY_BRANCHED_SUBSURFACE_INDIRECT),
+
+	/* Ray is evaluating an iteration of an indirect loop for another thread */
+	RAY_BRANCHED_INDIRECT_SHARED = (1 << 7),
 };
 
 #define ASSIGN_RAY_STATE(ray_state, ray_index, state) (ray_state[ray_index] = ((ray_state[ray_index] & RAY_FLAG_MASK) | state))

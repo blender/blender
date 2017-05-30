@@ -63,12 +63,49 @@ ccl_device_inline void kernel_split_branched_path_indirect_loop_end(KernelGlobal
 	REMOVE_RAY_FLAG(kernel_split_state.ray_state, ray_index, RAY_BRANCHED_INDIRECT);
 }
 
+ccl_device_inline bool kernel_split_branched_indirect_start_shared(KernelGlobals *kg, int ray_index)
+{
+	ccl_global char *ray_state = kernel_split_state.ray_state;
+
+	int inactive_ray = dequeue_ray_index(QUEUE_INACTIVE_RAYS,
+		kernel_split_state.queue_data, kernel_split_params.queue_size, kernel_split_params.queue_index);
+
+	if(!IS_STATE(ray_state, inactive_ray, RAY_INACTIVE)) {
+		return false;
+	}
+
+#define SPLIT_DATA_ENTRY(type, name, num) \
+		kernel_split_state.name[inactive_ray] = kernel_split_state.name[ray_index];
+	SPLIT_DATA_ENTRIES_BRANCHED_SHARED
+#undef SPLIT_DATA_ENTRY
+
+	kernel_split_state.branched_state[inactive_ray].shared_sample_count = 0;
+	kernel_split_state.branched_state[inactive_ray].original_ray = ray_index;
+	kernel_split_state.branched_state[inactive_ray].waiting_on_shared_samples = false;
+
+	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+	PathRadiance *inactive_L = &kernel_split_state.path_radiance[inactive_ray];
+
+	path_radiance_init(inactive_L, kernel_data.film.use_light_pass);
+	inactive_L->direct_throughput = L->direct_throughput;
+	path_radiance_copy_indirect(inactive_L, L);
+
+	ray_state[inactive_ray] = RAY_REGENERATED;
+	ADD_RAY_FLAG(ray_state, inactive_ray, RAY_BRANCHED_INDIRECT_SHARED);
+	ADD_RAY_FLAG(ray_state, inactive_ray, IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT));
+
+	atomic_fetch_and_inc_uint32((ccl_global uint*)&kernel_split_state.branched_state[ray_index].shared_sample_count);
+
+	return true;
+}
+
 /* bounce off surface and integrate indirect light */
 ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(KernelGlobals *kg,
                                                                                 int ray_index,
                                                                                 float num_samples_adjust,
                                                                                 ShaderData *saved_sd,
-                                                                                bool reset_path_state)
+                                                                                bool reset_path_state,
+                                                                                bool wait_for_shared)
 {
 	SplitBranchedState *branched_state = &kernel_split_state.branched_state[ray_index];
 
@@ -155,10 +192,23 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 			/* start the indirect path */
 			*tp *= num_samples_inv;
 
+			if(kernel_split_branched_indirect_start_shared(kg, ray_index)) {
+				continue;
+			}
+
 			return true;
 		}
 
 		branched_state->next_sample = 0;
+	}
+
+	branched_state->next_closure = sd->num_closure;
+
+	if(wait_for_shared) {
+		branched_state->waiting_on_shared_samples = (branched_state->shared_sample_count > 0);
+		if(branched_state->waiting_on_shared_samples) {
+			return true;
+		}
 	}
 
 	return false;
