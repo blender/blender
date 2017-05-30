@@ -177,19 +177,18 @@ unsigned int getRowLength(int width, LogImageElement logElement)
 				return ((width * logElement.depth * 10 - 1) / 32 + 1) * 4;
 			else if (logElement.packing == 1 || logElement.packing == 2)
 				return ((width * logElement.depth - 1) / 3 + 1) * 4;
-
+			break;
 		case 12:
 			if (logElement.packing == 0)
 				return ((width * logElement.depth * 12 - 1) / 32 + 1) * 4;
 			else if (logElement.packing == 1 || logElement.packing == 2)
 				return width * logElement.depth * 2;
-
+			break;
 		case 16:
 			return width * logElement.depth * 2;
 
-		default:
-			return 0;
 	}
+	return 0;
 }
 
 
@@ -572,20 +571,20 @@ static int logImageElementGetData(LogImageFile *logImage, LogImageElement logEle
 				return logImageElementGetData10Packed(logImage, logElement, data);
 			else if (logElement.packing == 1 || logElement.packing == 2)
 				return logImageElementGetData10(logImage, logElement, data);
+			break;
 
 		case 12:
 			if (logElement.packing == 0)
 				return logImageElementGetData12Packed(logImage, logElement, data);
 			else if (logElement.packing == 1 || logElement.packing == 2)
 				return logImageElementGetData12(logImage, logElement, data);
+			break;
 
 		case 16:
 			return logImageElementGetData16(logImage, logElement, data);
-
-		default:
-			/* format not supported */
-			return 1;
 	}
+	/* format not supported */
+	return 1;
 }
 
 static int logImageElementGetData1(LogImageFile *logImage, LogImageElement logElement, float *data)
