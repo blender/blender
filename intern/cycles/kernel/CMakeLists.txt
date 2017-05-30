@@ -45,6 +45,7 @@ set(SRC
 	kernels/opencl/kernel_direct_lighting.cl
 	kernels/opencl/kernel_shadow_blocked_ao.cl
 	kernels/opencl/kernel_shadow_blocked_dl.cl
+	kernels/opencl/kernel_enqueue_inactive.cl
 	kernels/opencl/kernel_next_iteration_setup.cl
 	kernels/opencl/kernel_indirect_subsurface.cl
 	kernels/opencl/kernel_buffer_update.cl
@@ -278,6 +279,7 @@ set(SRC_SPLIT_HEADERS
 	split/kernel_data_init.h
 	split/kernel_direct_lighting.h
 	split/kernel_do_volume.h
+	split/kernel_enqueue_inactive.h
 	split/kernel_holdout_emission_blurring_pathtermination_ao.h
 	split/kernel_indirect_background.h
 	split/kernel_indirect_subsurface.h
@@ -490,6 +492,7 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_subsurface_sc
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_direct_lighting.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocked_ao.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocked_dl.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_enqueue_inactive.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_next_iteration_setup.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_indirect_subsurface.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_buffer_update.cl" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)

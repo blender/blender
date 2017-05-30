@@ -1387,6 +1387,8 @@ enum QueueNumber {
 #ifdef __BRANCHED_PATH__
 	/* All rays moving to next iteration of the indirect loop for light */
 	QUEUE_LIGHT_INDIRECT_ITER,
+	/* Queue of all inactive rays. These are candidates for sharing work of indirect loops */
+	QUEUE_INACTIVE_RAYS,
 #  ifdef __VOLUME__
 	/* All rays moving to next iteration of the indirect loop for volumes */
 	QUEUE_VOLUME_INDIRECT_ITER,
