@@ -69,15 +69,6 @@ typedef struct EEVEE_PassList {
 } EEVEE_PassList;
 
 typedef struct EEVEE_FramebufferList {
-	/* Shadows */
-	struct GPUFrameBuffer *shadow_cube_target_fb;
-	struct GPUFrameBuffer *shadow_cube_fb;
-	struct GPUFrameBuffer *shadow_map_fb;
-	struct GPUFrameBuffer *shadow_cascade_fb;
-	/* Probes */
-	struct GPUFrameBuffer *probe_fb;
-	struct GPUFrameBuffer *probe_filter_fb;
-	struct GPUFrameBuffer *probe_sh_fb;
 	/* Effects */
 	struct GPUFrameBuffer *effect_fb; /* HDR */
 	struct GPUFrameBuffer *bloom_blit_fb; /* HDR */
@@ -91,17 +82,6 @@ typedef struct EEVEE_FramebufferList {
 } EEVEE_FramebufferList;
 
 typedef struct EEVEE_TextureList {
-	/* Shadows */
-	struct GPUTexture *shadow_depth_cube_target;
-	struct GPUTexture *shadow_color_cube_target;
-	struct GPUTexture *shadow_depth_cube_pool;
-	struct GPUTexture *shadow_depth_map_pool;
-	struct GPUTexture *shadow_depth_cascade_pool;
-	/* Probes */
-	struct GPUTexture *probe_rt; /* R16_G16_B16 */
-	struct GPUTexture *probe_depth_rt;
-	struct GPUTexture *probe_pool; /* R11_G11_B10 */
-	struct GPUTexture *probe_sh; /* R16_G16_B16 */
 	/* Effects */
 	struct GPUTexture *color_post; /* R16_G16_B16 */
 	struct GPUTexture *dof_down_near; /* R16_G16_B16_A16 */
@@ -117,17 +97,6 @@ typedef struct EEVEE_TextureList {
 } EEVEE_TextureList;
 
 typedef struct EEVEE_StorageList {
-	/* Lamps */
-	/* XXX this should be per-scenelayer and not per_viewport */
-	struct EEVEE_LampsInfo *lamps;
-	struct GPUUniformBuffer *light_ubo;
-	struct GPUUniformBuffer *shadow_ubo;
-	struct GPUUniformBuffer *shadow_render_ubo;
-
-	/* Probes */
-	struct EEVEE_ProbesInfo *probes;
-	struct GPUUniformBuffer *probe_ubo;
-
 	/* Effects */
 	struct EEVEE_EffectsInfo *effects;
 
@@ -243,6 +212,41 @@ enum {
 	EFFECT_DOF                 = (1 << 2),
 };
 
+/* ************** SCENE LAYER DATA ************** */
+typedef struct EEVEE_SceneLayerData {
+	/* Lamps */
+	struct EEVEE_LampsInfo *lamps;
+
+	struct GPUUniformBuffer *light_ubo;
+	struct GPUUniformBuffer *shadow_ubo;
+	struct GPUUniformBuffer *shadow_render_ubo;
+
+	struct GPUFrameBuffer *shadow_cube_target_fb;
+	struct GPUFrameBuffer *shadow_cube_fb;
+	struct GPUFrameBuffer *shadow_map_fb;
+	struct GPUFrameBuffer *shadow_cascade_fb;
+
+	struct GPUTexture *shadow_depth_cube_target;
+	struct GPUTexture *shadow_color_cube_target;
+	struct GPUTexture *shadow_depth_cube_pool;
+	struct GPUTexture *shadow_depth_map_pool;
+	struct GPUTexture *shadow_depth_cascade_pool;
+
+	/* Probes */
+	struct EEVEE_ProbesInfo *probes;
+
+	struct GPUUniformBuffer *probe_ubo;
+
+	struct GPUFrameBuffer *probe_fb;
+	struct GPUFrameBuffer *probe_filter_fb;
+	struct GPUFrameBuffer *probe_sh_fb;
+
+	struct GPUTexture *probe_rt;
+	struct GPUTexture *probe_depth_rt;
+	struct GPUTexture *probe_pool;
+	struct GPUTexture *probe_sh;
+} EEVEE_SceneLayerData;
+
 /* *********************************** */
 
 typedef struct EEVEE_Data {
@@ -268,23 +272,25 @@ typedef struct EEVEE_PrivateData {
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_lights.c */
-void EEVEE_lights_init(EEVEE_StorageList *stl);
-void EEVEE_lights_cache_init(EEVEE_StorageList *stl, EEVEE_PassList *psl, EEVEE_TextureList *txl);
-void EEVEE_lights_cache_add(EEVEE_StorageList *stl, struct Object *ob);
-void EEVEE_lights_cache_shcaster_add(EEVEE_PassList *psl, EEVEE_StorageList *stl, struct Batch *geom, float (*obmat)[4]);
-void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, EEVEE_FramebufferList *fbl);
-void EEVEE_lights_update(EEVEE_StorageList *stl);
-void EEVEE_draw_shadows(EEVEE_Data *vedata);
+void EEVEE_lights_init(EEVEE_SceneLayerData *sldata);
+void EEVEE_lights_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
+void EEVEE_lights_cache_add(EEVEE_SceneLayerData *sldata, struct Object *ob);
+void EEVEE_lights_cache_shcaster_add(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, struct Batch *geom, float (*obmat)[4]);
+void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata);
+void EEVEE_lights_update(EEVEE_SceneLayerData *sldata);
+void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
 void EEVEE_lights_free(void);
+void EEVEE_scene_layer_lights_free(EEVEE_SceneLayerData *sldata);
 
 /* eevee_probes.c */
-void EEVEE_probes_init(EEVEE_Data *vedata);
-void EEVEE_probes_cache_init(EEVEE_Data *vedata);
-void EEVEE_probes_cache_add(EEVEE_Data *vedata, Object *ob);
-void EEVEE_probes_cache_finish(EEVEE_Data *vedata);
-void EEVEE_probes_update(EEVEE_Data *vedata);
-void EEVEE_refresh_probe(EEVEE_Data *vedata);
+void EEVEE_probes_init(EEVEE_SceneLayerData *sldata);
+void EEVEE_probes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
+void EEVEE_probes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob);
+void EEVEE_probes_cache_finish(EEVEE_SceneLayerData *sldata);
+void EEVEE_probes_update(EEVEE_SceneLayerData *sldata);
+void EEVEE_refresh_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
 void EEVEE_probes_free(void);
+void EEVEE_scene_layer_probes_free(EEVEE_SceneLayerData *sldata);
 
 /* eevee_effects.c */
 void EEVEE_effects_init(EEVEE_Data *vedata);

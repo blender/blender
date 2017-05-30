@@ -61,7 +61,7 @@ extern char datatoc_shadow_store_frag_glsl[];
 
 /* *********** FUNCTIONS *********** */
 
-void EEVEE_lights_init(EEVEE_StorageList *stl)
+void EEVEE_lights_init(EEVEE_SceneLayerData *sldata)
 {
 	const unsigned int shadow_ubo_size = sizeof(EEVEE_ShadowCube) * MAX_SHADOW_CUBE +
 	                                     sizeof(EEVEE_ShadowMap) * MAX_SHADOW_MAP +
@@ -75,17 +75,17 @@ void EEVEE_lights_init(EEVEE_StorageList *stl)
 		        datatoc_shadow_store_vert_glsl, datatoc_shadow_store_geom_glsl, datatoc_shadow_store_frag_glsl, NULL);
 	}
 
-	if (!stl->lamps) {
-		stl->lamps              = MEM_callocN(sizeof(EEVEE_LampsInfo), "EEVEE_LampsInfo");
-		stl->light_ubo          = DRW_uniformbuffer_create(sizeof(EEVEE_Light) * MAX_LIGHT, NULL);
-		stl->shadow_ubo         = DRW_uniformbuffer_create(shadow_ubo_size, NULL);
-		stl->shadow_render_ubo  = DRW_uniformbuffer_create(sizeof(EEVEE_ShadowRender), NULL);
+	if (!sldata->lamps) {
+		sldata->lamps              = MEM_callocN(sizeof(EEVEE_LampsInfo), "EEVEE_LampsInfo");
+		sldata->light_ubo          = DRW_uniformbuffer_create(sizeof(EEVEE_Light) * MAX_LIGHT, NULL);
+		sldata->shadow_ubo         = DRW_uniformbuffer_create(shadow_ubo_size, NULL);
+		sldata->shadow_render_ubo  = DRW_uniformbuffer_create(sizeof(EEVEE_ShadowRender), NULL);
 	}
 }
 
-void EEVEE_lights_cache_init(EEVEE_StorageList *stl, EEVEE_PassList *psl, EEVEE_TextureList *txl)
+void EEVEE_lights_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
-	EEVEE_LampsInfo *linfo = stl->lamps;
+	EEVEE_LampsInfo *linfo = sldata->lamps;
 
 	linfo->num_light = linfo->num_cube = linfo->num_map = linfo->num_cascade = 0;
 	memset(linfo->light_ref, 0, sizeof(linfo->light_ref));
@@ -97,8 +97,8 @@ void EEVEE_lights_cache_init(EEVEE_StorageList *stl, EEVEE_PassList *psl, EEVEE_
 		psl->shadow_cube_store_pass = DRW_pass_create("Shadow Storage Pass", DRW_STATE_WRITE_COLOR);
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_store_sh, psl->shadow_cube_store_pass);
-		DRW_shgroup_uniform_buffer(grp, "shadowCube", &txl->shadow_color_cube_target);
-		DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo);
+		DRW_shgroup_uniform_buffer(grp, "shadowCube", &sldata->shadow_color_cube_target);
+		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 
@@ -111,9 +111,9 @@ void EEVEE_lights_cache_init(EEVEE_StorageList *stl, EEVEE_PassList *psl, EEVEE_
 	}
 }
 
-void EEVEE_lights_cache_add(EEVEE_StorageList *stl, Object *ob)
+void EEVEE_lights_cache_add(EEVEE_SceneLayerData *sldata, Object *ob)
 {
-	EEVEE_LampsInfo *linfo = stl->lamps;
+	EEVEE_LampsInfo *linfo = sldata->lamps;
 
 	/* Step 1 find all lamps in the scene and setup them */
 	if (linfo->num_light > MAX_LIGHT) {
@@ -159,92 +159,92 @@ void EEVEE_lights_cache_add(EEVEE_StorageList *stl, Object *ob)
 }
 
 /* Add a shadow caster to the shadowpasses */
-void EEVEE_lights_cache_shcaster_add(EEVEE_PassList *psl, EEVEE_StorageList *stl, struct Batch *geom, float (*obmat)[4])
+void EEVEE_lights_cache_shcaster_add(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, struct Batch *geom, float (*obmat)[4])
 {
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cube_pass, geom);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo);
+	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 
 	for (int i = 0; i < 6; ++i)
 		DRW_shgroup_call_dynamic_add_empty(grp);
 
 	grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cascade_pass, geom);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", stl->shadow_render_ubo);
+	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 
 	for (int i = 0; i < MAX_CASCADE_NUM; ++i)
 		DRW_shgroup_call_dynamic_add_empty(grp);
 }
 
-void EEVEE_lights_cache_finish(EEVEE_StorageList *stl, EEVEE_TextureList *txl, EEVEE_FramebufferList *fbl)
+void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)
 {
-	EEVEE_LampsInfo *linfo = stl->lamps;
+	EEVEE_LampsInfo *linfo = sldata->lamps;
 
 	/* Step 4 Update Lamp UBOs */
-	EEVEE_lights_update(stl);
+	EEVEE_lights_update(sldata);
 
 	/* Step 5 Setup enough layers */
 	/* Free textures if number mismatch */
 	if (linfo->num_cube != linfo->cache_num_cube) {
-		DRW_TEXTURE_FREE_SAFE(txl->shadow_depth_cube_pool);
+		DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_cube_pool);
 		linfo->cache_num_cube = linfo->num_cube;
 	}
 	if (linfo->num_map != linfo->cache_num_map) {
-		DRW_TEXTURE_FREE_SAFE(txl->shadow_depth_map_pool);
+		DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_map_pool);
 		linfo->cache_num_map = linfo->num_map;
 	}
 	if (linfo->num_cascade != linfo->cache_num_cascade) {
-		DRW_TEXTURE_FREE_SAFE(txl->shadow_depth_cascade_pool);
+		DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_cascade_pool);
 		linfo->cache_num_cascade = linfo->num_cascade;
 	}
 
 	/* Initialize Textures Arrays first so DRW_framebuffer_init just bind them. */
-	if (!txl->shadow_depth_cube_target) {
+	if (!sldata->shadow_depth_cube_target) {
 		/* Render Cubemap */
-		txl->shadow_depth_cube_target = DRW_texture_create_cube(512, DRW_TEX_DEPTH_24, 0, NULL);
-		txl->shadow_color_cube_target = DRW_texture_create_cube(512, DRW_TEX_R_32, DRW_TEX_FILTER, NULL);
-		if (fbl->shadow_cube_fb) {
-			DRW_framebuffer_texture_attach(fbl->shadow_cube_fb, txl->shadow_depth_cube_target, 0, 0);
-			DRW_framebuffer_texture_attach(fbl->shadow_cube_fb, txl->shadow_color_cube_target, 0, 0);
+		sldata->shadow_depth_cube_target = DRW_texture_create_cube(512, DRW_TEX_DEPTH_24, 0, NULL);
+		sldata->shadow_color_cube_target = DRW_texture_create_cube(512, DRW_TEX_R_32, DRW_TEX_FILTER, NULL);
+		if (sldata->shadow_cube_fb) {
+			DRW_framebuffer_texture_attach(sldata->shadow_cube_fb, sldata->shadow_depth_cube_target, 0, 0);
+			DRW_framebuffer_texture_attach(sldata->shadow_cube_fb, sldata->shadow_color_cube_target, 0, 0);
 		}
 	}
-	if (!txl->shadow_depth_cube_pool) {
+	if (!sldata->shadow_depth_cube_pool) {
 		/* Cubemap / octahedral map pool */
 		/* TODO Cubemap array */
-		txl->shadow_depth_cube_pool = DRW_texture_create_2D_array(
+		sldata->shadow_depth_cube_pool = DRW_texture_create_2D_array(
 		        512, 512, max_ff(1, linfo->num_cube), DRW_TEX_R_32,
 		        DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
-		if (fbl->shadow_cube_fb) {
-			DRW_framebuffer_texture_attach(fbl->shadow_cube_fb, txl->shadow_depth_cube_pool, 0, 0);
+		if (sldata->shadow_cube_fb) {
+			DRW_framebuffer_texture_attach(sldata->shadow_cube_fb, sldata->shadow_depth_cube_pool, 0, 0);
 		}
 	}
-	if (!txl->shadow_depth_map_pool) {
-		txl->shadow_depth_map_pool = DRW_texture_create_2D_array(
+	if (!sldata->shadow_depth_map_pool) {
+		sldata->shadow_depth_map_pool = DRW_texture_create_2D_array(
 		        512, 512, max_ff(1, linfo->num_map), DRW_TEX_DEPTH_24,
 		        DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
-		if (fbl->shadow_map_fb) {
-			DRW_framebuffer_texture_attach(fbl->shadow_map_fb, txl->shadow_depth_map_pool, 0, 0);
+		if (sldata->shadow_map_fb) {
+			DRW_framebuffer_texture_attach(sldata->shadow_map_fb, sldata->shadow_depth_map_pool, 0, 0);
 		}
 	}
-	if (!txl->shadow_depth_cascade_pool) {
-		txl->shadow_depth_cascade_pool = DRW_texture_create_2D_array(
+	if (!sldata->shadow_depth_cascade_pool) {
+		sldata->shadow_depth_cascade_pool = DRW_texture_create_2D_array(
 		        512, 512, max_ff(1, linfo->num_cascade * MAX_CASCADE_NUM), DRW_TEX_DEPTH_24,
 		        DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
-		if (fbl->shadow_cascade_fb) {
-			DRW_framebuffer_texture_attach(fbl->shadow_cascade_fb, txl->shadow_depth_map_pool, 0, 0);
+		if (sldata->shadow_cascade_fb) {
+			DRW_framebuffer_texture_attach(sldata->shadow_cascade_fb, sldata->shadow_depth_map_pool, 0, 0);
 		}
 	}
 
 	DRWFboTexture tex_cube_target[2] = {
-	        {&txl->shadow_depth_cube_target, DRW_TEX_DEPTH_24, 0},
-	        {&txl->shadow_color_cube_target, DRW_TEX_R_32, DRW_TEX_FILTER}};
-	DRW_framebuffer_init(&fbl->shadow_cube_target_fb, &draw_engine_eevee_type, 512, 512, tex_cube_target, 2);
+	        {&sldata->shadow_depth_cube_target, DRW_TEX_DEPTH_24, 0},
+	        {&sldata->shadow_color_cube_target, DRW_TEX_R_32, DRW_TEX_FILTER}};
+	DRW_framebuffer_init(&sldata->shadow_cube_target_fb, &draw_engine_eevee_type, 512, 512, tex_cube_target, 2);
 
-	DRWFboTexture tex_cube = {&txl->shadow_depth_cube_pool, DRW_TEX_R_32, DRW_TEX_FILTER};
-	DRW_framebuffer_init(&fbl->shadow_cube_fb, &draw_engine_eevee_type, 512, 512, &tex_cube, 1);
+	DRWFboTexture tex_cube = {&sldata->shadow_depth_cube_pool, DRW_TEX_R_32, DRW_TEX_FILTER};
+	DRW_framebuffer_init(&sldata->shadow_cube_fb, &draw_engine_eevee_type, 512, 512, &tex_cube, 1);
 
-	DRWFboTexture tex_cascade = {&txl->shadow_depth_cascade_pool, DRW_TEX_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE};
-	DRW_framebuffer_init(&fbl->shadow_cascade_fb, &draw_engine_eevee_type, 512, 512, &tex_cascade, 1);
+	DRWFboTexture tex_cascade = {&sldata->shadow_depth_cascade_pool, DRW_TEX_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE};
+	DRW_framebuffer_init(&sldata->shadow_cascade_fb, &draw_engine_eevee_type, 512, 512, &tex_cascade, 1);
 }
 
 /* Update buffer with lamp data */
@@ -546,9 +546,9 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 	evli->shadowid = (float)(MAX_SHADOW_CUBE + MAX_SHADOW_MAP + evscp->shadow_id);
 }
 
-void EEVEE_lights_update(EEVEE_StorageList *stl)
+void EEVEE_lights_update(EEVEE_SceneLayerData *sldata)
 {
-	EEVEE_LampsInfo *linfo = stl->lamps;
+	EEVEE_LampsInfo *linfo = sldata->lamps;
 	Object *ob;
 	int i;
 
@@ -572,17 +572,14 @@ void EEVEE_lights_update(EEVEE_StorageList *stl)
 		eevee_shadow_cascade_setup(ob, linfo, led);
 	}
 
-	DRW_uniformbuffer_update(stl->light_ubo, &linfo->light_data);
-	DRW_uniformbuffer_update(stl->shadow_ubo, &linfo->shadow_cube_data); /* Update all data at once */
+	DRW_uniformbuffer_update(sldata->light_ubo, &linfo->light_data);
+	DRW_uniformbuffer_update(sldata->shadow_ubo, &linfo->shadow_cube_data); /* Update all data at once */
 }
 
 /* this refresh lamps shadow buffers */
-void EEVEE_draw_shadows(EEVEE_Data *vedata)
+void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
-	EEVEE_PassList *psl = vedata->psl;
-	EEVEE_StorageList *stl = vedata->stl;
-	EEVEE_FramebufferList *fbl = vedata->fbl;
-	EEVEE_LampsInfo *linfo = stl->lamps;
+	EEVEE_LampsInfo *linfo = sldata->lamps;
 	Object *ob;
 	int i;
 	float clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -599,15 +596,15 @@ void EEVEE_draw_shadows(EEVEE_Data *vedata)
 		for (int j = 0; j < 6; ++j) {
 			copy_m4_m4(srd->shadowmat[j], evscd->viewprojmat[j]);
 		}
-		DRW_uniformbuffer_update(stl->shadow_render_ubo, &linfo->shadow_render_data);
+		DRW_uniformbuffer_update(sldata->shadow_render_ubo, &linfo->shadow_render_data);
 
-		DRW_framebuffer_bind(fbl->shadow_cube_target_fb);
+		DRW_framebuffer_bind(sldata->shadow_cube_target_fb);
 		DRW_framebuffer_clear(true, true, false, clear_color, 1.0);
 		/* Render shadow cube */
 		DRW_draw_pass(psl->shadow_cube_pass);
 
 		/* Push it to shadowmap array */
-		DRW_framebuffer_bind(fbl->shadow_cube_fb);
+		DRW_framebuffer_bind(sldata->shadow_cube_fb);
 		DRW_draw_pass(psl->shadow_cube_store_pass);
 	}
 
@@ -641,7 +638,7 @@ void EEVEE_draw_shadows(EEVEE_Data *vedata)
 // 		for (int j = 0; j < MAX_CASCADE_NUM; ++j) {
 // 			copy_m4_m4(srd->shadowmat[j], evscd->viewprojmat[j]);
 // 		}
-// 		DRW_uniformbuffer_update(stl->shadow_render_ubo, &linfo->shadow_render_data);
+// 		DRW_uniformbuffer_update(sldata->shadow_render_ubo, &linfo->shadow_render_data);
 
 // 		DRW_draw_pass(psl->shadow_cascade_pass);
 // 	}
@@ -651,4 +648,21 @@ void EEVEE_lights_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
 	DRW_SHADER_FREE_SAFE(e_data.shadow_store_sh);
+}
+
+void EEVEE_scene_layer_lights_free(EEVEE_SceneLayerData *sldata)
+{
+	MEM_SAFE_FREE(sldata->lamps);
+	DRW_UBO_FREE_SAFE(sldata->light_ubo);
+	DRW_UBO_FREE_SAFE(sldata->shadow_ubo);
+	DRW_UBO_FREE_SAFE(sldata->shadow_render_ubo);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_target_fb);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_fb);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_map_fb);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cascade_fb);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_cube_target);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_color_cube_target);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_cube_pool);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_map_pool);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_cascade_pool);
 }

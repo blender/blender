@@ -91,12 +91,8 @@ static struct GPUTexture *create_hammersley_sample_texture(int samples)
 	return tex;
 }
 
-void EEVEE_probes_init(EEVEE_Data *vedata)
+void EEVEE_probes_init(EEVEE_SceneLayerData *sldata)
 {
-	EEVEE_StorageList *stl = vedata->stl;
-	EEVEE_FramebufferList *fbl = vedata->fbl;
-	EEVEE_TextureList *txl = vedata->txl;
-
 	if (!e_data.probe_filter_sh) {
 		char *shader_str = NULL;
 
@@ -123,58 +119,54 @@ void EEVEE_probes_init(EEVEE_Data *vedata)
 		e_data.probe_spherical_harmonic_sh = DRW_shader_create_fullscreen(datatoc_probe_sh_frag_glsl, NULL);
 	}
 
-	if (!stl->probes) {
-		stl->probes       = MEM_callocN(sizeof(EEVEE_ProbesInfo), "EEVEE_ProbesInfo");
+	if (!sldata->probes) {
+		sldata->probes       = MEM_callocN(sizeof(EEVEE_ProbesInfo), "EEVEE_ProbesInfo");
 	}
 
-	if (!txl->probe_rt) {
-		txl->probe_rt = DRW_texture_create_cube(PROBE_CUBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-		txl->probe_depth_rt = DRW_texture_create_cube(PROBE_CUBE_SIZE, DRW_TEX_DEPTH_24, DRW_TEX_FILTER, NULL);
+	if (!sldata->probe_rt) {
+		sldata->probe_rt = DRW_texture_create_cube(PROBE_CUBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+		sldata->probe_depth_rt = DRW_texture_create_cube(PROBE_CUBE_SIZE, DRW_TEX_DEPTH_24, DRW_TEX_FILTER, NULL);
 	}
 
-	DRWFboTexture tex_probe[2] = {{&txl->probe_depth_rt, DRW_TEX_DEPTH_24, DRW_TEX_FILTER},
-	                              {&txl->probe_rt, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP}};
+	DRWFboTexture tex_probe[2] = {{&sldata->probe_depth_rt, DRW_TEX_DEPTH_24, DRW_TEX_FILTER},
+	                              {&sldata->probe_rt, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP}};
 
-	DRW_framebuffer_init(&fbl->probe_fb, &draw_engine_eevee_type, PROBE_CUBE_SIZE, PROBE_CUBE_SIZE, tex_probe, 2);
+	DRW_framebuffer_init(&sldata->probe_fb, &draw_engine_eevee_type, PROBE_CUBE_SIZE, PROBE_CUBE_SIZE, tex_probe, 2);
 
-	if (!txl->probe_pool) {
+	if (!sldata->probe_pool) {
 		/* TODO array */
-		txl->probe_pool = DRW_texture_create_2D(PROBE_SIZE, PROBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+		sldata->probe_pool = DRW_texture_create_2D(PROBE_SIZE, PROBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 	}
 
-	DRWFboTexture tex_filter = {&txl->probe_pool, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+	DRWFboTexture tex_filter = {&sldata->probe_pool, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
-	DRW_framebuffer_init(&fbl->probe_filter_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
+	DRW_framebuffer_init(&sldata->probe_filter_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
 
 	/* Spherical Harmonic Buffer */
-	DRWFboTexture tex_sh = {&txl->probe_sh, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+	DRWFboTexture tex_sh = {&sldata->probe_sh, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
-	DRW_framebuffer_init(&fbl->probe_sh_fb, &draw_engine_eevee_type, 9, 1, &tex_sh, 1);
+	DRW_framebuffer_init(&sldata->probe_sh_fb, &draw_engine_eevee_type, 9, 1, &tex_sh, 1);
 }
 
-void EEVEE_probes_cache_init(EEVEE_Data *vedata)
+void EEVEE_probes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
-	EEVEE_StorageList *stl = vedata->stl;
-	EEVEE_TextureList *txl = vedata->txl;
-	EEVEE_PassList *psl = vedata->psl;
-
 	{
 		psl->probe_prefilter = DRW_pass_create("Probe Filtering", DRW_STATE_WRITE_COLOR);
 
 		struct Batch *geom = DRW_cache_fullscreen_quad_get();
 
 		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_filter_sh, psl->probe_prefilter, geom);
-		DRW_shgroup_uniform_float(grp, "sampleCount", &stl->probes->samples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "invSampleCount", &stl->probes->invsamples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "roughnessSquared", &stl->probes->roughness, 1);
-		DRW_shgroup_uniform_float(grp, "lodFactor", &stl->probes->lodfactor, 1);
-		DRW_shgroup_uniform_float(grp, "lodMax", &stl->probes->lodmax, 1);
-		DRW_shgroup_uniform_float(grp, "texelSize", &stl->probes->texel_size, 1);
-		DRW_shgroup_uniform_float(grp, "paddingSize", &stl->probes->padding_size, 1);
-		DRW_shgroup_uniform_int(grp, "Layer", &stl->probes->layer, 1);
+		DRW_shgroup_uniform_float(grp, "sampleCount", &sldata->probes->samples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "invSampleCount", &sldata->probes->invsamples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "roughnessSquared", &sldata->probes->roughness, 1);
+		DRW_shgroup_uniform_float(grp, "lodFactor", &sldata->probes->lodfactor, 1);
+		DRW_shgroup_uniform_float(grp, "lodMax", &sldata->probes->lodmax, 1);
+		DRW_shgroup_uniform_float(grp, "texelSize", &sldata->probes->texel_size, 1);
+		DRW_shgroup_uniform_float(grp, "paddingSize", &sldata->probes->padding_size, 1);
+		DRW_shgroup_uniform_int(grp, "Layer", &sldata->probes->layer, 1);
 		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 		// DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
-		DRW_shgroup_uniform_texture(grp, "probeHdr", txl->probe_rt);
+		DRW_shgroup_uniform_texture(grp, "probeHdr", sldata->probe_rt);
 
 		DRW_shgroup_call_dynamic_add_empty(grp);
 	}
@@ -183,37 +175,33 @@ void EEVEE_probes_cache_init(EEVEE_Data *vedata)
 		psl->probe_sh_compute = DRW_pass_create("Probe SH Compute", DRW_STATE_WRITE_COLOR);
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_spherical_harmonic_sh, psl->probe_sh_compute);
-		DRW_shgroup_uniform_int(grp, "probeSize", &stl->probes->shres, 1);
-		DRW_shgroup_uniform_float(grp, "lodBias", &stl->probes->lodfactor, 1);
-		DRW_shgroup_uniform_texture(grp, "probeHdr", txl->probe_rt);
+		DRW_shgroup_uniform_int(grp, "probeSize", &sldata->probes->shres, 1);
+		DRW_shgroup_uniform_float(grp, "lodBias", &sldata->probes->lodfactor, 1);
+		DRW_shgroup_uniform_texture(grp, "probeHdr", sldata->probe_rt);
 
 		struct Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRW_shgroup_call_add(grp, geom, NULL);
 	}
 }
 
-void EEVEE_probes_cache_add(EEVEE_Data *UNUSED(vedata), Object *UNUSED(ob))
+void EEVEE_probes_cache_add(EEVEE_SceneLayerData *UNUSED(sldata), Object *UNUSED(ob))
 {
 	return;
 }
 
-void EEVEE_probes_cache_finish(EEVEE_Data *UNUSED(vedata))
+void EEVEE_probes_cache_finish(EEVEE_SceneLayerData *UNUSED(sldata))
 {
 	return;
 }
 
-void EEVEE_probes_update(EEVEE_Data *UNUSED(vedata))
+void EEVEE_probes_update(EEVEE_SceneLayerData *UNUSED(sldata))
 {
 	return;
 }
 
-void EEVEE_refresh_probe(EEVEE_Data *vedata)
+void EEVEE_refresh_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
-	EEVEE_FramebufferList *fbl = vedata->fbl;
-	EEVEE_TextureList *txl = vedata->txl;
-	EEVEE_PassList *psl = vedata->psl;
-	EEVEE_StorageList *stl = vedata->stl;
-	EEVEE_ProbesInfo *pinfo = stl->probes;
+	EEVEE_ProbesInfo *pinfo = sldata->probes;
 
 	float projmat[4][4];
 
@@ -225,17 +213,17 @@ void EEVEE_refresh_probe(EEVEE_Data *vedata)
 		mul_m4_m4m4(pinfo->probemat[i], projmat, cubefacemat[i]);
 	}
 
-	DRW_framebuffer_bind(fbl->probe_fb);
+	DRW_framebuffer_bind(sldata->probe_fb);
 	DRW_draw_pass(psl->probe_background);
 
 	/* 2 - Let gpu create Mipmaps for Filtered Importance Sampling. */
 	/* Bind next framebuffer to be able to gen. mips for probe_rt. */
-	DRW_framebuffer_bind(fbl->probe_filter_fb);
-	DRW_texture_generate_mipmaps(txl->probe_rt);
+	DRW_framebuffer_bind(sldata->probe_filter_fb);
+	DRW_texture_generate_mipmaps(sldata->probe_rt);
 
 	/* 3 - Render to probe array to the specified layer, do prefiltering. */
 	/* Detach to rebind the right mipmap. */
-	DRW_framebuffer_texture_detach(txl->probe_pool);
+	DRW_framebuffer_texture_detach(sldata->probe_pool);
 	float mipsize = PROBE_SIZE;
 	const int maxlevel = (int)floorf(log2f(PROBE_SIZE));
 	const int min_lod_level = 3;
@@ -279,10 +267,10 @@ void EEVEE_refresh_probe(EEVEE_Data *vedata)
 		pinfo->lodfactor = bias + 0.5f * log((float)(PROBE_CUBE_SIZE * PROBE_CUBE_SIZE) * pinfo->invsamples_ct) / log(2);
 		pinfo->lodmax = floorf(log2f(PROBE_CUBE_SIZE)) - 2.0f;
 
-		DRW_framebuffer_texture_attach(fbl->probe_filter_fb, txl->probe_pool, 0, i);
-		DRW_framebuffer_viewport_size(fbl->probe_filter_fb, mipsize, mipsize);
+		DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, i);
+		DRW_framebuffer_viewport_size(sldata->probe_filter_fb, mipsize, mipsize);
 		DRW_draw_pass(psl->probe_prefilter);
-		DRW_framebuffer_texture_detach(txl->probe_pool);
+		DRW_framebuffer_texture_detach(sldata->probe_pool);
 
 		mipsize /= 2;
 		CLAMP_MIN(mipsize, 1);
@@ -290,13 +278,13 @@ void EEVEE_refresh_probe(EEVEE_Data *vedata)
 	/* For shading, save max level of the octahedron map */
 	pinfo->lodmax = (float)(maxlevel - min_lod_level) - 1.0f;
 	/* reattach to have a valid framebuffer. */
-	DRW_framebuffer_texture_attach(fbl->probe_filter_fb, txl->probe_pool, 0, 0);
+	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 
 	/* 4 - Compute spherical harmonics */
 	/* Tweaking parameters to balance perf. vs precision */
 	pinfo->shres = 16; /* Less texture fetches & reduce branches */
 	pinfo->lodfactor = 4.0f; /* Improve cache reuse */
-	DRW_framebuffer_bind(fbl->probe_sh_fb);
+	DRW_framebuffer_bind(sldata->probe_sh_fb);
 	DRW_draw_pass(psl->probe_sh_compute);
 	DRW_framebuffer_read_data(0, 0, 9, 1, 3, 0, (float *)pinfo->shcoefs);
 }
@@ -306,4 +294,17 @@ void EEVEE_probes_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_spherical_harmonic_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
+}
+
+void EEVEE_scene_layer_probes_free(EEVEE_SceneLayerData *sldata)
+{
+	MEM_SAFE_FREE(sldata->probes);
+	DRW_UBO_FREE_SAFE(sldata->probe_ubo);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_fb);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_filter_fb);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_sh_fb);
+	DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);
+	DRW_TEXTURE_FREE_SAFE(sldata->probe_depth_rt);
+	DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
+	DRW_TEXTURE_FREE_SAFE(sldata->probe_sh);
 }

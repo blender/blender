@@ -88,6 +88,9 @@ extern char datatoc_background_vert_glsl[];
 extern Material defmaterial;
 extern GlobalsUboStorage ts;
 
+/* Prototypes */
+static void EEVEE_scene_layer_data_free(void *storage);
+
 static struct GPUTexture *create_jitter_texture(int w, int h)
 {
 	struct GPUTexture *tex;
@@ -187,7 +190,11 @@ static void EEVEE_engine_init(void *ved)
 	EEVEE_Data *vedata = (EEVEE_Data *)ved;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
-	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_SceneLayerData **sldata = (EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
+
+	if (*sldata == NULL) {
+		*sldata = MEM_callocN(sizeof(EEVEE_SceneLayerData), "EEVEE_SceneLayerData");
+	}
 
 	DRWFboTexture tex = {&txl->color, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
 
@@ -259,9 +266,9 @@ static void EEVEE_engine_init(void *ved)
 		copy_v3_v3(e_data.camera_pos, viewinvmat[3]);
 	}
 
-	EEVEE_lights_init(stl);
+	EEVEE_lights_init(*sldata);
 
-	EEVEE_probes_init(vedata);
+	EEVEE_probes_init(*sldata);
 
 	EEVEE_effects_init(vedata);
 
@@ -283,8 +290,9 @@ static void EEVEE_cache_init(void *vedata)
 	static int zero = 0;
 
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+	EEVEE_SceneLayerData *sldata = *(EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
+
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -410,15 +418,15 @@ static void EEVEE_cache_init(void *vedata)
 				shgrp = DRW_shgroup_create(shader, psl->default_pass);
 			}
 
-			DRW_shgroup_uniform_block(shgrp, "light_block", stl->light_ubo);
-			DRW_shgroup_uniform_block(shgrp, "shadow_block", stl->shadow_ubo);
-			DRW_shgroup_uniform_int(shgrp, "light_count", &stl->lamps->num_light, 1);
-			DRW_shgroup_uniform_float(shgrp, "lodMax", &stl->probes->lodmax, 1);
-			DRW_shgroup_uniform_vec3(shgrp, "shCoefs[0]", (float *)stl->probes->shcoefs, 9);
+			DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
+			DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
+			DRW_shgroup_uniform_int(shgrp, "light_count", &sldata->lamps->num_light, 1);
+			DRW_shgroup_uniform_float(shgrp, "lodMax", &sldata->probes->lodmax, 1);
+			DRW_shgroup_uniform_vec3(shgrp, "shCoefs[0]", (float *)sldata->probes->shcoefs, 9);
 			DRW_shgroup_uniform_vec3(shgrp, "cameraPos", e_data.camera_pos, 1);
 			DRW_shgroup_uniform_texture(shgrp, "ltcMat", e_data.ltc_mat);
 			DRW_shgroup_uniform_texture(shgrp, "brdfLut", e_data.brdf_lut);
-			DRW_shgroup_uniform_texture(shgrp, "probeFiltered", txl->probe_pool);
+			DRW_shgroup_uniform_texture(shgrp, "probeFiltered", sldata->probe_pool);
 			/* NOTE : Adding Shadow Map textures uniform in EEVEE_cache_finish */
 		}
 	}
@@ -428,16 +436,16 @@ static void EEVEE_cache_init(void *vedata)
 		psl->material_pass = DRW_pass_create("Material Shader Pass", state);
 	}
 
-	EEVEE_probes_cache_init(vedata);
-	EEVEE_lights_cache_init(stl, psl, txl);
+	EEVEE_probes_cache_init(sldata, psl);
+	EEVEE_lights_cache_init(sldata, psl);
 	EEVEE_effects_cache_init(vedata);
 }
 
 static void EEVEE_cache_populate(void *vedata, Object *ob)
 {
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
-	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+	EEVEE_SceneLayerData *sldata = *(EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool is_active = (ob == draw_ctx->obact);
@@ -492,15 +500,15 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 
 					DRWShadingGroup *shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
 					if (shgrp) {
-						DRW_shgroup_uniform_block(shgrp, "light_block", stl->light_ubo);
-						DRW_shgroup_uniform_block(shgrp, "shadow_block", stl->shadow_ubo);
-						DRW_shgroup_uniform_int(shgrp, "light_count", &stl->lamps->num_light, 1);
-						DRW_shgroup_uniform_float(shgrp, "lodMax", &stl->probes->lodmax, 1);
-						DRW_shgroup_uniform_vec3(shgrp, "shCoefs[0]", (float *)stl->probes->shcoefs, 9);
+						DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
+						DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
+						DRW_shgroup_uniform_int(shgrp, "light_count", &sldata->lamps->num_light, 1);
+						DRW_shgroup_uniform_float(shgrp, "lodMax", &sldata->probes->lodmax, 1);
+						DRW_shgroup_uniform_vec3(shgrp, "shCoefs[0]", (float *)sldata->probes->shcoefs, 9);
 						DRW_shgroup_uniform_vec3(shgrp, "cameraPos", e_data.camera_pos, 1);
 						DRW_shgroup_uniform_texture(shgrp, "ltcMat", e_data.ltc_mat);
 						DRW_shgroup_uniform_texture(shgrp, "brdfLut", e_data.brdf_lut);
-						DRW_shgroup_uniform_texture(shgrp, "probeFiltered", txl->probe_pool);
+						DRW_shgroup_uniform_texture(shgrp, "probeFiltered", sldata->probe_pool);
 
 						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
@@ -521,7 +529,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_uniform_float(shgrp, "roughness", &half, 1);
 						DRW_shgroup_uniform_texture(shgrp, "ltcMat", e_data.ltc_mat);
 						DRW_shgroup_uniform_texture(shgrp, "brdfLut", e_data.brdf_lut);
-						DRW_shgroup_uniform_texture(shgrp, "probeFiltered", txl->probe_pool);
+						DRW_shgroup_uniform_texture(shgrp, "probeFiltered", sldata->probe_pool);
 
 						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
@@ -539,7 +547,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 					DRW_shgroup_uniform_float(shgrp, "roughness", &ma->gloss_mir, 1);
 					DRW_shgroup_uniform_texture(shgrp, "ltcMat", e_data.ltc_mat);
 					DRW_shgroup_uniform_texture(shgrp, "brdfLut", e_data.brdf_lut);
-					DRW_shgroup_uniform_texture(shgrp, "probeFiltered", txl->probe_pool);
+					DRW_shgroup_uniform_texture(shgrp, "probeFiltered", sldata->probe_pool);
 
 					if (is_sculpt_mode) {
 						DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
@@ -556,11 +564,11 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		const bool cast_shadow = true;
 
 		if (cast_shadow) {
-			EEVEE_lights_cache_shcaster_add(psl, stl, geom, ob->obmat);
+			EEVEE_lights_cache_shcaster_add(sldata, psl, geom, ob->obmat);
 		}
 	}
 	else if (ob->type == OB_LAMP) {
-		EEVEE_lights_cache_add(stl, ob);
+		EEVEE_lights_cache_add(sldata, ob);
 	}
 }
 
@@ -579,18 +587,16 @@ static void eevee_bind_shadow(void *data, DRWShadingGroup *shgrp)
 static void EEVEE_cache_finish(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
-	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
-	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
+	EEVEE_SceneLayerData *sldata = *(EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
 
-	EEVEE_lights_cache_finish(stl, txl, fbl);
-	EEVEE_probes_cache_finish(vedata);
+	EEVEE_lights_cache_finish(sldata);
+	EEVEE_probes_cache_finish(sldata);
 
 	/* Shadows binding */
 	eevee_bind_shadow_data data;
 
-	data.shadow_depth_cube_pool = txl->shadow_depth_cube_pool;
-	data.shadow_depth_cascade_pool = txl->shadow_depth_cascade_pool;
+	data.shadow_depth_cube_pool = sldata->shadow_depth_cube_pool;
+	data.shadow_depth_cascade_pool = sldata->shadow_depth_cascade_pool;
 
 	DRW_pass_foreach_shgroup(psl->default_pass, eevee_bind_shadow, &data);
 	DRW_pass_foreach_shgroup(psl->material_pass, eevee_bind_shadow, &data);
@@ -600,15 +606,16 @@ static void EEVEE_draw_scene(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
+	EEVEE_SceneLayerData *sldata = *(EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
 
 	/* Default framebuffer and texture */
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	/* Refresh Probes */
-	EEVEE_refresh_probe((EEVEE_Data *)vedata);
+	EEVEE_refresh_probe(sldata, psl);
 
 	/* Refresh shadows */
-	EEVEE_draw_shadows((EEVEE_Data *)vedata);
+	EEVEE_draw_shadows(sldata, psl);
 
 	/* Attach depth to the hdr buffer and bind it */	
 	DRW_framebuffer_texture_detach(dtxl->depth);
@@ -643,6 +650,13 @@ static void EEVEE_engine_free(void)
 	DRW_TEXTURE_FREE_SAFE(e_data.jitter);
 }
 
+static void EEVEE_scene_layer_data_free(void *storage)
+{
+	EEVEE_SceneLayerData *sldata = (EEVEE_SceneLayerData *)storage;
+	EEVEE_scene_layer_lights_free(sldata);
+	EEVEE_scene_layer_probes_free(sldata);
+}
+
 static void EEVEE_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
 	BLI_assert(props &&
@@ -651,7 +665,6 @@ static void EEVEE_layer_collection_settings_create(RenderEngine *UNUSED(engine),
 	// BKE_collection_engine_property_add_int(props, "high_quality_sphere_lamps", false);
 	UNUSED_VARS_NDEBUG(props);
 }
-
 
 static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
