@@ -1688,6 +1688,13 @@ static void write_defgroups(WriteData *wd, ListBase *defbase)
 	}
 }
 
+static void write_fmaps(WriteData *wd, ListBase *fbase)
+{
+	for (bFaceMap *fmap = fbase->first; fmap; fmap = fmap->next) {
+		writestruct(wd, DATA, bFaceMap, 1, fmap);
+	}
+}
+
 static void write_modifiers(WriteData *wd, ListBase *modbase)
 {
 	ModifierData *md;
@@ -1891,6 +1898,7 @@ static void write_object(WriteData *wd, Object *ob)
 
 		write_pose(wd, ob->pose);
 		write_defgroups(wd, &ob->defbase);
+		write_fmaps(wd, &ob->fmaps);
 		write_constraints(wd, &ob->constraints);
 		write_motionpath(wd, ob->mpath);
 
@@ -2122,6 +2130,10 @@ static void write_customdata(
 		}
 		else if (layer->type == CD_GRID_PAINT_MASK) {
 			write_grid_paint_mask(wd, count, layer->data);
+		}
+		else if (layer->type == CD_FACEMAP) {
+			const int *layer_data = layer->data;
+			writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
 		}
 		else {
 			CustomData_file_write_info(layer->type, &structname, &structnum);

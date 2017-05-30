@@ -39,6 +39,7 @@ struct ID;
 struct View3D;
 struct ARegion;
 struct bContext;
+struct bFaceMap;
 struct wmOperator;
 struct wmKeyConfig;
 struct ReportList;
@@ -259,6 +260,10 @@ void                 ED_vgroup_vert_remove(struct Object *ob, struct bDeformGrou
 float                ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 void                 ED_vgroup_vert_active_mirror(struct Object *ob, int def_nr);
 
+
+/* object_facemap_ops.c */
+void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int facenum);
+void ED_object_facemap_face_remove(struct Object *ob, struct bFaceMap *fmap, int facenum);
 
 /* mesh_data.c */
 // void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);

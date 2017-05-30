@@ -103,6 +103,7 @@
 #include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_object_facemap.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -422,6 +423,7 @@ void BKE_object_free(Object *ob)
 	MEM_SAFE_FREE(ob->bb);
 
 	BLI_freelistN(&ob->defbase);
+	BLI_freelistN(&ob->fmaps);
 	if (ob->pose) {
 		BKE_pose_free_ex(ob->pose, false);
 		ob->pose = NULL;
@@ -1151,6 +1153,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 			BKE_pose_rebuild(obn, obn->data);
 	}
 	defgroup_copy_list(&obn->defbase, &ob->defbase);
+	BKE_object_facemap_copy_list(&obn->fmaps, &ob->fmaps);
 	BKE_constraints_copy(&obn->constraints, &ob->constraints, true);
 
 	obn->mode = OB_MODE_OBJECT;
@@ -1279,10 +1282,10 @@ static void armature_set_id_extern(Object *ob)
 	unsigned int lay = arm->layer_protected;
 	
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-		if (!(pchan->bone->layer & lay))
+		if (!(pchan->bone->layer & lay)) {
 			id_lib_extern((ID *)pchan->custom);
+		}
 	}
-			
 }
 
 void BKE_object_copy_proxy_drivers(Object *ob, Object *target)

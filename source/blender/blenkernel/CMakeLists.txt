@@ -145,6 +145,7 @@ set(SRC
 	intern/nla.c
 	intern/node.c
 	intern/object.c
+	intern/object_facemap.c
 	intern/object_deform.c
 	intern/object_dupli.c
 	intern/object_update.c
@@ -271,6 +272,7 @@ set(SRC
 	BKE_nla.h
 	BKE_node.h
 	BKE_object.h
+	BKE_object_facemap.h
 	BKE_object_deform.h
 	BKE_ocean.h
 	BKE_outliner_treehash.h
