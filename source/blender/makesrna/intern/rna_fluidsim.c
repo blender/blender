@@ -188,6 +188,7 @@ static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *v
 static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *ptr)
 {
 #ifndef WITH_MOD_FLUID
+	UNUSED_VARS(ptr);
 	return 0;
 #else
 	char value[32];
