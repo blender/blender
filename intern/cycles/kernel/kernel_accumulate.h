@@ -621,25 +621,43 @@ ccl_device_inline void path_radiance_accum_sample(PathRadiance *L, PathRadiance 
 {
 	float fac = 1.0f/num_samples;
 
+#ifdef __SPLIT_KERNEL__
+#  define safe_float3_add(f, v) \
+	do { \
+		ccl_global float *p = (ccl_global float*)(&(f)); \
+		atomic_add_and_fetch_float(p+0, (v).x); \
+		atomic_add_and_fetch_float(p+1, (v).y); \
+		atomic_add_and_fetch_float(p+2, (v).z); \
+	} while(0)
+#else
+#  define safe_float3_add(f, v) (f) += (v)
+#endif  /* __SPLIT_KERNEL__ */
+
 #ifdef __PASSES__
-	L->direct_diffuse += L_sample->direct_diffuse*fac;
-	L->direct_glossy += L_sample->direct_glossy*fac;
-	L->direct_transmission += L_sample->direct_transmission*fac;
-	L->direct_subsurface += L_sample->direct_subsurface*fac;
-	L->direct_scatter += L_sample->direct_scatter*fac;
+	safe_float3_add(L->direct_diffuse, L_sample->direct_diffuse*fac);
+	safe_float3_add(L->direct_glossy, L_sample->direct_glossy*fac);
+	safe_float3_add(L->direct_transmission, L_sample->direct_transmission*fac);
+	safe_float3_add(L->direct_subsurface, L_sample->direct_subsurface*fac);
+	safe_float3_add(L->direct_scatter, L_sample->direct_scatter*fac);
 
-	L->indirect_diffuse += L_sample->indirect_diffuse*fac;
-	L->indirect_glossy += L_sample->indirect_glossy*fac;
-	L->indirect_transmission += L_sample->indirect_transmission*fac;
-	L->indirect_subsurface += L_sample->indirect_subsurface*fac;
-	L->indirect_scatter += L_sample->indirect_scatter*fac;
+	safe_float3_add(L->indirect_diffuse, L_sample->indirect_diffuse*fac);
+	safe_float3_add(L->indirect_glossy, L_sample->indirect_glossy*fac);
+	safe_float3_add(L->indirect_transmission, L_sample->indirect_transmission*fac);
+	safe_float3_add(L->indirect_subsurface, L_sample->indirect_subsurface*fac);
+	safe_float3_add(L->indirect_scatter, L_sample->indirect_scatter*fac);
 
-	L->background += L_sample->background*fac;
-	L->ao += L_sample->ao*fac;
-	L->shadow += L_sample->shadow*fac;
+	safe_float3_add(L->background, L_sample->background*fac);
+	safe_float3_add(L->ao, L_sample->ao*fac);
+	safe_float3_add(L->shadow, L_sample->shadow*fac);
+#  ifdef __SPLIT_KERNEL__
+	atomic_add_and_fetch_float(&L->mist, L_sample->mist*fac);
+#  else
 	L->mist += L_sample->mist*fac;
-#endif
-	L->emission += L_sample->emission * fac;
+#  endif  /* __SPLIT_KERNEL__ */
+#endif  /* __PASSES__ */
+	safe_float3_add(L->emission, L_sample->emission*fac);
+
+#undef safe_float3_add
 }
 
 #ifdef __SHADOW_TRICKS__
