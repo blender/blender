@@ -20,6 +20,14 @@ float direct_diffuse_point(LightData ld, ShadingData sd)
 	return bsdf;
 }
 
+/* infinitly far away point source, no decay */
+float direct_diffuse_sun(LightData ld, ShadingData sd)
+{
+	float bsdf = max(0.0, dot(sd.N, -ld.l_forward));
+	bsdf *= M_1_PI; /* Normalize */
+	return bsdf;
+}
+
 /* From Frostbite PBR Course
  * Analitical irradiance from a sphere with correct horizon handling
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
@@ -66,13 +74,6 @@ float direct_diffuse_rectangle(LightData ld, ShadingData sd)
 	return bsdf;
 }
 
-/* infinitly far away point source, no decay */
-float direct_diffuse_sun(LightData ld, ShadingData sd)
-{
-	float bsdf = max(0.0, dot(sd.N, -ld.l_forward));
-	bsdf *= M_1_PI; /* Normalize */
-	return bsdf;
-}
 
 #if 0
 float direct_diffuse_unit_disc(vec3 N, vec3 L)
@@ -91,6 +92,13 @@ vec3 direct_ggx_point(ShadingData sd, float roughness, vec3 f0)
 
 	/* Fresnel */
 	float VH = max(dot(sd.V, normalize(sd.V + L)), 0.0);
+	return F_schlick(f0, VH) * bsdf;
+}
+
+vec3 direct_ggx_sun(LightData ld, ShadingData sd, float roughness, vec3 f0)
+{
+	float bsdf = bsdf_ggx(sd.N, -ld.l_forward, sd.V, roughness);
+	float VH = max(dot(sd.V, normalize(sd.V - ld.l_forward)), 0.0);
 	return F_schlick(f0, VH) * bsdf;
 }
 

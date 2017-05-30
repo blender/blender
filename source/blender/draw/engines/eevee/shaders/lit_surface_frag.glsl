@@ -86,9 +86,9 @@ void light_shade(
 {
 #ifdef USE_LTC
 	if (ld.l_type == SUN) {
-		diffuse = direct_diffuse_sun(ld, sd) * albedo;
 		/* TODO disk area light */
-		specular = direct_ggx_point(sd, roughness, f0);
+		diffuse = direct_diffuse_sun(ld, sd) * albedo;
+		specular = direct_ggx_sun(ld, sd, roughness, f0);
 	}
 	else if (ld.l_type == AREA) {
 		diffuse =  direct_diffuse_rectangle(ld, sd) * albedo;
@@ -101,11 +101,12 @@ void light_shade(
 #else
 	if (ld.l_type == SUN) {
 		diffuse = direct_diffuse_sun(ld, sd) * albedo;
+		specular = direct_ggx_sun(ld, sd, roughness, f0);
 	}
 	else {
 		diffuse = direct_diffuse_point(ld, sd) * albedo;
+		specular = direct_ggx_point(sd, roughness, f0);
 	}
-	specular = direct_ggx_point(sd, roughness, f0);
 #endif
 }
 
