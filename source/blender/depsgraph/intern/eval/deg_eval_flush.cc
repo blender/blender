@@ -164,14 +164,32 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 					 * Plus it ensures visibility changes and relations and
 					 * layers visibility update has proper flags to work with.
 					 */
-					if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
-						object->recalc |= OB_RECALC_TIME;
-					}
-					else if (comp_node->type == DEPSNODE_TYPE_TRANSFORM) {
-						object->recalc |= OB_RECALC_OB;
-					}
-					else {
-						object->recalc |= OB_RECALC_DATA;
+					switch (comp_node->type) {
+						case DEPSNODE_TYPE_UNDEFINED:
+						case DEPSNODE_TYPE_OPERATION:
+						case DEPSNODE_TYPE_ROOT:
+						case DEPSNODE_TYPE_TIMESOURCE:
+						case DEPSNODE_TYPE_ID_REF:
+						case DEPSNODE_TYPE_SUBGRAPH:
+						case DEPSNODE_TYPE_PARAMETERS:
+						case DEPSNODE_TYPE_SEQUENCER:
+							/* Ignore, does not translate to object component. */
+							break;
+						case DEPSNODE_TYPE_ANIMATION:
+							object->recalc |= OB_RECALC_TIME;
+							break;
+						case DEPSNODE_TYPE_TRANSFORM:
+							object->recalc |= OB_RECALC_OB;
+							break;
+						case DEPSNODE_TYPE_GEOMETRY:
+						case DEPSNODE_TYPE_EVAL_POSE:
+						case DEPSNODE_TYPE_BONE:
+						case DEPSNODE_TYPE_EVAL_PARTICLES:
+						case DEPSNODE_TYPE_SHADING:
+						case DEPSNODE_TYPE_CACHE:
+						case DEPSNODE_TYPE_PROXY:
+							object->recalc |= OB_RECALC_DATA;
+							break;
 					}
 				}
 			}
