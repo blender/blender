@@ -414,16 +414,16 @@ static bool bake_object_check(Scene *scene, Object *ob, ReportList *reports)
 		else {
 			Material *mat = give_current_material(ob, i);
 			if (mat != NULL) {
-				BKE_reportf(reports, RPT_ERROR,
+				BKE_reportf(reports, RPT_INFO,
 				            "No active image found in material \"%s\" (%d) for object \"%s\"",
 				            mat->id.name + 2, i, ob->id.name + 2);
 			}
 			else {
-				BKE_reportf(reports, RPT_ERROR,
+				BKE_reportf(reports, RPT_INFO,
 				            "No active image found in material slot (%d) for object \"%s\"",
 				            i, ob->id.name + 2);
 			}
-			return false;
+			continue;
 		}
 
 		image->id.tag |= LIB_TAG_DOIT;
@@ -563,7 +563,11 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 		Image *image;
 		ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
 
-		if ((image->id.tag & LIB_TAG_DOIT)) {
+		/* Some materials have no image, we just ignore those cases. */
+		if (image == NULL) {
+			bake_images->lookup[i] = -1;
+		}
+		else if (image->id.tag & LIB_TAG_DOIT) {
 			for (j = 0; j < i; j++) {
 				if (bake_images->data[j].image == image) {
 					bake_images->lookup[i] = j;
