@@ -427,7 +427,6 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 		BuilderWalkUserData data;
 		data.builder = this;
 		data.scene = scene;
-		modifiers_foreachObjectLink(ob, modifier_walk, &data);
 		BKE_constraints_id_loop(&ob->constraints, constraint_walk, &data);
 	}
 
