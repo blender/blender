@@ -32,13 +32,11 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_utildefines.h"
-} /* extern "C" */
+#include "BLI_ghash.h"
 
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_intern.h"
-#include "util/deg_util_hash.h"
 
 namespace DEG {
 

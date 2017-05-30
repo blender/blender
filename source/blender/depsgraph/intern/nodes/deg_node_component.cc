@@ -35,6 +35,7 @@
 
 extern "C" {
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "DNA_object_types.h"
 
@@ -44,7 +45,6 @@ extern "C" {
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
-#include "util/deg_util_hash.h"
 
 namespace DEG {
 
@@ -95,8 +95,8 @@ static unsigned int comp_node_hash_key(const void *key_v)
 {
 	const ComponentDepsNode::OperationIDKey *key =
 	        reinterpret_cast<const ComponentDepsNode::OperationIDKey *>(key_v);
-	return hash_combine(BLI_ghashutil_uinthash(key->opcode),
-	                    BLI_ghashutil_strhash_p(key->name));
+	return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(key->opcode),
+	                                  BLI_ghashutil_strhash_p(key->name));
 }
 
 static bool comp_node_hash_key_cmp(const void *a, const void *b)

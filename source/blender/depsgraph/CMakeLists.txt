@@ -88,7 +88,6 @@ set(SRC
 	intern/depsgraph_types.h
 
 	util/deg_util_function.h
-	util/deg_util_hash.h
 )
 
 if(WITH_CXX11)

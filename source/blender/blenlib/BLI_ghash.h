@@ -167,6 +167,8 @@ unsigned int    BLI_ghashutil_inthash_p_murmur(const void *ptr);
 unsigned int    BLI_ghashutil_inthash_p_simple(const void *ptr);
 bool            BLI_ghashutil_intcmp(const void *a, const void *b);
 
+size_t          BLI_ghashutil_combine_hash(size_t hash_a, size_t hash_b);
+
 
 unsigned int    BLI_ghashutil_uinthash_v4(const unsigned int key[4]);
 #define         BLI_ghashutil_inthash_v4(key) ( \
