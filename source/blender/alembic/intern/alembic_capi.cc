@@ -944,7 +944,9 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 		return NULL;
 	}
 
-	ISampleSelector sample_sel(time);
+	/* kFloorIndex is used to be compatible with non-interpolating
+	 * properties; they use the floor. */
+	ISampleSelector sample_sel(time, ISampleSelector::kFloorIndex);
 	return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
 }
 
