@@ -4190,9 +4190,10 @@ static bool update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *cha
 	
 	if (free_imbuf) {
 		if (ibuf_change) {
-			if (seq->type == SEQ_TYPE_MOVIE)
+			if (seq->type == SEQ_TYPE_MOVIE) {
 				BKE_sequence_free_anim(seq);
-			if (seq->type == SEQ_TYPE_SPEED) {
+			}
+			else if (seq->type == SEQ_TYPE_SPEED) {
 				BKE_sequence_effect_speed_rebuild_map(scene, seq, true);
 			}
 		}
