@@ -30,6 +30,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
 #include "DNA_view3d_types.h"
@@ -1526,8 +1527,26 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	switch (ob->type) {
 		case OB_MESH:
+		{
+			Mesh *me = ob->data;
+			if (me->totpoly == 0) {
+				Object *obedit = scene->obedit;
+				if (ob != obedit) {
+					struct Batch *geom = DRW_cache_mesh_edges_get(ob);
+					if (geom) {
+						if (theme_id == TH_UNDEFINED) {
+							theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
+						}
+
+						DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
+						DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+					}
+				}
+			}
+
 			OBJECT_cache_populate_particles(ob, psl);
 			break;
+		}
 		case OB_SURF:
 			break;
 		case OB_LATTICE:

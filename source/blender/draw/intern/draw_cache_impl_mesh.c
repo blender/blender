@@ -2422,7 +2422,6 @@ static ElementList *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, M
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE));
 
 	if (cache->edges_in_order == NULL) {
-		printf("Caching edges in order...\n");
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
 		const int edge_len = mesh_render_data_edges_len_get(rdata);
 
