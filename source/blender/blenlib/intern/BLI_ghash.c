@@ -1225,6 +1225,11 @@ bool BLI_ghashutil_intcmp(const void *a, const void *b)
 	return (a != b);
 }
 
+size_t BLI_ghashutil_combine_hash(size_t hash_a, size_t hash_b)
+{
+	return hash_a ^ (hash_b + 0x9e3779b9 + (hash_a << 6) + (hash_a >> 2));
+}
+
 /**
  * This function implements the widely used "djb" hash apparently posted
  * by Daniel Bernstein to comp.lang.c some time ago.  The 32 bit

@@ -341,8 +341,8 @@ bool ABC_export(
 
 	job->settings.frame_start = params->frame_start;
 	job->settings.frame_end = params->frame_end;
-	job->settings.frame_step_xform = params->frame_step_xform;
-	job->settings.frame_step_shape = params->frame_step_shape;
+	job->settings.frame_samples_xform = params->frame_samples_xform;
+	job->settings.frame_samples_shape = params->frame_samples_shape;
 	job->settings.shutter_open = params->shutter_open;
 	job->settings.shutter_close = params->shutter_close;
 
@@ -976,7 +976,9 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 		return NULL;
 	}
 
-	ISampleSelector sample_sel(time);
+	/* kFloorIndex is used to be compatible with non-interpolating
+	 * properties; they use the floor. */
+	ISampleSelector sample_sel(time, ISampleSelector::kFloorIndex);
 	return abc_reader->read_derivedmesh(dm, sample_sel, read_flag, err_str);
 }
 

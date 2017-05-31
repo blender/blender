@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
- 
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/scene.h"
@@ -293,7 +292,7 @@ static void create_mesh_volume_attribute(BL::Object& b_ob,
 
 	if(!b_domain)
 		return;
-	
+
 	Attribute *attr = mesh->attributes.add(std);
 	VoxelAttribute *volume_data = attr->data_voxel();
 	bool is_float, is_linear;
@@ -982,7 +981,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 		else
 			used_shaders.push_back(scene->default_surface);
 	}
-	
+
 	/* test if we need to sync */
 	int requested_geometry_flags = Mesh::GEOMETRY_NONE;
 	if(render_layer.use_surfaces) {
@@ -1017,12 +1016,12 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	/* ensure we only sync instanced meshes once */
 	if(mesh_synced.find(mesh) != mesh_synced.end())
 		return mesh;
-	
+
 	mesh_synced.insert(mesh);
 
 	/* create derived mesh */
 	array<int> oldtriangle = mesh->triangles;
-	
+
 	/* compares curve_keys rather than strands in order to handle quick hair
 	 * adjustments in dynamic BVH - other methods could probably do this better*/
 	array<float3> oldcurve_keys = mesh->curve_keys;
@@ -1111,7 +1110,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 		if(memcmp(&oldcurve_radius[0], &mesh->curve_radius[0], sizeof(float)*oldcurve_radius.size()) != 0)
 			rebuild = true;
 	}
-	
+
 	mesh->tag_update(scene, rebuild);
 
 	return mesh;
@@ -1140,7 +1139,7 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 	if(scene->need_motion() == Scene::MOTION_BLUR) {
 		if(!mesh->use_motion_blur)
 			return;
-		
+
 		/* see if this mesh needs motion data at this time */
 		vector<float> object_times = object->motion_times();
 		bool found = false;
@@ -1172,7 +1171,7 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 
 	if(!numverts && !numkeys)
 		return;
-	
+
 	/* skip objects without deforming modifiers. this is not totally reliable,
 	 * would need a more extensive check to see which objects are animated */
 	BL::Mesh b_mesh(PointerRNA_NULL);

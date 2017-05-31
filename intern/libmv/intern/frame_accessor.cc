@@ -134,6 +134,11 @@ struct LibmvFrameAccessor : public FrameAccessor {
         &width,
         &height);
 
+    if (cache_key == NULL) {
+      // No mask for the given track.
+      return NULL;
+    }
+
     // TODO(sergey): Dumb code for until we can set data directly.
     FloatImage temp_image(float_buffer,
                           height,

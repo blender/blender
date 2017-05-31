@@ -684,6 +684,10 @@ void RE_bake_pixels_populate(
 		int mat_nr = mp->mat_nr;
 		int image_id = bake_images->lookup[mat_nr];
 
+		if (image_id < 0) {
+			continue;
+		}
+
 		bd.bk_image = &bake_images->data[image_id];
 		bd.primitive_id = ++p_id;
 

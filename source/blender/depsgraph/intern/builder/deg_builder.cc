@@ -30,15 +30,16 @@
 
 #include "intern/builder/deg_builder.h"
 
-// TODO(sergey): Use own wrapper over STD.
-#include <stack>
-
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_ID.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+
+extern "C" {
+#include "BLI_stack.h"
+}
 
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_types.h"

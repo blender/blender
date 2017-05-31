@@ -49,7 +49,6 @@ extern "C" {
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
-#include "util/deg_util_hash.h"
 
 namespace DEG {
 
@@ -158,8 +157,8 @@ static unsigned int id_deps_node_hash_key(const void *key_v)
 {
 	const IDDepsNode::ComponentIDKey *key =
 	        reinterpret_cast<const IDDepsNode::ComponentIDKey *>(key_v);
-	return hash_combine(BLI_ghashutil_uinthash(key->type),
-	                    BLI_ghashutil_strhash_p(key->name));
+	return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(key->type),
+	                                  BLI_ghashutil_strhash_p(key->name));
 }
 
 static bool id_deps_node_hash_key_cmp(const void *a, const void *b)

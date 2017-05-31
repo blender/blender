@@ -191,7 +191,7 @@ class PrincipledBSSRDFClosure : public CBSSRDFClosure {
 public:
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
-		alloc(sd, path_flag, weight * albedo, CLOSURE_BSSRDF_PRINCIPLED_ID);
+		alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_ID);
 	}
 };
 

@@ -38,28 +38,3 @@
 #else
 #  error "Depsgraph requires either Boost or C++11 for range-based loops."
 #endif
-
-#define GHASH_FOREACH_BEGIN(type, var, what) \
-	do { \
-		GHashIterator gh_iter##var; \
-		GHASH_ITER(gh_iter##var, what) { \
-			type var = reinterpret_cast<type>(BLI_ghashIterator_getValue(&gh_iter##var)); \
-
-#define GHASH_FOREACH_END() \
-		} \
-	} while(0)
-
-#define GSET_FOREACH_BEGIN(type, var, what) \
-	do { \
-		GSetIterator gh_iter##var; \
-		GSET_ITER(gh_iter##var, what) { \
-			type var = reinterpret_cast<type>(BLI_gsetIterator_getKey(&gh_iter##var)); \
-
-#define GSET_FOREACH_END() \
-		} \
-	} while(0)
-
-#define LINKLIST_FOREACH(type, var, list)          \
-	for (type var = (type)((list)->first);     \
-	     var != NULL;                          \
-	     var = (type)(((Link*)(var))->next))

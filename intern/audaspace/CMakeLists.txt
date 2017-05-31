@@ -19,7 +19,7 @@
 #
 # ***** END LGPL LICENSE BLOCK *****
 
-remove_extra_strict_flags()
+remove_strict_flags()
 
 if(CMAKE_COMPILER_IS_GNUCC)
 	remove_cc_flag("-Wunused-macros")

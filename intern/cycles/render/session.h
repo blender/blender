@@ -111,11 +111,6 @@ public:
 		&& tile_size == params.tile_size
 		&& start_resolution == params.start_resolution
 		&& threads == params.threads
-		&& use_denoising == params.use_denoising
-		&& denoising_radius == params.denoising_radius
-		&& denoising_strength == params.denoising_strength
-		&& denoising_feature_strength == params.denoising_feature_strength
-		&& denoising_relative_pca == params.denoising_relative_pca
 		&& display_buffer_linear == params.display_buffer_linear
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout

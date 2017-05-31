@@ -62,6 +62,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
+#include "BLI_mempool.h"
 #include "BLI_threads.h"
 #include "BLI_timecode.h"  /* for stamp timecode format */
 #include "BLI_utildefines.h"
@@ -4132,33 +4133,32 @@ typedef struct ImagePoolEntry {
 
 typedef struct ImagePool {
 	ListBase image_buffers;
+	BLI_mempool *memory_pool;
 } ImagePool;
 
 ImagePool *BKE_image_pool_new(void)
 {
 	ImagePool *pool = MEM_callocN(sizeof(ImagePool), "Image Pool");
+	pool->memory_pool = BLI_mempool_create(sizeof(ImagePoolEntry), 0, 128, BLI_MEMPOOL_NOP);
 
 	return pool;
 }
 
 void BKE_image_pool_free(ImagePool *pool)
 {
-	ImagePoolEntry *entry, *next_entry;
-
-	/* use single lock to dereference all the image buffers */
+	/* Use single lock to dereference all the image buffers. */
 	BLI_spin_lock(&image_spin);
-
-	for (entry = pool->image_buffers.first; entry; entry = next_entry) {
-		next_entry = entry->next;
-
-		if (entry->ibuf)
+	for (ImagePoolEntry *entry = pool->image_buffers.first;
+	     entry != NULL;
+	     entry = entry->next)
+	{
+		if (entry->ibuf) {
 			IMB_freeImBuf(entry->ibuf);
-
-		MEM_freeN(entry);
+		}
 	}
-
 	BLI_spin_unlock(&image_spin);
 
+	BLI_mempool_destroy(pool->memory_pool);
 	MEM_freeN(pool);
 }
 
@@ -4210,7 +4210,7 @@ ImBuf *BKE_image_pool_acquire_ibuf(Image *ima, ImageUser *iuser, ImagePool *pool
 
 		ibuf = image_acquire_ibuf(ima, iuser, NULL);
 
-		entry = MEM_callocN(sizeof(ImagePoolEntry), "Image Pool Entry");
+		entry = BLI_mempool_alloc(pool->memory_pool);
 		entry->image = ima;
 		entry->frame = frame;
 		entry->index = index;

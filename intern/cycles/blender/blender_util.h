@@ -299,7 +299,7 @@ static inline uint get_layer(const BL::Array<int, 20>& array)
 	for(uint i = 0; i < 20; i++)
 		if(array[i])
 			layer |= (1 << i);
-	
+
 	return layer;
 }
 
@@ -434,7 +434,7 @@ static inline string get_string(PointerRNA& ptr, const char *name)
 	string str(cstr);
 	if(cstr != cstrbuf)
 		MEM_freeN(cstr);
-	
+
 	return str;
 }
 
@@ -451,7 +451,7 @@ static inline string blender_absolute_path(BL::BlendData& b_data,
 {
 	if(path.size() >= 2 && path[0] == '/' && path[1] == '/') {
 		string dirname;
-		
+
 		if(b_id.library()) {
 			BL::ID b_library_id(b_id.library());
 			dirname = blender_absolute_path(b_data,
@@ -544,7 +544,7 @@ static inline BL::SmokeDomainSettings object_smoke_domain_find(BL::Object& b_ob)
 				return b_smd.domain_settings();
 		}
 	}
-	
+
 	return BL::SmokeDomainSettings(PointerRNA_NULL);
 }
 
@@ -816,4 +816,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __BLENDER_UTIL_H__ */
-

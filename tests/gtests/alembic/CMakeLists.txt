@@ -26,6 +26,7 @@ set(INC
 	..
 	../../../source/blender/blenlib
 	../../../source/blender/alembic
+	../../../source/blender/makesdna
 	${ALEMBIC_INCLUDE_DIRS}
 	${BOOST_INCLUDE_DIR}
 	${HDF5_INCLUDE_DIRS}
@@ -44,8 +45,8 @@ else()
 endif()
 
 # For motivation on doubling BLENDER_SORTED_LIBS, see ../bmesh/CMakeLists.txt
-BLENDER_SRC_GTEST(abc_matrix "abc_matrix_test.cc;${_buildinfo_src}" "${BLENDER_SORTED_LIBS};${BLENDER_SORTED_LIBS}")
+BLENDER_SRC_GTEST(alembic "abc_matrix_test.cc;abc_export_test.cc;${_buildinfo_src}" "${BLENDER_SORTED_LIBS};${BLENDER_SORTED_LIBS}")
 
 unset(_buildinfo_src)
 
-setup_liblinks(abc_matrix_test)
+setup_liblinks(alembic_test)

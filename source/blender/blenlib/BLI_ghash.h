@@ -168,6 +168,8 @@ unsigned int    BLI_ghashutil_inthash_p_murmur(const void *ptr);
 unsigned int    BLI_ghashutil_inthash_p_simple(const void *ptr);
 bool            BLI_ghashutil_intcmp(const void *a, const void *b);
 
+size_t          BLI_ghashutil_combine_hash(size_t hash_a, size_t hash_b);
+
 
 unsigned int    BLI_ghashutil_uinthash_v4(const unsigned int key[4]);
 #define         BLI_ghashutil_inthash_v4(key) ( \
@@ -295,6 +297,25 @@ double BLI_ghash_calc_quality(GHash *gh);
 double BLI_gset_calc_quality(GSet *gs);
 #endif  /* GHASH_INTERNAL_API */
 
+#define GHASH_FOREACH_BEGIN(type, var, what) \
+	do { \
+		GHashIterator gh_iter##var; \
+		GHASH_ITER(gh_iter##var, what) { \
+			type var = (type)(BLI_ghashIterator_getValue(&gh_iter##var)); \
+
+#define GHASH_FOREACH_END() \
+		} \
+	} while(0)
+
+#define GSET_FOREACH_BEGIN(type, var, what) \
+	do { \
+		GSetIterator gh_iter##var; \
+		GSET_ITER(gh_iter##var, what) { \
+			type var = (type)(BLI_gsetIterator_getKey(&gh_iter##var));
+
+#define GSET_FOREACH_END() \
+		} \
+	} while(0)
 
 #ifdef __cplusplus
 }

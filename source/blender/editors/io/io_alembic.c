@@ -102,12 +102,12 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	char filename[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filename);
 
-	const struct AlembicExportParams params = {
+	struct AlembicExportParams params = {
 	    .frame_start = RNA_int_get(op->ptr, "start"),
 	    .frame_end = RNA_int_get(op->ptr, "end"),
 
-	    .frame_step_xform = 1.0 / (double)RNA_int_get(op->ptr, "xsamples"),
-	    .frame_step_shape = 1.0 / (double)RNA_int_get(op->ptr, "gsamples"),
+	    .frame_samples_xform = RNA_int_get(op->ptr, "xsamples"),
+	    .frame_samples_shape = RNA_int_get(op->ptr, "gsamples"),
 
 	    .shutter_open = RNA_float_get(op->ptr, "sh_open"),
 	    .shutter_close = RNA_float_get(op->ptr, "sh_close"),
@@ -133,8 +133,17 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	    .global_scale = RNA_float_get(op->ptr, "global_scale"),
 	};
 
+	/* Take some defaults from the scene, if not specified explicitly. */
+	Scene *scene = CTX_data_scene(C);
+	if (params.frame_start == INT_MIN) {
+		params.frame_start = SFRA;
+	}
+	if (params.frame_end == INT_MIN) {
+		params.frame_end = EFRA;
+	}
+
 	const bool as_background_job = RNA_boolean_get(op->ptr, "as_background_job");
-	bool ok = ABC_export(CTX_data_scene(C), C, filename, &params, as_background_job);
+	bool ok = ABC_export(scene, C, filename, &params, as_background_job);
 
 	return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -295,11 +304,17 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 	                               FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH,
 	                               FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 
-	RNA_def_int(ot->srna, "start", 1, INT_MIN, INT_MAX,
-	            "Start Frame", "Start Frame", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "start", INT_MIN, INT_MIN, INT_MAX,
+	            "Start Frame",
+	            "Start frame of the export, use the default value to "
+	            "take the start frame of the current scene",
+	            INT_MIN, INT_MAX);
 
-	RNA_def_int(ot->srna, "end", 1, INT_MIN, INT_MAX,
-	            "End Frame", "End Frame", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "end", INT_MIN, INT_MIN, INT_MAX,
+	            "End Frame",
+	            "End frame of the export, use the default value to "
+	            "take the end frame of the current scene",
+	            INT_MIN, INT_MAX);
 
 	RNA_def_int(ot->srna, "xsamples", 1, 1, 128,
 	            "Transform Samples", "Number of times per frame transformations are sampled", 1, 128);

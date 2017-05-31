@@ -51,6 +51,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_modifier.h"
@@ -414,22 +415,18 @@ static bool bake_object_check(Scene *scene, Object *ob, ReportList *reports)
 			}
 		}
 		else {
-			if (ob->mat[i]) {
-				BKE_reportf(reports, RPT_ERROR,
+			Material *mat = give_current_material(ob, i);
+			if (mat != NULL) {
+				BKE_reportf(reports, RPT_INFO,
 				            "No active image found in material \"%s\" (%d) for object \"%s\"",
-				            ob->mat[i]->id.name + 2, i, ob->id.name + 2);
-			}
-			else if (((Mesh *) ob->data)->mat[i]) {
-				BKE_reportf(reports, RPT_ERROR,
-				            "No active image found in material \"%s\" (%d) for object \"%s\"",
-				            ((Mesh *) ob->data)->mat[i]->id.name + 2, i, ob->id.name + 2);
+				            mat->id.name + 2, i, ob->id.name + 2);
 			}
 			else {
-				BKE_reportf(reports, RPT_ERROR,
-				            "No active image found in material (%d) for object \"%s\"",
+				BKE_reportf(reports, RPT_INFO,
+				            "No active image found in material slot (%d) for object \"%s\"",
 				            i, ob->id.name + 2);
 			}
-			return false;
+			continue;
 		}
 
 		image->id.tag |= LIB_TAG_DOIT;
@@ -569,7 +566,11 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 		Image *image;
 		ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
 
-		if ((image->id.tag & LIB_TAG_DOIT)) {
+		/* Some materials have no image, we just ignore those cases. */
+		if (image == NULL) {
+			bake_images->lookup[i] = -1;
+		}
+		else if (image->id.tag & LIB_TAG_DOIT) {
 			for (j = 0; j < i; j++) {
 				if (bake_images->data[j].image == image) {
 					bake_images->lookup[i] = j;

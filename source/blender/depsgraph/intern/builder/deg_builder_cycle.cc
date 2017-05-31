@@ -32,10 +32,10 @@
 // TOO(sergey): Use some wrappers over those?
 #include <cstdio>
 #include <cstdlib>
-#include <stack>
 
 extern "C" {
 #include "BLI_utildefines.h"
+#include "BLI_stack.h"
 }
 
 #include "util/deg_util_foreach.h"
@@ -48,12 +48,6 @@ extern "C" {
 
 namespace DEG {
 
-struct StackEntry {
-	OperationDepsNode *node;
-	StackEntry *from;
-	DepsRelation *via_relation;
-};
-
 void deg_graph_detect_cycles(Depsgraph *graph)
 {
 	enum {
@@ -65,7 +59,15 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 		NODE_IN_STACK = 2,
 	};
 
-	std::stack<StackEntry> traversal_stack;
+	struct StackEntry {
+		OperationDepsNode *node;
+		StackEntry *from;
+		DepsRelation *via_relation;
+	};
+
+	BLI_Stack *traversal_stack = BLI_stack_new(sizeof(StackEntry),
+	                                           "DEG detect cycles stack");
+
 	foreach (OperationDepsNode *node, graph->operations) {
 		bool has_inlinks = false;
 		foreach (DepsRelation *rel, node->inlinks) {
@@ -78,7 +80,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 			entry.node = node;
 			entry.from = NULL;
 			entry.via_relation = NULL;
-			traversal_stack.push(entry);
+			BLI_stack_push(traversal_stack, &entry);
 			node->tag = NODE_IN_STACK;
 		}
 		else {
@@ -87,9 +89,9 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 		node->done = 0;
 	}
 
-	while (!traversal_stack.empty()) {
-		StackEntry& entry = traversal_stack.top();
-		OperationDepsNode *node = entry.node;
+	while (!BLI_stack_is_empty(traversal_stack)) {
+		StackEntry *entry = (StackEntry *)BLI_stack_peek(traversal_stack);
+		OperationDepsNode *node = entry->node;
 		bool all_child_traversed = true;
 		for (int i = node->done; i < node->outlinks.size(); ++i) {
 			DepsRelation *rel = node->outlinks[i];
@@ -102,7 +104,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 					       node->full_identifier().c_str(),
 					       rel->name);
 
-					StackEntry *current = &entry;
+					StackEntry *current = entry;
 					while (current->node != to) {
 						BLI_assert(current != NULL);
 						printf("  '%s' depends on '%s' through '%s'\n",
@@ -117,9 +119,9 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 				else if (to->tag == NODE_NOT_VISITED) {
 					StackEntry new_entry;
 					new_entry.node = to;
-					new_entry.from = &entry;
+					new_entry.from = entry;
 					new_entry.via_relation = rel;
-					traversal_stack.push(new_entry);
+					BLI_stack_push(traversal_stack, &new_entry);
 					to->tag = NODE_IN_STACK;
 					all_child_traversed = false;
 					node->done = i;
@@ -129,9 +131,11 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 		}
 		if (all_child_traversed) {
 			node->tag = NODE_VISITED;
-			traversal_stack.pop();
+			BLI_stack_discard(traversal_stack);
 		}
 	}
+
+	BLI_stack_free(traversal_stack);
 }
 
 }  // namespace DEG

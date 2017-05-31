@@ -106,6 +106,13 @@ void *BLI_task_pool_userdata(TaskPool *pool);
 /* optional mutex to use from run function */
 ThreadMutex *BLI_task_pool_user_mutex(TaskPool *pool);
 
+/* Delayed push, use that to reduce thread overhead by accumulating
+ * all new tasks into local queue first and pushing it to scheduler
+ * from within a single mutex lock.
+ */
+void BLI_task_pool_delayed_push_begin(TaskPool *pool, int thread_id);
+void BLI_task_pool_delayed_push_end(TaskPool *pool, int thread_id);
+
 /* Parallel for routines */
 typedef void (*TaskParallelRangeFunc)(void *userdata, const int iter);
 typedef void (*TaskParallelRangeFuncEx)(void *userdata, void *userdata_chunk, const int iter, const int thread_id);

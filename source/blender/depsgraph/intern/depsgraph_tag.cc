@@ -43,6 +43,7 @@ extern "C" {
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_task.h"
+#include "BLI_listbase.h"
 
 #include "BKE_idcode.h"
 #include "BKE_library.h"
