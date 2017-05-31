@@ -1,3 +1,156 @@
+commit efd7a93317e0278b99e66785f667823e451daef1
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue May 9 10:16:42 2017 +0200
+
+    Fix strict compiler warnings, unused variables
+
+commit 8efd47e13dfdd3f7209bc96f26d0b13127dd6376
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 14 10:44:57 2016 +0100
+
+    Fix T50243: libmv_panography_test is broken
+    
+    There was fully wrong logic in comparison: was actually accessing memory
+    past the array boundary. Run test manually and the figure seems correct
+    to me now.
+    
+    Spotted by @LazyDodo, thanks!
+
+commit 6dfb9cd1bd14669d84be789000ce234747fb00ff
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Jul 14 11:49:38 2016 +0200
+
+    Fix some strict compiler warnings
+    
+    One of them was a real bug!
+
+commit f61adaecf7b29ebe6677be0e1c825f0a8d475e4b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 31 11:22:34 2017 +0200
+
+    Enable explicit schur complement for BA step
+    
+    This is something we do in Blender and only reason it was not
+    enabled for standalone Libmv is because we did not have fresh
+    enough version of Ceres bundled.
+
+commit fc5d3a1d4880c6658aff693c1c1e8c10c96ce1a7
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Nov 2 15:32:11 2016 +0100
+
+    Update tests to make tests pass after recent Ceres update
+    
+    Just a precision issue, difference is around 1e-7. Should be fine to
+    simply update expected value.
+
+commit e1ac9f6124110c1a90d8e417bea47acfcbdcca42
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 31 10:54:48 2017 +0200
+
+    Update Ceres to latest release 1.12.0
+
+commit ac1571352b4962f110929b963f8616d7310ceea5
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Apr 7 17:10:44 2017 +0200
+
+    Fix crash of keyframe selection on 32bit linux
+
+commit 5f8df3da965686df39a6ae5c9f17482075017bf4
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Jan 19 14:00:53 2016 +0500
+
+    Solve some strict warnings in tests
+
+commit 8ea3a5d752a9ce3337ab7643897472a4d33747f1
+Author: Brecht Van Lommel <brechtvanlommel@gmail.com>
+Date:   Sat Feb 18 23:52:31 2017 +0100
+
+    Fix a few compiler warnings with macOS / clang.
+
+commit ffbe81461770e70736e80b8cab8e6eb1f8b27160
+Author: Mike Erwin <significant.bit@gmail.com>
+Date:   Wed May 31 10:43:08 2017 +0200
+
+    Fix comparison of identicals
+    
+    Some of these check that dimensions match before running code that
+    assumes they do match.
+    
+    Found with PVS-Studio T48917.
+
+commit 206c01999cde16c1c6c43a8e13ffa86020821d98
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 31 10:39:16 2017 +0200
+
+    Add basic track masking API in place
+    
+    This brings back ability to mask non-interesting parts of
+    specific track (the feature got lost with new auto-track API).
+    
+    Added it back by extending frame accessor class. This isn't really
+    a frame thing, but we don't have other type of accessor here.
+    
+    Surely, we can use old-style API here and pass mask via region
+    tracker options for this particular case, but then it becomes much
+    less obvious how real auto-tracker will access this mask with old
+    style API.
+    
+    So seems we do need an accessor for such data, just matter of
+    finding better place than frame accessor.
+
+commit faa069cb826892780356477cc10602390fecf06b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 31 10:36:26 2017 +0200
+
+    Tests: Tweak epsilon to avoid what looks a false-positive failure
+
+commit 7c84e45c1d330871477ba3516f57178e5b9d101f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 31 10:15:43 2017 +0200
+
+    CMake: Fix mistake in closing branch
+
+commit cb769a0d319a8c95948153d78a4c3378a0142ece
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Jul 21 12:52:33 2016 +0200
+
+    Set of fixes for MSVC215
+    
+    - Move GLOG/GFLAGS defines to a more global scope,
+      this way ANY of our own libraries will use proper
+      declspec.
+    
+    - Compile png/zlib/openexif on Windows as well since
+      those are required for a correct linking.
+
+commit bb95c8654fd2cea72d66ed04cd825cc3712ea804
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Jul 20 18:14:46 2016 +0200
+
+    Disable unexisting Ceres option
+    
+    Explicit Schur complement requires having
+    newer Ceres than we currently have bundled.
+
+commit a2e12c959ef32cc9382244d1581992c2f7aa9c09
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Jul 20 18:04:57 2016 +0200
+
+    Various fixes for MSVC
+    
+    - Update Eigen to 3.2.7 since this brings crucial
+      fixes for MSVC 2015.
+    
+    - Switch to STATIC build by default.
+    
+      There are issues building current sources as dynamic
+      libraries with MSVC2015 and additionally building
+      dynamic Ceres is not recommended anyway, so let's
+      not do this for the time being.
+    
+    If anyone finds a way to make this all working --
+    it'llsurely be a welcome addition.
+
 commit 7a676106720fb126a27ff010abdd8bb65d7e0d9a
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Jan 4 18:30:12 2016 +0500
@@ -365,239 +518,3 @@ Date:   Thu May 8 15:50:26 2014 +0200
     Reviewed By: sergey
     
     Differential Revision: https://developer.blender.org/D516
-
-commit 4405dff60ea08d454b64da1a7c0595d9328cf8a3
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 8 15:38:14 2014 +0200
-
-    Add public SetMarkers to AutoTrack
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D515
-
-commit c90837f6db276a3b1f610eaad509155f6a43b24f
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 8 15:17:48 2014 +0200
-
-    Make autotrack skeleton compile
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D514
-
-commit be01baa2e82e36f63e548f073157e68d2ff870c0
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed May 7 18:48:55 2014 +0200
-
-    Add preliminary TrackMarkerToFrame in autotrack
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D509
-
-commit 0cab028d591b3d08672ca86eb6c6e4ac1aacf1d0
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 7 17:59:11 2014 +0200
-
-    Remove assert from ArrayND Resize
-    
-    That assert broke initialization of arrays which doesn't
-    own the data since constructor uses Resize to set shape
-    and strides.
-    
-    Strides are still to be fixed, but that's for later.
-
-commit 64f9c118029a9351e9023e96527c120e1d724d5b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 7 17:42:21 2014 +0200
-
-    Fix ArrayND freeing the data it doesn't own
-    
-    Can't really guarantee it works fully correct now,
-    but at least this check is needed anyway and compilation
-    works just fine.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D508
-
-commit 0618f1c8e88dfc738cdde55784da80b889905e7c
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed May 7 12:03:32 2014 +0200
-
-    Minor changes
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D505
-
-commit 5c34335e1bb90c4ed701ee830c718ed4e20dbffa
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 7 11:12:23 2014 +0200
-
-    Fix compilation error in frame accessor
-    
-    - int64 is not a standard type, we've got int64_t defined in
-      std int. We also have an msvc port of this header, so should
-      not be an issue.
-    
-    - Fixed inconsistency in usage of CacheKey and Key, used Key.
-    
-    - Some functions weren't marked as virtual.
-    
-    Additional change: added self to authors.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D504
-
-commit 06bc207614e262cd688e2c3ed820ade7c77bdb66
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 6 22:30:59 2014 +0200
-
-    Start new Tracks implementation
-    
-    This adds the new Tracks implementation, as well as a
-    trivial test to show it compiles.
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D502
-
-commit 25ce061e6da69881460ba7718bb0d660a2380a02
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 6 19:10:51 2014 +0200
-
-    Add Reconstruction class for new API
-    
-    This starts the new Reconstruction class (with support for e.g. planes). This
-    also starts the new namespace "mv" which will eventually have all the symbols
-    we wish to export.
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D501
-
-commit 0a6af3e29016048978aea607673340500e050339
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 6 17:52:53 2014 +0200
-
-    Add a new Tracks implementation
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D500
-
-commit 887b68d29c2b198f4939f9ab5153881aa2c1806e
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 6 17:01:39 2014 +0200
-
-    Initial commit of unfinished AutoTrack API
-    
-    This starts the creating the new AutoTrack API. The new API will
-    make it possible for libmv to do full autotracking, including
-    predictive tracking and also support multiple motion models (3D
-    planes etc).
-    
-    The first goal (not in this patch) is to convert Blender to use
-    the new API without adding any new functionality.
-    
-    Note: This does not add any of the API to the build system!
-    It likely does not compile.
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D499
-
-commit 08cc227d431d257d27f300fbb8e6991e663302da
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue May 6 13:09:22 2014 +0200
-
-    Fix homography test failure
-    
-    It was caused by assuming that reconstructed homography matrix
-    should look exactly the same as the matrix used to generate a
-    test case.
-    
-    It's not actually valid assumption because different-looking
-    matrices could correspond to the same exact transform.
-    
-    In this change we make it so actual "re-projected" vectors
-    are being checked, not the values in matrix. This makes it
-    more predictable verification.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D488
-
-commit 0b7d83dc9627447dc7df64d7e3a468aefe9ddc13
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Apr 23 19:14:55 2014 +0600
-
-    Fix compilation on OSX after previous commit
-    
-    EXPECT_EQ wasn't defined in the scope.
-
-commit d14049e00dabf8fdf49056779f0a3718fbb39e8f
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Apr 23 15:08:16 2014 +0600
-
-    Move aligned malloc implementation into own file
-    
-    It was rather stupid having it in brute region tracker,
-    now it is in own file in base library (which was also
-    added in this commit, before this it consist of header
-    files only).
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D479
-
-commit 0ddf3851bfcb8de43660b119a25a77a25674200d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 21 14:14:03 2014 +0600
-
-    Optimization of PearsonProductMomentCorrelation
-    
-    Pass the arrays by reference rather than by value,
-    should give some percent of speedup.
-    
-    Also don't pass the dimensions to the function but
-    get them from the images themselves.
-    
-    Hopefully this will give some %% of tracker speedup.
-
-commit f68fdbe5896a6c5bd8b500caeec61b876c5e44c6
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 21 14:10:43 2014 +0600
-
-    Fix wrong assert in ResizeImage()
-    
-    The assert didn't make any sense because ComputeBoundingBox()
-    is intended to return bounding box in the following way:
-    (xmin, xmax, ymin, ymax).
