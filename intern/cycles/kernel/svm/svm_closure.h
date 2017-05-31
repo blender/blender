@@ -141,8 +141,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			float3 weight = sd->svm_closure_weight * mix_weight;
 
 #ifdef __SUBSURFACE__
-			float3 albedo = subsurface_color * subsurface + base_color * (1.0f - subsurface);
-			float3 subsurf_weight = weight * albedo * diffuse_weight;
+			float3 mixed_ss_base_color = subsurface_color * subsurface + base_color * (1.0f - subsurface);
+			float3 subsurf_weight = weight * mixed_ss_base_color * diffuse_weight;
 			float subsurf_sample_weight = fabsf(average(subsurf_weight));
 
 			/* disable in case of diffuse ancestor, can't see it well then and
@@ -154,7 +154,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				/* need to set the base color in this case such that the
 				 * rays get the correctly mixed color after transmitting
 				 * the object */
-				base_color = albedo;
+				base_color = mixed_ss_base_color;
 			}
 
 			/* diffuse */
@@ -186,7 +186,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 						bssrdf->sample_weight = subsurf_sample_weight;
 						bssrdf->radius = radius.x;
 						bssrdf->texture_blur = texture_blur;
-						bssrdf->albedo = albedo.x;
+						bssrdf->albedo = subsurface_color.x;
 						bssrdf->sharpness = sharpness;
 						bssrdf->N = N;
 						bssrdf->roughness = roughness;
@@ -200,7 +200,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 						bssrdf->sample_weight = subsurf_sample_weight;
 						bssrdf->radius = radius.y;
 						bssrdf->texture_blur = texture_blur;
-						bssrdf->albedo = albedo.y;
+						bssrdf->albedo = subsurface_color.y;
 						bssrdf->sharpness = sharpness;
 						bssrdf->N = N;
 						bssrdf->roughness = roughness;
@@ -214,7 +214,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 						bssrdf->sample_weight = subsurf_sample_weight;
 						bssrdf->radius = radius.z;
 						bssrdf->texture_blur = texture_blur;
-						bssrdf->albedo = albedo.z;
+						bssrdf->albedo = subsurface_color.z;
 						bssrdf->sharpness = sharpness;
 						bssrdf->N = N;
 						bssrdf->roughness = roughness;
