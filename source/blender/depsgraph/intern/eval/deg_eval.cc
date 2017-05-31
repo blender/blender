@@ -126,7 +126,9 @@ static void deg_task_run_func(TaskPool *pool,
 #endif
 	}
 
+	BLI_task_pool_delayed_push_begin(pool, thread_id);
 	schedule_children(pool, state->graph, node, state->layers, thread_id);
+	BLI_task_pool_delayed_push_end(pool, thread_id);
 }
 
 typedef struct CalculatePengindData {
