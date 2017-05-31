@@ -52,7 +52,7 @@
  *
  * This allows thread to fetch next task without locking the whole queue.
  */
-#define LOCALQUEUE_SIZE 1
+#define LOCAL_QUEUE_SIZE 1
 
 #ifndef NDEBUG
 #  define ASSERT_THREAD_ID(scheduler, thread_id)                              \
@@ -131,7 +131,7 @@ typedef struct TaskMemPoolStats {
 typedef struct TaskThreadLocalStorage {
 	TaskMemPool task_mempool;
 	int num_local_queue;
-	Task *local_queue[LOCALQUEUE_SIZE];
+	Task *local_queue[LOCAL_QUEUE_SIZE];
 } TaskThreadLocalStorage;
 
 struct TaskPool {
@@ -739,7 +739,7 @@ static void task_pool_push(
 		ASSERT_THREAD_ID(pool->scheduler, thread_id);
 
 		TaskThreadLocalStorage *tls = get_task_tls(pool, thread_id);
-		if (tls->num_local_queue < LOCALQUEUE_SIZE) {
+		if (tls->num_local_queue < LOCAL_QUEUE_SIZE) {
 			tls->local_queue[tls->num_local_queue] = task;
 			tls->num_local_queue++;
 			return;
