@@ -106,10 +106,27 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	const float thresh = BMO_slot_float_get(op->slots_in, "thresh");
 	const float thresh_radians = thresh * (float)M_PI;
 	const int compare = BMO_slot_int_get(op->slots_in, "compare");
+	/* for comparison types that use custom-data */
+	int cd_offset = -1;
 
 	/* initial_elem - other_elem */
 	float delta_fl;
 	int   delta_i;
+
+	if (type == SIMFACE_FACEMAP) {
+		cd_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
+		if (cd_offset == -1) {
+			return;
+		}
+	}
+#ifdef WITH_FREESTYLE
+	else if (type == SIMFACE_FREESTYLE) {
+		cd_offset = CustomData_get_offset(&bm->pdata, CD_FREESTYLE_FACE);
+		if (cd_offset == -1) {
+			return;
+		}
+	}
+#endif
 
 	num_total = BM_mesh_elem_count(bm, BM_FACE);
 
@@ -182,7 +199,6 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 							cont = false;
 						}
 						break;
-
 					case SIMFACE_NORMAL:
 						angle = angle_normalized_v3v3(fs->no, fm->no);	/* if the angle between the normals -> 0 */
 						if (angle <= thresh_radians) {
@@ -239,20 +255,29 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 							cont = false;
 						}
 						break;
-#ifdef WITH_FREESTYLE
-					case SIMFACE_FREESTYLE:
-						if (CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
-							FreestyleEdge *ffa1, *ffa2;
-
-							ffa1 = CustomData_bmesh_get(&bm->pdata, fs->head.data, CD_FREESTYLE_FACE);
-							ffa2 = CustomData_bmesh_get(&bm->pdata, fm->head.data, CD_FREESTYLE_FACE);
-
-							if (ffa1 && ffa2 && (ffa1->flag & FREESTYLE_FACE_MARK) == (ffa2->flag & FREESTYLE_FACE_MARK)) {
-								BMO_face_flag_enable(bm, fm, FACE_MARK);
-								cont = false;
-							}
+					case SIMFACE_FACEMAP:
+					{
+						BLI_assert(cd_offset != -1);
+						const int *fmap1 = BM_ELEM_CD_GET_VOID_P(fs, cd_offset);
+						const int *fmap2 = BM_ELEM_CD_GET_VOID_P(fm, cd_offset);
+						if (*fmap1  == *fmap2) {
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
+							cont = false;
 						}
 						break;
+					}
+#ifdef WITH_FREESTYLE
+					case SIMFACE_FREESTYLE:
+					{
+						BLI_assert(cd_offset != -1);
+						const FreestyleEdge *ffa1 = BM_ELEM_CD_GET_VOID_P(fs, cd_offset);
+						const FreestyleEdge *ffa2 = BM_ELEM_CD_GET_VOID_P(fm, cd_offset);
+						if ((ffa1->flag & FREESTYLE_FACE_MARK) == (ffa2->flag & FREESTYLE_FACE_MARK)) {
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
+							cont = false;
+						}
+						break;
+					}
 #endif
 					default:
 						BLI_assert(0);
