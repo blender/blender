@@ -367,11 +367,10 @@ void Depsgraph::clear_id_nodes()
 /* Add new relationship between two nodes. */
 DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
                                           OperationDepsNode *to,
-                                          eDepsRelation_Type type,
                                           const char *description)
 {
 	/* Create new relation, and add it to the graph. */
-	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, type, description);
+	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
 	/* TODO(sergey): Find a better place for this. */
 #ifdef WITH_OPENSUBDIV
 	ComponentDepsNode *comp_node = from->owner;
@@ -391,11 +390,10 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 
 /* Add new relation between two nodes */
 DepsRelation *Depsgraph::add_new_relation(DepsNode *from, DepsNode *to,
-                                          eDepsRelation_Type type,
                                           const char *description)
 {
 	/* Create new relation, and add it to the graph. */
-	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, type, description);
+	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
 	return rel;
 }
 
@@ -404,12 +402,10 @@ DepsRelation *Depsgraph::add_new_relation(DepsNode *from, DepsNode *to,
 
 DepsRelation::DepsRelation(DepsNode *from,
                            DepsNode *to,
-                           eDepsRelation_Type type,
                            const char *description)
   : from(from),
     to(to),
     name(description),
-    type(type),
     flag(0)
 {
 #ifndef NDEBUG

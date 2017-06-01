@@ -121,7 +121,6 @@ void DEG_add_scene_relation(DepsNodeHandle *handle,
 	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
 	deg_handle->builder->add_node_handle_relation(comp_key,
 	                                              deg_handle,
-	                                              DEG::DEPSREL_TYPE_GEOMETRY_EVAL,
 	                                              description);
 }
 
@@ -135,7 +134,6 @@ void DEG_add_object_relation(DepsNodeHandle *handle,
 	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
 	deg_handle->builder->add_node_handle_relation(comp_key,
 	                                              deg_handle,
-	                                              DEG::DEPSREL_TYPE_GEOMETRY_EVAL,
 	                                              description);
 }
 
@@ -149,7 +147,6 @@ void DEG_add_object_cache_relation(DepsNodeHandle *handle,
 	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
 	deg_handle->builder->add_node_handle_relation(comp_key,
 	                                              deg_handle,
-	                                              DEG::DEPSREL_TYPE_CACHE,
 	                                              description);
 }
 
@@ -167,7 +164,6 @@ void DEG_add_bone_relation(DepsNodeHandle *handle,
 	 */
 	deg_handle->builder->add_node_handle_relation(comp_key,
 	                                              deg_handle,
-	                                              DEG::DEPSREL_TYPE_GEOMETRY_EVAL,
 	                                              description);
 }
 
@@ -226,7 +222,6 @@ void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 #if 0
 	relation_builder.add_relation(RootKey(),
 	                              IDKey(scene),
-	                              DEPSREL_TYPE_ROOT_TO_ACTIVE,
 	                              "Root to Active Scene");
 #endif
 	relation_builder.build_scene(bmain, scene);

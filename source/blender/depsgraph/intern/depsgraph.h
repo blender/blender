@@ -79,12 +79,10 @@ struct DepsRelation {
 	/* relationship attributes */
 	const char *name;             /* label for debugging */
 
-	eDepsRelation_Type type;      /* type */
 	int flag;                     /* (eDepsRelation_Flag) */
 
 	DepsRelation(DepsNode *from,
 	             DepsNode *to,
-	             eDepsRelation_Type type,
 	             const char *description);
 
 	~DepsRelation();
@@ -127,12 +125,10 @@ struct Depsgraph {
 	/* Add new relationship between two nodes. */
 	DepsRelation *add_new_relation(OperationDepsNode *from,
 	                               OperationDepsNode *to,
-	                               eDepsRelation_Type type,
 	                               const char *description);
 
 	DepsRelation *add_new_relation(DepsNode *from,
 	                               DepsNode *to,
-	                               eDepsRelation_Type type,
 	                               const char *description);
 
 	/* Tag a specific node as needing updates. */
