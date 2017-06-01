@@ -82,7 +82,6 @@ struct DepsgraphNodeBuilder {
 	                                      const char *comp_name = "");
 
 	OperationDepsNode *add_operation_node(ComponentDepsNode *comp_node,
-	                                      eDepsOperation_Type optype,
 	                                      DepsEvalOperationCb op,
 	                                      eDepsOperation_Code opcode,
 	                                      const char *name = "",
@@ -90,14 +89,12 @@ struct DepsgraphNodeBuilder {
 	OperationDepsNode *add_operation_node(ID *id,
 	                                      eDepsNode_Type comp_type,
 	                                      const char *comp_name,
-	                                      eDepsOperation_Type optype,
 	                                      DepsEvalOperationCb op,
 	                                      eDepsOperation_Code opcode,
 	                                      const char *name = "",
 	                                      int name_tag = -1);
 	OperationDepsNode *add_operation_node(ID *id,
 	                                      eDepsNode_Type comp_type,
-	                                      eDepsOperation_Type optype,
 	                                      DepsEvalOperationCb op,
 	                                      eDepsOperation_Code opcode,
 	                                      const char *name = "",

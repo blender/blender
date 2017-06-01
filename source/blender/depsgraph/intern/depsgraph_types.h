@@ -252,30 +252,4 @@ protected:
 /* String defines for these opcodes, defined in depsgraph_type_defines.cpp */
 extern DepsOperationStringifier DEG_OPNAMES;
 
-/* Type of operation */
-typedef enum eDepsOperation_Type {
-	/* **** Primary operation types **** */
-
-	/* Initialise evaluation data */
-	DEPSOP_TYPE_INIT    = 0,
-	/* Standard evaluation step */
-	DEPSOP_TYPE_EXEC    = 1,
-	/* Cleanup evaluation data + flush results */
-	DEPSOP_TYPE_POST    = 2,
-
-	/* **** Additional operation types **** */
-	/* Indicator for outputting a temporary result that other components
-	 * can use. // XXX?
-	 */
-	DEPSOP_TYPE_OUT     = 3,
-	/* Indicator for things like IK Solvers and Rigidbody Sim steps which
-	 * modify final results of separate entities at once.
-	 */
-	DEPSOP_TYPE_SIM     = 4,
-	/* Rebuild internal evaluation data - used for Rigidbody Reset and
-	 * Armature Rebuild-On-Load.
-	 */
-	DEPSOP_TYPE_REBUILD = 5,
-} eDepsOperation_Type;
-
 }  // namespace DEG

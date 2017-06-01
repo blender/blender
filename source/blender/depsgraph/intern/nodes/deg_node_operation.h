@@ -82,9 +82,6 @@ struct OperationDepsNode : public DepsNode {
 	float eval_priority;
 	bool scheduled;
 
-	/* Stage of evaluation */
-	eDepsOperation_Type optype;
-
 	/* Identifier for the operation being performed. */
 	eDepsOperation_Code opcode;
 
