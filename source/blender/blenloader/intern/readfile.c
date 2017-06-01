@@ -2820,6 +2820,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 {
 	link_list(fd, BKE_workspace_layouts_get(workspace));
 	link_list(fd, &workspace->hook_layout_relations);
+	link_list(fd, BKE_workspace_transform_orientations_get(workspace));
 
 	for (WorkSpaceDataRelation *relation = workspace->hook_layout_relations.first;
 	     relation;
@@ -2835,7 +2836,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 		BKE_workspace_render_layer_set(workspace, NULL);
 	}
 
-	/* Same issue/fix as in direct_link_scene_update_screen_data: Can't read workspace data
+	/* Same issue/fix as in direct_link_workspace_link_scene_data: Can't read workspace data
 	 * when reading windows, so have to update windows after/when reading workspaces. */
 	for (wmWindowManager *wm = main->wm.first; wm; wm = wm->id.next) {
 		for (wmWindow *win = wm->windows.first; win; win = win->next) {
@@ -6057,7 +6058,10 @@ static void direct_link_layer_collections(FileData *fd, ListBase *lb)
 	}
 }
 
-static void direct_link_scene_update_screen_data(
+/**
+ * Workspaces store a render layer pointer which can only be read after scene is read.
+ */
+static void direct_link_workspace_link_scene_data(
         FileData *fd, const Scene *scene, const ListBase *workspaces)
 {
 	for (WorkSpace *workspace = workspaces->first; workspace; workspace = workspace->id.next) {
@@ -6285,7 +6289,7 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 	}
 	
 	link_list(fd, &(sce->markers));
-	link_list(fd, &(sce->transform_spaces));
+	link_list(fd, &(sce->transform_spaces)); /* only for old files */
 	link_list(fd, &(sce->r.layers));
 	link_list(fd, &(sce->r.views));
 
@@ -6371,7 +6375,7 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 	BKE_layer_collection_engine_settings_validate_scene(sce);
 	BKE_scene_layer_engine_settings_validate_scene(sce);
 
-	direct_link_scene_update_screen_data(fd, sce, &bmain->workspaces);
+	direct_link_workspace_link_scene_data(fd, sce, &bmain->workspaces);
 }
 
 /* ************ READ WM ***************** */

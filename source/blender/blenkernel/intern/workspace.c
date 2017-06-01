@@ -35,6 +35,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_screen.h"
 #include "BKE_workspace.h"
 
 #include "DNA_object_types.h"
@@ -150,6 +151,7 @@ void BKE_workspace_free(WorkSpace *workspace)
 		workspace_relation_remove(&workspace->hook_layout_relations, relation);
 	}
 	BLI_freelistN(&workspace->layouts);
+	BLI_freelistN(&workspace->transform_orientations);
 }
 
 void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
@@ -223,6 +225,31 @@ void BKE_workspace_layout_remove(
 /* -------------------------------------------------------------------- */
 /* General Utils */
 
+void BKE_workspace_transform_orientation_remove(
+        WorkSpace *workspace, TransformOrientation *orientation)
+{
+	for (WorkSpaceLayout *layout = workspace->layouts.first; layout; layout = layout->next) {
+		BKE_screen_transform_orientation_remove(BKE_workspace_layout_screen_get(layout), workspace, orientation);
+	}
+
+	BLI_freelinkN(&workspace->transform_orientations, orientation);
+}
+
+TransformOrientation *BKE_workspace_transform_orientation_find(
+        const WorkSpace *workspace, const int index)
+{
+	return BLI_findlink(&workspace->transform_orientations, index);
+}
+
+/**
+ * \return the index that \a orientation has within \a workspace's transform-orientation list or -1 if not found.
+ */
+int BKE_workspace_transform_orientation_get_index(
+        const WorkSpace *workspace, const TransformOrientation *orientation)
+{
+	return BLI_findindex(&workspace->transform_orientations, orientation);
+}
+
 WorkSpaceLayout *BKE_workspace_layout_find(
         const WorkSpace *workspace, const bScreen *screen)
 {
@@ -240,6 +267,7 @@ WorkSpaceLayout *BKE_workspace_layout_find(
 
 /**
  * Find the layout for \a screen without knowing which workspace to look in.
+ * Can also be used to find the workspace that contains \a screen.
  *
  * \param r_workspace: Optionally return the workspace that contains the looked up layout (if found).
  */
@@ -352,6 +380,11 @@ void BKE_workspace_object_mode_set(WorkSpace *workspace, const ObjectMode mode)
 	workspace->object_mode = mode;
 }
 #endif
+
+ListBase *BKE_workspace_transform_orientations_get(WorkSpace *workspace)
+{
+	return &workspace->transform_orientations;
+}
 
 SceneLayer *BKE_workspace_render_layer_get(const WorkSpace *workspace)
 {

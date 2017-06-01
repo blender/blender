@@ -573,6 +573,7 @@ bool ED_transform_snap_object_project_ray_ex(
         /* return args */
         float r_loc[3], float r_no[3], int *r_index,
         struct Object **r_ob, float r_obmat[4][4]) RET_ZERO
+void BIF_selectTransformOrientationValue(struct View3D *v3d, int orientation) RET_NONE
 
 void ED_lattice_editlatt_make(struct Object *obedit) RET_NONE
 void ED_lattice_editlatt_load(struct Object *obedit) RET_NONE

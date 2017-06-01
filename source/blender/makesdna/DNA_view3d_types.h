@@ -225,7 +225,9 @@ typedef struct View3D {
 
 	char multiview_eye;				/* multiview current eye - for internal use */
 
-	char pad3[4];
+	/* The active custom transform orientation of this 3D view. */
+	short custom_orientation_index;
+	char pad3[2];
 
 	/* note, 'fx_settings.dof' is currently _not_ allocated,
 	 * instead set (temporarily) from camera */
@@ -376,7 +378,7 @@ enum {
 #define V3D_MANIP_NORMAL		2
 #define V3D_MANIP_VIEW			3
 #define V3D_MANIP_GIMBAL		4
-#define V3D_MANIP_CUSTOM		5 /* anything of value 5 or higher is custom */
+#define V3D_MANIP_CUSTOM		5
 
 /* View3d->twflag */
    /* USE = user setting, DRAW = based on selection */

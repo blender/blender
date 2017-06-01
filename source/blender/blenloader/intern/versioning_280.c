@@ -36,6 +36,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_genfile.h"
 
 #include "BKE_collection.h"
@@ -77,6 +78,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		const bScreen *screen_parent = screen_parent_find(screen);
 		WorkSpace *workspace;
+		ListBase *transform_orientations;
 
 		if (screen_parent) {
 			/* fullscreen with "Back to Previous" option, don't create
@@ -89,6 +91,9 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		}
 		BKE_workspace_layout_add(workspace, screen, screen->id.name + 2);
 		BKE_workspace_render_layer_set(workspace, screen->scene->render_layers.first);
+
+		transform_orientations = BKE_workspace_transform_orientations_get(workspace);
+		BLI_duplicatelist(transform_orientations, &screen->scene->transform_spaces);
 	}
 }
 
@@ -129,6 +134,7 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		/* Deprecated from now on! */
+		BLI_freelistN(&screen->scene->transform_spaces);
 		screen->scene = NULL;
 	}
 }
@@ -370,6 +376,22 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 					CustomData_update_typemap(&me->pdata);
 					CustomData_free_layers(&me->pdata, cd_mtexpoly, me->totpoly);
 					BKE_mesh_update_customdata_pointers(me, false);
+				}
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "View3D", "short", "custom_orientation_index")) {
+			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+					for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							if (v3d->twmode >= V3D_MANIP_CUSTOM) {
+								v3d->custom_orientation_index = v3d->twmode - V3D_MANIP_CUSTOM;
+								v3d->twmode = V3D_MANIP_CUSTOM;
+							}
+						}
+					}
 				}
 			}
 		}

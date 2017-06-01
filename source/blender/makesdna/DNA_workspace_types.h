@@ -73,6 +73,9 @@ typedef struct WorkSpace {
 	 * been activated the last time this workspace was visible. */
 	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
 
+	/* Custom transform orientations */
+	ListBase transform_orientations DNA_PRIVATE_WORKSPACE;
+
 	int object_mode DNA_PRIVATE_WORKSPACE; /* enum ObjectMode */
 	int pad;
 

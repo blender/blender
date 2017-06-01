@@ -261,7 +261,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			scen->rigidbody_world = BKE_rigidbody_world_copy(sce->rigidbody_world);
 
 		BLI_duplicatelist(&(scen->markers), &(sce->markers));
-		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
 		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
 		BLI_duplicatelist(&(scen->r.views), &(sce->r.views));
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
@@ -534,10 +533,9 @@ void BKE_scene_free(Scene *sce)
 	}
 
 	BLI_freelistN(&sce->markers);
-	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	BLI_freelistN(&sce->r.views);
-	
+
 	if (sce->toolsettings) {
 		if (sce->toolsettings->vpaint) {
 			BKE_paint_free(&sce->toolsettings->vpaint->paint);

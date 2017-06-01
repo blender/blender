@@ -262,11 +262,13 @@ EnumPropertyItem rna_enum_file_sort_items[] = {
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_icons.h"
+#include "BKE_workspace.h"
 
 #include "ED_buttons.h"
 #include "ED_fileselect.h"
 #include "ED_image.h"
 #include "ED_node.h"
+#include "ED_transform.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_sequencer.h"
@@ -406,43 +408,63 @@ static void rna_Space_view2d_sync_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 	}
 }
 
-static PointerRNA rna_CurrentOrientation_get(PointerRNA *ptr)
+static int rna_View3D_transform_orientation_get(PointerRNA *ptr)
 {
-	Scene *scene = WM_windows_scene_get_from_screen(G.main->wm.first, ptr->id.data);
-	View3D *v3d = (View3D *)ptr->data;
+	const View3D *v3d = (View3D *)ptr->data;
+	/* convert to enum value */
+	return (v3d->twmode == V3D_MANIP_CUSTOM) ? (v3d->twmode + v3d->custom_orientation_index) : v3d->twmode;
+}
 
-	if (v3d->twmode < V3D_MANIP_CUSTOM)
-		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, NULL);
-	else
-		return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation,
-		                                  BLI_findlink(&scene->transform_spaces, v3d->twmode - V3D_MANIP_CUSTOM));
+void rna_View3D_transform_orientation_set(PointerRNA *ptr, int value)
+{
+	View3D *v3d = (View3D *)ptr->data;
+	BIF_selectTransformOrientationValue(v3d, value);
+}
+
+static PointerRNA rna_View3D_current_orientation_get(PointerRNA *ptr)
+{
+	View3D *v3d = (View3D *)ptr->data;
+	TransformOrientation *orientation;
+
+	if (v3d->twmode < V3D_MANIP_CUSTOM) {
+		orientation = NULL;
+	}
+	else {
+		WorkSpace *workspace;
+		bScreen *screen = ptr->id.data;
+
+		BKE_workspace_layout_find_global(G.main, screen, &workspace);
+		orientation = BKE_workspace_transform_orientation_find(workspace, v3d->custom_orientation_index);
+	}
+
+	return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, orientation);
 }
 
 EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	Scene *scene = NULL;
-	ListBase *transform_spaces;
-	TransformOrientation *ts = NULL;
+	WorkSpace *workspace;
+	ListBase *transform_orientations;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item = NULL;
 	int i = V3D_MANIP_CUSTOM, totitem = 0;
 
 	RNA_enum_items_add(&item, &totitem, transform_orientation_items);
 
-	if (ptr->type == &RNA_SpaceView3D)
-		scene = WM_windows_scene_get_from_screen(G.main->wm.first, ptr->id.data);
-	else
-		scene = CTX_data_scene(C);  /* can't use scene from ptr->id.data because that enum is also used by operators */
-
-	if (scene) {
-		transform_spaces = &scene->transform_spaces;
-		ts = transform_spaces->first;
+	if (ptr->type == &RNA_SpaceView3D) {
+		bScreen *screen = ptr->id.data;
+		BKE_workspace_layout_find_global(G.main, screen, &workspace);
+	}
+	else {
+		/* can't use scene from ptr->id.data because that enum is also used by operators */
+		workspace = CTX_wm_workspace(C);
 	}
 
-	if (ts) {
+	transform_orientations = BKE_workspace_transform_orientations_get(workspace);
+
+	if (BLI_listbase_is_empty(transform_orientations) == false) {
 		RNA_enum_item_add_separator(&item, &totitem);
 
-		for (; ts; ts = ts->next) {
+		for (TransformOrientation *ts = transform_orientations->first; ts; ts = ts->next) {
 			tmp.identifier = ts->name;
 			tmp.name = ts->name;
 			tmp.value = i++;
@@ -2668,13 +2690,14 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "transform_orientation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "twmode");
 	RNA_def_property_enum_items(prop, transform_orientation_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_TransformOrientation_itemf");
+	RNA_def_property_enum_funcs(prop, "rna_View3D_transform_orientation_get", "rna_View3D_transform_orientation_set",
+	                            "rna_TransformOrientation_itemf");
 	RNA_def_property_ui_text(prop, "Transform Orientation", "Transformation orientation");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "current_orientation", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TransformOrientation");
-	RNA_def_property_pointer_funcs(prop, "rna_CurrentOrientation_get", NULL, NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_View3D_current_orientation_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Current Transform Orientation", "Current transformation orientation");
 
 	prop = RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);

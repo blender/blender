@@ -83,6 +83,7 @@
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
 #include "BKE_utildefines.h"
+#include "BKE_workspace.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -1242,6 +1243,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		}
 
 		t->current_orientation = v3d->twmode;
+		t->custom_orientation = BKE_workspace_transform_orientation_find(
+		                            CTX_wm_workspace(C), v3d->custom_orientation_index);
 
 		/* exceptional case */
 		if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
@@ -1332,13 +1335,24 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
 	           RNA_property_is_set(op->ptr, prop)))
 	{
-		t->current_orientation = RNA_property_enum_get(op->ptr, prop);
+		short orientation = RNA_property_enum_get(op->ptr, prop);
+		TransformOrientation *custom_orientation = NULL;
 
-		if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C)) {
-			t->current_orientation = V3D_MANIP_GLOBAL;
+		if (orientation >= V3D_MANIP_CUSTOM) {
+			if (orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C)) {
+				orientation = V3D_MANIP_GLOBAL;
+			}
+			else {
+				custom_orientation = BKE_workspace_transform_orientation_find(
+				                         CTX_wm_workspace(C), orientation - V3D_MANIP_CUSTOM);
+				orientation = V3D_MANIP_CUSTOM;
+			}
 		}
+
+		t->current_orientation = orientation;
+		t->custom_orientation = custom_orientation;
 	}
-	
+
 	if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
 	           RNA_property_is_set(op->ptr, prop)))
 	{

@@ -653,7 +653,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
  */
 void setUserConstraint(TransInfo *t, short orientation, int mode, const char ftext[])
 {
-	char text[40];
+	char text[256];
 
 	switch (orientation) {
 		case V3D_MANIP_GLOBAL:
@@ -685,10 +685,15 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("gimbal"));
 			setConstraint(t, t->spacemtx, mode, text);
 			break;
-		default: /* V3D_MANIP_CUSTOM */
-			BLI_snprintf(text, sizeof(text), ftext, t->spacename);
+		case V3D_MANIP_CUSTOM:
+		{
+			char orientation_str[128];
+			BLI_snprintf(orientation_str, sizeof(orientation_str), "%s \"%s\"",
+			             IFACE_("custom orientation"), t->custom_orientation->name);
+			BLI_snprintf(text, sizeof(text), ftext, orientation_str);
 			setConstraint(t, t->spacemtx, mode, text);
 			break;
+		}
 	}
 
 	t->con.orientation = orientation;

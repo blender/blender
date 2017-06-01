@@ -216,10 +216,13 @@ WorkSpace *ED_workspace_duplicate(
 	WorkSpace *workspace_new = ED_workspace_add(
 	        bmain, workspace_old->id.name + 2,
 	        BKE_workspace_render_layer_get(workspace_old));
+	ListBase *transform_orientations_old = BKE_workspace_transform_orientations_get(workspace_old);
+	ListBase *transform_orientations_new = BKE_workspace_transform_orientations_get(workspace_new);
 
 #ifdef USE_WORKSPACE_MODE
 	BKE_workspace_object_mode_set(workspace_new, BKE_workspace_object_mode_get(workspace_old));
 #endif
+	BLI_duplicatelist(transform_orientations_new, transform_orientations_old);
 
 	for (WorkSpaceLayout *layout_old = layouts_old->first; layout_old; layout_old = layout_old->next) {
 		WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(workspace_new, layout_old, win);

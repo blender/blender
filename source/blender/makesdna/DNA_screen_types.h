@@ -193,6 +193,13 @@ typedef struct uiList {           /* some list UI data need to be saved in file 
 	uiListDyn *dyn_data;
 } uiList;
 
+typedef struct TransformOrientation {
+	struct TransformOrientation *next, *prev;
+	char name[64];	/* MAX_NAME */
+	float mat[3][3];
+	int pad;
+} TransformOrientation;
+
 typedef struct uiPreview {           /* some preview UI data need to be saved in file */
 	struct uiPreview *next, *prev;
 

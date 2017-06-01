@@ -28,6 +28,7 @@
 #include "BLI_compiler_attrs.h"
 
 struct bScreen;
+struct TransformOrientation;
 
 typedef struct WorkSpace WorkSpace;
 typedef struct WorkSpaceInstanceHook WorkSpaceInstanceHook;
@@ -66,11 +67,18 @@ void BKE_workspace_layout_remove(
 /* -------------------------------------------------------------------- */
 /* General Utils */
 
+void BKE_workspace_transform_orientation_remove(
+        WorkSpace *workspace, struct TransformOrientation *orientation) ATTR_NONNULL();
+struct TransformOrientation *BKE_workspace_transform_orientation_find(
+        const WorkSpace *workspace, const int index) ATTR_NONNULL();
+int BKE_workspace_transform_orientation_get_index(
+        const WorkSpace *workspace, const struct TransformOrientation *orientation) ATTR_NONNULL();
+
 WorkSpaceLayout *BKE_workspace_layout_find(
         const WorkSpace *workspace, const struct bScreen *screen) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 WorkSpaceLayout *BKE_workspace_layout_find_global(
         const struct Main *bmain, const struct bScreen *screen,
-        WorkSpace **r_workspace) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
+        WorkSpace **r_workspace) ATTR_NONNULL(1, 2);
 
 WorkSpaceLayout *BKE_workspace_layout_iter_circular(
         const WorkSpace *workspace, WorkSpaceLayout *start,
@@ -95,6 +103,7 @@ enum ObjectMode BKE_workspace_object_mode_get(const WorkSpace *workspace) GETTER
 #ifdef USE_WORKSPACE_MODE
 void            BKE_workspace_object_mode_set(WorkSpace *workspace, const enum ObjectMode mode) SETTER_ATTRS;
 #endif
+struct ListBase *BKE_workspace_transform_orientations_get(WorkSpace *workspace) GETTER_ATTRS;
 struct SceneLayer *BKE_workspace_render_layer_get(const WorkSpace *workspace) GETTER_ATTRS;
 void               BKE_workspace_render_layer_set(WorkSpace *workspace, struct SceneLayer *layer) SETTER_ATTRS;
 struct ListBase *BKE_workspace_layouts_get(WorkSpace *workspace) GETTER_ATTRS;

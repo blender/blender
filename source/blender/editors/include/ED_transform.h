@@ -43,6 +43,7 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperatorType;
+struct WorkSpace;
 struct Main;
 struct SnapObjectContext;
 struct SnapObjectParams;
@@ -130,7 +131,7 @@ void BIF_createTransformOrientation(struct bContext *C, struct ReportList *repor
                                     const char *name, const bool use_view,
                                     const bool activate, const bool overwrite);
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
-void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
+void BIF_selectTransformOrientationValue(struct View3D *v3d, int orientation);
 
 void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[3][3], const short around);
 

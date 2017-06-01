@@ -53,6 +53,7 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
+#include "BKE_workspace.h"
 
 /* ************ Spacetype/regiontype handling ************** */
 
@@ -611,33 +612,20 @@ void BKE_screen_view3d_scene_sync(bScreen *sc, Scene *scene)
 	}
 }
 
-/* XXX apply D2687 */
-void BKE_screen_view3d_twmode_remove(View3D *v3d, const int i)
+void BKE_screen_transform_orientation_remove(
+        const bScreen *screen, const WorkSpace *workspace, const TransformOrientation *orientation)
 {
-	const int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
-	if (selected_index == i) {
-		v3d->twmode = V3D_MANIP_GLOBAL;
-	}
-	else if (selected_index > i) {
-		v3d->twmode--;
-	}
-}
+	const int orientation_index = BKE_workspace_transform_orientation_get_index(workspace, orientation);
 
-/* XXX apply D2687 */
-void BKE_screen_view3d_main_twmode_remove(ListBase *screen_lb, Scene *scene, const int i)
-{
-	bScreen *sc;
+	for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+		for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+			if (sl->spacetype == SPACE_VIEW3D) {
+				View3D *v3d = (View3D *)sl;
 
-	for (sc = screen_lb->first; sc; sc = sc->id.next) {
-		if (sc->scene == scene) {
-			ScrArea *sa;
-			for (sa = sc->areabase.first; sa; sa = sa->next) {
-				SpaceLink *sl;
-				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_VIEW3D) {
-						View3D *v3d = (View3D *)sl;
-						BKE_screen_view3d_twmode_remove(v3d, i);
-					}
+				if (v3d->custom_orientation_index == orientation_index) {
+					/* could also use orientation_index-- */
+					v3d->twmode = V3D_MANIP_GLOBAL;
+					v3d->custom_orientation_index = -1;
 				}
 			}
 		}
