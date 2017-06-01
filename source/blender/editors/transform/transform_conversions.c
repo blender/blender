@@ -2469,11 +2469,6 @@ static void createTransEditVerts(TransInfo *t)
 		editmesh_set_connectivity_distance(em->bm, mtx, dists, dists_index);
 	}
 
-	/* Only in case of rotation and resize, we want the elements of the edited
-	 * object to behave as groups whose pivot are the individual origins
-	 *
-	 * TODO: use island_info to detect the closest point when the "Snap Target"
-	 * in Blender UI is "Closest" */
 	if (is_island_center) {
 		/* In this specific case, near-by vertices will need to know the island of the nearest connected vertex. */
 		const bool calc_single_islands = (
