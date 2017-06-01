@@ -206,7 +206,7 @@ typedef struct DRWCallHeader {
 typedef struct DRWCall {
 	DRWCallHeader head;
 
-	float (*obmat)[4];
+	float obmat[4][4];
 	Batch *geometry;
 
 	Object *ob; /* Optionnal */
@@ -215,7 +215,7 @@ typedef struct DRWCall {
 typedef struct DRWCallGenerate {
 	DRWCallHeader head;
 
-	float (*obmat)[4];
+	float obmat[4][4];
 
 	DRWCallGenerateFn *geometry_fn;
 	void *user_data;
@@ -848,7 +848,10 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 	call->head.select_id = g_DRW_select_id;
 #endif
 
-	call->obmat = obmat;
+	if (obmat != NULL) {
+		copy_m4_m4(call->obmat, obmat);
+	}
+
 	call->geometry = geom;
 
 	BLI_addtail(&shgroup->calls, call);
@@ -865,7 +868,7 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Batch *geom, Object *
 	call->head.select_id = g_DRW_select_id;
 #endif
 
-	call->obmat = ob->obmat;
+	copy_m4_m4(call->obmat, ob->obmat);
 	call->geometry = geom;
 	call->ob = ob;
 
@@ -886,7 +889,9 @@ void DRW_shgroup_call_generate_add(
 	call->head.select_id = g_DRW_select_id;
 #endif
 
-	call->obmat = obmat;
+	if (obmat != NULL) {
+		copy_m4_m4(call->obmat, obmat);
+	}
 
 	call->geometry_fn = geometry_fn;
 	call->user_data = user_data;
@@ -2866,7 +2871,7 @@ void DRW_draw_render_loop(
 	if (cache_is_dirty) {
 		DRW_engines_cache_init();
 
-		DEG_OBJECT_ITER(graph, ob);
+		DEG_OBJECT_ITER(graph, ob, DEG_OBJECT_ITER_FLAG_ALL);
 		{
 			DRW_engines_cache_populate(ob);
 			/* XXX find a better place for this. maybe Depsgraph? */
@@ -3029,7 +3034,7 @@ void DRW_draw_select_loop(
 			DRW_engines_cache_populate(scene->obedit);
 		}
 		else {
-			DEG_OBJECT_ITER(graph, ob)
+			DEG_OBJECT_ITER(graph, ob, DEG_OBJECT_ITER_FLAG_ALL)
 			{
 				if ((ob->base_flag & BASE_SELECTABLED) != 0) {
 					DRW_select_load_id(ob->base_selection_color);
@@ -3116,7 +3121,7 @@ void DRW_draw_depth_loop(
 
 		DRW_engines_cache_init();
 
-		DEG_OBJECT_ITER(graph, ob)
+		DEG_OBJECT_ITER(graph, ob, DEG_OBJECT_ITER_FLAG_ALL)
 		{
 			DRW_engines_cache_populate(ob);
 		}

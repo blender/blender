@@ -33,6 +33,8 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include "BLI_math.h"
+#include "BKE_anim.h"
 #include "BKE_idcode.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -40,6 +42,7 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 } /* extern "C" */
 
@@ -97,42 +100,88 @@ Object *DEG_get_object(Depsgraph * /*depsgraph*/, Object *ob)
 
 /* ************************ DAG ITERATORS ********************* */
 
-typedef struct DEGObjectsIteratorData {
-	Depsgraph *graph;
-	Scene *scene;
-	SceneLayer *scene_layer;
-	Base *base;
-	int flag;
-} DEGObjectsIteratorData;
-
-void DEG_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data)
 {
 	SceneLayer *scene_layer;
-	Depsgraph *graph = (Depsgraph *) data_in;
-	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)
-	                               MEM_callocN(sizeof(DEGObjectsIteratorData), __func__);
+	Depsgraph *graph = data->graph;
+
 	iter->data = data;
 	iter->valid = true;
 
-	data->graph = graph;
+	/* TODO: Make it in-place initilization of evaluation context. */
+	data->eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
 	data->scene = DEG_get_scene(graph);
 	scene_layer = DEG_get_scene_layer(graph);
-	data->flag = ~(BASE_FROM_SET);
+	data->base_flag = ~(BASE_FROM_SET);
 
 	Base base = {(Base *)scene_layer->object_bases.first, NULL};
 	data->base = &base;
 	DEG_objects_iterator_next(iter);
 }
 
+/**
+ * Temporary function to flush depsgraph until we get copy on write (CoW)
+ */
+static void deg_flush_data(Object *ob, Base *base, const int flag)
+{
+	ob->base_flag = (base->flag | BASE_FROM_SET) & flag;
+	ob->base_collection_properties = base->collection_properties;
+	ob->base_selection_color = base->selcol;
+}
+
+static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
+{
+	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
+	while (data->dupli_object) {
+		DupliObject *dob = data->dupli_object;
+		Object *obd = dob->ob;
+
+		data->dupli_object = data->dupli_object->next;
+
+		/* Group duplis need to set ob matrices correct, for deform. so no_draw is part handled. */
+		if ((obd->transflag & OB_RENDER_DUPLI) == 0 && dob->no_draw) {
+			continue;
+		}
+
+		if (obd->type == OB_MBALL) {
+			continue;
+		}
+
+		/* Temporary object to evaluate. */
+		data->temp_dupli_object = *dob->ob;
+		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
+
+		deg_flush_data(&data->temp_dupli_object, data->base, data->base_flag | BASE_FROMDUPLI);
+		iter->current = &data->temp_dupli_object;
+		return true;
+	}
+
+	return false;
+}
+
 void DEG_objects_iterator_next(BLI_Iterator *iter)
 {
 	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
-	Base *base = data->base->next;
+	Base *base;
+
+	if (data->dupli_list) {
+		if (deg_objects_dupli_iterator_next(iter)) {
+			return;
+		}
+		else {
+			free_object_duplilist(data->dupli_list);
+			data->dupli_list = NULL;
+			data->dupli_object = NULL;
+		}
+	}
+
+	base = data->base->next;
 
 	while (base) {
 		if ((base->flag & BASE_VISIBLED) != 0) {
 			Object *ob = DEG_get_object(data->graph, base->object);
 			iter->current = ob;
+			data->base = base;
 
 			/* Make sure we have the base collection settings is already populated.
 			 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
@@ -140,20 +189,23 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 			BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
 
 			/* Flushing depsgraph data. */
-			ob->base_flag = (base->flag | BASE_FROM_SET) & data->flag;
-			ob->base_collection_properties = base->collection_properties;
-			ob->base_selection_color = base->selcol;
-			data->base = base;
+			deg_flush_data(ob, base, data->base_flag);
+
+			if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (ob->transflag & OB_DUPLI)) {
+				data->dupli_list = object_duplilist(data->eval_ctx, data->scene, ob);
+				data->dupli_object = (DupliObject *)data->dupli_list->first;
+			}
 			return;
 		}
+
 		base = base->next;
 	}
 
 	/* Look for an object in the next set. */
-	if (data->scene->set) {
+	if ((data->flag & DEG_OBJECT_ITER_FLAG_SET) && data->scene->set) {
 		SceneLayer *scene_layer;
 		data->scene = data->scene->set;
-		data->flag = ~(BASE_SELECTED | BASE_SELECTABLED);
+		data->base_flag = ~(BASE_SELECTED | BASE_SELECTABLED);
 
 		/* For the sets we use the layer used for rendering. */
 		scene_layer = BKE_scene_layer_render_active(data->scene);
@@ -171,7 +223,7 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 void DEG_objects_iterator_end(BLI_Iterator *iter)
 {
 	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
-	if (data) {
-		MEM_freeN(data);
+	if (data->eval_ctx != NULL) {
+		DEG_evaluation_context_free(data->eval_ctx);
 	}
 }
