@@ -289,43 +289,12 @@ void IDDepsNode::finalize_build()
 DEG_DEPSNODE_DEFINE(IDDepsNode, DEPSNODE_TYPE_ID_REF, "ID Node");
 static DepsNodeFactoryImpl<IDDepsNode> DNTI_ID_REF;
 
-/* Subgraph Node ========================================== */
-
-/* Initialize 'subgraph' node - from pointer data given. */
-void SubgraphDepsNode::init(const ID *id, const char *UNUSED(subdata))
-{
-	/* Store ID-ref if provided. */
-	this->root_id = (ID *)id;
-
-	/* NOTE: graph will need to be added manually,
-	 * as we don't have any way of passing this down.
-	 */
-}
-
-/* Free 'subgraph' node */
-SubgraphDepsNode::~SubgraphDepsNode()
-{
-	/* Only free if graph not shared, of if this node is the first
-	 * reference to it...
-	 */
-	// XXX: prune these flags a bit...
-	if ((this->flag & SUBGRAPH_FLAG_FIRSTREF) || !(this->flag & SUBGRAPH_FLAG_SHARED)) {
-		/* Free the referenced graph. */
-		DEG_graph_free(reinterpret_cast< ::Depsgraph* >(graph));
-		graph = NULL;
-	}
-}
-
-DEG_DEPSNODE_DEFINE(SubgraphDepsNode, DEPSNODE_TYPE_SUBGRAPH, "Subgraph Node");
-static DepsNodeFactoryImpl<SubgraphDepsNode> DNTI_SUBGRAPH;
-
 void deg_register_base_depsnodes()
 {
 	deg_register_node_typeinfo(&DNTI_ROOT);
 	deg_register_node_typeinfo(&DNTI_TIMESOURCE);
 
 	deg_register_node_typeinfo(&DNTI_ID_REF);
-	deg_register_node_typeinfo(&DNTI_SUBGRAPH);
 }
 
 }  // namespace DEG

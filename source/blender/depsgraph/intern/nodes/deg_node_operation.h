@@ -44,9 +44,6 @@ typedef enum eDepsOperation_Flag {
 	DEPSOP_FLAG_NEEDS_UPDATE       = (1 << 0),
 
 	/* node was directly modified, causing need for update */
-	/* XXX: intention is to make it easier to tell when we just need to
-	 * take subgraphs.
-	 */
 	DEPSOP_FLAG_DIRECTLY_MODIFIED  = (1 << 1),
 
 	/* Operation is evaluated using CPython; has GIL and security

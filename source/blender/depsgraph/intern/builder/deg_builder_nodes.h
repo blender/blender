@@ -62,7 +62,6 @@ namespace DEG {
 struct Depsgraph;
 struct DepsNode;
 struct RootDepsNode;
-struct SubgraphDepsNode;
 struct IDDepsNode;
 struct TimeSourceDepsNode;
 struct ComponentDepsNode;
@@ -125,7 +124,6 @@ struct DepsgraphNodeBuilder {
 	                                       int name_tag = -1);
 
 	void build_scene(Main *bmain, Scene *scene);
-	SubgraphDepsNode *build_subgraph(Group *group);
 	void build_group(Scene *scene, Base *base, Group *group);
 	void build_object(Scene *scene, Base *base, Object *ob);
 	void build_object_transform(Scene *scene, Object *ob);

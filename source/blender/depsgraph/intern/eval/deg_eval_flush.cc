@@ -170,7 +170,6 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						case DEPSNODE_TYPE_ROOT:
 						case DEPSNODE_TYPE_TIMESOURCE:
 						case DEPSNODE_TYPE_ID_REF:
-						case DEPSNODE_TYPE_SUBGRAPH:
 						case DEPSNODE_TYPE_PARAMETERS:
 						case DEPSNODE_TYPE_SEQUENCER:
 							/* Ignore, does not translate to object component. */

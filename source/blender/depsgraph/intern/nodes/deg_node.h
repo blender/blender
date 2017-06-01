@@ -185,41 +185,6 @@ struct IDDepsNode : public DepsNode {
 	DEG_DEPSNODE_DECLARE;
 };
 
-/* Subgraph Reference. */
-struct SubgraphDepsNode : public DepsNode {
-	void init(const ID *id, const char *subdata);
-	~SubgraphDepsNode();
-
-	/* Instanced graph. */
-	Depsgraph *graph;
-
-	/* ID-block at root of subgraph (if applicable). */
-	ID *root_id;
-
-	/* Number of nodes which use/reference this subgraph - if just 1, it may be
-	 * possible to merge into main,
-	 */
-	size_t num_users;
-
-	/* (eSubgraphRef_Flag) assorted settings for subgraph node. */
-	int flag;
-
-	DEG_DEPSNODE_DECLARE;
-};
-
-/* Flags for subgraph node */
-typedef enum eSubgraphRef_Flag {
-	/* Subgraph referenced is shared with another reference, so shouldn't
-	 * free on exit.
-	 */
-	SUBGRAPH_FLAG_SHARED      = (1 << 0),
-
-	/* Node is first reference to subgraph, so it can be freed when we are
-	 * removed.
-	 */
-	SUBGRAPH_FLAG_FIRSTREF    = (1 << 1),
-} eSubgraphRef_Flag;
-
 void deg_register_base_depsnodes();
 
 }  // namespace DEG

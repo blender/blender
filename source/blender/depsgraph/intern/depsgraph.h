@@ -52,7 +52,6 @@ struct DepsNode;
 struct RootDepsNode;
 struct TimeSourceDepsNode;
 struct IDDepsNode;
-struct SubgraphDepsNode;
 struct ComponentDepsNode;
 struct OperationDepsNode;
 
@@ -113,10 +112,6 @@ struct Depsgraph {
 
 	TimeSourceDepsNode *find_time_source(const ID *id = NULL) const;
 
-	SubgraphDepsNode *add_subgraph_node(const ID *id);
-	void remove_subgraph_node(SubgraphDepsNode *subgraph_node);
-	void clear_subgraph_nodes();
-
 	IDDepsNode *find_id_node(const ID *id) const;
 	IDDepsNode *add_id_node(ID *id, const char *name = "");
 	void remove_id_node(const ID *id);
@@ -145,9 +140,6 @@ struct Depsgraph {
 
 	/* "root" node - the one where all evaluation enters from. */
 	RootDepsNode *root_node;
-
-	/* Subgraphs referenced in tree. */
-	GSet *subgraphs;
 
 	/* Indicates whether relations needs to be updated. */
 	bool need_update;

@@ -75,7 +75,6 @@ Depsgraph::Depsgraph()
 {
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
-	subgraphs = BLI_gset_ptr_new("Depsgraph subgraphs");
 	entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
 }
 
@@ -83,9 +82,7 @@ Depsgraph::~Depsgraph()
 {
 	/* Free root node - it won't have been freed yet... */
 	clear_id_nodes();
-	clear_subgraph_nodes();
 	BLI_ghash_free(id_hash, NULL, NULL);
-	BLI_gset_free(subgraphs, NULL);
 	BLI_gset_free(entry_tags, NULL);
 	if (this->root_node != NULL) {
 		OBJECT_GUARDED_DELETE(this->root_node, RootDepsNode);
@@ -293,34 +290,6 @@ TimeSourceDepsNode *Depsgraph::find_time_source(const ID *id) const
 	return NULL;
 }
 
-SubgraphDepsNode *Depsgraph::add_subgraph_node(const ID *id)
-{
-	DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_SUBGRAPH);
-	SubgraphDepsNode *subgraph_node =
-		(SubgraphDepsNode *)factory->create_node(id, "", id->name + 2);
-
-	/* Add to subnodes list. */
-	BLI_gset_insert(subgraphs, subgraph_node);
-
-	return subgraph_node;
-}
-
-void Depsgraph::remove_subgraph_node(SubgraphDepsNode *subgraph_node)
-{
-	BLI_gset_remove(subgraphs, subgraph_node, NULL);
-	OBJECT_GUARDED_DELETE(subgraph_node, SubgraphDepsNode);
-}
-
-void Depsgraph::clear_subgraph_nodes()
-{
-	GSET_FOREACH_BEGIN(SubgraphDepsNode *, subgraph_node, subgraphs)
-	{
-		OBJECT_GUARDED_DELETE(subgraph_node, SubgraphDepsNode);
-	}
-	GSET_FOREACH_END();
-	BLI_gset_clear(subgraphs, NULL);
-}
-
 IDDepsNode *Depsgraph::find_id_node(const ID *id) const
 {
 	return reinterpret_cast<IDDepsNode *>(BLI_ghash_lookup(id_hash, id));
@@ -458,7 +427,6 @@ void Depsgraph::add_entry_tag(OperationDepsNode *node)
 void Depsgraph::clear_all_nodes()
 {
 	clear_id_nodes();
-	clear_subgraph_nodes();
 	BLI_ghash_clear(id_hash, NULL, NULL);
 	if (this->root_node) {
 		OBJECT_GUARDED_DELETE(this->root_node, RootDepsNode);

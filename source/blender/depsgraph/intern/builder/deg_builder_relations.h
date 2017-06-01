@@ -78,7 +78,6 @@ struct Depsgraph;
 struct DepsNode;
 struct DepsNodeHandle;
 struct RootDepsNode;
-struct SubgraphDepsNode;
 struct IDDepsNode;
 struct TimeSourceDepsNode;
 struct ComponentDepsNode;

@@ -321,41 +321,6 @@ void DepsgraphNodeBuilder::build_group(Scene *scene,
 	}
 }
 
-SubgraphDepsNode *DepsgraphNodeBuilder::build_subgraph(Group *group)
-{
-	/* sanity checks */
-	if (!group)
-		return NULL;
-
-	/* create new subgraph's data */
-	Depsgraph *subgraph = reinterpret_cast<Depsgraph *>(DEG_graph_new());
-
-	DepsgraphNodeBuilder subgraph_builder(m_bmain, subgraph);
-
-	/* add group objects */
-	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
-		/*Object *ob = go->ob;*/
-
-		/* Each "group object" is effectively a separate instance of the
-		 * underlying object data. When the group is evaluated, the transform
-		 * results and/or some other attributes end up getting overridden by
-		 * the group.
-		 */
-	}
-
-	/* Create a node for representing subgraph. */
-	SubgraphDepsNode *subgraph_node = m_graph->add_subgraph_node(&group->id);
-	subgraph_node->graph = subgraph;
-
-	/* Make a copy of the data this node will need? */
-	/* XXX: do we do this now, or later? */
-	/* TODO: need API function which queries graph's ID's hash, and duplicates
-	 * those blocks thoroughly with all outside links removed.
-	 */
-
-	return subgraph_node;
-}
-
 void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 {
 	const bool has_object = (ob->id.tag & LIB_TAG_DOIT);

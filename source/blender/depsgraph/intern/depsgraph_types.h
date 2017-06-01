@@ -96,10 +96,6 @@ typedef enum eDepsNode_Type {
 	 * but not usually part of main graph.
 	 */
 	DEPSNODE_TYPE_ID_REF,
-	/* Isolated sub-graph - used for keeping instanced data separate from
-	 * instances using them.
-	 */
-	DEPSNODE_TYPE_SUBGRAPH,
 
 	/* **** Outer Types **** */
 
@@ -107,9 +103,7 @@ typedef enum eDepsNode_Type {
 	 * (i.e. just SDNA property setting).
 	 */
 	DEPSNODE_TYPE_PARAMETERS,
-	/* Generic "Proxy-Inherit" Component
-	 * XXX: Also for instancing of subgraphs?
-	 */
+	/* Generic "Proxy-Inherit" Component. */
 	DEPSNODE_TYPE_PROXY,
 	/* Animation Component
 	 *

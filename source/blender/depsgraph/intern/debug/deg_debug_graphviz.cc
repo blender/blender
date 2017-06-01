@@ -80,17 +80,16 @@ static const int deg_debug_node_type_color_map[][2] = {
     {DEPSNODE_TYPE_ROOT,         0},
     {DEPSNODE_TYPE_TIMESOURCE,   1},
     {DEPSNODE_TYPE_ID_REF,       2},
-    {DEPSNODE_TYPE_SUBGRAPH,     3},
 
     /* Outer Types */
-    {DEPSNODE_TYPE_PARAMETERS,   4},
-    {DEPSNODE_TYPE_PROXY,        5},
-    {DEPSNODE_TYPE_ANIMATION,    6},
-    {DEPSNODE_TYPE_TRANSFORM,    7},
-    {DEPSNODE_TYPE_GEOMETRY,     8},
-    {DEPSNODE_TYPE_SEQUENCER,    9},
-    {DEPSNODE_TYPE_SHADING,      10},
-    {DEPSNODE_TYPE_CACHE,        11},
+    {DEPSNODE_TYPE_PARAMETERS,   3},
+    {DEPSNODE_TYPE_PROXY,        4},
+    {DEPSNODE_TYPE_ANIMATION,    5},
+    {DEPSNODE_TYPE_TRANSFORM,    6},
+    {DEPSNODE_TYPE_GEOMETRY,     7},
+    {DEPSNODE_TYPE_SEQUENCER,    8},
+    {DEPSNODE_TYPE_SHADING,      9},
+    {DEPSNODE_TYPE_CACHE,        10},
     {-1,                         0}
 };
 #endif
@@ -380,19 +379,6 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 			}
 			break;
 		}
-		case DEPSNODE_TYPE_SUBGRAPH:
-		{
-			SubgraphDepsNode *sub_node = (SubgraphDepsNode *)node;
-			if (sub_node->graph) {
-				deg_debug_graphviz_node_cluster_begin(ctx, node);
-				deg_debug_graphviz_graph_nodes(ctx, sub_node->graph);
-				deg_debug_graphviz_node_cluster_end(ctx);
-			}
-			else {
-				deg_debug_graphviz_node_single(ctx, node);
-			}
-			break;
-		}
 		case DEPSNODE_TYPE_PARAMETERS:
 		case DEPSNODE_TYPE_ANIMATION:
 		case DEPSNODE_TYPE_TRANSFORM:
@@ -431,11 +417,6 @@ static bool deg_debug_graphviz_is_cluster(const DepsNode *node)
 		{
 			const IDDepsNode *id_node = (const IDDepsNode *)node;
 			return BLI_ghash_size(id_node->components) > 0;
-		}
-		case DEPSNODE_TYPE_SUBGRAPH:
-		{
-			SubgraphDepsNode *sub_node = (SubgraphDepsNode *)node;
-			return sub_node->graph != NULL;
 		}
 		case DEPSNODE_TYPE_PARAMETERS:
 		case DEPSNODE_TYPE_ANIMATION:
