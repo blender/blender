@@ -1169,7 +1169,7 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUS
 #ifdef WITH_FREESTYLE
 			const int a_end = SIMFACE_FREESTYLE;
 #else
-			const int a_end = SIMFACE_SMOOTH;
+			const int a_end = SIMFACE_FACEMAP;
 #endif
 			for (a = SIMFACE_MATERIAL; a <= a_end; a++) {
 				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
