@@ -110,10 +110,10 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 		immUniformColor4fv(color);
 
 		immBegin(PRIM_LINES, 4);
-		immVertex3f(pos, -1.0, 0.f, 0.0);
-		immVertex3f(pos, 1.0, 0.f, 0.0);
-		immVertex3f(pos, 0.f, -1.0, 0.0);
-		immVertex3f(pos, 0.f, 1.0, 0.0);
+		immVertex3f(pos, -1.0f,  0.0f, 0.0f);
+		immVertex3f(pos,  1.0f,  0.0f, 0.0f);
+		immVertex3f(pos,  0.0f, -1.0f, 0.0f);
+		immVertex3f(pos,  0.0f,  1.0f, 0.0f);
 		immEnd();
 	}
 	else if (arrow->style & MANIPULATOR_ARROW_STYLE_CONE) {
