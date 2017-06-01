@@ -1317,34 +1317,6 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		             obdata_ubereval_key,
 		             "PSys -> UberEval");
 
-#if 0
-		if (ELEM(part->phystype, PART_PHYS_KEYED, PART_PHYS_BOIDS)) {
-			LINKLIST_FOREACH (ParticleTarget *, pt, &psys->targets) {
-				if (pt->ob && BLI_findlink(&pt->ob->particlesystem, pt->psys - 1)) {
-					node2 = dag_get_node(dag, pt->ob);
-					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Particle Targets");
-				}
-			}
-		}
-
-		if (part->ren_as == PART_DRAW_OB && part->dup_ob) {
-			node2 = dag_get_node(dag, part->dup_ob);
-			/* note that this relation actually runs in the wrong direction, the problem
-			 * is that dupli system all have this (due to parenting), and the render
-			 * engine instancing assumes particular ordering of objects in list */
-			dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualization");
-			if (part->dup_ob->type == OB_MBALL)
-				dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Object Visualization");
-		}
-
-		if (part->ren_as == PART_DRAW_GR && part->dup_group) {
-			LINKLIST_FOREACH (GroupObject *, go, &part->dup_group->gobject) {
-				node2 = dag_get_node(dag, go->ob);
-				dag_add_relation(dag, node2, node, DAG_RL_OB_OB, "Particle Group Visualization");
-			}
-		}
-#endif
-
 		/* collisions */
 		if (part->type != PART_HAIR) {
 			add_collision_relations(psys_key, scene, ob, part->collision_group, ob->lay, true, "Particle Collision");

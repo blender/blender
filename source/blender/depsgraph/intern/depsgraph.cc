@@ -302,16 +302,6 @@ SubgraphDepsNode *Depsgraph::add_subgraph_node(const ID *id)
 	/* Add to subnodes list. */
 	BLI_gset_insert(subgraphs, subgraph_node);
 
-	/* if there's an ID associated, add to ID-nodes lookup too */
-	if (id) {
-#if 0
-		/* XXX subgraph node is NOT a true IDDepsNode - what is this supposed to do? */
-		// TODO: what to do if subgraph's ID has already been added?
-		BLI_assert(!graph->find_id_node(id));
-		graph->id_hash[id] = this;
-#endif
-	}
-
 	return subgraph_node;
 }
 
