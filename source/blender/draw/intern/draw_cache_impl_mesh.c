@@ -833,6 +833,10 @@ static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, con
 {
 	float (*vweight)[3] = rdata->vert_weight_color;
 	if (vweight == NULL) {
+		if (defgroup == -1) {
+			goto fallback;
+		}
+
 		if (rdata->edit_bmesh) {
 			BMesh *bm = rdata->edit_bmesh->bm;
 			const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
