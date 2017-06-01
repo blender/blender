@@ -172,8 +172,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *ob,
 	if (!(data->flag & CONSTRAINT_IK_TIP)) {
 		OperationKey tip_transforms_key(&ob->id, DEG_NODE_TYPE_BONE,
 		                                parchan->name, DEG_OPCODE_BONE_LOCAL);
-		add_relation(solver_key, tip_transforms_key,
-		             "IK Solver Result");
+		add_relation(solver_key, tip_transforms_key, "IK Solver Result");
 		parchan = pchan->parent;
 	}
 
@@ -181,8 +180,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *ob,
 
 	OperationKey parchan_transforms_key(&ob->id, DEG_NODE_TYPE_BONE,
 	                                    parchan->name, DEG_OPCODE_BONE_READY);
-	add_relation(parchan_transforms_key, solver_key,
-	             "IK Solver Owner");
+	add_relation(parchan_transforms_key, solver_key, "IK Solver Owner");
 
 	/* Walk to the chain's root */
 	//size_t segcount = 0;
@@ -374,7 +372,6 @@ void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
 		ComponentKey local_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(local_transform_key, pose_key, "Local Transforms");
 	}
-
 
 	/* links between operations for each bone */
 	LINKLIST_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
