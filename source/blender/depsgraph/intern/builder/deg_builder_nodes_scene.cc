@@ -69,7 +69,7 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	add_id_node(&scene->id);
 
 	/* timesource */
-	add_time_source(NULL);
+	add_time_source();
 
 	/* build subgraph for set, and link this in... */
 	// XXX: depending on how this goes, that scene itself could probably store its

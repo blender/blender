@@ -76,7 +76,7 @@ struct DepsgraphNodeBuilder {
 
 	RootDepsNode *add_root_node();
 	IDDepsNode *add_id_node(ID *id);
-	TimeSourceDepsNode *add_time_source(ID *id);
+	TimeSourceDepsNode *add_time_source();
 
 	ComponentDepsNode *add_component_node(ID *id,
 	                                      eDepsNode_Type comp_type,
