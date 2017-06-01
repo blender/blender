@@ -269,25 +269,10 @@ RootDepsNode *Depsgraph::add_root_node()
 	return root_node;
 }
 
-TimeSourceDepsNode *Depsgraph::find_time_source(const ID *id) const
+TimeSourceDepsNode *Depsgraph::find_time_source() const
 {
-	/* Search for one attached to a particular ID? */
-	if (id) {
-		/* Check if it was added as a component
-		 * (as may be done for subgraphs needing timeoffset).
-		 */
-		IDDepsNode *id_node = find_id_node(id);
-		if (id_node) {
-			// XXX: review this
-//			return id_node->find_component(DEPSNODE_TYPE_TIMESOURCE);
-		}
-		BLI_assert(!"Not implemented yet");
-	}
-	else {
-		/* Use "official" timesource. */
-		return root_node->time_source;
-	}
-	return NULL;
+	BLI_assert(root_node != NULL);
+	return root_node->time_source;
 }
 
 IDDepsNode *Depsgraph::find_id_node(const ID *id) const

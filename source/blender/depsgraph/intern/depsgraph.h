@@ -110,7 +110,7 @@ struct Depsgraph {
 
 	RootDepsNode *add_root_node();
 
-	TimeSourceDepsNode *find_time_source(const ID *id = NULL) const;
+	TimeSourceDepsNode *find_time_source() const;
 
 	IDDepsNode *find_id_node(const ID *id) const;
 	IDDepsNode *add_id_node(ID *id, const char *name = "");

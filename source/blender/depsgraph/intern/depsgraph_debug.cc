@@ -232,7 +232,7 @@ void DEG_stats_simple(const Depsgraph *graph, size_t *r_outer,
 		}
 		GHASH_FOREACH_END();
 
-		DEG::TimeSourceDepsNode *time_source = deg_graph->find_time_source(NULL);
+		DEG::TimeSourceDepsNode *time_source = deg_graph->find_time_source();
 		if (time_source != NULL) {
 			tot_rels += time_source->inlinks.size();
 		}
