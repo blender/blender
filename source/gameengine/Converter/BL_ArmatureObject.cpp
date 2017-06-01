@@ -138,7 +138,8 @@ static void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 		if (pchan->prop)
 			pchan->prop= IDP_CopyProperty(pchan->prop);
 #endif
-		pchan->prop= NULL;
+		pchan->prop = NULL;
+		pchan->draw_data = NULL;
 	}
 
 	BLI_ghash_free(ghash, NULL, NULL);
