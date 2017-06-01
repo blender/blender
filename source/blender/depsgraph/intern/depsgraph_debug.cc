@@ -165,7 +165,7 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 			return false;
 		}
 		foreach (DEG::DepsRelation *rel, node->outlinks) {
-			if (rel->to->type == DEG::DEPSNODE_TYPE_OPERATION) {
+			if (rel->to->type == DEG::DEG_NODE_TYPE_OPERATION) {
 				DEG::OperationDepsNode *to = (DEG::OperationDepsNode *)rel->to;
 				BLI_assert(to->num_links_pending < to->inlinks.size());
 				++to->num_links_pending;
@@ -177,7 +177,7 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {
 		int num_links_pending = 0;
 		foreach (DEG::DepsRelation *rel, node->inlinks) {
-			if (rel->from->type == DEG::DEPSNODE_TYPE_OPERATION) {
+			if (rel->from->type == DEG::DEG_NODE_TYPE_OPERATION) {
 				++num_links_pending;
 			}
 		}
@@ -232,7 +232,7 @@ void DEG_stats_simple(const Depsgraph *graph, size_t *r_outer,
 		}
 		GHASH_FOREACH_END();
 
-		DEG::TimeSourceDepsNode *time_source = deg_graph->find_time_source(NULL);
+		DEG::TimeSourceDepsNode *time_source = deg_graph->find_time_source();
 		if (time_source != NULL) {
 			tot_rels += time_source->inlinks.size();
 		}

@@ -80,7 +80,7 @@ class USERPREF_PT_tabs(Panel):
 
         userpref = context.user_preferences
 
-        layout.prop(userpref, "active_section", expand=True)
+        layout.row().prop(userpref, "active_section", expand=True)
 
 
 class USERPREF_MT_interaction_presets(Menu):

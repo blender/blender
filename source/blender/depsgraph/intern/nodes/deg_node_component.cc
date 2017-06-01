@@ -194,31 +194,19 @@ OperationDepsNode *ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
 	return has_operation(key);
 }
 
-OperationDepsNode *ComponentDepsNode::add_operation(eDepsOperation_Type optype,
-                                                    DepsEvalOperationCb op,
+OperationDepsNode *ComponentDepsNode::add_operation(DepsEvalOperationCb op,
                                                     eDepsOperation_Code opcode,
                                                     const char *name,
                                                     int name_tag)
 {
 	OperationDepsNode *op_node = has_operation(opcode, name, name_tag);
 	if (!op_node) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_OPERATION);
+		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_OPERATION);
 		op_node = (OperationDepsNode *)factory->create_node(this->owner->id, "", name);
 
 		/* register opnode in this component's operation set */
 		OperationIDKey *key = OBJECT_GUARDED_NEW(OperationIDKey, opcode, name, name_tag);
 		BLI_ghash_insert(operations_map, key, op_node);
-
-		/* set as entry/exit node of component (if appropriate) */
-		if (optype == DEPSOP_TYPE_INIT) {
-			BLI_assert(this->entry_operation == NULL);
-			this->entry_operation = op_node;
-		}
-		else if (optype == DEPSOP_TYPE_POST) {
-			// XXX: review whether DEPSOP_TYPE_OUT is better than DEPSOP_TYPE_POST, or maybe have both?
-			BLI_assert(this->exit_operation == NULL);
-			this->exit_operation = op_node;
-		}
 
 		/* set backlink */
 		op_node->owner = this;
@@ -231,11 +219,22 @@ OperationDepsNode *ComponentDepsNode::add_operation(eDepsOperation_Type optype,
 
 	/* attach extra data */
 	op_node->evaluate = op;
-	op_node->optype = optype;
 	op_node->opcode = opcode;
 	op_node->name = name;
 
 	return op_node;
+}
+
+void ComponentDepsNode::set_entry_operation(OperationDepsNode *op_node)
+{
+	BLI_assert(entry_operation == NULL);
+	entry_operation = op_node;
+}
+
+void ComponentDepsNode::set_exit_operation(OperationDepsNode *op_node)
+{
+	BLI_assert(exit_operation == NULL);
+	exit_operation = op_node;
 }
 
 void ComponentDepsNode::clear_operations()
@@ -332,37 +331,37 @@ void ComponentDepsNode::finalize_build()
 
 /* Parameter Component Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(ParametersComponentDepsNode, DEPSNODE_TYPE_PARAMETERS, "Parameters Component");
+DEG_DEPSNODE_DEFINE(ParametersComponentDepsNode, DEG_NODE_TYPE_PARAMETERS, "Parameters Component");
 static DepsNodeFactoryImpl<ParametersComponentDepsNode> DNTI_PARAMETERS;
 
 /* Animation Component Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(AnimationComponentDepsNode, DEPSNODE_TYPE_ANIMATION, "Animation Component");
+DEG_DEPSNODE_DEFINE(AnimationComponentDepsNode, DEG_NODE_TYPE_ANIMATION, "Animation Component");
 static DepsNodeFactoryImpl<AnimationComponentDepsNode> DNTI_ANIMATION;
 
 /* Transform Component Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(TransformComponentDepsNode, DEPSNODE_TYPE_TRANSFORM, "Transform Component");
+DEG_DEPSNODE_DEFINE(TransformComponentDepsNode, DEG_NODE_TYPE_TRANSFORM, "Transform Component");
 static DepsNodeFactoryImpl<TransformComponentDepsNode> DNTI_TRANSFORM;
 
 /* Proxy Component Defines ================================ */
 
-DEG_DEPSNODE_DEFINE(ProxyComponentDepsNode, DEPSNODE_TYPE_PROXY, "Proxy Component");
+DEG_DEPSNODE_DEFINE(ProxyComponentDepsNode, DEG_NODE_TYPE_PROXY, "Proxy Component");
 static DepsNodeFactoryImpl<ProxyComponentDepsNode> DNTI_PROXY;
 
 /* Geometry Component Defines ============================= */
 
-DEG_DEPSNODE_DEFINE(GeometryComponentDepsNode, DEPSNODE_TYPE_GEOMETRY, "Geometry Component");
+DEG_DEPSNODE_DEFINE(GeometryComponentDepsNode, DEG_NODE_TYPE_GEOMETRY, "Geometry Component");
 static DepsNodeFactoryImpl<GeometryComponentDepsNode> DNTI_GEOMETRY;
 
 /* Sequencer Component Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(SequencerComponentDepsNode, DEPSNODE_TYPE_SEQUENCER, "Sequencer Component");
+DEG_DEPSNODE_DEFINE(SequencerComponentDepsNode, DEG_NODE_TYPE_SEQUENCER, "Sequencer Component");
 static DepsNodeFactoryImpl<SequencerComponentDepsNode> DNTI_SEQUENCER;
 
 /* Pose Component ========================================= */
 
-DEG_DEPSNODE_DEFINE(PoseComponentDepsNode, DEPSNODE_TYPE_EVAL_POSE, "Pose Eval Component");
+DEG_DEPSNODE_DEFINE(PoseComponentDepsNode, DEG_NODE_TYPE_EVAL_POSE, "Pose Eval Component");
 static DepsNodeFactoryImpl<PoseComponentDepsNode> DNTI_EVAL_POSE;
 
 /* Bone Component ========================================= */
@@ -384,27 +383,27 @@ void BoneComponentDepsNode::init(const ID *id, const char *subdata)
 	this->pchan = BKE_pose_channel_find_name(ob->pose, subdata);
 }
 
-DEG_DEPSNODE_DEFINE(BoneComponentDepsNode, DEPSNODE_TYPE_BONE, "Bone Component");
+DEG_DEPSNODE_DEFINE(BoneComponentDepsNode, DEG_NODE_TYPE_BONE, "Bone Component");
 static DepsNodeFactoryImpl<BoneComponentDepsNode> DNTI_BONE;
 
 /* Particles Component Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(ParticlesComponentDepsNode, DEPSNODE_TYPE_EVAL_PARTICLES, "Particles Component");
+DEG_DEPSNODE_DEFINE(ParticlesComponentDepsNode, DEG_NODE_TYPE_EVAL_PARTICLES, "Particles Component");
 static DepsNodeFactoryImpl<ParticlesComponentDepsNode> DNTI_EVAL_PARTICLES;
 
 /* Shading Component Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(ShadingComponentDepsNode, DEPSNODE_TYPE_SHADING, "Shading Component");
+DEG_DEPSNODE_DEFINE(ShadingComponentDepsNode, DEG_NODE_TYPE_SHADING, "Shading Component");
 static DepsNodeFactoryImpl<ShadingComponentDepsNode> DNTI_SHADING;
 
 /* Cache Component Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(CacheComponentDepsNode, DEPSNODE_TYPE_CACHE, "Cache Component");
+DEG_DEPSNODE_DEFINE(CacheComponentDepsNode, DEG_NODE_TYPE_CACHE, "Cache Component");
 static DepsNodeFactoryImpl<CacheComponentDepsNode> DNTI_CACHE;
 
 /* Layer Collections Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(LayerCollectionsDepsNode, DEPSNODE_TYPE_LAYER_COLLECTIONS, "Layer Collections Component");
+DEG_DEPSNODE_DEFINE(LayerCollectionsDepsNode, DEG_NODE_TYPE_LAYER_COLLECTIONS, "Layer Collections Component");
 static DepsNodeFactoryImpl<LayerCollectionsDepsNode> DNTI_LAYER_COLLECTIONS;
 
 /* Node Types Register =================================== */

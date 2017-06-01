@@ -37,7 +37,7 @@ class MotionPathButtonsPanel:
         mps = avs.motion_path
 
         # Display Range
-        layout.prop(mps, "type", expand=True)
+        layout.row().prop(mps, "type", expand=True)
 
         split = layout.split()
 
@@ -120,7 +120,7 @@ class OnionSkinButtonsPanel:
 
         arm = context.armature
 
-        layout.prop(arm, "ghost_type", expand=True)
+        layout.row().prop(arm, "ghost_type", expand=True)
 
         split = layout.split()
 

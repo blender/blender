@@ -99,11 +99,17 @@ struct ComponentDepsNode : public DepsNode {
 	 * \param op: The operation to perform
 	 * \param name: Identifier for operation - used to find/locate it again
 	 */
-	OperationDepsNode *add_operation(eDepsOperation_Type optype,
-	                                 DepsEvalOperationCb op,
+	OperationDepsNode *add_operation(DepsEvalOperationCb op,
 	                                 eDepsOperation_Code opcode,
 	                                 const char *name,
 	                                 int name_tag);
+
+	/* Entry/exit operations management.
+	 *
+	 * Use those instead of direct set since this will perform sanity checks.
+	 */
+	void set_entry_operation(OperationDepsNode *op_node);
+	void set_exit_operation(OperationDepsNode *op_node);
 
 	void clear_operations();
 

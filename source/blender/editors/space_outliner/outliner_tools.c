@@ -399,8 +399,8 @@ static void object_deselect_cb(
 }
 
 static void object_delete_cb(
-        bContext *C, ReportList *reports, Scene *scene, TreeElement *UNUSED(te),
-        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+        bContext *C, ReportList *reports, Scene *scene, TreeElement *te,
+        TreeStoreElem *tsep, TreeStoreElem *tselem, void *user_data)
 {
 	Object *ob = (Object *)tselem->id;
 	if (ob) {
@@ -434,7 +434,7 @@ static void object_delete_cb(
 		 * Should not happen ideally, but does happens, see T51625.
 		 * Rather than twisting in all kind of ways to address all possible cases leading to that situation, simpler
 		 * to allow deleting such object as a mere generic data-block. */
-		WM_operator_name_call(C, "OUTLINER_OT_id_delete", WM_OP_INVOKE_REGION_WIN, NULL);
+		id_delete_cb(C, reports, scene, te, tsep, tselem, user_data);
 	}
 }
 
@@ -1111,7 +1111,7 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{OL_GROUPOP_UNLINK, "UNLINK",     0, "Unlink Group", ""},
 	{OL_GROUPOP_LOCAL, "LOCAL",       0, "Make Local Group", ""},
 	{OL_GROUPOP_LINK, "LINK",         0, "Link Group Objects to Scene", ""},
-	{OL_GROUPOP_DELETE, "DELETE",     0, "Delete Group", "WARNING: no undo"},
+	{OL_GROUPOP_DELETE, "DELETE",     0, "Delete Group", ""},
 	{OL_GROUPOP_REMAP, "REMAP",       0, "Remap Users",
 	 "Make all users of selected data-blocks to use instead current (clicked) one"},
 	{OL_GROUPOP_INSTANCE, "INSTANCE", 0, "Instance Groups in Scene", ""},
@@ -1150,7 +1150,7 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 			DAG_relations_tag_update(CTX_data_main(C));
 			break;
 		case OL_GROUPOP_DELETE:
-			WM_operator_name_call(C, "OUTLINER_OT_id_delete", WM_OP_INVOKE_REGION_WIN, NULL);
+			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_delete_cb, NULL);
 			break;
 		case OL_GROUPOP_REMAP:
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_remap_cb, NULL);

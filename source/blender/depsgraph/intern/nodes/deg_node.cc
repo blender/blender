@@ -60,12 +60,12 @@ namespace DEG {
 DepsNode::TypeInfo::TypeInfo(eDepsNode_Type type, const char *tname)
 {
 	this->type = type;
-	if (type == DEPSNODE_TYPE_OPERATION)
-		this->tclass = DEPSNODE_CLASS_OPERATION;
-	else if (type < DEPSNODE_TYPE_PARAMETERS)
-		this->tclass = DEPSNODE_CLASS_GENERIC;
+	if (type == DEG_NODE_TYPE_OPERATION)
+		this->tclass = DEG_NODE_CLASS_OPERATION;
+	else if (type < DEG_NODE_TYPE_PARAMETERS)
+		this->tclass = DEG_NODE_CLASS_GENERIC;
 	else
-		this->tclass = DEPSNODE_CLASS_COMPONENT;
+		this->tclass = DEG_NODE_CLASS_COMPONENT;
 	this->tname = tname;
 }
 
@@ -124,19 +124,19 @@ RootDepsNode::~RootDepsNode()
 TimeSourceDepsNode *RootDepsNode::add_time_source(const char *name)
 {
 	if (!time_source) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_TIMESOURCE);
+		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_TIMESOURCE);
 		time_source = (TimeSourceDepsNode *)factory->create_node(NULL, "", name);
 		/*time_source->owner = this;*/ // XXX
 	}
 	return time_source;
 }
 
-DEG_DEPSNODE_DEFINE(RootDepsNode, DEPSNODE_TYPE_ROOT, "Root DepsNode");
+DEG_DEPSNODE_DEFINE(RootDepsNode, DEG_NODE_TYPE_ROOT, "Root DepsNode");
 static DepsNodeFactoryImpl<RootDepsNode> DNTI_ROOT;
 
 /* Time Source Node ======================================= */
 
-DEG_DEPSNODE_DEFINE(TimeSourceDepsNode, DEPSNODE_TYPE_TIMESOURCE, "Time Source");
+DEG_DEPSNODE_DEFINE(TimeSourceDepsNode, DEG_NODE_TYPE_TIMESOURCE, "Time Source");
 static DepsNodeFactoryImpl<TimeSourceDepsNode> DNTI_TIMESOURCE;
 
 /* ID Node ================================================ */
@@ -256,8 +256,8 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
 	{
 		/* TODO(sergey): What about drievrs? */
-		bool do_component_tag = comp_node->type != DEPSNODE_TYPE_ANIMATION;
-		if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
+		bool do_component_tag = comp_node->type != DEG_NODE_TYPE_ANIMATION;
+		if (comp_node->type == DEG_NODE_TYPE_ANIMATION) {
 			AnimData *adt = BKE_animdata_from_id(id);
 			/* Animation data might be null if relations are tagged for update. */
 			if (adt != NULL && (adt->recalc & ADT_RECALC_ANIM)) {
@@ -280,38 +280,8 @@ void IDDepsNode::finalize_build()
 	GHASH_FOREACH_END();
 }
 
-DEG_DEPSNODE_DEFINE(IDDepsNode, DEPSNODE_TYPE_ID_REF, "ID Node");
+DEG_DEPSNODE_DEFINE(IDDepsNode, DEG_NODE_TYPE_ID_REF, "ID Node");
 static DepsNodeFactoryImpl<IDDepsNode> DNTI_ID_REF;
-
-/* Subgraph Node ========================================== */
-
-/* Initialize 'subgraph' node - from pointer data given. */
-void SubgraphDepsNode::init(const ID *id, const char *UNUSED(subdata))
-{
-	/* Store ID-ref if provided. */
-	this->root_id = (ID *)id;
-
-	/* NOTE: graph will need to be added manually,
-	 * as we don't have any way of passing this down.
-	 */
-}
-
-/* Free 'subgraph' node */
-SubgraphDepsNode::~SubgraphDepsNode()
-{
-	/* Only free if graph not shared, of if this node is the first
-	 * reference to it...
-	 */
-	// XXX: prune these flags a bit...
-	if ((this->flag & SUBGRAPH_FLAG_FIRSTREF) || !(this->flag & SUBGRAPH_FLAG_SHARED)) {
-		/* Free the referenced graph. */
-		DEG_graph_free(reinterpret_cast< ::Depsgraph* >(graph));
-		graph = NULL;
-	}
-}
-
-DEG_DEPSNODE_DEFINE(SubgraphDepsNode, DEPSNODE_TYPE_SUBGRAPH, "Subgraph Node");
-static DepsNodeFactoryImpl<SubgraphDepsNode> DNTI_SUBGRAPH;
 
 void deg_register_base_depsnodes()
 {
@@ -319,7 +289,6 @@ void deg_register_base_depsnodes()
 	deg_register_node_typeinfo(&DNTI_TIMESOURCE);
 
 	deg_register_node_typeinfo(&DNTI_ID_REF);
-	deg_register_node_typeinfo(&DNTI_SUBGRAPH);
 }
 
 }  // namespace DEG

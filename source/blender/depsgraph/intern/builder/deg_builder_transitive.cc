@@ -105,7 +105,7 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 			/* Increment in advance, so we can safely remove the relation. */
 			++it_rel;
 
-			if (rel->from->type == DEPSNODE_TYPE_TIMESOURCE) {
+			if (rel->from->type == DEG_NODE_TYPE_TIMESOURCE) {
 				/* HACK: time source nodes don't get "done" flag set/cleared. */
 				/* TODO: there will be other types in future, so iterators above
 				 * need modifying.

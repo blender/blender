@@ -65,10 +65,9 @@ void DepsgraphNodeBuilder::build_layer_collection(Scene *scene,
 	/* TODO(sergey): This will attempt to create component for each collection.
 	 * Harmless but could be optimized.
 	 */
-	ComponentDepsNode *comp = add_component_node(&scene->id, DEPSNODE_TYPE_LAYER_COLLECTIONS);
+	ComponentDepsNode *comp = add_component_node(&scene->id, DEG_NODE_TYPE_LAYER_COLLECTIONS);
 
 	add_operation_node(comp,
-	                   DEPSOP_TYPE_EXEC,
 	                   function_bind(BKE_layer_eval_layer_collection,
 	                                 _1,
 	                                 layer_collection,
@@ -99,15 +98,13 @@ void DepsgraphNodeBuilder::build_scene_layer_collections(Scene *scene)
 	LayerCollectionState state;
 	state.index = 0;
 	LINKLIST_FOREACH (SceneLayer *, scene_layer, &scene->render_layers) {
-		ComponentDepsNode *comp = add_component_node(&scene->id, DEPSNODE_TYPE_LAYER_COLLECTIONS);
+		ComponentDepsNode *comp = add_component_node(&scene->id, DEG_NODE_TYPE_LAYER_COLLECTIONS);
 
 		add_operation_node(comp,
-		                   DEPSOP_TYPE_EXEC,
 		                   function_bind(BKE_layer_eval_layer_collection_pre, _1, scene, scene_layer),
 		                   DEG_OPCODE_SCENE_LAYER_INIT,
 		                   scene_layer->name);
 		add_operation_node(comp,
-		                   DEPSOP_TYPE_EXEC,
 		                   function_bind(BKE_layer_eval_layer_collection_post, _1, scene_layer),
 		                   DEG_OPCODE_SCENE_LAYER_DONE,
 		                   scene_layer->name);

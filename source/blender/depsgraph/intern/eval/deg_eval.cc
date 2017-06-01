@@ -144,7 +144,7 @@ static void calculate_pending_func(void *data_v, int i)
 	/* count number of inputs that need updates */
 	if ((node->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0) {
 		foreach (DepsRelation *rel, node->inlinks) {
-			if (rel->from->type == DEPSNODE_TYPE_OPERATION &&
+			if (rel->from->type == DEG_NODE_TYPE_OPERATION &&
 			    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
 			{
 				OperationDepsNode *from = (OperationDepsNode *)rel->from;
@@ -185,7 +185,7 @@ static void calculate_eval_priority(OperationDepsNode *node)
 
 		foreach (DepsRelation *rel, node->outlinks) {
 			OperationDepsNode *to = (OperationDepsNode *)rel->to;
-			BLI_assert(to->type == DEPSNODE_TYPE_OPERATION);
+			BLI_assert(to->type == DEG_NODE_TYPE_OPERATION);
 			calculate_eval_priority(to);
 			node->eval_priority += to->eval_priority;
 		}
@@ -246,7 +246,7 @@ static void schedule_children(TaskPool *pool,
 {
 	foreach (DepsRelation *rel, node->outlinks) {
 		OperationDepsNode *child = (OperationDepsNode *)rel->to;
-		BLI_assert(child->type == DEPSNODE_TYPE_OPERATION);
+		BLI_assert(child->type == DEG_NODE_TYPE_OPERATION);
 		if (child->scheduled) {
 			/* Happens when having cyclic dependencies. */
 			continue;

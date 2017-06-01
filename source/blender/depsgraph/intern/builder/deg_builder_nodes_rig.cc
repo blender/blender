@@ -67,8 +67,7 @@ namespace DEG {
 void DepsgraphNodeBuilder::build_pose_constraints(Scene *scene, Object *ob, bPoseChannel *pchan)
 {
 	/* create node for constraint stack */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-	                   DEPSOP_TYPE_EXEC,
+	add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
 	                   function_bind(BKE_pose_constraints_evaluate, _1, scene, ob, pchan),
 	                   DEG_OPCODE_BONE_CONSTRAINTS);
 }
@@ -81,15 +80,15 @@ void DepsgraphNodeBuilder::build_ik_pose(Scene *scene, Object *ob, bPoseChannel 
 	/* Find the chain's root. */
 	bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
 
-	if (has_operation_node(&ob->id, DEPSNODE_TYPE_EVAL_POSE, rootchan->name,
+	if (has_operation_node(&ob->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
 	                       DEG_OPCODE_POSE_IK_SOLVER))
 	{
 		return;
 	}
 
 	/* Operation node for evaluating/running IK Solver. */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_EVAL_POSE, rootchan->name,
-	                   DEPSOP_TYPE_SIM, function_bind(BKE_pose_iktree_evaluate, _1, scene, ob, rootchan),
+	add_operation_node(&ob->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
+	                   function_bind(BKE_pose_iktree_evaluate, _1, scene, ob, rootchan),
 	                   DEG_OPCODE_POSE_IK_SOLVER);
 }
 
@@ -104,8 +103,8 @@ void DepsgraphNodeBuilder::build_splineik_pose(Scene *scene, Object *ob, bPoseCh
 	/* Operation node for evaluating/running Spline IK Solver.
 	 * Store the "root bone" of this chain in the solver, so it knows where to start.
 	 */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_EVAL_POSE, rootchan->name,
-	                   DEPSOP_TYPE_SIM, function_bind(BKE_pose_splineik_evaluate, _1, scene, ob, rootchan),
+	add_operation_node(&ob->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
+	                   function_bind(BKE_pose_splineik_evaluate, _1, scene, ob, rootchan),
 	                   DEG_OPCODE_POSE_SPLINE_IK_SOLVER);
 }
 
@@ -113,6 +112,7 @@ void DepsgraphNodeBuilder::build_splineik_pose(Scene *scene, Object *ob, bPoseCh
 void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 {
 	bArmature *arm = (bArmature *)ob->data;
+	OperationDepsNode *op_node;
 
 	/* animation and/or drivers linking posebones to base-armature used to define them
 	 * NOTE: AnimData here is really used to control animated deform properties,
@@ -125,8 +125,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 
 		/* Make sure pose is up-to-date with armature updates. */
 		add_operation_node(&arm->id,
-		                   DEPSNODE_TYPE_PARAMETERS,
-		                   DEPSOP_TYPE_EXEC,
+		                   DEG_NODE_TYPE_PARAMETERS,
 		                   NULL,
 		                   DEG_OPCODE_PLACEHOLDER,
 		                   "Armature Eval");
@@ -175,30 +174,37 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 	 */
 
 	/* pose eval context */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_EVAL_POSE,
-	                   DEPSOP_TYPE_INIT, function_bind(BKE_pose_eval_init, _1, scene, ob, ob->pose), DEG_OPCODE_POSE_INIT);
+	op_node = add_operation_node(&ob->id,
+	                             DEG_NODE_TYPE_EVAL_POSE,
+	                             function_bind(BKE_pose_eval_init, _1, scene, ob, ob->pose),
+	                             DEG_OPCODE_POSE_INIT);
+	op_node->set_as_entry();
 
-	add_operation_node(&ob->id, DEPSNODE_TYPE_EVAL_POSE,
-	                   DEPSOP_TYPE_POST, function_bind(BKE_pose_eval_flush, _1, scene, ob, ob->pose), DEG_OPCODE_POSE_DONE);
+	op_node = add_operation_node(&ob->id,
+	                             DEG_NODE_TYPE_EVAL_POSE,
+	                             function_bind(BKE_pose_eval_flush, _1, scene, ob, ob->pose),
+	                             DEG_OPCODE_POSE_DONE);
+	op_node->set_as_exit();
 
 	/* bones */
 	LINKLIST_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
 		/* node for bone eval */
-		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-		                   DEPSOP_TYPE_INIT, NULL, // XXX: BKE_pose_eval_bone_local
-		                   DEG_OPCODE_BONE_LOCAL);
+		op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name, NULL,
+		                             DEG_OPCODE_BONE_LOCAL);
+		op_node->set_as_entry();
 
-		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-		                   DEPSOP_TYPE_EXEC, function_bind(BKE_pose_eval_bone, _1, scene, ob, pchan), // XXX: BKE_pose_eval_bone_pose
+		add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
+		                   function_bind(BKE_pose_eval_bone, _1, scene, ob, pchan),
 		                   DEG_OPCODE_BONE_POSE_PARENT);
 
-		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-		                   DEPSOP_TYPE_OUT, NULL, /* NOTE: dedicated noop for easier relationship construction */
+		add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
+		                   NULL, /* NOTE: dedicated noop for easier relationship construction */
 		                   DEG_OPCODE_BONE_READY);
 
-		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-		                   DEPSOP_TYPE_POST, function_bind(BKE_pose_bone_done, _1, pchan),
-		                   DEG_OPCODE_BONE_DONE);
+		op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
+		                             function_bind(BKE_pose_bone_done, _1, pchan),
+		                             DEG_OPCODE_BONE_DONE);
+		op_node->set_as_exit();
 
 		/* constraints */
 		if (pchan->constraints.first != NULL) {
@@ -236,6 +242,8 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 void DepsgraphNodeBuilder::build_proxy_rig(Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
+	OperationDepsNode *op_node;
+
 	build_animdata(obdata);
 
 	BLI_assert(ob->pose != NULL);
@@ -246,31 +254,28 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *ob)
 		BKE_pose_update_constraint_flags(ob->pose);
 	}
 
-	add_operation_node(&ob->id,
-	                   DEPSNODE_TYPE_EVAL_POSE,
-	                   DEPSOP_TYPE_INIT,
+	op_node = add_operation_node(&ob->id,
+	                   DEG_NODE_TYPE_EVAL_POSE,
 	                   function_bind(BKE_pose_eval_proxy_copy, _1, ob),
 	                   DEG_OPCODE_POSE_INIT);
+	op_node->set_as_entry();
 
 	LINKLIST_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-		                   DEPSOP_TYPE_INIT, NULL,
-		                   DEG_OPCODE_BONE_LOCAL);
+		op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
+		                             NULL, DEG_OPCODE_BONE_LOCAL);
+		op_node->set_as_entry();
 
-		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-		                   DEPSOP_TYPE_EXEC, NULL,
-		                   DEG_OPCODE_BONE_READY);
+		add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
+		                   NULL, DEG_OPCODE_BONE_READY);
 
-		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
-		                   DEPSOP_TYPE_POST, NULL,
-		                   DEG_OPCODE_BONE_DONE);
+		op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
+		                             NULL, DEG_OPCODE_BONE_DONE);
+		op_node->set_as_exit();
 	}
 
-	add_operation_node(&ob->id,
-	                   DEPSNODE_TYPE_EVAL_POSE,
-	                   DEPSOP_TYPE_POST,
-	                   NULL,
-	                   DEG_OPCODE_POSE_DONE);
+	op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_EVAL_POSE,
+	                             NULL, DEG_OPCODE_POSE_DONE);
+	op_node->set_as_exit();
 }
 
 }  // namespace DEG

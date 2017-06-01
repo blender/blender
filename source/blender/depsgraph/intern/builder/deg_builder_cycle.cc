@@ -71,7 +71,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 	foreach (OperationDepsNode *node, graph->operations) {
 		bool has_inlinks = false;
 		foreach (DepsRelation *rel, node->inlinks) {
-			if (rel->from->type == DEPSNODE_TYPE_OPERATION) {
+			if (rel->from->type == DEG_NODE_TYPE_OPERATION) {
 				has_inlinks = true;
 			}
 		}
@@ -95,7 +95,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 		bool all_child_traversed = true;
 		for (int i = node->done; i < node->outlinks.size(); ++i) {
 			DepsRelation *rel = node->outlinks[i];
-			if (rel->to->type == DEPSNODE_TYPE_OPERATION) {
+			if (rel->to->type == DEG_NODE_TYPE_OPERATION) {
 				OperationDepsNode *to = (OperationDepsNode *)rel->to;
 				if (to->tag == NODE_IN_STACK) {
 					printf("Dependency cycle detected:\n");

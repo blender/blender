@@ -967,9 +967,9 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 col.prop(brush, "steps", slider=True)
                 col.prop(settings, "default_key_count", slider=True)
             elif tool == 'LENGTH':
-                layout.prop(brush, "length_mode", expand=True)
+                layout.row().prop(brush, "length_mode", expand=True)
             elif tool == 'PUFF':
-                layout.prop(brush, "puff_mode", expand=True)
+                layout.row().prop(brush, "puff_mode", expand=True)
                 layout.prop(brush, "use_puff_volume")
 
         # Sculpt Mode #

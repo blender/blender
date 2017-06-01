@@ -53,7 +53,6 @@ struct DepsNode;
 struct RootDepsNode;
 struct TimeSourceDepsNode;
 struct IDDepsNode;
-struct SubgraphDepsNode;
 struct ComponentDepsNode;
 struct OperationDepsNode;
 
@@ -80,12 +79,10 @@ struct DepsRelation {
 	/* relationship attributes */
 	const char *name;             /* label for debugging */
 
-	eDepsRelation_Type type;      /* type */
 	int flag;                     /* (eDepsRelation_Flag) */
 
 	DepsRelation(DepsNode *from,
 	             DepsNode *to,
-	             eDepsRelation_Type type,
 	             const char *description);
 
 	~DepsRelation();
@@ -114,11 +111,7 @@ struct Depsgraph {
 
 	RootDepsNode *add_root_node();
 
-	TimeSourceDepsNode *find_time_source(const ID *id = NULL) const;
-
-	SubgraphDepsNode *add_subgraph_node(const ID *id);
-	void remove_subgraph_node(SubgraphDepsNode *subgraph_node);
-	void clear_subgraph_nodes();
+	TimeSourceDepsNode *find_time_source() const;
 
 	IDDepsNode *find_id_node(const ID *id) const;
 	IDDepsNode *add_id_node(ID *id, const char *name = "");
@@ -128,12 +121,10 @@ struct Depsgraph {
 	/* Add new relationship between two nodes. */
 	DepsRelation *add_new_relation(OperationDepsNode *from,
 	                               OperationDepsNode *to,
-	                               eDepsRelation_Type type,
 	                               const char *description);
 
 	DepsRelation *add_new_relation(DepsNode *from,
 	                               DepsNode *to,
-	                               eDepsRelation_Type type,
 	                               const char *description);
 
 	/* Tag a specific node as needing updates. */
@@ -150,9 +141,6 @@ struct Depsgraph {
 
 	/* "root" node - the one where all evaluation enters from. */
 	RootDepsNode *root_node;
-
-	/* Subgraphs referenced in tree. */
-	GSet *subgraphs;
 
 	/* Indicates whether relations needs to be updated. */
 	bool need_update;

@@ -73,14 +73,11 @@ void DepsgraphRelationBuilder::build_layer_collection(Scene *scene,
                                                       LayerCollectionState *state)
 {
 	OperationKey layer_key(&scene->id,
-	                       DEPSNODE_TYPE_LAYER_COLLECTIONS,
+	                       DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                       DEG_OPCODE_SCENE_LAYER_EVAL,
 	                       layer_collection->scene_collection->name,
 	                       state->index);
-	add_relation(state->prev_key,
-	             layer_key,
-	             DEPSREL_TYPE_OPERATION,
-	             "Layer collection order");
+	add_relation(state->prev_key, layer_key, "Layer collection order");
 
 	++state->index;
 	state->prev_key = layer_key;
@@ -107,11 +104,11 @@ void DepsgraphRelationBuilder::build_scene_layer_collections(Scene *scene)
 	state.index = 0;
 	LINKLIST_FOREACH (SceneLayer *, scene_layer, &scene->render_layers) {
 		OperationKey init_key(&scene->id,
-		                      DEPSNODE_TYPE_LAYER_COLLECTIONS,
+		                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
 		                      DEG_OPCODE_SCENE_LAYER_INIT,
 		                      scene_layer->name);
 		OperationKey done_key(&scene->id,
-		                      DEPSNODE_TYPE_LAYER_COLLECTIONS,
+		                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
 		                      DEG_OPCODE_SCENE_LAYER_DONE,
 		                      scene_layer->name);
 
@@ -123,11 +120,7 @@ void DepsgraphRelationBuilder::build_scene_layer_collections(Scene *scene)
 		                        &scene_layer->layer_collections,
 		                        &state);
 
-
-		add_relation(state.prev_key,
-		             done_key,
-		             DEPSREL_TYPE_OPERATION,
-		             "Layer collection order");
+		add_relation(state.prev_key, done_key, "Layer collection order");
 	}
 }
 

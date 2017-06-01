@@ -233,7 +233,7 @@ class GreasePencilStrokeEditPanel:
 
         if is_3d_view:
             layout.separator()
-            
+
 
         layout.separator()
         col = layout.column(align=True)
@@ -884,9 +884,9 @@ class GreasePencilDataPanel:
 
         # Owner Selector
         if context.space_data.type == 'VIEW_3D':
-            layout.prop(context.tool_settings, "grease_pencil_source", expand=True)
+            layout.row().prop(context.tool_settings, "grease_pencil_source", expand=True)
         elif context.space_data.type == 'CLIP_EDITOR':
-            layout.prop(context.space_data, "grease_pencil_source", expand=True)
+            layout.row().prop(context.space_data, "grease_pencil_source", expand=True)
 
         # Grease Pencil data selector
         layout.template_ID(gpd_owner, "grease_pencil", new="gpencil.data_add", unlink="gpencil.data_unlink")
@@ -963,7 +963,7 @@ class GreasePencilDataPanel:
         row.prop(gpl, "line_change", text="Thickness Change", slider=True)
         row.operator("gpencil.stroke_apply_thickness", icon='STYLUS_PRESSURE', text="")
 
-        # Parenting 
+        # Parenting
         if context.space_data.type == 'VIEW_3D':
             col = split.column(align=True)
             col.label(text="Parent:")

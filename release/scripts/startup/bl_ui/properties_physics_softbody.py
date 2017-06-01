@@ -191,7 +191,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
         layout.active = softbody.use_self_collision and softbody_panel_enabled(md)
 
         layout.label(text="Collision Ball Size Calculation:")
-        layout.prop(softbody, "collision_type", expand=True)
+        layout.row().prop(softbody, "collision_type", expand=True)
 
         col = layout.column(align=True)
         col.label(text="Ball:")

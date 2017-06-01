@@ -65,7 +65,7 @@ string OperationDepsNode::identifier() const
 string OperationDepsNode::full_identifier() const
 {
 	string owner_str = "";
-	if (owner->type == DEPSNODE_TYPE_BONE) {
+	if (owner->type == DEG_NODE_TYPE_BONE) {
 		owner_str = string(owner->owner->name) + "." + owner->name;
 	}
 	else {
@@ -84,7 +84,19 @@ void OperationDepsNode::tag_update(Depsgraph *graph)
 	graph->add_entry_tag(this);
 }
 
-DEG_DEPSNODE_DEFINE(OperationDepsNode, DEPSNODE_TYPE_OPERATION, "Operation");
+void OperationDepsNode::set_as_entry()
+{
+	BLI_assert(owner != NULL);
+	owner->set_entry_operation(this);
+}
+
+void OperationDepsNode::set_as_exit()
+{
+	BLI_assert(owner != NULL);
+	owner->set_exit_operation(this);
+}
+
+DEG_DEPSNODE_DEFINE(OperationDepsNode, DEG_NODE_TYPE_OPERATION, "Operation");
 static DepsNodeFactoryImpl<OperationDepsNode> DNTI_OPERATION;
 
 void deg_register_operation_depsnodes()
