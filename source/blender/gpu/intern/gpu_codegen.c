@@ -624,6 +624,8 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 			else if (input->source == GPU_SOURCE_BUILTIN) {
 				if (input->builtin == GPU_INVERSE_VIEW_MATRIX)
 					BLI_dynstr_append(ds, "viewinv");
+				else if (input->builtin == GPU_VIEW_MATRIX)
+					BLI_dynstr_append(ds, "viewmat");
 				else if (input->builtin == GPU_CAMERA_TEXCO_FACTORS)
 					BLI_dynstr_append(ds, "camtexfac");
 				else if (input->builtin == GPU_OBJECT_MATRIX)
@@ -697,6 +699,8 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 	BLI_dynstr_append(ds, "void main()\n{\n");
 
 	if (use_new_shading) {
+		if (builtins & GPU_VIEW_MATRIX)
+			BLI_dynstr_append(ds, "\tmat4 viewmat = ViewMatrix;\n");
 		if (builtins & GPU_CAMERA_TEXCO_FACTORS)
 			BLI_dynstr_append(ds, "\tvec4 camtexfac = CameraTexCoFactors;\n");
 		if (builtins & GPU_OBJECT_MATRIX)
@@ -711,6 +715,8 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 			BLI_dynstr_append(ds, "\tvec3 viewposition = viewPosition;\n");
 	}
 	else {
+		if (builtins & GPU_VIEW_MATRIX)
+			BLI_dynstr_append(ds, "\tmat4 viewmat = unfviewmat;\n");
 		if (builtins & GPU_CAMERA_TEXCO_FACTORS)
 			BLI_dynstr_append(ds, "\tvec4 camtexfac = unfcameratexfactors;\n");
 		if (builtins & GPU_OBJECT_MATRIX)
