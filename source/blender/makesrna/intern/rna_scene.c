@@ -763,19 +763,21 @@ static int rna_Scene_active_layer_get(PointerRNA *ptr)
 
 static void rna_Scene_view3d_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
+	wmWindowManager *wm = bmain->wm.first;
 	Scene *scene = (Scene *)ptr->data;
 
-	BKE_screen_view3d_main_sync(&bmain->screen, scene);
+	WM_windows_scene_data_sync(&wm->windows, scene);
 }
 
-static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scene_layer_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	rna_Scene_view3d_update(bmain, scene, ptr);
 	/* XXX We would need do_time=true here, else we can have update issues like [#36289]...
 	 *     However, this has too much drawbacks (like slower layer switch, undesired updates...).
 	 *     That's TODO for future DAG updates.
 	 */
 	DAG_on_visible_update(bmain, false);
+
+	/* No need to sync scene data here (WM_windows_scene_data_sync), handled through notifier. */
 }
 
 static void rna_Scene_fps_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))

@@ -32,6 +32,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"  /* Needed due to import of BLO_readfile.h */
 
 #include "BLO_blend_defs.h"
 #include "BLO_readfile.h"

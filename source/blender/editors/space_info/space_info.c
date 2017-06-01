@@ -260,8 +260,9 @@ static void info_header_listener(
 	/* context changes */
 	switch (wmn->category) {
 		case NC_SCREEN:
-			if (ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
+			if (ELEM(wmn->data, ND_LAYER, ND_SCREENCAST, ND_ANIMPLAY)) {
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_WM:
 			if (wmn->data == ND_JOB)

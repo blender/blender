@@ -38,12 +38,14 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_workspace.h"
 
 #include "DNA_ID.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "DRW_engine.h"
 
@@ -76,14 +78,25 @@ SceneLayer *BKE_scene_layer_render_active(const Scene *scene)
 }
 
 /**
- * Returns the SceneLayer to be used for drawing, outliner, and
- * other context related areas.
+ * Returns the SceneLayer to be used for drawing, outliner, and other context related areas.
  */
+SceneLayer *BKE_scene_layer_context_active_ex(const Main *bmain, const Scene *UNUSED(scene))
+{
+	/* XXX We should really pass the workspace as argument, but would require
+	 * some bigger changes since it's often not available where we call this.
+	 * Just working around this by getting active window from WM for now */
+	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+		/* Called on startup, so 'winactive' may not be set, in that case fall back to first window. */
+		wmWindow *win = wm->winactive ? wm->winactive : wm->windows.first;
+		const WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+		return BKE_workspace_render_layer_get(workspace);
+	}
+
+	return NULL;
+}
 SceneLayer *BKE_scene_layer_context_active(const Scene *scene)
 {
-	/* waiting for workspace to get the layer from context*/
-	TODO_LAYER_CONTEXT;
-	return BKE_scene_layer_render_active(scene);
+	return BKE_scene_layer_context_active_ex(G.main, scene);
 }
 
 /**

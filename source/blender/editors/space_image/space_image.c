@@ -443,7 +443,6 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 
 static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *scene)
 {
-	SceneLayer *sl = BKE_scene_layer_context_active(scene);
 	SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 	
 	/* context changes */
@@ -536,6 +535,7 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, co
 				case ND_TRANSFORM:
 				case ND_MODIFIER:
 				{
+					SceneLayer *sl = BKE_scene_layer_context_active(scene);
 					Object *ob = OBACT_NEW;
 					if (ob && (ob == wmn->reference) && (ob->mode & OB_MODE_EDIT)) {
 						if (sima->lock && (sima->flag & SI_DRAWSHADOW)) {
@@ -826,6 +826,11 @@ static void image_main_region_listener(
 
 				if (sima->iuser.scene && (sima->iuser.scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE))
 					ED_region_tag_redraw(ar);
+			}
+			break;
+		case NC_SCREEN:
+			if (ELEM(wmn->data, ND_LAYER)) {
+				ED_region_tag_redraw(ar);
 			}
 			break;
 	}

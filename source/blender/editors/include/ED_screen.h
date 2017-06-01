@@ -43,6 +43,8 @@ struct wmWindow;
 struct wmNotifier;
 struct wmEvent;
 struct wmKeyConfig;
+struct WorkSpace;
+struct WorkSpaceInstanceHook;
 struct bContext;
 struct Scene;
 struct bScreen;
@@ -107,12 +109,8 @@ void    ED_screens_initialize(struct wmWindowManager *wm);
 void    ED_screen_draw(struct wmWindow *win);
 void    ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void    ED_screen_do_listen(struct bContext *C, struct wmNotifier *note);
-bScreen *ED_screen_duplicate(struct wmWindow *win, struct bScreen *sc);
-bScreen *ED_screen_add(struct wmWindow *win, struct Scene *scene, const char *name);
-bool    ED_screen_set(struct bContext *C, struct bScreen *sc);
-bool    ED_screen_delete(struct bContext *C, struct bScreen *sc);
-void    ED_screen_set_scene(struct bContext *C, struct bScreen *screen, struct Scene *scene);
-bool    ED_screen_delete_scene(struct bContext *C, struct Scene *scene);
+bool    ED_screen_change(struct bContext *C, struct bScreen *sc);
+void    ED_screen_update_after_scene_change(const struct bScreen *screen, struct Scene *scene_new);
 void    ED_screen_set_subwinactive(struct bContext *C, struct wmEvent *event);
 void    ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void    ED_screen_animation_timer(struct bContext *C, int redraws, int refresh, int sync, int enable);
@@ -123,8 +121,41 @@ void    ED_screen_full_prevspace(struct bContext *C, ScrArea *sa);
 void    ED_screen_full_restore(struct bContext *C, ScrArea *sa);
 struct ScrArea *ED_screen_state_toggle(struct bContext *C, struct wmWindow *win, struct ScrArea *sa, const short state);
 void    ED_screens_header_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
-bool    ED_screen_stereo3d_required(struct bScreen *screen);
+bool    ED_screen_stereo3d_required(const struct bScreen *screen, const struct Scene *scene);
+Scene   *ED_screen_scene_find(const struct bScreen *screen, const struct wmWindowManager *wm);
 void    ED_screen_preview_render(const struct bScreen *screen, int size_x, int size_y, unsigned int *r_rect) ATTR_NONNULL();
+
+/* workspaces */
+struct WorkSpace *ED_workspace_add(
+        struct Main *bmain,
+        const char *name,
+        SceneLayer *act_render_layer) ATTR_NONNULL();
+bool ED_workspace_change(
+        struct WorkSpace *workspace_new,
+        struct bContext *C,
+        struct wmWindowManager *wm, struct wmWindow *win) ATTR_NONNULL();
+struct WorkSpace *ED_workspace_duplicate(
+        struct WorkSpace *workspace_old,
+        struct Main *bmain, struct wmWindow *win);
+bool ED_workspace_delete(
+        struct WorkSpace *workspace,
+        struct Main *bmain, struct bContext *C,
+        struct wmWindowManager *wm, struct wmWindow *win) ATTR_NONNULL();
+void ED_workspace_scene_data_sync(
+        struct WorkSpaceInstanceHook *hook, Scene *scene) ATTR_NONNULL();
+struct WorkSpaceLayout *ED_workspace_layout_add(
+        struct WorkSpace *workspace,
+        struct wmWindow *win,
+        const char *name) ATTR_NONNULL();
+struct WorkSpaceLayout *ED_workspace_layout_duplicate(
+        struct WorkSpace *workspace, const struct WorkSpaceLayout *layout_old,
+        struct wmWindow *win) ATTR_NONNULL();
+bool ED_workspace_layout_delete(
+        struct WorkSpace *workspace, struct WorkSpaceLayout *layout_old,
+        struct bContext *C) ATTR_NONNULL();
+bool ED_workspace_layout_cycle(
+        struct WorkSpace *workspace, const short direction,
+        struct bContext *C) ATTR_NONNULL();
 
 /* anim */
 void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, int mute);
@@ -137,6 +168,8 @@ bScreen *ED_screen_animation_no_scrub(const struct wmWindowManager *wm);
 /* screen keymaps */
 void    ED_operatortypes_screen(void);
 void    ED_keymap_screen(struct wmKeyConfig *keyconf);
+/* workspace keymaps */
+void    ED_operatortypes_workspace(void);
 
 /* operators; context poll callbacks */
 int     ED_operator_screenactive(struct bContext *C);

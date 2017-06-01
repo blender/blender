@@ -332,6 +332,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 	Main *bmain = CTX_data_main(BPy_GetContext());
 	Main *mainl = NULL;
 	int err = 0;
+	const bool do_append = ((self->flag & FILE_LINK) == 0);
 
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
@@ -341,7 +342,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 	{
 		int idcode_step = 0, idcode;
 		while ((idcode = BKE_idcode_iter_step(&idcode_step))) {
-			if (BKE_idcode_is_linkable(idcode)) {
+			if (BKE_idcode_is_linkable(idcode) && (idcode != ID_WS || do_append)) {
 				const char *name_plural = BKE_idcode_to_name_plural(idcode);
 				PyObject *ls = PyDict_GetItemString(self->dict, name_plural);
 				// printf("lib: %s\n", name_plural);
@@ -414,7 +415,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 			BKE_main_lib_objects_recalc_all(bmain);
 
 			/* append, rather than linking */
-			if ((self->flag & FILE_LINK) == 0) {
+			if (do_append) {
 				BKE_library_make_local(bmain, lib, old_to_new_ids, true, false);
 			}
 		}
@@ -427,7 +428,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		{
 			int idcode_step = 0, idcode;
 			while ((idcode = BKE_idcode_iter_step(&idcode_step))) {
-				if (BKE_idcode_is_linkable(idcode)) {
+				if (BKE_idcode_is_linkable(idcode) && (idcode != ID_WS || do_append)) {
 					const char *name_plural = BKE_idcode_to_name_plural(idcode);
 					PyObject *ls = PyDict_GetItemString(self->dict, name_plural);
 					if (ls && PyList_Check(ls)) {

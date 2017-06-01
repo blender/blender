@@ -308,11 +308,12 @@ unsigned int BKE_screen_view3d_layer_active(
 unsigned int BKE_screen_view3d_layer_all(const struct bScreen *sc) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);
-void BKE_screen_view3d_scene_sync(struct bScreen *sc);
-void BKE_screen_view3d_main_sync(ListBase *screen_lb, struct Scene *scene);
+void BKE_screen_view3d_scene_sync(struct bScreen *sc, struct Scene *scene);
 void BKE_screen_view3d_twmode_remove(struct View3D *v3d, const int i);
 void BKE_screen_view3d_main_twmode_remove(ListBase *screen_lb, struct Scene *scene, const int i);
 void BKE_screen_gpu_fx_validate(struct GPUFXSettings *fx_settings);
+bool BKE_screen_is_fullscreen_area(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool BKE_screen_is_used(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* zoom factor conversion */
 float BKE_screen_view3d_zoom_to_fac(float camzoom);

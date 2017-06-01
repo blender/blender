@@ -60,6 +60,10 @@ struct UserDef *BKE_blendfile_userdef_read_from_memory(
 
 int BKE_blendfile_userdef_write(const char *filepath, struct ReportList *reports);
 
+struct WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath, struct ReportList *reports);
+bool BKE_blendfile_workspace_config_write(struct Main *bmain, const char *filepath, struct ReportList *reports);
+void BKE_blendfile_workspace_config_data_free(struct WorkspaceConfigFileData *workspace_config);
+
 
 /* partial blend file writing */
 void BKE_blendfile_write_partial_tag_ID(struct ID *id, bool set);

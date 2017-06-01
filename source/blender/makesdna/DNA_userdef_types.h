@@ -601,7 +601,7 @@ typedef enum eUserPref_Flag {
 /*	USER_AUTOGRABGRID		= (1 << 1),	deprecated */
 /*	USER_AUTOROTGRID		= (1 << 2),	deprecated */
 /*	USER_AUTOSIZEGRID		= (1 << 3),	deprecated */
-	USER_SCENEGLOBAL		= (1 << 4),
+/*	USER_SCENEGLOBAL         = (1 << 4), deprecated */
 	USER_TRACKBALL			= (1 << 5),
 /*	USER_DUPLILINK		= (1 << 6),	deprecated */
 /*	USER_FSCOLLUM			= (1 << 7),	deprecated */

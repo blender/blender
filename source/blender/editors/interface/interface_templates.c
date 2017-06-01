@@ -448,6 +448,7 @@ static const char *template_id_browse_tip(const StructRNA *type)
 			case ID_PAL: return N_("Browse Palette Data to be linked");
 			case ID_PC:  return N_("Browse Paint Curve Data to be linked");
 			case ID_CF:  return N_("Browse Cache Files to be linked");
+			case ID_WS:  return N_("Browse Workspace to be linked");
 		}
 	}
 	return N_("Browse ID data to be linked");
@@ -551,7 +552,7 @@ static void template_ID(
 	
 		if (user_alert) UI_but_flag_enable(but, UI_BUT_REDALERT);
 		
-		if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB))) {
+		if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))) {
 			uiDefButR(block, UI_BTYPE_TOGGLE, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
 		}
 	}
@@ -585,6 +586,7 @@ static void template_ID(
 		                                 BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
 		                                 BLT_I18NCONTEXT_ID_GPENCIL,
 		                                 BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
+		                                 BLT_I18NCONTEXT_ID_WORKSPACE,
 		);
 		
 		if (newop) {

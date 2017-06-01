@@ -298,8 +298,7 @@ void ui_rna_collection_search_cb(const struct bContext *C, void *arg, const char
 }
 
 
-/***************************** ID Utilities *******************************/
-
+/***************************** ID Utilities *******************************/ 
 int UI_icon_from_id(ID *id)
 {
 	Object *ob;

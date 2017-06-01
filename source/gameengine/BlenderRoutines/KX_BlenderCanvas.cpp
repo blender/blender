@@ -324,7 +324,6 @@ static unsigned int *screenshot(ScrArea *curarea, int *dumpsx, int *dumpsy)
 void KX_BlenderCanvas::MakeScreenShot(const char *filename)
 {
 	ScrArea area_dummy= {0};
-	bScreen *screen = m_win->screen;
 	unsigned int *dumprect;
 	int dumpsx, dumpsy;
 
@@ -340,7 +339,7 @@ void KX_BlenderCanvas::MakeScreenShot(const char *filename)
 	}
 
 	/* initialize image file format data */
-	Scene *scene = (screen)? screen->scene: NULL;
+	Scene *scene = WM_window_get_active_scene(m_win);
 	ImageFormatData *im_format = (ImageFormatData *)MEM_mallocN(sizeof(ImageFormatData), "im_format");
 
 	if (scene)

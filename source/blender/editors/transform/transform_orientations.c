@@ -381,8 +381,10 @@ void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target)
 void BIF_selectTransformOrientationValue(bContext *C, int orientation)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	if (v3d) /* currently using generic poll */
+
+	if (v3d) { /* currently using generic poll */
 		v3d->twmode = orientation;
+	}
 }
 
 int BIF_countTransformOrientation(const bContext *C)

@@ -1056,16 +1056,20 @@ static void toggle_paint_cursor(bContext *C, int enable)
 void ED_space_image_paint_update(wmWindowManager *wm, Scene *scene)
 {
 	ToolSettings *settings = scene->toolsettings;
-	wmWindow *win;
-	ScrArea *sa;
 	ImagePaintSettings *imapaint = &settings->imapaint;
 	bool enabled = false;
 
-	for (win = wm->windows.first; win; win = win->next)
-		for (sa = win->screen->areabase.first; sa; sa = sa->next)
-			if (sa->spacetype == SPACE_IMAGE)
-				if (((SpaceImage *)sa->spacedata.first)->mode == SI_MODE_PAINT)
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		bScreen *screen = WM_window_get_active_screen(win);
+
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			if (sa->spacetype == SPACE_IMAGE) {
+				if (((SpaceImage *)sa->spacedata.first)->mode == SI_MODE_PAINT) {
 					enabled = true;
+				}
+			}
+		}
+	}
 
 	if (enabled) {
 		BKE_paint_init(scene, ePaintTexture2D, PAINT_CURSOR_TEXTURE_PAINT);

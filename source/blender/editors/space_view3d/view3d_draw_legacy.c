@@ -1473,9 +1473,8 @@ CustomDataMask ED_view3d_datamask(const Scene *scene, const View3D *v3d)
 }
 
 /* goes over all modes and view3d settings */
-CustomDataMask ED_view3d_screen_datamask(const bScreen *screen)
+CustomDataMask ED_view3d_screen_datamask(const Scene *scene, const bScreen *screen)
 {
-	const Scene *scene = screen->scene;
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	
 	/* check if we need tfaces & mcols due to view mode */
@@ -1767,14 +1766,14 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 #endif
 }
 
-static bool view3d_main_region_do_render_draw(Scene *scene)
+static bool view3d_main_region_do_render_draw(const Scene *scene)
 {
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 
 	return (type && type->view_update && type->render_to_view);
 }
 
-bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *rect)
+bool ED_view3d_calc_render_border(const Scene *scene, View3D *v3d, ARegion *ar, rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	bool use_border;

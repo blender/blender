@@ -32,9 +32,6 @@
 #ifndef __DNA_FILEGLOBAL_TYPES_H__
 #define __DNA_FILEGLOBAL_TYPES_H__
 
-struct bScreen;
-struct Scene;
-
 /**
  * FileGlobal stores a part of the current user-interface settings at
  * the moment of saving, and the file-specific settings.
@@ -46,6 +43,9 @@ typedef struct FileGlobal {
 	char pad[6];
 	struct bScreen *curscreen;
 	struct Scene *curscene;
+	struct SceneLayer *cur_render_layer;
+	void *pad1;
+
 	int fileflags;
 	int globalf;
 	uint64_t build_commit_timestamp;  /* commit timestamp from buildinfo */

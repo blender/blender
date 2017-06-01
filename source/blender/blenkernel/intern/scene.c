@@ -93,6 +93,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
 #include "BKE_unit.h"
+#include "BKE_workspace.h"
 #include "BKE_world.h"
 
 #include "DEG_depsgraph.h"
@@ -1004,7 +1005,7 @@ BaseLegacy *BKE_scene_base_find(Scene *scene, Object *ob)
 /**
  * Sets the active scene, mainly used when running in background mode (``--scene`` command line argument).
  * This is also called to set the scene directly, bypassing windowing code.
- * Otherwise #ED_screen_set_scene is used when changing scenes by the user.
+ * Otherwise #WM_window_change_active_scene is used when changing scenes by the user.
  */
 void BKE_scene_set_background(Main *bmain, Scene *scene)
 {
@@ -1442,8 +1443,8 @@ static bool check_rendered_viewport_visible(Main *bmain)
 	wmWindowManager *wm = bmain->wm.first;
 	wmWindow *window;
 	for (window = wm->windows.first; window != NULL; window = window->next) {
-		bScreen *screen = window->screen;
-		Scene *scene = screen->scene;
+		const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+		Scene *scene = window->scene;
 		ScrArea *area;
 		RenderEngineType *type = RE_engines_find(scene->r.engine);
 		if ((type->draw_engine != NULL) || (type->render_to_view == NULL)) {
@@ -1755,6 +1756,9 @@ Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 
 		/* for the first loop we should get the layer from context */
 		SceneLayer *sl = BKE_scene_layer_context_active((*sce_iter));
+		/* TODO For first scene (non-background set), we should pass the render layer as argument.
+		 * In some cases we want it to be the workspace one, in other the scene one. */
+		TODO_LAYER;
 
 		if (sl->object_bases.first) {
 			return (Base *)sl->object_bases.first;

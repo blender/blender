@@ -178,6 +178,20 @@ static void buttons_main_region_draw(const bContext *C, ARegion *ar)
 	sbuts->mainbo = sbuts->mainb;
 }
 
+static void buttons_main_region_listener(
+        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn,
+        const Scene *UNUSED(scene))
+{
+	/* context changes */
+	switch (wmn->category) {
+		case NC_SCREEN:
+			if (ELEM(wmn->data, ND_LAYER)) {
+				ED_region_tag_redraw(ar);
+			}
+			break;
+	}
+}
+
 static void buttons_operatortypes(void)
 {
 	WM_operatortype_append(BUTTONS_OT_toolbox);
@@ -471,6 +485,7 @@ void ED_spacetype_buttons(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init = buttons_main_region_init;
 	art->draw = buttons_main_region_draw;
+	art->listener = buttons_main_region_listener;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 	BLI_addhead(&st->regiontypes, art);
 

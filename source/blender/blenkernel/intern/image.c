@@ -81,6 +81,7 @@
 #include "BKE_scene.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h" /* seq_foreground_frame_get() */
+#include "BKE_workspace.h"
 
 #include "BLF_api.h"
 
@@ -2544,8 +2545,9 @@ void BKE_image_walk_all_users(const Main *mainp, void *customdata,
 	/* image window, compo node users */
 	for (wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
 		for (win = wm->windows.first; win; win = win->next) {
-			ScrArea *sa;
-			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+			const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				if (sa->spacetype == SPACE_VIEW3D) {
 					View3D *v3d = sa->spacedata.first;
 					BGpic *bgpic;

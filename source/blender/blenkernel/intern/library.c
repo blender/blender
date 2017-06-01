@@ -70,6 +70,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -471,7 +472,11 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_CF:
 			if (!test) BKE_cachefile_make_local(bmain, (CacheFile *)id, lib_local);
 			return true;
+		case ID_WS:
 		case ID_SCR:
+			/* A bit special: can be appended but not linked. Return false
+			 * since supporting make-local doesn't make much sense. */
+			return false;
 		case ID_LI:
 		case ID_KE:
 		case ID_WM:
@@ -578,6 +583,7 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 		case ID_CF:
 			if (!test) *newid = (ID *)BKE_cachefile_copy(bmain, (CacheFile *)id);
 			return true;
+		case ID_WS:
 		case ID_SCE:
 		case ID_LI:
 		case ID_SCR:
@@ -693,6 +699,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->paintcurves);
 		case ID_CF:
 			return &(mainlib->cachefiles);
+		case ID_WS:
+			return &(mainlib->workspaces);
 	}
 	return NULL;
 }
@@ -838,6 +846,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[INDEX_ID_OB]  = &(main->object);
 	lb[INDEX_ID_LS]  = &(main->linestyle); /* referenced by scenes */
 	lb[INDEX_ID_SCE] = &(main->scene);
+	lb[INDEX_ID_WS]  = &(main->workspaces); /* before wm, so it's freed after it! */
 	lb[INDEX_ID_WM]  = &(main->wm);
 	lb[INDEX_ID_MSK] = &(main->mask);
 	
@@ -966,6 +975,9 @@ void *BKE_libblock_alloc_notest(short type)
 			break;
 		case ID_CF:
 			id = MEM_callocN(sizeof(CacheFile), "Cache File");
+			break;
+		case ID_WS:
+			id = MEM_callocN(sizeof(WorkSpace), "Workspace");
 			break;
 	}
 	return id;

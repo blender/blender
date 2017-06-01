@@ -2101,8 +2101,11 @@ static void WM_OT_call_menu_pie(wmOperatorType *ot)
 static int wm_operator_winactive_normal(bContext *C)
 {
 	wmWindow *win = CTX_wm_window(C);
+	bScreen *screen;
 
-	if (win == NULL || win->screen == NULL || win->screen->state != SCREENNORMAL)
+	if (win == NULL)
+		return 0;
+	if (!((screen = WM_window_get_active_screen(win)) && (screen->state == SCREENNORMAL)))
 		return 0;
 
 	return 1;
@@ -3830,11 +3833,12 @@ static void redraw_timer_step(
 		CTX_wm_window_set(C, win);  /* XXX context manipulation warning! */
 	}
 	else if (type == eRTDrawWindow) {
+		bScreen *screen = WM_window_get_active_screen(win);
 		ScrArea *sa_iter;
 
 		CTX_wm_menu_set(C, NULL);
 
-		for (sa_iter = win->screen->areabase.first; sa_iter; sa_iter = sa_iter->next) {
+		for (sa_iter = screen->areabase.first; sa_iter; sa_iter = sa_iter->next) {
 			ARegion *ar_iter;
 			CTX_wm_area_set(C, sa_iter);
 
@@ -4209,6 +4213,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_read_factory_settings);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_save_userpref);
+	WM_operatortype_append(WM_OT_save_workspace_file);
 	WM_operatortype_append(WM_OT_userpref_autoexec_path_add);
 	WM_operatortype_append(WM_OT_userpref_autoexec_path_remove);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);

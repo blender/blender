@@ -82,6 +82,7 @@ EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
 	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, "Window Manager", ""},
 	{ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},
+	{ID_WS, "WORKSPACE", ICON_NONE, "Workspace", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -169,6 +170,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
 	if (RNA_struct_is_a(type, &RNA_Texture)) return ID_TE;
 	if (RNA_struct_is_a(type, &RNA_Text)) return ID_TXT;
 	if (RNA_struct_is_a(type, &RNA_VectorFont)) return ID_VF;
+	if (RNA_struct_is_a(type, &RNA_WorkSpace)) return ID_WS;
 	if (RNA_struct_is_a(type, &RNA_World)) return ID_WO;
 	if (RNA_struct_is_a(type, &RNA_WindowManager)) return ID_WM;
 
@@ -211,6 +213,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_VF: return &RNA_VectorFont;
 		case ID_WM: return &RNA_WindowManager;
 		case ID_WO: return &RNA_World;
+		case ID_WS: return &RNA_WorkSpace;
 
 		default: return &RNA_ID;
 	}

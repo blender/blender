@@ -71,11 +71,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 /* XXX quickly ported across */
 static void handle_view3d_lock(bContext *C)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	
+
 	if (v3d != NULL && sa != NULL) {
 		if (v3d->localvd == NULL && v3d->scenelock && sa->spacetype == SPACE_VIEW3D) {
 			/* copy to scene */
@@ -83,10 +82,6 @@ static void handle_view3d_lock(bContext *C)
 			scene->layact = v3d->layact;
 			scene->camera = v3d->camera;
 
-			/* not through notifier, listener don't have context
-			 * and non-open screens or spaces need to be updated too */
-			BKE_screen_view3d_main_sync(&bmain->screen, scene);
-			
 			/* notifiers for scene update */
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 		}
@@ -292,8 +287,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	uiBlock *block;
 	uiLayout *row;
-	bool is_paint = false;
-	int modeselect;
+	bool is_paint = ob && !(gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
+	                ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT);
 	
 	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
@@ -304,36 +299,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	/* other buttons: */
 	UI_block_emboss_set(block, UI_EMBOSS);
-	
-	/* mode */
-	if ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
-		modeselect = OB_MODE_GPENCIL;
-	}
-	else if (ob) {
-		modeselect = ob->mode;
-		is_paint = ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT);
-	}
-	else {
-		modeselect = OB_MODE_OBJECT;
-	}
-
-	row = uiLayoutRow(layout, false);
-	{
-		EnumPropertyItem *item = rna_enum_object_mode_items;
-		const char *name = "";
-		int icon = ICON_OBJECT_DATAMODE;
-
-		while (item->identifier) {
-			if (item->value == modeselect && item->identifier[0]) {
-				name = IFACE_(item->name);
-				icon = item->icon;
-				break;
-			}
-			item++;
-		}
-
-		uiItemMenuEnumO(row, C, "OBJECT_OT_mode_set", "mode", name, icon);
-	}
 
 	row = uiLayoutRow(layout, true);
 	uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);

@@ -223,6 +223,10 @@
  *  \ingroup editors
  */
 
+/** \defgroup edscene scene
+ *  \ingroup editors
+ */
+
 /** \defgroup edsculpt sculpt and paint
  *  \ingroup editors
  */

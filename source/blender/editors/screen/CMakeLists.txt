@@ -23,6 +23,7 @@ set(INC
 	../../blenfont
 	../../blenkernel
 	../../blenlib
+	../../blenloader
 	../../blentranslation
 	../../bmesh
 	../../gpu
@@ -46,6 +47,8 @@ set(SRC
 	screen_edit.c
 	screen_ops.c
 	screendump.c
+	workspace_edit.c
+	workspace_layout_edit.c
 
 	screen_intern.h
 )

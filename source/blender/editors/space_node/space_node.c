@@ -766,12 +766,13 @@ static void node_region_listener(
 			}
 			break;
 		case NC_SCREEN:
-			if (wmn->data == ND_SCREENSET || wmn->action == NA_EDITED) {
+			if (wmn->data == ND_LAYOUTSET || wmn->action == NA_EDITED) {
 				WM_manipulatormap_tag_refresh(mmap);
 			}
 			switch (wmn->data) {
 				case ND_SCREENCAST:
 				case ND_ANIMPLAY:
+				case ND_LAYER:
 					ED_region_tag_redraw(ar);
 					break;
 			}

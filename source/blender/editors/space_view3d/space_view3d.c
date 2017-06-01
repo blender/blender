@@ -53,6 +53,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_workspace.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -804,7 +805,6 @@ static void *view3d_main_region_duplicate(void *poin)
 static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, const Scene *scene)
 {
 	wmWindow *win = wmn->wm->winactive;
-	ScrArea *sa;
 	unsigned int lay_used = 0;
 	BaseLegacy *base;
 
@@ -820,7 +820,8 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, const Scene 
 		base = base->next;
 	}
 
-	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+	const bScreen *screen = WM_window_get_active_screen(win);
+	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		if (sa->spacetype == SPACE_VIEW3D) {
 			if (BLI_findindex(&sa->regionbase, ar) != -1) {
 				View3D *v3d = sa->spacedata.first;
@@ -865,18 +866,24 @@ static void view3d_main_region_listener(
 			break;
 		case NC_SCENE:
 			switch (wmn->data) {
+				case ND_SCENEBROWSE:
 				case ND_LAYER_CONTENT:
 					if (wmn->reference)
 						view3d_recalc_used_layers(ar, wmn, wmn->reference);
 					ED_region_tag_redraw(ar);
 					WM_manipulatormap_tag_refresh(mmap);
 					break;
+				case ND_LAYER:
+					if (wmn->reference) {
+						BKE_screen_view3d_sync(v3d, wmn->reference);
+					}
+					ED_region_tag_redraw(ar);
+					break;
 				case ND_FRAME:
 				case ND_TRANSFORM:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_OB_VISIBLE:
-				case ND_LAYER:
 				case ND_RENDER_OPTIONS:
 				case ND_MARKERS:
 				case ND_MODE:
@@ -1056,16 +1063,13 @@ static void view3d_main_region_listener(
 				case ND_SKETCH:
 					ED_region_tag_redraw(ar);
 					break;
-				case ND_SCREENBROWSE:
-				case ND_SCREENDELETE:
-				case ND_SCREENSET:
-					/* screen was changed, need to update used layers due to NC_SCENE|ND_LAYER_CONTENT */
-					/* updates used layers only for View3D in active screen */
-					if (wmn->reference) {
-						bScreen *sc_ref = wmn->reference;
-						view3d_recalc_used_layers(ar, wmn, sc_ref->scene);
-					}
+				case ND_LAYOUTBROWSE:
+				case ND_LAYOUTDELETE:
+				case ND_LAYOUTSET:
 					WM_manipulatormap_tag_refresh(mmap);
+					ED_region_tag_redraw(ar);
+					break;
+				case ND_LAYER:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -1082,7 +1086,7 @@ static void view3d_main_region_listener(
 /* concept is to retrieve cursor type context-less */
 static void view3d_main_region_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 {
-	Scene *scene = win->screen->scene;
+	const Scene *scene = WM_window_get_active_scene(win);
 
 	if (scene->obedit) {
 		WM_cursor_set(win, CURSOR_EDIT);

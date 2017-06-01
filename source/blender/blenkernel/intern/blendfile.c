@@ -32,6 +32,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -48,11 +49,13 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
@@ -93,7 +96,7 @@ static bool wm_scene_is_visible(wmWindowManager *wm, Scene *scene)
 {
 	wmWindow *win;
 	for (win = wm->windows.first; win; win = win->next) {
-		if (win->screen->scene == scene) {
+		if (win->scene == scene) {
 			return true;
 		}
 	}
@@ -162,17 +165,22 @@ static void setup_app_data(
 		 * (otherwise we'd be undoing on an off-screen scene which isn't acceptable).
 		 * see: T43424
 		 */
+		wmWindow *win;
 		bScreen *curscreen = NULL;
+		SceneLayer *cur_render_layer;
 		bool track_undo_scene;
 
 		/* comes from readfile.c */
 		SWAP(ListBase, G.main->wm, bfd->main->wm);
+		SWAP(ListBase, G.main->workspaces, bfd->main->workspaces);
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
 
-		/* we re-use current screen */
+		/* we re-use current window and screen */
+		win = CTX_wm_window(C);
 		curscreen = CTX_wm_screen(C);
-		/* but use new Scene pointer */
+		/* but use Scene pointer from new file */
 		curscene = bfd->curscene;
+		cur_render_layer = bfd->cur_render_layer;
 
 		track_undo_scene = (mode == LOAD_UNDO && curscreen && curscene && bfd->main->wm.first);
 
@@ -183,32 +191,31 @@ static void setup_app_data(
 		if (curscene == NULL) {
 			curscene = BKE_scene_add(bfd->main, "Empty");
 		}
+		if (cur_render_layer == NULL) {
+			/* fallback to scene layer */
+			cur_render_layer = BKE_scene_layer_render_active(curscene);
+		}
 
 		if (track_undo_scene) {
 			/* keep the old (free'd) scene, let 'blo_lib_link_screen_restore'
 			 * replace it with 'curscene' if its needed */
 		}
-		else {
-			/* and we enforce curscene to be in current screen */
-			if (curscreen) {
-				/* can run in bgmode */
-				curscreen->scene = curscene;
-			}
+		/* and we enforce curscene to be in current screen */
+		else if (win) { /* can run in bgmode */
+			win->scene = curscene;
 		}
 
 		/* BKE_blender_globals_clear will free G.main, here we can still restore pointers */
-		blo_lib_link_screen_restore(bfd->main, curscreen, curscene);
-		/* curscreen might not be set when loading without ui (see T44217) so only re-assign if available */
-		if (curscreen) {
-			curscene = curscreen->scene;
+		blo_lib_link_restore(bfd->main, CTX_wm_manager(C), curscene, cur_render_layer);
+		if (win) {
+			curscene = win->scene;
 		}
 
 		if (track_undo_scene) {
 			wmWindowManager *wm = bfd->main->wm.first;
 			if (wm_scene_is_visible(wm, bfd->curscene) == false) {
 				curscene = bfd->curscene;
-				curscreen->scene = curscene;
-				BKE_screen_view3d_scene_sync(curscreen);
+				BKE_screen_view3d_scene_sync(curscreen, curscene);
 			}
 		}
 	}
@@ -262,12 +269,14 @@ static void setup_app_data(
 
 	/* this can happen when active scene was lib-linked, and doesn't exist anymore */
 	if (CTX_data_scene(C) == NULL) {
+		wmWindow *win = CTX_wm_window(C);
+
 		/* in case we don't even have a local scene, add one */
 		if (!G.main->scene.first)
 			BKE_scene_add(G.main, "Empty");
 
 		CTX_data_scene_set(C, G.main->scene.first);
-		CTX_wm_screen(C)->scene = CTX_data_scene(C);
+		win->scene = CTX_data_scene(C);
 		curscene = CTX_data_scene(C);
 	}
 
@@ -316,12 +325,10 @@ static void setup_app_data(
 		wmWindowManager *wm = G.main->wm.first;
 
 		if (wm) {
-			wmWindow *win;
-
-			for (win = wm->windows.first; win; win = win->next) {
-				if (win->screen && win->screen->scene) /* zealous check... */
-					if (win->screen->scene != curscene)
-						BKE_scene_set_background(G.main, win->screen->scene);
+			for (wmWindow *win = wm->windows.first; win; win = win->next) {
+				if (win->scene && win->scene != curscene) {
+					BKE_scene_set_background(G.main, win->scene);
+				}
 			}
 		}
 	}
@@ -507,6 +514,49 @@ int BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
 	MEM_freeN(mainb);
 
 	return retval;
+}
+
+WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath, ReportList *reports)
+{
+	BlendFileData *bfd;
+	WorkspaceConfigFileData *workspace_config = NULL;
+
+	bfd = BLO_read_from_file(filepath, reports, BLO_READ_SKIP_USERDEF);
+	if (bfd) {
+		workspace_config = MEM_mallocN(sizeof(*workspace_config), __func__);
+		workspace_config->main = bfd->main;
+		workspace_config->workspaces = bfd->main->workspaces;
+
+		MEM_freeN(bfd);
+	}
+
+	return workspace_config;
+}
+
+bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, ReportList *reports)
+{
+	int fileflags = G.fileflags & ~(G_FILE_NO_UI | G_FILE_AUTOPLAY | G_FILE_HISTORY);
+	bool retval = false;
+
+	BKE_blendfile_write_partial_begin(bmain);
+
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		BKE_blendfile_write_partial_tag_ID(&workspace->id, true);
+	}
+
+	if (BKE_blendfile_write_partial(bmain, filepath, fileflags, reports)) {
+		retval = true;
+	}
+
+	BKE_blendfile_write_partial_end(bmain);
+
+	return retval;
+}
+
+void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace_config)
+{
+	BKE_main_free(workspace_config->main);
+	MEM_freeN(workspace_config);
 }
 
 /** \} */

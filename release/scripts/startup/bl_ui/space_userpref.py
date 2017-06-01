@@ -57,7 +57,9 @@ class USERPREF_HT_header(Header):
 
         layout.operator_context = 'INVOKE_DEFAULT'
 
-        if userpref.active_section == 'INPUT':
+        if userpref.active_section == 'INTERFACE':
+            layout.operator("wm.save_workspace_file")
+        elif userpref.active_section == 'INPUT':
             layout.operator("wm.keyconfig_import")
             layout.operator("wm.keyconfig_export")
         elif userpref.active_section == 'ADDONS':
@@ -224,7 +226,6 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "show_large_cursors")
         col.prop(view, "show_view_name", text="View Name")
         col.prop(view, "show_playback_fps", text="Playback FPS")
-        col.prop(view, "use_global_scene")
         col.prop(view, "object_origin_size")
 
         col.separator()

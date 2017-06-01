@@ -44,6 +44,12 @@
 #  endif
 #endif
 
+#ifdef __GNUC__
+#  define DNA_PRIVATE_ATTR __attribute__ ((deprecated))
+#else
+#  define DNA_PRIVATE_ATTR
+#endif
+
 
 /* poison pragma */
 #ifdef DNA_DEPRECATED_ALLOW

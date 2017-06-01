@@ -310,7 +310,7 @@ static bool rna_id_write_error(PointerRNA *ptr, PyObject *key)
 	ID *id = ptr->id.data;
 	if (id) {
 		const short idcode = GS(id->name);
-		if (!ELEM(idcode, ID_WM, ID_SCR)) { /* may need more added here */
+		if (!ELEM(idcode, ID_WM, ID_SCR, ID_WS)) { /* may need more added here */
 			const char *idtype = BKE_idcode_to_name(idcode);
 			const char *pyname;
 			if (key && PyUnicode_Check(key)) pyname = _PyUnicode_AsString(key);

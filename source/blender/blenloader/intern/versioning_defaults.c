@@ -40,10 +40,12 @@
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
 
@@ -81,6 +83,32 @@ void BLO_update_defaults_userpref_blend(void)
 #else
 	U.flag &= ~USER_SCRIPT_AUTOEXEC_DISABLE;
 #endif
+}
+
+/**
+ * New workspace design: Remove all screens/workspaces except of "Default" one and rename the workspace to "General".
+ * For compatibility, a new workspace has been created for each screen of old files,
+ * we only want one workspace and one screen in the default startup file however.
+ */
+static void update_defaults_startup_workspaces(Main *bmain)
+{
+	WorkSpace *workspace_default = NULL;
+
+	for (WorkSpace *workspace = bmain->workspaces.first, *workspace_next; workspace; workspace = workspace_next) {
+		workspace_next = workspace->id.next;
+
+		if (STREQ(workspace->id.name + 2, "Default")) {
+			/* don't rename within iterator, renaming causes listbase to be re-sorted */
+			workspace_default = workspace;
+		}
+		else {
+			BKE_workspace_remove(bmain, workspace);
+		}
+	}
+
+	/* rename "Default" workspace to "General" */
+	BKE_libblock_rename(bmain, (ID *)workspace_default, "General");
+	BLI_assert(BLI_listbase_count(BKE_workspace_layouts_get(workspace_default)) == 1);
 }
 
 /**
@@ -181,20 +209,18 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		linestyle->chain_count = 10;
 	}
 
-	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
-		ScrArea *area;
-		for (area = screen->areabase.first; area; area = area->next) {
-			SpaceLink *space_link;
-			ARegion *ar;
+	update_defaults_startup_workspaces(bmain);
 
-			for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
+	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+			for (SpaceLink *space_link = area->spacedata.first; space_link; space_link = space_link->next) {
 				if (space_link->spacetype == SPACE_CLIP) {
 					SpaceClip *space_clip = (SpaceClip *) space_link;
 					space_clip->flag &= ~SC_MANUAL_CALIBRATION;
 				}
 			}
 
-			for (ar = area->regionbase.first; ar; ar = ar->next) {
+			for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
 				/* Remove all stored panels, we want to use defaults (order, open/closed) as defined by UI code here! */
 				BLI_freelistN(&ar->panels);
 

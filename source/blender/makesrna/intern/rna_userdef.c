@@ -3335,11 +3335,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display Object Info", "Display objects name and frame number in 3D view");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "use_global_scene", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_SCENEGLOBAL);
-	RNA_def_property_ui_text(prop, "Global Scene", "Force the current Scene to be displayed in all Screens");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
 	prop = RNA_def_property(srna, "show_large_cursors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "curssize", 0);
 	RNA_def_property_ui_text(prop, "Large Cursors", "Use large mouse cursors when available");

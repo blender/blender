@@ -373,7 +373,8 @@ static bool wm_stereo3d_is_fullscreen_required(eStereoDisplayMode stereo_display
 
 bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
 {
-	bScreen *screen = win->screen;
+	const bScreen *screen = WM_window_get_active_screen(win);
+	const Scene *scene = WM_window_get_active_scene(win);
 
 	/* some 3d methods change the window arrangement, thus they shouldn't
 	 * toggle on/off just because there is no 3d elements being drawn */
@@ -381,7 +382,7 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
 		return GHOST_GetWindowState(win->ghostwin) == GHOST_kWindowStateFullScreen;
 	}
 
-	if ((skip_stereo3d_check == false) && (ED_screen_stereo3d_required(screen) == false)) {
+	if ((skip_stereo3d_check == false) && (ED_screen_stereo3d_required(screen, scene) == false)) {
 		return false;
 	}
 
@@ -508,7 +509,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	    prev_display_mode != win_src->stereo3d_format->display_mode)
 	{
 		/* in case the hardward supports pageflip but not the display */
-		if ((win_dst = wm_window_copy_test(C, win_src))) {
+		if ((win_dst = wm_window_copy_test(C, win_src, false))) {
 			/* pass */
 		}
 		else {
@@ -518,14 +519,16 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (win_src->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
-		/* ED_screen_duplicate() can't handle other cases yet T44688 */
-		if (win_src->screen->state != SCREENNORMAL) {
+		const bScreen *screen = WM_window_get_active_screen(win_src);
+
+		/* ED_workspace_layout_duplicate() can't handle other cases yet T44688 */
+		if (screen->state != SCREENNORMAL) {
 			BKE_report(op->reports, RPT_ERROR,
 			           "Failed to switch to Time Sequential mode when in fullscreen");
 			ok = false;
 		}
 		/* pageflip requires a new window to be created with the proper OS flags */
-		else if ((win_dst = wm_window_copy_test(C, win_src))) {
+		else if ((win_dst = wm_window_copy_test(C, win_src, false))) {
 			if (wm_stereo3d_quadbuffer_supported()) {
 				BKE_report(op->reports, RPT_INFO, "Quad-buffer window successfully created");
 			}

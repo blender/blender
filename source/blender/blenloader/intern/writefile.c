@@ -102,6 +102,10 @@
 
 /* allow writefile to use deprecated functionality (for forward compatibility code) */
 #define DNA_DEPRECATED_ALLOW
+/* Allow using DNA struct members that are marked as private for read/write.
+ * Note: Each header that uses this needs to define its own way of handling
+ * it. There's no generic implementation, direct use does nothing. */
+#define DNA_PRIVATE_READ_WRITE_ALLOW
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -147,6 +151,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
 
@@ -173,6 +178,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_pointcache.h"
 #include "BKE_mesh.h"
+#include "BKE_workspace.h"
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
 #include "NOD_socket.h"  /* for sock->default_value data */
@@ -1077,10 +1083,13 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
  * Take care using 'use_active_win', since we wont want the currently active window
  * to change which scene renders (currently only used for undo).
  */
-static void current_screen_compat(Main *mainvar, bScreen **r_screen, bool use_active_win)
+static void current_screen_compat(
+        Main *mainvar, bool use_active_win,
+        bScreen **r_screen, Scene **r_scene, SceneLayer **r_render_layer)
 {
 	wmWindowManager *wm;
 	wmWindow *window = NULL;
+	WorkSpace *workspace;
 
 	/* find a global current screen in the first open window, to have
 	 * a reasonable default for reading in older versions */
@@ -1104,8 +1113,11 @@ static void current_screen_compat(Main *mainvar, bScreen **r_screen, bool use_ac
 			window = wm->windows.first;
 		}
 	}
+	workspace = (window) ? BKE_workspace_active_get(window->workspace_hook) : NULL;
 
-	*r_screen = (window) ? window->screen : NULL;
+	*r_screen = (window) ? BKE_workspace_active_screen_get(window->workspace_hook) : NULL;
+	*r_scene = (window) ? window->scene : NULL;
+	*r_render_layer = (window) ? BKE_workspace_render_layer_get(workspace) : NULL;
 }
 
 typedef struct RenderInfo {
@@ -1121,13 +1133,11 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
 	bScreen *curscreen;
 	Scene *sce, *curscene = NULL;
+	SceneLayer *render_layer;
 	RenderInfo data;
 
 	/* XXX in future, handle multiple windows with multiple screens? */
-	current_screen_compat(mainvar, &curscreen, false);
-	if (curscreen) {
-		curscene = curscreen->scene;
-	}
+	current_screen_compat(mainvar, false, &curscreen, &curscene, &render_layer);
 
 	for (sce = mainvar->scene.first; sce; sce = sce->id.next) {
 		if (sce->id.lib == NULL && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
@@ -2842,8 +2852,19 @@ static void write_windowmanager(WriteData *wd, wmWindowManager *wm)
 	write_iddata(wd, &wm->id);
 
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+
+		/* update deprecated screen member (for so loading in 2.7x uses the correct screen) */
+		win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
+		if (win->screen) {
+			BLI_strncpy(win->screenname, win->screen->id.name + 2, sizeof(win->screenname));
+		}
+
 		writestruct(wd, DATA, wmWindow, 1, win);
+		writestruct(wd, DATA, WorkSpaceInstanceHook, 1, win->workspace_hook);
 		writestruct(wd, DATA, Stereo3dFormat, 1, win->stereo3d_format);
+
+		/* data is written, clear deprecated data again */
+		win->screen = NULL;
 	}
 }
 
@@ -2984,6 +3005,7 @@ static void write_screen(WriteData *wd, bScreen *sc)
 				View3D *v3d = (View3D *)sl;
 				BGpic *bgpic;
 				writestruct(wd, DATA, View3D, 1, v3d);
+
 				for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
 					writestruct(wd, DATA, BGpic, 1, bgpic);
 				}
@@ -3729,6 +3751,15 @@ static void write_cachefile(WriteData *wd, CacheFile *cache_file)
 	}
 }
 
+static void write_workspace(WriteData *wd, WorkSpace *workspace)
+{
+	ListBase *layouts = BKE_workspace_layouts_get(workspace);
+
+	writestruct(wd, ID_WS, WorkSpace, 1, workspace);
+	writelist(wd, DATA, WorkSpaceLayout, layouts);
+	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
+}
+
 /* Keep it last of write_foodata functions. */
 static void write_libraries(WriteData *wd, Main *main)
 {
@@ -3798,6 +3829,8 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	const bool is_undo = (wd->current != NULL);
 	FileGlobal fg;
 	bScreen *screen;
+	Scene *scene;
+	SceneLayer *render_layer;
 	char subvstr[8];
 
 	/* prevent mem checkers from complaining */
@@ -3805,11 +3838,12 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	memset(fg.filename, 0, sizeof(fg.filename));
 	memset(fg.build_hash, 0, sizeof(fg.build_hash));
 
-	current_screen_compat(mainvar, &screen, is_undo);
+	current_screen_compat(mainvar, is_undo, &screen, &scene, &render_layer);
 
 	/* XXX still remap G */
 	fg.curscreen = screen;
-	fg.curscene = screen ? screen->scene : NULL;
+	fg.curscene = scene;
+	fg.cur_render_layer = render_layer;
 
 	/* prevent to save this, is not good convention, and feature with concerns... */
 	fg.fileflags = (fileflags & ~G_FILE_FLAGS_RUNTIME);
@@ -3904,6 +3938,9 @@ static bool write_file_handle(
 			switch ((ID_Type)GS(id->name)) {
 				case ID_WM:
 					write_windowmanager(wd, (wmWindowManager *)id);
+					break;
+				case ID_WS:
+					write_workspace(wd, (WorkSpace *)id);
 					break;
 				case ID_SCR:
 					write_screen(wd, (bScreen *)id);

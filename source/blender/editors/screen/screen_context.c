@@ -50,6 +50,7 @@
 #include "BKE_layer.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 
@@ -81,10 +82,13 @@ const char *screen_context_dir[] = {
 
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
 {
+	wmWindow *win = CTX_wm_window(C);
 	bScreen *sc = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
-	Scene *scene = sc->scene;
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	Scene *scene = WM_window_get_active_scene(win);
+	/* can't call BKE_scene_layer_context_active here, it uses G.main->wm which might be NULL on file read. */
+	WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+	SceneLayer *sl = BKE_workspace_render_layer_get(workspace);
 	Object *obedit = scene->obedit;
 	Object *obact = sl->basact ? sl->basact->object : NULL;
 

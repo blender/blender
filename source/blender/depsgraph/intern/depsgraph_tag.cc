@@ -49,6 +49,7 @@ extern "C" {
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_workspace.h"
 
 #define new new_
 #include "BKE_screen.h"

@@ -433,10 +433,12 @@ void wm_add_default(bContext *C)
 	wmWindowManager *wm = BKE_libblock_alloc(CTX_data_main(C), ID_WM, "WinMan");
 	wmWindow *win;
 	bScreen *screen = CTX_wm_screen(C); /* XXX from file read hrmf */
-	
+	struct WorkSpace *workspace = G.main->workspaces.last;
+
 	CTX_wm_manager_set(C, wm);
 	win = wm_window_new(C);
-	win->screen = screen;
+	WM_window_set_active_workspace(win, workspace);
+	WM_window_set_active_screen(win, workspace, screen);
 	screen->winid = win->winid;
 	BLI_strncpy(win->screenname, screen->id.name + 2, sizeof(win->screenname));
 	
@@ -457,7 +459,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 		wm_autosave_timer_ended(wm);
 
 	while ((win = BLI_pophead(&wm->windows))) {
-		win->screen = NULL; /* prevent draw clear to use screen */
+		WM_window_set_active_workspace(win, NULL); /* prevent draw clear to use screen */
 		wm_draw_window_clear(win);
 		wm_window_free(C, wm, win);
 	}

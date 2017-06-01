@@ -102,6 +102,21 @@ int			WM_window_pixels_x		(struct wmWindow *win);
 int			WM_window_pixels_y		(struct wmWindow *win);
 bool		WM_window_is_fullscreen	(struct wmWindow *win);
 
+void WM_windows_scene_data_sync(const ListBase *win_lb, struct Scene *scene) ATTR_NONNULL();
+struct Scene *WM_windows_scene_get_from_screen(const struct wmWindowManager *wm, const struct bScreen *screen) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+
+struct Scene *WM_window_get_active_scene(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+void          WM_window_change_active_scene(struct Main *bmain, struct bContext *C, struct wmWindow *win,
+                                            struct Scene *scene_new) ATTR_NONNULL();
+struct WorkSpace *WM_window_get_active_workspace(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+void              WM_window_set_active_workspace(struct wmWindow *win, struct WorkSpace *workspace) ATTR_NONNULL(1);
+struct WorkSpaceLayout *WM_window_get_active_layout(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+void                    WM_window_set_active_layout(
+        struct wmWindow *win, struct WorkSpace *workspace, struct WorkSpaceLayout *layout) ATTR_NONNULL(1);
+struct bScreen *WM_window_get_active_screen(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+void            WM_window_set_active_screen(struct wmWindow *win, struct WorkSpace *workspace, struct bScreen *screen) ATTR_NONNULL(1);
+bool WM_window_is_temp_screen(const struct wmWindow *win) ATTR_WARN_UNUSED_RESULT;
+
 /* defines for 'type' WM_window_open_temp */
 enum {
 	WM_WINDOW_RENDER = 1,

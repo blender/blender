@@ -707,6 +707,7 @@ extern StructRNA RNA_WindowManager;
 extern StructRNA RNA_WipeSequence;
 extern StructRNA RNA_WireframeModifier;
 extern StructRNA RNA_WoodTexture;
+extern StructRNA RNA_WorkSpace;
 extern StructRNA RNA_World;
 extern StructRNA RNA_WorldAmbientOcclusion;
 extern StructRNA RNA_WorldLighting;

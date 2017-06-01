@@ -53,6 +53,10 @@
 
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
+/* Allow using DNA struct members that are marked as private for read/write.
+ * Note: Each header that uses this needs to define its own way of handling
+ * it. There's no generic implementation, direct use does nothing. */
+#define DNA_PRIVATE_READ_WRITE_ALLOW
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -99,9 +103,12 @@
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
+
+#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -149,6 +156,7 @@
 #include "BKE_outliner_treehash.h"
 #include "BKE_sound.h"
 #include "BKE_colortools.h"
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 
@@ -2773,6 +2781,78 @@ static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
 	cache_file->adt = newdataadr(fd, cache_file->adt);
 	direct_link_animdata(fd, cache_file->adt);
 }
+
+/* ************ READ WORKSPACES *************** */
+
+static void lib_link_workspaces(FileData *fd, Main *bmain)
+{
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		ListBase *layouts = BKE_workspace_layouts_get(workspace);
+		ID *id = (ID *)workspace;
+
+		if ((id->tag & LIB_TAG_NEED_LINK) == 0) {
+			continue;
+		}
+		IDP_LibLinkProperty(id->properties, fd);
+		id_us_ensure_real(id);
+
+		for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
+			bScreen *screen = newlibadr(fd, id->lib, BKE_workspace_layout_screen_get(layout));
+
+			if (screen) {
+				BKE_workspace_layout_screen_set(layout, screen);
+
+				if (ID_IS_LINKED_DATABLOCK(id)) {
+					screen->winid = 0;
+					if (screen->temp) {
+						/* delete temp layouts when appending */
+						BKE_workspace_layout_remove(bmain, workspace, layout);
+					}
+				}
+			}
+		}
+
+		id->tag &= ~LIB_TAG_NEED_LINK;
+	}
+}
+
+static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main *main)
+{
+	link_list(fd, BKE_workspace_layouts_get(workspace));
+	link_list(fd, &workspace->hook_layout_relations);
+
+	for (WorkSpaceDataRelation *relation = workspace->hook_layout_relations.first;
+	     relation;
+	     relation = relation->next)
+	{
+		relation->parent = newglobadr(fd, relation->parent); /* data from window - need to access through global oldnew-map */
+		relation->value = newdataadr(fd, relation->value);
+	}
+
+	if (ID_IS_LINKED_DATABLOCK(&workspace->id)) {
+		/* Appending workspace so render layer is likely from a different scene. Unset
+		 * now, when activating workspace later we set a valid one from current scene. */
+		BKE_workspace_render_layer_set(workspace, NULL);
+	}
+
+	/* Same issue/fix as in direct_link_scene_update_screen_data: Can't read workspace data
+	 * when reading windows, so have to update windows after/when reading workspaces. */
+	for (wmWindowManager *wm = main->wm.first; wm; wm = wm->id.next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			WorkSpaceLayout *act_layout = newdataadr(fd, BKE_workspace_active_layout_get(win->workspace_hook));
+			if (act_layout) {
+				BKE_workspace_active_layout_set(win->workspace_hook, act_layout);
+			}
+		}
+	}
+}
+
+static void lib_link_workspace_instance_hook(FileData *fd, WorkSpaceInstanceHook *hook, ID *id)
+{
+	WorkSpace *workspace = BKE_workspace_active_get(hook);
+	BKE_workspace_active_set(hook, newlibadr(fd, id->lib, workspace));
+}
+
 
 /* ************ READ MOTION PATHS *************** */
 
@@ -5977,7 +6057,19 @@ static void direct_link_layer_collections(FileData *fd, ListBase *lb)
 	}
 }
 
-static void direct_link_scene(FileData *fd, Scene *sce)
+static void direct_link_scene_update_screen_data(
+        FileData *fd, const Scene *scene, const ListBase *workspaces)
+{
+	for (WorkSpace *workspace = workspaces->first; workspace; workspace = workspace->id.next) {
+		SceneLayer *layer = newdataadr(fd, BKE_workspace_render_layer_get(workspace));
+		/* only set when layer is from the scene we read */
+		if (layer && (BLI_findindex(&scene->render_layers, layer) != -1)) {
+			BKE_workspace_render_layer_set(workspace, layer);
+		}
+	}
+}
+
+static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 {
 	Editing *ed;
 	Sequence *seq;
@@ -6250,7 +6342,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_scene_collection(fd, sce->collection);
 	}
 
-	link_list(fd, &sce->render_layers);
+	/* insert into global old-new map for reading without UI (link_global accesses it again) */
+	link_glob_list(fd, &sce->render_layers);
 	for (sl = sce->render_layers.first; sl; sl = sl->next) {
 		sl->stats = NULL;
 		link_list(fd, &sl->object_bases);
@@ -6277,6 +6370,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	BKE_layer_collection_engine_settings_validate_scene(sce);
 	BKE_scene_layer_engine_settings_validate_scene(sce);
+
+	direct_link_scene_update_screen_data(fd, sce, &bmain->workspaces);
 }
 
 /* ************ READ WM ***************** */
@@ -6289,6 +6384,12 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	link_list(fd, &wm->windows);
 	
 	for (win = wm->windows.first; win; win = win->next) {
+		WorkSpaceInstanceHook *hook = win->workspace_hook;
+
+		win->workspace_hook = newdataadr(fd, hook);
+		/* we need to restore a pointer to this later when reading workspaces, so store in global oldnew-map */
+		oldnewmap_insert(fd->globmap, hook, win->workspace_hook, 0);
+
 		win->ghostwin = NULL;
 		win->eventstate = NULL;
 		win->curswin = NULL;
@@ -6353,6 +6454,11 @@ static void lib_link_windowmanager(FileData *fd, Main *main)
 		if (wm->id.tag & LIB_TAG_NEED_LINK) {
 			/* Note: WM IDProperties are never written to file, hence no need to read/link them here. */
 			for (win = wm->windows.first; win; win = win->next) {
+				if (win->workspace_hook) { /* NULL for old files */
+					lib_link_workspace_instance_hook(fd, win->workspace_hook, &wm->id);
+				}
+				win->scene = newlibadr(fd, wm->id.lib, win->scene);
+				/* deprecated, but needed for versioning (will be NULL'ed then) */
 				win->screen = newlibadr(fd, NULL, win->screen);
 			}
 			
@@ -6438,12 +6544,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 			IDP_LibLinkProperty(sc->id.properties, fd);
 			id_us_ensure_real(&sc->id);
 
+			/* deprecated, but needed for versioning (will be NULL'ed then) */
 			sc->scene = newlibadr(fd, sc->id.lib, sc->scene);
-
-			/* this should not happen, but apparently it does somehow. Until we figure out the cause,
-			 * just assign first available scene */
-			if (!sc->scene)
-				sc->scene = main->scene.first;
 
 			sc->animtimer = NULL; /* saved in rare cases */
 			sc->scrubbing = false;
@@ -6752,56 +6854,59 @@ static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
 	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
 }
 
-/* called from kernel/blender.c */
-/* used to link a file (without UI) to the current UI */
-/* note that it assumes the old pointers in UI are still valid, so old Main is not freed */
-void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
+static void lib_link_workspace_scene_data_restore(wmWindow *win, Scene *scene)
 {
-	wmWindow *win;
-	wmWindowManager *wm;
-	bScreen *sc;
-	ScrArea *sa;
+	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
-	struct IDNameLib_Map *id_map = BKE_main_idmap_create(newmain);
+	for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+		for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+			if (sl->spacetype == SPACE_VIEW3D) {
+				View3D *v3d = (View3D *)sl;
 
-	/* first windowmanager */
-	for (wm = newmain->wm.first; wm; wm = wm->id.next) {
-		for (win= wm->windows.first; win; win= win->next) {
-			win->screen = restore_pointer_by_name(id_map, (ID *)win->screen, USER_REAL);
-			
-			if (win->screen == NULL)
-				win->screen = curscreen;
-			
-			win->screen->winid = win->winid;
+				if (v3d->camera == NULL || v3d->scenelock) {
+					v3d->camera = scene->camera;
+				}
+
+				if (v3d->localvd) {
+					/*Base *base;*/
+
+					v3d->localvd->camera = scene->camera;
+
+					/* localview can become invalid during undo/redo steps, so we exit it when no could be found */
+#if 0				/* XXX  regionlocalview ? */
+					for (base= sc->scene->base.first; base; base= base->next) {
+						if (base->lay & v3d->lay) break;
+					}
+					if (base==NULL) {
+						v3d->lay= v3d->localvd->lay;
+						v3d->layact= v3d->localvd->layact;
+						MEM_freeN(v3d->localvd);
+						v3d->localvd= NULL;
+					}
+#endif
+				}
+				else if (v3d->scenelock) {
+					v3d->lay = scene->lay;
+				}
+			}
 		}
 	}
-	
-	
-	for (sc = newmain->screen.first; sc; sc = sc->id.next) {
-		Scene *oldscene = sc->scene;
-		
-		sc->scene= restore_pointer_by_name(id_map, (ID *)sc->scene, USER_REAL);
-		if (sc->scene == NULL)
-			sc->scene = curscene;
-		
-		/* keep cursor location through undo */
-		copy_v3_v3(sc->scene->cursor, oldscene->cursor);
-		
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			SpaceLink *sl;
-			
-			for (sl = sa->spacedata.first; sl; sl = sl->next) {
+}
+
+static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map, Main *newmain, WorkSpaceLayout *layout)
+{
+	bScreen *screen = BKE_workspace_layout_screen_get(layout);
+
+	/* avoid conflicts with 2.8x branch */
+	{
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 				if (sl->spacetype == SPACE_VIEW3D) {
 					View3D *v3d = (View3D *)sl;
 					BGpic *bgpic;
 					ARegion *ar;
 					
-					if (v3d->scenelock)
-						v3d->camera = NULL; /* always get from scene */
-					else
-						v3d->camera = restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL);
-					if (v3d->camera == NULL)
-						v3d->camera = sc->scene->camera;
+					v3d->camera = restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL);
 					v3d->ob_centre = restore_pointer_by_name(id_map, (ID *)v3d->ob_centre, USER_REAL);
 					
 					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
@@ -6811,27 +6916,6 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 						if ((bgpic->clip = restore_pointer_by_name(id_map, (ID *)bgpic->clip, USER_IGNORE))) {
 							id_us_plus((ID *)bgpic->clip);
 						}
-					}
-					if (v3d->localvd) {
-						/*Base *base;*/
-						
-						v3d->localvd->camera = sc->scene->camera;
-						
-						/* localview can become invalid during undo/redo steps, so we exit it when no could be found */
-#if 0					/* XXX  regionlocalview ? */
-						for (base= sc->scene->base.first; base; base= base->next) {
-							if (base->lay & v3d->lay) break;
-						}
-						if (base==NULL) {
-							v3d->lay= v3d->localvd->lay;
-							v3d->layact= v3d->localvd->layact;
-							MEM_freeN(v3d->localvd); 
-							v3d->localvd= NULL;
-						}
-#endif
-					}
-					else if (v3d->scenelock) {
-						v3d->lay = sc->scene->lay;
 					}
 					
 					/* not very nice, but could help */
@@ -7034,6 +7118,44 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				}
 			}
 		}
+	}
+}
+
+/**
+ * Used to link a file (without UI) to the current UI.
+ * Note that it assumes the old pointers in UI are still valid, so old Main is not freed.
+ */
+void blo_lib_link_restore(Main *newmain, wmWindowManager *curwm, Scene *curscene, SceneLayer *cur_render_layer)
+{
+	struct IDNameLib_Map *id_map = BKE_main_idmap_create(newmain);
+
+	for (WorkSpace *workspace = newmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		ListBase *layouts = BKE_workspace_layouts_get(workspace);
+
+		for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
+			lib_link_workspace_layout_restore(id_map, newmain, layout);
+		}
+		BKE_workspace_render_layer_set(workspace, cur_render_layer);
+	}
+
+	for (wmWindow *win = curwm->windows.first; win; win = win->next) {
+		WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+		ID *workspace_id = (ID *)workspace;
+		Scene *oldscene = win->scene;
+
+		workspace = restore_pointer_by_name(id_map, workspace_id, USER_REAL);
+		BKE_workspace_active_set(win->workspace_hook, workspace);
+		win->scene = restore_pointer_by_name(id_map, (ID *)win->scene, USER_REAL);
+		if (win->scene == NULL) {
+			win->scene = curscene;
+		}
+		BKE_workspace_active_set(win->workspace_hook, workspace);
+
+		/* keep cursor location through undo */
+		copy_v3_v3(win->scene->cursor, oldscene->cursor);
+		lib_link_workspace_scene_data_restore(win, win->scene);
+
+		BLI_assert(win->screen == NULL);
 	}
 
 	/* update IDs stored in all possible clipboards */
@@ -8146,6 +8268,7 @@ static const char *dataname(short id_code)
 		case ID_MSK: return "Data from MSK";
 		case ID_LS: return "Data from LS";
 		case ID_CF: return "Data from CF";
+		case ID_WS: return "Data from WS";
 	}
 	return "Data from Lib Block";
 	
@@ -8309,7 +8432,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 			wrong_id = direct_link_screen(fd, (bScreen *)id);
 			break;
 		case ID_SCE:
-			direct_link_scene(fd, (Scene *)id);
+			direct_link_scene(fd, (Scene *)id, main);
 			break;
 		case ID_OB:
 			direct_link_object(fd, (Object *)id);
@@ -8404,6 +8527,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 		case ID_CF:
 			direct_link_cachefile(fd, (CacheFile *)id);
 			break;
+		case ID_WS:
+			direct_link_workspace(fd, (WorkSpace *)id, main);
+			break;
 	}
 	
 	oldnewmap_free_unused(fd->datamap);
@@ -8449,7 +8575,8 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	
 	bfd->curscreen = fg->curscreen;
 	bfd->curscene = fg->curscene;
-	
+	bfd->cur_render_layer = fg->cur_render_layer;
+
 	MEM_freeN(fg);
 	
 	fd->globalf = bfd->globalf;
@@ -8461,6 +8588,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 /* note, this has to be kept for reading older files... */
 static void link_global(FileData *fd, BlendFileData *bfd)
 {
+	bfd->cur_render_layer = newglobadr(fd, bfd->cur_render_layer);
 	bfd->curscreen = newlibadr(fd, NULL, bfd->curscreen);
 	bfd->curscene = newlibadr(fd, NULL, bfd->curscene);
 	// this happens in files older than 2.35
@@ -8580,6 +8708,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_linestyle(fd, main);
 	lib_link_gpencil(fd, main);
 	lib_link_cachefiles(fd, main);
+	lib_link_workspaces(fd, main);
 
 	lib_link_library(fd, main);    /* only init users */
 }
@@ -8966,6 +9095,11 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 			}
 		}
 		else {
+			/* in 2.50+ file identifier for screens is patched, forward compatibility */
+			if (bhead->code == ID_SCRN) {
+				bhead->code = ID_SCR;
+			}
+
 			id = is_yet_read(fd, mainvar, bhead);
 			if (id == NULL) {
 				read_libblock(fd, mainvar, bhead, LIB_TAG_TESTIND, NULL);
@@ -9817,6 +9951,15 @@ static void expand_gpencil(FileData *fd, Main *mainvar, bGPdata *gpd)
 		expand_animdata(fd, mainvar, gpd->adt);
 }
 
+static void expand_workspace(FileData *fd, Main *mainvar, WorkSpace *workspace)
+{
+	ListBase *layouts = BKE_workspace_layouts_get(workspace);
+
+	for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
+		expand_doit(fd, mainvar, BKE_workspace_layout_screen_get(layout));
+	}
+}
+
 /**
  * Set the callback func used over all ID data found by \a BLO_expand_main func.
  *
@@ -9930,6 +10073,9 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 						break;
 					case ID_CF:
 						expand_cachefile(fd, mainvar, (CacheFile *)id);
+						break;
+					case ID_WS:
+						expand_workspace(fd, mainvar, (WorkSpace *)id);
 						break;
 					}
 					

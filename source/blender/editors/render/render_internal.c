@@ -491,8 +491,9 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
 	for (wm = rj->main->wm.first; wm && matched_sa == NULL; wm = wm->id.next) { /* only 1 wm */
 		wmWindow *win;
 		for (win = wm->windows.first; win && matched_sa == NULL; win = win->next) {
-			ScrArea *sa;
-			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+			const bScreen *screen = WM_window_get_active_screen(win);
+
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				if (sa->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = sa->spacedata.first;
 					// sa->spacedata might be empty when toggling fullscreen mode.
@@ -618,8 +619,9 @@ static void render_image_restore_layer(RenderJob *rj)
 	for (wm = rj->main->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
 		wmWindow *win;
 		for (win = wm->windows.first; win; win = win->next) {
-			ScrArea *sa;
-			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+			const bScreen *screen = WM_window_get_active_screen(win);
+
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				if (sa == rj->sa) {
 					if (sa->spacetype == SPACE_IMAGE) {
 						SpaceImage *sima = sa->spacedata.first;

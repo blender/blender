@@ -51,6 +51,12 @@ static PointerRNA rna_Context_window_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_Window, CTX_wm_window(C));
 }
 
+static PointerRNA rna_Context_workspace_get(PointerRNA *ptr)
+{
+	bContext *C = (bContext *)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_WorkSpace, CTX_wm_workspace(C));
+}
+
 static PointerRNA rna_Context_screen_get(PointerRNA *ptr)
 {
 	bContext *C = (bContext *)ptr->data;
@@ -192,6 +198,11 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Window");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_window_get", NULL, NULL, NULL);
+
+	prop = RNA_def_property(srna, "workspace", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "WorkSpace");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_workspace_get", NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "screen", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

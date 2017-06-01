@@ -293,6 +293,12 @@ static void rna_Main_paintcurves_begin(CollectionPropertyIterator *iter, Pointer
 	rna_iterator_listbase_begin(iter, &bmain->paintcurves, NULL);
 }
 
+static void rna_Main_workspaces_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Main *bmain = (Main *)ptr->data;
+	rna_iterator_listbase_begin(iter, &bmain->workspaces, NULL);
+}
+
 static void rna_Main_version_get(PointerRNA *ptr, int *value)
 {
 	Main *bmain = (Main *)ptr->data;
@@ -368,6 +374,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyle_begin", "Line Styles", "Line Style data-blocks", RNA_def_main_linestyles},
 		{"cache_files", "CacheFile", "rna_Main_cachefiles_begin", "Cache Files", "Cache Files data-blocks", RNA_def_main_cachefiles},
 		{"paint_curves", "PaintCurve", "rna_Main_paintcurves_begin", "Paint Curves", "Paint Curves data-blocks", RNA_def_main_paintcurves},
+		{"workspaces", "WorkSpace", "rna_Main_workspaces_begin", "Workspaces", "Workspace data-blocks", RNA_def_main_workspaces},
 		{NULL, NULL, NULL, NULL, NULL, NULL}
 	};
 

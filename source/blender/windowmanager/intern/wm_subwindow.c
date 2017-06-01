@@ -141,8 +141,10 @@ void wm_subwindow_origin_get(wmWindow *win, int swinid, int *x, int *y)
 
 static void wm_swin_matrix_get(wmWindow *win, wmSubWindow *swin, float mat[4][4])
 {
+	const bScreen *screen = WM_window_get_active_screen(win);
+
 	/* used by UI, should find a better way to get the matrix there */
-	if (swin->swinid == win->screen->mainwin) {
+	if (swin->swinid == screen->mainwin) {
 		int width, height;
 
 		wm_swin_size_get(swin, &width, &height);

@@ -30,6 +30,7 @@
 #ifndef __DNA_SCREEN_TYPES_H__
 #define __DNA_SCREEN_TYPES_H__
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_view2d_types.h"
 #include "DNA_vec_types.h"
@@ -52,10 +53,9 @@ typedef struct bScreen {
 	ListBase edgebase;
 	ListBase areabase;
 	ListBase regionbase;				/* screen level regions (menus), runtime only */
-	
-	struct Scene *scene;
-	struct Scene *newscene;				/* temporary when switching */
-	
+
+	struct Scene *scene DNA_DEPRECATED;
+
 	short winid;						/* winid from WM, starts with 1 */
 	short redraws_flag;					/* user-setting for which editors get redrawn during anim playback (used to be time->redraws) */
 

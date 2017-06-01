@@ -265,6 +265,7 @@ typedef enum ID_Type {
 	ID_PAL  = MAKE_ID2('P', 'L'), /* Palette */
 	ID_PC   = MAKE_ID2('P', 'C'), /* PaintCurve  */
 	ID_CF   = MAKE_ID2('C', 'F'), /* CacheFile */
+	ID_WS   = MAKE_ID2('W', 'S'), /* WorkSpace */
 } ID_Type;
 
 /* Only used as 'placeholder' in .blend files for directly linked datablocks. */
@@ -288,7 +289,7 @@ typedef enum ID_Type {
 #define ID_REAL_USERS(id) (((ID *)id)->us - ID_FAKE_USERS(id))
 #define ID_EXTRA_USERS(id) (((ID *)id)->tag & LIB_TAG_EXTRAUSER ? 1 : 0)
 
-#define ID_CHECK_UNDO(id) ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM))
+#define ID_CHECK_UNDO(id) ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS))
 
 #define ID_BLEND_PATH(_bmain, _id) ((_id)->lib ? (_id)->lib->filepath : (_bmain)->name)
 
@@ -398,6 +399,7 @@ enum {
 	FILTER_ID_WO        = (1 << 26),
 	FILTER_ID_PA        = (1 << 27),
 	FILTER_ID_CF        = (1 << 28),
+	FILTER_ID_WS        = (1 << 29),
 };
 
 /* IMPORTANT: this enum matches the order currently use in set_lisbasepointers,
@@ -435,6 +437,7 @@ enum {
 	INDEX_ID_OB,
 	INDEX_ID_LS,
 	INDEX_ID_SCE,
+	INDEX_ID_WS,
 	INDEX_ID_WM,
 	INDEX_ID_MSK,
 	INDEX_ID_NULL,

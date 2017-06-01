@@ -461,11 +461,22 @@ EnumPropertyItem rna_enum_wm_report_items[] = {
 
 #include "WM_api.h"
 
+#include "DNA_workspace_types.h"
+
+#include "ED_screen.h"
+
 #include "UI_interface.h"
 
+#include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_workspace.h"
 
 #include "MEM_guardedalloc.h"
+
+#ifdef WITH_PYTHON
+#  include "BPY_extern.h"
+#endif
+
 
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
@@ -621,39 +632,120 @@ static PointerRNA rna_PieMenu_layout_get(PointerRNA *ptr)
 	return rptr;
 }
 
-static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Window_scene_set(PointerRNA *ptr, PointerRNA value)
+{
+	wmWindow *win = ptr->data;
+
+	if (value.data == NULL) {
+		return;
+	}
+
+	win->new_scene = value.data;
+}
+
+static void rna_Window_scene_update(bContext *C, PointerRNA *ptr)
+{
+	Main *bmain = CTX_data_main(C);
+	wmWindow *win = ptr->data;
+
+	/* exception: must use context so notifier gets to the right window  */
+	if (win->new_scene) {
+#ifdef WITH_PYTHON
+		BPy_BEGIN_ALLOW_THREADS;
+#endif
+
+		WM_window_change_active_scene(bmain, C, win, win->new_scene);
+
+#ifdef WITH_PYTHON
+		BPy_END_ALLOW_THREADS;
+#endif
+
+		WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, win->new_scene);
+
+		if (G.debug & G_DEBUG)
+			printf("scene set %p\n", win->new_scene);
+
+		win->new_scene = NULL;
+	}
+}
+
+static PointerRNA rna_Window_workspace_get(PointerRNA *ptr)
+{
+	wmWindow *win = ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_WorkSpace, BKE_workspace_active_get(win->workspace_hook));
+}
+
+static void rna_Window_workspace_set(PointerRNA *ptr, PointerRNA value)
 {
 	wmWindow *win = (wmWindow *)ptr->data;
 
 	/* disallow ID-browsing away from temp screens */
-	if (win->screen->temp) {
+	if (WM_window_is_temp_screen(win)) {
+		return;
+	}
+	if (value.data == NULL) {
 		return;
 	}
 
-	if (value.data == NULL)
+	/* exception: can't set workspaces inside of area/region handlers */
+	win->workspace_hook->temp_workspace_store = value.data;
+}
+
+static void rna_Window_workspace_update(bContext *C, PointerRNA *ptr)
+{
+	wmWindow *win = ptr->data;
+	WorkSpace *new_workspace = win->workspace_hook->temp_workspace_store;
+
+	/* exception: can't set screens inside of area/region handlers,
+	 * and must use context so notifier gets to the right window */
+	if (new_workspace) {
+		WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, new_workspace);
+		win->workspace_hook->temp_workspace_store = NULL;
+	}
+}
+
+PointerRNA rna_Window_screen_get(PointerRNA *ptr)
+{
+	wmWindow *win = ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_Screen, BKE_workspace_active_screen_get(win->workspace_hook));
+}
+
+static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
+{
+	wmWindow *win = ptr->data;
+	WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+	WorkSpaceLayout *layout_new;
+	const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+
+	/* disallow ID-browsing away from temp screens */
+	if (screen->temp) {
 		return;
+	}
+	if (value.data == NULL) {
+		return;
+	}
 
 	/* exception: can't set screens inside of area/region handlers */
-	win->newscreen = value.data;
+	layout_new = BKE_workspace_layout_find(workspace, value.data);
+	win->workspace_hook->temp_layout_store = layout_new;
 }
 
 static int rna_Window_screen_assign_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
-	bScreen *screen = (bScreen *)value.id.data;
-
+	bScreen *screen = value.id.data;
 	return !screen->temp;
 }
 
-
-static void rna_Window_screen_update(bContext *C, PointerRNA *ptr)
+static void rna_workspace_screen_update(bContext *C, PointerRNA *ptr)
 {
-	wmWindow *win = (wmWindow *)ptr->data;
+	wmWindow *win = ptr->data;
+	WorkSpaceLayout *layout_new = win->workspace_hook->temp_layout_store;
 
 	/* exception: can't set screens inside of area/region handlers,
 	 * and must use context so notifier gets to the right window */
-	if (win->newscreen) {
-		WM_event_add_notifier(C, NC_SCREEN | ND_SCREENBROWSE, win->newscreen);
-		win->newscreen = NULL;
+	if (layout_new) {
+		WM_event_add_notifier(C, NC_SCREEN | ND_LAYOUTBROWSE, layout_new);
+		win->workspace_hook->temp_layout_store = NULL;
 	}
 }
 
@@ -1910,14 +2002,28 @@ static void rna_def_window(BlenderRNA *brna)
 
 	rna_def_window_stereo3d(brna);
 
-	prop = RNA_def_property(srna, "screen", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "Screen");
-	RNA_def_property_ui_text(prop, "Screen", "Active screen showing in the window");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL, "rna_Window_screen_assign_poll");
+	prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_scene_set", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Scene", "Active scene to be edited in the window");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
+	RNA_def_property_update(prop, 0, "rna_Window_scene_update");
+
+	prop = RNA_def_property(srna, "workspace", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "WorkSpace");
+	RNA_def_property_ui_text(prop, "Workspace", "Active workspace showing in the window");
+	RNA_def_property_pointer_funcs(prop, "rna_Window_workspace_get", "rna_Window_workspace_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, 0, "rna_Window_workspace_update");
+
+	prop = RNA_def_property(srna, "screen", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Screen");
+	RNA_def_property_ui_text(prop, "Screen", "Active workspace screen showing in the window");
+	RNA_def_property_pointer_funcs(prop, "rna_Window_screen_get", "rna_Window_screen_set", NULL,
+	                               "rna_Window_screen_assign_poll");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL | PROP_EDITABLE | PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, 0, "rna_workspace_screen_update");
 
 	prop = RNA_def_property(srna, "x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "posx");

@@ -45,6 +45,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
@@ -54,6 +55,83 @@
 #include "readfile.h"
 
 #include "MEM_guardedalloc.h"
+
+
+static bScreen *screen_parent_find(const bScreen *screen)
+{
+	/* can avoid lookup if screen state isn't maximized/full (parent and child store the same state) */
+	if (ELEM(screen->state, SCREENMAXIMIZED, SCREENFULL)) {
+		for (const ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			if (sa->full && sa->full != screen) {
+				BLI_assert(sa->full->state == screen->state);
+				return sa->full;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+static void do_version_workspaces_create_from_screens(Main *bmain)
+{
+	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		const bScreen *screen_parent = screen_parent_find(screen);
+		WorkSpace *workspace;
+
+		if (screen_parent) {
+			/* fullscreen with "Back to Previous" option, don't create
+			 * a new workspace, add layout workspace containing parent */
+			workspace = BLI_findstring(
+			        &bmain->workspaces, screen_parent->id.name + 2, offsetof(ID, name) + 2);
+		}
+		else {
+			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
+		}
+		BKE_workspace_layout_add(workspace, screen, screen->id.name + 2);
+		BKE_workspace_render_layer_set(workspace, screen->scene->render_layers.first);
+	}
+}
+
+/**
+ * \brief After lib-link versioning for new workspace design.
+ *
+ *  *  Adds a workspace for (almost) each screen of the old file
+ *     and adds the needed workspace-layout to wrap the screen.
+ *  *  Active screen isn't stored directly in window anymore, but in the active workspace.
+ *  *  Active scene isn't stored in screen anymore, but in window.
+ *  *  Create workspace instance hook for each window.
+ *
+ * \note Some of the created workspaces might be deleted again in case of reading the default startup.blend.
+ */
+static void do_version_workspaces_after_lib_link(Main *bmain)
+{
+	BLI_assert(BLI_listbase_is_empty(&bmain->workspaces));
+
+	do_version_workspaces_create_from_screens(bmain);
+
+	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			bScreen *screen_parent = screen_parent_find(win->screen);
+			bScreen *screen = screen_parent ? screen_parent : win->screen;
+			WorkSpace *workspace = BLI_findstring(&bmain->workspaces, screen->id.name + 2, offsetof(ID, name) + 2);
+			ListBase *layouts = BKE_workspace_layouts_get(workspace);
+
+			win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
+
+			BKE_workspace_active_set(win->workspace_hook, workspace);
+			BKE_workspace_active_layout_set(win->workspace_hook, layouts->first);
+
+			win->scene = screen->scene;
+			/* Deprecated from now on! */
+			win->screen = NULL;
+		}
+	}
+
+	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+		/* Deprecated from now on! */
+		screen->scene = NULL;
+	}
+}
 
 void do_versions_after_linking_280(Main *main)
 {
@@ -183,13 +261,18 @@ void do_versions_after_linking_280(Main *main)
 				scene->basact = NULL;
 			}
 		}
+	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			/* same render-layer as do_version_workspaces_after_lib_link will activate,
+			 * so same layer as BKE_scene_layer_context_active would return */
+			SceneLayer *layer = screen->scene->render_layers.first;
+
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_OUTLINER) {
 						SpaceOops *soutliner = (SpaceOops *)sl;
-						SceneLayer *layer = BKE_scene_layer_context_active(screen->scene);
 
 						soutliner->outlinevis = SO_ACT_LAYER;
 
@@ -212,6 +295,11 @@ void do_versions_after_linking_280(Main *main)
 				}
 			}
 		}
+	}
+
+	/* New workspace design */
+	if (!MAIN_VERSION_ATLEAST(main, 280, 1)) {
+		do_version_workspaces_after_lib_link(main);
 	}
 }
 
@@ -254,34 +342,35 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
-
 	}
 
-	if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio"))	{
-		for (Camera *ca = main->camera.first; ca; ca = ca->id.next) {
-			ca->gpu_dof.ratio = 1.0f;
-		}
-	}
-
-	if (!DNA_struct_elem_find(fd->filesdna, "SceneLayer", "IDProperty", "*properties")) {
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-			for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
-				IDPropertyTemplate val = {0};
-				sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-				BKE_scene_layer_engine_settings_create(sl->properties);
+	if (!MAIN_VERSION_ATLEAST(main, 280, 1)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio"))	{
+			for (Camera *ca = main->camera.first; ca; ca = ca->id.next) {
+				ca->gpu_dof.ratio = 1.0f;
 			}
 		}
-	}
 
-	/* MTexPoly now removed. */
-	if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
-		const int cd_mtexpoly = 15;  /* CD_MTEXPOLY, deprecated */
-		for (Mesh *me = main->mesh.first; me; me = me->id.next) {
-			/* If we have UV's, so this file will have MTexPoly layers too! */
-			if (me->mloopuv != NULL) {
-				CustomData_update_typemap(&me->pdata);
-				CustomData_free_layers(&me->pdata, cd_mtexpoly, me->totpoly);
-				BKE_mesh_update_customdata_pointers(me, false);
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneLayer", "IDProperty", "*properties")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+					IDPropertyTemplate val = {0};
+					sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+					BKE_scene_layer_engine_settings_create(sl->properties);
+				}
+			}
+		}
+
+		/* MTexPoly now removed. */
+		if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
+			const int cd_mtexpoly = 15;  /* CD_MTEXPOLY, deprecated */
+			for (Mesh *me = main->mesh.first; me; me = me->id.next) {
+				/* If we have UV's, so this file will have MTexPoly layers too! */
+				if (me->mloopuv != NULL) {
+					CustomData_update_typemap(&me->pdata);
+					CustomData_free_layers(&me->pdata, cd_mtexpoly, me->totpoly);
+					BKE_mesh_update_customdata_pointers(me, false);
+				}
 			}
 		}
 	}

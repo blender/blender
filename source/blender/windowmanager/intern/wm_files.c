@@ -85,6 +85,7 @@
 #include "BKE_sound.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
@@ -160,7 +161,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 			CTX_wm_window_set(C, win);  /* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
 			WM_event_remove_handlers(C, &win->modalhandlers);
-			ED_screen_exit(C, win, win->screen);
+			ED_screen_exit(C, win, WM_window_get_active_screen(win));
 		}
 	}
 	
@@ -249,16 +250,23 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 
 				/* match oldwm to new dbase, only old files */
 				for (wm = oldwmlist->first; wm; wm = wm->id.next) {
-					
 					for (win = wm->windows.first; win; win = win->next) {
+						WorkSpace *workspace = WM_window_get_active_workspace(win);
+
 						/* all windows get active screen from file */
-						if (screen->winid == 0)
-							win->screen = screen;
-						else 
-							win->screen = ED_screen_duplicate(win, screen);
-						
-						BLI_strncpy(win->screenname, win->screen->id.name + 2, sizeof(win->screenname));
-						win->screen->winid = win->winid;
+						if (screen->winid == 0) {
+							WM_window_set_active_screen(win, workspace, screen);
+						}
+						else {
+							WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
+							WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(workspace, layout_old, win);
+
+							WM_window_set_active_layout(win, workspace, layout_new);
+						}
+
+						bScreen *win_screen = WM_window_get_active_screen(win);
+						BLI_strncpy(win->screenname, win_screen->id.name + 2, sizeof(win->screenname));
+						win_screen->winid = win->winid;
 					}
 				}
 			}
@@ -317,10 +325,8 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 }
 
 /* in case UserDef was read, we re-initialize all, and do versioning */
-static void wm_init_userdef(bContext *C, const bool use_factory_settings)
+static void wm_init_userdef(Main *bmain, const bool use_factory_settings)
 {
-	Main *bmain = CTX_data_main(C);
-
 	/* versioning is here */
 	UI_init_userdef();
 	
@@ -582,7 +588,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 		if (retval == BKE_BLENDFILE_READ_OK_USERPREFS) {
 			/* in case a userdef is read from regular .blend */
-			wm_init_userdef(C, false);
+			wm_init_userdef(G.main, false);
 		}
 		
 		if (retval != BKE_BLENDFILE_READ_FAIL) {
@@ -828,7 +834,7 @@ int wm_homefile_read(
 	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
 	
 	/* check userdef before open window, keymaps etc */
-	wm_init_userdef(C, read_userdef_from_memory);
+	wm_init_userdef(CTX_data_main(C), read_userdef_from_memory);
 	
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
@@ -1370,7 +1376,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* check current window and close it if temp */
-	if (win && win->screen->temp)
+	if (win && WM_window_is_temp_screen(win))
 		wm_window_close(C, wm, win);
 
 	/* update keymaps in user preferences */
@@ -1503,6 +1509,42 @@ void WM_OT_save_userpref(wmOperatorType *ot)
 
 	ot->invoke = WM_operator_confirm;
 	ot->exec = wm_userpref_write_exec;
+}
+
+static int wm_workspace_configuration_file_write_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	char filepath[FILE_MAX];
+
+	const char *app_template = U.app_template[0] ? U.app_template : NULL;
+	const char * const cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, app_template);
+	if (cfgdir == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Unable to create workspace configuration file path");
+		return OPERATOR_CANCELLED;
+	}
+
+	BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_WORKSPACES_FILE, NULL);
+	printf("trying to save workspace configuration file at %s ", filepath);
+
+	if (BKE_blendfile_workspace_config_write(bmain, filepath, op->reports) != 0) {
+		printf("ok\n");
+		return OPERATOR_FINISHED;
+	}
+	else {
+		printf("fail\n");
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void WM_OT_save_workspace_file(wmOperatorType *ot)
+{
+	ot->name = "Save Workspace Configuration";
+	ot->idname = "WM_OT_save_workspace_file";
+	ot->description = "Save workspaces of the current file as part of the user configuration";
+
+	ot->invoke = WM_operator_confirm;
+	ot->exec = wm_workspace_configuration_file_write_exec;
 }
 
 static int wm_history_file_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))

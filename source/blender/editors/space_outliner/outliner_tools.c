@@ -67,6 +67,7 @@
 
 #include "ED_armature.h"
 #include "ED_object.h"
+#include "ED_scene.h"
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 #include "ED_util.h"
@@ -310,7 +311,7 @@ static bool scene_cb(bContext *C, eOutliner_PropSceneOps event, TreeElement *UNU
 	Scene *scene = (Scene *)tselem->id;
 
 	if (event == OL_SCENE_OP_DELETE) {
-		if (ED_screen_delete_scene(C, scene)) {
+		if (ED_scene_delete(C, CTX_data_main(C), CTX_wm_window(C), scene)) {
 			WM_event_add_notifier(C, NC_SCENE | NA_REMOVED, scene);
 		}
 		else {
@@ -571,7 +572,7 @@ void outliner_do_object_operation_ex(
 				// when objects selected in other scenes... dunno if that should be allowed
 				Scene *scene_owner = (Scene *)outliner_search_back(soops, te, ID_SCE);
 				if (scene_owner && scene_act != scene_owner) {
-					ED_screen_set_scene(C, CTX_wm_screen(C), scene_owner);
+					WM_window_change_active_scene(CTX_data_main(C), C, CTX_wm_window(C), scene_owner);
 				}
 				/* important to use 'scene_owner' not scene_act else deleting objects can crash.
 				 * only use 'scene_act' when 'scene_owner' is NULL, which can happen when the
@@ -994,6 +995,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	wmWindow *win = CTX_wm_window(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	int event;
 	const char *str = NULL;
@@ -1008,7 +1010,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		Scene *sce = scene;  // to be able to delete, scenes are set...
 		outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_select_cb);
 		if (scene != sce) {
-			ED_screen_set_scene(C, CTX_wm_screen(C), sce);
+			WM_window_change_active_scene(bmain, C, win, sce);
 		}
 		
 		str = "Select Objects";
@@ -1018,8 +1020,8 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		Scene *sce = scene;  // to be able to delete, scenes are set...
 		outliner_do_object_operation_ex(C, op->reports, scene, soops, &soops->tree, object_select_hierarchy_cb, false);
 		if (scene != sce) {
-			ED_screen_set_scene(C, CTX_wm_screen(C), sce);
-		}	
+			WM_window_change_active_scene(bmain, C, win, sce);
+		}
 		str = "Select Object Hierarchy";
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	}

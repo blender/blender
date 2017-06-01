@@ -859,7 +859,7 @@ static void ed_marker_move_apply(bContext *C, wmOperator *op)
 	BKE_scene_camera_switch_update(scene);
 
 	if (camera != scene->camera) {
-		BKE_screen_view3d_scene_sync(sc);
+		BKE_screen_view3d_scene_sync(sc, scene);
 		WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
 	}
 #endif
@@ -1550,7 +1550,7 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* camera may have changes */
 	BKE_scene_camera_switch_update(scene);
-	BKE_screen_view3d_scene_sync(sc);
+	BKE_screen_view3d_scene_sync(sc, scene);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
 	WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);

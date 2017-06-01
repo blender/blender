@@ -229,11 +229,11 @@ static int delete_orientation_poll(bContext *C)
 	if (ED_operator_areaactive(C) == 0)
 		return 0;
 	
-	
+
 	if (v3d) {
 		selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
 	}
-	
+
 	return selected_index >= 0;
 }
 

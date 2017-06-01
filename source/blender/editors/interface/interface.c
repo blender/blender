@@ -2790,11 +2790,13 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, sh
 		block->aspect = 2.0f / fabsf(getsizex * block->winmat[0][0]);
 	}
 	else {
+		const bScreen *screen = WM_window_get_active_screen(window);
+
 		/* no subwindow created yet, for menus for example, so we
 		 * use the main window instead, since buttons are created
 		 * there anyway */
-		wm_subwindow_matrix_get(window, window->screen->mainwin, block->winmat);
-		wm_subwindow_size_get(window, window->screen->mainwin, &getsizex, &getsizey);
+		wm_subwindow_matrix_get(window, screen->mainwin, block->winmat);
+		wm_subwindow_size_get(window, screen->mainwin, &getsizex, &getsizey);
 
 		block->aspect = 2.0f / fabsf(getsizex * block->winmat[0][0]);
 		block->auto_open = true;
@@ -4628,7 +4630,10 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 			if (ptr && prop) {
 				if (!item) {
 					int i;
-					
+
+					/* so the context is passed to itemf functions */
+					WM_operator_properties_sanitize(ptr, false);
+
 					RNA_property_enum_items_gettexted(C, ptr, prop, &items, &totitems, &free_items);
 					for (i = 0, item = items; i < totitems; i++, item++) {
 						if (item->identifier[0] && item->value == value)

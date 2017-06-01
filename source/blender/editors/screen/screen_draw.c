@@ -293,6 +293,7 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey, unsigned int pos
  */
 void ED_screen_draw(wmWindow *win)
 {
+	bScreen *screen = WM_window_get_active_screen(win);
 	const int winsize_x = WM_window_pixels_x(win);
 	const int winsize_y = WM_window_pixels_y(win);
 
@@ -301,7 +302,7 @@ void ED_screen_draw(wmWindow *win)
 	ScrArea *sa2 = NULL;
 	ScrArea *sa3 = NULL;
 
-	wmSubWindowSet(win, win->screen->mainwin);
+	wmSubWindowSet(win, screen->mainwin);
 
 	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -312,7 +313,7 @@ void ED_screen_draw(wmWindow *win)
 		glLineWidth((2.0f * U.pixelsize) - 1);
 		immUniformColor3ub(0x50, 0x50, 0x50);
 
-		for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+		for (sa = screen->areabase.first; sa; sa = sa->next) {
 			drawscredge_area(sa, winsize_x, winsize_y, pos);
 		}
 	}
@@ -320,7 +321,7 @@ void ED_screen_draw(wmWindow *win)
 	glLineWidth(1);
 	immUniformColor3ub(0, 0, 0);
 
-	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		drawscredge_area(sa, winsize_x, winsize_y, pos);
 
 		/* gather area split/join info */
@@ -403,7 +404,7 @@ void ED_screen_draw(wmWindow *win)
 
 	immUnbindProgram();
 
-	win->screen->do_draw = false;
+	screen->do_draw = false;
 }
 
 

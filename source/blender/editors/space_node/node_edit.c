@@ -123,7 +123,7 @@ static int compo_get_recalc_flags(const bContext *C)
 	int recalc_flags = 0;
 
 	for (win = wm->windows.first; win; win = win->next) {
-		bScreen *sc = win->screen;
+		const bScreen *sc = WM_window_get_active_screen(win);
 		ScrArea *sa;
 
 		for (sa = sc->areabase.first; sa; sa = sa->next) {

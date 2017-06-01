@@ -26,6 +26,7 @@
 
 #include "BLI_rect.h"
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 
 #include "BLO_readfile.h"
 

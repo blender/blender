@@ -1210,8 +1210,8 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	/* delete has to handle all open scenes */
 	BKE_main_id_tag_listbase(&bmain->scene, LIB_TAG_DOIT, true);
 	for (win = wm->windows.first; win; win = win->next) {
-		scene = win->screen->scene;
-		
+		scene = WM_window_get_active_scene(win);
+
 		if (scene->id.tag & LIB_TAG_DOIT) {
 			scene->id.tag &= ~LIB_TAG_DOIT;
 			

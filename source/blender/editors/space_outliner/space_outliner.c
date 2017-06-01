@@ -403,6 +403,11 @@ static void outliner_main_region_listener(
 			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_SCREEN:
+			if (ELEM(wmn->data, ND_LAYER)) {
+				ED_region_tag_redraw(ar);
+			}
+			break;
 	}
 	
 }

@@ -106,6 +106,7 @@
 #include "BKE_scene.h"
 #include "BKE_text.h"
 #include "BKE_texture.h"
+#include "BKE_workspace.h"
 #include "BKE_world.h"
 
 #include "DEG_depsgraph.h"
@@ -882,6 +883,9 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const b
 			break;
 		case ID_CF:
 			BKE_cachefile_free((CacheFile *)id);
+			break;
+		case ID_WS:
+			BKE_workspace_free((WorkSpace *)id);
 			break;
 	}
 
