@@ -142,28 +142,40 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 {
 	memset(gs, 0, sizeof(*gs));
 	
-	nodestack_get_vec(gs->vec, type, ns);
-	gs->link = ns->data;
-	
-	if (type == SOCK_FLOAT)
-		gs->type = GPU_FLOAT;
-	else if (type == SOCK_VECTOR)
-		gs->type = GPU_VEC3;
-	else if (type == SOCK_RGBA)
-		gs->type = GPU_VEC4;
-	else if (type == SOCK_SHADER)
-		gs->type = GPU_VEC4;
-	else
+	if (ns == NULL) {
+		/* node_get_stack() will generate NULL bNodeStack pointers for unknown/unsuported types of sockets... */
+		zero_v4(gs->vec);
+		gs->link = NULL;
 		gs->type = GPU_NONE;
+		gs->name = "";
+		gs->hasinput = false;
+		gs->hasoutput = false;
+		gs->sockettype = type;
+	}
+	else {
+		nodestack_get_vec(gs->vec, type, ns);
+		gs->link = ns->data;
 	
-	gs->name = "";
-	gs->hasinput = ns->hasinput && ns->data;
-	/* XXX Commented out the ns->data check here, as it seems it's not always set,
-	 *     even though there *is* a valid connection/output... But that might need
-	 *     further investigation.
-	 */
-	gs->hasoutput = ns->hasoutput /*&& ns->data*/;
-	gs->sockettype = ns->sockettype;
+		if (type == SOCK_FLOAT)
+			gs->type = GPU_FLOAT;
+		else if (type == SOCK_VECTOR)
+			gs->type = GPU_VEC3;
+		else if (type == SOCK_RGBA)
+			gs->type = GPU_VEC4;
+		else if (type == SOCK_SHADER)
+			gs->type = GPU_VEC4;
+		else
+			gs->type = GPU_NONE;
+
+		gs->name = "";
+		gs->hasinput = ns->hasinput && ns->data;
+		/* XXX Commented out the ns->data check here, as it seems it's not always set,
+		 *     even though there *is* a valid connection/output... But that might need
+		 *     further investigation.
+		 */
+		gs->hasoutput = ns->hasoutput /*&& ns->data*/;
+		gs->sockettype = ns->sockettype;
+	}
 }
 
 void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs)

@@ -78,7 +78,8 @@ void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack 
 
 static void node_init_input_index(bNodeSocket *sock, int *index)
 {
-	if (sock->link && sock->link->fromsock) {
+	/* Only consider existing link if from socket is valid! */
+	if (sock->link && sock->link->fromsock && sock->link->fromsock->stack_index >= 0) {
 		sock->stack_index = sock->link->fromsock->stack_index;
 	}
 	else {
