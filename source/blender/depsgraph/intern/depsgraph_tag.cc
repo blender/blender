@@ -337,7 +337,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 				{
 					id_node->tag_update(graph);
 					DEG::ComponentDepsNode *anim_comp =
-					        id_node->find_component(DEG::DEPSNODE_TYPE_ANIMATION);
+					        id_node->find_component(DEG::DEG_NODE_TYPE_ANIMATION);
 					if (anim_comp != NULL && object->recalc & OB_RECALC_TIME) {
 						anim_comp->tag_update(graph);
 					}

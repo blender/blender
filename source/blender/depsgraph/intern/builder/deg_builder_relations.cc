@@ -317,10 +317,10 @@ void DepsgraphRelationBuilder::add_collision_relations(const OperationKey &key, 
 	{
 		Object *ob1 = collobjs[i];
 
-		ComponentKey trf_key(&ob1->id, DEPSNODE_TYPE_TRANSFORM);
+		ComponentKey trf_key(&ob1->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(trf_key, key, name);
 
-		ComponentKey coll_key(&ob1->id, DEPSNODE_TYPE_GEOMETRY);
+		ComponentKey coll_key(&ob1->id, DEG_NODE_TYPE_GEOMETRY);
 		add_relation(coll_key, key, name);
 	}
 
@@ -335,30 +335,30 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 	if (effectors) {
 		for (EffectorCache *eff = (EffectorCache *)effectors->first; eff; eff = eff->next) {
 			if (eff->ob != ob) {
-				ComponentKey eff_key(&eff->ob->id, DEPSNODE_TYPE_TRANSFORM);
+				ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(eff_key, key, name);
 			}
 
 			if (eff->psys) {
 				if (eff->ob != ob) {
-					ComponentKey eff_key(&eff->ob->id, DEPSNODE_TYPE_EVAL_PARTICLES);
+					ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
 					add_relation(eff_key, key, name);
 
 					/* TODO: remove this when/if EVAL_PARTICLES is sufficient for up to date particles */
-					ComponentKey mod_key(&eff->ob->id, DEPSNODE_TYPE_GEOMETRY);
+					ComponentKey mod_key(&eff->ob->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(mod_key, key, name);
 				}
 				else if (eff->psys != psys) {
-					OperationKey eff_key(&eff->ob->id, DEPSNODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, eff->psys->name);
+					OperationKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, eff->psys->name);
 					add_relation(eff_key, key, name);
 				}
 			}
 
 			if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
-				ComponentKey trf_key(&eff->pd->f_source->id, DEPSNODE_TYPE_TRANSFORM);
+				ComponentKey trf_key(&eff->pd->f_source->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(trf_key, key, "Smoke Force Domain");
 
-				ComponentKey eff_key(&eff->pd->f_source->id, DEPSNODE_TYPE_GEOMETRY);
+				ComponentKey eff_key(&eff->pd->f_source->id, DEG_NODE_TYPE_GEOMETRY);
 				add_relation(eff_key, key, "Smoke Force Domain");
 			}
 
@@ -397,13 +397,13 @@ void DepsgraphRelationBuilder::build_group(Main *bmain,
 	ID *group_id = &group->id;
 	bool group_done = (group_id->tag & LIB_TAG_DOIT) != 0;
 	OperationKey object_local_transform_key(&object->id,
-	                                        DEPSNODE_TYPE_TRANSFORM,
+	                                        DEG_NODE_TYPE_TRANSFORM,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		if (!group_done) {
 			build_object(bmain, scene, go->ob);
 		}
-		ComponentKey dupli_transform_key(&go->ob->id, DEPSNODE_TYPE_TRANSFORM);
+		ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(dupli_transform_key,
 		             object_local_transform_key,
 		             "Dupligroup");
@@ -420,13 +420,13 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 
 	/* Object Transforms */
 	eDepsOperation_Code base_op = (ob->parent) ? DEG_OPCODE_TRANSFORM_PARENT : DEG_OPCODE_TRANSFORM_LOCAL;
-	OperationKey base_op_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, base_op);
+	OperationKey base_op_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, base_op);
 
-	OperationKey local_transform_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
-	OperationKey parent_transform_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_PARENT);
-	OperationKey final_transform_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
+	OperationKey local_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
+	OperationKey parent_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_PARENT);
+	OperationKey final_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
 
-	OperationKey ob_ubereval_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_OBJECT_UBEREVAL);
+	OperationKey ob_ubereval_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_OBJECT_UBEREVAL);
 
 	/* parenting */
 	if (ob->parent != NULL) {
@@ -457,7 +457,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 	/* object constraints */
 	if (ob->constraints.first != NULL) {
 		OperationKey constraint_key(&ob->id,
-		                            DEPSNODE_TYPE_TRANSFORM,
+		                            DEG_NODE_TYPE_TRANSFORM,
 		                            DEG_OPCODE_TRANSFORM_CONSTRAINTS);
 
 		/* constraint relations */
@@ -465,7 +465,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 		// XXX: this is broken
 		build_constraints(scene,
 		                  &ob->id,
-		                  DEPSNODE_TYPE_TRANSFORM,
+		                  DEG_NODE_TYPE_TRANSFORM,
 		                  "",
 		                  &ob->constraints,
 		                  NULL);
@@ -510,7 +510,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 
 	// XXX: This should be hooked up by the build_animdata code
 	if (needs_animdata_node(&ob->id)) {
-		ComponentKey adt_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
+		ComponentKey adt_key(&ob->id, DEG_NODE_TYPE_ANIMATION);
 		add_relation(adt_key,
 		             local_transform_key,
 		             "Object Animation");
@@ -557,8 +557,8 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 
 		Key *key = BKE_key_from_object(ob);
 		if (key != NULL) {
-			ComponentKey geometry_key((ID *)ob->data, DEPSNODE_TYPE_GEOMETRY);
-			ComponentKey key_key(&key->id, DEPSNODE_TYPE_GEOMETRY);
+			ComponentKey geometry_key((ID *)ob->data, DEG_NODE_TYPE_GEOMETRY);
+			ComponentKey key_key(&key->id, DEG_NODE_TYPE_GEOMETRY);
 			add_relation(key_key,
 			             geometry_key,
 			             "Shapekeys");
@@ -582,8 +582,8 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 		/* TODO(sergey): This is an inverted relation, matches old depsgraph
 		 * behavior and need to be investigated if it still need to be inverted.
 		 */
-		ComponentKey ob_pose_key(&ob->id, DEPSNODE_TYPE_EVAL_POSE);
-		ComponentKey proxy_pose_key(&ob->proxy->id, DEPSNODE_TYPE_EVAL_POSE);
+		ComponentKey ob_pose_key(&ob->id, DEG_NODE_TYPE_EVAL_POSE);
+		ComponentKey proxy_pose_key(&ob->proxy->id, DEG_NODE_TYPE_EVAL_POSE);
 		add_relation(ob_pose_key, proxy_pose_key, "Proxy");
 	}
 
@@ -600,14 +600,14 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 	 */
 	// XXX: @sergey - it would be good if we got that backwards flushing working
 	// when tagging for updates.
-	//OperationKey ob_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_PARENT);
-	ComponentKey ob_key(&ob->id, DEPSNODE_TYPE_TRANSFORM);
+	//OperationKey ob_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_PARENT);
+	ComponentKey ob_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
 
 	/* type-specific links */
 	switch (ob->partype) {
 		case PARSKEL:  /* Armature Deform (Virtual Modifier) */
 		{
-			ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
+			ComponentKey parent_key(&ob->parent->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(parent_key, ob_key, "Armature Deform Parent");
 			break;
 		}
@@ -615,7 +615,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 		case PARVERT1: /* Vertex Parent */
 		case PARVERT3:
 		{
-			ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_GEOMETRY);
+			ComponentKey parent_key(&ob->parent->id, DEG_NODE_TYPE_GEOMETRY);
 			add_relation(parent_key, ob_key, "Vertex Parent");
 
 			/* XXX not sure what this is for or how you could be done properly - lukas */
@@ -624,7 +624,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 				parent_node->customdata_mask |= CD_MASK_ORIGINDEX;
 			}
 
-			ComponentKey transform_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
+			ComponentKey transform_key(&ob->parent->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(transform_key, ob_key, "Vertex Parent TFM");
 			break;
 		}
@@ -632,10 +632,10 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 		case PARBONE: /* Bone Parent */
 		{
 			ComponentKey parent_bone_key(&ob->parent->id,
-			                             DEPSNODE_TYPE_BONE,
+			                             DEG_NODE_TYPE_BONE,
 			                             ob->parsubstr);
 			OperationKey parent_transform_key(&ob->parent->id,
-			                                  DEPSNODE_TYPE_TRANSFORM,
+			                                  DEG_NODE_TYPE_TRANSFORM,
 			                                  DEG_OPCODE_TRANSFORM_FINAL);
 			add_relation(parent_bone_key,
 			             ob_key,
@@ -651,8 +651,8 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 			if (ob->parent->type == OB_LATTICE) {
 				/* Lattice Deform Parent - Virtual Modifier */
 				// XXX: no virtual modifiers should be left!
-				ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
-				ComponentKey geom_key(&ob->parent->id, DEPSNODE_TYPE_GEOMETRY);
+				ComponentKey parent_key(&ob->parent->id, DEG_NODE_TYPE_TRANSFORM);
+				ComponentKey geom_key(&ob->parent->id, DEG_NODE_TYPE_GEOMETRY);
 
 				add_relation(parent_key, ob_key, "Lattice Deform Parent");
 				add_relation(geom_key, ob_key, "Lattice Deform Parent Geom");
@@ -662,21 +662,21 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 
 				if (cu->flag & CU_PATH) {
 					/* Follow Path */
-					ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_GEOMETRY);
+					ComponentKey parent_key(&ob->parent->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(parent_key, ob_key, "Curve Follow Parent");
 
-					ComponentKey transform_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
+					ComponentKey transform_key(&ob->parent->id, DEG_NODE_TYPE_TRANSFORM);
 					add_relation(transform_key, ob_key, "Curve Follow TFM");
 				}
 				else {
 					/* Standard Parent */
-					ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
+					ComponentKey parent_key(&ob->parent->id, DEG_NODE_TYPE_TRANSFORM);
 					add_relation(parent_key, ob_key, "Curve Parent");
 				}
 			}
 			else {
 				/* Standard Parent */
-				ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
+				ComponentKey parent_key(&ob->parent->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(parent_key, ob_key, "Parent");
 			}
 			break;
@@ -693,7 +693,7 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
                                                  ListBase *constraints, RootPChanMap *root_map)
 {
 	OperationKey constraint_op_key(id, component_type, component_subdata,
-	                               (component_type == DEPSNODE_TYPE_BONE) ? DEG_OPCODE_BONE_CONSTRAINTS : DEG_OPCODE_TRANSFORM_CONSTRAINTS);
+	                               (component_type == DEG_NODE_TYPE_BONE) ? DEG_OPCODE_BONE_CONSTRAINTS : DEG_OPCODE_TRANSFORM_CONSTRAINTS);
 
 	/* add dependencies for each constraint in turn */
 	for (bConstraint *con = (bConstraint *)constraints->first; con; con = con->next) {
@@ -716,7 +716,7 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 
 				if (data->depth_ob) {
 					// DAG_RL_DATA_OB | DAG_RL_OB_OB
-					ComponentKey depth_key(&data->depth_ob->id, DEPSNODE_TYPE_TRANSFORM);
+					ComponentKey depth_key(&data->depth_ob->id, DEG_NODE_TYPE_TRANSFORM);
 					add_relation(depth_key, constraint_op_key, cti->name);
 				}
 			}
@@ -726,7 +726,7 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 
 			if (depends_on_camera && scene->camera) {
 				// DAG_RL_DATA_OB | DAG_RL_OB_OB
-				ComponentKey camera_key(&scene->camera->id, DEPSNODE_TYPE_TRANSFORM);
+				ComponentKey camera_key(&scene->camera->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(camera_key, constraint_op_key, cti->name);
 			}
 
@@ -742,7 +742,7 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 			bTransformCacheConstraint *data = (bTransformCacheConstraint *)con->data;
 
 			if (data->cache_file) {
-				ComponentKey cache_key(&data->cache_file->id, DEPSNODE_TYPE_CACHE);
+				ComponentKey cache_key(&data->cache_file->id, DEG_NODE_TYPE_CACHE);
 				add_relation(cache_key, constraint_op_key, cti->name);
 			}
 		}
@@ -760,7 +760,7 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 				}
 				else if (ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO)) {
 					/* these constraints require path geometry data... */
-					ComponentKey target_key(&ct->tar->id, DEPSNODE_TYPE_GEOMETRY);
+					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name); // XXX: type = geom_transform
 					// TODO: path dependency
 				}
@@ -780,19 +780,19 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 							target_key_opcode = DEG_OPCODE_BONE_DONE;
 						}
 
-						OperationKey target_key(&ct->tar->id, DEPSNODE_TYPE_BONE, ct->subtarget, target_key_opcode);
+						OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_BONE, ct->subtarget, target_key_opcode);
 						add_relation(target_key, constraint_op_key, cti->name);
 					}
 					else {
 						/* different armature - we can safely use the result of that */
-						OperationKey target_key(&ct->tar->id, DEPSNODE_TYPE_BONE, ct->subtarget, DEG_OPCODE_BONE_DONE);
+						OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_BONE, ct->subtarget, DEG_OPCODE_BONE_DONE);
 						add_relation(target_key, constraint_op_key, cti->name);
 					}
 				}
 				else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) {
 					/* vertex group */
 					/* NOTE: for now, we don't need to represent vertex groups separately... */
-					ComponentKey target_key(&ct->tar->id, DEPSNODE_TYPE_GEOMETRY);
+					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name);
 
 					if (ct->tar->type == OB_MESH) {
@@ -804,11 +804,11 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 				}
 				else if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {
 					/* Constraints which requires the target object surface. */
-					ComponentKey target_key(&ct->tar->id, DEPSNODE_TYPE_GEOMETRY);
+					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name);
 
 					/* NOTE: obdata eval now doesn't necessarily depend on the object's transform... */
-					ComponentKey target_transform_key(&ct->tar->id, DEPSNODE_TYPE_TRANSFORM);
+					ComponentKey target_transform_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM);
 					add_relation(target_transform_key, constraint_op_key, cti->name);
 				}
 				else {
@@ -821,18 +821,18 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 						 * - If however it is a real self targetting case, just make it depend on the
 						 *   previous constraint (or the pre-constraint state)...
 						 */
-						if ((ct->tar->type == OB_ARMATURE) && (component_type == DEPSNODE_TYPE_BONE)) {
-							OperationKey target_key(&ct->tar->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
+						if ((ct->tar->type == OB_ARMATURE) && (component_type == DEG_NODE_TYPE_BONE)) {
+							OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
 							add_relation(target_key, constraint_op_key, cti->name);
 						}
 						else {
-							OperationKey target_key(&ct->tar->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
+							OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
 							add_relation(target_key, constraint_op_key, cti->name);
 						}
 					}
 					else {
 						/* normal object dependency */
-						OperationKey target_key(&ct->tar->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
+						OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
 						add_relation(target_key, constraint_op_key, cti->name);
 					}
 				}
@@ -847,7 +847,7 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 				         CONSTRAINT_TYPE_TRANSLIKE))
 				{
 					/* TODO(sergey): Add used space check. */
-					ComponentKey target_transform_key(&ct->tar->id, DEPSNODE_TYPE_TRANSFORM);
+					ComponentKey target_transform_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM);
 					add_relation(target_transform_key, constraint_op_key, cti->name);
 				}
 
@@ -866,7 +866,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 	if (adt == NULL)
 		return;
 
-	ComponentKey adt_key(id, DEPSNODE_TYPE_ANIMATION);
+	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
 
 	/* animation */
 	if (adt->action || adt->nla_tracks.first) {
@@ -882,7 +882,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 	/* drivers */
 	LINKLIST_FOREACH (FCurve *, fcu, &adt->drivers) {
 		OperationKey driver_key(id,
-		                        DEPSNODE_TYPE_PARAMETERS,
+		                        DEG_NODE_TYPE_PARAMETERS,
 		                        DEG_OPCODE_DRIVER,
 		                        fcu->rna_path ? fcu->rna_path : "",
 		                        fcu->array_index);
@@ -923,12 +923,12 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 			}
 			if (fcu_prev != NULL) {
 				OperationKey prev_driver_key(id,
-				                             DEPSNODE_TYPE_PARAMETERS,
+				                             DEG_NODE_TYPE_PARAMETERS,
 				                             DEG_OPCODE_DRIVER,
 				                             fcu_prev->rna_path ? fcu_prev->rna_path : "",
 				                             fcu_prev->array_index);
 				OperationKey driver_key(id,
-				                        DEPSNODE_TYPE_PARAMETERS,
+				                        DEG_NODE_TYPE_PARAMETERS,
 				                        DEG_OPCODE_DRIVER,
 				                        fcu->rna_path ? fcu->rna_path : "",
 				                        fcu->array_index);
@@ -950,7 +950,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 {
 	ChannelDriver *driver = fcu->driver;
 	OperationKey driver_key(id,
-	                        DEPSNODE_TYPE_PARAMETERS,
+	                        DEG_NODE_TYPE_PARAMETERS,
 	                        DEG_OPCODE_DRIVER,
 	                        fcu->rna_path ? fcu->rna_path : "",
 	                        fcu->array_index);
@@ -980,7 +980,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		}
 
 		if (pchan) {
-			OperationKey bone_key(id, DEPSNODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
+			OperationKey bone_key(id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
 			add_relation(driver_key, bone_key, "[Driver -> Bone]");
 		}
 		else {
@@ -1007,7 +1007,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 					bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name); // NOTE: ob->pose may be NULL
 
 					if (pchan) {
-						OperationKey bone_key(&ob->id, DEPSNODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
+						OperationKey bone_key(&ob->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
 						add_relation(driver_key, bone_key, "[Arm Bone -> Driver -> Bone]");
 					}
 				}
@@ -1028,7 +1028,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		char *modifier_name = BLI_str_quoted_substrN(rna_path, "modifiers[");
 		if (modifier_name) {
 			OperationKey modifier_key(id,
-			                          DEPSNODE_TYPE_GEOMETRY,
+			                          DEG_NODE_TYPE_GEOMETRY,
 			                          DEG_OPCODE_GEOMETRY_MODIFIER,
 			                          modifier_name);
 			if (has_node(modifier_key)) {
@@ -1046,21 +1046,21 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		// XXX: double check where this points
 		Key *shape_key = (Key *)id;
 
-		ComponentKey geometry_key(shape_key->from, DEPSNODE_TYPE_GEOMETRY);
+		ComponentKey geometry_key(shape_key->from, DEG_NODE_TYPE_GEOMETRY);
 		add_relation(driver_key, geometry_key, "[Driver -> ShapeKey Geom]");
 	}
 	else if (strstr(rna_path, "key_blocks[")) {
-		ComponentKey geometry_key(id, DEPSNODE_TYPE_GEOMETRY);
+		ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
 		add_relation(driver_key, geometry_key, "[Driver -> ShapeKey Geom]");
 	}
 	else {
 		if (GS(id->name) == ID_OB) {
 			/* assume that driver affects a transform... */
-			OperationKey local_transform_key(id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
+			OperationKey local_transform_key(id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
 			add_relation(driver_key, local_transform_key, "[Driver -> Transform]");
 		}
 		else if (GS(id->name) == ID_KE) {
-			ComponentKey geometry_key(id, DEPSNODE_TYPE_GEOMETRY);
+			ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
 			add_relation(driver_key, geometry_key, "[Driver -> Shapekey Geometry]");
 		}
 	}
@@ -1094,13 +1094,13 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 					{
 						continue;
 					}
-					OperationKey target_key(dtar->id, DEPSNODE_TYPE_BONE, target_pchan->name, DEG_OPCODE_BONE_DONE);
+					OperationKey target_key(dtar->id, DEG_NODE_TYPE_BONE, target_pchan->name, DEG_OPCODE_BONE_DONE);
 					add_relation(target_key, driver_key, "[Bone Target -> Driver]");
 				}
 			}
 			else if (dtar->flag & DTAR_FLAG_STRUCT_REF) {
 				/* get node associated with the object's transforms */
-				OperationKey target_key(dtar->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
+				OperationKey target_key(dtar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
 				add_relation(target_key, driver_key, "[Target -> Driver]");
 			}
 			else if (dtar->rna_path && strstr(dtar->rna_path, "pose.bones[")) {
@@ -1121,7 +1121,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 					{
 						continue;
 					}
-					OperationKey bone_key(dtar->id, DEPSNODE_TYPE_BONE, target_pchan->name, DEG_OPCODE_BONE_LOCAL);
+					OperationKey bone_key(dtar->id, DEG_NODE_TYPE_BONE, target_pchan->name, DEG_OPCODE_BONE_LOCAL);
 					add_relation(bone_key, driver_key, "[RNA Bone -> Driver]");
 				}
 			}
@@ -1170,8 +1170,8 @@ void DepsgraphRelationBuilder::build_world(World *world)
 	/* world's nodetree */
 	if (world->nodetree != NULL) {
 		build_nodetree(world->nodetree);
-		ComponentKey ntree_key(&world->nodetree->id, DEPSNODE_TYPE_PARAMETERS);
-		ComponentKey world_key(world_id, DEPSNODE_TYPE_PARAMETERS);
+		ComponentKey ntree_key(&world->nodetree->id, DEG_NODE_TYPE_PARAMETERS);
+		ComponentKey world_key(world_id, DEG_NODE_TYPE_PARAMETERS);
 		add_relation(ntree_key, world_key,
 		             "NTree->World Parameters");
 	}
@@ -1181,8 +1181,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 
-	OperationKey init_key(&scene->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_RIGIDBODY_REBUILD);
-	OperationKey sim_key(&scene->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_RIGIDBODY_SIM);
+	OperationKey init_key(&scene->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_RIGIDBODY_REBUILD);
+	OperationKey sim_key(&scene->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_RIGIDBODY_SIM);
 
 	/* rel between the two sim-nodes */
 	add_relation(init_key, sim_key, "Rigidbody [Init -> SimStep]");
@@ -1211,10 +1211,10 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			 *    XXX: there's probably a difference between passive and active
 			 *         - passive don't change, so may need to know full transform...
 			 */
-			OperationKey rbo_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
+			OperationKey rbo_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
 
 			eDepsOperation_Code trans_opcode = ob->parent ? DEG_OPCODE_TRANSFORM_PARENT : DEG_OPCODE_TRANSFORM_LOCAL;
-			OperationKey trans_op(&ob->id, DEPSNODE_TYPE_TRANSFORM, trans_opcode);
+			OperationKey trans_op(&ob->id, DEG_NODE_TYPE_TRANSFORM, trans_opcode);
 
 			add_relation(sim_key, rbo_key, "Rigidbody Sim Eval -> RBO Sync");
 
@@ -1228,7 +1228,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			 */
 			if (ob->constraints.first) {
 				OperationKey constraint_key(&ob->id,
-				                            DEPSNODE_TYPE_TRANSFORM,
+				                            DEG_NODE_TYPE_TRANSFORM,
 				                            DEG_OPCODE_TRANSFORM_CONSTRAINTS);
 				add_relation(rbo_key,
 				             constraint_key,
@@ -1241,7 +1241,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 				 * If it is gone we'll need to reconsider relation here.
 				 */
 				OperationKey uber_key(&ob->id,
-				                      DEPSNODE_TYPE_TRANSFORM,
+				                      DEG_NODE_TYPE_TRANSFORM,
 				                      DEG_OPCODE_OBJECT_UBEREVAL);
 				add_relation(rbo_key,
 				             uber_key,
@@ -1268,9 +1268,9 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			/* final result of the constraint object's transform controls how the
 			 * constraint affects the physics sim for these objects
 			 */
-			ComponentKey trans_key(&ob->id, DEPSNODE_TYPE_TRANSFORM);
-			OperationKey ob1_key(&rbc->ob1->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
-			OperationKey ob2_key(&rbc->ob2->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
+			ComponentKey trans_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
+			OperationKey ob1_key(&rbc->ob1->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
+			OperationKey ob2_key(&rbc->ob2->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
 
 			/* - constrained-objects sync depends on the constraint-holder */
 			add_relation(trans_key, ob1_key, "RigidBodyConstraint -> RBC.Object_1");
@@ -1286,7 +1286,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 {
 	TimeSourceKey time_src_key;
 	OperationKey obdata_ubereval_key(&ob->id,
-	                                 DEPSNODE_TYPE_GEOMETRY,
+	                                 DEG_NODE_TYPE_GEOMETRY,
 	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 
 	/* particle systems */
@@ -1297,7 +1297,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		build_animdata(&part->id);
 
 		/* this particle system */
-		OperationKey psys_key(&ob->id, DEPSNODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, psys->name);
+		OperationKey psys_key(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, psys->name);
 
 		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
 		if (!psys_check_enabled(ob, psys, G.is_rendering))
@@ -1339,7 +1339,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 						ruleob = ((BoidRuleFollowLeader *)rule)->ob;
 
 					if (ruleob) {
-						ComponentKey ruleob_key(&ruleob->id, DEPSNODE_TYPE_TRANSFORM);
+						ComponentKey ruleob_key(&ruleob->id, DEG_NODE_TYPE_TRANSFORM);
 						add_relation(ruleob_key, psys_key, "Boid Rule");
 					}
 				}
@@ -1347,7 +1347,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		}
 
 		if (part->ren_as == PART_DRAW_OB && part->dup_ob) {
-			ComponentKey dup_ob_key(&part->dup_ob->id, DEPSNODE_TYPE_TRANSFORM);
+			ComponentKey dup_ob_key(&part->dup_ob->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(dup_ob_key,
 			             psys_key,
 			             "Particle Object Visualization");
@@ -1360,7 +1360,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	 * TODO(sergey): This relation should be altered once real granular update
 	 * is implemented.
 	 */
-	ComponentKey transform_key(&ob->id, DEPSNODE_TYPE_TRANSFORM);
+	ComponentKey transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
 	add_relation(transform_key,
 	             obdata_ubereval_key,
 	             "Partcile Eval");
@@ -1374,12 +1374,12 @@ void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
                                            ModifierData *md)
 {
 	OperationKey cache_key(&object->id,
-	                       DEPSNODE_TYPE_CACHE,
+	                       DEG_NODE_TYPE_CACHE,
 	                       DEG_OPCODE_PLACEHOLDER,
 	                       "Cloth Modifier");
 	/* Cache component affects on modifier. */
 	OperationKey modifier_key(&object->id,
-	                          DEPSNODE_TYPE_GEOMETRY,
+	                          DEG_NODE_TYPE_GEOMETRY,
 	                          DEG_OPCODE_GEOMETRY_MODIFIER,
 	                          md->name);
 	add_relation(cache_key,
@@ -1390,7 +1390,7 @@ void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
 /* Shapekeys */
 void DepsgraphRelationBuilder::build_shapekeys(ID *obdata, Key *key)
 {
-	ComponentKey obdata_key(obdata, DEPSNODE_TYPE_GEOMETRY);
+	ComponentKey obdata_key(obdata, DEG_NODE_TYPE_GEOMETRY);
 
 	/* attach animdata to geometry */
 	build_animdata(&key->id);
@@ -1398,7 +1398,7 @@ void DepsgraphRelationBuilder::build_shapekeys(ID *obdata, Key *key)
 	if (key->adt) {
 		// TODO: this should really be handled in build_animdata, since many of these cases will need it
 		if (key->adt->action || key->adt->nla_tracks.first) {
-			ComponentKey adt_key(&key->id, DEPSNODE_TYPE_ANIMATION);
+			ComponentKey adt_key(&key->id, DEG_NODE_TYPE_ANIMATION);
 			add_relation(adt_key, obdata_key, "Animation");
 		}
 
@@ -1407,7 +1407,7 @@ void DepsgraphRelationBuilder::build_shapekeys(ID *obdata, Key *key)
 
 	/* attach to geometry */
 	// XXX: aren't shapekeys now done as a pseudo-modifier on object?
-	//ComponentKey key_key(&key->id, DEPSNODE_TYPE_GEOMETRY); // FIXME: this doesn't exist
+	//ComponentKey key_key(&key->id, DEG_NODE_TYPE_GEOMETRY); // FIXME: this doesn't exist
 	//add_relation(key_key, obdata_key, "Shapekeys");
 }
 
@@ -1436,11 +1436,11 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	ID *obdata = (ID *)ob->data;
 
 	/* Init operation of object-level geometry evaluation. */
-	OperationKey geom_init_key(&ob->id, DEPSNODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Eval Init");
+	OperationKey geom_init_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Eval Init");
 
 	/* get nodes for result of obdata's evaluation, and geometry evaluation on object */
-	ComponentKey obdata_geom_key(obdata, DEPSNODE_TYPE_GEOMETRY);
-	ComponentKey geom_key(&ob->id, DEPSNODE_TYPE_GEOMETRY);
+	ComponentKey obdata_geom_key(obdata, DEG_NODE_TYPE_GEOMETRY);
+	ComponentKey geom_key(&ob->id, DEG_NODE_TYPE_GEOMETRY);
 
 	/* link components to each other */
 	add_relation(obdata_geom_key, geom_key, "Object Geometry Base Data");
@@ -1451,7 +1451,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 
 		LINKLIST_FOREACH (ModifierData *, md, &ob->modifiers) {
 			const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
-			OperationKey mod_key(&ob->id, DEPSNODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
+			OperationKey mod_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
 
 			if (md->prev) {
 				/* Stack relation: modifier depends on previous modifier in the stack */
@@ -1483,7 +1483,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 				 */
 				/* XXX: Remove this hack when these links are added as part of build_animdata() instead */
 				if (modifier_dependsOnTime(md) == false && needs_animdata_node(&ob->id)) {
-					ComponentKey animation_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
+					ComponentKey animation_key(&ob->id, DEG_NODE_TYPE_ANIMATION);
 					add_relation(animation_key, mod_key, "Modifier Animation");
 				}
 			}
@@ -1517,10 +1517,10 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	 */
 	if (ob->type != OB_ARMATURE) {
 		/* Armatures does no longer require uber node. */
-		OperationKey obdata_ubereval_key(&ob->id, DEPSNODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
+		OperationKey obdata_ubereval_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
 		if (ob->modifiers.last) {
 			ModifierData *md = (ModifierData *)ob->modifiers.last;
-			OperationKey mod_key(&ob->id, DEPSNODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
+			OperationKey mod_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
 			add_relation(mod_key, obdata_ubereval_key, "Object Geometry UberEval");
 		}
 		else {
@@ -1534,8 +1534,8 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	obdata->tag |= LIB_TAG_DOIT;
 
 	/* Link object data evaluation node to exit operation. */
-	OperationKey obdata_geom_eval_key(obdata, DEPSNODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
-	OperationKey obdata_geom_done_key(obdata, DEPSNODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Eval Done");
+	OperationKey obdata_geom_eval_key(obdata, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+	OperationKey obdata_geom_done_key(obdata, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_PLACEHOLDER, "Eval Done");
 	add_relation(obdata_geom_eval_key, obdata_geom_done_key, "ObData Geom Eval Done");
 
 	/* type-specific node/links */
@@ -1550,8 +1550,8 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			/* motherball - mom depends on children! */
 			if (mom != ob) {
 				/* non-motherball -> cannot be directly evaluated! */
-				ComponentKey mom_key(&mom->id, DEPSNODE_TYPE_GEOMETRY);
-				ComponentKey transform_key(&ob->id, DEPSNODE_TYPE_TRANSFORM);
+				ComponentKey mom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
+				ComponentKey transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(geom_key, mom_key, "Metaball Motherball");
 				add_relation(transform_key, mom_key, "Metaball Motherball");
 			}
@@ -1566,18 +1566,18 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			/* curve's dependencies */
 			// XXX: these needs geom data, but where is geom stored?
 			if (cu->bevobj) {
-				ComponentKey bevob_key(&cu->bevobj->id, DEPSNODE_TYPE_GEOMETRY);
+				ComponentKey bevob_key(&cu->bevobj->id, DEG_NODE_TYPE_GEOMETRY);
 				build_object(bmain, scene, cu->bevobj);
 				add_relation(bevob_key, geom_key, "Curve Bevel");
 			}
 			if (cu->taperobj) {
-				ComponentKey taperob_key(&cu->taperobj->id, DEPSNODE_TYPE_GEOMETRY);
+				ComponentKey taperob_key(&cu->taperobj->id, DEG_NODE_TYPE_GEOMETRY);
 				build_object(bmain, scene, cu->taperobj);
 				add_relation(taperob_key, geom_key, "Curve Taper");
 			}
 			if (ob->type == OB_FONT) {
 				if (cu->textoncurve) {
-					ComponentKey textoncurve_key(&cu->textoncurve->id, DEPSNODE_TYPE_GEOMETRY);
+					ComponentKey textoncurve_key(&cu->textoncurve->id, DEG_NODE_TYPE_GEOMETRY);
 					build_object(bmain, scene, cu->textoncurve);
 					add_relation(textoncurve_key, geom_key, "Text on Curve");
 				}
@@ -1603,8 +1603,8 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	}
 
 	if (needs_animdata_node(obdata)) {
-		ComponentKey animation_key(obdata, DEPSNODE_TYPE_ANIMATION);
-		ComponentKey parameters_key(obdata, DEPSNODE_TYPE_PARAMETERS);
+		ComponentKey animation_key(obdata, DEG_NODE_TYPE_ANIMATION);
+		ComponentKey parameters_key(obdata, DEG_NODE_TYPE_PARAMETERS);
 		add_relation(animation_key, parameters_key,
 		             "Geom Parameters");
 		/* Evaluation usually depends on animation.
@@ -1625,18 +1625,18 @@ void DepsgraphRelationBuilder::build_camera(Object *ob)
 	}
 	camera_id->tag |= LIB_TAG_DOIT;
 
-	ComponentKey parameters_key(camera_id, DEPSNODE_TYPE_PARAMETERS);
+	ComponentKey parameters_key(camera_id, DEG_NODE_TYPE_PARAMETERS);
 
 	if (needs_animdata_node(camera_id)) {
-		ComponentKey animation_key(camera_id, DEPSNODE_TYPE_ANIMATION);
+		ComponentKey animation_key(camera_id, DEG_NODE_TYPE_ANIMATION);
 		add_relation(animation_key, parameters_key,
 		             "Camera Parameters");
 	}
 
 	/* DOF */
 	if (cam->dof_ob) {
-		ComponentKey ob_param_key(&ob->id, DEPSNODE_TYPE_PARAMETERS);
-		ComponentKey dof_ob_key(&cam->dof_ob->id, DEPSNODE_TYPE_TRANSFORM);
+		ComponentKey ob_param_key(&ob->id, DEG_NODE_TYPE_PARAMETERS);
+		ComponentKey dof_ob_key(&cam->dof_ob->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(dof_ob_key, ob_param_key, "Camera DOF");
 	}
 }
@@ -1651,10 +1651,10 @@ void DepsgraphRelationBuilder::build_lamp(Object *ob)
 	}
 	lamp_id->tag |= LIB_TAG_DOIT;
 
-	ComponentKey parameters_key(lamp_id, DEPSNODE_TYPE_PARAMETERS);
+	ComponentKey parameters_key(lamp_id, DEG_NODE_TYPE_PARAMETERS);
 
 	if (needs_animdata_node(lamp_id)) {
-		ComponentKey animation_key(lamp_id, DEPSNODE_TYPE_ANIMATION);
+		ComponentKey animation_key(lamp_id, DEG_NODE_TYPE_ANIMATION);
 		add_relation(animation_key, parameters_key,
 		             "Lamp Parameters");
 	}
@@ -1662,7 +1662,7 @@ void DepsgraphRelationBuilder::build_lamp(Object *ob)
 	/* lamp's nodetree */
 	if (la->nodetree) {
 		build_nodetree(la->nodetree);
-		ComponentKey nodetree_key(&la->nodetree->id, DEPSNODE_TYPE_PARAMETERS);
+		ComponentKey nodetree_key(&la->nodetree->id, DEG_NODE_TYPE_PARAMETERS);
 		add_relation(nodetree_key, parameters_key,
 		             "NTree->Lamp Parameters");
 	}
@@ -1681,7 +1681,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 	build_animdata(ntree_id);
 
 	OperationKey parameters_key(ntree_id,
-	                            DEPSNODE_TYPE_PARAMETERS,
+	                            DEG_NODE_TYPE_PARAMETERS,
 	                            DEG_OPCODE_PLACEHOLDER,
 	                            "Parameters Eval");
 
@@ -1701,7 +1701,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 					group_ntree->id.tag |= LIB_TAG_DOIT;
 				}
 				OperationKey group_parameters_key(&group_ntree->id,
-				                                  DEPSNODE_TYPE_PARAMETERS,
+				                                  DEG_NODE_TYPE_PARAMETERS,
 				                                  DEG_OPCODE_PLACEHOLDER,
 				                                  "Parameters Eval");
 				add_relation(group_parameters_key, parameters_key,
@@ -1711,7 +1711,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 	}
 
 	if (needs_animdata_node(ntree_id)) {
-		ComponentKey animation_key(ntree_id, DEPSNODE_TYPE_ANIMATION);
+		ComponentKey animation_key(ntree_id, DEG_NODE_TYPE_ANIMATION);
 		add_relation(animation_key, parameters_key,
 		             "NTree Parameters");
 	}
@@ -1736,11 +1736,11 @@ void DepsgraphRelationBuilder::build_material(Material *ma)
 	if (ma->nodetree != NULL) {
 		build_nodetree(ma->nodetree);
 		OperationKey ntree_key(&ma->nodetree->id,
-		                       DEPSNODE_TYPE_PARAMETERS,
+		                       DEG_NODE_TYPE_PARAMETERS,
 		                       DEG_OPCODE_PLACEHOLDER,
 		                       "Parameters Eval");
 		OperationKey material_key(&ma->id,
-		                          DEPSNODE_TYPE_SHADING,
+		                          DEG_NODE_TYPE_SHADING,
 		                          DEG_OPCODE_PLACEHOLDER,
 		                          "Material Update");
 		add_relation(ntree_key, material_key,

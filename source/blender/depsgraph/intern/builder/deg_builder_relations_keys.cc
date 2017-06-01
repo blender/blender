@@ -64,7 +64,7 @@ string TimeSourceKey::identifier() const
 
 ComponentKey::ComponentKey()
         : id(NULL),
-          type(DEPSNODE_TYPE_UNDEFINED),
+          type(DEG_NODE_TYPE_UNDEFINED),
           name("")
 {
 }
@@ -90,7 +90,7 @@ string ComponentKey::identifier() const
 
 OperationKey::OperationKey()
         : id(NULL),
-          component_type(DEPSNODE_TYPE_UNDEFINED),
+          component_type(DEG_NODE_TYPE_UNDEFINED),
           component_name(""),
           opcode(DEG_OPCODE_OPERATION),
           name(""),

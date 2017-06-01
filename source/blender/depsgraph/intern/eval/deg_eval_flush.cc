@@ -165,28 +165,28 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 					 * layers visibility update has proper flags to work with.
 					 */
 					switch (comp_node->type) {
-						case DEPSNODE_TYPE_UNDEFINED:
-						case DEPSNODE_TYPE_OPERATION:
-						case DEPSNODE_TYPE_ROOT:
-						case DEPSNODE_TYPE_TIMESOURCE:
-						case DEPSNODE_TYPE_ID_REF:
-						case DEPSNODE_TYPE_PARAMETERS:
-						case DEPSNODE_TYPE_SEQUENCER:
+						case DEG_NODE_TYPE_UNDEFINED:
+						case DEG_NODE_TYPE_OPERATION:
+						case DEG_NODE_TYPE_ROOT:
+						case DEG_NODE_TYPE_TIMESOURCE:
+						case DEG_NODE_TYPE_ID_REF:
+						case DEG_NODE_TYPE_PARAMETERS:
+						case DEG_NODE_TYPE_SEQUENCER:
 							/* Ignore, does not translate to object component. */
 							break;
-						case DEPSNODE_TYPE_ANIMATION:
+						case DEG_NODE_TYPE_ANIMATION:
 							object->recalc |= OB_RECALC_TIME;
 							break;
-						case DEPSNODE_TYPE_TRANSFORM:
+						case DEG_NODE_TYPE_TRANSFORM:
 							object->recalc |= OB_RECALC_OB;
 							break;
-						case DEPSNODE_TYPE_GEOMETRY:
-						case DEPSNODE_TYPE_EVAL_POSE:
-						case DEPSNODE_TYPE_BONE:
-						case DEPSNODE_TYPE_EVAL_PARTICLES:
-						case DEPSNODE_TYPE_SHADING:
-						case DEPSNODE_TYPE_CACHE:
-						case DEPSNODE_TYPE_PROXY:
+						case DEG_NODE_TYPE_GEOMETRY:
+						case DEG_NODE_TYPE_EVAL_POSE:
+						case DEG_NODE_TYPE_BONE:
+						case DEG_NODE_TYPE_EVAL_PARTICLES:
+						case DEG_NODE_TYPE_SHADING:
+						case DEG_NODE_TYPE_CACHE:
+						case DEG_NODE_TYPE_PROXY:
 							object->recalc |= OB_RECALC_DATA;
 							break;
 					}

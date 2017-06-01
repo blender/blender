@@ -128,7 +128,7 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
 		/* Bone - generally, we just want the bone component... */
-		*type = DEPSNODE_TYPE_BONE;
+		*type = DEG_NODE_TYPE_BONE;
 		*subdata = pchan->name;
 
 		return true;
@@ -138,7 +138,7 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 
 		/* armature-level bone, but it ends up going to bone component anyway */
 		// TODO: the ID in thise case will end up being bArmature, not Object as needed!
-		*type = DEPSNODE_TYPE_BONE;
+		*type = DEG_NODE_TYPE_BONE;
 		*subdata = bone->name;
 		//*id = ...
 
@@ -152,7 +152,7 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		if (BLI_findindex(&ob->constraints, con) != -1) {
 			/* object transform */
 			// XXX: for now, we can't address the specific constraint or the constraint stack...
-			*type = DEPSNODE_TYPE_TRANSFORM;
+			*type = DEG_NODE_TYPE_TRANSFORM;
 			return true;
 		}
 		else if (ob->pose) {
@@ -160,7 +160,7 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 			for (pchan = (bPoseChannel *)ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 				if (BLI_findindex(&pchan->constraints, con) != -1) {
 					/* bone transforms */
-					*type = DEPSNODE_TYPE_BONE;
+					*type = DEG_NODE_TYPE_BONE;
 					*subdata = pchan->name;
 					return true;
 				}
@@ -175,7 +175,7 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		 * so although we have unique ops for modifiers,
 		 * we can't lump them together
 		 */
-		*type = DEPSNODE_TYPE_BONE;
+		*type = DEG_NODE_TYPE_BONE;
 		//*subdata = md->name;
 
 		return true;
@@ -192,14 +192,14 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 			    strstr(prop_identifier, "scale") ||
 			    strstr(prop_identifier, "matrix_"))
 			{
-				*type = DEPSNODE_TYPE_TRANSFORM;
+				*type = DEG_NODE_TYPE_TRANSFORM;
 				return true;
 			}
 			else if (strstr(prop_identifier, "data")) {
 				/* We access object.data, most likely a geometry.
 				 * Might be a bone tho..
 				 */
-				*type = DEPSNODE_TYPE_GEOMETRY;
+				*type = DEG_NODE_TYPE_GEOMETRY;
 				return true;
 			}
 		}
@@ -209,21 +209,21 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 
 		/* ShapeKeys are currently handled as geometry on the geometry that owns it */
 		*id = key->from; // XXX
-		*type = DEPSNODE_TYPE_PARAMETERS;
+		*type = DEG_NODE_TYPE_PARAMETERS;
 
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
 		Sequence *seq = (Sequence *)ptr->data;
 		/* Sequencer strip */
-		*type = DEPSNODE_TYPE_SEQUENCER;
+		*type = DEG_NODE_TYPE_SEQUENCER;
 		*subdata = seq->name; // xxx?
 		return true;
 	}
 
 	if (prop) {
 		/* All unknown data effectively falls under "parameter evaluation" */
-		*type = DEPSNODE_TYPE_PARAMETERS;
+		*type = DEG_NODE_TYPE_PARAMETERS;
 		return true;
 	}
 
@@ -263,7 +263,7 @@ static void id_node_deleter(void *value)
 RootDepsNode *Depsgraph::add_root_node()
 {
 	if (!root_node) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_ROOT);
+		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_ROOT);
 		root_node = (RootDepsNode *)factory->create_node(NULL, "", "Root (Scene)");
 	}
 	return root_node;
@@ -284,7 +284,7 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name)
 {
 	IDDepsNode *id_node = find_id_node(id);
 	if (!id_node) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_ID_REF);
+		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", name);
 		id->tag |= LIB_TAG_DOIT;
 		/* register */
@@ -318,7 +318,7 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 	/* TODO(sergey): Find a better place for this. */
 #ifdef WITH_OPENSUBDIV
 	ComponentDepsNode *comp_node = from->owner;
-	if (comp_node->type == DEPSNODE_TYPE_GEOMETRY) {
+	if (comp_node->type == DEG_NODE_TYPE_GEOMETRY) {
 		IDDepsNode *id_to = to->owner->owner;
 		IDDepsNode *id_from = from->owner->owner;
 		if (id_to != id_from && (id_to->id->tag & LIB_TAG_ID_RECALC_ALL)) {

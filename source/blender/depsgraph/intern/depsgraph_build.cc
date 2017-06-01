@@ -81,29 +81,29 @@ static DEG::eDepsNode_Type deg_build_scene_component_type(
         eDepsSceneComponentType component)
 {
 	switch (component) {
-		case DEG_SCENE_COMP_PARAMETERS:     return DEG::DEPSNODE_TYPE_PARAMETERS;
-		case DEG_SCENE_COMP_ANIMATION:      return DEG::DEPSNODE_TYPE_ANIMATION;
-		case DEG_SCENE_COMP_SEQUENCER:      return DEG::DEPSNODE_TYPE_SEQUENCER;
+		case DEG_SCENE_COMP_PARAMETERS:     return DEG::DEG_NODE_TYPE_PARAMETERS;
+		case DEG_SCENE_COMP_ANIMATION:      return DEG::DEG_NODE_TYPE_ANIMATION;
+		case DEG_SCENE_COMP_SEQUENCER:      return DEG::DEG_NODE_TYPE_SEQUENCER;
 	}
-	return DEG::DEPSNODE_TYPE_UNDEFINED;
+	return DEG::DEG_NODE_TYPE_UNDEFINED;
 }
 
 static DEG::eDepsNode_Type deg_build_object_component_type(
         eDepsObjectComponentType component)
 {
 	switch (component) {
-		case DEG_OB_COMP_PARAMETERS:        return DEG::DEPSNODE_TYPE_PARAMETERS;
-		case DEG_OB_COMP_PROXY:             return DEG::DEPSNODE_TYPE_PROXY;
-		case DEG_OB_COMP_ANIMATION:         return DEG::DEPSNODE_TYPE_ANIMATION;
-		case DEG_OB_COMP_TRANSFORM:         return DEG::DEPSNODE_TYPE_TRANSFORM;
-		case DEG_OB_COMP_GEOMETRY:          return DEG::DEPSNODE_TYPE_GEOMETRY;
-		case DEG_OB_COMP_EVAL_POSE:         return DEG::DEPSNODE_TYPE_EVAL_POSE;
-		case DEG_OB_COMP_BONE:              return DEG::DEPSNODE_TYPE_BONE;
-		case DEG_OB_COMP_EVAL_PARTICLES:    return DEG::DEPSNODE_TYPE_EVAL_PARTICLES;
-		case DEG_OB_COMP_SHADING:           return DEG::DEPSNODE_TYPE_SHADING;
-		case DEG_OB_COMP_CACHE:             return DEG::DEPSNODE_TYPE_CACHE;
+		case DEG_OB_COMP_PARAMETERS:        return DEG::DEG_NODE_TYPE_PARAMETERS;
+		case DEG_OB_COMP_PROXY:             return DEG::DEG_NODE_TYPE_PROXY;
+		case DEG_OB_COMP_ANIMATION:         return DEG::DEG_NODE_TYPE_ANIMATION;
+		case DEG_OB_COMP_TRANSFORM:         return DEG::DEG_NODE_TYPE_TRANSFORM;
+		case DEG_OB_COMP_GEOMETRY:          return DEG::DEG_NODE_TYPE_GEOMETRY;
+		case DEG_OB_COMP_EVAL_POSE:         return DEG::DEG_NODE_TYPE_EVAL_POSE;
+		case DEG_OB_COMP_BONE:              return DEG::DEG_NODE_TYPE_BONE;
+		case DEG_OB_COMP_EVAL_PARTICLES:    return DEG::DEG_NODE_TYPE_EVAL_PARTICLES;
+		case DEG_OB_COMP_SHADING:           return DEG::DEG_NODE_TYPE_SHADING;
+		case DEG_OB_COMP_CACHE:             return DEG::DEG_NODE_TYPE_CACHE;
 	}
-	return DEG::DEPSNODE_TYPE_UNDEFINED;
+	return DEG::DEG_NODE_TYPE_UNDEFINED;
 }
 
 static DEG::DepsNodeHandle *get_handle(DepsNodeHandle *handle)

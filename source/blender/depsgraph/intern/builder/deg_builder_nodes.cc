@@ -447,13 +447,13 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 void DepsgraphNodeBuilder::build_object_transform(Scene *scene, Object *ob)
 {
 	/* local transforms (from transform channels - loc/rot/scale + deltas) */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_TRANSFORM,
+	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 	                   DEPSOP_TYPE_INIT, function_bind(BKE_object_eval_local_transform, _1, scene, ob),
 	                   DEG_OPCODE_TRANSFORM_LOCAL);
 
 	/* object parent */
 	if (ob->parent) {
-		add_operation_node(&ob->id, DEPSNODE_TYPE_TRANSFORM,
+		add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 		                   DEPSOP_TYPE_EXEC, function_bind(BKE_object_eval_parent, _1, scene, ob),
 		                   DEG_OPCODE_TRANSFORM_PARENT);
 	}
@@ -470,12 +470,12 @@ void DepsgraphNodeBuilder::build_object_transform(Scene *scene, Object *ob)
 	 *
 	 * TODO(sergey): Get rid of this node.
 	 */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_TRANSFORM,
+	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 	                   DEPSOP_TYPE_EXEC, function_bind(BKE_object_eval_uber_transform, _1, scene, ob),
 	                   DEG_OPCODE_OBJECT_UBEREVAL);
 
 	/* object transform is done */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_TRANSFORM,
+	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 	                   DEPSOP_TYPE_POST, function_bind(BKE_object_eval_done, _1, ob),
 	                   DEG_OPCODE_TRANSFORM_FINAL);
 }
@@ -500,7 +500,7 @@ void DepsgraphNodeBuilder::build_object_transform(Scene *scene, Object *ob)
 void DepsgraphNodeBuilder::build_object_constraints(Scene *scene, Object *ob)
 {
 	/* create node for constraint stack */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_TRANSFORM,
+	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 	                   DEPSOP_TYPE_EXEC, function_bind(BKE_object_eval_constraints, _1, scene, ob),
 	                   DEG_OPCODE_TRANSFORM_CONSTRAINTS);
 }
@@ -523,7 +523,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 		/* actions and NLA - as a single unit for now, as it gets complicated to schedule otherwise */
 		if ((adt->action) || (adt->nla_tracks.first)) {
 			/* create the node */
-			add_operation_node(id, DEPSNODE_TYPE_ANIMATION,
+			add_operation_node(id, DEG_NODE_TYPE_ANIMATION,
 			                   DEPSOP_TYPE_EXEC, function_bind(BKE_animsys_eval_animdata, _1, id),
 			                   DEG_OPCODE_ANIMATION, id->name);
 
@@ -554,14 +554,14 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 	 * and use some tagging magic instead.
 	 */
 	OperationDepsNode *driver_op = find_operation_node(id,
-	                                                   DEPSNODE_TYPE_PARAMETERS,
+	                                                   DEG_NODE_TYPE_PARAMETERS,
 	                                                   DEG_OPCODE_DRIVER,
 	                                                   fcu->rna_path ? fcu->rna_path : "",
 	                                                   fcu->array_index);
 
 	if (driver_op == NULL) {
 		driver_op = add_operation_node(id,
-		                               DEPSNODE_TYPE_PARAMETERS,
+		                               DEG_NODE_TYPE_PARAMETERS,
 		                               DEPSOP_TYPE_EXEC,
 		                               function_bind(BKE_animsys_eval_driver, _1, id, fcu),
 		                               DEG_OPCODE_DRIVER,
@@ -589,9 +589,9 @@ void DepsgraphNodeBuilder::build_world(World *world)
 	build_animdata(world_id);
 
 	/* world itself */
-	add_component_node(world_id, DEPSNODE_TYPE_PARAMETERS);
+	add_component_node(world_id, DEG_NODE_TYPE_PARAMETERS);
 
-	add_operation_node(world_id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
+	add_operation_node(world_id, DEG_NODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 
 	/* textures */
@@ -627,13 +627,13 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 	/* XXX: is this the right component, or do we want to use another one instead? */
 
 	/* init/rebuild operation */
-	/*OperationDepsNode *init_node =*/ add_operation_node(&scene->id, DEPSNODE_TYPE_TRANSFORM,
+	/*OperationDepsNode *init_node =*/ add_operation_node(&scene->id, DEG_NODE_TYPE_TRANSFORM,
 	                                                      DEPSOP_TYPE_REBUILD, function_bind(BKE_rigidbody_rebuild_sim, _1, scene),
 	                                                      DEG_OPCODE_RIGIDBODY_REBUILD);
 
 	/* do-sim operation */
 	// XXX: what happens if we need to split into several groups?
-	OperationDepsNode *sim_node     = add_operation_node(&scene->id, DEPSNODE_TYPE_TRANSFORM,
+	OperationDepsNode *sim_node     = add_operation_node(&scene->id, DEG_NODE_TYPE_TRANSFORM,
 	                                                     DEPSOP_TYPE_SIM, function_bind(BKE_rigidbody_eval_simulation, _1, scene),
 	                                                     DEG_OPCODE_RIGIDBODY_SIM);
 
@@ -654,7 +654,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 			/* 2) create operation for flushing results */
 			/* object's transform component - where the rigidbody operation lives */
-			add_operation_node(&ob->id, DEPSNODE_TYPE_TRANSFORM,
+			add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 			                   DEPSOP_TYPE_EXEC, function_bind(BKE_rigidbody_object_sync_transforms, _1, scene, ob),
 			                   DEG_OPCODE_TRANSFORM_RIGIDBODY);
 		}
@@ -680,7 +680,7 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 
 	/* component for all particle systems */
 	ComponentDepsNode *psys_comp =
-	        add_component_node(&ob->id, DEPSNODE_TYPE_EVAL_PARTICLES);
+	        add_component_node(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
 
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
@@ -710,7 +710,7 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 void DepsgraphNodeBuilder::build_cloth(Scene *scene, Object *object)
 {
 	ComponentDepsNode *cache_comp = add_component_node(&object->id,
-	                                                   DEPSNODE_TYPE_CACHE);
+	                                                   DEG_NODE_TYPE_CACHE);
 	add_operation_node(cache_comp,
 	                   DEPSOP_TYPE_EXEC,
 	                   function_bind(BKE_object_eval_cloth,
@@ -726,7 +726,7 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 {
 	build_animdata(&key->id);
 
-	add_operation_node(&key->id, DEPSNODE_TYPE_GEOMETRY, DEPSOP_TYPE_EXEC, NULL,
+	add_operation_node(&key->id, DEG_NODE_TYPE_GEOMETRY, DEPSOP_TYPE_EXEC, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Shapekey Eval");
 }
 
@@ -742,7 +742,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	 * Does this depend on other nodes?
 	 */
 	add_operation_node(&ob->id,
-	                   DEPSNODE_TYPE_PARAMETERS,
+	                   DEG_NODE_TYPE_PARAMETERS,
 	                   DEPSOP_TYPE_POST,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
@@ -756,13 +756,13 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	 * TODO(sergey): Get rid of this node.
 	 */
 	add_operation_node(&ob->id,
-	                   DEPSNODE_TYPE_GEOMETRY,
+	                   DEG_NODE_TYPE_GEOMETRY,
 	                   DEPSOP_TYPE_POST,
 	                   function_bind(BKE_object_eval_uber_data, _1, scene, ob),
 	                   DEG_OPCODE_GEOMETRY_UBEREVAL);
 
 	add_operation_node(&ob->id,
-	                   DEPSNODE_TYPE_GEOMETRY,
+	                   DEG_NODE_TYPE_GEOMETRY,
 	                   DEPSOP_TYPE_INIT,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
@@ -773,7 +773,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	/* Modifiers */
 	LINKLIST_FOREACH (ModifierData *, md, &ob->modifiers) {
 		add_operation_node(&ob->id,
-		                   DEPSNODE_TYPE_GEOMETRY,
+		                   DEG_NODE_TYPE_GEOMETRY,
 		                   DEPSOP_TYPE_EXEC,
 		                   function_bind(BKE_object_eval_modifier,
 		                                 _1,
@@ -822,7 +822,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 
 			/* evaluation operations */
 			add_operation_node(obdata,
-			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEG_NODE_TYPE_GEOMETRY,
 			                   DEPSOP_TYPE_INIT,
 			                   function_bind(BKE_mesh_eval_geometry,
 			                                 _1,
@@ -841,7 +841,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 				/* metaball evaluation operations */
 				/* NOTE: only the motherball gets evaluated! */
 				add_operation_node(obdata,
-				                   DEPSNODE_TYPE_GEOMETRY,
+				                   DEG_NODE_TYPE_GEOMETRY,
 				                   DEPSOP_TYPE_INIT,
 				                   function_bind(BKE_mball_eval_geometry,
 				                                 _1,
@@ -859,7 +859,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			/* Curve/nurms evaluation operations. */
 			/* - calculate curve geometry (including path) */
 			add_operation_node(obdata,
-			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEG_NODE_TYPE_GEOMETRY,
 			                   DEPSOP_TYPE_INIT,
 			                   function_bind(BKE_curve_eval_geometry,
 			                                 _1,
@@ -870,7 +870,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			/* Calculate curve path - this is used by constraints, etc. */
 			if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
 				add_operation_node(obdata,
-				                   DEPSNODE_TYPE_GEOMETRY,
+				                   DEG_NODE_TYPE_GEOMETRY,
 				                   DEPSOP_TYPE_EXEC,
 				                   function_bind(BKE_curve_eval_path,
 				                                 _1,
@@ -899,7 +899,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		{
 			/* Lattice evaluation operations. */
 			add_operation_node(obdata,
-			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEG_NODE_TYPE_GEOMETRY,
 			                   DEPSOP_TYPE_INIT,
 			                   function_bind(BKE_lattice_eval_geometry,
 			                                 _1,
@@ -910,12 +910,12 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		}
 	}
 
-	add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
+	add_operation_node(obdata, DEG_NODE_TYPE_GEOMETRY,
 	                   DEPSOP_TYPE_POST, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Eval Done");
 
 	/* Parameters for driver sources. */
-	add_operation_node(obdata, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
+	add_operation_node(obdata, DEG_NODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 }
 
@@ -931,12 +931,12 @@ void DepsgraphNodeBuilder::build_camera(Object *ob)
 
 	build_animdata(&cam->id);
 
-	add_operation_node(camera_id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
+	add_operation_node(camera_id, DEG_NODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 
 	if (cam->dof_ob != NULL) {
 		/* TODO(sergey): For now parametrs are on object level. */
-		add_operation_node(&ob->id, DEPSNODE_TYPE_PARAMETERS,
+		add_operation_node(&ob->id, DEG_NODE_TYPE_PARAMETERS,
 		                   DEPSOP_TYPE_EXEC, NULL,
 		                   DEG_OPCODE_PLACEHOLDER,
 		                   "Camera DOF");
@@ -955,10 +955,10 @@ void DepsgraphNodeBuilder::build_lamp(Object *ob)
 	build_animdata(&la->id);
 
 	/* node for obdata */
-	add_component_node(lamp_id, DEPSNODE_TYPE_PARAMETERS);
+	add_component_node(lamp_id, DEG_NODE_TYPE_PARAMETERS);
 
 	/* TODO(sergey): Is it really how we're supposed to work with drivers? */
-	add_operation_node(lamp_id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
+	add_operation_node(lamp_id, DEG_NODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 
 	/* lamp's nodetree */
@@ -981,7 +981,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 	build_animdata(ntree_id);
 
 	/* Parameters for drivers. */
-	add_operation_node(ntree_id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_POST, NULL,
+	add_operation_node(ntree_id, DEG_NODE_TYPE_PARAMETERS, DEPSOP_TYPE_POST, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 
 	/* nodetree's nodes... */
@@ -1021,7 +1021,7 @@ void DepsgraphNodeBuilder::build_material(Material *ma)
 	/* material itself */
 	add_id_node(ma_id);
 
-	add_operation_node(ma_id, DEPSNODE_TYPE_SHADING,
+	add_operation_node(ma_id, DEG_NODE_TYPE_SHADING,
 	                   DEPSOP_TYPE_EXEC, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Material Update");
 
@@ -1078,7 +1078,7 @@ void DepsgraphNodeBuilder::build_image(Image *image) {
 	add_id_node(image_id);
 	/* Placeholder so we can add relations and tag ID node for update. */
 	add_operation_node(image_id,
-	                   DEPSNODE_TYPE_PARAMETERS,
+	                   DEG_NODE_TYPE_PARAMETERS,
 	                   DEPSOP_TYPE_EXEC,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
@@ -1090,10 +1090,10 @@ void DepsgraphNodeBuilder::build_compositor(Scene *scene)
 	/* For now, just a plain wrapper? */
 	// TODO: create compositing component?
 	// XXX: component type undefined!
-	//graph->get_node(&scene->id, NULL, DEPSNODE_TYPE_COMPOSITING, NULL);
+	//graph->get_node(&scene->id, NULL, DEG_NODE_TYPE_COMPOSITING, NULL);
 
 	/* for now, nodetrees are just parameters; compositing occurs in internals of renderer... */
-	add_component_node(&scene->id, DEPSNODE_TYPE_PARAMETERS);
+	add_component_node(&scene->id, DEG_NODE_TYPE_PARAMETERS);
 	build_nodetree(scene->nodetree);
 }
 
@@ -1115,8 +1115,8 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 {
 	ID *cache_file_id = &cache_file->id;
 
-	add_component_node(cache_file_id, DEPSNODE_TYPE_CACHE);
-	add_operation_node(cache_file_id, DEPSNODE_TYPE_CACHE,
+	add_component_node(cache_file_id, DEG_NODE_TYPE_CACHE);
+	add_operation_node(cache_file_id, DEG_NODE_TYPE_CACHE,
 	                   DEPSOP_TYPE_EXEC, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Cache File Update");
 

@@ -60,9 +60,9 @@ namespace DEG {
 DepsNode::TypeInfo::TypeInfo(eDepsNode_Type type, const char *tname)
 {
 	this->type = type;
-	if (type == DEPSNODE_TYPE_OPERATION)
+	if (type == DEG_NODE_TYPE_OPERATION)
 		this->tclass = DEPSNODE_CLASS_OPERATION;
-	else if (type < DEPSNODE_TYPE_PARAMETERS)
+	else if (type < DEG_NODE_TYPE_PARAMETERS)
 		this->tclass = DEPSNODE_CLASS_GENERIC;
 	else
 		this->tclass = DEPSNODE_CLASS_COMPONENT;
@@ -124,19 +124,19 @@ RootDepsNode::~RootDepsNode()
 TimeSourceDepsNode *RootDepsNode::add_time_source(const char *name)
 {
 	if (!time_source) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_TIMESOURCE);
+		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_TIMESOURCE);
 		time_source = (TimeSourceDepsNode *)factory->create_node(NULL, "", name);
 		/*time_source->owner = this;*/ // XXX
 	}
 	return time_source;
 }
 
-DEG_DEPSNODE_DEFINE(RootDepsNode, DEPSNODE_TYPE_ROOT, "Root DepsNode");
+DEG_DEPSNODE_DEFINE(RootDepsNode, DEG_NODE_TYPE_ROOT, "Root DepsNode");
 static DepsNodeFactoryImpl<RootDepsNode> DNTI_ROOT;
 
 /* Time Source Node ======================================= */
 
-DEG_DEPSNODE_DEFINE(TimeSourceDepsNode, DEPSNODE_TYPE_TIMESOURCE, "Time Source");
+DEG_DEPSNODE_DEFINE(TimeSourceDepsNode, DEG_NODE_TYPE_TIMESOURCE, "Time Source");
 static DepsNodeFactoryImpl<TimeSourceDepsNode> DNTI_TIMESOURCE;
 
 /* ID Node ================================================ */
@@ -262,8 +262,8 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
 	{
 		/* TODO(sergey): What about drievrs? */
-		bool do_component_tag = comp_node->type != DEPSNODE_TYPE_ANIMATION;
-		if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
+		bool do_component_tag = comp_node->type != DEG_NODE_TYPE_ANIMATION;
+		if (comp_node->type == DEG_NODE_TYPE_ANIMATION) {
 			AnimData *adt = BKE_animdata_from_id(id);
 			/* Animation data might be null if relations are tagged for update. */
 			if (adt != NULL && (adt->recalc & ADT_RECALC_ANIM)) {
@@ -286,7 +286,7 @@ void IDDepsNode::finalize_build()
 	GHASH_FOREACH_END();
 }
 
-DEG_DEPSNODE_DEFINE(IDDepsNode, DEPSNODE_TYPE_ID_REF, "ID Node");
+DEG_DEPSNODE_DEFINE(IDDepsNode, DEG_NODE_TYPE_ID_REF, "ID Node");
 static DepsNodeFactoryImpl<IDDepsNode> DNTI_ID_REF;
 
 void deg_register_base_depsnodes()
