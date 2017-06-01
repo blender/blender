@@ -2402,7 +2402,8 @@ static void createTransEditVerts(TransInfo *t)
 	int island_info_tot;
 	int *island_vert_map = NULL;
 
-	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) && (t->mode != TFM_TRANSLATION);
+	/* Even for translation this is needed because of island-orientation, see: T51651. */
+	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
 	/* Original index of our connected vertex when connected distances are calculated.
 	 * Optional, allocate if needed. */
 	int *dists_index = NULL;
