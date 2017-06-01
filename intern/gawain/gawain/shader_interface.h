@@ -32,6 +32,7 @@ typedef enum {
 
 typedef struct {
 	const char* name;
+	unsigned name_hash;
 	GLenum gl_type;
 	BuiltinUniform builtin_type; // only for uniform inputs
 	GLint size;
