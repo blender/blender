@@ -903,7 +903,7 @@ static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
 
 	/* See TODO above */
 	length = PCHAN_CUSTOM_DRAW_SIZE(pchan);
-	bone_mat = pchan->pose_mat;
+	bone_mat = pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat;
 	disp_mat = pchan->disp_mat;
 	disp_tail_mat = pchan->disp_tail_mat;
 
@@ -1036,7 +1036,7 @@ static void draw_bone_custom_shape(
 {
 	const float *col_solid = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
-	const float (*disp_mat)[4] = pchan->custom_tx ? pchan->custom_tx->disp_mat : pchan->disp_mat;
+	const float (*disp_mat)[4] = pchan->disp_mat;
 
 	if (select_id != -1) {
 		DRW_select_load_id(select_id | BONESEL_BONE);
