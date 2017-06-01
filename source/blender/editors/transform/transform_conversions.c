@@ -2388,7 +2388,8 @@ static void createTransEditVerts(TransInfo *t)
 	int island_info_tot;
 	int *island_vert_map = NULL;
 
-	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) && (t->mode != TFM_TRANSLATION);
+	/* Even for translation this is needed because of island-orientation, see: T51651. */
+	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
 	/* Original index of our connected vertex when connected distances are calculated.
 	 * Optional, allocate if needed. */
 	int *dists_index = NULL;
@@ -2454,11 +2455,6 @@ static void createTransEditVerts(TransInfo *t)
 		editmesh_set_connectivity_distance(em->bm, mtx, dists, dists_index);
 	}
 
-	/* Only in case of rotation and resize, we want the elements of the edited
-	 * object to behave as groups whose pivot are the individual origins
-	 *
-	 * TODO: use island_info to detect the closest point when the "Snap Target"
-	 * in Blender UI is "Closest" */
 	if (is_island_center) {
 		/* In this specific case, near-by vertices will need to know the island of the nearest connected vertex. */
 		const bool calc_single_islands = (
