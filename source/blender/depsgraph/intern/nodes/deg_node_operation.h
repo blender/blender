@@ -54,8 +54,6 @@ typedef enum eDepsOperation_Flag {
 
 /* Atomic Operation - Base type for all operations */
 struct OperationDepsNode : public DepsNode {
-
-
 	OperationDepsNode();
 	~OperationDepsNode();
 
@@ -69,12 +67,15 @@ struct OperationDepsNode : public DepsNode {
 	OperationDepsNode *get_entry_operation() { return this; }
 	OperationDepsNode *get_exit_operation() { return this; }
 
+	/* Set this operation as compoonent's entry/exit operation. */
+	void set_as_entry();
+	void set_as_exit();
+
 	/* Component that contains the operation. */
 	ComponentDepsNode *owner;
 
 	/* Callback for operation. */
 	DepsEvalOperationCb evaluate;
-
 
 	/* How many inlinks are we still waiting on before we can be evaluated. */
 	uint32_t num_links_pending;

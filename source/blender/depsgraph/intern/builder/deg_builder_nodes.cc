@@ -446,10 +446,13 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 
 void DepsgraphNodeBuilder::build_object_transform(Scene *scene, Object *ob)
 {
+	OperationDepsNode *op_node;
+
 	/* local transforms (from transform channels - loc/rot/scale + deltas) */
-	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
+	op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 	                   DEPSOP_TYPE_INIT, function_bind(BKE_object_eval_local_transform, _1, scene, ob),
 	                   DEG_OPCODE_TRANSFORM_LOCAL);
+	op_node->set_as_entry();
 
 	/* object parent */
 	if (ob->parent) {
@@ -475,9 +478,10 @@ void DepsgraphNodeBuilder::build_object_transform(Scene *scene, Object *ob)
 	                   DEG_OPCODE_OBJECT_UBEREVAL);
 
 	/* object transform is done */
-	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
+	op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 	                   DEPSOP_TYPE_POST, function_bind(BKE_object_eval_done, _1, ob),
 	                   DEG_OPCODE_TRANSFORM_FINAL);
+	op_node->set_as_exit();
 }
 
 /**
@@ -735,18 +739,20 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
+	OperationDepsNode *op_node;
 
 	/* TODO(sergey): This way using this object's properties as driver target
 	 * works fine.
 	 *
 	 * Does this depend on other nodes?
 	 */
-	add_operation_node(&ob->id,
+	op_node = add_operation_node(&ob->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   DEPSOP_TYPE_POST,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
 	                   "Parameters Eval");
+	op_node->set_as_exit();
 
 	/* Temporary uber-update node, which does everything.
 	 * It is for the being we're porting old dependencies into the new system.
@@ -755,18 +761,20 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	 *
 	 * TODO(sergey): Get rid of this node.
 	 */
-	add_operation_node(&ob->id,
+	op_node = add_operation_node(&ob->id,
 	                   DEG_NODE_TYPE_GEOMETRY,
 	                   DEPSOP_TYPE_POST,
 	                   function_bind(BKE_object_eval_uber_data, _1, scene, ob),
 	                   DEG_OPCODE_GEOMETRY_UBEREVAL);
+	op_node->set_as_exit();
 
-	add_operation_node(&ob->id,
+	op_node = add_operation_node(&ob->id,
 	                   DEG_NODE_TYPE_GEOMETRY,
 	                   DEPSOP_TYPE_INIT,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
 	                   "Eval Init");
+	op_node->set_as_entry();
 
 	// TODO: "Done" operation
 
@@ -821,7 +829,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			//Mesh *me = (Mesh *)ob->data;
 
 			/* evaluation operations */
-			add_operation_node(obdata,
+			op_node = add_operation_node(obdata,
 			                   DEG_NODE_TYPE_GEOMETRY,
 			                   DEPSOP_TYPE_INIT,
 			                   function_bind(BKE_mesh_eval_geometry,
@@ -829,6 +837,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			                                 (Mesh *)obdata),
 			                   DEG_OPCODE_PLACEHOLDER,
 			                   "Geometry Eval");
+			op_node->set_as_entry();
 			break;
 		}
 
@@ -840,7 +849,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			if (mom == ob) {
 				/* metaball evaluation operations */
 				/* NOTE: only the motherball gets evaluated! */
-				add_operation_node(obdata,
+				op_node = add_operation_node(obdata,
 				                   DEG_NODE_TYPE_GEOMETRY,
 				                   DEPSOP_TYPE_INIT,
 				                   function_bind(BKE_mball_eval_geometry,
@@ -848,6 +857,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 				                                 (MetaBall *)obdata),
 				                   DEG_OPCODE_PLACEHOLDER,
 				                   "Geometry Eval");
+				op_node->set_as_entry();
 			}
 			break;
 		}
@@ -858,7 +868,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		{
 			/* Curve/nurms evaluation operations. */
 			/* - calculate curve geometry (including path) */
-			add_operation_node(obdata,
+			op_node = add_operation_node(obdata,
 			                   DEG_NODE_TYPE_GEOMETRY,
 			                   DEPSOP_TYPE_INIT,
 			                   function_bind(BKE_curve_eval_geometry,
@@ -866,6 +876,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			                                 (Curve *)obdata),
 			                   DEG_OPCODE_PLACEHOLDER,
 			                   "Geometry Eval");
+			op_node->set_as_entry();
 
 			/* Calculate curve path - this is used by constraints, etc. */
 			if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
@@ -898,7 +909,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		case OB_LATTICE:
 		{
 			/* Lattice evaluation operations. */
-			add_operation_node(obdata,
+			op_node = add_operation_node(obdata,
 			                   DEG_NODE_TYPE_GEOMETRY,
 			                   DEPSOP_TYPE_INIT,
 			                   function_bind(BKE_lattice_eval_geometry,
@@ -906,13 +917,15 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			                                 (Lattice *)obdata),
 			                   DEG_OPCODE_PLACEHOLDER,
 			                   "Geometry Eval");
+			op_node->set_as_entry();
 			break;
 		}
 	}
 
-	add_operation_node(obdata, DEG_NODE_TYPE_GEOMETRY,
+	op_node = add_operation_node(obdata, DEG_NODE_TYPE_GEOMETRY,
 	                   DEPSOP_TYPE_POST, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Eval Done");
+	op_node->set_as_exit();
 
 	/* Parameters for driver sources. */
 	add_operation_node(obdata, DEG_NODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
@@ -977,12 +990,14 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 
 	/* nodetree itself */
 	ID *ntree_id = &ntree->id;
+	OperationDepsNode *op_node;
 
 	build_animdata(ntree_id);
 
 	/* Parameters for drivers. */
-	add_operation_node(ntree_id, DEG_NODE_TYPE_PARAMETERS, DEPSOP_TYPE_POST, NULL,
+	op_node = add_operation_node(ntree_id, DEG_NODE_TYPE_PARAMETERS, DEPSOP_TYPE_POST, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
+	op_node->set_as_exit();
 
 	/* nodetree's nodes... */
 	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {

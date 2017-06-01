@@ -213,17 +213,6 @@ OperationDepsNode *ComponentDepsNode::add_operation(eDepsOperation_Type optype,
 		OperationIDKey *key = OBJECT_GUARDED_NEW(OperationIDKey, opcode, name, name_tag);
 		BLI_ghash_insert(operations_map, key, op_node);
 
-		/* set as entry/exit node of component (if appropriate) */
-		if (optype == DEPSOP_TYPE_INIT) {
-			BLI_assert(this->entry_operation == NULL);
-			this->entry_operation = op_node;
-		}
-		else if (optype == DEPSOP_TYPE_POST) {
-			// XXX: review whether DEPSOP_TYPE_OUT is better than DEPSOP_TYPE_POST, or maybe have both?
-			BLI_assert(this->exit_operation == NULL);
-			this->exit_operation = op_node;
-		}
-
 		/* set backlink */
 		op_node->owner = this;
 	}
@@ -240,6 +229,18 @@ OperationDepsNode *ComponentDepsNode::add_operation(eDepsOperation_Type optype,
 	op_node->name = name;
 
 	return op_node;
+}
+
+void ComponentDepsNode::set_entry_operation(OperationDepsNode *op_node)
+{
+	BLI_assert(entry_operation == NULL);
+	entry_operation = op_node;
+}
+
+void ComponentDepsNode::set_exit_operation(OperationDepsNode *op_node)
+{
+	BLI_assert(exit_operation == NULL);
+	exit_operation = op_node;
 }
 
 void ComponentDepsNode::clear_operations()

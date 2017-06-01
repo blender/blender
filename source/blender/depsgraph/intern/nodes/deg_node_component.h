@@ -105,6 +105,13 @@ struct ComponentDepsNode : public DepsNode {
 	                                 const char *name,
 	                                 int name_tag);
 
+	/* Entry/exit operations management.
+	 *
+	 * Use those instead of direct set since this will perform sanity checks.
+	 */
+	void set_entry_operation(OperationDepsNode *op_node);
+	void set_exit_operation(OperationDepsNode *op_node);
+
 	void clear_operations();
 
 	void tag_update(Depsgraph *graph);
