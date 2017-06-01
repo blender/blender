@@ -324,8 +324,9 @@ typedef struct Object {
 	struct IDProperty *base_collection_properties; /* used by depsgraph, flushed from base */
 
 	ListBase drawdata;		/* runtime, ObjectEngineData */
+	int deg_update_flag; /* what has been updated in this object */
 	int base_selection_color; /* flushed by depsgraph only */
-	int pad3[3];
+	int pad3[2];
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -624,6 +625,11 @@ enum {
 enum {
 	OB_DEPS_EXTRA_OB_RECALC     = 1 << 0,
 	OB_DEPS_EXTRA_DATA_RECALC   = 1 << 1,
+};
+
+/* ob->deg_update_flag */
+enum {
+	DEG_RUNTIME_DATA_UPDATE     = 1 << 0,
 };
 
 /* ob->scavisflag */

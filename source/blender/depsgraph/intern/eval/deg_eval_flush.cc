@@ -191,6 +191,9 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 							object->recalc |= OB_RECALC_DATA;
 							break;
 					}
+
+					/* TODO : replace with more granular flags */
+					object->deg_update_flag |= DEG_RUNTIME_DATA_UPDATE;
 				}
 			}
 

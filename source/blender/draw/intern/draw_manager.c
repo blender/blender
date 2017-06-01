@@ -2869,6 +2869,8 @@ void DRW_draw_render_loop(
 		DEG_OBJECT_ITER(graph, ob);
 		{
 			DRW_engines_cache_populate(ob);
+			/* XXX find a better place for this. maybe Depsgraph? */
+			ob->deg_update_flag = 0;
 		}
 		DEG_OBJECT_ITER_END
 

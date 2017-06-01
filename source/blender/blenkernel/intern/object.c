@@ -464,6 +464,8 @@ void BKE_object_free(Object *ob)
 	}
 	BLI_freelistN(&ob->drawdata);
 
+	ob->deg_update_flag = 0;
+
 	BKE_sculptsession_free(ob);
 
 	BLI_freelistN(&ob->pc_ids);
