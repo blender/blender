@@ -141,7 +141,9 @@ typedef struct EEVEE_LampsInfo {
 	int num_cube, cache_num_cube;
 	int num_map, cache_num_map;
 	int num_cascade, cache_num_cascade;
+	int update_flag;
 	/* List of lights in the scene. */
+	/* XXX This is fragile, can get out of sync quickly. */
 	struct Object *light_ref[MAX_LIGHT];
 	struct Object *shadow_cube_ref[MAX_SHADOW_CUBE];
 	struct Object *shadow_map_ref[MAX_SHADOW_MAP];
@@ -153,6 +155,11 @@ typedef struct EEVEE_LampsInfo {
 	struct EEVEE_ShadowMap     shadow_map_data[MAX_SHADOW_MAP];
 	struct EEVEE_ShadowCascade shadow_cascade_data[MAX_SHADOW_CASCADE];
 } EEVEE_LampsInfo;
+
+/* EEVEE_LampsInfo->update_flag */
+enum {
+	LIGHT_UPDATE_SHADOW_CUBE = (1 << 0),
+};
 
 /* ************ PROBE DATA ************* */
 typedef struct EEVEE_ProbesInfo {
@@ -232,6 +239,8 @@ typedef struct EEVEE_SceneLayerData {
 	struct GPUTexture *shadow_depth_map_pool;
 	struct GPUTexture *shadow_depth_cascade_pool;
 
+	struct ListBase shadow_casters; /* Shadow casters gathered during cache iteration */
+
 	/* Probes */
 	struct EEVEE_ProbesInfo *probes;
 
@@ -247,6 +256,17 @@ typedef struct EEVEE_SceneLayerData {
 	struct GPUTexture *probe_sh;
 } EEVEE_SceneLayerData;
 
+/* ************ OBJECT DATA ************ */
+typedef struct EEVEE_LampEngineData {
+	bool need_update;
+	struct ListBase shadow_caster_list;
+	void *storage; /* either EEVEE_LightData, EEVEE_ShadowCubeData, EEVEE_ShadowCascadeData */
+} EEVEE_LampEngineData;
+
+typedef struct EEVEE_ObjectEngineData {
+	bool need_update;
+} EEVEE_ObjectEngineData;
+
 /* *********************************** */
 
 typedef struct EEVEE_Data {
@@ -257,19 +277,14 @@ typedef struct EEVEE_Data {
 	EEVEE_StorageList *stl;
 } EEVEE_Data;
 
-/* Keep it sync with MAX_LAMP_DATA */
-typedef struct EEVEE_LampEngineData {
-	void *sto;
-	void *pad;
-} EEVEE_LampEngineData;
-
 typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
 	struct DRWShadingGroup *depth_shgrp_cull;
-
-	struct ListBase lamps; /* Lamps gathered during cache iteration */
 } EEVEE_PrivateData; /* Transient data */
+
+/* eevee_engine.c */
+EEVEE_ObjectEngineData *EEVEE_get_object_engine_data(Object *ob);
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_SceneLayerData *sldata);

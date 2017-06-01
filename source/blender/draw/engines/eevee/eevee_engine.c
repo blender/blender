@@ -441,6 +441,17 @@ static void EEVEE_cache_init(void *vedata)
 	EEVEE_effects_cache_init(vedata);
 }
 
+EEVEE_ObjectEngineData *EEVEE_get_object_engine_data(Object *ob)
+{
+	EEVEE_ObjectEngineData **oedata = (EEVEE_ObjectEngineData **)DRW_object_engine_data_get(ob, &draw_engine_eevee_type, NULL);
+
+	if (*oedata == NULL) {
+		*oedata = MEM_callocN(sizeof(**oedata), "EEVEE_ObjectEngineData");
+	}
+
+	return *oedata;
+}
+
 static void EEVEE_cache_populate(void *vedata, Object *ob)
 {
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
@@ -565,6 +576,9 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 
 		if (cast_shadow) {
 			EEVEE_lights_cache_shcaster_add(sldata, psl, geom, ob->obmat);
+			BLI_addtail(&sldata->shadow_casters, BLI_genericNodeN(ob));
+			EEVEE_ObjectEngineData *oedata = EEVEE_get_object_engine_data(ob);
+			oedata->need_update = ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0);
 		}
 	}
 	else if (ob->type == OB_LAMP) {
