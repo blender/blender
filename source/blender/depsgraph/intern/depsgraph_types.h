@@ -67,16 +67,16 @@ typedef enum eDepsNode_Class {
 	/* Types generally unassociated with user-visible entities,
 	 * but needed for graph functioning.
 	 */
-	DEPSNODE_CLASS_GENERIC         = 0,
+	DEG_NODE_CLASS_GENERIC         = 0,
 	/* [Outer Node] An "aspect" of evaluating/updating an ID-Block, requiring
 	 * certain types of evaluation behavior.
 	 */
-	DEPSNODE_CLASS_COMPONENT       = 1,
+	DEG_NODE_CLASS_COMPONENT       = 1,
 	/* [Inner Node] A glorified function-pointer/callback for scheduling up
 	 * evaluation operations for components, subject to relationship
 	 * requirements.
 	 */
-	DEPSNODE_CLASS_OPERATION       = 2,
+	DEG_NODE_CLASS_OPERATION       = 2,
 } eDepsNode_Class;
 
 /* Types of Nodes */

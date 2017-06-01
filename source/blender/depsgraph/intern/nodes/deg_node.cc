@@ -61,11 +61,11 @@ DepsNode::TypeInfo::TypeInfo(eDepsNode_Type type, const char *tname)
 {
 	this->type = type;
 	if (type == DEG_NODE_TYPE_OPERATION)
-		this->tclass = DEPSNODE_CLASS_OPERATION;
+		this->tclass = DEG_NODE_CLASS_OPERATION;
 	else if (type < DEG_NODE_TYPE_PARAMETERS)
-		this->tclass = DEPSNODE_CLASS_GENERIC;
+		this->tclass = DEG_NODE_CLASS_GENERIC;
 	else
-		this->tclass = DEPSNODE_CLASS_COMPONENT;
+		this->tclass = DEG_NODE_CLASS_COMPONENT;
 	this->tname = tname;
 }
 
