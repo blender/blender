@@ -3534,7 +3534,7 @@ class VIEW3D_PT_view3d_meshstatvis(Panel):
             row = layout.row(align=True)
             row.prop(statvis, "overhang_min", text="")
             row.prop(statvis, "overhang_max", text="")
-            layout.prop(statvis, "overhang_axis", expand=True)
+            layout.row().prop(statvis, "overhang_axis", expand=True)
         elif statvis_type == 'THICKNESS':
             row = layout.row(align=True)
             row.prop(statvis, "thickness_min", text="")

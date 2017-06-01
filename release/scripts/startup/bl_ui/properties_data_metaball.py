@@ -70,7 +70,7 @@ class DATA_PT_metaball(DataButtonsPanel, Panel):
         col.prop(mball, "threshold", text="Threshold")
 
         layout.label(text="Update:")
-        layout.prop(mball, "update_method", expand=True)
+        layout.row().prop(mball, "update_method", expand=True)
 
 
 class DATA_PT_mball_texture_space(DataButtonsPanel, Panel):

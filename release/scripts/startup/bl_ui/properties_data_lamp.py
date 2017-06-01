@@ -83,7 +83,7 @@ class DATA_PT_lamp(DataButtonsPanel, Panel):
 
         lamp = context.lamp
 
-        layout.prop(lamp, "type", expand=True)
+        layout.row().prop(lamp, "type", expand=True)
 
         split = layout.split()
 
@@ -210,7 +210,7 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
 
         lamp = context.lamp
 
-        layout.prop(lamp, "shadow_method", expand=True)
+        layout.row().prop(lamp, "shadow_method", expand=True)
 
         if lamp.shadow_method == 'NOSHADOW' and lamp.type == 'AREA':
             split = layout.split()

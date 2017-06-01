@@ -175,7 +175,7 @@ class WORLD_PT_gather(WorldButtonsPanel, Panel):
 
         layout.active = light.use_ambient_occlusion or light.use_environment_light or light.use_indirect_light
 
-        layout.prop(light, "gather_method", expand=True)
+        layout.row().prop(light, "gather_method", expand=True)
 
         split = layout.split()
 

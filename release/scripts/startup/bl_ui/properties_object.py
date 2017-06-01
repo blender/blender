@@ -294,7 +294,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
 
         ob = context.object
 
-        layout.prop(ob, "dupli_type", expand=True)
+        layout.row().prop(ob, "dupli_type", expand=True)
 
         if ob.dupli_type == 'FRAMES':
             split = layout.split()

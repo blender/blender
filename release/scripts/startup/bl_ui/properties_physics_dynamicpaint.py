@@ -68,7 +68,7 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
 
         md = context.dynamic_paint
 
-        layout.prop(md, "ui_type", expand=True)
+        layout.row().prop(md, "ui_type", expand=True)
 
         if md.ui_type == 'CANVAS':
             canvas = md.canvas_settings
@@ -363,7 +363,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
         canvas = context.dynamic_paint.canvas_settings
         surface = canvas.canvas_surfaces.active
 
-        layout.prop(surface, "effect_ui", expand=True)
+        layout.row().prop(surface, "effect_ui", expand=True)
 
         if surface.effect_ui == 'SPREAD':
             layout.prop(surface, "use_spread")

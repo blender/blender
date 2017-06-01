@@ -165,7 +165,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
             pin_id = None
 
         if not space.use_pin_id:
-            layout.prop(space, "texture_context", expand=True)
+            layout.row().prop(space, "texture_context", expand=True)
             pin_id = None
 
         if space.texture_context == 'OTHER':
@@ -318,9 +318,9 @@ class TEXTURE_PT_clouds(TextureTypePanel, Panel):
 
         tex = context.texture
 
-        layout.prop(tex, "cloud_type", expand=True)
+        layout.row().prop(tex, "cloud_type", expand=True)
         layout.label(text="Noise:")
-        layout.prop(tex, "noise_type", text="Type", expand=True)
+        layout.row().prop(tex, "noise_type", text="Type", expand=True)
         layout.prop(tex, "noise_basis", text="Basis")
 
         split = layout.split()
@@ -342,8 +342,8 @@ class TEXTURE_PT_wood(TextureTypePanel, Panel):
 
         tex = context.texture
 
-        layout.prop(tex, "noise_basis_2", expand=True)
-        layout.prop(tex, "wood_type", expand=True)
+        layout.row().prop(tex, "noise_basis_2", expand=True)
+        layout.row().prop(tex, "wood_type", expand=True)
 
         col = layout.column()
         col.active = tex.wood_type in {'RINGNOISE', 'BANDNOISE'}
@@ -371,10 +371,10 @@ class TEXTURE_PT_marble(TextureTypePanel, Panel):
 
         tex = context.texture
 
-        layout.prop(tex, "marble_type", expand=True)
-        layout.prop(tex, "noise_basis_2", expand=True)
+        layout.row().prop(tex, "marble_type", expand=True)
+        layout.row().prop(tex, "noise_basis_2", expand=True)
         layout.label(text="Noise:")
-        layout.prop(tex, "noise_type", text="Type", expand=True)
+        layout.row().prop(tex, "noise_type", text="Type", expand=True)
         layout.prop(tex, "noise_basis", text="Basis")
 
         split = layout.split()
@@ -431,9 +431,9 @@ class TEXTURE_PT_stucci(TextureTypePanel, Panel):
 
         tex = context.texture
 
-        layout.prop(tex, "stucci_type", expand=True)
+        layout.row().prop(tex, "stucci_type", expand=True)
         layout.label(text="Noise:")
-        layout.prop(tex, "noise_type", text="Type", expand=True)
+        layout.row().prop(tex, "noise_type", text="Type", expand=True)
         layout.prop(tex, "noise_basis", text="Basis")
 
         row = layout.row()
@@ -808,7 +808,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
         tex = context.texture
         pd = tex.point_density
 
-        layout.prop(pd, "point_source", expand=True)
+        layout.row().prop(pd, "point_source", expand=True)
 
         split = layout.split()
 

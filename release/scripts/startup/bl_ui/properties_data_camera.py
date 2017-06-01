@@ -79,7 +79,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
 
         cam = context.camera
 
-        layout.prop(cam, "type", expand=True)
+        layout.row().prop(cam, "type", expand=True)
 
         split = layout.split()
 

@@ -128,7 +128,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
         if field.type not in {'NONE', 'GUIDE'}:
 
             layout.label(text="Falloff:")
-            layout.prop(field, "falloff_type", expand=True)
+            layout.row().prop(field, "falloff_type", expand=True)
 
             basic_force_field_falloff_ui(self, context, field)
 

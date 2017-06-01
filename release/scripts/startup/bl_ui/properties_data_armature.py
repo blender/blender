@@ -57,7 +57,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
 
         arm = context.armature
 
-        layout.prop(arm, "pose_position", expand=True)
+        layout.row().prop(arm, "pose_position", expand=True)
 
         col = layout.column()
         col.label(text="Layers:")
@@ -80,7 +80,7 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         ob = context.object
         arm = context.armature
 
-        layout.prop(arm, "draw_type", expand=True)
+        layout.row().prop(arm, "draw_type", expand=True)
 
         split = layout.split()
 
@@ -215,7 +215,7 @@ class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
 
         arm = context.armature
 
-        layout.prop(arm, "ghost_type", expand=True)
+        layout.row().prop(arm, "ghost_type", expand=True)
 
         split = layout.split()
 
@@ -252,11 +252,11 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
         layout.prop(ob.pose, "ik_solver")
 
         if itasc:
-            layout.prop(itasc, "mode", expand=True)
+            layout.row().prop(itasc, "mode", expand=True)
             simulation = (itasc.mode == 'SIMULATION')
             if simulation:
                 layout.label(text="Reiteration:")
-                layout.prop(itasc, "reiteration_method", expand=True)
+                layout.row().prop(itasc, "reiteration_method", expand=True)
 
             row = layout.row()
             row.active = not simulation or itasc.reiteration_method != 'NEVER'
