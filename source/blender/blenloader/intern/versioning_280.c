@@ -390,6 +390,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 								v3d->custom_orientation_index = v3d->twmode - V3D_MANIP_CUSTOM;
 								v3d->twmode = V3D_MANIP_CUSTOM;
 							}
+							else {
+								v3d->custom_orientation_index = -1;
+							}
 						}
 					}
 				}
