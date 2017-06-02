@@ -114,7 +114,7 @@ typedef struct EEVEE_Light {
 } EEVEE_Light;
 
 typedef struct EEVEE_ShadowCube {
-	float near, far, bias, pad;
+	float near, far, bias, exp;
 } EEVEE_ShadowCube;
 
 typedef struct EEVEE_ShadowMap {
@@ -133,6 +133,7 @@ typedef struct EEVEE_ShadowRender {
 	float position[3];
 	float pad;
 	int layer;
+	float exponent;
 } EEVEE_ShadowRender;
 
 /* ************ LIGHT DATA ************* */

@@ -382,6 +382,7 @@ static void eevee_shadow_cube_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_La
 	evsh->bias = 0.05f * la->bias;
 	evsh->near = la->clipsta;
 	evsh->far = la->clipend;
+	evsh->exp = la->bleedexp;
 
 	evli->shadowid = (float)(evsmp->shadow_id);
 }
@@ -732,12 +733,14 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	/* Render each shadow to one layer of the array */
 	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
 		EEVEE_LampEngineData *led = eevee_get_lamp_engine_data(ob);
+		Lamp *la = (Lamp *)ob->data;
 
 		if (led->need_update) {
 			EEVEE_ShadowCubeData *evscd = (EEVEE_ShadowCubeData *)led->storage;
 			EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
 
 			srd->layer = i;
+			srd->exponent = la->bleedexp;
 			copy_v3_v3(srd->position, ob->obmat[3]);
 			for (int j = 0; j < 6; ++j) {
 				copy_m4_m4(srd->shadowmat[j], evscd->viewprojmat[j]);

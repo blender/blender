@@ -69,6 +69,7 @@ void BKE_lamp_init(Lamp *la)
 	la->bufsize = 512;
 	la->clipsta = 0.5f;
 	la->clipend = 40.0f;
+	la->bleedexp = 120.0f;
 	la->samp = 3;
 	la->bias = 1.0f;
 	la->soft = 3.0f;

@@ -596,6 +596,12 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_ui_text(prop, "Shadow Buffer Bleed Bias", "Bias for reducing light-bleed on variance shadow maps");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
+	prop = RNA_def_property(srna, "shadow_buffer_exp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "bleedexp");
+	RNA_def_property_range(prop, 1.0f, 9999.0f);
+	RNA_def_property_ui_text(prop, "Shadow Buffer Exponent", "Bias for reducing light-bleed on exponential shadow maps");
+	RNA_def_property_update(prop, 0, "rna_Lamp_update");
+
 	prop = RNA_def_property(srna, "shadow_buffer_soft", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "soft");
 	RNA_def_property_range(prop, 0.0f, 100.0f);

@@ -3,6 +3,7 @@ layout(std140) uniform shadow_render_block {
 	mat4 ShadowMatrix[6];
 	vec4 lampPosition;
 	int layer;
+	float exponent;
 };
 
 layout(triangles) in;

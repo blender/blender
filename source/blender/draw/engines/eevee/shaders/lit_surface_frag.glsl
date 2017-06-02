@@ -176,11 +176,11 @@ void light_visibility(LightData ld, ShadingData sd, out float vis)
 		ShadowCubeData scd = shadows_cube_data[int(shid)];
 
 		vec3 cubevec = sd.W - ld.l_position;
-		float dist = length(cubevec);
+		float dist = length(cubevec) - scd.sh_cube_bias;
 
 		float z = texture_octahedron(shadowCubes, vec4(cubevec, shid)).r;
 
-		float esm_test = min(1.0, exp(-5.0 * dist) * z);
+		float esm_test = saturate(exp(scd.sh_cube_exp * (z - dist)));
 		float sh_test = step(0, z - dist);
 
 		vis *= esm_test;

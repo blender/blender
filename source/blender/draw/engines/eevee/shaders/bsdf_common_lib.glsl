@@ -36,13 +36,14 @@ struct LightData {
 
 
 struct ShadowCubeData {
-	vec4 near_far_bias;
+	vec4 near_far_bias_exp;
 };
 
 /* convenience aliases */
-#define sh_cube_near   near_far_bias.x
-#define sh_cube_far    near_far_bias.y
-#define sh_cube_bias   near_far_bias.z
+#define sh_cube_near   near_far_bias_exp.x
+#define sh_cube_far    near_far_bias_exp.y
+#define sh_cube_bias   near_far_bias_exp.z
+#define sh_cube_exp    near_far_bias_exp.w
 
 
 struct ShadowMapData {

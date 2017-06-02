@@ -31,6 +31,7 @@
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_gpu_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -351,6 +352,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 280, 1)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "bleedexp"))	{
+			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+				la->bleedexp = 120.0f;
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio"))	{
 			for (Camera *ca = main->camera.first; ca; ca = ca->id.next) {
 				ca->gpu_dof.ratio = 1.0f;
