@@ -4442,7 +4442,7 @@ void PE_undo_push(Scene *scene, SceneLayer *sl, const char *str)
 		undo= undo->prev;
 	}
 	if (undo) {
-		while (edit->undo.first!=undo) {
+		while (edit->undo.first != undo) {
 			PTCacheUndo *first= edit->undo.first;
 			BLI_remlink(&edit->undo, first);
 			free_PTCacheUndo(first);

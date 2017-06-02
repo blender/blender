@@ -130,7 +130,7 @@ void create_swapped_rotation_matrix(
 	float rz;
 
 	/* Apply transformation */
-	switch(mode) {
+	switch (mode) {
 		case ABC_ZUP_FROM_YUP:
 			ry = -euler[2];
 			rz = euler[1];
@@ -205,7 +205,7 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 	copy_m4_m3(dst_mat, dst_rot);
 
 	/* Apply translation */
-	switch(mode) {
+	switch (mode) {
 		case ABC_ZUP_FROM_YUP:
 			copy_zup_from_yup(dst_mat[3], src_trans);
 			break;

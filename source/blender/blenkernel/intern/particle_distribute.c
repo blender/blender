@@ -1092,7 +1092,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 	/* For hair, sort by origindex (allows optimization's in rendering), */
 	/* however with virtual parents the children need to be in random order. */
-	if (part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0f)) {
+	if (part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents != 0.0f)) {
 		int *orig_index = NULL;
 
 		if (from == PART_FROM_VERT) {

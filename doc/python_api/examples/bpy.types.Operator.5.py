@@ -2,13 +2,14 @@
 Modal Execution
 +++++++++++++++
 
-This operator defines a :class:`Operator.modal` function which running,
-handling events until it returns ``{'FINISHED'}`` or ``{'CANCELLED'}``.
+This operator defines a :class:`Operator.modal` function that will keep being
+run to handle events until it returns ``{'FINISHED'}`` or ``{'CANCELLED'}``.
 
-Grab, Rotate, Scale and Fly-Mode are examples of modal operators.
-They are especially useful for interactive tools,
-your operator can have its own state where keys toggle options as the operator
-runs.
+Modal operators run every time a new event is detected, such as a mouse click
+or key press. Conversely, when no new events are detected, the modal operator
+will not run. Modal operators are especially useful for interactive tools, an
+operator can have its own state where keys toggle options as the operator runs.
+Grab, Rotate, Scale, and Fly-Mode are examples of modal operators.
 
 :class:`Operator.invoke` is used to initialize the operator as being by
 returning ``{'RUNNING_MODAL'}``, initializing the modal loop.

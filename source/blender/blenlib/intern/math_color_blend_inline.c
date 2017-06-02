@@ -444,7 +444,7 @@ MINLINE void blend_color_vividlight_byte(unsigned char dst[4], unsigned const ch
 			else if (src2[i] == 0) {
 				temp = 0;
 			}
-			else if (src2[i] > 127)  {
+			else if (src2[i] > 127) {
 				temp = min_ii(((src1[i]) * 255) / (2 * (255 - src2[i])), 255);
 			}
 			else {
