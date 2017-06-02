@@ -3024,7 +3024,7 @@ static int rna_SceneLayer_multiple_engines_get(PointerRNA *UNUSED(ptr))
 static void rna_SceneLayer_update_tagged(SceneLayer *UNUSED(sl), bContext *C)
 {
 	Depsgraph *graph = CTX_data_depsgraph(C);
-	DEG_OBJECT_ITER(graph, ob, DEG_OBJECT_ITER_FLAG_SET)
+	DEG_OBJECT_ITER(graph, ob, DEG_OBJECT_ITER_FLAG_ALL)
 	{
 		/* Don't do anything, we just need to run the iterator to flush
 		 * the base info to the objects. */

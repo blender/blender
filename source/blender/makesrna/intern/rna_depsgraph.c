@@ -90,7 +90,7 @@ static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, Pointe
 	DEGObjectsIteratorData *data = MEM_callocN(sizeof(DEGObjectsIteratorData), __func__);
 
 	data->graph = (Depsgraph *)ptr->data;
-	data->flag = DEG_OBJECT_ITER_FLAG_ALL;
+	data->flag = DEG_OBJECT_ITER_FLAG_SET;
 
 	DEG_objects_iterator_begin(iter->internal.custom, data);
 	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
