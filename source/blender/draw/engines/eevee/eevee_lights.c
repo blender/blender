@@ -624,6 +624,7 @@ static void delete_pruned_shadowcaster(EEVEE_LampEngineData *led)
 	for (ShadowCaster *ldata = led->shadow_caster_list.first; ldata; ldata = next) {
 		next = ldata->next;
 		if (ldata->prune == true) {
+			led->need_update = true;
 			BLI_freelinkN(&led->shadow_caster_list, ldata);
 		}
 	}
