@@ -1993,6 +1993,27 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 	return hits > 0 ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
+/**
+ * Compare result of 'GPU_select': 'uint[4]',
+ * needed for when we need to align with object draw-order.
+ */
+static int opengl_select_buffer_cmp(const void *sel_a_p, const void *sel_b_p)
+{
+	/* 4th element is select id */
+	const uint sel_a = ((uint *)sel_a_p)[3];
+	const uint sel_b = ((uint *)sel_b_p)[3];
+
+	if (sel_a < sel_b) {
+		return -1;
+	}
+	else if (sel_a > sel_b) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, bool select, bool extend)
 {
 	Bone *bone;
@@ -2034,15 +2055,19 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 	 * is the same as the object, we have a hit and can move to the next color
 	 * and object pair, if not, just move to the next object,
 	 * keeping the same color until we have a hit.
-	 * 
-	 * The buffer order is defined by OGL standard, hopefully no stupid GFX card
-	 * does it incorrectly.
 	 */
 
 	if (hits > 0) { /* no need to loop if there's no hit */
 		Base *base;
 		col = vbuffer + 3;
-		
+
+		/* The draw order doesn't always match the order we populate the engine, see: T51695. */
+		qsort(vbuffer, hits, sizeof(uint[4]), opengl_select_buffer_cmp);
+
+		/*
+		 * Even though 'DRW_draw_select_loop' uses 'DEG_OBJECT_ITER',
+		 * we can be sure the order remains the same between both.
+		 */
 		for (base = vc->scene_layer->object_bases.first; base && hits; base = base->next) {
 			if (BASE_SELECTABLE_NEW(base)) {
 				while (base->selcol == (*col & 0xFFFF)) {   /* we got an object */
