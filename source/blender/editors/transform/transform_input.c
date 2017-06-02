@@ -86,12 +86,11 @@ static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const double mv
 	output[1] *= mi->factor;
 }
 
-static void InputHorizontalRatio(TransInfo *t, MouseInput *UNUSED(mi), const double mval[2], float output[3])
+static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
 	const int winx = t->ar ? t->ar->winx : 1;
-	const double pad = winx / 10;
 
-	output[0] = (mval[0] - pad) / (winx - 2 * pad);
+	output[0] = ((mval[0] - mi->imval[0]) / winx) * 2.0f;
 }
 
 static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
@@ -104,12 +103,11 @@ static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const double m
 	output[0] = dot_v3v3(t->viewinv[0], vec) * 2.0f;
 }
 
-static void InputVerticalRatio(TransInfo *t, MouseInput *UNUSED(mi), const double mval[2], float output[3])
+static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
 	const int winy = t->ar ? t->ar->winy : 1;
-	const double pad = winy / 10;
 
-	output[0] = (mval[1] - pad) / (winy - 2 * pad);
+	output[0] = ((mval[1] - mi->imval[1]) / winy) * 2.0f;
 }
 
 static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
@@ -314,7 +312,6 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 			t->helpline = HLP_TRACKBALL;
 			break;
 		case INPUT_HORIZONTAL_RATIO:
-			mi->factor = (float)(mi->center[0] - mi->imval[0]);
 			mi->apply = InputHorizontalRatio;
 			t->helpline = HLP_HARROW;
 			break;
