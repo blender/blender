@@ -124,7 +124,7 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
  */
 static void deg_flush_data(Object *ob, Base *base, const int flag)
 {
-	ob->base_flag = (base->flag | BASE_FROM_SET) & flag;
+	ob->base_flag = (base->flag | BASE_FROM_SET | BASE_FROMDUPLI) & flag;
 	ob->base_collection_properties = base->collection_properties;
 	ob->base_selection_color = base->selcol;
 }
