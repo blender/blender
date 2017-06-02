@@ -247,7 +247,7 @@ void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)
 		/* Cubemap / octahedral map pool */
 		/* TODO Cubemap array */
 		sldata->shadow_depth_cube_pool = DRW_texture_create_2D_array(
-		        512, 512, max_ff(1, linfo->num_cube), DRW_TEX_R_32,
+		        512, 512, max_ff(1, linfo->num_cube), DRW_TEX_R_16,
 		        DRW_TEX_FILTER | DRW_TEX_COMPARE, NULL);
 		if (sldata->shadow_cube_fb) {
 			DRW_framebuffer_texture_attach(sldata->shadow_cube_fb, sldata->shadow_depth_cube_pool, 0, 0);
@@ -272,10 +272,10 @@ void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)
 
 	DRWFboTexture tex_cube_target[2] = {
 	        {&sldata->shadow_depth_cube_target, DRW_TEX_DEPTH_24, 0},
-	        {&sldata->shadow_color_cube_target, DRW_TEX_R_32, DRW_TEX_FILTER}};
+	        {&sldata->shadow_color_cube_target, DRW_TEX_R_16, DRW_TEX_FILTER}};
 	DRW_framebuffer_init(&sldata->shadow_cube_target_fb, &draw_engine_eevee_type, 512, 512, tex_cube_target, 2);
 
-	DRWFboTexture tex_cube = {&sldata->shadow_depth_cube_pool, DRW_TEX_R_32, DRW_TEX_FILTER};
+	DRWFboTexture tex_cube = {&sldata->shadow_depth_cube_pool, DRW_TEX_R_16, DRW_TEX_FILTER};
 	DRW_framebuffer_init(&sldata->shadow_cube_fb, &draw_engine_eevee_type, 512, 512, &tex_cube, 1);
 
 	DRWFboTexture tex_cascade = {&sldata->shadow_depth_cascade_pool, DRW_TEX_DEPTH_24, DRW_TEX_FILTER | DRW_TEX_COMPARE};
