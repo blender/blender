@@ -2,12 +2,12 @@
 uniform mat4 ModelViewMatrix;
 #ifndef EEVEE_ENGINE
 uniform mat4 ProjectionMatrix;
+uniform mat4 ViewMatrixInverse;
 #endif
 uniform mat4 ViewMatrix;
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
 uniform mat4 ModelViewMatrixInverse;
-uniform mat4 ViewMatrixInverse;
 uniform mat4 ProjectionMatrixInverse;
 uniform mat3 NormalMatrix;
 uniform vec4 CameraTexCoFactors;
