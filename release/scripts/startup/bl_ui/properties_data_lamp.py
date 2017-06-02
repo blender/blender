@@ -76,7 +76,7 @@ class DATA_PT_preview(DataButtonsPanel, Panel):
 
 class DATA_PT_lamp(DataButtonsPanel, Panel):
     bl_label = "Lamp"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout
@@ -122,6 +122,47 @@ class DATA_PT_lamp(DataButtonsPanel, Panel):
         col.prop(lamp, "use_own_layer", text="This Layer Only")
         col.prop(lamp, "use_specular")
         col.prop(lamp, "use_diffuse")
+
+
+class DATA_PT_EEVEE_lamp(DataButtonsPanel, Panel):
+    bl_label = "Lamp"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        lamp = context.lamp
+
+        layout.row().prop(lamp, "type", expand=True)
+
+        split = layout.split()
+
+        col = split.column()
+        sub = col.column()
+        sub.prop(lamp, "color", text="")
+        sub.prop(lamp, "energy")
+
+        if lamp.type in {'POINT', 'SPOT', 'SUN'}:
+            sub.prop(lamp, "shadow_soft_size", text="Radius")
+        elif lamp.type == 'AREA':
+            sub = sub.column(align=True)
+            sub.prop(lamp, "shape", text="")
+            if lamp.shape == 'SQUARE':
+                sub.prop(lamp, "size")
+            elif lamp.shape == 'RECTANGLE':
+                sub.prop(lamp, "size", text="Size X")
+                sub.prop(lamp, "size_y", text="Size Y")
+
+        col = split.column()
+        col.prop(lamp, "use_specular")
+        col.prop(lamp, "use_diffuse")
+        col.separator()
+
+        if lamp.type in {'POINT', 'SPOT', 'AREA'}:
+            col.prop(lamp, "use_sphere")
+            col = col.column()
+            col.active = lamp.use_sphere
+            col.prop(lamp, "distance")
 
 
 class DATA_PT_sunsky(DataButtonsPanel, Panel):
@@ -308,12 +349,46 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
             col.prop(lamp, "use_auto_clip_end", text="Autoclip End")
             sub = col.column()
             sub.active = not lamp.use_auto_clip_end
-            sub.prop(lamp, "shadow_buffer_clip_end", text=" Clip End")
+            sub.prop(lamp, "shadow_buffer_clip_end", text="Clip End")
+
+
+class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
+    bl_label = "Shadow"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        engine = context.scene.render.engine
+        return (lamp and lamp.type in {'POINT', 'SUN', 'SPOT', 'AREA'}) and (engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        lamp = context.lamp
+        self.layout.prop(lamp, "use_shadow", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        lamp = context.lamp
+
+        if lamp.type == 'SUN':
+            layout.label("Comming Soon")
+        else:
+            split = layout.split()
+            split.active = lamp.use_shadow
+
+            col = split.column(align=True)
+            col.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
+            col.prop(lamp, "shadow_buffer_clip_end", text="Clip End")
+
+            col = split.column(align=True)
+            col.prop(lamp, "shadow_buffer_bias", text="Bias")
+            col.prop(lamp, "shadow_buffer_exp", text="Exponent")
 
 
 class DATA_PT_area(DataButtonsPanel, Panel):
     bl_label = "Area Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     @classmethod
     def poll(cls, context):
@@ -339,7 +414,7 @@ class DATA_PT_area(DataButtonsPanel, Panel):
 
 class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Spot Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     @classmethod
     def poll(cls, context):
@@ -372,6 +447,31 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
             sub.prop(lamp, "halo_step", text="Step")
 
 
+class DATA_PT_spot(DataButtonsPanel, Panel):
+    bl_label = "Spot Shape"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        engine = context.scene.render.engine
+        return (lamp and lamp.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        lamp = context.lamp
+
+        split = layout.split()
+
+        col = split.column()
+        sub = col.column()
+        sub.prop(lamp, "spot_size", text="Size")
+        sub.prop(lamp, "spot_blend", text="Blend", slider=True)
+        col = split.column()
+        col.prop(lamp, "show_cone")
+
+
 class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
     bl_label = "Falloff Curve"
     bl_options = {'DEFAULT_CLOSED'}
@@ -401,8 +501,10 @@ classes = (
     DATA_PT_context_lamp,
     DATA_PT_preview,
     DATA_PT_lamp,
+    DATA_PT_EEVEE_lamp,
     DATA_PT_sunsky,
     DATA_PT_shadow,
+    DATA_PT_EEVEE_shadow,
     DATA_PT_area,
     DATA_PT_spot,
     DATA_PT_falloff_curve,

@@ -722,6 +722,7 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_LAMP_AREA);
 
 	rna_def_lamp_shadow(srna, 0, 1);
+	rna_def_lamp_falloff(srna);
 
 	prop = RNA_def_property(srna, "use_umbra", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ray_samp_type", LA_SAMP_UMBRA);
