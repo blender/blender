@@ -1610,7 +1610,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	}
 
 	/* don't show object extras in set's */
-	if ((ob->base_flag & BASE_FROM_SET) == 0) {
+	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
 		DRW_shgroup_object_center(stl, ob);
 		DRW_shgroup_relationship_lines(stl, ob);
 

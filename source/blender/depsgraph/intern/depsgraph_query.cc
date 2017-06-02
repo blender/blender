@@ -100,6 +100,8 @@ Object *DEG_get_object(Depsgraph * /*depsgraph*/, Object *ob)
 
 /* ************************ DAG ITERATORS ********************* */
 
+#define BASE_FLUSH_FLAGS (BASE_FROM_SET | BASE_FROMDUPLI)
+
 void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data)
 {
 	SceneLayer *scene_layer;
@@ -112,7 +114,7 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
 	data->eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
 	data->scene = DEG_get_scene(graph);
 	scene_layer = DEG_get_scene_layer(graph);
-	data->base_flag = ~(BASE_FROM_SET);
+	data->base_flag = ~BASE_FLUSH_FLAGS;
 
 	Base base = {(Base *)scene_layer->object_bases.first, NULL};
 	data->base = &base;
@@ -124,7 +126,7 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
  */
 static void deg_flush_data(Object *ob, Base *base, const int flag)
 {
-	ob->base_flag = (base->flag | BASE_FROM_SET | BASE_FROMDUPLI) & flag;
+	ob->base_flag = (base->flag | BASE_FLUSH_FLAGS) & flag;
 	ob->base_collection_properties = base->collection_properties;
 	ob->base_selection_color = base->selcol;
 }
