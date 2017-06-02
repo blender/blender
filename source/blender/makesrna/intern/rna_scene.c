@@ -1975,7 +1975,7 @@ static StructRNA *rna_LayerCollectionSettings_refine(PointerRNA *ptr)
 			}
 #endif
 			if (STREQ(props->name, RE_engine_id_BLENDER_EEVEE)) {
-				printf("Mode not fully implemented\n");
+				/* printf("Mode not fully implemented\n"); */
 				return &RNA_LayerCollectionSettings;
 			}
 			break;
