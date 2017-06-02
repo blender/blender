@@ -124,7 +124,7 @@ void KX_SoundActuator::play()
 	AUD_Device_free(device);
 
 	// in case of pingpong, we have to free the sound
-	if(sound != m_sound)
+	if (sound != m_sound)
 		AUD_Sound_free(sound);
 
 	if (m_handle != NULL) {

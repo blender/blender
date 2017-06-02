@@ -3032,10 +3032,10 @@ vec2 calc_brick_texture(vec3 p, float mortar_size, float mortar_smooth, float bi
 	float tint = clamp((integer_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias), 0.0, 1.0);
 
 	float min_dist = min(min(x, y), min(brick_width - x, row_height - y));
-	if(min_dist >= mortar_size) {
+	if (min_dist >= mortar_size) {
 		return vec2(tint, 0.0);
 	}
-	else if(mortar_smooth == 0.0) {
+	else if (mortar_smooth == 0.0) {
 		return vec2(tint, 1.0);
 	}
 	else {

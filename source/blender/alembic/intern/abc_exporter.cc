@@ -428,7 +428,7 @@ AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *pare
 
 	/* check if we have already created a transform writer for this object */
 	AbcTransformWriter *my_writer = getXForm(name);
-	if (my_writer != NULL){
+	if (my_writer != NULL) {
 		return my_writer;
 	}
 

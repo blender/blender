@@ -165,7 +165,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(
 		vmap->vert[a] = newvlist;
 	}
 
-	if (use_winding)  {
+	if (use_winding) {
 		MEM_freeN(winding);
 	}
 

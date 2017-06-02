@@ -452,7 +452,8 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 		else {
 			if (child_claims_this_object) {
 				claiming_child_readers.push_back(child_reader);
-			} else {
+			}
+			else {
 				nonclaiming_child_readers.push_back(child_reader);
 			}
 		}

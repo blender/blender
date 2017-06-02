@@ -328,7 +328,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 					if (tools & TOOL_SUGG_LIST) {
 						texttool_suggest_clear();
 					}
-					if (tools & TOOL_DOCUMENT)  {
+					if (tools & TOOL_DOCUMENT) {
 						texttool_docs_clear();
 						doc_scroll = 0;
 					}

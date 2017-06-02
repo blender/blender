@@ -524,7 +524,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
 				// We'll generate both with tips and without tips
 				// coordinates, on two different UV layers.
-				if (ma->mtex[a]->texflag & MTEX_TIPS)  {
+				if (ma->mtex[a]->texflag & MTEX_TIPS) {
 					BLI_strncpy(ma->mtex[a]->uvname, uvNames[1], sizeof(ma->mtex[a]->uvname));
 				}
 				else {

@@ -2137,7 +2137,7 @@ bool BKE_scene_remove_render_view(Scene *scene, SceneRenderView *srv)
 
 int get_render_subsurf_level(const RenderData *r, int lvl, bool for_render)
 {
-	if (r->mode & R_SIMPLIFY)  {
+	if (r->mode & R_SIMPLIFY) {
 		if (for_render)
 			return min_ii(r->simplify_subsurf_render, lvl);
 		else

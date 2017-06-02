@@ -4278,7 +4278,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
 		bUnit_AsString(distvec, sizeof(distvec), dist * t->scene->unit.scale_length, 4, t->scene->unit.system,
 		               B_UNIT_LENGTH, do_split, false);
 	}
-	else if (dist > 1e10f || dist < -1e10f)  {
+	else if (dist > 1e10f || dist < -1e10f) {
 		/* prevent string buffer overflow */
 		BLI_snprintf(distvec, NUM_STR_REP_LEN, "%.4e", dist);
 	}

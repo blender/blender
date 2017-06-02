@@ -4160,7 +4160,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				 */
 
 				bp = nu->bp;
-				if (bp[nu->pntsu - 1].f1 & SELECT)  {
+				if (bp[nu->pntsu - 1].f1 & SELECT) {
 					if (nu2 == NULL) {
 						nu2 = nu;
 					}

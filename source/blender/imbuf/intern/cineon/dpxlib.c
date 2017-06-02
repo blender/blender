@@ -183,7 +183,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		if (verbose) printf("DPX: File is LSB.\n");
 	}
 	else {
-		if (verbose)  {
+		if (verbose) {
 			printf("DPX: Bad magic number %u in \"%s\".\n",
 			       header.fileHeader.magic_num, byteStuff);
 		}

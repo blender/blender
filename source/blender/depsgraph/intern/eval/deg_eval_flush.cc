@@ -139,18 +139,18 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			IDDepsNode *id_node = comp_node->owner;
 
 			ID *id = id_node->id;
-			if(id_node->done == 0) {
+			if (id_node->done == 0) {
 				deg_editors_id_update(bmain, id);
 				lib_id_recalc_tag(bmain, id);
 				/* TODO(sergey): For until we've got proper data nodes in the graph. */
 				lib_id_recalc_data_tag(bmain, id);
 			}
 
-			if(comp_node->done == 0) {
+			if (comp_node->done == 0) {
 				Object *object = NULL;
 				if (GS(id->name) == ID_OB) {
 					object = (Object *)id;
-					if(id_node->done == 0) {
+					if (id_node->done == 0) {
 						++num_flushed_objects;
 					}
 				}
