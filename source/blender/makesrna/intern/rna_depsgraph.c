@@ -54,9 +54,9 @@ static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
 	FILE *f = fopen(filename, "w");
 	if (f == NULL)
 		return;
-	
+
 	DEG_debug_graphviz(graph, f, "Depsgraph", false);
-	
+
 	fclose(f);
 }
 
@@ -73,13 +73,13 @@ static void rna_Depsgraph_debug_rebuild(Depsgraph *UNUSED(graph), Main *bmain)
 static void rna_Depsgraph_debug_stats(Depsgraph *graph, ReportList *reports)
 {
 	size_t outer, ops, rels;
-	
+
 	DEG_stats_simple(graph, &outer, &ops, &rels);
-	
+
 	// XXX: report doesn't seem to work
 	printf("Approx %lu Operations, %lu Relations, %lu Outer Nodes\n",
 	       ops, rels, outer);
-		   
+
 	BKE_reportf(reports, RPT_WARNING, "Approx. %lu Operations, %lu Relations, %lu Outer Nodes",
 	            ops, rels, outer);
 }
@@ -126,7 +126,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "Depsgraph", NULL);
 	RNA_def_struct_ui_text(srna, "Dependency Graph", "");
-	
+
 	func = RNA_def_function(srna, "debug_graphviz", "rna_Depsgraph_debug_graphviz");
 	parm = RNA_def_string_file_path(func, "filename", NULL, FILE_MAX, "File Name",
 	                                "File in which to store graphviz debug output");
