@@ -1,8 +1,7 @@
 
 uniform int light_count;
-uniform vec3 cameraPos;
-uniform vec3 eye;
 uniform mat4 ProjectionMatrix;
+uniform mat4 ViewMatrixInverse;
 
 uniform sampler2D probeFiltered;
 uniform float lodMax;
@@ -34,6 +33,9 @@ flat in vec3 viewNormal;
 in vec3 worldNormal;
 in vec3 viewNormal;
 #endif
+
+#define cameraForward   normalize(ViewMatrixInverse[2].xyz)
+#define cameraPos       ViewMatrixInverse[3].xyz
 
 /* type */
 #define POINT    0.0
@@ -138,7 +140,7 @@ void light_visibility(LightData ld, ShadingData sd, out float vis)
 		ShadowCascadeData smd = shadows_cascade_data[int(shid)];
 
 		/* Finding Cascade index */
-		vec4 z = vec4(-dot(cameraPos - worldPosition, normalize(eye)));
+		vec4 z = vec4(-dot(cameraPos - worldPosition, cameraForward));
 		vec4 comp = step(z, smd.split_distances);
 		float cascade = dot(comp, comp);
 		mat4 shadowmat;
@@ -195,7 +197,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	sd.N = normalize(world_normal);
 	sd.V = (ProjectionMatrix[3][3] == 0.0) /* if perspective */
 	            ? normalize(cameraPos - worldPosition)
-	            : normalize(eye);
+	            : cameraForward;
 	sd.W = worldPosition;
 
 	vec3 radiance = vec3(0.0);
