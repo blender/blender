@@ -88,9 +88,6 @@ extern char datatoc_background_vert_glsl[];
 extern Material defmaterial;
 extern GlobalsUboStorage ts;
 
-/* Prototypes */
-static void EEVEE_scene_layer_data_free(void *storage);
-
 static struct GPUTexture *create_jitter_texture(int w, int h)
 {
 	struct GPUTexture *tex;
@@ -190,11 +187,7 @@ static void EEVEE_engine_init(void *ved)
 	EEVEE_Data *vedata = (EEVEE_Data *)ved;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
-	EEVEE_SceneLayerData **sldata = (EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
-
-	if (*sldata == NULL) {
-		*sldata = MEM_callocN(sizeof(EEVEE_SceneLayerData), "EEVEE_SceneLayerData");
-	}
+	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
 	DRWFboTexture tex = {&txl->color, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
 
@@ -266,9 +259,9 @@ static void EEVEE_engine_init(void *ved)
 		copy_v3_v3(e_data.camera_pos, viewinvmat[3]);
 	}
 
-	EEVEE_lights_init(*sldata);
+	EEVEE_lights_init(sldata);
 
-	EEVEE_probes_init(*sldata);
+	EEVEE_probes_init(sldata);
 
 	EEVEE_effects_init(vedata);
 
@@ -291,7 +284,7 @@ static void EEVEE_cache_init(void *vedata)
 
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
-	EEVEE_SceneLayerData *sldata = *(EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
+	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
 
 	if (!stl->g_data) {
@@ -441,22 +434,11 @@ static void EEVEE_cache_init(void *vedata)
 	EEVEE_effects_cache_init(vedata);
 }
 
-EEVEE_ObjectEngineData *EEVEE_get_object_engine_data(Object *ob)
-{
-	EEVEE_ObjectEngineData **oedata = (EEVEE_ObjectEngineData **)DRW_object_engine_data_get(ob, &draw_engine_eevee_type, NULL);
-
-	if (*oedata == NULL) {
-		*oedata = MEM_callocN(sizeof(**oedata), "EEVEE_ObjectEngineData");
-	}
-
-	return *oedata;
-}
-
 static void EEVEE_cache_populate(void *vedata, Object *ob)
 {
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_SceneLayerData *sldata = *(EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
+	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool is_active = (ob == draw_ctx->obact);
@@ -577,7 +559,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		if (cast_shadow) {
 			EEVEE_lights_cache_shcaster_add(sldata, psl, geom, ob->obmat);
 			BLI_addtail(&sldata->shadow_casters, BLI_genericNodeN(ob));
-			EEVEE_ObjectEngineData *oedata = EEVEE_get_object_engine_data(ob);
+			EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(ob);
 			oedata->need_update = ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0);
 		}
 	}
@@ -601,7 +583,7 @@ static void eevee_bind_shadow(void *data, DRWShadingGroup *shgrp)
 static void EEVEE_cache_finish(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_SceneLayerData *sldata = *(EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
+	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
 	EEVEE_lights_cache_finish(sldata);
 	EEVEE_probes_cache_finish(sldata);
@@ -620,7 +602,7 @@ static void EEVEE_draw_scene(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
-	EEVEE_SceneLayerData *sldata = *(EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &EEVEE_scene_layer_data_free);
+	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
 	/* Default framebuffer and texture */
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
@@ -662,13 +644,6 @@ static void EEVEE_engine_free(void)
 	DRW_TEXTURE_FREE_SAFE(e_data.ltc_mat);
 	DRW_TEXTURE_FREE_SAFE(e_data.brdf_lut);
 	DRW_TEXTURE_FREE_SAFE(e_data.jitter);
-}
-
-static void EEVEE_scene_layer_data_free(void *storage)
-{
-	EEVEE_SceneLayerData *sldata = (EEVEE_SceneLayerData *)storage;
-	EEVEE_scene_layer_lights_free(sldata);
-	EEVEE_scene_layer_probes_free(sldata);
 }
 
 static void EEVEE_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)

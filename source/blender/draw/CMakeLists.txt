@@ -80,6 +80,7 @@ set(SRC
 	modes/sculpt_mode.c
 	engines/basic/basic_engine.c
 	engines/clay/clay_engine.c
+	engines/eevee/eevee_data.c
 	engines/eevee/eevee_engine.c
 	engines/eevee/eevee_lights.c
 	engines/eevee/eevee_probes.c

@@ -284,8 +284,10 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *depth_shgrp_cull;
 } EEVEE_PrivateData; /* Transient data */
 
-/* eevee_engine.c */
-EEVEE_ObjectEngineData *EEVEE_get_object_engine_data(Object *ob);
+/* eevee_data.c */
+EEVEE_SceneLayerData *EEVEE_scene_layer_data_get(void);
+EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob);
+EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob);
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_SceneLayerData *sldata);
@@ -296,7 +298,6 @@ void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata);
 void EEVEE_lights_update(EEVEE_SceneLayerData *sldata);
 void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
 void EEVEE_lights_free(void);
-void EEVEE_scene_layer_lights_free(EEVEE_SceneLayerData *sldata);
 
 /* eevee_probes.c */
 void EEVEE_probes_init(EEVEE_SceneLayerData *sldata);
@@ -306,7 +307,6 @@ void EEVEE_probes_cache_finish(EEVEE_SceneLayerData *sldata);
 void EEVEE_probes_update(EEVEE_SceneLayerData *sldata);
 void EEVEE_refresh_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
 void EEVEE_probes_free(void);
-void EEVEE_scene_layer_probes_free(EEVEE_SceneLayerData *sldata);
 
 /* eevee_effects.c */
 void EEVEE_effects_init(EEVEE_Data *vedata);

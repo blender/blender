@@ -295,16 +295,3 @@ void EEVEE_probes_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.probe_spherical_harmonic_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
 }
-
-void EEVEE_scene_layer_probes_free(EEVEE_SceneLayerData *sldata)
-{
-	MEM_SAFE_FREE(sldata->probes);
-	DRW_UBO_FREE_SAFE(sldata->probe_ubo);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_fb);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_filter_fb);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_sh_fb);
-	DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);
-	DRW_TEXTURE_FREE_SAFE(sldata->probe_depth_rt);
-	DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
-	DRW_TEXTURE_FREE_SAFE(sldata->probe_sh);
-}
