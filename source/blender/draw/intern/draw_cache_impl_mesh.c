@@ -538,7 +538,9 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 				/* note: BKE_editmesh_loop_tangent_calc calculates 'CD_TANGENT',
 				 * not 'CD_MLOOPTANGENT' (as done below). It's OK, they're compatible. */
 				rdata->cd.layers.tangent[i] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i);
-				BLI_assert(rdata->cd.layers.tangent[i] != NULL);
+				if (rdata->tri_len != 0) {
+					BLI_assert(rdata->cd.layers.tangent[i] != NULL);
+				}
 			}
 		}
 
