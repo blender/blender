@@ -728,7 +728,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	EEVEE_LampsInfo *linfo = sldata->lamps;
 	Object *ob;
 	int i;
-	float clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float clear_color[4] = {FLT_MAX, FLT_MAX, FLT_MAX, 0.0f};
 
 	/* Cube Shadow Maps */
 	/* Render each shadow to one layer of the array */
