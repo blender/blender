@@ -11,6 +11,7 @@
 // shader to resolve this properly.
 
 uniform mat4 ViewMatrix;
+uniform mat4 ProjectionMatrix;
 
 in vec3 pos;
 in vec3 N1, N2; // normals of faces this edge joins (object coords)
@@ -43,7 +44,7 @@ void main()
 	NormalMatrix = transpose(inverse(mat3(ModelViewMatrix)));
 
 	/* if persp */
-	if (ViewMatrix[3][3] == 0.0) {
+	if (ProjectionMatrix[3][3] == 0.0) {
 		eye = normalize(-MV_pos.xyz);
 	}
 	else {
