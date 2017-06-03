@@ -99,6 +99,11 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 					RenderPass *rpass = (RenderPass *)BLI_findstring(&rl->passes, storage->pass_name, offsetof(RenderPass, name));
 					int view = 0;
 
+					if (STREQ(storage->pass_name, RE_PASSNAME_COMBINED) && STREQ(bnodeSocket->name, "Alpha")) {
+						/* Alpha output is already handled with the associated combined output. */
+						continue;
+					}
+
 					/* returns the image view to use for the current active view */
 					if (BLI_listbase_count_ex(&image->rr->views, 2) > 1) {
 						const int view_image = imageuser->view;
@@ -140,16 +145,24 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 							converter.addPreview(operation->getOutputSocket());
 						}
 						if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
-							BLI_assert(operation != NULL);
-							BLI_assert(index < numberOfOutputs - 1);
-							NodeOutput *outputSocket = this->getOutputSocket(index + 1);
-							SeparateChannelOperation *separate_operation;
-							separate_operation = new SeparateChannelOperation();
-							separate_operation->setChannel(3);
-							converter.addOperation(separate_operation);
-							converter.addLink(operation->getOutputSocket(), separate_operation->getInputSocket(0));
-							converter.mapOutputSocket(outputSocket, separate_operation->getOutputSocket());
-							index++;
+							for (int alphaIndex = 0; alphaIndex < numberOfOutputs; alphaIndex++) {
+								NodeOutput *alphaSocket = this->getOutputSocket(alphaIndex);
+								bNodeSocket *bnodeAlphaSocket = alphaSocket->getbNodeSocket();
+								if (!STREQ(bnodeAlphaSocket->name, "Alpha")) {
+									continue;
+								}
+								NodeImageLayer *alphaStorage = (NodeImageLayer *)bnodeSocket->storage;
+								if (!STREQ(alphaStorage->pass_name, RE_PASSNAME_COMBINED)) {
+									continue;
+								}
+								SeparateChannelOperation *separate_operation;
+								separate_operation = new SeparateChannelOperation();
+								separate_operation->setChannel(3);
+								converter.addOperation(separate_operation);
+								converter.addLink(operation->getOutputSocket(), separate_operation->getInputSocket(0));
+								converter.mapOutputSocket(alphaSocket, separate_operation->getOutputSocket());
+								break;
+							}
 						}
 					}
 
