@@ -120,7 +120,8 @@ typedef struct World {
 	
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct MTex *mtex[18];		/* MAX_MTEX */
-	short pr_texture, use_nodes, pad[2];
+	short pr_texture, use_nodes, pad;
+	short update_flag;          /* XXX temporary flag waiting for depsgraph proper tagging */
 
 	/* previews */
 	struct PreviewImage *preview;

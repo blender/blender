@@ -482,6 +482,9 @@ static void world_changed(Main *bmain, World *wo)
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&wo->id));
+
+	/* XXX temporary flag waiting for depsgraph proper tagging */
+	wo->update_flag = 1;
 	
 	/* glsl */
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
