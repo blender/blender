@@ -49,7 +49,8 @@ endif()
 
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no
 set(TEST_BLENDER_EXE_BARE ${TEST_BLENDER_EXE})
-set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
+set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
+set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} ${TEST_BLENDER_EXE_PARAMS} )
 
 
 # ------------------------------------------------------------------------------
@@ -458,12 +459,6 @@ if(WITH_ALEMBIC)
 	get_filename_component(real_include_dir ${ALEMBIC_INCLUDE_DIR} REALPATH)
 	get_filename_component(ALEMBIC_ROOT_DIR ${real_include_dir} DIRECTORY)
 
-	add_test(script_alembic_import ${TEST_BLENDER_EXE}
-		--python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
-		--
-		--testdir "${TEST_SRC_DIR}/alembic"
-	)
-
 	if(MSVC)
 		add_test(NAME alembic_tests
 			COMMAND
@@ -473,6 +468,14 @@ if(WITH_ALEMBIC)
 			--testdir "${TEST_SRC_DIR}/alembic"
 			--alembic-root "${ALEMBIC_ROOT_DIR}"
 		)
+		add_test(NAME script_alembic_import 
+			COMMAND 
+			"$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} 
+		--python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
+		--
+		--testdir "${TEST_SRC_DIR}/alembic"
+		)
+
 	else()
 		add_test(alembic_tests
 			${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py
@@ -480,5 +483,11 @@ if(WITH_ALEMBIC)
 			--testdir "${TEST_SRC_DIR}/alembic"
 			--alembic-root "${ALEMBIC_ROOT_DIR}"
 		)
+		add_test(script_alembic_import ${TEST_BLENDER_EXE}
+		--python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
+		--
+		--testdir "${TEST_SRC_DIR}/alembic"
+		)
+
 	endif()
 endif()
