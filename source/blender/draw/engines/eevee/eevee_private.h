@@ -167,6 +167,7 @@ enum {
 /* ************ PROBE UBO ************* */
 typedef struct EEVEE_Probe {
 	float position[3], dist;
+	float shcoefs[9][3], pad;
 } EEVEE_Probe;
 
 /* ************ PROBE DATA ************* */
@@ -185,7 +186,6 @@ typedef struct EEVEE_ProbesInfo {
 	float lodmax;
 	int shres;
 	int shnbr;
-	float shcoefs[9][3]; /* Temp */
 	struct GPUTexture *backgroundtex;
 	/* List of probes in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */

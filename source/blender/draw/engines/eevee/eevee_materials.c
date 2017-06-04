@@ -37,6 +37,7 @@
 
 #define SHADER_DEFINES \
 	"#define EEVEE_ENGINE\n" \
+	"#define MAX_PROBE " STRINGIFY(MAX_PROBE) "\n" \
 	"#define MAX_LIGHT " STRINGIFY(MAX_LIGHT) "\n" \
 	"#define MAX_SHADOW_CUBE " STRINGIFY(MAX_SHADOW_CUBE) "\n" \
 	"#define MAX_SHADOW_MAP " STRINGIFY(MAX_SHADOW_MAP) "\n" \
@@ -257,12 +258,14 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma)
 
 static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *sldata)
 {
+	DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
 	DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
 	DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
 	DRW_shgroup_uniform_int(shgrp, "light_count", &sldata->lamps->num_light, 1);
+	DRW_shgroup_uniform_int(shgrp, "probe_count", &sldata->probes->num_cube, 1);
+	DRW_shgroup_uniform_float(shgrp, "lodMax", &sldata->probes->lodmax, 1);
 	DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
 	DRW_shgroup_uniform_buffer(shgrp, "probeCubes", &sldata->probe_pool);
-	DRW_shgroup_uniform_float(shgrp, "lodMax", &sldata->probes->lodmax, 1);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCubes", &sldata->shadow_depth_cube_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCascades", &sldata->shadow_depth_cascade_pool);
 }
@@ -339,8 +342,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	}
 }
 
-/* Macro to call the right  */
-#define ADD_MATERIAL_CALL(shgrp, ob, geom) do { \
+#define ADD_SHGROUP_CALL(shgrp, ob, geom) do { \
 	if (is_sculpt_mode) { \
 		DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat); \
 	} \
@@ -363,7 +365,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 
 	/* Depth Prepass */
 	DRWShadingGroup *depth_shgrp = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
-	ADD_MATERIAL_CALL(depth_shgrp, ob, geom);
+	ADD_SHGROUP_CALL(depth_shgrp, ob, geom);
 
 	/* Get per-material split surface */
 	struct Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
@@ -398,7 +400,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 				if (shgrp) {
 					add_standard_uniforms(shgrp, sldata);
 
-					ADD_MATERIAL_CALL(shgrp, ob, mat_geom[i]);
+					ADD_SHGROUP_CALL(shgrp, ob, mat_geom[i]);
 				}
 				else {
 					/* Shader failed : pink color */
@@ -418,7 +420,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 				DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
 				DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
 
-				ADD_MATERIAL_CALL(shgrp, ob, mat_geom[i]);
+				ADD_SHGROUP_CALL(shgrp, ob, mat_geom[i]);
 			}
 		}
 	}

@@ -128,6 +128,7 @@ void EEVEE_probes_init(EEVEE_SceneLayerData *sldata)
 
 	if (!sldata->probes) {
 		sldata->probes = MEM_callocN(sizeof(EEVEE_ProbesInfo), "EEVEE_ProbesInfo");
+		sldata->probe_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_Probe) * MAX_PROBE, NULL);
 	}
 
 	/* Setup Render Target Cubemap */
@@ -151,7 +152,7 @@ void EEVEE_probes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
 	EEVEE_ProbesInfo *pinfo = sldata->probes;
 
-	pinfo->num_cube = 0;
+	pinfo->num_cube = 1; /* at least one for the world */
 	memset(pinfo->probes_ref, 0, sizeof(pinfo->probes_ref));
 
 	{
@@ -260,15 +261,19 @@ void EEVEE_probes_cache_finish(EEVEE_SceneLayerData *sldata)
 	DRWFboTexture tex_filter = {&sldata->probe_pool, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 	DRW_framebuffer_init(&sldata->probe_filter_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
+
+	DRW_uniformbuffer_update(sldata->probe_ubo, &sldata->probes->probe_data);
 }
 
 /* Renders the probe with index probe_idx.
  * Renders the world probe if probe_idx = -1. */
-void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int probe_idx)
+static void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int probe_idx)
 {
 	EEVEE_ProbesInfo *pinfo = sldata->probes;
+	EEVEE_Probe *eprobe = &pinfo->probe_data[probe_idx];
 	Object *ob = NULL;
-	bool is_object_probe = (probe_idx != -1);
+	struct DRWPass *probe_pass;
+	bool is_object_probe = (probe_idx > 0);
 
 	float projmat[4][4], posmat[4][4];
 	float near, far;
@@ -283,11 +288,13 @@ void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int pro
 
 		/* Move to capture position */
 		negate_v3_v3(posmat[3], ob->obmat[3]);
+		probe_pass = psl->probe_background; /* TODO use objects in the scene */
 	}
 	else {
 		/* World cubemap */
 		near = 0.1f;
 		far = 100.0f;
+		probe_pass = psl->probe_background;
 	}
 
 	/* 1 - Render to cubemap target using geometry shader. */
@@ -302,7 +309,7 @@ void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int pro
 	}
 
 	DRW_framebuffer_bind(sldata->probe_fb);
-	DRW_draw_pass(psl->probe_background);
+	DRW_draw_pass(probe_pass);
 
 	if (is_object_probe) {
 		DRW_framebuffer_clear(true, true, false, clear_color, 1.0);
@@ -337,7 +344,7 @@ void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int pro
 		else if (pinfo->padding_size > 4) {
 			pinfo->padding_size += 1;
 		}
-		pinfo->layer = probe_idx + 1; /* 0 is world */
+		pinfo->layer = probe_idx;
 		pinfo->roughness = (float)i / ((float)maxlevel - 4.0f);
 		pinfo->roughness *= pinfo->roughness; /* Disney Roughness */
 		pinfo->roughness *= pinfo->roughness; /* Distribute Roughness accros lod more evenly */
@@ -369,8 +376,6 @@ void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int pro
 	}
 	/* For shading, save max level of the octahedron map */
 	pinfo->lodmax = (float)(maxlevel - min_lod_level) - 1.0f;
-	/* reattach to have a valid framebuffer. */
-	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 
 	/* 4 - Compute spherical harmonics */
 	/* Tweaking parameters to balance perf. vs precision */
@@ -378,14 +383,19 @@ void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int pro
 	pinfo->lodfactor = 4.0f; /* Improve cache reuse */
 	DRW_framebuffer_bind(sldata->probe_sh_fb);
 	DRW_draw_pass(psl->probe_sh_compute);
-	DRW_framebuffer_read_data(0, 0, 9, 1, 3, 0, (float *)pinfo->shcoefs);
+	DRW_framebuffer_read_data(0, 0, 9, 1, 3, 0, (float *)eprobe->shcoefs);
+
+	/* reattach to have a valid framebuffer. */
+	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 }
 
 void EEVEE_probes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
 	if (e_data.update_world) {
-		render_one_probe(sldata, psl, -1);
+		render_one_probe(sldata, psl, 0);
 		e_data.update_world = false;
+
+		DRW_uniformbuffer_update(sldata->probe_ubo, &sldata->probes->probe_data);
 	}
 }
 

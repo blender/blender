@@ -1,5 +1,6 @@
 
 uniform int light_count;
+uniform int probe_count;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
 
@@ -14,6 +15,10 @@ uniform sampler2DArray utilTex;
 
 uniform sampler2DArray shadowCubes;
 uniform sampler2DArrayShadow shadowCascades;
+
+layout(std140) uniform probe_block {
+	ProbeData probes_data[MAX_PROBE];
+};
 
 layout(std140) uniform light_block {
 	LightData lights_data[MAX_LIGHT];
@@ -191,6 +196,13 @@ void light_visibility(LightData ld, ShadingData sd, out float vis)
 	}
 }
 
+void probe_lighting(ShadingData sd, int index, vec3 spec_dir, float roughness, out vec3 diff, out vec3 spec)
+{
+	ProbeData pd = probes_data[index];
+	spec = textureLod_octahedron(probeCubes, vec4(spec_dir, index), roughness * lodMax).rgb;
+	diff = spherical_harmonics(sd.N, pd.shcoefs);
+}
+
 vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness, float ao)
 {
 	float roughnessSquared = roughness * roughness;
@@ -203,8 +215,6 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	sd.W = worldPosition;
 
 	vec3 radiance = vec3(0.0);
-	vec3 indirect_radiance = vec3(0.0);
-
 	/* Analitic Lights */
 	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
 		LightData ld = lights_data[i];
@@ -219,14 +229,29 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 		radiance += vis * (diff + spec) * ld.l_color;
 	}
 
-	vec3 spec_dir = get_specular_dominant_dir(sd.N, reflect(-sd.V, sd.N), roughnessSquared);
 
 	/* Envmaps */
+	vec3 spec_dir = get_specular_dominant_dir(sd.N, reflect(-sd.V, sd.N), roughnessSquared);
 	vec2 uv = lut_coords(dot(sd.N, sd.V), roughness);
 	vec2 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rg;
-	vec3 Li = textureLod_octahedron(probeCubes, vec4(spec_dir, 0.0), roughness * lodMax).rgb;
-	indirect_radiance += Li * F_ibl(f0, brdf_lut);
-	indirect_radiance += spherical_harmonics(sd.N, shCoefs) * albedo;
+
+	vec4 spec_accum = vec4(0.0);
+	vec4 diff_accum = vec4(0.0);
+	/* Start at 1 because 0 is world probe */
+	for (int i = 1; i < MAX_PROBE && i < probe_count; ++i) {
+		/* TODO */
+	}
+
+	if (spec_accum.a < 1.0 || diff_accum.a < 1.0) {
+		vec3 diff, spec;
+		probe_lighting(sd, 0, spec_dir, roughness, diff, spec);
+		diff_accum.rgb += diff * (1.0 - diff_accum.a);
+		spec_accum.rgb += spec * (1.0 - spec_accum.a);
+	}
+
+	vec3 indirect_radiance =
+	        spec_accum.rgb * F_ibl(f0, brdf_lut) +
+	        diff_accum.rgb * albedo;
 
 	return radiance + indirect_radiance * ao;
 }

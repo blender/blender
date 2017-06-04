@@ -9,6 +9,23 @@
 
 /* ------- Structures -------- */
 
+struct ProbeData {
+	vec4 position_influence;      /* w : InfluenceRadius */
+	vec4 shcoefs[7];
+};
+
+#define p_position     position_influence.xyz
+#define p_spec         position_influence.w
+#define shcoef0        shcoefs[0].rgb
+#define shcoef1        vec3(shcoefs[0].a, shcoefs[1].rg)
+#define shcoef2        vec3(shcoefs[1].ba, shcoefs[2].r)
+#define shcoef3        shcoefs[2].gba
+#define shcoef4        shcoefs[3].rgb
+#define shcoef5        vec3(shcoefs[3].a, shcoefs[4].rg)
+#define shcoef6        vec3(shcoefs[4].ba, shcoefs[5].r)
+#define shcoef7        shcoefs[5].gba
+#define shcoef8        shcoefs[6].rgb
+
 struct LightData {
 	vec4 position_influence;      /* w : InfluenceRadius */
 	vec4 color_spec;              /* w : Spec Intensity */
@@ -172,34 +189,34 @@ float buffer_depth(bool is_persp, float z, float zf, float zn)
 #define spherical_harmonics spherical_harmonics_L2
 
 /* http://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/ */
-vec3 spherical_harmonics_L1(vec3 N, vec3 shcoefs[9])
+vec3 spherical_harmonics_L1(vec3 N, vec4 shcoefs[3])
 {
 	vec3 sh = vec3(0.0);
 
-	sh += 0.282095 * shcoefs[0];
+	sh += 0.282095 * shcoef0;
 
-	sh += -0.488603 * N.z * shcoefs[1];
-	sh += 0.488603 * N.y * shcoefs[2];
-	sh += -0.488603 * N.x * shcoefs[3];
+	sh += -0.488603 * N.z * shcoef1;
+	sh += 0.488603 * N.y * shcoef2;
+	sh += -0.488603 * N.x * shcoef3;
 
 	return sh;
 }
 
-vec3 spherical_harmonics_L2(vec3 N, vec3 shcoefs[9])
+vec3 spherical_harmonics_L2(vec3 N, vec4 shcoefs[7])
 {
 	vec3 sh = vec3(0.0);
 
-	sh += 0.282095 * shcoefs[0];
+	sh += 0.282095 * shcoef0;
 
-	sh += -0.488603 * N.z * shcoefs[1];
-	sh += 0.488603 * N.y * shcoefs[2];
-	sh += -0.488603 * N.x * shcoefs[3];
+	sh += -0.488603 * N.z * shcoef1;
+	sh += 0.488603 * N.y * shcoef2;
+	sh += -0.488603 * N.x * shcoef3;
 
-	sh += 1.092548 * N.x * N.z * shcoefs[4];
-	sh += -1.092548 * N.z * N.y * shcoefs[5];
-	sh += 0.315392 * (3.0 * N.y * N.y - 1.0) * shcoefs[6];
-	sh += -1.092548 * N.x * N.y * shcoefs[7];
-	sh += 0.546274 * (N.x * N.x - N.z * N.z) * shcoefs[8];
+	sh += 1.092548 * N.x * N.z * shcoef4;
+	sh += -1.092548 * N.z * N.y * shcoef5;
+	sh += 0.315392 * (3.0 * N.y * N.y - 1.0) * shcoef6;
+	sh += -1.092548 * N.x * N.y * shcoef7;
+	sh += 0.546274 * (N.x * N.x - N.z * N.z) * shcoef8;
 
 	return sh;
 }
