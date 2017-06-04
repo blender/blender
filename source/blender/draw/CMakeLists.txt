@@ -83,6 +83,7 @@ set(SRC
 	engines/eevee/eevee_data.c
 	engines/eevee/eevee_engine.c
 	engines/eevee/eevee_lights.c
+	engines/eevee/eevee_materials.c
 	engines/eevee/eevee_probes.c
 	engines/eevee/eevee_effects.c
 	engines/external/external_engine.c

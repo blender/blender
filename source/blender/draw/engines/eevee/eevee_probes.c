@@ -31,34 +31,40 @@
 
 #include "DRW_render.h"
 
-#include "eevee_engine.h"
-#include "eevee_private.h"
+#include "GPU_material.h"
 #include "GPU_texture.h"
 #include "GPU_glew.h"
 
-typedef struct EEVEE_ProbeData {
-	short probe_id, shadow_id;
-} EEVEE_ProbeData;
+#include "eevee_engine.h"
+#include "eevee_private.h"
+
+typedef struct EEVEE_ProbeCubeData {
+	short probe_id;
+} EEVEE_ProbeCubeData;
 
 /* TODO Option */
 #define PROBE_CUBE_SIZE 512
 #define PROBE_SIZE 1024
 
 static struct {
+	struct GPUShader *probe_default_sh;
 	struct GPUShader *probe_filter_sh;
 	struct GPUShader *probe_spherical_harmonic_sh;
 
 	struct GPUTexture *hammersley;
 
-	float camera_pos[3];
+	bool update_world;
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_default_world_frag_glsl[];
 extern char datatoc_probe_filter_frag_glsl[];
 extern char datatoc_probe_sh_frag_glsl[];
 extern char datatoc_probe_geom_glsl[];
 extern char datatoc_probe_vert_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
+
+extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
 
@@ -108,21 +114,23 @@ void EEVEE_probes_init(EEVEE_SceneLayerData *sldata)
 		        "#define HAMMERSLEY_SIZE 1024\n"
 		        "#define NOISE_SIZE 64\n");
 
+		e_data.probe_default_sh = DRW_shader_create(
+		        datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, datatoc_default_world_frag_glsl, NULL);
+
 		MEM_freeN(shader_str);
 	}
 
+	/* Shaders */
 	if (!e_data.hammersley) {
 		e_data.hammersley = create_hammersley_sample_texture(1024);
-	}
-
-	if (!e_data.probe_spherical_harmonic_sh) {
 		e_data.probe_spherical_harmonic_sh = DRW_shader_create_fullscreen(datatoc_probe_sh_frag_glsl, NULL);
 	}
 
 	if (!sldata->probes) {
-		sldata->probes       = MEM_callocN(sizeof(EEVEE_ProbesInfo), "EEVEE_ProbesInfo");
+		sldata->probes = MEM_callocN(sizeof(EEVEE_ProbesInfo), "EEVEE_ProbesInfo");
 	}
 
+	/* Setup Render Target Cubemap */
 	if (!sldata->probe_rt) {
 		sldata->probe_rt = DRW_texture_create_cube(PROBE_CUBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 		sldata->probe_depth_rt = DRW_texture_create_cube(PROBE_CUBE_SIZE, DRW_TEX_DEPTH_24, DRW_TEX_FILTER, NULL);
@@ -133,15 +141,6 @@ void EEVEE_probes_init(EEVEE_SceneLayerData *sldata)
 
 	DRW_framebuffer_init(&sldata->probe_fb, &draw_engine_eevee_type, PROBE_CUBE_SIZE, PROBE_CUBE_SIZE, tex_probe, 2);
 
-	if (!sldata->probe_pool) {
-		/* TODO array */
-		sldata->probe_pool = DRW_texture_create_2D(PROBE_SIZE, PROBE_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-	}
-
-	DRWFboTexture tex_filter = {&sldata->probe_pool, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
-
-	DRW_framebuffer_init(&sldata->probe_filter_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
-
 	/* Spherical Harmonic Buffer */
 	DRWFboTexture tex_sh = {&sldata->probe_sh, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
@@ -150,6 +149,58 @@ void EEVEE_probes_init(EEVEE_SceneLayerData *sldata)
 
 void EEVEE_probes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
+	EEVEE_ProbesInfo *pinfo = sldata->probes;
+
+	pinfo->num_cube = 0;
+	memset(pinfo->probes_ref, 0, sizeof(pinfo->probes_ref));
+
+	{
+		psl->probe_background = DRW_pass_create("World Probe Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
+
+		struct Batch *geom = DRW_cache_fullscreen_quad_get();
+		DRWShadingGroup *grp = NULL;
+
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		Scene *scene = draw_ctx->scene;
+		World *wo = scene->world;
+
+		static int zero = 0;
+		float *col = ts.colorBackground;
+		if (wo) {
+			col = &wo->horr;
+			e_data.update_world = (wo->update_flag != 0);
+			wo->update_flag = 0;
+
+			if (wo->use_nodes && wo->nodetree) {
+				struct GPUMaterial *gpumat = EEVEE_material_world_probe_get(scene, wo);
+
+				grp = DRW_shgroup_material_instance_create(gpumat, psl->probe_background, geom);
+
+				if (grp) {
+					DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
+
+					for (int i = 0; i < 6; ++i)
+						DRW_shgroup_call_dynamic_add_empty(grp);
+				}
+				else {
+					/* Shader failed : pink background */
+					static float pink[3] = {1.0f, 0.0f, 1.0f};
+					col = pink;
+				}
+			}
+		}
+
+		/* Fallback if shader fails or if not using nodetree. */
+		if (grp == NULL) {
+			grp = DRW_shgroup_instance_create(e_data.probe_default_sh, psl->probe_background, geom);
+			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
+			DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
+
+			for (int i = 0; i < 6; ++i)
+				DRW_shgroup_call_dynamic_add_empty(grp);
+		}
+	}
+
 	{
 		psl->probe_prefilter = DRW_pass_create("Probe Filtering", DRW_STATE_WRITE_COLOR);
 
@@ -189,32 +240,73 @@ void EEVEE_probes_cache_add(EEVEE_SceneLayerData *UNUSED(sldata), Object *UNUSED
 	return;
 }
 
-void EEVEE_probes_cache_finish(EEVEE_SceneLayerData *UNUSED(sldata))
-{
-	return;
-}
-
-void EEVEE_probes_update(EEVEE_SceneLayerData *UNUSED(sldata))
-{
-	return;
-}
-
-void EEVEE_refresh_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
+void EEVEE_probes_cache_finish(EEVEE_SceneLayerData *sldata)
 {
 	EEVEE_ProbesInfo *pinfo = sldata->probes;
 
-	float projmat[4][4];
+	/* Setup enough layers. */
+	/* Free textures if number mismatch. */
+	if (pinfo->num_cube != pinfo->cache_num_cube) {
+		DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
+		pinfo->cache_num_cube = pinfo->num_cube;
+		pinfo->update_flag |= PROBE_UPDATE_CUBE;
+	}
+
+	if (!sldata->probe_pool) {
+		sldata->probe_pool = DRW_texture_create_2D_array(PROBE_SIZE, PROBE_SIZE, max_ff(1, pinfo->num_cube),
+		                                                 DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+	}
+
+	DRWFboTexture tex_filter = {&sldata->probe_pool, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+
+	DRW_framebuffer_init(&sldata->probe_filter_fb, &draw_engine_eevee_type, PROBE_SIZE, PROBE_SIZE, &tex_filter, 1);
+}
+
+/* Renders the probe with index probe_idx.
+ * Renders the world probe if probe_idx = -1. */
+void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int probe_idx)
+{
+	EEVEE_ProbesInfo *pinfo = sldata->probes;
+	Object *ob = NULL;
+	bool is_object_probe = (probe_idx != -1);
+
+	float projmat[4][4], posmat[4][4];
+	float near, far;
+	float clear_color[4] = {0.5, 0.5, 0.5, 0.0f};
+
+	unit_m4(posmat);
+
+	if (is_object_probe) {
+		ob = pinfo->probes_ref[probe_idx];
+		near = 0.1f;
+		far = 100.0f;
+
+		/* Move to capture position */
+		negate_v3_v3(posmat[3], ob->obmat[3]);
+	}
+	else {
+		/* World cubemap */
+		near = 0.1f;
+		far = 100.0f;
+	}
 
 	/* 1 - Render to cubemap target using geometry shader. */
-	/* We don't need to clear since we render the background. */
+	/* For world probe, we don't need to clear since we render the background directly. */
 	pinfo->layer = 0;
-	perspective_m4(projmat, -0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 100.0f);
+	perspective_m4(projmat, -near, near, -near, near, near, far);
+
 	for (int i = 0; i < 6; ++i) {
-		mul_m4_m4m4(pinfo->probemat[i], projmat, cubefacemat[i]);
+		float tmp[4][4];
+		mul_m4_m4m4(tmp, cubefacemat[i], posmat);
+		mul_m4_m4m4(pinfo->probemat[i], projmat, tmp);
 	}
 
 	DRW_framebuffer_bind(sldata->probe_fb);
 	DRW_draw_pass(psl->probe_background);
+
+	if (is_object_probe) {
+		DRW_framebuffer_clear(true, true, false, clear_color, 1.0);
+	}
 
 	/* 2 - Let gpu create Mipmaps for Filtered Importance Sampling. */
 	/* Bind next framebuffer to be able to gen. mips for probe_rt. */
@@ -245,7 +337,7 @@ void EEVEE_refresh_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 		else if (pinfo->padding_size > 4) {
 			pinfo->padding_size += 1;
 		}
-		pinfo->layer = 0;
+		pinfo->layer = probe_idx + 1; /* 0 is world */
 		pinfo->roughness = (float)i / ((float)maxlevel - 4.0f);
 		pinfo->roughness *= pinfo->roughness; /* Disney Roughness */
 		pinfo->roughness *= pinfo->roughness; /* Distribute Roughness accros lod more evenly */
@@ -289,8 +381,17 @@ void EEVEE_refresh_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	DRW_framebuffer_read_data(0, 0, 9, 1, 3, 0, (float *)pinfo->shcoefs);
 }
 
+void EEVEE_probes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
+{
+	if (e_data.update_world) {
+		render_one_probe(sldata, psl, -1);
+		e_data.update_world = false;
+	}
+}
+
 void EEVEE_probes_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.probe_default_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_spherical_harmonic_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);

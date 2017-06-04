@@ -30,6 +30,9 @@
 #include "eevee_engine.h"
 #include "eevee_private.h"
 
+/* Theses are the structs stored inside Objects.
+ * It works with even if the object is in multiple layers
+ * because we don't get the same "Object *" for each layer. */
 typedef struct EEVEE_LightData {
 	short light_id, shadow_id;
 } EEVEE_LightData;
@@ -196,7 +199,6 @@ void EEVEE_lights_cache_shcaster_add(EEVEE_SceneLayerData *sldata, EEVEE_PassLis
 void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)
 {
 	EEVEE_LampsInfo *linfo = sldata->lamps;
-
 
 	/* Setup enough layers. */
 	/* Free textures if number mismatch. */

@@ -3,13 +3,15 @@ uniform int light_count;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
 
-uniform sampler2D probeFiltered;
+uniform sampler2DArray probeCubes;
 uniform float lodMax;
 uniform vec3 shCoefs[9];
 
-#ifndef USE_LTC
-uniform sampler2D brdfLut;
-#endif
+#ifndef __UTIL_TEX__
+#define __UTIL_TEX__
+uniform sampler2DArray utilTex;
+#endif /* __UTIL_TEX__ */
+
 uniform sampler2DArray shadowCubes;
 uniform sampler2DArrayShadow shadowCascades;
 
@@ -64,13 +66,13 @@ vec2 mapping_octahedron(vec3 cubevec, vec2 texel_size)
 	return uvs;
 }
 
-vec4 textureLod_octahedron(sampler2D tex, vec3 cubevec, float lod)
+vec4 textureLod_octahedron(sampler2DArray tex, vec4 cubevec, float lod)
 {
 	vec2 texelSize = 1.0 / vec2(textureSize(tex, int(lodMax)));
 
-	vec2 uvs = mapping_octahedron(cubevec, texelSize);
+	vec2 uvs = mapping_octahedron(cubevec.xyz, texelSize);
 
-	return textureLod(tex, uvs, lod);
+	return textureLod(tex, vec3(uvs, cubevec.w), lod);
 }
 
 vec4 texture_octahedron(sampler2DArray tex, vec4 cubevec)
@@ -221,9 +223,9 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 
 	/* Envmaps */
 	vec2 uv = lut_coords(dot(sd.N, sd.V), roughness);
-	vec3 brdf_lut = texture(brdfLut, uv).rgb;
-	vec3 Li = textureLod_octahedron(probeFiltered, spec_dir, roughness * lodMax).rgb;
-	indirect_radiance += Li * F_ibl(f0, brdf_lut.rg);
+	vec2 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rg;
+	vec3 Li = textureLod_octahedron(probeCubes, vec4(spec_dir, 0.0), roughness * lodMax).rgb;
+	indirect_radiance += Li * F_ibl(f0, brdf_lut);
 	indirect_radiance += spherical_harmonics(sd.N, shCoefs) * albedo;
 
 	return radiance + indirect_radiance * ao;

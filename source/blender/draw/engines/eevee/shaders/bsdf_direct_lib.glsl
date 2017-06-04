@@ -112,8 +112,8 @@ vec3 direct_ggx_sphere(LightData ld, ShadingData sd, float roughness, vec3 f0)
 	vec3 Py = cross(Px, L);
 
 	vec2 uv = lut_coords(dot(sd.N, sd.V), sqrt(roughness));
-	vec3 brdf_lut = texture(brdfLut, uv).rgb;
-	vec4 ltc_lut = texture(ltcMat, uv).rgba;
+	vec3 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rgb;
+	vec4 ltc_lut = texture(utilTex, vec3(uv, 0.0)).rgba;
 	mat3 ltc_mat = ltc_matrix(ltc_lut);
 
 // #define HIGHEST_QUALITY
@@ -160,8 +160,8 @@ vec3 direct_ggx_rectangle(LightData ld, ShadingData sd, float roughness, vec3 f0
 	corners[3] = sd.l_vector + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey;
 
 	vec2 uv = lut_coords(dot(sd.N, sd.V), sqrt(roughness));
-	vec3 brdf_lut = texture(brdfLut, uv).rgb;
-	vec4 ltc_lut = texture(ltcMat, uv).rgba;
+	vec3 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rgb;
+	vec4 ltc_lut = texture(utilTex, vec3(uv, 0.0)).rgba;
 	mat3 ltc_mat = ltc_matrix(ltc_lut);
 	float bsdf = ltc_evaluate(sd.N, sd.V, ltc_mat, corners);
 	bsdf *= brdf_lut.b; /* Bsdf intensity */
