@@ -11,8 +11,7 @@ void ssao_factors(
         out float cavities, out float edges)
 {
 	/* take the normalized ray direction here */
-	vec2 rotX = texture(ssao_jitter, screenco.xy * jitter_tilling).rg;
-	vec2 rotY = vec2(-rotX.y, rotX.x);
+	vec3 noise = texture(ssao_jitter, screenco.xy * jitter_tilling).rgb;
 
 	/* find the offset in screen space by multiplying a point
 	 * in camera space at the depth of the point by the projection matrix. */
@@ -24,15 +23,19 @@ void ssao_factors(
 	offset *= 0.5;
 
 	cavities = edges = 0.0;
-	int x;
 	int num_samples = int(ssao_samples_num);
 
-	for (x = 0; x < num_samples; x++) {
-		/* TODO : optimisation replace by constant */
-		vec2 dir_sample = texture(ssao_samples, (float(x) + 0.5) / ssao_samples_num).rg;
+	/* Note. Putting noise usage here to put some ALU after texture fetch. */
+	vec2 rotX = noise.rg;
+	vec2 rotY = vec2(-rotX.y, rotX.x);
 
-		/* rotate with random direction to get jittered result */
-		vec2 dir_jittered = vec2(dot(dir_sample, rotX), dot(dir_sample, rotY));
+	for (int x = 0; x < num_samples && x < 500; x++) {
+		/* ssao_samples[x].xy is sample direction (normalized).
+		 * ssao_samples[x].z is sample distance from disk center. */
+
+		/* Rotate with random direction to get jittered result. */
+		vec2 dir_jittered = vec2(dot(ssao_samples[x].xy, rotX), dot(ssao_samples[x].xy, rotY));
+		dir_jittered.xy *= ssao_samples[x].z + noise.b;
 
 		vec2 uvcoords = screenco.xy + dir_jittered * offset;
 

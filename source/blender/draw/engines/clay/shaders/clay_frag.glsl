@@ -14,13 +14,16 @@ uniform vec4 viewvecs[3];
 uniform vec4 ssao_params;
 
 uniform sampler2D ssao_jitter;
-uniform sampler1D ssao_samples;
 
 /* Material Parameters packed in an UBO */
 struct Material {
 	vec4 ssao_params_var;
 	vec4 matcap_hsv_id;
 	vec4 matcap_rot; /* vec4 to ensure 16 bytes alignement (don't trust compiler) */
+};
+
+layout(std140) uniform samples_block {
+	vec4 ssao_samples[500];
 };
 
 layout(std140) uniform material_block {

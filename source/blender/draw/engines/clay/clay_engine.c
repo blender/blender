@@ -40,6 +40,8 @@
 #include "UI_interface_icons.h"
 
 #include "clay_engine.h"
+#include "../eevee/eevee_lut.h" /* TODO find somewhere to share blue noise Table */
+
 #ifdef WITH_CLAY_ENGINE
 /* Shaders */
 
@@ -140,6 +142,12 @@ typedef struct CLAY_Data {
 	CLAY_StorageList *stl;
 } CLAY_Data;
 
+typedef struct CLAY_SceneLayerData {
+	struct GPUTexture *jitter_tx;
+	struct GPUUniformBuffer *sampling_ubo;
+	int cached_sample_num;
+} CLAY_SceneLayerData;
+
 /* *********** STATIC *********** */
 
 static struct {
@@ -158,9 +166,6 @@ static struct {
 	float winmat[4][4];
 	float viewvecs[3][4];
 	float ssao_params[4];
-	int cached_sample_num;
-	struct GPUTexture *jitter_tx;
-	struct GPUTexture *sampling_tx;
 
 	/* Just a serie of int from 0 to MAX_CLAY_MAT-1 */
 	int ubo_mat_idxs[MAX_CLAY_MAT];
@@ -179,6 +184,25 @@ typedef struct CLAY_PrivateData {
 } CLAY_PrivateData; /* Transient data */
 
 /* Functions */
+
+static void clay_scene_layer_data_free(void *storage)
+{
+	CLAY_SceneLayerData *sldata = (CLAY_SceneLayerData *)storage;
+
+	DRW_UBO_FREE_SAFE(sldata->sampling_ubo);
+	DRW_TEXTURE_FREE_SAFE(sldata->jitter_tx);
+}
+
+static CLAY_SceneLayerData *CLAY_scene_layer_data_get(void)
+{
+	CLAY_SceneLayerData **sldata = (CLAY_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_clay_type, &clay_scene_layer_data_free);
+
+	if (*sldata == NULL) {
+		*sldata = MEM_callocN(sizeof(**sldata), "CLAY_SceneLayerData");
+	}
+
+	return *sldata;
+}
 
 static void add_icon_to_rect(PreviewImage *prv, float *final_rect, int layer)
 {
@@ -252,47 +276,65 @@ static int matcap_to_index(int matcap)
 	return 0;
 }
 
-static struct GPUTexture *create_spiral_sample_texture(int numsaples)
-{
-	struct GPUTexture *tex;
-	float (*texels)[2] = MEM_mallocN(sizeof(float[2]) * numsaples, "concentric_tex");
-	const float numsaples_inv = 1.0f / numsaples;
-	int i;
-	/* arbitrary number to ensure we don't get conciding samples every circle */
-	const float spirals = 7.357;
-
-	for (i = 0; i < numsaples; i++) {
-		float r = (i + 0.5f) * numsaples_inv;
-		float phi = r * spirals * (float)(2.0 * M_PI);
-		texels[i][0] = r * cosf(phi);
-		texels[i][1] = r * sinf(phi);
-	}
-
-	tex = DRW_texture_create_1D(numsaples, DRW_TEX_RG_16, 0, (float *)texels);
-
-	MEM_freeN(texels);
-	return tex;
+/* Van der Corput sequence */
+/* TODO this is duplicated code from eevee_probes.c */
+ /* From http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
+static float radical_inverse(int i) {
+	unsigned int bits = (unsigned int)i;
+	bits = (bits << 16u) | (bits >> 16u);
+	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+	return (float)bits * 2.3283064365386963e-10f;
 }
 
-static struct GPUTexture *create_jitter_texture(void)
+/* Using Hammersley distribution */
+static float *create_disk_samples(int num_samples)
 {
-	float jitter[64 * 64][2];
-	int i;
+	/* vec4 to ensure memory alignment. */
+	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * num_samples, "concentric_tex");
+	const float num_samples_inv = 1.0f / num_samples;
 
-	/* TODO replace by something more evenly distributed like blue noise */
-	for (i = 0; i < 64 * 64; i++) {
-		jitter[i][0] = 2.0f * BLI_frand() - 1.0f;
-		jitter[i][1] = 2.0f * BLI_frand() - 1.0f;
-		normalize_v2(jitter[i]);
+	for (int i = 0; i < num_samples; i++) {
+		float r = (i + 0.5f) * num_samples_inv;
+		float phi = radical_inverse(i) * 2.0f * M_PI;
+		texels[i][0] = cosf(phi);
+		texels[i][1] = sinf(phi);
+		/* This deliberatly distribute more samples
+		 * at the center of the disk (and thus the shadow). */
+		texels[i][2] = r;
 	}
 
-	return DRW_texture_create_2D(64, 64, DRW_TEX_RG_16, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
+	return (float *)texels;
+}
+
+static struct GPUTexture *create_jitter_texture(int num_samples)
+{
+	float jitter[64 * 64][3];
+	const float num_samples_inv = 1.0f / num_samples;
+
+	for (int i = 0; i < 64 * 64; i++) {
+		float phi = blue_noise[i][0] * 2.0f * M_PI;
+		/* This rotate the sample per pixels */
+		jitter[i][0] = cosf(phi);
+		jitter[i][1] = sinf(phi);
+		/* This offset the sample along it's direction axis (reduce banding) */
+		float bn = blue_noise[i][1] - 0.5f;
+		CLAMP(bn, -0.499f, 0.499f); /* fix fireflies */
+		jitter[i][2] = bn * num_samples_inv;
+	}
+
+	UNUSED_VARS(bsdf_split_sum_ggx, ltc_mag_ggx, ltc_mat_ggx);
+
+	return DRW_texture_create_2D(64, 64, DRW_TEX_RGB_16, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
 }
 
 static void CLAY_engine_init(void *vedata)
 {
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
+	CLAY_SceneLayerData *sldata = CLAY_scene_layer_data_get();
 
 	/* Create Texture Array */
 	if (!e_data.matcap_array) {
@@ -326,12 +368,6 @@ static void CLAY_engine_init(void *vedata)
 
 		e_data.matcap_array = load_matcaps(prv, 24);
 	}
-
-	/* AO Jitter */
-	if (!e_data.jitter_tx) {
-		e_data.jitter_tx = create_jitter_texture();
-	}
-
 
 	/* Depth prepass */
 	if (!e_data.depth_sh) {
@@ -451,20 +487,24 @@ static void CLAY_engine_init(void *vedata)
 		}
 
 		/* AO Samples Tex */
-		if (e_data.sampling_tx && (e_data.cached_sample_num != ssao_samples)) {
-			DRW_texture_free(e_data.sampling_tx);
-			e_data.sampling_tx = NULL;
+		if (sldata->sampling_ubo && (sldata->cached_sample_num != ssao_samples)) {
+			DRW_UBO_FREE_SAFE(sldata->sampling_ubo);
+			DRW_TEXTURE_FREE_SAFE(sldata->jitter_tx);
 		}
 
-		if (!e_data.sampling_tx) {
-			e_data.sampling_tx = create_spiral_sample_texture(ssao_samples);
-			e_data.cached_sample_num = ssao_samples;
+		if (sldata->sampling_ubo == NULL) {
+			float *samples = create_disk_samples(ssao_samples);
+			sldata->jitter_tx = create_jitter_texture(ssao_samples);
+			sldata->sampling_ubo = DRW_uniformbuffer_create(sizeof(float[4]) * ssao_samples, samples);
+			sldata->cached_sample_num = ssao_samples;
+			MEM_freeN(samples);
 		}
 	}
 }
 
 static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *UNUSED(vedata), DRWPass *pass, int *material_id, bool use_flat)
 {
+	CLAY_SceneLayerData *sldata = CLAY_scene_layer_data_get();
 	DRWShadingGroup *grp = DRW_shgroup_create(use_flat ? e_data.clay_flat_sh : e_data.clay_sh, pass);
 
 	DRW_shgroup_uniform_vec2(grp, "screenres", DRW_viewport_size_get(), 1);
@@ -477,8 +517,8 @@ static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *UNUSED(vedata), DRWPass *
 
 	DRW_shgroup_uniform_int(grp, "mat_id", material_id, 1);
 
-	DRW_shgroup_uniform_texture(grp, "ssao_jitter", e_data.jitter_tx);
-	DRW_shgroup_uniform_texture(grp, "ssao_samples", e_data.sampling_tx);
+	DRW_shgroup_uniform_texture(grp, "ssao_jitter", sldata->jitter_tx);
+	DRW_shgroup_uniform_block(grp, "samples_block", sldata->sampling_ubo);
 
 	return grp;
 }
@@ -863,7 +903,7 @@ static void CLAY_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
 
-	BKE_collection_engine_property_add_int(props, "ssao_samples", 32);
+	BKE_collection_engine_property_add_int(props, "ssao_samples", 16);
 }
 
 static void CLAY_engine_free(void)
@@ -872,8 +912,6 @@ static void CLAY_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.clay_flat_sh);
 	DRW_SHADER_FREE_SAFE(e_data.hair_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.matcap_array);
-	DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
-	DRW_TEXTURE_FREE_SAFE(e_data.sampling_tx);
 }
 
 static const DrawEngineDataSize CLAY_data_size = DRW_VIEWPORT_DATA_SIZE(CLAY_Data);
