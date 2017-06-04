@@ -208,11 +208,11 @@ void EEVEE_materials_init(void)
 		}
 		texels_layer += 64 * 64;
 
-		/* Copy ltc_mag_ggx into 2nd layer blue channel */
 		for (int i = 0; i < 64 * 64; i++) {
-			texels_layer[i][0] = blue_noise[i*3 + 0];
-			texels_layer[i][1] = blue_noise[i*3 + 1];
-			texels_layer[i][2] = blue_noise[i*3 + 2];
+			texels_layer[i][0] = blue_noise[i][0];
+			texels_layer[i][1] = blue_noise[i][1];
+			texels_layer[i][2] = blue_noise[i][2];
+			texels_layer[i][3] = blue_noise[i][3];
 		}
 
 		e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER, (float *)texels);

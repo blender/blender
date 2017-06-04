@@ -88,7 +88,7 @@ static struct GPUTexture *create_hammersley_sample_texture(int samples)
 
 	for (i = 0; i < samples; i++) {
 		float phi = radical_inverse(i) * 2.0f * M_PI;
-		texels[i][0] = cos(phi);
+		texels[i][0] = cosf(phi);
 		texels[i][1] = sinf(phi);
 	}
 
