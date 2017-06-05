@@ -28,6 +28,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_ghash.h"
 
 #include "GPU_material.h"
 
@@ -276,6 +277,11 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
+	/* Create Material Ghash */
+	{
+		stl->g_data->material_hash = BLI_ghash_ptr_new("Eevee_material ghash");
+	}
+
 	{
 		psl->background_pass = DRW_pass_create("Background Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
 
@@ -356,6 +362,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	GHash *material_hash = stl->g_data->material_hash;
 
 	IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 	const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
@@ -392,6 +399,12 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 			float *spec_p = &ma->spec;
 			float *rough_p = &ma->gloss_mir;
 
+			shgrp = BLI_ghash_lookup(material_hash, (const void *)ma);
+			if (shgrp) {
+				ADD_SHGROUP_CALL(shgrp, ob, mat_geom[i]);
+				continue;
+			}
+
 			if (ma->use_nodes && ma->nodetree) {
 				Scene *scene = draw_ctx->scene;
 				struct GPUMaterial *gpumat = EEVEE_material_mesh_get(scene, ma);
@@ -399,6 +412,8 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 				shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
 				if (shgrp) {
 					add_standard_uniforms(shgrp, sldata);
+
+					BLI_ghash_insert(material_hash, ma, shgrp);
 
 					ADD_SHGROUP_CALL(shgrp, ob, mat_geom[i]);
 				}
@@ -420,10 +435,19 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 				DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
 				DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
 
+				BLI_ghash_insert(material_hash, ma, shgrp);
+
 				ADD_SHGROUP_CALL(shgrp, ob, mat_geom[i]);
 			}
 		}
 	}
+}
+
+void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
+{
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+
+	BLI_ghash_free(stl->g_data->material_hash, NULL, NULL);
 }
 
 void EEVEE_materials_free(void)

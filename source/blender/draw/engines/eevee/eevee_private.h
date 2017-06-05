@@ -303,6 +303,7 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
 	struct DRWShadingGroup *depth_shgrp_cull;
+	struct GHash *material_hash;
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
@@ -315,6 +316,7 @@ EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob);
 void EEVEE_materials_init(void);
 void EEVEE_materials_cache_init(EEVEE_Data *vedata);
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sldata, Object *ob, struct Batch *geom);
+void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
 struct GPUMaterial *EEVEE_material_world_probe_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_mesh_probe_get(struct Scene *scene, Material *ma);
