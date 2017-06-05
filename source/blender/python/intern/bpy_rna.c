@@ -7322,7 +7322,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			if (is_staticmethod) {
 				if (PyMethod_Check(item) == 0) {
 					PyErr_Format(PyExc_TypeError,
-					             "expected %.200s, %.200s class \"%.200s\" attribute to be a method, not a %.200s",
+					             "expected %.200s, %.200s class \"%.200s\" "
+					             "attribute to be a staticmethod, not a %.200s",
 					             class_type, py_class_name, RNA_function_identifier(func), Py_TYPE(item)->tp_name);
 					return -1;
 				}
@@ -7331,7 +7332,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			else {
 				if (PyFunction_Check(item) == 0) {
 					PyErr_Format(PyExc_TypeError,
-					             "expected %.200s, %.200s class \"%.200s\" attribute to be a function, not a %.200s",
+					             "expected %.200s, %.200s class \"%.200s\" "
+					             "attribute to be a function, not a %.200s",
 					             class_type, py_class_name, RNA_function_identifier(func), Py_TYPE(item)->tp_name);
 					return -1;
 				}
