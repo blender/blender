@@ -273,6 +273,11 @@ const ShaderInput* ShaderInterface_uniform(const ShaderInterface* shaderface, co
 
 const ShaderInput* ShaderInterface_builtin_uniform(const ShaderInterface* shaderface, BuiltinUniform builtin)
 	{
+#if TRUST_NO_ONE
+	assert(builtin != UNIFORM_NONE);
+	assert(builtin != UNIFORM_CUSTOM);
+#endif
+
 	// look up by enum, not name
 	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
 		{
