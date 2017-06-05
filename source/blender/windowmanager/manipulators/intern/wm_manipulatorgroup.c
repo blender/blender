@@ -484,15 +484,14 @@ wmKeyMap *WM_manipulatorgroup_keymap_common_sel(const struct wmManipulatorGroupT
  *
  * \{ */
 
-/**
- * Use this for registering manipulators on startup. For runtime, use #WM_manipulatorgrouptype_append_runtime.
- */
-wmManipulatorGroupType *WM_manipulatorgrouptype_append(
-        wmManipulatorMapType *mmaptype, void (*mgrouptype_func)(wmManipulatorGroupType *))
+static wmManipulatorGroupType *wm_manipulatorgrouptype_append__begin(void)
 {
 	wmManipulatorGroupType *mgrouptype = MEM_callocN(sizeof(wmManipulatorGroupType), "manipulator-group");
-
-	mgrouptype_func(mgrouptype);
+	return mgrouptype;
+}
+static void wm_manipulatorgrouptype_append__end(
+        wmManipulatorMapType *mmaptype, wmManipulatorGroupType *mgrouptype)
+{
 	mgrouptype->spaceid = mmaptype->spaceid;
 	mgrouptype->regionid = mmaptype->regionid;
 	BLI_strncpy(mgrouptype->mapidname, mmaptype->idname, MAX_NAME);
@@ -503,6 +502,27 @@ wmManipulatorGroupType *WM_manipulatorgrouptype_append(
 
 	/* add the type for future created areas of the same type  */
 	BLI_addtail(&mmaptype->manipulator_grouptypes, mgrouptype);
+}
+
+/**
+ * Use this for registering manipulators on startup. For runtime, use #WM_manipulatorgrouptype_append_runtime.
+ */
+wmManipulatorGroupType *WM_manipulatorgrouptype_append(
+        wmManipulatorMapType *mmaptype, void (*mgrouptype_func)(wmManipulatorGroupType *))
+{
+	wmManipulatorGroupType *mgrouptype = wm_manipulatorgrouptype_append__begin();
+	mgrouptype_func(mgrouptype);
+	wm_manipulatorgrouptype_append__end(mmaptype, mgrouptype);
+	return mgrouptype;
+}
+
+wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr(
+        wmManipulatorMapType *mmaptype, void (*mgrouptype_func)(wmManipulatorGroupType *, void *),
+        void *userdata)
+{
+	wmManipulatorGroupType *mgrouptype = wm_manipulatorgrouptype_append__begin();
+	mgrouptype_func(mgrouptype, userdata);
+	wm_manipulatorgrouptype_append__end(mmaptype, mgrouptype);
 	return mgrouptype;
 }
 
@@ -514,6 +534,19 @@ wmManipulatorGroupType *WM_manipulatorgrouptype_append_runtime(
         void (*mgrouptype_func)(wmManipulatorGroupType *))
 {
 	wmManipulatorGroupType *mgrouptype = WM_manipulatorgrouptype_append(mmaptype, mgrouptype_func);
+
+	/* Main is missing on startup when we create new areas.
+	 * So this is only called for manipulators initialized on runtime */
+	WM_manipulatorgrouptype_init_runtime(main, mmaptype, mgrouptype);
+
+	return mgrouptype;
+}
+wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr_runtime(
+        const Main *main, wmManipulatorMapType *mmaptype,
+        void (*mgrouptype_func)(wmManipulatorGroupType *, void *),
+        void *userdata)
+{
+	wmManipulatorGroupType *mgrouptype = WM_manipulatorgrouptype_append_ptr(mmaptype, mgrouptype_func, userdata);
 
 	/* Main is missing on startup when we create new areas.
 	 * So this is only called for manipulators initialized on runtime */
