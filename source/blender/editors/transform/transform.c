@@ -3088,19 +3088,13 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 /** \name Transform Shear
  * \{ */
 
-static void postInputShear(TransInfo *UNUSED(t), float values[3])
-{
-	mul_v3_fl(values, 0.05f);
-}
-
 static void initShear(TransInfo *t)
 {
 	t->mode = TFM_SHEAR;
 	t->transform = applyShear;
 	t->handleEvent = handleEventShear;
-	
-	setInputPostFct(&t->mouse, postInputShear);
-	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
+
+	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_RATIO);
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
@@ -3122,24 +3116,24 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
 	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		/* Use custom.mode.data pointer to signal Shear direction */
 		if (t->custom.mode.data == NULL) {
-			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
+			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_RATIO);
 			t->custom.mode.data = (void *)1;
 		}
 		else {
-			initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
+			initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_RATIO);
 			t->custom.mode.data = NULL;
 		}
 
 		status = TREDRAW_HARD;
 	}
 	else if (event->type == XKEY && event->val == KM_PRESS) {
-		initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
+		initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_RATIO);
 		t->custom.mode.data = NULL;
 		
 		status = TREDRAW_HARD;
 	}
 	else if (event->type == YKEY && event->val == KM_PRESS) {
-		initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
+		initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_RATIO);
 		t->custom.mode.data = (void *)1;
 		
 		status = TREDRAW_HARD;

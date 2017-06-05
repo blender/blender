@@ -7265,15 +7265,12 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 {
 	const ListBase *lb;
 	Link *link;
-	FunctionRNA *func;
-	PropertyRNA *prop;
 	const char *class_type = RNA_struct_identifier(srna);
 	StructRNA *srna_base = RNA_struct_base(srna);
 	PyObject *py_class = (PyObject *)py_data;
 	PyObject *base_class = RNA_struct_py_type_get(srna);
 	PyObject *item;
-	int i, flag, arg_count, func_arg_count, func_arg_min_count = 0;
-	bool is_staticmethod;
+	int i, arg_count, func_arg_count, func_arg_min_count = 0;
 	const char *py_class_name = ((PyTypeObject *)py_class)->tp_name;  /* __name__ */
 
 	if (srna_base) {
@@ -7294,9 +7291,12 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 	lb = RNA_struct_type_functions(srna);
 	i = 0;
 	for (link = lb->first; link; link = link->next) {
-		func = (FunctionRNA *)link;
-		flag = RNA_function_flag(func);
-		is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
+		FunctionRNA *func = (FunctionRNA *)link;
+		const int flag = RNA_function_flag(func);
+		/* TODO(campbell): this is used for classmethod's too,
+		 * even though class methods should have 'FUNC_USE_SELF_TYPE' set, see Operator.poll for eg.
+		 * Keep this as-is since its working but we should be using 'FUNC_USE_SELF_TYPE' for many functions. */
+		const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
 
 		if (!(flag & FUNC_REGISTER))
 			continue;
@@ -7322,7 +7322,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			if (is_staticmethod) {
 				if (PyMethod_Check(item) == 0) {
 					PyErr_Format(PyExc_TypeError,
-					             "expected %.200s, %.200s class \"%.200s\" attribute to be a method, not a %.200s",
+					             "expected %.200s, %.200s class \"%.200s\" "
+					             "attribute to be a static/class method, not a %.200s",
 					             class_type, py_class_name, RNA_function_identifier(func), Py_TYPE(item)->tp_name);
 					return -1;
 				}
@@ -7331,7 +7332,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			else {
 				if (PyFunction_Check(item) == 0) {
 					PyErr_Format(PyExc_TypeError,
-					             "expected %.200s, %.200s class \"%.200s\" attribute to be a function, not a %.200s",
+					             "expected %.200s, %.200s class \"%.200s\" "
+					             "attribute to be a function, not a %.200s",
 					             class_type, py_class_name, RNA_function_identifier(func), Py_TYPE(item)->tp_name);
 					return -1;
 				}
@@ -7374,8 +7376,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 	lb = RNA_struct_type_properties(srna);
 	for (link = lb->first; link; link = link->next) {
 		const char *identifier;
-		prop = (PropertyRNA *)link;
-		flag = RNA_property_flag(prop);
+		PropertyRNA *prop = (PropertyRNA *)link;
+		const int flag = RNA_property_flag(prop);
 
 		if (!(flag & PROP_REGISTER))
 			continue;

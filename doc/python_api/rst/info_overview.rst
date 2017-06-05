@@ -5,23 +5,25 @@
 Python API Overview
 *******************
 
-This document is to give an understanding of how Python and Blender fit together,
-covering some of the functionality that isn't obvious from reading the API reference and example scripts.
+The purpose of this document is to explain how Python and Blender fit together,
+covering some of the functionality that may not be obvious from reading the API
+references and example scripts.
 
 
 Python in Blender
 =================
 
-Blender embeds a Python interpreter which is started with Blender and stays active.
-This interpreter runs scripts to draw the user interface and is used for some of Blender's internal tools too.
+Blender has an embedded Python interpreter which is loaded when Blender is started and stays
+active while Blender is running. This interpreter runs scripts to draw the user interface
+and is used for some of Blender’s internal tools as well.
 
-This is a typical Python environment so tutorials on how to write Python scripts
-will work running the scripts in Blender too.
-Blender provides the :mod:`bpy` module to the Python interpreter.
-This module can be imported in a script and gives access to Blender data, classes, and functions.
-Scripts that deal with Blender data will need to import this module.
+Blender's embedded interpreter provides a typical Python environment, so code from tutorials
+on how to write Python scripts can also be run with Blender’s interpreter. Blender provides its
+Python modules, such as :mod:`bpy` and :mod:`mathutils`, to the embedded interpreter so they can
+be imported into a script and give access to Blender's data, classes, and functions. Scripts that
+deal with Blender data will need to import the modules to work.
 
-Here is a simple example of moving a vertex of the object named **Cube**:
+Here is a simple example which moves a vertex attached to an object named **Cube**:
 
 .. code-block:: python
 
@@ -49,15 +51,17 @@ See the :ref:`directory layout docs <blender_manual:getting-started_installing-c
 Script Loading
 ==============
 
-This may seem obvious but it's important to note the difference
-between executing a script directly or importing it as a module.
+This may seem obvious, but it is important to note the difference between
+executing a script directly and importing a script as a module.
 
-Scripts that extend Blender - define classes that exist beyond the scripts execution,
-this makes future access to these classes (to unregister for example)
-more difficult than importing as a module where class instance is kept
-in the module and can be accessed by importing that module later on.
+Extending Blender by executing a script directly means the classes that the script
+defines remain available inside Blender after the script finishes execution.
+Using scripts this way makes future access to their classes
+(to unregister them for example) more difficult compared to importing the scripts as modules.
+When a script is imported as a module, its class instances will remain
+inside the module and can be accessed later on by importing that module again.
 
-For this reason it's preferable to only use directly execute scripts that don't extend Blender by registering classes.
+For this reason it is preferable to avoid directly executing scripts that extend Blender by registering classes.
 
 
 Here are some ways to run scripts directly in Blender.
@@ -396,8 +400,8 @@ This works just as well for PropertyGroup subclasses you define yourself.
 Dynamic Defined-Classes (Advanced)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In some cases the specifier for data may not be in Blender,
-renderman shader definitions for example and it may be useful to define types and remove them on the fly.
+In some cases the specifier for data may not be in Blender, renderman shader definitions
+for example, and it may be useful to define them as types and remove them on the fly.
 
 .. code-block:: python
 
@@ -420,7 +424,7 @@ renderman shader definitions for example and it may be useful to define types an
    This is an alternative syntax for class creation in Python, better suited to constructing classes dynamically.
 
 
-Calling these operators:
+To call the operators from the previous example:
 
    >>> bpy.ops.object.operator_1()
    Hello World OBJECT_OT_operator_1

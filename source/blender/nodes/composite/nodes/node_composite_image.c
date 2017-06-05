@@ -116,6 +116,10 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree, bNode *node,
 	}
 	else {
 		sock = BLI_findlink(&node->outputs, sock_index);
+		NodeImageLayer *sockdata = sock->storage;
+		if(sockdata) {
+			BLI_strncpy(sockdata->pass_name, passname, sizeof(sockdata->pass_name));
+		}
 	}
 
 	BLI_linklist_append(available_sockets, sock);
@@ -158,13 +162,10 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node, LinkNod
 					else
 						type = SOCK_RGBA;
 
+					cmp_node_image_add_pass_output(ntree, node, rpass->name, rpass->name, -1, type, false, available_sockets, &prev_index);
 					/* Special handling for the Combined pass to ensure compatibility. */
 					if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
-						cmp_node_image_add_pass_output(ntree, node, "Image", rpass->name, -1, type, false, available_sockets, &prev_index);
 						cmp_node_image_add_pass_output(ntree, node, "Alpha", rpass->name, -1, SOCK_FLOAT, false, available_sockets, &prev_index);
-					}
-					else {
-						cmp_node_image_add_pass_output(ntree, node, rpass->name, rpass->name, -1, type, false, available_sockets, &prev_index);
 					}
 				}
 				BKE_image_release_ibuf(ima, ibuf, NULL);
@@ -173,13 +174,10 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node, LinkNod
 		}
 	}
 
-	cmp_node_image_add_pass_output(ntree, node, "Image", RE_PASSNAME_COMBINED, RRES_OUT_IMAGE, SOCK_RGBA, false, available_sockets, &prev_index);
-	cmp_node_image_add_pass_output(ntree, node, "Alpha", RE_PASSNAME_COMBINED, RRES_OUT_ALPHA, SOCK_FLOAT, false, available_sockets, &prev_index);
+	cmp_node_image_add_pass_output(ntree, node, "Image", RE_PASSNAME_COMBINED, -1, SOCK_RGBA, false, available_sockets, &prev_index);
+	cmp_node_image_add_pass_output(ntree, node, "Alpha", RE_PASSNAME_COMBINED, -1, SOCK_FLOAT, false, available_sockets, &prev_index);
 
 	if (ima) {
-		if (!ima->rr) {
-			cmp_node_image_add_pass_output(ntree, node, RE_PASSNAME_Z, RE_PASSNAME_Z, RRES_OUT_Z, SOCK_FLOAT, false, available_sockets, &prev_index);
-		}
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
 }
@@ -276,7 +274,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
 			for (link = ntree->links.first; link; link = link->next) {
 				if (link->fromsock == sock) break;
 			}
-			if (!link && sock_index > 30) {
+			if (!link && (!rlayer || sock_index > 30)) {
 				MEM_freeN(sock->storage);
 				nodeRemoveSocket(ntree, node, sock);
 			}
