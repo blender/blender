@@ -158,18 +158,20 @@ void WM_operatortype_iter(GHashIterator *ghi)
 	BLI_ghashIterator_init(ghi, global_ops_hash);
 }
 
-/* all ops in 1 list (for time being... needs evaluation later) */
-void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
+/** \name Operator Type Append
+ * \{ */
+
+static wmOperatorType *wm_operatortype_append__begin(void)
 {
-	wmOperatorType *ot;
-	
-	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
+	wmOperatorType *ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
 	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 	ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
-	opfunc(ot);
-
+	return ot;
+}
+static void wm_operatortype_append__end(wmOperatorType *ot)
+{
 	if (ot->name == NULL) {
 		fprintf(stderr, "ERROR: Operator %s has no name property!\n", ot->idname);
 		ot->name = N_("Dummy Name");
@@ -186,21 +188,22 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 }
 
+/* all ops in 1 list (for time being... needs evaluation later) */
+void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
+{
+	wmOperatorType *ot = wm_operatortype_append__begin();
+	opfunc(ot);
+	wm_operatortype_append__end(ot);
+}
+
 void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata)
 {
-	wmOperatorType *ot;
-
-	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
-	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
-	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
-	ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
+	wmOperatorType *ot = wm_operatortype_append__begin();
 	opfunc(ot, userdata);
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
-	RNA_def_struct_identifier(ot->srna, ot->idname);
-
-	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
+	wm_operatortype_append__end(ot);
 }
+
+/** \} */
 
 /* ********************* macro operator ******************** */
 
