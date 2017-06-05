@@ -232,7 +232,7 @@ void WM_manipulator_delete(ListBase *manipulatorlist, wmManipulatorMap *mmap, wm
 
 wmManipulatorGroup *wm_manipulator_get_parent_group(const wmManipulator *manipulator)
 {
-	return manipulator->mgroup;
+	return manipulator->parent_mgroup;
 }
 
 
@@ -295,7 +295,7 @@ void WM_manipulator_set_custom_handler(
  */
 void WM_manipulator_set_func_select(wmManipulator *manipulator, wmManipulatorSelectFunc select)
 {
-	BLI_assert(manipulator->mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SELECTABLE);
+	BLI_assert(manipulator->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SELECTABLE);
 	manipulator->select = select;
 }
 
@@ -421,7 +421,7 @@ void wm_manipulator_calculate_scale(wmManipulator *manipulator, const bContext *
 	const RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	float scale = 1.0f;
 
-	if (manipulator->mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE_3D) {
+	if (manipulator->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE_3D) {
 		if (rv3d /*&& (U.manipulator_flag & V3D_DRAW_MANIPULATOR) == 0*/) { /* UserPref flag might be useful for later */
 			if (manipulator->get_final_position) {
 				float position[3];

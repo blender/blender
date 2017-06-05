@@ -93,8 +93,7 @@ wmManipulatorMap *WM_manipulatormap_new_from_type(const struct wmManipulatorMapT
 	     mgrouptype;
 	     mgrouptype = mgrouptype->next)
 	{
-		wmManipulatorGroup *mgroup = wm_manipulatorgroup_new_from_type(mgrouptype);
-		BLI_addtail(&mmap->manipulator_groups, mgroup);
+		wm_manipulatorgroup_new_from_type(mmap, mgrouptype);
 	}
 
 	return mmap;
@@ -113,7 +112,8 @@ void wm_manipulatormap_delete(wmManipulatorMap *mmap)
 
 	for (wmManipulatorGroup *mgroup = mmap->manipulator_groups.first, *mgroup_next; mgroup; mgroup = mgroup_next) {
 		mgroup_next = mgroup->next;
-		wm_manipulatorgroup_free(NULL, mmap, mgroup);
+		BLI_assert(mgroup->parent_mmap == mmap);
+		wm_manipulatorgroup_free(NULL, mgroup);
 	}
 	BLI_assert(BLI_listbase_is_empty(&mmap->manipulator_groups));
 
@@ -462,7 +462,7 @@ bool wm_manipulatormap_deselect_all(wmManipulatorMap *mmap, wmManipulator ***sel
 
 BLI_INLINE bool manipulator_selectable_poll(const wmManipulator *manipulator, void *UNUSED(data))
 {
-	return (manipulator->mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SELECTABLE);
+	return (manipulator->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SELECTABLE);
 }
 
 /**

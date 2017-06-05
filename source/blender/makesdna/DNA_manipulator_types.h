@@ -31,6 +31,8 @@ typedef struct wmManipulatorGroup {
 	struct wmManipulatorGroupType *type;
 	ListBase manipulators;
 
+	struct wmManipulatorMap *parent_mmap;
+
 	void *py_instance;            /* python stores the class instance here */
 	struct ReportList *reports;   /* errors and warnings storage */
 

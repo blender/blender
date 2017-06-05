@@ -41,7 +41,7 @@ struct wmManipulator {
 
 	char idname[MAX_NAME + 4]; /* + 4 for unique '.001', '.002', etc suffix */
 	/* pointer back to group this manipulator is in (just for quick access) */
-	struct wmManipulatorGroup *mgroup;
+	struct wmManipulatorGroup *parent_mgroup;
 
 	/* could become wmManipulatorType */
 	/* draw manipulator */
@@ -153,8 +153,9 @@ enum {
 	TWEAK_MODAL_PRECISION_OFF,
 };
 
-struct wmManipulatorGroup *wm_manipulatorgroup_new_from_type(struct wmManipulatorGroupType *mgrouptype);
-void wm_manipulatorgroup_free(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulatorGroup *mgroup);
+struct wmManipulatorGroup *wm_manipulatorgroup_new_from_type(
+        struct wmManipulatorMap *mmap, struct wmManipulatorGroupType *mgrouptype);
+void wm_manipulatorgroup_free(bContext *C, struct wmManipulatorGroup *mgroup);
 void wm_manipulatorgroup_manipulator_register(struct wmManipulatorGroup *mgroup, struct wmManipulator *manipulator);
 struct wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
         const struct wmManipulatorGroup *mgroup, struct bContext *C, const struct wmEvent *event,

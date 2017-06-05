@@ -73,16 +73,23 @@ enum {
 /**
  * Create a new manipulator-group from \a mgrouptype.
  */
-wmManipulatorGroup *wm_manipulatorgroup_new_from_type(wmManipulatorGroupType *mgrouptype)
+wmManipulatorGroup *wm_manipulatorgroup_new_from_type(
+        wmManipulatorMap *mmap, wmManipulatorGroupType *mgrouptype)
 {
 	wmManipulatorGroup *mgroup = MEM_callocN(sizeof(*mgroup), "manipulator-group");
 	mgroup->type = mgrouptype;
 
+	/* keep back-link */
+	mgroup->parent_mmap = mmap;
+
+	BLI_addtail(&mmap->manipulator_groups, mgroup);
+
 	return mgroup;
 }
 
-void wm_manipulatorgroup_free(bContext *C, wmManipulatorMap *mmap, wmManipulatorGroup *mgroup)
+void wm_manipulatorgroup_free(bContext *C, wmManipulatorGroup *mgroup)
 {
+	wmManipulatorMap *mmap = mgroup->parent_mmap;
 	for (wmManipulator *manipulator = mgroup->manipulators.first; manipulator;) {
 		wmManipulator *manipulator_next = manipulator->next;
 		WM_manipulator_delete(&mgroup->manipulators, mmap, manipulator, C);
@@ -121,7 +128,7 @@ void wm_manipulatorgroup_manipulator_register(wmManipulatorGroup *mgroup, wmMani
 {
 	BLI_assert(!BLI_findstring(&mgroup->manipulators, manipulator->idname, offsetof(wmManipulator, idname)));
 	BLI_addtail(&mgroup->manipulators, manipulator);
-	manipulator->mgroup = mgroup;
+	manipulator->parent_mgroup = mgroup;
 }
 
 void wm_manipulatorgroup_attach_to_modal_handler(
@@ -570,10 +577,9 @@ void WM_manipulatorgrouptype_init_runtime(
 				for (ARegion *ar = lb->first; ar; ar = ar->next) {
 					wmManipulatorMap *mmap = ar->manipulator_map;
 					if (mmap->type == mmaptype) {
-						wmManipulatorGroup *mgroup = wm_manipulatorgroup_new_from_type(mgrouptype);
+						wm_manipulatorgroup_new_from_type(mmap, mgrouptype);
 
 						/* just add here, drawing will occur on next update */
-						BLI_addtail(&mmap->manipulator_groups, mgroup);
 						wm_manipulatormap_set_highlighted_manipulator(mmap, NULL, NULL, 0);
 						ED_region_tag_redraw(ar);
 					}
@@ -596,7 +602,8 @@ void WM_manipulatorgrouptype_unregister(bContext *C, Main *bmain, wmManipulatorG
 					for (mgroup = mmap->manipulator_groups.first; mgroup; mgroup = mgroup_next) {
 						mgroup_next = mgroup->next;
 						if (mgroup->type == mgrouptype) {
-							wm_manipulatorgroup_free(C, mmap, mgroup);
+							BLI_assert(mgroup->parent_mmap == mmap);
+							wm_manipulatorgroup_free(C, mgroup);
 							ED_region_tag_redraw(ar);
 						}
 					}
