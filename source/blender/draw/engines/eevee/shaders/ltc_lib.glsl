@@ -2,10 +2,10 @@
 
 #define USE_LTC
 
-#ifndef __UTIL_TEX__
-#define __UTIL_TEX__
+#ifndef UTIL_TEX
+#define UTIL_TEX
 uniform sampler2DArray utilTex;
-#endif /* __UTIL_TEX__ */
+#endif /* UTIL_TEX */
 
 /* from Real-Time Area Lighting: a Journey from Research to Production
  * Stephen Hill and Eric Heitz */

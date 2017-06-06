@@ -8,10 +8,10 @@ uniform sampler2DArray probeCubes;
 uniform float lodMax;
 uniform vec3 shCoefs[9];
 
-#ifndef __UTIL_TEX__
-#define __UTIL_TEX__
+#ifndef UTIL_TEX
+#define UTIL_TEX
 uniform sampler2DArray utilTex;
-#endif /* __UTIL_TEX__ */
+#endif /* UTIL_TEX */
 
 uniform sampler2DArray shadowCubes;
 uniform sampler2DArrayShadow shadowCascades;
