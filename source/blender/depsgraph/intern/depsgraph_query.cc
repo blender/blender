@@ -104,27 +104,34 @@ Object *DEG_get_object(Depsgraph * /*depsgraph*/, Object *ob)
 
 void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data)
 {
-	SceneLayer *scene_layer;
 	Depsgraph *graph = data->graph;
+	SceneLayer *scene_layer = DEG_get_scene_layer(graph);
 
 	iter->data = data;
 	iter->valid = true;
 
-	/* TODO: Make it in-place initilization of evaluation context. */
-	data->eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
 	data->scene = DEG_get_scene(graph);
-	scene_layer = DEG_get_scene_layer(graph);
-	data->base_flag = ~BASE_FLUSH_FLAGS;
+	/* TODO(sergey): Make it in-place initilization of evaluation context. */
+	data->eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
 
+	/* TODO(sergey): It's really confusing to store pointer to a local data. */
 	Base base = {(Base *)scene_layer->object_bases.first, NULL};
 	data->base = &base;
+
+	data->base_flag = ~(BASE_FLUSH_FLAGS);
+
+	data->dupli_parent = NULL;
+	data->dupli_list = NULL;
+	data->dupli_object_next = NULL;
+	data->dupli_object_current = NULL;
+
 	DEG_objects_iterator_next(iter);
 }
 
 /**
  * Temporary function to flush depsgraph until we get copy on write (CoW)
  */
-static void deg_flush_data(Object *ob, Base *base, const int flag)
+static void deg_flush_base_flags_and_settings(Object *ob, Base *base, const int flag)
 {
 	ob->base_flag = (base->flag | BASE_FLUSH_FLAGS) & flag;
 	ob->base_collection_properties = base->collection_properties;
@@ -134,13 +141,15 @@ static void deg_flush_data(Object *ob, Base *base, const int flag)
 static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 {
 	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
-	while (data->dupli_object) {
-		DupliObject *dob = data->dupli_object;
+	while (data->dupli_object_next != NULL) {
+		DupliObject *dob = data->dupli_object_next;
 		Object *obd = dob->ob;
 
-		data->dupli_object = data->dupli_object->next;
+		data->dupli_object_next = data->dupli_object_next->next;
 
-		/* Group duplis need to set ob matrices correct, for deform. so no_draw is part handled. */
+		/* Group duplis need to set ob matrices correct, for deform. so no_draw
+		 * is part handled.
+		 */
 		if ((obd->transflag & OB_RENDER_DUPLI) == 0 && dob->no_draw) {
 			continue;
 		}
@@ -149,11 +158,15 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 			continue;
 		}
 
+		data->dupli_object_current = dob;
+
 		/* Temporary object to evaluate. */
 		data->temp_dupli_object = *dob->ob;
 		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
 
-		deg_flush_data(&data->temp_dupli_object, data->base, data->base_flag | BASE_FROMDUPLI);
+		deg_flush_base_flags_and_settings(&data->temp_dupli_object,
+		                                  data->base,
+		                                  data->base_flag | BASE_FROMDUPLI);
 		iter->current = &data->temp_dupli_object;
 		return true;
 	}
@@ -172,14 +185,15 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 		}
 		else {
 			free_object_duplilist(data->dupli_list);
+			data->dupli_parent = NULL;
 			data->dupli_list = NULL;
-			data->dupli_object = NULL;
+			data->dupli_object_next = NULL;
+			data->dupli_object_current = NULL;
 		}
 	}
 
 	base = data->base->next;
-
-	while (base) {
+	while (base != NULL) {
 		if ((base->flag & BASE_VISIBLED) != 0) {
 			Object *ob = DEG_get_object(data->graph, base->object);
 			iter->current = ob;
@@ -191,15 +205,17 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 			BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
 
 			/* Flushing depsgraph data. */
-			deg_flush_data(ob, base, data->base_flag);
+			deg_flush_base_flags_and_settings(ob,
+			                                  base,
+			                                  data->base_flag);
 
 			if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (ob->transflag & OB_DUPLI)) {
+				data->dupli_parent = ob;
 				data->dupli_list = object_duplilist(data->eval_ctx, data->scene, ob);
-				data->dupli_object = (DupliObject *)data->dupli_list->first;
+				data->dupli_object_next = (DupliObject *)data->dupli_list->first;
 			}
 			return;
 		}
-
 		base = base->next;
 	}
 
@@ -212,6 +228,7 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 		/* For the sets we use the layer used for rendering. */
 		scene_layer = BKE_scene_layer_render_active(data->scene);
 
+		/* TODO(sergey): It's really confusing to store pointer to a local data. */
 		Base base = {(Base *)scene_layer->object_bases.first, NULL};
 		data->base = &base;
 		DEG_objects_iterator_next(iter);

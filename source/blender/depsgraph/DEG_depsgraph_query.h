@@ -75,14 +75,27 @@ typedef struct DEGObjectsIteratorData {
 	struct Depsgraph *graph;
 	struct Scene *scene;
 	struct EvaluationContext *eval_ctx;
-	struct SceneLayer *scene_layer;
+
+	/* TODO(sergey): Base should never be a thing coming FROM depsgraph. */
 	struct Base *base;
 	int base_flag;
 	int flag;
 
-	/* Dupli */
+	/* **** Iteration over dupli-list. *** */
+
+	/* Object which created the dupli-list. */
+	struct Object *dupli_parent;
+	/* List of duplicated objects. */
 	struct ListBase *dupli_list;
-	struct DupliObject *dupli_object;
+	/* Next duplicated object to step into. */
+	struct DupliObject *dupli_object_next;
+	/* Corresponds to current object: current iterator object is evaluated from
+	 * this duplicated object.
+	 */
+	struct DupliObject *dupli_object_current;
+	/* Temporary storage to report fully populated DNA to the render engine or
+	 * other users of the iterator.
+	 */
 	struct Object temp_dupli_object;
 } DEGObjectsIteratorData;
 

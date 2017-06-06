@@ -121,10 +121,7 @@ private:
 	                 BL::Object& b_ob,
 	                 bool motion,
 	                 int time_index = 0);
-	Object *sync_object(BL::Object& b_parent,
-	                    int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
-	                    BL::DupliObject& b_dupli_ob,
-	                    Transform& tfm,
+	Object *sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	                    uint layer_flag,
 	                    float motion_time,
 	                    bool hide_tris,

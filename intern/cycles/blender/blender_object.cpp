@@ -236,19 +236,24 @@ void BlenderSync::sync_background_light(bool use_portal)
 
 /* Object */
 
-Object *BlenderSync::sync_object(BL::Object& b_parent,
-                                 int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
-                                 BL::DupliObject& b_dupli_ob,
-                                 Transform& tfm,
+Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
                                  uint layer_flag,
                                  float motion_time,
                                  bool hide_tris,
                                  BlenderObjectCulling& culling,
                                  bool *use_portal)
 {
-	BL::Object b_ob = (b_dupli_ob ? b_dupli_ob.object() : b_parent);
-	bool motion = motion_time != 0.0f;
-	
+	BL::Object b_ob = b_dupli_iter->object();
+	BL::Object b_parent = b_dupli_iter->parent() ? b_dupli_iter->parent() : b_dupli_iter->object();
+	const bool motion = motion_time != 0.0f;
+	/*const*/ Transform tfm = get_transform(b_ob.matrix_world());
+	int *persistent_id = NULL;
+	BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id_array;
+	if(b_dupli_iter->parent()) {
+		persistent_id_array = b_dupli_iter->persistent_id();
+		persistent_id = persistent_id_array.data;
+	}
+
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
 		/* don't use lamps for excluded layers used as mask layer */
@@ -380,10 +385,10 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 		}
 
 		/* dupli texture coordinates and random_id */
-		if(b_dupli_ob) {
-			object->dupli_generated = 0.5f*get_float3(b_dupli_ob.orco()) - make_float3(0.5f, 0.5f, 0.5f);
-			object->dupli_uv = get_float2(b_dupli_ob.uv());
-			object->random_id = b_dupli_ob.random_id();
+		if(b_dupli_iter->parent()) {
+			object->dupli_generated = 0.5f*get_float3(b_dupli_iter->orco()) - make_float3(0.5f, 0.5f, 0.5f);
+			object->dupli_uv = get_float2(b_dupli_iter->uv());
+			object->random_id = b_dupli_iter->random_id();
 		}
 		else {
 			object->dupli_generated = make_float3(0.0f, 0.0f, 0.0f);
@@ -495,10 +500,12 @@ void BlenderSync::sync_objects(float motion_time)
 	bool cancel = false;
 	bool use_portal = false;
 
-	BL::Depsgraph::objects_iterator b_ob_iter;
-
-	for(b_depsgraph.objects.begin(b_ob_iter); b_ob_iter != b_depsgraph.objects.end() && !cancel; ++b_ob_iter) {
-		BL::Object b_ob = *b_ob_iter;
+	BL::Depsgraph::duplis_iterator b_dupli_iter;
+	for(b_depsgraph.duplis.begin(b_dupli_iter);
+	    b_dupli_iter != b_depsgraph.duplis.end() && !cancel;
+	    ++b_dupli_iter)
+	{
+		BL::Object b_ob = b_dupli_iter->object();
 		progress.set_sync_status("Synchronizing object", b_ob.name());
 
 		/* load per-object culling data */
@@ -509,12 +516,7 @@ void BlenderSync::sync_objects(float motion_time)
 
 		 if(!object_render_hide(b_ob, true, true, hide_tris)) {
 			/* object itself */
-			Transform tfm = get_transform(b_ob.matrix_world());
-			BL::DupliObject b_empty_dupli_ob(PointerRNA_NULL);
-			sync_object(b_ob,
-			            NULL,
-			            b_empty_dupli_ob,
-			            tfm,
+			sync_object(b_dupli_iter,
 			            ~(0), /* until we get rid of layers */
 			            motion_time,
 			            hide_tris,
