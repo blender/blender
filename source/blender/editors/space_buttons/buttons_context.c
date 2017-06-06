@@ -662,10 +662,10 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 		case BCONTEXT_BONE_CONSTRAINT:
 			found = buttons_context_path_pose_bone(path);
 			break;
-	    case BCONTEXT_COLLECTION:
-		    found = buttons_context_path_collection(C, path);
-		    break;
-	    default:
+		case BCONTEXT_COLLECTION:
+			found = buttons_context_path_collection(C, path);
+			break;
+		default:
 			found = 0;
 			break;
 	}

@@ -281,7 +281,7 @@ bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash)
 	bool dirty = false;
 
 	/* TODO for testing only, we need proper cache invalidation */
-	if (G.debug_value != 666 && G.debug_value != 667) {
+	if (ELEM(G.debug_value, 666, 667) == false) {
 		for (LinkData *link = viewport->data.first; link; link = link->next) {
 			ViewportEngineData *data = link->data;
 			int psl_len;
