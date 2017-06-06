@@ -97,6 +97,7 @@ set(SRC
 	manipulators/WM_manipulator_api.h
 	manipulators/WM_manipulator_types.h
 	manipulators/WM_manipulator_library.h
+	manipulators/wm_manipulator_fn.h
 	manipulators/wm_manipulator_wmapi.h
 	manipulators/intern/wm_manipulator_intern.h
 	manipulators/intern/manipulator_library/manipulator_geometry.h

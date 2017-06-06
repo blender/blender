@@ -43,36 +43,39 @@ struct wmManipulator {
 	/* pointer back to group this manipulator is in (just for quick access) */
 	struct wmManipulatorGroup *parent_mgroup;
 
-	/* could become wmManipulatorType */
-	/* draw manipulator */
-	void (*draw)(const struct bContext *, struct wmManipulator *);
+	/* While we don't have a real type, use this to put type-like vars. */
+	struct {
+		/* could become wmManipulatorType */
+		/* draw manipulator */
+		wmManipulatorFnDraw draw;
 
-	/* determine if the mouse intersects with the manipulator. The calculation should be done in the callback itself */
-	int  (*intersect)(struct bContext *, const struct wmEvent *, struct wmManipulator *);
+		/* determines 3d intersection by rendering the manipulator in a selection routine. */
+		wmManipulatorFnDrawSelect draw_select;
 
-	/* determines 3d intersection by rendering the manipulator in a selection routine. */
-	void (*render_3d_intersection)(const struct bContext *, struct wmManipulator *, int);
+		/* determine if the mouse intersects with the manipulator. The calculation should be done in the callback itself */
+		wmManipulatorFnIntersect intersect;
 
-	/* handler used by the manipulator. Usually handles interaction tied to a manipulator type */
-	int  (*handler)(struct bContext *, const struct wmEvent *, struct wmManipulator *, const int);
+		/* handler used by the manipulator. Usually handles interaction tied to a manipulator type */
+		wmManipulatorFnHandler handler;
 
-	/* manipulator-specific handler to update manipulator attributes based on the property value */
-	void (*prop_data_update)(struct wmManipulator *, int);
+		/* manipulator-specific handler to update manipulator attributes based on the property value */
+		wmManipulatorFnPropDataUpdate prop_data_update;
 
-	/* returns the final position which may be different from the origin, depending on the manipulator.
-	 * used in calculations of scale */
-	void (*get_final_position)(struct wmManipulator *, float[]);
+		/* returns the final position which may be different from the origin, depending on the manipulator.
+		 * used in calculations of scale */
+		wmManipulatorFnFinalPositionGet final_position_get;
 
-	/* activate a manipulator state when the user clicks on it */
-	int (*invoke)(struct bContext *, const struct wmEvent *, struct wmManipulator *);
+		/* activate a manipulator state when the user clicks on it */
+		wmManipulatorFnInvoke invoke;
 
-	/* called when manipulator tweaking is done - used to free data and reset property when cancelling */
-	void (*exit)(struct bContext *, struct wmManipulator *, const bool );
+		/* called when manipulator tweaking is done - used to free data and reset property when cancelling */
+		wmManipulatorFnExit exit;
 
-	int (*get_cursor)(struct wmManipulator *);
+		wmManipulatorFnCursorGet cursor_get;
 
-	/* called when manipulator selection state changes */
-	wmManipulatorSelectFunc select;
+		/* called when manipulator selection state changes */
+		wmManipulatorFnSelect select;
+	} type;
 
 	int flag; /* flags that influence the behavior or how the manipulators are drawn */
 	short state; /* state flags (active, highlighted, selected) */

@@ -33,6 +33,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -50,6 +51,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -157,8 +159,8 @@ wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
         unsigned char *part)
 {
 	for (wmManipulator *manipulator = mgroup->manipulators.first; manipulator; manipulator = manipulator->next) {
-		if (manipulator->intersect && (manipulator->flag & WM_MANIPULATOR_HIDDEN) == 0) {
-			if ((*part = manipulator->intersect(C, event, manipulator))) {
+		if (manipulator->type.intersect && (manipulator->flag & WM_MANIPULATOR_HIDDEN) == 0) {
+			if ((*part = manipulator->type.intersect(C, event, manipulator))) {
 				return manipulator;
 			}
 		}
@@ -174,8 +176,8 @@ void wm_manipulatorgroup_intersectable_manipulators_to_list(const wmManipulatorG
 {
 	for (wmManipulator *manipulator = mgroup->manipulators.first; manipulator; manipulator = manipulator->next) {
 		if ((manipulator->flag & WM_MANIPULATOR_HIDDEN) == 0) {
-			if (((mgroup->type->flag & WM_MANIPULATORGROUPTYPE_IS_3D) && manipulator->render_3d_intersection) ||
-			    ((mgroup->type->flag & WM_MANIPULATORGROUPTYPE_IS_3D) == 0 && manipulator->intersect))
+			if (((mgroup->type->flag & WM_MANIPULATORGROUPTYPE_IS_3D) && manipulator->type.draw_select) ||
+			    ((mgroup->type->flag & WM_MANIPULATORGROUPTYPE_IS_3D) == 0 && manipulator->type.intersect))
 			{
 				BLI_addhead(listbase, BLI_genericNodeN(manipulator));
 			}
@@ -295,8 +297,8 @@ typedef struct ManipulatorTweakData {
 static void manipulator_tweak_finish(bContext *C, wmOperator *op, const bool cancel)
 {
 	ManipulatorTweakData *mtweak = op->customdata;
-	if (mtweak->active->exit) {
-		mtweak->active->exit(C, mtweak->active, cancel);
+	if (mtweak->active->type.exit) {
+		mtweak->active->type.exit(C, mtweak->active, cancel);
 	}
 	wm_manipulatormap_set_active_manipulator(mtweak->mmap, C, NULL, NULL);
 	MEM_freeN(mtweak);
@@ -336,8 +338,8 @@ static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *e
 	}
 
 	/* handle manipulator */
-	if (manipulator->handler) {
-		manipulator->handler(C, event, manipulator, mtweak->flag);
+	if (manipulator->type.handler) {
+		manipulator->type.handler(C, event, manipulator, mtweak->flag);
 	}
 
 	/* Ugly hack to send manipulator events */
@@ -491,6 +493,23 @@ wmKeyMap *WM_manipulatorgroup_keymap_common_sel(const struct wmManipulatorGroupT
  *
  * \{ */
 
+struct wmManipulatorGroupType *WM_manipulatorgrouptype_find(
+        struct wmManipulatorMapType *mmaptype,
+        const char *idname)
+{
+	/* could use hash lookups as operator types do, for now simple search. */
+	for (wmManipulatorGroupType *mgrouptype = mmaptype->manipulator_grouptypes.first;
+	     mgrouptype;
+	     mgrouptype = mgrouptype->next)
+	{
+		if (STREQ(idname, mgrouptype->idname)) {
+			return mgrouptype;
+		}
+	}
+	return NULL;
+}
+
+
 static wmManipulatorGroupType *wm_manipulatorgrouptype_append__begin(void)
 {
 	wmManipulatorGroupType *mgrouptype = MEM_callocN(sizeof(wmManipulatorGroupType), "manipulator-group");
@@ -576,7 +595,7 @@ void WM_manipulatorgrouptype_init_runtime(
 				ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 				for (ARegion *ar = lb->first; ar; ar = ar->next) {
 					wmManipulatorMap *mmap = ar->manipulator_map;
-					if (mmap->type == mmaptype) {
+					if (mmap && mmap->type == mmaptype) {
 						wm_manipulatorgroup_new_from_type(mmap, mgrouptype);
 
 						/* just add here, drawing will occur on next update */
@@ -597,14 +616,15 @@ void WM_manipulatorgrouptype_unregister(bContext *C, Main *bmain, wmManipulatorG
 				ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 				for (ARegion *ar = lb->first; ar; ar = ar->next) {
 					wmManipulatorMap *mmap = ar->manipulator_map;
-					wmManipulatorGroup *mgroup, *mgroup_next;
-
-					for (mgroup = mmap->manipulator_groups.first; mgroup; mgroup = mgroup_next) {
-						mgroup_next = mgroup->next;
-						if (mgroup->type == mgrouptype) {
-							BLI_assert(mgroup->parent_mmap == mmap);
-							wm_manipulatorgroup_free(C, mgroup);
-							ED_region_tag_redraw(ar);
+					if (mmap) {
+						wmManipulatorGroup *mgroup, *mgroup_next;
+						for (mgroup = mmap->manipulator_groups.first; mgroup; mgroup = mgroup_next) {
+							mgroup_next = mgroup->next;
+							if (mgroup->type == mgrouptype) {
+								BLI_assert(mgroup->parent_mmap == mmap);
+								wm_manipulatorgroup_free(C, mgroup);
+								ED_region_tag_redraw(ar);
+							}
 						}
 					}
 				}

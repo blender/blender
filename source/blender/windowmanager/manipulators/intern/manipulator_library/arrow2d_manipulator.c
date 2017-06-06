@@ -193,12 +193,12 @@ struct wmManipulator *MANIPULATOR_arrow2d_new(wmManipulatorGroup *mgroup, const 
 {
 	ArrowManipulator2D *arrow = MEM_callocN(sizeof(ArrowManipulator2D), __func__);
 
-	arrow->manipulator.draw = manipulator_arrow2d_draw;
-	arrow->manipulator.invoke = manipulator_arrow2d_invoke;
-//	arrow->manipulator.bind_to_prop = manipulator_arrow2d_bind_to_prop;
-//	arrow->manipulator.handler = manipulator_arrow2d_handler;
-	arrow->manipulator.intersect = manipulator_arrow2d_intersect;
-//	arrow->manipulator.exit = manipulator_arrow2d_exit;
+	arrow->manipulator.type.draw = manipulator_arrow2d_draw;
+	arrow->manipulator.type.invoke = manipulator_arrow2d_invoke;
+//	arrow->manipulator.type.bind_to_prop = manipulator_arrow2d_bind_to_prop;
+//	arrow->manipulator.type.handler = manipulator_arrow2d_handler;
+	arrow->manipulator.type.intersect = manipulator_arrow2d_intersect;
+//	arrow->manipulator.type.exit = manipulator_arrow2d_exit;
 	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 
 	arrow->line_len = 1.0f;

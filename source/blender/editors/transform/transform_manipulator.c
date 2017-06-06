@@ -1150,7 +1150,7 @@ static void WIDGETGROUP_manipulator_init(const bContext *UNUSED(C), wmManipulato
 		manipulator_get_axis_constraint(axis_idx, constraint_axis);
 
 		/* custom handler! */
-		WM_manipulator_set_custom_handler(axis, manipulator_handler);
+		WM_manipulator_set_fn_handler(axis, manipulator_handler);
 
 		switch(axis_idx) {
 			case MAN_AXIS_TRANS_X:

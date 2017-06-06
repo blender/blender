@@ -40,13 +40,10 @@
 
 struct wmManipulatorGroupType;
 struct wmManipulatorGroup;
+struct wmManipulator;
 struct wmKeyConfig;
 
-typedef bool (*wmManipulatorGroupPollFunc)(const struct bContext *, struct wmManipulatorGroupType *) ATTR_WARN_UNUSED_RESULT;
-typedef void (*wmManipulatorGroupInitFunc)(const struct bContext *, struct wmManipulatorGroup *);
-typedef void (*wmManipulatorGroupRefreshFunc)(const struct bContext *, struct wmManipulatorGroup *);
-typedef void (*wmManipulatorGroupDrawPrepareFunc)(const struct bContext *, struct wmManipulatorGroup *);
-
+#include "wm_manipulator_fn.h"
 
 /* -------------------------------------------------------------------- */
 /* wmManipulator */
@@ -79,26 +76,32 @@ typedef struct wmManipulatorGroupType {
 	const char *name; /* manipulator-group name - displayed in UI (keymap editor) */
 
 	/* poll if manipulator-map should be visible */
-	wmManipulatorGroupPollFunc poll;
+	wmManipulatorGroupFnPoll poll;
 	/* initially create manipulators and set permanent data - stuff you only need to do once */
-	wmManipulatorGroupInitFunc init;
+	wmManipulatorGroupFnInit init;
 	/* refresh data, only called if recreate flag is set (WM_manipulatormap_tag_refresh) */
-	wmManipulatorGroupRefreshFunc refresh;
+	wmManipulatorGroupFnRefresh refresh;
 	/* refresh data for drawing, called before each redraw */
-	wmManipulatorGroupDrawPrepareFunc draw_prepare;
+	wmManipulatorGroupFnDrawPrepare draw_prepare;
 
 	/* keymap init callback for this manipulator-group */
 	struct wmKeyMap *(*keymap_init)(const struct wmManipulatorGroupType *, struct wmKeyConfig *);
 	/* keymap created with callback from above */
 	struct wmKeyMap *keymap;
 
+	/* Disable for now, maybe some day we want properties. */
+#if 0
 	/* rna for properties */
 	struct StructRNA *srna;
+#endif
 
 	/* RNA integration */
 	ExtensionRNA ext;
 
 	int flag;
+
+	/* Weak, but needed to store which functions we have. */
+	int rna_func_flag;
 
 	/* if type is spawned from operator this is set here */
 	void *op;

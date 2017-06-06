@@ -557,13 +557,13 @@ wmManipulator *MANIPULATOR_rect_transform_new(wmManipulatorGroup *mgroup, const 
 {
 	RectTransformManipulator *cage = MEM_callocN(sizeof(RectTransformManipulator), name);
 
-	cage->manipulator.draw = manipulator_rect_transform_draw;
-	cage->manipulator.invoke = manipulator_rect_transform_invoke;
-	cage->manipulator.prop_data_update = manipulator_rect_transform_prop_data_update;
-	cage->manipulator.handler = manipulator_rect_transform_handler;
-	cage->manipulator.intersect = manipulator_rect_transform_intersect;
-	cage->manipulator.exit = manipulator_rect_transform_exit;
-	cage->manipulator.get_cursor = manipulator_rect_transform_get_cursor;
+	cage->manipulator.type.draw = manipulator_rect_transform_draw;
+	cage->manipulator.type.invoke = manipulator_rect_transform_invoke;
+	cage->manipulator.type.prop_data_update = manipulator_rect_transform_prop_data_update;
+	cage->manipulator.type.handler = manipulator_rect_transform_handler;
+	cage->manipulator.type.intersect = manipulator_rect_transform_intersect;
+	cage->manipulator.type.exit = manipulator_rect_transform_exit;
+	cage->manipulator.type.cursor_get = manipulator_rect_transform_get_cursor;
 	cage->manipulator.max_prop = 2;
 	cage->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 	cage->scale[0] = cage->scale[1] = 1.0f;

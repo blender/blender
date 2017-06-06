@@ -125,28 +125,27 @@ void wm_manipulator_vec_draw(
 	immEnd();
 }
 
-/* Still unused */
-wmManipulator *WM_manipulator_new(
-        void (*draw)(const bContext *C, wmManipulator *customdata),
-        void (*render_3d_intersection)(const bContext *C, wmManipulator *customdata, int selectionbase),
-        int  (*intersect)(bContext *C, const wmEvent *event, wmManipulator *manipulator),
-        int  (*handler)(bContext *C, const wmEvent *event, wmManipulator *manipulator, const int flag))
+wmManipulator *WM_manipulator_new(wmManipulatorGroup *mgroup, const char *name)
 {
-	wmManipulator *manipulator = MEM_callocN(sizeof(wmManipulator), "manipulator");
+	wmManipulator *manipulator = MEM_callocN(sizeof(wmManipulator), __func__);
 
-	manipulator->draw = draw;
-	manipulator->handler = handler;
-	manipulator->intersect = intersect;
-	manipulator->render_3d_intersection = render_3d_intersection;
+	wm_manipulator_register(mgroup, manipulator, name);
 
-	/* XXX */
-	fix_linking_manipulator_arrow();
-	fix_linking_manipulator_arrow2d();
-	fix_linking_manipulator_cage();
-	fix_linking_manipulator_dial();
-	fix_linking_manipulator_primitive();
+	/* XXX: never happens */
+	if (name[0] == '\n') {
+		fix_linking_manipulator_arrow();
+		fix_linking_manipulator_arrow2d();
+		fix_linking_manipulator_cage();
+		fix_linking_manipulator_dial();
+		fix_linking_manipulator_primitive();
+	}
 
 	return manipulator;
+}
+
+wmManipulatorGroup *WM_manipulator_get_parent_group(wmManipulator *manipulator)
+{
+	return manipulator->parent_mgroup;
 }
 
 /**
@@ -255,8 +254,9 @@ void WM_manipulator_set_property(wmManipulator *manipulator, const int slot, Poi
 	manipulator->ptr[slot] = *ptr;
 	manipulator->props[slot] = RNA_struct_find_property(ptr, propname);
 
-	if (manipulator->prop_data_update)
-		manipulator->prop_data_update(manipulator, slot);
+	if (manipulator->type.prop_data_update) {
+		manipulator->type.prop_data_update(manipulator, slot);
+	}
 }
 
 PointerRNA *WM_manipulator_set_operator(wmManipulator *manipulator, const char *opname)
@@ -278,25 +278,6 @@ PointerRNA *WM_manipulator_set_operator(wmManipulator *manipulator, const char *
 	}
 
 	return NULL;
-}
-
-
-void WM_manipulator_set_custom_handler(
-        struct wmManipulator *manipulator,
-        int (*handler)(struct bContext *, const wmEvent *, struct wmManipulator *, const int))
-{
-	manipulator->handler = handler;
-}
-
-/**
- * \brief Set manipulator select callback.
- *
- * Callback is called when manipulator gets selected/deselected.
- */
-void WM_manipulator_set_func_select(wmManipulator *manipulator, wmManipulatorSelectFunc select)
-{
-	BLI_assert(manipulator->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SELECTABLE);
-	manipulator->select = select;
 }
 
 void WM_manipulator_set_origin(wmManipulator *manipulator, const float origin[3])
@@ -340,8 +321,57 @@ void WM_manipulator_set_colors(wmManipulator *manipulator, const float col[4], c
 	copy_v4_v4(manipulator->col, col);
 	copy_v4_v4(manipulator->col_hi, col_hi);
 }
-
 /** \} */ // Manipulator Creation API
+
+
+/* -------------------------------------------------------------------- */
+/** \name Manipulator Callback Assignment
+ *
+ * \{ */
+
+void WM_manipulator_set_fn_draw(wmManipulator *mpr, wmManipulatorFnDraw draw_fn)
+{
+	mpr->type.draw = draw_fn;
+}
+void WM_manipulator_set_fn_draw_select(struct wmManipulator *mpr, wmManipulatorFnDrawSelect fn)
+{
+	mpr->type.draw_select = fn;
+}
+void WM_manipulator_set_fn_intersect(wmManipulator *mpr, wmManipulatorFnIntersect fn)
+{
+	mpr->type.intersect = fn;
+}
+void WM_manipulator_set_fn_handler(struct wmManipulator *mpr, wmManipulatorFnHandler fn)
+{
+	mpr->type.handler = fn;
+}
+void WM_manipulator_set_fn_prop_data_update(struct wmManipulator *mpr, wmManipulatorFnPropDataUpdate fn)
+{
+	mpr->type.prop_data_update = fn;
+}
+void WM_manipulator_set_fn_final_position_get(struct wmManipulator *mpr, wmManipulatorFnFinalPositionGet fn)
+{
+	mpr->type.final_position_get = fn;
+}
+void WM_manipulator_set_fn_invoke(struct wmManipulator *mpr, wmManipulatorFnInvoke fn)
+{
+	mpr->type.invoke = fn;
+}
+void WM_manipulator_set_fn_exit(struct wmManipulator *mpr, wmManipulatorFnExit fn)
+{
+	mpr->type.exit = fn;
+}
+void WM_manipulator_set_fn_cursor_get(struct wmManipulator *mpr, wmManipulatorFnCursorGet fn)
+{
+	mpr->type.cursor_get = fn;
+}
+void WM_manipulator_set_fn_select(wmManipulator *mpr, wmManipulatorFnSelect fn)
+{
+	BLI_assert(mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SELECTABLE);
+	mpr->type.select = fn;
+}
+
+/** \} */
 
 
 /* -------------------------------------------------------------------- */
@@ -408,8 +438,8 @@ bool wm_manipulator_select(bContext *C, wmManipulatorMap *mmap, wmManipulator *m
 	(*sel)[(*tot_selected) - 1] = manipulator;
 
 	manipulator->state |= WM_MANIPULATOR_SELECTED;
-	if (manipulator->select) {
-		manipulator->select(C, manipulator, SEL_SELECT);
+	if (manipulator->type.select) {
+		manipulator->type.select(C, manipulator, SEL_SELECT);
 	}
 	wm_manipulatormap_set_highlighted_manipulator(mmap, C, manipulator, manipulator->highlighted_part);
 
@@ -423,10 +453,10 @@ void wm_manipulator_calculate_scale(wmManipulator *manipulator, const bContext *
 
 	if (manipulator->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE_3D) {
 		if (rv3d /*&& (U.manipulator_flag & V3D_DRAW_MANIPULATOR) == 0*/) { /* UserPref flag might be useful for later */
-			if (manipulator->get_final_position) {
+			if (manipulator->type.final_position_get) {
 				float position[3];
 
-				manipulator->get_final_position(manipulator, position);
+				manipulator->type.final_position_get(manipulator, position);
 				scale = ED_view3d_pixel_size(rv3d, position) * (float)U.manipulator_scale;
 			}
 			else {
@@ -444,10 +474,10 @@ void wm_manipulator_calculate_scale(wmManipulator *manipulator, const bContext *
 static void manipulator_update_prop_data(wmManipulator *manipulator)
 {
 	/* manipulator property might have been changed, so update manipulator */
-	if (manipulator->props && manipulator->prop_data_update) {
+	if (manipulator->props && manipulator->type.prop_data_update) {
 		for (int i = 0; i < manipulator->max_prop; i++) {
 			if (manipulator->props[i]) {
-				manipulator->prop_data_update(manipulator, i);
+				manipulator->type.prop_data_update(manipulator, i);
 			}
 		}
 	}

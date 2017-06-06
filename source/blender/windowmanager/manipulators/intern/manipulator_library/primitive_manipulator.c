@@ -198,10 +198,10 @@ wmManipulator *MANIPULATOR_primitive_new(wmManipulatorGroup *mgroup, const char 
 	PrimitiveManipulator *prim = MEM_callocN(sizeof(PrimitiveManipulator), name);
 	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
 
-	prim->manipulator.draw = manipulator_primitive_draw;
-	prim->manipulator.invoke = manipulator_primitive_invoke;
-	prim->manipulator.intersect = NULL;
-	prim->manipulator.render_3d_intersection = manipulator_primitive_render_3d_intersect;
+	prim->manipulator.type.draw = manipulator_primitive_draw;
+	prim->manipulator.type.draw_select = manipulator_primitive_render_3d_intersect;
+	prim->manipulator.type.invoke = manipulator_primitive_invoke;
+	prim->manipulator.type.intersect = NULL;
 	prim->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 	prim->style = style;
 

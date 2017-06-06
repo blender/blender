@@ -437,14 +437,14 @@ wmManipulator *MANIPULATOR_arrow_new(wmManipulatorGroup *mgroup, const char *nam
 	ArrowManipulator *arrow = MEM_callocN(sizeof(ArrowManipulator), name);
 	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
 
-	arrow->manipulator.draw = manipulator_arrow_draw;
-	arrow->manipulator.get_final_position = manipulator_arrow_get_final_pos;
-	arrow->manipulator.intersect = NULL;
-	arrow->manipulator.handler = manipulator_arrow_handler;
-	arrow->manipulator.invoke = manipulator_arrow_invoke;
-	arrow->manipulator.render_3d_intersection = manipulator_arrow_render_3d_intersect;
-	arrow->manipulator.prop_data_update = manipulator_arrow_prop_data_update;
-	arrow->manipulator.exit = manipulator_arrow_exit;
+	arrow->manipulator.type.draw = manipulator_arrow_draw;
+	arrow->manipulator.type.draw_select = manipulator_arrow_render_3d_intersect;
+	arrow->manipulator.type.final_position_get = manipulator_arrow_get_final_pos;
+	arrow->manipulator.type.intersect = NULL;
+	arrow->manipulator.type.handler = manipulator_arrow_handler;
+	arrow->manipulator.type.invoke = manipulator_arrow_invoke;
+	arrow->manipulator.type.prop_data_update = manipulator_arrow_prop_data_update;
+	arrow->manipulator.type.exit = manipulator_arrow_exit;
 	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 
 	arrow->style = real_style;

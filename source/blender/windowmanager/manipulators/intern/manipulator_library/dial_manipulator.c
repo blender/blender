@@ -338,10 +338,10 @@ wmManipulator *MANIPULATOR_dial_new(wmManipulatorGroup *mgroup, const char *name
 	DialManipulator *dial = MEM_callocN(sizeof(DialManipulator), name);
 	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
 
-	dial->manipulator.draw = manipulator_dial_draw;
-	dial->manipulator.intersect = NULL;
-	dial->manipulator.render_3d_intersection = manipulator_dial_render_3d_intersect;
-	dial->manipulator.invoke = manipulator_dial_invoke;
+	dial->manipulator.type.draw = manipulator_dial_draw;
+	dial->manipulator.type.draw_select = manipulator_dial_render_3d_intersect;
+	dial->manipulator.type.intersect = NULL;
+	dial->manipulator.type.invoke = manipulator_dial_invoke;
 
 	dial->style = style;
 
