@@ -35,11 +35,11 @@
 
 extern "C" {
 #include "DNA_scene_types.h"
+}  /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_build.h"
-}  /* extern "C" */
 
 #include "intern/eval/deg_eval_debug.h"
 #include "intern/depsgraph_intern.h"

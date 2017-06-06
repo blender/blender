@@ -33,10 +33,8 @@
 #include <stdio.h>
 #include <string.h>
 
-extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
-}
 
 namespace DEG {
 

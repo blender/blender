@@ -38,13 +38,13 @@ extern "C" {
 #include "BKE_idcode.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+} /* extern "C" */
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
-} /* extern "C" */
 
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"

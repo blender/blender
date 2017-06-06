@@ -33,10 +33,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_stack.h"
-}
 
 #include "util/deg_util_foreach.h"
 

@@ -37,11 +37,11 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_blenlib.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+extern "C" {
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -93,12 +93,12 @@ extern "C" {
 #include "BKE_tracking.h"
 #include "BKE_world.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-
 #include "RNA_access.h"
 #include "RNA_types.h"
 } /* extern "C" */
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/nodes/deg_node.h"

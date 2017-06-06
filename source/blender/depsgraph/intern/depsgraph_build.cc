@@ -34,12 +34,6 @@
 
 // #define DEBUG_TIME
 
-extern "C" {
-#include "DNA_cachefile_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_force.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
@@ -48,16 +42,21 @@ extern "C" {
 #  include "PIL_time_utildefines.h"
 #endif
 
+extern "C" {
+#include "DNA_cachefile_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_force.h"
+
 #include "BKE_main.h"
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_modifier.h"
+} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_build.h"
-
-} /* extern "C" */
 
 #include "builder/deg_builder.h"
 #include "builder/deg_builder_cycle.h"

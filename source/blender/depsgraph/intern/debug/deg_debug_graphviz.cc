@@ -35,10 +35,10 @@
 
 extern "C" {
 #include "DNA_listBase.h"
+}  /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
-}  /* extern "C" */
 
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
