@@ -81,6 +81,7 @@ static IDType idtypes[] = {
 	{ ID_PA,   "ParticleSettings",   "particles",       BLT_I18NCONTEXT_ID_PARTICLESETTINGS,   IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_PAL,  "Palettes",           "palettes",        BLT_I18NCONTEXT_ID_PALETTE,            IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_PC,   "PaintCurve",         "paint_curves",    BLT_I18NCONTEXT_ID_PAINTCURVE,         IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_PRB,  "Probe",              "probes",          BLT_I18NCONTEXT_ID_PROBE,              IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_SCE,  "Scene",              "scenes",          BLT_I18NCONTEXT_ID_SCENE,              IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_SCR,  "Screen",             "screens",         BLT_I18NCONTEXT_ID_SCREEN,             IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_SEQ,  "Sequence",           "sequences",       BLT_I18NCONTEXT_ID_SEQUENCE,           0                       }, /* not actually ID data */
@@ -204,6 +205,7 @@ int BKE_idcode_to_idfilter(const short idcode)
 		CASE_IDFILTER(PA);
 		CASE_IDFILTER(PAL);
 		CASE_IDFILTER(PC);
+		CASE_IDFILTER(PRB);
 		CASE_IDFILTER(SCE);
 		CASE_IDFILTER(SPK);
 		CASE_IDFILTER(SO);
@@ -249,6 +251,7 @@ short BKE_idcode_from_idfilter(const int idfilter)
 		CASE_IDFILTER(PA);
 		CASE_IDFILTER(PAL);
 		CASE_IDFILTER(PC);
+		CASE_IDFILTER(PRB);
 		CASE_IDFILTER(SCE);
 		CASE_IDFILTER(SPK);
 		CASE_IDFILTER(SO);
@@ -296,6 +299,7 @@ int BKE_idcode_to_index(const short idcode)
 		CASE_IDINDEX(PA);
 		CASE_IDINDEX(PAL);
 		CASE_IDINDEX(PC);
+		CASE_IDINDEX(PRB);
 		CASE_IDINDEX(SCE);
 		CASE_IDINDEX(SCR);
 		CASE_IDINDEX(SPK);

@@ -148,6 +148,7 @@ EnumPropertyItem rna_enum_object_type_items[] = {
 	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
 	{OB_LAMP, "LAMP", 0, "Lamp", ""},
 	{OB_SPEAKER, "SPEAKER", 0, "Speaker", ""},
+	{OB_PROBE, "PROBE", 0, "Probe", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

@@ -1359,6 +1359,8 @@ int UI_idcode_icon_get(const int idcode)
 			return ICON_COLOR;  /* TODO! this would need its own icon! */
 		case ID_PC:
 			return ICON_CURVE_BEZCURVE;  /* TODO! this would need its own icon! */
+		case ID_PRB:
+			return ICON_RADIO;
 		case ID_SCE:
 			return ICON_SCENE_DATA;
 		case ID_SPK:

@@ -71,6 +71,7 @@ set(SRC_DNA_INC
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_outliner_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_packedFile_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_particle_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_probe_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_property_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_rigidbody_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_scene_types.h

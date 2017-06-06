@@ -72,6 +72,7 @@ set(DEFSRC
 	rna_palette.c
 	rna_particle.c
 	rna_pose.c
+	rna_probe.c
 	rna_property.c
 	rna_render.c
 	rna_rigidbody.c

@@ -79,6 +79,7 @@
 #include "BKE_font.h"
 #include "BKE_node.h"
 #include "BKE_speaker.h"
+#include "BKE_probe.h"
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
 #include "BKE_gpencil.h"
@@ -95,6 +96,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_probe_types.h"
 #include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_group_types.h"
@@ -573,6 +575,16 @@ static FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name
 	return linestyle;
 }
 
+static Probe *rna_Main_probe_new(Main *bmain, const char *name)
+{
+	char safe_name[MAX_ID_NAME - 2];
+	rna_idname_validate(name, safe_name);
+
+	Probe *probe = BKE_probe_add(bmain, safe_name);
+	id_us_min(&probe->id);
+	return probe;
+}
+
 /* tag and is_updated functions, all the same */
 #define RNA_MAIN_ID_TAG_FUNCS_DEF(_func_name, _listbase_name, _id_type)            \
 	static void rna_Main_##_func_name##_tag(Main *bmain, int value) {              \
@@ -616,6 +628,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(linestyle, linestyle, ID_LS)
 RNA_MAIN_ID_TAG_FUNCS_DEF(cachefiles, cachefiles, ID_CF)
 RNA_MAIN_ID_TAG_FUNCS_DEF(paintcurves, paintcurves, ID_PC)
 RNA_MAIN_ID_TAG_FUNCS_DEF(workspaces, workspaces, ID_WS)
+RNA_MAIN_ID_TAG_FUNCS_DEF(probes, probe, ID_PRB)
 
 #undef RNA_MAIN_ID_TAG_FUNCS_DEF
 
@@ -1844,6 +1857,45 @@ void RNA_def_main_workspaces(BlenderRNA *brna, PropertyRNA *cprop)
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_workspaces_is_updated_get", NULL);
+}
+
+void RNA_def_main_probes(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+	PropertyRNA *prop;
+
+	RNA_def_property_srna(cprop, "BlendDataProbes");
+	srna = RNA_def_struct(brna, "BlendDataProbes", NULL);
+	RNA_def_struct_sdna(srna, "Main");
+	RNA_def_struct_ui_text(srna, "Main Probes", "Collection of probes");
+
+	func = RNA_def_function(srna, "new", "rna_Main_probe_new");
+	RNA_def_function_ui_description(func, "Add a new probe to the main database");
+	parm = RNA_def_string(func, "name", "Probe", 0, "", "New name for the data-block");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "probe", "Probe", "", "New probe data-block");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a probe from the current blendfile");
+	parm = RNA_def_pointer(func, "probe", "Probe", "", "Probe to remove");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+	RNA_def_boolean(func, "do_unlink", true, "",
+	                "Unlink all usages of this probe before deleting it "
+	                "(WARNING: will also delete objects instancing that probe data)");
+
+	func = RNA_def_function(srna, "tag", "rna_Main_probes_tag");
+	parm = RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_probes_is_updated_get", NULL);
 }
 
 #endif

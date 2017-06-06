@@ -385,6 +385,7 @@ enum {
 	OB_CAMERA     = 11,
 
 	OB_SPEAKER    = 12,
+	OB_PROBE      = 13,
 
 /*	OB_WAVE       = 21, */
 	OB_LATTICE    = 22,

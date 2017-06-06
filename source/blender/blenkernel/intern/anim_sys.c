@@ -94,6 +94,7 @@ bool id_type_can_have_animdata(const short id_type)
 		case ID_MA: case ID_TE: case ID_NT:
 		case ID_LA: case ID_CA: case ID_WO:
 		case ID_LS:
+		case ID_PRB:
 		case ID_SPK:
 		case ID_SCE:
 		case ID_MC:

@@ -53,6 +53,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_probe_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_speaker_types.h"
@@ -99,6 +100,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_probe.h"
 #include "BKE_sca.h"
 #include "BKE_speaker.h"
 #include "BKE_sound.h"
@@ -837,6 +839,9 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const b
 			break;
 		case ID_SPK:
 			BKE_speaker_free((Speaker *)id);
+			break;
+		case ID_PRB:
+			BKE_probe_free((Probe *)id);
 			break;
 		case ID_SO:
 			BKE_sound_free((bSound *)id);

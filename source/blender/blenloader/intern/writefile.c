@@ -135,6 +135,7 @@
 #include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_probe_types.h"
 #include "DNA_property_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
@@ -3201,6 +3202,19 @@ static void write_sound(WriteData *wd, bSound *sound)
 	}
 }
 
+static void write_probe(WriteData *wd, Probe *prb)
+{
+	if (prb->id.us > 0 || wd->current) {
+		/* write LibData */
+		writestruct(wd, ID_PRB, Probe, 1, prb);
+		write_iddata(wd, &prb->id);
+
+		if (prb->adt) {
+			write_animdata(wd, prb->adt);
+		}
+	}
+}
+
 static void write_group(WriteData *wd, Group *group)
 {
 	if (group->id.us > 0 || wd->current) {
@@ -3983,6 +3997,9 @@ static bool write_file_handle(
 					break;
 				case ID_SPK:
 					write_speaker(wd, (Speaker *)id);
+					break;
+				case ID_PRB:
+					write_probe(wd, (Probe *)id);
 					break;
 				case ID_SO:
 					write_sound(wd, (bSound *)id);
