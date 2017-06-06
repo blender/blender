@@ -584,18 +584,14 @@ void BKE_scene_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
  */
 static LinkData *object_base_unique(GSet *gs, LinkData *link)
 {
-	if (link == NULL) {
-		return NULL;
+	for (; link != NULL; link = link->next) {
+		Object *ob = link->data;
+		if (!BLI_gset_haskey(gs, ob)) {
+			BLI_gset_add(gs, ob);
+			return link;
+		}
 	}
-
-	Object *ob = link->data;
-	if (!BLI_gset_haskey(gs, ob)) {
-		BLI_gset_add(gs, ob);
-		return link;
-	}
-	else {
-		return object_base_unique(gs, link->next);
-	}
+	return NULL;
 }
 
 void BKE_scene_objects_iterator_next(BLI_Iterator *iter)
