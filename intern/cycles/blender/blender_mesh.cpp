@@ -945,6 +945,7 @@ static void sync_mesh_fluid_motion(BL::Object& b_ob, Scene *scene, Mesh *mesh)
 }
 
 Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
+                             BL::Object& b_ob_instance,
                              bool object_updated,
                              bool hide_tris)
 {
@@ -958,7 +959,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
-	BL::ID key = (BKE_object_is_modified(b_ob))? b_ob: b_ob_data;
+	BL::ID key = (BKE_object_is_modified(b_ob))? b_ob_instance: b_ob_data;
 	BL::Material material_override = render_layer.material_override;
 
 	/* find shader indices */

@@ -59,6 +59,17 @@ static PointerRNA rna_DepsgraphIter_object_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_Object, iterator->current);
 }
 
+static PointerRNA rna_DepsgraphIter_instance_object_get(PointerRNA *ptr)
+{
+	BLI_Iterator *iterator = ptr->data;
+	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	Object *instance_object = NULL;
+	if (deg_iter->dupli_object_current != NULL) {
+		instance_object = deg_iter->dupli_object_current->ob;
+	}
+	return rna_pointer_inherit_refine(ptr, &RNA_Object, instance_object);
+}
+
 static PointerRNA rna_DepsgraphIter_parent_get(PointerRNA *ptr)
 {
 	BLI_Iterator *iterator = ptr->data;
@@ -99,6 +110,13 @@ static void rna_DepsgraphIter_uv_get(PointerRNA *ptr, float *uv)
 	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
 	memcpy(uv, deg_iter->dupli_object_current->uv,
 	       sizeof(deg_iter->dupli_object_current->uv));
+}
+
+static int rna_DepsgraphIter_is_instance_get(PointerRNA *ptr)
+{
+	BLI_Iterator *iterator = ptr->data;
+	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	return (deg_iter->dupli_object_current != NULL);
 }
 
 /* **************** Depsgraph **************** */
@@ -224,6 +242,12 @@ static void rna_def_depsgraph_iter(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphIter_object_get", NULL, NULL, NULL);
 
+	prop = RNA_def_property(srna, "instance_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_ui_text(prop, "Instance Object", "Object which is being instanced by this iterator");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphIter_instance_object_get", NULL, NULL, NULL);
+
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Parent", "Parent of the duplication list");
@@ -256,6 +280,11 @@ static void rna_def_depsgraph_iter(BlenderRNA *brna)
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_DepsgraphIter_uv_get", NULL, NULL);
+
+	prop = RNA_def_property(srna, "is_instance", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Instance", "Denotes whether the object is ocming from dupli-list");
+	RNA_def_property_boolean_funcs(prop, "rna_DepsgraphIter_is_instance_get", NULL);
 }
 
 static void rna_def_depsgraph(BlenderRNA *brna)

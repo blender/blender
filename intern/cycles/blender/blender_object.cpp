@@ -94,12 +94,13 @@ static uint object_ray_visibility(BL::Object& b_ob)
 void BlenderSync::sync_light(BL::Object& b_parent,
                              int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
                              BL::Object& b_ob,
+                             BL::Object& b_ob_instance,
                              Transform& tfm,
                              bool *use_portal)
 {
 	/* test if we need to sync */
 	Light *light;
-	ObjectKey key(b_parent, persistent_id, b_ob);
+	ObjectKey key(b_parent, persistent_id, b_ob_instance);
 
 	if(!light_map.sync(&light, b_ob, b_parent, key)) {
 		if(light->is_portal)
@@ -243,13 +244,17 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
                                  BlenderObjectCulling& culling,
                                  bool *use_portal)
 {
+	const bool is_instance = b_dupli_iter->is_instance();
 	BL::Object b_ob = b_dupli_iter->object();
-	BL::Object b_parent = b_dupli_iter->parent() ? b_dupli_iter->parent() : b_dupli_iter->object();
+	BL::Object b_parent = is_instance ? b_dupli_iter->parent()
+	                                  : b_dupli_iter->object();
+	BL::Object b_ob_instance = is_instance ? b_dupli_iter->instance_object()
+	                                       : b_ob;
 	const bool motion = motion_time != 0.0f;
 	/*const*/ Transform tfm = get_transform(b_ob.matrix_world());
 	int *persistent_id = NULL;
 	BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id_array;
-	if(b_dupli_iter->parent()) {
+	if(is_instance) {
 		persistent_id_array = b_dupli_iter->persistent_id();
 		persistent_id = persistent_id_array.data;
 	}
@@ -257,8 +262,16 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
 		/* don't use lamps for excluded layers used as mask layer */
-		if(!motion && !((layer_flag & render_layer.holdout_layer) && (layer_flag & render_layer.exclude_layer)))
-			sync_light(b_parent, persistent_id, b_ob, tfm, use_portal);
+		if(!motion && !((layer_flag & render_layer.holdout_layer) &&
+		                (layer_flag & render_layer.exclude_layer)))
+		{
+			sync_light(b_parent,
+			           persistent_id,
+			           b_ob,
+			           b_ob_instance,
+			           tfm,
+			           use_portal);
+		}
 
 		return NULL;
 	}
@@ -274,7 +287,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	}
 
 	/* key to lookup object */
-	ObjectKey key(b_parent, persistent_id, b_ob);
+	ObjectKey key(b_parent, persistent_id, b_ob_instance);
 	Object *object;
 
 	/* motion vector case */
@@ -316,7 +329,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	bool use_holdout = (layer_flag & render_layer.holdout_layer) != 0;
 	
 	/* mesh sync */
-	object->mesh = sync_mesh(b_ob, object_updated, hide_tris);
+	object->mesh = sync_mesh(b_ob, b_ob_instance, object_updated, hide_tris);
 
 	/* special case not tracked by object update flags */
 
@@ -385,7 +398,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 		}
 
 		/* dupli texture coordinates and random_id */
-		if(b_dupli_iter->parent()) {
+		if(is_instance) {
 			object->dupli_generated = 0.5f*get_float3(b_dupli_iter->orco()) - make_float3(0.5f, 0.5f, 0.5f);
 			object->dupli_uv = get_float2(b_dupli_iter->uv());
 			object->random_id = b_dupli_iter->random_id();
