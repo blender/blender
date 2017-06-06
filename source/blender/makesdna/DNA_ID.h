@@ -404,7 +404,7 @@ enum {
 	FILTER_ID_PRB       = (1 << 30),
 };
 
-/* IMPORTANT: this enum matches the order currently use in set_lisbasepointers,
+/* IMPORTANT: this enum matches the order currently use in set_listbasepointers,
  * keep them in sync! */
 enum {
 	INDEX_ID_LI = 0,
