@@ -228,4 +228,9 @@ void DEG_objects_iterator_end(BLI_Iterator *iter)
 	if (data->eval_ctx != NULL) {
 		DEG_evaluation_context_free(data->eval_ctx);
 	}
+
+#ifdef DEBUG
+	/* Force crash in case the iterator data is referenced and accessed down the line. (T51718) */
+	memset(&data->temp_dupli_object, 0xFF, sizeof(data->temp_dupli_object));
+#endif
 }
