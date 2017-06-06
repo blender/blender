@@ -32,6 +32,8 @@ struct wmKeyConfig;
 struct wmManipulatorMap;
 struct ManipulatorGeomInfo;
 
+#include "wm_manipulator_fn.h"
+
 /* -------------------------------------------------------------------- */
 /* wmManipulator */
 

@@ -127,7 +127,8 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipul
 	}
 }
 
-static int manipulator_arrow2d_invoke(bContext *UNUSED(C), const wmEvent *UNUSED(event), struct wmManipulator *manipulator)
+static int manipulator_arrow2d_invoke(
+        bContext *UNUSED(C), struct wmManipulator *manipulator, const wmEvent *UNUSED(event))
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
@@ -137,7 +138,8 @@ static int manipulator_arrow2d_invoke(bContext *UNUSED(C), const wmEvent *UNUSED
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int manipulator_arrow2d_intersect(bContext *UNUSED(C), const wmEvent *event, struct wmManipulator *manipulator)
+static int manipulator_arrow2d_intersect(
+        bContext *UNUSED(C), struct wmManipulator *manipulator, const wmEvent *event)
 {
 	ArrowManipulator2D *arrow = (ArrowManipulator2D *)manipulator;
 	const float mval[2] = {event->mval[0], event->mval[1]};

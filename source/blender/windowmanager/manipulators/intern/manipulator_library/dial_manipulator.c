@@ -315,7 +315,8 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *manipulator)
 	}
 }
 
-static int manipulator_dial_invoke(bContext *UNUSED(C), const wmEvent *event, wmManipulator *manipulator)
+static int manipulator_dial_invoke(
+        bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *event)
 {
 	DialInteraction *inter = MEM_callocN(sizeof(DialInteraction), __func__);
 

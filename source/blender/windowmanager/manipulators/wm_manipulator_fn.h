@@ -24,7 +24,6 @@
  * Callback function definitions, needed for both Types & API headers.
  */
 
-
 #ifndef __WM_MANIPULATOR_FN_H__
 #define __WM_MANIPULATOR_FN_H__
 
@@ -39,11 +38,11 @@ typedef void (*wmManipulatorGroupFnDrawPrepare)(const struct bContext *, struct 
 /* wmManipulator */
 typedef void    (*wmManipulatorFnDraw)(const struct bContext *, struct wmManipulator *);
 typedef void    (*wmManipulatorFnDrawSelect)(const struct bContext *, struct wmManipulator *, int);
-typedef int     (*wmManipulatorFnIntersect)(struct bContext *, const struct wmEvent *, struct wmManipulator *);
-typedef int     (*wmManipulatorFnHandler)(struct bContext *, const struct wmEvent *, struct wmManipulator *, const int);
+typedef int     (*wmManipulatorFnIntersect)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
+typedef int     (*wmManipulatorFnHandler)(struct bContext *, struct wmManipulator *, const struct wmEvent *, const int);
 typedef void    (*wmManipulatorFnPropDataUpdate)(struct wmManipulator *, int);
 typedef void    (*wmManipulatorFnFinalPositionGet)(struct wmManipulator *, float[]);
-typedef int     (*wmManipulatorFnInvoke)(struct bContext *, const struct wmEvent *, struct wmManipulator *);
+typedef int     (*wmManipulatorFnInvoke)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
 typedef void    (*wmManipulatorFnExit)(struct bContext *, struct wmManipulator *, const bool);
 typedef int     (*wmManipulatorFnCursorGet)(struct wmManipulator *);
 typedef void    (*wmManipulatorFnSelect)(struct bContext *, struct wmManipulator *, const int);

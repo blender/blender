@@ -256,7 +256,7 @@ static void manipulator_arrow_draw(const bContext *UNUSED(C), wmManipulator *man
  * Calculate arrow offset independent from prop min value,
  * meaning the range will not be offset by min value first.
  */
-static int manipulator_arrow_handler(bContext *C, const wmEvent *event, wmManipulator *manipulator, const int flag)
+static int manipulator_arrow_handler(bContext *C, wmManipulator *manipulator, const wmEvent *event, const int flag)
 {
 	ArrowManipulator *arrow = (ArrowManipulator *)manipulator;
 	ManipulatorInteraction *inter = manipulator->interaction_data;
@@ -371,7 +371,8 @@ static int manipulator_arrow_handler(bContext *C, const wmEvent *event, wmManipu
 }
 
 
-static int manipulator_arrow_invoke(bContext *UNUSED(C), const wmEvent *event, wmManipulator *manipulator)
+static int manipulator_arrow_invoke(
+        bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *event)
 {
 	ArrowManipulator *arrow = (ArrowManipulator *)manipulator;
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);

@@ -160,7 +160,7 @@ wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
 {
 	for (wmManipulator *manipulator = mgroup->manipulators.first; manipulator; manipulator = manipulator->next) {
 		if (manipulator->type.intersect && (manipulator->flag & WM_MANIPULATOR_HIDDEN) == 0) {
-			if ((*part = manipulator->type.intersect(C, event, manipulator))) {
+			if ((*part = manipulator->type.intersect(C, manipulator, event))) {
 				return manipulator;
 			}
 		}
@@ -339,7 +339,7 @@ static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *e
 
 	/* handle manipulator */
 	if (manipulator->type.handler) {
-		manipulator->type.handler(C, event, manipulator, mtweak->flag);
+		manipulator->type.handler(C, manipulator, event, mtweak->flag);
 	}
 
 	/* Ugly hack to send manipulator events */

@@ -265,7 +265,8 @@ static int manipulator_rect_transform_get_cursor(wmManipulator *manipulator)
 	}
 }
 
-static int manipulator_rect_transform_intersect(bContext *UNUSED(C), const wmEvent *event, wmManipulator *manipulator)
+static int manipulator_rect_transform_intersect(
+        bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *event)
 {
 	RectTransformManipulator *cage = (RectTransformManipulator *)manipulator;
 	const float mouse[2] = {event->mval[0], event->mval[1]};
@@ -397,7 +398,8 @@ static bool manipulator_rect_transform_get_prop_value(wmManipulator *manipulator
 	return true;
 }
 
-static int manipulator_rect_transform_invoke(bContext *UNUSED(C), const wmEvent *event, wmManipulator *manipulator)
+static int manipulator_rect_transform_invoke(
+        bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *event)
 {
 	RectTransformManipulator *cage = (RectTransformManipulator *)manipulator;
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
@@ -414,7 +416,7 @@ static int manipulator_rect_transform_invoke(bContext *UNUSED(C), const wmEvent 
 }
 
 static int manipulator_rect_transform_handler(
-        bContext *C, const wmEvent *event, wmManipulator *manipulator,
+        bContext *C, wmManipulator *manipulator, const wmEvent *event,
         const int UNUSED(flag))
 {
 	RectTransformManipulator *cage = (RectTransformManipulator *)manipulator;

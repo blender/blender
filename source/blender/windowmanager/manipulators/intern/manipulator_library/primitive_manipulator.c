@@ -175,7 +175,7 @@ static void manipulator_primitive_draw(const bContext *UNUSED(C), wmManipulator 
 }
 
 static int manipulator_primitive_invoke(
-        bContext *UNUSED(C), const wmEvent *UNUSED(event), wmManipulator *manipulator)
+        bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *UNUSED(event))
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 

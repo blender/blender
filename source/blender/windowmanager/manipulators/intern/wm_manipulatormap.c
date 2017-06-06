@@ -426,7 +426,7 @@ void wm_manipulatormaps_handled_modal_update(
 		if (manipulator && manipulator->type.handler && manipulator->opname &&
 		    STREQ(manipulator->opname, handler->op->idname))
 		{
-			manipulator->type.handler(C, event, manipulator, 0);
+			manipulator->type.handler(C, manipulator, event, 0);
 		}
 	}
 	/* operator not running anymore */
@@ -641,7 +641,7 @@ void wm_manipulatormap_set_active_manipulator(
 			if (ot) {
 				/* first activate the manipulator itself */
 				if (manipulator->type.invoke && manipulator->type.handler) {
-					manipulator->type.invoke(C, event, manipulator);
+					manipulator->type.invoke(C, manipulator, event);
 				}
 
 				WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &manipulator->opptr);
@@ -665,7 +665,7 @@ void wm_manipulatormap_set_active_manipulator(
 		}
 		else {
 			if (manipulator->type.invoke && manipulator->type.handler) {
-				manipulator->type.invoke(C, event, manipulator);
+				manipulator->type.invoke(C, manipulator, event);
 			}
 		}
 		WM_cursor_grab_enable(CTX_wm_window(C), true, true, NULL);
