@@ -174,7 +174,7 @@ static void manipulator_primitive_draw(const bContext *UNUSED(C), wmManipulator 
 	            (manipulator->state & WM_MANIPULATOR_HIGHLIGHT));
 }
 
-static int manipulator_primitive_invoke(
+static void manipulator_primitive_invoke(
         bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *UNUSED(event))
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
@@ -183,8 +183,6 @@ static int manipulator_primitive_invoke(
 	inter->init_scale = manipulator->scale;
 
 	manipulator->interaction_data = inter;
-
-	return OPERATOR_RUNNING_MODAL;
 }
 
 

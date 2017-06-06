@@ -256,7 +256,7 @@ static void manipulator_arrow_draw(const bContext *UNUSED(C), wmManipulator *man
  * Calculate arrow offset independent from prop min value,
  * meaning the range will not be offset by min value first.
  */
-static int manipulator_arrow_handler(bContext *C, wmManipulator *manipulator, const wmEvent *event, const int flag)
+static void manipulator_arrow_handler(bContext *C, wmManipulator *manipulator, const wmEvent *event, const int flag)
 {
 	ArrowManipulator *arrow = (ArrowManipulator *)manipulator;
 	ManipulatorInteraction *inter = manipulator->interaction_data;
@@ -366,12 +366,10 @@ static int manipulator_arrow_handler(bContext *C, wmManipulator *manipulator, co
 	/* tag the region for redraw */
 	ED_region_tag_redraw(ar);
 	WM_event_add_mousemove(C);
-
-	return OPERATOR_PASS_THROUGH;
 }
 
 
-static int manipulator_arrow_invoke(
+static void manipulator_arrow_invoke(
         bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *event)
 {
 	ArrowManipulator *arrow = (ArrowManipulator *)manipulator;
@@ -393,8 +391,6 @@ static int manipulator_arrow_invoke(
 	manipulator_arrow_get_final_pos(manipulator, inter->init_origin);
 
 	manipulator->interaction_data = inter;
-
-	return OPERATOR_RUNNING_MODAL;
 }
 
 static void manipulator_arrow_prop_data_update(wmManipulator *manipulator, const int slot)

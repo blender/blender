@@ -398,7 +398,7 @@ static bool manipulator_rect_transform_get_prop_value(wmManipulator *manipulator
 	return true;
 }
 
-static int manipulator_rect_transform_invoke(
+static void manipulator_rect_transform_invoke(
         bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *event)
 {
 	RectTransformManipulator *cage = (RectTransformManipulator *)manipulator;
@@ -411,11 +411,9 @@ static int manipulator_rect_transform_invoke(
 	data->orig_mouse[1] = event->mval[1];
 
 	manipulator->interaction_data = data;
-
-	return OPERATOR_RUNNING_MODAL;
 }
 
-static int manipulator_rect_transform_handler(
+static void manipulator_rect_transform_handler(
         bContext *C, wmManipulator *manipulator, const wmEvent *event,
         const int UNUSED(flag))
 {
@@ -505,8 +503,6 @@ static int manipulator_rect_transform_handler(
 
 	/* tag the region for redraw */
 	ED_region_tag_redraw(CTX_wm_region(C));
-
-	return OPERATOR_PASS_THROUGH;
 }
 
 static void manipulator_rect_transform_prop_data_update(wmManipulator *manipulator, const int slot)

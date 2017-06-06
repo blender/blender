@@ -1117,7 +1117,7 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *wgroup)
 /**
  * Custom handler for manipulator widgets
  */
-static int manipulator_handler(
+static void manipulator_handler(
         bContext *C, wmManipulator *widget, const wmEvent *UNUSED(event), const int UNUSED(flag))
 {
 	const ScrArea *sa = CTX_wm_area(C);
@@ -1131,8 +1131,6 @@ static int manipulator_handler(
 	}
 
 	ED_region_tag_redraw(ar);
-
-	return OPERATOR_PASS_THROUGH;
 }
 
 static void WIDGETGROUP_manipulator_init(const bContext *UNUSED(C), wmManipulatorGroup *wgroup)

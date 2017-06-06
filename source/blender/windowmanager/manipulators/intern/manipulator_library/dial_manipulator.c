@@ -315,7 +315,7 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *manipulator)
 	}
 }
 
-static int manipulator_dial_invoke(
+static void manipulator_dial_invoke(
         bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *event)
 {
 	DialInteraction *inter = MEM_callocN(sizeof(DialInteraction), __func__);
@@ -324,8 +324,6 @@ static int manipulator_dial_invoke(
 	inter->init_mval[1] = event->mval[1];
 
 	manipulator->interaction_data = inter;
-
-	return OPERATOR_RUNNING_MODAL;
 }
 
 
