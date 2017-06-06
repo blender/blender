@@ -30,9 +30,7 @@
 
 #include "intern/builder/deg_builder_transitive.h"
 
-extern "C" {
 #include "MEM_guardedalloc.h"
-}
 
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"

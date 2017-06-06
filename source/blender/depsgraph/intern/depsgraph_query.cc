@@ -35,9 +35,9 @@
 extern "C" {
 #include "BKE_idcode.h"
 #include "BKE_main.h"
+} /* extern "C" */
 
 #include "DEG_depsgraph_query.h"
-} /* extern "C" */
 
 #include "intern/depsgraph_intern.h"
 

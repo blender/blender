@@ -33,10 +33,10 @@
 #include <stdio.h>
 #include <cstring>  /* required for STREQ later on. */
 
-extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+extern "C" {
 #include "DNA_object_types.h"
 
 #include "BKE_action.h"

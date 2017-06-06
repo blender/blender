@@ -36,10 +36,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
-
-extern "C" {
 #include "BLI_stack.h"
-}
 
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_types.h"

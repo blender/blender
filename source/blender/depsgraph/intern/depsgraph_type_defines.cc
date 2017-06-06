@@ -32,12 +32,11 @@
 
 #include <cstdlib>  // for BLI_assert()
 
-extern "C" {
+
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "DEG_depsgraph.h"
-} /* extern "C" */
 
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"

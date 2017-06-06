@@ -37,21 +37,21 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
+extern "C" {
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_main.h"
 #include "BKE_node.h"
+} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
-} /* extern "C" */
 
 #include "intern/builder/deg_builder.h"
 #include "intern/nodes/deg_node.h"

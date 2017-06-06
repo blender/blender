@@ -38,10 +38,10 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_blenlib.h"
 
+extern "C" {
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -51,10 +51,10 @@ extern "C" {
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
-} /* extern "C" */
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_pchanmap.h"

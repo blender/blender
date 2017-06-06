@@ -34,15 +34,15 @@
 
 #include <cstring>  /* required for STREQ later on. */
 
-extern "C" {
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 
-#include "DEG_depsgraph_debug.h"
-
+extern "C" {
 #include "WM_api.h"
 #include "WM_types.h"
 }  /* extern "C" */
+
+#include "DEG_depsgraph_debug.h"
 
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"

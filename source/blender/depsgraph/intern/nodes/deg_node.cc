@@ -41,9 +41,9 @@ extern "C" {
 #include "DNA_anim_types.h"
 
 #include "BKE_animsys.h"
+}
 
 #include "DEG_depsgraph.h"
-}
 
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"

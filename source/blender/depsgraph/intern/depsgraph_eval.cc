@@ -32,17 +32,17 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
-#include "DNA_scene_types.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+extern "C" {
+#include "DNA_scene_types.h"
+
 #include "BKE_depsgraph.h"
 #include "BKE_scene.h"
+} /* extern "C" */
 
 #include "DEG_depsgraph.h"
-} /* extern "C" */
 
 #include "intern/eval/deg_eval.h"
 #include "intern/eval/deg_eval_flush.h"

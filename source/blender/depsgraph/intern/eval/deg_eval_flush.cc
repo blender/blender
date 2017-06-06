@@ -35,15 +35,15 @@
 // TODO(sergey): Use some sort of wrapper.
 #include <deque>
 
-extern "C" {
-#include "DNA_object_types.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_task.h"
 #include "BLI_ghash.h"
 
-#include "DEG_depsgraph.h"
+extern "C" {
+#include "DNA_object_types.h"
 } /* extern "C" */
+
+#include "DEG_depsgraph.h"
 
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"

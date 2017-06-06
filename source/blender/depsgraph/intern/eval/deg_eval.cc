@@ -34,16 +34,16 @@
 
 #include "PIL_time.h"
 
-extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_task.h"
 #include "BLI_ghash.h"
 
+extern "C" {
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+} /* extern "C" */
 
 #include "DEG_depsgraph.h"
-} /* extern "C" */
 
 #include "atomic_ops.h"
 
