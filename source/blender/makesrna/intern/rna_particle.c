@@ -2338,10 +2338,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Color", "Draw additional particle data as a color");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop = RNA_def_property(srna, "draw_size", PROP_INT, PROP_PIXEL);
-	RNA_def_property_range(prop, 1, 1000);
-	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
-	RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport in pixels (0=default)");
+	prop = RNA_def_property(srna, "draw_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1000);
+	RNA_def_property_ui_range(prop, 0, 100, 1, -1);
+	RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport in BU (0.1 = default)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop = RNA_def_property(srna, "child_type", PROP_ENUM, PROP_NONE);

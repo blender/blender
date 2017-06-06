@@ -1461,7 +1461,8 @@ static void OBJECT_cache_populate_particles(Object *ob,
 						shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
 						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 						DRW_shgroup_uniform_vec3(shgrp, "outlineColor", ma ? &ma->specr : def_sec_col, 1);
-						DRW_shgroup_uniform_short_to_int(shgrp, "size", &part->draw_size, 1);
+						DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+						DRW_shgroup_uniform_float(shgrp, "size", &part->draw_size, 1);
 						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
 						DRW_shgroup_call_add(shgrp, geom, mat);
 						break;
@@ -1487,8 +1488,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 
 				if (shgrp) {
 					if (draw_as != PART_DRAW_DOT) {
-						DRW_shgroup_uniform_short_to_int(shgrp, "draw_size", &part->draw_size, 1);
-						DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+						DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
 						DRW_shgroup_instance_batch(shgrp, geom);
 					}
 				}
