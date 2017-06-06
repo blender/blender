@@ -2825,21 +2825,25 @@ void DRW_draw_view(const bContext *C)
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
-	DST.draw_ctx.evil_C = C;
-
-	DRW_draw_render_loop(graph, ar, v3d);
+	DRW_draw_render_loop_ex(graph, ar, v3d, C);
 }
 
 /**
  * Used for both regular and off-screen drawing.
  */
-void DRW_draw_render_loop(
+void DRW_draw_render_loop_ex(
         struct Depsgraph *graph,
-        ARegion *ar, View3D *v3d)
+        ARegion *ar, View3D *v3d,
+        const bContext *evil_C)
 {
 	Scene *scene = DEG_get_scene(graph);
 	SceneLayer *sl = DEG_get_scene_layer(graph);
 	RegionView3D *rv3d = ar->regiondata;
+
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
+
+	DST.draw_ctx.evil_C = evil_C;
 
 	bool cache_is_dirty;
 	DST.viewport = rv3d->viewport;
@@ -2919,8 +2923,17 @@ void DRW_draw_render_loop(
 	DRW_state_reset();
 	DRW_engines_disable();
 
-	/* avoid accidental reuse */
-	memset(&DST, 0x0, sizeof(DST));
+#ifdef DEBUG
+	/* Avoid accidental reuse. */
+	memset(&DST, 0xFF, sizeof(DST));
+#endif
+}
+
+void DRW_draw_render_loop(
+        struct Depsgraph *graph,
+        ARegion *ar, View3D *v3d)
+{
+	DRW_draw_render_loop_ex(graph, ar, v3d, NULL);
 }
 
 void DRW_draw_render_loop_offscreen(
@@ -2968,6 +2981,9 @@ void DRW_draw_select_loop(
 	UNUSED_VARS(vc, scene, sl, v3d, ar, rect);
 #else
 	RegionView3D *rv3d = ar->regiondata;
+
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
 
 	/* backup (_never_ use rv3d->viewport) */
 	void *backup_viewport = rv3d->viewport;
@@ -3056,8 +3072,10 @@ void DRW_draw_select_loop(
 	DRW_state_reset();
 	DRW_engines_disable();
 
-	/* avoid accidental reuse */
-	memset(&DST, 0x0, sizeof(DST));
+#ifdef DEBUG
+	/* Avoid accidental reuse. */
+	memset(&DST, 0xFF, sizeof(DST));
+#endif
 
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
@@ -3082,6 +3100,9 @@ void DRW_draw_depth_loop(
 	/* backup (_never_ use rv3d->viewport) */
 	void *backup_viewport = rv3d->viewport;
 	rv3d->viewport = NULL;
+
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
 
 	struct GPUViewport *viewport = GPU_viewport_create();
 	GPU_viewport_size_set(viewport, (const int[2]){ar->winx, ar->winy});
@@ -3139,8 +3160,10 @@ void DRW_draw_depth_loop(
 	DRW_state_reset();
 	DRW_engines_disable();
 
-	/* avoid accidental reuse */
-	memset(&DST, 0x0, sizeof(DST));
+#ifdef DEBUG
+	/* Avoid accidental reuse. */
+	memset(&DST, 0xFF, sizeof(DST));
+#endif
 
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
