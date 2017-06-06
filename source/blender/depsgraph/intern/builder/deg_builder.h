@@ -30,10 +30,6 @@
 
 #pragma once
 
-#include "intern/depsgraph_types.h"
-
-struct FCurve;
-
 namespace DEG {
 
 struct Depsgraph;

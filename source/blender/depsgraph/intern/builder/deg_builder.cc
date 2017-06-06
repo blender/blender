@@ -36,17 +36,10 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
-#include "BLI_stack.h"
 
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_types.h"
 #include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_operation.h"
-
-#include "util/deg_util_foreach.h"
-
-#include <cstdio>
 
 namespace DEG {
 
