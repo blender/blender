@@ -45,6 +45,7 @@
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
+#include "DNA_probe_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_actuator_types.h"
@@ -148,6 +149,14 @@ static EnumPropertyItem field_type_items[] = {
 	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
 	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 	{PFIELD_SMOKEFLOW, "SMOKE", ICON_FORCE_SMOKEFLOW, "Smoke Flow", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* copy from rna_probe.c */
+static EnumPropertyItem probe_type_items[] = {
+	{PROBE_CAPTURE, "CAPTURE", ICON_FORCE_FORCE, "Capture", ""},
+	{PROBE_PLANAR, "PLANAR", ICON_FORCE_FORCE, "Planar", ""},
+	{PROBE_CUSTOM, "CUSTOM", ICON_FORCE_FORCE, "Custom", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -497,6 +506,59 @@ void OBJECT_OT_add(wmOperatorType *ot)
 	ED_object_add_unit_props(ot);
 	RNA_def_enum(ot->srna, "type", rna_enum_object_type_items, 0, "Type", "");
 
+	ED_object_add_generic_props(ot, true);
+}
+
+/********************** Add Probe Operator **********************/
+
+/* for object add operator */
+static int probe_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob;
+	Probe *probe;
+	int type;
+	bool enter_editmode;
+	unsigned int layer;
+	float loc[3], rot[3];
+	float dia;
+
+	WM_operator_view3d_unit_defaults(C, op);
+	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL))
+		return OPERATOR_CANCELLED;
+
+	type = RNA_enum_get(op->ptr, "type");
+	dia = RNA_float_get(op->ptr, "radius");
+
+	const char *name = CTX_DATA_(BLT_I18NCONTEXT_ID_OBJECT, "Probe");
+	ob = ED_object_add_type(C, OB_PROBE, name, loc, rot, false, layer);
+	BKE_object_obdata_size_init(ob, dia);
+
+	probe = (Probe *)ob->data;
+	probe->type = type;
+
+	DAG_relations_tag_update(CTX_data_main(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_probe_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Probe";
+	ot->description = "Add a probe object";
+	ot->idname = "OBJECT_OT_probe_add";
+
+	/* api callbacks */
+	ot->exec = probe_add_exec;
+	ot->poll = ED_operator_objectmode;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", probe_type_items, 0, "Type", "");
+
+	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 

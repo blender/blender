@@ -1205,6 +1205,17 @@ class INFO_MT_lamp_add(Menu):
         layout.operator_enum("object.lamp_add", "type")
 
 
+class INFO_MT_probe_add(Menu):
+    bl_idname = "INFO_MT_probe_add"
+    bl_label = "Probe"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator_enum("object.probe_add", "type")
+
+
 class INFO_MT_camera_add(Menu):
     bl_idname = "INFO_MT_camera_add"
     bl_label = "Camera"
@@ -1252,6 +1263,7 @@ class INFO_MT_add(Menu):
             INFO_MT_camera_add.draw(self, context)
 
         layout.menu("INFO_MT_lamp_add", icon='OUTLINER_OB_LAMP')
+        layout.menu("INFO_MT_probe_add")
         layout.separator()
 
         layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
@@ -3775,6 +3787,7 @@ classes = (
     INFO_MT_edit_armature_add,
     INFO_MT_armature_add,
     INFO_MT_lamp_add,
+    INFO_MT_probe_add,
     INFO_MT_camera_add,
     INFO_MT_add,
     VIEW3D_MT_object,

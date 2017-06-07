@@ -44,7 +44,8 @@ void BKE_probe_init(Probe *probe)
 {
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(probe, id));
 
-	probe->dist = 1.5f;
+	probe->dist = 5.0f;
+	probe->falloff = 0.25f;
 }
 
 void *BKE_probe_add(Main *bmain, const char *name)
