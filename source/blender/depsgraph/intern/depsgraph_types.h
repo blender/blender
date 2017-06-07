@@ -164,9 +164,6 @@ typedef enum eDepsOperation_Code {
 
 	/* Constraints */
 	DEG_OPCODE_TRANSFORM_CONSTRAINTS,
-	//DEG_OPCODE_TRANSFORM_CONSTRAINTS_INIT,
-	//DEG_OPCODE_TRANSFORM_CONSTRAINT,
-	//DEG_OPCODE_TRANSFORM_CONSTRAINTS_DONE,
 
 	/* Rigidbody Sim - Perform Sim */
 	DEG_OPCODE_RIGIDBODY_REBUILD,
@@ -214,9 +211,6 @@ typedef enum eDepsOperation_Code {
 
 	/* Constraints */
 	DEG_OPCODE_BONE_CONSTRAINTS,
-	//DEG_OPCODE_BONE_CONSTRAINTS_INIT,
-	//DEG_OPCODE_BONE_CONSTRAINT,
-	//DEG_OPCODE_BONE_CONSTRAINTS_DONE,
 
 	/* Bone transforms are ready
 	 *
