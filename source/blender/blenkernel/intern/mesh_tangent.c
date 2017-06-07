@@ -520,8 +520,8 @@ void BKE_mesh_calc_loop_tangent_step_0(
 				break;
 			}
 		}
-		if ((*rcalc_act && ract_uv_name[0] && STREQ(ract_uv_name, name)) ||
-		    (*rcalc_ren && rren_uv_name[0] && STREQ(rren_uv_name, name)))
+		if (!add && ((*rcalc_act && ract_uv_name[0] && STREQ(ract_uv_name, name)) ||
+		             (*rcalc_ren && rren_uv_name[0] && STREQ(rren_uv_name, name))))
 		{
 			add = true;
 		}
