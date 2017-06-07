@@ -150,6 +150,8 @@ int openSubdiv_getAvailableEvaluators(void);
 void openSubdiv_init(void);
 void openSubdiv_cleanup(void);
 
+int openSubdiv_getVersionHex(void);
+
 #ifdef __cplusplus
 }
 #endif

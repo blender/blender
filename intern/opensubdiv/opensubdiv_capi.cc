@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <GL/glew.h>
 
+#include <opensubdiv/version.h>
 #include <opensubdiv/osd/glMesh.h>
 
 /* CPU Backend */
@@ -367,4 +368,9 @@ const struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_getGLMeshTopologyRefine
         OpenSubdiv_GLMesh *gl_mesh)
 {
 	return gl_mesh->topology_refiner;
+}
+
+int openSubdiv_getVersionHex(void)
+{
+	return OPENSUBDIV_VERSION_NUMBER;
 }
