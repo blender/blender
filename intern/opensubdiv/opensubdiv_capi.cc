@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <GL/glew.h>
 
+#include <opensubdiv/version.h>
 #include <opensubdiv/osd/glMesh.h>
 
 /* CPU Backend */
@@ -380,4 +381,9 @@ int openSubdiv_supportGPUDisplay(void)
 	        GLEW_ARB_uniform_buffer_object &&
 	        (GLEW_ARB_texture_buffer_object || GLEW_EXT_texture_buffer_object)));
 	/* also ARB_explicit_attrib_location? */
+}
+
+int openSubdiv_getVersionHex(void)
+{
+	return OPENSUBDIV_VERSION_NUMBER;
 }

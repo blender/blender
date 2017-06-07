@@ -151,6 +151,13 @@ def write_sysinfo(filepath):
             else:
                 output.write("Blender was built without Cycles support\n")
 
+            opensubdiv = bpy.app.opensubdiv
+            output.write("OpenSubdiv: ")
+            if opensubdiv.supported:
+                output.write("%s\n" % opensubdiv.version_string)
+            else:
+                output.write("Blender was built without OpenSubdiv support\n")
+
             openvdb = bpy.app.openvdb
             output.write("OpenVDB: ")
             if openvdb.supported:

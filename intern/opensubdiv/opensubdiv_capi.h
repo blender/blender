@@ -152,6 +152,8 @@ void openSubdiv_init(bool gpu_legacy_support);
 void openSubdiv_cleanup(void);
 bool openSubdiv_gpu_legacy_support(void);
 
+int openSubdiv_getVersionHex(void);
+
 #ifdef __cplusplus
 }
 #endif
