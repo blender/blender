@@ -31,6 +31,7 @@
 struct wmKeyConfig;
 struct wmManipulatorMap;
 struct ManipulatorGeomInfo;
+struct GHashIterator;
 
 #include "wm_manipulator_fn.h"
 
@@ -42,42 +43,17 @@ struct wmManipulator {
 	struct wmManipulator *next, *prev;
 
 	char idname[MAX_NAME + 4]; /* + 4 for unique '.001', '.002', etc suffix */
-	/* pointer back to group this manipulator is in (just for quick access) */
-	struct wmManipulatorGroup *parent_mgroup;
 
 	/* While we don't have a real type, use this to put type-like vars. */
-	struct {
-		/* could become wmManipulatorType */
-		/* draw manipulator */
-		wmManipulatorFnDraw draw;
+	const struct wmManipulatorType *type;
 
-		/* determines 3d intersection by rendering the manipulator in a selection routine. */
-		wmManipulatorFnDrawSelect draw_select;
+	/* Overrides 'type->handler' when set. */
+	wmManipulatorFnHandler custom_handler;
 
-		/* determine if the mouse intersects with the manipulator. The calculation should be done in the callback itself */
-		wmManipulatorFnIntersect intersect;
+	void *custom_data;
 
-		/* handler used by the manipulator. Usually handles interaction tied to a manipulator type */
-		wmManipulatorFnHandler handler;
-
-		/* manipulator-specific handler to update manipulator attributes based on the property value */
-		wmManipulatorFnPropDataUpdate prop_data_update;
-
-		/* returns the final position which may be different from the origin, depending on the manipulator.
-		 * used in calculations of scale */
-		wmManipulatorFnFinalPositionGet final_position_get;
-
-		/* activate a manipulator state when the user clicks on it */
-		wmManipulatorFnInvoke invoke;
-
-		/* called when manipulator tweaking is done - used to free data and reset property when cancelling */
-		wmManipulatorFnExit exit;
-
-		wmManipulatorFnCursorGet cursor_get;
-
-		/* called when manipulator selection state changes */
-		wmManipulatorFnSelect select;
-	} type;
+	/* pointer back to group this manipulator is in (just for quick access) */
+	struct wmManipulatorGroup *parent_mgroup;
 
 	int flag; /* flags that influence the behavior or how the manipulators are drawn */
 	short state; /* state flags (active, highlighted, selected) */
@@ -106,8 +82,6 @@ struct wmManipulator {
 	 * or owner pointer if manipulator spawns and controls a property */
 	PointerRNA opptr;
 
-	/* maximum number of properties attached to the manipulator */
-	int max_prop;
 	/* arrays of properties attached to various manipulator parameters. As
 	 * the manipulator is interacted with, those properties get updated */
 	PointerRNA *ptr;
@@ -131,8 +105,6 @@ enum {
 	WM_MANIPULATOR_TWEAK_PRECISE = (1 << 0),
 };
 
-void wm_manipulator_register(struct wmManipulatorGroup *mgroup, struct wmManipulator *manipulator, const char *name);
-
 bool wm_manipulator_deselect(struct wmManipulatorMap *mmap, struct wmManipulator *manipulator);
 bool wm_manipulator_select(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulator *manipulator);
 
@@ -146,7 +118,6 @@ void fix_linking_manipulator_cage(void);
 void fix_linking_manipulator_dial(void);
 void fix_linking_manipulator_facemap(void);
 void fix_linking_manipulator_primitive(void);
-
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorGroup */

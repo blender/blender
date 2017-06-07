@@ -64,6 +64,51 @@ enum {
 	WM_MANIPULATOR_HIDDEN      = (1 << 3),
 };
 
+typedef struct wmManipulatorType {
+	struct wmManipulatorGroupType *next, *prev;
+
+	const char *idname; /* MAX_NAME */
+
+	uint size;
+
+	/* could become wmManipulatorType */
+	/* draw manipulator */
+	wmManipulatorFnDraw draw;
+
+	/* determines 3d intersection by rendering the manipulator in a selection routine. */
+	wmManipulatorFnDrawSelect draw_select;
+
+	/* determine if the mouse intersects with the manipulator. The calculation should be done in the callback itself */
+	wmManipulatorFnIntersect intersect;
+
+	/* handler used by the manipulator. Usually handles interaction tied to a manipulator type */
+	wmManipulatorFnHandler handler;
+
+	/* manipulator-specific handler to update manipulator attributes based on the property value */
+	wmManipulatorFnPropDataUpdate prop_data_update;
+
+	/* returns the final position which may be different from the origin, depending on the manipulator.
+	 * used in calculations of scale */
+	wmManipulatorFnFinalPositionGet position_get;
+
+	/* activate a manipulator state when the user clicks on it */
+	wmManipulatorFnInvoke invoke;
+
+	/* called when manipulator tweaking is done - used to free data and reset property when cancelling */
+	wmManipulatorFnExit exit;
+
+	wmManipulatorFnCursorGet cursor_get;
+
+	/* called when manipulator selection state changes */
+	wmManipulatorFnSelect select;
+
+	/* maximum number of properties attached to the manipulator */
+	int prop_len_max;
+
+	/* RNA integration */
+	ExtensionRNA ext;
+} wmManipulatorType;
+
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorGroup */

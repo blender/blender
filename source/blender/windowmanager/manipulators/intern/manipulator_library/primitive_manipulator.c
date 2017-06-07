@@ -193,20 +193,16 @@ static void manipulator_primitive_invoke(
 
 wmManipulator *MANIPULATOR_primitive_new(wmManipulatorGroup *mgroup, const char *name, const int style)
 {
-	PrimitiveManipulator *prim = MEM_callocN(sizeof(PrimitiveManipulator), name);
+	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_primitive", false);
+	PrimitiveManipulator *prim = (PrimitiveManipulator *)WM_manipulator_new(mpt, mgroup, name);
+
 	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
 
-	prim->manipulator.type.draw = manipulator_primitive_draw;
-	prim->manipulator.type.draw_select = manipulator_primitive_render_3d_intersect;
-	prim->manipulator.type.invoke = manipulator_primitive_invoke;
-	prim->manipulator.type.intersect = NULL;
 	prim->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 	prim->style = style;
 
 	/* defaults */
 	copy_v3_v3(prim->direction, dir_default);
-
-	wm_manipulator_register(mgroup, &prim->manipulator, name);
 
 	return (wmManipulator *)prim;
 }
@@ -235,6 +231,24 @@ void MANIPULATOR_primitive_set_up_vector(wmManipulator *manipulator, const float
 	else {
 		prim->flag &= ~PRIM_UP_VECTOR_SET;
 	}
+}
+
+static void MANIPULATOR_WT_primitive(wmManipulatorType *wt)
+{
+	/* identifiers */
+	wt->idname = "MANIPULATOR_WT_primitive";
+
+	/* api callbacks */
+	wt->draw = manipulator_primitive_draw;
+	wt->draw_select = manipulator_primitive_render_3d_intersect;
+	wt->invoke = manipulator_primitive_invoke;
+
+	wt->size = sizeof(PrimitiveManipulator);
+}
+
+void ED_manipulatortypes_primitive(void)
+{
+	WM_manipulatortype_append(MANIPULATOR_WT_primitive);
 }
 
 /** \} */ // Primitive Manipulator API

@@ -553,23 +553,14 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *manipula
 
 wmManipulator *MANIPULATOR_rect_transform_new(wmManipulatorGroup *mgroup, const char *name, const int style)
 {
-	RectTransformManipulator *cage = MEM_callocN(sizeof(RectTransformManipulator), name);
+	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_cage", false);
+	RectTransformManipulator *cage = (RectTransformManipulator *)WM_manipulator_new(mpt, mgroup, name);
 
-	cage->manipulator.type.draw = manipulator_rect_transform_draw;
-	cage->manipulator.type.invoke = manipulator_rect_transform_invoke;
-	cage->manipulator.type.prop_data_update = manipulator_rect_transform_prop_data_update;
-	cage->manipulator.type.handler = manipulator_rect_transform_handler;
-	cage->manipulator.type.intersect = manipulator_rect_transform_intersect;
-	cage->manipulator.type.exit = manipulator_rect_transform_exit;
-	cage->manipulator.type.cursor_get = manipulator_rect_transform_get_cursor;
-	cage->manipulator.max_prop = 2;
 	cage->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 	cage->scale[0] = cage->scale[1] = 1.0f;
 	cage->style = style;
 
-	wm_manipulator_register(mgroup, &cage->manipulator, name);
-
-	return (wmManipulator *)cage;
+	return &cage->manipulator;
 }
 
 void MANIPULATOR_rect_transform_set_dimensions(wmManipulator *manipulator, const float width, const float height)
@@ -577,6 +568,30 @@ void MANIPULATOR_rect_transform_set_dimensions(wmManipulator *manipulator, const
 	RectTransformManipulator *cage = (RectTransformManipulator *)manipulator;
 	cage->w = width;
 	cage->h = height;
+}
+
+static void MANIPULATOR_WT_cage(wmManipulatorType *wt)
+{
+	/* identifiers */
+	wt->idname = "MANIPULATOR_WT_cage";
+
+	/* api callbacks */
+	wt->draw = manipulator_rect_transform_draw;
+	wt->invoke = manipulator_rect_transform_invoke;
+	wt->prop_data_update = manipulator_rect_transform_prop_data_update;
+	wt->handler = manipulator_rect_transform_handler;
+	wt->intersect = manipulator_rect_transform_intersect;
+	wt->exit = manipulator_rect_transform_exit;
+	wt->cursor_get = manipulator_rect_transform_get_cursor;
+
+	wt->prop_len_max = 2;
+
+	wt->size = sizeof(RectTransformManipulator);
+}
+
+void ED_manipulatortypes_cage(void)
+{
+	WM_manipulatortype_append(MANIPULATOR_WT_cage);
 }
 
 /** \} */ // Cage Manipulator API

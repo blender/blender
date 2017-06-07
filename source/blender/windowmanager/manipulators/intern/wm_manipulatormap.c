@@ -255,7 +255,7 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 		wmManipulator *manipulator = link->data;
 		link_next = link->next;
 
-		manipulator->type.draw(C, manipulator);
+		manipulator->type->draw(C, manipulator);
 		/* free/remove manipulator link after drawing */
 		BLI_freelinkN(draw_manipulators, link);
 	}
@@ -282,7 +282,7 @@ static void manipulator_find_active_3D_loop(const bContext *C, ListBase *visible
 	for (LinkData *link = visible_manipulators->first; link; link = link->next) {
 		manipulator = link->data;
 		/* pass the selection id shifted by 8 bits. Last 8 bits are used for selected manipulator part id */
-		manipulator->type.draw_select(C, manipulator, selectionbase << 8);
+		manipulator->type->draw_select(C, manipulator, selectionbase << 8);
 
 		selectionbase++;
 	}
@@ -423,10 +423,15 @@ void wm_manipulatormaps_handled_modal_update(
 
 	/* regular update for running operator */
 	if (modal_running) {
-		if (manipulator && manipulator->type.handler && manipulator->opname &&
+		if (manipulator && manipulator->opname &&
 		    STREQ(manipulator->opname, handler->op->idname))
 		{
-			manipulator->type.handler(C, manipulator, event, 0);
+			if (manipulator->custom_handler) {
+				manipulator->custom_handler(C, manipulator, event, 0);
+			}
+			else if (manipulator->type->handler) {
+				manipulator->type->handler(C, manipulator, event, 0);
+			}
 		}
 	}
 	/* operator not running anymore */
@@ -492,8 +497,8 @@ static bool wm_manipulatormap_select_all_intern(
 			changed = true;
 		}
 		manipulator_iter->state |= WM_MANIPULATOR_SELECTED;
-		if (manipulator_iter->type.select) {
-			manipulator_iter->type.select(C, manipulator_iter, action);
+		if (manipulator_iter->type->select) {
+			manipulator_iter->type->select(C, manipulator_iter, action);
 		}
 		(*sel)[i] = manipulator_iter;
 		BLI_assert(i < (*tot_sel));
@@ -576,8 +581,8 @@ bool WM_manipulatormap_cursor_set(const wmManipulatorMap *mmap, wmWindow *win)
 {
 	for (; mmap; mmap = mmap->next) {
 		wmManipulator *manipulator = mmap->mmap_context.highlighted_manipulator;
-		if (manipulator && manipulator->type.cursor_get) {
-			WM_cursor_set(win, manipulator->type.cursor_get(manipulator));
+		if (manipulator && manipulator->type->cursor_get) {
+			WM_cursor_set(win, manipulator->type->cursor_get(manipulator));
 			return true;
 		}
 	}
@@ -603,9 +608,9 @@ void wm_manipulatormap_set_highlighted_manipulator(
 			manipulator->state |= WM_MANIPULATOR_HIGHLIGHT;
 			manipulator->highlighted_part = part;
 
-			if (C && manipulator->type.cursor_get) {
+			if (C && manipulator->type->cursor_get) {
 				wmWindow *win = CTX_wm_window(C);
-				WM_cursor_set(win, manipulator->type.cursor_get(manipulator));
+				WM_cursor_set(win, manipulator->type->cursor_get(manipulator));
 			}
 		}
 		else {
@@ -640,8 +645,10 @@ void wm_manipulatormap_set_active_manipulator(
 
 			if (ot) {
 				/* first activate the manipulator itself */
-				if (manipulator->type.invoke && manipulator->type.handler) {
-					manipulator->type.invoke(C, manipulator, event);
+				if (manipulator->type->invoke &&
+				    (manipulator->type->handler || manipulator->custom_handler))
+				{
+					manipulator->type->invoke(C, manipulator, event);
 				}
 
 				WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &manipulator->opptr);
@@ -664,8 +671,10 @@ void wm_manipulatormap_set_active_manipulator(
 			}
 		}
 		else {
-			if (manipulator->type.invoke && manipulator->type.handler) {
-				manipulator->type.invoke(C, manipulator, event);
+			if (manipulator->type->invoke &&
+			    (manipulator->type->handler || manipulator->custom_handler))
+			{
+				manipulator->type->invoke(C, manipulator, event);
 			}
 		}
 		WM_cursor_grab_enable(CTX_wm_window(C), true, true, NULL);

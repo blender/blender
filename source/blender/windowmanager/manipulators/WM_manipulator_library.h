@@ -124,5 +124,12 @@ struct wmManipulator *MANIPULATOR_primitive_new(struct wmManipulatorGroup *mgrou
 void MANIPULATOR_primitive_set_direction(struct wmManipulator *manipulator, const float direction[3]);
 void MANIPULATOR_primitive_set_up_vector(struct wmManipulator *manipulator, const float direction[3]);
 
+extern void ED_manipulatortypes_dial(void);
+extern void ED_manipulatortypes_arrow_2d(void);
+extern void ED_manipulatortypes_arrow_3d(void);
+extern void ED_manipulatortypes_facemap(void);
+extern void ED_manipulatortypes_primitive(void);
+extern void ED_manipulatortypes_cage(void);
+
 #endif  /* __WM_MANIPULATOR_LIBRARY_H__ */
 

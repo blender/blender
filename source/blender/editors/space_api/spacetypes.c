@@ -125,6 +125,22 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_view2d();
 	ED_operatortypes_ui();
 
+	/* manipulator types */
+
+	/* FIXME */
+	extern void ED_manipulatortypes_dial(void);
+	extern void ED_manipulatortypes_arrow_2d(void);
+	extern void ED_manipulatortypes_arrow_3d(void);
+	extern void ED_manipulatortypes_facemap(void);
+	extern void ED_manipulatortypes_primitive(void);
+	extern void ED_manipulatortypes_cage(void);
+
+	ED_manipulatortypes_dial();
+	ED_manipulatortypes_arrow_2d();
+	ED_manipulatortypes_arrow_3d();
+	ED_manipulatortypes_primitive();
+	ED_manipulatortypes_cage();
+
 	/* register types for operators and manipulators */
 	spacetypes = BKE_spacetypes_list();
 	for (type = spacetypes->first; type; type = type->next) {

@@ -334,20 +334,15 @@ static void manipulator_dial_invoke(
 
 wmManipulator *MANIPULATOR_dial_new(wmManipulatorGroup *mgroup, const char *name, const int style)
 {
-	DialManipulator *dial = MEM_callocN(sizeof(DialManipulator), name);
-	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
+	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_dial", false);
+	DialManipulator *dial = (DialManipulator *)WM_manipulator_new(mpt, mgroup, name);
 
-	dial->manipulator.type.draw = manipulator_dial_draw;
-	dial->manipulator.type.draw_select = manipulator_dial_render_3d_intersect;
-	dial->manipulator.type.intersect = NULL;
-	dial->manipulator.type.invoke = manipulator_dial_invoke;
+	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
 
 	dial->style = style;
 
 	/* defaults */
 	copy_v3_v3(dial->direction, dir_default);
-
-	wm_manipulator_register(mgroup, &dial->manipulator, name);
 
 	return (wmManipulator *)dial;
 }
@@ -363,8 +358,25 @@ void MANIPULATOR_dial_set_up_vector(wmManipulator *manipulator, const float dire
 	normalize_v3(dial->direction);
 }
 
-/** \} */ // Dial Manipulator API
+static void MANIPULATOR_WT_dial(wmManipulatorType *wt)
+{
+	/* identifiers */
+	wt->idname = "MANIPULATOR_WT_dial";
 
+	/* api callbacks */
+	wt->draw = manipulator_dial_draw;
+	wt->draw_select = manipulator_dial_render_3d_intersect;
+	wt->invoke = manipulator_dial_invoke;
+
+	wt->size = sizeof(DialManipulator);
+}
+
+void ED_manipulatortypes_dial(void)
+{
+	WM_manipulatortype_append(MANIPULATOR_WT_dial);
+}
+
+/** \} */ // Dial Manipulator API
 
 /* -------------------------------------------------------------------- */
 
