@@ -83,6 +83,7 @@ FOREACH(COMPONENT ${_opencollada_FIND_INCLUDES})
       # but this is less trouble, just looks strange.
       include/opencollada/${COMPONENT}
       include/${COMPONENT}/include
+      include/${COMPONENT}
     HINTS
       ${_opencollada_SEARCH_DIRS}
     )
