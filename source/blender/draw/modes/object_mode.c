@@ -142,6 +142,9 @@ typedef struct OBJECT_PrivateData{
 	/* Speaker */
 	DRWShadingGroup *speaker;
 
+	/* Speaker */
+	DRWShadingGroup *probe;
+
 	/* Lamps */
 	DRWShadingGroup *lamp_center;
 	DRWShadingGroup *lamp_center_group;
@@ -902,6 +905,11 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_speaker_get();
 		stl->g_data->speaker = shgroup_instance(psl->non_meshes, geom);
 
+		/* Probe */
+		static float probeSize = 10.0f;
+		geom = DRW_cache_probe_get();
+		stl->g_data->probe = shgroup_instance_screenspace(psl->non_meshes, geom, &probeSize);
+
 		/* Camera */
 		geom = DRW_cache_camera_get();
 		stl->g_data->camera = shgroup_camera_instance(psl->non_meshes, geom);
@@ -1399,6 +1407,14 @@ static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, SceneLayer 
 	DRW_shgroup_call_dynamic_add(stl->g_data->speaker, color, &one, ob->obmat);
 }
 
+static void DRW_shgroup_probe(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl)
+{
+	float *color;
+	DRW_object_wire_theme_get(ob, sl, &color);
+
+	DRW_shgroup_call_dynamic_add(stl->g_data->probe, ob->obmat[3], color);
+}
+
 static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)
 {
 	if (ob->parent && ((ob->parent->base_flag & BASE_VISIBLED) != 0)) {
@@ -1595,6 +1611,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		case OB_SPEAKER:
 			DRW_shgroup_speaker(stl, ob, sl);
+			break;
+		case OB_PROBE:
+			DRW_shgroup_probe(stl, ob, sl);
 			break;
 		case OB_ARMATURE:
 		{

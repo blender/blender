@@ -67,6 +67,7 @@ static struct DRWShapeCache {
 	Batch *drw_lamp_spot;
 	Batch *drw_lamp_spot_square;
 	Batch *drw_speaker;
+	Batch *drw_probe;
 	Batch *drw_bone_octahedral;
 	Batch *drw_bone_octahedral_wire;
 	Batch *drw_bone_box;
@@ -116,6 +117,7 @@ void DRW_shape_cache_free(void)
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_spot);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_spot_square);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_speaker);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_probe);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_octahedral);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_octahedral_wire);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_box);
@@ -1311,6 +1313,60 @@ Batch *DRW_cache_speaker_get(void)
 		SHC.drw_speaker = Batch_create(PRIM_LINES, vbo, NULL);
 	}
 	return SHC.drw_speaker;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name Probe
+ * \{ */
+
+Batch *DRW_cache_probe_get(void)
+{
+#define CIRCLE_RESOL 16
+	if (!SHC.drw_probe) {
+		int v_idx = 0;
+		float v[3] = {0.0f, 1.0f, 0.0f};
+		/* TODO something nicer than just a circle */
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, (CIRCLE_RESOL + 1) * 2 + 8);
+
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
+		for (int a = 1; a < CIRCLE_RESOL; a++) {
+			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
+
+			if ((a % 2 == 0) && (a % 4 != 0)) {
+				v[0] *= 0.5f;
+				v[1] *= 0.5f;
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
+				v[0] *= 3.0f;
+				v[1] *= 3.0f;
+				VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
+				v[0] /= 1.5f;
+				v[1] /= 1.5f;
+			}
+
+			VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
+		}
+		v[0] = 0.0f;
+		v[1] = 1.0f;
+		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
+
+		SHC.drw_probe = Batch_create(PRIM_LINES, vbo, NULL);
+	}
+	return SHC.drw_probe;
+#undef CIRCLE_RESOL
 }
 
 /** \} */
