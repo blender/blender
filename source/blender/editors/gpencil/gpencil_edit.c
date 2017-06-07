@@ -416,7 +416,10 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	/* done - no updates needed */
+	/* updates (to ensure operator buttons are refreshed, when used via hotkeys) */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL); // XXX?
+	
+	/* done */
 	return OPERATOR_FINISHED;
 }
 
