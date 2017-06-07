@@ -40,6 +40,8 @@ struct bGPdata;
 struct bGPDstroke;
 struct bGPDspoint;
 
+struct GHash;
+
 struct ARegion;
 struct View2D;
 struct wmOperatorType;
@@ -154,6 +156,9 @@ int gp_brush_crt_presets_poll(bContext *C);
 /* gpencil_edit.c */
 
 extern ListBase gp_strokes_copypastebuf;
+
+/* Build a map for converting between old colornames and destination-color-refs */
+struct GHash *gp_copybuf_validate_colormap(bGPdata *gpd);
 
 /* Stroke Editing ------------------------------------ */
 

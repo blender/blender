@@ -371,6 +371,46 @@ void ED_gpencil_strokes_copybuf_free(void)
 	gp_strokes_copypastebuf.first = gp_strokes_copypastebuf.last = NULL;
 }
 
+/* Ensure that destination datablock has all the colours the pasted strokes need
+ * Helper function for copy-pasting strokes
+ */
+GHash *gp_copybuf_validate_colormap(bGPdata *gpd)
+{
+	GHash *new_colors = BLI_ghash_str_new("GPencil Paste Dst Colors");
+	GHashIterator gh_iter;
+	
+	/* If there's no active palette yet (i.e. new datablock), add one */
+	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
+	if (palette == NULL) {
+		palette = BKE_gpencil_palette_addnew(gpd, "Pasted Palette", true);
+	}
+	
+	/* For each color, figure out what to map to... */
+	GHASH_ITER(gh_iter, gp_strokes_copypastebuf_colors) {
+		bGPDpalettecolor *palcolor;
+		char *name = BLI_ghashIterator_getKey(&gh_iter);
+		
+		/* Look for existing color to map to */
+		/* XXX: What to do if same name but different color? Behaviour here should depend on a property? */
+		palcolor = BKE_gpencil_palettecolor_getbyname(palette, name);
+		if (palcolor == NULL) {
+			/* Doesn't Exist - Create new matching color for this palette */
+			/* XXX: This still doesn't fix the pasting across file boundaries problem... */
+			bGPDpalettecolor *src_color = BLI_ghashIterator_getValue(&gh_iter);
+			
+			palcolor = MEM_dupallocN(src_color);
+			BLI_addtail(&palette->colors, palcolor);
+			
+			BLI_uniquename(&palette->colors, palcolor, DATA_("GP Color"), '.', offsetof(bGPDpalettecolor, info), sizeof(palcolor->info));
+		}
+		
+		/* Store this mapping (for use later when pasting) */
+		BLI_ghash_insert(new_colors, name, palcolor);
+	}
+	
+	return new_colors;
+}
+
 /* --------------------- */
 /* Copy selected strokes */
 
@@ -496,9 +536,8 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	bGPDpalette *palette = CTX_data_active_gpencil_palette(C);
 	bGPDframe *gpf;
 	
-	GHash *new_colors;
-	GHashIterator gh_iter;
 	eGP_PasteMode type = RNA_enum_get(op->ptr, "type");
+	GHash *new_colors;
 	
 	/* check for various error conditions */
 	if (gpd == NULL) {
@@ -556,36 +595,9 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	
 	/* Ensure that all the necessary colors exist */
-	// TODO: Split this out into a helper function
-	if (palette == NULL) {
-		palette = BKE_gpencil_palette_addnew(gpd, "Pasted Palette", true);
-	}
-	new_colors = BLI_ghash_str_new("GPencil Paste Dst Colors");
-	
-	GHASH_ITER(gh_iter, gp_strokes_copypastebuf_colors) {
-		bGPDpalettecolor *palcolor;
-		char *name = BLI_ghashIterator_getKey(&gh_iter);
+	new_colors = gp_copybuf_validate_colormap(gpd);
 		
-		/* Look for existing color to map to */
-		/* XXX: What to do if same name but different color? Behaviour here should depend on a property? */
-		palcolor = BKE_gpencil_palettecolor_getbyname(palette, name);
-		if (palcolor == NULL) {
-			/* Doesn't Exist - Create new matching color for this palette */
-			/* XXX: This still doesn't fix the pasting across file boundaries problem... */
-			bGPDpalettecolor *src_color = BLI_ghashIterator_getValue(&gh_iter);
-			
-			palcolor = MEM_dupallocN(src_color);
-			BLI_addtail(&palette->colors, palcolor);
-			
-			BLI_uniquename(&palette->colors, palcolor, DATA_("GP Color"), '.', offsetof(bGPDpalettecolor, info), sizeof(palcolor->info));
-		}
-		
-		/* Store this mapping (for use later when pasting) */
-		BLI_ghash_insert(new_colors, name, palcolor);
-	}
-	
 	/* Copy over the strokes from the buffer (and adjust the colors) */
 	for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
 		if (ED_gpencil_stroke_can_use(C, gps)) {
