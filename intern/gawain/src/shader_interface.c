@@ -61,7 +61,7 @@ static unsigned hash_string(const char *str)
 	return i;
 	}
 
-static inline void set_input_name(ShaderInput* input, const char* name)
+static void set_input_name(ShaderInput* input, const char* name)
 	{
 	input->name = name;
 	input->name_hash = hash_string(name);
