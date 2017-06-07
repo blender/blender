@@ -145,18 +145,6 @@ void BKE_object_eval_done(EvaluationContext *UNUSED(eval_ctx), Object *ob)
 	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
-void BKE_object_eval_modifier(struct EvaluationContext *eval_ctx,
-                              struct Scene *scene,
-                              struct Object *ob,
-                              struct ModifierData *md)
-{
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
-	(void) eval_ctx;  /* Ignored. */
-	(void) scene;  /* Ignored. */
-	(void) ob;  /* Ignored. */
-	(void) md;  /* Ignored. */
-}
-
 void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
                                    Scene *scene,
                                    Object *ob)

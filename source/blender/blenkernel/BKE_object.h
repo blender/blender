@@ -189,10 +189,6 @@ void BKE_object_eval_constraints(struct EvaluationContext *eval_ctx,
                                  struct Object *ob);
 void BKE_object_eval_done(struct EvaluationContext *eval_ctx, struct Object *ob);
 
-void BKE_object_eval_modifier(struct EvaluationContext *eval_ctx,
-                              struct Scene *scene,
-                              struct Object *ob,
-                              struct ModifierData *md);
 void BKE_object_eval_uber_transform(struct EvaluationContext *eval_ctx,
                                     struct Scene *scene,
                                     struct Object *ob);

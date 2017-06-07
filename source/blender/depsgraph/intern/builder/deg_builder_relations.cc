@@ -995,21 +995,12 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		}
 	}
 	else if (GS(id->name) == ID_OB && strstr(rna_path, "modifiers[")) {
-		/* modifier driver - connect directly to the modifier */
-		char *modifier_name = BLI_str_quoted_substrN(rna_path, "modifiers[");
-		if (modifier_name) {
-			OperationKey modifier_key(id,
-			                          DEG_NODE_TYPE_GEOMETRY,
-			                          DEG_OPCODE_GEOMETRY_MODIFIER,
-			                          modifier_name);
-			if (has_node(modifier_key)) {
-				add_relation(driver_key, modifier_key, "[Driver -> Modifier]");
-			}
-			else {
-				printf("Unexisting driver RNA path: %s\n", rna_path);
-			}
-
-			MEM_freeN(modifier_name);
+		OperationKey modifier_key(id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
+		if (has_node(modifier_key)) {
+			add_relation(driver_key, modifier_key, "[Driver -> Modifier]");
+		}
+		else {
+			printf("Unexisting driver RNA path: %s\n", rna_path);
 		}
 	}
 	else if (GS(id->name) == ID_KE && strstr(rna_path, "key_blocks[")) {
@@ -1326,7 +1317,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
                                            Object *object,
-                                           ModifierData *md)
+                                           ModifierData * /*md*/)
 {
 	OperationKey cache_key(&object->id,
 	                       DEG_NODE_TYPE_CACHE,
@@ -1335,8 +1326,7 @@ void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
 	/* Cache component affects on modifier. */
 	OperationKey modifier_key(&object->id,
 	                          DEG_NODE_TYPE_GEOMETRY,
-	                          DEG_OPCODE_GEOMETRY_MODIFIER,
-	                          md->name);
+	                          DEG_OPCODE_GEOMETRY_UBEREVAL);
 	add_relation(cache_key, modifier_key, "Cloth Cache -> Cloth");
 }
 
@@ -1399,24 +1389,16 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	add_relation(obdata_geom_key, geom_key, "Object Geometry Base Data");
 
 	/* Modifiers */
-	if (ob->modifiers.first) {
-		OperationKey prev_mod_key;
+	if (ob->modifiers.first != NULL) {
+		OperationKey obdata_ubereval_key(&ob->id,
+		                                 DEG_NODE_TYPE_GEOMETRY,
+		                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 
 		LINKLIST_FOREACH (ModifierData *, md, &ob->modifiers) {
 			const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
-			OperationKey mod_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
-
-			if (md->prev) {
-				/* Stack relation: modifier depends on previous modifier in the stack */
-				add_relation(prev_mod_key, mod_key, "Modifier Stack");
-			}
-			else {
-				/* Stack relation: first modifier depends on the geometry. */
-				add_relation(geom_init_key, mod_key, "Modifier Stack");
-			}
 
 			if (mti->updateDepsgraph) {
-				DepsNodeHandle handle = create_node_handle(mod_key);
+				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
 				mti->updateDepsgraph(
 				        md,
 				        bmain,
@@ -1427,7 +1409,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 
 			if (BKE_object_modifier_use_time(ob, md)) {
 				TimeSourceKey time_src_key;
-				add_relation(time_src_key, mod_key, "Time Source");
+				add_relation(time_src_key, obdata_ubereval_key, "Time Source");
 
 				/* Hacky fix for T45633 (Animated modifiers aren't updated)
 				 *
@@ -1437,15 +1419,13 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 				/* XXX: Remove this hack when these links are added as part of build_animdata() instead */
 				if (modifier_dependsOnTime(md) == false && needs_animdata_node(&ob->id)) {
 					ComponentKey animation_key(&ob->id, DEG_NODE_TYPE_ANIMATION);
-					add_relation(animation_key, mod_key, "Modifier Animation");
+					add_relation(animation_key, obdata_ubereval_key, "Modifier Animation");
 				}
 			}
 
 			if (md->type == eModifierType_Cloth) {
 				build_cloth(scene, ob, md);
 			}
-
-			prev_mod_key = mod_key;
 		}
 	}
 
@@ -1471,14 +1451,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	if (ob->type != OB_ARMATURE) {
 		/* Armatures does no longer require uber node. */
 		OperationKey obdata_ubereval_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
-		if (ob->modifiers.last) {
-			ModifierData *md = (ModifierData *)ob->modifiers.last;
-			OperationKey mod_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
-			add_relation(mod_key, obdata_ubereval_key, "Object Geometry UberEval");
-		}
-		else {
-			add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
-		}
+		add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
 	}
 
 	if (obdata->tag & LIB_TAG_DOIT) {
