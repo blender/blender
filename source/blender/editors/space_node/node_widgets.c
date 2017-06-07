@@ -28,6 +28,7 @@
 #include "DNA_manipulator_types.h"
 
 #include "ED_screen.h"
+#include "ED_manipulator_library.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -64,9 +65,9 @@ static void WIDGETGROUP_node_transform_init(const bContext *UNUSED(C), wmManipul
 {
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 
-	wwrapper->manipulator = MANIPULATOR_rect_transform_new(
+	wwrapper->manipulator = ED_manipulator_rect_transform_new(
 	        wgroup, "backdrop_cage",
-	        MANIPULATOR_RECT_TRANSFORM_STYLE_TRANSLATE | MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM);
+	        ED_MANIPULATOR_RECT_TRANSFORM_STYLE_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM);
 	wgroup->customdata = wwrapper;
 
 }
@@ -86,7 +87,7 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 		const float w = (ibuf->x > 0) ? ibuf->x : 64.0f;
 		const float h = (ibuf->y > 0) ? ibuf->y : 64.0f;
 
-		MANIPULATOR_rect_transform_set_dimensions(cage, w, h);
+		ED_manipulator_rect_transform_set_dimensions(cage, w, h);
 		WM_manipulator_set_origin(cage, origin);
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, false);
 
@@ -94,8 +95,8 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 		SpaceNode *snode = CTX_wm_space_node(C);
 		PointerRNA nodeptr;
 		RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode, &nodeptr);
-		WM_manipulator_set_property(cage, RECT_TRANSFORM_SLOT_OFFSET, &nodeptr, "backdrop_offset");
-		WM_manipulator_set_property(cage, RECT_TRANSFORM_SLOT_SCALE, &nodeptr, "backdrop_zoom");
+		WM_manipulator_set_property(cage, ED_MANIPULATOR_RECT_TX_SLOT_OFFSET, &nodeptr, "backdrop_offset");
+		WM_manipulator_set_property(cage, ED_MANIPULATOR_RECT_TX_SLOT_SCALE, &nodeptr, "backdrop_zoom");
 	}
 	else {
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, true);

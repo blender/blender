@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/manipulator_library/manipulator_library_utils.c
+/** \file manipulator_library_utils.c
  *  \ingroup wm
  *
  * \name Manipulator Library Utilities
@@ -38,11 +38,9 @@
 #include "RNA_access.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 /* own includes */
-#include "WM_manipulator_types.h"
-#include "wm_manipulator_wmapi.h"
-#include "wm_manipulator_intern.h"
 #include "manipulator_library_intern.h"
 
 /* factor for precision tweaking */

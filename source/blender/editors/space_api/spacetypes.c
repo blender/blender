@@ -66,6 +66,7 @@
 #include "ED_clip.h"
 #include "ED_mask.h"
 #include "ED_sequencer.h"
+#include "ED_manipulator_library.h"
 
 #include "io_ops.h"
 
@@ -126,20 +127,11 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_ui();
 
 	/* manipulator types */
-
-	/* FIXME */
-	extern void ED_manipulatortypes_dial(void);
-	extern void ED_manipulatortypes_arrow_2d(void);
-	extern void ED_manipulatortypes_arrow_3d(void);
-	extern void ED_manipulatortypes_facemap(void);
-	extern void ED_manipulatortypes_primitive(void);
-	extern void ED_manipulatortypes_cage(void);
-
-	ED_manipulatortypes_dial();
+	ED_manipulatortypes_dial_3d();
 	ED_manipulatortypes_arrow_2d();
 	ED_manipulatortypes_arrow_3d();
-	ED_manipulatortypes_primitive();
-	ED_manipulatortypes_cage();
+	ED_manipulatortypes_primitive_3d();
+	ED_manipulatortypes_cage_2d();
 
 	/* register types for operators and manipulators */
 	spacetypes = BKE_spacetypes_list();

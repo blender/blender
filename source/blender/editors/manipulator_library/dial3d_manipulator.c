@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/manipulator_library/dial_manipulator.c
+/** \file dial3d_manipulator.c
  *  \ingroup wm
  *
  * \name Dial Manipulator
@@ -45,6 +45,7 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_manipulator_library.h"
 
 #include "GPU_select.h"
 
@@ -59,10 +60,6 @@
 #include "WM_types.h"
 
 /* own includes */
-#include "WM_manipulator_types.h"
-#include "WM_manipulator_library.h"
-#include "wm_manipulator_wmapi.h"
-#include "wm_manipulator_intern.h"
 #include "manipulator_geometry.h"
 #include "manipulator_library_intern.h"
 
@@ -97,7 +94,7 @@ static void dial_geom_draw(
 	UNUSED_VARS(dial, col, axis_modal_mat, clip_plane);
 	wm_manipulator_geometryinfo_draw(&wm_manipulator_geom_data_dial, select);
 #else
-	const bool filled = (dial->style == MANIPULATOR_DIAL_STYLE_RING_FILLED);
+	const bool filled = (dial->style == ED_MANIPULATOR_DIAL_STYLE_RING_FILLED);
 
 	glLineWidth(dial->manipulator.line_width);
 
@@ -243,7 +240,7 @@ static void dial_draw_intern(
 	gpuTranslate3fv(dial->manipulator.offset);
 
 	/* draw rotation indicator arc first */
-	if ((dial->manipulator.flag & WM_MANIPULATOR_DRAW_VALUE) && (dial->manipulator.state & WM_MANIPULATOR_ACTIVE)) {
+	if ((dial->manipulator.flag & WM_MANIPULATOR_DRAW_VALUE) && (dial->manipulator.state & WM_MANIPULATOR_STATE_ACTIVE)) {
 		wmWindow *win = CTX_wm_window(C);
 		const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
 		float angle_ofs, angle_delta;
@@ -266,7 +263,7 @@ static void manipulator_dial_render_3d_intersect(const bContext *C, wmManipulato
 {
 	DialManipulator *dial = (DialManipulator *)manipulator;
 	float clip_plane_buf[4];
-	float *clip_plane = (dial->style == MANIPULATOR_DIAL_STYLE_RING_CLIPPED) ? clip_plane_buf : NULL;
+	float *clip_plane = (dial->style == ED_MANIPULATOR_DIAL_STYLE_RING_CLIPPED) ? clip_plane_buf : NULL;
 
 	/* enable clipping if needed */
 	if (clip_plane) {
@@ -289,10 +286,10 @@ static void manipulator_dial_render_3d_intersect(const bContext *C, wmManipulato
 static void manipulator_dial_draw(const bContext *C, wmManipulator *manipulator)
 {
 	DialManipulator *dial = (DialManipulator *)manipulator;
-	const bool active = manipulator->state & WM_MANIPULATOR_ACTIVE;
-	const bool highlight = (manipulator->state & WM_MANIPULATOR_HIGHLIGHT) != 0;
+	const bool active = manipulator->state & WM_MANIPULATOR_STATE_ACTIVE;
+	const bool highlight = (manipulator->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
 	float clip_plane_buf[4];
-	float *clip_plane = (!active && dial->style == MANIPULATOR_DIAL_STYLE_RING_CLIPPED) ? clip_plane_buf : NULL;
+	float *clip_plane = (!active && dial->style == ED_MANIPULATOR_DIAL_STYLE_RING_CLIPPED) ? clip_plane_buf : NULL;
 
 	/* enable clipping if needed */
 	if (clip_plane) {
@@ -332,7 +329,7 @@ static void manipulator_dial_invoke(
  *
  * \{ */
 
-wmManipulator *MANIPULATOR_dial_new(wmManipulatorGroup *mgroup, const char *name, const int style)
+wmManipulator *ED_manipulator_dial3d_new(wmManipulatorGroup *mgroup, const char *name, const int style)
 {
 	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_dial", false);
 	DialManipulator *dial = (DialManipulator *)WM_manipulator_new(mpt, mgroup, name);
@@ -350,7 +347,7 @@ wmManipulator *MANIPULATOR_dial_new(wmManipulatorGroup *mgroup, const char *name
 /**
  * Define up-direction of the dial manipulator
  */
-void MANIPULATOR_dial_set_up_vector(wmManipulator *manipulator, const float direction[3])
+void ED_manipulator_dial3d_set_up_vector(wmManipulator *manipulator, const float direction[3])
 {
 	DialManipulator *dial = (DialManipulator *)manipulator;
 
@@ -358,7 +355,7 @@ void MANIPULATOR_dial_set_up_vector(wmManipulator *manipulator, const float dire
 	normalize_v3(dial->direction);
 }
 
-static void MANIPULATOR_WT_dial(wmManipulatorType *wt)
+static void MANIPULATOR_WT_dial_3d(wmManipulatorType *wt)
 {
 	/* identifiers */
 	wt->idname = "MANIPULATOR_WT_dial";
@@ -371,16 +368,9 @@ static void MANIPULATOR_WT_dial(wmManipulatorType *wt)
 	wt->size = sizeof(DialManipulator);
 }
 
-void ED_manipulatortypes_dial(void)
+void ED_manipulatortypes_dial_3d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_dial);
+	WM_manipulatortype_append(MANIPULATOR_WT_dial_3d);
 }
 
 /** \} */ // Dial Manipulator API
-
-/* -------------------------------------------------------------------- */
-
-void fix_linking_manipulator_dial(void)
-{
-	(void)0;
-}

@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/manipulator_library/arrow2d_manipulator.c
+/** \file arrow2d_manipulator.c
  *  \ingroup wm
  *
  * \name 2D Arrow Manipulator
@@ -43,6 +43,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "ED_screen.h"
+#include "ED_manipulator_library.h"
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
@@ -55,11 +56,8 @@
 #include "WM_types.h"
 
 /* own includes */
-#include "WM_manipulator_api.h"
-#include "WM_manipulator_types.h"
-#include "wm_manipulator_wmapi.h"
-#include "WM_manipulator_library.h"
-#include "wm_manipulator_intern.h"
+#include "WM_api.h"
+
 #include "manipulator_library_intern.h"
 
 
@@ -112,7 +110,7 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipul
 	ArrowManipulator2D *arrow = (ArrowManipulator2D *)manipulator;
 	float col[4];
 
-	manipulator_color_get(manipulator, manipulator->state & WM_MANIPULATOR_HIGHLIGHT, col);
+	manipulator_color_get(manipulator, manipulator->state & WM_MANIPULATOR_STATE_HIGHLIGHT, col);
 
 	glLineWidth(manipulator->line_width);
 	glEnable(GL_BLEND);
@@ -190,7 +188,7 @@ static int manipulator_arrow2d_intersect(
  *
  * \{ */
 
-struct wmManipulator *MANIPULATOR_arrow2d_new(wmManipulatorGroup *mgroup, const char *name)
+struct wmManipulator *ED_manipulator_arrow2d_new(wmManipulatorGroup *mgroup, const char *name)
 {
 	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_arrow_2d", false);
 	ArrowManipulator2D *arrow = (ArrowManipulator2D *)WM_manipulator_new(mpt, mgroup, name);
@@ -202,13 +200,13 @@ struct wmManipulator *MANIPULATOR_arrow2d_new(wmManipulatorGroup *mgroup, const 
 	return &arrow->manipulator;
 }
 
-void MANIPULATOR_arrow2d_set_angle(struct wmManipulator *manipulator, const float angle)
+void ED_manipulator_arrow2d_set_angle(struct wmManipulator *manipulator, const float angle)
 {
 	ArrowManipulator2D *arrow = (ArrowManipulator2D *)manipulator;
 	arrow->angle = angle;
 }
 
-void MANIPULATOR_arrow2d_set_line_len(struct wmManipulator *manipulator, const float len)
+void ED_manipulator_arrow2d_set_line_len(struct wmManipulator *manipulator, const float len)
 {
 	ArrowManipulator2D *arrow = (ArrowManipulator2D *)manipulator;
 	arrow->line_len = len;
@@ -233,11 +231,3 @@ void ED_manipulatortypes_arrow_2d(void)
 }
 
 /** \} */ /* Arrow Manipulator API */
-
-
-/* -------------------------------------------------------------------- */
-
-void fix_linking_manipulator_arrow2d(void)
-{
-	(void)0;
-}

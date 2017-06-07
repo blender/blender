@@ -579,6 +579,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_curve
 		bf_editor_gpencil
 		bf_editor_interface
+		bf_editor_manipulator_library
 		bf_editor_mesh
 		bf_editor_metaball
 		bf_editor_object

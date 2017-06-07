@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/manipulator_library/primitive_manipulator.c
+/** \file primitive_manipulator.c
  *  \ingroup wm
  *
  * \name Primitive Manipulator
@@ -47,11 +47,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_manipulator_library.h"
+
 /* own includes */
-#include "WM_manipulator_types.h"
-#include "WM_manipulator_library.h"
-#include "wm_manipulator_wmapi.h"
-#include "wm_manipulator_intern.h"
 #include "manipulator_library_intern.h"
 
 
@@ -86,7 +84,7 @@ static void manipulator_primitive_draw_geom(
 	float (*verts)[3];
 	unsigned int vert_count = 0;
 
-	if (style == MANIPULATOR_PRIMITIVE_STYLE_PLANE) {
+	if (style == ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE) {
 		verts = verts_plane;
 		vert_count = ARRAY_SIZE(verts_plane);
 	}
@@ -171,7 +169,7 @@ static void manipulator_primitive_draw(const bContext *UNUSED(C), wmManipulator 
 {
 	manipulator_primitive_draw_intern(
 	            (PrimitiveManipulator *)manipulator, false,
-	            (manipulator->state & WM_MANIPULATOR_HIGHLIGHT));
+	            (manipulator->state & WM_MANIPULATOR_STATE_HIGHLIGHT));
 }
 
 static void manipulator_primitive_invoke(
@@ -191,9 +189,9 @@ static void manipulator_primitive_invoke(
  *
  * \{ */
 
-wmManipulator *MANIPULATOR_primitive_new(wmManipulatorGroup *mgroup, const char *name, const int style)
+wmManipulator *ED_manipulator_primitive3d_new(wmManipulatorGroup *mgroup, const char *name, const int style)
 {
-	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_primitive", false);
+	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_primitive3d", false);
 	PrimitiveManipulator *prim = (PrimitiveManipulator *)WM_manipulator_new(mpt, mgroup, name);
 
 	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
@@ -210,7 +208,7 @@ wmManipulator *MANIPULATOR_primitive_new(wmManipulatorGroup *mgroup, const char 
 /**
  * Define direction the primitive will point towards
  */
-void MANIPULATOR_primitive_set_direction(wmManipulator *manipulator, const float direction[3])
+void ED_manipulator_primitive3d_set_direction(wmManipulator *manipulator, const float direction[3])
 {
 	PrimitiveManipulator *prim = (PrimitiveManipulator *)manipulator;
 
@@ -220,7 +218,7 @@ void MANIPULATOR_primitive_set_direction(wmManipulator *manipulator, const float
 /**
  * Define up-direction of the primitive manipulator
  */
-void MANIPULATOR_primitive_set_up_vector(wmManipulator *manipulator, const float direction[3])
+void ED_manipulator_primitive3d_set_up_vector(wmManipulator *manipulator, const float direction[3])
 {
 	PrimitiveManipulator *prim = (PrimitiveManipulator *)manipulator;
 
@@ -233,10 +231,10 @@ void MANIPULATOR_primitive_set_up_vector(wmManipulator *manipulator, const float
 	}
 }
 
-static void MANIPULATOR_WT_primitive(wmManipulatorType *wt)
+static void MANIPULATOR_WT_primitive3d(wmManipulatorType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_primitive";
+	wt->idname = "MANIPULATOR_WT_primitive3d";
 
 	/* api callbacks */
 	wt->draw = manipulator_primitive_draw;
@@ -246,17 +244,9 @@ static void MANIPULATOR_WT_primitive(wmManipulatorType *wt)
 	wt->size = sizeof(PrimitiveManipulator);
 }
 
-void ED_manipulatortypes_primitive(void)
+void ED_manipulatortypes_primitive_3d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_primitive);
+	WM_manipulatortype_append(MANIPULATOR_WT_primitive3d);
 }
 
 /** \} */ // Primitive Manipulator API
-
-
-/* -------------------------------------------------------------------- */
-
-void fix_linking_manipulator_primitive(void)
-{
-	(void)0;
-}

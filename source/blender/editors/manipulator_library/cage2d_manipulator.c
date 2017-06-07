@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/manipulator_library/cage_manipulator.c
+/** \file cage2d_manipulator.c
  *  \ingroup wm
  *
  * \name Cage Manipulator
@@ -44,6 +44,7 @@
 #include "DNA_manipulator_types.h"
 
 #include "ED_screen.h"
+#include "ED_manipulator_library.h"
 
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
@@ -57,17 +58,17 @@
 #include "WM_types.h"
 
 /* own includes */
-#include "wm_manipulator_wmapi.h"
-#include "wm_manipulator_intern.h"
+//#include "wm_manipulator_wmapi.h"
+//#include "wm_manipulator_intern.h"
 
 
 /* wmManipulator->highlighted_part */
 enum {
-	MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE     = 1,
-	MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT   = 2,
-	MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT  = 3,
-	MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP     = 4,
-	MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN   = 5
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE     = 1,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT   = 2,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT  = 3,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP     = 4,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN   = 5
 };
 
 #define MANIPULATOR_RECT_MIN_WIDTH 15.0f
@@ -128,7 +129,7 @@ static void rect_transform_draw_interaction(
 	float verts[4][2];
 
 	switch (highlighted) {
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT:
 			verts[0][0] = -half_w + w;
 			verts[0][1] = -half_h;
 			verts[1][0] = -half_w;
@@ -139,7 +140,7 @@ static void rect_transform_draw_interaction(
 			verts[3][1] = half_h;
 			break;
 
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT:
 			verts[0][0] = half_w - w;
 			verts[0][1] = -half_h;
 			verts[1][0] = half_w;
@@ -150,7 +151,7 @@ static void rect_transform_draw_interaction(
 			verts[3][1] = half_h;
 			break;
 
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN:
 			verts[0][0] = -half_w;
 			verts[0][1] = -half_h + h;
 			verts[1][0] = -half_w;
@@ -161,7 +162,7 @@ static void rect_transform_draw_interaction(
 			verts[3][1] = -half_h + h;
 			break;
 
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP:
 			verts[0][0] = -half_w;
 			verts[0][1] = half_h - h;
 			verts[1][0] = -half_w;
@@ -220,7 +221,7 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 	gpuPushMatrix();
 	gpuTranslate2f(manipulator->origin[0] + manipulator->offset[0],
 	               manipulator->origin[1] + manipulator->offset[1]);
-	if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
+	if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
 		gpuScaleUniform(cage->scale[0]);
 	else
 		gpuScale2fv(cage->scale);
@@ -231,7 +232,7 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 		aspy = w / h;
 	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / cage->scale[0]);
 	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / 
-	           ((cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) ? cage->scale[0] : cage->scale[1]));
+	           ((cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) ? cage->scale[0] : cage->scale[1]));
 
 	/* corner manipulators */
 	glLineWidth(cage->manipulator.line_width + 3.0f);
@@ -252,13 +253,13 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 static int manipulator_rect_transform_get_cursor(wmManipulator *manipulator)
 {
 	switch (manipulator->highlighted_part) {
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE:
 			return BC_HANDCURSOR;
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT:
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT:
 			return CURSOR_X_MOVE;
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN:
-		case MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN:
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP:
 			return CURSOR_Y_MOVE;
 		default:
 			return CURSOR_STD;
@@ -284,7 +285,7 @@ static int manipulator_rect_transform_intersect(
 	point_local[1] -= manipulator->offset[1];
 	//rotate_m2(matrot, -cage->transform.rotation);
 
-	if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
+	if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
 		mul_v2_fl(point_local, 1.0f / cage->scale[0]);
 	else {
 		point_local[0] /= cage->scale[0];
@@ -297,7 +298,7 @@ static int manipulator_rect_transform_intersect(
 		aspy = w / h;
 	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / cage->scale[0]);
 	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / 
-	           ((cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) ? cage->scale[0] : cage->scale[1]));
+	           ((cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) ? cage->scale[0] : cage->scale[1]));
 
 
 	rctf r;
@@ -310,10 +311,10 @@ static int manipulator_rect_transform_intersect(
 	bool isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 	if (isect)
-		return MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE;
+		return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE;
 
 	/* if manipulator does not have a scale intersection, don't do it */
-	if (cage->style & (MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE | MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)) {
+	if (cage->style & (ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE | ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)) {
 		r.xmin = -half_w;
 		r.ymin = -half_h;
 		r.xmax = -half_w + w;
@@ -322,7 +323,7 @@ static int manipulator_rect_transform_intersect(
 		isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 		if (isect)
-			return MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT;
+			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT;
 
 		r.xmin = half_w - w;
 		r.ymin = -half_h;
@@ -332,7 +333,7 @@ static int manipulator_rect_transform_intersect(
 		isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 		if (isect)
-			return MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT;
+			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT;
 
 		r.xmin = -half_w;
 		r.ymin = -half_h;
@@ -342,7 +343,7 @@ static int manipulator_rect_transform_intersect(
 		isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 		if (isect)
-			return MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN;
+			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN;
 
 		r.xmin = -half_w;
 		r.ymin = half_h - h;
@@ -352,7 +353,7 @@ static int manipulator_rect_transform_intersect(
 		isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 		if (isect)
-			return MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP;
+			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP;
 	}
 
 	return 0;
@@ -373,16 +374,16 @@ static bool manipulator_rect_transform_get_prop_value(wmManipulator *manipulator
 		return false;
 	}
 	else {
-		if (slot == RECT_TRANSFORM_SLOT_OFFSET) {
+		if (slot == ED_MANIPULATOR_RECT_TX_SLOT_OFFSET) {
 			if (RNA_property_array_length(&manipulator->ptr[slot], manipulator->props[slot]) != 2) {
 				fprintf(stderr, "Rect Transform manipulator offset not only be bound to array float property");
 				return false;
 			}
 			RNA_property_float_get_array(&manipulator->ptr[slot], manipulator->props[slot], value);
 		}
-		else if (slot == RECT_TRANSFORM_SLOT_SCALE) {
+		else if (slot == ED_MANIPULATOR_RECT_TX_SLOT_SCALE) {
 			RectTransformManipulator *cage = (RectTransformManipulator *)manipulator;
-			if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
+			if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 				*value = RNA_property_float_get(&manipulator->ptr[slot], manipulator->props[slot]);
 			}
 			else {
@@ -426,32 +427,32 @@ static void manipulator_rect_transform_handler(
 	const float valuey = (event->mval[1] - data->orig_mouse[1]);
 
 
-	if (manipulator->highlighted_part == MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
+	if (manipulator->highlighted_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
 		manipulator->offset[0] = data->orig_offset[0] + valuex;
 		manipulator->offset[1] = data->orig_offset[1] + valuey;
 	}
-	else if (manipulator->highlighted_part == MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
+	else if (manipulator->highlighted_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
 		manipulator->offset[0] = data->orig_offset[0] + valuex / 2.0;
 		cage->scale[0] = (cage->w * data->orig_scale[0] - valuex) / cage->w;
 	}
-	else if (manipulator->highlighted_part == MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
+	else if (manipulator->highlighted_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
 		manipulator->offset[0] = data->orig_offset[0] + valuex / 2.0;
 		cage->scale[0] = (cage->w * data->orig_scale[0] + valuex) / cage->w;
 	}
-	else if (manipulator->highlighted_part == MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
+	else if (manipulator->highlighted_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
 		manipulator->offset[1] = data->orig_offset[1] + valuey / 2.0;
 
-		if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
+		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 			cage->scale[0] = (cage->h * data->orig_scale[0] - valuey) / cage->h;
 		}
 		else {
 			cage->scale[1] = (cage->h * data->orig_scale[1] - valuey) / cage->h;
 		}
 	}
-	else if (manipulator->highlighted_part == MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
+	else if (manipulator->highlighted_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
 		manipulator->offset[1] = data->orig_offset[1] + valuey / 2.0;
 
-		if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
+		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 			cage->scale[0] = (cage->h * data->orig_scale[0] + valuey) / cage->h;
 		}
 		else {
@@ -460,7 +461,7 @@ static void manipulator_rect_transform_handler(
 	}
 
 	/* clamping - make sure manipulator is at least 5 pixels wide */
-	if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
+	if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 		if (cage->scale[0] < MANIPULATOR_RECT_MIN_WIDTH / cage->h || 
 		    cage->scale[0] < MANIPULATOR_RECT_MIN_WIDTH / cage->w) 
 		{
@@ -480,19 +481,19 @@ static void manipulator_rect_transform_handler(
 		}
 	}
 
-	if (manipulator->props[RECT_TRANSFORM_SLOT_OFFSET]) {
-		PointerRNA ptr = manipulator->ptr[RECT_TRANSFORM_SLOT_OFFSET];
-		PropertyRNA *prop = manipulator->props[RECT_TRANSFORM_SLOT_OFFSET];
+	if (manipulator->props[ED_MANIPULATOR_RECT_TX_SLOT_OFFSET]) {
+		PointerRNA ptr = manipulator->ptr[ED_MANIPULATOR_RECT_TX_SLOT_OFFSET];
+		PropertyRNA *prop = manipulator->props[ED_MANIPULATOR_RECT_TX_SLOT_OFFSET];
 
 		RNA_property_float_set_array(&ptr, prop, manipulator->offset);
 		RNA_property_update(C, &ptr, prop);
 	}
 
-	if (manipulator->props[RECT_TRANSFORM_SLOT_SCALE]) {
-		PointerRNA ptr = manipulator->ptr[RECT_TRANSFORM_SLOT_SCALE];
-		PropertyRNA *prop = manipulator->props[RECT_TRANSFORM_SLOT_SCALE];
+	if (manipulator->props[ED_MANIPULATOR_RECT_TX_SLOT_SCALE]) {
+		PointerRNA ptr = manipulator->ptr[ED_MANIPULATOR_RECT_TX_SLOT_SCALE];
+		PropertyRNA *prop = manipulator->props[ED_MANIPULATOR_RECT_TX_SLOT_SCALE];
 
-		if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
+		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 			RNA_property_float_set(&ptr, prop, cage->scale[0]);
 		}
 		else {
@@ -509,10 +510,10 @@ static void manipulator_rect_transform_prop_data_update(wmManipulator *manipulat
 {
 	RectTransformManipulator *cage = (RectTransformManipulator *)manipulator;
 
-	if (slot == RECT_TRANSFORM_SLOT_OFFSET)
-		manipulator_rect_transform_get_prop_value(manipulator, RECT_TRANSFORM_SLOT_OFFSET, manipulator->offset);
-	if (slot == RECT_TRANSFORM_SLOT_SCALE)
-		manipulator_rect_transform_get_prop_value(manipulator, RECT_TRANSFORM_SLOT_SCALE, cage->scale);
+	if (slot == ED_MANIPULATOR_RECT_TX_SLOT_OFFSET)
+		manipulator_rect_transform_get_prop_value(manipulator, ED_MANIPULATOR_RECT_TX_SLOT_OFFSET, manipulator->offset);
+	if (slot == ED_MANIPULATOR_RECT_TX_SLOT_SCALE)
+		manipulator_rect_transform_get_prop_value(manipulator, ED_MANIPULATOR_RECT_TX_SLOT_SCALE, cage->scale);
 }
 
 static void manipulator_rect_transform_exit(bContext *C, wmManipulator *manipulator, const bool cancel)
@@ -524,18 +525,18 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *manipula
 		return;
 
 	/* reset properties */
-	if (manipulator->props[RECT_TRANSFORM_SLOT_OFFSET]) {
-		PointerRNA ptr = manipulator->ptr[RECT_TRANSFORM_SLOT_OFFSET];
-		PropertyRNA *prop = manipulator->props[RECT_TRANSFORM_SLOT_OFFSET];
+	if (manipulator->props[ED_MANIPULATOR_RECT_TX_SLOT_OFFSET]) {
+		PointerRNA ptr = manipulator->ptr[ED_MANIPULATOR_RECT_TX_SLOT_OFFSET];
+		PropertyRNA *prop = manipulator->props[ED_MANIPULATOR_RECT_TX_SLOT_OFFSET];
 
 		RNA_property_float_set_array(&ptr, prop, data->orig_offset);
 		RNA_property_update(C, &ptr, prop);
 	}
-	if (manipulator->props[RECT_TRANSFORM_SLOT_SCALE]) {
-		PointerRNA ptr = manipulator->ptr[RECT_TRANSFORM_SLOT_SCALE];
-		PropertyRNA *prop = manipulator->props[RECT_TRANSFORM_SLOT_SCALE];
+	if (manipulator->props[ED_MANIPULATOR_RECT_TX_SLOT_SCALE]) {
+		PointerRNA ptr = manipulator->ptr[ED_MANIPULATOR_RECT_TX_SLOT_SCALE];
+		PropertyRNA *prop = manipulator->props[ED_MANIPULATOR_RECT_TX_SLOT_SCALE];
 
-		if (cage->style & MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
+		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 			RNA_property_float_set(&ptr, prop, data->orig_scale[0]);
 		}
 		else {
@@ -551,7 +552,7 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *manipula
  *
  * \{ */
 
-wmManipulator *MANIPULATOR_rect_transform_new(wmManipulatorGroup *mgroup, const char *name, const int style)
+wmManipulator *ED_manipulator_rect_transform_new(wmManipulatorGroup *mgroup, const char *name, const int style)
 {
 	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_cage", false);
 	RectTransformManipulator *cage = (RectTransformManipulator *)WM_manipulator_new(mpt, mgroup, name);
@@ -563,7 +564,7 @@ wmManipulator *MANIPULATOR_rect_transform_new(wmManipulatorGroup *mgroup, const 
 	return &cage->manipulator;
 }
 
-void MANIPULATOR_rect_transform_set_dimensions(wmManipulator *manipulator, const float width, const float height)
+void ED_manipulator_rect_transform_set_dimensions(wmManipulator *manipulator, const float width, const float height)
 {
 	RectTransformManipulator *cage = (RectTransformManipulator *)manipulator;
 	cage->w = width;
@@ -589,17 +590,9 @@ static void MANIPULATOR_WT_cage(wmManipulatorType *wt)
 	wt->size = sizeof(RectTransformManipulator);
 }
 
-void ED_manipulatortypes_cage(void)
+void ED_manipulatortypes_cage_2d(void)
 {
 	WM_manipulatortype_append(MANIPULATOR_WT_cage);
 }
 
 /** \} */ // Cage Manipulator API
-
-
-/* -------------------------------------------------------------------- */
-
-void fix_linking_manipulator_cage(void)
-{
-	(void)0;
-}

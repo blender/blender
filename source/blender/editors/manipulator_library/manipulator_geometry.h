@@ -21,7 +21,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/manipulator_library/manipulator_geometry.h
+/** \file manipulator_geometry.h
  *  \ingroup wm
  *
  * \name Manipulator Geometry

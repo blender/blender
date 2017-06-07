@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/manipulator_library/geom_cube_manipulator.c
+/** \file geom_cube_manipulator.c
  *  \ingroup wm
  */
 

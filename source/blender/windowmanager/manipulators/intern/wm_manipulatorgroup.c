@@ -240,7 +240,7 @@ static int manipulator_select_invoke(bContext *C, wmOperator *op, const wmEvent 
 	}
 
 	if (highlighted) {
-		const bool is_selected = (highlighted->state & WM_MANIPULATOR_SELECTED);
+		const bool is_selected = (highlighted->state & WM_MANIPULATOR_STATE_SELECT);
 		bool redraw = false;
 
 		if (toggle) {

@@ -21,7 +21,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/manipulator_library/geom_dial_manipulator.c
+/** \file geom_dial_manipulator.c
  *  \ingroup wm
  */
 
