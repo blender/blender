@@ -1314,7 +1314,8 @@ static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulato
 
 		float col[4], col_hi[4];
 		manipulator_get_axis_color(axis_idx, idot, col, col_hi);
-		WM_manipulator_set_colors(axis, col, col_hi);
+		WM_manipulator_set_color(axis, col);
+		WM_manipulator_set_color_highlight(axis, col_hi);
 
 		switch (axis_idx) {
 			case MAN_AXIS_TRANS_C:

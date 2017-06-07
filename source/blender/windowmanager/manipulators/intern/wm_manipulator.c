@@ -316,11 +316,25 @@ void WM_manipulator_set_line_width(wmManipulator *manipulator, const float line_
  * \param col  Normal state color.
  * \param col_hi  Highlighted state color.
  */
-void WM_manipulator_set_colors(wmManipulator *manipulator, const float col[4], const float col_hi[4])
+void WM_manipulator_get_color(const wmManipulator *manipulator, float col[4])
+{
+	copy_v4_v4(col, manipulator->col);
+}
+void WM_manipulator_set_color(wmManipulator *manipulator, const float col[4])
 {
 	copy_v4_v4(manipulator->col, col);
+}
+
+void WM_manipulator_get_color_highlight(const wmManipulator *manipulator, float col_hi[4])
+{
+	copy_v4_v4(col_hi, manipulator->col_hi);
+}
+void WM_manipulator_set_color_highlight(wmManipulator *manipulator, const float col_hi[4])
+{
 	copy_v4_v4(manipulator->col_hi, col_hi);
 }
+
+
 /** \} */ // Manipulator Creation API
 
 

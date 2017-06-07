@@ -78,8 +78,11 @@ void WM_manipulator_set_offset(struct wmManipulator *manipulator, const float of
 void WM_manipulator_set_flag(struct wmManipulator *manipulator, const int flag, const bool enable);
 void WM_manipulator_set_scale(struct wmManipulator *manipulator, float scale);
 void WM_manipulator_set_line_width(struct wmManipulator *manipulator, const float line_width);
-void WM_manipulator_set_colors(struct wmManipulator *manipulator, const float col[4], const float col_hi[4]);
 
+void WM_manipulator_get_color(const struct wmManipulator *manipulator, float col[4]);
+void WM_manipulator_set_color(struct wmManipulator *manipulator, const float col[4]);
+void WM_manipulator_get_color_highlight(const struct wmManipulator *manipulator, float col_hi[4]);
+void WM_manipulator_set_color_highlight(struct wmManipulator *manipulator, const float col[4]);
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorGroup */
