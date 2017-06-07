@@ -33,6 +33,7 @@
  *  \author nzc
  */
 
+struct bPose;
 struct Bone;
 struct GHash;
 struct Main;

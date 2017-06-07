@@ -739,6 +739,9 @@ static void view3d_widgets(void)
 	wmManipulatorMapType *wmaptype = WM_manipulatormaptype_ensure(&wmap_params);
 
 	WM_manipulatorgrouptype_append(wmaptype, TRANSFORM_WGT_manipulator);
+	WM_manipulatorgrouptype_append(wmaptype, VIEW3D_WGT_lamp);
+	WM_manipulatorgrouptype_append(wmaptype, VIEW3D_WGT_force_field);
+	WM_manipulatorgrouptype_append(wmaptype, VIEW3D_WGT_camera);
 }
 
 
