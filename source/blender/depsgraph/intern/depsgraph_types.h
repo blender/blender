@@ -141,8 +141,6 @@ typedef enum eDepsOperation_Code {
 	// XXX: Placeholder while porting depsgraph code
 	DEG_OPCODE_PLACEHOLDER,
 
-	DEG_OPCODE_NOOP,
-
 	/* Animation, Drivers, etc. ------------------------ */
 
 	/* NLA + Action */
@@ -150,9 +148,6 @@ typedef enum eDepsOperation_Code {
 
 	/* Driver */
 	DEG_OPCODE_DRIVER,
-
-	/* Proxy Inherit? */
-	//DEG_OPCODE_PROXY,
 
 	/* Transform --------------------------------------- */
 
