@@ -338,11 +338,27 @@ void GPENCIL_OT_duplicate(wmOperatorType *ot)
 /* NOTE: is exposed within the editors/gpencil module so that other tools can use it too */
 ListBase gp_strokes_copypastebuf = {NULL, NULL};
 
+/* Hash for hanging on to all the palette colors used by strokes in the buffer
+ *
+ * This is needed to prevent dangling and unsafe pointers when pasting across datablocks,
+ * or after a color used by a stroke in the buffer gets deleted (via user action or undo).
+ */
+GHash *gp_strokes_copypastebuf_colors = NULL;
+
 /* Free copy/paste buffer data */
 void ED_gpencil_strokes_copybuf_free(void)
 {
 	bGPDstroke *gps, *gpsn;
 	
+	/* Free the palettes buffer
+	 * NOTE: This is done before the strokes so that the name ptrs (keys) are still safe
+	 */
+	if (gp_strokes_copypastebuf_colors) {
+		BLI_ghash_free(gp_strokes_copypastebuf_colors, NULL, MEM_freeN);
+		gp_strokes_copypastebuf_colors = NULL;
+	}
+	
+	/* Free the stroke buffer */
 	for (gps = gp_strokes_copypastebuf.first; gps; gps = gpsn) {
 		gpsn = gps->next;
 		
@@ -416,6 +432,22 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
+	/* Build up hash of colors used in these strokes, making copies of these to protect against dangling pointers */
+	if (gp_strokes_copypastebuf.first) {
+		gp_strokes_copypastebuf_colors = BLI_ghash_str_new("GPencil CopyBuf Colors");
+		
+		for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+			if (ED_gpencil_stroke_can_use(C, gps)) {
+				if (BLI_ghash_haskey(gp_strokes_copypastebuf_colors, gps->colorname) == false) {
+					bGPDpalettecolor *color = MEM_dupallocN(gps->palcolor);
+					
+					BLI_ghash_insert(gp_strokes_copypastebuf_colors, gps->colorname, color);
+					gps->palcolor = color;
+				}
+			}
+		}
+	}
+	
 	/* updates (to ensure operator buttons are refreshed, when used via hotkeys) */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL); // XXX?
 	
@@ -464,6 +496,8 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	bGPDpalette *palette = CTX_data_active_gpencil_palette(C);
 	bGPDframe *gpf;
 	
+	GHash *new_colors;
+	GHashIterator gh_iter;
 	eGP_PasteMode type = RNA_enum_get(op->ptr, "type");
 	
 	/* check for various error conditions */
@@ -523,25 +557,14 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	
-	/* First Pass Over Buffer: Identifiy the colors needed */
-	GHash *src_colors = BLI_ghash_str_new("GPencil Paste Src Colors");
-	GHash *dst_colors = BLI_ghash_str_new("GPencil Paste Dst Colors");
-	GHashIterator gh_iter;
-	
-	for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
-		if (ED_gpencil_stroke_can_use(C, gps)) {
-			if (BLI_ghash_haskey(src_colors, gps->colorname) == false) {
-				BLI_ghash_insert(src_colors, gps->colorname, gps->palcolor);
-			}
-		}
-	}
-	
 	/* Ensure that all the necessary colors exist */
+	// TODO: Split this out into a helper function
 	if (palette == NULL) {
 		palette = BKE_gpencil_palette_addnew(gpd, "Pasted Palette", true);
 	}
+	new_colors = BLI_ghash_str_new("GPencil Paste Dst Colors");
 	
-	GHASH_ITER(gh_iter, src_colors) {
+	GHASH_ITER(gh_iter, gp_strokes_copypastebuf_colors) {
 		bGPDpalettecolor *palcolor;
 		char *name = BLI_ghashIterator_getKey(&gh_iter);
 		
@@ -560,10 +583,10 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 		}
 		
 		/* Store this mapping (for use later when pasting) */
-		BLI_ghash_insert(dst_colors, name, palcolor);
+		BLI_ghash_insert(new_colors, name, palcolor);
 	}
 	
-	/* Second Pass Over Buffer: Actually copy over the strokes (and adjust the colors) */
+	/* Copy over the strokes from the buffer (and adjust the colors) */
 	for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
 		if (ED_gpencil_stroke_can_use(C, gps)) {
 			/* Need to verify if layer exists */
@@ -596,7 +619,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 				
 				/* Fix color references */
 				BLI_assert(new_stroke->colorname[0] != '\0');
-				new_stroke->palcolor = BLI_ghash_lookup(dst_colors, new_stroke->colorname);
+				new_stroke->palcolor = BLI_ghash_lookup(new_colors, new_stroke->colorname);
 				
 				BLI_assert(new_stroke->palcolor != NULL);
 				BLI_strncpy(new_stroke->colorname, new_stroke->palcolor->info, sizeof(new_stroke->colorname));
@@ -606,9 +629,8 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* free temp data*/
-	BLI_ghash_free(src_colors, NULL, NULL);
-	BLI_ghash_free(dst_colors, NULL, NULL);
+	/* free temp data */
+	BLI_ghash_free(new_colors, NULL, NULL);
 	
 	/* updates */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
