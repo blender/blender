@@ -45,6 +45,13 @@
 
 #else
 
+static EnumPropertyItem probe_type_items[] = {
+	{PROBE_CAPTURE, "CAPTURE", ICON_NONE, "Capture", ""},
+	{PROBE_PLANAR, "PLANAR", ICON_NONE, "Planar", ""},
+	{PROBE_CUSTOM, "CUSTOM", ICON_NONE, "Custom", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static void rna_def_probe(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -54,12 +61,21 @@ static void rna_def_probe(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Probe", "Probe data-block for lighting capture objects");
 	RNA_def_struct_ui_icon(srna, ICON_RADIO);
 
-	// prop = RNA_def_property(srna, "influence", PROP_FLOAT, PROP_NONE);
-	// RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	// RNA_def_property_range(prop, 0.0f, 1.0f);
-	// RNA_def_property_ui_text(prop, "Maximum Volume", "Maximum volume, no matter how near the object is");
-	/* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_volume_max_set", NULL); */
-	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, probe_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Type of probe");
+	RNA_def_property_update(prop, 0, NULL); /* TODO */
+
+	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "dist");
+	RNA_def_property_range(prop, 0.0f, 99999.0f);
+	RNA_def_property_ui_text(prop, "Distance", "All surface within this distance will recieve the probe lighting");
+	RNA_def_property_update(prop, 0, NULL); /* TODO */
+
+	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Falloff", "Control how fast the probe intensity decreases");
+	RNA_def_property_update(prop, 0, NULL); /* TODO */
 
 	/* common */
 	rna_def_animdata_common(srna);

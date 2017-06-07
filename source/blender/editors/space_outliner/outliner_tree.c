@@ -46,6 +46,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_probe_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
@@ -728,6 +729,14 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 
 			if (outliner_animdata_test(spk->adt))
 				outliner_add_element(soops, &te->subtree, spk, te, TSE_ANIM_DATA, 0);
+			break;
+		}
+		case ID_PRB:
+		{
+			Probe *prb = (Probe *)id;
+
+			if (outliner_animdata_test(prb->adt))
+				outliner_add_element(soops, &te->subtree, prb, te, TSE_ANIM_DATA, 0);
 			break;
 		}
 		case ID_WO:

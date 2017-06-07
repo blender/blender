@@ -52,6 +52,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_force.h"
+#include "DNA_probe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sensor_types.h"
@@ -771,6 +772,13 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				break;
 			}
 
+			case ID_PRB:
+			{
+				Probe *probe = (Probe *) id;
+				CALLBACK_INVOKE(probe->image, IDWALK_CB_USER);
+				break;
+			}
+
 			case ID_GR:
 			{
 				Group *group = (Group *) id;
@@ -1134,6 +1142,8 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 			return ELEM(id_type_used, ID_MC);  /* WARNING! mask->parent.id, not typed. */
 		case ID_LS:
 			return (ELEM(id_type_used, ID_TE, ID_OB));
+		case ID_PRB:
+			return ELEM(id_type_used, ID_IM);
 		case ID_WS:
 		case ID_IM:
 		case ID_VF:

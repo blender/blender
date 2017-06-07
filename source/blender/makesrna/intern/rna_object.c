@@ -419,6 +419,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
 		case OB_LATTICE: return &RNA_Lattice;
 		case OB_ARMATURE: return &RNA_Armature;
 		case OB_SPEAKER: return &RNA_Speaker;
+		case OB_PROBE: return &RNA_Probe;
 		default: return &RNA_ID;
 	}
 }
