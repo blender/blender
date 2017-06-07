@@ -753,17 +753,8 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 
 	// TODO: "Done" operation
 
-	/* Modifiers */
+	/* Cloyth modifier. */
 	LINKLIST_FOREACH (ModifierData *, md, &ob->modifiers) {
-		add_operation_node(&ob->id,
-		                   DEG_NODE_TYPE_GEOMETRY,
-		                   function_bind(BKE_object_eval_modifier,
-		                                 _1,
-		                                 scene,
-		                                 ob,
-		                                 md),
-		                   DEG_OPCODE_GEOMETRY_MODIFIER,
-		                   md->name);
 		if (md->type == eModifierType_Cloth) {
 			build_cloth(scene, ob);
 		}

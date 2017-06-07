@@ -143,8 +143,6 @@ typedef enum eDepsOperation_Code {
 	// XXX: Placeholder while porting depsgraph code
 	DEG_OPCODE_PLACEHOLDER,
 
-	DEG_OPCODE_NOOP,
-
 	/* Animation, Drivers, etc. ------------------------ */
 
 	/* NLA + Action */
@@ -152,9 +150,6 @@ typedef enum eDepsOperation_Code {
 
 	/* Driver */
 	DEG_OPCODE_DRIVER,
-
-	/* Proxy Inherit? */
-	//DEG_OPCODE_PROXY,
 
 	/* Transform --------------------------------------- */
 
@@ -166,9 +161,6 @@ typedef enum eDepsOperation_Code {
 
 	/* Constraints */
 	DEG_OPCODE_TRANSFORM_CONSTRAINTS,
-	//DEG_OPCODE_TRANSFORM_CONSTRAINTS_INIT,
-	//DEG_OPCODE_TRANSFORM_CONSTRAINT,
-	//DEG_OPCODE_TRANSFORM_CONSTRAINTS_DONE,
 
 	/* Rigidbody Sim - Perform Sim */
 	DEG_OPCODE_RIGIDBODY_REBUILD,
@@ -187,9 +179,6 @@ typedef enum eDepsOperation_Code {
 
 	/* XXX: Placeholder - UberEval */
 	DEG_OPCODE_GEOMETRY_UBEREVAL,
-
-	/* Modifier */
-	DEG_OPCODE_GEOMETRY_MODIFIER,
 
 	/* Curve Objects - Path Calculation (used for path-following tools, */
 	DEG_OPCODE_GEOMETRY_PATH,
@@ -216,9 +205,6 @@ typedef enum eDepsOperation_Code {
 
 	/* Constraints */
 	DEG_OPCODE_BONE_CONSTRAINTS,
-	//DEG_OPCODE_BONE_CONSTRAINTS_INIT,
-	//DEG_OPCODE_BONE_CONSTRAINT,
-	//DEG_OPCODE_BONE_CONSTRAINTS_DONE,
 
 	/* Bone transforms are ready
 	 *
