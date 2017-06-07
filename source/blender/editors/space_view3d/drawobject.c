@@ -1727,7 +1727,7 @@ static void draw_viewport_object_reconstruction(
 			continue;
 
 		if (dflag & DRAW_PICKING)
-			GPU_select_load_id(base->selcol + (tracknr << 16));
+			GPU_select_load_id(base->object->select_color + (tracknr << 16));
 
 		gpuPushMatrix();
 		gpuTranslate3fv(track->bundle_pos);
@@ -1889,7 +1889,7 @@ static void draw_viewport_reconstruction(
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 
 	if (dflag & DRAW_PICKING)
-		GPU_select_load_id(base->selcol);
+		GPU_select_load_id(base->object->select_color);
 }
 
 /* camera frame */

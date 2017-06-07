@@ -81,12 +81,12 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* scene objects */
-	int selection_color = 1;
+	int select_color = 1;
 	for (SceneLayer *sl = (SceneLayer *)scene->render_layers.first; sl; sl = sl->next) {
 		for (Base *base = (Base *)sl->object_bases.first; base; base = base->next) {
 			/* object itself */
 			build_object(scene, base->object);
-			base->selcol = selection_color++;
+			base->object->select_color = select_color++;
 		}
 	}
 

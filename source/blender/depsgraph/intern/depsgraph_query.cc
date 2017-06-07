@@ -135,7 +135,6 @@ static void deg_flush_base_flags_and_settings(Object *ob, Base *base, const int 
 {
 	ob->base_flag = (base->flag | BASE_FLUSH_FLAGS) & flag;
 	ob->base_collection_properties = base->collection_properties;
-	ob->base_selection_color = base->selcol;
 }
 
 static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)

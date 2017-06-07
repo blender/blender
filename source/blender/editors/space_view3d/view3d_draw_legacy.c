@@ -914,7 +914,7 @@ static void view3d_draw_xray_select(Scene *scene, SceneLayer *sl, ARegion *ar, V
 
 	v3d->xray = true;
 	while ((v3da = BLI_pophead(&v3d->afterdraw_xray))) {
-		if (GPU_select_load_id(v3da->base->selcol)) {
+		if (GPU_select_load_id(v3da->base->object->select_color)) {
 			draw_object_select(scene, sl, ar, v3d, v3da->base, v3da->dflag);
 		}
 		MEM_freeN(v3da);
@@ -1301,10 +1301,10 @@ void ED_view3d_draw_select_loop(
 				if (((base->flag & BASE_SELECTABLED) == 0) ||
 				    (use_obedit_skip && (scene->obedit->data == base->object->data)))
 				{
-					base->selcol = 0;
+					base->object->select_color = 0;
 				}
 				else {
-					base->selcol = code;
+					base->object->select_color = code;
 
 					if (use_nearest && (base->object->dtx & OB_DRAWXRAY)) {
 						ED_view3d_after_add(&v3d->afterdraw_xray, base, dflag);

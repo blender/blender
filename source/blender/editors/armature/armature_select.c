@@ -98,7 +98,7 @@ void *get_bone_from_selectbuffer(
 				/* Determine what the current bone is */
 				if (obedit == NULL || base->object != obedit) {
 					/* no singular posemode, so check for correct object */
-					if (base->selcol == (hitresult & 0xFFFF)) {
+					if (base->object->select_color == (hitresult & 0xFFFF)) {
 						bone = get_indexed_bone(base->object, hitresult);
 						
 						if (findunsel)

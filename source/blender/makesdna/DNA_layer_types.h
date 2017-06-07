@@ -39,10 +39,8 @@ typedef struct Base {
 	short refcount;
 	short sx, sy;
 	struct Object *object;
-	unsigned int selcol;
 	unsigned int lay;
 	int flag_legacy;
-	int pad;
 	struct IDProperty *collection_properties; /* used by depsgraph, flushed from collection-tree */
 } Base;
 

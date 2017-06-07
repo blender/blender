@@ -325,7 +325,7 @@ typedef struct Object {
 
 	ListBase drawdata;		/* runtime, ObjectEngineData */
 	int deg_update_flag; /* what has been updated in this object */
-	int base_selection_color; /* flushed by depsgraph only */
+	int select_color;
 	int pad3[2];
 } Object;
 
