@@ -62,6 +62,9 @@ typedef struct Probe {
 
 	struct Object *parallax_ob;    /* Object to use as a parallax origin */
 	struct Image *image;           /* Image to use on as lighting data */
+
+	/* Runtime display data */
+	float distfalloff, pad;
 } Probe;
 
 /* Probe->type */

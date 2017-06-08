@@ -220,7 +220,7 @@ static VertexBuffer *fill_arrows_vbo(const float scale)
 
 static VertexBuffer *sphere_wire_vbo(const float rad)
 {
-#define NSEGMENTS 16
+#define NSEGMENTS 32
 	/* Position Only 3D format */
 	static VertexFormat format = { 0 };
 	static struct { uint pos; } attr_id;

@@ -32,6 +32,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force.h"
+#include "DNA_probe_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -1410,9 +1411,21 @@ static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, SceneLayer 
 static void DRW_shgroup_probe(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl)
 {
 	float *color;
+	Probe *prb = (Probe *)ob->data;
 	DRW_object_wire_theme_get(ob, sl, &color);
 
+	prb->distfalloff = (1.0f - prb->falloff) * prb->distinf;
+
 	DRW_shgroup_call_dynamic_add(stl->g_data->probe, ob->obmat[3], color);
+
+	DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distinf, ob->obmat);
+	DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distfalloff, ob->obmat);
+
+	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_center_group, ob->obmat[3]);
+
+	/* Line and point going to the ground */
+	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_groundline, ob->obmat[3]);
+	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_groundpoint, ob->obmat[3]);
 }
 
 static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)

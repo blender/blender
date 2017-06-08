@@ -62,12 +62,17 @@ class DATA_PT_probe(DataButtonsPanel, Panel):
 
         layout.prop(probe, "type", expand=True)
 
-        layout.prop(probe, "influence_distance")
-        layout.prop(probe, "clip_start")
-        layout.prop(probe, "clip_end")
-        # layout.prop(probe, "influence_minimum")
-        # layout.prop(probe, "influence_maximum")
-        layout.prop(probe, "falloff")
+        split = layout.split()
+
+        col = split.column(align=True)
+        col.label("Influence:")
+        col.prop(probe, "influence_distance", text="Distance")
+        col.prop(probe, "falloff")
+
+        col = split.column(align=True)
+        col.label("Clipping:")
+        col.prop(probe, "clip_start", text="Start")
+        col.prop(probe, "clip_end", text="End")
 
 
 classes = (
