@@ -1063,7 +1063,7 @@ string OpenCLInfo::get_readable_device_name(cl_device_id device_id)
 	                   CL_DEVICE_BOARD_NAME_AMD,
 	                   sizeof(board_name),
 	                   &board_name,
-					   &length) == CL_SUCCESS)
+	                   &length) == CL_SUCCESS)
 	{
 		if(length != 0 && board_name[0] != '\0') {
 			return board_name;
