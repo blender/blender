@@ -335,6 +335,8 @@ bool DRW_viewport_is_persp_get(void);
 struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);
 struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 
+void DRW_viewport_request_redraw(void);
+
 /* SceneLayers */
 void **DRW_scene_layer_engine_data_get(DrawEngineType *engine_type, void (*callback)(void *storage));
 

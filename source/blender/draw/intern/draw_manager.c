@@ -75,13 +75,15 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "draw_manager_text.h"
 
 /* only for callbacks */
 #include "draw_cache_impl.h"
 
 #include "draw_mode_engines.h"
-
 #include "engines/clay/clay_engine.h"
 #include "engines/eevee/eevee_engine.h"
 #include "engines/basic/basic_engine.h"
@@ -2289,6 +2291,12 @@ DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void)
 DefaultTextureList *DRW_viewport_texture_list_get(void)
 {
 	return GPU_viewport_texture_list_get(DST.viewport);
+}
+
+void DRW_viewport_request_redraw(void)
+{
+	/* XXXXXXXXXXX HAAAAAAAACKKKK */
+	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, NULL);
 }
 
 /** \} */
