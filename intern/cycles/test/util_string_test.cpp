@@ -245,4 +245,41 @@ TEST(util_string_remove_trademark, both)
 	EXPECT_EQ(str, "foo bar zzz");
 }
 
+TEST(util_string_remove_trademark, both_space)
+{
+	string str = string_remove_trademark("foo bar(TM) (R) zzz");
+	EXPECT_EQ(str, "foo bar zzz");
+}
+
+TEST(util_string_remove_trademark, both_space_around)
+{
+	string str = string_remove_trademark("foo bar (TM) (R) zzz");
+	EXPECT_EQ(str, "foo bar zzz");
+}
+
+TEST(util_string_remove_trademark, trademark_space_suffix)
+{
+	string str = string_remove_trademark("foo bar (TM)");
+	EXPECT_EQ(str, "foo bar");
+}
+
+TEST(util_string_remove_trademark, trademark_space_middle)
+{
+	string str = string_remove_trademark("foo bar (TM) baz");
+	EXPECT_EQ(str, "foo bar baz");
+}
+
+
+TEST(util_string_remove_trademark, r_space_suffix)
+{
+	string str = string_remove_trademark("foo bar (R)");
+	EXPECT_EQ(str, "foo bar");
+}
+
+TEST(util_string_remove_trademark, r_space_middle)
+{
+	string str = string_remove_trademark("foo bar (R) baz");
+	EXPECT_EQ(str, "foo bar baz");
+}
+
 CCL_NAMESPACE_END
