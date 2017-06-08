@@ -33,6 +33,8 @@
 #ifndef __DEG_DEPSGRAPH_QUERY_H__
 #define __DEG_DEPSGRAPH_QUERY_H__
 
+#include "DEG_depsgraph.h"
+
 struct ID;
 
 struct Base;
@@ -74,7 +76,7 @@ enum {
 typedef struct DEGObjectsIteratorData {
 	struct Depsgraph *graph;
 	struct Scene *scene;
-	struct EvaluationContext *eval_ctx;
+	struct EvaluationContext eval_ctx;
 
 	/* TODO(sergey): Base should never be a thing coming FROM depsgraph. */
 	struct Base *base;

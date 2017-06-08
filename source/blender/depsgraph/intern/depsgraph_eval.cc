@@ -61,7 +61,7 @@ EvaluationContext *DEG_evaluation_context_new(int mode)
 	EvaluationContext *eval_ctx =
 		(EvaluationContext *)MEM_callocN(sizeof(EvaluationContext),
 		                                 "EvaluationContext");
-	eval_ctx->mode = mode;
+	DEG_evaluation_context_init(eval_ctx, mode);
 	return eval_ctx;
 }
 
