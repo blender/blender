@@ -533,7 +533,6 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C); /* only use active for copy merge */
-	bGPDpalette *palette = CTX_data_active_gpencil_palette(C);
 	bGPDframe *gpf;
 	
 	eGP_PasteMode type = RNA_enum_get(op->ptr, "type");

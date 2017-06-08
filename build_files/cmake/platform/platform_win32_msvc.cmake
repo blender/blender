@@ -452,20 +452,21 @@ if(WITH_MOD_CLOTH_ELTOPO)
 endif()
 
 if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
-    set(OPENSUBDIV_INCLUDE_DIR ${LIBDIR}/opensubdiv/include)
-    set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
-    set(OPENSUBDIV_LIBRARIES    optimized ${OPENSUBDIV_LIBPATH}/osdCPU.lib 
-                                optimized ${OPENSUBDIV_LIBPATH}/osdGPU.lib
-                                debug ${OPENSUBDIV_LIBPATH}/osdCPU_d.lib 
-                                debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
-                                )
-    set(OPENSUBDIV_HAS_OPENMP TRUE)
+	set(OPENSUBDIV_INCLUDE_DIR ${LIBDIR}/opensubdiv/include)
+	set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
+	set(OPENSUBDIV_LIBRARIES
+		optimized ${OPENSUBDIV_LIBPATH}/osdCPU.lib
+		optimized ${OPENSUBDIV_LIBPATH}/osdGPU.lib
+		debug ${OPENSUBDIV_LIBPATH}/osdCPU_d.lib
+		debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
+	)
+	set(OPENSUBDIV_HAS_OPENMP TRUE)
 	set(OPENSUBDIV_HAS_TBB FALSE)
 	set(OPENSUBDIV_HAS_OPENCL TRUE)
 	set(OPENSUBDIV_HAS_CUDA FALSE)
 	set(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK TRUE)
 	set(OPENSUBDIV_HAS_GLSL_COMPUTE TRUE)
-    windows_find_package(OpenSubdiv)
+	windows_find_package(OpenSubdiv)
 endif()
 
 if(WITH_SDL)
@@ -488,14 +489,14 @@ endif()
 # used in many places so include globally, like OpenGL
 blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
 
-#find signtool  
-SET(ProgramFilesX86_NAME "ProgramFiles(x86)") #env dislikes the ( ) 
+#find signtool
+set(ProgramFilesX86_NAME "ProgramFiles(x86)") #env dislikes the ( )
 find_program(SIGNTOOL_EXE signtool
-HINTS
-  "$ENV{${ProgramFilesX86_NAME}}/Windows Kits/10/bin/x86/"
-  "$ENV{ProgramFiles}/Windows Kits/10/bin/x86/"
-  "$ENV{${ProgramFilesX86_NAME}}/Windows Kits/8.1/bin/x86/"
-  "$ENV{ProgramFiles}/Windows Kits/8.1/bin/x86/"
-  "$ENV{${ProgramFilesX86_NAME}}/Windows Kits/8.0/bin/x86/"
-  "$ENV{ProgramFiles}/Windows Kits/8.0/bin/x86/"
+	HINTS
+		"$ENV{${ProgramFilesX86_NAME}}/Windows Kits/10/bin/x86/"
+		"$ENV{ProgramFiles}/Windows Kits/10/bin/x86/"
+		"$ENV{${ProgramFilesX86_NAME}}/Windows Kits/8.1/bin/x86/"
+		"$ENV{ProgramFiles}/Windows Kits/8.1/bin/x86/"
+		"$ENV{${ProgramFilesX86_NAME}}/Windows Kits/8.0/bin/x86/"
+		"$ENV{ProgramFiles}/Windows Kits/8.0/bin/x86/"
 )
