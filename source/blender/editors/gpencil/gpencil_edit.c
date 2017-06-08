@@ -38,8 +38,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
+#include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -335,11 +338,27 @@ void GPENCIL_OT_duplicate(wmOperatorType *ot)
 /* NOTE: is exposed within the editors/gpencil module so that other tools can use it too */
 ListBase gp_strokes_copypastebuf = {NULL, NULL};
 
+/* Hash for hanging on to all the palette colors used by strokes in the buffer
+ *
+ * This is needed to prevent dangling and unsafe pointers when pasting across datablocks,
+ * or after a color used by a stroke in the buffer gets deleted (via user action or undo).
+ */
+GHash *gp_strokes_copypastebuf_colors = NULL;
+
 /* Free copy/paste buffer data */
 void ED_gpencil_strokes_copybuf_free(void)
 {
 	bGPDstroke *gps, *gpsn;
 	
+	/* Free the palettes buffer
+	 * NOTE: This is done before the strokes so that the name ptrs (keys) are still safe
+	 */
+	if (gp_strokes_copypastebuf_colors) {
+		BLI_ghash_free(gp_strokes_copypastebuf_colors, NULL, MEM_freeN);
+		gp_strokes_copypastebuf_colors = NULL;
+	}
+	
+	/* Free the stroke buffer */
 	for (gps = gp_strokes_copypastebuf.first; gps; gps = gpsn) {
 		gpsn = gps->next;
 		
@@ -350,6 +369,46 @@ void ED_gpencil_strokes_copybuf_free(void)
 	}
 	
 	gp_strokes_copypastebuf.first = gp_strokes_copypastebuf.last = NULL;
+}
+
+/* Ensure that destination datablock has all the colours the pasted strokes need
+ * Helper function for copy-pasting strokes
+ */
+GHash *gp_copybuf_validate_colormap(bGPdata *gpd)
+{
+	GHash *new_colors = BLI_ghash_str_new("GPencil Paste Dst Colors");
+	GHashIterator gh_iter;
+	
+	/* If there's no active palette yet (i.e. new datablock), add one */
+	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
+	if (palette == NULL) {
+		palette = BKE_gpencil_palette_addnew(gpd, "Pasted Palette", true);
+	}
+	
+	/* For each color, figure out what to map to... */
+	GHASH_ITER(gh_iter, gp_strokes_copypastebuf_colors) {
+		bGPDpalettecolor *palcolor;
+		char *name = BLI_ghashIterator_getKey(&gh_iter);
+		
+		/* Look for existing color to map to */
+		/* XXX: What to do if same name but different color? Behaviour here should depend on a property? */
+		palcolor = BKE_gpencil_palettecolor_getbyname(palette, name);
+		if (palcolor == NULL) {
+			/* Doesn't Exist - Create new matching color for this palette */
+			/* XXX: This still doesn't fix the pasting across file boundaries problem... */
+			bGPDpalettecolor *src_color = BLI_ghashIterator_getValue(&gh_iter);
+			
+			palcolor = MEM_dupallocN(src_color);
+			BLI_addtail(&palette->colors, palcolor);
+			
+			BLI_uniquename(&palette->colors, palcolor, DATA_("GP Color"), '.', offsetof(bGPDpalettecolor, info), sizeof(palcolor->info));
+		}
+		
+		/* Store this mapping (for use later when pasting) */
+		BLI_ghash_insert(new_colors, name, palcolor);
+	}
+	
+	return new_colors;
 }
 
 /* --------------------- */
@@ -413,7 +472,26 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	/* done - no updates needed */
+	/* Build up hash of colors used in these strokes, making copies of these to protect against dangling pointers */
+	if (gp_strokes_copypastebuf.first) {
+		gp_strokes_copypastebuf_colors = BLI_ghash_str_new("GPencil CopyBuf Colors");
+		
+		for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+			if (ED_gpencil_stroke_can_use(C, gps)) {
+				if (BLI_ghash_haskey(gp_strokes_copypastebuf_colors, gps->colorname) == false) {
+					bGPDpalettecolor *color = MEM_dupallocN(gps->palcolor);
+					
+					BLI_ghash_insert(gp_strokes_copypastebuf_colors, gps->colorname, color);
+					gps->palcolor = color;
+				}
+			}
+		}
+	}
+	
+	/* updates (to ensure operator buttons are refreshed, when used via hotkeys) */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL); // XXX?
+	
+	/* done */
 	return OPERATOR_FINISHED;
 }
 
@@ -458,6 +536,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	bGPDframe *gpf;
 	
 	eGP_PasteMode type = RNA_enum_get(op->ptr, "type");
+	GHash *new_colors;
 	
 	/* check for various error conditions */
 	if (gpd == NULL) {
@@ -515,6 +594,10 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
+	/* Ensure that all the necessary colors exist */
+	new_colors = gp_copybuf_validate_colormap(gpd);
+		
+	/* Copy over the strokes from the buffer (and adjust the colors) */
 	for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
 		if (ED_gpencil_stroke_can_use(C, gps)) {
 			/* Need to verify if layer exists */
@@ -533,6 +616,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 			 */
 			gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
 			if (gpf) {
+				/* Create new stroke */
 				bGPDstroke *new_stroke = MEM_dupallocN(gps);
 				new_stroke->tmp_layerinfo[0] = '\0';
 				
@@ -543,9 +627,21 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 				
 				new_stroke->next = new_stroke->prev = NULL;
 				BLI_addtail(&gpf->strokes, new_stroke);
+				
+				/* Fix color references */
+				BLI_assert(new_stroke->colorname[0] != '\0');
+				new_stroke->palcolor = BLI_ghash_lookup(new_colors, new_stroke->colorname);
+				
+				BLI_assert(new_stroke->palcolor != NULL);
+				BLI_strncpy(new_stroke->colorname, new_stroke->palcolor->info, sizeof(new_stroke->colorname));
+				
+				/*new_stroke->flag |= GP_STROKE_RECALC_COLOR; */
 			}
 		}
 	}
+	
+	/* free temp data */
+	BLI_ghash_free(new_colors, NULL, NULL);
 	
 	/* updates */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);

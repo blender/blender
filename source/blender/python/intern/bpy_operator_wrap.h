@@ -33,7 +33,7 @@ struct wmOperatorType;
 PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args);
 
 /* exposed to rna/wm api */
-void operator_wrapper(struct wmOperatorType *ot, void *userdata);
-void macro_wrapper(struct wmOperatorType *ot, void *userdata);
+void BPY_RNA_operator_wrapper(struct wmOperatorType *ot, void *userdata);
+void BPY_RNA_operator_macro_wrapper(struct wmOperatorType *ot, void *userdata);
 
 #endif

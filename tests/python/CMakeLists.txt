@@ -104,15 +104,15 @@ add_test(bevel ${TEST_BLENDER_EXE}
 )
 
 add_test(split_faces ${TEST_BLENDER_EXE}
-    ${TEST_SRC_DIR}/modeling/split_faces_test.blend
-    --python-text run_tests
+	${TEST_SRC_DIR}/modeling/split_faces_test.blend
+	--python-text run_tests
 )
 
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
 add_test(modifier_array ${TEST_BLENDER_EXE}
-    ${TEST_SRC_DIR}/modifier_stack/array_test.blend
-    --python-text run_tests
+	${TEST_SRC_DIR}/modifier_stack/array_test.blend
+	--python-text run_tests
 )
 
 # ------------------------------------------------------------------------------

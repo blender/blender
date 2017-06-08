@@ -117,7 +117,7 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree, bNode *node,
 	else {
 		sock = BLI_findlink(&node->outputs, sock_index);
 		NodeImageLayer *sockdata = sock->storage;
-		if(sockdata) {
+		if (sockdata) {
 			BLI_strncpy(sockdata->pass_name, passname, sizeof(sockdata->pass_name));
 		}
 	}

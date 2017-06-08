@@ -118,7 +118,7 @@ static void operator_properties_init(wmOperatorType *ot)
 
 }
 
-void operator_wrapper(wmOperatorType *ot, void *userdata)
+void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata)
 {
 	/* take care not to overwrite anything set in
 	 * WM_operatortype_append_ptr before opfunc() is called */
@@ -134,7 +134,7 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 	operator_properties_init(ot);
 }
 
-void macro_wrapper(wmOperatorType *ot, void *userdata)
+void BPY_RNA_operator_macro_wrapper(wmOperatorType *ot, void *userdata)
 {
 	wmOperatorType *data = (wmOperatorType *)userdata;
 

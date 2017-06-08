@@ -130,10 +130,22 @@ string device_opencl_capabilities(void)
 		opencl_assert(func(id, what, sizeof(data), &data, NULL)); \
 		result += string_printf("%s: %s\n", name, data); \
 	} while(false)
+#define APPEND_STRING_EXTENSION_INFO(func, id, name, what) \
+	do { \
+		char data[1024] = "\0"; \
+		size_t length = 0; \
+		if(func(id, what, sizeof(data), &data, &length) == CL_SUCCESS) { \
+			if(length != 0 && data[0] != '\0') { \
+				result += string_printf("%s: %s\n", name, data); \
+			} \
+		} \
+	} while(false)
 #define APPEND_PLATFORM_STRING_INFO(id, name, what) \
 	APPEND_STRING_INFO(clGetPlatformInfo, id, "\tPlatform " name, what)
 #define APPEND_DEVICE_STRING_INFO(id, name, what) \
 	APPEND_STRING_INFO(clGetDeviceInfo, id, "\t\t\tDevice " name, what)
+#define APPEND_DEVICE_STRING_EXTENSION_INFO(id, name, what) \
+	APPEND_STRING_EXTENSION_INFO(clGetDeviceInfo, id, "\t\t\tDevice " name, what)
 
 	vector<cl_device_id> device_ids;
 	for(cl_uint platform = 0; platform < num_platforms; ++platform) {
@@ -167,6 +179,7 @@ string device_opencl_capabilities(void)
 			result += string_printf("\t\tDevice: #%u\n", device);
 
 			APPEND_DEVICE_STRING_INFO(device_id, "Name", CL_DEVICE_NAME);
+			APPEND_DEVICE_STRING_EXTENSION_INFO(device_id, "Board Name", CL_DEVICE_BOARD_NAME_AMD);
 			APPEND_DEVICE_STRING_INFO(device_id, "Vendor", CL_DEVICE_VENDOR);
 			APPEND_DEVICE_STRING_INFO(device_id, "OpenCL C Version", CL_DEVICE_OPENCL_C_VERSION);
 			APPEND_DEVICE_STRING_INFO(device_id, "Profile", CL_DEVICE_PROFILE);
