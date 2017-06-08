@@ -145,6 +145,13 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 
 		data->dupli_object_next = data->dupli_object_next->next;
 
+		/* Group duplis need to set ob matrices correct, for deform. so no_draw
+		 * is part handled.
+		 */
+		if ((obd->transflag & OB_RENDER_DUPLI) == 0 && dob->no_draw) {
+			continue;
+		}
+
 		if (obd->type == OB_MBALL) {
 			continue;
 		}
