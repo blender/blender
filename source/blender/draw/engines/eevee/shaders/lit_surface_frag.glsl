@@ -196,11 +196,10 @@ void light_visibility(LightData ld, ShadingData sd, out float vis)
 	}
 }
 
-void probe_lighting(ShadingData sd, int index, vec3 spec_dir, float roughness, out vec3 diff, out vec3 spec)
+vec3 probe_parallax_correction(vec3 W, vec3 spec_dir, ProbeData pd, inout float roughness)
 {
-	ProbeData pd = probes_data[index];
-	spec = textureLod_octahedron(probeCubes, vec4(spec_dir, index), roughness * lodMax).rgb;
-	diff = spherical_harmonics(sd.N, pd.shcoefs);
+	/* TODO */
+	return spec_dir;
 }
 
 vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness, float ao)
@@ -237,14 +236,29 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 
 	vec4 spec_accum = vec4(0.0);
 	vec4 diff_accum = vec4(0.0);
+
+	/* Specular probes */
 	/* Start at 1 because 0 is world probe */
 	for (int i = 1; i < MAX_PROBE && i < probe_count; ++i) {
-		/* TODO */
+		ProbeData pd = probes_data[i];
+
+		vec3 sample_vec = probe_parallax_correction(sd.W, spec_dir, pd, roughness);
+		vec4 sample = textureLod_octahedron(probeCubes, vec4(sample_vec, i), roughness * lodMax).rgba;
+
+		float dist_attenuation = saturate(pd.p_atten_bias - pd.p_atten_scale * distance(sd.W, pd.p_position));
+		float influ_spec = min(dist_attenuation, (1.0 - spec_accum.a));
+
+		spec_accum.rgb += sample.rgb * influ_spec;
+		spec_accum.a += influ_spec;
 	}
 
+	/* World probe */
 	if (spec_accum.a < 1.0 || diff_accum.a < 1.0) {
-		vec3 diff, spec;
-		probe_lighting(sd, 0, spec_dir, roughness, diff, spec);
+		ProbeData pd = probes_data[0];
+
+		vec3 spec = textureLod_octahedron(probeCubes, vec4(spec_dir, 0), roughness * lodMax).rgb;
+		vec3 diff = spherical_harmonics(sd.N, pd.shcoefs);
+
 		diff_accum.rgb += diff * (1.0 - diff_accum.a);
 		spec_accum.rgb += spec * (1.0 - spec_accum.a);
 	}

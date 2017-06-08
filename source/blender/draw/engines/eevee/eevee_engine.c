@@ -104,6 +104,9 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 			oedata->need_update = ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0);
 		}
 	}
+	else if (ob->type == OB_PROBE) {
+		EEVEE_probes_cache_add(sldata, ob);
+	}
 	else if (ob->type == OB_LAMP) {
 		EEVEE_lights_cache_add(sldata, ob);
 	}

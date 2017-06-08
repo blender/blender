@@ -10,12 +10,15 @@
 /* ------- Structures -------- */
 
 struct ProbeData {
-	vec4 position_influence;      /* w : InfluenceRadius */
+	vec4 position;
 	vec4 shcoefs[7];
+	vec4 attenuation;
 };
 
-#define p_position     position_influence.xyz
-#define p_spec         position_influence.w
+
+#define p_position     position.xyz
+#define p_atten_bias   attenuation.x
+#define p_atten_scale  attenuation.y
 #define shcoef0        shcoefs[0].rgb
 #define shcoef1        vec3(shcoefs[0].a, shcoefs[1].rg)
 #define shcoef2        vec3(shcoefs[1].ba, shcoefs[2].r)

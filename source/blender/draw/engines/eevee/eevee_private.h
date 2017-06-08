@@ -48,6 +48,7 @@ typedef struct EEVEE_PassList {
 
 	/* Probes */
 	struct DRWPass *probe_background;
+	struct DRWPass *probe_meshes;
 	struct DRWPass *probe_prefilter;
 	struct DRWPass *probe_sh_compute;
 
@@ -166,14 +167,17 @@ enum {
 
 /* ************ PROBE UBO ************* */
 typedef struct EEVEE_Probe {
-	float position[3], dist;
-	float shcoefs[9][3], pad;
+	float position[3], pad1;
+	float shcoefs[9][3], pad2;
+	float attenuation_bias, attenuation_scale, pad3[2];
 } EEVEE_Probe;
 
 /* ************ PROBE DATA ************* */
 typedef struct EEVEE_ProbesInfo {
 	int num_cube, cache_num_cube;
 	int update_flag;
+	/* Actual number of probes that have datas. */
+	int num_render_probe;
 	/* For rendering probes */
 	float probemat[6][4][4];
 	int layer;
@@ -285,6 +289,12 @@ typedef struct EEVEE_LampEngineData {
 	void *storage; /* either EEVEE_LightData, EEVEE_ShadowCubeData, EEVEE_ShadowCascadeData */
 } EEVEE_LampEngineData;
 
+typedef struct EEVEE_ProbeEngineData {
+	bool need_update;
+	bool ready_to_shade;
+	struct ListBase captured_object_list;
+} EEVEE_ProbeEngineData;
+
 typedef struct EEVEE_ObjectEngineData {
 	bool need_update;
 } EEVEE_ObjectEngineData;
@@ -309,6 +319,7 @@ typedef struct EEVEE_PrivateData {
 /* eevee_data.c */
 EEVEE_SceneLayerData *EEVEE_scene_layer_data_get(void);
 EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob);
+EEVEE_ProbeEngineData *EEVEE_probe_data_get(Object *ob);
 EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob);
 
 
