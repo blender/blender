@@ -57,6 +57,8 @@
 
 #include "recast-capi.h"
 
+#include "DEG_depsgraph.h"
+
 #include "mesh_intern.h"  /* own include */
 
 
