@@ -608,6 +608,14 @@ bool OpenCLInfo::device_supported(const string& platform_name,
 	if(!get_device_name(device_id, &device_name)) {
 		return false;
 	}
+
+	int driver_major = 0;
+	int driver_minor = 0;
+	if(!get_driver_version(device_id, &driver_major, &driver_minor)) {
+		return false;
+	}
+	VLOG(3) << "OpenCL driver version " << driver_major << "." << driver_minor;
+
 	/* It is possible tyo have Iris GPU on AMD/Apple OpenCL framework
 	 * (aka, it will not be on Intel framework). This isn't supported
 	 * and needs an explicit blacklist.
@@ -618,6 +626,21 @@ bool OpenCLInfo::device_supported(const string& platform_name,
 	if(platform_name == "AMD Accelerated Parallel Processing" &&
 	   device_type == CL_DEVICE_TYPE_GPU)
 	{
+		if(driver_major < 2348) {
+			VLOG(1) << "AMD driver version " << driver_major << "." << driver_minor << " not supported";
+			return false;
+		}
+		const char *blacklist[] = {
+			/* GCN 1 */
+			"Tahiti", "Pitcairn", "Capeverde", "Oland",
+			NULL
+		};
+		for (int i = 0; blacklist[i] != NULL; i++) {
+			if(device_name == blacklist[i]) {
+				VLOG(1) << "AMD device " << device_name << " not supported";
+				return false;
+			}
+		}
 		return true;
 	}
 	if(platform_name == "Apple" && device_type == CL_DEVICE_TYPE_GPU) {
@@ -1071,6 +1094,34 @@ string OpenCLInfo::get_readable_device_name(cl_device_id device_id)
 	}
 	/* Fallback to standard device name API. */
 	return get_device_name(device_id);
+}
+
+bool OpenCLInfo::get_driver_version(cl_device_id device_id,
+                                    int *major,
+                                    int *minor,
+                                    cl_int* error)
+{
+	char buffer[1024];
+	cl_int err;
+	if((err = clGetDeviceInfo(device_id,
+	                          CL_DRIVER_VERSION,
+	                          sizeof(buffer),
+	                          &buffer,
+	                          NULL)) != CL_SUCCESS)
+	{
+		if(error != NULL) {
+			*error = err;
+		}
+		return false;
+	}
+	if(error != NULL) {
+		*error = CL_SUCCESS;
+	}
+	if(sscanf(buffer, "%d.%d", major, minor) < 2) {
+		VLOG(1) << string_printf("OpenCL: failed to parse driver version string (%s).", buffer);
+		return false;
+	}
+	return true;
 }
 
 int OpenCLInfo::mem_address_alignment(cl_device_id device_id)
