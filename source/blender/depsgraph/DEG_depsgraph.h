@@ -72,8 +72,8 @@ struct PropertyRNA;
  * which is needed for it's evaluation,
  */
 typedef struct EvaluationContext {
-	int mode;               /* evaluation mode */
-	float ctime;            /* evaluation time */
+	int mode;
+	float ctime;
 } EvaluationContext;
 
 typedef enum eEvaluationMode {
