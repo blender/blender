@@ -48,19 +48,27 @@ typedef struct Probe {
 	char display;     /* Probe visual appearance in the viewport */
 	char parallax;    /* Parallax type */
 
-	float dist;       /* Influence radius or distance */
-	float falloff;    /* Influence falloff */
-	float pad;
+	float distinf;    /* Influence Radius */
+	float mininf[3];  /* Influence Bound Box */
+	float maxinf[3];
 
-	struct Object *parallax_ob;    /* Object to use as a parallax volume */
+	float falloff;    /* Influence falloff */
+
+	float distpar;    /* Parallax Radius */
+	float minpar[3];  /* Parallax Bound Box */
+	float maxpar[3];
+
+	float clipsta, clipend;
+
+	struct Object *parallax_ob;    /* Object to use as a parallax origin */
 	struct Image *image;           /* Image to use on as lighting data */
 } Probe;
 
 /* Probe->type */
 enum {
-	PROBE_CAPTURE   = 0,
+	PROBE_CUBE      = 0,
 	PROBE_PLANAR    = 1,
-	PROBE_CUSTOM    = 2,
+	PROBE_IMAGE     = 2,
 };
 
 /* Probe->display */

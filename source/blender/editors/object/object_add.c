@@ -154,9 +154,9 @@ static EnumPropertyItem field_type_items[] = {
 
 /* copy from rna_probe.c */
 static EnumPropertyItem probe_type_items[] = {
-	{PROBE_CAPTURE, "CAPTURE", ICON_FORCE_FORCE, "Capture", ""},
-	{PROBE_PLANAR, "PLANAR", ICON_FORCE_FORCE, "Planar", ""},
-	{PROBE_CUSTOM, "CUSTOM", ICON_FORCE_FORCE, "Custom", ""},
+	{PROBE_CUBE, "CUBE", ICON_MESH_UVSPHERE, "Sphere", ""},
+	// {PROBE_PLANAR, "PLANAR", ICON_MESH_PLANE, "Planar", ""},
+	// {PROBE_IMAGE, "IMAGE", ICON_NONE, "Image", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

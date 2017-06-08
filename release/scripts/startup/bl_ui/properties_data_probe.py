@@ -62,7 +62,11 @@ class DATA_PT_probe(DataButtonsPanel, Panel):
 
         layout.prop(probe, "type", expand=True)
 
-        layout.prop(probe, "distance")
+        layout.prop(probe, "influence_distance")
+        layout.prop(probe, "clip_start")
+        layout.prop(probe, "clip_end")
+        # layout.prop(probe, "influence_minimum")
+        # layout.prop(probe, "influence_maximum")
         layout.prop(probe, "falloff")
 
 

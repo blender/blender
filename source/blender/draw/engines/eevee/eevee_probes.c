@@ -277,8 +277,8 @@ static void EEVEE_probes_updates(EEVEE_SceneLayerData *sldata)
 		Probe *probe = (Probe *)ob->data;
 		EEVEE_Probe *eprobe = &pinfo->probe_data[i];
 
-		float dist_minus_falloff = probe->dist - (1.0f - probe->falloff) * probe->dist;
-		eprobe->attenuation_bias = probe->dist / max_ff(1e-8f, dist_minus_falloff);
+		float dist_minus_falloff = probe->distinf - (1.0f - probe->falloff) * probe->distinf;
+		eprobe->attenuation_bias = probe->distinf / max_ff(1e-8f, dist_minus_falloff);
 		eprobe->attenuation_scale = 1.0f / max_ff(1e-8f, dist_minus_falloff);
 	}
 }
@@ -408,15 +408,12 @@ static void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, 
 {
 	EEVEE_ProbesInfo *pinfo = sldata->probes;
 	EEVEE_Probe *eprobe = &pinfo->probe_data[probe_idx];
-	Object *ob = NULL;
+	Object *ob = pinfo->probes_ref[probe_idx];
+	Probe *prb = (Probe *)ob->data;
 
 	float winmat[4][4], posmat[4][4];
-	float near = 0.1f; /* TODO parameters */
-	float far = 100.0f;
 
 	unit_m4(posmat);
-
-	ob = pinfo->probes_ref[probe_idx];
 
 	/* Update transforms */
 	copy_v3_v3(eprobe->position, ob->obmat[3]);
@@ -428,7 +425,7 @@ static void render_one_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, 
 	 * We do this instead of using geometry shader because a) it's faster,
 	 * b) it's easier than fixing the nodetree shaders (for view dependant effects). */
 	pinfo->layer = 0;
-	perspective_m4(winmat, -near, near, -near, near, near, far);
+	perspective_m4(winmat, -prb->clipsta, prb->clipsta, -prb->clipsta, prb->clipsta, prb->clipsta, prb->clipend);
 
 	/* Detach to rebind the right cubeface. */
 	DRW_framebuffer_bind(sldata->probe_fb);
