@@ -939,6 +939,314 @@ static void rna_wmClipboard_set(PointerRNA *UNUSED(ptr), const char *value)
 }
 
 #ifdef WITH_PYTHON
+
+static int rna_operator_poll_cb(bContext *C, wmOperatorType *ot)
+{
+	extern FunctionRNA rna_Operator_poll_func;
+
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int visible;
+
+	RNA_pointer_create(NULL, ot->ext.srna, NULL, &ptr); /* dummy */
+	func = &rna_Operator_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	ot->ext.call(C, &ptr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "visible", &ret);
+	visible = *(int *)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return visible;
+}
+
+static int rna_operator_execute_cb(bContext *C, wmOperator *op)
+{
+	extern FunctionRNA rna_Operator_execute_func;
+
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
+	func = &rna_Operator_execute_func; /* RNA_struct_find_function(&opr, "execute"); */
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(C, &opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result = *(int *)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
+/* same as execute() but no return value */
+static bool rna_operator_check_cb(bContext *C, wmOperator *op)
+{
+	extern FunctionRNA rna_Operator_check_func;
+
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	bool result;
+
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
+	func = &rna_Operator_check_func; /* RNA_struct_find_function(&opr, "check"); */
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(C, &opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result = (*(int *)ret) != 0;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
+static int rna_operator_invoke_cb(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	extern FunctionRNA rna_Operator_invoke_func;
+
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
+	func = &rna_Operator_invoke_func; /* RNA_struct_find_function(&opr, "invoke"); */
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	RNA_parameter_set_lookup(&list, "event", &event);
+	op->type->ext.call(C, &opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result = *(int *)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
+/* same as invoke */
+static int rna_operator_modal_cb(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	extern FunctionRNA rna_Operator_modal_func;
+
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
+	func = &rna_Operator_modal_func; /* RNA_struct_find_function(&opr, "modal"); */
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	RNA_parameter_set_lookup(&list, "event", &event);
+	op->type->ext.call(C, &opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result = *(int *)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
+static void rna_operator_draw_cb(bContext *C, wmOperator *op)
+{
+	extern FunctionRNA rna_Operator_draw_func;
+
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
+	func = &rna_Operator_draw_func; /* RNA_struct_find_function(&opr, "draw"); */
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(C, &opr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+/* same as exec(), but call cancel */
+static void rna_operator_cancel_cb(bContext *C, wmOperator *op)
+{
+	extern FunctionRNA rna_Operator_cancel_func;
+
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
+	func = &rna_Operator_cancel_func; /* RNA_struct_find_function(&opr, "cancel"); */
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(C, &opr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+static void rna_Operator_unregister(struct Main *bmain, StructRNA *type);
+
+/* bpy_operator_wrap.c */
+extern void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata);
+extern void BPY_RNA_operator_macro_wrapper(wmOperatorType *ot, void *userdata);
+
+static StructRNA *rna_Operator_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	wmOperatorType dummyot = {NULL};
+	wmOperator dummyop = {NULL};
+	PointerRNA dummyotr;
+	int have_function[7];
+
+	struct {
+		char idname[OP_MAX_TYPENAME];
+		char name[OP_MAX_TYPENAME];
+		char descr[RNA_DYN_DESCR_MAX];
+		char ctxt[RNA_DYN_DESCR_MAX];
+		char undo_group[OP_MAX_TYPENAME];
+	} temp_buffers;
+
+	/* setup dummy operator & operator type to store static properties in */
+	dummyop.type = &dummyot;
+	dummyot.idname = temp_buffers.idname; /* only assigne the pointer, string is NULL'd */
+	dummyot.name = temp_buffers.name; /* only assigne the pointer, string is NULL'd */
+	dummyot.description = temp_buffers.descr; /* only assigne the pointer, string is NULL'd */
+	dummyot.translation_context = temp_buffers.ctxt; /* only assigne the pointer, string is NULL'd */
+	dummyot.undo_group = temp_buffers.undo_group; /* only assigne the pointer, string is NULL'd */
+	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
+
+	/* clear in case they are left unset */
+	temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.descr[0] = temp_buffers.undo_group[0] = '\0';
+	/* We have to set default op context! */
+	strcpy(temp_buffers.ctxt, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+
+	/* validate the python class */
+	if (validate(&dummyotr, data, have_function) != 0)
+		return NULL;
+
+	{   /* convert foo.bar to FOO_OT_bar
+		 * allocate the description and the idname in 1 go */
+
+		/* inconveniently long name sanity check */
+		{
+			char *ch = temp_buffers.idname;
+			int i;
+			int dot = 0;
+			for (i = 0; *ch; i++) {
+				if ((*ch >= 'a' && *ch <= 'z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
+					/* pass */
+				}
+				else if (*ch == '.') {
+					dot++;
+				}
+				else {
+					BKE_reportf(reports, RPT_ERROR,
+					            "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
+					            identifier, temp_buffers.idname, i);
+					return NULL;
+				}
+
+				ch++;
+			}
+
+			if (i > ((int)sizeof(dummyop.idname)) - 3) {
+				BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s', invalid bl_idname '%s', "
+				            "is too long, maximum length is %d", identifier, temp_buffers.idname,
+				            (int)sizeof(dummyop.idname) - 3);
+				return NULL;
+			}
+
+			if (dot != 1) {
+				BKE_reportf(reports, RPT_ERROR,
+				            "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
+				            identifier, temp_buffers.idname);
+				return NULL;
+			}
+		}
+		/* end sanity check */
+
+		{
+			const uint idname_len = strlen(temp_buffers.idname) + 4;
+			const uint name_len = strlen(temp_buffers.name) + 1;
+			const uint desc_len = strlen(temp_buffers.descr) + 1;
+			const uint ctxt_len = strlen(temp_buffers.ctxt) + 1;
+			const uint undo_group_len = strlen(temp_buffers.undo_group) + 1;
+			/* 2 terminators and 3 to convert a.b -> A_OT_b */
+			char *ch = MEM_mallocN(
+			        sizeof(char) * (idname_len + name_len + desc_len + ctxt_len + undo_group_len), __func__);
+			WM_operator_bl_idname(ch, temp_buffers.idname); /* convert the idname from python */
+			dummyot.idname = ch;
+			ch += idname_len;
+			memcpy(ch, temp_buffers.name, name_len);
+			dummyot.name = ch;
+			ch += name_len;
+			memcpy(ch, temp_buffers.descr, desc_len);
+			dummyot.description = ch;
+			ch += desc_len;
+			memcpy(ch, temp_buffers.ctxt, ctxt_len);
+			dummyot.translation_context = ch;
+			ch += ctxt_len;
+			memcpy(ch, temp_buffers.undo_group, undo_group_len);
+			dummyot.undo_group = ch;
+		}
+	}
+
+	/* check if we have registered this operator type before, and remove it */
+	{
+		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
+		if (ot && ot->ext.srna)
+			rna_Operator_unregister(bmain, ot->ext.srna);
+	}
+
+	/* XXX, this doubles up with the operator name [#29666]
+	 * for now just remove from dir(bpy.types) */
+
+	/* create a new operator type */
+	dummyot.ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
+	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
+	RNA_def_struct_translation_context(dummyot.ext.srna, dummyot.translation_context);
+	dummyot.ext.data = data;
+	dummyot.ext.call = call;
+	dummyot.ext.free = free;
+
+	dummyot.pyop_poll = (have_function[0]) ? rna_operator_poll_cb : NULL;
+	dummyot.exec =      (have_function[1]) ? rna_operator_execute_cb : NULL;
+	dummyot.check =     (have_function[2]) ? rna_operator_check_cb : NULL;
+	dummyot.invoke =    (have_function[3]) ? rna_operator_invoke_cb : NULL;
+	dummyot.modal =     (have_function[4]) ? rna_operator_modal_cb : NULL;
+	dummyot.ui =        (have_function[5]) ? rna_operator_draw_cb : NULL;
+	dummyot.cancel =    (have_function[6]) ? rna_operator_cancel_cb : NULL;
+	WM_operatortype_append_ptr(BPY_RNA_operator_wrapper, (void *)&dummyot);
+
+	/* update while blender is running */
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+
+	return dummyot.ext.srna;
+}
+
 static void rna_Operator_unregister(struct Main *bmain, StructRNA *type)
 {
 	const char *idname;
@@ -967,363 +1275,46 @@ static void rna_Operator_unregister(struct Main *bmain, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-static int operator_poll(bContext *C, wmOperatorType *ot)
-{
-	extern FunctionRNA rna_Operator_poll_func;
-
-	PointerRNA ptr;
-	ParameterList list;
-	FunctionRNA *func;
-	void *ret;
-	int visible;
-
-	RNA_pointer_create(NULL, ot->ext.srna, NULL, &ptr); /* dummy */
-	func = &rna_Operator_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
-
-	RNA_parameter_list_create(&list, &ptr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	ot->ext.call(C, &ptr, func, &list);
-
-	RNA_parameter_get_lookup(&list, "visible", &ret);
-	visible = *(int *)ret;
-
-	RNA_parameter_list_free(&list);
-
-	return visible;
-}
-
-static int operator_execute(bContext *C, wmOperator *op)
-{
-	extern FunctionRNA rna_Operator_execute_func;
-
-	PointerRNA opr;
-	ParameterList list;
-	FunctionRNA *func;
-	void *ret;
-	int result;
-
-	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
-	func = &rna_Operator_execute_func; /* RNA_struct_find_function(&opr, "execute"); */
-
-	RNA_parameter_list_create(&list, &opr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	op->type->ext.call(C, &opr, func, &list);
-
-	RNA_parameter_get_lookup(&list, "result", &ret);
-	result = *(int *)ret;
-
-	RNA_parameter_list_free(&list);
-
-	return result;
-}
-
-/* same as execute() but no return value */
-static bool operator_check(bContext *C, wmOperator *op)
-{
-	extern FunctionRNA rna_Operator_check_func;
-
-	PointerRNA opr;
-	ParameterList list;
-	FunctionRNA *func;
-	void *ret;
-	bool result;
-
-	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
-	func = &rna_Operator_check_func; /* RNA_struct_find_function(&opr, "check"); */
-
-	RNA_parameter_list_create(&list, &opr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	op->type->ext.call(C, &opr, func, &list);
-
-	RNA_parameter_get_lookup(&list, "result", &ret);
-	result = (*(int *)ret) != 0;
-
-	RNA_parameter_list_free(&list);
-
-	return result;
-}
-
-static int operator_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	extern FunctionRNA rna_Operator_invoke_func;
-
-	PointerRNA opr;
-	ParameterList list;
-	FunctionRNA *func;
-	void *ret;
-	int result;
-
-	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
-	func = &rna_Operator_invoke_func; /* RNA_struct_find_function(&opr, "invoke"); */
-
-	RNA_parameter_list_create(&list, &opr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	RNA_parameter_set_lookup(&list, "event", &event);
-	op->type->ext.call(C, &opr, func, &list);
-
-	RNA_parameter_get_lookup(&list, "result", &ret);
-	result = *(int *)ret;
-
-	RNA_parameter_list_free(&list);
-
-	return result;
-}
-
-/* same as invoke */
-static int operator_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	extern FunctionRNA rna_Operator_modal_func;
-
-	PointerRNA opr;
-	ParameterList list;
-	FunctionRNA *func;
-	void *ret;
-	int result;
-
-	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
-	func = &rna_Operator_modal_func; /* RNA_struct_find_function(&opr, "modal"); */
-
-	RNA_parameter_list_create(&list, &opr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	RNA_parameter_set_lookup(&list, "event", &event);
-	op->type->ext.call(C, &opr, func, &list);
-
-	RNA_parameter_get_lookup(&list, "result", &ret);
-	result = *(int *)ret;
-
-	RNA_parameter_list_free(&list);
-
-	return result;
-}
-
-static void operator_draw(bContext *C, wmOperator *op)
-{
-	extern FunctionRNA rna_Operator_draw_func;
-
-	PointerRNA opr;
-	ParameterList list;
-	FunctionRNA *func;
-
-	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
-	func = &rna_Operator_draw_func; /* RNA_struct_find_function(&opr, "draw"); */
-
-	RNA_parameter_list_create(&list, &opr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	op->type->ext.call(C, &opr, func, &list);
-
-	RNA_parameter_list_free(&list);
-}
-
-/* same as exec(), but call cancel */
-static void operator_cancel(bContext *C, wmOperator *op)
-{
-	extern FunctionRNA rna_Operator_cancel_func;
-
-	PointerRNA opr;
-	ParameterList list;
-	FunctionRNA *func;
-
-	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
-	func = &rna_Operator_cancel_func; /* RNA_struct_find_function(&opr, "cancel"); */
-
-	RNA_parameter_list_create(&list, &opr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	op->type->ext.call(C, &opr, func, &list);
-
-	RNA_parameter_list_free(&list);
-}
-
-void operator_wrapper(wmOperatorType *ot, void *userdata);
-void macro_wrapper(wmOperatorType *ot, void *userdata);
-
-static char _operator_idname[OP_MAX_TYPENAME];
-static char _operator_name[OP_MAX_TYPENAME];
-static char _operator_descr[RNA_DYN_DESCR_MAX];
-static char _operator_ctxt[RNA_DYN_DESCR_MAX];
-static char _operator_undo_group[OP_MAX_TYPENAME];
-static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
-{
-	wmOperatorType dummyot = {NULL};
-	wmOperator dummyop = {NULL};
-	PointerRNA dummyotr;
-	int have_function[7];
-
-	/* setup dummy operator & operator type to store static properties in */
-	dummyop.type = &dummyot;
-	dummyot.idname = _operator_idname; /* only assigne the pointer, string is NULL'd */
-	dummyot.name = _operator_name; /* only assigne the pointer, string is NULL'd */
-	dummyot.description = _operator_descr; /* only assigne the pointer, string is NULL'd */
-	dummyot.translation_context = _operator_ctxt; /* only assigne the pointer, string is NULL'd */
-	dummyot.undo_group = _operator_undo_group; /* only assigne the pointer, string is NULL'd */
-	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
-
-	/* clear in case they are left unset */
-	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = _operator_undo_group[0] = '\0';
-	/* We have to set default op context! */
-	strcpy(_operator_ctxt, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
-
-	/* validate the python class */
-	if (validate(&dummyotr, data, have_function) != 0)
-		return NULL;
-
-	{   /* convert foo.bar to FOO_OT_bar
-		 * allocate the description and the idname in 1 go */
-
-		/* inconveniently long name sanity check */
-		{
-			char *ch = _operator_idname;
-			int i;
-			int dot = 0;
-			for (i = 0; *ch; i++) {
-				if ((*ch >= 'a' && *ch <= 'z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
-					/* pass */
-				}
-				else if (*ch == '.') {
-					dot++;
-				}
-				else {
-					BKE_reportf(reports, RPT_ERROR,
-					            "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
-					            identifier, _operator_idname, i);
-					return NULL;
-				}
-
-				ch++;
-			}
-
-			if (i > ((int)sizeof(dummyop.idname)) - 3) {
-				BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s', invalid bl_idname '%s', "
-				            "is too long, maximum length is %d", identifier, _operator_idname,
-				            (int)sizeof(dummyop.idname) - 3);
-				return NULL;
-			}
-
-			if (dot != 1) {
-				BKE_reportf(reports, RPT_ERROR,
-				            "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
-				            identifier, _operator_idname);
-				return NULL;
-			}
-		}
-		/* end sanity check */
-
-		{
-			int idlen = strlen(_operator_idname) + 4;
-			int namelen = strlen(_operator_name) + 1;
-			int desclen = strlen(_operator_descr) + 1;
-			int ctxtlen = strlen(_operator_ctxt) + 1;
-			int ugrouplen = strlen(_operator_undo_group) + 1;
-			char *ch;
-			/* 2 terminators and 3 to convert a.b -> A_OT_b */
-			ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen + ctxtlen + ugrouplen), "_operator_idname");
-			WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
-			dummyot.idname = ch;
-			ch += idlen;
-			strcpy(ch, _operator_name);
-			dummyot.name = ch;
-			ch += namelen;
-			strcpy(ch, _operator_descr);
-			dummyot.description = ch;
-			ch += desclen;
-			strcpy(ch, _operator_ctxt);
-			dummyot.translation_context = ch;
-			ch += ctxtlen;
-			strcpy(ch, _operator_undo_group);
-			dummyot.undo_group = ch;
-		}
-	}
-
-	/* check if we have registered this operator type before, and remove it */
-	{
-		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
-		if (ot && ot->ext.srna)
-			rna_Operator_unregister(bmain, ot->ext.srna);
-	}
-
-	/* XXX, this doubles up with the operator name [#29666]
-	 * for now just remove from dir(bpy.types) */
-
-	/* create a new operator type */
-	dummyot.ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
-	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
-	RNA_def_struct_translation_context(dummyot.ext.srna, dummyot.translation_context);
-	dummyot.ext.data = data;
-	dummyot.ext.call = call;
-	dummyot.ext.free = free;
-
-	dummyot.pyop_poll = (have_function[0]) ? operator_poll : NULL;
-	dummyot.exec =      (have_function[1]) ? operator_execute : NULL;
-	dummyot.check =     (have_function[2]) ? operator_check : NULL;
-	dummyot.invoke =        (have_function[3]) ? operator_invoke : NULL;
-	dummyot.modal =     (have_function[4]) ? operator_modal : NULL;
-	dummyot.ui =            (have_function[5]) ? operator_draw : NULL;
-	dummyot.cancel =        (have_function[6]) ? operator_cancel : NULL;
-	WM_operatortype_append_ptr(operator_wrapper, (void *)&dummyot);
-
-	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
-
-	return dummyot.ext.srna;
-}
-
 static void **rna_Operator_instance(PointerRNA *ptr)
 {
 	wmOperator *op = ptr->data;
 	return &op->py_instance;
 }
 
-static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                             StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_MacroOperator_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	wmOperatorType dummyot = {NULL};
 	wmOperator dummyop = {NULL};
 	PointerRNA dummyotr;
 	int have_function[4];
 
+	struct {
+		char idname[OP_MAX_TYPENAME];
+		char name[OP_MAX_TYPENAME];
+		char descr[RNA_DYN_DESCR_MAX];
+		char ctxt[RNA_DYN_DESCR_MAX];
+		char undo_group[OP_MAX_TYPENAME];
+	} temp_buffers;
+
 	/* setup dummy operator & operator type to store static properties in */
 	dummyop.type = &dummyot;
-	dummyot.idname = _operator_idname; /* only assigne the pointer, string is NULL'd */
-	dummyot.name = _operator_name; /* only assigne the pointer, string is NULL'd */
-	dummyot.description = _operator_descr; /* only assigne the pointer, string is NULL'd */
-	dummyot.translation_context = _operator_ctxt; /* only assigne the pointer, string is NULL'd */
-	dummyot.undo_group = _operator_undo_group; /* only assigne the pointer, string is NULL'd */
+	dummyot.idname = temp_buffers.idname; /* only assigne the pointer, string is NULL'd */
+	dummyot.name = temp_buffers.name; /* only assigne the pointer, string is NULL'd */
+	dummyot.description = temp_buffers.descr; /* only assigne the pointer, string is NULL'd */
+	dummyot.translation_context = temp_buffers.ctxt; /* only assigne the pointer, string is NULL'd */
+	dummyot.undo_group = temp_buffers.undo_group; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Macro, &dummyop, &dummyotr);
 
 	/* clear in case they are left unset */
-	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = _operator_undo_group[0] = '\0';
+	temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.descr[0] = temp_buffers.undo_group[0] = '\0';
 	/* We have to set default op context! */
-	strcpy(_operator_ctxt, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+	strcpy(temp_buffers.ctxt, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	/* validate the python class */
 	if (validate(&dummyotr, data, have_function) != 0)
 		return NULL;
-
-	{   /* convert foo.bar to FOO_OT_bar
-		 * allocate the description and the idname in 1 go */
-		int idlen = strlen(_operator_idname) + 4;
-		int namelen = strlen(_operator_name) + 1;
-		int desclen = strlen(_operator_descr) + 1;
-		int ctxtlen = strlen(_operator_ctxt) + 1;
-		int ugrouplen = strlen(_operator_undo_group) + 1;
-		char *ch;
-		/* 2 terminators and 3 to convert a.b -> A_OT_b */
-		ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen + ctxtlen + ugrouplen), "_operator_idname");
-		WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
-		dummyot.idname = ch;
-		ch += idlen;
-		strcpy(ch, _operator_name);
-		dummyot.name = ch;
-		ch += namelen;
-		strcpy(ch, _operator_descr);
-		dummyot.description = ch;
-		ch += desclen;
-		strcpy(ch, _operator_ctxt);
-		dummyot.translation_context = ch;
-		ch += ctxtlen;
-		strcpy(ch, _operator_undo_group);
-		dummyot.undo_group = ch;
-	}
 
 	if (strlen(identifier) >= sizeof(dummyop.idname)) {
 		BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s' is too long, maximum length is %d",
@@ -1331,6 +1322,32 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 		return NULL;
 	}
 
+	{   /* convert foo.bar to FOO_OT_bar
+		 * allocate the description and the idname in 1 go */
+		const uint idname_len = strlen(temp_buffers.idname) + 4;
+		const uint name_len = strlen(temp_buffers.name) + 1;
+		const uint desc_len = strlen(temp_buffers.descr) + 1;
+		const uint ctxt_len = strlen(temp_buffers.ctxt) + 1;
+		const uint undo_group_len = strlen(temp_buffers.undo_group) + 1;
+		/* 2 terminators and 3 to convert a.b -> A_OT_b */
+		char *ch = MEM_mallocN(
+		        sizeof(char) * (idname_len + name_len + desc_len + ctxt_len + undo_group_len), __func__);
+		WM_operator_bl_idname(ch, temp_buffers.idname); /* convert the idname from python */
+		dummyot.idname = ch;
+		ch += idname_len;
+		memcpy(ch, temp_buffers.name, name_len);
+		dummyot.name = ch;
+		ch += name_len;
+		memcpy(ch, temp_buffers.descr, desc_len);
+		dummyot.description = ch;
+		ch += desc_len;
+		memcpy(ch, temp_buffers.ctxt, ctxt_len);
+		dummyot.translation_context = ch;
+		ch += ctxt_len;
+		memcpy(ch, temp_buffers.undo_group, undo_group_len);
+		dummyot.undo_group = ch;
+	}
+
 	/* check if we have registered this operator type before, and remove it */
 	{
 		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
@@ -1348,10 +1365,10 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 	dummyot.ext.call = call;
 	dummyot.ext.free = free;
 
-	dummyot.pyop_poll = (have_function[0]) ? operator_poll : NULL;
-	dummyot.ui =            (have_function[3]) ? operator_draw : NULL;
+	dummyot.pyop_poll = (have_function[0]) ? rna_operator_poll_cb : NULL;
+	dummyot.ui =        (have_function[3]) ? rna_operator_draw_cb : NULL;
 
-	WM_operatortype_append_macro_ptr(macro_wrapper, (void *)&dummyot);
+	WM_operatortype_append_macro_ptr(BPY_RNA_operator_macro_wrapper, (void *)&dummyot);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);

@@ -750,7 +750,8 @@ int collada_export(struct Scene *sce,
 void ED_mesh_calc_tessface(struct Mesh *mesh, bool free_mpoly) RET_NONE
 
 /* bpy/python internal api */
-void operator_wrapper(struct wmOperatorType *ot, void *userdata) RET_NONE
+void BPY_RNA_operator_wrapper(struct wmOperatorType *ot, void *userdata) RET_NONE
+void BPY_RNA_operator_macro_wrapper(struct wmOperatorType *ot, void *userdata) RET_NONE
 void BPY_text_free_code(struct Text *text) RET_NONE
 void BPY_id_release(struct ID *id) RET_NONE
 int BPY_context_member_get(struct bContext *C, const char *member, struct bContextDataResult *result) RET_ZERO
@@ -758,7 +759,6 @@ void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTa
 float BPY_driver_exec(PathResolvedRNA *anim_rna, struct ChannelDriver *driver, const float evaltime) RET_ZERO /* might need this one! */
 void BPY_DECREF(void *pyob_ptr) RET_NONE
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) RET_NONE
-void macro_wrapper(struct wmOperatorType *ot, void *userdata) RET_NONE
 bool pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id) RET_ZERO
 struct PyObject *pyrna_id_CreatePyObject(struct ID *id) RET_NULL
 bool pyrna_id_CheckPyObject(struct PyObject *obj) RET_ZERO
