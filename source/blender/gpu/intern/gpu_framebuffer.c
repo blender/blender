@@ -163,6 +163,52 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 	return true;
 }
 
+bool GPU_framebuffer_texture_cubeface_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
+{
+	GLenum attachment;
+	GLenum facetarget;
+
+	if (slot >= GPU_FB_MAX_SLOTS) {
+		fprintf(stderr,
+		        "Attaching to index %d framebuffer slot unsupported. "
+		        "Use at most %d\n", slot, GPU_FB_MAX_SLOTS);
+		return false;
+	}
+
+	if ((G.debug & G_DEBUG)) {
+		if (GPU_texture_bound_number(tex) != -1) {
+			fprintf(stderr,
+			        "Feedback loop warning!: "
+			        "Attempting to attach texture to framebuffer while still bound to texture unit for drawing!\n");
+		}
+	}
+
+	BLI_assert(GPU_texture_target(tex) == GL_TEXTURE_CUBE_MAP);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
+	GG.currentfb = fb->object;
+
+	if (GPU_texture_stencil(tex) && GPU_texture_depth(tex))
+		attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+	else if (GPU_texture_depth(tex))
+		attachment = GL_DEPTH_ATTACHMENT;
+	else
+		attachment = GL_COLOR_ATTACHMENT0 + slot;
+
+	facetarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X + face;
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, facetarget, GPU_texture_opengl_bindcode(tex), mip);
+
+	if (GPU_texture_depth(tex))
+		fb->depthtex = tex;
+	else
+		fb->colortex[slot] = tex;
+
+	GPU_texture_framebuffer_set(tex, fb, slot);
+
+	return true;
+}
+
 void GPU_framebuffer_texture_detach(GPUTexture *tex)
 {
 	GLenum attachment;

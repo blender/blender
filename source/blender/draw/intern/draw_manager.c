@@ -2049,6 +2049,10 @@ void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, GPUTexture *tex, 
 	GPU_framebuffer_texture_attach(fb, tex, slot, mip);
 }
 
+void DRW_framebuffer_cubeface_attach(struct GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
+{
+	GPU_framebuffer_texture_cubeface_attach(fb, tex, slot, face, mip);
+}
 void DRW_framebuffer_texture_detach(GPUTexture *tex)
 {
 	GPU_framebuffer_texture_detach(tex);
