@@ -161,6 +161,7 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		/* Temporary object to evaluate. */
 		data->temp_dupli_object = *dob->ob;
 		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
+		data->temp_dupli_object.select_color = data->base->object->select_color;
 
 		deg_flush_base_flags_and_settings(&data->temp_dupli_object,
 		                                  data->base,
