@@ -536,7 +536,7 @@ static int probe_add_exec(bContext *C, wmOperator *op)
 	probe = (Probe *)ob->data;
 	probe->type = type;
 
-	DAG_relations_tag_update(CTX_data_main(C));
+	DEG_relations_tag_update(CTX_data_main(C));
 
 	return OPERATOR_FINISHED;
 }
