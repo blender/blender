@@ -43,9 +43,10 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -122,7 +123,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 		 * (see rna_Bone_select_update() in rna_armature.c for details)
 		 */
 		if (arm->flag & ARM_HAS_VIZ_DEPS) {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		
 		/* send necessary notifiers */
@@ -197,7 +198,7 @@ bool ED_do_pose_selectbuffer(
 			if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
 				if (nearBone == arm->act_bone) {
 					ED_vgroup_select_by_name(ob_act, nearBone->name);
-					DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+					DEG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 				}
 			}
 			/* if there are some dependencies for visualizing armature state 
@@ -207,7 +208,7 @@ bool ED_do_pose_selectbuffer(
 				/* NOTE: ob not ob_act here is intentional - it's the source of the 
 				 *       bones being selected  [T37247]
 				 */
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 	}
@@ -314,7 +315,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
 	
 	if (arm->flag & ARM_HAS_VIZ_DEPS) {
 		/* mask modifier ('armature' mode), etc. */
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;
@@ -370,7 +371,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	
 	/* weightpaint or mask modifiers need depsgraph updates */
 	if (multipaint || (arm->flag & ARM_HAS_VIZ_DEPS)) {
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;
@@ -422,7 +423,7 @@ static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (arm->flag & ARM_HAS_VIZ_DEPS) {
 		/* mask modifier ('armature' mode), etc. */
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -489,7 +490,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 	
 	if (arm->flag & ARM_HAS_VIZ_DEPS) {
 		/* mask modifier ('armature' mode), etc. */
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -583,7 +584,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 	
 	if (arm->flag & ARM_HAS_VIZ_DEPS) {
 		/* mask modifier ('armature' mode), etc. */
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	
 	return OPERATOR_FINISHED;
@@ -828,7 +829,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	
 	if (arm->flag & ARM_HAS_VIZ_DEPS) {
 		/* mask modifier ('armature' mode), etc. */
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	
 	/* report done status */
@@ -921,7 +922,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 		/* in weightpaint we select the associated vertex group too */
 		if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
 			ED_vgroup_select_by_name(ob_act, pchan_mirror_act->name);
-			DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 		}
 	}
 

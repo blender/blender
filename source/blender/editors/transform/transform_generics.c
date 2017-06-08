@@ -71,7 +71,6 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -84,6 +83,8 @@
 #include "BKE_mask.h"
 #include "BKE_utildefines.h"
 #include "BKE_workspace.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -640,7 +641,7 @@ static void recalcData_mask_common(TransInfo *t)
 
 	flushTransMasking(t);
 
-	DAG_id_tag_update(&mask->id, 0);
+	DEG_id_tag_update(&mask->id, 0);
 }
 
 /* helper for recalcData() - for Image Editor transforms */
@@ -659,7 +660,7 @@ static void recalcData_image(TransInfo *t)
 		if (sima->flag & SI_LIVE_UNWRAP)
 			ED_uvedit_live_unwrap_re_solve();
 		
-		DAG_id_tag_update(t->obedit->data, 0);
+		DEG_id_tag_update(t->obedit->data, 0);
 	}
 }
 
@@ -702,7 +703,7 @@ static void recalcData_spaceclip(TransInfo *t)
 			track = track->next;
 		}
 
-		DAG_id_tag_update(&clip->id, 0);
+		DEG_id_tag_update(&clip->id, 0);
 	}
 	else if (t->options & CTX_MASK) {
 		recalcData_mask_common(t);
@@ -725,7 +726,7 @@ static void recalcData_objects(TransInfo *t)
 				applyProject(t);
 			}
 			
-			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+			DEG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 				
 			if (t->state == TRANS_CANCEL) {
 				while (nu) {
@@ -749,7 +750,7 @@ static void recalcData_objects(TransInfo *t)
 				applyProject(t);
 			}
 			
-			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+			DEG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 			
 			if (la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 		}
@@ -771,7 +772,7 @@ static void recalcData_objects(TransInfo *t)
 				projectVertSlideData(t, false);
 			}
 
-			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+			DEG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 			
 			EDBM_mesh_normals_update(em);
 			BKE_editmesh_tessface_calc(em);
@@ -869,7 +870,7 @@ static void recalcData_objects(TransInfo *t)
 			if (t->state != TRANS_CANCEL) {
 				applyProject(t);
 			}
-			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+			DEG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 		}
 	}
 	else if ((t->flag & T_POSE) && t->poseobj) {
@@ -892,7 +893,7 @@ static void recalcData_objects(TransInfo *t)
 		
 		/* old optimize trick... this enforces to bypass the depgraph */
 		if (!(arm->flag & ARM_DELAYDEFORM)) {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 			/* transformation of pose may affect IK tree, make sure it is rebuilt */
 			BIK_clear_data(ob->pose);
 		}
@@ -935,10 +936,10 @@ static void recalcData_objects(TransInfo *t)
 			/* sets recalc flags fully, instead of flushing existing ones 
 			 * otherwise proxies don't function correctly
 			 */
-			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 			if (t->flag & T_TEXTURE)
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 }

@@ -39,11 +39,12 @@
 #include "BLI_math.h"
 
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_editmesh.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
 
@@ -56,7 +57,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
 	const int mode = tvs->mode;
 	BLI_assert(ED_transverts_check_obedit(obedit) == true);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 
 	if (obedit->type == OB_MESH) {
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);

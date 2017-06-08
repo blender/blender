@@ -43,9 +43,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_node.h"
 
@@ -88,7 +89,7 @@ static void rna_World_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 {
 	World *wo = ptr->id.data;
 
-	DAG_id_tag_update(&wo->id, 0);
+	DEG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD | ND_WORLD, wo);
 }
 
@@ -97,7 +98,7 @@ static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 {
 	World *wo = ptr->id.data;
 
-	DAG_id_tag_update(&wo->id, 0);
+	DEG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD | ND_WORLD_DRAW, wo);
 }
 #endif
@@ -106,7 +107,7 @@ static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 {
 	World *wo = ptr->id.data;
 
-	DAG_id_tag_update(&wo->id, 0);
+	DEG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD | ND_WORLD_DRAW, wo);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }

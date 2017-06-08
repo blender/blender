@@ -45,7 +45,7 @@ static void rna_Lattice_transform(Lattice *lt, float *mat, int shape_keys)
 {
 	BKE_lattice_transform(lt, (float (*)[4])mat, shape_keys);
 
-	DAG_id_tag_update(&lt->id, 0);
+	DEG_id_tag_update(&lt->id, 0);
 }
 #else
 

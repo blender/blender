@@ -78,13 +78,14 @@
 #include "BKE_paint.h"
 #include "BKE_font.h"
 #include "BKE_node.h"
-#include "BKE_depsgraph.h"
 #include "BKE_speaker.h"
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
 #include "BKE_gpencil.h"
 #include "BKE_linestyle.h"
 #include "BKE_workspace.h"
+
+#include "DEG_depsgraph_query.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -578,7 +579,7 @@ static FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name
 		BKE_main_id_tag_listbase(&bmain->_listbase_name, LIB_TAG_DOIT, value);     \
 	}                                                                              \
 	static int rna_Main_##_func_name##_is_updated_get(PointerRNA *ptr) {           \
-		return DAG_id_type_tagged(ptr->data, _id_type) != 0;                       \
+		return DEG_id_type_tagged(ptr->data, _id_type) != 0;                       \
 	}
 
 RNA_MAIN_ID_TAG_FUNCS_DEF(cameras, camera, ID_CA)

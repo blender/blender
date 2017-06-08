@@ -52,9 +52,10 @@
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "UI_interface.h"
 
@@ -2081,7 +2082,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 
 	ED_region_draw_cb_exit(CTX_wm_region(C)->type, state->draw_handle);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	state_delete(state);

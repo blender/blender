@@ -43,10 +43,11 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_string.h"
-#include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_deform.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -97,7 +98,7 @@ static void rna_Lattice_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 {
 	ID *id = ptr->id.data;
 
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
@@ -119,7 +120,7 @@ static void rna_Lattice_update_data_editlatt(Main *UNUSED(bmain), Scene *UNUSED(
 		BLI_strncpy(lt_em->vgroup, lt->vgroup, sizeof(lt_em->vgroup));
 	}
 
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 

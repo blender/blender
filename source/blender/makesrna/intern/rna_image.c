@@ -32,8 +32,9 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_image.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -104,7 +105,7 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 	if (value != ima->source) {
 		ima->source = value;
 		BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
-		DAG_id_tag_update(&ima->id, 0);
+		DEG_id_tag_update(&ima->id, 0);
 	}
 }
 
@@ -134,7 +135,7 @@ static void rna_Image_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 	Image *ima = ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
 	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
-	DAG_id_tag_update(&ima->id, 0);
+	DEG_id_tag_update(&ima->id, 0);
 }
 
 static void rna_Image_generated_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -147,7 +148,7 @@ static void rna_Image_colormanage_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 {
 	Image *ima = ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_COLORMANAGE);
-	DAG_id_tag_update(&ima->id, 0);
+	DEG_id_tag_update(&ima->id, 0);
 	WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 }

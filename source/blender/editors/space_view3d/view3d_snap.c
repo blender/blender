@@ -40,12 +40,13 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_tracking.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -153,7 +154,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 				}
 				ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
 				
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				vec[0] = -ob->obmat[3][0] + gridf * floorf(0.5f + ob->obmat[3][0] / gridf);
@@ -177,7 +178,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 				/* auto-keyframing */
 				ED_autokeyframe_object(C, scene, ob, ks);
 
-				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+				DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
 		CTX_DATA_END;
@@ -329,7 +330,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 
 		obact->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
 
-		DAG_id_tag_update(&obact->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&obact->id, OB_RECALC_DATA);
 	}
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
@@ -385,7 +386,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 				/* auto-keyframing */
 				ED_autokeyframe_object(C, scene, ob, ks);
 
-				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+				DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
 

@@ -54,7 +54,6 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_colortools.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -65,6 +64,8 @@
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -722,7 +723,7 @@ static void render_endjob(void *rjv)
 			scene->lay_updated = 0;
 		}
 
-		DAG_on_visible_update(G.main, false);
+		DEG_on_visible_update(G.main, false);
 	}
 }
 

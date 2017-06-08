@@ -113,10 +113,11 @@ static EnumPropertyItem blend_type_items[] = {
 #include "RNA_access.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
 #include "BKE_main.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_node.h"
 #include "ED_render.h"
@@ -168,7 +169,7 @@ static void rna_Texture_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *pt
 	if (GS(id->name) == ID_TE) {
 		Tex *tex = ptr->id.data;
 
-		DAG_id_tag_update(&tex->id, 0);
+		DEG_id_tag_update(&tex->id, 0);
 		WM_main_add_notifier(NC_TEXTURE, tex);
 		WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, NULL);
 	}
@@ -214,7 +215,7 @@ static void rna_Texture_nodes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 {
 	Tex *tex = ptr->id.data;
 
-	DAG_id_tag_update(&tex->id, 0);
+	DEG_id_tag_update(&tex->id, 0);
 	WM_main_add_notifier(NC_TEXTURE | ND_NODES, tex);
 }
 
@@ -229,7 +230,7 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
 
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 
 	switch (GS(id->name)) {
 		case ID_MA:
@@ -265,7 +266,7 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 			if (mtex->mapto & PAMAP_CHILD)
 				recalc |= PSYS_RECALC_CHILD;
 
-			DAG_id_tag_update(id, recalc);
+			DEG_id_tag_update(id, recalc);
 			WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 			break;
 		}

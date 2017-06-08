@@ -470,7 +470,6 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_mesh.h"
 #include "BKE_sound.h"
@@ -479,6 +478,9 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "BKE_animsys.h"
 #include "BKE_freestyle.h"
 #include "BKE_gpencil.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_info.h"
 #include "ED_node.h"
@@ -668,11 +670,11 @@ static BaseLegacy *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *
 		ob->lay = base->lay;
 
 	/* TODO(sergey): Only update relations for the current scene. */
-	DAG_relations_tag_update(CTX_data_main(C));
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_relations_tag_update(CTX_data_main(C));
+	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	/* slows down importers too much, run scene.update() */
-	/* DAG_srelations_tag_update(G.main); */
+	/* DEG_srelations_tag_update(G.main); */
 
 	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -700,7 +702,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 	id_us_min(&ob->id);
 
 	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
-	DAG_relations_tag_update(G.main);
+	DEG_relations_tag_update(G.main);
 
 	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 }
@@ -775,7 +777,7 @@ static void rna_Scene_layer_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
 	 *     However, this has too much drawbacks (like slower layer switch, undesired updates...).
 	 *     That's TODO for future DAG updates.
 	 */
-	DAG_on_visible_update(bmain, false);
+	DEG_on_visible_update(bmain, false);
 
 	/* No need to sync scene data here (WM_windows_scene_data_sync), handled through notifier. */
 }
@@ -1474,7 +1476,7 @@ static SceneRenderLayer *rna_RenderLayer_new(ID *id, RenderData *UNUSED(rd), con
 	Scene *scene = (Scene *)id;
 	SceneRenderLayer *srl = BKE_scene_add_render_layer(scene, name);
 
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	return srl;
@@ -1494,7 +1496,7 @@ static void rna_RenderLayer_remove(
 
 	RNA_POINTER_INVALIDATE(srl_ptr);
 
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
 
@@ -1614,14 +1616,14 @@ static void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 {
 	Scene *scene = (Scene *)ptr->id.data;
 
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 }
 
 static void rna_Scene_freestyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 }
 
 static void rna_Scene_use_view_map_cache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -1825,7 +1827,7 @@ static void object_simplify_update(Object *ob)
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 
@@ -1851,7 +1853,7 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA 
 		object_simplify_update(base->object);
 	
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 }
 
 static void rna_Scene_simplify_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -2111,7 +2113,7 @@ static void rna_EditMesh_update(Main *UNUSED(bmain), bContext *C, Scene *UNUSED(
 	}
 
 	if (me) {
-		DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_GEOM | ND_DATA, me);
 	}
 }
@@ -2132,7 +2134,7 @@ static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(
 	Object *ob = OBACT_NEW;
 
 	if (ob) {
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 	}
 }
@@ -2143,7 +2145,7 @@ static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	Object *camera = scene->camera;
 
 	if (camera)
-		DAG_id_tag_update(&camera->id, 0);
+		DEG_id_tag_update(&camera->id, 0);
 }
 
 static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -2180,7 +2182,7 @@ static FreestyleLineSet *rna_FreestyleSettings_lineset_add(
 	Scene *scene = (Scene *)id;
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_add(bmain, (FreestyleConfig *)config, name);
 
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	return lineset;
@@ -2199,7 +2201,7 @@ static void rna_FreestyleSettings_lineset_remove(
 
 	RNA_POINTER_INVALIDATE(lineset_ptr);
 
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
 
@@ -2236,7 +2238,7 @@ static FreestyleModuleConfig *rna_FreestyleSettings_module_add(ID *id, Freestyle
 	Scene *scene = (Scene *)id;
 	FreestyleModuleConfig *module = BKE_freestyle_module_add((FreestyleConfig *)config);
 
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	return module;
@@ -2258,7 +2260,7 @@ static void rna_FreestyleSettings_module_remove(
 
 	RNA_POINTER_INVALIDATE(module_ptr);
 
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
 
@@ -2355,7 +2357,7 @@ static int rna_SceneCollection_move_above(ID *id, SceneCollection *sc_src, Main 
 		return 0;
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return 1;
@@ -2369,7 +2371,7 @@ static int rna_SceneCollection_move_below(ID *id, SceneCollection *sc_src, Main 
 		return 0;
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return 1;
@@ -2383,7 +2385,7 @@ static int rna_SceneCollection_move_into(ID *id, SceneCollection *sc_src, Main *
 		return 0;
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return 1;
@@ -2395,7 +2397,7 @@ static SceneCollection *rna_SceneCollection_new(
 	Scene *scene = (Scene *)id;
 	SceneCollection *sc = BKE_collection_add(scene, sc_parent, name);
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return sc;
@@ -2422,7 +2424,7 @@ static void rna_SceneCollection_remove(
 
 	RNA_POINTER_INVALIDATE(sc_ptr);
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 }
 
@@ -2459,12 +2461,12 @@ void rna_SceneCollection_object_link(
 	BKE_collection_object_add(scene, sc, ob);
 
 	/* TODO(sergey): Only update relations for the current scene. */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER | ND_OB_ACTIVE, scene);
 }
@@ -2482,7 +2484,7 @@ static void rna_SceneCollection_object_unlink(
 	BKE_collection_object_remove(bmain, scene, sc, ob, false);
 
 	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER | ND_OB_ACTIVE, scene);
 }
@@ -2624,14 +2626,14 @@ static void rna_SceneLayerEngineSettings_update(bContext *C, PointerRNA *UNUSED(
 {
 	Scene *scene = CTX_data_scene(C);
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 }
 
 static void rna_LayerCollectionEngineSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	Scene *scene = CTX_data_scene(C);
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 }
 
 static void rna_LayerCollectionEngineSettings_wire_update(bContext *C, PointerRNA *UNUSED(ptr))
@@ -2645,7 +2647,7 @@ static void rna_LayerCollectionEngineSettings_wire_update(bContext *C, PointerRN
 	}
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 }
 
 /***********************************/
@@ -2711,7 +2713,7 @@ static void rna_SceneLayerSettings_use(ID *id, IDProperty *props, const char *id
 	engine_settings_use(props, scene_props, &scene_props_ptr, identifier);
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 }
 
 static void rna_SceneLayerSettings_unuse(ID *id, IDProperty *props, const char *identifier)
@@ -2720,7 +2722,7 @@ static void rna_SceneLayerSettings_unuse(ID *id, IDProperty *props, const char *
 	IDP_FreeFromGroup(props, prop_to_remove);
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 }
 
 static void rna_LayerCollectionSettings_name_get(PointerRNA *ptr, char *value)
@@ -2746,7 +2748,7 @@ static void rna_LayerCollectionSettings_use(ID *id, IDProperty *props, const cha
 	engine_settings_use(props, scene_props, &scene_props_ptr, identifier);
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 }
 
 static void rna_LayerCollectionSettings_unuse(ID *id, IDProperty *props, const char *identifier)
@@ -2755,7 +2757,7 @@ static void rna_LayerCollectionSettings_unuse(ID *id, IDProperty *props, const c
 	IDP_FreeFromGroup(props, prop_to_remove);
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 }
 
 static void rna_LayerCollection_name_get(PointerRNA *ptr, char *value)
@@ -2792,7 +2794,7 @@ static int rna_LayerCollection_move_above(ID *id, LayerCollection *lc_src, Main 
 		return 0;
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return 1;
@@ -2806,7 +2808,7 @@ static int rna_LayerCollection_move_below(ID *id, LayerCollection *lc_src, Main 
 		return 0;
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return 1;
@@ -2820,7 +2822,7 @@ static int rna_LayerCollection_move_into(ID *id, LayerCollection *lc_src, Main *
 		return 0;
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return 1;
@@ -2830,7 +2832,7 @@ static void rna_LayerCollection_flag_update(bContext *C, PointerRNA *UNUSED(ptr)
 {
 	Scene *scene = CTX_data_scene(C);
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
 
@@ -2876,9 +2878,9 @@ LayerCollection * rna_SceneLayer_collection_link(
 	Scene *scene = (Scene *)id;
 	LayerCollection *lc = BKE_collection_link(sl, sc);
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, scene);
 
 	return lc;
@@ -2896,9 +2898,9 @@ static void rna_SceneLayer_collection_unlink(
 
 	BKE_collection_unlink(sl, lc);
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER | ND_OB_ACTIVE, scene);
 }
 
@@ -3077,8 +3079,8 @@ static SceneLayer *rna_SceneLayer_new(
 	Scene *scene = (Scene *)id;
 	SceneLayer *sl = BKE_scene_layer_add(scene, name);
 
-	DAG_id_tag_update(&scene->id, 0);
-	DAG_relations_tag_update(bmain);
+	DEG_id_tag_update(&scene->id, 0);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return sl;
@@ -3098,8 +3100,8 @@ static void rna_SceneLayer_remove(
 
 	RNA_POINTER_INVALIDATE(sl_ptr);
 
-	DAG_id_tag_update(&scene->id, 0);
-	DAG_relations_tag_update(bmain);
+	DEG_id_tag_update(&scene->id, 0);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 }
 

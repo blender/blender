@@ -41,8 +41,6 @@
 #include "BKE_object_facemap.h"  /* own include */
 #include "BKE_object_deform.h"
 
-#include "BKE_depsgraph.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"

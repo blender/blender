@@ -38,7 +38,7 @@
 #include "BKE_object_facemap.h"
 #include "BKE_object_deform.h"
 
-#include "BKE_depsgraph.h"
+#include "DEG_depsgraph.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
@@ -182,7 +182,7 @@ static int face_map_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_context(C);
 
 	BKE_object_facemap_add(ob);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	
@@ -211,7 +211,7 @@ static int face_map_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (fmap) {
 		BKE_object_facemap_remove(ob, fmap);
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
@@ -259,7 +259,7 @@ static int face_map_assign_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 		
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
@@ -308,7 +308,7 @@ static int face_map_remove_from_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 		
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
@@ -362,7 +362,7 @@ static int face_map_select_exec(bContext *C, wmOperator *UNUSED(op))
 	if (fmap) {
 		fmap_select(ob, true);
 		
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
@@ -392,7 +392,7 @@ static int face_map_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 	if (fmap) {
 		fmap_select(ob, false);
 
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
@@ -462,7 +462,7 @@ static int face_map_move_exec(bContext *C, wmOperator *op)
 	
 	ob->actfmap = pos2 + 1;
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob);
 
 	return OPERATOR_FINISHED;

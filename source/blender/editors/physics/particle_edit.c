@@ -53,7 +53,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -63,6 +62,8 @@
 #include "BKE_report.h"
 #include "BKE_bvhutils.h"
 #include "BKE_pointcache.h"
+
+#include "DEG_depsgraph.h"
 
 #include "BIF_gl.h"
 
@@ -2619,7 +2620,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d double particles", totremoved);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 
 	return OPERATOR_FINISHED;
@@ -2672,7 +2673,7 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 
 	return OPERATOR_FINISHED;
@@ -2781,7 +2782,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		recalc_lengths(data.edit);
 	}
 
-	DAG_id_tag_update(&data.ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&data.ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2967,7 +2968,7 @@ static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
 
 	update_world_cos(ob, edit);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -3976,7 +3977,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 				update_world_cos(ob, edit);
 				psys_free_path_cache(NULL, edit);
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else
 				PE_update_object(scene, sl, ob, 1);
@@ -3986,7 +3987,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 		}
 		else {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 		}
 
@@ -4237,7 +4238,7 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 		if (removed) {
 			update_world_cos(ob, edit);
 			psys_free_path_cache(NULL, edit);
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		else
 			PE_update_object(scene, sl, ob, 1);
@@ -4246,7 +4247,7 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 		}
 		else {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 		}
 		
@@ -4487,7 +4488,7 @@ void PE_undo_step(Scene *scene, SceneLayer *sl, int step)
 		}
 	}
 
-	DAG_id_tag_update(&OBACT_NEW->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&OBACT_NEW->id, OB_RECALC_DATA);
 }
 
 bool PE_undo_is_valid(Scene *scene, SceneLayer *sl)
@@ -4761,7 +4762,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -4802,7 +4803,7 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 	else { /* some operation might have protected hair from editing so let's clear the flag */
@@ -4810,7 +4811,7 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 		psys->flag &= ~PSYS_GLOBAL_HAIR;
 		psys->flag &= ~PSYS_EDITED;
 		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;
@@ -4926,7 +4927,7 @@ static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
 		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 	}
 	else {
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	}
 

@@ -43,7 +43,6 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
@@ -54,6 +53,9 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -209,8 +211,8 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 
 	psys_check_boid_data(psys);
 
-	DAG_relations_tag_update(bmain);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	
@@ -257,8 +259,8 @@ static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BLI_addtail(&psys->targets, pt);
 
-	DAG_relations_tag_update(bmain);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	
@@ -305,8 +307,8 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 	if (pt)
 		pt->flag |= PTARGET_CURRENT;
 
-	DAG_relations_tag_update(bmain);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	
@@ -345,7 +347,7 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&psys->targets, pt);
 			BLI_insertlinkbefore(&psys->targets, pt->prev, pt);
 
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 			break;
 		}
@@ -383,7 +385,7 @@ static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&psys->targets, pt);
 			BLI_insertlinkafter(&psys->targets, pt->next, pt);
 
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 			break;
 		}
@@ -636,7 +638,7 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 		disconnect_hair(scene, sl, ob, psys);
 	}
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 
 	return OPERATOR_FINISHED;
@@ -891,7 +893,7 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 
 	return OPERATOR_FINISHED;
@@ -1126,7 +1128,7 @@ static bool copy_particle_systems_to_object(Main *bmain,
 	#undef PSYS_FROM_FIRST
 	#undef PSYS_FROM_NEXT
 	
-	DAG_id_tag_update(&ob_to->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob_to->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, ob_to);
 	return true;
 }

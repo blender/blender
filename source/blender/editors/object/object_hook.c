@@ -48,7 +48,6 @@
 
 #include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -57,6 +56,9 @@
 #include "BKE_scene.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -319,7 +321,7 @@ static bool object_hook_index_array(Scene *scene, Object *obedit,
 			EDBM_mesh_load(obedit);
 			EDBM_mesh_make(scene->toolsettings, obedit, true);
 
-			DAG_id_tag_update(obedit->data, 0);
+			DEG_id_tag_update(obedit->data, 0);
 
 			em = me->edit_btmesh;
 
@@ -548,7 +550,7 @@ static int add_hook_object(Main *bmain, Scene *scene, SceneLayer *sl, Object *ob
 	/* apparently this call goes from right to left... */
 	mul_m4_series(hmd->parentinv, pose_mat, ob->imat, obedit->obmat);
 	
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 
 	return true;
 }
@@ -658,7 +660,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 	BLI_remlink(&ob->modifiers, (ModifierData *)hmd);
 	modifier_free((ModifierData *)hmd);
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -732,7 +734,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 
 	BKE_object_modifier_hook_reset(ob, hmd);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -782,7 +784,7 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	sub_v3_v3v3(hmd->cent, scene->cursor, ob->obmat[3]);
 	mul_m3_v3(imat, hmd->cent);
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -840,7 +842,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	hmd->indexar = indexar;
 	hmd->totindex = tot;
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;

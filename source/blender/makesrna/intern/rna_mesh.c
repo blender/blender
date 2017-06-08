@@ -67,10 +67,11 @@ EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
 #include "BLI_math.h"
 
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_mesh.h" /* XXX Bad level call */
 
@@ -223,7 +224,7 @@ static void rna_Mesh_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 
 	/* cheating way for importers to avoid slow updates */
 	if (id->us > 0) {
-		DAG_id_tag_update(id, 0);
+		DEG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 	}
 }

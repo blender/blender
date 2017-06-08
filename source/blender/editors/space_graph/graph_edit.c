@@ -54,12 +54,13 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph_build.h"
 
 #include "UI_view2d.h"
 
@@ -2714,7 +2715,7 @@ static int graph_driver_vars_paste_exec(bContext *C, wmOperator *op)
 	/* successful or not? */
 	if (ok) {
 		/* rebuild depsgraph, now that there are extra deps here */
-		DAG_relations_tag_update(CTX_data_main(C));
+		DEG_relations_tag_update(CTX_data_main(C));
 		
 		/* set notifier that keyframes have changed */
 		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, CTX_data_scene(C));

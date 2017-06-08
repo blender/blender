@@ -42,13 +42,15 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_object_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -135,7 +137,7 @@ static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	dynamicPaint_resetPreview(canvas);
-	DAG_id_tag_update(&obj_ctx->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&obj_ctx->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obj_ctx);
 
 	return OPERATOR_FINISHED;
@@ -181,8 +183,8 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* update dependency */
-	DAG_id_tag_update(&cObject->id, OB_RECALC_DATA);
-	DAG_relations_tag_update(CTX_data_main(C));
+	DEG_id_tag_update(&cObject->id, OB_RECALC_DATA);
+	DEG_relations_tag_update(CTX_data_main(C));
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, cObject);
 
 	return OPERATOR_FINISHED;

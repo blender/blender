@@ -55,7 +55,7 @@
 
 #include "BKE_object.h"
 
-#include "BKE_depsgraph.h" /* for object updating */
+#include "DEG_depsgraph.h"
 
 #include "ED_screen.h"
 
@@ -242,7 +242,7 @@ void ED_view3d_cameracontrol_update(
 
 		ob_update = v3d->camera->parent;
 		while (ob_update) {
-			DAG_id_tag_update(&ob_update->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob_update->id, OB_RECALC_OB);
 			ob_update = ob_update->parent;
 		}
 
@@ -264,7 +264,7 @@ void ED_view3d_cameracontrol_update(
 
 		BKE_object_apply_mat4(v3d->camera, view_mat, true, true);
 
-		DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+		DEG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 
 		copy_v3_v3(v3d->camera->size, size_back);
 
@@ -299,7 +299,7 @@ void ED_view3d_cameracontrol_release(
 			/* store the original camera loc and rot */
 			BKE_object_tfm_restore(ob_back, vctrl->obtfm);
 
-			DAG_id_tag_update(&ob_back->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob_back->id, OB_RECALC_OB);
 		}
 		else {
 			/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
@@ -311,7 +311,7 @@ void ED_view3d_cameracontrol_release(
 		rv3d->dist = vctrl->dist_backup;
 	}
 	else if (vctrl->persp_backup == RV3D_CAMOB) { /* camera */
-		DAG_id_tag_update((ID *)view3d_cameracontrol_object(vctrl), OB_RECALC_OB);
+		DEG_id_tag_update((ID *)view3d_cameracontrol_object(vctrl), OB_RECALC_OB);
 
 		/* always, is set to zero otherwise */
 		copy_v3_v3(rv3d->ofs, vctrl->ofs_backup);

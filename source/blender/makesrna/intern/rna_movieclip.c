@@ -47,7 +47,7 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BKE_depsgraph.h"
+#include "DEG_depsgraph.h"
 
 #include "ED_clip.h"
 
@@ -59,7 +59,7 @@ static void rna_MovieClip_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 
 	BKE_movieclip_reload(clip);
-	DAG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&clip->id, 0);
 }
 
 static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)

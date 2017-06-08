@@ -34,9 +34,10 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_mask.h"
 #include "BKE_tracking.h"
+
+#include "DEG_depsgraph.h"
 
 #include "DNA_mask_types.h"
 
@@ -73,7 +74,7 @@ static int mask_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
-	DAG_id_tag_update(&mask->id, 0);
+	DEG_id_tag_update(&mask->id, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -176,7 +177,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
-	DAG_id_tag_update(&mask->id, 0);
+	DEG_id_tag_update(&mask->id, 0);
 
 	return OPERATOR_FINISHED;
 }

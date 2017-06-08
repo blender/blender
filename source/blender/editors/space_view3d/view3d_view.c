@@ -43,7 +43,6 @@
 #include "BKE_action.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -493,7 +492,7 @@ static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
 
-	DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+	DEG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 	rv3d->persp = RV3D_CAMOB;
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, v3d->camera);
@@ -571,7 +570,7 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
 		BKE_object_tfm_protected_restore(camera_ob, &obtfm, OB_LOCK_SCALE | OB_LOCK_ROT4D);
 
 		/* notifiers */
-		DAG_id_tag_update(&camera_ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&camera_ob->id, OB_RECALC_OB);
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, camera_ob);
 		return OPERATOR_FINISHED;
 	}

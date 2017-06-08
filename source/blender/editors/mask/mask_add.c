@@ -34,8 +34,9 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_mask.h"
+
+#include "DEG_depsgraph.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -692,7 +693,7 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 
 		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
-		DAG_id_tag_update(&mask->id, 0);
+		DEG_id_tag_update(&mask->id, 0);
 
 		return OPERATOR_FINISHED;
 	}

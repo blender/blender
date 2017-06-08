@@ -36,8 +36,6 @@
 
 #include "DEG_depsgraph.h"
 
-#include "BKE_depsgraph.h"
-
 #include "DNA_object_types.h"
 
 #ifdef RNA_RUNTIME
@@ -46,6 +44,7 @@
 #include "BKE_report.h"
 #include "DNA_object_types.h"
 
+#include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
@@ -135,9 +134,9 @@ static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
 static void rna_Depsgraph_debug_rebuild(Depsgraph *UNUSED(graph), Main *bmain)
 {
 	Scene *sce;
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
-		DAG_scene_relations_rebuild(bmain, sce);
+		DEG_scene_relations_rebuild(bmain, sce);
 		DEG_graph_on_visible_update(bmain, sce);
 	}
 }

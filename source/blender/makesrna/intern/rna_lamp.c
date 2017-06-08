@@ -45,9 +45,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_node.h"
 #include "WM_api.h"
@@ -134,7 +135,7 @@ static void rna_Lamp_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 {
 	Lamp *la = ptr->id.data;
 
-	DAG_id_tag_update(&la->id, 0);
+	DEG_id_tag_update(&la->id, 0);
 	WM_main_add_notifier(NC_LAMP | ND_LIGHTING, la);
 }
 
@@ -142,7 +143,7 @@ static void rna_Lamp_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 {
 	Lamp *la = ptr->id.data;
 
-	DAG_id_tag_update(&la->id, 0);
+	DEG_id_tag_update(&la->id, 0);
 	WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
 }
 
@@ -150,7 +151,7 @@ static void rna_Lamp_sky_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 {
 	Lamp *la = ptr->id.data;
 
-	DAG_id_tag_update(&la->id, 0);
+	DEG_id_tag_update(&la->id, 0);
 	WM_main_add_notifier(NC_LAMP | ND_SKY, la);
 }
 

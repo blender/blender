@@ -47,12 +47,14 @@
 #include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -406,7 +408,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_relations_tag_update(bmain);  /* because we removed object(s) */
+	DEG_relations_tag_update(bmain);  /* because we removed object(s) */
 
 	ED_armature_from_edit(arm);
 	ED_armature_edit_free(arm);
@@ -624,7 +626,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	
 	/* 2) duplicate base */
 	newbase = ED_object_add_duplicate(bmain, scene, sl, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 
 	newob = newbase->object;
 	newbase->flag &= ~BASE_SELECTED;
@@ -638,8 +640,8 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	/* 4) fix links before depsgraph flushes */ // err... or after?
 	separated_armature_fix_links(oldob, newob);
 	
-	DAG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* this is the original one */
-	DAG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* this is the separated one */
+	DEG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* this is the original one */
+	DEG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* this is the separated one */
 	
 	
 	/* 5) restore original conditions */

@@ -106,8 +106,10 @@ EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_constraint.h"
-#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_object.h"
 #include "ED_armature.h"
@@ -120,7 +122,7 @@ static void rna_Pose_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 {
 	/* XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK); */
 
-	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 }
 
 static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -128,7 +130,7 @@ static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	/* XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK); */
 	Object *ob = ptr->id.data;
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	BIK_clear_data(ob->pose);
 }
 
@@ -233,13 +235,13 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene *UNUSED(scene), Pointer
 	bPose *pose = ptr->data;
 
 	BKE_pose_tag_recalc(bmain, pose);  /* checks & sorts pose channels */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	
 	BKE_pose_update_constraint_flags(pose);
 	
 	object_test_constraints(ob);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 }
 
 /* rotation - axis-angle */
@@ -349,7 +351,7 @@ static void rna_Itasc_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 		itasc->maxvel = 100.f;
 	BIK_update_param(ob->pose);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 
 static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)

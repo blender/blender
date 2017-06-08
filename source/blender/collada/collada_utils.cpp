@@ -124,7 +124,7 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 
 	/** done once after import */
 #if 0
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 #endif
 

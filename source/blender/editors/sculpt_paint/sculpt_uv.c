@@ -46,10 +46,11 @@
 #include "BKE_paint.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_screen.h"
 #include "ED_image.h"
@@ -898,7 +899,7 @@ static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	return OPERATOR_RUNNING_MODAL;
 }
 

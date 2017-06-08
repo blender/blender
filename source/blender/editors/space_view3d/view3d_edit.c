@@ -58,7 +58,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_action.h"
-#include "BKE_depsgraph.h" /* for ED_view3d_camera_lock_sync */
+
+#include "DEG_depsgraph.h"
 
 #include "BIF_gl.h"
 
@@ -163,7 +164,7 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 
 			ob_update = v3d->camera;
 			while (ob_update) {
-				DAG_id_tag_update(&ob_update->id, OB_RECALC_OB);
+				DEG_id_tag_update(&ob_update->id, OB_RECALC_OB);
 				WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, ob_update);
 				ob_update = ob_update->parent;
 			}
@@ -175,7 +176,7 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 			BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag | protect_scale_all);
 
-			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+			DEG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 			WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, v3d->camera);
 		}
 

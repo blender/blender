@@ -97,7 +97,6 @@ set(SRC
 	intern/customdata_file.c
 	intern/data_transfer.c
 	intern/deform.c
-	intern/depsgraph.c
 	intern/displist.c
 	intern/dynamicpaint.c
 	intern/editderivedmesh.c
@@ -231,7 +230,6 @@ set(SRC
 	BKE_customdata_file.h
 	BKE_data_transfer.h
 	BKE_deform.h
-	BKE_depsgraph.h
 	BKE_displist.h
 	BKE_dynamicpaint.h
 	BKE_editmesh.h

@@ -99,8 +99,10 @@ EnumPropertyItem rna_enum_id_type_items[] = {
 #include "BKE_library_remap.h"
 #include "BKE_animsys.h"
 #include "BKE_material.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"  /* XXX, remove me */
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "WM_api.h"
 
@@ -334,7 +336,7 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 		}
 	}
 
-	DAG_id_tag_update(id, flag);
+	DEG_id_tag_update(id, flag);
 }
 
 static void rna_ID_user_clear(ID *id)
@@ -370,14 +372,14 @@ static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, int clear_prox
 static AnimData * rna_ID_animation_data_create(ID *id, Main *bmain)
 {
 	AnimData *adt = BKE_animdata_add_id(id);
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	return adt;
 }
 
 static void rna_ID_animation_data_free(ID *id, Main *bmain)
 {
 	BKE_animdata_free(id, true);
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 
 static void rna_IDPArray_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -435,7 +437,7 @@ static Material *rna_IDMaterials_pop_id(ID *id, Main *bmain, ReportList *reports
 		return NULL;
 	}
 
-	DAG_id_tag_update(id, OB_RECALC_DATA);
+	DEG_id_tag_update(id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
 
@@ -446,7 +448,7 @@ static void rna_IDMaterials_clear_id(ID *id, int remove_material_slot)
 {
 	BKE_material_clear_id(G.main, id, remove_material_slot);
 
-	DAG_id_tag_update(id, OB_RECALC_DATA);
+	DEG_id_tag_update(id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
 }

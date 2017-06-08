@@ -54,8 +54,9 @@
 
 #include "DNA_movieclip_types.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_mask.h"
+
+#include "DEG_depsgraph.h"
 
 #include "BLI_math.h"
 
@@ -68,7 +69,7 @@ static void rna_Mask_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 	Mask *mask = ptr->id.data;
 
 	WM_main_add_notifier(NC_MASK | ND_DATA, mask);
-	DAG_id_tag_update( &mask->id, 0);
+	DEG_id_tag_update( &mask->id, 0);
 }
 
 static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -448,7 +449,7 @@ static void rna_MaskLayer_spline_remove(ID *id, MaskLayer *mask_layer, ReportLis
 
 	RNA_POINTER_INVALIDATE(spline_ptr);
 
-	DAG_id_tag_update(&mask->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&mask->id, OB_RECALC_DATA);
 }
 
 static void rna_Mask_start_frame_set(PointerRNA *ptr, int value)
@@ -522,7 +523,7 @@ static void rna_MaskSpline_points_add(ID *id, MaskSpline *spline, int count)
 	}
 
 	WM_main_add_notifier(NC_MASK | ND_DATA, mask);
-	DAG_id_tag_update(&mask->id, 0);
+	DEG_id_tag_update(&mask->id, 0);
 }
 
 static void rna_MaskSpline_point_remove(ID *id, MaskSpline *spline, ReportList *reports, PointerRNA *point_ptr)
@@ -582,7 +583,7 @@ static void rna_MaskSpline_point_remove(ID *id, MaskSpline *spline, ReportList *
 	BKE_mask_layer_shape_changed_remove(layer, BKE_mask_layer_shape_spline_to_index(layer, spline) + point_index, 1);
 
 	WM_main_add_notifier(NC_MASK | ND_DATA, mask);
-	DAG_id_tag_update(&mask->id, 0);
+	DEG_id_tag_update(&mask->id, 0);
 
 	RNA_POINTER_INVALIDATE(point_ptr);
 }

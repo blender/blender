@@ -98,12 +98,13 @@ static EnumPropertyItem rna_enum_language_default_items[] = {
 #include "DNA_screen_types.h"
 
 #include "BKE_blender.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_idprop.h"
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
+
+#include "DEG_depsgraph.h"
 
 #include "GPU_draw.h"
 #include "GPU_select.h"
@@ -363,7 +364,7 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_WEIGHT_PAINT)
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	rna_userdef_update(bmain, scene, ptr);
@@ -502,7 +503,7 @@ static void rna_userdef_opensubdiv_update(Main *bmain, Scene *UNUSED(scene), Poi
 		if (object->derivedFinal != NULL &&
 		    object->derivedFinal->type == DM_TYPE_CCGDM)
 		{
-			DAG_id_tag_update(&object->id, OB_RECALC_OB);
+			DEG_id_tag_update(&object->id, OB_RECALC_OB);
 		}
 	}
 }

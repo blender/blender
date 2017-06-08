@@ -41,10 +41,11 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -167,7 +168,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 	
 	if (v3d->scenelock) handle_view3d_lock(C);
 	
-	DAG_on_visible_update(CTX_data_main(C), false);
+	DEG_on_visible_update(CTX_data_main(C), false);
 
 	ED_area_tag_redraw(sa);
 	

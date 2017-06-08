@@ -61,7 +61,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
 #include "BKE_layer.h"
@@ -70,6 +69,8 @@
 #include "BKE_sequencer.h"
 #include "BKE_idcode.h"
 #include "BKE_outliner_treehash.h"
+
+#include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
 #include "ED_screen.h"
@@ -1353,7 +1354,7 @@ static void outliner_layer_collections_reorder(
 		BLI_assert(0);
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 static bool outliner_layer_collections_reorder_poll(
         const Scene *UNUSED(scene), const TreeElement *UNUSED(insert_element),
@@ -1409,7 +1410,7 @@ static void outliner_scene_collections_reorder(
 		BLI_assert(0);
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 static bool outliner_scene_collections_reorder_poll(
         const Scene *scene, const TreeElement *UNUSED(insert_element),

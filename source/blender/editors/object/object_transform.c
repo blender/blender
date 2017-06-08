@@ -46,7 +46,6 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_idcode.h"
 #include "BKE_mball.h"
@@ -58,6 +57,8 @@
 #include "BKE_armature.h"
 #include "BKE_lattice.h"
 #include "BKE_tracking.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -265,7 +266,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 			ED_autokeyframe_object(C, scene, ob, ks);
 			
 			/* tag for updates */
-			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 		}
 	}
 	CTX_DATA_END;
@@ -371,7 +372,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 			mul_m3_v3(mat, v3);
 		}
 
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 	}
 	CTX_DATA_END;
 
@@ -617,7 +618,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, bool apply_l
 
 		ignore_parent_tx(bmain, scene, ob);
 
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 		changed = true;
 	}
@@ -644,7 +645,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 		BKE_object_where_is_calc(scene, ob);
 
 		/* update for any children that may get moved */
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 	
 		changed = true;
 	}
@@ -784,7 +785,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 			EDBM_mesh_normals_update(em);
 			tot_change++;
-			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 		}
 	}
 
@@ -898,7 +899,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if (obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
-						DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 					}
 					break;
 				}
@@ -976,7 +977,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if (obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
-						DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 					}
 					break;
 				}
@@ -1034,7 +1035,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					      (ob->transflag | ob_other->transflag) & OB_DUPLIGROUP)))
 					{
 						ob_other->flag |= OB_DONE;
-						DAG_id_tag_update(&ob_other->id, OB_RECALC_OB | OB_RECALC_DATA);
+						DEG_id_tag_update(&ob_other->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 						mul_v3_mat3_m4v3(centn, ob_other->obmat, cent); /* omit translation part */
 						add_v3_v3(ob_other->loc, centn);
@@ -1054,7 +1055,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 	for (tob = bmain->object.first; tob; tob = tob->id.next)
 		if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT))
-			DAG_id_tag_update(&tob->id, OB_RECALC_OB | OB_RECALC_DATA);
+			DEG_id_tag_update(&tob->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 	if (tot_change) {
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);

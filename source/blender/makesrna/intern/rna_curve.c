@@ -124,8 +124,10 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 #include "DNA_object_types.h"
 
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "WM_api.h"
 
@@ -338,7 +340,7 @@ static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA 
 
 static void rna_Curve_update_data_id(Main *UNUSED(bmain), Scene *UNUSED(scene), ID *id)
 {
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
@@ -349,7 +351,7 @@ static void rna_Curve_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
@@ -638,7 +640,7 @@ static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, PointerRNA *
 	BKE_nurb_free(nu);
 	RNA_POINTER_INVALIDATE(nu_ptr);
 
-	DAG_id_tag_update(&cu->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&cu->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
 }
 
@@ -648,7 +650,7 @@ static void rna_Curve_spline_clear(Curve *cu)
 
 	BKE_nurbList_free(nurbs);
 
-	DAG_id_tag_update(&cu->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&cu->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
 }
 

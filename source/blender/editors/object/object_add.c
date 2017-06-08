@@ -67,7 +67,6 @@
 #include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -93,6 +92,9 @@
 #include "BKE_screen.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -433,8 +435,8 @@ Object *ED_object_add_type(
 		ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_OCCLUDER | OB_DYNAMIC | OB_NAVMESH); /* copied from rna_object.c */
 	}
 
-	DAG_id_type_tag(bmain, ID_OB);
-	DAG_relations_tag_update(bmain);
+	DEG_id_type_tag(bmain, ID_OB);
+	DEG_relations_tag_update(bmain);
 	if (ob->data) {
 		ED_render_id_flush_update(bmain, ob->data);
 	}
@@ -445,7 +447,7 @@ Object *ED_object_add_type(
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 
 	return ob;
 }
@@ -541,7 +543,7 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 
 	ob->pd = object_add_collision_fields(type);
 
-	DAG_relations_tag_update(CTX_data_main(C));
+	DEG_relations_tag_update(CTX_data_main(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -646,7 +648,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 		newob = true;
 	}
 	else {
-		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	}
 
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
@@ -750,7 +752,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		newob = true;
 	}
 	else {
-		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	}
 
 	if (obedit == NULL) {
@@ -1008,7 +1010,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 		id_us_plus(&group->id);
 
 		/* works without this except if you try render right after, see: 22027 */
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -1128,7 +1130,7 @@ void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
 
 	object_delete_check_glsl_update(ob);
 	BKE_collections_object_remove(bmain, scene, ob, true);
-	DAG_id_type_tag(bmain, ID_OB);
+	DEG_id_type_tag(bmain, ID_OB);
 }
 
 static int object_delete_exec(bContext *C, wmOperator *op)
@@ -1215,7 +1217,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		if (scene->id.tag & LIB_TAG_DOIT) {
 			scene->id.tag &= ~LIB_TAG_DOIT;
 			
-			DAG_relations_tag_update(bmain);
+			DEG_relations_tag_update(bmain);
 
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
@@ -1408,7 +1410,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		set_sca_new_poins_ob(ob);
 		BKE_id_clear_newpoin(&dob->ob->id);
 
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	if (use_hierarchy) {
@@ -1462,7 +1464,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 				BKE_object_apply_mat4(ob_dst, dob->mat, false, true);
 
 				/* to set ob_dst->orig and in case theres any other discrepicies */
-				DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
+				DEG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
 			}
 		}
 	}
@@ -1479,7 +1481,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 			/* similer to the code above, see comments */
 			invert_m4_m4(ob_dst->parentinv, dob->mat);
 			BKE_object_apply_mat4(ob_dst, dob->mat, false, true);
-			DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
 		}
 	}
 
@@ -1488,7 +1490,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 			if (object->proxy_group == base->object) {
 				object->proxy = NULL;
 				object->proxy_from = NULL;
-				DAG_id_tag_update(&object->id, OB_RECALC_OB);
+				DEG_id_tag_update(&object->id, OB_RECALC_OB);
 			}
 		}
 	}
@@ -1522,7 +1524,7 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 
@@ -1605,7 +1607,7 @@ static Base *duplibase_for_convert(Main *bmain, Scene *scene, SceneLayer *sl, Ba
 	}
 
 	obn = BKE_object_copy(bmain, ob);
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	BKE_collection_object_add_from(scene, ob, obn);
 
 	basen = BKE_scene_layer_base_find(sl, obn);
@@ -1665,7 +1667,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	{
 		for (CollectionPointerLink *link = selected_editable_bases.first; link; link = link->next) {
 			Base *base = link->ptr.data;
-			DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 		}
 
 		uint64_t customdata_mask_prev = scene->customdata_mask;
@@ -1734,7 +1736,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				newob = ob;
-				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+				DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			}
 
 			/* make new mesh data from the original copy */
@@ -1800,7 +1802,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					for (ob1 = bmain->object.first; ob1; ob1 = ob1->id.next) {
 						if (ob1->data == ob->data) {
 							ob1->type = OB_CURVE;
-							DAG_id_tag_update(&ob1->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+							DEG_id_tag_update(&ob1->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 						}
 					}
 				}
@@ -1902,7 +1904,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		}
 
 		if (!keep_original && (ob->flag & OB_DONE)) {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			((ID *)ob->data)->tag &= ~LIB_TAG_DOIT; /* flag not to convert this datablock again */
 		}
 	}
@@ -1927,7 +1929,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		}
 
 		/* delete object should renew depsgraph */
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 	}
 
 // XXX	ED_object_editmode_enter(C, 0);
@@ -1943,7 +1945,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT | ND_DATA, BASACT_NEW->object);
 	}
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
@@ -1998,7 +2000,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, SceneLayer
 	}
 	else {
 		obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
-		DAG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+		DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 		BKE_collection_object_add_from(scene, ob, obn);
 		basen = BKE_scene_layer_base_find(sl, obn);
@@ -2120,7 +2122,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, SceneLayer
 				}
 				break;
 			case OB_ARMATURE:
-				DAG_id_tag_update(&obn->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&obn->id, OB_RECALC_DATA);
 				if (obn->pose)
 					BKE_pose_tag_recalc(bmain, obn->pose);
 				if (dupflag & USER_DUP_ARM) {
@@ -2277,7 +2279,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 			ED_object_base_activate(C, basen);
 
 		if (basen->object->data) {
-			DAG_id_tag_update(basen->object->data, 0);
+			DEG_id_tag_update(basen->object->data, 0);
 		}
 	}
 	CTX_DATA_END;
@@ -2286,9 +2288,9 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 	BKE_main_id_clear_newpoins(bmain);
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(&CTX_data_scene(C)->id, 0);
+	DEG_id_tag_update(&CTX_data_scene(C)->id, 0);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
@@ -2369,7 +2371,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	BKE_main_id_clear_newpoins(bmain);
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT | ND_OB_ACTIVE, scene);
 

@@ -42,13 +42,14 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_define.h"
 
@@ -245,7 +246,7 @@ void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
 		}
 	}
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 }
 
 void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
@@ -314,7 +315,7 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 		ED_mesh_uv_loop_reset_ex(me, layernum_dst);
 	}
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, me);
 
 	return layernum_dst;
@@ -354,7 +355,7 @@ bool ED_mesh_uv_texture_remove_index(Mesh *me, const int n)
 
 	delete_customdata_layer(me, cdlu);
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, me);
 
 	return true;
@@ -433,7 +434,7 @@ int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set)
 		BKE_mesh_update_customdata_pointers(me, true);
 	}
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, me);
 
 	return layernum;
@@ -452,7 +453,7 @@ bool ED_mesh_color_remove_index(Mesh *me, const int n)
 		return false;
 
 	delete_customdata_layer(me, cdl);
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, me);
 
 	return true;
@@ -573,7 +574,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 		/* load_editMesh free's pointers used by CustomData layers which might be used by DerivedMesh too,
 		 * so signal to re-create DerivedMesh here (sergey) */
-		DAG_id_tag_update(&me->id, 0);
+		DEG_id_tag_update(&me->id, 0);
 	}
 
 	/* dummie drop support; ensure view shows a result :) */
@@ -712,7 +713,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 			CustomData_free_layers(data, type, tot);
 		}
 
-		DAG_id_tag_update(&me->id, 0);
+		DEG_id_tag_update(&me->id, 0);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 		return OPERATOR_FINISHED;
@@ -808,7 +809,7 @@ static int mesh_customdata_skin_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_mesh_ensure_skin_customdata(me);
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 	return OPERATOR_FINISHED;
@@ -870,7 +871,7 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
 			CustomData_add_layer(data, CD_CUSTOMLOOPNORMAL, CD_DEFAULT, NULL, me->totloop);
 		}
 
-		DAG_id_tag_update(&me->id, 0);
+		DEG_id_tag_update(&me->id, 0);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 		return OPERATOR_FINISHED;
@@ -947,7 +948,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 
 	BKE_mesh_calc_normals(mesh);
 
-	DAG_id_tag_update(&mesh->id, 0);
+	DEG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
 

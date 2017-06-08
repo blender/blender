@@ -44,7 +44,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
@@ -319,7 +318,7 @@ static void rna_Object_shape_key_remove(
 		return;
 	}
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 
 	RNA_POINTER_INVALIDATE(kb_ptr);

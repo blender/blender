@@ -35,9 +35,10 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
+
+#include "DEG_depsgraph.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
@@ -1062,7 +1063,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
-			DAG_id_tag_update(&data->mask->id, 0);
+			DEG_id_tag_update(&data->mask->id, 0);
 
 			break;
 		}
@@ -1089,7 +1090,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
-				DAG_id_tag_update(&data->mask->id, 0);
+				DEG_id_tag_update(&data->mask->id, 0);
 
 				free_slide_point_data(op->customdata); /* keep this last! */
 				return OPERATOR_FINISHED;
@@ -1105,7 +1106,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			cancel_slide_point(op->customdata);
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
-			DAG_id_tag_update(&data->mask->id, 0);
+			DEG_id_tag_update(&data->mask->id, 0);
 
 			free_slide_point_data(op->customdata); /* keep this last! */
 			return OPERATOR_CANCELLED;
@@ -1469,7 +1470,7 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 			}
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
-			DAG_id_tag_update(&slide_data->mask->id, 0);
+			DEG_id_tag_update(&slide_data->mask->id, 0);
 
 			break;
 		}
@@ -1483,7 +1484,7 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 				}
 
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
-				DAG_id_tag_update(&slide_data->mask->id, 0);
+				DEG_id_tag_update(&slide_data->mask->id, 0);
 
 				free_slide_spline_curvature_data(slide_data); /* keep this last! */
 				return OPERATOR_FINISHED;
@@ -1495,7 +1496,7 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 			cancel_slide_spline_curvature(slide_data);
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
-			DAG_id_tag_update(&slide_data->mask->id, 0);
+			DEG_id_tag_update(&slide_data->mask->id, 0);
 
 			free_slide_spline_curvature_data(op->customdata); /* keep this last! */
 			return OPERATOR_CANCELLED;
@@ -1541,7 +1542,7 @@ static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	DAG_id_tag_update(&mask->id, 0);
+	DEG_id_tag_update(&mask->id, 0);
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return OPERATOR_FINISHED;
@@ -1900,7 +1901,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 
 	if (changed) {
 		WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
-		DAG_id_tag_update(&mask->id, 0);
+		DEG_id_tag_update(&mask->id, 0);
 
 		return OPERATOR_FINISHED;
 	}
@@ -1954,7 +1955,7 @@ static int mask_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (changed) {
 		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
-		DAG_id_tag_update(&mask->id, 0);
+		DEG_id_tag_update(&mask->id, 0);
 
 		return OPERATOR_FINISHED;
 	}
@@ -2016,7 +2017,7 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
 
 	if (changed) {
 		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
-		DAG_id_tag_update(&mask->id, 0);
+		DEG_id_tag_update(&mask->id, 0);
 
 		return OPERATOR_FINISHED;
 	}
@@ -2076,7 +2077,7 @@ static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
 		BKE_mask_update_display(mask, CFRA);
 
 		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
-		DAG_id_tag_update(&mask->id, 0);
+		DEG_id_tag_update(&mask->id, 0);
 
 		return OPERATOR_FINISHED;
 	}

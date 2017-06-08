@@ -40,13 +40,14 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_object.h"
+
+#include "DEG_depsgraph_build.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
@@ -166,7 +167,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	if (!updated)
 		return OPERATOR_CANCELLED;
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -230,7 +231,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	if (!ok)
 		BKE_report(op->reports, RPT_ERROR, "Active object contains no groups");
 	
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -270,7 +271,7 @@ static int group_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -321,7 +322,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 	if (!updated)
 		return OPERATOR_CANCELLED;
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -367,7 +368,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;

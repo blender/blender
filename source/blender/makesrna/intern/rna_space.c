@@ -254,7 +254,6 @@ EnumPropertyItem rna_enum_file_sort_items[] = {
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_layer.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
@@ -263,6 +262,9 @@ EnumPropertyItem rna_enum_file_sort_items[] = {
 #include "BKE_screen.h"
 #include "BKE_icons.h"
 #include "BKE_workspace.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_buttons.h"
 #include "ED_fileselect.h"
@@ -560,7 +562,7 @@ static int rna_SpaceView3D_active_layer_get(PointerRNA *ptr)
 
 static void rna_SpaceView3D_layer_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	DAG_on_visible_update(bmain, false);
+	DEG_on_visible_update(bmain, false);
 }
 
 static void rna_SpaceView3D_viewport_shade_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1371,9 +1373,9 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, bContext *C, Sce
 		}
 
 		/* force depsgraph flush too */
-		DAG_id_tag_update(&obact->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&obact->id, OB_RECALC_OB | OB_RECALC_DATA);
 		/* Update relations as well, so new time source dependency is added. */
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 	}
 }
 

@@ -44,18 +44,19 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 
 #include "ED_armature.h"
 #include "BKE_armature.h"
 
+#include "DEG_depsgraph.h"
+
 static void rna_Armature_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
 
-	DAG_id_tag_update(id, 0);
+	DEG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 	/*WM_main_add_notifier(NC_OBJECT|ND_POSE, NULL); */
 }
@@ -173,7 +174,7 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 			bArmature *arm = (bArmature *)id;
 			
 			if (arm->flag & ARM_HAS_VIZ_DEPS) {
-				DAG_id_tag_update(id, OB_RECALC_DATA);
+				DEG_id_tag_update(id, OB_RECALC_DATA);
 			}
 		}
 		else if (GS(id->name) == ID_OB) {
@@ -181,7 +182,7 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 			bArmature *arm = (bArmature *)ob->data;
 			
 			if (arm->flag & ARM_HAS_VIZ_DEPS) {
-				DAG_id_tag_update(id, OB_RECALC_DATA);
+				DEG_id_tag_update(id, OB_RECALC_DATA);
 			}
 		}
 	}

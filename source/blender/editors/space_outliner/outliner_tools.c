@@ -53,7 +53,6 @@
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_layer.h"
@@ -64,6 +63,9 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
@@ -802,12 +804,12 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 
 	if (event == OL_MODIFIER_OP_TOGVIS) {
 		md->mode ^= eModifierMode_Realtime;
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	}
 	else if (event == OL_MODIFIER_OP_TOGREN) {
 		md->mode ^= eModifierMode_Render;
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	}
 	else if (event == OL_MODIFIER_OP_DELETE) {
@@ -858,13 +860,13 @@ static void collection_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
 		}
 		else {
 			BKE_collection_unlink(sl, lc);
-			DAG_relations_tag_update(CTX_data_main(C));
+			DEG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 		}
 	}
 	else if (event == OL_COLLECTION_OP_COLLECTION_DEL) {
 		if (BKE_collection_remove(scene, sc)) {
-			DAG_relations_tag_update(CTX_data_main(C));
+			DEG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 		}
 		else {
@@ -1040,7 +1042,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		 *      cleanup tree here to prevent such cases. */
 		outliner_cleanup_tree(soops);
 
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 		str = "Delete Objects";
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	}
@@ -1050,7 +1052,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		/* XXX: See OL_OP_DELETE comment above. */
 		outliner_cleanup_tree(soops);
 
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 		str = "Delete Object Hierarchy";
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	}
@@ -1149,7 +1151,7 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 		case OL_GROUPOP_INSTANCE:
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, group_instance_cb, NULL);
 			/* works without this except if you try render right after, see: 22027 */
-			DAG_relations_tag_update(CTX_data_main(C));
+			DEG_relations_tag_update(CTX_data_main(C));
 			break;
 		case OL_GROUPOP_DELETE:
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_delete_cb, NULL);
@@ -1678,7 +1680,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 	/* update dependencies */
 	if (updateDeps) {
 		/* rebuild depsgraph for the new deps */
-		DAG_relations_tag_update(CTX_data_main(C));
+		DEG_relations_tag_update(CTX_data_main(C));
 	}
 	
 	return OPERATOR_FINISHED;

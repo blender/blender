@@ -39,10 +39,11 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 
 #include "BKE_context.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
 
@@ -187,7 +188,7 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 	 */
 	/* FIXME: shouldn't this use the builtin stuff? */
 	if ((arm->flag & ARM_DELAYDEFORM) == 0)
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 	else
 		BKE_pose_where_is(scene, ob);
 	

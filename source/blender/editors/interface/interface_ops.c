@@ -42,7 +42,6 @@
 #include "BLT_lang.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_screen.h"
@@ -50,6 +49,8 @@
 #include "BKE_node.h"
 #include "BKE_text.h" /* for UI_OT_reports_to_text */
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -396,7 +397,7 @@ static int use_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update((ID *)CTX_data_scene(C), 0);
+	DEG_id_tag_update((ID *)CTX_data_scene(C), 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -431,7 +432,7 @@ static int unuse_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 	IDP_FreeFromGroup(props, prop_to_remove);
 
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update((ID *)CTX_data_scene(C), 0);
+	DEG_id_tag_update((ID *)CTX_data_scene(C), 0);
 
 	return OPERATOR_FINISHED;
 }

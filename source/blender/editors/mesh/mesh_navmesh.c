@@ -41,7 +41,6 @@
 #include "BLI_linklist.h"
 
 #include "BKE_library.h"
-#include "BKE_depsgraph.h"
 #include "BKE_context.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
@@ -440,7 +439,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	recast_destroyPolyMesh(pmesh);
 	recast_destroyPolyMeshDetail(dmesh);
 
-	DAG_id_tag_update((ID *)obedit->data, OB_RECALC_DATA);
+	DEG_id_tag_update((ID *)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 
@@ -552,7 +551,7 @@ static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_tag_update((ID *)obedit->data, OB_RECALC_DATA);
+	DEG_id_tag_update((ID *)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -633,7 +632,7 @@ static int navmesh_face_add_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	DAG_id_tag_update((ID *)obedit->data, OB_RECALC_DATA);
+	DEG_id_tag_update((ID *)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -682,7 +681,7 @@ static int navmesh_reset_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_mesh_ensure_navmesh(me);
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, &me->id);
 
 	return OPERATOR_FINISHED;
@@ -710,7 +709,7 @@ static int navmesh_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	CustomData_free_layers(&me->pdata, CD_RECAST, me->totpoly);
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, &me->id);
 
 	return OPERATOR_FINISHED;

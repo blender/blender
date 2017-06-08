@@ -48,8 +48,9 @@
 #include "BKE_main.h"
 #include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_keyframing.h"
 #include "ED_screen.h"
@@ -1049,7 +1050,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 				Object *ob = (Object *)ksp->id;
 				
 				// XXX: only object transforms?
-				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+				DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				break;
 			}
 		}

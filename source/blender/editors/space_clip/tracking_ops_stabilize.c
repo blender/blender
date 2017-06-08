@@ -38,7 +38,8 @@
 
 #include "BKE_context.h"
 #include "BKE_tracking.h"
-#include "BKE_depsgraph.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -84,7 +85,7 @@ static int stabilize_2d_add_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	if (update) {
-		DAG_id_tag_update(&clip->id, 0);
+		DEG_id_tag_update(&clip->id, 0);
 		WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 	}
 
@@ -138,7 +139,7 @@ static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	if (update) {
-		DAG_id_tag_update(&clip->id, 0);
+		DEG_id_tag_update(&clip->id, 0);
 		WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 	}
 
@@ -227,7 +228,7 @@ static int stabilize_2d_rotation_add_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	if (update) {
-		DAG_id_tag_update(&clip->id, 0);
+		DEG_id_tag_update(&clip->id, 0);
 		WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 	}
 
@@ -281,7 +282,7 @@ static int stabilize_2d_rotation_remove_exec(bContext *C, wmOperator *UNUSED(op)
 	}
 
 	if (update) {
-		DAG_id_tag_update(&clip->id, 0);
+		DEG_id_tag_update(&clip->id, 0);
 		WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 	}
 

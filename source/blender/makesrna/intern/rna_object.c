@@ -182,7 +182,6 @@ EnumPropertyItem rna_enum_object_axis_items[] = {
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -193,6 +192,9 @@ EnumPropertyItem rna_enum_object_axis_items[] = {
 #include "BKE_scene.h"
 #include "BKE_deform.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
+
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_curve.h"
@@ -200,7 +202,7 @@ EnumPropertyItem rna_enum_object_axis_items[] = {
 
 static void rna_Object_internal_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DAG_id_tag_update(ptr->id.data, OB_RECALC_OB);
+	DEG_id_tag_update(ptr->id.data, OB_RECALC_OB);
 }
 
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -212,7 +214,7 @@ static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA
 
 static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	DAG_id_type_tag(bmain, ID_OB);
+	DEG_id_type_tag(bmain, ID_OB);
 }
 
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
@@ -255,7 +257,7 @@ static void rna_Object_matrix_basis_set(PointerRNA *ptr, const float values[16])
 
 void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->id.data);
 }
 
@@ -270,7 +272,7 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA
 				EDBM_mesh_load(ob);
 				EDBM_mesh_make(scene->toolsettings, ob, true);
 
-				DAG_id_tag_update(ob->data, 0);
+				DEG_id_tag_update(ob->data, 0);
 
 				EDBM_mesh_normals_update(((Mesh *)ob->data)->edit_btmesh);
 				BKE_editmesh_tessface_calc(((Mesh *)ob->data)->edit_btmesh);
@@ -292,8 +294,8 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA
 
 static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DAG_id_tag_update(ptr->id.data, OB_RECALC_OB);
-	DAG_relations_tag_update(bmain);
+	DEG_id_tag_update(ptr->id.data, OB_RECALC_OB);
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_PARENT, ptr->id.data);
 }
 
@@ -318,10 +320,10 @@ static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, BaseLeg
 		/* pass */
 	}
 	else {
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 	}
 
-	DAG_id_type_tag(bmain, ID_OB);
+	DEG_id_type_tag(bmain, ID_OB);
 }
 
 static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -778,7 +780,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object *)ptr->id.data;
 
-	DAG_id_tag_update(value.data, 0);
+	DEG_id_tag_update(value.data, 0);
 	assign_material(ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 }
 
@@ -1011,7 +1013,7 @@ static void rna_MaterialSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, ptr->id.data);
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_LINKS, NULL);
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 
 static char *rna_MaterialSlot_path(PointerRNA *ptr)
@@ -1138,7 +1140,7 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 	if ((gameflag_prev & OB_NAVMESH) != (ob->gameflag & OB_NAVMESH)) {
 		if (ob->type == OB_MESH) {
 			/* this is needed to refresh the derived meshes draw func */
-			DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+			DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 		}
 	}
 

@@ -66,7 +66,6 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_effect.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_lattice.h"
@@ -84,6 +83,9 @@
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"
@@ -194,7 +196,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 		 * to inform dependency graph about this. But is it really the
 		 * best place to do this?
 		 */
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 	}
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		ED_curve_editnurb_load(obedit);
@@ -216,7 +218,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 	/* Tag update so no access to freed data referenced from
 	 * derived cache will happen.
 	 */
-	DAG_id_tag_update((ID *)obedit->data, 0);
+	DEG_id_tag_update((ID *)obedit->data, 0);
 
 	return true;
 }
@@ -267,7 +269,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
-		DAG_id_tag_update(&obedit->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&obedit->id, OB_RECALC_OB | OB_RECALC_DATA);
 	
 		if (flag & EM_DO_UNDO)
 			ED_undo_push(C, "Editmode");
@@ -358,7 +360,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		scene->obedit = ob;
 		ED_armature_to_edit(arm);
 		/* to ensure all goes in restposition and without striding */
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); /* XXX: should this be OB_RECALC_DATA? */
+		DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); /* XXX: should this be OB_RECALC_DATA? */
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_ARMATURE, scene);
 	}
@@ -392,7 +394,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	}
 
 	if (ok) {
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
 		scene->obedit = NULL; /* XXX for context */
@@ -684,7 +686,7 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 	for (base = FIRSTBASE_NEW; base; base = base->next) {
 		if (base != BASACT_NEW) {
 			if (TESTBASELIB_NEW(base)) {
-				DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 				
 				if (event == 1) {  /* loc */
 					copy_v3_v3(base->object->loc, ob->loc);
@@ -787,7 +789,7 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 						
 						BLI_strncpy(cu1->family, cu->family, sizeof(cu1->family));
 						
-						DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 					}
 				}
 				else if (event == 19) {   /* bevel settings */
@@ -803,7 +805,7 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 						cu1->ext1 = cu->ext1;
 						cu1->ext2 = cu->ext2;
 						
-						DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 					}
 				}
 				else if (event == 25) {   /* curve resolution */
@@ -822,7 +824,7 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 							nu = nu->next;
 						}
 						
-						DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 					}
 				}
 				else if (event == 21) {
@@ -838,7 +840,7 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 							}
 
 							modifier_copyData(md, tmd);
-							DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+							DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 						}
 					}
 				}
@@ -899,7 +901,7 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 	}
 	
 	if (do_depgraph_update)
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 }
 
 static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, SceneLayer *sl)
@@ -1255,7 +1257,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 		if (ob->type == OB_MESH) {
 			BKE_mesh_smooth_flag_set(ob, !clear);
 
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 			done = true;
@@ -1268,7 +1270,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 				else nu->flag &= ~ME_SMOOTH;
 			}
 
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 			done = true;
@@ -1366,7 +1368,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, SceneLayer *sl)
 								else ob->size[1] = ob->size[0] * y / x;
 								
 								done = true;
-								DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+								DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 								BKE_image_release_ibuf(tex->ima, ibuf, NULL);
 							}

@@ -51,12 +51,12 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -555,7 +555,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		}
 
 		if (tag_update) {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		else {
 			sculpt_update_object_bounding_box(ob);

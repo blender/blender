@@ -32,7 +32,6 @@
 
 #include "BIF_glutil.h"
 
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_pbvh.h"

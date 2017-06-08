@@ -135,7 +135,6 @@ static EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_cloth.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
@@ -144,6 +143,9 @@ static EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_texture.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 /* use for object space hair get/set */
 static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr, ParticleSystemModifierData **psmd_pt,
@@ -609,10 +611,10 @@ static void particle_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 		
 		psys->recalc = flag;
 
-		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+		DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	}
 	else
-		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA | flag);
+		DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA | flag);
 
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 }
@@ -623,7 +625,7 @@ static void rna_Particle_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Particle_redo_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	rna_Particle_redo(bmain, scene, ptr);
 }
 
@@ -634,7 +636,7 @@ static void rna_Particle_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Particle_reset_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	rna_Particle_reset(bmain, scene, ptr);
 }
 
@@ -657,7 +659,7 @@ static void rna_Particle_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 {
 	Object *ob = (Object *)ptr->id.data;
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
@@ -702,8 +704,8 @@ static void rna_Particle_target_reset(Main *bmain, Scene *UNUSED(scene), Pointer
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		DAG_relations_tag_update(bmain);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_relations_tag_update(bmain);
 	}
 
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
@@ -718,7 +720,7 @@ static void rna_Particle_target_redo(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 		
 		psys->recalc = PSYS_RECALC_REDO;
 
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 	}
 }
@@ -738,7 +740,7 @@ static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *pt
 	else
 		WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {

@@ -49,12 +49,13 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -254,7 +255,7 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
 	/* run update first since it can move the cursor */
 	if (mode == FO_EDIT) {
 		/* re-tesselllate */
-		DAG_id_tag_update(obedit->data, 0);
+		DEG_id_tag_update(obedit->data, 0);
 	}
 	else {
 		/* depsgraph runs above, but since we're not tagging for update, call direct */
@@ -585,7 +586,7 @@ static int set_style(bContext *C, const int style, const bool clear)
 			ef->textbufinfo[i].flag |= style;
 	}
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;

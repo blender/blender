@@ -53,13 +53,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_colortools.h"
-#include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
 #include "BKE_texture.h"
 #include "BKE_linestyle.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_node.h"
 
@@ -315,7 +316,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 			{
 				Material *ma = ptr->id.data;
 				
-				DAG_id_tag_update(&ma->id, 0);
+				DEG_id_tag_update(&ma->id, 0);
 				WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 				break;
 			}
@@ -335,7 +336,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 			{
 				Tex *tex = ptr->id.data;
 
-				DAG_id_tag_update(&tex->id, 0);
+				DEG_id_tag_update(&tex->id, 0);
 				WM_main_add_notifier(NC_TEXTURE, tex);
 				break;
 			}
@@ -350,7 +351,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 			{
 				ParticleSettings *part = ptr->id.data;
 				
-				DAG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+				DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
 				WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, part);
 			}
 			default:
@@ -446,7 +447,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *UNUSED(b
 
 		IMB_colormanagement_validate_settings(&scene->display_settings, &scene->view_settings);
 
-		DAG_id_tag_update(id, 0);
+		DEG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 	}
 }
@@ -581,7 +582,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 	if (GS(id->name) == ID_IM) {
 		Image *ima = (Image *) id;
 
-		DAG_id_tag_update(&ima->id, 0);
+		DEG_id_tag_update(&ima->id, 0);
 
 		BKE_image_signal(ima, NULL, IMA_SIGNAL_COLORMANAGE);
 
@@ -664,7 +665,7 @@ static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 		return;
 
 	if (GS(id->name) == ID_SCE) {
-		DAG_id_tag_update(id, 0);
+		DEG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 	}
 }

@@ -53,7 +53,6 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -61,6 +60,9 @@
 #include "BKE_report.h"
 #include "BKE_tracking.h"
 #include "BIK_api.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -1196,9 +1198,9 @@ void ED_object_constraint_update(Object *ob)
 	object_test_constraints(ob);
 
 	if (ob->type == OB_ARMATURE) 
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	else 
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
 static void object_pose_tag_update(Main *bmain, Object *ob)
@@ -1221,7 +1223,7 @@ void ED_object_constraint_dependency_update(Main *bmain, Object *ob)
 	if (ob->pose) {
 		object_pose_tag_update(bmain, ob);
 	}
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 
 void ED_object_constraint_tag_update(Object *ob, bConstraint *con)
@@ -1233,9 +1235,9 @@ void ED_object_constraint_tag_update(Object *ob, bConstraint *con)
 	object_test_constraint(ob, con);
 
 	if (ob->type == OB_ARMATURE)
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	else
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
 void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstraint *con)
@@ -1245,7 +1247,7 @@ void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstr
 	if (ob->pose) {
 		object_pose_tag_update(bmain, ob);
 	}
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 
 static int constraint_poll(bContext *C)
@@ -1269,7 +1271,7 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
 
 		/* relatiols */
-		DAG_relations_tag_update(CTX_data_main(C));
+		DEG_relations_tag_update(CTX_data_main(C));
 
 		/* notifiers */
 		WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
@@ -1411,12 +1413,12 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since relationships removed */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	
 	/* note, calling BIK_clear_data() isn't needed here */
 
 	/* do updates */
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
 	
 	return OPERATOR_FINISHED;
@@ -1443,12 +1445,12 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
 		BKE_constraints_free(&ob->constraints);
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 	}
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since relationships removed */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	
 	/* do updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, NULL);
@@ -1496,13 +1498,13 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 			chan->constflag |= pchan->constflag;
 
 			BKE_pose_tag_recalc(bmain, ob->pose);
-			DAG_id_tag_update((ID *)ob, OB_RECALC_DATA);
+			DEG_id_tag_update((ID *)ob, OB_RECALC_DATA);
 		}
 	}
 	BLI_freelistN(&lb);
 	
 	/* force depsgraph to get recalculated since new relationships added */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, NULL);
 	
@@ -1535,13 +1537,13 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (obact != ob) {
 			BKE_constraints_copy(&ob->constraints, &obact->constraints, true);
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since new relationships added */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_ADDED, NULL);
@@ -1818,7 +1820,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 
 
 	/* force depsgraph to get recalculated since new relationships added */
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 	
 	if ((ob->type == OB_ARMATURE) && (pchan)) {
 		BKE_pose_tag_recalc(bmain, ob->pose);  /* sort pose channels */
@@ -1828,10 +1830,10 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 			 * XXX Temp hack until new depsgraph hopefully solves this. */
 			ob->adt->recalc |= ADT_RECALC_ANIM;
 		}
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	}
 	else
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_ADDED, ob);
@@ -2071,7 +2073,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 	
 	/* refresh depsgraph */
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);

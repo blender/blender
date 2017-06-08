@@ -44,7 +44,6 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_icons.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -309,7 +308,7 @@ void ED_view3d_shade_update(Main *bmain, Scene *scene, View3D *v3d, ScrArea *sa)
 	}
 	else if (scene->obedit != NULL && scene->obedit->type == OB_MESH) {
 		/* Tag mesh to load edit data. */
-		DAG_id_tag_update(scene->obedit->data, 0);
+		DEG_id_tag_update(scene->obedit->data, 0);
 	}
 }
 

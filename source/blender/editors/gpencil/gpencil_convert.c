@@ -59,7 +59,6 @@
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -70,6 +69,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
+
+#include "DEG_depsgraph.h"
 
 #include "UI_interface.h"
 
@@ -548,7 +549,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
 	/* send updates */
-	DAG_id_tag_update(&cu->id, 0);
+	DEG_id_tag_update(&cu->id, 0);
 }
 
 #undef MIN_TIME_DELTA

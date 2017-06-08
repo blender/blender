@@ -48,13 +48,13 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
+#include "DEG_depsgraph_build.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -475,7 +475,7 @@ static void do_graph_region_driver_buttons(bContext *C, void *UNUSED(arg), int e
 		case B_IPO_DEPCHANGE:
 		{
 			/* rebuild depsgraph for the new deps */
-			DAG_relations_tag_update(bmain);
+			DEG_relations_tag_update(bmain);
 			break;
 		}
 	}

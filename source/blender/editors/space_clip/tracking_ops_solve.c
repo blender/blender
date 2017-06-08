@@ -43,9 +43,10 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 #include "BKE_global.h"
-#include "BKE_depsgraph.h"
 #include "BKE_report.h"
 #include "BKE_library.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -180,7 +181,7 @@ static void solve_camera_freejob(void *scv)
 	MEM_freeN(tracking->stats);
 	tracking->stats = NULL;
 
-	DAG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&clip->id, 0);
 
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EVALUATED, clip);
 	WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, NULL);
@@ -327,7 +328,7 @@ static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
 	reconstruction->camnr = 0;
 	reconstruction->flag &= ~TRACKING_RECONSTRUCTED;
 
-	DAG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&clip->id, 0);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);

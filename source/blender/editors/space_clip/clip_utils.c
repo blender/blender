@@ -41,7 +41,8 @@
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
-#include "BKE_depsgraph.h"
+
+#include "DEG_depsgraph.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -210,7 +211,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 		WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 	}
 
-	DAG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&clip->id, 0);
 
 	if (has_bundle)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);

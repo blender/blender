@@ -47,7 +47,7 @@ static void rna_Curve_transform(Curve *cu, float *mat, int shape_keys)
 {
 	BKE_curve_transform(cu, (float (*)[4])mat, shape_keys);
 
-	DAG_id_tag_update(&cu->id, 0);
+	DEG_id_tag_update(&cu->id, 0);
 }
 #else
 

@@ -48,7 +48,6 @@
 
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
@@ -58,6 +57,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_object.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
@@ -181,7 +182,7 @@ static void restrictbutton_modifier_cb(bContext *C, void *UNUSED(poin), void *po
 {
 	Object *ob = (Object *)poin2;
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 }
 
@@ -250,7 +251,7 @@ static void restrictbutton_collection_flag_cb(bContext *C, void *poin, void *UNU
 	Scene *scene = poin;
 	/* hide and deselect bases that are directly influenced by this LayerCollection */
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DAG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, NULL);
 }

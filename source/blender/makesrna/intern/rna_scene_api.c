@@ -60,7 +60,6 @@ EnumPropertyItem rna_enum_abc_compression_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_animsys.h"
-#include "BKE_depsgraph.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_image.h"

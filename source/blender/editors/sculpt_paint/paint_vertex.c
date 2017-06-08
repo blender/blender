@@ -57,7 +57,6 @@
 #include "BKE_action.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
@@ -66,6 +65,8 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_colortools.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -262,7 +263,7 @@ static bool make_vertexcol(Object *ob)  /* single ob */
 		BKE_mesh_update_customdata_pointers(me, true);
 	}
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	
 	return (me->mloopcol != NULL);
 }
@@ -365,7 +366,7 @@ bool ED_vpaint_fill(Object *ob, unsigned int paintcol)
 	/* remove stale me->mcol, will be added later */
 	BKE_mesh_tessface_clear(me);
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 
 	return true;
 }
@@ -450,7 +451,7 @@ bool ED_wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 
 	copy_wpaint_prev(wp, NULL, 0);
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 
 	return true;
 }
@@ -496,7 +497,7 @@ bool ED_vpaint_smooth(Object *ob)
 
 	MEM_freeN(mlooptag);
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 
 	return true;
 }
@@ -541,7 +542,7 @@ bool ED_vpaint_color_transform(
 	/* remove stale me->mcol, will be added later */
 	BKE_mesh_tessface_clear(me);
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 
 	return true;
 }
@@ -1212,7 +1213,7 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
 	BLI_assert(type + 1 >= 0);
 	vc.obact->actdef = type + 1;
 
-	DAG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, vc.obact);
 	return OPERATOR_FINISHED;
 }
@@ -1829,7 +1830,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	 * exit (exit needs doing regardless because we
 	 * should redeform).
 	 */
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 
@@ -2386,7 +2387,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_PAINT);
 
-	DAG_id_tag_update(ob->data, 0);
+	DEG_id_tag_update(ob->data, 0);
 	ED_region_tag_redraw(vc->ar);
 }
 
@@ -2443,7 +2444,7 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 		}
 	}
 
-	DAG_id_tag_update(ob->data, 0);
+	DEG_id_tag_update(ob->data, 0);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 }
@@ -2594,7 +2595,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_PAINT);
 
 	/* update modifier stack for mapping requirements */
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 	
@@ -2872,7 +2873,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if (vpd->use_fast_update == false) {
 		/* recalculate modifier stack to get new colors, slow,
 		 * avoid this if we can! */
-		DAG_id_tag_update(ob->data, 0);
+		DEG_id_tag_update(ob->data, 0);
 	}
 	else {
 		/* If using new VBO drawing, mark mcol as dirty to force colors gpu buffer refresh! */
@@ -2898,7 +2899,7 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 		MEM_freeN(vpd->mlooptag);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 
 	MEM_freeN(vpd);
 }
@@ -2981,7 +2982,7 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
 
 	create_vgroups_from_armature(op->reports, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 	return OPERATOR_FINISHED;
@@ -3170,7 +3171,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
 			free_wpaint_prev(wp);
 		}
 
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
 	else if (ret & OPERATOR_FINISHED) {
@@ -3264,7 +3265,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 		dm->foreachMappedVert(dm, gradientVertUpdate__mapFunc, &data, DM_FOREACH_NOP);
 	}
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	if (is_interactive == false) {

@@ -25,12 +25,13 @@
 #include <stdio.h>
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
+
+#include "DEG_depsgraph.h"
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
@@ -117,7 +118,7 @@ void ED_scene_changed_update(Main *bmain, bContext *C, Scene *scene_new, const b
 	CTX_data_scene_set(C, scene_new);
 	BKE_workspace_render_layer_set(CTX_wm_workspace(C), layer_new);
 	BKE_scene_set_background(bmain, scene_new);
-	DAG_on_visible_update(bmain, false);
+	DEG_on_visible_update(bmain, false);
 
 	ED_screen_update_after_scene_change(active_screen, scene_new);
 	ED_render_engine_changed(bmain);

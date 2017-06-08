@@ -49,7 +49,6 @@
 
 #include "BLI_kdtree.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
@@ -61,6 +60,9 @@
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
 #include "BKE_multires.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -604,9 +606,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	/* Due to dependnecy cycle some other object might access old derived data. */
 	BKE_object_free_derived_caches(ob);
 
-	DAG_relations_tag_update(bmain);   /* removed objects, need to rebuild dag */
+	DEG_relations_tag_update(bmain);   /* removed objects, need to rebuild dag */
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 

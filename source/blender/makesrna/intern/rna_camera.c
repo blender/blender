@@ -40,7 +40,9 @@
 
 #include "BKE_camera.h"
 #include "BKE_object.h"
-#include "BKE_depsgraph.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
@@ -84,14 +86,14 @@ static void rna_Camera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointer
 {
 	Camera *camera = (Camera *)ptr->id.data;
 
-	DAG_id_tag_update(&camera->id, 0);
+	DEG_id_tag_update(&camera->id, 0);
 }
 
 static void rna_Camera_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Camera *camera = (Camera *)ptr->id.data;
-	DAG_relations_tag_update(bmain);
-	DAG_id_tag_update(&camera->id, 0);
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update(&camera->id, 0);
 }
 
 #else

@@ -55,7 +55,6 @@
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
@@ -72,6 +71,9 @@
 #include "BKE_sca.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
@@ -398,13 +400,13 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 					Scene *scene = CTX_data_scene(C);
 					ED_object_single_user(bmain, scene, (struct Object *)id);
 					WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-					DAG_relations_tag_update(bmain);
+					DEG_relations_tag_update(bmain);
 				}
 				else {
 					if (id) {
 						Main *bmain = CTX_data_main(C);
 						id_single_user(C, id, &template->ptr, template->prop);
-						DAG_relations_tag_update(bmain);
+						DEG_relations_tag_update(bmain);
 					}
 				}
 			}
@@ -1045,7 +1047,7 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 	ob->partype = PAROBJECT;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	ED_undo_push(C, "Modifier convert to real");
 }
@@ -1326,7 +1328,7 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 			Main *bmain = CTX_data_main(C);
 			if (ob->pose)
 				BKE_pose_tag_recalc(bmain, ob->pose); /* checks & sorts pose channels */
-			DAG_relations_tag_update(bmain);
+			DEG_relations_tag_update(bmain);
 			break;
 		}
 #endif
@@ -1340,8 +1342,8 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 	 * object_test_constraints(ob);
 	 * if (ob->pose) BKE_pose_update_constraint_flags(ob->pose); */
 	
-	if (ob->type == OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
-	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+	if (ob->type == OB_ARMATURE) DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+	else DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 }

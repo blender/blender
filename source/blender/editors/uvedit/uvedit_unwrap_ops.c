@@ -55,13 +55,14 @@
 #include "BKE_subsurf.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "PIL_time.h"
 
@@ -570,7 +571,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
 
 		ms->lasttime = PIL_check_seconds_timer();
 
-		DAG_id_tag_update(ms->obedit->data, 0);
+		DEG_id_tag_update(ms->obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ms->obedit->data);
 	}
 }
@@ -593,7 +594,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
 	param_stretch_end(ms->handle);
 	param_delete(ms->handle);
 
-	DAG_id_tag_update(ms->obedit->data, 0);
+	DEG_id_tag_update(ms->obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ms->obedit->data);
 
 	MEM_freeN(ms);
@@ -741,7 +742,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 
 	ED_uvedit_pack_islands(scene, obedit, em->bm, true, true, do_rotate);
 	
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -784,7 +785,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 	param_flush(handle);
 	param_delete(handle);
 	
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1227,7 +1228,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	/* execute unwrap */
 	ED_unwrap_lscm(scene, obedit, true);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1354,7 +1355,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(scene, obedit, em, op);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1407,7 +1408,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ED_mesh_uv_loop_reset(C, me);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	
 	return OPERATOR_FINISHED;
@@ -1509,7 +1510,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(scene, obedit, em, op);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1586,7 +1587,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(scene, obedit, em, op);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1673,7 +1674,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	ED_uvedit_unwrap_cube_project(obedit, em->bm, cube_size, true);
 	uv_map_clip_correct(scene, obedit, em, op);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;

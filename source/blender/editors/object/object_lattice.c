@@ -52,12 +52,13 @@
 #include "RNA_enum_types.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_deform.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_lattice.h"
 #include "ED_object.h"
@@ -591,7 +592,7 @@ static int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 		BKE_lattice_resize(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
 	}
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;
@@ -811,7 +812,7 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* updates */
-	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	
 	return OPERATOR_FINISHED;

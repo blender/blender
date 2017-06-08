@@ -57,7 +57,6 @@
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -67,6 +66,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
@@ -259,7 +260,7 @@ void ED_uvedit_assign_image(Main *UNUSED(bmain), Scene *scene, Object *obedit, I
 
 		/* and update depdency graph */
 		if (update) {
-			DAG_id_tag_update(obedit->data, 0);
+			DEG_id_tag_update(obedit->data, 0);
 		}
 	}
 
@@ -1603,7 +1604,7 @@ static void uv_weld_align(bContext *C, int tool)
 
 
 	uvedit_live_unwrap_update(sima, scene, obedit);
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 }
 
@@ -1777,7 +1778,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 	}
 
 	uvedit_live_unwrap_update(sima, scene, obedit);
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2199,7 +2200,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 #endif
 	}
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
@@ -2338,7 +2339,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
 	uv_select_linked(scene, ima, em, limit, hit_p, extend, select_faces);
 
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -3353,7 +3354,7 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	uvedit_live_unwrap_update(sima, scene, obedit);
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -3919,7 +3920,7 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 
 	BM_uv_vert_map_free(vmap);
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 	return OPERATOR_FINISHED;
@@ -3974,7 +3975,7 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 	if (scene->toolsettings->edge_mode_live_unwrap)
 		ED_unwrap_lscm(scene, ob, false);
 
-	DAG_id_tag_update(&me->id, 0);
+	DEG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 	return OPERATOR_FINISHED;

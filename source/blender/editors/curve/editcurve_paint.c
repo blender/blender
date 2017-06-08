@@ -33,9 +33,10 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1123,7 +1124,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 	cu->actvert = nu->pntsu - 1;
 
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, 0);
+	DEG_id_tag_update(obedit->data, 0);
 
 	curve_draw_exit(op);
 

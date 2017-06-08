@@ -64,7 +64,6 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_colortools.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_idprop.h"
 #include "BKE_brush.h"
@@ -79,6 +78,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
+
+#include "DEG_depsgraph.h"
 
 #include "UI_interface.h"
 
@@ -3934,7 +3935,7 @@ static void project_paint_end(ProjPaintState *ps)
 		ProjPaintImage *projIma;
 		for (a = 0, projIma = ps->projImages; a < ps->image_tot; a++, projIma++) {
 			BKE_image_release_ibuf(projIma->ima, projIma->ibuf, NULL);
-			DAG_id_tag_update(&projIma->ima->id, 0);
+			DEG_id_tag_update(&projIma->ima->id, 0);
 		}
 	}
 
@@ -5739,7 +5740,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			BKE_texpaint_slot_refresh_cache(scene, ma);
 			BKE_image_signal(ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 			WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
-			DAG_id_tag_update(&ma->id, 0);
+			DEG_id_tag_update(&ma->id, 0);
 			ED_area_tag_redraw(CTX_wm_area(C));
 			
 			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
@@ -5855,7 +5856,7 @@ static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator 
 	ma->mtex[slot->index] = NULL;
 	
 	BKE_texpaint_slot_refresh_cache(scene, ma);
-	DAG_id_tag_update(&ma->id, 0);
+	DEG_id_tag_update(&ma->id, 0);
 	WM_event_add_notifier(C, NC_MATERIAL, ma);
 	/* we need a notifier for data change since we change the displayed modifier uvs */
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
@@ -5913,7 +5914,7 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 	
-	DAG_id_tag_update(ob->data, 0);
+	DEG_id_tag_update(ob->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, scene);
 	return OPERATOR_FINISHED;

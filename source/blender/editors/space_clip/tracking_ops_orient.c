@@ -43,10 +43,11 @@
 #include "BKE_constraint.h"
 #include "BKE_tracking.h"
 #include "BKE_global.h"
-#include "BKE_depsgraph.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -248,8 +249,8 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 		copy_v3_v3(object->loc, vec);
 	}
 
-	DAG_id_tag_update(&clip->id, 0);
-	DAG_id_tag_update(&object->id, OB_RECALC_OB);
+	DEG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&object->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -494,8 +495,8 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 	BKE_object_where_is_calc(scene, object);
 	set_axis(scene, object, clip, tracking_object, axis_track, 'X');
 
-	DAG_id_tag_update(&clip->id, 0);
-	DAG_id_tag_update(&object->id, OB_RECALC_OB);
+	DEG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&object->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -568,8 +569,8 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 
 	set_axis(scene, object, clip, tracking_object, track, axis == 0 ? 'X' : 'Y');
 
-	DAG_id_tag_update(&clip->id, 0);
-	DAG_id_tag_update(&object->id, OB_RECALC_OB);
+	DEG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&object->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -695,10 +696,10 @@ static int do_set_scale(bContext *C,
 				tracking_object->scale = scale;
 			}
 
-			DAG_id_tag_update(&clip->id, 0);
+			DEG_id_tag_update(&clip->id, 0);
 
 			if (object)
-				DAG_id_tag_update(&object->id, OB_RECALC_OB);
+				DEG_id_tag_update(&object->id, OB_RECALC_OB);
 
 			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);

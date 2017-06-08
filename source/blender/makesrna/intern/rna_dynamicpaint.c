@@ -55,9 +55,10 @@ EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_particle.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 static char *rna_DynamicPaintCanvasSettings_path(PointerRNA *ptr)
 {
@@ -98,7 +99,7 @@ static char *rna_DynamicPaintSurface_path(PointerRNA *ptr)
 
 static void rna_DynamicPaint_redoModifier(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 }
 
 static void rna_DynamicPaintSurfaces_updateFrames(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -160,7 +161,7 @@ static void rna_DynamicPaintSurfaces_changeFormat(Main *bmain, Scene *scene, Poi
 static void rna_DynamicPaint_reset_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
-	DAG_relations_tag_update(bmain);
+	DEG_relations_tag_update(bmain);
 }
 
 static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)

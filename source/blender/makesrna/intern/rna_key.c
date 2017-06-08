@@ -51,9 +51,10 @@
 #include "DNA_object_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_depsgraph.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -484,7 +485,7 @@ static void rna_Key_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *p
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (BKE_key_from_object(ob) == key) {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 		}
 	}

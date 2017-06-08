@@ -51,11 +51,13 @@
 #include "BKE_material.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
 #include "BKE_main.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "BLT_translation.h"
 
@@ -2449,7 +2451,7 @@ static void shape_propagate(BMEditMesh *em, wmOperator *op)
 	//TAG Mesh Objects that share this data
 	for (base = scene->base.first; base; base = base->next) {
 		if (base->object && base->object->data == me) {
-			DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 		}
 	}
 #endif
@@ -3355,7 +3357,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 					if (retval_iter) {
 						BM_mesh_bm_to_me(bm_old, me, (&(struct BMeshToMeshParams){0}));
 
-						DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 						WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 					}
 
@@ -3370,7 +3372,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 	if (retval) {
 		/* delay depsgraph recalc until all objects are duplicated */
-		DAG_relations_tag_update(bmain);
+		DEG_relations_tag_update(bmain);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
 		return OPERATOR_FINISHED;
@@ -5888,7 +5890,7 @@ static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DEG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -5952,7 +5954,7 @@ static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DEG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;

@@ -48,8 +48,9 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BKE_depsgraph.h"
 #include "BKE_node.h"
+
+#include "DEG_depsgraph.h"
 
 #include "IMB_imbuf.h"
 
@@ -466,7 +467,7 @@ static void rna_tracking_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerR
 
 	WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
 	WM_main_add_notifier(NC_SCENE, NULL);
-	DAG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&clip->id, 0);
 }
 
 static void rna_tracking_resetIntrinsics(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -555,7 +556,7 @@ static void rna_trackingObject_flushUpdate(Main *UNUSED(bmain), Scene *UNUSED(sc
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 
 	WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, NULL);
-	DAG_id_tag_update(&clip->id, 0);
+	DEG_id_tag_update(&clip->id, 0);
 }
 
 static void rna_trackingMarker_frame_set(PointerRNA *ptr, int value)

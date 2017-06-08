@@ -39,9 +39,11 @@
 
 #include "BKE_boids.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_particle.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -75,7 +77,7 @@ static int rule_add_exec(bContext *C, wmOperator *op)
 
 	BLI_addtail(&state->rules, rule);
 
-	DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DEG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 	
 	return OPERATOR_FINISHED;
 }
@@ -121,8 +123,8 @@ static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
 	if (rule)
 		rule->flag |= BOIDRULE_CURRENT;
 
-	DAG_relations_tag_update(bmain);
-	DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	return OPERATOR_FINISHED;
 }
@@ -158,7 +160,7 @@ static int rule_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&state->rules, rule);
 			BLI_insertlinkbefore(&state->rules, rule->prev, rule);
 
-			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DEG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
 		}
 	}
@@ -194,7 +196,7 @@ static int rule_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&state->rules, rule);
 			BLI_insertlinkafter(&state->rules, rule->next, rule);
 
-			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DEG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
 		}
 	}
@@ -277,8 +279,8 @@ static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
 
 	state->flag |= BOIDSTATE_CURRENT;
 
-	DAG_relations_tag_update(bmain);
-	DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 	
 	return OPERATOR_FINISHED;
 }
@@ -349,7 +351,7 @@ static int state_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 		if (state->flag & BOIDSTATE_CURRENT && state->next) {
 			BLI_remlink(&boids->states, state);
 			BLI_insertlinkafter(&boids->states, state->next, state);
-			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DEG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
 		}
 	}

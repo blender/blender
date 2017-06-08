@@ -58,9 +58,10 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
@@ -688,7 +689,7 @@ static void finish_bake_internal(BakeRender *bkr)
 			}
 
 			BKE_image_release_ibuf(ima, ibuf, NULL);
-			DAG_id_tag_update(&ima->id, 0);			
+			DEG_id_tag_update(&ima->id, 0);			
 		}
 	}
 
@@ -698,7 +699,7 @@ static void finish_bake_internal(BakeRender *bkr)
 		BLI_assert(BLI_thread_is_main());
 		for (me = G.main->mesh.first; me; me = me->id.next) {
 			if (me->id.tag & LIB_TAG_DOIT) {
-				DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 				BKE_mesh_tessface_clear(me);
 			}
 		}

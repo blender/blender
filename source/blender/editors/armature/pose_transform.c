@@ -45,12 +45,13 @@
 #include "BKE_blender_copybuffer.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -225,7 +226,7 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -534,7 +535,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 	}
 	BKE_main_free(tmp_bmain);
 	/* Update event for pose and deformation children. */
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	/* Notifiers for updates, */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
@@ -760,7 +761,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 			ED_pose_recalculate_paths(scene, ob);
 	}
 	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
@@ -907,7 +908,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers and updates */
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
 	
 	return OPERATOR_FINISHED;

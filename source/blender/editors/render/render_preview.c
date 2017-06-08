@@ -64,7 +64,6 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_colortools.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -80,6 +79,7 @@
 #include "BKE_texture.h"
 #include "BKE_world.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "IMB_imbuf.h"
@@ -587,7 +587,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 		}
 
 		/* TODO(sergey): Use proper flag for tagging here. */
-		DAG_id_tag_update(&sce->id, 0);
+		DEG_id_tag_update(&sce->id, 0);
 		DEG_relations_tag_update(pr_main);
 		BKE_scene_update_tagged(pr_main->eval_ctx, pr_main, sce);
 

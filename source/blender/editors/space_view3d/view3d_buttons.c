@@ -55,12 +55,13 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_screen.h"
 #include "BKE_editmesh.h"
 #include "BKE_deform.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -779,7 +780,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 		SceneLayer *sl = CTX_data_scene_layer(C);
 		Object *ob = sl->basact->object;
 		ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 	}
 }
@@ -1109,7 +1110,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 		case B_OBJECTPANELMEDIAN:
 			if (ob) {
 				v3d_editvertex_buts(NULL, v3d, ob, 1.0);
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			break;
 	}

@@ -102,8 +102,9 @@ EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_particle.h"
-#include "BKE_depsgraph.h"
 #include "BKE_pbvh.h"
+
+#include "DEG_depsgraph.h"
 
 #include "GPU_buffers.h"
 
@@ -166,7 +167,7 @@ static void rna_ParticleEdit_update(Main *UNUSED(bmain), Scene *UNUSED(scene), b
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = OBACT_NEW;
 
-	if (ob) DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	if (ob) DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 
 static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
@@ -177,7 +178,7 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 	if ((pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) && pset->scene_layer) {
 		Object *ob = (pset->scene_layer->basact) ? pset->scene_layer->basact->object : NULL;
 		if (ob) {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 		}
 	}
@@ -264,7 +265,7 @@ static void rna_Sculpt_update(bContext *C, Scene *scene, PointerRNA *UNUSED(ptr)
 	Object *ob = OBACT_NEW;
 
 	if (ob) {
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 
 		if (ob->sculpt) {

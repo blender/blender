@@ -73,9 +73,10 @@ EnumPropertyItem rna_enum_keying_flag_items[] = {
 #include "BLI_math_base.h"
 
 #include "BKE_animsys.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
+
+#include "DEG_depsgraph.h"
 
 #include "DNA_object_types.h"
 
@@ -88,7 +89,7 @@ static void rna_AnimData_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 	/* tag for refresh so that scheduled updates (e.g. action changed) will 
 	 * get computed and reflected in the scene [#34869] 
 	 */
-	DAG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA);
 }
 
 static int rna_AnimData_action_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -114,7 +115,7 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 	adt = BKE_animdata_from_id(ownerId);
 	if (adt) {
 		adt->recalc |= ADT_RECALC_ANIM;
-		DAG_id_tag_update(ownerId, OB_RECALC_TIME);
+		DEG_id_tag_update(ownerId, OB_RECALC_TIME);
 	}
 }
 

@@ -63,7 +63,6 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_layer.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
@@ -73,6 +72,8 @@
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -369,7 +370,7 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, const int mcords[]
 		bArmature *arm = ob->data;
 		if (arm->flag & ARM_HAS_VIZ_DEPS) {
 			/* mask modifier ('armature' mode), etc. */
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 }
@@ -2106,7 +2107,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 					
 					if (arm && (arm->flag & ARM_HAS_VIZ_DEPS)) {
 						/* mask modifier ('armature' mode), etc. */
-						DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 					}
 				}
 			}
@@ -2664,7 +2665,7 @@ static void pose_circle_select(ViewContext *vc, const bool select, const int mva
 
 		if (arm->flag & ARM_HAS_VIZ_DEPS) {
 			/* mask modifier ('armature' mode), etc. */
-			DAG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
 		}
 	}
 }

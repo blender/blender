@@ -86,12 +86,13 @@ EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #include "DNA_space_types.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_node.h"
 #include "ED_image.h"
@@ -101,7 +102,7 @@ static void rna_Material_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 {
 	Material *ma = ptr->id.data;
 
-	DAG_id_tag_update(&ma->id, 0);
+	DEG_id_tag_update(&ma->id, 0);
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
 }
 
@@ -119,7 +120,7 @@ static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 {
 	Material *ma = ptr->id.data;
 
-	DAG_id_tag_update(&ma->id, 0);
+	DEG_id_tag_update(&ma->id, 0);
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 }
 
@@ -213,7 +214,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain, Scene *s
 		}
 	}
 
-	DAG_id_tag_update(&ma->id, 0);
+	DEG_id_tag_update(&ma->id, 0);
 	WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
 }
 
@@ -427,7 +428,7 @@ void rna_mtex_texture_slots_clear(ID *self_id, struct bContext *C, ReportList *r
 		id_us_min((ID *)mtex_ar[index]->tex);
 		MEM_freeN(mtex_ar[index]);
 		mtex_ar[index] = NULL;
-		DAG_id_tag_update(self_id, 0);
+		DEG_id_tag_update(self_id, 0);
 	}
 
 	/* for redraw only */

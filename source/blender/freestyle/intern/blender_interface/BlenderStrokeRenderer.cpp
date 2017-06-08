@@ -677,7 +677,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 {
 #if 0
 	Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, (SceneLayer *)freestyle_scene->render_layers.first, OB_MESH);
-	DAG_relations_tag_update(freestyle_bmain);
+	DEG_relations_tag_update(freestyle_bmain);
 #else
 	Object *object_mesh = NewMesh();
 #endif

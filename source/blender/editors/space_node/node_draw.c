@@ -44,10 +44,11 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+
+#include "DEG_depsgraph.h"
 
 #include "BLF_api.h"
 
@@ -132,10 +133,10 @@ void ED_node_tag_update_id(ID *id)
 	 * all the users of this tree will have update
 	 * flushed from the tree,
 	 */
-	DAG_id_tag_update(&ntree->id, 0);
+	DEG_id_tag_update(&ntree->id, 0);
 
 	if (ntree->type == NTREE_SHADER) {
-		DAG_id_tag_update(id, 0);
+		DEG_id_tag_update(id, 0);
 		
 		if (GS(id->name) == ID_MA)
 			WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
@@ -148,12 +149,12 @@ void ED_node_tag_update_id(ID *id)
 		WM_main_add_notifier(NC_SCENE | ND_NODES, id);
 	}
 	else if (ntree->type == NTREE_TEXTURE) {
-		DAG_id_tag_update(id, 0);
+		DEG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);
 	}
 	else if (id == &ntree->id) {
 		/* node groups */
-		DAG_id_tag_update(id, 0);
+		DEG_id_tag_update(id, 0);
 	}
 }
 

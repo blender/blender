@@ -39,10 +39,11 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
 #include "ED_util.h"
@@ -672,7 +673,7 @@ void ED_armature_from_edit(bArmature *arm)
 		}
 	}
 	
-	DAG_id_tag_update(&arm->id, 0);
+	DEG_id_tag_update(&arm->id, 0);
 }
 
 void ED_armature_edit_free(struct bArmature *arm)
