@@ -77,7 +77,6 @@ typedef struct DupliContext {
 	Scene *scene;
 	Object *object;
 	float space_mat[4][4];
-	unsigned int lay;
 
 	int persistent_id[MAX_DUPLI_RECUR];
 	int level;
@@ -110,7 +109,6 @@ static void init_context(DupliContext *r_ctx, EvaluationContext *eval_ctx, Scene
 		copy_m4_m4(r_ctx->space_mat, space_mat);
 	else
 		unit_m4(r_ctx->space_mat);
-	r_ctx->lay = ob->lay;
 	r_ctx->level = 0;
 
 	r_ctx->gen = get_dupli_generator(r_ctx);
