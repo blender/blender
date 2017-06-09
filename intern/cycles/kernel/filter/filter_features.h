@@ -78,16 +78,10 @@ ccl_device_inline void filter_calculate_scale(float *scale)
 	scale[3] = scale[4] = scale[5] = 1.0f/max(sqrtf(scale[3]), 0.01f);
 }
 
-ccl_device_inline float3 filter_get_pixel_color(const ccl_global float *ccl_restrict buffer,
-                                                int pass_stride)
+ccl_device_inline float3 filter_get_color(const ccl_global float *ccl_restrict buffer,
+                                          int pass_stride)
 {
-	return make_float3(ccl_get_feature(buffer, 0), ccl_get_feature(buffer, 1), ccl_get_feature(buffer, 2));
-}
-
-ccl_device_inline float filter_get_pixel_variance(const ccl_global float *ccl_restrict buffer,
-                                                  int pass_stride)
-{
-	return average(make_float3(ccl_get_feature(buffer, 0), ccl_get_feature(buffer, 1), ccl_get_feature(buffer, 2)));
+	return make_float3(ccl_get_feature(buffer, 8), ccl_get_feature(buffer, 9), ccl_get_feature(buffer, 10));
 }
 
 ccl_device_inline void design_row_add(float *design_row,

@@ -22,8 +22,6 @@ ccl_device_inline void kernel_filter_construct_gramian(int x, int y,
                                                        int w, int h,
                                                        int pass_stride,
                                                        const ccl_global float *ccl_restrict buffer,
-                                                       ccl_global float *color_pass,
-                                                       ccl_global float *variance_pass,
                                                        const ccl_global float *ccl_restrict transform,
                                                        ccl_global int *rank,
                                                        float weight,
@@ -48,21 +46,10 @@ ccl_device_inline void kernel_filter_construct_gramian(int x, int y,
 	float design_row[DENOISE_FEATURES+1];
 #endif
 
-	float3 p_color = filter_get_pixel_color(color_pass + p_offset, pass_stride);
-	float3 q_color = filter_get_pixel_color(color_pass + q_offset, pass_stride);
+	float3 q_color = filter_get_color(buffer + q_offset, pass_stride);
 
-	float p_std_dev = sqrtf(filter_get_pixel_variance(variance_pass + p_offset, pass_stride));
-	float q_std_dev = sqrtf(filter_get_pixel_variance(variance_pass + q_offset, pass_stride));
-
-	/* If the pixel was flagged as an outlier during prefiltering, skip it.
-	 * Otherwise, perform the regular confidence interval test unless
-	 * the center pixel is an outlier (in that case, using the confidence
-	 * interval test could result in no pixels being used at all). */
-	bool p_outlier = (ccl_get_feature(buffer + p_offset, 0) < 0.0f);
-	bool q_outlier = (ccl_get_feature(buffer + q_offset, 0) < 0.0f);
-	bool outside_of_interval = (average(fabs(p_color - q_color)) > 2.0f*(p_std_dev + q_std_dev + 1e-3f));
-
-	if(q_outlier || (!p_outlier && outside_of_interval)) {
+	/* If the pixel was flagged as an outlier during prefiltering, skip it. */
+	if(ccl_get_feature(buffer + q_offset, 0) < 0.0f) {
 		return;
 	}
 

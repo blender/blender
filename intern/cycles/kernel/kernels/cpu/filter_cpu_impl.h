@@ -213,8 +213,6 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_construct_gramian)(int dx,
                                                              int dy,
                                                              float *difference_image,
                                                              float *buffer,
-                                                             float *color_pass,
-                                                             float *variance_pass,
                                                              float *transform,
                                                              int *rank,
                                                              float *XtWX,
@@ -229,7 +227,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_construct_gramian)(int dx,
 #ifdef KERNEL_STUB
 	STUB_ASSERT(KERNEL_ARCH, filter_nlm_construct_gramian);
 #else
-    kernel_filter_nlm_construct_gramian(dx, dy, difference_image, buffer, color_pass, variance_pass, transform, rank, XtWX, XtWY, load_int4(rect), load_int4(filter_rect), w, h, f, pass_stride);
+    kernel_filter_nlm_construct_gramian(dx, dy, difference_image, buffer, transform, rank, XtWX, XtWY, load_int4(rect), load_int4(filter_rect), w, h, f, pass_stride);
 #endif
 }
 

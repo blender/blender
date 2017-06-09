@@ -142,13 +142,22 @@ ccl_device void kernel_filter_detect_outliers(int x, int y,
 	float ref = 2.0f*values[(int)(n*0.75f)];
 	float fac = 1.0f;
 	if(L > ref) {
-		/* If the pixel is an outlier, negate the depth value to mark it as one.
-		 * Also, scale its brightness down to the outlier threshold to avoid trouble with the NLM weights. */
-		depth[idx] = -depth[idx];
-		fac = ref/L;
-		variance[idx              ] *= fac*fac;
-		variance[idx + pass_stride] *= fac*fac;
-		variance[idx+2*pass_stride] *= fac*fac;
+		/* The pixel appears to be an outlier.
+		 * However, it may just be a legitimate highlight. Therefore, it is checked how likely it is that the pixel
+		 * should actually be at the reference value:
+		 * If the reference is within the 3-sigma interval, the pixel is assumed to be a statistical outlier.
+		 * Otherwise, it is very unlikely that the pixel should be darker, which indicates a legitimate highlight.
+		 */
+		float stddev = sqrtf(average(make_float3(variance[idx], variance[idx+pass_stride], variance[idx+2*pass_stride])));
+		if(L - 3*stddev < ref) {
+			/* The pixel is an outlier, so negate the depth value to mark it as one.
+			 * Also, scale its brightness down to the outlier threshold to avoid trouble with the NLM weights. */
+			depth[idx] = -depth[idx];
+			fac = ref/L;
+			variance[idx              ] *= fac*fac;
+			variance[idx + pass_stride] *= fac*fac;
+			variance[idx+2*pass_stride] *= fac*fac;
+		}
 	}
 	out[idx              ] = fac*image[idx];
 	out[idx + pass_stride] = fac*image[idx + pass_stride];
