@@ -440,20 +440,24 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		float min[3], max[3], center[3];
+		float center[3];
+		int count = 0;
 		BMVert *v_tar;
+
+		zero_v3(center);
 
 		if (!BMO_edge_flag_test(bm, e, EDGE_MARK))
 			continue;
 
 		BLI_assert(BLI_stack_is_empty(edge_stack));
 
-		INIT_MINMAX(min, max);
 		for (e = BMW_begin(&walker, e->v1); e; e = BMW_step(&walker)) {
 			BLI_stack_push(edge_stack, &e);
 
-			minmax_v3v3_v3(min, max, e->v1->co);
-			minmax_v3v3_v3(min, max, e->v2->co);
+			add_v3_v3(center, e->v1->co);
+			add_v3_v3(center, e->v2->co);
+
+			count += 2;
 
 			/* prevent adding to slot_targetmap multiple times */
 			BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
@@ -461,8 +465,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (!BLI_stack_is_empty(edge_stack)) {
-
-			mid_v3_v3v3(center, min, max);
+			mul_v3_fl(center, 1.0f / count);
 
 			/* snap edges to a point.  for initial testing purposes anyway */
 			e = *(BMEdge **)BLI_stack_peek(edge_stack);

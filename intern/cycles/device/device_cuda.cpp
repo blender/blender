@@ -1051,8 +1051,6 @@ public:
 
 	bool denoising_reconstruct(device_ptr color_ptr,
 	                           device_ptr color_variance_ptr,
-	                           device_ptr guide_ptr,
-	                           device_ptr guide_variance_ptr,
 	                           device_ptr output_ptr,
 	                           DenoisingTask *task)
 	{
@@ -1096,8 +1094,8 @@ public:
 			                     task->reconstruction_state.source_h - max(0, dy)};
 
 			void *calc_difference_args[] = {&dx, &dy,
-			                                &guide_ptr,
-			                                &guide_variance_ptr,
+			                                &color_ptr,
+			                                &color_variance_ptr,
 			                                &difference,
 			                                &local_rect,
 			                                &task->buffer.w,
@@ -1126,8 +1124,6 @@ public:
 			void *construct_gramian_args[] = {&dx, &dy,
 			                                  &blurDifference,
 			                                  &task->buffer.mem.device_pointer,
-			                                  &color_ptr,
-			                                  &color_variance_ptr,
 			                                  &task->storage.transform.device_pointer,
 			                                  &task->storage.rank.device_pointer,
 			                                  &task->storage.XtWX.device_pointer,
@@ -1294,7 +1290,7 @@ public:
 		DenoisingTask denoising(this);
 
 		denoising.functions.construct_transform = function_bind(&CUDADevice::denoising_construct_transform, this, &denoising);
-		denoising.functions.reconstruct = function_bind(&CUDADevice::denoising_reconstruct, this, _1, _2, _3, _4, _5, &denoising);
+		denoising.functions.reconstruct = function_bind(&CUDADevice::denoising_reconstruct, this, _1, _2, _3, &denoising);
 		denoising.functions.divide_shadow = function_bind(&CUDADevice::denoising_divide_shadow, this, _1, _2, _3, _4, _5, &denoising);
 		denoising.functions.non_local_means = function_bind(&CUDADevice::denoising_non_local_means, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.combine_halves = function_bind(&CUDADevice::denoising_combine_halves, this, _1, _2, _3, _4, _5, _6, &denoising);

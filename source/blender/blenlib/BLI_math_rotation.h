@@ -218,8 +218,12 @@ float angle_wrap_deg(float angle);
 
 float angle_compat_rad(float angle, float angle_compat);
 
-int mat3_from_axis_conversion(int from_forward, int from_up, int to_forward, int to_up,
-                              float r_mat[3][3]);
+bool mat3_from_axis_conversion(
+        int src_forward, int src_up, int dst_forward, int dst_up,
+        float r_mat[3][3]);
+bool mat3_from_axis_conversion_single(
+        int src_axis, int dst_axis,
+        float r_mat[3][3]);
 
 #ifdef __cplusplus
 }

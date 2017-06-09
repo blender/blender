@@ -2266,7 +2266,7 @@ static struct TransIslandData *editmesh_islands_info_calc(
 		}
 
 		if (group_tot_single != 0) {
-			trans_islands = MEM_reallocN(trans_islands, group_tot + group_tot_single);
+			trans_islands = MEM_reallocN(trans_islands, sizeof(*trans_islands) * (group_tot + group_tot_single));
 
 			BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
 				if (BM_elem_flag_test(v, BM_ELEM_SELECT) && (vert_map[i] == -1)) {
