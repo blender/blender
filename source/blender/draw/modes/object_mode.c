@@ -1418,8 +1418,32 @@ static void DRW_shgroup_probe(OBJECT_StorageList *stl, Object *ob, SceneLayer *s
 
 	DRW_shgroup_call_dynamic_add(stl->g_data->probe, ob->obmat[3], color);
 
-	DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distinf, ob->obmat);
-	DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distfalloff, ob->obmat);
+	if ((prb->flag & PRB_SHOW_INFLUENCE) != 0) {
+		if (prb->attenuation_type == PROBE_BOX) {
+			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distinf, ob->obmat);
+			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distfalloff, ob->obmat);
+		}
+		else {
+			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distinf, ob->obmat);
+			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distfalloff, ob->obmat);
+		}
+	}
+
+	if ((prb->flag & PRB_SHOW_PARALLAX) != 0) {
+		if ((prb->flag & PRB_CUSTOM_PARALLAX) != 0) {
+			float (*obmat)[4];
+
+			/* TODO object parallax */
+			obmat = ob->obmat;
+
+			if (prb->parallax_type == PROBE_BOX) {
+				DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distpar, obmat);
+			}
+			else {
+				DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distpar, obmat);
+			}
+		}
+	}
 
 	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_center_group, ob->obmat[3]);
 
