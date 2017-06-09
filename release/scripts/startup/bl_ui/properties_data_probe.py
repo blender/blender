@@ -69,14 +69,10 @@ class DATA_PT_probe(DataButtonsPanel, Panel):
             layout.prop(probe, "influence_distance", "Radius")
             layout.prop(probe, "falloff")
         else:
-            split = layout.split()
-            col = split.column(align=True)
-            col.prop(probe, "influence_minimum", text="Min:")
-            col = split.column(align=True)
-            col.prop(probe, "influence_maximum", text="Max:")
-
+            layout.prop(probe, "influence_distance", "Size")
             layout.prop(probe, "falloff")
 
+        layout.prop(probe, "show_influence")
         layout.separator()
 
         layout.label("Clipping:")
@@ -106,11 +102,9 @@ class DATA_PT_parallax(DataButtonsPanel, Panel):
         if probe.parallax_type == 'ELIPSOID':
             col.prop(probe, "parallax_distance", "Radius")
         else:
-            split = col.split()
-            col = split.column(align=True)
-            col.prop(probe, "parallax_minimum", text="Min:")
-            col = split.column(align=True)
-            col.prop(probe, "parallax_maximum", text="Max:")
+            col.prop(probe, "parallax_distance", "Size")
+
+        col.prop(probe, "show_parallax")
 
 
 classes = (

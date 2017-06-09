@@ -103,19 +103,15 @@ static void rna_def_probe(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "Type of parallax volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
+	prop = RNA_def_property(srna, "show_influence", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_SHOW_INFLUENCE);
+	RNA_def_property_ui_text(prop, "Show Influence Volume", "Show the influence volume in the 3D view");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
 	prop = RNA_def_property(srna, "influence_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "distinf");
+	RNA_def_property_range(prop, 0.0f, 99999.f);
 	RNA_def_property_ui_text(prop, "Influence Distance", "Influence distance of the probe");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
-
-	prop = RNA_def_property(srna, "influence_minimum", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "mininf");
-	RNA_def_property_ui_text(prop, "Influence Min", "Lowest corner of the influence bounding box");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
-
-	prop = RNA_def_property(srna, "influence_maximum", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "maxinf");
-	RNA_def_property_ui_text(prop, "Influence Max", "Highest corner of the influence bounding box");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_FACTOR);
@@ -128,6 +124,11 @@ static void rna_def_probe(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Custom Parallax", "Enable custom settings for the parallax correction volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
+	prop = RNA_def_property(srna, "show_parallax", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_SHOW_PARALLAX);
+	RNA_def_property_ui_text(prop, "Show Parallax Volume", "Show the parallax correction volume in the 3D view");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
 	prop = RNA_def_property(srna, "parallax_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, parallax_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of parallax volume");
@@ -135,17 +136,8 @@ static void rna_def_probe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "parallax_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "distpar");
+	RNA_def_property_range(prop, 0.0f, 99999.f);
 	RNA_def_property_ui_text(prop, "Parallax Radius", "Lowest corner of the parallax bounding box");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
-
-	prop = RNA_def_property(srna, "parallax_minimum", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "minpar");
-	RNA_def_property_ui_text(prop, "Parallax Min", "Lowest corner of the parallax bounding box");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
-
-	prop = RNA_def_property(srna, "parallax_maximum", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "maxpar");
-	RNA_def_property_ui_text(prop, "Parallax Max", "Highest corner of the parallax bounding box");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	/* common */

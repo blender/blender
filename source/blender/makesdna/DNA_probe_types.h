@@ -49,14 +49,8 @@ typedef struct Probe {
 	char parallax_type;    /* Parallax type */
 
 	float distinf;    /* Influence Radius */
-	float mininf[3];  /* Influence Bound Box */
-	float maxinf[3];
-
-	float falloff;    /* Influence falloff */
-
 	float distpar;    /* Parallax Radius */
-	float minpar[3];  /* Parallax Bound Box */
-	float maxpar[3];
+	float falloff;    /* Influence falloff */
 
 	float clipsta, clipend;
 
@@ -77,6 +71,8 @@ enum {
 /* Probe->flag */
 enum {
 	PRB_CUSTOM_PARALLAX = (1 << 0),
+	PRB_SHOW_INFLUENCE  = (1 << 1),
+	PRB_SHOW_PARALLAX   = (1 << 2),
 };
 
 /* Probe->display */

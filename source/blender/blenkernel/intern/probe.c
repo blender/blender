@@ -46,11 +46,7 @@ void BKE_probe_init(Probe *probe)
 
 	probe->distinf = 5.0f;
 	probe->distpar = 5.0f;
-	copy_v3_fl(probe->mininf, -5.0f);
-	copy_v3_fl(probe->maxinf, 5.0f);
-	copy_v3_fl(probe->minpar, -5.0f);
-	copy_v3_fl(probe->maxpar, 5.0f);
-	probe->falloff = 0.25f;
+	probe->falloff = 0.75f;
 	probe->clipsta = 1.0f;
 	probe->clipend = 40.0f;
 }
