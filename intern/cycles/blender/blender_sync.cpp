@@ -553,10 +553,15 @@ int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
 }
 
 array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
-                                            BL::SceneRenderLayer& b_srlay)
+                                            BL::SceneRenderLayer& b_srlay,
+                                            const SessionParams &session_params)
 {
 	array<Pass> passes;
 	Pass::add(PASS_COMBINED, passes);
+
+	if(!session_params.device.advanced_shading) {
+		return passes;
+	}
 
 	/* loop over passes */
 	BL::RenderLayer::passes_iterator b_pass_iter;
@@ -572,7 +577,9 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 	}
 
 	PointerRNA crp = RNA_pointer_get(&b_srlay.ptr, "cycles");
-	if(get_boolean(crp, "denoising_store_passes")) {
+	if(get_boolean(crp, "denoising_store_passes") &&
+	   get_boolean(crp, "use_denoising") &&
+	   !session_params.progressive_refine) {
 		b_engine.add_pass("Denoising Normal",          3, "XYZ", b_srlay.name().c_str());
 		b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_srlay.name().c_str());
 		b_engine.add_pass("Denoising Albedo",          3, "RGB", b_srlay.name().c_str());

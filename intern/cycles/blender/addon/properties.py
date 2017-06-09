@@ -1209,6 +1209,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
                 name="Use Denoising",
                 description="Denoise the rendered image",
                 default=False,
+                update=update_render_passes,
                 )
         cls.denoising_diffuse_direct = BoolProperty(
                 name="Diffuse Direct",
