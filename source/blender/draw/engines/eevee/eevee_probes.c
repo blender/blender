@@ -500,7 +500,6 @@ void EEVEE_probes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	Object *ob;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
-	struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
 
 	/* Render world in priority */
 	if (e_data.update_world) {
@@ -518,9 +517,12 @@ void EEVEE_probes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	}
 	else if (true) { /* TODO if at least one probe needs refresh */
 
-		/* Only compute probes if not navigating or in playback */
-		if (((rv3d->rflag & RV3D_NAVIGATING) != 0) || ED_screen_animation_no_scrub(wm) != NULL) {
-			return;
+		if (draw_ctx->evil_C != NULL) {
+			/* Only compute probes if not navigating or in playback */
+			struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
+			if (((rv3d->rflag & RV3D_NAVIGATING) != 0) || ED_screen_animation_no_scrub(wm) != NULL) {
+				return;
+			}
 		}
 
 		for (int i = 1; (ob = pinfo->probes_ref[i]) && (i < MAX_PROBE); i++) {
