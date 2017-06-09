@@ -40,9 +40,17 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_main.h"
+#include "DEG_depsgraph.h"
+
+#include "DNA_object_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+static void rna_Probe_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+}
 
 #else
 
@@ -72,14 +80,14 @@ static void rna_def_probe(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 999999.0f);
 	RNA_def_property_ui_text(prop, "Probe Clip Start",
 	                         "Probe clip start, below which objects will not appear in reflections");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_Probe_recalc");
 
 	prop = RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
 	RNA_def_property_range(prop, 0.0f, 999999.0f);
 	RNA_def_property_ui_text(prop, "Probe Clip End",
 	                         "Probe clip end, beyond which objects will not appear in reflections");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_Probe_recalc");
 
 	prop = RNA_def_property(srna, "influence_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "distinf");

@@ -61,6 +61,7 @@ extern "C" {
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_probe_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
@@ -532,6 +533,10 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 
 			case OB_CAMERA: /* Camera */
 				build_camera(ob);
+				break;
+
+			case OB_PROBE:
+				build_probe(ob);
 				break;
 		}
 
@@ -1734,6 +1739,27 @@ void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
 {
 	/* Animation. */
 	build_animdata(&clip->id);
+}
+
+void DepsgraphRelationBuilder::build_probe(Object *object)
+{
+	Probe *probe = (Probe *)object->data;
+	ID *probe_id = &probe->id;
+	if (probe_id->tag & LIB_TAG_DOIT) {
+		return;
+	}
+	probe_id->tag |= LIB_TAG_DOIT;
+	build_animdata(&probe->id);
+
+	OperationKey probe_key(probe_id,
+	                       DEG_NODE_TYPE_PARAMETERS,
+	                       DEG_OPCODE_PLACEHOLDER,
+	                       "Probe Eval");
+	OperationKey object_key(&object->id,
+	                        DEG_NODE_TYPE_PARAMETERS,
+	                        DEG_OPCODE_PLACEHOLDER,
+	                        "Probe Eval");
+	add_relation(probe_key, object_key, "Probe Update");
 }
 
 }  // namespace DEG

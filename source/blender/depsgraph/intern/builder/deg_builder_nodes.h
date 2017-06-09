@@ -49,6 +49,7 @@ struct MTex;
 struct MovieClip;
 struct bNodeTree;
 struct Object;
+struct Probe;
 struct bPoseChannel;
 struct bConstraint;
 struct Scene;
@@ -156,6 +157,7 @@ struct DepsgraphNodeBuilder {
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
+	void build_probe(Object *object);
 
 	struct LayerCollectionState {
 		int index;

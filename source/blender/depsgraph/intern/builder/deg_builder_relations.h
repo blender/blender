@@ -227,6 +227,7 @@ struct DepsgraphRelationBuilder
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
+	void build_probe(Object *object);
 
 	void add_collision_relations(const OperationKey &key, Scene *scene, Object *ob, Group *group, bool dupli, const char *name);
 	void add_forcefield_relations(const OperationKey &key, Scene *scene, Object *ob, ParticleSystem *psys, EffectorWeights *eff, bool add_absorption, const char *name);

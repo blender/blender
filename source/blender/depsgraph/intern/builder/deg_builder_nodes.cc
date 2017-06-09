@@ -62,6 +62,7 @@ extern "C" {
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"
+#include "DNA_probe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -382,6 +383,10 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Object *ob)
 
 			case OB_CAMERA: /* Camera */
 				build_camera(ob);
+				break;
+
+			case OB_PROBE:
+				build_probe(ob);
 				break;
 
 			default:
@@ -1100,10 +1105,35 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
 	build_animdata(mask_id);
 }
 
-void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip) {
+void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
+{
 	ID *clip_id = &clip->id;
 	add_id_node(clip_id);
 	build_animdata(clip_id);
+}
+
+void DepsgraphNodeBuilder::build_probe(Object *object)
+{
+	Probe *probe = (Probe *)object->data;
+	ID *probe_id = &probe->id;
+	if (probe_id->tag & LIB_TAG_DOIT) {
+		return;
+	}
+	probe_id->tag |= LIB_TAG_DOIT;
+	/* Placeholder so we can add relations and tag ID node for update. */
+	add_operation_node(probe_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Probe Eval");
+
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Probe Eval");
+
+	build_animdata(probe_id);
 }
 
 }  // namespace DEG
