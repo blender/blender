@@ -750,8 +750,6 @@ int collada_export(struct Scene *sce,
 void ED_mesh_calc_tessface(struct Mesh *mesh, bool free_mpoly) RET_NONE
 
 /* bpy/python internal api */
-void BPY_RNA_operator_wrapper(struct wmOperatorType *ot, void *userdata) RET_NONE
-void BPY_RNA_operator_macro_wrapper(struct wmOperatorType *ot, void *userdata) RET_NONE
 void BPY_text_free_code(struct Text *text) RET_NONE
 void BPY_id_release(struct ID *id) RET_NONE
 int BPY_context_member_get(struct bContext *C, const char *member, struct bContextDataResult *result) RET_ZERO
