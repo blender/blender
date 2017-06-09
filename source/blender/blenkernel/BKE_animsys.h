@@ -89,12 +89,6 @@ typedef enum eAnimData_MergeCopy_Modes {
 
 void BKE_animdata_merge_copy(struct ID *dst_id, struct ID *src_id, eAnimData_MergeCopy_Modes action_mode, bool fix_drivers);
 
-/* Make Local */
-void BKE_animdata_make_local(struct AnimData *adt);
-
-/* Re-Assign ID's */
-void BKE_animdata_relink(struct AnimData *adt);
-
 /* ************************************* */
 /* KeyingSets API */
 
