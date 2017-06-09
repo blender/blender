@@ -143,6 +143,8 @@ bool ED_workspace_delete(
         struct wmWindowManager *wm, struct wmWindow *win) ATTR_NONNULL();
 void ED_workspace_scene_data_sync(
         struct WorkSpaceInstanceHook *hook, Scene *scene) ATTR_NONNULL();
+void ED_workspace_render_layer_unset(
+        const struct Main *bmain, const SceneLayer *layer_unset, SceneLayer *layer_new) ATTR_NONNULL(1, 2);
 struct WorkSpaceLayout *ED_workspace_layout_add(
         struct WorkSpace *workspace,
         struct wmWindow *win,

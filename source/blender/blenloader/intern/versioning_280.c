@@ -79,6 +79,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		const bScreen *screen_parent = screen_parent_find(screen);
 		WorkSpace *workspace;
+		SceneLayer *layer = BKE_scene_layer_render_active(screen->scene);
 		ListBase *transform_orientations;
 
 		if (screen_parent) {
@@ -91,7 +92,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
 		}
 		BKE_workspace_layout_add(workspace, screen, screen->id.name + 2);
-		BKE_workspace_render_layer_set(workspace, screen->scene->render_layers.first);
+		BKE_workspace_render_layer_set(workspace, layer);
 
 		transform_orientations = BKE_workspace_transform_orientations_get(workspace);
 		BLI_duplicatelist(transform_orientations, &screen->scene->transform_spaces);

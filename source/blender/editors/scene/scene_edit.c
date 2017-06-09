@@ -26,17 +26,23 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
 
 #include "BLT_translation.h"
+
+#include "DNA_workspace_types.h"
 
 #include "ED_object.h"
 #include "ED_render.h"
@@ -126,6 +132,64 @@ void ED_scene_changed_update(Main *bmain, bContext *C, Scene *scene_new, const b
 
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
+}
+
+static bool scene_render_layer_remove_poll(
+        const Scene *scene, const SceneLayer *layer)
+{
+	const int act = BLI_findindex(&scene->render_layers, layer);
+
+	if (act == -1) {
+		return false;
+	}
+	else if ((scene->render_layers.first == scene->render_layers.last) &&
+	         (scene->render_layers.first == layer))
+	{
+		/* ensure 1 layer is kept */
+		return false;
+	}
+
+	return true;
+}
+
+static void scene_render_layer_remove_unset_nodetrees(const Main *bmain, Scene *scene, SceneLayer *layer)
+{
+	int act_layer_index = BLI_findindex(&scene->render_layers, layer);
+
+	for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
+		if (sce->nodetree) {
+			BKE_nodetree_remove_layer_n(sce->nodetree, scene, act_layer_index);
+		}
+	}
+}
+
+bool ED_scene_render_layer_delete(
+        Main *bmain, Scene *scene, SceneLayer *layer,
+        ReportList *reports)
+{
+	if (scene_render_layer_remove_poll(scene, layer) == false) {
+		if (reports) {
+			BKE_reportf(reports, RPT_ERROR, "Render layer '%s' could not be removed from scene '%s'",
+			            layer->name, scene->id.name + 2);
+		}
+
+		return false;
+	}
+
+	BLI_remlink(&scene->render_layers, layer);
+	BLI_assert(BLI_listbase_is_empty(&scene->render_layers) == false);
+	scene->active_layer = 0;
+
+	ED_workspace_render_layer_unset(bmain, layer, scene->render_layers.first);
+	scene_render_layer_remove_unset_nodetrees(bmain, scene, layer);
+
+	BKE_scene_layer_free(layer);
+
+	DEG_id_tag_update(&scene->id, 0);
+	DEG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER | NA_REMOVED, scene);
+
+	return true;
 }
 
 static int scene_new_exec(bContext *C, wmOperator *op)

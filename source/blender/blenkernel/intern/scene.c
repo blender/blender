@@ -581,10 +581,12 @@ void BKE_scene_free(Scene *sce)
 	BKE_previewimg_free(&sce->preview);
 	curvemapping_free_data(&sce->r.mblur_shutter_curve);
 
-	for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
+	for (SceneLayer *sl = sce->render_layers.first, *sl_next; sl; sl = sl_next) {
+		sl_next = sl->next;
+
+		BLI_remlink(&sce->render_layers, sl);
 		BKE_scene_layer_free(sl);
 	}
-	BLI_freelistN(&sce->render_layers);
 
 	/* Master Collection */
 	BKE_collection_master_free(sce);

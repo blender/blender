@@ -84,6 +84,7 @@
 #include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_render.h"
+#include "ED_scene.h"
 #include "ED_screen.h"
 
 #include "RNA_define.h"
@@ -653,17 +654,16 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 
 static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = BKE_scene_layer_context_active(scene);
 
-	if (!BKE_scene_layer_remove(CTX_data_main(C), scene, sl)) {
+	if (!ED_scene_render_layer_delete(bmain, scene, sl, NULL)) {
 		return OPERATOR_CANCELLED;
 	}
 
-	DEG_id_tag_update(&scene->id, 0);
-	DEG_relations_tag_update(CTX_data_main(C));
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
-	
+
 	return OPERATOR_FINISHED;
 }
 

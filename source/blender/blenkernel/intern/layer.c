@@ -128,39 +128,8 @@ SceneLayer *BKE_scene_layer_add(Scene *scene, const char *name)
 	return sl;
 }
 
-bool BKE_scene_layer_remove(Main *bmain, Scene *scene, SceneLayer *sl)
-{
-	const int act = BLI_findindex(&scene->render_layers, sl);
-
-	if (act == -1) {
-		return false;
-	}
-	else if ( (scene->render_layers.first == scene->render_layers.last) &&
-	          (scene->render_layers.first == sl))
-	{
-		/* ensure 1 layer is kept */
-		return false;
-	}
-
-	BLI_remlink(&scene->render_layers, sl);
-
-	BKE_scene_layer_free(sl);
-	MEM_freeN(sl);
-
-	scene->active_layer = 0;
-	/* TODO WORKSPACE: set active_layer to 0 */
-
-	for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
-		if (sce->nodetree) {
-			BKE_nodetree_remove_layer_n(sce->nodetree, scene, act);
-		}
-	}
-
-	return true;
-}
-
 /**
- * Free (or release) any data used by this SceneLayer (does not free the SceneLayer itself).
+ * Free (or release) any data used by this SceneLayer.
  */
 void BKE_scene_layer_free(SceneLayer *sl)
 {
@@ -200,6 +169,8 @@ void BKE_scene_layer_free(SceneLayer *sl)
 	BLI_freelistN(&sl->drawdata);
 
 	MEM_SAFE_FREE(sl->stats);
+
+	MEM_freeN(sl);
 }
 
 /**

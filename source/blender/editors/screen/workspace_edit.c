@@ -269,6 +269,16 @@ void ED_workspace_scene_data_sync(
 	BKE_screen_view3d_scene_sync(screen, scene);
 }
 
+void ED_workspace_render_layer_unset(
+        const Main *bmain, const SceneLayer *layer_unset, SceneLayer *layer_new)
+{
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		if (BKE_workspace_render_layer_get(workspace) == layer_unset) {
+			BKE_workspace_render_layer_set(workspace, layer_new);
+		}
+	}
+}
+
 /** \} Workspace API */
 
 

@@ -488,6 +488,7 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "ED_mesh.h"
 #include "ED_keyframing.h"
 #include "ED_image.h"
+#include "ED_scene.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -3092,17 +3093,9 @@ static void rna_SceneLayer_remove(
 	Scene *scene = (Scene *)id;
 	SceneLayer *sl = sl_ptr->data;
 
-	if (!BKE_scene_layer_remove(bmain, scene, sl)) {
-		BKE_reportf(reports, RPT_ERROR, "Render layer '%s' could not be removed from scene '%s'",
-		            sl->name, scene->id.name + 2);
-		return;
+	if (ED_scene_render_layer_delete(bmain, scene, sl, reports)) {
+		RNA_POINTER_INVALIDATE(sl_ptr);
 	}
-
-	RNA_POINTER_INVALIDATE(sl_ptr);
-
-	DEG_id_tag_update(&scene->id, 0);
-	DEG_relations_tag_update(bmain);
-	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 }
 
 static void rna_ObjectBase_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

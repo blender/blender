@@ -64,8 +64,6 @@ struct SceneLayer *BKE_scene_layer_context_active_ex(const struct Main *bmain, c
 struct SceneLayer *BKE_scene_layer_context_active(const struct Scene *scene);
 struct SceneLayer *BKE_scene_layer_add(struct Scene *scene, const char *name);
 
-bool BKE_scene_layer_remove(struct Main *bmain, struct Scene *scene, struct SceneLayer *sl);
-
 void BKE_scene_layer_free(struct SceneLayer *sl);
 
 void BKE_scene_layer_engine_set(struct SceneLayer *sl, const char *engine);
