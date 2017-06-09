@@ -283,14 +283,19 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	for (int i = 1; i < MAX_PROBE && i < probe_count; ++i) {
 		ProbeData pd = probes_data[i];
 
-		vec3 sample_vec = probe_parallax_correction(sd.W, spec_dir, pd, roughness);
-		vec4 sample = textureLod_octahedron(probeCubes, vec4(sample_vec, i), roughness * lodMax).rgba;
-
 		float dist_attenuation = probe_attenuation(sd.W, pd);
-		float influ_spec = min(dist_attenuation, (1.0 - spec_accum.a));
 
-		spec_accum.rgb += sample.rgb * influ_spec;
-		spec_accum.a += influ_spec;
+		if (dist_attenuation > 0.0) {
+			float roughness_copy = roughness;
+
+			vec3 sample_vec = probe_parallax_correction(sd.W, spec_dir, pd, roughness_copy);
+			vec4 sample = textureLod_octahedron(probeCubes, vec4(sample_vec, i), roughness_copy * lodMax).rgba;
+
+			float influ_spec = min(dist_attenuation, (1.0 - spec_accum.a));
+
+			spec_accum.rgb += sample.rgb * influ_spec;
+			spec_accum.a += influ_spec;
+		}
 	}
 
 	/* World probe */
