@@ -36,17 +36,17 @@ ccl_device_inline void kernel_filter_construct_gramian(int x, int y,
 	int p_offset =  y    *w +  x;
 	int q_offset = (y+dy)*w + (x+dx);
 
-#ifdef __KERNEL_CPU__
-	const int stride = 1;
-	(void)storage_stride;
-	(void)localIdx;
-	float design_row[DENOISE_FEATURES+1];
-#elif defined(__KERNEL_CUDA__)
+#ifdef __KERNEL_GPU__
 	const int stride = storage_stride;
+#else
+	const int stride = 1;
+	(void) storage_stride;
+#endif
+
+#ifdef __KERNEL_CUDA__
 	ccl_local float shared_design_row[(DENOISE_FEATURES+1)*CCL_MAX_LOCAL_SIZE];
 	ccl_local_param float *design_row = shared_design_row + localIdx*(DENOISE_FEATURES+1);
 #else
-	const int stride = storage_stride;
 	float design_row[DENOISE_FEATURES+1];
 #endif
 
@@ -74,11 +74,11 @@ ccl_device_inline void kernel_filter_finalize(int x, int y, int w, int h,
                                               int4 buffer_params,
                                               int sample)
 {
-#ifdef __KERNEL_CPU__
-	const int stride = 1;
-	(void)storage_stride;
-#else
+#ifdef __KERNEL_GPU__
 	const int stride = storage_stride;
+#else
+	const int stride = 1;
+	(void) storage_stride;
 #endif
 
 	/* The weighted average of pixel colors (essentially, the NLM-filtered image).
@@ -104,7 +104,5 @@ ccl_device_inline void kernel_filter_finalize(int x, int y, int w, int h,
 	combined_buffer[1] = final_color.y;
 	combined_buffer[2] = final_color.z;
 }
-
-#undef STORAGE_TYPE
 
 CCL_NAMESPACE_END
