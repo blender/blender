@@ -2149,24 +2149,6 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 
 /******************************* Make Local ***********************************/
 
-/* helper for below, ma was checked to be not NULL */
-static void make_local_makelocalmaterial(Material *ma)
-{
-	AnimData *adt;
-	int b;
-
-	id_make_local(G.main, &ma->id, false, false);
-
-	for (b = 0; b < MAX_MTEX; b++)
-		if (ma->mtex[b] && ma->mtex[b]->tex)
-			id_make_local(G.main, &ma->mtex[b]->tex->id, false, false);
-
-	adt = BKE_animdata_from_id(&ma->id);
-	if (adt) BKE_animdata_make_local(adt);
-
-	/* nodetree? XXX */
-}
-
 enum {
 	MAKE_LOCAL_SELECT_OB              = 1,
 	MAKE_LOCAL_SELECT_OBDATA          = 2,
@@ -2252,123 +2234,142 @@ static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene)
 	return changed;
 }
 
+static void make_local_animdata_tag_strips(ListBase *strips)
+{
+	NlaStrip *strip;
+
+	for (strip = strips->first; strip; strip = strip->next) {
+		if (strip->act) {
+			strip->act->id.tag &= ~LIB_TAG_PRE_EXISTING;
+		}
+		if (strip->remap && strip->remap->target) {
+			strip->remap->target->id.tag &= ~LIB_TAG_PRE_EXISTING;
+		}
+
+		make_local_animdata_tag_strips(&strip->strips);
+	}
+}
+
+/* Tag all actions used by given animdata to be made local. */
+static void make_local_animdata_tag(AnimData *adt)
+{
+	if (adt) {
+		/* Actions - Active and Temp */
+		if (adt->action) {
+			adt->action->id.tag &= ~LIB_TAG_PRE_EXISTING;
+		}
+		if (adt->tmpact) {
+			adt->tmpact->id.tag &= ~LIB_TAG_PRE_EXISTING;
+		}
+		/* Remaps */
+		if (adt->remap && adt->remap->target) {
+			adt->remap->target->id.tag &= ~LIB_TAG_PRE_EXISTING;
+		}
+
+		/* Drivers */
+		/* TODO: need to handle the ID-targets too? */
+
+		/* NLA Data */
+		for (NlaTrack *nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+			make_local_animdata_tag_strips(&nlt->strips);
+		}
+	}
+}
+
+static void make_local_material_tag(Material *ma)
+{
+	if (ma) {
+		ma->id.tag &= ~LIB_TAG_PRE_EXISTING;
+		make_local_animdata_tag(BKE_animdata_from_id(&ma->id));
+
+		/* About nodetrees: root one is made local together with material, others we keep linked for now... */
+
+		for (int a = 0; a < MAX_MTEX; a++) {
+			if (ma->mtex[a] && ma->mtex[a]->tex) {
+				ma->mtex[a]->tex->id.tag &= ~LIB_TAG_PRE_EXISTING;
+			}
+		}
+	}
+}
+
 static int make_local_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	AnimData *adt;
 	ParticleSystem *psys;
 	Material *ma, ***matarar;
 	Lamp *la;
-	ID *id;
 	const int mode = RNA_enum_get(op->ptr, "type");
-	int a, b;
+	int a;
 
+	/* Note: we (ab)use LIB_TAG_PRE_EXISTING to cherry pick which ID to make local... */
 	if (mode == MAKE_LOCAL_ALL) {
+		BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+
 		/* de-select so the user can differentiate newly instanced from existing objects */
 		BKE_scene_base_deselect_all(scene);
 
 		if (make_local_all__instance_indirect_unused(bmain, scene)) {
-			BKE_report(op->reports, RPT_INFO,
-			           "Orphan library objects added to the current scene to avoid loss");
-		}
-
-		BKE_library_make_local(bmain, NULL, NULL, false, false); /* NULL is all libs */
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
-		return OPERATOR_FINISHED;
-	}
-
-	tag_localizable_objects(C, mode);
-
-	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
-	{
-		if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
-			continue;
-		}
-
-		if (ob->id.lib)
-			id_make_local(bmain, &ob->id, false, false);
-	}
-	CTX_DATA_END;
-
-	/* maybe object pointers */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
-	{
-		if (ob->id.lib == NULL) {
-			ID_NEW_REMAP(ob->parent);
+			BKE_report(op->reports, RPT_INFO, "Orphan library objects added to the current scene to avoid loss");
 		}
 	}
-	CTX_DATA_END;
+	else {
+		BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
+		tag_localizable_objects(C, mode);
 
-	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
-	{
-		if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
-			continue;
-		}
-
-		id = ob->data;
-
-		if (id && (ELEM(mode, MAKE_LOCAL_SELECT_OBDATA, MAKE_LOCAL_SELECT_OBDATA_MATERIAL))) {
-			id_make_local(bmain, id, false, false);
-			adt = BKE_animdata_from_id(id);
-			if (adt) BKE_animdata_make_local(adt);
-
-			/* tag indirect data direct */
-			matarar = give_matarar(ob);
-			if (matarar) {
-				for (a = 0; a < ob->totcol; a++) {
-					ma = (*matarar)[a];
-					if (ma)
-						id_lib_extern(&ma->id);
-				}
-			}
-		}
-
-		for (psys = ob->particlesystem.first; psys; psys = psys->next)
-			id_make_local(bmain, &psys->part->id, false, false);
-
-		adt = BKE_animdata_from_id(&ob->id);
-		if (adt) BKE_animdata_make_local(adt);
-	}
-	CTX_DATA_END;
-
-	if (mode == MAKE_LOCAL_SELECT_OBDATA_MATERIAL) {
 		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 		{
 			if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
 				continue;
 			}
 
-			if (ob->type == OB_LAMP) {
-				la = ob->data;
-
-				for (b = 0; b < MAX_MTEX; b++)
-					if (la->mtex[b] && la->mtex[b]->tex)
-						id_make_local(bmain, &la->mtex[b]->tex->id, false, false);
+			ob->id.tag &= ~LIB_TAG_PRE_EXISTING;
+			make_local_animdata_tag(BKE_animdata_from_id(&ob->id));
+			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+				psys->part->id.tag &= ~LIB_TAG_PRE_EXISTING;
 			}
-			else {
+
+			if (mode == MAKE_LOCAL_SELECT_OBDATA_MATERIAL) {
 				for (a = 0; a < ob->totcol; a++) {
 					ma = ob->mat[a];
-					if (ma)
-						make_local_makelocalmaterial(ma);
+					if (ma) {
+						make_local_material_tag(ma);
+					}
 				}
 
 				matarar = (Material ***)give_matarar(ob);
 				if (matarar) {
 					for (a = 0; a < ob->totcol; a++) {
 						ma = (*matarar)[a];
-						if (ma)
-							make_local_makelocalmaterial(ma);
+						if (ma) {
+							make_local_material_tag(ma);
+						}
 					}
 				}
+
+				if (ob->type == OB_LAMP) {
+					BLI_assert(ob->data != NULL);
+					la = ob->data;
+					for (a = 0; a < MAX_MTEX; a++) {
+						if (la->mtex[a] && la->mtex[a]->tex) {
+							la->id.tag &= ~LIB_TAG_PRE_EXISTING;
+						}
+					}
+				}
+			}
+
+			if (ELEM(mode, MAKE_LOCAL_SELECT_OBDATA, MAKE_LOCAL_SELECT_OBDATA_MATERIAL) && ob->data != NULL) {
+				ID *ob_data = ob->data;
+				ob_data->tag &= ~LIB_TAG_PRE_EXISTING;
+				make_local_animdata_tag(BKE_animdata_from_id(ob_data));
 			}
 		}
 		CTX_DATA_END;
 	}
 
-	BKE_main_id_clear_newpoins(bmain);
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	BKE_library_make_local(bmain, NULL, NULL, true, false); /* NULL is all libs */
 
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
 }
 
