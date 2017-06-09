@@ -1337,6 +1337,7 @@ void GPU_fx_compositor_init_dof_settings(GPUDOFSettings *fx_dof)
 	fx_dof->focus_distance = 1.0f;
 	fx_dof->sensor = 1.0f;
 	fx_dof->num_blades = 6;
+	fx_dof->ratio = 1.0f;
 }
 
 void GPU_fx_compositor_init_ssao_settings(GPUSSAOSettings *fx_ssao)
