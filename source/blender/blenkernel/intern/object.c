@@ -2744,14 +2744,7 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 	switch (GS(((ID *)ob->data)->name)) {
 		case ID_ME:
 		{
-			Mesh *me = ob->data;
-			if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
-				BKE_mesh_texspace_calc(me);
-			}
-			if (r_texflag) *r_texflag = &me->texflag;
-			if (r_loc) *r_loc = me->loc;
-			if (r_size) *r_size = me->size;
-			if (r_rot) *r_rot = me->rot;
+			BKE_mesh_texspace_get_reference((Mesh *)ob->data, r_texflag, r_loc, r_rot, r_size);
 			break;
 		}
 		case ID_CU:

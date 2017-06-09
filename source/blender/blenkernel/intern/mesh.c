@@ -743,6 +743,18 @@ void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_siz
 	if (r_size) copy_v3_v3(r_size, me->size);
 }
 
+void BKE_mesh_texspace_get_reference(Mesh *me, short **r_texflag,  float **r_loc, float **r_rot, float **r_size)
+{
+	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
+		BKE_mesh_texspace_calc(me);
+	}
+
+	if (r_texflag != NULL) *r_texflag = &me->texflag;
+	if (r_loc != NULL) *r_loc = me->loc;
+	if (r_rot != NULL) *r_rot = me->rot;
+	if (r_size != NULL) *r_size = me->size;
+}
+
 void BKE_mesh_texspace_copy_from_object(Mesh *me, Object *ob)
 {
 	float *texloc, *texrot, *texsize;

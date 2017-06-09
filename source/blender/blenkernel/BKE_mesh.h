@@ -123,6 +123,7 @@ const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
 struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
 void BKE_mesh_texspace_get(struct Mesh *me, float r_loc[3], float r_rot[3], float r_size[3]);
+void BKE_mesh_texspace_get_reference(struct Mesh *me, short **r_texflag,  float **r_loc, float **r_rot, float **r_size);
 void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
 bool BKE_mesh_uv_cdlayer_rename_index(struct Mesh *me, const int poly_index, const int loop_index, const int face_index,
