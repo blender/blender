@@ -33,6 +33,7 @@
 #include "BIF_glutil.h"
 
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
@@ -210,6 +211,7 @@ typedef struct DRWCall {
 	float obmat[4][4];
 	Batch *geometry;
 
+	Mesh *mesh; /* Optional. */
 	Object *ob; /* Optionnal */
 } DRWCall;
 
@@ -876,7 +878,7 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Batch *geom, Object *
 
 	copy_m4_m4(call->obmat, ob->obmat);
 	call->geometry = geom;
-	call->ob = ob;
+	call->mesh = ob->data;
 
 	BLI_addtail(&shgroup->calls, call);
 }
@@ -1647,13 +1649,13 @@ static void draw_geometry_execute(DRWShadingGroup *shgroup, Batch *geom)
 	}
 }
 
-static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*obmat)[4], Object *ob)
+static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*obmat)[4], Mesh *me)
 {
 	float *texcoloc = NULL;
 	float *texcosize = NULL;
 
-	if (ob != NULL) {
-		BKE_object_obdata_texspace_get(ob, NULL, &texcoloc, &texcosize, NULL);
+	if (me != NULL) {
+		BKE_mesh_texspace_get_reference(me, NULL, &texcoloc, NULL, &texcosize);
 	}
 
 	draw_geometry_prepare(shgroup, obmat, texcoloc, texcosize);
@@ -1790,7 +1792,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			GPU_SELECT_LOAD_IF_PICKSEL(call);
 
 			if (call->head.type == DRW_CALL_SINGLE) {
-				draw_geometry(shgroup, call->geometry, call->obmat, call->ob);
+				draw_geometry(shgroup, call->geometry, call->obmat, call->mesh);
 			}
 			else {
 				BLI_assert(call->head.type == DRW_CALL_GENERATE);

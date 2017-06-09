@@ -790,7 +790,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 				DRW_shgroup_call_sculpt_add(depth_shgrp, ob, ob->obmat);
 			}
 			else {
-				DRW_shgroup_call_add(depth_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_object_add(depth_shgrp, geom, ob);
 			}
 		}
 
