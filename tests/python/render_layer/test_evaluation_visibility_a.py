@@ -21,11 +21,12 @@ class UnitTesting(RenderLayerTesting):
         import bpy
 
         scene = bpy.context.scene
+        workspace = bpy.context.workspace
         cube = bpy.data.objects.new('guinea pig', bpy.data.meshes.new('mesh'))
 
         layer = scene.render_layers.new('Visibility Test')
         layer.collections.unlink(layer.collections[0])
-        scene.render_layers.active = layer
+        workspace.render_layer = layer
 
         scene_collection_mom = scene.master_collection.collections.new("Mom")
         scene_collection_kid = scene.master_collection.collections.new("Kid")

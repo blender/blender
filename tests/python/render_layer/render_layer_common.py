@@ -747,7 +747,7 @@ class Clay:
 
         layer = self._scene.render_layers.new('Evaluation Test')
         layer.collections.unlink(layer.collections[0])
-        self._scene.render_layers.active = layer
+        bpy.context.workspace.render_layer = layer
 
         # remove all other layers
         for layer_iter in self._scene.render_layers:

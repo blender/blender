@@ -88,9 +88,7 @@ class UnitTesting(RenderLayerTesting):
         layer.collections.active_index = 3
         self.assertEqual(layer.collections.active.name, 'scorpion')
 
-        scene = bpy.context.scene
-        scene.render_layers.active_index = len(scene.render_layers) - 2
-        self.assertEqual(scene.render_layers.active.name, "Viewport")
+        bpy.context.workspace.render_layer = bpy.context.scene.render_layers['Viewport']
 
         # old layer
         self.assertEqual(bpy.ops.testing.sample(render_layer='Viewport', use_verbose=True), {'FINISHED'})
