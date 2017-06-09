@@ -250,7 +250,7 @@ def marker_menu_generic(layout):
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("marker.make_links_scene", text="Duplicate Marker to Scene...", icon='OUTLINER_OB_EMPTY')
     else:
-        layout.operator_menu_enum("marker.make_links_scene", "scene", text="Duplicate Marker to Scene...")
+        layout.operator_menu_enum("marker.make_links_scene", "scene", text="Duplicate Marker to Scene")
 
     layout.operator("marker.delete", text="Delete Marker")
 

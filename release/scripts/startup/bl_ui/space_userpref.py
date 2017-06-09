@@ -560,7 +560,7 @@ class USERPREF_PT_system(Panel):
         # 3. Column
         column = split.column()
 
-        column.label(text="Solid OpenGL lights:")
+        column.label(text="Solid OpenGL Lights:")
 
         split = column.split(percentage=0.1)
         split.label()

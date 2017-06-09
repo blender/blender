@@ -1663,7 +1663,7 @@ class VIEW3D_MT_make_links(Menu):
             layout.operator("object.make_links_scene", text="Objects to Scene...", icon='OUTLINER_OB_EMPTY')
         else:
             layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene...")
+            layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene")
         layout.operator_context = operator_context_default
 
         layout.operator_enum("object.make_links_data", "type")  # inline
