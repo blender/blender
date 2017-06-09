@@ -29,6 +29,8 @@
 #include "DNA_probe_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_object.h"
+
 #include "BLI_dynstr.h"
 
 #include "ED_screen.h"
@@ -277,9 +279,64 @@ static void EEVEE_probes_updates(EEVEE_SceneLayerData *sldata)
 		Probe *probe = (Probe *)ob->data;
 		EEVEE_Probe *eprobe = &pinfo->probe_data[i];
 
-		float dist_minus_falloff = probe->distinf - (1.0f - probe->falloff) * probe->distinf;
-		eprobe->attenuation_bias = probe->distinf / max_ff(1e-8f, dist_minus_falloff);
-		eprobe->attenuation_scale = 1.0f / max_ff(1e-8f, dist_minus_falloff);
+
+		/* Attenuation */
+		eprobe->attenuation_type = probe->attenuation_type;
+		eprobe->attenuation_fac = 1.0f / max_ff(1e-8f, probe->falloff);
+
+		unit_m4(eprobe->attenuationmat);
+		if (probe->attenuation_type == PROBE_BOX) {
+			BoundBox bb;
+			float bb_center[3], bb_size[3];
+
+			BKE_boundbox_init_from_minmax(&bb, probe->mininf, probe->maxinf);
+			BKE_boundbox_calc_center_aabb(&bb, bb_center);
+			BKE_boundbox_calc_size_aabb(&bb, bb_size);
+
+			eprobe->attenuationmat[0][0] = bb_size[0];
+			eprobe->attenuationmat[1][1] = bb_size[1];
+			eprobe->attenuationmat[2][2] = bb_size[2];
+			copy_v3_v3(eprobe->attenuationmat[3], bb_center);
+			mul_m4_m4m4(eprobe->attenuationmat, ob->obmat, eprobe->attenuationmat);
+		}
+		else {
+			scale_m4_fl(eprobe->attenuationmat, probe->distinf);
+			mul_m4_m4m4(eprobe->attenuationmat, ob->obmat, eprobe->attenuationmat);
+		}
+		invert_m4(eprobe->attenuationmat);
+
+		/* Parallax */
+		BoundBox parbb;
+		float dist;
+		if ((probe->flag & PRB_CUSTOM_PARALLAX) != 0) {
+			eprobe->parallax_type = probe->parallax_type;
+			BKE_boundbox_init_from_minmax(&parbb, probe->minpar, probe->maxpar);
+			dist = probe->distpar;
+		}
+		else {
+			eprobe->parallax_type = probe->attenuation_type;
+			BKE_boundbox_init_from_minmax(&parbb, probe->mininf, probe->maxinf);
+			dist = probe->distinf;
+		}
+
+		unit_m4(eprobe->parallaxmat);
+		if (eprobe->parallax_type == PROBE_BOX) {
+			float bb_center[3], bb_size[3];
+
+			BKE_boundbox_calc_center_aabb(&parbb, bb_center);
+			BKE_boundbox_calc_size_aabb(&parbb, bb_size);
+
+			eprobe->parallaxmat[0][0] = bb_size[0];
+			eprobe->parallaxmat[1][1] = bb_size[1];
+			eprobe->parallaxmat[2][2] = bb_size[2];
+			copy_v3_v3(eprobe->parallaxmat[3], bb_center);
+			mul_m4_m4m4(eprobe->parallaxmat, ob->obmat, eprobe->parallaxmat);
+		}
+		else {
+			scale_m4_fl(eprobe->parallaxmat, dist);
+			mul_m4_m4m4(eprobe->parallaxmat, ob->obmat, eprobe->parallaxmat);
+		}
+		invert_m4(eprobe->parallaxmat);
 	}
 }
 

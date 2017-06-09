@@ -37,6 +37,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_object_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_main.h"
@@ -54,8 +56,14 @@ static void rna_Probe_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 #else
 
+static EnumPropertyItem parallax_type_items[] = {
+	{PROBE_ELIPSOID, "ELIPSOID", ICON_NONE, "Sphere", ""},
+	{PROBE_BOX, "BOX", ICON_NONE, "Box", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static EnumPropertyItem probe_type_items[] = {
-	{PROBE_CUBE, "CUBE", ICON_NONE, "Cubemap", ""},
+	{PROBE_CUBE, "CUBEMAP", ICON_NONE, "Cubemap", ""},
 	// {PROBE_PLANAR, "PLANAR", ICON_NONE, "Planar", ""},
 	// {PROBE_IMAGE, "IMAGE", ICON_NONE, "Image", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -89,6 +97,12 @@ static void rna_def_probe(BlenderRNA *brna)
 	                         "Probe clip end, beyond which objects will not appear in reflections");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_Probe_recalc");
 
+	prop = RNA_def_property(srna, "influence_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "attenuation_type");
+	RNA_def_property_enum_items(prop, parallax_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Type of parallax volume");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
 	prop = RNA_def_property(srna, "influence_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "distinf");
 	RNA_def_property_ui_text(prop, "Influence Distance", "Influence distance of the probe");
@@ -107,6 +121,16 @@ static void rna_def_probe(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Falloff", "Control how fast the probe influence decreases");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
+	prop = RNA_def_property(srna, "use_custom_parallax", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_CUSTOM_PARALLAX);
+	RNA_def_property_ui_text(prop, "Use Custom Parallax", "Enable custom settings for the parallax correction volume");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
+	prop = RNA_def_property(srna, "parallax_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, parallax_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Type of parallax volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "parallax_distance", PROP_FLOAT, PROP_DISTANCE);

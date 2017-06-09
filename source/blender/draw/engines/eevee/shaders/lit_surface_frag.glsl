@@ -198,12 +198,52 @@ void light_visibility(LightData ld, ShadingData sd, out float vis)
 
 vec3 probe_parallax_correction(vec3 W, vec3 spec_dir, ProbeData pd, inout float roughness)
 {
-	/* TODO */
-	return spec_dir;
+	vec3 localpos = (pd.parallaxmat * vec4(W, 1.0)).xyz;
+	vec3 localray = (pd.parallaxmat * vec4(spec_dir, 0.0)).xyz;
+
+	float dist;
+	if (pd.p_parallax_type == PROBE_PARALLAX_BOX) {
+		dist = line_unit_box_intersect_dist(localpos, localray);
+	}
+	else {
+		dist = line_unit_sphere_intersect_dist(localpos, localray);
+	}
+
+	/* Use Distance in WS directly to recover intersection */
+	vec3 intersection = W + spec_dir * dist - pd.p_position;
+
+	/* From Frostbite PBR Course
+	 * Distance based roughness
+	 * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
+	float original_roughness = roughness;
+	float linear_roughness = sqrt(roughness);
+	float distance_roughness = saturate(dist * linear_roughness / length(intersection));
+	linear_roughness = mix(distance_roughness, linear_roughness, linear_roughness);
+	roughness = linear_roughness * linear_roughness;
+
+	float fac = saturate(original_roughness * 2.0 - 1.0);
+	return mix(intersection, spec_dir, fac * fac);
+}
+
+float probe_attenuation(vec3 W, ProbeData pd)
+{
+	vec3 localpos = (pd.influencemat * vec4(W, 1.0)).xyz;
+
+	float fac;
+	if (pd.p_atten_type == PROBE_ATTENUATION_BOX) {
+		vec3 axes_fac = saturate(pd.p_atten_fac - pd.p_atten_fac * abs(localpos));
+		fac = min_v3(axes_fac);
+	}
+	else {
+		fac = saturate(pd.p_atten_fac - pd.p_atten_fac * length(localpos));
+	}
+
+	return fac;
 }
 
 vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness, float ao)
 {
+	roughness = clamp(roughness, 1e-8, 0.9999);
 	float roughnessSquared = roughness * roughness;
 
 	ShadingData sd;
@@ -230,7 +270,8 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 
 
 	/* Envmaps */
-	vec3 spec_dir = get_specular_dominant_dir(sd.N, reflect(-sd.V, sd.N), roughnessSquared);
+	vec3 R = reflect(-sd.V, sd.N);
+	vec3 spec_dir = get_specular_dominant_dir(sd.N, R, roughnessSquared);
 	vec2 uv = lut_coords(dot(sd.N, sd.V), roughness);
 	vec2 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rg;
 
@@ -245,7 +286,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 		vec3 sample_vec = probe_parallax_correction(sd.W, spec_dir, pd, roughness);
 		vec4 sample = textureLod_octahedron(probeCubes, vec4(sample_vec, i), roughness * lodMax).rgba;
 
-		float dist_attenuation = saturate(pd.p_atten_bias - pd.p_atten_scale * distance(sd.W, pd.p_position));
+		float dist_attenuation = probe_attenuation(sd.W, pd);
 		float influ_spec = min(dist_attenuation, (1.0 - spec_accum.a));
 
 		spec_accum.rgb += sample.rgb * influ_spec;

@@ -10,15 +10,22 @@
 /* ------- Structures -------- */
 
 struct ProbeData {
-	vec4 position;
+	vec4 position_type;
 	vec4 shcoefs[7];
-	vec4 attenuation;
+	vec4 attenuation_fac_type;
+	mat4 influencemat;
+	mat4 parallaxmat;
 };
 
+#define PROBE_PARALLAX_BOX    1.0
+#define PROBE_ATTENUATION_BOX 1.0
 
-#define p_position     position.xyz
-#define p_atten_bias   attenuation.x
-#define p_atten_scale  attenuation.y
+#define p_position      position_type.xyz
+#define p_parallax_type position_type.w
+#define p_atten_fac     attenuation_fac_type.x
+#define p_atten_type    attenuation_fac_type.y
+
+/* TODO remove sh once we have irradiance grid */
 #define shcoef0        shcoefs[0].rgb
 #define shcoef1        vec3(shcoefs[0].a, shcoefs[1].rg)
 #define shcoef2        vec3(shcoefs[1].ba, shcoefs[2].r)
@@ -99,6 +106,8 @@ struct ShadingData {
 vec3 mul(mat3 m, vec3 v) { return m * v; }
 mat3 mul(mat3 m1, mat3 m2) { return m1 * m2; }
 
+float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
+
 float saturate(float a) { return clamp(a, 0.0, 1.0); }
 vec2 saturate(vec2 a) { return clamp(a, 0.0, 1.0); }
 vec3 saturate(vec3 a) { return clamp(a, 0.0, 1.0); }
@@ -139,6 +148,31 @@ vec3 line_aligned_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 plan
 	}
 	return lineorigin + linedirection * dist;
 }
+
+float line_unit_sphere_intersect_dist(vec3 lineorigin, vec3 linedirection)
+{
+	float a = dot(linedirection, linedirection);
+	float b = dot(linedirection, lineorigin);
+	float c = dot(lineorigin, lineorigin) - 1;
+
+	float dist = 1e15;
+	float determinant = b * b - a * c;
+	if (determinant >= 0)
+		dist = (sqrt(determinant) - b) / a;
+
+	return dist;
+}
+
+float line_unit_box_intersect_dist(vec3 lineorigin, vec3 linedirection)
+{
+	/* https://seblagarde.wordpress.com/2012/09/29/image-based-lighting-approaches-and-parallax-corrected-cubemap/ */
+	vec3 firstplane  = (vec3( 1.0) - lineorigin) / linedirection;
+	vec3 secondplane = (vec3(-1.0) - lineorigin) / linedirection;
+	vec3 furthestplane = max(firstplane, secondplane);
+
+	return min_v3(furthestplane);
+}
+
 
 /* Return texture coordinates to sample Surface LUT */
 vec2 lut_coords(float cosTheta, float roughness)

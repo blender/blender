@@ -44,12 +44,14 @@ void BKE_probe_init(Probe *probe)
 {
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(probe, id));
 
+	probe->distinf = 5.0f;
+	probe->distpar = 5.0f;
 	copy_v3_fl(probe->mininf, -5.0f);
 	copy_v3_fl(probe->maxinf, 5.0f);
 	copy_v3_fl(probe->minpar, -5.0f);
 	copy_v3_fl(probe->maxpar, 5.0f);
 	probe->falloff = 0.25f;
-	probe->clipsta = 0.5f;
+	probe->clipsta = 1.0f;
 	probe->clipend = 40.0f;
 }
 

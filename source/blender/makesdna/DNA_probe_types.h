@@ -45,8 +45,8 @@ typedef struct Probe {
 
 	char type;        /* For realtime probe objects */
 	char flag;        /* General purpose flags for probes */
-	char display;     /* Probe visual appearance in the viewport */
-	char parallax;    /* Parallax type */
+	char attenuation_type; /* Attenuation type */
+	char parallax_type;    /* Parallax type */
 
 	float distinf;    /* Influence Radius */
 	float mininf[3];  /* Influence Bound Box */
@@ -74,6 +74,11 @@ enum {
 	PROBE_IMAGE     = 2,
 };
 
+/* Probe->flag */
+enum {
+	PRB_CUSTOM_PARALLAX = (1 << 0),
+};
+
 /* Probe->display */
 enum {
 	PROBE_WIRE         = 0,
@@ -82,11 +87,10 @@ enum {
 	PROBE_REFLECTIVE   = 3,
 };
 
-/* Probe->parallax */
+/* Probe->parallax && Probe->attenuation_type*/
 enum {
-	PROBE_PARALLAX_NONE     = 0,
-	PROBE_PARALLAX_SPHERE   = 1,
-	PROBE_PARALLAX_CUBE     = 2,
+	PROBE_ELIPSOID   = 0,
+	PROBE_BOX        = 1,
 };
 
 #ifdef __cplusplus

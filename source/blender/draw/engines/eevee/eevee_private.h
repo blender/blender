@@ -167,9 +167,13 @@ enum {
 
 /* ************ PROBE UBO ************* */
 typedef struct EEVEE_Probe {
-	float position[3], pad1;
+	float position[3], parallax_type;
 	float shcoefs[9][3], pad2;
-	float attenuation_bias, attenuation_scale, pad3[2];
+	float attenuation_fac;
+	float attenuation_type;
+	float pad3[2];
+	float attenuationmat[4][4];
+	float parallaxmat[4][4];
 } EEVEE_Probe;
 
 /* ************ PROBE DATA ************* */

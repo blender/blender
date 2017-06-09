@@ -62,22 +62,61 @@ class DATA_PT_probe(DataButtonsPanel, Panel):
 
         layout.prop(probe, "type", expand=True)
 
-        split = layout.split()
+        layout.label("Influence:")
+        layout.prop(probe, "influence_type", expand=True)
 
-        col = split.column(align=True)
-        col.label("Influence:")
-        col.prop(probe, "influence_distance", text="Distance")
-        col.prop(probe, "falloff")
+        if probe.influence_type == 'ELIPSOID':
+            layout.prop(probe, "influence_distance", "Radius")
+            layout.prop(probe, "falloff")
+        else:
+            split = layout.split()
+            col = split.column(align=True)
+            col.prop(probe, "influence_minimum", text="Min:")
+            col = split.column(align=True)
+            col.prop(probe, "influence_maximum", text="Max:")
 
-        col = split.column(align=True)
-        col.label("Clipping:")
-        col.prop(probe, "clip_start", text="Start")
-        col.prop(probe, "clip_end", text="End")
+            layout.prop(probe, "falloff")
+
+        layout.separator()
+
+        layout.label("Clipping:")
+        row = layout.row(align=True)
+        row.prop(probe, "clip_start", text="Start")
+        row.prop(probe, "clip_end", text="End")
+
+
+class DATA_PT_parallax(DataButtonsPanel, Panel):
+    bl_label = "Parallax"
+    COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        probe = context.probe
+
+        layout.prop(probe, "use_custom_parallax")
+
+        col = layout.column()
+        col.active = probe.use_custom_parallax
+
+        row = col.row()
+        row.prop(probe, "parallax_type", expand=True)
+
+        if probe.parallax_type == 'ELIPSOID':
+            col.prop(probe, "parallax_distance", "Radius")
+        else:
+            split = col.split()
+            col = split.column(align=True)
+            col.prop(probe, "parallax_minimum", text="Min:")
+            col = split.column(align=True)
+            col.prop(probe, "parallax_maximum", text="Max:")
 
 
 classes = (
     DATA_PT_context_probe,
     DATA_PT_probe,
+    DATA_PT_parallax,
 )
 
 if __name__ == "__main__":  # only for live edit.
