@@ -2147,38 +2147,37 @@ BLI_INLINE int _axis_signed(const int axis)
 	return (axis < 3) ? axis : axis - 3;
 }
 
-/*
+/**
  * Each argument us an axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z']
  * where the first 2 are a source and the second 2 are the target.
  */
-int mat3_from_axis_conversion(int from_forward, int from_up, int to_forward, int to_up,
-                              float r_mat[3][3])
+bool mat3_from_axis_conversion(
+        int src_forward, int src_up, int dst_forward, int dst_up,
+        float r_mat[3][3])
 {
 	// from functools import reduce
 	int value;
-	unsigned int i;
 
-	if (from_forward == to_forward && from_up == to_up) {
+	if (src_forward == dst_forward && src_up == dst_up) {
 		unit_m3(r_mat);
 		return false;
 	}
 
-	if ((_axis_signed(from_forward) == _axis_signed(from_up)) ||
-	    (_axis_signed(to_forward)   == _axis_signed(to_up)))
+	if ((_axis_signed(src_forward) == _axis_signed(src_up)) ||
+	    (_axis_signed(dst_forward)   == _axis_signed(dst_up)))
 	{
 		/* we could assert here! */
 		unit_m3(r_mat);
 		return false;
 	}
 
-	value = ((from_forward << (0 * 3)) |
-	         (from_up      << (1 * 3)) |
-	         (to_forward   << (2 * 3)) |
-	         (to_up        << (3 * 3)));
+	value = ((src_forward << (0 * 3)) |
+	         (src_up      << (1 * 3)) |
+	         (dst_forward << (2 * 3)) |
+	         (dst_up      << (3 * 3)));
 
-	for (i = 0; i < (sizeof(_axis_convert_matrix) / sizeof(*_axis_convert_matrix)); i++) {
-		unsigned int j;
-		for (j = 0; j < (sizeof(*_axis_convert_lut) / sizeof(*_axis_convert_lut[0])); j++) {
+	for (uint i = 0; i < (sizeof(_axis_convert_matrix) / sizeof(*_axis_convert_matrix)); i++) {
+		for (uint j = 0; j < (sizeof(*_axis_convert_lut) / sizeof(*_axis_convert_lut[0])); j++) {
 			if (_axis_convert_lut[i][j] == value) {
 				copy_m3_m3(r_mat, _axis_convert_matrix[i]);
 				return true;
@@ -2188,4 +2187,28 @@ int mat3_from_axis_conversion(int from_forward, int from_up, int to_forward, int
 	}
 //	BLI_assert(0);
 	return false;
+}
+
+/**
+ * Use when the second axis can be guessed.
+ */
+bool mat3_from_axis_conversion_single(
+        int src_axis, int dst_axis,
+        float r_mat[3][3])
+{
+	if (src_axis == dst_axis) {
+		unit_m3(r_mat);
+		return false;
+	}
+
+	/* Pick predictable next axis. */
+	int src_axis_next = (src_axis + 1) % 3;
+	int dst_axis_next = (dst_axis + 1) % 3;
+
+	if ((src_axis < 3) != (dst_axis < 3)) {
+		/* Flip both axis so matrix sign remains positive. */
+		dst_axis_next += 3;
+	}
+
+	return mat3_from_axis_conversion(src_axis, src_axis_next, dst_axis, dst_axis_next, r_mat);
 }
