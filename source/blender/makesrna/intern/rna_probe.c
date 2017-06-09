@@ -97,6 +97,11 @@ static void rna_def_probe(BlenderRNA *brna)
 	                         "Probe clip end, beyond which objects will not appear in reflections");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_Probe_recalc");
 
+	prop = RNA_def_property(srna, "show_clip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_SHOW_CLIP_DIST);
+	RNA_def_property_ui_text(prop, "Clipping", "Show the clipping distances in the 3D view");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
 	prop = RNA_def_property(srna, "influence_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "attenuation_type");
 	RNA_def_property_enum_items(prop, parallax_type_items);
@@ -105,7 +110,7 @@ static void rna_def_probe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_influence", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_SHOW_INFLUENCE);
-	RNA_def_property_ui_text(prop, "Show Influence Volume", "Show the influence volume in the 3D view");
+	RNA_def_property_ui_text(prop, "Influence", "Show the influence volume in the 3D view");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "influence_distance", PROP_FLOAT, PROP_DISTANCE);
@@ -126,7 +131,7 @@ static void rna_def_probe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_parallax", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_SHOW_PARALLAX);
-	RNA_def_property_ui_text(prop, "Show Parallax Volume", "Show the parallax correction volume in the 3D view");
+	RNA_def_property_ui_text(prop, "Parallax", "Show the parallax correction volume in the 3D view");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "parallax_type", PROP_ENUM, PROP_NONE);

@@ -46,7 +46,7 @@ void BKE_probe_init(Probe *probe)
 
 	probe->distinf = 5.0f;
 	probe->distpar = 5.0f;
-	probe->falloff = 0.75f;
+	probe->falloff = 0.2f;
 	probe->clipsta = 1.0f;
 	probe->clipend = 40.0f;
 }

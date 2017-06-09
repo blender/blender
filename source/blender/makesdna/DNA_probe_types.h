@@ -59,6 +59,7 @@ typedef struct Probe {
 
 	/* Runtime display data */
 	float distfalloff, pad;
+	float clipmat[6][4][4];
 } Probe;
 
 /* Probe->type */
@@ -73,6 +74,7 @@ enum {
 	PRB_CUSTOM_PARALLAX = (1 << 0),
 	PRB_SHOW_INFLUENCE  = (1 << 1),
 	PRB_SHOW_PARALLAX   = (1 << 2),
+	PRB_SHOW_CLIP_DIST  = (1 << 3),
 };
 
 /* Probe->display */
