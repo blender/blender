@@ -66,7 +66,7 @@ ccl_device_inline void kernel_filter_nlm_calc_weight(int x, int y,
 		sum += difference_image[y*w+x1];
 	}
 	sum *= 1.0f/(high-low);
-	out_image[y*w+x] = expf(-max(sum, 0.0f));
+	out_image[y*w+x] = fast_expf(-max(sum, 0.0f));
 }
 
 ccl_device_inline void kernel_filter_nlm_update_output(int x, int y,

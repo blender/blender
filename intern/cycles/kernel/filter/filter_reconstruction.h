@@ -29,6 +29,10 @@ ccl_device_inline void kernel_filter_construct_gramian(int x, int y,
                                                        ccl_global float3 *XtWY,
                                                        int localIdx)
 {
+	if(weight < 1e-3f) {
+		return;
+	}
+
 	int p_offset =  y    *w +  x;
 	int q_offset = (y+dy)*w + (x+dx);
 

@@ -101,7 +101,7 @@ ccl_device_inline void kernel_filter_nlm_calc_weight(const float *ccl_restrict d
 		for(int x = rect.x; x < rect.z; x++) {
 			const int low = max(rect.x, x-f);
 			const int high = min(rect.z, x+f+1);
-			out_image[y*w+x] = expf(-max(out_image[y*w+x] * (1.0f/(high - low)), 0.0f));
+			out_image[y*w+x] = fast_expf(-max(out_image[y*w+x] * (1.0f/(high - low)), 0.0f));
 		}
 	}
 }
