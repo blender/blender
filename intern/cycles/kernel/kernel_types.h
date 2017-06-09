@@ -236,6 +236,9 @@ CCL_NAMESPACE_BEGIN
 #ifdef __NO_PRINCIPLED__
 #  undef __PRINCIPLED__
 #endif
+#ifdef __NO_DENOISING__
+#  undef __DENOISING_FEATURES__
+#endif
 
 /* Random Numbers */
 

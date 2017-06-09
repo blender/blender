@@ -139,9 +139,11 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 	/* random number generator next bounce */
 	state->rng_offset += PRNG_BOUNCE_NUM;
 
+#ifdef __DENOISING_FEATURES__
 	if((state->denoising_feature_weight == 0.0f) && !(state->flag & PATH_RAY_SHADOW_CATCHER)) {
 		state->flag &= ~PATH_RAY_STORE_SHADOW_INFO;
 	}
+#endif
 }
 
 ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *state)

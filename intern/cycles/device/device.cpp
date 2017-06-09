@@ -68,6 +68,8 @@ std::ostream& operator <<(std::ostream &os,
 	   << string_from_bool(requested_features.use_transparent) << std::endl;
 	os << "Use Principled BSDF: "
 	   << string_from_bool(requested_features.use_principled) << std::endl;
+	os << "Use Denoising: "
+	   << string_from_bool(requested_features.use_denoising) << std::endl;
 	return os;
 }
 
