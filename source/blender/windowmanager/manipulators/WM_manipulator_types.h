@@ -41,9 +41,13 @@
 struct wmManipulatorGroupType;
 struct wmManipulatorGroup;
 struct wmManipulator;
+struct wmManipulatorProperty;
 struct wmKeyConfig;
+struct PropertyElemRNA;
 
 #include "wm_manipulator_fn.h"
+
+#include "DNA_listBase.h"
 
 /* -------------------------------------------------------------------- */
 /* wmManipulator */
@@ -52,23 +56,23 @@ struct wmKeyConfig;
 struct wmManipulator {
 	struct wmManipulator *next, *prev;
 
-	char idname[64 + 4]; /* MAX_NAME + 4 for unique '.001', '.002', etc suffix */
+	char name[64 + 4]; /* MAX_NAME + 4 for unique '.001', '.002', etc suffix */
 
 	/* While we don't have a real type, use this to put type-like vars. */
 	const struct wmManipulatorType *type;
 
 	/* Overrides 'type->handler' when set. */
-	wmManipulatorFnHandler custom_handler;
-
-	void *custom_data;
+	wmManipulatorFnModal custom_modal;
 
 	/* pointer back to group this manipulator is in (just for quick access) */
 	struct wmManipulatorGroup *parent_mgroup;
 
+	void *py_instance;
+
 	int flag; /* flags that influence the behavior or how the manipulators are drawn */
 	short state; /* state flags (active, highlighted, selected) */
 
-	unsigned char highlighted_part;
+	int highlight_part;
 
 	/* center of manipulator in space, 2d or 3d */
 	float origin[3];
@@ -81,7 +85,7 @@ struct wmManipulator {
 	/* user defined width for line drawing */
 	float line_width;
 	/* manipulator colors (uses default fallbacks if not defined) */
-	float col[4], col_hi[4];
+	float color[4], color_hi[4];
 
 	/* data used during interaction */
 	void *interaction_data;
@@ -92,11 +96,24 @@ struct wmManipulator {
 	 * or owner pointer if manipulator spawns and controls a property */
 	PointerRNA opptr;
 
-	/* arrays of properties attached to various manipulator parameters. As
-	 * the manipulator is interacted with, those properties get updated */
-	PointerRNA *ptr;
-	PropertyRNA **props;
+	/* Properties 'wmManipulatorProperty' attached to various manipulator parameters.
+	 * As the manipulator is interacted with, those properties get updated.
+	 *
+	 * Public API's should use string names,
+	 * private API's can pass 'wmManipulatorProperty' directly.
+	 */
+	ListBase properties;
 };
+
+/* Similar to PropertyElemRNA, but has an identifier. */
+typedef struct wmManipulatorProperty {
+	struct wmManipulatorProperty *next, *prev;
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+	/* over alloc */
+	char idname[0];
+} wmManipulatorProperty;
 
 /**
  * Simple utility wrapper for storing a single manipulator as wmManipulatorGroup.customdata (which gets freed).
@@ -132,13 +149,13 @@ enum {
 };
 
 typedef struct wmManipulatorType {
-	struct wmManipulatorGroupType *next, *prev;
 
 	const char *idname; /* MAX_NAME */
 
-	uint size;
+	/* Set to 'sizeof(wmManipulator)' or larger for instances of this type,
+	 * use so we can cant to other types without the hassle of a custom-data pointer. */
+	uint struct_size;
 
-	/* could become wmManipulatorType */
 	/* draw manipulator */
 	wmManipulatorFnDraw draw;
 
@@ -146,17 +163,17 @@ typedef struct wmManipulatorType {
 	wmManipulatorFnDrawSelect draw_select;
 
 	/* determine if the mouse intersects with the manipulator. The calculation should be done in the callback itself */
-	wmManipulatorFnIntersect intersect;
+	wmManipulatorFnTestSelect test_select;
 
 	/* handler used by the manipulator. Usually handles interaction tied to a manipulator type */
-	wmManipulatorFnHandler handler;
+	wmManipulatorFnModal modal;
 
 	/* manipulator-specific handler to update manipulator attributes based on the property value */
-	wmManipulatorFnPropDataUpdate prop_data_update;
+	wmManipulatorFnPropertyUpdate property_update;
 
 	/* returns the final position which may be different from the origin, depending on the manipulator.
 	 * used in calculations of scale */
-	wmManipulatorFnFinalPositionGet position_get;
+	wmManipulatorFnPositionGet position_get;
 
 	/* activate a manipulator state when the user clicks on it */
 	wmManipulatorFnInvoke invoke;
@@ -168,9 +185,6 @@ typedef struct wmManipulatorType {
 
 	/* called when manipulator selection state changes */
 	wmManipulatorFnSelect select;
-
-	/* maximum number of properties attached to the manipulator */
-	int prop_len_max;
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -184,20 +198,21 @@ typedef struct wmManipulatorType {
 typedef struct wmManipulatorGroupType {
 	struct wmManipulatorGroupType *next, *prev;
 
-	char idname[64];  /* MAX_NAME */
+	const char *idname;  /* MAX_NAME */
 	const char *name; /* manipulator-group name - displayed in UI (keymap editor) */
 
 	/* poll if manipulator-map should be visible */
 	wmManipulatorGroupFnPoll poll;
 	/* initially create manipulators and set permanent data - stuff you only need to do once */
-	wmManipulatorGroupFnInit init;
+	wmManipulatorGroupFnInit setup;
 	/* refresh data, only called if recreate flag is set (WM_manipulatormap_tag_refresh) */
 	wmManipulatorGroupFnRefresh refresh;
 	/* refresh data for drawing, called before each redraw */
 	wmManipulatorGroupFnDrawPrepare draw_prepare;
 
-	/* keymap init callback for this manipulator-group */
-	struct wmKeyMap *(*keymap_init)(const struct wmManipulatorGroupType *, struct wmKeyConfig *);
+	/* Keymap init callback for this manipulator-group (optional),
+	 * will fall back to default tweak keymap when left NULL. */
+	struct wmKeyMap *(*setup_keymap)(const struct wmManipulatorGroupType *, struct wmKeyConfig *);
 	/* keymap created with callback from above */
 	struct wmKeyMap *keymap;
 
@@ -212,12 +227,6 @@ typedef struct wmManipulatorGroupType {
 
 	int flag;
 
-	/* Weak, but needed to store which functions we have. */
-	int rna_func_flag;
-
-	/* if type is spawned from operator this is set here */
-	void *op;
-
 	/* same as manipulator-maps, so registering/unregistering goes to the correct region */
 	short spaceid, regionid;
 	char mapidname[64];
@@ -229,15 +238,13 @@ typedef struct wmManipulatorGroupType {
  */
 enum {
 	/* Mark manipulator-group as being 3D */
-	WM_MANIPULATORGROUPTYPE_IS_3D       = (1 << 0),
+	WM_MANIPULATORGROUPTYPE_3D       = (1 << 0),
 	/* Scale manipulators as 3D object that respects zoom (otherwise zoom independent draw size) */
 	WM_MANIPULATORGROUPTYPE_SCALE_3D    = (1 << 1),
 	/* Manipulators can be depth culled with scene objects (covered by other geometry - TODO) */
-	WM_MANIPULATORGROUPTYPE_SCENE_DEPTH = (1 << 2),
+	WM_MANIPULATORGROUPTYPE_DEPTH_3D = (1 << 2),
 	/* Manipulators can be selected */
-	WM_MANIPULATORGROUPTYPE_SELECTABLE  = (1 << 3),
-	/* manipulator group is attached to operator, and is only accessible as long as this runs */
-	WM_MANIPULATORGROUPTYPE_OP          = (1 << 4),
+	WM_MANIPULATORGROUPTYPE_SELECT  = (1 << 3),
 };
 
 
@@ -264,4 +271,3 @@ enum {
 };
 
 #endif  /* __WM_MANIPULATOR_TYPES_H__ */
-

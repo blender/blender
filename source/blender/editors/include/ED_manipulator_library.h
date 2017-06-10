@@ -38,7 +38,26 @@ void ED_manipulatortypes_dial_3d(void);
 void ED_manipulatortypes_facemap_3d(void);
 void ED_manipulatortypes_primitive_3d(void);
 
+struct wmManipulator;
 struct wmManipulatorGroup;
+
+
+/* -------------------------------------------------------------------- */
+/* Shape Presets
+ *
+ * Intended to be called by custom draw functions.
+ */
+
+/* manipulator_library_presets.c */
+void ED_manipulator_draw_preset_box(
+        const struct wmManipulator *mpr, float mat[4][4], int select_id);
+void ED_manipulator_draw_preset_arrow(
+        const struct wmManipulator *mpr, float mat[4][4], int axis, int select_id);
+void ED_manipulator_draw_preset_circle(
+        const struct wmManipulator *mpr, float mat[4][4], int axis, int select_id);
+void ED_manipulator_draw_preset_facemap(
+        const struct wmManipulator *mpr, struct Scene *scene, struct Object *ob,  const int facemap, int select_id);
+
 
 /* -------------------------------------------------------------------- */
 /* 3D Arrow Manipulator */
@@ -56,27 +75,22 @@ enum {
 	ED_MANIPULATOR_ARROW_STYLE_CONE          = (1 << 6),
 };
 
-/* slots for properties */
-enum {
-	ED_MANIPULATOR_ARROW_SLOT_OFS_WORLD_SPACE = 0
-};
-
 struct wmManipulator *ED_manipulator_arrow3d_new(
         struct wmManipulatorGroup *mgroup, const char *name, const int style);
-void ED_manipulator_arrow3d_set_direction(struct wmManipulator *manipulator, const float direction[3]);
-void ED_manipulator_arrow3d_set_up_vector(struct wmManipulator *manipulator, const float direction[3]);
-void ED_manipulator_arrow3d_set_line_len(struct wmManipulator *manipulator, const float len);
-void ED_manipulator_arrow3d_set_ui_range(struct wmManipulator *manipulator, const float min, const float max);
-void ED_manipulator_arrow3d_set_range_fac(struct wmManipulator *manipulator, const float range_fac);
-void ED_manipulator_arrow3d_cone_set_aspect(struct wmManipulator *manipulator, const float aspect[2]);
+void ED_manipulator_arrow3d_set_direction(struct wmManipulator *mpr, const float direction[3]);
+void ED_manipulator_arrow3d_set_up_vector(struct wmManipulator *mpr, const float direction[3]);
+void ED_manipulator_arrow3d_set_line_len(struct wmManipulator *mpr, const float len);
+void ED_manipulator_arrow3d_set_ui_range(struct wmManipulator *mpr, const float min, const float max);
+void ED_manipulator_arrow3d_set_range_fac(struct wmManipulator *mpr, const float range_fac);
+void ED_manipulator_arrow3d_cone_set_aspect(struct wmManipulator *mpr, const float aspect[2]);
 
 
 /* -------------------------------------------------------------------- */
 /* 2D Arrow Manipulator */
 
 struct wmManipulator *ED_manipulator_arrow2d_new(struct wmManipulatorGroup *mgroup, const char *name);
-void ED_manipulator_arrow2d_set_angle(struct wmManipulator *manipulator, const float rot_fac);
-void ED_manipulator_arrow2d_set_line_len(struct wmManipulator *manipulator, const float len);
+void ED_manipulator_arrow2d_set_angle(struct wmManipulator *mpr, const float rot_fac);
+void ED_manipulator_arrow2d_set_line_len(struct wmManipulator *mpr, const float len);
 
 
 /* -------------------------------------------------------------------- */
@@ -89,15 +103,10 @@ enum {
 	ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM   = (1 << 3), /* Manipulator scales uniformly */
 };
 
-enum {
-	ED_MANIPULATOR_RECT_TX_SLOT_OFFSET = 0,
-	ED_MANIPULATOR_RECT_TX_SLOT_SCALE = 1
-};
-
 struct wmManipulator *ED_manipulator_rect_transform_new(
         struct wmManipulatorGroup *mgroup, const char *name, const int style);
 void ED_manipulator_rect_transform_set_dimensions(
-        struct wmManipulator *manipulator, const float width, const float height);
+        struct wmManipulator *mpr, const float width, const float height);
 
 
 /* -------------------------------------------------------------------- */
@@ -112,7 +121,7 @@ enum {
 struct wmManipulator *ED_manipulator_dial3d_new(
         struct wmManipulatorGroup *mgroup, const char *name, const int style);
 void ED_manipulator_dial3d_set_up_vector(
-        struct wmManipulator *manipulator, const float direction[3]);
+        struct wmManipulator *mpr, const float direction[3]);
 
 
 /* -------------------------------------------------------------------- */
@@ -121,7 +130,7 @@ void ED_manipulator_dial3d_set_up_vector(
 struct wmManipulator *ED_manipulator_facemap_new(
         struct wmManipulatorGroup *mgroup, const char *name, const int style,
         struct Object *ob, const int facemap);
-struct bFaceMap *ED_manipulator_facemap_get_fmap(struct wmManipulator *manipulator);
+struct bFaceMap *ED_manipulator_facemap_get_fmap(struct wmManipulator *mpr);
 
 
 /* -------------------------------------------------------------------- */
@@ -133,7 +142,7 @@ enum {
 
 struct wmManipulator *ED_manipulator_primitive3d_new(
         struct wmManipulatorGroup *mgroup, const char *name, const int style);
-void ED_manipulator_primitive3d_set_direction(struct wmManipulator *manipulator, const float direction[3]);
-void ED_manipulator_primitive3d_set_up_vector(struct wmManipulator *manipulator, const float direction[3]);
+void ED_manipulator_primitive3d_set_direction(struct wmManipulator *mpr, const float direction[3]);
+void ED_manipulator_primitive3d_set_up_vector(struct wmManipulator *mpr, const float direction[3]);
 
 #endif  /* __ED_MANIPULATOR_LIBRARY_H__ */

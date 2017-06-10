@@ -36,12 +36,13 @@ typedef void (*wmManipulatorGroupFnRefresh)(const struct bContext *, struct wmMa
 typedef void (*wmManipulatorGroupFnDrawPrepare)(const struct bContext *, struct wmManipulatorGroup *);
 
 /* wmManipulator */
+/* See: wmManipulatorType for docs on each type. */
 typedef void    (*wmManipulatorFnDraw)(const struct bContext *, struct wmManipulator *);
 typedef void    (*wmManipulatorFnDrawSelect)(const struct bContext *, struct wmManipulator *, int);
-typedef int     (*wmManipulatorFnIntersect)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
-typedef void    (*wmManipulatorFnHandler)(struct bContext *, struct wmManipulator *, const struct wmEvent *, const int);
-typedef void    (*wmManipulatorFnPropDataUpdate)(struct wmManipulator *, int);
-typedef void    (*wmManipulatorFnFinalPositionGet)(struct wmManipulator *, float[]);
+typedef int     (*wmManipulatorFnTestSelect)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
+typedef void    (*wmManipulatorFnModal)(struct bContext *, struct wmManipulator *, const struct wmEvent *, const int);
+typedef void    (*wmManipulatorFnPropertyUpdate)(struct wmManipulator *, struct wmManipulatorProperty *);
+typedef void    (*wmManipulatorFnPositionGet)(struct wmManipulator *, float[]);
 typedef void    (*wmManipulatorFnInvoke)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
 typedef void    (*wmManipulatorFnExit)(struct bContext *, struct wmManipulator *, const bool);
 typedef int     (*wmManipulatorFnCursorGet)(struct wmManipulator *);

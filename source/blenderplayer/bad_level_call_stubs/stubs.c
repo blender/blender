@@ -199,7 +199,11 @@ struct wmWindowManager;
 
 /* bpy_operator_wrap.h */
 extern void macro_wrapper(struct wmOperatorType *ot, void *userdata);
-extern void operator_wrapper(struct wmOperatorType *ot, void *userdata);
+extern void operator_wrapper(struct wmManipulatorGroupType *wgt, void *userdata);
+
+/* bpy_widgetgroup_wrap.h */
+extern void widgetgroup_wrapper(struct wmOperatorType *ot, void *userdata);
+
 /* bpy_rna.h */
 extern bool pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id);
 extern const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *msgid);
@@ -355,8 +359,9 @@ void WM_report(ReportType type, const char *message) RET_NONE
 struct wmManipulatorMapType *WM_manipulatormaptype_find(const struct wmManipulatorMapType_Params *wmap_params) RET_NULL
 struct wmManipulatorMapType *WM_manipulatormaptype_ensure(const struct wmManipulatorMapType_Params *wmap_params) RET_NULL
 struct wmManipulatorMap *WM_manipulatormap_new_from_type(const struct wmManipulatorMapType_Params *wmap_params) RET_NULL
-void WM_manipulatorgrouptype_init_runtime(const struct Main *bmain, struct wmManipulatorMapType *wmaptype, struct wmManipulatorGroupType *wgrouptype) RET_NONE
-void WM_manipulatorgrouptype_unregister(struct bContext *C, struct Main *bmain, struct wmManipulatorGroupType *wgroup) RET_NONE
+void WM_manipulatorgrouptype_init_runtime(
+        const struct Main *bmain, struct wmManipulatorMapType *wmaptype, struct wmManipulatorGroupType *wgt) RET_NONE
+void WM_manipulatorgrouptype_unregister(struct bContext *C, struct Main *bmain, struct wmManipulatorGroupType *wgt) RET_NONE
 
 #ifdef WITH_INPUT_NDOF
     void WM_ndof_deadzone_set(float deadzone) RET_NONE

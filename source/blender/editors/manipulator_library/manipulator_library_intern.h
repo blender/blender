@@ -76,23 +76,21 @@ float manipulator_value_from_offset(
         const bool constrained, const bool inverted, const bool use_precision);
 
 void manipulator_property_data_update(
-        struct wmManipulator *manipulator, ManipulatorCommonData *data, const int slot,
+        struct wmManipulator *mnp, ManipulatorCommonData *data, wmManipulatorProperty *mpr_prop,
         const bool constrained, const bool inverted);
 
 void  manipulator_property_value_set(
-        bContext *C, const struct wmManipulator *manipulator,
-        const int slot, const float value);
+        bContext *C, const struct wmManipulator *mnp, wmManipulatorProperty *mpr_prop, const float value);
 float manipulator_property_value_get(
-        const struct wmManipulator *manipulator, const int slot);
+        const struct wmManipulator *mnp, wmManipulatorProperty *mpr_prop);
 void  manipulator_property_value_reset(
-        bContext *C, const struct wmManipulator *manipulator, ManipulatorInteraction *inter,
-        const int slot);
+        bContext *C, const struct wmManipulator *mnp, ManipulatorInteraction *inter, wmManipulatorProperty *mpr_prop);
 
 
 /* -------------------------------------------------------------------- */
 
 void manipulator_color_get(
-        const struct wmManipulator *manipulator, const bool highlight,
+        const struct wmManipulator *mpr, const bool highlight,
         float r_col[]);
 
 

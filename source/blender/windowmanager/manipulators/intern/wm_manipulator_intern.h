@@ -38,12 +38,12 @@ struct GHashIterator;
 /* -------------------------------------------------------------------- */
 /* wmManipulator */
 
-bool wm_manipulator_deselect(struct wmManipulatorMap *mmap, struct wmManipulator *manipulator);
-bool wm_manipulator_select(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulator *manipulator);
+bool wm_manipulator_deselect(struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
+bool wm_manipulator_select(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
 
-void wm_manipulator_calculate_scale(struct wmManipulator *manipulator, const bContext *C);
-void wm_manipulator_update(struct wmManipulator *manipulator, const bContext *C, const bool refresh_map);
-bool wm_manipulator_is_visible(struct wmManipulator *manipulator);
+void wm_manipulator_calculate_scale(struct wmManipulator *mpr, const bContext *C);
+void wm_manipulator_update(struct wmManipulator *mpr, const bContext *C, const bool refresh_map);
+bool wm_manipulator_is_visible(struct wmManipulator *mpr);
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorGroup */
@@ -56,19 +56,19 @@ enum {
 };
 
 struct wmManipulatorGroup *wm_manipulatorgroup_new_from_type(
-        struct wmManipulatorMap *mmap, struct wmManipulatorGroupType *mgrouptype);
+        struct wmManipulatorMap *mmap, struct wmManipulatorGroupType *mgroup_type);
 void wm_manipulatorgroup_free(bContext *C, struct wmManipulatorGroup *mgroup);
-void wm_manipulatorgroup_manipulator_register(struct wmManipulatorGroup *mgroup, struct wmManipulator *manipulator);
+void wm_manipulatorgroup_manipulator_register(struct wmManipulatorGroup *mgroup, struct wmManipulator *mpr);
 struct wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
         const struct wmManipulatorGroup *mgroup, struct bContext *C, const struct wmEvent *event,
-        unsigned char *part);
+        int *r_part);
 void wm_manipulatorgroup_intersectable_manipulators_to_list(
         const struct wmManipulatorGroup *mgroup, struct ListBase *listbase);
 void wm_manipulatorgroup_ensure_initialized(struct wmManipulatorGroup *mgroup, const struct bContext *C);
 bool wm_manipulatorgroup_is_visible(const struct wmManipulatorGroup *mgroup, const struct bContext *C);
 bool wm_manipulatorgroup_is_visible_in_drawstep(const struct wmManipulatorGroup *mgroup, const int drawstep);
 
-void wm_manipulatorgrouptype_keymap_init(struct wmManipulatorGroupType *mgrouptype, struct wmKeyConfig *keyconf);
+void wm_manipulatorgrouptype_setup_keymap(struct wmManipulatorGroupType *wgt, struct wmKeyConfig *keyconf);
 
 
 /* -------------------------------------------------------------------- */
@@ -90,13 +90,13 @@ struct wmManipulatorMap {
 	 */
 	struct {
 		/* we redraw the manipulator-map when this changes */
-		struct wmManipulator *highlighted_manipulator;
+		struct wmManipulator *highlight;
 		/* user has clicked this manipulator and it gets all input */
-		struct wmManipulator *active_manipulator;
+		struct wmManipulator *active;
 		/* array for all selected manipulators
 		 * TODO  check on using BLI_array */
-		struct wmManipulator **selected_manipulator;
-		int tot_selected;
+		struct wmManipulator **selected;
+		int selected_len;
 	} mmap_context;
 };
 
@@ -114,7 +114,7 @@ struct wmManipulatorMapType {
 	ListBase manipulator_grouptypes;
 };
 
-void wm_manipulatormap_selected_delete(struct wmManipulatorMap *mmap);
+void wm_manipulatormap_selected_clear(struct wmManipulatorMap *mmap);
 bool wm_manipulatormap_deselect_all(struct wmManipulatorMap *mmap, struct wmManipulator ***sel);
 
 #endif

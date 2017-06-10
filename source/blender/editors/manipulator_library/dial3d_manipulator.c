@@ -259,9 +259,9 @@ static void dial_draw_intern(
 	gpuPopMatrix();
 }
 
-static void manipulator_dial_render_3d_intersect(const bContext *C, wmManipulator *manipulator, int selectionbase)
+static void manipulator_dial_render_3d_intersect(const bContext *C, wmManipulator *mpr, int selectionbase)
 {
-	DialManipulator *dial = (DialManipulator *)manipulator;
+	DialManipulator *dial = (DialManipulator *)mpr;
 	float clip_plane_buf[4];
 	float *clip_plane = (dial->style == ED_MANIPULATOR_DIAL_STYLE_RING_CLIPPED) ? clip_plane_buf : NULL;
 
@@ -271,7 +271,7 @@ static void manipulator_dial_render_3d_intersect(const bContext *C, wmManipulato
 		RegionView3D *rv3d = ar->regiondata;
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
-		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], manipulator->origin);
+		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->origin);
 		glEnable(GL_CLIP_DISTANCE0);
 	}
 
@@ -283,11 +283,11 @@ static void manipulator_dial_render_3d_intersect(const bContext *C, wmManipulato
 	}
 }
 
-static void manipulator_dial_draw(const bContext *C, wmManipulator *manipulator)
+static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 {
-	DialManipulator *dial = (DialManipulator *)manipulator;
-	const bool active = manipulator->state & WM_MANIPULATOR_STATE_ACTIVE;
-	const bool highlight = (manipulator->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
+	DialManipulator *dial = (DialManipulator *)mpr;
+	const bool active = mpr->state & WM_MANIPULATOR_STATE_ACTIVE;
+	const bool highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
 	float clip_plane_buf[4];
 	float *clip_plane = (!active && dial->style == ED_MANIPULATOR_DIAL_STYLE_RING_CLIPPED) ? clip_plane_buf : NULL;
 
@@ -297,7 +297,7 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *manipulator)
 		RegionView3D *rv3d = ar->regiondata;
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
-		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], manipulator->origin);
+		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->origin);
 		clip_plane[3] -= 0.02 * dial->manipulator.scale;
 
 		glEnable(GL_CLIP_DISTANCE0);
@@ -313,14 +313,14 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *manipulator)
 }
 
 static void manipulator_dial_invoke(
-        bContext *UNUSED(C), wmManipulator *manipulator, const wmEvent *event)
+        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
 	DialInteraction *inter = MEM_callocN(sizeof(DialInteraction), __func__);
 
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	manipulator->interaction_data = inter;
+	mpr->interaction_data = inter;
 }
 
 
@@ -331,8 +331,8 @@ static void manipulator_dial_invoke(
 
 wmManipulator *ED_manipulator_dial3d_new(wmManipulatorGroup *mgroup, const char *name, const int style)
 {
-	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_dial", false);
-	DialManipulator *dial = (DialManipulator *)WM_manipulator_new(mpt, mgroup, name);
+	DialManipulator *dial = (DialManipulator *)WM_manipulator_new(
+	        "MANIPULATOR_WT_dial", mgroup, name);
 
 	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
 
@@ -347,9 +347,9 @@ wmManipulator *ED_manipulator_dial3d_new(wmManipulatorGroup *mgroup, const char 
 /**
  * Define up-direction of the dial manipulator
  */
-void ED_manipulator_dial3d_set_up_vector(wmManipulator *manipulator, const float direction[3])
+void ED_manipulator_dial3d_set_up_vector(wmManipulator *mpr, const float direction[3])
 {
-	DialManipulator *dial = (DialManipulator *)manipulator;
+	DialManipulator *dial = (DialManipulator *)mpr;
 
 	copy_v3_v3(dial->direction, direction);
 	normalize_v3(dial->direction);
@@ -365,7 +365,7 @@ static void MANIPULATOR_WT_dial_3d(wmManipulatorType *wt)
 	wt->draw_select = manipulator_dial_render_3d_intersect;
 	wt->invoke = manipulator_dial_invoke;
 
-	wt->size = sizeof(DialManipulator);
+	wt->struct_size = sizeof(DialManipulator);
 }
 
 void ED_manipulatortypes_dial_3d(void)

@@ -42,7 +42,7 @@
 #include "node_intern.h"
 
 
-static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgrouptype))
+static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -61,20 +61,20 @@ static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmManipulatorGrou
 	return false;
 }
 
-static void WIDGETGROUP_node_transform_init(const bContext *UNUSED(C), wmManipulatorGroup *wgroup)
+static void WIDGETGROUP_node_transform_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 
 	wwrapper->manipulator = ED_manipulator_rect_transform_new(
-	        wgroup, "backdrop_cage",
+	        mgroup, "backdrop_cage",
 	        ED_MANIPULATOR_RECT_TRANSFORM_STYLE_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM);
-	wgroup->customdata = wwrapper;
+	mgroup->customdata = wwrapper;
 
 }
 
-static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorGroup *wgroup)
+static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
-	wmManipulator *cage = ((wmManipulatorWrapper *)wgroup->customdata)->manipulator;
+	wmManipulator *cage = ((wmManipulatorWrapper *)mgroup->customdata)->manipulator;
 	const ARegion *ar = CTX_wm_region(C);
 	/* center is always at the origin */
 	const float origin[3] = {ar->winx / 2, ar->winy / 2};
@@ -95,8 +95,8 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 		SpaceNode *snode = CTX_wm_space_node(C);
 		PointerRNA nodeptr;
 		RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode, &nodeptr);
-		WM_manipulator_set_property(cage, ED_MANIPULATOR_RECT_TX_SLOT_OFFSET, &nodeptr, "backdrop_offset");
-		WM_manipulator_set_property(cage, ED_MANIPULATOR_RECT_TX_SLOT_SCALE, &nodeptr, "backdrop_zoom");
+		WM_manipulator_def_property(cage, "offset", &nodeptr, "backdrop_offset", -1);
+		WM_manipulator_def_property(cage, "scale", &nodeptr, "backdrop_zoom", -1);
 	}
 	else {
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, true);
@@ -108,8 +108,9 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 void NODE_WGT_backdrop_transform(wmManipulatorGroupType *wgt)
 {
 	wgt->name = "Backdrop Transform Widgets";
+	wgt->idname = "NODE_WGT_backdrop_transform";
 
 	wgt->poll = WIDGETGROUP_node_transform_poll;
-	wgt->init = WIDGETGROUP_node_transform_init;
+	wgt->setup = WIDGETGROUP_node_transform_setup;
 	wgt->refresh = WIDGETGROUP_node_transform_refresh;
 }

@@ -34,6 +34,7 @@
 #include "BKE_context.h"
 
 #include "BLI_math.h"
+#include "BLI_listbase.h"
 
 #include "RNA_access.h"
 
@@ -101,23 +102,21 @@ float manipulator_value_from_offset(
 }
 
 void manipulator_property_data_update(
-        wmManipulator *manipulator, ManipulatorCommonData *data, const int slot,
+        wmManipulator *mpr, ManipulatorCommonData *data, wmManipulatorProperty *mpr_prop,
         const bool constrained, const bool inverted)
 {
-	if (!manipulator->props[slot]) {
+	if (mpr_prop->prop == NULL) {
 		data->offset = 0.0f;
 		return;
 	}
 
-	PointerRNA ptr = manipulator->ptr[slot];
-	PropertyRNA *prop = manipulator->props[slot];
-	float value = manipulator_property_value_get(manipulator, slot);
+	float value = manipulator_property_value_get(mpr, mpr_prop);
 
 	if (constrained) {
 		if ((data->flag & MANIPULATOR_CUSTOM_RANGE_SET) == 0) {
 			float step, precision;
 			float min, max;
-			RNA_property_float_ui_range(&ptr, prop, &min, &max, &step, &precision);
+			RNA_property_float_ui_range(&mpr_prop->ptr, mpr_prop->prop, &min, &max, &step, &precision);
 			data->range = max - min;
 			data->min = min;
 		}
@@ -129,41 +128,49 @@ void manipulator_property_data_update(
 }
 
 void manipulator_property_value_set(
-        bContext *C, const wmManipulator *manipulator,
-        const int slot, const float value)
+        bContext *C, const wmManipulator *UNUSED(mnp),
+        wmManipulatorProperty *mpr_prop, const float value)
 {
-	PointerRNA ptr = manipulator->ptr[slot];
-	PropertyRNA *prop = manipulator->props[slot];
-
 	/* reset property */
-	RNA_property_float_set(&ptr, prop, value);
-	RNA_property_update(C, &ptr, prop);
+	if (mpr_prop->index == -1) {
+		RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, value);
+	}
+	else {
+		RNA_property_float_set_index(&mpr_prop->ptr, mpr_prop->prop, mpr_prop->index, value);
+	}
+	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 }
 
-float manipulator_property_value_get(const wmManipulator *manipulator, const int slot)
+float manipulator_property_value_get(
+        const wmManipulator *UNUSED(mnp),
+        wmManipulatorProperty *mpr_prop)
 {
-	BLI_assert(RNA_property_type(manipulator->props[slot]) == PROP_FLOAT);
-	return RNA_property_float_get(&manipulator->ptr[slot], manipulator->props[slot]);
+	if (mpr_prop->index == -1) {
+		return RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
+	}
+	else {
+		return RNA_property_float_get_index(&mpr_prop->ptr, mpr_prop->prop, mpr_prop->index);
+	}
 }
 
 void manipulator_property_value_reset(
-        bContext *C, const wmManipulator *manipulator, ManipulatorInteraction *inter,
-        const int slot)
+        bContext *C, const wmManipulator *mnp, ManipulatorInteraction *inter,
+        wmManipulatorProperty *mpr_prop)
 {
-	manipulator_property_value_set(C, manipulator, slot, inter->init_value);
+	manipulator_property_value_set(C, mnp, mpr_prop, inter->init_value);
 }
 
 
 /* -------------------------------------------------------------------- */
 
 void manipulator_color_get(
-        const wmManipulator *manipulator, const bool highlight,
+        const wmManipulator *mpr, const bool highlight,
         float r_col[4])
 {
-	if (highlight && !(manipulator->flag & WM_MANIPULATOR_DRAW_HOVER)) {
-		copy_v4_v4(r_col, manipulator->col_hi);
+	if (highlight && !(mpr->flag & WM_MANIPULATOR_DRAW_HOVER)) {
+		copy_v4_v4(r_col, mpr->color_hi);
 	}
 	else {
-		copy_v4_v4(r_col, manipulator->col);
+		copy_v4_v4(r_col, mpr->color);
 	}
 }

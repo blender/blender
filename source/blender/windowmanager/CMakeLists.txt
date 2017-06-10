@@ -75,7 +75,6 @@ set(SRC
 	manipulators/intern/wm_manipulatorgroup.c
 	manipulators/intern/wm_manipulatormap.c
 
-
 	WM_api.h
 	WM_keymap.h
 	WM_types.h

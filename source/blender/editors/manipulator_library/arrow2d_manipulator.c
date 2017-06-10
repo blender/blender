@@ -105,19 +105,19 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2], 
 	gpuPopMatrix();
 }
 
-static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipulator *manipulator)
+static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipulator *mpr)
 {
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)manipulator;
+	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
 	float col[4];
 
-	manipulator_color_get(manipulator, manipulator->state & WM_MANIPULATOR_STATE_HIGHLIGHT, col);
+	manipulator_color_get(mpr, mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT, col);
 
-	glLineWidth(manipulator->line_width);
+	glLineWidth(mpr->line_width);
 	glEnable(GL_BLEND);
-	arrow2d_draw_geom(arrow, manipulator->origin, col);
+	arrow2d_draw_geom(arrow, mpr->origin, col);
 	glDisable(GL_BLEND);
 
-	if (arrow->manipulator.interaction_data) {
+	if (mpr->interaction_data) {
 		ManipulatorInteraction *inter = arrow->manipulator.interaction_data;
 
 		glEnable(GL_BLEND);
@@ -127,24 +127,24 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipul
 }
 
 static void manipulator_arrow2d_invoke(
-        bContext *UNUSED(C), struct wmManipulator *manipulator, const wmEvent *UNUSED(event))
+        bContext *UNUSED(C), struct wmManipulator *mpr, const wmEvent *UNUSED(event))
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
-	copy_v2_v2(inter->init_origin, manipulator->origin);
-	manipulator->interaction_data = inter;
+	copy_v2_v2(inter->init_origin, mpr->origin);
+	mpr->interaction_data = inter;
 }
 
-static int manipulator_arrow2d_intersect(
-        bContext *UNUSED(C), struct wmManipulator *manipulator, const wmEvent *event)
+static int manipulator_arrow2d_test_select(
+        bContext *UNUSED(C), struct wmManipulator *mpr, const wmEvent *event)
 {
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)manipulator;
+	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
 	const float mval[2] = {event->mval[0], event->mval[1]};
-	const float line_len = arrow->line_len * manipulator->scale;
+	const float line_len = arrow->line_len * mpr->scale;
 	float mval_local[2];
 
 	copy_v2_v2(mval_local, mval);
-	sub_v2_v2(mval_local, manipulator->origin);
+	sub_v2_v2(mval_local, mpr->origin);
 
 	float line[2][2];
 	line[0][0] = line[0][1] = line[1][0] = 0.0f;
@@ -160,7 +160,7 @@ static int manipulator_arrow2d_intersect(
 	/* arrow line intersection check */
 	float isect_1[2], isect_2[2];
 	const int isect = isect_line_sphere_v2(
-	        line[0], line[1], mval_local, MANIPULATOR_HOTSPOT + manipulator->line_width * 0.5f,
+	        line[0], line[1], mval_local, MANIPULATOR_HOTSPOT + mpr->line_width * 0.5f,
 	        isect_1, isect_2);
 
 	if (isect > 0) {
@@ -190,8 +190,8 @@ static int manipulator_arrow2d_intersect(
 
 struct wmManipulator *ED_manipulator_arrow2d_new(wmManipulatorGroup *mgroup, const char *name)
 {
-	const wmManipulatorType *mpt = WM_manipulatortype_find("MANIPULATOR_WT_arrow_2d", false);
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)WM_manipulator_new(mpt, mgroup, name);
+	ArrowManipulator2D *arrow = (ArrowManipulator2D *)WM_manipulator_new(
+	        "MANIPULATOR_WT_arrow_2d", mgroup, name);
 
 	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 
@@ -200,15 +200,15 @@ struct wmManipulator *ED_manipulator_arrow2d_new(wmManipulatorGroup *mgroup, con
 	return &arrow->manipulator;
 }
 
-void ED_manipulator_arrow2d_set_angle(struct wmManipulator *manipulator, const float angle)
+void ED_manipulator_arrow2d_set_angle(struct wmManipulator *mpr, const float angle)
 {
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)manipulator;
+	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
 	arrow->angle = angle;
 }
 
-void ED_manipulator_arrow2d_set_line_len(struct wmManipulator *manipulator, const float len)
+void ED_manipulator_arrow2d_set_line_len(struct wmManipulator *mpr, const float len)
 {
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)manipulator;
+	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
 	arrow->line_len = len;
 }
 
@@ -220,9 +220,9 @@ static void MANIPULATOR_WT_arrow_2d(wmManipulatorType *wt)
 	/* api callbacks */
 	wt->draw = manipulator_arrow2d_draw;
 	wt->invoke = manipulator_arrow2d_invoke;
-	wt->intersect = manipulator_arrow2d_intersect;
+	wt->test_select = manipulator_arrow2d_test_select;
 
-	wt->size = sizeof(ArrowManipulator2D);
+	wt->struct_size = sizeof(ArrowManipulator2D);
 }
 
 void ED_manipulatortypes_arrow_2d(void)

@@ -44,6 +44,7 @@ set(SRC
 	geom_arrow_manipulator.c
 	geom_cube_manipulator.c
 	manipulator_draw_utils.c
+	manipulator_library_presets.c
 	manipulator_library_utils.c
 	primitive3d_manipulator.c
 

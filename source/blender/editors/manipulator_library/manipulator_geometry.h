@@ -48,4 +48,7 @@ extern ManipulatorGeomInfo wm_manipulator_geom_data_arrow;
 /* cube manipulator */
 extern ManipulatorGeomInfo wm_manipulator_geom_data_cube;
 
+/* dial manipulator */
+extern ManipulatorGeomInfo wm_manipulator_geom_data_dial;
+
 #endif  /* __MANIPULATOR_GEOMETRY_H__ */
