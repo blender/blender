@@ -1338,7 +1338,7 @@ Batch *DRW_cache_probe_get(void)
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, (CIRCLE_RESOL + 1) * 2 + 8);
+		VertexBuffer_allocate_data(vbo, CIRCLE_RESOL * 2 + 8);
 
 		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 		for (int a = 1; a < CIRCLE_RESOL; a++) {
