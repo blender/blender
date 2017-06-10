@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_node/node_widgets.c
+/** \file blender/editors/space_node/node_manipulators.c
  *  \ingroup spnode
  */
 

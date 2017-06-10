@@ -43,7 +43,6 @@ struct wmManipulatorGroup;
 struct wmManipulator;
 struct wmManipulatorProperty;
 struct wmKeyConfig;
-struct PropertyElemRNA;
 
 #include "wm_manipulator_fn.h"
 

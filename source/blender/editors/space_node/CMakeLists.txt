@@ -48,13 +48,13 @@ set(SRC
 	node_draw.c
 	node_edit.c
 	node_group.c
+	node_manipulators.c
 	node_ops.c
 	node_relationships.c
 	node_select.c
 	node_templates.c
 	node_toolbar.c
 	node_view.c
-	node_widgets.c
 	space_node.c
 
 	node_intern.h
