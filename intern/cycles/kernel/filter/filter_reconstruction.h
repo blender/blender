@@ -81,6 +81,12 @@ ccl_device_inline void kernel_filter_finalize(int x, int y, int w, int h,
 	(void) storage_stride;
 #endif
 
+	if(XtWX[0] < 1e-3f) {
+		/* There is not enough information to determine a denoised result.
+		 * As a fallback, keep the original value of the pixel. */
+		 return;
+	}
+
 	/* The weighted average of pixel colors (essentially, the NLM-filtered image).
 	 * In case the solution of the linear model fails due to numerical issues,
 	 * fall back to this value. */
@@ -92,6 +98,9 @@ ccl_device_inline void kernel_filter_finalize(int x, int y, int w, int h,
 	if(!isfinite3_safe(final_color)) {
 		final_color = mean_color;
 	}
+
+	/* Clamp pixel value to positive values. */
+	final_color = max(final_color, make_float3(0.0f, 0.0f, 0.0f));
 
 	ccl_global float *combined_buffer = buffer + (y*buffer_params.y + x + buffer_params.x)*buffer_params.z;
 	final_color *= sample;
