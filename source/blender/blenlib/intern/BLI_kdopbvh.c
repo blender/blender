@@ -62,6 +62,13 @@
 /* used for iterative_raycast */
 // #define USE_SKIP_LINKS
 
+/* Use to print balanced output. */
+// #define USE_PRINT_TREE
+
+/* Check tree is valid. */
+// #define USE_VERIFY_TREE
+
+
 #define MAX_TREETYPE 32
 
 /* Setting zero so we can catch bugs in BLI_task/KDOPBVH.
@@ -571,10 +578,12 @@ static void node_join(BVHTree *tree, BVHNode *node)
 	}
 }
 
-/*
+#ifdef USE_PRINT_TREE
+
+/**
  * Debug and information functions
  */
-#if 0
+
 static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
 {
 	int i;
@@ -597,30 +606,29 @@ static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
 
 static void bvhtree_info(BVHTree *tree)
 {
-	printf("BVHTree info\n");
-	printf("tree_type = %d, axis = %d, epsilon = %f\n",
+	printf("BVHTree Info: tree_type = %d, axis = %d, epsilon = %f\n",
 	       tree->tree_type, tree->axis, tree->epsilon);
 	printf("nodes = %d, branches = %d, leafs = %d\n",
 	       tree->totbranch + tree->totleaf,  tree->totbranch, tree->totleaf);
-	printf("Memory per node = %ldbytes\n",
-	       sizeof(BVHNode) + sizeof(BVHNode *) * tree->tree_type + sizeof(float) * tree->axis);
-	printf("BV memory = %dbytes\n",
-	       (int)MEM_allocN_len(tree->nodebv));
+	printf("Memory per node = %ubytes\n",
+	       (uint)(sizeof(BVHNode) + sizeof(BVHNode *) * tree->tree_type + sizeof(float) * tree->axis));
+	printf("BV memory = %ubytes\n",
+	       (uint)MEM_allocN_len(tree->nodebv));
 
-	printf("Total memory = %ldbytes\n", sizeof(BVHTree) +
-	       MEM_allocN_len(tree->nodes) +
-	       MEM_allocN_len(tree->nodearray) +
-	       MEM_allocN_len(tree->nodechild) +
-	       MEM_allocN_len(tree->nodebv));
+	printf("Total memory = %ubytes\n",
+	       (uint)(sizeof(BVHTree) +
+	              MEM_allocN_len(tree->nodes) +
+	              MEM_allocN_len(tree->nodearray) +
+	              MEM_allocN_len(tree->nodechild) +
+	              MEM_allocN_len(tree->nodebv)));
 
-//	bvhtree_print_tree(tree, tree->nodes[tree->totleaf], 0);
+	bvhtree_print_tree(tree, tree->nodes[tree->totleaf], 0);
 }
-#endif
+#endif  /* USE_PRINT_TREE */
 
-#if 0
+#ifdef USE_VERIFY_TREE
 
-
-static void verify_tree(BVHTree *tree)
+static void bvhtree_verify(BVHTree *tree)
 {
 	int i, j, check = 0;
 	
@@ -661,7 +669,7 @@ static void verify_tree(BVHTree *tree)
 	printf("branches: %d, leafs: %d, total: %d\n",
 	       tree->totbranch, tree->totleaf, tree->totbranch + tree->totleaf);
 }
-#endif
+#endif  /* USE_VERIFY_TREE */
 
 /* Helper data and structures to build a min-leaf generalized implicit tree
  * This code can be easily reduced
@@ -907,16 +915,24 @@ static void non_recursive_bvh_div_nodes(
 	/* Loop tree levels (log N) loops */
 	for (i = 1, depth = 1; i <= num_branches; i = i * tree_type + tree_offset, depth++) {
 		const int first_of_next_level = i * tree_type + tree_offset;
-		const int end_j = min_ii(first_of_next_level, num_branches + 1);  /* index of last branch on this level */
+		const int i_stop = min_ii(first_of_next_level, num_branches + 1);  /* index of last branch on this level */
 
 		/* Loop all branches on this level */
 		cb_data.first_of_next_level = first_of_next_level;
 		cb_data.i = i;
 		cb_data.depth = depth;
 
-		BLI_task_parallel_range(
-		            i, end_j, &cb_data, non_recursive_bvh_div_nodes_task_cb,
-		            num_leafs > KDOPBVH_THREAD_LEAF_THRESHOLD);
+		if (true) {
+			BLI_task_parallel_range(
+			        i, i_stop, &cb_data, non_recursive_bvh_div_nodes_task_cb,
+			        num_leafs > KDOPBVH_THREAD_LEAF_THRESHOLD);
+		}
+		else {
+			/* Less hassle for debugging. */
+			for (int i_task = i; i_task < i_stop; i_task++) {
+				non_recursive_bvh_div_nodes_task_cb(&cb_data, i_task);
+			}
+		}
 	}
 }
 
@@ -1050,7 +1066,13 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	build_skip_links(tree, tree->nodes[tree->totleaf], NULL, NULL);
 #endif
 
-	/* bvhtree_info(tree); */
+#ifdef USE_VERIFY_TREE
+	bvhtree_verify(tree);
+#endif
+
+#ifdef USE_PRINT_TREE
+	bvhtree_info(tree);
+#endif
 }
 
 void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoints)
