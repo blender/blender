@@ -626,8 +626,8 @@ bool OpenCLInfo::device_supported(const string& platform_name,
 	if(platform_name == "AMD Accelerated Parallel Processing" &&
 	   device_type == CL_DEVICE_TYPE_GPU)
 	{
-		if(driver_major < 2348) {
-			VLOG(1) << "AMD driver version " << driver_major << "." << driver_minor << " not supported";
+		if(driver_major < 2236) {
+			VLOG(1) << "AMD driver version " << driver_major << "." << driver_minor << " not supported.";
 			return false;
 		}
 		const char *blacklist[] = {
