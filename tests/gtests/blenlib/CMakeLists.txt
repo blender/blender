@@ -37,6 +37,7 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LIN
 
 BLENDER_TEST(BLI_array_store "bf_blenlib")
 BLENDER_TEST(BLI_array_utils "bf_blenlib")
+BLENDER_TEST(BLI_kdopbvh "bf_blenlib;bf_intern_eigen")
 BLENDER_TEST(BLI_stack "bf_blenlib")
 BLENDER_TEST(BLI_math_color "bf_blenlib")
 BLENDER_TEST(BLI_math_geom "bf_blenlib;bf_intern_eigen")
