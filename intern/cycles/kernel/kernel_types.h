@@ -236,6 +236,9 @@ CCL_NAMESPACE_BEGIN
 #ifdef __NO_PRINCIPLED__
 #  undef __PRINCIPLED__
 #endif
+#ifdef __NO_DENOISING__
+#  undef __DENOISING_FEATURES__
+#endif
 
 /* Random Numbers */
 
@@ -1387,6 +1390,8 @@ enum QueueNumber {
 #ifdef __BRANCHED_PATH__
 	/* All rays moving to next iteration of the indirect loop for light */
 	QUEUE_LIGHT_INDIRECT_ITER,
+	/* Queue of all inactive rays. These are candidates for sharing work of indirect loops */
+	QUEUE_INACTIVE_RAYS,
 #  ifdef __VOLUME__
 	/* All rays moving to next iteration of the indirect loop for volumes */
 	QUEUE_VOLUME_INDIRECT_ITER,
@@ -1429,6 +1434,9 @@ enum RayState {
 	RAY_BRANCHED_VOLUME_INDIRECT = (1 << 5),
 	RAY_BRANCHED_SUBSURFACE_INDIRECT = (1 << 6),
 	RAY_BRANCHED_INDIRECT = (RAY_BRANCHED_LIGHT_INDIRECT | RAY_BRANCHED_VOLUME_INDIRECT | RAY_BRANCHED_SUBSURFACE_INDIRECT),
+
+	/* Ray is evaluating an iteration of an indirect loop for another thread */
+	RAY_BRANCHED_INDIRECT_SHARED = (1 << 7),
 };
 
 #define ASSIGN_RAY_STATE(ray_state, ray_index, state) (ray_state[ray_index] = ((ray_state[ray_index] & RAY_FLAG_MASK) | state))

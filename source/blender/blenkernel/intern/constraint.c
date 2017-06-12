@@ -790,7 +790,7 @@ static void default_get_tarmat(bConstraint *con, bConstraintOb *UNUSED(cob), bCo
 			ct = ctn; \
 		} \
 	} (void)0
- 
+
 /* --------- ChildOf Constraint ------------ */
 
 static void childof_new_data(void *cdata)

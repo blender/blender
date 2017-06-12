@@ -18,9 +18,7 @@
 #include "kernel/split/kernel_split_common.h"
 #include "kernel/split/kernel_indirect_background.h"
 
-__kernel void kernel_ocl_path_trace_indirect_background(
-        ccl_global char *kg,
-        ccl_constant KernelData *data)
-{
-	kernel_indirect_background((KernelGlobals*)kg);
-}
+#define KERNEL_NAME indirect_background
+#include "kernel/kernels/opencl/kernel_split_function.h"
+#undef KERNEL_NAME
+

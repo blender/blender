@@ -166,6 +166,13 @@ void DEG_add_bone_relation(DepsNodeHandle *handle,
 	                                              description);
 }
 
+struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *handle)
+{
+	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
+	DEG::DepsgraphRelationBuilder *relation_builder = deg_handle->builder;
+	return reinterpret_cast<Depsgraph *>(relation_builder->getGraph());
+}
+
 void DEG_add_special_eval_flag(Depsgraph *graph, ID *id, short flag)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);

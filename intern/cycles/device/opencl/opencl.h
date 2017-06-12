@@ -130,6 +130,11 @@ public:
 	                            cl_int* error = NULL);
 	static cl_device_type get_device_type(cl_device_id device_id);
 
+	static bool get_driver_version(cl_device_id device_id,
+	                               int *major,
+	                               int *minor,
+	                               cl_int* error = NULL);
+
 	static int mem_address_alignment(cl_device_id device_id);
 
 	/* Get somewhat more readable device name.

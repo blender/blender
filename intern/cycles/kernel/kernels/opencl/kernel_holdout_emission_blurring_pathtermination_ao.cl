@@ -18,12 +18,9 @@
 #include "kernel/split/kernel_split_common.h"
 #include "kernel/split/kernel_holdout_emission_blurring_pathtermination_ao.h"
 
-__kernel void kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao(
-        ccl_global char *kg,
-        ccl_constant KernelData *data)
-{
-	ccl_local BackgroundAOLocals locals;
-	kernel_holdout_emission_blurring_pathtermination_ao(
-	        (KernelGlobals*)kg,
-	        &locals);
-}
+#define KERNEL_NAME holdout_emission_blurring_pathtermination_ao
+#define LOCALS_TYPE BackgroundAOLocals
+#include "kernel/kernels/opencl/kernel_split_function.h"
+#undef KERNEL_NAME
+#undef LOCALS_TYPE
+

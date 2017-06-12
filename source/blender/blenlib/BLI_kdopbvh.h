@@ -36,7 +36,7 @@
  */
 
 #ifdef __cplusplus
-extern "C" { 
+extern "C" {
 #endif
 
 struct BVHTree;
@@ -62,7 +62,7 @@ typedef struct BVHTreeNearest {
 	int index;          /* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
 	float co[3];        /* nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
 	float no[3];        /* normal at nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
-	float dist_sq;      /* squared distance to search arround */
+	float dist_sq;      /* squared distance to search around */
 	int flags;
 } BVHTreeNearest;
 

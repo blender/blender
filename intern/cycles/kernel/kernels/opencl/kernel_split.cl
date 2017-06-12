@@ -31,6 +31,7 @@
 #include "kernel/kernels/opencl/kernel_direct_lighting.cl"
 #include "kernel/kernels/opencl/kernel_shadow_blocked_ao.cl"
 #include "kernel/kernels/opencl/kernel_shadow_blocked_dl.cl"
+#include "kernel/kernels/opencl/kernel_enqueue_inactive.cl"
 #include "kernel/kernels/opencl/kernel_next_iteration_setup.cl"
 #include "kernel/kernels/opencl/kernel_indirect_subsurface.cl"
 #include "kernel/kernels/opencl/kernel_buffer_update.cl"

@@ -35,6 +35,7 @@ ATOMIC_INLINE void atomic_update_max_z(size_t *maximum_value, size_t value)
 #define atomic_add_and_fetch_float(p, x) atomic_add_and_fetch_fl((p), (x))
 
 #define atomic_fetch_and_inc_uint32(p) atomic_fetch_and_add_uint32((p), 1)
+#define atomic_fetch_and_dec_uint32(p) atomic_fetch_and_add_uint32((p), -1)
 
 #define CCL_LOCAL_MEM_FENCE 0
 #define ccl_barrier(flags) (void)0
@@ -68,6 +69,7 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *so
 
 #define atomic_fetch_and_add_uint32(p, x) atomic_add((p), (x))
 #define atomic_fetch_and_inc_uint32(p) atomic_inc((p))
+#define atomic_fetch_and_dec_uint32(p) atomic_dec((p))
 
 #define CCL_LOCAL_MEM_FENCE CLK_LOCAL_MEM_FENCE
 #define ccl_barrier(flags) barrier(flags)
@@ -79,7 +81,9 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *so
 #define atomic_add_and_fetch_float(p, x) (atomicAdd((float*)(p), (float)(x)) + (float)(x))
 
 #define atomic_fetch_and_add_uint32(p, x) atomicAdd((unsigned int*)(p), (unsigned int)(x))
+#define atomic_fetch_and_sub_uint32(p, x) atomicSub((unsigned int*)(p), (unsigned int)(x))
 #define atomic_fetch_and_inc_uint32(p) atomic_fetch_and_add_uint32((p), 1)
+#define atomic_fetch_and_dec_uint32(p) atomic_fetch_and_sub_uint32((p), 1)
 
 #define CCL_LOCAL_MEM_FENCE
 #define ccl_barrier(flags) __syncthreads()

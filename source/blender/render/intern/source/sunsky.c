@@ -398,7 +398,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	vLambda2[0] = fLambda2[0];
 	vLambda2[1] = fLambda2[1];
 	vLambda2[2] = fLambda2[2];
- 
+
 	vLambda4[0] = fLambda4[0];
 	vLambda4[1] = fLambda4[1];
 	vLambda4[2] = fLambda4[2];

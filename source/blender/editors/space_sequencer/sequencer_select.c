@@ -683,7 +683,7 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (!select_more_less_seq__internal(scene, false, false))
 		return OPERATOR_CANCELLED;
- 
+
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;

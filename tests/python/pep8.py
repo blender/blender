@@ -178,5 +178,6 @@ def main():
                   "--max-line-length=1000"
                   " '%s'" % f)
 
+
 if __name__ == "__main__":
     main()

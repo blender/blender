@@ -2859,7 +2859,7 @@ static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PV
 	PEdge *cure = NULL, *firste1 = NULL, *firste2 = NULL, *nextbe;
 	float maxlen = 0.0f, curlen = 0.0f, totlen = 0.0f, firstlen = 0.0f;
 	float len1, len2;
- 
+
 	/* find longest series of verts split in the chart itself, these are
 	 * marked during construction */
 	be = outer;

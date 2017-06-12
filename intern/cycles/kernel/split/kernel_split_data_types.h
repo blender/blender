@@ -95,6 +95,10 @@ typedef ccl_global struct SplitBranchedState {
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
 #  endif  /* __VOLUME__ */
 #endif  /*__SUBSURFACE__ */
+
+	int shared_sample_count; /* number of branched samples shared with other threads */
+	int original_ray; /* index of original ray when sharing branched samples */
+	bool waiting_on_shared_samples;
 } SplitBranchedState;
 
 #define SPLIT_DATA_BRANCHED_ENTRIES \
@@ -130,6 +134,25 @@ typedef ccl_global struct SplitBranchedState {
 	SPLIT_DATA_ENTRY(ccl_global Ray, light_ray, 1) \
 	SPLIT_DATA_ENTRY(ccl_global int, queue_data, (NUM_QUEUES*2)) /* TODO(mai): this is too large? */ \
 	SPLIT_DATA_ENTRY(ccl_global uint, work_array, 1) \
+	SPLIT_DATA_ENTRY(ShaderData, sd, 1) \
+	SPLIT_DATA_ENTRY(ShaderData, sd_DL_shadow, 1) \
+	SPLIT_DATA_SUBSURFACE_ENTRIES \
+	SPLIT_DATA_VOLUME_ENTRIES \
+	SPLIT_DATA_BRANCHED_ENTRIES \
+	SPLIT_DATA_DEBUG_ENTRIES \
+
+/* entries to be copied to inactive rays when sharing branched samples (TODO: which are actually needed?) */
+#define SPLIT_DATA_ENTRIES_BRANCHED_SHARED \
+	SPLIT_DATA_ENTRY(ccl_global RNG, rng, 1) \
+	SPLIT_DATA_ENTRY(ccl_global float3, throughput, 1) \
+	SPLIT_DATA_ENTRY(ccl_global float, L_transparent, 1) \
+	SPLIT_DATA_ENTRY(PathRadiance, path_radiance, 1) \
+	SPLIT_DATA_ENTRY(ccl_global Ray, ray, 1) \
+	SPLIT_DATA_ENTRY(ccl_global PathState, path_state, 1) \
+	SPLIT_DATA_ENTRY(ccl_global Intersection, isect, 1) \
+	SPLIT_DATA_ENTRY(ccl_global BsdfEval, bsdf_eval, 1) \
+	SPLIT_DATA_ENTRY(ccl_global int, is_lamp, 1) \
+	SPLIT_DATA_ENTRY(ccl_global Ray, light_ray, 1) \
 	SPLIT_DATA_ENTRY(ShaderData, sd, 1) \
 	SPLIT_DATA_ENTRY(ShaderData, sd_DL_shadow, 1) \
 	SPLIT_DATA_SUBSURFACE_ENTRIES \

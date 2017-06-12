@@ -43,11 +43,21 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 	}
 
 	/* All regenerated rays become active here */
-	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_REGENERATED))
-		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE);
+	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_REGENERATED)) {
+#ifdef __BRANCHED_PATH__
+		if(kernel_split_state.branched_state[ray_index].waiting_on_shared_samples) {
+			kernel_split_path_end(kg, ray_index);
+		}
+		else
+#endif  /* __BRANCHED_PATH__ */
+		{
+			ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE);
+		}
+	}
 
-	if(!IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE))
+	if(!IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
 		return;
+	}
 
 #ifdef __KERNEL_DEBUG__
 	DebugData *debug_data = &kernel_split_state.debug_data[ray_index];

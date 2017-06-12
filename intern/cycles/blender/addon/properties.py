@@ -689,7 +689,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             update=devices_update_callback
             )
 
-        cls.debug_opencl_kernel_single_program = BoolProperty(name="Single Program", default=True, update=devices_update_callback);
+        cls.debug_opencl_kernel_single_program = BoolProperty(
+            name="Single Program",
+            default=True,
+            update=devices_update_callback,
+            )
 
         cls.debug_use_opencl_debug = BoolProperty(name="Debug OpenCL", default=False)
 
@@ -1203,6 +1207,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
                 name="Use Denoising",
                 description="Denoise the rendered image",
                 default=False,
+                update=update_render_passes,
                 )
         cls.denoising_diffuse_direct = BoolProperty(
                 name="Diffuse Direct",

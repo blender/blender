@@ -203,7 +203,7 @@ static float get_animated_scaleinf(StabContext *ctx, int framenr)
 
 static void get_animated_target_pos(StabContext *ctx,
                                     int framenr,
-		                            float target_pos[2])
+                                    float target_pos[2])
 {
 	target_pos[0] = fetch_from_fcurve(ctx->target_pos[0],
 	                                  framenr,

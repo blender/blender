@@ -46,8 +46,10 @@ static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
 	node->storage = attr;
 }
 
-static void node_shader_exec_normal_map(void *data, int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
- {
+static void node_shader_exec_normal_map(
+        void *data, int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata),
+        bNodeStack **in, bNodeStack **out)
+{
 	if (data) {
 		ShadeInput *shi = ((ShaderCallData *)data)->shi;
 

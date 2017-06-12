@@ -56,7 +56,7 @@ static PyStructSequence_Field app_sdl_info_fields[] = {
 	{(char *)"available", (char *)("Boolean, True when SDL is available. This is False when "
 	                               "either *supported* is False, or *dynload* is True and "
 	                               "Blender cannot find the correct library.")},
-    {NULL}
+	{NULL}
 };
 
 static PyStructSequence_Desc app_sdl_info_desc = {

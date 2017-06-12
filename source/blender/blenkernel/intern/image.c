@@ -2865,7 +2865,7 @@ bool BKE_image_is_stereo(Image *ima)
 {
 	return BKE_image_is_multiview(ima) &&
 	       (BLI_findstring(&ima->views, STEREO_LEFT_NAME, offsetof(ImageView, name)) &&
-            BLI_findstring(&ima->views, STEREO_RIGHT_NAME, offsetof(ImageView, name)));
+	        BLI_findstring(&ima->views, STEREO_RIGHT_NAME, offsetof(ImageView, name)));
 }
 
 static void image_init_multilayer_multiview(Image *ima, RenderResult *rr)

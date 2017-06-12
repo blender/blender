@@ -128,6 +128,21 @@ ccl_device unsigned int get_global_queue_index(
 	return my_gqidx;
 }
 
+ccl_device int dequeue_ray_index(
+        int queue_number,
+        ccl_global int *queues,
+        int queue_size,
+        ccl_global int *queue_index)
+{
+	int index = atomic_fetch_and_dec_uint32((ccl_global uint*)&queue_index[queue_number])-1;
+
+	if(index < 0) {
+		return QUEUE_EMPTY_SLOT;
+	}
+
+	return queues[index + queue_number * queue_size];
+}
+
 CCL_NAMESPACE_END
 
 #endif // __KERNEL_QUEUE_H__

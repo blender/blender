@@ -93,7 +93,7 @@ static void foreachObjectLink(
 
 static void updateDepsgraph(ModifierData *md,
                             struct Main *UNUSED(bmain),
-                            struct Scene *scene,
+                            struct Scene *UNUSED(scene),
                             Object *object,
                             struct DepsNodeHandle *node)
 {
@@ -105,8 +105,9 @@ static void updateDepsgraph(ModifierData *md,
 		/* TODO(sergey): Currently path is evaluated as a part of modifier stack,
 		 * might be changed in the future.
 		 */
+		struct Depsgraph *depsgraph = DEG_get_graph_from_handle(node);
 		DEG_add_object_relation(node, cmd->object, DEG_OB_COMP_GEOMETRY, "Curve Modifier");
-		DEG_add_special_eval_flag(scene->depsgraph, &cmd->object->id, DAG_EVAL_NEED_CURVE_PATH);
+		DEG_add_special_eval_flag(depsgraph, &cmd->object->id, DAG_EVAL_NEED_CURVE_PATH);
 	}
 
 	DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "Curve Modifier");

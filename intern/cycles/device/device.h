@@ -127,6 +127,9 @@ public:
 	/* Per-uber shader usage flags. */
 	bool use_principled;
 
+	/* Denoising features. */
+	bool use_denoising;
+
 	DeviceRequestedFeatures()
 	{
 		/* TODO(sergey): Find more meaningful defaults. */
@@ -145,6 +148,7 @@ public:
 		use_transparent = false;
 		use_shadow_tricks = false;
 		use_principled = false;
+		use_denoising = false;
 	}
 
 	bool modified(const DeviceRequestedFeatures& requested_features)
@@ -163,7 +167,8 @@ public:
 		         use_patch_evaluation == requested_features.use_patch_evaluation &&
 		         use_transparent == requested_features.use_transparent &&
 		         use_shadow_tricks == requested_features.use_shadow_tricks &&
-		         use_principled == requested_features.use_principled);
+		         use_principled == requested_features.use_principled &&
+		         use_denoising == requested_features.use_denoising);
 	}
 
 	/* Convert the requested features structure to a build options,
@@ -212,6 +217,9 @@ public:
 		}
 		if(!use_principled) {
 			build_options += " -D__NO_PRINCIPLED__";
+		}
+		if(!use_denoising) {
+			build_options += " -D__NO_DENOISING__";
 		}
 		return build_options;
 	}

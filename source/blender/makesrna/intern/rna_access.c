@@ -6450,7 +6450,7 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 				        tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
 				return -1;
 			}
- 
+
 			*((void **)dest) = *((void **)src);
 
 			break;

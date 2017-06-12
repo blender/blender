@@ -69,6 +69,7 @@ private:
 	SplitKernelFunction *kernel_direct_lighting;
 	SplitKernelFunction *kernel_shadow_blocked_ao;
 	SplitKernelFunction *kernel_shadow_blocked_dl;
+	SplitKernelFunction *kernel_enqueue_inactive;
 	SplitKernelFunction *kernel_next_iteration_setup;
 	SplitKernelFunction *kernel_indirect_subsurface;
 	SplitKernelFunction *kernel_buffer_update;

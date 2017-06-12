@@ -722,6 +722,7 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	requested_features.use_baking = bake_manager->get_baking();
 	requested_features.use_integrator_branched = (scene->integrator->method == Integrator::BRANCHED_PATH);
 	requested_features.use_transparent &= scene->integrator->transparent_shadows;
+	requested_features.use_denoising = params.use_denoising;
 
 	return requested_features;
 }

@@ -147,6 +147,7 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 			                                                          ray_index,
 			                                                          1.0f,
 			                                                          &kernel_split_state.branched_state[ray_index].sd,
+			                                                          true,
 			                                                          true))
 			{
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
@@ -193,6 +194,7 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 		                                                          ray_index,
 		                                                          1.0f,
 		                                                          &kernel_split_state.branched_state[ray_index].sd,
+		                                                          true,
 		                                                          true))
 		{
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
