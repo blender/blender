@@ -1113,7 +1113,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						GPU_pbvh_bmesh_buffers_build(bvh->flags & PBVH_DYNTOPO_SMOOTH_SHADING);
 					break;
 			}
- 
+
 			node->flag &= ~PBVH_RebuildDrawBuffers;
 		}
 

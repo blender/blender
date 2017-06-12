@@ -127,7 +127,7 @@ class USERPREF_MT_app_templates(Menu):
                 text=bpy.path.display_name(d),
             )
             props.use_splash = True
-            props.app_template = d;
+            props.app_template = d
 
         if use_install:
             layout.separator()

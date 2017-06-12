@@ -2235,9 +2235,9 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 
 static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, float timenow)
 {
-/* rule we never alter free variables :bp->vec bp->pos in here !
- * this will ruin adaptive stepsize AKA heun! (BM)
- */
+	/* rule we never alter free variables :bp->vec bp->pos in here !
+	 * this will ruin adaptive stepsize AKA heun! (BM)
+	 */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	/*BodyPoint *bproot;*/ /* UNUSED */
 	ListBase *do_effector = NULL;

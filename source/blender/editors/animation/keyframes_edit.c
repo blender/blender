@@ -452,7 +452,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 				ok |= KEYFRAME_OK_H2; \
 		} \
 	} (void)0
- 
+
 /* ------------------------ */
  
 static short ok_bezier_frame(KeyframeEditData *ked, BezTriple *bezt)

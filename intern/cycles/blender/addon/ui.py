@@ -531,17 +531,17 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_environment")
 
         if context.scene.cycles.feature_set == 'EXPERIMENTAL':
-           col.separator()
-           sub = col.column()
-           sub.active = crl.use_denoising
-           sub.prop(crl, "denoising_store_passes", text="Denoising")
+            col.separator()
+            sub = col.column()
+            sub.active = crl.use_denoising
+            sub.prop(crl, "denoising_store_passes", text="Denoising")
 
         if _cycles.with_cycles_debug:
-          col = layout.column()
-          col.prop(crl, "pass_debug_bvh_traversed_nodes")
-          col.prop(crl, "pass_debug_bvh_traversed_instances")
-          col.prop(crl, "pass_debug_bvh_intersections")
-          col.prop(crl, "pass_debug_ray_bounces")
+            col = layout.column()
+            col.prop(crl, "pass_debug_bvh_traversed_nodes")
+            col.prop(crl, "pass_debug_bvh_traversed_instances")
+            col.prop(crl, "pass_debug_bvh_intersections")
+            col.prop(crl, "pass_debug_ray_bounces")
 
 
 class CyclesRender_PT_views(CyclesButtonsPanel, Panel):
@@ -1710,7 +1710,7 @@ def draw_device(self, context):
 
         layout.prop(cscene, "feature_set")
 
-        split = layout.split(percentage=1/3)
+        split = layout.split(percentage=1 / 3)
         split.label("Device:")
         row = split.row()
         row.active = show_device_active(context)

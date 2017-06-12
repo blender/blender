@@ -99,45 +99,45 @@ static int ptcache_job_break(void *customdata)
 
 static void ptcache_job_update(void *customdata, float progress, int *cancel)
 {
-    PointCacheJob *job = customdata;
+	PointCacheJob *job = customdata;
 
-    if (ptcache_job_break(job)) {
-        *cancel = 1;
-    }
+	if (ptcache_job_break(job)) {
+		*cancel = 1;
+	}
 
-    *(job->do_update) = true;
-    *(job->progress) = progress;
+	*(job->do_update) = true;
+	*(job->progress) = progress;
 }
 
 static void ptcache_job_startjob(void *customdata, short *stop, short *do_update, float *progress)
 {
-    PointCacheJob *job = customdata;
+	PointCacheJob *job = customdata;
 
-    job->stop = stop;
-    job->do_update = do_update;
-    job->progress = progress;
+	job->stop = stop;
+	job->do_update = do_update;
+	job->progress = progress;
 
-    G.is_break = false;
+	G.is_break = false;
 
-    /* XXX annoying hack: needed to prevent data corruption when changing
-     * scene frame in separate threads
-     */
-    G.is_rendering = true;
-    BKE_spacedata_draw_locks(true);
+	/* XXX annoying hack: needed to prevent data corruption when changing
+	 * scene frame in separate threads
+	 */
+	G.is_rendering = true;
+	BKE_spacedata_draw_locks(true);
 
 	BKE_ptcache_bake(job->baker);
 
-    *do_update = true;
-    *stop = 0;
+	*do_update = true;
+	*stop = 0;
 }
 
 static void ptcache_job_endjob(void *customdata)
 {
-    PointCacheJob *job = customdata;
+	PointCacheJob *job = customdata;
 	Scene *scene = job->baker->scene;
 
-    G.is_rendering = false;
-    BKE_spacedata_draw_locks(false);
+	G.is_rendering = false;
+	BKE_spacedata_draw_locks(false);
 
 	WM_set_locked_interface(G.main->wm.first, false);
 

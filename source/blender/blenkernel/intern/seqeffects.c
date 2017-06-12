@@ -684,7 +684,7 @@ static float invGammaCorrect(float c)
 	else if (i >= RE_GAMMA_TABLE_SIZE) res =  powf(c,  valid_inv_gamma);
 	else                               res = inv_gamma_range_table[i] +
 	                                         ((c - color_domain_table[i]) * inv_gamfactor_table[i]);
- 
+
 	return res;
 }
 

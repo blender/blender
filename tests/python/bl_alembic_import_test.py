@@ -207,7 +207,7 @@ def main():
     import argparse
 
     if '--' in sys.argv:
-        argv = [sys.argv[0]] + sys.argv[sys.argv.index('--')+1:]
+        argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]
     else:
         argv = sys.argv
 

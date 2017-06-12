@@ -971,7 +971,7 @@ static void recalcData_sequencer(TransInfo *t)
 
 /* force recalculation of triangles during transformation */
 static void recalcData_gpencil_strokes(TransInfo *t)
- {
+{
 	TransData *td = t->data;
 	for (int i = 0; i < t->total; i++, td++) {
 		bGPDstroke *gps = td->extra;

@@ -1560,7 +1560,7 @@ BArrayState *BLI_array_store_state_add(
         const void *data, const size_t data_len,
         const BArrayState *state_reference)
 {
-    /* ensure we're aligned to the stride */
+	/* ensure we're aligned to the stride */
 	BLI_assert((data_len % bs->info.chunk_stride) == 0);
 
 #ifdef USE_PARANOID_CHECKS

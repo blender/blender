@@ -1127,7 +1127,7 @@ static void task_parallel_range_ex(
 	atomic_fetch_and_add_uint32((uint32_t *)(&state.iter), 0);
 
 	if (use_userdata_chunk) {
-        userdata_chunk_array = MALLOCA(userdata_chunk_size * num_tasks);
+		userdata_chunk_array = MALLOCA(userdata_chunk_size * num_tasks);
 	}
 
 	for (i = 0; i < num_tasks; i++) {

@@ -383,8 +383,8 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 	                "Enable this to run the import in the background, disable to block Blender while importing");
 
 	/* This dummy prop is used to check whether we need to init the start and
-     * end frame values to that of the scene's, otherwise they are reset at
-     * every change, draw update. */
+	 * end frame values to that of the scene's, otherwise they are reset at
+	 * every change, draw update. */
 	RNA_def_boolean(ot->srna, "init_scene_frame_range", false, "", "");
 }
 
