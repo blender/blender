@@ -325,6 +325,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			 * instead of syncing both trees we simply unlink and relink the scene collection */
 			BLI_listbase_clear(&new_sl->layer_collections);
 			BLI_listbase_clear(&new_sl->object_bases);
+			BLI_listbase_clear(&new_sl->drawdata);
 			layer_collections_recreate(new_sl, &sl->layer_collections, mcn, mc);
 
 
