@@ -153,7 +153,6 @@ void DEG_add_object_cache_relation(struct DepsNodeHandle *handle,
                                    eDepsObjectComponentType component,
                                    const char *description);
 
-/* TODO(sergey): Remove once all geometry update is granular. */
 void DEG_add_special_eval_flag(struct Depsgraph *graph, struct ID *id, short flag);
 
 /* Utility functions for physics modifiers */
