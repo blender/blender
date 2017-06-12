@@ -78,11 +78,11 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	m_graph->scene = scene;
 
 	/* scene objects */
-	FOREACH_SCENE_OBJECT(scene, ob)
-	{
-		build_object(bmain, scene, ob);
+	for (SceneLayer *sl = (SceneLayer *)scene->render_layers.first; sl; sl = sl->next) {
+		for (Base *base = (Base *)sl->object_bases.first; base; base = base->next) {
+			build_object(bmain, scene, base->object);
+		}
 	}
-	FOREACH_SCENE_OBJECT_END
 
 	/* rigidbody */
 	if (scene->rigidbody_world) {
