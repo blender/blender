@@ -124,9 +124,10 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
         ob = context.object
         slot = context.material_slot
         space = context.space_data
-        is_sortable = (len(ob.material_slots) > 1)
 
         if ob:
+            is_sortable = (len(ob.material_slots) > 1)
+
             rows = 1
             if is_sortable:
                 rows = 4
