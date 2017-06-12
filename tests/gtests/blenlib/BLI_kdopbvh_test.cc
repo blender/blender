@@ -44,7 +44,7 @@ TEST(kdopbvh, Single)
 		BLI_bvhtree_insert(tree, 0, co, 1);
 	}
 
-	EXPECT_EQ(1, BLI_bvhtree_get_size(tree));
+	EXPECT_EQ(BLI_bvhtree_get_size(tree), 1);
 
 	BLI_bvhtree_balance(tree);
 	BLI_bvhtree_free(tree);
@@ -77,7 +77,8 @@ static void find_nearest_points_test(int points_len, float scale, int round, int
 				fflush(stdout);
 			}
 #endif
-			EXPECT_TRUE(j >= 0 && j < points_len);
+			EXPECT_GE(j, 0);
+			EXPECT_LT(j, points_len);
 			EXPECT_EQ_ARRAY(points[i], points[j], 3);
 		}
 	}
