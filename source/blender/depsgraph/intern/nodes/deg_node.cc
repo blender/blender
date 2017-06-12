@@ -204,8 +204,9 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 /* Free 'id' node. */
 IDDepsNode::~IDDepsNode()
 {
-	clear_components();
-	BLI_ghash_free(components, id_deps_node_hash_key_free, NULL);
+	BLI_ghash_free(components,
+	               id_deps_node_hash_key_free,
+	               id_deps_node_hash_value_free);
 }
 
 ComponentDepsNode *IDDepsNode::find_component(eDepsNode_Type type,
@@ -229,26 +230,6 @@ ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
 		comp_node->owner = this;
 	}
 	return comp_node;
-}
-
-void IDDepsNode::remove_component(eDepsNode_Type type, const char *name)
-{
-	ComponentDepsNode *comp_node = find_component(type, name);
-	if (comp_node) {
-		/* Unregister. */
-		ComponentIDKey key(type, name);
-		BLI_ghash_remove(components,
-		                 &key,
-		                 id_deps_node_hash_key_free,
-		                 id_deps_node_hash_value_free);
-	}
-}
-
-void IDDepsNode::clear_components()
-{
-	BLI_ghash_clear(components,
-	                id_deps_node_hash_key_free,
-	                id_deps_node_hash_value_free);
 }
 
 void IDDepsNode::tag_update(Depsgraph *graph)
