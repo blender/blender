@@ -67,7 +67,7 @@ static struct DRWShapeCache {
 	Batch *drw_lamp_spot;
 	Batch *drw_lamp_spot_square;
 	Batch *drw_speaker;
-	Batch *drw_probe;
+	Batch *drw_lightprobe;
 	Batch *drw_bone_octahedral;
 	Batch *drw_bone_octahedral_wire;
 	Batch *drw_bone_box;
@@ -117,7 +117,7 @@ void DRW_shape_cache_free(void)
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_spot);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_lamp_spot_square);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_speaker);
-	BATCH_DISCARD_ALL_SAFE(SHC.drw_probe);
+	BATCH_DISCARD_ALL_SAFE(SHC.drw_lightprobe);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_octahedral);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_octahedral_wire);
 	BATCH_DISCARD_ALL_SAFE(SHC.drw_bone_box);
@@ -1322,10 +1322,10 @@ Batch *DRW_cache_speaker_get(void)
 /** \name Probe
  * \{ */
 
-Batch *DRW_cache_probe_get(void)
+Batch *DRW_cache_lightprobe_get(void)
 {
 #define CIRCLE_RESOL 16
-	if (!SHC.drw_probe) {
+	if (!SHC.drw_lightprobe) {
 		int v_idx = 0;
 		float v[3] = {0.0f, 1.0f, 0.0f};
 		/* TODO something nicer than just a circle */
@@ -1363,9 +1363,9 @@ Batch *DRW_cache_probe_get(void)
 		v[1] = 1.0f;
 		VertexBuffer_set_attrib(vbo, attr_id.pos, v_idx++, v);
 
-		SHC.drw_probe = Batch_create(PRIM_LINES, vbo, NULL);
+		SHC.drw_lightprobe = Batch_create(PRIM_LINES, vbo, NULL);
 	}
-	return SHC.drw_probe;
+	return SHC.drw_lightprobe;
 #undef CIRCLE_RESOL
 }
 

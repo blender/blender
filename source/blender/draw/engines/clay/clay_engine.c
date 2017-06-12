@@ -277,7 +277,7 @@ static int matcap_to_index(int matcap)
 }
 
 /* Van der Corput sequence */
-/* TODO this is duplicated code from eevee_probes.c */
+/* TODO this is duplicated code from eevee_lightprobes.c */
  /* From http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
 static float radical_inverse(int i) {
 	unsigned int bits = (unsigned int)i;

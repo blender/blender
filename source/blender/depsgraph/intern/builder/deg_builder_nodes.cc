@@ -62,7 +62,7 @@ extern "C" {
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"
-#include "DNA_probe_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -385,8 +385,8 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Object *ob)
 				build_camera(ob);
 				break;
 
-			case OB_PROBE:
-				build_probe(ob);
+			case OB_LIGHTPROBE:
+				build_lightprobe(ob);
 				break;
 
 			default:
@@ -1112,9 +1112,9 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
 	build_animdata(clip_id);
 }
 
-void DepsgraphNodeBuilder::build_probe(Object *object)
+void DepsgraphNodeBuilder::build_lightprobe(Object *object)
 {
-	Probe *probe = (Probe *)object->data;
+	LightProbe *probe = (LightProbe *)object->data;
 	ID *probe_id = &probe->id;
 	if (probe_id->tag & LIB_TAG_DOIT) {
 		return;
@@ -1125,13 +1125,13 @@ void DepsgraphNodeBuilder::build_probe(Object *object)
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
-	                   "Probe Eval");
+	                   "LightProbe Eval");
 
 	add_operation_node(&object->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
-	                   "Probe Eval");
+	                   "LightProbe Eval");
 
 	build_animdata(probe_id);
 }

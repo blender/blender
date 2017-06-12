@@ -30,7 +30,7 @@
  */
 
 #include "DNA_object_types.h"
-#include "DNA_probe_types.h"
+#include "DNA_lightprobe_types.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -38,9 +38,9 @@
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_probe.h"
+#include "BKE_lightprobe.h"
 
-void BKE_probe_init(Probe *probe)
+void BKE_lightprobe_init(LightProbe *probe)
 {
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(probe, id));
 
@@ -51,20 +51,20 @@ void BKE_probe_init(Probe *probe)
 	probe->clipend = 40.0f;
 }
 
-void *BKE_probe_add(Main *bmain, const char *name)
+void *BKE_lightprobe_add(Main *bmain, const char *name)
 {
-	Probe *probe;
+	LightProbe *probe;
 
-	probe =  BKE_libblock_alloc(bmain, ID_PRB, name);
+	probe =  BKE_libblock_alloc(bmain, ID_LP, name);
 
-	BKE_probe_init(probe);
+	BKE_lightprobe_init(probe);
 
 	return probe;
 }
 
-Probe *BKE_probe_copy(Main *bmain, Probe *probe)
+LightProbe *BKE_lightprobe_copy(Main *bmain, LightProbe *probe)
 {
-	Probe *probe_new;
+	LightProbe *probe_new;
 
 	probe_new = BKE_libblock_copy(bmain, &probe->id);
 
@@ -73,12 +73,12 @@ Probe *BKE_probe_copy(Main *bmain, Probe *probe)
 	return probe_new;
 }
 
-void BKE_probe_make_local(Main *bmain, Probe *probe, const bool lib_local)
+void BKE_lightprobe_make_local(Main *bmain, LightProbe *probe, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &probe->id, true, lib_local);
 }
 
-void BKE_probe_free(Probe *probe)
+void BKE_lightprobe_free(LightProbe *probe)
 {
 	BKE_animdata_free((ID *)probe, false);
 }

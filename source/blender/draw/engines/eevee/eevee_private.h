@@ -166,7 +166,7 @@ enum {
 };
 
 /* ************ PROBE UBO ************* */
-typedef struct EEVEE_Probe {
+typedef struct EEVEE_LightProbe {
 	float position[3], parallax_type;
 	float shcoefs[9][3], pad2;
 	float attenuation_fac;
@@ -174,10 +174,10 @@ typedef struct EEVEE_Probe {
 	float pad3[2];
 	float attenuationmat[4][4];
 	float parallaxmat[4][4];
-} EEVEE_Probe;
+} EEVEE_LightProbe;
 
 /* ************ PROBE DATA ************* */
-typedef struct EEVEE_ProbesInfo {
+typedef struct EEVEE_LightProbesInfo {
 	int num_cube, cache_num_cube;
 	int update_flag;
 	/* Actual number of probes that have datas. */
@@ -199,10 +199,10 @@ typedef struct EEVEE_ProbesInfo {
 	/* XXX This is fragile, can get out of sync quickly. */
 	struct Object *probes_ref[MAX_PROBE];
 	/* UBO Storage : data used by UBO */
-	struct EEVEE_Probe probe_data[MAX_PROBE];
-} EEVEE_ProbesInfo;
+	struct EEVEE_LightProbe probe_data[MAX_PROBE];
+} EEVEE_LightProbesInfo;
 
-/* EEVEE_ProbesInfo->update_flag */
+/* EEVEE_LightProbesInfo->update_flag */
 enum {
 	PROBE_UPDATE_CUBE = (1 << 0),
 };
@@ -270,7 +270,7 @@ typedef struct EEVEE_SceneLayerData {
 	struct ListBase shadow_casters; /* Shadow casters gathered during cache iteration */
 
 	/* Probes */
-	struct EEVEE_ProbesInfo *probes;
+	struct EEVEE_LightProbesInfo *probes;
 
 	struct GPUUniformBuffer *probe_ubo;
 
@@ -293,11 +293,11 @@ typedef struct EEVEE_LampEngineData {
 	void *storage; /* either EEVEE_LightData, EEVEE_ShadowCubeData, EEVEE_ShadowCascadeData */
 } EEVEE_LampEngineData;
 
-typedef struct EEVEE_ProbeEngineData {
+typedef struct EEVEE_LightProbeEngineData {
 	bool need_update;
 	bool ready_to_shade;
 	struct ListBase captured_object_list;
-} EEVEE_ProbeEngineData;
+} EEVEE_LightProbeEngineData;
 
 typedef struct EEVEE_ObjectEngineData {
 	bool need_update;
@@ -323,7 +323,7 @@ typedef struct EEVEE_PrivateData {
 /* eevee_data.c */
 EEVEE_SceneLayerData *EEVEE_scene_layer_data_get(void);
 EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob);
-EEVEE_ProbeEngineData *EEVEE_probe_data_get(Object *ob);
+EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob);
 EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob);
 
 
@@ -332,9 +332,9 @@ void EEVEE_materials_init(void);
 void EEVEE_materials_cache_init(EEVEE_Data *vedata);
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sldata, Object *ob, struct Batch *geom);
 void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
-struct GPUMaterial *EEVEE_material_world_probe_get(struct Scene *scene, struct World *wo);
+struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
-struct GPUMaterial *EEVEE_material_mesh_probe_get(struct Scene *scene, Material *ma);
+struct GPUMaterial *EEVEE_material_mesh_lightprobe_get(struct Scene *scene, Material *ma);
 struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma);
 void EEVEE_materials_free(void);
 
@@ -348,13 +348,13 @@ void EEVEE_lights_update(EEVEE_SceneLayerData *sldata);
 void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
 void EEVEE_lights_free(void);
 
-/* eevee_probes.c */
-void EEVEE_probes_init(EEVEE_SceneLayerData *sldata);
-void EEVEE_probes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
-void EEVEE_probes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob);
-void EEVEE_probes_cache_finish(EEVEE_SceneLayerData *sldata);
-void EEVEE_probes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
-void EEVEE_probes_free(void);
+/* eevee_lightprobes.c */
+void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata);
+void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
+void EEVEE_lightprobes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob);
+void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata);
+void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
+void EEVEE_lightprobes_free(void);
 
 /* eevee_effects.c */
 void EEVEE_effects_init(EEVEE_Data *vedata);

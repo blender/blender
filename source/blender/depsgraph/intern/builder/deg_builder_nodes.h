@@ -157,7 +157,7 @@ struct DepsgraphNodeBuilder {
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
-	void build_probe(Object *object);
+	void build_lightprobe(Object *object);
 
 	struct LayerCollectionState {
 		int index;

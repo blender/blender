@@ -211,7 +211,7 @@ static int buttons_context_path_data(ButsContextPath *path, int type)
 	else if (RNA_struct_is_a(ptr->type, &RNA_Camera) && (type == -1 || type == OB_CAMERA)) return 1;
 	else if (RNA_struct_is_a(ptr->type, &RNA_Lamp) && (type == -1 || type == OB_LAMP)) return 1;
 	else if (RNA_struct_is_a(ptr->type, &RNA_Speaker) && (type == -1 || type == OB_SPEAKER)) return 1;
-	else if (RNA_struct_is_a(ptr->type, &RNA_Probe) && (type == -1 || type == OB_PROBE)) return 1;
+	else if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && (type == -1 || type == OB_LIGHTPROBE)) return 1;
 	/* try to get an object in the path, no pinning supported here */
 	else if (buttons_context_path_object(path)) {
 		ob = path->ptr[path->len - 1].data;
@@ -779,7 +779,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 const char *buttons_context_dir[] = {
 	"texture_slot", "scene", "world", "object", "mesh", "armature", "lattice", "curve",
-	"meta_ball", "lamp", "speaker", "probe", "camera", "material", "material_slot",
+	"meta_ball", "lamp", "speaker", "lightprobe", "camera", "material", "material_slot",
 	"texture", "texture_user", "texture_user_property", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint",
@@ -848,8 +848,8 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		set_pointer_type(path, result, &RNA_Speaker);
 		return 1;
 	}
-	else if (CTX_data_equals(member, "probe")) {
-		set_pointer_type(path, result, &RNA_Probe);
+	else if (CTX_data_equals(member, "lightprobe")) {
+		set_pointer_type(path, result, &RNA_LightProbe);
 		return 1;
 	}
 	else if (CTX_data_equals(member, "material")) {

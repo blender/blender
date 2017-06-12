@@ -451,7 +451,7 @@ static const char *template_id_browse_tip(const StructRNA *type)
 			case ID_PC:  return N_("Browse Paint Curve Data to be linked");
 			case ID_CF:  return N_("Browse Cache Files to be linked");
 			case ID_WS:  return N_("Browse Workspace to be linked");
-			case ID_PRB: return N_("Browse Probe to be linked");
+			case ID_LP:  return N_("Browse LightProbe to be linked");
 		}
 	}
 	return N_("Browse ID data to be linked");
@@ -590,7 +590,7 @@ static void template_ID(
 		                                 BLT_I18NCONTEXT_ID_GPENCIL,
 		                                 BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
 		                                 BLT_I18NCONTEXT_ID_WORKSPACE,
-		                                 BLT_I18NCONTEXT_ID_PROBE,
+		                                 BLT_I18NCONTEXT_ID_LIGHTPROBE,
 		);
 		
 		if (newop) {

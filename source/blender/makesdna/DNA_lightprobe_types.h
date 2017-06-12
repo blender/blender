@@ -21,12 +21,12 @@
  *
  */
 
-/** \file DNA_probe_types.h
+/** \file DNA_lightprobe_types.h
  *  \ingroup DNA
  */
 
-#ifndef __DNA_PROBE_TYPES_H__
-#define __DNA_PROBE_TYPES_H__
+#ifndef __DNA_LIGHTPROBE_TYPES_H__
+#define __DNA_LIGHTPROBE_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
@@ -39,7 +39,7 @@ extern "C" {
 struct Object;
 struct AnimData;
 
-typedef struct Probe {
+typedef struct LightProbe {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
 
@@ -60,39 +60,39 @@ typedef struct Probe {
 	/* Runtime display data */
 	float distfalloff, pad;
 	float clipmat[6][4][4];
-} Probe;
+} LightProbe;
 
 /* Probe->type */
 enum {
-	PROBE_CUBE      = 0,
-	PROBE_PLANAR    = 1,
-	PROBE_IMAGE     = 2,
+	LIGHTPROBE_TYPE_CUBE      = 0,
+	LIGHTPROBE_TYPE_PLANAR    = 1,
+	LIGHTPROBE_TYPE_IMAGE     = 2,
 };
 
 /* Probe->flag */
 enum {
-	PRB_CUSTOM_PARALLAX = (1 << 0),
-	PRB_SHOW_INFLUENCE  = (1 << 1),
-	PRB_SHOW_PARALLAX   = (1 << 2),
-	PRB_SHOW_CLIP_DIST  = (1 << 3),
+	LIGHTPROBE_FLAG_CUSTOM_PARALLAX = (1 << 0),
+	LIGHTPROBE_FLAG_SHOW_INFLUENCE  = (1 << 1),
+	LIGHTPROBE_FLAG_SHOW_PARALLAX   = (1 << 2),
+	LIGHTPROBE_FLAG_SHOW_CLIP_DIST  = (1 << 3),
 };
 
 /* Probe->display */
 enum {
-	PROBE_WIRE         = 0,
-	PROBE_SHADED       = 1,
-	PROBE_DIFFUSE      = 2,
-	PROBE_REFLECTIVE   = 3,
+	LIGHTPROBE_DISP_WIRE         = 0,
+	LIGHTPROBE_DISP_SHADED       = 1,
+	LIGHTPROBE_DISP_DIFFUSE      = 2,
+	LIGHTPROBE_DISP_REFLECTIVE   = 3,
 };
 
 /* Probe->parallax && Probe->attenuation_type*/
 enum {
-	PROBE_ELIPSOID   = 0,
-	PROBE_BOX        = 1,
+	LIGHTPROBE_SHAPE_ELIPSOID   = 0,
+	LIGHTPROBE_SHAPE_BOX        = 1,
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __DNA_PROBE_TYPES_H__ */
+#endif /* __DNA_LIGHTPROBE_TYPES_H__ */

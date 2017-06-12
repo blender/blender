@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/makesrna/intern/rna_probe.c
+/** \file blender/makesrna/intern/rna_lightprobe.c
  *  \ingroup RNA
  */
 
@@ -31,7 +31,7 @@
 
 #include "rna_internal.h"
 
-#include "DNA_probe_types.h"
+#include "DNA_lightprobe_types.h"
 
 #include "WM_types.h"
 
@@ -49,7 +49,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static void rna_Probe_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_LightProbe_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 }
@@ -57,48 +57,48 @@ static void rna_Probe_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 #else
 
 static EnumPropertyItem parallax_type_items[] = {
-	{PROBE_ELIPSOID, "ELIPSOID", ICON_NONE, "Sphere", ""},
-	{PROBE_BOX, "BOX", ICON_NONE, "Box", ""},
+	{LIGHTPROBE_SHAPE_ELIPSOID, "ELIPSOID", ICON_NONE, "Sphere", ""},
+	{LIGHTPROBE_SHAPE_BOX, "BOX", ICON_NONE, "Box", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem probe_type_items[] = {
-	{PROBE_CUBE, "CUBEMAP", ICON_NONE, "Cubemap", ""},
-	// {PROBE_PLANAR, "PLANAR", ICON_NONE, "Planar", ""},
-	// {PROBE_IMAGE, "IMAGE", ICON_NONE, "Image", ""},
+static EnumPropertyItem lightprobe_type_items[] = {
+	{LIGHTPROBE_TYPE_CUBE, "CUBEMAP", ICON_NONE, "Cubemap", ""},
+	// {LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_NONE, "Planar", ""},
+	// {LIGHTPROBE_TYPE_IMAGE, "IMAGE", ICON_NONE, "Image", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-static void rna_def_probe(BlenderRNA *brna)
+static void rna_def_lightprobe(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "Probe", "ID");
-	RNA_def_struct_ui_text(srna, "Probe", "Probe data-block for lighting capture objects");
+	srna = RNA_def_struct(brna, "LightProbe", "ID");
+	RNA_def_struct_ui_text(srna, "LightProbe", "Light Probe data-block for lighting capture objects");
 	RNA_def_struct_ui_icon(srna, ICON_RADIO);
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, probe_type_items);
+	RNA_def_property_enum_items(prop, lightprobe_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of probe");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
 	RNA_def_property_range(prop, 0.0f, 999999.0f);
-	RNA_def_property_ui_text(prop, "Probe Clip Start",
+	RNA_def_property_ui_text(prop, "Clip Start",
 	                         "Probe clip start, below which objects will not appear in reflections");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_Probe_recalc");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
 	RNA_def_property_range(prop, 0.0f, 999999.0f);
-	RNA_def_property_ui_text(prop, "Probe Clip End",
+	RNA_def_property_ui_text(prop, "Clip End",
 	                         "Probe clip end, beyond which objects will not appear in reflections");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_Probe_recalc");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "show_clip", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_SHOW_CLIP_DIST);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIGHTPROBE_FLAG_SHOW_CLIP_DIST);
 	RNA_def_property_ui_text(prop, "Clipping", "Show the clipping distances in the 3D view");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
@@ -109,7 +109,7 @@ static void rna_def_probe(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "show_influence", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_SHOW_INFLUENCE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIGHTPROBE_FLAG_SHOW_INFLUENCE);
 	RNA_def_property_ui_text(prop, "Influence", "Show the influence volume in the 3D view");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
@@ -125,12 +125,12 @@ static void rna_def_probe(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "use_custom_parallax", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_CUSTOM_PARALLAX);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIGHTPROBE_FLAG_CUSTOM_PARALLAX);
 	RNA_def_property_ui_text(prop, "Use Custom Parallax", "Enable custom settings for the parallax correction volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "show_parallax", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PRB_SHOW_PARALLAX);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIGHTPROBE_FLAG_SHOW_PARALLAX);
 	RNA_def_property_ui_text(prop, "Parallax", "Show the parallax correction volume in the 3D view");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
@@ -150,9 +150,9 @@ static void rna_def_probe(BlenderRNA *brna)
 }
 
 
-void RNA_def_probe(BlenderRNA *brna)
+void RNA_def_lightprobe(BlenderRNA *brna)
 {
-	rna_def_probe(brna);
+	rna_def_lightprobe(brna);
 }
 
 #endif

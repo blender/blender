@@ -61,7 +61,7 @@ extern "C" {
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_probe_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
@@ -535,8 +535,8 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 				build_camera(ob);
 				break;
 
-			case OB_PROBE:
-				build_probe(ob);
+			case OB_LIGHTPROBE:
+				build_lightprobe(ob);
 				break;
 		}
 
@@ -1741,9 +1741,9 @@ void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
 	build_animdata(&clip->id);
 }
 
-void DepsgraphRelationBuilder::build_probe(Object *object)
+void DepsgraphRelationBuilder::build_lightprobe(Object *object)
 {
-	Probe *probe = (Probe *)object->data;
+	LightProbe *probe = (LightProbe *)object->data;
 	ID *probe_id = &probe->id;
 	if (probe_id->tag & LIB_TAG_DOIT) {
 		return;
@@ -1754,12 +1754,12 @@ void DepsgraphRelationBuilder::build_probe(Object *object)
 	OperationKey probe_key(probe_id,
 	                       DEG_NODE_TYPE_PARAMETERS,
 	                       DEG_OPCODE_PLACEHOLDER,
-	                       "Probe Eval");
+	                       "LightProbe Eval");
 	OperationKey object_key(&object->id,
 	                        DEG_NODE_TYPE_PARAMETERS,
 	                        DEG_OPCODE_PLACEHOLDER,
-	                        "Probe Eval");
-	add_relation(probe_key, object_key, "Probe Update");
+	                        "LightProbe Eval");
+	add_relation(probe_key, object_key, "LightProbe Update");
 }
 
 }  // namespace DEG

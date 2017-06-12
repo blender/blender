@@ -62,7 +62,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_probe_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_speaker_types.h"
@@ -118,7 +118,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_packedFile.h"
-#include "BKE_probe.h"
+#include "BKE_lightprobe.h"
 #include "BKE_sound.h"
 #include "BKE_speaker.h"
 #include "BKE_scene.h"
@@ -421,8 +421,8 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_SPK:
 			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id, lib_local);
 			return true;
-		case ID_PRB:
-			if (!test) BKE_probe_make_local(bmain, (Probe *)id, lib_local);
+		case ID_LP:
+			if (!test) BKE_lightprobe_make_local(bmain, (LightProbe *)id, lib_local);
 			return true;
 		case ID_WO:
 			if (!test) BKE_world_make_local(bmain, (World *)id, lib_local);
@@ -537,8 +537,8 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 		case ID_SPK:
 			if (!test) *newid = (ID *)BKE_speaker_copy(bmain, (Speaker *)id);
 			return true;
-		case ID_PRB:
-			if (!test) *newid = (ID *)BKE_probe_copy(bmain, (Probe *)id);
+		case ID_LP:
+			if (!test) *newid = (ID *)BKE_lightprobe_copy(bmain, (LightProbe *)id);
 			return true;
 		case ID_CA:
 			if (!test) *newid = (ID *)BKE_camera_copy(bmain, (Camera *)id);
@@ -677,8 +677,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->text);
 		case ID_SPK:
 			return &(mainlib->speaker);
-		case ID_PRB:
-			return &(mainlib->probe);
+		case ID_LP:
+			return &(mainlib->lightprobe);
 		case ID_SO:
 			return &(mainlib->sound);
 		case ID_GR:
@@ -849,7 +849,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[INDEX_ID_BR]  = &(main->brush);
 	lb[INDEX_ID_PA]  = &(main->particle);
 	lb[INDEX_ID_SPK] = &(main->speaker);
-	lb[INDEX_ID_PRB] = &(main->probe);
+	lb[INDEX_ID_LP]  = &(main->lightprobe);
 
 	lb[INDEX_ID_WO]  = &(main->world);
 	lb[INDEX_ID_MC]  = &(main->movieclip);
@@ -942,8 +942,8 @@ void *BKE_libblock_alloc_notest(short type)
 		case ID_SPK:
 			id = MEM_callocN(sizeof(Speaker), "speaker");
 			break;
-		case ID_PRB:
-			id = MEM_callocN(sizeof(Probe), "probe");
+		case ID_LP:
+			id = MEM_callocN(sizeof(LightProbe), "probe");
 			break;
 		case ID_SO:
 			id = MEM_callocN(sizeof(bSound), "sound");
@@ -1071,8 +1071,8 @@ void BKE_libblock_init_empty(ID *id)
 		case ID_SPK:
 			BKE_speaker_init((Speaker *)id);
 			break;
-		case ID_PRB:
-			BKE_probe_init((Probe *)id);
+		case ID_LP:
+			BKE_lightprobe_init((LightProbe *)id);
 			break;
 		case ID_CA:
 			BKE_camera_init((Camera *)id);

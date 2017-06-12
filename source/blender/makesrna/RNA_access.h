@@ -488,7 +488,7 @@ extern StructRNA RNA_PointLamp;
 extern StructRNA RNA_PointerProperty;
 extern StructRNA RNA_Pose;
 extern StructRNA RNA_PoseBone;
-extern StructRNA RNA_Probe;
+extern StructRNA RNA_LightProbe;
 extern StructRNA RNA_Property;
 extern StructRNA RNA_PropertyGroup;
 extern StructRNA RNA_PropertyGroupItem;

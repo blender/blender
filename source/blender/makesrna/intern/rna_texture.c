@@ -746,7 +746,7 @@ static void rna_def_filter_common(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Filter", "Texture filter to use for sampling image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
-	prop = RNA_def_property(srna, "filter_probes", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "filter_lightprobes", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "afmax");
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Filter Probes",

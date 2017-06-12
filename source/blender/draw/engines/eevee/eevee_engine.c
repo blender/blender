@@ -57,7 +57,7 @@ static void EEVEE_engine_init(void *ved)
 
 	EEVEE_materials_init();
 	EEVEE_lights_init(sldata);
-	EEVEE_probes_init(sldata);
+	EEVEE_lightprobes_init(sldata);
 	EEVEE_effects_init(vedata);
 }
 
@@ -74,7 +74,7 @@ static void EEVEE_cache_init(void *vedata)
 
 	EEVEE_materials_cache_init(vedata);
 	EEVEE_lights_cache_init(sldata, psl);
-	EEVEE_probes_cache_init(sldata, psl);
+	EEVEE_lightprobes_cache_init(sldata, psl);
 	EEVEE_effects_cache_init(vedata);
 }
 
@@ -104,8 +104,8 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 			oedata->need_update = ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0);
 		}
 	}
-	else if (ob->type == OB_PROBE) {
-		EEVEE_probes_cache_add(sldata, ob);
+	else if (ob->type == OB_LIGHTPROBE) {
+		EEVEE_lightprobes_cache_add(sldata, ob);
 	}
 	else if (ob->type == OB_LAMP) {
 		EEVEE_lights_cache_add(sldata, ob);
@@ -118,7 +118,7 @@ static void EEVEE_cache_finish(void *vedata)
 
 	EEVEE_materials_cache_finish(vedata);
 	EEVEE_lights_cache_finish(sldata);
-	EEVEE_probes_cache_finish(sldata);
+	EEVEE_lightprobes_cache_finish(sldata);
 }
 
 static void EEVEE_draw_scene(void *vedata)
@@ -134,7 +134,7 @@ static void EEVEE_draw_scene(void *vedata)
 	EEVEE_draw_shadows(sldata, psl);
 
 	/* Refresh Probes */
-	EEVEE_probes_refresh(sldata, psl);
+	EEVEE_lightprobes_refresh(sldata, psl);
 
 	/* Attach depth to the hdr buffer and bind it */	
 	DRW_framebuffer_texture_detach(dtxl->depth);
@@ -162,7 +162,7 @@ static void EEVEE_engine_free(void)
 	EEVEE_materials_free();
 	EEVEE_effects_free();
 	EEVEE_lights_free();
-	EEVEE_probes_free();
+	EEVEE_lightprobes_free();
 }
 
 static void EEVEE_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)

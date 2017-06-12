@@ -41,9 +41,9 @@
 #include "eevee_private.h"
 #include "GPU_texture.h"
 
-typedef struct EEVEE_ProbeData {
+typedef struct EEVEE_LightProbeData {
 	short probe_id, shadow_id;
-} EEVEE_ProbeData;
+} EEVEE_LightProbeData;
 
 /* TODO Option */
 #define ENABLE_EFFECT_MOTION_BLUR 1

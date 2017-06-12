@@ -25,21 +25,21 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BKE_PROBE_H__
-#define __BKE_PROBE_H__
+#ifndef __BKE_LIGHTPROBE_H__
+#define __BKE_LIGHTPROBE_H__
 
-/** \file BKE_probe.h
+/** \file BKE_lightprobe.h
  *  \ingroup bke
  *  \brief General operations for probes.
  */
 
 struct Main;
-struct Probe;
+struct LightProbe;
 
-void BKE_probe_init(struct Probe *probe);
-void *BKE_probe_add(struct Main *bmain, const char *name);
-struct Probe *BKE_probe_copy(struct Main *bmain, struct Probe *probe);
-void BKE_probe_make_local(struct Main *bmain, struct Probe *probe, const bool lib_local);
-void BKE_probe_free(struct Probe *probe);
+void BKE_lightprobe_init(struct LightProbe *probe);
+void *BKE_lightprobe_add(struct Main *bmain, const char *name);
+struct LightProbe *BKE_lightprobe_copy(struct Main *bmain, struct LightProbe *probe);
+void BKE_lightprobe_make_local(struct Main *bmain, struct LightProbe *probe, const bool lib_local);
+void BKE_lightprobe_free(struct LightProbe *probe);
 
-#endif /* __BKE_PROBE_H__ */
+#endif /* __BKE_LIGHTPROBE_H__ */

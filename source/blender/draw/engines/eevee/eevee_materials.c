@@ -83,10 +83,10 @@ extern char datatoc_lit_surface_vert_glsl[];
 extern char datatoc_shadow_frag_glsl[];
 extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_vert_glsl[];
-extern char datatoc_probe_filter_frag_glsl[];
-extern char datatoc_probe_sh_frag_glsl[];
-extern char datatoc_probe_geom_glsl[];
-extern char datatoc_probe_vert_glsl[];
+extern char datatoc_lightprobe_filter_frag_glsl[];
+extern char datatoc_lightprobe_sh_frag_glsl[];
+extern char datatoc_lightprobe_geom_glsl[];
+extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_background_vert_glsl[];
 
 extern Material defmaterial;
@@ -111,12 +111,12 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 	BLI_dynstr_free(ds_vert);
 
 	struct GPUShader *sh = DRW_shader_create_with_lib(
-	        datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, datatoc_bsdf_lut_frag_glsl, lib_str,
+	        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, datatoc_bsdf_lut_frag_glsl, lib_str,
 	        "#define HAMMERSLEY_SIZE 8192\n"
 	        "#define BRDF_LUT_SIZE 64\n"
 	        "#define NOISE_SIZE 64\n");
 
-	DRWPass *pass = DRW_pass_create("Probe Filtering", DRW_STATE_WRITE_COLOR);
+	DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_float(grp, "sampleCount", &samples_ct, 1);
 	DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_ct, 1);
@@ -221,12 +221,12 @@ void EEVEE_materials_init(void)
 	}
 }
 
-struct GPUMaterial *EEVEE_material_world_probe_get(struct Scene *scene, World *wo)
+struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, World *wo)
 {
 	return GPU_material_from_nodetree(
 	    scene, wo->nodetree, &wo->gpumaterial, &DRW_engine_viewport_eevee_type,
 	    VAR_WORLD_PROBE,
-	    datatoc_probe_vert_glsl, datatoc_probe_geom_glsl, e_data.frag_shader_lib,
+	    datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, e_data.frag_shader_lib,
 	    SHADER_DEFINES "#define PROBE_CAPTURE\n");
 }
 
@@ -239,12 +239,12 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
 	    SHADER_DEFINES "#define WORLD_BACKGROUND\n");
 }
 
-struct GPUMaterial *EEVEE_material_mesh_probe_get(struct Scene *scene, Material *ma)
+struct GPUMaterial *EEVEE_material_mesh_lightprobe_get(struct Scene *scene, Material *ma)
 {
 	return GPU_material_from_nodetree(
 	    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type,
 	    VAR_MAT_MESH | VAR_MAT_PROBE,
-	    datatoc_probe_vert_glsl, NULL, e_data.frag_shader_lib,
+	    datatoc_lightprobe_vert_glsl, NULL, e_data.frag_shader_lib,
 	    SHADER_DEFINES "#define MESH_SHADER\n" "#define PROBE_CAPTURE\n");
 }
 

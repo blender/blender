@@ -79,7 +79,7 @@ struct Batch *DRW_cache_camera_tria_get(void);
 struct Batch *DRW_cache_speaker_get(void);
 
 /* Probe */
-struct Batch *DRW_cache_probe_get(void);
+struct Batch *DRW_cache_lightprobe_get(void);
 
 /* Bones */
 struct Batch *DRW_cache_bone_octahedral_get(void);

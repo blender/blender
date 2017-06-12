@@ -29,10 +29,10 @@ class DataButtonsPanel:
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return context.probe and (engine in cls.COMPAT_ENGINES)
+        return context.lightprobe and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_context_probe(DataButtonsPanel, Panel):
+class DATA_PT_context_lightprobe(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
@@ -41,7 +41,7 @@ class DATA_PT_context_probe(DataButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        probe = context.probe
+        probe = context.lightprobe
         space = context.space_data
 
         if ob:
@@ -50,7 +50,7 @@ class DATA_PT_context_probe(DataButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_probe(DataButtonsPanel, Panel):
+class DATA_PT_lightprobe(DataButtonsPanel, Panel):
     bl_label = "Probe"
     COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
@@ -58,7 +58,7 @@ class DATA_PT_probe(DataButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        probe = context.probe
+        probe = context.lightprobe
 
         layout.prop(probe, "type", expand=True)
 
@@ -81,7 +81,7 @@ class DATA_PT_probe(DataButtonsPanel, Panel):
         col.prop(probe, "clip_end", text="End")
 
 
-class DATA_PT_parallax(DataButtonsPanel, Panel):
+class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
     bl_label = "Parallax"
     COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
@@ -89,7 +89,7 @@ class DATA_PT_parallax(DataButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        probe = context.probe
+        probe = context.lightprobe
 
         layout.prop(probe, "use_custom_parallax")
 
@@ -105,7 +105,7 @@ class DATA_PT_parallax(DataButtonsPanel, Panel):
             col.prop(probe, "parallax_distance", "Size")
 
 
-class DATA_PT_display(DataButtonsPanel, Panel):
+class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
     bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
@@ -113,7 +113,7 @@ class DATA_PT_display(DataButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        probe = context.probe
+        probe = context.lightprobe
 
         split = layout.split()
 
@@ -128,10 +128,10 @@ class DATA_PT_display(DataButtonsPanel, Panel):
 
 
 classes = (
-    DATA_PT_context_probe,
-    DATA_PT_probe,
-    DATA_PT_parallax,
-    DATA_PT_display,
+    DATA_PT_context_lightprobe,
+    DATA_PT_lightprobe,
+    DATA_PT_lightprobe_parallax,
+    DATA_PT_lightprobe_display,
 )
 
 if __name__ == "__main__":  # only for live edit.

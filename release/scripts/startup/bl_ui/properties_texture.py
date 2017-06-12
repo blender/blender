@@ -459,7 +459,7 @@ def texture_filter_common(tex, layout):
     layout.prop(tex, "filter_type", text="")
     if tex.use_mipmap and tex.filter_type in {'AREA', 'EWA', 'FELINE'}:
         if tex.filter_type == 'FELINE':
-            layout.prop(tex, "filter_probes", text="Probes")
+            layout.prop(tex, "filter_lightprobes", text="Light Probes")
         else:
             layout.prop(tex, "filter_eccentricity", text="Eccentricity")
 

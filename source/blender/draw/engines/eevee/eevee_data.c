@@ -70,9 +70,9 @@ static void eevee_lamp_data_free(void *storage)
 	BLI_freelistN(&led->shadow_caster_list);
 }
 
-static void eevee_probe_data_free(void *storage)
+static void eevee_lightprobe_data_free(void *storage)
 {
-	EEVEE_ProbeEngineData *ped = (EEVEE_ProbeEngineData *)storage;
+	EEVEE_LightProbeEngineData *ped = (EEVEE_LightProbeEngineData *)storage;
 
 	BLI_freelistN(&ped->captured_object_list);
 }
@@ -99,12 +99,12 @@ EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob)
 	return *oedata;
 }
 
-EEVEE_ProbeEngineData *EEVEE_probe_data_get(Object *ob)
+EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob)
 {
-	EEVEE_ProbeEngineData **pedata = (EEVEE_ProbeEngineData **)DRW_object_engine_data_get(ob, &draw_engine_eevee_type, &eevee_probe_data_free);
+	EEVEE_LightProbeEngineData **pedata = (EEVEE_LightProbeEngineData **)DRW_object_engine_data_get(ob, &draw_engine_eevee_type, &eevee_lightprobe_data_free);
 
 	if (*pedata == NULL) {
-		*pedata = MEM_callocN(sizeof(**pedata), "EEVEE_ProbeEngineData");
+		*pedata = MEM_callocN(sizeof(**pedata), "EEVEE_LightProbeEngineData");
 		(*pedata)->need_update = true;
 	}
 

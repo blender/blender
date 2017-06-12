@@ -74,7 +74,7 @@ EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_PC, "PAINTCURVE", ICON_CURVE_BEZCURVE, "Paint Curve", ""},
 	{ID_PAL, "PALETTE", ICON_COLOR, "Palette", ""},
 	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
-	{ID_PRB, "PROBE", ICON_RADIO, "Probe", ""},
+	{ID_LT, "LIGHT_PROBE", ICON_RADIO, "Light Probe", ""},
 	{ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
 	{ID_SCR, "SCREEN", ICON_SPLITSCREEN, "Screen", ""},
 	{ID_SO, "SOUND", ICON_PLAY_AUDIO, "Sound", ""},
@@ -166,7 +166,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
 	if (RNA_struct_is_a(type, &RNA_ParticleSettings)) return ID_PA;
 	if (RNA_struct_is_a(type, &RNA_Palette)) return ID_PAL;
 	if (RNA_struct_is_a(type, &RNA_PaintCurve)) return ID_PC;
-	if (RNA_struct_is_a(type, &RNA_Probe)) return ID_PRB;
+	if (RNA_struct_is_a(type, &RNA_LightProbe)) return ID_LP;
 	if (RNA_struct_is_a(type, &RNA_Scene)) return ID_SCE;
 	if (RNA_struct_is_a(type, &RNA_Screen)) return ID_SCR;
 	if (RNA_struct_is_a(type, &RNA_Sound)) return ID_SO;
@@ -208,7 +208,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_PA: return &RNA_ParticleSettings;
 		case ID_PAL: return &RNA_Palette;
 		case ID_PC: return &RNA_PaintCurve;
-		case ID_PRB: return &RNA_Probe;
+		case ID_LP: return &RNA_LightProbe;
 		case ID_SCE: return &RNA_Scene;
 		case ID_SCR: return &RNA_Screen;
 		case ID_SO: return &RNA_Sound;

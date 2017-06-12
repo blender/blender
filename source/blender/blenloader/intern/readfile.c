@@ -89,7 +89,7 @@
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_probe_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_property_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_text_types.h"
@@ -7648,9 +7648,9 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 
 /* ************ READ PROBE ***************** */
 
-static void lib_link_probe(FileData *fd, Main *main)
+static void lib_link_lightprobe(FileData *fd, Main *main)
 {
-	for (Probe *prb = main->speaker.first; prb; prb = prb->id.next) {
+	for (LightProbe *prb = main->speaker.first; prb; prb = prb->id.next) {
 		if (prb->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(prb->id.properties, fd);
 			lib_link_animdata(fd, &prb->id, prb->adt);
@@ -7660,7 +7660,7 @@ static void lib_link_probe(FileData *fd, Main *main)
 	}
 }
 
-static void direct_link_probe(FileData *fd, Probe *prb)
+static void direct_link_lightprobe(FileData *fd, LightProbe *prb)
 {
 	prb->adt = newdataadr(fd, prb->adt);
 	direct_link_animdata(fd, prb->adt);
@@ -8281,7 +8281,7 @@ static const char *dataname(short id_code)
 		case ID_VF: return "Data from VF";
 		case ID_TXT	: return "Data from TXT";
 		case ID_SPK: return "Data from SPK";
-		case ID_PRB: return "Data from PRB";
+		case ID_LP: return "Data from LP";
 		case ID_SO: return "Data from SO";
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
@@ -8514,8 +8514,8 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 		case ID_SO:
 			direct_link_sound(fd, (bSound *)id);
 			break;
-		case ID_PRB:
-			direct_link_probe(fd, (Probe *)id);
+		case ID_LP:
+			direct_link_lightprobe(fd, (LightProbe *)id);
 			break;
 		case ID_GR:
 			direct_link_group(fd, (Group *)id);
@@ -8722,7 +8722,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_text(fd, main);
 	lib_link_camera(fd, main);
 	lib_link_speaker(fd, main);
-	lib_link_probe(fd, main);
+	lib_link_lightprobe(fd, main);
 	lib_link_sound(fd, main);
 	lib_link_group(fd, main);
 	lib_link_armature(fd, main);
@@ -9908,7 +9908,7 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 	expand_doit(fd, mainvar, snd->ipo); // XXX deprecated - old animation system
 }
 
-static void expand_probe(FileData *fd, Main *mainvar, Probe *prb)
+static void expand_lightprobe(FileData *fd, Main *mainvar, LightProbe *prb)
 {
 	if (prb->adt)
 		expand_animdata(fd, mainvar, prb->adt);
@@ -10074,8 +10074,8 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 					case ID_SO:
 						expand_sound(fd, mainvar, (bSound *)id);
 						break;
-					case ID_PRB:
-						expand_probe(fd, mainvar, (Probe *)id);
+					case ID_LP:
+						expand_lightprobe(fd, mainvar, (LightProbe *)id);
 						break;
 					case ID_AR:
 						expand_armature(fd, mainvar, (bArmature *)id);
