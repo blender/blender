@@ -160,8 +160,6 @@ struct IDDepsNode : public DepsNode {
 	                                  const char *name = "") const;
 	ComponentDepsNode *add_component(eDepsNode_Type type,
 	                                 const char *name = "");
-	void remove_component(eDepsNode_Type type, const char *name = "");
-	void clear_components();
 
 	void tag_update(Depsgraph *graph);
 
