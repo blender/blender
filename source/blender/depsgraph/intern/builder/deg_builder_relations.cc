@@ -371,6 +371,11 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 	pdEndEffectors(&effectors);
 }
 
+Depsgraph *DepsgraphRelationBuilder::getGraph()
+{
+	return m_graph;
+}
+
 /* **** Functions to build relations between entities  **** */
 
 void DepsgraphRelationBuilder::begin_build(Main *bmain)

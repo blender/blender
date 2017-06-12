@@ -233,6 +233,8 @@ struct DepsgraphRelationBuilder
 	template <typename KeyType>
 	OperationDepsNode *find_operation_node(const KeyType &key);
 
+	Depsgraph *getGraph();
+
 protected:
 	RootDepsNode *find_node(const RootKey &key) const;
 	TimeSourceDepsNode *find_node(const TimeSourceKey &key) const;
