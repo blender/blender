@@ -332,7 +332,17 @@ static void setup_app_data(
 			}
 		}
 	}
-	BKE_scene_set_background(G.main, curscene);
+
+	if (mode == LOAD_UI_OFF && BLI_listbase_is_empty(&G.main->wm)) {
+		/* XXX prevent crash in pdInitEffectors called through DEG_scene_relations_rebuild (see T51794).
+		 * Can be removed once BKE_scene_layer_context_active_ex gets workspace passed. */
+		BLI_addhead(&G.main->wm, CTX_wm_manager(C));
+		BKE_scene_set_background(G.main, curscene);
+		BLI_listbase_clear(&G.main->wm);
+	}
+	else {
+		BKE_scene_set_background(G.main, curscene);
+	}
 
 	if (mode != LOAD_UNDO) {
 		RE_FreeAllPersistentData();
