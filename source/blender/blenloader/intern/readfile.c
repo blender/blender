@@ -2797,9 +2797,10 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 		IDP_LibLinkProperty(id->properties, fd);
 		id_us_ensure_real(id);
 
-		for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
+		for (WorkSpaceLayout *layout = layouts->first, *layout_next; layout; layout = layout_next) {
 			bScreen *screen = newlibadr(fd, id->lib, BKE_workspace_layout_screen_get(layout));
 
+			layout_next = layout->next;
 			if (screen) {
 				BKE_workspace_layout_screen_set(layout, screen);
 
