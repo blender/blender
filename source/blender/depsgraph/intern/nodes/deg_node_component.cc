@@ -198,7 +198,7 @@ OperationDepsNode *ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
 	return has_operation(key);
 }
 
-OperationDepsNode *ComponentDepsNode::add_operation(DepsEvalOperationCb op,
+OperationDepsNode *ComponentDepsNode::add_operation(const DepsEvalOperationCb& op,
                                                     eDepsOperation_Code opcode,
                                                     const char *name,
                                                     int name_tag)

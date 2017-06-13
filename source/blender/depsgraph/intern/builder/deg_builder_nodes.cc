@@ -183,7 +183,7 @@ ComponentDepsNode *DepsgraphNodeBuilder::add_component_node(
 
 OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         ComponentDepsNode *comp_node,
-        DepsEvalOperationCb op,
+        const DepsEvalOperationCb& op,
         eDepsOperation_Code opcode,
         const char *name,
         int name_tag)
@@ -210,7 +210,7 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
         const char *comp_name,
-        DepsEvalOperationCb op,
+        const DepsEvalOperationCb& op,
         eDepsOperation_Code opcode,
         const char *name,
         int name_tag)
@@ -222,7 +222,7 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
-        DepsEvalOperationCb op,
+        const DepsEvalOperationCb& op,
         eDepsOperation_Code opcode,
         const char *name,
         int name_tag)
