@@ -307,7 +307,7 @@ static struct DRWGlobalState {
 static struct DRWMatrixOveride {
 	float mat[6][4][4];
 	bool override[6];
-} viewport_matrix_override = {0};
+} viewport_matrix_override = {{{{0}}}};
 
 ListBase DRW_engines = {NULL, NULL};
 
