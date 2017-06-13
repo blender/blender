@@ -142,7 +142,7 @@ ccl_device_inline void kernel_write_denoising_shadow(KernelGlobals *kg, ccl_glob
 
 ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
                                                         ShaderData *sd,
-                                                        ccl_global PathState *state,
+                                                        ccl_addr_space PathState *state,
                                                         PathRadiance *L)
 {
 #ifdef __DENOISING_FEATURES__

@@ -660,6 +660,7 @@ typedef struct VolumeSegment {
  * but the entire segment is needed to do always scattering, rather than probabilistically
  * hitting or missing the volume. if we don't know the transmittance at the end of the
  * volume we can't generate stratified distance samples up to that transmittance */
+#ifdef __VOLUME_DECOUPLED__
 ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *state,
 	Ray *ray, ShaderData *sd, VolumeSegment *segment, bool heterogeneous)
 {
@@ -829,6 +830,7 @@ ccl_device void kernel_volume_decoupled_free(KernelGlobals *kg, VolumeSegment *s
 #endif
 	}
 }
+#endif  /* __VOLUME_DECOUPLED__ */
 
 /* scattering for homogeneous and heterogeneous volumes, using decoupled ray
  * marching.
