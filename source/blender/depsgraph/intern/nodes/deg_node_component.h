@@ -99,7 +99,7 @@ struct ComponentDepsNode : public DepsNode {
 	 * \param op: The operation to perform
 	 * \param name: Identifier for operation - used to find/locate it again
 	 */
-	OperationDepsNode *add_operation(DepsEvalOperationCb op,
+	OperationDepsNode *add_operation(const DepsEvalOperationCb& op,
 	                                 eDepsOperation_Code opcode,
 	                                 const char *name,
 	                                 int name_tag);
