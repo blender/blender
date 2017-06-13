@@ -109,31 +109,6 @@ void TimeSourceDepsNode::tag_update(Depsgraph *graph)
 	}
 }
 
-
-/* Root Node ============================================== */
-
-RootDepsNode::RootDepsNode() : scene(NULL), time_source(NULL)
-{
-}
-
-RootDepsNode::~RootDepsNode()
-{
-	OBJECT_GUARDED_DELETE(time_source, TimeSourceDepsNode);
-}
-
-TimeSourceDepsNode *RootDepsNode::add_time_source(const char *name)
-{
-	if (!time_source) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_TIMESOURCE);
-		time_source = (TimeSourceDepsNode *)factory->create_node(NULL, "", name);
-		/*time_source->owner = this;*/ // XXX
-	}
-	return time_source;
-}
-
-DEG_DEPSNODE_DEFINE(RootDepsNode, DEG_NODE_TYPE_ROOT, "Root DepsNode");
-static DepsNodeFactoryImpl<RootDepsNode> DNTI_ROOT;
-
 /* Time Source Node ======================================= */
 
 DEG_DEPSNODE_DEFINE(TimeSourceDepsNode, DEG_NODE_TYPE_TIMESOURCE, "Time Source");
@@ -266,9 +241,7 @@ static DepsNodeFactoryImpl<IDDepsNode> DNTI_ID_REF;
 
 void deg_register_base_depsnodes()
 {
-	deg_register_node_typeinfo(&DNTI_ROOT);
 	deg_register_node_typeinfo(&DNTI_TIMESOURCE);
-
 	deg_register_node_typeinfo(&DNTI_ID_REF);
 }
 

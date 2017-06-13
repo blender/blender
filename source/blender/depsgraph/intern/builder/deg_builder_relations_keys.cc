@@ -35,13 +35,6 @@
 namespace DEG {
 
 /////////////////////////////////////////
-// Root.
-
-RootKey::RootKey()
-{
-}
-
-/////////////////////////////////////////
 // Time source.
 
 TimeSourceKey::TimeSourceKey()

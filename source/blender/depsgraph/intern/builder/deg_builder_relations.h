@@ -85,10 +85,6 @@ struct ComponentDepsNode;
 struct OperationDepsNode;
 struct RootPChanMap;
 
-struct RootKey {
-	RootKey();
-};
-
 struct TimeSourceKey
 {
 	TimeSourceKey();
@@ -252,7 +248,6 @@ struct DepsgraphRelationBuilder
 	Depsgraph *getGraph();
 
 protected:
-	RootDepsNode *find_node(const RootKey &key) const;
 	TimeSourceDepsNode *find_node(const TimeSourceKey &key) const;
 	ComponentDepsNode *find_node(const ComponentKey &key) const;
 	OperationDepsNode *find_node(const OperationKey &key) const;

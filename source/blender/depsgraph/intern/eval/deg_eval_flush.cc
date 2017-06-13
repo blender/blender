@@ -167,7 +167,6 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 					switch (comp_node->type) {
 						case DEG_NODE_TYPE_UNDEFINED:
 						case DEG_NODE_TYPE_OPERATION:
-						case DEG_NODE_TYPE_ROOT:
 						case DEG_NODE_TYPE_TIMESOURCE:
 						case DEG_NODE_TYPE_ID_REF:
 						case DEG_NODE_TYPE_PARAMETERS:
