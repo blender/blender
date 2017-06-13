@@ -63,9 +63,10 @@ static EnumPropertyItem parallax_type_items[] = {
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
-	{LIGHTPROBE_TYPE_CUBE, "CUBEMAP", ICON_NONE, "Cubemap", ""},
+	{LIGHTPROBE_TYPE_CUBE, "CUBEMAP", ICON_NONE, "Cubemap", "Capture reflections"},
 	// {LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_NONE, "Planar", ""},
 	// {LIGHTPROBE_TYPE_IMAGE, "IMAGE", ICON_NONE, "Image", ""},
+	{LIGHTPROBE_TYPE_GRID, "GRID", ICON_NONE, "Grid", "Volume used for precomputing indirect lighting"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -143,6 +144,22 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "distpar");
 	RNA_def_property_range(prop, 0.0f, 99999.f);
 	RNA_def_property_ui_text(prop, "Parallax Radius", "Lowest corner of the parallax bounding box");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
+	/* irradiance grid */
+	prop = RNA_def_property(srna, "grid_resolution_x", PROP_INT, PROP_PIXEL);
+	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_ui_text(prop, "Resolution X", "Number of sample along the x axis of the volume");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
+	prop = RNA_def_property(srna, "grid_resolution_y", PROP_INT, PROP_PIXEL);
+	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_ui_text(prop, "Resolution Y", "Number of sample along the y axis of the volume");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
+	prop = RNA_def_property(srna, "grid_resolution_z", PROP_INT, PROP_PIXEL);
+	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_ui_text(prop, "Resolution Z", "Number of sample along the z axis of the volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	/* common */

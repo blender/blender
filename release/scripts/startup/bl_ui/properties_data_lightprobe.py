@@ -64,16 +64,23 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         split = layout.split()
 
-        col = split.column(align=True)
-        col.label("Influence:")
-        col.prop(probe, "influence_type", text="")
-
-        if probe.influence_type == 'ELIPSOID':
-            col.prop(probe, "influence_distance", "Radius")
+        if probe.type == 'GRID':
+            col = split.column(align=True)
+            col.label("Resolution:")
+            col.prop(probe, "grid_resolution_x", text="X")
+            col.prop(probe, "grid_resolution_y", text="Y")
+            col.prop(probe, "grid_resolution_z", text="Z")
         else:
-            col.prop(probe, "influence_distance", "Size")
+            col = split.column(align=True)
+            col.label("Influence:")
+            col.prop(probe, "influence_type", text="")
 
-        col.prop(probe, "falloff")
+            if probe.influence_type == 'ELIPSOID':
+                col.prop(probe, "influence_distance", "Radius")
+            else:
+                col.prop(probe, "influence_distance", "Size")
+
+            col.prop(probe, "falloff")
 
         col = split.column(align=True)
         col.label("Clipping:")
@@ -84,6 +91,11 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
     bl_label = "Parallax"
     COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        return context.probe and context.probe.type == 'CUBEMAP' and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

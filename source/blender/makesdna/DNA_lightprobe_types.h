@@ -54,6 +54,11 @@ typedef struct LightProbe {
 
 	float clipsta, clipend;
 
+	int grid_resolution_x;  /* Irradiance grid resolution */
+	int grid_resolution_y;
+	int grid_resolution_z;
+	int pad1;
+
 	struct Object *parallax_ob;    /* Object to use as a parallax origin */
 	struct Image *image;           /* Image to use on as lighting data */
 
@@ -67,6 +72,7 @@ enum {
 	LIGHTPROBE_TYPE_CUBE      = 0,
 	LIGHTPROBE_TYPE_PLANAR    = 1,
 	LIGHTPROBE_TYPE_IMAGE     = 2,
+	LIGHTPROBE_TYPE_GRID      = 3,
 };
 
 /* Probe->flag */
