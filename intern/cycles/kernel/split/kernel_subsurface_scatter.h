@@ -265,21 +265,20 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 				/* do bssrdf scatter step if we picked a bssrdf closure */
 				if(sc) {
 					uint lcg_state = lcg_state_init(&rng, state->rng_offset, state->sample, 0x68bc21eb);
-
 					float bssrdf_u, bssrdf_v;
 					path_state_rng_2D(kg,
-						              &rng,
-						              state,
-						              PRNG_BSDF_U,
-						              &bssrdf_u, &bssrdf_v);
+					                  &rng,
+					                  state,
+					                  PRNG_BSDF_U,
+					                  &bssrdf_u, &bssrdf_v);
 					subsurface_scatter_step(kg,
-						                    sd,
-						                    state,
-						                    state->flag,
-						                    sc,
-						                    &lcg_state,
-						                    bssrdf_u, bssrdf_v,
-						                    false);
+					                        sd,
+					                        state,
+					                        state->flag,
+					                        sc,
+					                        &lcg_state,
+					                        bssrdf_u, bssrdf_v,
+					                        false);
 				}
 			}
 			else {
