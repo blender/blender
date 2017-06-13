@@ -58,6 +58,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_workspace_types.h"
 
 #include "IMB_imbuf_types.h"
 

@@ -48,6 +48,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"

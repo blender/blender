@@ -35,6 +35,7 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_workspace_types.h"
 
 EnumPropertyItem rna_enum_region_type_items[] = {
 	{RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},

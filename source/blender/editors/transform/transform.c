@@ -43,6 +43,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"  /* PET modes */
+#include "DNA_workspace_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_utildefines.h"

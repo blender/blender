@@ -38,6 +38,7 @@
 #include "DNA_object_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_workspace_types.h"
 
 #include "DEG_depsgraph.h"
 

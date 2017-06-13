@@ -39,6 +39,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_genfile.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_customdata.h"

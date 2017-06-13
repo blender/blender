@@ -40,6 +40,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"

@@ -41,6 +41,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
