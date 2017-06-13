@@ -1,7 +1,11 @@
 
-set(INC gawain)
+set(INC
+	gawain
+)
 
-set(INC_SYS ${GLEW_INCLUDE_PATH})
+set(INC_SYS
+	${GLEW_INCLUDE_PATH}
+)
 
 set(SRC
 	src/attrib_binding.c
@@ -16,16 +20,19 @@ set(SRC
 	src/vertex_format.c
 
 	gawain/attrib_binding.h
+	gawain/attrib_binding_private.h
 	gawain/batch.h
 	gawain/buffer_id.h
 	gawain/common.h
 	gawain/element.h
-	gawain/immediate.h
 	gawain/imm_util.h
+	gawain/immediate.h
 	gawain/primitive.h
+	gawain/primitive_private.h
 	gawain/shader_interface.h
 	gawain/vertex_buffer.h
 	gawain/vertex_format.h
+	gawain/vertex_format_private.h
 )
 
 add_definitions(${GL_DEFINITIONS})

@@ -107,6 +107,7 @@ set(SRC
 	GPU_immediate.h
 	GPU_immediate_util.h
 	GPU_init_exit.h
+	GPU_lamp.h
 	GPU_legacy_stubs.h
 	GPU_material.h
 	GPU_matrix.h

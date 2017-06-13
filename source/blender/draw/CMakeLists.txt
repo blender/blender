@@ -99,6 +99,7 @@ set(SRC
 	engines/basic/basic_engine.h
 	engines/clay/clay_engine.h
 	engines/eevee/eevee_engine.h
+	engines/eevee/eevee_lut.h
 	engines/eevee/eevee_private.h
 	engines/external/external_engine.h
 )
