@@ -41,6 +41,7 @@
 #define SHADER_DEFINES \
 	"#define EEVEE_ENGINE\n" \
 	"#define MAX_PROBE " STRINGIFY(MAX_PROBE) "\n" \
+	"#define MAX_GRID " STRINGIFY(MAX_GRID) "\n" \
 	"#define MAX_LIGHT " STRINGIFY(MAX_LIGHT) "\n" \
 	"#define MAX_SHADOW_CUBE " STRINGIFY(MAX_SHADOW_CUBE) "\n" \
 	"#define MAX_SHADOW_MAP " STRINGIFY(MAX_SHADOW_MAP) "\n" \
@@ -87,8 +88,6 @@ extern char datatoc_lit_surface_vert_glsl[];
 extern char datatoc_shadow_frag_glsl[];
 extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_vert_glsl[];
-extern char datatoc_lightprobe_filter_frag_glsl[];
-extern char datatoc_lightprobe_sh_frag_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_background_vert_glsl[];
@@ -186,11 +185,25 @@ void EEVEE_materials_init(void)
 		e_data.default_lit = DRW_shader_create(
 		        datatoc_lit_surface_vert_glsl, NULL, frag_str,
 		        SHADER_DEFINES
+#if defined(IRRADIANCE_SH_L2)
+		        "#define IRRADIANCE_SH_L2\n"
+#elif defined(IRRADIANCE_CUBEMAP)
+		        "#define IRRADIANCE_CUBEMAP\n"
+#elif defined(IRRADIANCE_HL2)
+		        "#define IRRADIANCE_HL2\n"
+#endif
 		        "#define MESH_SHADER\n");
 
 		e_data.default_lit_flat = DRW_shader_create(
 		        datatoc_lit_surface_vert_glsl, NULL, frag_str,
 		        SHADER_DEFINES
+#if defined(IRRADIANCE_SH_L2)
+		        "#define IRRADIANCE_SH_L2\n"
+#elif defined(IRRADIANCE_CUBEMAP)
+		        "#define IRRADIANCE_CUBEMAP\n"
+#elif defined(IRRADIANCE_HL2)
+		        "#define IRRADIANCE_HL2\n"
+#endif
 		        "#define MESH_SHADER\n"
 		        "#define USE_FLAT_NORMAL\n");
 
@@ -250,22 +263,21 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
 	    SHADER_DEFINES "#define WORLD_BACKGROUND\n");
 }
 
-struct GPUMaterial *EEVEE_material_mesh_lightprobe_get(struct Scene *scene, Material *ma)
-{
-	return GPU_material_from_nodetree(
-	    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type,
-	    VAR_MAT_MESH | VAR_MAT_PROBE,
-	    datatoc_lightprobe_vert_glsl, NULL, e_data.frag_shader_lib,
-	    SHADER_DEFINES "#define MESH_SHADER\n" "#define PROBE_CAPTURE\n");
-}
-
 struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma)
 {
 	return GPU_material_from_nodetree(
 	    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type,
 	    VAR_MAT_MESH,
 	    datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
-	    SHADER_DEFINES "#define MESH_SHADER\n");
+	    SHADER_DEFINES
+#if defined(IRRADIANCE_SH_L2)
+	    "#define IRRADIANCE_SH_L2\n"
+#elif defined(IRRADIANCE_CUBEMAP)
+	    "#define IRRADIANCE_CUBEMAP\n"
+#elif defined(IRRADIANCE_HL2)
+	    "#define IRRADIANCE_HL2\n"
+#endif
+	    "#define MESH_SHADER\n");
 }
 
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma)
@@ -280,13 +292,16 @@ struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma)
 static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *sldata)
 {
 	DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
+	DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
 	DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
 	DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
 	DRW_shgroup_uniform_int(shgrp, "light_count", &sldata->lamps->num_light, 1);
-	DRW_shgroup_uniform_int(shgrp, "probe_count", &sldata->probes->num_render_probe, 1);
+	DRW_shgroup_uniform_int(shgrp, "probe_count", &sldata->probes->num_render_cube, 1);
+	DRW_shgroup_uniform_int(shgrp, "grid_count", &sldata->probes->num_render_grid, 1);
 	DRW_shgroup_uniform_float(shgrp, "lodMax", &sldata->probes->lodmax, 1);
 	DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
 	DRW_shgroup_uniform_buffer(shgrp, "probeCubes", &sldata->probe_pool);
+	DRW_shgroup_uniform_buffer(shgrp, "irradianceGrid", &sldata->irradiance_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCubes", &sldata->shadow_depth_cube_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCascades", &sldata->shadow_depth_cascade_pool);
 }

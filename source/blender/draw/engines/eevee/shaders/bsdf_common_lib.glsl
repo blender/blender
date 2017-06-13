@@ -11,7 +11,6 @@
 
 struct ProbeData {
 	vec4 position_type;
-	vec4 shcoefs[7];
 	vec4 attenuation_fac_type;
 	mat4 influencemat;
 	mat4 parallaxmat;
@@ -24,6 +23,36 @@ struct ProbeData {
 #define p_parallax_type position_type.w
 #define p_atten_fac     attenuation_fac_type.x
 #define p_atten_type    attenuation_fac_type.y
+
+struct GridData {
+	mat4 localmat;
+	ivec4 resolution_offset;
+	vec4 ws_corner;      /* world space position */
+	vec4 ws_increment_x; /* world space vector between 2 opposite cells */
+	vec4 ws_increment_y;
+	vec4 ws_increment_z;
+};
+
+#define g_corner        ws_corner.xyz
+#define g_increment_x   ws_increment_x.xyz
+#define g_increment_y   ws_increment_y.xyz
+#define g_increment_z   ws_increment_z.xyz
+#define g_resolution    resolution_offset.xyz
+#define g_offset        resolution_offset.w
+
+#ifdef IRRADIANCE_CUBEMAP
+struct IrradianceData {
+	vec3 color;
+};
+#elif defined(IRRADIANCE_SH_L2)
+struct IrradianceData {
+	vec3 shcoefs[9];
+};
+#else /* defined(IRRADIANCE_HL2) */
+struct IrradianceData {
+	vec3 cubesides[3];
+};
+#endif
 
 /* TODO remove sh once we have irradiance grid */
 #define shcoef0        shcoefs[0].rgb
@@ -226,36 +255,60 @@ float buffer_depth(bool is_persp, float z, float zf, float zn)
 #define spherical_harmonics spherical_harmonics_L2
 
 /* http://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/ */
-vec3 spherical_harmonics_L1(vec3 N, vec4 shcoefs[3])
+vec3 spherical_harmonics_L1(vec3 N, vec3 shcoefs[4])
 {
 	vec3 sh = vec3(0.0);
 
-	sh += 0.282095 * shcoef0;
+	sh += 0.282095 * shcoefs[0];
 
-	sh += -0.488603 * N.z * shcoef1;
-	sh += 0.488603 * N.y * shcoef2;
-	sh += -0.488603 * N.x * shcoef3;
+	sh += -0.488603 * N.z * shcoefs[1];
+	sh += 0.488603 * N.y * shcoefs[2];
+	sh += -0.488603 * N.x * shcoefs[3];
 
 	return sh;
 }
 
-vec3 spherical_harmonics_L2(vec3 N, vec4 shcoefs[7])
+vec3 spherical_harmonics_L2(vec3 N, vec3 shcoefs[9])
 {
 	vec3 sh = vec3(0.0);
 
-	sh += 0.282095 * shcoef0;
+	sh += 0.282095 * shcoefs[0];
 
-	sh += -0.488603 * N.z * shcoef1;
-	sh += 0.488603 * N.y * shcoef2;
-	sh += -0.488603 * N.x * shcoef3;
+	sh += -0.488603 * N.z * shcoefs[1];
+	sh += 0.488603 * N.y * shcoefs[2];
+	sh += -0.488603 * N.x * shcoefs[3];
 
-	sh += 1.092548 * N.x * N.z * shcoef4;
-	sh += -1.092548 * N.z * N.y * shcoef5;
-	sh += 0.315392 * (3.0 * N.y * N.y - 1.0) * shcoef6;
-	sh += -1.092548 * N.x * N.y * shcoef7;
-	sh += 0.546274 * (N.x * N.x - N.z * N.z) * shcoef8;
+	sh += 1.092548 * N.x * N.z * shcoefs[4];
+	sh += -1.092548 * N.z * N.y * shcoefs[5];
+	sh += 0.315392 * (3.0 * N.y * N.y - 1.0) * shcoefs[6];
+	sh += -1.092548 * N.x * N.y * shcoefs[7];
+	sh += 0.546274 * (N.x * N.x - N.z * N.z) * shcoefs[8];
 
 	return sh;
+}
+
+vec3 hl2_basis(vec3 N, vec3 cubesides[3])
+{
+	vec3 irradiance = vec3(0.0);
+
+	vec3 n_squared = N * N;
+
+	irradiance += n_squared.x * cubesides[0];
+	irradiance += n_squared.y * cubesides[1];
+	irradiance += n_squared.z * cubesides[2];
+
+	return irradiance;
+}
+
+vec3 compute_irradiance(vec3 N, IrradianceData ird)
+{
+#if defined(IRRADIANCE_CUBEMAP)
+	return ird.color;
+#elif defined(IRRADIANCE_SH_L2)
+	return spherical_harmonics_L2(N, ird.shcoefs);
+#else /* defined(IRRADIANCE_HL2) */
+	return hl2_basis(N, ird.cubesides);
+#endif
 }
 
 vec3 get_specular_dominant_dir(vec3 N, vec3 R, float roughness)

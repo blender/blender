@@ -32,12 +32,18 @@ extern struct DrawEngineType draw_engine_eevee_type;
 
 /* Minimum UBO is 16384 bytes */
 #define MAX_PROBE 128 /* TODO : find size by dividing UBO max size by probe data size */
+#define MAX_GRID 64 /* TODO : find size by dividing UBO max size by grid data size */
 #define MAX_LIGHT 128 /* TODO : find size by dividing UBO max size by light data size */
 #define MAX_SHADOW_CUBE 42 /* TODO : Make this depends on GL_MAX_ARRAY_TEXTURE_LAYERS */
 #define MAX_SHADOW_MAP 64
 #define MAX_SHADOW_CASCADE 8
 #define MAX_CASCADE_NUM 4
 #define MAX_BLOOM_STEP 16
+
+/* Only define one of these. */
+// #define IRRADIANCE_SH_L2
+// #define IRRADIANCE_CUBEMAP
+#define IRRADIANCE_HL2
 
 typedef struct EEVEE_PassList {
 	/* Shadows */
@@ -49,8 +55,8 @@ typedef struct EEVEE_PassList {
 	/* Probes */
 	struct DRWPass *probe_background;
 	struct DRWPass *probe_meshes;
-	struct DRWPass *probe_prefilter;
-	struct DRWPass *probe_sh_compute;
+	struct DRWPass *probe_glossy_compute;
+	struct DRWPass *probe_diffuse_compute;
 
 	/* Effects */
 	struct DRWPass *motion_blur;
@@ -169,7 +175,6 @@ enum {
 /* ************ PROBE UBO ************* */
 typedef struct EEVEE_LightProbe {
 	float position[3], parallax_type;
-	float shcoefs[9][3], pad2;
 	float attenuation_fac;
 	float attenuation_type;
 	float pad3[2];
@@ -177,12 +182,23 @@ typedef struct EEVEE_LightProbe {
 	float parallaxmat[4][4];
 } EEVEE_LightProbe;
 
+typedef struct EEVEE_LightGrid {
+	float mat[4][4];
+	int resolution[3], offset;
+	float corner[3], pad1;
+	float increment_x[3], pad2; /* world space vector between 2 opposite cells */
+	float increment_y[3], pad3;
+	float increment_z[3], pad4;
+} EEVEE_LightGrid;
+
 /* ************ PROBE DATA ************* */
 typedef struct EEVEE_LightProbesInfo {
 	int num_cube, cache_num_cube;
+	int num_grid, cache_num_grid;
 	int update_flag;
 	/* Actual number of probes that have datas. */
-	int num_render_probe;
+	int num_render_cube;
+	int num_render_grid;
 	/* For rendering probes */
 	float probemat[6][4][4];
 	int layer;
@@ -198,9 +214,11 @@ typedef struct EEVEE_LightProbesInfo {
 	struct GPUTexture *backgroundtex;
 	/* List of probes in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
-	struct Object *probes_ref[MAX_PROBE];
+	struct Object *probes_cube_ref[MAX_PROBE];
+	struct Object *probes_grid_ref[MAX_GRID];
 	/* UBO Storage : data used by UBO */
 	struct EEVEE_LightProbe probe_data[MAX_PROBE];
+	struct EEVEE_LightGrid grid_data[MAX_GRID];
 } EEVEE_LightProbesInfo;
 
 /* EEVEE_LightProbesInfo->update_flag */
@@ -274,15 +292,15 @@ typedef struct EEVEE_SceneLayerData {
 	struct EEVEE_LightProbesInfo *probes;
 
 	struct GPUUniformBuffer *probe_ubo;
+	struct GPUUniformBuffer *grid_ubo;
 
 	struct GPUFrameBuffer *probe_fb;
 	struct GPUFrameBuffer *probe_filter_fb;
-	struct GPUFrameBuffer *probe_sh_fb;
 
 	struct GPUTexture *probe_rt;
 	struct GPUTexture *probe_depth_rt;
 	struct GPUTexture *probe_pool;
-	struct GPUTexture *probe_sh;
+	struct GPUTexture *irradiance_pool;
 
 	struct ListBase probe_queue; /* List of probes to update */
 } EEVEE_SceneLayerData;

@@ -53,13 +53,13 @@ static void eevee_scene_layer_data_free(void *storage)
 	/* Probes */
 	MEM_SAFE_FREE(sldata->probes);
 	DRW_UBO_FREE_SAFE(sldata->probe_ubo);
+	DRW_UBO_FREE_SAFE(sldata->grid_ubo);
 	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_fb);
 	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_filter_fb);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_sh_fb);
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_depth_rt);
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
-	DRW_TEXTURE_FREE_SAFE(sldata->probe_sh);
+	DRW_TEXTURE_FREE_SAFE(sldata->irradiance_pool);
 }
 
 static void eevee_lamp_data_free(void *storage)

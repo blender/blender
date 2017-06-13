@@ -2103,9 +2103,9 @@ void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer 
 	GPU_framebuffer_blit(fb_read, 0, fb_write, 0, depth);
 }
 
-void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *UNUSED(fb_read), int w, int h)
+void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *UNUSED(fb_read), int x, int y, int w, int h)
 {
-	glViewport(0, 0, w, h);
+	glViewport(x, y, w, h);
 }
 
 /* Use color management profile to draw texture to framebuffer */
