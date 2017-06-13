@@ -252,6 +252,7 @@ public:
 class PointDensityTextureNode : public ShaderNode {
 public:
 	SHADER_NODE_NO_CLONE_CLASS(PointDensityTextureNode)
+	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	~PointDensityTextureNode();
 	ShaderNode *clone() const;
