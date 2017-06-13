@@ -198,13 +198,6 @@ DepsgraphRelationBuilder::DepsgraphRelationBuilder(Depsgraph *graph) :
 {
 }
 
-RootDepsNode *DepsgraphRelationBuilder::find_node(const RootKey &key) const
-{
-	(void)key;
-	BLI_assert(!"Doesn't seem to be correct");
-	return m_graph->root_node;
-}
-
 TimeSourceDepsNode *DepsgraphRelationBuilder::find_node(
         const TimeSourceKey &key) const
 {
@@ -213,7 +206,7 @@ TimeSourceDepsNode *DepsgraphRelationBuilder::find_node(
 		return NULL;
 	}
 	else {
-		return m_graph->root_node->time_source;
+		return m_graph->time_source;
 	}
 }
 

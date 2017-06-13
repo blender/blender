@@ -77,19 +77,18 @@ static const char *deg_debug_colors_light[] = {
 
 #ifdef COLOR_SCHEME_NODE_TYPE
 static const int deg_debug_node_type_color_map[][2] = {
-    {DEG_NODE_TYPE_ROOT,         0},
-    {DEG_NODE_TYPE_TIMESOURCE,   1},
+    {DEG_NODE_TYPE_TIMESOURCE,   0},
     {DEG_NODE_TYPE_ID_REF,       2},
 
     /* Outer Types */
-    {DEG_NODE_TYPE_PARAMETERS,   3},
-    {DEG_NODE_TYPE_PROXY,        4},
-    {DEG_NODE_TYPE_ANIMATION,    5},
-    {DEG_NODE_TYPE_TRANSFORM,    6},
-    {DEG_NODE_TYPE_GEOMETRY,     7},
-    {DEG_NODE_TYPE_SEQUENCER,    8},
-    {DEG_NODE_TYPE_SHADING,      9},
-    {DEG_NODE_TYPE_CACHE,        10},
+    {DEG_NODE_TYPE_PARAMETERS,   2},
+    {DEG_NODE_TYPE_PROXY,        3},
+    {DEG_NODE_TYPE_ANIMATION,    4},
+    {DEG_NODE_TYPE_TRANSFORM,    5},
+    {DEG_NODE_TYPE_GEOMETRY,     6},
+    {DEG_NODE_TYPE_SEQUENCER,    7},
+    {DEG_NODE_TYPE_SHADING,      8},
+    {DEG_NODE_TYPE_CACHE,        9},
     {-1,                         0}
 };
 #endif
@@ -498,9 +497,6 @@ static void deg_debug_graphviz_node_relations(const DebugContext &ctx,
 static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx,
                                            const Depsgraph *graph)
 {
-	if (graph->root_node) {
-		deg_debug_graphviz_node(ctx, graph->root_node);
-	}
 	GHASH_FOREACH_BEGIN (DepsNode *, node, graph->id_hash)
 	{
 		deg_debug_graphviz_node(ctx, node);

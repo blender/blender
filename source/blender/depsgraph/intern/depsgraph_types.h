@@ -88,8 +88,6 @@ typedef enum eDepsNode_Type {
 
 	/* **** Generic Types **** */
 
-	/* "Current Scene" - basically whatever kicks off the evaluation process. */
-	DEG_NODE_TYPE_ROOT,
 	/* Time-Source */
 	DEG_NODE_TYPE_TIMESOURCE,
 	/* ID-Block reference - used as landmarks/collection point for components,
