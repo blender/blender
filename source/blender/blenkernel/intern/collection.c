@@ -34,6 +34,7 @@
 #include "BLI_string_utils.h"
 
 #include "BKE_collection.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -254,6 +255,14 @@ void BKE_collection_object_add_from(Scene *scene, Object *ob_src, Object *ob_dst
 		}
 	}
 	FOREACH_SCENE_COLLECTION_END
+
+	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+		Base *base_src = BKE_scene_layer_base_find(sl, ob_src);
+		if (base_src != NULL) {
+			Base *base_dst = BKE_scene_layer_base_find(sl, ob_dst);
+			IDP_MergeGroup(base_dst->collection_properties, base_src->collection_properties, true);
+		}
+	}
 }
 
 /**

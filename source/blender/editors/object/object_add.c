@@ -2064,9 +2064,6 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, SceneLayer
 		obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
 		DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
-		/* TODO(sergey): Use proper flag for tagging here. */
-		DEG_id_tag_update(&scene->id, 0);
-
 		BKE_collection_object_add_from(scene, ob, obn);
 		basen = BKE_scene_layer_base_find(sl, obn);
 
