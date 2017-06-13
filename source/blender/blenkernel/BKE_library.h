@@ -50,6 +50,7 @@ struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
 
+size_t BKE_libblock_get_alloc_info(short type, const char **name);
 void *BKE_libblock_alloc_notest(short type);
 void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BKE_libblock_init_empty(struct ID *id);

@@ -858,118 +858,72 @@ int set_listbasepointers(Main *main, ListBase **lb)
  * **************************** */
 
 /**
+ * Get allocation size fo a given datablock type and optionally allocation name.
+ */
+size_t BKE_libblock_get_alloc_info(short type, const char **name)
+{
+#define CASE_RETURN(id_code, type)  \
+	case id_code:                   \
+		do {                        \
+			if (name != NULL) {     \
+				*name = #type;      \
+			}                       \
+			return sizeof(type);    \
+		} while(0)
+
+	switch ((ID_Type)type) {
+		CASE_RETURN(ID_SCE, Scene);
+		CASE_RETURN(ID_LI,  Library);
+		CASE_RETURN(ID_OB,  Object);
+		CASE_RETURN(ID_ME,  Mesh);
+		CASE_RETURN(ID_CU,  Curve);
+		CASE_RETURN(ID_MB,  MetaBall);
+		CASE_RETURN(ID_MA,  Material);
+		CASE_RETURN(ID_TE,  Tex);
+		CASE_RETURN(ID_IM,  Image);
+		CASE_RETURN(ID_LT,  Lattice);
+		CASE_RETURN(ID_LA,  Lamp);
+		CASE_RETURN(ID_CA,  Camera);
+		CASE_RETURN(ID_IP,  Ipo);
+		CASE_RETURN(ID_KE,  Key);
+		CASE_RETURN(ID_WO,  World);
+		CASE_RETURN(ID_SCR, bScreen);
+		CASE_RETURN(ID_VF,  VFont);
+		CASE_RETURN(ID_TXT, Text);
+		CASE_RETURN(ID_SPK, Speaker);
+		CASE_RETURN(ID_SO,  bSound);
+		CASE_RETURN(ID_GR,  Group);
+		CASE_RETURN(ID_AR,  bArmature);
+		CASE_RETURN(ID_AC,  bAction);
+		CASE_RETURN(ID_NT,  bNodeTree);
+		CASE_RETURN(ID_BR,  Brush);
+		CASE_RETURN(ID_PA,  ParticleSettings);
+		CASE_RETURN(ID_WM,  wmWindowManager);
+		CASE_RETURN(ID_GD,  bGPdata);
+		CASE_RETURN(ID_MC,  MovieClip);
+		CASE_RETURN(ID_MSK, Mask);
+		CASE_RETURN(ID_LS,  FreestyleLineStyle);
+		CASE_RETURN(ID_PAL, Palette);
+		CASE_RETURN(ID_PC,  PaintCurve);
+		CASE_RETURN(ID_CF,  CacheFile);
+	}
+	return 0;
+#undef CASE_RETURN
+}
+
+/**
  * Allocates and returns memory of the right size for the specified block type,
  * initialized to zero.
  */
 void *BKE_libblock_alloc_notest(short type)
 {
-	ID *id = NULL;
-	
-	switch ((ID_Type)type) {
-		case ID_SCE:
-			id = MEM_callocN(sizeof(Scene), "scene");
-			break;
-		case ID_LI:
-			id = MEM_callocN(sizeof(Library), "library");
-			break;
-		case ID_OB:
-			id = MEM_callocN(sizeof(Object), "object");
-			break;
-		case ID_ME:
-			id = MEM_callocN(sizeof(Mesh), "mesh");
-			break;
-		case ID_CU:
-			id = MEM_callocN(sizeof(Curve), "curve");
-			break;
-		case ID_MB:
-			id = MEM_callocN(sizeof(MetaBall), "mball");
-			break;
-		case ID_MA:
-			id = MEM_callocN(sizeof(Material), "mat");
-			break;
-		case ID_TE:
-			id = MEM_callocN(sizeof(Tex), "tex");
-			break;
-		case ID_IM:
-			id = MEM_callocN(sizeof(Image), "image");
-			break;
-		case ID_LT:
-			id = MEM_callocN(sizeof(Lattice), "latt");
-			break;
-		case ID_LA:
-			id = MEM_callocN(sizeof(Lamp), "lamp");
-			break;
-		case ID_CA:
-			id = MEM_callocN(sizeof(Camera), "camera");
-			break;
-		case ID_IP:
-			id = MEM_callocN(sizeof(Ipo), "ipo");
-			break;
-		case ID_KE:
-			id = MEM_callocN(sizeof(Key), "key");
-			break;
-		case ID_WO:
-			id = MEM_callocN(sizeof(World), "world");
-			break;
-		case ID_SCR:
-			id = MEM_callocN(sizeof(bScreen), "screen");
-			break;
-		case ID_VF:
-			id = MEM_callocN(sizeof(VFont), "vfont");
-			break;
-		case ID_TXT:
-			id = MEM_callocN(sizeof(Text), "text");
-			break;
-		case ID_SPK:
-			id = MEM_callocN(sizeof(Speaker), "speaker");
-			break;
-		case ID_SO:
-			id = MEM_callocN(sizeof(bSound), "sound");
-			break;
-		case ID_GR:
-			id = MEM_callocN(sizeof(Group), "group");
-			break;
-		case ID_AR:
-			id = MEM_callocN(sizeof(bArmature), "armature");
-			break;
-		case ID_AC:
-			id = MEM_callocN(sizeof(bAction), "action");
-			break;
-		case ID_NT:
-			id = MEM_callocN(sizeof(bNodeTree), "nodetree");
-			break;
-		case ID_BR:
-			id = MEM_callocN(sizeof(Brush), "brush");
-			break;
-		case ID_PA:
-			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
-			break;
-		case ID_WM:
-			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
-			break;
-		case ID_GD:
-			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
-			break;
-		case ID_MC:
-			id = MEM_callocN(sizeof(MovieClip), "Movie Clip");
-			break;
-		case ID_MSK:
-			id = MEM_callocN(sizeof(Mask), "Mask");
-			break;
-		case ID_LS:
-			id = MEM_callocN(sizeof(FreestyleLineStyle), "Freestyle Line Style");
-			break;
-		case ID_PAL:
-			id = MEM_callocN(sizeof(Palette), "Palette");
-			break;
-		case ID_PC:
-			id = MEM_callocN(sizeof(PaintCurve), "Paint Curve");
-			break;
-		case ID_CF:
-			id = MEM_callocN(sizeof(CacheFile), "Cache File");
-			break;
+	const char *name;
+	size_t size = BKE_libblock_get_alloc_info(type, &name);
+	if (size != 0) {
+		return MEM_callocN(size, name);
 	}
-	return id;
+	BLI_assert(!"Request to allocate unknown data type");
+	return NULL;
 }
 
 /**
