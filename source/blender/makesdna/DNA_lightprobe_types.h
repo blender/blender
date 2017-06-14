@@ -64,7 +64,6 @@ typedef struct LightProbe {
 
 	/* Runtime display data */
 	float distfalloff, pad;
-	float clipmat[6][4][4];
 } LightProbe;
 
 /* Probe->type */
