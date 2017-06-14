@@ -460,8 +460,6 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_PassList
 		e_data.update_world = true;
 		e_data.world_ready_to_shade = false;
 		pinfo->num_render_cube = 0;
-		pinfo->num_render_grid = 0;
-		pinfo->updated_bounce = 0;
 		pinfo->update_flag |= PROBE_UPDATE_CUBE;
 		pinfo->cache_num_cube = pinfo->num_cube;
 
@@ -469,12 +467,6 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_PassList
 			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
 			ped->need_update = true;
 			ped->ready_to_shade = false;
-		}
-
-		for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_PROBE); i++) {
-			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
-			ped->need_update = true;
-			ped->updated_cells = 0;
 		}
 	}
 
@@ -493,10 +485,25 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_PassList
 	if (!sldata->irradiance_pool) {
 		sldata->irradiance_pool = DRW_texture_create_2D(IRRADIANCE_POOL_SIZE, IRRADIANCE_POOL_SIZE, irradiance_format, DRW_TEX_FILTER, NULL);
 		pinfo->num_render_grid = 0;
+		pinfo->updated_bounce = 0;
+
+		for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_PROBE); i++) {
+			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+			ped->need_update = true;
+			ped->updated_cells = 0;
+		}
 	}
 
 	if (!sldata->irradiance_rt) {
 		sldata->irradiance_rt = DRW_texture_create_2D(IRRADIANCE_POOL_SIZE, IRRADIANCE_POOL_SIZE, irradiance_format, DRW_TEX_FILTER, NULL);
+		pinfo->num_render_grid = 0;
+		pinfo->updated_bounce = 0;
+
+		for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_PROBE); i++) {
+			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+			ped->need_update = true;
+			ped->updated_cells = 0;
+		}
 	}
 
 	EEVEE_lightprobes_updates(sldata, psl);
