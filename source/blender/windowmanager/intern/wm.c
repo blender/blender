@@ -483,13 +483,12 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 
 void wm_close_and_free_all(bContext *C, ListBase *wmlist)
 {
-	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm;
-	
+
 	while ((wm = wmlist->first)) {
 		wm_close_and_free(C, wm);
 		BLI_remlink(wmlist, wm);
-		BKE_libblock_free_data(bmain, &wm->id, true);
+		BKE_libblock_free_data(&wm->id, true);
 		MEM_freeN(wm);
 	}
 }

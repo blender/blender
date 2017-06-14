@@ -723,7 +723,7 @@ void BKE_libblock_relink_to_newid(ID *id)
 	BKE_library_foreach_ID_link(NULL, id, id_relink_to_newid_looper, NULL, 0);
 }
 
-void BKE_libblock_free_data(Main *UNUSED(bmain), ID *id, const bool do_id_user)
+void BKE_libblock_free_data(ID *id, const bool do_id_user)
 {
 	if (id->properties) {
 		IDP_FreeProperty_ex(id->properties, do_id_user);
@@ -882,7 +882,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const b
 
 	BLI_remlink(lb, id);
 
-	BKE_libblock_free_data(bmain, id, do_id_user);
+	BKE_libblock_free_data(id, do_id_user);
 	BKE_main_unlock(bmain);
 
 	MEM_freeN(id);
