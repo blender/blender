@@ -291,16 +291,6 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name)
 	return id_node;
 }
 
-void Depsgraph::remove_id_node(const ID *id)
-{
-	IDDepsNode *id_node = find_id_node(id);
-	if (id_node) {
-		/* unregister */
-		BLI_ghash_remove(id_hash, id, NULL, NULL);
-		OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
-	}
-}
-
 void Depsgraph::clear_id_nodes()
 {
 	BLI_ghash_clear(id_hash, NULL, id_node_deleter);
