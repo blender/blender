@@ -255,9 +255,9 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *ob)
 	}
 
 	op_node = add_operation_node(&ob->id,
-	                   DEG_NODE_TYPE_EVAL_POSE,
-	                   function_bind(BKE_pose_eval_proxy_copy, _1, ob),
-	                   DEG_OPCODE_POSE_INIT);
+	                             DEG_NODE_TYPE_EVAL_POSE,
+	                             function_bind(BKE_pose_eval_proxy_copy, _1, ob),
+	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
 
 	LINKLIST_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
