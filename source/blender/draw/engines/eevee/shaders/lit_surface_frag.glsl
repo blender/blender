@@ -6,8 +6,8 @@ uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
 
 uniform sampler2DArray probeCubes;
-uniform sampler2D irradianceGrid;
 uniform float lodMax;
+uniform bool specToggle;
 
 #ifndef UTIL_TEX
 #define UTIL_TEX
@@ -185,6 +185,8 @@ void light_shade(
 		specular = direct_ggx_point(sd, roughness, f0);
 	}
 #endif
+
+	specular *= float(specToggle);
 }
 #endif
 
@@ -310,88 +312,6 @@ float probe_attenuation(vec3 W, ProbeData pd)
 	return fac;
 }
 
-IrradianceData load_irradiance_cell(int cell, vec3 N)
-{
-	/* Keep in sync with diffuse_filter_probe() */
-
-#if defined(IRRADIANCE_CUBEMAP)
-
-	#define AMBIANT_CUBESIZE 8
-	ivec2 cell_co = ivec2(AMBIANT_CUBESIZE);
-	int cell_per_row = textureSize(irradianceGrid, 0).x / cell_co.x;
-	cell_co.x *= cell % cell_per_row;
-	cell_co.y *= cell / cell_per_row;
-
-	vec2 texelSize = 1.0 / vec2(AMBIANT_CUBESIZE);
-
-	vec2 uvs = mapping_octahedron(N, texelSize);
-	uvs *= vec2(AMBIANT_CUBESIZE) / vec2(textureSize(irradianceGrid, 0));
-	uvs += vec2(cell_co) / vec2(textureSize(irradianceGrid, 0));
-
-	IrradianceData ir;
-	ir.color = texture(irradianceGrid, uvs).rgb;
-
-#elif defined(IRRADIANCE_SH_L2)
-
-	ivec2 cell_co = ivec2(3, 3);
-	int cell_per_row = textureSize(irradianceGrid, 0).x / cell_co.x;
-	cell_co.x *= cell % cell_per_row;
-	cell_co.y *= cell / cell_per_row;
-
-	ivec3 ofs = ivec3(0, 1, 2);
-
-	IrradianceData ir;
-	ir.shcoefs[0] = texelFetch(irradianceGrid, cell_co + ofs.xx, 0).rgb;
-	ir.shcoefs[1] = texelFetch(irradianceGrid, cell_co + ofs.yx, 0).rgb;
-	ir.shcoefs[2] = texelFetch(irradianceGrid, cell_co + ofs.zx, 0).rgb;
-	ir.shcoefs[3] = texelFetch(irradianceGrid, cell_co + ofs.xy, 0).rgb;
-	ir.shcoefs[4] = texelFetch(irradianceGrid, cell_co + ofs.yy, 0).rgb;
-	ir.shcoefs[5] = texelFetch(irradianceGrid, cell_co + ofs.zy, 0).rgb;
-	ir.shcoefs[6] = texelFetch(irradianceGrid, cell_co + ofs.xz, 0).rgb;
-	ir.shcoefs[7] = texelFetch(irradianceGrid, cell_co + ofs.yz, 0).rgb;
-	ir.shcoefs[8] = texelFetch(irradianceGrid, cell_co + ofs.zz, 0).rgb;
-
-#else /* defined(IRRADIANCE_HL2) */
-
-	ivec2 cell_co = ivec2(3, 2);
-	int cell_per_row = textureSize(irradianceGrid, 0).x / cell_co.x;
-	cell_co.x *= cell % cell_per_row;
-	cell_co.y *= cell / cell_per_row;
-
-	ivec3 is_negative = ivec3(step(0.0, -N));
-
-	IrradianceData ir;
-	ir.cubesides[0] = texelFetch(irradianceGrid, cell_co + ivec2(0, is_negative.x), 0).rgb;
-	ir.cubesides[1] = texelFetch(irradianceGrid, cell_co + ivec2(1, is_negative.y), 0).rgb;
-	ir.cubesides[2] = texelFetch(irradianceGrid, cell_co + ivec2(2, is_negative.z), 0).rgb;
-
-#endif
-
-	return ir;
-}
-
-vec3 get_cell_color(ivec3 localpos, ivec3 gridres, int offset, vec3 ir_dir)
-{
-	/* Keep in sync with update_irradiance_probe */
-
-	int cell = offset + localpos.z + localpos.y * gridres.z + localpos.x * gridres.z * gridres.y;
-	IrradianceData ir_data = load_irradiance_cell(cell, ir_dir);
-	return compute_irradiance(ir_dir, ir_data);
-}
-
-vec3 trilinear_filtering(vec3 weights,
-	vec3 cell0_col, vec3 cell_x_col, vec3 cell_y_col, vec3 cell_z_col, vec3 cell_xy_col, vec3 cell_xz_col, vec3 cell_yz_col, vec3 cell_xyz_col)
-{
-	vec3 x_mix_0 = mix(cell0_col, cell_x_col, weights.x);
-	vec3 x_mix_y = mix(cell_y_col, cell_xy_col, weights.x);
-	vec3 x_mix_z = mix(cell_z_col, cell_xz_col, weights.x);
-	vec3 x_mix_yz = mix(cell_yz_col, cell_xyz_col, weights.x);
-	vec3 y_mix_0 = mix(x_mix_0, x_mix_y, weights.y);
-	vec3 y_mix_z = mix(x_mix_z, x_mix_yz, weights.y);
-	vec3 z_mix1 = mix(y_mix_0, y_mix_z, weights.z);
-	return z_mix1;
-}
-
 vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness, float ao)
 {
 	roughness = clamp(roughness, 1e-8, 0.9999);
@@ -413,7 +333,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 #endif
 
 
-	/* Analitic Lights */
+	/* Analytic Lights */
 	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
 		LightData ld = lights_data[i];
 		vec3 diff, spec;
@@ -496,7 +416,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 				float weight = trilinear.x * trilinear.y * trilinear.z;
 
 				/* Smooth backface test */
-                // weight *= max(0.005, dot(ws_light, sd.N));
+				// weight *= sqrt(max(0.002, dot(ws_light, sd.N)));
 
 				/* Avoid zero weight */
 				weight = max(0.00001, weight);
@@ -509,12 +429,12 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 
 			vec3 indirect_diffuse = irradiance_accum / weight_accum;
 
-			// float influ_diff = min(fade, (1.0 - spec_accum.a));
-			float influ_diff = min(1.0, (1.0 - spec_accum.a));
+			float influ_diff = min(fade, (1.0 - diff_accum.a));
 
 			diff_accum.rgb += indirect_diffuse * influ_diff;
 			diff_accum.a += influ_diff;
 
+			/* For Debug purpose */
 			// return texture(irradianceGrid, sd.W.xy).rgb;
 		}
 	}
@@ -533,7 +453,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	}
 
 	vec3 indirect_radiance =
-	        spec_accum.rgb * F_ibl(f0, brdf_lut) +
+	        spec_accum.rgb * F_ibl(f0, brdf_lut) * float(specToggle) +
 	        diff_accum.rgb * albedo;
 
 	return radiance + indirect_radiance * ao;
