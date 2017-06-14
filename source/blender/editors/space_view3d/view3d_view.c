@@ -1198,7 +1198,7 @@ int view3d_opengl_select(
 	hits = GPU_select_end();
 	
 	/* second pass, to get the closest object to camera */
-	if (do_passes) {
+	if (do_passes && (hits > 0)) {
 		GPU_select_begin(buffer, bufsize, &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 
 #ifdef WITH_OPENGL_LEGACY

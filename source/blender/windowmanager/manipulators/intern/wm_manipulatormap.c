@@ -290,7 +290,8 @@ static int manipulator_find_intersected_3d_intern(
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = sa->spacedata.first;
 	rcti rect;
-	GLuint buffer[64];      // max 4 items per select, so large enuf
+	/* Almost certainly overkill, but allow for many custom manipulators. */
+	GLuint buffer[MAXPICKBUF];
 	short hits;
 	const bool do_passes = GPU_select_query_check_active();
 
@@ -310,7 +311,7 @@ static int manipulator_find_intersected_3d_intern(
 
 	hits = GPU_select_end();
 
-	if (do_passes) {
+	if (do_passes && (hits > 0)) {
 		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 		manipulator_find_active_3D_loop(C, visible_manipulators);
 		GPU_select_end();
