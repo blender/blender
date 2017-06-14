@@ -1755,7 +1755,7 @@ static int manipulator_selectbuf(Scene *scene, ScrArea *sa, ARegion *ar, const i
 
 	hits = GPU_select_end();
 
-	if (do_passes) {
+	if (do_passes && (hits > 0)) {
 		GPU_select_begin(buffer, 64, &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 
 		/* do the drawing */

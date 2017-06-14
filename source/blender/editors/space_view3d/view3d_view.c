@@ -1191,7 +1191,7 @@ int view3d_opengl_select(
 	hits = GPU_select_end();
 	
 	/* second pass, to get the closest object to camera */
-	if (do_passes) {
+	if (do_passes && (hits > 0)) {
 		GPU_select_begin(buffer, bufsize, &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 
 		ED_view3d_draw_select_loop(vc, scene, v3d, ar, use_obedit_skip, use_nearest);
