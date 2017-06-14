@@ -211,6 +211,7 @@ typedef struct EEVEE_LightProbesInfo {
 	float lodmax;
 	int shres;
 	int shnbr;
+	bool specular_toggle;
 	struct GPUTexture *backgroundtex;
 	/* List of probes in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */

@@ -153,6 +153,7 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata)
 
 	if (!sldata->probes) {
 		sldata->probes = MEM_callocN(sizeof(EEVEE_LightProbesInfo), "EEVEE_LightProbesInfo");
+		sldata->probes->specular_toggle = true;
 		sldata->probe_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_LightProbe) * MAX_PROBE, NULL);
 		sldata->grid_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_LightGrid) * MAX_GRID, NULL);
 	}
@@ -589,6 +590,9 @@ static void render_scene_to_probe(
 	/* Move to capture position */
 	negate_v3_v3(posmat[3], pos);
 
+	/* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */
+	sldata->probes->specular_toggle = false;
+
 	/* 1 - Render to each cubeface individually.
 	 * We do this instead of using geometry shader because a) it's faster,
 	 * b) it's easier than fixing the nodetree shaders (for view dependant effects). */
@@ -644,6 +648,9 @@ static void render_scene_to_probe(
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEWINV);
 	DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
+
+	/* Restore */
+	sldata->probes->specular_toggle = true;
 }
 
 static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
