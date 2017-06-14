@@ -4,6 +4,7 @@ in vec3 nor;
 
 uniform mat4 ViewProjectionMatrix;
 
+uniform float sphere_size;
 uniform int offset;
 uniform ivec3 grid_resolution;
 uniform vec3 corner;
@@ -29,6 +30,6 @@ void main()
 	     increment_y * ls_cell_location.y +
 	     increment_z * ls_cell_location.z);
 
-	gl_Position = ViewProjectionMatrix * vec4(pos * 0.02 + ws_cell_location, 1.0);
+	gl_Position = ViewProjectionMatrix * vec4(pos * 0.02 * sphere_size + ws_cell_location, 1.0);
 	worldNormal = normalize(nor);
 }

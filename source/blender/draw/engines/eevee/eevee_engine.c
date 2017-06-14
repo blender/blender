@@ -74,7 +74,7 @@ static void EEVEE_cache_init(void *vedata)
 
 	EEVEE_materials_cache_init(vedata);
 	EEVEE_lights_cache_init(sldata, psl);
-	EEVEE_lightprobes_cache_init(sldata, psl);
+	EEVEE_lightprobes_cache_init(sldata, psl, stl);
 	EEVEE_effects_cache_init(vedata);
 }
 
@@ -115,11 +115,10 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 static void EEVEE_cache_finish(void *vedata)
 {
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
-	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 
 	EEVEE_materials_cache_finish(vedata);
 	EEVEE_lights_cache_finish(sldata);
-	EEVEE_lightprobes_cache_finish(sldata, psl);
+	EEVEE_lightprobes_cache_finish(sldata, vedata);
 }
 
 static void EEVEE_draw_scene(void *vedata)

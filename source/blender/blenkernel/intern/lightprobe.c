@@ -50,6 +50,7 @@ void BKE_lightprobe_init(LightProbe *probe)
 	probe->falloff = 0.2f;
 	probe->clipsta = 1.0f;
 	probe->clipend = 40.0f;
+	probe->data_draw_size = 1.0f;
 }
 
 void *BKE_lightprobe_add(Main *bmain, const char *name)

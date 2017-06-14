@@ -144,6 +144,10 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
         col = split.column()
         col.prop(probe, "show_clip")
 
+        row = layout.row()
+        row.prop(probe, "show_data")
+        row.prop(probe, "data_draw_size")
+
 
 classes = (
     DATA_PT_context_lightprobe,
