@@ -195,7 +195,7 @@ Brush *BKE_brush_copy(Main *bmain, Brush *brush)
 	brushn->curve = curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */
-	id_fake_user_set(&brush->id);
+	id_fake_user_set(&brushn->id);
 
 	BKE_id_copy_ensure_local(bmain, &brush->id, &brushn->id);
 

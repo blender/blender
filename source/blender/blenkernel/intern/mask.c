@@ -851,7 +851,7 @@ Mask *BKE_mask_copy(Main *bmain, Mask *mask)
 	BKE_mask_layer_copy_list(&mask_new->masklayers, &mask->masklayers);
 
 	/* enable fake user by default */
-	id_fake_user_set(&mask->id);
+	id_fake_user_set(&mask_new->id);
 
 	BKE_id_copy_ensure_local(bmain, &mask->id, &mask_new->id);
 
