@@ -55,6 +55,7 @@ static struct {
 	struct GPUShader *probe_default_sh;
 	struct GPUShader *probe_filter_glossy_sh;
 	struct GPUShader *probe_filter_diffuse_sh;
+	struct GPUShader *probe_grid_display_sh;
 
 	struct GPUTexture *hammersley;
 
@@ -68,6 +69,9 @@ extern char datatoc_lightprobe_filter_glossy_frag_glsl[];
 extern char datatoc_lightprobe_filter_diffuse_frag_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
+extern char datatoc_lightprobe_grid_display_frag_glsl[];
+extern char datatoc_lightprobe_grid_display_vert_glsl[];
+extern char datatoc_irradiance_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 
@@ -145,6 +149,25 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata)
 #endif
 		        "#define HAMMERSLEY_SIZE 1024\n"
 		        "#define NOISE_SIZE 64\n");
+
+		MEM_freeN(shader_str);
+
+		ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_lightprobe_grid_display_frag_glsl);
+		shader_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+
+		e_data.probe_grid_display_sh = DRW_shader_create(
+		        datatoc_lightprobe_grid_display_vert_glsl, NULL, shader_str,
+#if defined(IRRADIANCE_SH_L2)
+		        "#define IRRADIANCE_SH_L2\n"
+#elif defined(IRRADIANCE_CUBEMAP)
+		        "#define IRRADIANCE_CUBEMAP\n"
+#elif defined(IRRADIANCE_HL2)
+		        "#define IRRADIANCE_HL2\n"
+#endif
+		        );
 
 		MEM_freeN(shader_str);
 
@@ -227,10 +250,6 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 	}
 
 	{
-		psl->probe_meshes = DRW_pass_create("LightProbe Meshes", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-	}
-
-	{
 		psl->probe_glossy_compute = DRW_pass_create("LightProbe Glossy Compute", DRW_STATE_WRITE_COLOR);
 
 		struct Batch *geom = DRW_cache_fullscreen_quad_get();
@@ -262,11 +281,16 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 		DRW_shgroup_uniform_float(grp, "invSampleCount", &sldata->probes->invsamples_ct, 1);
 		DRW_shgroup_uniform_float(grp, "lodFactor", &sldata->probes->lodfactor, 1);
 		DRW_shgroup_uniform_float(grp, "lodMax", &sldata->probes->lodmax, 1);
+		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 #endif
 		DRW_shgroup_uniform_texture(grp, "probeHdr", sldata->probe_rt);
 
 		struct Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRW_shgroup_call_add(grp, geom, NULL);
+	}
+
+	{
+		psl->probe_display = DRW_pass_create("LightProbe Display", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 	}
 }
 
@@ -303,7 +327,7 @@ void EEVEE_lightprobes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob)
 	}
 }
 
-static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata)
+static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	Object *ob;
@@ -349,7 +373,8 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata)
 		egrid->offset = offset;
 
 		/* Set offset for the next grid */
-		offset += probe->grid_resolution_x * probe->grid_resolution_y * probe->grid_resolution_z;
+		int num_cell = probe->grid_resolution_x * probe->grid_resolution_y * probe->grid_resolution_z;
+		offset += num_cell;
 
 		/* Update transforms */
 		float tmp[4][4] = {
@@ -398,12 +423,26 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata)
 		sub_v3_v3(egrid->increment_z, egrid->corner);
 
 		copy_v3_v3_int(egrid->resolution, &probe->grid_resolution_x);
+
+		/* Debug Display */
+		if ((probe->flag & LIGHTPROBE_FLAG_SHOW_INFLUENCE) != 0) {
+			struct Batch *geom = DRW_cache_sphere_get();
+			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_grid_display_sh, psl->probe_display, geom);
+			DRW_shgroup_set_instance_count(grp, num_cell);
+			DRW_shgroup_uniform_int(grp, "offset", &egrid->offset, 1);
+			DRW_shgroup_uniform_ivec3(grp, "grid_resolution", egrid->resolution, 1);
+			DRW_shgroup_uniform_vec3(grp, "corner", egrid->corner, 1);
+			DRW_shgroup_uniform_vec3(grp, "increment_x", egrid->increment_x, 1);
+			DRW_shgroup_uniform_vec3(grp, "increment_y", egrid->increment_y, 1);
+			DRW_shgroup_uniform_vec3(grp, "increment_z", egrid->increment_z, 1);
+			DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
+		}
 	}
 
 	pinfo->num_render_grid = pinfo->num_grid;
 }
 
-void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata)
+void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	Object *ob;
@@ -445,7 +484,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata)
 		pinfo->num_render_grid = 0;
 	}
 
-	EEVEE_lightprobes_updates(sldata);
+	EEVEE_lightprobes_updates(sldata, psl);
 
 	DRW_uniformbuffer_update(sldata->probe_ubo, &sldata->probes->probe_data);
 	DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
@@ -742,6 +781,27 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl
 			}
 		}
 
+		/* Reflection probes depend on diffuse lighting thus on irradiance grid */
+		for (int i = 0; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
+			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+
+			if (ped->need_update) {
+				update_irradiance_probe(sldata, psl, i);
+
+				ped->need_update = false;
+
+				if (!ped->ready_to_shade) {
+					pinfo->num_render_grid++;
+					ped->ready_to_shade = true;
+				}
+
+				DRW_viewport_request_redraw();
+
+				/* Only do one probe per frame */
+				break;
+			}
+		}
+
 		for (int i = 1; (ob = pinfo->probes_cube_ref[i]) && (i < MAX_PROBE); i++) {
 			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
 
@@ -764,26 +824,6 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl
 				break;
 			}
 		}
-
-		for (int i = 0; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
-			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
-
-			if (ped->need_update) {
-				update_irradiance_probe(sldata, psl, i);
-
-				ped->need_update = false;
-
-				if (!ped->ready_to_shade) {
-					pinfo->num_render_grid++;
-					ped->ready_to_shade = true;
-				}
-
-				DRW_viewport_request_redraw();
-
-				/* Only do one probe per frame */
-				break;
-			}
-		}
 	}
 }
 
@@ -792,5 +832,6 @@ void EEVEE_lightprobes_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.probe_default_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_glossy_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_diffuse_sh);
+	DRW_SHADER_FREE_SAFE(e_data.probe_grid_display_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
 }

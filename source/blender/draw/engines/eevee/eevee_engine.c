@@ -115,10 +115,11 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 static void EEVEE_cache_finish(void *vedata)
 {
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
+	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 
 	EEVEE_materials_cache_finish(vedata);
 	EEVEE_lights_cache_finish(sldata);
-	EEVEE_lightprobes_cache_finish(sldata);
+	EEVEE_lightprobes_cache_finish(sldata, psl);
 }
 
 static void EEVEE_draw_scene(void *vedata)
@@ -149,6 +150,7 @@ static void EEVEE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->depth_pass_cull);
 
 	/* Shading pass */
+	DRW_draw_pass(psl->probe_display);
 	DRW_draw_pass(psl->default_pass);
 	DRW_draw_pass(psl->default_flat_pass);
 	DRW_draw_pass(psl->default_hair_pass);

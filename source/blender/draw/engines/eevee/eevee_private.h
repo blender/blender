@@ -54,9 +54,9 @@ typedef struct EEVEE_PassList {
 
 	/* Probes */
 	struct DRWPass *probe_background;
-	struct DRWPass *probe_meshes;
 	struct DRWPass *probe_glossy_compute;
 	struct DRWPass *probe_diffuse_compute;
+	struct DRWPass *probe_display;
 
 	/* Effects */
 	struct DRWPass *motion_blur;
@@ -337,6 +337,7 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
 	struct DRWShadingGroup *depth_shgrp_cull;
+	struct DRWShadingGroup *grid_display_shgrp;
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
 } EEVEE_PrivateData; /* Transient data */
@@ -374,7 +375,7 @@ void EEVEE_lights_free(void);
 void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata);
 void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
 void EEVEE_lightprobes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob);
-void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata);
+void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
 void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl);
 void EEVEE_lightprobes_free(void);
 
