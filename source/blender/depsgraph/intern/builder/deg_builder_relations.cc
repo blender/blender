@@ -976,8 +976,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				IDDepsNode *to_node = (IDDepsNode *)rel->to;
 
 				/* we only care about objects with pose data which use this... */
-				if (GS(to_node->id->name) == ID_OB) {
-					Object *ob = (Object *)to_node->id;
+				if (GS(to_node->id_orig->name) == ID_OB) {
+					Object *ob = (Object *)to_node->id_orig;
 					bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name); // NOTE: ob->pose may be NULL
 
 					if (pchan) {
@@ -1391,12 +1391,22 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	/* link components to each other */
 	add_relation(obdata_geom_key, geom_key, "Object Geometry Base Data");
 
+	OperationKey obdata_ubereval_key(&ob->id,
+	                                 DEG_NODE_TYPE_GEOMETRY,
+	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
+
+	/* Special case: modifiers and DerivedMesh creation queries scene for various
+	 * things like data mask to be used. We add relation here to ensure object is
+	 * never evaluated prior to Scene's CoW is ready.
+	 */
+	OperationKey scene_key(&scene->id,
+	                       DEG_NODE_TYPE_PARAMETERS,
+	                       DEG_OPCODE_PLACEHOLDER,
+	                       "Scene Eval");
+	add_relation(scene_key, obdata_ubereval_key, "CoW Relation");
+
 	/* Modifiers */
 	if (ob->modifiers.first != NULL) {
-		OperationKey obdata_ubereval_key(&ob->id,
-		                                 DEG_NODE_TYPE_GEOMETRY,
-		                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
-
 		LINKLIST_FOREACH (ModifierData *, md, &ob->modifiers) {
 			const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
 
@@ -1758,6 +1768,64 @@ void DepsgraphRelationBuilder::build_lightprobe(Object *object)
 	                        DEG_OPCODE_PLACEHOLDER,
 	                        "LightProbe Eval");
 	add_relation(probe_key, object_key, "LightProbe Update");
+}
+
+void DepsgraphRelationBuilder::build_copy_on_write_relations()
+{
+	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, m_graph->id_hash)
+	{
+		build_copy_on_write_relations(id_node);
+	}
+	GHASH_FOREACH_END();
+}
+
+void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node)
+{
+	ID *id_orig = id_node->id_orig;
+
+	TimeSourceKey time_source_key;
+	OperationKey copy_on_write_key(id_orig,
+	                               DEG_NODE_TYPE_COPY_ON_WRITE,
+	                               DEG_OPCODE_COPY_ON_WRITE);
+	/* XXX: This is a quick hack to make Alt-A to work. */
+	add_relation(time_source_key, copy_on_write_key, "Fluxgate capacitor hack");
+	/* Resat of code is using rather low level trickery, so need to get some
+	 * explicit pointers.
+	 */
+	DepsNode *node_cow = find_node(copy_on_write_key);
+	OperationDepsNode *op_cow = node_cow->get_exit_operation();
+	/* Plug any other components to this one. */
+	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+	{
+		if (comp_node->type == DEG_NODE_TYPE_COPY_ON_WRITE) {
+			/* Copy-on-write component never depends on itself. */
+			continue;
+		}
+		/* All entry operations of each component should wait for a proper
+		 * copy of ID.
+		 */
+		OperationDepsNode *op_entry = comp_node->get_entry_operation();
+		if (op_entry != NULL) {
+			m_graph->add_new_relation(op_cow, op_entry, "CoW Dependency");
+		}
+		/* All dangling operations should also be executed after copy-on-write. */
+		GHASH_FOREACH_BEGIN(OperationDepsNode *, op_node, comp_node->operations_map)
+		{
+			if (op_node->inlinks.size() == 0) {
+				m_graph->add_new_relation(op_cow, op_node, "CoW Dependency");
+			}
+		}
+		GHASH_FOREACH_END();
+		/* NOTE: We currently ignore implicit relations to an external
+		 * datablocks for copy-on-write operations. This means, for example,
+		 * copy-on-write component of Object will not wait for copy-on-write
+		 * component of it's Mesh. This is because pointers are all known
+		 * already so remapping will happen all correct. And then If some object
+		 * evaluation step needs geometry, it will have transitive dependency
+		 * to Mesh copy-on-write already.
+		 */
+	}
+	GHASH_FOREACH_END();
 }
 
 }  // namespace DEG

@@ -49,6 +49,7 @@ extern "C" {
 } /* extern "C" */
 
 #include "intern/builder/deg_builder.h"
+#include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"
@@ -95,13 +96,22 @@ void DepsgraphNodeBuilder::build_layer_collections(Scene *scene,
 
 void DepsgraphNodeBuilder::build_scene_layer_collections(Scene *scene)
 {
+#ifdef WITH_COPY_ON_WRITE
+	/* Make sure we've got ID node, so we can get pointer to CoW datablock. */
+	IDDepsNode *id_node = add_id_node(&scene->id);
+	Scene *scene_cow = (Scene *)deg_expand_copy_on_write_datablock(m_graph,
+	                                                               id_node);
+#else
+	Scene *scene_cow = scene;
+#endif
+
 	LayerCollectionState state;
 	state.index = 0;
-	LINKLIST_FOREACH (SceneLayer *, scene_layer, &scene->render_layers) {
+	LINKLIST_FOREACH (SceneLayer *, scene_layer, &scene_cow->render_layers) {
 		ComponentDepsNode *comp = add_component_node(&scene->id, DEG_NODE_TYPE_LAYER_COLLECTIONS);
 
 		add_operation_node(comp,
-		                   function_bind(BKE_layer_eval_layer_collection_pre, _1, scene, scene_layer),
+		                   function_bind(BKE_layer_eval_layer_collection_pre, _1, scene_cow, scene_layer),
 		                   DEG_OPCODE_SCENE_LAYER_INIT,
 		                   scene_layer->name);
 		add_operation_node(comp,

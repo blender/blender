@@ -147,10 +147,11 @@ struct IDDepsNode : public DepsNode {
 
 	void tag_update(Depsgraph *graph);
 
-	void finalize_build();
+	void finalize_build(Depsgraph *graph);
 
 	/* ID Block referenced. */
-	ID *id;
+	ID *id_orig;
+	ID *id_cow;
 
 	/* Hash to make it faster to look up components. */
 	GHash *components;

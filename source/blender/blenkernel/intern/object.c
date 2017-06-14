@@ -363,7 +363,16 @@ void BKE_object_free_derived_caches(Object *ob)
 		ob->derivedDeform->release(ob->derivedDeform);
 		ob->derivedDeform = NULL;
 	}
-	
+
+	if (ob->mesh_evaluated != NULL) {
+		/* Evaluated mesh points to edit mesh, but does not own it. */
+		ob->mesh_evaluated->edit_btmesh = NULL;
+		BKE_mesh_free(ob->mesh_evaluated);
+		BKE_libblock_free_data(&ob->mesh_evaluated->id, false);
+		MEM_freeN(ob->mesh_evaluated);
+		ob->mesh_evaluated = NULL;
+	}
+
 	BKE_object_free_curve_cache(ob);
 }
 

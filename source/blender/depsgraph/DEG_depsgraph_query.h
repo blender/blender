@@ -64,6 +64,9 @@ struct SceneLayer *DEG_get_scene_layer(struct Depsgraph *graph);
 /* Get the object as properly evaluated by depsgraph. */
 struct Object *DEG_get_object(struct Depsgraph *depsgraph, struct Object *ob);
 
+/* Get evaluated version of given ID datablock. */
+struct ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, struct ID *id);
+
 /* ************************ DAG iterators ********************* */
 
 enum {

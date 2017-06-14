@@ -144,10 +144,31 @@ void DEG_graph_data_tag_update(Depsgraph *graph, const struct PointerRNA *ptr);
 void DEG_graph_property_tag_update(Depsgraph *graph, const struct PointerRNA *ptr, const struct PropertyRNA *prop);
 
 /* Tag given ID for an update in all the dependency graphs. */
-void DEG_id_tag_update(struct ID *id, short flag);
+enum {
+	/* Object transformation changed, corresponds to OB_RECALC_OB. */
+	DEG_TAG_TRANSFORM   = (1 << 0),
+
+	/* Object geoemtry changed, corresponds to OB_RECALC_DATA. */
+	DEG_TAG_GEOMETRY    = (1 << 1),
+
+	/* Time changed and animation is to be re-evaluated, OB_RECALC_TIME. */
+	DEG_TAG_TIME        = (1 << 2),
+
+	/* Particle system changed. */
+	DEG_TAG_PSYSC_REDO  =  (1 << 3),
+	DEG_TAG_PSYS_RESET  =  (1 << 4),
+	DEG_TAG_PSYS_TYPE   =  (1 << 5),
+	DEG_TAG_PSYS_CHILD  = (1 << 6),
+	DEG_TAG_PSYS_PHYS   = (1 << 7),
+	DEG_TAG_PSYS        = ((1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
+
+	/* Update copy on write component without flushing down the road. */
+	DEG_TAG_COPY_ON_WRITE = (1 << 8),
+};
+void DEG_id_tag_update(struct ID *id, int flag);
 void DEG_id_tag_update_ex(struct Main *bmain,
                           struct ID *id,
-                          short flag);
+                          int flag);
 
 /* Tag given ID type for update.
  *

@@ -55,6 +55,7 @@ set(SRC
 	intern/builder/deg_builder_transitive.cc
 	intern/debug/deg_debug_graphviz.cc
 	intern/eval/deg_eval.cc
+	intern/eval/deg_eval_copy_on_write.cc
 	intern/eval/deg_eval_debug.cc
 	intern/eval/deg_eval_flush.cc
 	intern/nodes/deg_node.cc
@@ -80,6 +81,7 @@ set(SRC
 	intern/builder/deg_builder_relations.h
 	intern/builder/deg_builder_transitive.h
 	intern/eval/deg_eval.h
+	intern/eval/deg_eval_copy_on_write.h
 	intern/eval/deg_eval_debug.h
 	intern/eval/deg_eval_flush.h
 	intern/nodes/deg_node.h
@@ -124,6 +126,10 @@ endif()
 
 if(WITH_OPENSUBDIV)
 	add_definitions(-DWITH_OPENSUBDIV)
+endif()
+
+if(WITH_DEPSGRAPH_COPY_ON_WRITE)
+	add_definitions(-DWITH_COPY_ON_WRITE)
 endif()
 
 blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}")

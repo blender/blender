@@ -90,6 +90,7 @@ static const int deg_debug_node_type_color_map[][2] = {
     {DEG_NODE_TYPE_SHADING,           8},
     {DEG_NODE_TYPE_CACHE,             9},
     {DEG_NODE_TYPE_LAYER_COLLECTIONS, 10},
+    {DEG_NODE_TYPE_COPY_ON_WRITE,     11},
     {-1,                              0}
 };
 #endif
@@ -379,6 +380,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		case DEG_NODE_TYPE_CACHE:
 		case DEG_NODE_TYPE_LAYER_COLLECTIONS:
 		case DEG_NODE_TYPE_EVAL_PARTICLES:
+		case DEG_NODE_TYPE_COPY_ON_WRITE:
 		{
 			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
 			if (!comp_node->operations.empty()) {

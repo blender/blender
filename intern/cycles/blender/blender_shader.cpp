@@ -1177,13 +1177,18 @@ void BlenderSync::sync_materials(bool update_all)
 {
 	shader_map.set_default(scene->default_surface);
 
-	/* material loop */
-	BL::BlendData::materials_iterator b_mat;
-
 	TaskPool pool;
 	set<Shader*> updated_shaders;
 
-	for(b_data.materials.begin(b_mat); b_mat != b_data.materials.end(); ++b_mat) {
+	/* material loop */
+	BL::BlendData::materials_iterator b_mat_orig;
+	for(b_data.materials.begin(b_mat_orig);
+	    b_mat_orig != b_data.materials.end();
+	    ++b_mat_orig)
+	{
+		/* TODO(sergey): Iterate over evaluated data rather than using mapping. */
+		BL::Material b_mat_(b_depsgraph.evaluated_id_get(*b_mat_orig));
+		BL::Material *b_mat = &b_mat_;
 		Shader *shader;
 
 		/* test if we need to sync */
@@ -1343,9 +1348,14 @@ void BlenderSync::sync_lamps(bool update_all)
 	shader_map.set_default(scene->default_light);
 
 	/* lamp loop */
-	BL::BlendData::lamps_iterator b_lamp;
-
-	for(b_data.lamps.begin(b_lamp); b_lamp != b_data.lamps.end(); ++b_lamp) {
+	BL::BlendData::lamps_iterator b_lamp_orig;
+	for(b_data.lamps.begin(b_lamp_orig);
+	    b_lamp_orig != b_data.lamps.end();
+	    ++b_lamp_orig)
+	{
+		/* TODO(sergey): Iterate over evaluated data rather than using mapping. */
+		BL::Lamp b_lamp_(b_depsgraph.evaluated_id_get(*b_lamp_orig));
+		BL::Lamp *b_lamp = &b_lamp_;
 		Shader *shader;
 
 		/* test if we need to sync */

@@ -547,4 +547,8 @@ endif()
 #	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 #endif()
 
+if(WITH_DEPSGRAPH_COPY_ON_WRITE)
+	add_definitions(-DWITH_COPY_ON_WRITE)
+endif()
+
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}")

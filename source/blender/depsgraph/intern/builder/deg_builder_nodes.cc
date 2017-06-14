@@ -102,6 +102,7 @@ extern "C" {
 #include "DEG_depsgraph_build.h"
 
 #include "intern/builder/deg_builder.h"
+#include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"
@@ -162,7 +163,23 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-	return m_graph->add_id_node(id, id->name);
+	IDDepsNode *id_node = m_graph->add_id_node(id, id->name);
+#ifdef WITH_COPY_ON_WRITE
+	/* Currently all ID nodes are supposed to have copy-on-write logic.
+	 *
+	 * NOTE: Zero number of components indicates that ID node was just created.
+	 */
+	if (BLI_ghash_size(id_node->components) == 0) {
+		ComponentDepsNode *comp_cow =
+		        id_node->add_component(DEG_NODE_TYPE_COPY_ON_WRITE);
+		OperationDepsNode *op_cow = comp_cow->add_operation(
+		    function_bind(deg_evaluate_copy_on_write, _1, m_graph, id_node),
+		    DEG_OPCODE_COPY_ON_WRITE,
+		    "", -1);
+		m_graph->operations.push_back(op_cow);
+	}
+#endif
+	return id_node;
 }
 
 TimeSourceDepsNode *DepsgraphNodeBuilder::add_time_source()
@@ -271,6 +288,11 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         int name_tag)
 {
 	return find_operation_node(id, comp_type, "", opcode, name, name_tag);
+}
+
+ID *DepsgraphNodeBuilder::get_cow_id(const ID *id_orig) const
+{
+	return m_graph->get_cow_id(id_orig);
 }
 
 /* **** Build functions for entity nodes **** */
@@ -735,7 +757,10 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	 */
 	op_node = add_operation_node(&ob->id,
 	                             DEG_NODE_TYPE_GEOMETRY,
-	                             function_bind(BKE_object_eval_uber_data, _1, scene, ob),
+	                             function_bind(BKE_object_eval_uber_data,
+	                                           _1,
+	                                           (Scene *)get_cow_id(&scene->id),
+	                                           (Object *)get_cow_id(&ob->id)),
 	                             DEG_OPCODE_GEOMETRY_UBEREVAL);
 	op_node->set_as_exit();
 

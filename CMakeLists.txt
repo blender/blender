@@ -510,6 +510,10 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	mark_as_advanced(WITH_LINKER_GOLD)
 endif()
 
+# Dependency graph
+option(WITH_DEPSGRAPH_COPY_ON_WRITE "Build Blender with copy-on-write support for dependency graph" OFF)
+mark_as_advanced(WITH_DEPSGRAPH_COPY_ON_WRITE)
+
 if(WIN32)
 	# Use hardcoded paths or find_package to find externals
 	option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)

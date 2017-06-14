@@ -326,7 +326,11 @@ typedef struct Object {
 	ListBase drawdata;		/* runtime, ObjectEngineData */
 	int deg_update_flag; /* what has been updated in this object */
 	int select_color;
-	int pad3[2];
+
+	/* Mesh structure createrd during object evaluaiton.
+	 * It has all modifiers applied.
+	 */
+	struct Mesh *mesh_evaluated;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */

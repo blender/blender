@@ -131,7 +131,7 @@ struct ComponentDepsNode : public DepsNode {
 	OperationDepsNode *get_entry_operation();
 	OperationDepsNode *get_exit_operation();
 
-	void finalize_build();
+	void finalize_build(Depsgraph *graph);
 
 	IDDepsNode *owner;
 
@@ -205,6 +205,10 @@ struct CacheComponentDepsNode : public ComponentDepsNode {
 };
 
 struct LayerCollectionsDepsNode : public ComponentDepsNode {
+	DEG_DEPSNODE_DECLARE;
+};
+
+struct CopyOnWriteDepsNode : public ComponentDepsNode {
 	DEG_DEPSNODE_DECLARE;
 };
 

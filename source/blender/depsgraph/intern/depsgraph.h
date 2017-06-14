@@ -130,6 +130,11 @@ struct Depsgraph {
 	/* Clear storage used by all nodes. */
 	void clear_all_nodes();
 
+	/* Copy-on-Write Functionality ........ */
+
+	/* For given original ID get ID which is created by CoW system. */
+	ID *get_cow_id(const ID *id_orig) const;
+
 	/* Core Graph Functionality ........... */
 
 	/* <ID : IDDepsNode> mapping from ID blocks to nodes representing these blocks

@@ -282,7 +282,11 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name)
 		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", name);
 		id->tag |= LIB_TAG_DOIT;
-		/* register */
+		/* Register node in ID hash.
+		 *
+		 * NOTE: We address ID nodes by the original ID pointer they are
+		 * referencing to.
+		 */
 		BLI_ghash_insert(id_hash, id, id_node);
 	}
 	return id_node;
@@ -306,7 +310,7 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 	if (comp_node->type == DEG_NODE_TYPE_GEOMETRY) {
 		IDDepsNode *id_to = to->owner->owner;
 		IDDepsNode *id_from = from->owner->owner;
-		if (id_to != id_from && (id_to->id->tag & LIB_TAG_ID_RECALC_ALL)) {
+		if (id_to != id_from && (id_to->id_orig->tag & LIB_TAG_ID_RECALC_ALL)) {
 			if ((id_from->eval_flags & DAG_EVAL_NEED_CPU) == 0) {
 				id_from->tag_update(this);
 				id_from->eval_flags |= DAG_EVAL_NEED_CPU;
@@ -402,6 +406,15 @@ void Depsgraph::clear_all_nodes()
 		OBJECT_GUARDED_DELETE(time_source, TimeSourceDepsNode);
 		time_source = NULL;
 	}
+}
+
+ID *Depsgraph::get_cow_id(const ID *id_orig) const
+{
+	IDDepsNode *id_node = find_id_node(id_orig);
+	if (id_node == NULL) {
+		return (ID *)id_orig;
+	}
+	return id_node->id_cow;
 }
 
 void deg_editors_id_update(Main *bmain, ID *id)

@@ -49,6 +49,10 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
+#ifndef NDEBUG
+#  include "intern/eval/deg_eval_copy_on_write.h"
+#endif
+
 bool DEG_id_type_tagged(Main *bmain, short idtype)
 {
 	return bmain->id_tag_update[BKE_idcode_to_index(idtype)] != 0;
@@ -80,22 +84,29 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 Scene *DEG_get_scene(Depsgraph *graph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-	return deg_graph->scene;
+	Scene *scene_orig = deg_graph->scene;
+	return reinterpret_cast<Scene *>(deg_graph->get_cow_id(&scene_orig->id));
 }
 
 SceneLayer *DEG_get_scene_layer(Depsgraph *graph)
 {
 	Scene *scene = DEG_get_scene(graph);
 	if (scene) {
-		return BKE_scene_layer_context_active(scene);
+		return BKE_scene_layer_render_active(scene);
 	}
 	return NULL;
 }
 
-Object *DEG_get_object(Depsgraph * /*depsgraph*/, Object *ob)
+Object *DEG_get_object(Depsgraph *depsgraph, Object *ob)
 {
-	/* XXX TODO */
-	return ob;
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	return (Object *)deg_graph->get_cow_id(&ob->id);
+}
+
+ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, ID *id)
+{
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	return deg_graph->get_cow_id(id);
 }
 
 /* ************************ DAG ITERATORS ********************* */
@@ -167,6 +178,7 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		                                  data->base,
 		                                  data->base_flag | BASE_FROMDUPLI);
 		iter->current = &data->temp_dupli_object;
+		BLI_assert(DEG::deg_validate_copy_on_write_datablock(&data->temp_dupli_object.id));
 		return true;
 	}
 
@@ -194,9 +206,12 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 	base = data->base->next;
 	while (base != NULL) {
 		if ((base->flag & BASE_VISIBLED) != 0) {
-			Object *ob = DEG_get_object(data->graph, base->object);
+			// Object *ob = DEG_get_object(data->graph, base->object);
+			Object *ob = base->object;
 			iter->current = ob;
 			data->base = base;
+
+			BLI_assert(DEG::deg_validate_copy_on_write_datablock(&ob->id));
 
 			/* Make sure we have the base collection settings is already populated.
 			 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet

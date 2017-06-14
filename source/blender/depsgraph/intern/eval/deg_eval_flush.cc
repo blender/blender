@@ -120,10 +120,12 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	 * NOTE: Count how many nodes we need to handle - entry nodes may be
 	 *       component nodes which don't count for this purpose!
 	 */
-	GSET_FOREACH_BEGIN(OperationDepsNode *, node, graph->entry_tags)
+	GSET_FOREACH_BEGIN(OperationDepsNode *, op_node, graph->entry_tags)
 	{
-		queue.push_back(node);
-		node->scheduled = true;
+		if ((op_node->flag & DEPSOP_FLAG_SKIP_FLUSH) == 0) {
+			queue.push_back(op_node);
+			op_node->scheduled = true;
+		}
 	}
 	GSET_FOREACH_END();
 
@@ -138,12 +140,24 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			ComponentDepsNode *comp_node = node->owner;
 			IDDepsNode *id_node = comp_node->owner;
 
-			ID *id = id_node->id;
+			/* TODO(sergey): Do we need to pass original or evaluated ID here? */
+			ID *id = id_node->id_orig;
 			if (id_node->done == 0) {
 				deg_editors_id_update(bmain, id);
 				lib_id_recalc_tag(bmain, id);
 				/* TODO(sergey): For until we've got proper data nodes in the graph. */
 				lib_id_recalc_data_tag(bmain, id);
+
+#ifdef WITH_COPY_ON_WRITE
+				/* Currently this is needed to get ob->mesh to be replaced with
+				 * original mesh (rather than being evaluated_mesh).
+				 *
+				 * TODO(sergey): This is something we need to avoid.
+				 */
+				ComponentDepsNode *cow_comp =
+				        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
+				cow_comp->tag_update(graph);
+#endif
 			}
 
 			if (comp_node->done == 0) {
@@ -172,6 +186,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						case DEG_NODE_TYPE_PARAMETERS:
 						case DEG_NODE_TYPE_SEQUENCER:
 						case DEG_NODE_TYPE_LAYER_COLLECTIONS:
+						case DEG_NODE_TYPE_COPY_ON_WRITE:
 							/* Ignore, does not translate to object component. */
 							break;
 						case DEG_NODE_TYPE_ANIMATION:

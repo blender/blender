@@ -281,6 +281,9 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	}
 
 	if (flag & EM_WAITCURSOR) waitcursor(0);
+
+	/* This way we ensure scene's obedit is copied into all CoW scenes.  */
+	DEG_id_tag_update(&scene->id, 0);
 }
 
 
@@ -396,6 +399,8 @@ void ED_object_editmode_enter(bContext *C, int flag)
 
 	if (ok) {
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		/* This way we ensure scene's obedit is copied into all CoW scenes.  */
+		DEG_id_tag_update(&scene->id, 0);
 	}
 	else {
 		scene->obedit = NULL; /* XXX for context */

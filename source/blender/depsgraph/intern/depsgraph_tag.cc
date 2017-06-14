@@ -127,7 +127,7 @@ void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 }
 
 #ifdef DEPSGRAPH_USE_LEGACY_TAGGING
-void depsgraph_legacy_handle_update_tag(Main *bmain, ID *id, short flag)
+void depsgraph_legacy_handle_update_tag(Main *bmain, ID *id, int flag)
 {
 	if (flag) {
 		Object *object;
@@ -150,6 +150,20 @@ void depsgraph_legacy_handle_update_tag(Main *bmain, ID *id, short flag)
 			}
 		}
 	}
+}
+#endif
+
+#ifdef WITH_COPY_ON_WRITE
+void id_tag_copy_on_write_update(Main *bmain, Depsgraph *graph, ID *id)
+{
+	lib_id_recalc_tag(bmain, id);
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
+	DEG::ComponentDepsNode *cow_comp =
+	        id_node->find_component(DEG::DEG_NODE_TYPE_COPY_ON_WRITE);
+	DEG::OperationDepsNode *cow_node = cow_comp->get_entry_operation();
+	cow_node->tag_update(deg_graph);
+	cow_node->flag |= DEG::DEPSOP_FLAG_SKIP_FLUSH;
 }
 #endif
 
@@ -199,12 +213,12 @@ void DEG_graph_property_tag_update(Depsgraph *graph,
 }
 
 /* Tag given ID for an update in all the dependency graphs. */
-void DEG_id_tag_update(ID *id, short flag)
+void DEG_id_tag_update(ID *id, int flag)
 {
 	DEG_id_tag_update_ex(G.main, id, flag);
 }
 
-void DEG_id_tag_update_ex(Main *bmain, ID *id, short flag)
+void DEG_id_tag_update_ex(Main *bmain, ID *id, int flag)
 {
 	if (id == NULL) {
 		/* Ideally should not happen, but old depsgraph allowed this. */
@@ -239,6 +253,11 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 			}
 			else if (flag & OB_RECALC_TIME) {
 				DEG_graph_id_tag_update(bmain, graph, id);
+			}
+			else if (flag & DEG_TAG_COPY_ON_WRITE) {
+#ifdef WITH_COPY_ON_WRITE
+				id_tag_copy_on_write_update(bmain, graph, id);
+#endif
 			}
 		}
 	}

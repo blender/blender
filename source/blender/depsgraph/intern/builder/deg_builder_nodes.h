@@ -73,6 +73,8 @@ struct DepsgraphNodeBuilder {
 
 	void begin_build(Main *bmain);
 
+	ID *get_cow_id(const ID *id_orig) const;
+
 	IDDepsNode *add_id_node(ID *id);
 	TimeSourceDepsNode *add_time_source();
 

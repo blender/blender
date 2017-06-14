@@ -66,7 +66,9 @@ static GHash *_depsnode_typeinfo_registry = NULL;
 void deg_register_node_typeinfo(DepsNodeFactory *factory)
 {
 	BLI_assert(factory != NULL);
-	BLI_ghash_insert(_depsnode_typeinfo_registry, SET_INT_IN_POINTER(factory->type()), factory);
+	BLI_ghash_insert(_depsnode_typeinfo_registry,
+	                 SET_INT_IN_POINTER(factory->type()),
+	                 factory);
 }
 
 /* Getters ------------------------------------------------- */
@@ -75,7 +77,8 @@ void deg_register_node_typeinfo(DepsNodeFactory *factory)
 DepsNodeFactory *deg_get_node_factory(const eDepsNode_Type type)
 {
 	/* look up type - at worst, it doesn't exist in table yet, and we fail */
-	return (DepsNodeFactory *)BLI_ghash_lookup(_depsnode_typeinfo_registry, SET_INT_IN_POINTER(type));
+	return (DepsNodeFactory *)BLI_ghash_lookup(_depsnode_typeinfo_registry,
+	                                           SET_INT_IN_POINTER(type));
 }
 
 /* Get typeinfo for provided node */
@@ -123,6 +126,8 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 		STRINGIFY_OPCODE(SCENE_LAYER_INIT);
 		STRINGIFY_OPCODE(SCENE_LAYER_EVAL);
 		STRINGIFY_OPCODE(SCENE_LAYER_DONE);
+
+		STRINGIFY_OPCODE(COPY_ON_WRITE);
 
 		case DEG_NUM_OPCODES: return "SpecialCase";
 #undef STRINGIFY_OPCODE

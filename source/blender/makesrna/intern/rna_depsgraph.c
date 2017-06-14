@@ -224,6 +224,11 @@ static PointerRNA rna_Depsgraph_duplis_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_DepsgraphIter, iterator);
 }
 
+static ID *rna_Depsgraph_evaluated_id_get(Depsgraph *depsgraph, ID *id_orig)
+{
+	return DEG_get_evaluated_id(depsgraph, id_orig);
+}
+
 #else
 
 static void rna_def_depsgraph_iter(BlenderRNA *brna)
@@ -316,6 +321,12 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	                                  "rna_Depsgraph_objects_end",
 	                                  "rna_Depsgraph_objects_get",
 	                                  NULL, NULL, NULL, NULL);
+
+	func = RNA_def_function(srna, "evaluated_id_get", "rna_Depsgraph_evaluated_id_get");
+	parm = RNA_def_pointer(func, "id", "ID", "", "Original ID to get evaluated complementary part for");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "evaluated_id", "ID", "", "Evaluated ID for the given original one");
+	RNA_def_function_return(func, parm);
 
 	/* TODO(sergey): Find a better name. */
 	prop = RNA_def_property(srna, "duplis", PROP_COLLECTION, PROP_NONE);

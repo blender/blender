@@ -135,6 +135,13 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 
 	/* Collections. */
 	build_scene_layer_collections(scene);
+
+	/* Parameters evaluation for scene relations mainly. */
+	add_operation_node(&scene->id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Scene Eval");
 }
 
 }  // namespace DEG
