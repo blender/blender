@@ -1410,25 +1410,31 @@ static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, SceneLayer 
 
 static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl)
 {
-	static float one = 1.0f;
 	float *color;
 	LightProbe *prb = (LightProbe *)ob->data;
 	DRW_object_wire_theme_get(ob, sl, &color);
 
-	prb->distfalloff = (1.0f - prb->falloff) * prb->distinf;
 
 	DRW_shgroup_call_dynamic_add(stl->g_data->probe, ob->obmat[3], color);
 
 	if ((prb->flag & LIGHTPROBE_FLAG_SHOW_INFLUENCE) != 0) {
+
+		prb->distfalloff = (1.0f - prb->falloff) * prb->distinf;
+		prb->distgridinf = prb->distinf;
+
 		if (prb->type == LIGHTPROBE_TYPE_GRID) {
-			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &one, ob->obmat);
+			prb->distfalloff += 1.0f;
+			prb->distgridinf += 1.0f;
 		}
-		else if (prb->attenuation_type == LIGHTPROBE_SHAPE_BOX) {
-			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distinf, ob->obmat);
+
+		if (prb->type == LIGHTPROBE_TYPE_GRID ||
+			prb->attenuation_type == LIGHTPROBE_SHAPE_BOX)
+		{
+			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distgridinf, ob->obmat);
 			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distfalloff, ob->obmat);
 		}
 		else {
-			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distinf, ob->obmat);
+			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distgridinf, ob->obmat);
 			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distfalloff, ob->obmat);
 		}
 	}

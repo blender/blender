@@ -65,7 +65,8 @@ typedef struct LightProbe {
 	float data_draw_size;
 
 	/* Runtime display data */
-	float distfalloff;
+	float distfalloff, distgridinf;
+	float pad;
 } LightProbe;
 
 /* Probe->type */
