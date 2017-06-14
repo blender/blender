@@ -75,20 +75,22 @@ SceneCollection *BKE_collection_add(Scene *scene, SceneCollection *sc_parent, co
 /**
  * Free the collection items recursively
  */
-static void collection_free(SceneCollection *sc)
+static void collection_free(SceneCollection *sc, const bool do_id_user)
 {
-	for (LinkData *link = sc->objects.first; link; link = link->next) {
-		id_us_min(link->data);
+	if (do_id_user) {
+		for (LinkData *link = sc->objects.first; link; link = link->next) {
+			id_us_min(link->data);
+		}
+		for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
+			id_us_min(link->data);
+		}
 	}
-	BLI_freelistN(&sc->objects);
 
-	for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
-		id_us_min(link->data);
-	}
+	BLI_freelistN(&sc->objects);
 	BLI_freelistN(&sc->filter_objects);
 
 	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
-		collection_free(nsc);
+		collection_free(nsc, do_id_user);
 	}
 	BLI_freelistN(&sc->scene_collections);
 }
@@ -160,7 +162,7 @@ bool BKE_collection_remove(Scene *scene, SceneCollection *sc)
 	}
 
 	/* clear the collection items */
-	collection_free(sc);
+	collection_free(sc, true);
 
 	/* check all layers that use this collection and clear them */
 	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
@@ -218,9 +220,9 @@ void BKE_collection_rename(const Scene *scene, SceneCollection *sc, const char *
  * Free (or release) any data used by the master collection (does not free the master collection itself).
  * Used only to clear the entire scene data since it's not doing re-syncing of the LayerCollection tree
  */
-void BKE_collection_master_free(Scene *scene)
+void BKE_collection_master_free(Scene *scene, const bool do_id_user)
 {
-	collection_free(BKE_collection_master(scene));
+	collection_free(BKE_collection_master(scene), do_id_user);
 }
 
 static void collection_object_add(const Scene *scene, SceneCollection *sc, Object *ob)

@@ -46,7 +46,7 @@ struct SceneCollection *BKE_collection_add(struct Scene *scene, struct SceneColl
 bool BKE_collection_remove(struct Scene *scene, struct SceneCollection *sc);
 struct SceneCollection *BKE_collection_master(const struct Scene *scene);
 void BKE_collection_rename(const struct Scene *scene, struct SceneCollection *sc, const char *name);
-void BKE_collection_master_free(struct Scene *scene);
+void BKE_collection_master_free(struct Scene *scene, const bool do_id_user);
 void BKE_collection_object_add(const struct Scene *scene, struct SceneCollection *sc, struct Object *object);
 void BKE_collection_object_add_from(struct Scene *scene, struct Object *ob_src, struct Object *ob_dst);
 void BKE_collection_object_remove(struct Main *bmain, const struct Scene *scene, struct SceneCollection *sc, struct Object *object, const bool free_us);

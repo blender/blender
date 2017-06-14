@@ -71,6 +71,7 @@ struct Base *_setlooper_base_step(struct Scene **sce_iter, struct Base *base);
 void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
+void BKE_scene_free_ex(struct Scene *sce, const bool do_id_user);
 void BKE_scene_free(struct Scene *sce);
 void BKE_scene_init(struct Scene *sce);
 struct Scene *BKE_scene_add(struct Main *bmain, const char *name);

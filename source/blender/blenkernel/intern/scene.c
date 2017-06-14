@@ -482,7 +482,7 @@ void BKE_scene_make_local(Main *bmain, Scene *sce, const bool lib_local)
 }
 
 /** Free (or release) any data used by this scene (does not free the scene itself). */
-void BKE_scene_free(Scene *sce)
+void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 {
 	SceneRenderLayer *srl;
 
@@ -590,7 +590,7 @@ void BKE_scene_free(Scene *sce)
 	}
 
 	/* Master Collection */
-	BKE_collection_master_free(sce);
+	BKE_collection_master_free(sce, do_id_user);
 	MEM_freeN(sce->collection);
 	sce->collection = NULL;
 
@@ -607,6 +607,11 @@ void BKE_scene_free(Scene *sce)
 		MEM_freeN(sce->layer_properties);
 		sce->layer_properties = NULL;
 	}
+}
+
+void BKE_scene_free(Scene *sce)
+{
+	return BKE_scene_free_ex(sce, true);
 }
 
 void BKE_scene_init(Scene *sce)
