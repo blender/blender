@@ -185,8 +185,8 @@ typedef struct EEVEE_LightProbe {
 typedef struct EEVEE_LightGrid {
 	float mat[4][4];
 	int resolution[3], offset;
-	float corner[3], pad1;
-	float increment_x[3], pad2; /* world space vector between 2 opposite cells */
+	float corner[3], attenuation_scale;
+	float increment_x[3], attenuation_bias; /* world space vector between 2 opposite cells */
 	float increment_y[3], pad3;
 	float increment_z[3], pad4;
 } EEVEE_LightGrid;

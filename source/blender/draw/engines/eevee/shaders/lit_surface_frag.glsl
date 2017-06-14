@@ -364,7 +364,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 
 	/* Specular probes */
 	/* Start at 1 because 0 is world probe */
-	for (int i = 1; i < MAX_PROBE && i < probe_count; ++i) {
+	for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999; ++i) {
 		ProbeData pd = probes_data[i];
 
 		float dist_attenuation = probe_attenuation(sd.W, pd);
@@ -383,18 +383,20 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	}
 
 	/* Start at 1 because 0 is world irradiance */
-	for (int i = 1; i < MAX_GRID && i < grid_count; ++i) {
+	for (int i = 1; i < MAX_GRID && i < grid_count && diff_accum.a < 0.999; ++i) {
 		GridData gd = grids_data[i];
 
 		vec3 localpos = (gd.localmat * vec4(sd.W, 1.0)).xyz;
 
-		vec3 localpos_max = vec3(gd.g_resolution + ivec3(1)) - localpos;
-		float fade = min(1.0, min_v3(min(localpos_max, localpos)));
+		float fade = min(1.0, min_v3(1.0 - abs(localpos)));
+		fade = saturate(fade * gd.g_atten_scale + gd.g_atten_bias);
 
 		if (fade > 0.0) {
-			localpos -= 1.0;
+			localpos = localpos * 0.5 + 0.5;
+			localpos = localpos * vec3(gd.g_resolution) - 0.5;
+
 			vec3 localpos_floored = floor(localpos);
-			vec3 trilinear_weight = fract(localpos); /* fract(-localpos) */
+			vec3 trilinear_weight = fract(localpos);
 
 			float weight_accum = 0.0;
 			vec3 irradiance_accum = vec3(0.0);

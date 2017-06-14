@@ -378,33 +378,23 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
 
 		egrid->offset = offset;
+		float fac = 1.0f / max_ff(1e-8f, probe->falloff);
+		egrid->attenuation_scale = fac / max_ff(1e-8f, probe->distinf);
+		egrid->attenuation_bias = fac;
 
 		/* Set offset for the next grid */
 		offset += ped->num_cell;
 
 		/* Update transforms */
-		float tmp[4][4] = {
-			{2.0f, 0.0f, 0.0f, 0.0f},
-			{0.0f, 2.0f, 0.0f, 0.0f},
-			{0.0f, 0.0f, 2.0f, 0.0f},
-			{-1.0f, -1.0f, -1.0f, 1.0f}
-		};
-		float tmp_grid_mat[4][4] = {
-			{1.0f / (float)(probe->grid_resolution_x), 0.0f, 0.0f, 0.0f},
-			{0.0f, 1.0f / (float)(probe->grid_resolution_y), 0.0f, 0.0f},
-			{0.0f, 0.0f, 1.0f / (float)(probe->grid_resolution_z), 0.0f},
-			{0.0f, 0.0f, 0.0f, 1.0f}
-		};
-		mul_m4_m4m4(tmp, tmp, tmp_grid_mat);
-		mul_m4_m4m4(egrid->mat, ob->obmat, tmp);
-		invert_m4(egrid->mat);
-
 		float cell_dim[3], half_cell_dim[3];
 		cell_dim[0] = 2.0f / (float)(probe->grid_resolution_x);
 		cell_dim[1] = 2.0f / (float)(probe->grid_resolution_y);
 		cell_dim[2] = 2.0f / (float)(probe->grid_resolution_z);
 
 		mul_v3_v3fl(half_cell_dim, cell_dim, 0.5f);
+
+		/* Matrix converting world space to cell ranges. */
+		invert_m4_m4(egrid->mat, ob->obmat);
 
 		/* First cell. */
 		copy_v3_fl(egrid->corner, -1.0f);

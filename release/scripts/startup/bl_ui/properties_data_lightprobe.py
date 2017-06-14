@@ -70,6 +70,12 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             col.prop(probe, "grid_resolution_x", text="X")
             col.prop(probe, "grid_resolution_y", text="Y")
             col.prop(probe, "grid_resolution_z", text="Z")
+
+            col.separator()
+
+            col.label("Influence:")
+            col.prop(probe, "influence_distance", "Distance")
+            col.prop(probe, "falloff")
         else:
             col = split.column(align=True)
             col.label("Influence:")

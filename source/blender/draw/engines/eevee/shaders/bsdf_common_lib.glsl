@@ -27,14 +27,16 @@ struct ProbeData {
 struct GridData {
 	mat4 localmat;
 	ivec4 resolution_offset;
-	vec4 ws_corner;      /* world space position */
-	vec4 ws_increment_x; /* world space vector between 2 opposite cells */
+	vec4 ws_corner_atten_scale; /* world space corner position */
+	vec4 ws_increment_x_atten_bias; /* world space vector between 2 opposite cells */
 	vec4 ws_increment_y;
 	vec4 ws_increment_z;
 };
 
-#define g_corner        ws_corner.xyz
-#define g_increment_x   ws_increment_x.xyz
+#define g_corner        ws_corner_atten_scale.xyz
+#define g_atten_scale   ws_corner_atten_scale.w
+#define g_atten_bias    ws_increment_x_atten_bias.w
+#define g_increment_x   ws_increment_x_atten_bias.xyz
 #define g_increment_y   ws_increment_y.xyz
 #define g_increment_z   ws_increment_z.xyz
 #define g_resolution    resolution_offset.xyz
