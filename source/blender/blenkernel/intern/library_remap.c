@@ -731,30 +731,9 @@ void BKE_libblock_free_data(Main *UNUSED(bmain), ID *id, const bool do_id_user)
 	}
 }
 
-/**
- * used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c
- *
- * \param do_id_user: if \a true, try to release other ID's 'references' hold by \a idv.
- *                    (only applies to main database)
- * \param do_ui_user: similar to do_id_user but makes sure UI does not hold references to
- *                    \a id.
- */
-void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const bool do_ui_user)
+void BKE_libblock_free_datablock(ID *id)
 {
-	ID *id = idv;
-	short type = GS(id->name);
-	ListBase *lb = which_libbase(bmain, type);
-
-	DAG_id_type_tag(bmain, type);
-
-#ifdef WITH_PYTHON
-	BPY_id_release(id);
-#endif
-
-	if (do_id_user) {
-		BKE_libblock_relink_ex(bmain, id, NULL, NULL, true);
-	}
-
+	const short type = GS(id->name);
 	switch (type) {
 		case ID_SCE:
 			BKE_scene_free((Scene *)id);
@@ -860,6 +839,33 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const b
 			BKE_cachefile_free((CacheFile *)id);
 			break;
 	}
+}
+
+/**
+ * used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c
+ *
+ * \param do_id_user: if \a true, try to release other ID's 'references' hold by \a idv.
+ *                    (only applies to main database)
+ * \param do_ui_user: similar to do_id_user but makes sure UI does not hold references to
+ *                    \a id.
+ */
+void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const bool do_ui_user)
+{
+	ID *id = idv;
+	short type = GS(id->name);
+	ListBase *lb = which_libbase(bmain, type);
+
+	DAG_id_type_tag(bmain, type);
+
+#ifdef WITH_PYTHON
+	BPY_id_release(id);
+#endif
+
+	if (do_id_user) {
+		BKE_libblock_relink_ex(bmain, id, NULL, NULL, true);
+	}
+
+	BKE_libblock_free_datablock(id);
 
 	/* avoid notifying on removed data */
 	BKE_main_lock(bmain);
