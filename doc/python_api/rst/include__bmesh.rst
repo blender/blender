@@ -8,7 +8,7 @@
 Submodules:
 
 .. toctree::
-   :maxdepth:
+   :maxdepth: 1
 
    bmesh.ops.rst
    bmesh.types.rst

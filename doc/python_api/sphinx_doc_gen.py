@@ -1715,8 +1715,6 @@ def write_rst_contents(basepath):
         "bpy.utils.previews",
         "bpy.path",
         "bpy.app",
-        "bpy.app.handlers",
-        "bpy.app.translations",
 
         # C modules
         "bpy.props",

@@ -4,6 +4,15 @@ Application Data (bge.app)
 
 Module to access application values that remain unchanged during runtime.
 
+Submodules:
+
+.. toctree::
+   :maxdepth: 1
+
+   bpy.app.handlers.rst
+   bpy.app.translations.rst
+
+
 .. module:: bge.app
 
 .. data:: version
