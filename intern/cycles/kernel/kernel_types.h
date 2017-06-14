@@ -135,7 +135,7 @@ CCL_NAMESPACE_BEGIN
  * this is because megakernel in device_opencl does not support
  * custom cflags depending on the scene features.
  */
-#  endif  /* __KERNEL_OPENCL_NVIDIA__ */
+#  endif  /* __KERNEL_OPENCL_APPLE__ */
 
 #  ifdef __KERNEL_OPENCL_AMD__
 #    define __CL_USE_NATIVE__
