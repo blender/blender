@@ -183,7 +183,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Partic
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
 			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.tan = VertexFormat_add_attrib(&format, "tang", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.tan = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
 			attr_id.ind = VertexFormat_add_attrib(&format, "ind", COMP_I32, 1, KEEP_INT);
 		}
 

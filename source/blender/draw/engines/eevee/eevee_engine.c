@@ -151,6 +151,7 @@ static void EEVEE_draw_scene(void *vedata)
 	/* Shading pass */
 	DRW_draw_pass(psl->default_pass);
 	DRW_draw_pass(psl->default_flat_pass);
+	DRW_draw_pass(psl->default_hair_pass);
 	DRW_draw_pass(psl->material_pass);
 
 	/* Post Process */

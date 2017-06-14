@@ -88,7 +88,70 @@ vec4 texture_octahedron(sampler2DArray tex, vec4 cubevec)
 
 	return texture(tex, vec3(uvs, cubevec.w));
 }
+#ifdef HAIR_SHADER
+vec3 light_diffuse(LightData ld, ShadingData sd, vec3 albedo)
+{
+       if (ld.l_type == SUN) {
+               return direct_diffuse_sun(ld, sd) * albedo;
+       }
+       else if (ld.l_type == AREA) {
+               return direct_diffuse_rectangle(ld, sd) * albedo;
+       }
+       else {
+               return direct_diffuse_sphere(ld, sd) * albedo;
+       }
+}
 
+vec3 light_specular(LightData ld, ShadingData sd, float roughness, vec3 f0)
+{
+       if (ld.l_type == SUN) {
+               return direct_ggx_sun(ld, sd, roughness, f0);
+       }
+       else if (ld.l_type == AREA) {
+               return direct_ggx_rectangle(ld, sd, roughness, f0);
+       }
+       else {
+               return direct_ggx_sphere(ld, sd, roughness, f0);
+       }
+}
+
+void light_shade(
+        LightData ld, ShadingData sd, vec3 albedo, float roughness, vec3 f0,
+        out vec3 diffuse, out vec3 specular)
+{
+       const float transmission = 0.3; /* Uniform internal scattering factor */
+       ShadingData sd_new = sd;
+
+       vec3 lamp_vec;
+
+      if (ld.l_type == SUN || ld.l_type == AREA) {
+               lamp_vec = ld.l_forward;
+       }
+       else {
+               lamp_vec = -sd.l_vector;
+       }
+
+       vec3 norm_view = cross(sd.V, sd.N);
+       norm_view = normalize(cross(norm_view, sd.N)); /* Normal facing view */
+
+       vec3 norm_lamp = cross(lamp_vec, sd.N);
+       norm_lamp = normalize(cross(sd.N, norm_lamp)); /* Normal facing lamp */
+
+       /* Rotate view vector onto the cross(tangent, light) plane */
+       vec3 view_vec = normalize(norm_lamp * dot(norm_view, sd.V) + sd.N * dot(sd.N, sd.V));
+
+       float occlusion = (dot(norm_view, norm_lamp) * 0.5 + 0.5);
+       float occltrans = transmission + (occlusion * (1.0 - transmission)); /* Includes transmission component */
+
+       sd_new.N = -norm_lamp;
+
+       diffuse = light_diffuse(ld, sd_new, albedo) * occltrans;
+
+       sd_new.V = view_vec;
+
+       specular = light_specular(ld, sd_new, roughness, f0) * occlusion;
+}
+#else
 void light_shade(
         LightData ld, ShadingData sd, vec3 albedo, float roughness, vec3 f0,
         out vec3 diffuse, out vec3 specular)
@@ -118,6 +181,7 @@ void light_shade(
 	}
 #endif
 }
+#endif
 
 void light_visibility(LightData ld, ShadingData sd, out float vis)
 {
@@ -254,20 +318,33 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	sd.W = worldPosition;
 
 	vec3 radiance = vec3(0.0);
+
+#ifdef HAIR_SHADER
+       /* View facing normal */
+       vec3 norm_view = cross(sd.V, sd.N);
+       norm_view = normalize(cross(norm_view, sd.N)); /* Normal facing view */
+#endif
+
+
 	/* Analitic Lights */
 	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
 		LightData ld = lights_data[i];
 		vec3 diff, spec;
-		float vis;
+		float vis = 1.0;
 
 		sd.l_vector = ld.l_position - worldPosition;
 
+#ifndef HAIR_SHADER
 		light_visibility(ld, sd, vis);
+#endif
 		light_shade(ld, sd, albedo, roughnessSquared, f0, diff, spec);
 
 		radiance += vis * (diff + spec) * ld.l_color;
 	}
 
+#ifdef HAIR_SHADER
+	sd.N = -norm_view;
+#endif
 
 	/* Envmaps */
 	vec3 R = reflect(-sd.V, sd.N);

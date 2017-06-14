@@ -67,6 +67,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *depth_pass_cull;
 	struct DRWPass *default_pass;
 	struct DRWPass *default_flat_pass;
+	struct DRWPass *default_hair_pass;
 	struct DRWPass *material_pass;
 	struct DRWPass *background_pass;
 } EEVEE_PassList;
@@ -318,6 +319,7 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *depth_shgrp;
 	struct DRWShadingGroup *depth_shgrp_cull;
 	struct GHash *material_hash;
+	struct GHash *hair_material_hash;
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
@@ -336,6 +338,7 @@ struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, str
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_mesh_lightprobe_get(struct Scene *scene, Material *ma);
 struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma);
+struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma);
 void EEVEE_materials_free(void);
 
 /* eevee_lights.c */

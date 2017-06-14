@@ -30,6 +30,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 
+#include "BKE_particle.h"
+
 #include "GPU_material.h"
 
 #include "eevee_engine.h"
@@ -55,6 +57,7 @@ enum {
 enum {
 	VAR_MAT_MESH     = (1 << 0),
 	VAR_MAT_PROBE    = (1 << 1),
+	VAR_MAT_HAIR     = (1 << 2),
 };
 
 /* *********** STATIC *********** */
@@ -63,6 +66,7 @@ static struct {
 
 	struct GPUShader *default_lit;
 	struct GPUShader *default_lit_flat;
+	struct GPUShader *default_lit_hair;
 
 	struct GPUShader *default_background;
 
@@ -183,11 +187,18 @@ void EEVEE_materials_init(void)
 		        datatoc_lit_surface_vert_glsl, NULL, frag_str,
 		        SHADER_DEFINES
 		        "#define MESH_SHADER\n");
+
 		e_data.default_lit_flat = DRW_shader_create(
 		        datatoc_lit_surface_vert_glsl, NULL, frag_str,
 		        SHADER_DEFINES
 		        "#define MESH_SHADER\n"
 		        "#define USE_FLAT_NORMAL\n");
+
+		e_data.default_lit_hair = DRW_shader_create(
+		        datatoc_lit_surface_vert_glsl, NULL, frag_str,
+		        SHADER_DEFINES
+		        "#define MESH_SHADER\n"
+		        "#define HAIR_SHADER\n");
 
 		MEM_freeN(frag_str);
 
@@ -257,6 +268,15 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma)
 	    SHADER_DEFINES "#define MESH_SHADER\n");
 }
 
+struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma)
+{
+	return GPU_material_from_nodetree(
+	    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type,
+	    VAR_MAT_HAIR,
+	    datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
+	    SHADER_DEFINES "#define MESH_SHADER\n" "#define HAIR_SHADER\n");
+}
+
 static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *sldata)
 {
 	DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
@@ -280,6 +300,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	/* Create Material Ghash */
 	{
 		stl->g_data->material_hash = BLI_ghash_ptr_new("Eevee_material ghash");
+		stl->g_data->hair_material_hash = BLI_ghash_ptr_new("Eevee_hair_material ghash");
 	}
 
 	{
@@ -322,7 +343,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 
 	{
 		struct GPUShader *depth_sh = DRW_shader_create_3D_depth_only();
-		DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE;
 		psl->depth_pass = DRW_pass_create("Depth Pass", state);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(depth_sh, psl->depth_pass);
 
@@ -332,7 +353,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	}
 
 	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WIRE;
 		psl->default_pass = DRW_pass_create("Default Lit Pass", state);
 		DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
 		add_standard_uniforms(shgrp, sldata);
@@ -340,10 +361,14 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 		psl->default_flat_pass = DRW_pass_create("Default Flat Lit Pass", state);
 		shgrp = DRW_shgroup_create(e_data.default_lit_flat, psl->default_flat_pass);
 		add_standard_uniforms(shgrp, sldata);
+
+		psl->default_hair_pass = DRW_pass_create("Default Hair Lit Pass", state);
+		shgrp = DRW_shgroup_create(e_data.default_lit_hair, psl->default_hair_pass);
+		add_standard_uniforms(shgrp, sldata);
 	}
 
 	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WIRE;
 		psl->material_pass = DRW_pass_create("Material Shader Pass", state);
 	}
 }
@@ -441,6 +466,81 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 			}
 		}
 	}
+
+	if (ob->type == OB_MESH) {
+		if (ob != draw_ctx->scene->obedit) {
+			material_hash = stl->g_data->hair_material_hash;
+
+			for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+				if (psys_check_enabled(ob, psys, false)) {
+					ParticleSettings *part = psys->part;
+					int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+
+					if (draw_as == PART_DRAW_PATH && (psys->pathcache || psys->childcache)) {
+						struct Batch *hair_geom = DRW_cache_particles_get_hair(psys);
+						DRWShadingGroup *shgrp = NULL;
+						Material *ma = give_current_material(ob, part->omat);
+						static float mat[4][4];
+
+						unit_m4(mat);
+
+						if (ma == NULL) {
+							ma = &defmaterial;
+						}
+
+						float *color_p = &ma->r;
+						float *metal_p = &ma->ray_mirror;
+						float *spec_p = &ma->spec;
+						float *rough_p = &ma->gloss_mir;
+
+						DRW_shgroup_call_add(stl->g_data->depth_shgrp, hair_geom, mat);
+
+						shgrp = BLI_ghash_lookup(material_hash, (const void *)ma);
+
+						if (shgrp) {
+							DRW_shgroup_call_add(shgrp, hair_geom, mat);
+						}
+						else {
+							if (ma->use_nodes && ma->nodetree) {
+								Scene *scene = draw_ctx->scene;
+								struct GPUMaterial *gpumat = EEVEE_material_hair_get(scene, ma);
+
+								shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
+								if (shgrp) {
+									add_standard_uniforms(shgrp, sldata);
+
+									BLI_ghash_insert(material_hash, ma, shgrp);
+
+									DRW_shgroup_call_add(shgrp, hair_geom, mat);
+								}
+								else {
+									/* Shader failed : pink color */
+									static float col[3] = {1.0f, 0.0f, 1.0f};
+									static float half = 0.5f;
+
+									color_p = col;
+									metal_p = spec_p = rough_p = &half;
+								}
+							}
+
+							/* Fallback to default shader */
+							if (shgrp == NULL) {
+								shgrp = DRW_shgroup_create(e_data.default_lit_hair, psl->default_hair_pass);
+								DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
+								DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
+								DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
+								DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
+
+								BLI_ghash_insert(material_hash, ma, shgrp);
+
+								DRW_shgroup_call_add(shgrp, hair_geom, mat);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
@@ -448,6 +548,7 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
 	BLI_ghash_free(stl->g_data->material_hash, NULL, NULL);
+	BLI_ghash_free(stl->g_data->hair_material_hash, NULL, NULL);
 }
 
 void EEVEE_materials_free(void)
@@ -455,6 +556,7 @@ void EEVEE_materials_free(void)
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit_flat);
+	DRW_SHADER_FREE_SAFE(e_data.default_lit_hair);
 	DRW_SHADER_FREE_SAFE(e_data.default_background);
 	DRW_TEXTURE_FREE_SAFE(e_data.util_tex);
 }
