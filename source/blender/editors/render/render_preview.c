@@ -1266,6 +1266,9 @@ void ED_preview_icon_render(Main *bmain, Scene *scene, ID *id, unsigned int *rec
 
 void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *rect, int sizex, int sizey)
 {
+	/* XXX Temporarily disabling preview, as this breaks some memory chunks (See T51796). */
+	return;
+
 	wmJob *wm_job;
 	IconPreview *ip, *old_ip;
 
@@ -1308,6 +1311,9 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 
 void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, MTex *slot, int sizex, int sizey, int method)
 {
+	/* XXX Temporarily disabling preview, as this breaks some memory chunks (See T51796). */
+	return;
+
 	Object *ob = CTX_data_active_object(C);
 	wmJob *wm_job;
 	ShaderPreview *sp;
