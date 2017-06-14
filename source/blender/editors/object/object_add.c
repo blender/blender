@@ -152,11 +152,12 @@ static EnumPropertyItem field_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* copy from rna_lightprobe.c */
 static EnumPropertyItem lightprobe_type_items[] = {
-	{LIGHTPROBE_TYPE_CUBE, "CUBE", ICON_MESH_UVSPHERE, "Sphere", ""},
+	{0, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", "Reflection probe with sphere attenuation"},
+	{1, "CUBE", ICON_MESH_CUBE, "Cube", "Reflection probe with cube attenuation"},
 	// {LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_MESH_PLANE, "Planar", ""},
 	// {LIGHTPROBE_TYPE_IMAGE, "IMAGE", ICON_NONE, "Image", ""},
+	{2, "GRID", ICON_MESH_GRID, "Grid", "Irradiance probe to capture diffuse indirect lighting"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -534,7 +535,16 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 	BKE_object_obdata_size_init(ob, dia);
 
 	probe = (LightProbe *)ob->data;
-	probe->type = type;
+
+	if (type == 2) {
+		probe->type = LIGHTPROBE_TYPE_GRID;
+		probe->distinf = 0.3f;
+		probe->falloff = 1.0f;
+	}
+	else {
+		probe->type = LIGHTPROBE_TYPE_CUBE;
+		probe->attenuation_type = (type == 1) ? LIGHTPROBE_SHAPE_BOX : LIGHTPROBE_SHAPE_ELIPSOID;
+	}
 
 	DEG_relations_tag_update(CTX_data_main(C));
 

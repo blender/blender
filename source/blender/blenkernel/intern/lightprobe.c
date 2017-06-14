@@ -45,12 +45,14 @@ void BKE_lightprobe_init(LightProbe *probe)
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(probe, id));
 
 	probe->grid_resolution_x = probe->grid_resolution_y = probe->grid_resolution_z = 4;
-	probe->distinf = 5.0f;
-	probe->distpar = 5.0f;
+	probe->distinf = 2.5f;
+	probe->distpar = 2.5f;
 	probe->falloff = 0.2f;
-	probe->clipsta = 1.0f;
+	probe->clipsta = 0.8f;
 	probe->clipend = 40.0f;
 	probe->data_draw_size = 1.0f;
+
+	probe->flag = LIGHTPROBE_FLAG_SHOW_INFLUENCE | LIGHTPROBE_FLAG_SHOW_DATA;
 }
 
 void *BKE_lightprobe_add(Main *bmain, const char *name)
