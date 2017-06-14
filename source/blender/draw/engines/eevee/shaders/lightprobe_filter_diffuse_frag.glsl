@@ -187,9 +187,9 @@ void main()
 			/* http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html : Equation 13 */
 			float lod = clamp(lodFactor - 0.5 * log2(pdf * dist), 0.0, lodMax) ;
 
-			out_radiance += textureLod(probeHdr, L, lod).rgb * NL / pdf;
+			out_radiance += textureLod(probeHdr, L, lod).rgb * NL;
+			weight += NL;
 		}
-		weight += 1.0;
 	}
 
 	FragColor = vec4(out_radiance / weight, 1.0);
