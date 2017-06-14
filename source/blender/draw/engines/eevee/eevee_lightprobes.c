@@ -72,6 +72,7 @@ extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_lightprobe_grid_display_frag_glsl[];
 extern char datatoc_lightprobe_grid_display_vert_glsl[];
 extern char datatoc_irradiance_lib_glsl[];
+extern char datatoc_octahedron_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 
@@ -153,6 +154,7 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata)
 		MEM_freeN(shader_str);
 
 		ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_lightprobe_grid_display_frag_glsl);
 		shader_str = BLI_dynstr_get_cstring(ds_frag);

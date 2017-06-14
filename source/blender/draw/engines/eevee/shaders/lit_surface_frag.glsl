@@ -56,43 +56,6 @@ in vec3 viewNormal;
 #define HEMI     3.0
 #define AREA     4.0
 
-vec2 mapping_octahedron(vec3 cubevec, vec2 texel_size)
-{
-	/* projection onto octahedron */
-	cubevec /= dot( vec3(1), abs(cubevec) );
-
-	/* out-folding of the downward faces */
-	if ( cubevec.z < 0.0 ) {
-		cubevec.xy = (1.0 - abs(cubevec.yx)) * sign(cubevec.xy);
-	}
-
-	/* mapping to [0;1]ˆ2 texture space */
-	vec2 uvs = cubevec.xy * (0.5) + 0.5;
-
-	/* edge filtering fix */
-	uvs *= 1.0 - 2.0 * texel_size;
-	uvs += texel_size;
-
-	return uvs;
-}
-
-vec4 textureLod_octahedron(sampler2DArray tex, vec4 cubevec, float lod)
-{
-	vec2 texelSize = 1.0 / vec2(textureSize(tex, int(lodMax)));
-
-	vec2 uvs = mapping_octahedron(cubevec.xyz, texelSize);
-
-	return textureLod(tex, vec3(uvs, cubevec.w), lod);
-}
-
-vec4 texture_octahedron(sampler2DArray tex, vec4 cubevec)
-{
-	vec2 texelSize = 1.0 / vec2(textureSize(tex, 0));
-
-	vec2 uvs = mapping_octahedron(cubevec.xyz, texelSize);
-
-	return texture(tex, vec3(uvs, cubevec.w));
-}
 #ifdef HAIR_SHADER
 vec3 light_diffuse(LightData ld, ShadingData sd, vec3 albedo)
 {
@@ -373,7 +336,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 			float roughness_copy = roughness;
 
 			vec3 sample_vec = probe_parallax_correction(sd.W, spec_dir, pd, roughness_copy);
-			vec4 sample = textureLod_octahedron(probeCubes, vec4(sample_vec, i), roughness_copy * lodMax).rgba;
+			vec4 sample = textureLod_octahedron(probeCubes, vec4(sample_vec, i), roughness_copy * lodMax, lodMax).rgba;
 
 			float influ_spec = min(dist_attenuation, (1.0 - spec_accum.a));
 
@@ -453,7 +416,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	if (spec_accum.a < 1.0) {
 		ProbeData pd = probes_data[0];
 
-		vec3 spec = textureLod_octahedron(probeCubes, vec4(spec_dir, 0), roughness * lodMax).rgb;
+		vec3 spec = textureLod_octahedron(probeCubes, vec4(spec_dir, 0), roughness * lodMax, lodMax).rgb;
 		spec_accum.rgb += spec * (1.0 - spec_accum.a);
 	}
 
