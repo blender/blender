@@ -506,7 +506,7 @@ bool IMB_initImBuf(struct ImBuf *ibuf,
 }
 
 /* does no zbuffers? */
-ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
+ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 {
 	ImBuf *ibuf2, tbuf;
 	int flags = 0;

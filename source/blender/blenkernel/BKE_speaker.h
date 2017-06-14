@@ -33,7 +33,7 @@ struct Speaker;
 
 void BKE_speaker_init(struct Speaker *spk);
 void *BKE_speaker_add(struct Main *bmain, const char *name);
-struct Speaker *BKE_speaker_copy(struct Main *bmain, struct Speaker *spk);
+struct Speaker *BKE_speaker_copy(struct Main *bmain, const struct Speaker *spk);
 void BKE_speaker_make_local(struct Main *bmain, struct Speaker *spk, const bool lib_local);
 void BKE_speaker_free(struct Speaker *spk);
 

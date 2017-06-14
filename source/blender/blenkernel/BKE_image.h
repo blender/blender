@@ -250,7 +250,7 @@ void BKE_image_packfiles_from_mem(struct ReportList *reports, struct Image *ima,
 void BKE_image_print_memlist(void);
 
 /* empty image block, of similar type and filename */
-struct Image *BKE_image_copy(struct Main *bmain, struct Image *ima);
+struct Image *BKE_image_copy(struct Main *bmain, const struct Image *ima);
 
 /* merge source into dest, and free source */
 void BKE_image_merge(struct Image *dest, struct Image *source);

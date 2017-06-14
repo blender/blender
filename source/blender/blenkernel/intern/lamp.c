@@ -116,7 +116,7 @@ Lamp *BKE_lamp_add(Main *bmain, const char *name)
 	return la;
 }
 
-Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
+Lamp *BKE_lamp_copy(Main *bmain, const Lamp *la)
 {
 	Lamp *lan;
 	int a;

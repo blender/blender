@@ -92,7 +92,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 /* ---------------------- */
 
 void fcurve_free_driver(struct FCurve *fcu);
-struct ChannelDriver *fcurve_copy_driver(struct ChannelDriver *driver);
+struct ChannelDriver *fcurve_copy_driver(const struct ChannelDriver *driver);
 
 void driver_variables_copy(struct ListBase *dst_list, const struct ListBase *src_list);
 
@@ -138,7 +138,7 @@ typedef struct FModifierTypeInfo {
 	/* free any data that is allocated separately (optional) */
 	void (*free_data)(struct FModifier *fcm);
 	/* copy any special data that is allocated separately (optional) */
-	void (*copy_data)(struct FModifier *fcm, struct FModifier *src);
+	void (*copy_data)(struct FModifier *fcm, const struct FModifier *src);
 	/* set settings for data that will be used for FCuModifier.data (memory already allocated using MEM_callocN) */
 	void (*new_data)(void *mdata);
 	/* verifies that the modifier settings are valid */
@@ -183,14 +183,14 @@ typedef enum eFMI_Requirement_Flags {
 } eFMI_Requirement_Flags;
 
 /* Function Prototypes for FModifierTypeInfo's */
-const FModifierTypeInfo *fmodifier_get_typeinfo(struct FModifier *fcm);
-const FModifierTypeInfo *get_fmodifier_typeinfo(int type);
+const FModifierTypeInfo *fmodifier_get_typeinfo(const struct FModifier *fcm);
+const FModifierTypeInfo *get_fmodifier_typeinfo(const int type);
 
 /* ---------------------- */
 
 struct FModifier *add_fmodifier(ListBase *modifiers, int type);
-struct FModifier *copy_fmodifier(struct FModifier *src);
-void copy_fmodifiers(ListBase *dst, ListBase *src);
+struct FModifier *copy_fmodifier(const struct FModifier *src);
+void copy_fmodifiers(ListBase *dst, const ListBase *src);
 bool remove_fmodifier(ListBase *modifiers, struct FModifier *fcm);
 void free_fmodifiers(ListBase *modifiers);
 
@@ -216,7 +216,7 @@ int BKE_fcm_envelope_find_index(struct FCM_EnvelopeData *array, float frame, int
 /* -------- Data Management  --------  */
 
 void free_fcurve(struct FCurve *fcu);
-struct FCurve *copy_fcurve(struct FCurve *fcu);
+struct FCurve *copy_fcurve(const struct FCurve *fcu);
 
 void free_fcurves(ListBase *list);
 void copy_fcurves(ListBase *dst, ListBase *src);

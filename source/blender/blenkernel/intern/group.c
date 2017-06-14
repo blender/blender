@@ -89,7 +89,7 @@ Group *BKE_group_add(Main *bmain, const char *name)
 	return group;
 }
 
-Group *BKE_group_copy(Main *bmain, Group *group)
+Group *BKE_group_copy(Main *bmain, const Group *group)
 {
 	Group *groupn;
 

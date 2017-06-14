@@ -846,7 +846,7 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *BKE_texture_copy(Main *bmain, Tex *tex)
+Tex *BKE_texture_copy(Main *bmain, const Tex *tex)
 {
 	Tex *texn;
 	
@@ -1263,7 +1263,7 @@ EnvMap *BKE_texture_envmap_add(void)
 
 /* ------------------------------------------------------------------------- */
 
-EnvMap *BKE_texture_envmap_copy(EnvMap *env)
+EnvMap *BKE_texture_envmap_copy(const EnvMap *env)
 {
 	EnvMap *envn;
 	int a;
@@ -1336,7 +1336,7 @@ PointDensity *BKE_texture_pointdensity_add(void)
 	return pd;
 } 
 
-PointDensity *BKE_texture_pointdensity_copy(PointDensity *pd)
+PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd)
 {
 	PointDensity *pdn;
 
@@ -1430,7 +1430,7 @@ OceanTex *BKE_texture_ocean_add(void)
 	return ot;
 }
 
-OceanTex *BKE_texture_ocean_copy(struct OceanTex *ot)
+OceanTex *BKE_texture_ocean_copy(const OceanTex *ot)
 {
 	OceanTex *otn = MEM_dupallocN(ot);
 	

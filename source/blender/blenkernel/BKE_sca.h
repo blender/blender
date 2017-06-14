@@ -53,15 +53,15 @@ void free_actuators(struct ListBase *lb);
 void free_sensor(struct bSensor *sens);
 void free_sensors(struct ListBase *lb);
 struct bSensor *copy_sensor(struct bSensor *sens);
-void copy_sensors(struct ListBase *lbn, struct ListBase *lbo);
+void copy_sensors(struct ListBase *lbn, const struct ListBase *lbo);
 void init_sensor(struct bSensor *sens);
 struct bSensor *new_sensor(int type);
 struct bController *copy_controller(struct bController *cont);
-void copy_controllers(struct ListBase *lbn, struct ListBase *lbo);
+void copy_controllers(struct ListBase *lbn, const struct ListBase *lbo);
 void init_controller(struct bController *cont);
 struct bController *new_controller(int type);
 struct bActuator *copy_actuator(struct bActuator *act);
-void copy_actuators(struct ListBase *lbn, struct ListBase *lbo);
+void copy_actuators(struct ListBase *lbn, const struct ListBase *lbo);
 void init_actuator(struct bActuator *act);
 struct bActuator *new_actuator(int type);
 void clear_sca_new_poins_ob(struct Object *ob);
@@ -70,7 +70,7 @@ void set_sca_new_poins_ob(struct Object *ob);
 void set_sca_new_poins(void);
 
 void BKE_sca_logic_links_remap(struct Main *bmain, struct Object *ob_old, struct Object *ob_new);
-void BKE_sca_logic_copy(struct Object *ob_new, struct Object *ob);
+void BKE_sca_logic_copy(struct Object *ob_new, const struct Object *ob);
 
 void sca_move_sensor(struct bSensor *sens_to_move, struct Object *ob, int move_up);
 void sca_move_controller(struct bController *cont_to_move, struct Object *ob, int move_up);

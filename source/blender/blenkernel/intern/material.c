@@ -220,7 +220,7 @@ Material *BKE_material_add(Main *bmain, const char *name)
 }
 
 /* XXX keep synced with next function */
-Material *BKE_material_copy(Main *bmain, Material *ma)
+Material *BKE_material_copy(Main *bmain, const Material *ma)
 {
 	Material *man;
 	int a;

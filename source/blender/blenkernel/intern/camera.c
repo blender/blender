@@ -93,7 +93,7 @@ void *BKE_camera_add(Main *bmain, const char *name)
 	return cam;
 }
 
-Camera *BKE_camera_copy(Main *bmain, Camera *cam)
+Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
 {
 	Camera *camn;
 	

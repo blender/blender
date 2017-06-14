@@ -172,7 +172,7 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, short ob_mode)
 	return NULL;
 }
 
-Brush *BKE_brush_copy(Main *bmain, Brush *brush)
+Brush *BKE_brush_copy(Main *bmain, const Brush *brush)
 {
 	Brush *brushn;
 	

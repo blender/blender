@@ -100,7 +100,7 @@ void BKE_cachefile_free(CacheFile *cache_file)
 	BLI_freelistN(&cache_file->object_paths);
 }
 
-CacheFile *BKE_cachefile_copy(Main *bmain, CacheFile *cache_file)
+CacheFile *BKE_cachefile_copy(Main *bmain, const CacheFile *cache_file)
 {
 	CacheFile *new_cache_file = BKE_libblock_copy(bmain, &cache_file->id);
 	new_cache_file->handle = NULL;

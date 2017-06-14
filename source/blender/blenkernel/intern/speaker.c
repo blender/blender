@@ -68,7 +68,7 @@ void *BKE_speaker_add(Main *bmain, const char *name)
 	return spk;
 }
 
-Speaker *BKE_speaker_copy(Main *bmain, Speaker *spk)
+Speaker *BKE_speaker_copy(Main *bmain, const Speaker *spk)
 {
 	Speaker *spkn;
 

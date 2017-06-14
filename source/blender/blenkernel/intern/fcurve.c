@@ -126,7 +126,7 @@ void free_fcurves(ListBase *list)
 /* ---------------------- Copy --------------------------- */
 
 /* duplicate an F-Curve */
-FCurve *copy_fcurve(FCurve *fcu)
+FCurve *copy_fcurve(const FCurve *fcu)
 {
 	FCurve *fcu_d;
 	
@@ -1805,7 +1805,7 @@ void fcurve_free_driver(FCurve *fcu)
 }
 
 /* This makes a copy of the given driver */
-ChannelDriver *fcurve_copy_driver(ChannelDriver *driver)
+ChannelDriver *fcurve_copy_driver(const ChannelDriver *driver)
 {
 	ChannelDriver *ndriver;
 	

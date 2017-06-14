@@ -190,7 +190,7 @@ void BKE_tracking_free(MovieTracking *tracking)
 }
 
 /* Copy the whole list of tracks. */
-static void tracking_tracks_copy(ListBase *tracks_dst, ListBase *tracks_src, GHash *tracks_mapping)
+static void tracking_tracks_copy(ListBase *tracks_dst, const ListBase *tracks_src, GHash *tracks_mapping)
 {
 	MovieTrackingTrack *track_dst, *track_src;
 
@@ -210,7 +210,7 @@ static void tracking_tracks_copy(ListBase *tracks_dst, ListBase *tracks_src, GHa
 
 /* copy the whole list of plane tracks (need whole MovieTracking structures due to embedded pointers to tracks).
  * WARNING: implies tracking_[dst/src] and their tracks have already been copied. */
-static void tracking_plane_tracks_copy(ListBase *plane_tracks_dst, ListBase *plane_tracks_src, GHash *tracks_mapping)
+static void tracking_plane_tracks_copy(ListBase *plane_tracks_dst, const ListBase *plane_tracks_src, GHash *tracks_mapping)
 {
 	MovieTrackingPlaneTrack *plane_track_dst, *plane_track_src;
 
@@ -232,7 +232,7 @@ static void tracking_plane_tracks_copy(ListBase *plane_tracks_dst, ListBase *pla
 
 /* Copy reconstruction structure. */
 static void tracking_reconstruction_copy(
-        MovieTrackingReconstruction *reconstruction_dst, MovieTrackingReconstruction *reconstruction_src)
+        MovieTrackingReconstruction *reconstruction_dst, const MovieTrackingReconstruction *reconstruction_src)
 {
 	*reconstruction_dst = *reconstruction_src;
 	if (reconstruction_src->cameras) {
@@ -242,14 +242,14 @@ static void tracking_reconstruction_copy(
 
 /* Copy stabilization structure. */
 static void tracking_stabilization_copy(
-        MovieTrackingStabilization *stabilization_dst, MovieTrackingStabilization *stabilization_src)
+        MovieTrackingStabilization *stabilization_dst, const MovieTrackingStabilization *stabilization_src)
 {
 	*stabilization_dst = *stabilization_src;
 }
 
 /* Copy tracking object. */
 static void tracking_object_copy(
-        MovieTrackingObject *object_dst, MovieTrackingObject *object_src, GHash *tracks_mapping)
+        MovieTrackingObject *object_dst, const MovieTrackingObject *object_src, GHash *tracks_mapping)
 {
 	*object_dst = *object_src;
 	tracking_tracks_copy(&object_dst->tracks, &object_src->tracks, tracks_mapping);
@@ -258,7 +258,7 @@ static void tracking_object_copy(
 }
 
 /* Copy list of tracking objects. */
-static void tracking_objects_copy(ListBase *objects_dst, ListBase *objects_src, GHash *tracks_mapping)
+static void tracking_objects_copy(ListBase *objects_dst, const ListBase *objects_src, GHash *tracks_mapping)
 {
 	MovieTrackingObject *object_dst, *object_src;
 
@@ -272,7 +272,7 @@ static void tracking_objects_copy(ListBase *objects_dst, ListBase *objects_src, 
 }
 
 /* Copy tracking structure content. */
-void BKE_tracking_copy(MovieTracking *tracking_dst, MovieTracking *tracking_src)
+void BKE_tracking_copy(MovieTracking *tracking_dst, const MovieTracking *tracking_src)
 {
 	GHash *tracks_mapping = BLI_ghash_ptr_new(__func__);
 

@@ -501,7 +501,7 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 	return me;
 }
 
-Mesh *BKE_mesh_copy(Main *bmain, Mesh *me)
+Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
 {
 	Mesh *men;
 	int a;

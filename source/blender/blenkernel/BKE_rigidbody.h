@@ -49,8 +49,8 @@ void BKE_rigidbody_free_constraint(struct Object *ob);
 
 /* ...... */
 
-struct RigidBodyOb *BKE_rigidbody_copy_object(struct Object *ob);
-struct RigidBodyCon *BKE_rigidbody_copy_constraint(struct Object *ob);
+struct RigidBodyOb *BKE_rigidbody_copy_object(const struct Object *ob);
+struct RigidBodyCon *BKE_rigidbody_copy_constraint(const struct Object *ob);
 
 /* Callback format for performing operations on ID-pointers for rigidbody world. */
 typedef void (*RigidbodyWorldIDFunc)(struct RigidBodyWorld *rbw, struct ID **idpoin, void *userdata, int cb_flag);

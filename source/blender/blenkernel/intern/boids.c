@@ -1581,7 +1581,7 @@ void boid_free_settings(BoidSettings *boids)
 		MEM_freeN(boids);
 	}
 }
-BoidSettings *boid_copy_settings(BoidSettings *boids)
+BoidSettings *boid_copy_settings(const BoidSettings *boids)
 {
 	BoidSettings *nboids = NULL;
 

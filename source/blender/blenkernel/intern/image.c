@@ -434,7 +434,7 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
 }
 
 /* empty image block, of similar type and filename */
-Image *BKE_image_copy(Main *bmain, Image *ima)
+Image *BKE_image_copy(Main *bmain, const Image *ima)
 {
 	Image *nima = image_alloc(bmain, ima->id.name + 2, ima->source, ima->type);
 

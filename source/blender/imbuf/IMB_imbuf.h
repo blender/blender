@@ -166,7 +166,7 @@ struct ImBuf *IMB_makeSingleUser(struct ImBuf *ibuf);
  *
  * \attention Defined in allocimbuf.c
  */
-struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1);
+struct ImBuf *IMB_dupImBuf(const struct ImBuf *ibuf1);
 
 /**
  *

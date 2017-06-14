@@ -116,7 +116,7 @@ static void fcm_generator_free(FModifier *fcm)
 		MEM_freeN(data->coefficients);
 }
 
-static void fcm_generator_copy(FModifier *fcm, FModifier *src)
+static void fcm_generator_copy(FModifier *fcm, const FModifier *src)
 {
 	FMod_Generator *gen = (FMod_Generator *)fcm->data;
 	FMod_Generator *ogen = (FMod_Generator *)src->data;
@@ -386,7 +386,7 @@ static void fcm_envelope_free(FModifier *fcm)
 		MEM_freeN(env->data);
 }
 
-static void fcm_envelope_copy(FModifier *fcm, FModifier *src)
+static void fcm_envelope_copy(FModifier *fcm, const FModifier *src)
 {
 	FMod_Envelope *env = (FMod_Envelope *)fcm->data;
 	FMod_Envelope *oenv = (FMod_Envelope *)src->data;
@@ -877,7 +877,7 @@ static void fcm_python_new_data(void *mdata)
 	data->prop->type = IDP_GROUP;
 }
 
-static void fcm_python_copy(FModifier *fcm, FModifier *src)
+static void fcm_python_copy(FModifier *fcm, const FModifier *src)
 {
 	FMod_Python *pymod = (FMod_Python *)fcm->data;
 	FMod_Python *opymod = (FMod_Python *)src->data;
@@ -1040,7 +1040,7 @@ static void fmods_init_typeinfo(void)
 /* This function should be used for getting the appropriate type-info when only
  * a F-Curve modifier type is known
  */
-const FModifierTypeInfo *get_fmodifier_typeinfo(int type)
+const FModifierTypeInfo *get_fmodifier_typeinfo(const int type)
 {
 	/* initialize the type-info list? */
 	if (FMI_INIT) {
@@ -1065,7 +1065,7 @@ const FModifierTypeInfo *get_fmodifier_typeinfo(int type)
 /* This function should always be used to get the appropriate type-info, as it
  * has checks which prevent segfaults in some weird cases.
  */
-const FModifierTypeInfo *fmodifier_get_typeinfo(FModifier *fcm)
+const FModifierTypeInfo *fmodifier_get_typeinfo(const FModifier *fcm)
 {
 	/* only return typeinfo for valid modifiers */
 	if (fcm)
@@ -1117,7 +1117,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type)
 }
 
 /* Make a copy of the specified F-Modifier */
-FModifier *copy_fmodifier(FModifier *src)
+FModifier *copy_fmodifier(const FModifier *src)
 {
 	const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(src);
 	FModifier *dst;
@@ -1142,7 +1142,7 @@ FModifier *copy_fmodifier(FModifier *src)
 }
 
 /* Duplicate all of the F-Modifiers in the Modifier stacks */
-void copy_fmodifiers(ListBase *dst, ListBase *src)
+void copy_fmodifiers(ListBase *dst, const ListBase *src)
 {
 	FModifier *fcm, *srcfcm;
 	

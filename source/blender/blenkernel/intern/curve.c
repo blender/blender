@@ -187,7 +187,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 	return cu;
 }
 
-Curve *BKE_curve_copy(Main *bmain, Curve *cu)
+Curve *BKE_curve_copy(Main *bmain, const Curve *cu)
 {
 	Curve *cun;
 	int a;
@@ -468,7 +468,7 @@ void BKE_nurbList_free(ListBase *lb)
 	BLI_listbase_clear(lb);
 }
 
-Nurb *BKE_nurb_duplicate(Nurb *nu)
+Nurb *BKE_nurb_duplicate(const Nurb *nu)
 {
 	Nurb *newnu;
 	int len;
@@ -532,7 +532,7 @@ Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
 	return newnu;
 }
 
-void BKE_nurbList_duplicate(ListBase *lb1, ListBase *lb2)
+void BKE_nurbList_duplicate(ListBase *lb1, const ListBase *lb2)
 {
 	Nurb *nu, *nun;
 

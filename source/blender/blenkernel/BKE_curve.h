@@ -78,7 +78,7 @@ void BKE_curve_free(struct Curve *cu);
 void BKE_curve_editfont_free(struct Curve *cu);
 void BKE_curve_init(struct Curve *cu);
 struct Curve *BKE_curve_add(struct Main *bmain, const char *name, int type);
-struct Curve *BKE_curve_copy(struct Main *bmain, struct Curve *cu);
+struct Curve *BKE_curve_copy(struct Main *bmain, const struct Curve *cu);
 void BKE_curve_make_local(struct Main *bmain, struct Curve *cu, const bool lib_local);
 short BKE_curve_type_get(struct Curve *cu);
 void BKE_curve_type_test(struct Object *ob);
@@ -142,7 +142,7 @@ int BKE_nurbList_verts_count(struct ListBase *nurb);
 int BKE_nurbList_verts_count_without_handles(struct ListBase *nurb);
 
 void BKE_nurbList_free(struct ListBase *lb);
-void BKE_nurbList_duplicate(struct ListBase *lb1,  struct ListBase *lb2);
+void BKE_nurbList_duplicate(struct ListBase *lb1, const struct ListBase *lb2);
 void BKE_nurbList_handles_set(struct ListBase *editnurb, const char code);
 void BKE_nurbList_handles_recalculate(struct ListBase *editnurb, const bool calc_length, const char flag);
 
@@ -150,7 +150,7 @@ void BKE_nurbList_handles_autocalc(ListBase *editnurb, int flag);
 void BKE_nurbList_flag_set(ListBase *editnurb, short flag);
 
 void BKE_nurb_free(struct Nurb *nu);
-struct Nurb *BKE_nurb_duplicate(struct Nurb *nu);
+struct Nurb *BKE_nurb_duplicate(const struct Nurb *nu);
 struct Nurb *BKE_nurb_copy(struct Nurb *src, int pntsu, int pntsv);
 
 void BKE_nurb_test2D(struct Nurb *nu);

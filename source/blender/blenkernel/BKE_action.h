@@ -58,7 +58,7 @@ extern "C" {
 struct bAction *add_empty_action(struct Main *bmain, const char name[]);
 
 /* Allocate a copy of the given Action and all its data */	
-struct bAction *BKE_action_copy(struct Main *bmain, struct bAction *src);
+struct bAction *BKE_action_copy(struct Main *bmain, const struct bAction *src);
 
 /* Deallocate all of the Action's data, but not the Action itself */
 void BKE_action_free(struct bAction *act);
@@ -150,7 +150,7 @@ void                 BKE_pose_free_data_ex(struct bPose *pose, bool do_id_user);
 void                 BKE_pose_free_data(struct bPose *pose);
 void                 BKE_pose_free(struct bPose *pose);
 void                 BKE_pose_free_ex(struct bPose *pose, bool do_id_user);
-void                 BKE_pose_copy_data(struct bPose **dst, struct bPose *src, const bool copy_constraints);
+void                 BKE_pose_copy_data(struct bPose **dst, const struct bPose *src, const bool copy_constraints);
 void                 BKE_pose_channel_copy_data(struct bPoseChannel *pchan, const struct bPoseChannel *pchan_from);
 struct bPoseChannel *BKE_pose_channel_find_name(const struct bPose *pose, const char *name);
 struct bPoseChannel *BKE_pose_channel_active(struct Object *ob);

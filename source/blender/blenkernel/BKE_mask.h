@@ -77,14 +77,14 @@ void BKE_mask_layer_free(struct MaskLayer *masklay);
 void BKE_mask_layer_free_list(struct ListBase *masklayers);
 void BKE_mask_spline_free(struct MaskSpline *spline);
 void BKE_mask_spline_free_list(struct ListBase *splines);
-struct MaskSpline *BKE_mask_spline_copy(struct MaskSpline *spline);
+struct MaskSpline *BKE_mask_spline_copy(const struct MaskSpline *spline);
 void BKE_mask_point_free(struct MaskSplinePoint *point);
 
 void BKE_mask_layer_unique_name(struct Mask *mask, struct MaskLayer *masklay);
 void BKE_mask_layer_rename(struct Mask *mask, struct MaskLayer *masklay, char *oldname, char *newname);
 
-struct MaskLayer *BKE_mask_layer_copy(struct MaskLayer *layer);
-void BKE_mask_layer_copy_list(struct ListBase *masklayers_new, struct ListBase *masklayers);
+struct MaskLayer *BKE_mask_layer_copy(const struct MaskLayer *layer);
+void BKE_mask_layer_copy_list(struct ListBase *masklayers_new, const struct ListBase *masklayers);
 
 /* splines */
 struct MaskSpline *BKE_mask_spline_add(struct MaskLayer *masklay);
@@ -123,7 +123,7 @@ void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, const eMask
 /* general */
 struct Mask *BKE_mask_new(struct Main *bmain, const char *name);
 struct Mask *BKE_mask_copy_nolib(struct Mask *mask);
-struct Mask *BKE_mask_copy(struct Main *bmain, struct Mask *mask);
+struct Mask *BKE_mask_copy(struct Main *bmain, const struct Mask *mask);
 
 void BKE_mask_make_local(struct Main *bmain, struct Mask *mask, const bool lib_local);
 

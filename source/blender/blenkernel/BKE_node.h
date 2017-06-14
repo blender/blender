@@ -335,8 +335,8 @@ struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char 
 
 /* copy/free funcs, need to manage ID users */
 void              ntreeFreeTree(struct bNodeTree *ntree);
-struct bNodeTree *ntreeCopyTree_ex(struct bNodeTree *ntree, struct Main *bmain, const bool do_id_user);
-struct bNodeTree *ntreeCopyTree(struct Main *bmain, struct bNodeTree *ntree);
+struct bNodeTree *ntreeCopyTree_ex(const struct bNodeTree *ntree, struct Main *bmain, const bool do_id_user);
+struct bNodeTree *ntreeCopyTree(struct Main *bmain, const struct bNodeTree *ntree);
 /* node->id user count */
 void              ntreeUserIncrefID(struct bNodeTree *ntree);
 void              ntreeUserDecrefID(struct bNodeTree *ntree);
