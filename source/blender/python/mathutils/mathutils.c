@@ -1,4 +1,4 @@
-/* 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -38,18 +38,31 @@
 #endif
 
 PyDoc_STRVAR(M_Mathutils_doc,
-"This module provides access to the math classes:\n"
+"This module provides access to math operations.\n"
+"\n"
+".. note::\n"
+"\n"
+"   Classes, methods and attributes that accept vectors also accept other numeric sequences,\n"
+"   such as tuples, lists."
+"\n\n"
+"Submodules:\n"
+"\n"
+".. toctree::\n"
+"   :maxdepth: 1\n"
+"\n"
+"   mathutils.geometry.rst\n"
+"   mathutils.bvhtree.rst\n"
+"   mathutils.kdtree.rst\n"
+"   mathutils.interpolate.rst\n"
+"   mathutils.noise.rst\n"
+"\n"
+"The :mod:`mathutils` module provides the following classes:\n"
 "\n"
 "- :class:`Color`,\n"
 "- :class:`Euler`,\n"
 "- :class:`Matrix`,\n"
 "- :class:`Quaternion`,\n"
 "- :class:`Vector`,\n"
-"\n"
-".. note::\n"
-"\n"
-"   Classes, methods and attributes that accept vectors also accept other numeric sequences,\n"
-"   such as tuples, lists."
 );
 static int mathutils_array_parse_fast(float *array,
                                       int size,
@@ -219,7 +232,7 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 			             error_prefix, size, array_min);
 			return -1;
 		}
-		
+
 		*array = PyMem_Malloc(size * sizeof(float));
 		memcpy(*array, ((BaseMathObject *)value)->data, size * sizeof(float));
 		return size;
@@ -422,7 +435,7 @@ static Mathutils_Callback *mathutils_callbacks[MATHUTILS_TOT_CB] = {NULL};
 unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb)
 {
 	unsigned char i;
-	
+
 	/* find the first free slot */
 	for (i = 0; mathutils_callbacks[i]; i++) {
 		if (mathutils_callbacks[i] == cb) /* already registered? */
@@ -625,14 +638,14 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 		return NULL;
 
 	mod = PyModule_Create(&M_Mathutils_module_def);
-	
+
 	/* each type has its own new() function */
 	PyModule_AddObject(mod, vector_Type.tp_name,     (PyObject *)&vector_Type);
 	PyModule_AddObject(mod, matrix_Type.tp_name,     (PyObject *)&matrix_Type);
 	PyModule_AddObject(mod, euler_Type.tp_name,      (PyObject *)&euler_Type);
 	PyModule_AddObject(mod, quaternion_Type.tp_name, (PyObject *)&quaternion_Type);
 	PyModule_AddObject(mod, color_Type.tp_name,      (PyObject *)&color_Type);
-	
+
 	/* submodule */
 	PyModule_AddObject(mod, "geometry",       (submodule = PyInit_mathutils_geometry()));
 	/* XXX, python doesnt do imports with this usefully yet

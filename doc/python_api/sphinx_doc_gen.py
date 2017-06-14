@@ -1729,12 +1729,8 @@ def write_rst_contents(basepath):
     fw("   :maxdepth: 1\n\n")
 
     standalone_modules = (
-        # mathutils
+        # mathutils, submodules are in own page
         "mathutils",
-        "mathutils.geometry",
-        "mathutils.bvhtree", "mathutils.kdtree",
-        "mathutils.interpolate",
-        "mathutils.noise",
         # misc
         "freestyle", "bgl", "blf",
         "gpu", "gpu.offscreen",
