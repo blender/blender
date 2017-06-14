@@ -150,17 +150,17 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "grid_resolution_x", PROP_INT, PROP_PIXEL);
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Resolution X", "Number of sample along the x axis of the volume");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "grid_resolution_y", PROP_INT, PROP_PIXEL);
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of sample along the y axis of the volume");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "grid_resolution_z", PROP_INT, PROP_PIXEL);
 	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Resolution Z", "Number of sample along the z axis of the volume");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	/* common */
 	rna_def_animdata_common(srna);

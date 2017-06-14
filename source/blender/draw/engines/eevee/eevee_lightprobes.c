@@ -198,7 +198,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
 	pinfo->num_cube = 1; /* at least one for the world */
-	pinfo->num_grid = 0;
+	pinfo->num_grid = 1;
 	memset(pinfo->probes_cube_ref, 0, sizeof(pinfo->probes_cube_ref));
 	memset(pinfo->probes_grid_ref, 0, sizeof(pinfo->probes_grid_ref));
 
@@ -309,12 +309,18 @@ void EEVEE_lightprobes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob)
 
 	EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
 
+	ped->num_cell = probe->grid_resolution_x * probe->grid_resolution_y * probe->grid_resolution_z;
+
 	if ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0) {
 		ped->need_update = true;
+		ped->updated_cells = 0;
+		pinfo->updated_bounce = 0;
 	}
 
 	if (e_data.update_world) {
 		ped->need_update = true;
+		ped->updated_cells = 0;
+		pinfo->updated_bounce = 0;
 	}
 
 	if (probe->type == LIGHTPROBE_TYPE_CUBE) {
@@ -366,15 +372,15 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 	}
 
 	int offset = 1; /* to account for the world probe */
-	for (int i = 0; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
+	for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
 		LightProbe *probe = (LightProbe *)ob->data;
 		EEVEE_LightGrid *egrid = &pinfo->grid_data[i];
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
 
 		egrid->offset = offset;
 
 		/* Set offset for the next grid */
-		int num_cell = probe->grid_resolution_x * probe->grid_resolution_y * probe->grid_resolution_z;
-		offset += num_cell;
+		offset += ped->num_cell;
 
 		/* Update transforms */
 		float tmp[4][4] = {
@@ -384,40 +390,42 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 			{-1.0f, -1.0f, -1.0f, 1.0f}
 		};
 		float tmp_grid_mat[4][4] = {
-			{1.0f / (float)(probe->grid_resolution_x + 1), 0.0f, 0.0f, 0.0f},
-			{0.0f, 1.0f / (float)(probe->grid_resolution_y + 1), 0.0f, 0.0f},
-			{0.0f, 0.0f, 1.0f / (float)(probe->grid_resolution_z + 1), 0.0f},
+			{1.0f / (float)(probe->grid_resolution_x), 0.0f, 0.0f, 0.0f},
+			{0.0f, 1.0f / (float)(probe->grid_resolution_y), 0.0f, 0.0f},
+			{0.0f, 0.0f, 1.0f / (float)(probe->grid_resolution_z), 0.0f},
 			{0.0f, 0.0f, 0.0f, 1.0f}
 		};
 		mul_m4_m4m4(tmp, tmp, tmp_grid_mat);
 		mul_m4_m4m4(egrid->mat, ob->obmat, tmp);
 		invert_m4(egrid->mat);
 
-		float one_div_res[3];
-		one_div_res[0] = 2.0f / (float)(probe->grid_resolution_x + 1);
-		one_div_res[1] = 2.0f / (float)(probe->grid_resolution_y + 1);
-		one_div_res[2] = 2.0f / (float)(probe->grid_resolution_z + 1);
+		float cell_dim[3], half_cell_dim[3];
+		cell_dim[0] = 2.0f / (float)(probe->grid_resolution_x);
+		cell_dim[1] = 2.0f / (float)(probe->grid_resolution_y);
+		cell_dim[2] = 2.0f / (float)(probe->grid_resolution_z);
+
+		mul_v3_v3fl(half_cell_dim, cell_dim, 0.5f);
 
 		/* First cell. */
-		copy_v3_v3(egrid->corner, one_div_res);
-		add_v3_fl(egrid->corner, -1.0f);
+		copy_v3_fl(egrid->corner, -1.0f);
+		add_v3_v3(egrid->corner, half_cell_dim);
 		mul_m4_v3(ob->obmat, egrid->corner);
 
 		/* Opposite neighbor cell. */
-		copy_v3_fl3(egrid->increment_x, one_div_res[0], 0.0f, 0.0f);
-		add_v3_v3(egrid->increment_x, one_div_res);
+		copy_v3_fl3(egrid->increment_x, cell_dim[0], 0.0f, 0.0f);
+		add_v3_v3(egrid->increment_x, half_cell_dim);
 		add_v3_fl(egrid->increment_x, -1.0f);
 		mul_m4_v3(ob->obmat, egrid->increment_x);
 		sub_v3_v3(egrid->increment_x, egrid->corner);
 
-		copy_v3_fl3(egrid->increment_y, 0.0f, one_div_res[1], 0.0f);
-		add_v3_v3(egrid->increment_y, one_div_res);
+		copy_v3_fl3(egrid->increment_y, 0.0f, cell_dim[1], 0.0f);
+		add_v3_v3(egrid->increment_y, half_cell_dim);
 		add_v3_fl(egrid->increment_y, -1.0f);
 		mul_m4_v3(ob->obmat, egrid->increment_y);
 		sub_v3_v3(egrid->increment_y, egrid->corner);
 
-		copy_v3_fl3(egrid->increment_z, 0.0f, 0.0f, one_div_res[2]);
-		add_v3_v3(egrid->increment_z, one_div_res);
+		copy_v3_fl3(egrid->increment_z, 0.0f, 0.0f, cell_dim[2]);
+		add_v3_v3(egrid->increment_z, half_cell_dim);
 		add_v3_fl(egrid->increment_z, -1.0f);
 		mul_m4_v3(ob->obmat, egrid->increment_z);
 		sub_v3_v3(egrid->increment_z, egrid->corner);
@@ -428,7 +436,7 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 		if ((probe->flag & LIGHTPROBE_FLAG_SHOW_INFLUENCE) != 0) {
 			struct Batch *geom = DRW_cache_sphere_get();
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_grid_display_sh, psl->probe_display, geom);
-			DRW_shgroup_set_instance_count(grp, num_cell);
+			DRW_shgroup_set_instance_count(grp, ped->num_cell);
 			DRW_shgroup_uniform_int(grp, "offset", &egrid->offset, 1);
 			DRW_shgroup_uniform_ivec3(grp, "grid_resolution", egrid->resolution, 1);
 			DRW_shgroup_uniform_vec3(grp, "corner", egrid->corner, 1);
@@ -438,8 +446,6 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 			DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
 		}
 	}
-
-	pinfo->num_render_grid = pinfo->num_grid;
 }
 
 void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
@@ -464,6 +470,8 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_PassList
 		e_data.update_world = true;
 		e_data.world_ready_to_shade = false;
 		pinfo->num_render_cube = 0;
+		pinfo->num_render_grid = 0;
+		pinfo->updated_bounce = 0;
 		pinfo->update_flag |= PROBE_UPDATE_CUBE;
 		pinfo->cache_num_cube = pinfo->num_cube;
 
@@ -472,16 +480,33 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_PassList
 			ped->need_update = true;
 			ped->ready_to_shade = false;
 		}
+
+		for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_PROBE); i++) {
+			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+			ped->need_update = true;
+			ped->updated_cells = 0;
+		}
 	}
 
 	DRWFboTexture tex_filter = {&sldata->probe_pool, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 	DRW_framebuffer_init(&sldata->probe_filter_fb, &draw_engine_eevee_type, PROBE_OCTAHEDRON_SIZE, PROBE_OCTAHEDRON_SIZE, &tex_filter, 1);
 
+#ifdef IRRADIANCE_SH_L2
+	/* we need a signed format for Spherical Harmonics */
+	int irradiance_format = DRW_TEX_RGBA_16;
+#else
+	int irradiance_format = DRW_TEX_RGB_11_11_10;
+#endif
+
 	/* TODO Allocate bigger storage if needed. */
 	if (!sldata->irradiance_pool) {
-		sldata->irradiance_pool = DRW_texture_create_2D(IRRADIANCE_POOL_SIZE, IRRADIANCE_POOL_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER, NULL);
+		sldata->irradiance_pool = DRW_texture_create_2D(IRRADIANCE_POOL_SIZE, IRRADIANCE_POOL_SIZE, irradiance_format, DRW_TEX_FILTER, NULL);
 		pinfo->num_render_grid = 0;
+	}
+
+	if (!sldata->irradiance_rt) {
+		sldata->irradiance_rt = DRW_texture_create_2D(IRRADIANCE_POOL_SIZE, IRRADIANCE_POOL_SIZE, irradiance_format, DRW_TEX_FILTER, NULL);
 	}
 
 	EEVEE_lightprobes_updates(sldata, psl);
@@ -562,7 +587,7 @@ static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *ps
 }
 
 /* Diffuse filter probe_rt to irradiance_pool at index probe_idx */
-static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int cell_idx)
+static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int offset)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
@@ -576,7 +601,7 @@ static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *p
 
 	/* Bind the right texture layer (one layer per irradiance grid) */
 	DRW_framebuffer_texture_detach(sldata->probe_pool);
-	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_pool, 0, 0);
+	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
 
 	/* find cell position on the virtual 3D texture */
 	/* NOTE : Keep in sync with load_irradiance_cell() */
@@ -591,8 +616,8 @@ static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *p
 #endif
 
 	int cell_per_row = IRRADIANCE_POOL_SIZE / size[0];
-	int x = size[0] * (cell_idx % cell_per_row);
-	int y = size[1] * (cell_idx / cell_per_row);
+	int x = size[0] * (offset % cell_per_row);
+	int y = size[1] * (offset / cell_per_row);
 
 #ifndef IRRADIANCE_SH_L2
 	const float bias = 0.0f;
@@ -608,7 +633,7 @@ static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *p
 	DRW_draw_pass(psl->probe_diffuse_compute);
 
 	/* reattach to have a valid framebuffer. */
-	DRW_framebuffer_texture_detach(sldata->irradiance_pool);
+	DRW_framebuffer_texture_detach(sldata->irradiance_rt);
 	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 
 	/* restore */
@@ -704,49 +729,21 @@ static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 	DRW_draw_pass(psl->probe_background);
 }
 
-static void update_irradiance_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int probe_idx)
+static void lightprobe_cell_location_get(EEVEE_LightGrid *egrid, int cell_idx, float r_pos[3])
 {
-	EEVEE_LightProbesInfo *pinfo = sldata->probes;
-	EEVEE_LightGrid *egrid = &pinfo->grid_data[probe_idx];
-	Object *ob = pinfo->probes_grid_ref[probe_idx];
-	LightProbe *prb = (LightProbe *)ob->data;
+	float tmp[3], local_cell[3];
+	/* Keep in sync with lightprobe_grid_display_vert */
+	local_cell[2] = (float)(cell_idx % egrid->resolution[2]);
+	local_cell[1] = (float)((cell_idx / egrid->resolution[2]) % egrid->resolution[1]);
+	local_cell[0] = (float)(cell_idx / (egrid->resolution[2] * egrid->resolution[1]));
 
-	/* Temporary Remove all grids */
-	int tmp_num_render_grid = pinfo->num_render_grid;
-	int tmp_num_render_cube = pinfo->num_render_cube;
-	pinfo->num_render_grid = 0;
-	pinfo->num_render_cube = 0;
-
-	/* Render a cubemap and compute irradiance for every point inside the irradiance grid */
-	for (int i = 0; i < egrid->resolution[0]; ++i)	{
-		for (int j = 0; j < egrid->resolution[1]; ++j)	{
-			for (int k = 0; k < egrid->resolution[2]; ++k)	{
-				float pos[3], tmp[3];
-				int cell = egrid->offset + k + j * egrid->resolution[2] + i * egrid->resolution[2] * egrid->resolution[1];
-
-				/* Compute world position of the sample */
-				copy_v3_v3(pos, egrid->corner);
-				mul_v3_v3fl(tmp, egrid->increment_x, (float)i);
-				add_v3_v3(pos, tmp);
-				mul_v3_v3fl(tmp, egrid->increment_y, (float)j);
-				add_v3_v3(pos, tmp);
-				mul_v3_v3fl(tmp, egrid->increment_z, (float)k);
-				add_v3_v3(pos, tmp);
-
-				/* TODO Remove specular */
-				render_scene_to_probe(sldata, psl, pos, prb->clipsta, prb->clipend);
-				/* TODO Do not update texture while rendering but write to CPU memory (or another buffer).
-				 * This will allow "multiple bounces" computation. */
-				diffuse_filter_probe(sldata, psl, cell);
-			}
-		}
-	}
-
-	/* Restore */
-	pinfo->num_render_grid = tmp_num_render_grid;
-	pinfo->num_render_cube = tmp_num_render_cube;
-
-	/* TODO save in DNA / blendfile */
+	copy_v3_v3(r_pos, egrid->corner);
+	mul_v3_v3fl(tmp, egrid->increment_x, local_cell[0]);
+	add_v3_v3(r_pos, tmp);
+	mul_v3_v3fl(tmp, egrid->increment_y, local_cell[1]);
+	add_v3_v3(r_pos, tmp);
+	mul_v3_v3fl(tmp, egrid->increment_z, local_cell[2]);
+	add_v3_v3(r_pos, tmp);
 }
 
 void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
@@ -762,11 +759,17 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl
 		glossy_filter_probe(sldata, psl, 0);
 		diffuse_filter_probe(sldata, psl, 0);
 
+		/* Swap and redo prefiltering for other rendertarget.
+		 * This way we have world lighting waiting for irradiance grids to catch up. */
+		SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
+		diffuse_filter_probe(sldata, psl, 0);
+
 		e_data.update_world = false;
 
 		if (!e_data.world_ready_to_shade) {
 			e_data.world_ready_to_shade = true;
 			pinfo->num_render_cube = 1;
+			pinfo->num_render_grid = 1;
 		}
 
 		DRW_viewport_request_redraw();
@@ -782,23 +785,65 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl
 		}
 
 		/* Reflection probes depend on diffuse lighting thus on irradiance grid */
-		for (int i = 0; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
-			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+		const int max_bounce = 3;
+		while (pinfo->updated_bounce < max_bounce) {
+			pinfo->num_render_grid = pinfo->num_grid;
 
-			if (ped->need_update) {
-				update_irradiance_probe(sldata, psl, i);
+			for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
+				EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
 
-				ped->need_update = false;
+				if (ped->need_update) {
+					EEVEE_LightGrid *egrid = &pinfo->grid_data[i];
+					LightProbe *prb = (LightProbe *)ob->data;
+					int cell_id = ped->updated_cells;
 
-				if (!ped->ready_to_shade) {
-					pinfo->num_render_grid++;
-					ped->ready_to_shade = true;
+					SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
+
+					/* Temporary Remove all probes. */
+					int tmp_num_render_grid = pinfo->num_render_grid;
+					int tmp_num_render_cube = pinfo->num_render_cube;
+					pinfo->num_render_cube = 0;
+
+					/* Use light from previous bounce when capturing radiance. */
+					if (pinfo->updated_bounce == 0) {
+						pinfo->num_render_grid = 0;
+					}
+
+					float pos[3];
+					lightprobe_cell_location_get(egrid, cell_id, pos);
+
+					render_scene_to_probe(sldata, psl, pos, prb->clipsta, prb->clipend);
+					diffuse_filter_probe(sldata, psl, egrid->offset + cell_id);
+
+					/* Restore */
+					pinfo->num_render_grid = tmp_num_render_grid;
+					pinfo->num_render_cube = tmp_num_render_cube;
+
+					/* To see what is going on. */
+					SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
+
+					ped->updated_cells++;
+					if (ped->updated_cells >= ped->num_cell) {
+						ped->need_update = false;
+					}
+
+					/* Only do one probe per frame */
+					DRW_viewport_request_redraw();
+					return;
 				}
+			}
 
-				DRW_viewport_request_redraw();
+			pinfo->updated_bounce++;
+			pinfo->num_render_grid = pinfo->num_grid;
 
-				/* Only do one probe per frame */
-				break;
+			if (pinfo->updated_bounce < max_bounce) {
+				/* Retag all grids to update for next bounce */
+				for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
+					EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+					ped->need_update = true;
+					ped->updated_cells = 0;
+				}
+				SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 			}
 		}
 
@@ -821,7 +866,7 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl
 				DRW_viewport_request_redraw();
 
 				/* Only do one probe per frame */
-				break;
+				return;
 			}
 		}
 	}

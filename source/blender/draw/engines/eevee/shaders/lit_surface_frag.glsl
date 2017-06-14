@@ -382,7 +382,8 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 		}
 	}
 
-	for (int i = 0; i < MAX_GRID && i < grid_count; ++i) {
+	/* Start at 1 because 0 is world irradiance */
+	for (int i = 1; i < MAX_GRID && i < grid_count; ++i) {
 		GridData gd = grids_data[i];
 
 		vec3 localpos = (gd.localmat * vec4(sd.W, 1.0)).xyz;
@@ -440,15 +441,17 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	}
 
 	/* World probe */
-	if (spec_accum.a < 1.0 || diff_accum.a < 1.0) {
-		ProbeData pd = probes_data[0];
-
+	if (diff_accum.a < 1.0 && grid_count > 0) {
 		IrradianceData ir_data = load_irradiance_cell(0, sd.N);
 
-		vec3 spec = textureLod_octahedron(probeCubes, vec4(spec_dir, 0), roughness * lodMax).rgb;
 		vec3 diff = compute_irradiance(sd.N, ir_data);
-
 		diff_accum.rgb += diff * (1.0 - diff_accum.a);
+	}
+
+	if (spec_accum.a < 1.0) {
+		ProbeData pd = probes_data[0];
+
+		vec3 spec = textureLod_octahedron(probeCubes, vec4(spec_dir, 0), roughness * lodMax).rgb;
 		spec_accum.rgb += spec * (1.0 - spec_accum.a);
 	}
 

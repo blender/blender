@@ -196,6 +196,7 @@ typedef struct EEVEE_LightProbesInfo {
 	int num_cube, cache_num_cube;
 	int num_grid, cache_num_grid;
 	int update_flag;
+	int updated_bounce;
 	/* Actual number of probes that have datas. */
 	int num_render_cube;
 	int num_render_grid;
@@ -212,7 +213,6 @@ typedef struct EEVEE_LightProbesInfo {
 	int shres;
 	int shnbr;
 	bool specular_toggle;
-	struct GPUTexture *backgroundtex;
 	/* List of probes in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
 	struct Object *probes_cube_ref[MAX_PROBE];
@@ -302,6 +302,7 @@ typedef struct EEVEE_SceneLayerData {
 	struct GPUTexture *probe_depth_rt;
 	struct GPUTexture *probe_pool;
 	struct GPUTexture *irradiance_pool;
+	struct GPUTexture *irradiance_rt;
 
 	struct ListBase probe_queue; /* List of probes to update */
 } EEVEE_SceneLayerData;
@@ -316,6 +317,8 @@ typedef struct EEVEE_LampEngineData {
 typedef struct EEVEE_LightProbeEngineData {
 	bool need_update;
 	bool ready_to_shade;
+	int updated_cells;
+	int num_cell;
 	struct ListBase captured_object_list;
 } EEVEE_LightProbeEngineData;
 
