@@ -337,9 +337,12 @@ void EEVEE_lightprobes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob)
 
 	if ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0) {
 		ped->need_update = true;
-		ped->updated_cells = 0;
 		ped->probe_id = 0;
-		pinfo->updated_bounce = 0;
+
+		if (probe->type == LIGHTPROBE_TYPE_GRID) {
+			ped->updated_cells = 0;
+			pinfo->updated_bounce = 0;
+		}
 	}
 
 	if (e_data.update_world) {
