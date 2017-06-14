@@ -95,7 +95,7 @@ class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return context.probe and context.probe.type == 'CUBEMAP' and (engine in cls.COMPAT_ENGINES)
+        return context.lightprobe and context.lightprobe.type == 'CUBEMAP' and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
