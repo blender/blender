@@ -87,7 +87,7 @@ bSensor *copy_sensor(bSensor *sens)
 	return sensn;
 }
 
-void copy_sensors(ListBase *lbn, ListBase *lbo)
+void copy_sensors(ListBase *lbn, const ListBase *lbo)
 {
 	bSensor *sens, *sensn;
 	
@@ -251,7 +251,7 @@ bController *copy_controller(bController *cont)
 	return contn;
 }
 
-void copy_controllers(ListBase *lbn, ListBase *lbo)
+void copy_controllers(ListBase *lbn, const ListBase *lbo)
 {
 	bController *cont, *contn;
 	
@@ -389,7 +389,7 @@ bActuator *copy_actuator(bActuator *act)
 	return actn;
 }
 
-void copy_actuators(ListBase *lbn, ListBase *lbo)
+void copy_actuators(ListBase *lbn, const ListBase *lbo)
 {
 	bActuator *act, *actn;
 	
@@ -783,7 +783,7 @@ void BKE_sca_logic_links_remap(Main *bmain, Object *ob_old, Object *ob_new)
  * Handle the copying of logic data into a new object, including internal logic links update.
  * External links (links between logic bricks of different objects) must be handled separately.
  */
-void BKE_sca_logic_copy(Object *ob_new, Object *ob)
+void BKE_sca_logic_copy(Object *ob_new, const Object *ob)
 {
 	copy_sensors(&ob_new->sensors, &ob->sensors);
 	copy_controllers(&ob_new->controllers, &ob->controllers);

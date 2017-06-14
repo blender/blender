@@ -151,7 +151,7 @@ Key *BKE_key_add(ID *id)    /* common function */
 	return key;
 }
 
-Key *BKE_key_copy(Main *bmain, Key *key)
+Key *BKE_key_copy(Main *bmain, const Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;

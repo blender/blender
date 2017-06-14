@@ -55,7 +55,7 @@ void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struc
 
 void BKE_object_transform_copy(struct Object *ob_tar, const struct Object *ob_src);
 struct SoftBody *copy_softbody(const struct SoftBody *sb, bool copy_caches);
-struct BulletSoftBody *copy_bulletsoftbody(struct BulletSoftBody *sb);
+struct BulletSoftBody *copy_bulletsoftbody(const struct BulletSoftBody *sb);
 struct ParticleSystem *BKE_object_copy_particlesystem(struct ParticleSystem *psys);
 void BKE_object_copy_particlesystems(struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src);
@@ -106,8 +106,8 @@ bool BKE_object_lod_is_usable(struct Object *ob, struct SceneLayer *sl);
 struct Object *BKE_object_lod_meshob_get(struct Object *ob, struct SceneLayer *sl);
 struct Object *BKE_object_lod_matob_get(struct Object *ob, struct SceneLayer *sl);
 
-struct Object *BKE_object_copy_ex(struct Main *bmain, struct Object *ob, bool copy_caches);
-struct Object *BKE_object_copy(struct Main *bmain, struct Object *ob);
+struct Object *BKE_object_copy_ex(struct Main *bmain, const struct Object *ob, bool copy_caches);
+struct Object *BKE_object_copy(struct Main *bmain, const struct Object *ob);
 void BKE_object_make_local(struct Main *bmain, struct Object *ob, const bool lib_local);
 void BKE_object_make_local_ex(struct Main *bmain, struct Object *ob, const bool lib_local, const bool clear_proxy);
 bool BKE_object_is_libdata(struct Object *ob);

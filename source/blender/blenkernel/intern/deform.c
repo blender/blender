@@ -79,7 +79,7 @@ bDeformGroup *BKE_defgroup_new(Object *ob, const char *name)
 	return defgroup;
 }
 
-void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
+void defgroup_copy_list(ListBase *outbase, const ListBase *inbase)
 {
 	bDeformGroup *defgroup, *defgroupn;
 
@@ -91,7 +91,7 @@ void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
 	}
 }
 
-bDeformGroup *defgroup_duplicate(bDeformGroup *ingroup)
+bDeformGroup *defgroup_duplicate(const bDeformGroup *ingroup)
 {
 	bDeformGroup *outgroup;
 

@@ -276,7 +276,7 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 	return lt;
 }
 
-Lattice *BKE_lattice_copy(Main *bmain, Lattice *lt)
+Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
 {
 	Lattice *ltn;
 

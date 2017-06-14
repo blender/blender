@@ -88,7 +88,7 @@ void BKE_previewimg_clear(struct PreviewImage *prv);
 void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size);
 
 /* get the preview from any pointer */
-struct PreviewImage **BKE_previewimg_id_get_p(struct ID *id);
+struct PreviewImage **BKE_previewimg_id_get_p(const struct ID *id);
 
 /* free the preview image belonging to the id */
 void BKE_previewimg_id_free(struct ID *id);
@@ -97,9 +97,9 @@ void BKE_previewimg_id_free(struct ID *id);
 struct PreviewImage *BKE_previewimg_create(void);
 
 /* create a copy of the preview image */
-struct PreviewImage *BKE_previewimg_copy(struct PreviewImage *prv);
+struct PreviewImage *BKE_previewimg_copy(const struct PreviewImage *prv);
 
-void BKE_previewimg_id_copy(struct ID *new_id, struct ID *old_id);
+void BKE_previewimg_id_copy(struct ID *new_id, const struct ID *old_id);
 
 /* retrieve existing or create new preview image */
 struct PreviewImage *BKE_previewimg_id_ensure(struct ID *id);

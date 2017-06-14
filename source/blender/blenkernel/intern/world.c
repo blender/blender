@@ -119,7 +119,7 @@ World *add_world(Main *bmain, const char *name)
 	return wrld;
 }
 
-World *BKE_world_copy(Main *bmain, World *wrld)
+World *BKE_world_copy(Main *bmain, const World *wrld)
 {
 	World *wrldn;
 	int a;

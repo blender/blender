@@ -754,7 +754,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 }
 
 /* make a copy of a given gpencil datablock */
-bGPdata *BKE_gpencil_data_duplicate(Main *bmain, bGPdata *gpd_src, bool internal_copy)
+bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool internal_copy)
 {
 	const bGPDlayer *gpl_src;
 	bGPDlayer *gpl_dst;

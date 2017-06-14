@@ -130,7 +130,7 @@ void curvemapping_free(CurveMapping *cumap)
 	}
 }
 
-void curvemapping_copy_data(CurveMapping *target, CurveMapping *cumap)
+void curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 {
 	int a;
 
@@ -146,7 +146,7 @@ void curvemapping_copy_data(CurveMapping *target, CurveMapping *cumap)
 	}
 }
 
-CurveMapping *curvemapping_copy(CurveMapping *cumap)
+CurveMapping *curvemapping_copy(const CurveMapping *cumap)
 {
 	if (cumap) {
 		CurveMapping *cumapn = MEM_dupallocN(cumap);

@@ -104,7 +104,7 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 	return mb;
 }
 
-MetaBall *BKE_mball_copy(Main *bmain, MetaBall *mb)
+MetaBall *BKE_mball_copy(Main *bmain, const MetaBall *mb)
 {
 	MetaBall *mbn;
 	int a;

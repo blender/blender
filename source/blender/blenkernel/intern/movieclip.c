@@ -1488,7 +1488,7 @@ void BKE_movieclip_free(MovieClip *clip)
 	BKE_animdata_free((ID *) clip, false);
 }
 
-MovieClip *BKE_movieclip_copy(Main *bmain, MovieClip *clip)
+MovieClip *BKE_movieclip_copy(Main *bmain, const MovieClip *clip)
 {
 	MovieClip *clip_new;
 

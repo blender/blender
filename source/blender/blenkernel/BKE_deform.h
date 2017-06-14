@@ -44,8 +44,8 @@ struct MLoop;
 struct MPoly;
 
 struct bDeformGroup *BKE_defgroup_new(struct Object *ob, const char *name);
-void                 defgroup_copy_list(struct ListBase *lb1, struct ListBase *lb2);
-struct bDeformGroup *defgroup_duplicate(struct bDeformGroup *ingroup);
+void                 defgroup_copy_list(struct ListBase *lb1, const struct ListBase *lb2);
+struct bDeformGroup *defgroup_duplicate(const struct bDeformGroup *ingroup);
 struct bDeformGroup *defgroup_find_name(struct Object *ob, const char *name);
 int                 *defgroup_flip_map(struct Object *ob, int *flip_map_len, const bool use_default);
 int                 *defgroup_flip_map_single(struct Object *ob, int *flip_map_len, const bool use_default, int defgroup);

@@ -121,7 +121,7 @@ void BKE_action_free(bAction *act)
 
 /* .................................. */
 
-bAction *BKE_action_copy(Main *bmain, bAction *src)
+bAction *BKE_action_copy(Main *bmain, const bAction *src)
 {
 	bAction *dst = NULL;
 	bActionGroup *dgrp, *sgrp;
@@ -524,7 +524,7 @@ const char *BKE_pose_ikparam_get_name(bPose *pose)
  *
  * \param dst  Should be freed already, makes entire duplicate.
  */
-void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
+void BKE_pose_copy_data(bPose **dst, const bPose *src, const bool copy_constraints)
 {
 	bPose *outPose;
 	bPoseChannel *pchan;

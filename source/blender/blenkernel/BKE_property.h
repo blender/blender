@@ -37,8 +37,8 @@ struct Object;
 
 void              BKE_bproperty_free(struct bProperty *prop);
 void              BKE_bproperty_free_list(struct ListBase *lb);
-struct bProperty *BKE_bproperty_copy(struct bProperty *prop);
-void              BKE_bproperty_copy_list(struct ListBase *lbn, struct ListBase *lbo);
+struct bProperty *BKE_bproperty_copy(const struct bProperty *prop);
+void              BKE_bproperty_copy_list(struct ListBase *lbn, const struct ListBase *lbo);
 void              BKE_bproperty_init(struct bProperty *prop);
 struct bProperty *BKE_bproperty_new(int type);
 void              BKE_bproperty_unique(struct bProperty *first, struct  bProperty *prop, int force);

@@ -192,7 +192,7 @@ void BKE_mask_layer_rename(Mask *mask, MaskLayer *masklay, char *oldname, char *
 	BKE_animdata_fix_paths_rename_all(&mask->id, "layers", oldname, masklay->name);
 }
 
-MaskLayer *BKE_mask_layer_copy(MaskLayer *masklay)
+MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
 {
 	MaskLayer *masklay_new;
 	MaskSpline *spline;
@@ -236,7 +236,7 @@ MaskLayer *BKE_mask_layer_copy(MaskLayer *masklay)
 	return masklay_new;
 }
 
-void BKE_mask_layer_copy_list(ListBase *masklayers_new, ListBase *masklayers)
+void BKE_mask_layer_copy_list(ListBase *masklayers_new, const ListBase *masklayers)
 {
 	MaskLayer *layer;
 
@@ -840,7 +840,7 @@ Mask *BKE_mask_copy_nolib(Mask *mask)
 	return mask_new;
 }
 
-Mask *BKE_mask_copy(Main *bmain, Mask *mask)
+Mask *BKE_mask_copy(Main *bmain, const Mask *mask)
 {
 	Mask *mask_new;
 
@@ -851,7 +851,7 @@ Mask *BKE_mask_copy(Main *bmain, Mask *mask)
 	BKE_mask_layer_copy_list(&mask_new->masklayers, &mask->masklayers);
 
 	/* enable fake user by default */
-	id_fake_user_set(&mask->id);
+	id_fake_user_set(&mask_new->id);
 
 	BKE_id_copy_ensure_local(bmain, &mask->id, &mask_new->id);
 
@@ -906,7 +906,7 @@ void BKE_mask_spline_free_list(ListBase *splines)
 	}
 }
 
-static MaskSplinePoint *mask_spline_points_copy(MaskSplinePoint *points, int tot_point)
+static MaskSplinePoint *mask_spline_points_copy(const MaskSplinePoint *points, int tot_point)
 {
 	MaskSplinePoint *npoints;
 	int i;
@@ -923,7 +923,7 @@ static MaskSplinePoint *mask_spline_points_copy(MaskSplinePoint *points, int tot
 	return npoints;
 }
 
-MaskSpline *BKE_mask_spline_copy(MaskSpline *spline)
+MaskSpline *BKE_mask_spline_copy(const MaskSpline *spline)
 {
 	MaskSpline *nspline = MEM_callocN(sizeof(MaskSpline), "new spline");
 

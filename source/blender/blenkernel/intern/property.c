@@ -65,7 +65,7 @@ void BKE_bproperty_free_list(ListBase *lb)
 	}
 }
 
-bProperty *BKE_bproperty_copy(bProperty *prop)
+bProperty *BKE_bproperty_copy(const bProperty *prop)
 {
 	bProperty *propn;
 	
@@ -80,7 +80,7 @@ bProperty *BKE_bproperty_copy(bProperty *prop)
 	return propn;
 }
 
-void BKE_bproperty_copy_list(ListBase *lbn, ListBase *lbo)
+void BKE_bproperty_copy_list(ListBase *lbn, const ListBase *lbo)
 {
 	bProperty *prop, *propn;
 	BKE_bproperty_free_list(lbn); /* in case we are copying to an object with props */

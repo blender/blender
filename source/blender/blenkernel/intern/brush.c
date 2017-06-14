@@ -172,7 +172,7 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, short ob_mode)
 	return NULL;
 }
 
-Brush *BKE_brush_copy(Main *bmain, Brush *brush)
+Brush *BKE_brush_copy(Main *bmain, const Brush *brush)
 {
 	Brush *brushn;
 	
@@ -195,7 +195,7 @@ Brush *BKE_brush_copy(Main *bmain, Brush *brush)
 	brushn->curve = curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */
-	id_fake_user_set(&brush->id);
+	id_fake_user_set(&brushn->id);
 
 	BKE_id_copy_ensure_local(bmain, &brush->id, &brushn->id);
 

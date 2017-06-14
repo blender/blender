@@ -7,14 +7,17 @@
 
 Submodules:
 
-* :mod:`bmesh.ops`
-* :mod:`bmesh.types`
-* :mod:`bmesh.utils`
-* :mod:`bmesh.geometry`
+.. toctree::
+   :maxdepth: 1
+
+   bmesh.ops.rst
+   bmesh.types.rst
+   bmesh.utils.rst
+   bmesh.geometry.rst
 
 
-Intro
------
+Introduction
+------------
 
 This API gives access the blenders internal mesh editing api, featuring geometry connectivity data and
 access to editing operations such as split, separate, collapse and dissolve.

@@ -61,6 +61,6 @@ BoidRule *boid_new_rule(int type);
 BoidState *boid_new_state(BoidSettings *boids);
 BoidState *boid_duplicate_state(BoidSettings *boids, BoidState *state);
 void boid_free_settings(BoidSettings *boids);
-BoidSettings *boid_copy_settings(BoidSettings *boids);
+BoidSettings *boid_copy_settings(const BoidSettings *boids);
 BoidState *boid_get_current_state(BoidSettings *boids);
 #endif

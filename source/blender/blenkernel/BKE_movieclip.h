@@ -41,7 +41,7 @@ struct MovieDistortion;
 
 void BKE_movieclip_free(struct MovieClip *clip);
 
-struct MovieClip *BKE_movieclip_copy(struct Main *bmain, struct MovieClip *clip);
+struct MovieClip *BKE_movieclip_copy(struct Main *bmain, const struct MovieClip *clip);
 void BKE_movieclip_make_local(struct Main *bmain, struct MovieClip *clip, const bool lib_local);
 
 struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
