@@ -328,15 +328,17 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			BLI_listbase_clear(&new_sl->drawdata);
 			layer_collections_recreate(new_sl, &sl->layer_collections, mcn, mc);
 
+			Object *active_ob = OBACT_NEW;
+			Base *new_base = new_sl->object_bases.first;
+			for (Base *base = sl->object_bases.first; base; base = base->next) {
+				new_base->flag = base->flag;
+				new_base->flag_legacy = base->flag_legacy;
 
-			if (sl->basact) {
-				Object *active_ob = sl->basact->object;
-				for (Base *base = new_sl->object_bases.first; base; base = base->next) {
-					if (base->object == active_ob) {
-						new_sl->basact = base;
-						break;
-					}
+				if (new_base->object == active_ob) {
+					new_sl->basact = new_base;
 				}
+
+				new_base = new_base->next;
 			}
 			new_sl = new_sl->next;
 		}
