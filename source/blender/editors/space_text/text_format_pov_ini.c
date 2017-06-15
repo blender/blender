@@ -104,7 +104,11 @@ static int txtfmt_ini_find_reserved(const char *string)
 	 * list is from...
 	 * http://www.povray.org/documentation/view/3.7.0/212/
 	 */
-	     if (STR_LITERAL_STARTSWITH(string, "clock_delta",                  len)) i = len;
+	     if (STR_LITERAL_STARTSWITH(string, "Antialias_Threshold",          len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Bounding_Method",              len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Antialias_Gamma",              len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Antialias_Depth",              len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "clock_delta",                  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "clock_on",                     len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "clock",                        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "final_clock",                  len)) i = len;
@@ -134,6 +138,7 @@ static int txtfmt_ini_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "Create_Ini",                   len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Display_Gamma",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Display",                      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "Version",                      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Pause_When_Done",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Verbose",                      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Preview_Start_Size",           len)) i = len;
@@ -183,7 +188,6 @@ static int txtfmt_ini_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "Split_Unions",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Antialias",                    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Sampling_Method",              len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "Antialias_Threshold",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Jitter_Amount",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Jitter",                       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "Antialias_Depth",              len)) i = len;

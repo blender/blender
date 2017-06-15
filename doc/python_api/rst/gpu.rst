@@ -6,6 +6,13 @@ GPU functions (gpu)
 
 This module provides access to materials GLSL shaders.
 
+Submodules:
+
+.. toctree::
+   :maxdepth: 1
+
+   gpu.offscreen.rst
+
 
 Intro
 =====
@@ -23,7 +30,6 @@ and in the game engine.
 
 Constants
 =========
-
 
 GLSL Data Type
 --------------
