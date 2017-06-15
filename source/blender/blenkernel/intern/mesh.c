@@ -1399,7 +1399,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 	cu->totcol = 0;
 
 	if (ob->data) {
-		BKE_libblock_free(bmain, ob->data);
+		BKE_libblock_free_us(bmain, ob->data);
 	}
 	ob->data = me;
 	ob->type = OB_MESH;
