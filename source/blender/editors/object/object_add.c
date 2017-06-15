@@ -1701,7 +1701,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	MetaBall *mb;
 	Mesh *me;
 	const short target = RNA_enum_get(op->ptr, "target");
-	const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
+	bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
 	int a, mballConverted = 0;
 
 	/* don't forget multiple users! */
@@ -1738,7 +1738,20 @@ static int convert_exec(bContext *C, wmOperator *op)
 	 * on other objects data masks too, see: T50950. */
 	{
 		for (CollectionPointerLink *link = selected_editable_bases.first; link; link = link->next) {
-			Base *base = link->ptr.data;
+			BaseLegacy *base = link->ptr.data;
+			ob = base->object;
+
+			/* The way object type conversion works currently (enforcing conversion of *all* objetcs using converted
+			 * obdata, even some un-selected/hidden/inother scene ones, sounds totally bad to me.
+			 * However, changing this is more design than bugfix, not to mention convoluted code below,
+			 * so that will be for later.
+			 * But at the very least, do not do that with linked IDs! */
+			if ((ID_IS_LINKED_DATABLOCK(ob) || ID_IS_LINKED_DATABLOCK(ob->data)) && !keep_original) {
+				keep_original = true;
+				BKE_reportf(op->reports, RPT_INFO,
+				            "Converting some linked object/object data, enforcing 'Keep Original' option to True");
+			}
+
 			DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 		}
 
@@ -1749,7 +1762,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	}
 
 	for (CollectionPointerLink *link = selected_editable_bases.first; link; link = link->next) {
-		Base *base = link->ptr.data;
+		BaseLegacy *base = link->ptr.data;
 		ob = base->object;
 
 		if (ob->flag & OB_DONE || !IS_TAGGED(ob->data)) {
