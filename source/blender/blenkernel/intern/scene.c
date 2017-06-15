@@ -318,8 +318,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		SceneLayer *new_sl = scen->render_layers.first;
 		for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
 			new_sl->stats = NULL;
-			new_sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 			new_sl->properties_evaluated = NULL;
+			new_sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+			IDP_MergeGroup(new_sl->properties, sl->properties, true);
 
 			/* we start fresh with no overrides and no visibility flags set
 			 * instead of syncing both trees we simply unlink and relink the scene collection */
