@@ -362,8 +362,6 @@ INFO_DOCS = (
      "Blender/Python Quickstart: new to Blender/scripting and want to get your feet wet?"),
     ("info_overview.rst",
      "Blender/Python API Overview: a more complete explanation of Python integration"),
-    ("info_tutorial_addon.rst",
-     "Blender/Python Add-on Tutorial: a step by step guide on how to write an add-on from scratch"),
     ("info_api_reference.rst",
      "Blender/Python API Reference Usage: examples of how to use the API reference docs"),
     ("info_best_practice.rst",
@@ -1698,6 +1696,9 @@ def write_rst_contents(basepath):
         fw("   :maxdepth: 1\n\n")
         for info, info_desc in INFO_DOCS:
             fw("   %s <%s>\n\n" % (info_desc, info))
+        fw("\n")
+        fw("- :ref:`Blender/Python Add-on Tutorial: a step by step guide on")
+        fw(" how to write an add-on from scratch <blender_manual:advanced_scripting_tutorial>`\n")
         fw("\n")
 
     fw(title_string("Application Modules", "=", double=True))
