@@ -39,7 +39,6 @@
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_manipulator_types.h"
 
 #include "ED_armature.h"
 #include "ED_screen.h"
@@ -103,7 +102,7 @@ static void WIDGETGROUP_lamp_refresh(const bContext *C, wmManipulatorGroup *mgro
 	PointerRNA lamp_ptr;
 	const char *propname = "spot_size";
 	RNA_pointer_create(&la->id, &RNA_Lamp, la, &lamp_ptr);
-	WM_manipulator_def_property(wwrapper->manipulator, "offset", &lamp_ptr, propname, -1);
+	WM_manipulator_property_def_rna(wwrapper->manipulator, "offset", &lamp_ptr, propname, -1);
 }
 
 void VIEW3D_WGT_lamp(wmManipulatorGroupType *wgt)
@@ -111,11 +110,13 @@ void VIEW3D_WGT_lamp(wmManipulatorGroupType *wgt)
 	wgt->name = "Lamp Widgets";
 	wgt->idname = "VIEW3D_WGT_lamp";
 
+	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
+	              WM_MANIPULATORGROUPTYPE_3D |
+	              WM_MANIPULATORGROUPTYPE_SCALE_3D);
+
 	wgt->poll = WIDGETGROUP_lamp_poll;
 	wgt->setup = WIDGETGROUP_lamp_setup;
 	wgt->refresh = WIDGETGROUP_lamp_refresh;
-
-	wgt->flag |= (WM_MANIPULATORGROUPTYPE_3D | WM_MANIPULATORGROUPTYPE_SCALE_3D);
 }
 
 /** \} */
@@ -230,7 +231,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		WM_manipulator_set_flag(camgroup->dop_dist, WM_MANIPULATOR_HIDDEN, false);
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */
-		WM_manipulator_def_property(camgroup->dop_dist, "offset", &camera_ptr, "dof_distance", -1);
+		WM_manipulator_property_def_rna(camgroup->dop_dist, "offset", &camera_ptr, "dof_distance", -1);
 	}
 	else {
 		WM_manipulator_set_flag(camgroup->dop_dist, WM_MANIPULATOR_HIDDEN, true);
@@ -273,8 +274,8 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		WM_manipulator_set_scale(widget, drawsize);
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */
-		WM_manipulator_def_property(camgroup->focal_len, "offset", &camera_ptr, "lens", -1);
-		WM_manipulator_def_property(camgroup->ortho_scale, "offset", &camera_ptr, "ortho_scale", -1);
+		WM_manipulator_property_def_rna(camgroup->focal_len, "offset", &camera_ptr, "lens", -1);
+		WM_manipulator_property_def_rna(camgroup->ortho_scale, "offset", &camera_ptr, "ortho_scale", -1);
 	}
 }
 
@@ -283,11 +284,12 @@ void VIEW3D_WGT_camera(wmManipulatorGroupType *wgt)
 	wgt->name = "Camera Widgets";
 	wgt->idname = "VIEW3D_WGT_camera";
 
+	wgt->flag = (WM_MANIPULATORGROUPTYPE_PERSISTENT |
+	             WM_MANIPULATORGROUPTYPE_3D);
+
 	wgt->poll = WIDGETGROUP_camera_poll;
 	wgt->setup = WIDGETGROUP_camera_setup;
 	wgt->refresh = WIDGETGROUP_camera_refresh;
-
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_3D;
 }
 
 /** \} */
@@ -305,7 +307,7 @@ static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmManipulatorGroupTyp
 	return (ob && ob->pd && ob->pd->forcefield);
 }
 
-static void WIDGETGROUP_forcefield_init(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
 	const float col[4] = {0.8f, 0.8f, 0.45f, 0.5f};
 	const float col_hi[4] = {0.8f, 0.8f, 0.45f, 1.0f};
@@ -339,7 +341,7 @@ static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmManipulatorGroup
 		WM_manipulator_set_origin(wwrapper->manipulator, ob->obmat[3]);
 		WM_manipulator_set_offset(wwrapper->manipulator, ofs);
 		WM_manipulator_set_flag(wwrapper->manipulator, WM_MANIPULATOR_HIDDEN, false);
-		WM_manipulator_def_property(wwrapper->manipulator, "offset", &field_ptr, "strength", -1);
+		WM_manipulator_property_def_rna(wwrapper->manipulator, "offset", &field_ptr, "strength", -1);
 	}
 	else {
 		WM_manipulator_set_flag(wwrapper->manipulator, WM_MANIPULATOR_HIDDEN, true);
@@ -351,11 +353,12 @@ void VIEW3D_WGT_force_field(wmManipulatorGroupType *wgt)
 	wgt->name = "Force Field Widgets";
 	wgt->idname = "VIEW3D_WGT_force_field";
 
-	wgt->poll = WIDGETGROUP_forcefield_poll;
-	wgt->setup = WIDGETGROUP_forcefield_init;
-	wgt->refresh = WIDGETGROUP_forcefield_refresh;
+	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
+	              WM_MANIPULATORGROUPTYPE_3D);
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_3D;
+	wgt->poll = WIDGETGROUP_forcefield_poll;
+	wgt->setup = WIDGETGROUP_forcefield_setup;
+	wgt->refresh = WIDGETGROUP_forcefield_refresh;
 }
 
 /** \} */

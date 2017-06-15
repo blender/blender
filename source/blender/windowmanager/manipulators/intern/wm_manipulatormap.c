@@ -29,14 +29,13 @@
 
 #include <string.h>
 
-#include "BKE_context.h"
-
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
 
-#include "DNA_manipulator_types.h"
+#include "BKE_context.h"
+#include "BKE_global.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -62,6 +61,16 @@
 static ListBase manipulatormaptypes = {NULL, NULL};
 
 /**
+ * Update when manipulator-map types change.
+ */
+/* so operator removal can trigger update */
+enum {
+	WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT = (1 << 0),
+};
+
+static char wm_mmap_type_update_flag = 0;
+
+/**
  * Manipulator-map update tagging.
  */
 enum eManipulatorMapUpdateFlags {
@@ -80,17 +89,17 @@ enum eManipulatorMapUpdateFlags {
  */
 wmManipulatorMap *WM_manipulatormap_new_from_type(const struct wmManipulatorMapType_Params *mmap_params)
 {
-	wmManipulatorMapType *mmaptype = WM_manipulatormaptype_ensure(mmap_params);
+	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(mmap_params);
 	wmManipulatorMap *mmap;
 
 	mmap = MEM_callocN(sizeof(wmManipulatorMap), "ManipulatorMap");
-	mmap->type = mmaptype;
+	mmap->type = mmap_type;
 	mmap->update_flag = MANIPULATORMAP_REFRESH;
 
 	/* create all manipulator-groups for this manipulator-map. We may create an empty one
 	 * too in anticipation of manipulators from operators etc */
-	for (wmManipulatorGroupType *wgt = mmaptype->manipulator_grouptypes.first; wgt; wgt = wgt->next) {
-		wm_manipulatorgroup_new_from_type(mmap, wgt);
+	for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first; wgt_ref; wgt_ref = wgt_ref->next) {
+		wm_manipulatorgroup_new_from_type(mmap, wgt_ref->type);
 	}
 
 	return mmap;
@@ -107,12 +116,12 @@ void wm_manipulatormap_remove(wmManipulatorMap *mmap)
 	if (!mmap)
 		return;
 
-	for (wmManipulatorGroup *mgroup = mmap->manipulator_groups.first, *mgroup_next; mgroup; mgroup = mgroup_next) {
+	for (wmManipulatorGroup *mgroup = mmap->groups.first, *mgroup_next; mgroup; mgroup = mgroup_next) {
 		mgroup_next = mgroup->next;
 		BLI_assert(mgroup->parent_mmap == mmap);
 		wm_manipulatorgroup_free(NULL, mgroup);
 	}
-	BLI_assert(BLI_listbase_is_empty(&mmap->manipulator_groups));
+	BLI_assert(BLI_listbase_is_empty(&mmap->groups));
 
 	wm_manipulatormap_selected_clear(mmap);
 
@@ -133,7 +142,7 @@ static GHash *WM_manipulatormap_manipulator_hash_new(
 	GHash *hash = BLI_ghash_str_new(__func__);
 
 	/* collect manipulators */
-	for (wmManipulatorGroup *mgroup = mmap->manipulator_groups.first; mgroup; mgroup = mgroup->next) {
+	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 		if (!mgroup->type->poll || mgroup->type->poll(C, mgroup->type)) {
 			for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
 				if ((include_hidden || (mpr->flag & WM_MANIPULATOR_HIDDEN) == 0) &&
@@ -183,7 +192,7 @@ static bool manipulator_prepare_drawing(
 static void manipulatormap_prepare_drawing(
         wmManipulatorMap *mmap, const bContext *C, ListBase *draw_manipulators, const int drawstep)
 {
-	if (!mmap || BLI_listbase_is_empty(&mmap->manipulator_groups))
+	if (!mmap || BLI_listbase_is_empty(&mmap->groups))
 		return;
 	wmManipulator *active_manipulator = mmap->mmap_context.active;
 
@@ -196,7 +205,7 @@ static void manipulatormap_prepare_drawing(
 		return;
 	}
 
-	for (wmManipulatorGroup *mgroup = mmap->manipulator_groups.first; mgroup; mgroup = mgroup->next) {
+	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 		/* check group visibility - drawstep first to avoid unnecessary call of group poll callback */
 		if (!wm_manipulatorgroup_is_visible_in_drawstep(mgroup, drawstep) ||
 		    !wm_manipulatorgroup_is_visible(mgroup, C))
@@ -232,7 +241,7 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 {
 	if (!mmap)
 		return;
-	BLI_assert(!BLI_listbase_is_empty(&mmap->manipulator_groups));
+	BLI_assert(!BLI_listbase_is_empty(&mmap->groups));
 
 	const bool draw_multisample = (U.ogl_multisamples != USER_MULTISAMPLE_NONE);
 
@@ -366,7 +375,7 @@ wmManipulator *wm_manipulatormap_highlight_find(
 	wmManipulator *mpr = NULL;
 	ListBase visible_3d_manipulators = {NULL};
 
-	for (wmManipulatorGroup *mgroup = mmap->manipulator_groups.first; mgroup; mgroup = mgroup->next) {
+	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 		if (wm_manipulatorgroup_is_visible(mgroup, C)) {
 			if (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
 				wm_manipulatorgroup_intersectable_manipulators_to_list(mgroup, &visible_3d_manipulators);
@@ -700,12 +709,11 @@ wmManipulator *wm_manipulatormap_active_get(wmManipulatorMap *mmap)
 wmManipulatorMapType *WM_manipulatormaptype_find(
         const struct wmManipulatorMapType_Params *mmap_params)
 {
-	for (wmManipulatorMapType *mmaptype = manipulatormaptypes.first; mmaptype; mmaptype = mmaptype->next) {
-		if (mmaptype->spaceid == mmap_params->spaceid &&
-		    mmaptype->regionid == mmap_params->regionid &&
-		    STREQ(mmaptype->idname, mmap_params->idname))
+	for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first; mmap_type; mmap_type = mmap_type->next) {
+		if (mmap_type->spaceid == mmap_params->spaceid &&
+		    mmap_type->regionid == mmap_params->regionid)
 		{
-			return mmaptype;
+			return mmap_type;
 		}
 	}
 
@@ -715,36 +723,35 @@ wmManipulatorMapType *WM_manipulatormaptype_find(
 wmManipulatorMapType *WM_manipulatormaptype_ensure(
         const struct wmManipulatorMapType_Params *mmap_params)
 {
-	wmManipulatorMapType *mmaptype = WM_manipulatormaptype_find(mmap_params);
+	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_find(mmap_params);
 
-	if (mmaptype) {
-		return mmaptype;
+	if (mmap_type) {
+		return mmap_type;
 	}
 
-	mmaptype = MEM_callocN(sizeof(wmManipulatorMapType), "manipulatortype list");
-	mmaptype->spaceid = mmap_params->spaceid;
-	mmaptype->regionid = mmap_params->regionid;
-	BLI_strncpy(mmaptype->idname, mmap_params->idname, sizeof(mmaptype->idname));
-	BLI_addhead(&manipulatormaptypes, mmaptype);
+	mmap_type = MEM_callocN(sizeof(wmManipulatorMapType), "manipulatortype list");
+	mmap_type->spaceid = mmap_params->spaceid;
+	mmap_type->regionid = mmap_params->regionid;
+	BLI_addhead(&manipulatormaptypes, mmap_type);
 
-	return mmaptype;
+	return mmap_type;
 }
 
 void wm_manipulatormaptypes_free(void)
 {
-	for (wmManipulatorMapType *mmaptype = manipulatormaptypes.first, *mmaptype_next;
-	     mmaptype;
-	     mmaptype = mmaptype_next)
+	for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first, *mmap_type_next;
+	     mmap_type;
+	     mmap_type = mmap_type_next)
 	{
-		mmaptype_next = mmaptype->next;
-		for (wmManipulatorGroupType *wgt = mmaptype->manipulator_grouptypes.first, *wgt_next;
-		     wgt;
-		     wgt = wgt_next)
+		mmap_type_next = mmap_type->next;
+		for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first, *wgt_next;
+		     wgt_ref;
+		     wgt_ref = wgt_next)
 		{
-			wgt_next = wgt->next;
-			WM_manipulatorgrouptype_free(wgt);
+			wgt_next = wgt_ref->next;
+			WM_manipulatormaptype_group_free(wgt_ref);
 		}
-		MEM_freeN(mmaptype);
+		MEM_freeN(mmap_type);
 	}
 }
 
@@ -753,18 +760,64 @@ void wm_manipulatormaptypes_free(void)
  */
 void wm_manipulators_keymap(wmKeyConfig *keyconf)
 {
-	wmManipulatorMapType *mmaptype;
-	wmManipulatorGroupType *wgt;
-
 	/* we add this item-less keymap once and use it to group manipulator-group keymaps into it */
 	WM_keymap_find(keyconf, "Manipulators", 0, 0);
 
-	for (mmaptype = manipulatormaptypes.first; mmaptype; mmaptype = mmaptype->next) {
-		for (wgt = mmaptype->manipulator_grouptypes.first; wgt; wgt = wgt->next) {
-			wm_manipulatorgrouptype_setup_keymap(wgt, keyconf);
+	for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first; mmap_type; mmap_type = mmap_type->next) {
+		for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first; wgt_ref; wgt_ref = wgt_ref->next) {
+			wm_manipulatorgrouptype_setup_keymap(wgt_ref->type, keyconf);
 		}
 	}
 }
 
 /** \} */ /* wmManipulatorMapType */
 
+/* -------------------------------------------------------------------- */
+/** \name Updates for Dynamic Type Registraion
+ *
+ * \{ */
+
+
+void WM_manipulatorconfig_update_tag_init(wmManipulatorMapType *mmap_type, wmManipulatorGroupType *wgt)
+{
+	/* tag for update on next use */
+	mmap_type->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_INIT;
+	wgt->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_INIT;
+
+	wm_mmap_type_update_flag |= WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT;
+}
+
+/**
+ * Run incase new types have been added (runs often, early exit where possible).
+ * Follows #WM_keyconfig_update concentions.
+ */
+void WM_manipulatorconfig_update(const struct Main *bmain)
+{
+	if (G.background)
+		return;
+
+	if (wm_mmap_type_update_flag == 0)
+		return;
+
+	if (wm_mmap_type_update_flag & WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT) {
+		for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first;
+		     mmap_type;
+		     mmap_type = mmap_type->next)
+		{
+			if (mmap_type->type_update_flag & WM_MANIPULATORMAPTYPE_UPDATE_INIT) {
+				mmap_type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_INIT;
+				for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first;
+				     wgt_ref;
+				     wgt_ref = wgt_ref->next)
+				{
+					wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_INIT;
+					WM_manipulatormaptype_group_init_runtime(bmain, mmap_type, wgt_ref->type);
+				}
+			}
+		}
+
+		wm_mmap_type_update_flag &= ~WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT;
+	}
+}
+
+/** \} */

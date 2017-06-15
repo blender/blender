@@ -44,8 +44,6 @@
 
 #include "BPY_extern.h"
 
-#include "DNA_manipulator_types.h"
-
 #include "ED_screen.h"
 
 #include "MEM_guardedalloc.h"
@@ -84,7 +82,7 @@ wmManipulatorGroup *wm_manipulatorgroup_new_from_type(
 	/* keep back-link */
 	mgroup->parent_mmap = mmap;
 
-	BLI_addtail(&mmap->manipulator_groups, mgroup);
+	BLI_addtail(&mmap->groups, mgroup);
 
 	return mgroup;
 }
@@ -118,7 +116,7 @@ void wm_manipulatorgroup_free(bContext *C, wmManipulatorGroup *mgroup)
 		MEM_SAFE_FREE(mgroup->customdata);
 	}
 
-	BLI_remlink(&mmap->manipulator_groups, mgroup);
+	BLI_remlink(&mmap->groups, mgroup);
 
 	MEM_freeN(mgroup);
 }
@@ -391,7 +389,11 @@ void MANIPULATORGROUP_OT_manipulator_tweak(wmOperatorType *ot)
 	ot->invoke = manipulator_tweak_invoke;
 	ot->modal = manipulator_tweak_modal;
 
+	/* TODO(campbell) This causes problems tweaking settings for operators,
+	 * need to find a way to support this. */
+#if 0
 	ot->flag = OPTYPE_UNDO;
+#endif
 }
 
 /** \} */ // Manipulator operators
@@ -442,10 +444,11 @@ static wmKeyMap *manipulatorgroup_tweak_modal_keymap(wmKeyConfig *keyconf, const
 /**
  * Common default keymap for manipulator groups
  */
-wmKeyMap *WM_manipulatorgroup_keymap_common(const struct wmManipulatorGroupType *wgt, wmKeyConfig *config)
+wmKeyMap *WM_manipulatorgroup_keymap_common(
+        const wmManipulatorGroupType *wgt, wmKeyConfig *config)
 {
 	/* Use area and region id since we might have multiple manipulators with the same name in different areas/regions */
-	wmKeyMap *km = WM_keymap_find(config, wgt->name, wgt->spaceid, wgt->regionid);
+	wmKeyMap *km = WM_keymap_find(config, wgt->name, wgt->mmap_params.spaceid, wgt->mmap_params.regionid);
 
 	WM_keymap_add_item(km, "MANIPULATORGROUP_OT_manipulator_tweak", ACTIONMOUSE, KM_PRESS, KM_ANY, 0);
 	manipulatorgroup_tweak_modal_keymap(config, wgt->name);
@@ -456,10 +459,11 @@ wmKeyMap *WM_manipulatorgroup_keymap_common(const struct wmManipulatorGroupType 
 /**
  * Variation of #WM_manipulatorgroup_keymap_common but with keymap items for selection
  */
-wmKeyMap *WM_manipulatorgroup_keymap_common_sel(const struct wmManipulatorGroupType *wgt, wmKeyConfig *config)
+wmKeyMap *WM_manipulatorgroup_keymap_common_select(
+        const wmManipulatorGroupType *wgt, wmKeyConfig *config)
 {
 	/* Use area and region id since we might have multiple manipulators with the same name in different areas/regions */
-	wmKeyMap *km = WM_keymap_find(config, wgt->name, wgt->spaceid, wgt->regionid);
+	wmKeyMap *km = WM_keymap_find(config, wgt->name, wgt->mmap_params.spaceid, wgt->mmap_params.regionid);
 
 	WM_keymap_add_item(km, "MANIPULATORGROUP_OT_manipulator_tweak", ACTIONMOUSE, KM_PRESS, KM_ANY, 0);
 	manipulatorgroup_tweak_modal_keymap(config, wgt->name);
@@ -483,99 +487,60 @@ wmKeyMap *WM_manipulatorgroup_keymap_common_sel(const struct wmManipulatorGroupT
  *
  * \{ */
 
-struct wmManipulatorGroupType *WM_manipulatorgrouptype_find(
-        struct wmManipulatorMapType *mmaptype,
-        const char *idname)
+struct wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_find_ptr(
+        struct wmManipulatorMapType *mmap_type,
+        const wmManipulatorGroupType *wgt)
 {
 	/* could use hash lookups as operator types do, for now simple search. */
-	for (wmManipulatorGroupType *wgt = mmaptype->manipulator_grouptypes.first;
-	     wgt;
-	     wgt = wgt->next)
+	for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first;
+	     wgt_ref;
+	     wgt_ref = wgt_ref->next)
 	{
-		if (STREQ(idname, wgt->idname)) {
-			return wgt;
+		if (wgt_ref->type == wgt) {
+			return wgt_ref;
 		}
 	}
 	return NULL;
 }
 
-
-static wmManipulatorGroupType *wm_manipulatorgrouptype_append__begin(void)
+struct wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_find(
+        struct wmManipulatorMapType *mmap_type,
+        const char *idname)
 {
-	wmManipulatorGroupType *wgt = MEM_callocN(sizeof(wmManipulatorGroupType), "manipulator-group");
-	return wgt;
-}
-static void wm_manipulatorgrouptype_append__end(
-        wmManipulatorMapType *mmaptype, wmManipulatorGroupType *wgt)
-{
-	BLI_assert(wgt->name != NULL);
-	BLI_assert(wgt->idname != NULL);
-
-	wgt->spaceid = mmaptype->spaceid;
-	wgt->regionid = mmaptype->regionid;
-	BLI_strncpy(wgt->mapidname, mmaptype->idname, MAX_NAME);
-	/* if not set, use default */
-	if (!wgt->setup_keymap) {
-		wgt->setup_keymap = WM_manipulatorgroup_keymap_common;
+	/* could use hash lookups as operator types do, for now simple search. */
+	for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first;
+	     wgt_ref;
+	     wgt_ref = wgt_ref->next)
+	{
+		if (STREQ(idname, wgt_ref->type->idname)) {
+			return wgt_ref;
+		}
 	}
-
-	/* add the type for future created areas of the same type  */
-	BLI_addtail(&mmaptype->manipulator_grouptypes, wgt);
+	return NULL;
 }
 
 /**
- * Use this for registering manipulators on startup. For runtime, use #WM_manipulatorgrouptype_append_runtime.
+ * Use this for registering manipulators on startup. For runtime, use #WM_manipulatormaptype_group_link_runtime.
  */
-wmManipulatorGroupType *WM_manipulatorgrouptype_append(
-        wmManipulatorMapType *mmaptype, void (*wgt_func)(wmManipulatorGroupType *))
+wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_link(
+        wmManipulatorMapType *mmap_type, const char *idname)
 {
-	wmManipulatorGroupType *wgt = wm_manipulatorgrouptype_append__begin();
-	wgt_func(wgt);
-	wm_manipulatorgrouptype_append__end(mmaptype, wgt);
-	return wgt;
+	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
+	BLI_assert(wgt != NULL);
+	return WM_manipulatormaptype_group_link_ptr(mmap_type, wgt);
 }
 
-wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr(
-        wmManipulatorMapType *mmaptype, void (*wgt_func)(wmManipulatorGroupType *, void *),
-        void *userdata)
+wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_link_ptr(
+        wmManipulatorMapType *mmap_type, wmManipulatorGroupType *wgt)
 {
-	wmManipulatorGroupType *wgt = wm_manipulatorgrouptype_append__begin();
-	wgt_func(wgt, userdata);
-	wm_manipulatorgrouptype_append__end(mmaptype, wgt);
-	return wgt;
+	wmManipulatorGroupTypeRef *wgt_ref = MEM_callocN(sizeof(wmManipulatorGroupTypeRef), "manipulator-group-ref");
+	wgt_ref->type = wgt;
+	BLI_addtail(&mmap_type->grouptype_refs, wgt_ref);
+	return wgt_ref;
 }
 
-/**
- * Use this for registering manipulators on runtime.
- */
-wmManipulatorGroupType *WM_manipulatorgrouptype_append_runtime(
-        const Main *main, wmManipulatorMapType *mmaptype,
-        void (*wgt_func)(wmManipulatorGroupType *))
-{
-	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_append(mmaptype, wgt_func);
-
-	/* Main is missing on startup when we create new areas.
-	 * So this is only called for manipulators initialized on runtime */
-	WM_manipulatorgrouptype_init_runtime(main, mmaptype, wgt);
-
-	return wgt;
-}
-wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr_runtime(
-        const Main *main, wmManipulatorMapType *mmaptype,
-        void (*wgt_func)(wmManipulatorGroupType *, void *),
-        void *userdata)
-{
-	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_append_ptr(mmaptype, wgt_func, userdata);
-
-	/* Main is missing on startup when we create new areas.
-	 * So this is only called for manipulators initialized on runtime */
-	WM_manipulatorgrouptype_init_runtime(main, mmaptype, wgt);
-
-	return wgt;
-}
-
-void WM_manipulatorgrouptype_init_runtime(
-        const Main *bmain, wmManipulatorMapType *mmaptype,
+void WM_manipulatormaptype_group_init_runtime(
+        const Main *bmain, wmManipulatorMapType *mmap_type,
         wmManipulatorGroupType *wgt)
 {
 	/* init keymap - on startup there's an extra call to init keymaps for 'permanent' manipulator-groups */
@@ -588,7 +553,7 @@ void WM_manipulatorgrouptype_init_runtime(
 				ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 				for (ARegion *ar = lb->first; ar; ar = ar->next) {
 					wmManipulatorMap *mmap = ar->manipulator_map;
-					if (mmap && mmap->type == mmaptype) {
+					if (mmap && mmap->type == mmap_type) {
 						wm_manipulatorgroup_new_from_type(mmap, wgt);
 
 						/* just add here, drawing will occur on next update */
@@ -603,24 +568,27 @@ void WM_manipulatorgrouptype_init_runtime(
 
 
 /**
- * Unlike #WM_manipulatorgrouptype_remove_ptr this doesn't maintain correct state, simply free.
+ * Unlike #WM_manipulatormaptype_group_unlink this doesn't maintain correct state, simply free.
  */
-void WM_manipulatorgrouptype_free(wmManipulatorGroupType *wgt)
+void WM_manipulatormaptype_group_free(wmManipulatorGroupTypeRef *wgt_ref)
 {
-	MEM_freeN(wgt);
+	MEM_freeN(wgt_ref);
 }
 
-void WM_manipulatorgrouptype_remove_ptr(bContext *C, Main *bmain, wmManipulatorGroupType *wgt)
+void WM_manipulatormaptype_group_unlink(
+        bContext *C, Main *bmain, wmManipulatorMapType *mmap_type,
+        const wmManipulatorGroupType *wgt)
 {
+	/* Free instances. */
 	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
 		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 				ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 				for (ARegion *ar = lb->first; ar; ar = ar->next) {
 					wmManipulatorMap *mmap = ar->manipulator_map;
-					if (mmap) {
+					if (mmap && mmap->type == mmap_type) {
 						wmManipulatorGroup *mgroup, *mgroup_next;
-						for (mgroup = mmap->manipulator_groups.first; mgroup; mgroup = mgroup_next) {
+						for (mgroup = mmap->groups.first; mgroup; mgroup = mgroup_next) {
 							mgroup_next = mgroup->next;
 							if (mgroup->type == wgt) {
 								BLI_assert(mgroup->parent_mmap == mmap);
@@ -634,19 +602,80 @@ void WM_manipulatorgrouptype_remove_ptr(bContext *C, Main *bmain, wmManipulatorG
 		}
 	}
 
-	wmManipulatorMapType *mmaptype = WM_manipulatormaptype_find(&(const struct wmManipulatorMapType_Params) {
-	        wgt->mapidname, wgt->spaceid,
-	        wgt->regionid});
-
-	BLI_remlink(&mmaptype->manipulator_grouptypes, wgt);
-	wgt->prev = wgt->next = NULL;
-
-	WM_manipulatorgrouptype_free(wgt);
+	/* Free types. */
+	wmManipulatorGroupTypeRef *wgt_ref = WM_manipulatormaptype_group_find_ptr(mmap_type, wgt);
+	if (wgt_ref) {
+		BLI_remlink(&mmap_type->grouptype_refs, wgt_ref);
+		WM_manipulatormaptype_group_free(wgt_ref);
+	}
+	BLI_assert(WM_manipulatormaptype_group_find_ptr(mmap_type, wgt) == NULL);
 }
 
-void wm_manipulatorgrouptype_setup_keymap(wmManipulatorGroupType *wgt, wmKeyConfig *keyconf)
+void wm_manipulatorgrouptype_setup_keymap(
+        wmManipulatorGroupType *wgt, wmKeyConfig *keyconf)
 {
 	wgt->keymap = wgt->setup_keymap(wgt, keyconf);
 }
 
 /** \} */ /* wmManipulatorGroupType */
+
+/* -------------------------------------------------------------------- */
+/** \name High Level Add/Remove API
+ *
+ * For use directly from operators & RNA registration.
+ *
+ * \note In context of manipulator API these names are a bit misleading,
+ * but for general use terms its OK.
+ * `WM_manipulator_group_add` would be more correctly called:
+ * `WM_manipulatormaptype_grouptype_reference_link`
+ * but for general purpose API this is too detailed & annoying.
+ *
+ * \note We may want to return a value if there is nothing to remove.
+ *
+ * \{ */
+
+void WM_manipulator_group_add_ptr_ex(
+        wmManipulatorGroupType *wgt,
+        wmManipulatorMapType *mmap_type)
+{
+	WM_manipulatormaptype_group_link_ptr(mmap_type, wgt);
+
+	WM_manipulatorconfig_update_tag_init(mmap_type, wgt);
+}
+
+void WM_manipulator_group_add_ptr(
+        wmManipulatorGroupType *wgt)
+{
+	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
+	WM_manipulator_group_add_ptr_ex(wgt, mmap_type);
+}
+
+void WM_manipulator_group_add(const char *idname)
+{
+	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
+	BLI_assert(wgt != NULL);
+	WM_manipulator_group_add_ptr(wgt);
+}
+
+void WM_manipulator_group_remove_ptr_ex(
+        struct Main *bmain, wmManipulatorGroupType *wgt,
+        wmManipulatorMapType *mmap_type)
+{
+	WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt);
+}
+
+void WM_manipulator_group_remove_ptr(
+        struct Main *bmain, wmManipulatorGroupType *wgt)
+{
+	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
+	WM_manipulator_group_remove_ptr_ex(bmain, wgt, mmap_type);
+}
+
+void WM_manipulator_group_remove(struct Main *bmain, const char *idname)
+{
+	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
+	BLI_assert(wgt != NULL);
+	WM_manipulator_group_remove_ptr(bmain, wgt);
+}
+
+/** \} */

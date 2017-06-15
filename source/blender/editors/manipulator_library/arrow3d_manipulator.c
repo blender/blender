@@ -40,7 +40,6 @@
 
 #include "BLI_math.h"
 
-#include "DNA_manipulator_types.h"
 #include "DNA_view3d_types.h"
 
 #include "ED_view3d.h"
@@ -90,7 +89,7 @@ typedef struct ArrowManipulator3D {
 
 /* -------------------------------------------------------------------- */
 
-static void manipulator_arrow_get_final_pos(wmManipulator *mpr, float r_pos[3])
+static void manipulator_arrow_position_get(wmManipulator *mpr, float r_pos[3])
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
@@ -194,7 +193,7 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 	float final_pos[3];
 
 	manipulator_color_get(&arrow->manipulator, highlight, col);
-	manipulator_arrow_get_final_pos(&arrow->manipulator, final_pos);
+	manipulator_arrow_position_get(&arrow->manipulator, final_pos);
 
 	if (arrow->flag & ARROW_UP_VECTOR_SET) {
 		copy_v3_v3(rot[2], arrow->direction);
@@ -238,7 +237,7 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 	}
 }
 
-static void manipulator_arrow_render_3d_intersect(
+static void manipulator_arrow_draw_select(
         const bContext *UNUSED(C), wmManipulator *mpr,
         int selectionbase)
 {
@@ -327,14 +326,17 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 
 	normalize_v3(viewvec);
 	if (!use_vertical) {
-		float fac;
 		/* now find a plane parallel to the view vector so we can intersect with the arrow direction */
 		cross_v3_v3v3(tangent, viewvec, offset);
 		cross_v3_v3v3(plane, tangent, viewvec);
-		fac = dot_v3v3(plane, offset) / dot_v3v3(arrow->direction, plane);
 
+		const float plane_offset = dot_v3v3(plane, offset);
+		const float plane_dir = dot_v3v3(plane, arrow->direction);
+		const float fac = (plane_dir != 0.0f) ? (plane_offset / plane_dir) : 0.0f;
 		facdir = (fac < 0.0) ? -1.0 : 1.0;
-		mul_v3_v3fl(offset, arrow->direction, fac);
+		if (isfinite(fac)) {
+			mul_v3_v3fl(offset, arrow->direction, fac);
+		}
 	}
 	else {
 		facdir = (m_diff[1] < 0.0) ? -1.0 : 1.0;
@@ -344,18 +346,18 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 	ManipulatorCommonData *data = &arrow->data;
 	const float ofs_new = facdir * len_v3(offset);
 
-	wmManipulatorProperty *mpr_prop = WM_manipulator_get_property(mpr, "offset");
+	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
 
 	/* set the property for the operator and call its modal function */
-	if (mpr_prop->prop != NULL) {
+	if (WM_manipulator_property_is_valid(mpr_prop)) {
 		const bool constrained = arrow->style & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED;
 		const bool inverted = arrow->style & ED_MANIPULATOR_ARROW_STYLE_INVERTED;
 		const bool use_precision = flag & WM_MANIPULATOR_TWEAK_PRECISE;
 		float value = manipulator_value_from_offset(data, inter, ofs_new, constrained, inverted, use_precision);
 
-		manipulator_property_value_set(C, mpr, mpr_prop, value);
+		WM_manipulator_property_value_set(C, mpr, mpr_prop, value);
 		/* get clamped value */
-		value = manipulator_property_value_get(mpr, mpr_prop);
+		value = WM_manipulator_property_value_get(mpr, mpr_prop);
 
 		data->offset = manipulator_offset_from_value(data, value, constrained, inverted);
 	}
@@ -374,11 +376,11 @@ static void manipulator_arrow_invoke(
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
-	wmManipulatorProperty *mpr_prop = WM_manipulator_get_property(mpr, "offset");
+	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
 
 	/* Some manipulators don't use properties. */
-	if (mpr_prop && mpr_prop->prop) {
-		inter->init_value = RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
+	if (mpr_prop && WM_manipulator_property_is_valid(mpr_prop)) {
+		inter->init_value = WM_manipulator_property_value_get(mpr, mpr_prop);
 	}
 
 	inter->init_offset = arrow->data.offset;
@@ -388,16 +390,16 @@ static void manipulator_arrow_invoke(
 
 	inter->init_scale = mpr->scale;
 
-	manipulator_arrow_get_final_pos(mpr, inter->init_origin);
+	manipulator_arrow_position_get(mpr, inter->init_origin);
 
 	mpr->interaction_data = inter;
 }
 
-static void manipulator_arrow_property_update(wmManipulator *mnp, wmManipulatorProperty *mpr_prop)
+static void manipulator_arrow_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
-	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mnp;
+	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 	manipulator_property_data_update(
-	        mnp, &arrow->data, mpr_prop,
+	        mpr, &arrow->data, mpr_prop,
 	        (arrow->style & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED) != 0,
 	        (arrow->style & ED_MANIPULATOR_ARROW_STYLE_INVERTED) != 0);
 }
@@ -411,7 +413,7 @@ static void manipulator_arrow_exit(bContext *C, wmManipulator *mpr, const bool c
 	ManipulatorCommonData *data = &arrow->data;
 	ManipulatorInteraction *inter = mpr->interaction_data;
 
-	wmManipulatorProperty *mpr_prop = WM_manipulator_get_property(mpr, "offset");
+	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
 	manipulator_property_value_reset(C, mpr, inter, mpr_prop);
 	data->offset = inter->init_offset;
 }
@@ -486,15 +488,15 @@ void ED_manipulator_arrow3d_set_line_len(wmManipulator *mpr, const float len)
 /**
  * Define a custom property UI range
  *
- * \note Needs to be called before WM_manipulator_def_property!
+ * \note Needs to be called before WM_manipulator_property_def_rna!
  */
 void ED_manipulator_arrow3d_set_ui_range(wmManipulator *mpr, const float min, const float max)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
 	BLI_assert(min < max);
-	BLI_assert(!(WM_manipulator_get_property(mpr, "offset") && "Make sure this function "
-	           "is called before WM_manipulator_def_property"));
+	BLI_assert(!(WM_manipulator_property_find(mpr, "offset") && "Make sure this function "
+	           "is called before WM_manipulator_property_def_rna"));
 
 	arrow->data.range = max - min;
 	arrow->data.min = min;
@@ -504,13 +506,13 @@ void ED_manipulator_arrow3d_set_ui_range(wmManipulator *mpr, const float min, co
 /**
  * Define a custom factor for arrow min/max distance
  *
- * \note Needs to be called before WM_manipulator_def_property!
+ * \note Needs to be called before WM_manipulator_property_def_rna!
  */
 void ED_manipulator_arrow3d_set_range_fac(wmManipulator *mpr, const float range_fac)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-	BLI_assert(!(WM_manipulator_get_property(mpr, "offset") && "Make sure this function "
-	           "is called before WM_manipulator_def_property"));
+	BLI_assert(!(WM_manipulator_property_find(mpr, "offset") && "Make sure this function "
+	           "is called before WM_manipulator_property_def_rna"));
 
 	arrow->data.range_fac = range_fac;
 }
@@ -532,8 +534,8 @@ static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 
 	/* api callbacks */
 	wt->draw = manipulator_arrow_draw;
-	wt->draw_select = manipulator_arrow_render_3d_intersect;
-	wt->position_get = manipulator_arrow_get_final_pos;
+	wt->draw_select = manipulator_arrow_draw_select;
+	wt->position_get = manipulator_arrow_position_get;
 	wt->modal = manipulator_arrow_modal;
 	wt->invoke = manipulator_arrow_invoke;
 	wt->property_update = manipulator_arrow_property_update;

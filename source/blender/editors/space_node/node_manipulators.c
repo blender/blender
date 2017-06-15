@@ -25,8 +25,6 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 
-#include "DNA_manipulator_types.h"
-
 #include "ED_screen.h"
 #include "ED_manipulator_library.h"
 
@@ -95,8 +93,8 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 		SpaceNode *snode = CTX_wm_space_node(C);
 		PointerRNA nodeptr;
 		RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode, &nodeptr);
-		WM_manipulator_def_property(cage, "offset", &nodeptr, "backdrop_offset", -1);
-		WM_manipulator_def_property(cage, "scale", &nodeptr, "backdrop_zoom", -1);
+		WM_manipulator_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
+		WM_manipulator_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
 	}
 	else {
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, true);
@@ -109,6 +107,8 @@ void NODE_WGT_backdrop_transform(wmManipulatorGroupType *wgt)
 {
 	wgt->name = "Backdrop Transform Widgets";
 	wgt->idname = "NODE_WGT_backdrop_transform";
+
+	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
 
 	wgt->poll = WIDGETGROUP_node_transform_poll;
 	wgt->setup = WIDGETGROUP_node_transform_setup;

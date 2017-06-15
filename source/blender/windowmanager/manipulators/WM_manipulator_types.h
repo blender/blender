@@ -38,6 +38,7 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct wmManipulatorMapType;
 struct wmManipulatorGroupType;
 struct wmManipulatorGroup;
 struct wmManipulator;
@@ -104,12 +105,25 @@ struct wmManipulator {
 	ListBase properties;
 };
 
+typedef void (*wmManipulatorGroupFnInit)(
+        const struct bContext *, struct wmManipulatorGroup *);
+
 /* Similar to PropertyElemRNA, but has an identifier. */
 typedef struct wmManipulatorProperty {
 	struct wmManipulatorProperty *next, *prev;
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	int index;
+
+	/* Optional functions for converting to/from RNA  */
+	struct {
+		wmManipulatorPropertyFnGet value_get_fn;
+		wmManipulatorPropertyFnSet value_set_fn;
+		wmManipulatorPropertyFnRangeGet range_get_fn;
+		const struct bContext *context;
+		void *user_data;
+	} custom_func;
+
 	/* over alloc */
 	char idname[0];
 } wmManipulatorProperty;
@@ -120,6 +134,12 @@ typedef struct wmManipulatorProperty {
 typedef struct wmManipulatorWrapper {
 	struct wmManipulator *manipulator;
 } wmManipulatorWrapper;
+
+struct wmManipulatorMapType_Params {
+	short spaceid;
+	short regionid;
+};
+
 
 /* wmManipulator.flag
  * Flags for individual manipulators. */
@@ -194,9 +214,13 @@ typedef struct wmManipulatorType {
 /* wmManipulatorGroup */
 
 /* factory class for a manipulator-group type, gets called every time a new area is spawned */
-typedef struct wmManipulatorGroupType {
-	struct wmManipulatorGroupType *next, *prev;
+typedef struct wmManipulatorGroupTypeRef {
+	struct wmManipulatorGroupTypeRef *next, *prev;
+	struct wmManipulatorGroupType *type;
+} wmManipulatorGroupTypeRef;
 
+/* factory class for a manipulator-group type, gets called every time a new area is spawned */
+typedef struct wmManipulatorGroupType {
 	const char *idname;  /* MAX_NAME */
 	const char *name; /* manipulator-group name - displayed in UI (keymap editor) */
 
@@ -211,7 +235,8 @@ typedef struct wmManipulatorGroupType {
 
 	/* Keymap init callback for this manipulator-group (optional),
 	 * will fall back to default tweak keymap when left NULL. */
-	struct wmKeyMap *(*setup_keymap)(const struct wmManipulatorGroupType *, struct wmKeyConfig *);
+	wmManipulatorGroupFnSetupKeymap setup_keymap;
+
 	/* keymap created with callback from above */
 	struct wmKeyMap *keymap;
 
@@ -226,10 +251,38 @@ typedef struct wmManipulatorGroupType {
 
 	int flag;
 
+	/* eManipulatorMapTypeUpdateFlags (so we know which group type to update) */
+	uchar type_update_flag;
+
 	/* same as manipulator-maps, so registering/unregistering goes to the correct region */
-	short spaceid, regionid;
-	char mapidname[64];
+	struct wmManipulatorMapType_Params mmap_params;
+
 } wmManipulatorGroupType;
+
+typedef struct wmManipulatorGroup {
+	struct wmManipulatorGroup *next, *prev;
+
+	struct wmManipulatorGroupType *type;
+	ListBase manipulators;
+
+	struct wmManipulatorMap *parent_mmap;
+
+	void *py_instance;            /* python stores the class instance here */
+	struct ReportList *reports;   /* errors and warnings storage */
+
+	void *customdata;
+	void (*customdata_free)(void *); /* for freeing customdata from above */
+	int flag; /* private */
+	int pad;
+} wmManipulatorGroup;
+
+/**
+ * Manipulator-map type update flag: `wmManipulatorMapType.type_update_flag`
+ */
+enum eManipulatorMapTypeUpdateFlags {
+	/* A new type has been added, needs to be initialized for all views. */
+	WM_MANIPULATORMAPTYPE_UPDATE_INIT = (1 << 0),
+};
 
 /**
  * wmManipulatorGroupType.flag
@@ -244,17 +297,13 @@ enum {
 	WM_MANIPULATORGROUPTYPE_DEPTH_3D = (1 << 2),
 	/* Manipulators can be selected */
 	WM_MANIPULATORGROUPTYPE_SELECT  = (1 << 3),
+	/* The manipulator group is to be kept (not removed on loading a new file for eg). */
+	WM_MANIPULATORGROUPTYPE_PERSISTENT = (1 << 4),
 };
 
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorMap */
-
-struct wmManipulatorMapType_Params {
-	const char *idname;
-	const int spaceid;
-	const int regionid;
-};
 
 /**
  * Pass a value of this enum to #WM_manipulatormap_draw to tell it what to draw.

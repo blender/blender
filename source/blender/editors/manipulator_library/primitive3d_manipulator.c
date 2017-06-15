@@ -36,7 +36,6 @@
 #include "BLI_math.h"
 
 #include "DNA_view3d_types.h"
-#include "DNA_manipulator_types.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -157,7 +156,7 @@ static void manipulator_primitive_draw_intern(
 	}
 }
 
-static void manipulator_primitive_render_3d_intersect(
+static void manipulator_primitive_draw_select(
         const bContext *UNUSED(C), wmManipulator *mpr,
         int selectionbase)
 {
@@ -238,7 +237,7 @@ static void MANIPULATOR_WT_primitive3d(wmManipulatorType *wt)
 
 	/* api callbacks */
 	wt->draw = manipulator_primitive_draw;
-	wt->draw_select = manipulator_primitive_render_3d_intersect;
+	wt->draw_select = manipulator_primitive_draw_select;
 	wt->invoke = manipulator_primitive_invoke;
 
 	wt->struct_size = sizeof(PrimitiveManipulator);

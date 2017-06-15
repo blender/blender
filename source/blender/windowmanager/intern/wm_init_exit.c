@@ -166,6 +166,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	WM_menutype_init();
 	WM_uilisttype_init();
 	wm_manipulatortype_init();
+	wm_manipulatorgrouptype_init();
 
 	BKE_undo_callback_wm_kill_jobs_set(wm_undo_kill_callback);
 
@@ -488,6 +489,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	wm_dropbox_free();
 	WM_menutype_free();
 	WM_uilisttype_free();
+	wm_manipulatorgrouptype_free();
 	wm_manipulatortype_free();
 	
 	/* all non-screen and non-space stuff editors did, like editmode */

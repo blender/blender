@@ -36,7 +36,6 @@
 #include <string.h>
 
 #include "DNA_listBase.h"
-#include "DNA_manipulator_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
@@ -2165,7 +2164,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				/* handle user configurable manipulator-map keymap */
 				else if (mpr) {
 					/* get user customized keymap from default one */
-					const wmManipulatorGroup *highlightgroup = wm_manipulator_get_parent_group(mpr);
+					const wmManipulatorGroup *highlightgroup = mpr->parent_mgroup;
 					const wmKeyMap *keymap = WM_keymap_active(wm, highlightgroup->type->keymap);
 					wmKeyMapItem *kmi;
 
@@ -2452,6 +2451,7 @@ void wm_event_do_handlers(bContext *C)
 
 	/* update key configuration before handling events */
 	WM_keyconfig_update(wm);
+	WM_manipulatorconfig_update(CTX_data_main(C));
 
 	for (win = wm->windows.first; win; win = win->next) {
 		bScreen *screen = WM_window_get_active_screen(win);
@@ -2664,6 +2664,7 @@ void wm_event_do_handlers(bContext *C)
 
 	/* update key configuration after handling events */
 	WM_keyconfig_update(wm);
+	WM_manipulatorconfig_update(CTX_data_main(C));
 }
 
 /* ********** filesector handling ************ */

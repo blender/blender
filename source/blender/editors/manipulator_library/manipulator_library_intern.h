@@ -76,15 +76,11 @@ float manipulator_value_from_offset(
         const bool constrained, const bool inverted, const bool use_precision);
 
 void manipulator_property_data_update(
-        struct wmManipulator *mnp, ManipulatorCommonData *data, wmManipulatorProperty *mpr_prop,
+        struct wmManipulator *mpr, ManipulatorCommonData *data, wmManipulatorProperty *mpr_prop,
         const bool constrained, const bool inverted);
 
-void  manipulator_property_value_set(
-        bContext *C, const struct wmManipulator *mnp, wmManipulatorProperty *mpr_prop, const float value);
-float manipulator_property_value_get(
-        const struct wmManipulator *mnp, wmManipulatorProperty *mpr_prop);
 void  manipulator_property_value_reset(
-        bContext *C, const struct wmManipulator *mnp, ManipulatorInteraction *inter, wmManipulatorProperty *mpr_prop);
+        bContext *C, const struct wmManipulator *mpr, ManipulatorInteraction *inter, wmManipulatorProperty *mpr_prop);
 
 
 /* -------------------------------------------------------------------- */

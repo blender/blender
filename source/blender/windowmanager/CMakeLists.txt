@@ -72,7 +72,10 @@ set(SRC
 	intern/wm_window.c
 	intern/wm_stereo.c
 	manipulators/intern/wm_manipulator.c
+	manipulators/intern/wm_manipulator_property.c
+	manipulators/intern/wm_manipulator_type.c
 	manipulators/intern/wm_manipulatorgroup.c
+	manipulators/intern/wm_manipulatorgroup_type.c
 	manipulators/intern/wm_manipulatormap.c
 
 	WM_api.h

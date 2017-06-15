@@ -105,20 +105,25 @@ void manipulator_property_data_update(
         wmManipulator *mpr, ManipulatorCommonData *data, wmManipulatorProperty *mpr_prop,
         const bool constrained, const bool inverted)
 {
-	if (mpr_prop->prop == NULL) {
+	if (mpr_prop->custom_func.value_get_fn != NULL) {
+		/* pass  */
+	}
+	else if (mpr_prop->prop != NULL) {
+		/* pass  */
+	}
+	else {
 		data->offset = 0.0f;
 		return;
 	}
 
-	float value = manipulator_property_value_get(mpr, mpr_prop);
+	float value = WM_manipulator_property_value_get(mpr, mpr_prop);
 
 	if (constrained) {
 		if ((data->flag & MANIPULATOR_CUSTOM_RANGE_SET) == 0) {
-			float step, precision;
-			float min, max;
-			RNA_property_float_ui_range(&mpr_prop->ptr, mpr_prop->prop, &min, &max, &step, &precision);
-			data->range = max - min;
-			data->min = min;
+			float range[2];
+			WM_manipulator_property_range_get(mpr, mpr_prop, range);
+			data->range = range[1] - range[0];
+			data->min = range[0];
 		}
 		data->offset = manipulator_offset_from_value_constr(data->range_fac, data->min, data->range, value, inverted);
 	}
@@ -127,39 +132,12 @@ void manipulator_property_data_update(
 	}
 }
 
-void manipulator_property_value_set(
-        bContext *C, const wmManipulator *UNUSED(mnp),
-        wmManipulatorProperty *mpr_prop, const float value)
-{
-	/* reset property */
-	if (mpr_prop->index == -1) {
-		RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, value);
-	}
-	else {
-		RNA_property_float_set_index(&mpr_prop->ptr, mpr_prop->prop, mpr_prop->index, value);
-	}
-	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
-}
-
-float manipulator_property_value_get(
-        const wmManipulator *UNUSED(mnp),
-        wmManipulatorProperty *mpr_prop)
-{
-	if (mpr_prop->index == -1) {
-		return RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
-	}
-	else {
-		return RNA_property_float_get_index(&mpr_prop->ptr, mpr_prop->prop, mpr_prop->index);
-	}
-}
-
 void manipulator_property_value_reset(
-        bContext *C, const wmManipulator *mnp, ManipulatorInteraction *inter,
+        bContext *C, const wmManipulator *mpr, ManipulatorInteraction *inter,
         wmManipulatorProperty *mpr_prop)
 {
-	manipulator_property_value_set(C, mnp, mpr_prop, inter->init_value);
+	WM_manipulator_property_value_set(C, mpr, mpr_prop, inter->init_value);
 }
-
 
 /* -------------------------------------------------------------------- */
 

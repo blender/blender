@@ -41,8 +41,6 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
-#include "DNA_manipulator_types.h"
-
 #include "ED_screen.h"
 #include "ED_manipulator_library.h"
 
@@ -367,7 +365,7 @@ typedef struct RectTransformInteraction {
 } RectTransformInteraction;
 
 static bool manipulator_rect_transform_get_prop_value(
-        wmManipulator *mnp, wmManipulatorProperty *mpr_prop, float *value)
+        wmManipulator *mpr, wmManipulatorProperty *mpr_prop, float *value)
 {
 	PropertyType type = RNA_property_type(mpr_prop->prop);
 
@@ -384,7 +382,7 @@ static bool manipulator_rect_transform_get_prop_value(
 			RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
 		}
 		else if (STREQ(mpr_prop->idname, "scale")) {
-			RectTransformManipulator *cage = (RectTransformManipulator *)mnp;
+			RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
 			if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 				*value = RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
 			}
@@ -488,13 +486,13 @@ static void manipulator_rect_transform_modal(
 
 	wmManipulatorProperty *mpr_prop;
 
-	mpr_prop = WM_manipulator_get_property(mpr, "offset");
+	mpr_prop = WM_manipulator_property_find(mpr, "offset");
 	if (mpr_prop->prop != NULL) {
 		RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, mpr->offset);
 		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 	}
 
-	mpr_prop = WM_manipulator_get_property(mpr, "scale");
+	mpr_prop = WM_manipulator_property_find(mpr, "scale");
 	if (mpr_prop->prop != NULL) {
 		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 			RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, cage->scale[0]);
@@ -509,15 +507,15 @@ static void manipulator_rect_transform_modal(
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static void manipulator_rect_transform_property_update(wmManipulator *mnp, wmManipulatorProperty *mpr_prop)
+static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)mnp;
+	RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
 
 	if (STREQ(mpr_prop->idname, "offset")) {
-		manipulator_rect_transform_get_prop_value(mnp, mpr_prop, mnp->offset);
+		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, mpr->offset);
 	}
 	else if (STREQ(mpr_prop->idname, "scale")) {
-		manipulator_rect_transform_get_prop_value(mnp, mpr_prop, cage->scale);
+		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, cage->scale);
 	}
 	else {
 		BLI_assert(0);
@@ -535,13 +533,13 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 	wmManipulatorProperty *mpr_prop;
 
 	/* reset properties */
-	mpr_prop = WM_manipulator_get_property(mpr, "offset");
+	mpr_prop = WM_manipulator_property_find(mpr, "offset");
 	if (mpr_prop->prop != NULL) {
 		RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, data->orig_offset);
 		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 	}
 
-	mpr_prop = WM_manipulator_get_property(mpr, "scale");
+	mpr_prop = WM_manipulator_property_find(mpr, "scale");
 	if (mpr_prop->prop != NULL) {
 		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 			RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, data->orig_scale[0]);

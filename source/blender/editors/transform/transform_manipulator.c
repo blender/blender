@@ -39,7 +39,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_manipulator_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -1134,7 +1133,7 @@ static void manipulator_modal(
 	ED_region_tag_redraw(ar);
 }
 
-static void WIDGETGROUP_manipulator_init(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void WIDGETGROUP_manipulator_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
 	ManipulatorGroup *man = manipulatorgroup_init(mgroup);
 	mgroup->customdata = man;
@@ -1345,12 +1344,14 @@ void TRANSFORM_WGT_manipulator(wmManipulatorGroupType *wgt)
 	wgt->name = "Transform Manipulator";
 	wgt->idname = "TRANSFORM_WGT_manipulator";
 
+	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
+	              WM_MANIPULATORGROUPTYPE_3D |
+	              WM_MANIPULATORGROUPTYPE_SCALE_3D);
+
 	wgt->poll = WIDGETGROUP_manipulator_poll;
-	wgt->setup = WIDGETGROUP_manipulator_init;
+	wgt->setup = WIDGETGROUP_manipulator_setup;
 	wgt->refresh = WIDGETGROUP_manipulator_refresh;
 	wgt->draw_prepare = WIDGETGROUP_manipulator_draw_prepare;
-
-	wgt->flag |= (WM_MANIPULATORGROUPTYPE_3D | WM_MANIPULATORGROUPTYPE_SCALE_3D);
 }
 
 
@@ -1365,7 +1366,7 @@ static void WIDGETGROUP_object_manipulator_init(const bContext *C, wmManipulator
 		ob->mgroup = mgroup;
 	}
 
-	WIDGETGROUP_manipulator_init(C, mgroup);
+	WIDGETGROUP_manipulator_setup(C, mgroup);
 }
 
 static bool WIDGETGROUP_object_manipulator_poll(const bContext *C, wmManipulatorGroupType *wgt)

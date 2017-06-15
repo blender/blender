@@ -41,8 +41,6 @@
 
 #include "BLI_math.h"
 
-#include "DNA_manipulator_types.h"
-
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_manipulator_library.h"
@@ -66,6 +64,8 @@
 /* to use custom dials exported to geom_dial_manipulator.c */
 // #define USE_MANIPULATOR_CUSTOM_DIAL
 
+static void manipulator_dial_modal(bContext *C, wmManipulator *mpr, const wmEvent *event, const int flag);
+
 typedef struct DialManipulator {
 	wmManipulator manipulator;
 	int style;
@@ -79,10 +79,28 @@ typedef struct DialInteraction {
 	float last_angle;
 	/* number of full rotations */
 	int rotations;
+
+	/* final output values, used for drawing */
+	struct {
+		float angle_ofs;
+		float angle_delta;
+	} output;
 } DialInteraction;
 
 #define DIAL_WIDTH       1.0f
 #define DIAL_RESOLUTION 32
+
+
+static void dial_calc_matrix(const DialManipulator *dial, float mat[4][4])
+{
+	float rot[3][3];
+	const float up[3] = {0.0f, 0.0f, 1.0f};
+
+	rotation_between_vecs_to_mat3(rot, up, dial->direction);
+	copy_m4_m3(mat, rot);
+	copy_v3_v3(mat[3], dial->manipulator.origin);
+	mul_mat3_m4_fl(mat, dial->manipulator.scale);
+}
 
 /* -------------------------------------------------------------------- */
 
@@ -221,31 +239,36 @@ static void dial_draw_intern(
         const bContext *C, DialManipulator *dial,
         const bool select, const bool highlight, float clip_plane[4])
 {
-	float rot[3][3];
 	float mat[4][4];
-	const float up[3] = {0.0f, 0.0f, 1.0f};
 	float col[4];
 
 	BLI_assert(CTX_wm_area(C)->spacetype == SPACE_VIEW3D);
 
 	manipulator_color_get(&dial->manipulator, highlight, col);
 
-	rotation_between_vecs_to_mat3(rot, up, dial->direction);
-	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], dial->manipulator.origin);
-	mul_mat3_m4_fl(mat, dial->manipulator.scale);
+	dial_calc_matrix(dial, mat);
 
 	gpuPushMatrix();
 	gpuMultMatrix(mat);
 	gpuTranslate3fv(dial->manipulator.offset);
 
 	/* draw rotation indicator arc first */
-	if ((dial->manipulator.flag & WM_MANIPULATOR_DRAW_VALUE) && (dial->manipulator.state & WM_MANIPULATOR_STATE_ACTIVE)) {
-		wmWindow *win = CTX_wm_window(C);
+	if ((dial->manipulator.flag & WM_MANIPULATOR_DRAW_VALUE) &&
+	    (dial->manipulator.state & WM_MANIPULATOR_STATE_ACTIVE))
+	{
 		const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
-		float angle_ofs, angle_delta;
 
-		dial_ghostarc_get_angles(dial, win->eventstate, CTX_wm_region(C), mat, co_outer, &angle_ofs, &angle_delta);
+		DialInteraction *inter = dial->manipulator.interaction_data;
+
+		/* XXX, View3D rotation manipulator doesn't call modal. */
+		if (dial->manipulator.properties.first == NULL) {
+			wmWindow *win = CTX_wm_window(C);
+			manipulator_dial_modal((bContext *)C, &dial->manipulator, win->eventstate, 0);
+		}
+
+		const float angle_ofs = inter->output.angle_ofs;
+		const float angle_delta = inter->output.angle_delta;
+
 		/* draw! */
 		dial_ghostarc_draw(dial, angle_ofs, angle_delta, (const float [4]){0.8f, 0.8f, 0.8f, 0.4f});
 
@@ -259,7 +282,7 @@ static void dial_draw_intern(
 	gpuPopMatrix();
 }
 
-static void manipulator_dial_render_3d_intersect(const bContext *C, wmManipulator *mpr, int selectionbase)
+static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, int selectionbase)
 {
 	DialManipulator *dial = (DialManipulator *)mpr;
 	float clip_plane_buf[4];
@@ -312,6 +335,23 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 	}
 }
 
+static void manipulator_dial_modal(bContext *C, wmManipulator *mpr, const wmEvent *event, const int UNUSED(flag))
+{
+	DialManipulator *dial = (DialManipulator *)mpr;
+	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
+	float angle_ofs, angle_delta;
+
+	float mat[4][4];
+
+	dial_calc_matrix(dial, mat);
+
+	dial_ghostarc_get_angles(dial, event, CTX_wm_region(C), mat, co_outer, &angle_ofs, &angle_delta);
+
+	DialInteraction *inter = dial->manipulator.interaction_data;
+	inter->output.angle_delta = angle_delta;
+	inter->output.angle_ofs = angle_ofs;
+}
+
 static void manipulator_dial_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
@@ -362,8 +402,9 @@ static void MANIPULATOR_WT_dial_3d(wmManipulatorType *wt)
 
 	/* api callbacks */
 	wt->draw = manipulator_dial_draw;
-	wt->draw_select = manipulator_dial_render_3d_intersect;
+	wt->draw_select = manipulator_dial_draw_select;
 	wt->invoke = manipulator_dial_invoke;
+	wt->modal = manipulator_dial_modal;
 
 	wt->struct_size = sizeof(DialManipulator);
 }

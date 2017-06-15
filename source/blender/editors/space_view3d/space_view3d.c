@@ -491,9 +491,9 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
 	ListBase *lb;
 	wmKeyMap *keymap;
 
-	if (!ar->manipulator_map) {
-		ar->manipulator_map = WM_manipulatormap_new_from_type(&(const struct wmManipulatorMapType_Params) {
-		        "View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW});
+	if (ar->manipulator_map == NULL) {
+		ar->manipulator_map = WM_manipulatormap_new_from_type(
+		        &(const struct wmManipulatorMapType_Params) {SPACE_VIEW3D, RGN_TYPE_WINDOW});
 	}
 
 	WM_manipulatormap_add_handlers(ar, ar->manipulator_map);
@@ -731,16 +731,13 @@ static void view3d_dropboxes(void)
 
 static void view3d_widgets(void)
 {
-	const struct wmManipulatorMapType_Params wmap_params = {
-		.idname = "View3D",
-		.spaceid = SPACE_VIEW3D, .regionid = RGN_TYPE_WINDOW,
-	};
-	wmManipulatorMapType *wmaptype = WM_manipulatormaptype_ensure(&wmap_params);
+	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(
+	        &(const struct wmManipulatorMapType_Params){SPACE_VIEW3D, RGN_TYPE_WINDOW});
 
-	WM_manipulatorgrouptype_append(wmaptype, TRANSFORM_WGT_manipulator);
-	WM_manipulatorgrouptype_append(wmaptype, VIEW3D_WGT_lamp);
-	WM_manipulatorgrouptype_append(wmaptype, VIEW3D_WGT_force_field);
-	WM_manipulatorgrouptype_append(wmaptype, VIEW3D_WGT_camera);
+	WM_manipulatorgrouptype_append_and_link(mmap_type, TRANSFORM_WGT_manipulator);
+	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp);
+	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_force_field);
+	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera);
 }
 
 

@@ -56,7 +56,7 @@ enum {
 };
 
 struct wmManipulatorGroup *wm_manipulatorgroup_new_from_type(
-        struct wmManipulatorMap *mmap, struct wmManipulatorGroupType *mgroup_type);
+        struct wmManipulatorMap *mmap, struct wmManipulatorGroupType *wgt);
 void wm_manipulatorgroup_free(bContext *C, struct wmManipulatorGroup *mgroup);
 void wm_manipulatorgroup_manipulator_register(struct wmManipulatorGroup *mgroup, struct wmManipulator *mpr);
 struct wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
@@ -68,7 +68,8 @@ void wm_manipulatorgroup_ensure_initialized(struct wmManipulatorGroup *mgroup, c
 bool wm_manipulatorgroup_is_visible(const struct wmManipulatorGroup *mgroup, const struct bContext *C);
 bool wm_manipulatorgroup_is_visible_in_drawstep(const struct wmManipulatorGroup *mgroup, const int drawstep);
 
-void wm_manipulatorgrouptype_setup_keymap(struct wmManipulatorGroupType *wgt, struct wmKeyConfig *keyconf);
+void wm_manipulatorgrouptype_setup_keymap(
+        struct wmManipulatorGroupType *wgt, struct wmKeyConfig *keyconf);
 
 
 /* -------------------------------------------------------------------- */
@@ -78,7 +79,7 @@ struct wmManipulatorMap {
 	struct wmManipulatorMap *next, *prev;
 
 	struct wmManipulatorMapType *type;
-	ListBase manipulator_groups;
+	ListBase groups;  /* wmManipulatorGroup */
 
 	char update_flag; /* private, update tagging */
 
@@ -108,10 +109,12 @@ struct wmManipulatorMap {
  */
 struct wmManipulatorMapType {
 	struct wmManipulatorMapType *next, *prev;
-	char idname[64];
 	short spaceid, regionid;
 	/* types of manipulator-groups for this manipulator-map type */
-	ListBase manipulator_grouptypes;
+	ListBase grouptype_refs;
+
+	/* eManipulatorMapTypeUpdateFlags */
+	uchar type_update_flag;
 };
 
 void wm_manipulatormap_selected_clear(struct wmManipulatorMap *mmap);

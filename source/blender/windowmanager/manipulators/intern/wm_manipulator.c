@@ -30,12 +30,9 @@
 #include "BKE_context.h"
 
 #include "BLI_listbase.h"
-#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
-
-#include "DNA_manipulator_types.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -64,118 +61,6 @@
 
 static void wm_manipulator_register(
         wmManipulatorGroup *mgroup, wmManipulator *mpr, const char *name);
-
-/** \name Manipulator Type Append
- *
- * \note This follows conventions from #WM_operatortype_find #WM_operatortype_append & friends.
- * \{ */
-
-static GHash *global_manipulatortype_hash = NULL;
-
-const wmManipulatorType *WM_manipulatortype_find(const char *idname, bool quiet)
-{
-	if (idname[0]) {
-		wmManipulatorType *wt;
-
-		wt = BLI_ghash_lookup(global_manipulatortype_hash, idname);
-		if (wt) {
-			return wt;
-		}
-
-		if (!quiet) {
-			printf("search for unknown manipulator '%s'\n", idname);
-		}
-	}
-	else {
-		if (!quiet) {
-			printf("search for empty manipulator\n");
-		}
-	}
-
-	return NULL;
-}
-
-/* caller must free */
-void WM_manipulatortype_iter(GHashIterator *ghi)
-{
-	BLI_ghashIterator_init(ghi, global_manipulatortype_hash);
-}
-
-static wmManipulatorType *wm_manipulatortype_append__begin(void)
-{
-	wmManipulatorType *wt = MEM_callocN(sizeof(wmManipulatorType), "manipulatortype");
-	return wt;
-}
-static void wm_manipulatortype_append__end(wmManipulatorType *wt)
-{
-	BLI_assert(wt->struct_size >= sizeof(wmManipulator));
-
-	BLI_ghash_insert(global_manipulatortype_hash, (void *)wt->idname, wt);
-}
-
-void WM_manipulatortype_append(void (*wtfunc)(struct wmManipulatorType *))
-{
-	wmManipulatorType *wt = wm_manipulatortype_append__begin();
-	wtfunc(wt);
-	wm_manipulatortype_append__end(wt);
-}
-
-void WM_manipulatortype_append_ptr(void (*wtfunc)(struct wmManipulatorType *, void *), void *userdata)
-{
-	wmManipulatorType *mt = wm_manipulatortype_append__begin();
-	wtfunc(mt, userdata);
-	wm_manipulatortype_append__end(mt);
-}
-
-/**
- * Free but don't remove from ghash.
- */
-static void manipulatortype_free(wmManipulatorType *wt)
-{
-	MEM_freeN(wt);
-}
-
-void WM_manipulatortype_remove_ptr(wmManipulatorType *wt)
-{
-	BLI_assert(wt == WM_manipulatortype_find(wt->idname, false));
-
-	BLI_ghash_remove(global_manipulatortype_hash, wt->idname, NULL, NULL);
-
-	manipulatortype_free(wt);
-}
-
-bool WM_manipulatortype_remove(const char *idname)
-{
-	wmManipulatorType *wt = BLI_ghash_lookup(global_manipulatortype_hash, idname);
-
-	if (wt == NULL) {
-		return false;
-	}
-
-	WM_manipulatortype_remove_ptr(wt);
-
-	return true;
-}
-
-static void wm_manipulatortype_ghash_free_cb(wmManipulatorType *mt)
-{
-	manipulatortype_free(mt);
-}
-
-void wm_manipulatortype_free(void)
-{
-	BLI_ghash_free(global_manipulatortype_hash, NULL, (GHashValFreeFP)wm_manipulatortype_ghash_free_cb);
-	global_manipulatortype_hash = NULL;
-}
-
-/* called on initialize WM_init() */
-void wm_manipulatortype_init(void)
-{
-	/* reserve size is set based on blender default setup */
-	global_manipulatortype_hash = BLI_ghash_str_new_ex("wm_manipulatortype_init gh", 128);
-}
-
-/** \} */
 
 /**
  * \note Follow #wm_operator_create convention.
@@ -213,11 +98,6 @@ wmManipulator *WM_manipulator_new(const char *idname, wmManipulatorGroup *mgroup
 	wm_manipulator_register(mgroup, mpr, name);
 
 	return mpr;
-}
-
-wmManipulatorGroup *WM_manipulator_get_parent_group(wmManipulator *mpr)
-{
-	return mpr->parent_mgroup;
 }
 
 /**
@@ -297,12 +177,6 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 	MEM_freeN(mpr);
 }
 
-wmManipulatorGroup *wm_manipulator_get_parent_group(const wmManipulator *mpr)
-{
-	return mpr->parent_mgroup;
-}
-
-
 /* -------------------------------------------------------------------- */
 /** \name Manipulator Creation API
  *
@@ -310,34 +184,6 @@ wmManipulatorGroup *wm_manipulator_get_parent_group(const wmManipulator *mpr)
  *
  * \{ */
 
-struct wmManipulatorProperty *WM_manipulator_get_property(wmManipulator *mpr, const char *idname)
-{
-	return BLI_findstring(&mpr->properties, idname, offsetof(wmManipulatorProperty, idname));
-}
-
-void WM_manipulator_def_property(
-        wmManipulator *mpr, const char *idname,
-        PointerRNA *ptr, const char *propname, int index)
-{
-	wmManipulatorProperty *mpr_prop = WM_manipulator_get_property(mpr, idname);
-
-	if (mpr_prop == NULL) {
-		const uint idname_size = strlen(idname) + 1;
-		mpr_prop = MEM_callocN(sizeof(wmManipulatorProperty) + idname_size, __func__);
-		memcpy(mpr_prop->idname, idname, idname_size);
-		BLI_addtail(&mpr->properties, mpr_prop);
-	}
-
-	/* if manipulator evokes an operator we cannot use it for property manipulation */
-	mpr->opname = NULL;
-	mpr_prop->ptr = *ptr;
-	mpr_prop->prop = RNA_struct_find_property(ptr, propname);
-	mpr_prop->index = index;
-
-	if (mpr->type->property_update) {
-		mpr->type->property_update(mpr, mpr_prop);
-	}
-}
 
 PointerRNA *WM_manipulator_set_operator(wmManipulator *mpr, const char *opname)
 {
@@ -533,7 +379,7 @@ static void manipulator_update_prop_data(wmManipulator *mpr)
 	/* manipulator property might have been changed, so update manipulator */
 	if (mpr->type->property_update && !BLI_listbase_is_empty(&mpr->properties)) {
 		for (wmManipulatorProperty *mpr_prop = mpr->properties.first; mpr_prop; mpr_prop = mpr_prop->next) {
-			if (mpr_prop->prop != NULL) {
+			if (WM_manipulator_property_is_valid(mpr_prop)) {
 				mpr->type->property_update(mpr, mpr_prop);
 			}
 		}
