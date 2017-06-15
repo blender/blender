@@ -1762,7 +1762,7 @@ bool ED_screen_delete_scene(bContext *C, Scene *scene)
 
 	BKE_libblock_remap(bmain, scene, newscene, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
 
-	BKE_libblock_free(bmain, scene);
+	BKE_libblock_free_us(bmain, scene);
 
 	return true;
 }
