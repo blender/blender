@@ -235,8 +235,7 @@ static void unlink_group_cb(
 	}
 	else {
 		Main *bmain = CTX_data_main(C);
-		BKE_libblock_unlink(bmain, group, false, false);
-		BKE_libblock_free(bmain, group);
+		BKE_libblock_delete(bmain, group);
 	}
 }
 
