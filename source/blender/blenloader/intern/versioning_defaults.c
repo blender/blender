@@ -242,13 +242,13 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		/* remove polish brush (flatten/contrast does the same) */
 		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Polish");
 		if (br) {
-			BKE_libblock_free(bmain, br);
+			BKE_libblock_delete(bmain, br);
 		}
 
 		/* remove brush brush (huh?) from some modes (draw brushes do the same) */
 		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Brush");
 		if (br) {
-			BKE_libblock_free(bmain, br);
+			BKE_libblock_delete(bmain, br);
 		}
 
 		/* remove draw brush from texpaint (draw brushes do the same) */
