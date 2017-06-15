@@ -66,6 +66,7 @@ static ListBase manipulatormaptypes = {NULL, NULL};
 /* so operator removal can trigger update */
 enum {
 	WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT = (1 << 0),
+	WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE = (1 << 1),
 };
 
 static char wm_mmap_type_update_flag = 0;
@@ -239,9 +240,10 @@ static void manipulatormap_prepare_drawing(
  */
 static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext *C, ListBase *draw_manipulators)
 {
-	if (!mmap)
+	/* Can be empty if we're dynamically added and removed. */
+	if ((mmap == NULL) || BLI_listbase_is_empty(&mmap->groups)) {
 		return;
-	BLI_assert(!BLI_listbase_is_empty(&mmap->groups));
+	}
 
 	const bool draw_multisample = (U.ogl_multisamples != USER_MULTISAMPLE_NONE);
 
@@ -778,7 +780,8 @@ void wm_manipulators_keymap(wmKeyConfig *keyconf)
  * \{ */
 
 
-void WM_manipulatorconfig_update_tag_init(wmManipulatorMapType *mmap_type, wmManipulatorGroupType *wgt)
+void WM_manipulatorconfig_update_tag_init(
+        wmManipulatorMapType *mmap_type, wmManipulatorGroupType *wgt)
 {
 	/* tag for update on next use */
 	mmap_type->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_INIT;
@@ -787,17 +790,47 @@ void WM_manipulatorconfig_update_tag_init(wmManipulatorMapType *mmap_type, wmMan
 	wm_mmap_type_update_flag |= WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT;
 }
 
+void WM_manipulatorconfig_update_tag_remove(
+        wmManipulatorMapType *mmap_type, wmManipulatorGroupType *wgt)
+{
+	/* tag for update on next use */
+	mmap_type->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_REMOVE;
+	wgt->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_REMOVE;
+
+	wm_mmap_type_update_flag |= WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE;
+}
+
 /**
  * Run incase new types have been added (runs often, early exit where possible).
  * Follows #WM_keyconfig_update concentions.
  */
-void WM_manipulatorconfig_update(const struct Main *bmain)
+void WM_manipulatorconfig_update(struct Main *bmain)
 {
 	if (G.background)
 		return;
 
 	if (wm_mmap_type_update_flag == 0)
 		return;
+
+	if (wm_mmap_type_update_flag & WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE) {
+		for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first;
+		     mmap_type;
+		     mmap_type = mmap_type->next)
+		{
+			if (mmap_type->type_update_flag & WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE) {
+				mmap_type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_REMOVE;
+				for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first, *wgt_ref_next;
+				     wgt_ref;
+				     wgt_ref = wgt_ref_next)
+				{
+					wgt_ref_next = wgt_ref->next;
+					WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt_ref->type);
+				}
+			}
+		}
+
+		wm_mmap_type_update_flag &= ~WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE;
+	}
 
 	if (wm_mmap_type_update_flag & WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT) {
 		for (wmManipulatorMapType *mmap_type = manipulatormaptypes.first;

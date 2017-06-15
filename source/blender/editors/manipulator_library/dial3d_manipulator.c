@@ -75,6 +75,9 @@ typedef struct DialManipulator {
 typedef struct DialInteraction {
 	float init_mval[2];
 
+	/* only for when using properties */
+	float init_prop_angle;
+
 	/* cache the last angle to detect rotations bigger than -/+ PI */
 	float last_angle;
 	/* number of full rotations */
@@ -348,8 +351,15 @@ static void manipulator_dial_modal(bContext *C, wmManipulator *mpr, const wmEven
 	dial_ghostarc_get_angles(dial, event, CTX_wm_region(C), mat, co_outer, &angle_ofs, &angle_delta);
 
 	DialInteraction *inter = dial->manipulator.interaction_data;
+
 	inter->output.angle_delta = angle_delta;
 	inter->output.angle_ofs = angle_ofs;
+
+	/* set the property for the operator and call its modal function */
+	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
+	if (mpr_prop && WM_manipulator_property_is_valid(mpr_prop)) {
+		WM_manipulator_property_value_set(C, mpr, mpr_prop, inter->init_prop_angle + angle_delta);
+	}
 }
 
 static void manipulator_dial_invoke(
@@ -359,6 +369,11 @@ static void manipulator_dial_invoke(
 
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
+
+	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
+	if (mpr_prop && WM_manipulator_property_is_valid(mpr_prop)) {
+		inter->init_prop_angle = WM_manipulator_property_value_get(mpr, mpr_prop);
+	}
 
 	mpr->interaction_data = inter;
 }

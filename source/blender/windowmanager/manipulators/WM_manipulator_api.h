@@ -104,7 +104,8 @@ struct wmManipulatorGroupTypeRef *WM_manipulatorgrouptype_append_and_link(
 
 /* Dynamic Updates (for RNA runtime registration) */
 void WM_manipulatorconfig_update_tag_init(struct wmManipulatorMapType *mmap_type, struct wmManipulatorGroupType *wgt);
-void WM_manipulatorconfig_update(const struct Main *bmain);
+void WM_manipulatorconfig_update_tag_remove(struct wmManipulatorMapType *mmap_type, struct wmManipulatorGroupType *wgt);
+void WM_manipulatorconfig_update(struct Main *bmain);
 
 
 /* wm_maniulator_property.c */
@@ -195,5 +196,12 @@ void WM_manipulator_group_remove_ptr_ex(
 void WM_manipulator_group_remove_ptr(
         struct Main *bmain, struct wmManipulatorGroupType *wgt);
 void WM_manipulator_group_remove(struct Main *bmain, const char *idname);
+
+void WM_manipulator_group_remove_ptr_delayed_ex(
+        struct wmManipulatorGroupType *wgt,
+        struct wmManipulatorMapType *mmap_type);
+void WM_manipulator_group_remove_ptr_delayed(
+        struct wmManipulatorGroupType *wgt);
+void WM_manipulator_group_remove_delayed(const char *idname);
 
 #endif  /* __WM_MANIPULATOR_API_H__ */

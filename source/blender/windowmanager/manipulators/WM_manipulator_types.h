@@ -239,6 +239,8 @@ typedef struct wmManipulatorGroupType {
 
 	/* keymap created with callback from above */
 	struct wmKeyMap *keymap;
+	/* Only for convenient removal. */
+	struct wmKeyConfig *keyconf;
 
 	/* Disable for now, maybe some day we want properties. */
 #if 0
@@ -282,6 +284,7 @@ typedef struct wmManipulatorGroup {
 enum eManipulatorMapTypeUpdateFlags {
 	/* A new type has been added, needs to be initialized for all views. */
 	WM_MANIPULATORMAPTYPE_UPDATE_INIT = (1 << 0),
+	WM_MANIPULATORMAPTYPE_UPDATE_REMOVE = (1 << 1),
 };
 
 /**

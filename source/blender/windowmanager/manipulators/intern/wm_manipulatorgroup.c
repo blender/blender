@@ -608,6 +608,10 @@ void WM_manipulatormaptype_group_unlink(
 		BLI_remlink(&mmap_type->grouptype_refs, wgt_ref);
 		WM_manipulatormaptype_group_free(wgt_ref);
 	}
+
+	/* Note, we may want to keep this keymap for editing */
+	WM_keymap_remove(wgt->keyconf, wgt->keymap);
+
 	BLI_assert(WM_manipulatormaptype_group_find_ptr(mmap_type, wgt) == NULL);
 }
 
@@ -615,6 +619,7 @@ void wm_manipulatorgrouptype_setup_keymap(
         wmManipulatorGroupType *wgt, wmKeyConfig *keyconf)
 {
 	wgt->keymap = wgt->setup_keymap(wgt, keyconf);
+	wgt->keyconf = keyconf;
 }
 
 /** \} */ /* wmManipulatorGroupType */
@@ -676,6 +681,29 @@ void WM_manipulator_group_remove(struct Main *bmain, const char *idname)
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
 	BLI_assert(wgt != NULL);
 	WM_manipulator_group_remove_ptr(bmain, wgt);
+}
+
+/* delayed versions */
+
+void WM_manipulator_group_remove_ptr_delayed_ex(
+        wmManipulatorGroupType *wgt,
+        wmManipulatorMapType *mmap_type)
+{
+	WM_manipulatorconfig_update_tag_remove(mmap_type, wgt);
+}
+
+void WM_manipulator_group_remove_ptr_delayed(
+        wmManipulatorGroupType *wgt)
+{
+	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
+	WM_manipulator_group_remove_ptr_delayed_ex(wgt, mmap_type);
+}
+
+void WM_manipulator_group_remove_delayed(const char *idname)
+{
+	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
+	BLI_assert(wgt != NULL);
+	WM_manipulator_group_remove_ptr_delayed(wgt);
 }
 
 /** \} */

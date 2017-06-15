@@ -172,8 +172,13 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 	}
 	BLI_freelistN(&mpr->properties);
 
-	if (manipulatorlist)
+	if (manipulatorlist) {
 		BLI_remlink(manipulatorlist, mpr);
+	}
+
+	BLI_assert(mmap->mmap_context.highlight != mpr);
+	BLI_assert(mmap->mmap_context.active != mpr);
+
 	MEM_freeN(mpr);
 }
 
