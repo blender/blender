@@ -670,7 +670,7 @@ static bool ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[
 	return (sel != 0);
 }
 
-static bool uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
+bool ED_uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
 {
 	bool changed = false;
 	
@@ -1427,7 +1427,7 @@ static void uv_weld_align(bContext *C, int tool)
 		tool = (max[0] - min[0] >= max[1] - min[1]) ? 'y' : 'x';
 	}
 
-	uvedit_center(scene, ima, obedit, cent, 0);
+	ED_uvedit_center(scene, ima, obedit, cent, 0);
 
 	if (tool == 'x' || tool == 'w') {
 		BMIter iter, liter;
@@ -3124,7 +3124,7 @@ static void uv_snap_cursor_to_pixels(SpaceImage *sima)
 
 static bool uv_snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
-	return uvedit_center(scene, ima, obedit, sima->cursor, sima->around);
+	return ED_uvedit_center(scene, ima, obedit, sima->cursor, sima->around);
 }
 
 static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
@@ -3338,7 +3338,7 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
 		case 2:
 		{
 			float center[2];
-			if (uvedit_center(scene, ima, obedit, center, sima->around)) {
+			if (ED_uvedit_center(scene, ima, obedit, center, sima->around)) {
 				float offset[2];
 				sub_v2_v2v2(offset, sima->cursor, center);
 				changed = uv_snap_uvs_offset(scene, ima, obedit, offset);

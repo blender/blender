@@ -64,6 +64,7 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
+#include "ED_transform.h"
 
 #include "BIF_gl.h"
 
@@ -588,6 +589,27 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 	return 0;
 }
 
+static void IMAGE_WGT_manipulator2d(wmManipulatorGroupType *wgt)
+{
+	wgt->name = "UV Transform Manipulator";
+	wgt->idname = "IMAGE_WGT_manipulator2d";
+
+	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
+
+	wgt->poll = ED_widgetgroup_manipulator2d_poll;
+	wgt->setup = ED_widgetgroup_manipulator2d_setup;
+	wgt->refresh = ED_widgetgroup_manipulator2d_refresh;
+	wgt->draw_prepare = ED_widgetgroup_manipulator2d_draw_prepare;
+}
+
+static void image_widgets(void)
+{
+	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(
+	        &(const struct wmManipulatorMapType_Params){SPACE_IMAGE, RGN_TYPE_WINDOW});
+
+	WM_manipulatorgrouptype_append_and_link(mmap_type, IMAGE_WGT_manipulator2d);
+}
+
 /************************** main region ***************************/
 
 /* sets up the fields of the View2D from zoom and offset */
@@ -651,6 +673,16 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 	// image space manages own v2d
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
+	/* manipulators */
+	if (ar->manipulator_map == NULL) {
+		const struct wmManipulatorMapType_Params wmap_params = {
+			.spaceid = SPACE_IMAGE,
+			.regionid = RGN_TYPE_WINDOW,
+		};
+		ar->manipulator_map = WM_manipulatormap_new_from_type(&wmap_params);
+	}
+	WM_manipulatormap_add_handlers(ar, ar->manipulator_map);
+
 	/* mask polls mode */
 	keymap = WM_keymap_find(wm->defaultconf, "Mask Editing", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
@@ -676,7 +708,6 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap = WM_keymap_find(wm->defaultconf, "Image", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-
 }
 
 static void image_main_region_draw(const bContext *C, ARegion *ar)
@@ -794,6 +825,8 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 		UI_view2d_view_restore(C);
 	}
 
+	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
+
 	draw_image_cache(C, ar);
 
 	/* scrollers? */
@@ -810,6 +843,10 @@ static void image_main_region_listener(
 {
 	/* context changes */
 	switch (wmn->category) {
+		case NC_GEOM:
+			if (ELEM(wmn->data, ND_DATA, ND_SELECT))
+				WM_manipulatormap_tag_refresh(ar->manipulator_map);
+			break;
 		case NC_GPENCIL:
 			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
 				ED_region_tag_redraw(ar);
@@ -819,6 +856,7 @@ static void image_main_region_listener(
 		case NC_IMAGE:
 			if (wmn->action == NA_PAINTING)
 				ED_region_tag_redraw(ar);
+			WM_manipulatormap_tag_refresh(ar->manipulator_map);
 			break;
 		case NC_MATERIAL:
 			if (wmn->data == ND_SHADING_LINKS) {
@@ -1049,6 +1087,7 @@ void ED_spacetype_image(void)
 	st->refresh = image_refresh;
 	st->listener = image_listener;
 	st->context = image_context;
+	st->manipulators = image_widgets;
 	st->id_remap = image_id_remap;
 
 	/* regions: main window */
