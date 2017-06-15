@@ -88,7 +88,7 @@ bool WM_manipulatortype_remove(const char *idname);
 void WM_manipulatortype_remove_ptr(struct wmManipulatorType *wt);
 void WM_manipulatortype_iter(struct GHashIterator *ghi);
 
-/* wm_manipulatorgroup_type.c */
+/* wm_manipulator_group_type.c */
 struct wmManipulatorGroupType *WM_manipulatorgrouptype_find(const char *idname, bool quiet);
 struct wmManipulatorGroupType *WM_manipulatorgrouptype_append(void (*wtfunc)(struct wmManipulatorGroupType *));
 struct wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr(void (*mnpfunc)(struct wmManipulatorGroupType *, void *), void *userdata);
@@ -100,7 +100,7 @@ struct wmManipulatorGroupTypeRef *WM_manipulatorgrouptype_append_and_link(
         struct wmManipulatorMapType *mmap_type,
         void (*wtfunc)(struct wmManipulatorGroupType *));
 
-/* wm_manipulatormap.c */
+/* wm_manipulator_map.c */
 
 /* Dynamic Updates (for RNA runtime registration) */
 void WM_manipulatorconfig_update_tag_init(struct wmManipulatorMapType *mmap_type, struct wmManipulatorGroupType *wgt);
