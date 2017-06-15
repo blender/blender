@@ -1828,7 +1828,7 @@ bool isect_tri_tri_epsilon_v3(
 		     (range[0].max < range[1].min)) == 0)
 		{
 			if (r_i1 && r_i2) {
-				project_plane_v3_v3v3(plane_co, plane_co, plane_no);
+				project_plane_normalized_v3_v3v3(plane_co, plane_co, plane_no);
 				madd_v3_v3v3fl(r_i1, plane_co, plane_no, max_ff(range[0].min, range[1].min));
 				madd_v3_v3v3fl(r_i2, plane_co, plane_no, min_ff(range[0].max, range[1].max));
 			}
