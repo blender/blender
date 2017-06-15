@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/wm_manipulatormap.c
+/** \file blender/windowmanager/manipulators/intern/wm_manipulator_map.c
  *  \ingroup wm
  */
 
