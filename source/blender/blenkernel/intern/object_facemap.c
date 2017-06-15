@@ -88,7 +88,7 @@ static bFaceMap *fmap_duplicate(bFaceMap *infmap)
 	return outfmap;
 }
 
-void BKE_object_facemap_copy_list(ListBase *outbase, ListBase *inbase)
+void BKE_object_facemap_copy_list(ListBase *outbase, const ListBase *inbase)
 {
 	bFaceMap *fmap, *fmapn;
 

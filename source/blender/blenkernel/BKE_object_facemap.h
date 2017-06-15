@@ -44,7 +44,7 @@ void             BKE_object_facemap_clear(struct Object *ob);
 int              BKE_object_facemap_name_index(struct Object *ob, const char *name);
 void             BKE_object_facemap_unique_name(struct Object *ob, struct bFaceMap *fmap);
 struct bFaceMap *BKE_object_facemap_find_name(struct Object *ob, const char *name);
-void             BKE_object_facemap_copy_list(struct ListBase *outbase, struct ListBase *inbase);
+void             BKE_object_facemap_copy_list(struct ListBase *outbase, const struct ListBase *inbase);
 
 #ifdef __cplusplus
 }
