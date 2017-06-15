@@ -50,8 +50,14 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-
 #include "mesh_intern.h"  /* own include */
+
+#define USE_MANIPULATOR
+
+#ifdef USE_MANIPULATOR
+#include "ED_manipulator_library.h"
+#include "ED_util.h"
+#endif
 
 static int mesh_bisect_exec(bContext *C, wmOperator *op);
 
@@ -186,6 +192,16 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (ret & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
 		edbm_bisect_exit(C, &opdata_back);
+
+#ifdef USE_MANIPULATOR
+		/* Setup manipulators */
+		{
+			View3D *v3d = CTX_wm_view3d(C);
+			if (v3d->twtype & V3D_USE_MANIPULATOR) {
+				WM_manipulator_group_add("MESH_WGT_bisect");
+			}
+		}
+#endif
 	}
 
 	return ret;
@@ -315,6 +331,9 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 	}
 }
 
+#ifdef USE_MANIPULATOR
+static void MESH_WGT_bisect(struct wmManipulatorGroupType *wgt);
+#endif
 
 void MESH_OT_bisect(struct wmOperatorType *ot)
 {
@@ -350,4 +369,257 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 	RNA_def_float(ot->srna, "threshold", 0.0001, 0.0, 10.0, "Axis Threshold", "", 0.00001, 0.1);
 
 	WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
+
+#ifdef USE_MANIPULATOR
+	/* Widget for this operator. */
+	{
+		WM_manipulatorgrouptype_append(MESH_WGT_bisect);
+	}
+#endif
 }
+
+
+#ifdef USE_MANIPULATOR
+
+/* -------------------------------------------------------------------- */
+
+/** \name Bisect Manipulator
+ * \{ */
+
+typedef struct ManipulatorGroup {
+	/* Arrow to change plane depth. */
+	struct wmManipulator *translate_z;
+	/* For grabbing the manipulator and moving freely. */
+	struct wmManipulator *rotate_c;
+
+	/* We could store more vars here! */
+	struct {
+		bContext *context;
+		wmOperator *op;
+		PropertyRNA *prop_plane_co;
+		PropertyRNA *prop_plane_no;
+
+		float rotate_axis[3];
+		float rotate_up[3];
+	} data;
+} ManipulatorGroup;
+
+/**
+ * XXX. calling redo from property updates is not great.
+ * This is needed because changing the RNA doesn't cause a redo
+ * and we're not using operator UI which does just this.
+ */
+static void manipulator_bisect_exec(ManipulatorGroup *man)
+{
+	wmOperator *op = man->data.op;
+	if (op == WM_operator_last_redo((bContext *)man->data.context)) {
+		ED_undo_operator_repeat((bContext *)man->data.context, op);
+	}
+}
+
+static void manipulator_mesh_bisect_update_from_op(ManipulatorGroup *man)
+{
+	wmOperator *op = man->data.op;
+
+	float plane_co[3], plane_no[3];
+
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_co, plane_co);
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane_no);
+
+	WM_manipulator_set_origin(man->translate_z, plane_co);
+	WM_manipulator_set_origin(man->rotate_c, plane_co);
+
+	ED_manipulator_arrow3d_set_direction(man->translate_z, plane_no);
+
+	RegionView3D *rv3d = ED_view3d_context_rv3d(man->data.context);
+	if (rv3d) {
+		normalize_v3_v3(man->data.rotate_axis, rv3d->viewinv[2]);
+		normalize_v3_v3(man->data.rotate_up, rv3d->viewinv[1]);
+
+		/* ensure its orthogonal */
+		project_plane_normalized_v3_v3v3(man->data.rotate_up, man->data.rotate_up, man->data.rotate_axis);
+		normalize_v3(man->data.rotate_up);
+
+		ED_manipulator_dial3d_set_up_vector(man->rotate_c, man->data.rotate_axis);
+	}
+}
+
+/* depth callbacks */
+static void manipulator_bisect_prop_depth_get(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        float *value, uint value_len)
+{
+	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+
+	BLI_assert(value_len == 1);
+
+	float plane_co[3], plane_no[3];
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_co, plane_co);
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane_no);
+
+	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, mpr->origin);
+}
+
+static void manipulator_bisect_prop_depth_set(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        const float *value, uint value_len)
+{
+	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+
+	BLI_assert(value_len == 1);
+
+	float plane_co[3], plane[4];
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_co, plane_co);
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane);
+	normalize_v3(plane);
+
+	plane[3] = -value[0] - dot_v3v3(plane, mpr->origin);
+
+	/* Keep our location, may be offset simply to be inside the viewport. */
+	closest_to_plane_normalized_v3(plane_co, plane, plane_co);
+
+	RNA_property_float_set_array(op->ptr, man->data.prop_plane_co, plane_co);
+
+	manipulator_bisect_exec(man);
+}
+
+/* angle callbacks */
+static void manipulator_bisect_prop_angle_get(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        float *value, uint value_len)
+{
+	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+	BLI_assert(value_len == 1);
+
+	float plane_no[4];
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane_no);
+	normalize_v3(plane_no);
+
+	float plane_no_proj[3];
+	project_plane_normalized_v3_v3v3(plane_no_proj, plane_no, man->data.rotate_axis);
+
+	if (!is_zero_v3(plane_no_proj)) {
+		const float angle = -angle_signed_on_axis_v3v3_v3(plane_no_proj, man->data.rotate_up, man->data.rotate_axis);
+		value[0] = angle;
+	}
+	else {
+		value[0] = 0.0f;
+	}
+}
+
+static void manipulator_bisect_prop_angle_set(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        const float *value, uint value_len)
+{
+	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+	BLI_assert(value_len == 1);
+
+	float plane_no[4];
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane_no);
+	normalize_v3(plane_no);
+
+	float plane_no_proj[3];
+	project_plane_normalized_v3_v3v3(plane_no_proj, plane_no, man->data.rotate_axis);
+
+	if (!is_zero_v3(plane_no_proj)) {
+		const float angle = -angle_signed_on_axis_v3v3_v3(plane_no_proj, man->data.rotate_up, man->data.rotate_axis);
+		const float angle_delta = angle - angle_compat_rad(value[0], angle);
+		if (angle_delta != 0.0f) {
+			float mat[3][3];
+			axis_angle_normalized_to_mat3(mat, man->data.rotate_axis, angle_delta);
+			mul_m3_v3(mat, plane_no);
+
+			/* re-normalize - seems acceptable */
+			RNA_property_float_set_array(op->ptr, man->data.prop_plane_no, plane_no);
+
+			manipulator_bisect_exec(man);
+		}
+	}
+}
+
+static bool manipulator_mesh_bisect_poll(const bContext *C, wmManipulatorGroupType *wgt)
+{
+	wmOperator *op = WM_operator_last_redo(C);
+	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_bisect")) {
+		WM_manipulator_group_remove_ptr_delayed(wgt);
+		return false;
+	}
+	return true;
+}
+
+static void manipulator_mesh_bisect_setup(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	wmOperator *op = WM_operator_last_redo(C);
+
+	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_bisect")) {
+		return;
+	}
+
+	struct ManipulatorGroup *man = MEM_callocN(sizeof(ManipulatorGroup), __func__);
+	mgroup->customdata = man;
+
+	man->translate_z = ED_manipulator_arrow3d_new(mgroup, "translate_z", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+	man->rotate_c = ED_manipulator_dial3d_new(mgroup, "rotate_c", ED_MANIPULATOR_DIAL_STYLE_RING);
+
+	WM_manipulator_set_flag(man->rotate_c, WM_MANIPULATOR_DRAW_VALUE, true);
+
+	{
+		man->data.context = (bContext *)C;
+		man->data.op = op;
+		man->data.prop_plane_co = RNA_struct_find_property(op->ptr, "plane_co");
+		man->data.prop_plane_no = RNA_struct_find_property(op->ptr, "plane_no");
+	}
+
+	manipulator_mesh_bisect_update_from_op(man);
+
+	/* Setup property callbacks */
+	{
+		WM_manipulator_property_def_func(
+		        man->translate_z, "offset",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_bisect_prop_depth_get,
+		            .value_set_fn = manipulator_bisect_prop_depth_set,
+		            .range_get_fn = NULL,
+		            .user_data = NULL,
+		        });
+
+		WM_manipulator_property_def_func(
+		        man->rotate_c, "offset",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_bisect_prop_angle_get,
+		            .value_set_fn = manipulator_bisect_prop_angle_set,
+		            .range_get_fn = NULL,
+		            .user_data = NULL,
+		        });
+	}
+}
+
+static void manipulator_mesh_bisect_draw_prepare(
+        const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+{
+	ManipulatorGroup *man = mgroup->customdata;
+	manipulator_mesh_bisect_update_from_op(man);
+}
+
+static void MESH_WGT_bisect(struct wmManipulatorGroupType *wgt)
+{
+	wgt->name = "Mesh Bisect";
+	wgt->idname = "MESH_WGT_bisect";
+
+	wgt->flag = WM_MANIPULATORGROUPTYPE_3D;
+
+	wgt->mmap_params.spaceid = SPACE_VIEW3D;
+	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+
+	wgt->poll = manipulator_mesh_bisect_poll;
+	wgt->setup = manipulator_mesh_bisect_setup;
+	wgt->draw_prepare = manipulator_mesh_bisect_draw_prepare;
+}
+
+/** \} */
+
+#endif  /* USE_MANIPULATOR */
