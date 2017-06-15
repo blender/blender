@@ -100,6 +100,7 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "adc_bailout",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "albedo",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "all_intersections",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "translucency",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "all",                 len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "alpha",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "altitude",            len)) i = len;
@@ -149,7 +150,6 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "falloff_angle",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "falloff",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "file_gamma",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "finish",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "flatness",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "flip",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "focal_point",         len)) i = len;
@@ -372,6 +372,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "mesh",                len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "object",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ovus",                len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "lemon",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "parametric",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "plane",               len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "poly",                len)) i = len;
@@ -383,6 +384,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "rainbow",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sky_sphere",          len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "smooth_triangle",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "cubic_spline",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sphere_sweep",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "sphere",              len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "spline",              len)) i = len;
@@ -463,7 +465,12 @@ static int txtfmt_pov_find_specialvar(const char *string)
 {
 	int i, len;
 	/* Modifiers */
-	if      (STR_LITERAL_STARTSWITH(string, "adaptive",           len)) i = len;
+	if      (STR_LITERAL_STARTSWITH(string, "interior_texture",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "double_illuminate",  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "media_interaction",  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "media_attenuation",  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "projected_through",  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "noise_generator",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "agate_turb",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "bounded_by",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "brick_size",         len)) i = len;
@@ -481,7 +488,6 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "cubic_wave",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "density_map",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "density",            len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "double_illuminate",  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fade_color",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fade_colour",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "fade_distance",      len)) i = len;
@@ -490,7 +496,7 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "global_lights",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "hollow",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "image_map",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "interior_texture",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "adaptive",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "interior",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "interpolate",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "inverse",            len)) i = len;
@@ -501,8 +507,6 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "material",           len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "matrix",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "media",              len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "media_attenuation",  len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "media_interaction",  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "mm_per_unit",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "mortar",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "no_bump_scale",      len)) i = len;
@@ -510,7 +514,6 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "no_radiosity",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "no_reflection",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "no_shadow",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "noise_generator",    len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "normal_map",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "normal",             len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "octaves",            len)) i = len;
@@ -522,8 +525,8 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "photons",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "pigment_map",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "pigment",            len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "finish",            len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "poly_wave",          len)) i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "projected_through",  len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "quick_color",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "quick_colour",       len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "ramp_wave",          len)) i = len;
@@ -693,9 +696,9 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
 		}
 		/* Handle continuations */
 		else if (cont) {
-			/* Multi-line comments */
+			/* C-Style comments */
 			if (cont & FMT_CONT_COMMENT_C) {
-				if (*str == ']' && *(str + 1) == ']') {
+				if (*str == '*' && *(str + 1) == '/') {
 					*fmt = FMT_TYPE_COMMENT; fmt++; str++;
 					*fmt = FMT_TYPE_COMMENT;
 					cont = FMT_CONT_NOP;
@@ -752,7 +755,7 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
 				}
 			}
 			/* Punctuation */
-			else if ((*str != '#') && text_check_delim(*str)) {
+			else if (text_check_delim(*str)) {
 				*fmt = FMT_TYPE_SYMBOL;
 			}
 			/* Identifiers and other text (no previous ws. or delims. so text continues) */
