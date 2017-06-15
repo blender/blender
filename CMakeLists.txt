@@ -32,7 +32,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	if(NOT DEFINED WITH_IN_SOURCE_BUILD)
 		message(FATAL_ERROR
 			"CMake generation for blender is not allowed within the source directory!"
-			"\n Remove the CMakeCache.txt file and try again from another folder, e.g.:"
+			"\n Remove \"${CMAKE_SOURCE_DIR}/CMakeCache.txt\" and try again from another folder, e.g.:"
 			"\n "
 			"\n rm CMakeCache.txt"
 			"\n cd .."
