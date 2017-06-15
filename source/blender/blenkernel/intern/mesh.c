@@ -1398,9 +1398,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 	cu->mat = NULL;
 	cu->totcol = 0;
 
-	if (ob->data) {
-		BKE_libblock_free_us(bmain, ob->data);
-	}
+	/* Do not decrement ob->data usercount here, it's done at end of func with BKE_libblock_free_us() call. */
 	ob->data = me;
 	ob->type = OB_MESH;
 
@@ -1410,11 +1408,14 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 		if (ob1->data == cu) {
 			ob1->type = OB_MESH;
 		
+			id_us_min((ID *)ob1->data);
 			ob1->data = ob->data;
-			id_us_plus((ID *)ob->data);
+			id_us_plus((ID *)ob1->data);
 		}
 		ob1 = ob1->id.next;
 	}
+
+	BKE_libblock_free_us(bmain, cu);
 }
 
 void BKE_mesh_from_nurbs(Object *ob)
