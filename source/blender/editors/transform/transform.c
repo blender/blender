@@ -5559,7 +5559,7 @@ static void slide_origdata_interp_data_vert(
 	float v_proj[3][3];
 
 	if (do_loop_weight || do_loop_mdisps) {
-		project_plane_v3_v3v3(v_proj[1], sv->co_orig_3d, v_proj_axis);
+		project_plane_normalized_v3_v3v3(v_proj[1], sv->co_orig_3d, v_proj_axis);
 	}
 
 	// BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
@@ -5593,19 +5593,19 @@ static void slide_origdata_interp_data_vert(
 			/* In the unlikely case that we're next to a zero length edge - walk around the to the next.
 			 * Since we only need to check if the vertex is in this corner,
 			 * its not important _which_ loop - as long as its not overlapping 'sv->co_orig_3d', see: T45096. */
-			project_plane_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
+			project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
 			while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
 			                ((l_prev = l_prev->prev) != l->next)))
 			{
 				co_prev = slide_origdata_orig_vert_co(sod, l_prev->v);
-				project_plane_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
+				project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
 			}
-			project_plane_v3_v3v3(v_proj[2], co_next, v_proj_axis);
+			project_plane_normalized_v3_v3v3(v_proj[2], co_next, v_proj_axis);
 			while (UNLIKELY(((co_next_ok = (len_squared_v3v3(v_proj[1], v_proj[2]) > eps)) == false) &&
 			                ((l_next = l_next->next) != l->prev)))
 			{
 				co_next = slide_origdata_orig_vert_co(sod, l_next->v);
-				project_plane_v3_v3v3(v_proj[2], co_next, v_proj_axis);
+				project_plane_normalized_v3_v3v3(v_proj[2], co_next, v_proj_axis);
 			}
 
 			if (co_prev_ok && co_next_ok) {

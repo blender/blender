@@ -1472,7 +1472,7 @@ static void clip_to_ortho_planes(float v1[3], float v2[3], const float center[3]
 
 	/* could be v1 or v2 */
 	sub_v3_v3(v1, center);
-	project_plane_v3_v3v3(closest, v1, dir);
+	project_plane_normalized_v3_v3v3(closest, v1, dir);
 	add_v3_v3(closest, center);
 
 	madd_v3_v3v3fl(v1, closest, dir,  d);

@@ -530,8 +530,8 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
 		float basis_nor_b[3];
 
 		/* align normal to direction */
-		project_plane_v3_v3v3(basis_nor_a, v_pair[0]->no, basis_dir);
-		project_plane_v3_v3v3(basis_nor_b, v_pair[1]->no, basis_dir);
+		project_plane_normalized_v3_v3v3(basis_nor_a, v_pair[0]->no, basis_dir);
+		project_plane_normalized_v3_v3v3(basis_nor_b, v_pair[1]->no, basis_dir);
 
 		/* don't normalize before combining so as normals approach the direction, they have less effect (T46784). */
 
@@ -569,7 +569,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
 				float angle_cos_test;
 
 				/* project basis dir onto the normal to find its closest angle */
-				project_plane_v3_v3v3(basis_dir_proj, basis_dir, l->f->no);
+				project_plane_normalized_v3_v3v3(basis_dir_proj, basis_dir, l->f->no);
 
 				if (normalize_v3(basis_dir_proj) > eps) {
 					angle_cos_test = dot_v3v3(basis_dir_proj, basis_dir);
@@ -586,7 +586,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
 		 * note: we could add the directions,
 		 * but this more often gives 45d rotated matrix, so just use the best one. */
 		copy_v3_v3(basis_nor, axis_pair[axis_pair[0].angle_cos < axis_pair[1].angle_cos].nor);
-		project_plane_v3_v3v3(basis_nor, basis_nor, basis_dir);
+		project_plane_normalized_v3_v3v3(basis_nor, basis_nor, basis_dir);
 
 		cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
 
