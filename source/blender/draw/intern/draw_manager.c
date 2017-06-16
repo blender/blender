@@ -95,6 +95,7 @@
 
 #define MAX_ATTRIB_NAME 32
 #define MAX_PASS_NAME 32
+#define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
 
 /* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
 #define USE_GPU_SELECT
@@ -174,6 +175,7 @@ struct DRWInterface {
 	int camtexfac;
 	int orcotexfac;
 	int eye;
+	int clipplanes;
 	/* Textures */
 	int tex_bind; /* next texture binding point */
 	/* UBO */
@@ -291,6 +293,10 @@ static struct DRWGlobalState {
 	float pixsize;
 
 	GLenum backface, frontface;
+
+	/* Clip planes */
+	int num_clip_planes;
+	float clip_planes_eq[MAX_CLIP_PLANES][4];
 
 	struct {
 		unsigned int is_select : 1;
@@ -585,6 +591,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->camtexfac = GPU_shader_get_uniform(shader, "CameraTexCoFactors");
 	interface->orcotexfac = GPU_shader_get_uniform(shader, "OrcoTexCoFactors[0]");
 	interface->eye = GPU_shader_get_uniform(shader, "eye");
+	interface->clipplanes = GPU_shader_get_uniform(shader, "ClipPlanes[0]");
 	interface->instance_count = 0;
 	interface->attribs_count = 0;
 	interface->attribs_stride = 0;
@@ -1412,6 +1419,23 @@ static void DRW_state_set(DRWState state)
 		}
 	}
 
+	/* Clip Planes */
+	{
+		int test;
+		if ((test = CHANGED_TO(DRW_STATE_CLIP_PLANES))) {
+			if (test == 1) {
+				for (int i = 0; i < DST.num_clip_planes; ++i) {
+					glEnable(GL_CLIP_DISTANCE0 + i);
+				}
+			}
+			else {
+				for (int i = 0; i < MAX_CLIP_PLANES; ++i) {
+					glDisable(GL_CLIP_DISTANCE0 + i);
+				}
+			}
+		}
+	}
+
 	/* Line Stipple */
 	{
 		int test;
@@ -1631,6 +1655,9 @@ static void draw_geometry_prepare(
 	}
 	if (interface->eye != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->eye, 3, 1, (float *)eye);
+	}
+	if (interface->clipplanes != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->clipplanes, 4, DST.num_clip_planes, (float *)DST.clip_planes_eq);
 	}
 }
 
@@ -1908,6 +1935,21 @@ void DRW_state_invert_facing(void)
 {
 	SWAP(GLenum, DST.backface, DST.frontface);
 	glFrontFace(DST.frontface);
+}
+
+/**
+ * This only works if DRWPasses have been tagged with DRW_STATE_CLIP_PLANES,
+ * and if the shaders have support for it (see usage of gl_ClipDistance).
+ * Be sure to call DRW_state_clip_planes_reset() after you finish drawing.
+ **/
+void DRW_state_clip_planes_add(float plane_eq[4])
+{
+	copy_v4_v4(DST.clip_planes_eq[DST.num_clip_planes++], plane_eq);
+}
+
+void DRW_state_clip_planes_reset(void)
+{
+	DST.num_clip_planes = 0;
 }
 
 /** \} */
