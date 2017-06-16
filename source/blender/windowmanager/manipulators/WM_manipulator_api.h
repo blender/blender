@@ -121,10 +121,19 @@ void WM_manipulator_property_def_func(
 
 bool WM_manipulator_property_is_valid(
         const struct wmManipulatorProperty *mpr_prop);
-void  WM_manipulator_property_value_set(
-        struct bContext *C, const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop, const float value);
 float WM_manipulator_property_value_get(
         const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop);
+void  WM_manipulator_property_value_set(
+        struct bContext *C, const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
+        const float value);
+
+void WM_manipulator_property_value_get_array(
+        const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
+        float *value, const int value_len);
+void WM_manipulator_property_value_set_array(
+        struct bContext *C, const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
+        const float *value, const int value_len);
+
 void WM_manipulator_property_range_get(
         const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
         float range[2]);

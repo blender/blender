@@ -123,6 +123,23 @@ bool WM_manipulator_property_is_valid(const wmManipulatorProperty *mpr_prop)
 	         (mpr_prop->custom_func.value_get_fn && mpr_prop->custom_func.value_set_fn));
 }
 
+float WM_manipulator_property_value_get(
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
+{
+	if (mpr_prop->custom_func.value_get_fn) {
+		float value = 0.0f;
+		mpr_prop->custom_func.value_get_fn(mpr, mpr_prop, mpr_prop->custom_func.user_data, &value, 1);
+		return value;
+	}
+
+	if (mpr_prop->index == -1) {
+		return RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
+	}
+	else {
+		return RNA_property_float_get_index(&mpr_prop->ptr, mpr_prop->prop, mpr_prop->index);
+	}
+}
+
 void WM_manipulator_property_value_set(
         bContext *C, const wmManipulator *mpr,
         wmManipulatorProperty *mpr_prop, const float value)
@@ -142,21 +159,32 @@ void WM_manipulator_property_value_set(
 	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 }
 
-float WM_manipulator_property_value_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
+void WM_manipulator_property_value_get_array(
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        float *value, const int value_len)
 {
 	if (mpr_prop->custom_func.value_get_fn) {
-		float value = 0.0f;
-		mpr_prop->custom_func.value_get_fn(mpr, mpr_prop, mpr_prop->custom_func.user_data, &value, 1);
-		return value;
+		mpr_prop->custom_func.value_get_fn(mpr, mpr_prop, mpr_prop->custom_func.user_data, value, value_len);
+		return;
 	}
 
-	if (mpr_prop->index == -1) {
-		return RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
+	BLI_assert(RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop) == value_len);
+	return RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
+}
+
+void WM_manipulator_property_value_set_array(
+        bContext *C, const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        const float *value, const int value_len)
+{
+	if (mpr_prop->custom_func.value_set_fn) {
+		mpr_prop->custom_func.value_set_fn(mpr, mpr_prop, mpr_prop->custom_func.user_data, value, value_len);
+		return;
 	}
-	else {
-		return RNA_property_float_get_index(&mpr_prop->ptr, mpr_prop->prop, mpr_prop->index);
-	}
+
+	BLI_assert(RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop) == value_len);
+	RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, value);
+
+	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 }
 
 void WM_manipulator_property_range_get(
