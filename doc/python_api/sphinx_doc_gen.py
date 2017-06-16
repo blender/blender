@@ -1700,7 +1700,7 @@ def write_rst_contents(basepath):
             fw("   %s <%s>\n\n" % (info_desc, info))
         fw("\n")
         fw("- :ref:`Blender/Python Add-on Tutorial: a step by step guide on")
-        fw(" how to write an add-on from scratch <blender_manual:advanced_scripting_tutorial>`\n")
+        fw(" how to write an add-on from scratch <blender_manual:advanced_scripting_addon_tutorial>`\n")
         fw("\n")
 
     fw(title_string("Application Modules", "=", double=True))
