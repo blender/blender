@@ -226,6 +226,7 @@ public:
 
 	int get_current_sample()
 	{
+		thread_scoped_lock lock(progress_mutex);
 		/* Note that the value here always belongs to the last tile that updated,
 		 * so it's only useful if there is only one active tile. */
 		return current_tile_sample;
@@ -233,11 +234,13 @@ public:
 
 	int get_rendered_tiles()
 	{
+		thread_scoped_lock lock(progress_mutex);
 		return rendered_tiles;
 	}
 
 	int get_denoised_tiles()
 	{
+		thread_scoped_lock lock(progress_mutex);
 		return denoised_tiles;
 	}
 

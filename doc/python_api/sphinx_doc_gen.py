@@ -341,6 +341,8 @@ EXTRA_SOURCE_FILES = (
     "../examples/bge.texture.py",
     "../examples/bmesh.ops.1.py",
     "../examples/bpy.app.translations.py",
+    "../static/favicon.ico",
+    "../static/blender_logo.svg",
 )
 
 
@@ -362,8 +364,6 @@ INFO_DOCS = (
      "Blender/Python Quickstart: new to Blender/scripting and want to get your feet wet?"),
     ("info_overview.rst",
      "Blender/Python API Overview: a more complete explanation of Python integration"),
-    ("info_tutorial_addon.rst",
-     "Blender/Python Add-on Tutorial: a step by step guide on how to write an add-on from scratch"),
     ("info_api_reference.rst",
      "Blender/Python API Reference Usage: examples of how to use the API reference docs"),
     ("info_best_practice.rst",
@@ -1648,14 +1648,14 @@ def write_sphinx_conf_py(basepath):
 
     if ARGS.sphinx_theme == "blender-org":
         fw("html_theme_path = ['../']\n")
-        # copied with the theme, exclude else we get an error [T28873]
-        fw("html_favicon = 'favicon.ico'\n")    # in <theme>/static/
 
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
     fw("html_split_index = True\n")
-    fw("\n")
+    fw("html_extra_path = ['__/static/favicon.ico', '__/static/blender_logo.svg']\n")
+    fw("html_favicon = '__/static/favicon.ico'\n")
+    fw("html_logo = '__/static/blender_logo.svg'\n\n")
 
     # needed for latex, pdf gen
     fw("latex_elements = {\n")
@@ -1700,6 +1700,9 @@ def write_rst_contents(basepath):
         fw("   :maxdepth: 1\n\n")
         for info, info_desc in INFO_DOCS:
             fw("   %s <%s>\n\n" % (info_desc, info))
+        fw("\n")
+        fw("- :ref:`Blender/Python Add-on Tutorial: a step by step guide on")
+        fw(" how to write an add-on from scratch <blender_manual:advanced_scripting_addon_tutorial>`\n")
         fw("\n")
 
     fw(title_string("Application Modules", "=", double=True))
