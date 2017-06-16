@@ -209,7 +209,6 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 
 	gpuPushMatrix();
 	gpuMultMatrix(mat);
-
 	gpuTranslate3fv(arrow->manipulator.offset);
 
 	glEnable(GL_BLEND);

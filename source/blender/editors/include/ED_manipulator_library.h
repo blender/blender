@@ -35,6 +35,7 @@ void ED_manipulatortypes_arrow_2d(void);
 void ED_manipulatortypes_arrow_3d(void);
 void ED_manipulatortypes_cage_2d(void);
 void ED_manipulatortypes_dial_3d(void);
+void ED_manipulatortypes_grab_3d(void);
 void ED_manipulatortypes_facemap_3d(void);
 void ED_manipulatortypes_primitive_3d(void);
 
@@ -123,6 +124,14 @@ struct wmManipulator *ED_manipulator_dial3d_new(
 void ED_manipulator_dial3d_set_up_vector(
         struct wmManipulator *mpr, const float direction[3]);
 
+
+/* -------------------------------------------------------------------- */
+/* Grab Manipulator */
+
+struct wmManipulator *ED_manipulator_grab3d_new(
+        struct wmManipulatorGroup *mgroup, const char *name, const int style);
+void ED_manipulator_grab3d_set_up_vector(
+        struct wmManipulator *mpr, const float direction[3]);
 
 /* -------------------------------------------------------------------- */
 /* Facemap Manipulator */

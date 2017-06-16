@@ -128,6 +128,7 @@ void ED_spacetypes_init(void)
 
 	/* manipulator types */
 	ED_manipulatortypes_dial_3d();
+	ED_manipulatortypes_grab_3d();
 	ED_manipulatortypes_arrow_2d();
 	ED_manipulatortypes_arrow_3d();
 	ED_manipulatortypes_primitive_3d();
