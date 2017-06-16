@@ -56,6 +56,7 @@ static struct {
 	struct GPUShader *probe_filter_glossy_sh;
 	struct GPUShader *probe_filter_diffuse_sh;
 	struct GPUShader *probe_grid_display_sh;
+	struct GPUShader *probe_planar_display_sh;
 	struct GPUShader *probe_cube_display_sh;
 
 	struct GPUTexture *hammersley;
@@ -71,6 +72,8 @@ extern char datatoc_lightprobe_filter_glossy_frag_glsl[];
 extern char datatoc_lightprobe_filter_diffuse_frag_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
+extern char datatoc_lightprobe_planar_display_frag_glsl[];
+extern char datatoc_lightprobe_planar_display_vert_glsl[];
 extern char datatoc_lightprobe_cube_display_frag_glsl[];
 extern char datatoc_lightprobe_cube_display_vert_glsl[];
 extern char datatoc_lightprobe_grid_display_frag_glsl[];
@@ -227,6 +230,18 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 
 		MEM_freeN(shader_str);
 
+		ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_lightprobe_planar_display_frag_glsl);
+		shader_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+
+		e_data.probe_planar_display_sh = DRW_shader_create(
+		        datatoc_lightprobe_planar_display_vert_glsl, NULL, shader_str,
+		        "#define MAX_PLANAR " STRINGIFY(MAX_PLANAR) "\n");
+
+		MEM_freeN(shader_str);
+
 		e_data.hammersley = create_hammersley_sample_texture(1024);
 	}
 
@@ -349,7 +364,8 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 	}
 
 	{
-		psl->probe_display = DRW_pass_create("LightProbe Display", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK;
+		psl->probe_display = DRW_pass_create("LightProbe Display", state);
 
 		struct Batch *geom = DRW_cache_sphere_get();
 		DRWShadingGroup *grp = stl->g_data->cube_display_shgrp = DRW_shgroup_instance_create(e_data.probe_cube_display_sh, psl->probe_display, geom);
@@ -416,7 +432,7 @@ static void scale_m4_v3(float R[4][4], float v[3])
 		mul_v3_v3(R[i], v);
 }
 
-static void EEVEE_planar_reflections_updates(EEVEE_SceneLayerData *sldata)
+static void EEVEE_planar_reflections_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, EEVEE_TextureList *txl)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	Object *ob;
@@ -510,6 +526,18 @@ static void EEVEE_planar_reflections_updates(EEVEE_SceneLayerData *sldata)
 		float min_dist = min_ff(1.0f - 1e-8f, 1.0f - probe->falloff) * probe->distinf;
 		eplanar->attenuation_scale = -1.0f / max_ff(1e-8f, max_dist - min_dist);
 		eplanar->attenuation_bias = max_dist * -eplanar->attenuation_scale;
+
+		/* Debug Display */
+		if ((probe->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0) {
+			DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_planar_display_sh, psl->probe_display);
+
+			DRW_shgroup_uniform_int(grp, "probeIdx", &ped->probe_id, 1);
+			DRW_shgroup_uniform_buffer(grp, "probePlanars", &txl->planar_pool);
+			DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+
+			struct Batch *geom = DRW_cache_fullscreen_quad_get();
+			DRW_shgroup_call_add(grp, geom, ob->obmat);
+		}
 	}
 }
 
@@ -706,7 +734,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_Data *ve
 	}
 
 	EEVEE_lightprobes_updates(sldata, vedata->psl, vedata->stl);
-	EEVEE_planar_reflections_updates(sldata);
+	EEVEE_planar_reflections_updates(sldata, vedata->psl, vedata->txl);
 
 	DRW_uniformbuffer_update(sldata->probe_ubo, &sldata->probes->probe_data);
 	DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
@@ -1150,6 +1178,7 @@ update_planar:
 			pinfo->num_planar = tmp_num_planar;
 
 			ped->need_update = false;
+			ped->probe_id = i;
 		}
 	}
 }
@@ -1160,6 +1189,7 @@ void EEVEE_lightprobes_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_glossy_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_diffuse_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_grid_display_sh);
+	DRW_SHADER_FREE_SAFE(e_data.probe_planar_display_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_cube_display_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
 }
