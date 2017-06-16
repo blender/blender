@@ -155,9 +155,9 @@ static EnumPropertyItem field_type_items[] = {
 static EnumPropertyItem lightprobe_type_items[] = {
 	{0, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", "Reflection probe with sphere attenuation"},
 	{1, "CUBE", ICON_MESH_CUBE, "Cube", "Reflection probe with cube attenuation"},
-	// {LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_MESH_PLANE, "Planar", ""},
+	{2, "PLANAR", ICON_MESH_PLANE, "Planar", "Planar reflection probe"},
 	// {LIGHTPROBE_TYPE_IMAGE, "IMAGE", ICON_NONE, "Image", ""},
-	{2, "GRID", ICON_MESH_GRID, "Grid", "Irradiance probe to capture diffuse indirect lighting"},
+	{3, "GRID", ICON_MESH_GRID, "Grid", "Irradiance probe to capture diffuse indirect lighting"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -536,10 +536,15 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 
 	probe = (LightProbe *)ob->data;
 
-	if (type == 2) {
+	if (type == 3) {
 		probe->type = LIGHTPROBE_TYPE_GRID;
 		probe->distinf = 0.3f;
 		probe->falloff = 1.0f;
+	}
+	else if (type == 2) {
+		probe->type = LIGHTPROBE_TYPE_PLANAR;
+		probe->distinf = 0.3f;
+		probe->falloff = 0.6f;
 	}
 	else {
 		probe->type = LIGHTPROBE_TYPE_CUBE;
