@@ -163,7 +163,7 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 	return true;
 }
 
-bool GPU_framebuffer_texture_cubeface_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
+static bool gpu_framebuffer_texture_layer_attach_ex(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip, bool cubemap)
 {
 	GLenum attachment;
 	GLenum facetarget;
@@ -183,8 +183,6 @@ bool GPU_framebuffer_texture_cubeface_attach(GPUFrameBuffer *fb, GPUTexture *tex
 		}
 	}
 
-	BLI_assert(GPU_texture_target(tex) == GL_TEXTURE_CUBE_MAP);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	GG.currentfb = fb->object;
 
@@ -195,9 +193,13 @@ bool GPU_framebuffer_texture_cubeface_attach(GPUFrameBuffer *fb, GPUTexture *tex
 	else
 		attachment = GL_COLOR_ATTACHMENT0 + slot;
 
-	facetarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X + face;
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, facetarget, GPU_texture_opengl_bindcode(tex), mip);
+	if (cubemap) {
+		facetarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer;
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, facetarget, GPU_texture_opengl_bindcode(tex), mip);
+	}
+	else {
+		glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), mip, layer);
+	}
 
 	if (GPU_texture_depth(tex))
 		fb->depthtex = tex;
@@ -207,6 +209,17 @@ bool GPU_framebuffer_texture_cubeface_attach(GPUFrameBuffer *fb, GPUTexture *tex
 	GPU_texture_framebuffer_set(tex, fb, slot);
 
 	return true;
+}
+
+bool GPU_framebuffer_texture_layer_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip)
+{
+	return gpu_framebuffer_texture_layer_attach_ex(fb, tex, slot, layer, mip, false);
+}
+
+bool GPU_framebuffer_texture_cubeface_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
+{
+	BLI_assert(GPU_texture_target(tex) == GL_TEXTURE_CUBE_MAP);
+	return gpu_framebuffer_texture_layer_attach_ex(fb, tex, slot, face, mip, true);
 }
 
 void GPU_framebuffer_texture_detach(GPUTexture *tex)

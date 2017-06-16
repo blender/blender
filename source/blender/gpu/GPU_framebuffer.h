@@ -51,6 +51,8 @@ void GPU_texture_bind_as_framebuffer(struct GPUTexture *tex);
 
 GPUFrameBuffer *GPU_framebuffer_create(void);
 bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int mip);
+bool GPU_framebuffer_texture_layer_attach(
+        GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int layer, int mip);
 bool GPU_framebuffer_texture_cubeface_attach(
         GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int face, int mip);
 void GPU_framebuffer_texture_detach(struct GPUTexture *tex);
