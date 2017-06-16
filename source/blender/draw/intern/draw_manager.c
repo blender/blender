@@ -1608,57 +1608,26 @@ static void draw_geometry_prepare(
 
 	/* Should be really simple */
 	/* step 1 : bind object dependent matrices */
-	if (interface->model != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->model, 16, 1, (float *)obmat);
-	}
-	if (interface->modelinverse != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->modelinverse, 16, 1, (float *)mi);
-	}
-	if (interface->modelviewprojection != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->modelviewprojection, 16, 1, (float *)mvp);
-	}
-	if (interface->viewinverse != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->viewinverse, 16, 1, (float *)viewinv);
-	}
-	if (interface->viewprojection != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->viewprojection, 16, 1, (float *)persmat);
-	}
-	if (interface->viewprojectioninverse != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->viewprojectioninverse, 16, 1, (float *)persinv);
-	}
-	if (interface->projection != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->projection, 16, 1, (float *)winmat);
-	}
-	if (interface->projectioninverse != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->projectioninverse, 16, 1, (float *)wininv);
-	}
-	if (interface->view != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->view, 16, 1, (float *)viewmat);
-	}
-	if (interface->modelview != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->modelview, 16, 1, (float *)mv);
-	}
-	if (interface->modelviewinverse != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->modelviewinverse, 16, 1, (float *)mvi);
-	}
-	if (interface->normal != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->normal, 9, 1, (float *)n);
-	}
-	if (interface->worldnormal != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->worldnormal, 9, 1, (float *)wn);
-	}
-	if (interface->camtexfac != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->camtexfac, 4, 1, (float *)rv3d->viewcamtexcofac);
-	}
-	if (interface->orcotexfac != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->orcotexfac, 3, 2, (float *)orcofacs);
-	}
-	if (interface->eye != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->eye, 3, 1, (float *)eye);
-	}
-	if (interface->clipplanes != -1) {
-		GPU_shader_uniform_vector(shgroup->shader, interface->clipplanes, 4, DST.num_clip_planes, (float *)DST.clip_planes_eq);
-	}
+	/* TODO : Some of these are not object dependant.
+	 * They should be grouped inside a UBO updated once per redraw.
+	 * The rest can also go into a UBO to reduce API calls. */
+	GPU_shader_uniform_vector(shgroup->shader, interface->model, 16, 1, (float *)obmat);
+	GPU_shader_uniform_vector(shgroup->shader, interface->modelinverse, 16, 1, (float *)mi);
+	GPU_shader_uniform_vector(shgroup->shader, interface->modelviewprojection, 16, 1, (float *)mvp);
+	GPU_shader_uniform_vector(shgroup->shader, interface->viewinverse, 16, 1, (float *)viewinv);
+	GPU_shader_uniform_vector(shgroup->shader, interface->viewprojection, 16, 1, (float *)persmat);
+	GPU_shader_uniform_vector(shgroup->shader, interface->viewprojectioninverse, 16, 1, (float *)persinv);
+	GPU_shader_uniform_vector(shgroup->shader, interface->projection, 16, 1, (float *)winmat);
+	GPU_shader_uniform_vector(shgroup->shader, interface->projectioninverse, 16, 1, (float *)wininv);
+	GPU_shader_uniform_vector(shgroup->shader, interface->view, 16, 1, (float *)viewmat);
+	GPU_shader_uniform_vector(shgroup->shader, interface->modelview, 16, 1, (float *)mv);
+	GPU_shader_uniform_vector(shgroup->shader, interface->modelviewinverse, 16, 1, (float *)mvi);
+	GPU_shader_uniform_vector(shgroup->shader, interface->normal, 9, 1, (float *)n);
+	GPU_shader_uniform_vector(shgroup->shader, interface->worldnormal, 9, 1, (float *)wn);
+	GPU_shader_uniform_vector(shgroup->shader, interface->camtexfac, 4, 1, (float *)rv3d->viewcamtexcofac);
+	GPU_shader_uniform_vector(shgroup->shader, interface->orcotexfac, 3, 2, (float *)orcofacs);
+	GPU_shader_uniform_vector(shgroup->shader, interface->eye, 3, 1, (float *)eye);
+	GPU_shader_uniform_vector(shgroup->shader, interface->clipplanes, 4, DST.num_clip_planes, (float *)DST.clip_planes_eq);
 }
 
 static void draw_geometry_execute(DRWShadingGroup *shgroup, Batch *geom)
