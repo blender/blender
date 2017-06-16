@@ -71,6 +71,8 @@ typedef struct EEVEE_PassList {
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
+	struct DRWPass *depth_pass_clip;
+	struct DRWPass *depth_pass_clip_cull;
 	struct DRWPass *default_pass;
 	struct DRWPass *default_flat_pass;
 	struct DRWPass *default_hair_pass;
@@ -341,6 +343,8 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
 	struct DRWShadingGroup *depth_shgrp_cull;
+	struct DRWShadingGroup *depth_shgrp_clip;
+	struct DRWShadingGroup *depth_shgrp_clip_cull;
 	struct DRWShadingGroup *cube_display_shgrp;
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;

@@ -65,6 +65,8 @@ enum {
 static struct {
 	char *frag_shader_lib;
 
+	struct GPUShader *default_prepass_sh;
+	struct GPUShader *default_prepass_clip_sh;
 	struct GPUShader *default_lit;
 	struct GPUShader *default_lit_flat;
 	struct GPUShader *default_lit_hair;
@@ -76,6 +78,8 @@ static struct {
 	struct GPUTexture *util_tex;
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_prepass_frag_glsl[];
+extern char datatoc_prepass_vert_glsl[];
 extern char datatoc_default_frag_glsl[];
 extern char datatoc_default_world_frag_glsl[];
 extern char datatoc_ltc_lib_glsl[];
@@ -216,6 +220,14 @@ void EEVEE_materials_init(void)
 		        SHADER_DEFINES
 		        "#define MESH_SHADER\n"
 		        "#define HAIR_SHADER\n");
+
+		e_data.default_prepass_sh = DRW_shader_create(
+		        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl,
+		        NULL);
+
+		e_data.default_prepass_clip_sh = DRW_shader_create(
+		        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl,
+		        "#define CLIP_PLANES\n");
 
 		MEM_freeN(frag_str);
 
@@ -362,14 +374,21 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	}
 
 	{
-		struct GPUShader *depth_sh = DRW_shader_create_3D_depth_only();
 		DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE;
 		psl->depth_pass = DRW_pass_create("Depth Pass", state);
-		stl->g_data->depth_shgrp = DRW_shgroup_create(depth_sh, psl->depth_pass);
+		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.default_prepass_sh, psl->depth_pass);
 
 		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK;
 		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", state);
-		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(depth_sh, psl->depth_pass_cull);
+		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.default_prepass_sh, psl->depth_pass_cull);
+
+		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
+		psl->depth_pass_clip = DRW_pass_create("Depth Pass Clip", state);
+		stl->g_data->depth_shgrp_clip = DRW_shgroup_create(e_data.default_prepass_clip_sh, psl->depth_pass_clip);
+
+		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CLIP_PLANES | DRW_STATE_CULL_BACK;
+		psl->depth_pass_clip_cull = DRW_pass_create("Depth Pass Cull Clip", state);
+		stl->g_data->depth_shgrp_clip_cull = DRW_shgroup_create(e_data.default_prepass_clip_sh, psl->depth_pass_clip_cull);
 	}
 
 	{
@@ -417,7 +436,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 
 	/* Depth Prepass */
 	DRWShadingGroup *depth_shgrp = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
+	DRWShadingGroup *depth_clip_shgrp = do_cull ? stl->g_data->depth_shgrp_clip_cull : stl->g_data->depth_shgrp_clip;
 	ADD_SHGROUP_CALL(depth_shgrp, ob, geom);
+	ADD_SHGROUP_CALL(depth_clip_shgrp, ob, geom);
 
 	/* Get per-material split surface */
 	struct Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
@@ -514,6 +535,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 						float *rough_p = &ma->gloss_mir;
 
 						DRW_shgroup_call_add(stl->g_data->depth_shgrp, hair_geom, mat);
+						DRW_shgroup_call_add(stl->g_data->depth_shgrp_clip, hair_geom, mat);
 
 						shgrp = BLI_ghash_lookup(material_hash, (const void *)ma);
 
@@ -574,6 +596,8 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 void EEVEE_materials_free(void)
 {
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
+	DRW_SHADER_FREE_SAFE(e_data.default_prepass_sh);
+	DRW_SHADER_FREE_SAFE(e_data.default_prepass_clip_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit_flat);
 	DRW_SHADER_FREE_SAFE(e_data.default_lit_hair);
