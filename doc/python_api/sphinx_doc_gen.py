@@ -341,6 +341,8 @@ EXTRA_SOURCE_FILES = (
     "../examples/bge.texture.py",
     "../examples/bmesh.ops.1.py",
     "../examples/bpy.app.translations.py",
+    "../static/favicon.ico",
+    "../static/blender_logo.svg",
 )
 
 
@@ -1644,14 +1646,14 @@ def write_sphinx_conf_py(basepath):
 
     if ARGS.sphinx_theme == "blender-org":
         fw("html_theme_path = ['../']\n")
-        # copied with the theme, exclude else we get an error [T28873]
-        fw("html_favicon = 'favicon.ico'\n")    # in <theme>/static/
 
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
     fw("html_split_index = True\n")
-    fw("\n")
+    fw("html_extra_path = ['__/static/favicon.ico', '__/static/blender_logo.svg']\n")
+    fw("html_favicon = '__/static/favicon.ico'\n")
+    fw("html_logo = '__/static/blender_logo.svg'\n\n")
 
     # needed for latex, pdf gen
     fw("latex_elements = {\n")
