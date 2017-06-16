@@ -45,6 +45,7 @@
 #include "RNA_define.h"
 #include "RNA_access.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_mesh.h"
@@ -52,7 +53,16 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "mesh_intern.h"  /* own include */
+
+#define USE_MANIPULATOR
+
+#ifdef USE_MANIPULATOR
+#include "ED_manipulator_library.h"
+#include "ED_util.h"
+#endif
 
 static void edbm_extrude_edge_exclude_mirror(
         Object *obedit, BMEditMesh *em,
@@ -743,8 +753,24 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 		}
 	}
 
-	return edbm_spin_exec(C, op);
+	int ret = edbm_spin_exec(C, op);
+
+#ifdef USE_MANIPULATOR
+	if (ret & OPERATOR_FINISHED) {
+		/* Setup manipulators */
+		if (v3d && (v3d->twtype & V3D_USE_MANIPULATOR)) {
+			WM_manipulator_group_add("MESH_WGT_spin");
+		}
+	}
+#endif
+
+	return ret;
+
 }
+
+#ifdef USE_MANIPULATOR
+static void MESH_WGT_spin(struct wmManipulatorGroupType *wgt);
+#endif
 
 void MESH_OT_spin(wmOperatorType *ot)
 {
@@ -774,7 +800,342 @@ void MESH_OT_spin(wmOperatorType *ot)
 	                     "Center", "Center in global view space", -1e4f, 1e4f);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -1.0f, 1.0f);
 
+#ifdef USE_MANIPULATOR
+	WM_manipulatorgrouptype_append(MESH_WGT_spin);
+#endif
 }
+
+
+#ifdef USE_MANIPULATOR
+
+/* -------------------------------------------------------------------- */
+
+/** \name Spin Manipulator
+ * \{ */
+
+typedef struct ManipulatorSpinGroup {
+	/* Arrow to change plane depth. */
+	struct wmManipulator *translate_z;
+	/* Translate XYZ */
+	struct wmManipulator *translate_c;
+	/* For grabbing the manipulator and moving freely. */
+	struct wmManipulator *rotate_c;
+	/* Spin angle */
+	struct wmManipulator *angle_z;
+
+	/* We could store more vars here! */
+	struct {
+		bContext *context;
+		wmOperator *op;
+		PropertyRNA *prop_axis_co;
+		PropertyRNA *prop_axis_no;
+		PropertyRNA *prop_angle;
+
+		float rotate_axis[3];
+		float rotate_up[3];
+	} data;
+} ManipulatorSpinGroup;
+
+/**
+ * XXX. calling redo from property updates is not great.
+ * This is needed because changing the RNA doesn't cause a redo
+ * and we're not using operator UI which does just this.
+ */
+static void manipulator_spin_exec(ManipulatorSpinGroup *man)
+{
+	wmOperator *op = man->data.op;
+	if (op == WM_operator_last_redo((bContext *)man->data.context)) {
+		ED_undo_operator_repeat((bContext *)man->data.context, op);
+	}
+}
+
+static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
+{
+	wmOperator *op = man->data.op;
+
+	float plane_co[3], plane_no[3];
+
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
+
+	WM_manipulator_set_origin(man->translate_z, plane_co);
+	WM_manipulator_set_origin(man->translate_c, plane_co);
+	WM_manipulator_set_origin(man->rotate_c, plane_co);
+	WM_manipulator_set_origin(man->angle_z, plane_co);
+
+	ED_manipulator_arrow3d_set_direction(man->translate_z, plane_no);
+	ED_manipulator_dial3d_set_up_vector(man->angle_z, plane_no);
+
+	WM_manipulator_set_scale(man->translate_c, 0.2);
+
+	RegionView3D *rv3d = ED_view3d_context_rv3d(man->data.context);
+	if (rv3d) {
+		normalize_v3_v3(man->data.rotate_axis, rv3d->viewinv[2]);
+		normalize_v3_v3(man->data.rotate_up, rv3d->viewinv[1]);
+
+		/* ensure its orthogonal */
+		project_plane_normalized_v3_v3v3(man->data.rotate_up, man->data.rotate_up, man->data.rotate_axis);
+		normalize_v3(man->data.rotate_up);
+
+		ED_manipulator_grab3d_set_up_vector(man->translate_c, plane_no);
+		ED_manipulator_dial3d_set_up_vector(man->rotate_c, man->data.rotate_axis);
+	}
+}
+
+/* depth callbacks */
+static void manipulator_spin_prop_depth_get(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        float *value, uint value_len)
+{
+	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+
+	BLI_assert(value_len == 1);
+
+	float plane_co[3], plane_no[3];
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
+
+	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, mpr->origin);
+}
+
+static void manipulator_spin_prop_depth_set(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        const float *value, uint value_len)
+{
+	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+
+	BLI_assert(value_len == 1);
+
+	float plane_co[3], plane[4];
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane);
+	normalize_v3(plane);
+
+	plane[3] = -value[0] - dot_v3v3(plane, mpr->origin);
+
+	/* Keep our location, may be offset simply to be inside the viewport. */
+	closest_to_plane_normalized_v3(plane_co, plane, plane_co);
+
+	RNA_property_float_set_array(op->ptr, man->data.prop_axis_co, plane_co);
+
+	manipulator_spin_exec(man);
+}
+
+/* translate callbacks */
+static void manipulator_spin_prop_translate_get(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        float *value, uint value_len)
+{
+	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+
+	BLI_assert(value_len == 3);
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, value);
+}
+
+static void manipulator_spin_prop_translate_set(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        const float *value, uint value_len)
+{
+	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+
+	BLI_assert(value_len == 3);
+	RNA_property_float_set_array(op->ptr, man->data.prop_axis_co, value);
+
+	manipulator_spin_exec(man);
+}
+
+/* angle callbacks */
+static void manipulator_spin_prop_axis_angle_get(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        float *value, uint value_len)
+{
+	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+	BLI_assert(value_len == 1);
+
+	float plane_no[4];
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
+	normalize_v3(plane_no);
+
+	float plane_no_proj[3];
+	project_plane_normalized_v3_v3v3(plane_no_proj, plane_no, man->data.rotate_axis);
+
+	if (!is_zero_v3(plane_no_proj)) {
+		const float angle = -angle_signed_on_axis_v3v3_v3(plane_no_proj, man->data.rotate_up, man->data.rotate_axis);
+		value[0] = angle;
+	}
+	else {
+		value[0] = 0.0f;
+	}
+}
+
+static void manipulator_spin_prop_axis_angle_set(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        const float *value, uint value_len)
+{
+	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+	BLI_assert(value_len == 1);
+
+	float plane_no[4];
+	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
+	normalize_v3(plane_no);
+
+	float plane_no_proj[3];
+	project_plane_normalized_v3_v3v3(plane_no_proj, plane_no, man->data.rotate_axis);
+
+	if (!is_zero_v3(plane_no_proj)) {
+		const float angle = -angle_signed_on_axis_v3v3_v3(plane_no_proj, man->data.rotate_up, man->data.rotate_axis);
+		const float angle_delta = angle - angle_compat_rad(value[0], angle);
+		if (angle_delta != 0.0f) {
+			float mat[3][3];
+			axis_angle_normalized_to_mat3(mat, man->data.rotate_axis, angle_delta);
+			mul_m3_v3(mat, plane_no);
+
+			/* re-normalize - seems acceptable */
+			RNA_property_float_set_array(op->ptr, man->data.prop_axis_no, plane_no);
+
+			manipulator_spin_exec(man);
+		}
+	}
+}
+
+/* angle callbacks */
+static void manipulator_spin_prop_angle_get(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        float *value, uint value_len)
+{
+	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+	BLI_assert(value_len == 1);
+	value[0] = RNA_property_float_get(op->ptr, man->data.prop_angle);
+}
+
+static void manipulator_spin_prop_angle_set(
+        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
+        const float *value, uint value_len)
+{
+	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	wmOperator *op = man->data.op;
+	BLI_assert(value_len == 1);
+	RNA_property_float_set(op->ptr, man->data.prop_angle, value[0]);
+
+	manipulator_spin_exec(man);
+}
+
+static bool manipulator_mesh_spin_poll(const bContext *C, wmManipulatorGroupType *wgt)
+{
+	wmOperator *op = WM_operator_last_redo(C);
+	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_spin")) {
+		WM_manipulator_group_remove_ptr_delayed(wgt);
+		return false;
+	}
+	return true;
+}
+
+static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	wmOperator *op = WM_operator_last_redo(C);
+
+	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_spin")) {
+		return;
+	}
+
+	struct ManipulatorSpinGroup *man = MEM_callocN(sizeof(ManipulatorSpinGroup), __func__);
+	mgroup->customdata = man;
+
+	man->translate_z = ED_manipulator_arrow3d_new(mgroup, "translate_z", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+	man->translate_c = ED_manipulator_grab3d_new(mgroup, "translate_c", 0);
+	man->rotate_c = ED_manipulator_dial3d_new(mgroup, "rotate_c", ED_MANIPULATOR_DIAL_STYLE_RING);
+	man->angle_z = ED_manipulator_dial3d_new(mgroup, "angle_z", ED_MANIPULATOR_DIAL_STYLE_RING);
+
+	WM_manipulator_set_scale(man->angle_z, 0.5f);
+
+	WM_manipulator_set_flag(man->translate_c, WM_MANIPULATOR_DRAW_VALUE, true);
+	WM_manipulator_set_flag(man->rotate_c, WM_MANIPULATOR_DRAW_VALUE, true);
+	WM_manipulator_set_flag(man->angle_z, WM_MANIPULATOR_DRAW_VALUE, true);
+
+	{
+		man->data.context = (bContext *)C;
+		man->data.op = op;
+		man->data.prop_axis_co = RNA_struct_find_property(op->ptr, "center");
+		man->data.prop_axis_no = RNA_struct_find_property(op->ptr, "axis");
+		man->data.prop_angle = RNA_struct_find_property(op->ptr, "angle");
+	}
+
+	manipulator_mesh_spin_update_from_op(man);
+
+	/* Setup property callbacks */
+	{
+		WM_manipulator_property_def_func(
+		        man->translate_z, "offset",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_spin_prop_depth_get,
+		            .value_set_fn = manipulator_spin_prop_depth_set,
+		            .range_get_fn = NULL,
+		            .user_data = NULL,
+		        });
+
+		WM_manipulator_property_def_func(
+		        man->translate_c, "offset",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_spin_prop_translate_get,
+		            .value_set_fn = manipulator_spin_prop_translate_set,
+		            .range_get_fn = NULL,
+		            .user_data = NULL,
+		        });
+
+		WM_manipulator_property_def_func(
+		        man->rotate_c, "offset",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_spin_prop_axis_angle_get,
+		            .value_set_fn = manipulator_spin_prop_axis_angle_set,
+		            .range_get_fn = NULL,
+		            .user_data = NULL,
+		        });
+
+		WM_manipulator_property_def_func(
+		        man->angle_z, "offset",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_spin_prop_angle_get,
+		            .value_set_fn = manipulator_spin_prop_angle_set,
+		            .range_get_fn = NULL,
+		            .user_data = NULL,
+		        });
+
+	}
+}
+
+static void manipulator_mesh_spin_draw_prepare(
+        const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+{
+	ManipulatorSpinGroup *man = mgroup->customdata;
+	manipulator_mesh_spin_update_from_op(man);
+}
+
+static void MESH_WGT_spin(struct wmManipulatorGroupType *wgt)
+{
+	wgt->name = "Mesh Spin";
+	wgt->idname = "MESH_WGT_spin";
+
+	wgt->flag = WM_MANIPULATORGROUPTYPE_3D;
+
+	wgt->mmap_params.spaceid = SPACE_VIEW3D;
+	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+
+	wgt->poll = manipulator_mesh_spin_poll;
+	wgt->setup = manipulator_mesh_spin_setup;
+	wgt->draw_prepare = manipulator_mesh_spin_draw_prepare;
+}
+
+/** \} */
+
+#endif  /* USE_MANIPULATOR */
+
 
 static int edbm_screw_exec(bContext *C, wmOperator *op)
 {

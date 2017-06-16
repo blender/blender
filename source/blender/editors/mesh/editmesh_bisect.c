@@ -197,7 +197,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		/* Setup manipulators */
 		{
 			View3D *v3d = CTX_wm_view3d(C);
-			if (v3d->twtype & V3D_USE_MANIPULATOR) {
+			if (v3d && (v3d->twtype & V3D_USE_MANIPULATOR)) {
 				WM_manipulator_group_add("MESH_WGT_bisect");
 			}
 		}
@@ -371,10 +371,7 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 	WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
 
 #ifdef USE_MANIPULATOR
-	/* Widget for this operator. */
-	{
-		WM_manipulatorgrouptype_append(MESH_WGT_bisect);
-	}
+	WM_manipulatorgrouptype_append(MESH_WGT_bisect);
 #endif
 }
 
@@ -515,7 +512,6 @@ static void manipulator_bisect_prop_translate_set(
 
 	manipulator_bisect_exec(man);
 }
-
 
 /* angle callbacks */
 static void manipulator_bisect_prop_angle_get(
