@@ -470,9 +470,13 @@ static void EEVEE_planar_reflections_updates(EEVEE_SceneLayerData *sldata)
 		float refpoint[3];
 		copy_v3_v3(eplanar->plane_equation, ob->obmat[2]);
 		normalize_v3(eplanar->plane_equation); /* plane normal */
+		eplanar->plane_equation[3] = -dot_v3v3(eplanar->plane_equation, ob->obmat[3]);
+
+		/* Compute offset plane equation (fix missing texels near reflection plane). */
+		copy_v3_v3(ped->planer_eq_offset, eplanar->plane_equation);
 		mul_v3_v3fl(refpoint, eplanar->plane_equation, -probe->clipsta);
 		add_v3_v3(refpoint, ob->obmat[3]);
-		eplanar->plane_equation[3] = -dot_v3v3(eplanar->plane_equation, refpoint);
+		ped->planer_eq_offset[3] = -dot_v3v3(eplanar->plane_equation, refpoint);
 
 		/* Compute XY clip planes. */
 		normalize_v3_v3(eplanar->clip_vec_x, ob->obmat[0]);
@@ -1136,13 +1140,11 @@ update_planar:
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
 
 		if (ped->need_update) {
-			EEVEE_PlanarReflection *eplanar = &pinfo->planar_data[i];
-
 			/* Temporary Remove all planar reflections (avoid lag effect). */
 			int tmp_num_planar = pinfo->num_planar;
 			pinfo->num_planar = 0;
 
-			render_scene_to_planar(vedata, i, ped->viewmat, ped->persmat, eplanar->plane_equation);
+			render_scene_to_planar(vedata, i, ped->viewmat, ped->persmat, ped->planer_eq_offset);
 
 			/* Restore */
 			pinfo->num_planar = tmp_num_planar;

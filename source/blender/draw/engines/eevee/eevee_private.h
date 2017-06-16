@@ -344,6 +344,7 @@ typedef struct EEVEE_LightProbeEngineData {
 	/* For planar reflection rendering */
 	float viewmat[4][4];
 	float persmat[4][4];
+	float planer_eq_offset[4];
 	struct ListBase captured_object_list;
 } EEVEE_LightProbeEngineData;
 
