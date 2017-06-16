@@ -172,6 +172,13 @@ void do_versions_after_linking_280(Main *main)
 							BKE_collection_object_add(scene, collections[i], base->object);
 						}
 					}
+
+					if (base->flag & SELECT) {
+						base->object->flag |= SELECT;
+					}
+					else {
+						base->object->flag &= ~SELECT;
+					}
 				}
 
 				scene->active_layer = 0;
@@ -208,6 +215,12 @@ void do_versions_after_linking_280(Main *main)
 							sl->basact = BKE_scene_layer_base_find(sl, scene->basact->object);
 						}
 
+						for (Base *base = sl->object_bases.first; base; base = base->next) {
+							if ((base->flag & BASE_SELECTABLED) && (base->object->flag & SELECT)) {
+								base->flag |= BASE_SELECTED;
+							}
+						}
+
 						/* TODO: passes, samples, mask_layesr, exclude, ... */
 					}
 
@@ -234,18 +247,12 @@ void do_versions_after_linking_280(Main *main)
 
 				/* convert selected bases */
 				for (Base *base = scene->base.first; base; base = base->next) {
-					Base *ob_base = BKE_scene_layer_base_find(sl, base->object);
-					if ((base->flag & SELECT) != 0) {
-						if ((ob_base->flag & BASE_SELECTABLED) != 0) {
-							ob_base->flag |= BASE_SELECTED;
-						}
-					}
-					else {
-						ob_base->flag &= ~BASE_SELECTED;
+					if ((base->flag & BASE_SELECTABLED) && (base->object->flag & SELECT)) {
+						base->flag |= BASE_SELECTED;
 					}
 
 					/* keep lay around for forward compatibility (open those files in 2.79) */
-					ob_base->lay = base->lay;
+					base->lay = base->object->lay;
 				}
 
 				/* TODO: copy scene render data to layer */
