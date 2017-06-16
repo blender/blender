@@ -1411,11 +1411,33 @@ static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, SceneLayer 
 static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl)
 {
 	float *color;
+	static float one = 1.0f;
 	LightProbe *prb = (LightProbe *)ob->data;
 	DRW_object_wire_theme_get(ob, sl, &color);
 
-
 	DRW_shgroup_call_dynamic_add(stl->g_data->probe, ob->obmat[3], color);
+
+	float **prb_mats = (float **)DRW_object_engine_data_get(ob, &draw_engine_object_type, NULL);
+	if (*prb_mats == NULL) {
+		/* we need 6 matrices */
+		*prb_mats = MEM_mallocN(sizeof(float) * 16 * 6, "Probe Clip distances Matrices");
+	}
+
+	if (prb->type == LIGHTPROBE_TYPE_PLANAR) {
+		float (*mat)[4];
+		mat = (float (*)[4])(*prb_mats);
+		copy_m4_m4(mat, ob->obmat);
+		normalize_m4(mat);
+
+		DRW_shgroup_call_dynamic_add(stl->g_data->single_arrow, color, &ob->empty_drawsize, mat);
+		DRW_shgroup_call_dynamic_add(stl->g_data->single_arrow_line, color, &ob->empty_drawsize, mat);
+
+		mat = (float (*)[4])(*prb_mats + 16);
+		copy_m4_m4(mat, ob->obmat);
+		zero_v3(mat[2]);
+
+		DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &one, mat);
+	}
 
 	if ((prb->flag & LIGHTPROBE_FLAG_SHOW_INFLUENCE) != 0) {
 
@@ -1433,6 +1455,22 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLay
 			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distgridinf, ob->obmat);
 			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distfalloff, ob->obmat);
 		}
+		else if (prb->type == LIGHTPROBE_TYPE_PLANAR) {
+			float (*rangemat)[4];
+			rangemat = (float (*)[4])(*prb_mats + 32);
+			copy_m4_m4(rangemat, ob->obmat);
+			normalize_v3(rangemat[2]);
+			mul_v3_fl(rangemat[2], prb->distinf);
+
+			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &one, rangemat);
+
+			rangemat = (float (*)[4])(*prb_mats + 64);
+			copy_m4_m4(rangemat, ob->obmat);
+			normalize_v3(rangemat[2]);
+			mul_v3_fl(rangemat[2], prb->distfalloff);
+
+			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &one, rangemat);
+		}
 		else {
 			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distgridinf, ob->obmat);
 			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &prb->distfalloff, ob->obmat);
@@ -1440,59 +1478,58 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLay
 	}
 
 	if ((prb->flag & LIGHTPROBE_FLAG_SHOW_PARALLAX) != 0) {
-		float (*obmat)[4], *dist;
+		if (prb->type != LIGHTPROBE_TYPE_PLANAR) {
+			float (*obmat)[4], *dist;
 
-		if ((prb->flag & LIGHTPROBE_FLAG_CUSTOM_PARALLAX) != 0) {
-			dist = &prb->distpar;
-			/* TODO object parallax */
-			obmat = ob->obmat;
-		}
-		else {
-			dist = &prb->distinf;
-			obmat = ob->obmat;
-		}
+			if ((prb->flag & LIGHTPROBE_FLAG_CUSTOM_PARALLAX) != 0) {
+				dist = &prb->distpar;
+				/* TODO object parallax */
+				obmat = ob->obmat;
+			}
+			else {
+				dist = &prb->distinf;
+				obmat = ob->obmat;
+			}
 
-		if (prb->parallax_type == LIGHTPROBE_SHAPE_BOX) {
-			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &dist, obmat);
-		}
-		else {
-			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &dist, obmat);
+			if (prb->parallax_type == LIGHTPROBE_SHAPE_BOX) {
+				DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &dist, obmat);
+			}
+			else {
+				DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &dist, obmat);
+			}
 		}
 	}
 
 	if ((prb->flag & LIGHTPROBE_FLAG_SHOW_CLIP_DIST) != 0) {
-		static const float cubefacemat[6][4][4] = {
-			{{0.0, 0.0, -1.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {-1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
-			{{0.0, 0.0, 1.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
-			{{1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, -1.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
-			{{1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
-			{{1.0, 0.0, 0.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {0.0, 0.0, -1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
-			{{-1.0, 0.0, 0.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
-		};
+		if (prb->type != LIGHTPROBE_TYPE_PLANAR) {
+			static const float cubefacemat[6][4][4] = {
+				{{0.0, 0.0, -1.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {-1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
+				{{0.0, 0.0, 1.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
+				{{1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, -1.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
+				{{1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
+				{{1.0, 0.0, 0.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {0.0, 0.0, -1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
+				{{-1.0, 0.0, 0.0, 0.0}, {0.0, -1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}},
+			};
 
-		float **prb_mats = (float **)DRW_object_engine_data_get(ob, &draw_engine_object_type, NULL);
-		if (*prb_mats == NULL) {
-			/* we need 2 matrices */
-			*prb_mats = MEM_mallocN(sizeof(float) * 16 * 6, "Probe Clip distances Matrices");
-		}
+			for (int i = 0; i < 6; ++i) {
+				float (*clipmat)[4];
+				clipmat = (float (*)[4])(*prb_mats + 16 * i);
 
-		for (int i = 0; i < 6; ++i) {
-			float (*clipmat)[4];
-			clipmat = (float (*)[4])(*prb_mats + 16 * i);
+				normalize_m4_m4(clipmat, ob->obmat);
+				mul_m4_m4m4(clipmat, clipmat, cubefacemat[i]);
 
-			normalize_m4_m4(clipmat, ob->obmat);
-			// invert_m4(clipmat);
-			mul_m4_m4m4(clipmat, clipmat, cubefacemat[i]);
-
-			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_buflimit, color, &prb->clipsta, &prb->clipend, clipmat);
-			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_buflimit_points, color, &prb->clipsta, &prb->clipend, clipmat);
+				DRW_shgroup_call_dynamic_add(stl->g_data->lamp_buflimit, color, &prb->clipsta, &prb->clipend, clipmat);
+				DRW_shgroup_call_dynamic_add(stl->g_data->lamp_buflimit_points, color, &prb->clipsta, &prb->clipend, clipmat);
+			}
 		}
 	}
 	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_center_group, ob->obmat[3]);
 
 	/* Line and point going to the ground */
-	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_groundline, ob->obmat[3]);
-	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_groundpoint, ob->obmat[3]);
+	if (prb->type == LIGHTPROBE_TYPE_CUBE) {
+		DRW_shgroup_call_dynamic_add(stl->g_data->lamp_groundline, ob->obmat[3]);
+		DRW_shgroup_call_dynamic_add(stl->g_data->lamp_groundpoint, ob->obmat[3]);
+	}
 }
 
 static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)

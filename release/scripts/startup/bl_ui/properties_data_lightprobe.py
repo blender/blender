@@ -76,6 +76,11 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             col.label("Influence:")
             col.prop(probe, "influence_distance", "Distance")
             col.prop(probe, "falloff")
+        elif probe.type == "PLANAR":
+            col = split.column(align=True)
+            col.label("Influence:")
+            col.prop(probe, "influence_distance", "Distance")
+            col.prop(probe, "falloff")
         else:
             col = split.column(align=True)
             col.label("Influence:")
@@ -91,7 +96,8 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
         col = split.column(align=True)
         col.label("Clipping:")
         col.prop(probe, "clip_start", text="Start")
-        col.prop(probe, "clip_end", text="End")
+        if probe.type != "PLANAR":
+            col.prop(probe, "clip_end", text="End")
 
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
@@ -132,6 +138,7 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
 
         ob = context.object
         probe = context.lightprobe
+        is_planar = (probe.type is "PLANAR")
 
         split = layout.split()
 
@@ -139,14 +146,19 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
         col.prop(probe, "show_influence")
 
         col = split.column()
+        col.active = is_planar
         col.prop(probe, "show_parallax")
 
         col = split.column()
+        col.active = is_planar
         col.prop(probe, "show_clip")
 
         row = layout.row()
         row.prop(probe, "show_data")
-        row.prop(probe, "data_draw_size")
+        if probe.type != "PLANAR":
+            row.prop(probe, "data_draw_size")
+        else:
+            row.prop(ob, "empty_draw_size", text="Arrow Size")
 
 
 classes = (

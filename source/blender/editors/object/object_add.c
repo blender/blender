@@ -543,8 +543,10 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 	}
 	else if (type == 2) {
 		probe->type = LIGHTPROBE_TYPE_PLANAR;
-		probe->distinf = 0.3f;
-		probe->falloff = 0.6f;
+		probe->distinf = 0.1f;
+		probe->falloff = 0.5f;
+		probe->clipsta = 0.001f;
+		ob->empty_drawsize = 0.5f;
 	}
 	else {
 		probe->type = LIGHTPROBE_TYPE_CUBE;
