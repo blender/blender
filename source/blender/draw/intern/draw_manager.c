@@ -290,6 +290,8 @@ static struct DRWGlobalState {
 	float screenvecs[2][3];
 	float pixsize;
 
+	GLenum backface, frontface;
+
 	struct {
 		unsigned int is_select : 1;
 		unsigned int is_depth : 1;
@@ -1792,7 +1794,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 			/* Negative scale objects */
 			if (neg_scale) {
-				glFrontFace(GL_CW);
+				glFrontFace(DST.backface);
 			}
 
 			GPU_SELECT_LOAD_IF_PICKSEL(call);
@@ -1809,7 +1811,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 			/* Reset state */
 			if (neg_scale) {
-				glFrontFace(GL_CCW);
+				glFrontFace(DST.frontface);
 			}
 		}
 	}
@@ -1899,6 +1901,13 @@ void DRW_state_reset_ex(DRWState state)
 void DRW_state_reset(void)
 {
 	DRW_state_reset_ex(DRW_STATE_DEFAULT);
+}
+
+/* NOTE : Make sure to reset after use! */
+void DRW_state_invert_facing(void)
+{
+	SWAP(GLenum, DST.backface, DST.frontface);
+	glFrontFace(DST.frontface);
 }
 
 /** \} */
@@ -2249,6 +2258,11 @@ static void DRW_viewport_var_init(void)
 
 	/* Refresh DST.pixelsize */
 	DST.pixsize = rv3d->pixsize;
+
+	/* Reset facing */
+	DST.frontface = GL_CCW;
+	DST.backface = GL_CW;
+	glFrontFace(DST.frontface);
 }
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
