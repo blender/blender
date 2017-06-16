@@ -42,6 +42,7 @@
 	"#define EEVEE_ENGINE\n" \
 	"#define MAX_PROBE " STRINGIFY(MAX_PROBE) "\n" \
 	"#define MAX_GRID " STRINGIFY(MAX_GRID) "\n" \
+	"#define MAX_PLANAR " STRINGIFY(MAX_PLANAR) "\n" \
 	"#define MAX_LIGHT " STRINGIFY(MAX_LIGHT) "\n" \
 	"#define MAX_SHADOW_CUBE " STRINGIFY(MAX_SHADOW_CUBE) "\n" \
 	"#define MAX_SHADOW_MAP " STRINGIFY(MAX_SHADOW_MAP) "\n" \
@@ -305,19 +306,22 @@ struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma)
 	    SHADER_DEFINES "#define MESH_SHADER\n" "#define HAIR_SHADER\n");
 }
 
-static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *sldata)
+static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 {
 	DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
 	DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
+	DRW_shgroup_uniform_block(shgrp, "planar_block", sldata->planar_ubo);
 	DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
 	DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
 	DRW_shgroup_uniform_int(shgrp, "light_count", &sldata->lamps->num_light, 1);
 	DRW_shgroup_uniform_int(shgrp, "probe_count", &sldata->probes->num_render_cube, 1);
 	DRW_shgroup_uniform_int(shgrp, "grid_count", &sldata->probes->num_render_grid, 1);
+	DRW_shgroup_uniform_int(shgrp, "planar_count", &sldata->probes->num_planar, 1);
 	DRW_shgroup_uniform_bool(shgrp, "specToggle", &sldata->probes->specular_toggle, 1);
 	DRW_shgroup_uniform_float(shgrp, "lodMax", &sldata->probes->lodmax, 1);
 	DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
 	DRW_shgroup_uniform_buffer(shgrp, "probeCubes", &sldata->probe_pool);
+	DRW_shgroup_uniform_buffer(shgrp, "probePlanars", &vedata->txl->planar_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "irradianceGrid", &sldata->irradiance_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCubes", &sldata->shadow_depth_cube_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCascades", &sldata->shadow_depth_cascade_pool);
@@ -395,15 +399,15 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WIRE;
 		psl->default_pass = DRW_pass_create("Default Lit Pass", state);
 		DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit, psl->default_pass);
-		add_standard_uniforms(shgrp, sldata);
+		add_standard_uniforms(shgrp, sldata, vedata);
 
 		psl->default_flat_pass = DRW_pass_create("Default Flat Lit Pass", state);
 		shgrp = DRW_shgroup_create(e_data.default_lit_flat, psl->default_flat_pass);
-		add_standard_uniforms(shgrp, sldata);
+		add_standard_uniforms(shgrp, sldata, vedata);
 
 		psl->default_hair_pass = DRW_pass_create("Default Hair Lit Pass", state);
 		shgrp = DRW_shgroup_create(e_data.default_lit_hair, psl->default_hair_pass);
-		add_standard_uniforms(shgrp, sldata);
+		add_standard_uniforms(shgrp, sldata, vedata);
 	}
 
 	{
@@ -477,7 +481,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 
 				shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
 				if (shgrp) {
-					add_standard_uniforms(shgrp, sldata);
+					add_standard_uniforms(shgrp, sldata, vedata);
 
 					BLI_ghash_insert(material_hash, ma, shgrp);
 
@@ -549,7 +553,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 
 								shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
 								if (shgrp) {
-									add_standard_uniforms(shgrp, sldata);
+									add_standard_uniforms(shgrp, sldata, vedata);
 
 									BLI_ghash_insert(material_hash, ma, shgrp);
 

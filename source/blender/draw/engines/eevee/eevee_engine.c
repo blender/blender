@@ -57,7 +57,7 @@ static void EEVEE_engine_init(void *ved)
 
 	EEVEE_materials_init();
 	EEVEE_lights_init(sldata);
-	EEVEE_lightprobes_init(sldata);
+	EEVEE_lightprobes_init(sldata, vedata);
 	EEVEE_effects_init(vedata);
 }
 
@@ -134,7 +134,7 @@ static void EEVEE_draw_scene(void *vedata)
 	EEVEE_draw_shadows(sldata, psl);
 
 	/* Refresh Probes */
-	EEVEE_lightprobes_refresh(sldata, psl);
+	EEVEE_lightprobes_refresh(sldata, vedata);
 
 	/* Attach depth to the hdr buffer and bind it */	
 	DRW_framebuffer_texture_detach(dtxl->depth);

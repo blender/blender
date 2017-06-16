@@ -24,6 +24,25 @@ struct ProbeData {
 #define p_atten_fac     attenuation_fac_type.x
 #define p_atten_type    attenuation_fac_type.y
 
+struct PlanarData {
+	vec4 plane_equation;
+	vec4 clip_vec_x_fade_scale;
+	vec4 clip_vec_y_fade_bias;
+	vec4 clip_edges;
+	vec4 facing_scale_bias;
+	mat4 reflectionmat; /* transform world space into reflection texture space */
+};
+
+#define pl_plane_eq      plane_equation
+#define pl_normal        plane_equation.xyz
+#define pl_facing_scale  facing_scale_bias.x
+#define pl_facing_bias   facing_scale_bias.y
+#define pl_fade_scale    clip_vec_x_fade_scale.w
+#define pl_fade_bias     clip_vec_y_fade_bias.w
+#define pl_clip_pos_x    clip_vec_x_fade_scale.xyz
+#define pl_clip_pos_y    clip_vec_y_fade_bias.xyz
+#define pl_clip_edges    clip_edges
+
 struct GridData {
 	mat4 localmat;
 	ivec4 resolution_offset;

@@ -54,6 +54,7 @@ static void eevee_scene_layer_data_free(void *storage)
 	MEM_SAFE_FREE(sldata->probes);
 	DRW_UBO_FREE_SAFE(sldata->probe_ubo);
 	DRW_UBO_FREE_SAFE(sldata->grid_ubo);
+	DRW_UBO_FREE_SAFE(sldata->planar_ubo);
 	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_fb);
 	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_filter_fb);
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);

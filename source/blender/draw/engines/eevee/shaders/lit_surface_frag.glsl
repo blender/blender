@@ -2,8 +2,11 @@
 uniform int light_count;
 uniform int probe_count;
 uniform int grid_count;
+uniform int planar_count;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
+
+uniform sampler2DArray probePlanars;
 
 uniform sampler2DArray probeCubes;
 uniform float lodMax;
@@ -23,6 +26,10 @@ layout(std140) uniform probe_block {
 
 layout(std140) uniform grid_block {
 	GridData grids_data[MAX_GRID];
+};
+
+layout(std140) uniform planar_block {
+	PlanarData planars_data[MAX_PLANAR];
 };
 
 layout(std140) uniform light_block {
@@ -275,6 +282,25 @@ float probe_attenuation(vec3 W, ProbeData pd)
 	return fac;
 }
 
+float planar_attenuation(vec3 W, vec3 N, PlanarData pd)
+{
+	float fac;
+
+	/* Normal Facing */
+	fac = saturate(dot(pd.pl_normal, N) * pd.pl_facing_scale + pd.pl_facing_bias);
+
+	/* Distance from plane */
+	fac *= saturate(abs(dot(pd.pl_plane_eq, vec4(W, 1.0))) * pd.pl_fade_scale + pd.pl_fade_bias);
+
+	/* Fancy fast clipping calculation */
+	vec2 dist_to_clip;
+	dist_to_clip.x = dot(pd.pl_clip_pos_x, W);
+	dist_to_clip.y = dot(pd.pl_clip_pos_y, W);
+	fac *= step(2.0, dot(step(pd.pl_clip_edges, dist_to_clip.xxyy), vec2(-1.0, 1.0).xyxy)); /* compare and add all tests */
+
+	return fac;
+}
+
 vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness, float ao)
 {
 	roughness = clamp(roughness, 1e-8, 0.9999);
@@ -324,6 +350,24 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 
 	vec4 spec_accum = vec4(0.0);
 	vec4 diff_accum = vec4(0.0);
+
+	/* Planar Reflections */
+	for (int i = 0; i < MAX_PLANAR && i < planar_count && spec_accum.a < 0.999; ++i) {
+		PlanarData pd = planars_data[i];
+
+		float influence = planar_attenuation(sd.W, sd.N, pd);
+
+		if (influence > 0.0) {
+			float influ_spec = min(influence, (1.0 - spec_accum.a));
+
+			vec4 refco = pd.reflectionmat * vec4(sd.W, 1.0);
+			refco.xy /= refco.w;
+			vec3 sample = textureLod(probePlanars, vec3(refco.xy, i), 0.0).rgb;
+
+			spec_accum.rgb += sample * influ_spec;
+			spec_accum.a += influ_spec;
+		}
+	}
 
 	/* Specular probes */
 	/* Start at 1 because 0 is world probe */
