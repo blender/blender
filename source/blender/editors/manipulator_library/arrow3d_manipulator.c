@@ -125,7 +125,7 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 		};
 
 		glLineWidth(arrow->manipulator.line_width);
-		wm_manipulator_vec_draw(color, vec, ARRAY_SIZE(vec), pos, PRIM_LINE_STRIP);
+		wm_manipulator_vec_draw(color, vec, ARRAY_SIZE(vec), pos, PRIM_LINE_LOOP);
 	}
 	else {
 #ifdef USE_MANIPULATOR_CUSTOM_ARROWS
