@@ -239,10 +239,10 @@ void ED_manipulator_primitive3d_set_up_vector(wmManipulator *mpr, const float di
 	}
 }
 
-static void MANIPULATOR_WT_primitive3d(wmManipulatorType *wt)
+static void MANIPULATOR_WT_primitive_3d(wmManipulatorType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_primitive3d";
+	wt->idname = "MANIPULATOR_WT_primitive_3d";
 
 	/* api callbacks */
 	wt->draw = manipulator_primitive_draw;
@@ -255,7 +255,7 @@ static void MANIPULATOR_WT_primitive3d(wmManipulatorType *wt)
 
 void ED_manipulatortypes_primitive_3d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_primitive3d);
+	WM_manipulatortype_append(MANIPULATOR_WT_primitive_3d);
 }
 
 /** \} */ // Primitive Manipulator API

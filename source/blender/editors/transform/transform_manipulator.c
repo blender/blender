@@ -1088,7 +1088,7 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
 
 	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_3d", true);
 	const wmManipulatorType *wt_dial = WM_manipulatortype_find("MANIPULATOR_WT_dial_3d", true);
-	const wmManipulatorType *wt_prim = WM_manipulatortype_find("MANIPULATOR_WT_primitive3d", true);
+	const wmManipulatorType *wt_prim = WM_manipulatortype_find("MANIPULATOR_WT_primitive_3d", true);
 
 #define MANIPULATOR_NEW_ARROW(v, name, style) { \
 	v = WM_manipulator_new_ptr(wt_arrow, mgroup, name); \
