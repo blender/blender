@@ -191,6 +191,8 @@ static void manipulator_grab_draw(const bContext *C, wmManipulator *mpr)
 	const bool active = mpr->state & WM_MANIPULATOR_STATE_ACTIVE;
 	const bool highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
 
+	BLI_assert(grab->style != -1);
+
 	(void)active;
 
 	glEnable(GL_BLEND);
@@ -215,6 +217,18 @@ static void manipulator_grab_modal(bContext *C, wmManipulator *mpr, const wmEven
 	}
 }
 
+static void manipulator_grab_setup(wmManipulator *mpr)
+{
+	GrabManipulator *grab = (GrabManipulator *)mpr;
+
+	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
+
+	grab->style = -1;
+
+	/* defaults */
+	copy_v3_v3(grab->direction, dir_default);
+}
+
 static void manipulator_grab_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
@@ -231,25 +245,18 @@ static void manipulator_grab_invoke(
 	mpr->interaction_data = inter;
 }
 
-
 /* -------------------------------------------------------------------- */
 /** \name Grab Manipulator API
  *
  * \{ */
 
-wmManipulator *ED_manipulator_grab3d_new(wmManipulatorGroup *mgroup, const char *name, const int style)
+#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_grab_draw)
+
+void ED_manipulator_grab3d_set_style(wmManipulator *mpr, int style)
 {
-	GrabManipulator *grab = (GrabManipulator *)WM_manipulator_new(
-	        "MANIPULATOR_WT_grab3d", mgroup, name);
-
-	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
-
+	ASSERT_TYPE_CHECK(mpr);
+	GrabManipulator *grab = (GrabManipulator *)mpr;
 	grab->style = style;
-
-	/* defaults */
-	copy_v3_v3(grab->direction, dir_default);
-
-	return (wmManipulator *)grab;
 }
 
 /**
@@ -257,6 +264,7 @@ wmManipulator *ED_manipulator_grab3d_new(wmManipulatorGroup *mgroup, const char 
  */
 void ED_manipulator_grab3d_set_up_vector(wmManipulator *mpr, const float direction[3])
 {
+	ASSERT_TYPE_CHECK(mpr);
 	GrabManipulator *grab = (GrabManipulator *)mpr;
 
 	copy_v3_v3(grab->direction, direction);
@@ -266,11 +274,12 @@ void ED_manipulator_grab3d_set_up_vector(wmManipulator *mpr, const float directi
 static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_grab3d";
+	wt->idname = "MANIPULATOR_WT_grab_3d";
 
 	/* api callbacks */
 	wt->draw = manipulator_grab_draw;
 	wt->draw_select = manipulator_grab_draw_select;
+	wt->setup = manipulator_grab_setup;
 	wt->invoke = manipulator_grab_invoke;
 	wt->modal = manipulator_grab_modal;
 

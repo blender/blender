@@ -175,6 +175,9 @@ typedef struct wmManipulatorType {
 	 * use so we can cant to other types without the hassle of a custom-data pointer. */
 	uint struct_size;
 
+	/* Initialize struct (calloc'd 'struct_size' region). */
+	wmManipulatorFnSetup setup;
+
 	/* draw manipulator */
 	wmManipulatorFnDraw draw;
 

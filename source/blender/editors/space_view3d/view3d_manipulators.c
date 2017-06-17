@@ -78,7 +78,9 @@ static void WIDGETGROUP_lamp_setup(const bContext *UNUSED(C), wmManipulatorGroup
 
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 
-	wwrapper->manipulator = ED_manipulator_arrow3d_new(mgroup, propname, ED_MANIPULATOR_ARROW_STYLE_INVERTED);
+	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_arrow_3d", mgroup, propname);
+	ED_manipulator_arrow3d_set_style(wwrapper->manipulator, ED_MANIPULATOR_ARROW_STYLE_INVERTED);
+
 	mgroup->customdata = wwrapper;
 
 	ED_manipulator_arrow3d_set_range_fac(wwrapper->manipulator, 4.0f);
@@ -170,6 +172,8 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 	Camera *ca = ob->data;
 	float dir[3];
 
+	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_3d", true);
+
 	struct CameraWidgetGroup *camgroup = MEM_callocN(sizeof(struct CameraWidgetGroup), __func__);
 	mgroup->customdata = camgroup;
 
@@ -180,7 +184,8 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 		const float color[4] = {1.0f, 0.3f, 0.0f, 1.0f};
 		const float color_hi[4] = {1.0f, 0.3f, 0.0f, 1.0f};
 
-		camgroup->dop_dist = ED_manipulator_arrow3d_new(mgroup, "dof_distance", ED_MANIPULATOR_ARROW_STYLE_CROSS);
+		camgroup->dop_dist = WM_manipulator_new_ptr(wt_arrow, mgroup, "dof_distance");
+		ED_manipulator_arrow3d_set_style(camgroup->dop_dist, ED_MANIPULATOR_ARROW_STYLE_CROSS);
 		WM_manipulator_set_flag(camgroup->dop_dist, WM_MANIPULATOR_DRAW_HOVER, true);
 		WM_manipulator_set_color(camgroup->dop_dist, color);
 		WM_manipulator_set_color_highlight(camgroup->dop_dist, color_hi);
@@ -192,16 +197,17 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 		const float color[4] = {1.0f, 1.0, 0.27f, 0.5f};
 		const float color_hi[4] = {1.0f, 1.0, 0.27f, 1.0f};
 
-		camgroup->focal_len = ED_manipulator_arrow3d_new(
-		        mgroup, "focal_len",
-		        (ED_MANIPULATOR_ARROW_STYLE_CONE | ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED));
+		camgroup->focal_len = WM_manipulator_new_ptr(wt_arrow, mgroup, "focal_len");
+		ED_manipulator_arrow3d_set_style(
+		        camgroup->focal_len, (ED_MANIPULATOR_ARROW_STYLE_CONE | ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED));
+
 		WM_manipulator_set_color(camgroup->focal_len, color);
 		WM_manipulator_set_color_highlight(camgroup->focal_len, color_hi);
 		cameragroup_property_setup(camgroup->focal_len, ob, ca, false);
 
-		camgroup->ortho_scale = ED_manipulator_arrow3d_new(
-		        mgroup, "ortho_scale",
-		        (ED_MANIPULATOR_ARROW_STYLE_CONE | ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED));
+		camgroup->ortho_scale = WM_manipulator_new_ptr(wt_arrow, mgroup, "ortho_scale");
+		ED_manipulator_arrow3d_set_style(
+		        camgroup->ortho_scale, (ED_MANIPULATOR_ARROW_STYLE_CONE | ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED));
 		WM_manipulator_set_color(camgroup->ortho_scale, color);
 		WM_manipulator_set_color_highlight(camgroup->ortho_scale, color_hi);
 		cameragroup_property_setup(camgroup->ortho_scale, ob, ca, true);
@@ -316,8 +322,8 @@ static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmManipulato
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 	mgroup->customdata = wwrapper;
 
-	wwrapper->manipulator = ED_manipulator_arrow3d_new(mgroup, "field_strength", ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
-
+	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_arrow_3d", mgroup, "field_strength");
+	ED_manipulator_arrow3d_set_style(wwrapper->manipulator, ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
 	ED_manipulator_arrow3d_set_ui_range(wwrapper->manipulator, -200.0f, 200.0f);
 	ED_manipulator_arrow3d_set_range_fac(wwrapper->manipulator, 6.0f);
 	WM_manipulator_set_color(wwrapper->manipulator, col);

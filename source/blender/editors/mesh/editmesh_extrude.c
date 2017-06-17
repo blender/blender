@@ -1048,16 +1048,25 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 	struct ManipulatorSpinGroup *man = MEM_callocN(sizeof(ManipulatorSpinGroup), __func__);
 	mgroup->customdata = man;
 
-	man->translate_z = ED_manipulator_arrow3d_new(mgroup, "translate_z", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
-	man->translate_c = ED_manipulator_grab3d_new(mgroup, "translate_c", 0);
-	man->rotate_c = ED_manipulator_dial3d_new(mgroup, "rotate_c", ED_MANIPULATOR_DIAL_STYLE_RING);
-	man->angle_z = ED_manipulator_dial3d_new(mgroup, "angle_z", ED_MANIPULATOR_DIAL_STYLE_RING);
+	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_3d", true);
+	const wmManipulatorType *wt_grab = WM_manipulatortype_find("MANIPULATOR_WT_grab_3d", true);
+	const wmManipulatorType *wt_dial = WM_manipulatortype_find("MANIPULATOR_WT_dial_3d", true);
 
-	WM_manipulator_set_scale(man->angle_z, 0.5f);
+	man->translate_z = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_z");
+	man->translate_c = WM_manipulator_new_ptr(wt_grab, mgroup, "translate_c");
+	man->rotate_c = WM_manipulator_new_ptr(wt_dial, mgroup, "rotate_c");
+	man->angle_z = WM_manipulator_new_ptr(wt_dial, mgroup, "angle_z");
+
+	ED_manipulator_arrow3d_set_style(man->translate_z, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+	ED_manipulator_grab3d_set_style(man->translate_c, ED_MANIPULATOR_GRAB_STYLE_RING);
+	ED_manipulator_dial3d_set_style(man->rotate_c, ED_MANIPULATOR_DIAL_STYLE_RING);
+	ED_manipulator_dial3d_set_style(man->angle_z, ED_MANIPULATOR_DIAL_STYLE_RING);
 
 	WM_manipulator_set_flag(man->translate_c, WM_MANIPULATOR_DRAW_VALUE, true);
 	WM_manipulator_set_flag(man->rotate_c, WM_MANIPULATOR_DRAW_VALUE, true);
 	WM_manipulator_set_flag(man->angle_z, WM_MANIPULATOR_DRAW_VALUE, true);
+
+	WM_manipulator_set_scale(man->angle_z, 0.5f);
 
 	{
 		man->data.context = (bContext *)C;

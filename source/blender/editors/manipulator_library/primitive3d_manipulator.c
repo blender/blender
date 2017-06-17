@@ -105,6 +105,8 @@ static void manipulator_primitive_draw_intern(
 	float rot[3][3];
 	float mat[4][4];
 
+	BLI_assert(prim->style != -1);
+
 	if (prim->flag & PRIM_UP_VECTOR_SET) {
 		copy_v3_v3(rot[2], prim->direction);
 		copy_v3_v3(rot[1], prim->up);
@@ -171,6 +173,19 @@ static void manipulator_primitive_draw(const bContext *UNUSED(C), wmManipulator 
 	            (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT));
 }
 
+static void manipulator_primitive_setup(wmManipulator *mpr)
+{
+	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
+
+	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
+
+	prim->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+	prim->style = -1;
+
+	/* defaults */
+	copy_v3_v3(prim->direction, dir_default);
+}
+
 static void manipulator_primitive_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *UNUSED(event))
 {
@@ -182,26 +197,18 @@ static void manipulator_primitive_invoke(
 	mpr->interaction_data = inter;
 }
 
-
 /* -------------------------------------------------------------------- */
 /** \name Primitive Manipulator API
  *
  * \{ */
 
-wmManipulator *ED_manipulator_primitive3d_new(wmManipulatorGroup *mgroup, const char *name, const int style)
+#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_primitive_draw)
+
+void ED_manipulator_primitive3d_set_style(struct wmManipulator *mpr, int style)
 {
-	PrimitiveManipulator *prim = (PrimitiveManipulator *)WM_manipulator_new(
-	        "MANIPULATOR_WT_primitive3d", mgroup, name);
-
-	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
-
-	prim->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+	ASSERT_TYPE_CHECK(mpr);
+	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
 	prim->style = style;
-
-	/* defaults */
-	copy_v3_v3(prim->direction, dir_default);
-
-	return (wmManipulator *)prim;
 }
 
 /**
@@ -209,6 +216,7 @@ wmManipulator *ED_manipulator_primitive3d_new(wmManipulatorGroup *mgroup, const 
  */
 void ED_manipulator_primitive3d_set_direction(wmManipulator *mpr, const float direction[3])
 {
+	ASSERT_TYPE_CHECK(mpr);
 	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
 
 	normalize_v3_v3(prim->direction, direction);
@@ -219,6 +227,7 @@ void ED_manipulator_primitive3d_set_direction(wmManipulator *mpr, const float di
  */
 void ED_manipulator_primitive3d_set_up_vector(wmManipulator *mpr, const float direction[3])
 {
+	ASSERT_TYPE_CHECK(mpr);
 	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
 
 	if (direction) {
@@ -238,6 +247,7 @@ static void MANIPULATOR_WT_primitive3d(wmManipulatorType *wt)
 	/* api callbacks */
 	wt->draw = manipulator_primitive_draw;
 	wt->draw_select = manipulator_primitive_draw_select;
+	wt->setup = manipulator_primitive_setup;
 	wt->invoke = manipulator_primitive_invoke;
 
 	wt->struct_size = sizeof(PrimitiveManipulator);

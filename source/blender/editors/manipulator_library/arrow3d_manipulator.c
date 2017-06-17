@@ -369,6 +369,19 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 	WM_event_add_mousemove(C);
 }
 
+static void manipulator_arrow_setup(wmManipulator *mpr)
+{
+	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
+
+	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
+
+	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+
+	arrow->style = -1;
+	arrow->len = 1.0f;
+	arrow->data.range_fac = 1.0f;
+	copy_v3_v3(arrow->direction, dir_default);
+}
 
 static void manipulator_arrow_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
@@ -423,28 +436,16 @@ static void manipulator_arrow_exit(bContext *C, wmManipulator *mpr, const bool c
  *
  * \{ */
 
-wmManipulator *ED_manipulator_arrow3d_new(wmManipulatorGroup *mgroup, const char *name, const int style)
+void ED_manipulator_arrow3d_set_style(struct wmManipulator *mpr, int style)
 {
-	ArrowManipulator3D *arrow = (ArrowManipulator3D *)WM_manipulator_new(
-	        "MANIPULATOR_WT_arrow_3d", mgroup, name);
-
-	int real_style = style;
+	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
 	/* inverted only makes sense in a constrained arrow */
-	if (real_style & ED_MANIPULATOR_ARROW_STYLE_INVERTED) {
-		real_style |= ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED;
+	if (style & ED_MANIPULATOR_ARROW_STYLE_INVERTED) {
+		style |= ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED;
 	}
 
-	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
-
-	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
-
-	arrow->style = real_style;
-	arrow->len = 1.0f;
-	arrow->data.range_fac = 1.0f;
-	copy_v3_v3(arrow->direction, dir_default);
-
-	return &arrow->manipulator;
+	arrow->style = style;
 }
 
 /**
@@ -536,6 +537,7 @@ static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 	wt->draw_select = manipulator_arrow_draw_select;
 	wt->position_get = manipulator_arrow_position_get;
 	wt->modal = manipulator_arrow_modal;
+	wt->setup = manipulator_arrow_setup;
 	wt->invoke = manipulator_arrow_invoke;
 	wt->property_update = manipulator_arrow_property_update;
 	wt->exit = manipulator_arrow_exit;

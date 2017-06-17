@@ -72,13 +72,13 @@ enum {
 #define MANIPULATOR_RECT_MIN_WIDTH 15.0f
 #define MANIPULATOR_RESIZER_WIDTH  20.0f
 
-typedef struct RectTransformManipulator {
+typedef struct Cage2D {
 	wmManipulator manipulator;
 	float w, h;      /* dimensions of manipulator */
 	float rotation;  /* rotation of the rectangle */
 	float scale[2]; /* scaling for the manipulator for non-destructive editing. */
 	int style;
-} RectTransformManipulator;
+} Cage2D;
 
 
 /* -------------------------------------------------------------------- */
@@ -203,18 +203,20 @@ static void rect_transform_draw_interaction(
 
 static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipulator *mpr)
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
-	rctf r;
+	Cage2D *cage = (Cage2D *)mpr;
 	float w = cage->w;
 	float h = cage->h;
 	float aspx = 1.0f, aspy = 1.0f;
 	const float half_w = w / 2.0f;
 	const float half_h = h / 2.0f;
+	const rctf r = {
+		.xmin = -half_w,
+		.ymin = -half_h,
+		.xmax = half_w,
+		.ymax = half_h,
+	};
 
-	r.xmin = -half_w;
-	r.ymin = -half_h;
-	r.xmax = half_w;
-	r.ymax = half_h;
+	BLI_assert(cage->style != -1);
 
 	gpuPushMatrix();
 	gpuTranslate2f(mpr->origin[0] + mpr->offset[0],
@@ -268,7 +270,7 @@ static int manipulator_rect_transform_get_cursor(wmManipulator *mpr)
 static int manipulator_rect_transform_test_select(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
+	Cage2D *cage = (Cage2D *)mpr;
 	const float mouse[2] = {event->mval[0], event->mval[1]};
 	//float matrot[2][2];
 	float point_local[2];
@@ -382,7 +384,7 @@ static bool manipulator_rect_transform_get_prop_value(
 			RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
 		}
 		else if (STREQ(mpr_prop->idname, "scale")) {
-			RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
+			Cage2D *cage = (Cage2D *)mpr;
 			if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 				*value = RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
 			}
@@ -402,10 +404,19 @@ static bool manipulator_rect_transform_get_prop_value(
 	return true;
 }
 
+static void manipulator_rect_transform_setup(wmManipulator *mpr)
+{
+	Cage2D *cage = (Cage2D *)mpr;
+
+	cage->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+	cage->scale[0] = cage->scale[1] = 1.0f;
+	cage->style = -1;
+}
+
 static void manipulator_rect_transform_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
+	Cage2D *cage = (Cage2D *)mpr;
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
 
 	copy_v2_v2(data->orig_offset, mpr->offset);
@@ -421,7 +432,7 @@ static void manipulator_rect_transform_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         const int UNUSED(flag))
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
+	Cage2D *cage = (Cage2D *)mpr;
 	RectTransformInteraction *data = mpr->interaction_data;
 	/* needed here as well in case clamping occurs */
 	const float orig_ofx = mpr->offset[0], orig_ofy = mpr->offset[1];
@@ -509,7 +520,7 @@ static void manipulator_rect_transform_modal(
 
 static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
+	Cage2D *cage = (Cage2D *)mpr;
 
 	if (STREQ(mpr_prop->idname, "offset")) {
 		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, mpr->offset);
@@ -524,7 +535,7 @@ static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmMan
 
 static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, const bool cancel)
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
+	Cage2D *cage = (Cage2D *)mpr;
 	RectTransformInteraction *data = mpr->interaction_data;
 
 	if (!cancel)
@@ -557,32 +568,31 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
  *
  * \{ */
 
-wmManipulator *ED_manipulator_rect_transform_new(wmManipulatorGroup *mgroup, const char *name, const int style)
+#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_rect_transform_draw)
+
+void ED_manipulator_cage2d_transform_set_style(wmManipulator *mpr, int style)
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)WM_manipulator_new(
-	        "MANIPULATOR_WT_cage", mgroup, name);
-
-	cage->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
-	cage->scale[0] = cage->scale[1] = 1.0f;
+	ASSERT_TYPE_CHECK(mpr);
+	Cage2D *cage = (Cage2D *)mpr;
 	cage->style = style;
-
-	return &cage->manipulator;
 }
 
-void ED_manipulator_rect_transform_set_dimensions(wmManipulator *mpr, const float width, const float height)
+void ED_manipulator_cage2d_transform_set_dims(wmManipulator *mpr, const float width, const float height)
 {
-	RectTransformManipulator *cage = (RectTransformManipulator *)mpr;
+	ASSERT_TYPE_CHECK(mpr);
+	Cage2D *cage = (Cage2D *)mpr;
 	cage->w = width;
 	cage->h = height;
 }
 
-static void MANIPULATOR_WT_cage(wmManipulatorType *wt)
+static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_cage";
+	wt->idname = "MANIPULATOR_WT_cage_2d";
 
 	/* api callbacks */
 	wt->draw = manipulator_rect_transform_draw;
+	wt->setup = manipulator_rect_transform_setup;
 	wt->invoke = manipulator_rect_transform_invoke;
 	wt->property_update = manipulator_rect_transform_property_update;
 	wt->modal = manipulator_rect_transform_modal;
@@ -590,12 +600,12 @@ static void MANIPULATOR_WT_cage(wmManipulatorType *wt)
 	wt->exit = manipulator_rect_transform_exit;
 	wt->cursor_get = manipulator_rect_transform_get_cursor;
 
-	wt->struct_size = sizeof(RectTransformManipulator);
+	wt->struct_size = sizeof(Cage2D);
 }
 
 void ED_manipulatortypes_cage_2d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_cage);
+	WM_manipulatortype_append(MANIPULATOR_WT_cage_2d);
 }
 
 /** \} */ // Cage Manipulator API

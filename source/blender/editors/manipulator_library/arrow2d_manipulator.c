@@ -125,6 +125,15 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipul
 	}
 }
 
+static void manipulator_arrow2d_setup(wmManipulator *mpr)
+{
+	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
+
+	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+
+	arrow->line_len = 1.0f;
+}
+
 static void manipulator_arrow2d_invoke(
         bContext *UNUSED(C), struct wmManipulator *mpr, const wmEvent *UNUSED(event))
 {
@@ -187,26 +196,18 @@ static int manipulator_arrow2d_test_select(
  *
  * \{ */
 
-struct wmManipulator *ED_manipulator_arrow2d_new(wmManipulatorGroup *mgroup, const char *name)
-{
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)WM_manipulator_new(
-	        "MANIPULATOR_WT_arrow_2d", mgroup, name);
-
-	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
-
-	arrow->line_len = 1.0f;
-
-	return &arrow->manipulator;
-}
+#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_arrow2d_draw)
 
 void ED_manipulator_arrow2d_set_angle(struct wmManipulator *mpr, const float angle)
 {
+	ASSERT_TYPE_CHECK(mpr);
 	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
 	arrow->angle = angle;
 }
 
 void ED_manipulator_arrow2d_set_line_len(struct wmManipulator *mpr, const float len)
 {
+	ASSERT_TYPE_CHECK(mpr);
 	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
 	arrow->line_len = len;
 }
@@ -218,6 +219,7 @@ static void MANIPULATOR_WT_arrow_2d(wmManipulatorType *wt)
 
 	/* api callbacks */
 	wt->draw = manipulator_arrow2d_draw;
+	wt->setup = manipulator_arrow2d_setup;
 	wt->invoke = manipulator_arrow2d_invoke;
 	wt->test_select = manipulator_arrow2d_test_select;
 

@@ -63,11 +63,13 @@ static void WIDGETGROUP_node_transform_setup(const bContext *UNUSED(C), wmManipu
 {
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 
-	wwrapper->manipulator = ED_manipulator_rect_transform_new(
-	        mgroup, "backdrop_cage",
-	        ED_MANIPULATOR_RECT_TRANSFORM_STYLE_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM);
-	mgroup->customdata = wwrapper;
+	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, "backdrop_cage");
 
+	ED_manipulator_cage2d_transform_set_style(
+	        wwrapper->manipulator,
+	        ED_MANIPULATOR_RECT_TRANSFORM_STYLE_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM);
+
+	mgroup->customdata = wwrapper;
 }
 
 static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorGroup *mgroup)
@@ -85,7 +87,7 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 		const float w = (ibuf->x > 0) ? ibuf->x : 64.0f;
 		const float h = (ibuf->y > 0) ? ibuf->y : 64.0f;
 
-		ED_manipulator_rect_transform_set_dimensions(cage, w, h);
+		ED_manipulator_cage2d_transform_set_dims(cage, w, h);
 		WM_manipulator_set_origin(cage, origin);
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, false);
 

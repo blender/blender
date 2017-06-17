@@ -130,10 +130,12 @@ static void manipulator2d_get_axis_color(const int axis_idx, float *r_col, float
 
 static ManipulatorGroup2D *manipulatorgroup2d_init(wmManipulatorGroup *mgroup)
 {
+	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_2d", true);
+
 	ManipulatorGroup2D *man = MEM_callocN(sizeof(ManipulatorGroup2D), __func__);
 
-	man->translate_x = ED_manipulator_arrow2d_new(mgroup, "translate_x");
-	man->translate_y = ED_manipulator_arrow2d_new(mgroup, "translate_y");
+	man->translate_x = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_x");
+	man->translate_y = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_y");
 
 	return man;
 }

@@ -66,21 +66,25 @@ static void wm_manipulator_register(
  * \note Follow #wm_operator_create convention.
  */
 static wmManipulator *wm_manipulator_create(
-        const wmManipulatorType *mpt)
+        const wmManipulatorType *wt)
 {
-	BLI_assert(mpt != NULL);
-	BLI_assert(mpt->struct_size >= sizeof(wmManipulator));
+	BLI_assert(wt != NULL);
+	BLI_assert(wt->struct_size >= sizeof(wmManipulator));
 
-	wmManipulator *mpr = MEM_callocN(mpt->struct_size, __func__);
-	mpr->type = mpt;
+	wmManipulator *mpr = MEM_callocN(wt->struct_size, __func__);
+	mpr->type = wt;
 	return mpr;
 }
 
-wmManipulator *WM_manipulator_new_ptr(const wmManipulatorType *mpt, wmManipulatorGroup *mgroup, const char *name)
+wmManipulator *WM_manipulator_new_ptr(const wmManipulatorType *wt, wmManipulatorGroup *mgroup, const char *name)
 {
-	wmManipulator *mpr = wm_manipulator_create(mpt);
+	wmManipulator *mpr = wm_manipulator_create(wt);
 
 	wm_manipulator_register(mgroup, mpr, name);
+
+	if (mpr->type->setup != NULL) {
+		mpr->type->setup(mpr);
+	}
 
 	return mpr;
 }
@@ -93,11 +97,7 @@ wmManipulator *WM_manipulator_new_ptr(const wmManipulatorType *mpt, wmManipulato
 wmManipulator *WM_manipulator_new(const char *idname, wmManipulatorGroup *mgroup, const char *name)
 {
 	const wmManipulatorType *wt = WM_manipulatortype_find(idname, false);
-	wmManipulator *mpr = wm_manipulator_create(wt);
-
-	wm_manipulator_register(mgroup, mpr, name);
-
-	return mpr;
+	return WM_manipulator_new_ptr(wt, mgroup, name);
 }
 
 /**

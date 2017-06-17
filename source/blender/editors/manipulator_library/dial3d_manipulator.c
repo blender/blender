@@ -317,6 +317,8 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 	float clip_plane_buf[4];
 	float *clip_plane = (!active && dial->style == ED_MANIPULATOR_DIAL_STYLE_RING_CLIPPED) ? clip_plane_buf : NULL;
 
+	BLI_assert(dial->style != -1);
+
 	/* enable clipping if needed */
 	if (clip_plane) {
 		ARegion *ar = CTX_wm_region(C);
@@ -362,6 +364,18 @@ static void manipulator_dial_modal(bContext *C, wmManipulator *mpr, const wmEven
 	}
 }
 
+
+static void manipulator_dial_setup(wmManipulator *mpr)
+{
+	DialManipulator *dial = (DialManipulator *)mpr;
+	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
+
+	dial->style = -1;
+
+	/* defaults */
+	copy_v3_v3(dial->direction, dir_default);
+}
+
 static void manipulator_dial_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
@@ -378,25 +392,18 @@ static void manipulator_dial_invoke(
 	mpr->interaction_data = inter;
 }
 
-
 /* -------------------------------------------------------------------- */
 /** \name Dial Manipulator API
  *
  * \{ */
 
-wmManipulator *ED_manipulator_dial3d_new(wmManipulatorGroup *mgroup, const char *name, const int style)
+#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_dial_draw)
+
+void ED_manipulator_dial3d_set_style(struct wmManipulator *mpr, int style)
 {
-	DialManipulator *dial = (DialManipulator *)WM_manipulator_new(
-	        "MANIPULATOR_WT_dial", mgroup, name);
-
-	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
-
+	ASSERT_TYPE_CHECK(mpr);
+	DialManipulator *dial = (DialManipulator *)mpr;
 	dial->style = style;
-
-	/* defaults */
-	copy_v3_v3(dial->direction, dir_default);
-
-	return (wmManipulator *)dial;
 }
 
 /**
@@ -404,20 +411,22 @@ wmManipulator *ED_manipulator_dial3d_new(wmManipulatorGroup *mgroup, const char 
  */
 void ED_manipulator_dial3d_set_up_vector(wmManipulator *mpr, const float direction[3])
 {
+	ASSERT_TYPE_CHECK(mpr);
 	DialManipulator *dial = (DialManipulator *)mpr;
 
 	copy_v3_v3(dial->direction, direction);
 	normalize_v3(dial->direction);
 }
 
-static void MANIPULATOR_WT_dial_3d(wmManipulatorType *wt)
+static void MANIPULATOR_WT_dial_3d_3d(wmManipulatorType *wt)
 {
 	/* identifiers */
-	wt->idname = "MANIPULATOR_WT_dial";
+	wt->idname = "MANIPULATOR_WT_dial_3d";
 
 	/* api callbacks */
 	wt->draw = manipulator_dial_draw;
 	wt->draw_select = manipulator_dial_draw_select;
+	wt->setup = manipulator_dial_setup;
 	wt->invoke = manipulator_dial_invoke;
 	wt->modal = manipulator_dial_modal;
 
@@ -426,7 +435,7 @@ static void MANIPULATOR_WT_dial_3d(wmManipulatorType *wt)
 
 void ED_manipulatortypes_dial_3d(void)
 {
-	WM_manipulatortype_append(MANIPULATOR_WT_dial_3d);
+	WM_manipulatortype_append(MANIPULATOR_WT_dial_3d_3d);
 }
 
 /** \} */ // Dial Manipulator API

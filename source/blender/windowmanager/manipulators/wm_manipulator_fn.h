@@ -45,6 +45,8 @@ typedef struct wmKeyMap *(*wmManipulatorGroupFnSetupKeymap)(
 
 /* wmManipulator */
 /* See: wmManipulatorType for docs on each type. */
+
+typedef void    (*wmManipulatorFnSetup)(struct wmManipulator *);
 typedef void    (*wmManipulatorFnDraw)(const struct bContext *, struct wmManipulator *);
 typedef void    (*wmManipulatorFnDrawSelect)(const struct bContext *, struct wmManipulator *, int);
 typedef int     (*wmManipulatorFnTestSelect)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
