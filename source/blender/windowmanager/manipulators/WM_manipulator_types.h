@@ -61,7 +61,8 @@ struct wmManipulator {
 	/* While we don't have a real type, use this to put type-like vars. */
 	const struct wmManipulatorType *type;
 
-	/* Overrides 'type->handler' when set. */
+	/* Overrides 'type->modal' when set.
+	 * Note that this is a workaround, remove if we can. */
 	wmManipulatorFnModal custom_modal;
 
 	/* pointer back to group this manipulator is in (just for quick access) */
@@ -72,9 +73,17 @@ struct wmManipulator {
 	int flag; /* flags that influence the behavior or how the manipulators are drawn */
 	short state; /* state flags (active, highlighted, selected) */
 
+	/* Optional ID for highlighting different parts of this manipulator. */
 	int highlight_part;
 
-	/* center of manipulator in space, 2d or 3d */
+	/* Transformation of the manipulator in 2d or 3d space.
+	 * - Matrix axis are expected to be unit length (scale is applied after).
+	 * - Behavior when axis aren't orthogonal depends on each manipulator.
+	 * - Typically the +Z is the primary axis for manipulators to use.
+	 * - 'matrix[3]' must be used for location,
+	 *   besides this it's up to the manipulators internal code how the
+	 *   rotation components are used for drawing and interaction.
+	 */
 	float matrix[4][4];
 	/* custom offset from origin */
 	float matrix_offset[4][4];
@@ -194,7 +203,11 @@ typedef struct wmManipulatorType {
 	wmManipulatorFnPropertyUpdate property_update;
 
 	/* Returns the final transformation which may be different from the 'matrix',
-	 * depending on the manipulator. */
+	 * depending on the manipulator.
+	 * Notes:
+	 * - Scale isn't applied (wmManipulator.scale/user_scale).
+	 * - Offset isn't applied (wmManipulator.matrix_offset).
+	 */
 	wmManipulatorFnMatrixWorldGet matrix_world_get;
 
 	/* activate a manipulator state when the user clicks on it */
