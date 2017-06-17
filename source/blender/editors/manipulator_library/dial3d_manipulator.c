@@ -199,7 +199,7 @@ static void dial_ghostarc_get_angles(
 
 	/* we might need to invert the direction of the angles */
 	float view_vec[3], axis_vec[3];
-	ED_view3d_global_to_vector(rv3d, rv3d->twmat[3], view_vec);
+	ED_view3d_global_to_vector(rv3d, dial->manipulator.origin, view_vec);
 	normalize_v3_v3(axis_vec, dial->direction);
 	if (dot_v3v3(view_vec, axis_vec) < 0.0f) {
 		inv = true;
