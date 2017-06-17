@@ -110,7 +110,7 @@ static void dial_calc_matrix(const DialManipulator *dial, float mat[4][4])
 
 	rotation_between_vecs_to_mat3(rot, up, dial->direction);
 	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], dial->manipulator.origin);
+	copy_v3_v3(mat[3], dial->manipulator.matrix[3]);
 	mul_mat3_m4_fl(mat, dial->manipulator.scale);
 }
 
@@ -208,12 +208,12 @@ static void dial_ghostarc_get_angles(
 
 	/* we might need to invert the direction of the angles */
 	float view_vec[3], axis_vec[3];
-	ED_view3d_global_to_vector(rv3d, dial->manipulator.origin, view_vec);
+	ED_view3d_global_to_vector(rv3d, dial->manipulator.matrix[3], view_vec);
 	normalize_v3_v3(axis_vec, dial->direction);
 
 	float proj_outer_rel[3];
 	mul_v3_project_m4_v3(proj_outer_rel, mat, co_outer);
-	sub_v3_v3(proj_outer_rel, dial->manipulator.origin);
+	sub_v3_v3(proj_outer_rel, dial->manipulator.matrix[3]);
 
 	float proj_mval_new_rel[3];
 	float proj_mval_init_rel[3];
@@ -221,7 +221,7 @@ static void dial_ghostarc_get_angles(
 	float ray_co[3], ray_no[3];
 	float ray_lambda;
 
-	plane_from_point_normal_v3(dial_plane, dial->manipulator.origin, axis_vec);
+	plane_from_point_normal_v3(dial_plane, dial->manipulator.matrix[3], axis_vec);
 
 	if (!ED_view3d_win_to_ray(ar, v3d, inter->init_mval, ray_co, ray_no, false) ||
 		!isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
@@ -229,7 +229,7 @@ static void dial_ghostarc_get_angles(
 		goto fail;
 	}
 	madd_v3_v3v3fl(proj_mval_init_rel, ray_co, ray_no, ray_lambda);
-	sub_v3_v3(proj_mval_init_rel, dial->manipulator.origin);
+	sub_v3_v3(proj_mval_init_rel, dial->manipulator.matrix[3]);
 
 	if (!ED_view3d_win_to_ray(ar, v3d, mval, ray_co, ray_no, false) ||
 		!isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
@@ -237,7 +237,7 @@ static void dial_ghostarc_get_angles(
 		goto fail;
 	}
 	madd_v3_v3v3fl(proj_mval_new_rel, ray_co, ray_no, ray_lambda);
-	sub_v3_v3(proj_mval_new_rel, dial->manipulator.origin);
+	sub_v3_v3(proj_mval_new_rel, dial->manipulator.matrix[3]);
 
 	/* Start direction from mouse or set by user */
 	const float *proj_init_rel = dial->use_start_direction ? dial->start_direction : proj_mval_init_rel;
@@ -284,7 +284,7 @@ static void dial_draw_intern(
 
 	gpuPushMatrix();
 	gpuMultMatrix(mat);
-	gpuTranslate3fv(dial->manipulator.offset);
+	gpuMultMatrix(dial->manipulator.matrix_offset);
 
 	/* draw rotation indicator arc first */
 	if ((dial->manipulator.flag & WM_MANIPULATOR_DRAW_VALUE) &&
@@ -335,7 +335,7 @@ static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, 
 		RegionView3D *rv3d = ar->regiondata;
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
-		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->origin);
+		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix[3]);
 		glEnable(GL_CLIP_DISTANCE0);
 	}
 
@@ -363,7 +363,7 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 		RegionView3D *rv3d = ar->regiondata;
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
-		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->origin);
+		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix[3]);
 		clip_plane[3] -= 0.02 * dial->manipulator.scale;
 
 		glEnable(GL_CLIP_DISTANCE0);

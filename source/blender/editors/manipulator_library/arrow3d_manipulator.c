@@ -89,12 +89,12 @@ typedef struct ArrowManipulator3D {
 
 /* -------------------------------------------------------------------- */
 
-static void manipulator_arrow_position_get(wmManipulator *mpr, float r_pos[3])
+static void manipulator_arrow_matrix_world_get(wmManipulator *mpr, float r_matrix[4][4])
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
-	mul_v3_v3fl(r_pos, arrow->direction, arrow->data.offset);
-	add_v3_v3(r_pos, arrow->manipulator.origin);
+	copy_m4_m4(r_matrix, arrow->manipulator.matrix);
+	madd_v3_v3fl(r_matrix[3], arrow->direction, arrow->data.offset);
 }
 
 static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, const float color[4])
@@ -190,10 +190,10 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 	float col[4];
 	float rot[3][3];
 	float mat[4][4];
-	float final_pos[3];
+	float final_matrix[4][4];
 
 	manipulator_color_get(&arrow->manipulator, highlight, col);
-	manipulator_arrow_position_get(&arrow->manipulator, final_pos);
+	manipulator_arrow_matrix_world_get(&arrow->manipulator, final_matrix);
 
 	if (arrow->flag & ARROW_UP_VECTOR_SET) {
 		copy_v3_v3(rot[2], arrow->direction);
@@ -204,12 +204,12 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 		rotation_between_vecs_to_mat3(rot, up, arrow->direction);
 	}
 	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], final_pos);
+	copy_v3_v3(mat[3], final_matrix[3]);
 	mul_mat3_m4_fl(mat, arrow->manipulator.scale);
 
 	gpuPushMatrix();
 	gpuMultMatrix(mat);
-	gpuTranslate3fv(arrow->manipulator.offset);
+	gpuMultMatrix(arrow->manipulator.matrix_offset);
 
 	glEnable(GL_BLEND);
 	arrow_draw_geom(arrow, select, col);
@@ -221,12 +221,12 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 		ManipulatorInteraction *inter = arrow->manipulator.interaction_data;
 
 		copy_m4_m3(mat, rot);
-		copy_v3_v3(mat[3], inter->init_origin);
+		copy_v3_v3(mat[3], inter->init_matrix[3]);
 		mul_mat3_m4_fl(mat, inter->init_scale);
 
 		gpuPushMatrix();
 		gpuMultMatrix(mat);
-		gpuTranslate3fv(arrow->manipulator.offset);
+		gpuMultMatrix(arrow->manipulator.matrix_offset);
 
 		glEnable(GL_BLEND);
 		arrow_draw_geom(arrow, select, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f});
@@ -269,7 +269,7 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 	bool use_vertical = false;
 
 
-	copy_v3_v3(orig_origin, inter->init_origin);
+	copy_v3_v3(orig_origin, inter->init_matrix[3]);
 	orig_origin[3] = 1.0f;
 	add_v3_v3v3(offset, orig_origin, arrow->direction);
 	offset[3] = 1.0f;
@@ -313,7 +313,7 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 	float zfac = ED_view3d_calc_zfac(rv3d, orig_origin, NULL);
 	ED_view3d_win_to_delta(ar, dir2d_final, offset, zfac);
 
-	add_v3_v3v3(orig_origin, offset, inter->init_origin);
+	add_v3_v3v3(orig_origin, offset, inter->init_matrix[3]);
 
 	/* calculate view vector for the new position */
 	if (rv3d->is_persp) {
@@ -402,7 +402,7 @@ static void manipulator_arrow_invoke(
 
 	inter->init_scale = mpr->scale;
 
-	manipulator_arrow_position_get(mpr, inter->init_origin);
+	manipulator_arrow_matrix_world_get(mpr, inter->init_matrix);
 
 	mpr->interaction_data = inter;
 }
@@ -535,7 +535,7 @@ static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 	/* api callbacks */
 	wt->draw = manipulator_arrow_draw;
 	wt->draw_select = manipulator_arrow_draw_select;
-	wt->position_get = manipulator_arrow_position_get;
+	wt->matrix_world_get = manipulator_arrow_matrix_world_get;
 	wt->modal = manipulator_arrow_modal;
 	wt->setup = manipulator_arrow_setup;
 	wt->invoke = manipulator_arrow_invoke;

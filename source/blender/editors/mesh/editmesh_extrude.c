@@ -900,7 +900,7 @@ static void manipulator_spin_prop_depth_get(
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
 
-	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, mpr->origin);
+	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, mpr->matrix[3]);
 }
 
 static void manipulator_spin_prop_depth_set(
@@ -917,7 +917,7 @@ static void manipulator_spin_prop_depth_set(
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane);
 	normalize_v3(plane);
 
-	plane[3] = -value[0] - dot_v3v3(plane, mpr->origin);
+	plane[3] = -value[0] - dot_v3v3(plane, mpr->matrix[3]);
 
 	/* Keep our location, may be offset simply to be inside the viewport. */
 	closest_to_plane_normalized_v3(plane_co, plane, plane_co);

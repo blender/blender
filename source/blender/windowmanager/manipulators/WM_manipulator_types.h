@@ -75,9 +75,9 @@ struct wmManipulator {
 	int highlight_part;
 
 	/* center of manipulator in space, 2d or 3d */
-	float origin[3];
+	float matrix[4][4];
 	/* custom offset from origin */
-	float offset[3];
+	float matrix_offset[4][4];
 	/* runtime property, set the scale while drawing on the viewport */
 	float scale;
 	/* user defined scale, in addition to the original one */
@@ -193,9 +193,9 @@ typedef struct wmManipulatorType {
 	/* manipulator-specific handler to update manipulator attributes based on the property value */
 	wmManipulatorFnPropertyUpdate property_update;
 
-	/* returns the final position which may be different from the origin, depending on the manipulator.
-	 * used in calculations of scale */
-	wmManipulatorFnPositionGet position_get;
+	/* Returns the final transformation which may be different from the 'matrix',
+	 * depending on the manipulator. */
+	wmManipulatorFnMatrixWorldGet matrix_world_get;
 
 	/* activate a manipulator state when the user clicks on it */
 	wmManipulatorFnInvoke invoke;

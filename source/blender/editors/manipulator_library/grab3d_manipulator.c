@@ -87,7 +87,7 @@ static void grab_calc_matrix(const GrabManipulator *grab, float mat[4][4])
 
 	rotation_between_vecs_to_mat3(rot, up, grab->direction);
 	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], grab->manipulator.origin);
+	copy_v3_v3(mat[3], grab->manipulator.matrix[3]);
 	mul_mat3_m4_fl(mat, grab->manipulator.scale);
 }
 
@@ -160,7 +160,7 @@ static void grab3d_draw_intern(
 		gpuTranslate3fv(inter->output.co_ofs);
 	}
 	gpuMultMatrix(mat);
-	gpuTranslate3fv(grab->manipulator.offset);
+	gpuMultMatrix(grab->manipulator.matrix_offset);
 	glEnable(GL_BLEND);
 	grab_geom_draw(grab, col, select);
 	glDisable(GL_BLEND);
@@ -169,7 +169,7 @@ static void grab3d_draw_intern(
 	if (grab->manipulator.interaction_data) {
 		gpuPushMatrix();
 		gpuMultMatrix(mat);
-		gpuTranslate3fv(grab->manipulator.offset);
+		gpuMultMatrix(grab->manipulator.matrix_offset);
 		glEnable(GL_BLEND);
 		grab_geom_draw(grab, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f}, select);
 		glDisable(GL_BLEND);

@@ -73,6 +73,10 @@ static wmManipulator *wm_manipulator_create(
 
 	wmManipulator *mpr = MEM_callocN(wt->struct_size, __func__);
 	mpr->type = wt;
+
+	unit_m4(mpr->matrix);
+	unit_m4(mpr->matrix_offset);
+
 	return mpr;
 }
 
@@ -213,12 +217,12 @@ PointerRNA *WM_manipulator_set_operator(wmManipulator *mpr, const char *opname)
 
 void WM_manipulator_set_origin(wmManipulator *mpr, const float origin[3])
 {
-	copy_v3_v3(mpr->origin, origin);
+	copy_v3_v3(mpr->matrix[3], origin);
 }
 
 void WM_manipulator_set_offset(wmManipulator *mpr, const float offset[3])
 {
-	copy_v3_v3(mpr->offset, offset);
+	copy_v3_v3(mpr->matrix_offset[3], offset);
 }
 
 void WM_manipulator_set_flag(wmManipulator *mpr, const int flag, const bool enable)
@@ -361,14 +365,14 @@ void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 
 	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE_3D) {
 		if (rv3d /*&& (U.manipulator_flag & V3D_DRAW_MANIPULATOR) == 0*/) { /* UserPref flag might be useful for later */
-			if (mpr->type->position_get) {
-				float position[3];
+			if (mpr->type->matrix_world_get) {
+				float matrix_world[4][4];
 
-				mpr->type->position_get(mpr, position);
-				scale = ED_view3d_pixel_size(rv3d, position) * (float)U.manipulator_scale;
+				mpr->type->matrix_world_get(mpr, matrix_world);
+				scale = ED_view3d_pixel_size(rv3d, matrix_world[3]) * (float)U.manipulator_scale;
 			}
 			else {
-				scale = ED_view3d_pixel_size(rv3d, mpr->origin) * (float)U.manipulator_scale;
+				scale = ED_view3d_pixel_size(rv3d, mpr->matrix[3]) * (float)U.manipulator_scale;
 			}
 		}
 		else {

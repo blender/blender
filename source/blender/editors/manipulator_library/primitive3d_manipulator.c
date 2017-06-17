@@ -118,7 +118,7 @@ static void manipulator_primitive_draw_intern(
 	}
 
 	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], prim->manipulator.origin);
+	copy_v3_v3(mat[3], prim->manipulator.matrix[3]);
 	mul_mat3_m4_fl(mat, prim->manipulator.scale);
 
 	gpuPushMatrix();
@@ -129,7 +129,7 @@ static void manipulator_primitive_draw_intern(
 	col_inner[3] *= 0.5f;
 
 	glEnable(GL_BLEND);
-	gpuTranslate3fv(prim->manipulator.offset);
+	gpuMultMatrix(prim->manipulator.matrix_offset);
 	manipulator_primitive_draw_geom(col_inner, col_outer, prim->style);
 	glDisable(GL_BLEND);
 
@@ -143,14 +143,14 @@ static void manipulator_primitive_draw_intern(
 		col_outer[3] = 0.8f;
 
 		copy_m4_m3(mat, rot);
-		copy_v3_v3(mat[3], inter->init_origin);
+		copy_v3_v3(mat[3], inter->init_matrix[3]);
 		mul_mat3_m4_fl(mat, inter->init_scale);
 
 		gpuPushMatrix();
 		gpuMultMatrix(mat);
 
 		glEnable(GL_BLEND);
-		gpuTranslate3fv(prim->manipulator.offset);
+		gpuMultMatrix(prim->manipulator.matrix_offset);
 		manipulator_primitive_draw_geom(col_inner, col_outer, prim->style);
 		glDisable(GL_BLEND);
 
@@ -191,7 +191,7 @@ static void manipulator_primitive_invoke(
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
-	copy_v3_v3(inter->init_origin, mpr->origin);
+	copy_m4_m4(inter->init_matrix, mpr->matrix);
 	inter->init_scale = mpr->scale;
 
 	mpr->interaction_data = inter;

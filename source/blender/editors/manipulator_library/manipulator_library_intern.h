@@ -50,7 +50,7 @@ typedef struct ManipulatorCommonData {
 
 typedef struct ManipulatorInteraction {
 	float init_value; /* initial property value */
-	float init_origin[3];
+	float init_matrix[4][4];
 	float init_mval[2];
 	float init_offset;
 	float init_scale;

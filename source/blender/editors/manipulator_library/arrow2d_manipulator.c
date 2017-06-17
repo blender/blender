@@ -68,7 +68,7 @@ typedef struct ArrowManipulator2D {
 } ArrowManipulator2D;
 
 
-static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2], const float color[4])
+static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float matrix[4][4], const float color[4])
 {
 	const float size = 0.11f;
 	const float size_h = size / 2.0f;
@@ -78,11 +78,13 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float origin[2], 
 	uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	gpuPushMatrix();
-	gpuTranslate2fv(origin);
+	gpuMultMatrix(matrix);
 	gpuScaleUniform(arrow->manipulator.scale);
 	gpuRotate2D(RAD2DEGF(arrow->angle));
 	/* local offset */
-	gpuTranslate2f(arrow->manipulator.offset[0] + draw_line_ofs, arrow->manipulator.offset[1]);
+	gpuTranslate2f(
+	        arrow->manipulator.matrix_offset[3][0] + draw_line_ofs,
+	        arrow->manipulator.matrix_offset[3][1]);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -113,14 +115,14 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipul
 
 	glLineWidth(mpr->line_width);
 	glEnable(GL_BLEND);
-	arrow2d_draw_geom(arrow, mpr->origin, col);
+	arrow2d_draw_geom(arrow, mpr->matrix, col);
 	glDisable(GL_BLEND);
 
 	if (mpr->interaction_data) {
 		ManipulatorInteraction *inter = arrow->manipulator.interaction_data;
 
 		glEnable(GL_BLEND);
-		arrow2d_draw_geom(arrow, inter->init_origin, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
+		arrow2d_draw_geom(arrow, inter->init_matrix, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
 		glDisable(GL_BLEND);
 	}
 }
@@ -139,7 +141,7 @@ static void manipulator_arrow2d_invoke(
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
-	copy_v2_v2(inter->init_origin, mpr->origin);
+	copy_m4_m4(inter->init_matrix, mpr->matrix);
 	mpr->interaction_data = inter;
 }
 
@@ -152,7 +154,7 @@ static int manipulator_arrow2d_test_select(
 	float mval_local[2];
 
 	copy_v2_v2(mval_local, mval);
-	sub_v2_v2(mval_local, mpr->origin);
+	sub_v2_v2(mval_local, mpr->matrix[3]);
 
 	float line[2][2];
 	line[0][0] = line[0][1] = line[1][0] = 0.0f;

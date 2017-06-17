@@ -219,8 +219,8 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 	BLI_assert(cage->style != -1);
 
 	gpuPushMatrix();
-	gpuTranslate2f(mpr->origin[0] + mpr->offset[0],
-	               mpr->origin[1] + mpr->offset[1]);
+	gpuMultMatrix(mpr->matrix);
+	gpuMultMatrix(mpr->matrix_offset);
 	if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
 		gpuScaleUniform(cage->scale[0]);
 	else
@@ -281,9 +281,9 @@ static int manipulator_rect_transform_test_select(
 	float aspx = 1.0f, aspy = 1.0f;
 
 	/* rotate mouse in relation to the center and relocate it */
-	sub_v2_v2v2(point_local, mouse, mpr->origin);
-	point_local[0] -= mpr->offset[0];
-	point_local[1] -= mpr->offset[1];
+	sub_v2_v2v2(point_local, mouse, mpr->matrix[3]);
+	point_local[0] -= mpr->matrix_offset[3][0];
+	point_local[1] -= mpr->matrix_offset[3][1];
 	//rotate_m2(matrot, -cage->transform.rotation);
 
 	if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
@@ -419,7 +419,7 @@ static void manipulator_rect_transform_invoke(
 	Cage2D *cage = (Cage2D *)mpr;
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
 
-	copy_v2_v2(data->orig_offset, mpr->offset);
+	copy_v2_v2(data->orig_offset, mpr->matrix_offset[3]);
 	copy_v2_v2(data->orig_scale, cage->scale);
 
 	data->orig_mouse[0] = event->mval[0];
@@ -435,26 +435,26 @@ static void manipulator_rect_transform_modal(
 	Cage2D *cage = (Cage2D *)mpr;
 	RectTransformInteraction *data = mpr->interaction_data;
 	/* needed here as well in case clamping occurs */
-	const float orig_ofx = mpr->offset[0], orig_ofy = mpr->offset[1];
+	const float orig_ofx = mpr->matrix_offset[3][0], orig_ofy = mpr->matrix_offset[3][1];
 
 	const float valuex = (event->mval[0] - data->orig_mouse[0]);
 	const float valuey = (event->mval[1] - data->orig_mouse[1]);
 
 
 	if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
-		mpr->offset[0] = data->orig_offset[0] + valuex;
-		mpr->offset[1] = data->orig_offset[1] + valuey;
+		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex;
+		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey;
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
-		mpr->offset[0] = data->orig_offset[0] + valuex / 2.0;
+		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0;
 		cage->scale[0] = (cage->w * data->orig_scale[0] - valuex) / cage->w;
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
-		mpr->offset[0] = data->orig_offset[0] + valuex / 2.0;
+		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0;
 		cage->scale[0] = (cage->w * data->orig_scale[0] + valuex) / cage->w;
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
-		mpr->offset[1] = data->orig_offset[1] + valuey / 2.0;
+		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0;
 
 		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 			cage->scale[0] = (cage->h * data->orig_scale[0] - valuey) / cage->h;
@@ -464,7 +464,7 @@ static void manipulator_rect_transform_modal(
 		}
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
-		mpr->offset[1] = data->orig_offset[1] + valuey / 2.0;
+		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0;
 
 		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
 			cage->scale[0] = (cage->h * data->orig_scale[0] + valuey) / cage->h;
@@ -480,18 +480,18 @@ static void manipulator_rect_transform_modal(
 		    cage->scale[0] < MANIPULATOR_RECT_MIN_WIDTH / cage->w) 
 		{
 			cage->scale[0] = max_ff(MANIPULATOR_RECT_MIN_WIDTH / cage->h, MANIPULATOR_RECT_MIN_WIDTH / cage->w);
-			mpr->offset[0] = orig_ofx;
-			mpr->offset[1] = orig_ofy;
+			mpr->matrix_offset[3][0] = orig_ofx;
+			mpr->matrix_offset[3][1] = orig_ofy;
 		}
 	}
 	else {
 		if (cage->scale[0] < MANIPULATOR_RECT_MIN_WIDTH / cage->w) {
 			cage->scale[0] = MANIPULATOR_RECT_MIN_WIDTH / cage->w;
-			mpr->offset[0] = orig_ofx;
+			mpr->matrix_offset[3][0] = orig_ofx;
 		}
 		if (cage->scale[1] < MANIPULATOR_RECT_MIN_WIDTH / cage->h) {
 			cage->scale[1] = MANIPULATOR_RECT_MIN_WIDTH / cage->h;
-			mpr->offset[1] = orig_ofy;
+			mpr->matrix_offset[3][1] = orig_ofy;
 		}
 	}
 
@@ -499,7 +499,7 @@ static void manipulator_rect_transform_modal(
 
 	mpr_prop = WM_manipulator_property_find(mpr, "offset");
 	if (mpr_prop->prop != NULL) {
-		RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, mpr->offset);
+		RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, mpr->matrix_offset[3]);
 		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 	}
 
@@ -523,7 +523,7 @@ static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmMan
 	Cage2D *cage = (Cage2D *)mpr;
 
 	if (STREQ(mpr_prop->idname, "offset")) {
-		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, mpr->offset);
+		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, mpr->matrix_offset[3]);
 	}
 	else if (STREQ(mpr_prop->idname, "scale")) {
 		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, cage->scale);
