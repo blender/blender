@@ -77,8 +77,6 @@ enum {
 };
 
 void ED_manipulator_arrow3d_set_style(struct wmManipulator *mpr, int style);
-void ED_manipulator_arrow3d_set_direction(struct wmManipulator *mpr, const float direction[3]);
-void ED_manipulator_arrow3d_set_up_vector(struct wmManipulator *mpr, const float direction[3]);
 void ED_manipulator_arrow3d_set_line_len(struct wmManipulator *mpr, const float len);
 void ED_manipulator_arrow3d_set_ui_range(struct wmManipulator *mpr, const float min, const float max);
 void ED_manipulator_arrow3d_set_range_fac(struct wmManipulator *mpr, const float range_fac);
@@ -117,11 +115,9 @@ enum {
 };
 
 void ED_manipulator_dial3d_set_style(struct wmManipulator *mpr, int style);
-void ED_manipulator_dial3d_set_up_vector(
-        struct wmManipulator *mpr, const float direction[3]);
-void ED_manipulator_dial3d_set_start_vector(
-        struct wmManipulator *mpr, const bool enabled, const float direction[3]);
-void ED_manipulator_dial3d_set_double_helper(
+void ED_manipulator_dial3d_set_use_start_y_axis(
+        struct wmManipulator *mpr, const bool enabled);
+void ED_manipulator_dial3d_set_use_double_helper(
         struct wmManipulator *mpr, const bool enabled);
 
 /* -------------------------------------------------------------------- */
@@ -132,8 +128,6 @@ enum {
 };
 
 void ED_manipulator_grab3d_set_style(struct wmManipulator *mpr, int style);
-void ED_manipulator_grab3d_set_up_vector(
-        struct wmManipulator *mpr, const float direction[3]);
 
 
 /* -------------------------------------------------------------------- */
@@ -144,8 +138,6 @@ enum {
 };
 
 void ED_manipulator_primitive3d_set_style(struct wmManipulator *mpr, int style);
-void ED_manipulator_primitive3d_set_direction(struct wmManipulator *mpr, const float direction[3]);
-void ED_manipulator_primitive3d_set_up_vector(struct wmManipulator *mpr, const float direction[3]);
 
 
 #endif  /* __ED_MANIPULATOR_LIBRARY_H__ */

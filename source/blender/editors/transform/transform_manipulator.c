@@ -1149,7 +1149,7 @@ static void manipulator_modal(
 
 	if (calc_manipulator_stats(C)) {
 		manipulator_prepare_mat(C, v3d, rv3d);
-		WM_manipulator_set_origin(widget, rv3d->twmat[3]);
+		WM_manipulator_set_matrix_location(widget, rv3d->twmat[3]);
 	}
 
 	ED_region_tag_redraw(ar);
@@ -1199,7 +1199,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *UNUSED(C), wmManipulat
 				const float ofs_ax = 11.0f;
 				const float ofs[3] = {ofs_ax, ofs_ax, 0.0f};
 				WM_manipulator_set_scale(axis, 0.07f);
-				WM_manipulator_set_offset(axis, ofs);
+				WM_manipulator_set_matrix_offset_location(axis, ofs);
 				break;
 			}
 			case MAN_AXIS_TRANS_C:
@@ -1260,7 +1260,7 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 		const short axis_type = manipulator_get_axis_type(man, axis);
 		const int aidx_norm = manipulator_index_normalize(axis_idx);
 
-		WM_manipulator_set_origin(axis, rv3d->twmat[3]);
+		WM_manipulator_set_matrix_location(axis, rv3d->twmat[3]);
 
 		switch (axis_idx) {
 			case MAN_AXIS_TRANS_X:
@@ -1275,15 +1275,15 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 
 				manipulator_line_range(v3d, axis_type, &start_co[2], &len);
 
-				ED_manipulator_arrow3d_set_direction(axis, rv3d->twmat[aidx_norm]);
+				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
 				ED_manipulator_arrow3d_set_line_len(axis, len);
-				WM_manipulator_set_offset(axis, start_co);
+				WM_manipulator_set_matrix_offset_location(axis, start_co);
 				break;
 			}
 			case MAN_AXIS_ROT_X:
 			case MAN_AXIS_ROT_Y:
 			case MAN_AXIS_ROT_Z:
-				ED_manipulator_dial3d_set_up_vector(axis, rv3d->twmat[aidx_norm]);
+				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
 				break;
 			case MAN_AXIS_TRANS_XY:
 			case MAN_AXIS_TRANS_YZ:
@@ -1291,9 +1291,12 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 			case MAN_AXIS_SCALE_XY:
 			case MAN_AXIS_SCALE_YZ:
 			case MAN_AXIS_SCALE_ZX:
-				ED_manipulator_primitive3d_set_direction(axis, rv3d->twmat[aidx_norm - 1 < 0 ? 2 : aidx_norm - 1]);
-				ED_manipulator_primitive3d_set_up_vector(axis, rv3d->twmat[aidx_norm + 1 > 2 ? 0 : aidx_norm + 1]);
+			{
+				const float *y_axis = rv3d->twmat[aidx_norm + 1 > 2 ? 0 : aidx_norm + 1];
+				const float *z_axis = rv3d->twmat[aidx_norm - 1 < 0 ? 2 : aidx_norm - 1];
+				WM_manipulator_set_matrix_rotation_from_yz_axis(axis, y_axis, z_axis);
 				break;
+			}
 		}
 	}
 	MAN_ITER_AXES_END;
@@ -1344,7 +1347,7 @@ static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulato
 			case MAN_AXIS_ROT_C:
 			case MAN_AXIS_SCALE_C:
 			case MAN_AXIS_ROT_T:
-				ED_manipulator_dial3d_set_up_vector(axis, rv3d->viewinv[2]);
+				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->viewinv[2]);
 				break;
 		}
 	}

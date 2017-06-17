@@ -88,7 +88,7 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 		const float h = (ibuf->y > 0) ? ibuf->y : 64.0f;
 
 		ED_manipulator_cage2d_transform_set_dims(cage, w, h);
-		WM_manipulator_set_origin(cage, origin);
+		WM_manipulator_set_matrix_location(cage, origin);
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, false);
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */

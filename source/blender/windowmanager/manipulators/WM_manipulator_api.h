@@ -69,8 +69,20 @@ struct PointerRNA *WM_manipulator_set_operator(struct wmManipulator *, const cha
 /* callbacks */
 void WM_manipulator_set_fn_custom_modal(struct wmManipulator *mpr, wmManipulatorFnModal fn);
 
-void WM_manipulator_set_origin(struct wmManipulator *mpr, const float origin[3]);
-void WM_manipulator_set_offset(struct wmManipulator *mpr, const float offset[3]);
+void WM_manipulator_set_matrix_location(
+        struct wmManipulator *mpr, const float origin[3]);
+void WM_manipulator_set_matrix_rotation_from_z_axis(
+        struct wmManipulator *mpr, const float z_axis[3]);
+void WM_manipulator_set_matrix_rotation_from_yz_axis(
+        struct wmManipulator *mpr, const float y_axis[3], const float z_axis[3]);
+
+void WM_manipulator_set_matrix_offset_location(
+        struct wmManipulator *mpr, const float origin[3]);
+void WM_manipulator_set_matrix_offset_rotation_from_z_axis(
+        struct wmManipulator *mpr, const float z_axis[3]);
+void WM_manipulator_set_matrix_offset_rotation_from_yz_axis(
+        struct wmManipulator *mpr, const float y_axis[3], const float z_axis[3]);
+
 void WM_manipulator_set_flag(struct wmManipulator *mpr, const int flag, const bool enable);
 void WM_manipulator_set_scale(struct wmManipulator *mpr, float scale);
 void WM_manipulator_set_line_width(struct wmManipulator *mpr, const float line_width);

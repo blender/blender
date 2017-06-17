@@ -32,6 +32,10 @@
  *
  * \brief Simple arrow manipulator which is dragged into a certain direction.
  * The arrow head can have varying shapes, e.g. cone, box, etc.
+ *
+ * - `matrix[0]` is derived from Y and Z.
+ * - `matrix[1]` is 'up' for manipulator types that have an up.
+ * - `matrix[2]` is the arrow direction (for all arrowes).
  */
 
 #include "BIF_gl.h"
@@ -81,8 +85,6 @@ typedef struct ArrowManipulator3D {
 	int flag;
 
 	float len;          /* arrow line length */
-	float direction[3];
-	float up[3];
 	float aspect[2];    /* cone style only */
 } ArrowManipulator3D;
 
@@ -94,7 +96,7 @@ static void manipulator_arrow_matrix_world_get(wmManipulator *mpr, float r_matri
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
 	copy_m4_m4(r_matrix, arrow->manipulator.matrix);
-	madd_v3_v3fl(r_matrix[3], arrow->direction, arrow->data.offset);
+	madd_v3_v3fl(r_matrix[3], arrow->manipulator.matrix[2], arrow->data.offset);
 }
 
 static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, const float color[4])
@@ -186,31 +188,17 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 
 static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, const bool highlight)
 {
-	const float up[3] = {0.0f, 0.0f, 1.0f};
 	float col[4];
-	float rot[3][3];
-	float mat[4][4];
 	float final_matrix[4][4];
 
 	manipulator_color_get(&arrow->manipulator, highlight, col);
 	manipulator_arrow_matrix_world_get(&arrow->manipulator, final_matrix);
 
-	if (arrow->flag & ARROW_UP_VECTOR_SET) {
-		copy_v3_v3(rot[2], arrow->direction);
-		copy_v3_v3(rot[1], arrow->up);
-		cross_v3_v3v3(rot[0], arrow->up, arrow->direction);
-	}
-	else {
-		rotation_between_vecs_to_mat3(rot, up, arrow->direction);
-	}
-	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], final_matrix[3]);
-	mul_mat3_m4_fl(mat, arrow->manipulator.scale);
+	mul_mat3_m4_fl(final_matrix, arrow->manipulator.scale);
+	mul_m4_m4m4(final_matrix, final_matrix, arrow->manipulator.matrix_offset);
 
 	gpuPushMatrix();
-	gpuMultMatrix(mat);
-	gpuMultMatrix(arrow->manipulator.matrix_offset);
-
+	gpuMultMatrix(final_matrix);
 	glEnable(GL_BLEND);
 	arrow_draw_geom(arrow, select, col);
 	glDisable(GL_BLEND);
@@ -219,13 +207,13 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 
 	if (arrow->manipulator.interaction_data) {
 		ManipulatorInteraction *inter = arrow->manipulator.interaction_data;
+		float offset_matrix[4][4];
 
-		copy_m4_m3(mat, rot);
-		copy_v3_v3(mat[3], inter->init_matrix[3]);
-		mul_mat3_m4_fl(mat, inter->init_scale);
+		copy_m4_m4(offset_matrix, inter->init_matrix);
+		mul_mat3_m4_fl(offset_matrix, inter->init_scale);
 
 		gpuPushMatrix();
-		gpuMultMatrix(mat);
+		gpuMultMatrix(offset_matrix);
 		gpuMultMatrix(arrow->manipulator.matrix_offset);
 
 		glEnable(GL_BLEND);
@@ -271,7 +259,7 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 
 	copy_v3_v3(orig_origin, inter->init_matrix[3]);
 	orig_origin[3] = 1.0f;
-	add_v3_v3v3(offset, orig_origin, arrow->direction);
+	add_v3_v3v3(offset, orig_origin, arrow->manipulator.matrix[2]);
 	offset[3] = 1.0f;
 
 	/* calculate view vector */
@@ -285,7 +273,7 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 
 	/* first determine if view vector is really close to the direction. If it is, we use
 	 * vertical movement to determine offset, just like transform system does */
-	if (RAD2DEG(acos(dot_v3v3(viewvec, arrow->direction))) > 5.0f) {
+	if (RAD2DEG(acos(dot_v3v3(viewvec, arrow->manipulator.matrix[2]))) > 5.0f) {
 		/* multiply to projection space */
 		mul_m4_v4(rv3d->persmat, orig_origin);
 		mul_v4_fl(orig_origin, 1.0f / orig_origin[3]);
@@ -330,11 +318,11 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 		cross_v3_v3v3(plane, tangent, viewvec);
 
 		const float plane_offset = dot_v3v3(plane, offset);
-		const float plane_dir = dot_v3v3(plane, arrow->direction);
+		const float plane_dir = dot_v3v3(plane, arrow->manipulator.matrix[2]);
 		const float fac = (plane_dir != 0.0f) ? (plane_offset / plane_dir) : 0.0f;
 		facdir = (fac < 0.0) ? -1.0 : 1.0;
 		if (isfinite(fac)) {
-			mul_v3_v3fl(offset, arrow->direction, fac);
+			mul_v3_v3fl(offset, arrow->manipulator.matrix[2], fac);
 		}
 	}
 	else {
@@ -373,14 +361,11 @@ static void manipulator_arrow_setup(wmManipulator *mpr)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
-	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
-
 	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 
 	arrow->style = -1;
 	arrow->len = 1.0f;
 	arrow->data.range_fac = 1.0f;
-	copy_v3_v3(arrow->direction, dir_default);
 }
 
 static void manipulator_arrow_invoke(
@@ -446,34 +431,6 @@ void ED_manipulator_arrow3d_set_style(struct wmManipulator *mpr, int style)
 	}
 
 	arrow->style = style;
-}
-
-/**
- * Define direction the arrow will point towards
- */
-void ED_manipulator_arrow3d_set_direction(wmManipulator *mpr, const float direction[3])
-{
-	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-
-	copy_v3_v3(arrow->direction, direction);
-	normalize_v3(arrow->direction);
-}
-
-/**
- * Define up-direction of the arrow manipulator
- */
-void ED_manipulator_arrow3d_set_up_vector(wmManipulator *mpr, const float direction[3])
-{
-	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-
-	if (direction) {
-		copy_v3_v3(arrow->up, direction);
-		normalize_v3(arrow->up);
-		arrow->flag |= ARROW_UP_VECTOR_SET;
-	}
-	else {
-		arrow->flag &= ~ARROW_UP_VECTOR_SET;
-	}
 }
 
 /**

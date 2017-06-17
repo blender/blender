@@ -858,13 +858,13 @@ static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
 
-	WM_manipulator_set_origin(man->translate_z, plane_co);
-	WM_manipulator_set_origin(man->translate_c, plane_co);
-	WM_manipulator_set_origin(man->rotate_c, plane_co);
-	WM_manipulator_set_origin(man->angle_z, plane_co);
+	WM_manipulator_set_matrix_location(man->translate_z, plane_co);
+	WM_manipulator_set_matrix_location(man->translate_c, plane_co);
+	WM_manipulator_set_matrix_location(man->rotate_c, plane_co);
+	WM_manipulator_set_matrix_location(man->angle_z, plane_co);
 
-	ED_manipulator_arrow3d_set_direction(man->translate_z, plane_no);
-	ED_manipulator_dial3d_set_up_vector(man->angle_z, plane_no);
+	WM_manipulator_set_matrix_rotation_from_z_axis(man->translate_z, plane_no);
+	WM_manipulator_set_matrix_rotation_from_z_axis(man->angle_z, plane_no);
 
 	WM_manipulator_set_scale(man->translate_c, 0.2);
 
@@ -877,12 +877,12 @@ static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
 		project_plane_normalized_v3_v3v3(man->data.rotate_up, man->data.rotate_up, man->data.rotate_axis);
 		normalize_v3(man->data.rotate_up);
 
-		ED_manipulator_grab3d_set_up_vector(man->translate_c, plane_no);
-		ED_manipulator_dial3d_set_up_vector(man->rotate_c, man->data.rotate_axis);
+		WM_manipulator_set_matrix_rotation_from_z_axis(man->translate_c, plane_no);
+		WM_manipulator_set_matrix_rotation_from_yz_axis(man->rotate_c, man->data.rotate_axis, plane_no);
 
 		/* show the axis instead of mouse cursor */
-		ED_manipulator_dial3d_set_start_vector(man->rotate_c, true, plane_no);
-		ED_manipulator_dial3d_set_double_helper(man->rotate_c, true);
+		ED_manipulator_dial3d_set_use_start_y_axis(man->rotate_c, true);
+		ED_manipulator_dial3d_set_use_double_helper(man->rotate_c, true);
 	}
 }
 

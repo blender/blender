@@ -175,7 +175,7 @@ static void manipulator2d_modal(
 
 	manipulator2d_calc_origin(C, origin);
 	manipulator2d_origin_to_region(ar, origin);
-	WM_manipulator_set_origin(widget, origin);
+	WM_manipulator_set_matrix_location(widget, origin);
 
 	ED_region_tag_redraw(ar);
 }
@@ -197,7 +197,7 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 		/* set up widget data */
 		ED_manipulator_arrow2d_set_angle(axis, -M_PI_2 * axis_idx);
 		ED_manipulator_arrow2d_set_line_len(axis, 0.8f);
-		WM_manipulator_set_offset(axis, offset);
+		WM_manipulator_set_matrix_offset_location(axis, offset);
 		WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH);
 		WM_manipulator_set_scale(axis, U.manipulator_scale);
 		WM_manipulator_set_color(axis, col);
@@ -232,7 +232,7 @@ void ED_widgetgroup_manipulator2d_draw_prepare(const bContext *C, wmManipulatorG
 
 	MAN2D_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		WM_manipulator_set_origin(axis, origin);
+		WM_manipulator_set_matrix_location(axis, origin);
 	}
 	MAN2D_ITER_AXES_END;
 }

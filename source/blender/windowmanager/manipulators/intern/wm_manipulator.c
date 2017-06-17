@@ -215,12 +215,66 @@ PointerRNA *WM_manipulator_set_operator(wmManipulator *mpr, const char *opname)
 	return NULL;
 }
 
-void WM_manipulator_set_origin(wmManipulator *mpr, const float origin[3])
+static void wm_manipulator_set_matrix_rotation_from_z_axis__internal(
+        float matrix[4][4], const float z_axis[3])
+{
+	/* old code, seems we can use simpler method */
+#if 0
+	const float z_global[3] = {0.0f, 0.0f, 1.0f};
+	float rot[3][3];
+
+	rotation_between_vecs_to_mat3(rot, z_global, z_axis);
+	copy_v3_v3(matrix[0], rot[0]);
+	copy_v3_v3(matrix[1], rot[1]);
+	copy_v3_v3(matrix[2], rot[2]);
+#else
+	normalize_v3_v3(matrix[2], z_axis);
+	ortho_basis_v3v3_v3(matrix[0], matrix[1], matrix[2]);
+#endif
+
+}
+
+static void wm_manipulator_set_matrix_rotation_from_yz_axis__internal(
+        float matrix[4][4], const float y_axis[3], const float z_axis[3])
+{
+	normalize_v3_v3(matrix[1], y_axis);
+	normalize_v3_v3(matrix[2], z_axis);
+	cross_v3_v3v3(matrix[0], matrix[1], matrix[2]);
+	normalize_v3(matrix[0]);
+}
+
+/**
+ * wmManipulator.matrix utils.
+ */
+void WM_manipulator_set_matrix_rotation_from_z_axis(
+        wmManipulator *mpr, const float z_axis[3])
+{
+	wm_manipulator_set_matrix_rotation_from_z_axis__internal(mpr->matrix, z_axis);
+}
+void WM_manipulator_set_matrix_rotation_from_yz_axis(
+        wmManipulator *mpr, const float y_axis[3], const float z_axis[3])
+{
+	wm_manipulator_set_matrix_rotation_from_yz_axis__internal(mpr->matrix, y_axis, z_axis);
+}
+void WM_manipulator_set_matrix_location(wmManipulator *mpr, const float origin[3])
 {
 	copy_v3_v3(mpr->matrix[3], origin);
 }
 
-void WM_manipulator_set_offset(wmManipulator *mpr, const float offset[3])
+/**
+ * wmManipulator.matrix_offset utils.
+ */
+void WM_manipulator_set_matrix_offset_rotation_from_z_axis(
+        wmManipulator *mpr, const float z_axis[3])
+{
+	wm_manipulator_set_matrix_rotation_from_z_axis__internal(mpr->matrix_offset, z_axis);
+}
+void WM_manipulator_set_matrix_offset_rotation_from_yz_axis(
+        wmManipulator *mpr, const float y_axis[3], const float z_axis[3])
+{
+	wm_manipulator_set_matrix_rotation_from_yz_axis__internal(mpr->matrix_offset, y_axis, z_axis);
+}
+void WM_manipulator_set_matrix_offset_location(wmManipulator *mpr, const float offset[3])
 {
 	copy_v3_v3(mpr->matrix_offset[3], offset);
 }

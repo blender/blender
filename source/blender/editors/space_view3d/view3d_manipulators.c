@@ -97,8 +97,8 @@ static void WIDGETGROUP_lamp_refresh(const bContext *C, wmManipulatorGroup *mgro
 
 	negate_v3_v3(dir, ob->obmat[2]);
 
-	ED_manipulator_arrow3d_set_direction(wwrapper->manipulator, dir);
-	WM_manipulator_set_origin(wwrapper->manipulator, ob->obmat[3]);
+	WM_manipulator_set_matrix_rotation_from_z_axis(wwrapper->manipulator, dir);
+	WM_manipulator_set_matrix_location(wwrapper->manipulator, ob->obmat[3]);
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	PointerRNA lamp_ptr;
@@ -230,9 +230,8 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 	negate_v3_v3(dir, ob->obmat[2]);
 
 	if (ca->flag & CAM_SHOWLIMITS) {
-		ED_manipulator_arrow3d_set_direction(camgroup->dop_dist, dir);
-		ED_manipulator_arrow3d_set_up_vector(camgroup->dop_dist, ob->obmat[1]);
-		WM_manipulator_set_origin(camgroup->dop_dist, ob->obmat[3]);
+		WM_manipulator_set_matrix_location(camgroup->dop_dist, ob->obmat[3]);
+		WM_manipulator_set_matrix_rotation_from_yz_axis(camgroup->dop_dist, ob->obmat[1], dir);
 		WM_manipulator_set_scale(camgroup->dop_dist, ca->drawsize);
 		WM_manipulator_set_flag(camgroup->dop_dist, WM_MANIPULATOR_HIDDEN, false);
 
@@ -272,11 +271,11 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		asp[0] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? 1.0 : aspx / aspy;
 		asp[1] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? aspy / aspx : 1.0f;
 
-		ED_manipulator_arrow3d_set_up_vector(widget, ob->obmat[1]);
-		ED_manipulator_arrow3d_set_direction(widget, dir);
+		WM_manipulator_set_matrix_location(widget, ob->obmat[3]);
+		WM_manipulator_set_matrix_rotation_from_yz_axis(widget, ob->obmat[1], dir);
+
 		ED_manipulator_arrow3d_cone_set_aspect(widget, asp);
-		WM_manipulator_set_origin(widget, ob->obmat[3]);
-		WM_manipulator_set_offset(widget, offset);
+		WM_manipulator_set_matrix_offset_location(widget, offset);
 		WM_manipulator_set_scale(widget, drawsize);
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */
@@ -342,10 +341,9 @@ static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmManipulatorGroup
 		PointerRNA field_ptr;
 
 		RNA_pointer_create(&ob->id, &RNA_FieldSettings, pd, &field_ptr);
-
-		ED_manipulator_arrow3d_set_direction(wwrapper->manipulator, ob->obmat[2]);
-		WM_manipulator_set_origin(wwrapper->manipulator, ob->obmat[3]);
-		WM_manipulator_set_offset(wwrapper->manipulator, ofs);
+		WM_manipulator_set_matrix_location(wwrapper->manipulator, ob->obmat[3]);
+		WM_manipulator_set_matrix_rotation_from_z_axis(wwrapper->manipulator, ob->obmat[2]);
+		WM_manipulator_set_matrix_offset_location(wwrapper->manipulator, ofs);
 		WM_manipulator_set_flag(wwrapper->manipulator, WM_MANIPULATOR_HIDDEN, false);
 		WM_manipulator_property_def_rna(wwrapper->manipulator, "offset", &field_ptr, "strength", -1);
 	}

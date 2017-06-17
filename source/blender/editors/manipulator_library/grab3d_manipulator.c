@@ -26,6 +26,11 @@
  * 3D Manipulator
  *
  * \brief Simple manipulator to grab and translate.
+ *
+ * - `matrix[0]` is derived from Y and Z.
+ * - `matrix[1]` currently not used.
+ * - `matrix[2]` is the widget direction (for all manipulators).
+ *
  */
 
 #include "BIF_gl.h"
@@ -60,7 +65,6 @@ static void manipulator_grab_modal(bContext *C, wmManipulator *mpr, const wmEven
 typedef struct GrabManipulator {
 	wmManipulator manipulator;
 	int style;
-	float direction[3];
 } GrabManipulator;
 
 typedef struct GrabInteraction {
@@ -78,18 +82,6 @@ typedef struct GrabInteraction {
 
 #define DIAL_WIDTH       1.0f
 #define DIAL_RESOLUTION 32
-
-
-static void grab_calc_matrix(const GrabManipulator *grab, float mat[4][4])
-{
-	float rot[3][3];
-	const float up[3] = {0.0f, 0.0f, 1.0f};
-
-	rotation_between_vecs_to_mat3(rot, up, grab->direction);
-	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], grab->manipulator.matrix[3]);
-	mul_mat3_m4_fl(mat, grab->manipulator.scale);
-}
 
 /* -------------------------------------------------------------------- */
 
@@ -152,7 +144,8 @@ static void grab3d_draw_intern(
 
 	manipulator_color_get(&grab->manipulator, highlight, col);
 
-	grab_calc_matrix(grab, mat);
+	copy_m4_m4(mat, grab->manipulator.matrix);
+	mul_mat3_m4_fl(mat, grab->manipulator.scale);
 
 	gpuPushMatrix();
 	if (grab->manipulator.interaction_data) {
@@ -221,12 +214,7 @@ static void manipulator_grab_setup(wmManipulator *mpr)
 {
 	GrabManipulator *grab = (GrabManipulator *)mpr;
 
-	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
-
 	grab->style = -1;
-
-	/* defaults */
-	copy_v3_v3(grab->direction, dir_default);
 }
 
 static void manipulator_grab_invoke(
@@ -257,18 +245,6 @@ void ED_manipulator_grab3d_set_style(wmManipulator *mpr, int style)
 	ASSERT_TYPE_CHECK(mpr);
 	GrabManipulator *grab = (GrabManipulator *)mpr;
 	grab->style = style;
-}
-
-/**
- * Define up-direction of the grab3d manipulator
- */
-void ED_manipulator_grab3d_set_up_vector(wmManipulator *mpr, const float direction[3])
-{
-	ASSERT_TYPE_CHECK(mpr);
-	GrabManipulator *grab = (GrabManipulator *)mpr;
-
-	copy_v3_v3(grab->direction, direction);
-	normalize_v3(grab->direction);
 }
 
 static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)

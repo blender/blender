@@ -51,19 +51,9 @@
 /* own includes */
 #include "manipulator_library_intern.h"
 
-
-/* PrimitiveManipulator->flag */
-enum {
-	PRIM_UP_VECTOR_SET = (1 << 0),
-};
-
 typedef struct PrimitiveManipulator {
 	wmManipulator manipulator;
-
-	float direction[3];
-	float up[3];
 	int style;
-	int flag;
 } PrimitiveManipulator;
 
 
@@ -102,31 +92,19 @@ static void manipulator_primitive_draw_intern(
         const bool highlight)
 {
 	float col_inner[4], col_outer[4];
-	float rot[3][3];
 	float mat[4][4];
 
 	BLI_assert(prim->style != -1);
 
-	if (prim->flag & PRIM_UP_VECTOR_SET) {
-		copy_v3_v3(rot[2], prim->direction);
-		copy_v3_v3(rot[1], prim->up);
-		cross_v3_v3v3(rot[0], prim->up, prim->direction);
-	}
-	else {
-		const float up[3] = {0.0f, 0.0f, 1.0f};
-		rotation_between_vecs_to_mat3(rot, up, prim->direction);
-	}
+	manipulator_color_get(&prim->manipulator, highlight, col_outer);
+	copy_v4_v4(col_inner, col_outer);
+	col_inner[3] *= 0.5f;
 
-	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], prim->manipulator.matrix[3]);
+	copy_m4_m4(mat, prim->manipulator.matrix);
 	mul_mat3_m4_fl(mat, prim->manipulator.scale);
 
 	gpuPushMatrix();
 	gpuMultMatrix(mat);
-
-	manipulator_color_get(&prim->manipulator, highlight, col_outer);
-	copy_v4_v4(col_inner, col_outer);
-	col_inner[3] *= 0.5f;
 
 	glEnable(GL_BLEND);
 	gpuMultMatrix(prim->manipulator.matrix_offset);
@@ -142,8 +120,7 @@ static void manipulator_primitive_draw_intern(
 		copy_v3_fl(col_outer, 0.5f);
 		col_outer[3] = 0.8f;
 
-		copy_m4_m3(mat, rot);
-		copy_v3_v3(mat[3], inter->init_matrix[3]);
+		copy_m4_m4(mat, inter->init_matrix);
 		mul_mat3_m4_fl(mat, inter->init_scale);
 
 		gpuPushMatrix();
@@ -177,13 +154,8 @@ static void manipulator_primitive_setup(wmManipulator *mpr)
 {
 	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
 
-	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
-
 	prim->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 	prim->style = -1;
-
-	/* defaults */
-	copy_v3_v3(prim->direction, dir_default);
 }
 
 static void manipulator_primitive_invoke(
@@ -209,34 +181,6 @@ void ED_manipulator_primitive3d_set_style(struct wmManipulator *mpr, int style)
 	ASSERT_TYPE_CHECK(mpr);
 	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
 	prim->style = style;
-}
-
-/**
- * Define direction the primitive will point towards
- */
-void ED_manipulator_primitive3d_set_direction(wmManipulator *mpr, const float direction[3])
-{
-	ASSERT_TYPE_CHECK(mpr);
-	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
-
-	normalize_v3_v3(prim->direction, direction);
-}
-
-/**
- * Define up-direction of the primitive manipulator
- */
-void ED_manipulator_primitive3d_set_up_vector(wmManipulator *mpr, const float direction[3])
-{
-	ASSERT_TYPE_CHECK(mpr);
-	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
-
-	if (direction) {
-		normalize_v3_v3(prim->up, direction);
-		prim->flag |= PRIM_UP_VECTOR_SET;
-	}
-	else {
-		prim->flag &= ~PRIM_UP_VECTOR_SET;
-	}
 }
 
 static void MANIPULATOR_WT_primitive_3d(wmManipulatorType *wt)
