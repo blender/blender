@@ -132,11 +132,6 @@ void ED_manipulator_grab3d_set_style(struct wmManipulator *mpr, int style);
 void ED_manipulator_grab3d_set_up_vector(
         struct wmManipulator *mpr, const float direction[3]);
 
-/* -------------------------------------------------------------------- */
-/* Facemap Manipulator */
-
-struct bFaceMap *ED_manipulator_facemap_get_fmap(struct wmManipulator *mpr);
-
 
 /* -------------------------------------------------------------------- */
 /* Primitive Manipulator */
