@@ -86,7 +86,7 @@ typedef struct Cage2D {
 static void rect_transform_draw_corners(
         const rctf *r, const float offsetx, const float offsety, const float color[3])
 {
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3fv(color);
@@ -176,8 +176,8 @@ static void rect_transform_draw_interaction(
 	}
 
 	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
+	uint pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	glLineWidth(line_width + 3.0);

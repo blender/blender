@@ -99,7 +99,7 @@ static void manipulator_arrow_position_get(wmManipulator *mpr, float r_pos[3])
 
 static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, const float color[4])
 {
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+	uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 	bool unbind_shader = true;
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);

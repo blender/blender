@@ -250,7 +250,7 @@ static short manipulator_get_axis_type(const ManipulatorGroup *man, const wmMani
 }
 
 /* get index within axis type, so that x == 0, y == 1 and z == 2, no matter which axis type */
-static unsigned int manipulator_index_normalize(const int axis_idx)
+static uint manipulator_index_normalize(const int axis_idx)
 {
 	if (axis_idx > MAN_AXIS_TRANS_ZX) {
 		return axis_idx - 16;
@@ -272,7 +272,7 @@ static bool manipulator_is_axis_visible(
         const View3D *v3d, const RegionView3D *rv3d,
         const float idot[3], const int axis_type, const int axis_idx)
 {
-	const unsigned int aidx_norm = manipulator_index_normalize(axis_idx);
+	const uint aidx_norm = manipulator_index_normalize(axis_idx);
 	/* don't draw axis perpendicular to the view */
 	if (aidx_norm < 3 && idot[aidx_norm] < TW_AXIS_DOT_MIN) {
 		return false;

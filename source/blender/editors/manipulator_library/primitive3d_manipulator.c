@@ -81,7 +81,7 @@ static void manipulator_primitive_draw_geom(
         const float col_inner[4], const float col_outer[4], const int style)
 {
 	float (*verts)[3];
-	unsigned int vert_count = 0;
+	uint vert_count = 0;
 
 	if (style == ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE) {
 		verts = verts_plane;
@@ -89,7 +89,7 @@ static void manipulator_primitive_draw_geom(
 	}
 
 	if (vert_count > 0) {
-		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+		uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		wm_manipulator_vec_draw(col_inner, verts, vert_count, pos, PRIM_TRIANGLE_FAN);
 		wm_manipulator_vec_draw(col_outer, verts, vert_count, pos, PRIM_LINE_LOOP);

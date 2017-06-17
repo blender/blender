@@ -70,8 +70,8 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 	ElementListBuilder elb = {0};
 
 	VertexFormat format = {0};
-	unsigned int pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	unsigned int nor_id;
+	uint pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	uint nor_id;
 
 	if (use_lighting) {
 		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
@@ -113,8 +113,8 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 }
 
 void wm_manipulator_vec_draw(
-        const float color[4], const float (*verts)[3], unsigned int vert_count,
-        unsigned int pos, unsigned int primitive_type)
+        const float color[4], const float (*verts)[3], uint vert_count,
+        uint pos, uint primitive_type)
 {
 	immUniformColor4fv(color);
 	immBegin(primitive_type, vert_count);
