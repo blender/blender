@@ -444,6 +444,12 @@ static void manipulator_mesh_bisect_update_from_op(ManipulatorGroup *man)
 
 		ED_manipulator_grab3d_set_up_vector(man->translate_c, plane_no);
 		ED_manipulator_dial3d_set_up_vector(man->rotate_c, man->data.rotate_axis);
+
+		float plane_no_cross[3];
+		cross_v3_v3v3(plane_no_cross, plane_no, man->data.rotate_axis);
+
+		ED_manipulator_dial3d_set_start_vector(man->rotate_c, true, plane_no_cross);
+		ED_manipulator_dial3d_set_double_helper(man->rotate_c, true);
 	}
 }
 

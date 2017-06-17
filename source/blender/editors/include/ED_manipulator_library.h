@@ -119,7 +119,10 @@ enum {
 void ED_manipulator_dial3d_set_style(struct wmManipulator *mpr, int style);
 void ED_manipulator_dial3d_set_up_vector(
         struct wmManipulator *mpr, const float direction[3]);
-
+void ED_manipulator_dial3d_set_start_vector(
+        struct wmManipulator *mpr, const bool enabled, const float direction[3]);
+void ED_manipulator_dial3d_set_double_helper(
+        struct wmManipulator *mpr, const bool enabled);
 
 /* -------------------------------------------------------------------- */
 /* Grab Manipulator */

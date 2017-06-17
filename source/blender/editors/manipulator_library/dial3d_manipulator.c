@@ -70,6 +70,15 @@ typedef struct DialManipulator {
 	wmManipulator manipulator;
 	int style;
 	float direction[3];
+
+	/* Optional, for drawing the start of the pie based on on a vector
+	 * instead of the initial mouse location. Only for display. */
+	float start_direction[3];
+	uint use_start_direction : 1;
+
+	/* Show 2x helper angles (a mirrored segment).
+	 * Use when the dial represents a plane. */
+	uint use_double_helper : 1;
 } DialManipulator;
 
 typedef struct DialInteraction {
@@ -230,8 +239,11 @@ static void dial_ghostarc_get_angles(
 	madd_v3_v3v3fl(proj_mval_new_rel, ray_co, ray_no, ray_lambda);
 	sub_v3_v3(proj_mval_new_rel, dial->manipulator.origin);
 
+	/* Start direction from mouse or set by user */
+	const float *proj_init_rel = dial->use_start_direction ? dial->start_direction : proj_mval_init_rel;
+
 	/* return angles */
-	const float start = angle_wrap_rad(angle_signed_on_axis_v3v3_v3(proj_outer_rel, proj_mval_init_rel, axis_vec));
+	const float start = angle_wrap_rad(angle_signed_on_axis_v3v3_v3(proj_outer_rel, proj_init_rel, axis_vec));
 	const float delta = angle_wrap_rad(angle_signed_on_axis_v3v3_v3(proj_mval_init_rel, proj_mval_new_rel, axis_vec));
 
 	/* Change of sign, we passed the 180 degree threshold. This means we need to add a turn
@@ -288,14 +300,21 @@ static void dial_draw_intern(
 			manipulator_dial_modal((bContext *)C, &dial->manipulator, win->eventstate, 0);
 		}
 
-		const float angle_ofs = inter->output.angle_ofs;
-		const float angle_delta = inter->output.angle_delta;
+		float angle_ofs = inter->output.angle_ofs;
+		float angle_delta = inter->output.angle_delta;
 
 		/* draw! */
-		dial_ghostarc_draw(dial, angle_ofs, angle_delta, (const float [4]){0.8f, 0.8f, 0.8f, 0.4f});
+		for (int i = 0; i < 2; i++) {
+			dial_ghostarc_draw(dial, angle_ofs, angle_delta, (const float [4]){0.8f, 0.8f, 0.8f, 0.4f});
 
-		dial_ghostarc_draw_helpline(angle_ofs, co_outer, col); /* starting position */
-		dial_ghostarc_draw_helpline(angle_ofs + angle_delta, co_outer, col); /* starting position + current value */
+			dial_ghostarc_draw_helpline(angle_ofs, co_outer, col); /* starting position */
+			dial_ghostarc_draw_helpline(angle_ofs + angle_delta, co_outer, col); /* starting position + current value */
+			if (dial->use_double_helper == false) {
+				break;
+			}
+
+			angle_ofs += M_PI;
+		}
 	}
 
 	/* draw actual dial manipulator */
@@ -435,6 +454,25 @@ void ED_manipulator_dial3d_set_up_vector(wmManipulator *mpr, const float directi
 
 	copy_v3_v3(dial->direction, direction);
 	normalize_v3(dial->direction);
+}
+
+void ED_manipulator_dial3d_set_start_vector(wmManipulator *mpr, const bool enabled, const float direction[3])
+{
+	ASSERT_TYPE_CHECK(mpr);
+	DialManipulator *dial = (DialManipulator *)mpr;
+
+	dial->use_start_direction = enabled;
+	if (enabled) {
+		normalize_v3_v3(dial->start_direction, direction);
+	}
+}
+
+void ED_manipulator_dial3d_set_double_helper(wmManipulator *mpr, const bool enabled)
+{
+	ASSERT_TYPE_CHECK(mpr);
+	DialManipulator *dial = (DialManipulator *)mpr;
+
+	dial->use_double_helper = enabled;
 }
 
 static void MANIPULATOR_WT_dial_3d_3d(wmManipulatorType *wt)
