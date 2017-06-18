@@ -167,7 +167,7 @@ utf8_error:
 /**
  * Remove any invalid utf-8 byte (taking into account multi-bytes sequence of course).
  *
- * @return number of stripped bytes.
+ * \return number of stripped bytes.
  */
 int BLI_utf8_invalid_strip(char *str, size_t length)
 {

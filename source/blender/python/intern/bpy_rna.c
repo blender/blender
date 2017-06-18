@@ -7345,7 +7345,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 				arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
 
 				/* note, the number of args we check for and the number of args we give to
-				 * @staticmethods are different (quirk of python),
+				 * '@staticmethods' are different (quirk of python),
 				 * this is why rna_function_arg_count() doesn't return the value -1*/
 				if (is_staticmethod) {
 					func_arg_count++;

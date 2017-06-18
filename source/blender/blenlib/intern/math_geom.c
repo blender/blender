@@ -572,8 +572,8 @@ float dist_squared_to_ray_v3(
 }
 /**
  * Find the closest point in a seg to a ray and return the distance squared.
- * \param r_point : Is the point on segment closest to ray (or to ray_origin if the ray and the segment are parallel).
- * \param depth: the distance of r_point projection on ray to the ray_origin.
+ * \param r_point: Is the point on segment closest to ray (or to ray_origin if the ray and the segment are parallel).
+ * \param r_depth: the distance of r_point projection on ray to the ray_origin.
  */
 float dist_squared_ray_to_seg_v3(
         const float ray_origin[3], const float ray_direction[3],

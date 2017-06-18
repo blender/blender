@@ -234,7 +234,7 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 
 /* -------------------------------------------------------------------- */
 
-/** \Common utilities
+/** Common utilities
  * \{ */
 
 /**
@@ -620,7 +620,7 @@ static float dist_aabb_to_plane(
 
 /* -------------------------------------------------------------------- */
 
-/** \Walk DFS
+/** Walk DFS
  * \{ */
 
 typedef void (*Nearest2DGetEdgeVertsCallback)(const int index, const float *v_pair[2], void *data);

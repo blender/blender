@@ -56,7 +56,7 @@ public:
 	 * \param systemCocoa		The associated system class to forward events to
 	 * \param title				The text shown in the title bar of the window.
 	 * \param left				The coordinate of the left edge of the window.
-	 * \param top				The coordinate of the top edge of the window.
+	 * \param bottom			The coordinate of the bottom edge of the window.
 	 * \param width				The width the window.
 	 * \param height			The height the window.
 	 * \param state				The state the window is initially opened with.

@@ -1067,6 +1067,7 @@ typedef struct ImageOpenData {
 typedef struct ImageFrameRange {
 	struct ImageFrameRange *next, *prev;
 	ListBase frames;
+	/**  The full path of the first file in the list of image files */
 	char filepath[FILE_MAX];
 } ImageFrameRange;
 
@@ -1092,8 +1093,7 @@ static void image_open_cancel(bContext *UNUSED(C), wmOperator *op)
 /**
  * \brief Get a list of frames from the list of image files matching the first file name sequence pattern
  * \param ptr [in] the RNA pointer containing the "directory" entry and "files" collection
- * \param frames [out] the list of frame numbers found in the files matching the first one by name
- * \param path [out] the full path of the first file in the list of image files
+ * \param frames_all [out] the list of frame numbers found in the files matching the first one by name
  */
 static void image_sequence_get_frame_ranges(PointerRNA *ptr, ListBase *frames_all)
 {

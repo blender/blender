@@ -1601,7 +1601,6 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
  * Note: uses globals.
  * \param v1 start coordinate s
  * \param v2 target coordinate t
- * \param b1 
  * \param b2 
  * \param b3
  * \param a index for coordinate (x, y, or z)

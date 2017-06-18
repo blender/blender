@@ -237,9 +237,8 @@ typedef struct ImBuf {
 /**
  * \name Imbuf Component flags
  * \brief These flags determine the components of an ImBuf struct.
- */
-/**@{*/
-/** \brief Flag defining the components of the ImBuf struct. */
+ *
+ * \{ */
 
 #define IB_rect				(1 << 0)
 #define IB_test				(1 << 1)
@@ -259,14 +258,19 @@ typedef struct ImBuf {
 #define IB_thumbnail		(1 << 15)
 #define IB_multiview		(1 << 16)
 
+/** \} */
+
 /**
  * \name Imbuf preset profile tags
  * \brief Some predefined color space profiles that 8 bit imbufs can represent
- */
+ *
+ * \{ */
 #define IB_PROFILE_NONE			0
 #define IB_PROFILE_LINEAR_RGB	1
 #define IB_PROFILE_SRGB			2
 #define IB_PROFILE_CUSTOM		3
+
+/** \} */
 
 /* dds */
 #ifdef WITH_DDS
@@ -298,8 +302,16 @@ extern const char *imb_ext_audio[];
 /* image formats that can only be loaded via filepath */
 extern const char *imb_ext_image_filepath_only[];
 
+/**
+ * \name Imbuf Color Management Flag
+ * \brief Used with #ImBuf.colormanage_flag
+ *
+ * \{ */
+
 enum {
 	IMB_COLORMANAGE_IS_DATA = (1 << 0)
 };
 
-#endif
+/** \} */
+
+#endif  /* __IMB_IMBUF_TYPES_H__ */

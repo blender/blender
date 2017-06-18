@@ -311,8 +311,8 @@ typedef struct BoneFlipNameData {
  * This way if we are flipping related bones (e.g., Bone.L, Bone.R) at the same time
  * all the bones are safely renamed, without conflicting with each other.
  *
- * \param arm Armature the bones belong to
- * \param bones ListBase of BoneConflict elems, populated via ED_armature_bones_flip_names_add
+ * \param arm: Armature the bones belong to
+ * \param bones_names: List of BoneConflict elems.
  */
 void ED_armature_bones_flip_names(bArmature *arm, ListBase *bones_names)
 {
