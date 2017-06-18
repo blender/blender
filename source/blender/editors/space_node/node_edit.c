@@ -2086,7 +2086,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	/* make sure all clipboard nodes would be valid in the target tree */
 	all_nodes_valid = true;
 	for (node = clipboard_nodes_lb->first; node; node = node->next) {
-		if (!node->typeinfo->poll_instance(node, ntree)) {
+		if (!node->typeinfo->poll_instance || !node->typeinfo->poll_instance(node, ntree)) {
 			all_nodes_valid = false;
 			BKE_reportf(op->reports, RPT_ERROR, "Cannot add node %s into node tree %s", node->name, ntree->id.name + 2);
 		}
