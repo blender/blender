@@ -753,6 +753,10 @@ static void node_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegi
 					break;
 			}
 			break;
+		case NC_WM:
+			if (wmn->data == ND_JOB)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 		case NC_MATERIAL:
 		case NC_TEXTURE:
