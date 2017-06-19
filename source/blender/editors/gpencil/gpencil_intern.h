@@ -71,75 +71,23 @@ typedef struct GP_SpaceConversion {
 	float mat[4][4];     /* transform matrix on the strokes (introduced in [b770964]) */
 } GP_SpaceConversion;
 
-
-/**
- * Check whether a given stroke segment is inside a circular brush
- *
- * \param mval     The current screen-space coordinates (midpoint) of the brush
- * \param mvalo    The previous screen-space coordinates (midpoint) of the brush (NOT CURRENTLY USED)
- * \param rad      The radius of the brush
- *
- * \param x0, y0   The screen-space x and y coordinates of the start of the stroke segment
- * \param x1, y1   The screen-space x and y coordinates of the end of the stroke segment
- */
 bool gp_stroke_inside_circle(const int mval[2], const int UNUSED(mvalo[2]),
                              int rad, int x0, int y0, int x1, int y1);
 
-
-/**
- * Init settings for stroke point space conversions
- *
- * \param[out] r_gsc  The space conversion settings struct, populated with necessary params
- */
 void gp_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
 
-/**
- * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D)
- *
- * \param[out] r_x  The screen-space x-coordinate of the point
- * \param[out] r_y  The screen-space y-coordinate of the point
- */
 void gp_point_to_xy(GP_SpaceConversion *settings, struct bGPDstroke *gps, struct bGPDspoint *pt,
                     int *r_x, int *r_y);
 
-/**
- * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D)
- *
- * Just like gp_point_to_xy(), except the resulting coordinates are floats not ints.
- * Use this version to solve "stair-step" artifacts which may arise when roundtripping the calculations.
- *
- * \param[out] r_x  The screen-space x-coordinate of the point
- * \param[out] r_y  The screen-space y-coordinate of the point
- */
 void gp_point_to_xy_fl(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
                        float *r_x, float *r_y);
 
-/**
- * Convert point to parent space
- *
- * \param pt         Original point
- * \param diff_mat   Matrix with the difference between original parent matrix
- * \param[out] r_pt  Pointer to new point after apply matrix
- */
 void gp_point_to_parent_space(bGPDspoint *pt, float diff_mat[4][4], bGPDspoint *r_pt);
-/**
- * Change points position relative to parent object
- */
+
 void gp_apply_parent(bGPDlayer *gpl, bGPDstroke *gps);
-/**
- * Change point position relative to parent object
- */
+
 void gp_apply_parent_point(bGPDlayer *gpl, bGPDspoint *pt);
 
-/**
- * Convert a screenspace point to a 3D Grease Pencil coordinate.
- *
- * For use with editing tools where it is easier to perform the operations in 2D,
- * and then later convert the transformed points back to 3D.
- *
- * \param screeN_co    The screenspace 2D coordinates to convert to 
- * \param[out] r_out  The resulting 3D coordinates of the input point
- */
 bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, struct Scene *scene, const float screen_co[2], float r_out[3]);
 
 /* Poll Callbacks ------------------------------------ */
@@ -165,43 +113,10 @@ struct GHash *gp_copybuf_validate_colormap(bGPdata *gpd);
 void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke *next_stroke, int tag_flags);
 
 
-/**
- * Apply smooth to stroke point 
- * \param gps              Stroke to smooth
- * \param i                Point index
- * \param inf              Amount of smoothing to apply
- * \param affect_pressure  Apply smoothing to pressure values too?
- */
 bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure);
-
-/**
-* Apply smooth for strength to stroke point
-* \param gps              Stroke to smooth
-* \param i                Point index
-* \param inf              Amount of smoothing to apply
-*/
 bool gp_smooth_stroke_strength(bGPDstroke *gps, int i, float inf);
-
-/**
-* Apply smooth for thickness to stroke point (use pressure)
-* \param gps              Stroke to smooth
-* \param i                Point index
-* \param inf              Amount of smoothing to apply
-*/
 bool gp_smooth_stroke_thickness(bGPDstroke *gps, int i, float inf);
-
-/**
- * Subdivide a stroke once, by adding points at the midpoint between each pair of points
- * \param gps           Stroke data
- * \param new_totpoints Total number of points (after subdividing)
- */
 void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
-
-/**
-* Add randomness to stroke
-* \param gps           Stroke data
-* \param brush         Brush data
-*/
 void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush);
 
 /* Layers Enums -------------------------------------- */

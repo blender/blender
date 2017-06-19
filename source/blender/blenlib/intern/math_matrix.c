@@ -1803,16 +1803,16 @@ void blend_m4_m4m4(float out[4][4], const float dst[4][4], const float src[4][4]
 /**
  * A polar-decomposition-based interpolation between matrix A and matrix B.
  *
- * \note This code is about five times slower as the 'naive' interpolation done by \a blend_m3_m3m3
- *       (it typically remains below 2 usec on an average i74700, while \a blend_m3_m3m3 remains below 0.4 usec).
+ * \note This code is about five times slower as the 'naive' interpolation done by #blend_m3_m3m3
+ *       (it typically remains below 2 usec on an average i74700, while #blend_m3_m3m3 remains below 0.4 usec).
  *       However, it gives expected results even with non-uniformaly scaled matrices, see T46418 for an example.
  *
  * Based on "Matrix Animation and Polar Decomposition", by Ken Shoemake & Tom Duff
  *
- * @return R the interpolated matrix.
- * @param A the intput matrix which is totally effective with \a t = 0.0.
- * @param B the intput matrix which is totally effective with \a t = 1.0.
- * @param t the interpolation factor.
+ * \param R: Resulting interpolated matrix.
+ * \param A: Input matrix which is totally effective with `t = 0.0`.
+ * \param B: Input matrix which is totally effective with `t = 1.0`.
+ * \param t: Interpolation factor.
  */
 void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], const float t)
 {
@@ -1842,12 +1842,12 @@ void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], con
 }
 
 /**
- * Complete transform matrix interpolation, based on polar-decomposition-based interpolation from interp_m3_m3m3.
+ * Complete transform matrix interpolation, based on polar-decomposition-based interpolation from #interp_m3_m3m3.
  *
- * @return R the interpolated matrix.
- * @param A the intput matrix which is totally effective with \a t = 0.0.
- * @param B the intput matrix which is totally effective with \a t = 1.0.
- * @param t the interpolation factor.
+ * \param R: Resulting interpolated matrix.
+ * \param A: Input matrix which is totally effective with `t = 0.0`.
+ * \param B: Input matrix which is totally effective with `t = 1.0`.
+ * \param t: Interpolation factor.
  */
 void interp_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4], const float t)
 {

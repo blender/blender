@@ -116,6 +116,12 @@ struct GHash {
 };
 
 
+/* -------------------------------------------------------------------- */
+/* GHash API */
+
+/** \name Internal Utility API
+ * \{ */
+
 BLI_INLINE void ghash_entry_copy(
         GHash *gh_dst, Entry *dst, GHash *gh_src, Entry *src,
         GHashKeyCopyFP keycopyfp, GHashValCopyFP valcopyfp)
@@ -131,12 +137,6 @@ BLI_INLINE void ghash_entry_copy(
 		}
 	}
 }
-
-/* -------------------------------------------------------------------- */
-/* GHash API */
-
-/** \name Internal Utility API
- * \{ */
 
 /**
  * Get the full hash for a key.

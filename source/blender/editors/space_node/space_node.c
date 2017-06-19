@@ -777,6 +777,10 @@ static void node_region_listener(
 					break;
 			}
 			break;
+		case NC_WM:
+			if (wmn->data == ND_JOB)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			ED_region_tag_redraw(ar);
 			if (wmn->data == ND_RENDER_RESULT) {

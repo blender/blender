@@ -67,8 +67,6 @@ public:
 	 * Call this routine to update the mouse device when a button state changes.
 	 * \param button	Which button state changes.
 	 * \param isDown	The new state of the button.
-	 * \param x			Position x-coordinate of the cursor at the time of the state change.
-	 * \param y			Position y-coordinate of the cursor at the time of the state change.
 	 * \return Indication as to whether the event was processed.
 	 */
 	virtual bool ConvertButtonEvent(TButtonId button, bool isDown);

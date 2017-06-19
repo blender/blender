@@ -33,7 +33,7 @@
 #endif
 
 /**
- * @brief The CacheReader struct is only used for anonymous pointers,
+ * \brief The CacheReader struct is only used for anonymous pointers,
  * to interface between C and C++ code. This library only creates
  * pointers to AbcObjectReader (or subclasses thereof).
  */

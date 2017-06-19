@@ -355,9 +355,13 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 
 	{
 		const float step_length = 1.0f / (float)(totkeys - 1);
-		
 		float cur_length = 0.0f;
-		
+
+		if (max_length <= 0.0f) {
+			keys->segments = -1;
+			totkeys = 0;
+		}
+
 		/* we have to correct velocity because of kink & clump */
 		for (k = 0, key = keys; k < totkeys; ++k, ++key) {
 			if (k >= 2) {

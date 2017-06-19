@@ -1994,9 +1994,9 @@ static bool bmesh_test_dist_add(
 }
 
 /**
- * \parm mtx: Measure disatnce in this space.
- * \parm dists: Store the closest connected distance to selected vertices.
- * \parm index: Optionally store the original index we're measuring the distance to (can be NULL).
+ * \param mtx: Measure disatnce in this space.
+ * \param dists: Store the closest connected distance to selected vertices.
+ * \param index: Optionally store the original index we're measuring the distance to (can be NULL).
  */
 static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float *dists, int *index)
 {
