@@ -424,8 +424,8 @@ void wm_manipulatormaps_handled_modal_update(
 
 	/* regular update for running operator */
 	if (modal_running) {
-		if (mpr && mpr->opname &&
-		    STREQ(mpr->opname, handler->op->idname))
+		if (mpr && (mpr->op_data.type != NULL) &&
+		    (mpr->op_data.type == handler->op->type))
 		{
 			if (mpr->custom_modal) {
 				mpr->custom_modal(C, mpr, event, 0);
@@ -640,32 +640,23 @@ void wm_manipulatormap_active_set(
 		mpr->state |= WM_MANIPULATOR_STATE_ACTIVE;
 		mmap->mmap_context.active = mpr;
 
-		if (mpr->opname) {
-			wmOperatorType *ot = WM_operatortype_find(mpr->opname, 0);
+		if (mpr->op_data.type) {
+			/* first activate the manipulator itself */
+			if (mpr->type->invoke &&
+			    (mpr->type->modal || mpr->custom_modal))
+			{
+				mpr->type->invoke(C, mpr, event);
+			}
 
-			if (ot) {
+			WM_operator_name_call_ptr(C, mpr->op_data.type, WM_OP_INVOKE_DEFAULT, &mpr->op_data.ptr);
+
+			/* we failed to hook the manipulator to the operator handler or operator was cancelled, return */
+			if (!mmap->mmap_context.active) {
+				mpr->state &= ~WM_MANIPULATOR_STATE_ACTIVE;
 				/* first activate the manipulator itself */
-				if (mpr->type->invoke &&
-				    (mpr->type->modal || mpr->custom_modal))
-				{
-					mpr->type->invoke(C, mpr, event);
-				}
-
-				WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &mpr->opptr);
-
-				/* we failed to hook the manipulator to the operator handler or operator was cancelled, return */
-				if (!mmap->mmap_context.active) {
-					mpr->state &= ~WM_MANIPULATOR_STATE_ACTIVE;
-					/* first activate the manipulator itself */
-					MEM_SAFE_FREE(mpr->interaction_data);
-				}
-				return;
+				MEM_SAFE_FREE(mpr->interaction_data);
 			}
-			else {
-				printf("Manipulator error: operator not found");
-				mmap->mmap_context.active = NULL;
-				return;
-			}
+			return;
 		}
 		else {
 			if (mpr->type->invoke &&

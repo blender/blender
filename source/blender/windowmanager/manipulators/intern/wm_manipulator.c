@@ -171,8 +171,8 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 		wm_manipulator_deselect(mmap, mpr);
 	}
 
-	if (mpr->opptr.data) {
-		WM_operator_properties_free(&mpr->opptr);
+	if (mpr->op_data.ptr.data) {
+		WM_operator_properties_free(&mpr->op_data.ptr);
 	}
 	BLI_freelistN(&mpr->properties);
 
@@ -194,25 +194,16 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
  * \{ */
 
 
-PointerRNA *WM_manipulator_set_operator(wmManipulator *mpr, const char *opname)
+PointerRNA *WM_manipulator_set_operator(wmManipulator *mpr, wmOperatorType *ot)
 {
-	wmOperatorType *ot = WM_operatortype_find(opname, 0);
+	mpr->op_data.type = ot;
 
-	if (ot) {
-		mpr->opname = opname;
-
-		if (mpr->opptr.data) {
-			WM_operator_properties_free(&mpr->opptr);
-		}
-		WM_operator_properties_create_ptr(&mpr->opptr, ot);
-
-		return &mpr->opptr;
+	if (mpr->op_data.ptr.data) {
+		WM_operator_properties_free(&mpr->op_data.ptr);
 	}
-	else {
-		fprintf(stderr, "Error binding operator to manipulator: operator %s not found!\n", opname);
-	}
+	WM_operator_properties_create_ptr(&mpr->op_data.ptr, ot);
 
-	return NULL;
+	return &mpr->op_data.ptr;
 }
 
 static void wm_manipulator_set_matrix_rotation_from_z_axis__internal(

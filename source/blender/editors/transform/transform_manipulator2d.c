@@ -182,6 +182,7 @@ static void manipulator2d_modal(
 
 void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
+	wmOperatorType *ot_translate = WM_operatortype_find("TRANSFORM_OT_translate", true);
 	ManipulatorGroup2D *man = manipulatorgroup2d_init(mgroup);
 	mgroup->customdata = man;
 
@@ -204,7 +205,7 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 		WM_manipulator_set_color_highlight(axis, col_hi);
 
 		/* assign operator */
-		PointerRNA *ptr = WM_manipulator_set_operator(axis, "TRANSFORM_OT_translate");
+		PointerRNA *ptr = WM_manipulator_set_operator(axis, ot_translate);
 		int constraint[3] = {0.0f};
 		constraint[(axis_idx + 1) % 2] = 1;
 		if (RNA_struct_find_property(ptr, "constraint_axis"))

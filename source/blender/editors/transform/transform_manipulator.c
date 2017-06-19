@@ -1158,6 +1158,10 @@ static void manipulator_modal(
 static void WIDGETGROUP_manipulator_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
 	ManipulatorGroup *man = manipulatorgroup_init(mgroup);
+	struct {
+		wmOperatorType *translate, *rotate, *trackball, *resize;
+	} ot_store = {NULL};
+
 	mgroup->customdata = man;
 
 	/* *** set properties for axes *** */
@@ -1221,19 +1225,46 @@ static void WIDGETGROUP_manipulator_setup(const bContext *UNUSED(C), wmManipulat
 
 		switch (axis_type) {
 			case MAN_AXES_TRANSLATE:
-				ptr = WM_manipulator_set_operator(axis, "TRANSFORM_OT_translate");
+				if (ot_store.translate == NULL) {
+					ot_store.translate = WM_operatortype_find("TRANSFORM_OT_translate", true);
+				}
+				ptr = WM_manipulator_set_operator(axis, ot_store.translate);
 				break;
 			case MAN_AXES_ROTATE:
-				ptr = WM_manipulator_set_operator(
-				          axis, (axis_idx == MAN_AXIS_ROT_T) ?
-				          "TRANSFORM_OT_trackball" : "TRANSFORM_OT_rotate");
+			{
+				wmOperatorType *ot_rotate;
+				if (axis_idx == MAN_AXIS_ROT_T) {
+					if (ot_store.trackball == NULL) {
+						ot_store.trackball = WM_operatortype_find("TRANSFORM_OT_trackball", true);
+					}
+					ot_rotate = ot_store.trackball;
+				}
+				else {
+					if (ot_store.rotate == NULL) {
+						ot_store.rotate = WM_operatortype_find("TRANSFORM_OT_rotate", true);
+					}
+					ot_rotate = ot_store.rotate;
+				}
+				ptr = WM_manipulator_set_operator(axis, ot_rotate);
 				break;
+			}
 			case MAN_AXES_SCALE:
-				ptr = WM_manipulator_set_operator(axis, "TRANSFORM_OT_resize");
+			{
+				if (ot_store.resize == NULL) {
+					ot_store.resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
+				}
+				ptr = WM_manipulator_set_operator(axis, ot_store.resize);
 				break;
+			}
 		}
-		if (RNA_struct_find_property(ptr, "constraint_axis"))
-			RNA_boolean_set_array(ptr, "constraint_axis", constraint_axis);
+
+		{
+			PropertyRNA *prop;
+			if ((prop = RNA_struct_find_property(ptr, "constraint_axis"))) {
+				RNA_property_boolean_set_array(ptr, prop, constraint_axis);
+			}
+		}
+
 		RNA_boolean_set(ptr, "release_confirm", 1);
 	}
 	MAN_ITER_AXES_END;

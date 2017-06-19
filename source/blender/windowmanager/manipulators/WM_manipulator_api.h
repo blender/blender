@@ -64,7 +64,7 @@ void WM_manipulator_free(
         ListBase *manipulatorlist, struct wmManipulatorMap *mmap, struct wmManipulator *mpr,
         struct bContext *C);
 
-struct PointerRNA *WM_manipulator_set_operator(struct wmManipulator *, const char *opname);
+struct PointerRNA *WM_manipulator_set_operator(struct wmManipulator *, struct wmOperatorType *ot);
 
 /* callbacks */
 void WM_manipulator_set_fn_custom_modal(struct wmManipulator *mpr, wmManipulatorFnModal fn);

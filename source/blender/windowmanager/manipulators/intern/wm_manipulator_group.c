@@ -356,9 +356,8 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 	/* XXX temporary workaround for modal manipulator operator
 	 * conflicting with modal operator attached to manipulator */
-	if (mpr->opname) {
-		wmOperatorType *ot = WM_operatortype_find(mpr->opname, true);
-		if (ot->modal) {
+	if (mpr->op_data.type) {
+		if (mpr->op_data.type->modal) {
 			return OPERATOR_FINISHED;
 		}
 	}
