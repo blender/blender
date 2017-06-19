@@ -45,6 +45,7 @@
 
 
 #include "BKE_camera.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_DerivedMesh.h"
@@ -70,9 +71,12 @@ static void copyData(ModifierData *md, ModifierData *target)
 {
 #if 0
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
-	UVProjectModifierData *tumd = (UVProjectModifierData *) target;
 #endif
+	UVProjectModifierData *tumd = (UVProjectModifierData *) target;
+
 	modifier_copyData_generic(md, target);
+
+	id_us_plus((ID *)tumd->image);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
