@@ -510,10 +510,6 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	mark_as_advanced(WITH_LINKER_GOLD)
 endif()
 
-# Dependency graph
-option(WITH_LEGACY_DEPSGRAPH "Build Blender with legacy dependency graph" ON)
-mark_as_advanced(WITH_LEGACY_DEPSGRAPH)
-
 if(WIN32)
 	# Use hardcoded paths or find_package to find externals
 	option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
