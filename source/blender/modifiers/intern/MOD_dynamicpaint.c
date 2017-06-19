@@ -62,11 +62,11 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 	if (tpmd->canvas) {
 		for (DynamicPaintSurface *surface = tpmd->canvas->surfaces.first; surface; surface = surface->next) {
-			id_us_plus(surface->init_texture);
+			id_us_plus((ID *)surface->init_texture);
 		}
 	}
 	if (tpmd->brush) {
-		id_us_plus(tpmd->brush->mat);
+		id_us_plus((ID *)tpmd->brush->mat);
 	}
 }
 
