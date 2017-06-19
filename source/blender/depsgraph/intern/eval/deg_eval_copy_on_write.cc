@@ -349,6 +349,8 @@ void update_special_pointers(const Depsgraph *depsgraph,
 				mesh_cow->edit_btmesh = (BMEditMesh *)MEM_dupallocN(mesh_orig->edit_btmesh);
 				mesh_cow->edit_btmesh->ob =
 				        (Object *)depsgraph->get_cow_id(&mesh_orig->edit_btmesh->ob->id);
+				mesh_cow->edit_btmesh->derivedFinal = NULL;
+				mesh_cow->edit_btmesh->derivedCage = NULL;
 			}
 			break;
 		}
