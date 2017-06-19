@@ -415,22 +415,24 @@ bool wm_manipulator_select(bContext *C, wmManipulatorMap *mmap, wmManipulator *m
 void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 {
 	const RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	float scale = 1.0f;
+	float scale = U.ui_scale;
 
 	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE_3D) {
+		scale *= U.manipulator_size;
 		if (rv3d) {
+			/* 'ED_view3d_pixel_size' includes 'U.pixelsize', remove it. */
 			if (mpr->type->matrix_world_get) {
 				float matrix_world[4][4];
 
 				mpr->type->matrix_world_get(mpr, matrix_world);
-				scale = ED_view3d_pixel_size(rv3d, matrix_world[3]) * (float)U.manipulator_size;
+				scale *= ED_view3d_pixel_size(rv3d, matrix_world[3]) / U.pixelsize;
 			}
 			else {
-				scale = ED_view3d_pixel_size(rv3d, mpr->matrix[3]) * (float)U.manipulator_size;
+				scale *= ED_view3d_pixel_size(rv3d, mpr->matrix[3]) / U.pixelsize;
 			}
 		}
 		else {
-			scale = U.manipulator_size * 0.02f;
+			scale *= 0.02f;
 		}
 	}
 
