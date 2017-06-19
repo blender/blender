@@ -468,9 +468,9 @@ if(WITH_ALEMBIC)
 			--testdir "${TEST_SRC_DIR}/alembic"
 			--alembic-root "${ALEMBIC_ROOT_DIR}"
 		)
-		add_test(NAME script_alembic_import 
-			COMMAND 
-			"$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} 
+		add_test(NAME script_alembic_import
+			COMMAND
+			"$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 		--python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
 		--
 		--testdir "${TEST_SRC_DIR}/alembic"
