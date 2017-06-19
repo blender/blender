@@ -150,9 +150,8 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 	if (fluidmd && fluidmd->fss) {
 		if (fluidmd->fss->meshVelocities) {
 			MEM_freeN(fluidmd->fss->meshVelocities);
-			fluidmd->fss->meshVelocities = NULL;
 		}
-		MEM_freeN(fluidmd->fss);
+		MEM_SAFE_FREE(fluidmd->fss);
 	}
 	
 	return;
