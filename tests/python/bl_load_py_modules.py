@@ -36,6 +36,9 @@ BLACKLIST = {
     "cycles",
     "io_export_dxf",  # TODO, check on why this fails
     'io_import_dxf',  # Because of cydxfentity.so dependency
+
+    # The unpacked wheel is only loaded when actually used, not directly on import:
+    "io_blend_utils/blender_bam-unpacked.whl",
     }
 
 # Some modules need to add to the `sys.path`.
