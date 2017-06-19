@@ -1463,7 +1463,7 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 
 #ifdef WITH_INPUT_NDOF
 /* draw center and axis of rotation for ongoing 3D mouse navigation */
-static void draw_rotation_guide(RegionView3D *rv3d)
+static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 {
 	float o[3];    /* center of rotation */
 	float end[3];  /* endpoints for drawing */
