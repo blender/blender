@@ -783,3 +783,15 @@ class Clay:
         self._update()
         self._properties[name].use(data_path)
         setattr(self._properties[name], data_path, value)
+
+
+def setup_extra_arguments(filepath):
+    """
+    Create a value which is assigned to: ``UnitTesting._extra_arguments``
+    """
+    import sys
+
+    extra_arguments = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    sys.argv = [filepath] + extra_arguments[1:]
+
+    return extra_arguments
