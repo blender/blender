@@ -1605,13 +1605,13 @@ typedef enum {
 } ArrowDirection;
 
 #define POS_INDEX 0
-/* NOTE: this --^ is a bit hackish, but simplifies VertexFormat usage among functions
+/* NOTE: this --^ is a bit hackish, but simplifies Gwn_VertFormat usage among functions
  * private to this file  - merwin
  */
 
 static void drawArrow(ArrowDirection d, short offset, short length, short size)
 {
-	immBegin(PRIM_LINES, 6);
+	immBegin(GWN_PRIM_LINES, 6);
 
 	switch (d) {
 		case LEFT:
@@ -1648,7 +1648,7 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 
 static void drawArrowHead(ArrowDirection d, short size)
 {
-	immBegin(PRIM_LINES, 4);
+	immBegin(GWN_PRIM_LINES, 4);
 
 	switch (d) {
 		case LEFT:
@@ -1681,7 +1681,7 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 	float angle;
 	int a;
 
-	immBegin(PRIM_LINE_STRIP, segments + 1);
+	immBegin(GWN_PRIM_LINE_STRIP, segments + 1);
 
 	for (angle = angle_start, a = 0; a < segments; angle += delta, a++) {
 		immVertex2f(POS_INDEX, cosf(angle) * size, sinf(angle) * size);
@@ -1724,7 +1724,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 		/* Dashed lines first. */
 		if (ELEM(t->helpline, HLP_SPRING, HLP_ANGLE)) {
-			const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+			const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 			UNUSED_VARS_NDEBUG(shdr_pos); /* silence warning */
 			BLI_assert(shdr_pos == POS_INDEX);
@@ -1742,7 +1742,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 			immUniform1f("dash_width", 6.0f);
 			immUniform1f("dash_factor", 0.5f);
 
-			immBegin(PRIM_LINES, 2);
+			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2fv(POS_INDEX, cent);
 			immVertex2f(POS_INDEX, (float)t->mval[0], (float)t->mval[1]);
 			immEnd();
@@ -1751,7 +1751,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		}
 
 		/* And now, solid lines. */
-		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		UNUSED_VARS_NDEBUG(pos); /* silence warning */
 		BLI_assert(pos == POS_INDEX);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -6879,7 +6879,7 @@ static void drawEdgeSlide(TransInfo *t)
 			gpuPushMatrix();
 			gpuMultMatrix(t->obedit->obmat);
 
-			unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -6896,7 +6896,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 				glLineWidth(line_size);
 				immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
-				immBeginAtMost(PRIM_LINES, 4);
+				immBeginAtMost(GWN_PRIM_LINES, 4);
 				if (curr_sv->v_side[0]) {
 					immVertex3fv(pos, curr_sv->v_side[0]->co);
 					immVertex3fv(pos, curr_sv->v_co_orig);
@@ -6909,7 +6909,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 				immUniformThemeColorShadeAlpha(TH_SELECT, -30, alpha_shade);
 				glPointSize(ctrl_size);
-				immBegin(PRIM_POINTS, 1);
+				immBegin(GWN_PRIM_POINTS, 1);
 				if (sld->flipped) {
 					if (curr_sv->v_side[1]) immVertex3fv(pos, curr_sv->v_side[1]->co);
 				}
@@ -6920,7 +6920,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 				immUniformThemeColorShadeAlpha(TH_SELECT, 255, alpha_shade);
 				glPointSize(guide_size);
-				immBegin(PRIM_POINTS, 1);
+				immBegin(GWN_PRIM_POINTS, 1);
 				interp_line_v3_v3v3v3(co_mark, co_b, curr_sv->v_co_orig, co_a, fac);
 				immVertex3fv(pos, co_mark);
 				immEnd();
@@ -6934,7 +6934,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 					glLineWidth(line_size);
 					immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
-					immBegin(PRIM_LINES, sld->totsv * 2);
+					immBegin(GWN_PRIM_LINES, sld->totsv * 2);
 
 					sv = sld->sv;
 					for (i = 0; i < sld->totsv; i++, sv++) {
@@ -7493,12 +7493,12 @@ static void drawVertSlide(TransInfo *t)
 
 			glLineWidth(line_size);
 
-			const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+			const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			 
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 			immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
 
-			immBegin(PRIM_LINES, sld->totsv * 2);
+			immBegin(GWN_PRIM_LINES, sld->totsv * 2);
 			if (is_clamp) {
 				sv = sld->sv;
 				for (i = 0; i < sld->totsv; i++, sv++) {
@@ -7524,7 +7524,7 @@ static void drawVertSlide(TransInfo *t)
 
 			glPointSize(ctrl_size);
 
-			immBegin(PRIM_POINTS, 1);
+			immBegin(GWN_PRIM_POINTS, 1);
 			immVertex3fv(shdr_pos, (sld->flipped && sld->use_even) ?
 			            curr_sv->co_link_orig_3d[curr_sv->co_link_curr] :
 			            curr_sv->co_orig_3d);
@@ -7567,7 +7567,7 @@ static void drawVertSlide(TransInfo *t)
 				immUniform1f("dash_width", 6.0f);
 				immUniform1f("dash_factor", 0.5f);
 
-				immBegin(PRIM_LINES, 2);
+				immBegin(GWN_PRIM_LINES, 2);
 				immVertex3fv(shdr_pos, curr_sv->co_orig_3d);
 				immVertex3fv(shdr_pos, co_dest_3d);
 				immEnd();

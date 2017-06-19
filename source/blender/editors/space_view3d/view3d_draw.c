@@ -364,7 +364,7 @@ static void drawviewborder_grid3(uint shdr_pos, float x1, float x2, float y1, fl
 	x4 = x1 + (1.0f - fac) * (x2 - x1);
 	y4 = y1 + (1.0f - fac) * (y2 - y1);
 
-	immBegin(PRIM_LINES, 8);
+	immBegin(GWN_PRIM_LINES, 8);
 
 	immVertex2f(shdr_pos, x1, y3);
 	immVertex2f(shdr_pos, x2, y3);
@@ -389,7 +389,7 @@ static void drawviewborder_triangle(
 	float w = x2 - x1;
 	float h = y2 - y1;
 
-	immBegin(PRIM_LINES, 6);
+	immBegin(GWN_PRIM_LINES, 6);
 
 	if (w > h) {
 		if (golden) {
@@ -466,7 +466,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	x2i = (int)(x2 + (1.0f - 0.0001f));
 	y2i = (int)(y2 + (1.0f - 0.0001f));
 
-	uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	/* First, solid lines. */
 	{
@@ -558,7 +558,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			x3 = x1 + 0.5f * (x2 - x1);
 			y3 = y1 + 0.5f * (y2 - y1);
 
-			immBegin(PRIM_LINES, 4);
+			immBegin(GWN_PRIM_LINES, 4);
 
 			immVertex2f(shdr_pos, x1, y3);
 			immVertex2f(shdr_pos, x2, y3);
@@ -570,7 +570,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		}
 
 		if (ca->dtx & CAM_DTX_CENTER_DIAG) {
-			immBegin(PRIM_LINES, 4);
+			immBegin(GWN_PRIM_LINES, 4);
 
 			immVertex2f(shdr_pos, x1, y1);
 			immVertex2f(shdr_pos, x2, y2);
@@ -673,7 +673,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 static void drawrenderborder(ARegion *ar, View3D *v3d)
 {
 	/* use the same program for everything */
-	uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	glLineWidth(1.0f);
 
@@ -755,9 +755,9 @@ static void view3d_draw_background_gradient(void)
 {
 	/* TODO: finish 2D API & draw background with that */
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 	unsigned char col_hi[3], col_lo[3];
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
@@ -765,7 +765,7 @@ static void view3d_draw_background_gradient(void)
 	UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
 	UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
 
-	immBegin(PRIM_TRIANGLE_FAN, 4);
+	immBegin(GWN_PRIM_TRI_FAN, 4);
 	immAttrib3ubv(color, col_lo);
 	immVertex2f(pos, -1.0f, -1.0f);
 	immVertex2f(pos, 1.0f, -1.0f);
@@ -978,9 +978,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
 #endif
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
@@ -1017,7 +1017,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					if (gridline_ct == 0)
 						goto drawgrid_cleanup; /* nothing to draw */
 
-					immBegin(PRIM_LINES, gridline_ct * 2);
+					immBegin(GWN_PRIM_LINES, gridline_ct * 2);
 				}
 
 				float blend_fac = 1.0f - ((GRID_MIN_PX_F * 2.0f) / (float)dx_scalar);
@@ -1077,7 +1077,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		if (gridline_ct == 0)
 			goto drawgrid_cleanup; /* nothing to draw */
 
-		immBegin(PRIM_LINES, gridline_ct * 2);
+		immBegin(GWN_PRIM_LINES, gridline_ct * 2);
 
 		if (grids_to_draw == 2) {
 			UI_GetThemeColorBlend3ubv(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0), col2);
@@ -1154,13 +1154,13 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 
 			unsigned char col_bg[3], col_grid_emphasise[3], col_grid_light[3];
 
-			VertexFormat *format = immVertexFormat();
-			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			Gwn_VertFormat *format = immVertexFormat();
+			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-			immBegin(PRIM_LINES, vertex_ct);
+			immBegin(GWN_PRIM_LINES, vertex_ct);
 
 			/* draw normal grid lines */
 			UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
@@ -1242,12 +1242,12 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 		if (show_axis_x || show_axis_y || show_axis_z) {
 			/* draw axis lines -- sometimes grid floor is off, other times we still need to draw the Z axis */
 
-			VertexFormat *format = immVertexFormat();
-			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			Gwn_VertFormat *format = immVertexFormat();
+			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
-			immBegin(PRIM_LINES, (show_axis_x + show_axis_y + show_axis_z) * 2);
+			immBegin(GWN_PRIM_LINES, (show_axis_x + show_axis_y + show_axis_z) * 2);
 
 			if (show_axis_x) {
 				UI_make_axis_color(col_grid, col_axis, 'X');
@@ -1347,15 +1347,15 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		
 		glLineWidth(1.0f);
 
-		VertexFormat *format = immVertexFormat();
-		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 		const int segments = 16;
 
-		immBegin(PRIM_LINE_LOOP, segments);
+		immBegin(GWN_PRIM_LINE_LOOP, segments);
 
 		for (int i = 0; i < segments; ++i) {
 			float angle = 2 * M_PI * ((float)i / (float)segments);
@@ -1373,8 +1373,8 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 
 		immUnbindProgram();
 
-		VertexFormat_clear(format);
-		pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		GWN_vertformat_clear(format);
+		pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1382,7 +1382,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
 		immUniformColor3ubv(crosshair_color);
 
-		immBegin(PRIM_LINES, 8);
+		immBegin(GWN_PRIM_LINES, 8);
 		immVertex2f(pos, co[0] - f20, co[1]);
 		immVertex2f(pos, co[0] - f5, co[1]);
 		immVertex2f(pos, co[0] + f5, co[1]);
@@ -1432,12 +1432,12 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(PRIM_LINES, 6);
+	immBegin(GWN_PRIM_LINES, 6);
 
 	for (int axis_i = 0; axis_i < 3; axis_i++) {
 		int i = axis_order[axis_i];
@@ -1476,9 +1476,9 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE);  /* don't overwrite zbuf */
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	unsigned int col = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	unsigned int col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
@@ -1489,7 +1489,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
 
 
-		immBegin(PRIM_LINE_STRIP, 3);
+		immBegin(GWN_PRIM_LINE_STRIP, 3);
 		color[3] = 0; /* more transparent toward the ends */
 		immAttrib4ubv(col, color);
 		add_v3_v3v3(end, o, scaled_axis);
@@ -1528,7 +1528,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 				axis_angle_to_quat(q, vis_axis, vis_angle);
 			}
 
-			immBegin(PRIM_LINE_LOOP, ROT_AXIS_DETAIL);
+			immBegin(GWN_PRIM_LINE_LOOP, ROT_AXIS_DETAIL);
 			color[3] = 63; /* somewhat faint */
 			immAttrib4ubv(col, color);
 			float angle = 0.0f;
@@ -1557,7 +1557,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	/* -- draw rotation center -- */
 	immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
 	glPointSize(5.0f);
-	immBegin(PRIM_POINTS, 1);
+	immBegin(GWN_PRIM_POINTS, 1);
 	immAttrib4ubv(col, color);
 	immVertex3fv(pos, o);
 	immEnd();

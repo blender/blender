@@ -1541,13 +1541,13 @@ static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *no
 	normalize_v2(normal);
 }
 
-static void stitch_draw_vbo(VertexBuffer *vbo, PrimitiveType prim_type, const float col[4])
+static void stitch_draw_vbo(Gwn_VertBuf *vbo, Gwn_PrimType prim_type, const float col[4])
 {
-	Batch *batch = Batch_create(prim_type, vbo, NULL);
+	Gwn_Batch *batch = GWN_batch_create(prim_type, vbo, NULL);
 	Batch_set_builtin_program(batch, GPU_SHADER_2D_UNIFORM_COLOR);
-	Batch_Uniform4fv(batch, "color", col);
-	Batch_draw(batch);
-	Batch_discard_all(batch);
+	GWN_batch_uniform_4fv(batch, "color", col);
+	GWN_batch_draw(batch);
+	GWN_batch_discard_all(batch);
 }
 
 /* TODO make things pretier : store batches inside StitchPreviewer instead of the bare verts pos */
@@ -1557,24 +1557,24 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	unsigned int num_line = 0, num_tri, tri_idx = 0, line_idx = 0;
 	StitchState *state = (StitchState *)arg;
 	StitchPreviewer *stitch_preview = state->stitch_preview;
-	VertexBuffer *vbo, *vbo_line;
+	Gwn_VertBuf *vbo, *vbo_line;
 	float col[4];
 
-	static VertexFormat format = { 0 };
+	static Gwn_VertFormat format = { 0 };
 	static unsigned int pos_id;
 	if (format.attrib_ct == 0) {
-		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	}
 
 	glEnable(GL_BLEND);
 
 	/* Static Tris */
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_ACTIVE, col);
-	vbo = VertexBuffer_create_with_format(&format);
-	VertexBuffer_allocate_data(vbo, stitch_preview->num_static_tris * 3);
+	vbo = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(vbo, stitch_preview->num_static_tris * 3);
 	for (int i = 0; i < stitch_preview->num_static_tris * 3; i++)
-		VertexBuffer_set_attrib(vbo, pos_id, i, &stitch_preview->static_tris[i*2]);
-	stitch_draw_vbo(vbo, PRIM_TRIANGLES, col);
+		GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->static_tris[i*2]);
+	stitch_draw_vbo(vbo, GWN_PRIM_TRIS, col);
 
 
 	/* Preview Polys */
@@ -1584,38 +1584,38 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	num_tri = num_line - 2 * stitch_preview->num_polys;
 
 	/* we need to convert the polys into triangles / lines */
-	vbo = VertexBuffer_create_with_format(&format);
-	vbo_line = VertexBuffer_create_with_format(&format);
+	vbo = GWN_vertbuf_create_with_format(&format);
+	vbo_line = GWN_vertbuf_create_with_format(&format);
 
-	VertexBuffer_allocate_data(vbo, num_tri * 3);
-	VertexBuffer_allocate_data(vbo_line, num_line * 2);
+	GWN_vertbuf_data_alloc(vbo, num_tri * 3);
+	GWN_vertbuf_data_alloc(vbo_line, num_line * 2);
 
 	for (int i = 0; i < stitch_preview->num_polys; i++) {
 		BLI_assert(stitch_preview->uvs_per_polygon[i] >= 3);
 
 		/* Start line */
-		VertexBuffer_set_attrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
-		VertexBuffer_set_attrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + 2]);
+		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
+		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + 2]);
 
 		for (j = 1; j < stitch_preview->uvs_per_polygon[i] - 1; ++j) {
-			VertexBuffer_set_attrib(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index]);
-			VertexBuffer_set_attrib(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j+0)*2]);
-			VertexBuffer_set_attrib(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j+1)*2]);
+			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index]);
+			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j+0)*2]);
+			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j+1)*2]);
 
-			VertexBuffer_set_attrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j+0)*2]);
-			VertexBuffer_set_attrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j+1)*2]);
+			GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j+0)*2]);
+			GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j+1)*2]);
 		}
 
 		/* Closing line */
-		VertexBuffer_set_attrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
-		VertexBuffer_set_attrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + j*2]); /* j = uvs_per_polygon[i] - 1*/
+		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
+		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + j*2]); /* j = uvs_per_polygon[i] - 1*/
 
 		index += stitch_preview->uvs_per_polygon[i] * 2;
 	}
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_FACE, col);
-	stitch_draw_vbo(vbo, PRIM_TRIANGLES, col);
+	stitch_draw_vbo(vbo, GWN_PRIM_TRIS, col);
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_EDGE, col);
-	stitch_draw_vbo(vbo_line, PRIM_LINES, col);
+	stitch_draw_vbo(vbo_line, GWN_PRIM_LINES, col);
 
 	glDisable(GL_BLEND);
 
@@ -1625,33 +1625,33 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) * 2.0f);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
-		vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, stitch_preview->num_stitchable);
+		vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_stitchable);
 		for (int i = 0; i < stitch_preview->num_stitchable; i++)
-			VertexBuffer_set_attrib(vbo, pos_id, i, &stitch_preview->preview_stitchable[i*2]);
-		stitch_draw_vbo(vbo, PRIM_POINTS, col);
+			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i*2]);
+		stitch_draw_vbo(vbo, GWN_PRIM_POINTS, col);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
-		vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, stitch_preview->num_unstitchable);
+		vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_unstitchable);
 		for (int i = 0; i < stitch_preview->num_unstitchable; i++)
-			VertexBuffer_set_attrib(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i*2]);
-		stitch_draw_vbo(vbo, PRIM_POINTS, col);
+			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i*2]);
+		stitch_draw_vbo(vbo, GWN_PRIM_POINTS, col);
 	}
 	else {
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
-		vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, stitch_preview->num_stitchable * 2);
+		vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_stitchable * 2);
 		for (int i = 0; i < stitch_preview->num_stitchable * 2; i++)
-			VertexBuffer_set_attrib(vbo, pos_id, i, &stitch_preview->preview_stitchable[i*2]);
-		stitch_draw_vbo(vbo, PRIM_LINES, col);
+			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i*2]);
+		stitch_draw_vbo(vbo, GWN_PRIM_LINES, col);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
-		vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, stitch_preview->num_unstitchable * 2);
+		vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_unstitchable * 2);
 		for (int i = 0; i < stitch_preview->num_unstitchable * 2; i++)
-			VertexBuffer_set_attrib(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i*2]);
-		stitch_draw_vbo(vbo, PRIM_LINES, col);
+			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i*2]);
+		stitch_draw_vbo(vbo, GWN_PRIM_LINES, col);
 	}
 }
 

@@ -3520,14 +3520,14 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	dm->drawEdges(dm, 0, 1);
 #endif
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
 	/* Note: batch drawing API would let us share vertices */
-	immBeginAtMost(PRIM_TRIANGLES, dm->numTessFaceData * 6);
+	immBeginAtMost(GWN_PRIM_TRIS, dm->numTessFaceData * 6);
 	for (int a = 0; a < dm->numTessFaceData; a++, mface++) {
 		int pi = polygonIdx[a];
 		if (pi <= 0) {

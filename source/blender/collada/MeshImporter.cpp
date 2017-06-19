@@ -67,7 +67,7 @@ static const std::string bc_get_dae_name(T *node)
 	return node->getName().size() ? node->getName(): node->getOriginalId();
 }
 
-static const char *bc_primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
+static const char *bc_primTypeToStr(COLLADAFW::MeshPrimitive::Gwn_PrimType type)
 {
 	switch (type) {
 		case COLLADAFW::MeshPrimitive::LINES:
@@ -274,7 +274,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 	for (unsigned i = 0; i < prim_arr.getCount(); i++) {
 
 		COLLADAFW::MeshPrimitive *mp = prim_arr[i];
-		COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
+		COLLADAFW::MeshPrimitive::Gwn_PrimType type = mp->getPrimitiveType();
 
 		const char *type_str = bc_primTypeToStr(type);
 

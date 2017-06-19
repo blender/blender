@@ -19,17 +19,17 @@
 
 static unsigned vbo_memory_usage;
 
-VertexBuffer* VertexBuffer_create(void)
+Gwn_VertBuf* GWN_vertbuf_create(void)
 	{
-	VertexBuffer* verts = malloc(sizeof(VertexBuffer));
-	VertexBuffer_init(verts);
+	Gwn_VertBuf* verts = malloc(sizeof(Gwn_VertBuf));
+	GWN_vertbuf_init(verts);
 	return verts;
 	}
 
-VertexBuffer* VertexBuffer_create_with_format(const VertexFormat* format)
+Gwn_VertBuf* GWN_vertbuf_create_with_format(const Gwn_VertFormat* format)
 	{
-	VertexBuffer* verts = VertexBuffer_create();
-	VertexFormat_copy(&verts->format, format);
+	Gwn_VertBuf* verts = GWN_vertbuf_create();
+	GWN_vertformat_copy(&verts->format, format);
 	if (!format->packed)
 		VertexFormat_pack(&verts->format);
 	return verts;
@@ -38,24 +38,24 @@ VertexBuffer* VertexBuffer_create_with_format(const VertexFormat* format)
 	// TODO: implement those memory savings
 	}
 
-void VertexBuffer_init(VertexBuffer* verts)
+void GWN_vertbuf_init(Gwn_VertBuf* verts)
 	{
-	memset(verts, 0, sizeof(VertexBuffer));
+	memset(verts, 0, sizeof(Gwn_VertBuf));
 	}
 
-void VertexBuffer_init_with_format(VertexBuffer* verts, const VertexFormat* format)
+void GWN_vertbuf_init_with_format(Gwn_VertBuf* verts, const Gwn_VertFormat* format)
 	{
-	VertexBuffer_init(verts);
-	VertexFormat_copy(&verts->format, format);
+	GWN_vertbuf_init(verts);
+	GWN_vertformat_copy(&verts->format, format);
 	if (!format->packed)
 		VertexFormat_pack(&verts->format);
 	}
 
-void VertexBuffer_discard(VertexBuffer* verts)
+void GWN_vertbuf_discard(Gwn_VertBuf* verts)
 	{
 	if (verts->vbo_id) {
-		buffer_id_free(verts->vbo_id);
-		vbo_memory_usage -= VertexBuffer_size(verts);
+		GWN_buf_id_free(verts->vbo_id);
+		vbo_memory_usage -= GWN_vertbuf_size_get(verts);
 	}
 #if KEEP_SINGLE_COPY
 	else
@@ -67,24 +67,24 @@ void VertexBuffer_discard(VertexBuffer* verts)
 	free(verts);
 	}
 
-unsigned VertexBuffer_size(const VertexBuffer* verts)
+unsigned GWN_vertbuf_size_get(const Gwn_VertBuf* verts)
 	{
 	return vertex_buffer_size(&verts->format, verts->vertex_ct);
 	}
 
-void VertexBuffer_allocate_data(VertexBuffer* verts, unsigned v_ct)
+void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_ct)
 	{
-	VertexFormat* format = &verts->format;
+	Gwn_VertFormat* format = &verts->format;
 	if (!format->packed)
 		VertexFormat_pack(format);
 
 	verts->vertex_ct = v_ct;
 
 	// Data initially lives in main memory. Will be transferred to VRAM when we "prime" it.
-	verts->data = malloc(VertexBuffer_size(verts));
+	verts->data = malloc(GWN_vertbuf_size_get(verts));
 	}
 
-void VertexBuffer_resize_data(VertexBuffer* verts, unsigned v_ct)
+void GWN_vertbuf_data_resize(Gwn_VertBuf* verts, unsigned v_ct)
 	{
 #if TRUST_NO_ONE
 	assert(verts->vertex_ct != v_ct); // allow this?
@@ -93,15 +93,15 @@ void VertexBuffer_resize_data(VertexBuffer* verts, unsigned v_ct)
 #endif
 
 	verts->vertex_ct = v_ct;
-	verts->data = realloc(verts->data, VertexBuffer_size(verts));
+	verts->data = realloc(verts->data, GWN_vertbuf_size_get(verts));
 	// TODO: skip realloc if v_ct < existing vertex count
 	// extra space will be reclaimed, and never sent to VRAM (see VertexBuffer_prime)
 	}
 
-void VertexBuffer_set_attrib(VertexBuffer* verts, unsigned a_idx, unsigned v_idx, const void* data)
+void GWN_vertbuf_attr_set(Gwn_VertBuf* verts, unsigned a_idx, unsigned v_idx, const void* data)
 	{
-	const VertexFormat* format = &verts->format;
-	const Attrib* a = format->attribs + a_idx;
+	const Gwn_VertFormat* format = &verts->format;
+	const Gwn_VertAttr* a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attrib_ct);
@@ -112,10 +112,10 @@ void VertexBuffer_set_attrib(VertexBuffer* verts, unsigned a_idx, unsigned v_idx
 	memcpy((GLubyte*)verts->data + a->offset + v_idx * format->stride, data, a->sz);
 	}
 
-void VertexBuffer_fill_attrib(VertexBuffer* verts, unsigned a_idx, const void* data)
+void GWN_vertbuf_attr_fill(Gwn_VertBuf* verts, unsigned a_idx, const void* data)
 	{
-	const VertexFormat* format = &verts->format;
-	const Attrib* a = format->attribs + a_idx;
+	const Gwn_VertFormat* format = &verts->format;
+	const Gwn_VertAttr* a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attrib_ct);
@@ -123,13 +123,13 @@ void VertexBuffer_fill_attrib(VertexBuffer* verts, unsigned a_idx, const void* d
 
 	const unsigned stride = a->sz; // tightly packed input data
 
-	VertexBuffer_fill_attrib_stride(verts, a_idx, stride, data);
+	GWN_vertbuf_attr_fill_stride(verts, a_idx, stride, data);
 	}
 
-void VertexBuffer_fill_attrib_stride(VertexBuffer* verts, unsigned a_idx, unsigned stride, const void* data)
+void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf* verts, unsigned a_idx, unsigned stride, const void* data)
 	{
-	const VertexFormat* format = &verts->format;
-	const Attrib* a = format->attribs + a_idx;
+	const Gwn_VertFormat* format = &verts->format;
+	const Gwn_VertAttr* a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attrib_ct);
@@ -151,11 +151,11 @@ void VertexBuffer_fill_attrib_stride(VertexBuffer* verts, unsigned a_idx, unsign
 		}
 	}
 
-static void VertexBuffer_prime(VertexBuffer* verts)
+static void VertexBuffer_prime(Gwn_VertBuf* verts)
 	{
-	const unsigned buffer_sz = VertexBuffer_size(verts);
+	const unsigned buffer_sz = GWN_vertbuf_size_get(verts);
 
-	verts->vbo_id = buffer_id_alloc();
+	verts->vbo_id = GWN_buf_id_alloc();
 	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	// fill with delicious data & send to GPU the first time only
 	glBufferData(GL_ARRAY_BUFFER, buffer_sz, verts->data, GL_STATIC_DRAW);
@@ -169,7 +169,7 @@ static void VertexBuffer_prime(VertexBuffer* verts)
 #endif
 	}
 
-void VertexBuffer_use(VertexBuffer* verts)
+void GWN_vertbuf_use(Gwn_VertBuf* verts)
 	{
 	if (verts->vbo_id)
 		glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
@@ -177,7 +177,7 @@ void VertexBuffer_use(VertexBuffer* verts)
 		VertexBuffer_prime(verts);
 	}
 
-unsigned VertexBuffer_get_memory_usage(void)
+unsigned GWN_vertbuf_get_memory_usage(void)
 	{
 	return vbo_memory_usage;
 	}

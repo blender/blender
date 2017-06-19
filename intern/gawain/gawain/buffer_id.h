@@ -22,11 +22,11 @@ extern "C" {
 
 #include "common.h"
 
-GLuint buffer_id_alloc(void);
-void buffer_id_free(GLuint buffer_id);
+GLuint GWN_buf_id_alloc(void);
+void GWN_buf_id_free(GLuint buffer_id);
 
-GLuint vao_id_alloc(void);
-void vao_id_free(GLuint vao_id);
+GLuint GWN_vao_alloc(void);
+void GWN_vao_free(GLuint vao_id);
 
 
 #ifdef __cplusplus

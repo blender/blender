@@ -85,7 +85,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 	const float fac = 0.05f * BLI_rctf_size_x(&v2d->cur);
 	int i;
 
-	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	glLineWidth(1.0f);
 
@@ -102,7 +102,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 
 	/* draw two black lines showing the standard reference levels */
 
-	immBegin(PRIM_LINES, 4);
+	immBegin(GWN_PRIM_LINES, 4);
 	immVertex2f(shdr_pos, v2d->cur.xmin, env->midval + env->min);
 	immVertex2f(shdr_pos, v2d->cur.xmax, env->midval + env->min);
 
@@ -121,7 +121,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 		/* for now, point color is fixed, and is white */
 		immUniformColor3f(1.0f, 1.0f, 1.0f);
 
-		immBeginAtMost(PRIM_POINTS, env->totvert * 2);
+		immBeginAtMost(GWN_PRIM_POINTS, env->totvert * 2);
 
 		for (i = 0, fed = env->data; i < env->totvert; i++, fed++) {
 			/* only draw if visible
@@ -171,7 +171,7 @@ static void draw_fcurve_selected_keyframe_vertices(FCurve *fcu, View2D *v2d, boo
 
 	set_fcurve_vertex_color(fcu, sel);
 
-	immBeginAtMost(PRIM_POINTS, fcu->totvert);
+	immBeginAtMost(GWN_PRIM_POINTS, fcu->totvert);
 
 	BezTriple *bezt = fcu->bezt;
 	for (int i = 0; i < fcu->totvert; i++, bezt++) {
@@ -223,7 +223,7 @@ static void draw_fcurve_selected_handle_vertices(FCurve *fcu, View2D *v2d, bool 
 	immUniform4f("outlineColor", hcolor[0], hcolor[1], hcolor[2], 1.0f);
 	immUniformColor3fvAlpha(hcolor, 0.4f);
 
-	immBeginAtMost(PRIM_POINTS, fcu->totvert * 2);
+	immBeginAtMost(GWN_PRIM_POINTS, fcu->totvert * 2);
 
 	BezTriple *bezt = fcu->bezt;
 	BezTriple *prevbezt = NULL;
@@ -279,7 +279,7 @@ static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool
 	 *	- draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
 	 */
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	glEnable(GL_BLEND);
 	GPU_enable_program_point_size();
@@ -323,7 +323,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 {
 	int sel, b;
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* slightly hacky, but we want to draw unselected points before selected ones 
@@ -354,7 +354,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 					col[3] = fcurve_display_alpha(fcu) * 255;
 					immUniformColor4ubv(col);
 
-					immBegin(PRIM_LINES, 2);
+					immBegin(GWN_PRIM_LINES, 2);
 					immVertex2fv(pos, fp);
 					immVertex2fv(pos, fp + 3);
 					immEnd();
@@ -366,7 +366,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 					col[3] = fcurve_display_alpha(fcu) * 255;
 					immUniformColor4ubv(col);
 
-					immBegin(PRIM_LINES, 2);
+					immBegin(GWN_PRIM_LINES, 2);
 					immVertex2fv(pos, fp + 3);
 					immVertex2fv(pos, fp + 6);
 					immEnd();
@@ -382,7 +382,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 					col[3] = fcurve_display_alpha(fcu) * 255;
 					immUniformColor4ubv(col);
 
-					immBegin(PRIM_LINES, 2);
+					immBegin(GWN_PRIM_LINES, 2);
 					immVertex2fv(pos, fp);
 					immVertex2fv(pos, fp + 3);
 					immEnd();
@@ -397,7 +397,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 					col[3] = fcurve_display_alpha(fcu) * 255;
 					immUniformColor4ubv(col);
 
-					immBegin(PRIM_LINES, 2);
+					immBegin(GWN_PRIM_LINES, 2);
 					immVertex2fv(pos, fp);
 					immVertex2fv(pos, fp + 3);
 					immEnd();
@@ -423,7 +423,7 @@ static void draw_fcurve_sample_control(float x, float y, float xscale, float ysc
 	gpuScale2f(1.0f / xscale * hsize, 1.0f / yscale * hsize);
 
 	/* draw X shape */
-	immBegin(PRIM_LINES, 4);
+	immBegin(GWN_PRIM_LINES, 4);
 	immVertex2f(pos, -0.7f, -0.7f);
 	immVertex2f(pos, +0.7f, +0.7f);
 
@@ -455,7 +455,7 @@ static void draw_fcurve_samples(SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 
-		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformThemeColor((fcu->flag & FCURVE_SELECTED) ? TH_TEXT_HI : TH_TEXT);
@@ -547,7 +547,7 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	n = (etime - stime) / samplefreq + 0.5f;
 
 	if (n > 0) {
-		immBegin(PRIM_LINE_STRIP, (n + 1));
+		immBegin(GWN_PRIM_LINE_STRIP, (n + 1));
 
 		for (i = 0; i <= n; i++) {
 			float ctime = stime + i * samplefreq;
@@ -586,7 +586,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 	gpuScale2f(1.0f, unit_scale);
 	gpuTranslate2f(0.0f, offset);
 
-	immBegin(PRIM_LINE_STRIP, count);
+	immBegin(GWN_PRIM_LINE_STRIP, count);
 	
 	/* extrapolate to left? - left-side of view comes before first keyframe? */
 	if (prevfpt->vec[0] > v2d->cur.xmin) {
@@ -683,7 +683,7 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	/* For now, this assumes the worst case scenario, where all the keyframes have
 	 * bezier interpolation, and are drawn at full res.
 	 * This is tricky to optimize, but maybe can be improved at some point... */
-	immBeginAtMost(PRIM_LINE_STRIP, (b * 32 + 3));
+	immBeginAtMost(GWN_PRIM_LINE_STRIP, (b * 32 + 3));
 	
 	/* extrapolate to left? */
 	if (prevbezt->vec[1][0] > v2d->cur.xmin) {
@@ -845,7 +845,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 	//if ((driver->flag & DRIVER_FLAG_SHOWDEBUG) == 0)
 	//	return;
 
-	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
 	float viewport_size[4];
@@ -870,7 +870,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 		/* draw 1-1 line, stretching just past the screen limits 
 		 * NOTE: we need to scale the y-values to be valid for the units
 		 */
-		immBegin(PRIM_LINES, 2);
+		immBegin(GWN_PRIM_LINES, 2);
 
 		t = v2d->cur.xmin;
 		immVertex2f(shdr_pos, t, (t + offset) * unitfac);
@@ -896,7 +896,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			immUniform1f("dash_width", 10.0f);
 			immUniform1f("dash_factor", 0.5f);
 
-			immBegin(PRIM_LINES, (y >= v2d->cur.ymin) ? 4 : 2);
+			immBegin(GWN_PRIM_LINES, (y >= v2d->cur.ymin) ? 4 : 2);
 
 			/* x-axis lookup */
 			co[0] = x;
@@ -922,7 +922,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			
 			immUnbindProgram();
 
-			/* PRIM_POINTS do not survive dashed line geometry shader... */
+			/* GWN_PRIM_POINTS do not survive dashed line geometry shader... */
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			/* x marks the spot .................................................... */
@@ -930,7 +930,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			immUniformColor3f(0.9f, 0.9f, 0.9f);
 			glPointSize(7.0);
 			
-			immBegin(PRIM_POINTS, 1);
+			immBegin(GWN_PRIM_POINTS, 1);
 			immVertex2f(shdr_pos, x, y);
 			immEnd();
 			
@@ -938,7 +938,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			immUniformColor3f(0.9f, 0.0f, 0.0f);
 			glPointSize(3.0);
 			
-			immBegin(PRIM_POINTS, 1);
+			immBegin(GWN_PRIM_POINTS, 1);
 			immVertex2f(shdr_pos, x, y);
 			immEnd();
 		}
@@ -965,7 +965,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	}
 	glEnable(GL_BLEND);
 
-	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
@@ -1051,7 +1051,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			}
 			glEnable(GL_BLEND);
 
-			const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+			const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 

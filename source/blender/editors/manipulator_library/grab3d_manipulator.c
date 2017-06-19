@@ -96,8 +96,8 @@ static void grab_geom_draw(
 
 	glLineWidth(grab3d->manipulator.line_width);
 
-	VertexFormat *format = immVertexFormat();
-	uint pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 

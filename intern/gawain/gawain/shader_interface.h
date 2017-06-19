@@ -14,40 +14,40 @@
 #include "common.h"
 
 typedef enum {
-	UNIFORM_NONE, // uninitialized/unknown
+	GWN_UNIFORM_NONE, // uninitialized/unknown
 
-	UNIFORM_MODELVIEW,  // mat4 ModelViewMatrix
-	UNIFORM_PROJECTION, // mat4 ProjectionMatrix
-	UNIFORM_MVP,        // mat4 ModelViewProjectionMatrix
+	GWN_UNIFORM_MODELVIEW,  // mat4 ModelViewMatrix
+	GWN_UNIFORM_PROJECTION, // mat4 ProjectionMatrix
+	GWN_UNIFORM_MVP,        // mat4 ModelViewProjectionMatrix
 
-	UNIFORM_MODELVIEW_INV,  // mat4 ModelViewInverseMatrix
-	UNIFORM_PROJECTION_INV, // mat4 ProjectionInverseMatrix
+	GWN_UNIFORM_MODELVIEW_INV,  // mat4 ModelViewInverseMatrix
+	GWN_UNIFORM_PROJECTION_INV, // mat4 ProjectionInverseMatrix
 
-	UNIFORM_NORMAL,     // mat3 NormalMatrix
+	GWN_UNIFORM_NORMAL,     // mat3 NormalMatrix
 
-	UNIFORM_COLOR, // vec4 color
+	GWN_UNIFORM_COLOR, // vec4 color
 
-	UNIFORM_CUSTOM // custom uniform, not one of the above built-ins
-} BuiltinUniform;
+	GWN_UNIFORM_CUSTOM // custom uniform, not one of the above built-ins
+} Gwn_UniformBuiltin;
 
 typedef struct {
 	const char* name;
 	unsigned name_hash;
 	GLenum gl_type;
-	BuiltinUniform builtin_type; // only for uniform inputs
+	Gwn_UniformBuiltin builtin_type; // only for uniform inputs
 	GLint size;
 	GLint location;
-} ShaderInput;
+} Gwn_ShaderInput;
 
 typedef struct {
 	uint16_t uniform_ct;
 	uint16_t attrib_ct;
-	ShaderInput inputs[0]; // dynamic size, uniforms followed by attribs
-} ShaderInterface;
+	Gwn_ShaderInput inputs[0]; // dynamic size, uniforms followed by attribs
+} Gwn_ShaderInterface;
 
-ShaderInterface* ShaderInterface_create(GLint program_id);
-void ShaderInterface_discard(ShaderInterface*);
+Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program_id);
+void GWN_shaderinterface_discard(Gwn_ShaderInterface*);
 
-const ShaderInput* ShaderInterface_uniform(const ShaderInterface*, const char* name);
-const ShaderInput* ShaderInterface_builtin_uniform(const ShaderInterface*, BuiltinUniform);
-const ShaderInput* ShaderInterface_attrib(const ShaderInterface*, const char* name);
+const Gwn_ShaderInput* GWN_shaderinterface_uniform(const Gwn_ShaderInterface*, const char* name);
+const Gwn_ShaderInput* GWN_shaderinterface_uniform_builtin(const Gwn_ShaderInterface*, Gwn_UniformBuiltin);
+const Gwn_ShaderInput* GWN_shaderinterface_attr(const Gwn_ShaderInterface*, const char* name);

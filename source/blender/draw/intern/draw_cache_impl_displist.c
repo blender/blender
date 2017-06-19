@@ -86,27 +86,27 @@ static int curve_render_surface_tri_len_get(const ListBase *lb)
 	return tri_len;
 }
 
-Batch *BLI_displist_batch_calc_surface(ListBase *lb)
+Gwn_Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 {
 	const int tri_len = curve_render_surface_tri_len_get(lb);
 	if (tri_len == 0) {
 		return NULL;
 	}
 
-	static VertexFormat format = { 0 };
+	static Gwn_VertFormat format = { 0 };
 	static struct { uint pos, nor; } attr_id;
 	if (format.attrib_ct == 0) {
 		/* initialize vertex format */
-		attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-		attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	}
 
 	const int vert_len = curve_render_surface_vert_len_get(lb);
-	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 	{
 		const int vbo_len_capacity = vert_len;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		BKE_displist_normals_add(lb);
 
@@ -117,9 +117,9 @@ Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 				const float *fp_no = dl->nors;
 				const int vbo_end = vbo_len_used + dl_vert_len(dl);
 				while (vbo_len_used < vbo_end) {
-					VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, fp_co);
+					GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, fp_co);
 					if (fp_no) {
-						VertexBuffer_set_attrib(vbo, attr_id.nor, vbo_len_used, fp_no);
+						GWN_vertbuf_attr_set(vbo, attr_id.nor, vbo_len_used, fp_no);
 						if (ndata_is_single == false) {
 							fp_no += 3;
 						}
@@ -132,8 +132,8 @@ Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 	}
 
 	{
-		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_TRIANGLES, tri_len, vert_len);
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tri_len, vert_len);
 
 		int ofs = 0;
 		int tri_len_used = 0;
@@ -143,7 +143,7 @@ Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 					const int *idx = dl->index;
 					const int i_end = dl->parts;
 					for (int i = 0; i < i_end; i++) {
-						add_triangle_vertices(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
+						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
 						tri_len_used += 1;
 						idx += 3;
 					}
@@ -152,9 +152,9 @@ Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 					const int *idx = dl->index;
 					const int i_end = dl->totindex;
 					for (int i = 0; i < i_end; i++) {
-						add_triangle_vertices(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
+						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
 						tri_len_used += 1;
-						add_triangle_vertices(&elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
+						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
 						tri_len_used += 1;
 						idx += 4;
 					}
@@ -163,6 +163,6 @@ Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 			}
 		}
 
-		return Batch_create(PRIM_TRIANGLES, vbo, ElementList_build(&elb));
+		return GWN_batch_create(GWN_PRIM_TRIS, vbo, GWN_indexbuf_build(&elb));
 	}
 }

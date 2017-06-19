@@ -248,13 +248,13 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	View2D *v2d = &ar->v2d;
 	float x = (float)(sc->user.framenr * scene->r.framelen);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_CFRAME);
 	glLineWidth(2.0f);
 
-	immBegin(PRIM_LINES, 2);
+	immBegin(GWN_PRIM_LINES, 2);
 	immVertex2f(pos, x, v2d->cur.ymin);
 	immVertex2f(pos, x, v2d->cur.ymax);
 	immEnd();
@@ -283,7 +283,7 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -297,7 +297,7 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
 	/* thin lines where the actual frames are */
 	glLineWidth(1.0f);
 
-	immBegin(PRIM_LINES, 4);
+	immBegin(GWN_PRIM_LINES, 4);
 	immVertex2f(pos, (float)SFRA, v2d->cur.ymin);
 	immVertex2f(pos, (float)SFRA, v2d->cur.ymax);
 	immVertex2f(pos, (float)EFRA, v2d->cur.ymin);

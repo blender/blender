@@ -34,7 +34,7 @@ static bool thread_is_main()
 	return BLI_thread_is_main();
 	}
 
-GLuint buffer_id_alloc()
+GLuint GWN_buf_id_alloc()
 	{
 #if TRUST_NO_ONE
 	assert(thread_is_main());
@@ -58,7 +58,7 @@ GLuint buffer_id_alloc()
 	return new_buffer_id;
 	}
 
-void buffer_id_free(GLuint buffer_id)
+void GWN_buf_id_free(GLuint buffer_id)
 	{
 	if (thread_is_main())
 		glDeleteBuffers(1, &buffer_id);
@@ -74,7 +74,7 @@ void buffer_id_free(GLuint buffer_id)
 		}
 	}
 
-GLuint vao_id_alloc()
+GLuint GWN_vao_alloc()
 	{
 #if TRUST_NO_ONE
 	assert(thread_is_main());
@@ -98,7 +98,7 @@ GLuint vao_id_alloc()
 	return new_vao_id;
 	}
 
-void vao_id_free(GLuint vao_id)
+void GWN_vao_free(GLuint vao_id)
 	{
 	if (thread_is_main())
 		glDeleteVertexArrays(1, &vao_id);

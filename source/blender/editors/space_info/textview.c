@@ -84,8 +84,8 @@ static void console_draw_sel(const char *str, const int sel[2], const int xy[2],
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		VertexFormat *format = immVertexFormat();
-		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor4ubv(bg_sel);
@@ -190,8 +190,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		cdc->sel[1] = str_len - sel_orig[0];
 		
 		if (bg) {
-			VertexFormat *format = immVertexFormat();
-			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+			Gwn_VertFormat *format = immVertexFormat();
+			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformColor3ubv(bg);
@@ -241,8 +241,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 	else { /* simple, no wrap */
 
 		if (bg) {
-			VertexFormat *format = immVertexFormat();
-			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+			Gwn_VertFormat *format = immVertexFormat();
+			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformColor3ubv(bg);

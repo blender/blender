@@ -64,52 +64,52 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 	 * So we don't need to re-created and discard it every time */
 
 	const bool use_lighting = true || (!select && ((U.manipulator_flag & USER_MANIPULATOR_SHADED) != 0));
-	VertexBuffer *vbo;
-	ElementList *el;
-	Batch *batch;
-	ElementListBuilder elb = {0};
+	Gwn_VertBuf *vbo;
+	Gwn_IndexBuf *el;
+	Gwn_Batch *batch;
+	Gwn_IndexBufBuilder elb = {0};
 
-	VertexFormat format = {0};
-	uint pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	Gwn_VertFormat format = {0};
+	uint pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	uint nor_id;
 
 	if (use_lighting) {
-		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+		nor_id = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_I16, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 	}
 
 	/* Elements */
-	ElementListBuilder_init(&elb, PRIM_TRIANGLES, info->ntris, info->nverts);
+	GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, info->ntris, info->nverts);
 	for (int i = 0; i < info->ntris; ++i) {
 		const unsigned short *idx = &info->indices[i * 3];
-		add_triangle_vertices(&elb, idx[0], idx[1], idx[2]);
+		GWN_indexbuf_add_tri_verts(&elb, idx[0], idx[1], idx[2]);
 	}
-	el = ElementList_build(&elb);
+	el = GWN_indexbuf_build(&elb);
 
-	vbo = VertexBuffer_create_with_format(&format);
-	VertexBuffer_allocate_data(vbo, info->nverts);
+	vbo = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(vbo, info->nverts);
 
-	VertexBuffer_fill_attrib(vbo, pos_id, info->verts);
+	GWN_vertbuf_attr_fill(vbo, pos_id, info->verts);
 
 	if (use_lighting) {
 		/* Normals are expected to be smooth. */
-		VertexBuffer_fill_attrib(vbo, nor_id, info->normals);
+		GWN_vertbuf_attr_fill(vbo, nor_id, info->normals);
 	}
 
-	batch = Batch_create(PRIM_TRIANGLES, vbo, el);
+	batch = GWN_batch_create(GWN_PRIM_TRIS, vbo, el);
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
-	Batch_Uniform4fv(batch, "color", color);
+	GWN_batch_uniform_4fv(batch, "color", color);
 
 	glEnable(GL_CULL_FACE);
 	// glEnable(GL_DEPTH_TEST);
 
-	Batch_draw(batch);
+	GWN_batch_draw(batch);
 
 	glDisable(GL_DEPTH_TEST);
 	// glDisable(GL_CULL_FACE);
 
 
-	Batch_discard_all(batch);
+	GWN_batch_discard_all(batch);
 }
 
 void wm_manipulator_vec_draw(

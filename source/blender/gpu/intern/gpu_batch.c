@@ -31,20 +31,20 @@
 #include "GPU_batch.h"
 #include "gpu_shader_private.h"
 
-void Batch_set_builtin_program(Batch *batch, GPUBuiltinShader shader_id)
+void Batch_set_builtin_program(Gwn_Batch *batch, GPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-	Batch_set_program(batch, shader->program, shader->interface);
+	GWN_batch_program_set(batch, shader->program, shader->interface);
 }
 
-static Batch *sphere_high = NULL;
-static Batch *sphere_med = NULL;
-static Batch *sphere_low = NULL;
-static Batch *sphere_wire_low = NULL;
-static Batch *sphere_wire_med = NULL;
+static Gwn_Batch *sphere_high = NULL;
+static Gwn_Batch *sphere_med = NULL;
+static Gwn_Batch *sphere_low = NULL;
+static Gwn_Batch *sphere_wire_low = NULL;
+static Gwn_Batch *sphere_wire_med = NULL;
 
-static VertexBuffer *vbo;
-static VertexFormat format = {0};
+static Gwn_VertBuf *vbo;
+static Gwn_VertFormat format = {0};
 static unsigned int pos_id, nor_id;
 static unsigned int vert;
 
@@ -55,24 +55,24 @@ static void batch_sphere_lat_lon_vert(float lat, float lon)
 	pos[1] = cosf(lat);
 	pos[2] = sinf(lat) * sinf(lon);
 
-	VertexBuffer_set_attrib(vbo, nor_id, vert, pos);
-	VertexBuffer_set_attrib(vbo, pos_id, vert++, pos);
+	GWN_vertbuf_attr_set(vbo, nor_id, vert, pos);
+	GWN_vertbuf_attr_set(vbo, pos_id, vert++, pos);
 }
 
 /* Replacement for gluSphere */
-static Batch *batch_sphere(int lat_res, int lon_res)
+static Gwn_Batch *batch_sphere(int lat_res, int lon_res)
 {
 	const float lon_inc = 2 * M_PI / lon_res;
 	const float lat_inc = M_PI / lat_res;
 	float lon, lat;
 
 	if (format.attrib_ct == 0) {
-		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		nor_id = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	}
 
-	vbo = VertexBuffer_create_with_format(&format);
-	VertexBuffer_allocate_data(vbo, (lat_res - 1) * lon_res * 6);
+	vbo = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(vbo, (lat_res - 1) * lon_res * 6);
 	vert = 0;
 
 	lon = 0.0f;
@@ -93,22 +93,22 @@ static Batch *batch_sphere(int lat_res, int lon_res)
 		}
 	}
 
-	return Batch_create(PRIM_TRIANGLES, vbo, NULL);
+	return GWN_batch_create(GWN_PRIM_TRIS, vbo, NULL);
 }
 
-static Batch *batch_sphere_wire(int lat_res, int lon_res)
+static Gwn_Batch *batch_sphere_wire(int lat_res, int lon_res)
 {
 	const float lon_inc = 2 * M_PI / lon_res;
 	const float lat_inc = M_PI / lat_res;
 	float lon, lat;
 
 	if (format.attrib_ct == 0) {
-		pos_id = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-		nor_id = VertexFormat_add_attrib(&format, "nor", COMP_F32, 3, KEEP_FLOAT);
+		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		nor_id = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	}
 
-	vbo = VertexBuffer_create_with_format(&format);
-	VertexBuffer_allocate_data(vbo, (lat_res * lon_res * 2) + ((lat_res - 1) * lon_res * 2));
+	vbo = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(vbo, (lat_res * lon_res * 2) + ((lat_res - 1) * lon_res * 2));
 	vert = 0;
 
 	lon = 0.0f;
@@ -125,10 +125,10 @@ static Batch *batch_sphere_wire(int lat_res, int lon_res)
 		}
 	}
 
-	return Batch_create(PRIM_LINES, vbo, NULL);
+	return GWN_batch_create(GWN_PRIM_LINES, vbo, NULL);
 }
 
-Batch *Batch_get_sphere(int lod)
+Gwn_Batch *Batch_get_sphere(int lod)
 {
 	BLI_assert(lod >= 0 && lod <= 2);
 
@@ -140,7 +140,7 @@ Batch *Batch_get_sphere(int lod)
 		return sphere_high;
 }
 
-Batch *Batch_get_sphere_wire(int lod)
+Gwn_Batch *Batch_get_sphere_wire(int lod)
 {
 	BLI_assert(lod >= 0 && lod <= 1);
 
@@ -163,9 +163,9 @@ void gpu_batch_init(void)
 
 void gpu_batch_exit(void)
 {
-	Batch_discard_all(sphere_low);
-	Batch_discard_all(sphere_med);
-	Batch_discard_all(sphere_high);
-	Batch_discard_all(sphere_wire_low);
-	Batch_discard_all(sphere_wire_med);
+	GWN_batch_discard_all(sphere_low);
+	GWN_batch_discard_all(sphere_med);
+	GWN_batch_discard_all(sphere_high);
+	GWN_batch_discard_all(sphere_wire_low);
+	GWN_batch_discard_all(sphere_wire_med);
 }

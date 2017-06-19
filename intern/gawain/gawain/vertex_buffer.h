@@ -13,41 +13,41 @@
 
 #include "vertex_format.h"
 
-// How to create a VertexBuffer:
-// 1) verts = VertexBuffer_create() or VertexBuffer_init(verts)
-// 2) VertexFormat_add_attrib(verts->format, ...)
-// 3) VertexBuffer_allocate_data(verts, vertex_ct) <-- finalizes/packs vertex format
-// 4) VertexBuffer_fill_attrib(verts, pos, application_pos_buffer)
+// How to create a Gwn_VertBuf:
+// 1) verts = GWN_vertbuf_create() or GWN_vertbuf_init(verts)
+// 2) GWN_vertformat_attr_add(verts->format, ...)
+// 3) GWN_vertbuf_data_alloc(verts, vertex_ct) <-- finalizes/packs vertex format
+// 4) GWN_vertbuf_attr_fill(verts, pos, application_pos_buffer)
 
-// Is VertexBuffer always used as part of a Batch?
+// Is Gwn_VertBuf always used as part of a Gwn_Batch?
 
 typedef struct {
-	VertexFormat format;
+	Gwn_VertFormat format;
 	unsigned vertex_ct;
 	GLubyte* data; // NULL indicates data in VRAM (unmapped) or not yet allocated
 	GLuint vbo_id; // 0 indicates not yet sent to VRAM
-} VertexBuffer;
+} Gwn_VertBuf;
 
-VertexBuffer* VertexBuffer_create(void);
-VertexBuffer* VertexBuffer_create_with_format(const VertexFormat*);
+Gwn_VertBuf* GWN_vertbuf_create(void);
+Gwn_VertBuf* GWN_vertbuf_create_with_format(const Gwn_VertFormat*);
 
-void VertexBuffer_discard(VertexBuffer*);
+void GWN_vertbuf_discard(Gwn_VertBuf*);
 
-void VertexBuffer_init(VertexBuffer*);
-void VertexBuffer_init_with_format(VertexBuffer*, const VertexFormat*);
+void GWN_vertbuf_init(Gwn_VertBuf*);
+void GWN_vertbuf_init_with_format(Gwn_VertBuf*, const Gwn_VertFormat*);
 
-unsigned VertexBuffer_size(const VertexBuffer*);
-void VertexBuffer_allocate_data(VertexBuffer*, unsigned v_ct);
-void VertexBuffer_resize_data(VertexBuffer*, unsigned v_ct);
+unsigned GWN_vertbuf_size_get(const Gwn_VertBuf*);
+void GWN_vertbuf_data_alloc(Gwn_VertBuf*, unsigned v_ct);
+void GWN_vertbuf_data_resize(Gwn_VertBuf*, unsigned v_ct);
 
 // The most important set_attrib variant is the untyped one. Get it right first.
 // It takes a void* so the app developer is responsible for matching their app data types
 // to the vertex attribute's type and component count. They're in control of both, so this
 // should not be a problem.
 
-void VertexBuffer_set_attrib(VertexBuffer*, unsigned a_idx, unsigned v_idx, const void* data);
-void VertexBuffer_fill_attrib(VertexBuffer*, unsigned a_idx, const void* data); // tightly packed, non interleaved input data
-void VertexBuffer_fill_attrib_stride(VertexBuffer*, unsigned a_idx, unsigned stride, const void* data);
+void GWN_vertbuf_attr_set(Gwn_VertBuf*, unsigned a_idx, unsigned v_idx, const void* data);
+void GWN_vertbuf_attr_fill(Gwn_VertBuf*, unsigned a_idx, const void* data); // tightly packed, non interleaved input data
+void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf*, unsigned a_idx, unsigned stride, const void* data);
 
 // TODO: decide whether to keep the functions below
 // doesn't immediate mode satisfy these needs?
@@ -60,19 +60,19 @@ void VertexBuffer_fill_attrib_stride(VertexBuffer*, unsigned a_idx, unsigned str
 //	void setAttrib3ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b);
 //	void setAttrib4ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
-void VertexBuffer_use(VertexBuffer*);
+void GWN_vertbuf_use(Gwn_VertBuf*);
 
 
 // Metrics
 
-unsigned VertexBuffer_get_memory_usage(void);
+unsigned GWN_vertbuf_get_memory_usage(void);
 
 
 // Macros
 
-#define VERTEXBUFFER_DISCARD_SAFE(verts) do { \
+#define GWN_VERTBUF_DISCARD_SAFE(verts) do { \
 	if (verts != NULL) { \
-		VertexBuffer_discard(verts); \
+		GWN_vertbuf_discard(verts); \
 		verts = NULL; \
 	} \
 } while (0)

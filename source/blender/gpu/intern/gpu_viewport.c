@@ -399,16 +399,16 @@ static void draw_ofs_to_screen(GPUViewport *viewport)
 	const float w = (float)GPU_texture_width(color);
 	const float h = (float)GPU_texture_height(color);
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
 	GPU_texture_bind(color, 0);
 
 	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-	immBegin(PRIM_TRIANGLE_STRIP, 4);
+	immBegin(GWN_PRIM_TRI_STRIP, 4);
 
 	immAttrib2f(texcoord, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, 0.0f);
@@ -535,9 +535,9 @@ void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, con
 	const float w = (float)GPU_texture_width(viewport->debug_depth);
 	const float h = (float)GPU_texture_height(viewport->debug_depth);
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_DEPTH);
 
@@ -547,7 +547,7 @@ void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, con
 	immUniform1f("zfar", zfar);
 	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-	immBegin(PRIM_TRIANGLE_STRIP, 4);
+	immBegin(GWN_PRIM_TRI_STRIP, 4);
 
 	immAttrib2f(texcoord, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, 0.0f);

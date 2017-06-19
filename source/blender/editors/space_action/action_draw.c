@@ -204,8 +204,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	/* first backdrop strips */
 	y = (float)(-ACHANNEL_HEIGHT(ac));
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -319,7 +319,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	if (saction->flag & SACTION_MOVING) {
 		immUniformColor3f(0.0f, 0.0f, 0.0f);
 
-		immBegin(PRIM_LINES, 2);
+		immBegin(GWN_PRIM_LINES, 2);
 		immVertex2f(pos, saction->timeslide, v2d->cur.ymin - EXTRA_SCROLL_PAD);
 		immVertex2f(pos, saction->timeslide, v2d->cur.ymax);
 		immEnd();

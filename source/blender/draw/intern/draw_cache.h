@@ -26,126 +26,126 @@
 #ifndef __DRAW_CACHE_H__
 #define __DRAW_CACHE_H__
 
-struct Batch;
+struct Gwn_Batch;
 struct Object;
 
 void DRW_shape_cache_free(void);
 
 /* Common Shapes */
-struct Batch *DRW_cache_fullscreen_quad_get(void);
-struct Batch *DRW_cache_sphere_get(void);
-struct Batch *DRW_cache_single_vert_get(void);
-struct Batch *DRW_cache_single_line_get(void);
-struct Batch *DRW_cache_single_line_endpoints_get(void);
-struct Batch *DRW_cache_screenspace_circle_get(void);
+struct Gwn_Batch *DRW_cache_fullscreen_quad_get(void);
+struct Gwn_Batch *DRW_cache_sphere_get(void);
+struct Gwn_Batch *DRW_cache_single_vert_get(void);
+struct Gwn_Batch *DRW_cache_single_line_get(void);
+struct Gwn_Batch *DRW_cache_single_line_endpoints_get(void);
+struct Gwn_Batch *DRW_cache_screenspace_circle_get(void);
 
 /* Common Object */
-struct Batch *DRW_cache_object_wire_outline_get(struct Object *ob);
-struct Batch *DRW_cache_object_surface_get(struct Object *ob);
-struct Batch **DRW_cache_object_surface_material_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_object_wire_outline_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_object_surface_get(struct Object *ob);
+struct Gwn_Batch **DRW_cache_object_surface_material_get(struct Object *ob);
 
 /* Empties */
-struct Batch *DRW_cache_plain_axes_get(void);
-struct Batch *DRW_cache_single_arrow_get(void);
-struct Batch *DRW_cache_cube_get(void);
-struct Batch *DRW_cache_circle_get(void);
-struct Batch *DRW_cache_square_get(void);
-struct Batch *DRW_cache_empty_sphere_get(void);
-struct Batch *DRW_cache_empty_cone_get(void);
-struct Batch *DRW_cache_arrows_get(void);
-struct Batch *DRW_cache_axis_names_get(void);
-struct Batch *DRW_cache_image_plane_get(void);
-struct Batch *DRW_cache_image_plane_wire_get(void);
+struct Gwn_Batch *DRW_cache_plain_axes_get(void);
+struct Gwn_Batch *DRW_cache_single_arrow_get(void);
+struct Gwn_Batch *DRW_cache_cube_get(void);
+struct Gwn_Batch *DRW_cache_circle_get(void);
+struct Gwn_Batch *DRW_cache_square_get(void);
+struct Gwn_Batch *DRW_cache_empty_sphere_get(void);
+struct Gwn_Batch *DRW_cache_empty_cone_get(void);
+struct Gwn_Batch *DRW_cache_arrows_get(void);
+struct Gwn_Batch *DRW_cache_axis_names_get(void);
+struct Gwn_Batch *DRW_cache_image_plane_get(void);
+struct Gwn_Batch *DRW_cache_image_plane_wire_get(void);
 
 /* Force Field */
-struct Batch *DRW_cache_field_wind_get(void);
-struct Batch *DRW_cache_field_force_get(void);
-struct Batch *DRW_cache_field_vortex_get(void);
-struct Batch *DRW_cache_field_tube_limit_get(void);
-struct Batch *DRW_cache_field_cone_limit_get(void);
+struct Gwn_Batch *DRW_cache_field_wind_get(void);
+struct Gwn_Batch *DRW_cache_field_force_get(void);
+struct Gwn_Batch *DRW_cache_field_vortex_get(void);
+struct Gwn_Batch *DRW_cache_field_tube_limit_get(void);
+struct Gwn_Batch *DRW_cache_field_cone_limit_get(void);
 
 /* Lamps */
-struct Batch *DRW_cache_lamp_get(void);
-struct Batch *DRW_cache_lamp_sunrays_get(void);
-struct Batch *DRW_cache_lamp_area_get(void);
-struct Batch *DRW_cache_lamp_hemi_get(void);
-struct Batch *DRW_cache_lamp_spot_get(void);
-struct Batch *DRW_cache_lamp_spot_square_get(void);
+struct Gwn_Batch *DRW_cache_lamp_get(void);
+struct Gwn_Batch *DRW_cache_lamp_sunrays_get(void);
+struct Gwn_Batch *DRW_cache_lamp_area_get(void);
+struct Gwn_Batch *DRW_cache_lamp_hemi_get(void);
+struct Gwn_Batch *DRW_cache_lamp_spot_get(void);
+struct Gwn_Batch *DRW_cache_lamp_spot_square_get(void);
 
 /* Camera */
-struct Batch *DRW_cache_camera_get(void);
-struct Batch *DRW_cache_camera_tria_get(void);
+struct Gwn_Batch *DRW_cache_camera_get(void);
+struct Gwn_Batch *DRW_cache_camera_tria_get(void);
 
 /* Speaker */
-struct Batch *DRW_cache_speaker_get(void);
+struct Gwn_Batch *DRW_cache_speaker_get(void);
 
 /* Probe */
-struct Batch *DRW_cache_lightprobe_get(void);
+struct Gwn_Batch *DRW_cache_lightprobe_get(void);
 
 /* Bones */
-struct Batch *DRW_cache_bone_octahedral_get(void);
-struct Batch *DRW_cache_bone_octahedral_wire_outline_get(void);
-struct Batch *DRW_cache_bone_box_get(void);
-struct Batch *DRW_cache_bone_box_wire_outline_get(void);
-struct Batch *DRW_cache_bone_wire_wire_outline_get(void);
-struct Batch *DRW_cache_bone_envelope_solid_get(void);
-struct Batch *DRW_cache_bone_envelope_distance_outline_get(void);
-struct Batch *DRW_cache_bone_envelope_wire_outline_get(void);
-struct Batch *DRW_cache_bone_envelope_head_wire_outline_get(void);
-struct Batch *DRW_cache_bone_point_get(void);
-struct Batch *DRW_cache_bone_point_wire_outline_get(void);
-struct Batch *DRW_cache_bone_arrows_get(void);
+struct Gwn_Batch *DRW_cache_bone_octahedral_get(void);
+struct Gwn_Batch *DRW_cache_bone_octahedral_wire_outline_get(void);
+struct Gwn_Batch *DRW_cache_bone_box_get(void);
+struct Gwn_Batch *DRW_cache_bone_box_wire_outline_get(void);
+struct Gwn_Batch *DRW_cache_bone_wire_wire_outline_get(void);
+struct Gwn_Batch *DRW_cache_bone_envelope_solid_get(void);
+struct Gwn_Batch *DRW_cache_bone_envelope_distance_outline_get(void);
+struct Gwn_Batch *DRW_cache_bone_envelope_wire_outline_get(void);
+struct Gwn_Batch *DRW_cache_bone_envelope_head_wire_outline_get(void);
+struct Gwn_Batch *DRW_cache_bone_point_get(void);
+struct Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void);
+struct Gwn_Batch *DRW_cache_bone_arrows_get(void);
 
 /* Meshes */
-struct Batch *DRW_cache_mesh_surface_overlay_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_surface_overlay_get(struct Object *ob);
 void DRW_cache_mesh_wire_overlay_get(
         struct Object *ob,
-        struct Batch **r_tris, struct Batch **r_ledges, struct Batch **r_lverts);
+        struct Gwn_Batch **r_tris, struct Gwn_Batch **r_ledges, struct Gwn_Batch **r_lverts);
 void DRW_cache_mesh_normals_overlay_get(
         struct Object *ob,
-        struct Batch **r_tris, struct Batch **r_ledges, struct Batch **r_lverts);
-struct Batch *DRW_cache_face_centers_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_wire_outline_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_surface_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_surface_weights_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_surface_vert_colors_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_surface_verts_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_edges_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_verts_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_edges_paint_overlay_get(struct Object *ob, bool use_wire, bool use_sel);
-struct Batch *DRW_cache_mesh_faces_weight_overlay_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_verts_weight_overlay_get(struct Object *ob);
-struct Batch **DRW_cache_mesh_surface_shaded_get(struct Object *ob);
-struct Batch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
-struct Batch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
+        struct Gwn_Batch **r_tris, struct Gwn_Batch **r_ledges, struct Gwn_Batch **r_lverts);
+struct Gwn_Batch *DRW_cache_face_centers_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_wire_outline_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_surface_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_surface_weights_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_surface_vert_colors_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_surface_verts_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_edges_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_verts_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_edges_paint_overlay_get(struct Object *ob, bool use_wire, bool use_sel);
+struct Gwn_Batch *DRW_cache_mesh_faces_weight_overlay_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_verts_weight_overlay_get(struct Object *ob);
+struct Gwn_Batch **DRW_cache_mesh_surface_shaded_get(struct Object *ob);
+struct Gwn_Batch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
 
 /* Curve */
-struct Batch *DRW_cache_curve_surface_get(struct Object *ob);
-struct Batch *DRW_cache_curve_surface_verts_get(struct Object *ob);
-struct Batch *DRW_cache_curve_edge_wire_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_curve_surface_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_curve_surface_verts_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_curve_edge_wire_get(struct Object *ob);
 /* edit-mode */
-struct Batch *DRW_cache_curve_edge_normal_get(struct Object *ob, float normal_size);
-struct Batch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
-struct Batch *DRW_cache_curve_vert_overlay_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_curve_edge_normal_get(struct Object *ob, float normal_size);
+struct Gwn_Batch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_curve_vert_overlay_get(struct Object *ob);
 
 /* Font */
-struct Batch *DRW_cache_text_edge_wire_get(struct Object *ob);
-struct Batch *DRW_cache_text_surface_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_text_edge_wire_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_text_surface_get(struct Object *ob);
 /* edit-mode */
-struct Batch *DRW_cache_text_cursor_overlay_get(struct Object *ob);
-struct Batch *DRW_cache_text_select_overlay_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_text_cursor_overlay_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_text_select_overlay_get(struct Object *ob);
 
 /* Surface */
-struct Batch *DRW_cache_surf_surface_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_surf_surface_get(struct Object *ob);
 
 /* Lattice */
-struct Batch *DRW_cache_lattice_verts_get(struct Object *ob);
-struct Batch *DRW_cache_lattice_wire_get(struct Object *ob);
-struct Batch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_lattice_verts_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_lattice_wire_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
 
 /* Particles */
-struct Batch *DRW_cache_particles_get_hair(struct ParticleSystem *psys);
-struct Batch *DRW_cache_particles_get_dots(struct ParticleSystem *psys);
-struct Batch *DRW_cache_particles_get_prim(int type);
+struct Gwn_Batch *DRW_cache_particles_get_hair(struct ParticleSystem *psys);
+struct Gwn_Batch *DRW_cache_particles_get_dots(struct ParticleSystem *psys);
+struct Gwn_Batch *DRW_cache_particles_get_prim(int type);
 
 #endif /* __DRAW_CACHE_H__ */

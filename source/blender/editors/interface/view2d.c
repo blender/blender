@@ -1325,12 +1325,12 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 	if (vertex_count == 0)
 		return;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(PRIM_LINES, vertex_count);
+	immBegin(GWN_PRIM_LINES, vertex_count);
 
 	/* vertical lines */
 	if (flag & V2D_VERTICAL_LINES) {
@@ -1467,15 +1467,15 @@ void UI_view2d_constant_grid_draw(View2D *v2d)
 		count_y = (v2d->cur.ymax - start_y) / step + 1;
 	
 	if (count_x > 0 || count_y > 0) {
-		VertexFormat *format = immVertexFormat();
-		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		float theme_color[3];
 
 		UI_GetThemeColorShade3fv(TH_BACK, -10, theme_color);
 		
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-		immBegin(PRIM_LINES, count_x * 2 + count_y * 2 + 4);
+		immBegin(GWN_PRIM_LINES, count_x * 2 + count_y * 2 + 4);
 		
 		immAttrib3fv(color, theme_color);
 		for (int i = 0; i < count_x ; start_x += step, i++) {
@@ -1518,14 +1518,14 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 	vertex_count += 2 * ((int)((v2d->cur.xmax - v2d->cur.xmin) / lstep) + 1);
 	vertex_count += 2 * ((int)((v2d->cur.ymax - v2d->cur.ymin) / lstep) + 1);
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 	glLineWidth(1.0f);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBeginAtMost(PRIM_LINES, vertex_count);
+	immBeginAtMost(GWN_PRIM_LINES, vertex_count);
 
 	for (int level = 0; level < totlevels; ++level) {
 		UI_GetThemeColorShade3ubv(colorid, offset, grid_line_color);
@@ -1839,8 +1839,8 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* clean rect behind slider, but not with transparent background */
 		if (scrollers_back_color[3] == 255) {
-			VertexFormat *format = immVertexFormat();
-			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+			Gwn_VertFormat *format = immVertexFormat();
+			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1946,8 +1946,8 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* clean rect behind slider, but not with transparent background */
 		if (scrollers_back_color[3] == 255) {
-			VertexFormat *format = immVertexFormat();
-			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+			Gwn_VertFormat *format = immVertexFormat();
+			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

@@ -15,23 +15,23 @@
 
 #define KEEP_SINGLE_COPY 1
 
-static GLenum convert_index_type_to_gl(IndexType type)
+static GLenum convert_index_type_to_gl(Gwn_IndexBufType type)
 	{
 	static const GLenum table[] = {
-		[INDEX_U8] = GL_UNSIGNED_BYTE, // GL has this, Vulkan does not
-		[INDEX_U16] = GL_UNSIGNED_SHORT,
-		[INDEX_U32] = GL_UNSIGNED_INT
+		[GWN_INDEX_U8] = GL_UNSIGNED_BYTE, // GL has this, Vulkan does not
+		[GWN_INDEX_U16] = GL_UNSIGNED_SHORT,
+		[GWN_INDEX_U32] = GL_UNSIGNED_INT
 		};
 	return table[type];
 	}
 
-unsigned ElementList_size(const ElementList* elem)
+unsigned GWN_indexbuf_size_get(const Gwn_IndexBuf* elem)
 	{
-#if TRACK_INDEX_RANGE
+#if GWN_TRACK_INDEX_RANGE
 	static const unsigned table[] = {
-		[INDEX_U8] = sizeof(GLubyte), // GL has this, Vulkan does not
-		[INDEX_U16] = sizeof(GLushort),
-		[INDEX_U32] = sizeof(GLuint)
+		[GWN_INDEX_U8] = sizeof(GLubyte), // GL has this, Vulkan does not
+		[GWN_INDEX_U16] = sizeof(GLushort),
+		[GWN_INDEX_U32] = sizeof(GLuint)
 		};
 	return elem->index_ct * table[elem->index_type];
 #else
@@ -39,12 +39,12 @@ unsigned ElementList_size(const ElementList* elem)
 #endif
 	}
 
-static void ElementList_prime(ElementList* elem)
+static void ElementList_prime(Gwn_IndexBuf* elem)
 	{
-	elem->vbo_id = buffer_id_alloc();
+	elem->vbo_id = GWN_buf_id_alloc();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
 	// fill with delicious data & send to GPU the first time only
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ElementList_size(elem), elem->data, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, GWN_indexbuf_size_get(elem), elem->data, GL_STATIC_DRAW);
 
 #if KEEP_SINGLE_COPY
 	// now that GL has a copy, discard original
@@ -53,7 +53,7 @@ static void ElementList_prime(ElementList* elem)
 #endif
 	}
 
-void ElementList_use(ElementList* elem)
+void GWN_indexbuf_use(Gwn_IndexBuf* elem)
 	{
 	if (elem->vbo_id)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
@@ -61,18 +61,18 @@ void ElementList_use(ElementList* elem)
 		ElementList_prime(elem);
 	}
 
-void ElementListBuilder_init(ElementListBuilder* builder, PrimitiveType prim_type, unsigned prim_ct, unsigned vertex_ct)
+void GWN_indexbuf_init(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, unsigned prim_ct, unsigned vertex_ct)
 	{
 	unsigned verts_per_prim = 0;
 	switch (prim_type)
 		{
-		case PRIM_POINTS:
+		case GWN_PRIM_POINTS:
 			verts_per_prim = 1;
 			break;
-		case PRIM_LINES:
+		case GWN_PRIM_LINES:
 			verts_per_prim = 2;
 			break;
-		case PRIM_TRIANGLES:
+		case GWN_PRIM_TRIS:
 			verts_per_prim = 3;
 			break;
 		default:
@@ -89,7 +89,7 @@ void ElementListBuilder_init(ElementListBuilder* builder, PrimitiveType prim_typ
 	builder->data = calloc(builder->max_index_ct, sizeof(unsigned));
 	}
 
-void add_generic_vertex(ElementListBuilder* builder, unsigned v)
+void GWN_indexbuf_add_generic_vert(Gwn_IndexBufBuilder* builder, unsigned v)
 	{
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);
@@ -100,39 +100,39 @@ void add_generic_vertex(ElementListBuilder* builder, unsigned v)
 	builder->data[builder->index_ct++] = v;
 	}
 
-void add_point_vertex(ElementListBuilder* builder, unsigned v)
+void GWN_indexbuf_add_point_vert(Gwn_IndexBufBuilder* builder, unsigned v)
 	{
 #if TRUST_NO_ONE
-	assert(builder->prim_type == PRIM_POINTS);
+	assert(builder->prim_type == GWN_PRIM_POINTS);
 #endif
 
-	add_generic_vertex(builder, v);
+	GWN_indexbuf_add_generic_vert(builder, v);
 	}
 
-void add_line_vertices(ElementListBuilder* builder, unsigned v1, unsigned v2)
+void GWN_indexbuf_add_line_verts(Gwn_IndexBufBuilder* builder, unsigned v1, unsigned v2)
 	{
 #if TRUST_NO_ONE
-	assert(builder->prim_type == PRIM_LINES);
+	assert(builder->prim_type == GWN_PRIM_LINES);
 	assert(v1 != v2);
 #endif
 
-	add_generic_vertex(builder, v1);
-	add_generic_vertex(builder, v2);
+	GWN_indexbuf_add_generic_vert(builder, v1);
+	GWN_indexbuf_add_generic_vert(builder, v2);
 	}
 
-void add_triangle_vertices(ElementListBuilder* builder, unsigned v1, unsigned v2, unsigned v3)
+void GWN_indexbuf_add_tri_verts(Gwn_IndexBufBuilder* builder, unsigned v1, unsigned v2, unsigned v3)
 	{
 #if TRUST_NO_ONE
-	assert(builder->prim_type == PRIM_TRIANGLES);
+	assert(builder->prim_type == GWN_PRIM_TRIS);
 	assert(v1 != v2 && v2 != v3 && v3 != v1);
 #endif
 
-	add_generic_vertex(builder, v1);
-	add_generic_vertex(builder, v2);
-	add_generic_vertex(builder, v3);
+	GWN_indexbuf_add_generic_vert(builder, v1);
+	GWN_indexbuf_add_generic_vert(builder, v2);
+	GWN_indexbuf_add_generic_vert(builder, v3);
 	}
 
-#if TRACK_INDEX_RANGE
+#if GWN_TRACK_INDEX_RANGE
 // Everything remains 32 bit while building to keep things simple.
 // Find min/max after, then convert to smallest index type possible.
 
@@ -159,7 +159,7 @@ static unsigned index_range(const unsigned values[], unsigned value_ct, unsigned
 	return max_value - min_value;
 	}
 
-static void squeeze_indices_byte(const unsigned values[], ElementList* elem)
+static void squeeze_indices_byte(const unsigned values[], Gwn_IndexBuf* elem)
 	{
 	const unsigned index_ct = elem->index_ct;
 	GLubyte* data = malloc(index_ct * sizeof(GLubyte));
@@ -186,7 +186,7 @@ static void squeeze_indices_byte(const unsigned values[], ElementList* elem)
 	elem->data = data;
 	}
 
-static void squeeze_indices_short(const unsigned values[], ElementList* elem)
+static void squeeze_indices_short(const unsigned values[], Gwn_IndexBuf* elem)
 	{
 	const unsigned index_ct = elem->index_ct;
 	GLushort* data = malloc(index_ct * sizeof(GLushort));
@@ -213,16 +213,16 @@ static void squeeze_indices_short(const unsigned values[], ElementList* elem)
 	elem->data = data;
 	}
 
-#endif // TRACK_INDEX_RANGE
+#endif // GWN_TRACK_INDEX_RANGE
 
-ElementList* ElementList_build(ElementListBuilder* builder)
+Gwn_IndexBuf* GWN_indexbuf_build(Gwn_IndexBufBuilder* builder)
 	{
-	ElementList* elem = calloc(1, sizeof(ElementList));
-	ElementList_build_in_place(builder, elem);
+	Gwn_IndexBuf* elem = calloc(1, sizeof(Gwn_IndexBuf));
+	GWN_indexbuf_build_in_place(builder, elem);
 	return elem;
 	}
 
-void ElementList_build_in_place(ElementListBuilder* builder, ElementList* elem)
+void GWN_indexbuf_build_in_place(Gwn_IndexBufBuilder* builder, Gwn_IndexBuf* elem)
 	{
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);
@@ -230,22 +230,22 @@ void ElementList_build_in_place(ElementListBuilder* builder, ElementList* elem)
 
 	elem->index_ct = builder->index_ct;
 
-#if TRACK_INDEX_RANGE
+#if GWN_TRACK_INDEX_RANGE
 	const unsigned range = index_range(builder->data, builder->index_ct, &elem->min_index, &elem->max_index);
 
 	if (range <= 0xFF)
 		{
-		elem->index_type = INDEX_U8;
+		elem->index_type = GWN_INDEX_U8;
 		squeeze_indices_byte(builder->data, elem);
 		}
 	else if (range <= 0xFFFF)
 		{
-		elem->index_type = INDEX_U16;
+		elem->index_type = GWN_INDEX_U16;
 		squeeze_indices_short(builder->data, elem);
 		}
 	else
 		{
-		elem->index_type = INDEX_U32;
+		elem->index_type = GWN_INDEX_U32;
 		elem->base_index = 0;
 
 		if (builder->index_ct < builder->max_index_ct)
@@ -281,10 +281,10 @@ void ElementList_build_in_place(ElementListBuilder* builder, ElementList* elem)
 	// other fields are safe to leave
 	}
 
-void ElementList_discard(ElementList* elem)
+void GWN_indexbuf_discard(Gwn_IndexBuf* elem)
 	{
 	if (elem->vbo_id)
-		buffer_id_free(elem->vbo_id);
+		GWN_buf_id_free(elem->vbo_id);
 #if KEEP_SINGLE_COPY
 	else
 #endif

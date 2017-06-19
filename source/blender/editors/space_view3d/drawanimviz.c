@@ -238,13 +238,13 @@ void draw_motion_path_instance(Scene *scene,
 		/* set line thickness */
 		glLineWidth(mpath->line_thickness);
 
-		VertexFormat *format = immVertexFormat();
-		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-		unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
-		immBegin(PRIM_LINE_STRIP, len);
+		immBegin(GWN_PRIM_LINE_STRIP, len);
 
 		for (i = 0, mpv = mpv_start; i < len; i++, mpv++) {
 			short sel = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->flag & SELECT);
@@ -264,7 +264,7 @@ void draw_motion_path_instance(Scene *scene,
 		glLineWidth(old_width);
 	}
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -274,7 +274,7 @@ void draw_motion_path_instance(Scene *scene,
 	/* draw little black point at each frame */
 	immUniformColor3ub(0, 0, 0);
 
-	immBegin(PRIM_POINTS, len);
+	immBegin(GWN_PRIM_POINTS, len);
 
 	for (i = 0, mpv = mpv_start; i < len; i++, mpv++) {
 		immVertex3fv(pos, mpv->co);
@@ -290,7 +290,7 @@ void draw_motion_path_instance(Scene *scene,
 		immUniformThemeColor(TH_TEXT_HI);
 	}
 
-	immBegin(PRIM_POINTS, (len + stepsize - 1) / stepsize);
+	immBegin(GWN_PRIM_POINTS, (len + stepsize - 1) / stepsize);
 
 	for (i = 0, mpv = mpv_start; i < len; i += stepsize, mpv += stepsize) {
 		immVertex3fv(pos, mpv->co);
@@ -307,7 +307,7 @@ void draw_motion_path_instance(Scene *scene,
 		glPointSize(mpath->line_thickness + 5.0);
 		immUniformThemeColor(TH_CFRAME);
 
-		immBegin(PRIM_POINTS, 1);
+		immBegin(GWN_PRIM_POINTS, 1);
 
 		mpv = mpv_start + (CFRA - sfra);
 		immVertex3fv(pos, mpv->co);
@@ -388,12 +388,12 @@ void draw_motion_path_instance(Scene *scene,
 		/* point must be bigger than line */
 		glPointSize(mpath->line_thickness + 3.0);
 
-		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor3ubv(col);
 		
-		immBeginAtMost(PRIM_POINTS, len);
+		immBeginAtMost(GWN_PRIM_POINTS, len);
 
 		for (i = 0, mpv = mpv_start; i < len; i++, mpv++) {
 			int    frame = sfra + i; 

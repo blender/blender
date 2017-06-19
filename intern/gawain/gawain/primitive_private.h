@@ -11,4 +11,4 @@
 
 #pragma once
 
-GLenum convert_prim_type_to_gl(PrimitiveType);
+GLenum convert_prim_type_to_gl(Gwn_PrimType);

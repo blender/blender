@@ -441,9 +441,9 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	halfy /= triple->y;
 #endif
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	const int activeTex = 7; /* arbitrary */
 	glActiveTexture(GL_TEXTURE0 + activeTex);
@@ -460,7 +460,7 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	immUniform1f("alpha", alpha);
 	immUniform1i("image", activeTex);
 
-	immBegin(PRIM_TRIANGLE_FAN, 4);
+	immBegin(GWN_PRIM_TRI_FAN, 4);
 
 	immAttrib2f(texcoord, halfx, halfy);
 	immVertex2f(pos, 0.0f, 0.0f);

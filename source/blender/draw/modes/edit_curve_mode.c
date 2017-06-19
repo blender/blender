@@ -222,7 +222,7 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 		if (ob == obedit) {
 			Curve *cu = ob->data;
 			/* Get geometry cache */
-			struct Batch *geom;
+			struct Gwn_Batch *geom;
 
 			geom = DRW_cache_curve_edge_wire_get(ob);
 			DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);

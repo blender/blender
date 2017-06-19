@@ -284,39 +284,39 @@ enum {
 };
 
 /* ---------------------------------------------------------------------- */
-/* Curve Batch Cache */
+/* Curve Gwn_Batch Cache */
 
 typedef struct CurveBatchCache {
 	/* center-line */
 	struct {
-		VertexBuffer *verts;
-		VertexBuffer *edges;
-		Batch *batch;
-		ElementList *elem;
+		Gwn_VertBuf *verts;
+		Gwn_VertBuf *edges;
+		Gwn_Batch *batch;
+		Gwn_IndexBuf *elem;
 	} wire;
 
 	/* normals */
 	struct {
-		VertexBuffer *verts;
-		VertexBuffer *edges;
-		Batch *batch;
-		ElementList *elem;
+		Gwn_VertBuf *verts;
+		Gwn_VertBuf *edges;
+		Gwn_Batch *batch;
+		Gwn_IndexBuf *elem;
 	} normal;
 
 	/* control handles and vertices */
 	struct {
-		Batch *edges;
-		Batch *verts;
+		Gwn_Batch *edges;
+		Gwn_Batch *verts;
 	} overlay;
 
 	struct {
-		Batch *batch;
+		Gwn_Batch *batch;
 	} surface;
 
 	/* 3d text */
 	struct {
-		Batch *select;
-		Batch *cursor;
+		Gwn_Batch *select;
+		Gwn_Batch *cursor;
 	} text;
 
 	/* settings to determine if cache is invalid */
@@ -330,7 +330,7 @@ typedef struct CurveBatchCache {
 	bool is_editmode;
 } CurveBatchCache;
 
-/* Batch cache management. */
+/* Gwn_Batch cache management. */
 
 static bool curve_batch_cache_valid(Curve *cu)
 {
@@ -453,9 +453,9 @@ static void curve_batch_cache_clear(Curve *cu)
 		cache->wire.elem = NULL;
 	}
 	else {
-		VERTEXBUFFER_DISCARD_SAFE(cache->wire.verts);
-		VERTEXBUFFER_DISCARD_SAFE(cache->wire.edges);
-		ELEMENTLIST_DISCARD_SAFE(cache->wire.elem);
+		GWN_VERTBUF_DISCARD_SAFE(cache->wire.verts);
+		GWN_VERTBUF_DISCARD_SAFE(cache->wire.edges);
+		GWN_INDEXBUF_DISCARD_SAFE(cache->wire.elem);
 	}
 
 	if (cache->normal.batch) {
@@ -465,9 +465,9 @@ static void curve_batch_cache_clear(Curve *cu)
 		cache->normal.elem = NULL;
 	}
 	else {
-		VERTEXBUFFER_DISCARD_SAFE(cache->normal.verts);
-		VERTEXBUFFER_DISCARD_SAFE(cache->normal.edges);
-		ELEMENTLIST_DISCARD_SAFE(cache->normal.elem);
+		GWN_VERTBUF_DISCARD_SAFE(cache->normal.verts);
+		GWN_VERTBUF_DISCARD_SAFE(cache->normal.edges);
+		GWN_INDEXBUF_DISCARD_SAFE(cache->normal.elem);
 	}
 
 	/* 3d text */
@@ -486,30 +486,30 @@ void DRW_curve_batch_cache_free(Curve *cu)
 /** \name Private Curve Cache API
  * \{ */
 
-/* Batch cache usage. */
-static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *rdata, CurveBatchCache *cache)
+/* Gwn_Batch cache usage. */
+static Gwn_VertBuf *curve_batch_cache_get_wire_verts(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_WIRE);
 	BLI_assert(rdata->ob_curve_cache != NULL);
 
 	if (cache->wire.verts == NULL) {
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		const int vert_len = curve_render_data_wire_verts_len_get(rdata);
 
-		VertexBuffer *vbo = cache->wire.verts = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, vert_len);
+		Gwn_VertBuf *vbo = cache->wire.verts = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, vert_len);
 		int vbo_len_used = 0;
 		for (const BevList *bl = rdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
 			if (bl->nr > 0) {
 				const int i_end = vbo_len_used + bl->nr;
 				for (const BevPoint *bevp = bl->bevpoints; vbo_len_used < i_end; vbo_len_used++, bevp++) {
-					VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bevp->vec);
+					GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bevp->vec);
 				}
 			}
 		}
@@ -519,7 +519,7 @@ static VertexBuffer *curve_batch_cache_get_wire_verts(CurveRenderData *rdata, Cu
 	return cache->wire.verts;
 }
 
-static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *rdata, CurveBatchCache *cache)
+static Gwn_IndexBuf *curve_batch_cache_get_wire_edges(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_WIRE);
 	BLI_assert(rdata->ob_curve_cache != NULL);
@@ -529,8 +529,8 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *rdata, Cur
 		const int edge_len = curve_render_data_wire_edges_len_get(rdata);
 		int edge_len_used = 0;
 
-		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, vert_len);
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_LINES, edge_len, vert_len);
 
 		int i = 0;
 		for (const BevList *bl = rdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
@@ -546,7 +546,7 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *rdata, Cur
 					i += 1;
 				}
 				for (; i < i_end; i_prev = i++) {
-					add_line_vertices(&elb, i_prev, i);
+					GWN_indexbuf_add_line_verts(&elb, i_prev, i);
 					edge_len_used += 1;
 				}
 			}
@@ -559,30 +559,30 @@ static ElementList *curve_batch_cache_get_wire_edges(CurveRenderData *rdata, Cur
 			BLI_assert(edge_len_used == edge_len);
 		}
 
-		cache->wire.elem = ElementList_build(&elb);
+		cache->wire.elem = GWN_indexbuf_build(&elb);
 	}
 
 	return cache->wire.elem;
 }
 
-static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *rdata, CurveBatchCache *cache)
+static Gwn_VertBuf *curve_batch_cache_get_normal_verts(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_NORMAL);
 	BLI_assert(rdata->ob_curve_cache != NULL);
 
 	if (cache->normal.verts == NULL) {
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		const int normal_len = curve_render_data_normal_len_get(rdata);
 		const int vert_len = normal_len * 3;
 
-		VertexBuffer *vbo = cache->normal.verts = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, vert_len);
+		Gwn_VertBuf *vbo = cache->normal.verts = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, vert_len);
 		int vbo_len_used = 0;
 
 		const BevList *bl;
@@ -614,9 +614,9 @@ static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *rdata, 
 				add_v3_v3(vec_a, bevp->vec);
 				add_v3_v3(vec_b, bevp->vec);
 
-				VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, vec_a);
-				VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, bevp->vec);
-				VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, vec_b);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, vec_a);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, bevp->vec);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, vec_b);
 
 				bevp += skip + 1;
 				nr -= skip;
@@ -628,7 +628,7 @@ static VertexBuffer *curve_batch_cache_get_normal_verts(CurveRenderData *rdata, 
 	return cache->normal.verts;
 }
 
-static ElementList *curve_batch_cache_get_normal_edges(CurveRenderData *rdata, CurveBatchCache *cache)
+static Gwn_IndexBuf *curve_batch_cache_get_normal_edges(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_NORMAL);
 	BLI_assert(rdata->ob_curve_cache != NULL);
@@ -638,19 +638,19 @@ static ElementList *curve_batch_cache_get_normal_edges(CurveRenderData *rdata, C
 		const int vert_len = normal_len * 3;
 		const int edge_len = normal_len * 2;
 
-		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, vert_len);
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_LINES, edge_len, vert_len);
 
 		int vbo_len_used = 0;
 		for (int i = 0; i < normal_len; i++) {
-			add_line_vertices(&elb, vbo_len_used + 0, vbo_len_used + 1);
-			add_line_vertices(&elb, vbo_len_used + 1, vbo_len_used + 2);
+			GWN_indexbuf_add_line_verts(&elb, vbo_len_used + 0, vbo_len_used + 1);
+			GWN_indexbuf_add_line_verts(&elb, vbo_len_used + 1, vbo_len_used + 2);
 			vbo_len_used += 3;
 		}
 
 		BLI_assert(vbo_len_used == vert_len);
 
-		cache->normal.elem = ElementList_build(&elb);
+		cache->normal.elem = GWN_indexbuf_build(&elb);
 	}
 
 	return cache->normal.elem;
@@ -665,18 +665,18 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 	CurveRenderData *rdata = curve_render_data_create(cu, NULL, options);
 
 	if (cache->overlay.verts == NULL) {
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.data = VertexFormat_add_attrib(&format, "data", COMP_U8, 1, KEEP_INT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.data = GWN_vertformat_attr_add(&format, "data", GWN_COMP_U8, 1, GWN_FETCH_INT);
 		}
 
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		const int vbo_len_capacity = curve_render_data_overlay_verts_len_get(rdata);
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 		int i = 0;
 		for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next) {
 			if (nu->bezt) {
@@ -689,16 +689,16 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 						if (rdata->hide_handles) {
 							vflag = (bezt->f2 & SELECT) ?
 							        (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-							VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[1]);
-							VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
+							GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[1]);
+							GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 							vbo_len_used += 1;
 						}
 						else {
 							for (int j = 0; j < 3; j++) {
 								vflag = ((&bezt->f1)[j] & SELECT) ?
 								        (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-								VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[j]);
-								VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
+								GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[j]);
+								GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 								vbo_len_used += 1;
 							}
 						}
@@ -713,8 +713,8 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 						const bool is_active = (i == rdata->actvert);
 						char vflag;
 						vflag = (bp->f1 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bp->vec);
-						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
+						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp->vec);
+						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
 					}
 					i += 1;
@@ -723,29 +723,29 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 			i += nu->pntsu;
 		}
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 
-		cache->overlay.verts = Batch_create(PRIM_POINTS, vbo, NULL);
+		cache->overlay.verts = GWN_batch_create(GWN_PRIM_POINTS, vbo, NULL);
 	}
 
 
 	if ((cache->overlay.edges == NULL) && (rdata->hide_handles == false)) {
 		/* Note: we could reference indices to vertices (above) */
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.data = VertexFormat_add_attrib(&format, "data", COMP_U8, 1, KEEP_INT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.data = GWN_vertformat_attr_add(&format, "data", GWN_COMP_U8, 1, GWN_FETCH_INT);
 		}
 
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		const int edge_len =  curve_render_data_overlay_edges_len_get(rdata);
 		const int vbo_len_capacity = edge_len * 2;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 		int i = 0;
 		for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next) {
 			if (nu->bezt) {
@@ -756,22 +756,22 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 						char vflag;
 
 						vflag = (bezt->f1 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[0]);
-						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
+						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[0]);
+						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
 
 						/* same vertex twice, only check different selection */
 						for (int j = 0; j < 2; j++) {
 							vflag = ((j ? bezt->f3 : bezt->f1) & SELECT) ?
 							        (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-							VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[1]);
-							VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
+							GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[1]);
+							GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 							vbo_len_used += 1;
 						}
 
 						vflag = (bezt->f3 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bezt->vec[2]);
-						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
+						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[2]);
+						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
 					}
 					i += 1;
@@ -783,11 +783,11 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 					if ((bp_prev->hide == false) && (bp_curr->hide == false)) {
 						char vflag;
 						vflag = ((bp_prev->f1 & SELECT) && (bp_curr->f1 & SELECT)) ? VFLAG_VERTEX_SELECTED : 0;
-						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bp_prev->vec);
-						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
+						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp_prev->vec);
+						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
-						VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used, bp_curr->vec);
-						VertexBuffer_set_attrib(vbo, attr_id.data, vbo_len_used, &vflag);
+						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp_curr->vec);
+						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
 
 					}
@@ -795,16 +795,16 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 			}
 		}
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 
-		cache->overlay.edges = Batch_create(PRIM_LINES, vbo, NULL);
+		cache->overlay.edges = GWN_batch_create(GWN_PRIM_LINES, vbo, NULL);
 	}
 
 	curve_render_data_free(rdata);
 }
 
-static Batch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, CurveBatchCache *cache)
+static Gwn_Batch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_SURFACE);
 	if (cache->surface.batch == NULL) {
@@ -822,21 +822,21 @@ static Batch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, Curv
  * \{ */
 
 
-static Batch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, CurveBatchCache *cache)
+static Gwn_Batch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_TEXT_SELECT);
 	if (cache->text.select == NULL) {
 		EditFont *ef = rdata->text.edit_font;
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		const int vbo_len_capacity = ef->selboxes_len * 6;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		float box[4][3];
 
@@ -883,37 +883,37 @@ static Batch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, Curve
 				add_v2_v2(box[3], &sb->x);
 			}
 
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[0]);
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[1]);
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[2]);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, box[0]);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, box[1]);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, box[2]);
 
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[0]);
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[2]);
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vbo_len_used++, box[3]);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, box[0]);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, box[2]);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, box[3]);
 		}
 		BLI_assert(vbo_len_used == vbo_len_capacity);
-		cache->text.select = Batch_create(PRIM_TRIANGLES, vbo, NULL);
+		cache->text.select = GWN_batch_create(GWN_PRIM_TRIS, vbo, NULL);
 	}
 	return cache->text.select;
 }
 
-static Batch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, CurveBatchCache *cache)
+static Gwn_Batch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_TEXT_SELECT);
 	if (cache->text.cursor == NULL) {
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		}
 
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		const int vbo_len_capacity = 4;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 		for (int i = 0; i < 4; i++) {
-			VertexBuffer_set_attrib(vbo, attr_id.pos, i, rdata->text.edit_font->textcurs[i]);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, i, rdata->text.edit_font->textcurs[i]);
 		}
-		cache->text.cursor = Batch_create(PRIM_TRIANGLE_FAN, vbo, NULL);
+		cache->text.cursor = GWN_batch_create(GWN_PRIM_TRI_FAN, vbo, NULL);
 	}
 	return cache->text.cursor;
 }
@@ -925,7 +925,7 @@ static Batch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, Curve
 /** \name Public Object/Curve API
  * \{ */
 
-Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache)
+Gwn_Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -933,8 +933,8 @@ Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache
 		/* create batch from Curve */
 		CurveRenderData *rdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_WIRE);
 
-		cache->wire.batch = Batch_create(
-		        PRIM_LINES,
+		cache->wire.batch = GWN_batch_create(
+		        GWN_PRIM_LINES,
 		        curve_batch_cache_get_wire_verts(rdata, cache),
 		        curve_batch_cache_get_wire_edges(rdata, cache));
 
@@ -943,7 +943,7 @@ Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu, CurveCache *ob_curve_cache
 	return cache->wire.batch;
 }
 
-Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cache, float normal_size)
+Gwn_Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cache, float normal_size)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -959,8 +959,8 @@ Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cac
 		/* create batch from Curve */
 		CurveRenderData *rdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_NORMAL);
 
-		cache->normal.batch = Batch_create(
-		        PRIM_LINES,
+		cache->normal.batch = GWN_batch_create(
+		        GWN_PRIM_LINES,
 		        curve_batch_cache_get_normal_verts(rdata, cache),
 		        curve_batch_cache_get_normal_edges(rdata, cache));
 
@@ -970,7 +970,7 @@ Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_cac
 	return cache->normal.batch;
 }
 
-Batch *DRW_curve_batch_cache_get_overlay_edges(Curve *cu)
+Gwn_Batch *DRW_curve_batch_cache_get_overlay_edges(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -981,7 +981,7 @@ Batch *DRW_curve_batch_cache_get_overlay_edges(Curve *cu)
 	return cache->overlay.edges;
 }
 
-Batch *DRW_curve_batch_cache_get_overlay_verts(Curve *cu)
+Gwn_Batch *DRW_curve_batch_cache_get_overlay_verts(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -992,7 +992,7 @@ Batch *DRW_curve_batch_cache_get_overlay_verts(Curve *cu)
 	return cache->overlay.verts;
 }
 
-Batch *DRW_curve_batch_cache_get_triangles_with_normals(
+Gwn_Batch *DRW_curve_batch_cache_get_triangles_with_normals(
         struct Curve *cu, struct CurveCache *ob_curve_cache)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
@@ -1014,7 +1014,7 @@ Batch *DRW_curve_batch_cache_get_triangles_with_normals(
 /** \name Public Object/Font API
  * \{ */
 
-Batch *DRW_curve_batch_cache_get_overlay_select(Curve *cu)
+Gwn_Batch *DRW_curve_batch_cache_get_overlay_select(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -1029,7 +1029,7 @@ Batch *DRW_curve_batch_cache_get_overlay_select(Curve *cu)
 	return cache->text.select;
 }
 
-Batch *DRW_curve_batch_cache_get_overlay_cursor(Curve *cu)
+Gwn_Batch *DRW_curve_batch_cache_get_overlay_cursor(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 

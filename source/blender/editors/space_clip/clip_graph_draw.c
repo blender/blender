@@ -90,11 +90,11 @@ static void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track,
 	immUniformColor4fv(col);
 
 	if (is_point) {
-		immBeginAtMost(PRIM_POINTS, 1);
+		immBeginAtMost(GWN_PRIM_POINTS, 1);
 	}
 	else {
 		/* Graph can be composed of smaller segments, if any marker is disabled */
-		immBeginAtMost(PRIM_LINE_STRIP, track->markersnr);
+		immBeginAtMost(GWN_PRIM_LINE_STRIP, track->markersnr);
 	}
 }
 
@@ -236,11 +236,11 @@ static void tracking_error_segment_start_cb(void *userdata, MovieTrackingTrack *
 		immUniformColor4fv(col);
 
 		if (is_point) { /* This probably never happens here, but just in case... */
-			immBeginAtMost(PRIM_POINTS, 1);
+			immBeginAtMost(GWN_PRIM_POINTS, 1);
 		}
 		else {
 			/* Graph can be composed of smaller segments, if any marker is disabled */
-			immBeginAtMost(PRIM_LINE_STRIP, track->markersnr);
+			immBeginAtMost(GWN_PRIM_LINE_STRIP, track->markersnr);
 		}
 	}
 }
@@ -299,7 +299,7 @@ static void draw_frame_curves(SpaceClip *sc, unsigned int pos)
 		}
 
 		if (!lines) {
-			immBeginAtMost(PRIM_LINE_STRIP, reconstruction->camnr);
+			immBeginAtMost(GWN_PRIM_LINE_STRIP, reconstruction->camnr);
 			lines = 1;
 		}
 
@@ -327,7 +327,7 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_grid_free(grid);
 
 	if (clip) {
-		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		glPointSize(3.0f);

@@ -129,8 +129,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 		unsigned int keyframe_ct = 0;
 
-		VertexFormat *format = immVertexFormat();
-		unsigned int pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		unsigned int pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		/* don't use totrect set, as the width stays the same
@@ -214,14 +214,14 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		if (keyframe_ct > 0) {
 			/* draw keyframe markers */
 			format = immVertexFormat();
-			pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			unsigned int size_id = VertexFormat_add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
-			unsigned int color_id = VertexFormat_add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
-			unsigned int outline_color_id = VertexFormat_add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+			pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			unsigned int size_id = GWN_vertformat_attr_add(format, "size", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
+			unsigned int color_id = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+			unsigned int outline_color_id = GWN_vertformat_attr_add(format, "outlineColor", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 			immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 			GPU_enable_program_point_size();
-			immBegin(PRIM_POINTS, keyframe_ct);
+			immBegin(GWN_PRIM_POINTS, keyframe_ct);
 
 			/* all same size with black outline */
 			immAttrib1f(size_id, 2.0f * STRIP_HEIGHT_HALF);
@@ -317,8 +317,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	 */
 	float y = (float) CHANNEL_FIRST;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

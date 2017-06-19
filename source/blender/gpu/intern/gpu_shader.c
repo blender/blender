@@ -426,24 +426,24 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 		return NULL;
 	}
 
-	shader->interface = ShaderInterface_create(shader->program);
+	shader->interface = GWN_shaderinterface_create(shader->program);
 
 #ifdef WITH_OPENSUBDIV
 	/* TODO(sergey): Find a better place for this. */
 	if (use_opensubdiv) {
 		if (GLEW_VERSION_4_1) {
 			glProgramUniform1i(shader->program,
-			                   ShaderInterface_uniform(shader->interface, "FVarDataOffsetBuffer")->location,
+			                   GWN_shaderinterface_uniform(shader->interface, "FVarDataOffsetBuffer")->location,
 			                   30);  /* GL_TEXTURE30 */
 
 			glProgramUniform1i(shader->program,
-			                   ShaderInterface_uniform(shader->interface, "FVarDataBuffer")->location,
+			                   GWN_shaderinterface_uniform(shader->interface, "FVarDataBuffer")->location,
 			                   31);  /* GL_TEXTURE31 */
 		}
 		else {
 			glUseProgram(shader->program);
-			glUniform1i(ShaderInterface_uniform(shader->interface, "FVarDataOffsetBuffer")->location, 30);
-			glUniform1i(ShaderInterface_uniform(shader->interface, "FVarDataBuffer")->location, 31);
+			glUniform1i(GWN_shaderinterface_uniform(shader->interface, "FVarDataOffsetBuffer")->location, 30);
+			glUniform1i(GWN_shaderinterface_uniform(shader->interface, "FVarDataBuffer")->location, 31);
 			glUseProgram(0);
 		}
 	}
@@ -482,7 +482,7 @@ void GPU_shader_free(GPUShader *shader)
 		MEM_freeN(shader->uniform_interface);
 
 	if (shader->interface)
-		ShaderInterface_discard(shader->interface);
+		GWN_shaderinterface_discard(shader->interface);
 
 	MEM_freeN(shader);
 }
@@ -490,7 +490,7 @@ void GPU_shader_free(GPUShader *shader)
 int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 {
 	BLI_assert(shader && shader->program);
-	const ShaderInput *uniform = ShaderInterface_uniform(shader->interface, name);
+	const Gwn_ShaderInput *uniform = GWN_shaderinterface_uniform(shader->interface, name);
 	return uniform ? uniform->location : -1;
 }
 
@@ -599,7 +599,7 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
 	BLI_assert(shader && shader->program);
-	const ShaderInput *attrib = ShaderInterface_attrib(shader->interface, name);
+	const Gwn_ShaderInput *attrib = GWN_shaderinterface_attr(shader->interface, name);
 	return attrib ? attrib->location : -1;
 }
 

@@ -321,7 +321,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
 	const float mval_dst[2] = {win->eventstate->x - ar->winrct.xmin,
 	                           win->eventstate->y - ar->winrct.ymin};
 
-	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
@@ -334,7 +334,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
 	immUniform1f("dash_width", 6.0f);
 	immUniform1f("dash_factor", 0.5f);
 
-	immBegin(PRIM_LINES, 2);
+	immBegin(GWN_PRIM_LINES, 2);
 	immVertex2fv(shdr_pos, mval_src);
 	immVertex2fv(shdr_pos, mval_dst);
 	immEnd();

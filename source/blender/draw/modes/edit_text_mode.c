@@ -199,7 +199,7 @@ static void EDIT_TEXT_cache_populate(void *vedata, Object *ob)
 		if (ob == obedit) {
 			const Curve *cu = ob->data;
 			/* Get geometry cache */
-			struct Batch *geom;
+			struct Gwn_Batch *geom;
 
 			if (cu->flag & CU_FAST) {
 				geom = DRW_cache_text_edge_wire_get(ob);

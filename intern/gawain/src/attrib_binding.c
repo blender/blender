@@ -13,31 +13,31 @@
 #include "attrib_binding_private.h"
 #include <stddef.h>
 
-#if MAX_VERTEX_ATTRIBS != 16
-  #error "attrib binding code assumes MAX_VERTEX_ATTRIBS = 16"
+#if GWN_VERT_ATTR_MAX_LEN != 16
+  #error "attrib binding code assumes GWN_VERT_ATTR_MAX_LEN = 16"
 #endif
 
-void AttribBinding_clear(AttribBinding* binding)
+void AttribBinding_clear(Gwn_AttrBinding* binding)
 	{
 	binding->loc_bits = 0;
 	binding->enabled_bits = 0;
 	}
 
-unsigned read_attrib_location(const AttribBinding* binding, unsigned a_idx)
+unsigned read_attrib_location(const Gwn_AttrBinding* binding, unsigned a_idx)
 	{
 #if TRUST_NO_ONE
-	assert(a_idx < MAX_VERTEX_ATTRIBS);
+	assert(a_idx < GWN_VERT_ATTR_MAX_LEN);
 	assert(binding->enabled_bits & (1 << a_idx));
 #endif
 
 	return (binding->loc_bits >> (4 * a_idx)) & 0xF;
 	}
 
-static void write_attrib_location(AttribBinding* binding, unsigned a_idx, unsigned location)
+static void write_attrib_location(Gwn_AttrBinding* binding, unsigned a_idx, unsigned location)
 	{
 #if TRUST_NO_ONE
-	assert(a_idx < MAX_VERTEX_ATTRIBS);
-	assert(location < MAX_VERTEX_ATTRIBS);
+	assert(a_idx < GWN_VERT_ATTR_MAX_LEN);
+	assert(location < GWN_VERT_ATTR_MAX_LEN);
 #endif
 
 	const unsigned shift = 4 * a_idx;
@@ -48,16 +48,16 @@ static void write_attrib_location(AttribBinding* binding, unsigned a_idx, unsign
 	binding->enabled_bits |= 1 << a_idx;
 	}
 
-void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, const ShaderInterface* shaderface)
+void get_attrib_locations(const Gwn_VertFormat* format, Gwn_AttrBinding* binding, const Gwn_ShaderInterface* shaderface)
 	{
 	AttribBinding_clear(binding);
 
 	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
 		{
-		const Attrib* a = format->attribs + a_idx;
+		const Gwn_VertAttr* a = format->attribs + a_idx;
 		for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
 			{
-			const ShaderInput* input = ShaderInterface_attrib(shaderface, a->name[n_idx]);
+			const Gwn_ShaderInput* input = GWN_shaderinterface_attr(shaderface, a->name[n_idx]);
 
 #if TRUST_NO_ONE
 			assert(input != NULL);

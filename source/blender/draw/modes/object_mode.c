@@ -626,7 +626,7 @@ static void DRW_shgroup_empty_image(
 		image_calc_aspect(ob->data, ob->iuser, empty_image_data->image_aspect);
 
 		if (tex) {
-			struct Batch *geom = DRW_cache_image_plane_get();
+			struct Gwn_Batch *geom = DRW_cache_image_plane_get();
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(
 			        e_data.object_empty_image_sh, psl->non_meshes, geom);
 			DRW_shgroup_attrib_float(grp, "objectColor", 4);
@@ -644,7 +644,7 @@ static void DRW_shgroup_empty_image(
 		}
 
 		{
-			struct Batch *geom = DRW_cache_image_plane_wire_get();
+			struct Gwn_Batch *geom = DRW_cache_image_plane_wire_get();
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(
 			        e_data.object_empty_image_wire_sh, psl->non_meshes, geom);
 			DRW_shgroup_attrib_float(grp, "color", 3);
@@ -708,7 +708,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR;
-		struct Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 		static float alphaOcclu = 0.35f;
 		static float one = 1.0f;
 		static float alpha1 = 5.0f / 6.0f;
@@ -787,7 +787,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
 		psl->outlines_resolve = DRW_pass_create("Outlines Resolve Pass", state);
 
-		struct Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_resolve_sh, psl->outlines_resolve);
 		DRW_shgroup_uniform_buffer(grp, "outlineBluredColor", &e_data.outlines_blur_tx);
@@ -799,7 +799,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		psl->grid = DRW_pass_create("Infinite Grid Pass", state);
 
-		struct Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 		static float mat[4][4];
 		unit_m4(mat);
 
@@ -850,7 +850,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Non Meshes Pass (Camera, empties, lamps ...) */
-		struct Batch *geom;
+		struct Gwn_Batch *geom;
 
 		DRWState state =
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
@@ -954,7 +954,7 @@ static void OBJECT_cache_init(void *vedata)
 		/* TODO
 		 * for now we create multiple times the same VBO with only lamp center coordinates
 		 * but ideally we would only create it once */
-		struct Batch *geom;
+		struct Gwn_Batch *geom;
 
 		/* start with buflimit because we don't want stipples */
 		geom = DRW_cache_single_line_get();
@@ -1001,7 +1001,7 @@ static void OBJECT_cache_init(void *vedata)
 	{
 		/* -------- STIPPLES ------- */
 		/* TODO port to shader stipple */
-		struct Batch *geom;
+		struct Gwn_Batch *geom;
 
 		/* Relationship Lines */
 		stl->g_data->relationship_lines = shgroup_dynlines_uniform_color(psl->non_meshes, ts.colorWire);
@@ -1587,7 +1587,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 			unit_m4(mat);
 
 			if (draw_as != PART_DRAW_PATH) {
-				struct Batch *geom = DRW_cache_particles_get_dots(psys);
+				struct Gwn_Batch *geom = DRW_cache_particles_get_dots(psys);
 				DRWShadingGroup *shgrp = NULL;
 				static int screen_space[2] = {0, 1};
 				static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
@@ -1654,7 +1654,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	if (do_outlines) {
 		Object *obedit = scene->obedit;
 		if (ob != obedit && !((ob == draw_ctx->obact) && (ob->mode & OB_MODE_ALL_PAINT))) {
-			struct Batch *geom = DRW_cache_object_surface_get(ob);
+			struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 			if (geom) {
 				theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
 				DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_or(stl, theme_id, NULL);
@@ -1672,7 +1672,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (me->totpoly == 0) {
 				Object *obedit = scene->obedit;
 				if (ob != obedit) {
-					struct Batch *geom = DRW_cache_mesh_edges_get(ob);
+					struct Gwn_Batch *geom = DRW_cache_mesh_edges_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
 							theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
@@ -1693,7 +1693,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		{
 			Object *obedit = scene->obedit;
 			if (ob != obedit) {
-				struct Batch *geom = DRW_cache_lattice_wire_get(ob);
+				struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob);
 				if (theme_id == TH_UNDEFINED) {
 					theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
 				}
@@ -1708,7 +1708,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		{
 			Object *obedit = scene->obedit;
 			if (ob != obedit) {
-				struct Batch *geom = DRW_cache_curve_edge_wire_get(ob);
+				struct Gwn_Batch *geom = DRW_cache_curve_edge_wire_get(ob);
 				if (theme_id == TH_UNDEFINED) {
 					theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
 				}

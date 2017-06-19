@@ -181,10 +181,10 @@ struct DRWInterface {
 	/* UBO */
 	int ubo_bind; /* next ubo binding point */
 	/* Dynamic batch */
-	Batch *instance_batch; /* contains instances attributes */
+	Gwn_Batch *instance_batch; /* contains instances attributes */
 	GLuint instance_vbo; /* same as instance_batch but generated from DRWCalls */
 	int instance_count;
-	VertexFormat vbo_format;
+	Gwn_VertFormat vbo_format;
 };
 
 struct DRWPass {
@@ -211,7 +211,7 @@ typedef struct DRWCall {
 	DRWCallHeader head;
 
 	float obmat[4][4];
-	Batch *geometry;
+	Gwn_Batch *geometry;
 
 	Object *ob; /* Optional */
 	ID *ob_data; /* Optional. */
@@ -241,8 +241,8 @@ struct DRWShadingGroup {
 	DRWState state_extra;            /* State changes for this batch only (or'd with the pass's state) */
 	int type;
 
-	Batch *instance_geom;  /* Geometry to instance */
-	Batch *batch_geom;     /* Result of call batching */
+	Gwn_Batch *instance_geom;  /* Geometry to instance */
+	Gwn_Batch *batch_geom;     /* Result of call batching */
 
 #ifdef USE_GPU_SELECT
 	/* backlink to pass we're in */
@@ -600,7 +600,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->tex_bind = GPU_max_textures() - 1;
 	interface->ubo_bind = GPU_max_ubo_binds() - 1;
 
-	memset(&interface->vbo_format, 0, sizeof(VertexFormat));
+	memset(&interface->vbo_format, 0, sizeof(Gwn_VertFormat));
 
 	BLI_listbase_clear(&interface->uniforms);
 	BLI_listbase_clear(&interface->attribs);
@@ -773,7 +773,7 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 	return grp;
 }
 
-DRWShadingGroup *DRW_shgroup_material_instance_create(struct GPUMaterial *material, DRWPass *pass, Batch *geom)
+DRWShadingGroup *DRW_shgroup_material_instance_create(struct GPUMaterial *material, DRWPass *pass, Gwn_Batch *geom)
 {
 	DRWShadingGroup *shgroup = DRW_shgroup_material_create(material, pass);
 
@@ -785,7 +785,7 @@ DRWShadingGroup *DRW_shgroup_material_instance_create(struct GPUMaterial *materi
 	return shgroup;
 }
 
-DRWShadingGroup *DRW_shgroup_instance_create(struct GPUShader *shader, DRWPass *pass, Batch *geom)
+DRWShadingGroup *DRW_shgroup_instance_create(struct GPUShader *shader, DRWPass *pass, Gwn_Batch *geom)
 {
 	DRWShadingGroup *shgroup = DRW_shgroup_create(shader, pass);
 
@@ -846,7 +846,7 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 	BATCH_DISCARD_ALL_SAFE(shgroup->batch_geom);
 }
 
-void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Batch *instances)
+void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *instances)
 {
 	BLI_assert(shgroup->type == DRW_SHG_INSTANCE);
 	BLI_assert(shgroup->interface->instance_batch == NULL);
@@ -854,7 +854,7 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Batch *instance
 	shgroup->interface->instance_batch = instances;
 }
 
-void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[4])
+void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obmat)[4])
 {
 	BLI_assert(geom != NULL);
 
@@ -874,7 +874,7 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Batch *geom, float (*obmat)[
 	BLI_addtail(&shgroup->calls, call);
 }
 
-void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Batch *geom, Object *ob)
+void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob)
 {
 	BLI_assert(geom != NULL);
 
@@ -918,7 +918,7 @@ void DRW_shgroup_call_generate_add(
 
 static void sculpt_draw_cb(
         DRWShadingGroup *shgroup,
-        void (*draw_fn)(DRWShadingGroup *shgroup, Batch *geom),
+        void (*draw_fn)(DRWShadingGroup *shgroup, Gwn_Batch *geom),
         void *user_data)
 {
 	Object *ob = user_data;
@@ -927,7 +927,7 @@ static void sculpt_draw_cb(
 	if (pbvh) {
 		BKE_pbvh_draw_cb(
 		        pbvh, NULL, NULL, false,
-		        (void (*)(void *, Batch *))draw_fn, shgroup);
+		        (void (*)(void *, Gwn_Batch *))draw_fn, shgroup);
 	}
 }
 
@@ -1106,8 +1106,8 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 	DRWInterface *interface = shgroup->interface;
 	int nbr = interface->instance_count;
 
-	PrimitiveType type = (shgroup->type == DRW_SHG_POINT_BATCH) ? PRIM_POINTS :
-	                     (shgroup->type == DRW_SHG_TRIANGLE_BATCH) ? PRIM_TRIANGLES : PRIM_LINES;
+	Gwn_PrimType type = (shgroup->type == DRW_SHG_POINT_BATCH) ? GWN_PRIM_POINTS :
+	                     (shgroup->type == DRW_SHG_TRIANGLE_BATCH) ? GWN_PRIM_TRIS : GWN_PRIM_LINES;
 
 	if (nbr == 0)
 		return;
@@ -1117,12 +1117,12 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next) {
 			BLI_assert(attrib->size <= 4); /* matrices have no place here for now */
 			if (attrib->type == DRW_ATTRIB_FLOAT) {
-				attrib->format_id = VertexFormat_add_attrib(
-				        &interface->vbo_format, attrib->name, COMP_F32, attrib->size, KEEP_FLOAT);
+				attrib->format_id = GWN_vertformat_attr_add(
+				        &interface->vbo_format, attrib->name, GWN_COMP_F32, attrib->size, GWN_FETCH_FLOAT);
 			}
 			else if (attrib->type == DRW_ATTRIB_INT) {
-				attrib->format_id = VertexFormat_add_attrib(
-				        &interface->vbo_format, attrib->name, COMP_I8, attrib->size, KEEP_INT);
+				attrib->format_id = GWN_vertformat_attr_add(
+				        &interface->vbo_format, attrib->name, GWN_COMP_I8, attrib->size, GWN_FETCH_INT);
 			}
 			else {
 				BLI_assert(false);
@@ -1130,22 +1130,22 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 		}
 	}
 
-	VertexBuffer *vbo = VertexBuffer_create_with_format(&interface->vbo_format);
-	VertexBuffer_allocate_data(vbo, nbr);
+	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&interface->vbo_format);
+	GWN_vertbuf_data_alloc(vbo, nbr);
 
 	int j = 0;
 	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->head.next, j++) {
 		int i = 0;
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, i++) {
-			VertexBuffer_set_attrib(vbo, attrib->format_id, j, call->data[i]);
+			GWN_vertbuf_attr_set(vbo, attrib->format_id, j, call->data[i]);
 		}
 	}
 
 	/* TODO make the batch dynamic instead of freeing it every times */
 	if (shgroup->batch_geom)
-		Batch_discard_all(shgroup->batch_geom);
+		GWN_batch_discard_all(shgroup->batch_geom);
 
-	shgroup->batch_geom = Batch_create(type, vbo, NULL);
+	shgroup->batch_geom = GWN_batch_create(type, vbo, NULL);
 }
 
 static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
@@ -1630,24 +1630,24 @@ static void draw_geometry_prepare(
 	GPU_shader_uniform_vector(shgroup->shader, interface->clipplanes, 4, DST.num_clip_planes, (float *)DST.clip_planes_eq);
 }
 
-static void draw_geometry_execute(DRWShadingGroup *shgroup, Batch *geom)
+static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
 {
 	DRWInterface *interface = shgroup->interface;
 	/* step 2 : bind vertex array & draw */
-	Batch_set_program(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+	GWN_batch_program_set(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
 	if (interface->instance_batch) {
-		Batch_draw_stupid_instanced_with_batch(geom, interface->instance_batch);
+		GWN_batch_draw_stupid_instanced_with_batch(geom, interface->instance_batch);
 	}
 	else if (interface->instance_vbo) {
-		Batch_draw_stupid_instanced(geom, interface->instance_vbo, interface->instance_count, interface->attribs_count,
+		GWN_batch_draw_stupid_instanced(geom, interface->instance_vbo, interface->instance_count, interface->attribs_count,
 		                            interface->attribs_stride, interface->attribs_size, interface->attribs_loc);
 	}
 	else {
-		Batch_draw_stupid(geom);
+		GWN_batch_draw_stupid(geom);
 	}
 }
 
-static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*obmat)[4], ID *ob_data)
+static void draw_geometry(DRWShadingGroup *shgroup, Gwn_Batch *geom, const float (*obmat)[4], ID *ob_data)
 {
 	float *texcoloc = NULL;
 	float *texcosize = NULL;
@@ -2143,9 +2143,9 @@ void DRW_transform_to_display(GPUTexture *tex)
 {
 	DRW_state_set(DRW_STATE_WRITE_COLOR);
 
-	VertexFormat *vert_format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(vert_format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int texco = VertexFormat_add_attrib(vert_format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *vert_format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(vert_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int texco = GWN_vertformat_attr_add(vert_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	const float dither = 1.0f;
 
@@ -2167,7 +2167,7 @@ void DRW_transform_to_display(GPUTexture *tex)
 	immUniformMatrix4fv("ModelViewProjectionMatrix", mat);
 
 	/* Full screen triangle */
-	immBegin(PRIM_TRIANGLES, 3);
+	immBegin(GWN_PRIM_TRIS, 3);
 	immAttrib2f(texco, 0.0f, 0.0f);
 	immVertex2f(pos, -1.0f, -1.0f);
 
@@ -2889,7 +2889,7 @@ static void DRW_debug_gpu_stats(void)
 
 	/* Memory Stats */
 	unsigned int tex_mem = GPU_texture_memory_usage_get();
-	unsigned int vbo_mem = VertexBuffer_get_memory_usage();
+	unsigned int vbo_mem = GWN_vertbuf_get_memory_usage();
 
 	sprintf(pass_name, "GPU Memory");
 	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));

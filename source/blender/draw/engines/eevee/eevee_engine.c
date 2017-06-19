@@ -91,7 +91,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		}
 	}
 
-	struct Batch *geom = DRW_cache_object_surface_get(ob);
+	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		EEVEE_materials_cache_populate(vedata, sldata, ob, geom);
 

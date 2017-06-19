@@ -471,9 +471,9 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		float color[3];
 		UI_GetThemeColor3fv(TH_WIRE, color);
 
-		Batch *sphere = Batch_get_sphere(0);
+		Gwn_Batch *sphere = Batch_get_sphere(0);
 		Batch_set_builtin_program(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
-		Batch_Uniform3fv(sphere, "color", color);
+		GWN_batch_uniform_3fv(sphere, "color", color);
 
 		/* scale to edit-mode space */
 		gpuPushMatrix();
@@ -491,7 +491,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 
 			gpuPushMatrix();
 			gpuScaleUniform(radius);
-			Batch_draw(sphere);
+			GWN_batch_draw(sphere);
 			gpuPopMatrix();
 
 			location_prev = selem->location_local;
@@ -514,15 +514,15 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		}
 
 		{
-			VertexFormat *format = immVertexFormat();
-			unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			Gwn_VertFormat *format = immVertexFormat();
+			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 			glEnable(GL_BLEND);
 			glEnable(GL_LINE_SMOOTH);
 
 			imm_cpack(0x0);
-			immBegin(PRIM_LINE_STRIP, stroke_len);
+			immBegin(GWN_PRIM_LINE_STRIP, stroke_len);
 			glLineWidth(3.0f);
 
 			if (v3d->zbuf) {
@@ -536,7 +536,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 			immEnd();
 
 			imm_cpack(0xffffffff);
-			immBegin(PRIM_LINE_STRIP, stroke_len);
+			immBegin(GWN_PRIM_LINE_STRIP, stroke_len);
 			glLineWidth(1.0f);
 
 			for (int i = 0; i < stroke_len; i++) {

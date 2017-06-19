@@ -115,9 +115,9 @@ static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 	float halfx = GLA_PIXEL_OFS;
 	float halfy = GLA_PIXEL_OFS;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_INTERLACE);
 
@@ -132,7 +132,7 @@ static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 
 	immUniform1i("interlace_id", interlace_gpu_id_from_type(interlace_type));
 
-	immBegin(PRIM_TRIANGLE_FAN, 4);
+	immBegin(GWN_PRIM_TRI_FAN, 4);
 
 	immAttrib2f(texcoord, halfx, halfy);
 	immVertex2f(pos, 0.0f, 0.0f);
@@ -199,9 +199,9 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 	int soffx;
 	bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
@@ -242,7 +242,7 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 		immUniform1f("alpha", 1.0f);
 		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-		immBegin(PRIM_TRIANGLE_FAN, 4);
+		immBegin(GWN_PRIM_TRI_FAN, 4);
 
 		immAttrib2f(texcoord, halfx, halfy);
 		immVertex2f(pos, soffx, 0.0f);
@@ -272,9 +272,9 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 	int view;
 	int soffy;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int texcoord = VertexFormat_add_attrib(format, "texCoord", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
@@ -312,7 +312,7 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 		immUniform1f("alpha", 1.0f);
 		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-		immBegin(PRIM_TRIANGLE_FAN, 4);
+		immBegin(GWN_PRIM_TRI_FAN, 4);
 
 		immAttrib2f(texcoord, halfx, halfy);
 		immVertex2f(pos, 0.0f, soffy);

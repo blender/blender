@@ -12,51 +12,51 @@
 #include "primitive.h"
 #include "primitive_private.h"
 
-PrimitiveClass prim_class_of_type(PrimitiveType prim_type)
+Gwn_PrimClass GWN_primtype_class(Gwn_PrimType prim_type)
 	{
-	static const PrimitiveClass classes[] =
+	static const Gwn_PrimClass classes[] =
 		{
-		[PRIM_POINTS] = PRIM_CLASS_POINT,
-		[PRIM_LINES] = PRIM_CLASS_LINE,
-		[PRIM_LINE_STRIP] = PRIM_CLASS_LINE,
-		[PRIM_LINE_LOOP] = PRIM_CLASS_LINE,
-		[PRIM_TRIANGLES] = PRIM_CLASS_SURFACE,
-		[PRIM_TRIANGLE_STRIP] = PRIM_CLASS_SURFACE,
-		[PRIM_TRIANGLE_FAN] = PRIM_CLASS_SURFACE,
+		[GWN_PRIM_POINTS] = GWN_PRIM_CLASS_POINT,
+		[GWN_PRIM_LINES] = GWN_PRIM_CLASS_LINE,
+		[GWN_PRIM_LINE_STRIP] = GWN_PRIM_CLASS_LINE,
+		[GWN_PRIM_LINE_LOOP] = GWN_PRIM_CLASS_LINE,
+		[GWN_PRIM_TRIS] = GWN_PRIM_CLASS_SURFACE,
+		[GWN_PRIM_TRI_STRIP] = GWN_PRIM_CLASS_SURFACE,
+		[GWN_PRIM_TRI_FAN] = GWN_PRIM_CLASS_SURFACE,
 
-		[PRIM_LINE_STRIP_ADJACENCY] = PRIM_CLASS_LINE,
+		[GWN_PRIM_LINE_STRIP_ADJ] = GWN_PRIM_CLASS_LINE,
 
-		[PRIM_NONE] = PRIM_CLASS_NONE
+		[GWN_PRIM_NONE] = GWN_PRIM_CLASS_NONE
 		};
 
 	return classes[prim_type];
 	}
 
-bool prim_type_belongs_to_class(PrimitiveType prim_type, PrimitiveClass prim_class)
+bool GWN_primtype_belongs_to_class(Gwn_PrimType prim_type, Gwn_PrimClass prim_class)
 	{
-	if (prim_class == PRIM_CLASS_NONE && prim_type == PRIM_NONE)
+	if (prim_class == GWN_PRIM_CLASS_NONE && prim_type == GWN_PRIM_NONE)
 		return true;
 
-	return prim_class & prim_class_of_type(prim_type);
+	return prim_class & GWN_primtype_class(prim_type);
 	}
 
-GLenum convert_prim_type_to_gl(PrimitiveType prim_type)
+GLenum convert_prim_type_to_gl(Gwn_PrimType prim_type)
 	{
 #if TRUST_NO_ONE
-	assert(prim_type != PRIM_NONE);
+	assert(prim_type != GWN_PRIM_NONE);
 #endif
 
 	static const GLenum table[] =
 		{
-		[PRIM_POINTS] = GL_POINTS,
-		[PRIM_LINES] = GL_LINES,
-		[PRIM_LINE_STRIP] = GL_LINE_STRIP,
-		[PRIM_LINE_LOOP] = GL_LINE_LOOP,
-		[PRIM_TRIANGLES] = PRIM_CLASS_SURFACE,
-		[PRIM_TRIANGLE_STRIP] = GL_TRIANGLE_STRIP,
-		[PRIM_TRIANGLE_FAN] = GL_TRIANGLE_FAN,
+		[GWN_PRIM_POINTS] = GL_POINTS,
+		[GWN_PRIM_LINES] = GL_LINES,
+		[GWN_PRIM_LINE_STRIP] = GL_LINE_STRIP,
+		[GWN_PRIM_LINE_LOOP] = GL_LINE_LOOP,
+		[GWN_PRIM_TRIS] = GWN_PRIM_CLASS_SURFACE,
+		[GWN_PRIM_TRI_STRIP] = GL_TRIANGLE_STRIP,
+		[GWN_PRIM_TRI_FAN] = GL_TRIANGLE_FAN,
 
-		[PRIM_LINE_STRIP_ADJACENCY] = GL_LINE_STRIP_ADJACENCY,
+		[GWN_PRIM_LINE_STRIP_ADJ] = GL_LINE_STRIP_ADJACENCY,
 		};
 
 	return table[prim_type];

@@ -13,18 +13,18 @@
 
 #include "primitive.h"
 
-#define TRACK_INDEX_RANGE 1
+#define GWN_TRACK_INDEX_RANGE 1
 
 typedef enum {
-	INDEX_U8, // GL has this, Vulkan does not
-	INDEX_U16,
-	INDEX_U32
-} IndexType;
+	GWN_INDEX_U8, // GL has this, Vulkan does not
+	GWN_INDEX_U16,
+	GWN_INDEX_U32
+} Gwn_IndexBufType;
 
 typedef struct {
 	unsigned index_ct;
-#if TRACK_INDEX_RANGE
-	IndexType index_type;
+#if GWN_TRACK_INDEX_RANGE
+	Gwn_IndexBufType index_type;
 	GLenum gl_index_type;
 	unsigned min_index;
 	unsigned max_index;
@@ -32,44 +32,44 @@ typedef struct {
 #endif
 	void* data; // NULL indicates data in VRAM (unmapped) or not yet allocated
 	GLuint vbo_id; // 0 indicates not yet sent to VRAM
-} ElementList;
+} Gwn_IndexBuf;
 
-void ElementList_use(ElementList*);
-unsigned ElementList_size(const ElementList*);
+void GWN_indexbuf_use(Gwn_IndexBuf*);
+unsigned GWN_indexbuf_size_get(const Gwn_IndexBuf*);
 
 typedef struct {
 	unsigned max_allowed_index;
 	unsigned max_index_ct;
 	unsigned index_ct;
-	PrimitiveType prim_type;
+	Gwn_PrimType prim_type;
 	unsigned* data;
-} ElementListBuilder;
+} Gwn_IndexBufBuilder;
 
 // supported primitives:
-//  PRIM_POINTS
-//  PRIM_LINES
-//  PRIM_TRIANGLES
+//  GWN_PRIM_POINTS
+//  GWN_PRIM_LINES
+//  GWN_PRIM_TRIS
 
-void ElementListBuilder_init(ElementListBuilder*, PrimitiveType, unsigned prim_ct, unsigned vertex_ct);
-//void ElementListBuilder_init_custom(ElementListBuilder*, PrimitiveType, unsigned index_ct, unsigned vertex_ct);
+void GWN_indexbuf_init(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned prim_ct, unsigned vertex_ct);
+//void GWN_indexbuf_init_custom(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned index_ct, unsigned vertex_ct);
 
-void add_generic_vertex(ElementListBuilder*, unsigned v);
+void GWN_indexbuf_add_generic_vert(Gwn_IndexBufBuilder*, unsigned v);
 
-void add_point_vertex(ElementListBuilder*, unsigned v);
-void add_line_vertices(ElementListBuilder*, unsigned v1, unsigned v2);
-void add_triangle_vertices(ElementListBuilder*, unsigned v1, unsigned v2, unsigned v3);
+void GWN_indexbuf_add_point_vert(Gwn_IndexBufBuilder*, unsigned v);
+void GWN_indexbuf_add_line_verts(Gwn_IndexBufBuilder*, unsigned v1, unsigned v2);
+void GWN_indexbuf_add_tri_verts(Gwn_IndexBufBuilder*, unsigned v1, unsigned v2, unsigned v3);
 
-ElementList* ElementList_build(ElementListBuilder*);
-void ElementList_build_in_place(ElementListBuilder*, ElementList*);
+Gwn_IndexBuf* GWN_indexbuf_build(Gwn_IndexBufBuilder*);
+void GWN_indexbuf_build_in_place(Gwn_IndexBufBuilder*, Gwn_IndexBuf*);
 
-void ElementList_discard(ElementList*);
+void GWN_indexbuf_discard(Gwn_IndexBuf*);
 
 
 /* Macros */
 
-#define ELEMENTLIST_DISCARD_SAFE(elem) do { \
+#define GWN_INDEXBUF_DISCARD_SAFE(elem) do { \
 	if (elem != NULL) { \
-		ElementList_discard(elem); \
+		GWN_indexbuf_discard(elem); \
 		elem = NULL; \
 	} \
 } while (0)

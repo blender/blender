@@ -83,8 +83,8 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -102,7 +102,7 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 	/* thin lines where the actual frames are */
 	immUniformThemeColorShade(TH_BACK, -60);
 
-	immBegin(PRIM_LINES, 4);
+	immBegin(GWN_PRIM_LINES, 4);
 
 	immVertex2f(pos, (float)PSFRA, v2d->cur.ymin);
 	immVertex2f(pos, (float)PSFRA, v2d->cur.ymax);
@@ -126,7 +126,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 
 	BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* iterate over pointcaches on the active object, 
@@ -215,7 +215,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 		immUniformColor4fv(col);
 
 		if (len > 0) {
-			immBeginAtMost(PRIM_TRIANGLES, len);
+			immBeginAtMost(GWN_PRIM_TRIS, len);
 
 			/* draw a quad for each cached frame */
 			for (int i = sta; i <= end; i++) {
@@ -323,13 +323,13 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, cons
 
 	if (max_len > 0) {
 
-		VertexFormat *format = immVertexFormat();
-		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3ubv(color);
 
-		immBeginAtMost(PRIM_LINES, max_len * 2);
+		immBeginAtMost(GWN_PRIM_LINES, max_len * 2);
 
 		for (; (ak) && (ak->cfra <= v2d->cur.xmax);
 			ak = ak->next)

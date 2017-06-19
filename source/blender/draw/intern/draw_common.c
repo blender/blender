@@ -184,7 +184,7 @@ DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, float color[4
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct Batch *geom, float *size)
+DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct Gwn_Batch *geom, float *size)
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR);
 
@@ -199,7 +199,7 @@ DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct Batch *geom,
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_objspace_solid(DRWPass *pass, struct Batch *geom, float (*obmat)[4])
+DRWShadingGroup *shgroup_instance_objspace_solid(DRWPass *pass, struct Gwn_Batch *geom, float (*obmat)[4])
 {
 	static float light[3] = {0.0f, 0.0f, 1.0f};
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR);
@@ -213,7 +213,7 @@ DRWShadingGroup *shgroup_instance_objspace_solid(DRWPass *pass, struct Batch *ge
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_objspace_wire(DRWPass *pass, struct Batch *geom, float (*obmat)[4])
+DRWShadingGroup *shgroup_instance_objspace_wire(DRWPass *pass, struct Gwn_Batch *geom, float (*obmat)[4])
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_OBJECTSPACE_VARIYING_COLOR);
 
@@ -225,7 +225,7 @@ DRWShadingGroup *shgroup_instance_objspace_wire(DRWPass *pass, struct Batch *geo
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_screen_aligned(DRWPass *pass, struct Batch *geom)
+DRWShadingGroup *shgroup_instance_screen_aligned(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED);
 
@@ -238,7 +238,7 @@ DRWShadingGroup *shgroup_instance_screen_aligned(DRWPass *pass, struct Batch *ge
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_axis_names(DRWPass *pass, struct Batch *geom)
+DRWShadingGroup *shgroup_instance_axis_names(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS);
 
@@ -251,7 +251,7 @@ DRWShadingGroup *shgroup_instance_axis_names(DRWPass *pass, struct Batch *geom)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_scaled(DRWPass *pass, struct Batch *geom)
+DRWShadingGroup *shgroup_instance_scaled(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE);
 
@@ -263,7 +263,7 @@ DRWShadingGroup *shgroup_instance_scaled(DRWPass *pass, struct Batch *geom)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance(DRWPass *pass, struct Batch *geom)
+DRWShadingGroup *shgroup_instance(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
 
@@ -275,7 +275,7 @@ DRWShadingGroup *shgroup_instance(DRWPass *pass, struct Batch *geom)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct Batch *geom)
+DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_CAMERA);
 
@@ -289,7 +289,7 @@ DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct Batch *geom)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct Batch *geom)
+DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_DISTANCE_LINES);
 	static float point_size = 4.0f;
@@ -304,7 +304,7 @@ DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct Batch *ge
 	return grp;
 }
 
-DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct Batch *geom)
+DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR);
 	static bool True = true;
@@ -320,7 +320,7 @@ DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct Batch *geom)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_envelope_wire(DRWPass *pass, struct Batch *geom, float (*obmat)[4])
+DRWShadingGroup *shgroup_instance_bone_envelope_wire(DRWPass *pass, struct Gwn_Batch *geom, float (*obmat)[4])
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_WIRE);
 
@@ -335,7 +335,7 @@ DRWShadingGroup *shgroup_instance_bone_envelope_wire(DRWPass *pass, struct Batch
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, struct Batch *geom, float (*obmat)[4])
+DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, struct Gwn_Batch *geom, float (*obmat)[4])
 {
 	static float light[3] = {0.0f, 0.0f, 1.0f};
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_SOLID);

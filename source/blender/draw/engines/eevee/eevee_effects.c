@@ -382,7 +382,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 static DRWShadingGroup *eevee_create_bloom_pass(const char *name, EEVEE_EffectsInfo *effects, struct GPUShader *sh, DRWPass **pass, bool upsample)
 {
-	struct Batch *quad = DRW_cache_fullscreen_quad_get();
+	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
 	*pass = DRW_pass_create(name, DRW_STATE_WRITE_COLOR);
 
@@ -406,7 +406,7 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 	EEVEE_EffectsInfo *effects = stl->effects;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	struct Batch *quad = DRW_cache_fullscreen_quad_get();
+	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
 	{
 		psl->motion_blur = DRW_pass_create("Motion Blur", DRW_STATE_WRITE_COLOR);

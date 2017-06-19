@@ -101,7 +101,7 @@ static void manipulator_arrow_matrix_world_get(wmManipulator *mpr, float r_matri
 
 static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, const float color[4])
 {
-	uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	bool unbind_shader = true;
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -109,7 +109,7 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 	if (arrow->style & ED_MANIPULATOR_ARROW_STYLE_CROSS) {
 		immUniformColor4fv(color);
 
-		immBegin(PRIM_LINES, 4);
+		immBegin(GWN_PRIM_LINES, 4);
 		immVertex3f(pos, -1.0f,  0.0f, 0.0f);
 		immVertex3f(pos,  1.0f,  0.0f, 0.0f);
 		immVertex3f(pos,  0.0f, -1.0f, 0.0f);
@@ -127,7 +127,7 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 		};
 
 		glLineWidth(arrow->manipulator.line_width);
-		wm_manipulator_vec_draw(color, vec, ARRAY_SIZE(vec), pos, PRIM_LINE_LOOP);
+		wm_manipulator_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GWN_PRIM_LINE_LOOP);
 	}
 	else {
 #ifdef USE_MANIPULATOR_CUSTOM_ARROWS
@@ -140,7 +140,7 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 		};
 
 		glLineWidth(arrow->manipulator.line_width);
-		wm_manipulator_vec_draw(color, vec, ARRAY_SIZE(vec), pos, PRIM_LINE_STRIP);
+		wm_manipulator_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GWN_PRIM_LINE_STRIP);
 
 
 		/* *** draw arrow head *** */

@@ -783,7 +783,7 @@ static const char *attrib_prefix_get(CustomDataType type)
 		case CD_TANGENT:        return "t";
 		case CD_MCOL:           return "c";
 		case CD_AUTO_FROM_NAME: return "a";
-		default: BLI_assert(false && "Attrib Prefix type not found : This should not happen!"); return "";
+		default: BLI_assert(false && "Gwn_VertAttr Prefix type not found : This should not happen!"); return "";
 	}
 }
 

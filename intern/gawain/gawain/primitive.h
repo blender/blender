@@ -14,27 +14,27 @@
 #include "common.h"
 
 typedef enum {
-	PRIM_POINTS,
-	PRIM_LINES,
-	PRIM_TRIANGLES,
-	PRIM_LINE_STRIP,
-	PRIM_LINE_LOOP, // GL has this, Vulkan does not
-	PRIM_TRIANGLE_STRIP,
-	PRIM_TRIANGLE_FAN,
+	GWN_PRIM_POINTS,
+	GWN_PRIM_LINES,
+	GWN_PRIM_TRIS,
+	GWN_PRIM_LINE_STRIP,
+	GWN_PRIM_LINE_LOOP, // GL has this, Vulkan does not
+	GWN_PRIM_TRI_STRIP,
+	GWN_PRIM_TRI_FAN,
 
-	PRIM_LINE_STRIP_ADJACENCY,
+	GWN_PRIM_LINE_STRIP_ADJ,
 
-	PRIM_NONE
-} PrimitiveType;
+	GWN_PRIM_NONE
+} Gwn_PrimType;
 
 // what types of primitives does each shader expect?
 typedef enum {
-	PRIM_CLASS_NONE    = 0,
-	PRIM_CLASS_POINT   = (1 << 0),
-	PRIM_CLASS_LINE    = (1 << 1),
-	PRIM_CLASS_SURFACE = (1 << 2),
-	PRIM_CLASS_ANY     = PRIM_CLASS_POINT | PRIM_CLASS_LINE | PRIM_CLASS_SURFACE
-} PrimitiveClass;
+	GWN_PRIM_CLASS_NONE    = 0,
+	GWN_PRIM_CLASS_POINT   = (1 << 0),
+	GWN_PRIM_CLASS_LINE    = (1 << 1),
+	GWN_PRIM_CLASS_SURFACE = (1 << 2),
+	GWN_PRIM_CLASS_ANY     = GWN_PRIM_CLASS_POINT | GWN_PRIM_CLASS_LINE | GWN_PRIM_CLASS_SURFACE
+} Gwn_PrimClass;
 
-PrimitiveClass prim_class_of_type(PrimitiveType);
-bool prim_type_belongs_to_class(PrimitiveType, PrimitiveClass);
+Gwn_PrimClass GWN_primtype_class(Gwn_PrimType);
+bool GWN_primtype_belongs_to_class(Gwn_PrimType, Gwn_PrimClass);

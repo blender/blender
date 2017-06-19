@@ -38,7 +38,7 @@
 struct ARegion;
 struct ARegionType;
 struct BoundBox;
-struct Batch;
+struct Gwn_Batch;
 struct DerivedMesh;
 struct Object;
 struct SmokeDomainSettings;

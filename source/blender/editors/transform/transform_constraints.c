@@ -733,7 +733,7 @@ void drawConstraint(TransInfo *t)
 			if (depth_test_enabled)
 				glDisable(GL_DEPTH_TEST);
 
-			const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+			const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_COLOR);
 
@@ -746,7 +746,7 @@ void drawConstraint(TransInfo *t)
 			immUniform1f("dash_width", 2.0f);
 			immUniform1f("dash_factor", 0.5f);
 
-			immBegin(PRIM_LINES, 2);
+			immBegin(GWN_PRIM_LINES, 2);
 			immVertex3fv(shdr_pos, t->center_global);
 			immVertex3fv(shdr_pos, vec);
 			immEnd();
@@ -809,7 +809,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		if (depth_test_enabled)
 			glDisable(GL_DEPTH_TEST);
 
-		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformThemeColor(TH_GRID);

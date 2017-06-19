@@ -14,7 +14,7 @@
 #include "vertex_format.h"
 #include "shader_interface.h"
 
-void AttribBinding_clear(AttribBinding*);
+void AttribBinding_clear(Gwn_AttrBinding*);
 
-void get_attrib_locations(const VertexFormat*, AttribBinding*, const ShaderInterface*);
-unsigned read_attrib_location(const AttribBinding*, unsigned a_idx);
+void get_attrib_locations(const Gwn_VertFormat*, Gwn_AttrBinding*, const Gwn_ShaderInterface*);
+unsigned read_attrib_location(const Gwn_AttrBinding*, unsigned a_idx);

@@ -101,7 +101,7 @@ static struct {
 static void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_octahedral_solid == NULL) {
-		struct Batch *geom = DRW_cache_bone_octahedral_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_get();
 		g_data.bone_octahedral_solid = shgroup_instance_objspace_solid(g_data.pass_bone_solid, geom, g_data.ob->obmat);
 	}
 
@@ -111,7 +111,7 @@ static void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const 
 static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_octahedral_wire == NULL) {
-		struct Batch *geom = DRW_cache_bone_octahedral_wire_outline_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_wire_outline_get();
 		g_data.bone_octahedral_wire = shgroup_instance_objspace_wire(g_data.pass_bone_wire, geom, g_data.ob->obmat);
 	}
 
@@ -122,7 +122,7 @@ static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const f
 static void DRW_shgroup_bone_box_solid(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_box_solid == NULL) {
-		struct Batch *geom = DRW_cache_bone_box_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_box_get();
 		g_data.bone_box_solid = shgroup_instance_objspace_solid(g_data.pass_bone_solid, geom, g_data.ob->obmat);
 	}
 
@@ -132,7 +132,7 @@ static void DRW_shgroup_bone_box_solid(const float (*bone_mat)[4], const float c
 static void DRW_shgroup_bone_box_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_box_wire == NULL) {
-		struct Batch *geom = DRW_cache_bone_box_wire_outline_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_box_wire_outline_get();
 		g_data.bone_box_wire = shgroup_instance_objspace_wire(g_data.pass_bone_wire, geom, g_data.ob->obmat);
 	}
 
@@ -143,7 +143,7 @@ static void DRW_shgroup_bone_box_wire(const float (*bone_mat)[4], const float co
 static void DRW_shgroup_bone_wire_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_wire_wire == NULL) {
-		struct Batch *geom = DRW_cache_bone_wire_wire_outline_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_wire_wire_outline_get();
 		g_data.bone_wire_wire = shgroup_instance_objspace_wire(g_data.pass_bone_wire, geom, g_data.ob->obmat);
 	}
 
@@ -157,7 +157,7 @@ static void DRW_shgroup_bone_envelope_distance(
 {
 	if (g_data.pass_bone_envelope != NULL) {
 		if (g_data.bone_envelope_distance == NULL) {
-			struct Batch *geom = DRW_cache_bone_envelope_distance_outline_get();
+			struct Gwn_Batch *geom = DRW_cache_bone_envelope_distance_outline_get();
 			/* Note: bone_wire draw pass is not really working, think we need another one here? */
 			g_data.bone_envelope_distance = shgroup_instance_bone_envelope_wire(g_data.pass_bone_envelope, geom, g_data.ob->obmat);
 		}
@@ -171,7 +171,7 @@ static void DRW_shgroup_bone_envelope_solid(
         const float *radius_head, const float *radius_tail)
 {
 	if (g_data.bone_envelope_solid == NULL) {
-		struct Batch *geom = DRW_cache_bone_envelope_solid_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_envelope_solid_get();
 		g_data.bone_envelope_solid = shgroup_instance_bone_envelope_solid(g_data.pass_bone_solid, geom, g_data.ob->obmat);
 	}
 
@@ -183,7 +183,7 @@ static void DRW_shgroup_bone_envelope_wire(
         const float *radius_head, const float *radius_tail, const float *distance)
 {
 	if (g_data.bone_envelope_wire == NULL) {
-		struct Batch *geom = DRW_cache_bone_envelope_wire_outline_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_envelope_wire_outline_get();
 		g_data.bone_envelope_wire = shgroup_instance_bone_envelope_wire(g_data.pass_bone_wire, geom, g_data.ob->obmat);
 	}
 
@@ -195,7 +195,7 @@ static void DRW_shgroup_bone_envelope_head_wire(
         const float *radius_head, const float *radius_tail, const float *distance)
 {
 	if (g_data.bone_envelope_head_wire == NULL) {
-		struct Batch *geom = DRW_cache_bone_envelope_head_wire_outline_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_envelope_head_wire_outline_get();
 		g_data.bone_envelope_head_wire = shgroup_instance_bone_envelope_wire(g_data.pass_bone_wire, geom, g_data.ob->obmat);
 	}
 
@@ -207,7 +207,7 @@ static void DRW_shgroup_bone_envelope_head_wire(
 static void DRW_shgroup_bone_custom_solid(const float (*bone_mat)[4], const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct Batch *geom = DRW_cache_object_surface_get(custom);
+	struct Gwn_Batch *geom = DRW_cache_object_surface_get(custom);
 	if (geom) {
 		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_objspace_solid(g_data.pass_bone_solid, geom, g_data.ob->obmat);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_solid, bone_mat, color);
@@ -217,7 +217,7 @@ static void DRW_shgroup_bone_custom_solid(const float (*bone_mat)[4], const floa
 static void DRW_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct Batch *geom = DRW_cache_object_wire_outline_get(custom);
+	struct Gwn_Batch *geom = DRW_cache_object_wire_outline_get(custom);
 	if (geom) {
 		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_objspace_wire(g_data.pass_bone_wire, geom, g_data.ob->obmat);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_wire, bone_mat, color);
@@ -228,7 +228,7 @@ static void DRW_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float
 static void DRW_shgroup_bone_point_solid(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_point_solid == NULL) {
-		struct Batch *geom = DRW_cache_bone_point_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_point_get();
 		g_data.bone_point_solid = shgroup_instance_objspace_solid(g_data.pass_bone_solid, geom, g_data.ob->obmat);
 	}
 
@@ -238,7 +238,7 @@ static void DRW_shgroup_bone_point_solid(const float (*bone_mat)[4], const float
 static void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_point_wire == NULL) {
-		struct Batch *geom = DRW_cache_bone_point_wire_outline_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_point_wire_outline_get();
 		g_data.bone_point_wire = shgroup_instance_objspace_wire(g_data.pass_bone_wire, geom, g_data.ob->obmat);
 	}
 
@@ -249,7 +249,7 @@ static void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float 
 static void DRW_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_axes == NULL) {
-		struct Batch *geom = DRW_cache_bone_arrows_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_arrows_get();
 		g_data.bone_axes = shgroup_instance_objspace_wire(g_data.pass_bone_wire, geom, g_data.ob->obmat);
 	}
 

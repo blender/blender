@@ -111,7 +111,7 @@ const float (*gpuGetNormalMatrixInverse(float m[3][3]))[3];
 
 
 /* set uniform values for currently bound shader */
-void gpuBindMatrices(const ShaderInterface*);
+void gpuBindMatrices(const Gwn_ShaderInterface*);
 bool gpuMatricesDirty(void); /* since last bind */
 
 #ifdef __cplusplus

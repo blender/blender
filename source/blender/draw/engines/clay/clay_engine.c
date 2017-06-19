@@ -776,7 +776,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 		}
 	}
 
-	struct Batch *geom = DRW_cache_object_surface_get(ob);
+	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 		const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");

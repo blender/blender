@@ -18,13 +18,13 @@
 #define IMM_BATCH_COMBO 1
 
 
-VertexFormat* immVertexFormat(void); // returns a cleared vertex format, ready for add_attrib
+Gwn_VertFormat* immVertexFormat(void); // returns a cleared vertex format, ready for add_attrib
 
-void immBindProgram(GLuint program, const ShaderInterface*); // every immBegin must have a program bound first
+void immBindProgram(GLuint program, const Gwn_ShaderInterface*); // every immBegin must have a program bound first
 void immUnbindProgram(void); // call after your last immEnd, or before binding another program
 
-void immBegin(PrimitiveType, unsigned vertex_ct); // must supply exactly vertex_ct vertices
-void immBeginAtMost(PrimitiveType, unsigned max_vertex_ct); // can supply fewer vertices
+void immBegin(Gwn_PrimType, unsigned vertex_ct); // must supply exactly vertex_ct vertices
+void immBeginAtMost(Gwn_PrimType, unsigned max_vertex_ct); // can supply fewer vertices
 void immEnd(void); // finishes and draws
 
 #if IMM_BATCH_COMBO
@@ -32,8 +32,8 @@ void immEnd(void); // finishes and draws
 // immBegin a batch, then use standard immFunctions as usual.
 // immEnd will finalize the batch instead of drawing.
 // Then you can draw it as many times as you like! Partially replaces the need for display lists.
-Batch* immBeginBatch(PrimitiveType, unsigned vertex_ct);
-Batch* immBeginBatchAtMost(PrimitiveType, unsigned vertex_ct);
+Gwn_Batch* immBeginBatch(Gwn_PrimType, unsigned vertex_ct);
+Gwn_Batch* immBeginBatchAtMost(Gwn_PrimType, unsigned vertex_ct);
 #endif
 
 

@@ -15,59 +15,59 @@
 #include <stdlib.h>
 
 // necessary functions from matrix API
-extern void gpuBindMatrices(const ShaderInterface* shaderface);
+extern void gpuBindMatrices(const Gwn_ShaderInterface* shaderface);
 extern bool gpuMatricesDirty(void); // how best to use this here?
 
-Batch* Batch_create(PrimitiveType prim_type, VertexBuffer* verts, ElementList* elem)
+Gwn_Batch* GWN_batch_create(Gwn_PrimType prim_type, Gwn_VertBuf* verts, Gwn_IndexBuf* elem)
 	{
-	Batch* batch = calloc(1, sizeof(Batch));
+	Gwn_Batch* batch = calloc(1, sizeof(Gwn_Batch));
 
-	Batch_init(batch, prim_type, verts, elem);
+	GWN_batch_init(batch, prim_type, verts, elem);
 
 	return batch;
 	}
 
-void Batch_init(Batch* batch, PrimitiveType prim_type, VertexBuffer* verts, ElementList* elem)
+void GWN_batch_init(Gwn_Batch* batch, Gwn_PrimType prim_type, Gwn_VertBuf* verts, Gwn_IndexBuf* elem)
 	{
 #if TRUST_NO_ONE
 	assert(verts != NULL);
 #endif
 
 	batch->verts[0] = verts;
-	for (int v = 1; v < BATCH_MAX_VBO_CT; ++v)
+	for (int v = 1; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		batch->verts[v] = NULL;
 	batch->elem = elem;
 	batch->prim_type = prim_type;
 	batch->gl_prim_type = convert_prim_type_to_gl(prim_type);
-	batch->phase = READY_TO_DRAW;
+	batch->phase = GWN_BATCH_READY_TO_DRAW;
 	}
 
-void Batch_discard(Batch* batch)
+void GWN_batch_discard(Gwn_Batch* batch)
 	{
 	if (batch->vao_id)
-		vao_id_free(batch->vao_id);
+		GWN_vao_free(batch->vao_id);
 
 	free(batch);
 	}
 
-void Batch_discard_all(Batch* batch)
+void GWN_batch_discard_all(Gwn_Batch* batch)
 	{
-	for (int v = 0; v < BATCH_MAX_VBO_CT; ++v)
+	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		{
 		if (batch->verts[v] == NULL)
 			break;
-		VertexBuffer_discard(batch->verts[v]);
+		GWN_vertbuf_discard(batch->verts[v]);
 		}
 
 	if (batch->elem)
-		ElementList_discard(batch->elem);
+		GWN_indexbuf_discard(batch->elem);
 
-	Batch_discard(batch);
+	GWN_batch_discard(batch);
 	}
 
-int Batch_add_VertexBuffer(Batch* batch, VertexBuffer* verts)
+int GWN_batch_vertbuf_add(Gwn_Batch* batch, Gwn_VertBuf* verts)
 	{
-	for (unsigned v = 0; v < BATCH_MAX_VBO_CT; ++v)
+	for (unsigned v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		{
 		if (batch->verts[v] == NULL)
 			{
@@ -82,14 +82,14 @@ int Batch_add_VertexBuffer(Batch* batch, VertexBuffer* verts)
 			}
 		}
 	
-	// we only make it this far if there is no room for another VertexBuffer
+	// we only make it this far if there is no room for another Gwn_VertBuf
 #if TRUST_NO_ONE
 	assert(false);
 #endif
 	return -1;
 	}
 
-void Batch_set_program(Batch* batch, GLuint program, const ShaderInterface* shaderface)
+void GWN_batch_program_set(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInterface* shaderface)
 	{
 #if TRUST_NO_ONE
 	assert(glIsProgram(program));
@@ -99,38 +99,38 @@ void Batch_set_program(Batch* batch, GLuint program, const ShaderInterface* shad
 	batch->interface = shaderface;
 	batch->program_dirty = true;
 
-	Batch_use_program(batch); // hack! to make Batch_Uniform* simpler
+	GWN_batch_program_use_begin(batch); // hack! to make Batch_Uniform* simpler
 	}
 
-static void Batch_update_program_bindings(Batch* batch)
+static void Batch_update_program_bindings(Gwn_Batch* batch)
 	{
 	// disable all as a precaution
 	// why are we not using prev_attrib_enabled_bits?? see immediate.c
-	for (unsigned a_idx = 0; a_idx < MAX_VERTEX_ATTRIBS; ++a_idx)
+	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
 		glDisableVertexAttribArray(a_idx);
 
-	for (int v = 0; v < BATCH_MAX_VBO_CT; ++v)
+	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		{
-		VertexBuffer* verts = batch->verts[v];
+		Gwn_VertBuf* verts = batch->verts[v];
 		if (verts == NULL)
 			break;
 
-		const VertexFormat* format = &verts->format;
+		const Gwn_VertFormat* format = &verts->format;
 
 		const unsigned attrib_ct = format->attrib_ct;
 		const unsigned stride = format->stride;
 
-		VertexBuffer_use(verts);
+		GWN_vertbuf_use(verts);
 
 		for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
 			{
-			const Attrib* a = format->attribs + a_idx;
+			const Gwn_VertAttr* a = format->attribs + a_idx;
 
 			const GLvoid* pointer = (const GLubyte*)0 + a->offset;
 
 			for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
 				{
-				const ShaderInput* input = ShaderInterface_attrib(batch->interface, a->name[n_idx]);
+				const Gwn_ShaderInput* input = GWN_shaderinterface_attr(batch->interface, a->name[n_idx]);
 
 				if (input == NULL) continue;
 
@@ -138,14 +138,14 @@ static void Batch_update_program_bindings(Batch* batch)
 
 				switch (a->fetch_mode)
 					{
-					case KEEP_FLOAT:
-					case CONVERT_INT_TO_FLOAT:
+					case GWN_FETCH_FLOAT:
+					case GWN_FETCH_INT_TO_FLOAT:
 						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
 						break;
-					case NORMALIZE_INT_TO_FLOAT:
+					case GWN_FETCH_INT_TO_FLOAT_UNIT:
 						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
 						break;
-					case KEEP_INT:
+					case GWN_FETCH_INT:
 						glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
 					}
 				}
@@ -155,7 +155,7 @@ static void Batch_update_program_bindings(Batch* batch)
 	batch->program_dirty = false;
 	}
 
-void Batch_use_program(Batch* batch)
+void GWN_batch_program_use_begin(Gwn_Batch* batch)
 	{
 	// NOTE: use_program & done_using_program are fragile, depend on staying in sync with
 	//       the GL context's active program. use_program doesn't mark other programs as "not used".
@@ -168,7 +168,7 @@ void Batch_use_program(Batch* batch)
 		}
 	}
 
-void Batch_done_using_program(Batch* batch)
+void GWN_batch_program_use_end(Gwn_Batch* batch)
 	{
 	if (batch->program_in_use)
 		{
@@ -178,81 +178,81 @@ void Batch_done_using_program(Batch* batch)
 	}
 
 #if TRUST_NO_ONE
-  #define GET_UNIFORM const ShaderInput* uniform = ShaderInterface_uniform(batch->interface, name); assert(uniform);
+  #define GET_UNIFORM const Gwn_ShaderInput* uniform = GWN_shaderinterface_uniform(batch->interface, name); assert(uniform);
 #else
-  #define GET_UNIFORM const ShaderInput* uniform = ShaderInterface_uniform(batch->interface, name);
+  #define GET_UNIFORM const Gwn_ShaderInput* uniform = GWN_shaderinterface_uniform(batch->interface, name);
 #endif
 
-void Batch_Uniform1i(Batch* batch, const char* name, int value)
+void GWN_batch_uniform_1i(Gwn_Batch* batch, const char* name, int value)
 	{
 	GET_UNIFORM
 	glUniform1i(uniform->location, value);
 	}
 
-void Batch_Uniform1b(Batch* batch, const char* name, bool value)
+void GWN_batch_uniform_1b(Gwn_Batch* batch, const char* name, bool value)
 	{
 	GET_UNIFORM
 	glUniform1i(uniform->location, value ? GL_TRUE : GL_FALSE);
 	}
 
-void Batch_Uniform2f(Batch* batch, const char* name, float x, float y)
+void GWN_batch_uniform_2f(Gwn_Batch* batch, const char* name, float x, float y)
 	{
 	GET_UNIFORM
 	glUniform2f(uniform->location, x, y);
 	}
 
-void Batch_Uniform3f(Batch* batch, const char* name, float x, float y, float z)
+void GWN_batch_uniform_3f(Gwn_Batch* batch, const char* name, float x, float y, float z)
 	{
 	GET_UNIFORM
 	glUniform3f(uniform->location, x, y, z);
 	}
 
-void Batch_Uniform4f(Batch* batch, const char* name, float x, float y, float z, float w)
+void GWN_batch_uniform_4f(Gwn_Batch* batch, const char* name, float x, float y, float z, float w)
 	{
 	GET_UNIFORM
 	glUniform4f(uniform->location, x, y, z, w);
 	}
 
-void Batch_Uniform1f(Batch* batch, const char* name, float x)
+void GWN_batch_uniform_1f(Gwn_Batch* batch, const char* name, float x)
 	{
 	GET_UNIFORM
 	glUniform1f(uniform->location, x);
 	}
 
-void Batch_Uniform3fv(Batch* batch, const char* name, const float data[3])
+void GWN_batch_uniform_3fv(Gwn_Batch* batch, const char* name, const float data[3])
 	{
 	GET_UNIFORM
 	glUniform3fv(uniform->location, 1, data);
 	}
 
-void Batch_Uniform4fv(Batch* batch, const char* name, const float data[4])
+void GWN_batch_uniform_4fv(Gwn_Batch* batch, const char* name, const float data[4])
 	{
 	GET_UNIFORM
 	glUniform4fv(uniform->location, 1, data);
 	}
 
-static void Batch_prime(Batch* batch)
+static void Batch_prime(Gwn_Batch* batch)
 	{
-	batch->vao_id = vao_id_alloc();
+	batch->vao_id = GWN_vao_alloc();
 	glBindVertexArray(batch->vao_id);
 
-	for (int v = 0; v < BATCH_MAX_VBO_CT; ++v)
+	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		{
 		if (batch->verts[v] == NULL)
 			break;
-		VertexBuffer_use(batch->verts[v]);
+		GWN_vertbuf_use(batch->verts[v]);
 		}
 
 	if (batch->elem)
-		ElementList_use(batch->elem);
+		GWN_indexbuf_use(batch->elem);
 
 	// vertex attribs and element list remain bound to this VAO
 	}
 
-void Batch_draw(Batch* batch)
+void GWN_batch_draw(Gwn_Batch* batch)
 	{
 #if TRUST_NO_ONE
-	assert(batch->phase == READY_TO_DRAW);
+	assert(batch->phase == GWN_BATCH_READY_TO_DRAW);
 	assert(glIsProgram(batch->program));
 #endif
 
@@ -264,15 +264,15 @@ void Batch_draw(Batch* batch)
 	if (batch->program_dirty)
 		Batch_update_program_bindings(batch);
 
-	Batch_use_program(batch);
+	GWN_batch_program_use_begin(batch);
 
 	gpuBindMatrices(batch->interface);
 
 	if (batch->elem)
 		{
-		const ElementList* el = batch->elem;
+		const Gwn_IndexBuf* el = batch->elem;
 
-#if TRACK_INDEX_RANGE
+#if GWN_TRACK_INDEX_RANGE
 		if (el->base_index)
 			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->gl_index_type, 0, el->base_index);
 		else
@@ -284,14 +284,14 @@ void Batch_draw(Batch* batch)
 	else
 		glDrawArrays(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct);
 
-	Batch_done_using_program(batch);
+	GWN_batch_program_use_end(batch);
 	glBindVertexArray(0);
 	}
 
 
 
 // clement : temp stuff
-void Batch_draw_stupid(Batch* batch)
+void GWN_batch_draw_stupid(Gwn_Batch* batch)
 	{
 	if (batch->vao_id)
 		glBindVertexArray(batch->vao_id);
@@ -301,15 +301,15 @@ void Batch_draw_stupid(Batch* batch)
 	if (batch->program_dirty)
 		Batch_update_program_bindings(batch);
 
-	// Batch_use_program(batch);
+	// GWN_batch_program_use_begin(batch);
 
 	//gpuBindMatrices(batch->program);
 
 	if (batch->elem)
 		{
-		const ElementList* el = batch->elem;
+		const Gwn_IndexBuf* el = batch->elem;
 
-#if TRACK_INDEX_RANGE
+#if GWN_TRACK_INDEX_RANGE
 		if (el->base_index)
 			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->gl_index_type, 0, el->base_index);
 		else
@@ -321,12 +321,12 @@ void Batch_draw_stupid(Batch* batch)
 	else
 		glDrawArrays(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct);
 
-	// Batch_done_using_program(batch);
+	// GWN_batch_program_use_end(batch);
 	glBindVertexArray(0);
 	}
 
 // clement : temp stuff
-void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int instance_count,
+void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch, unsigned int instance_vbo, int instance_count,
                                  int attrib_nbr, int attrib_stride, int attrib_size[16], int attrib_loc[16])
 	{
 	if (batch->vao_id)
@@ -358,24 +358,24 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 		}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	// Batch_use_program(batch);
+	// GWN_batch_program_use_begin(batch);
 
 	//gpuBindMatrices(batch->program);
 
 	if (batch->elem)
 		{
-		const ElementList* el = batch->elem;
+		const Gwn_IndexBuf* el = batch->elem;
 
 		glDrawElementsInstanced(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, instance_count);
 		}
 	else
 		glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct, instance_count);
 
-	// Batch_done_using_program(batch);
+	// GWN_batch_program_use_end(batch);
 	glBindVertexArray(0);
 	}
 
-void Batch_draw_stupid_instanced_with_batch(Batch* batch_instanced, Batch* batch_instancing)
+void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch* batch_instanced, Gwn_Batch* batch_instancing)
 	{
 	if (batch_instanced->vao_id)
 		glBindVertexArray(batch_instanced->vao_id);
@@ -385,24 +385,24 @@ void Batch_draw_stupid_instanced_with_batch(Batch* batch_instanced, Batch* batch
 	if (batch_instanced->program_dirty)
 		Batch_update_program_bindings(batch_instanced);
 
-	VertexBuffer* verts = batch_instancing->verts[0];
+	Gwn_VertBuf* verts = batch_instancing->verts[0];
 
-	const VertexFormat* format = &verts->format;
+	const Gwn_VertFormat* format = &verts->format;
 
 	const unsigned attrib_ct = format->attrib_ct;
 	const unsigned stride = format->stride;
 
-	VertexBuffer_use(verts);
+	GWN_vertbuf_use(verts);
 
 	for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
 		{
-		const Attrib* a = format->attribs + a_idx;
+		const Gwn_VertAttr* a = format->attribs + a_idx;
 
 		const GLvoid* pointer = (const GLubyte*)0 + a->offset;
 
 		for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
 			{
-			const ShaderInput* input = ShaderInterface_attrib(batch_instanced->interface, a->name[n_idx]);
+			const Gwn_ShaderInput* input = GWN_shaderinterface_attr(batch_instanced->interface, a->name[n_idx]);
 
 			if (input == NULL) continue;
 
@@ -411,32 +411,32 @@ void Batch_draw_stupid_instanced_with_batch(Batch* batch_instanced, Batch* batch
 
 			switch (a->fetch_mode)
 				{
-				case KEEP_FLOAT:
-				case CONVERT_INT_TO_FLOAT:
+				case GWN_FETCH_FLOAT:
+				case GWN_FETCH_INT_TO_FLOAT:
 					glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
 					break;
-				case NORMALIZE_INT_TO_FLOAT:
+				case GWN_FETCH_INT_TO_FLOAT_UNIT:
 					glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
 					break;
-				case KEEP_INT:
+				case GWN_FETCH_INT:
 					glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
 				}
 			}
 		}
 
-	// Batch_use_program(batch);
+	// GWN_batch_program_use_begin(batch);
 
 	//gpuBindMatrices(batch->program);
 
 	if (batch_instanced->elem)
 		{
-		const ElementList* el = batch_instanced->elem;
+		const Gwn_IndexBuf* el = batch_instanced->elem;
 
 		glDrawElementsInstanced(batch_instanced->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, verts->vertex_ct);
 		}
 	else
 		glDrawArraysInstanced(batch_instanced->gl_prim_type, 0, batch_instanced->verts[0]->vertex_ct, verts->vertex_ct);
 
-	// Batch_done_using_program(batch);
+	// GWN_batch_program_use_end(batch);
 	glBindVertexArray(0);
 	}

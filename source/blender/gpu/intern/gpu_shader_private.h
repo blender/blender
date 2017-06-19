@@ -38,7 +38,7 @@ struct GPUShader {
 	void *uniform_interface; /* cached uniform interface for shader. Data depends on shader */
 	/* NOTE: ^-- only FX compositing shaders use this */
 
-	ShaderInterface *interface; /* cached uniform & attrib interface for shader */
+	Gwn_ShaderInterface *interface; /* cached uniform & attrib interface for shader */
 };
 
 #endif  /* __GPU_SHADER_PRIVATE_H__ */

@@ -279,7 +279,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 	{
 		psl->probe_background = DRW_pass_create("World Probe Pass", DRW_STATE_WRITE_COLOR);
 
-		struct Batch *geom = DRW_cache_fullscreen_quad_get();
+		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRWShadingGroup *grp = NULL;
 
 		const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -326,7 +326,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 	{
 		psl->probe_glossy_compute = DRW_pass_create("LightProbe Glossy Compute", DRW_STATE_WRITE_COLOR);
 
-		struct Batch *geom = DRW_cache_fullscreen_quad_get();
+		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 
 		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_filter_glossy_sh, psl->probe_glossy_compute, geom);
 		DRW_shgroup_uniform_float(grp, "sampleCount", &sldata->probes->samples_ct, 1);
@@ -359,7 +359,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 #endif
 		DRW_shgroup_uniform_texture(grp, "probeHdr", sldata->probe_rt);
 
-		struct Batch *geom = DRW_cache_fullscreen_quad_get();
+		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRW_shgroup_call_add(grp, geom, NULL);
 	}
 
@@ -367,7 +367,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK;
 		psl->probe_display = DRW_pass_create("LightProbe Display", state);
 
-		struct Batch *geom = DRW_cache_sphere_get();
+		struct Gwn_Batch *geom = DRW_cache_sphere_get();
 		DRWShadingGroup *grp = stl->g_data->cube_display_shgrp = DRW_shgroup_instance_create(e_data.probe_cube_display_sh, psl->probe_display, geom);
 		DRW_shgroup_attrib_float(grp, "probe_id", 1); /* XXX this works because we are still uploading 4bytes and using the right stride */
 		DRW_shgroup_attrib_float(grp, "probe_location", 3);
@@ -535,7 +535,7 @@ static void EEVEE_planar_reflections_updates(EEVEE_SceneLayerData *sldata, EEVEE
 			DRW_shgroup_uniform_buffer(grp, "probePlanars", &txl->planar_pool);
 			DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 
-			struct Batch *geom = DRW_cache_fullscreen_quad_get();
+			struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 			DRW_shgroup_call_add(grp, geom, ob->obmat);
 		}
 	}
@@ -640,7 +640,7 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 
 		/* Debug Display */
 		if ((probe->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0) {
-			struct Batch *geom = DRW_cache_sphere_get();
+			struct Gwn_Batch *geom = DRW_cache_sphere_get();
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_grid_display_sh, psl->probe_display, geom);
 			DRW_shgroup_set_instance_count(grp, ped->num_cell);
 			DRW_shgroup_uniform_int(grp, "offset", &egrid->offset, 1);

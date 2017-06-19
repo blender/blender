@@ -51,7 +51,7 @@ void imm_cpack(unsigned int x)
 	                   (((x) >> 16) & 0xFF));
 }
 
-static void imm_draw_circle(PrimitiveType prim_type, const uint shdr_pos, float x, float y, float rad, int nsegments)
+static void imm_draw_circle(Gwn_PrimType prim_type, const uint shdr_pos, float x, float y, float rad, int nsegments)
 {
 	immBegin(prim_type, nsegments);
 	for (int i = 0; i < nsegments; ++i) {
@@ -73,7 +73,7 @@ static void imm_draw_circle(PrimitiveType prim_type, const uint shdr_pos, float 
  */
 void imm_draw_circle_wire(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
-	imm_draw_circle(PRIM_LINE_LOOP, shdr_pos, x, y, rad, nsegments);
+	imm_draw_circle(GWN_PRIM_LINE_LOOP, shdr_pos, x, y, rad, nsegments);
 }
 
 /**
@@ -88,14 +88,14 @@ void imm_draw_circle_wire(uint shdr_pos, float x, float y, float rad, int nsegme
  */
 void imm_draw_circle_fill(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
-	imm_draw_circle(PRIM_TRIANGLE_FAN, shdr_pos, x, y, rad, nsegments);
+	imm_draw_circle(GWN_PRIM_TRI_FAN, shdr_pos, x, y, rad, nsegments);
 }
 
 /**
  * \note We could have `imm_draw_lined_disk_partial` but currently there is no need.
  */
 static void imm_draw_disk_partial(
-        PrimitiveType prim_type, unsigned pos, float x, float y,
+        Gwn_PrimType prim_type, unsigned pos, float x, float y,
         float rad_inner, float rad_outer, int nsegments, float start, float sweep)
 {
 	/* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
@@ -132,11 +132,11 @@ void imm_draw_disk_partial_fill(
         unsigned pos, float x, float y,
         float rad_inner, float rad_outer, int nsegments, float start, float sweep)
 {
-	imm_draw_disk_partial(PRIM_TRIANGLE_STRIP, pos, x, y, rad_inner, rad_outer, nsegments, start, sweep);
+	imm_draw_disk_partial(GWN_PRIM_TRI_STRIP, pos, x, y, rad_inner, rad_outer, nsegments, start, sweep);
 }
 
 static void imm_draw_circle_3D(
-        PrimitiveType prim_type, unsigned pos, float x, float y,
+        Gwn_PrimType prim_type, unsigned pos, float x, float y,
         float rad, int nsegments)
 {
 	immBegin(prim_type, nsegments);
@@ -149,12 +149,12 @@ static void imm_draw_circle_3D(
 
 void imm_draw_circle_wire_3d(unsigned pos, float x, float y, float rad, int nsegments)
 {
-	imm_draw_circle_3D(PRIM_LINE_LOOP, pos, x, y, rad, nsegments);
+	imm_draw_circle_3D(GWN_PRIM_LINE_LOOP, pos, x, y, rad, nsegments);
 }
 
 void imm_draw_circle_fill_3d(unsigned pos, float x, float y, float rad, int nsegments)
 {
-	imm_draw_circle_3D(PRIM_TRIANGLE_FAN, pos, x, y, rad, nsegments);
+	imm_draw_circle_3D(GWN_PRIM_TRI_FAN, pos, x, y, rad, nsegments);
 }
 
 /**
@@ -168,7 +168,7 @@ void imm_draw_circle_fill_3d(unsigned pos, float x, float y, float rad, int nseg
 */
 void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2)
 {
-	immBegin(PRIM_LINE_LOOP, 4);
+	immBegin(GWN_PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, x1, y1);
 	immVertex2f(pos, x1, y2);
 	immVertex2f(pos, x2, y2);
@@ -178,8 +178,8 @@ void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2)
 
 void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2)
 {
-	/* use this version when VertexFormat has a vec3 position */
-	immBegin(PRIM_LINE_LOOP, 4);
+	/* use this version when Gwn_VertFormat has a vec3 position */
+	immBegin(GWN_PRIM_LINE_LOOP, 4);
 	immVertex3f(pos, x1, y1, 0.0f);
 	immVertex3f(pos, x1, y2, 0.0f);
 	immVertex3f(pos, x2, y2, 0.0f);
@@ -192,7 +192,7 @@ void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2)
  */
 void imm_draw_checker_box(float x1, float y1, float x2, float y2)
 {
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
 
 	immUniform4f("color1", 0.15f, 0.15f, 0.15f, 1.0f);
@@ -219,7 +219,7 @@ void imm_draw_checker_box(float x1, float y1, float x2, float y2)
 void imm_draw_cylinder_fill_normal_3d(
         unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks)
 {
-	immBegin(PRIM_TRIANGLES, 6 * slices * stacks);
+	immBegin(GWN_PRIM_TRIS, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
 		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
 		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);
@@ -270,7 +270,7 @@ void imm_draw_cylinder_fill_normal_3d(
 
 void imm_draw_cylinder_wire_3d(unsigned int pos, float base, float top, float height, int slices, int stacks)
 {
-	immBegin(PRIM_LINES, 6 * slices * stacks);
+	immBegin(GWN_PRIM_LINES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
 		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
 		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);
@@ -307,7 +307,7 @@ void imm_draw_cylinder_wire_3d(unsigned int pos, float base, float top, float he
 
 void imm_draw_cylinder_fill_3d(unsigned int pos, float base, float top, float height, int slices, int stacks)
 {
-	immBegin(PRIM_TRIANGLES, 6 * slices * stacks);
+	immBegin(GWN_PRIM_TRIS, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
 		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
 		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);

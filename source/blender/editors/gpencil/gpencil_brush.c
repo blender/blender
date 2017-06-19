@@ -981,8 +981,8 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customda
 	GP_EditBrush_Data *brush = gpsculpt_get_brush(CTX_data_scene(C));
 
 	if (brush) {
-		VertexFormat *format = immVertexFormat();
-		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		glEnable(GL_LINE_SMOOTH);

@@ -72,8 +72,8 @@
 static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const bool time)
 {
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned char col[4];
 	float xscale, x, y;
 	char numstr[32] = "    t";  /* t is the character to start replacing from */
@@ -128,15 +128,15 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 
 	glLineWidth((flag & DRAWCFRA_WIDE) ? 3.0 : 2.0);
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* Draw a light green line to indicate current frame */
 	immUniformThemeColor(TH_CFRAME);
 
-	immBegin(PRIM_LINES, 2);
+	immBegin(GWN_PRIM_LINES, 2);
 	immVertex2f(pos, x, v2d->cur.ymin - 500.0f); /* XXX arbitrary... want it go to bottom */
 	immVertex2f(pos, x, v2d->cur.ymax);
 	immEnd();
@@ -163,8 +163,8 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 
-		VertexFormat *format = immVertexFormat();
-		unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);

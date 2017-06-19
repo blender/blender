@@ -94,7 +94,7 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 		}
 	}
 
-	immBegin(PRIM_TRIANGLE_FAN, 5);
+	immBegin(GWN_PRIM_TRI_FAN, 5);
 
 	for (i = 0; i < 5; i++) {
 		immVertex2f(pos, points[i].x, points[i].y);
@@ -102,7 +102,7 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 
 	immEnd();
 
-	immBegin(PRIM_TRIANGLE_FAN, 5);
+	immBegin(GWN_PRIM_TRI_FAN, 5);
 
 	for (i = 4; i < 8; i++) {
 		immVertex2f(pos, points[i].x, points[i].y);
@@ -175,7 +175,7 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
 		}
 	}
 
-	immBegin(PRIM_TRIANGLE_FAN, 5);
+	immBegin(GWN_PRIM_TRI_FAN, 5);
 
 	for (i = 0; i < 5; i++) {
 		immVertex2f(pos, points[i].x, points[i].y);
@@ -183,7 +183,7 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
 
 	immEnd();
 
-	immBegin(PRIM_TRIANGLE_FAN, 5);
+	immBegin(GWN_PRIM_TRI_FAN, 5);
 
 	for (i = 4; i < 8; i++) {
 		immVertex2f(pos, points[i].x, points[i].y);
@@ -246,7 +246,7 @@ static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, shor
 		return;
 	}
 
-	immBegin(PRIM_LINES, count);
+	immBegin(GWN_PRIM_LINES, count);
 
 	/* right border area */
 	if (x2 < sizex - 1) {
@@ -304,7 +304,7 @@ void ED_screen_draw(wmWindow *win)
 
 	wmSubWindowSet(win, screen->mainwin);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* Note: first loop only draws if U.pixelsize > 1, skip otherwise */
@@ -368,7 +368,7 @@ void ED_screen_draw(wmWindow *win)
 		glEnable(GL_BLEND);
 		immUniformColor4ub(255, 255, 255, 100);
 
-		immBegin(PRIM_LINES, 2);
+		immBegin(GWN_PRIM_LINES, 2);
 
 		if (sa3->flag & AREA_FLAG_DRAWSPLIT_H) {
 			immVertex2f(pos, sa3->totrct.xmin, win->eventstate->y);
@@ -378,7 +378,7 @@ void ED_screen_draw(wmWindow *win)
 
 			immUniformColor4ub(0, 0, 0, 100);
 
-			immBegin(PRIM_LINES, 2);
+			immBegin(GWN_PRIM_LINES, 2);
 
 			immVertex2f(pos, sa3->totrct.xmin, win->eventstate->y + 1);
 			immVertex2f(pos, sa3->totrct.xmax, win->eventstate->y + 1);
@@ -391,7 +391,7 @@ void ED_screen_draw(wmWindow *win)
 
 			immUniformColor4ub(0, 0, 0, 100);
 
-			immBegin(PRIM_LINES, 2);
+			immBegin(GWN_PRIM_LINES, 2);
 
 			immVertex2f(pos, win->eventstate->x + 1, sa3->totrct.ymin);
 			immVertex2f(pos, win->eventstate->x + 1, sa3->totrct.ymax);
@@ -433,7 +433,7 @@ static void screen_preview_draw_areas(const bScreen *screen, const float scale[2
                                       const float ofs_between_areas)
 {
 	const float ofs_h = ofs_between_areas * 0.5f;
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(col);
@@ -446,7 +446,7 @@ static void screen_preview_draw_areas(const bScreen *screen, const float scale[2
 			.ymax = sa->totrct.ymax * scale[1] - ofs_h
 		};
 
-		immBegin(PRIM_TRIANGLE_FAN, 4);
+		immBegin(GWN_PRIM_TRI_FAN, 4);
 		immVertex2f(pos, rect.xmin, rect.ymin);
 		immVertex2f(pos, rect.xmax, rect.ymin);
 		immVertex2f(pos, rect.xmax, rect.ymax);

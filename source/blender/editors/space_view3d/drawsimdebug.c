@@ -48,9 +48,9 @@
 
 static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 {
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 	
@@ -73,7 +73,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	/**** dots ****/
 	
 	glPointSize(3.0f);
-	immBegin(PRIM_POINTS, num_dots);
+	immBegin(GWN_PRIM_POINTS, num_dots);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_DOT)
@@ -94,7 +94,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 		    {-0.000000, -1.000000}, {-0.382683, -0.923880}, {-0.707107, -0.707107}, {-0.923879, -0.382684},
 		    {-1.000000, 0.000000}, {-0.923879, 0.382684}, {-0.707107, 0.707107}, {-0.382683, 0.923880} };
 		
-		immBegin(PRIM_LINES, num_circles * CIRCLERES * 2);
+		immBegin(GWN_PRIM_LINES, num_circles * CIRCLERES * 2);
 		
 		for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 			SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
@@ -130,7 +130,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	
 	/**** lines ****/
 	
-	immBegin(PRIM_LINES, num_lines * 2);
+	immBegin(GWN_PRIM_LINES, num_lines * 2);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_LINE)
@@ -145,7 +145,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	/**** vectors ****/
 	
 	glPointSize(2.0f);
-	immBegin(PRIM_POINTS, num_vectors);
+	immBegin(GWN_PRIM_POINTS, num_vectors);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_VECTOR)
@@ -156,7 +156,7 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	}
 	immEnd();
 	
-	immBegin(PRIM_LINES, num_vectors * 2);
+	immBegin(GWN_PRIM_LINES, num_vectors * 2);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		float t[3];

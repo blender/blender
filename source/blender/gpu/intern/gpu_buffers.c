@@ -108,7 +108,7 @@ static ThreadMutex buffer_mutex = BLI_MUTEX_INITIALIZER;
 
 /* multires global buffer, can be used for many grids having the same grid size */
 typedef struct GridCommonGPUBuffer {
-	ElementList *mres_buffer;
+	Gwn_IndexBuf *mres_buffer;
 	int mres_prev_gridsize;
 	unsigned mres_prev_totquad;
 } GridCommonGPUBuffer;
@@ -945,11 +945,11 @@ void GPU_buffer_draw_elements(GPUBuffer *UNUSED(elements), unsigned int mode, in
  * drawing and doesn't interact at all with the buffer code above */
 
 struct GPU_PBVH_Buffers {
-	ElementList *index_buf, *index_buf_fast;
-	VertexBuffer *vert_buf;
+	Gwn_IndexBuf *index_buf, *index_buf_fast;
+	Gwn_VertBuf *vert_buf;
 
-	Batch *triangles;
-	Batch *triangles_fast;
+	Gwn_Batch *triangles;
+	Gwn_Batch *triangles_fast;
 
 	/* mesh pointers in case buffer allocation fails */
 	const MPoly *mpoly;
@@ -988,30 +988,30 @@ typedef struct {
 	uint pos, nor, col;
 } VertexBufferAttrID;
 
-static void gpu_pbvh_vert_format_init__gwn(VertexFormat *format, VertexBufferAttrID *vbo_id)
+static void gpu_pbvh_vert_format_init__gwn(Gwn_VertFormat *format, VertexBufferAttrID *vbo_id)
 {
-	vbo_id->pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	vbo_id->nor = VertexFormat_add_attrib(format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
-	vbo_id->col = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	vbo_id->pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	vbo_id->nor = GWN_vertformat_attr_add(format, "nor", GWN_COMP_I16, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	vbo_id->col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 }
 
 static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers)
 {
 	/* force flushing to the GPU */
 	if (buffers->vert_buf->data) {
-		VertexBuffer_use(buffers->vert_buf);
+		GWN_vertbuf_use(buffers->vert_buf);
 	}
 
-	BATCH_DISCARD_SAFE(buffers->triangles);
-	buffers->triangles = Batch_create(
-	        PRIM_TRIANGLES, buffers->vert_buf,
+	GWN_BATCH_DISCARD_SAFE(buffers->triangles);
+	buffers->triangles = GWN_batch_create(
+	        GWN_PRIM_TRIS, buffers->vert_buf,
 	        /* can be NULL */
 	        buffers->index_buf);
 
-	BATCH_DISCARD_SAFE(buffers->triangles_fast);
+	GWN_BATCH_DISCARD_SAFE(buffers->triangles_fast);
 	if (buffers->index_buf_fast) {
-		buffers->triangles_fast = Batch_create(
-		        PRIM_TRIANGLES, buffers->vert_buf,
+		buffers->triangles_fast = GWN_batch_create(
+		        GWN_PRIM_TRIS, buffers->vert_buf,
 		        /* can be NULL */
 		        buffers->index_buf_fast);
 	}
@@ -1078,15 +1078,15 @@ void GPU_pbvh_mesh_buffers_update(
 		rgba_float_to_uchar(diffuse_color_ub, diffuse_color);
 
 		/* Build VBO */
-		VERTEXBUFFER_DISCARD_SAFE(buffers->vert_buf);
+		GWN_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
 
 		/* match 'VertexBufferFormat' */
-		VertexFormat format = {0};
+		Gwn_VertFormat format = {0};
 		VertexBufferAttrID vbo_id;
 		gpu_pbvh_vert_format_init__gwn(&format, &vbo_id);
 
-		buffers->vert_buf = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(buffers->vert_buf, totelem);
+		buffers->vert_buf = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(buffers->vert_buf, totelem);
 
 		if (buffers->vert_buf->data) {
 			/* Vertex data is shared if smooth-shaded, but separate
@@ -1095,8 +1095,8 @@ void GPU_pbvh_mesh_buffers_update(
 			if (buffers->smooth) {
 				for (uint i = 0; i < totvert; ++i) {
 					const MVert *v = &mvert[vert_indices[i]];
-					VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.pos, i, v->co);
-					VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.nor, i, v->no);
+					GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.pos, i, v->co);
+					GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.nor, i, v->no);
 				}
 
 				for (uint i = 0; i < buffers->face_indices_len; i++) {
@@ -1107,10 +1107,10 @@ void GPU_pbvh_mesh_buffers_update(
 							int v_index = buffers->mloop[lt->tri[j]].v;
 							uchar color_ub[3];
 							gpu_color_from_mask_copy(vmask[v_index], diffuse_color, color_ub);
-							VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, vidx, color_ub);
+							GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.col, vidx, color_ub);
 						}
 						else {
-							VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, vidx, diffuse_color_ub);
+							GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.col, vidx, diffuse_color_ub);
 						}
 					}
 				}
@@ -1153,9 +1153,9 @@ void GPU_pbvh_mesh_buffers_update(
 					for (uint j = 0; j < 3; j++) {
 						const MVert *v = &mvert[vtri[j]];
 
-						VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.pos, vbo_index, v->co);
-						VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.nor, vbo_index, no);
-						VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
+						GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.pos, vbo_index, v->co);
+						GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.nor, vbo_index, no);
+						GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
 
 						vbo_index++;
 					}
@@ -1165,7 +1165,7 @@ void GPU_pbvh_mesh_buffers_update(
 			gpu_pbvh_batch_init(buffers);
 		}
 		else {
-			VERTEXBUFFER_DISCARD_SAFE(buffers->vert_buf);
+			GWN_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
 		}
 	}
 
@@ -1220,8 +1220,8 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
 	if (buffers->smooth) {
 		/* Fill the triangle buffer */
 		buffers->index_buf = NULL;
-		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_TRIANGLES, tottri, INT_MAX);
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tottri, INT_MAX);
 
 		for (i = 0; i < face_indices_len; ++i) {
 			const MLoopTri *lt = &looptri[face_indices[i]];
@@ -1230,13 +1230,13 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
 			if (paint_is_face_hidden(lt, mvert, mloop))
 				continue;
 
-			add_triangle_vertices(&elb, UNPACK3(face_vert_indices[i]));
+			GWN_indexbuf_add_tri_verts(&elb, UNPACK3(face_vert_indices[i]));
 		}
-		buffers->index_buf = ElementList_build(&elb);
+		buffers->index_buf = GWN_indexbuf_build(&elb);
 	}
 	else {
 		if (!buffers->is_index_buf_global) {
-			ELEMENTLIST_DISCARD_SAFE(buffers->index_buf);
+			GWN_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
 		}
 		buffers->index_buf = NULL;
 		buffers->is_index_buf_global = false;
@@ -1281,14 +1281,14 @@ void GPU_pbvh_grid_buffers_update(
 
 		copy_v4_v4(buffers->diffuse_color, diffuse_color);
 
-		VertexFormat format = {0};
+		Gwn_VertFormat format = {0};
 		VertexBufferAttrID vbo_id;
 		gpu_pbvh_vert_format_init__gwn(&format, &vbo_id);
 
 		/* Build coord/normal VBO */
-		VERTEXBUFFER_DISCARD_SAFE(buffers->vert_buf);
-		buffers->vert_buf = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(buffers->vert_buf, totgrid * key->grid_area);
+		GWN_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
+		buffers->vert_buf = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(buffers->vert_buf, totgrid * key->grid_area);
 
 		uint vbo_index_offset = 0;
 		if (buffers->vert_buf->data) {
@@ -1299,18 +1299,18 @@ void GPU_pbvh_grid_buffers_update(
 				for (y = 0; y < key->grid_size; y++) {
 					for (x = 0; x < key->grid_size; x++) {
 						CCGElem *elem = CCG_grid_elem(key, grid, x, y);
-						VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.pos, vbo_index, CCG_elem_co(key, elem));
+						GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.pos, vbo_index, CCG_elem_co(key, elem));
 
 						if (buffers->smooth) {
 							short no_short[3];
 							normal_float_to_short_v3(no_short, CCG_elem_no(key, elem));
-							VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.nor, vbo_index, no_short);
+							GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.nor, vbo_index, no_short);
 
 							if (has_mask) {
 								uchar color_ub[3];
 								gpu_color_from_mask_copy(*CCG_elem_mask(key, elem),
 									                     diffuse_color, color_ub);
-								VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
+								GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
 							}
 						}
 						vbo_index += 1;
@@ -1337,7 +1337,7 @@ void GPU_pbvh_grid_buffers_update(
 							vbo_index = vbo_index_offset + ((j + 1) * key->grid_size + k);
 							short no_short[3];
 							normal_float_to_short_v3(no_short, fno);
-							VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.nor, vbo_index, no_short);
+							GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.nor, vbo_index, no_short);
 
 							if (has_mask) {
 								uchar color_ub[3];
@@ -1348,7 +1348,7 @@ void GPU_pbvh_grid_buffers_update(
 								                              elems[3],
 								                              diffuse_color,
 								                              color_ub);
-								VertexBuffer_set_attrib(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
+								GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
 							}
 						}
 					}
@@ -1360,7 +1360,7 @@ void GPU_pbvh_grid_buffers_update(
 			gpu_pbvh_batch_init(buffers);
 		}
 		else {
-			VERTEXBUFFER_DISCARD_SAFE(buffers->vert_buf);
+			GWN_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
 		}
 	}
 
@@ -1380,9 +1380,9 @@ void GPU_pbvh_grid_buffers_update(
         int offset = 0;                                                 \
         int i, j, k;                                                    \
                                                                         \
-        ElementListBuilder elb;                                         \
-        ElementListBuilder_init(                                        \
-                &elb, PRIM_TRIANGLES, tot_quad_ * 2, max_vert_);        \
+        Gwn_IndexBufBuilder elb;                                        \
+        GWN_indexbuf_init(                                              \
+                &elb, GWN_PRIM_TRIS, tot_quad_ * 2, max_vert_);         \
                                                                         \
         /* Fill the buffer */                                           \
         for (i = 0; i < totgrid; ++i) {                                 \
@@ -1398,23 +1398,23 @@ void GPU_pbvh_grid_buffers_update(
                     {                                                   \
                         continue;                                       \
                     }                                                   \
-                    add_generic_vertex(&elb, offset + j * gridsize + k + 1); \
-                    add_generic_vertex(&elb, offset + j * gridsize + k);    \
-                    add_generic_vertex(&elb, offset + (j + 1) * gridsize + k); \
+                    GWN_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k + 1); \
+                    GWN_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k);    \
+                    GWN_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k); \
                                                                             \
-                    add_generic_vertex(&elb, offset + (j + 1) * gridsize + k + 1); \
-                    add_generic_vertex(&elb, offset + j * gridsize + k + 1); \
-                    add_generic_vertex(&elb, offset + (j + 1) * gridsize + k); \
+                    GWN_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k + 1); \
+                    GWN_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k + 1); \
+                    GWN_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k); \
                 }                                                       \
             }                                                           \
                                                                         \
             offset += gridsize * gridsize;                              \
         }                                                               \
-        buffer_ = ElementList_build(&elb);                              \
+        buffer_ = GWN_indexbuf_build(&elb);                             \
     } (void)0
 /* end FILL_QUAD_BUFFER */
 
-static ElementList *gpu_get_grid_buffer(
+static Gwn_IndexBuf *gpu_get_grid_buffer(
         int gridsize, unsigned *totquad, GridCommonGPUBuffer **grid_common_gpu_buffer,
         /* remove this arg  when gawain gets base-vertex support! */
         int totgrid)
@@ -1440,7 +1440,7 @@ static ElementList *gpu_get_grid_buffer(
 	}
 	/* we can't reuse old, delete the existing buffer */
 	else if (gridbuff->mres_buffer) {
-		ElementList_discard(gridbuff->mres_buffer);
+		GWN_indexbuf_discard(gridbuff->mres_buffer);
 		gridbuff->mres_buffer = NULL;
 	}
 
@@ -1457,17 +1457,17 @@ static ElementList *gpu_get_grid_buffer(
 
 #define FILL_FAST_BUFFER() \
 { \
-	ElementListBuilder elb; \
-	ElementListBuilder_init(&elb, PRIM_TRIANGLES, 6 * totgrid, INT_MAX); \
+	Gwn_IndexBufBuilder elb; \
+	GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, 6 * totgrid, INT_MAX); \
 	for (int i = 0; i < totgrid; i++) { \
-		add_generic_vertex(&elb, i * gridsize * gridsize + gridsize - 1); \
-		add_generic_vertex(&elb, i * gridsize * gridsize); \
-		add_generic_vertex(&elb, (i + 1) * gridsize * gridsize - gridsize); \
-		add_generic_vertex(&elb, (i + 1) * gridsize * gridsize - 1); \
-		add_generic_vertex(&elb, i * gridsize * gridsize + gridsize - 1); \
-		add_generic_vertex(&elb, (i + 1) * gridsize * gridsize - gridsize); \
+		GWN_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize + gridsize - 1); \
+		GWN_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize); \
+		GWN_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - gridsize); \
+		GWN_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - 1); \
+		GWN_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize + gridsize - 1); \
+		GWN_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - gridsize); \
 	} \
-	buffers->index_buf_fast = ElementList_build(&elb); \
+	buffers->index_buf_fast = GWN_indexbuf_build(&elb); \
 } (void)0
 
 GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
@@ -1538,7 +1538,7 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
  */
 static void gpu_bmesh_vert_to_buffer_copy__gwn(
         BMVert *v,
-        VertexBuffer *vert_buf,
+        Gwn_VertBuf *vert_buf,
         const VertexBufferAttrID *vbo_id,
         int *v_index,
         const float fno[3],
@@ -1549,12 +1549,12 @@ static void gpu_bmesh_vert_to_buffer_copy__gwn(
 	if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
 
 		/* Set coord, normal, and mask */
-		VertexBuffer_set_attrib(vert_buf, vbo_id->pos, *v_index, v->co);
+		GWN_vertbuf_attr_set(vert_buf, vbo_id->pos, *v_index, v->co);
 
 		{
 			short no_short[3];
 			normal_float_to_short_v3(no_short, fno ? fno : v->no);
-			VertexBuffer_set_attrib(vert_buf, vbo_id->nor, *v_index, no_short);
+			GWN_vertbuf_attr_set(vert_buf, vbo_id->nor, *v_index, no_short);
 		}
 
 		{
@@ -1564,7 +1564,7 @@ static void gpu_bmesh_vert_to_buffer_copy__gwn(
 			                BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset),
 			        diffuse_color,
 			        color_ub);
-			VertexBuffer_set_attrib(vert_buf, vbo_id->col, *v_index, color_ub);
+			GWN_vertbuf_attr_set(vert_buf, vbo_id->col, *v_index, color_ub);
 		}
 
 		/* Assign index for use in the triangle index buffer */
@@ -1660,14 +1660,14 @@ void GPU_pbvh_bmesh_buffers_update(
 	copy_v4_v4(buffers->diffuse_color, diffuse_color);
 
 	/* Initialize vertex buffer */
-	VERTEXBUFFER_DISCARD_SAFE(buffers->vert_buf);
+	GWN_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
 	/* match 'VertexBufferFormat' */
-	VertexFormat format = {0};
+	Gwn_VertFormat format = {0};
 	VertexBufferAttrID vbo_id;
 	gpu_pbvh_vert_format_init__gwn(&format, &vbo_id);
 
-	buffers->vert_buf = VertexBuffer_create_with_format(&format);
-	VertexBuffer_allocate_data(buffers->vert_buf, totvert);
+	buffers->vert_buf = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(buffers->vert_buf, totvert);
 
 	/* Fill vertex buffer */
 	if (buffers->vert_buf->data) {
@@ -1736,7 +1736,7 @@ void GPU_pbvh_bmesh_buffers_update(
 		bm->elem_index_dirty |= BM_VERT;
 	}
 	else {
-		VERTEXBUFFER_DISCARD_SAFE(buffers->vert_buf);
+		GWN_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
 		/* Memory map failed */
 		return;
 	}
@@ -1744,12 +1744,12 @@ void GPU_pbvh_bmesh_buffers_update(
 	if (buffers->smooth) {
 		/* Fill the triangle buffer */
 		buffers->index_buf = NULL;
-		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_TRIANGLES, tottri, maxvert);
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tottri, maxvert);
 
 		/* Initialize triangle index buffer */
 		if (buffers->triangles && !buffers->is_index_buf_global) {
-			BATCH_DISCARD_SAFE(buffers->triangles);
+			GWN_BATCH_DISCARD_SAFE(buffers->triangles);
 		}
 		buffers->is_index_buf_global = false;
 
@@ -1767,19 +1767,19 @@ void GPU_pbvh_bmesh_buffers_update(
 
 					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 					do {
-						add_generic_vertex(&elb, BM_elem_index_get(l_iter->v));
+						GWN_indexbuf_add_generic_vert(&elb, BM_elem_index_get(l_iter->v));
 					} while ((l_iter = l_iter->next) != l_first);
 				}
 			}
 
 			buffers->tot_tri = tottri;
 
-			buffers->index_buf = ElementList_build(&elb);
+			buffers->index_buf = GWN_indexbuf_build(&elb);
 		}
 	}
 	else if (buffers->index_buf) {
 		if (!buffers->is_index_buf_global) {
-			ELEMENTLIST_DISCARD_SAFE(buffers->index_buf);
+			GWN_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
 		}
 		buffers->index_buf = NULL;
 		buffers->is_index_buf_global = false;
@@ -1807,7 +1807,7 @@ void GPU_pbvh_buffers_draw(
 {
 	UNUSED_VARS(wireframe, fast, setMaterial);
 	bool do_fast = fast && buffers->triangles_fast;
-	Batch *triangles = do_fast ? buffers->triangles_fast : buffers->triangles;
+	Gwn_Batch *triangles = do_fast ? buffers->triangles_fast : buffers->triangles;
 
 	if (triangles) {
 
@@ -1817,7 +1817,7 @@ void GPU_pbvh_buffers_draw(
 			        buffers->smooth ? GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR : GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR;
 			GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 
-			Batch_set_program(
+			GWN_batch_program_set(
 			        triangles,
 			        GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
 
@@ -1830,11 +1830,11 @@ void GPU_pbvh_buffers_draw(
 			GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "global"), 1, 1, &world_light);
 
 		}
-		Batch_draw(triangles);
+		GWN_batch_draw(triangles);
 	}
 }
 
-Batch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast)
+Gwn_Batch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast)
 {
 	return (fast && buffers->triangles_fast) ?
 	        buffers->triangles_fast : buffers->triangles;
@@ -1886,13 +1886,13 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces,
 void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers)
 {
 	if (buffers) {
-		BATCH_DISCARD_SAFE(buffers->triangles);
-		BATCH_DISCARD_SAFE(buffers->triangles_fast);
+		GWN_BATCH_DISCARD_SAFE(buffers->triangles);
+		GWN_BATCH_DISCARD_SAFE(buffers->triangles_fast);
 		if (!buffers->is_index_buf_global) {
-			ELEMENTLIST_DISCARD_SAFE(buffers->index_buf);
+			GWN_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
 		}
-		ELEMENTLIST_DISCARD_SAFE(buffers->index_buf_fast);
-		VertexBuffer_discard(buffers->vert_buf);
+		GWN_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
+		GWN_vertbuf_discard(buffers->vert_buf);
 
 #ifdef USE_BASE_ELEM
 		if (buffers->baseelemarray)
@@ -1912,7 +1912,7 @@ void GPU_pbvh_multires_buffers_free(GridCommonGPUBuffer **grid_common_gpu_buffer
 	if (gridbuff) {
 		if (gridbuff->mres_buffer) {
 			BLI_mutex_lock(&buffer_mutex);
-			ELEMENTLIST_DISCARD_SAFE(gridbuff->mres_buffer);
+			GWN_INDEXBUF_DISCARD_SAFE(gridbuff->mres_buffer);
 			BLI_mutex_unlock(&buffer_mutex);
 		}
 		MEM_freeN(gridbuff);
@@ -1932,7 +1932,7 @@ void GPU_pbvh_BB_draw(float min[3], float max[3], bool leaf, unsigned int pos)
 	 * could keep a static batch & index buffer, change the VBO contents per draw
 	 */
 
-	immBegin(PRIM_LINES, 24);
+	immBegin(GWN_PRIM_LINES, 24);
 
 	/* top */
 	immVertex3f(pos, min[0], min[1], max[2]);

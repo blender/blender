@@ -118,8 +118,8 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 	nla_action_get_color(adt, act, color);
 	color[3] *= 2.5f;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -142,13 +142,13 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 
 	if (key_ct > 0) {
 		format = immVertexFormat();
-		pos_id = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned int size_id = VertexFormat_add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
-		unsigned int color_id = VertexFormat_add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
-		unsigned int outline_color_id = VertexFormat_add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+		pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		unsigned int size_id = GWN_vertformat_attr_add(format, "size", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
+		unsigned int color_id = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		unsigned int outline_color_id = GWN_vertformat_attr_add(format, "outlineColor", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 		GPU_enable_program_point_size();
-		immBegin(PRIM_POINTS, key_ct);
+		immBegin(GWN_PRIM_POINTS, key_ct);
 
 		/* - disregard the selection status of keyframes so they draw a certain way
 		 *	- size is 6.0f which is smaller than the editable keyframes, so that there is a distinction
@@ -177,7 +177,7 @@ static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymax
 	if (!(act && act->markers.first))
 		return;
 
-	const uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	if (dashed) {
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
@@ -194,7 +194,7 @@ static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymax
 	}
 	immUniformThemeColorShade(TH_STRIP_SELECT, shade);
 
-	immBeginAtMost(PRIM_LINES, BLI_listbase_count(&act->markers) * 2);
+	immBeginAtMost(GWN_PRIM_LINES, BLI_listbase_count(&act->markers) * 2);
 	for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
 		if ((marker->frame > strip->actstart) && (marker->frame < strip->actend)) {
 			float frame = nlastrip_get_frame(strip, marker->frame, NLATIME_CONVERT_MAP);
@@ -315,7 +315,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 		float cfra;
 		
 		/* plot the curve (over the strip's main region) */
-		immBegin(PRIM_LINE_STRIP, abs((int)(strip->end - strip->start) + 1));
+		immBegin(GWN_PRIM_LINE_STRIP, abs((int)(strip->end - strip->start) + 1));
 
 		/* sample at 1 frame intervals, and draw
 		 *	- min y-val is yminc, max is y-maxc, so clamp in those regions
@@ -331,7 +331,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 	else {
 		/* use blend in/out values only if both aren't zero */
 		if ((IS_EQF(strip->blendin, 0.0f) && IS_EQF(strip->blendout, 0.0f)) == 0) {
-			immBeginAtMost(PRIM_LINE_STRIP, 4);
+			immBeginAtMost(GWN_PRIM_LINE_STRIP, 4);
 
 			/* start of strip - if no blendin, start straight at 1, otherwise from 0 to 1 over blendin frames */
 			if (IS_EQF(strip->blendin, 0.0f) == 0) {
@@ -367,7 +367,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	/* get color of strip */
 	nla_strip_get_color_inside(adt, strip, color);
 
-	uint shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw extrapolation info first (as backdrop)
@@ -420,7 +420,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		UI_draw_roundbox_shade_x(true, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1, color);
 
 		/* restore current vertex format & program (roundbox trashes it) */
-		shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	}
 	else {
@@ -465,7 +465,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 
 	/* restore current vertex format & program (roundbox trashes it) */
 	/* Note that we use dahsed shader here, and make it draw solid lines if not muted... */
-	shdr_pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
 
 	float viewport_size[4];
@@ -491,7 +491,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		/* only draw lines for whole-numbered repeats, starting from the first full-repeat
 		 * up to the last full repeat (but not if it lies on the end of the strip)
 		 */
-		immBeginAtMost(PRIM_LINES, 2 * (strip->repeat - 1));
+		immBeginAtMost(GWN_PRIM_LINES, 2 * (strip->repeat - 1));
 		for (int i = 1; i < strip->repeat; i++) {
 			float repeatPos = strip->start + (repeatLen * i);
 
@@ -507,7 +507,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	else if ((strip->type == NLASTRIP_TYPE_META) && (strip->strips.first != strip->strips.last)) {
 		float y = (ymaxc - yminc) * 0.5f + yminc;
 
-		immBeginAtMost(PRIM_LINES, 4 * BLI_listbase_count(&strip->strips)); /* up to 2 lines per strip */
+		immBeginAtMost(GWN_PRIM_LINES, 4 * BLI_listbase_count(&strip->strips)); /* up to 2 lines per strip */
 
 		/* only draw first-level of child-strips, but don't draw any lines on the endpoints */
 		for (NlaStrip *cs = strip->strips.first; cs; cs = cs->next) {
@@ -676,7 +676,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				{
 					AnimData *adt = ale->adt;
 
-					unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+					unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 					immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data,
@@ -699,7 +699,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* white base-lines */
 					glLineWidth(2.0f);
 					immUniformColor4f(1.0f, 1.0f, 1.0f, 0.3f);
-					immBegin(PRIM_LINES, 4);
+					immBegin(GWN_PRIM_LINES, 4);
 					immVertex2f(pos, v2d->cur.xmin, yminc + NLACHANNEL_SKIP);
 					immVertex2f(pos, v2d->cur.xmax, yminc + NLACHANNEL_SKIP);
 					immVertex2f(pos, v2d->cur.xmin, ymaxc - NLACHANNEL_SKIP);
@@ -709,7 +709,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* black top-lines */
 					glLineWidth(1.0f);
 					immUniformColor3f(0.0f, 0.0f, 0.0f);
-					immBegin(PRIM_LINES, 4);
+					immBegin(GWN_PRIM_LINES, 4);
 					immVertex2f(pos, v2d->cur.xmin, yminc + NLACHANNEL_SKIP);
 					immVertex2f(pos, v2d->cur.xmax, yminc + NLACHANNEL_SKIP);
 					immVertex2f(pos, v2d->cur.xmin, ymaxc - NLACHANNEL_SKIP);

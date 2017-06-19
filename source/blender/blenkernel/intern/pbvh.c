@@ -1159,7 +1159,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 
 static void pbvh_draw_BB(PBVH *bvh)
 {
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 3, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 	for (int a = 0; a < bvh->totnode; a++) {
@@ -1849,7 +1849,7 @@ void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*fnors)[3],
 
 struct PBVHNodeDrawCallbackData {
 
-	void (*draw_fn)(void *user_data, Batch *batch);
+	void (*draw_fn)(void *user_data, Gwn_Batch *batch);
 	void *user_data;
 	bool fast;
 };
@@ -1859,7 +1859,7 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
 	struct PBVHNodeDrawCallbackData *data = data_v;
 
 	if (!(node->flag & PBVH_FullyHidden)) {
-		Batch *triangles = GPU_pbvh_buffers_batch_get(node->draw_buffers, data->fast);
+		Gwn_Batch *triangles = GPU_pbvh_buffers_batch_get(node->draw_buffers, data->fast);
 		if (triangles != NULL) {
 			data->draw_fn(data->user_data, triangles);
 		}
@@ -1871,7 +1871,7 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
  */
 void BKE_pbvh_draw_cb(
         PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast,
-        void (*draw_fn)(void *user_data, Batch *batch), void *user_data)
+        void (*draw_fn)(void *user_data, Gwn_Batch *batch), void *user_data)
 {
 	struct PBVHNodeDrawCallbackData draw_data = {
 		.fast = fast,

@@ -388,8 +388,8 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool UNUSED(drawLooseEdges), bool UN
 	MVert *vert = cddm->mvert;
 	MEdge *edge = cddm->medge;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 	/* NOTE: This is active object color, which is not really perfect.
 	 * But we can't query color set by glColor() :(
@@ -406,7 +406,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool UNUSED(drawLooseEdges), bool UN
 		const int num_current_edges = (chunk < num_chunks - 1)
 		        ? chunk_size
 		        : dm->numEdgeData - chunk_size * (num_chunks - 1);
-		immBeginAtMost(PRIM_LINES, num_current_edges * 2);
+		immBeginAtMost(GWN_PRIM_LINES, num_current_edges * 2);
 		for (int i = 0; i < num_current_edges; i++, edge++) {
 			immVertex3fv(pos, vert[edge->v1].co);
 			immVertex3fv(pos, vert[edge->v2].co);
@@ -461,9 +461,9 @@ static void cdDM_drawFacesSolid(
 	const float (*nors)[3] = dm->getPolyDataArray(dm, CD_NORMAL);
 	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-	unsigned int nor = VertexFormat_add_attrib(format, "nor", COMP_F32, 3, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	unsigned int nor = GWN_vertformat_attr_add(format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 	float color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
 	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
@@ -480,7 +480,7 @@ static void cdDM_drawFacesSolid(
 		        ? chunk_size
 		        : num_looptris - chunk_size * (num_chunks - 1);
 
-		immBeginAtMost(PRIM_TRIANGLES, num_current_looptris * 3);
+		immBeginAtMost(GWN_PRIM_TRIS, num_current_looptris * 3);
 
 		for (a = 0; a < num_current_looptris; a++, looptri++) {
 			const MPoly *mp = &mpoly[looptri->poly];

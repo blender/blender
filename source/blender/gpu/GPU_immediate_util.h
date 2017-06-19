@@ -32,7 +32,7 @@ void imm_cpack(unsigned int x);
 void imm_draw_circle_wire(uint shdr_pos, float x, float y, float radius, int nsegments);
 void imm_draw_circle_fill(uint shdr_pos, float x, float y, float radius, int nsegments);
 
-/* use this version when VertexFormat has a vec3 position */
+/* use this version when Gwn_VertFormat has a vec3 position */
 void imm_draw_circle_wire_3d(unsigned pos, float x, float y, float radius, int nsegments);
 void imm_draw_circle_fill_3d(unsigned pos, float x, float y, float radius, int nsegments);
 

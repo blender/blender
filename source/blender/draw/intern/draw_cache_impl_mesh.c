@@ -1219,7 +1219,7 @@ static unsigned char mesh_render_data_vertex_flag(MeshRenderData *rdata, const B
 }
 
 static void add_overlay_tri(
-        MeshRenderData *rdata, VertexBuffer *vbo_pos, VertexBuffer *vbo_nor, VertexBuffer *vbo_data,
+        MeshRenderData *rdata, Gwn_VertBuf *vbo_pos, Gwn_VertBuf *vbo_nor, Gwn_VertBuf *vbo_data,
         const unsigned int pos_id, const unsigned int vnor_id, const unsigned int lnor_id, const unsigned int data_id,
         const BMLoop **bm_looptri, const int base_vert_idx)
 {
@@ -1229,7 +1229,7 @@ static void add_overlay_tri(
 	if (vbo_pos) {
 		for (uint i = 0; i < 3; i++) {
 			const float *pos = bm_looptri[i]->v->co;
-			VertexBuffer_set_attrib(vbo_pos, pos_id, base_vert_idx + i, pos);
+			GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
 		}
 	}
 
@@ -1238,8 +1238,8 @@ static void add_overlay_tri(
 		PackedNormal lnor = convert_i10_v3(bm_looptri[0]->f->no);
 		for (uint i = 0; i < 3; i++) {
 			PackedNormal vnor = convert_i10_v3(bm_looptri[i]->v->no);
-			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
-			VertexBuffer_set_attrib(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
+			GWN_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
+			GWN_vertbuf_attr_set(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
 		}
 	}
 
@@ -1253,7 +1253,7 @@ static void add_overlay_tri(
 				mesh_render_data_edge_flag(rdata, bm_looptri[i_next]->e, &eattr);
 			}
 			eattr.v_flag = fflag | vflag;
-			VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx + i, &eattr);
+			GWN_vertbuf_attr_set(vbo_data, data_id, base_vert_idx + i, &eattr);
 
 			i_prev = i;
 			i = i_next;
@@ -1262,21 +1262,21 @@ static void add_overlay_tri(
 }
 
 static void add_overlay_loose_edge(
-        MeshRenderData *rdata, VertexBuffer *vbo_pos, VertexBuffer *vbo_nor, VertexBuffer *vbo_data,
+        MeshRenderData *rdata, Gwn_VertBuf *vbo_pos, Gwn_VertBuf *vbo_nor, Gwn_VertBuf *vbo_data,
         const unsigned int pos_id, const unsigned int vnor_id, const unsigned int data_id,
         const BMEdge *eed, const int base_vert_idx)
 {
 	if (vbo_pos) {
 		for (int i = 0; i < 2; ++i) {
 			const float *pos = (&eed->v1)[i]->co;
-			VertexBuffer_set_attrib(vbo_pos, pos_id, base_vert_idx + i, pos);
+			GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
 		}
 	}
 
 	if (vbo_nor) {
 		for (int i = 0; i < 2; ++i) {
 			PackedNormal vnor = convert_i10_v3((&eed->v1)[i]->no);
-			VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
+			GWN_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
 		}
 	}
 
@@ -1285,30 +1285,30 @@ static void add_overlay_loose_edge(
 		mesh_render_data_edge_flag(rdata, eed, &eattr);
 		for (int i = 0; i < 2; ++i) {
 			eattr.v_flag = mesh_render_data_vertex_flag(rdata, (&eed->v1)[i]);
-			VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx + i, &eattr);
+			GWN_vertbuf_attr_set(vbo_data, data_id, base_vert_idx + i, &eattr);
 		}
 	}
 }
 
 static void add_overlay_loose_vert(
-        MeshRenderData *rdata, VertexBuffer *vbo_pos, VertexBuffer *vbo_nor, VertexBuffer *vbo_data,
+        MeshRenderData *rdata, Gwn_VertBuf *vbo_pos, Gwn_VertBuf *vbo_nor, Gwn_VertBuf *vbo_data,
         const unsigned int pos_id, const unsigned int vnor_id, const unsigned int data_id,
         const BMVert *eve, const int base_vert_idx)
 {
 	if (vbo_pos) {
 		const float *pos = eve->co;
-		VertexBuffer_set_attrib(vbo_pos, pos_id, base_vert_idx, pos);
+		GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx, pos);
 	}
 
 	if (vbo_nor) {
 		PackedNormal vnor = convert_i10_v3(eve->no);
-		VertexBuffer_set_attrib(vbo_nor, vnor_id, base_vert_idx, &vnor);
+		GWN_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx, &vnor);
 	}
 
 	if (vbo_data) {
 		unsigned char vflag[4] = {0, 0, 0, 0};
 		vflag[0] = mesh_render_data_vertex_flag(rdata, eve);
-		VertexBuffer_set_attrib(vbo_data, data_id, base_vert_idx, vflag);
+		GWN_vertbuf_attr_set(vbo_data, data_id, base_vert_idx, vflag);
 	}
 }
 
@@ -1317,78 +1317,78 @@ static void add_overlay_loose_vert(
 
 /* ---------------------------------------------------------------------- */
 
-/** \name Mesh Batch Cache
+/** \name Mesh Gwn_Batch Cache
  * \{ */
 
 typedef struct MeshBatchCache {
-	VertexBuffer *pos_in_order;
-	VertexBuffer *nor_in_order;
-	ElementList *edges_in_order;
-	ElementList *triangles_in_order;
-	ElementList *overlay_triangles_vpaint;
+	Gwn_VertBuf *pos_in_order;
+	Gwn_VertBuf *nor_in_order;
+	Gwn_IndexBuf *edges_in_order;
+	Gwn_IndexBuf *triangles_in_order;
+	Gwn_IndexBuf *overlay_triangles_vpaint;
 
-	Batch *all_verts;
-	Batch *all_edges;
-	Batch *all_triangles;
+	Gwn_Batch *all_verts;
+	Gwn_Batch *all_edges;
+	Gwn_Batch *all_triangles;
 
-	VertexBuffer *pos_with_normals;
-	VertexBuffer *pos_with_normals_visible_only;  /* for paint modes with vert/face hide support. */
-	VertexBuffer *tri_aligned_weights;
-	VertexBuffer *tri_aligned_vert_colors;
-	VertexBuffer *tri_aligned_select_id;
-	VertexBuffer *tri_aligned_uv;  /* Active UV layer (mloopuv) */
-	VertexBuffer *edge_pos_with_select_bool;
-	VertexBuffer *pos_with_select_bool;
-	Batch *triangles_with_normals;
+	Gwn_VertBuf *pos_with_normals;
+	Gwn_VertBuf *pos_with_normals_visible_only;  /* for paint modes with vert/face hide support. */
+	Gwn_VertBuf *tri_aligned_weights;
+	Gwn_VertBuf *tri_aligned_vert_colors;
+	Gwn_VertBuf *tri_aligned_select_id;
+	Gwn_VertBuf *tri_aligned_uv;  /* Active UV layer (mloopuv) */
+	Gwn_VertBuf *edge_pos_with_select_bool;
+	Gwn_VertBuf *pos_with_select_bool;
+	Gwn_Batch *triangles_with_normals;
 
 	/* Skip hidden (depending on paint select mode),
 	 * 'pos_with_normals' or 'pos_with_normals_visible_only'. */
-	Batch *triangles_with_weights;
-	Batch *triangles_with_vert_colors;
+	Gwn_Batch *triangles_with_weights;
+	Gwn_Batch *triangles_with_vert_colors;
 	/* Always skip hidden */
-	Batch *triangles_with_select_id;
+	Gwn_Batch *triangles_with_select_id;
 
-	Batch *points_with_normals;
-	Batch *fancy_edges; /* owns its vertex buffer (not shared) */
+	Gwn_Batch *points_with_normals;
+	Gwn_Batch *fancy_edges; /* owns its vertex buffer (not shared) */
 
 	/* Maybe have shaded_triangles_data split into pos_nor and uv_tangent
 	 * to minimise data transfer for skinned mesh. */
-	VertexFormat shaded_triangles_format;
-	VertexBuffer *shaded_triangles_data;
-	ElementList **shaded_triangles_in_order;
-	Batch **shaded_triangles;
+	Gwn_VertFormat shaded_triangles_format;
+	Gwn_VertBuf *shaded_triangles_data;
+	Gwn_IndexBuf **shaded_triangles_in_order;
+	Gwn_Batch **shaded_triangles;
 
 	/* Texture Paint.*/
 	/* per-texture batch */
-	Batch **texpaint_triangles;
-	Batch  *texpaint_triangles_single;
+	Gwn_Batch **texpaint_triangles;
+	Gwn_Batch  *texpaint_triangles_single;
 
 	/* Edit Cage Mesh buffers */
-	VertexBuffer *ed_tri_pos;
-	VertexBuffer *ed_tri_nor; /* LoopNor, VertNor */
-	VertexBuffer *ed_tri_data;
+	Gwn_VertBuf *ed_tri_pos;
+	Gwn_VertBuf *ed_tri_nor; /* LoopNor, VertNor */
+	Gwn_VertBuf *ed_tri_data;
 
-	VertexBuffer *ed_ledge_pos;
-	VertexBuffer *ed_ledge_nor; /* VertNor */
-	VertexBuffer *ed_ledge_data;
+	Gwn_VertBuf *ed_ledge_pos;
+	Gwn_VertBuf *ed_ledge_nor; /* VertNor */
+	Gwn_VertBuf *ed_ledge_data;
 
-	VertexBuffer *ed_lvert_pos;
-	VertexBuffer *ed_lvert_nor; /* VertNor */
-	VertexBuffer *ed_lvert_data;
+	Gwn_VertBuf *ed_lvert_pos;
+	Gwn_VertBuf *ed_lvert_nor; /* VertNor */
+	Gwn_VertBuf *ed_lvert_data;
 
-	VertexBuffer *ed_fcenter_pos;
-	VertexBuffer *ed_fcenter_nor;
+	Gwn_VertBuf *ed_fcenter_pos;
+	Gwn_VertBuf *ed_fcenter_nor;
 
-	Batch *overlay_triangles;
-	Batch *overlay_triangles_nor; /* PRIM_POINTS */
-	Batch *overlay_loose_edges;
-	Batch *overlay_loose_edges_nor; /* PRIM_POINTS */
-	Batch *overlay_loose_verts;
-	Batch *overlay_facedots;
+	Gwn_Batch *overlay_triangles;
+	Gwn_Batch *overlay_triangles_nor; /* GWN_PRIM_POINTS */
+	Gwn_Batch *overlay_loose_edges;
+	Gwn_Batch *overlay_loose_edges_nor; /* GWN_PRIM_POINTS */
+	Gwn_Batch *overlay_loose_verts;
+	Gwn_Batch *overlay_facedots;
 
-	Batch *overlay_weight_faces;
-	Batch *overlay_weight_verts;
-	Batch *overlay_paint_edges;
+	Gwn_Batch *overlay_weight_faces;
+	Gwn_Batch *overlay_weight_verts;
+	Gwn_Batch *overlay_paint_edges;
 
 	/* settings to determine if cache is invalid */
 	bool is_dirty;
@@ -1401,7 +1401,7 @@ typedef struct MeshBatchCache {
 	bool is_editmode;
 } MeshBatchCache;
 
-/* Batch cache management. */
+/* Gwn_Batch cache management. */
 
 static bool mesh_batch_cache_valid(Mesh *me)
 {
@@ -1490,13 +1490,13 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 			cache->is_dirty = true;
 			break;
 		case BKE_MESH_BATCH_DIRTY_SELECT:
-			VERTEXBUFFER_DISCARD_SAFE(cache->ed_tri_data);
-			VERTEXBUFFER_DISCARD_SAFE(cache->ed_ledge_data);
-			VERTEXBUFFER_DISCARD_SAFE(cache->ed_lvert_data);
-			VERTEXBUFFER_DISCARD_SAFE(cache->ed_fcenter_nor); /* Contains select flag */
-			BATCH_DISCARD_SAFE(cache->overlay_triangles);
-			BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
-			BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
+			GWN_VERTBUF_DISCARD_SAFE(cache->ed_tri_data);
+			GWN_VERTBUF_DISCARD_SAFE(cache->ed_ledge_data);
+			GWN_VERTBUF_DISCARD_SAFE(cache->ed_lvert_data);
+			GWN_VERTBUF_DISCARD_SAFE(cache->ed_fcenter_nor); /* Contains select flag */
+			GWN_BATCH_DISCARD_SAFE(cache->overlay_triangles);
+			GWN_BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
+			GWN_BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
 
 			BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
 			break;
@@ -1515,61 +1515,61 @@ static void mesh_batch_cache_clear(Mesh *me)
 		return;
 	}
 
-	BATCH_DISCARD_SAFE(cache->all_verts);
-	BATCH_DISCARD_SAFE(cache->all_edges);
-	BATCH_DISCARD_SAFE(cache->all_triangles);
+	GWN_BATCH_DISCARD_SAFE(cache->all_verts);
+	GWN_BATCH_DISCARD_SAFE(cache->all_edges);
+	GWN_BATCH_DISCARD_SAFE(cache->all_triangles);
 
-	VERTEXBUFFER_DISCARD_SAFE(cache->pos_in_order);
-	VERTEXBUFFER_DISCARD_SAFE(cache->pos_with_select_bool);
-	ELEMENTLIST_DISCARD_SAFE(cache->edges_in_order);
-	ELEMENTLIST_DISCARD_SAFE(cache->triangles_in_order);
-	ELEMENTLIST_DISCARD_SAFE(cache->overlay_triangles_vpaint);
+	GWN_VERTBUF_DISCARD_SAFE(cache->pos_in_order);
+	GWN_VERTBUF_DISCARD_SAFE(cache->pos_with_select_bool);
+	GWN_INDEXBUF_DISCARD_SAFE(cache->edges_in_order);
+	GWN_INDEXBUF_DISCARD_SAFE(cache->triangles_in_order);
+	GWN_INDEXBUF_DISCARD_SAFE(cache->overlay_triangles_vpaint);
 
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_tri_pos);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_tri_nor);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_tri_data);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_ledge_pos);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_ledge_nor);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_ledge_data);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_lvert_pos);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_lvert_nor);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_lvert_data);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_fcenter_pos);
-	VERTEXBUFFER_DISCARD_SAFE(cache->ed_fcenter_nor);
-	BATCH_DISCARD_SAFE(cache->overlay_triangles);
-	BATCH_DISCARD_SAFE(cache->overlay_triangles_nor);
-	BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
-	BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
-	BATCH_DISCARD_SAFE(cache->overlay_loose_edges_nor);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_tri_pos);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_tri_nor);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_tri_data);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_ledge_pos);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_ledge_nor);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_ledge_data);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_lvert_pos);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_lvert_nor);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_lvert_data);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_fcenter_pos);
+	GWN_VERTBUF_DISCARD_SAFE(cache->ed_fcenter_nor);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay_triangles);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay_triangles_nor);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay_loose_edges_nor);
 
-	BATCH_DISCARD_SAFE(cache->overlay_weight_faces);
-	BATCH_DISCARD_SAFE(cache->overlay_weight_verts);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay_weight_faces);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay_weight_verts);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay_paint_edges);
 	BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
 
-	BATCH_DISCARD_SAFE(cache->triangles_with_normals);
-	BATCH_DISCARD_SAFE(cache->points_with_normals);
-	VERTEXBUFFER_DISCARD_SAFE(cache->pos_with_normals);
-	VERTEXBUFFER_DISCARD_SAFE(cache->pos_with_normals_visible_only);
-	VERTEXBUFFER_DISCARD_SAFE(cache->tri_aligned_vert_colors);
-	VERTEXBUFFER_DISCARD_SAFE(cache->tri_aligned_weights);
-	BATCH_DISCARD_SAFE(cache->triangles_with_weights);
-	BATCH_DISCARD_SAFE(cache->triangles_with_vert_colors);
-	VERTEXBUFFER_DISCARD_SAFE(cache->tri_aligned_select_id);
-	VERTEXBUFFER_DISCARD_SAFE(cache->tri_aligned_uv);
-	BATCH_DISCARD_SAFE(cache->triangles_with_select_id);
+	GWN_BATCH_DISCARD_SAFE(cache->triangles_with_normals);
+	GWN_BATCH_DISCARD_SAFE(cache->points_with_normals);
+	GWN_VERTBUF_DISCARD_SAFE(cache->pos_with_normals);
+	GWN_VERTBUF_DISCARD_SAFE(cache->pos_with_normals_visible_only);
+	GWN_VERTBUF_DISCARD_SAFE(cache->tri_aligned_vert_colors);
+	GWN_VERTBUF_DISCARD_SAFE(cache->tri_aligned_weights);
+	GWN_BATCH_DISCARD_SAFE(cache->triangles_with_weights);
+	GWN_BATCH_DISCARD_SAFE(cache->triangles_with_vert_colors);
+	GWN_VERTBUF_DISCARD_SAFE(cache->tri_aligned_select_id);
+	GWN_VERTBUF_DISCARD_SAFE(cache->tri_aligned_uv);
+	GWN_BATCH_DISCARD_SAFE(cache->triangles_with_select_id);
 
 	BATCH_DISCARD_ALL_SAFE(cache->fancy_edges);
 
-	VERTEXBUFFER_DISCARD_SAFE(cache->shaded_triangles_data);
+	GWN_VERTBUF_DISCARD_SAFE(cache->shaded_triangles_data);
 	if (cache->shaded_triangles_in_order) {
 		for (int i = 0; i < cache->mat_len; ++i) {
-			ELEMENTLIST_DISCARD_SAFE(cache->shaded_triangles_in_order[i]);
+			GWN_INDEXBUF_DISCARD_SAFE(cache->shaded_triangles_in_order[i]);
 		}
 	}
 	if (cache->shaded_triangles) {
 		for (int i = 0; i < cache->mat_len; ++i) {
-			BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
+			GWN_BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
 		}
 	}
 
@@ -1578,12 +1578,12 @@ static void mesh_batch_cache_clear(Mesh *me)
 
 	if (cache->texpaint_triangles) {
 		for (int i = 0; i < cache->mat_len; ++i) {
-			BATCH_DISCARD_SAFE(cache->texpaint_triangles[i]);
+			GWN_BATCH_DISCARD_SAFE(cache->texpaint_triangles[i]);
 		}
 	}
 	MEM_SAFE_FREE(cache->texpaint_triangles);
 
-	BATCH_DISCARD_SAFE(cache->texpaint_triangles_single);
+	GWN_BATCH_DISCARD_SAFE(cache->texpaint_triangles_single);
 
 }
 
@@ -1593,9 +1593,9 @@ void DRW_mesh_batch_cache_free(Mesh *me)
 	MEM_SAFE_FREE(me->batch_cache);
 }
 
-/* Batch cache usage. */
+/* Gwn_Batch cache usage. */
 
-static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata, MeshBatchCache *cache)
+static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
 #define USE_COMP_MESH_DATA
@@ -1608,9 +1608,9 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 			return NULL;
 		}
 
-		VertexFormat *format = &cache->shaded_triangles_format;
+		Gwn_VertFormat *format = &cache->shaded_triangles_format;
 
-		VertexFormat_clear(format);
+		GWN_vertformat_clear(format);
 
 		/* initialize vertex format */
 		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->cd.layers.uv_len, "UV attrib format");
@@ -1621,17 +1621,17 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 			/* UV */
 			attrib_name = mesh_render_data_uv_layer_uuid_get(rdata, i);
 #if defined(USE_COMP_MESH_DATA) && 0 /* these are clamped. Maybe use them as an option in the future */
-			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I16, 2, NORMALIZE_INT_TO_FLOAT);
+			uv_id[i] = GWN_vertformat_attr_add(format, attrib_name, GWN_COMP_I16, 2, GWN_FETCH_INT_TO_FLOAT_UNIT);
 #else
-			uv_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 2, KEEP_FLOAT);
+			uv_id[i] = GWN_vertformat_attr_add(format, attrib_name, GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 #endif
 
 			/* Auto Name */
 			attrib_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
-			VertexFormat_add_alias(format, attrib_name);
+			GWN_vertformat_alias_add(format, attrib_name);
 
 			if (i == rdata->cd.layers.uv_active) {
-				VertexFormat_add_alias(format, "u");
+				GWN_vertformat_alias_add(format, "u");
 			}
 
 			/* Tangent */
@@ -1640,40 +1640,40 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 			 * That may cause some problem but I could not make it to fail (fclem) */
 #ifdef USE_COMP_MESH_DATA
 			/* Tangents need more precision than 10_10_10 */
-			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+			tangent_id[i] = GWN_vertformat_attr_add(format, attrib_name, GWN_COMP_I16, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 #else
-			tangent_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_F32, 3, KEEP_FLOAT);
+			tangent_id[i] = GWN_vertformat_attr_add(format, attrib_name, GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 #endif
 
 			if (i == rdata->cd.layers.uv_active) {
-				VertexFormat_add_alias(format, "t");
+				GWN_vertformat_alias_add(format, "t");
 			}
 		}
 
 		for (int i = 0; i < rdata->cd.layers.vcol_len; i++) {
 			attrib_name = mesh_render_data_vcol_layer_uuid_get(rdata, i);
-			vcol_id[i] = VertexFormat_add_attrib(format, attrib_name, COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			vcol_id[i] = GWN_vertformat_attr_add(format, attrib_name, GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 			/* Auto layer */
 			if (rdata->cd.layers.auto_vcol[i]) {
 				attrib_name = mesh_render_data_vcol_auto_layer_uuid_get(rdata, i);
-				VertexFormat_add_alias(format, attrib_name);
+				GWN_vertformat_alias_add(format, attrib_name);
 			}
 
 			if (i == rdata->cd.layers.vcol_active) {
-				VertexFormat_add_alias(format, "c");
+				GWN_vertformat_alias_add(format, "c");
 			}
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		VertexBuffer *vbo = cache->shaded_triangles_data = VertexBuffer_create_with_format(format);
+		Gwn_VertBuf *vbo = cache->shaded_triangles_data = GWN_vertbuf_create_with_format(format);
 
 		const int vbo_len_capacity = tri_len * 3;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
-		/* TODO deduplicate all verts and make use of ElementList in
+		/* TODO deduplicate all verts and make use of Gwn_IndexBuf in
 		 * mesh_batch_cache_get_triangles_in_order_split_by_material. */
 		for (int i = 0; i < tri_len; i++) {
 			float *tri_uvs[3], *tri_tans[3];
@@ -1694,9 +1694,9 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 #else
 					float **s_uvs = tri_uvs;
 #endif
-					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 0, s_uvs[0]);
-					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 1, s_uvs[1]);
-					VertexBuffer_set_attrib(vbo, uv_id[j], vidx + 2, s_uvs[2]);
+					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 0, s_uvs[0]);
+					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 1, s_uvs[1]);
+					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 2, s_uvs[2]);
 
 					/* Tangent */
 					mesh_render_data_looptri_tans_get(rdata, i, j, &tri_tans);
@@ -1709,17 +1709,17 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 #else
 					float **s_tan = tri_tans;
 #endif
-					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 0, s_tan[0]);
-					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 1, s_tan[1]);
-					VertexBuffer_set_attrib(vbo, tangent_id[j], vidx + 2, s_tan[2]);
+					GWN_vertbuf_attr_set(vbo, tangent_id[j], vidx + 0, s_tan[0]);
+					GWN_vertbuf_attr_set(vbo, tangent_id[j], vidx + 1, s_tan[1]);
+					GWN_vertbuf_attr_set(vbo, tangent_id[j], vidx + 2, s_tan[2]);
 				}
 
 				/* VCOLs */
 				for (int j = 0; j < rdata->cd.layers.vcol_len; j++) {
 					mesh_render_data_looptri_cols_get(rdata, i, j, &tri_cols);
-					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 0, tri_cols[0]);
-					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 1, tri_cols[1]);
-					VertexBuffer_set_attrib(vbo, vcol_id[j], vidx + 2, tri_cols[2]);
+					GWN_vertbuf_attr_set(vbo, vcol_id[j], vidx + 0, tri_cols[0]);
+					GWN_vertbuf_attr_set(vbo, vcol_id[j], vidx + 1, tri_cols[1]);
+					GWN_vertbuf_attr_set(vbo, vcol_id[j], vidx + 2, tri_cols[2]);
 				}
 
 				vidx += 3;
@@ -1728,7 +1728,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 		vbo_len_used = vidx;
 
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 
 		MEM_freeN(uv_id);
@@ -1741,7 +1741,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata
 	return cache->shaded_triangles_data;
 }
 
-static VertexBuffer *mesh_batch_cache_get_tri_uv_active(
+static Gwn_VertBuf *mesh_batch_cache_get_tri_uv_active(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPUV));
@@ -1750,27 +1750,27 @@ static VertexBuffer *mesh_batch_cache_get_tri_uv_active(
 	if (cache->tri_aligned_uv == NULL) {
 		unsigned int vidx = 0;
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint uv; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.uv = VertexFormat_add_attrib(&format, "uv", COMP_F32, 2, KEEP_FLOAT);
+			attr_id.uv = GWN_vertformat_attr_add(&format, "uv", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		VertexBuffer *vbo = cache->tri_aligned_uv = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = cache->tri_aligned_uv = GWN_vertbuf_create_with_format(&format);
 
 		const int vbo_len_capacity = tri_len * 3;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		const MLoopUV *mloopuv = rdata->mloopuv;
 
 		for (int i = 0; i < tri_len; i++) {
 			const MLoopTri *mlt = &rdata->mlooptri[i];
-			VertexBuffer_set_attrib(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[0]].uv);
-			VertexBuffer_set_attrib(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[1]].uv);
-			VertexBuffer_set_attrib(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[2]].uv);
+			GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[0]].uv);
+			GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[1]].uv);
+			GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[2]].uv);
 		}
 		vbo_len_used = vidx;
 
@@ -1780,29 +1780,29 @@ static VertexBuffer *mesh_batch_cache_get_tri_uv_active(
 	return cache->tri_aligned_uv;
 }
 
-static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals_ex(
+static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
         MeshRenderData *rdata, const bool use_hide,
-        VertexBuffer **r_vbo)
+        Gwn_VertBuf **r_vbo)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
 
 	if (*r_vbo == NULL) {
 		unsigned int vidx = 0, nidx = 0;
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, nor; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		VertexBuffer *vbo = *r_vbo = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = *r_vbo = GWN_vertbuf_create_with_format(&format);
 
 		const int vbo_len_capacity = tri_len * 3;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		for (int i = 0; i < tri_len; i++) {
 			float *tri_vert_cos[3];
@@ -1820,41 +1820,41 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals_ex(
 					};
 					PackedNormal *snor[3] = { &snor_pack[0], &snor_pack[1], &snor_pack[2] };
 
-					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[0]);
-					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[1]);
-					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor[2]);
+					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor[0]);
+					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor[1]);
+					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor[2]);
 				}
 				else {
 					PackedNormal snor_pack = convert_i10_s3(tri_nor);
 					PackedNormal *snor = &snor_pack;
 
-					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
-					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
-					VertexBuffer_set_attrib(vbo, attr_id.nor, nidx++, snor);
+					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor);
+					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor);
+					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor);
 				}
 
-				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, tri_vert_cos[0]);
-				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, tri_vert_cos[1]);
-				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, tri_vert_cos[2]);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, vidx++, tri_vert_cos[0]);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, vidx++, tri_vert_cos[1]);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, vidx++, tri_vert_cos[2]);
 			}
 		}
 		vbo_len_used = vidx;
 
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 	}
 	return *r_vbo;
 }
 
-static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals(
+static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	return mesh_batch_cache_get_tri_pos_and_normals_ex(
 	        rdata, false,
 	        &cache->pos_with_normals);
 }
-static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals_visible_only(
+static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_visible_only(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	return mesh_batch_cache_get_tri_pos_and_normals_ex(
@@ -1862,7 +1862,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_pos_and_normals_visible_only(
 	        &cache->pos_with_normals_visible_only);
 }
 
-static VertexBuffer *mesh_batch_cache_get_tri_weights(
+static Gwn_VertBuf *mesh_batch_cache_get_tri_weights(
         MeshRenderData *rdata, MeshBatchCache *cache, bool use_hide, int defgroup)
 {
 	BLI_assert(
@@ -1872,19 +1872,19 @@ static VertexBuffer *mesh_batch_cache_get_tri_weights(
 	if (cache->tri_aligned_weights == NULL) {
 		unsigned int cidx = 0;
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.col = VertexFormat_add_attrib(&format, "color", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		VertexBuffer *vbo = cache->tri_aligned_weights = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = cache->tri_aligned_weights = GWN_vertbuf_create_with_format(&format);
 
 		const int vbo_len_capacity = tri_len * 3;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		mesh_render_data_ensure_vert_weight_color(rdata, defgroup);
 		const float (*vert_weight_color)[3] = rdata->vert_weight_color;
@@ -1896,7 +1896,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_weights(
 				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 						const int v_index = BM_elem_index_get(ltri[tri_corner]->v);
-						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_weight_color[v_index]);
+						GWN_vertbuf_attr_set(vbo, attr_id.col, cidx++, vert_weight_color[v_index]);
 					}
 				}
 			}
@@ -1907,7 +1907,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_weights(
 				if (!(use_hide && (rdata->mpoly[mlt->poly].flag & ME_HIDE))) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 						const uint v_index = rdata->mloop[mlt->tri[tri_corner]].v;
-						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_weight_color[v_index]);
+						GWN_vertbuf_attr_set(vbo, attr_id.col, cidx++, vert_weight_color[v_index]);
 					}
 				}
 			}
@@ -1915,14 +1915,14 @@ static VertexBuffer *mesh_batch_cache_get_tri_weights(
 		vbo_len_used = cidx;
 
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 	}
 
 	return cache->tri_aligned_weights;
 }
 
-static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
+static Gwn_VertBuf *mesh_batch_cache_get_tri_vert_colors(
         MeshRenderData *rdata, MeshBatchCache *cache, bool use_hide)
 {
 	BLI_assert(
@@ -1932,18 +1932,18 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 	if (cache->tri_aligned_vert_colors == NULL) {
 		unsigned int cidx = 0;
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.col = VertexFormat_add_attrib(&format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		VertexBuffer *vbo = cache->tri_aligned_vert_colors = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = cache->tri_aligned_vert_colors = GWN_vertbuf_create_with_format(&format);
 
 		const uint vbo_len_capacity = tri_len * 3;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		mesh_render_data_ensure_vert_color(rdata);
 		const char (*vert_color)[3] = rdata->vert_color;
@@ -1955,7 +1955,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 						const int l_index = BM_elem_index_get(ltri[tri_corner]);
-						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_color[l_index]);
+						GWN_vertbuf_attr_set(vbo, attr_id.col, cidx++, vert_color[l_index]);
 					}
 				}
 			}
@@ -1966,7 +1966,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 				if (!(use_hide && (rdata->mpoly[mlt->poly].flag & ME_HIDE))) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 						const uint l_index = mlt->tri[tri_corner];
-						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, vert_color[l_index]);
+						GWN_vertbuf_attr_set(vbo, attr_id.col, cidx++, vert_color[l_index]);
 					}
 				}
 			}
@@ -1974,14 +1974,14 @@ static VertexBuffer *mesh_batch_cache_get_tri_vert_colors(
 		const uint vbo_len_used = cidx;
 
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 	}
 
 	return cache->tri_aligned_vert_colors;
 }
 
-static VertexBuffer *mesh_batch_cache_get_tri_select_id(
+static Gwn_VertBuf *mesh_batch_cache_get_tri_select_id(
         MeshRenderData *rdata, MeshBatchCache *cache, bool use_hide)
 {
 	BLI_assert(
@@ -1991,19 +1991,19 @@ static VertexBuffer *mesh_batch_cache_get_tri_select_id(
 	if (cache->tri_aligned_select_id == NULL) {
 		unsigned int cidx = 0;
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.col = VertexFormat_add_attrib(&format, "color", COMP_I32, 1, KEEP_INT);
+			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_I32, 1, GWN_FETCH_INT);
 		}
 
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		VertexBuffer *vbo = cache->tri_aligned_select_id = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = cache->tri_aligned_select_id = GWN_vertbuf_create_with_format(&format);
 
 		const int vbo_len_capacity = tri_len * 3;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		if (rdata->edit_bmesh) {
 			for (int i = 0; i < tri_len; i++) {
@@ -2014,7 +2014,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_select_id(
 					int select_id;
 					GPU_select_index_get(poly_index + 1, &select_id);
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, &select_id);
+						GWN_vertbuf_attr_set(vbo, attr_id.col, cidx++, &select_id);
 					}
 				}
 			}
@@ -2027,7 +2027,7 @@ static VertexBuffer *mesh_batch_cache_get_tri_select_id(
 					int select_id;
 					GPU_select_index_get(poly_index + 1, &select_id);
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						VertexBuffer_set_attrib(vbo, attr_id.col, cidx++, &select_id);
+						GWN_vertbuf_attr_set(vbo, attr_id.col, cidx++, &select_id);
 					}
 				}
 			}
@@ -2035,29 +2035,29 @@ static VertexBuffer *mesh_batch_cache_get_tri_select_id(
 		vbo_len_used = cidx;
 
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 	}
 
 	return cache->tri_aligned_select_id;
 }
 
-static VertexBuffer *mesh_batch_cache_get_vert_pos_and_nor_in_order(
+static Gwn_VertBuf *mesh_batch_cache_get_vert_pos_and_nor_in_order(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
 
 	if (cache->pos_in_order == NULL) {
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, nor; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.nor = VertexFormat_add_attrib(&format, "nor", COMP_I16, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_I16, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		}
 
-		VertexBuffer *vbo = cache->pos_in_order = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = cache->pos_in_order = GWN_vertbuf_create_with_format(&format);
 		const int vbo_len_capacity = mesh_render_data_verts_len_get(rdata);
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		if (rdata->edit_bmesh) {
 			BMesh *bm = rdata->edit_bmesh->bm;
@@ -2069,15 +2069,15 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_and_nor_in_order(
 				static short no_short[3];
 				normal_float_to_short_v3(no_short, eve->no);
 
-				VertexBuffer_set_attrib(vbo, attr_id.pos, i, eve->co);
-				VertexBuffer_set_attrib(vbo, attr_id.nor, i, no_short);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, i, eve->co);
+				GWN_vertbuf_attr_set(vbo, attr_id.nor, i, no_short);
 			}
 			BLI_assert(i == vbo_len_capacity);
 		}
 		else {
 			for (int i = 0; i < vbo_len_capacity; ++i) {
-				VertexBuffer_set_attrib(vbo, attr_id.pos, i, rdata->mvert[i].co);
-				VertexBuffer_set_attrib(vbo, attr_id.nor, i, rdata->mvert[i].no);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, i, rdata->mvert[i].co);
+				GWN_vertbuf_attr_set(vbo, attr_id.nor, i, rdata->mvert[i].no);
 			}
 		}
 	}
@@ -2085,26 +2085,26 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_and_nor_in_order(
 	return cache->pos_in_order;
 }
 
-static VertexFormat *edit_mesh_overlay_pos_format(unsigned int *r_pos_id)
+static Gwn_VertFormat *edit_mesh_overlay_pos_format(unsigned int *r_pos_id)
 {
-	static VertexFormat format_pos = { 0 };
+	static Gwn_VertFormat format_pos = { 0 };
 	static unsigned pos_id;
 	if (format_pos.attrib_ct == 0) {
-		pos_id = VertexFormat_add_attrib(&format_pos, "pos", COMP_F32, 3, KEEP_FLOAT);
+		pos_id = GWN_vertformat_attr_add(&format_pos, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	}
 	*r_pos_id = pos_id;
 	return &format_pos;
 }
 
-static VertexFormat *edit_mesh_overlay_nor_format(unsigned int *r_vnor_id, unsigned int *r_lnor_id)
+static Gwn_VertFormat *edit_mesh_overlay_nor_format(unsigned int *r_vnor_id, unsigned int *r_lnor_id)
 {
-	static VertexFormat format_nor = { 0 };
-	static VertexFormat format_nor_loop = { 0 };
+	static Gwn_VertFormat format_nor = { 0 };
+	static Gwn_VertFormat format_nor_loop = { 0 };
 	static unsigned vnor_id, vnor_loop_id, lnor_id;
 	if (format_nor.attrib_ct == 0) {
-		vnor_id = VertexFormat_add_attrib(&format_nor, "vnor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-		vnor_loop_id = VertexFormat_add_attrib(&format_nor_loop, "vnor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-		lnor_id = VertexFormat_add_attrib(&format_nor_loop, "lnor", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+		vnor_id = GWN_vertformat_attr_add(&format_nor, "vnor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		vnor_loop_id = GWN_vertformat_attr_add(&format_nor_loop, "vnor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		lnor_id = GWN_vertformat_attr_add(&format_nor_loop, "lnor", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 	}
 	if (r_lnor_id) {
 		*r_vnor_id = vnor_loop_id;
@@ -2117,12 +2117,12 @@ static VertexFormat *edit_mesh_overlay_nor_format(unsigned int *r_vnor_id, unsig
 	}
 }
 
-static VertexFormat *edit_mesh_overlay_data_format(unsigned int *r_data_id)
+static Gwn_VertFormat *edit_mesh_overlay_data_format(unsigned int *r_data_id)
 {
-	static VertexFormat format_flag = { 0 };
+	static Gwn_VertFormat format_flag = { 0 };
 	static unsigned data_id;
 	if (format_flag.attrib_ct == 0) {
-		data_id = VertexFormat_add_attrib(&format_flag, "data", COMP_U8, 4, KEEP_INT);
+		data_id = GWN_vertformat_attr_add(&format_flag, "data", GWN_COMP_U8, 4, GWN_FETCH_INT);
 	}
 	*r_data_id = data_id;
 	return &format_flag;
@@ -2139,28 +2139,28 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 	int vbo_len_used = 0;
 
 	/* Positions */
-	VertexBuffer *vbo_pos = NULL;
+	Gwn_VertBuf *vbo_pos = NULL;
 	static struct { uint pos, vnor, lnor, data; } attr_id;
 	if (cache->ed_tri_pos == NULL) {
 		vbo_pos = cache->ed_tri_pos =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
-		VertexBuffer_allocate_data(vbo_pos, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
+		GWN_vertbuf_data_alloc(vbo_pos, vbo_len_capacity);
 	}
 
 	/* Normals */
-	VertexBuffer *vbo_nor = NULL;
+	Gwn_VertBuf *vbo_nor = NULL;
 	if (cache->ed_tri_nor == NULL) {
 		vbo_nor = cache->ed_tri_nor =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, &attr_id.lnor));
-		VertexBuffer_allocate_data(vbo_nor, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, &attr_id.lnor));
+		GWN_vertbuf_data_alloc(vbo_nor, vbo_len_capacity);
 	}
 
 	/* Data */
-	VertexBuffer *vbo_data = NULL;
+	Gwn_VertBuf *vbo_data = NULL;
 	if (cache->ed_tri_data == NULL) {
 		vbo_data = cache->ed_tri_data =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
-		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
+		GWN_vertbuf_data_alloc(vbo_data, vbo_len_capacity);
 	}
 
 	for (int i = 0; i < tri_len; i++) {
@@ -2178,13 +2178,13 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 	/* Finish */
 	if (vbo_len_used != vbo_len_capacity) {
 		if (vbo_pos != NULL) {
-			VertexBuffer_resize_data(vbo_pos, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_pos, vbo_len_used);
 		}
 		if (vbo_nor != NULL) {
-			VertexBuffer_resize_data(vbo_nor, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_nor, vbo_len_used);
 		}
 		if (vbo_data != NULL) {
-			VertexBuffer_resize_data(vbo_data, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_data, vbo_len_used);
 		}
 	}
 }
@@ -2200,28 +2200,28 @@ static void mesh_batch_cache_create_overlay_ledge_buffers(
 	int vbo_len_used = 0;
 
 	/* Positions */
-	VertexBuffer *vbo_pos = NULL;
+	Gwn_VertBuf *vbo_pos = NULL;
 	static struct { uint pos, vnor, data; } attr_id;
 	if (cache->ed_ledge_pos == NULL) {
 		vbo_pos = cache->ed_ledge_pos =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
-		VertexBuffer_allocate_data(vbo_pos, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
+		GWN_vertbuf_data_alloc(vbo_pos, vbo_len_capacity);
 	}
 
 	/* Normals */
-	VertexBuffer *vbo_nor = NULL;
+	Gwn_VertBuf *vbo_nor = NULL;
 	if (cache->ed_ledge_nor == NULL) {
 		vbo_nor = cache->ed_ledge_nor =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, NULL));
-		VertexBuffer_allocate_data(vbo_nor, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, NULL));
+		GWN_vertbuf_data_alloc(vbo_nor, vbo_len_capacity);
 	}
 
 	/* Data */
-	VertexBuffer *vbo_data = NULL;
+	Gwn_VertBuf *vbo_data = NULL;
 	if (cache->ed_ledge_data == NULL) {
 		vbo_data = cache->ed_ledge_data =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
-		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
+		GWN_vertbuf_data_alloc(vbo_data, vbo_len_capacity);
 	}
 
 	if (rdata->edit_bmesh) {
@@ -2241,13 +2241,13 @@ static void mesh_batch_cache_create_overlay_ledge_buffers(
 	/* Finish */
 	if (vbo_len_used != vbo_len_capacity) {
 		if (vbo_pos != NULL) {
-			VertexBuffer_resize_data(vbo_pos, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_pos, vbo_len_used);
 		}
 		if (vbo_nor != NULL) {
-			VertexBuffer_resize_data(vbo_nor, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_nor, vbo_len_used);
 		}
 		if (vbo_data != NULL) {
-			VertexBuffer_resize_data(vbo_data, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_data, vbo_len_used);
 		}
 	}
 }
@@ -2266,27 +2266,27 @@ static void mesh_batch_cache_create_overlay_lvert_buffers(
 	static struct { uint pos, vnor, data; } attr_id;
 
 	/* Positions */
-	VertexBuffer *vbo_pos = NULL;
+	Gwn_VertBuf *vbo_pos = NULL;
 	if (cache->ed_lvert_pos == NULL) {
 		vbo_pos = cache->ed_lvert_pos =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
-		VertexBuffer_allocate_data(vbo_pos, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_pos_format(&attr_id.pos));
+		GWN_vertbuf_data_alloc(vbo_pos, vbo_len_capacity);
 	}
 
 	/* Normals */
-	VertexBuffer *vbo_nor = NULL;
+	Gwn_VertBuf *vbo_nor = NULL;
 	if (cache->ed_lvert_nor == NULL) {
 		vbo_nor = cache->ed_lvert_nor =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, NULL));
-		VertexBuffer_allocate_data(vbo_nor, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_nor_format(&attr_id.vnor, NULL));
+		GWN_vertbuf_data_alloc(vbo_nor, vbo_len_capacity);
 	}
 
 	/* Data */
-	VertexBuffer *vbo_data = NULL;
+	Gwn_VertBuf *vbo_data = NULL;
 	if (cache->ed_lvert_data == NULL) {
 		vbo_data = cache->ed_lvert_data =
-		        VertexBuffer_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
-		VertexBuffer_allocate_data(vbo_data, vbo_len_capacity);
+		        GWN_vertbuf_create_with_format(edit_mesh_overlay_data_format(&attr_id.data));
+		GWN_vertbuf_data_alloc(vbo_data, vbo_len_capacity);
 	}
 
 	for (uint i = 0; i < lvert_len; i++) {
@@ -2301,19 +2301,19 @@ static void mesh_batch_cache_create_overlay_lvert_buffers(
 	/* Finish */
 	if (vbo_len_used != vbo_len_capacity) {
 		if (vbo_pos != NULL) {
-			VertexBuffer_resize_data(vbo_pos, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_pos, vbo_len_used);
 		}
 		if (vbo_nor != NULL) {
-			VertexBuffer_resize_data(vbo_nor, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_nor, vbo_len_used);
 		}
 		if (vbo_data != NULL) {
-			VertexBuffer_resize_data(vbo_data, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo_data, vbo_len_used);
 		}
 	}
 }
 
 /* Position */
-static VertexBuffer *mesh_batch_cache_get_edit_tri_pos(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_tri_pos(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2325,7 +2325,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_tri_pos(
 	return cache->ed_tri_pos;
 }
 
-static VertexBuffer *mesh_batch_cache_get_edit_ledge_pos(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_ledge_pos(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2337,7 +2337,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_ledge_pos(
 	return cache->ed_ledge_pos;
 }
 
-static VertexBuffer *mesh_batch_cache_get_edit_lvert_pos(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_lvert_pos(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2350,7 +2350,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_lvert_pos(
 }
 
 /* Normal */
-static VertexBuffer *mesh_batch_cache_get_edit_tri_nor(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_tri_nor(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2362,7 +2362,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_tri_nor(
 	return cache->ed_tri_nor;
 }
 
-static VertexBuffer *mesh_batch_cache_get_edit_ledge_nor(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_ledge_nor(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2374,7 +2374,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_ledge_nor(
 	return cache->ed_ledge_nor;
 }
 
-static VertexBuffer *mesh_batch_cache_get_edit_lvert_nor(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_lvert_nor(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2387,7 +2387,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_lvert_nor(
 }
 
 /* Data */
-static VertexBuffer *mesh_batch_cache_get_edit_tri_data(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_tri_data(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2399,7 +2399,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_tri_data(
 	return cache->ed_tri_data;
 }
 
-static VertexBuffer *mesh_batch_cache_get_edit_ledge_data(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_ledge_data(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2411,7 +2411,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_ledge_data(
 	return cache->ed_ledge_data;
 }
 
-static VertexBuffer *mesh_batch_cache_get_edit_lvert_data(
+static Gwn_VertBuf *mesh_batch_cache_get_edit_lvert_data(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
@@ -2423,7 +2423,7 @@ static VertexBuffer *mesh_batch_cache_get_edit_lvert_data(
 	return cache->ed_lvert_data;
 }
 
-static ElementList *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
+static Gwn_IndexBuf *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE));
 
@@ -2431,8 +2431,8 @@ static ElementList *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, M
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
 		const int edge_len = mesh_render_data_edges_len_get(rdata);
 
-		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_LINES, edge_len, vert_len);
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_LINES, edge_len, vert_len);
 
 		BLI_assert(rdata->types & MR_DATATYPE_EDGE);
 
@@ -2442,23 +2442,23 @@ static ElementList *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, M
 			BMEdge *eed;
 			BM_ITER_MESH(eed, &eiter, bm, BM_EDGES_OF_MESH) {
 				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-					add_line_vertices(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
+					GWN_indexbuf_add_line_verts(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
 				}
 			}
 		}
 		else {
 			const MEdge *ed = rdata->medge;
 			for (int i = 0; i < edge_len; i++, ed++) {
-				add_line_vertices(&elb, ed->v1, ed->v2);
+				GWN_indexbuf_add_line_verts(&elb, ed->v1, ed->v2);
 			}
 		}
-		cache->edges_in_order = ElementList_build(&elb);
+		cache->edges_in_order = GWN_indexbuf_build(&elb);
 	}
 
 	return cache->edges_in_order;
 }
 
-static ElementList *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
+static Gwn_IndexBuf *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
 
@@ -2466,15 +2466,15 @@ static ElementList *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdat
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_TRIANGLES, tri_len, vert_len);
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tri_len, vert_len);
 
 		if (rdata->edit_bmesh) {
 			for (int i = 0; i < tri_len; ++i) {
 				const BMLoop **ltri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
 				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						add_generic_vertex(&elb, BM_elem_index_get(ltri[tri_corner]->v));
+						GWN_indexbuf_add_generic_vert(&elb, BM_elem_index_get(ltri[tri_corner]->v));
 					}
 				}
 			}
@@ -2483,17 +2483,17 @@ static ElementList *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdat
 			for (int i = 0; i < tri_len; ++i) {
 				const MLoopTri *mlt = &rdata->mlooptri[i];
 				for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-					add_generic_vertex(&elb, mlt->tri[tri_corner]);
+					GWN_indexbuf_add_generic_vert(&elb, mlt->tri[tri_corner]);
 				}
 			}
 		}
-		cache->triangles_in_order = ElementList_build(&elb);
+		cache->triangles_in_order = GWN_indexbuf_build(&elb);
 	}
 
 	return cache->triangles_in_order;
 }
 
-static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
+static Gwn_IndexBuf **mesh_batch_cache_get_triangles_in_order_split_by_material(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_POLY));
@@ -2505,7 +2505,7 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 
 		int *mat_tri_len = MEM_callocN(sizeof(*mat_tri_len) * mat_len, __func__);
 		cache->shaded_triangles_in_order = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_len, __func__);
-		ElementListBuilder *elb = MEM_callocN(sizeof(*elb) * mat_len, __func__);
+		Gwn_IndexBufBuilder *elb = MEM_callocN(sizeof(*elb) * mat_len, __func__);
 
 		/* Note that polygons (not triangles) are used here.
 		 * This OK because result is _guaranteed_ to be the same. */
@@ -2531,7 +2531,7 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 
 		/* Init ELBs. */
 		for (int i = 0; i < mat_len; ++i) {
-			ElementListBuilder_init(&elb[i], PRIM_TRIANGLES, mat_tri_len[i], tri_len * 3);
+			GWN_indexbuf_init(&elb[i], GWN_PRIM_TRIS, mat_tri_len[i], tri_len * 3);
 		}
 
 		/* Populate ELBs. */
@@ -2545,7 +2545,7 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 					const short ma_id = efa->mat_nr < mat_len ? efa->mat_nr : 0;
 					for (int j = 2; j < efa->len; j++) {
-						add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
+						GWN_indexbuf_add_tri_verts(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
 						nidx += 3;
 					}
 				}
@@ -2556,7 +2556,7 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 				const MPoly *mp = &rdata->mpoly[i]; ;
 				const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
 				for (int j = 2; j < mp->totloop; j++) {
-					add_triangle_vertices(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
+					GWN_indexbuf_add_tri_verts(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
 					nidx += 3;
 				}
 			}
@@ -2564,7 +2564,7 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 
 		/* Build ELBs. */
 		for (int i = 0; i < mat_len; ++i) {
-			cache->shaded_triangles_in_order[i] = ElementList_build(&elb[i]);
+			cache->shaded_triangles_in_order[i] = GWN_indexbuf_build(&elb[i]);
 		}
 
 		MEM_freeN(mat_tri_len);
@@ -2574,7 +2574,7 @@ static ElementList **mesh_batch_cache_get_triangles_in_order_split_by_material(
 	return cache->shaded_triangles_in_order;
 }
 
-static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
+static Gwn_VertBuf *mesh_batch_cache_get_edge_pos_with_sel(
         MeshRenderData *rdata, MeshBatchCache *cache, bool use_wire, bool use_select_bool)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_POLY | MR_DATATYPE_LOOP));
@@ -2583,20 +2583,20 @@ static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
 	if (!cache->edge_pos_with_select_bool) {
 		unsigned int vidx = 0, cidx = 0;
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, sel; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.sel = VertexFormat_add_attrib(&format, "select", COMP_U8, 1, KEEP_INT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.sel = GWN_vertformat_attr_add(&format, "select", GWN_COMP_U8, 1, GWN_FETCH_INT);
 		}
 
 		const int edge_len = mesh_render_data_edges_len_get(rdata);
 
-		VertexBuffer *vbo = cache->edge_pos_with_select_bool = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = cache->edge_pos_with_select_bool = GWN_vertbuf_create_with_format(&format);
 
 		const int vbo_len_capacity = edge_len * 2;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		if (use_select_bool) {
 			mesh_render_data_ensure_edge_select_bool(rdata, use_wire);
@@ -2617,23 +2617,23 @@ static VertexBuffer *mesh_batch_cache_get_edge_pos_with_sel(
 				continue;
 			}
 
-			VertexBuffer_set_attrib(vbo, attr_id.sel, cidx++, &edge_vert_sel);
-			VertexBuffer_set_attrib(vbo, attr_id.sel, cidx++, &edge_vert_sel);
+			GWN_vertbuf_attr_set(vbo, attr_id.sel, cidx++, &edge_vert_sel);
+			GWN_vertbuf_attr_set(vbo, attr_id.sel, cidx++, &edge_vert_sel);
 
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, rdata->mvert[ed->v1].co);
-			VertexBuffer_set_attrib(vbo, attr_id.pos, vidx++, rdata->mvert[ed->v2].co);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, vidx++, rdata->mvert[ed->v1].co);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, vidx++, rdata->mvert[ed->v2].co);
 		}
 		vbo_len_used = vidx;
 
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 	}
 
 	return cache->edge_pos_with_select_bool;
 }
 
-static ElementList *mesh_batch_cache_get_tri_overlay_weight_faces(
+static Gwn_IndexBuf *mesh_batch_cache_get_tri_overlay_weight_faces(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
@@ -2642,18 +2642,18 @@ static ElementList *mesh_batch_cache_get_tri_overlay_weight_faces(
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
-		ElementListBuilder elb;
-		ElementListBuilder_init(&elb, PRIM_TRIANGLES, tri_len, vert_len);
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tri_len, vert_len);
 
 		for (int i = 0; i < tri_len; ++i) {
 			const MLoopTri *mlt = &rdata->mlooptri[i];
 			if (!(rdata->mpoly[mlt->poly].flag & (ME_FACE_SEL | ME_HIDE))) {
 				for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-					add_generic_vertex(&elb, rdata->mloop[mlt->tri[tri_corner]].v);
+					GWN_indexbuf_add_generic_vert(&elb, rdata->mloop[mlt->tri[tri_corner]].v);
 				}
 			}
 		}
-		cache->overlay_triangles_vpaint = ElementList_build(&elb);
+		cache->overlay_triangles_vpaint = GWN_indexbuf_build(&elb);
 	}
 
 	return cache->overlay_triangles_vpaint;
@@ -2662,7 +2662,7 @@ static ElementList *mesh_batch_cache_get_tri_overlay_weight_faces(
 /**
  * Non-edit mode vertices (only used for weight-paint mode).
  */
-static VertexBuffer *mesh_batch_cache_get_vert_pos_with_overlay_data(
+static Gwn_VertBuf *mesh_batch_cache_get_vert_pos_with_overlay_data(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT));
@@ -2671,29 +2671,29 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_overlay_data(
 	if (cache->pos_with_select_bool == NULL) {
 		unsigned int cidx = 0;
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint data; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.data = VertexFormat_add_attrib(&format, "data", COMP_I8, 1, KEEP_INT);
+			attr_id.data = GWN_vertformat_attr_add(&format, "data", GWN_COMP_I8, 1, GWN_FETCH_INT);
 		}
 
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
 
-		VertexBuffer *vbo = cache->pos_with_select_bool = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = cache->pos_with_select_bool = GWN_vertbuf_create_with_format(&format);
 
 		const int vbo_len_capacity = vert_len;
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 		for (int i = 0; i < vert_len; i++) {
 			const MVert *mv = &rdata->mvert[i];
 			const char data = mv->flag & (SELECT | ME_HIDE);
-			VertexBuffer_set_attrib(vbo, attr_id.data, cidx++, &data);
+			GWN_vertbuf_attr_set(vbo, attr_id.data, cidx++, &data);
 		}
 		vbo_len_used = cidx;
 
 		if (vbo_len_capacity != vbo_len_used) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 	}
 
@@ -2708,7 +2708,7 @@ static VertexBuffer *mesh_batch_cache_get_vert_pos_with_overlay_data(
 /** \name Public API
  * \{ */
 
-Batch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2717,8 +2717,8 @@ Batch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_EDGE;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->all_edges = Batch_create(
-		         PRIM_LINES, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
+		cache->all_edges = GWN_batch_create(
+		         GWN_PRIM_LINES, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
 		         mesh_batch_cache_get_edges_in_order(rdata, cache));
 
 		mesh_render_data_free(rdata);
@@ -2727,7 +2727,7 @@ Batch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 	return cache->all_edges;
 }
 
-Batch *DRW_mesh_batch_cache_get_all_triangles(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_all_triangles(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2736,8 +2736,8 @@ Batch *DRW_mesh_batch_cache_get_all_triangles(Mesh *me)
 		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->all_triangles = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
+		cache->all_triangles = GWN_batch_create(
+		        GWN_PRIM_TRIS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
 		        mesh_batch_cache_get_triangles_in_order(rdata, cache));
 
 		mesh_render_data_free(rdata);
@@ -2746,7 +2746,7 @@ Batch *DRW_mesh_batch_cache_get_all_triangles(Mesh *me)
 	return cache->all_triangles;
 }
 
-Batch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2754,8 +2754,8 @@ Batch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->triangles_with_normals = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_tri_pos_and_normals(rdata, cache), NULL);
+		cache->triangles_with_normals = GWN_batch_create(
+		        GWN_PRIM_TRIS, mesh_batch_cache_get_tri_pos_and_normals(rdata, cache), NULL);
 
 		mesh_render_data_free(rdata);
 	}
@@ -2763,7 +2763,7 @@ Batch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 	return cache->triangles_with_normals;
 }
 
-Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, int defgroup)
+Gwn_Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, int defgroup)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2773,14 +2773,14 @@ Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, int
 		        MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_DVERT;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->triangles_with_weights = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_tri_weights(rdata, cache, use_hide, defgroup), NULL);
+		cache->triangles_with_weights = GWN_batch_create(
+		        GWN_PRIM_TRIS, mesh_batch_cache_get_tri_weights(rdata, cache, use_hide, defgroup), NULL);
 
-		VertexBuffer *vbo_tris = use_hide ?
+		Gwn_VertBuf *vbo_tris = use_hide ?
 		        mesh_batch_cache_get_tri_pos_and_normals_visible_only(rdata, cache) :
 		        mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
 
-		Batch_add_VertexBuffer(cache->triangles_with_weights, vbo_tris);
+		GWN_batch_vertbuf_add(cache->triangles_with_weights, vbo_tris);
 
 		mesh_render_data_free(rdata);
 	}
@@ -2788,7 +2788,7 @@ Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, int
 	return cache->triangles_with_weights;
 }
 
-Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2798,13 +2798,13 @@ Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(Mesh *me)
 		        MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPCOL;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->triangles_with_vert_colors = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_tri_vert_colors(rdata, cache, use_hide), NULL);
+		cache->triangles_with_vert_colors = GWN_batch_create(
+		        GWN_PRIM_TRIS, mesh_batch_cache_get_tri_vert_colors(rdata, cache, use_hide), NULL);
 
-		VertexBuffer *vbo_tris = use_hide ?
+		Gwn_VertBuf *vbo_tris = use_hide ?
 		        mesh_batch_cache_get_tri_pos_and_normals_visible_only(rdata, cache) :
 		        mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
-		Batch_add_VertexBuffer(cache->triangles_with_vert_colors, vbo_tris);
+		GWN_batch_vertbuf_add(cache->triangles_with_vert_colors, vbo_tris);
 
 		mesh_render_data_free(rdata);
 	}
@@ -2813,7 +2813,7 @@ Batch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(Mesh *me)
 }
 
 
-struct Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide)
+struct Gwn_Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2822,13 +2822,13 @@ struct Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me,
 		        MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->triangles_with_select_id = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_tri_select_id(rdata, cache, use_hide), NULL);
+		cache->triangles_with_select_id = GWN_batch_create(
+		        GWN_PRIM_TRIS, mesh_batch_cache_get_tri_select_id(rdata, cache, use_hide), NULL);
 
-		VertexBuffer *vbo_tris = use_hide ?
+		Gwn_VertBuf *vbo_tris = use_hide ?
 		        mesh_batch_cache_get_tri_pos_and_normals_visible_only(rdata, cache) :
 		        mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
-		Batch_add_VertexBuffer(cache->triangles_with_select_id, vbo_tris);
+		GWN_batch_vertbuf_add(cache->triangles_with_select_id, vbo_tris);
 
 		mesh_render_data_free(rdata);
 	}
@@ -2836,7 +2836,7 @@ struct Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me,
 	return cache->triangles_with_select_id;
 }
 
-Batch *DRW_mesh_batch_cache_get_points_with_normals(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_points_with_normals(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2844,8 +2844,8 @@ Batch *DRW_mesh_batch_cache_get_points_with_normals(Mesh *me)
 		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->points_with_normals = Batch_create(
-		        PRIM_POINTS, mesh_batch_cache_get_tri_pos_and_normals(rdata, cache), NULL);
+		cache->points_with_normals = GWN_batch_create(
+		        GWN_PRIM_POINTS, mesh_batch_cache_get_tri_pos_and_normals(rdata, cache), NULL);
 
 		mesh_render_data_free(rdata);
 	}
@@ -2853,7 +2853,7 @@ Batch *DRW_mesh_batch_cache_get_points_with_normals(Mesh *me)
 	return cache->points_with_normals;
 }
 
-Batch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2861,8 +2861,8 @@ Batch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
 		/* create batch from DM */
 		MeshRenderData *rdata = mesh_render_data_create(me, MR_DATATYPE_VERT);
 
-		cache->all_verts = Batch_create(
-		        PRIM_POINTS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache), NULL);
+		cache->all_verts = GWN_batch_create(
+		        GWN_PRIM_POINTS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache), NULL);
 
 		mesh_render_data_free(rdata);
 	}
@@ -2870,21 +2870,21 @@ Batch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
 	return cache->all_verts;
 }
 
-Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	if (cache->fancy_edges == NULL) {
 		/* create batch from DM */
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, n1, n2; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
-			attr_id.n1 = VertexFormat_add_attrib(&format, "N1", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
-			attr_id.n2 = VertexFormat_add_attrib(&format, "N2", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+			attr_id.n1 = GWN_vertformat_attr_add(&format, "N1", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+			attr_id.n2 = GWN_vertformat_attr_add(&format, "N2", GWN_COMP_I10, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		}
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 
 		MeshRenderData *rdata = mesh_render_data_create(
 		        me, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
@@ -2893,7 +2893,7 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 
 		const int vbo_len_capacity = edge_len * 2; /* these are PRIM_LINE verts, not mesh verts */
 		int vbo_len_used = 0;
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 		for (int i = 0; i < edge_len; ++i) {
 			float *vcos1, *vcos2;
 			float *pnor1 = NULL, *pnor2 = NULL;
@@ -2912,22 +2912,22 @@ Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 				const PackedNormal *n1 = &n1value;
 				const PackedNormal *n2 = &n2value;
 
-				VertexBuffer_set_attrib(vbo, attr_id.pos, 2 * i, vcos1);
-				VertexBuffer_set_attrib(vbo, attr_id.n1, 2 * i, n1);
-				VertexBuffer_set_attrib(vbo, attr_id.n2, 2 * i, n2);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, 2 * i, vcos1);
+				GWN_vertbuf_attr_set(vbo, attr_id.n1, 2 * i, n1);
+				GWN_vertbuf_attr_set(vbo, attr_id.n2, 2 * i, n2);
 
-				VertexBuffer_set_attrib(vbo, attr_id.pos, 2 * i + 1, vcos2);
-				VertexBuffer_set_attrib(vbo, attr_id.n1, 2 * i + 1, n1);
-				VertexBuffer_set_attrib(vbo, attr_id.n2, 2 * i + 1, n2);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, 2 * i + 1, vcos2);
+				GWN_vertbuf_attr_set(vbo, attr_id.n1, 2 * i + 1, n1);
+				GWN_vertbuf_attr_set(vbo, attr_id.n2, 2 * i + 1, n2);
 
 				vbo_len_used += 2;
 			}
 		}
 		if (vbo_len_used != vbo_len_capacity) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 
-		cache->fancy_edges = Batch_create(PRIM_LINES, vbo, NULL);
+		cache->fancy_edges = GWN_batch_create(GWN_PRIM_LINES, vbo, NULL);
 
 		mesh_render_data_free(rdata);
 	}
@@ -2948,42 +2948,42 @@ static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 	MeshRenderData *rdata = mesh_render_data_create(me, options);
 
 	if (cache->overlay_triangles == NULL) {
-		cache->overlay_triangles = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
-		Batch_add_VertexBuffer(cache->overlay_triangles, mesh_batch_cache_get_edit_tri_nor(rdata, cache));
-		Batch_add_VertexBuffer(cache->overlay_triangles, mesh_batch_cache_get_edit_tri_data(rdata, cache));
+		cache->overlay_triangles = GWN_batch_create(
+		        GWN_PRIM_TRIS, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
+		GWN_batch_vertbuf_add(cache->overlay_triangles, mesh_batch_cache_get_edit_tri_nor(rdata, cache));
+		GWN_batch_vertbuf_add(cache->overlay_triangles, mesh_batch_cache_get_edit_tri_data(rdata, cache));
 	}
 
 	if (cache->overlay_loose_edges == NULL) {
-		cache->overlay_loose_edges = Batch_create(
-		        PRIM_LINES, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
-		Batch_add_VertexBuffer(cache->overlay_loose_edges, mesh_batch_cache_get_edit_ledge_nor(rdata, cache));
-		Batch_add_VertexBuffer(cache->overlay_loose_edges, mesh_batch_cache_get_edit_ledge_data(rdata, cache));
+		cache->overlay_loose_edges = GWN_batch_create(
+		        GWN_PRIM_LINES, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
+		GWN_batch_vertbuf_add(cache->overlay_loose_edges, mesh_batch_cache_get_edit_ledge_nor(rdata, cache));
+		GWN_batch_vertbuf_add(cache->overlay_loose_edges, mesh_batch_cache_get_edit_ledge_data(rdata, cache));
 	}
 
 	if (cache->overlay_loose_verts == NULL) {
-		cache->overlay_loose_verts = Batch_create(
-		        PRIM_POINTS, mesh_batch_cache_get_edit_lvert_pos(rdata, cache), NULL);
-		Batch_add_VertexBuffer(cache->overlay_loose_verts, mesh_batch_cache_get_edit_lvert_nor(rdata, cache));
-		Batch_add_VertexBuffer(cache->overlay_loose_verts, mesh_batch_cache_get_edit_lvert_data(rdata, cache));
+		cache->overlay_loose_verts = GWN_batch_create(
+		        GWN_PRIM_POINTS, mesh_batch_cache_get_edit_lvert_pos(rdata, cache), NULL);
+		GWN_batch_vertbuf_add(cache->overlay_loose_verts, mesh_batch_cache_get_edit_lvert_nor(rdata, cache));
+		GWN_batch_vertbuf_add(cache->overlay_loose_verts, mesh_batch_cache_get_edit_lvert_data(rdata, cache));
 	}
 
 	if (cache->overlay_triangles_nor == NULL) {
-		cache->overlay_triangles_nor = Batch_create(
-		        PRIM_POINTS, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
-		Batch_add_VertexBuffer(cache->overlay_triangles_nor, mesh_batch_cache_get_edit_tri_nor(rdata, cache));
+		cache->overlay_triangles_nor = GWN_batch_create(
+		        GWN_PRIM_POINTS, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
+		GWN_batch_vertbuf_add(cache->overlay_triangles_nor, mesh_batch_cache_get_edit_tri_nor(rdata, cache));
 	}
 
 	if (cache->overlay_loose_edges_nor == NULL) {
-		cache->overlay_loose_edges_nor = Batch_create(
-		        PRIM_POINTS, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
-		Batch_add_VertexBuffer(cache->overlay_loose_edges_nor, mesh_batch_cache_get_edit_ledge_nor(rdata, cache));
+		cache->overlay_loose_edges_nor = GWN_batch_create(
+		        GWN_PRIM_POINTS, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
+		GWN_batch_vertbuf_add(cache->overlay_loose_edges_nor, mesh_batch_cache_get_edit_ledge_nor(rdata, cache));
 	}
 
 	mesh_render_data_free(rdata);
 }
 
-Batch *DRW_mesh_batch_cache_get_overlay_triangles(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_overlay_triangles(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -2994,7 +2994,7 @@ Batch *DRW_mesh_batch_cache_get_overlay_triangles(Mesh *me)
 	return cache->overlay_triangles;
 }
 
-Batch *DRW_mesh_batch_cache_get_overlay_loose_edges(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_overlay_loose_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3005,7 +3005,7 @@ Batch *DRW_mesh_batch_cache_get_overlay_loose_edges(Mesh *me)
 	return cache->overlay_loose_edges;
 }
 
-Batch *DRW_mesh_batch_cache_get_overlay_loose_verts(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_overlay_loose_verts(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3016,7 +3016,7 @@ Batch *DRW_mesh_batch_cache_get_overlay_loose_verts(Mesh *me)
 	return cache->overlay_loose_verts;
 }
 
-Batch *DRW_mesh_batch_cache_get_overlay_triangles_nor(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_overlay_triangles_nor(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3027,7 +3027,7 @@ Batch *DRW_mesh_batch_cache_get_overlay_triangles_nor(Mesh *me)
 	return cache->overlay_triangles_nor;
 }
 
-Batch *DRW_mesh_batch_cache_get_overlay_loose_edges_nor(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_overlay_loose_edges_nor(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3038,25 +3038,25 @@ Batch *DRW_mesh_batch_cache_get_overlay_loose_edges_nor(Mesh *me)
 	return cache->overlay_loose_edges_nor;
 }
 
-Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	if (cache->overlay_facedots == NULL) {
 		MeshRenderData *rdata = mesh_render_data_create(me, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
 
-		static VertexFormat format = { 0 };
+		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = VertexFormat_add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			attr_id.data = VertexFormat_add_attrib(&format, "norAndFlag", COMP_I10, 4, NORMALIZE_INT_TO_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.data = GWN_vertformat_attr_add(&format, "norAndFlag", GWN_COMP_I10, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		}
 
 		const int vbo_len_capacity = mesh_render_data_polys_len_get(rdata);
 		int vidx = 0;
 
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, vbo_len_capacity);
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 		for (int i = 0; i < vbo_len_capacity; ++i) {
 			float pcenter[3], pnor[3];
 			bool selected = false;
@@ -3066,9 +3066,9 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 				PackedNormal nor = { .x = 0, .y = 0, .z = -511 };
 				nor = convert_i10_v3(pnor);
 				nor.w = selected ? 1 : 0;
-				VertexBuffer_set_attrib(vbo, attr_id.data, vidx, &nor);
+				GWN_vertbuf_attr_set(vbo, attr_id.data, vidx, &nor);
 
-				VertexBuffer_set_attrib(vbo, attr_id.pos, vidx, pcenter);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, vidx, pcenter);
 
 				vidx += 1;
 
@@ -3076,10 +3076,10 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 		}
 		const int vbo_len_used = vidx;
 		if (vbo_len_used != vbo_len_capacity) {
-			VertexBuffer_resize_data(vbo, vbo_len_used);
+			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 
-		cache->overlay_facedots = Batch_create(PRIM_POINTS, vbo, NULL);
+		cache->overlay_facedots = GWN_batch_create(GWN_PRIM_POINTS, vbo, NULL);
 
 		mesh_render_data_free(rdata);
 	}
@@ -3087,7 +3087,7 @@ Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 	return cache->overlay_facedots;
 }
 
-Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
+Gwn_Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3102,15 +3102,15 @@ Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 
 		cache->shaded_triangles = MEM_callocN(sizeof(*cache->shaded_triangles) * mat_len, __func__);
 
-		ElementList **el = mesh_batch_cache_get_triangles_in_order_split_by_material(rdata, cache);
+		Gwn_IndexBuf **el = mesh_batch_cache_get_triangles_in_order_split_by_material(rdata, cache);
 
-		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
+		Gwn_VertBuf *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
 		for (int i = 0; i < mat_len; ++i) {
-			cache->shaded_triangles[i] = Batch_create(
-			        PRIM_TRIANGLES, vbo, el[i]);
-			VertexBuffer *vbo_shading = mesh_batch_cache_get_tri_shading_data(rdata, cache);
+			cache->shaded_triangles[i] = GWN_batch_create(
+			        GWN_PRIM_TRIS, vbo, el[i]);
+			Gwn_VertBuf *vbo_shading = mesh_batch_cache_get_tri_shading_data(rdata, cache);
 			if (vbo_shading) {
-				Batch_add_VertexBuffer(cache->shaded_triangles[i], vbo_shading);
+				GWN_batch_vertbuf_add(cache->shaded_triangles[i], vbo_shading);
 			}
 		}
 
@@ -3121,7 +3121,7 @@ Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 	return cache->shaded_triangles;
 }
 
-Batch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
+Gwn_Batch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3135,15 +3135,15 @@ Batch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
 
 		cache->texpaint_triangles = MEM_callocN(sizeof(*cache->texpaint_triangles) * mat_len, __func__);
 
-		ElementList **el = mesh_batch_cache_get_triangles_in_order_split_by_material(rdata, cache);
+		Gwn_IndexBuf **el = mesh_batch_cache_get_triangles_in_order_split_by_material(rdata, cache);
 
-		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
+		Gwn_VertBuf *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
 		for (int i = 0; i < mat_len; ++i) {
-			cache->texpaint_triangles[i] = Batch_create(
-			        PRIM_TRIANGLES, vbo, el[i]);
-			VertexBuffer *vbo_uv = mesh_batch_cache_get_tri_uv_active(rdata, cache);
+			cache->texpaint_triangles[i] = GWN_batch_create(
+			        GWN_PRIM_TRIS, vbo, el[i]);
+			Gwn_VertBuf *vbo_uv = mesh_batch_cache_get_tri_uv_active(rdata, cache);
 			if (vbo_uv) {
-				Batch_add_VertexBuffer(cache->texpaint_triangles[i], vbo_uv);
+				GWN_batch_vertbuf_add(cache->texpaint_triangles[i], vbo_uv);
 			}
 		}
 		mesh_render_data_free(rdata);
@@ -3152,7 +3152,7 @@ Batch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
 	return cache->texpaint_triangles;
 }
 
-Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3162,20 +3162,20 @@ Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
 		        MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOPUV;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		VertexBuffer *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
+		Gwn_VertBuf *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
 
-		cache->texpaint_triangles_single = Batch_create(
-		        PRIM_TRIANGLES, vbo, NULL);
-		VertexBuffer *vbo_uv = mesh_batch_cache_get_tri_uv_active(rdata, cache);
+		cache->texpaint_triangles_single = GWN_batch_create(
+		        GWN_PRIM_TRIS, vbo, NULL);
+		Gwn_VertBuf *vbo_uv = mesh_batch_cache_get_tri_uv_active(rdata, cache);
 		if (vbo_uv) {
-			Batch_add_VertexBuffer(cache->texpaint_triangles_single, vbo_uv);
+			GWN_batch_vertbuf_add(cache->texpaint_triangles_single, vbo_uv);
 		}
 		mesh_render_data_free(rdata);
 	}
 	return cache->texpaint_triangles_single;
 }
 
-Batch *DRW_mesh_batch_cache_get_weight_overlay_edges(Mesh *me, bool use_wire, bool use_sel)
+Gwn_Batch *DRW_mesh_batch_cache_get_weight_overlay_edges(Mesh *me, bool use_wire, bool use_sel)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3184,8 +3184,8 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_edges(Mesh *me, bool use_wire, bo
 		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_POLY | MR_DATATYPE_LOOP;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->overlay_paint_edges = Batch_create(
-		        PRIM_LINES, mesh_batch_cache_get_edge_pos_with_sel(rdata, cache, use_wire, use_sel), NULL);
+		cache->overlay_paint_edges = GWN_batch_create(
+		        GWN_PRIM_LINES, mesh_batch_cache_get_edge_pos_with_sel(rdata, cache, use_wire, use_sel), NULL);
 
 		mesh_render_data_free(rdata);
 	}
@@ -3193,7 +3193,7 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_edges(Mesh *me, bool use_wire, bo
 	return cache->overlay_paint_edges;
 }
 
-Batch *DRW_mesh_batch_cache_get_weight_overlay_faces(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_weight_overlay_faces(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3202,8 +3202,8 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_faces(Mesh *me)
 		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI;
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
-		cache->overlay_weight_faces = Batch_create(
-		        PRIM_TRIANGLES, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
+		cache->overlay_weight_faces = GWN_batch_create(
+		        GWN_PRIM_TRIS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
 		        mesh_batch_cache_get_tri_overlay_weight_faces(rdata, cache));
 
 		mesh_render_data_free(rdata);
@@ -3212,7 +3212,7 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_faces(Mesh *me)
 	return cache->overlay_weight_faces;
 }
 
-Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3220,10 +3220,10 @@ Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
 		/* create batch from Mesh */
 		MeshRenderData *rdata = mesh_render_data_create(me, MR_DATATYPE_VERT);
 
-		cache->overlay_weight_verts = Batch_create(
-		        PRIM_POINTS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache), NULL);
+		cache->overlay_weight_verts = GWN_batch_create(
+		        GWN_PRIM_POINTS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache), NULL);
 
-		Batch_add_VertexBuffer(
+		GWN_batch_vertbuf_add(
 		        cache->overlay_weight_verts,
 		        mesh_batch_cache_get_vert_pos_with_overlay_data(rdata, cache));
 		mesh_render_data_free(rdata);

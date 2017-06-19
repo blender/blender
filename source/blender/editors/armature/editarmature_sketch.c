@@ -440,7 +440,7 @@ static float sk_clampPointSize(SK_Point *pt, float size)
 
 static void sk_drawPoint(SK_Point *pt, float size, float color[4])
 {
-	Batch *batch = NULL;
+	Gwn_Batch *batch = NULL;
 
 	gpuTranslate3fv(pt->p);
 
@@ -450,9 +450,9 @@ static void sk_drawPoint(SK_Point *pt, float size, float color[4])
 
 	batch = Batch_get_sphere(0);
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
-	Batch_Uniform4fv(batch, "color", color);
+	GWN_batch_uniform_4fv(batch, "color", color);
 
-	Batch_draw(batch);
+	GWN_batch_draw(batch);
 
 	gpuPopMatrix();
 }
@@ -462,8 +462,8 @@ static void sk_drawEdge(SK_Point *pt0, SK_Point *pt1, float size, float color[4]
 	float vec1[3], vec2[3] = { 0, 0, 1 }, axis[3];
 	float angle, length;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 	sub_v3_v3v3(vec1, pt1->p, pt0->p);
 	length = normalize_v3(vec1);
@@ -489,8 +489,8 @@ static void sk_drawNormal(SK_Point *pt, float size, float height)
 	float angle;
 	float color[3] = { 0.0f, 1.0f, 1.0f };
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
 	gpuPushMatrix();
 

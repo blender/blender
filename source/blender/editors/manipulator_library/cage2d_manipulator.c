@@ -86,12 +86,12 @@ typedef struct Cage2D {
 static void rect_transform_draw_corners(
         const rctf *r, const float offsetx, const float offsety, const float color[3])
 {
-	uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3fv(color);
 
-	immBegin(PRIM_LINES, 16);
+	immBegin(GWN_PRIM_LINES, 16);
 
 	immVertex2f(pos, r->xmin, r->ymin + offsety);
 	immVertex2f(pos, r->xmin, r->ymin);
@@ -175,14 +175,14 @@ static void rect_transform_draw_interaction(
 			return;
 	}
 
-	VertexFormat *format = immVertexFormat();
-	uint pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	uint color = VertexFormat_add_attrib(format, "color", COMP_F32, 3, KEEP_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	glLineWidth(line_width + 3.0);
 
-	immBegin(PRIM_LINE_STRIP, 3);
+	immBegin(GWN_PRIM_LINE_STRIP, 3);
 	immAttrib3f(color, 0.0f, 0.0f, 0.0f);
 	immVertex2fv(pos, verts[0]);
 	immVertex2fv(pos, verts[1]);
@@ -191,7 +191,7 @@ static void rect_transform_draw_interaction(
 
 	glLineWidth(line_width);
 
-	immBegin(PRIM_LINE_STRIP, 3);
+	immBegin(GWN_PRIM_LINE_STRIP, 3);
 	immAttrib3fv(color, col);
 	immVertex2fv(pos, verts[0]);
 	immVertex2fv(pos, verts[1]);

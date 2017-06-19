@@ -75,7 +75,7 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float matrix[4][4
 	const float len = arrow->line_len;
 	const float draw_line_ofs = (arrow->manipulator.line_width * 0.5f) / arrow->manipulator.scale;
 
-	uint pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix);
@@ -90,12 +90,12 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float matrix[4][4
 
 	immUniformColor4fv(color);
 
-	immBegin(PRIM_LINES, 2);
+	immBegin(GWN_PRIM_LINES, 2);
 	immVertex2f(pos, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, len);
 	immEnd();
 
-	immBegin(PRIM_TRIANGLES, 3);
+	immBegin(GWN_PRIM_TRIS, 3);
 	immVertex2f(pos, size_h, len);
 	immVertex2f(pos, -size_h, len);
 	immVertex2f(pos, 0.0f, len + size * 1.7f);

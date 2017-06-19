@@ -133,7 +133,7 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 	DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 	DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
 
-	struct Batch *geom = DRW_cache_fullscreen_quad_get();
+	struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 	DRW_shgroup_call_add(grp, geom, NULL);
 
 	float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
@@ -342,7 +342,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	{
 		psl->background_pass = DRW_pass_create("Background Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
 
-		struct Batch *geom = DRW_cache_fullscreen_quad_get();
+		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRWShadingGroup *grp = NULL;
 
 		const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -425,7 +425,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	} \
 } while (0)
 
-void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sldata, Object *ob, struct Batch *geom)
+void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sldata, Object *ob, struct Gwn_Batch *geom)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
@@ -445,7 +445,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 	ADD_SHGROUP_CALL(depth_clip_shgrp, ob, geom);
 
 	/* Get per-material split surface */
-	struct Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
+	struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
 	if (mat_geom) {
 		struct GPUShader *default_shader = e_data.default_lit;
 		struct DRWPass *default_pass = psl->default_pass;
@@ -522,7 +522,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 					int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
 					if (draw_as == PART_DRAW_PATH && (psys->pathcache || psys->childcache)) {
-						struct Batch *hair_geom = DRW_cache_particles_get_hair(psys);
+						struct Gwn_Batch *hair_geom = DRW_cache_particles_get_hair(psys);
 						DRWShadingGroup *shgrp = NULL;
 						Material *ma = give_current_material(ob, part->omat);
 						static float mat[4][4];

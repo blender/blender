@@ -267,7 +267,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_free(grid);
 
 	if (((sipo->flag & SIPO_NODRAWCURSOR) == 0) || (sipo->mode == SIPO_MODE_DRIVERS)) {
-		unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -281,7 +281,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 			glEnable(GL_BLEND);
 			glLineWidth(2.0);
 
-			immBegin(PRIM_LINES, 2);
+			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2f(pos, v2d->cur.xmin, y);
 			immVertex2f(pos, v2d->cur.xmax, y);
 			immEnd();
@@ -299,7 +299,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 			glEnable(GL_BLEND);
 			glLineWidth(2.0);
 
-			immBegin(PRIM_LINES, 2);
+			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2f(pos, x, v2d->cur.ymin);
 			immVertex2f(pos, x, v2d->cur.ymax);
 			immEnd();

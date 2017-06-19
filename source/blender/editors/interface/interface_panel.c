@@ -436,7 +436,7 @@ static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float
 
 	glLineWidth(2.0);
 
-	immBegin(PRIM_LINES, 4);
+	immBegin(GWN_PRIM_LINES, 4);
 
 	immVertex2f(pos, x1, y1);
 	immVertex2f(pos, x2, y2);
@@ -477,7 +477,7 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 	glEnable(GL_BLEND);
 	immUniformColor4ub(255, 255, 255, 50);
 
-	immBegin(PRIM_LINES, 4);
+	immBegin(GWN_PRIM_LINES, 4);
 
 	immVertex2f(pos, xmin, ymin);
 	immVertex2f(pos, xmax, ymax);
@@ -489,7 +489,7 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 	
 	immUniformColor4ub(0, 0, 0, 50);
 
-	immBegin(PRIM_LINES, 4);
+	immBegin(GWN_PRIM_LINES, 4);
 
 	immVertex2f(pos, xmin, ymin + 1);
 	immVertex2f(pos, xmax, ymax + 1);
@@ -591,7 +591,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	headrect.ymin = headrect.ymax;
 	headrect.ymax = headrect.ymin + floor(PNL_HEADER / block->aspect + 0.001f);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	{
@@ -606,7 +606,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			immUniformThemeColor(TH_PANEL_HEADER);
 			immRectf(pos, minx, headrect.ymin + 1, maxx, y);
 
-			immBegin(PRIM_LINES, 4);
+			immBegin(GWN_PRIM_LINES, 4);
 
 			immVertex2f(pos, minx, y);
 			immVertex2f(pos, maxx, y);
@@ -626,14 +626,14 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
-			immBegin(PRIM_LINES, 2);
+			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2f(pos, minx, y);
 			immVertex2f(pos, maxx, y);
 			immEnd();
 
 			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.25f);
 
-			immBegin(PRIM_LINES, 2);
+			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2f(pos, minx, y - 1);
 			immVertex2f(pos, maxx, y - 1);
 			immEnd();
@@ -663,7 +663,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	/* horizontal title */
 	if (is_closed_x == false) {
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
-		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		/* itemrect smaller */
 		itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
@@ -686,7 +686,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	else if (is_closed_x) {
 		/* draw vertical title */
 		ui_draw_aligned_panel_header(style, block, &headrect, 'v');
-		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_F32, 2, KEEP_FLOAT);
+		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	}
 	/* an open panel */
 	else {
@@ -1568,9 +1568,9 @@ static void ui_panel_category_draw_tab(
 	    {0.98, 0.805}};
 	int a;
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned int color = VertexFormat_add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 	/* mult */
 	for (a = 0; a < 4; a++) {
@@ -1592,7 +1592,7 @@ static void ui_panel_category_draw_tab(
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
-	immBegin(filled ? PRIM_TRIANGLE_FAN : PRIM_LINE_STRIP, vert_ct);
+	immBegin(filled ? GWN_PRIM_TRI_FAN : GWN_PRIM_LINE_STRIP, vert_ct);
 
 	immAttrib3ubv(color, col);
 
@@ -1780,7 +1780,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	/* begin drawing */
 	glEnable(GL_LINE_SMOOTH);
 
-	unsigned int pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw the background */
@@ -1839,7 +1839,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 		/* tab blackline */
 		if (!is_active) {
-			pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+			pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformColor3ubv(theme_col_tab_divider);
@@ -1869,7 +1869,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		glDisable(GL_BLEND);
 
 		/* tab blackline remaining (last tab) */
-		pos = VertexFormat_add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		if (pc_dyn->prev == NULL) {
 			immUniformColor3ubv(theme_col_tab_divider);
