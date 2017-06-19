@@ -44,9 +44,13 @@ static bNodeSocketTemplate sh_node_output_metallic_in[] = {
 	{	-1, 0, ""	}
 };
 
+static bNodeSocketTemplate sh_node_output_metallic_out[] = {
+	{	SOCK_SHADER, 0, N_("BSDF")},
+	{	-1, 0, ""	}
+};
+
 static int node_shader_gpu_output_metallic(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	GPUNodeLink *outlink;
 	static float one = 1.0f;
 
 	/* Normals */
@@ -64,10 +68,7 @@ static int node_shader_gpu_output_metallic(GPUMaterial *mat, bNode *UNUSED(node)
 		GPU_link(mat, "set_value", GPU_uniform(&one), &in[10].link);
 	}
 
-	GPU_stack_link(mat, "node_output_metallic", in, out, &outlink);
-	GPU_material_output_link(mat, outlink);
-
-	return true;
+	return GPU_stack_link(mat, "node_output_metallic", in, out);
 }
 
 
@@ -76,15 +77,12 @@ void register_node_type_sh_output_metallic(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_OUTPUT_METALLIC, "Metallic Material Output", NODE_CLASS_OUTPUT, 0);
+	sh_node_type_base(&ntype, SH_NODE_OUTPUT_METALLIC, "Metallic Material Output", NODE_CLASS_SHADER, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
-	node_type_socket_templates(&ntype, sh_node_output_metallic_in, NULL);
+	node_type_socket_templates(&ntype, sh_node_output_metallic_in, sh_node_output_metallic_out);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_output_metallic);
-
-	/* Do not allow muting output node. */
-	node_type_internal_links(&ntype, NULL);
 
 	nodeRegisterType(&ntype);
 }

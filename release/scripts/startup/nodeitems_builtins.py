@@ -219,6 +219,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeOutputMetallic", poll=object_shader_nodes_poll),
         NodeItem("ShaderNodeOutputSpecular", poll=object_shader_nodes_poll),
         NodeItem("ShaderNodeOutputMaterial", poll=object_shader_nodes_poll),
+        NodeItem("ShaderNodeOutputEeveeMaterial", poll=object_shader_nodes_poll),
         NodeItem("ShaderNodeOutputLamp", poll=object_shader_nodes_poll),
         NodeItem("ShaderNodeOutputWorld", poll=world_shader_nodes_poll),
         NodeItem("ShaderNodeOutputLineStyle", poll=line_style_shader_nodes_poll),

@@ -122,6 +122,7 @@ void register_node_type_sh_output_lamp(void);
 void register_node_type_sh_output_material(void);
 void register_node_type_sh_output_metallic(void);
 void register_node_type_sh_output_specular(void);
+void register_node_type_sh_output_eevee_material(void);
 void register_node_type_sh_output_world(void);
 void register_node_type_sh_output_linestyle(void);
 

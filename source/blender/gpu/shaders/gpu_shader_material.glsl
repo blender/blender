@@ -3893,6 +3893,12 @@ void node_output_specular(
 {
 	result = vec4(eevee_surface_lit(normal, diffuse.rgb, specular.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
 }
+
+void node_output_eevee_material(vec4 Surface, out vec4 result)
+{
+	result = Surface;
+}
+
 #endif
 
 /* ********************** matcap style render ******************** */
