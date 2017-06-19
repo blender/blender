@@ -138,7 +138,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 	SurfaceDeformModifierData *tsmd = (SurfaceDeformModifierData *)target;
 
-	*tsmd = *smd;
+	freeData(target);
+
+	modifier_copyData_generic(md, target);
 
 	if (smd->verts) {
 		tsmd->verts = MEM_dupallocN(smd->verts);
