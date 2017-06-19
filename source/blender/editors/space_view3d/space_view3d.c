@@ -878,10 +878,12 @@ static void view3d_main_region_listener(
 					}
 					ED_region_tag_redraw(ar);
 					break;
-				case ND_FRAME:
-				case ND_TRANSFORM:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
+					DEG_id_tag_update((ID *)&scene->id, DEG_TAG_COPY_ON_WRITE);
+					ATTR_FALLTHROUGH;
+				case ND_FRAME:
+				case ND_TRANSFORM:
 				case ND_OB_VISIBLE:
 				case ND_RENDER_OPTIONS:
 				case ND_MARKERS:
