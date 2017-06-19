@@ -494,8 +494,7 @@ typedef struct UserDef {
 	short gp_settings;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
-	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
-	short manipulator_flag, manipulator_scale;
+	short manipulator_flag, manipulator_size;
 	int pad3;
 	short textimeout, texcollectrate;
 	short wmdrawmethod; /* removed wmpad */
@@ -795,6 +794,11 @@ typedef enum eGP_UserdefSettings {
 	GP_PAINT_DOSMOOTH		= (1 << 0),
 	GP_PAINT_DOSIMPLIFY		= (1 << 1),
 } eGP_UserdefSettings;
+
+enum {
+	USER_MANIPULATOR_DRAW        = (1 << 0),
+	USER_MANIPULATOR_SHADED      = (1 << 1),
+};
 
 /* color picker types */
 typedef enum eColorPicker_Types {

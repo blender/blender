@@ -758,7 +758,7 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 #ifdef USE_MANIPULATOR
 	if (ret & OPERATOR_FINISHED) {
 		/* Setup manipulators */
-		if (v3d && (v3d->twtype & V3D_USE_MANIPULATOR)) {
+		if (v3d && (v3d->twtype & V3D_MANIPULATOR_DRAW)) {
 			WM_manipulator_group_add("MESH_WGT_spin");
 		}
 	}

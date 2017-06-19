@@ -63,7 +63,7 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 	/* TODO store the Batches inside the ManipulatorGeomInfo and updated it when geom changes
 	 * So we don't need to re-created and discard it every time */
 
-	const bool use_lighting = true || (!select && ((U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0));
+	const bool use_lighting = true || (!select && ((U.manipulator_flag & USER_MANIPULATOR_SHADED) != 0));
 	VertexBuffer *vbo;
 	ElementList *el;
 	Batch *batch;

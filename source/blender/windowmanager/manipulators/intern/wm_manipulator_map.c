@@ -248,7 +248,7 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 	const bool draw_multisample = (U.ogl_multisamples != USER_MULTISAMPLE_NONE);
 
 	/* TODO this will need it own shader probably? don't think it can be handled from that point though. */
-/*	const bool use_lighting = (U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0; */
+/*	const bool use_lighting = (U.manipulator_flag & V3D_MANIPULATOR_SHADED) != 0; */
 
 	/* enable multisampling */
 	if (draw_multisample) {

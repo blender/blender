@@ -199,7 +199,7 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 		ED_manipulator_arrow2d_set_line_len(axis, 0.8f);
 		WM_manipulator_set_matrix_offset_location(axis, offset);
 		WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH);
-		WM_manipulator_set_scale(axis, U.manipulator_scale);
+		WM_manipulator_set_scale(axis, U.manipulator_size);
 		WM_manipulator_set_color(axis, col);
 		WM_manipulator_set_color_highlight(axis, col_hi);
 

@@ -163,7 +163,7 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 		else {
 			const float len = 0.25f;
 			const float width = 0.06f;
-			const bool use_lighting = select == false && ((U.manipulator_flag & V3D_SHADED_MANIPULATORS) != 0);
+			const bool use_lighting = (!select && ((U.manipulator_flag & USER_MANIPULATOR_SHADED) != 0));
 
 			/* translate to line end */
 			gpuTranslate3f(0.0f, 0.0f, arrow->len);

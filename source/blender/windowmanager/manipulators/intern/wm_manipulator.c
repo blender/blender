@@ -418,19 +418,19 @@ void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 	float scale = 1.0f;
 
 	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE_3D) {
-		if (rv3d /*&& (U.manipulator_flag & V3D_DRAW_MANIPULATOR) == 0*/) { /* UserPref flag might be useful for later */
+		if (rv3d) {
 			if (mpr->type->matrix_world_get) {
 				float matrix_world[4][4];
 
 				mpr->type->matrix_world_get(mpr, matrix_world);
-				scale = ED_view3d_pixel_size(rv3d, matrix_world[3]) * (float)U.manipulator_scale;
+				scale = ED_view3d_pixel_size(rv3d, matrix_world[3]) * (float)U.manipulator_size;
 			}
 			else {
-				scale = ED_view3d_pixel_size(rv3d, mpr->matrix[3]) * (float)U.manipulator_scale;
+				scale = ED_view3d_pixel_size(rv3d, mpr->matrix[3]) * (float)U.manipulator_size;
 			}
 		}
 		else {
-			scale = U.manipulator_scale * 0.02f;
+			scale = U.manipulator_size * 0.02f;
 		}
 	}
 

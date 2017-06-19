@@ -380,11 +380,10 @@ enum {
 #define V3D_MANIP_GIMBAL		4
 #define V3D_MANIP_CUSTOM		5
 
-/* View3d->twflag */
-   /* USE = user setting, DRAW = based on selection */
-#define V3D_USE_MANIPULATOR		1
-#define V3D_DRAW_MANIPULATOR        (1 << 1)
-#define V3D_SHADED_MANIPULATORS      (1 << 2)
+/* View3d->twflag (also) */
+enum {
+	V3D_MANIPULATOR_DRAW        = (1 << 0),
+};
 
 /* BGPic->flag */
 /* may want to use 1 for select ? */

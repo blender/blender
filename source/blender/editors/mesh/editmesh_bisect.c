@@ -197,7 +197,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		/* Setup manipulators */
 		{
 			View3D *v3d = CTX_wm_view3d(C);
-			if (v3d && (v3d->twtype & V3D_USE_MANIPULATOR)) {
+			if (v3d && (v3d->twtype & V3D_MANIPULATOR_DRAW)) {
 				WM_manipulator_group_add("MESH_WGT_bisect");
 			}
 		}

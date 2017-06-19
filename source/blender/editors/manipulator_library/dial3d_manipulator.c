@@ -187,7 +187,7 @@ static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[
 static void dial_ghostarc_draw(
         const DialManipulator *dial, const float angle_ofs, const float angle_delta, const float color[4])
 {
-	const float width_inner = DIAL_WIDTH - dial->manipulator.line_width * 0.5f / U.manipulator_scale;
+	const float width_inner = DIAL_WIDTH - dial->manipulator.line_width * 0.5f / U.manipulator_size;
 
 	VertexFormat *format = immVertexFormat();
 	uint pos = VertexFormat_add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
