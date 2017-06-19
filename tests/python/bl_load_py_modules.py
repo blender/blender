@@ -211,11 +211,10 @@ def load_modules():
          [(os.sep + f + ".py")  for f in BLACKLIST])
 
     for f in source_files:
-        ok = False
         for ignore in ignore_paths:
             if ignore in f:
-                ok = True
-        if not ok:
+                break
+        else:
             raise Exception("Source file %r not loaded in test" % f)
 
     print("loaded %d modules" % len(loaded_files))
