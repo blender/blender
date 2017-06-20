@@ -2396,8 +2396,10 @@ static void ui_litem_layout_radial(uiLayout *litem)
 				/* add a little bit more here to include number */
 				bitem->but->rect.xmax += 1.5f * UI_UNIT_X;
 				/* enable drawing as pie item if supported by widget */
-				if (ui_item_is_radial_drawable(bitem))
+				if (ui_item_is_radial_drawable(bitem)) {
 					bitem->but->dt = UI_EMBOSS_RADIAL;
+					bitem->but->drawflag |= UI_BUT_ICON_LEFT;
+				}
 			}
 
 			ui_item_size(item, &itemw, &itemh);
