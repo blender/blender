@@ -301,6 +301,8 @@ static struct DRWGlobalState {
 	struct {
 		unsigned int is_select : 1;
 		unsigned int is_depth : 1;
+		unsigned int is_image_render : 1;
+		unsigned int is_scene_render : 1;
 	} options;
 
 	/* Current rendering context */
@@ -2725,7 +2727,10 @@ static void DRW_engines_enable(const Scene *scene, SceneLayer *sl, const View3D 
 {
 	const int mode = CTX_data_mode_enum_ex(scene->obedit, OBACT_NEW);
 	DRW_engines_enable_from_engine(scene);
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+
+	if ((DRW_state_is_scene_render() == false) &&
+	    (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
+	{
 		DRW_engines_enable_from_object_mode();
 		DRW_engines_enable_from_mode(mode);
 	}
@@ -2920,11 +2925,14 @@ void DRW_draw_view(const bContext *C)
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
 	DRW_draw_render_loop_ex(graph, ar, v3d, C);
 }
 
 /**
  * Used for both regular and off-screen drawing.
+ * Need to reset DST before calling this function
  */
 void DRW_draw_render_loop_ex(
         struct Depsgraph *graph,
@@ -2934,9 +2942,6 @@ void DRW_draw_render_loop_ex(
 	Scene *scene = DEG_get_scene(graph);
 	SceneLayer *sl = DEG_get_scene_layer(graph);
 	RegionView3D *rv3d = ar->regiondata;
-
-	/* Reset before using it. */
-	memset(&DST, 0x0, sizeof(DST));
 
 	DST.draw_ctx.evil_C = evil_C;
 
@@ -3028,6 +3033,8 @@ void DRW_draw_render_loop(
         struct Depsgraph *graph,
         ARegion *ar, View3D *v3d)
 {
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
 	DRW_draw_render_loop_ex(graph, ar, v3d, NULL);
 }
 
@@ -3044,9 +3051,10 @@ void DRW_draw_render_loop_offscreen(
 		rv3d->viewport = GPU_viewport_create_from_offscreen(ofs);
 	}
 
-	DST.draw_ctx.evil_C = NULL;
-
-	DRW_draw_render_loop(graph, ar, v3d);
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
+	DST.options.is_image_render = true;
+	DRW_draw_render_loop_ex(graph, ar, v3d, NULL);
 
 	/* restore */
 	{
@@ -3304,12 +3312,32 @@ bool DRW_state_is_depth(void)
 }
 
 /**
+ * Whether we are rendering for an image
+ */
+bool DRW_state_is_image_render(void)
+{
+	return DST.options.is_image_render;
+}
+
+/**
+ * Whether we are rendering only the render engine,
+ * or if we should also render the mode engines.
+ */
+bool DRW_state_is_scene_render(void)
+{
+	BLI_assert(DST.options.is_scene_render ?
+	           DST.options.is_image_render : true);
+	return DST.options.is_scene_render;
+}
+
+/**
  * Should text draw in this mode?
  */
 bool DRW_state_show_text(void)
 {
 	return (DST.options.is_select) == 0 &&
-	       (DST.options.is_depth) == 0;
+	       (DST.options.is_depth) == 0 &&
+	       (DST.options.is_scene_render) == 0;
 }
 
 /** \} */

@@ -378,6 +378,8 @@ void DRW_state_dfdy_factors_get(float dfdyfac[2]);
 bool DRW_state_is_fbo(void);
 bool DRW_state_is_select(void);
 bool DRW_state_is_depth(void);
+bool DRW_state_is_image_render(void);
+bool DRW_state_is_scene_render(void);
 bool DRW_state_show_text(void);
 
 struct DRWTextStore *DRW_state_text_cache_get(void);
