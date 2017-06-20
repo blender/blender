@@ -794,8 +794,8 @@ struct ShadeResult;
 #define SH_NODE_UVALONGSTROKE			191
 #define SH_NODE_TEX_POINTDENSITY		192
 #define SH_NODE_BSDF_PRINCIPLED         193
-#define SH_NODE_OUTPUT_METALLIC			194
-#define SH_NODE_OUTPUT_SPECULAR			195
+#define SH_NODE_EEVEE_METALLIC			194
+#define SH_NODE_EEVEE_SPECULAR			195
 #define SH_NODE_OUTPUT_EEVEE_MATERIAL	196
 
 /* custom defines options for Material node */

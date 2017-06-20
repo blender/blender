@@ -141,6 +141,20 @@ def object_shader_nodes_poll(context):
             snode.shader_type == 'OBJECT')
 
 
+def cycles_shader_nodes_poll(context):
+    return context.scene.render.engine == 'CYCLES'
+
+
+def object_cycles_shader_nodes_poll(context):
+    return (object_shader_nodes_poll(context) and
+            cycles_shader_nodes_poll(context))
+
+
+def object_eevee_shader_nodes_poll(context):
+    return (object_shader_nodes_poll(context) and
+            context.scene.render.engine == 'BLENDER_EEVEE')
+
+
 # All standard node categories currently used in nodes.
 
 shader_node_categories = [
@@ -216,36 +230,36 @@ shader_node_categories = [
         NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_OUTPUT", "Output", items=[
-        NodeItem("ShaderNodeOutputMetallic", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeOutputSpecular", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeOutputMaterial", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeOutputEeveeMaterial", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeOutputLamp", poll=object_shader_nodes_poll),
+        NodeItem("ShaderNodeOutputMaterial", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeOutputEeveeMaterial", poll=object_eevee_shader_nodes_poll),
+        NodeItem("ShaderNodeOutputLamp", poll=object_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeOutputWorld", poll=world_shader_nodes_poll),
         NodeItem("ShaderNodeOutputLineStyle", poll=line_style_shader_nodes_poll),
         NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_SHADER", "Shader", items=[
-        NodeItem("ShaderNodeMixShader"),
-        NodeItem("ShaderNodeAddShader"),
-        NodeItem("ShaderNodeBsdfDiffuse", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfPrincipled", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfGlossy", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfTransparent", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfRefraction", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfGlass", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfTranslucent", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfAnisotropic", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfVelvet", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfToon", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeSubsurfaceScattering", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeEmission", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfHair", poll=object_shader_nodes_poll),
+        NodeItem("ShaderNodeMixShader", poll=cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeAddShader", poll=cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfDiffuse", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfPrincipled", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfGlossy", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfTransparent", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfRefraction", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfGlass", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfTranslucent", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfAnisotropic", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfVelvet", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfToon", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeSubsurfaceScattering", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeEmission", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfHair", poll=object_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeBackground", poll=world_shader_nodes_poll),
-        NodeItem("ShaderNodeAmbientOcclusion", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeHoldout", poll=object_shader_nodes_poll),
-        NodeItem("ShaderNodeVolumeAbsorption"),
-        NodeItem("ShaderNodeVolumeScatter"),
+        NodeItem("ShaderNodeAmbientOcclusion", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeHoldout", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeVolumeAbsorption", poll=cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeVolumeScatter", poll=cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeEeveeMetallic", poll=object_eevee_shader_nodes_poll),
+        NodeItem("ShaderNodeEeveeSpecular", poll=object_eevee_shader_nodes_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_TEXTURE", "Texture", items=[
         NodeItem("ShaderNodeTexImage"),

@@ -3875,7 +3875,7 @@ void world_normals_get(out vec3 N)
 	N = gl_FrontFacing ? worldNormal : -worldNormal;
 }
 
-void node_output_metallic(
+void node_eevee_metallic(
         vec4 basecol, float metallic, float specular, float roughness, vec4 emissive, float transp, vec3 normal,
         float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
         float occlusion, out vec4 result)
@@ -3886,7 +3886,7 @@ void node_output_metallic(
 	result = vec4(eevee_surface_lit(normal, diffuse.rgb, f0.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
 }
 
-void node_output_specular(
+void node_eevee_specular(
         vec4 diffuse, vec4 specular, float roughness, vec4 emissive, float transp, vec3 normal,
         float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
         float occlusion, out vec4 result)

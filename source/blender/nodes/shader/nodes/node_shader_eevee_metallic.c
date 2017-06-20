@@ -29,9 +29,10 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_output_specular_in[] = {
+static bNodeSocketTemplate sh_node_eevee_metallic_in[] = {
 	{	SOCK_RGBA, 1, N_("Base Color"),				0.8f, 0.8f, 0.8f, 1.0f},
-	{	SOCK_RGBA, 1, N_("Specular"),				0.03f, 0.03f, 0.03f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Metallic"),				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Specular"),				0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_FLOAT, 1, N_("Roughness"),				0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Emissive Color"),			0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Transparency"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -43,45 +44,45 @@ static bNodeSocketTemplate sh_node_output_specular_in[] = {
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_output_specular_out[] = {
+static bNodeSocketTemplate sh_node_eevee_metallic_out[] = {
 	{	SOCK_SHADER, 0, N_("BSDF")},
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_output_specular(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_eevee_metallic(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	static float one = 1.0f;
 
 	/* Normals */
-	if (!in[5].link) {
-		GPU_link(mat, "world_normals_get", &in[5].link);
+	if (!in[6].link) {
+		GPU_link(mat, "world_normals_get", &in[6].link);
 	}
 
 	/* Clearcoat Normals */
-	if (!in[8].link) {
-		GPU_link(mat, "world_normals_get", &in[8].link);
+	if (!in[9].link) {
+		GPU_link(mat, "world_normals_get", &in[9].link);
 	}
 
 	/* Occlusion */
-	if (!in[9].link) {
-		GPU_link(mat, "set_value", GPU_uniform(&one), &in[9].link);
+	if (!in[10].link) {
+		GPU_link(mat, "set_value", GPU_uniform(&one), &in[10].link);
 	}
 
-	return GPU_stack_link(mat, "node_output_specular", in, out);
+	return GPU_stack_link(mat, "node_eevee_metallic", in, out);
 }
 
 
 /* node type definition */
-void register_node_type_sh_output_specular(void)
+void register_node_type_sh_eevee_metallic(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_OUTPUT_SPECULAR, "Specular Material Output", NODE_CLASS_SHADER, 0);
+	sh_node_type_base(&ntype, SH_NODE_EEVEE_METALLIC, "Metallic", NODE_CLASS_SHADER, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
-	node_type_socket_templates(&ntype, sh_node_output_specular_in, sh_node_output_specular_out);
+	node_type_socket_templates(&ntype, sh_node_eevee_metallic_in, sh_node_eevee_metallic_out);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_output_specular);
+	node_type_gpu(&ntype, node_shader_gpu_eevee_metallic);
 
 	nodeRegisterType(&ntype);
 }

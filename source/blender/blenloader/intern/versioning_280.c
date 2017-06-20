@@ -28,6 +28,8 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <string.h>
+
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_gpu_types.h"
@@ -47,12 +49,14 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLO_readfile.h"
 #include "readfile.h"
@@ -413,6 +417,27 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 					}
 				}
 			}
+		}
+	}
+
+	{
+		{
+			/* Eevee shader nodes renamed because of the output node system.
+			 * Note that a new output node is not being added here, because it would be overkill
+			 * to handle this case in lib_verify_nodetree. */
+			FOREACH_NODETREE(main, ntree, id) {
+				if (ntree->type == NTREE_SHADER) {
+					for (bNode *node = ntree->nodes.first; node; node = node->next) {
+						if (node->type == SH_NODE_EEVEE_METALLIC && STREQ(node->idname, "ShaderNodeOutputMetallic")) {
+							BLI_strncpy(node->idname, "ShaderNodeEeveeMetallic", sizeof(node->idname));
+						}
+
+						if (node->type == SH_NODE_EEVEE_SPECULAR && STREQ(node->idname, "ShaderNodeOutputSpecular")) {
+							BLI_strncpy(node->idname, "ShaderNodeEeveeSpecular", sizeof(node->idname));
+						}
+					}
+				}
+			} FOREACH_NODETREE_END
 		}
 	}
 }
