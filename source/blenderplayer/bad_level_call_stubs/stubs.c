@@ -363,6 +363,7 @@ struct wmManipulatorMapType *WM_manipulatormaptype_ensure(const struct wmManipul
 struct wmManipulatorMap *WM_manipulatormap_new_from_type(const struct wmManipulatorMapType_Params *wmap_params) RET_NULL
 void WM_manipulatormaptype_group_init_runtime(
         const struct Main *bmain, struct wmManipulatorMapType *mmap_type, struct wmManipulatorGroupType *wgt) RET_NONE
+const struct ListBase *WM_manipulatormap_group_list(struct wmManipulatorMap *mmap) RET_NULL
 
 #ifdef WITH_INPUT_NDOF
     void WM_ndof_deadzone_set(float deadzone) RET_NONE
