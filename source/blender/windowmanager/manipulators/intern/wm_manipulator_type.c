@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -82,11 +83,19 @@ void WM_manipulatortype_iter(GHashIterator *ghi)
 static wmManipulatorType *wm_manipulatortype_append__begin(void)
 {
 	wmManipulatorType *wt = MEM_callocN(sizeof(wmManipulatorType), "manipulatortype");
+	wt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_ManipulatorProperties);
+#if 0
+	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
+	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+	ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
+#endif
 	return wt;
 }
 static void wm_manipulatortype_append__end(wmManipulatorType *wt)
 {
 	BLI_assert(wt->struct_size >= sizeof(wmManipulator));
+
+	RNA_def_struct_identifier(wt->srna, wt->idname);
 
 	BLI_ghash_insert(global_manipulatortype_hash, (void *)wt->idname, wt);
 }

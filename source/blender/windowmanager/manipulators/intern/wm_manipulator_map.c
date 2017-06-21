@@ -88,7 +88,8 @@ enum eManipulatorMapUpdateFlags {
 /**
  * Creates a manipulator-map with all registered manipulators for that type
  */
-wmManipulatorMap *WM_manipulatormap_new_from_type(const struct wmManipulatorMapType_Params *mmap_params)
+wmManipulatorMap *WM_manipulatormap_new_from_type(
+        const struct wmManipulatorMapType_Params *mmap_params)
 {
 	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(mmap_params);
 	wmManipulatorMap *mmap;
@@ -127,6 +128,11 @@ void wm_manipulatormap_remove(wmManipulatorMap *mmap)
 	wm_manipulatormap_selected_clear(mmap);
 
 	MEM_freeN(mmap);
+}
+
+const ListBase *WM_manipulatormap_group_list(wmManipulatorMap *mmap)
+{
+	return &mmap->groups;
 }
 
 /**

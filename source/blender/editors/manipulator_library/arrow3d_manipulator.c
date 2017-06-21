@@ -59,6 +59,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -70,22 +71,9 @@
 /* to use custom arrows exported to geom_arrow_manipulator.c */
 //#define USE_MANIPULATOR_CUSTOM_ARROWS
 
-/* ArrowManipulator->flag */
-enum {
-	ARROW_UP_VECTOR_SET    = (1 << 0),
-	ARROW_CUSTOM_RANGE_SET = (1 << 1),
-};
-
 typedef struct ArrowManipulator3D {
 	wmManipulator manipulator;
-
 	ManipulatorCommonData data;
-
-	int style;
-	int flag;
-
-	float len;          /* arrow line length */
-	float aspect[2];    /* cone style only */
 } ArrowManipulator3D;
 
 
@@ -103,10 +91,11 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 {
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	bool unbind_shader = true;
+	const int draw_style = RNA_enum_get(arrow->manipulator.ptr, "draw_style");
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-	if (arrow->style & ED_MANIPULATOR_ARROW_STYLE_CROSS) {
+	if (draw_style == ED_MANIPULATOR_ARROW_STYLE_CROSS) {
 		immUniformColor4fv(color);
 
 		immBegin(GWN_PRIM_LINES, 4);
@@ -116,9 +105,11 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 		immVertex3f(pos,  0.0f,  1.0f, 0.0f);
 		immEnd();
 	}
-	else if (arrow->style & ED_MANIPULATOR_ARROW_STYLE_CONE) {
-		const float unitx = arrow->aspect[0];
-		const float unity = arrow->aspect[1];
+	else if (draw_style == ED_MANIPULATOR_ARROW_STYLE_CONE) {
+		float aspect[2];
+		RNA_float_get_array(arrow->manipulator.ptr, "aspect", aspect);
+		const float unitx = aspect[0];
+		const float unity = aspect[1];
 		const float vec[4][3] = {
 			{-unitx, -unity, 0},
 			{ unitx, -unity, 0},
@@ -133,10 +124,11 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 #ifdef USE_MANIPULATOR_CUSTOM_ARROWS
 		wm_manipulator_geometryinfo_draw(&wm_manipulator_geom_data_arrow, select, color);
 #else
+		const float arrow_length = RNA_float_get(arrow->manipulator.ptr, "length");
 
 		const float vec[2][3] = {
 			{0.0f, 0.0f, 0.0f},
-			{0.0f, 0.0f, arrow->len},
+			{0.0f, 0.0f, RNA_float_get(arrow->manipulator.ptr, "length")},
 		};
 
 		glLineWidth(arrow->manipulator.line_width);
@@ -147,11 +139,11 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 
 		gpuPushMatrix();
 
-		if (arrow->style & ED_MANIPULATOR_ARROW_STYLE_BOX) {
+		if (draw_style == ED_MANIPULATOR_ARROW_STYLE_BOX) {
 			const float size = 0.05f;
 
 			/* translate to line end with some extra offset so box starts exactly where line ends */
-			gpuTranslate3f(0.0f, 0.0f, arrow->len + size);
+			gpuTranslate3f(0.0f, 0.0f, arrow_length + size);
 			/* scale down to box size */
 			gpuScale3f(size, size, size);
 
@@ -161,12 +153,14 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 			wm_manipulator_geometryinfo_draw(&wm_manipulator_geom_data_cube, select, color);
 		}
 		else {
+			BLI_assert(draw_style == ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+
 			const float len = 0.25f;
 			const float width = 0.06f;
 			const bool use_lighting = (!select && ((U.manipulator_flag & USER_MANIPULATOR_SHADED) != 0));
 
 			/* translate to line end */
-			gpuTranslate3f(0.0f, 0.0f, arrow->len);
+			gpuTranslate3f(0.0f, 0.0f, arrow_length);
 
 			if (use_lighting) {
 				immUnbindProgram();
@@ -337,9 +331,10 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 
 	/* set the property for the operator and call its modal function */
 	if (WM_manipulator_property_is_valid(mpr_prop)) {
-		const bool constrained = arrow->style & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED;
-		const bool inverted = arrow->style & ED_MANIPULATOR_ARROW_STYLE_INVERTED;
-		const bool use_precision = flag & WM_MANIPULATOR_TWEAK_PRECISE;
+		const int draw_options = RNA_enum_get(arrow->manipulator.ptr, "draw_options");
+		const bool constrained = (draw_options & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED) != 0;
+		const bool inverted = (draw_options & ED_MANIPULATOR_ARROW_STYLE_INVERTED) != 0;
+		const bool use_precision = (flag & WM_MANIPULATOR_TWEAK_PRECISE) != 0;
 		float value = manipulator_value_from_offset(data, inter, ofs_new, constrained, inverted, use_precision);
 
 		WM_manipulator_property_value_set(C, mpr, mpr_prop, value);
@@ -363,8 +358,6 @@ static void manipulator_arrow_setup(wmManipulator *mpr)
 
 	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 
-	arrow->style = -1;
-	arrow->len = 1.0f;
 	arrow->data.range_fac = 1.0f;
 }
 
@@ -395,10 +388,10 @@ static void manipulator_arrow_invoke(
 static void manipulator_arrow_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-	manipulator_property_data_update(
-	        mpr, &arrow->data, mpr_prop,
-	        (arrow->style & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED) != 0,
-	        (arrow->style & ED_MANIPULATOR_ARROW_STYLE_INVERTED) != 0);
+	const int draw_options = RNA_enum_get(arrow->manipulator.ptr, "draw_options");
+	const bool constrained = (draw_options & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED) != 0;
+	const bool inverted = (draw_options & ED_MANIPULATOR_ARROW_STYLE_INVERTED) != 0;
+	manipulator_property_data_update(mpr, &arrow->data, mpr_prop, constrained, inverted);
 }
 
 static void manipulator_arrow_exit(bContext *C, wmManipulator *mpr, const bool cancel)
@@ -420,27 +413,6 @@ static void manipulator_arrow_exit(bContext *C, wmManipulator *mpr, const bool c
 /** \name Arrow Manipulator API
  *
  * \{ */
-
-void ED_manipulator_arrow3d_set_style(struct wmManipulator *mpr, int style)
-{
-	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-
-	/* inverted only makes sense in a constrained arrow */
-	if (style & ED_MANIPULATOR_ARROW_STYLE_INVERTED) {
-		style |= ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED;
-	}
-
-	arrow->style = style;
-}
-
-/**
- * Define a custom arrow line length
- */
-void ED_manipulator_arrow3d_set_line_len(wmManipulator *mpr, const float len)
-{
-	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-	arrow->len = len;
-}
 
 /**
  * Define a custom property UI range
@@ -474,16 +446,6 @@ void ED_manipulator_arrow3d_set_range_fac(wmManipulator *mpr, const float range_
 	arrow->data.range_fac = range_fac;
 }
 
-/**
- * Define xy-aspect for arrow cone
- */
-void ED_manipulator_arrow3d_cone_set_aspect(wmManipulator *mpr, const float aspect[2])
-{
-	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-
-	copy_v2_v2(arrow->aspect, aspect);
-}
-
 static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 {
 	/* identifiers */
@@ -500,6 +462,28 @@ static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 	wt->exit = manipulator_arrow_exit;
 
 	wt->struct_size = sizeof(ArrowManipulator3D);
+
+	/* rna */
+	static EnumPropertyItem rna_enum_draw_style[] = {
+		{ED_MANIPULATOR_ARROW_STYLE_NORMAL, "NORMAL", 0, "Normal", ""},
+		{ED_MANIPULATOR_ARROW_STYLE_CROSS, "CROSS", 0, "Cross", ""},
+		{ED_MANIPULATOR_ARROW_STYLE_BOX, "BOX", 0, "Box", ""},
+		{ED_MANIPULATOR_ARROW_STYLE_CONE, "CONE", 0, "Cone", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	static EnumPropertyItem rna_enum_draw_options[] = {
+		{ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP, "CLIP", 0, "Clipped", ""},
+		{ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
+		{ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_MIRROR, "ANGLE_MIRROR", 0, "Angle Mirror", ""},
+		{ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_START_Y, "ANGLE_START_Y", 0, "Angle Start Y", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_ARROW_STYLE_NORMAL, "Draw Style", "");
+	RNA_def_enum_flag(wt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
+
+	RNA_def_float(wt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
+	RNA_def_float_vector(wt->srna, "aspect", 2, NULL, 0, FLT_MAX, "Aspect", "Cone/box style only", 0.0f, FLT_MAX);
 }
 
 void ED_manipulatortypes_arrow_3d(void)

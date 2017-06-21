@@ -43,6 +43,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -50,12 +53,6 @@
 
 /* own includes */
 #include "manipulator_library_intern.h"
-
-typedef struct PrimitiveManipulator {
-	wmManipulator manipulator;
-	int style;
-} PrimitiveManipulator;
-
 
 static float verts_plane[4][3] = {
 	{-1, -1, 0},
@@ -68,12 +65,12 @@ static float verts_plane[4][3] = {
 /* -------------------------------------------------------------------- */
 
 static void manipulator_primitive_draw_geom(
-        const float col_inner[4], const float col_outer[4], const int style)
+        const float col_inner[4], const float col_outer[4], const int draw_style)
 {
 	float (*verts)[3];
 	uint vert_count = 0;
 
-	if (style == ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE) {
+	if (draw_style == ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE) {
 		verts = verts_plane;
 		vert_count = ARRAY_SIZE(verts_plane);
 	}
@@ -88,33 +85,32 @@ static void manipulator_primitive_draw_geom(
 }
 
 static void manipulator_primitive_draw_intern(
-        PrimitiveManipulator *prim, const bool UNUSED(select),
+        wmManipulator *mpr, const bool UNUSED(select),
         const bool highlight)
 {
 	float col_inner[4], col_outer[4];
 	float mat[4][4];
+	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
 
-	BLI_assert(prim->style != -1);
-
-	manipulator_color_get(&prim->manipulator, highlight, col_outer);
+	manipulator_color_get(mpr, highlight, col_outer);
 	copy_v4_v4(col_inner, col_outer);
 	col_inner[3] *= 0.5f;
 
-	copy_m4_m4(mat, prim->manipulator.matrix);
-	mul_mat3_m4_fl(mat, prim->manipulator.scale);
+	copy_m4_m4(mat, mpr->matrix);
+	mul_mat3_m4_fl(mat, mpr->scale);
 
 	gpuPushMatrix();
 	gpuMultMatrix(mat);
 
 	glEnable(GL_BLEND);
-	gpuMultMatrix(prim->manipulator.matrix_offset);
-	manipulator_primitive_draw_geom(col_inner, col_outer, prim->style);
+	gpuMultMatrix(mpr->matrix_offset);
+	manipulator_primitive_draw_geom(col_inner, col_outer, draw_style);
 	glDisable(GL_BLEND);
 
 	gpuPopMatrix();
 
-	if (prim->manipulator.interaction_data) {
-		ManipulatorInteraction *inter = prim->manipulator.interaction_data;
+	if (mpr->interaction_data) {
+		ManipulatorInteraction *inter = mpr->interaction_data;
 
 		copy_v4_fl(col_inner, 0.5f);
 		copy_v3_fl(col_outer, 0.5f);
@@ -127,8 +123,8 @@ static void manipulator_primitive_draw_intern(
 		gpuMultMatrix(mat);
 
 		glEnable(GL_BLEND);
-		gpuMultMatrix(prim->manipulator.matrix_offset);
-		manipulator_primitive_draw_geom(col_inner, col_outer, prim->style);
+		gpuMultMatrix(mpr->matrix_offset);
+		manipulator_primitive_draw_geom(col_inner, col_outer, draw_style);
 		glDisable(GL_BLEND);
 
 		gpuPopMatrix();
@@ -140,22 +136,19 @@ static void manipulator_primitive_draw_select(
         int selectionbase)
 {
 	GPU_select_load_id(selectionbase);
-	manipulator_primitive_draw_intern((PrimitiveManipulator *)mpr, true, false);
+	manipulator_primitive_draw_intern(mpr, true, false);
 }
 
 static void manipulator_primitive_draw(const bContext *UNUSED(C), wmManipulator *mpr)
 {
 	manipulator_primitive_draw_intern(
-	            (PrimitiveManipulator *)mpr, false,
-	            (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT));
+	        mpr, false,
+	        (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT));
 }
 
 static void manipulator_primitive_setup(wmManipulator *mpr)
 {
-	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
-
-	prim->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
-	prim->style = -1;
+	mpr->flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 }
 
 static void manipulator_primitive_invoke(
@@ -174,15 +167,6 @@ static void manipulator_primitive_invoke(
  *
  * \{ */
 
-#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_primitive_draw)
-
-void ED_manipulator_primitive3d_set_style(struct wmManipulator *mpr, int style)
-{
-	ASSERT_TYPE_CHECK(mpr);
-	PrimitiveManipulator *prim = (PrimitiveManipulator *)mpr;
-	prim->style = style;
-}
-
 static void MANIPULATOR_WT_primitive_3d(wmManipulatorType *wt)
 {
 	/* identifiers */
@@ -194,7 +178,13 @@ static void MANIPULATOR_WT_primitive_3d(wmManipulatorType *wt)
 	wt->setup = manipulator_primitive_setup;
 	wt->invoke = manipulator_primitive_invoke;
 
-	wt->struct_size = sizeof(PrimitiveManipulator);
+	wt->struct_size = sizeof(wmManipulator);
+
+	static EnumPropertyItem rna_enum_draw_style[] = {
+		{ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE, "PLANE", 0, "Plane", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE, "Draw Style", "");
 }
 
 void ED_manipulatortypes_primitive_3d(void)

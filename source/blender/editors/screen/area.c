@@ -1520,8 +1520,9 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 			/* default region handlers */
 			ed_default_handlers(wm, sa, &ar->handlers, ar->type->keymapflag);
 			/* own handlers */
-			if (ar->type->init)
+			if (ar->type->init) {
 				ar->type->init(wm, ar);
+			}
 		}
 		else {
 			/* prevent uiblocks to run */

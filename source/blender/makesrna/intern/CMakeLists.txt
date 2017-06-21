@@ -95,6 +95,7 @@ set(DEFSRC
 	rna_userdef.c
 	rna_vfont.c
 	rna_wm.c
+	rna_wm_manipulator.c
 	rna_workspace.c
 	rna_world.c
 )

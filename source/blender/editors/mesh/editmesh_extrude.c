@@ -881,8 +881,10 @@ static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
 		WM_manipulator_set_matrix_rotation_from_yz_axis(man->rotate_c, man->data.rotate_axis, plane_no);
 
 		/* show the axis instead of mouse cursor */
-		ED_manipulator_dial3d_set_use_start_y_axis(man->rotate_c, true);
-		ED_manipulator_dial3d_set_use_double_helper(man->rotate_c, true);
+		RNA_enum_set(man->rotate_c->ptr, "draw_options",
+		             ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_MIRROR |
+		             ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_START_Y);
+
 	}
 }
 
@@ -1062,15 +1064,13 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 	const wmManipulatorType *wt_grab = WM_manipulatortype_find("MANIPULATOR_WT_grab_3d", true);
 	const wmManipulatorType *wt_dial = WM_manipulatortype_find("MANIPULATOR_WT_dial_3d", true);
 
-	man->translate_z = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_z");
-	man->translate_c = WM_manipulator_new_ptr(wt_grab, mgroup, "translate_c");
-	man->rotate_c = WM_manipulator_new_ptr(wt_dial, mgroup, "rotate_c");
-	man->angle_z = WM_manipulator_new_ptr(wt_dial, mgroup, "angle_z");
+	man->translate_z = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_z", NULL);
+	man->translate_c = WM_manipulator_new_ptr(wt_grab, mgroup, "translate_c", NULL);
+	man->rotate_c = WM_manipulator_new_ptr(wt_dial, mgroup, "rotate_c", NULL);
+	man->angle_z = WM_manipulator_new_ptr(wt_dial, mgroup, "angle_z", NULL);
 
-	ED_manipulator_arrow3d_set_style(man->translate_z, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
-	ED_manipulator_grab3d_set_style(man->translate_c, ED_MANIPULATOR_GRAB_STYLE_RING);
-	ED_manipulator_dial3d_set_style(man->rotate_c, ED_MANIPULATOR_DIAL_STYLE_RING);
-	ED_manipulator_dial3d_set_style(man->angle_z, ED_MANIPULATOR_DIAL_STYLE_RING);
+	RNA_enum_set(man->translate_z->ptr, "draw_style", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+	RNA_enum_set(man->translate_c->ptr, "draw_style", ED_MANIPULATOR_GRAB_STYLE_RING);
 
 	WM_manipulator_set_flag(man->translate_c, WM_MANIPULATOR_DRAW_VALUE, true);
 	WM_manipulator_set_flag(man->rotate_c, WM_MANIPULATOR_DRAW_VALUE, true);

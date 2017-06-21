@@ -1090,23 +1090,23 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
 	const wmManipulatorType *wt_dial = WM_manipulatortype_find("MANIPULATOR_WT_dial_3d", true);
 	const wmManipulatorType *wt_prim = WM_manipulatortype_find("MANIPULATOR_WT_primitive_3d", true);
 
-#define MANIPULATOR_NEW_ARROW(v, name, style) { \
-	v = WM_manipulator_new_ptr(wt_arrow, mgroup, name); \
-	ED_manipulator_arrow3d_set_style(v, style); \
+#define MANIPULATOR_NEW_ARROW(v, name, draw_style) { \
+	v = WM_manipulator_new_ptr(wt_arrow, mgroup, name, NULL); \
+	RNA_enum_set((v)->ptr, "draw_style", draw_style); \
 } ((void)0)
-#define MANIPULATOR_NEW_DIAL(v, name, style) { \
-	v = WM_manipulator_new_ptr(wt_dial, mgroup, name); \
-	ED_manipulator_dial3d_set_style(v, style); \
+#define MANIPULATOR_NEW_DIAL(v, name, draw_options) { \
+	v = WM_manipulator_new_ptr(wt_dial, mgroup, name, NULL); \
+	RNA_enum_set((v)->ptr, "draw_options", draw_options); \
 } ((void)0)
-#define MANIPULATOR_NEW_PRIM(v, name, style) { \
-	v = WM_manipulator_new_ptr(wt_prim, mgroup, name); \
-	ED_manipulator_primitive3d_set_style(v, style); \
+#define MANIPULATOR_NEW_PRIM(v, name, draw_style) { \
+	v = WM_manipulator_new_ptr(wt_prim, mgroup, name, NULL); \
+	RNA_enum_set((v)->ptr, "draw_style", draw_style); \
 } ((void)0)
 
 	/* add/init widgets - order matters! */
-	MANIPULATOR_NEW_DIAL(man->rotate_t, "rotate_t", ED_MANIPULATOR_DIAL_STYLE_RING_FILLED);
+	MANIPULATOR_NEW_DIAL(man->rotate_t, "rotate_t", ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL);
 
-	MANIPULATOR_NEW_DIAL(man->scale_c, "scale_c", ED_MANIPULATOR_DIAL_STYLE_RING);
+	MANIPULATOR_NEW_DIAL(man->scale_c, "scale_c", ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
 
 	MANIPULATOR_NEW_ARROW(man->scale_x, "scale_x", ED_MANIPULATOR_ARROW_STYLE_BOX);
 	MANIPULATOR_NEW_ARROW(man->scale_y, "scale_y", ED_MANIPULATOR_ARROW_STYLE_BOX);
@@ -1116,14 +1116,14 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
 	MANIPULATOR_NEW_PRIM(man->scale_yz, "scale_yz", ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
 	MANIPULATOR_NEW_PRIM(man->scale_zx, "scale_zx", ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
 
-	MANIPULATOR_NEW_DIAL(man->rotate_x, "rotate_x", ED_MANIPULATOR_DIAL_STYLE_RING_CLIPPED);
-	MANIPULATOR_NEW_DIAL(man->rotate_y, "rotate_y", ED_MANIPULATOR_DIAL_STYLE_RING_CLIPPED);
-	MANIPULATOR_NEW_DIAL(man->rotate_z, "rotate_z", ED_MANIPULATOR_DIAL_STYLE_RING_CLIPPED);
+	MANIPULATOR_NEW_DIAL(man->rotate_x, "rotate_x", ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
+	MANIPULATOR_NEW_DIAL(man->rotate_y, "rotate_y", ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
+	MANIPULATOR_NEW_DIAL(man->rotate_z, "rotate_z", ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
 
 	/* init screen aligned widget last here, looks better, behaves better */
-	MANIPULATOR_NEW_DIAL(man->rotate_c, "rotate_c", ED_MANIPULATOR_DIAL_STYLE_RING);
+	MANIPULATOR_NEW_DIAL(man->rotate_c, "rotate_c", ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
 
-	MANIPULATOR_NEW_DIAL(man->translate_c, "translate_c", ED_MANIPULATOR_DIAL_STYLE_RING);
+	MANIPULATOR_NEW_DIAL(man->translate_c, "translate_c", ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
 
 	MANIPULATOR_NEW_ARROW(man->translate_x, "translate_x", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
 	MANIPULATOR_NEW_ARROW(man->translate_y, "translate_y", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
@@ -1307,7 +1307,7 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 				manipulator_line_range(v3d, axis_type, &start_co[2], &len);
 
 				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
-				ED_manipulator_arrow3d_set_line_len(axis, len);
+				RNA_float_set(axis->ptr, "length", len);
 				WM_manipulator_set_matrix_offset_location(axis, start_co);
 				break;
 			}

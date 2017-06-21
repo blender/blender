@@ -55,11 +55,11 @@ struct wmManipulatorMapType_Params;
 /* wmManipulator */
 
 struct wmManipulator *WM_manipulator_new_ptr(
-        const struct wmManipulatorType *wt,
-        struct wmManipulatorGroup *mgroup, const char *name);
+        const struct wmManipulatorType *wt, struct wmManipulatorGroup *mgroup,
+        const char *name, struct PointerRNA *properties);
 struct wmManipulator *WM_manipulator_new(
-        const char *idname,
-        struct wmManipulatorGroup *mgroup, const char *name);
+        const char *idname, struct wmManipulatorGroup *mgroup,
+        const char *name, struct PointerRNA *properties);
 void WM_manipulator_free(
         ListBase *manipulatorlist, struct wmManipulatorMap *mmap, struct wmManipulator *mpr,
         struct bContext *C);
@@ -91,6 +91,17 @@ void WM_manipulator_get_color(const struct wmManipulator *mpr, float col[4]);
 void WM_manipulator_set_color(struct wmManipulator *mpr, const float col[4]);
 void WM_manipulator_get_color_highlight(const struct wmManipulator *mpr, float col_hi[4]);
 void WM_manipulator_set_color_highlight(struct wmManipulator *mpr, const float col[4]);
+
+/* properties */
+void WM_manipulator_properties_create_ptr(struct PointerRNA *ptr, struct wmManipulatorType *wt);
+void WM_manipulator_properties_create(struct PointerRNA *ptr, const char *opstring);
+void WM_manipulator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *wtstring);
+void WM_manipulator_properties_sanitize(struct PointerRNA *ptr, const bool no_context);
+bool WM_manipulator_properties_default(struct PointerRNA *ptr, const bool do_update);
+void WM_manipulator_properties_reset(struct wmManipulator *op);
+void WM_manipulator_properties_clear(struct PointerRNA *ptr);
+void WM_manipulator_properties_free(struct PointerRNA *ptr);
+
 
 /* wm_manipulator_type.c */
 const struct wmManipulatorType *WM_manipulatortype_find(const char *idname, bool quiet);
@@ -165,6 +176,7 @@ struct wmKeyMap *WM_manipulatorgroup_keymap_common_select(
 
 struct wmManipulatorMap *WM_manipulatormap_new_from_type(
         const struct wmManipulatorMapType_Params *mmap_params);
+const struct ListBase *WM_manipulatormap_group_list(struct wmManipulatorMap *mmap);
 void WM_manipulatormap_tag_refresh(struct wmManipulatorMap *mmap);
 void WM_manipulatormap_draw(struct wmManipulatorMap *mmap, const struct bContext *C, const int drawstep);
 void WM_manipulatormap_add_handlers(struct ARegion *ar, struct wmManipulatorMap *mmap);

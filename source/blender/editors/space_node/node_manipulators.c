@@ -63,11 +63,10 @@ static void WIDGETGROUP_node_transform_setup(const bContext *UNUSED(C), wmManipu
 {
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 
-	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, "backdrop_cage");
+	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, "backdrop_cage", NULL);
 
-	ED_manipulator_cage2d_transform_set_style(
-	        wwrapper->manipulator,
-	        ED_MANIPULATOR_RECT_TRANSFORM_STYLE_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM);
+	RNA_enum_set(wwrapper->manipulator->ptr, "transform",
+	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM);
 
 	mgroup->customdata = wwrapper;
 }
@@ -84,10 +83,12 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if (ibuf) {
-		const float w = (ibuf->x > 0) ? ibuf->x : 64.0f;
-		const float h = (ibuf->y > 0) ? ibuf->y : 64.0f;
+		const float dims[2] = {
+			(ibuf->x > 0) ? ibuf->x : 64.0f,
+			(ibuf->y > 0) ? ibuf->y : 64.0f,
+		};
 
-		ED_manipulator_cage2d_transform_set_dims(cage, w, h);
+		RNA_float_set_array(cage->ptr, "dimensions", dims);
 		WM_manipulator_set_matrix_location(cage, origin);
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, false);
 

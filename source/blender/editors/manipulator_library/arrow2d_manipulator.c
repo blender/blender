@@ -51,6 +51,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_types.h"
 
@@ -59,32 +60,24 @@
 
 #include "manipulator_library_intern.h"
 
-
-typedef struct ArrowManipulator2D {
-	struct wmManipulator manipulator;
-
-	float angle;
-	float line_len;
-} ArrowManipulator2D;
-
-
-static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float matrix[4][4], const float color[4])
+static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], const float color[4])
 {
 	const float size = 0.11f;
 	const float size_h = size / 2.0f;
-	const float len = arrow->line_len;
-	const float draw_line_ofs = (arrow->manipulator.line_width * 0.5f) / arrow->manipulator.scale;
+	const float arrow_length = RNA_float_get(mpr->ptr, "length");
+	const float arrow_angle = RNA_float_get(mpr->ptr, "angle");
+	const float draw_line_ofs = (mpr->line_width * 0.5f) / mpr->scale;
 
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix);
-	gpuScaleUniform(arrow->manipulator.scale);
-	gpuRotate2D(RAD2DEGF(arrow->angle));
+	gpuScaleUniform(mpr->scale);
+	gpuRotate2D(RAD2DEGF(arrow_angle));
 	/* local offset */
 	gpuTranslate2f(
-	        arrow->manipulator.matrix_offset[3][0] + draw_line_ofs,
-	        arrow->manipulator.matrix_offset[3][1]);
+	        mpr->matrix_offset[3][0] + draw_line_ofs,
+	        mpr->matrix_offset[3][1]);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -92,13 +85,13 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float matrix[4][4
 
 	immBegin(GWN_PRIM_LINES, 2);
 	immVertex2f(pos, 0.0f, 0.0f);
-	immVertex2f(pos, 0.0f, len);
+	immVertex2f(pos, 0.0f, arrow_length);
 	immEnd();
 
 	immBegin(GWN_PRIM_TRIS, 3);
-	immVertex2f(pos, size_h, len);
-	immVertex2f(pos, -size_h, len);
-	immVertex2f(pos, 0.0f, len + size * 1.7f);
+	immVertex2f(pos, size_h, arrow_length);
+	immVertex2f(pos, -size_h, arrow_length);
+	immVertex2f(pos, 0.0f, arrow_length + size * 1.7f);
 	immEnd();
 
 	immUnbindProgram();
@@ -106,38 +99,33 @@ static void arrow2d_draw_geom(ArrowManipulator2D *arrow, const float matrix[4][4
 	gpuPopMatrix();
 }
 
-static void manipulator_arrow2d_draw(const bContext *UNUSED(C), struct wmManipulator *mpr)
+static void manipulator_arrow2d_draw(const bContext *UNUSED(C), wmManipulator *mpr)
 {
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
 	float col[4];
 
 	manipulator_color_get(mpr, mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT, col);
 
 	glLineWidth(mpr->line_width);
 	glEnable(GL_BLEND);
-	arrow2d_draw_geom(arrow, mpr->matrix, col);
+	arrow2d_draw_geom(mpr, mpr->matrix, col);
 	glDisable(GL_BLEND);
 
 	if (mpr->interaction_data) {
-		ManipulatorInteraction *inter = arrow->manipulator.interaction_data;
+		ManipulatorInteraction *inter = mpr->interaction_data;
 
 		glEnable(GL_BLEND);
-		arrow2d_draw_geom(arrow, inter->init_matrix, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
+		arrow2d_draw_geom(mpr, inter->init_matrix, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
 		glDisable(GL_BLEND);
 	}
 }
 
 static void manipulator_arrow2d_setup(wmManipulator *mpr)
 {
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
-
-	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
-
-	arrow->line_len = 1.0f;
+	mpr->flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 }
 
 static void manipulator_arrow2d_invoke(
-        bContext *UNUSED(C), struct wmManipulator *mpr, const wmEvent *UNUSED(event))
+        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *UNUSED(event))
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
@@ -146,11 +134,12 @@ static void manipulator_arrow2d_invoke(
 }
 
 static int manipulator_arrow2d_test_select(
-        bContext *UNUSED(C), struct wmManipulator *mpr, const wmEvent *event)
+        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
 	const float mval[2] = {event->mval[0], event->mval[1]};
-	const float line_len = arrow->line_len * mpr->scale;
+	const float arrow_length = RNA_float_get(mpr->ptr, "length");
+	const float arrow_angle = RNA_float_get(mpr->ptr, "angle");
+	const float line_len = arrow_length * mpr->scale;
 	float mval_local[2];
 
 	copy_v2_v2(mval_local, mval);
@@ -161,10 +150,10 @@ static int manipulator_arrow2d_test_select(
 	line[1][1] = line_len;
 
 	/* rotate only if needed */
-	if (arrow->angle != 0.0f) {
+	if (arrow_angle != 0.0f) {
 		float rot_point[2];
 		copy_v2_v2(rot_point, line[1]);
-		rotate_v2_v2fl(line[1], rot_point, arrow->angle);
+		rotate_v2_v2fl(line[1], rot_point, arrow_angle);
 	}
 
 	/* arrow line intersection check */
@@ -198,22 +187,6 @@ static int manipulator_arrow2d_test_select(
  *
  * \{ */
 
-#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_arrow2d_draw)
-
-void ED_manipulator_arrow2d_set_angle(struct wmManipulator *mpr, const float angle)
-{
-	ASSERT_TYPE_CHECK(mpr);
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
-	arrow->angle = angle;
-}
-
-void ED_manipulator_arrow2d_set_line_len(struct wmManipulator *mpr, const float len)
-{
-	ASSERT_TYPE_CHECK(mpr);
-	ArrowManipulator2D *arrow = (ArrowManipulator2D *)mpr;
-	arrow->line_len = len;
-}
-
 static void MANIPULATOR_WT_arrow_2d(wmManipulatorType *wt)
 {
 	/* identifiers */
@@ -225,7 +198,13 @@ static void MANIPULATOR_WT_arrow_2d(wmManipulatorType *wt)
 	wt->invoke = manipulator_arrow2d_invoke;
 	wt->test_select = manipulator_arrow2d_test_select;
 
-	wt->struct_size = sizeof(ArrowManipulator2D);
+	wt->struct_size = sizeof(wmManipulator);
+
+	/* rna */
+	RNA_def_float(wt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
+	RNA_def_float_rotation(
+	        wt->srna, "angle", 0, NULL, DEG2RADF(-360.0f), DEG2RADF(360.0f),
+	        "Roll", "", DEG2RADF(-360.0f), DEG2RADF(360.0f));
 }
 
 void ED_manipulatortypes_arrow_2d(void)

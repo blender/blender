@@ -134,8 +134,8 @@ static ManipulatorGroup2D *manipulatorgroup2d_init(wmManipulatorGroup *mgroup)
 
 	ManipulatorGroup2D *man = MEM_callocN(sizeof(ManipulatorGroup2D), __func__);
 
-	man->translate_x = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_x");
-	man->translate_y = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_y");
+	man->translate_x = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_x", NULL);
+	man->translate_y = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_y", NULL);
 
 	return man;
 }
@@ -196,8 +196,8 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 		/* custom handler! */
 		WM_manipulator_set_fn_custom_modal(axis, manipulator2d_modal);
 		/* set up widget data */
-		ED_manipulator_arrow2d_set_angle(axis, -M_PI_2 * axis_idx);
-		ED_manipulator_arrow2d_set_line_len(axis, 0.8f);
+		RNA_float_set(axis->ptr, "angle", -M_PI_2 * axis_idx);
+		RNA_float_set(axis->ptr, "length", 0.8f);
 		WM_manipulator_set_matrix_offset_location(axis, offset);
 		WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH);
 		WM_manipulator_set_scale(axis, U.manipulator_size);

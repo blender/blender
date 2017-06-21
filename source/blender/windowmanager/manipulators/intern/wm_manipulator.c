@@ -44,6 +44,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_idprop.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -66,7 +71,8 @@ static void wm_manipulator_register(
  * \note Follow #wm_operator_create convention.
  */
 static wmManipulator *wm_manipulator_create(
-        const wmManipulatorType *wt)
+        const wmManipulatorType *wt,
+        PointerRNA *properties)
 {
 	BLI_assert(wt != NULL);
 	BLI_assert(wt->struct_size >= sizeof(wmManipulator));
@@ -74,15 +80,30 @@ static wmManipulator *wm_manipulator_create(
 	wmManipulator *mpr = MEM_callocN(wt->struct_size, __func__);
 	mpr->type = wt;
 
+	/* initialize properties, either copy or create */
+	mpr->ptr = MEM_callocN(sizeof(PointerRNA), "wmManipulatorPtrRNA");
+	if (properties && properties->data) {
+		mpr->properties = IDP_CopyProperty(properties->data);
+	}
+	else {
+		IDPropertyTemplate val = {0};
+		mpr->properties = IDP_New(IDP_GROUP, &val, "wmManipulatorProperties");
+	}
+	RNA_pointer_create(G.main->wm.first, wt->srna, mpr->properties, mpr->ptr);
+
+	WM_manipulator_properties_sanitize(mpr->ptr, 0);
+
 	unit_m4(mpr->matrix);
 	unit_m4(mpr->matrix_offset);
 
 	return mpr;
 }
 
-wmManipulator *WM_manipulator_new_ptr(const wmManipulatorType *wt, wmManipulatorGroup *mgroup, const char *name)
+wmManipulator *WM_manipulator_new_ptr(
+        const wmManipulatorType *wt, wmManipulatorGroup *mgroup,
+        const char *name, PointerRNA *properties)
 {
-	wmManipulator *mpr = wm_manipulator_create(wt);
+	wmManipulator *mpr = wm_manipulator_create(wt, properties);
 
 	wm_manipulator_register(mgroup, mpr, name);
 
@@ -98,10 +119,12 @@ wmManipulator *WM_manipulator_new_ptr(const wmManipulatorType *wt, wmManipulator
  * if you need to check it exists use #WM_manipulator_new_ptr
  * because callers of this function don't NULL check the return value.
  */
-wmManipulator *WM_manipulator_new(const char *idname, wmManipulatorGroup *mgroup, const char *name)
+wmManipulator *WM_manipulator_new(
+        const char *idname, wmManipulatorGroup *mgroup,
+        const char *name, PointerRNA *properties)
 {
 	const wmManipulatorType *wt = WM_manipulatortype_find(idname, false);
-	return WM_manipulator_new_ptr(wt, mgroup, name);
+	return WM_manipulator_new_ptr(wt, mgroup, name, properties);
 }
 
 /**
@@ -174,7 +197,12 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 	if (mpr->op_data.ptr.data) {
 		WM_operator_properties_free(&mpr->op_data.ptr);
 	}
-	BLI_freelistN(&mpr->properties);
+	BLI_freelistN(&mpr->properties_edit);
+
+	if (mpr->ptr != NULL) {
+		WM_manipulator_properties_free(mpr->ptr);
+		MEM_freeN(mpr->ptr);
+	}
 
 	if (manipulatorlist) {
 		BLI_remlink(manipulatorlist, mpr);
@@ -433,8 +461,8 @@ void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 static void manipulator_update_prop_data(wmManipulator *mpr)
 {
 	/* manipulator property might have been changed, so update manipulator */
-	if (mpr->type->property_update && !BLI_listbase_is_empty(&mpr->properties)) {
-		for (wmManipulatorProperty *mpr_prop = mpr->properties.first; mpr_prop; mpr_prop = mpr_prop->next) {
+	if (mpr->type->property_update && !BLI_listbase_is_empty(&mpr->properties_edit)) {
+		for (wmManipulatorProperty *mpr_prop = mpr->properties_edit.first; mpr_prop; mpr_prop = mpr_prop->next) {
 			if (WM_manipulator_property_is_valid(mpr_prop)) {
 				mpr->type->property_update(mpr, mpr_prop);
 			}
@@ -471,3 +499,151 @@ bool wm_manipulator_is_visible(wmManipulator *mpr)
 
 	return true;
 }
+
+
+/** \name Manipulator Propery Access
+ *
+ * Matches `WM_operator_properties` conventions.
+ *
+ * \{ */
+
+
+void WM_manipulator_properties_create_ptr(PointerRNA *ptr, wmManipulatorType *wt)
+{
+	RNA_pointer_create(NULL, wt->srna, NULL, ptr);
+}
+
+void WM_manipulator_properties_create(PointerRNA *ptr, const char *wtstring)
+{
+	const wmManipulatorType *wt = WM_manipulatortype_find(wtstring, false);
+
+	if (wt)
+		WM_manipulator_properties_create_ptr(ptr, (wmManipulatorType *)wt);
+	else
+		RNA_pointer_create(NULL, &RNA_ManipulatorProperties, NULL, ptr);
+}
+
+/* similar to the function above except its uses ID properties
+ * used for keymaps and macros */
+void WM_manipulator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *wtstring)
+{
+	if (*properties == NULL) {
+		IDPropertyTemplate val = {0};
+		*properties = IDP_New(IDP_GROUP, &val, "wmOpItemProp");
+	}
+
+	if (*ptr == NULL) {
+		*ptr = MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr");
+		WM_manipulator_properties_create(*ptr, wtstring);
+	}
+
+	(*ptr)->data = *properties;
+
+}
+
+void WM_manipulator_properties_sanitize(PointerRNA *ptr, const bool no_context)
+{
+	RNA_STRUCT_BEGIN (ptr, prop)
+	{
+		switch (RNA_property_type(prop)) {
+			case PROP_ENUM:
+				if (no_context)
+					RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+				else
+					RNA_def_property_clear_flag(prop, PROP_ENUM_NO_CONTEXT);
+				break;
+			case PROP_POINTER:
+			{
+				StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
+
+				/* recurse into manipulator properties */
+				if (RNA_struct_is_a(ptype, &RNA_ManipulatorProperties)) {
+					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+					WM_manipulator_properties_sanitize(&opptr, no_context);
+				}
+				break;
+			}
+			default:
+				break;
+		}
+	}
+	RNA_STRUCT_END;
+}
+
+
+/** set all props to their default,
+ * \param do_update Only update un-initialized props.
+ *
+ * \note, theres nothing specific to manipulators here.
+ * this could be made a general function.
+ */
+bool WM_manipulator_properties_default(PointerRNA *ptr, const bool do_update)
+{
+	bool changed = false;
+	RNA_STRUCT_BEGIN (ptr, prop)
+	{
+		switch (RNA_property_type(prop)) {
+			case PROP_POINTER:
+			{
+				StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
+				if (ptype != &RNA_Struct) {
+					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+					changed |= WM_manipulator_properties_default(&opptr, do_update);
+				}
+				break;
+			}
+			default:
+				if ((do_update == false) || (RNA_property_is_set(ptr, prop) == false)) {
+					if (RNA_property_reset(ptr, prop, -1)) {
+						changed = true;
+					}
+				}
+				break;
+		}
+	}
+	RNA_STRUCT_END;
+
+	return changed;
+}
+
+/* remove all props without PROP_SKIP_SAVE */
+void WM_manipulator_properties_reset(wmManipulator *mpr)
+{
+	if (mpr->ptr->data) {
+		PropertyRNA *iterprop;
+		iterprop = RNA_struct_iterator_property(mpr->type->srna);
+
+		RNA_PROP_BEGIN (mpr->ptr, itemptr, iterprop)
+		{
+			PropertyRNA *prop = itemptr.data;
+
+			if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
+				const char *identifier = RNA_property_identifier(prop);
+				RNA_struct_idprops_unset(mpr->ptr, identifier);
+			}
+		}
+		RNA_PROP_END;
+	}
+}
+
+void WM_manipulator_properties_clear(PointerRNA *ptr)
+{
+	IDProperty *properties = ptr->data;
+
+	if (properties) {
+		IDP_ClearProperty(properties);
+	}
+}
+
+void WM_manipulator_properties_free(PointerRNA *ptr)
+{
+	IDProperty *properties = ptr->data;
+
+	if (properties) {
+		IDP_FreeProperty(properties);
+		MEM_freeN(properties);
+		ptr->data = NULL; /* just in case */
+	}
+}
+
+/** \} */

@@ -55,7 +55,7 @@
 
 wmManipulatorProperty *WM_manipulator_property_find(wmManipulator *mpr, const char *idname)
 {
-	return BLI_findstring(&mpr->properties, idname, offsetof(wmManipulatorProperty, idname));
+	return BLI_findstring(&mpr->properties_edit, idname, offsetof(wmManipulatorProperty, idname));
 }
 
 static wmManipulatorProperty *wm_manipulator_property_def_internal(
@@ -67,7 +67,7 @@ static wmManipulatorProperty *wm_manipulator_property_def_internal(
 		const uint idname_size = strlen(idname) + 1;
 		mpr_prop = MEM_callocN(sizeof(wmManipulatorProperty) + idname_size, __func__);
 		memcpy(mpr_prop->idname, idname, idname_size);
-		BLI_addtail(&mpr->properties, mpr_prop);
+		BLI_addtail(&mpr->properties_edit, mpr_prop);
 	}
 	return mpr_prop;
 }

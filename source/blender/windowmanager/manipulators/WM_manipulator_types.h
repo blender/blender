@@ -70,6 +70,9 @@ struct wmManipulator {
 
 	void *py_instance;
 
+	/* rna pointer to access properties */
+	struct PointerRNA *ptr;
+
 	int flag; /* flags that influence the behavior or how the manipulators are drawn */
 	short state; /* state flags (active, highlighted, selected) */
 
@@ -113,7 +116,9 @@ struct wmManipulator {
 	 * Public API's should use string names,
 	 * private API's can pass 'wmManipulatorProperty' directly.
 	 */
-	ListBase properties;
+	ListBase properties_edit;
+
+	struct IDProperty *properties;
 };
 
 typedef void (*wmManipulatorGroupFnInit)(
@@ -222,6 +227,9 @@ typedef struct wmManipulatorType {
 
 	/* called when manipulator selection state changes */
 	wmManipulatorFnSelect select;
+
+	/* RNA for properties */
+	struct StructRNA *srna;
 
 	/* RNA integration */
 	ExtensionRNA ext;

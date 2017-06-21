@@ -51,14 +51,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
-
-/* own includes */
-//#include "wm_manipulator_wmapi.h"
-//#include "wm_manipulator_intern.h"
-
 
 /* wmManipulator->highlight_part */
 enum {
@@ -66,19 +62,11 @@ enum {
 	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT   = 2,
 	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT  = 3,
 	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP     = 4,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN   = 5
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN   = 5,
 };
 
 #define MANIPULATOR_RECT_MIN_WIDTH 15.0f
 #define MANIPULATOR_RESIZER_WIDTH  20.0f
-
-typedef struct Cage2D {
-	wmManipulator manipulator;
-	float w, h;      /* dimensions of manipulator */
-	float rotation;  /* rotation of the rectangle */
-	float scale[2]; /* scaling for the manipulator for non-destructive editing. */
-	int style;
-} Cage2D;
 
 
 /* -------------------------------------------------------------------- */
@@ -203,9 +191,16 @@ static void rect_transform_draw_interaction(
 
 static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipulator *mpr)
 {
-	Cage2D *cage = (Cage2D *)mpr;
-	float w = cage->w;
-	float h = cage->h;
+	float dims[2];
+	RNA_float_get_array(mpr->ptr, "dimensions", dims);
+	float w = dims[0];
+	float h = dims[1];
+
+	float scale[2];
+	RNA_float_get_array(mpr->ptr, "scale", scale);
+
+	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+
 	float aspx = 1.0f, aspy = 1.0f;
 	const float half_w = w / 2.0f;
 	const float half_h = h / 2.0f;
@@ -216,23 +211,25 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 		.ymax = half_h,
 	};
 
-	BLI_assert(cage->style != -1);
-
 	gpuPushMatrix();
 	gpuMultMatrix(mpr->matrix);
 	gpuMultMatrix(mpr->matrix_offset);
-	if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
-		gpuScaleUniform(cage->scale[0]);
-	else
-		gpuScale2fv(cage->scale);
+	if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+		gpuScaleUniform(scale[0]);
+	}
+	else {
+		gpuScale2fv(scale);
+	}
 
-	if (w > h)
+	if (w > h) {
 		aspx = h / w;
-	else
+	}
+	else {
 		aspy = w / h;
-	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / cage->scale[0]);
+	}
+	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / scale[0]);
 	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / 
-	           ((cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) ? cage->scale[0] : cage->scale[1]));
+	           ((transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? scale[0] : scale[1]));
 
 	/* corner manipulators */
 	glLineWidth(mpr->line_width + 3.0f);
@@ -270,15 +267,20 @@ static int manipulator_rect_transform_get_cursor(wmManipulator *mpr)
 static int manipulator_rect_transform_test_select(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
-	Cage2D *cage = (Cage2D *)mpr;
 	const float mouse[2] = {event->mval[0], event->mval[1]};
 	//float matrot[2][2];
 	float point_local[2];
-	float w = cage->w;
-	float h = cage->h;
+	float scale[2];
+	RNA_float_get_array(mpr->ptr, "scale", scale);
+	float dims[2];
+	RNA_float_get_array(mpr->ptr, "dimensions", dims);
+	float w = dims[0];
+	float h = dims[1];
 	float half_w = w / 2.0f;
 	float half_h = h / 2.0f;
 	float aspx = 1.0f, aspy = 1.0f;
+
+	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
 
 	/* rotate mouse in relation to the center and relocate it */
 	sub_v2_v2v2(point_local, mouse, mpr->matrix[3]);
@@ -286,20 +288,23 @@ static int manipulator_rect_transform_test_select(
 	point_local[1] -= mpr->matrix_offset[3][1];
 	//rotate_m2(matrot, -cage->transform.rotation);
 
-	if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)
-		mul_v2_fl(point_local, 1.0f / cage->scale[0]);
+	if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+		mul_v2_fl(point_local, 1.0f / scale[0]);
+	}
 	else {
-		point_local[0] /= cage->scale[0];
-		point_local[1] /= cage->scale[0];
+		point_local[0] /= scale[0];
+		point_local[1] /= scale[0];
 	}
 
-	if (cage->w > cage->h)
+	if (dims[0] > dims[1]) {
 		aspx = h / w;
-	else
+	}
+	else {
 		aspy = w / h;
-	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / cage->scale[0]);
+	}
+	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / scale[0]);
 	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / 
-	           ((cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) ? cage->scale[0] : cage->scale[1]));
+	           ((transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? scale[0] : scale[1]));
 
 
 	rctf r;
@@ -315,7 +320,9 @@ static int manipulator_rect_transform_test_select(
 		return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE;
 
 	/* if manipulator does not have a scale intersection, don't do it */
-	if (cage->style & (ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE | ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM)) {
+	if (transform_flag &
+	    (ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM))
+	{
 		r.xmin = -half_w;
 		r.ymin = -half_h;
 		r.xmax = -half_w + w;
@@ -384,8 +391,8 @@ static bool manipulator_rect_transform_get_prop_value(
 			RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
 		}
 		else if (STREQ(mpr_prop->idname, "scale")) {
-			Cage2D *cage = (Cage2D *)mpr;
-			if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
+			const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+			if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 				*value = RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
 			}
 			else {
@@ -406,21 +413,19 @@ static bool manipulator_rect_transform_get_prop_value(
 
 static void manipulator_rect_transform_setup(wmManipulator *mpr)
 {
-	Cage2D *cage = (Cage2D *)mpr;
-
-	cage->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
-	cage->scale[0] = cage->scale[1] = 1.0f;
-	cage->style = -1;
+	mpr->flag |= WM_MANIPULATOR_DRAW_ACTIVE;
 }
 
 static void manipulator_rect_transform_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
-	Cage2D *cage = (Cage2D *)mpr;
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
 
+	float scale[2];
+	RNA_float_get_array(mpr->ptr, "scale", scale);
+
 	copy_v2_v2(data->orig_offset, mpr->matrix_offset[3]);
-	copy_v2_v2(data->orig_scale, cage->scale);
+	copy_v2_v2(data->orig_scale, scale);
 
 	data->orig_mouse[0] = event->mval[0];
 	data->orig_mouse[1] = event->mval[1];
@@ -432,7 +437,6 @@ static void manipulator_rect_transform_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         const int UNUSED(flag))
 {
-	Cage2D *cage = (Cage2D *)mpr;
 	RectTransformInteraction *data = mpr->interaction_data;
 	/* needed here as well in case clamping occurs */
 	const float orig_ofx = mpr->matrix_offset[3][0], orig_ofy = mpr->matrix_offset[3][1];
@@ -440,6 +444,13 @@ static void manipulator_rect_transform_modal(
 	const float valuex = (event->mval[0] - data->orig_mouse[0]);
 	const float valuey = (event->mval[1] - data->orig_mouse[1]);
 
+	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+
+	float dims[2];
+	RNA_float_get_array(mpr->ptr, "dimensions", dims);
+
+	float scale[2];
+	RNA_float_get_array(mpr->ptr, "scale", scale);
 
 	if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
 		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex;
@@ -447,53 +458,55 @@ static void manipulator_rect_transform_modal(
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
 		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0;
-		cage->scale[0] = (cage->w * data->orig_scale[0] - valuex) / cage->w;
+		scale[0] = (dims[0] * data->orig_scale[0] - valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
 		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0;
-		cage->scale[0] = (cage->w * data->orig_scale[0] + valuex) / cage->w;
+		scale[0] = (dims[0] * data->orig_scale[0] + valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
 		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0;
 
-		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
-			cage->scale[0] = (cage->h * data->orig_scale[0] - valuey) / cage->h;
+		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+			scale[0] = (dims[1] * data->orig_scale[0] - valuey) / dims[1];
 		}
 		else {
-			cage->scale[1] = (cage->h * data->orig_scale[1] - valuey) / cage->h;
+			scale[1] = (dims[1] * data->orig_scale[1] - valuey) / dims[1];
 		}
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
 		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0;
 
-		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
-			cage->scale[0] = (cage->h * data->orig_scale[0] + valuey) / cage->h;
+		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+			scale[0] = (dims[1] * data->orig_scale[0] + valuey) / dims[1];
 		}
 		else {
-			cage->scale[1] = (cage->h * data->orig_scale[1] + valuey) / cage->h;
+			scale[1] = (dims[1] * data->orig_scale[1] + valuey) / dims[1];
 		}
 	}
 
 	/* clamping - make sure manipulator is at least 5 pixels wide */
-	if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
-		if (cage->scale[0] < MANIPULATOR_RECT_MIN_WIDTH / cage->h || 
-		    cage->scale[0] < MANIPULATOR_RECT_MIN_WIDTH / cage->w) 
+	if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+		if (scale[0] < MANIPULATOR_RECT_MIN_WIDTH / dims[1] ||
+		    scale[0] < MANIPULATOR_RECT_MIN_WIDTH / dims[0])
 		{
-			cage->scale[0] = max_ff(MANIPULATOR_RECT_MIN_WIDTH / cage->h, MANIPULATOR_RECT_MIN_WIDTH / cage->w);
+			scale[0] = max_ff(MANIPULATOR_RECT_MIN_WIDTH / dims[1], MANIPULATOR_RECT_MIN_WIDTH / dims[0]);
 			mpr->matrix_offset[3][0] = orig_ofx;
 			mpr->matrix_offset[3][1] = orig_ofy;
 		}
 	}
 	else {
-		if (cage->scale[0] < MANIPULATOR_RECT_MIN_WIDTH / cage->w) {
-			cage->scale[0] = MANIPULATOR_RECT_MIN_WIDTH / cage->w;
+		if (scale[0] < MANIPULATOR_RECT_MIN_WIDTH / dims[0]) {
+			scale[0] = MANIPULATOR_RECT_MIN_WIDTH / dims[0];
 			mpr->matrix_offset[3][0] = orig_ofx;
 		}
-		if (cage->scale[1] < MANIPULATOR_RECT_MIN_WIDTH / cage->h) {
-			cage->scale[1] = MANIPULATOR_RECT_MIN_WIDTH / cage->h;
+		if (scale[1] < MANIPULATOR_RECT_MIN_WIDTH / dims[1]) {
+			scale[1] = MANIPULATOR_RECT_MIN_WIDTH / dims[1];
 			mpr->matrix_offset[3][1] = orig_ofy;
 		}
 	}
+
+	RNA_float_set_array(mpr->ptr, "scale", scale);
 
 	wmManipulatorProperty *mpr_prop;
 
@@ -505,11 +518,11 @@ static void manipulator_rect_transform_modal(
 
 	mpr_prop = WM_manipulator_property_find(mpr, "scale");
 	if (mpr_prop->prop != NULL) {
-		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
-			RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, cage->scale[0]);
+		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+			RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, scale[0]);
 		}
 		else {
-			RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, cage->scale);
+			RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, scale);
 		}
 		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 	}
@@ -520,13 +533,13 @@ static void manipulator_rect_transform_modal(
 
 static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
-	Cage2D *cage = (Cage2D *)mpr;
-
 	if (STREQ(mpr_prop->idname, "offset")) {
 		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, mpr->matrix_offset[3]);
 	}
 	else if (STREQ(mpr_prop->idname, "scale")) {
-		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, cage->scale);
+		float scale[2];
+		RNA_float_get_array(mpr->ptr, "scale", scale);
+		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, scale);
 	}
 	else {
 		BLI_assert(0);
@@ -535,7 +548,6 @@ static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmMan
 
 static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, const bool cancel)
 {
-	Cage2D *cage = (Cage2D *)mpr;
 	RectTransformInteraction *data = mpr->interaction_data;
 
 	if (!cancel)
@@ -552,7 +564,8 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 
 	mpr_prop = WM_manipulator_property_find(mpr, "scale");
 	if (mpr_prop->prop != NULL) {
-		if (cage->style & ED_MANIPULATOR_RECT_TRANSFORM_STYLE_SCALE_UNIFORM) {
+		const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 			RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, data->orig_scale[0]);
 		}
 		else {
@@ -567,23 +580,6 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 /** \name Cage Manipulator API
  *
  * \{ */
-
-#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_rect_transform_draw)
-
-void ED_manipulator_cage2d_transform_set_style(wmManipulator *mpr, int style)
-{
-	ASSERT_TYPE_CHECK(mpr);
-	Cage2D *cage = (Cage2D *)mpr;
-	cage->style = style;
-}
-
-void ED_manipulator_cage2d_transform_set_dims(wmManipulator *mpr, const float width, const float height)
-{
-	ASSERT_TYPE_CHECK(mpr);
-	Cage2D *cage = (Cage2D *)mpr;
-	cage->w = width;
-	cage->h = height;
-}
 
 static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 {
@@ -600,7 +596,20 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 	wt->exit = manipulator_rect_transform_exit;
 	wt->cursor_get = manipulator_rect_transform_get_cursor;
 
-	wt->struct_size = sizeof(Cage2D);
+	wt->struct_size = sizeof(wmManipulator);
+
+	/* rna */
+	static EnumPropertyItem rna_enum_transform[] = {
+		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_ROTATE, "ROTATE", 0, "Rotate", ""},
+		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
+		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	static float scale_default[2] = {1.0f, 1.0f};
+	RNA_def_float_vector(wt->srna, "scale", 2, scale_default, 0, FLT_MAX, "Scale", "", 0.0f, FLT_MAX);
+	RNA_def_float_vector(wt->srna, "dimensions", 2, NULL, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);
+	RNA_def_enum_flag(wt->srna, "transform", rna_enum_transform, 0, "Transform Options", "");
 }
 
 void ED_manipulatortypes_cage_2d(void)
