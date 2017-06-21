@@ -1,4 +1,4 @@
-# This is applied as an ovveride on top of blender_linux.config
+# This is applied as an override on top of blender_linux.config
 # Disables all the areas which are not needed for the player.
 set(WITH_COMPOSITOR          OFF CACHE BOOL "" FORCE)
 set(WITH_CYCLES              OFF CACHE BOOL "" FORCE)
