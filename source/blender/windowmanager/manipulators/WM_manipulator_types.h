@@ -116,7 +116,7 @@ struct wmManipulator {
 	 * Public API's should use string names,
 	 * private API's can pass 'wmManipulatorProperty' directly.
 	 */
-	ListBase properties_edit;
+	ListBase target_properties;
 
 	struct IDProperty *properties;
 };

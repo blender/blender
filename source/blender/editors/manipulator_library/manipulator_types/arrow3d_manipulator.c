@@ -327,19 +327,19 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 	ManipulatorCommonData *data = &arrow->data;
 	const float ofs_new = facdir * len_v3(offset);
 
-	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 
 	/* set the property for the operator and call its modal function */
-	if (WM_manipulator_property_is_valid(mpr_prop)) {
+	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
 		const int draw_options = RNA_enum_get(arrow->manipulator.ptr, "draw_options");
 		const bool constrained = (draw_options & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED) != 0;
 		const bool inverted = (draw_options & ED_MANIPULATOR_ARROW_STYLE_INVERTED) != 0;
 		const bool use_precision = (flag & WM_MANIPULATOR_TWEAK_PRECISE) != 0;
 		float value = manipulator_value_from_offset(data, inter, ofs_new, constrained, inverted, use_precision);
 
-		WM_manipulator_property_value_set(C, mpr, mpr_prop, value);
+		WM_manipulator_target_property_value_set(C, mpr, mpr_prop, value);
 		/* get clamped value */
-		value = WM_manipulator_property_value_get(mpr, mpr_prop);
+		value = WM_manipulator_target_property_value_get(mpr, mpr_prop);
 
 		data->offset = manipulator_offset_from_value(data, value, constrained, inverted);
 	}
@@ -366,11 +366,11 @@ static void manipulator_arrow_invoke(
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
-	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 
 	/* Some manipulators don't use properties. */
-	if (mpr_prop && WM_manipulator_property_is_valid(mpr_prop)) {
-		inter->init_value = WM_manipulator_property_value_get(mpr, mpr_prop);
+	if (mpr_prop && WM_manipulator_target_property_is_valid(mpr_prop)) {
+		inter->init_value = WM_manipulator_target_property_value_get(mpr, mpr_prop);
 	}
 
 	inter->init_offset = arrow->data.offset;
@@ -403,7 +403,7 @@ static void manipulator_arrow_exit(bContext *C, wmManipulator *mpr, const bool c
 	ManipulatorCommonData *data = &arrow->data;
 	ManipulatorInteraction *inter = mpr->interaction_data;
 
-	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 	manipulator_property_value_reset(C, mpr, inter, mpr_prop);
 	data->offset = inter->init_offset;
 }
@@ -417,15 +417,15 @@ static void manipulator_arrow_exit(bContext *C, wmManipulator *mpr, const bool c
 /**
  * Define a custom property UI range
  *
- * \note Needs to be called before WM_manipulator_property_def_rna!
+ * \note Needs to be called before WM_manipulator_target_property_def_rna!
  */
 void ED_manipulator_arrow3d_set_ui_range(wmManipulator *mpr, const float min, const float max)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
 	BLI_assert(min < max);
-	BLI_assert(!(WM_manipulator_property_find(mpr, "offset") && "Make sure this function "
-	           "is called before WM_manipulator_property_def_rna"));
+	BLI_assert(!(WM_manipulator_target_property_find(mpr, "offset") && "Make sure this function "
+	           "is called before WM_manipulator_target_property_def_rna"));
 
 	arrow->data.range = max - min;
 	arrow->data.min = min;
@@ -435,13 +435,13 @@ void ED_manipulator_arrow3d_set_ui_range(wmManipulator *mpr, const float min, co
 /**
  * Define a custom factor for arrow min/max distance
  *
- * \note Needs to be called before WM_manipulator_property_def_rna!
+ * \note Needs to be called before WM_manipulator_target_property_def_rna!
  */
 void ED_manipulator_arrow3d_set_range_fac(wmManipulator *mpr, const float range_fac)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-	BLI_assert(!(WM_manipulator_property_find(mpr, "offset") && "Make sure this function "
-	           "is called before WM_manipulator_property_def_rna"));
+	BLI_assert(!(WM_manipulator_target_property_find(mpr, "offset") && "Make sure this function "
+	           "is called before WM_manipulator_target_property_def_rna"));
 
 	arrow->data.range_fac = range_fac;
 }

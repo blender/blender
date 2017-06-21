@@ -75,7 +75,7 @@ set(SRC
 	manipulators/intern/wm_manipulator_group.c
 	manipulators/intern/wm_manipulator_group_type.c
 	manipulators/intern/wm_manipulator_map.c
-	manipulators/intern/wm_manipulator_property.c
+	manipulators/intern/wm_manipulator_target_props.c
 	manipulators/intern/wm_manipulator_type.c
 
 	WM_api.h

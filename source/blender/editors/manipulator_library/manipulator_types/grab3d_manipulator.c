@@ -196,9 +196,9 @@ static void manipulator_grab_modal(bContext *C, wmManipulator *mpr, const wmEven
 	add_v3_v3v3(inter->output.co_final, inter->init_prop_co, inter->output.co_ofs);
 
 	/* set the property for the operator and call its modal function */
-	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
-	if (mpr_prop && WM_manipulator_property_is_valid(mpr_prop)) {
-		WM_manipulator_property_value_set_array(C, mpr, mpr_prop, inter->output.co_final, 3);
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
+	if (mpr_prop && WM_manipulator_target_property_is_valid(mpr_prop)) {
+		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, inter->output.co_final, 3);
 	}
 }
 
@@ -210,9 +210,9 @@ static void manipulator_grab_invoke(
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
-	if (mpr_prop && WM_manipulator_property_is_valid(mpr_prop)) {
-		WM_manipulator_property_value_get_array(mpr, mpr_prop, inter->init_prop_co, 3);
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
+	if (mpr_prop && WM_manipulator_target_property_is_valid(mpr_prop)) {
+		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, inter->init_prop_co, 3);
 	}
 
 	mpr->interaction_data = inter;

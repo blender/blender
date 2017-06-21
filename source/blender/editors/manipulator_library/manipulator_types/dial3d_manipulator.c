@@ -293,7 +293,7 @@ static void dial_draw_intern(
 		DialInteraction *inter = mpr->interaction_data;
 
 		/* XXX, View3D rotation manipulator doesn't call modal. */
-		if (mpr->properties_edit.first == NULL) {
+		if (mpr->target_properties.first == NULL) {
 			wmWindow *win = CTX_wm_window(C);
 			manipulator_dial_modal((bContext *)C, mpr, win->eventstate, 0);
 		}
@@ -396,9 +396,9 @@ static void manipulator_dial_modal(bContext *C, wmManipulator *mpr, const wmEven
 	inter->output.angle_ofs = angle_ofs;
 
 	/* set the property for the operator and call its modal function */
-	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
-	if (mpr_prop && WM_manipulator_property_is_valid(mpr_prop)) {
-		WM_manipulator_property_value_set(C, mpr, mpr_prop, inter->init_prop_angle + angle_delta);
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
+	if (mpr_prop && WM_manipulator_target_property_is_valid(mpr_prop)) {
+		WM_manipulator_target_property_value_set(C, mpr, mpr_prop, inter->init_prop_angle + angle_delta);
 	}
 }
 
@@ -419,9 +419,9 @@ static void manipulator_dial_invoke(
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, "offset");
-	if (mpr_prop && WM_manipulator_property_is_valid(mpr_prop)) {
-		inter->init_prop_angle = WM_manipulator_property_value_get(mpr, mpr_prop);
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
+	if (mpr_prop && WM_manipulator_target_property_is_valid(mpr_prop)) {
+		inter->init_prop_angle = WM_manipulator_target_property_value_get(mpr, mpr_prop);
 	}
 
 	mpr->interaction_data = inter;

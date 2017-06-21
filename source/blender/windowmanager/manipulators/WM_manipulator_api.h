@@ -131,33 +131,33 @@ void WM_manipulatorconfig_update_tag_remove(struct wmManipulatorMapType *mmap_ty
 void WM_manipulatorconfig_update(struct Main *bmain);
 
 
-/* wm_maniulator_property.c */
-struct wmManipulatorProperty *WM_manipulator_property_find(
+/* wm_maniulator_target_props.c */
+struct wmManipulatorProperty *WM_manipulator_target_property_find(
         struct wmManipulator *mpr, const char *idname);
 
-void WM_manipulator_property_def_rna(
+void WM_manipulator_target_property_def_rna(
         struct wmManipulator *mpr, const char *idname,
         struct PointerRNA *ptr, const char *propname, int index);
-void WM_manipulator_property_def_func(
+void WM_manipulator_target_property_def_func(
         struct wmManipulator *mpr, const char *idname,
         const struct wmManipulatorPropertyFnParams *params);
 
-bool WM_manipulator_property_is_valid(
+bool WM_manipulator_target_property_is_valid(
         const struct wmManipulatorProperty *mpr_prop);
-float WM_manipulator_property_value_get(
+float WM_manipulator_target_property_value_get(
         const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop);
-void  WM_manipulator_property_value_set(
+void  WM_manipulator_target_property_value_set(
         struct bContext *C, const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
         const float value);
 
-void WM_manipulator_property_value_get_array(
+void WM_manipulator_target_property_value_get_array(
         const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
         float *value, const int value_len);
-void WM_manipulator_property_value_set_array(
+void WM_manipulator_target_property_value_set_array(
         struct bContext *C, const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
         const float *value, const int value_len);
 
-void WM_manipulator_property_range_get(
+void WM_manipulator_target_property_range_get(
         const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
         float range[2]);
 

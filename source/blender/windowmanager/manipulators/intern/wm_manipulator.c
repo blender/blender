@@ -197,7 +197,7 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 	if (mpr->op_data.ptr.data) {
 		WM_operator_properties_free(&mpr->op_data.ptr);
 	}
-	BLI_freelistN(&mpr->properties_edit);
+	BLI_freelistN(&mpr->target_properties);
 
 	if (mpr->ptr != NULL) {
 		WM_manipulator_properties_free(mpr->ptr);
@@ -461,9 +461,9 @@ void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 static void manipulator_update_prop_data(wmManipulator *mpr)
 {
 	/* manipulator property might have been changed, so update manipulator */
-	if (mpr->type->property_update && !BLI_listbase_is_empty(&mpr->properties_edit)) {
-		for (wmManipulatorProperty *mpr_prop = mpr->properties_edit.first; mpr_prop; mpr_prop = mpr_prop->next) {
-			if (WM_manipulator_property_is_valid(mpr_prop)) {
+	if (mpr->type->property_update && !BLI_listbase_is_empty(&mpr->target_properties)) {
+		for (wmManipulatorProperty *mpr_prop = mpr->target_properties.first; mpr_prop; mpr_prop = mpr_prop->next) {
+			if (WM_manipulator_target_property_is_valid(mpr_prop)) {
 				mpr->type->property_update(mpr, mpr_prop);
 			}
 		}

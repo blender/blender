@@ -1090,7 +1090,7 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 
 	/* Setup property callbacks */
 	{
-		WM_manipulator_property_def_func(
+		WM_manipulator_target_property_def_func(
 		        man->translate_z, "offset",
 		        &(const struct wmManipulatorPropertyFnParams) {
 		            .value_get_fn = manipulator_spin_prop_depth_get,
@@ -1099,7 +1099,7 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 		            .user_data = NULL,
 		        });
 
-		WM_manipulator_property_def_func(
+		WM_manipulator_target_property_def_func(
 		        man->translate_c, "offset",
 		        &(const struct wmManipulatorPropertyFnParams) {
 		            .value_get_fn = manipulator_spin_prop_translate_get,
@@ -1108,7 +1108,7 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 		            .user_data = NULL,
 		        });
 
-		WM_manipulator_property_def_func(
+		WM_manipulator_target_property_def_func(
 		        man->rotate_c, "offset",
 		        &(const struct wmManipulatorPropertyFnParams) {
 		            .value_get_fn = manipulator_spin_prop_axis_angle_get,
@@ -1117,7 +1117,7 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 		            .user_data = NULL,
 		        });
 
-		WM_manipulator_property_def_func(
+		WM_manipulator_target_property_def_func(
 		        man->angle_z, "offset",
 		        &(const struct wmManipulatorPropertyFnParams) {
 		            .value_get_fn = manipulator_spin_prop_angle_get,

@@ -628,7 +628,7 @@ static void manipulator_mesh_bisect_setup(const bContext *C, wmManipulatorGroup 
 
 	/* Setup property callbacks */
 	{
-		WM_manipulator_property_def_func(
+		WM_manipulator_target_property_def_func(
 		        man->translate_z, "offset",
 		        &(const struct wmManipulatorPropertyFnParams) {
 		            .value_get_fn = manipulator_bisect_prop_depth_get,
@@ -637,7 +637,7 @@ static void manipulator_mesh_bisect_setup(const bContext *C, wmManipulatorGroup 
 		            .user_data = NULL,
 		        });
 
-		WM_manipulator_property_def_func(
+		WM_manipulator_target_property_def_func(
 		        man->translate_c, "offset",
 		        &(const struct wmManipulatorPropertyFnParams) {
 		            .value_get_fn = manipulator_bisect_prop_translate_get,
@@ -646,7 +646,7 @@ static void manipulator_mesh_bisect_setup(const bContext *C, wmManipulatorGroup 
 		            .user_data = NULL,
 		        });
 
-		WM_manipulator_property_def_func(
+		WM_manipulator_target_property_def_func(
 		        man->rotate_c, "offset",
 		        &(const struct wmManipulatorPropertyFnParams) {
 		            .value_get_fn = manipulator_bisect_prop_angle_get,

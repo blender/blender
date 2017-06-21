@@ -510,13 +510,13 @@ static void manipulator_rect_transform_modal(
 
 	wmManipulatorProperty *mpr_prop;
 
-	mpr_prop = WM_manipulator_property_find(mpr, "offset");
+	mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 	if (mpr_prop->prop != NULL) {
 		RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, mpr->matrix_offset[3]);
 		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 	}
 
-	mpr_prop = WM_manipulator_property_find(mpr, "scale");
+	mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
 	if (mpr_prop->prop != NULL) {
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 			RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, scale[0]);
@@ -556,13 +556,13 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 	wmManipulatorProperty *mpr_prop;
 
 	/* reset properties */
-	mpr_prop = WM_manipulator_property_find(mpr, "offset");
+	mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 	if (mpr_prop->prop != NULL) {
 		RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, data->orig_offset);
 		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 	}
 
-	mpr_prop = WM_manipulator_property_find(mpr, "scale");
+	mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
 	if (mpr_prop->prop != NULL) {
 		const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {

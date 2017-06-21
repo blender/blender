@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/manipulators/intern/wm_manipulator_property.c
+/** \file blender/windowmanager/manipulators/intern/wm_manipulator_target_props.c
  *  \ingroup wm
  */
 
@@ -53,30 +53,30 @@
 /** \name Property Definition
  * \{ */
 
-wmManipulatorProperty *WM_manipulator_property_find(wmManipulator *mpr, const char *idname)
+wmManipulatorProperty *WM_manipulator_target_property_find(wmManipulator *mpr, const char *idname)
 {
-	return BLI_findstring(&mpr->properties_edit, idname, offsetof(wmManipulatorProperty, idname));
+	return BLI_findstring(&mpr->target_properties, idname, offsetof(wmManipulatorProperty, idname));
 }
 
-static wmManipulatorProperty *wm_manipulator_property_def_internal(
+static wmManipulatorProperty *wm_manipulator_target_property_def_internal(
         wmManipulator *mpr, const char *idname)
 {
-	wmManipulatorProperty *mpr_prop = WM_manipulator_property_find(mpr, idname);
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, idname);
 
 	if (mpr_prop == NULL) {
 		const uint idname_size = strlen(idname) + 1;
 		mpr_prop = MEM_callocN(sizeof(wmManipulatorProperty) + idname_size, __func__);
 		memcpy(mpr_prop->idname, idname, idname_size);
-		BLI_addtail(&mpr->properties_edit, mpr_prop);
+		BLI_addtail(&mpr->target_properties, mpr_prop);
 	}
 	return mpr_prop;
 }
 
-void WM_manipulator_property_def_rna(
+void WM_manipulator_target_property_def_rna(
         wmManipulator *mpr, const char *idname,
         PointerRNA *ptr, const char *propname, int index)
 {
-	wmManipulatorProperty *mpr_prop = wm_manipulator_property_def_internal(mpr, idname);
+	wmManipulatorProperty *mpr_prop = wm_manipulator_target_property_def_internal(mpr, idname);
 
 	/* if manipulator evokes an operator we cannot use it for property manipulation */
 	mpr->op_data.type = NULL;
@@ -90,11 +90,11 @@ void WM_manipulator_property_def_rna(
 	}
 }
 
-void WM_manipulator_property_def_func(
+void WM_manipulator_target_property_def_func(
         wmManipulator *mpr, const char *idname,
         const wmManipulatorPropertyFnParams *params)
 {
-	wmManipulatorProperty *mpr_prop = wm_manipulator_property_def_internal(mpr, idname);
+	wmManipulatorProperty *mpr_prop = wm_manipulator_target_property_def_internal(mpr, idname);
 
 	/* if manipulator evokes an operator we cannot use it for property manipulation */
 	mpr->op_data.type = NULL;
@@ -117,13 +117,13 @@ void WM_manipulator_property_def_func(
 /** \name Property Access
  * \{ */
 
-bool WM_manipulator_property_is_valid(const wmManipulatorProperty *mpr_prop)
+bool WM_manipulator_target_property_is_valid(const wmManipulatorProperty *mpr_prop)
 {
 	return  ((mpr_prop->prop != NULL) ||
 	         (mpr_prop->custom_func.value_get_fn && mpr_prop->custom_func.value_set_fn));
 }
 
-float WM_manipulator_property_value_get(
+float WM_manipulator_target_property_value_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
 	if (mpr_prop->custom_func.value_get_fn) {
@@ -140,7 +140,7 @@ float WM_manipulator_property_value_get(
 	}
 }
 
-void WM_manipulator_property_value_set(
+void WM_manipulator_target_property_value_set(
         bContext *C, const wmManipulator *mpr,
         wmManipulatorProperty *mpr_prop, const float value)
 {
@@ -159,7 +159,7 @@ void WM_manipulator_property_value_set(
 	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 }
 
-void WM_manipulator_property_value_get_array(
+void WM_manipulator_target_property_value_get_array(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
         float *value, const int value_len)
 {
@@ -172,7 +172,7 @@ void WM_manipulator_property_value_get_array(
 	return RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
 }
 
-void WM_manipulator_property_value_set_array(
+void WM_manipulator_target_property_value_set_array(
         bContext *C, const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
         const float *value, const int value_len)
 {
@@ -187,7 +187,7 @@ void WM_manipulator_property_value_set_array(
 	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 }
 
-void WM_manipulator_property_range_get(
+void WM_manipulator_target_property_range_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
         float range[2])
 {

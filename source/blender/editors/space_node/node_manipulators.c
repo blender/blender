@@ -96,8 +96,8 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 		SpaceNode *snode = CTX_wm_space_node(C);
 		PointerRNA nodeptr;
 		RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode, &nodeptr);
-		WM_manipulator_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
-		WM_manipulator_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
+		WM_manipulator_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
+		WM_manipulator_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
 	}
 	else {
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, true);

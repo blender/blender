@@ -116,12 +116,12 @@ void manipulator_property_data_update(
 		return;
 	}
 
-	float value = WM_manipulator_property_value_get(mpr, mpr_prop);
+	float value = WM_manipulator_target_property_value_get(mpr, mpr_prop);
 
 	if (constrained) {
 		if ((data->flag & MANIPULATOR_CUSTOM_RANGE_SET) == 0) {
 			float range[2];
-			WM_manipulator_property_range_get(mpr, mpr_prop, range);
+			WM_manipulator_target_property_range_get(mpr, mpr_prop, range);
 			data->range = range[1] - range[0];
 			data->min = range[0];
 		}
@@ -136,7 +136,7 @@ void manipulator_property_value_reset(
         bContext *C, const wmManipulator *mpr, ManipulatorInteraction *inter,
         wmManipulatorProperty *mpr_prop)
 {
-	WM_manipulator_property_value_set(C, mpr, mpr_prop, inter->init_value);
+	WM_manipulator_target_property_value_set(C, mpr, mpr_prop, inter->init_value);
 }
 
 /* -------------------------------------------------------------------- */
