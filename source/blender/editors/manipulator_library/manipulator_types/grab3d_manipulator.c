@@ -60,8 +60,8 @@
 #include "WM_types.h"
 
 /* own includes */
-#include "manipulator_geometry.h"
-#include "manipulator_library_intern.h"
+#include "../manipulator_geometry.h"
+#include "../manipulator_library_intern.h"
 
 static void manipulator_grab_modal(bContext *C, wmManipulator *mpr, const wmEvent *event, const int flag);
 

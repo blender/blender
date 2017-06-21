@@ -37,21 +37,20 @@ set(INC_SYS
 )
 
 set(SRC
-	arrow2d_manipulator.c
-	arrow3d_manipulator.c
-	cage2d_manipulator.c
-	dial3d_manipulator.c
-	grab3d_manipulator.c
-	geom_arrow_manipulator.c
-	geom_cube_manipulator.c
-	geom_dial_manipulator.c
 	manipulator_draw_utils.c
-	manipulator_library_presets.c
-	manipulator_library_utils.c
-	primitive3d_manipulator.c
-
 	manipulator_geometry.h
 	manipulator_library_intern.h
+	manipulator_library_presets.c
+	manipulator_library_utils.c
+	geometry/geom_arrow_manipulator.c
+	geometry/geom_cube_manipulator.c
+	geometry/geom_dial_manipulator.c
+	manipulator_types/arrow2d_manipulator.c
+	manipulator_types/arrow3d_manipulator.c
+	manipulator_types/cage2d_manipulator.c
+	manipulator_types/dial3d_manipulator.c
+	manipulator_types/grab3d_manipulator.c
+	manipulator_types/primitive3d_manipulator.c
 )
 
 add_definitions(${GL_DEFINITIONS})

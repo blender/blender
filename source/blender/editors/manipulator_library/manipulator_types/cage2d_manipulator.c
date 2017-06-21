@@ -617,4 +617,4 @@ void ED_manipulatortypes_cage_2d(void)
 	WM_manipulatortype_append(MANIPULATOR_WT_cage_2d);
 }
 
-/** \} */ // Cage Manipulator API
+/** \} */

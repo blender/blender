@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file primitive_manipulator.c
+/** \file primitive3d_manipulator.c
  *  \ingroup wm
  *
  * \name Primitive Manipulator
@@ -52,7 +52,7 @@
 #include "ED_manipulator_library.h"
 
 /* own includes */
-#include "manipulator_library_intern.h"
+#include "../manipulator_library_intern.h"
 
 static float verts_plane[4][3] = {
 	{-1, -1, 0},
@@ -192,4 +192,4 @@ void ED_manipulatortypes_primitive_3d(void)
 	WM_manipulatortype_append(MANIPULATOR_WT_primitive_3d);
 }
 
-/** \} */ // Primitive Manipulator API
+/** \} */

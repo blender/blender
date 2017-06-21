@@ -65,8 +65,8 @@
 #include "WM_types.h"
 
 /* own includes */
-#include "manipulator_geometry.h"
-#include "manipulator_library_intern.h"
+#include "../manipulator_geometry.h"
+#include "../manipulator_library_intern.h"
 
 /* to use custom dials exported to geom_dial_manipulator.c */
 // #define USE_MANIPULATOR_CUSTOM_DIAL
@@ -464,4 +464,4 @@ void ED_manipulatortypes_dial_3d(void)
 	WM_manipulatortype_append(MANIPULATOR_WT_dial_3d);
 }
 
-/** \} */ // Dial Manipulator API
+/** \} */

@@ -65,8 +65,8 @@
 #include "WM_api.h"
 
 /* own includes */
-#include "manipulator_geometry.h"
-#include "manipulator_library_intern.h"
+#include "../manipulator_geometry.h"
+#include "../manipulator_library_intern.h"
 
 /* to use custom arrows exported to geom_arrow_manipulator.c */
 //#define USE_MANIPULATOR_CUSTOM_ARROWS
@@ -491,4 +491,4 @@ void ED_manipulatortypes_arrow_3d(void)
 	WM_manipulatortype_append(MANIPULATOR_WT_arrow_3d);
 }
 
-/** \} */ /* Arrow Manipulator API */
+/** \} */

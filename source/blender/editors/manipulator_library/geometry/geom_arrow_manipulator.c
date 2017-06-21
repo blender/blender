@@ -25,7 +25,7 @@
  *  \ingroup wm
  */
 
-#include "manipulator_geometry.h"
+#include "../manipulator_geometry.h"
 
 static float verts[][3] = {
 	{-0.000000, 0.012320, 0.000000},

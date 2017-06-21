@@ -58,7 +58,7 @@
 /* own includes */
 #include "WM_api.h"
 
-#include "manipulator_library_intern.h"
+#include "../manipulator_library_intern.h"
 
 static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], const float color[4])
 {
@@ -212,4 +212,4 @@ void ED_manipulatortypes_arrow_2d(void)
 	WM_manipulatortype_append(MANIPULATOR_WT_arrow_2d);
 }
 
-/** \} */ /* Arrow Manipulator API */
+/** \} */
