@@ -1842,7 +1842,7 @@ static int pyrna_py_to_prop(
 				    (BPy_StructRNA_Check(value)) &&
 				    (RNA_struct_is_a(((BPy_StructRNA *)value)->ptr.type, &RNA_Operator)))
 				{
-					value = PyObject_GetAttrString(value, "properties");
+					value = PyObject_GetAttr(value, bpy_intern_str_properties);
 					value_new = value;
 				}
 
