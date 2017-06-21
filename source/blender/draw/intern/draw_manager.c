@@ -390,10 +390,12 @@ static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *da
 static void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags)
 {
 	GPU_texture_bind(tex, 0);
-	GPU_texture_filter_mode(tex, flags & DRW_TEX_FILTER);
 	if (flags & DRW_TEX_MIPMAP) {
-		GPU_texture_mipmap_mode(tex, true);
+		GPU_texture_mipmap_mode(tex, true, flags & DRW_TEX_FILTER);
 		DRW_texture_generate_mipmaps(tex);
+	}
+	else {
+		GPU_texture_filter_mode(tex, flags & DRW_TEX_FILTER);
 	}
 	GPU_texture_wrap_mode(tex, flags & DRW_TEX_WRAP);
 	GPU_texture_compare_mode(tex, flags & DRW_TEX_COMPARE);
