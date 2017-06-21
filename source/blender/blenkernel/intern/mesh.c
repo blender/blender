@@ -1337,7 +1337,7 @@ int BKE_mesh_nurbs_displist_to_mdata(
 
 
 /* this may fail replacing ob->data, be sure to check ob->type */
-void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use_orco_uv)
+void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use_orco_uv, const char *obdata_name)
 {
 	Main *bmain = G.main;
 	Object *ob1;
@@ -1364,7 +1364,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 		}
 
 		/* make mesh */
-		me = BKE_mesh_add(bmain, "Mesh");
+		me = BKE_mesh_add(bmain, obdata_name);
 		me->totvert = totvert;
 		me->totedge = totedge;
 		me->totloop = totloop;
@@ -1383,7 +1383,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 		BKE_mesh_calc_normals(me);
 	}
 	else {
-		me = BKE_mesh_add(bmain, "Mesh");
+		me = BKE_mesh_add(bmain, obdata_name);
 		DM_to_mesh(dm, me, ob, CD_MASK_MESH, false);
 	}
 
@@ -1425,7 +1425,7 @@ void BKE_mesh_from_nurbs(Object *ob)
 		disp = ob->curve_cache->disp;
 	}
 
-	BKE_mesh_from_nurbs_displist(ob, &disp, use_orco_uv);
+	BKE_mesh_from_nurbs_displist(ob, &disp, use_orco_uv, cu->id.name);
 }
 
 typedef struct EdgeLink {
@@ -2484,7 +2484,7 @@ Mesh *BKE_mesh_new_from_object(
 
 			/* convert object type to mesh */
 			uv_from_orco = (tmpcu->flag & CU_UV_ORCO) != 0;
-			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco);
+			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco, tmpcu->id.name + 2);
 
 			tmpmesh = tmpobj->data;
 
@@ -2520,7 +2520,7 @@ Mesh *BKE_mesh_new_from_object(
 			if (ob != basis_ob)
 				return NULL;  /* only do basis metaball */
 
-			tmpmesh = BKE_mesh_add(bmain, "Mesh");
+			tmpmesh = BKE_mesh_add(bmain, ((ID *)ob->data)->name + 2);
 			/* BKE_mesh_add gives us a user count we don't need */
 			id_us_min(&tmpmesh->id);
 
@@ -2575,7 +2575,7 @@ Mesh *BKE_mesh_new_from_object(
 				else
 					dm = mesh_create_derived_view(sce, ob, mask);
 
-				tmpmesh = BKE_mesh_add(bmain, "Mesh");
+				tmpmesh = BKE_mesh_add(bmain, ((ID *)ob->data)->name + 2);
 				DM_to_mesh(dm, tmpmesh, ob, mask, true);
 
 				/* Copy autosmooth settings from original mesh. */

@@ -36,6 +36,9 @@ BLACKLIST = {
     "cycles",
     "io_export_dxf",  # TODO, check on why this fails
     'io_import_dxf',  # Because of cydxfentity.so dependency
+
+    # The unpacked wheel is only loaded when actually used, not directly on import:
+    "io_blend_utils/blender_bam-unpacked.whl",
     }
 
 # Some modules need to add to the `sys.path`.
@@ -211,11 +214,10 @@ def load_modules():
          [(os.sep + f + ".py")  for f in BLACKLIST])
 
     for f in source_files:
-        ok = False
         for ignore in ignore_paths:
             if ignore in f:
-                ok = True
-        if not ok:
+                break
+        else:
             raise Exception("Source file %r not loaded in test" % f)
 
     print("loaded %d modules" % len(loaded_files))

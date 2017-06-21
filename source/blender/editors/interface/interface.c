@@ -3179,7 +3179,9 @@ static uiBut *ui_def_but(
 	}
 
 	if (block->flag & UI_BLOCK_RADIAL) {
-		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
+		but->drawflag |= UI_BUT_TEXT_LEFT;
+		if (but->str && but->str[0])
+			but->drawflag |= UI_BUT_ICON_LEFT;
 	}
 	else if ((block->flag & UI_BLOCK_LOOP) ||
 	         ELEM(but->type,

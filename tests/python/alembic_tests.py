@@ -157,6 +157,8 @@ class AbstractAlembicTest(unittest.TestCase):
             if proptype == 'CompoundProperty':
                 # To read those, call self.abcprop() on it.
                 continue
+            if len(parts) < 2:
+                raise ValueError('Error parsing result from abcprop: %s', info.strip())
             valtype_and_arrsize, name_and_extent = parts[1:]
 
             # Parse name and extent
