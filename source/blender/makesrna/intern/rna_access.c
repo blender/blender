@@ -576,6 +576,22 @@ StructRNA *RNA_struct_base(StructRNA *type)
 	return type->base;
 }
 
+/**
+ * Use to find the subtype directly below a base-type.
+ *
+ * So if type were `RNA_SpotLamp`, `RNA_struct_base_of(type, &RNA_ID)` would return `&RNA_Lamp`.
+ */
+const StructRNA *RNA_struct_base_child_of(const StructRNA *type, const StructRNA *parent_type)
+{
+	while (type) {
+		if (type->base == parent_type) {
+			return type;
+		}
+		type = type->base;
+	}
+	return NULL;
+}
+
 bool RNA_struct_is_ID(const StructRNA *type)
 {
 	return (type->flag & STRUCT_ID) != 0;
