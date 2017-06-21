@@ -2621,7 +2621,7 @@ void node_bsdf_toon(vec4 color, float size, float tsmooth, vec3 N, out vec4 resu
 
 void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
-	float clearcoat_gloss, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
+	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
 {
 	/* ambient light */
 	// TODO: set ambient light to an appropriate value
@@ -2725,7 +2725,7 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 			//float FH = schlick_fresnel(LdotH);
 
 			// clearcoat (ior = 1.5 -> F0 = 0.04)
-			float Dr = GTR1(CNdotH, mix(0.1, 0.001, clearcoat_gloss));
+			float Dr = GTR1(CNdotH, sqr(clearcoat_roughness));
 			float Fr = fresnel_dielectric_cos(LdotH, 1.5); //mix(0.04, 1.0, FH);
 			float Gr = smithG_GGX(CNdotL, 0.25) * smithG_GGX(CNdotV, 0.25);
 
