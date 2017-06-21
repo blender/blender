@@ -2630,7 +2630,7 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	float eta = (2.0 / (1.0 - sqrt(0.08 * specular))) - 1.0;
 
 	/* set the viewing vector */
-	vec3 V = -normalize(I);
+	vec3 V = (gl_ProjectionMatrix[3][3] == 0.0) ? -normalize(I) : vec3(0.0, 0.0, 1.0);
 
 	/* get the tangent */
 	vec3 Tangent = T;
