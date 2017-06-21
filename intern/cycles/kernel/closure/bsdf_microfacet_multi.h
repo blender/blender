@@ -360,12 +360,16 @@ ccl_device int bsdf_microfacet_multi_ggx_aniso_setup(MicrofacetBsdf *bsdf)
 	return bsdf_microfacet_multi_ggx_common_setup(bsdf);
 }
 
-ccl_device int bsdf_microfacet_multi_ggx_aniso_fresnel_setup(MicrofacetBsdf *bsdf)
+ccl_device int bsdf_microfacet_multi_ggx_aniso_fresnel_setup(MicrofacetBsdf *bsdf, const ShaderData *sd)
 {
 	if(is_zero(bsdf->T))
 		bsdf->T = make_float3(1.0f, 0.0f, 0.0f);
 
 	bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID;
+
+	float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
+	float F = average(interpolate_fresnel_color(sd->I, bsdf->N, bsdf->ior, F0, bsdf->extra->cspec0));
+	bsdf->sample_weight *= F;
 
 	return bsdf_microfacet_multi_ggx_common_setup(bsdf);
 }
@@ -379,11 +383,15 @@ ccl_device int bsdf_microfacet_multi_ggx_setup(MicrofacetBsdf *bsdf)
 	return bsdf_microfacet_multi_ggx_common_setup(bsdf);
 }
 
-ccl_device int bsdf_microfacet_multi_ggx_fresnel_setup(MicrofacetBsdf *bsdf)
+ccl_device int bsdf_microfacet_multi_ggx_fresnel_setup(MicrofacetBsdf *bsdf, const ShaderData *sd)
 {
 	bsdf->alpha_y = bsdf->alpha_x;
 
 	bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID;
+
+	float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
+	float F = average(interpolate_fresnel_color(sd->I, bsdf->N, bsdf->ior, F0, bsdf->extra->cspec0));
+	bsdf->sample_weight *= F;
 
 	return bsdf_microfacet_multi_ggx_common_setup(bsdf);
 }
@@ -489,7 +497,7 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_setup(MicrofacetBsdf *bsdf)
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_NEEDS_LCG;
 }
 
-ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(MicrofacetBsdf *bsdf)
+ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(MicrofacetBsdf *bsdf, const ShaderData *sd)
 {
 	bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
 	bsdf->alpha_y = bsdf->alpha_x;
@@ -502,6 +510,10 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(MicrofacetBsdf *bsd
 	bsdf->extra->cspec0.z = saturate(bsdf->extra->cspec0.z);
 
 	bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID;
+
+	float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
+	float F = average(interpolate_fresnel_color(sd->I, bsdf->N, bsdf->ior, F0, bsdf->extra->cspec0));
+	bsdf->sample_weight *= F;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_NEEDS_LCG;
 }
