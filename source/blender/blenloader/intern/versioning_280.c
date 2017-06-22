@@ -50,6 +50,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
@@ -425,19 +426,26 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			/* Eevee shader nodes renamed because of the output node system.
 			 * Note that a new output node is not being added here, because it would be overkill
 			 * to handle this case in lib_verify_nodetree. */
+			bool error = false;
 			FOREACH_NODETREE(main, ntree, id) {
 				if (ntree->type == NTREE_SHADER) {
 					for (bNode *node = ntree->nodes.first; node; node = node->next) {
 						if (node->type == SH_NODE_EEVEE_METALLIC && STREQ(node->idname, "ShaderNodeOutputMetallic")) {
 							BLI_strncpy(node->idname, "ShaderNodeEeveeMetallic", sizeof(node->idname));
+							error = true;
 						}
 
 						if (node->type == SH_NODE_EEVEE_SPECULAR && STREQ(node->idname, "ShaderNodeOutputSpecular")) {
 							BLI_strncpy(node->idname, "ShaderNodeEeveeSpecular", sizeof(node->idname));
+							error = true;
 						}
 					}
 				}
 			} FOREACH_NODETREE_END
+			if (error) {
+				BKE_report(fd->reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
+				printf("You need to connect Eevee Metallic and Specular shader nodes to new material output nodes.\n");
+			}
 		}
 	}
 }
