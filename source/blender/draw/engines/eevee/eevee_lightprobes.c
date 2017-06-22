@@ -922,8 +922,7 @@ static void render_scene_to_probe(
 		DRW_draw_pass(psl->depth_pass_cull);
 
 		/* Shading pass */
-		DRW_draw_pass(psl->default_pass);
-		DRW_draw_pass(psl->default_flat_pass);
+		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
 
 		DRW_framebuffer_texture_detach(sldata->probe_rt);
@@ -985,8 +984,7 @@ static void render_scene_to_planar(
 	DRW_draw_pass(psl->depth_pass_clip_cull);
 
 	/* Shading pass */
-	DRW_draw_pass(psl->default_pass);
-	DRW_draw_pass(psl->default_flat_pass);
+	EEVEE_draw_default_passes(psl);
 	DRW_draw_pass(psl->material_pass);
 
 	DRW_state_invert_facing();

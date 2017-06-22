@@ -46,6 +46,26 @@ extern struct DrawEngineType draw_engine_eevee_type;
 // #define IRRADIANCE_CUBEMAP
 #define IRRADIANCE_HL2
 
+/* World shader variations */
+enum {
+	VAR_WORLD_BACKGROUND,
+	VAR_WORLD_PROBE,
+};
+
+/* Material shader variations */
+enum {
+	VAR_MAT_MESH     = (1 << 0),
+	VAR_MAT_PROBE    = (1 << 1),
+	VAR_MAT_HAIR     = (1 << 2),
+	VAR_MAT_AO       = (1 << 3),
+	VAR_MAT_FLAT     = (1 << 4),
+	VAR_MAT_BENT     = (1 << 5),
+	/* Max number of variation */
+	/* IMPORTANT : Leave it last and set
+	 * it's value accordingly. */
+	VAR_MAT_MAX      = (1 << 6)
+};
+
 typedef struct EEVEE_PassList {
 	/* Shadows */
 	struct DRWPass *shadow_pass;
@@ -77,9 +97,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *depth_pass_cull;
 	struct DRWPass *depth_pass_clip;
 	struct DRWPass *depth_pass_clip_cull;
-	struct DRWPass *default_pass;
-	struct DRWPass *default_flat_pass;
-	struct DRWPass *default_hair_pass;
+	struct DRWPass *default_pass[VAR_MAT_MAX];
 	struct DRWPass *material_pass;
 	struct DRWPass *background_pass;
 } EEVEE_PassList;
@@ -393,9 +411,10 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
 struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_mesh_lightprobe_get(struct Scene *scene, Material *ma);
-struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma);
-struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma);
+struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);
+struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);
 void EEVEE_materials_free(void);
+void EEVEE_draw_default_passes(EEVEE_PassList *psl);
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_SceneLayerData *sldata);
