@@ -180,12 +180,18 @@ static bool manipulator_prepare_drawing(
         wmManipulatorMap *mmap, wmManipulator *mpr,
         const bContext *C, ListBase *draw_manipulators)
 {
-	if (!wm_manipulator_is_visible(mpr)) {
+	int do_draw = wm_manipulator_is_visible(mpr);
+	if (do_draw == 0) {
 		/* skip */
 	}
 	else {
-		wm_manipulator_update(mpr, C, (mmap->update_flag & MANIPULATORMAP_REFRESH) != 0);
-		BLI_addhead(draw_manipulators, BLI_genericNodeN(mpr));
+		if (do_draw & WM_MANIPULATOR_IS_VISIBLE_UPDATE) {
+			/* hover manipulators need updating, even if we don't draw them */
+			wm_manipulator_update(mpr, C, (mmap->update_flag & MANIPULATORMAP_REFRESH) != 0);
+		}
+		if (do_draw & WM_MANIPULATOR_IS_VISIBLE_DRAW) {
+			BLI_addhead(draw_manipulators, BLI_genericNodeN(mpr));
+		}
 		return true;
 	}
 

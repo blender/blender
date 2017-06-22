@@ -43,7 +43,12 @@ bool wm_manipulator_select(bContext *C, struct wmManipulatorMap *mmap, struct wm
 
 void wm_manipulator_calculate_scale(struct wmManipulator *mpr, const bContext *C);
 void wm_manipulator_update(struct wmManipulator *mpr, const bContext *C, const bool refresh_map);
-bool wm_manipulator_is_visible(struct wmManipulator *mpr);
+
+int wm_manipulator_is_visible(struct wmManipulator *mpr);
+enum {
+	WM_MANIPULATOR_IS_VISIBLE_UPDATE = (1 << 0),
+	WM_MANIPULATOR_IS_VISIBLE_DRAW = (1 << 1),
+};
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorGroup */

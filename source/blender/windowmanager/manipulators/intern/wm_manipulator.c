@@ -490,26 +490,26 @@ void wm_manipulator_update(wmManipulator *mpr, const bContext *C, const bool ref
 	wm_manipulator_calculate_scale(mpr, C);
 }
 
-bool wm_manipulator_is_visible(wmManipulator *mpr)
+int wm_manipulator_is_visible(wmManipulator *mpr)
 {
 	if (mpr->flag & WM_MANIPULATOR_HIDDEN) {
-		return false;
+		return 0;
 	}
 	if ((mpr->state & WM_MANIPULATOR_STATE_ACTIVE) &&
 	    !(mpr->flag & (WM_MANIPULATOR_DRAW_ACTIVE | WM_MANIPULATOR_DRAW_VALUE)))
 	{
 		/* don't draw while active (while dragging) */
-		return false;
+		return 0;
 	}
 	if ((mpr->flag & WM_MANIPULATOR_DRAW_HOVER) &&
 	    !(mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) &&
 	    !(mpr->state & WM_MANIPULATOR_STATE_SELECT)) /* still draw selected manipulators */
 	{
-		/* only draw on mouse hover */
-		return false;
+		/* update but don't draw */
+		return WM_MANIPULATOR_IS_VISIBLE_UPDATE;
 	}
 
-	return true;
+	return WM_MANIPULATOR_IS_VISIBLE_UPDATE | WM_MANIPULATOR_IS_VISIBLE_DRAW;
 }
 
 
