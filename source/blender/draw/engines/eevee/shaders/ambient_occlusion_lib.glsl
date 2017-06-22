@@ -124,7 +124,7 @@ void gtao(vec3 normal, vec3 position, vec2 noise, out float visibility
 #endif
 	}
 
-	visibility = min(1.0, visibility / aoSamples);
+	visibility = clamp(visibility / aoSamples, 1e-8, 1.0);
 
 #ifdef USE_BENT_NORMAL
 	/* The bent normal will show the facet look of the mesh. Try to minimize this. */
@@ -132,7 +132,7 @@ void gtao(vec3 normal, vec3 position, vec2 noise, out float visibility
 #endif
 
 	/* Scale by user factor */
-	visibility = max(0.0, mix(aoFactor, 1.0, visibility));
+	visibility = pow(visibility, aoFactor);
 }
 
 /* Multibounce approximation base on surface albedo.

@@ -391,7 +391,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		/* Ambient Occlusion*/
 		stl->effects->ao_dist = BKE_collection_engine_property_value_get_float(props, "gtao_distance");
 		stl->effects->ao_samples = BKE_collection_engine_property_value_get_int(props, "gtao_samples");
-		stl->effects->ao_factor = 1.0f - BKE_collection_engine_property_value_get_float(props, "gtao_factor");
+		stl->effects->ao_factor = BKE_collection_engine_property_value_get_float(props, "gtao_factor");
 	}
 
 	/* MinMax Pyramid */

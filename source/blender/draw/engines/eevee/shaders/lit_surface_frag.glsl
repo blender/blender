@@ -494,7 +494,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 
 	vec3 indirect_radiance =
 	        spec_accum.rgb * F_ibl(f0, brdf_lut) * float(specToggle) * specular_occlusion(dot(sd.N, sd.V), final_ao, roughness) +
-	        diff_accum.rgb * albedo * final_ao;
+	        diff_accum.rgb * albedo * gtao_multibounce(final_ao, albedo);
 
 	return radiance + indirect_radiance;
 }
