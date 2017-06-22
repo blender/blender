@@ -1263,6 +1263,7 @@ class INFO_MT_add(Menu):
             INFO_MT_camera_add.draw(self, context)
 
         layout.menu("INFO_MT_lamp_add", icon='OUTLINER_OB_LAMP')
+        layout.separator()
         layout.menu("INFO_MT_lightprobe_add")
         layout.separator()
 

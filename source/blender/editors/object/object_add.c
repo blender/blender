@@ -153,11 +153,12 @@ static EnumPropertyItem field_type_items[] = {
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
-	{0, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", "Reflection probe with sphere attenuation"},
-	{1, "CUBE", ICON_MESH_CUBE, "Cube", "Reflection probe with cube attenuation"},
-	{2, "PLANAR", ICON_MESH_PLANE, "Planar", "Planar reflection probe"},
-	// {LIGHTPROBE_TYPE_IMAGE, "IMAGE", ICON_NONE, "Image", ""},
-	{3, "GRID", ICON_MESH_GRID, "Grid", "Irradiance probe to capture diffuse indirect lighting"},
+	{LIGHTPROBE_TYPE_CUBE, "SPHERE", ICON_MESH_UVSPHERE, "Reflection Cubemap",
+     "Reflection probe with spherical or cubic attenuation"},
+	{LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_MESH_PLANE, "Reflection Plane",
+     "Planar reflection probe"},
+	{LIGHTPROBE_TYPE_GRID, "GRID", ICON_MESH_GRID, "Irradiance Volume",
+     "Irradiance probe to capture diffuse indirect lighting"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -521,36 +522,39 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 	bool enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
-	float dia;
+	float radius;
 
 	WM_operator_view3d_unit_defaults(C, op);
 	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
 	type = RNA_enum_get(op->ptr, "type");
-	dia = RNA_float_get(op->ptr, "radius");
+	radius = RNA_float_get(op->ptr, "radius");
 
-	const char *name = CTX_DATA_(BLT_I18NCONTEXT_ID_OBJECT, "LightProbe");
+	const char *name = CTX_DATA_(BLT_I18NCONTEXT_ID_OBJECT, "Light Probe");
 	ob = ED_object_add_type(C, OB_LIGHTPROBE, name, loc, rot, false, layer);
-	BKE_object_obdata_size_init(ob, dia);
+	BKE_object_obdata_size_init(ob, radius);
 
 	probe = (LightProbe *)ob->data;
+	probe->type = type;
 
-	if (type == 3) {
-		probe->type = LIGHTPROBE_TYPE_GRID;
-		probe->distinf = 0.3f;
-		probe->falloff = 1.0f;
-	}
-	else if (type == 2) {
-		probe->type = LIGHTPROBE_TYPE_PLANAR;
-		probe->distinf = 0.1f;
-		probe->falloff = 0.5f;
-		probe->clipsta = 0.001f;
-		ob->empty_drawsize = 0.5f;
-	}
-	else {
-		probe->type = LIGHTPROBE_TYPE_CUBE;
-		probe->attenuation_type = (type == 1) ? LIGHTPROBE_SHAPE_BOX : LIGHTPROBE_SHAPE_ELIPSOID;
+	switch (type) {
+		case LIGHTPROBE_TYPE_GRID:
+			probe->distinf = 0.3f;
+			probe->falloff = 1.0f;
+			break;
+		case LIGHTPROBE_TYPE_PLANAR:
+			probe->distinf = 0.1f;
+			probe->falloff = 0.5f;
+			probe->clipsta = 0.001f;
+			ob->empty_drawsize = 0.5f;
+			break;
+		case LIGHTPROBE_TYPE_CUBE:
+			probe->attenuation_type = LIGHTPROBE_SHAPE_ELIPSOID;
+			break;
+		default:
+			BLI_assert(!"Lightprobe type not configured.");
+			break;
 	}
 
 	DEG_relations_tag_update(CTX_data_main(C));
