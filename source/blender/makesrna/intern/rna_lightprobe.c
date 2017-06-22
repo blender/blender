@@ -85,14 +85,16 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
-	RNA_def_property_range(prop, 0.0f, 999999.0f);
+	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_ui_text(prop, "Clip Start",
 	                         "Probe clip start, below which objects will not appear in reflections");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
-	RNA_def_property_range(prop, 0.0f, 999999.0f);
+	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_ui_text(prop, "Clip End",
 	                         "Probe clip end, beyond which objects will not appear in reflections");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
@@ -115,7 +117,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "influence_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "distinf");
-	RNA_def_property_range(prop, 0.0f, 99999.f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Influence Distance", "Influence distance of the probe");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
@@ -141,7 +143,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "parallax_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "distpar");
-	RNA_def_property_range(prop, 0.0f, 99999.f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Parallax Radius", "Lowest corner of the parallax bounding box");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
