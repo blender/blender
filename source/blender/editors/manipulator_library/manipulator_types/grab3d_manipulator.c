@@ -197,8 +197,8 @@ static void manipulator_grab_modal(bContext *C, wmManipulator *mpr, const wmEven
 
 	/* set the property for the operator and call its modal function */
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (mpr_prop && WM_manipulator_target_property_is_valid(mpr_prop)) {
-		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, inter->output.co_final, 3);
+	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
+		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, inter->output.co_final);
 	}
 }
 
@@ -211,8 +211,8 @@ static void manipulator_grab_invoke(
 	inter->init_mval[1] = event->mval[1];
 
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (mpr_prop && WM_manipulator_target_property_is_valid(mpr_prop)) {
-		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, inter->init_prop_co, 3);
+	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
+		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, inter->init_prop_co);
 	}
 
 	mpr->interaction_data = inter;
@@ -250,6 +250,8 @@ static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
 
 	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_GRAB_STYLE_RING, "Draw Style", "");
 	RNA_def_enum_flag(wt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
+
+	WM_manipulatortype_target_property_def(wt, "offset", PROP_FLOAT, 3);
 }
 
 void ED_manipulatortypes_grab_3d(void)

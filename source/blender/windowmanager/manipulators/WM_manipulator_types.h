@@ -110,15 +110,9 @@ struct wmManipulator {
 		PointerRNA ptr;
 	} op_data;
 
-	/* Properties 'wmManipulatorProperty' attached to various manipulator parameters.
-	 * As the manipulator is interacted with, those properties get updated.
-	 *
-	 * Public API's should use string names,
-	 * private API's can pass 'wmManipulatorProperty' directly.
-	 */
-	ListBase target_properties;
-
 	struct IDProperty *properties;
+
+	/* over alloc target_properties after 'wmManipulatorType.struct_size' */
 };
 
 typedef void (*wmManipulatorGroupFnInit)(
@@ -126,23 +120,38 @@ typedef void (*wmManipulatorGroupFnInit)(
 
 /* Similar to PropertyElemRNA, but has an identifier. */
 typedef struct wmManipulatorProperty {
-	struct wmManipulatorProperty *next, *prev;
+	const struct wmManipulatorPropertyType *type;
+
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	int index;
+
 
 	/* Optional functions for converting to/from RNA  */
 	struct {
 		wmManipulatorPropertyFnGet value_get_fn;
 		wmManipulatorPropertyFnSet value_set_fn;
 		wmManipulatorPropertyFnRangeGet range_get_fn;
+		wmManipulatorPropertyFnFree free_fn;
 		const struct bContext *context;
 		void *user_data;
 	} custom_func;
+} wmManipulatorProperty;
+
+typedef struct wmManipulatorPropertyType {
+	struct wmManipulatorPropertyType *next, *prev;
+	/* PropertyType, typically 'PROP_FLOAT' */
+	int type;
+	int array_length;
+
+	/* index within 'wmManipulatorType' */
+	int index_in_type;
 
 	/* over alloc */
 	char idname[0];
-} wmManipulatorProperty;
+} wmManipulatorPropertyType;
+
+
 
 /**
  * Simple utility wrapper for storing a single manipulator as wmManipulatorGroup.customdata (which gets freed).
@@ -233,6 +242,10 @@ typedef struct wmManipulatorType {
 
 	/* RNA integration */
 	ExtensionRNA ext;
+
+	ListBase target_property_defs;
+	int target_property_defs_len;
+
 } wmManipulatorType;
 
 

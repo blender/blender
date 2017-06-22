@@ -890,14 +890,14 @@ static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
 
 /* depth callbacks */
 static void manipulator_spin_prop_depth_get(
-        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
-        float *value, uint value_len)
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        float *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(value_len == 1);
-	UNUSED_VARS_NDEBUG(value_len);
+	BLI_assert(mpr_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(mpr_prop);
 
 	float plane_co[3], plane_no[3];
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
@@ -907,14 +907,14 @@ static void manipulator_spin_prop_depth_get(
 }
 
 static void manipulator_spin_prop_depth_set(
-        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
-        const float *value, uint value_len)
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        const float *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(value_len == 1);
-	UNUSED_VARS_NDEBUG(value_len);
+	BLI_assert(mpr_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(mpr_prop);
 
 	float plane_co[3], plane[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
@@ -933,24 +933,28 @@ static void manipulator_spin_prop_depth_set(
 
 /* translate callbacks */
 static void manipulator_spin_prop_translate_get(
-        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
-        float *value, uint value_len)
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        float *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(value_len == 3);
+	BLI_assert(mpr_prop->type->array_length == 3);
+	UNUSED_VARS_NDEBUG(mpr_prop);
+
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, value);
 }
 
 static void manipulator_spin_prop_translate_set(
-        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
-        const float *value, uint value_len)
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        const float *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(value_len == 3);
+	BLI_assert(mpr_prop->type->array_length == 3);
+	UNUSED_VARS_NDEBUG(mpr_prop);
+
 	RNA_property_float_set_array(op->ptr, man->data.prop_axis_co, value);
 
 	manipulator_spin_exec(man);
@@ -958,14 +962,14 @@ static void manipulator_spin_prop_translate_set(
 
 /* angle callbacks */
 static void manipulator_spin_prop_axis_angle_get(
-        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
-        float *value, uint value_len)
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        float *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(value_len == 1);
-	UNUSED_VARS_NDEBUG(value_len);
+	BLI_assert(mpr_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(mpr_prop);
 
 	float plane_no[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
@@ -984,14 +988,14 @@ static void manipulator_spin_prop_axis_angle_get(
 }
 
 static void manipulator_spin_prop_axis_angle_set(
-        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
-        const float *value, uint value_len)
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        const float *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(value_len == 1);
-	UNUSED_VARS_NDEBUG(value_len);
+	BLI_assert(mpr_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(mpr_prop);
 
 	float plane_no[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
@@ -1018,22 +1022,24 @@ static void manipulator_spin_prop_axis_angle_set(
 
 /* angle callbacks */
 static void manipulator_spin_prop_angle_get(
-        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
-        float *value, uint value_len)
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        float *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
-	BLI_assert(value_len == 1);
+	BLI_assert(mpr_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(mpr_prop);
 	value[0] = RNA_property_float_get(op->ptr, man->data.prop_angle);
 }
 
 static void manipulator_spin_prop_angle_set(
-        const wmManipulator *mpr, wmManipulatorProperty *UNUSED(mpr_prop), void *UNUSED(user_data),
-        const float *value, uint value_len)
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+        const float *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
-	BLI_assert(value_len == 1);
+	BLI_assert(mpr_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(mpr_prop);
 	RNA_property_float_set(op->ptr, man->data.prop_angle, value[0]);
 
 	manipulator_spin_exec(man);

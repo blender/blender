@@ -39,9 +39,11 @@
 struct ARegion;
 struct GHashIterator;
 struct Main;
+struct PropertyRNA;
 struct wmKeyConfig;
 struct wmManipulator;
 struct wmManipulatorProperty;
+struct wmManipulatorPropertyType;
 struct wmManipulatorType;
 struct wmManipulatorGroup;
 struct wmManipulatorGroupType;
@@ -132,16 +134,27 @@ void WM_manipulatorconfig_update(struct Main *bmain);
 
 
 /* wm_maniulator_target_props.c */
+struct wmManipulatorProperty *WM_manipulator_target_property_array(struct wmManipulator *mpr);
+struct wmManipulatorProperty *WM_manipulator_target_property_at_index(
+        struct wmManipulator *mpr, int index);
 struct wmManipulatorProperty *WM_manipulator_target_property_find(
         struct wmManipulator *mpr, const char *idname);
 
+void WM_manipulator_target_property_def_rna_ptr(
+        struct wmManipulator *mpr, const struct wmManipulatorPropertyType *mpr_prop_type,
+        struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 void WM_manipulator_target_property_def_rna(
         struct wmManipulator *mpr, const char *idname,
         struct PointerRNA *ptr, const char *propname, int index);
+
+void WM_manipulator_target_property_def_func_ptr(
+        struct wmManipulator *mpr, const struct wmManipulatorPropertyType *mpr_prop_type,
+        const struct wmManipulatorPropertyFnParams *params);
 void WM_manipulator_target_property_def_func(
         struct wmManipulator *mpr, const char *idname,
         const struct wmManipulatorPropertyFnParams *params);
 
+bool WM_manipulator_target_property_is_valid_any(struct wmManipulator *mpr);
 bool WM_manipulator_target_property_is_valid(
         const struct wmManipulatorProperty *mpr_prop);
 float WM_manipulator_target_property_value_get(
@@ -152,14 +165,21 @@ void  WM_manipulator_target_property_value_set(
 
 void WM_manipulator_target_property_value_get_array(
         const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
-        float *value, const int value_len);
+        float *value);
 void WM_manipulator_target_property_value_set_array(
         struct bContext *C, const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
-        const float *value, const int value_len);
+        const float *value);
 
 void WM_manipulator_target_property_range_get(
         const struct wmManipulator *mpr, struct wmManipulatorProperty *mpr_prop,
         float range[2]);
+
+/* definitions */
+const struct wmManipulatorPropertyType *WM_manipulatortype_target_property_find(
+        const struct wmManipulatorType *wt, const char *idname);
+void WM_manipulatortype_target_property_def(
+        struct wmManipulatorType *wt, const char *idname, int type, int array_length);
+
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorGroup */

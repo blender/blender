@@ -119,6 +119,7 @@ void WM_manipulatortype_append_ptr(void (*wtfunc)(struct wmManipulatorType *, vo
  */
 static void manipulatortype_free(wmManipulatorType *wt)
 {
+	BLI_freelistN(&wt->target_property_defs);
 	MEM_freeN(wt);
 }
 

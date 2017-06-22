@@ -489,8 +489,6 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	wm_dropbox_free();
 	WM_menutype_free();
 	WM_uilisttype_free();
-	wm_manipulatorgrouptype_free();
-	wm_manipulatortype_free();
 	
 	/* all non-screen and non-space stuff editors did, like editmode */
 	if (C)
@@ -535,6 +533,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 
 	/* free manipulator-maps after freeing blender, so no deleted data get accessed during cleaning up of areas */
 	wm_manipulatormaptypes_free();
+	wm_manipulatorgrouptype_free();
+	wm_manipulatortype_free();
 
 	BLF_exit();
 

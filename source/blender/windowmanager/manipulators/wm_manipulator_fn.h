@@ -60,19 +60,22 @@ typedef void    (*wmManipulatorFnSelect)(struct bContext *, struct wmManipulator
 
 /* wmManipulatorProperty */
 typedef void (*wmManipulatorPropertyFnGet)(
-        const struct wmManipulator *, struct wmManipulatorProperty *, void *user_data,
-        float *value, uint value_len);
+        const struct wmManipulator *, struct wmManipulatorProperty *,
+        float *value);
 typedef void (*wmManipulatorPropertyFnSet)(
-        const struct wmManipulator *, struct wmManipulatorProperty *, void *user_data,
-        const float *value, uint value_len);
+        const struct wmManipulator *, struct wmManipulatorProperty *,
+        const float *value);
 typedef void (*wmManipulatorPropertyFnRangeGet)(
-        const struct wmManipulator *, struct wmManipulatorProperty *, void *user_data,
+        const struct wmManipulator *, struct wmManipulatorProperty *,
         float range[2]);
+typedef void (*wmManipulatorPropertyFnFree)(
+        const struct wmManipulator *, struct wmManipulatorProperty *);
 
 typedef struct wmManipulatorPropertyFnParams {
 	wmManipulatorPropertyFnGet value_get_fn;
 	wmManipulatorPropertyFnSet value_set_fn;
 	wmManipulatorPropertyFnRangeGet range_get_fn;
+	wmManipulatorPropertyFnFree free_fn;
 	void *user_data;
 } wmManipulatorPropertyFnParams;
 

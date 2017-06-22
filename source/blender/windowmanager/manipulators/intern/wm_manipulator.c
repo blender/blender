@@ -77,7 +77,8 @@ static wmManipulator *wm_manipulator_create(
 	BLI_assert(wt != NULL);
 	BLI_assert(wt->struct_size >= sizeof(wmManipulator));
 
-	wmManipulator *mpr = MEM_callocN(wt->struct_size, __func__);
+	wmManipulator *mpr = MEM_callocN(
+	        wt->struct_size + (sizeof(wmManipulatorProperty) * wt->target_property_defs_len), __func__);
 	mpr->type = wt;
 
 	/* initialize properties, either copy or create */
@@ -197,11 +198,20 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 	if (mpr->op_data.ptr.data) {
 		WM_operator_properties_free(&mpr->op_data.ptr);
 	}
-	BLI_freelistN(&mpr->target_properties);
 
 	if (mpr->ptr != NULL) {
 		WM_manipulator_properties_free(mpr->ptr);
 		MEM_freeN(mpr->ptr);
+	}
+
+	if (mpr->type->target_property_defs_len != 0) {
+		wmManipulatorProperty *mpr_prop_array = WM_manipulator_target_property_array(mpr);
+		for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
+			wmManipulatorProperty *mpr_prop = &mpr_prop_array[i];
+			if (mpr_prop->custom_func.free_fn) {
+				mpr_prop->custom_func.free_fn(mpr, mpr_prop);
+			}
+		}
 	}
 
 	if (manipulatorlist) {
@@ -461,8 +471,10 @@ void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 static void manipulator_update_prop_data(wmManipulator *mpr)
 {
 	/* manipulator property might have been changed, so update manipulator */
-	if (mpr->type->property_update && !BLI_listbase_is_empty(&mpr->target_properties)) {
-		for (wmManipulatorProperty *mpr_prop = mpr->target_properties.first; mpr_prop; mpr_prop = mpr_prop->next) {
+	if (mpr->type->property_update) {
+		wmManipulatorProperty *mpr_prop_array = WM_manipulator_target_property_array(mpr);
+		for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
+			wmManipulatorProperty *mpr_prop = &mpr_prop_array[i];
 			if (WM_manipulator_target_property_is_valid(mpr_prop)) {
 				mpr->type->property_update(mpr, mpr_prop);
 			}

@@ -228,7 +228,7 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 		aspy = w / h;
 	}
 	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / scale[0]);
-	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / 
+	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH /
 	           ((transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? scale[0] : scale[1]));
 
 	/* corner manipulators */
@@ -303,7 +303,7 @@ static int manipulator_rect_transform_test_select(
 		aspy = w / h;
 	}
 	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / scale[0]);
-	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / 
+	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH /
 	           ((transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? scale[0] : scale[1]));
 
 
@@ -383,14 +383,14 @@ static bool manipulator_rect_transform_get_prop_value(
 		return false;
 	}
 	else {
-		if (STREQ(mpr_prop->idname, "offset")) {
+		if (STREQ(mpr_prop->type->idname, "offset")) {
 			if (RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop) != 2) {
 				fprintf(stderr, "Rect Transform manipulator offset not only be bound to array float property");
 				return false;
 			}
 			RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
 		}
-		else if (STREQ(mpr_prop->idname, "scale")) {
+		else if (STREQ(mpr_prop->type->idname, "scale")) {
 			const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
 			if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 				*value = RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
@@ -533,10 +533,10 @@ static void manipulator_rect_transform_modal(
 
 static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
-	if (STREQ(mpr_prop->idname, "offset")) {
+	if (STREQ(mpr_prop->type->idname, "offset")) {
 		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, mpr->matrix_offset[3]);
 	}
-	else if (STREQ(mpr_prop->idname, "scale")) {
+	else if (STREQ(mpr_prop->type->idname, "scale")) {
 		float scale[2];
 		RNA_float_get_array(mpr->ptr, "scale", scale);
 		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, scale);
@@ -610,6 +610,10 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 	RNA_def_float_vector(wt->srna, "scale", 2, scale_default, 0, FLT_MAX, "Scale", "", 0.0f, FLT_MAX);
 	RNA_def_float_vector(wt->srna, "dimensions", 2, NULL, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);
 	RNA_def_enum_flag(wt->srna, "transform", rna_enum_transform, 0, "Transform Options", "");
+
+	WM_manipulatortype_target_property_def(wt, "offset", PROP_FLOAT, 1);
+	WM_manipulatortype_target_property_def(wt, "scale", PROP_FLOAT, 2);
+	WM_manipulatortype_target_property_def(wt, "scale_uniform", PROP_FLOAT, 1);
 }
 
 void ED_manipulatortypes_cage_2d(void)

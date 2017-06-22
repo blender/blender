@@ -369,7 +369,7 @@ static void manipulator_arrow_invoke(
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 
 	/* Some manipulators don't use properties. */
-	if (mpr_prop && WM_manipulator_target_property_is_valid(mpr_prop)) {
+	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
 		inter->init_value = WM_manipulator_target_property_value_get(mpr, mpr_prop);
 	}
 
@@ -424,8 +424,8 @@ void ED_manipulator_arrow3d_set_ui_range(wmManipulator *mpr, const float min, co
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
 	BLI_assert(min < max);
-	BLI_assert(!(WM_manipulator_target_property_find(mpr, "offset") && "Make sure this function "
-	           "is called before WM_manipulator_target_property_def_rna"));
+	BLI_assert(!(WM_manipulator_target_property_is_valid(WM_manipulator_target_property_find(mpr, "offset")) &&
+	             "Make sure this function is called before WM_manipulator_target_property_def_rna"));
 
 	arrow->data.range = max - min;
 	arrow->data.min = min;
@@ -440,8 +440,8 @@ void ED_manipulator_arrow3d_set_ui_range(wmManipulator *mpr, const float min, co
 void ED_manipulator_arrow3d_set_range_fac(wmManipulator *mpr, const float range_fac)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
-	BLI_assert(!(WM_manipulator_target_property_find(mpr, "offset") && "Make sure this function "
-	           "is called before WM_manipulator_target_property_def_rna"));
+	BLI_assert(!(WM_manipulator_target_property_is_valid(WM_manipulator_target_property_find(mpr, "offset")) &&
+	             "Make sure this function is called before WM_manipulator_target_property_def_rna"));
 
 	arrow->data.range_fac = range_fac;
 }
@@ -484,6 +484,8 @@ static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 
 	RNA_def_float(wt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
 	RNA_def_float_vector(wt->srna, "aspect", 2, NULL, 0, FLT_MAX, "Aspect", "Cone/box style only", 0.0f, FLT_MAX);
+
+	WM_manipulatortype_target_property_def(wt, "offset", PROP_FLOAT, 1);
 }
 
 void ED_manipulatortypes_arrow_3d(void)
