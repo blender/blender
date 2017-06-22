@@ -6181,7 +6181,7 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
 
-	prop = RNA_def_property(srna, "gtao_distance", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "gtao_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_distance_get", "rna_LayerEngineSettings_Eevee_gtao_distance_set", NULL);
 	RNA_def_property_ui_text(prop, "Distance", "Distance of object that contribute to the ambient occlusion effect");
 	RNA_def_property_range(prop, 0.0f, 100000.0f);
@@ -6208,7 +6208,7 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bokeh_max_size", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_bokeh_max_size_get",
 	                             "rna_LayerEngineSettings_Eevee_bokeh_max_size_set", NULL);
-	RNA_def_property_ui_text(prop, "Max Size", "Max size of the bokeh shape for the depth of field (lower values increase performance)");
+	RNA_def_property_ui_text(prop, "Max Size", "Max size of the bokeh shape for the depth of field (lower is faster)");
 	RNA_def_property_range(prop, 0.0f, 2000.0f);
 	RNA_def_property_ui_range(prop, 2.0f, 200.0f, 1, 3);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
