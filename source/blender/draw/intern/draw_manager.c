@@ -1340,7 +1340,7 @@ static void DRW_state_set(DRWState state)
 	{
 		DRWState test;
 		if (CHANGED_ANY_STORE_VAR(
-		        DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER,
+		        DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER | DRW_STATE_DEPTH_ALWAYS,
 		        test))
 		{
 			if (test) {
@@ -1354,6 +1354,9 @@ static void DRW_state_set(DRWState state)
 				}
 				else if (state & DRW_STATE_DEPTH_GREATER) {
 					glDepthFunc(GL_GREATER);
+				}
+				else if (state & DRW_STATE_DEPTH_ALWAYS) {
+					glDepthFunc(GL_ALWAYS);
 				}
 				else {
 					BLI_assert(0);
