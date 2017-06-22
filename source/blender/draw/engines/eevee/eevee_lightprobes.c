@@ -135,12 +135,15 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 	int height = (int)(viewport_size[1] * screen_percentage);
 
 	/* We need an Array texture so allocate it ourself */
-	if (!txl->planar_pool && (num_planar_ref > 0)) {
-		txl->planar_pool = DRW_texture_create_2D_array(width, height, max_ff(1, num_planar_ref),
-		                                                 DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-	}
-	else if (txl->planar_pool && (num_planar_ref == 0)) {
-		DRW_TEXTURE_FREE_SAFE(txl->planar_pool);
+	if (!txl->planar_pool) {
+		if (num_planar_ref > 0) {
+			txl->planar_pool = DRW_texture_create_2D_array(width, height, max_ff(1, num_planar_ref),
+			                                                 DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+		}
+		else if (num_planar_ref == 0) {
+			/* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still bound to shader. */
+			txl->planar_pool = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+		}
 	}
 
 	if (num_planar_ref > 0) {

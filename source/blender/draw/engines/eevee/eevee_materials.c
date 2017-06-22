@@ -217,7 +217,7 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCubes", &sldata->shadow_depth_cube_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCascades", &sldata->shadow_depth_cascade_pool);
 	if (vedata->stl->effects->use_ao) {
-		DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)e_data.viewvecs, 3);
+		DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)e_data.viewvecs, 2);
 		DRW_shgroup_uniform_buffer(shgrp, "minMaxDepthTex", &vedata->stl->g_data->minmaxz);
 		DRW_shgroup_uniform_float(shgrp, "aoDistance", &vedata->stl->effects->ao_dist, 1);
 		DRW_shgroup_uniform_float(shgrp, "aoSamples", &vedata->stl->effects->ao_samples, 1);

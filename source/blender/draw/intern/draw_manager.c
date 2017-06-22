@@ -1727,6 +1727,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				break;
 			case DRW_UNIFORM_TEXTURE:
 				tex = (GPUTexture *)uni->value;
+				BLI_assert(tex);
 				GPU_texture_bind(tex, uni->bindloc);
 
 				bound_tex = MEM_callocN(sizeof(DRWBoundTexture), "DRWBoundTexture");
@@ -1740,10 +1741,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 					break;
 				}
 				tex = *((GPUTexture **)uni->value);
-				if (tex == NULL) {
-					/* In case texture is not yet available */
-					break;
-				}
+				BLI_assert(tex);
 				GPU_texture_bind(tex, uni->bindloc);
 
 				bound_tex = MEM_callocN(sizeof(DRWBoundTexture), "DRWBoundTexture");
