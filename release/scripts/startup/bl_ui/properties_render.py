@@ -631,6 +631,7 @@ class RENDER_PT_eevee_poststack_settings(RenderButtonsPanel, Panel):
         props = scene.layer_properties['BLENDER_EEVEE']
 
         col = layout.column()
+        col.prop(props, "gtao_enable")
         col.prop(props, "motion_blur_enable")
         col.prop(props, "dof_enable")
         col.prop(props, "bloom_enable")
@@ -651,6 +652,13 @@ class RENDER_PT_eevee_postprocess_settings(RenderButtonsPanel, Panel):
         props = scene.layer_properties['BLENDER_EEVEE']
 
         col = layout.column()
+
+        col.label("Ambient Occlusion:")
+        col.prop(props, "gtao_use_bent_normals")
+        col.prop(props, "gtao_samples")
+        col.prop(props, "gtao_distance")
+        col.prop(props, "gtao_factor")
+        col.separator()
 
         col.label("Motion Blur:")
         col.prop(props, "motion_blur_samples")

@@ -2588,6 +2588,11 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
 
 /* eevee engine */
 /* SceneLayer settings. */
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(gtao_enable)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(gtao_use_bent_normals)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(gtao_factor)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(gtao_distance)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gtao_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(dof_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bokeh_max_size)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bokeh_threshold)
@@ -6152,6 +6157,46 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_define_verify_sdna(0); /* not in sdna */
 
 	/* see RNA_LAYER_ENGINE_GET_SET macro */
+
+	/* Ambient Occlusion */
+	prop = RNA_def_property(srna, "gtao_enable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_enable_get",
+	                               "rna_LayerEngineSettings_Eevee_gtao_enable_set");
+	RNA_def_property_ui_text(prop, "Ambient Occlusion", "Enable ambient occlusion to simulate medium scale indirect shadowing");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "gtao_use_bent_normals", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_use_bent_normals_get",
+	                               "rna_LayerEngineSettings_Eevee_gtao_use_bent_normals_set");
+	RNA_def_property_ui_text(prop, "Bent Normals", "Compute main non occluded direction to sample the environment");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "gtao_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_factor_get", "rna_LayerEngineSettings_Eevee_gtao_factor_set", NULL);
+	RNA_def_property_ui_text(prop, "Factor", "Factor for ambient occlusion blending");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+
+	prop = RNA_def_property(srna, "gtao_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_distance_get", "rna_LayerEngineSettings_Eevee_gtao_distance_set", NULL);
+	RNA_def_property_ui_text(prop, "Distance", "Distance of object that contribute to the ambient occlusion effect");
+	RNA_def_property_range(prop, 0.0f, 100000.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+
+	prop = RNA_def_property(srna, "gtao_samples", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_samples_get",
+	                           "rna_LayerEngineSettings_Eevee_gtao_samples_set", NULL);
+	RNA_def_property_ui_text(prop, "Samples", "Number of samples to take to compute occlusion");
+	RNA_def_property_range(prop, 2, 32);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
 	/* Depth of Field */
 	prop = RNA_def_property(srna, "dof_enable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_dof_enable_get",
