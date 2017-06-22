@@ -7,6 +7,9 @@
 
 #define LUT_SIZE 64
 
+uniform mat4 ProjectionMatrix;
+uniform vec4 viewvecs[2];
+
 /* ------- Structures -------- */
 
 struct ProbeData {
@@ -248,11 +251,28 @@ float buffer_depth(bool is_persp, float z, float zf, float zn)
 	}
 }
 
+vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
+{
+	if (ProjectionMatrix[3][3] == 0.0) {
+		float d = 2.0 * depth - 1.0;
+		float zview = -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
+		return (viewvecs[0].xyz + vec3(uvcoords, 0.0) * viewvecs[1].xyz) * zview;
+	}
+	else {
+		return viewvecs[0].xyz + vec3(uvcoords, depth) * viewvecs[1].xyz;
+	}
+}
+
 vec3 get_specular_dominant_dir(vec3 N, vec3 R, float roughness)
 {
 	float smoothness = 1.0 - roughness;
 	float fac = smoothness * (sqrt(smoothness) + roughness);
 	return normalize(mix(N, R, fac));
+}
+
+float specular_occlusion(float NV, float AO, float roughness)
+{
+	return saturate(pow(NV + AO, roughness) - 1.0 + AO);
 }
 
 /* Fresnel */

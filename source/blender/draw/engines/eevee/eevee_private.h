@@ -273,6 +273,10 @@ enum {
 typedef struct EEVEE_EffectsInfo {
 	int enabled_effects;
 
+	/* Ambient Occlusion */
+	bool use_ao, use_bent_normals;
+	float ao_dist, ao_samples, ao_factor;
+
 	/* Motion Blur */
 	float current_ndc_to_world[4][4];
 	float past_world_to_ndc[4][4];
@@ -401,7 +405,6 @@ EEVEE_SceneLayerData *EEVEE_scene_layer_data_get(void);
 EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob);
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob);
 EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob);
-
 
 /* eevee_materials.c */
 void EEVEE_materials_init(void);

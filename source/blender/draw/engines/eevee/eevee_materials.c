@@ -75,6 +75,7 @@ static struct {
 	float viewvecs[2][4];
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_ambient_occlusion_lib_glsl[];
 extern char datatoc_prepass_frag_glsl[];
 extern char datatoc_prepass_vert_glsl[];
 extern char datatoc_default_frag_glsl[];
@@ -215,6 +216,13 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *
 	DRW_shgroup_uniform_buffer(shgrp, "irradianceGrid", &sldata->irradiance_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCubes", &sldata->shadow_depth_cube_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCascades", &sldata->shadow_depth_cascade_pool);
+	if (vedata->stl->effects->use_ao) {
+		DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)e_data.viewvecs, 3);
+		DRW_shgroup_uniform_buffer(shgrp, "minMaxDepthTex", &vedata->stl->g_data->minmaxz);
+		DRW_shgroup_uniform_float(shgrp, "aoDistance", &vedata->stl->effects->ao_dist, 1);
+		DRW_shgroup_uniform_float(shgrp, "aoSamples", &vedata->stl->effects->ao_samples, 1);
+		DRW_shgroup_uniform_float(shgrp, "aoFactor", &vedata->stl->effects->ao_factor, 1);
+	}
 }
 
 static void create_default_shader(int options)
@@ -232,6 +240,7 @@ static void create_default_shader(int options)
 	MEM_freeN(defines);
 	MEM_freeN(frag_str);
 }
+
 void EEVEE_materials_init(void)
 {
 	if (!e_data.frag_shader_lib) {
@@ -240,6 +249,7 @@ void EEVEE_materials_init(void)
 		/* Shaders */
 		DynStr *ds_frag = BLI_dynstr_new();
 		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_ambient_occlusion_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_ltc_lib_glsl);
@@ -287,13 +297,56 @@ void EEVEE_materials_init(void)
 
 		for (int i = 0; i < 64 * 64; i++) {
 			texels_layer[i][0] = blue_noise[i][0];
-			texels_layer[i][1] = blue_noise[i][1];
+			texels_layer[i][1] = blue_noise[i][1] * 0.5 + 0.5;
 			texels_layer[i][2] = blue_noise[i][2];
 			texels_layer[i][3] = blue_noise[i][3];
 		}
 
-		e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER, (float *)texels);
+		e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
 		MEM_freeN(texels);
+	}
+
+	{
+		/* Update viewvecs */
+		const bool is_persp = DRW_viewport_is_persp_get();
+		float invproj[4][4], winmat[4][4];
+		/* view vectors for the corners of the view frustum.
+		 * Can be used to recreate the world space position easily */
+		float viewvecs[3][4] = {
+		    {-1.0f, -1.0f, -1.0f, 1.0f},
+		    {1.0f, -1.0f, -1.0f, 1.0f},
+		    {-1.0f, 1.0f, -1.0f, 1.0f}
+		};
+
+		/* invert the view matrix */
+		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
+		invert_m4_m4(invproj, winmat);
+
+		/* convert the view vectors to view space */
+		for (int i = 0; i < 3; i++) {
+			mul_m4_v4(invproj, viewvecs[i]);
+			/* normalized trick see:
+			 * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
+			mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][3]);
+			if (is_persp)
+				mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]);
+			viewvecs[i][3] = 1.0;
+		}
+
+		copy_v4_v4(e_data.viewvecs[0], viewvecs[0]);
+		copy_v4_v4(e_data.viewvecs[1], viewvecs[1]);
+
+		/* we need to store the differences */
+		e_data.viewvecs[1][0] -= viewvecs[0][0];
+		e_data.viewvecs[1][1] = viewvecs[2][1] - viewvecs[0][1];
+
+		/* calculate a depth offset as well */
+		if (!is_persp) {
+			float vec_far[] = {-1.0f, -1.0f, 1.0f, 1.0f};
+			mul_m4_v4(invproj, vec_far);
+			mul_v3_fl(vec_far, 1.0f / vec_far[3]);
+			e_data.viewvecs[1][2] = vec_far[2] - viewvecs[0][2];
+		}
 	}
 }
 

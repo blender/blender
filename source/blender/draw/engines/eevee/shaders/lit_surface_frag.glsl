@@ -3,7 +3,7 @@ uniform int light_count;
 uniform int probe_count;
 uniform int grid_count;
 uniform int planar_count;
-uniform mat4 ProjectionMatrix;
+uniform mat4 ViewMatrix;
 uniform mat4 ViewMatrixInverse;
 
 uniform sampler2DArray probePlanars;
@@ -301,6 +301,30 @@ float planar_attenuation(vec3 W, vec3 N, PlanarData pd)
 	return fac;
 }
 
+float compute_occlusion(vec3 N, float micro_occlusion, vec2 randuv, out vec3 bent_normal)
+{
+#ifdef USE_AO /* Screen Space Occlusion */
+
+	float macro_occlusion;
+	vec3 vnor = mat3(ViewMatrix) * N;
+
+#ifdef USE_BENT_NORMAL
+	gtao(vnor, viewPosition, randuv, macro_occlusion, bent_normal);
+	bent_normal = mat3(ViewMatrixInverse) * bent_normal;
+#else
+	gtao(vnor, viewPosition, randuv, macro_occlusion);
+	bent_normal = N;
+#endif
+	return min(macro_occlusion, micro_occlusion);
+
+#else /* No added Occlusion. */
+
+	bent_normal = N;
+	return micro_occlusion;
+
+#endif
+}
+
 vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness, float ao)
 {
 	roughness = clamp(roughness, 1e-8, 0.9999);
@@ -341,6 +365,10 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 #ifdef HAIR_SHADER
 	sd.N = -norm_view;
 #endif
+
+	vec3 bent_normal;
+	vec4 rand = textureLod(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0), 0.0).rgba;
+	float final_ao = compute_occlusion(sd.N, ao, rand.rg, bent_normal);
 
 	/* Envmaps */
 	vec3 R = reflect(-sd.V, sd.N);
@@ -431,7 +459,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 				/* Avoid zero weight */
 				weight = max(0.00001, weight);
 
-				vec3 color = get_cell_color(ivec3(cell_cos), gd.g_resolution, gd.g_offset, sd.N);
+				vec3 color = get_cell_color(ivec3(cell_cos), gd.g_resolution, gd.g_offset, bent_normal);
 
 				weight_accum += weight;
 				irradiance_accum += color * weight;
@@ -451,9 +479,9 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 
 	/* World probe */
 	if (diff_accum.a < 1.0 && grid_count > 0) {
-		IrradianceData ir_data = load_irradiance_cell(0, sd.N);
+		IrradianceData ir_data = load_irradiance_cell(0, bent_normal);
 
-		vec3 diff = compute_irradiance(sd.N, ir_data);
+		vec3 diff = compute_irradiance(bent_normal, ir_data);
 		diff_accum.rgb += diff * (1.0 - diff_accum.a);
 	}
 
@@ -465,8 +493,8 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	}
 
 	vec3 indirect_radiance =
-	        spec_accum.rgb * F_ibl(f0, brdf_lut) * float(specToggle) +
-	        diff_accum.rgb * albedo;
+	        spec_accum.rgb * F_ibl(f0, brdf_lut) * float(specToggle) * specular_occlusion(dot(sd.N, sd.V), final_ao, roughness) +
+	        diff_accum.rgb * albedo * final_ao;
 
-	return radiance + indirect_radiance * ao;
+	return radiance + indirect_radiance;
 }

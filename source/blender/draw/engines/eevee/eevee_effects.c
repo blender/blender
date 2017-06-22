@@ -386,6 +386,14 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		                    (int)viewport_size[0], (int)viewport_size[1],
 		                    &tex, 1);
 	}
+
+	{
+		/* Ambient Occlusion*/
+		stl->effects->ao_dist = BKE_collection_engine_property_value_get_float(props, "gtao_distance");
+		stl->effects->ao_samples = BKE_collection_engine_property_value_get_int(props, "gtao_samples");
+		stl->effects->ao_factor = 1.0f - BKE_collection_engine_property_value_get_float(props, "gtao_factor");
+	}
+
 	/* MinMax Pyramid */
 	/* TODO reduce precision */
 	DRWFboTexture tex = {&stl->g_data->minmaxz, DRW_TEX_RG_32, DRW_TEX_MIPMAP | DRW_TEX_TEMP};
