@@ -142,16 +142,7 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 	else
 		attachment = GL_COLOR_ATTACHMENT0 + slot;
 
-#if defined(WITH_GL_PROFILE_COMPAT)
-	/* Workaround for Mac & Mesa compatibility profile, remove after we switch to core profile */
-	/* glFramebufferTexture was introduced in 3.2. It is *not* available in the ARB FBO extension */
-	if (GLEW_VERSION_3_2)
-		glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), mip); /* normal core call, same as below */
-	else
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GPU_texture_target(tex), GPU_texture_opengl_bindcode(tex), mip);
-#else
 	glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), mip);
-#endif
 
 	if (GPU_texture_depth(tex))
 		fb->depthtex = tex;
@@ -250,16 +241,7 @@ void GPU_framebuffer_texture_detach(GPUTexture *tex)
 		attachment = GL_COLOR_ATTACHMENT0 + fb_attachment;
 	}
 
-#if defined(WITH_GL_PROFILE_COMPAT)
-	/* Workaround for Mac & Mesa compatibility profile, remove after we switch to core profile */
-	/* glFramebufferTexture was introduced in 3.2. It is *not* available in the ARB FBO extension */
-	if (GLEW_VERSION_3_2)
-		glFramebufferTexture(GL_FRAMEBUFFER, attachment, 0, 0); /* normal core call, same as below */
-	else
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GPU_texture_target(tex), 0, 0);
-#else
 	glFramebufferTexture(GL_FRAMEBUFFER, attachment, 0, 0);
-#endif
 
 	GPU_texture_framebuffer_set(tex, NULL, -1);
 }
@@ -552,6 +534,63 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read, int read_slot, GPUFrameBuffer
 	/* Restore previous framebuffer */
 	glBindFramebuffer(GL_FRAMEBUFFER, GG.currentfb);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+}
+
+/**
+ * Use this if you need to custom downsample your texture and use the previous mip level as input.
+ * This function only takes care of the correct texture handling. It execute the callback for each texture level.
+ **/
+void GPU_framebuffer_recursive_downsample(
+        GPUFrameBuffer *fb, GPUTexture *tex, int num_iter, void (*callback)(void *userData, int level), void *userData)
+{
+	int current_dim[2] = {GPU_texture_width(tex), GPU_texture_height(tex)};
+	GLenum attachment;
+
+	/* Manually setup framebuffer to not use GPU_texture_framebuffer_set() */
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
+	GG.currentfb = fb->object;
+
+	if (GPU_texture_stencil(tex) && GPU_texture_depth(tex))
+		attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+	else if (GPU_texture_depth(tex))
+		attachment = GL_DEPTH_ATTACHMENT;
+	else
+		attachment = GL_COLOR_ATTACHMENT0;
+
+	/* last bound prevails here, better allow explicit control here too */
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+	for (int i=1; i < num_iter+1 && (current_dim[0] > 1 && current_dim[1] > 1); i++) {
+
+		/* calculate next viewport size */
+		current_dim[0] /= 2;
+		current_dim[1] /= 2;
+
+		/* ensure that the viewport size is always at least 1x1 */
+		CLAMP_MIN(current_dim[0], 1);
+		CLAMP_MIN(current_dim[1], 1);
+
+		glViewport(0, 0, current_dim[0], current_dim[1]);
+
+		/* bind next level for rendering but first restrict fetches only to previous level */
+		GPU_texture_bind(tex, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, i-1);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i-1);
+		GPU_texture_unbind(tex);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, GPU_texture_opengl_bindcode(tex), i);
+
+		callback(userData, i);
+	}
+
+	glFramebufferTexture(GL_FRAMEBUFFER, attachment, 0, 0);
+
+	/* reset mipmap level range for the depth image */
+	GPU_texture_bind(tex, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, num_iter - 1);
+	GPU_texture_unbind(tex);
 }
 
 /* GPUOffScreen */

@@ -202,6 +202,9 @@ void DRW_framebuffer_texture_layer_attach(struct GPUFrameBuffer *fb, struct GPUT
 void DRW_framebuffer_cubeface_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int face, int mip);
 void DRW_framebuffer_texture_detach(struct GPUTexture *tex);
 void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth);
+void DRW_framebuffer_recursive_downsample(
+        struct GPUFrameBuffer *fb, struct GPUTexture *tex, int num_iter,
+        void (*callback)(void *userData, int level), void *userData);
 void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *fb_read, int x, int y, int w, int h);
 void DRW_framebuffer_free(struct GPUFrameBuffer *fb);
 #define DRW_FRAMEBUFFER_FREE_SAFE(fb) do { \
