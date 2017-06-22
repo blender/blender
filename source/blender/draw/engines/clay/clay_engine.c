@@ -828,7 +828,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 					unit_m4(mat);
 
 					if (draw_as == PART_DRAW_PATH) {
-						geom = DRW_cache_particles_get_hair(psys);
+						geom = DRW_cache_particles_get_hair(psys, NULL);
 						hair_shgrp = CLAY_hair_shgrp_get(ob, stl, psl);
 						DRW_shgroup_call_add(hair_shgrp, geom, mat);
 					}

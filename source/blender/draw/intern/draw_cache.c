@@ -29,6 +29,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
@@ -2331,9 +2332,9 @@ Gwn_Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 /** \name Particles
  * \{ */
 
-Gwn_Batch *DRW_cache_particles_get_hair(ParticleSystem *psys)
+Gwn_Batch *DRW_cache_particles_get_hair(ParticleSystem *psys, ModifierData *md)
 {
-	return DRW_particles_batch_cache_get_hair(psys);
+	return DRW_particles_batch_cache_get_hair(psys, md);
 }
 
 Gwn_Batch *DRW_cache_particles_get_dots(ParticleSystem *psys)

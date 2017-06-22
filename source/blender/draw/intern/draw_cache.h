@@ -28,6 +28,7 @@
 
 struct Gwn_Batch;
 struct Object;
+struct ModifierData;
 
 void DRW_shape_cache_free(void);
 
@@ -144,7 +145,7 @@ struct Gwn_Batch *DRW_cache_lattice_wire_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
 
 /* Particles */
-struct Gwn_Batch *DRW_cache_particles_get_hair(struct ParticleSystem *psys);
+struct Gwn_Batch *DRW_cache_particles_get_hair(struct ParticleSystem *psys, struct ModifierData *md);
 struct Gwn_Batch *DRW_cache_particles_get_dots(struct ParticleSystem *psys);
 struct Gwn_Batch *DRW_cache_particles_get_prim(int type);
 

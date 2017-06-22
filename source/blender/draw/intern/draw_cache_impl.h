@@ -30,6 +30,7 @@ struct Gwn_Batch;
 struct ListBase;
 struct CurveCache;
 struct ParticleSystem;
+struct ModifierData;
 
 struct Curve;
 struct Lattice;
@@ -94,7 +95,7 @@ struct Gwn_Batch *DRW_mesh_batch_cache_get_overlay_loose_verts(struct Mesh *me);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_overlay_facedots(struct Mesh *me);
 
 /* Particles */
-struct Gwn_Batch *DRW_particles_batch_cache_get_hair(struct ParticleSystem *psys);
+struct Gwn_Batch *DRW_particles_batch_cache_get_hair(struct ParticleSystem *psys, struct ModifierData *md);
 struct Gwn_Batch *DRW_particles_batch_cache_get_dots(struct ParticleSystem *psys);
 
 #endif /* __DRAW_CACHE_IMPL_H__ */
