@@ -6320,14 +6320,8 @@ static void def_cmp_switch(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_switch_view(StructRNA *srna)
+static void def_cmp_switch_view(StructRNA *UNUSED(srna))
 {
-	PropertyRNA *prop;
-
-	prop = RNA_def_property(srna, "check", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
-	RNA_def_property_ui_text(prop, "Switch", "Off: first socket, On: second socket");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_colorcorrection(StructRNA *srna)
