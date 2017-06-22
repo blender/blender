@@ -69,6 +69,9 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *dof_down;
 	struct DRWPass *dof_scatter;
 	struct DRWPass *dof_resolve;
+	struct DRWPass *minmaxz_downlevel;
+	struct DRWPass *minmaxz_downdepth;
+	struct DRWPass *minmaxz_copydepth;
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
@@ -83,6 +86,7 @@ typedef struct EEVEE_PassList {
 
 typedef struct EEVEE_FramebufferList {
 	/* Effects */
+	struct GPUFrameBuffer *minmaxz_fb;
 	struct GPUFrameBuffer *effect_fb; /* HDR */
 	struct GPUFrameBuffer *bloom_blit_fb; /* HDR */
 	struct GPUFrameBuffer *bloom_down_fb[MAX_BLOOM_STEP]; /* HDR */
@@ -371,6 +375,7 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *cube_display_shgrp;
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
+	struct GPUTexture *minmaxz;
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
@@ -413,6 +418,7 @@ void EEVEE_lightprobes_free(void);
 /* eevee_effects.c */
 void EEVEE_effects_init(EEVEE_Data *vedata);
 void EEVEE_effects_cache_init(EEVEE_Data *vedata);
+void EEVEE_create_minmax_buffer(EEVEE_Data *vedata);
 void EEVEE_draw_effects(EEVEE_Data *vedata);
 void EEVEE_effects_free(void);
 

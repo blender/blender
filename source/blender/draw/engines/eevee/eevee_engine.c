@@ -46,6 +46,7 @@ static void EEVEE_engine_init(void *ved)
 	EEVEE_Data *vedata = (EEVEE_Data *)ved;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
 	DRWFboTexture tex = {&txl->color, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
@@ -54,6 +55,11 @@ static void EEVEE_engine_init(void *ved)
 	DRW_framebuffer_init(&fbl->main, &draw_engine_eevee_type,
 	                    (int)viewport_size[0], (int)viewport_size[1],
 	                    &tex, 1);
+
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+	}
 
 	EEVEE_materials_init();
 	EEVEE_lights_init(sldata);
@@ -66,11 +72,6 @@ static void EEVEE_cache_init(void *vedata)
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
-
-	if (!stl->g_data) {
-		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
-	}
 
 	EEVEE_materials_cache_init(vedata);
 	EEVEE_lights_cache_init(sldata, psl);
@@ -147,6 +148,12 @@ static void EEVEE_draw_scene(void *vedata)
 	/* Depth prepass */
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->depth_pass_cull);
+
+	/* Create minmax texture */
+	EEVEE_create_minmax_buffer(vedata);
+
+	/* Restore main FB */
+	DRW_framebuffer_bind(fbl->main);
 
 	/* Shading pass */
 	DRW_draw_pass(psl->probe_display);

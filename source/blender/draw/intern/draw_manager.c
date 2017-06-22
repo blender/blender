@@ -1997,6 +1997,7 @@ static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *
 		case DRW_TEX_R_16:     *channels = 1; return GPU_R16F;
 		case DRW_TEX_R_32:     *channels = 1; return GPU_R32F;
 		case DRW_TEX_RG_16:    *channels = 2; return GPU_RG16F;
+		case DRW_TEX_RG_32:    *channels = 2; return GPU_RG32F;
 		case DRW_TEX_RGBA_8:   *channels = 4; return GPU_RGBA8;
 		case DRW_TEX_RGBA_16:  *channels = 4; return GPU_RGBA16F;
 		case DRW_TEX_RGBA_32:  *channels = 4; return GPU_RGBA32F;
@@ -2143,6 +2144,7 @@ void DRW_framebuffer_recursive_downsample(
 {
 	GPU_framebuffer_recursive_downsample(fb, tex, num_iter, callback, userData);
 }
+
 void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *UNUSED(fb_read), int x, int y, int w, int h)
 {
 	glViewport(x, y, w, h);
