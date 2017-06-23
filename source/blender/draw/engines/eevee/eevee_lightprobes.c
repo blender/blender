@@ -155,20 +155,19 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 		 * DRW_framebuffer_init binds the whole texture making the framebuffer invalid.
 		 * To overcome this, we bind the planar pool ourselves later */
 
-		/* Note: this is not the configuration used when rendering. */
-		DRWFboTexture tex = {&e_data.planar_depth, DRW_TEX_DEPTH_24, DRW_TEX_TEMP};
-
-		DRW_framebuffer_init(&fbl->planarref_fb, &draw_engine_eevee_type,
-		                     width, height, &tex, 1);
-
+		/* XXX Do this one first so it gets it's mipmap done. */
 		DRWFboTexture tex_minmaxz = {&e_data.planar_minmaxz, DRW_TEX_RG_32, DRW_TEX_MIPMAP | DRW_TEX_TEMP};
-
 		DRW_framebuffer_init(&fbl->planarref_fb, &draw_engine_eevee_type,
 		                     width / 2, height / 2, &tex_minmaxz, 1);
+
+		/* Note: this is not the configuration used when rendering. */
+		DRWFboTexture tex = {&e_data.planar_depth, DRW_TEX_DEPTH_24, DRW_TEX_TEMP};
+		DRW_framebuffer_init(&fbl->planarref_fb, &draw_engine_eevee_type,
+		                     width, height, &tex, 1);
 	}
 }
 
-void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(vedata))
 {
 	/* Shaders */
 	if (!e_data.probe_filter_glossy_sh) {
@@ -267,21 +266,29 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 
 	/* Setup Render Target Cubemap */
+
+	/* We do this detach / attach dance to not generate an invalid framebuffer (mixed cubemap / 2D map) */
+	if (sldata->probe_rt) {
+		/* XXX Silly,TODO Cleanup this mess */
+		DRW_framebuffer_texture_detach(sldata->probe_rt);
+	}
+
+	DRWFboTexture tex_probe = {&e_data.cube_face_depth, DRW_TEX_DEPTH_24, DRW_TEX_TEMP};
+	DRW_framebuffer_init(&sldata->probe_fb, &draw_engine_eevee_type, PROBE_RT_SIZE, PROBE_RT_SIZE, &tex_probe, 1);
+
 	if (!sldata->probe_rt) {
 		sldata->probe_rt = DRW_texture_create_cube(PROBE_RT_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 	}
 
-	/* Highjacking the minmaxz_fb but that's ok because it's reconfigured before usage. */
-	DRWFboTexture tex_cubeface_depth = {&e_data.cube_face_depth, DRW_TEX_DEPTH_24, DRW_TEX_TEMP};
-	DRW_framebuffer_init(&vedata->fbl->minmaxz_fb, &draw_engine_eevee_type, PROBE_RT_SIZE, PROBE_RT_SIZE, &tex_cubeface_depth, 1);
-
-	DRWFboTexture tex_probe = {&sldata->probe_rt, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
-	DRW_framebuffer_init(&sldata->probe_fb, &draw_engine_eevee_type, PROBE_RT_SIZE, PROBE_RT_SIZE, &tex_probe, 1);
+	if (sldata->probe_rt) {
+		/* XXX Silly,TODO Cleanup this mess */
+		DRW_framebuffer_texture_attach(sldata->probe_fb, sldata->probe_rt, 0, 0);
+	}
 
 	/* Minmaxz Pyramid */
 	/* Highjacking the minmaxz_fb but that's ok because it's reconfigured before usage. */
-	DRWFboTexture tex_minmaxz = {&e_data.cube_face_minmaxz, DRW_TEX_RG_32, DRW_TEX_MIPMAP | DRW_TEX_TEMP};
-	DRW_framebuffer_init(&vedata->fbl->minmaxz_fb, &draw_engine_eevee_type, PROBE_RT_SIZE / 2, PROBE_RT_SIZE / 2, &tex_minmaxz, 1);
+	// DRWFboTexture tex_minmaxz = {&e_data.cube_face_minmaxz, DRW_TEX_RG_32, DRW_TEX_MIPMAP | DRW_TEX_TEMP};
+	// DRW_framebuffer_init(&vedata->fbl->minmaxz_fb, &draw_engine_eevee_type, PROBE_RT_SIZE / 2, PROBE_RT_SIZE / 2, &tex_minmaxz, 1);
 
 	/* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
 	if (!e_data.planar_pool_placeholder) {
@@ -927,7 +934,7 @@ static void render_scene_to_probe(
 	GPUTexture *tmp_planar_pool = txl->planar_pool;
 	GPUTexture *tmp_minmaxz = stl->g_data->minmaxz;
 	txl->planar_pool = e_data.planar_pool_placeholder;
-	stl->g_data->minmaxz = e_data.cube_face_minmaxz;
+	// stl->g_data->minmaxz = e_data.cube_face_minmaxz;
 
 	/* Detach to rebind the right cubeface. */
 	DRW_framebuffer_bind(sldata->probe_fb);
@@ -960,7 +967,7 @@ static void render_scene_to_probe(
 		DRW_draw_pass(psl->depth_pass);
 		DRW_draw_pass(psl->depth_pass_cull);
 
-		EEVEE_create_minmax_buffer(vedata, e_data.cube_face_depth);
+		// EEVEE_create_minmax_buffer(vedata, e_data.cube_face_depth);
 
 		/* Rebind Planar FB */
 		DRW_framebuffer_bind(sldata->probe_fb);
