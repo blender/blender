@@ -1147,8 +1147,7 @@ static void MESH_WGT_spin(struct wmManipulatorGroupType *wgt)
 	wgt->name = "Mesh Spin";
 	wgt->idname = "MESH_WGT_spin";
 
-	wgt->flag = (WM_MANIPULATORGROUPTYPE_3D |
-	             WM_MANIPULATORGROUPTYPE_SCALE_3D);
+	wgt->flag = WM_MANIPULATORGROUPTYPE_3D;
 
 	wgt->mmap_params.spaceid = SPACE_VIEW3D;
 	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;

@@ -1401,8 +1401,7 @@ void TRANSFORM_WGT_manipulator(wmManipulatorGroupType *wgt)
 	wgt->idname = "TRANSFORM_WGT_manipulator";
 
 	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
-	              WM_MANIPULATORGROUPTYPE_3D |
-	              WM_MANIPULATORGROUPTYPE_SCALE_3D);
+	              WM_MANIPULATORGROUPTYPE_3D);
 
 	wgt->poll = WIDGETGROUP_manipulator_poll;
 	wgt->setup = WIDGETGROUP_manipulator_setup;

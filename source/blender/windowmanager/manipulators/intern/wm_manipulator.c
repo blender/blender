@@ -446,7 +446,7 @@ void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 	const RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	float scale = U.ui_scale;
 
-	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE_3D) {
+	if ((mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE) == 0) {
 		scale *= U.manipulator_size;
 		if (rv3d) {
 			/* 'ED_view3d_pixel_size' includes 'U.pixelsize', remove it. */

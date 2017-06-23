@@ -336,8 +336,9 @@ enum eManipulatorMapTypeUpdateFlags {
 enum {
 	/* Mark manipulator-group as being 3D */
 	WM_MANIPULATORGROUPTYPE_3D       = (1 << 0),
-	/* Scale manipulators as 3D object that respects zoom (otherwise zoom independent draw size) */
-	WM_MANIPULATORGROUPTYPE_SCALE_3D    = (1 << 1),
+	/* Scale manipulators as 3D object that respects zoom (otherwise zoom independent draw size).
+	 * note: currently only for 3D views, 2D support needs adding. */
+	WM_MANIPULATORGROUPTYPE_SCALE    = (1 << 1),
 	/* Manipulators can be depth culled with scene objects (covered by other geometry - TODO) */
 	WM_MANIPULATORGROUPTYPE_DEPTH_3D = (1 << 2),
 	/* Manipulators can be selected */
