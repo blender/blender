@@ -146,7 +146,7 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 		}
 		else if (num_planar_ref == 0) {
 			/* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still bound to shader. */
-			txl->planar_pool = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+			txl->planar_pool = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGBA_8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 		}
 	}
 
@@ -285,7 +285,7 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	/* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
 	if (!e_data.planar_pool_placeholder) {
-		e_data.planar_pool_placeholder = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER, NULL);
+		e_data.planar_pool_placeholder = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGBA_8, DRW_TEX_FILTER, NULL);
 	}
 }
 
