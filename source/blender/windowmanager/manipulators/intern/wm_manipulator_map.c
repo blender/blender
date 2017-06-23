@@ -267,14 +267,40 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 		glEnable(GL_MULTISAMPLE);
 	}
 
+	bool is_depth_prev = false;
+
 	/* draw_manipulators contains all visible manipulators - draw them */
 	for (LinkData *link = draw_manipulators->first, *link_next; link; link = link_next) {
 		wmManipulator *mpr = link->data;
 		link_next = link->next;
 
+		bool is_depth = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DEPTH_3D) != 0;
+
+		/* Weak! since we don't 100% support depth yet (select ignores depth) always show highlighted */
+		if (is_depth && (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT)) {
+			is_depth = false;
+		}
+
+		if (is_depth == is_depth_prev) {
+			/* pass */
+		}
+		else {
+			if (is_depth) {
+				glEnable(GL_DEPTH_TEST);
+			}
+			else {
+				glDisable(GL_DEPTH_TEST);
+			}
+			is_depth_prev = is_depth;
+		}
+
 		mpr->type->draw(C, mpr);
 		/* free/remove manipulator link after drawing */
 		BLI_freelinkN(draw_manipulators, link);
+	}
+
+	if (is_depth_prev) {
+		glDisable(GL_DEPTH_TEST);
 	}
 
 	if (draw_multisample) {
@@ -296,12 +322,36 @@ static void manipulator_find_active_3D_loop(const bContext *C, ListBase *visible
 	int selectionbase = 0;
 	wmManipulator *mpr;
 
+	/* TODO(campbell): this depends on depth buffer being written to, currently broken for the 3D view. */
+	bool is_depth_prev = false;
+
 	for (LinkData *link = visible_manipulators->first; link; link = link->next) {
 		mpr = link->data;
+		
+		bool is_depth = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DEPTH_3D) != 0;
+		if (is_depth == is_depth_prev) {
+			/* pass */
+		}
+		else {
+			if (is_depth) {
+				glEnable(GL_DEPTH_TEST);
+			}
+			else {
+				glDisable(GL_DEPTH_TEST);
+			}
+			is_depth_prev = is_depth;
+		}
+
 		/* pass the selection id shifted by 8 bits. Last 8 bits are used for selected manipulator part id */
+
 		mpr->type->draw_select(C, mpr, selectionbase << 8);
 
+
 		selectionbase++;
+	}
+
+	if (is_depth_prev) {
+		glDisable(GL_DEPTH_TEST);
 	}
 }
 
