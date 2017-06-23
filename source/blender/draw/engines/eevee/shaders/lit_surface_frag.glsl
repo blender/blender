@@ -388,8 +388,30 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 		if (influence > 0.0) {
 			float influ_spec = min(influence, (1.0 - spec_accum.a));
 
+			/* Sample reflection depth. */
 			vec4 refco = pd.reflectionmat * vec4(sd.W, 1.0);
 			refco.xy /= refco.w;
+			float ref_depth = textureLod(probePlanars, vec3(refco.xy, i), 0.0).a;
+
+			/* Find view vector / reflection plane intersection. (dist_to_plane is negative) */
+			float dist_to_plane = line_plane_intersect_dist(cameraPos, sd.V, pd.pl_plane_eq);
+			vec3 point_on_plane = cameraPos + sd.V * dist_to_plane;
+
+			/* How far the pixel is from the plane. */
+			ref_depth = ref_depth + dist_to_plane;
+
+			/* Compute distorded reflection vector based on the distance to the reflected object.
+			 * In other words find intersection between reflection vector and the sphere center
+			 * around point_on_plane. */
+			vec3 proj_ref = reflect(R * ref_depth, pd.pl_normal);
+
+			/* Final point in world space. */
+			vec3 ref_pos = point_on_plane + proj_ref;
+
+			/* Reproject to find texture coords. */
+			refco = pd.reflectionmat * vec4(ref_pos, 1.0);
+			refco.xy /= refco.w;
+
 			vec3 sample = textureLod(probePlanars, vec3(refco.xy, i), 0.0).rgb;
 
 			spec_accum.rgb += sample * influ_spec;

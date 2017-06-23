@@ -143,6 +143,7 @@ vec4 saturate(vec4 a) { return clamp(a, 0.0, 1.0); }
 
 float distance_squared(vec2 a, vec2 b) { a -= b; return dot(a, a); }
 float distance_squared(vec3 a, vec3 b) { a -= b; return dot(a, a); }
+float len_squared(vec3 a) { return dot(a, a); }
 
 float inverse_distance(vec3 V) { return max( 1 / length(V), 1e-8); }
 
@@ -165,6 +166,13 @@ float fast_acos(float x)
 float line_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec3 planeorigin, vec3 planenormal)
 {
 	return dot(planenormal, planeorigin - lineorigin) / dot(planenormal, linedirection);
+}
+
+float line_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec4 plane)
+{
+	vec3 plane_co = plane.xyz * (-plane.w / len_squared(plane.xyz));
+	vec3 h = lineorigin - plane_co;
+	return -dot(plane.xyz, h) / dot(plane.xyz, linedirection);
 }
 
 vec3 line_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 planeorigin, vec3 planenormal)

@@ -3894,9 +3894,9 @@ void node_eevee_specular(
 	result = vec4(eevee_surface_lit(normal, diffuse.rgb, specular.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
 }
 
-void node_output_eevee_material(vec4 Surface, out vec4 result)
+void node_output_eevee_material(vec4 surface, out vec4 result)
 {
-	result = Surface;
+	result = vec4(surface.rgb, length(viewPosition));
 }
 
 #endif
