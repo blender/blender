@@ -519,8 +519,10 @@ static void scene_changed(Main *bmain, Scene *scene)
 
 	/* glsl */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+#if 0 /* This was needed by old glsl where all lighting was statically linked into the shader. */
 		if (ob->gpulamp.first)
 			GPU_lamp_free(ob);
+#endif
 		
 		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 			BKE_texpaint_slots_refresh_object(scene, ob);
@@ -529,6 +531,7 @@ static void scene_changed(Main *bmain, Scene *scene)
 		}
 	}
 
+#if 0 /* This was needed by old glsl where all lighting was statically linked into the shader. */
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(&ma->gpumaterial);
@@ -539,6 +542,7 @@ static void scene_changed(Main *bmain, Scene *scene)
 	
 	if (defmaterial.gpumaterial.first)
 		GPU_material_free(&defmaterial.gpumaterial);
+#endif
 }
 
 void ED_render_id_flush_update(Main *bmain, ID *id)
