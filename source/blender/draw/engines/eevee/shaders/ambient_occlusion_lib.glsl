@@ -8,9 +8,11 @@
 #define MAX_THETA_STEP 12
 
 uniform sampler2D minMaxDepthTex;
-uniform float aoDistance;
-uniform float aoSamples;
-uniform float aoFactor;
+uniform vec3 aoParameters;
+
+#define aoDistance   aoParameters.x
+#define aoSamples    aoParameters.y
+#define aoFactor     aoParameters.z
 
 float get_max_horizon(vec2 co, vec3 x, float h, float lod)
 {
