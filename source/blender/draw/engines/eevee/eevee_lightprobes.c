@@ -61,6 +61,7 @@ static struct {
 
 	struct GPUTexture *hammersley;
 	struct GPUTexture *planar_depth;
+	struct GPUTexture *planar_pool_placeholder;
 
 	bool update_world;
 	bool world_ready_to_shade;
@@ -266,6 +267,11 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 	                              {&sldata->probe_rt, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP}};
 
 	DRW_framebuffer_init(&sldata->probe_fb, &draw_engine_eevee_type, PROBE_RT_SIZE, PROBE_RT_SIZE, tex_probe, 2);
+
+	/* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
+	if (!e_data.planar_pool_placeholder) {
+		e_data.planar_pool_placeholder = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+	}
 }
 
 void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, EEVEE_StorageList *stl)
@@ -968,7 +974,8 @@ static void render_scene_to_planar(
 
 	/* Avoid using the texture attached to framebuffer when rendering. */
 	GPUTexture *tmp_planar_pool = txl->planar_pool;
-	txl->planar_pool = NULL;
+	txl->planar_pool = e_data.planar_pool_placeholder;
+
 	DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
 	DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
 	DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
@@ -1193,4 +1200,5 @@ void EEVEE_lightprobes_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.probe_planar_display_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_cube_display_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
+	DRW_TEXTURE_FREE_SAFE(e_data.planar_pool_placeholder);
 }
