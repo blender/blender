@@ -1119,19 +1119,8 @@ def panel_node_draw(layout, ntree, output_type):
     node = find_output_node(ntree, output_type)
 
     if node:
-        def display_input(layout, ntree, node, input_name):
-            input = find_node_input(node, input_name)
-            layout.template_node_view(ntree, node, input)
-
-        display_input(layout, ntree, node, 'Base Color')
-        if output_type == 'OUTPUT_METALLIC':
-            display_input(layout, ntree, node, 'Metallic')
-        display_input(layout, ntree, node, 'Specular')
-        display_input(layout, ntree, node, 'Roughness')
-        display_input(layout, ntree, node, 'Emissive Color')
-        display_input(layout, ntree, node, 'Transparency')
-        display_input(layout, ntree, node, 'Normal')
-        display_input(layout, ntree, node, 'Ambient Occlusion')
+        input = find_node_input(node, 'Surface')
+        layout.template_node_view(ntree, node, input)
         return True
 
     return False
@@ -1156,9 +1145,8 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
         layout.separator()
 
         if mat.use_nodes:
-            if not panel_node_draw(layout, mat.node_tree, 'OUTPUT_METALLIC'):
-                if not panel_node_draw(layout, mat.node_tree, 'OUTPUT_SPECULAR'):
-                    layout.label(text="No output node")
+            if not panel_node_draw(layout, mat.node_tree, 'OUTPUT_EEVEE_MATERIAL'):
+                layout.label(text="No output node")
         else:
             raym = mat.raytrace_mirror
             layout.prop(mat, "diffuse_color", text="Base Color")
