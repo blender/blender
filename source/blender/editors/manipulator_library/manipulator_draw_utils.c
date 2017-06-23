@@ -100,13 +100,19 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 
 	GWN_batch_uniform_4fv(batch, "color", color);
 
+	/* We may want to re-visit this, for now disable
+	 * since it causes issues leaving the GL state modified. */
+#if 0
 	glEnable(GL_CULL_FACE);
-	// glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
+#endif
 
 	GWN_batch_draw(batch);
 
+#if 0
 	glDisable(GL_DEPTH_TEST);
-	// glDisable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
+#endif
 
 
 	GWN_batch_discard_all(batch);
