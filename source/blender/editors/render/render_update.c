@@ -514,8 +514,6 @@ static void image_changed(Main *bmain, Image *ima)
 static void scene_changed(Main *bmain, Scene *scene)
 {
 	Object *ob;
-	Material *ma;
-	World *wo;
 
 	/* glsl */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
@@ -532,11 +530,11 @@ static void scene_changed(Main *bmain, Scene *scene)
 	}
 
 #if 0 /* This was needed by old glsl where all lighting was statically linked into the shader. */
-	for (ma = bmain->mat.first; ma; ma = ma->id.next)
+	for (Material *ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(&ma->gpumaterial);
 
-	for (wo = bmain->world.first; wo; wo = wo->id.next)
+	for (World *wo = bmain->world.first; wo; wo = wo->id.next)
 		if (wo->gpumaterial.first)
 			GPU_material_free(&wo->gpumaterial);
 	
