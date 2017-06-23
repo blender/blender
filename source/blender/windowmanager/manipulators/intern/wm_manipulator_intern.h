@@ -58,6 +58,8 @@ enum {
 	TWEAK_MODAL_CONFIRM,
 	TWEAK_MODAL_PRECISION_ON,
 	TWEAK_MODAL_PRECISION_OFF,
+	TWEAK_MODAL_SNAP_ON,
+	TWEAK_MODAL_SNAP_OFF,
 };
 
 struct wmManipulatorGroup *wm_manipulatorgroup_new_from_type(

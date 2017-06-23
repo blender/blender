@@ -313,11 +313,19 @@ static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *e
 			case TWEAK_MODAL_CONFIRM:
 				manipulator_tweak_finish(C, op, false);
 				return OPERATOR_FINISHED;
+
 			case TWEAK_MODAL_PRECISION_ON:
 				mtweak->flag |= WM_MANIPULATOR_TWEAK_PRECISE;
 				break;
 			case TWEAK_MODAL_PRECISION_OFF:
 				mtweak->flag &= ~WM_MANIPULATOR_TWEAK_PRECISE;
+				break;
+
+			case TWEAK_MODAL_SNAP_ON:
+				mtweak->flag |= WM_MANIPULATOR_TWEAK_SNAP;
+				break;
+			case TWEAK_MODAL_SNAP_OFF:
+				mtweak->flag &= ~WM_MANIPULATOR_TWEAK_SNAP;
 				break;
 		}
 	}
@@ -408,6 +416,8 @@ static wmKeyMap *manipulatorgroup_tweak_modal_keymap(wmKeyConfig *keyconf, const
 		{TWEAK_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 		{TWEAK_MODAL_PRECISION_ON, "PRECISION_ON", 0, "Enable Precision", ""},
 		{TWEAK_MODAL_PRECISION_OFF, "PRECISION_OFF", 0, "Disable Precision", ""},
+		{TWEAK_MODAL_SNAP_ON, "SNAP_ON", 0, "Enable Snap", ""},
+		{TWEAK_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Disable Snap", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -434,6 +444,10 @@ static wmKeyMap *manipulatorgroup_tweak_modal_keymap(wmKeyConfig *keyconf, const
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_PRECISION_ON);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, TWEAK_MODAL_PRECISION_OFF);
 
+	WM_modalkeymap_add_item(keymap, RIGHTCTRLKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_SNAP_ON);
+	WM_modalkeymap_add_item(keymap, RIGHTCTRLKEY, KM_RELEASE, KM_ANY, 0, TWEAK_MODAL_SNAP_OFF);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_SNAP_ON);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TWEAK_MODAL_SNAP_OFF);
 
 	WM_modalkeymap_assign(keymap, "MANIPULATORGROUP_OT_manipulator_tweak");
 

@@ -185,11 +185,14 @@ enum {
 /**
  * \brief Manipulator tweak flag.
  * Bitflag passed to manipulator while tweaking.
+ *
+ * \note Manipulators are responsible for handling this #wmManipulator.modal callback!.
  */
 enum {
-	/* drag with extra precision (shift)
-	 * NOTE: Manipulators are responsible for handling this (manipulator->handler callback)! */
+	/* Drag with extra precision (Shift). */
 	WM_MANIPULATOR_TWEAK_PRECISE = (1 << 0),
+	/* Drag with snap enabled (Ctrl).  */
+	WM_MANIPULATOR_TWEAK_SNAP = (1 << 1),
 };
 
 typedef struct wmManipulatorType {
