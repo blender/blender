@@ -146,6 +146,22 @@ float distance_squared(vec3 a, vec3 b) { a -= b; return dot(a, a); }
 
 float inverse_distance(vec3 V) { return max( 1 / length(V), 1e-8); }
 
+/* ------- Fast Math ------- */
+
+/* [Drobot2014a] Low Level Optimizations for GCN */
+float fast_sqrt(float x)
+{
+	return intBitsToFloat(0x1fbd1df5 + (floatBitsToInt(x) >> 1));
+}
+
+/* [Eberly2014] GPGPU Programming for Games and Science */
+float fast_acos(float x)
+{
+	float res = -0.156583 * abs(x) + M_PI_2;
+	res *= fast_sqrt(1.0 - abs(x));
+	return (x >= 0) ? res : M_PI - res;
+}
+
 float line_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec3 planeorigin, vec3 planenormal)
 {
 	return dot(planenormal, planeorigin - lineorigin) / dot(planenormal, linedirection);
