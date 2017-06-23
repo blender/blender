@@ -150,7 +150,7 @@ static void EEVEE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->depth_pass_cull);
 
 	/* Create minmax texture */
-	EEVEE_create_minmax_buffer(vedata);
+	EEVEE_create_minmax_buffer(vedata, dtxl->depth);
 
 	/* Restore main FB */
 	DRW_framebuffer_bind(fbl->main);
