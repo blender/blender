@@ -83,8 +83,8 @@ static void manipulator_arrow_matrix_world_get(wmManipulator *mpr, float r_matri
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
-	copy_m4_m4(r_matrix, arrow->manipulator.matrix);
-	madd_v3_v3fl(r_matrix[3], arrow->manipulator.matrix[2], arrow->data.offset);
+	copy_m4_m4(r_matrix, arrow->manipulator.matrix_basis);
+	madd_v3_v3fl(r_matrix[3], arrow->manipulator.matrix_basis[2], arrow->data.offset);
 }
 
 static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, const float color[4])
@@ -188,7 +188,7 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 	manipulator_color_get(&arrow->manipulator, highlight, col);
 	manipulator_arrow_matrix_world_get(&arrow->manipulator, final_matrix);
 
-	mul_mat3_m4_fl(final_matrix, arrow->manipulator.scale);
+	mul_mat3_m4_fl(final_matrix, arrow->manipulator.scale_final);
 	mul_m4_m4m4(final_matrix, final_matrix, arrow->manipulator.matrix_offset);
 
 	gpuPushMatrix();
@@ -253,7 +253,7 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 
 	copy_v3_v3(orig_origin, inter->init_matrix[3]);
 	orig_origin[3] = 1.0f;
-	add_v3_v3v3(offset, orig_origin, arrow->manipulator.matrix[2]);
+	add_v3_v3v3(offset, orig_origin, arrow->manipulator.matrix_basis[2]);
 	offset[3] = 1.0f;
 
 	/* calculate view vector */
@@ -267,7 +267,7 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 
 	/* first determine if view vector is really close to the direction. If it is, we use
 	 * vertical movement to determine offset, just like transform system does */
-	if (RAD2DEG(acos(dot_v3v3(viewvec, arrow->manipulator.matrix[2]))) > 5.0f) {
+	if (RAD2DEG(acos(dot_v3v3(viewvec, arrow->manipulator.matrix_basis[2]))) > 5.0f) {
 		/* multiply to projection space */
 		mul_m4_v4(rv3d->persmat, orig_origin);
 		mul_v4_fl(orig_origin, 1.0f / orig_origin[3]);
@@ -312,11 +312,11 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 		cross_v3_v3v3(plane, tangent, viewvec);
 
 		const float plane_offset = dot_v3v3(plane, offset);
-		const float plane_dir = dot_v3v3(plane, arrow->manipulator.matrix[2]);
+		const float plane_dir = dot_v3v3(plane, arrow->manipulator.matrix_basis[2]);
 		const float fac = (plane_dir != 0.0f) ? (plane_offset / plane_dir) : 0.0f;
 		facdir = (fac < 0.0) ? -1.0 : 1.0;
 		if (isfinite(fac)) {
-			mul_v3_v3fl(offset, arrow->manipulator.matrix[2], fac);
+			mul_v3_v3fl(offset, arrow->manipulator.matrix_basis[2], fac);
 		}
 	}
 	else {
@@ -378,7 +378,7 @@ static void manipulator_arrow_invoke(
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	inter->init_scale = mpr->scale;
+	inter->init_scale = mpr->scale_final;
 
 	manipulator_arrow_matrix_world_get(mpr, inter->init_matrix);
 

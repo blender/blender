@@ -66,13 +66,13 @@ static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], cons
 	const float size_h = size / 2.0f;
 	const float arrow_length = RNA_float_get(mpr->ptr, "length");
 	const float arrow_angle = RNA_float_get(mpr->ptr, "angle");
-	const float draw_line_ofs = (mpr->line_width * 0.5f) / mpr->scale;
+	const float draw_line_ofs = (mpr->line_width * 0.5f) / mpr->scale_final;
 
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix);
-	gpuScaleUniform(mpr->scale);
+	gpuScaleUniform(mpr->scale_final);
 	gpuRotate2D(RAD2DEGF(arrow_angle));
 	/* local offset */
 	gpuTranslate2f(
@@ -107,7 +107,7 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), wmManipulator *m
 
 	glLineWidth(mpr->line_width);
 	glEnable(GL_BLEND);
-	arrow2d_draw_geom(mpr, mpr->matrix, col);
+	arrow2d_draw_geom(mpr, mpr->matrix_basis, col);
 	glDisable(GL_BLEND);
 
 	if (mpr->interaction_data) {
@@ -129,7 +129,7 @@ static void manipulator_arrow2d_invoke(
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
-	copy_m4_m4(inter->init_matrix, mpr->matrix);
+	copy_m4_m4(inter->init_matrix, mpr->matrix_basis);
 	mpr->interaction_data = inter;
 }
 
@@ -139,11 +139,11 @@ static int manipulator_arrow2d_test_select(
 	const float mval[2] = {event->mval[0], event->mval[1]};
 	const float arrow_length = RNA_float_get(mpr->ptr, "length");
 	const float arrow_angle = RNA_float_get(mpr->ptr, "angle");
-	const float line_len = arrow_length * mpr->scale;
+	const float line_len = arrow_length * mpr->scale_final;
 	float mval_local[2];
 
 	copy_v2_v2(mval_local, mval);
-	sub_v2_v2(mval_local, mpr->matrix[3]);
+	sub_v2_v2(mval_local, mpr->matrix_basis[3]);
 
 	float line[2][2];
 	line[0][0] = line[0][1] = line[1][0] = 0.0f;

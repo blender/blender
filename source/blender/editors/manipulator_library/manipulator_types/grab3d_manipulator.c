@@ -143,8 +143,8 @@ static void grab3d_draw_intern(
 
 	manipulator_color_get(mpr, highlight, col);
 
-	copy_m4_m4(mat, mpr->matrix);
-	mul_mat3_m4_fl(mat, mpr->scale);
+	copy_m4_m4(mat, mpr->matrix_basis);
+	mul_mat3_m4_fl(mat, mpr->scale_final);
 
 	gpuPushMatrix();
 	if (mpr->interaction_data) {

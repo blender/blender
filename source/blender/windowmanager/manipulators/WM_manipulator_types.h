@@ -87,13 +87,13 @@ struct wmManipulator {
 	 *   besides this it's up to the manipulators internal code how the
 	 *   rotation components are used for drawing and interaction.
 	 */
-	float matrix[4][4];
+	float matrix_basis[4][4];
 	/* custom offset from origin */
 	float matrix_offset[4][4];
 	/* runtime property, set the scale while drawing on the viewport */
-	float scale;
+	float scale_final;
 	/* user defined scale, in addition to the original one */
-	float user_scale;
+	float scale_basis;
 	/* user defined width for line drawing */
 	float line_width;
 	/* manipulator colors (uses default fallbacks if not defined) */

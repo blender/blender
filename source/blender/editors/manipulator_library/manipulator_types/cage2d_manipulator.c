@@ -212,7 +212,7 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 	};
 
 	gpuPushMatrix();
-	gpuMultMatrix(mpr->matrix);
+	gpuMultMatrix(mpr->matrix_basis);
 	gpuMultMatrix(mpr->matrix_offset);
 	if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 		gpuScaleUniform(scale[0]);
@@ -283,7 +283,7 @@ static int manipulator_rect_transform_test_select(
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
 
 	/* rotate mouse in relation to the center and relocate it */
-	sub_v2_v2v2(point_local, mouse, mpr->matrix[3]);
+	sub_v2_v2v2(point_local, mouse, mpr->matrix_basis[3]);
 	point_local[0] -= mpr->matrix_offset[3][0];
 	point_local[1] -= mpr->matrix_offset[3][1];
 	//rotate_m2(matrot, -cage->transform.rotation);

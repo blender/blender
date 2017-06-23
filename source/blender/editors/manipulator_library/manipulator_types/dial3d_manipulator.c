@@ -100,10 +100,10 @@ static void dial_calc_matrix(const wmManipulator *mpr, float mat[4][4])
 	float rot[3][3];
 	const float up[3] = {0.0f, 0.0f, 1.0f};
 
-	rotation_between_vecs_to_mat3(rot, up, mpr->matrix[2]);
+	rotation_between_vecs_to_mat3(rot, up, mpr->matrix_basis[2]);
 	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], mpr->matrix[3]);
-	mul_mat3_m4_fl(mat, mpr->scale);
+	copy_v3_v3(mat[3], mpr->matrix_basis[3]);
+	mul_mat3_m4_fl(mat, mpr->scale_final);
 }
 
 /* -------------------------------------------------------------------- */
@@ -202,12 +202,12 @@ static void dial_ghostarc_get_angles(
 
 	/* we might need to invert the direction of the angles */
 	float view_vec[3], axis_vec[3];
-	ED_view3d_global_to_vector(rv3d, mpr->matrix[3], view_vec);
-	normalize_v3_v3(axis_vec, mpr->matrix[2]);
+	ED_view3d_global_to_vector(rv3d, mpr->matrix_basis[3], view_vec);
+	normalize_v3_v3(axis_vec, mpr->matrix_basis[2]);
 
 	float proj_outer_rel[3];
 	mul_v3_project_m4_v3(proj_outer_rel, mat, co_outer);
-	sub_v3_v3(proj_outer_rel, mpr->matrix[3]);
+	sub_v3_v3(proj_outer_rel, mpr->matrix_basis[3]);
 
 	float proj_mval_new_rel[3];
 	float proj_mval_init_rel[3];
@@ -215,7 +215,7 @@ static void dial_ghostarc_get_angles(
 	float ray_co[3], ray_no[3];
 	float ray_lambda;
 
-	plane_from_point_normal_v3(dial_plane, mpr->matrix[3], axis_vec);
+	plane_from_point_normal_v3(dial_plane, mpr->matrix_basis[3], axis_vec);
 
 	if (!ED_view3d_win_to_ray(ar, v3d, inter->init_mval, ray_co, ray_no, false) ||
 		!isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
@@ -223,7 +223,7 @@ static void dial_ghostarc_get_angles(
 		goto fail;
 	}
 	madd_v3_v3v3fl(proj_mval_init_rel, ray_co, ray_no, ray_lambda);
-	sub_v3_v3(proj_mval_init_rel, mpr->matrix[3]);
+	sub_v3_v3(proj_mval_init_rel, mpr->matrix_basis[3]);
 
 	if (!ED_view3d_win_to_ray(ar, v3d, mval, ray_co, ray_no, false) ||
 		!isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
@@ -231,14 +231,14 @@ static void dial_ghostarc_get_angles(
 		goto fail;
 	}
 	madd_v3_v3v3fl(proj_mval_new_rel, ray_co, ray_no, ray_lambda);
-	sub_v3_v3(proj_mval_new_rel, mpr->matrix[3]);
+	sub_v3_v3(proj_mval_new_rel, mpr->matrix_basis[3]);
 
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 
 	/* Start direction from mouse or set by user */
 	const float *proj_init_rel =
 	        (draw_options & ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_START_Y) ?
-	        mpr->matrix[1] : proj_mval_init_rel;
+	        mpr->matrix_basis[1] : proj_mval_init_rel;
 
 	/* return angles */
 	const float start = angle_wrap_rad(angle_signed_on_axis_v3v3_v3(proj_outer_rel, proj_init_rel, axis_vec));
@@ -337,7 +337,7 @@ static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, 
 		RegionView3D *rv3d = ar->regiondata;
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
-		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix[3]);
+		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix_basis[3]);
 		glEnable(GL_CLIP_DISTANCE0);
 	}
 
@@ -363,8 +363,8 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 		RegionView3D *rv3d = ar->regiondata;
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
-		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix[3]);
-		clip_plane[3] -= 0.02 * mpr->scale;
+		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix_basis[3]);
+		clip_plane[3] -= 0.02 * mpr->scale_final;
 
 		glEnable(GL_CLIP_DISTANCE0);
 	}
@@ -408,7 +408,7 @@ static void manipulator_dial_setup(wmManipulator *mpr)
 	const float dir_default[3] = {0.0f, 0.0f, 1.0f};
 
 	/* defaults */
-	copy_v3_v3(mpr->matrix[2], dir_default);
+	copy_v3_v3(mpr->matrix_basis[2], dir_default);
 }
 
 static void manipulator_dial_invoke(
