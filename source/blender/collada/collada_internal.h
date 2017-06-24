@@ -103,6 +103,7 @@ extern std::string get_joint_sid(Bone *bone, Object *ob_arm);
 extern std::string get_camera_id(Object *ob);
 
 extern std::string get_material_id(Material *mat);
+extern std::string get_material_id_from_id(std::string id);
 
 extern std::string get_morph_id(Object *ob);
 

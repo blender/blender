@@ -32,6 +32,8 @@
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 
+#include <set>
+
 extern "C" {
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
@@ -831,4 +833,160 @@ void bc_sanitize_mat(float mat[4][4], int precision)
 	for (int i = 0; i < 4; i++)
 		for (int j = 0; j < 4; j++)
 			mat[i][j] = double_round(mat[i][j], precision);
+}
+
+/*
+* Returns name of Active UV Layer or empty String if no active UV Layer defined.
+* Assuming the Object is of type MESH
+*/
+std::string bc_get_active_uvlayer_name(Object *ob)
+{
+	Mesh *me = (Mesh *)ob->data;
+	return bc_get_active_uvlayer_name(me);
+}
+
+/*
+ * Returns name of Active UV Layer or empty String if no active UV Layer defined
+ */
+std::string bc_get_active_uvlayer_name(Mesh *me)
+{
+	int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+	if (num_layers) {
+		return std::string(bc_CustomData_get_active_layer_name(&me->fdata, CD_MTFACE));
+	}
+	return "";
+}
+
+/*
+ * Returns UV Layer name or empty string if layer index is out of range
+ */
+std::string bc_get_uvlayer_name(Mesh *me, int layer)
+{
+	int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+	if (num_layers && layer < num_layers) {
+		return std::string(bc_CustomData_get_layer_name(&me->fdata, CD_MTFACE, layer));
+	}
+	return "";
+}
+
+/**********************************************************************
+*
+* Return the list of Mesh objects with assigned UVtextures and Images
+* Note: We need to create artificaial materials for each of them
+*
+***********************************************************************/
+std::set<Object *> bc_getUVTexturedObjects(Scene *sce, bool all_uv_layers)
+{
+	std::set <Object *> UVObjects;
+	Base *base = (Base *)sce->base.first;
+
+	while (base) {
+		Object *ob = base->object;
+		bool has_uvimage = false;
+		if (ob->type == OB_MESH) {
+			Mesh *me = (Mesh *)ob->data;
+			int active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
+
+			for (int i = 0; i < me->pdata.totlayer && !has_uvimage; i++) {
+				if (all_uv_layers || active_uv_layer == i)
+				{
+					if (me->pdata.layers[i].type == CD_MTEXPOLY) {
+						MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
+						MPoly *mpoly = me->mpoly;
+						for (int j = 0; j < me->totpoly; j++, mpoly++, txface++) {
+
+							Image *ima = txface->tpage;
+							if (ima != NULL) {
+								has_uvimage = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (has_uvimage) {
+				UVObjects.insert(ob);
+			}
+		}
+		base = base->next;
+	}
+	return UVObjects;
+}
+
+/**********************************************************************
+*
+* Return the list of UV Texture images from all exported Mesh Items
+* Note: We need to create one artificial material for each Image.
+*
+***********************************************************************/
+std::set<Image *> bc_getUVImages(Scene *sce, bool all_uv_layers)
+{
+	std::set <Image *> UVImages;
+	Base *base = (Base *)sce->base.first;
+
+	while (base) {
+		Object *ob = base->object;
+		bool has_uvimage = false;
+		if (ob->type == OB_MESH) {
+			Mesh *me = (Mesh *)ob->data;
+			int active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
+
+			for (int i = 0; i < me->pdata.totlayer && !has_uvimage; i++) {
+				if (all_uv_layers || active_uv_layer == i)
+				{
+					if (me->pdata.layers[i].type == CD_MTEXPOLY) {
+						MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
+						MPoly *mpoly = me->mpoly;
+						for (int j = 0; j < me->totpoly; j++, mpoly++, txface++) {
+
+							Image *ima = txface->tpage;
+							if (ima != NULL) {
+								if (UVImages.find(ima) == UVImages.end())
+									UVImages.insert(ima);
+							}
+						}
+					}
+				}
+			}
+		}
+		base = base->next;
+	}
+	return UVImages;
+}
+
+/**********************************************************************
+*
+* Return the list of UV Texture images for the given Object
+* Note: We need to create one artificial material for each Image.
+*
+***********************************************************************/
+std::set<Image *> bc_getUVImages(Object *ob, bool all_uv_layers)
+{
+	std::set <Image *> UVImages;
+
+	bool has_uvimage = false;
+	if (ob->type == OB_MESH) {
+		Mesh *me = (Mesh *)ob->data;
+		int active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
+
+		for (int i = 0; i < me->pdata.totlayer && !has_uvimage; i++) {
+			if (all_uv_layers || active_uv_layer == i)
+			{
+				if (me->pdata.layers[i].type == CD_MTEXPOLY) {
+					MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
+					MPoly *mpoly = me->mpoly;
+					for (int j = 0; j < me->totpoly; j++, mpoly++, txface++) {
+
+						Image *ima = txface->tpage;
+						if (ima != NULL) {
+							if (UVImages.find(ima) == UVImages.end())
+								UVImages.insert(ima);
+						}
+					}
+				}
+			}
+		}
+	}
+	return UVImages;
 }

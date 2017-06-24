@@ -85,15 +85,33 @@ public:
 						     Mesh   *me,
 						     std::string& geom_id);
 
-	// powerful because it handles both cases when there is material and when there's not
+	// Create polylists for meshes with Materials
 	void createPolylist(short material_index,
-						bool has_uvs,
-						bool has_color,
-						Object *ob,
-						Mesh   *me,
-						std::string& geom_id,
-						std::vector<BCPolygonNormalsIndices>& norind);
-	
+		bool has_uvs,
+		bool has_color,
+		Object *ob,
+		Mesh   *me,
+		std::string& geom_id,
+		std::vector<BCPolygonNormalsIndices>& norind);
+
+	// Create polylists for meshes with UV Textures
+	void createPolylists(std::set<Image *> uv_images,
+		bool has_uvs,
+		bool has_color,
+		Object *ob,
+		Mesh   *me,
+		std::string& geom_id,
+		std::vector<BCPolygonNormalsIndices>& norind);
+
+	// Create polylists for meshes with UV Textures
+	void createPolylist(Image *ima,
+		bool has_uvs,
+		bool has_color,
+		Object *ob,
+		Mesh   *me,
+		std::string& geom_id,
+		std::vector<BCPolygonNormalsIndices>& norind);
+
 	// creates <source> for positions
 	void createVertsSource(std::string geom_id, Mesh *me);
 

@@ -344,7 +344,13 @@ std::string get_camera_id(Object *ob)
 
 std::string get_material_id(Material *mat)
 {
-	return translate_id(id_name(mat)) + "-material";
+	std::string id = id_name(mat);
+	return get_material_id_from_id(id);
+}
+
+std::string get_material_id_from_id(std::string id)
+{
+	return translate_id(id) + "-material";
 }
 
 std::string get_morph_id(Object *ob)
