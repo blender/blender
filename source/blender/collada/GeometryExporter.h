@@ -104,7 +104,7 @@ public:
 		std::vector<BCPolygonNormalsIndices>& norind);
 
 	// Create polylists for meshes with UV Textures
-	void createPolylist(Image *ima,
+	void createPolylist(std::string imageid,
 		bool has_uvs,
 		bool has_color,
 		Object *ob,

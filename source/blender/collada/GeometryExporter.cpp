@@ -141,9 +141,16 @@ void GeometryExporter::operator()(Object *ob)
 			}
 		}
 		else {
-			bool all_uv_layers = !this->export_settings->active_uv_only;
-			std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
-			createPolylists(uv_images, has_uvs, has_color, ob, me, geom_id, norind);
+			std::set<Image *> uv_images = bc_getUVImages(ob, !this->export_settings->active_uv_only);
+			if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV && uv_images.size() > 0) {
+				bool all_uv_layers = !this->export_settings->active_uv_only;
+				std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
+				createPolylists(uv_images, has_uvs, has_color, ob, me, geom_id, norind);
+			}
+			else {
+				int i = 0;
+				createPolylist(i, has_uvs, has_color, ob, me, geom_id, norind);
+			}
 		}
 	}
 	
@@ -448,18 +455,35 @@ void GeometryExporter::createPolylists(std::set<Image *> uv_images,
 		uv_images_iter++) {
 
 		Image *ima = *uv_images_iter;
-
-		createPolylist(ima, has_uvs,
+		std::string imageid(id_name(ima));
+		createPolylist(imageid, has_uvs,
 			has_color,
 			ob,
 			me,
 			geom_id,
 			norind);
 	}
+
+	/* We msut add an additional collector for the case when 
+	 * some parts of the object are not textured at all.
+	 * The next call creates a polylist for all untextured polygons
+	 */
+
+	createPolylist("", has_uvs,
+		has_color,
+		ob,
+		me,
+		geom_id,
+		norind);
+
 }
-// Export Meshes with UV Textures (export as materials, see effectExporter and MaterialExporter)
-// Important: Image *ima must point to an Image
-void GeometryExporter::createPolylist(Image *ima,
+/* ===========================================================================
+ * Export Meshes with UV Textures (export as materials, see also in 
+ * effectExporter and MaterialExporter)
+ * 
+ * If imageid is the empty string, then collect only untextured polygons
+ * =========================================================================== */ 
+void GeometryExporter::createPolylist(std::string imageid,
 	bool has_uvs,
 	bool has_color,
 	Object *ob,
@@ -468,7 +492,6 @@ void GeometryExporter::createPolylist(Image *ima,
 	std::vector<BCPolygonNormalsIndices>& norind)
 {
 
-	std::string imageid(id_name(ima));
 	MPoly *mpolys = me->mpoly;
 	MLoop *mloops = me->mloop;
 	MTexPoly *mtpolys = me->mtpoly;
@@ -485,16 +508,17 @@ void GeometryExporter::createPolylist(Image *ima,
 		MTexPoly *tp = &mtpolys[i];
 		MPoly *p = &mpolys[i];
 
-		std::string tpageid(id_name(tp->tpage));
+		std::string tpageid = (tp->tpage) ? id_name(tp->tpage):"";
 		if (tpageid == imageid) {
 			faces_in_polylist++;
 			vcount_list.push_back(p->totloop);
 		}
 	}
 
-	// no faces using this material
+	// no faces using this imageid
 	if (faces_in_polylist == 0) {
-		fprintf(stderr, "%s: Image %s is not used.\n", id_name(ob).c_str(), imageid);
+		if (imageid != "")
+			fprintf(stderr, "%s: Image %s is not used.\n", id_name(ob).c_str(), imageid);
 		return;
 	}
 
@@ -503,12 +527,13 @@ void GeometryExporter::createPolylist(Image *ima,
 	// sets count attribute in <polylist>
 	polylist.setCount(faces_in_polylist);
 
-	// sets material name
-	std::string material_id = get_material_id_from_id(imageid);
-	std::ostringstream ostr;
-	ostr << translate_id(material_id);
-	polylist.setMaterial(ostr.str());
-
+	if (imageid != "") {
+		// sets material name
+		std::string material_id = get_material_id_from_id(imageid);
+		std::ostringstream ostr;
+		ostr << translate_id(material_id);
+		polylist.setMaterial(ostr.str());
+	}
 	COLLADASW::InputList &til = polylist.getInputList();
 
 	// creates <input> in <polylist> for vertices 
@@ -572,7 +597,7 @@ void GeometryExporter::createPolylist(Image *ima,
 		MTexPoly *tp = &mtpolys[i];
 		MPoly *p = &mpolys[i];
 		int loop_count = p->totloop;
-		std::string tpageid(id_name(tp->tpage));
+		std::string tpageid = (tp->tpage) ? id_name(tp->tpage) : "";
 		if (tpageid == imageid) {
 			MLoop *l = &mloops[p->loopstart];
 			BCPolygonNormalsIndices normal_indices = norind[i];
