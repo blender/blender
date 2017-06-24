@@ -138,7 +138,8 @@ extern bool bc_has_object_type(LinkNode *export_set, short obtype);
 char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int n)
 {
 	int layer_index = CustomData_get_layer_index(data, type);
-	if (layer_index < 0) return NULL;
+	if (layer_index < 0)
+		return NULL;
 
 	return data->layers[layer_index + n].name;
 }
@@ -147,9 +148,10 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
 {
 	/* get the layer index of the active layer of type */
 	int layer_index = CustomData_get_active_layer_index(data, type);
-	if (layer_index < 0) return NULL;
+	if (layer_index < 1)
+		return NULL;
 
-	return data->layers[layer_index].name;
+	return bc_CustomData_get_layer_name(data, type, layer_index-1);
 }
 
 DocumentExporter::DocumentExporter(const ExportSettings *export_settings) : export_settings(export_settings) {

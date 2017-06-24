@@ -55,9 +55,9 @@ ImagesExporter::ImagesExporter(COLLADASW::StreamWriter *sw, const ExportSettings
 
 void ImagesExporter::export_UV_Image(Image *image, bool use_copies) 
 {
-	std::string name(id_name(image));
-	std::string translated_name(translate_id(name));
-	bool not_yet_exported = find(mImages.begin(), mImages.end(), translated_name) == mImages.end();
+	std::string id(id_name(image));
+	std::string translated_id(translate_id(id));
+	bool not_yet_exported = find(mImages.begin(), mImages.end(), translated_id) == mImages.end();
 
 	if (not_yet_exported) {
 
@@ -88,7 +88,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 
 			// make absolute destination path
 
-			BLI_strncpy(export_file, name.c_str(), sizeof(export_file));
+			BLI_strncpy(export_file, id.c_str(), sizeof(export_file));
 			BKE_image_path_ensure_ext_from_imformat(export_file, &imageFormat);
 
 			BLI_join_dirfile(export_path, sizeof(export_path), export_dir, export_file);
@@ -143,10 +143,11 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 			}
 		}
 
-		COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(export_path)), translated_name, translated_name); /* set name also to mNameNC. This helps other viewers import files exported from Blender better */
+		/* set name also to mNameNC. This helps other viewers import files exported from Blender better */
+		COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(export_path)), translated_id, translated_id); 
 		img.add(mSW);
 		fprintf(stdout, "Collada export: Added image: %s\n", export_file);
-		mImages.push_back(translated_name);
+		mImages.push_back(translated_id);
 
 		BKE_image_release_ibuf(image, imbuf, NULL);
 	}
@@ -161,7 +162,7 @@ void ImagesExporter::export_UV_Images()
 
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
-		if (ob->type == OB_MESH && ob->totcol) {
+		if (ob->type == OB_MESH) {
 			Mesh *me     = (Mesh *) ob->data;
 			BKE_mesh_tessface_ensure(me);
 			int active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
@@ -189,7 +190,13 @@ void ImagesExporter::export_UV_Images()
 	}
 }
 
-
+/* ============================================================
+ * Check if there are any images to be exported
+ * Returns true as soon as an object is detected that
+ * either has an UV Texture assigned, or has a material
+ * assigned that uses an Image Texture.
+ * ============================================================
+ */
 bool ImagesExporter::hasImages(Scene *sce)
 {
 	LinkNode *node;

@@ -135,13 +135,15 @@ void GeometryExporter::operator()(Object *ob)
 	// Only create Polylists if number of faces > 0
 	if (me->totface > 0) {
 		// XXX slow
-		if (ob->totcol) {
+		if (ob->totcol && this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT) {
 			for (int a = 0; a < ob->totcol; a++) {
 				createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
 			}
 		}
 		else {
-			createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+			bool all_uv_layers = !this->export_settings->active_uv_only;
+			std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
+			createPolylists(uv_images, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 	
@@ -221,13 +223,15 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 	//createLooseEdgeList(ob, me, geom_id, norind);
 
 	// XXX slow		
-	if (ob->totcol) {
+	if (ob->totcol && this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT) {
 		for (int a = 0; a < ob->totcol; a++) {
 			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 	else {
-		createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+		bool all_uv_layers = !this->export_settings->active_uv_only;
+		std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
+		createPolylists(uv_images, has_uvs, has_color, ob, me, geom_id, norind);
 	}
 	
 	closeMesh();
@@ -296,7 +300,8 @@ std::string GeometryExporter::makeVertexColorSourceId(std::string& geom_id, char
 	return result;
 }
 
-// powerful because it handles both cases when there is material and when there's not
+
+// Export meshes with Materials
 void GeometryExporter::createPolylist(short material_index,
                                       bool has_uvs,
                                       bool has_color,
@@ -361,13 +366,21 @@ void GeometryExporter::createPolylist(short material_index,
 	int active_uv_index = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE)-1;
 	for (i = 0; i < num_layers; i++) {
 		if (!this->export_settings->active_uv_only || i == active_uv_index) {
+			
+			std::string uv_name(bc_get_uvlayer_name(me, i));
+			std::string effective_id = geom_id; // (uv_name == "") ? geom_id : uv_name;
+			std::string layer_id = makeTexcoordSourceId(
+				effective_id,
+				i, this->export_settings->active_uv_only);
 
-			// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
+			/* Note: the third parameter denotes the offset of TEXCOORD in polylist elements
+			   For now this is always 2 (This may change sometime/maybe) 
+			*/
 			COLLADASW::Input input3(COLLADASW::InputSemantic::TEXCOORD,
-									makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings->active_uv_only)),
-									2, // this is only until we have optimized UV sets
-									(this->export_settings->active_uv_only) ? 0 : i  // only_active_uv exported -> we have only one set
-									);
+				makeUrl(layer_id),
+				2, // this is only until we have optimized UV sets
+				(this->export_settings->active_uv_only) ? 0 : i  // only_active_uv exported -> we have only one set
+				);
 			til.push_back(input3);
 		}
 	}
@@ -697,7 +710,13 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 			MLoopUV *mloops = (MLoopUV *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, a);
 			
 			COLLADASW::FloatSourceF source(mSW);
-			std::string layer_id = makeTexcoordSourceId(geom_id, a, this->export_settings->active_uv_only);
+			std::string active_uv_name(bc_get_active_uvlayer_name(me));
+			std::string effective_id = geom_id; // (active_uv_name == "") ? geom_id : active_uv_name;
+			std::string layer_id = makeTexcoordSourceId(
+				effective_id, 
+				a, 
+				this->export_settings->active_uv_only );
+
 			source.setId(layer_id);
 			source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
 			

@@ -27,7 +27,6 @@
 
 
 #include <map>
-#include <set>
 
 #include "COLLADASWEffectProfile.h"
 #include "COLLADAFWColorOrTexture.h"
@@ -49,20 +48,9 @@ extern "C" {
 	#include "BKE_material.h"
 }
 
-// OB_MESH is assumed
-static std::string getActiveUVLayerName(Object *ob)
-{
-	Mesh *me = (Mesh *)ob->data;
-
-	int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-	if (num_layers)
-		return std::string(bc_CustomData_get_active_layer_name(&me->fdata, CD_MTFACE));
-		
-	return "";
-}
-
 EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryEffects(sw), export_settings(export_settings) {
 }
+
 
 bool EffectsExporter::hasEffects(Scene *sce)
 {
@@ -86,13 +74,49 @@ bool EffectsExporter::hasEffects(Scene *sce)
 
 void EffectsExporter::exportEffects(Scene *sce)
 {
-	if (hasEffects(sce)) {
-		this->scene = sce;
-		openLibrary();
-		MaterialFunctor mf;
-		mf.forEachMaterialInExportSet<EffectsExporter>(sce, *this, this->export_settings->export_set);
+	this->scene = sce;
+	
+	if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT) {
+		if (hasEffects(sce)) {
+				MaterialFunctor mf;
+				openLibrary();
+				mf.forEachMaterialInExportSet<EffectsExporter>(sce, *this, this->export_settings->export_set);
+				closeLibrary();
+		}
+	}
+	else if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV) {
+		std::set<Object *> uv_textured_obs = bc_getUVTexturedObjects(sce, !this->export_settings->active_uv_only);
+		std::set<Image *> uv_images = bc_getUVImages(sce, !this->export_settings->active_uv_only);
+		if (uv_images.size() > 0) {
+			openLibrary();
+			std::set<Image *>::iterator uv_images_iter;
+			for (uv_images_iter = uv_images.begin();
+				uv_images_iter != uv_images.end();
+				uv_images_iter++) {
 
-		closeLibrary();
+				Image *ima = *uv_images_iter;
+				std::string key(id_name(ima));
+				key = translate_id(key);
+				COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
+					key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+					key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+				sampler.setImageId(key);
+
+				openEffect(key + "-effect");
+				COLLADASW::EffectProfile ep(mSW);
+				ep.setProfileType(COLLADASW::EffectProfile::COMMON);
+				ep.setShaderType(COLLADASW::EffectProfile::PHONG);
+				ep.setDiffuse(createTexture(ima, key, &sampler), false, "diffuse");
+				COLLADASW::ColorOrTexture cot = getcol(0, 0, 0, 1.0f);
+				ep.setSpecular(cot, false, "specular");
+				ep.openProfile();
+				ep.addProfileElements();
+				ep.addExtraTechniques(mSW);
+				ep.closeProfile();
+				closeEffect();
+			}
+			closeLibrary();
+		}
 	}
 }
 
@@ -169,6 +193,18 @@ void EffectsExporter::writeTextures(COLLADASW::EffectProfile &ep,
 		texture.setProfileName("FCOLLADA");
 		texture.setChildElementName("bump");
 		ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
+	}
+}
+
+void EffectsExporter::exportUVMats(Object *ob)
+{
+	std::vector<int> tex_indices;
+	int active_uv_layer = -1;
+	std::set<Image *> uv_textures;
+	if (ob->type == OB_MESH && ob->totcol && this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV) {
+		bool active_uv_only = this->export_settings->active_uv_only;
+		Mesh *me = (Mesh *)ob->data;
+		active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
 	}
 }
 
@@ -365,7 +401,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	// used as fallback when MTex->uvname is "" (this is pretty common)
 	// it is indeed the correct value to use in that case
-	std::string active_uv(getActiveUVLayerName(ob));
+	std::string active_uv(bc_get_active_uvlayer_name(ob));
 
 	// write textures
 	// XXX very slow
@@ -385,16 +421,18 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		writeTextures(ep, key, sampler, t, ima, uvname);
 	}
 
-	std::set<Image *>::iterator uv_t_iter;
-	int idx;
-	for (idx = 0, uv_t_iter = uv_textures.begin(); uv_t_iter != uv_textures.end(); uv_t_iter++, idx++ ) {
-		if (active_uv_layer>-1 && idx==active_uv_layer) {
+	if (active_uv_layer > -1) {
+		// Export only UV textures assigned to active UV Layer (sounds reasonable, but is that correct?)
+		std::set<Image *>::iterator uv_t_iter;
+
+		for (uv_t_iter = uv_textures.begin(); uv_t_iter != uv_textures.end(); uv_t_iter++) {
 			Image *ima = *uv_t_iter;
 			std::string key(id_name(ima));
 			key = translate_id(key);
 			int i = im_samp_map[key];
 			COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i];
 			ep.setDiffuse(createTexture(ima, active_uv, sampler), false, "diffuse");
+			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
 		}
 	}
 

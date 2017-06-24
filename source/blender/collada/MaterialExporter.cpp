@@ -49,8 +49,7 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 			closeLibrary();
 		}
 	}
-#if 0
-	// Temporary discarded (to keep consistent commits)
+
 	else if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV)
 	{
 		std::set<Image *> uv_images = bc_getUVImages(sce, !this->export_settings->active_uv_only);
@@ -72,7 +71,7 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 			closeLibrary();
 		}
 	}
-#endif
+
 }
 
 bool MaterialsExporter::hasMaterials(Scene *sce)

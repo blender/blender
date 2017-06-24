@@ -31,11 +31,12 @@
 #include "COLLADASWBindMaterial.h"
 
 #include "DNA_object_types.h"
+#include "collada.h"
 
 class InstanceWriter
 {
 protected:
-	void add_material_bindings(COLLADASW::BindMaterial& bind_material, Object *ob, bool active_uv_only);
+	void add_material_bindings(COLLADASW::BindMaterial& bind_material, Object *ob, bool active_uv_only, BC_export_texture_type export_texture_type);
 };
 
 #endif
