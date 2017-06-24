@@ -3756,7 +3756,7 @@ static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 	bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
 
 	if (screen) {
-		if (RNA_boolean_get(op->ptr, "restore_frame")) {
+		if (RNA_boolean_get(op->ptr, "restore_frame") && screen->animtimer) {
 			ScreenAnimData *sad = screen->animtimer->customdata;
 			Scene *scene = CTX_data_scene(C);
 
