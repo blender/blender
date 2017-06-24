@@ -926,15 +926,14 @@ void wm_draw_update(bContext *C)
 	
 	for (win = wm->windows.first; win; win = win->next) {
 #ifdef WIN32
-		if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
-			GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
+		GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
 
-			if (state == GHOST_kWindowStateMinimized) {
-				/* do not update minimized windows, it gives issues on intel drivers (see [#33223])
-				 * anyway, it seems logical to skip update for invisible windows
-				 */
-				continue;
-			}
+		if (state == GHOST_kWindowStateMinimized) {
+			/* do not update minimized windows, gives issues on Intel (see T33223)
+			 * and AMD (see T50856). it seems logical to skip update for invisible
+			 * window anyway.
+			 */
+			continue;
 		}
 #endif
 		if (win->drawmethod != U.wmdrawmethod) {
