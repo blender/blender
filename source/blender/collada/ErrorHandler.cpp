@@ -49,7 +49,7 @@ ErrorHandler::~ErrorHandler()
 //--------------------------------------------------------------------
 bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 {
-	bool isError = true;
+	bool isError = false;
 	
 	if (error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXPARSER) {
 		COLLADASaxFWL::SaxParserError *saxParserError = (COLLADASaxFWL::SaxParserError *) error;
@@ -81,10 +81,7 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 		 * Accept non critical errors as warnings (i.e. texture not found)
 		 * This makes the importer more graceful, so it now imports what makes sense.
 		 */
-		if (saxFWLError->getSeverity() == COLLADASaxFWL::IError::SEVERITY_ERROR_NONCRITICAL) {
-			isError = false;
-		}
-
+		isError = (saxFWLError->getSeverity() != COLLADASaxFWL::IError::SEVERITY_ERROR_NONCRITICAL);
 		std::cout << "Sax FWL Error: " << saxFWLError->getErrorMessage() << std::endl;
 	}
 	else {
@@ -93,5 +90,5 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 
 	mError |= isError;
 
-	return false; // let OpenCollada decide when to abort
+	return isError; // let OpenCollada decide when to abort
 }
