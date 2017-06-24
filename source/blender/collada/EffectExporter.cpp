@@ -176,7 +176,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 {
 	// create a list of indices to textures of type TEX_IMAGE
 	std::vector<int> tex_indices;
-	if (this->export_settings->include_material_textures)
+	if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT)
 		createTextureIndices(ma, tex_indices);
 
 	openEffect(translate_id(id_name(ma)) + "-effect");
@@ -313,7 +313,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	int active_uv_layer = -1;
 	std::set<Image *> uv_textures;
-	if (ob->type == OB_MESH && ob->totcol && this->export_settings->include_uv_textures) {
+	if (ob->type == OB_MESH && ob->totcol && this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV) {
 		bool active_uv_only = this->export_settings->active_uv_only;
 		Mesh *me     = (Mesh *) ob->data;
 		active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);

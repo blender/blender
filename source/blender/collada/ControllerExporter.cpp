@@ -98,7 +98,10 @@ bool ControllerExporter::add_instance_controller(Object *ob)
 		write_bone_URLs(ins, ob_arm, bone);
 	}
 
-	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob, this->export_settings->active_uv_only);
+	InstanceWriter::add_material_bindings(ins.getBindMaterial(),
+		    ob, 
+			this->export_settings->active_uv_only,
+			this->export_settings->export_texture_type);
 		
 	ins.add();
 	return true;

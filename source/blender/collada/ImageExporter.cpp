@@ -232,11 +232,10 @@ void ImagesExporter::exportImages(Scene *sce)
 	openLibrary();
 
 	MaterialFunctor mf;
-	if (this->export_settings->include_material_textures) {
+	if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT) {
 		mf.forEachMaterialInExportSet<ImagesExporter>(sce, *this, this->export_settings->export_set);
 	}
-
-	if (this->export_settings->include_uv_textures) {
+	else if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV) {
 		export_UV_Images();
 	}
 

@@ -80,8 +80,7 @@ int collada_export(Scene *sce,
                    int deform_bones_only,
 
 				   int active_uv_only,
-				   int include_uv_textures,
-				   int include_material_textures,
+				   BC_export_texture_type export_texture_type,
 				   int use_texture_copies,
 
                    int triangulate,
@@ -106,8 +105,7 @@ int collada_export(Scene *sce,
 	export_settings.deform_bones_only        = deform_bones_only != 0;
 
 	export_settings.active_uv_only           = active_uv_only != 0;
-	export_settings.include_uv_textures      = include_uv_textures != 0;
-	export_settings.include_material_textures= include_material_textures != 0;
+	export_settings.export_texture_type      = export_texture_type;
 	export_settings.use_texture_copies       = use_texture_copies != 0;
 
 	export_settings.triangulate                = triangulate != 0;
