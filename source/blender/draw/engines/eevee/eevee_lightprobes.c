@@ -1024,6 +1024,7 @@ static void render_scene_to_planar(
 	GPUTexture *tmp_minmaxz = stl->g_data->minmaxz;
 	txl->planar_pool = e_data.planar_pool_placeholder;
 	stl->g_data->minmaxz = e_data.planar_minmaxz;
+	stl->g_data->background_alpha = FLT_MAX; /* Alpha is distance for planar reflections. */
 
 	DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
 	DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
@@ -1057,6 +1058,7 @@ static void render_scene_to_planar(
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
 	stl->g_data->minmaxz = tmp_minmaxz;
+	stl->g_data->background_alpha = 1.0;
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);

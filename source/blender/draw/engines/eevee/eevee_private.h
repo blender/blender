@@ -397,6 +397,7 @@ typedef struct EEVEE_PrivateData {
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
 	struct GPUTexture *minmaxz;
+	float background_alpha; /* TODO find a better place for this. */
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */

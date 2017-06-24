@@ -480,6 +480,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 				grp = DRW_shgroup_material_create(gpumat, psl->background_pass);
 
 				if (grp) {
+					DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 					DRW_shgroup_call_add(grp, geom, NULL);
 				}
 				else {
@@ -494,6 +495,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 		if (grp == NULL) {
 			grp = DRW_shgroup_create(e_data.default_background, psl->background_pass);
 			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
+			DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 			DRW_shgroup_call_add(grp, geom, NULL);
 		}
 	}

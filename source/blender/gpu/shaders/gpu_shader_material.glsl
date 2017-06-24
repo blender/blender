@@ -3855,9 +3855,11 @@ void node_output_material(vec4 surface, vec4 volume, float displacement, out vec
 	result = surface;
 }
 
+uniform float backgroundAlpha;
+
 void node_output_world(vec4 surface, vec4 volume, out vec4 result)
 {
-	result = vec4(surface.rgb, 1.0);
+	result = vec4(surface.rgb, backgroundAlpha);
 }
 
 void convert_metallic_to_specular(vec4 basecol, float metallic, float specular_fac, out vec4 diffuse, out vec4 f0)
