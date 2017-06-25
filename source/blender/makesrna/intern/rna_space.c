@@ -459,12 +459,12 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, P
 	}
 	else {
 		/* can't use scene from ptr->id.data because that enum is also used by operators */
-		workspace = CTX_wm_workspace(C);
+		workspace = C ? CTX_wm_workspace(C) : NULL;
 	}
 
-	transform_orientations = BKE_workspace_transform_orientations_get(workspace);
+	transform_orientations = workspace ? BKE_workspace_transform_orientations_get(workspace) : NULL;
 
-	if (BLI_listbase_is_empty(transform_orientations) == false) {
+	if (transform_orientations && (BLI_listbase_is_empty(transform_orientations) == false)) {
 		RNA_enum_item_add_separator(&item, &totitem);
 
 		for (TransformOrientation *ts = transform_orientations->first; ts; ts = ts->next) {
