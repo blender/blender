@@ -746,7 +746,7 @@ int collada_export(struct Scene *sce,
                    BC_export_transformation_type export_transformation_type,
                    int open_sim,
                    int limit_precision,
-                   int keep_bind_info);
+                   int keep_bind_info) RET_ZERO
 
 void ED_mesh_calc_tessface(struct Mesh *mesh, bool free_mpoly) RET_NONE
 
