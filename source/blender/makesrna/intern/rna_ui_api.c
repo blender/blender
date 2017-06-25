@@ -557,8 +557,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
 	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
-	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "",
-	                       "Operator properties to fill in, return when 'properties' is set to true");
+	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "", "Operator properties to fill in");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED | PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 	RNA_def_function_ui_description(func, "Item. Places a button into the layout to call an Operator");
