@@ -307,6 +307,42 @@ std::string GeometryExporter::makeVertexColorSourceId(std::string& geom_id, char
 	return result;
 }
 
+static void prepareToAppendValues(bool is_triangulated, COLLADASW::PrimitivesBase *facelist, std::vector<unsigned long> &vcount_list)
+{
+	// performs the actual writing
+	if (is_triangulated) {
+		((COLLADASW::Triangles *)facelist)->prepareToAppendValues();
+	}
+	else {
+		// sets <vcount>
+		facelist->setVCountList(vcount_list);
+		((COLLADASW::Polylist *)facelist)-> prepareToAppendValues();
+	}
+}
+
+static void finishList(bool is_triangulated, COLLADASW::PrimitivesBase *facelist)
+{
+	if (is_triangulated) {
+		((COLLADASW::Triangles *)facelist)->finish();
+	}
+	else {
+		((COLLADASW::Polylist *)facelist)->finish();
+	}
+}
+
+COLLADASW::PrimitivesBase *getFacelist(bool is_triangulated, COLLADASW::StreamWriter *mSW)
+{
+	COLLADASW::PrimitivesBase *facelist;
+
+	if (is_triangulated)
+	{
+		facelist = new COLLADASW::Triangles(mSW);
+	}
+	else {
+		facelist = new COLLADASW::Polylist(mSW);
+	}
+	return facelist;
+}
 
 // Export meshes with Materials
 void GeometryExporter::createPolylist(short material_index,
@@ -326,7 +362,7 @@ void GeometryExporter::createPolylist(short material_index,
 	int i;
 	int faces_in_polylist = 0;
 	std::vector<unsigned long> vcount_list;
-
+	bool is_triangulated = true;
 	// count faces with this material
 	for (i = 0; i < totpolys; i++) {
 		MPoly *p = &mpolys[i];
@@ -334,6 +370,9 @@ void GeometryExporter::createPolylist(short material_index,
 		if (p->mat_nr == material_index) {
 			faces_in_polylist++;
 			vcount_list.push_back(p->totloop);
+			if (p->totloop != 3) {
+				is_triangulated = false;
+			}
 		}
 	}
 
@@ -344,20 +383,21 @@ void GeometryExporter::createPolylist(short material_index,
 	}
 		
 	Material *ma = ob->totcol ? give_current_material(ob, material_index + 1) : NULL;
-	COLLADASW::Polylist polylist(mSW);
+	COLLADASW::PrimitivesBase *facelist = getFacelist(is_triangulated, mSW);
+
 		
 	// sets count attribute in <polylist>
-	polylist.setCount(faces_in_polylist);
+	facelist->setCount(faces_in_polylist);
 		
 	// sets material name
 	if (ma) {
 		std::string material_id = get_material_id(ma);
 		std::ostringstream ostr;
 		ostr << translate_id(material_id);
-		polylist.setMaterial(ostr.str());
+		facelist->setMaterial(ostr.str());
 	}
 			
-	COLLADASW::InputList &til = polylist.getInputList();
+	COLLADASW::InputList &til = facelist->getInputList();
 		
 	// creates <input> in <polylist> for vertices 
 	COLLADASW::Input input1(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
@@ -408,12 +448,10 @@ void GeometryExporter::createPolylist(short material_index,
 		}
 	}
 		
-	// sets <vcount>
-	polylist.setVCountList(vcount_list);
 		
 	// performs the actual writing
-	polylist.prepareToAppendValues();
-	
+	prepareToAppendValues(is_triangulated, facelist, vcount_list);
+
 	// <p>
 	int texindex = 0;
 	for (i = 0; i < totpolys; i++) {
@@ -425,20 +463,21 @@ void GeometryExporter::createPolylist(short material_index,
 			BCPolygonNormalsIndices normal_indices = norind[i];
 
 			for (int j = 0; j < loop_count; j++) {
-				polylist.appendValues(l[j].v);
-				polylist.appendValues(normal_indices[j]);
+				facelist->appendValues(l[j].v);
+				facelist->appendValues(normal_indices[j]);
 				if (has_uvs)
-					polylist.appendValues(texindex + j);
+					facelist->appendValues(texindex + j);
 
 				if (has_color)
-					polylist.appendValues(texindex + j);
+					facelist->appendValues(texindex + j);
 			}
 		}
 
 		texindex += loop_count;
 	}
-		
-	polylist.finish();
+
+	finishList(is_triangulated, facelist);
+	delete facelist;
 }
 
 void GeometryExporter::createPolylists(std::set<Image *> uv_images,
@@ -477,6 +516,7 @@ void GeometryExporter::createPolylists(std::set<Image *> uv_images,
 		norind);
 
 }
+
 /* ===========================================================================
  * Export Meshes with UV Textures (export as materials, see also in 
  * effectExporter and MaterialExporter)
@@ -502,7 +542,7 @@ void GeometryExporter::createPolylist(std::string imageid,
 	int i;
 	int faces_in_polylist = 0;
 	std::vector<unsigned long> vcount_list;
-
+	bool is_triangulated = true;
 	// count faces with this material
 	for (i = 0; i < totpolys; i++) {
 		MTexPoly *tp = &mtpolys[i];
@@ -512,6 +552,9 @@ void GeometryExporter::createPolylist(std::string imageid,
 		if (tpageid == imageid) {
 			faces_in_polylist++;
 			vcount_list.push_back(p->totloop);
+			if (p->totloop != 3) {
+				is_triangulated = false;
+			}
 		}
 	}
 
@@ -522,19 +565,19 @@ void GeometryExporter::createPolylist(std::string imageid,
 		return;
 	}
 
-	COLLADASW::Polylist polylist(mSW);
+	COLLADASW::PrimitivesBase *facelist = getFacelist(is_triangulated, mSW);
 
 	// sets count attribute in <polylist>
-	polylist.setCount(faces_in_polylist);
+	facelist->setCount(faces_in_polylist);
 
 	if (imageid != "") {
 		// sets material name
 		std::string material_id = get_material_id_from_id(imageid);
 		std::ostringstream ostr;
 		ostr << translate_id(material_id);
-		polylist.setMaterial(ostr.str());
+		facelist->setMaterial(ostr.str());
 	}
-	COLLADASW::InputList &til = polylist.getInputList();
+	COLLADASW::InputList &til = facelist->getInputList();
 
 	// creates <input> in <polylist> for vertices 
 	COLLADASW::Input input1(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
@@ -585,11 +628,8 @@ void GeometryExporter::createPolylist(std::string imageid,
 		}
 	}
 
-	// sets <vcount>
-	polylist.setVCountList(vcount_list);
-
 	// performs the actual writing
-	polylist.prepareToAppendValues();
+	prepareToAppendValues(is_triangulated, facelist, vcount_list);
 
 	// <p>
 	int texindex = 0;
@@ -603,20 +643,21 @@ void GeometryExporter::createPolylist(std::string imageid,
 			BCPolygonNormalsIndices normal_indices = norind[i];
 
 			for (int j = 0; j < loop_count; j++) {
-				polylist.appendValues(l[j].v);
-				polylist.appendValues(normal_indices[j]);
+				facelist->appendValues(l[j].v);
+				facelist->appendValues(normal_indices[j]);
 				if (has_uvs)
-					polylist.appendValues(texindex + j);
+					facelist->appendValues(texindex + j);
 
 				if (has_color)
-					polylist.appendValues(texindex + j);
+					facelist->appendValues(texindex + j);
 			}
 		}
 
 		texindex += loop_count;
 	}
 
-	polylist.finish();
+	finishList(is_triangulated, facelist);
+	delete facelist;
 }
 
 // creates <source> for positions
