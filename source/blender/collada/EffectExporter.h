@@ -47,10 +47,8 @@ class EffectsExporter: COLLADASW::LibraryEffects
 {
 public:
 	EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
-	void EffectsExporter::exportUVMats(Object *ob);
-
+	void exportUVMats(Object *ob);
 	void exportEffects(Scene *sce);
-
 	void operator()(Material *ma, Object *ob);
 	
 	COLLADASW::ColorOrTexture createTexture(Image *ima,
