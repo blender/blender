@@ -6988,7 +6988,7 @@ static void rna_def_display_safe_areas(BlenderRNA *brna)
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_array_default(prop, default_title);
-	RNA_def_property_ui_text(prop, "Title Safe margins", "Safe area for text and graphics");
+	RNA_def_property_ui_text(prop, "Title Safe Margins", "Safe area for text and graphics");
 	RNA_def_property_update(prop, NC_SCENE | ND_DRAW_RENDER_VIEWPORT, NULL);
 
 	prop = RNA_def_property(srna, "action", PROP_FLOAT, PROP_XYZ);
@@ -6998,7 +6998,6 @@ static void rna_def_display_safe_areas(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Action Safe Margins", "Safe area for general elements");
 	RNA_def_property_update(prop, NC_SCENE | ND_DRAW_RENDER_VIEWPORT, NULL);
-
 
 	prop = RNA_def_property(srna, "title_center", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "title_center");
