@@ -518,7 +518,7 @@ void GeometryExporter::createPolylist(std::string imageid,
 	// no faces using this imageid
 	if (faces_in_polylist == 0) {
 		if (imageid != "")
-			fprintf(stderr, "%s: Image %s is not used.\n", id_name(ob).c_str(), imageid);
+			fprintf(stderr, "%s: Image %s is not used.\n", id_name(ob).c_str(), imageid.c_str());
 		return;
 	}
 
