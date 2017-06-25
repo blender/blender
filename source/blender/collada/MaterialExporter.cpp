@@ -50,8 +50,7 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 		}
 	}
 
-	else if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV)
-	{
+	else {
 		std::set<Image *> uv_images = bc_getUVImages(sce, !this->export_settings->active_uv_only);
 		if (uv_images.size() > 0) {
 			openLibrary();

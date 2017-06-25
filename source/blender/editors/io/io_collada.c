@@ -321,9 +321,8 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	};
 
 	static EnumPropertyItem prop_bc_export_texture_type[] = {
-		{ BC_TEXTURE_TYPE_NONE, "none", 0, "No Textures", "Do not export any image based Textures" },
-		{ BC_TEXTURE_TYPE_UV, "uv", 0, "UV Textures", "Export UV Textures (Face textures)" },
-		{ BC_TEXTURE_TYPE_MAT, "mat", 0, "Material Textures", "Export Material Textures" },
+		{ BC_TEXTURE_TYPE_MAT, "mat", 0, "Materials", "Export Materials" },
+		{ BC_TEXTURE_TYPE_UV, "uv", 0, "UV Textures", "Export UV Textures (Face textures) as materials" },
 		{ 0, NULL, 0, NULL, NULL }
 	};
 

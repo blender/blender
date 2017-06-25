@@ -47,9 +47,8 @@ typedef enum BC_export_transformation_type {
 } BC_export_transformation_type;
 
 typedef enum BC_export_texture_type {
-	BC_TEXTURE_TYPE_NONE,
-	BC_TEXTURE_TYPE_UV,
-	BC_TEXTURE_TYPE_MAT
+	BC_TEXTURE_TYPE_MAT,
+	BC_TEXTURE_TYPE_UV
 } BC_export_texture_type;
 
 struct bContext;

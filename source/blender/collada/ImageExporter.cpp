@@ -242,7 +242,7 @@ void ImagesExporter::exportImages(Scene *sce)
 	if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT) {
 		mf.forEachMaterialInExportSet<ImagesExporter>(sce, *this, this->export_settings->export_set);
 	}
-	else if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV) {
+	else {
 		export_UV_Images();
 	}
 

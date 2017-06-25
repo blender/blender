@@ -135,22 +135,22 @@ void GeometryExporter::operator()(Object *ob)
 	// Only create Polylists if number of faces > 0
 	if (me->totface > 0) {
 		// XXX slow
-		if (ob->totcol && this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT) {
-			for (int a = 0; a < ob->totcol; a++) {
-				createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
-			}
-		}
-		else {
-			std::set<Image *> uv_images = bc_getUVImages(ob, !this->export_settings->active_uv_only);
-			if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_UV && uv_images.size() > 0) {
-				bool all_uv_layers = !this->export_settings->active_uv_only;
-				std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
-				createPolylists(uv_images, has_uvs, has_color, ob, me, geom_id, norind);
+		std::set<Image *> uv_images = bc_getUVImages(ob, !this->export_settings->active_uv_only);
+		if (this->export_settings->export_texture_type == BC_TEXTURE_TYPE_MAT || uv_images.size() == 0) {
+			if (ob->totcol) {
+				for (int a = 0; a < ob->totcol; a++) {
+					createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
+				}
 			}
 			else {
 				int i = 0;
 				createPolylist(i, has_uvs, has_color, ob, me, geom_id, norind);
 			}
+		}
+		else {
+			bool all_uv_layers = !this->export_settings->active_uv_only;
+			std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
+			createPolylists(uv_images, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 	

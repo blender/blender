@@ -77,7 +77,7 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 		}
 	}
 
-	else if (export_texture_type == BC_TEXTURE_TYPE_MAT) {
+	else {
 		for (int a = 0; a < ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a + 1);
 			if (ma) {
