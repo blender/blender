@@ -608,7 +608,8 @@ static void lib_relocate_do(
 	}
 
 	/* Note that in reload case, we also want to replace indirect usages. */
-	const short remap_flags = ID_REMAP_SKIP_NEVER_NULL_USAGE | (do_reload ? 0 : ID_REMAP_SKIP_INDIRECT_USAGE);
+	const short remap_flags = ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE |
+	                          (do_reload ? 0 : ID_REMAP_SKIP_INDIRECT_USAGE);
 	for (item_idx = 0, itemlink = lapp_data->items.list; itemlink; item_idx++, itemlink = itemlink->next) {
 		WMLinkAppendDataItem *item = itemlink->link;
 		ID *old_id = item->customdata;

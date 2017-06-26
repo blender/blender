@@ -512,7 +512,8 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 				/* Object is special, proxies make things hard... */
 				const int data_cb_flag = data.cb_flag;
-				const int proxy_cb_flag = (object->proxy || object->proxy_group) ? IDWALK_CB_INDIRECT_USAGE : 0;
+				const int proxy_cb_flag = ((data.flag & IDWALK_NO_INDIRECT_PROXY_DATA_USAGE) == 0 && (object->proxy || object->proxy_group)) ?
+				                              IDWALK_CB_INDIRECT_USAGE : 0;
 
 				/* object data special case */
 				data.cb_flag |= proxy_cb_flag;

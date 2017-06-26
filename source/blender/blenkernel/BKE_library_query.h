@@ -83,6 +83,8 @@ enum {
 	IDWALK_NOP      = 0,
 	IDWALK_READONLY = (1 << 0),
 	IDWALK_RECURSE  = (1 << 1),  /* Also implies IDWALK_READONLY. */
+
+	IDWALK_NO_INDIRECT_PROXY_DATA_USAGE = (1 << 8),  /* Ugly special case :(((( */
 };
 
 /* Loop over all of the ID's this datablock links to. */

@@ -419,6 +419,7 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 	IDRemap id_remap_data;
 	ListBase *lb_array[MAX_LIBARRAY];
 	int i;
+	const int foreach_id_flags = (remap_flags & ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE) != 0 ? IDWALK_NO_INDIRECT_PROXY_DATA_USAGE : IDWALK_NOP;
 
 	if (r_id_remap_data == NULL) {
 		r_id_remap_data = &id_remap_data;
@@ -439,7 +440,7 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 #endif
 		r_id_remap_data->id = id;
 		libblock_remap_data_preprocess(r_id_remap_data);
-		BKE_library_foreach_ID_link(NULL, id, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
+		BKE_library_foreach_ID_link(NULL, id, foreach_libblock_remap_callback, (void *)r_id_remap_data, foreach_id_flags);
 	}
 	else {
 		i = set_listbasepointers(bmain, lb_array);
@@ -456,7 +457,7 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 					r_id_remap_data->id = id_curr;
 					libblock_remap_data_preprocess(r_id_remap_data);
 					BKE_library_foreach_ID_link(
-					            NULL, id_curr, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
+					            NULL, id_curr, foreach_libblock_remap_callback, (void *)r_id_remap_data, foreach_id_flags);
 				}
 			}
 		}
