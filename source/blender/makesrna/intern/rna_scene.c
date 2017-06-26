@@ -2649,7 +2649,7 @@ static void rna_LayerCollectionEngineSettings_wire_update(bContext *C, PointerRN
 	Object *ob = OBACT_NEW;
 
 	if (ob != NULL && ob->type == OB_MESH) {
-		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_PAINT);
+		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_NOCHECK);
 	}
 
 	/* TODO(sergey): Use proper flag for tagging here. */

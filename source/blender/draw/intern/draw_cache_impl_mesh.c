@@ -1392,7 +1392,7 @@ typedef struct MeshBatchCache {
 
 	/* settings to determine if cache is invalid */
 	bool is_dirty;
-	bool is_paint_dirty;
+	bool is_really_dirty; /* Instantly invalidates cache, skipping mesh check */
 	int edge_len;
 	int tri_len;
 	int poly_len;
@@ -1420,7 +1420,7 @@ static bool mesh_batch_cache_valid(Mesh *me)
 		return false;
 	}
 
-	if (cache->is_paint_dirty) {
+	if (cache->is_really_dirty) {
 		return false;
 	}
 
@@ -1467,7 +1467,7 @@ static void mesh_batch_cache_init(Mesh *me)
 	cache->mat_len = mesh_render_mat_len_get(me);
 
 	cache->is_dirty = false;
-	cache->is_paint_dirty = false;
+	cache->is_really_dirty = false;
 }
 
 static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
@@ -1500,8 +1500,8 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 
 			BATCH_DISCARD_ALL_SAFE(cache->overlay_facedots);
 			break;
-		case BKE_MESH_BATCH_DIRTY_PAINT:
-			cache->is_paint_dirty = true;
+		case BKE_MESH_BATCH_DIRTY_NOCHECK:
+			cache->is_really_dirty = true;
 			break;
 		default:
 			BLI_assert(0);

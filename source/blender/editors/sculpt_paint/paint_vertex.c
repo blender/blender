@@ -1823,7 +1823,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		ED_vgroup_sync_from_pose(ob);
 	}
 	
-	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_PAINT);
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_NOCHECK);
 
 	/* Weightpaint works by overriding colors in mesh,
 	 * so need to make sure we recalc on enter and
@@ -2385,7 +2385,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* also needed for "View Selected" on last stroke */
 	paint_last_stroke_update(scene, vc->ar, mval);
 
-	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_PAINT);
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_NOCHECK);
 
 	DEG_id_tag_update(ob->data, 0);
 	ED_region_tag_redraw(vc->ar);
@@ -2592,7 +2592,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		BKE_paint_init(scene, ePaintVertex, PAINT_CURSOR_VERTEX_PAINT);
 	}
 	
-	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_PAINT);
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_NOCHECK);
 
 	/* update modifier stack for mapping requirements */
 	DEG_id_tag_update(&me->id, 0);
@@ -2866,7 +2866,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* also needed for "View Selected" on last stroke */
 	paint_last_stroke_update(scene, vc->ar, mval);
 
-	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_PAINT);
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_NOCHECK);
 
 	ED_region_tag_redraw(vc->ar);
 
