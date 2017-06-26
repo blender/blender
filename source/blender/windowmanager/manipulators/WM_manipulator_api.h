@@ -67,6 +67,8 @@ void WM_manipulator_free(
         ListBase *manipulatorlist, struct wmManipulatorMap *mmap, struct wmManipulator *mpr,
         struct bContext *C);
 
+void WM_manipulator_name_set(struct wmManipulatorGroup *mgroup, struct wmManipulator *mpr, const char *name);
+
 struct PointerRNA *WM_manipulator_set_operator(
         struct wmManipulator *, struct wmOperatorType *ot, struct IDProperty *properties);
 

@@ -142,6 +142,15 @@ static void manipulator_unique_idname_set(wmManipulatorGroup *mgroup, wmManipula
 	               offsetof(wmManipulator, name), sizeof(mpr->name));
 }
 
+void WM_manipulator_name_set(wmManipulatorGroup *mgroup, wmManipulator *mpr, const char *name)
+{
+	BLI_strncpy(mpr->name, name, sizeof(mpr->name));
+
+	/* ensure name is unique, append '.001', '.002', etc if not */
+	BLI_uniquename(&mgroup->manipulators, mpr, "Manipulator", '.',
+	               offsetof(wmManipulator, name), sizeof(mpr->name));
+}
+
 /**
  * Initialize default values and allocate needed memory for members.
  */
