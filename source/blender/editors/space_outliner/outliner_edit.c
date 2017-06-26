@@ -1846,7 +1846,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
 {
 	/* present a prompt to informing users that this change is irreversible */
 	return WM_operator_confirm_message(C, op,
-	                                   "Purging unused data-blocks cannot be undone. "
+	                                   "Purging unused data-blocks cannot be undone and saves to current .blend file. "
 	                                   "Click here to proceed...");
 }
 
@@ -1868,7 +1868,8 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 	/* identifiers */
 	ot->idname = "OUTLINER_OT_orphans_purge";
 	ot->name = "Purge All";
-	ot->description = "Clear all orphaned data-blocks without any users from the file (cannot be undone)";
+	ot->description = "Clear all orphaned data-blocks without any users from the file "
+	                  "(cannot be undone, saves to current .blend file)";
 	
 	/* callbacks */
 	ot->invoke = outliner_orphans_purge_invoke;

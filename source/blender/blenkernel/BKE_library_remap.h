@@ -46,6 +46,11 @@ enum {
 	/* This tells the callback func to force setting IDs using target one with a 'never NULL' pointer to NULL.
 	 * WARNING! Use with extreme care, this will leave database in broken state and can cause crashes very easily! */
 	ID_REMAP_FORCE_NEVER_NULL_USAGE = 1 << 3,
+	/* Do not consider proxy/_group pointers of local objects as indirect usages...
+	 * Our oh-so-beloved proxies again... Do not consider data used by local proxy object as indirect usage.
+	 * This is needed e.g. in reload scenario, since we have to ensure remapping of Armature data of local proxy
+	 * is also performed. Usual nightmare... */
+	ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE = 1 << 4,
 };
 
 /* Note: Requiring new_id to be non-null, this *may* not be the case ultimately, but makes things simpler for now. */
