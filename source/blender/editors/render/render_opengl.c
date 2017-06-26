@@ -562,6 +562,24 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	}
 }
 
+static bool screen_opengl_fullsample_enabled(Scene *scene)
+{
+	if (scene->r.scemode & R_FULL_SAMPLE) {
+		return true;
+	}
+	else {
+		/* XXX TODO:
+		 * Technically if the hardware supports MSAA we could keep using Blender 2.7x approach.
+		 * However anti-aliasing without full_sample is not playing well even in 2.7x.
+		 *
+		 * For example, if you enable depth of field, there is aliasing, even if the viewport is fine.
+		 * For 2.8x this is more complicated because so many things rely on shader.
+		 * So until we fix the gpu_framebuffer anti-aliasing suupport we need to force full sample.
+		 */
+		return true;
+	}
+}
+
 static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 {
 	/* new render clears all callbacks */
@@ -575,7 +593,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	OGLRender *oglrender;
 	int sizex, sizey;
 	const int samples = (scene->r.mode & R_OSA) ? scene->r.osa : 0;
-	const bool full_samples = (samples != 0) && (scene->r.scemode & R_FULL_SAMPLE);
+	const bool full_samples = (samples != 0) && screen_opengl_fullsample_enabled(scene);
 	bool is_view_context = RNA_boolean_get(op->ptr, "view_context");
 	const bool is_animation = RNA_boolean_get(op->ptr, "animation");
 	const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
