@@ -891,10 +891,11 @@ static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
 /* depth callbacks */
 static void manipulator_spin_prop_depth_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        float *value)
+        void *value_p)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
@@ -908,10 +909,11 @@ static void manipulator_spin_prop_depth_get(
 
 static void manipulator_spin_prop_depth_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        const float *value)
+        const void *value_p)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	const float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
@@ -934,10 +936,11 @@ static void manipulator_spin_prop_depth_set(
 /* translate callbacks */
 static void manipulator_spin_prop_translate_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        float *value)
+        void *value_p)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 3);
 	UNUSED_VARS_NDEBUG(mpr_prop);
@@ -947,7 +950,7 @@ static void manipulator_spin_prop_translate_get(
 
 static void manipulator_spin_prop_translate_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        const float *value)
+        const void *value)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
@@ -963,10 +966,11 @@ static void manipulator_spin_prop_translate_set(
 /* angle callbacks */
 static void manipulator_spin_prop_axis_angle_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        float *value)
+        void *value_p)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
@@ -989,10 +993,11 @@ static void manipulator_spin_prop_axis_angle_get(
 
 static void manipulator_spin_prop_axis_angle_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        const float *value)
+        const void *value_p)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	const float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
@@ -1023,10 +1028,12 @@ static void manipulator_spin_prop_axis_angle_set(
 /* angle callbacks */
 static void manipulator_spin_prop_angle_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        float *value)
+        void *value_p)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	float *value = value_p;
+
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
 	value[0] = RNA_property_float_get(op->ptr, man->data.prop_angle);
@@ -1034,12 +1041,13 @@ static void manipulator_spin_prop_angle_get(
 
 static void manipulator_spin_prop_angle_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        const float *value)
+        const void *value_p)
 {
 	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
+	const float *value = value_p;
 	RNA_property_float_set(op->ptr, man->data.prop_angle, value[0]);
 
 	manipulator_spin_exec(man);

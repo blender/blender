@@ -457,10 +457,11 @@ static void manipulator_mesh_bisect_update_from_op(ManipulatorGroup *man)
 /* depth callbacks */
 static void manipulator_bisect_prop_depth_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        float *value)
+        void *value_p)
 {
 	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
@@ -474,10 +475,11 @@ static void manipulator_bisect_prop_depth_get(
 
 static void manipulator_bisect_prop_depth_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        const float *value)
+        const void *value_p)
 {
 	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	const float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
@@ -500,7 +502,7 @@ static void manipulator_bisect_prop_depth_set(
 /* translate callbacks */
 static void manipulator_bisect_prop_translate_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        float *value)
+        void *value_p)
 {
 	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
@@ -508,12 +510,12 @@ static void manipulator_bisect_prop_translate_get(
 	BLI_assert(mpr_prop->type->array_length == 3);
 	UNUSED_VARS_NDEBUG(mpr_prop);
 
-	RNA_property_float_get_array(op->ptr, man->data.prop_plane_co, value);
+	RNA_property_float_get_array(op->ptr, man->data.prop_plane_co, value_p);
 }
 
 static void manipulator_bisect_prop_translate_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        const float *value)
+        const void *value_p)
 {
 	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
@@ -521,7 +523,7 @@ static void manipulator_bisect_prop_translate_set(
 	BLI_assert(mpr_prop->type->array_length == 3);
 	UNUSED_VARS_NDEBUG(mpr_prop);
 
-	RNA_property_float_set_array(op->ptr, man->data.prop_plane_co, value);
+	RNA_property_float_set_array(op->ptr, man->data.prop_plane_co, value_p);
 
 	manipulator_bisect_exec(man);
 }
@@ -529,10 +531,11 @@ static void manipulator_bisect_prop_translate_set(
 /* angle callbacks */
 static void manipulator_bisect_prop_angle_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        float *value)
+        void *value_p)
 {
 	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
@@ -555,10 +558,11 @@ static void manipulator_bisect_prop_angle_get(
 
 static void manipulator_bisect_prop_angle_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        const float *value)
+        const void *value_p)
 {
 	ManipulatorGroup *man = mpr->parent_mgroup->customdata;
 	wmOperator *op = man->data.op;
+	const float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(mpr_prop);
