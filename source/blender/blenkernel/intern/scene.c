@@ -818,7 +818,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.ffcodecdata.audio_bitrate = 192;
 	sce->r.ffcodecdata.audio_channels = 2;
 
-	BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_RENDER, sizeof(sce->r.engine));
+	BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(sce->r.engine));
 
 	sce->audio.distance_model = 2.0f;
 	sce->audio.doppler_factor = 1.0f;
