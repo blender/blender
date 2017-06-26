@@ -643,26 +643,29 @@ class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
 
 ###############################
 
+# Note that this controls order of options in 'insert keyframe' menu.
+# Better try to keep some logical order here beyond mere alphabetical one, also because of menu entries shortcut.
+# See also T51867.
 classes = (
     BUILTIN_KSI_Available,
-    BUILTIN_KSI_BendyBones,
-    BUILTIN_KSI_DeltaLocation,
-    BUILTIN_KSI_DeltaRotation,
-    BUILTIN_KSI_DeltaScale,
+    BUILTIN_KSI_Location,
+    BUILTIN_KSI_Rotation,
+    BUILTIN_KSI_Scaling,
     BUILTIN_KSI_LocRot,
     BUILTIN_KSI_LocRotScale,
     BUILTIN_KSI_LocScale,
-    BUILTIN_KSI_Location,
     BUILTIN_KSI_RotScale,
-    BUILTIN_KSI_Rotation,
-    BUILTIN_KSI_Scaling,
+    BUILTIN_KSI_DeltaLocation,
+    BUILTIN_KSI_DeltaRotation,
+    BUILTIN_KSI_DeltaScale,
     BUILTIN_KSI_VisualLoc,
+    BUILTIN_KSI_VisualRot,
+    BUILTIN_KSI_VisualScaling,
     BUILTIN_KSI_VisualLocRot,
     BUILTIN_KSI_VisualLocRotScale,
     BUILTIN_KSI_VisualLocScale,
-    BUILTIN_KSI_VisualRot,
     BUILTIN_KSI_VisualRotScale,
-    BUILTIN_KSI_VisualScaling,
+    BUILTIN_KSI_BendyBones,
     BUILTIN_KSI_WholeCharacter,
     BUILTIN_KSI_WholeCharacterSelected,
 )

@@ -546,7 +546,7 @@ closure color holdout() BUILTIN;
 closure color ambient_occlusion() BUILTIN;
 closure color principled_diffuse(normal N, float roughness) BUILTIN;
 closure color principled_sheen(normal N) BUILTIN;
-closure color principled_clearcoat(normal N, float clearcoat, float clearcoat_gloss) BUILTIN;
+closure color principled_clearcoat(normal N, float clearcoat, float clearcoat_roughness) BUILTIN;
 
 // BSSRDF
 closure color bssrdf_cubic(normal N, vector radius, float texture_blur, float sharpness) BUILTIN;

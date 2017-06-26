@@ -32,7 +32,7 @@ shader node_principled_bsdf(
 	float Sheen = 0.0,
 	float SheenTint = 0.5,
 	float Clearcoat = 0.0,
-	float ClearcoatGloss = 1.0,
+	float ClearcoatRoughness = 0.03,
 	float IOR = 1.45,
 	float Transmission = 0.0,
 	float TransmissionRoughness = 0.0,
@@ -114,7 +114,7 @@ shader node_principled_bsdf(
 	}
 
 	if (Clearcoat > 1e-5) {
-		BSDF = BSDF + principled_clearcoat(ClearcoatNormal, Clearcoat, ClearcoatGloss);
+		BSDF = BSDF + principled_clearcoat(ClearcoatNormal, Clearcoat, ClearcoatRoughness * ClearcoatRoughness);
 	}
 }
 

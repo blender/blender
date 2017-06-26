@@ -191,7 +191,7 @@ BSDF_CLOSURE_CLASS_END(PrincipledSheen, principled_sheen)
 class PrincipledClearcoatClosure : public CBSDFClosure {
 public:
 	MicrofacetBsdf params;
-	float clearcoat, clearcoat_gloss;
+	float clearcoat, clearcoat_roughness;
 
 	MicrofacetBsdf *alloc(ShaderData *sd, int path_flag, float3 weight)
 	{
@@ -202,8 +202,8 @@ public:
 
 			bsdf->ior = 1.5f;
 
-			bsdf->alpha_x = 0.1f * (1.0f - clearcoat_gloss) + 0.001f * clearcoat_gloss;
-			bsdf->alpha_y = 0.1f * (1.0f - clearcoat_gloss) + 0.001f * clearcoat_gloss;
+			bsdf->alpha_x = clearcoat_roughness;
+			bsdf->alpha_y = clearcoat_roughness;
 
 			bsdf->extra->cspec0 = make_float3(0.04f, 0.04f, 0.04f);
 			bsdf->extra->clearcoat = clearcoat;
@@ -217,7 +217,7 @@ public:
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
 		MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
-		sd->flag |= (bsdf) ? bsdf_microfacet_ggx_clearcoat_setup(bsdf) : 0;
+		sd->flag |= (bsdf) ? bsdf_microfacet_ggx_clearcoat_setup(bsdf, sd) : 0;
 	}
 };
 
@@ -226,7 +226,7 @@ ClosureParam *closure_bsdf_principled_clearcoat_params()
 	static ClosureParam params[] = {
 		CLOSURE_FLOAT3_PARAM(PrincipledClearcoatClosure, params.N),
 		CLOSURE_FLOAT_PARAM(PrincipledClearcoatClosure, clearcoat),
-		CLOSURE_FLOAT_PARAM(PrincipledClearcoatClosure, clearcoat_gloss),
+		CLOSURE_FLOAT_PARAM(PrincipledClearcoatClosure, clearcoat_roughness),
 		CLOSURE_STRING_KEYPARAM(PrincipledClearcoatClosure, label, "label"),
 		CLOSURE_FINISH_PARAM(PrincipledClearcoatClosure)
 	};
@@ -389,7 +389,7 @@ public:
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
 		MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
-		sd->flag |= (bsdf) ? bsdf_microfacet_ggx_fresnel_setup(bsdf) : 0;
+		sd->flag |= (bsdf) ? bsdf_microfacet_ggx_fresnel_setup(bsdf, sd) : 0;
 	}
 };
 
@@ -413,7 +413,7 @@ public:
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
 		MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
-		sd->flag |= (bsdf) ? bsdf_microfacet_ggx_aniso_fresnel_setup(bsdf) : 0;
+		sd->flag |= (bsdf) ? bsdf_microfacet_ggx_aniso_fresnel_setup(bsdf, sd) : 0;
 	}
 };
 
@@ -566,7 +566,7 @@ public:
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
 		MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
-		sd->flag |= (bsdf) ? bsdf_microfacet_multi_ggx_fresnel_setup(bsdf) : 0;
+		sd->flag |= (bsdf) ? bsdf_microfacet_multi_ggx_fresnel_setup(bsdf, sd) : 0;
 	}
 };
 
@@ -590,7 +590,7 @@ public:
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
 		MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
-		sd->flag |= (bsdf) ? bsdf_microfacet_multi_ggx_aniso_fresnel_setup(bsdf) : 0;
+		sd->flag |= (bsdf) ? bsdf_microfacet_multi_ggx_aniso_fresnel_setup(bsdf, sd) : 0;
 	}
 };
 
@@ -618,7 +618,7 @@ public:
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
 		MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
-		sd->flag |= (bsdf) ? bsdf_microfacet_multi_ggx_glass_fresnel_setup(bsdf) : 0;
+		sd->flag |= (bsdf) ? bsdf_microfacet_multi_ggx_glass_fresnel_setup(bsdf, sd) : 0;
 	}
 };
 

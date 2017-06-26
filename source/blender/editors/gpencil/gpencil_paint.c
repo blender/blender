@@ -165,6 +165,8 @@ typedef struct tGPsdata {
 	bGPDbrush *brush; /* current drawing brush */
 	short straight[2];   /* 1: line horizontal, 2: line vertical, other: not defined, second element position */
 	int lock_axis;       /* lock drawing to one axis */
+
+	short keymodifier;   /* key used for invoking the operator */
 } tGPsdata;
 
 /* ------ */
@@ -1958,7 +1960,7 @@ static void gpencil_draw_cancel(bContext *C, wmOperator *op)
 /* ------------------------------- */
 
 
-static int gpencil_draw_init(bContext *C, wmOperator *op)
+static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tGPsdata *p;
 	eGPencil_PaintModes paintmode = RNA_enum_get(op->ptr, "mode");
@@ -1976,6 +1978,13 @@ static int gpencil_draw_init(bContext *C, wmOperator *op)
 	if (p->status == GP_STATUS_ERROR) {
 		gpencil_draw_exit(C, op);
 		return 0;
+	}
+
+	if (event != NULL) {
+		p->keymodifier = event->keymodifier;
+	}
+	else {
+		p->keymodifier = -1;
 	}
 	
 	/* everything is now setup ok */
@@ -2218,7 +2227,7 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 	/* printf("GPencil - Starting Re-Drawing\n"); */
 	
 	/* try to initialize context data needed while drawing */
-	if (!gpencil_draw_init(C, op)) {
+	if (!gpencil_draw_init(C, op, NULL)) {
 		if (op->customdata) MEM_freeN(op->customdata);
 		/* printf("\tGP - no valid data\n"); */
 		return OPERATOR_CANCELLED;
@@ -2293,7 +2302,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		printf("GPencil - Starting Drawing\n");
 	
 	/* try to initialize context data needed while drawing */
-	if (!gpencil_draw_init(C, op)) {
+	if (!gpencil_draw_init(C, op, event)) {
 		if (op->customdata)
 			MEM_freeN(op->customdata);
 		if (G.debug & G_DEBUG)
@@ -2456,7 +2465,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			 *   is essential for ensuring that they can quickly return to that view
 			 */
 		}
-		else if ((ELEM(event->type, DKEY)) && (event->val == KM_RELEASE)) {
+		else if ((ELEM(event->type, p->keymodifier)) && (event->val == KM_RELEASE)) {
 			/* enable continuous if release D key in mid drawing */
 			p->scene->toolsettings->gpencil_flags |= GP_TOOL_FLAG_PAINTSESSIONS_ON;
 		}
