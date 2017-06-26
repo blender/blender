@@ -597,8 +597,9 @@ static LinkData *object_base_unique(GSet *gs, LinkData *link)
 {
 	for (; link != NULL; link = link->next) {
 		Object *ob = link->data;
-		if (!BLI_gset_haskey(gs, ob)) {
-			BLI_gset_add(gs, ob);
+		void **ob_key_p;
+		if (!BLI_gset_ensure_p_ex(gs, ob, &ob_key_p)) {
+			*ob_key_p = ob;
 			return link;
 		}
 	}
