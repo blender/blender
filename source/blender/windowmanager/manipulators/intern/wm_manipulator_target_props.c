@@ -258,7 +258,7 @@ const wmManipulatorPropertyType *WM_manipulatortype_target_property_find(
 }
 
 void WM_manipulatortype_target_property_def(
-        wmManipulatorType *wt, const char *idname, int type, int array_length)
+        wmManipulatorType *wt, const char *idname, int data_type, int array_length)
 {
 	wmManipulatorPropertyType *mpt;
 
@@ -267,7 +267,7 @@ void WM_manipulatortype_target_property_def(
 	const uint idname_size = strlen(idname) + 1;
 	mpt = MEM_callocN(sizeof(wmManipulatorPropertyType) + idname_size, __func__);
 	memcpy(mpt->idname, idname, idname_size);
-	mpt->type = type;
+	mpt->data_type = data_type;
 	mpt->array_length = array_length;
 	mpt->index_in_type = wt->target_property_defs_len;
 	wt->target_property_defs_len += 1;

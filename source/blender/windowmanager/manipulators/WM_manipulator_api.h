@@ -182,7 +182,7 @@ void WM_manipulator_target_property_range_get(
 const struct wmManipulatorPropertyType *WM_manipulatortype_target_property_find(
         const struct wmManipulatorType *wt, const char *idname);
 void WM_manipulatortype_target_property_def(
-        struct wmManipulatorType *wt, const char *idname, int type, int array_length);
+        struct wmManipulatorType *wt, const char *idname, int data_type, int array_length);
 
 
 /* -------------------------------------------------------------------- */

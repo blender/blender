@@ -141,7 +141,7 @@ typedef struct wmManipulatorProperty {
 typedef struct wmManipulatorPropertyType {
 	struct wmManipulatorPropertyType *next, *prev;
 	/* PropertyType, typically 'PROP_FLOAT' */
-	int type;
+	int data_type;
 	int array_length;
 
 	/* index within 'wmManipulatorType' */

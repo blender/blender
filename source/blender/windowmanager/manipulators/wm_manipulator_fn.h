@@ -58,7 +58,7 @@ typedef void    (*wmManipulatorFnExit)(struct bContext *, struct wmManipulator *
 typedef int     (*wmManipulatorFnCursorGet)(struct wmManipulator *);
 typedef void    (*wmManipulatorFnSelect)(struct bContext *, struct wmManipulator *, const int);
 
-/* wmManipulatorProperty */
+/* wmManipulatorProperty ('value' type defined by 'wmManipulatorProperty.data_type') */
 typedef void (*wmManipulatorPropertyFnGet)(
         const struct wmManipulator *, struct wmManipulatorProperty *,
         /* typically 'float *' */
