@@ -104,7 +104,7 @@ endif
 CMAKE_CONFIG = cmake $(BUILD_CMAKE_ARGS) \
                      -H"$(BLENDER_DIR)" \
                      -B"$(BUILD_DIR)" \
-                     -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE)
+                     -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE)
 
 
 # -----------------------------------------------------------------------------
