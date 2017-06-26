@@ -1945,7 +1945,7 @@ float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, const fl
 				BLI_mutex_unlock(&python_driver_lock);
 			}
 #else /* WITH_PYTHON*/
-			(void)evaltime;
+			UNUSED_VARS(anim_rna, evaltime);
 #endif /* WITH_PYTHON*/
 			break;
 		}

@@ -2333,11 +2333,10 @@ bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double
 
 #else /* WITH_PYTHON */
 
-	*value = atof(str);
+	*r_value = atof(str);
 	ok = true;
 
-	(void)C;
-	(void)but;
+	UNUSED_VARS(C, but);
 
 #endif /* WITH_PYTHON */
 
