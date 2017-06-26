@@ -1620,6 +1620,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "panel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "panel");
 	RNA_def_property_enum_items(prop, panel_items);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Panel", "Select the property panel to be shown");
 
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
