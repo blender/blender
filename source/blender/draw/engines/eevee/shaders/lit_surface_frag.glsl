@@ -409,7 +409,21 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 			refco = pd.reflectionmat * vec4(ref_pos, 1.0);
 			refco.xy /= refco.w;
 
-			vec3 sample = textureLod(probePlanars, vec3(refco.xy, i), 0.0).rgb;
+			/* Distance to roughness */
+			float linear_roughness = sqrt(roughness);
+			float distance_roughness = min(linear_roughness, ref_depth * linear_roughness);
+			linear_roughness = mix(distance_roughness, linear_roughness, linear_roughness);
+
+			/* Decrease influence for high roughness */
+			influ_spec *= saturate((1.0 - linear_roughness) * 5.0 - 2.0);
+
+			float lod = linear_roughness * 2.5 * 5.0;
+			vec3 sample = textureLod(probePlanars, vec3(refco.xy, i), lod).rgb;
+
+			/* Use a second sample randomly rotated to blur out the lowres aspect */
+			vec2 rot_sample = (1.0 / vec2(textureSize(probePlanars, 0).xy)) * vec2(cos(rand.a * M_2PI), sin(rand.a * M_2PI)) * lod;
+			sample += textureLod(probePlanars, vec3(refco.xy + rot_sample, i), lod).rgb;
+			sample *= 0.5;
 
 			spec_accum.rgb += sample * influ_spec;
 			spec_accum.a += influ_spec;

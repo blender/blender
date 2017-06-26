@@ -71,12 +71,11 @@ static void EEVEE_engine_init(void *ved)
 static void EEVEE_cache_init(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
 	EEVEE_materials_cache_init(vedata);
 	EEVEE_lights_cache_init(sldata, psl);
-	EEVEE_lightprobes_cache_init(sldata, psl, stl);
+	EEVEE_lightprobes_cache_init(sldata, vedata);
 	EEVEE_effects_cache_init(vedata);
 }
 

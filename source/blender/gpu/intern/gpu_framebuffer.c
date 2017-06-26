@@ -575,11 +575,11 @@ void GPU_framebuffer_recursive_downsample(
 
 		/* bind next level for rendering but first restrict fetches only to previous level */
 		GPU_texture_bind(tex, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, i-1);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i-1);
+		glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, i-1);
+		glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i-1);
 		GPU_texture_unbind(tex);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, GPU_texture_opengl_bindcode(tex), i);
+		glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), i);
 
 		callback(userData, i);
 	}
@@ -588,8 +588,8 @@ void GPU_framebuffer_recursive_downsample(
 
 	/* reset mipmap level range for the depth image */
 	GPU_texture_bind(tex, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, num_iter - 1);
+	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, num_iter);
 	GPU_texture_unbind(tex);
 }
 
