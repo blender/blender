@@ -348,7 +348,6 @@ static void material_changed(Main *bmain, Material *ma)
 static void lamp_changed(Main *bmain, Lamp *la)
 {
 	Object *ob;
-	Material *ma;
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&la->id));
@@ -357,10 +356,6 @@ static void lamp_changed(Main *bmain, Lamp *la)
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->data == la && ob->gpulamp.first)
 			GPU_lamp_free(ob);
-
-	for (ma = bmain->mat.first; ma; ma = ma->id.next)
-		if (ma->gpumaterial.first)
-			GPU_material_free(&ma->gpumaterial);
 
 	if (defmaterial.gpumaterial.first)
 		GPU_material_free(&defmaterial.gpumaterial);
