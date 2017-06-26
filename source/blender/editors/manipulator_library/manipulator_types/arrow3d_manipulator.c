@@ -472,10 +472,8 @@ static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
-		{ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP, "CLIP", 0, "Clipped", ""},
-		{ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
-		{ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_MIRROR, "ANGLE_MIRROR", 0, "Angle Mirror", ""},
-		{ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_START_Y, "ANGLE_START_Y", 0, "Angle Start Y", ""},
+		{ED_MANIPULATOR_ARROW_STYLE_INVERTED, "INVERT", 0, "Inverted", ""},
+		{ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED, "CONSTRAIN", 0, "Constrained", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
