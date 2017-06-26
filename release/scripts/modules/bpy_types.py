@@ -592,6 +592,35 @@ class OrderedMeta(RNAMeta):
         return OrderedDictMini()  # collections.OrderedDict()
 
 
+# Same as 'Operator'
+# only without 'as_keywords'
+class Manipulator(StructRNA, metaclass=OrderedMeta):
+    __slots__ = ()
+
+    def __getattribute__(self, attr):
+        properties = StructRNA.path_resolve(self, "properties")
+        bl_rna = getattr(properties, "bl_rna", None)
+        if (bl_rna is not None) and (attr in bl_rna.properties):
+            return getattr(properties, attr)
+        return super().__getattribute__(attr)
+
+    def __setattr__(self, attr, value):
+        properties = StructRNA.path_resolve(self, "properties")
+        bl_rna = getattr(properties, "bl_rna", None)
+        if (bl_rna is not None) and (attr in bl_rna.properties):
+            return setattr(properties, attr, value)
+        return super().__setattr__(attr, value)
+
+    def __delattr__(self, attr):
+        properties = StructRNA.path_resolve(self, "properties")
+        bl_rna = getattr(properties, "bl_rna", None)
+        if (bl_rna is not None) and (attr in bl_rna.properties):
+            return delattr(properties, attr)
+        return super().__delattr__(attr)
+
+    target_set_handler = _bpy._rna_manipulator_target_set_handler
+
+
 # Only defined so operators members can be used by accessing self.order
 # with doc generation 'self.properties.bl_rna.properties' can fail
 class Operator(StructRNA, metaclass=OrderedMeta):

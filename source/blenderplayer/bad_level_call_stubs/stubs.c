@@ -133,6 +133,7 @@ struct wmOperator;
 struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
+struct wmManipulatorGroupType;
 struct wmManipulatorMap;
 
 
@@ -164,6 +165,7 @@ struct wmManipulatorMap;
 #include "../blender/editors/include/ED_keyframes_edit.h"
 #include "../blender/editors/include/ED_keyframing.h"
 #include "../blender/editors/include/ED_lattice.h"
+#include "../blender/editors/include/ED_manipulator_library.h"
 #include "../blender/editors/include/ED_mball.h"
 #include "../blender/editors/include/ED_mesh.h"
 #include "../blender/editors/include/ED_node.h"
@@ -186,6 +188,7 @@ struct wmManipulatorMap;
 #include "../blender/gpu/GPU_immediate.h"
 #include "../blender/gpu/GPU_matrix.h"
 #include "../blender/python/BPY_extern.h"
+#include "../blender/python/intern/bpy_manipulator_wrap.h"
 #include "../blender/render/extern/include/RE_engine.h"
 #include "../blender/render/extern/include/RE_pipeline.h"
 #include "../blender/render/extern/include/RE_render_ext.h"
@@ -357,6 +360,31 @@ void WM_jobs_callbacks(struct wmJob *job,
 
 void WM_jobs_start(struct wmWindowManager *wm, struct wmJob *job) RET_NONE
 void WM_report(ReportType type, const char *message) RET_NONE
+
+void BPY_RNA_manipulatorgroup_wrapper(struct wmManipulatorGroupType *wgt, void *userdata) RET_NONE
+void BPY_RNA_manipulator_wrapper(struct wmManipulatorType *wgt, void *userdata) RET_NONE
+
+PointerRNA *WM_manipulator_set_operator(struct wmManipulator *mpr, struct wmOperatorType *ot, struct IDProperty *properties) RET_NULL
+const struct wmManipulatorPropertyType *WM_manipulatortype_target_property_find(const struct wmManipulatorType *wt, const char *idname) RET_NULL
+const struct wmManipulatorType *WM_manipulatortype_find(const char *idname, bool quiet) RET_NULL
+struct wmManipulator *WM_manipulator_new_ptr(const struct wmManipulatorType *wt, struct wmManipulatorGroup *mgroup, const char *name, struct PointerRNA *properties) RET_NULL
+struct wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr(void (*mnpfunc)(struct wmManipulatorGroupType *, void *), void *userdata) RET_NULL
+struct wmManipulatorGroupType *WM_manipulatorgrouptype_find(const char *idname, bool quiet) RET_NULL
+void WM_manipulator_free(ListBase *manipulatorlist, struct wmManipulatorMap *mmap, struct wmManipulator *mpr, struct bContext *C) RET_NONE
+void WM_manipulator_group_add_ptr(struct wmManipulatorGroupType *wgt) RET_NONE
+void WM_manipulator_group_add_ptr_ex(struct wmManipulatorGroupType *wgt, struct wmManipulatorMapType *mmap_type) RET_NONE
+void WM_manipulator_group_remove_ptr(struct Main *bmain, struct wmManipulatorGroupType *wgt) RET_NONE
+void WM_manipulator_name_set(struct wmManipulatorGroup *mgroup, struct wmManipulator *mpr, const char *name) RET_NONE
+void WM_manipulator_target_property_def_rna_ptr(struct wmManipulator *mpr, const struct wmManipulatorPropertyType *mpr_prop_type, struct PointerRNA *ptr, struct PropertyRNA *prop, int index) RET_NONE
+void WM_manipulatorgrouptype_remove_ptr(struct wmManipulatorGroupType *wt) RET_NONE
+void WM_manipulatormaptype_group_unlink(struct bContext *C, struct Main *bmain, struct wmManipulatorMapType *mmap_type, const struct wmManipulatorGroupType *wgt) RET_NONE
+void WM_manipulatortype_append_ptr(void (*mnpfunc)(struct wmManipulatorType *, void *), void *userdata) RET_NONE
+void WM_manipulatortype_remove_ptr(struct wmManipulatorType *wt) RET_NONE
+
+void ED_manipulator_draw_preset_box(const struct wmManipulator *mpr, float mat[4][4], int select_id) RET_NONE
+void ED_manipulator_draw_preset_arrow(const struct wmManipulator *mpr, float mat[4][4], int axis, int select_id) RET_NONE
+void ED_manipulator_draw_preset_circle(const struct wmManipulator *mpr, float mat[4][4], int axis, int select_id) RET_NONE
+void ED_manipulator_draw_preset_facemap(const struct wmManipulator *mpr, struct Scene *scene, struct Object *ob, const int facemap, int select_id) RET_NONE
 
 struct wmManipulatorMapType *WM_manipulatormaptype_find(const struct wmManipulatorMapType_Params *wmap_params) RET_NULL
 struct wmManipulatorMapType *WM_manipulatormaptype_ensure(const struct wmManipulatorMapType_Params *wmap_params) RET_NULL

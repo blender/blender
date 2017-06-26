@@ -1839,19 +1839,28 @@ static int pyrna_py_to_prop(
 				 * class mixing if this causes problems in the future it should be removed.
 				 */
 				if ((ptr_type == &RNA_AnyType) &&
-				    (BPy_StructRNA_Check(value)) &&
-				    (RNA_struct_is_a(((BPy_StructRNA *)value)->ptr.type, &RNA_Operator)))
+				    (BPy_StructRNA_Check(value)))
 				{
-					value = PyObject_GetAttr(value, bpy_intern_str_properties);
-					value_new = value;
+					const StructRNA *base_type =
+					        RNA_struct_base_child_of(((const BPy_StructRNA *)value)->ptr.type, NULL);
+					if (ELEM(base_type, &RNA_Operator, &RNA_Manipulator)) {
+						value = PyObject_GetAttr(value, bpy_intern_str_properties);
+						value_new = value;
+					}
 				}
 
-
-				/* if property is an OperatorProperties pointer and value is a map,
+				/* if property is an OperatorProperties/ManipulatorProperties pointer and value is a map,
 				 * forward back to pyrna_pydict_to_props */
-				if (RNA_struct_is_a(ptr_type, &RNA_OperatorProperties) && PyDict_Check(value)) {
-					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
-					return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
+				if (PyDict_Check(value)) {
+					const StructRNA *base_type = RNA_struct_base_child_of(ptr_type, NULL);
+					if (base_type == &RNA_OperatorProperties) {
+						PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+						return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
+					}
+					else if (base_type == &RNA_ManipulatorProperties) {
+						PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+						return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
+					}
 				}
 
 				/* another exception, allow to pass a collection as an RNA property */
@@ -6926,7 +6935,7 @@ static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
 		StructRNA *srna = itemptr.data;
 		StructRNA *srna_base = RNA_struct_base(itemptr.data);
 		/* skip own operators, these double up [#29666] */
-		if (srna_base == &RNA_Operator) {
+		if (ELEM(srna_base, &RNA_Operator, &RNA_Manipulator)) {
 			/* do nothing */
 		}
 		else {
@@ -7456,7 +7465,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	PyGILState_STATE gilstate;
 
 #ifdef USE_PEDANTIC_WRITE
-	const bool is_operator = RNA_struct_is_a(ptr->type, &RNA_Operator);
+	const bool is_readonly_init = !(RNA_struct_is_a(ptr->type, &RNA_Operator) ||
+	                                RNA_struct_is_a(ptr->type, &RNA_Manipulator));
 	// const char *func_id = RNA_function_identifier(func);  /* UNUSED */
 	/* testing, for correctness, not operator and not draw function */
 	const bool is_readonly = !(RNA_function_flag(func) & FUNC_ALLOW_WRITE);
@@ -7521,7 +7531,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			if (py_class->tp_init) {
 #ifdef USE_PEDANTIC_WRITE
 				const int prev_write = rna_disallow_writes;
-				rna_disallow_writes = is_operator ? false : true;  /* only operators can write on __init__ */
+				rna_disallow_writes = is_readonly_init ? false : true;  /* only operators can write on __init__ */
 #endif
 
 				/* true in most cases even when the class its self doesn't define an __init__ function. */

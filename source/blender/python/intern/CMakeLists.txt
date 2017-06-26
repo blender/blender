@@ -65,6 +65,7 @@ set(SRC
 	bpy_intern_string.c
 	bpy_library_load.c
 	bpy_library_write.c
+	bpy_manipulator_wrap.c
 	bpy_operator.c
 	bpy_operator_wrap.c
 	bpy_path.c
@@ -75,6 +76,7 @@ set(SRC
 	bpy_rna_callback.c
 	bpy_rna_driver.c
 	bpy_rna_id_collection.c
+	bpy_rna_manipulator.c
 	bpy_traceback.c
 	bpy_util.c
 	bpy_utils_previews.c
@@ -97,6 +99,7 @@ set(SRC
 	bpy_driver.h
 	bpy_intern_string.h
 	bpy_library.h
+	bpy_manipulator_wrap.h
 	bpy_operator.h
 	bpy_operator_wrap.h
 	bpy_path.h
@@ -106,6 +109,7 @@ set(SRC
 	bpy_rna_callback.h
 	bpy_rna_driver.h
 	bpy_rna_id_collection.h
+	bpy_rna_manipulator.h
 	bpy_traceback.h
 	bpy_util.h
 	bpy_utils_previews.h
