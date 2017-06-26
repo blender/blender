@@ -2015,8 +2015,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 				View3D *v3d = t->view;
 
 				v3d->twmode = t->current_orientation;
-				BLI_assert(BKE_workspace_transform_orientation_get_index(CTX_wm_workspace(C), t->custom_orientation)
-				           == v3d->custom_orientation_index);
+
+				BLI_assert(((v3d->custom_orientation_index == -1) && (t->custom_orientation == NULL)) ||
+				           (BKE_workspace_transform_orientation_get_index(
+				                    CTX_wm_workspace(C), t->custom_orientation) == v3d->custom_orientation_index));
 			}
 		}
 	}
