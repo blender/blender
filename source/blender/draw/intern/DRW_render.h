@@ -357,6 +357,7 @@ bool DRW_object_is_flat_normal(struct Object *ob);
 
 /* Draw commands */
 void DRW_draw_pass(DRWPass *pass);
+void DRW_draw_pass_subset(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group);
 
 void DRW_draw_text_cache_queue(struct DRWTextStore *dt);
 

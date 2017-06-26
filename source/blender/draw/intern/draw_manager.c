@@ -1825,7 +1825,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	DRW_state_reset();
 }
 
-void DRW_draw_pass(DRWPass *pass)
+static void DRW_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group)
 {
 	/* Start fresh */
 	DST.shader = NULL;
@@ -1857,8 +1857,12 @@ void DRW_draw_pass(DRWPass *pass)
 		glBeginQuery(GL_TIME_ELAPSED, pass->timer_queries[pass->back_idx]);
 	}
 
-	for (DRWShadingGroup *shgroup = pass->shgroups.first; shgroup; shgroup = shgroup->next) {
+	for (DRWShadingGroup *shgroup = start_group; shgroup; shgroup = shgroup->next) {
 		draw_shgroup(shgroup, pass->state);
+		/* break if upper limit */
+		if (shgroup == end_group) {
+			break;
+		}
 	}
 
 	/* Clear Bound textures */
@@ -1878,6 +1882,17 @@ void DRW_draw_pass(DRWPass *pass)
 	}
 
 	pass->wasdrawn = true;
+}
+
+void DRW_draw_pass(DRWPass *pass)
+{
+	DRW_draw_pass_ex(pass, pass->shgroups.first, pass->shgroups.last);
+}
+
+/* Draw only a subset of shgroups. Used in special situations as grease pencil strokes */
+void DRW_draw_pass_subset(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group)
+{
+	DRW_draw_pass_ex(pass, start_group, end_group);
 }
 
 void DRW_draw_callbacks_pre_scene(void)
