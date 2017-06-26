@@ -353,10 +353,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 		float vis = 1.0;
 
 		sd.l_vector = ld.l_position - worldPosition;
-
-#ifndef HAIR_SHADER
 		light_visibility(ld, sd, vis);
-#endif
 		light_shade(ld, sd, albedo, roughnessSquared, f0, diff, spec);
 
 		radiance += vis * (diff + spec) * ld.l_color;
