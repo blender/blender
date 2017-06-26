@@ -238,12 +238,6 @@ PyDoc_STRVAR(bpy_manipulator_target_set_handler_doc,
 );
 static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-	/* Note: this is a counter-part to functions:
-	 * 'Manipulator.target_set_prop & target_set_operator'
-	 * (see: rna_wm_manipulator_api.c). conventions should match. */
-	static const char * const _keywords[] = {"self", "target", "get", "set", "range", NULL};
-	static _PyArg_Parser _parser = {"Os|$OOO:target_set_handler", _keywords, 0};
-
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	struct {
@@ -256,6 +250,13 @@ static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyOb
 		.py_fn_slots = {NULL},
 	};
 
+	/* Note: this is a counter-part to functions:
+	 * 'Manipulator.target_set_prop & target_set_operator'
+	 * (see: rna_wm_manipulator_api.c). conventions should match. */
+	static const char * const _keywords[] = {"self", "target", "get", "set", "range", NULL};
+#define KW_FMT "Os|$OOO:target_set_handler"
+#if PY_VERSION_HEX >= 0x03070000
+	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds,
 	        &_parser,
@@ -264,9 +265,20 @@ static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyOb
 	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_GET],
 	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_SET],
 	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_RANGE_GET]))
+#else
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwds,
+	        KW_FMT, (char **)_keywords,
+	        &params.self,
+	        &params.target,
+	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_GET],
+	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_SET],
+	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_RANGE_GET]))
+#endif
 	{
 		goto fail;
 	}
+#undef KW_FMT
 
 	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
