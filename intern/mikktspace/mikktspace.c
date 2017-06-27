@@ -93,9 +93,23 @@ static float			Length( const SVec3 v )
 	return sqrtf(LengthSquared(v));
 }
 
+#if 0  // UNUSED
 static SVec3		Normalize( const SVec3 v )
 {
-	return vscale(1 / Length(v), v);
+	return vscale(1.0f / Length(v), v);
+}
+#endif
+
+static SVec3		NormalizeSafe( const SVec3 v )
+{
+	const float len = Length(v);
+	if (len != 0.0f) {
+		return vscale(1.0f / len, v);
+	}
+	else
+	{
+		return v;
+	}
 }
 
 static float		vdot( const SVec3 v1, const SVec3 v2)
@@ -110,12 +124,13 @@ static tbool NotZero(const float fX)
 	return fabsf(fX) > FLT_MIN;
 }
 
+#if 0  // UNUSED
 static tbool VNotZero(const SVec3 v)
 {
 	// might change this to an epsilon based test
 	return NotZero(v.x) || NotZero(v.y) || NotZero(v.z);
 }
-
+#endif
 
 
 typedef struct {
@@ -202,8 +217,8 @@ static STSpace AvgTSpace(const STSpace * pTS0, const STSpace * pTS1)
 		ts_res.fMagT = 0.5f*(pTS0->fMagT+pTS1->fMagT);
 		ts_res.vOs = vadd(pTS0->vOs,pTS1->vOs);
 		ts_res.vOt = vadd(pTS0->vOt,pTS1->vOt);
-		if ( VNotZero(ts_res.vOs) ) ts_res.vOs = Normalize(ts_res.vOs);
-		if ( VNotZero(ts_res.vOt) ) ts_res.vOt = Normalize(ts_res.vOt);
+		ts_res.vOs = NormalizeSafe(ts_res.vOs);
+		ts_res.vOt = NormalizeSafe(ts_res.vOt);
 	}
 
 	return ts_res;
@@ -238,7 +253,7 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 	int iNrActiveGroups = 0, index = 0;
 	const int iNrFaces = pContext->m_pInterface->m_getNumFaces(pContext);
 	tbool bRes = TFALSE;
-	const float fThresCos = (float) cos((fAngularThreshold*(float)M_PI)/180.0f);
+	const float fThresCos = cosf((fAngularThreshold*(float)M_PI)/180.0f);
 
 	// verify all call-backs have been set
 	if ( pContext->m_pInterface->m_getNumFaces==NULL ||
@@ -258,7 +273,7 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 	if (iNrTrianglesIn<=0) return TFALSE;
 
 	// allocate memory for an index list
-	piTriListIn = (int *) malloc(sizeof(int)*3*iNrTrianglesIn);
+	piTriListIn = (int *) malloc(sizeof(int[3])*iNrTrianglesIn);
 	pTriInfos = (STriInfo *) malloc(sizeof(STriInfo)*iNrTrianglesIn);
 	if (piTriListIn==NULL || pTriInfos==NULL)
 	{
@@ -311,7 +326,7 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 	// based on the 4 rules, identify groups based on connectivity
 	iNrMaxGroups = iNrTrianglesIn*3;
 	pGroups = (SGroup *) malloc(sizeof(SGroup)*iNrMaxGroups);
-	piGroupTrianglesBuffer = (int *) malloc(sizeof(int)*iNrTrianglesIn*3);
+	piGroupTrianglesBuffer = (int *) malloc(sizeof(int[3])*iNrTrianglesIn);
 	if (pGroups==NULL || piGroupTrianglesBuffer==NULL)
 	{
 		if (pGroups!=NULL) free(pGroups);
@@ -427,6 +442,7 @@ typedef struct {
 } STmpVert;
 
 static const int g_iCells = 2048;
+static const float g_iCells_fl = 2048.0f;
 
 #ifdef _MSC_VER
 #  define NOINLINE __declspec(noinline)
@@ -439,7 +455,7 @@ static const int g_iCells = 2048;
 // results for the same effective input value fVal.
 static NOINLINE int FindGridCell(const float fMin, const float fMax, const float fVal)
 {
-	const float fIndex = g_iCells * ((fVal-fMin)/(fMax-fMin));
+	const float fIndex = g_iCells_fl * ((fVal-fMin)/(fMax-fMin));
 	const int iIndex = (int)fIndex;
 	return iIndex < g_iCells ? (iIndex >= 0 ? iIndex : 0) : (g_iCells - 1);
 }
@@ -488,7 +504,7 @@ static void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SM
 	}
 
 	// make allocations
-	piHashTable = (int *) malloc(sizeof(int)*iNrTrianglesIn*3);
+	piHashTable = (int *) malloc(sizeof(int[3])*iNrTrianglesIn);
 	piHashCount = (int *) malloc(sizeof(int)*g_iCells);
 	piHashOffsets = (int *) malloc(sizeof(int)*g_iCells);
 	piHashCount2 = (int *) malloc(sizeof(int)*g_iCells);
@@ -544,7 +560,7 @@ static void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SM
 		if (iMaxCount<piHashCount[k])
 			iMaxCount=piHashCount[k];
 	pTmpVert = (STmpVert *) malloc(sizeof(STmpVert)*iMaxCount);
-	
+
 
 	// complete the merge
 	for (k=0; k<g_iCells; k++)
@@ -1048,7 +1064,7 @@ static void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMi
 	
 	// match up edge pairs
 	{
-		SEdge * pEdges = (SEdge *) malloc(sizeof(SEdge)*iNrTrianglesIn*3);
+		SEdge * pEdges = (SEdge *) malloc(sizeof(SEdge[3])*iNrTrianglesIn);
 		if (pEdges==NULL)
 			BuildNeighborsSlow(pTriInfos, piTriListIn, iNrTrianglesIn);
 		else
@@ -1247,10 +1263,8 @@ static tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], con
 			n = GetNormal(pContext, iVertIndex);
 			
 			// project
-			vOs = vsub(pTriInfos[f].vOs, vscale(vdot(n,pTriInfos[f].vOs), n));
-			vOt = vsub(pTriInfos[f].vOt, vscale(vdot(n,pTriInfos[f].vOt), n));
-			if ( VNotZero(vOs) ) vOs = Normalize(vOs);
-			if ( VNotZero(vOt) ) vOt = Normalize(vOt);
+			vOs = NormalizeSafe(vsub(pTriInfos[f].vOs, vscale(vdot(n,pTriInfos[f].vOs), n)));
+			vOt = NormalizeSafe(vsub(pTriInfos[f].vOt, vscale(vdot(n,pTriInfos[f].vOt), n)));
 
 			// original face number
 			iOF_1 = pTriInfos[f].iOrgFaceNumber;
@@ -1262,10 +1276,8 @@ static tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], con
 				const int iOF_2 = pTriInfos[t].iOrgFaceNumber;
 
 				// project
-				SVec3 vOs2 = vsub(pTriInfos[t].vOs, vscale(vdot(n,pTriInfos[t].vOs), n));
-				SVec3 vOt2 = vsub(pTriInfos[t].vOt, vscale(vdot(n,pTriInfos[t].vOt), n));
-				if ( VNotZero(vOs2) ) vOs2 = Normalize(vOs2);
-				if ( VNotZero(vOt2) ) vOt2 = Normalize(vOt2);
+				SVec3 vOs2 = NormalizeSafe(vsub(pTriInfos[t].vOs, vscale(vdot(n,pTriInfos[t].vOs), n)));
+				SVec3 vOt2 = NormalizeSafe(vsub(pTriInfos[t].vOt, vscale(vdot(n,pTriInfos[t].vOt), n)));
 
 				{
 					const tbool bAny = ( (pTriInfos[f].iFlag | pTriInfos[t].iFlag) & GROUP_WITH_ANY )!=0 ? TTRUE : TFALSE;
@@ -1321,7 +1333,7 @@ static tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], con
 				}
 				pUniSubGroups[iUniqueSubGroups].iNrFaces = iMembers;
 				pUniSubGroups[iUniqueSubGroups].pTriMembers = pIndices;
-				memcpy(pIndices, tmp_group.pTriMembers, iMembers*sizeof(int));
+				memcpy(pIndices, tmp_group.pTriMembers, sizeof(int)*iMembers);
 				pSubGroupTspace[iUniqueSubGroups] =
 					EvalTspace(tmp_group.pTriMembers, iMembers, piTriListIn, pTriInfos, pContext, pGroup->iVertexRepresentitive);
 				++iUniqueSubGroups;
@@ -1392,10 +1404,8 @@ static STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriL
 			// project
 			index = piTriListIn[3*f+i];
 			n = GetNormal(pContext, index);
-			vOs = vsub(pTriInfos[f].vOs, vscale(vdot(n,pTriInfos[f].vOs), n));
-			vOt = vsub(pTriInfos[f].vOt, vscale(vdot(n,pTriInfos[f].vOt), n));
-			if ( VNotZero(vOs) ) vOs = Normalize(vOs);
-			if ( VNotZero(vOt) ) vOt = Normalize(vOt);
+			vOs = NormalizeSafe(vsub(pTriInfos[f].vOs, vscale(vdot(n,pTriInfos[f].vOs), n)));
+			vOt = NormalizeSafe(vsub(pTriInfos[f].vOt, vscale(vdot(n,pTriInfos[f].vOt), n)));
 
 			i2 = piTriListIn[3*f + (i<2?(i+1):0)];
 			i1 = piTriListIn[3*f + i];
@@ -1408,8 +1418,8 @@ static STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriL
 			v2 = vsub(p2,p1);
 
 			// project
-			v1 = vsub(v1, vscale(vdot(n,v1),n)); if ( VNotZero(v1) ) v1 = Normalize(v1);
-			v2 = vsub(v2, vscale(vdot(n,v2),n)); if ( VNotZero(v2) ) v2 = Normalize(v2);
+			v1 = NormalizeSafe(vsub(v1, vscale(vdot(n,v1),n)));
+			v2 = NormalizeSafe(vsub(v2, vscale(vdot(n,v2),n)));
 
 			// weight contribution by the angle
 			// between the two edge vectors
@@ -1427,8 +1437,8 @@ static STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriL
 	}
 
 	// normalize
-	if ( VNotZero(res.vOs) ) res.vOs = Normalize(res.vOs);
-	if ( VNotZero(res.vOt) ) res.vOt = Normalize(res.vOt);
+	res.vOs = NormalizeSafe(res.vOs);
+	res.vOt = NormalizeSafe(res.vOt);
 	if (fAngleSum>0)
 	{
 		res.fMagS /= fAngleSum;
@@ -1464,7 +1474,7 @@ static void QuickSort(int* pSortBuffer, int iLeft, int iRight, unsigned int uSee
 	iL=iLeft; iR=iRight;
 	n = (iR-iL)+1;
 	assert(n>=0);
-	index = (int) (uSeed%n);
+	index = (int) (uSeed%(unsigned int)n);
 
 	iMid=pSortBuffer[index + iL];
 
@@ -1672,7 +1682,7 @@ static void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int
 	iR = iRight;
 	n = (iR-iL)+1;
 	assert(n>=0);
-	index = (int) (uSeed%n);
+	index = (int) (uSeed%(unsigned int)n);
 
 	iMid=pSortBuffer[index + iL].array[channel];
 
