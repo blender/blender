@@ -146,6 +146,7 @@ typedef struct MeshRenderData {
 			int        vcol_active;
 
 			float (**tangent)[4];
+			int      tangent_len;
 			int      tangent_active;
 
 			bool *auto_vcol;
@@ -370,6 +371,11 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			cd_ldata = &me->ldata;
 		}
 
+
+		rdata->cd.layers.uv_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+		rdata->cd.layers.vcol_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
+		rdata->cd.layers.tangent_active = rdata->cd.layers.uv_active;
+
 		rdata->orco = CustomData_get_layer(cd_vdata, CD_ORCO);
 		/* If orco is not available compute it ourselves */
 		if (!rdata->orco) {
@@ -401,6 +407,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 #endif
 
 		rdata->cd.layers.uv_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPUV);
+		rdata->cd.layers.tangent_len = rdata->cd.layers.uv_len;
 		rdata->cd.layers.vcol_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPCOL);
 
 		rdata->cd.layers.uv = MEM_mallocN(sizeof(*rdata->cd.layers.uv) * rdata->cd.layers.uv_len, __func__);
@@ -543,13 +550,6 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 				}
 			}
 		}
-
-		rdata->cd.layers.uv_active = CustomData_get_active_layer_index(
-		        cd_ldata, CD_MLOOPUV) - CustomData_get_layer_index(cd_ldata, CD_MLOOPUV);
-		rdata->cd.layers.vcol_active = CustomData_get_active_layer_index(
-		        cd_ldata, CD_MLOOPCOL) - CustomData_get_layer_index(cd_ldata, CD_MLOOPCOL);
-		rdata->cd.layers.tangent_active = CustomData_get_active_layer_index(
-		        cd_ldata, CD_MLOOPTANGENT) - CustomData_get_layer_index(cd_ldata, CD_MLOOPTANGENT);
 
 #undef me
 	}
@@ -1633,8 +1633,9 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			if (i == rdata->cd.layers.uv_active) {
 				GWN_vertformat_alias_add(format, "u");
 			}
+		}
 
-			/* Tangent */
+		for (int i = 0; i < rdata->cd.layers.tangent_len; i++) {
 			attrib_name = mesh_render_data_tangent_layer_uuid_get(rdata, i);
 			/* WATCH IT : only specifying 3 component instead of 4 (4th is sign).
 			 * That may cause some problem but I could not make it to fail (fclem) */
@@ -1645,7 +1646,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			tangent_id[i] = GWN_vertformat_attr_add(format, attrib_name, GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 #endif
 
-			if (i == rdata->cd.layers.uv_active) {
+			if (i == rdata->cd.layers.tangent_active) {
 				GWN_vertformat_alias_add(format, "t");
 			}
 		}
@@ -1682,7 +1683,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			if (rdata->edit_bmesh == NULL ||
 			    BM_elem_flag_test((rdata->edit_bmesh->looptris[i])[0]->f, BM_ELEM_HIDDEN) == 0)
 			{
-				/* UVs & TANGENTs */
+				/* UVs */
 				for (int j = 0; j < rdata->cd.layers.uv_len; j++) {
 					/* UVs */
 					mesh_render_data_looptri_uvs_get(rdata, i, j, &tri_uvs);
@@ -1697,8 +1698,11 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 0, s_uvs[0]);
 					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 1, s_uvs[1]);
 					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 2, s_uvs[2]);
+				}
 
-					/* Tangent */
+
+				/* TANGENTs */
+				for (int j = 0; j < rdata->cd.layers.tangent_len; j++) {
 					mesh_render_data_looptri_tans_get(rdata, i, j, &tri_tans);
 #ifdef USE_COMP_MESH_DATA
 					/* Tangents need more precision than 10_10_10 */
