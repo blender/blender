@@ -337,7 +337,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 
 						if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 							ChildParticle *particle = &psys->child[i];
-							int num = psys->part->childtype == particle->num;
+							int num = particle->num;
 
 							if (num != DMCACHE_NOTFOUND) {
 								MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
