@@ -215,6 +215,12 @@ static void rna_Mesh_split_faces(Mesh *mesh, int free_loop_normals)
 	BKE_mesh_split_faces(mesh, free_loop_normals != 0);
 }
 
+static void rna_Mesh_update_gpu_tag(Mesh *mesh)
+{
+	BKE_mesh_batch_cache_dirty(mesh, BKE_MESH_BATCH_DIRTY_NOCHECK);
+}
+
+
 #else
 
 void RNA_api_mesh(StructRNA *srna)
@@ -304,6 +310,8 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges");
 	RNA_def_boolean(func, "calc_tessface", 0, "Calculate Tessellation", "Force recalculation of tessellation faces");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	RNA_def_function(srna, "update_gpu_tag", "rna_Mesh_update_gpu_tag");
 
 	func = RNA_def_function(srna, "unit_test_compare", "rna_Mesh_unit_test_compare");
 	RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to compare to");
