@@ -81,7 +81,9 @@ struct Gwn_Batch *DRW_cache_camera_tria_get(void);
 struct Gwn_Batch *DRW_cache_speaker_get(void);
 
 /* Probe */
-struct Gwn_Batch *DRW_cache_lightprobe_get(void);
+struct Gwn_Batch *DRW_cache_lightprobe_cube_get(void);
+struct Gwn_Batch *DRW_cache_lightprobe_grid_get(void);
+struct Gwn_Batch *DRW_cache_lightprobe_planar_get(void);
 
 /* Bones */
 struct Gwn_Batch *DRW_cache_bone_octahedral_get(void);

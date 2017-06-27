@@ -143,8 +143,10 @@ typedef struct OBJECT_PrivateData{
 	/* Speaker */
 	DRWShadingGroup *speaker;
 
-	/* Speaker */
-	DRWShadingGroup *probe;
+	/* Probe */
+	DRWShadingGroup *probe_cube;
+	DRWShadingGroup *probe_planar;
+	DRWShadingGroup *probe_grid;
 
 	/* Lamps */
 	DRWShadingGroup *lamp_center;
@@ -907,9 +909,16 @@ static void OBJECT_cache_init(void *vedata)
 		stl->g_data->speaker = shgroup_instance(psl->non_meshes, geom);
 
 		/* Probe */
-		static float probeSize = 10.0f;
-		geom = DRW_cache_lightprobe_get();
-		stl->g_data->probe = shgroup_instance_screenspace(psl->non_meshes, geom, &probeSize);
+		static float probeSize = 14.0f;
+		geom = DRW_cache_lightprobe_cube_get();
+		stl->g_data->probe_cube = shgroup_instance_screenspace(psl->non_meshes, geom, &probeSize);
+
+		geom = DRW_cache_lightprobe_grid_get();
+		stl->g_data->probe_grid = shgroup_instance_screenspace(psl->non_meshes, geom, &probeSize);
+
+		static float probePlanarSize = 20.0f;
+		geom = DRW_cache_lightprobe_planar_get();
+		stl->g_data->probe_planar = shgroup_instance_screenspace(psl->non_meshes, geom, &probePlanarSize);
 
 		/* Camera */
 		geom = DRW_cache_camera_get();
@@ -1415,7 +1424,18 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLay
 	LightProbe *prb = (LightProbe *)ob->data;
 	DRW_object_wire_theme_get(ob, sl, &color);
 
-	DRW_shgroup_call_dynamic_add(stl->g_data->probe, ob->obmat[3], color);
+	switch (prb->type) {
+		case LIGHTPROBE_TYPE_PLANAR:
+			DRW_shgroup_call_dynamic_add(stl->g_data->probe_planar, ob->obmat[3], color);
+			break;
+		case LIGHTPROBE_TYPE_GRID:
+			DRW_shgroup_call_dynamic_add(stl->g_data->probe_grid, ob->obmat[3], color);
+			break;
+		case LIGHTPROBE_TYPE_CUBE:
+		default:
+			DRW_shgroup_call_dynamic_add(stl->g_data->probe_cube, ob->obmat[3], color);
+			break;
+	}
 
 	float **prb_mats = (float **)DRW_object_engine_data_get(ob, &draw_engine_object_type, NULL);
 	if (*prb_mats == NULL) {
@@ -1523,7 +1543,6 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLay
 			}
 		}
 	}
-	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_center_group, ob->obmat[3]);
 
 	/* Line and point going to the ground */
 	if (prb->type == LIGHTPROBE_TYPE_CUBE) {
