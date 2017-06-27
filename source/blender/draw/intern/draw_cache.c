@@ -30,6 +30,7 @@
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_lattice_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
@@ -2400,12 +2401,18 @@ Gwn_Batch *DRW_cache_lattice_verts_get(Object *ob)
 	return DRW_lattice_batch_cache_get_all_verts(lt);
 }
 
-Gwn_Batch *DRW_cache_lattice_wire_get(Object *ob)
+Gwn_Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight)
 {
 	BLI_assert(ob->type == OB_LATTICE);
 
-	struct Lattice *lt = ob->data;
-	return DRW_lattice_batch_cache_get_all_edges(lt);
+	Lattice *lt = ob->data;
+	int actdef = -1;
+
+	if (use_weight && ob->defbase.first && lt->editlatt->latt->dvert) {
+		actdef = ob->actdef - 1;
+	}
+
+	return DRW_lattice_batch_cache_get_all_edges(lt, use_weight, actdef);
 }
 
 Gwn_Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)

@@ -66,7 +66,7 @@ struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_select(struct Curve *cu);
 struct Gwn_Batch *BLI_displist_batch_calc_surface(struct ListBase *lb);
 
 /* Lattice */
-struct Gwn_Batch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt);
+struct Gwn_Batch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt, bool use_weight, const int actdef);
 struct Gwn_Batch *DRW_lattice_batch_cache_get_all_verts(struct Lattice *lt);
 struct Gwn_Batch *DRW_lattice_batch_cache_get_overlay_verts(struct Lattice *lt);
 

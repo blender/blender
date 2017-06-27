@@ -143,7 +143,7 @@ struct Gwn_Batch *DRW_cache_surf_surface_get(struct Object *ob);
 
 /* Lattice */
 struct Gwn_Batch *DRW_cache_lattice_verts_get(struct Object *ob);
-struct Gwn_Batch *DRW_cache_lattice_wire_get(struct Object *ob);
+struct Gwn_Batch *DRW_cache_lattice_wire_get(struct Object *ob, bool use_weight);
 struct Gwn_Batch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
 
 /* Particles */

@@ -1712,7 +1712,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		{
 			Object *obedit = scene->obedit;
 			if (ob != obedit) {
-				struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob);
+				struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob, false);
 				if (theme_id == TH_UNDEFINED) {
 					theme_id = DRW_object_wire_theme_get(ob, sl, NULL);
 				}
