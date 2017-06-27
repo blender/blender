@@ -157,6 +157,9 @@ vec4 step_blit(void)
 	/* Combine and apply the brightness response curve. */
 	m *= max(rq, br - curveThreshold.w) / max(br, 1e-5);
 
+	/* Clamp to avoid black square artifacts if a pixel goes NaN. */
+	clamp(m, vec3(0.0), vec3(1e20)); /* 1e20 arbitrary. */
+
 	return vec4(m, 1.0);
 }
 
