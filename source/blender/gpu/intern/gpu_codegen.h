@@ -167,14 +167,17 @@ struct GPUPass {
 
 typedef struct GPUPass GPUPass;
 
-GPUPass *GPU_generate_pass_new(ListBase *nodes, struct GPUNodeLink *frag_outlink,
-                               const char *vert_code, const char *geom_code,
-                               const char *frag_lib, const char *defines);
-GPUPass *GPU_generate_pass(ListBase *nodes, struct GPUNodeLink *outlink,
-                           struct GPUVertexAttribs *attribs, int *builtin,
-                           const GPUMatType type, const char *name,
-                           const bool use_opensubdiv,
-                           const bool use_new_shading);
+GPUPass *GPU_generate_pass_new(
+        ListBase *nodes, struct GPUNodeLink *frag_outlink,
+        struct GPUVertexAttribs *attribs,
+        const char *vert_code, const char *geom_code,
+        const char *frag_lib, const char *defines);
+GPUPass *GPU_generate_pass(
+        ListBase *nodes, struct GPUNodeLink *outlink,
+        struct GPUVertexAttribs *attribs, int *builtin,
+        const GPUMatType type, const char *name,
+        const bool use_opensubdiv,
+        const bool use_new_shading);
 
 struct GPUShader *GPU_pass_shader(GPUPass *pass);
 

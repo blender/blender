@@ -1846,9 +1846,11 @@ static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 	}
 }
 
-GPUPass *GPU_generate_pass_new(ListBase *nodes, struct GPUNodeLink *frag_outlink,
-                               const char *vert_code, const char *geom_code,
-                               const char *frag_lib, const char *defines)
+GPUPass *GPU_generate_pass_new(
+        ListBase *nodes, struct GPUNodeLink *frag_outlink,
+        GPUVertexAttribs *attribs,
+        const char *vert_code, const char *geom_code,
+        const char *frag_lib, const char *defines)
 {
 	GPUShader *shader;
 	GPUPass *pass;
@@ -1858,9 +1860,7 @@ GPUPass *GPU_generate_pass_new(ListBase *nodes, struct GPUNodeLink *frag_outlink
 	/* prune unused nodes */
 	gpu_nodes_prune(nodes, frag_outlink);
 
-	/* Hacky */
-	GPUVertexAttribs attribs;
-	gpu_nodes_get_vertex_attributes(nodes, &attribs);
+	gpu_nodes_get_vertex_attributes(nodes, attribs);
 
 	/* generate code and compile with opengl */
 	fragmentgen = code_generate_fragment(nodes, frag_outlink->output, true);

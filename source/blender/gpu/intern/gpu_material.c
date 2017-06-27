@@ -2132,7 +2132,8 @@ GPUMaterial *GPU_material_from_nodetree(
 	/* Let Draw manager finish the construction. */
 	if (mat->outlink) {
 		outlink = mat->outlink;
-		mat->pass = GPU_generate_pass_new(&mat->nodes, outlink, vert_code, geom_code, frag_lib, defines);
+		mat->pass = GPU_generate_pass_new(
+		        &mat->nodes, outlink, &mat->attribs, vert_code, geom_code, frag_lib, defines);
 	}
 
 	/* note that even if building the shader fails in some way, we still keep
