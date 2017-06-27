@@ -177,6 +177,8 @@ static void EDIT_LATTICE_cache_init(void *vedata)
 		        "Lattice Verts",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_POINT);
 		stl->g_data->vert_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->vert_pass);
+
+		DRW_shgroup_uniform_block(stl->g_data->vert_shgrp, "globalsBlock", globals_ubo);
 	}
 }
 
