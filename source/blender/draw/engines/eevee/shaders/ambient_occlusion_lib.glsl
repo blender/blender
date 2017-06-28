@@ -214,3 +214,28 @@ float gtao_multibounce(float visibility, vec3 albedo)
 	float x = visibility;
 	return max(x, ((x * a + b) * x + c) * x);
 }
+
+/* Use the right occlusion  */
+float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec2 randuv, out vec3 bent_normal)
+{
+#ifdef USE_AO /* Screen Space Occlusion */
+
+	float computed_occlusion;
+	vec3 vnor = mat3(ViewMatrix) * N;
+
+#ifdef USE_BENT_NORMAL
+	gtao(vnor, vpos, randuv, computed_occlusion, bent_normal);
+	bent_normal = mat3(ViewMatrixInverse) * bent_normal;
+#else
+	gtao(vnor, vpos, randuv, computed_occlusion);
+	bent_normal = N;
+#endif
+	return min(computed_occlusion, user_occlusion);
+
+#else /* No added Occlusion. */
+
+	bent_normal = N;
+	return user_occlusion;
+
+#endif
+}

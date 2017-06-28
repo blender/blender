@@ -250,7 +250,7 @@ typedef struct EEVEE_LightProbesInfo {
 	float invsamples_ct;
 	float roughness;
 	float lodfactor;
-	float lodmax;
+	float lod_rt_max, lod_cube_max, lod_planar_max;
 	int shres;
 	int shnbr;
 	bool specular_toggle;

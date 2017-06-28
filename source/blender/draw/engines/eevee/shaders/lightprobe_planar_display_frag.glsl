@@ -1,6 +1,5 @@
 
 uniform int probeIdx;
-uniform sampler2DArray probePlanars;
 
 layout(std140) uniform planar_block {
 	PlanarData planars_data[MAX_PLANAR];

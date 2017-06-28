@@ -9,61 +9,14 @@
 #define LUT_SIZE 64
 
 uniform mat4 ProjectionMatrix;
+uniform mat4 ViewMatrixInverse;
+uniform mat4 ViewMatrix;
 uniform vec4 viewvecs[2];
 
+#define cameraForward   normalize(ViewMatrixInverse[2].xyz)
+#define cameraPos       ViewMatrixInverse[3].xyz
+
 /* ------- Structures -------- */
-
-struct ProbeData {
-	vec4 position_type;
-	vec4 attenuation_fac_type;
-	mat4 influencemat;
-	mat4 parallaxmat;
-};
-
-#define PROBE_PARALLAX_BOX    1.0
-#define PROBE_ATTENUATION_BOX 1.0
-
-#define p_position      position_type.xyz
-#define p_parallax_type position_type.w
-#define p_atten_fac     attenuation_fac_type.x
-#define p_atten_type    attenuation_fac_type.y
-
-struct PlanarData {
-	vec4 plane_equation;
-	vec4 clip_vec_x_fade_scale;
-	vec4 clip_vec_y_fade_bias;
-	vec4 clip_edges;
-	vec4 facing_scale_bias;
-	mat4 reflectionmat; /* transform world space into reflection texture space */
-};
-
-#define pl_plane_eq      plane_equation
-#define pl_normal        plane_equation.xyz
-#define pl_facing_scale  facing_scale_bias.x
-#define pl_facing_bias   facing_scale_bias.y
-#define pl_fade_scale    clip_vec_x_fade_scale.w
-#define pl_fade_bias     clip_vec_y_fade_bias.w
-#define pl_clip_pos_x    clip_vec_x_fade_scale.xyz
-#define pl_clip_pos_y    clip_vec_y_fade_bias.xyz
-#define pl_clip_edges    clip_edges
-
-struct GridData {
-	mat4 localmat;
-	ivec4 resolution_offset;
-	vec4 ws_corner_atten_scale; /* world space corner position */
-	vec4 ws_increment_x_atten_bias; /* world space vector between 2 opposite cells */
-	vec4 ws_increment_y;
-	vec4 ws_increment_z;
-};
-
-#define g_corner        ws_corner_atten_scale.xyz
-#define g_atten_scale   ws_corner_atten_scale.w
-#define g_atten_bias    ws_increment_x_atten_bias.w
-#define g_increment_x   ws_increment_x_atten_bias.xyz
-#define g_increment_y   ws_increment_y.xyz
-#define g_increment_z   ws_increment_z.xyz
-#define g_resolution    resolution_offset.xyz
-#define g_offset        resolution_offset.w
 
 struct LightData {
 	vec4 position_influence;      /* w : InfluenceRadius */
@@ -126,14 +79,15 @@ struct ShadowCascadeData {
 struct ShadingData {
 	vec3 V; /* View vector */
 	vec3 N; /* World Normal of the fragment */
-	vec3 W; /* World Position of the fragment */
-	vec3 l_vector; /* Current Light vector */
 };
+
+#define cameraVec      ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)
 
 /* ------- Convenience functions --------- */
 
 vec3 mul(mat3 m, vec3 v) { return m * v; }
 mat3 mul(mat3 m1, mat3 m2) { return m1 * m2; }
+vec3 transform_point(mat4 m, vec3 v) { return (m * vec4(v, 1.0)).xyz; }
 
 float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
 
@@ -288,8 +242,9 @@ vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
 	}
 }
 
-vec3 get_specular_dominant_dir(vec3 N, vec3 R, float roughness)
+vec3 get_specular_dominant_dir(vec3 N, vec3 V, float roughness)
 {
+	vec3 R = -reflect(V, N);
 	float smoothness = 1.0 - roughness;
 	float fac = smoothness * (sqrt(smoothness) + roughness);
 	return normalize(mix(N, R, fac));
@@ -361,4 +316,9 @@ float bsdf_ggx(vec3 N, vec3 L, vec3 V, float roughness)
 	/* Denominator is canceled by G1_Smith */
 	/* bsdf = D * G / (4.0 * NL * NV); /* Reference function */
 	return NL * a2 / (D * G); /* NL to Fit cycles Equation : line. 345 in bsdf_microfacet.h */
+}
+
+void accumulate_light(vec3 light, float fac, inout vec4 accum)
+{
+	accum += vec4(light, 1.0) * min(fac, (1.0 - accum.a));
 }

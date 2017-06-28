@@ -1,6 +1,8 @@
 
 uniform sampler2D irradianceGrid;
 
+#define IRRADIANCE_LIB
+
 #ifdef IRRADIANCE_CUBEMAP
 struct IrradianceData {
 	vec3 color;
@@ -132,10 +134,8 @@ vec3 compute_irradiance(vec3 N, IrradianceData ird)
 #endif
 }
 
-vec3 get_cell_color(ivec3 localpos, ivec3 gridres, int offset, vec3 ir_dir)
+vec3 irradiance_from_cell_get(int cell, vec3 ir_dir)
 {
-	/* Keep in sync with update_irradiance_probe */
-	int cell = offset + localpos.z + localpos.y * gridres.z + localpos.x * gridres.z * gridres.y;
 	IrradianceData ir_data = load_irradiance_cell(cell, ir_dir);
 	return compute_irradiance(ir_dir, ir_data);
 }
