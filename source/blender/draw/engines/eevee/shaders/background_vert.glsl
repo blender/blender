@@ -8,6 +8,7 @@ out vec3 viewPosition;
 /* necessary for compilation*/
 out vec3 worldPosition;
 out vec3 worldNormal;
+out vec3 viewNormal;
 
 void main()
 {
