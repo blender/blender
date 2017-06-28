@@ -336,7 +336,7 @@ void BKE_editmesh_loop_tangent_calc(
 		}
 #endif
 		/* Calculation */
-		{
+		if (em->tottri != 0) {
 			TaskScheduler *scheduler = BLI_task_scheduler_get();
 			TaskPool *task_pool;
 			task_pool = BLI_task_pool_create(scheduler, NULL);
@@ -395,6 +395,9 @@ void BKE_editmesh_loop_tangent_calc(
 			BLI_assert(tangent_mask_curr == tangent_mask);
 			BLI_task_pool_work_and_wait(task_pool);
 			BLI_task_pool_free(task_pool);
+		}
+		else {
+			tangent_mask_curr = tangent_mask;
 		}
 #ifdef USE_LOOPTRI_DETECT_QUADS
 		if (face_as_quad_map) {
