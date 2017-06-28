@@ -581,43 +581,44 @@ bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int 
 		ldata = &me->ldata;
 		fdata = &me->fdata;
 	}
-	cdlp = (poly_index != -1) ? &pdata->layers[poly_index] : NULL;
-	cdlu = &ldata->layers[loop_index];
-	cdlf = fdata && do_tessface ? &fdata->layers[face_index] : NULL;
 
-	if (cdlp == NULL && cdlf == NULL) {
-		return false;
-	}
+	cdlu = &ldata->layers[loop_index];
+	cdlp = (poly_index != -1) ? &pdata->layers[poly_index] : NULL;
+	cdlf = (face_index != -1) && fdata && do_tessface ? &fdata->layers[face_index] : NULL;
 
 	if (cdlu->name != new_name) {
 		/* Mesh validate passes a name from the CD layer as the new name,
 		 * Avoid memcpy from self to self in this case.
 		 */
 		BLI_strncpy(cdlu->name, new_name, sizeof(cdlu->name));
-		CustomData_set_layer_unique_name(ldata, cdlu - ldata->layers);
+		CustomData_set_layer_unique_name(ldata, loop_index);
+	}
+
+	if (cdlp == NULL && cdlf == NULL) {
+		return false;
 	}
 
 	/* Loop until we do have exactly the same name for all layers! */
 	for (i = 1;
-	     (cdlp && !STREQ(cdlp->name, cdlu->name)) ||
-	     (cdlf && !STREQ(cdlp->name, cdlf->name));
+	     (cdlp && !STREQ(cdlu->name, cdlp->name)) ||
+	     (cdlf && !STREQ(cdlu->name, cdlf->name));
 	     i++)
 	{
 		switch (i % step) {
 			case 0:
 				if (cdlp) {
 					BLI_strncpy(cdlp->name, cdlu->name, sizeof(cdlp->name));
-					CustomData_set_layer_unique_name(pdata, cdlp - pdata->layers);
+					CustomData_set_layer_unique_name(pdata, poly_index);
 				}
 				break;
 			case 1:
 				BLI_strncpy(cdlu->name, cdlp->name, sizeof(cdlu->name));
-				CustomData_set_layer_unique_name(ldata, cdlu - ldata->layers);
+				CustomData_set_layer_unique_name(ldata, loop_index);
 				break;
 			case 2:
 				if (cdlf) {
 					BLI_strncpy(cdlf->name, cdlu->name, sizeof(cdlf->name));
-					CustomData_set_layer_unique_name(fdata, cdlf - fdata->layers);
+					CustomData_set_layer_unique_name(fdata, face_index);
 				}
 				break;
 		}
