@@ -542,6 +542,7 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 		case LIGHTPROBE_TYPE_GRID:
 			probe->distinf = 0.3f;
 			probe->falloff = 1.0f;
+			probe->clipsta = 0.01f;
 			break;
 		case LIGHTPROBE_TYPE_PLANAR:
 			probe->distinf = 0.1f;
