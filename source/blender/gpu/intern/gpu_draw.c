@@ -446,8 +446,6 @@ static void gpu_verify_high_bit_srgb_buffer_slice(float *srgb_frect,
 	                            ibuf->x, height,
 	                            ibuf->x, ibuf->x);
 	IMB_buffer_float_unpremultiply(current_srgb_frect, ibuf->x, height);
-	/* Clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images. */
-	IMB_buffer_float_clamp(current_srgb_frect, ibuf->x, height);
 }
 
 static void verify_thread_do(void *data_v,
