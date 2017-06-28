@@ -31,12 +31,12 @@ layout(std140) uniform light_block {
 #define HEMI     3.0
 #define AREA     4.0
 
-float shadow_cubemap(float shid, vec3 l_vector, vec3 W)
+float shadow_cubemap(float shid, vec4 l_vector)
 {
 	ShadowCubeData scd = shadows_cube_data[int(shid)];
 
-	vec3 cubevec = W - l_vector;
-	float dist = length(cubevec) - scd.sh_cube_bias;
+	vec3 cubevec = -l_vector.xyz / l_vector.w;
+	float dist = l_vector.w - scd.sh_cube_bias;
 
 	float z = texture_octahedron(shadowCubes, vec4(cubevec, shid)).r;
 
@@ -86,13 +86,13 @@ float shadow_cascade(float shid, vec3 W)
 	return texture(shadowCascades, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + cascade, shpos.z));
 }
 
-float light_visibility(LightData ld, vec3 W, vec3 l_vector)
+float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 {
 	float vis = 1.0;
 
 	if (ld.l_type == SPOT) {
-		float z = dot(ld.l_forward, l_vector);
-		vec3 lL = l_vector / z;
+		float z = dot(ld.l_forward, l_vector.xyz);
+		vec3 lL = l_vector.xyz / z;
 		float x = dot(ld.l_right, lL) / ld.l_sizex;
 		float y = dot(ld.l_up, lL) / ld.l_sizey;
 
@@ -101,10 +101,10 @@ float light_visibility(LightData ld, vec3 W, vec3 l_vector)
 		float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.l_spot_size) / ld.l_spot_blend);
 
 		vis *= spotmask;
-		vis *= step(0.0, -dot(l_vector, ld.l_forward));
+		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
 	}
 	else if (ld.l_type == AREA) {
-		vis *= step(0.0, -dot(l_vector, ld.l_forward));
+		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
 	}
 
 	/* shadowing */
@@ -112,7 +112,7 @@ float light_visibility(LightData ld, vec3 W, vec3 l_vector)
 		vis *= shadow_cascade(ld.l_shadowid, W);
 	}
 	else if (ld.l_shadowid >= 0.0) {
-		vis *= shadow_cubemap(ld.l_shadowid, l_vector, W);
+		vis *= shadow_cubemap(ld.l_shadowid, l_vector);
 	}
 
 	return vis;

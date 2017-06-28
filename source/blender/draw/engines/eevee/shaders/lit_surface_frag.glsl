@@ -48,7 +48,7 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 		l_vector.xyz = ld.l_position - worldPosition;
 		l_vector.w = length(l_vector.xyz);
 
-		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, l_vector.xyz);
+		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, l_vector);
 
 #ifdef HAIR_SHADER
 		vec3 norm_lamp, view_vec;
