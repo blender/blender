@@ -979,35 +979,37 @@ static char *code_generate_geometry_new(ListBase *nodes, const char *geom_code)
 	GPUInput *input;
 	char *code;
 
+	/* Create prototype because attributes cannot be declared before layout. */
+	BLI_dynstr_appendf(ds, "void pass_attrib(in int vert);\n");
+	BLI_dynstr_append(ds, "#define ATTRIB\n");
+
+	BLI_dynstr_append(ds, geom_code);
+
 	/* Generate varying declarations. */
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-				if (input->attribtype == CD_MTFACE) {
-					BLI_dynstr_appendf(ds, "in %s var%dg[];\n",
-					                   GPU_DATATYPE_STR[input->type],
-					                   input->attribid);
-					BLI_dynstr_appendf(ds, "out %s var%d;\n",
-					                   GPU_DATATYPE_STR[input->type],
-					                   input->attribid);
-				}
+				BLI_dynstr_appendf(ds, "in %s var%dg[];\n",
+				                   GPU_DATATYPE_STR[input->type],
+				                   input->attribid);
+				BLI_dynstr_appendf(ds, "out %s var%d;\n",
+				                   GPU_DATATYPE_STR[input->type],
+				                   input->attribid);
 			}
 		}
 	}
+
 	/* Generate varying assignments. */
-	BLI_dynstr_append(ds, "#define ATTRIB\n");
 	BLI_dynstr_appendf(ds, "void pass_attrib(in int vert) {\n");
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				/* TODO let shader choose what to do depending on what the attrib is. */
-				BLI_dynstr_appendf(ds, "\tvar%d = var%dg[vert];", input->attribid, input->attribid);
+				BLI_dynstr_appendf(ds, "\tvar%d = var%dg[vert];\n", input->attribid, input->attribid);
 			}
 		}
 	}
 	BLI_dynstr_append(ds, "}\n");
-
-	BLI_dynstr_append(ds, geom_code);
 
 	code = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
