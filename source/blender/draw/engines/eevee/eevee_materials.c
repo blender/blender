@@ -351,40 +351,55 @@ void EEVEE_materials_init(void)
 
 struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, World *wo)
 {
+	const void *engine = &DRW_engine_viewport_eevee_type;
+	const int options = VAR_WORLD_PROBE;
+
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine, options);
+	if (mat != NULL) {
+		return mat;
+	}
 	return GPU_material_from_nodetree(
-	    scene, wo->nodetree, &wo->gpumaterial, &DRW_engine_viewport_eevee_type,
-	    VAR_WORLD_PROBE,
-	    datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, e_data.frag_shader_lib,
-	    SHADER_DEFINES "#define PROBE_CAPTURE\n");
+	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
+	        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, e_data.frag_shader_lib,
+	        SHADER_DEFINES "#define PROBE_CAPTURE\n");
 }
 
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, World *wo)
 {
+	const void *engine = &DRW_engine_viewport_eevee_type;
+	int options = VAR_WORLD_BACKGROUND;
+
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine, options);
+	if (mat != NULL) {
+		return mat;
+	}
 	return GPU_material_from_nodetree(
-	    scene, wo->nodetree, &wo->gpumaterial, &DRW_engine_viewport_eevee_type,
-	    VAR_WORLD_BACKGROUND,
-	    datatoc_background_vert_glsl, NULL, e_data.frag_shader_lib,
-	    SHADER_DEFINES "#define WORLD_BACKGROUND\n");
+	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
+	        datatoc_background_vert_glsl, NULL, e_data.frag_shader_lib,
+	        SHADER_DEFINES "#define WORLD_BACKGROUND\n");
 }
 
 struct GPUMaterial *EEVEE_material_mesh_get(
         struct Scene *scene, Material *ma,
         bool use_ao, bool use_bent_normals)
 {
-	struct GPUMaterial *mat;
-
+	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_MAT_MESH;
 
 	if (use_ao) options |= VAR_MAT_AO;
 	if (use_bent_normals) options |= VAR_MAT_BENT;
 
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
+	if (mat) {
+		return mat;
+	}
+
 	char *defines = eevee_get_defines(options);
 
 	mat = GPU_material_from_nodetree(
-	    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type,
-	    options,
-	    datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
-	    defines);
+	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
+	        datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
+	        defines);
 
 	MEM_freeN(defines);
 
@@ -395,20 +410,23 @@ struct GPUMaterial *EEVEE_material_hair_get(
         struct Scene *scene, Material *ma,
         bool use_ao, bool use_bent_normals)
 {
-	struct GPUMaterial *mat;
-
+	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_MAT_MESH | VAR_MAT_HAIR;
 
 	if (use_ao) options |= VAR_MAT_AO;
 	if (use_bent_normals) options |= VAR_MAT_BENT;
 
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
+	if (mat) {
+		return mat;
+	}
+
 	char *defines = eevee_get_defines(options);
 
 	mat = GPU_material_from_nodetree(
-	    scene, ma->nodetree, &ma->gpumaterial, &DRW_engine_viewport_eevee_type,
-	    options,
-	    datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
-	    defines);
+	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
+	        datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
+	        defines);
 
 	MEM_freeN(defines);
 

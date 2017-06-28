@@ -101,7 +101,7 @@ struct GPUMaterial {
 	 * some code generation is done differently depending on the use case */
 	int type; /* DEPRECATED */
 
-	void *engine;   /* attached engine type */
+	const void *engine_type;   /* attached engine type */
 	int options;    /* to identify shader variations (shadow, probe, world background...) */
 	
 	/* for creating the material */
@@ -2103,28 +2103,43 @@ GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo)
 	return mat;
 }
 
-/* TODO : This is supposed to replace GPU_material_from_blender/_world in the future */
-GPUMaterial *GPU_material_from_nodetree(
-        Scene *scene, struct bNodeTree *ntree, ListBase *gpumaterials, void *engine_type, int options,
-        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
+GPUMaterial *GPU_material_from_nodetree_find(
+        ListBase *gpumaterials, const void *engine_type, int options)
 {
-	GPUMaterial *mat;
-	GPUNodeLink *outlink;
-	LinkData *link;
-
-	for (link = gpumaterials->first; link; link = link->next) {
+	for (LinkData *link = gpumaterials->first; link; link = link->next) {
 		GPUMaterial *current_material = (GPUMaterial *)link->data;
-		if (current_material->engine == engine_type &&
+		if (current_material->engine_type == engine_type &&
 		    current_material->options == options)
 		{
 			return current_material;
 		}
 	}
 
+	return NULL;
+}
+
+/**
+ * TODO: This is supposed to replace GPU_material_from_blender/_world in the future
+ *
+ * \note Caller must use #GPU_material_from_nodetree_find to re-use existing materials,
+ * This is enforced since constructing other arguments to this function may be expensive
+ * so only do this when they are needed.
+ */
+GPUMaterial *GPU_material_from_nodetree(
+        Scene *scene, struct bNodeTree *ntree, ListBase *gpumaterials, const void *engine_type, int options,
+        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
+{
+	GPUMaterial *mat;
+	GPUNodeLink *outlink;
+	LinkData *link;
+
+	/* Caller must re-use materials. */
+	BLI_assert(GPU_material_from_nodetree_find(gpumaterials, engine_type, options) == NULL);
+
 	/* allocate material */
 	mat = GPU_material_construct_begin(NULL); /* TODO remove GPU_material_construct_begin */
 	mat->scene = scene;
-	mat->engine = engine_type;
+	mat->engine_type = engine_type;
 	mat->options = options;
 
 	ntreeGPUMaterialNodes(ntree, mat, NODE_NEWER_SHADING);
