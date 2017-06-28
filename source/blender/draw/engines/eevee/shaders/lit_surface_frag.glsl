@@ -22,21 +22,23 @@ in vec3 worldNormal;
 in vec3 viewNormal;
 #endif
 
+/* ----------- default -----------  */
 
-vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness, float ao)
+vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao)
 {
 	roughness = clamp(roughness, 1e-8, 0.9999);
 	float roughnessSquared = roughness * roughness;
 
-	ShadingData sd = ShadingData(cameraVec, normalize(world_normal));
+	vec3 V = cameraVec;
+	N = normalize(N);
 
 	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
 
 	/* ---------------- SCENE LAMPS LIGHTING ----------------- */
 
 #ifdef HAIR_SHADER
-	vec3 norm_view = cross(sd.V, sd.N);
-	norm_view = normalize(cross(norm_view, sd.N)); /* Normal facing view */
+	vec3 norm_view = cross(V, N);
+	norm_view = normalize(cross(norm_view, N)); /* Normal facing view */
 #endif
 
 	vec3 diff = vec3(0.0);
@@ -53,16 +55,13 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 #ifdef HAIR_SHADER
 		vec3 norm_lamp, view_vec;
 		float occlu_trans, occlu;
-		light_hair_common(ld, sd, l_vector, norm_view, occlu_trans, occlu, norm_lamp, view_vec);
+		light_hair_common(ld, N, V, l_vector, norm_view, occlu_trans, occlu, norm_lamp, view_vec);
 
-		ShadingData hsd = sd;
-		hsd.N = -norm_lamp;
-		diff += l_color_vis * light_diffuse(ld, hsd, l_vector) * occlu_trans;
-		hsd.V = view_vec;
-		spec += l_color_vis * light_specular(ld, hsd, l_vector, roughnessSquared, f0) * occlu;
+		diff += l_color_vis * light_diffuse(ld, -norm_lamp, V, l_vector) * occlu_trans;
+		spec += l_color_vis * light_specular(ld, N, view_vec, l_vector, roughnessSquared, f0) * occlu;
 #else
-		diff += l_color_vis * light_diffuse(ld, sd, l_vector);
-		spec += l_color_vis * light_specular(ld, sd, l_vector, roughnessSquared, f0);
+		diff += l_color_vis * light_diffuse(ld, N, V, l_vector);
+		spec += l_color_vis * light_specular(ld, N, V, l_vector, roughnessSquared, f0);
 #endif
 	}
 
@@ -70,13 +69,10 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	vec3 out_light = diff * albedo + spec * float(specToggle);
 
 #ifdef HAIR_SHADER
-	sd.N = -norm_view;
+	N = -norm_view;
 #endif
 
 	/* ---------------- SPECULAR ENVIRONMENT LIGHTING ----------------- */
-
-	/* Envmaps */
-	vec3 spec_dir = get_specular_dominant_dir(sd.N, sd.V, roughnessSquared);
 
 	/* Accumulate light from all sources until accumulator is full. Then apply Occlusion and BRDF. */
 	vec4 spec_accum = vec4(0.0);
@@ -85,15 +81,17 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	for (int i = 0; i < MAX_PLANAR && i < planar_count && spec_accum.a < 0.999; ++i) {
 		PlanarData pd = planars_data[i];
 
-		float fade = probe_attenuation_planar(pd, worldPosition, sd.N);
+		float fade = probe_attenuation_planar(pd, worldPosition, N);
 
 		if (fade > 0.0) {
-			vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, sd.N, sd.V, rand.a, cameraPos, roughness, fade);
+			vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.a, cameraPos, roughness, fade);
 			accumulate_light(spec, fade, spec_accum);
 		}
 	}
 
 	/* Specular probes */
+	vec3 spec_dir = get_specular_dominant_dir(N, V, roughnessSquared);
+
 	/* Starts at 1 because 0 is world probe */
 	for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999; ++i) {
 		CubeData cd = probes_data[i];
@@ -107,20 +105,20 @@ vec3 eevee_surface_lit(vec3 world_normal, vec3 albedo, vec3 f0, float roughness,
 	}
 
 	/* World Specular */
-	if (spec_accum.a < 1.0) {
+	if (spec_accum.a < 0.999) {
 		vec3 spec = probe_evaluate_world_spec(spec_dir, roughness);
 		accumulate_light(spec, 1.0, spec_accum);
 	}
 
 	/* Ambient Occlusion */
 	vec3 bent_normal;
-	float final_ao = occlusion_compute(sd.N, viewPosition, ao, rand.rg, bent_normal);
+	float final_ao = occlusion_compute(N, viewPosition, ao, rand.rg, bent_normal);
 
 	/* Get Brdf intensity */
-	vec2 uv = lut_coords(dot(sd.N, sd.V), roughness);
+	vec2 uv = lut_coords(dot(N, V), roughness);
 	vec2 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rg;
 
-	out_light += spec_accum.rgb * F_ibl(f0, brdf_lut) * specular_occlusion(dot(sd.N, sd.V), final_ao, roughness) * float(specToggle);
+	out_light += spec_accum.rgb * F_ibl(f0, brdf_lut) * specular_occlusion(dot(N, V), final_ao, roughness) * float(specToggle);
 
 	/* ---------------- DIFFUSE ENVIRONMENT LIGHTING ----------------- */
 

@@ -76,11 +76,6 @@ struct ShadowCascadeData {
 	vec4 bias;
 };
 
-struct ShadingData {
-	vec3 V; /* View vector */
-	vec3 N; /* World Normal of the fragment */
-};
-
 #define cameraVec      ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)
 
 /* ------- Convenience functions --------- */

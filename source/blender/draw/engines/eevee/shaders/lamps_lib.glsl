@@ -118,55 +118,55 @@ float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 	return vis;
 }
 
-float light_diffuse(LightData ld, ShadingData sd, vec4 l_vector)
+float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 {
 #ifdef USE_LTC
 	if (ld.l_type == SUN) {
 		/* TODO disk area light */
-		return direct_diffuse_sun(ld, sd);
+		return direct_diffuse_sun(ld, N);
 	}
 	else if (ld.l_type == AREA) {
-		return direct_diffuse_rectangle(ld, sd, l_vector);
+		return direct_diffuse_rectangle(ld, N, V, l_vector);
 	}
 	else {
-		return direct_diffuse_sphere(ld, sd, l_vector);
+		return direct_diffuse_sphere(ld, N, l_vector);
 	}
 #else
 	if (ld.l_type == SUN) {
-		return direct_diffuse_sun(ld, sd);
+		return direct_diffuse_sun(ld, N, V);
 	}
 	else {
-		return direct_diffuse_point(sd, l_vector);
+		return direct_diffuse_point(N, l_vector);
 	}
 #endif
 }
 
-vec3 light_specular(LightData ld, ShadingData sd, vec4 l_vector, float roughness, vec3 f0)
+vec3 light_specular(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness, vec3 f0)
 {
 #ifdef USE_LTC
 	if (ld.l_type == SUN) {
 		/* TODO disk area light */
-		return direct_ggx_sun(ld, sd, roughness, f0);
+		return direct_ggx_sun(ld, N, V, roughness, f0);
 	}
 	else if (ld.l_type == AREA) {
-		return direct_ggx_rectangle(ld, sd, l_vector, roughness, f0);
+		return direct_ggx_rectangle(ld, N, V, l_vector, roughness, f0);
 	}
 	else {
-		return direct_ggx_sphere(ld, sd, l_vector, roughness, f0);
+		return direct_ggx_sphere(ld, N, V, l_vector, roughness, f0);
 	}
 #else
 	if (ld.l_type == SUN) {
-		return direct_ggx_sun(ld, sd, roughness, f0);
+		return direct_ggx_sun(ld, N, V, roughness, f0);
 	}
 	else {
-		return direct_ggx_point(sd, l_vector, roughness, f0);
+		return direct_ggx_point(N, V, l_vector, roughness, f0);
 	}
 #endif
 }
 
 #ifdef HAIR_SHADER
 void light_hair_common(
-        LightData ld, ShadingData sd, vec4 l_vector, vec3 norm_view,
+        LightData ld, vec3 N, vec3 V, vec4 l_vector, vec3 norm_view,
         out float occlu_trans, out float occlu,
         out vec3 norm_lamp, out vec3 view_vec)
 {
@@ -181,11 +181,11 @@ void light_hair_common(
 		lamp_vec = -l_vector.xyz;
 	}
 
-	norm_lamp = cross(lamp_vec, sd.N);
-	norm_lamp = normalize(cross(sd.N, norm_lamp)); /* Normal facing lamp */
+	norm_lamp = cross(lamp_vec, N);
+	norm_lamp = normalize(cross(N, norm_lamp)); /* Normal facing lamp */
 
 	/* Rotate view vector onto the cross(tangent, light) plane */
-	view_vec = normalize(norm_lamp * dot(norm_view, sd.V) + sd.N * dot(sd.N, sd.V));
+	view_vec = normalize(norm_lamp * dot(norm_view, V) + N * dot(N, V));
 
 	float occlusion = (dot(norm_view, norm_lamp) * 0.5 + 0.5);
 	float occltrans = transmission + (occlusion * (1.0 - transmission)); /* Includes transmission component */
