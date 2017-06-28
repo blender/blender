@@ -10,6 +10,7 @@ flat in int face[];
 out vec3 worldPosition;
 out vec3 viewPosition; /* Required. otherwise generate linking error. */
 out vec3 worldNormal; /* Required. otherwise generate linking error. */
+out vec3 viewNormal; /* Required. otherwise generate linking error. */
 
 const vec3 maj_axes[6] = vec3[6](vec3(1.0,  0.0,  0.0), vec3(-1.0,  0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, -1.0,  0.0), vec3( 0.0,  0.0, 1.0), vec3( 0.0,  0.0, -1.0));
 const vec3 x_axis[6]   = vec3[6](vec3(0.0,  0.0, -1.0), vec3( 0.0,  0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(1.0,  0.0,  0.0), vec3( 1.0,  0.0, 0.0), vec3(-1.0,  0.0,  0.0));
