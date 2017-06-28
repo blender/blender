@@ -74,7 +74,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMVert *verts[2];
 		BMEdge *e;
 
-		if (BMO_iter_as_array(op->slots_in, "geom", BM_VERT, (void **)verts, 2) == 0) {
+		if (BMO_iter_as_array(op->slots_in, "geom", BM_VERT, (void **)verts, 2) == 2) {
 			/* create edge */
 			e = BM_edge_create(bm, verts[0], verts[1], NULL, BM_CREATE_NO_DOUBLE);
 			BMO_edge_flag_enable(bm, e, ELE_OUT);
