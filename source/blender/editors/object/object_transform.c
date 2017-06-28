@@ -1053,9 +1053,12 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	}
 	BLI_freelistN(&ctx_data_list);
 
-	for (tob = bmain->object.first; tob; tob = tob->id.next)
-		if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT))
+	for (tob = bmain->object.first; tob; tob = tob->id.next) {
+		if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT)) {
+			BKE_mesh_batch_cache_dirty(tob->data, BKE_MESH_BATCH_DIRTY_NOCHECK);
 			DEG_id_tag_update(&tob->id, OB_RECALC_OB | OB_RECALC_DATA);
+		}
+	}
 
 	if (tot_change) {
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
