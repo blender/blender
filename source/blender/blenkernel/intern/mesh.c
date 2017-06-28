@@ -594,7 +594,7 @@ bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int 
 		 * Avoid memcpy from self to self in this case.
 		 */
 		BLI_strncpy(cdlu->name, new_name, sizeof(cdlu->name));
-		CustomData_set_layer_unique_name(pdata, cdlu - pdata->layers);
+		CustomData_set_layer_unique_name(ldata, cdlu - ldata->layers);
 	}
 
 	/* Loop until we do have exactly the same name for all layers! */
