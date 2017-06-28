@@ -2573,6 +2573,12 @@ vec3 rotate_vector(vec3 p, vec3 n, float theta) {
 	       );
 }
 
+void convert_metallic_to_specular(vec4 basecol, float metallic, float specular_fac, out vec4 diffuse, out vec4 f0)
+{
+	vec4 dielectric = vec4(0.034) * specular_fac * 2.0;
+	diffuse = mix(basecol, vec4(0.0), metallic);
+	f0 = mix(dielectric, basecol, metallic);
+}
 
 /*********** NEW SHADER NODES ***************/
 
@@ -2650,6 +2656,17 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
 	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
 {
+#ifdef EEVEE_ENGINE
+	vec4 diffuse, f0;
+	convert_metallic_to_specular(base_color, metallic, specular, diffuse, f0);
+
+	/* Original value is 0.25 but this one seems to fit cycles better */
+	clearcoat *= 0.5;
+
+	vec3 surface_color = eevee_surface_clearcoat_lit(N, diffuse.rgb, f0.rgb, roughness, CN, clearcoat, clearcoat_roughness, 1.0);
+
+	result = vec4(surface_color, 1.0);
+#else
 	/* ambient light */
 	// TODO: set ambient light to an appropriate value
 	vec3 L = vec3(mix(0.1, 0.03, metallic)) * base_color.rgb;
@@ -2764,6 +2781,7 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	}
 
 	result = vec4(L, 1.0);
+#endif
 }
 
 void node_bsdf_translucent(vec4 color, vec3 N, out vec4 result)
@@ -3860,13 +3878,6 @@ uniform float backgroundAlpha;
 void node_output_world(vec4 surface, vec4 volume, out vec4 result)
 {
 	result = vec4(surface.rgb, backgroundAlpha);
-}
-
-void convert_metallic_to_specular(vec4 basecol, float metallic, float specular_fac, out vec4 diffuse, out vec4 f0)
-{
-	vec4 dielectric = vec4(0.034) * specular_fac * 2.0;
-	diffuse = mix(basecol, vec4(0.0), metallic);
-	f0 = mix(dielectric, basecol, metallic);
 }
 
 /* TODO : clean this ifdef mess */
