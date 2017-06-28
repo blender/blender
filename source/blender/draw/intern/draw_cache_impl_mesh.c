@@ -473,7 +473,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 				/* Tangents*/
 				BLI_snprintf(rdata->cd.uuid.tangent[i], sizeof(*rdata->cd.uuid.tangent), "t%u", hash);
 
-				if (!CustomData_has_layer(&rdata->cd.output.ldata, CD_MLOOPTANGENT)) {
+				if (!CustomData_has_layer(&rdata->cd.output.ldata, CD_TANGENT)) {
 
 					/* Tangent Names */
 					char tangent_names[MAX_MTFACE][MAX_NAME];
