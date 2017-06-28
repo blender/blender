@@ -30,6 +30,7 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
+#include "BLI_alloca.h"
 
 #include "BKE_particle.h"
 
@@ -571,9 +572,11 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 	ADD_SHGROUP_CALL(depth_shgrp, ob, geom);
 	ADD_SHGROUP_CALL(depth_clip_shgrp, ob, geom);
 
-	/* Get per-material split surface */
-	struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
-	if (mat_geom) {
+	/* First get materials for this mesh. */
+	if (ELEM(ob->type, OB_MESH)) {
+		const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
+		struct DRWShadingGroup **shgrp_array = BLI_array_alloca(shgrp_array, materials_len);
+
 		bool use_flat_nor = false;
 
 		if (is_default_mode_shader) {
@@ -582,7 +585,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 			}
 		}
 
-		for (int i = 0; i < MAX2(1, (is_sculpt_mode ? 1 : ob->totcol)); ++i) {
+		for (int i = 0; i < materials_len; ++i) {
 			DRWShadingGroup *shgrp = NULL;
 			Material *ma = give_current_material(ob, i + 1);
 
@@ -594,13 +597,15 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 			float *spec_p = &ma->spec;
 			float *rough_p = &ma->gloss_mir;
 
+			const bool use_gpumat = (ma->use_nodes && ma->nodetree);
+
 			shgrp = BLI_ghash_lookup(material_hash, (const void *)ma);
 			if (shgrp) {
-				ADD_SHGROUP_CALL(shgrp, ob, mat_geom[i]);
+				shgrp_array[i] = shgrp;  /* ADD_SHGROUP_CALL below */
 				continue;
 			}
 
-			if (ma->use_nodes && ma->nodetree) {
+			if (use_gpumat) {
 				Scene *scene = draw_ctx->scene;
 				struct GPUMaterial *gpumat = EEVEE_material_mesh_get(scene, ma,
 				        stl->effects->use_ao, stl->effects->use_bent_normals);
@@ -610,8 +615,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 					add_standard_uniforms(shgrp, sldata, vedata);
 
 					BLI_ghash_insert(material_hash, ma, shgrp);
-
-					ADD_SHGROUP_CALL(shgrp, ob, mat_geom[i]);
+					shgrp_array[i] = shgrp;  /* ADD_SHGROUP_CALL below */
 				}
 				else {
 					/* Shader failed : pink color */
@@ -634,7 +638,15 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 
 				BLI_ghash_insert(material_hash, ma, shgrp);
 
-				ADD_SHGROUP_CALL(shgrp, ob, mat_geom[i]);
+				shgrp_array[i] = shgrp;  /* ADD_SHGROUP_CALL below */
+			}
+		}
+
+		/* Get per-material split surface */
+		struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob);
+		if (mat_geom) {
+			for (int i = 0; i < materials_len; ++i) {
+				ADD_SHGROUP_CALL(shgrp_array[i], ob, mat_geom[i]);
 			}
 		}
 	}
