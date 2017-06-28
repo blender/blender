@@ -27,6 +27,7 @@
 #define __DRAW_CACHE_H__
 
 struct Gwn_Batch;
+struct GPUMaterial;
 struct Object;
 struct ModifierData;
 
@@ -43,7 +44,8 @@ struct Gwn_Batch *DRW_cache_screenspace_circle_get(void);
 /* Common Object */
 struct Gwn_Batch *DRW_cache_object_wire_outline_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_object_surface_get(struct Object *ob);
-struct Gwn_Batch **DRW_cache_object_surface_material_get(struct Object *ob);
+struct Gwn_Batch **DRW_cache_object_surface_material_get(
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 
 /* Empties */
 struct Gwn_Batch *DRW_cache_plain_axes_get(void);
@@ -118,7 +120,8 @@ struct Gwn_Batch *DRW_cache_mesh_verts_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_mesh_edges_paint_overlay_get(struct Object *ob, bool use_wire, bool use_sel);
 struct Gwn_Batch *DRW_cache_mesh_faces_weight_overlay_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_mesh_verts_weight_overlay_get(struct Object *ob);
-struct Gwn_Batch **DRW_cache_mesh_surface_shaded_get(struct Object *ob);
+struct Gwn_Batch **DRW_cache_mesh_surface_shaded_get(
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 struct Gwn_Batch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
 

@@ -33,6 +33,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_bits.h"
 #include "BLI_string.h"
 
 #include "DNA_mesh_types.h"
@@ -52,6 +53,7 @@
 
 #include "GPU_batch.h"
 #include "GPU_draw.h"
+#include "GPU_material.h"
 
 #include "draw_cache_impl.h"  /* own include */
 
@@ -236,7 +238,72 @@ static bool bm_edge_has_visible_face(const BMEdge *e)
 }
 
 
-static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
+static void mesh_cd_calc_used_gpu_layers(
+        CustomData *UNUSED(cd_vdata), uchar cd_vused[CD_NUMTYPES],
+        CustomData *cd_ldata, uchar cd_lused[CD_NUMTYPES],
+        struct GPUMaterial **gpumat_array, int gpumat_array_len)
+{
+	GPUVertexAttribs gattribs = {0};
+
+	for (int i = 0; i < gpumat_array_len; i++) {
+		GPUMaterial *gpumat = gpumat_array[i];
+		if (gpumat) {
+			GPU_material_vertex_attributes(gpumat, &gattribs);
+			for (int j = 0; j < gattribs.totlayer; j++) {
+				const char *name = gattribs.layer[j].name;
+				switch (gattribs.layer[j].type) {
+					case CD_MTFACE:
+					{
+						int index = (name[0] != '\0') ?
+						        CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
+						        CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+						if (index != -1) {
+							cd_lused[CD_MLOOPUV] |= (1 << index);
+						}
+						break;
+					}
+					case CD_TANGENT:
+					{
+						int index = (name[0] != '\0') ?
+						        CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
+						        CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+						if (index != -1) {
+							cd_lused[CD_TANGENT] |= (1 << index);
+
+							/* TODO(campbell): investigate why this is needed T51919. */
+							cd_lused[CD_MLOOPUV] |= (1 << index);
+						}
+						break;
+					}
+					case CD_MCOL:
+					{
+						int index = (name[0] != '\0') ?
+						        CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name) :
+						        CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
+						if (index != -1) {
+							cd_lused[CD_MLOOPCOL] |= (1 << index);
+						}
+						break;
+					}
+					case CD_ORCO:
+					{
+						cd_vused[CD_ORCO] |= 1;
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
+ * TODO(campbell): 'gpumat_array' may include materials linked to the object.
+ * While not default, object materials should be supported.
+ * Although this only impacts the data thats generated, not the materials that display.
+ */
+static MeshRenderData *mesh_render_data_create_ex(
+        Mesh *me, const int types,
+        struct GPUMaterial **gpumat_array, uint gpumat_array_len)
 {
 	MeshRenderData *rdata = MEM_callocN(sizeof(*rdata), __func__);
 	rdata->types = types;
@@ -371,32 +438,56 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 			cd_ldata = &me->ldata;
 		}
 
+		/* Add edge/poly if we need them */
+		uchar cd_vused[CD_NUMTYPES] = {0};
+		uchar cd_lused[CD_NUMTYPES] = {0};
+
+		mesh_cd_calc_used_gpu_layers(
+		        cd_vdata, cd_vused,
+		        cd_ldata, cd_lused,
+		        gpumat_array, gpumat_array_len);
+
 
 		rdata->cd.layers.uv_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
 		rdata->cd.layers.vcol_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
 		rdata->cd.layers.tangent_active = rdata->cd.layers.uv_active;
 
-		rdata->orco = CustomData_get_layer(cd_vdata, CD_ORCO);
-		/* If orco is not available compute it ourselves */
-		if (!rdata->orco) {
-			if (me->edit_btmesh) {
-				BMesh *bm = me->edit_btmesh->bm;
-				rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
-				BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
-				BMVert **vtable = bm->vtable;
-				for (int i = 0; i < bm->totvert; i++) {
-					copy_v3_v3(rdata->orco[i], vtable[i]->co);
+		if ((cd_lused[CD_MLOOPUV] & (1 << rdata->cd.layers.uv_active)) == 0) {
+			rdata->cd.layers.uv_active = -1;
+		}
+		if ((cd_lused[CD_TANGENT] & (1 << rdata->cd.layers.tangent_active)) == 0) {
+			rdata->cd.layers.tangent_active = -1;
+		}
+		if ((cd_lused[CD_MLOOPCOL] & (1 << rdata->cd.layers.vcol_active)) == 0) {
+			rdata->cd.layers.vcol_active = -1;
+		}
+
+		if (cd_vused[CD_ORCO] & 1) {
+			rdata->orco = CustomData_get_layer(cd_vdata, CD_ORCO);
+			/* If orco is not available compute it ourselves */
+			if (!rdata->orco) {
+				if (me->edit_btmesh) {
+					BMesh *bm = me->edit_btmesh->bm;
+					rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
+					BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
+					BMVert **vtable = bm->vtable;
+					for (int i = 0; i < bm->totvert; i++) {
+						copy_v3_v3(rdata->orco[i], vtable[i]->co);
+					}
+					BKE_mesh_orco_verts_transform(me, rdata->orco, rdata->vert_len, 0);
 				}
-				BKE_mesh_orco_verts_transform(me, rdata->orco, rdata->vert_len, 0);
-			}
-			else {
-				rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
-				MVert *mvert = rdata->mvert;
-				for (int a = 0; a < rdata->vert_len; a++, mvert++) {
-					copy_v3_v3(rdata->orco[a], mvert->co);
+				else {
+					rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
+					MVert *mvert = rdata->mvert;
+					for (int a = 0; a < rdata->vert_len; a++, mvert++) {
+						copy_v3_v3(rdata->orco[a], mvert->co);
+					}
+					BKE_mesh_orco_verts_transform(me, rdata->orco, rdata->vert_len, 0);
 				}
-				BKE_mesh_orco_verts_transform(me, rdata->orco, rdata->vert_len, 0);
 			}
+		}
+		else {
+			rdata->orco = NULL;
 		}
 
 		const bool is_auto_smooth = (me->flag & ME_AUTOSMOOTH) != 0;
@@ -405,18 +496,25 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 #define me DONT_USE_THIS
 #ifdef  me /* quiet warning */
 #endif
+		struct {
+			uint uv_len;
+			uint vcol_len;
+		} cd_layers_src = {
+			.uv_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPUV),
+			.vcol_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPCOL),
+		};
 
-		rdata->cd.layers.uv_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPUV);
-		rdata->cd.layers.tangent_len = rdata->cd.layers.uv_len;
-		rdata->cd.layers.vcol_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPCOL);
+		rdata->cd.layers.uv_len = count_bits_i(cd_lused[CD_MLOOPUV]);
+		rdata->cd.layers.tangent_len = count_bits_i(cd_lused[CD_TANGENT]);
+		rdata->cd.layers.vcol_len = count_bits_i(cd_lused[CD_MLOOPCOL]);
 
 		rdata->cd.layers.uv = MEM_mallocN(sizeof(*rdata->cd.layers.uv) * rdata->cd.layers.uv_len, __func__);
 		rdata->cd.layers.vcol = MEM_mallocN(sizeof(*rdata->cd.layers.vcol) * rdata->cd.layers.vcol_len, __func__);
-		rdata->cd.layers.tangent = MEM_mallocN(sizeof(*rdata->cd.layers.tangent) * rdata->cd.layers.uv_len, __func__);
+		rdata->cd.layers.tangent = MEM_mallocN(sizeof(*rdata->cd.layers.tangent) * rdata->cd.layers.tangent_len, __func__);
 
 		rdata->cd.uuid.uv = MEM_mallocN(sizeof(*rdata->cd.uuid.uv) * rdata->cd.layers.uv_len, __func__);
 		rdata->cd.uuid.vcol = MEM_mallocN(sizeof(*rdata->cd.uuid.vcol) * rdata->cd.layers.vcol_len, __func__);
-		rdata->cd.uuid.tangent = MEM_mallocN(sizeof(*rdata->cd.uuid.tangent) * rdata->cd.layers.uv_len, __func__);
+		rdata->cd.uuid.tangent = MEM_mallocN(sizeof(*rdata->cd.uuid.tangent) * rdata->cd.layers.tangent_len, __func__);
 
 		rdata->cd.offset.uv = MEM_mallocN(sizeof(*rdata->cd.offset.uv) * rdata->cd.layers.uv_len, __func__);
 		rdata->cd.offset.vcol = MEM_mallocN(sizeof(*rdata->cd.offset.vcol) * rdata->cd.layers.vcol_len, __func__);
@@ -434,119 +532,167 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 		 * One solution to hash collision would be to format the cd layer name
 		 * to a safe glsl var name, but without name clash.
 		 * NOTE 2 : Replicate changes to code_generate_vertex_new() in gpu_codegen.c */
-		for (int i = 0; i < rdata->cd.layers.vcol_len; ++i) {
-			const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i);
-			unsigned int hash = BLI_ghashutil_strhash_p(name);
-			BLI_snprintf(rdata->cd.uuid.vcol[i], sizeof(*rdata->cd.uuid.vcol), "c%u", hash);
-			rdata->cd.layers.vcol[i] = CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i);
-			if (rdata->edit_bmesh) {
-				rdata->cd.offset.vcol[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPCOL, i);
-			}
+		if (rdata->cd.layers.vcol_len != 0) {
+			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.vcol_len; i_src++, i_dst++) {
+				if ((cd_lused[CD_MLOOPCOL] & (1 << i_src)) == 0) {
+					i_dst--;
+					if (rdata->cd.layers.vcol_active >= i_src) {
+						rdata->cd.layers.vcol_active--;
+					}
+				}
+				else {
+					const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i_src);
+					unsigned int hash = BLI_ghashutil_strhash_p(name);
+					BLI_snprintf(rdata->cd.uuid.vcol[i_dst], sizeof(*rdata->cd.uuid.vcol), "c%u", hash);
+					rdata->cd.layers.vcol[i_dst] = CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i_src);
+					if (rdata->edit_bmesh) {
+						rdata->cd.offset.vcol[i_dst] = CustomData_get_n_offset(
+						        &rdata->edit_bmesh->bm->ldata, CD_MLOOPCOL, i_src);
+					}
 
-			/* Gather number of auto layers. */
-			/* We only do vcols that are not overridden by uvs */
-			if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, name) == -1) {
-				BLI_snprintf(
-				        rdata->cd.uuid.auto_mix[rdata->cd.layers.uv_len + i],
-				        sizeof(*rdata->cd.uuid.auto_mix), "a%u", hash);
-				rdata->cd.layers.auto_vcol[i] = true;
+					/* Gather number of auto layers. */
+					/* We only do vcols that are not overridden by uvs */
+					if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, name) == -1) {
+						BLI_snprintf(
+						        rdata->cd.uuid.auto_mix[rdata->cd.layers.uv_len + i_dst],
+						        sizeof(*rdata->cd.uuid.auto_mix), "a%u", hash);
+						rdata->cd.layers.auto_vcol[i_dst] = true;
+					}
+				}
 			}
 		}
 
 		/* Start Fresh */
+		CustomData_free_layers(cd_ldata, CD_TANGENT, rdata->loop_len);
 		CustomData_free_layers(cd_ldata, CD_MLOOPTANGENT, rdata->loop_len);
-		for (int i = 0; i < rdata->cd.layers.uv_len; ++i) {
-			const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i);
-			unsigned int hash = BLI_ghashutil_strhash_p(name);
 
-			{
-				/* UVs */
-				BLI_snprintf(rdata->cd.uuid.uv[i], sizeof(*rdata->cd.uuid.uv), "u%u", hash);
-				rdata->cd.layers.uv[i] = CustomData_get_layer_n(cd_ldata, CD_MLOOPUV, i);
-				if (rdata->edit_bmesh) {
-					rdata->cd.offset.uv[i] = CustomData_get_n_offset(&rdata->edit_bmesh->bm->ldata, CD_MLOOPUV, i);
+		if (rdata->cd.layers.uv_len != 0) {
+			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
+				if ((cd_lused[CD_MLOOPUV] & (1 << i_src)) == 0) {
+					i_dst--;
+					if (rdata->cd.layers.uv_active >= i_src) {
+						rdata->cd.layers.uv_active--;
+					}
 				}
-				BLI_snprintf(rdata->cd.uuid.auto_mix[i], sizeof(*rdata->cd.uuid.auto_mix), "a%u", hash);
+				else {
+					const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i_src);
+					unsigned int hash = BLI_ghashutil_strhash_p(name);
+
+					BLI_snprintf(rdata->cd.uuid.uv[i_dst], sizeof(*rdata->cd.uuid.uv), "u%u", hash);
+					rdata->cd.layers.uv[i_dst] = CustomData_get_layer_n(cd_ldata, CD_MLOOPUV, i_src);
+					if (rdata->edit_bmesh) {
+						rdata->cd.offset.uv[i_dst] = CustomData_get_n_offset(
+						        &rdata->edit_bmesh->bm->ldata, CD_MLOOPUV, i_src);
+					}
+					BLI_snprintf(rdata->cd.uuid.auto_mix[i_dst], sizeof(*rdata->cd.uuid.auto_mix), "a%u", hash);
+				}
+			}
+		}
+
+		if (rdata->cd.layers.tangent_len != 0) {
+
+			/* -------------------------------------------------------------------- */
+			/* Pre-calculate tangents into 'rdata->cd.output.ldata' */
+
+			BLI_assert(!CustomData_has_layer(&rdata->cd.output.ldata, CD_TANGENT));
+
+			/* Tangent Names */
+			char tangent_names[MAX_MTFACE][MAX_NAME];
+			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
+				if ((cd_lused[CD_TANGENT] & (1 << i_src)) == 0) {
+					i_dst--;
+				}
+				else {
+					BLI_strncpy(
+					        tangent_names[i_dst],
+					        CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i_src), MAX_NAME);
+				}
 			}
 
-			{
-				/* Tangents*/
-				BLI_snprintf(rdata->cd.uuid.tangent[i], sizeof(*rdata->cd.uuid.tangent), "t%u", hash);
+			if (rdata->edit_bmesh) {
+				BMEditMesh *em = rdata->edit_bmesh;
+				BMesh *bm = em->bm;
 
-				if (!CustomData_has_layer(&rdata->cd.output.ldata, CD_TANGENT)) {
+				if (is_auto_smooth) {
+					/* TODO: split normals, see below */
+				}
 
-					/* Tangent Names */
-					char tangent_names[MAX_MTFACE][MAX_NAME];
-					int tangent_names_len = 0;
-					for (tangent_names_len = 0; tangent_names_len < rdata->cd.layers.uv_len; tangent_names_len++) {
-						BLI_strncpy(
-						        tangent_names[tangent_names_len],
-						        CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, tangent_names_len), MAX_NAME);
-					}
+				bool calc_active_tangent = false;
+				float (*poly_normals)[3] = rdata->poly_normals;
+				float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
 
-					if (rdata->edit_bmesh) {
-						BMEditMesh *em = rdata->edit_bmesh;
-						BMesh *bm = em->bm;
-
-						if (is_auto_smooth) {
-							/* TODO: split normals, see below */
-						}
-
-						bool calc_active_tangent = false;
-						float (*poly_normals)[3] = rdata->poly_normals;
-						float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
-
-						BKE_editmesh_loop_tangent_calc(
-						        em, calc_active_tangent,
-						        tangent_names, tangent_names_len,
-						        poly_normals, loop_normals,
-						        rdata->orco,
-						        &rdata->cd.output.ldata, bm->totloop,
-						        &rdata->cd.output.tangent_mask);
-					}
-					else {
+				BKE_editmesh_loop_tangent_calc(
+				        em, calc_active_tangent,
+				        tangent_names, rdata->cd.layers.tangent_len,
+				        poly_normals, loop_normals,
+				        rdata->orco,
+				        &rdata->cd.output.ldata, bm->totloop,
+				        &rdata->cd.output.tangent_mask);
+			}
+			else {
 #undef me
 
-						if (is_auto_smooth) {
-							if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
-								BKE_mesh_calc_normals_split(me);
-							}
-						}
+				if (is_auto_smooth) {
+					if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
+						BKE_mesh_calc_normals_split(me);
+					}
+				}
 
-						bool calc_active_tangent = false;
-						const float (*poly_normals)[3] = rdata->poly_normals;
-						const float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
+				bool calc_active_tangent = false;
+				const float (*poly_normals)[3] = rdata->poly_normals;
+				const float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
 
-						BKE_mesh_calc_loop_tangent_ex(
-						        me->mvert,
-						        me->mpoly, me->totpoly,
-						        me->mloop,
-						        rdata->mlooptri, rdata->tri_len,
-						        cd_ldata,
-						        calc_active_tangent,
-						        tangent_names, tangent_names_len,
-						        poly_normals, loop_normals,
-						        rdata->orco,
-						        &rdata->cd.output.ldata, me->totloop,
-						        &rdata->cd.output.tangent_mask);
+				BKE_mesh_calc_loop_tangent_ex(
+				        me->mvert,
+				        me->mpoly, me->totpoly,
+				        me->mloop,
+				        rdata->mlooptri, rdata->tri_len,
+				        cd_ldata,
+				        calc_active_tangent,
+				        tangent_names, rdata->cd.layers.tangent_len,
+				        poly_normals, loop_normals,
+				        rdata->orco,
+				        &rdata->cd.output.ldata, me->totloop,
+				        &rdata->cd.output.tangent_mask);
 
-						/* If we store tangents in the mesh, set temporary. */
+					/* If we store tangents in the mesh, set temporary. */
 #if 0
-						CustomData_set_layer_flag(cd_ldata, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
+				CustomData_set_layer_flag(cd_ldata, CD_TANGENT, CD_FLAG_TEMPORARY);
 #endif
 
 #define me DONT_USE_THIS
 #ifdef  me /* quiet warning */
 #endif
+			}
+
+			/* End tangent calculation */
+			/* -------------------------------------------------------------------- */
+
+			BLI_assert(CustomData_number_of_layers(&rdata->cd.output.ldata, CD_TANGENT) == rdata->cd.layers.tangent_len);
+
+			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
+				if ((cd_lused[CD_TANGENT] & (1 << i_src)) == 0) {
+					i_dst--;
+					if (rdata->cd.layers.tangent_active >= i_src) {
+						rdata->cd.layers.tangent_active--;
 					}
 				}
-				/* Done adding tangents. */
+				else {
+					const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i_src);
+					unsigned int hash = BLI_ghashutil_strhash_p(name);
 
-				/* note: BKE_editmesh_loop_tangent_calc calculates 'CD_TANGENT',
-				 * not 'CD_MLOOPTANGENT' (as done below). It's OK, they're compatible. */
-				rdata->cd.layers.tangent[i] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i);
-				if (rdata->tri_len != 0) {
-					BLI_assert(rdata->cd.layers.tangent[i] != NULL);
+					BLI_snprintf(rdata->cd.uuid.tangent[i_dst], sizeof(*rdata->cd.uuid.tangent), "t%u", hash);
+
+					/* Done adding tangents. */
+
+					/* note: BKE_editmesh_loop_tangent_calc calculates 'CD_TANGENT',
+					 * not 'CD_MLOOPTANGENT' (as done below). It's OK, they're compatible. */
+
+					/* note: normally we'd use 'i_src' here, but 'i_dst' is in sync with 'rdata->cd.output' */
+					rdata->cd.layers.tangent[i_dst] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i_dst);
+					if (rdata->tri_len != 0) {
+						BLI_assert(rdata->cd.layers.tangent[i_dst] != NULL);
+					}
 				}
 			}
 		}
@@ -584,6 +730,11 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 	CustomData_free(&rdata->cd.output.ldata, rdata->loop_len);
 
 	MEM_freeN(rdata);
+}
+
+static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
+{
+	return mesh_render_data_create_ex(me, types, NULL, 0);
 }
 
 /** \} */
@@ -3091,7 +3242,8 @@ Gwn_Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 	return cache->overlay_facedots;
 }
 
-Gwn_Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
+Gwn_Batch **DRW_mesh_batch_cache_get_surface_shaded(
+        Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3100,7 +3252,7 @@ Gwn_Batch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me)
 		const int datatype =
 		        MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI |
 		        MR_DATATYPE_POLY | MR_DATATYPE_SHADING;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
+		MeshRenderData *rdata = mesh_render_data_create_ex(me, datatype, gpumat_array, gpumat_array_len);
 
 		const int mat_len = mesh_render_data_mat_len_get(rdata);
 

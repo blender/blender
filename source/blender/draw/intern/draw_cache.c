@@ -522,11 +522,12 @@ Gwn_Batch *DRW_cache_object_surface_get(Object *ob)
 	}
 }
 
-Gwn_Batch **DRW_cache_object_surface_material_get(struct Object *ob)
+Gwn_Batch **DRW_cache_object_surface_material_get(
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
 {
 	switch (ob->type) {
 		case OB_MESH:
-			return DRW_cache_mesh_surface_shaded_get(ob);
+			return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
 		default:
 			return NULL;
 	}
@@ -2212,12 +2213,13 @@ Gwn_Batch *DRW_cache_mesh_surface_vert_colors_get(Object *ob)
 }
 
 /* Return list of batches */
-Gwn_Batch **DRW_cache_mesh_surface_shaded_get(Object *ob)
+Gwn_Batch **DRW_cache_mesh_surface_shaded_get(
+        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_surface_shaded(me);
+	return DRW_mesh_batch_cache_get_surface_shaded(me, gpumat_array, gpumat_array_len);
 }
 
 /* Return list of batches */
