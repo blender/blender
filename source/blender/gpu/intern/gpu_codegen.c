@@ -787,7 +787,7 @@ static const char *attrib_prefix_get(CustomDataType type)
 	}
 }
 
-static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code)
+static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code, bool use_geom)
 {
 	DynStr *ds = BLI_dynstr_new();
 	GPUNode *node;
@@ -814,8 +814,8 @@ static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code)
 					BLI_dynstr_appendf(ds, "#define att%d %s%u\n",
 						input->attribid, attrib_prefix_get(input->attribtype), hash);
 				}
-				BLI_dynstr_appendf(ds, "out %s var%d;\n",
-					GPU_DATATYPE_STR[input->type], input->attribid);
+				BLI_dynstr_appendf(ds, "out %s var%d%s;\n",
+					GPU_DATATYPE_STR[input->type], input->attribid, use_geom ? "g" : "");
 			}
 		}
 	}
@@ -831,19 +831,19 @@ static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code)
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				if (input->attribtype == CD_TANGENT) { /* silly exception */
 					BLI_dynstr_appendf(
-					        ds, "\tvar%d.xyz = normalize(NormalMatrix * att%d.xyz);\n",
-					        input->attribid, input->attribid);
+					        ds, "\tvar%d%s.xyz = normalize(NormalMatrix * att%d.xyz);\n",
+					        input->attribid, use_geom ? "g" : "", input->attribid);
 					BLI_dynstr_appendf(
-					        ds, "\tvar%d.w = att%d.w;\n",
-					        input->attribid, input->attribid);
+					        ds, "\tvar%d%s.w = att%d.w;\n",
+					        input->attribid, use_geom ? "g" : "", input->attribid);
 				}
 				else if (input->attribtype == CD_ORCO) {
-					BLI_dynstr_appendf(ds, "\tvar%d = OrcoTexCoFactors[0] + position * OrcoTexCoFactors[1];\n",
-					                   input->attribid);
+					BLI_dynstr_appendf(ds, "\tvar%d%s = OrcoTexCoFactors[0] + position * OrcoTexCoFactors[1];\n",
+					                   input->attribid, use_geom ? "g" : "");
 				}
 				else {
-					BLI_dynstr_appendf(ds, "\tvar%d = att%d;\n",
-					                   input->attribid, input->attribid);
+					BLI_dynstr_appendf(ds, "\tvar%d%s = att%d;\n",
+					                   input->attribid, use_geom ? "g" : "", input->attribid);
 				}
 			}
 		}
@@ -968,6 +968,49 @@ static char *code_generate_vertex(ListBase *nodes, const GPUMatType type)
 #if 0
 	if (G.debug & G_DEBUG) printf("%s\n", code);
 #endif
+
+	return code;
+}
+
+static char *code_generate_geometry_new(ListBase *nodes, const char *geom_code)
+{
+	DynStr *ds = BLI_dynstr_new();
+	GPUNode *node;
+	GPUInput *input;
+	char *code;
+
+	/* Generate varying declarations. */
+	for (node = nodes->first; node; node = node->next) {
+		for (input = node->inputs.first; input; input = input->next) {
+			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+				if (input->attribtype == CD_MTFACE) {
+					BLI_dynstr_appendf(ds, "in %s var%dg[];\n",
+					                   GPU_DATATYPE_STR[input->type],
+					                   input->attribid);
+					BLI_dynstr_appendf(ds, "out %s var%d;\n",
+					                   GPU_DATATYPE_STR[input->type],
+					                   input->attribid);
+				}
+			}
+		}
+	}
+	/* Generate varying assignments. */
+	BLI_dynstr_append(ds, "#define ATTRIB\n");
+	BLI_dynstr_appendf(ds, "void pass_attrib(in int vert) {\n");
+	for (node = nodes->first; node; node = node->next) {
+		for (input = node->inputs.first; input; input = input->next) {
+			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+				/* TODO let shader choose what to do depending on what the attrib is. */
+				BLI_dynstr_appendf(ds, "\tvar%d = var%dg[vert];", input->attribid, input->attribid);
+			}
+		}
+	}
+	BLI_dynstr_append(ds, "}\n");
+
+	BLI_dynstr_append(ds, geom_code);
+
+	code = BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
 
 	return code;
 }
@@ -1854,7 +1897,7 @@ GPUPass *GPU_generate_pass_new(
 {
 	GPUShader *shader;
 	GPUPass *pass;
-	char *vertexgen, *geometrygen, *fragmentgen, *tmp;
+	char *vertexgen, *fragmentgen, *tmp;
 	char *vertexcode, *geometrycode, *fragmentcode;
 
 	/* prune unused nodes */
@@ -1864,14 +1907,18 @@ GPUPass *GPU_generate_pass_new(
 
 	/* generate code and compile with opengl */
 	fragmentgen = code_generate_fragment(nodes, frag_outlink->output, true);
-	vertexgen = code_generate_vertex_new(nodes, vert_code);
-	// geometrygen = code_generate_geometry(nodes, false);
-	UNUSED_VARS(geometrygen);
+	vertexgen = code_generate_vertex_new(nodes, vert_code, (geom_code != NULL));
 
 	tmp = BLI_strdupcat(frag_lib, glsl_material_library);
 	fragmentcode = BLI_strdupcat(tmp, fragmentgen);
 	vertexcode = BLI_strdup(vertexgen);
-	geometrycode = (geom_code) ? BLI_strdup(geom_code) : NULL;
+
+	if (geom_code) {
+		geometrycode = code_generate_geometry_new(nodes, geom_code);
+	}
+	else {
+		geometrycode = NULL;
+	}
 
 	shader = GPU_shader_create(vertexcode,
 	                           fragmentcode,

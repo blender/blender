@@ -23,6 +23,9 @@ void main() {
 	for (int v = 0; v < 3; ++v) {
 		gl_Position = vPos[v];
 		worldPosition = x_axis[f] * vPos[v].x + y_axis[f] * vPos[v].y + maj_axes[f];
+#ifdef ATTRIB
+		pass_attrib(v);
+#endif
 		EmitVertex();
 	}
 
