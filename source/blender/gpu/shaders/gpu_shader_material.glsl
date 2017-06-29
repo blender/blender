@@ -2936,17 +2936,17 @@ void node_uvmap(vec3 attr_uv, out vec3 outvec)
 
 void tangent_orco_x(vec3 orco_in, out vec3 orco_out)
 {
-	orco_out = vec3(0.0, (orco_in.z - 0.5) * -0.5, (orco_in.y - 0.5) * 0.5);
+	orco_out = orco_in.xzy * vec3(0.0, -0.25, 0.25);
 }
 
 void tangent_orco_y(vec3 orco_in, out vec3 orco_out)
 {
-	orco_out = vec3((orco_in.z - 0.5) * -0.5, 0.0, (orco_in.x - 0.5) * 0.5);
+	orco_out = orco_in.zyx * vec3(-0.25, 0.0, 0.25);
 }
 
 void tangent_orco_z(vec3 orco_in, out vec3 orco_out)
 {
-	orco_out = vec3((orco_in.y - 0.5) * -0.5, (orco_in.x - 0.5) * 0.5, 0.0);
+	orco_out = orco_in.yxz * vec3(-0.25, 0.25, 0.0);
 }
 
 void node_tangentmap(vec4 attr_tangent, mat4 toworld, out vec3 tangent)
@@ -2988,7 +2988,7 @@ void node_tex_coord(
         out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
         out vec3 camera, out vec3 window, out vec3 reflection)
 {
-	generated = attr_orco;
+	generated = attr_orco * 0.5 + 0.5;
 	normal = normalize((obinvmat * (viewinvmat * vec4(N, 0.0))).xyz);
 	uv = attr_uv;
 	object = (obinvmat * (viewinvmat * vec4(I, 1.0))).xyz;
