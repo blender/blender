@@ -631,7 +631,7 @@ void BKE_mesh_calc_loop_tangent_ex(
 				mesh2tangent->precomputedFaceNormals = poly_normals;
 
 				mesh2tangent->orco = NULL;
-				mesh2tangent->mloopuv = CustomData_get_layer_named(loopdata, CD_MLOOPUV, loopdata->layers[index].name);
+				mesh2tangent->mloopuv = CustomData_get_layer_named(loopdata, CD_MLOOPUV, loopdata_out->layers[index].name);
 				if (!mesh2tangent->mloopuv) {
 					mesh2tangent->orco = vert_orco;
 					if (!mesh2tangent->orco)
