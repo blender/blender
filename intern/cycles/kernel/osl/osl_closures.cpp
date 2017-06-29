@@ -156,7 +156,7 @@ BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannRefraction, microfacet_beckmann_refra
 BSDF_CLOSURE_CLASS_END(MicrofacetBeckmannRefraction, microfacet_beckmann_refraction)
 
 BSDF_CLOSURE_CLASS_BEGIN(HairReflection, hair_reflection, HairBsdf, LABEL_GLOSSY)
-	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, unused),
+	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.N),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.roughness1),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.roughness2),
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.T),
@@ -164,7 +164,7 @@ BSDF_CLOSURE_CLASS_BEGIN(HairReflection, hair_reflection, HairBsdf, LABEL_GLOSSY
 BSDF_CLOSURE_CLASS_END(HairReflection, hair_reflection)
 
 BSDF_CLOSURE_CLASS_BEGIN(HairTransmission, hair_transmission, HairBsdf, LABEL_GLOSSY)
-	CLOSURE_FLOAT3_PARAM(HairTransmissionClosure, unused),
+	CLOSURE_FLOAT3_PARAM(HairTransmissionClosure, params.N),
 	CLOSURE_FLOAT_PARAM(HairTransmissionClosure, params.roughness1),
 	CLOSURE_FLOAT_PARAM(HairTransmissionClosure, params.roughness2),
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.T),

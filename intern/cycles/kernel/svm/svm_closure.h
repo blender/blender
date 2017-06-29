@@ -725,6 +725,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				HairBsdf *bsdf = (HairBsdf*)bsdf_alloc(sd, sizeof(HairBsdf), weight);
 
 				if(bsdf) {
+					bsdf->N = N;
 					bsdf->roughness1 = param1;
 					bsdf->roughness2 = param2;
 					bsdf->offset = -stack_load_float(stack, data_node.z);

@@ -3174,12 +3174,20 @@ void nodeSynchronizeID(bNode *node, bool copy_to_id)
 
 void nodeLabel(bNodeTree *ntree, bNode *node, char *label, int maxlen)
 {
-	if (node->label[0] != '\0')
+	if (node->label[0] != '\0') {
 		BLI_strncpy(label, node->label, maxlen);
-	else if (node->typeinfo->labelfunc)
+	}
+	else if (node->typeinfo->labelfunc) {
 		node->typeinfo->labelfunc(ntree, node, label, maxlen);
-	else
-		BLI_strncpy(label, IFACE_(node->typeinfo->ui_name), maxlen);
+	}
+	else {
+		/* Kind of hacky and weak... Ideally would be better to use RNA here. :| */
+		const char *tmp = CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, node->typeinfo->ui_name);
+		if (tmp == node->typeinfo->ui_name) {
+			tmp = IFACE_(node->typeinfo->ui_name);
+		}
+		BLI_strncpy(label, tmp, maxlen);
+	}
 }
 
 static void node_type_base_defaults(bNodeType *ntype)

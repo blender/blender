@@ -61,13 +61,19 @@ class NodeItem:
             # if no custom label is defined, fall back to the node type UI name
             return getattr(bpy.types, self.nodetype).bl_rna.name
 
+    @property
+    def translation_context(self):
+        if self._label:
+            return bpy.app.translations.contexts.default
+        else:
+            # if no custom label is defined, fall back to the node type UI name
+            return getattr(bpy.types, self.nodetype).bl_rna.translation_context
+
     # NB: is a staticmethod because called with an explicit self argument
     # NodeItemCustom sets this as a variable attribute in __init__
     @staticmethod
     def draw(self, layout, context):
-        default_context = bpy.app.translations.contexts.default
-
-        props = layout.operator("node.add_node", text=self.label, text_ctxt=default_context)
+        props = layout.operator("node.add_node", text=self.label, text_ctxt=self.translation_context)
         props.type = self.nodetype
         props.use_transform = True
 
