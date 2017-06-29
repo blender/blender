@@ -1016,6 +1016,10 @@ static void view3d_main_region_listener(
 				case ND_WORLD_DRAW:
 					/* handled by space_view3d_listener() for v3d access */
 					break;
+				case ND_WORLD:
+					/* Needed for updating world materials */
+					ED_region_tag_redraw(ar);
+					break;
 			}
 			break;
 		case NC_LAMP:
