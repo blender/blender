@@ -72,7 +72,7 @@ typedef struct {
 	int y : 10;
 	int z : 10;
 	int w : 2;	// 0 by default, can manually set to { -2, -1, 0, 1 }
-} PackedNormal;
+} Gwn_PackedNormal;
 
-PackedNormal convert_i10_v3(const float data[3]);
-PackedNormal convert_i10_s3(const short data[3]);
+Gwn_PackedNormal GWN_normal_convert_i10_v3(const float data[3]);
+Gwn_PackedNormal GWN_normal_convert_i10_s3(const short data[3]);

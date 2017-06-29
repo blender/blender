@@ -1425,9 +1425,9 @@ static void add_overlay_tri(
 
 	if (vbo_nor) {
 		/* TODO real loop normal */
-		PackedNormal lnor = convert_i10_v3(bm_looptri[0]->f->no);
+		Gwn_PackedNormal lnor = GWN_normal_convert_i10_v3(bm_looptri[0]->f->no);
 		for (uint i = 0; i < 3; i++) {
-			PackedNormal vnor = convert_i10_v3(bm_looptri[i]->v->no);
+			Gwn_PackedNormal vnor = GWN_normal_convert_i10_v3(bm_looptri[i]->v->no);
 			GWN_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
 			GWN_vertbuf_attr_set(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
 		}
@@ -1465,7 +1465,7 @@ static void add_overlay_loose_edge(
 
 	if (vbo_nor) {
 		for (int i = 0; i < 2; ++i) {
-			PackedNormal vnor = convert_i10_v3((&eed->v1)[i]->no);
+			Gwn_PackedNormal vnor = GWN_normal_convert_i10_v3((&eed->v1)[i]->no);
 			GWN_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
 		}
 	}
@@ -1491,7 +1491,7 @@ static void add_overlay_loose_vert(
 	}
 
 	if (vbo_nor) {
-		PackedNormal vnor = convert_i10_v3(eve->no);
+		Gwn_PackedNormal vnor = GWN_normal_convert_i10_v3(eve->no);
 		GWN_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx, &vnor);
 	}
 
@@ -2007,20 +2007,20 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 			        rdata, i, use_hide, &tri_vert_cos, &tri_nor, &tri_vert_nors, &is_smooth))
 			{
 				if (is_smooth) {
-					PackedNormal snor_pack[3] = {
-						convert_i10_s3(tri_vert_nors[0]),
-						convert_i10_s3(tri_vert_nors[1]),
-						convert_i10_s3(tri_vert_nors[2])
+					Gwn_PackedNormal snor_pack[3] = {
+						GWN_normal_convert_i10_s3(tri_vert_nors[0]),
+						GWN_normal_convert_i10_s3(tri_vert_nors[1]),
+						GWN_normal_convert_i10_s3(tri_vert_nors[2])
 					};
-					PackedNormal *snor[3] = { &snor_pack[0], &snor_pack[1], &snor_pack[2] };
+					Gwn_PackedNormal *snor[3] = { &snor_pack[0], &snor_pack[1], &snor_pack[2] };
 
 					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor[0]);
 					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor[1]);
 					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor[2]);
 				}
 				else {
-					PackedNormal snor_pack = convert_i10_s3(tri_nor);
-					PackedNormal *snor = &snor_pack;
+					Gwn_PackedNormal snor_pack = GWN_normal_convert_i10_s3(tri_nor);
+					Gwn_PackedNormal *snor = &snor_pack;
 
 					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor);
 					GWN_vertbuf_attr_set(vbo, attr_id.nor, nidx++, snor);
@@ -3095,16 +3095,16 @@ Gwn_Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 
 			if (mesh_render_data_edge_vcos_manifold_pnors(rdata, i, &vcos1, &vcos2, &pnor1, &pnor2, &is_manifold)) {
 
-				PackedNormal n1value = { .x = 0, .y = 0, .z = +511 };
-				PackedNormal n2value = { .x = 0, .y = 0, .z = -511 };
+				Gwn_PackedNormal n1value = { .x = 0, .y = 0, .z = +511 };
+				Gwn_PackedNormal n2value = { .x = 0, .y = 0, .z = -511 };
 
 				if (is_manifold) {
-					n1value = convert_i10_v3(pnor1);
-					n2value = convert_i10_v3(pnor2);
+					n1value = GWN_normal_convert_i10_v3(pnor1);
+					n2value = GWN_normal_convert_i10_v3(pnor2);
 				}
 
-				const PackedNormal *n1 = &n1value;
-				const PackedNormal *n2 = &n2value;
+				const Gwn_PackedNormal *n1 = &n1value;
+				const Gwn_PackedNormal *n2 = &n2value;
 
 				GWN_vertbuf_attr_set(vbo, attr_id.pos, 2 * i, vcos1);
 				GWN_vertbuf_attr_set(vbo, attr_id.n1, 2 * i, n1);
@@ -3257,8 +3257,8 @@ Gwn_Batch *DRW_mesh_batch_cache_get_overlay_facedots(Mesh *me)
 
 			if (mesh_render_data_pnors_pcenter_select_get(rdata, i, pnor, pcenter, &selected)) {
 
-				PackedNormal nor = { .x = 0, .y = 0, .z = -511 };
-				nor = convert_i10_v3(pnor);
+				Gwn_PackedNormal nor = { .x = 0, .y = 0, .z = -511 };
+				nor = GWN_normal_convert_i10_v3(pnor);
 				nor.w = selected ? 1 : 0;
 				GWN_vertbuf_attr_set(vbo, attr_id.data, vidx, &nor);
 

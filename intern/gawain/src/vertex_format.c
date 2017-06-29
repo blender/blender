@@ -251,7 +251,7 @@ void VertexFormat_pack(Gwn_VertFormat* format)
 
 
 // OpenGL ES packs in a different order as desktop GL but component conversion is the same.
-// Of the code here, only struct PackedNormal needs to change.
+// Of the code here, only struct Gwn_PackedNormal needs to change.
 
 #define SIGNED_INT_10_MAX  511
 #define SIGNED_INT_10_MIN -512
@@ -283,14 +283,14 @@ static int convert_i16(short x)
 	// TODO: round?
 	}
 
-PackedNormal convert_i10_v3(const float data[3])
+Gwn_PackedNormal GWN_normal_convert_i10_v3(const float data[3])
 	{
-	PackedNormal n = { .x = quantize(data[0]), .y = quantize(data[1]), .z = quantize(data[2]) };
+	Gwn_PackedNormal n = { .x = quantize(data[0]), .y = quantize(data[1]), .z = quantize(data[2]) };
 	return n;
 	}
 
-PackedNormal convert_i10_s3(const short data[3])
+Gwn_PackedNormal GWN_normal_convert_i10_s3(const short data[3])
 	{
-	PackedNormal n = { .x = convert_i16(data[0]), .y = convert_i16(data[1]), .z = convert_i16(data[2]) };
+	Gwn_PackedNormal n = { .x = convert_i16(data[0]), .y = convert_i16(data[1]), .z = convert_i16(data[2]) };
 	return n;
 	}
