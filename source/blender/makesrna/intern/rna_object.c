@@ -97,16 +97,27 @@ static EnumPropertyItem parent_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-#ifndef RNA_RUNTIME
+#define DUPLI_ITEMS_SHARED \
+	{0, "NONE", 0, "None", ""}, \
+	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"}, \
+	{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices"}, \
+	{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces"}
+
+#define DUPLI_ITEM_GROUP \
+	{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"}
 static EnumPropertyItem dupli_items[] = {
-	{0, "NONE", 0, "None", ""},
-	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"},
-	{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices"},
-	{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces"},
-	{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"},
+	DUPLI_ITEMS_SHARED,
+	DUPLI_ITEM_GROUP,
+	{0, NULL, 0, NULL, NULL}
+};
+#ifdef RNA_RUNTIME
+static EnumPropertyItem dupli_items_nogroup[] = {
+	DUPLI_ITEMS_SHARED,
 	{0, NULL, 0, NULL, NULL}
 };
 #endif
+#undef DUPLI_ITEMS_SHARED
+#undef DUPLI_ITEM_GROUP
 
 static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_BOX, "BOX", ICON_MESH_CUBE, "Box", ""},
@@ -515,6 +526,23 @@ static void rna_Object_parent_bone_set(PointerRNA *ptr, const char *value)
 	ED_object_parent(ob, ob->parent, ob->partype, value);
 }
 
+static EnumPropertyItem *rna_Object_dupli_type_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+{
+	Object *ob = (Object *)ptr->data;
+	EnumPropertyItem *item;
+
+	if (ob->type == OB_EMPTY) {
+		item = dupli_items;
+	}
+	else {
+		item = dupli_items_nogroup;
+	}
+
+	return item;
+}
+
 static void rna_Object_dup_group_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object *)ptr->data;
@@ -524,9 +552,15 @@ static void rna_Object_dup_group_set(PointerRNA *ptr, PointerRNA value)
 	 * thus causing a cycle/infinite-recursion leading to crashes on load [#25298]
 	 */
 	if (BKE_group_object_exists(grp, ob) == 0) {
-		id_us_min(&ob->dup_group->id);
-		ob->dup_group = grp;
-		id_us_plus(&ob->dup_group->id);
+		if (ob->type == OB_EMPTY) {
+			id_us_min(&ob->dup_group->id);
+			ob->dup_group = grp;
+			id_us_plus(&ob->dup_group->id);
+		}
+		else {
+			BKE_report(NULL, RPT_ERROR,
+			           "Only empty objects support group instances");
+		}
 	}
 	else {
 		BKE_report(NULL, RPT_ERROR,
@@ -2893,6 +2927,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "dupli_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "transflag");
 	RNA_def_property_enum_items(prop, dupli_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Object_dupli_type_itemf");
 	RNA_def_property_ui_text(prop, "Dupli Type", "If not None, object duplication method to use");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
 

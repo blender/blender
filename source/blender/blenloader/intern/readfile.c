@@ -4793,7 +4793,15 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->parent = newlibadr(fd, ob->id.lib, ob->parent);
 			ob->track = newlibadr(fd, ob->id.lib, ob->track);
 			ob->poselib = newlibadr_us(fd, ob->id.lib, ob->poselib);
-			ob->dup_group = newlibadr_us(fd, ob->id.lib, ob->dup_group);
+
+			/* 2.8x drops support for non-empty dupli instances. */
+			if (ob->type == OB_EMPTY) {
+				ob->dup_group = newlibadr_us(fd, ob->id.lib, ob->dup_group);
+			}
+			else {
+				ob->dup_group = NULL;
+				ob->transflag &= ~OB_DUPLIGROUP;
+			}
 			
 			ob->proxy = newlibadr_us(fd, ob->id.lib, ob->proxy);
 			if (ob->proxy) {
