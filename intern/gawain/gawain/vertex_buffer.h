@@ -49,6 +49,31 @@ void GWN_vertbuf_attr_set(Gwn_VertBuf*, unsigned a_idx, unsigned v_idx, const vo
 void GWN_vertbuf_attr_fill(Gwn_VertBuf*, unsigned a_idx, const void* data); // tightly packed, non interleaved input data
 void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf*, unsigned a_idx, unsigned stride, const void* data);
 
+// For low level access only
+typedef struct {
+	unsigned size;
+	unsigned stride;
+	GLubyte* data;
+	GLubyte* data_init;
+#if TRUST_NO_ONE
+	// Only for overflow check
+	GLubyte* _data_end;
+#endif
+} Gwn_VertBufRaw;
+
+GWN_INLINE void *GWN_vertbuf_raw_step(Gwn_VertBufRaw *a)
+	{
+	GLubyte* data = a->data;
+	a->data += a->stride;
+#if TRUST_NO_ONE
+	assert(data < a->_data_end);
+#endif
+	return (void *)data;
+	}
+
+void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf*, unsigned a_idx, Gwn_VertBufRaw *access);
+
+
 // TODO: decide whether to keep the functions below
 // doesn't immediate mode satisfy these needs?
 

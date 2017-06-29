@@ -25,3 +25,10 @@
 #if TRUST_NO_ONE
   #include <assert.h>
 #endif
+
+/* GWN_INLINE */
+#if defined(_MSC_VER)
+#  define GWN_INLINE static __forceinline
+#else
+#  define GWN_INLINE static inline __attribute__((always_inline)) __attribute__((__unused__))
+#endif

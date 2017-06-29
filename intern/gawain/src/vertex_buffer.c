@@ -151,6 +151,26 @@ void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf* verts, unsigned a_idx, unsigned s
 		}
 	}
 
+void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf* verts, unsigned a_idx, Gwn_VertBufRaw *access)
+	{
+	const Gwn_VertFormat* format = &verts->format;
+	const Gwn_VertAttr* a = format->attribs + a_idx;
+
+#if TRUST_NO_ONE
+	assert(a_idx < format->attrib_ct);
+	assert(verts->data != NULL); // data must be in main mem
+#endif
+
+	access->size = a->sz;
+	access->stride = format->stride;
+	access->data = (GLubyte*)verts->data + a->offset;
+	access->data_init = access->data;
+#if TRUST_NO_ONE
+	access->_data_end = access->data_init + (size_t)(verts->vertex_ct * format->stride);
+#endif
+	}
+
+
 static void VertexBuffer_prime(Gwn_VertBuf* verts)
 	{
 	const unsigned buffer_sz = GWN_vertbuf_size_get(verts);
