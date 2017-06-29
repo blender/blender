@@ -243,6 +243,7 @@ static void mesh_cd_calc_used_gpu_layers(
         CustomData *cd_ldata, uchar cd_lused[CD_NUMTYPES],
         struct GPUMaterial **gpumat_array, int gpumat_array_len)
 {
+	/* See: DM_vertex_attributes_from_gpu for similar logic */
 	GPUVertexAttribs gattribs = {0};
 
 	for (int i = 0; i < gpumat_array_len; i++) {
@@ -251,37 +252,74 @@ static void mesh_cd_calc_used_gpu_layers(
 			GPU_material_vertex_attributes(gpumat, &gattribs);
 			for (int j = 0; j < gattribs.totlayer; j++) {
 				const char *name = gattribs.layer[j].name;
-				switch (gattribs.layer[j].type) {
+				int type = gattribs.layer[j].type;
+				int layer = -1;
+
+				if (type == CD_AUTO_FROM_NAME) {
+					/* We need to deduct what exact layer is used.
+					 *
+					 * We do it based on the specified name.
+					 */
+					if (name[0]) {
+						layer = CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, name);
+						type = CD_MTFACE;
+						if (layer == -1) {
+							layer = CustomData_get_named_layer_index(cd_ldata, CD_MLOOPCOL, name);
+							type = CD_MCOL;
+						}
+#if 0					/* Tangents are always from UV's - this will never happen. */
+						if (layer == -1) {
+							layer = CustomData_get_named_layer_index(cd_ldata, CD_TANGENT, name);
+							type = CD_TANGENT;
+						}
+#endif
+						if (layer == -1) {
+							continue;
+						}
+					}
+					else {
+						/* Fall back to the UV layer, which matches old behavior. */
+						type = CD_MTFACE;
+					}
+				}
+
+				switch (type) {
 					case CD_MTFACE:
 					{
-						int index = (name[0] != '\0') ?
-						        CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
-						        CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
-						if (index != -1) {
-							cd_lused[CD_MLOOPUV] |= (1 << index);
+						if (layer == -1) {
+							layer = (name[0] != '\0') ?
+							        CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
+							        CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+						}
+						if (layer != -1) {
+							cd_lused[CD_MLOOPUV] |= (1 << layer);
 						}
 						break;
 					}
 					case CD_TANGENT:
 					{
-						int index = (name[0] != '\0') ?
-						        CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
-						        CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
-						if (index != -1) {
-							cd_lused[CD_TANGENT] |= (1 << index);
+						if (layer == -1) {
+							layer = (name[0] != '\0') ?
+							        CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
+							        CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+						}
+						if (layer != -1) {
+							cd_lused[CD_TANGENT] |= (1 << layer);
 
 							/* TODO(campbell): investigate why this is needed T51919. */
-							cd_lused[CD_MLOOPUV] |= (1 << index);
+							cd_lused[CD_MLOOPUV] |= (1 << layer);
 						}
 						break;
 					}
 					case CD_MCOL:
 					{
-						int index = (name[0] != '\0') ?
-						        CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name) :
-						        CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
-						if (index != -1) {
-							cd_lused[CD_MLOOPCOL] |= (1 << index);
+						if (layer == -1) {
+							layer = (name[0] != '\0') ?
+							        CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name) :
+							        CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
+						}
+						if (layer != -1) {
+							cd_lused[CD_MLOOPCOL] |= (1 << layer);
 						}
 						break;
 					}
