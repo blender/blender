@@ -2845,23 +2845,12 @@ void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
 	vec4 co_homogenous = (ProjectionMatrixInverse * v);
 
 	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
-#ifdef WORLD_BACKGROUND
+#if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
 	worldvec = (ViewMatrixInverse * co).xyz;
 #else
 	worldvec = (ModelViewMatrixInverse * co).xyz;
 #endif
 }
-
-#if defined(PROBE_CAPTURE) || defined(WORLD_BACKGROUND)
-void environment_default_vector(out vec3 worldvec)
-{
-#ifdef WORLD_BACKGROUND
-	background_transform_to_world(viewPosition, worldvec);
-#else
-	worldvec = normalize(worldPosition);
-#endif
-}
-#endif
 
 void node_background(vec4 color, float strength, out vec4 result)
 {
