@@ -547,10 +547,15 @@ static void make_duplis_verts(const DupliContext *ctx)
 		BMEditMesh *em = BKE_editmesh_from_object(parent);
 		CustomDataMask dm_mask = (use_texcoords ? CD_MASK_BAREMESH | CD_MASK_ORCO : CD_MASK_BAREMESH);
 
-		if (em)
+		if (ctx->eval_ctx->mode == DAG_EVAL_RENDER) {
+			vdd.dm = mesh_create_derived_render(scene, parent, dm_mask);
+		}
+		else if (em) {
 			vdd.dm = editbmesh_get_derived_cage(scene, parent, em, dm_mask);
-		else
+		}
+		else {
 			vdd.dm = mesh_get_derived_final(scene, parent, dm_mask);
+		}
 		vdd.edit_btmesh = me->edit_btmesh;
 
 		if (use_texcoords)
@@ -810,10 +815,15 @@ static void make_duplis_faces(const DupliContext *ctx)
 		BMEditMesh *em = BKE_editmesh_from_object(parent);
 		CustomDataMask dm_mask = (use_texcoords ? CD_MASK_BAREMESH | CD_MASK_ORCO | CD_MASK_MLOOPUV : CD_MASK_BAREMESH);
 
-		if (em)
+		if (ctx->eval_ctx->mode == DAG_EVAL_RENDER) {
+			fdd.dm = mesh_create_derived_render(scene, parent, dm_mask);
+		}
+		else if (em) {
 			fdd.dm = editbmesh_get_derived_cage(scene, parent, em, dm_mask);
-		else
+		}
+		else {
 			fdd.dm = mesh_get_derived_final(scene, parent, dm_mask);
+		}
 
 		if (use_texcoords) {
 			CustomData *ml_data = fdd.dm->getLoopDataLayout(fdd.dm);
