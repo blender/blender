@@ -490,15 +490,16 @@ static MeshRenderData *mesh_render_data_create_ex(
 		rdata->cd.layers.vcol_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
 		rdata->cd.layers.tangent_active = rdata->cd.layers.uv_active;
 
-		if ((cd_lused[CD_MLOOPUV] & (1 << rdata->cd.layers.uv_active)) == 0) {
-			rdata->cd.layers.uv_active = -1;
-		}
-		if ((cd_lused[CD_TANGENT] & (1 << rdata->cd.layers.tangent_active)) == 0) {
-			rdata->cd.layers.tangent_active = -1;
-		}
-		if ((cd_lused[CD_MLOOPCOL] & (1 << rdata->cd.layers.vcol_active)) == 0) {
-			rdata->cd.layers.vcol_active = -1;
-		}
+#define CD_VALIDATE_ACTIVE_LAYER(active_index, used) \
+		if ((active_index != -1) && (used & (1 << active_index)) == 0) { \
+			active_index = -1; \
+		} ((void)0)
+
+		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_active, cd_lused[CD_MLOOPUV]);
+		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.tangent_active, cd_lused[CD_TANGENT]);
+		CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.vcol_active, cd_lused[CD_MLOOPCOL]);
+
+#undef CD_VALIDATE_ACTIVE_LAYER
 
 		if (cd_vused[CD_ORCO] & 1) {
 			rdata->orco = CustomData_get_layer(cd_vdata, CD_ORCO);
