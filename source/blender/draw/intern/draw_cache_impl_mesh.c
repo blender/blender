@@ -1912,6 +1912,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_uv_active(
 		vbo_len_used = vidx;
 
 		BLI_assert(vbo_len_capacity == vbo_len_used);
+		UNUSED_VARS_NDEBUG(vbo_len_used);
 	}
 
 	return cache->tri_aligned_uv;

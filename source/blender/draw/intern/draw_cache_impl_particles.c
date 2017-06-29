@@ -184,9 +184,9 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, tan, ind; } attr_id;
-		unsigned int *uv_id;
+		unsigned int *uv_id = NULL;
 		int uv_layers = 0;
-		MTFace **mtfaces;
+		MTFace **mtfaces = NULL;
 		float (**parent_uvs)[2] = NULL;
 		bool simple = psys->part->childtype == PART_CHILD_PARTICLES;
 
@@ -242,7 +242,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 				if (path->segments > 0) {
 					float tangent[3];
 					int from = psmd ? psmd->psys->part->from : 0;
-					float (*uv)[2];
+					float (*uv)[2] = NULL;
 
 					if (psmd) {
 						uv = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
@@ -328,7 +328,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 
 				if (path->segments > 0) {
 					int from = psmd ? psmd->psys->part->from : 0;
-					float (*uv)[2];
+					float (*uv)[2] = NULL;
 
 					if (!simple) {
 						if (psmd) {
