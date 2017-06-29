@@ -504,9 +504,6 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* recreate dependency graph to include new objects */
 	DEG_scene_relations_rebuild(bmain, scene);
-	
-	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
-	GPU_materials_free();
 
 	/* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
 	BLI_strncpy(G.lib, root, FILE_MAX);
@@ -802,9 +799,6 @@ static void lib_relocate_do(
 
 	/* recreate dependency graph to include new objects */
 	DEG_scene_relations_rebuild(bmain, scene);
-
-	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
-	GPU_materials_free();
 }
 
 void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
