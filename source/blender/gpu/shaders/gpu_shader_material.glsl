@@ -3020,9 +3020,7 @@ void node_tex_coord_background(
 
 	co = normalize(co);
 
-#ifdef PROBE_CAPTURE
-	vec3 coords = normalize(worldPosition);
-#elif defined(WORLD_BACKGROUND)
+#if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
 	vec3 coords = (ViewMatrixInverse * co).xyz;
 #else
 	vec3 coords = (ModelViewMatrixInverse * co).xyz;

@@ -366,7 +366,7 @@ struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, Wor
 	}
 	return GPU_material_from_nodetree(
 	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
-	        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, e_data.frag_shader_lib,
+	        datatoc_background_vert_glsl, NULL, e_data.frag_shader_lib,
 	        SHADER_DEFINES "#define PROBE_CAPTURE\n");
 }
 

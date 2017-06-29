@@ -337,7 +337,6 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 		Scene *scene = draw_ctx->scene;
 		World *wo = scene->world;
 
-		static int zero = 0;
 		float *col = ts.colorBackground;
 		if (wo) {
 			col = &wo->horr;
@@ -347,13 +346,10 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 			if (wo->use_nodes && wo->nodetree) {
 				struct GPUMaterial *gpumat = EEVEE_material_world_lightprobe_get(scene, wo);
 
-				grp = DRW_shgroup_material_instance_create(gpumat, psl->probe_background, geom);
+				grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
 
 				if (grp) {
-					DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
-
-					for (int i = 0; i < 6; ++i)
-						DRW_shgroup_call_dynamic_add_empty(grp);
+					DRW_shgroup_call_add(grp, geom, NULL);
 				}
 				else {
 					/* Shader failed : pink background */
@@ -367,10 +363,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 		if (grp == NULL) {
 			grp = DRW_shgroup_instance_create(e_data.probe_default_sh, psl->probe_background, geom);
 			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
-			DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
-
-			for (int i = 0; i < 6; ++i)
-				DRW_shgroup_call_dynamic_add_empty(grp);
+			DRW_shgroup_call_add(grp, geom, NULL);
 		}
 	}
 
@@ -1006,7 +999,7 @@ static void render_scene_to_probe(
 		DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
 		DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
 
-		DRW_draw_pass(psl->background_pass);
+		DRW_draw_pass(psl->probe_background);
 
 		/* Depth prepass */
 		DRW_draw_pass(psl->depth_pass);
@@ -1077,7 +1070,7 @@ static void render_scene_to_planar(
 	DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
 
 	/* Background */
-	DRW_draw_pass(psl->background_pass);
+	DRW_draw_pass(psl->probe_background);
 
 	/* Since we are rendering with an inverted view matrix, we need
 	 * to invert the facing for backface culling to be the same. */
@@ -1116,13 +1109,47 @@ static void render_scene_to_planar(
 static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
+	float winmat[4][4];
 
 	/* 1 - Render to cubemap target using geometry shader. */
 	/* For world probe, we don't need to clear since we render the background directly. */
 	pinfo->layer = 0;
 
+	perspective_m4(winmat, -0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
+
+	/* Detach to rebind the right cubeface. */
 	DRW_framebuffer_bind(sldata->probe_fb);
-	DRW_draw_pass(psl->probe_background);
+	DRW_framebuffer_texture_detach(sldata->probe_rt);
+	for (int i = 0; i < 6; ++i) {
+		float viewmat[4][4], persmat[4][4];
+		float viewinv[4][4], persinv[4][4];
+
+		DRW_framebuffer_cubeface_attach(sldata->probe_fb, sldata->probe_rt, 0, i, 0);
+		DRW_framebuffer_viewport_size(sldata->probe_fb, 0, 0, PROBE_RT_SIZE, PROBE_RT_SIZE);
+
+		/* Setup custom matrices */
+		copy_m4_m4(viewmat, cubefacemat[i]);
+		mul_m4_m4m4(persmat, winmat, viewmat);
+		invert_m4_m4(persinv, persmat);
+		invert_m4_m4(viewinv, viewmat);
+
+		DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
+		DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
+		DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
+		DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
+		DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
+
+		DRW_draw_pass(psl->probe_background);
+
+		DRW_framebuffer_texture_detach(sldata->probe_rt);
+	}
+	DRW_framebuffer_texture_attach(sldata->probe_fb, sldata->probe_rt, 0, 0);
+
+	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
+	DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
+	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);
+	DRW_viewport_matrix_override_unset(DRW_MAT_VIEWINV);
+	DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
 }
 
 static void lightprobe_cell_location_get(EEVEE_LightGrid *egrid, int cell_idx, float r_pos[3])
