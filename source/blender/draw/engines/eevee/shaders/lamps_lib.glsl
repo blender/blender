@@ -187,7 +187,7 @@ void light_hair_common(
 	/* Rotate view vector onto the cross(tangent, light) plane */
 	view_vec = normalize(norm_lamp * dot(norm_view, V) + N * dot(N, V));
 
-	float occlusion = (dot(norm_view, norm_lamp) * 0.5 + 0.5);
-	float occltrans = transmission + (occlusion * (1.0 - transmission)); /* Includes transmission component */
+	occlu = (dot(norm_view, norm_lamp) * 0.5 + 0.5);
+	occlu_trans = transmission + (occlu * (1.0 - transmission)); /* Includes transmission component */
 }
 #endif
