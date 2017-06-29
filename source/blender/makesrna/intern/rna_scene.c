@@ -1620,6 +1620,14 @@ static void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 	DEG_id_tag_update(&scene->id, 0);
 }
 
+static void rna_Scene_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Scene *sc = (Scene *)ptr->id.data;
+
+	rna_Scene_glsl_update(bmain, scene, ptr);
+	WM_main_add_notifier(NC_WORLD | ND_WORLD, &sc->id);
+}
+
 static void rna_Scene_freestyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
@@ -8906,7 +8914,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene");
-	RNA_def_property_update(prop, NC_SCENE | ND_WORLD, "rna_Scene_glsl_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_WORLD, "rna_Scene_world_update");
 
 	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "cursor");
