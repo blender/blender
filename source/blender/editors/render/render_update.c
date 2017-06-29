@@ -471,10 +471,8 @@ static void texture_changed(Main *bmain, Tex *tex)
 	}
 }
 
-static void world_changed(Main *bmain, World *wo)
+static void world_changed(Main *UNUSED(bmain), World *wo)
 {
-	Material *ma;
-
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&wo->id));
 
@@ -482,10 +480,6 @@ static void world_changed(Main *bmain, World *wo)
 	wo->update_flag = 1;
 	
 	/* glsl */
-	for (ma = bmain->mat.first; ma; ma = ma->id.next)
-		if (ma->gpumaterial.first)
-			GPU_material_free(&ma->gpumaterial);
-
 	if (defmaterial.gpumaterial.first)
 		GPU_material_free(&defmaterial.gpumaterial);
 	
