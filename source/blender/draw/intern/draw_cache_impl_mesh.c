@@ -1125,7 +1125,7 @@ static bool mesh_render_data_pnors_pcenter_select_get(
 			return false;
 		}
 		BM_face_calc_center_mean(efa, r_center);
-		BM_face_calc_normal(efa, r_pnors);
+		copy_v3_v3(r_pnors, efa->no);
 		*r_selected = (BM_elem_flag_test(efa, BM_ELEM_SELECT) != 0) ? true : false;
 	}
 	else {
