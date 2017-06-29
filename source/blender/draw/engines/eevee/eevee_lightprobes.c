@@ -71,6 +71,7 @@ static struct {
 	bool world_ready_to_shade;
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_background_vert_glsl[];
 extern char datatoc_default_world_frag_glsl[];
 extern char datatoc_fullscreen_vert_glsl[];
 extern char datatoc_lightprobe_filter_glossy_frag_glsl[];
@@ -191,7 +192,7 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 		        "#define NOISE_SIZE 64\n");
 
 		e_data.probe_default_sh = DRW_shader_create(
-		        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, datatoc_default_world_frag_glsl, NULL);
+		        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
 
 		MEM_freeN(shader_str);
 
@@ -361,7 +362,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 
 		/* Fallback if shader fails or if not using nodetree. */
 		if (grp == NULL) {
-			grp = DRW_shgroup_instance_create(e_data.probe_default_sh, psl->probe_background, geom);
+			grp = DRW_shgroup_create(e_data.probe_default_sh, psl->probe_background);
 			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
 			DRW_shgroup_call_add(grp, geom, NULL);
 		}
