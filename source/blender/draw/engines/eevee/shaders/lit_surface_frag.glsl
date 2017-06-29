@@ -84,7 +84,7 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao)
 		float fade = probe_attenuation_planar(pd, worldPosition, N);
 
 		if (fade > 0.0) {
-			vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.a, cameraPos, roughness, fade);
+			vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, cameraPos, roughness, fade);
 			accumulate_light(spec, fade, spec_accum);
 		}
 	}
@@ -221,10 +221,10 @@ vec3 eevee_surface_clearcoat_lit(
 		float fade = probe_attenuation_planar(pd, worldPosition, worldNormal);
 
 		if (fade > 0.0) {
-			vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.a, cameraPos, roughness, fade);
+			vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, cameraPos, roughness, fade);
 			accumulate_light(spec, fade, spec_accum);
 
-			vec3 C_spec = probe_evaluate_planar(float(i), pd, worldPosition, C_N, V, rand.a, cameraPos, C_roughness, fade);
+			vec3 C_spec = probe_evaluate_planar(float(i), pd, worldPosition, C_N, V, rand.r, cameraPos, C_roughness, fade);
 			accumulate_light(C_spec, fade, C_spec_accum);
 		}
 	}

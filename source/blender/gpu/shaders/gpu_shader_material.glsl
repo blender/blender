@@ -2656,6 +2656,20 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
 	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
 {
+	/* rotate tangent */
+	if (anisotropic_rotation != 0.0) {
+		T = rotate_vector(T, N, anisotropic_rotation * 2.0 * M_PI);
+	}
+
+	/* calculate the tangent and bitangent */
+	vec3 Y = T;
+	vec3 X = normalize(cross(Y, N));
+
+	float aspect = sqrt(1.0 - anisotropic * 0.9);
+	float a = sqr(roughness);
+	float ax = max(0.001, a / aspect);
+	float ay = max(0.001, a * aspect);
+
 #ifdef EEVEE_ENGINE
 	vec4 diffuse, f0;
 	convert_metallic_to_specular(base_color, metallic, specular, diffuse, f0);
@@ -2663,9 +2677,28 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	/* Original value is 0.25 but this one seems to fit cycles better */
 	clearcoat *= 0.5;
 
-	vec3 surface_color = eevee_surface_clearcoat_lit(N, diffuse.rgb, f0.rgb, roughness, CN, clearcoat, clearcoat_roughness, 1.0);
+#if 0 /* Wait until temporal AA (aka. denoising) */
+	/* Distribute N in anisotropy direction. */
+	vec4 surface_color = vec4(0.0);
+	for (float i = 0.0; i < 5.0; ++i) {
+		vec4 rand = texture(utilTex, vec3((gl_FragCoord.xy + i) / LUT_SIZE, 2.0));
 
-	result = vec4(surface_color, 1.0);
+		float tmp = sqrt( rand.x / (1.0 - rand.x) );
+		float x = (ax > ay ? ax : 0.0) * tmp * rand.z;
+		float y = (ay > ax ? ay : 0.0) * tmp * rand.w;
+		vec3 Ht = normalize(vec3(x, y, 1.0));
+		N = tangent_to_world(Ht, N, Y, X);
+
+		if (dot(N, cameraVec) > 0) {
+			surface_color.rgb += eevee_surface_clearcoat_lit(N, diffuse.rgb, f0.rgb, sqrt(min(ax, ay)), CN, clearcoat, clearcoat_roughness, 1.0);
+			surface_color.a += 1.0;
+		}
+	}
+	result = vec4(surface_color.rgb / surface_color.a, 1.0);
+#else
+	result = vec4(eevee_surface_clearcoat_lit(N, diffuse.rgb, f0.rgb, sqrt(min(ax, ay)), CN, clearcoat * 0.5, clearcoat_roughness, 1.0), 1.0);
+#endif
+
 #else
 	/* ambient light */
 	// TODO: set ambient light to an appropriate value
@@ -2675,30 +2708,6 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 
 	/* set the viewing vector */
 	vec3 V = (ProjectionMatrix[3][3] == 0.0) ? -normalize(I) : vec3(0.0, 0.0, 1.0);
-
-	/* get the tangent */
-	vec3 Tangent = T;
-	if (T == vec3(0.0)) {
-		// if no tangent is set, use a default tangent
-		Tangent = vec3(1.0, 0.0, 0.0);
-		if (N.x != 0.0 || N.y != 0.0) {
-			vec3 N_xz = normalize(vec3(N.x, 0.0, N.z));
-
-			vec3 axis = normalize(cross(vec3(0.0, 0.0, 1.0), N_xz));
-			float angle = acos(dot(vec3(0.0, 0.0, 1.0), N_xz));
-
-			Tangent = normalize(rotate_vector(vec3(1.0, 0.0, 0.0), axis, angle));
-		}
-	}
-
-	/* rotate tangent */
-	if (anisotropic_rotation != 0.0) {
-		Tangent = rotate_vector(Tangent, N, anisotropic_rotation * 2.0 * M_PI);
-	}
-
-	/* calculate the tangent and bitangent */
-	vec3 Y = normalize(cross(N, Tangent));
-	vec3 X = cross(Y, N);
 
 	/* fresnel normalization parameters */
 	float F0 = fresnel_dielectric_0(eta);
@@ -2742,10 +2751,6 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 			float ss = 1.25 * (Fss * (1.0 / (NdotL + NdotV) - 0.5) + 0.5);
 
 			// specular
-			float aspect = sqrt(1.0 - anisotropic * 0.9);
-			float a = sqr(roughness);
-			float ax = max(0.001, a / aspect);
-			float ay = max(0.001, a * aspect);
 			float Ds = GTR2_aniso(NdotH, dot(H, X), dot(H, Y), ax, ay); //GTR2(NdotH, a);
 			float FH = (fresnel_dielectric_cos(LdotH, eta) - F0) * F0_norm;
 			vec3 Fs = mix(Cspec0, vec3(1.0), FH);
