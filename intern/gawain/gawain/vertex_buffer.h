@@ -71,8 +71,12 @@ GWN_INLINE void *GWN_vertbuf_raw_step(Gwn_VertBufRaw *a)
 	return (void *)data;
 	}
 
-void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf*, unsigned a_idx, Gwn_VertBufRaw *access);
+GWN_INLINE unsigned GWN_vertbuf_raw_used(Gwn_VertBufRaw *a)
+	{
+	return ((a->data - a->data_init) / a->stride);
+	}
 
+void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf*, unsigned a_idx, Gwn_VertBufRaw *access);
 
 // TODO: decide whether to keep the functions below
 // doesn't immediate mode satisfy these needs?
