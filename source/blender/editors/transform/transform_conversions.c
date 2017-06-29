@@ -5467,8 +5467,8 @@ static void set_trans_object_base_flags(TransInfo *t)
 
 			/* if parent selected, deselect */
 			while (parsel) {
-				Base *parbase = BKE_scene_layer_base_find(sl, parsel);
-				if (parbase->flag & BASE_SELECTED) {
+				if (parsel->base_flag & BASE_SELECTED) {
+					Base *parbase = BKE_scene_layer_base_find(sl, parsel);
 					if (parbase) { /* in rare cases this can fail */
 						if (TESTBASELIB_BGMODE_NEW(parbase)) {
 							break;

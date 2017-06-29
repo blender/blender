@@ -917,8 +917,11 @@ static void outliner_item_activate(
 
 				for (gob = gr->gobject.first; gob; gob = gob->next) {
 					Base *base = BKE_scene_layer_base_find(sl, gob->ob);
-					if ((base->flag & BASE_SELECTED) == 0) {
-						ED_object_base_select(base, BA_SELECT);
+					/* Object may not be in this scene */
+					if (base != NULL) {
+						if ((base->flag & BASE_SELECTED) == 0) {
+							ED_object_base_select(base, BA_SELECT);
+						}
 					}
 				}
 			}

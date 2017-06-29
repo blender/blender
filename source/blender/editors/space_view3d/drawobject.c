@@ -9195,8 +9195,7 @@ afterdraw:
 
 		/* help lines and so */
 		if (ob != scene->obedit && ob->parent) {
-			Base *base_parent = BKE_scene_layer_base_find(sl, ob->parent);
-			if ((base_parent->flag & BASE_VISIBLED) != 0) {
+			if ((ob->parent->base_flag & BASE_VISIBLED) != 0) {
 				setlinestyle(3);
 				immBegin(GWN_PRIM_LINES, 2);
 				immVertex3fv(pos, ob->obmat[3]);
