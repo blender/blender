@@ -266,16 +266,16 @@ vec3 F_area(vec3 f0, vec2 lut)
 	vec2 fac = normalize(lut.xy);
 
 	/* Unreal specular matching : if specular color is below 2% intensity,
-	 * (using green channel for intensity) treat as shadowning */
-	return saturate(50.0 * f0.g) * fac.y + fac.x * f0;
+	 * treat as shadowning */
+	return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * fac.y + fac.x * f0;
 }
 
 /* Fresnel approximation for LTC area lights (not MRP) */
 vec3 F_ibl(vec3 f0, vec2 lut)
 {
 	/* Unreal specular matching : if specular color is below 2% intensity,
-	 * (using green channel for intensity) treat as shadowning */
-	return saturate(50.0 * f0.g) * lut.y + lut.x * f0;
+	 * treat as shadowning */
+	return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * lut.y + lut.x * f0;
 }
 
 /* GGX */
