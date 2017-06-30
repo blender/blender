@@ -2573,11 +2573,39 @@ vec3 rotate_vector(vec3 p, vec3 n, float theta) {
 	       );
 }
 
-void convert_metallic_to_specular(vec4 basecol, float metallic, float specular_fac, out vec4 diffuse, out vec4 f0)
+void prepare_tangent(
+        float anisotropic, float anisotropic_rotation, float roughness, vec3 N, vec3 T,
+        out vec3 X, out vec3 Y, out float ax, out float ay)
 {
-	vec4 dielectric = vec4(0.034) * specular_fac * 2.0;
-	diffuse = mix(basecol, vec4(0.0), metallic);
+	/* rotate tangent */
+	if (anisotropic_rotation != 0.0) {
+		T = rotate_vector(T, N, anisotropic_rotation * 2.0 * M_PI);
+	}
+
+	Y = normalize(cross(T, N));
+
+	float aspect = sqrt(1.0 - anisotropic * 0.9);
+	float a = sqr(roughness);
+	ax = max(0.001, a / aspect);
+	ay = max(0.001, a * aspect);
+}
+
+void convert_metallic_to_specular(vec3 basecol, float metallic, float specular_fac, out vec3 diffuse, out vec3 f0)
+{
+	vec3 dielectric = vec3(0.034) * specular_fac * 2.0;
+	diffuse = mix(basecol, vec3(0.0), metallic);
 	f0 = mix(dielectric, basecol, metallic);
+}
+
+void convert_metallic_to_specular_tinted(
+        vec3 basecol, float metallic, float specular_fac, float specular_tint,
+        out vec3 diffuse, out vec3 f0)
+{
+	vec3 dielectric = vec3(0.034) * specular_fac * 2.0;
+	float lum = dot(basecol, vec3(0.3, 0.6, 0.1)); /* luminance approx. */
+	vec3 tint = lum > 0 ? basecol / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
+	f0 = mix(dielectric * mix(vec3(1.0), tint, specular_tint), basecol, metallic);
+	diffuse = mix(basecol, vec3(0.0), metallic);
 }
 
 /*********** NEW SHADER NODES ***************/
@@ -2656,50 +2684,10 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
 	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
 {
-	/* rotate tangent */
-	if (anisotropic_rotation != 0.0) {
-		T = rotate_vector(T, N, anisotropic_rotation * 2.0 * M_PI);
-	}
+	vec3 X, Y;
+	float ax, ay;
+	prepare_tangent(anisotropic, anisotropic_rotation, roughness, N, T, X, Y, ax, ay);
 
-	/* calculate the tangent and bitangent */
-	vec3 Y = T;
-	vec3 X = normalize(cross(Y, N));
-
-	float aspect = sqrt(1.0 - anisotropic * 0.9);
-	float a = sqr(roughness);
-	float ax = max(0.001, a / aspect);
-	float ay = max(0.001, a * aspect);
-
-#ifdef EEVEE_ENGINE
-	vec4 diffuse, f0;
-	convert_metallic_to_specular(base_color, metallic, specular, diffuse, f0);
-
-	/* Original value is 0.25 but this one seems to fit cycles better */
-	clearcoat *= 0.5;
-
-#if 0 /* Wait until temporal AA (aka. denoising) */
-	/* Distribute N in anisotropy direction. */
-	vec4 surface_color = vec4(0.0);
-	for (float i = 0.0; i < 5.0; ++i) {
-		vec4 rand = texture(utilTex, vec3((gl_FragCoord.xy + i) / LUT_SIZE, 2.0));
-
-		float tmp = sqrt( rand.x / (1.0 - rand.x) );
-		float x = (ax > ay ? ax : 0.0) * tmp * rand.z;
-		float y = (ay > ax ? ay : 0.0) * tmp * rand.w;
-		vec3 Ht = normalize(vec3(x, y, 1.0));
-		N = tangent_to_world(Ht, N, Y, X);
-
-		if (dot(N, cameraVec) > 0) {
-			surface_color.rgb += eevee_surface_clearcoat_lit(N, diffuse.rgb, f0.rgb, sqrt(min(ax, ay)), CN, clearcoat, clearcoat_roughness, 1.0);
-			surface_color.a += 1.0;
-		}
-	}
-	result = vec4(surface_color.rgb / surface_color.a, 1.0);
-#else
-	result = vec4(eevee_surface_clearcoat_lit(N, diffuse.rgb, f0.rgb, sqrt(min(ax, ay)), CN, clearcoat * 0.5, clearcoat_roughness, 1.0), 1.0);
-#endif
-
-#else
 	/* ambient light */
 	// TODO: set ambient light to an appropriate value
 	vec3 L = vec3(mix(0.1, 0.03, metallic)) * base_color.rgb;
@@ -2786,6 +2774,64 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	}
 
 	result = vec4(L, 1.0);
+}
+
+void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
+	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
+	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
+{
+#ifdef EEVEE_ENGINE
+	vec3 diffuse, f0;
+	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
+
+	result = vec4(eevee_surface_lit(N, diffuse, f0, roughness, 1.0), 1.0);
+#else
+	node_bsdf_principled(base_color, subsurface, subsurface_radius, subsurface_color, metallic, specular,
+		specular_tint, roughness, anisotropic, anisotropic_rotation, sheen, sheen_tint, clearcoat,
+		clearcoat_roughness, ior, transmission, transmission_roughness, N, CN, T, I, result);
+#endif
+}
+
+void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
+	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
+	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
+{
+#ifdef EEVEE_ENGINE
+	vec3 diffuse, f0;
+	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
+
+	clearcoat *= 0.25;
+#if 0 /* Wait until temporal AA (aka. denoising) */
+
+	vec3 X, Y;
+	float ax, ay;
+	prepare_tangent(anisotropic, anisotropic_rotation, roughness, N, T, X, Y, ax, ay);
+
+	/* Distribute N in anisotropy direction. */
+	vec4 surface_color = vec4(0.0);
+	for (float i = 0.0; i < 5.0; ++i) {
+		vec4 rand = texture(utilTex, vec3((gl_FragCoord.xy + i) / LUT_SIZE, 2.0));
+
+		float tmp = sqrt( rand.x / (1.0 - rand.x) );
+		float x = (ax > ay ? ax : 0.0) * tmp * rand.z;
+		float y = (ay > ax ? ay : 0.0) * tmp * rand.w;
+		vec3 Ht = normalize(vec3(x, y, 1.0));
+		N = tangent_to_world(Ht, N, Y, X);
+
+		if (dot(N, cameraVec) > 0) {
+			surface_color.rgb += eevee_surface_clearcoat_lit(N, diffuse, f0, sqrt(min(ax, ay)), CN, clearcoat, clearcoat_roughness, 1.0);
+			surface_color.a += 1.0;
+		}
+	}
+	result = vec4(surface_color.rgb / surface_color.a, 1.0);
+#else
+	result = vec4(eevee_surface_clearcoat_lit(N, diffuse, f0, roughness, CN, clearcoat, clearcoat_roughness, 1.0), 1.0);
+#endif
+
+#else
+	node_bsdf_principled(base_color, subsurface, subsurface_radius, subsurface_color, metallic, specular,
+		specular_tint, roughness, anisotropic, anisotropic_rotation, sheen, sheen_tint, clearcoat,
+		clearcoat_roughness, ior, transmission, transmission_roughness, N, CN, T, I, result);
 #endif
 }
 
@@ -3885,10 +3931,10 @@ void node_eevee_metallic(
         float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
         float occlusion, out vec4 result)
 {
-	vec4 diffuse, f0;
-	convert_metallic_to_specular(basecol, metallic, specular, diffuse, f0);
+	vec3 diffuse, f0;
+	convert_metallic_to_specular(basecol.rgb, metallic, specular, diffuse, f0);
 
-	result = vec4(eevee_surface_lit(normal, diffuse.rgb, f0.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
+	result = vec4(eevee_surface_lit(normal, diffuse, f0, roughness, occlusion) + emissive.rgb, 1.0 - transp);
 }
 
 void node_eevee_specular(
