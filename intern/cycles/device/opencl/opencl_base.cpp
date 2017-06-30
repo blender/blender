@@ -1226,7 +1226,7 @@ void OpenCLDeviceBase::store_cached_kernel(
 }
 
 string OpenCLDeviceBase::build_options_for_base_program(
-        const DeviceRequestedFeatures& /*requested_features*/)
+        const DeviceRequestedFeatures& requested_features)
 {
 	/* TODO(sergey): By default we compile all features, meaning
 	 * mega kernel is not getting feature-based optimizations.
@@ -1234,6 +1234,14 @@ string OpenCLDeviceBase::build_options_for_base_program(
 	 * Ideally we need always compile kernel with as less features
 	 * enabled as possible to keep performance at it's max.
 	 */
+
+	/* For now disable baking when not in use as this has major
+	 * impact on kernel build times.
+	 */
+	if(!requested_features.use_baking) {
+		return "-D__NO_BAKING__";
+	}
+
 	return "";
 }
 
