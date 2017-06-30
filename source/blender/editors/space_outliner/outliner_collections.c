@@ -216,6 +216,7 @@ static int collection_unlink_poll(bContext *C)
 static int collection_unlink_exec(bContext *C, wmOperator *op)
 {
 	LayerCollection *lc = outliner_collection_active(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
 
 	if (lc == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Active element is not a collection");
@@ -224,6 +225,10 @@ static int collection_unlink_exec(bContext *C, wmOperator *op)
 
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	BKE_collection_unlink(sl, lc);
+
+	if (soops) {
+		outliner_cleanup_tree(soops);
+	}
 
 	DEG_relations_tag_update(CTX_data_main(C));
 
