@@ -35,6 +35,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_bits.h"
 #include "BLI_string.h"
+#include "BLI_alloca.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -1211,59 +1212,6 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 	return true;
 }
 
-static void mesh_render_data_looptri_uvs_get(
-        MeshRenderData *rdata, const int tri_idx, const int uv_layer,
-        float *(*r_vert_uvs)[3])
-{
-	if (rdata->edit_bmesh) {
-		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		(*r_vert_uvs)[0] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->cd.offset.uv[uv_layer]))->uv;
-		(*r_vert_uvs)[1] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->cd.offset.uv[uv_layer]))->uv;
-		(*r_vert_uvs)[2] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->cd.offset.uv[uv_layer]))->uv;
-	}
-	else {
-		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
-		(*r_vert_uvs)[0] = rdata->cd.layers.uv[uv_layer][mlt->tri[0]].uv;
-		(*r_vert_uvs)[1] = rdata->cd.layers.uv[uv_layer][mlt->tri[1]].uv;
-		(*r_vert_uvs)[2] = rdata->cd.layers.uv[uv_layer][mlt->tri[2]].uv;
-	}
-}
-
-static void mesh_render_data_looptri_cols_get(
-        MeshRenderData *rdata, const int tri_idx, const int vcol_layer,
-        unsigned char *(*r_vert_cols)[3])
-{
-	if (rdata->edit_bmesh) {
-		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		(*r_vert_cols)[0] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[0], rdata->cd.offset.vcol[vcol_layer]))->r;
-		(*r_vert_cols)[1] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[1], rdata->cd.offset.vcol[vcol_layer]))->r;
-		(*r_vert_cols)[2] = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[2], rdata->cd.offset.vcol[vcol_layer]))->r;
-	}
-	else {
-		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
-		(*r_vert_cols)[0] = &rdata->cd.layers.vcol[vcol_layer][mlt->tri[0]].r;
-		(*r_vert_cols)[1] = &rdata->cd.layers.vcol[vcol_layer][mlt->tri[1]].r;
-		(*r_vert_cols)[2] = &rdata->cd.layers.vcol[vcol_layer][mlt->tri[2]].r;
-	}
-}
-
-static void mesh_render_data_looptri_tans_get(
-        MeshRenderData *rdata, const int tri_idx, const int tangent_layer,
-        float *(*r_vert_tans)[3])
-{
-	if (rdata->edit_bmesh) {
-		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[tri_idx];
-		(*r_vert_tans)[0] = rdata->cd.layers.tangent[tangent_layer][BM_elem_index_get(bm_looptri[0])];
-		(*r_vert_tans)[1] = rdata->cd.layers.tangent[tangent_layer][BM_elem_index_get(bm_looptri[1])];
-		(*r_vert_tans)[2] = rdata->cd.layers.tangent[tangent_layer][BM_elem_index_get(bm_looptri[2])];
-	}
-	else {
-		const MLoopTri *mlt = &rdata->mlooptri[tri_idx];
-		(*r_vert_tans)[0] = rdata->cd.layers.tangent[tangent_layer][mlt->tri[0]];
-		(*r_vert_tans)[1] = rdata->cd.layers.tangent[tangent_layer][mlt->tri[1]];
-		(*r_vert_tans)[2] = rdata->cd.layers.tangent[tangent_layer][mlt->tri[2]];
-	}
-}
 
 /* First 2 bytes are bit flags
  * 3rd is for sharp edges
@@ -1731,10 +1679,12 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 #define USE_COMP_MESH_DATA
 
 	if (cache->shaded_triangles_data == NULL) {
-		unsigned int vidx = 0;
-		const char *attrib_name;
+		const uint uv_len = rdata->cd.layers.uv_len;
+		const uint tangent_len = rdata->cd.layers.tangent_len;
+		const uint vcol_len = rdata->cd.layers.vcol_len;
+		const uint layers_combined_len = uv_len + vcol_len + tangent_len;
 
-		if (rdata->cd.layers.uv_len + rdata->cd.layers.tangent_len + rdata->cd.layers.vcol_len == 0) {
+		if (layers_combined_len == 0) {
 			return NULL;
 		}
 
@@ -1743,13 +1693,19 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 		GWN_vertformat_clear(format);
 
 		/* initialize vertex format */
-		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->cd.layers.uv_len, "UV attrib format");
-		unsigned int *vcol_id = MEM_mallocN(sizeof(*vcol_id) * rdata->cd.layers.vcol_len, "Vcol attrib format");
-		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->cd.layers.tangent_len, "Tangent attrib format");
+		uint *layers_combined_id = BLI_array_alloca(layers_combined_id, layers_combined_len);
+		uint *uv_id = layers_combined_id;
+		uint *tangent_id = uv_id + uv_len;
+		uint *vcol_id = tangent_id + tangent_len;
 
-		for (int i = 0; i < rdata->cd.layers.uv_len; i++) {
+		/* Not needed, just for sanity. */
+		if (uv_len == 0) { uv_id = NULL; }
+		if (tangent_len == 0) { tangent_id = NULL; }
+		if (vcol_len == 0) { vcol_id = NULL; }
+
+		for (uint i = 0; i < uv_len; i++) {
 			/* UV */
-			attrib_name = mesh_render_data_uv_layer_uuid_get(rdata, i);
+			const char *attrib_name = mesh_render_data_uv_layer_uuid_get(rdata, i);
 #if defined(USE_COMP_MESH_DATA) && 0 /* these are clamped. Maybe use them as an option in the future */
 			uv_id[i] = GWN_vertformat_attr_add(format, attrib_name, GWN_COMP_I16, 2, GWN_FETCH_INT_TO_FLOAT_UNIT);
 #else
@@ -1765,8 +1721,8 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			}
 		}
 
-		for (int i = 0; i < rdata->cd.layers.tangent_len; i++) {
-			attrib_name = mesh_render_data_tangent_layer_uuid_get(rdata, i);
+		for (uint i = 0; i < tangent_len; i++) {
+			const char *attrib_name = mesh_render_data_tangent_layer_uuid_get(rdata, i);
 			/* WATCH IT : only specifying 3 component instead of 4 (4th is sign).
 			 * That may cause some problem but I could not make it to fail (fclem) */
 #ifdef USE_COMP_MESH_DATA
@@ -1781,8 +1737,8 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			}
 		}
 
-		for (int i = 0; i < rdata->cd.layers.vcol_len; i++) {
-			attrib_name = mesh_render_data_vcol_layer_uuid_get(rdata, i);
+		for (uint i = 0; i < vcol_len; i++) {
+			const char *attrib_name = mesh_render_data_vcol_layer_uuid_get(rdata, i);
 			vcol_id[i] = GWN_vertformat_attr_add(format, attrib_name, GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 			/* Auto layer */
@@ -1796,7 +1752,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			}
 		}
 
-		const int tri_len = mesh_render_data_looptri_len_get(rdata);
+		const uint tri_len = mesh_render_data_looptri_len_get(rdata);
 
 		Gwn_VertBuf *vbo = cache->shaded_triangles_data = GWN_vertbuf_create_with_format(format);
 
@@ -1804,70 +1760,110 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 		int vbo_len_used = 0;
 		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
+		Gwn_VertBufRaw *layers_combined_step = BLI_array_alloca(layers_combined_step, layers_combined_len);
+
+		Gwn_VertBufRaw *uv_step      = layers_combined_step;
+		Gwn_VertBufRaw *tangent_step = uv_step + uv_len;
+		Gwn_VertBufRaw *vcol_step    = tangent_step + tangent_len;
+
+		/* Not needed, just for sanity. */
+		if (uv_len == 0) { uv_step = NULL; }
+		if (tangent_len == 0) { tangent_step = NULL; }
+		if (vcol_len == 0) { vcol_step = NULL; }
+
+		for (uint i = 0; i < uv_len; i++) {
+			GWN_vertbuf_attr_get_raw_data(vbo, uv_id[i], &uv_step[i]);
+		}
+		for (uint i = 0; i < tangent_len; i++) {
+			GWN_vertbuf_attr_get_raw_data(vbo, tangent_id[i], &tangent_step[i]);
+		}
+		for (uint i = 0; i < vcol_len; i++) {
+			GWN_vertbuf_attr_get_raw_data(vbo, vcol_id[i], &vcol_step[i]);
+		}
+
 		/* TODO deduplicate all verts and make use of Gwn_IndexBuf in
 		 * mesh_batch_cache_get_triangles_in_order_split_by_material. */
-		for (int i = 0; i < tri_len; i++) {
-			float *tri_uvs[3], *tri_tans[3];
-			unsigned char *tri_cols[3];
-
-			if (rdata->edit_bmesh == NULL ||
-			    BM_elem_flag_test((rdata->edit_bmesh->looptris[i])[0]->f, BM_ELEM_HIDDEN) == 0)
-			{
+		if (rdata->edit_bmesh) {
+			for (uint i = 0; i < tri_len; i++) {
+				const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
+				if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
+					continue;
+				}
 				/* UVs */
-				for (int j = 0; j < rdata->cd.layers.uv_len; j++) {
-					/* UVs */
-					mesh_render_data_looptri_uvs_get(rdata, i, j, &tri_uvs);
-#if defined(USE_COMP_MESH_DATA) && 0 /* these are clamped. Maybe use them as an option in the future */
-					short s_uvs[3][2];
-					normal_float_to_short_v2(s_uvs[0], tri_uvs[0]);
-					normal_float_to_short_v2(s_uvs[1], tri_uvs[1]);
-					normal_float_to_short_v2(s_uvs[2], tri_uvs[2]);
-#else
-					float **s_uvs = tri_uvs;
-#endif
-					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 0, s_uvs[0]);
-					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 1, s_uvs[1]);
-					GWN_vertbuf_attr_set(vbo, uv_id[j], vidx + 2, s_uvs[2]);
+				for (uint j = 0; j < uv_len; j++) {
+					const uint layer_offset = rdata->cd.offset.uv[j];
+					for (uint t = 0; t < 3; t++) {
+						const float *elem = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(bm_looptri[t], layer_offset))->uv;
+						copy_v2_v2(GWN_vertbuf_raw_step(&uv_step[j]), elem);
+					}
 				}
-
-
 				/* TANGENTs */
-				for (int j = 0; j < rdata->cd.layers.tangent_len; j++) {
-					mesh_render_data_looptri_tans_get(rdata, i, j, &tri_tans);
-#ifdef USE_COMP_MESH_DATA
-					/* Tangents need more precision than 10_10_10 */
-					short s_tan[3][3];
-					normal_float_to_short_v3(s_tan[0], tri_tans[0]);
-					normal_float_to_short_v3(s_tan[1], tri_tans[1]);
-					normal_float_to_short_v3(s_tan[2], tri_tans[2]);
-#else
-					float **s_tan = tri_tans;
-#endif
-					GWN_vertbuf_attr_set(vbo, tangent_id[j], vidx + 0, s_tan[0]);
-					GWN_vertbuf_attr_set(vbo, tangent_id[j], vidx + 1, s_tan[1]);
-					GWN_vertbuf_attr_set(vbo, tangent_id[j], vidx + 2, s_tan[2]);
+				for (uint j = 0; j < tangent_len; j++) {
+					float (*layer_data)[4] = rdata->cd.layers.tangent[j];
+					for (uint t = 0; t < 3; t++) {
+						const float *elem = layer_data[BM_elem_index_get(bm_looptri[t])];
+						normal_float_to_short_v3(GWN_vertbuf_raw_step(&tangent_step[j]), elem);
+					}
 				}
-
 				/* VCOLs */
-				for (int j = 0; j < rdata->cd.layers.vcol_len; j++) {
-					mesh_render_data_looptri_cols_get(rdata, i, j, &tri_cols);
-					GWN_vertbuf_attr_set(vbo, vcol_id[j], vidx + 0, tri_cols[0]);
-					GWN_vertbuf_attr_set(vbo, vcol_id[j], vidx + 1, tri_cols[1]);
-					GWN_vertbuf_attr_set(vbo, vcol_id[j], vidx + 2, tri_cols[2]);
+				for (uint j = 0; j < vcol_len; j++) {
+					const uint layer_offset = rdata->cd.offset.vcol[j];
+					for (uint t = 0; t < 3; t++) {
+						const uchar *elem = &((MLoopCol *)BM_ELEM_CD_GET_VOID_P(bm_looptri[t], layer_offset))->r;
+						copy_v3_v3_uchar(GWN_vertbuf_raw_step(&vcol_step[j]), elem);
+					}
 				}
-
-				vidx += 3;
 			}
 		}
-		vbo_len_used = vidx;
+		else {
+			for (uint i = 0; i < tri_len; i++) {
+				const MLoopTri *mlt = &rdata->mlooptri[i];
+
+				/* UVs */
+				for (uint j = 0; j < uv_len; j++) {
+					const MLoopUV *layer_data = rdata->cd.layers.uv[j];
+					for (uint t = 0; t < 3; t++) {
+						const float *elem = layer_data[mlt->tri[t]].uv;
+						copy_v2_v2(GWN_vertbuf_raw_step(&uv_step[j]), elem);
+					}
+				}
+				/* TANGENTs */
+				for (uint j = 0; j < tangent_len; j++) {
+					float (*layer_data)[4] = rdata->cd.layers.tangent[j];
+					for (uint t = 0; t < 3; t++) {
+						const float *elem = layer_data[mlt->tri[t]];
+#ifdef USE_COMP_MESH_DATA
+						normal_float_to_short_v3(GWN_vertbuf_raw_step(&tangent_step[j]), elem);
+#else
+						copy_v3_v3(GWN_vertbuf_raw_step(&tangent_step[j]), elem);
+#endif
+					}
+				}
+				/* VCOLs */
+				for (uint j = 0; j < vcol_len; j++) {
+					const MLoopCol *layer_data = rdata->cd.layers.vcol[j];
+					for (uint t = 0; t < 3; t++) {
+						const uchar *elem = &layer_data[mlt->tri[t]].r;
+						copy_v3_v3_uchar(GWN_vertbuf_raw_step(&vcol_step[j]), elem);
+					}
+				}
+			}
+		}
+
+		vbo_len_used = GWN_vertbuf_raw_used(&layers_combined_step[0]);
+
+#ifndef NDEBUG
+		/* Check all layers are write aligned. */
+		if (layers_combined_len > 1) {
+			for (uint i = 1; i < layers_combined_len; i++) {
+				BLI_assert(vbo_len_used == GWN_vertbuf_raw_used(&layers_combined_step[i]));
+			}
+		}
+#endif
 
 		if (vbo_len_capacity != vbo_len_used) {
 			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
-
-		MEM_freeN(uv_id);
-		MEM_freeN(vcol_id);
-		MEM_freeN(tangent_id);
 	}
 
 #undef USE_COMP_MESH_DATA
