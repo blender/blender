@@ -4067,13 +4067,15 @@ static void initTrackball(TransInfo *t)
 static void applyTrackballValue(TransInfo *t, const float axis1[3], const float axis2[3], float angles[2])
 {
 	TransData *td = t->data;
-	float mat[3][3], smat[3][3], totmat[3][3];
+	float mat[3][3];
+	float axis[3];
+	float angle;
 	int i;
 
-	axis_angle_normalized_to_mat3(smat, axis1, angles[0]);
-	axis_angle_normalized_to_mat3(totmat, axis2, angles[1]);
-
-	mul_m3_m3m3(mat, smat, totmat);
+	mul_v3_v3fl(axis, axis1, angles[0]);
+	madd_v3_v3fl(axis, axis2, angles[1]);
+	angle = normalize_v3(axis);
+	axis_angle_normalized_to_mat3(mat, axis, angle);
 
 	for (i = 0; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -4083,10 +4085,7 @@ static void applyTrackballValue(TransInfo *t, const float axis1[3], const float 
 			continue;
 
 		if (t->flag & T_PROP_EDIT) {
-			axis_angle_normalized_to_mat3(smat, axis1, td->factor * angles[0]);
-			axis_angle_normalized_to_mat3(totmat, axis2, td->factor * angles[1]);
-
-			mul_m3_m3m3(mat, smat, totmat);
+			axis_angle_normalized_to_mat3(mat, axis, td->factor * angle);
 		}
 
 		ElementRotation(t, td, mat, t->around);
