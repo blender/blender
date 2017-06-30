@@ -257,7 +257,7 @@ vec3 F_schlick(vec3 f0, float cos_theta)
 
 	/* Unreal specular matching : if specular color is below 2% intensity,
 	 * (using green channel for intensity) treat as shadowning */
-	return saturate(50.0 * f0.g) * fac + (1.0 - fac) * f0;
+	return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * fac + (1.0 - fac) * f0;
 }
 
 /* Fresnel approximation for LTC area lights (not MRP) */
