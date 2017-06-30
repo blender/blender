@@ -1080,6 +1080,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		PointerRNA pptr, propptr, *ptr = (PointerRNA *)idv;
 		PropertyRNA *prop, *iterprop;
 		PropertyType proptype;
+
+		/* Don't display arrays larger, weak but index is stored as a short,
+		 * also the outliner isn't intended for editing such large data-sets. */
+		BLI_STATIC_ASSERT(sizeof(te->index) == 2, "Index is no longer short!");
+		const int tot_limit = SHRT_MAX;
+
 		int a, tot;
 
 		/* we do lazy build, for speed and to avoid infinite recusion */
@@ -1101,6 +1107,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 
 			iterprop = RNA_struct_iterator_property(ptr->type);
 			tot = RNA_property_collection_length(ptr, iterprop);
+			CLAMP_MAX(tot, tot_limit);
 
 			/* auto open these cases */
 			if (!parent || (RNA_property_type(parent->directdata)) == PROP_POINTER)
@@ -1147,6 +1154,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			}
 			else if (proptype == PROP_COLLECTION) {
 				tot = RNA_property_collection_length(ptr, prop);
+				CLAMP_MAX(tot, tot_limit);
 
 				if (TSELEM_OPEN(tselem, soops)) {
 					for (a = 0; a < tot; a++) {
@@ -1159,6 +1167,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			}
 			else if (ELEM(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
 				tot = RNA_property_array_length(ptr, prop);
+				CLAMP_MAX(tot, tot_limit);
 
 				if (TSELEM_OPEN(tselem, soops)) {
 					for (a = 0; a < tot; a++)
