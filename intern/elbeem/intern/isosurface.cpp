@@ -20,6 +20,10 @@
 #include "ieeefp.h"
 #endif
 
+#if  __cplusplus < 201103L
+#define isfinite finite
+#endif
+
 // just use default rounding for platforms where its not available
 #ifndef round
 #define round(x) (x)
