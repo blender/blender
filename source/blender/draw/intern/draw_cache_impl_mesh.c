@@ -305,9 +305,6 @@ static void mesh_cd_calc_used_gpu_layers(
 						}
 						if (layer != -1) {
 							cd_lused[CD_TANGENT] |= (1 << layer);
-
-							/* TODO(campbell): investigate why this is needed T51919. */
-							cd_lused[CD_MLOOPUV] |= (1 << layer);
 						}
 						break;
 					}
@@ -1737,7 +1734,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 		unsigned int vidx = 0;
 		const char *attrib_name;
 
-		if (rdata->cd.layers.uv_len + rdata->cd.layers.vcol_len == 0) {
+		if (rdata->cd.layers.uv_len + rdata->cd.layers.tangent_len + rdata->cd.layers.vcol_len == 0) {
 			return NULL;
 		}
 
@@ -1748,7 +1745,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 		/* initialize vertex format */
 		unsigned int *uv_id = MEM_mallocN(sizeof(*uv_id) * rdata->cd.layers.uv_len, "UV attrib format");
 		unsigned int *vcol_id = MEM_mallocN(sizeof(*vcol_id) * rdata->cd.layers.vcol_len, "Vcol attrib format");
-		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->cd.layers.uv_len, "Tangent attrib format");
+		unsigned int *tangent_id = MEM_mallocN(sizeof(*tangent_id) * rdata->cd.layers.tangent_len, "Tangent attrib format");
 
 		for (int i = 0; i < rdata->cd.layers.uv_len; i++) {
 			/* UV */
