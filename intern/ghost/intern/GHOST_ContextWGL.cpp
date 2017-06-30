@@ -914,29 +914,6 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 	reportContextString("Version",  m_dummyVersion,  version);
 #endif
 
-	if ((strcmp(vendor, "Microsoft Corporation") == 0 ||
-	     strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[2] == '1')
-	{
-		MessageBox(m_hWnd, "Your system does not use 3D hardware acceleration.\n"
-		                   "Blender requires a graphics driver with OpenGL 3.3 support.\n\n"
-		                   "This may be caused by:\n"
-		                   "* A missing or faulty graphics driver installation.\n"
-		                   "  Blender needs a graphics card driver to work correctly.\n"
-		                   "* Accessing Blender through a remote connection.\n"
-		                   "* Using Blender through a virtual machine.\n\n"
-		                   "The program will now close.",
-		           "Blender - Can't detect 3D hardware accelerated Driver!",
-		           MB_OK | MB_ICONERROR);
-		exit(0);
-	}
-	else if (version[0] < '3' || (version[0] == '3' && version[2] < '3')) {
-		MessageBox(m_hWnd, "Blender requires a graphics driver with OpenGL 3.3 support.\n\n"
-		                   "The program will now close.",
-		           "Blender - Unsupported Graphics Driver!",
-		           MB_OK | MB_ICONERROR);
-		exit(0);
-	}
-
 	return GHOST_kSuccess;
 }
 
@@ -949,4 +926,98 @@ GHOST_TSuccess GHOST_ContextWGL::releaseNativeHandles()
 	m_hDC  = NULL;
 
 	return success;
+}
+
+/**
+ * For any given HDC you may call SetPixelFormat once
+ *
+ * So we better try to get the correct OpenGL version in a new window altogether, in case it fails.
+ * (see https://msdn.microsoft.com/en-us/library/windows/desktop/dd369049(v=vs.85).aspx)
+ */
+static bool TryOpenGLVersion(
+        HWND hwnd,
+        bool wantStereoVisual,
+        bool wantAlphaBackground,
+        GHOST_TUns16 wantNumOfAASamples,
+        int contextProfileMask,
+        bool debugContext,
+        int major, int minor)
+{
+	HWND dummyHWND = clone_window(hwnd, NULL);
+	if (dummyHWND == NULL) {
+		return false;
+	}
+
+	HDC dummyHDC = GetDC(dummyHWND);
+	if (dummyHDC == NULL) {
+		return false;
+	}
+
+	GHOST_ContextWGL * context = new GHOST_ContextWGL(
+	        wantStereoVisual,
+	        wantAlphaBackground,
+	        wantNumOfAASamples,
+	        dummyHWND,
+	        dummyHDC,
+	        contextProfileMask,
+	        major, minor,
+	        (debugContext ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+	        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+	bool result = context->initializeDrawingContext();
+	delete context;
+
+	ReleaseDC(dummyHWND, dummyHDC);
+	DestroyWindow(dummyHWND);
+
+	return result;
+}
+
+GHOST_TSuccess GHOST_ContextWGL::getMaximumSupportedOpenGLVersion(
+        HWND hwnd,
+        bool wantStereoVisual,
+        bool wantAlphaBackground,
+        GHOST_TUns16 wantNumOfAASamples,
+        int contextProfileMask,
+        bool debugContext,
+        GHOST_TUns8 *r_major_version,
+        GHOST_TUns8 *r_minor_version)
+{
+	/* - AMD and Intel give us exactly this version
+	 * - NVIDIA gives at least this version <-- desired behavior
+	 * So we ask for 4.5, 4.4 ... 3.3 in descending order to get the best version on the user's system. */
+	for (int minor = 5; minor >= 0; --minor) {
+		if (TryOpenGLVersion(
+		            hwnd,
+		            wantStereoVisual,
+		            wantAlphaBackground,
+		            wantNumOfAASamples,
+		            contextProfileMask,
+		            debugContext,
+		            4, minor))
+		{
+			*r_major_version = 4;
+			*r_minor_version = minor;
+			return GHOST_kSuccess;
+		}
+	}
+
+	/* Fallback to OpenGL 3.3 */
+	if (TryOpenGLVersion(
+	        hwnd,
+	        wantStereoVisual,
+	        wantAlphaBackground,
+	        wantNumOfAASamples,
+	        contextProfileMask,
+	        debugContext,
+	        3, 3))
+	{
+		*r_major_version = 3;
+		*r_minor_version = 3;
+		return GHOST_kSuccess;
+	}
+
+	*r_major_version = 0;
+	*r_minor_version = 0;
+	return GHOST_kFailure;
 }
