@@ -15,19 +15,18 @@
 #include "particletracer.h"
 #include <algorithm>
 #include <stdio.h>
+#include <cmath>
 
 #ifdef sun
 #include "ieeefp.h"
-#endif
-
-#if  __cplusplus < 201103L
-#define isfinite finite
 #endif
 
 // just use default rounding for platforms where its not available
 #ifndef round
 #define round(x) (x)
 #endif
+
+using std::isfinite;
 
 /******************************************************************************
  * Constructor
