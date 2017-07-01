@@ -78,7 +78,6 @@ typedef struct GrabInteraction {
 	} output;
 } GrabInteraction;
 
-#define DIAL_WIDTH       1.0f
 #define DIAL_RESOLUTION 32
 
 /* -------------------------------------------------------------------- */
@@ -222,8 +221,6 @@ static void manipulator_grab_invoke(
 /** \name Grab Manipulator API
  *
  * \{ */
-
-#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_grab_draw)
 
 static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
 {

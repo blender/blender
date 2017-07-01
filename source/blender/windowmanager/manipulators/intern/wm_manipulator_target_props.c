@@ -45,9 +45,6 @@
 #include "wm_manipulator_wmapi.h"
 #include "wm_manipulator_intern.h"
 
-/* factor for precision tweaking */
-#define MANIPULATOR_PRECISION_FAC 0.05f
-
 /* -------------------------------------------------------------------- */
 
 /** \name Property Definition

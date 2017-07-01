@@ -432,8 +432,6 @@ static void manipulator_dial_invoke(
  *
  * \{ */
 
-#define ASSERT_TYPE_CHECK(mpr) BLI_assert(mpr->type->draw == manipulator_dial_draw)
-
 static void MANIPULATOR_WT_dial_3d(wmManipulatorType *wt)
 {
 	/* identifiers */

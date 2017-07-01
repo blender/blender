@@ -56,9 +56,6 @@
 
 #include "../blenlib/BLI_sys_types.h" // for intptr_t support
 
-/* Allow includinsg DNA files for specially guarded namespaces */
-#define DNA_NAMESPACE
-
 #define SDNA_MAX_FILENAME_LENGTH 255
 
 
