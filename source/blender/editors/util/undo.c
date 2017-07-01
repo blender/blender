@@ -334,6 +334,12 @@ static int ed_undo_redo_exec(bContext *C, wmOperator *UNUSED(op))
 	return ret ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
+static int ed_undo_redo_poll(bContext *C)
+{
+	wmOperator *last_op = WM_operator_last_redo(C);
+	return last_op && ED_operator_screenactive(C) && 
+		WM_operator_check_ui_enabled(C, last_op->type->name);
+}
 
 /* ********************** */
 
@@ -385,7 +391,7 @@ void ED_OT_undo_redo(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = ed_undo_redo_exec;
-	ot->poll = ED_operator_screenactive;
+	ot->poll = ed_undo_redo_poll;
 }
 
 /* ui callbacks should call this rather than calling WM_operator_repeat() themselves */
