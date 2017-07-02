@@ -423,6 +423,11 @@ ccl_device bool bsdf_merge(ShaderClosure *a, ShaderClosure *b)
 		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
 		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
 			return bsdf_hair_merge(a, b);
+#ifdef __PRINCIPLED__
+		case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
+		case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
+			return bsdf_principled_diffuse_merge(a, b);
+#endif
 #ifdef __VOLUME__
 		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
 			return volume_henyey_greenstein_merge(a, b);
