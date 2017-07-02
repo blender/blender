@@ -3322,7 +3322,7 @@ void DM_calc_loop_tangents_step_0(
         const CustomData *loopData, bool calc_active_tangent,
         const char (*tangent_names)[MAX_NAME], int tangent_names_count,
         bool *rcalc_act, bool *rcalc_ren, int *ract_uv_n, int *rren_uv_n,
-        char *ract_uv_name, char *rren_uv_name, char *rtangent_mask)
+        char *ract_uv_name, char *rren_uv_name, short *rtangent_mask)
 {
 	/* Active uv in viewport */
 	int layer_index = CustomData_get_layer_index(loopData, CD_MLOOPUV);
@@ -3377,21 +3377,22 @@ void DM_calc_loop_tangents_step_0(
 		if (add)
 			*rtangent_mask |= 1 << n;
 	}
+
+	if (uv_layer_num == 0)
+		*rtangent_mask |= DM_TANGENT_MASK_ORCO;
 }
 
 void DM_calc_loop_tangents(
         DerivedMesh *dm, bool calc_active_tangent,
         const char (*tangent_names)[MAX_NAME], int tangent_names_count)
 {
-	if (CustomData_number_of_layers(&dm->loopData, CD_MLOOPUV) == 0)
-		return;
 	int act_uv_n = -1;
 	int ren_uv_n = -1;
 	bool calc_act = false;
 	bool calc_ren = false;
 	char act_uv_name[MAX_NAME];
 	char ren_uv_name[MAX_NAME];
-	char tangent_mask = 0;
+	short tangent_mask = 0;
 	DM_calc_loop_tangents_step_0(
 	        &dm->loopData, calc_active_tangent, tangent_names, tangent_names_count,
 	        &calc_act, &calc_ren, &act_uv_n, &ren_uv_n, act_uv_name, ren_uv_name, &tangent_mask);
@@ -3404,6 +3405,8 @@ void DM_calc_loop_tangents(
 		for (int i = 0; i < tangent_names_count; i++)
 			if (tangent_names[i][0])
 				DM_add_named_tangent_layer_for_uv(&dm->loopData, &dm->loopData, dm->numLoopData, tangent_names[i]);
+		if ((tangent_mask & DM_TANGENT_MASK_ORCO) && CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, "") == -1)
+			CustomData_add_layer_named(&dm->loopData, CD_TANGENT, CD_CALLOC, NULL, dm->numLoopData, "");
 		if (calc_act && act_uv_name[0])
 			DM_add_named_tangent_layer_for_uv(&dm->loopData, &dm->loopData, dm->numLoopData, act_uv_name);
 		if (calc_ren && ren_uv_name[0])
@@ -3465,19 +3468,24 @@ void DM_calc_loop_tangents(
 
 				mesh2tangent->orco = NULL;
 				mesh2tangent->mloopuv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, dm->loopData.layers[index].name);
+
+				/* Fill the resulting tangent_mask */
 				if (!mesh2tangent->mloopuv) {
 					mesh2tangent->orco = dm->getVertDataArray(dm, CD_ORCO);
 					if (!mesh2tangent->orco)
 						continue;
-				}
-				mesh2tangent->tangent = dm->loopData.layers[index].data;
 
-				/* Fill the resulting tangent_mask */
-				int uv_ind = CustomData_get_named_layer_index(&dm->loopData, CD_MLOOPUV, dm->loopData.layers[index].name);
-				int uv_start = CustomData_get_layer_index(&dm->loopData, CD_MLOOPUV);
-				BLI_assert(uv_ind != -1 && uv_start != -1);
-				BLI_assert(uv_ind - uv_start < MAX_MTFACE);
-				dm->tangent_mask |= 1 << (uv_ind - uv_start);
+					dm->tangent_mask |= DM_TANGENT_MASK_ORCO;
+				}
+				else {
+					int uv_ind = CustomData_get_named_layer_index(&dm->loopData, CD_MLOOPUV, dm->loopData.layers[index].name);
+					int uv_start = CustomData_get_layer_index(&dm->loopData, CD_MLOOPUV);
+					BLI_assert(uv_ind != -1 && uv_start != -1);
+					BLI_assert(uv_ind - uv_start < MAX_MTFACE);
+					dm->tangent_mask |= 1 << (uv_ind - uv_start);
+				}
+
+				mesh2tangent->tangent = dm->loopData.layers[index].data;
 				BLI_task_pool_push(task_pool, DM_calc_loop_tangents_thread, mesh2tangent, false, TASK_PRIORITY_LOW);
 			}
 
@@ -3493,21 +3501,19 @@ void DM_calc_loop_tangents(
 
 #endif
 
-		int uv_index, tan_index;
-
 		/* Update active layer index */
-		uv_index = CustomData_get_layer_index_n(&dm->loopData, CD_MLOOPUV, act_uv_n);
-		if (uv_index != -1) {
-			tan_index = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, dm->loopData.layers[uv_index].name);
+		int act_uv_index = CustomData_get_layer_index_n(&dm->loopData, CD_MLOOPUV, act_uv_n);
+		if (act_uv_index != -1) {
+			int tan_index = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, dm->loopData.layers[act_uv_index].name);
 			CustomData_set_layer_active_index(&dm->loopData, CD_TANGENT, tan_index);
-		}
+		} /* else tangent has been built from orco */
 
 		/* Update render layer index */
-		uv_index = CustomData_get_layer_index_n(&dm->loopData, CD_MLOOPUV, ren_uv_n);
-		if (uv_index != -1) {
-			tan_index = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, dm->loopData.layers[uv_index].name);
+		int ren_uv_index = CustomData_get_layer_index_n(&dm->loopData, CD_MLOOPUV, ren_uv_n);
+		if (ren_uv_index != -1) {
+			int tan_index = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, dm->loopData.layers[ren_uv_index].name);
 			CustomData_set_layer_render_index(&dm->loopData, CD_TANGENT, tan_index);
-		}
+		} /* else tangent has been built from orco */
 	}
 }
 
