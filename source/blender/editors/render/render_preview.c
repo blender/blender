@@ -1180,7 +1180,7 @@ void ED_preview_icon_render(Main *bmain, Scene *scene, ID *id, unsigned int *rec
 
 	ip.bmain = bmain;
 	ip.scene = scene;
-	ip.owner = id;
+	ip.owner = BKE_previewimg_id_ensure(id);
 	ip.id = id;
 
 	icon_preview_add_size(&ip, rect, sizex, sizey);
