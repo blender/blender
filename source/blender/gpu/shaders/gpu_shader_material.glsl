@@ -2625,7 +2625,7 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 {
 	/* ambient light */
 	// TODO: set ambient light to an appropriate value
-	vec3 L = vec3(mix(0.1, 0.03, metallic)) * base_color.rgb;
+	vec3 L = mix(0.1, 0.03, metallic) * mix(base_color.rgb, subsurface_color.rgb, subsurface * (1.0 - metallic));
 
 	float eta = (2.0 / (1.0 - sqrt(0.08 * specular))) - 1.0;
 
@@ -2663,10 +2663,11 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	/* directional lights */
 	for (int i = 0; i < NUM_LIGHTS; i++) {
 		vec3 light_position_world = gl_LightSource[i].position.xyz;
-		vec3 light_position = normalize(gl_NormalMatrix * light_position_world);
+		vec3 light_position = normalize(light_position_world);
 
 		vec3 H = normalize(light_position + V);
 
+		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
 		vec3 light_specular = gl_LightSource[i].specular.rgb;
 
 		float NdotL = dot(N, light_position);
@@ -2711,8 +2712,9 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 			// sheen
 			vec3 Fsheen = schlick_fresnel(LdotH) * sheen * Csheen;
 
-			diffuse_and_specular_bsdf = (M_1_PI * mix(Fd, ss, subsurface) * base_color.rgb + Fsheen)
-			                            * (1.0 - metallic) + Gs * Fs * Ds;
+			vec3 diffuse_bsdf = (mix(Fd * base_color.rgb, ss * subsurface_color.rgb, subsurface) + Fsheen) * light_diffuse;
+			vec3 specular_bsdf = Gs * Fs * Ds * light_specular;
+			diffuse_and_specular_bsdf = diffuse_bsdf * (1.0 - metallic) + specular_bsdf;
 		}
 		diffuse_and_specular_bsdf *= max(NdotL, 0.0);
 
@@ -2729,11 +2731,11 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 			float Fr = fresnel_dielectric_cos(LdotH, 1.5); //mix(0.04, 1.0, FH);
 			float Gr = smithG_GGX(CNdotL, 0.25) * smithG_GGX(CNdotV, 0.25);
 
-			clearcoat_bsdf = clearcoat * Gr * Fr * Dr * vec3(0.25);
+			clearcoat_bsdf = clearcoat * Gr * Fr * Dr * vec3(0.25) * light_specular;
 		}
 		clearcoat_bsdf *= max(CNdotL, 0.0);
 
-		L += light_specular * (diffuse_and_specular_bsdf + clearcoat_bsdf);
+		L += diffuse_and_specular_bsdf + clearcoat_bsdf;
 	}
 
 	result = vec4(L, 1.0);
