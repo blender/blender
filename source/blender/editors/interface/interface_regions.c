@@ -2099,9 +2099,11 @@ static void ui_update_color_picker_buts_rgb(uiBlock *block, ColorPicker *cpicker
 			continue;
 
 		if (bt->rnaprop) {
-			
 			ui_but_v3_set(bt, rgb);
 			
+			/* original button that created the color picker already does undo
+			 * push, so disable it on RNA buttons in the color picker block */
+			UI_but_flag_disable(bt, UI_BUT_UNDO);
 		}
 		else if (STREQ(bt->str, "Hex: ")) {
 			float rgb_gamma[3];
