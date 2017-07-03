@@ -526,7 +526,7 @@ void BKE_mesh_calc_loop_tangent_step_0(
 			add = true;
 		}
 		if (add)
-			*rtangent_mask |= (char)(1 << n);
+			*rtangent_mask |= (short)(1 << n);
 	}
 
 	if (uv_layer_num == 0)
@@ -649,7 +649,7 @@ void BKE_mesh_calc_loop_tangent_ex(
 				    int uv_start = CustomData_get_layer_index(loopdata, CD_MLOOPUV);
 				    BLI_assert(uv_ind != -1 && uv_start != -1);
 				    BLI_assert(uv_ind - uv_start < MAX_MTFACE);
-				    *tangent_mask_curr_p |= 1 << (uv_ind - uv_start);
+				    *tangent_mask_curr_p |= (short)(1 << (uv_ind - uv_start));
 				}
 
 				mesh2tangent->tangent = loopdata_out->layers[index].data;
