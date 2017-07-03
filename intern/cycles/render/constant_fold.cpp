@@ -167,8 +167,9 @@ bool ConstantFolder::try_bypass_or_make_constant(ShaderInput *input, bool clamp)
 				graph->disconnect(other);
 			}
 		}
-		return false;
 	}
+
+	return false;
 }
 
 bool ConstantFolder::is_zero(ShaderInput *input) const
