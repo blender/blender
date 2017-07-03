@@ -316,7 +316,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 }
 
 /* in case UserDef was read, we re-initialize all, and do versioning */
-static void wm_init_userdef(bContext *C, const bool use_factory_settings)
+static void wm_init_userdef(bContext *C, const bool read_userdef_from_memory)
 {
 	Main *bmain = CTX_data_main(C);
 
@@ -336,7 +336,7 @@ static void wm_init_userdef(bContext *C, const bool use_factory_settings)
 	}
 
 	/* avoid re-saving for every small change to our prefs, allow overrides */
-	if (use_factory_settings) {
+	if (read_userdef_from_memory) {
 		BLO_update_defaults_userpref_blend();
 	}
 
@@ -667,7 +667,7 @@ int wm_homefile_read(
 	 *
 	 * And in this case versioning code is to be run.
 	 */
-	bool read_userdef_from_memory = true;
+	bool read_userdef_from_memory = false;
 	eBLOReadSkip skip_flags = 0;
 
 	/* options exclude eachother */
@@ -713,7 +713,6 @@ int wm_homefile_read(
 			BKE_blender_userdef_set_data(userdef);
 			MEM_freeN(userdef);
 
-			read_userdef_from_memory = false;
 			skip_flags |= BLO_READ_SKIP_USERDEF;
 			printf("Read prefs: %s\n", filepath_userdef);
 		}
@@ -775,6 +774,9 @@ int wm_homefile_read(
 		success = BKE_blendfile_read_from_memory(
 		        C, datatoc_startup_blend, datatoc_startup_blend_size,
 		        NULL, skip_flags, true);
+		if (success && !(skip_flags & BLO_READ_SKIP_USERDEF)) {
+			read_userdef_from_memory = true;
+		}
 		if (BLI_listbase_is_empty(&wmbase)) {
 			wm_clear_default_size(C);
 		}
@@ -810,6 +812,7 @@ int wm_homefile_read(
 			/* we need to have preferences load to overwrite preferences from previous template */
 			userdef_template = BKE_blendfile_userdef_read_from_memory(
 			        datatoc_startup_blend, datatoc_startup_blend_size, NULL);
+			read_userdef_from_memory = true;
 		}
 		if (userdef_template) {
 			BKE_blender_userdef_set_app_template(userdef_template);
