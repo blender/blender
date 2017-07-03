@@ -582,7 +582,7 @@ static void EEVEE_planar_reflections_updates(EEVEE_SceneLayerData *sldata, EEVEE
 		eplanar->attenuation_bias = max_dist * -eplanar->attenuation_scale;
 
 		/* Debug Display */
-		if ((probe->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0) {
+		if (DRW_state_draw_support() && (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
 			DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_planar_display_sh, psl->probe_display);
 
 			DRW_shgroup_uniform_int(grp, "probeIdx", &ped->probe_id, 1);
@@ -635,7 +635,7 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 		invert_m4(eprobe->parallaxmat);
 
 		/* Debug Display */
-		if ((probe->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0) {
+		if (DRW_state_draw_support() && (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
 			DRW_shgroup_call_dynamic_add(stl->g_data->cube_display_shgrp, &ped->probe_id, ob->obmat[3], &probe->data_draw_size);
 		}
 	}
@@ -693,7 +693,7 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 		copy_v3_v3_int(egrid->resolution, &probe->grid_resolution_x);
 
 		/* Debug Display */
-		if ((probe->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0) {
+		if (DRW_state_draw_support() && (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
 			struct Gwn_Batch *geom = DRW_cache_sphere_get();
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_grid_display_sh, psl->probe_display, geom);
 			DRW_shgroup_set_instance_count(grp, ped->num_cell);

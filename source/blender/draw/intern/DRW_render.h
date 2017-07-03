@@ -386,6 +386,7 @@ bool DRW_state_is_depth(void);
 bool DRW_state_is_image_render(void);
 bool DRW_state_is_scene_render(void);
 bool DRW_state_show_text(void);
+bool DRW_state_draw_support(void);
 
 struct DRWTextStore *DRW_state_text_cache_get(void);
 
