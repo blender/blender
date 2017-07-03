@@ -166,10 +166,12 @@ void BKE_cachefile_update_frame(Main *bmain, Scene *scene, const float ctime, co
 		const float time = BKE_cachefile_time_offset(cache_file, ctime, fps);
 
 		if (BKE_cachefile_filepath_get(bmain, cache_file, time, filename)) {
+			BKE_cachefile_clean(scene, cache_file);
 #ifdef WITH_ALEMBIC
 			ABC_free_handle(cache_file->handle);
 			cache_file->handle = ABC_create_handle(filename, NULL);
 #endif
+			break;
 		}
 	}
 }
