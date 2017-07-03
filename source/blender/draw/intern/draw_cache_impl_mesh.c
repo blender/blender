@@ -261,16 +261,17 @@ static void mesh_cd_calc_used_gpu_layers(
 					 *
 					 * We do it based on the specified name.
 					 */
-					if (name[0]) {
-						layer = CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, name);
+					if (name[0] != '\0') {
+						layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name);
 						type = CD_MTFACE;
+
 						if (layer == -1) {
-							layer = CustomData_get_named_layer_index(cd_ldata, CD_MLOOPCOL, name);
+							layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name);
 							type = CD_MCOL;
 						}
 #if 0					/* Tangents are always from UV's - this will never happen. */
 						if (layer == -1) {
-							layer = CustomData_get_named_layer_index(cd_ldata, CD_TANGENT, name);
+							layer = CustomData_get_named_layer(cd_ldata, CD_TANGENT, name);
 							type = CD_TANGENT;
 						}
 #endif
