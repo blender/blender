@@ -528,6 +528,9 @@ void BKE_mesh_calc_loop_tangent_step_0(
 		if (add)
 			*rtangent_mask |= (char)(1 << n);
 	}
+
+	if (uv_layer_num == 0)
+		*rtangent_mask |= DM_TANGENT_MASK_ORCO;
 }
 
 /**
