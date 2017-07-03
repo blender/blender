@@ -90,7 +90,7 @@ struct ImportSettings {
 
 	/* Length and frame offset of file sequences. */
 	int sequence_len;
-	int offset;
+	int sequence_offset;
 
 	/* From MeshSeqCacheModifierData.read_flag */
 	int read_flag;
@@ -107,7 +107,7 @@ struct ImportSettings {
 	    , is_sequence(false)
 	    , set_frame_range(false)
 	    , sequence_len(1)
-	    , offset(0)
+	    , sequence_offset(0)
 	    , read_flag(0)
 	    , validate_meshes(false)
 	    , cache_file(NULL)
