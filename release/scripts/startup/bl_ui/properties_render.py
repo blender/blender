@@ -631,6 +631,7 @@ class RENDER_PT_eevee_poststack_settings(RenderButtonsPanel, Panel):
         props = scene.layer_properties['BLENDER_EEVEE']
 
         col = layout.column()
+        col.prop(props, "volumetric_enable")
         col.prop(props, "gtao_enable")
         col.prop(props, "motion_blur_enable")
         col.prop(props, "dof_enable")

@@ -225,12 +225,21 @@ float buffer_depth(bool is_persp, float z, float zf, float zn)
 	}
 }
 
-vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
+float get_view_z_from_depth(float depth)
 {
 	if (ProjectionMatrix[3][3] == 0.0) {
 		float d = 2.0 * depth - 1.0;
-		float zview = -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
-		return (viewvecs[0].xyz + vec3(uvcoords, 0.0) * viewvecs[1].xyz) * zview;
+		return -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
+	}
+	else {
+		return viewvecs[0].z + depth * viewvecs[1].z;
+	}
+}
+
+vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
+{
+	if (ProjectionMatrix[3][3] == 0.0) {
+		return (viewvecs[0].xyz + vec3(uvcoords, 0.0) * viewvecs[1].xyz) * get_view_z_from_depth(depth);
 	}
 	else {
 		return viewvecs[0].xyz + vec3(uvcoords, depth) * viewvecs[1].xyz;

@@ -64,6 +64,7 @@
 static struct {
 	char *frag_shader_lib;
 
+	struct GPUShader *default_volume_sh;
 	struct GPUShader *default_prepass_sh;
 	struct GPUShader *default_prepass_clip_sh;
 	struct GPUShader *default_lit[VAR_MAT_MAX];
@@ -99,6 +100,7 @@ extern char datatoc_shadow_vert_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_background_vert_glsl[];
+extern char datatoc_volumetric_frag_glsl[];
 
 extern Material defmaterial;
 extern GlobalsUboStorage ts;
@@ -167,6 +169,12 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 }
 #endif
 
+/* XXX TODO define all shared resources in a shared place without duplication */
+struct GPUTexture *EEVEE_materials_get_util_tex(void)
+{
+	return e_data.util_tex;
+}
+
 static char *eevee_get_defines(int options)
 {
 	char *str = NULL;
@@ -222,7 +230,7 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCubes", &sldata->shadow_depth_cube_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCascades", &sldata->shadow_depth_cascade_pool);
 	if (vedata->stl->effects->use_ao) {
-		DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)e_data.viewvecs, 2);
+		DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)&vedata->stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_buffer(shgrp, "minMaxDepthTex", &vedata->stl->g_data->minmaxz);
 		DRW_shgroup_uniform_vec3(shgrp, "aoParameters", &vedata->stl->effects->ao_dist, 1);
 	}
@@ -244,7 +252,7 @@ static void create_default_shader(int options)
 	MEM_freeN(frag_str);
 }
 
-void EEVEE_materials_init(void)
+void EEVEE_materials_init(EEVEE_StorageList *stl)
 {
 	if (!e_data.frag_shader_lib) {
 		char *frag_str = NULL;
@@ -279,6 +287,16 @@ void EEVEE_materials_init(void)
 		e_data.default_prepass_clip_sh = DRW_shader_create(
 		        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl,
 		        "#define CLIP_PLANES\n");
+
+		MEM_freeN(frag_str);
+
+		ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
+		BLI_dynstr_append(ds_frag, datatoc_volumetric_frag_glsl);
+		frag_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+
+		e_data.default_volume_sh = DRW_shader_create_fullscreen(frag_str, SHADER_DEFINES "#define STEP_INTEGRATE\n");
 
 		MEM_freeN(frag_str);
 
@@ -338,19 +356,19 @@ void EEVEE_materials_init(void)
 			viewvecs[i][3] = 1.0;
 		}
 
-		copy_v4_v4(e_data.viewvecs[0], viewvecs[0]);
-		copy_v4_v4(e_data.viewvecs[1], viewvecs[1]);
+		copy_v4_v4(stl->g_data->viewvecs[0], viewvecs[0]);
+		copy_v4_v4(stl->g_data->viewvecs[1], viewvecs[1]);
 
 		/* we need to store the differences */
-		e_data.viewvecs[1][0] -= viewvecs[0][0];
-		e_data.viewvecs[1][1] = viewvecs[2][1] - viewvecs[0][1];
+		stl->g_data->viewvecs[1][0] -= viewvecs[0][0];
+		stl->g_data->viewvecs[1][1] = viewvecs[2][1] - viewvecs[0][1];
 
 		/* calculate a depth offset as well */
 		if (!is_persp) {
 			float vec_far[] = {-1.0f, -1.0f, 1.0f, 1.0f};
 			mul_m4_v4(invproj, vec_far);
 			mul_v3_fl(vec_far, 1.0f / vec_far[3]);
-			e_data.viewvecs[1][2] = vec_far[2] - viewvecs[0][2];
+			stl->g_data->viewvecs[1][2] = vec_far[2] - viewvecs[0][2];
 		}
 	}
 }
@@ -383,6 +401,11 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
 	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
 	        datatoc_background_vert_glsl, NULL, e_data.frag_shader_lib,
 	        SHADER_DEFINES "#define WORLD_BACKGROUND\n");
+}
+
+struct GPUShader *EEVEE_material_world_volume_get(struct Scene *UNUSED(scene), World *UNUSED(wo))
+{
+	return e_data.default_volume_sh;
 }
 
 struct GPUMaterial *EEVEE_material_mesh_get(
@@ -762,6 +785,7 @@ void EEVEE_materials_free(void)
 		DRW_SHADER_FREE_SAFE(e_data.default_lit[i]);
 	}
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
+	DRW_SHADER_FREE_SAFE(e_data.default_volume_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_clip_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_background);

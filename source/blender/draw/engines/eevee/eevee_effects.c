@@ -38,17 +38,14 @@
 #include "BKE_animsys.h"
 #include "BKE_screen.h"
 
+#include "BLI_dynstr.h"
+
 #include "eevee_private.h"
 #include "GPU_texture.h"
 
 typedef struct EEVEE_LightProbeData {
 	short probe_id, shadow_id;
 } EEVEE_LightProbeData;
-
-/* TODO Option */
-#define ENABLE_EFFECT_MOTION_BLUR 1
-#define ENABLE_EFFECT_BLOOM 1
-#define ENABLE_EFFECT_DOF 1
 
 static struct {
 	/* Downsample Depth */
@@ -70,7 +67,10 @@ static struct {
 	struct GPUShader *dof_scatter_sh;
 	struct GPUShader *dof_resolve_sh;
 
-	struct GPUTexture *minmmaxz_depth_src;
+	/* Volumetric */
+	struct GPUShader *volumetric_upsample_sh;
+
+	struct GPUTexture *depth_src;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_effect_minmaxz_frag_glsl[];
@@ -80,6 +80,7 @@ extern char datatoc_effect_dof_vert_glsl[];
 extern char datatoc_effect_dof_geom_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
+extern char datatoc_volumetric_frag_glsl[];
 
 static void eevee_motion_blur_camera_get_matrix_at_time(
         Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, Object *camera, float time, float r_mat[4][4])
@@ -151,6 +152,8 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 	/* Shaders */
 	if (!e_data.motion_blur_sh) {
+		e_data.volumetric_upsample_sh = DRW_shader_create_fullscreen(datatoc_volumetric_frag_glsl, "#define STEP_UPSAMPLE\n");
+
 		e_data.minmaxz_downlevel_sh = DRW_shader_create_fullscreen(datatoc_effect_minmaxz_frag_glsl, NULL);
 		e_data.minmaxz_downdepth_sh = DRW_shader_create_fullscreen(datatoc_effect_minmaxz_frag_glsl, "#define INPUT_DEPTH\n");
 		e_data.minmaxz_copydepth_sh = DRW_shader_create_fullscreen(datatoc_effect_minmaxz_frag_glsl, "#define INPUT_DEPTH\n"
@@ -190,7 +193,6 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 	int enabled_effects = 0;
 
-#if ENABLE_EFFECT_MOTION_BLUR
 	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable")) {
 		/* Update Motion Blur Matrices */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
@@ -221,9 +223,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			}
 		}
 	}
-#endif /* ENABLE_EFFECT_MOTION_BLUR */
 
-#if ENABLE_EFFECT_BLOOM
 	if (BKE_collection_engine_property_value_get_bool(props, "bloom_enable")) {
 		/* Bloom */
 		int blitsize[2], texsize[2];
@@ -294,9 +294,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 
 		enabled_effects |= EFFECT_BLOOM;
 	}
-#endif /* ENABLE_EFFECT_BLOOM */
 
-#if ENABLE_EFFECT_DOF
 	if (BKE_collection_engine_property_value_get_bool(props, "dof_enable")) {
 		/* Depth Of Field */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
@@ -375,7 +373,6 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 			enabled_effects |= EFFECT_DOF;
 		}
 	}
-#endif /* ENABLE_EFFECT_DOF */
 
 	effects->enabled_effects = enabled_effects;
 
@@ -404,6 +401,16 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 	                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
 	                    &tex, 1);
 
+	if (BKE_collection_engine_property_value_get_bool(props, "volumetric_enable")) {
+		/* MinMax Pyramid */
+		DRWFboTexture tex_vol = {&stl->g_data->volumetric, DRW_TEX_RGBA_16, DRW_TEX_MIPMAP | DRW_TEX_FILTER | DRW_TEX_TEMP};
+
+		DRW_framebuffer_init(&fbl->volumetric_fb, &draw_engine_eevee_type,
+		                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
+		                    &tex_vol, 1);
+
+		effects->enabled_effects |= EFFECT_VOLUMETRIC;
+	}
 }
 
 static DRWShadingGroup *eevee_create_bloom_pass(const char *name, EEVEE_EffectsInfo *effects, struct GPUShader *sh, DRWPass **pass, bool upsample)
@@ -424,7 +431,7 @@ static DRWShadingGroup *eevee_create_bloom_pass(const char *name, EEVEE_EffectsI
 	return grp;
 }
 
-void EEVEE_effects_cache_init(EEVEE_Data *vedata)
+void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
@@ -435,6 +442,29 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
 	{
+		struct GPUShader *sh = EEVEE_material_world_volume_get(NULL, NULL);
+		psl->volumetric_integrate_ps = DRW_pass_create("Volumetric Integration", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->volumetric_integrate_ps);
+		DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
+		DRW_shgroup_uniform_buffer(grp, "shadowCubes", &sldata->shadow_depth_cube_pool);
+		DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
+		DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+		DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+		DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+		DRW_shgroup_uniform_int(grp, "light_count", &sldata->lamps->num_light, 1);
+		DRW_shgroup_uniform_int(grp, "grid_count", &sldata->probes->num_render_grid, 1);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		psl->volumetric_resolve_ps = DRW_pass_create("Volumetric Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_TRANSMISSION);
+		grp = DRW_shgroup_create(e_data.volumetric_upsample_sh, psl->volumetric_resolve_ps);
+		DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
+		DRW_shgroup_uniform_buffer(grp, "volumetricBuffer", &stl->g_data->volumetric);
+		DRW_shgroup_call_add(grp, quad, NULL);
+	}
+
+	{
 		psl->minmaxz_downlevel = DRW_pass_create("HiZ Down Level", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.minmaxz_downlevel_sh, psl->minmaxz_downlevel);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &stl->g_data->minmaxz);
@@ -442,12 +472,12 @@ void EEVEE_effects_cache_init(EEVEE_Data *vedata)
 
 		psl->minmaxz_downdepth = DRW_pass_create("HiZ Down Depth", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_create(e_data.minmaxz_downdepth_sh, psl->minmaxz_downdepth);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.minmmaxz_depth_src);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->minmaxz_copydepth = DRW_pass_create("HiZ Copy Depth", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_create(e_data.minmaxz_copydepth_sh, psl->minmaxz_copydepth);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.minmmaxz_depth_src);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
@@ -574,7 +604,7 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src)
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = vedata->stl;
 
-	e_data.minmmaxz_depth_src = depth_src;
+	e_data.depth_src = depth_src;
 
 	/* Copy depth buffer to minmax texture top level */
 	DRW_framebuffer_texture_attach(fbl->minmaxz_fb, stl->g_data->minmaxz, 0, 0);
@@ -584,6 +614,33 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src)
 
 	/* Create lower levels */
 	DRW_framebuffer_recursive_downsample(fbl->minmaxz_fb, stl->g_data->minmaxz, 6, &minmax_downsample_cb, vedata);
+}
+
+void EEVEE_effects_do_volumetrics(EEVEE_Data *vedata)
+{
+	EEVEE_PassList *psl = vedata->psl;
+	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_EffectsInfo *effects = stl->effects;
+
+	if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
+		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+		e_data.depth_src = dtxl->depth;
+
+		/* Compute volumetric integration at halfres. */
+		DRW_framebuffer_texture_attach(fbl->volumetric_fb, stl->g_data->volumetric, 0, 0);
+		DRW_framebuffer_bind(fbl->volumetric_fb);
+		DRW_draw_pass(psl->volumetric_integrate_ps);
+
+		/* Resolve at fullres */
+		DRW_framebuffer_texture_detach(dtxl->depth);
+		DRW_framebuffer_bind(fbl->main);
+		DRW_draw_pass(psl->volumetric_resolve_ps);
+
+		/* Restore */
+		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
+	}
 }
 
 void EEVEE_draw_effects(EEVEE_Data *vedata)
@@ -709,6 +766,8 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 
 void EEVEE_effects_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.volumetric_upsample_sh);
+
 	DRW_SHADER_FREE_SAFE(e_data.minmaxz_downlevel_sh);
 	DRW_SHADER_FREE_SAFE(e_data.minmaxz_downdepth_sh);
 	DRW_SHADER_FREE_SAFE(e_data.minmaxz_copydepth_sh);

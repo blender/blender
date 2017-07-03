@@ -167,6 +167,7 @@ class RENDERLAYER_PT_eevee_poststack_settings(RenderLayerButtonsPanel, Panel):
         layer_props = layer.engine_overrides['BLENDER_EEVEE']
 
         col = layout.column()
+        col.template_override_property(layer_props, scene_props, "volumetric_enable")
         col.template_override_property(layer_props, scene_props, "gtao_enable")
         col.template_override_property(layer_props, scene_props, "motion_blur_enable")
         col.template_override_property(layer_props, scene_props, "dof_enable")

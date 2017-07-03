@@ -2612,6 +2612,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(bloom_intensity)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(motion_blur_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(motion_blur_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(motion_blur_shutter)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_enable)
 
 /* object engine */
 RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
@@ -6165,6 +6166,14 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_define_verify_sdna(0); /* not in sdna */
 
 	/* see RNA_LAYER_ENGINE_GET_SET macro */
+
+	/* Volumetrics */
+	prop = RNA_def_property(srna, "volumetric_enable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_volumetric_enable_get",
+	                               "rna_LayerEngineSettings_Eevee_volumetric_enable_set");
+	RNA_def_property_ui_text(prop, "Volumetrics", "Enable scattering and absorbance of volumetric material");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
 	/* Ambient Occlusion */
 	prop = RNA_def_property(srna, "gtao_enable", PROP_BOOLEAN, PROP_NONE);

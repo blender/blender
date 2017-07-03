@@ -62,7 +62,7 @@ static void EEVEE_engine_init(void *ved)
 	}
 	stl->g_data->background_alpha = 1.0f;
 
-	EEVEE_materials_init();
+	EEVEE_materials_init(stl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);
 	EEVEE_effects_init(vedata);
@@ -76,7 +76,7 @@ static void EEVEE_cache_init(void *vedata)
 	EEVEE_materials_cache_init(vedata);
 	EEVEE_lights_cache_init(sldata, psl);
 	EEVEE_lightprobes_cache_init(sldata, vedata);
-	EEVEE_effects_cache_init(vedata);
+	EEVEE_effects_cache_init(sldata, vedata);
 }
 
 static void EEVEE_cache_populate(void *vedata, Object *ob)
@@ -160,6 +160,9 @@ static void EEVEE_draw_scene(void *vedata)
 	EEVEE_draw_default_passes(psl);
 	DRW_draw_pass(psl->material_pass);
 
+	/* Volumetrics */
+	EEVEE_effects_do_volumetrics(vedata);
+
 	/* Post Process */
 	EEVEE_draw_effects(vedata);
 }
@@ -186,6 +189,8 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
+
+	BKE_collection_engine_property_add_bool(props, "volumetric_enable", false);
 
 	BKE_collection_engine_property_add_bool(props, "gtao_enable", false);
 	BKE_collection_engine_property_add_bool(props, "gtao_use_bent_normals", true);
