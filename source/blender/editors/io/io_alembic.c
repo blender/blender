@@ -31,6 +31,9 @@
 #  include "BLI_winstuff.h"
 #endif
 
+#include <string.h>
+#include <errno.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -417,9 +420,20 @@ static int get_sequence_len(char *filename, int *ofs)
 	}
 
 	char path[FILE_MAX];
+	BLI_path_abs(filename, G.main->name);
 	BLI_split_dir_part(filename, path, FILE_MAX);
 
+	if (path[0] == '\0') {
+		/* The filename had no path, so just use the blend file path. */
+		BLI_split_dir_part(G.main->name, path, FILE_MAX);
+	}
+
 	DIR *dir = opendir(path);
+	if (dir == NULL) {
+		fprintf(stderr, "Error opening directory '%s': %s\n",
+		        path, errno ? strerror(errno) : "unknown error");
+		return -1;
+	}
 
 	const char *ext = ".abc";
 	const char *basename = BLI_path_basename(filename);
@@ -523,6 +537,10 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 
 	if (is_sequence) {
 		sequence_len = get_sequence_len(filename, &offset);
+		if (sequence_len < 0) {
+			BKE_report(op->reports, RPT_ERROR, "Unable to determine ABC sequence length");
+			return OPERATOR_CANCELLED;
+		}
 	}
 
 	bool ok = ABC_import(C, filename, scale, is_sequence, set_frame_range,
