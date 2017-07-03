@@ -12,7 +12,37 @@ uniform mat4 ProjectionMatrixInverse;
 uniform mat3 NormalMatrix;
 uniform vec4 CameraTexCoFactors;
 
-out vec4 fragColor;
+/* Old glsl mode compat. */
+
+#ifndef NODETREE_EXEC
+
+struct Closure {
+	vec3 radiance;
+	float opacity;
+};
+
+#define CLOSURE_DEFAULT Closure(vec3(0.0), 0.0);
+
+Closure closure_mix(Closure cl1, Closure cl2, float fac)
+{
+	Closure cl;
+	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
+	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);
+	return cl;
+}
+
+Closure closure_add(Closure cl1, Closure cl2)
+{
+	Closure cl;
+	cl.radiance = cl1.radiance + cl2.radiance;
+	cl.opacity = cl1.opacity + cl2.opacity;
+	return cl;
+}
+
+Closure nodetree_exec(void); /* Prototype */
+
+#endif /* NODETREE_EXEC */
+
 
 /* Converters */
 
@@ -2625,7 +2655,7 @@ layout(std140) uniform lightSource {
 
 /* bsdfs */
 
-void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out vec4 result)
+void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 {
 	/* ambient light */
 	vec3 L = vec3(0.2);
@@ -2639,10 +2669,10 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out vec4 result)
 		L += light_diffuse * bsdf;
 	}
 
-	result = vec4(L * color.rgb, 1.0);
+	result = Closure(L * color.rgb, 1.0);
 }
 
-void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
+void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out Closure result)
 {
 	/* ambient light */
 	vec3 L = vec3(0.2);
@@ -2660,29 +2690,29 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 		L += light_specular * bsdf;
 	}
 
-	result = vec4(L * color.rgb, 1.0);
+	result = Closure(L * color.rgb, 1.0);
 }
 
 void node_bsdf_anisotropic(
         vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T,
-        out vec4 result)
+        out Closure result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, out vec4 result)
+void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, out Closure result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_bsdf_toon(vec4 color, float size, float tsmooth, vec3 N, out vec4 result)
+void node_bsdf_toon(vec4 color, float size, float tsmooth, vec3 N, out Closure result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
 void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
-	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
+	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out Closure result)
 {
 	vec3 X, Y;
 	float ax, ay;
@@ -2775,18 +2805,18 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 		L += diffuse_and_specular_bsdf + clearcoat_bsdf;
 	}
 
-	result = vec4(L, 1.0);
+	result = Closure(L, 1.0);
 }
 
 void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
-	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
+	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out Closure result)
 {
 #ifdef EEVEE_ENGINE
 	vec3 diffuse, f0;
 	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
 
-	result = vec4(eevee_surface_lit(N, diffuse, f0, roughness, 1.0), 1.0);
+	result = Closure(eevee_surface_lit(N, diffuse, f0, roughness, 1.0), 1.0);
 #else
 	node_bsdf_principled(base_color, subsurface, subsurface_radius, subsurface_color, metallic, specular,
 		specular_tint, roughness, anisotropic, anisotropic_rotation, sheen, sheen_tint, clearcoat,
@@ -2796,7 +2826,7 @@ void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurf
 
 void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
-	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out vec4 result)
+	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, out Closure result)
 {
 #ifdef EEVEE_ENGINE
 	vec3 diffuse, f0;
@@ -2825,9 +2855,9 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 			surface_color.a += 1.0;
 		}
 	}
-	result = vec4(surface_color.rgb / surface_color.a, 1.0);
+	result = Closure(surface_color.rgb / surface_color.a, 1.0);
 #else
-	result = vec4(eevee_surface_clearcoat_lit(N, diffuse, f0, roughness, CN, clearcoat, clearcoat_roughness, 1.0), 1.0);
+	result = Closure(eevee_surface_clearcoat_lit(N, diffuse, f0, roughness, CN, clearcoat, clearcoat_roughness, 1.0), 1.0);
 #endif
 
 #else
@@ -2837,52 +2867,51 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 #endif
 }
 
-void node_bsdf_translucent(vec4 color, vec3 N, out vec4 result)
+void node_bsdf_translucent(vec4 color, vec3 N, out Closure result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_bsdf_transparent(vec4 color, out vec4 result)
+void node_bsdf_transparent(vec4 color, out Closure result)
 {
 	/* this isn't right */
-	result.r = color.r;
-	result.g = color.g;
-	result.b = color.b;
-	result.a = 0.0;
+	result.radiance = color.rgb;
+	result.opacity = 0.0;
 }
 
-void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out vec4 result)
+void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out Closure result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
 void node_subsurface_scattering(
         vec4 color, float scale, vec3 radius, float sharpen, float texture_blur, vec3 N,
-        out vec4 result)
+        out Closure result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_bsdf_hair(vec4 color, float offset, float roughnessu, float roughnessv, vec3 tangent, out vec4 result)
+void node_bsdf_hair(vec4 color, float offset, float roughnessu, float roughnessv, vec3 tangent, out Closure result)
 {
-	result = color;
+	result = Closure(color.rgb, color.a);
 }
 
-void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out vec4 result)
+void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out Closure result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_ambient_occlusion(vec4 color, out vec4 result)
+void node_ambient_occlusion(vec4 color, out Closure result)
 {
-	result = color;
+	result = Closure(color.rgb, color.a);
 }
 
 /* emission */
 
-void node_emission(vec4 color, float strength, vec3 N, out vec4 result)
+void node_emission(vec4 color, float strength, vec3 N, out Closure result)
 {
-	result = color * strength;
+	color *= strength;
+	result = Closure(color.rgb, color.a);
 }
 
 /* background */
@@ -2900,21 +2929,22 @@ void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
 #endif
 }
 
-void node_background(vec4 color, float strength, out vec4 result)
+void node_background(vec4 color, float strength, out Closure result)
 {
-	result = color * strength;
+	color *= strength;
+	result = Closure(color.rgb, color.a);
 }
 
 /* closures */
 
-void node_mix_shader(float fac, vec4 shader1, vec4 shader2, out vec4 shader)
+void node_mix_shader(float fac, Closure shader1, Closure shader2, out Closure shader)
 {
-	shader = mix(shader1, shader2, fac);
+	shader = closure_mix(shader1, shader2, fac);
 }
 
-void node_add_shader(vec4 shader1, vec4 shader2, out vec4 shader)
+void node_add_shader(Closure shader1, Closure shader2, out Closure shader)
 {
-	shader = shader1 + shader2;
+	shader = closure_add(shader1, shader2);
 }
 
 /* fresnel */
@@ -3908,16 +3938,16 @@ void node_bump(float strength, float dist, float height, vec3 N, vec3 surf_pos, 
 
 /* output */
 
-void node_output_material(vec4 surface, vec4 volume, float displacement, out vec4 result)
+void node_output_material(Closure surface, Closure volume, float displacement, out Closure result)
 {
 	result = surface;
 }
 
 uniform float backgroundAlpha;
 
-void node_output_world(vec4 surface, vec4 volume, out vec4 result)
+void node_output_world(Closure surface, Closure volume, out Closure result)
 {
-	result = vec4(surface.rgb, backgroundAlpha);
+	result = Closure(surface.radiance, backgroundAlpha);
 }
 
 /* TODO : clean this ifdef mess */
@@ -3931,25 +3961,25 @@ void world_normals_get(out vec3 N)
 void node_eevee_metallic(
         vec4 basecol, float metallic, float specular, float roughness, vec4 emissive, float transp, vec3 normal,
         float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
-        float occlusion, out vec4 result)
+        float occlusion, out Closure result)
 {
 	vec3 diffuse, f0;
 	convert_metallic_to_specular(basecol.rgb, metallic, specular, diffuse, f0);
 
-	result = vec4(eevee_surface_lit(normal, diffuse, f0, roughness, occlusion) + emissive.rgb, 1.0 - transp);
+	result = Closure(eevee_surface_lit(normal, diffuse, f0, roughness, occlusion) + emissive.rgb, 1.0 - transp);
 }
 
 void node_eevee_specular(
         vec4 diffuse, vec4 specular, float roughness, vec4 emissive, float transp, vec3 normal,
         float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
-        float occlusion, out vec4 result)
+        float occlusion, out Closure result)
 {
-	result = vec4(eevee_surface_lit(normal, diffuse.rgb, specular.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
+	result = Closure(eevee_surface_lit(normal, diffuse.rgb, specular.rgb, roughness, occlusion) + emissive.rgb, 1.0 - transp);
 }
 
-void node_output_eevee_material(vec4 surface, out vec4 result)
+void node_output_eevee_material(Closure surface, out Closure result)
 {
-	result = vec4(surface.rgb, length(viewPosition));
+	result = Closure(surface.radiance, length(viewPosition));
 }
 
 #endif

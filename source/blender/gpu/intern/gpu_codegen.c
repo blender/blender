@@ -86,9 +86,10 @@ typedef struct GPUFunction {
 } GPUFunction;
 
 /* Indices match the GPUType enum */
-static const char *GPU_DATATYPE_STR[17] = {
+static const char *GPU_DATATYPE_STR[18] = {
 	"", "float", "vec2", "vec3", "vec4",
 	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4",
+	"Closure"
 };
 
 /* GLSL code parsing for finding function definitions.
@@ -172,7 +173,7 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 
 			/* test for type */
 			type = GPU_NONE;
-			for (i = 1; i <= 16; i++) {
+			for (i = 1; i <= 17; i++) {
 				if (GPU_DATATYPE_STR[i] && gpu_str_prefix(code, GPU_DATATYPE_STR[i])) {
 					type = i;
 					break;
@@ -350,12 +351,19 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 			BLI_dynstr_appendf(ds, "vec4(%s.r, %s.r, %s.r, %s.g)", name, name, name, name);
 		else if (from == GPU_FLOAT)
 			BLI_dynstr_appendf(ds, "vec4(%s, %s, %s, 1.0)", name, name, name);
+		else /* can happen with closure */
+			BLI_dynstr_append(ds, name);
 	}
 }
 
 static void codegen_print_datatype(DynStr *ds, const GPUType type, float *data)
 {
 	int i;
+
+	if (type == GPU_CLOSURE) {
+		BLI_dynstr_append(ds, "CLOSURE_DEFAULT");
+		return;
+	}
 
 	BLI_dynstr_appendf(ds, "%s(", GPU_DATATYPE_STR[type]);
 
@@ -543,9 +551,16 @@ static int codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 						GPU_DATATYPE_STR[input->type], input->id);
 				}
 				else {
-					/* for others use const so the compiler can do folding */
-					BLI_dynstr_appendf(ds, "const %s cons%d = ",
-						GPU_DATATYPE_STR[input->type], input->id);
+					if (input->type != GPU_CLOSURE) {
+						/* for others use const so the compiler can do folding */
+						BLI_dynstr_appendf(ds, "const %s cons%d = ",
+							GPU_DATATYPE_STR[input->type], input->id);
+					}
+					else {
+						/* const keyword does not work with struct */
+						BLI_dynstr_appendf(ds, "%s cons%d = ",
+							GPU_DATATYPE_STR[input->type], input->id);
+					}
 					codegen_print_datatype(ds, input->type, input->vec);
 					BLI_dynstr_append(ds, ";\n");
 				}
@@ -667,8 +682,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 		BLI_dynstr_append(ds, ");\n");
 	}
 
-	BLI_dynstr_append(ds, "\n\tfragColor = ");
-	codegen_convert_datatype(ds, finaloutput->type, GPU_VEC4, "tmp", finaloutput->id);
+	BLI_dynstr_appendf(ds, "\n\treturn tmp%d", finaloutput->id);
 	BLI_dynstr_append(ds, ";\n");
 }
 
@@ -696,7 +710,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 		BLI_dynstr_appendf(ds, "/* %s */\n", name);
 #endif
 
-	BLI_dynstr_append(ds, "void main()\n{\n");
+	BLI_dynstr_append(ds, "Closure nodetree_exec(void)\n{\n");
 
 	if (use_new_shading) {
 		if (builtins & GPU_VIEW_MATRIX)
@@ -763,6 +777,17 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 	codegen_call_functions(ds, nodes, output);
 
 	BLI_dynstr_append(ds, "}\n");
+
+	/* XXX This cannot go into gpu_shader_material.glsl because main() would be parsed and generate error */
+	/* Old glsl mode compat. */
+	BLI_dynstr_append(ds, "#ifndef NODETREE_EXEC\n");
+	BLI_dynstr_append(ds, "out vec4 fragColor;\n");
+	BLI_dynstr_append(ds, "void main()\n");
+	BLI_dynstr_append(ds, "{\n");
+	BLI_dynstr_append(ds, "\tClosure cl = nodetree_exec();\n");
+	BLI_dynstr_append(ds, "\tfragColor = vec4(cl.radiance, cl.opacity);\n");
+	BLI_dynstr_append(ds, "}\n");
+	BLI_dynstr_append(ds, "#endif\n\n");
 
 	/* create shader */
 	code = BLI_dynstr_get_cstring(ds);
