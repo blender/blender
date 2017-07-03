@@ -323,7 +323,7 @@ typedef struct ParticleSystem {
 	struct ParticleDrawData *pdd;
 
 	float dt_frac;							/* current time step, as a fraction of a frame */
-	float _pad;								/* spare capacity */
+	float lattice_strength;					/* influence of the lattice modifier */
 } ParticleSystem;
 
 typedef enum eParticleDrawFlag {
