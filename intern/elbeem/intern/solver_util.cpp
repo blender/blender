@@ -855,6 +855,10 @@ void LbmFsgrSolver::advanceParticles() {
 				if(k<=mSizez-1-cutval){ 
 					CellFlagType pflag = RFLAG(level, i,j,k, workSet);
 					//errMsg("PIT move"," at "<<PRINT_IJK<<" flag"<<convertCellFlagType2String(pflag) );
+					if (pflag & CFMbndOutflow) {
+						DEL_PART;
+						continue;
+					}
 					if(pflag & (CFBnd)) {
 						handleObstacleParticle(p);
 						continue;

@@ -199,7 +199,7 @@ struct DerivedMesh {
 	/* use for converting to BMesh which doesn't store bevel weight and edge crease by default */
 	char cd_flag;
 
-	char tangent_mask; /* which tangent layers are calculated */
+	short tangent_mask; /* which tangent layers are calculated */
 
 	/** Calculate vert and face normals */
 	void (*calcNormals)(DerivedMesh *dm);
@@ -767,6 +767,10 @@ void DM_draw_attrib_vertex_uniforms(const DMVertexAttribs *attribs);
 void DM_calc_tangents_names_from_gpu(
         const struct GPUVertexAttribs *gattribs,
         char (*tangent_names)[MAX_NAME], int *tangent_names_count);
+
+void DM_add_named_tangent_layer_for_uv(
+        CustomData *uv_data, CustomData *tan_data, int numLoopData,
+        const char *layer_name);
 
 void DM_calc_loop_tangents(
         DerivedMesh *dm, bool calc_active_tangent, const char (*tangent_names)[MAX_NAME],

@@ -1394,6 +1394,11 @@ static float voronoi_CrS(float x, float y, float z)
 /* returns unsigned cellnoise */
 static float cellNoiseU(float x, float y, float z)
 {
+	/* avoid precision issues on unit coordinates */
+	x = (x + 0.000001f)*0.999999f;
+	y = (y + 0.000001f)*0.999999f;
+	z = (z + 0.000001f)*0.999999f;
+
 	int xi = (int)(floor(x));
 	int yi = (int)(floor(y));
 	int zi = (int)(floor(z));
@@ -1411,6 +1416,11 @@ float cellNoise(float x, float y, float z)
 /* returns a vector/point/color in ca, using point hasharray directly */
 void cellNoiseV(float x, float y, float z, float ca[3])
 {
+	/* avoid precision issues on unit coordinates */
+	x = (x + 0.000001f)*0.999999f;
+	y = (y + 0.000001f)*0.999999f;
+	z = (z + 0.000001f)*0.999999f;
+
 	int xi = (int)(floor(x));
 	int yi = (int)(floor(y));
 	int zi = (int)(floor(z));

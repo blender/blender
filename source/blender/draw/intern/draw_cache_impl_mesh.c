@@ -174,7 +174,7 @@ typedef struct MeshRenderData {
 		struct {
 			CustomData ldata;
 			/* grr, special case variable (use in place of 'dm->tangent_mask') */
-			char tangent_mask;
+			short tangent_mask;
 		} output;
 	} cd;
 

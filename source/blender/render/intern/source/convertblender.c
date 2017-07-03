@@ -3440,10 +3440,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 										if (need_nmap_tangent_concrete || need_tangent) {
 											int uv_start = CustomData_get_layer_index(&dm->faceData, CD_MTFACE);
 											int uv_index = CustomData_get_named_layer_index(&dm->faceData, CD_MTFACE, layer->name);
-											BLI_assert(uv_start >= 0 && uv_index >= 0);
-											if ((uv_start < 0 || uv_index < 0))
-												continue;
-											int n = uv_index - uv_start;
+
+											/* if there are no UVs, orco tangents are in first slot */
+											int n = (uv_start >= 0 && uv_index >= 0) ? uv_index - uv_start : 0;
 
 											const float *tangent = (const float *) layer->data;
 											float *ftang = RE_vlakren_get_nmap_tangent(obr, vlr, n, true);

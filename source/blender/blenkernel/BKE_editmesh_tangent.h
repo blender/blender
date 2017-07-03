@@ -35,6 +35,6 @@ void BKE_editmesh_loop_tangent_calc(
         const float (*vert_orco)[3],
         CustomData *dm_loopdata_out,
         const uint dm_loopdata_out_len,
-        char *tangent_mask_curr_p);
+        short *tangent_mask_curr_p);
 
 #endif /* __BKE_EDITMESH_TANGENT_H__ */

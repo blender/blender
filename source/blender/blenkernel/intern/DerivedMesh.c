@@ -3054,14 +3054,23 @@ void DM_calc_tangents_names_from_gpu(
 	*r_tangent_names_count = count;
 }
 
+void DM_add_named_tangent_layer_for_uv(
+        CustomData *uv_data, CustomData *tan_data, int numLoopData,
+        const char *layer_name)
+{
+	if (CustomData_get_named_layer_index(tan_data, CD_TANGENT, layer_name) == -1 &&
+	    CustomData_get_named_layer_index(uv_data, CD_MLOOPUV, layer_name) != -1)
+	{
+		CustomData_add_layer_named(
+		        tan_data, CD_TANGENT, CD_CALLOC, NULL,
+		        numLoopData, layer_name);
+	}
+}
+
 void DM_calc_loop_tangents(
         DerivedMesh *dm, bool calc_active_tangent,
         const char (*tangent_names)[MAX_NAME], int tangent_names_len)
 {
-	if (CustomData_number_of_layers(&dm->loopData, CD_MLOOPUV) == 0) {
-		return;
-	}
-
 	BKE_mesh_calc_loop_tangent_ex(
 	        dm->getVertArray(dm),
 	        dm->getPolyArray(dm), dm->getNumPolys(dm),
