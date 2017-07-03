@@ -1464,8 +1464,6 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 			}
 
 			if (ob_dst->parent) {
-				invert_m4_m4(ob_dst->parentinv, dob->mat);
-
 				/* note, this may be the parent of other objects, but it should
 				 * still work out ok */
 				BKE_object_apply_mat4(ob_dst, dob->mat, false, true);
@@ -1486,7 +1484,6 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 			ob_dst->partype = PAROBJECT;
 
 			/* similer to the code above, see comments */
-			invert_m4_m4(ob_dst->parentinv, dob->mat);
 			BKE_object_apply_mat4(ob_dst, dob->mat, false, true);
 			DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
 		}
