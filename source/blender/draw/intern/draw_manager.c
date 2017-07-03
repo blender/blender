@@ -2973,9 +2973,6 @@ void DRW_draw_render_loop_ex(
 	DST.viewport = rv3d->viewport;
 	v3d->zbuf = true;
 
-	/* Get list of enabled engines */
-	DRW_engines_enable(scene, sl);
-
 	/* Setup viewport */
 	cache_is_dirty = GPU_viewport_cache_validate(DST.viewport, DRW_engines_get_hash());
 
@@ -2986,6 +2983,9 @@ void DRW_draw_render_loop_ex(
 	};
 
 	DRW_viewport_var_init();
+
+	/* Get list of enabled engines */
+	DRW_engines_enable(scene, sl);
 
 	/* Update ubos */
 	DRW_globals_update();
