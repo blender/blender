@@ -32,6 +32,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_camera.h"
 #include "BKE_object.h"
@@ -402,14 +403,17 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 	                    &tex, 1);
 
 	if (BKE_collection_engine_property_value_get_bool(props, "volumetric_enable")) {
-		/* MinMax Pyramid */
+		/* Integration result */
 		DRWFboTexture tex_vol = {&stl->g_data->volumetric, DRW_TEX_RGBA_16, DRW_TEX_MIPMAP | DRW_TEX_FILTER | DRW_TEX_TEMP};
 
 		DRW_framebuffer_init(&fbl->volumetric_fb, &draw_engine_eevee_type,
 		                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
 		                    &tex_vol, 1);
 
-		effects->enabled_effects |= EFFECT_VOLUMETRIC;
+		World *wo = scene->world;
+		if ((wo != NULL) && (wo->use_nodes != NULL) && (wo->nodetree != NULL)) {
+			effects->enabled_effects |= EFFECT_VOLUMETRIC;
+		}
 	}
 }
 
@@ -441,27 +445,38 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
-	{
-		struct GPUShader *sh = EEVEE_material_world_volume_get(NULL, NULL);
-		psl->volumetric_integrate_ps = DRW_pass_create("Volumetric Integration", DRW_STATE_WRITE_COLOR);
-		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->volumetric_integrate_ps);
-		DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
-		DRW_shgroup_uniform_buffer(grp, "shadowCubes", &sldata->shadow_depth_cube_pool);
-		DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
-		DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
-		DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
-		DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-		DRW_shgroup_uniform_int(grp, "light_count", &sldata->lamps->num_light, 1);
-		DRW_shgroup_uniform_int(grp, "grid_count", &sldata->probes->num_render_grid, 1);
-		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
-		DRW_shgroup_call_add(grp, quad, NULL);
+	if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		Scene *scene = draw_ctx->scene;
+		struct World *wo = scene->world; /* Already checked non NULL */
 
-		psl->volumetric_resolve_ps = DRW_pass_create("Volumetric Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_TRANSMISSION);
-		grp = DRW_shgroup_create(e_data.volumetric_upsample_sh, psl->volumetric_resolve_ps);
-		DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
-		DRW_shgroup_uniform_buffer(grp, "volumetricBuffer", &stl->g_data->volumetric);
-		DRW_shgroup_call_add(grp, quad, NULL);
+		struct GPUMaterial *mat = EEVEE_material_world_volume_get(scene, wo);
+		psl->volumetric_integrate_ps = DRW_pass_create("Volumetric Integration", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_material_create(mat, psl->volumetric_integrate_ps);
+
+		if (grp != NULL) {
+			DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
+			DRW_shgroup_uniform_buffer(grp, "shadowCubes", &sldata->shadow_depth_cube_pool);
+			DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
+			DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+			DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+			DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+			DRW_shgroup_uniform_int(grp, "light_count", &sldata->lamps->num_light, 1);
+			DRW_shgroup_uniform_int(grp, "grid_count", &sldata->probes->num_render_grid, 1);
+			DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+			DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+			DRW_shgroup_call_add(grp, quad, NULL);
+
+			psl->volumetric_resolve_ps = DRW_pass_create("Volumetric Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_TRANSMISSION);
+			grp = DRW_shgroup_create(e_data.volumetric_upsample_sh, psl->volumetric_resolve_ps);
+			DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
+			DRW_shgroup_uniform_buffer(grp, "volumetricBuffer", &stl->g_data->volumetric);
+			DRW_shgroup_call_add(grp, quad, NULL);
+		}
+		else {
+			/* Compilation failled */
+			effects->enabled_effects &= ~EFFECT_VOLUMETRIC;
+		}
 	}
 
 	{

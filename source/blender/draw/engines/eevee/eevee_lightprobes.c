@@ -73,7 +73,6 @@ static struct {
 
 extern char datatoc_background_vert_glsl[];
 extern char datatoc_default_world_frag_glsl[];
-extern char datatoc_fullscreen_vert_glsl[];
 extern char datatoc_lightprobe_filter_glossy_frag_glsl[];
 extern char datatoc_lightprobe_filter_diffuse_frag_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];

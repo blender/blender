@@ -17,6 +17,44 @@ uniform vec4 viewvecs[2];
 #define cameraPos       ViewMatrixInverse[3].xyz
 
 /* ------- Structures -------- */
+#ifdef VOLUMETRICS
+
+#define NODETREE_EXEC
+
+struct Closure {
+	vec3 absorption;
+	vec3 scatter;
+	vec3 emission;
+	float anisotropy;
+};
+
+#define CLOSURE_DEFAULT Closure(vec3(0.0), vec3(0.0), vec3(0.0), 0.0);
+
+Closure closure_mix(Closure cl1, Closure cl2, float fac)
+{
+	Closure cl;
+	cl.absorption = mix(cl1.absorption, cl2.absorption, fac);
+	cl.scatter = mix(cl1.scatter, cl2.scatter, fac);
+	cl.emission = mix(cl1.emission, cl2.emission, fac);
+	cl.anisotropy = mix(cl1.anisotropy, cl2.anisotropy, fac);
+	return cl;
+}
+
+Closure closure_add(Closure cl1, Closure cl2)
+{
+	Closure cl;
+	cl.absorption = cl1.absorption + cl2.absorption;
+	cl.scatter = cl1.scatter + cl2.scatter;
+	cl.emission = cl1.emission + cl2.emission;
+	cl.anisotropy = cl1.anisotropy + cl2.anisotropy;
+	return cl;
+}
+
+Closure nodetree_exec(void); /* Prototype */
+
+
+#endif /* VOLUMETRICS */
+
 
 struct LightData {
 	vec4 position_influence;      /* w : InfluenceRadius */

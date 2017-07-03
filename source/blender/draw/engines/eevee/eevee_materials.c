@@ -63,8 +63,8 @@
 /* *********** STATIC *********** */
 static struct {
 	char *frag_shader_lib;
+	char *volume_shader_lib;
 
-	struct GPUShader *default_volume_sh;
 	struct GPUShader *default_prepass_sh;
 	struct GPUShader *default_prepass_clip_sh;
 	struct GPUShader *default_lit[VAR_MAT_MAX];
@@ -273,6 +273,12 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 
 		ds_frag = BLI_dynstr_new();
 		BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
+		BLI_dynstr_append(ds_frag, datatoc_volumetric_frag_glsl);
+		e_data.volume_shader_lib = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+
+		ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
 		BLI_dynstr_append(ds_frag, datatoc_default_frag_glsl);
 		frag_str = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);
@@ -287,16 +293,6 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 		e_data.default_prepass_clip_sh = DRW_shader_create(
 		        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl,
 		        "#define CLIP_PLANES\n");
-
-		MEM_freeN(frag_str);
-
-		ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
-		BLI_dynstr_append(ds_frag, datatoc_volumetric_frag_glsl);
-		frag_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.default_volume_sh = DRW_shader_create_fullscreen(frag_str, SHADER_DEFINES "#define STEP_INTEGRATE\n");
 
 		MEM_freeN(frag_str);
 
@@ -403,9 +399,19 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
 	        SHADER_DEFINES "#define WORLD_BACKGROUND\n");
 }
 
-struct GPUShader *EEVEE_material_world_volume_get(struct Scene *UNUSED(scene), World *UNUSED(wo))
+struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *wo)
 {
-	return e_data.default_volume_sh;
+	const void *engine = &DRW_engine_viewport_eevee_type;
+	int options = VAR_WORLD_VOLUME;
+
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine, options);
+	if (mat != NULL) {
+		return mat;
+	}
+	return GPU_material_from_nodetree(
+	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
+	        datatoc_background_vert_glsl, NULL, e_data.volume_shader_lib,
+	        SHADER_DEFINES "#define VOLUMETRICS\n");
 }
 
 struct GPUMaterial *EEVEE_material_mesh_get(
@@ -785,7 +791,7 @@ void EEVEE_materials_free(void)
 		DRW_SHADER_FREE_SAFE(e_data.default_lit[i]);
 	}
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
-	DRW_SHADER_FREE_SAFE(e_data.default_volume_sh);
+	MEM_SAFE_FREE(e_data.volume_shader_lib);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_clip_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_background);

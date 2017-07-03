@@ -50,6 +50,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
 enum {
 	VAR_WORLD_BACKGROUND,
 	VAR_WORLD_PROBE,
+	VAR_WORLD_VOLUME,
 };
 
 /* Material shader variations */
@@ -424,7 +425,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
 struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
-struct GPUShader *EEVEE_material_world_volume_get(struct Scene *scene, struct World *wo);
+struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_mesh_lightprobe_get(struct Scene *scene, Material *ma);
 struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);

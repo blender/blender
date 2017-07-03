@@ -41,9 +41,9 @@ static bNodeSocketTemplate sh_node_volume_scatter_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_volume_scatter(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
+static int node_shader_gpu_volume_scatter(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return false;
+	return GPU_stack_link(mat, "node_volume_scatter", in, out);
 }
 
 /* node type definition */

@@ -2653,8 +2653,8 @@ layout(std140) uniform lightSource {
 	glLight glLightSource[NUM_LIGHTS];
 };
 
+#ifndef VOLUMETRICS
 /* bsdfs */
-
 void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 {
 	/* ambient light */
@@ -2905,13 +2905,18 @@ void node_ambient_occlusion(vec4 color, out Closure result)
 {
 	result = Closure(color.rgb, color.a);
 }
+#endif /* VOLUMETRICS */
 
 /* emission */
 
 void node_emission(vec4 color, float strength, vec3 N, out Closure result)
 {
+#ifndef VOLUMETRICS
 	color *= strength;
 	result = Closure(color.rgb, color.a);
+#else
+	result = Closure(vec3(0.0), vec3(0.0), color.rgb * strength, 0.0);
+#endif
 }
 
 /* background */
@@ -2931,8 +2936,23 @@ void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
 
 void node_background(vec4 color, float strength, out Closure result)
 {
+#ifndef VOLUMETRICS
 	color *= strength;
 	result = Closure(color.rgb, color.a);
+#else
+	result = CLOSURE_DEFAULT;
+#endif
+}
+
+/* volumes */
+
+void node_volume_scatter(vec4 color, float density, float anisotropy, out Closure result)
+{
+#ifdef VOLUMETRICS
+	result = Closure(vec3(0.0), color.rgb * density, vec3(0.0), anisotropy);
+#else
+	result = CLOSURE_DEFAULT;
+#endif
 }
 
 /* closures */
@@ -3947,9 +3967,14 @@ uniform float backgroundAlpha;
 
 void node_output_world(Closure surface, Closure volume, out Closure result)
 {
+#ifndef VOLUMETRICS
 	result = Closure(surface.radiance, backgroundAlpha);
+#else
+	result = volume;
+#endif /* VOLUMETRICS */
 }
 
+#ifndef VOLUMETRICS
 /* TODO : clean this ifdef mess */
 /* EEVEE output */
 #ifdef EEVEE_ENGINE
@@ -3982,7 +4007,8 @@ void node_output_eevee_material(Closure surface, out Closure result)
 	result = Closure(surface.radiance, length(viewPosition));
 }
 
-#endif
+#endif /* EEVEE_ENGINE */
+#endif /* VOLUMETRICS */
 
 /* ********************** matcap style render ******************** */
 

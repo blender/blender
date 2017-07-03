@@ -1,9 +1,41 @@
 
 out vec4 FragColor;
 
-#ifdef STEP_INTEGRATE
+#ifdef VOLUMETRICS
 
 uniform sampler2D depthFull;
+
+void participating_media_properties(vec3 wpos, out vec3 absorption, out vec3 scattering, out float anisotropy)
+{
+	Closure cl = nodetree_exec();
+
+	absorption = cl.absorption;
+	scattering = cl.scatter;
+	anisotropy = cl.anisotropy;
+}
+
+float phase_function_isotropic()
+{
+	return 1.0 / (4.0 * M_PI);
+}
+
+float phase_function(vec3 v, vec3 l, float g)
+{
+#if 1
+	/* Henyey-Greenstein */
+	float cos_theta = dot(v, l);
+	float sqr_g = g * g;
+	return (1- sqr_g) / (4.0 * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0 / 2.0));
+#else
+	return phase_function_isotropic();
+#endif
+}
+
+vec3 light_volume(LightData ld, vec4 l_vector, vec3 l_col)
+{
+	float dist = max(1e-4, abs(l_vector.w - ld.l_radius));
+	return l_col * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI) / (dist * dist);
+}
 
 float find_next_step(float near, float far, float noise, int iter, int iter_count)
 {
@@ -20,38 +52,6 @@ float find_next_step(float near, float far, float noise, int iter, int iter_coun
 	else {
 		return linear_split;
 	}
-}
-
-void participating_media_properties(vec3 wpos, out vec3 absorption, out vec3 scattering, out float anisotropy)
-{
-	/* TODO Call nodetree from here. */
-	absorption = vec3(0.00);
-	scattering = vec3(1.0) * step(-1.0, -wpos.z);
-
-	anisotropy = -0.8;
-}
-
-float phase_function_isotropic()
-{
-	return 1.0 / (4.0 * M_PI);
-}
-
-float phase_function(vec3 v, vec3 l, float g)
-{
-#if 0
-	/* Henyey-Greenstein */
-	float cos_theta = dot(v, l);
-	float sqr_g = g * g;
-	return (1- sqr_g) / (4.0 * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0 / 2.0));
-#else
-	return phase_function_isotropic();
-#endif
-}
-
-vec3 light_volume(LightData ld, vec4 l_vector, vec3 l_col)
-{
-	float dist = max(1e-4, abs(l_vector.w - ld.l_radius));
-	return l_col * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI) / (dist * dist);
 }
 
 /* Based on Frosbite Unified Volumetric.
