@@ -158,7 +158,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			}
 
 			/* diffuse */
-			if(fabsf(average(base_color)) > CLOSURE_WEIGHT_CUTOFF) {
+			if(fabsf(average(mixed_ss_base_color)) > CLOSURE_WEIGHT_CUTOFF) {
 				if(subsurface < CLOSURE_WEIGHT_CUTOFF && diffuse_weight > CLOSURE_WEIGHT_CUTOFF) {
 					float3 diff_weight = weight * base_color * diffuse_weight;
 

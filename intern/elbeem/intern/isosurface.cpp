@@ -15,6 +15,7 @@
 #include "particletracer.h"
 #include <algorithm>
 #include <stdio.h>
+#include <cmath>
 
 #ifdef sun
 #include "ieeefp.h"
@@ -24,6 +25,8 @@
 #ifndef round
 #define round(x) (x)
 #endif
+
+using std::isfinite;
 
 /******************************************************************************
  * Constructor

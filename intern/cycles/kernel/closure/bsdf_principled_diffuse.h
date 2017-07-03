@@ -58,6 +58,14 @@ ccl_device int bsdf_principled_diffuse_setup(PrincipledDiffuseBsdf *bsdf)
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
+ccl_device bool bsdf_principled_diffuse_merge(const ShaderClosure *a, const ShaderClosure *b)
+{
+	const PrincipledDiffuseBsdf *bsdf_a = (const PrincipledDiffuseBsdf*)a;
+	const PrincipledDiffuseBsdf *bsdf_b = (const PrincipledDiffuseBsdf*)b;
+
+	return (isequal_float3(bsdf_a->N, bsdf_b->N) && bsdf_a->roughness == bsdf_b->roughness);
+}
+
 ccl_device float3 bsdf_principled_diffuse_eval_reflect(const ShaderClosure *sc, const float3 I,
 	const float3 omega_in, float *pdf)
 {

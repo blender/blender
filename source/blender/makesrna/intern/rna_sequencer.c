@@ -341,7 +341,7 @@ static void rna_Sequence_use_translation_set(PointerRNA *ptr, int value)
 		}
 	}
 	else {
-		seq->flag ^= SEQ_USE_TRANSFORM;
+		seq->flag &= ~SEQ_USE_TRANSFORM;
 	}
 }
 
@@ -355,7 +355,7 @@ static void rna_Sequence_use_crop_set(PointerRNA *ptr, int value)
 		}
 	}
 	else {
-		seq->flag ^= SEQ_USE_CROP;
+		seq->flag &= ~SEQ_USE_CROP;
 	}
 }
 

@@ -374,9 +374,9 @@ ccl_device_inline bool isfinite3_safe(float3 v)
 
 ccl_device_inline float3 ensure_finite3(float3 v)
 {
-	if(!isfinite_safe(v.x)) v.x = 0.0;
-	if(!isfinite_safe(v.y)) v.y = 0.0;
-	if(!isfinite_safe(v.z)) v.z = 0.0;
+	if(!isfinite_safe(v.x)) v.x = 0.0f;
+	if(!isfinite_safe(v.y)) v.y = 0.0f;
+	if(!isfinite_safe(v.z)) v.z = 0.0f;
 	return v;
 }
 

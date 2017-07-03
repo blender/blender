@@ -1562,12 +1562,8 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	BKE_ptcache_id_time(&pid, scene, ctime, &startframe, &endframe, NULL);
 	cache = rbw->pointcache;
 
-	if (ctime <= startframe) {
-		rbw->ltime = startframe;
-		return;
-	}
 	/* make sure we don't go out of cache frame range */
-	else if (ctime > endframe) {
+	if (ctime > endframe) {
 		ctime = endframe;
 	}
 
@@ -1583,7 +1579,6 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 
 	if (BKE_ptcache_read(&pid, ctime, can_simulate)) {
 		BKE_ptcache_validate(cache, (int)ctime);
-		rbw->ltime = ctime;
 		return;
 	}
 
