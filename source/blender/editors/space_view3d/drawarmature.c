@@ -1903,6 +1903,11 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		}
 	}
 	
+	/* custom bone may draw outline double-width */
+	if (arm->flag & ARM_POSEMODE) {
+		glLineWidth(1.0f);
+	}
+
 	/* draw custom bone shapes as wireframes */
 	if (!(arm->flag & ARM_NO_CUSTOM) &&
 	    (draw_wire || (dt <= OB_WIRE)) )
@@ -1967,11 +1972,6 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			GPU_select_load_id(index & 0xFFFF);
 			index = -1;
 		}
-	}
-	
-	/* custom bone may draw outline double-width */
-	if (arm->flag & ARM_POSEMODE) {
-		glLineWidth(1.0f);
 	}
 
 	/* wire draw over solid only in posemode */
