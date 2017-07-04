@@ -2955,6 +2955,15 @@ void node_volume_scatter(vec4 color, float density, float anisotropy, out Closur
 #endif
 }
 
+void node_volume_absorption(vec4 color, float density, out Closure result)
+{
+#ifdef VOLUMETRICS
+	result = Closure((1.0 - color.rgb) * density, vec3(0.0), vec3(0.0), 0.0);
+#else
+	result = CLOSURE_DEFAULT;
+#endif
+}
+
 /* closures */
 
 void node_mix_shader(float fac, Closure shader1, Closure shader2, out Closure shader)
