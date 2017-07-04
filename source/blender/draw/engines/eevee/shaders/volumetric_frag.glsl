@@ -5,13 +5,19 @@ out vec4 FragColor;
 
 uniform sampler2D depthFull;
 
-void participating_media_properties(vec3 wpos, out vec3 absorption, out vec3 scattering, out float anisotropy)
+void participating_media_properties(vec3 wpos, out vec3 extinction, out vec3 scattering, out float anisotropy)
 {
 	Closure cl = nodetree_exec();
 
-	absorption = cl.absorption;
 	scattering = cl.scatter;
 	anisotropy = cl.anisotropy;
+	extinction = max(vec3(1e-8), cl.absorption + cl.scatter); /* mu_t */
+}
+
+vec3 participating_media_extinction(vec3 wpos)
+{
+	Closure cl = nodetree_exec();
+	return max(vec3(1e-8), cl.absorption + cl.scatter); /* mu_t */
 }
 
 float phase_function_isotropic()
@@ -24,6 +30,7 @@ float phase_function(vec3 v, vec3 l, float g)
 #if 1
 	/* Henyey-Greenstein */
 	float cos_theta = dot(v, l);
+	g = clamp(g, -1.0 + 1e-3, 1.0 - 1e-3);
 	float sqr_g = g * g;
 	return (1- sqr_g) / (4.0 * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0 / 2.0));
 #else
@@ -31,10 +38,46 @@ float phase_function(vec3 v, vec3 l, float g)
 #endif
 }
 
-vec3 light_volume(LightData ld, vec4 l_vector, vec3 l_col)
+vec3 light_volume(LightData ld, vec4 l_vector)
 {
+	float power;
 	float dist = max(1e-4, abs(l_vector.w - ld.l_radius));
-	return l_col * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI) / (dist * dist);
+	/* TODO : put this out of the shader. */
+	/* Removing Area Power. */
+	if (ld.l_type == AREA) {
+		power = 0.0962 * (ld.l_sizex * ld.l_sizey * 4.0f * M_PI);
+	}
+	else {
+		power = 0.0248 * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI);
+	}
+	return ld.l_color * power / (l_vector.w * l_vector.w);
+}
+
+vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, vec3 s_extinction)
+{
+#ifdef VOLUME_SHADOW
+
+#ifdef VOLUME_HOMOGENEOUS
+	/* Simple extinction */
+	return exp(-s_extinction * l_vector.w);
+#else
+	/* Heterogeneous volume shadows */
+	const float numStep = 16.0;
+	float dd = l_vector.w / numStep;
+	vec3 L = l_vector.xyz * l_vector.w;
+	vec3 shadow = vec3(1.0);
+	/* start at 0.5 to sample at center of integral part */
+	for (float s = 0.5; s < (numStep - 0.1); s += 1.0) {
+		vec3 pos = ray_wpos + L * (s / numStep);
+		vec3 s_extinction = participating_media_extinction(pos);
+		shadow *= exp(-s_extinction * dd);
+	}
+	return shadow;
+#endif /* VOLUME_HOMOGENEOUS */
+
+#else
+	return vec3(1.0);
+#endif /* VOLUME_SHADOW */
 }
 
 float find_next_step(float near, float far, float noise, int iter, int iter_count)
@@ -96,11 +139,9 @@ void main()
 		vec3 ray_wpos = ray_origin + wdir_proj * dist;
 
 		/* Volume Sample */
-		vec3 s_absorption, s_scattering; /* mu_a, mu_s */
+		vec3 s_extinction, s_scattering; /* mu_a, mu_t */
 		float s_anisotropy;
-		participating_media_properties(ray_wpos, s_absorption, s_scattering, s_anisotropy);
-
-		vec3 s_extinction = max(vec3(1e-8), s_absorption + s_scattering); /* mu_t */
+		participating_media_properties(ray_wpos, s_extinction, s_scattering, s_anisotropy);
 
 		/* Evaluate each light */
 		vec3 Lscat = vec3(0.0);
@@ -113,12 +154,9 @@ void main()
 			l_vector.xyz = ld.l_position - ray_wpos;
 			l_vector.w = length(l_vector.xyz);
 
-#if 1 /* Shadows & Spots */
 			float Vis = light_visibility(ld, ray_wpos, l_vector);
-#else
-			float Vis = 1.0;
-#endif
-			vec3 Li = light_volume(ld, l_vector, ld.l_color);
+
+			vec3 Li = light_volume(ld, l_vector) * light_volume_shadow(ld, ray_wpos, l_vector, s_extinction);
 
 			Lscat += Li * Vis * s_scattering * phase_function(-wdir, l_vector.xyz / l_vector.w, s_anisotropy);
 		}
