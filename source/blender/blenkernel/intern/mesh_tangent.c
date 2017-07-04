@@ -645,7 +645,7 @@ void BKE_mesh_calc_loop_tangent_ex(
 				    tangent_mask_curr |= DM_TANGENT_MASK_ORCO;
 				}
 				else {
-				    int uv_ind = CustomData_get_named_layer_index(loopdata, CD_MLOOPUV, loopdata->layers[index].name);
+				    int uv_ind = CustomData_get_named_layer_index(loopdata, CD_MLOOPUV, loopdata_out->layers[index].name);
 				    int uv_start = CustomData_get_layer_index(loopdata, CD_MLOOPUV);
 				    BLI_assert(uv_ind != -1 && uv_start != -1);
 				    BLI_assert(uv_ind - uv_start < MAX_MTFACE);
