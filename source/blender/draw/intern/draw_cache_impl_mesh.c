@@ -241,7 +241,7 @@ static bool bm_edge_has_visible_face(const BMEdge *e)
 
 static void mesh_cd_calc_used_gpu_layers(
         CustomData *UNUSED(cd_vdata), uchar cd_vused[CD_NUMTYPES],
-        CustomData *cd_ldata, uchar cd_lused[CD_NUMTYPES],
+        CustomData *cd_ldata, ushort cd_lused[CD_NUMTYPES],
         struct GPUMaterial **gpumat_array, int gpumat_array_len)
 {
 	/* See: DM_vertex_attributes_from_gpu for similar logic */
@@ -307,6 +307,11 @@ static void mesh_cd_calc_used_gpu_layers(
 						}
 						if (layer != -1) {
 							cd_lused[CD_TANGENT] |= (1 << layer);
+						}
+						else {
+							/* no UV layers at all => requesting orco */
+							cd_lused[CD_TANGENT] |= DM_TANGENT_MASK_ORCO;
+							cd_vused[CD_ORCO] |= 1;
 						}
 						break;
 					}
@@ -477,7 +482,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 		/* Add edge/poly if we need them */
 		uchar cd_vused[CD_NUMTYPES] = {0};
-		uchar cd_lused[CD_NUMTYPES] = {0};
+		ushort cd_lused[CD_NUMTYPES] = {0};
 
 		mesh_cd_calc_used_gpu_layers(
 		        cd_vdata, cd_vused,
@@ -647,6 +652,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 				}
 			}
 
+			/* If tangent from orco is requested, decrement tangent_len */
+			int actual_tangent_len = (cd_lused[CD_TANGENT] & DM_TANGENT_MASK_ORCO) ?
+						rdata->cd.layers.tangent_len - 1 : rdata->cd.layers.tangent_len;
 			if (rdata->edit_bmesh) {
 				BMEditMesh *em = rdata->edit_bmesh;
 				BMesh *bm = em->bm;
@@ -661,7 +669,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 				BKE_editmesh_loop_tangent_calc(
 				        em, calc_active_tangent,
-				        tangent_names, rdata->cd.layers.tangent_len,
+				        tangent_names, actual_tangent_len,
 				        poly_normals, loop_normals,
 				        rdata->orco,
 				        &rdata->cd.output.ldata, bm->totloop,
@@ -687,7 +695,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 				        rdata->mlooptri, rdata->tri_len,
 				        cd_ldata,
 				        calc_active_tangent,
-				        tangent_names, rdata->cd.layers.tangent_len,
+				        tangent_names, actual_tangent_len,
 				        poly_normals, loop_normals,
 				        rdata->orco,
 				        &rdata->cd.output.ldata, me->totloop,
@@ -708,7 +716,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 			BLI_assert(CustomData_number_of_layers(&rdata->cd.output.ldata, CD_TANGENT) == rdata->cd.layers.tangent_len);
 
-			for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
+			int i_dst = 0;
+			for (int i_src = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
 				if ((cd_lused[CD_TANGENT] & (1 << i_src)) == 0) {
 					i_dst--;
 					if (rdata->cd.layers.tangent_active >= i_src) {
@@ -732,6 +741,13 @@ static MeshRenderData *mesh_render_data_create_ex(
 						BLI_assert(rdata->cd.layers.tangent[i_dst] != NULL);
 					}
 				}
+			}
+			if (cd_lused[CD_TANGENT] & DM_TANGENT_MASK_ORCO) {
+				const char *name = CustomData_get_layer_name(&rdata->cd.output.ldata, CD_TANGENT, i_dst);
+				unsigned int hash = BLI_ghashutil_strhash_p(name);
+				BLI_snprintf(rdata->cd.uuid.tangent[i_dst], sizeof(*rdata->cd.uuid.tangent), "t%u", hash);
+
+				rdata->cd.layers.tangent[i_dst] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i_dst);
 			}
 		}
 

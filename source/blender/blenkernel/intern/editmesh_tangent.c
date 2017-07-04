@@ -287,8 +287,6 @@ void BKE_editmesh_loop_tangent_calc(
 {
 	BMesh *bm = em->bm;
 
-	BLI_assert(CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV) != 0);
-
 	int act_uv_n = -1;
 	int ren_uv_n = -1;
 	bool calc_act = false;
@@ -374,7 +372,7 @@ void BKE_editmesh_loop_tangent_calc(
 						continue;
 					/* needed for orco lookups */
 					htype_index |= BM_VERT;
-					*tangent_mask_curr_p |= DM_TANGENT_MASK_ORCO;
+					tangent_mask_curr |= DM_TANGENT_MASK_ORCO;
 				}
 				else {
 					/* Fill the resulting tangent_mask */
@@ -382,7 +380,7 @@ void BKE_editmesh_loop_tangent_calc(
 					int uv_start = CustomData_get_layer_index(&bm->ldata, CD_MLOOPUV);
 					BLI_assert(uv_ind != -1 && uv_start != -1);
 					BLI_assert(uv_ind - uv_start < MAX_MTFACE);
-					*tangent_mask_curr_p |= 1 << (uv_ind - uv_start);
+					tangent_mask_curr |= 1 << (uv_ind - uv_start);
 				}
 				if (mesh2tangent->precomputedFaceNormals) {
 					/* needed for face normal lookups */

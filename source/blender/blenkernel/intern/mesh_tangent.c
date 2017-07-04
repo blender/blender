@@ -573,7 +573,7 @@ void BKE_mesh_calc_loop_tangent_ex(
 			if (tangent_names[i][0])
 				BKE_mesh_add_loop_tangent_named_layer_for_uv(loopdata, loopdata_out, (int)loopdata_out_len, tangent_names[i]);
 		if ((tangent_mask & DM_TANGENT_MASK_ORCO) && CustomData_get_named_layer_index(loopdata, CD_TANGENT, "") == -1)
-			    CustomData_add_layer_named(loopdata, CD_TANGENT, CD_CALLOC, NULL, (int)loopdata_out_len, "");
+			    CustomData_add_layer_named(loopdata_out, CD_TANGENT, CD_CALLOC, NULL, (int)loopdata_out_len, "");
 		if (calc_act && act_uv_name[0])
 			BKE_mesh_add_loop_tangent_named_layer_for_uv(loopdata, loopdata_out, (int)loopdata_out_len, act_uv_name);
 		if (calc_ren && ren_uv_name[0])
@@ -642,14 +642,14 @@ void BKE_mesh_calc_loop_tangent_ex(
 				    if (!mesh2tangent->orco)
 					    continue;
 
-				    *tangent_mask_curr_p |= DM_TANGENT_MASK_ORCO;
+				    tangent_mask_curr |= DM_TANGENT_MASK_ORCO;
 				}
 				else {
 				    int uv_ind = CustomData_get_named_layer_index(loopdata, CD_MLOOPUV, loopdata->layers[index].name);
 				    int uv_start = CustomData_get_layer_index(loopdata, CD_MLOOPUV);
 				    BLI_assert(uv_ind != -1 && uv_start != -1);
 				    BLI_assert(uv_ind - uv_start < MAX_MTFACE);
-				    *tangent_mask_curr_p |= (short)(1 << (uv_ind - uv_start));
+				    tangent_mask_curr |= (short)(1 << (uv_ind - uv_start));
 				}
 
 				mesh2tangent->tangent = loopdata_out->layers[index].data;
