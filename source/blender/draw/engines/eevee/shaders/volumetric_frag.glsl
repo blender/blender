@@ -1,7 +1,12 @@
 
-out vec4 FragColor;
-
 #ifdef VOLUMETRICS
+
+#ifdef COLOR_TRANSMITTANCE
+layout(location = 0) out vec4 outScattering;
+layout(location = 1) out vec4 outTransmittance;
+#else
+out vec4 outScatteringTransmittance;
+#endif
 
 uniform sampler2D depthFull;
 
@@ -43,6 +48,7 @@ vec3 light_volume(LightData ld, vec4 l_vector)
 	float power;
 	float dist = max(1e-4, abs(l_vector.w - ld.l_radius));
 	/* TODO : put this out of the shader. */
+	/* TODO : Area lighting ? */
 	/* Removing Area Power. */
 	if (ld.l_type == AREA) {
 		power = 0.0962 * (ld.l_sizex * ld.l_sizey * 4.0f * M_PI);
@@ -185,12 +191,19 @@ void main()
 			break;
 	}
 
+#ifdef COLOR_TRANSMITTANCE
+	outScattering = vec4(scattering, 1.0);
+	outTransmittance = vec4(transmittance, 1.0);
+#else
 	float mono_transmittance = dot(transmittance, vec3(1.0)) / 3.0;
 
-	FragColor = vec4(scattering, mono_transmittance);
+	outScatteringTransmittance = vec4(scattering, mono_transmittance);
+#endif
 }
 
 #else /* STEP_UPSAMPLE */
+
+out vec4 FragColor;
 
 uniform sampler2D depthFull;
 uniform sampler2D volumetricBuffer;

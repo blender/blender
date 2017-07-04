@@ -96,6 +96,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *minmaxz_copydepth;
 	struct DRWPass *volumetric_integrate_ps;
 	struct DRWPass *volumetric_resolve_ps;
+	struct DRWPass *volumetric_resolve_transmit_ps;
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
@@ -405,6 +406,7 @@ typedef struct EEVEE_PrivateData {
 	struct GHash *hair_material_hash;
 	struct GPUTexture *minmaxz;
 	struct GPUTexture *volumetric;
+	struct GPUTexture *volumetric_transmit;
 	float background_alpha; /* TODO find a better place for this. */
 	float viewvecs[2][4];
 	/* For planar probes */

@@ -411,7 +411,8 @@ struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *
 	return GPU_material_from_nodetree(
 	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
 	        datatoc_background_vert_glsl, NULL, e_data.volume_shader_lib,
-	        SHADER_DEFINES "#define VOLUMETRICS\n");
+	        SHADER_DEFINES "#define VOLUMETRICS\n"
+	        "#define COLOR_TRANSMITTANCE\n");
 }
 
 struct GPUMaterial *EEVEE_material_mesh_get(

@@ -403,12 +403,25 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 	                    &tex, 1);
 
 	if (BKE_collection_engine_property_value_get_bool(props, "volumetric_enable")) {
-		/* Integration result */
-		DRWFboTexture tex_vol = {&stl->g_data->volumetric, DRW_TEX_RGBA_16, DRW_TEX_MIPMAP | DRW_TEX_FILTER | DRW_TEX_TEMP};
+		/* Integration result buffer(s) */
+		if (false) { /* TODO check and free the framebuffer if config changes */
+			/* Monocromatic transmittance in alpha */
+			DRWFboTexture tex_vol = {&stl->g_data->volumetric, DRW_TEX_RGBA_16, DRW_TEX_MIPMAP | DRW_TEX_FILTER | DRW_TEX_TEMP};
 
-		DRW_framebuffer_init(&fbl->volumetric_fb, &draw_engine_eevee_type,
-		                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
-		                    &tex_vol, 1);
+			DRW_framebuffer_init(&fbl->volumetric_fb, &draw_engine_eevee_type,
+			                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
+			                    &tex_vol, 1);
+		}
+		else {
+			/* Transmittance is separated, No need for alpha and DRW_TEX_RGB_11_11_10 gives the same vram usage */
+			/* Hint ! Could reuse this for transparency! */
+			DRWFboTexture tex_vol[2] = {{&stl->g_data->volumetric, DRW_TEX_RGB_11_11_10, DRW_TEX_MIPMAP | DRW_TEX_FILTER | DRW_TEX_TEMP},
+			                            {&stl->g_data->volumetric_transmit, DRW_TEX_RGB_11_11_10, DRW_TEX_MIPMAP | DRW_TEX_FILTER | DRW_TEX_TEMP}};
+
+			DRW_framebuffer_init(&fbl->volumetric_fb, &draw_engine_eevee_type,
+			                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
+			                    tex_vol, 2);
+		}
 
 		World *wo = scene->world;
 		if ((wo != NULL) && (wo->use_nodes) && (wo->nodetree != NULL)) {
@@ -467,11 +480,26 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 			DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 			DRW_shgroup_call_add(grp, quad, NULL);
 
-			psl->volumetric_resolve_ps = DRW_pass_create("Volumetric Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_TRANSMISSION);
-			grp = DRW_shgroup_create(e_data.volumetric_upsample_sh, psl->volumetric_resolve_ps);
-			DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
-			DRW_shgroup_uniform_buffer(grp, "volumetricBuffer", &stl->g_data->volumetric);
-			DRW_shgroup_call_add(grp, quad, NULL);
+			if (false) { /* Monochromatic transmittance */
+				psl->volumetric_resolve_ps = DRW_pass_create("Volumetric Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_TRANSMISSION);
+				grp = DRW_shgroup_create(e_data.volumetric_upsample_sh, psl->volumetric_resolve_ps);
+				DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
+				DRW_shgroup_uniform_buffer(grp, "volumetricBuffer", &stl->g_data->volumetric);
+				DRW_shgroup_call_add(grp, quad, NULL);
+			}
+			else {
+				psl->volumetric_resolve_transmit_ps = DRW_pass_create("Volumetric Transmittance Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_MULTIPLY);
+				grp = DRW_shgroup_create(e_data.volumetric_upsample_sh, psl->volumetric_resolve_transmit_ps);
+				DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
+				DRW_shgroup_uniform_buffer(grp, "volumetricBuffer", &stl->g_data->volumetric_transmit);
+				DRW_shgroup_call_add(grp, quad, NULL);
+
+				psl->volumetric_resolve_ps = DRW_pass_create("Volumetric Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
+				grp = DRW_shgroup_create(e_data.volumetric_upsample_sh, psl->volumetric_resolve_ps);
+				DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
+				DRW_shgroup_uniform_buffer(grp, "volumetricBuffer", &stl->g_data->volumetric);
+				DRW_shgroup_call_add(grp, quad, NULL);
+			}
 		}
 		else {
 			/* Compilation failled */
@@ -645,16 +673,25 @@ void EEVEE_effects_do_volumetrics(EEVEE_Data *vedata)
 
 		/* Compute volumetric integration at halfres. */
 		DRW_framebuffer_texture_attach(fbl->volumetric_fb, stl->g_data->volumetric, 0, 0);
+		DRW_framebuffer_texture_attach(fbl->volumetric_fb, stl->g_data->volumetric_transmit, 1, 0);
 		DRW_framebuffer_bind(fbl->volumetric_fb);
 		DRW_draw_pass(psl->volumetric_integrate_ps);
 
 		/* Resolve at fullres */
 		DRW_framebuffer_texture_detach(dtxl->depth);
 		DRW_framebuffer_bind(fbl->main);
-		DRW_draw_pass(psl->volumetric_resolve_ps);
+		if (false) {
+			DRW_draw_pass(psl->volumetric_resolve_ps);
+		}
+		else {
+			DRW_draw_pass(psl->volumetric_resolve_transmit_ps);
+			DRW_draw_pass(psl->volumetric_resolve_ps);
+		}
 
 		/* Restore */
 		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
+		DRW_framebuffer_texture_detach(stl->g_data->volumetric);
+		DRW_framebuffer_texture_detach(stl->g_data->volumetric_transmit);
 	}
 }
 
