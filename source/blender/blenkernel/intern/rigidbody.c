@@ -1485,24 +1485,60 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle)
 {
 	RigidBodyOb *rbo = ob->rigidbody_object;
+	bool correct_delta = !(rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE);
 
 	/* return rigid body and object to their initial states */
 	copy_v3_v3(rbo->pos, ob->loc);
 	copy_v3_v3(ob->loc, loc);
 
+	if (correct_delta) {
+		add_v3_v3(rbo->pos, ob->dloc);
+	}
+
 	if (ob->rotmode > 0) {
-		eulO_to_quat(rbo->orn, ob->rot, ob->rotmode);
+		float qt[4];
+		eulO_to_quat(qt, ob->rot, ob->rotmode);
+
+		if (correct_delta) {
+			float dquat[4];
+			eulO_to_quat(dquat, ob->drot, ob->rotmode);
+
+			mul_qt_qtqt(rbo->orn, dquat, qt);
+		}
+		else {
+			copy_qt_qt(rbo->orn, qt);
+		}
+
 		copy_v3_v3(ob->rot, rot);
 	}
 	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-		axis_angle_to_quat(rbo->orn, ob->rotAxis, ob->rotAngle);
+		float qt[4];
+		axis_angle_to_quat(qt, ob->rotAxis, ob->rotAngle);
+
+		if (correct_delta) {
+			float dquat[4];
+			axis_angle_to_quat(dquat, ob->drotAxis, ob->drotAngle);
+
+			mul_qt_qtqt(rbo->orn, dquat, qt);
+		}
+		else {
+			copy_qt_qt(rbo->orn, qt);
+		}
+
 		copy_v3_v3(ob->rotAxis, rotAxis);
 		ob->rotAngle = rotAngle;
 	}
 	else {
-		copy_qt_qt(rbo->orn, ob->quat);
+		if (correct_delta) {
+			mul_qt_qtqt(rbo->orn, ob->dquat, ob->quat);
+		}
+		else {
+			copy_qt_qt(rbo->orn, ob->quat);
+		}
+
 		copy_qt_qt(ob->quat, quat);
 	}
+
 	if (rbo->physics_object) {
 		/* allow passive objects to return to original transform */
 		if (rbo->type == RBO_TYPE_PASSIVE)
@@ -1514,8 +1550,9 @@ void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], flo
 
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
 {
-	if (rbw)
+	if (rbw) {
 		rbw->pointcache->flag |= PTCACHE_OUTDATED;
+	}
 }
 
 /* ------------------ */
@@ -1576,6 +1613,10 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	/* try to read from cache */
 	// RB_TODO deal with interpolated, old and baked results
 	bool can_simulate = (ctime == rbw->ltime + 1) && !(cache->flag & PTCACHE_BAKED);
+
+	if (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0) {
+		rbw->ltime = cache->startframe;
+	}
 
 	if (BKE_ptcache_read(&pid, ctime, can_simulate)) {
 		BKE_ptcache_validate(cache, (int)ctime);
