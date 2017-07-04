@@ -1517,7 +1517,6 @@ void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
 {
 	if (rbw) {
 		rbw->pointcache->flag |= PTCACHE_OUTDATED;
-		rbw->ltime = rbw->pointcache->startframe;
 	}
 }
 
@@ -1579,6 +1578,10 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	/* try to read from cache */
 	// RB_TODO deal with interpolated, old and baked results
 	bool can_simulate = (ctime == rbw->ltime + 1) && !(cache->flag & PTCACHE_BAKED);
+
+	if (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0) {
+		rbw->ltime = cache->startframe;
+	}
 
 	if (BKE_ptcache_read(&pid, ctime, can_simulate)) {
 		BKE_ptcache_validate(cache, (int)ctime);
