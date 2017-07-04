@@ -411,7 +411,7 @@ void EEVEE_effects_init(EEVEE_Data *vedata)
 		                    &tex_vol, 1);
 
 		World *wo = scene->world;
-		if ((wo != NULL) && (wo->use_nodes != NULL) && (wo->nodetree != NULL)) {
+		if ((wo != NULL) && (wo->use_nodes) && (wo->nodetree != NULL)) {
 			effects->enabled_effects |= EFFECT_VOLUMETRIC;
 		}
 	}
