@@ -1515,8 +1515,10 @@ void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], flo
 
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
 {
-	if (rbw)
+	if (rbw) {
 		rbw->pointcache->flag |= PTCACHE_OUTDATED;
+		rbw->ltime = rbw->pointcache->startframe;
+	}
 }
 
 /* ------------------ */
