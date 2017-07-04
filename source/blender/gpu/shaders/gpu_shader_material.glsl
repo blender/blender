@@ -2469,7 +2469,11 @@ float hypot(float x, float y)
 
 void generated_from_orco(vec3 orco, out vec3 generated)
 {
+#ifdef VOLUMETRICS
+	generated = worldPosition;
+#else
 	generated = orco;
+#endif
 }
 
 int floor_to_int(float x)
@@ -3068,7 +3072,11 @@ void node_geometry(
         out vec3 true_normal, out vec3 incoming, out vec3 parametric,
         out float backfacing, out float pointiness)
 {
+#ifdef EEVEE_ENGINE
+	position = worldPosition;
+#else
 	position = (toworld * vec4(I, 1.0)).xyz;
+#endif
 	normal = (toworld * vec4(N, 0.0)).xyz;
 	tangent_orco_z(orco, orco);
 	node_tangent(N, orco, objmat, toworld, tangent);

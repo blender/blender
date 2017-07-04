@@ -107,6 +107,7 @@ float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
 	}
 
+#if !defined(VOLUMETRICS) || defined(SHADOWS)
 	/* shadowing */
 	if (ld.l_shadowid >= (MAX_SHADOW_MAP + MAX_SHADOW_CUBE)) {
 		vis *= shadow_cascade(ld.l_shadowid, W);
@@ -114,6 +115,7 @@ float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 	else if (ld.l_shadowid >= 0.0) {
 		vis *= shadow_cubemap(ld.l_shadowid, l_vector);
 	}
+#endif
 
 	return vis;
 }

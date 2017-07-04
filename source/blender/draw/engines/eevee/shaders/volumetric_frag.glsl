@@ -1,6 +1,8 @@
 
 #ifdef VOLUMETRICS
 
+uniform int light_count;
+
 #ifdef COLOR_TRANSMITTANCE
 layout(location = 0) out vec4 outScattering;
 layout(location = 1) out vec4 outTransmittance;
@@ -8,21 +10,38 @@ layout(location = 1) out vec4 outTransmittance;
 out vec4 outScatteringTransmittance;
 #endif
 
+/* Warning: theses are not attributes, theses are global vars. */
+vec3 worldPosition = vec3(0.0);
+vec3 viewPosition = vec3(0.0);
+vec3 viewNormal = vec3(0.0);
+
 uniform sampler2D depthFull;
 
-void participating_media_properties(vec3 wpos, out vec3 extinction, out vec3 scattering, out float anisotropy)
+void participating_media_properties(vec3 wpos, out vec3 extinction, out vec3 scattering, out vec3 emission, out float anisotropy)
 {
+#ifndef VOLUME_HOMOGENEOUS
+	worldPosition = wpos;
+	viewPosition = (ViewMatrix * vec4(wpos, 1.0)).xyz; /* warning, Perf. */
+#endif
+
 	Closure cl = nodetree_exec();
 
 	scattering = cl.scatter;
+	emission = cl.emission;
 	anisotropy = cl.anisotropy;
-	extinction = max(vec3(1e-8), cl.absorption + cl.scatter); /* mu_t */
+	extinction = max(vec3(1e-4), cl.absorption + cl.scatter);
 }
 
 vec3 participating_media_extinction(vec3 wpos)
 {
+#ifndef VOLUME_HOMOGENEOUS
+	worldPosition = wpos;
+	viewPosition = (ViewMatrix * vec4(wpos, 1.0)).xyz; /* warning, Perf. */
+#endif
+
 	Closure cl = nodetree_exec();
-	return max(vec3(1e-8), cl.absorption + cl.scatter); /* mu_t */
+
+	return max(vec3(1e-4), cl.absorption + cl.scatter);
 }
 
 float phase_function_isotropic()
@@ -32,7 +51,7 @@ float phase_function_isotropic()
 
 float phase_function(vec3 v, vec3 l, float g)
 {
-#if 1
+#ifndef VOLUME_ISOTROPIC
 	/* Henyey-Greenstein */
 	float cos_theta = dot(v, l);
 	g = clamp(g, -1.0 + 1e-3, 1.0 - 1e-3);
@@ -47,9 +66,9 @@ vec3 light_volume(LightData ld, vec4 l_vector)
 {
 	float power;
 	float dist = max(1e-4, abs(l_vector.w - ld.l_radius));
-	/* TODO : put this out of the shader. */
 	/* TODO : Area lighting ? */
 	/* Removing Area Power. */
+	/* TODO : put this out of the shader. */
 	if (ld.l_type == AREA) {
 		power = 0.0962 * (ld.l_sizex * ld.l_sizey * 4.0f * M_PI);
 	}
@@ -57,6 +76,16 @@ vec3 light_volume(LightData ld, vec4 l_vector)
 		power = 0.0248 * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI);
 	}
 	return ld.l_color * power / (l_vector.w * l_vector.w);
+}
+
+vec3 irradiance_volumetric(vec3 wpos)
+{
+	IrradianceData ir_data = load_irradiance_cell(0, vec3(1.0));
+	vec3 irradiance = ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2];
+	ir_data = load_irradiance_cell(0, vec3(-1.0));
+	irradiance += ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2];
+	irradiance *= 0.16666666; /* 1/6 */
+	return irradiance;
 }
 
 vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, vec3 s_extinction)
@@ -72,7 +101,6 @@ vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, vec3 s_exti
 	float dd = l_vector.w / numStep;
 	vec3 L = l_vector.xyz * l_vector.w;
 	vec3 shadow = vec3(1.0);
-	/* start at 0.5 to sample at center of integral part */
 	for (float s = 0.5; s < (numStep - 0.1); s += 1.0) {
 		vec3 pos = ray_wpos + L * (s / numStep);
 		vec3 s_extinction = participating_media_extinction(pos);
@@ -130,6 +158,13 @@ void main()
 		? cameraPos
 		: (ViewMatrixInverse * vec4(get_view_space_from_depth(uv, 0.5), 1.0)).xyz;
 
+#ifdef VOLUME_HOMOGENEOUS
+	/* Put it out of the loop for homogeneous media. */
+	vec3 s_extinction, s_scattering, s_emission;
+	float s_anisotropy;
+	participating_media_properties(vec3(0.0), s_extinction, s_scattering, s_emission, s_anisotropy);
+#endif
+
 	/* Start from near clip. TODO make start distance an option. */
 	float rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).r;
 	/* Less noisy but noticeable patterns, could work better with temporal AA. */
@@ -144,15 +179,16 @@ void main()
 
 		vec3 ray_wpos = ray_origin + wdir_proj * dist;
 
-		/* Volume Sample */
-		vec3 s_extinction, s_scattering; /* mu_a, mu_t */
+#ifndef VOLUME_HOMOGENEOUS
+		vec3 s_extinction, s_scattering, s_emission;
 		float s_anisotropy;
-		participating_media_properties(ray_wpos, s_extinction, s_scattering, s_anisotropy);
+		participating_media_properties(ray_wpos, s_extinction, s_scattering, s_emission, s_anisotropy);
+#endif
 
 		/* Evaluate each light */
-		vec3 Lscat = vec3(0.0);
+		vec3 Lscat = s_emission;
 
-#if 1 /* Lights */
+#ifdef VOLUME_LIGHTING /* Lights */
 		for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
 			LightData ld = lights_data[i];
 
@@ -169,11 +205,7 @@ void main()
 #endif
 
 		/* Environment : Average color. */
-		IrradianceData ir_data = load_irradiance_cell(0, vec3(1.0));
-		Lscat += (ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2]) * 0.333333 * s_scattering * phase_function_isotropic();
-
-		ir_data = load_irradiance_cell(0, vec3(-1.0));
-		Lscat += (ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2]) * 0.333333 * s_scattering * phase_function_isotropic();
+		Lscat += irradiance_volumetric(wpos) * s_scattering * phase_function_isotropic();
 
 		/* Evaluate Scattering */
 		float s_len = wlen * step;
