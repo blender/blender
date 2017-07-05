@@ -241,9 +241,9 @@ string OpenCLCache::get_kernel_md5()
 }
 
 OpenCLDeviceBase::OpenCLProgram::OpenCLProgram(OpenCLDeviceBase *device,
-                                               string program_name,
-                                               string kernel_file,
-                                               string kernel_build_options,
+                                               const string& program_name,
+                                               const string& kernel_file,
+                                               const string& kernel_build_options,
                                                bool use_stdout)
  : device(device),
    program_name(program_name),
@@ -274,7 +274,7 @@ void OpenCLDeviceBase::OpenCLProgram::release()
 	}
 }
 
-void OpenCLDeviceBase::OpenCLProgram::add_log(string msg, bool debug)
+void OpenCLDeviceBase::OpenCLProgram::add_log(const string& msg, bool debug)
 {
 	if(!use_stdout) {
 		log += msg + "\n";
@@ -288,7 +288,7 @@ void OpenCLDeviceBase::OpenCLProgram::add_log(string msg, bool debug)
 	}
 }
 
-void OpenCLDeviceBase::OpenCLProgram::add_error(string msg)
+void OpenCLDeviceBase::OpenCLProgram::add_error(const string& msg)
 {
 	if(use_stdout) {
 		fprintf(stderr, "%s\n", msg.c_str());
@@ -707,7 +707,7 @@ bool OpenCLInfo::device_version_check(cl_device_id device,
 	return true;
 }
 
-string OpenCLInfo::get_hardware_id(string platform_name, cl_device_id device_id)
+string OpenCLInfo::get_hardware_id(const string& platform_name, cl_device_id device_id)
 {
 	if(platform_name == "AMD Accelerated Parallel Processing" || platform_name == "Apple") {
 		/* Use cl_amd_device_topology extension. */

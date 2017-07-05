@@ -263,7 +263,7 @@ public:
 	explicit OpenCLSplitKernel(OpenCLDeviceSplitKernel *device) : DeviceSplitKernel(device), device(device) {
 	}
 
-	virtual SplitKernelFunction* get_split_kernel_function(string kernel_name,
+	virtual SplitKernelFunction* get_split_kernel_function(const string& kernel_name,
 	                                                       const DeviceRequestedFeatures& requested_features)
 	{
 		OpenCLSplitKernelFunction* kernel = new OpenCLSplitKernelFunction(device, cached_memory);
