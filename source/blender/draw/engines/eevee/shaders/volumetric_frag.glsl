@@ -181,7 +181,7 @@ void main()
 	// float rand = (1.0 / 16.0) * float(((int(gl_FragCoord.x + gl_FragCoord.y) & 0x3) << 2) + (int(gl_FragCoord.x) & 0x3));
 	float dist = volume_start;
 	for (float i = 0.5; i < VOLUMETRIC_INTEGRATION_MAX_STEP && i < (volume_integration_steps - 0.1); ++i) {
-		float new_dist = find_next_step(rand, i);
+		float new_dist = max(max_z, find_next_step(rand, i));
 		float step = dist - new_dist; /* Marching step */
 		dist = new_dist;
 
@@ -227,7 +227,7 @@ void main()
 		/* Evaluate transmittance to view independantely */
 		transmittance *= Tr;
 
-		if (dist < max_z)
+		if (dist <= max_z)
 			break;
 	}
 
