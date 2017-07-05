@@ -276,6 +276,20 @@ void OpenCLDeviceBase::mem_alloc(const char *name, device_memory& mem, MemoryTyp
 
 	size_t size = mem.memory_size();
 
+	/* check there is enough memory available for the allocation */
+	cl_ulong max_alloc_size = 0;
+	clGetDeviceInfo(cdDevice, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &max_alloc_size, NULL);
+
+	if(size > max_alloc_size) {
+		string error = "Scene too complex to fit in available memory.";
+		if(name != NULL) {
+			error += string_printf(" (allocating buffer %s failed.)", name);
+		}
+		set_error(error);
+
+		return;
+	}
+
 	cl_mem_flags mem_flag;
 	void *mem_ptr = NULL;
 
