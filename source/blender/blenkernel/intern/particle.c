@@ -3410,6 +3410,9 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int index, const f
 		if (from_vert) {
 			mf = dm->getTessFaceDataArray(dm, CD_MFACE);
 
+			/* This finds the first face to contain the emitting vertex,
+			 * this is not ideal, but is mostly fine as UV seams generally
+			 * map to equal-colored parts of a texture */
 			for (int j = 0; j < dm->getNumTessFaces(dm); j++, mf++) {
 				if (ELEM(i, mf->v1, mf->v2, mf->v3, mf->v4)) {
 					i = j;

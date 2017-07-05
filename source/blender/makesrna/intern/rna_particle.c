@@ -492,6 +492,9 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
 
 				*r_fuv = &particle->fuv;
 
+				/* This finds the first face to contain the emitting vertex,
+				 * this is not ideal, but is mostly fine as UV seams generally
+				 * map to equal-colored parts of a texture */
 				for (int i = 0; i < totface; i++, mface++) {
 					if (ELEM(num, mface->v1, mface->v2, mface->v3, mface->v4)) {
 						return i;
@@ -531,6 +534,9 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
 
 					*r_fuv = &parent->fuv;
 
+					/* This finds the first face to contain the emitting vertex,
+					 * this is not ideal, but is mostly fine as UV seams generally
+					 * map to equal-colored parts of a texture */
 					for (int i = 0; i < totface; i++, mface++) {
 						if (ELEM(num, mface->v1, mface->v2, mface->v3, mface->v4)) {
 							return i;
