@@ -1923,6 +1923,9 @@ void DRW_state_reset_ex(DRWState state)
 
 void DRW_state_reset(void)
 {
+	/* Reset blending function */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	DRW_state_reset_ex(DRW_STATE_DEFAULT);
 }
 
@@ -3036,6 +3039,7 @@ void DRW_draw_render_loop_ex(
 	if (DST.draw_ctx.evil_C) {
 		/* needed so manipulator isn't obscured */
 		glDisable(GL_DEPTH_TEST);
+
 		DRW_draw_manipulator();
 		glEnable(GL_DEPTH_TEST);
 
