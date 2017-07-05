@@ -125,7 +125,8 @@ public:
 	                                            device_memory& use_queues_flag,
 	                                            device_memory& work_pool_wgs) = 0;
 
-	virtual SplitKernelFunction* get_split_kernel_function(string kernel_name, const DeviceRequestedFeatures&) = 0;
+	virtual SplitKernelFunction* get_split_kernel_function(const string& kernel_name,
+	                                                       const DeviceRequestedFeatures&) = 0;
 	virtual int2 split_kernel_local_size() = 0;
 	virtual int2 split_kernel_global_size(device_memory& kg, device_memory& data, DeviceTask *task) = 0;
 };

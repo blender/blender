@@ -286,9 +286,9 @@ void InverseSearchRadiusOperation::initExecution()
 	this->m_inputRadius = this->getInputSocketReader(0);
 }
 
-voi *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
+void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 {
-	MemoryBuffer * data = new MemoryBuffer(NULL, rect);
+	MemoryBuffer * data = new MemoryBuffer(COM_DT_COLOR, rect);
 	float *buffer = data->getBuffer();
 	int x, y;
 	int width = this->m_inputRadius->getWidth();
@@ -343,7 +343,7 @@ voi *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 void InverseSearchRadiusOperation::executePixelChunk(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *buffer = (MemoryBuffer *)data;
-	buffer->readNoCheck(color, x, y);
+	buffer->readNoCheck(output, x, y);
 }
 
 void InverseSearchRadiusOperation::deinitializeTileData(rcti *rect, void *data) 

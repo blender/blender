@@ -427,12 +427,34 @@ static int distribute_binary_search(float *sum, int n, float value)
 static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, int p)
 {
 	ParticleThreadContext *ctx= thread->ctx;
-	int rng_skip_tot= PSYS_RND_DIST_SKIP; /* count how many rng_* calls wont need skipping */
+	MFace *mface;
+
+	DM_ensure_tessface(ctx->dm);
+	mface = ctx->dm->getTessFaceDataArray(ctx->dm, CD_MFACE);
+
+	int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls wont need skipping */
 
 	/* TODO_PARTICLE - use original index */
-	pa->num= ctx->index[p];
-	pa->fuv[0] = 1.0f;
-	pa->fuv[1] = pa->fuv[2] = pa->fuv[3] = 0.0;
+	pa->num = ctx->index[p];
+
+	zero_v4(pa->fuv);
+
+	if (pa->num != DMCACHE_NOTFOUND && pa->num < ctx->dm->getNumVerts(ctx->dm)) {
+		for (int i = 0; i < ctx->dm->getNumTessFaces(ctx->dm); i++, mface++) {
+			if (ELEM(pa->num, mface->v1, mface->v2, mface->v3, mface->v4)) {
+				unsigned int *vert = &mface->v1;
+
+				for (int j = 0; j < 4; j++, vert++) {
+					if (*vert == pa->num) {
+						pa->fuv[j] = 1.0f;
+						break;
+					}
+				}
+
+				break;
+			}
+		}
+	}
 	
 #if ONLY_WORKING_WITH_PA_VERTS
 	if (ctx->tree) {
