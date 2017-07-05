@@ -5,7 +5,7 @@ out vec3 varposition;
 out vec3 varnormal;
 out vec3 viewPosition;
 
-#ifdef VOLUMETRICS
+#ifndef VOLUMETRICS
 /* necessary for compilation*/
 out vec3 worldPosition;
 out vec3 worldNormal;
