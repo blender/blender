@@ -1197,6 +1197,10 @@ int RNA_function_call_direct_va(struct bContext *C, struct ReportList *reports, 
 int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr,
                                        const char *identifier, const char *format, va_list args);
 
+const char *RNA_translate_ui_text(const char *text, const char *text_ctxt,
+                                  struct StructRNA *type, struct PropertyRNA *prop,
+                                  int translate);
+
 /* ID */
 
 short RNA_type_to_ID_code(const StructRNA *type);

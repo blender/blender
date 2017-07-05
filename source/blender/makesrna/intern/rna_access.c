@@ -6720,6 +6720,13 @@ int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, Pointer
 	return 0;
 }
 
+const char *RNA_translate_ui_text(
+        const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop,
+        int translate)
+{
+	return rna_translate_ui_text(text, text_ctxt, type, prop, translate);
+}
+
 bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	int len;
