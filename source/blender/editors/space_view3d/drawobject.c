@@ -8434,7 +8434,7 @@ void draw_object_wire_color(Scene *scene, SceneLayer *sl, Base *base, unsigned c
 					theme_id = TH_GROUP_ACTIVE;
 
 					if (sl->basact != base) {
-						theme_shade = -16;
+						theme_shade = -32;
 					}
 				}
 				else {
