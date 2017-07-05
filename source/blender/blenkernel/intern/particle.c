@@ -3374,7 +3374,8 @@ void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const 
 /*			Textures							*/
 /************************************************/
 
-static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, const float fuv[4], char *name, float *texco)
+static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int index, const float fuv[4],
+                           char *name, float *texco, bool from_vert)
 {
 	MFace *mf;
 	MTFace *tf;
@@ -3390,11 +3391,15 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 
 	if (pa) {
 		i = ELEM(pa->num_dmcache, DMCACHE_NOTFOUND, DMCACHE_ISCHILD) ? pa->num : pa->num_dmcache;
-		if (i >= dm->getNumTessFaces(dm))
+		if ((!from_vert && i >= dm->getNumTessFaces(dm)) ||
+		    (from_vert && i >= dm->getNumVerts(dm)))
+		{
 			i = -1;
+		}
 	}
-	else
-		i = face_index;
+	else {
+		i = index;
+	}
 
 	if (i == -1) {
 		texco[0] = 0.0f;
@@ -3402,7 +3407,19 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 		texco[2] = 0.0f;
 	}
 	else {
-		mf = dm->getTessFaceData(dm, i, CD_MFACE);
+		if (from_vert) {
+			mf = dm->getTessFaceDataArray(dm, CD_MFACE);
+
+			for (int j = 0; j < dm->getNumTessFaces(dm); j++, mf++) {
+				if (ELEM(i, mf->v1, mf->v2, mf->v3, mf->v4)) {
+					i = j;
+					break;
+				}
+			}
+		}
+		else {
+			mf = dm->getTessFaceData(dm, i, CD_MFACE);
+		}
 
 		psys_interpolate_uvs(&tf[i], mf->v4, fuv, texco);
 
@@ -3469,8 +3486,11 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 						mul_m4_v3(mtex->object->imat, texvec);
 					break;
 				case TEXCO_UV:
-					if (fw && get_particle_uv(dm, NULL, face_index, fw, mtex->uvname, texvec))
+					if (fw && get_particle_uv(dm, NULL, face_index, fw, mtex->uvname,
+					                          texvec, (part->from == PART_FROM_VERT)))
+					{
 						break;
+					}
 					/* no break, failed to get uv's, so let's try orco's */
 					ATTR_FALLTHROUGH;
 				case TEXCO_ORCO:
@@ -3542,8 +3562,11 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 						mul_m4_v3(mtex->object->imat, texvec);
 					break;
 				case TEXCO_UV:
-					if (get_particle_uv(sim->psmd->dm_final, pa, 0, pa->fuv, mtex->uvname, texvec))
+					if (get_particle_uv(sim->psmd->dm_final, pa, 0, pa->fuv, mtex->uvname,
+					                    texvec, (part->from == PART_FROM_VERT)))
+					{
 						break;
+					}
 					/* no break, failed to get uv's, so let's try orco's */
 					ATTR_FALLTHROUGH;
 				case TEXCO_ORCO:
