@@ -239,7 +239,15 @@ class RENDERLAYER_PT_eevee_volumetric(RenderLayerButtonsPanel, Panel):
         layer_props = layer.engine_overrides['BLENDER_EEVEE']
 
         col = layout.column()
-        # to be completed
+        col.prop(props, "volumetric_start")
+        col.prop(props, "volumetric_end")
+        col.prop(props, "volumetric_samples")
+        col.prop(props, "volumetric_sample_distribution")
+        col.prop(props, "volumetric_lights")
+        col.prop(props, "volumetric_light_clamp")
+        col.prop(props, "volumetric_shadows")
+        col.prop(props, "volumetric_shadow_samples")
+        col.prop(props, "volumetric_colored_transmittance")
 
 
 classes = (

@@ -191,10 +191,10 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
 
 	BKE_collection_engine_property_add_bool(props, "volumetric_enable", false);
-	BKE_collection_engine_property_add_float(props, "volumetric_start", 0.1);
-	BKE_collection_engine_property_add_float(props, "volumetric_end", 100.0);
+	BKE_collection_engine_property_add_float(props, "volumetric_start", 0.1f);
+	BKE_collection_engine_property_add_float(props, "volumetric_end", 100.0f);
 	BKE_collection_engine_property_add_int(props, "volumetric_samples", 64);
-	BKE_collection_engine_property_add_float(props, "volumetric_sample_distribution", 0.8);
+	BKE_collection_engine_property_add_float(props, "volumetric_sample_distribution", 0.8f);
 	BKE_collection_engine_property_add_bool(props, "volumetric_lights", true);
 	BKE_collection_engine_property_add_float(props, "volumetric_light_clamp", 0.0f);
 	BKE_collection_engine_property_add_bool(props, "volumetric_shadows", false);
