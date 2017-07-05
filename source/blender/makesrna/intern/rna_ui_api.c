@@ -918,6 +918,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	parm = RNA_def_string(func, "property", NULL, 0, "", "Identifier of property in collection_properties");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	api_ui_item_common(func);
 	parm = RNA_def_string(func, "custom_template", NULL, 0, "", "Optional template to use for property");
 
 	func = RNA_def_function(srna, "template_component_menu", "uiTemplateComponentMenu");
