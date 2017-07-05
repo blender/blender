@@ -46,7 +46,7 @@ Closure closure_add(Closure cl1, Closure cl2)
 	cl.absorption = cl1.absorption + cl2.absorption;
 	cl.scatter = cl1.scatter + cl2.scatter;
 	cl.emission = cl1.emission + cl2.emission;
-	cl.anisotropy = cl1.anisotropy + cl2.anisotropy;
+	cl.anisotropy = (cl1.anisotropy + cl2.anisotropy) / 2.0; /* Average phase (no multi lobe) */
 	return cl;
 }
 
