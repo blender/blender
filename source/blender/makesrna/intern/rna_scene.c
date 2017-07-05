@@ -2618,6 +2618,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(volumetric_end)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(volumetric_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(volumetric_sample_distribution)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_lights)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(volumetric_light_clamp)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_shadows)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(volumetric_shadow_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_colored_transmittance)
@@ -6220,6 +6221,14 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_volumetric_lights_get",
 	                               "rna_LayerEngineSettings_Eevee_volumetric_lights_set");
 	RNA_def_property_ui_text(prop, "Volumetric Lighting", "Enable scene lamps interactions with volumetrics");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "volumetric_light_clamp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_volumetric_light_clamp_get",
+	                               "rna_LayerEngineSettings_Eevee_volumetric_light_clamp_set", NULL);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Clamp", "Maximum light contribution, reducing noise");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 

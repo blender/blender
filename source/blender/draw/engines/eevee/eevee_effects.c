@@ -434,6 +434,12 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 			volumetrics->sample_distribution = BKE_collection_engine_property_value_get_float(props, "volumetric_sample_distribution");
 			volumetrics->integration_step_count = (float)BKE_collection_engine_property_value_get_int(props, "volumetric_samples");
 			volumetrics->shadow_step_count = (float)BKE_collection_engine_property_value_get_int(props, "volumetric_shadow_samples");
+			volumetrics->light_clamp = BKE_collection_engine_property_value_get_float(props, "volumetric_light_clamp");
+
+			/* Disable clamp if equal to 0. */
+			if (volumetrics->light_clamp == 0.0) {
+				volumetrics->light_clamp = FLT_MAX;
+			}
 
 			volumetrics->use_lights = BKE_collection_engine_property_value_get_bool(props, "volumetric_lights");
 			volumetrics->use_volume_shadows = BKE_collection_engine_property_value_get_bool(props, "volumetric_shadows");
@@ -522,7 +528,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 			DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 			DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 			DRW_shgroup_uniform_vec2(grp, "volume_start_end", &sldata->volumetrics->integration_start, 1);
-			DRW_shgroup_uniform_vec3(grp, "volume_samples", &sldata->volumetrics->integration_step_count, 1);
+			DRW_shgroup_uniform_vec4(grp, "volume_samples_clamp", &sldata->volumetrics->integration_step_count, 1);
 			DRW_shgroup_call_add(grp, quad, NULL);
 
 			if (volumetrics->use_colored_transmit == false) { /* Monochromatic transmittance */

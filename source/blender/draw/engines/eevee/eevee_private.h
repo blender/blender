@@ -188,7 +188,7 @@ typedef struct EEVEE_ShadowRender {
 
 /* ************ VOLUME DATA ************ */
 typedef struct EEVEE_VolumetricsInfo {
-	float integration_step_count, shadow_step_count, sample_distribution;
+	float integration_step_count, shadow_step_count, sample_distribution, light_clamp;
 	float integration_start, integration_end;
 	bool use_lights, use_volume_shadows, use_colored_transmit;
 } EEVEE_VolumetricsInfo;

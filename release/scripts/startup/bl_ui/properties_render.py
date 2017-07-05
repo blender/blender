@@ -704,6 +704,7 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
         col.prop(props, "volumetric_samples")
         col.prop(props, "volumetric_sample_distribution")
         col.prop(props, "volumetric_lights")
+        col.prop(props, "volumetric_light_clamp")
         col.prop(props, "volumetric_shadows")
         col.prop(props, "volumetric_shadow_samples")
         col.prop(props, "volumetric_colored_transmittance")

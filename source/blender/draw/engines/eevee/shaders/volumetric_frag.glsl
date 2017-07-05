@@ -6,14 +6,15 @@
 
 uniform int light_count;
 uniform vec2 volume_start_end;
-uniform vec3 volume_samples;
+uniform vec4 volume_samples_clamp;
 
 #define volume_start                   volume_start_end.x
 #define volume_end                     volume_start_end.y
 
-#define volume_integration_steps       volume_samples.x
-#define volume_shadows_steps           volume_samples.y
-#define volume_sample_distribution     volume_samples.z
+#define volume_integration_steps       volume_samples_clamp.x
+#define volume_shadows_steps           volume_samples_clamp.y
+#define volume_sample_distribution     volume_samples_clamp.z
+#define volume_light_clamp             volume_samples_clamp.w
 
 #ifdef COLOR_TRANSMITTANCE
 layout(location = 0) out vec4 outScattering;
@@ -74,7 +75,7 @@ float phase_function(vec3 v, vec3 l, float g)
 #endif
 }
 
-vec3 light_volume(LightData ld, vec4 l_vector)
+float light_volume(LightData ld, vec4 l_vector)
 {
 	float power;
 	float dist = max(1e-4, abs(l_vector.w - ld.l_radius));
@@ -87,7 +88,7 @@ vec3 light_volume(LightData ld, vec4 l_vector)
 	else {
 		power = 0.0248 * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI);
 	}
-	return ld.l_color * power / (l_vector.w * l_vector.w);
+	return min(power / (l_vector.w * l_vector.w), volume_light_clamp);
 }
 
 vec3 irradiance_volumetric(vec3 wpos)
@@ -205,7 +206,7 @@ void main()
 
 			float Vis = light_visibility(ld, ray_wpos, l_vector);
 
-			vec3 Li = light_volume(ld, l_vector) * light_volume_shadow(ld, ray_wpos, l_vector, s_extinction);
+			vec3 Li = ld.l_color * light_volume(ld, l_vector) * light_volume_shadow(ld, ray_wpos, l_vector, s_extinction);
 
 			Lscat += Li * Vis * s_scattering * phase_function(-wdir, l_vector.xyz / l_vector.w, s_anisotropy);
 		}
