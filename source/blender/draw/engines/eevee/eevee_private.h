@@ -48,14 +48,14 @@ extern struct DrawEngineType draw_engine_eevee_type;
 
 /* World shader variations */
 enum {
-	VAR_VOLUME_SHADOW     = (1 << 0),
-	VAR_VOLUME_HOMO       = (1 << 1),
-	VAR_VOLUME_LIGHT      = (1 << 2),
-	VAR_VOLUME_COLOR      = (1 << 3),
+	VAR_WORLD_BACKGROUND    = 0,
+	VAR_WORLD_PROBE         = 1,
+	VAR_WORLD_VOLUME        = 2,
 
-	VAR_WORLD_BACKGROUND    = 16,
-	VAR_WORLD_PROBE         = 17,
-	VAR_WORLD_VOLUME        = 18,
+	VAR_VOLUME_SHADOW     = (1 << 2),
+	VAR_VOLUME_HOMO       = (1 << 3),
+	VAR_VOLUME_LIGHT      = (1 << 4),
+	VAR_VOLUME_COLOR      = (1 << 5),
 };
 
 /* Material shader variations */
