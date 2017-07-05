@@ -48,9 +48,14 @@ extern struct DrawEngineType draw_engine_eevee_type;
 
 /* World shader variations */
 enum {
-	VAR_WORLD_BACKGROUND,
-	VAR_WORLD_PROBE,
-	VAR_WORLD_VOLUME,
+	VAR_VOLUME_SHADOW     = (1 << 0),
+	VAR_VOLUME_HOMO       = (1 << 1),
+	VAR_VOLUME_LIGHT      = (1 << 2),
+	VAR_VOLUME_COLOR      = (1 << 3),
+
+	VAR_WORLD_BACKGROUND    = 16,
+	VAR_WORLD_PROBE         = 17,
+	VAR_WORLD_VOLUME        = 18,
 };
 
 /* Material shader variations */
@@ -180,6 +185,13 @@ typedef struct EEVEE_ShadowRender {
 	int layer;
 	float exponent;
 } EEVEE_ShadowRender;
+
+/* ************ VOLUME DATA ************ */
+typedef struct EEVEE_VolumetricsInfo {
+	float integration_step_count, shadow_step_count, sample_distribution;
+	float integration_start, integration_end;
+	bool use_lights, use_volume_shadows, use_colored_transmit;
+} EEVEE_VolumetricsInfo;
 
 /* ************ LIGHT DATA ************* */
 typedef struct EEVEE_LampsInfo {
@@ -358,6 +370,9 @@ typedef struct EEVEE_SceneLayerData {
 	struct GPUTexture *irradiance_rt;
 
 	struct ListBase probe_queue; /* List of probes to update */
+
+	/* Volumetrics */
+	struct EEVEE_VolumetricsInfo *volumetrics;
 } EEVEE_SceneLayerData;
 
 /* ************ OBJECT DATA ************ */
@@ -427,7 +442,8 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
 struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
-struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, struct World *wo);
+struct GPUMaterial *EEVEE_material_world_volume_get(
+        struct Scene *scene, struct World *wo, bool use_lights, bool use_volume_shadows, bool is_homogeneous, bool use_color_transmit);
 struct GPUMaterial *EEVEE_material_mesh_lightprobe_get(struct Scene *scene, Material *ma);
 struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);
@@ -453,10 +469,10 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 void EEVEE_lightprobes_free(void);
 
 /* eevee_effects.c */
-void EEVEE_effects_init(EEVEE_Data *vedata);
+void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src);
-void EEVEE_effects_do_volumetrics(EEVEE_Data *vedata);
+void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_draw_effects(EEVEE_Data *vedata);
 void EEVEE_effects_free(void);
 

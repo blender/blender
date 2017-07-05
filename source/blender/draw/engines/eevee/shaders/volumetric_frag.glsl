@@ -1,7 +1,19 @@
 
 #ifdef VOLUMETRICS
 
+#define VOLUMETRIC_INTEGRATION_MAX_STEP 256
+#define VOLUMETRIC_SHADOW_MAX_STEP 128
+
 uniform int light_count;
+uniform vec2 volume_start_end;
+uniform vec3 volume_samples;
+
+#define volume_start                   volume_start_end.x
+#define volume_end                     volume_start_end.y
+
+#define volume_integration_steps       volume_samples.x
+#define volume_shadows_steps           volume_samples.y
+#define volume_sample_distribution     volume_samples.z
 
 #ifdef COLOR_TRANSMITTANCE
 layout(location = 0) out vec4 outScattering;
@@ -51,7 +63,7 @@ float phase_function_isotropic()
 
 float phase_function(vec3 v, vec3 l, float g)
 {
-#ifndef VOLUME_ISOTROPIC
+#ifndef VOLUME_ISOTROPIC /* TODO Use this flag when only isotropic closures are used */
 	/* Henyey-Greenstein */
 	float cos_theta = dot(v, l);
 	g = clamp(g, -1.0 + 1e-3, 1.0 - 1e-3);
@@ -97,12 +109,11 @@ vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, vec3 s_exti
 	return exp(-s_extinction * l_vector.w);
 #else
 	/* Heterogeneous volume shadows */
-	const float numStep = 16.0;
-	float dd = l_vector.w / numStep;
+	float dd = l_vector.w / volume_shadows_steps;
 	vec3 L = l_vector.xyz * l_vector.w;
 	vec3 shadow = vec3(1.0);
-	for (float s = 0.5; s < (numStep - 0.1); s += 1.0) {
-		vec3 pos = ray_wpos + L * (s / numStep);
+	for (float s = 0.5; s < VOLUMETRIC_SHADOW_MAX_STEP && s < (volume_shadows_steps - 0.1); s += 1.0) {
+		vec3 pos = ray_wpos + L * (s / volume_shadows_steps);
 		vec3 s_extinction = participating_media_extinction(pos);
 		shadow *= exp(-s_extinction * dd);
 	}
@@ -114,17 +125,15 @@ vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, vec3 s_exti
 #endif /* VOLUME_SHADOW */
 }
 
-float find_next_step(float near, float far, float noise, int iter, int iter_count)
+float find_next_step(float iter, float noise)
 {
-	const float lambda = 0.8f; /* TODO : Parameter */
+	float progress = (iter + noise) / volume_integration_steps;
 
-	float progress = (float(iter) + noise) / float(iter_count);
-
-	float linear_split = mix(near, far, progress);
+	float linear_split = mix(volume_start, volume_end, progress);
 
 	if (ProjectionMatrix[3][3] == 0.0) {
-		float exp_split = near * pow(far / near, progress);
-		return mix(linear_split, exp_split, lambda);
+		float exp_split = volume_start * pow(volume_end / volume_start, progress);
+		return mix(linear_split, exp_split, volume_sample_distribution);
 	}
 	else {
 		return linear_split;
@@ -169,11 +178,9 @@ void main()
 	float rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).r;
 	/* Less noisy but noticeable patterns, could work better with temporal AA. */
 	// float rand = (1.0 / 16.0) * float(((int(gl_FragCoord.x + gl_FragCoord.y) & 0x3) << 2) + (int(gl_FragCoord.x) & 0x3));
-	float near = get_view_z_from_depth(0.0);
-	float far  = get_view_z_from_depth(1.0);
-	float dist = near;
-	for (int i = 1; i < 64; ++i) {
-		float new_dist = find_next_step(near, far, rand, i, 64);
+	float dist = volume_start;
+	for (float i = 0.5; i < VOLUMETRIC_INTEGRATION_MAX_STEP && i < (volume_integration_steps - 0.1); ++i) {
+		float new_dist = find_next_step(rand, i);
 		float step = dist - new_dist; /* Marching step */
 		dist = new_dist;
 

@@ -65,7 +65,7 @@ static void EEVEE_engine_init(void *ved)
 	EEVEE_materials_init(stl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);
-	EEVEE_effects_init(vedata);
+	EEVEE_effects_init(sldata, vedata);
 }
 
 static void EEVEE_cache_init(void *vedata)
@@ -161,7 +161,7 @@ static void EEVEE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->material_pass);
 
 	/* Volumetrics */
-	EEVEE_effects_do_volumetrics(vedata);
+	EEVEE_effects_do_volumetrics(sldata, vedata);
 
 	/* Post Process */
 	EEVEE_draw_effects(vedata);
@@ -191,6 +191,14 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
 
 	BKE_collection_engine_property_add_bool(props, "volumetric_enable", false);
+	BKE_collection_engine_property_add_float(props, "volumetric_start", 0.1);
+	BKE_collection_engine_property_add_float(props, "volumetric_end", 100.0);
+	BKE_collection_engine_property_add_int(props, "volumetric_samples", 64);
+	BKE_collection_engine_property_add_float(props, "volumetric_sample_distribution", 0.8);
+	BKE_collection_engine_property_add_bool(props, "volumetric_lights", true);
+	BKE_collection_engine_property_add_bool(props, "volumetric_shadows", false);
+	BKE_collection_engine_property_add_int(props, "volumetric_shadow_samples", 16);
+	BKE_collection_engine_property_add_bool(props, "volumetric_colored_transmittance", true);
 
 	BKE_collection_engine_property_add_bool(props, "gtao_enable", false);
 	BKE_collection_engine_property_add_bool(props, "gtao_use_bent_normals", true);

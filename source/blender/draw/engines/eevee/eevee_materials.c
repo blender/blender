@@ -209,6 +209,35 @@ static char *eevee_get_defines(int options)
 	return str;
 }
 
+static char *eevee_get_volume_defines(int options)
+{
+	char *str = NULL;
+
+	BLI_assert(options < VAR_MAT_MAX);
+
+	DynStr *ds = BLI_dynstr_new();
+	BLI_dynstr_appendf(ds, SHADER_DEFINES);
+	BLI_dynstr_appendf(ds, "#define VOLUMETRICS\n");
+
+	if ((options & VAR_VOLUME_SHADOW) != 0) {
+		BLI_dynstr_appendf(ds, "#define VOLUME_SHADOW\n");
+	}
+	if ((options & VAR_VOLUME_HOMO) != 0) {
+		BLI_dynstr_appendf(ds, "#define VOLUME_HOMOGENEOUS\n");
+	}
+	if ((options & VAR_VOLUME_LIGHT) != 0) {
+		BLI_dynstr_appendf(ds, "#define VOLUME_LIGHTING\n");
+	}
+	if ((options & VAR_VOLUME_COLOR) != 0) {
+		BLI_dynstr_appendf(ds, "#define COLOR_TRANSMITTANCE\n");
+	}
+
+	str = BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+
+	return str;
+}
+
 static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 {
 	DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
@@ -406,20 +435,33 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
 	        SHADER_DEFINES "#define WORLD_BACKGROUND\n");
 }
 
-struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *wo)
+struct GPUMaterial *EEVEE_material_world_volume_get(
+        struct Scene *scene, World *wo,
+        bool use_lights, bool use_volume_shadows, bool is_homogeneous, bool use_color_transmit)
 {
 	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_WORLD_VOLUME;
+
+	if (use_lights) options |= VAR_VOLUME_LIGHT;
+	if (is_homogeneous) options |= VAR_VOLUME_HOMO;
+	if (use_volume_shadows) options |= VAR_VOLUME_SHADOW;
+	if (use_color_transmit) options |= VAR_VOLUME_COLOR;
 
 	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine, options);
 	if (mat != NULL) {
 		return mat;
 	}
-	return GPU_material_from_nodetree(
+
+	char *defines = eevee_get_volume_defines(options);
+
+	mat = GPU_material_from_nodetree(
 	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
 	        datatoc_background_vert_glsl, NULL, e_data.volume_shader_lib,
-	        SHADER_DEFINES "#define VOLUMETRICS\n"
-	        "#define COLOR_TRANSMITTANCE\n");
+	        defines);
+
+	MEM_freeN(defines);
+
+	return mat;
 }
 
 struct GPUMaterial *EEVEE_material_mesh_get(

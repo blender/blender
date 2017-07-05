@@ -616,6 +616,7 @@ class RENDER_PT_clay_collection_settings(RenderButtonsPanel, Panel):
         col.prop(props, "ssao_attenuation")
         col.prop(props, "hair_brightness_randomness")
 
+
 class RENDER_PT_eevee_poststack_settings(RenderButtonsPanel, Panel):
     bl_label = "Post Process Stack"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
@@ -698,7 +699,14 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
 
         layout.active = props.volumetric_enable
         col = layout.column()
-        # to be completed
+        col.prop(props, "volumetric_start")
+        col.prop(props, "volumetric_end")
+        col.prop(props, "volumetric_samples")
+        col.prop(props, "volumetric_sample_distribution")
+        col.prop(props, "volumetric_lights")
+        col.prop(props, "volumetric_shadows")
+        col.prop(props, "volumetric_shadow_samples")
+        col.prop(props, "volumetric_colored_transmittance")
 
 
 classes = (

@@ -61,6 +61,9 @@ static void eevee_scene_layer_data_free(void *storage)
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
 	DRW_TEXTURE_FREE_SAFE(sldata->irradiance_pool);
 	DRW_TEXTURE_FREE_SAFE(sldata->irradiance_rt);
+
+	/* Volumetrics */
+	MEM_SAFE_FREE(sldata->volumetrics);
 }
 
 static void eevee_lamp_data_free(void *storage)
