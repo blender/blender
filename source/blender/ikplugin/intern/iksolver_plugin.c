@@ -217,9 +217,27 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[3][3])   // nr = 
 	copy_m4_m3(ikmat, ik_mat);
 
 	if (pchan->parent)
-		mul_m4_series(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat, ikmat);
+		mul_m4_m4m4(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat);
 	else
-		mul_m4_m4m4(pchan->pose_mat, pchan->chan_mat, ikmat);
+		copy_m4_m4(pchan->pose_mat, pchan->chan_mat);
+
+#ifdef USE_NONUNIFORM_SCALE
+	/* apply IK mat, but as if the bones have uniform scale since the IK solver
+	 * is not aware of non-uniform scale */
+	float scale[3];
+	mat4_to_size(scale, pchan->pose_mat);
+	normalize_v3_length(pchan->pose_mat[0], scale[1]);
+	normalize_v3_length(pchan->pose_mat[2], scale[1]);
+#endif
+
+	mul_m4_m4m4(pchan->pose_mat, pchan->pose_mat, ikmat);
+
+#ifdef USE_NONUNIFORM_SCALE
+	float ik_scale[3];
+	mat3_to_size(ik_scale, ik_mat);
+	normalize_v3_length(pchan->pose_mat[0], scale[0] * ik_scale[0]);
+	normalize_v3_length(pchan->pose_mat[2], scale[2] * ik_scale[2]);
+#endif
 
 	/* calculate head */
 	copy_v3_v3(pchan->pose_head, pchan->pose_mat[3]);
@@ -308,6 +326,10 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		/* change length based on bone size */
 		length = bone->length * len_v3(R_bonemat[1]);
 
+		/* basis must be pure rotation */
+		normalize_m3(R_bonemat);
+		normalize_m3(R_parmat);
+
 		/* compute rest basis and its inverse */
 		copy_m3_m3(rest_basis, bone->bone_mat);
 		transpose_m3_m3(irest_basis, bone->bone_mat);
@@ -317,11 +339,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		mul_m3_m3m3(full_basis, iR_parmat, R_bonemat);
 		mul_m3_m3m3(basis, irest_basis, full_basis);
 
-		/* basis must be pure rotation */
-		normalize_m3(basis);
-
 		/* transform offset into local bone space */
-		normalize_m3(iR_parmat);
 		mul_m3_v3(iR_parmat, start);
 
 		IK_SetTransform(seg, start, rest_basis, basis, length);
@@ -545,18 +563,6 @@ void iksolver_execute_tree(struct Scene *scene, Object *ob,  bPoseChannel *pchan
 			tree->pchan[a]->flag |= POSE_CHAIN;
 		}
 
-#ifdef USE_NONUNIFORM_SCALE
-		float (*pchan_scale_data)[3] = MEM_mallocN(sizeof(float[3]) * tree->totchannel, __func__);
-
-		for (a = 0; a < tree->totchannel; a++) {
-			mat4_to_size(pchan_scale_data[a], tree->pchan[a]->pose_mat);
-
-			/* make uniform at y scale since this controls the length */
-			normalize_v3_length(tree->pchan[a]->pose_mat[0], pchan_scale_data[a][1]);
-			normalize_v3_length(tree->pchan[a]->pose_mat[2], pchan_scale_data[a][1]);
-		}
-#endif
-
 		/* 5. execute the IK solver */
 		execute_posetree(scene, ob, tree);
 
@@ -570,14 +576,6 @@ void iksolver_execute_tree(struct Scene *scene, Object *ob,  bPoseChannel *pchan
 			/* sets POSE_DONE */
 			where_is_ik_bone(tree->pchan[a], tree->basis_change[a]);
 		}
-
-#ifdef USE_NONUNIFORM_SCALE
-		for (a = 0; a < tree->totchannel; a++) {
-			normalize_v3_length(tree->pchan[a]->pose_mat[0], pchan_scale_data[a][0]);
-			normalize_v3_length(tree->pchan[a]->pose_mat[2], pchan_scale_data[a][2]);
-		}
-		MEM_freeN(pchan_scale_data);
-#endif
 
 		/* 7. and free */
 		BLI_remlink(&pchan_root->iktree, tree);
