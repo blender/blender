@@ -1238,7 +1238,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			{
 				if (seq->type == SEQ_TYPE_TEXT) {
 					TextVars *data = seq->effectdata;
-					if (data->color[3] == 0.0f) {
+					if (data != NULL && data->color[3] == 0.0f) {
 						copy_v4_fl(data->color, 1.0f);
 						data->shadow_color[3] = 1.0f;
 					}
