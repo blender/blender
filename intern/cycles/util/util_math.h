@@ -24,6 +24,7 @@
 
 #ifndef __KERNEL_GPU__
 #  include <cmath>
+#  include <algorithm>
 #endif
 
 
@@ -129,6 +130,9 @@ ccl_device_inline double min(double a, double b)
 {
 	return (a < b)? a: b;
 }
+
+using std::min;
+using std::max;
 
 /* These 2 guys are templated for usage with registers data.
  *
