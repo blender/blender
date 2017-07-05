@@ -21,6 +21,8 @@
 #  include <glog/logging.h>
 #endif
 
+#include <iostream>
+
 CCL_NAMESPACE_BEGIN
 
 #if !defined(WITH_CYCLES_LOGGING) || defined(__KERNEL_GPU__)
