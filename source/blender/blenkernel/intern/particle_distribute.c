@@ -440,6 +440,10 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 	zero_v4(pa->fuv);
 
 	if (pa->num != DMCACHE_NOTFOUND && pa->num < ctx->dm->getNumVerts(ctx->dm)) {
+
+		/* This finds the first face to contain the emitting vertex,
+		 * this is not ideal, but is mostly fine as UV seams generally
+		 * map to equal-colored parts of a texture */
 		for (int i = 0; i < ctx->dm->getNumTessFaces(ctx->dm); i++, mface++) {
 			if (ELEM(pa->num, mface->v1, mface->v2, mface->v3, mface->v4)) {
 				unsigned int *vert = &mface->v1;
