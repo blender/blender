@@ -349,6 +349,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 				grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
 
 				if (grp) {
+					DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 					DRW_shgroup_call_add(grp, geom, NULL);
 				}
 				else {
@@ -363,6 +364,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 		if (grp == NULL) {
 			grp = DRW_shgroup_create(e_data.probe_default_sh, psl->probe_background);
 			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
+			DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 			DRW_shgroup_call_add(grp, geom, NULL);
 		}
 	}
