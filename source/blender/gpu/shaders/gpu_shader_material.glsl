@@ -2661,6 +2661,9 @@ layout(std140) uniform lightSource {
 /* bsdfs */
 void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 {
+#ifdef EEVEE_ENGINE
+	vec3 L = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0);
+#else
 	/* ambient light */
 	vec3 L = vec3(0.2);
 
@@ -2672,14 +2675,20 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 		float bsdf = max(dot(N, light_position), 0.0);
 		L += light_diffuse * bsdf;
 	}
+#endif
 
 	result = Closure(L * color.rgb, 1.0);
 }
 
 void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out Closure result)
 {
+#ifdef EEVEE_ENGINE
+	vec3 L = eevee_surface_glossy_lit(N, vec3(1.0), roughness, 1.0);
+#else
 	/* ambient light */
 	vec3 L = vec3(0.2);
+
+	direction_transform_m4v3(N, ViewMatrix, N);
 
 	/* directional lights */
 	for (int i = 0; i < NUM_LIGHTS; i++) {
@@ -2693,6 +2702,7 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out Closure result)
 		bsdf += 0.5 * max(dot(N, light_position), 0.0);
 		L += light_specular * bsdf;
 	}
+#endif
 
 	result = Closure(L * color.rgb, 1.0);
 }

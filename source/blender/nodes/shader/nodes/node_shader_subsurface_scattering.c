@@ -52,9 +52,7 @@ static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNo
 static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[5].link)
-		in[5].link = GPU_builtin(GPU_VIEW_NORMAL);
-	else
-		GPU_link(mat, "direction_transform_m4v3", in[5].link, GPU_builtin(GPU_VIEW_MATRIX), &in[5].link);
+		GPU_link(mat, "world_normals_get", &in[5].link);
 
 	return GPU_stack_link(mat, "node_subsurface_scattering", in, out);
 }

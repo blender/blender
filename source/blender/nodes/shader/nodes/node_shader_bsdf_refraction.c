@@ -50,9 +50,7 @@ static void node_shader_init_refraction(bNodeTree *UNUSED(ntree), bNode *node)
 static int node_shader_gpu_bsdf_refraction(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[3].link)
-		in[3].link = GPU_builtin(GPU_VIEW_NORMAL);
-	else
-		GPU_link(mat, "direction_transform_m4v3", in[3].link, GPU_builtin(GPU_VIEW_MATRIX), &in[3].link);
+		GPU_link(mat, "world_normals_get", &in[3].link);
 
 	return GPU_stack_link(mat, "node_bsdf_refraction", in, out);
 }
