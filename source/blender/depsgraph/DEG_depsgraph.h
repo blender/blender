@@ -182,7 +182,7 @@ void DEG_ids_clear_recalc(struct Main *bmain);
 /* Update Flushing ------------------------------- */
 
 /* Flush updates for all IDs */
-void DEG_ids_flush_tagged(struct Main *bmain);
+void DEG_ids_flush_tagged(struct Main *bmain, struct Scene *scene);
 
 /* Check if something was changed in the database and inform
  * editors about this.

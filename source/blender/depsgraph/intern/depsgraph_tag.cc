@@ -291,18 +291,13 @@ void DEG_id_type_tag(Main *bmain, short idtype)
 /* Recursively push updates out to all nodes dependent on this,
  * until all affected are tagged and/or scheduled up for eval
  */
-void DEG_ids_flush_tagged(Main *bmain)
+void DEG_ids_flush_tagged(Main *bmain, Scene *scene)
 {
-	for (Scene *scene = (Scene *)bmain->scene.first;
-	     scene != NULL;
-	     scene = (Scene *)scene->id.next)
-	{
-		/* TODO(sergey): Only visible scenes? */
-		if (scene->depsgraph != NULL) {
-			DEG::deg_graph_flush_updates(
-			        bmain,
-			        reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph));
-		}
+	/* TODO(sergey): Only visible scenes? */
+	if (scene->depsgraph != NULL) {
+		DEG::deg_graph_flush_updates(
+		        bmain,
+		        reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph));
 	}
 }
 
