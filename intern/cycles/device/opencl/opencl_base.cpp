@@ -20,6 +20,7 @@
 
 #include "kernel/kernel_types.h"
 
+#include "util/util_algorithm.h"
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
 #include "util/util_md5.h"
@@ -279,6 +280,10 @@ void OpenCLDeviceBase::mem_alloc(const char *name, device_memory& mem, MemoryTyp
 	/* check there is enough memory available for the allocation */
 	cl_ulong max_alloc_size = 0;
 	clGetDeviceInfo(cdDevice, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &max_alloc_size, NULL);
+
+	if(DebugFlags().opencl.mem_limit) {
+		max_alloc_size = min(max_alloc_size, DebugFlags().opencl.mem_limit - stats.mem_used);
+	}
 
 	if(size > max_alloc_size) {
 		string error = "Scene too complex to fit in available memory.";

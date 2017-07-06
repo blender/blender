@@ -25,6 +25,7 @@
 
 #include "device/device_split_kernel.h"
 
+#include "util/util_algorithm.h"
 #include "util/util_logging.h"
 #include "util/util_md5.h"
 #include "util/util_path.h"
@@ -423,6 +424,11 @@ public:
 
 		cl_ulong max_buffer_size;
 		clGetDeviceInfo(device->cdDevice, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &max_buffer_size, NULL);
+
+		if(DebugFlags().opencl.mem_limit) {
+			max_buffer_size = min(max_buffer_size, DebugFlags().opencl.mem_limit - device->stats.mem_used);
+		}
+
 		VLOG(1) << "Maximum device allocation size: "
 		        << string_human_readable_number(max_buffer_size) << " bytes. ("
 		        << string_human_readable_size(max_buffer_size) << ").";

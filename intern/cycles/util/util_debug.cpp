@@ -184,8 +184,8 @@ std::ostream& operator <<(std::ostream &os,
 	   << "  Device type    : " << opencl_device_type << "\n"
 	   << "  Kernel type    : " << opencl_kernel_type << "\n"
 	   << "  Debug          : " << string_from_bool(debug_flags.opencl.debug) << "\n"
-	   << "  Single program : " << string_from_bool(debug_flags.opencl.single_program)
-	   << "\n";
+	   << "  Single program : " << string_from_bool(debug_flags.opencl.single_program) << "\n"
+	   << "  Memory limit   : " << string_human_readable_size(debug_flags.opencl.mem_limit) << "\n";
 	return os;
 }
 

@@ -115,6 +115,10 @@ public:
 
 		/* Use single program */
 		bool single_program;
+
+		/* TODO(mai): Currently this is only for OpenCL, but we should have it implemented for all devices. */
+		/* Artificial memory limit in bytes (0 if disabled). */
+		size_t mem_limit;
 	};
 
 	/* Get instance of debug flags registry. */

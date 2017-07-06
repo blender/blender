@@ -1608,6 +1608,7 @@ class CyclesRender_PT_debug(CyclesButtonsPanel, Panel):
         col.prop(cscene, "debug_opencl_device_type", text="Device")
         col.prop(cscene, "debug_opencl_kernel_single_program", text="Single Program")
         col.prop(cscene, "debug_use_opencl_debug", text="Debug")
+        col.prop(cscene, "debug_opencl_mem_limit")
 
 
 class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):

@@ -703,6 +703,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.debug_use_opencl_debug = BoolProperty(name="Debug OpenCL", default=False)
 
+        cls.debug_opencl_mem_limit = IntProperty(name="Memory limit", default=0,
+            description="Artificial limit on OpenCL memory usage in MB (0 to disable limit)")
+
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.cycles
