@@ -1098,6 +1098,7 @@ static void image_open_cancel(bContext *UNUSED(C), wmOperator *op)
 static void image_sequence_get_frame_ranges(PointerRNA *ptr, ListBase *frames_all)
 {
 	char dir[FILE_MAXDIR];
+	const bool do_frame_range = RNA_boolean_get(ptr, "use_sequence_detection");
 	ImageFrameRange *frame_range = NULL;
 
 	RNA_string_get(ptr, "directory", dir);
@@ -1113,7 +1114,8 @@ static void image_sequence_get_frame_ranges(PointerRNA *ptr, ListBase *frames_al
 		frame->framenr = BLI_stringdec(filename, head, tail, &digits);
 
 		/* still in the same sequence */
-		if ((frame_range != NULL) &&
+		if (do_frame_range &&
+		    (frame_range != NULL) &&
 		    (STREQLEN(base_head, head, FILE_MAX)) &&
 		    (STREQLEN(base_tail, tail, FILE_MAX)))
 		{
@@ -1448,6 +1450,9 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	        ot, FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE, FILE_SPECIAL, FILE_OPENFILE,
 	        WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILES | WM_FILESEL_RELPATH,
 	        FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
+
+	RNA_def_boolean(ot->srna, "use_sequence_detection", true, "Detect Sequences",
+	                "Automatically detect animated sequences in selected images (based on file names)");
 }
 
 /******************** Match movie length operator ********************/
