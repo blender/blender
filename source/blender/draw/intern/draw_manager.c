@@ -750,22 +750,22 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 		/* Floats */
 		else {
 			switch (input->type) {
-				case 1:
+				case GPU_FLOAT:
 					DRW_shgroup_uniform_float(grp, input->shadername, (float *)input->dynamicvec, 1);
 					break;
-				case 2:
+				case GPU_VEC2:
 					DRW_shgroup_uniform_vec2(grp, input->shadername, (float *)input->dynamicvec, 1);
 					break;
-				case 3:
+				case GPU_VEC3:
 					DRW_shgroup_uniform_vec3(grp, input->shadername, (float *)input->dynamicvec, 1);
 					break;
-				case 4:
+				case GPU_VEC4:
 					DRW_shgroup_uniform_vec4(grp, input->shadername, (float *)input->dynamicvec, 1);
 					break;
-				case 9:
+				case GPU_MAT3:
 					DRW_shgroup_uniform_mat3(grp, input->shadername, (float *)input->dynamicvec);
 					break;
-				case 16:
+				case GPU_MAT4:
 					DRW_shgroup_uniform_mat4(grp, input->shadername, (float *)input->dynamicvec);
 					break;
 				default:
