@@ -181,7 +181,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	ED_file_init();         /* for fsmenu */
 	ED_node_init_butfuncs();
 	
-	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
+	BLF_init(); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLT_lang_init();
 
 	/* Enforce loading the UI for the initial homefile */

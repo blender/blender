@@ -38,7 +38,7 @@ struct rctf;
 struct ColorManagedDisplay;
 struct ResultBLF;
 
-int BLF_init(int points, int dpi);
+int BLF_init(void);
 void BLF_exit(void);
 void BLF_default_dpi(int dpi);
 void BLF_default_set(int fontid);

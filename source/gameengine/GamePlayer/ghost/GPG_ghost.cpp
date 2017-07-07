@@ -516,7 +516,7 @@ int main(
 #endif
 
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
-	BLF_init(11, U.dpi);
+	BLF_init();
 	BLT_lang_init();
 	BLT_lang_set("");
 

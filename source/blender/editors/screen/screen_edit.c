@@ -1228,6 +1228,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 		winrct.ymax = winsize_y - 1;
 		
 		/* header size depends on DPI, let's verify */
+		WM_window_set_dpi(win);
 		screen_refresh_headersizes();
 		
 		screen_test_scale(win->screen, winsize_x, winsize_y);

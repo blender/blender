@@ -96,15 +96,16 @@ static FontBLF *blf_get(int fontid)
 	return NULL;
 }
 
-int BLF_init(int points, int dpi)
+int BLF_init(void)
 {
 	int i;
 
 	for (i = 0; i < BLF_MAX_FONT; i++)
 		global_font[i] = NULL;
 
-	global_font_points = points;
-	global_font_dpi = dpi;
+	global_font_points = 11;
+	global_font_dpi = 72;
+
 	return blf_font_init();
 }
 

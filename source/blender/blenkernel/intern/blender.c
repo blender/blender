@@ -226,19 +226,6 @@ void BKE_blender_userdef_free_data(UserDef *userdef)
 }
 
 /**
- * Handle changes in settings that need refreshing.
- */
-void BKE_blender_userdef_refresh(void)
-{
-	/* prevent accidents */
-	if (U.pixelsize == 0) U.pixelsize = 1;
-	
-	BLF_default_dpi(U.pixelsize * U.dpi);
-	U.widget_unit = (U.pixelsize * U.dpi * 20 + 36) / 72;
-
-}
-
-/**
  * Write U from userdef.
  * This function defines which settings a template will override for the user preferences.
  */
