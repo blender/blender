@@ -1519,7 +1519,8 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 		}
 		case PROP_INT:
 		{
-			const int value_coerce = (int)value;
+			int value_coerce = (int)value;
+			RNA_property_int_clamp(ptr, prop, &value_coerce);
 			if (array_index != -1) {
 				if (RNA_property_int_get_index(ptr, prop, array_index) != value_coerce) {
 					RNA_property_int_set_index(ptr, prop, array_index, value_coerce);
@@ -1536,15 +1537,17 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 		}
 		case PROP_FLOAT:
 		{
+			float value_coerce = value;
+			RNA_property_float_clamp(ptr, prop, &value_coerce);
 			if (array_index != -1) {
-				if (RNA_property_float_get_index(ptr, prop, array_index) != value) {
-					RNA_property_float_set_index(ptr, prop, array_index, value);
+				if (RNA_property_float_get_index(ptr, prop, array_index) != value_coerce) {
+					RNA_property_float_set_index(ptr, prop, array_index, value_coerce);
 					written = true;
 				}
 			}
 			else {
-				if (RNA_property_float_get(ptr, prop) != value) {
-					RNA_property_float_set(ptr, prop, value);
+				if (RNA_property_float_get(ptr, prop) != value_coerce) {
+					RNA_property_float_set(ptr, prop, value_coerce);
 					written = true;
 				}
 			}
