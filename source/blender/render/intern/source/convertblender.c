@@ -4657,14 +4657,22 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 
 	index= (dob)? dob->persistent_id[0]: 0;
 
+	/* It seems that we may generate psys->renderdata recursively in some nasty intricated cases of
+	 * several levels of bupliobject (see T51524).
+	 * For now, basic rule is, do not restore psys if it was already in 'render state'.
+	 * Another, more robust solution could be to add some reference counting to that renderdata... */
+	bool psys_has_renderdata = false;
+
 	/* the emitter has to be processed first (render levels of modifiers) */
 	/* so here we only check if the emitter should be rendered */
 	if (ob->particlesystem.first) {
 		show_emitter= 0;
 		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
 			show_emitter += psys->part->draw & PART_DRAW_EMITTER;
-			if (!(re->r.scemode & R_VIEWPORT_PREVIEW))
+			if (!(re->r.scemode & R_VIEWPORT_PREVIEW)) {
+				psys_has_renderdata |= (psys->renderdata != NULL);
 				psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, timeoffset);
+			}
 		}
 
 		/* if no psys has "show emitter" selected don't render emitter */
@@ -4700,12 +4708,6 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	if (ob->particlesystem.first) {
 		psysindex= 1;
 		for (psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
-			/* It seems that we may generate psys->renderdata recursively in some nasty intricated cases of
-			 * several levels of bupliobject (see T51524).
-			 * For now, basic rule is, do not restore psys if it was already in 'render state'.
-			 * Another, more robust solution could be to add some reference counting to that renderdata... */
-			const bool psys_has_renderdata = (psys->renderdata != NULL);
-
 			if (!psys_check_enabled(ob, psys, G.is_rendering))
 				continue;
 			
