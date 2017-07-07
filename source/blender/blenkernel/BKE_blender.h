@@ -50,7 +50,6 @@ void BKE_blender_version_string(
 
 void BKE_blender_userdef_set_data(struct UserDef *userdef);
 void BKE_blender_userdef_free_data(struct UserDef *userdef);
-void BKE_blender_userdef_refresh(void);
 
 void BKE_blender_userdef_set_app_template(struct UserDef *userdef);
 

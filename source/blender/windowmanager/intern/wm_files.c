@@ -350,8 +350,6 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 
 	/* update tempdir from user preferences */
 	BKE_tempdir_init(U.tempdir);
-
-	BKE_blender_userdef_refresh();
 }
 
 

@@ -1480,6 +1480,19 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	/* type-specific node/links */
 	switch (ob->type) {
 		case OB_MESH:
+			/* NOTE: This is compatibility code to support particle systems
+			 *
+			 * for viewport being properly rendered in final render mode.
+			 * This relation is similar to what dag_object_time_update_flags()
+			 * was doing for mesh objects with particle system/
+			 *
+			 * Ideally we need to get rid of this relation.
+			 */
+			if (ob->particlesystem.first != NULL) {
+				TimeSourceKey time_key;
+				OperationKey obdata_ubereval_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
+				add_relation(time_key, obdata_ubereval_key, "Legacy particle time");
+			}
 			break;
 
 		case OB_MBALL:
