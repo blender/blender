@@ -426,7 +426,8 @@ public:
 		clGetDeviceInfo(device->cdDevice, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &max_buffer_size, NULL);
 
 		if(DebugFlags().opencl.mem_limit) {
-			max_buffer_size = min(max_buffer_size, DebugFlags().opencl.mem_limit - device->stats.mem_used);
+			max_buffer_size = min(max_buffer_size,
+			                      cl_ulong(DebugFlags().opencl.mem_limit - device->stats.mem_used));
 		}
 
 		VLOG(1) << "Maximum device allocation size: "

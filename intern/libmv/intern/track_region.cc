@@ -36,7 +36,7 @@
 
 /* define this to generate PNG images with content of search areas
    on every itteration of tracking */
-#define DUMP_ALWAYS
+#undef DUMP_ALWAYS
 
 using libmv::FloatImage;
 using libmv::TrackRegionOptions;

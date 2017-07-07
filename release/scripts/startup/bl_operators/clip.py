@@ -782,8 +782,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         tree.links.new(mul_shadow.outputs["Image"], mul_image.inputs[2])
 
         tree.links.new(rlayer_fg.outputs["Image"], vector_blur.inputs["Image"])
-        tree.links.new(rlayer_fg.outputs["Z"], vector_blur.inputs["Z"])
-        tree.links.new(rlayer_fg.outputs["Speed"], vector_blur.inputs["Speed"])
+        tree.links.new(rlayer_fg.outputs["Depth"], vector_blur.inputs["Z"])
+        tree.links.new(rlayer_fg.outputs["Vector"], vector_blur.inputs["Speed"])
 
         tree.links.new(mul_image.outputs["Image"], alphaover.inputs[1])
         tree.links.new(vector_blur.outputs["Image"], alphaover.inputs[2])
