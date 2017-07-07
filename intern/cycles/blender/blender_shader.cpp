@@ -235,7 +235,8 @@ static bool is_output_node(BL::Node& b_node)
 {
 	return (b_node.is_a(&RNA_ShaderNodeOutputMaterial)
 		    || b_node.is_a(&RNA_ShaderNodeOutputWorld)
-		    || b_node.is_a(&RNA_ShaderNodeOutputLamp));
+		    || b_node.is_a(&RNA_ShaderNodeOutputLamp)
+		    || b_node.is_a(&RNA_ShaderNodeOutputEeveeMaterial));
 }
 
 static ShaderNode *add_node(Scene *scene,
