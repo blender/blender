@@ -282,7 +282,8 @@ void OpenCLDeviceBase::mem_alloc(const char *name, device_memory& mem, MemoryTyp
 	clGetDeviceInfo(cdDevice, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &max_alloc_size, NULL);
 
 	if(DebugFlags().opencl.mem_limit) {
-		max_alloc_size = min(max_alloc_size, DebugFlags().opencl.mem_limit - stats.mem_used);
+		max_alloc_size = min(max_alloc_size,
+		                     cl_ulong(DebugFlags().opencl.mem_limit - stats.mem_used));
 	}
 
 	if(size > max_alloc_size) {
