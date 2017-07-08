@@ -156,6 +156,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 	og->surface_state.clear();
 	og->volume_state.clear();
 	og->displacement_state.clear();
+	og->bump_state.clear();
 	og->background_state.reset();
 }
 
