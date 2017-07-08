@@ -2636,14 +2636,11 @@ void node_bsdf_principled(vec4 base_color, float subsurface, vec3 subsurface_rad
 	vec3 Tangent = T;
 	if (T == vec3(0.0)) {
 		// if no tangent is set, use a default tangent
-		Tangent = vec3(1.0, 0.0, 0.0);
-		if (N.x != 0.0 || N.y != 0.0) {
-			vec3 N_xz = normalize(vec3(N.x, 0.0, N.z));
-
-			vec3 axis = normalize(cross(vec3(0.0, 0.0, 1.0), N_xz));
-			float angle = acos(dot(vec3(0.0, 0.0, 1.0), N_xz));
-
-			Tangent = normalize(rotate_vector(vec3(1.0, 0.0, 0.0), axis, angle));
+		if(N.x != N.y || N.x != N.z) {
+			Tangent = vec3(N.z-N.y, N.x-N.z, N.y-N.x);  // (1,1,1) x N
+		}
+		else {
+			Tangent = vec3(N.z-N.y, N.x+N.z, -N.y-N.x);  // (-1,1,1) x N
 		}
 	}
 
