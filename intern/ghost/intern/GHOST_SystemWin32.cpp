@@ -941,6 +941,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized");
 
 	if (hwnd) {
+#if 0
+		// Disabled due to bug in Intel drivers, see T51959
 		if(msg == WM_NCCREATE) {
 			// Tell Windows to automatically handle scaling of non-client areas
 			// such as the caption bar. EnableNonClientDpiScaling was introduced in Windows 10
@@ -954,6 +956,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				}
 			}
 		}
+#endif
 
 		GHOST_WindowWin32 *window = (GHOST_WindowWin32 *)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		if (window) {
