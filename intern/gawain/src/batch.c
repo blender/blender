@@ -365,8 +365,11 @@ void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch, unsigned int instance_vbo
 	if (batch->elem)
 		{
 		const Gwn_IndexBuf* el = batch->elem;
-
+#if GWN_TRACK_INDEX_RANGE
+		glDrawElementsInstancedBaseVertex(batch->gl_prim_type, el->index_ct, el->gl_index_type, 0, instance_count, el->base_index);
+#else
 		glDrawElementsInstanced(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, instance_count);
+#endif
 		}
 	else
 		glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct, instance_count);
@@ -432,7 +435,11 @@ void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch* batch_instanced, Gwn_
 		{
 		const Gwn_IndexBuf* el = batch_instanced->elem;
 
+#if GWN_TRACK_INDEX_RANGE
+		glDrawElementsInstancedBaseVertex(batch_instanced->gl_prim_type, el->index_ct, el->gl_index_type, 0, verts->vertex_ct, el->base_index);
+#else
 		glDrawElementsInstanced(batch_instanced->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, verts->vertex_ct);
+#endif
 		}
 	else
 		glDrawArraysInstanced(batch_instanced->gl_prim_type, 0, batch_instanced->verts[0]->vertex_ct, verts->vertex_ct);
