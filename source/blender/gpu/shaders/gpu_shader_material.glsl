@@ -14,7 +14,7 @@ uniform vec4 CameraTexCoFactors;
 
 /* Old glsl mode compat. */
 
-#ifndef NODETREE_EXEC
+#ifndef CLOSURE_DEFAULT
 
 struct Closure {
 	vec3 radiance;
@@ -41,7 +41,7 @@ Closure closure_add(Closure cl1, Closure cl2)
 
 Closure nodetree_exec(void); /* Prototype */
 
-#endif /* NODETREE_EXEC */
+#endif /* CLOSURE_DEFAULT */
 
 
 /* Converters */
@@ -2890,7 +2890,7 @@ void node_bsdf_transparent(vec4 color, out Closure result)
 {
 	/* this isn't right */
 	result.radiance = color.rgb;
-	result.opacity = 0.0;
+	result.opacity = color.a;
 }
 
 void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out Closure result)
@@ -4031,7 +4031,11 @@ void node_eevee_specular(
 
 void node_output_eevee_material(Closure surface, out Closure result)
 {
+#if defined(USE_ALPHA_HASH) || defined(USE_ALPHA_CLIP)
+	result = surface;
+#else
 	result = Closure(surface.radiance, length(viewPosition));
+#endif
 }
 
 #endif /* EEVEE_ENGINE */

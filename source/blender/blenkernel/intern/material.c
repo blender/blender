@@ -207,6 +207,8 @@ void BKE_material_init(Material *ma)
 	ma->mode2 = MA_CASTSHADOW;
 	ma->shade_flag = MA_APPROX_OCCLUSION;
 	ma->preview = NULL;
+
+	ma->alpha_threshold = 0.5f;
 }
 
 Material *BKE_material_add(Main *bmain, const char *name)

@@ -179,8 +179,6 @@ static char *eevee_get_defines(int options)
 {
 	char *str = NULL;
 
-	BLI_assert(options < VAR_MAT_MAX);
-
 	DynStr *ds = BLI_dynstr_new();
 	BLI_dynstr_appendf(ds, SHADER_DEFINES);
 
@@ -201,6 +199,12 @@ static char *eevee_get_defines(int options)
 	}
 	if ((options & VAR_MAT_BENT) != 0) {
 		BLI_dynstr_appendf(ds, "#define USE_BENT_NORMAL\n");
+	}
+	if ((options & VAR_MAT_CLIP) != 0) {
+		BLI_dynstr_appendf(ds, "#define USE_ALPHA_CLIP\n");
+	}
+	if ((options & VAR_MAT_HASH) != 0) {
+		BLI_dynstr_appendf(ds, "#define USE_ALPHA_HASH\n");
 	}
 
 	str = BLI_dynstr_get_cstring(ds);
@@ -491,6 +495,42 @@ struct GPUMaterial *EEVEE_material_mesh_get(
 	return mat;
 }
 
+struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha)
+{
+	const void *engine = &DRW_engine_viewport_eevee_type;
+	int options = VAR_MAT_MESH;
+
+	if (use_hashed_alpha) {
+		options |= VAR_MAT_HASH;
+	}
+	else {
+		options |= VAR_MAT_CLIP;
+	}
+
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
+	if (mat) {
+		return mat;
+	}
+
+	char *defines = eevee_get_defines(options);
+
+	DynStr *ds_frag = BLI_dynstr_new();
+	BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
+	BLI_dynstr_append(ds_frag, datatoc_prepass_frag_glsl);
+	char *frag_str = BLI_dynstr_get_cstring(ds_frag);
+	BLI_dynstr_free(ds_frag);
+
+	mat = GPU_material_from_nodetree(
+	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
+	        datatoc_lit_surface_vert_glsl, NULL, frag_str,
+	        defines);
+
+	MEM_freeN(frag_str);
+	MEM_freeN(defines);
+
+	return mat;
+}
+
 struct GPUMaterial *EEVEE_material_hair_get(
         struct Scene *scene, Material *ma,
         bool use_ao, bool use_bent_normals)
@@ -637,7 +677,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	} \
 } while (0)
 
-void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sldata, Object *ob, struct Gwn_Batch *geom)
+void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sldata, Object *ob)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
@@ -649,12 +689,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 	const bool is_active = (ob == draw_ctx->obact);
 	const bool is_sculpt_mode = is_active && (ob->mode & OB_MODE_SCULPT) != 0;
 	const bool is_default_mode_shader = is_sculpt_mode;
-
-	/* Depth Prepass */
-	DRWShadingGroup *depth_shgrp = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
-	DRWShadingGroup *depth_clip_shgrp = do_cull ? stl->g_data->depth_shgrp_clip_cull : stl->g_data->depth_shgrp_clip;
-	ADD_SHGROUP_CALL(depth_shgrp, ob, geom);
-	ADD_SHGROUP_CALL(depth_clip_shgrp, ob, geom);
 
 	/* First get materials for this mesh. */
 	if (ELEM(ob->type, OB_MESH)) {
@@ -740,6 +774,47 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 		if (mat_geom) {
 			for (int i = 0; i < materials_len; ++i) {
 				ADD_SHGROUP_CALL(shgrp_array[i], ob, mat_geom[i]);
+
+				/* Depth Prepass */
+				DRWShadingGroup *depth_shgrp = NULL;
+				DRWShadingGroup *depth_clip_shgrp;
+
+				Material *ma = give_current_material(ob, i + 1);
+
+				if (ma != NULL && (ma->use_nodes && ma->nodetree)) {
+					if (ELEM(ma->blend_method, MA_BM_CLIP, MA_BM_HASHED)) {
+						Scene *scene = draw_ctx->scene;
+						DRWPass *depth_pass, *depth_clip_pass;
+						struct GPUMaterial *gpumat = EEVEE_material_mesh_depth_get(scene, ma, (ma->blend_method == MA_BM_HASHED));
+
+						depth_pass = do_cull ? psl->depth_pass_cull : psl->depth_pass;
+						depth_clip_pass = do_cull ? psl->depth_pass_clip_cull : psl->depth_pass_clip;
+
+						/* Use same shader for both. */
+						depth_shgrp = DRW_shgroup_material_create(gpumat, depth_pass);
+						depth_clip_shgrp = DRW_shgroup_material_create(gpumat, depth_clip_pass);
+
+						if (ma->blend_method == MA_BM_CLIP) {
+							DRW_shgroup_uniform_float(depth_shgrp, "alphaThreshold", &ma->alpha_threshold, 1);
+							DRW_shgroup_uniform_float(depth_clip_shgrp, "alphaThreshold", &ma->alpha_threshold, 1);
+						}
+					}
+
+					/* Shadow Pass */
+					/* TODO clipped shadow map */
+					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
+				}
+
+				if (depth_shgrp == NULL) {
+					depth_shgrp = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
+					depth_clip_shgrp = do_cull ? stl->g_data->depth_shgrp_clip_cull : stl->g_data->depth_shgrp_clip;
+
+					/* Shadow Pass */
+					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
+				}
+
+				ADD_SHGROUP_CALL(depth_shgrp, ob, mat_geom[i]);
+				ADD_SHGROUP_CALL(depth_clip_shgrp, ob, mat_geom[i]);
 			}
 		}
 	}

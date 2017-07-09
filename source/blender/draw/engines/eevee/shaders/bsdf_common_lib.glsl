@@ -19,8 +19,6 @@ uniform vec4 viewvecs[2];
 /* ------- Structures -------- */
 #ifdef VOLUMETRICS
 
-#define NODETREE_EXEC
-
 struct Closure {
 	vec3 absorption;
 	vec3 scatter;
@@ -49,11 +47,34 @@ Closure closure_add(Closure cl1, Closure cl2)
 	cl.anisotropy = (cl1.anisotropy + cl2.anisotropy) / 2.0; /* Average phase (no multi lobe) */
 	return cl;
 }
+#else
 
-Closure nodetree_exec(void); /* Prototype */
+struct Closure {
+	vec3 radiance;
+	float opacity;
+};
 
+#define CLOSURE_DEFAULT Closure(vec3(0.0), 0.0)
+
+Closure closure_mix(Closure cl1, Closure cl2, float fac)
+{
+	Closure cl;
+	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
+	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);
+	return cl;
+}
+
+Closure closure_add(Closure cl1, Closure cl2)
+{
+	Closure cl;
+	cl.radiance = cl1.radiance + cl2.radiance;
+	cl.opacity = cl1.opacity + cl2.opacity;
+	return cl;
+}
 
 #endif /* VOLUMETRICS */
+
+Closure nodetree_exec(void); /* Prototype */
 
 
 struct LightData {
