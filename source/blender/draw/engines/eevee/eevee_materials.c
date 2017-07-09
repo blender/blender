@@ -677,6 +677,105 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	} \
 } while (0)
 
+typedef struct EeveeMaterialShadingGroups{
+	struct DRWShadingGroup *shading_grp;
+	struct DRWShadingGroup *depth_grp;
+	struct DRWShadingGroup *depth_clip_grp;
+} EeveeMaterialShadingGroups;
+
+static void material_opaque(
+        Material *ma, GHash *material_hash, EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata,
+        bool do_cull, bool use_flat_nor, struct GPUMaterial **gpumat, struct GPUMaterial **gpumat_depth,
+        struct DRWShadingGroup **shgrp, struct DRWShadingGroup **shgrp_depth, struct DRWShadingGroup **shgrp_depth_clip)
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+
+	float *color_p = &ma->r;
+	float *metal_p = &ma->ray_mirror;
+	float *spec_p = &ma->spec;
+	float *rough_p = &ma->gloss_mir;
+
+	const bool use_gpumat = (ma->use_nodes && ma->nodetree);
+
+	EeveeMaterialShadingGroups *emsg = BLI_ghash_lookup(material_hash, (const void *)ma);
+
+	if (emsg) {
+		*shgrp = emsg->shading_grp;
+		*shgrp_depth = emsg->depth_grp;
+		*shgrp_depth_clip = emsg->depth_clip_grp;
+
+		/* This will have been created already, just perform a lookup. */
+		*gpumat = (use_gpumat) ? EEVEE_material_mesh_get(
+		        draw_ctx->scene, ma, stl->effects->use_ao, stl->effects->use_bent_normals) : NULL;
+		*gpumat_depth = (use_gpumat) ? EEVEE_material_mesh_depth_get(
+		        draw_ctx->scene, ma, (ma->blend_method == MA_BM_HASHED)) : NULL;
+		return;
+	}
+
+	if (use_gpumat) {
+		/* Shading */
+		*gpumat = EEVEE_material_mesh_get(scene, ma,
+		        stl->effects->use_ao, stl->effects->use_bent_normals);
+
+		*shgrp = DRW_shgroup_material_create(*gpumat, psl->material_pass);
+		if (*shgrp) {
+			add_standard_uniforms(*shgrp, sldata, vedata);
+		}
+		else {
+			/* Shader failed : pink color */
+			static float col[3] = {1.0f, 0.0f, 1.0f};
+			static float half = 0.5f;
+
+			color_p = col;
+			metal_p = spec_p = rough_p = &half;
+		}
+
+		/* Alpha CLipped : Discard pixel from depth pass, then
+		 * fail the depth test for shading. */
+		if (ELEM(ma->blend_method, MA_BM_CLIP, MA_BM_HASHED)) {
+			*gpumat_depth = EEVEE_material_mesh_depth_get(scene, ma,
+			        (ma->blend_method == MA_BM_HASHED));
+
+			*shgrp_depth = DRW_shgroup_material_create(*gpumat_depth, do_cull ? psl->depth_pass_cull : psl->depth_pass);
+			*shgrp_depth_clip = DRW_shgroup_material_create(*gpumat_depth, do_cull ? psl->depth_pass_clip_cull : psl->depth_pass_clip);
+
+			if (shgrp_depth) {
+				if (ma->blend_method == MA_BM_CLIP) {
+					DRW_shgroup_uniform_float(*shgrp_depth, "alphaThreshold", &ma->alpha_threshold, 1);
+					DRW_shgroup_uniform_float(*shgrp_depth_clip, "alphaThreshold", &ma->alpha_threshold, 1);
+				}
+			}
+		}
+	}
+
+	/* Fallback to default shader */
+	if (*shgrp == NULL) {
+		*shgrp = EEVEE_default_shading_group_get(sldata, vedata, false, use_flat_nor,
+		        stl->effects->use_ao, stl->effects->use_bent_normals);
+		DRW_shgroup_uniform_vec3(*shgrp, "basecol", color_p, 1);
+		DRW_shgroup_uniform_float(*shgrp, "metallic", metal_p, 1);
+		DRW_shgroup_uniform_float(*shgrp, "specular", spec_p, 1);
+		DRW_shgroup_uniform_float(*shgrp, "roughness", rough_p, 1);
+	}
+
+	/* Fallback default depth prepass */
+	if (*shgrp_depth == NULL) {
+		*shgrp_depth = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
+		*shgrp_depth_clip = do_cull ? stl->g_data->depth_shgrp_clip_cull : stl->g_data->depth_shgrp_clip;
+	}
+
+	emsg = MEM_mallocN(sizeof("EeveeMaterialShadingGroups"), "EeveeMaterialShadingGroups");
+	emsg->shading_grp = *shgrp;
+	emsg->depth_grp = *shgrp_depth;
+	emsg->depth_clip_grp = *shgrp_depth_clip;
+	BLI_ghash_insert(material_hash, ma, emsg);
+}
+
+// void EEVEE_materials_cache_blended();
+
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sldata, Object *ob)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
@@ -693,8 +792,13 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 	/* First get materials for this mesh. */
 	if (ELEM(ob->type, OB_MESH)) {
 		const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
+
 		struct DRWShadingGroup **shgrp_array = BLI_array_alloca(shgrp_array, materials_len);
+		struct DRWShadingGroup **shgrp_depth_array = BLI_array_alloca(shgrp_depth_array, materials_len);
+		struct DRWShadingGroup **shgrp_depth_clip_array = BLI_array_alloca(shgrp_depth_clip_array, materials_len);
+
 		struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
+		struct GPUMaterial **gpumat_depth_array = BLI_array_alloca(gpumat_array, materials_len);
 
 		bool use_flat_nor = false;
 
@@ -705,67 +809,29 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 		}
 
 		for (int i = 0; i < materials_len; ++i) {
-			DRWShadingGroup *shgrp = NULL;
 			Material *ma = give_current_material(ob, i + 1);
+
+			gpumat_array[i] = NULL;
+			gpumat_depth_array[i] = NULL;
+			shgrp_array[i] = NULL;
+			shgrp_depth_array[i] = NULL;
+			shgrp_depth_clip_array[i] = NULL;
 
 			if (ma == NULL)
 				ma = &defmaterial;
 
-			float *color_p = &ma->r;
-			float *metal_p = &ma->ray_mirror;
-			float *spec_p = &ma->spec;
-			float *rough_p = &ma->gloss_mir;
-
-			const bool use_gpumat = (ma->use_nodes && ma->nodetree);
-
-			shgrp = BLI_ghash_lookup(material_hash, (const void *)ma);
-			if (shgrp) {
-				shgrp_array[i] = shgrp;  /* ADD_SHGROUP_CALL below */
-				/* This will have been created already, just perform a lookup. */
-				gpumat_array[i] = (use_gpumat) ? EEVEE_material_mesh_get(
-				        draw_ctx->scene, ma,stl->effects->use_ao, stl->effects->use_bent_normals) : NULL;
-				continue;
-			}
-
-			/* May not be set below. */
-			gpumat_array[i] = NULL;
-
-			if (use_gpumat) {
-				Scene *scene = draw_ctx->scene;
-				struct GPUMaterial *gpumat = EEVEE_material_mesh_get(scene, ma,
-				        stl->effects->use_ao, stl->effects->use_bent_normals);
-
-				shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
-				if (shgrp) {
-					add_standard_uniforms(shgrp, sldata, vedata);
-
-					BLI_ghash_insert(material_hash, ma, shgrp);
-					shgrp_array[i] = shgrp;  /* ADD_SHGROUP_CALL below */
-
-					gpumat_array[i] = gpumat;
-				}
-				else {
-					/* Shader failed : pink color */
-					static float col[3] = {1.0f, 0.0f, 1.0f};
-					static float half = 0.5f;
-
-					color_p = col;
-					metal_p = spec_p = rough_p = &half;
-				}
-			}
-
-			/* Fallback to default shader */
-			if (shgrp == NULL) {
-				shgrp = EEVEE_default_shading_group_get(sldata, vedata, false, use_flat_nor,
-				        stl->effects->use_ao, stl->effects->use_bent_normals);
-				DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
-				DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
-				DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
-				DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
-
-				BLI_ghash_insert(material_hash, ma, shgrp);
-
-				shgrp_array[i] = shgrp;  /* ADD_SHGROUP_CALL below */
+			switch (ma->blend_method) {
+				case MA_BM_SOLID:
+				case MA_BM_CLIP:
+				case MA_BM_HASHED:
+					material_opaque(ma, material_hash, sldata, vedata, do_cull, use_flat_nor,
+					        &gpumat_array[i], &gpumat_depth_array[i],
+					        &shgrp_array[i], &shgrp_depth_array[i], &shgrp_depth_clip_array[i]);
+					break;
+				case MA_BM_ADD:
+				case MA_BM_MULTIPLY:
+					// material_transparent(ma, material_hash, &shgrp);
+					break;
 			}
 		}
 
@@ -773,48 +839,15 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 		struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
 		if (mat_geom) {
 			for (int i = 0; i < materials_len; ++i) {
+				/* Shading pass */
 				ADD_SHGROUP_CALL(shgrp_array[i], ob, mat_geom[i]);
 
 				/* Depth Prepass */
-				DRWShadingGroup *depth_shgrp = NULL;
-				DRWShadingGroup *depth_clip_shgrp;
+				ADD_SHGROUP_CALL(shgrp_depth_array[i], ob, mat_geom[i]);
+				ADD_SHGROUP_CALL(shgrp_depth_clip_array[i], ob, mat_geom[i]);
 
-				Material *ma = give_current_material(ob, i + 1);
-
-				if (ma != NULL && (ma->use_nodes && ma->nodetree)) {
-					if (ELEM(ma->blend_method, MA_BM_CLIP, MA_BM_HASHED)) {
-						Scene *scene = draw_ctx->scene;
-						DRWPass *depth_pass, *depth_clip_pass;
-						struct GPUMaterial *gpumat = EEVEE_material_mesh_depth_get(scene, ma, (ma->blend_method == MA_BM_HASHED));
-
-						depth_pass = do_cull ? psl->depth_pass_cull : psl->depth_pass;
-						depth_clip_pass = do_cull ? psl->depth_pass_clip_cull : psl->depth_pass_clip;
-
-						/* Use same shader for both. */
-						depth_shgrp = DRW_shgroup_material_create(gpumat, depth_pass);
-						depth_clip_shgrp = DRW_shgroup_material_create(gpumat, depth_clip_pass);
-
-						if (ma->blend_method == MA_BM_CLIP) {
-							DRW_shgroup_uniform_float(depth_shgrp, "alphaThreshold", &ma->alpha_threshold, 1);
-							DRW_shgroup_uniform_float(depth_clip_shgrp, "alphaThreshold", &ma->alpha_threshold, 1);
-						}
-					}
-
-					/* Shadow Pass */
-					/* TODO clipped shadow map */
-					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
-				}
-
-				if (depth_shgrp == NULL) {
-					depth_shgrp = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
-					depth_clip_shgrp = do_cull ? stl->g_data->depth_shgrp_clip_cull : stl->g_data->depth_shgrp_clip;
-
-					/* Shadow Pass */
-					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
-				}
-
-				ADD_SHGROUP_CALL(depth_shgrp, ob, mat_geom[i]);
-				ADD_SHGROUP_CALL(depth_clip_shgrp, ob, mat_geom[i]);
+				/* Shadow Pass */
+				EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
 			}
 		}
 	}
@@ -906,7 +939,7 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
-	BLI_ghash_free(stl->g_data->material_hash, NULL, NULL);
+	BLI_ghash_free(stl->g_data->material_hash, NULL, MEM_freeN);
 	BLI_ghash_free(stl->g_data->hair_material_hash, NULL, NULL);
 }
 
