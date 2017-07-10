@@ -1795,18 +1795,11 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	}
 }
 
-static void OBJECT_cache_finish(void *vedata)
-{
-	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
-	if (stl->g_data->image_plane_map) {
-		BLI_ghash_free(stl->g_data->image_plane_map, NULL, MEM_freeN);
-	}
-}
-
 static void OBJECT_draw_scene(void *vedata)
 {
 
 	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
+	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -1873,6 +1866,11 @@ static void OBJECT_draw_scene(void *vedata)
 		/* Combine with scene buffer last */
 		DRW_draw_pass(psl->outlines_resolve);
 	}
+
+	/* This has to be freed only after drawing empties! */
+	if (stl->g_data->image_plane_map) {
+		BLI_ghash_free(stl->g_data->image_plane_map, NULL, MEM_freeN);
+	}
 }
 
 void OBJECT_collection_settings_create(IDProperty *props)
@@ -1894,7 +1892,7 @@ DrawEngineType draw_engine_object_type = {
 	&OBJECT_engine_free,
 	&OBJECT_cache_init,
 	&OBJECT_cache_populate,
-	&OBJECT_cache_finish,
+	NULL,
 	NULL,
 	&OBJECT_draw_scene
 };
