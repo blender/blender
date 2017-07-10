@@ -94,9 +94,8 @@ extern char datatoc_irradiance_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
 extern char datatoc_lit_surface_frag_glsl[];
 extern char datatoc_lit_surface_vert_glsl[];
-extern char datatoc_shadow_frag_glsl[];
-extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_vert_glsl[];
+extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_background_vert_glsl[];
@@ -202,6 +201,9 @@ static char *eevee_get_defines(int options)
 	}
 	if ((options & VAR_MAT_CLIP) != 0) {
 		BLI_dynstr_appendf(ds, "#define USE_ALPHA_CLIP\n");
+	}
+	if ((options & VAR_MAT_SHADOW) != 0) {
+		BLI_dynstr_appendf(ds, "#define SHADOW_SHADER\n");
 	}
 	if ((options & VAR_MAT_HASH) != 0) {
 		BLI_dynstr_appendf(ds, "#define USE_ALPHA_HASH\n");
@@ -503,7 +505,9 @@ struct GPUMaterial *EEVEE_material_mesh_get(
 	return mat;
 }
 
-struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha)
+struct GPUMaterial *EEVEE_material_mesh_depth_get(
+        struct Scene *scene, Material *ma,
+        bool use_hashed_alpha, bool is_shadow)
 {
 	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_MAT_MESH;
@@ -514,6 +518,9 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material 
 	else {
 		options |= VAR_MAT_CLIP;
 	}
+
+	if (is_shadow)
+		options |= VAR_MAT_SHADOW;
 
 	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
 	if (mat) {
@@ -530,7 +537,9 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material 
 
 	mat = GPU_material_from_nodetree(
 	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
-	        datatoc_lit_surface_vert_glsl, NULL, frag_str,
+	        (is_shadow) ? datatoc_shadow_vert_glsl : datatoc_lit_surface_vert_glsl,
+	        (is_shadow) ? datatoc_shadow_geom_glsl : NULL,
+	        frag_str,
 	        defines);
 
 	MEM_freeN(frag_str);
@@ -758,7 +767,7 @@ static void material_opaque(
 		*gpumat = (use_gpumat) ? EEVEE_material_mesh_get(
 		        scene, ma, stl->effects->use_ao, stl->effects->use_bent_normals, false, false) : NULL;
 		*gpumat_depth = (use_gpumat) ? EEVEE_material_mesh_depth_get(
-		        scene, ma, (ma->blend_method == MA_BM_HASHED)) : NULL;
+		        scene, ma, (ma->blend_method == MA_BM_HASHED), false) : NULL;
 		return;
 	}
 
@@ -784,7 +793,7 @@ static void material_opaque(
 		 * fail the depth test for shading. */
 		if (ELEM(ma->blend_method, MA_BM_CLIP, MA_BM_HASHED)) {
 			*gpumat_depth = EEVEE_material_mesh_depth_get(scene, ma,
-			        (ma->blend_method == MA_BM_HASHED));
+			        (ma->blend_method == MA_BM_HASHED), false);
 
 			*shgrp_depth = DRW_shgroup_material_create(*gpumat_depth, do_cull ? psl->depth_pass_cull : psl->depth_pass);
 			*shgrp_depth_clip = DRW_shgroup_material_create(*gpumat_depth, do_cull ? psl->depth_pass_clip_cull : psl->depth_pass_clip);
@@ -911,6 +920,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
 	GHash *material_hash = stl->g_data->material_hash;
 
 	IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
@@ -974,6 +984,11 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 		struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
 		if (mat_geom) {
 			for (int i = 0; i < materials_len; ++i) {
+				Material *ma = give_current_material(ob, i + 1);
+
+				if (ma == NULL)
+					ma = &defmaterial;
+
 				/* Shading pass */
 				ADD_SHGROUP_CALL(shgrp_array[i], ob, mat_geom[i]);
 
@@ -982,7 +997,16 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 				ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, mat_geom[i]);
 
 				/* Shadow Pass */
-				EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
+				if (ma->blend_method == MA_BM_SOLID)
+					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
+				else if (ma->blend_method == MA_BM_HASHED) {
+					struct GPUMaterial *gpumat = EEVEE_material_mesh_depth_get(scene, ma, true, true);
+					EEVEE_lights_cache_shcaster_material_add(sldata, psl, gpumat, mat_geom[i], ob->obmat, NULL);
+				}
+				else if (ma->blend_method == MA_BM_CLIP) {
+					struct GPUMaterial *gpumat = EEVEE_material_mesh_depth_get(scene, ma, false, true);
+					EEVEE_lights_cache_shcaster_material_add(sldata, psl, gpumat, mat_geom[i], ob->obmat, &ma->alpha_threshold);
+				}
 			}
 		}
 	}
@@ -1026,7 +1050,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 							}
 							else {
 								if (ma->use_nodes && ma->nodetree) {
-									Scene *scene = draw_ctx->scene;
 									struct GPUMaterial *gpumat = EEVEE_material_hair_get(scene, ma,
 									        stl->effects->use_ao, stl->effects->use_bent_normals);
 

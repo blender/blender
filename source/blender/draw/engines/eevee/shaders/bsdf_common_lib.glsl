@@ -10,11 +10,25 @@
 
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
-uniform mat4 ViewMatrix;
 uniform vec4 viewvecs[2];
+#ifndef SHADOW_SHADER
+uniform mat4 ViewMatrix;
+#else
+layout(std140) uniform shadow_render_block {
+	mat4 ShadowMatrix[6];
+	mat4 FaceViewMatrix[6];
+	vec4 lampPosition;
+	int layer;
+	float exponent;
+};
+
+flat in int shFace; /* Shadow layer we are rendering to. */
+#define ViewMatrix      FaceViewMatrix[shFace]
+#endif
 
 #define cameraForward   normalize(ViewMatrixInverse[2].xyz)
 #define cameraPos       ViewMatrixInverse[3].xyz
+
 
 /* ------- Structures -------- */
 #ifdef VOLUMETRICS
