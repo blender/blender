@@ -288,6 +288,10 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			ts->sculpt = MEM_dupallocN(ts->sculpt);
 			BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint);
 		}
+		if (ts->uvsculpt) {
+			ts->uvsculpt = MEM_dupallocN(ts->uvsculpt);
+			BKE_paint_copy(&ts->uvsculpt->paint, &ts->uvsculpt->paint);
+		}
 
 		BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint);
 		ts->imapaint.paintcursor = NULL;
