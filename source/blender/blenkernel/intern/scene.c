@@ -188,7 +188,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		scen = BKE_libblock_copy(bmain, &sce->id);
 		BLI_duplicatelist(&(scen->base), &(sce->base));
 		
-		id_us_plus((ID *)scen->world);
+		if (type != SCE_COPY_FULL) {
+			id_us_plus((ID *)scen->world);
+		}
 		id_us_plus((ID *)scen->set);
 		/* id_us_plus((ID *)scen->gm.dome.warptext); */  /* XXX Not refcounted? see readfile.c */
 
@@ -240,7 +242,8 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			if (type == SCE_COPY_FULL) {
 				for (lineset = new_srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 					if (lineset->linestyle) {
-						id_us_plus((ID *)lineset->linestyle);
+						/* Has been incremented by BKE_freestyle_config_copy(). */
+						id_us_min(lineset->linestyle);
 						lineset->linestyle = BKE_linestyle_copy(bmain, lineset->linestyle);
 					}
 				}
@@ -333,7 +336,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 	/* world */
 	if (type == SCE_COPY_FULL) {
 		if (scen->world) {
-			id_us_plus((ID *)scen->world);
 			scen->world = BKE_world_copy(bmain, scen->world);
 			BKE_animdata_copy_id_action((ID *)scen->world, false);
 		}
