@@ -97,21 +97,23 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
 	BLI_strncpy(cache_file->filepath, filename, FILE_MAX);
 	BKE_cachefile_reload(bmain, cache_file);
 
-	/* hook into UI */
-	PropertyPointerRNA *pprop = op->customdata;
+	/* Will be set when running invoke, not exec directly. */
+	if (op->customdata != NULL) {
+		/* hook into UI */
+		PropertyPointerRNA *pprop = op->customdata;
+		if (pprop->prop) {
+			/* when creating new ID blocks, use is already 1, but RNA
+			 * pointer se also increases user, so this compensates it */
+			id_us_min(&cache_file->id);
 
-	if (pprop->prop) {
-		/* when creating new ID blocks, use is already 1, but RNA
-		 * pointer se also increases user, so this compensates it */
-		id_us_min(&cache_file->id);
+			PointerRNA idptr;
+			RNA_id_pointer_create(&cache_file->id, &idptr);
+			RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
+			RNA_property_update(C, &pprop->ptr, pprop->prop);
+		}
 
-		PointerRNA idptr;
-		RNA_id_pointer_create(&cache_file->id, &idptr);
-		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
-		RNA_property_update(C, &pprop->ptr, pprop->prop);
+		MEM_freeN(op->customdata);
 	}
-
-	MEM_freeN(op->customdata);
 
 	return OPERATOR_FINISHED;
 }
