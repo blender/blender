@@ -1505,6 +1505,48 @@ static TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struc
 	return hdata;
 }
 
+/**
+ * For the purpose of transform code we need to behave as if handles are selected,
+ * even when they aren't (see special case below).
+ */
+static int bezt_select_to_transform_triple_flag(
+        const BezTriple *bezt, const bool hide_handles)
+{
+	int flag = 0;
+
+	if (hide_handles) {
+		if (bezt->f2 & SELECT) {
+			flag = (1 << 0) | (1 << 1) | (1 << 2);
+		}
+	}
+	else {
+		flag = (
+			((bezt->f1 & SELECT) ? (1 << 0) : 0) |
+			((bezt->f2 & SELECT) ? (1 << 1) : 0) |
+			((bezt->f3 & SELECT) ? (1 << 2) : 0)
+		);
+	}
+
+	/* Special case for auto & aligned handles:
+	 * When a center point is being moved without the handles,
+	 * leaving the handles stationary makes no sense and only causes strange behavior,
+	 * where one handle is arbitrarily anchored, the other one is aligned and lengthened
+	 * based on where the center point is moved. Also a bug when cancelling, see: T52007.
+	 *
+	 * A more 'correct' solution could be to store handle locations in 'TransDataCurveHandleFlags'.
+	 * However that doesn't resolve odd behavior, so best transform the handles in this case.
+	 */
+	if ((flag != ((1 << 0) | (1 << 1) | (1 << 2))) && (flag & (1 << 1))) {
+		if (ELEM(bezt->h1, HD_AUTO, HD_ALIGN) &&
+		    ELEM(bezt->h2, HD_AUTO, HD_ALIGN))
+		{
+			flag = (1 << 0) | (1 << 1) | (1 << 2);
+		}
+	}
+
+	return flag;
+}
+
 static void createTransCurveVerts(TransInfo *t)
 {
 	Curve *cu = t->obedit->data;
@@ -1522,22 +1564,22 @@ static void createTransCurveVerts(TransInfo *t)
 	/* to be sure */
 	if (cu->editnurb == NULL) return;
 
+#define SEL_F1 (1 << 0)
+#define SEL_F2 (1 << 1)
+#define SEL_F3 (1 << 2)
+
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
 	nurbs = BKE_curve_editNurbs_get(cu);
 	for (nu = nurbs->first; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {
 			for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
 				if (bezt->hide == 0) {
-					if (hide_handles) {
-						if (bezt->f2 & SELECT) countsel += 3;
-						if (is_prop_edit) count += 3;
-					}
-					else {
-						if (bezt->f1 & SELECT) countsel++;
-						if (bezt->f2 & SELECT) countsel++;
-						if (bezt->f3 & SELECT) countsel++;
-						if (is_prop_edit) count += 3;
-					}
+					const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
+					if (bezt_tx & SEL_F1) { countsel++; }
+					if (bezt_tx & SEL_F2) { countsel++; }
+					if (bezt_tx & SEL_F3) { countsel++; }
+					if (is_prop_edit) count += 3;
+
 				}
 			}
 		}
@@ -1588,10 +1630,10 @@ static void createTransCurveVerts(TransInfo *t)
 						}
 					}
 
-					if (is_prop_edit ||
-					    ((bezt->f2 & SELECT) && hide_handles) ||
-					    ((bezt->f1 & SELECT) && hide_handles == 0))
-					{
+					/* Elements that will be transform (not always a match to selection). */
+					const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
+
+					if (is_prop_edit || bezt_tx & SEL_F1) {
 						copy_v3_v3(td->iloc, bezt->vec[0]);
 						td->loc = bezt->vec[0];
 						copy_v3_v3(td->center, bezt->vec[(hide_handles ||
@@ -1622,7 +1664,7 @@ static void createTransCurveVerts(TransInfo *t)
 					}
 
 					/* This is the Curve Point, the other two are handles */
-					if (is_prop_edit || (bezt->f2 & SELECT)) {
+					if (is_prop_edit || bezt_tx & SEL_F2) {
 						copy_v3_v3(td->iloc, bezt->vec[1]);
 						td->loc = bezt->vec[1];
 						copy_v3_v3(td->center, td->loc);
@@ -1648,7 +1690,7 @@ static void createTransCurveVerts(TransInfo *t)
 							copy_m3_m3(td->axismtx, axismtx);
 						}
 
-						if ((bezt->f1 & SELECT) == 0 && (bezt->f3 & SELECT) == 0)
+						if ((bezt_tx & SEL_F1) == 0 && (bezt_tx & SEL_F3) == 0)
 							/* If the middle is selected but the sides arnt, this is needed */
 							if (hdata == NULL) { /* if the handle was not saved by the previous handle */
 								hdata = initTransDataCurveHandles(td, bezt);
@@ -1658,10 +1700,7 @@ static void createTransCurveVerts(TransInfo *t)
 						count++;
 						tail++;
 					}
-					if (is_prop_edit ||
-					    ((bezt->f2 & SELECT) && hide_handles) ||
-					    ((bezt->f3 & SELECT) && hide_handles == 0))
-					{
+					if (is_prop_edit || bezt_tx & SEL_F3) {
 						copy_v3_v3(td->iloc, bezt->vec[2]);
 						td->loc = bezt->vec[2];
 						copy_v3_v3(td->center, bezt->vec[(hide_handles ||
@@ -1716,6 +1755,26 @@ static void createTransCurveVerts(TransInfo *t)
 			for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
 				if (bp->hide == 0) {
 					if (is_prop_edit || (bp->f1 & SELECT)) {
+						float axismtx[3][3];
+
+						if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+							if (nu->pntsv == 1) {
+								float normal[3], plane[3];
+
+								BKE_nurb_bpoint_calc_normal(nu, bp, normal);
+								BKE_nurb_bpoint_calc_plane(nu, bp, plane);
+
+								if (createSpaceNormalTangent(axismtx, normal, plane)) {
+									/* pass */
+								}
+								else {
+									normalize_v3(normal);
+									axis_dominant_v3_to_m3(axismtx, normal);
+									invert_m3(axismtx);
+								}
+							}
+						}
+
 						copy_v3_v3(td->iloc, bp->vec);
 						td->loc = bp->vec;
 						copy_v3_v3(td->center, td->loc);
@@ -1734,6 +1793,11 @@ static void createTransCurveVerts(TransInfo *t)
 
 						copy_m3_m3(td->smtx, smtx);
 						copy_m3_m3(td->mtx, mtx);
+						if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+							if (nu->pntsv == 1) {
+								copy_m3_m3(td->axismtx, axismtx);
+							}
+						}
 
 						td++;
 						count++;
@@ -1749,6 +1813,10 @@ static void createTransCurveVerts(TransInfo *t)
 				calc_distanceCurveVerts(head, tail - 1);
 		}
 	}
+
+#undef SEL_F1
+#undef SEL_F2
+#undef SEL_F3
 }
 
 /* ********************* lattice *************** */
