@@ -1263,6 +1263,44 @@ void DRW_pass_foreach_shgroup(DRWPass *pass, void (*callback)(void *userData, DR
 	}
 }
 
+typedef struct ZSortData {
+	float *axis;
+	float *origin;
+} ZSortData;
+
+static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
+{
+	const DRWCall *call_a = (DRWCall *)((const DRWShadingGroup *)a)->calls.first;
+	const DRWCall *call_b = (DRWCall *)((const DRWShadingGroup *)b)->calls.first;
+	const ZSortData *zsortdata = (ZSortData *)thunk;
+
+	float tmp[3];
+	sub_v3_v3v3(tmp, zsortdata->origin, call_a->obmat[3]);
+	const float a_sq = dot_v3v3(zsortdata->axis, tmp);
+	sub_v3_v3v3(tmp, zsortdata->origin, call_b->obmat[3]);
+	const float b_sq = dot_v3v3(zsortdata->axis, tmp);
+
+	if      (a_sq < b_sq) return  1;
+	else if (a_sq > b_sq) return -1;
+	else                  return  0;
+}
+
+/**
+ * Sort Shading groups by decreasing Z between
+ * the first call object center and a given world space point.
+ **/
+void DRW_pass_sort_shgroup_z(DRWPass *pass)
+{
+	RegionView3D *rv3d = DST.draw_ctx.rv3d;
+
+	float (*viewinv)[4];
+	viewinv = (viewport_matrix_override.override[DRW_MAT_VIEWINV])
+	          ? viewport_matrix_override.mat[DRW_MAT_VIEWINV] : rv3d->viewinv;
+
+	ZSortData zsortdata = {viewinv[2], viewinv[3]};
+	BLI_listbase_sort_r(&pass->shgroups, pass_shgroup_dist_sort, &zsortdata);
+}
+
 /** \} */
 
 

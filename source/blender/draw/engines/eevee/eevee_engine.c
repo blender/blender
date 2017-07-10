@@ -161,6 +161,7 @@ static void EEVEE_draw_scene(void *vedata)
 	EEVEE_effects_do_volumetrics(sldata, vedata);
 
 	/* Transparent */
+	DRW_pass_sort_shgroup_z(psl->transparent_pass);
 	DRW_draw_pass(psl->transparent_pass);
 
 	/* Post Process */
