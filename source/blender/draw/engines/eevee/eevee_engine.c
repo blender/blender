@@ -81,7 +81,6 @@ static void EEVEE_cache_init(void *vedata)
 
 static void EEVEE_cache_populate(void *vedata, Object *ob)
 {
-	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -160,6 +159,9 @@ static void EEVEE_draw_scene(void *vedata)
 
 	/* Volumetrics */
 	EEVEE_effects_do_volumetrics(sldata, vedata);
+
+	/* Transparent */
+	DRW_draw_pass(psl->transparent_pass);
 
 	/* Post Process */
 	EEVEE_draw_effects(vedata);

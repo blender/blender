@@ -66,14 +66,16 @@ enum {
 	VAR_MAT_AO       = (1 << 3),
 	VAR_MAT_FLAT     = (1 << 4),
 	VAR_MAT_BENT     = (1 << 5),
+	VAR_MAT_BLEND    = (1 << 6),
 	/* Max number of variation */
 	/* IMPORTANT : Leave it last and set
 	 * it's value accordingly. */
-	VAR_MAT_MAX      = (1 << 6),
+	VAR_MAT_MAX      = (1 << 7),
 	/* These are options that are not counted in VAR_MAT_MAX
 	 * because they are not cumulative with the others above. */
-	VAR_MAT_CLIP     = (1 << 7),
-	VAR_MAT_HASH     = (1 << 8),
+	VAR_MAT_CLIP     = (1 << 8),
+	VAR_MAT_HASH     = (1 << 9),
+	VAR_MAT_MULT     = (1 << 10),
 };
 
 typedef struct EEVEE_PassList {
@@ -113,6 +115,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *depth_pass_clip_cull;
 	struct DRWPass *default_pass[VAR_MAT_MAX];
 	struct DRWPass *material_pass;
+	struct DRWPass *transparent_pass;
 	struct DRWPass *background_pass;
 } EEVEE_PassList;
 
@@ -448,7 +451,8 @@ struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, str
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_volume_get(
         struct Scene *scene, struct World *wo, bool use_lights, bool use_volume_shadows, bool is_homogeneous, bool use_color_transmit);
-struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);
+struct GPUMaterial *EEVEE_material_mesh_get(
+        struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals, bool use_blend, bool use_multiply);
 struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha);
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);
 void EEVEE_materials_free(void);

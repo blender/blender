@@ -76,6 +76,19 @@ Closure closure_add(Closure cl1, Closure cl2)
 
 Closure nodetree_exec(void); /* Prototype */
 
+/* TODO find a better place */
+#ifdef USE_MULTIPLY
+
+out vec4 fragColor;
+
+#define NODETREE_EXEC
+void main()
+{
+	Closure cl = nodetree_exec();
+	fragColor = vec4(mix(vec3(1.0), cl.radiance, cl.opacity), 1.0);
+}
+
+#endif
 
 struct LightData {
 	vec4 position_influence;      /* w : InfluenceRadius */
