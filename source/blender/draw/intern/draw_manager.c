@@ -1422,7 +1422,7 @@ static void DRW_state_set(DRWState state)
 					glBlendFunc(GL_ONE, GL_SRC_ALPHA);
 				}
 				else if ((state & DRW_STATE_ADDITIVE) != 0) {
-					glBlendFunc(GL_ONE, GL_ONE);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 				}
 				else {
 					BLI_assert(0);
