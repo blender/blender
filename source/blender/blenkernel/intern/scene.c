@@ -292,7 +292,11 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint);
 		ts->imapaint.paintcursor = NULL;
 		id_us_plus((ID *)ts->imapaint.stencil);
+		id_us_plus((ID *)ts->imapaint.clone);
+		id_us_plus((ID *)ts->imapaint.canvas);
 		ts->particle.paintcursor = NULL;
+		ts->particle.scene = NULL;
+		ts->particle.object = NULL;
 		
 		/* duplicate Grease Pencil Drawing Brushes */
 		BLI_listbase_clear(&ts->gp_brushes);
