@@ -1428,8 +1428,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 			ps.next_frame = ps.direction;
 
-
-			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0)) || ps.wait2) {
+			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, ps.wait2d))) {
 				if (hasevent) {
 					GHOST_DispatchEvents(g_WS.ghost_system);
 				}
