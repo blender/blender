@@ -401,3 +401,11 @@ void BKE_object_eval_cloth(EvaluationContext *UNUSED(eval_ctx), Scene *scene, Ob
 	DEBUG_PRINT("%s on %s\n", __func__, object->id.name);
 	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);
 }
+
+void BKE_object_eval_update_shading(EvaluationContext *UNUSED(eval_ctx), Object *object)
+{
+	DEBUG_PRINT("%s on %s\n", __func__, object->id.name);
+	if (object->type == OB_MESH) {
+		BKE_mesh_batch_cache_dirty(object->data, BKE_MESH_BATCH_DIRTY_SHADING);
+	}
+}

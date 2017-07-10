@@ -1598,6 +1598,16 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 		case BKE_MESH_BATCH_DIRTY_NOCHECK:
 			cache->is_really_dirty = true;
 			break;
+		case BKE_MESH_BATCH_DIRTY_SHADING:
+			GWN_VERTBUF_DISCARD_SAFE(cache->shaded_triangles_data);
+			if (cache->shaded_triangles) {
+				for (int i = 0; i < cache->mat_len; ++i) {
+					GWN_BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
+				}
+			}
+
+			MEM_SAFE_FREE(cache->shaded_triangles);
+			break;
 		default:
 			BLI_assert(0);
 	}

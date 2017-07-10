@@ -781,10 +781,19 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	}
 
 	/* materials */
-	for (int a = 1; a <= ob->totcol; a++) {
-		Material *ma = give_current_material(ob, a);
-		if (ma != NULL) {
-			build_material(ma);
+	if (ob->totcol != 0) {
+		if (ob->type == OB_MESH) {
+			add_operation_node(&ob->id,
+			                   DEG_NODE_TYPE_SHADING,
+			                   function_bind(BKE_object_eval_update_shading, _1, ob),
+			                   DEG_OPCODE_SHADING);
+		}
+
+		for (int a = 1; a <= ob->totcol; a++) {
+			Material *ma = give_current_material(ob, a);
+			if (ma != NULL) {
+				build_material(ma);
+			}
 		}
 	}
 

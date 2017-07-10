@@ -1448,6 +1448,15 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			Material *ma = give_current_material(ob, a);
 			if (ma != NULL) {
 				build_material(ma);
+
+				if (ob->type == OB_MESH) {
+					OperationKey material_key(&ma->id,
+					                          DEG_NODE_TYPE_SHADING,
+					                          DEG_OPCODE_PLACEHOLDER,
+					                          "Material Update");
+					OperationKey shading_key(&ob->id, DEG_NODE_TYPE_SHADING, DEG_OPCODE_SHADING);
+					add_relation(material_key, shading_key, "Material Update");
+				}
 			}
 		}
 	}

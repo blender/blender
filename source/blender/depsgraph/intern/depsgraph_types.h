@@ -217,6 +217,9 @@ typedef enum eDepsOperation_Code {
 	/* Copy on Write ------------------------- */
 	DEG_OPCODE_COPY_ON_WRITE,
 
+	/* Shading operations  ------------------------- */
+	DEG_OPCODE_SHADING,
+
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;
 

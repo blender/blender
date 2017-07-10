@@ -239,6 +239,14 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 				do_component_tag = true;
 			}
 		}
+		else if (comp_node->type == DEG_NODE_TYPE_SHADING) {
+			/* TODO(sergey): For until we properly handle granular flags for DEG_id_tag_update()
+			 * we skip flushing here to keep Luca happy.
+			 */
+			if (GS(id_orig->name) != ID_MA) {
+				do_component_tag = false;
+			}
+		}
 		if (do_component_tag) {
 			comp_node->tag_update(graph);
 		}
