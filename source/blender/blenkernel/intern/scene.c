@@ -243,7 +243,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 				for (lineset = new_srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 					if (lineset->linestyle) {
 						/* Has been incremented by BKE_freestyle_config_copy(). */
-						id_us_min(lineset->linestyle);
+						id_us_min(&lineset->linestyle->id);
 						lineset->linestyle = BKE_linestyle_copy(bmain, lineset->linestyle);
 					}
 				}
