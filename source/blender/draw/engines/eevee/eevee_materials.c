@@ -876,6 +876,9 @@ static void material_transparent(
 		case MA_BM_MULTIPLY:
 			cur_state |= DRW_STATE_MULTIPLY;
 			break;
+		case MA_BM_BLEND:
+			cur_state |= DRW_STATE_BLEND;
+			break;
 		default:
 			BLI_assert(0);
 			break;
@@ -940,8 +943,12 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 					break;
 				case MA_BM_ADD:
 				case MA_BM_MULTIPLY:
+				case MA_BM_BLEND:
 					material_transparent(ma, sldata, vedata, do_cull, use_flat_nor,
 					        &gpumat_array[i], &shgrp_array[i]);
+					break;
+				default:
+					BLI_assert(0);
 					break;
 			}
 		}

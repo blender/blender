@@ -502,6 +502,7 @@ enum {
 	MA_BM_MULTIPLY,
 	MA_BM_CLIP,
 	MA_BM_HASHED,
+	MA_BM_BLEND,
 };
 
 #endif
