@@ -744,6 +744,7 @@ BezTriple *BKE_nurb_bezt_get_prev(Nurb *nu, BezTriple *bezt)
 	BezTriple *bezt_prev;
 
 	BLI_assert(ARRAY_HAS_ITEM(bezt, nu->bezt, nu->pntsu));
+	BLI_assert(nu->pntsv == 1);
 
 	if (bezt == nu->bezt) {
 		if (nu->flagu & CU_NURB_CYCLIC) {
@@ -765,6 +766,7 @@ BPoint *BKE_nurb_bpoint_get_prev(Nurb *nu, BPoint *bp)
 	BPoint *bp_prev;
 
 	BLI_assert(ARRAY_HAS_ITEM(bp, nu->bp, nu->pntsu));
+	BLI_assert(nu->pntsv == 1);
 
 	if (bp == nu->bp) {
 		if (nu->flagu & CU_NURB_CYCLIC) {
@@ -781,7 +783,7 @@ BPoint *BKE_nurb_bpoint_get_prev(Nurb *nu, BPoint *bp)
 	return bp_prev;
 }
 
-void BKE_nurb_bezt_calc_normal(struct Nurb *UNUSED(nu), struct BezTriple *bezt, float r_normal[3])
+void BKE_nurb_bezt_calc_normal(struct Nurb *UNUSED(nu), BezTriple *bezt, float r_normal[3])
 {
 	/* calculate the axis matrix from the spline */
 	float dir_prev[3], dir_next[3];
@@ -796,7 +798,7 @@ void BKE_nurb_bezt_calc_normal(struct Nurb *UNUSED(nu), struct BezTriple *bezt, 
 	normalize_v3(r_normal);
 }
 
-void BKE_nurb_bezt_calc_plane(struct Nurb *nu, struct BezTriple *bezt, float r_plane[3])
+void BKE_nurb_bezt_calc_plane(struct Nurb *nu, BezTriple *bezt, float r_plane[3])
 {
 	float dir_prev[3], dir_next[3];
 
@@ -833,7 +835,7 @@ void BKE_nurb_bezt_calc_plane(struct Nurb *nu, struct BezTriple *bezt, float r_p
 	normalize_v3(r_plane);
 }
 
-void BKE_nurb_bpoint_calc_normal(struct Nurb *nu, struct BPoint *bp, float r_normal[3])
+void BKE_nurb_bpoint_calc_normal(struct Nurb *nu, BPoint *bp, float r_normal[3])
 {
 	BPoint *bp_prev = BKE_nurb_bpoint_get_prev(nu, bp);
 	BPoint *bp_next = BKE_nurb_bpoint_get_next(nu, bp);
