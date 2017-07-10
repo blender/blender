@@ -239,6 +239,7 @@ struct DRWShadingGroup {
 	DRWInterface *interface;         /* Uniforms pointers */
 	ListBase calls;                  /* DRWCall or DRWCallDynamic depending of type */
 	DRWState state_extra;            /* State changes for this batch only (or'd with the pass's state) */
+	DRWState state_extra_disable;    /* State changes for this batch only (and'd with the pass's state) */
 	int type;
 
 	Gwn_Batch *instance_geom;  /* Geometry to instance */
@@ -701,6 +702,7 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	shgroup->shader = shader;
 	shgroup->interface = DRW_interface_create(shader);
 	shgroup->state_extra = 0;
+	shgroup->state_extra_disable = ~0x0;
 	shgroup->batch_geom = NULL;
 	shgroup->instance_geom = NULL;
 
@@ -991,12 +993,15 @@ void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, int count)
 /**
  * State is added to #Pass.state while drawing.
  * Use to temporarily enable draw options.
- *
- * Currently there is no way to disable (could add if needed).
  */
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state)
 {
 	shgroup->state_extra |= state;
+}
+
+void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state)
+{
+	shgroup->state_extra_disable &= ~state;
 }
 
 void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int size)
@@ -1699,7 +1704,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		shgroup_dynamic_batch_from_calls(shgroup);
 	}
 
-	DRW_state_set(pass_state | shgroup->state_extra);
+	DRW_state_set((pass_state & shgroup->state_extra_disable) | shgroup->state_extra);
 
 	/* Binding Uniform */
 	/* Don't check anything, Interface should already contain the least uniform as possible */
