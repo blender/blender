@@ -68,7 +68,7 @@ struct Closure {
 	float opacity;
 };
 
-#define CLOSURE_DEFAULT Closure(vec3(0.0), 0.0)
+#define CLOSURE_DEFAULT Closure(vec3(0.0), 1.0)
 
 Closure closure_mix(Closure cl1, Closure cl2, float fac)
 {
