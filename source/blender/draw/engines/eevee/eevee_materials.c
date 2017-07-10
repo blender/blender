@@ -823,7 +823,7 @@ static void material_opaque(
 
 static void material_transparent(
         Material *ma, EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata,
-        bool do_cull, bool use_flat_nor, struct GPUMaterial **gpumat, struct DRWShadingGroup **shgrp)
+        bool do_cull, bool use_flat_nor, struct GPUMaterial **gpumat, struct DRWShadingGroup **shgrp, struct DRWShadingGroup **shgrp_depth)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
@@ -866,8 +866,14 @@ static void material_transparent(
 		DRW_shgroup_uniform_float(*shgrp, "roughness", rough_p, 1);
 	}
 
-	DRWState cur_state = (do_cull) ? DRW_STATE_CULL_BACK : 0;
-	DRWState all_state = DRW_STATE_CULL_BACK | DRW_STATE_BLEND | DRW_STATE_ADDITIVE | DRW_STATE_MULTIPLY;
+	const bool use_prepass = ((ma->blend_flag & MA_BL_HIDE_BACKSIDE) != 0);
+
+	DRWState all_state = DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_CULL_BACK | DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_EQUAL |
+	                     DRW_STATE_BLEND | DRW_STATE_ADDITIVE | DRW_STATE_MULTIPLY;
+
+	DRWState cur_state = DRW_STATE_WRITE_COLOR;
+	cur_state |= (use_prepass) ? DRW_STATE_DEPTH_EQUAL : DRW_STATE_DEPTH_LESS;
+	cur_state |= (do_cull) ? DRW_STATE_CULL_BACK : 0;
 
 	switch (ma->blend_method) {
 		case MA_BM_ADD:
@@ -887,6 +893,17 @@ static void material_transparent(
 	/* Disable other blend modes and use the one we want. */
 	DRW_shgroup_state_disable(*shgrp, all_state);
 	DRW_shgroup_state_enable(*shgrp, cur_state);
+
+	/* Depth prepass */
+	if (use_prepass) {
+		*shgrp_depth = DRW_shgroup_create(e_data.default_prepass_clip_sh, psl->transparent_pass);
+
+		cur_state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		cur_state |= (do_cull) ? DRW_STATE_CULL_BACK : 0;
+
+		DRW_shgroup_state_disable(*shgrp_depth, all_state);
+		DRW_shgroup_state_enable(*shgrp_depth, cur_state);
+	}
 }
 
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sldata, Object *ob)
@@ -945,7 +962,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 				case MA_BM_MULTIPLY:
 				case MA_BM_BLEND:
 					material_transparent(ma, sldata, vedata, do_cull, use_flat_nor,
-					        &gpumat_array[i], &shgrp_array[i]);
+					        &gpumat_array[i], &shgrp_array[i], &shgrp_depth_array[i]);
 					break;
 				default:
 					BLI_assert(0);

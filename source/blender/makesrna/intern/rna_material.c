@@ -1849,6 +1849,12 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clip Threshold", "A pixel is rendered only if its alpha value is above this threshold");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
+	prop = RNA_def_property(srna, "blend_hide_backside", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_HIDE_BACKSIDE);
+	RNA_def_property_ui_text(prop, "Hide Backside" , "Limit transparency to a single layer "
+	                                                 "(avoids transparency sorting problems)");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
 	/* For Preview Render */
 	prop = RNA_def_property(srna, "preview_render_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "pr_type");

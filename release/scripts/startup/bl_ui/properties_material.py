@@ -1172,6 +1172,9 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
 
         layout.prop(mat, "blend_method")
 
+        if mat.blend_method not in {"CLIP", "HASHED"}:
+            layout.prop(mat, "blend_hide_backside")
+
         if mat.blend_method == "CLIP":
             layout.prop(mat, "alpha_threshold")
 

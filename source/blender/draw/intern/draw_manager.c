@@ -1270,8 +1270,10 @@ typedef struct ZSortData {
 
 static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 {
-	const DRWCall *call_a = (DRWCall *)((const DRWShadingGroup *)a)->calls.first;
-	const DRWCall *call_b = (DRWCall *)((const DRWShadingGroup *)b)->calls.first;
+	const DRWShadingGroup *shgrp_a = (const DRWShadingGroup *)a;
+	const DRWShadingGroup *shgrp_b = (const DRWShadingGroup *)b;
+	const DRWCall *call_a = (DRWCall *)(shgrp_a)->calls.first;
+	const DRWCall *call_b = (DRWCall *)(shgrp_b)->calls.first;
 	const ZSortData *zsortdata = (ZSortData *)thunk;
 
 	float tmp[3];
@@ -1282,12 +1284,21 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 
 	if      (a_sq < b_sq) return  1;
 	else if (a_sq > b_sq) return -1;
-	else                  return  0;
+	else {
+		/* If there is a depth prepass put it before */
+		if ((shgrp_a->state_extra & DRW_STATE_WRITE_DEPTH) != 0) {
+			return -1;
+		}
+		else if ((shgrp_b->state_extra & DRW_STATE_WRITE_DEPTH) != 0) {
+			return  1;
+		}
+		else return  0;
+	}
 }
 
 /**
- * Sort Shading groups by decreasing Z between
- * the first call object center and a given world space point.
+ * Sort Shading groups by decreasing Z of their first draw call.
+ * This is usefull for order dependant effect such as transparency.
  **/
 void DRW_pass_sort_shgroup_z(DRWPass *pass)
 {

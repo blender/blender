@@ -213,7 +213,9 @@ typedef struct Material {
 
 	/* Transparency */
 	float alpha_threshold;
-	char blend_method, pad6[3];
+	char blend_method;
+	char blend_flag;
+	char pad6[2];
 
 	/* image to use for image/uv space, also bake target
 	 * (not to be used shading/rendering pipeline, this is editor featyure only!). */
@@ -503,6 +505,11 @@ enum {
 	MA_BM_CLIP,
 	MA_BM_HASHED,
 	MA_BM_BLEND,
+};
+
+/* blend_flag */
+enum {
+	MA_BL_HIDE_BACKSIDE =       (1 << 0),
 };
 
 #endif
