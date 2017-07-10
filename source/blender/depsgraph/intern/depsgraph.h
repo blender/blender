@@ -42,6 +42,7 @@
 
 struct ID;
 struct GHash;
+struct Main;
 struct GSet;
 struct PointerRNA;
 struct PropertyRNA;
@@ -164,8 +165,8 @@ struct Depsgraph {
 	SpinLock lock;
 
 	// XXX: additional stuff like eval contexts, mempools for allocating nodes from, etc.
-
-	Scene *scene; /* XXX: We really shouldn't do that, but it's required for shader preview */
+	Main *bmain;  /* XXX: For until depsgraph has proper ownership. */
+	Scene *scene; /* XXX: We really shouldn't do that, but it's required for shader preview. */
 };
 
 }  // namespace DEG

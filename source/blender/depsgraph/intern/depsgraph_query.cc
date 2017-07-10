@@ -91,8 +91,9 @@ Scene *DEG_get_scene(Depsgraph *graph)
 SceneLayer *DEG_get_scene_layer(Depsgraph *graph)
 {
 	Scene *scene = DEG_get_scene(graph);
-	if (scene) {
-		return BKE_scene_layer_context_active(scene);
+	if (scene != NULL) {
+		DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+		return BKE_scene_layer_context_active_ex(deg_graph->bmain, scene);
 	}
 	return NULL;
 }
