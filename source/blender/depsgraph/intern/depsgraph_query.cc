@@ -92,7 +92,7 @@ SceneLayer *DEG_get_scene_layer(Depsgraph *graph)
 {
 	Scene *scene = DEG_get_scene(graph);
 	if (scene) {
-		return BKE_scene_layer_render_active(scene);
+		return BKE_scene_layer_context_active(scene);
 	}
 	return NULL;
 }
