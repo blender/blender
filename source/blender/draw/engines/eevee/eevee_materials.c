@@ -997,7 +997,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 				ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, mat_geom[i]);
 
 				/* Shadow Pass */
-				if (ma->blend_method != MA_BM_SOLID) {
+				if (ma->use_nodes && ma->nodetree && (ma->blend_method != MA_BM_SOLID)) {
 					struct GPUMaterial *gpumat;
 					switch (ma->blend_shadow) {
 						case MA_BS_SOLID:
