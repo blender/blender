@@ -793,7 +793,7 @@ static bool raycastObj(
 		}
 		else {
 			/* in this case we want the mesh from the editmesh, avoids stale data. see: T45978.
-			* still set the 'em' to NULL, since we only want the 'dm'. */
+			 * still set the 'em' to NULL, since we only want the 'dm'. */
 			DerivedMesh *dm;
 			em = BKE_editmesh_from_object(ob);
 			if (em) {
@@ -827,13 +827,13 @@ static bool raycastObj(
  * Main RayCast Function
  * ======================
  *
- * Walks through all objects in the scene to find the ´hit´ on object surface.
+ * Walks through all objects in the scene to find the `hit` on object surface.
  *
  * \param sctx: Snap context to store data.
- * \param snapdata: struct generated in `get_snapdata`.
+ * \param snapdata: struct generated in `set_snapdata`.
  * \param snap_select : from enum SnapSelect.
  * \param use_object_edit_cage : Uses the coordinates of BMesh(if any) to do the snapping.
- * \param obj_list: List with objects to snap (created in ´create_object_list´).
+ * \param obj_list: List with objects to snap (created in `create_object_list`).
  *
  * Read/Write Args
  * ---------------
