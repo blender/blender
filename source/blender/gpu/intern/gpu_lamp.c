@@ -386,20 +386,9 @@ void GPU_lamp_free(Object *ob)
 {
 	GPULamp *lamp;
 	LinkData *link;
-	LinkData *nlink;
-	Material *ma;
 
 	for (link = ob->gpulamp.first; link; link = link->next) {
 		lamp = link->data;
-
-		while (lamp->materials.first) {
-			nlink = lamp->materials.first;
-			ma = nlink->data;
-			BLI_freelinkN(&lamp->materials, nlink);
-
-			if (ma->gpumaterial.first)
-				GPU_material_free(&ma->gpumaterial);
-		}
 
 		gpu_lamp_shadow_free(lamp);
 		GPU_lamp_engine_data_free(&lamp->data);

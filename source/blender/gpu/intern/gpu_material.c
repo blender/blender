@@ -250,21 +250,6 @@ void GPU_material_free(ListBase *gpumaterial)
 		if (material->pass)
 			GPU_pass_free(material->pass);
 
-		for (LinkData *nlink = material->lamps.first; nlink; nlink = nlink->next) {
-			GPULamp *lamp = nlink->data;
-
-			if (material->ma) {
-				Material *ma = material->ma;
-				
-				LinkData *next = NULL;
-				for (LinkData *mlink = lamp->materials.first; mlink; mlink = next) {
-					next = mlink->next;
-					if (mlink->data == ma)
-						BLI_freelinkN(&lamp->materials, mlink);
-				}
-			}
-		}
-		
 		BLI_freelistN(&material->lamps);
 
 		MEM_freeN(material);
@@ -904,14 +889,12 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 				}
 				
 				add_user_list(&mat->lamps, lamp);
-				add_user_list(&lamp->materials, shi->gpumat->ma);
 				return;
 			}
 		}
 	}
 	else if ((mat->scene->gm.flag & GAME_GLSL_NO_SHADOWS) && (lamp->mode & LA_ONLYSHADOW)) {
 		add_user_list(&mat->lamps, lamp);
-		add_user_list(&lamp->materials, shi->gpumat->ma);
 		return;
 	}
 	else
@@ -978,7 +961,6 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	}
 
 	add_user_list(&mat->lamps, lamp);
-	add_user_list(&lamp->materials, shi->gpumat->ma);
 }
 
 static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
@@ -2289,7 +2271,6 @@ GPUNodeLink *GPU_lamp_get_data(
 
 	/* ensure shadow buffer and lamp textures will be updated */
 	add_user_list(&mat->lamps, lamp);
-	add_user_list(&lamp->materials, mat->ma);
 
 	return visifac;
 }
