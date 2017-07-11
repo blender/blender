@@ -27,6 +27,9 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Disable workarounds, seems to be working fine on latest drivers. */
+#define CYCLES_DISABLE_DRIVER_WORKAROUNDS
+
 /* Define CYCLES_DISABLE_DRIVER_WORKAROUNDS to disable workaounds for testing */
 #ifndef CYCLES_DISABLE_DRIVER_WORKAROUNDS
 /* Work around AMD driver hangs by ensuring each command is finished before doing anything else. */
