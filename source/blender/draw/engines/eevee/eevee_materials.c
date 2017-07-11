@@ -997,15 +997,27 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 				ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, mat_geom[i]);
 
 				/* Shadow Pass */
-				if (ma->blend_method == MA_BM_SOLID)
-					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
-				else if (ma->blend_method == MA_BM_HASHED) {
-					struct GPUMaterial *gpumat = EEVEE_material_mesh_depth_get(scene, ma, true, true);
-					EEVEE_lights_cache_shcaster_material_add(sldata, psl, gpumat, mat_geom[i], ob->obmat, NULL);
+				if (ma->blend_method != MA_BM_SOLID) {
+					struct GPUMaterial *gpumat;
+					switch (ma->blend_shadow) {
+						case MA_BS_SOLID:
+							EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
+							break;
+						case MA_BS_CLIP:
+							gpumat = EEVEE_material_mesh_depth_get(scene, ma, false, true);
+							EEVEE_lights_cache_shcaster_material_add(sldata, psl, gpumat, mat_geom[i], ob->obmat, &ma->alpha_threshold);
+							break;
+						case MA_BS_HASHED:
+							gpumat = EEVEE_material_mesh_depth_get(scene, ma, true, true);
+							EEVEE_lights_cache_shcaster_material_add(sldata, psl, gpumat, mat_geom[i], ob->obmat, NULL);
+							break;
+						case MA_BS_NONE:
+						default:
+							break;
+					}
 				}
-				else if (ma->blend_method == MA_BM_CLIP) {
-					struct GPUMaterial *gpumat = EEVEE_material_mesh_depth_get(scene, ma, false, true);
-					EEVEE_lights_cache_shcaster_material_add(sldata, psl, gpumat, mat_geom[i], ob->obmat, &ma->alpha_threshold);
+				else {
+					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
 				}
 			}
 		}
