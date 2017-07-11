@@ -83,7 +83,7 @@ class SimpleImportTest(AbstractAlembicTest):
 
         # The objects should be linked to scene_collection in Blender 2.8,
         # and to scene in Blender 2.7x.
-        objects = bpy.context.scene.objects
+        objects = bpy.context.scene_collection.objects
 
         # ABC parent is top-level object, which translates to nothing in Blender
         self.assertIsNone(objects['locator1'].parent)
