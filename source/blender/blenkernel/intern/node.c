@@ -1700,11 +1700,12 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdat
 			ntreeTexEndExecTree(ntree->execdata);
 			ntree->execdata = NULL;
 		}
-		
-		if (node->typeinfo->freefunc)
-			node->typeinfo->freefunc(node);
 	}
-	
+
+	if (node->typeinfo->freefunc) {
+		node->typeinfo->freefunc(node);
+	}
+
 	for (sock = node->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
 		node_socket_free(ntree, sock, node);
