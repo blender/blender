@@ -328,7 +328,7 @@ static int poselib_sanitize_exec(bContext *C, wmOperator *op)
 			/* add pose to poselib */
 			marker = MEM_callocN(sizeof(TimeMarker), "ActionMarker");
 			
-			BLI_strncpy(marker->name, "Pose", sizeof(marker->name));
+			BLI_snprintf(marker->name, sizeof(marker->name), "F%d Pose", (int)ak->cfra);
 			
 			marker->frame = (int)ak->cfra;
 			marker->flag = -1;

@@ -178,6 +178,10 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         layout.template_ID(ob, "pose_library", new="poselib.new", unlink="poselib.unlink")
 
         if poselib:
+            # warning about poselib being in an invalid state
+            if len(poselib.fcurves) > 0 and len(poselib.pose_markers) == 0:
+                layout.label(icon='ERROR', text="Error: Potentially corrupt library, run 'Sanitize' operator to fix") 
+
             # list of poses in pose library
             row = layout.row()
             row.template_list("UI_UL_list", "pose_markers", poselib, "pose_markers",
