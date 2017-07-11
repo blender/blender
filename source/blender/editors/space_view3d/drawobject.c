@@ -8378,9 +8378,13 @@ static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
 
 	DM_update_materials(dm, ob);
 
-	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_object_material_bind, NULL, me, DM_DRAW_SKIP_HIDDEN);
+	/* Only draw faces to mask out verts, we don't want their selection ID's. */
+	const int G_f_orig = G.f;
+	G.f &= ~G_BACKBUFSEL;
 
-	GPU_object_material_unbind();
+	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, NULL, NULL, me, DM_DRAW_SKIP_HIDDEN);
+
+	G.f |= (G_f_orig & G_BACKBUFSEL);
 
 	bbs_obmode_mesh_verts(ob, dm, 1);
 	bm_vertoffs = me->totvert + 1;
