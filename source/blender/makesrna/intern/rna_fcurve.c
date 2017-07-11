@@ -767,6 +767,38 @@ static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, fl
 	*max = MAXFRAMEF;
 }
 
+static void rna_FModifierStepped_frame_start_set(PointerRNA *ptr, float value)
+{
+	FModifier *fcm = (FModifier *)ptr->data;
+	FMod_Stepped *data = fcm->data;
+	
+	float prop_clamp_min = -FLT_MAX, prop_clamp_max = FLT_MAX, prop_soft_min, prop_soft_max;
+	rna_FModifierStepped_start_frame_range(ptr, &prop_clamp_min, &prop_clamp_max, &prop_soft_min, &prop_soft_max);
+	value = CLAMPIS(value, prop_clamp_min, prop_clamp_max);
+	
+	/* Need to set both step-data's start/end and the start/end on the base-data, 
+	 * or else Restrict-Range doesn't work due to RNA-property shadowing (T52009)
+	 */
+	data->start_frame = value;
+	fcm->sfra = value;
+}
+
+static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
+{
+	FModifier *fcm = (FModifier *)ptr->data;
+	FMod_Stepped *data = fcm->data;
+	
+	float prop_clamp_min = -FLT_MAX, prop_clamp_max = FLT_MAX, prop_soft_min, prop_soft_max;
+	rna_FModifierStepped_end_frame_range(ptr, &prop_clamp_min, &prop_clamp_max, &prop_soft_min, &prop_soft_max);
+	value = CLAMPIS(value, prop_clamp_min, prop_clamp_max);
+	
+	/* Need to set both step-data's start/end and the start/end on the base-data, 
+	 * or else Restrict-Range doesn't work due to RNA-property shadowing (T52009)
+	 */
+	data->end_frame = value;
+	fcm->efra = value;
+}
+
 static BezTriple *rna_FKeyframe_points_insert(FCurve *fcu, float frame, float value, int keyframe_type, int flag)
 {
 	int index = insert_vert_fcurve(fcu, frame, value, (char)keyframe_type, flag | INSERTKEY_NO_USERPREF);
@@ -1286,13 +1318,13 @@ static void rna_def_fmodifier_stepped(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "start_frame");
-	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierStepped_start_frame_range");
+	RNA_def_property_float_funcs(prop, NULL, "rna_FModifierStepped_frame_start_set", "rna_FModifierStepped_start_frame_range");
 	RNA_def_property_ui_text(prop, "Start Frame", "Frame that modifier's influence starts (if applicable)");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_update");
 	
 	prop = RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "end_frame");
-	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierStepped_end_frame_range");
+	RNA_def_property_float_funcs(prop, NULL, "rna_FModifierStepped_frame_end_set", "rna_FModifierStepped_end_frame_range");
 	RNA_def_property_ui_text(prop, "End Frame", "Frame that modifier's influence ends (if applicable)");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_update");
 }

@@ -75,6 +75,39 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertEqual(objects['Cube_003'], objects['Cube_005'].parent)
         self.assertEqual(objects['Cube_003'], objects['Cube_006'].parent)
 
+    def test_inherit_or_not(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "T52022-inheritance.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        # The objects should be linked to scene_collection in Blender 2.8,
+        # and to scene in Blender 2.7x.
+        objects = bpy.context.scene.objects
+
+        # ABC parent is top-level object, which translates to nothing in Blender
+        self.assertIsNone(objects['locator1'].parent)
+
+        # ABC parent is locator1, but locator2 has "inherits Xforms" = false, which
+        # translates to "no parent" in Blender.
+        self.assertIsNone(objects['locator2'].parent)
+
+        # Shouldn't have inherited the ABC parent's transform.
+        x, y, z = objects['locator2'].matrix_world.to_translation()
+        self.assertAlmostEqual(0, x)
+        self.assertAlmostEqual(0, y)
+        self.assertAlmostEqual(2, z)
+
+        # ABC parent is inherited and translates to normal parent in Blender.
+        self.assertEqual(objects['locator2'], objects['locatorShape2'].parent)
+
+        # Should have inherited its ABC parent's transform.
+        x, y, z = objects['locatorShape2'].matrix_world.to_translation()
+        self.assertAlmostEqual(0, x)
+        self.assertAlmostEqual(0, y)
+        self.assertAlmostEqual(2, z)
+
+
     def test_select_after_import(self):
         # Add a sphere, so that there is something in the scene, selected, and active,
         # before we do the Alembic import.
