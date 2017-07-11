@@ -760,7 +760,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 		const AbcObjectReader *parent_reader = reader->parent_reader;
 		Object *ob = reader->object();
 
-		if (parent_reader == NULL) {
+		if (parent_reader == NULL || !reader->inherits_xform()) {
 			ob->parent = NULL;
 		}
 		else {

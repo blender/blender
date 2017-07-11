@@ -140,6 +140,38 @@ AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings
 	else {
 		m_object_name = m_data_name = parts[parts.size() - 1];
 	}
+
+	determine_inherits_xform();
+}
+
+/* Determine whether we can inherit our parent's XForm */
+void AbcObjectReader::determine_inherits_xform()
+{
+	m_inherits_xform = false;
+
+	IXform ixform = xform();
+	if (!ixform) {
+		return;
+	}
+
+	const IXformSchema & schema(ixform.getSchema());
+	if (!schema.valid()) {
+		std::cerr << "Alembic object " << ixform.getFullName()
+		          << " has an invalid schema." << std::endl;
+		return;
+	}
+
+	m_inherits_xform = schema.getInheritsXforms();
+
+	IObject ixform_parent = ixform.getParent();
+	if (!ixform_parent.getParent()) {
+		/* The archive top object certainly is not a transform itself, so handle
+		 * it as "no parent". */
+		m_inherits_xform = false;
+	}
+	else {
+		m_inherits_xform = ixform_parent && m_inherits_xform;
+	}
 }
 
 AbcObjectReader::~AbcObjectReader()
@@ -286,32 +318,10 @@ void AbcObjectReader::read_matrix(float r_mat[4][4], const float time,
 		return;
 	}
 
-	bool has_alembic_parent;
-	IObject ixform_parent = ixform.getParent();
-	if (!ixform_parent.getParent()) {
-		/* The archive top object certainly is not a transform itself, so handle
-		 * it as "no parent". */
-		has_alembic_parent = false;
-	}
-	else {
-		has_alembic_parent = ixform_parent && schema.getInheritsXforms();
-
-		if (has_alembic_parent && m_object->parent == NULL) {
-			/* TODO Sybren: This happened in some files. I think I solved it,
-			 * but I'll leave this check in here anyway until we've tested it
-			 * more thoroughly. Better than crashing on a null parent anyway. */
-			std::cerr << "Alembic object " << m_iobject.getFullName()
-			          << " with transform " << ixform.getFullName()
-			          << " has an Alembic parent but no parent Blender object."
-			          << std::endl;
-			has_alembic_parent = false;
-		}
-	}
-
 	const Imath::M44d matrix = get_matrix(schema, time);
 	convert_matrix(matrix, m_object, r_mat);
 
-	if (has_alembic_parent) {
+	if (m_inherits_xform) {
 		/* In this case, the matrix in Alembic is in local coordinates, so
 		 * convert to world matrix. To prevent us from reading and accumulating
 		 * all parent matrices in the Alembic file, we assume that the Blender
