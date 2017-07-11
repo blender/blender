@@ -75,6 +75,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <string>
+#include <vector>
+
+using std::string;
+using std::vector;
+
+#define STRINGIFY_ARG(x) "" #x
+#define STRINGIFY_APPEND(a, b) "" a #b
+#define STRINGIFY(x) STRINGIFY_APPEND("", x)
+
 /* **************** Types declaration **************** */
 
 using OpenSubdiv::Osd::GLMeshInterface;
@@ -146,6 +156,38 @@ typedef Mesh<GLVertexBuffer,
 #endif
 
 namespace {
+
+#if !defined(OPENSUBDIV_VERSION_NUMBER) && !defined(OPENSUBDIV_VERSION_MINOR)
+void stringSplit(vector<string>* tokens,
+                 const string& str,
+                 const string& separators,
+                 bool skip_empty) {
+	size_t token_start = 0, token_length = 0;
+	for (size_t i = 0; i < str.length(); ++i) {
+		const char ch = str[i];
+		if (separators.find(ch) == string::npos) {
+			/* Append non-separator char to a token. */
+			++token_length;
+		} else {
+			/* Append current token to the list (if any). */
+			if (token_length > 0 || !skip_empty) {
+				string token = str.substr(token_start, token_length);
+				tokens->push_back(token);
+			}
+			/* Re-set token pointers, */
+			token_start = i + 1;
+			token_length = 0;
+		}
+	}
+	/* Append token which might be at the end of the string. */
+	if ((token_length != 0) ||
+	    (!skip_empty && token_start > 0 &&
+	     separators.find(str[token_start-1]) != string::npos)) {
+		string token = str.substr(token_start, token_length);
+		tokens->push_back(token);
+	}
+}
+#endif
 
 struct FVarVertex {
 	float u, v;
@@ -385,5 +427,27 @@ int openSubdiv_supportGPUDisplay(void)
 
 int openSubdiv_getVersionHex(void)
 {
+#if defined(OPENSUBDIV_VERSION_NUMBER)
 	return OPENSUBDIV_VERSION_NUMBER;
+#elif defined(OPENSUBDIV_VERSION_MAJOR)
+	return OPENSUBDIV_VERSION_MAJOR * 10000 +
+	       OPENSUBDIV_VERSION_MINOR * 100 +
+	       OPENSUBDIV_VERSION_PATCH;
+#elif defined(OPENSUBDIV_VERSION)
+	const char* version = STRINGIFY(OPENSUBDIV_VERSION);
+	if (version[0] == 'v') {
+		version += 1;
+	}
+	int major = 0, minor = 0, patch = 0;
+	vector<string> tokens;
+	stringSplit(&tokens, version, "_", true);
+	if (tokens.size() == 3) {
+		major = atoi(tokens[0].c_str());
+		minor = atoi(tokens[1].c_str());
+		patch = atoi(tokens[2].c_str());
+	}
+	return major * 10000 + minor * 100 + patch;
+#else
+	return 0;
+#endif
 }
