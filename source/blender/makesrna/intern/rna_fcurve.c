@@ -581,7 +581,6 @@ static void rna_FModifier_blending_range(PointerRNA *ptr, float *min, float *max
 
 	*min = 0.0f;
 	*max = fcm->efra - fcm->sfra;
-	printf("blending range: %f -> %f (%f, %f)\n", *min, *max, fcm->sfra, fcm->efra);
 }
 
 static void rna_FModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
