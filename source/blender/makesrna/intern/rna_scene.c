@@ -6250,7 +6250,7 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "volumetric_colored_transmittance", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_volumetric_colored_transmittance_get",
 	                               "rna_LayerEngineSettings_Eevee_volumetric_colored_transmittance_set");
-	RNA_def_property_ui_text(prop, "Colored transmittance", "Enable wavelength dependant volumetric transmittance");
+	RNA_def_property_ui_text(prop, "Colored Transmittance", "Enable wavelength dependent volumetric transmittance");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
