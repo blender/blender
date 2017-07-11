@@ -216,7 +216,7 @@
         <wcol_list_item>
           <ThemeWidgetColors outline="#e6e6e6"
                              inner="#00000000"
-                             inner_sel="#5680c2ff"
+                             inner_sel="#446599ff"
                              item="#80b1ffff"
                              text="#1a1a1a"
                              text_sel="#ffffff"
@@ -238,30 +238,33 @@
       </ThemeUserInterface>
     </user_interface>
     <view_3d>
-      <ThemeView3D grid="#414141"
+      <ThemeView3D grid="#464646"
+                   clipping_border_3d="#313131ff"
                    wire="#000000"
                    wire_edit="#808080"
                    gp_vertex="#000000"
                    gp_vertex_select="#ff8500"
                    gp_vertex_size="3"
-                   lamp="#00000028"
-                   speaker="#000000"
-                   camera="#000000"
-                   view_overlay="#808080"
-                   empty="#000000"
+                   text_grease_pencil="#b5e61d"
                    object_selected="#f15800"
                    object_active="#ffaa40"
-                   object_grouped="#083008"
+                   object_grouped="#004200"
                    object_grouped_active="#55bb55"
-                   transform="#ffffff"
+                   text_keyframe="#ddd700"
+                   camera="#000000"
+                   empty="#000000"
+                   lamp="#00000028"
+                   speaker="#000000"
                    vertex="#000000"
                    vertex_select="#ff8500"
                    vertex_size="3"
+                   vertex_bevel="#00a5ff"
                    vertex_unreferenced="#000000"
                    edge_select="#ffa000"
                    edge_seam="#db2512"
                    edge_sharp="#00ffff"
                    edge_crease="#cc0099"
+                   edge_bevel="#00a5ff"
                    edge_facesel="#4b4b4b"
                    freestyle_edge_mark="#7fff7f"
                    face="#00000012"
@@ -291,19 +294,18 @@
                    normal="#22dddd"
                    vertex_normal="#2361dd"
                    split_normal="#dd23dd"
-                   bone_solid="#c8c8c8"
                    bone_pose="#50c8ff"
                    bone_pose_active="#8cffff"
-                   frame_current="#60c040"
-                   outline_width="1"
+                   bone_solid="#c8c8c8"
                    bundle_solid="#c8c8c8"
                    camera_path="#000000"
                    skin_root="#b44d4d"
-                   clipping_border_3d="#313131ff"
-                   text_keyframe="#ddd700"
-                   text_grease_pencil="#b5e61d"
+                   view_overlay="#808080"
+                   transform="#ffffff"
+                   frame_current="#60c040"
                    paint_curve_handle="#7fff7f7f"
-                   paint_curve_pivot="#ff7f7f7f">
+                   paint_curve_pivot="#ff7f7f7f"
+                   outline_width="1">
         <space>
           <ThemeSpaceGradient title="#000000"
                               text="#000000"
@@ -321,8 +323,8 @@
                               tab_outline="#999999">
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
-                                   gradient="#1b1b1b"
-                                   high_gradient="#3a3a3a">
+                                   gradient="#444444"
+                                   high_gradient="#858585">
               </ThemeGradientColors>
             </gradients>
             <panelcolors>
@@ -348,6 +350,7 @@
                         vertex="#000000"
                         vertex_select="#ff8500"
                         vertex_size="6"
+                        vertex_bevel="#000000"
                         vertex_unreferenced="#000000"
                         handle_free="#000000"
                         handle_auto="#909000"
@@ -372,13 +375,13 @@
                              header_text="#000000"
                              header_text_hi="#ffffff"
                              button="#999999e6"
-                             button_title="#000000"
+                             button_title="#1a1a1a"
                              button_text="#000000"
                              button_text_hi="#ffffff"
-                             tab_active="#727272"
-                             tab_inactive="#535353"
-                             tab_back="#404040ff"
-                             tab_outline="#3c3c3c">
+                             tab_active="#6697e6"
+                             tab_inactive="#cccccc"
+                             tab_back="#999999ff"
+                             tab_outline="#999999">
             <panelcolors>
               <ThemePanelColors header="#c2c2c2ea"
                                 back="#999999ff"
@@ -398,23 +401,23 @@
       </ThemeGraphEditor>
     </graph_editor>
     <file_browser>
-      <ThemeFileBrowser selected_file="#ff8c19">
+      <ThemeFileBrowser selected_file="#5680c2">
         <space>
           <ThemeSpaceGeneric back="#404040"
                              title="#000000"
-                             text="#f1f1f1"
-                             text_hi="#0f0f0f"
-                             header="#b3b3b3"
+                             text="#eeeeee"
+                             text_hi="#ffffff"
+                             header="#adadad"
                              header_text="#000000"
                              header_text_hi="#ffffff"
-                             button="#7272727f"
-                             button_title="#000000"
+                             button="#999999e6"
+                             button_title="#1a1a1a"
                              button_text="#000000"
                              button_text_hi="#ffffff"
                              tab_active="#6697e6"
-                             tab_inactive="#535353"
-                             tab_back="#404040ff"
-                             tab_outline="#3c3c3c">
+                             tab_inactive="#cccccc"
+                             tab_back="#999999ff"
+                             tab_outline="#999999">
             <panelcolors>
               <ThemePanelColors header="#c2c2c2ea"
                                 back="#99999980"
@@ -501,6 +504,7 @@
                       keyframe_jitter_selected="#61c042"
                       keyframe_border="#000000ff"
                       keyframe_border_selected="#000000ff"
+                      keyframe_scale_factor="1"
                       summary="#d3660066">
         <space>
           <ThemeSpaceGeneric back="#6b6b6b"
@@ -543,6 +547,7 @@
                         vertex="#000000"
                         vertex_select="#ff8500"
                         vertex_size="3"
+                        vertex_bevel="#000000"
                         vertex_unreferenced="#000000"
                         face="#ffffff0a"
                         face_select="#ff85003c"
