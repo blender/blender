@@ -824,7 +824,7 @@ bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *
 bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg, bool derivatives, ustring object_name,
                                       TypeDesc type, ustring name, void *val)
 {
-	if(sg->renderstate == NULL)
+	if(sg == NULL || sg->renderstate == NULL)
 		return false;
 
 	ShaderData *sd = (ShaderData *)(sg->renderstate);
