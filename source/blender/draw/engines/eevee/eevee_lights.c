@@ -200,6 +200,9 @@ void EEVEE_lights_cache_shcaster_material_add(
 	EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, struct GPUMaterial *gpumat, struct Gwn_Batch *geom, float (*obmat)[4], float *alpha_threshold)
 {
 	DRWShadingGroup *grp = DRW_shgroup_material_instance_create(gpumat, psl->shadow_cube_pass, geom);
+
+	if (grp == NULL) return;
+
 	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 
