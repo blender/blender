@@ -1170,15 +1170,12 @@ static float dist_squared_to_projected_aabb(
 	vb2d[0] *= data->win_half[0];
 	vb2d[1] *= data->win_half[1];
 
-	//float dvec[2], edge[2], rdist;
-	//sub_v2_v2v2(dvec, data->mval, va2d);
-	//sub_v2_v2v2(edge, vb2d, va2d);
-	float rdist;
-	short dvec[2] = {data->mval[0] - va2d[0], data->mval[1] - va2d[1]};
-	short edge[2] = {vb2d[0] - va2d[0], vb2d[1] - va2d[1]};
-	float lambda = dvec[0] * edge[0] + dvec[1] * edge[1];
+	float dvec[2], edge[2], lambda, rdist;
+	sub_v2_v2v2(dvec, data->mval, va2d);
+	sub_v2_v2v2(edge, vb2d, va2d);
+	lambda = dot_v2v2(dvec, edge);
 	if (lambda != 0.0f) {
-		lambda /= edge[0] * edge[0] + edge[1] * edge[1];
+		lambda /= len_squared_v2(edge);
 		if (lambda <= 0.0f) {
 			rdist = len_squared_v2v2(data->mval, va2d);
 			r_axis_closest[main_axis] = true;
