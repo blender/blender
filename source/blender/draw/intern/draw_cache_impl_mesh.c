@@ -1494,6 +1494,9 @@ typedef struct MeshBatchCache {
 	int vert_len;
 	int mat_len;
 	bool is_editmode;
+
+	/* XXX, only keep for as long as sculpt mode uses shaded drawing. */
+	bool is_sculpt_points_tag;
 } MeshBatchCache;
 
 /* Gwn_Batch cache management. */
@@ -1602,6 +1605,9 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 			/* TODO: This should only update UV and tangent data,
 			 * and not free the entire cache. */
 			cache->is_really_dirty = true;
+			break;
+		case BKE_MESH_BATCH_DIRTY_SCULPT_COORDS:
+			cache->is_sculpt_points_tag = true;
 			break;
 		default:
 			BLI_assert(0);
@@ -3431,6 +3437,34 @@ Gwn_Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
 	}
 
 	return cache->overlay_weight_verts;
+}
+
+/**
+ * Needed for when we draw with shaded data.
+ */
+void DRW_mesh_cache_sculpt_coords_ensure(Mesh *me)
+{
+	if (me->batch_cache) {
+		MeshBatchCache *cache = mesh_batch_cache_get(me);
+		if (cache && cache->pos_with_normals && cache->is_sculpt_points_tag) {
+
+			const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
+			MeshRenderData *rdata = mesh_render_data_create(me, datatype);
+
+			Gwn_VertBuf *pos_with_normals = cache->pos_with_normals;
+			cache->pos_with_normals = NULL;
+			GWN_vertbuf_clear(pos_with_normals);
+			Gwn_VertBuf *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
+			*pos_with_normals = *vbo;
+			GWN_vertformat_copy(&pos_with_normals->format, &vbo->format);
+
+			free(vbo);
+			cache->pos_with_normals = pos_with_normals;
+
+			mesh_render_data_free(rdata);
+		}
+		cache->is_sculpt_points_tag = false;
+	}
 }
 
 /** \} */

@@ -407,6 +407,7 @@ enum {
 	BKE_MESH_BATCH_DIRTY_SELECT,
 	BKE_MESH_BATCH_DIRTY_NOCHECK,
 	BKE_MESH_BATCH_DIRTY_SHADING,
+	BKE_MESH_BATCH_DIRTY_SCULPT_COORDS,
 };
 void BKE_mesh_batch_cache_dirty(struct Mesh *me, int mode);
 void BKE_mesh_batch_cache_free(struct Mesh *me);

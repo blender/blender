@@ -356,7 +356,8 @@ void DRW_lamp_engine_data_free(struct LampEngineData *led);
 
 /* Settings */
 bool DRW_object_is_renderable(struct Object *ob);
-bool DRW_object_is_flat_normal(struct Object *ob);
+bool DRW_object_is_flat_normal(const struct Object *ob);
+int  DRW_object_is_mode_shade(const struct Object *ob);
 
 /* Draw commands */
 void DRW_draw_pass(DRWPass *pass);

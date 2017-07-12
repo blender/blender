@@ -125,6 +125,8 @@ struct Gwn_Batch **DRW_cache_mesh_surface_shaded_get(
 struct Gwn_Batch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
 
+void DRW_cache_mesh_sculpt_coords_ensure(struct Object *ob);
+
 /* Curve */
 struct Gwn_Batch *DRW_cache_curve_surface_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_curve_surface_verts_get(struct Object *ob);

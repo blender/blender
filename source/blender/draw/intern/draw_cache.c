@@ -2287,6 +2287,14 @@ Gwn_Batch *DRW_cache_mesh_verts_weight_overlay_get(Object *ob)
 	return DRW_mesh_batch_cache_get_weight_overlay_verts(me);
 }
 
+void DRW_cache_mesh_sculpt_coords_ensure(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	DRW_mesh_cache_sculpt_coords_ensure(me);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -178,8 +178,7 @@ static void PAINT_TEXTURE_engine_init(void *vedata)
 		e_data.face_overlay_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 }
-#include "BKE_global.h"
-#include "BKE_main.h"
+
 /* Here init all passes and shading groups
  * Assume that all Passes are NULL */
 static void PAINT_TEXTURE_cache_init(void *vedata)
@@ -199,12 +198,6 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 		                 DRW_STATE_BLEND | DRW_STATE_WIRE;
 		psl->image_faces = DRW_pass_create("Image Color Pass", state);
 
-		/* Create a shadingGroup using a function in draw_common.c or custom one */
-		/*
-		 * stl->g_data->group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
-		 * -- or --
-		 * stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
-		 */
 		stl->g_data->shgroup_fallback = DRW_shgroup_create(e_data.fallback_sh, psl->image_faces);
 
 		/* Uniforms need a pointer to it's value so be sure it's accessible at

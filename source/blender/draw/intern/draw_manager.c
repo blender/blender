@@ -2045,16 +2045,35 @@ bool DRW_object_is_renderable(Object *ob)
 	return true;
 }
 
-
-bool DRW_object_is_flat_normal(Object *ob)
+bool DRW_object_is_flat_normal(const Object *ob)
 {
 	if (ob->type == OB_MESH) {
-		Mesh *me = ob->data;
+		const Mesh *me = ob->data;
 		if (me->mpoly && me->mpoly[0].flag & ME_SMOOTH) {
 			return false;
 		}
 	}
 	return true;
+}
+
+
+/**
+ * Return true if the object has its own draw mode.
+ * Caller must check this is active */
+int DRW_object_is_mode_shade(const Object *ob)
+{
+	BLI_assert(ob == DST.draw_ctx.obact);
+	if ((ob->mode & OB_MODE_EDIT) == 0) {
+		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) {
+			if ((DST.draw_ctx.v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE) == 0) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	return -1;
 }
 
 /** \} */
@@ -2811,12 +2830,15 @@ static void DRW_engines_enable_external(void)
 
 static void DRW_engines_enable(const Scene *scene, SceneLayer *sl)
 {
-	const int mode = CTX_data_mode_enum_ex(scene->obedit, OBACT_NEW);
+	Object *obact = OBACT_NEW;
+	const int mode = CTX_data_mode_enum_ex(scene->obedit, obact);
 	DRW_engines_enable_from_engine(scene);
 
 	if (DRW_state_draw_support()) {
 		DRW_engines_enable_from_object_mode();
-		DRW_engines_enable_from_mode(mode);
+		if ((obact == NULL) || (DRW_object_is_mode_shade(obact) != false)) {
+			DRW_engines_enable_from_mode(mode);
+		}
 	}
 }
 

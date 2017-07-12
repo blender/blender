@@ -96,6 +96,8 @@ struct Gwn_Batch *DRW_mesh_batch_cache_get_overlay_loose_edges_nor(struct Mesh *
 struct Gwn_Batch *DRW_mesh_batch_cache_get_overlay_loose_verts(struct Mesh *me);
 struct Gwn_Batch *DRW_mesh_batch_cache_get_overlay_facedots(struct Mesh *me);
 
+void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
+
 /* Particles */
 struct Gwn_Batch *DRW_particles_batch_cache_get_hair(struct ParticleSystem *psys, struct ModifierData *md);
 struct Gwn_Batch *DRW_particles_batch_cache_get_dots(struct ParticleSystem *psys);

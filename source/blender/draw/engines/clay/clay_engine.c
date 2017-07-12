@@ -771,7 +771,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool is_active = (ob == draw_ctx->obact);
 	if (is_active) {
-		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) {
+		if (DRW_object_is_mode_shade(ob) == true) {
 			return;
 		}
 	}

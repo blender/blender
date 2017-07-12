@@ -324,7 +324,7 @@ typedef struct View3D {
 #define V3D_SOLID_MATCAP		(1 << 12)	/* user flag */
 #define V3D_SHOW_SOLID_MATCAP	(1 << 13)	/* runtime flag */
 #define V3D_OCCLUDE_WIRE		(1 << 14)
-#define V3D_SHADELESS_TEX		(1 << 15)
+#define V3D_SHOW_MODE_SHADE_OVERRIDE	(1 << 15)
 
 
 /* View3d->flag3 (short) */

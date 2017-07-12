@@ -27,6 +27,7 @@
 
 #include "DNA_world_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
@@ -719,7 +720,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 }
 
 #define ADD_SHGROUP_CALL(shgrp, ob, geom) do { \
-	if (is_sculpt_mode) { \
+	if (is_sculpt_mode_draw) { \
 		DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat); \
 	} \
 	else { \
@@ -927,11 +928,12 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 	const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 	const bool is_active = (ob == draw_ctx->obact);
 	const bool is_sculpt_mode = is_active && (ob->mode & OB_MODE_SCULPT) != 0;
+	const bool is_sculpt_mode_draw = is_sculpt_mode && (draw_ctx->v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE) == 0;
 	const bool is_default_mode_shader = is_sculpt_mode;
 
 	/* First get materials for this mesh. */
 	if (ELEM(ob->type, OB_MESH)) {
-		const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
+		const int materials_len = MAX2(1, (is_sculpt_mode_draw ? 1 : ob->totcol));
 
 		struct DRWShadingGroup **shgrp_array = BLI_array_alloca(shgrp_array, materials_len);
 		struct DRWShadingGroup **shgrp_depth_array = BLI_array_alloca(shgrp_depth_array, materials_len);
@@ -943,13 +945,20 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 		bool use_flat_nor = false;
 
 		if (is_default_mode_shader) {
-			if (is_sculpt_mode) {
+			if (is_sculpt_mode_draw) {
 				use_flat_nor = DRW_object_is_flat_normal(ob);
 			}
 		}
 
 		for (int i = 0; i < materials_len; ++i) {
-			Material *ma = give_current_material(ob, i + 1);
+			Material *ma;
+
+			if (is_sculpt_mode_draw) {
+				ma = NULL;
+			}
+			else {
+				ma = give_current_material(ob, i + 1);
+			}
 
 			gpumat_array[i] = NULL;
 			gpumat_depth_array[i] = NULL;
@@ -978,6 +987,10 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 					BLI_assert(0);
 					break;
 			}
+		}
+
+		if (is_sculpt_mode && is_sculpt_mode_draw == false) {
+			DRW_cache_mesh_sculpt_coords_ensure(ob);
 		}
 
 		/* Get per-material split surface */
