@@ -262,17 +262,6 @@ MINLINE float depth_get(const float co[3], const float ray_start[3], const float
 	return dot_v3v3(dvec, ray_dir);
 }
 
-static float UNUSED_FUNCTION(dist_aabb_to_plane)(
-        const float bbmin[3], const float bbmax[3],
-        const float plane_co[3], const float plane_no[3])
-{
-	const float local_bvmin[3] = {
-		(plane_no[0] < 0) ? bbmax[0] : bbmin[0],
-		(plane_no[1] < 0) ? bbmax[1] : bbmin[1],
-		(plane_no[2] < 0) ? bbmax[2] : bbmin[2],
-	};
-	return depth_get(local_bvmin, plane_co, plane_no);
-}
 
 static bool walk_parent_bvhroot_cb(const BVHTreeAxisRange *bounds, void *userdata)
 {
@@ -284,6 +273,7 @@ static bool walk_parent_bvhroot_cb(const BVHTreeAxisRange *bounds, void *userdat
 	}
 	return false;
 }
+
 
 static bool isect_ray_bvhroot_v3(struct BVHTree *tree, const float ray_start[3], const float ray_dir[3], float *depth)
 {
