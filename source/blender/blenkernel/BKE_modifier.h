@@ -265,7 +265,6 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	/* TODO(sergey): Remove once we finally switched to the new depsgraph. */
 	void (*updateDepsgraph)(struct ModifierData *md,
 	                        struct Main *bmain,
 	                        struct Scene *scene,
