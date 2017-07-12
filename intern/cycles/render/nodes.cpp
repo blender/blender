@@ -2337,6 +2337,12 @@ PrincipledBsdfNode::PrincipledBsdfNode()
 	distribution_orig = NBUILTIN_CLOSURES;
 }
 
+bool PrincipledBsdfNode::has_surface_bssrdf()
+{
+	ShaderInput *subsurface_in = input("Subsurface");
+	return (subsurface_in->link != NULL || subsurface > CLOSURE_WEIGHT_CUTOFF);
+}
+
 void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	if(shader->has_surface) {
