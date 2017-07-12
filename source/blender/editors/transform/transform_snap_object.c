@@ -262,8 +262,7 @@ MINLINE float depth_get(const float co[3], const float ray_start[3], const float
 	return dot_v3v3(dvec, ray_dir);
 }
 
-
-static float dist_aabb_to_plane(
+static float UNUSED_FUNCTION(dist_aabb_to_plane)(
         const float bbmin[3], const float bbmax[3],
         const float plane_co[3], const float plane_no[3])
 {
@@ -1654,7 +1653,7 @@ static bool snapDerivedMesh(
         /* read/write args */
         float *ray_depth, float *dist_px,
         /* return args */
-        float r_loc[3], float r_no[3], int *r_index)
+        float r_loc[3], float r_no[3])
 {
 	bool retval = false;
 
@@ -1819,7 +1818,7 @@ static bool snapEditMesh(
         /* read/write args */
         float *ray_depth, float *dist_px,
         /* return args */
-        float r_loc[3], float r_no[3], int *r_index)
+        float r_loc[3], float r_no[3])
 {
 	bool retval = false;
 
@@ -1978,7 +1977,7 @@ static bool snapObject(
         /* read/write args */
         float *ray_depth, float *dist_px,
         /* return args */
-        float r_loc[3], float r_no[3], int *r_index,
+        float r_loc[3], float r_no[3],
         Object **r_ob, float r_obmat[4][4])
 {
 	bool retval = false;
@@ -1991,7 +1990,7 @@ static bool snapObject(
 			retval = snapEditMesh(
 			        sctx, snapdata, ob, em, obmat,
 			        ray_depth, dist_px,
-			        r_loc, r_no, r_index);
+			        r_loc, r_no);
 		}
 		else {
 			/* in this case we want the mesh from the editmesh, avoids stale data. see: T45978.
@@ -2007,7 +2006,7 @@ static bool snapObject(
 			retval = snapDerivedMesh(
 			        sctx, snapdata, ob, dm, obmat,
 			        ray_depth, dist_px,
-			        r_loc, r_no, r_index);
+			        r_loc, r_no);
 
 			dm->release(dm);
 		}
@@ -2087,7 +2086,7 @@ static bool snapObjectsRay(
         /* read/write args */
         float *ray_depth, float *dist_px,
         /* return args */
-        float r_loc[3], float r_no[3], int *r_index,
+        float r_loc[3], float r_no[3],
         Object **r_ob, float r_obmat[4][4])
 {
 	bool retval = false;
@@ -2099,7 +2098,7 @@ static bool snapObjectsRay(
 		retval |= snapObject(
 		        sctx, snapdata, sobj->ob, sobj->obmat, sobj->use_obedit,
 		        ray_depth, dist_px,
-		        r_loc, r_no, r_index, r_ob, r_obmat);
+		        r_loc, r_no, r_ob, r_obmat);
 	}
 
 	BLI_freelistN(&obj_list);
@@ -2435,7 +2434,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 		return snapObjectsRay(
 		        sctx, &snapdata,
 		        params->snap_select, params->use_object_edit_cage,
-		        ray_depth, dist_px, r_loc, r_no, r_index, NULL, NULL);
+		        ray_depth, dist_px, r_loc, r_no, NULL, NULL);
 	}
 }
 
