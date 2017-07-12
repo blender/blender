@@ -374,7 +374,7 @@ public:
 	SHADER_NODE_CLASS(PrincipledBsdfNode)
 
 	bool has_spatial_varying() { return true; }
-	bool has_surface_bssrdf() { return true; }
+	bool has_surface_bssrdf();
 	bool has_bssrdf_bump();
 	void compile(SVMCompiler& compiler, ShaderInput *metallic, ShaderInput *subsurface, ShaderInput *subsurface_radius,
 		ShaderInput *specular, ShaderInput *roughness, ShaderInput *specular_tint, ShaderInput *anisotropic,
