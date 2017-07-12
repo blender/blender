@@ -2018,7 +2018,7 @@ static void statvis_calc_distort(
 					              vertexCos[BM_elem_index_get(l_iter->next->v)]);
 				}
 				else {
-					BM_loop_calc_face_normal(l_iter, no_corner);
+					BM_loop_calc_face_normal_safe(l_iter, no_corner);
 				}
 				/* simple way to detect (what is most likely) concave */
 				if (dot_v3v3(f_no, no_corner) < 0.0f) {
