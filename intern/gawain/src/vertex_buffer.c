@@ -51,6 +51,25 @@ void GWN_vertbuf_init_with_format(Gwn_VertBuf* verts, const Gwn_VertFormat* form
 		VertexFormat_pack(&verts->format);
 	}
 
+/**
+ * Like #GWN_vertbuf_discard but doesn't free.
+ */
+void GWN_vertbuf_clear(Gwn_VertBuf* verts)
+	{
+	if (verts->vbo_id) {
+		GWN_buf_id_free(verts->vbo_id);
+		vbo_memory_usage -= GWN_vertbuf_size_get(verts);
+	}
+#if KEEP_SINGLE_COPY
+	else
+#endif
+	if (verts->data)
+		{
+		free(verts->data);
+		verts->data = NULL;
+		}
+	}
+
 void GWN_vertbuf_discard(Gwn_VertBuf* verts)
 	{
 	if (verts->vbo_id) {

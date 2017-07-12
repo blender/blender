@@ -31,6 +31,7 @@ typedef struct {
 Gwn_VertBuf* GWN_vertbuf_create(void);
 Gwn_VertBuf* GWN_vertbuf_create_with_format(const Gwn_VertFormat*);
 
+void GWN_vertbuf_clear(Gwn_VertBuf* verts);
 void GWN_vertbuf_discard(Gwn_VertBuf*);
 
 void GWN_vertbuf_init(Gwn_VertBuf*);
