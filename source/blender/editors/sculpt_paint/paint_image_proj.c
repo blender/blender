@@ -3712,8 +3712,12 @@ static void project_paint_prepare_all_faces(
 				}
 
 				/* don't allow using the same inage for painting and stencilling */
-				if (slot->ima == ps->stencil_ima)
+				if (slot->ima == ps->stencil_ima) {
+					/* While this shouldn't be used, face-winding reads all polys.
+					 * It's less trouble to set all faces to valid UV's, avoiding NULL checks all over. */
+					ps->dm_mloopuv[lt->poly] = mloopuv_base;
 					continue;
+				}
 				
 				tpage = slot->ima;
 			}
