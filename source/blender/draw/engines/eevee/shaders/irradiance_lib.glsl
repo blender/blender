@@ -116,9 +116,9 @@ vec3 hl2_basis(vec3 N, vec3 cubesides[3])
 
 	vec3 n_squared = N * N;
 
-	irradiance += max(1e-8, n_squared.x) * cubesides[0];
-	irradiance += max(1e-8, n_squared.y) * cubesides[1];
-	irradiance += max(1e-8, n_squared.z) * cubesides[2];
+	irradiance += n_squared.x * cubesides[0];
+	irradiance += n_squared.y * cubesides[1];
+	irradiance += n_squared.z * cubesides[2];
 
 	return irradiance;
 }
