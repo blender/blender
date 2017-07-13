@@ -81,7 +81,7 @@ SceneLayer *BKE_scene_layer_render_active(const Scene *scene)
 /**
  * Returns the SceneLayer to be used for drawing, outliner, and other context related areas.
  */
-SceneLayer *BKE_scene_layer_context_active_ex(const Main *bmain, const Scene *UNUSED(scene))
+SceneLayer *BKE_scene_layer_context_active_ex(const Main *bmain, const Scene *scene)
 {
 	/* XXX We should really pass the workspace as argument, but would require
 	 * some bigger changes since it's often not available where we call this.
@@ -90,7 +90,21 @@ SceneLayer *BKE_scene_layer_context_active_ex(const Main *bmain, const Scene *UN
 		/* Called on startup, so 'winactive' may not be set, in that case fall back to first window. */
 		wmWindow *win = wm->winactive ? wm->winactive : wm->windows.first;
 		const WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-		return BKE_workspace_render_layer_get(workspace);
+		SceneLayer *scene_layer = BKE_workspace_render_layer_get(workspace);
+		if (scene_layer != NULL) {
+			/* NOTE: We never have copy-on-written main database, but we might
+			 * be passing copy-on-write version of scene here. For that case
+			 * we always ensure we are returning copy-on-write version of scene
+			 * layer as well.
+			 */
+
+			/* TODO(sergey): This will make an extra lookup for case when we
+			 * pass original scene, but this function is to be rewritten
+			 * anyway.
+			 */
+			scene_layer = BLI_findstring(&scene->render_layers, scene_layer->name, offsetof(SceneLayer, name));
+		}
+		return scene_layer;
 	}
 
 	return NULL;
