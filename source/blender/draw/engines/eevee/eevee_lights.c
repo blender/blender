@@ -758,7 +758,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 
 				unit_m4(tmp);
 				negate_v3_v3(tmp[3], ob->obmat[3]);
-				mul_m4_m4m4(srd->viewmat[j], cubefacemat[i], tmp);
+				mul_m4_m4m4(srd->viewmat[j], cubefacemat[j], tmp);
 
 				copy_m4_m4(srd->shadowmat[j], evscd->viewprojmat[j]);
 			}
