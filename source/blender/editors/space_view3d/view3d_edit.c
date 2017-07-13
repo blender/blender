@@ -4938,7 +4938,7 @@ void ED_view3d_autodist_init(
 			break;
 		case 1:
 		{
-			Scene *scene = DEG_get_scene(graph);
+			Scene *scene = DEG_get_evaluated_scene(graph);
 			ED_view3d_draw_depth_gpencil(scene, ar, v3d);
 			break;
 		}

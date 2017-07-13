@@ -699,7 +699,7 @@ void ED_view3d_draw_depth(
         struct Depsgraph *graph,
         ARegion *ar, View3D *v3d, bool alphaoverride)
 {
-	Scene *scene = DEG_get_scene(graph);
+	Scene *scene = DEG_get_evaluated_scene(graph);
 	RegionView3D *rv3d = ar->regiondata;
 
 	short zbuf = v3d->zbuf;

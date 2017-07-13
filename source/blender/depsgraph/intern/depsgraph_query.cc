@@ -81,16 +81,16 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 	return id_node->eval_flags;
 }
 
-Scene *DEG_get_scene(Depsgraph *graph)
+Scene *DEG_get_evaluated_scene(Depsgraph *graph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	Scene *scene_orig = deg_graph->scene;
 	return reinterpret_cast<Scene *>(deg_graph->get_cow_id(&scene_orig->id));
 }
 
-SceneLayer *DEG_get_scene_layer(Depsgraph *graph)
+SceneLayer *DEG_get_evaluated_scene_layer(Depsgraph *graph)
 {
-	Scene *scene = DEG_get_scene(graph);
+	Scene *scene = DEG_get_evaluated_scene(graph);
 	if (scene != NULL) {
 		DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 		return BKE_scene_layer_context_active_ex(deg_graph->bmain, scene);
@@ -98,10 +98,9 @@ SceneLayer *DEG_get_scene_layer(Depsgraph *graph)
 	return NULL;
 }
 
-Object *DEG_get_object(Depsgraph *depsgraph, Object *ob)
+Object *DEG_get_evaluated_object(Depsgraph *depsgraph, Object *object)
 {
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
-	return (Object *)deg_graph->get_cow_id(&ob->id);
+	return (Object *)DEG_get_evaluated_id(depsgraph, &object->id);
 }
 
 ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, ID *id)
@@ -117,12 +116,12 @@ ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, ID *id)
 void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data)
 {
 	Depsgraph *graph = data->graph;
-	SceneLayer *scene_layer = DEG_get_scene_layer(graph);
+	SceneLayer *scene_layer = DEG_get_evaluated_scene_layer(graph);
 
 	iter->data = data;
 	iter->valid = true;
 
-	data->scene = DEG_get_scene(graph);
+	data->scene = DEG_get_evaluated_scene(graph);
 	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_RENDER);
 
 	/* TODO(sergey): It's really confusing to store pointer to a local data. */
@@ -207,7 +206,7 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 	base = data->base->next;
 	while (base != NULL) {
 		if ((base->flag & BASE_VISIBLED) != 0) {
-			// Object *ob = DEG_get_object(data->graph, base->object);
+			// Object *ob = DEG_get_evaluated_object(data->graph, base->object);
 			Object *ob = base->object;
 			iter->current = ob;
 			data->base = base;
