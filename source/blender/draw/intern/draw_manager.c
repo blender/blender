@@ -3467,21 +3467,6 @@ bool DRW_state_draw_support(void)
 /** \name Context State (DRW_context_state)
  * \{ */
 
-void DRW_context_state_init(const bContext *C, DRWContextState *r_draw_ctx)
-{
-	r_draw_ctx->ar = CTX_wm_region(C);
-	r_draw_ctx->rv3d = CTX_wm_region_view3d(C);
-	r_draw_ctx->v3d = CTX_wm_view3d(C);
-
-	r_draw_ctx->scene = CTX_data_scene(C);
-	r_draw_ctx->scene_layer = CTX_data_scene_layer(C);
-	r_draw_ctx->obact = r_draw_ctx->scene_layer->basact ? r_draw_ctx->scene_layer->basact->object : NULL;
-
-	/* grr, cant avoid! */
-	r_draw_ctx->evil_C = C;
-}
-
-
 const DRWContextState *DRW_context_state_get(void)
 {
 	return &DST.draw_ctx;

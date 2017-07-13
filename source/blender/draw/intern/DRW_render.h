@@ -411,7 +411,6 @@ typedef struct DRWContextState {
 	const struct bContext *evil_C;
 } DRWContextState;
 
-void DRW_context_state_init(const struct bContext *C, DRWContextState *r_draw_ctx);
 const DRWContextState *DRW_context_state_get(void);
 
 #endif /* __DRW_RENDER_H__ */
