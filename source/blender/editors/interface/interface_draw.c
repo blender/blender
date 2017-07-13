@@ -1223,7 +1223,7 @@ static void ui_draw_colorband_handle(
 	if (active || half_width < min_width) {
 		immUnbindProgram();
 
-		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
 		glGetFloatv(GL_VIEWPORT, viewport_size);

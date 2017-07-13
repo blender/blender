@@ -689,7 +689,7 @@ void draw_image_sample_line(SpaceImage *sima)
 		Gwn_VertFormat *format = immVertexFormat();
 		unsigned int shdr_dashed_pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
 		glGetFloatv(GL_VIEWPORT, viewport_size);

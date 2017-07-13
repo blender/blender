@@ -1503,7 +1503,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		if (margin_column_x >= x) {
 			const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 
-			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
 			glGetFloatv(GL_VIEWPORT, viewport_size);

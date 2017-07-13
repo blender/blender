@@ -1634,7 +1634,7 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 
 	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
 	glGetFloatv(GL_VIEWPORT, viewport_size);
@@ -2209,7 +2209,7 @@ static void draw_pose_bones(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *
 						if ((do_dashed & DASH_HELP_LINES) && ((bone->flag & BONE_CONNECTED) == 0)) {
 							const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
-							immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_COLOR);
+							immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
 							float viewport_size[4];
 							glGetFloatv(GL_VIEWPORT, viewport_size);
@@ -2516,7 +2516,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 
 					GPU_select_load_id(-1);  /* -1 here is OK! */
 
-					immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_COLOR);
+					immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
 					float viewport_size[4];
 					glGetFloatv(GL_VIEWPORT, viewport_size);

@@ -361,7 +361,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		gpuScale2f(zoomx, zoomy);
 		gpuMultMatrix(sc->stabmat);
 
-		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
 		glGetFloatv(GL_VIEWPORT, viewport_size);
@@ -651,7 +651,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	/* Since we are switching solid and dashed lines in rather complex logic here, just always go with dashed shader. */
 	immUnbindProgram();
 
-	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 	float viewport_size[4];
 	glGetFloatv(GL_VIEWPORT, viewport_size);
@@ -1192,7 +1192,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 	if (draw_plane_quad || is_selected_track) {
 		const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 		float viewport_size[4];
 		glGetFloatv(GL_VIEWPORT, viewport_size);

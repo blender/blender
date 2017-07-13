@@ -1731,7 +1731,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 			glLineWidth(1.0f);
 
-			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_COLOR);
+			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
 			float viewport_size[4];
 			glGetFloatv(GL_VIEWPORT, viewport_size);
@@ -7557,7 +7557,7 @@ static void drawVertSlide(TransInfo *t)
 
 				glLineWidth(1.0f);
 
-				immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_COLOR);
+				immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
 				float viewport_size[4];
 				glGetFloatv(GL_VIEWPORT, viewport_size);

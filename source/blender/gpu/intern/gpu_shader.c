@@ -113,11 +113,11 @@ extern char datatoc_gpu_shader_2D_point_uniform_size_aa_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_outline_aa_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_varying_color_outline_aa_vert_glsl[];
 
-extern char datatoc_gpu_shader_2D_line_dashed_vert_glsl[];
+extern char datatoc_gpu_shader_2D_line_dashed_uniform_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_frag_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_geom_glsl[];
-extern char datatoc_gpu_shader_3D_line_dashed_legacy_vert_glsl[];
-extern char datatoc_gpu_shader_3D_line_dashed_vert_glsl[];
+extern char datatoc_gpu_shader_3D_line_dashed_uniform_color_legacy_vert_glsl[];
+extern char datatoc_gpu_shader_3D_line_dashed_uniform_color_vert_glsl[];
 
 extern char datatoc_gpu_shader_edges_front_back_persp_vert_glsl[];
 extern char datatoc_gpu_shader_edges_front_back_persp_geom_glsl[];
@@ -678,12 +678,12 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                               datatoc_gpu_shader_uniform_color_frag_glsl,
 		                               datatoc_gpu_shader_3D_groundline_geom_glsl },
 
-		[GPU_SHADER_2D_LINE_DASHED_COLOR] = { datatoc_gpu_shader_2D_line_dashed_vert_glsl,
-		                                      datatoc_gpu_shader_2D_line_dashed_frag_glsl,
-		                                      datatoc_gpu_shader_2D_line_dashed_geom_glsl },
-		[GPU_SHADER_3D_LINE_DASHED_COLOR] = { datatoc_gpu_shader_3D_line_dashed_vert_glsl,
-		                                      datatoc_gpu_shader_2D_line_dashed_frag_glsl,
-		                                      datatoc_gpu_shader_2D_line_dashed_geom_glsl },
+		[GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR] = { datatoc_gpu_shader_2D_line_dashed_uniform_color_vert_glsl,
+		                                              datatoc_gpu_shader_2D_line_dashed_frag_glsl,
+		                                              datatoc_gpu_shader_2D_line_dashed_geom_glsl },
+		[GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR] = { datatoc_gpu_shader_3D_line_dashed_uniform_color_vert_glsl,
+		                                              datatoc_gpu_shader_2D_line_dashed_frag_glsl,
+		                                              datatoc_gpu_shader_2D_line_dashed_geom_glsl },
 
 		[GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR] =
 		    { datatoc_gpu_shader_instance_objectspace_variying_color_vert_glsl,
@@ -744,7 +744,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                                               datatoc_gpu_shader_instance_edges_variying_color_geom_glsl},
 
 		[GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_SOLID] = { datatoc_gpu_shader_instance_bone_envelope_solid_vert_glsl,
-		                                           datatoc_gpu_shader_simple_lighting_frag_glsl },
+		                                                 datatoc_gpu_shader_simple_lighting_frag_glsl },
 		[GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_WIRE] = { datatoc_gpu_shader_instance_bone_envelope_wire_vert_glsl,
 		                                                datatoc_gpu_shader_flat_color_frag_glsl },
 	};
@@ -786,10 +786,10 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 			stages = &legacy_fancy_edges;
 		}
 
-		if (shader == GPU_SHADER_3D_LINE_DASHED_COLOR && !GLEW_VERSION_3_2) {
+		if (shader == GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR && !GLEW_VERSION_3_2) {
 			/* Dashed need geometry shader, which are not supported by legacy OpenGL, fallback to solid lines. */
 			/* TODO: remove after switch to core profile (maybe) */
-			static const GPUShaderStages legacy_dashed_lines = { datatoc_gpu_shader_3D_line_dashed_legacy_vert_glsl,
+			static const GPUShaderStages legacy_dashed_lines = { datatoc_gpu_shader_3D_line_dashed_uniform_color_legacy_vert_glsl,
 			                                                     datatoc_gpu_shader_2D_line_dashed_frag_glsl };
 			stages = &legacy_dashed_lines;
 		}

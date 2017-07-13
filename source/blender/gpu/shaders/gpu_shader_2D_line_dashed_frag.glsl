@@ -1,38 +1,50 @@
 
-// Draw dashed lines, perforated in screen space.
-
-noperspective in float distance_along_line;
-out vec4 fragColor;
+/*
+ * Fragment Shader for dashed lines, with uniform multi-color(s), or any single-color, and any thickness.
+ *
+ * Dashed is performed in screen space.
+ */
 
 uniform float dash_width;
 
 /* Simple mode, discarding non-dash parts (so no need for blending at all). */
 uniform float dash_factor;  /* if > 1.0, solid line. */
-uniform vec4 color;
 
 /* More advanced mode, allowing for complex, multi-colored patterns. Enabled when num_colors > 0. */
 /* Note: max number of steps/colors in pattern is 32! */
 uniform int num_colors;  /* Enabled if > 0, 1 for solid line. */
 uniform vec4 colors[32];
 
+noperspective in float distance_along_line;
+noperspective in vec4 color_geom;
+
+out vec4 fragColor;
+
 void main()
 {
-	/* Solid line cases, simple. */
-	if (num_colors == 1) {
-		fragColor = colors[0];
-	}
-	else if (dash_factor >= 1.0f) {
-		fragColor = color;
-	}
-	else {
+	/* Multi-color option. */
+	if (num_colors > 0) {
+		/* Solid line case, simple. */
+		if (num_colors == 1) {
+			fragColor = colors[0];
+		}
 		/* Actually dashed line... */
-		float normalized_distance = fract(distance_along_line / dash_width);
-		if (num_colors > 0) {
+		else {
+			float normalized_distance = fract(distance_along_line / dash_width);
 			fragColor = colors[int(normalized_distance * num_colors)];
 		}
+	}
+	/* Single color option. */
+	else {
+		/* Solid line case, simple. */
+		if (dash_factor >= 1.0f) {
+			fragColor = color_geom;
+		}
+		/* Actually dashed line... */
 		else {
+			float normalized_distance = fract(distance_along_line / dash_width);
 			if (normalized_distance <= dash_factor) {
-				fragColor = color;
+				fragColor = color_geom;
 			}
 			else {
 				discard;
