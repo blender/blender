@@ -1514,7 +1514,7 @@ float BM_loop_calc_face_angle(const BMLoop *l)
  * \param epsilon: Value to avoid numeric errors (1e-5f works well).
  * \param r_normal Resulting normal
  */
-float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, float epsilon_sq, float r_normal[3])
+float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, float r_normal[3])
 {
 	/* Note: we cannot use result of normal_tri_v3 here to detect colinear vectors (vertex on a straight line)
 	 * from zero value, because it does not normalize both vectors before making crossproduct.
