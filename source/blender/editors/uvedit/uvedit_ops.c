@@ -1136,8 +1136,13 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 
 	BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
 
-	/* use winding so we don't consider overlapping islands as connected, see T44320 */
-	vmap = BM_uv_vert_map_create(em->bm, limit, !select_faces, true);
+	/* Note, we had 'use winding' so we don't consider overlapping islands as connected, see T44320
+	 * this made *every* projection split the island into front/back islands.
+	 * Keep 'use_winding' to false, see: T50970.
+	 *
+	 * Better solve this by having a delimit option for select-linked operator,
+	 * keeping island-select working as is. */
+	vmap = BM_uv_vert_map_create(em->bm, limit, !select_faces, false);
 
 	if (vmap == NULL)
 		return;
