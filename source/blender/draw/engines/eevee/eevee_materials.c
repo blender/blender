@@ -34,6 +34,8 @@
 #include "BLI_alloca.h"
 
 #include "BKE_particle.h"
+#include "BKE_paint.h"
+#include "BKE_pbvh.h"
 
 #include "GPU_material.h"
 
@@ -928,7 +930,14 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 	const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
 	const bool is_active = (ob == draw_ctx->obact);
 	const bool is_sculpt_mode = is_active && (ob->mode & OB_MODE_SCULPT) != 0;
+#if 0
 	const bool is_sculpt_mode_draw = is_sculpt_mode && (draw_ctx->v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE) == 0;
+#else
+	/* For now just force fully shaded with eevee when supported. */
+	const bool is_sculpt_mode_draw =
+	        is_sculpt_mode &&
+	        ((ob->sculpt && ob->sculpt->pbvh) && (BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_FACES));
+#endif
 	const bool is_default_mode_shader = is_sculpt_mode;
 
 	/* First get materials for this mesh. */
