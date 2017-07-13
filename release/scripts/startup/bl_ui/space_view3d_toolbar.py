@@ -1275,7 +1275,7 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         col = layout.column()
         col.active = ipaint.use_stencil_layer
 
-        stencil_text = mesh.uv_texture_stencil.name if mesh.uv_texture_stencil else ""
+        stencil_text = mesh.uv_layer_stencil.name if mesh.uv_layer_stencil else ""
         col.label("UV Map")
         col.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
@@ -1878,7 +1878,7 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
         layout = self.layout
         for i, uv_layer in enumerate(context.active_object.data.uv_layers):
             props = layout.operator("wm.context_set_int", text=uv_layer.name, translate=False)
-            props.data_path = "active_object.data.uv_texture_stencil_index"
+            props.data_path = "active_object.data.uv_layer_stencil_index"
             props.value = i
 
 
