@@ -446,6 +446,9 @@ BMVert *EDBM_vert_find_nearest_ex(
 		unsigned int index;
 		BMVert *eve;
 		
+		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
+		ED_view3d_backbuf_validate(vc);
+
 		index = ED_view3d_backbuf_sample_rect(
 		        vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &dist_test);
 		eve = index ? BM_vert_at_index_find_or_table(bm, index - 1) : NULL;
@@ -630,7 +633,8 @@ BMEdge *EDBM_edge_find_nearest_ex(
 		float dist_test = 0.0f;
 		unsigned int index;
 		BMEdge *eed;
-		
+
+		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
 		ED_view3d_backbuf_validate(vc);
 
 		index = ED_view3d_backbuf_sample_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
