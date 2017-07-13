@@ -1742,7 +1742,7 @@ static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
 void BKE_layer_eval_layer_collection_pre(struct EvaluationContext *UNUSED(eval_ctx),
                                          Scene *scene, SceneLayer *scene_layer)
 {
-	DEBUG_PRINT("%s on %s\n", __func__, scene_layer->name);
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, scene_layer->name, scene_layer);
 	for (Base *base = scene_layer->object_bases.first; base != NULL; base = base->next) {
 		base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED);
 		idproperty_reset(&base->collection_properties, scene->collection_properties);
@@ -1760,10 +1760,12 @@ void BKE_layer_eval_layer_collection(struct EvaluationContext *UNUSED(eval_ctx),
                                      LayerCollection *layer_collection,
                                      LayerCollection *parent_layer_collection)
 {
-	DEBUG_PRINT("%s on %s, parent %s\n",
+	DEBUG_PRINT("%s on %s (%p), parent %s (%p)\n",
 	            __func__,
 	            layer_collection->scene_collection->name,
-	            (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE");
+	            layer_collection->scene_collection,
+	            (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE",
+	            (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection : NULL);
 
 	/* visibility */
 	layer_collection->flag_evaluated = layer_collection->flag;
@@ -1804,7 +1806,7 @@ void BKE_layer_eval_layer_collection(struct EvaluationContext *UNUSED(eval_ctx),
 void BKE_layer_eval_layer_collection_post(struct EvaluationContext *UNUSED(eval_ctx),
                                           SceneLayer *scene_layer)
 {
-	DEBUG_PRINT("%s on %s\n", __func__, scene_layer->name);
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, scene_layer->name, scene_layer);
 	/* if base is not selectabled, clear select */
 	for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
 		if ((base->flag & BASE_SELECTABLED) == 0) {
