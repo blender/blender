@@ -1422,7 +1422,7 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 
 		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
 		ED_view3d_draw_offscreen(
-		            scene, v3d, &ar, winsize, winsize, viewmat, winmat,
+		            scene, BKE_scene_layer_context_active(scene), v3d, &ar, winsize, winsize, viewmat, winmat,
 		            false, false, true,
 		            NULL, NULL, NULL, NULL);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);

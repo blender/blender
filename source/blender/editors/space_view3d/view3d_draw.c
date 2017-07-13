@@ -1947,7 +1947,7 @@ static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
  * stuff like shadow buffers
  */
 void ED_view3d_draw_offscreen(
-        Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy,
+        Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, int winx, int winy,
         float viewmat[4][4], float winmat[4][4],
         bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
         GPUFX *fx, GPUFXSettings *fx_settings,
@@ -2043,7 +2043,8 @@ void ED_view3d_draw_offscreen(
 	}
 	else {
 		/* XXX, should take depsgraph as arg */
-		DRW_draw_render_loop_offscreen(scene->depsgraph, ar, v3d, ofs);
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl);
+		DRW_draw_render_loop_offscreen(depsgraph, ar, v3d, ofs);
 	}
 
 	/* restore size */
@@ -2137,7 +2138,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	if ((samples && full_samples) == 0) {
 		/* Single-pass render, common case */
 		ED_view3d_draw_offscreen(
-		        scene, v3d, ar, sizex, sizey, NULL, winmat,
+		        scene, sl, v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
 		        fx, &fx_settings, ofs);
 
@@ -2161,7 +2162,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 		/* first sample buffer, also initializes 'rv3d->persmat' */
 		ED_view3d_draw_offscreen(
-		        scene, v3d, ar, sizex, sizey, NULL, winmat,
+		        scene, sl, v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
 		        fx, &fx_settings, ofs);
 		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, rect_temp);
@@ -2180,7 +2181,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 			        (jit_ofs[j][1] * 2.0f) / sizey);
 
 			ED_view3d_draw_offscreen(
-			        scene, v3d, ar, sizex, sizey, NULL, winmat_jitter,
+			        scene, sl, v3d, ar, sizex, sizey, NULL, winmat_jitter,
 			        draw_background, draw_sky, !is_ortho, viewname,
 			        fx, &fx_settings, ofs);
 			GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, rect_temp);

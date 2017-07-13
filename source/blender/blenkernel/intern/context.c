@@ -52,6 +52,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sound.h"
 #include "BKE_workspace.h"
@@ -1225,5 +1226,6 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
 Depsgraph *CTX_data_depsgraph(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	return scene->depsgraph;
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	return BKE_scene_get_depsgraph(scene, scene_layer);
 }

@@ -91,7 +91,7 @@ bool DEG_debug_scene_relations_validate(Main *bmain,
 	Depsgraph *depsgraph = DEG_graph_new();
 	bool valid = true;
 	DEG_graph_build_from_scene(depsgraph, bmain, scene);
-	if (!DEG_debug_compare(depsgraph, scene->depsgraph)) {
+	if (!DEG_debug_compare(depsgraph, scene->depsgraph_legacy)) {
 		fprintf(stderr, "ERROR! Depsgraph wasn't tagged for update when it should have!\n");
 		BLI_assert(!"This should not happen!");
 		valid = false;

@@ -9384,6 +9384,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	/* Dependency Graph */
 	prop = RNA_def_property(srna, "depsgraph", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "depsgraph_legacy");
 	RNA_def_property_struct_type(prop, "Depsgraph");
 	RNA_def_property_ui_text(prop, "Dependency Graph", "Dependencies in the scene data");
 

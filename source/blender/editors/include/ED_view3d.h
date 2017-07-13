@@ -360,7 +360,7 @@ void  ED_draw_object_facemap(struct Scene *scene, struct Object *ob, const float
 bool ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen_init(struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d);
 void ED_view3d_draw_offscreen(
-        struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int winx, int winy, float viewmat[4][4],
+        struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d, struct ARegion *ar, int winx, int winy, float viewmat[4][4],
         float winmat[4][4], bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
         struct GPUFX *fx, struct GPUFXSettings *fx_settings,
         struct GPUOffScreen *ofs);

@@ -261,8 +261,8 @@ void DEG_relations_tag_update(Main *bmain)
 	     scene != NULL;
 	     scene = (Scene *)scene->id.next)
 	{
-		if (scene->depsgraph != NULL) {
-			DEG_graph_tag_relations_update(scene->depsgraph);
+		if (scene->depsgraph_legacy != NULL) {
+			DEG_graph_tag_relations_update(scene->depsgraph_legacy);
 		}
 	}
 }
@@ -272,14 +272,14 @@ void DEG_relations_tag_update(Main *bmain)
  */
 void DEG_scene_relations_update(Main *bmain, Scene *scene)
 {
-	if (scene->depsgraph == NULL) {
+	if (scene->depsgraph_legacy == NULL) {
 		/* Rebuild graph from scratch and exit. */
-		scene->depsgraph = DEG_graph_new();
-		DEG_graph_build_from_scene(scene->depsgraph, bmain, scene);
+		scene->depsgraph_legacy = DEG_graph_new();
+		DEG_graph_build_from_scene(scene->depsgraph_legacy, bmain, scene);
 		return;
 	}
 
-	DEG::Depsgraph *graph = reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph);
+	DEG::Depsgraph *graph = reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph_legacy);
 	if (!graph->need_update) {
 		/* Graph is up to date, nothing to do. */
 		return;
@@ -301,17 +301,17 @@ void DEG_scene_relations_update(Main *bmain, Scene *scene)
 /* Rebuild dependency graph only for a given scene. */
 void DEG_scene_relations_rebuild(Main *bmain, Scene *scene)
 {
-	if (scene->depsgraph != NULL) {
-		DEG_graph_tag_relations_update(scene->depsgraph);
+	if (scene->depsgraph_legacy != NULL) {
+		DEG_graph_tag_relations_update(scene->depsgraph_legacy);
 	}
 	DEG_scene_relations_update(bmain, scene);
 }
 
 void DEG_scene_graph_free(Scene *scene)
 {
-	if (scene->depsgraph) {
-		DEG_graph_free(scene->depsgraph);
-		scene->depsgraph = NULL;
+	if (scene->depsgraph_legacy) {
+		DEG_graph_free(scene->depsgraph_legacy);
+		scene->depsgraph_legacy = NULL;
 	}
 }
 

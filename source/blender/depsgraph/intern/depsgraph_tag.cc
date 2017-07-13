@@ -230,8 +230,8 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, int flag)
 	     scene != NULL;
 	     scene = (Scene *)scene->id.next)
 	{
-		if (scene->depsgraph) {
-			Depsgraph *graph = scene->depsgraph;
+		if (scene->depsgraph_legacy) {
+			Depsgraph *graph = scene->depsgraph_legacy;
 			if (flag == 0) {
 				/* TODO(sergey): Currently blender is still tagging IDs
 				 * for recalc just using flag=0. This isn't totally correct
@@ -294,10 +294,10 @@ void DEG_id_type_tag(Main *bmain, short idtype)
 void DEG_ids_flush_tagged(Main *bmain, Scene *scene)
 {
 	/* TODO(sergey): Only visible scenes? */
-	if (scene->depsgraph != NULL) {
+	if (scene->depsgraph_legacy != NULL) {
 		DEG::deg_graph_flush_updates(
 		        bmain,
-		        reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph));
+		        reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph_legacy));
 	}
 }
 
@@ -305,7 +305,7 @@ void DEG_ids_flush_tagged(Main *bmain, Scene *scene)
 void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 {
 	(void) bmain;
-	DEG::Depsgraph *graph = reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph);
+	DEG::Depsgraph *graph = reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph_legacy);
 	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
 	{
 		id_node->tag_update(graph);
@@ -319,7 +319,7 @@ void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
 	     scene != NULL;
 	     scene = (Scene *)scene->id.next)
 	{
-		if (scene->depsgraph != NULL) {
+		if (scene->depsgraph_legacy != NULL) {
 			DEG_graph_on_visible_update(bmain, scene);
 		}
 	}

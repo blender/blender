@@ -1697,7 +1697,7 @@ typedef struct Scene {
 	void *fps_info;					/* (runtime) info/cache used for presenting playback framerate info to the user */
 	
 	/* none of the dependency graph  vars is mean to be saved */
-	struct Depsgraph *depsgraph;
+	struct Depsgraph *depsgraph_legacy;
 	void *pad1;
 	struct  DagForest *theDag;
 	short dagflags;

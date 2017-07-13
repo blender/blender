@@ -39,12 +39,14 @@ extern "C" {
 
 struct AviCodecData;
 struct BaseLegacy;
+struct Depsgraph;
 struct EvaluationContext;
 struct Main;
 struct Object;
 struct Base;
 struct QuicktimeCodecData;
 struct RenderData;
+struct SceneLayer;
 struct SceneRenderLayer;
 struct Scene;
 struct SceneCollection;
@@ -183,6 +185,9 @@ const char *BKE_scene_multiview_view_id_suffix_get(const struct RenderData *rd, 
 void        BKE_scene_multiview_view_prefix_get(struct Scene *scene, const char *name, char *rprefix, const char **rext);
 void        BKE_scene_multiview_videos_dimensions_get(const struct RenderData *rd, const size_t width, const size_t height, size_t *r_width, size_t *r_height);
 int         BKE_scene_multiview_num_videos_get(const struct RenderData *rd);
+
+/* depsgraph */
+struct Depsgraph* BKE_scene_get_depsgraph(struct Scene *scene, struct SceneLayer *scene_layer);
 
 #ifdef __cplusplus
 }

@@ -2605,7 +2605,8 @@ static bool calc_modifiers_skip_orco(Scene *scene,
 		else if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
 			return false;
 		}
-		else if ((DEG_get_eval_flags_for_id(scene->depsgraph, &ob->id) & DAG_EVAL_NEED_CPU) != 0) {
+		/* TODO(sergey): How do we get depsgraph here? */
+		else if ((DEG_get_eval_flags_for_id(scene->depsgraph_legacy, &ob->id) & DAG_EVAL_NEED_CPU) != 0) {
 			return false;
 		}
 		SubsurfModifierData *smd = (SubsurfModifierData *)last_md;

@@ -231,7 +231,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	GPU_offscreen_bind(self->ofs, true); /* bind */
 
 	ED_view3d_draw_offscreen(
-	        scene, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
+	        scene, sl, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
 	        (float(*)[4])py_mat_modelview->matrix, (float(*)[4])py_mat_projection->matrix,
 	        false, true, true, "",
 	        fx, &fx_settings,
