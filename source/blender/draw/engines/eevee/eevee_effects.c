@@ -142,7 +142,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_EffectsInfo *effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	SceneLayer *scene_layer = draw_ctx->sl;
+	SceneLayer *scene_layer = draw_ctx->scene_layer;
 	Scene *scene = draw_ctx->scene;
 	View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;

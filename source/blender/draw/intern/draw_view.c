@@ -647,7 +647,7 @@ void DRW_draw_cursor(void)
 	View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	Scene *scene = draw_ctx->scene;
-	SceneLayer *sl = draw_ctx->sl;
+	SceneLayer *sl = draw_ctx->scene_layer;
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_FALSE);

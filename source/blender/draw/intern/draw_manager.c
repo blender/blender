@@ -2460,7 +2460,7 @@ void **DRW_scene_layer_engine_data_get(DrawEngineType *engine_type, void (*callb
 {
 	SceneLayerEngineData *sled;
 
-	for (sled = DST.draw_ctx.sl->drawdata.first; sled; sled = sled->next) {
+	for (sled = DST.draw_ctx.scene_layer->drawdata.first; sled; sled = sled->next) {
 		if (sled->engine_type == engine_type) {
 			return &sled->storage;
 		}
@@ -2469,7 +2469,7 @@ void **DRW_scene_layer_engine_data_get(DrawEngineType *engine_type, void (*callb
 	sled = MEM_callocN(sizeof(SceneLayerEngineData), "SceneLayerEngineData");
 	sled->engine_type = engine_type;
 	sled->free = callback;
-	BLI_addtail(&DST.draw_ctx.sl->drawdata, sled);
+	BLI_addtail(&DST.draw_ctx.scene_layer->drawdata, sled);
 
 	return &sled->storage;
 }
@@ -3474,8 +3474,8 @@ void DRW_context_state_init(const bContext *C, DRWContextState *r_draw_ctx)
 	r_draw_ctx->v3d = CTX_wm_view3d(C);
 
 	r_draw_ctx->scene = CTX_data_scene(C);
-	r_draw_ctx->sl = CTX_data_scene_layer(C);
-	r_draw_ctx->obact = r_draw_ctx->sl->basact ? r_draw_ctx->sl->basact->object : NULL;
+	r_draw_ctx->scene_layer = CTX_data_scene_layer(C);
+	r_draw_ctx->obact = r_draw_ctx->scene_layer->basact ? r_draw_ctx->scene_layer->basact->object : NULL;
 
 	/* grr, cant avoid! */
 	r_draw_ctx->evil_C = C;

@@ -1661,7 +1661,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
-	SceneLayer *sl = draw_ctx->sl;
+	SceneLayer *sl = draw_ctx->scene_layer;
 	View3D *v3d = draw_ctx->v3d;
 	int theme_id = TH_UNDEFINED;
 

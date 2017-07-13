@@ -432,7 +432,7 @@ static void CLAY_engine_init(void *vedata)
 	/* SSAO setup */
 	{
 		const DRWContextState *draw_ctx = DRW_context_state_get();
-		SceneLayer *scene_layer = draw_ctx->sl;
+		SceneLayer *scene_layer = draw_ctx->scene_layer;
 		IDProperty *props = BKE_scene_layer_engine_evaluated_get(
 		        scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 		int ssao_samples = BKE_collection_engine_property_value_get_int(props, "ssao_samples");

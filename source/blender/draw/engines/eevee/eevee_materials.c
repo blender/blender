@@ -640,7 +640,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	{
 		/* Global AO Switch*/
 		const DRWContextState *draw_ctx = DRW_context_state_get();
-		SceneLayer *scene_layer = draw_ctx->sl;
+		SceneLayer *scene_layer = draw_ctx->scene_layer;
 		IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 		stl->effects->use_ao = BKE_collection_engine_property_value_get_bool(props, "gtao_enable");
 		stl->effects->use_bent_normals = BKE_collection_engine_property_value_get_bool(props, "gtao_use_bent_normals");
