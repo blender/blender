@@ -180,16 +180,19 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 
 	if ((ob->type == OB_MESH) && (ob == draw_ctx->obact)) {
 		IDProperty *ces_mode_pw = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_PAINT_WEIGHT, "");
-		bool use_wire = BKE_collection_engine_property_value_get_bool(ces_mode_pw, "use_wire");
 		const Mesh *me = ob->data;
+		const bool use_wire = BKE_collection_engine_property_value_get_bool(ces_mode_pw, "use_wire");
+		const bool use_surface = DRW_object_is_mode_shade(ob) == true;
 		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 		struct Gwn_Batch *geom;
 
 		world_light = BKE_collection_engine_property_value_get_bool(ces_mode_pw, "use_shading") ? 0.5f : 1.0f;
 
-		geom = DRW_cache_mesh_surface_weights_get(ob);
-		DRW_shgroup_call_add(stl->g_data->fweights_shgrp, geom, ob->obmat);
+		if (use_surface) {
+			geom = DRW_cache_mesh_surface_weights_get(ob);
+			DRW_shgroup_call_add(stl->g_data->fweights_shgrp, geom, ob->obmat);
+		}
 
 		if (use_face_sel || use_wire) {
 			geom = DRW_cache_mesh_edges_paint_overlay_get(ob, use_wire, use_face_sel);

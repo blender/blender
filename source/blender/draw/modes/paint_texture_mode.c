@@ -211,7 +211,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 		Object *ob = draw_ctx->obact;
 		if (ob && ob->type == OB_MESH) {
 			Scene *scene = draw_ctx->scene;
-			bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
+			const bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
 			const Mesh *me = ob->data;
 
 			stl->g_data->shgroup_image_array = MEM_mallocN(
@@ -285,41 +285,44 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 		/* Get geometry cache */
 		const Mesh *me = ob->data;
 		Scene *scene = draw_ctx->scene;
-		bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
+		const bool use_surface = DRW_object_is_mode_shade(ob) == true;
+		const bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
 		bool ok = false;
 
-		if (me->mloopuv != NULL) {
-			if (use_material_slots) {
-				struct Gwn_Batch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob) : NULL;
-				if ((me->totcol == 0) || (geom_array == NULL)) {
-					struct Gwn_Batch *geom = DRW_cache_mesh_surface_get(ob);
-					DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom, ob->obmat);
-					ok = true;
+		if (use_surface) {
+			if (me->mloopuv != NULL) {
+				if (use_material_slots) {
+					struct Gwn_Batch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob) : NULL;
+					if ((me->totcol == 0) || (geom_array == NULL)) {
+						struct Gwn_Batch *geom = DRW_cache_mesh_surface_get(ob);
+						DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom, ob->obmat);
+						ok = true;
+					}
+					else {
+						for (int i = 0; i < me->totcol; i++) {
+							if (stl->g_data->shgroup_image_array[i]) {
+								DRW_shgroup_call_add(stl->g_data->shgroup_image_array[i], geom_array[i], ob->obmat);
+							}
+							else {
+								DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom_array[i], ob->obmat);
+							}
+							ok = true;
+						}
+					}
 				}
 				else {
-					for (int i = 0; i < me->totcol; i++) {
-						if (stl->g_data->shgroup_image_array[i]) {
-							DRW_shgroup_call_add(stl->g_data->shgroup_image_array[i], geom_array[i], ob->obmat);
-						}
-						else {
-							DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom_array[i], ob->obmat);
-						}
+					struct Gwn_Batch *geom = DRW_cache_mesh_surface_texpaint_single_get(ob);
+					if (geom && stl->g_data->shgroup_image_array[0]) {
+						DRW_shgroup_call_add(stl->g_data->shgroup_image_array[0], geom, ob->obmat);
 						ok = true;
 					}
 				}
 			}
-			else {
-				struct Gwn_Batch *geom = DRW_cache_mesh_surface_texpaint_single_get(ob);
-				if (geom && stl->g_data->shgroup_image_array[0]) {
-					DRW_shgroup_call_add(stl->g_data->shgroup_image_array[0], geom, ob->obmat);
-					ok = true;
-				}
-			}
-		}
 
-		if (!ok) {
-			struct Gwn_Batch *geom = DRW_cache_mesh_surface_get(ob);
-			DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom, ob->obmat);
+			if (!ok) {
+				struct Gwn_Batch *geom = DRW_cache_mesh_surface_get(ob);
+				DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom, ob->obmat);
+			}
 		}
 
 		/* Face Mask */

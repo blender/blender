@@ -2836,9 +2836,7 @@ static void DRW_engines_enable(const Scene *scene, SceneLayer *sl)
 
 	if (DRW_state_draw_support()) {
 		DRW_engines_enable_from_object_mode();
-		if ((obact == NULL) || (DRW_object_is_mode_shade(obact) != false)) {
-			DRW_engines_enable_from_mode(mode);
-		}
+		DRW_engines_enable_from_mode(mode);
 	}
 }
 
