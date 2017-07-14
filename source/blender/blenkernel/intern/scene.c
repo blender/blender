@@ -624,7 +624,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 
 void BKE_scene_free(Scene *sce)
 {
-	return BKE_scene_free_ex(sce, true);
+	BKE_scene_free_ex(sce, true);
 }
 
 void BKE_scene_init(Scene *sce)
