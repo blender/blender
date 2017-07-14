@@ -2266,8 +2266,10 @@ void DRW_transform_to_display(GPUTexture *tex)
 
 	bool use_ocio = false;
 
-	if (DST.draw_ctx.evil_C != NULL) {
-		use_ocio = IMB_colormanagement_setup_glsl_draw_from_space_ctx(DST.draw_ctx.evil_C, NULL, dither, false);
+	{
+		Scene *scene = DST.draw_ctx.scene;
+		use_ocio = IMB_colormanagement_setup_glsl_draw_from_space(
+		        &scene->view_settings, &scene->display_settings, NULL, dither, false);
 	}
 
 	if (!use_ocio) {
