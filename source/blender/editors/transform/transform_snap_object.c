@@ -158,10 +158,10 @@ struct SnapObjectContext {
 			!((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||\
 			  (snap_select == SNAP_NOT_ACTIVE && base == base_act)))\
 		{\
-			Object *obj = base->object;\
-			if (obj->transflag & OB_DUPLI) {\
+			Object *ob_iter = base->object;\
+			if (ob_iter->transflag & OB_DUPLI) {\
 				DupliObject *dupli_ob;\
-				ListBase *lb = object_duplilist(sctx->bmain->eval_ctx, sctx->scene, obj);\
+				ListBase *lb = object_duplilist(sctx->bmain->eval_ctx, sctx->scene, ob_iter);\
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {\
 					use_obedit = obedit && dupli_ob->ob->data == obedit->data;;\
 					ob = use_obedit ? obedit : dupli_ob->ob;\
@@ -170,8 +170,8 @@ struct SnapObjectContext {
 				}\
 				free_object_duplilist(lb);\
 			}\
-			use_obedit = obedit && obj->data == obedit->data;\
-			ob = use_obedit ? obedit : obj;\
+			use_obedit = obedit && ob_iter->data == obedit->data;\
+			ob = use_obedit ? obedit : ob_iter;\
 			obmat = ob->obmat;\
 			CODE\
 		}\
