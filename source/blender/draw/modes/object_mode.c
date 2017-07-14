@@ -306,15 +306,19 @@ static void OBJECT_engine_init(void *vedata)
 	}
 
 	if (!e_data.part_prim_sh) {
-		e_data.part_prim_sh = DRW_shader_create(datatoc_object_particle_prim_vert_glsl, NULL, datatoc_object_particle_prim_frag_glsl, NULL);
+		e_data.part_prim_sh = DRW_shader_create(
+		        datatoc_object_particle_prim_vert_glsl, NULL, datatoc_object_particle_prim_frag_glsl, NULL);
 	}
 
 	if (!e_data.part_axis_sh) {
-		e_data.part_axis_sh = DRW_shader_create(datatoc_object_particle_prim_vert_glsl, NULL, datatoc_object_particle_prim_frag_glsl, "#define USE_AXIS\n");
+		e_data.part_axis_sh = DRW_shader_create(
+		        datatoc_object_particle_prim_vert_glsl, NULL, datatoc_object_particle_prim_frag_glsl,
+		        "#define USE_AXIS\n");
 	}
 
 	if (!e_data.part_dot_sh) {
-		e_data.part_dot_sh = DRW_shader_create(datatoc_object_particle_dot_vert_glsl, NULL, datatoc_object_particle_dot_frag_glsl, NULL);
+		e_data.part_dot_sh = DRW_shader_create(
+		        datatoc_object_particle_dot_vert_glsl, NULL, datatoc_object_particle_dot_frag_glsl, NULL);
 	}
 
 	{
@@ -1072,7 +1076,10 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Particle Pass */
-		psl->particle = DRW_pass_create("Particle Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_POINT | DRW_STATE_BLEND);
+		psl->particle = DRW_pass_create(
+		        "Particle Pass",
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
+		        DRW_STATE_POINT | DRW_STATE_BLEND);
 	}
 
 	{
@@ -1625,19 +1632,22 @@ static void OBJECT_cache_populate_particles(Object *ob,
 						DRW_shgroup_call_add(shgrp, geom, mat);
 						break;
 					case PART_DRAW_CROSS:
-						shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
+						shgrp = DRW_shgroup_instance_create(
+						        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS));
 						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
 						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 						break;
 					case PART_DRAW_CIRC:
-						shgrp = DRW_shgroup_instance_create(e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
+						shgrp = DRW_shgroup_instance_create(
+						        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC));
 						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
 						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
 						break;
 					case PART_DRAW_AXIS:
-						shgrp = DRW_shgroup_instance_create(e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
+						shgrp = DRW_shgroup_instance_create(
+						        e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS));
 						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 						break;
 					default:

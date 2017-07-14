@@ -739,7 +739,8 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 	for (GPUInput *input = inputs->first; input; input = input->next) {
 		/* Textures */
 		if (input->ima) {
-			GPUTexture *tex = GPU_texture_from_blender(input->ima, input->iuser, input->textarget, input->image_isdata, time, 1);
+			GPUTexture *tex = GPU_texture_from_blender(
+			        input->ima, input->iuser, input->textarget, input->image_isdata, time, 1);
 
 			if (input->bindtex) {
 				DRW_shgroup_uniform_texture(grp, input->shadername, tex);
@@ -1703,8 +1704,9 @@ static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
 		GWN_batch_draw_stupid_instanced_with_batch(geom, interface->instance_batch);
 	}
 	else if (interface->instance_vbo) {
-		GWN_batch_draw_stupid_instanced(geom, interface->instance_vbo, interface->instance_count, interface->attribs_count,
-		                            interface->attribs_stride, interface->attribs_size, interface->attribs_loc);
+		GWN_batch_draw_stupid_instanced(
+		        geom, interface->instance_vbo, interface->instance_count, interface->attribs_count,
+		        interface->attribs_stride, interface->attribs_size, interface->attribs_loc);
 	}
 	else {
 		GWN_batch_draw_stupid(geom);
@@ -2130,10 +2132,12 @@ void DRW_framebuffer_init(
 		if (!*fbotex.tex || is_temp) {
 			/* Temp textures need to be queried each frame, others not. */
 			if (is_temp) {
-				*fbotex.tex = GPU_viewport_texture_pool_query(DST.viewport, engine_type, width, height, channels, gpu_format);
+				*fbotex.tex = GPU_viewport_texture_pool_query(
+				        DST.viewport, engine_type, width, height, channels, gpu_format);
 			}
 			else if (create_fb) {
-				*fbotex.tex = GPU_texture_create_2D_custom(width, height, channels, gpu_format, NULL, NULL);
+				*fbotex.tex = GPU_texture_create_2D_custom(
+				        width, height, channels, gpu_format, NULL, NULL);
 			}
 		}
 
@@ -2684,7 +2688,8 @@ int DRW_draw_region_engine_info_offset(void)
 void DRW_draw_region_engine_info(void)
 {
 	const char *info_array_final[MAX_INFO_LINES + 1];
-	char info_array[MAX_INFO_LINES][GPU_INFO_SIZE]; /* This should be maxium number of engines running at the same time. */
+	/* This should be maxium number of engines running at the same time. */
+	char info_array[MAX_INFO_LINES][GPU_INFO_SIZE];
 	int i = 0;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
