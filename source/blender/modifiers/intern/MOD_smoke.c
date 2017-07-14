@@ -109,7 +109,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (flag & MOD_APPLY_ORCO)
 		return dm;
 
-	return smokeModifier_do(smd, md->scene, BKE_scene_layer_context_active(md->scene), ob, dm);
+	return smokeModifier_do(smd, md->scene, BKE_scene_layer_context_active_PLACEHOLDER(md->scene), ob, dm);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

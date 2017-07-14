@@ -3306,7 +3306,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene);
 		ibuf = sequencer_view3d_cb(
 		        /* set for OpenGL render (NULL when scrubbing) */
-		        scene, BKE_scene_layer_render_active(scene), camera, width, height, IB_rect,
+		        scene, BKE_scene_layer_from_scene_get(scene), camera, width, height, IB_rect,
 		        context->scene->r.seq_prev_type,
 		        (context->scene->r.seq_flag & R_SEQ_SOLID_TEX) != 0,
 		        use_gpencil, use_background, scene->r.alphamode,

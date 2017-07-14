@@ -329,7 +329,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 
 	sce = preview_get_scene(pr_main);
 	if (sce) {
-		SceneLayer *scene_layer = BKE_scene_layer_render_active(sce);
+		SceneLayer *scene_layer = BKE_scene_layer_from_scene_get(sce);
 
 		/* this flag tells render to not execute depsgraph or ipos etc */
 		sce->r.scemode |= R_BUTS_PREVIEW;

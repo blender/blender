@@ -119,7 +119,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* dont apply dynamic paint on orco dm stack */
 	if (!(flag & MOD_APPLY_ORCO)) {
-		return dynamicPaint_Modifier_do(pmd, md->scene, BKE_scene_layer_context_active(md->scene), ob, dm);
+		return dynamicPaint_Modifier_do(pmd, md->scene, BKE_scene_layer_context_active_PLACEHOLDER(md->scene), ob, dm);
 	}
 	return dm;
 }

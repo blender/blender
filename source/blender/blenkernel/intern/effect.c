@@ -210,7 +210,7 @@ static void add_particles_to_effectors(ListBase **effectors, Scene *scene, Effec
 ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src,
                           EffectorWeights *weights, bool for_simulation)
 {
-	SceneLayer *sl = BKE_scene_layer_context_active(scene); /* Can't get sl from the calling modifiers yet */
+	SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene); /* Can't get sl from the calling modifiers yet */
 	Base *base;
 	unsigned int layer= ob_src->lay;
 	ListBase *effectors = NULL;

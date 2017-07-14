@@ -85,7 +85,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		const bScreen *screen_parent = screen_parent_find(screen);
 		WorkSpace *workspace;
-		SceneLayer *layer = BKE_scene_layer_render_active(screen->scene);
+		SceneLayer *layer = BKE_scene_layer_from_scene_get(screen->scene);
 		ListBase *transform_orientations;
 
 		if (screen_parent) {
@@ -287,7 +287,7 @@ void do_versions_after_linking_280(Main *main)
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			/* same render-layer as do_version_workspaces_after_lib_link will activate,
-			 * so same layer as BKE_scene_layer_context_active would return */
+			 * so same layer as BKE_scene_layer_from_workspace_get would return */
 			SceneLayer *layer = screen->scene->render_layers.first;
 
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {

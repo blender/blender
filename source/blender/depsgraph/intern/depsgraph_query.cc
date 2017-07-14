@@ -93,7 +93,7 @@ SceneLayer *DEG_get_evaluated_scene_layer(Depsgraph *graph)
 	Scene *scene = DEG_get_evaluated_scene(graph);
 	if (scene != NULL) {
 		DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-		return BKE_scene_layer_context_active_ex(deg_graph->bmain, scene);
+		return BKE_scene_layer_context_active_ex_PLACEHOLDER(deg_graph->bmain, scene);
 	}
 	return NULL;
 }
@@ -240,7 +240,7 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 		data->base_flag = ~(BASE_SELECTED | BASE_SELECTABLED);
 
 		/* For the sets we use the layer used for rendering. */
-		scene_layer = BKE_scene_layer_render_active(data->scene);
+		scene_layer = BKE_scene_layer_from_scene_get(data->scene);
 
 		/* TODO(sergey): It's really confusing to store pointer to a local data. */
 		Base base = {(Base *)scene_layer->object_bases.first, NULL};

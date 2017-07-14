@@ -56,13 +56,18 @@ struct RenderEngine;
 struct Scene;
 struct SceneCollection;
 struct SceneLayer;
+struct WorkSpace;
 
 void BKE_layer_exit(void);
 
-struct SceneLayer *BKE_scene_layer_render_active(const struct Scene *scene);
-struct SceneLayer *BKE_scene_layer_context_active_ex(const struct Main *bmain, const struct Scene *scene);
-struct SceneLayer *BKE_scene_layer_context_active(const struct Scene *scene);
+struct SceneLayer *BKE_scene_layer_from_scene_get(const struct Scene *scene);
+struct SceneLayer *BKE_scene_layer_from_workspace_get(const struct WorkSpace *workspace);
 struct SceneLayer *BKE_scene_layer_add(struct Scene *scene, const char *name);
+
+/* DEPRECATED */
+struct SceneLayer *BKE_scene_layer_context_active_ex_PLACEHOLDER(const struct Main *bmain, const struct Scene *scene);
+/* DEPRECATED */
+struct SceneLayer *BKE_scene_layer_context_active_PLACEHOLDER(const struct Scene *scene);
 
 void BKE_scene_layer_free(struct SceneLayer *sl);
 

@@ -182,7 +182,7 @@ static int buttons_context_path_object(ButsContextPath *path)
 	else if (buttons_context_path_scene(path)) {
 		scene = path->ptr[path->len - 1].data;
 
-		SceneLayer *sl = BKE_scene_layer_context_active(scene);
+		SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
 		ob = (sl->basact) ? sl->basact->object : NULL;
 
 		if (ob) {

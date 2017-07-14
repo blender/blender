@@ -54,7 +54,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
-	sbObjectStep(md->scene, BKE_scene_layer_context_active(md->scene), ob, (float)md->scene->r.cfra, vertexCos, numVerts);
+	sbObjectStep(md->scene, BKE_scene_layer_context_active_PLACEHOLDER(md->scene), ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

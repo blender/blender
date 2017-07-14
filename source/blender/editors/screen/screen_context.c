@@ -87,9 +87,8 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	bScreen *sc = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = WM_window_get_active_scene(win);
-	/* can't call BKE_scene_layer_context_active here, it uses G.main->wm which might be NULL on file read. */
 	WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-	SceneLayer *sl = BKE_workspace_render_layer_get(workspace);
+	SceneLayer *sl = BKE_scene_layer_from_workspace_get(workspace);
 	Object *obedit = scene->obedit;
 	Object *obact = sl->basact ? sl->basact->object : NULL;
 

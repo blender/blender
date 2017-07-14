@@ -69,9 +69,9 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 
 /**
  * Returns the SceneLayer to be used for rendering
- * Most of the time BKE_scene_layer_context_active should be used instead
+ * Most of the time BKE_scene_layer_from_workspace_get should be used instead
  */
-SceneLayer *BKE_scene_layer_render_active(const Scene *scene)
+SceneLayer *BKE_scene_layer_from_scene_get(const Scene *scene)
 {
 	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
 	BLI_assert(sl);
@@ -81,37 +81,27 @@ SceneLayer *BKE_scene_layer_render_active(const Scene *scene)
 /**
  * Returns the SceneLayer to be used for drawing, outliner, and other context related areas.
  */
-SceneLayer *BKE_scene_layer_context_active_ex(const Main *bmain, const Scene *scene)
+SceneLayer *BKE_scene_layer_from_workspace_get(const struct WorkSpace *workspace)
 {
-	/* XXX We should really pass the workspace as argument, but would require
-	 * some bigger changes since it's often not available where we call this.
-	 * Just working around this by getting active window from WM for now */
-	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-		/* Called on startup, so 'winactive' may not be set, in that case fall back to first window. */
-		wmWindow *win = wm->winactive ? wm->winactive : wm->windows.first;
-		const WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-		SceneLayer *scene_layer = BKE_workspace_render_layer_get(workspace);
-		if (scene_layer != NULL) {
-			/* NOTE: We never have copy-on-written main database, but we might
-			 * be passing copy-on-write version of scene here. For that case
-			 * we always ensure we are returning copy-on-write version of scene
-			 * layer as well.
-			 */
-
-			/* TODO(sergey): This will make an extra lookup for case when we
-			 * pass original scene, but this function is to be rewritten
-			 * anyway.
-			 */
-			scene_layer = BLI_findstring(&scene->render_layers, scene_layer->name, offsetof(SceneLayer, name));
-		}
-		return scene_layer;
-	}
-
-	return NULL;
+	return BKE_workspace_render_layer_get(workspace);
 }
-SceneLayer *BKE_scene_layer_context_active(const Scene *scene)
+
+/**
+ * This is a placeholder to know which areas of the code need to be addressed for the Workspace changes.
+ * Never use this, you should either use BKE_scene_layer_workspace_active or get SceneLayer explicitly.
+ */
+SceneLayer *BKE_scene_layer_context_active_ex_PLACEHOLDER(const Main *UNUSED(bmain), const Scene *scene)
 {
-	return BKE_scene_layer_context_active_ex(G.main, scene);
+	return BKE_scene_layer_from_scene_get(scene);
+}
+
+/**
+ * This is a placeholder to know which areas of the code need to be addressed for the Workspace changes.
+ * Never use this, you should either use BKE_scene_layer_workspace_active or get SceneLayer explicitly.
+ */
+SceneLayer *BKE_scene_layer_context_active_PLACEHOLDER(const Scene *scene)
+{
+	return BKE_scene_layer_from_scene_get(scene);
 }
 
 /**

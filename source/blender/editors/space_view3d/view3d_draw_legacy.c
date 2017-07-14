@@ -1198,7 +1198,7 @@ void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 void ED_view3d_draw_depth_loop(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	Base *base;
-	SceneLayer *sl = BKE_scene_layer_context_active(scene);
+	SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
 	/* no need for color when drawing depth buffer */
 	const short dflag_depth = DRAW_CONSTCOLOR;
 
@@ -1422,7 +1422,7 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 
 		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
 		ED_view3d_draw_offscreen(
-		            scene, BKE_scene_layer_context_active(scene), v3d, &ar, winsize, winsize, viewmat, winmat,
+		            scene, BKE_scene_layer_context_active_PLACEHOLDER(scene), v3d, &ar, winsize, winsize, viewmat, winmat,
 		            false, false, true,
 		            NULL, NULL, NULL, NULL);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
@@ -1499,7 +1499,7 @@ static void view3d_draw_objects(
         const char **grid_unit,
         const bool do_bgpic, const bool draw_offscreen, GPUFX *fx)
 {
-	SceneLayer *sl = C ? CTX_data_scene_layer(C) : BKE_scene_layer_render_active(scene);
+	SceneLayer *sl = C ? CTX_data_scene_layer(C) : BKE_scene_layer_from_scene_get(scene);
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
 	const bool do_camera_frame = !draw_offscreen;
