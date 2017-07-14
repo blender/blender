@@ -38,7 +38,7 @@ BLACKLIST = {
     'io_import_dxf',  # Because of cydxfentity.so dependency
 
     # The unpacked wheel is only loaded when actually used, not directly on import:
-    "io_blend_utils/blender_bam-unpacked.whl",
+    os.path.join("io_blend_utils", "blender_bam-unpacked.whl"),
     }
 
 # Some modules need to add to the `sys.path`.
