@@ -338,27 +338,29 @@ void DRW_select_load_id(unsigned int id)
 /** \name Textures (DRW_texture)
  * \{ */
 
-static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *data_type, int *channels)
+static void drw_texture_get_format(
+        DRWTextureFormat format,
+        GPUTextureFormat *r_data_type, int *r_channels)
 {
 	switch (format) {
-		case DRW_TEX_RGBA_8: *data_type = GPU_RGBA8; break;
-		case DRW_TEX_RGBA_16: *data_type = GPU_RGBA16F; break;
-		case DRW_TEX_RGB_16: *data_type = GPU_RGB16F; break;
-		case DRW_TEX_RGB_11_11_10: *data_type = GPU_R11F_G11F_B10F; break;
-		case DRW_TEX_RG_16: *data_type = GPU_RG16F; break;
-		case DRW_TEX_RG_32: *data_type = GPU_RG32F; break;
-		case DRW_TEX_R_8: *data_type = GPU_R8; break;
-		case DRW_TEX_R_16: *data_type = GPU_R16F; break;
-		case DRW_TEX_R_32: *data_type = GPU_R32F; break;
+		case DRW_TEX_RGBA_8: *r_data_type = GPU_RGBA8; break;
+		case DRW_TEX_RGBA_16: *r_data_type = GPU_RGBA16F; break;
+		case DRW_TEX_RGB_16: *r_data_type = GPU_RGB16F; break;
+		case DRW_TEX_RGB_11_11_10: *r_data_type = GPU_R11F_G11F_B10F; break;
+		case DRW_TEX_RG_16: *r_data_type = GPU_RG16F; break;
+		case DRW_TEX_RG_32: *r_data_type = GPU_RG32F; break;
+		case DRW_TEX_R_8: *r_data_type = GPU_R8; break;
+		case DRW_TEX_R_16: *r_data_type = GPU_R16F; break;
+		case DRW_TEX_R_32: *r_data_type = GPU_R32F; break;
 #if 0
 		case DRW_TEX_RGBA_32: *data_type = GPU_RGBA32F; break;
 		case DRW_TEX_RGB_8: *data_type = GPU_RGB8; break;
 		case DRW_TEX_RGB_32: *data_type = GPU_RGB32F; break;
 		case DRW_TEX_RG_8: *data_type = GPU_RG8; break;
 #endif
-		case DRW_TEX_DEPTH_16: *data_type = GPU_DEPTH_COMPONENT16; break;
-		case DRW_TEX_DEPTH_24: *data_type = GPU_DEPTH_COMPONENT24; break;
-		case DRW_TEX_DEPTH_32: *data_type = GPU_DEPTH_COMPONENT32F; break;
+		case DRW_TEX_DEPTH_16: *r_data_type = GPU_DEPTH_COMPONENT16; break;
+		case DRW_TEX_DEPTH_24: *r_data_type = GPU_DEPTH_COMPONENT24; break;
+		case DRW_TEX_DEPTH_32: *r_data_type = GPU_DEPTH_COMPONENT32F; break;
 		default :
 			/* file type not supported you must uncomment it from above */
 			BLI_assert(false);
@@ -369,21 +371,21 @@ static void drw_texture_get_format(DRWTextureFormat format, GPUTextureFormat *da
 		case DRW_TEX_RGBA_8:
 		case DRW_TEX_RGBA_16:
 		case DRW_TEX_RGBA_32:
-			*channels = 4;
+			*r_channels = 4;
 			break;
 		case DRW_TEX_RGB_8:
 		case DRW_TEX_RGB_16:
 		case DRW_TEX_RGB_32:
 		case DRW_TEX_RGB_11_11_10:
-			*channels = 3;
+			*r_channels = 3;
 			break;
 		case DRW_TEX_RG_8:
 		case DRW_TEX_RG_16:
 		case DRW_TEX_RG_32:
-			*channels = 2;
+			*r_channels = 2;
 			break;
 		default:
-			*channels = 1;
+			*r_channels = 1;
 			break;
 	}
 }
@@ -2086,23 +2088,25 @@ int DRW_object_is_mode_shade(const Object *ob)
 /** \name Framebuffers (DRW_framebuffer)
  * \{ */
 
-static GPUTextureFormat convert_tex_format(int fbo_format, int *channels, bool *is_depth)
+static GPUTextureFormat convert_tex_format(
+        int fbo_format,
+        int *r_channels, bool *r_is_depth)
 {
-	*is_depth = ELEM(fbo_format, DRW_TEX_DEPTH_16, DRW_TEX_DEPTH_24);
+	*r_is_depth = ELEM(fbo_format, DRW_TEX_DEPTH_16, DRW_TEX_DEPTH_24);
 
 	switch (fbo_format) {
-		case DRW_TEX_R_16:     *channels = 1; return GPU_R16F;
-		case DRW_TEX_R_32:     *channels = 1; return GPU_R32F;
-		case DRW_TEX_RG_16:    *channels = 2; return GPU_RG16F;
-		case DRW_TEX_RG_32:    *channels = 2; return GPU_RG32F;
-		case DRW_TEX_RGBA_8:   *channels = 4; return GPU_RGBA8;
-		case DRW_TEX_RGBA_16:  *channels = 4; return GPU_RGBA16F;
-		case DRW_TEX_RGBA_32:  *channels = 4; return GPU_RGBA32F;
-		case DRW_TEX_DEPTH_24: *channels = 1; return GPU_DEPTH_COMPONENT24;
-		case DRW_TEX_RGB_11_11_10: *channels = 3; return GPU_R11F_G11F_B10F;
+		case DRW_TEX_R_16:     *r_channels = 1; return GPU_R16F;
+		case DRW_TEX_R_32:     *r_channels = 1; return GPU_R32F;
+		case DRW_TEX_RG_16:    *r_channels = 2; return GPU_RG16F;
+		case DRW_TEX_RG_32:    *r_channels = 2; return GPU_RG32F;
+		case DRW_TEX_RGBA_8:   *r_channels = 4; return GPU_RGBA8;
+		case DRW_TEX_RGBA_16:  *r_channels = 4; return GPU_RGBA16F;
+		case DRW_TEX_RGBA_32:  *r_channels = 4; return GPU_RGBA32F;
+		case DRW_TEX_DEPTH_24: *r_channels = 1; return GPU_DEPTH_COMPONENT24;
+		case DRW_TEX_RGB_11_11_10: *r_channels = 3; return GPU_R11F_G11F_B10F;
 		default:
 			BLI_assert(false && "Texture format unsupported as render target!");
-			*channels = 4; return GPU_RGBA8;
+			*r_channels = 4; return GPU_RGBA8;
 	}
 }
 
