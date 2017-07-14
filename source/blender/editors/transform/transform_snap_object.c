@@ -140,42 +140,54 @@ struct SnapObjectContext {
 * \{ */
 
 
-#define ITER_SNAP_OBJECTS(use_obedit, ob, obmat, sctx, snap_select, obedit, CODE) \
-	Base *base_act = sctx->scene_layer->basact;\
-	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA\
-	 * which makes the loop skip it, even the derived mesh will never change\
-	 *\
-	 * To solve that problem, we do it first as an exception.\
-	 * */\
-	if (base_act && base_act->object && base_act->object->mode & OB_MODE_PARTICLE_EDIT) {\
-		use_obedit = false;\
-		ob = base_act->object;\
-		obmat = ob->obmat;\
-		CODE\
-	}\
-	for (Base *base = sctx->scene_layer->object_bases.first; base != NULL; base = base->next) {\
-		if ((BASE_VISIBLE_NEW(base)) && (base->flag_legacy & (BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA)) == 0 &&\
-			!((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||\
-			  (snap_select == SNAP_NOT_ACTIVE && base == base_act)))\
-		{\
-			Object *ob_iter = base->object;\
-			if (ob_iter->transflag & OB_DUPLI) {\
-				DupliObject *dupli_ob;\
-				ListBase *lb = object_duplilist(sctx->bmain->eval_ctx, sctx->scene, ob_iter);\
-				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {\
-					use_obedit = obedit && dupli_ob->ob->data == obedit->data;;\
-					ob = use_obedit ? obedit : dupli_ob->ob;\
-					obmat = dupli_ob->mat;\
-					CODE\
-				}\
-				free_object_duplilist(lb);\
-			}\
-			use_obedit = obedit && ob_iter->data == obedit->data;\
-			ob = use_obedit ? obedit : ob_iter;\
-			obmat = ob->obmat;\
-			CODE\
-		}\
-	}\
+typedef void(*IterSnapObjsCallback)(SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data);
+
+/**
+ * Walks through all objects in the scene to create the list of objets to snap.
+ *
+ * \param sctx: Snap context to store data.
+ * \param snap_select : from enum SnapSelect.
+ * \param obedit : Object Edited to use its coordinates of BMesh(if any) to do the snapping.
+ */
+static void iter_snap_objects(
+        SnapObjectContext *sctx,
+        const SnapSelect snap_select,
+        Object *obedit,
+        IterSnapObjsCallback sob_callback,
+        void *data)
+{
+	Base *base_act = sctx->scene_layer->basact;
+	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
+	 * which makes the loop skip it, even the derived mesh will never change
+	 *
+	 * To solve that problem, we do it first as an exception.
+	 * */
+	if (base_act && base_act->object && base_act->object->mode & OB_MODE_PARTICLE_EDIT) {
+		sob_callback(sctx, false, base_act->object, base_act->object->obmat, data);
+	}
+
+	for (Base *base = sctx->scene_layer->object_bases.first; base != NULL; base = base->next) {
+		if ((BASE_VISIBLE_NEW(base)) && (base->flag_legacy & (BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA)) == 0 &&
+			!((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||
+			  (snap_select == SNAP_NOT_ACTIVE && base == base_act)))
+		{
+			bool use_obedit;
+			Object *obj = base->object;
+			if (obj->transflag & OB_DUPLI) {
+				DupliObject *dupli_ob;
+				ListBase *lb = object_duplilist(sctx->bmain->eval_ctx, sctx->scene, obj);
+				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
+					use_obedit = obedit && dupli_ob->ob->data == obedit->data;
+					sob_callback(sctx, use_obedit, use_obedit ? obedit : dupli_ob->ob, dupli_ob->mat, data);
+				}
+				free_object_duplilist(lb);
+			}
+
+			use_obedit = obedit && obj->data == obedit->data;
+			sob_callback(sctx, use_obedit, use_obedit ? obedit : obj, obj->obmat, data);
+		}
+	}
+}
 
 
 /**
@@ -768,6 +780,37 @@ static bool raycastObj(
 }
 
 
+struct RaycastObjUserData {
+	const float *ray_orig;
+	const float *ray_start;
+	const float *ray_dir;
+	const float *depth_range;
+	const unsigned int ob_index;
+	/* read/write args */
+	float *ray_depth;
+	/* return args */
+	float *r_loc;
+	float *r_no;
+	int *r_index;
+	Object **r_ob;
+	float (*r_obmat)[4];
+	ListBase *r_hit_list;
+	bool ret;
+};
+
+static void raycast_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data)
+{
+	struct RaycastObjUserData *dt = data;
+	dt->ret |= raycastObj(
+	        sctx,
+	        dt->ray_orig, dt->ray_start, dt->ray_dir, dt->depth_range,
+	        ob, obmat, dt->ob_index, is_obedit,
+	        dt->ray_depth,
+	        dt->r_loc, dt->r_no, dt->r_index,
+	        dt->r_ob, dt->r_obmat,
+	        dt->r_hit_list);
+}
+
 /**
  * Main RayCast Function
  * ======================
@@ -808,24 +851,27 @@ static bool raycastObjects(
         Object **r_ob, float r_obmat[4][4],
         ListBase *r_hit_list)
 {
-	bool retval = false;
-	bool use_obedit;
+	Object *obedit = use_object_edit_cage ? sctx->scene->obedit : NULL;
 
-	unsigned int ob_index = 0;
+	struct RaycastObjUserData data = {
+		.ray_orig = ray_orig,
+		.ray_start = ray_start,
+		.ray_dir = ray_dir,
+		.depth_range = depth_range,
+		.ob_index = 0,
+		.ray_depth = ray_depth,
+		.r_loc = r_loc,
+		.r_no = r_no,
+		.r_index = r_index,
+		.r_ob = r_ob,
+		.r_obmat = r_obmat,
+		.r_hit_list = r_hit_list,
+		.ret = false,
+	};
 
-	Object *ob, *obedit;
-	float (*obmat)[4];
+	iter_snap_objects(sctx, snap_select, obedit, raycast_obj_cb, &data);
 
-	obedit = use_object_edit_cage ? sctx->scene->obedit : NULL;
-	ITER_SNAP_OBJECTS(use_obedit, ob, obmat, sctx, snap_select, obedit,
-		retval |= raycastObj(
-		        sctx,
-		        ray_orig, ray_start, ray_dir, depth_range,
-		        ob, obmat, ob_index++, use_obedit,
-		        ray_depth, r_loc, r_no, r_index, r_ob, r_obmat, r_hit_list);
-	)
-
-	return retval;
+	return data.ret;
 }
 
 
@@ -1998,6 +2044,33 @@ static bool snapObject(
 }
 
 
+struct SnapObjUserData {
+	SnapData *snapdata;
+	/* read/write args */
+	float *ray_depth;
+	float *dist_px;
+	/* return args */
+	float *r_loc;
+	float *r_no;
+	Object **r_ob;
+	float (*r_obmat)[4];
+	bool ret;
+};
+
+static void sanp_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data)
+{
+	struct SnapObjUserData *dt = data;
+	dt->ret |= snapObject(
+	        sctx, dt->snapdata,
+	        ob, obmat, is_obedit,
+	        /* read/write args */
+	        dt->ray_depth, dt->dist_px,
+	        /* return args */
+	        dt->r_loc, dt->r_no,
+	        dt->r_ob, dt->r_obmat);
+}
+
+
 /**
  * Main Snapping Function
  * ======================
@@ -2035,21 +2108,22 @@ static bool snapObjectsRay(
         float r_loc[3], float r_no[3],
         Object **r_ob, float r_obmat[4][4])
 {
-	bool retval = false;
-	bool use_obedit;
+	Object *obedit = use_object_edit_cage ? sctx->scene->obedit : NULL;
 
-	Object *ob, *obedit;
-	float (*obmat)[4];
+	struct SnapObjUserData data = {
+		.snapdata = snapdata,
+		.ray_depth = ray_depth,
+		.dist_px = dist_px,
+		.r_loc = r_loc,
+		.r_no = r_no,
+		.r_ob = r_ob,
+		.r_obmat = r_obmat,
+		.ret = false,
+	};
 
-	obedit = use_object_edit_cage ? sctx->scene->obedit : NULL;
-	ITER_SNAP_OBJECTS(use_obedit, ob, obmat, sctx, snap_select, obedit,
-		retval |= snapObject(
-		        sctx, snapdata, ob, obmat, use_obedit,
-		        ray_depth, dist_px,
-		        r_loc, r_no, r_ob, r_obmat);
-	)
+	iter_snap_objects(sctx, snap_select, obedit, sanp_obj_cb, &data);
 
-	return retval;
+	return data.ret;
 }
 
 /** \} */
