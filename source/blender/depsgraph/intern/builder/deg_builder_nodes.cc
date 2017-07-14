@@ -445,39 +445,41 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Object *ob)
 void DepsgraphNodeBuilder::build_object_transform(Scene *scene, Object *ob)
 {
 	OperationDepsNode *op_node;
+	Scene *scene_cow = get_cow_datablock(scene);
+	Object *ob_cow = get_cow_datablock(ob);
 
 	/* local transforms (from transform channels - loc/rot/scale + deltas) */
 	op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
-	                             function_bind(BKE_object_eval_local_transform, _1, scene, ob),
+	                             function_bind(BKE_object_eval_local_transform,
+	                                           _1,
+	                                           scene_cow, ob_cow),
 	                             DEG_OPCODE_TRANSFORM_LOCAL);
 	op_node->set_as_entry();
 
 	/* object parent */
-	if (ob->parent) {
+	if (ob->parent != NULL) {
 		add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
-		                   function_bind(BKE_object_eval_parent, _1, scene, ob),
+		                   function_bind(BKE_object_eval_parent,
+		                                 _1,
+		                                 scene_cow, ob_cow),
 		                   DEG_OPCODE_TRANSFORM_PARENT);
 	}
 
 	/* object constraints */
-	if (ob->constraints.first) {
+	if (ob->constraints.first != NULL) {
 		build_object_constraints(scene, ob);
 	}
 
-	/* Temporary uber-update node, which does everything.
-	 * It is for the being we're porting old dependencies into the new system.
-	 * We'll get rid of this node as soon as all the granular update functions
-	 * are filled in.
-	 *
-	 * TODO(sergey): Get rid of this node.
-	 */
+	/* Rest of transformation update. */
 	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
-	                   function_bind(BKE_object_eval_uber_transform, _1, scene, ob),
+	                   function_bind(BKE_object_eval_uber_transform,
+	                                 _1,
+	                                 scene_cow, ob_cow),
 	                   DEG_OPCODE_OBJECT_UBEREVAL);
 
 	/* object transform is done */
 	op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
-	                             function_bind(BKE_object_eval_done, _1, ob),
+	                             function_bind(BKE_object_eval_done, _1, ob_cow),
 	                             DEG_OPCODE_TRANSFORM_FINAL);
 	op_node->set_as_exit();
 }
@@ -503,7 +505,9 @@ void DepsgraphNodeBuilder::build_object_constraints(Scene *scene, Object *ob)
 {
 	/* create node for constraint stack */
 	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
-	                   function_bind(BKE_object_eval_constraints, _1, scene, ob),
+	                   function_bind(BKE_object_eval_constraints, _1,
+	                                 get_cow_datablock(scene),
+	                                 get_cow_datablock(ob)),
 	                   DEG_OPCODE_TRANSFORM_CONSTRAINTS);
 }
 
@@ -514,23 +518,29 @@ void DepsgraphNodeBuilder::build_object_constraints(Scene *scene, Object *ob)
 void DepsgraphNodeBuilder::build_animdata(ID *id)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
-
-	if (adt == NULL)
+	if (adt == NULL) {
 		return;
+	}
+	ID *id_cow = get_cow_id(id);
 
 	/* animation */
 	if (adt->action || adt->nla_tracks.first || adt->drivers.first) {
-		// XXX: Hook up specific update callbacks for special properties which may need it...
+		// XXX: Hook up specific update callbacks for special properties which
+		// may need it...
 
-		/* actions and NLA - as a single unit for now, as it gets complicated to schedule otherwise */
+		/* actions and NLA - as a single unit for now, as it gets complicated to
+		 * schedule otherwise.
+		 */
 		if ((adt->action) || (adt->nla_tracks.first)) {
 			/* create the node */
 			add_operation_node(id, DEG_NODE_TYPE_ANIMATION,
-			                   function_bind(BKE_animsys_eval_animdata, _1, id),
+			                   function_bind(BKE_animsys_eval_animdata, _1, id_cow),
 			                   DEG_OPCODE_ANIMATION, id->name);
 
-			// TODO: for each channel affected, we might also want to add some support for running RNA update callbacks on them
-			// (which will be needed for proper handling of drivers later)
+			/* TODO: for each channel affected, we might also want to add some
+			 * support for running RNA update callbacks on them
+			 * (which will be needed for proper handling of drivers later)
+			 */
 		}
 
 		/* drivers */
@@ -549,6 +559,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 {
 	ChannelDriver *driver = fcu->driver;
+	ID *id_cow = get_cow_id(id);
 
 	/* Create data node for this driver */
 	/* TODO(sergey): Avoid creating same operation multiple times,
@@ -562,9 +573,10 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 	                                                   fcu->array_index);
 
 	if (driver_op == NULL) {
+		/* TODO(sergey): Shall we use COW of fcu itself here? */
 		driver_op = add_operation_node(id,
 		                               DEG_NODE_TYPE_PARAMETERS,
-		                               function_bind(BKE_animsys_eval_driver, _1, id, fcu),
+		                               function_bind(BKE_animsys_eval_driver, _1, id_cow, fcu),
 		                               DEG_OPCODE_DRIVER,
 		                               fcu->rna_path ? fcu->rna_path : "",
 		                               fcu->array_index);
@@ -608,42 +620,48 @@ void DepsgraphNodeBuilder::build_world(World *world)
 void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
+	Scene *scene_cow = get_cow_datablock(scene);
 
 	/**
 	 * Rigidbody Simulation Nodes
 	 * ==========================
 	 *
 	 * There are 3 nodes related to Rigidbody Simulation:
-	 * 1) "Initialize/Rebuild World" - this is called sparingly, only when the simulation
-	 *    needs to be rebuilt (mainly after file reload, or moving back to start frame)
-	 * 2) "Do Simulation" - perform a simulation step - interleaved between the evaluation
-	 *    steps for clusters of objects (i.e. between those affected and/or not affected by
-	 *    the sim for instance)
+	 * 1) "Initialize/Rebuild World" - this is called sparingly, only when the
+	 *    simulation needs to be rebuilt (mainly after file reload, or moving
+	 *    back to start frame)
+	 * 2) "Do Simulation" - perform a simulation step - interleaved between the
+	 *    evaluation steps for clusters of objects (i.e. between those affected
+	 *    and/or not affected by the sim for instance).
 	 *
-	 * 3) "Pull Results" - grab the specific transforms applied for a specific object -
-	 *    performed as part of object's transform-stack building
+	 * 3) "Pull Results" - grab the specific transforms applied for a specific
+	 *    object - performed as part of object's transform-stack building.
 	 */
 
-	/* create nodes ------------------------------------------------------------------------ */
-	/* XXX: is this the right component, or do we want to use another one instead? */
+	/* Create nodes --------------------------------------------------------- */
+
+	/* XXX: is this the right component, or do we want to use another one
+	 * instead?
+	 */
 
 	/* init/rebuild operation */
-	/*OperationDepsNode *init_node =*/ add_operation_node(&scene->id, DEG_NODE_TYPE_TRANSFORM,
-	                                                      function_bind(BKE_rigidbody_rebuild_sim, _1, scene),
-	                                                      DEG_OPCODE_RIGIDBODY_REBUILD);
+	/*OperationDepsNode *init_node =*/ add_operation_node(
+	        &scene->id, DEG_NODE_TYPE_TRANSFORM,
+	        function_bind(BKE_rigidbody_rebuild_sim, _1, scene_cow),
+	        DEG_OPCODE_RIGIDBODY_REBUILD);
 
 	/* do-sim operation */
 	// XXX: what happens if we need to split into several groups?
-	OperationDepsNode *sim_node     = add_operation_node(&scene->id, DEG_NODE_TYPE_TRANSFORM,
-	                                                     function_bind(BKE_rigidbody_eval_simulation, _1, scene),
-	                                                     DEG_OPCODE_RIGIDBODY_SIM);
+	OperationDepsNode *sim_node = add_operation_node(
+	        &scene->id, DEG_NODE_TYPE_TRANSFORM,
+	        function_bind(BKE_rigidbody_eval_simulation, _1, scene_cow),
+	        DEG_OPCODE_RIGIDBODY_SIM);
 
-	/* XXX: For now, the sim node is the only one that really matters here. If any other
-	 * sims get added later, we may have to remove these hacks...
+	/* XXX: For now, the sim node is the only one that really matters here.
+	 * If any other sims get added later, we may have to remove these hacks...
 	 */
 	sim_node->owner->entry_operation = sim_node;
 	sim_node->owner->exit_operation  = sim_node;
-
 
 	/* objects - simulation participants */
 	if (rbw->group) {
@@ -654,9 +672,13 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 				continue;
 
 			/* 2) create operation for flushing results */
-			/* object's transform component - where the rigidbody operation lives */
+			/* object's transform component - where the rigidbody operation
+			 * lives. */
 			add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
-			                   function_bind(BKE_rigidbody_object_sync_transforms, _1, scene, ob),
+			                   function_bind(BKE_rigidbody_object_sync_transforms,
+			                                 _1,
+			                                 scene_cow,
+			                                 get_cow_datablock(ob)),
 			                   DEG_OPCODE_TRANSFORM_RIGIDBODY);
 		}
 	}
@@ -683,6 +705,10 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 	ComponentDepsNode *psys_comp =
 	        add_component_node(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
 
+	/* TODO(sergey): Need to get COW of PSYS. */
+	Scene *scene_cow = get_cow_datablock(scene);
+	Object *ob_cow = get_cow_datablock(ob);
+
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
 		ParticleSettings *part = psys->part;
@@ -696,8 +722,8 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 		add_operation_node(psys_comp,
 		                   function_bind(BKE_particle_system_eval,
 		                                 _1,
-		                                 scene,
-		                                 ob,
+		                                 scene_cow,
+		                                 ob_cow,
 		                                 psys),
 		                   DEG_OPCODE_PSYS_EVAL,
 		                   psys->name);
@@ -709,13 +735,16 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 
 void DepsgraphNodeBuilder::build_cloth(Scene *scene, Object *object)
 {
+	Scene *scene_cow = get_cow_datablock(scene);
+	Object *object_cow = get_cow_datablock(object);
+
 	ComponentDepsNode *cache_comp = add_component_node(&object->id,
 	                                                   DEG_NODE_TYPE_CACHE);
 	add_operation_node(cache_comp,
 	                   function_bind(BKE_object_eval_cloth,
 	                                 _1,
-	                                 scene,
-	                                 object),
+	                                 scene_cow,
+	                                 object_cow),
 	                   DEG_OPCODE_PLACEHOLDER,
 	                   "Cloth Modifier");
 }
@@ -734,7 +763,10 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
+	ID *obdata_cow = get_cow_id(obdata);
 	OperationDepsNode *op_node;
+	Scene *scene_cow = get_cow_datablock(scene);
+	Object *object_cow = get_cow_datablock(ob);
 
 	/* TODO(sergey): This way using this object's properties as driver target
 	 * works fine.
@@ -759,8 +791,8 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	                             DEG_NODE_TYPE_GEOMETRY,
 	                             function_bind(BKE_object_eval_uber_data,
 	                                           _1,
-	                                           (Scene *)get_cow_id(&scene->id),
-	                                           (Object *)get_cow_id(&ob->id)),
+	                                           scene_cow,
+	                                           object_cow),
 	                             DEG_OPCODE_GEOMETRY_UBEREVAL);
 	op_node->set_as_exit();
 
@@ -785,7 +817,8 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		if (ob->type == OB_MESH) {
 			add_operation_node(&ob->id,
 			                   DEG_NODE_TYPE_SHADING,
-			                   function_bind(BKE_object_eval_update_shading, _1, ob),
+			                   function_bind(BKE_object_eval_update_shading, _1,
+			                                 object_cow),
 			                   DEG_OPCODE_SHADING);
 		}
 
@@ -827,7 +860,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			                             DEG_NODE_TYPE_GEOMETRY,
 			                             function_bind(BKE_mesh_eval_geometry,
 			                                           _1,
-			                                           (Mesh *)obdata),
+			                                           (Mesh *)obdata_cow),
 			                             DEG_OPCODE_PLACEHOLDER,
 			                             "Geometry Eval");
 			op_node->set_as_entry();
@@ -846,7 +879,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 				                             DEG_NODE_TYPE_GEOMETRY,
 				                             function_bind(BKE_mball_eval_geometry,
 				                                           _1,
-				                                           (MetaBall *)obdata),
+				                                           (MetaBall *)obdata_cow),
 				                             DEG_OPCODE_PLACEHOLDER,
 				                             "Geometry Eval");
 				op_node->set_as_entry();
@@ -864,7 +897,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			                             DEG_NODE_TYPE_GEOMETRY,
 			                             function_bind(BKE_curve_eval_geometry,
 			                                           _1,
-			                                           (Curve *)obdata),
+			                                           (Curve *)obdata_cow),
 			                                           DEG_OPCODE_PLACEHOLDER,
 			                                           "Geometry Eval");
 			op_node->set_as_entry();
@@ -875,7 +908,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 				                   DEG_NODE_TYPE_GEOMETRY,
 				                   function_bind(BKE_curve_eval_path,
 				                                 _1,
-				                                 (Curve *)obdata),
+				                                 (Curve *)obdata_cow),
 				                   DEG_OPCODE_GEOMETRY_PATH,
 				                   "Path");
 			}
@@ -903,7 +936,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			                             DEG_NODE_TYPE_GEOMETRY,
 			                             function_bind(BKE_lattice_eval_geometry,
 			                                           _1,
-			                                           (Lattice *)obdata),
+			                                           (Lattice *)obdata_cow),
 			                                           DEG_OPCODE_PLACEHOLDER,
 			                                           "Geometry Eval");
 			op_node->set_as_entry();

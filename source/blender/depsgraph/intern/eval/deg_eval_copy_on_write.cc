@@ -308,9 +308,20 @@ int foreach_libblock_remap_callback(void *user_data,
 }
 
 /* Check whether given ID is expanded or still a shallow copy. */
-BLI_INLINE bool check_datablock_expanded(ID *id_cow)
+BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
 {
 	return (id_cow->name[0] != '\0');
+}
+
+/* Check whether datablock was already expanded during depsgraph
+ * construction.
+ */
+static bool check_datablock_expanded_at_construction(const ID *id_orig)
+{
+	const short id_type = GS(id_orig->name);
+	return (id_type == ID_SCE) ||
+	       (id_type == ID_OB && ((Object *)id_orig)->type == OB_ARMATURE) ||
+	       (id_type == ID_AR);
 }
 
 /* Do some special treatment of data transfer from original ID to it's
@@ -423,6 +434,7 @@ void update_copy_on_write_datablock(const Depsgraph *depsgraph,
 		// - Active render engine.
 		// - Something else?
 	}
+	// TODO(sergey): Other ID types here.
 }
 
 /* This callback is used to validate that all nested ID datablocks are
@@ -549,7 +561,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * construction time. This datablocks must never change pointers of their
 	 * nested data since it is used for function bindings.
 	 */
-	if (GS(id_orig->name) == ID_SCE) {
+	if (check_datablock_expanded_at_construction(id_orig)) {
 		BLI_assert(check_datablock_expanded(id_cow) == true);
 		update_copy_on_write_datablock(depsgraph, id_orig, id_cow);
 		return id_cow;

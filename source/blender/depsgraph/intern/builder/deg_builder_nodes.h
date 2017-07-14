@@ -75,6 +75,11 @@ struct DepsgraphNodeBuilder {
 
 	ID *get_cow_id(const ID *id_orig) const;
 
+	template<typename T>
+	T *get_cow_datablock(const T *orig) const {
+		return (T *)get_cow_id(&orig->id);
+	}
+
 	IDDepsNode *add_id_node(ID *id);
 	TimeSourceDepsNode *add_time_source();
 
