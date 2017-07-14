@@ -159,7 +159,7 @@ struct SnapObjectContext {
 			  (snap_select == SNAP_NOT_ACTIVE && base == base_act)))\
 		{\
 			Object *obj = base->object;\
-			if (ob->transflag & OB_DUPLI) {\
+			if (obj->transflag & OB_DUPLI) {\
 				DupliObject *dupli_ob;\
 				ListBase *lb = object_duplilist(sctx->bmain->eval_ctx, sctx->scene, obj);\
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {\
