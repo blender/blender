@@ -170,7 +170,7 @@ struct SnapObjectContext {
 				}\
 				free_object_duplilist(lb);\
 			}\
-			use_obedit = obedit && ob->data == obedit->data;\
+			use_obedit = obedit && obj->data == obedit->data;\
 			ob = use_obedit ? obedit : obj;\
 			obmat = ob->obmat;\
 			CODE\
