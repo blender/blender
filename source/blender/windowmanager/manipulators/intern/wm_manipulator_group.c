@@ -464,7 +464,7 @@ wmKeyMap *WM_manipulatorgroup_keymap_common(
 	/* Use area and region id since we might have multiple manipulators with the same name in different areas/regions */
 	wmKeyMap *km = WM_keymap_find(config, wgt->name, wgt->mmap_params.spaceid, wgt->mmap_params.regionid);
 
-	WM_keymap_add_item(km, "MANIPULATORGROUP_OT_manipulator_tweak", ACTIONMOUSE, KM_PRESS, KM_ANY, 0);
+	WM_keymap_add_item(km, "MANIPULATORGROUP_OT_manipulator_tweak", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
 	manipulatorgroup_tweak_modal_keymap(config, wgt->name);
 
 	return km;
