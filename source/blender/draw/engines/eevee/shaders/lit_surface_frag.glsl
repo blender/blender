@@ -26,11 +26,23 @@ in vec3 viewNormal;
 
 vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao)
 {
+	/* Zero length vectors cause issues, see: T51979. */
+#if 0
+	N = normalize(N);
+#else
+	{
+		float len = length(N);
+		if (isnan(len)) {
+			return vec3(0.0);
+		}
+		N /= len;
+	}
+#endif
+
 	roughness = clamp(roughness, 1e-8, 0.9999);
 	float roughnessSquared = roughness * roughness;
 
 	vec3 V = cameraVec;
-	N = normalize(N);
 
 	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
 
