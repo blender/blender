@@ -785,7 +785,7 @@ struct RaycastObjUserData {
 	const float *ray_start;
 	const float *ray_dir;
 	const float *depth_range;
-	const unsigned int ob_index;
+	unsigned int ob_index;
 	/* read/write args */
 	float *ray_depth;
 	/* return args */
@@ -804,7 +804,7 @@ static void raycast_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, 
 	dt->ret |= raycastObj(
 	        sctx,
 	        dt->ray_orig, dt->ray_start, dt->ray_dir, dt->depth_range,
-	        ob, obmat, dt->ob_index, is_obedit,
+	        ob, obmat, dt->ob_index++, is_obedit,
 	        dt->ray_depth,
 	        dt->r_loc, dt->r_no, dt->r_index,
 	        dt->r_ob, dt->r_obmat,
