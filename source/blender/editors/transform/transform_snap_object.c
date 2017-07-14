@@ -141,7 +141,7 @@ struct SnapObjectContext {
 
 
 #define ITER_SNAP_OBJECTS(use_obedit, ob, obmat, sctx, snap_select, obedit, CODE) \
-	Base *base_act = sctx->scene->basact;\
+	Base *base_act = sctx->scene_layer->basact;\
 	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA\
 	 * which makes the loop skip it, even the derived mesh will never change\
 	 *\
