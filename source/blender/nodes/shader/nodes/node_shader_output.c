@@ -67,7 +67,7 @@ static void node_shader_exec_output(void *data, int UNUSED(thread), bNode *node,
 	}
 }
 
-static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_output(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	GPUNodeLink *outlink;
 
@@ -80,7 +80,7 @@ static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecDat
 		return false;
 	}
 
-	GPU_stack_link(mat, "output_node", in, out, &outlink);
+	GPU_stack_link(mat, node, "output_node", in, out, &outlink);
 	GPU_material_output_link(mat, outlink);
 
 	return 1;

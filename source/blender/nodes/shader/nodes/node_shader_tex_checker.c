@@ -61,7 +61,7 @@ static int node_shader_gpu_tex_checker(GPUMaterial *mat, bNode *node, bNodeExecD
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	return GPU_stack_link(mat, "node_tex_checker", in, out);
+	return GPU_stack_link(mat, node, "node_tex_checker", in, out);
 }
 
 /* node type definition */

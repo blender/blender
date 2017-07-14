@@ -66,7 +66,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 	float blend = tex->projection_blend;
 
 	if (!ima)
-		return GPU_stack_link(mat, "node_tex_image_empty", in, out);
+		return GPU_stack_link(mat, node, "node_tex_image_empty", in, out);
 
 	if (!in[0].link)
 		in[0].link = GPU_attribute(CD_MTFACE, "");
@@ -75,7 +75,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 
 	switch (tex->projection) {
 		case SHD_PROJ_FLAT:
-			GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			GPU_stack_link(mat, node, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
 			break;
 		case SHD_PROJ_BOX:
 			GPU_link(mat, "direction_transform_m4v3", GPU_builtin(GPU_VIEW_NORMAL),
@@ -94,12 +94,12 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 		case SHD_PROJ_SPHERE:
 			GPU_link(mat, "point_texco_remap_square", in[0].link, &in[0].link);
 			GPU_link(mat, "point_map_to_sphere", in[0].link, &in[0].link);
-			GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			GPU_stack_link(mat, node, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
 			break;
 		case SHD_PROJ_TUBE:
 			GPU_link(mat, "point_texco_remap_square", in[0].link, &in[0].link);
 			GPU_link(mat, "point_map_to_tube", in[0].link, &in[0].link);
-			GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			GPU_stack_link(mat, node, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
 			break;
 	}
 

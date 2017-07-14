@@ -80,7 +80,7 @@ static int node_shader_gpu_tex_brick(GPUMaterial *mat, bNode *node, bNodeExecDat
 	NodeTexBrick *tex = (NodeTexBrick *)node->storage;
 	float offset_freq = tex->offset_freq;
 	float squash_freq = tex->squash_freq;
-	return GPU_stack_link(mat, "node_tex_brick",
+	return GPU_stack_link(mat, node, "node_tex_brick",
 	                      in, out,
 	                      GPU_uniform(&tex->offset), GPU_uniform(&offset_freq),
 	                      GPU_uniform(&tex->squash), GPU_uniform(&squash_freq));

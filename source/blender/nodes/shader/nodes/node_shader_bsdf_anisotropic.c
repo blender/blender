@@ -49,12 +49,12 @@ static void node_shader_init_anisotropic(bNodeTree *UNUSED(ntree), bNode *node)
 	node->custom1 = SHD_GLOSSY_GGX;
 }
 
-static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[4].link)
 		GPU_link(mat, "world_normals_get", &in[4].link);
 
-	return GPU_stack_link(mat, "node_bsdf_anisotropic", in, out);
+	return GPU_stack_link(mat, node, "node_bsdf_anisotropic", in, out);
 }
 
 /* node type definition */

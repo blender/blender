@@ -65,9 +65,9 @@ static void node_shader_exec_invert(void *UNUSED(data), int UNUSED(thread), bNod
 		copy_v3_v3(out[0]->vec, icol);
 }
 
-static int gpu_shader_invert(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_invert(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "invert", in, out);
+	return GPU_stack_link(mat, node, "invert", in, out);
 }
 
 void register_node_type_sh_invert(void)

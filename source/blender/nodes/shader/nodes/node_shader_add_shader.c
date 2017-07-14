@@ -40,9 +40,9 @@ static bNodeSocketTemplate sh_node_add_shader_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_add_shader(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_add_shader(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "node_add_shader", in, out);
+	return GPU_stack_link(mat, node, "node_add_shader", in, out);
 }
 
 /* node type definition */

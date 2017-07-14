@@ -61,7 +61,7 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat, bNode *node, bNodeExecData 
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	return GPU_stack_link(mat, "node_tex_sky", in, out);
+	return GPU_stack_link(mat, node, "node_tex_sky", in, out);
 }
 
 /* node type definition */

@@ -38,10 +38,10 @@ static bNodeSocketTemplate sh_node_rgb_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int gpu_shader_rgb(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	GPUNodeLink *vec = GPU_uniform(out[0].vec);
-	return GPU_stack_link(mat, "set_rgba", in, out, vec);
+	GPUNodeLink *link = GPU_uniformbuffer_link_out(mat, node, out, 0);
+	return GPU_stack_link(mat, node, "set_rgba", in, out, link);
 }
 
 void register_node_type_sh_rgb(void)

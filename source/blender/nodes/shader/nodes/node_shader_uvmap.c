@@ -47,7 +47,7 @@ static int node_shader_gpu_uvmap(GPUMaterial *mat, bNode *node, bNodeExecData *U
 	NodeShaderUVMap *attr = node->storage;
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, attr->uv_map);
 
-	return GPU_stack_link(mat, "node_uvmap", in, out, mtface);
+	return GPU_stack_link(mat, node, "node_uvmap", in, out, mtface);
 }
 
 /* node type definition */

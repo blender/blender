@@ -43,9 +43,9 @@ static bNodeSocketTemplate sh_node_bsdf_hair_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_bsdf_hair(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_hair(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "node_bsdf_hair", in, out);
+	return GPU_stack_link(mat, node, "node_bsdf_hair", in, out);
 }
 
 /* node type definition */

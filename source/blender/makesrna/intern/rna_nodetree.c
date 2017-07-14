@@ -180,6 +180,8 @@ static EnumPropertyItem node_sampler_type_items[] = {
 #include "ED_node.h"
 #include "ED_render.h"
 
+#include "GPU_material.h"
+
 #include "NOD_common.h"
 #include "NOD_socket.h"
 
@@ -2273,13 +2275,45 @@ static void rna_NodeSocketStandard_vector_range(PointerRNA *ptr, float *min, flo
 	*softmax = dval->max;
 }
 
+static void rna_NodeSocket_value_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	/* XXX: TODO (sergey/dalai) move this to depsgraph. */
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	if (ntree->type == NTREE_SHADER) {
+		FOREACH_NODETREE(bmain, tntree, id) {
+			if (GS(id->name) == ID_WO) {
+				World *wo = (World *)id;
+				if ((BLI_listbase_is_empty(&wo->gpumaterial) == false) &&
+				    ntreeHasTree(tntree, ntree))
+				{
+					wo->update_flag = 1;
+					GPU_material_uniform_buffer_tag_dirty(&wo->gpumaterial);
+					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
+				}
+			}
+			else if (GS(id->name) == ID_MA) {
+				Material *ma = (Material *)id;
+				if ((BLI_listbase_is_empty(&ma->gpumaterial) == false) &&
+				    ntreeHasTree(tntree, ntree))
+				{
+					GPU_material_uniform_buffer_tag_dirty(&ma->gpumaterial);
+					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
+				}
+			}
+		} FOREACH_NODETREE_END
+	}
+	else {
+		rna_NodeSocket_update(bmain, scene, ptr);
+	}
+}
+
 /* using a context update function here, to avoid searching the node if possible */
 static void rna_NodeSocketStandard_value_update(struct bContext *C, PointerRNA *ptr)
 {
 	bNode *node;
 	
 	/* default update */
-	rna_NodeSocket_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+	rna_NodeSocket_value_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 	
 	/* try to use node from context, faster */
 	node = CTX_data_pointer_get(C, "node").data;

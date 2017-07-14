@@ -58,14 +58,14 @@ static void node_shader_exec_normal(void *UNUSED(data), int UNUSED(thread), bNod
 	out[1]->vec[0] = -dot_v3v3(vec, out[0]->vec);
 }
 
-static int gpu_shader_normal(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_normal(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	GPUNodeLink *vec = GPU_uniform(out[0].vec);
 	if (GPU_material_use_new_shading_nodes(mat)) {
-		return GPU_stack_link(mat, "normal_new_shading", in, out, vec);
+		return GPU_stack_link(mat, node, "normal_new_shading", in, out, vec);
 	}
 	else {
-		return GPU_stack_link(mat, "normal", in, out, vec);
+		return GPU_stack_link(mat, node, "normal", in, out, vec);
 	}
 }
 

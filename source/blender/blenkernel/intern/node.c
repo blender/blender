@@ -2025,7 +2025,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 
 		for (node = ntree->nodes.first; node; node = node->next) {
 			/* store new_node pointer to original */
-			node->new_node->new_node = node;
+			node->new_node->original = node;
 		}
 
 		if (ntree->typeinfo->localize)

@@ -47,7 +47,7 @@ static int node_shader_gpu_attribute(GPUMaterial *mat, bNode *node, bNodeExecDat
 	NodeShaderAttribute *attr = node->storage;
 	GPUNodeLink *cd_attr = GPU_attribute(CD_AUTO_FROM_NAME, attr->name);
 
-	return GPU_stack_link(mat, "node_attribute", in, out, cd_attr);
+	return GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 }
 
 /* node type definition */

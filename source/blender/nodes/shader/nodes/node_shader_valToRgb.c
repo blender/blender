@@ -69,7 +69,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 	int size;
 
 	colorband_table_RGBA(node->storage, &array, &size);
-	return GPU_stack_link(mat, "valtorgb", in, out, GPU_texture(size, array));
+	return GPU_stack_link(mat, node, "valtorgb", in, out, GPU_texture(size, array));
 }
 
 void register_node_type_sh_valtorgb(void)
@@ -110,9 +110,9 @@ static void node_shader_exec_rgbtobw(void *UNUSED(data), int UNUSED(thread), bNo
 	out[0]->vec[0] = IMB_colormanagement_get_luminance(col);
 }
 
-static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "rgbtobw", in, out);
+	return GPU_stack_link(mat, node, "rgbtobw", in, out);
 }
 
 void register_node_type_sh_rgbtobw(void)

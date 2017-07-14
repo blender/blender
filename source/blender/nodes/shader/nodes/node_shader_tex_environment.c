@@ -62,7 +62,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, bNodeE
 	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
 
 	if (!ima)
-		return GPU_stack_link(mat, "node_tex_environment_empty", in, out);
+		return GPU_stack_link(mat, node, "node_tex_environment_empty", in, out);
 
 	if (!in[0].link) {
 		GPUMatType type = GPU_Material_get_type(mat);
@@ -76,9 +76,9 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, bNodeE
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	if (tex->projection == SHD_PROJ_EQUIRECTANGULAR)
-		GPU_stack_link(mat, "node_tex_environment_equirectangular", in, out, GPU_image(ima, iuser, isdata));
+		GPU_stack_link(mat, node, "node_tex_environment_equirectangular", in, out, GPU_image(ima, iuser, isdata));
 	else
-		GPU_stack_link(mat, "node_tex_environment_mirror_ball", in, out, GPU_image(ima, iuser, isdata));
+		GPU_stack_link(mat, node, "node_tex_environment_mirror_ball", in, out, GPU_image(ima, iuser, isdata));
 		
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 	if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&

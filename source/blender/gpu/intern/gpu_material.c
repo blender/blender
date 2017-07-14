@@ -64,6 +64,7 @@
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
+#include "GPU_uniformbuffer.h"
 
 #include "gpu_codegen.h"
 #include "gpu_lamp_private.h"
@@ -133,6 +134,7 @@ struct GPUMaterial {
 	bool bound;
 
 	bool is_opensubdiv;
+	GPUUniformBuffer *ubo; /* UBOs for shader uniforms. */
 };
 
 /* Forward declaration so shade_light_textures() can use this, while still keeping the code somewhat organized */
@@ -249,6 +251,10 @@ void GPU_material_free(ListBase *gpumaterial)
 
 		if (material->pass)
 			GPU_pass_free(material->pass);
+
+		if (material->ubo != NULL) {
+			GPU_uniformbuffer_free(material->ubo);
+		}
 
 		BLI_freelistN(&material->lamps);
 
@@ -427,6 +433,30 @@ GPUMatType GPU_Material_get_type(GPUMaterial *material)
 GPUPass *GPU_material_get_pass(GPUMaterial *material)
 {
 	return material->pass;
+}
+
+GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material)
+{
+	return material->ubo;
+}
+
+/**
+ * Create dynamic UBO from parameters
+ * \param ListBase of BLI_genericNodeN(GPUInput)
+ */
+void GPU_material_create_uniform_buffer(GPUMaterial *material, ListBase *inputs)
+{
+	material->ubo = GPU_uniformbuffer_dynamic_create(inputs, NULL);
+}
+
+void GPU_material_uniform_buffer_tag_dirty(ListBase *gpumaterials)
+{
+	for (LinkData *link = gpumaterials->first; link; link = link->next) {
+		GPUMaterial *material = link->data;
+		if (material->ubo != NULL) {
+			GPU_uniformbuffer_tag_dirty(material->ubo);
+		}
+	}
 }
 
 void GPU_material_vertex_attributes(GPUMaterial *material, GPUVertexAttribs *attribs)
@@ -2130,7 +2160,7 @@ GPUMaterial *GPU_material_from_nodetree(
 	if (mat->outlink) {
 		outlink = mat->outlink;
 		mat->pass = GPU_generate_pass_new(
-		        &mat->nodes, outlink, &mat->attribs, vert_code, geom_code, frag_lib, defines);
+		        mat, &mat->nodes, outlink, &mat->attribs, vert_code, geom_code, frag_lib, defines);
 	}
 
 	/* note that even if building the shader fails in some way, we still keep

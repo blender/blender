@@ -46,7 +46,7 @@ static int node_shader_gpu_tangent(GPUMaterial *mat, bNode *node, bNodeExecData 
 	NodeShaderTangent *attr = node->storage;
 
 	if (attr->direction_type == SHD_TANGENT_UVMAP) {
-		return GPU_stack_link(mat, "node_tangentmap", in, out, GPU_attribute(CD_TANGENT, ""), GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
+		return GPU_stack_link(mat, node, "node_tangentmap", in, out, GPU_attribute(CD_TANGENT, ""), GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
 	}
 	else {
 		GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
@@ -58,7 +58,7 @@ static int node_shader_gpu_tangent(GPUMaterial *mat, bNode *node, bNodeExecData 
 		else
 			GPU_link(mat, "tangent_orco_z", orco, &orco);
 
-		return GPU_stack_link(mat, "node_tangent", in, out, GPU_builtin(GPU_VIEW_NORMAL), orco,
+		return GPU_stack_link(mat, node, "node_tangent", in, out, GPU_builtin(GPU_VIEW_NORMAL), orco,
 			GPU_builtin(GPU_OBJECT_MATRIX), GPU_builtin(GPU_INVERSE_VIEW_MATRIX));
 	}
 }

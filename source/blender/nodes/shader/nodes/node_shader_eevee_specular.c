@@ -48,7 +48,7 @@ static bNodeSocketTemplate sh_node_eevee_specular_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_eevee_specular(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_eevee_specular(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	static float one = 1.0f;
 
@@ -67,7 +67,7 @@ static int node_shader_gpu_eevee_specular(GPUMaterial *mat, bNode *UNUSED(node),
 		GPU_link(mat, "set_value", GPU_uniform(&one), &in[9].link);
 	}
 
-	return GPU_stack_link(mat, "node_eevee_specular", in, out);
+	return GPU_stack_link(mat, node, "node_eevee_specular", in, out);
 }
 
 

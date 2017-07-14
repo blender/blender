@@ -42,20 +42,20 @@ static bNodeSocketTemplate sh_node_tex_coord_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
 	GPUMatType type = GPU_Material_get_type(mat);
 	
 	if (type == GPU_MATERIAL_TYPE_WORLD) {
-		return GPU_stack_link(mat, "node_tex_coord_background", in, out,
+		return GPU_stack_link(mat, node, "node_tex_coord_background", in, out,
 		                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
 		                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_OBJECT_MATRIX),
 		                      GPU_builtin(GPU_CAMERA_TEXCO_FACTORS), orco, mtface);
 	}
 	else {
-		return GPU_stack_link(mat, "node_tex_coord", in, out,
+		return GPU_stack_link(mat, node, "node_tex_coord", in, out,
 		                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
 		                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_OBJECT_MATRIX), 
 		                      GPU_builtin(GPU_CAMERA_TEXCO_FACTORS), orco, mtface);

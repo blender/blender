@@ -52,9 +52,9 @@ static void node_shader_exec_gamma(void *UNUSED(data), int UNUSED(thread), bNode
 	out[0]->vec[2] = col[2] > 0.0f ? powf(col[2], gamma) : col[2];
 }
 
-static int node_shader_gpu_gamma(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_gamma(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "node_gamma", in, out);
+	return GPU_stack_link(mat, node, "node_gamma", in, out);
 }
 
 void register_node_type_sh_gamma(void)

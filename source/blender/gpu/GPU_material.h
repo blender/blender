@@ -43,6 +43,7 @@ extern "C" {
 
 struct Image;
 struct ImageUser;
+struct ListBase;
 struct Material;
 struct Object;
 struct Scene;
@@ -53,9 +54,11 @@ struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUMaterial;
 struct GPUTexture;
+struct GPUUniformBuffer;
 struct GPULamp;
 struct PreviewImage;
 struct World;
+struct bNode;
 struct bNodeTree;
 
 typedef struct GPUNode GPUNode;
@@ -143,6 +146,7 @@ typedef struct GPUNodeStack {
 #define GPU_DYNAMIC_GROUP_MIST     0x00050000
 #define GPU_DYNAMIC_GROUP_WORLD    0x00060000
 #define GPU_DYNAMIC_GROUP_MAT      0x00070000
+#define GPU_DYNAMIC_UBO            0x00080000
 
 typedef enum GPUDynamicType {
 
@@ -202,6 +206,7 @@ typedef enum GPUDynamicType {
 GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
 GPUNodeLink *GPU_uniform(float *num);
 GPUNodeLink *GPU_dynamic_uniform(float *num, GPUDynamicType dynamictype, void *data);
+GPUNodeLink *GPU_uniform_buffer(float *num, GPUType gputype);
 GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, bool is_data);
 GPUNodeLink *GPU_cube_map(struct Image *ima, struct ImageUser *iuser, bool is_data);
 GPUNodeLink *GPU_image_preview(struct PreviewImage *prv);
@@ -212,7 +217,10 @@ GPUNodeLink *GPU_opengl_builtin(GPUOpenGLBuiltin builtin);
 void GPU_node_link_set_type(GPUNodeLink *link, GPUType type);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);
-bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
+bool GPU_stack_link(GPUMaterial *mat, struct bNode *node, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
+GPUNodeLink *GPU_uniformbuffer_link_out(
+        struct GPUMaterial *mat, struct bNode *node,
+        struct GPUNodeStack *stack, const int index);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_enable_alpha(GPUMaterial *material);
@@ -243,6 +251,10 @@ bool GPU_material_bound(GPUMaterial *material);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 GPUMatType GPU_Material_get_type(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
+
+struct GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material);
+void GPU_material_create_uniform_buffer(GPUMaterial *material, struct ListBase *inputs);
+void GPU_material_uniform_buffer_tag_dirty(struct ListBase *gpumaterials);
 
 void GPU_material_vertex_attributes(GPUMaterial *material,
 	struct GPUVertexAttribs *attrib);

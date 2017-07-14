@@ -126,7 +126,7 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 	if (tex && tex->ima && (tex->type == TEX_IMAGE || tex->type == TEX_ENVMAP)) {
 		if (tex->type == TEX_IMAGE) {
 			GPUNodeLink *texlink = GPU_image(tex->ima, &tex->iuser, false);
-			GPU_stack_link(mat, "texture_image", in, out, texlink);
+			GPU_stack_link(mat, node, "texture_image", in, out, texlink);
 		}
 		else { /* TEX_ENVMAP */
 			if (!in[0].link)

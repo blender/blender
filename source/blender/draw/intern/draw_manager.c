@@ -779,6 +779,11 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 		}
 	}
 
+	GPUUniformBuffer *ubo = GPU_material_get_uniform_buffer(material);
+	if (ubo != NULL) {
+		DRW_shgroup_uniform_block(grp, GPU_UBO_BLOCK_NAME, ubo);
+	}
+
 	return grp;
 }
 

@@ -53,9 +53,9 @@ static void node_shader_exec_sephsv(void *UNUSED(data), int UNUSED(thread), bNod
 	           &out[0]->vec[0], &out[1]->vec[0], &out[2]->vec[0]);
 }
 
-static int gpu_shader_sephsv(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_sephsv(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "separate_hsv", in, out);
+	return GPU_stack_link(mat, node, "separate_hsv", in, out);
 }
 
 void register_node_type_sh_sephsv(void)
@@ -94,9 +94,9 @@ static void node_shader_exec_combhsv(void *UNUSED(data), int UNUSED(thread), bNo
 	hsv_to_rgb(h, s, v, &out[0]->vec[0], &out[0]->vec[1], &out[0]->vec[2]);
 }
 
-static int gpu_shader_combhsv(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_combhsv(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "combine_hsv", in, out);
+	return GPU_stack_link(mat, node, "combine_hsv", in, out);
 }
 
 void register_node_type_sh_combhsv(void)

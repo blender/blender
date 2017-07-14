@@ -41,12 +41,12 @@ static bNodeSocketTemplate sh_node_bsdf_diffuse_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[2].link)
 		GPU_link(mat, "world_normals_get", &in[2].link);
 
-	return GPU_stack_link(mat, "node_bsdf_diffuse", in, out);
+	return GPU_stack_link(mat, node, "node_bsdf_diffuse", in, out);
 }
 
 /* node type definition */

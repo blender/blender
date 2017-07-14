@@ -63,7 +63,7 @@ static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 	node->custom1 = SHD_GLOSSY_MULTI_GGX;
 }
 
-static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 #if 0 /* Old 2.7 glsl viewport */
 	// normal
@@ -100,10 +100,10 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *UNUSED(node)
 
 	/* Only use complex versions when needed. */
 	if (!in[12].link && (in[12].vec[0] == 0.0f)) {
-		return GPU_stack_link(mat, "node_bsdf_principled_simple", in, out, GPU_builtin(GPU_VIEW_POSITION));
+		return GPU_stack_link(mat, node, "node_bsdf_principled_simple", in, out, GPU_builtin(GPU_VIEW_POSITION));
 	}
 	else {
-		return GPU_stack_link(mat, "node_bsdf_principled_clearcoat", in, out, GPU_builtin(GPU_VIEW_POSITION));
+		return GPU_stack_link(mat, node, "node_bsdf_principled_clearcoat", in, out, GPU_builtin(GPU_VIEW_POSITION));
 	}
 }
 

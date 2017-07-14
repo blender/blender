@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_layer_weight_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_layer_weight(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_layer_weight(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[1].link)
 		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
@@ -49,7 +49,7 @@ static int node_shader_gpu_layer_weight(GPUMaterial *mat, bNode *UNUSED(node), b
 		GPU_link(mat, "direction_transform_m4v3", in[1].link, GPU_builtin(GPU_VIEW_MATRIX), &in[1].link);
 	}
 
-	return GPU_stack_link(mat, "node_layer_weight", in, out, GPU_builtin(GPU_VIEW_POSITION));
+	return GPU_stack_link(mat, node, "node_layer_weight", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
 static void node_shader_exec_layer_weight(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)

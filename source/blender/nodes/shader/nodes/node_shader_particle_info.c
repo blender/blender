@@ -48,10 +48,10 @@ static void node_shader_exec_particle_info(void *data, int UNUSED(thread), bNode
 	RE_instance_get_particle_info(shi->obi, out[0]->vec, out[1]->vec, out[2]->vec, out[3]->vec, out[4]->vec, out[5]->vec, out[6]->vec);
 }
 
-static int gpu_shader_particle_info(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_particle_info(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 
-	return GPU_stack_link(mat, "particle_info", in, out,
+	return GPU_stack_link(mat, node, "particle_info", in, out,
 	                      GPU_builtin(GPU_PARTICLE_SCALAR_PROPS),
 	                      GPU_builtin(GPU_PARTICLE_LOCATION),
 	                      GPU_builtin(GPU_PARTICLE_VELOCITY),

@@ -38,7 +38,7 @@ static bNodeSocketTemplate sh_node_output_material_in[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_output_material(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_output_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	GPUNodeLink *outlink;
 
@@ -46,7 +46,7 @@ static int node_shader_gpu_output_material(GPUMaterial *mat, bNode *UNUSED(node)
 		return false;
 	}
 
-	GPU_stack_link(mat, "node_output_material", in, out, &outlink);
+	GPU_stack_link(mat, node, "node_output_material", in, out, &outlink);
 	GPU_material_output_link(mat, outlink);
 
 	return true;

@@ -94,7 +94,7 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 	GPUNodeLink *tdomin = GPU_uniform(&domin);
 	GPUNodeLink *tdomax = GPU_uniform(&domax);
 
-	GPU_stack_link(mat, "mapping", in, out, tmat, tmin, tmax, tdomin, tdomax);
+	GPU_stack_link(mat, node, "mapping", in, out, tmat, tmin, tmax, tdomin, tdomax);
 
 	if (texmap->type == TEXMAP_TYPE_NORMAL)
 		GPU_link(mat, "texco_norm", out[0].link, &out[0].link);

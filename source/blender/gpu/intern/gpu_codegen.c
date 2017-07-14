@@ -36,6 +36,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -47,6 +48,7 @@
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
+#include "GPU_uniformbuffer.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
@@ -508,12 +510,16 @@ static void codegen_set_unique_ids(ListBase *nodes)
 	BLI_ghash_free(definehash, NULL, NULL);
 }
 
-static int codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
+/**
+ * It will create an UBO for GPUMaterial if there is any GPU_DYNAMIC_UBO.
+ */
+static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds, ListBase *nodes)
 {
 	GPUNode *node;
 	GPUInput *input;
 	const char *name;
 	int builtins = 0;
+	ListBase ubo_inputs = {NULL, NULL};
 
 	/* print uniforms */
 	for (node = nodes->first; node; node = node->next) {
@@ -545,7 +551,13 @@ static int codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 				}
 			}
 			else if (input->source == GPU_SOURCE_VEC_UNIFORM) {
-				if (input->dynamicvec) {
+				if (input->dynamictype == GPU_DYNAMIC_UBO) {
+					if (!input->link) {
+						/* We handle the UBOuniforms separately. */
+						BLI_addtail(&ubo_inputs, BLI_genericNodeN(input));
+					}
+				}
+				else if (input->dynamicvec) {
 					/* only create uniforms for dynamic vectors */
 					BLI_dynstr_appendf(ds, "uniform %s unf%d;\n",
 						GPU_DATATYPE_STR[input->type], input->id);
@@ -582,6 +594,22 @@ static int codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 #endif
 			}
 		}
+	}
+
+	/* Handle the UBO block separately. */
+	if ((material != NULL) && !BLI_listbase_is_empty(&ubo_inputs)) {
+		GPU_material_create_uniform_buffer(material, &ubo_inputs);
+
+		/* Inputs are sorted */
+		BLI_dynstr_appendf(ds, "\nlayout (std140) uniform %s {\n", GPU_UBO_BLOCK_NAME);
+
+		for (LinkData *link = ubo_inputs.first; link; link = link->next) {
+			input = link->data;
+			BLI_dynstr_appendf(ds, "\t%s unf%d;\n",
+				GPU_DATATYPE_STR[input->type], input->id);
+		}
+		BLI_dynstr_append(ds, "};\n");
+		BLI_freelistN(&ubo_inputs);
 	}
 
 	BLI_dynstr_append(ds, "\n");
@@ -686,7 +714,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 	BLI_dynstr_append(ds, ";\n");
 }
 
-static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use_new_shading)
+static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUOutput *output, bool use_new_shading)
 {
 	DynStr *ds = BLI_dynstr_new();
 	char *code;
@@ -703,7 +731,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, bool use
 #endif
 
 	codegen_set_unique_ids(nodes);
-	builtins = codegen_print_uniforms_functions(ds, nodes);
+	builtins = codegen_process_uniforms_functions(material, ds, nodes);
 
 #if 0
 	if (G.debug & G_DEBUG)
@@ -1397,7 +1425,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 		name = outnode->name;
 		input = outnode->inputs.first;
 
-		if ((STREQ(name, "set_value") || STREQ(name, "set_rgb")) &&
+		if ((STREQ(name, "set_value") || STREQ(name, "set_rgb") || STREQ(name, "set_rgba")) &&
 		    (input->type == type))
 		{
 			input = MEM_dupallocN(outnode->inputs.first);
@@ -1514,15 +1542,84 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 	BLI_addtail(&node->inputs, input);
 }
 
-static void gpu_node_input_socket(GPUNode *node, GPUNodeStack *sock)
-{
-	GPUNodeLink *link;
 
+static const char *gpu_uniform_set_function_from_type(eNodeSocketDatatype type)
+{
+	switch (type) {
+		case SOCK_FLOAT:
+			return "set_value";
+		case SOCK_VECTOR:
+			return "set_rgb";
+		case SOCK_RGBA:
+			return "set_rgba";
+		default:
+			 BLI_assert(!"No gpu function for non-supported eNodeSocketDatatype");
+			 return NULL;
+	}
+}
+
+/**
+ * Link stack uniform buffer.
+ * This is called for the input/output sockets that are note connected.
+ */
+static GPUNodeLink *gpu_uniformbuffer_link(
+        GPUMaterial *mat, bNode *node, GPUNodeStack *stack, const int index, const eNodeSocketInOut in_out)
+{
+	bNodeSocket *socket;
+	if (in_out == SOCK_IN) {
+		socket = BLI_findlink(&node->original->inputs, index);
+	}
+	else {
+		socket = BLI_findlink(&node->original->outputs, index);
+	}
+
+	BLI_assert(socket != NULL);
+	BLI_assert(socket->in_out == in_out);
+
+	if ((socket->flag & SOCK_HIDE_VALUE) == 0) {
+		GPUNodeLink *link;
+		switch (socket->type) {
+			case SOCK_FLOAT:
+			{
+				bNodeSocketValueFloat *socket_data = socket->default_value;
+				link = GPU_uniform_buffer(&socket_data->value, GPU_FLOAT);
+				break;
+			}
+			case SOCK_VECTOR:
+			{
+				bNodeSocketValueRGBA *socket_data = socket->default_value;
+				link = GPU_uniform_buffer(socket_data->value, GPU_VEC3);
+				break;
+			}
+			case SOCK_RGBA:
+			{
+				bNodeSocketValueRGBA *socket_data = socket->default_value;
+				link = GPU_uniform_buffer(socket_data->value, GPU_VEC4);
+				break;
+			}
+			default:
+				return NULL;
+				break;
+		}
+
+		if (in_out == SOCK_IN) {
+			GPU_link(mat, gpu_uniform_set_function_from_type(socket->type), link, &stack->link);
+		}
+		return link;
+	}
+	return NULL;
+}
+
+static void gpu_node_input_socket(GPUMaterial *material, bNode *bnode, GPUNode *node, GPUNodeStack *sock, const int index)
+{
 	if (sock->link) {
 		gpu_node_input_link(node, sock->link, sock->type);
 	}
+	else if ((material != NULL) && (gpu_uniformbuffer_link(material, bnode, sock, index, SOCK_IN) != NULL)) {
+		gpu_node_input_link(node, sock->link, sock->type);
+	}
 	else {
-		link = GPU_node_link_create();
+		GPUNodeLink *link = GPU_node_link_create();
 		link->ptr1 = sock->vec;
 		gpu_node_input_link(node, link, sock->type);
 	}
@@ -1685,6 +1782,21 @@ GPUNodeLink *GPU_dynamic_uniform(float *num, GPUDynamicType dynamictype, void *d
 	return link;
 }
 
+/**
+ * Add uniform to UBO struct of GPUMaterial.
+ */
+GPUNodeLink *GPU_uniform_buffer(float *num, GPUType gputype)
+{
+	GPUNodeLink *link = GPU_node_link_create();
+	link->ptr1 = num;
+	link->ptr2 = NULL;
+	link->dynamic = true;
+	link->dynamictype = GPU_DYNAMIC_UBO;
+	link->type = gputype;
+
+	return link;
+}
+
 GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, bool is_data)
 {
 	GPUNodeLink *link = GPU_node_link_create();
@@ -1795,7 +1907,7 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
 	return true;
 }
 
-bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...)
+bool GPU_stack_link(GPUMaterial *material, bNode *bnode, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...)
 {
 	GPUNode *node;
 	GPUFunction *function;
@@ -1815,11 +1927,11 @@ bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNod
 
 	if (in) {
 		for (i = 0; in[i].type != GPU_NONE; i++) {
-			gpu_node_input_socket(node, &in[i]);
+			gpu_node_input_socket(material, bnode, node, &in[i], i);
 			totin++;
 		}
 	}
-	
+
 	if (out) {
 		for (i = 0; out[i].type != GPU_NONE; i++) {
 			gpu_node_output(node, out[i].type, &out[i].link);
@@ -1841,7 +1953,7 @@ bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNod
 			if (totin == 0) {
 				link = va_arg(params, GPUNodeLink *);
 				if (link->socket)
-					gpu_node_input_socket(node, link->socket);
+					gpu_node_input_socket(NULL, NULL, node, link->socket, -1);
 				else
 					gpu_node_input_link(node, link, function->paramtype[i]);
 			}
@@ -1851,8 +1963,8 @@ bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNod
 	}
 	va_end(params);
 
-	gpu_material_add_node(mat, node);
-	
+	gpu_material_add_node(material, node);
+
 	return true;
 }
 
@@ -1875,6 +1987,11 @@ int GPU_link_changed(GPUNodeLink *link)
 	}
 	else
 		return 0;
+}
+
+GPUNodeLink *GPU_uniformbuffer_link_out(GPUMaterial *mat, bNode *node, GPUNodeStack *stack, const int index)
+{
+	return gpu_uniformbuffer_link(mat, node, stack, index, SOCK_OUT);
 }
 
 /* Pass create/free */
@@ -1917,6 +2034,7 @@ static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 }
 
 GPUPass *GPU_generate_pass_new(
+        struct GPUMaterial *material,
         ListBase *nodes, struct GPUNodeLink *frag_outlink,
         GPUVertexAttribs *attribs,
         const char *vert_code, const char *geom_code,
@@ -1933,7 +2051,7 @@ GPUPass *GPU_generate_pass_new(
 	gpu_nodes_get_vertex_attributes(nodes, attribs);
 
 	/* generate code and compile with opengl */
-	fragmentgen = code_generate_fragment(nodes, frag_outlink->output, true);
+	fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output, true);
 	vertexgen = code_generate_vertex_new(nodes, vert_code, (geom_code != NULL));
 
 	tmp = BLI_strdupcat(frag_lib, glsl_material_library);
@@ -2012,7 +2130,7 @@ GPUPass *GPU_generate_pass(
 	gpu_nodes_get_builtin_flag(nodes, builtins);
 
 	/* generate code and compile with opengl */
-	fragmentcode = code_generate_fragment(nodes, outlink->output, false);
+	fragmentcode = code_generate_fragment(NULL, nodes, outlink->output, false);
 	vertexcode = code_generate_vertex(nodes, type);
 	geometrycode = code_generate_geometry(nodes, use_opensubdiv);
 

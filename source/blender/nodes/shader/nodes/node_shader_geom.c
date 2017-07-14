@@ -136,7 +136,7 @@ static int gpu_shader_geom(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, ngeo->uvname);
 	GPUNodeLink *mcol = GPU_attribute(CD_MCOL, ngeo->colname);
 
-	bool ret = GPU_stack_link(mat, "geom", in, out,
+	bool ret = GPU_stack_link(mat, node, "geom", in, out,
 	                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
 	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), orco, mtface, mcol);
 	if (GPU_material_use_world_space_shading(mat)) {

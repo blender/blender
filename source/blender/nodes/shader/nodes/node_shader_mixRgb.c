@@ -71,7 +71,8 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 		                          "mix_screen", "mix_div", "mix_diff", "mix_dark", "mix_light",
 		                          "mix_overlay", "mix_dodge", "mix_burn", "mix_hue", "mix_sat",
 		                          "mix_val", "mix_color", "mix_soft", "mix_linear"};
-	int ret = GPU_stack_link(mat, names[node->custom1], in, out);
+
+	int ret = GPU_stack_link(mat, node, names[node->custom1], in, out);
 	if (ret && node->custom2 & SHD_MIXRGB_CLAMP) {
 		float min[3] = {0.0f, 0.0f, 0.0f};
 		float max[3] = {1.0f, 1.0f, 1.0f};
