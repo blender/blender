@@ -153,7 +153,7 @@ struct SnapObjectContext {
 		obmat = ob->obmat;\
 		CODE\
 	}\
-	for (Base *base = sctx->scene->base.first; base != NULL; base = base->next) {\
+	for (Base *base = sctx->scene_layer->object_bases.first; base != NULL; base = base->next) {\
 		if ((BASE_VISIBLE_NEW(base)) && (base->flag_legacy & (BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA)) == 0 &&\
 			!((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||\
 			  (snap_select == SNAP_NOT_ACTIVE && base == base_act)))\
