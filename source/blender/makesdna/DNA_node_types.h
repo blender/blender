@@ -214,8 +214,11 @@ typedef struct bNode {
 	 * and replacing all uses with per-instance data.
 	 */
 	short preview_xsize, preview_ysize;	/* reserved size of the preview rect */
-	int pad2;
+	short pad2[2];
 	struct uiBlock *block;	/* runtime during drawing */
+
+	float ssr_id; /* XXX: eevee only, id of screen space reflection layer, needs to be a float to feed GPU_uniform. */
+	float pad3;
 } bNode;
 
 /* node->flag */

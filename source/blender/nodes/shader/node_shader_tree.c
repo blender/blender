@@ -475,6 +475,48 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree,
 	ntreeUpdateTree(G.main, ntree);
 }
 
+static bool ntree_tag_ssr_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *userdata, const bool UNUSED(reversed))
+{
+	switch (fromnode->type) {
+		case SH_NODE_BSDF_ANISOTROPIC:
+		case SH_NODE_EEVEE_METALLIC:
+		case SH_NODE_EEVEE_SPECULAR:
+		case SH_NODE_BSDF_PRINCIPLED:
+		case SH_NODE_BSDF_GLOSSY:
+			fromnode->ssr_id = (*(float *)userdata);
+			(*(float *)userdata) += 1;
+			break;
+		default:
+			/* We could return false here but since we (will)
+			 * allow the use of Closure as RGBA, we can have
+			 * Bsdf nodes linked to other Bsdf nodes. */
+			break;
+	}
+
+	return true;
+}
+
+/* EEVEE: Scan the ntree to set the Screen Space Reflection
+ * layer id of every specular node.
+ */
+static void ntree_shader_tag_ssr_node(bNodeTree *ntree, short compatibility)
+{
+	if (compatibility != NODE_NEWER_SHADING) {
+		/* We can only deal with new shading system here. */
+		return;
+	}
+
+	bNode *output_node = ntree_shader_output_node(ntree);
+	if (output_node == NULL) {
+		return;
+	}
+	/* Make sure sockets links pointers are correct. */
+	ntreeUpdateTree(G.main, ntree);
+
+	int lobe_count = 0;
+	nodeChainIter(ntree, output_node, ntree_tag_ssr_bsdf_cb, &lobe_count, true);
+}
+
 void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, short compatibility)
 {
 	/* localize tree to create links for reroute and mute */
@@ -485,6 +527,8 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, short compatibili
 	 * displacement/bump mapping.
 	 */
 	ntree_shader_relink_displacement(localtree, compatibility);
+
+	ntree_shader_tag_ssr_node(localtree, compatibility);
 
 	exec = ntreeShaderBeginExecTree(localtree);
 	ntreeExecGPUNodes(exec, mat, 1, compatibility);

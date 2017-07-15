@@ -24,7 +24,7 @@ in vec3 viewNormal;
 
 /* ----------- default -----------  */
 
-vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao)
+vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, float ssr_id)
 {
 	/* Zero length vectors cause issues, see: T51979. */
 #if 0
@@ -166,7 +166,7 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao)
 vec3 eevee_surface_clearcoat_lit(
         vec3 N, vec3 albedo, vec3 f0, float roughness,
         vec3 C_N, float C_intensity, float C_roughness, /* Clearcoat params */
-        float ao)
+        float ao, float ssr_id)
 {
 	roughness = clamp(roughness, 1e-8, 0.9999);
 	float roughnessSquared = roughness * roughness;

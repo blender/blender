@@ -100,10 +100,10 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeE
 
 	/* Only use complex versions when needed. */
 	if (!in[12].link && (in[12].vec[0] == 0.0f)) {
-		return GPU_stack_link(mat, node, "node_bsdf_principled_simple", in, out, GPU_builtin(GPU_VIEW_POSITION));
+		return GPU_stack_link(mat, node, "node_bsdf_principled_simple", in, out, GPU_builtin(GPU_VIEW_POSITION), GPU_uniform(&node->ssr_id));
 	}
 	else {
-		return GPU_stack_link(mat, node, "node_bsdf_principled_clearcoat", in, out, GPU_builtin(GPU_VIEW_POSITION));
+		return GPU_stack_link(mat, node, "node_bsdf_principled_clearcoat", in, out, GPU_builtin(GPU_VIEW_POSITION), GPU_uniform(&node->ssr_id));
 	}
 }
 
