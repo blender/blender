@@ -109,6 +109,8 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *volumetric_integrate_ps;
 	struct DRWPass *volumetric_resolve_ps;
 	struct DRWPass *volumetric_resolve_transmit_ps;
+	struct DRWPass *ssr_raytrace;
+	struct DRWPass *ssr_resolve;
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
@@ -131,6 +133,7 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *dof_scatter_far_fb;
 	struct GPUFrameBuffer *dof_scatter_near_fb;
 	struct GPUFrameBuffer *volumetric_fb;
+	struct GPUFrameBuffer *screen_tracing_fb;
 
 	struct GPUFrameBuffer *planarref_fb;
 
@@ -148,6 +151,11 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *bloom_blit; /* R16_G16_B16 */
 	struct GPUTexture *bloom_downsample[MAX_BLOOM_STEP]; /* R16_G16_B16 */
 	struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP-1]; /* R16_G16_B16 */
+
+	struct GPUTexture *ssr_normal_input;
+	struct GPUTexture *ssr_specrough_input;
+	struct GPUTexture *ssr_hit_output;
+	struct GPUTexture *ssr_pdf_output;
 
 	struct GPUTexture *planar_pool;
 
@@ -300,6 +308,9 @@ enum {
 typedef struct EEVEE_EffectsInfo {
 	int enabled_effects;
 
+	/* SSR */
+	bool use_ssr;
+
 	/* Ambient Occlusion */
 	bool use_ao, use_bent_normals;
 	float ao_dist, ao_samples, ao_factor;
@@ -339,6 +350,7 @@ enum {
 	EFFECT_BLOOM               = (1 << 1),
 	EFFECT_DOF                 = (1 << 2),
 	EFFECT_VOLUMETRIC          = (1 << 3),
+	EFFECT_SSR                 = (1 << 4),
 };
 
 /* ************** SCENE LAYER DATA ************** */
@@ -486,6 +498,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src);
 void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_draw_effects(EEVEE_Data *vedata);
 void EEVEE_effects_free(void);
 

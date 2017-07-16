@@ -155,6 +155,7 @@ static void EEVEE_draw_scene(void *vedata)
 	DRW_framebuffer_bind(fbl->main);
 	DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
 
+	/* TODO move background after depth pass to cut some overdraw */
 	DRW_draw_pass(psl->background_pass);
 
 	/* Depth prepass */
@@ -171,6 +172,9 @@ static void EEVEE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->probe_display);
 	EEVEE_draw_default_passes(psl);
 	DRW_draw_pass(psl->material_pass);
+
+	/* Screen Space Reflections */
+	EEVEE_effects_do_ssr(sldata, vedata);
 
 	/* Volumetrics */
 	EEVEE_effects_do_volumetrics(sldata, vedata);
@@ -205,6 +209,8 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
+
+	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
 
 	BKE_collection_engine_property_add_bool(props, "volumetric_enable", false);
 	BKE_collection_engine_property_add_float(props, "volumetric_start", 0.1f);

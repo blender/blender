@@ -66,13 +66,28 @@ Closure closure_add(Closure cl1, Closure cl2)
 struct Closure {
 	vec3 radiance;
 	float opacity;
+	vec4 ssr_data;
+	vec2 ssr_normal;
+	int ssr_id;
 };
 
-#define CLOSURE_DEFAULT Closure(vec3(0.0), 1.0)
+#define CLOSURE_DEFAULT Closure(vec3(0.0), 1.0, vec4(0.0), vec2(0.0), -1)
+
+uniform int outputSsrId;
 
 Closure closure_mix(Closure cl1, Closure cl2, float fac)
 {
 	Closure cl;
+	if (cl1.ssr_id == outputSsrId) {
+		cl.ssr_data = mix(cl1.ssr_data.xyzw, vec4(vec3(0.0), cl1.ssr_data.w), fac); /* do not blend roughness */
+		cl.ssr_normal = cl1.ssr_normal;
+		cl.ssr_id = cl1.ssr_id;
+	}
+	else {
+		cl.ssr_data = mix(vec4(vec3(0.0), cl2.ssr_data.w), cl2.ssr_data.xyzw, fac); /* do not blend roughness */
+		cl.ssr_normal = cl2.ssr_normal;
+		cl.ssr_id = cl2.ssr_id;
+	}
 	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
 	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);
 	return cl;
@@ -80,11 +95,29 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 
 Closure closure_add(Closure cl1, Closure cl2)
 {
-	Closure cl;
+	Closure cl = (cl1.ssr_id == outputSsrId) ? cl1 : cl2;
 	cl.radiance = cl1.radiance + cl2.radiance;
 	cl.opacity = cl1.opacity + cl2.opacity;
 	return cl;
 }
+
+#if defined(MESH_SHADER) && !defined(SHADOW_SHADER)
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 ssrNormals;
+layout(location = 2) out vec4 ssrData;
+
+Closure nodetree_exec(void); /* Prototype */
+
+#define NODETREE_EXEC
+void main()
+{
+	Closure cl = nodetree_exec();
+	fragColor = vec4(cl.radiance, cl.opacity);
+	ssrNormals = cl.ssr_normal.xyyy;
+	ssrData = cl.ssr_data;
+}
+
+#endif /* MESH_SHADER && !SHADOW_SHADER */
 
 #endif /* VOLUMETRICS */
 
@@ -101,7 +134,6 @@ void main()
 	Closure cl = nodetree_exec();
 	fragColor = vec4(mix(vec3(1.0), cl.radiance, cl.opacity), 1.0);
 }
-
 #endif
 
 struct LightData {

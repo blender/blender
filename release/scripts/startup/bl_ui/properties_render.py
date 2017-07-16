@@ -710,6 +710,24 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
         col.prop(props, "volumetric_colored_transmittance")
 
 
+class RENDER_PT_eevee_shading(RenderButtonsPanel, Panel):
+    bl_label = "Shading"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.prop(props, "ssr_enable")
+
+
 classes = (
     RENDER_MT_presets,
     RENDER_MT_ffmpeg_presets,
@@ -730,6 +748,7 @@ classes = (
     RENDER_PT_eevee_poststack_settings,
     RENDER_PT_eevee_postprocess_settings,
     RENDER_PT_eevee_volumetric,
+    RENDER_PT_eevee_shading,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -73,9 +73,14 @@ static struct {
 	/* Volumetric */
 	struct GPUShader *volumetric_upsample_sh;
 
+	/* Screen Space Reflection */
+	struct GPUShader *ssr_raytrace_sh;
+	struct GPUShader *ssr_resolve_sh;
+
 	struct GPUTexture *depth_src;
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_effect_ssr_frag_glsl[];
 extern char datatoc_effect_minmaxz_frag_glsl[];
 extern char datatoc_effect_motion_blur_frag_glsl[];
 extern char datatoc_effect_bloom_frag_glsl[];
@@ -158,6 +163,9 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	/* Shaders */
 	if (!e_data.motion_blur_sh) {
+		e_data.ssr_raytrace_sh = DRW_shader_create_fullscreen(datatoc_effect_ssr_frag_glsl, "#define STEP_RAYTRACE\n");
+		e_data.ssr_resolve_sh = DRW_shader_create_fullscreen(datatoc_effect_ssr_frag_glsl, "#define STEP_RESOLVE\n");
+
 		e_data.volumetric_upsample_sh = DRW_shader_create_fullscreen(datatoc_volumetric_frag_glsl, "#define STEP_UPSAMPLE\n");
 
 		e_data.minmaxz_downlevel_sh = DRW_shader_create_fullscreen(datatoc_effect_minmaxz_frag_glsl, NULL);
@@ -478,6 +486,43 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 			}
 		}
 	}
+
+	if (BKE_collection_engine_property_value_get_bool(props, "ssr_enable")) {
+		effects->enabled_effects |= EFFECT_SSR;
+
+		int tracing_res[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
+		const bool record_two_hit = false;
+		const bool high_qual_input = true; /* TODO dither low quality input */
+
+		/* MRT for the shading pass in order to output needed data for the SSR pass. */
+		/* TODO create one texture layer per lobe */
+		if (txl->ssr_normal_input == NULL) {
+			DRWTextureFormat nor_format = DRW_TEX_RG_16;
+			txl->ssr_normal_input = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1], nor_format, 0, NULL);
+			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
+		}
+
+		if (txl->ssr_specrough_input == NULL) {
+			DRWTextureFormat specrough_format = (high_qual_input) ? DRW_TEX_RGBA_16 : DRW_TEX_RGBA_8;
+			txl->ssr_specrough_input = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1], specrough_format, 0, NULL);
+			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
+		}
+
+		/* Raytracing output */
+		/* TODO try integer format for hit coord to increase precision */
+		DRWFboTexture tex_output[2] = {{&txl->ssr_hit_output, (record_two_hit) ? DRW_TEX_RGBA_16 : DRW_TEX_RG_16, 0},
+		                               {&txl->ssr_pdf_output, (record_two_hit) ? DRW_TEX_RG_16 : DRW_TEX_R_16, 0}};
+
+		DRW_framebuffer_init(&fbl->screen_tracing_fb, &draw_engine_eevee_type, tracing_res[0], tracing_res[1], tex_output, 2);
+	}
+	else {
+		/* Cleanup to release memory */
+		DRW_TEXTURE_FREE_SAFE(txl->ssr_normal_input);
+		DRW_TEXTURE_FREE_SAFE(txl->ssr_specrough_input);
+		DRW_TEXTURE_FREE_SAFE(txl->ssr_hit_output);
+		DRW_TEXTURE_FREE_SAFE(txl->ssr_pdf_output);
+		DRW_FRAMEBUFFER_FREE_SAFE(fbl->screen_tracing_fb);
+	}
 }
 
 static DRWShadingGroup *eevee_create_bloom_pass(const char *name, EEVEE_EffectsInfo *effects, struct GPUShader *sh, DRWPass **pass, bool upsample)
@@ -564,6 +609,24 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 			/* Compilation failled */
 			effects->enabled_effects &= ~EFFECT_VOLUMETRIC;
 		}
+	}
+
+	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
+		psl->ssr_raytrace = DRW_pass_create("Raytrace", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.ssr_raytrace_sh, psl->ssr_raytrace);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &stl->g_data->minmaxz);
+		DRW_shgroup_uniform_buffer(grp, "specRoughBuffer", &stl->g_data->minmaxz);
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		psl->ssr_resolve = DRW_pass_create("Raytrace", DRW_STATE_WRITE_COLOR);
+		grp = DRW_shgroup_create(e_data.ssr_resolve_sh, psl->ssr_resolve);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
+		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
+		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &txl->ssr_hit_output);
+		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &txl->ssr_pdf_output);
+		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
 	{
@@ -726,6 +789,7 @@ void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
+		return;
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 		e_data.depth_src = dtxl->depth;
@@ -755,6 +819,35 @@ void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 
 		/* Rebind main buffer after attach/detach operations */
 		DRW_framebuffer_bind(fbl->main);
+	}
+}
+
+void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
+{
+	EEVEE_PassList *psl = vedata->psl;
+	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_TextureList *txl = vedata->txl;
+	EEVEE_EffectsInfo *effects = stl->effects;
+
+	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
+		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+		/* Raytrace at halfres. */
+		DRW_framebuffer_bind(fbl->screen_tracing_fb);
+		DRW_draw_pass(psl->ssr_raytrace);
+
+		/* Resolve at fullres */
+		DRW_framebuffer_texture_detach(dtxl->depth);
+		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
+		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
+		DRW_framebuffer_bind(fbl->main);
+		DRW_draw_pass(psl->ssr_resolve);
+
+		/* Restore */
+		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
+		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
+		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
 	}
 }
 
@@ -881,6 +974,9 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 
 void EEVEE_effects_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.ssr_raytrace_sh);
+	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_sh);
+
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_upsample_sh);
 
 	DRW_SHADER_FREE_SAFE(e_data.minmaxz_downlevel_sh);

@@ -250,6 +250,26 @@ class RENDERLAYER_PT_eevee_volumetric(RenderLayerButtonsPanel, Panel):
         col.template_override_property(layer_props, scene_props, "volumetric_colored_transmittance")
 
 
+class RENDERLAYER_PT_eevee_shading(RenderLayerButtonsPanel, Panel):
+    bl_label = "Shading"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        scene_props = scene.layer_properties['BLENDER_EEVEE']
+        layer = bpy.context.render_layer
+        layer_props = layer.engine_overrides['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.template_override_property(layer_props, scene_props, "ssr_enable")
+
+
 classes = (
     RENDERLAYER_UL_renderlayers,
     RENDERLAYER_PT_layers,
@@ -258,6 +278,7 @@ classes = (
     RENDERLAYER_PT_clay_settings,
     RENDERLAYER_PT_eevee_poststack_settings,
     RENDERLAYER_PT_eevee_postprocess_settings,
+    RENDERLAYER_PT_eevee_shading,
     RENDERLAYER_PT_eevee_volumetric,
 )
 
