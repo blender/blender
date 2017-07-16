@@ -59,7 +59,7 @@ base class --- :class:`SCA_IActuator`
 
    .. attribute:: mode
 
-      The operation mode of the actuator. Can be one of :ref:`these constants<shape-action-actuator>`.
+      The operation mode of the actuator. Can be one of :ref:`these constants<action-actuator>`.
 
       :type: integer
 
@@ -68,5 +68,3 @@ base class --- :class:`SCA_IActuator`
       The name of the property that is set to the current frame number.
 
       :type: string
-
-
