@@ -1630,7 +1630,8 @@ def write_sphinx_conf_py(basepath):
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
-    fw("import sys, os\n\n")
+    fw("import sys, os\n")
+    fw("from sphinx.domains.python import PythonDomain\n\n")
     fw("extensions = ['sphinx.ext.intersphinx']\n\n")
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
     fw("project = 'Blender'\n")
@@ -1652,6 +1653,15 @@ def write_sphinx_conf_py(basepath):
     fw("html_extra_path = ['__/static/favicon.ico', '__/static/blender_logo.svg']\n")
     fw("html_favicon = '__/static/favicon.ico'\n")
     fw("html_logo = '__/static/blender_logo.svg'\n\n")
+
+    fw("class PatchedPythonDomain(PythonDomain):\n")
+    fw("    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):\n")
+    fw("        if 'refspecific' in node:\n")
+    fw("            del node['refspecific']\n")
+    fw("        return super(PatchedPythonDomain, self).resolve_xref(\n")
+    fw("            env, fromdocname, builder, typ, target, node, contnode)\n\n")
+    fw("def setup(sphinx):\n")
+    fw("    sphinx.override_domain(PatchedPythonDomain)\n\n")
 
     # needed for latex, pdf gen
     fw("latex_elements = {\n")
