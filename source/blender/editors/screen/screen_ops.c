@@ -2260,25 +2260,28 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
 	/* find matching keyframe in the right direction */
-	do {
-		if (next)
-			ak = (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
-		else
-			ak = (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
-		
-		if (ak) {
-			if (CFRA != (int)ak->cfra) {
-				/* this changes the frame, so set the frame and we're done */
-				CFRA = (int)ak->cfra;
-				done = true;
+	if (next)
+		ak = (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
+	else
+		ak = (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
+	
+	while ((ak != NULL) && (done == false)) {
+		if (CFRA != (int)ak->cfra) {
+			/* this changes the frame, so set the frame and we're done */
+			CFRA = (int)ak->cfra;
+			done = true;
+		}
+		else {
+			/* take another step... */
+			if (next) {
+				ak = ak->next;
 			}
 			else {
-				/* make this the new starting point for the search */
-				cfra = ak->cfra;
+				ak = ak->prev;
 			}
 		}
-	} while ((ak != NULL) && (done == false));
-
+	}
+	
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
 
