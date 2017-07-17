@@ -130,8 +130,12 @@ class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
 
         mpr.use_draw_value = True
 
-        mpr.color = 0.8, 0.8, 0.8, 0.5
-        mpr.color_highlight = 1.0, 1.0, 1.0, 1.0
+        mpr.color = 0.8, 0.8, 0.8
+        mpr.alpha = 0.5
+
+        mpr.color_highlight = 1.0, 1.0, 1.0
+        mpr.alpha_highlight = 1.0
+
         mpr.scale_basis = 0.2
 
         self.widget_grab = mpr
@@ -162,8 +166,11 @@ class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
 
         mpr.use_draw_value = True
 
-        mpr.color = 0.8, 0.8, 0.8, 0.5
+        mpr.color = 0.8, 0.8, 0.8
+        mpr.alpha = 0.5
+
         mpr.color_highlight = 1.0, 1.0, 1.0, 1.0
+        mpr.alpha_highlight = 1.0
 
         self.widget_dial = mpr
 

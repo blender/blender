@@ -32,8 +32,11 @@ class MyCameraWidgetGroup(ManipulatorGroup):
         mpr.matrix_basis = ob.matrix_world.normalized()
         mpr.line_width = 3
 
-        mpr.color = 0.8, 0.8, 0.8, 0.5
-        mpr.color_highlight = 1.0, 1.0, 1.0, 1.0
+        mpr.color = 0.8, 0.8, 0.8
+        mpr.alpha = 0.5
+
+        mpr.color_highlight = 1.0, 1.0, 1.0
+        mpr.alpha_highlight = 1.0
 
         self.roll_widget = mpr
 

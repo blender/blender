@@ -29,8 +29,11 @@ class MyLampWidgetGroup(ManipulatorGroup):
         mpr.matrix_basis = ob.matrix_world.normalized()
         mpr.draw_style = 'BOX'
 
-        mpr.color = 1, 0.5, 0, 0.5
-        mpr.color_highlight = 1, 0.5, 1, 0.5
+        mpr.color = 1.0, 0.5, 0.0
+        mpr.alpha = 0.5
+
+        mpr.color_highlight = 1.0, 0.5, 1.0
+        mpr.alpha_highlight = 0.5
 
         self.energy_widget = mpr
 
