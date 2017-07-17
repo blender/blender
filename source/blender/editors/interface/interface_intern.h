@@ -473,7 +473,9 @@ extern void ui_hsvcircle_pos_from_vals(struct uiBut *but, const rcti *rect, floa
 extern void ui_hsvcube_pos_from_vals(struct uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp);
 bool ui_but_is_colorpicker_display_space(struct uiBut *but);
 
-extern void ui_but_string_get_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision) ATTR_NONNULL();
+extern void ui_but_string_get_ex(
+        uiBut *but, char *str, const size_t maxlen,
+        const int float_precision, const bool use_exp_float, bool *r_use_exp_float) ATTR_NONNULL(1, 2);
 extern void ui_but_string_get(uiBut *but, char *str, const size_t maxlen) ATTR_NONNULL();
 extern char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size);
 extern void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen) ATTR_NONNULL();
