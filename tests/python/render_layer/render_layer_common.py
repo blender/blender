@@ -55,16 +55,8 @@ def get_layer(layer):
     name = layer.get(b'name')
 
     data['name'] = name
+    data['active_object'] = layer.get((b'basact', b'object', b'id', b'name'))[2:]
     data['engine'] = layer.get(b'engine')
-
-    # There is a bug in blender where basact->object is saved as DATA*
-    # introduced on rBe7fb013a60dd
-
-    active_object = layer.get((b'basact', b'object', b'id', b'name'))
-    if active_object.startswith('DATA'):
-        data['active_object'] = ""
-    else:
-        data['active_object'] = active_object[2:]
 
     objects = []
     for link in linkdata_iter(layer, b'object_bases'):
