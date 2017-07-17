@@ -60,6 +60,28 @@ struct GridData {
 #define g_resolution    resolution_offset.xyz
 #define g_offset        resolution_offset.w
 
+#ifndef MAX_PROBE
+#define MAX_PROBE 1
+#endif
+#ifndef MAX_GRID
+#define MAX_GRID 1
+#endif
+#ifndef MAX_PLANAR
+#define MAX_PLANAR 1
+#endif
+
+layout(std140) uniform probe_block {
+	CubeData probes_data[MAX_PROBE];
+};
+
+layout(std140) uniform grid_block {
+	GridData grids_data[MAX_GRID];
+};
+
+layout(std140) uniform planar_block {
+	PlanarData planars_data[MAX_PLANAR];
+};
+
 /* ----------- Functions --------- */
 
 float probe_attenuation_cube(CubeData pd, vec3 W)

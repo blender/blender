@@ -1,10 +1,6 @@
 
 uniform int probeIdx;
 
-layout(std140) uniform planar_block {
-	PlanarData planars_data[MAX_PLANAR];
-};
-
 in vec3 worldPosition;
 
 out vec4 FragColor;

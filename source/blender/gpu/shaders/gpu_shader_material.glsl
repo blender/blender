@@ -2687,8 +2687,8 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, float ssr_id, out Clo
 #ifdef EEVEE_ENGINE
 	vec3 ssr_spec;
 	vec3 L = eevee_surface_glossy_lit(N, vec3(1.0), roughness, 1.0, int(ssr_id), ssr_spec);
-	vec3 vN = mat3(ViewMatrix) * N;
-	result = Closure(L * color.rgb, 1.0, vec4(ssr_spec * color.rgb, roughness), vN.xy, int(ssr_id));
+	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	result = Closure(L * color.rgb, 1.0, vec4(ssr_spec * color.rgb, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
 #else
 	/* ambient light */
 	vec3 L = vec3(0.2);
@@ -2838,8 +2838,8 @@ void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurf
 	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
 
 	vec3 L = eevee_surface_lit(N, diffuse, f0, roughness, 1.0, int(ssr_id), ssr_spec);
-	vec3 vN = mat3(ViewMatrix) * N;
-	result = Closure(L, 1.0, vec4(ssr_spec, roughness), vN.xy, int(ssr_id));
+	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	result = Closure(L, 1.0, vec4(ssr_spec, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
 #else
 	node_bsdf_principled(base_color, subsurface, subsurface_radius, subsurface_color, metallic, specular,
 		specular_tint, roughness, anisotropic, anisotropic_rotation, sheen, sheen_tint, clearcoat,
@@ -2882,8 +2882,8 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 #else
 
 	vec3 L = eevee_surface_clearcoat_lit(N, diffuse, f0, roughness, CN, clearcoat, clearcoat_roughness, 1.0, int(ssr_id), ssr_spec);
-	vec3 vN = mat3(ViewMatrix) * N;
-	result = Closure(L, 1.0, vec4(ssr_spec, roughness), vN.xy, int(ssr_id));
+	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	result = Closure(L, 1.0, vec4(ssr_spec, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
 #endif
 
 #else
@@ -4047,8 +4047,8 @@ void node_eevee_metallic(
 	convert_metallic_to_specular(basecol.rgb, metallic, specular, diffuse, f0);
 
 	vec3 L = eevee_surface_lit(normal, diffuse, f0, roughness, occlusion, int(ssr_id), ssr_spec);
-	vec3 vN = mat3(ViewMatrix) * normal;
-	result = Closure(L + emissive.rgb, 1.0 - transp, vec4(ssr_spec, roughness), vN.xy, int(ssr_id));
+	vec3 vN = normalize(mat3(ViewMatrix) * normal);
+	result = Closure(L + emissive.rgb, 1.0 - transp, vec4(ssr_spec, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
 }
 
 void node_eevee_specular(
@@ -4059,8 +4059,8 @@ void node_eevee_specular(
 	vec3 ssr_spec;
 
 	vec3 L = eevee_surface_lit(normal, diffuse.rgb, specular.rgb, roughness, occlusion, int(ssr_id), ssr_spec);
-	vec3 vN = mat3(ViewMatrix) * normal;
-	result = Closure(L + emissive.rgb, 1.0 - transp, vec4(ssr_spec, roughness), vN.xy, int(ssr_id));
+	vec3 vN = normalize(mat3(ViewMatrix) * normal);
+	result = Closure(L + emissive.rgb, 1.0 - transp, vec4(ssr_spec, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
 }
 
 void node_output_eevee_material(Closure surface, out Closure result)

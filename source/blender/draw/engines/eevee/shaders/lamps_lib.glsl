@@ -8,18 +8,6 @@ layout(std140) uniform shadow_block {
 	ShadowCascadeData shadows_cascade_data[MAX_SHADOW_CASCADE];
 };
 
-layout(std140) uniform probe_block {
-	CubeData probes_data[MAX_PROBE];
-};
-
-layout(std140) uniform grid_block {
-	GridData grids_data[MAX_GRID];
-};
-
-layout(std140) uniform planar_block {
-	PlanarData planars_data[MAX_PLANAR];
-};
-
 layout(std140) uniform light_block {
 	LightData lights_data[MAX_LIGHT];
 };

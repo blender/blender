@@ -28,114 +28,10 @@ flat in int shFace; /* Shadow layer we are rendering to. */
 
 #define cameraForward   normalize(ViewMatrixInverse[2].xyz)
 #define cameraPos       ViewMatrixInverse[3].xyz
-
+#define cameraVec      ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)
+#define viewCameraVec  ((ProjectionMatrix[3][3] == 0.0) ? normalize(viewPosition) : vec3(0.0, 0.0, -1.0))
 
 /* ------- Structures -------- */
-#ifdef VOLUMETRICS
-
-struct Closure {
-	vec3 absorption;
-	vec3 scatter;
-	vec3 emission;
-	float anisotropy;
-};
-
-#define CLOSURE_DEFAULT Closure(vec3(0.0), vec3(0.0), vec3(0.0), 0.0)
-
-Closure closure_mix(Closure cl1, Closure cl2, float fac)
-{
-	Closure cl;
-	cl.absorption = mix(cl1.absorption, cl2.absorption, fac);
-	cl.scatter = mix(cl1.scatter, cl2.scatter, fac);
-	cl.emission = mix(cl1.emission, cl2.emission, fac);
-	cl.anisotropy = mix(cl1.anisotropy, cl2.anisotropy, fac);
-	return cl;
-}
-
-Closure closure_add(Closure cl1, Closure cl2)
-{
-	Closure cl;
-	cl.absorption = cl1.absorption + cl2.absorption;
-	cl.scatter = cl1.scatter + cl2.scatter;
-	cl.emission = cl1.emission + cl2.emission;
-	cl.anisotropy = (cl1.anisotropy + cl2.anisotropy) / 2.0; /* Average phase (no multi lobe) */
-	return cl;
-}
-#else
-
-struct Closure {
-	vec3 radiance;
-	float opacity;
-	vec4 ssr_data;
-	vec2 ssr_normal;
-	int ssr_id;
-};
-
-#define CLOSURE_DEFAULT Closure(vec3(0.0), 1.0, vec4(0.0), vec2(0.0), -1)
-
-uniform int outputSsrId;
-
-Closure closure_mix(Closure cl1, Closure cl2, float fac)
-{
-	Closure cl;
-	if (cl1.ssr_id == outputSsrId) {
-		cl.ssr_data = mix(cl1.ssr_data.xyzw, vec4(vec3(0.0), cl1.ssr_data.w), fac); /* do not blend roughness */
-		cl.ssr_normal = cl1.ssr_normal;
-		cl.ssr_id = cl1.ssr_id;
-	}
-	else {
-		cl.ssr_data = mix(vec4(vec3(0.0), cl2.ssr_data.w), cl2.ssr_data.xyzw, fac); /* do not blend roughness */
-		cl.ssr_normal = cl2.ssr_normal;
-		cl.ssr_id = cl2.ssr_id;
-	}
-	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
-	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);
-	return cl;
-}
-
-Closure closure_add(Closure cl1, Closure cl2)
-{
-	Closure cl = (cl1.ssr_id == outputSsrId) ? cl1 : cl2;
-	cl.radiance = cl1.radiance + cl2.radiance;
-	cl.opacity = cl1.opacity + cl2.opacity;
-	return cl;
-}
-
-#if defined(MESH_SHADER) && !defined(SHADOW_SHADER)
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 ssrNormals;
-layout(location = 2) out vec4 ssrData;
-
-Closure nodetree_exec(void); /* Prototype */
-
-#define NODETREE_EXEC
-void main()
-{
-	Closure cl = nodetree_exec();
-	fragColor = vec4(cl.radiance, cl.opacity);
-	ssrNormals = cl.ssr_normal.xyyy;
-	ssrData = cl.ssr_data;
-}
-
-#endif /* MESH_SHADER && !SHADOW_SHADER */
-
-#endif /* VOLUMETRICS */
-
-Closure nodetree_exec(void); /* Prototype */
-
-/* TODO find a better place */
-#ifdef USE_MULTIPLY
-
-out vec4 fragColor;
-
-#define NODETREE_EXEC
-void main()
-{
-	Closure cl = nodetree_exec();
-	fragColor = vec4(mix(vec3(1.0), cl.radiance, cl.opacity), 1.0);
-}
-#endif
-
 struct LightData {
 	vec4 position_influence;      /* w : InfluenceRadius */
 	vec4 color_spec;              /* w : Spec Intensity */
@@ -193,8 +89,6 @@ struct ShadowCascadeData {
 	vec4 split_distances;
 	vec4 bias;
 };
-
-#define cameraVec      ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)
 
 /* ------- Convenience functions --------- */
 
@@ -364,6 +258,11 @@ vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
 	}
 }
 
+vec3 get_world_space_from_depth(vec2 uvcoords, float depth)
+{
+	return (ViewMatrixInverse * vec4(get_view_space_from_depth(uvcoords, depth), 1.0)).xyz;
+}
+
 vec3 get_specular_dominant_dir(vec3 N, vec3 V, float roughness)
 {
 	vec3 R = -reflect(V, N);
@@ -375,6 +274,26 @@ vec3 get_specular_dominant_dir(vec3 N, vec3 V, float roughness)
 float specular_occlusion(float NV, float AO, float roughness)
 {
 	return saturate(pow(NV + AO, roughness) - 1.0 + AO);
+}
+
+/* ---- Encode / Decode Normal buffer data ---- */
+/* From http://aras-p.info/texts/CompactNormalStorage.html
+ * Using Method #4: Spheremap Transform */
+vec2 normal_encode(vec3 n, vec3 view)
+{
+    float p = sqrt(n.z * 8.0 + 8.0);
+    return n.xy / p + 0.5;
+}
+
+vec3 normal_decode(vec2 enc, vec3 view)
+{
+    vec2 fenc = enc * 4.0 - 2.0;
+    float f = dot(fenc, fenc);
+    float g = sqrt(1.0 - f / 4.0);
+    vec3 n;
+    n.xy = fenc*g;
+    n.z = 1 - f / 2;
+    return n;
 }
 
 /* Fresnel */
@@ -444,3 +363,109 @@ void accumulate_light(vec3 light, float fac, inout vec4 accum)
 {
 	accum += vec4(light, 1.0) * min(fac, (1.0 - accum.a));
 }
+
+/* --------- Closure ---------- */
+#ifdef VOLUMETRICS
+
+struct Closure {
+	vec3 absorption;
+	vec3 scatter;
+	vec3 emission;
+	float anisotropy;
+};
+
+#define CLOSURE_DEFAULT Closure(vec3(0.0), vec3(0.0), vec3(0.0), 0.0)
+
+Closure closure_mix(Closure cl1, Closure cl2, float fac)
+{
+	Closure cl;
+	cl.absorption = mix(cl1.absorption, cl2.absorption, fac);
+	cl.scatter = mix(cl1.scatter, cl2.scatter, fac);
+	cl.emission = mix(cl1.emission, cl2.emission, fac);
+	cl.anisotropy = mix(cl1.anisotropy, cl2.anisotropy, fac);
+	return cl;
+}
+
+Closure closure_add(Closure cl1, Closure cl2)
+{
+	Closure cl;
+	cl.absorption = cl1.absorption + cl2.absorption;
+	cl.scatter = cl1.scatter + cl2.scatter;
+	cl.emission = cl1.emission + cl2.emission;
+	cl.anisotropy = (cl1.anisotropy + cl2.anisotropy) / 2.0; /* Average phase (no multi lobe) */
+	return cl;
+}
+#else
+
+struct Closure {
+	vec3 radiance;
+	float opacity;
+	vec4 ssr_data;
+	vec2 ssr_normal;
+	int ssr_id;
+};
+
+#define CLOSURE_DEFAULT Closure(vec3(0.0), 1.0, vec4(0.0), vec2(0.0), -1)
+
+uniform int outputSsrId;
+
+Closure closure_mix(Closure cl1, Closure cl2, float fac)
+{
+	Closure cl;
+	if (cl1.ssr_id == outputSsrId) {
+		cl.ssr_data = mix(cl1.ssr_data.xyzw, vec4(vec3(0.0), cl1.ssr_data.w), fac); /* do not blend roughness */
+		cl.ssr_normal = cl1.ssr_normal;
+		cl.ssr_id = cl1.ssr_id;
+	}
+	else {
+		cl.ssr_data = mix(vec4(vec3(0.0), cl2.ssr_data.w), cl2.ssr_data.xyzw, fac); /* do not blend roughness */
+		cl.ssr_normal = cl2.ssr_normal;
+		cl.ssr_id = cl2.ssr_id;
+	}
+	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
+	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);
+	return cl;
+}
+
+Closure closure_add(Closure cl1, Closure cl2)
+{
+	Closure cl = (cl1.ssr_id == outputSsrId) ? cl1 : cl2;
+	cl.radiance = cl1.radiance + cl2.radiance;
+	cl.opacity = cl1.opacity + cl2.opacity;
+	return cl;
+}
+
+#if defined(MESH_SHADER) && !defined(SHADOW_SHADER)
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 ssrNormals;
+layout(location = 2) out vec4 ssrData;
+
+Closure nodetree_exec(void); /* Prototype */
+
+#define NODETREE_EXEC
+void main()
+{
+	Closure cl = nodetree_exec();
+	fragColor = vec4(cl.radiance, cl.opacity);
+	ssrNormals = cl.ssr_normal.xyyy;
+	ssrData = cl.ssr_data;
+}
+
+#endif /* MESH_SHADER && !SHADOW_SHADER */
+
+#endif /* VOLUMETRICS */
+
+Closure nodetree_exec(void); /* Prototype */
+
+/* TODO find a better place */
+#ifdef USE_MULTIPLY
+
+out vec4 fragColor;
+
+#define NODETREE_EXEC
+void main()
+{
+	Closure cl = nodetree_exec();
+	fragColor = vec4(mix(vec3(1.0), cl.radiance, cl.opacity), 1.0);
+}
+#endif

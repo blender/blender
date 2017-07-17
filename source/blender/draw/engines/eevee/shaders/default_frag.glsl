@@ -12,7 +12,7 @@ Closure nodetree_exec(void)
 	vec3 ssr_spec;
 	vec3 radiance = eevee_surface_lit((gl_FrontFacing) ? worldNormal : -worldNormal, diffuse, f0, roughness, 1.0, 0, ssr_spec);
 
-	Closure result = Closure(radiance, 1.0, vec4(ssr_spec, roughness), viewNormal.xy, 0);
+	Closure result = Closure(radiance, 1.0, vec4(ssr_spec, roughness), normal_encode(normalize(viewNormal), viewCameraVec), 0);
 
 #if !defined(USE_ALPHA_BLEND)
 	result.opacity = length(viewPosition);
