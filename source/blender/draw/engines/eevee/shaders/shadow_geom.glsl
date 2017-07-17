@@ -15,7 +15,6 @@ flat in int face[];
 
 #ifdef MESH_SHADER
 in vec3 vNor[];
-in vec3 vNor[];
 #endif
 
 out vec3 worldPosition;
