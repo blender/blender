@@ -300,7 +300,14 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 		if (mod_name) {
 			PyObject *mod = PyDict_GetItem(PyImport_GetModuleDict(), mod_name);
 			if (mod) {
-				*filename = PyModule_GetFilename(mod);
+				PyObject *mod_file = PyModule_GetFilenameObject(mod);
+				if (mod_file) {
+					*filename = _PyUnicode_AsString(mod_name);
+					Py_DECREF(mod_file);
+				}
+				else {
+					PyErr_Clear();
+				}
 			}
 
 			/* unlikely, fallback */

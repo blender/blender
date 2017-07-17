@@ -248,8 +248,17 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 	if ((name = PyModule_GetName(module)) == NULL)
 		return NULL;
 
-	if ((filepath = (char *)PyModule_GetFilename(module)) == NULL)
-		return NULL;
+	{
+		PyObject *module_file = PyModule_GetFilenameObject(module);
+		if (module_file == NULL) {
+			return NULL;
+		}
+		filepath = (char *)_PyUnicode_AsString(module_file);
+		Py_DECREF(module_file);
+		if (filepath == NULL) {
+			return NULL;
+		}
+	}
 
 	/* look up the text object */
 	text = BLI_findstring(&maggie->text, BLI_path_basename(filepath), offsetof(ID, name) + 2);
