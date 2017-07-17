@@ -55,8 +55,14 @@ def get_layer(layer):
     name = layer.get(b'name')
 
     data['name'] = name
-    data['active_object'] = layer.get((b'basact', b'object', b'id', b'name'))[2:]
     data['engine'] = layer.get(b'engine')
+
+    active_base = layer.get_pointer(b'basact')
+    if active_base:
+        ob = active_base.get_pointer(b'object')
+        data['active_object'] = ob.get((b'id', b'name'))[2:]
+    else:
+        data['active_object'] = ""
 
     objects = []
     for link in linkdata_iter(layer, b'object_bases'):
