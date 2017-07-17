@@ -1630,8 +1630,7 @@ def write_sphinx_conf_py(basepath):
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
-    fw("import sys, os\n")
-    fw("from sphinx.domains.python import PythonDomain\n\n")
+    fw("import sys, os\n\n")
     fw("extensions = ['sphinx.ext.intersphinx']\n\n")
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
     fw("project = 'Blender'\n")
@@ -1639,6 +1638,11 @@ def write_sphinx_conf_py(basepath):
     fw("copyright = u'Blender Foundation'\n")
     fw("version = '%s - API'\n" % BLENDER_VERSION_DOTS)
     fw("release = '%s - API'\n" % BLENDER_VERSION_DOTS)
+
+    # Quiet file not in table-of-contents warnings.
+    fw("exclude_patterns = [\n")
+    fw("    'include__bmesh.rst',\n")
+    fw("]\n\n")
 
     if ARGS.sphinx_theme != 'default':
         fw("html_theme = '%s'\n" % ARGS.sphinx_theme)
@@ -1654,21 +1658,30 @@ def write_sphinx_conf_py(basepath):
     fw("html_favicon = '__/static/favicon.ico'\n")
     fw("html_logo = '__/static/blender_logo.svg'\n\n")
 
-    fw("class PatchedPythonDomain(PythonDomain):\n")
-    fw("    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):\n")
-    fw("        if 'refspecific' in node:\n")
-    fw("            del node['refspecific']\n")
-    fw("        return super(PatchedPythonDomain, self).resolve_xref(\n")
-    fw("            env, fromdocname, builder, typ, target, node, contnode)\n\n")
-    fw("def setup(sphinx):\n")
-    fw("    sphinx.override_domain(PatchedPythonDomain)\n\n")
-
     # needed for latex, pdf gen
     fw("latex_elements = {\n")
     fw("  'papersize': 'a4paper',\n")
     fw("}\n\n")
 
     fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
+
+    # Workaround for useless links leading to compile errors
+    # See https://github.com/sphinx-doc/sphinx/issues/3866
+    fw(r"""
+from sphinx.domains.python import PythonDomain
+
+class PatchedPythonDomain(PythonDomain):
+    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
+        if 'refspecific' in node:
+            del node['refspecific']
+        return super(PatchedPythonDomain, self).resolve_xref(
+            env, fromdocname, builder, typ, target, node, contnode)
+
+def setup(sphinx):
+    sphinx.override_domain(PatchedPythonDomain)
+""")
+    # end workaround
+
     file.close()
 
 
