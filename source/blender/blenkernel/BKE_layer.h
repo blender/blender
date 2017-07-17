@@ -33,13 +33,9 @@
 extern "C" {
 #endif
 
-#define TODO_LAYER_SYNC /* syncing of SceneCollection and LayerCollection trees*/
 #define TODO_LAYER_SYNC_FILTER /* syncing of filter_objects across all trees */
 #define TODO_LAYER_OVERRIDE /* CollectionOverride */
-#define TODO_LAYER_CONTEXT /* get/set current (context) SceneLayer */
-#define TODO_LAYER_BASE /* BaseLegacy to Base related TODO */
 #define TODO_LAYER_OPERATORS /* collection mamanger and property panel operators */
-#define TODO_LAYER_DEPSGRAPH /* placeholder for real Depsgraph fix */
 #define TODO_LAYER /* generic todo */
 
 #define ROOT_PROP "root"
