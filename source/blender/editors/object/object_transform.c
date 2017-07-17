@@ -923,8 +923,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					cent[2] = 0.0f;
 
-					cu->xof = cu->xof - (cent[0] / cu->fsize);
-					cu->yof = cu->yof - (cent[1] / cu->fsize);
+					cu->xof = cu->xof - cent[0];
+					cu->yof = cu->yof - cent[1];
 
 					tot_change++;
 					cu->id.tag |= LIB_TAG_DOIT;
