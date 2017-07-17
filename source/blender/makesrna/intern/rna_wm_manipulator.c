@@ -931,7 +931,7 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	};
 	func = RNA_def_function(srna, "modal", NULL);
 	RNA_def_function_ui_description(func, "");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
@@ -947,12 +947,12 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	/* wmManipulator.setup */
 	func = RNA_def_function(srna, "setup", NULL);
 	RNA_def_function_ui_description(func, "");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 
 	/* wmManipulator.invoke */
 	func = RNA_def_function(srna, "invoke", NULL);
 	RNA_def_function_ui_description(func, "");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
@@ -961,7 +961,7 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	/* wmManipulator.exit */
 	func = RNA_def_function(srna, "exit", NULL);
 	RNA_def_function_ui_description(func, "");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "cancel", 0, "Cancel, otherwise confirm", "");
@@ -981,7 +981,7 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	};
 	func = RNA_def_function(srna, "select", NULL);
 	RNA_def_function_ui_description(func, "");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_enum(func, "action", select_actions, 0, "Action", "Selection action to execute");
