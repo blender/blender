@@ -499,12 +499,10 @@ ccl_device float kernel_branched_path_integrate(KernelGlobals *kg,
 
 #ifdef __SHADOW_TRICKS__
 		if((sd.object_flag & SD_OBJECT_SHADOW_CATCHER)) {
-			if(state.flag & PATH_RAY_CAMERA) {
-				state.flag |= (PATH_RAY_SHADOW_CATCHER | PATH_RAY_SHADOW_CATCHER_ONLY | PATH_RAY_STORE_SHADOW_INFO);
-				state.catcher_object = sd.object;
-				if(!kernel_data.background.transparent) {
-					L->shadow_color = indirect_background(kg, &emission_sd, &state, &ray);
-				}
+			state.flag |= (PATH_RAY_SHADOW_CATCHER | PATH_RAY_SHADOW_CATCHER_ONLY | PATH_RAY_STORE_SHADOW_INFO);
+			state.catcher_object = sd.object;
+			if(!kernel_data.background.transparent) {
+				L->shadow_color = indirect_background(kg, &emission_sd, &state, &ray);
 			}
 		}
 		else {
