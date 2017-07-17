@@ -914,6 +914,7 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	/* wmManipulator.handler */
 	static EnumPropertyItem tweak_actions[] = {
 		{WM_MANIPULATOR_TWEAK_PRECISE, "PRECISE", 0, "Precise", ""},
+		{WM_MANIPULATOR_TWEAK_SNAP, "SNAP", 0, "Snap", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	func = RNA_def_function(srna, "modal", NULL);
