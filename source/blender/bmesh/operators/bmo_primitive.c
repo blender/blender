@@ -839,7 +839,7 @@ void BM_mesh_calc_uvs_grid(
 	const float dx = 1.0f / (float)(x_segments - 1);
 	const float dy = 1.0f / (float)(y_segments - 1);
 	float x = 0.0f;
-	float y = 0.0f;
+	float y = dy;
 
 	int loop_index;
 
@@ -854,16 +854,16 @@ void BM_mesh_calc_uvs_grid(
 
 			switch (loop_index) {
 				case 0:
-					x += dx;
+					y -= dy;
 					break;
 				case 1:
-					y += dy;
+					x += dx;
 					break;
 				case 2:
-					x -= dx;
+					y += dy;
 					break;
 				case 3:
-					y -= dy;
+					x -= dx;
 					break;
 				default:
 					break;
