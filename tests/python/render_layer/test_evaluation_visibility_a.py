@@ -26,6 +26,7 @@ class UnitTesting(RenderLayerTesting):
 
         layer = scene.render_layers.new('Visibility Test')
         layer.collections.unlink(layer.collections[0])
+        scene.render_layers.active = layer
         workspace.render_layer = layer
 
         scene_collection_mom = scene.master_collection.collections.new("Mom")

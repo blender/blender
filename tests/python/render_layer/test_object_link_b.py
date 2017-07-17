@@ -19,6 +19,7 @@ class UnitTesting(RenderLayerTesting):
         See if we can link objects via bpy.context.scene_collection
         """
         import bpy
+        bpy.context.scene.render_layers.active_index = len(bpy.context.scene.render_layers) - 1
         bpy.context.workspace.render_layer = bpy.context.scene.render_layers['Viewport']
         master_collection = bpy.context.scene_collection
         self.do_object_link(master_collection)

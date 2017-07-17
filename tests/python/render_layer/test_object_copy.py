@@ -42,6 +42,7 @@ class UnitTesting(RenderLayerTesting):
             layer.collections.link(subzero)
 
             scene.render_layers.active_index = len(scene.render_layers) - 1
+            bpy.context.workspace.render_layer = bpy.context.scene.render_layers['Fresh new Layer']
 
             if mode == 'DUPLICATE':
                 # assuming the latest layer is the active layer
