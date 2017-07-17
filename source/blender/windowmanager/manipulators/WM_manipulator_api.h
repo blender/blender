@@ -113,8 +113,8 @@ void WM_manipulator_properties_free(struct PointerRNA *ptr);
 const struct wmManipulatorType *WM_manipulatortype_find(const char *idname, bool quiet);
 void WM_manipulatortype_append(void (*wtfunc)(struct wmManipulatorType *));
 void WM_manipulatortype_append_ptr(void (*mnpfunc)(struct wmManipulatorType *, void *), void *userdata);
-bool WM_manipulatortype_remove(const char *idname);
-void WM_manipulatortype_remove_ptr(struct wmManipulatorType *wt);
+bool WM_manipulatortype_remove(struct bContext *C, struct Main *bmain, const char *idname);
+void WM_manipulatortype_remove_ptr(struct bContext *C, struct Main *bmain, struct wmManipulatorType *wt);
 void WM_manipulatortype_iter(struct GHashIterator *ghi);
 
 /* wm_manipulator_group_type.c */

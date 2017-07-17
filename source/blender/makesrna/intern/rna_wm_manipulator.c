@@ -462,11 +462,9 @@ static StructRNA *rna_Manipulator_register(
 	return dummywt.ext.srna;
 }
 
-static void rna_Manipulator_unregister(struct Main *UNUSED(bmain), StructRNA *type)
+static void rna_Manipulator_unregister(struct Main *bmain, StructRNA *type)
 {
 	wmManipulatorType *wt = RNA_struct_blender_type_get(type);
-
-	/* TODO, remove widgets from interface! */
 
 	if (!wt)
 		return;
@@ -475,7 +473,7 @@ static void rna_Manipulator_unregister(struct Main *UNUSED(bmain), StructRNA *ty
 
 	RNA_struct_free_extension(type, &wt->ext);
 
-	WM_manipulatortype_remove_ptr(wt);
+	WM_manipulatortype_remove_ptr(NULL, bmain, wt);
 
 	RNA_struct_free(&BLENDER_RNA, type);
 }

@@ -28,6 +28,11 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 
+#include "BKE_main.h"
+
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -35,6 +40,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "ED_screen.h"
 
 /* only for own init/exit calls (wm_manipulatortype_init/wm_manipulatortype_free) */
 #include "wm.h"
@@ -123,16 +130,50 @@ static void manipulatortype_free(wmManipulatorType *wt)
 	MEM_freeN(wt);
 }
 
-void WM_manipulatortype_remove_ptr(wmManipulatorType *wt)
+/**
+ * \param C: May be NULL.
+ */
+static void manipulatortype_unlink(
+        bContext *C, Main *bmain, wmManipulatorType *wt)
+{
+	/* Free instances. */
+	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+				ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+				for (ARegion *ar = lb->first; ar; ar = ar->next) {
+					wmManipulatorMap *mmap = ar->manipulator_map;
+					if (mmap) {
+						wmManipulatorGroup *mgroup;
+						for (mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+							for (wmManipulator *mpr = mgroup->manipulators.first, *mpr_next;  mpr; mpr = mpr_next) {
+								mpr_next = mpr->next;
+								BLI_assert(mgroup->parent_mmap == mmap);
+								if (mpr->type == wt) {
+									WM_manipulator_free(&mgroup->manipulators, mgroup->parent_mmap, mpr, C);
+									ED_region_tag_redraw(ar);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void WM_manipulatortype_remove_ptr(bContext *C, Main *bmain, wmManipulatorType *wt)
 {
 	BLI_assert(wt == WM_manipulatortype_find(wt->idname, false));
 
 	BLI_ghash_remove(global_manipulatortype_hash, wt->idname, NULL, NULL);
 
+	manipulatortype_unlink(C, bmain, wt);
+
 	manipulatortype_free(wt);
 }
 
-bool WM_manipulatortype_remove(const char *idname)
+bool WM_manipulatortype_remove(bContext *C, Main *bmain, const char *idname)
 {
 	wmManipulatorType *wt = BLI_ghash_lookup(global_manipulatortype_hash, idname);
 
@@ -140,7 +181,7 @@ bool WM_manipulatortype_remove(const char *idname)
 		return false;
 	}
 
-	WM_manipulatortype_remove_ptr(wt);
+	WM_manipulatortype_remove_ptr(C, bmain, wt);
 
 	return true;
 }
