@@ -61,11 +61,6 @@ void deg_graph_build_finalize(Depsgraph *graph)
 				id_node->tag_update(graph);
 			}
 		}
-		/* XXX: This is only so we've got proper COW IDs after rebuild. */
-		/* TODO(sergey): Ideally we'll need to copy evaluated CoW from previous
-		 * depsgraph, so we don't need to re-tag anything what we already have.
-		 */
-		id_node->tag_update(graph);
 	}
 	GHASH_FOREACH_END();
 }
