@@ -269,7 +269,7 @@ void deg_id_tag_update(Main *bmain, ID *id, int flag)
 
 void deg_graph_on_visible_update(Main *bmain, Scene *scene, Depsgraph *graph)
 {
-	/* Nake sure objects are up to date. */
+	/* Make sure objects are up to date. */
 	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
 	{
 		const short idtype = GS(id_node->id_orig->name);
