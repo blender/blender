@@ -84,6 +84,8 @@ static struct {
 	struct GPUShader *ssr_resolve_sh;
 
 	struct GPUTexture *depth_src;
+
+	float pixelprojmat[4][4];
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_bsdf_common_lib_glsl[];
@@ -96,6 +98,7 @@ extern char datatoc_effect_dof_vert_glsl[];
 extern char datatoc_effect_dof_geom_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
 extern char datatoc_lightprobe_lib_glsl[];
+extern char datatoc_raytrace_lib_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
 extern char datatoc_volumetric_frag_glsl[];
 
@@ -176,6 +179,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_raytrace_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_effect_ssr_frag_glsl);
 		char *ssr_shader_str = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);
@@ -532,6 +536,24 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRWFboTexture tex_output[2] = {{&txl->ssr_hit_output, (record_two_hit) ? DRW_TEX_RGBA_16 : DRW_TEX_RG_16, 0},
 		                               {&txl->ssr_pdf_output, (record_two_hit) ? DRW_TEX_RG_16 : DRW_TEX_R_16, 0}};
 
+		/* Compute pixel projection matrix */
+		{
+			float uvpix[4][4], ndcuv[4][4], tmp[4][4], winmat[4][4];
+			DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
+
+			/* NDC to UVs */
+			unit_m4(ndcuv);
+			ndcuv[0][0] = ndcuv[1][1] = ndcuv[3][0] = ndcuv[3][1] = 0.5f;
+
+			/* UVs to pixels */
+			unit_m4(uvpix);
+			uvpix[0][0] = tracing_res[0];
+			uvpix[1][1] = tracing_res[1];
+
+			mul_m4_m4m4(tmp, uvpix, ndcuv);
+			mul_m4_m4m4(e_data.pixelprojmat, tmp, winmat);
+		}
+
 		DRW_framebuffer_init(&fbl->screen_tracing_fb, &draw_engine_eevee_type, tracing_res[0], tracing_res[1], tex_output, 2);
 	}
 	else {
@@ -636,6 +658,8 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specRoughBuffer", &txl->ssr_specrough_input);
+		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+		DRW_shgroup_uniform_mat4(grp, "PixelProjMatrix", (float *)&e_data.pixelprojmat);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->ssr_resolve = DRW_pass_create("SSR Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
@@ -857,13 +881,13 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-		e_data.depth_src = dtxl->depth;
-
 		/* Raytrace at halfres. */
+		e_data.depth_src = stl->g_data->minmaxz;
 		DRW_framebuffer_bind(fbl->screen_tracing_fb);
 		DRW_draw_pass(psl->ssr_raytrace);
 
 		/* Resolve at fullres */
+		e_data.depth_src = dtxl->depth;
 		DRW_framebuffer_texture_detach(dtxl->depth);
 		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
 		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
