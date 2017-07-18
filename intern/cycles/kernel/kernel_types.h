@@ -515,7 +515,13 @@ typedef ccl_addr_space struct PathRadiance {
 	float3 path_total_shaded;
 
 	/* Color of the background on which shadow is alpha-overed. */
-	float3 shadow_color;
+	float3 shadow_background_color;
+
+	/* Path radiance sum and throughput at the moment when ray hits shadow
+	 * catcher object.
+	 */
+	float3 shadow_radiance_sum;
+	float shadow_throughput;
 #endif
 
 #ifdef __DENOISING_FEATURES__

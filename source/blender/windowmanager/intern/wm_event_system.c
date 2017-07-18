@@ -644,6 +644,16 @@ bool WM_event_is_absolute(const wmEvent *event)
 	return (event->tablet_data != NULL);
 }
 
+bool WM_event_is_last_mousemove(const wmEvent *event)
+{
+	while ((event = event->next)) {
+		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 #ifdef WITH_INPUT_NDOF
 void WM_ndof_deadzone_set(float deadzone)
 {
@@ -2986,7 +2996,7 @@ void WM_event_add_mousemove(bContext *C)
 
 
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
-bool WM_modal_tweak_exit(const wmEvent *event, int tweak_event)
+bool WM_event_is_modal_tweak_exit(const wmEvent *event, int tweak_event)
 {
 	/* if the release-confirm userpref setting is enabled, 
 	 * tweak events can be canceled when mouse is released
