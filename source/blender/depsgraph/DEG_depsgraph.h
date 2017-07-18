@@ -140,8 +140,6 @@ void DEG_on_visible_update(struct Main *bmain, const bool do_time);
 void DEG_graph_id_tag_update(struct Main *bmain,
                              Depsgraph *graph,
                              struct ID *id);
-void DEG_graph_data_tag_update(Depsgraph *graph, const struct PointerRNA *ptr);
-void DEG_graph_property_tag_update(Depsgraph *graph, const struct PointerRNA *ptr, const struct PropertyRNA *prop);
 
 /* Tag given ID for an update in all the dependency graphs. */
 enum {
