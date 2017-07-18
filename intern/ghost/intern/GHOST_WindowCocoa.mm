@@ -1370,9 +1370,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 			//Make window key if it wasn't to get the mouse move events
 			[m_window makeKeyWindow];
 			
-			//Dissociate cursor position even for warp mode, to allow mouse acceleration to work even when warping the cursor
-			err = CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
-			
 			[pool drain];
 		}
 	}
@@ -1382,7 +1379,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 			setWindowCursorVisibility(true);
 		}
 		
-		err = CGAssociateMouseAndMouseCursorPosition(true) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 		setCursorGrabAccum(0, 0);
 		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
