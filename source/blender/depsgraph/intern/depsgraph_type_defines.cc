@@ -131,6 +131,7 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 		STRINGIFY_OPCODE(BONE_DONE);
 		/* Particles. */
 		STRINGIFY_OPCODE(PARTICLE_SYSTEM_EVAL);
+		STRINGIFY_OPCODE(PARTICLE_SETTINGS_EVAL);
 		/* Collections. */
 		STRINGIFY_OPCODE(SCENE_LAYER_INIT);
 		STRINGIFY_OPCODE(SCENE_LAYER_EVAL);

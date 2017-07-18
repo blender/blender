@@ -1249,11 +1249,28 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
 		ParticleSettings *part = psys->part;
 
-		/* particle settings */
-		build_animdata(&part->id);
+		/* Build particle settings relations.
+		 *
+		 * NOTE: The call itself ensures settings are only build once.
+		 */
+		build_particle_settings(part);
 
-		/* this particle system */
-		OperationKey psys_key(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PARTICLE_SYSTEM_EVAL, psys->name);
+		/* This particle system. */
+		OperationKey psys_key(&ob->id,
+		                      DEG_NODE_TYPE_EVAL_PARTICLES,
+		                      DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
+		                      psys->name);
+
+		/* Update particle system when settings changes. */
+		OperationKey particle_settings_key(&part->id,
+		                                   DEG_NODE_TYPE_PARAMETERS,
+		                                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
+		OperationKey psys_settings_key(&ob->id,
+		                               DEG_NODE_TYPE_EVAL_PARTICLES,
+		                               DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
+		                               psys->name);
+		add_relation(particle_settings_key, psys_settings_key, "Particle Settings Change");
+		add_relation(psys_settings_key, psys_key, "Particle Settings Update");
 
 		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
 		if (!psys_check_enabled(ob, psys, G.is_rendering))
@@ -1279,7 +1296,13 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		}
 
 		/* effectors */
-		add_forcefield_relations(psys_key, scene, ob, psys, part->effector_weights, part->type == PART_HAIR, "Particle Field");
+		add_forcefield_relations(psys_key,
+		                         scene,
+		                         ob,
+		                         psys,
+		                         part->effector_weights,
+		                         part->type == PART_HAIR,
+		                         "Particle Field");
 
 		/* boids */
 		if (part->boids) {
@@ -1314,8 +1337,19 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	ComponentKey transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
 	add_relation(transform_key, obdata_ubereval_key, "Partcile Eval");
 
-	/* pointcache */
-	// TODO...
+	/* TODO(sergey): Do we need a point cache operations here? */
+}
+
+void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
+{
+	ID *part_id = &part->id;
+	if (part_id->tag & LIB_TAG_DOIT) {
+		return;
+	}
+	part_id->tag |= LIB_TAG_DOIT;
+
+	/* Animation data relations. */
+	build_animdata(&part->id);
 }
 
 void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,

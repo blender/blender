@@ -714,12 +714,21 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
 		ParticleSettings *part = psys->part;
 
-		/* particle settings */
-		// XXX: what if this is used more than once!
-		build_animdata(&part->id);
+		/* Build particle settings operations.
+		 *
+		 * NOTE: The call itself ensures settings are only build once.
+		 */
+		build_particle_settings(part);
 
-		/* this particle system */
-		// TODO: for now, this will just be a placeholder "ubereval" node
+		/* Update on particle settings change. */
+		add_operation_node(psys_comp,
+		                   function_bind(BKE_particle_system_settings_eval,
+		                                 _1,
+		                                 psys),
+		                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
+		                   psys->name);
+
+		/* Particle system evaluation. */
 		add_operation_node(psys_comp,
 		                   function_bind(BKE_particle_system_eval,
 		                                 _1,
@@ -730,8 +739,22 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 		                   psys->name);
 	}
 
-	/* pointcache */
-	// TODO...
+	/* TODO(sergey): Do we need a point cache operations here? */
+}
+
+void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *part) {
+	ID *part_id = &part->id;
+	if (part_id->tag & LIB_TAG_DOIT) {
+		return;
+	}
+	part_id->tag |= LIB_TAG_DOIT;
+	/* Animation data. */
+	build_animdata(part_id);
+	/* Parameters change. */
+	add_operation_node(part_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_cloth(Scene *scene, Object *object)

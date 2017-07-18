@@ -70,6 +70,7 @@ struct Tex;
 struct World;
 struct EffectorWeights;
 struct ParticleSystem;
+struct ParticleSettings;
 
 struct PropertyRNA;
 
@@ -199,6 +200,7 @@ struct DepsgraphRelationBuilder
 	void build_world(World *world);
 	void build_rigidbody(Scene *scene);
 	void build_particles(Scene *scene, Object *ob);
+	void build_particle_settings(ParticleSettings *part);
 	void build_cloth(Scene *scene, Object *object, ModifierData *md);
 	void build_ik_pose(Object *ob,
 	                   bPoseChannel *pchan,

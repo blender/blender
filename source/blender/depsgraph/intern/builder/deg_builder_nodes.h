@@ -49,6 +49,7 @@ struct MTex;
 struct MovieClip;
 struct bNodeTree;
 struct Object;
+struct ParticleSettings;
 struct Probe;
 struct bPoseChannel;
 struct bConstraint;
@@ -134,6 +135,7 @@ struct DepsgraphNodeBuilder {
 	void build_pose_constraints(Scene *scene, Object *ob, bPoseChannel *pchan);
 	void build_rigidbody(Scene *scene);
 	void build_particles(Scene *scene, Object *ob);
+	void build_particle_settings(ParticleSettings *part);
 	void build_cloth(Scene *scene, Object *object);
 	void build_animdata(ID *id);
 	OperationDepsNode *build_driver(ID *id, FCurve *fcurve);

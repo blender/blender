@@ -70,14 +70,6 @@ extern "C" {
 /* *********************** */
 /* Update Tagging/Flushing */
 
-/* Legacy depsgraph did some special trickery for things like particle systems
- * when tagging ID for an update. Ideally that tagging needs to become obsolete
- * in favor of havng dedicated node for that which gets tagged, but for until
- * design of those areas is more clear we'll do the same legacy code here.
- *                                                                  - sergey -
- */
-#define DEPSGRAPH_USE_LEGACY_TAGGING
-
 namespace {
 
 /* Data-Based Tagging ------------------------------- */
@@ -125,33 +117,6 @@ void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 		lib_id_recalc_tag(bmain, id);
 	}
 }
-
-#ifdef DEPSGRAPH_USE_LEGACY_TAGGING
-void depsgraph_legacy_handle_update_tag(Main *bmain, ID *id, int flag)
-{
-	if (flag) {
-		Object *object;
-		short idtype = GS(id->name);
-		if (idtype == ID_PA) {
-			ParticleSystem *psys;
-			for (object = (Object *)bmain->object.first;
-			     object != NULL;
-			     object = (Object *)object->id.next)
-			{
-				for (psys = (ParticleSystem *)object->particlesystem.first;
-				     psys != NULL;
-				     psys = (ParticleSystem *)psys->next)
-				{
-					if (&psys->part->id == id) {
-						DEG_id_tag_update_ex(bmain, &object->id, flag & OB_RECALC_ALL);
-						psys->recalc |= (flag & PSYS_RECALC);
-					}
-				}
-			}
-		}
-	}
-}
-#endif
 
 #ifdef WITH_COPY_ON_WRITE
 void id_tag_copy_on_write_update(Main *bmain, Depsgraph *graph, ID *id)
@@ -261,14 +226,6 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, int flag)
 			}
 		}
 	}
-
-#ifdef DEPSGRAPH_USE_LEGACY_TAGGING
-	/* Special handling from the legacy depsgraph.
-	 * TODO(sergey): Need to get rid of those once all the areas
-	 * are re-formulated in terms of franular nodes.
-	 */
-	depsgraph_legacy_handle_update_tag(bmain, id, flag);
-#endif
 }
 
 /* Tag given ID type for update. */
