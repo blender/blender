@@ -1944,7 +1944,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		outliner_add_orphaned_datablocks(mainvar, soops);
 	}
 	else if (soops->outlinevis == SO_ACT_LAYER) {
-		outliner_add_collections_act_layer(soops, BKE_scene_layer_context_active_PLACEHOLDER(scene));
+		outliner_add_collections_act_layer(soops, sl);
 	}
 	else if (soops->outlinevis == SO_COLLECTIONS) {
 		outliner_add_collections_master(soops, scene);
