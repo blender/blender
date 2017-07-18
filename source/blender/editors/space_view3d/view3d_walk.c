@@ -674,16 +674,6 @@ static int walkEnd(bContext *C, WalkInfo *walk)
 	return OPERATOR_CANCELLED;
 }
 
-static bool wm_event_is_last_mousemove(const wmEvent *event)
-{
-	while ((event = event->next)) {
-		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-			return false;
-		}
-	}
-	return true;
-}
-
 static void walkEvent(bContext *C, wmOperator *op, WalkInfo *walk, const wmEvent *event)
 {
 	if (event->type == TIMER && event->customdata == walk->timer) {
@@ -736,7 +726,7 @@ static void walkEvent(bContext *C, wmOperator *op, WalkInfo *walk, const wmEvent
 			}
 			else
 #endif
-			if (wm_event_is_last_mousemove(event)) {
+			if (WM_event_is_last_mousemove(event)) {
 				wmWindow *win = CTX_wm_window(C);
 
 #ifdef __APPLE__

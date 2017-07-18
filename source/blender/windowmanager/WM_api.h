@@ -189,6 +189,7 @@ struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase
 void		WM_event_add_mousemove(struct bContext *C);
 bool        WM_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
 bool		WM_event_is_absolute(const struct wmEvent *event);
+bool		WM_event_is_last_mousemove(const struct wmEvent *event);
 
 #ifdef WITH_INPUT_NDOF
 			/* 3D mouse */
