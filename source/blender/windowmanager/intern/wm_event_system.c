@@ -2862,7 +2862,7 @@ void WM_event_add_mousemove(bContext *C)
 
 
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
-bool WM_modal_tweak_exit(const wmEvent *event, int tweak_event)
+bool WM_event_is_modal_tweak_exit(const wmEvent *event, int tweak_event)
 {
 	/* if the release-confirm userpref setting is enabled, 
 	 * tweak events can be canceled when mouse is released

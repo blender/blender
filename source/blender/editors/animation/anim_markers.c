@@ -895,7 +895,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 			case PADENTER:
 			case LEFTMOUSE:
 			case MIDDLEMOUSE:
-				if (WM_modal_tweak_exit(event, mm->event_type)) {
+				if (WM_event_is_modal_tweak_exit(event, mm->event_type)) {
 					ed_marker_move_exit(C, op);
 					WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
 					WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);
