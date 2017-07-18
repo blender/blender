@@ -418,6 +418,11 @@ void WM_window_set_dpi(wmWindow *win)
 {
 	int auto_dpi = GHOST_GetDPIHint(win->ghostwin);
 
+	/* Clamp auto DPI to 96, since our font/interface drawing does not work well
+	 * with lower sizes. The main case we are interested in supporting is higher
+	 * DPI. If a smaller UI is desired it is still possible to adjust UI scale. */
+	auto_dpi = MAX2(auto_dpi, 96);
+
 	/* Lazily init UI scale size, preserving backwards compatibility by
 	 * computing UI scale from ratio of previous DPI and auto DPI */
 	if (U.ui_scale == 0) {

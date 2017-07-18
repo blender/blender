@@ -570,8 +570,7 @@ static bool raycastEditMesh(
 	}
 
 	SnapObjectData_EditMesh *sod = NULL;
-
-	BVHTreeFromEditMesh *treedata;
+	BVHTreeFromEditMesh *treedata = NULL;
 
 	void **sod_p;
 	if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
@@ -1840,8 +1839,7 @@ static bool snapEditMesh(
 	float local_scale = normalize_v3(ray_normal_local);
 
 	SnapObjectData_EditMesh *sod = NULL;
-
-	BVHTreeFromEditMesh *treedata;
+	BVHTreeFromEditMesh *treedata = NULL;
 
 	void **sod_p;
 	if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
