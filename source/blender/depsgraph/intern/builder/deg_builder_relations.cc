@@ -1639,8 +1639,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 
 	OperationKey parameters_key(ntree_id,
 	                            DEG_NODE_TYPE_PARAMETERS,
-	                            DEG_OPCODE_PLACEHOLDER,
-	                            "Parameters Eval");
+	                            DEG_OPCODE_PARAMETERS_EVAL);
 
 	/* nodetree's nodes... */
 	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
@@ -1659,8 +1658,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 				}
 				OperationKey group_parameters_key(&group_ntree->id,
 				                                  DEG_NODE_TYPE_PARAMETERS,
-				                                  DEG_OPCODE_PLACEHOLDER,
-				                                  "Parameters Eval");
+				                                  DEG_OPCODE_PARAMETERS_EVAL);
 				add_relation(group_parameters_key, parameters_key, "Group Node");
 			}
 		}
@@ -1692,8 +1690,7 @@ void DepsgraphRelationBuilder::build_material(Material *ma)
 		build_nodetree(ma->nodetree);
 		OperationKey ntree_key(&ma->nodetree->id,
 		                       DEG_NODE_TYPE_PARAMETERS,
-		                       DEG_OPCODE_PLACEHOLDER,
-		                       "Parameters Eval");
+		                       DEG_OPCODE_PARAMETERS_EVAL);
 		OperationKey material_key(&ma->id,
 		                          DEG_NODE_TYPE_SHADING,
 		                          DEG_OPCODE_PLACEHOLDER,
