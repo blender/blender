@@ -578,9 +578,10 @@ void DepsgraphNodeBuilder::build_world(World *world)
 
 	/* world itself */
 	add_component_node(world_id, DEG_NODE_TYPE_PARAMETERS);
-
-	add_operation_node(world_id, DEG_NODE_TYPE_PARAMETERS, NULL,
-	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
+	add_operation_node(world_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PARAMETERS_EVAL);
 
 	/* textures */
 	build_texture_stack(world->mtex);
@@ -734,8 +735,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	op_node = add_operation_node(&ob->id,
 	                             DEG_NODE_TYPE_PARAMETERS,
 	                             NULL,
-	                             DEG_OPCODE_PLACEHOLDER,
-	                             "Parameters Eval");
+	                             DEG_OPCODE_PARAMETERS_EVAL);
 	op_node->set_as_exit();
 
 	/* Temporary uber-update node, which does everything.
@@ -883,8 +883,10 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	op_node->set_as_exit();
 
 	/* Parameters for driver sources. */
-	add_operation_node(obdata, DEG_NODE_TYPE_PARAMETERS, NULL,
-	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
+	add_operation_node(obdata,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PARAMETERS_EVAL);
 }
 
 /* Cameras */
@@ -899,8 +901,10 @@ void DepsgraphNodeBuilder::build_camera(Object *ob)
 
 	build_animdata(&cam->id);
 
-	add_operation_node(camera_id, DEG_NODE_TYPE_PARAMETERS, NULL,
-	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
+	add_operation_node(camera_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PARAMETERS_EVAL);
 
 	if (cam->dof_ob != NULL) {
 		/* TODO(sergey): For now parametrs are on object level. */
@@ -924,8 +928,10 @@ void DepsgraphNodeBuilder::build_lamp(Object *ob)
 	add_component_node(lamp_id, DEG_NODE_TYPE_PARAMETERS);
 
 	/* TODO(sergey): Is it really how we're supposed to work with drivers? */
-	add_operation_node(lamp_id, DEG_NODE_TYPE_PARAMETERS, NULL,
-	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
+	add_operation_node(lamp_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PARAMETERS_EVAL);
 
 	/* lamp's nodetree */
 	if (la->nodetree) {
@@ -948,8 +954,10 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 	build_animdata(ntree_id);
 
 	/* Parameters for drivers. */
-	op_node = add_operation_node(ntree_id, DEG_NODE_TYPE_PARAMETERS, NULL,
-	                             DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
+	op_node = add_operation_node(ntree_id,
+	                             DEG_NODE_TYPE_PARAMETERS,
+	                             NULL,
+	                             DEG_OPCODE_PARAMETERS_EVAL);
 	op_node->set_as_exit();
 
 	/* nodetree's nodes... */
