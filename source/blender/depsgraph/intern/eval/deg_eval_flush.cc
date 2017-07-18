@@ -152,6 +152,14 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 					}
 				}
 				foreach (OperationDepsNode *op, comp_node->operations) {
+					/* We don't want to flush tags in "upstream" direction for
+					 * certain types of operations.
+					 *
+					 * TODO(sergey): Need a more generic solution for this.
+					 */
+					if (op->opcode == DEG_OPCODE_PARTICLE_SETTINGS_EVAL) {
+						continue;
+					}
 					op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 				}
 				if (object != NULL) {
