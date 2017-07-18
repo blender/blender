@@ -176,6 +176,19 @@ void id_tag_update_object_data(Depsgraph *graph, IDDepsNode *id_node)
 		return;
 	}
 	data_comp->tag_update(graph);
+	/* Special legacy compatibility code, tag data ID for update when object
+	 * is tagged for data update.
+	 */
+	if (idtype == ID_OB) {
+		Object *object = (Object *)id_node->id_orig;
+		ID *data_id = (ID *)object->data;
+		if (data_id != NULL) {
+			IDDepsNode *data_id_node = graph->find_id_node(data_id);
+			BLI_assert(data_id_node != NULL);
+			/* TODO(sergey): Do we want more granular tags here? */
+			data_id_node->tag_update(graph);
+		}
+	}
 }
 
 /* Tag corresponding to OB_RECALC_TIME. */
