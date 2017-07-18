@@ -52,7 +52,6 @@ ccl_device_inline float4 sqrt(const float4& a);
 ccl_device_inline float4 sqr(const float4& a);
 ccl_device_inline float4 cross(const float4& a, const float4& b);
 ccl_device_inline bool is_zero(const float4& a);
-ccl_device_inline float reduce_add(const float4& a);
 ccl_device_inline float average(const float4& a);
 ccl_device_inline float len(const float4& a);
 ccl_device_inline float4 normalize(const float4& a);
@@ -85,6 +84,7 @@ ccl_device_inline float4 select(const int4& mask,
                                 const float4& b);
 ccl_device_inline float4 reduce_min(const float4& a);
 ccl_device_inline float4 reduce_max(const float4& a);
+ccl_device_inline float4 reduce_add(const float4& a);
 #endif  /* !__KERNEL_GPU__ */
 
 /*******************************************************************************
@@ -275,24 +275,24 @@ ccl_device_inline bool is_zero(const float4& a)
 #endif
 }
 
-ccl_device_inline float reduce_add(const float4& a)
+ccl_device_inline float4 reduce_add(const float4& a)
 {
 #ifdef __KERNEL_SSE__
 #  ifdef __KERNEL_SSE3__
     float4 h(_mm_hadd_ps(a.m128, a.m128));
-    return  _mm_cvtss_f32(_mm_hadd_ps(h.m128, h.m128));
+    return float4( _mm_hadd_ps(h.m128, h.m128));
 #  else
 	float4 h(shuffle<1,0,3,2>(a) + a);
-	return  _mm_cvtss_f32(shuffle<2,3,0,1>(h) + h);
+	return  shuffle<2,3,0,1>(h) + h;
 #  endif
 #else
-	return ((a.x + a.y) + (a.z + a.w));
+	return make_float4(((a.x + a.y) + (a.z + a.w)));
 #endif
 }
 
 ccl_device_inline float average(const float4& a)
 {
-	return reduce_add(a) * 0.25f;
+	return reduce_add(a)[0] * 0.25f;
 }
 
 ccl_device_inline float len(const float4& a)

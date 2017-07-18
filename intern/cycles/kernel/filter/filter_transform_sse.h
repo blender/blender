@@ -24,7 +24,7 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
 {
 	int buffer_w = align_up(rect.z - rect.x, 4);
 
-	__m128 features[DENOISE_FEATURES];
+	float4 features[DENOISE_FEATURES];
 	const float *ccl_restrict pixel_buffer;
 	int2 pixel;
 
@@ -34,19 +34,19 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
 	                      min(rect.w, y + radius + 1));
 	int num_pixels = (high.y - low.y) * (high.x - low.x);
 
-	__m128 feature_means[DENOISE_FEATURES];
+	float4 feature_means[DENOISE_FEATURES];
 	math_vector_zero_sse(feature_means, DENOISE_FEATURES);
 	FOR_PIXEL_WINDOW_SSE {
 		filter_get_features_sse(x4, y4, active_pixels, pixel_buffer, features, NULL, pass_stride);
 		math_vector_add_sse(feature_means, DENOISE_FEATURES, features);
 	} END_FOR_PIXEL_WINDOW_SSE
 
-	__m128 pixel_scale = _mm_set1_ps(1.0f / num_pixels);
+	float4 pixel_scale = make_float4(1.0f / num_pixels);
 	for(int i = 0; i < DENOISE_FEATURES; i++) {
-		feature_means[i] = _mm_mul_ps(_mm_hsum_ps(feature_means[i]), pixel_scale);
+		feature_means[i] = reduce_add(feature_means[i]) * pixel_scale;
 	}
 
-	__m128 feature_scale[DENOISE_FEATURES];
+	float4 feature_scale[DENOISE_FEATURES];
 	math_vector_zero_sse(feature_scale, DENOISE_FEATURES);
 	FOR_PIXEL_WINDOW_SSE {
 		filter_get_feature_scales_sse(x4, y4, active_pixels, pixel_buffer, features, feature_means, pass_stride);
@@ -55,12 +55,12 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
 
 	filter_calculate_scale_sse(feature_scale);
 
-	__m128 feature_matrix_sse[DENOISE_FEATURES*DENOISE_FEATURES];
+	float4 feature_matrix_sse[DENOISE_FEATURES*DENOISE_FEATURES];
 	math_matrix_zero_sse(feature_matrix_sse, DENOISE_FEATURES);
 	FOR_PIXEL_WINDOW_SSE {
 		filter_get_features_sse(x4, y4, active_pixels, pixel_buffer, features, feature_means, pass_stride);
 		math_vector_mul_sse(features, DENOISE_FEATURES, feature_scale);
-		math_matrix_add_gramian_sse(feature_matrix_sse, DENOISE_FEATURES, features, _mm_set1_ps(1.0f));
+		math_matrix_add_gramian_sse(feature_matrix_sse, DENOISE_FEATURES, features, make_float4(1.0f));
 	} END_FOR_PIXEL_WINDOW_SSE
 
 	float feature_matrix[DENOISE_FEATURES*DENOISE_FEATURES];
@@ -98,7 +98,7 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
 
 	/* Bake the feature scaling into the transformation matrix. */
 	for(int i = 0; i < DENOISE_FEATURES; i++) {
-		math_vector_scale(transform + i*DENOISE_FEATURES, _mm_cvtss_f32(feature_scale[i]), *rank);
+		math_vector_scale(transform + i*DENOISE_FEATURES, feature_scale[i][0], *rank);
 	}
 }
 
