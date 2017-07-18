@@ -136,11 +136,6 @@ void DEG_graph_on_visible_update(struct Main *bmain, struct Scene *scene);
 /* Update all dependency graphs when visible scenes/layers changes. */
 void DEG_on_visible_update(struct Main *bmain, const bool do_time);
 
-/* Tag node(s) associated with changed data for later updates */
-void DEG_graph_id_tag_update(struct Main *bmain,
-                             Depsgraph *graph,
-                             struct ID *id);
-
 /* Tag given ID for an update in all the dependency graphs. */
 enum {
 	/* Object transformation changed, corresponds to OB_RECALC_OB. */

@@ -118,11 +118,18 @@ void deg_editors_scene_update(struct Main *bmain, struct Scene *scene, bool upda
 void lib_id_recalc_tag(struct Main *bmain, struct ID *id);
 void lib_id_recalc_data_tag(struct Main *bmain, struct ID *id);
 
-#define DEG_DEBUG_PRINTF(...) \
-	do { \
-		if (G.debug & G_DEBUG_DEPSGRAPH) { \
-			fprintf(stderr, __VA_ARGS__); \
-		} \
+#define DEG_DEBUG_PRINTF(...)               \
+	do {                                    \
+		if (G.debug & G_DEBUG_DEPSGRAPH) {  \
+			fprintf(stderr, __VA_ARGS__);   \
+			fflush(stderr);                 \
+		}                                   \
+	} while (0)
+
+#define DEG_ERROR_PRINTF(...)               \
+	do {                                    \
+		fprintf(stderr, __VA_ARGS__);       \
+		fflush(stderr);                     \
 	} while (0)
 
 }  // namespace DEG
