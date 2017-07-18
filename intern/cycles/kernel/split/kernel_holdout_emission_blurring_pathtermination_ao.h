@@ -125,13 +125,21 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 #ifdef __SHADOW_TRICKS__
 		if((sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {
 			if(state->flag & PATH_RAY_CAMERA) {
-				state->flag |= (PATH_RAY_SHADOW_CATCHER | PATH_RAY_SHADOW_CATCHER_ONLY | PATH_RAY_STORE_SHADOW_INFO);
+				PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+				state->flag |= (PATH_RAY_SHADOW_CATCHER |
+				                PATH_RAY_SHADOW_CATCHER_ONLY |
+				                PATH_RAY_STORE_SHADOW_INFO);
 				state->catcher_object = sd->object;
 				if(!kernel_data.background.transparent) {
-					PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 					ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
-					L->shadow_color = indirect_background(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, ray);
+					L->shadow_background_color = indirect_background(
+					        kg,
+					        &kernel_split_state.sd_DL_shadow[ray_index],
+					        state,
+					        ray);
 				}
+				L->shadow_radiance_sum = path_radiance_clamp_and_sum(kg, L);
+				L->shadow_throughput = average(throughput);
 			}
 		}
 		else {

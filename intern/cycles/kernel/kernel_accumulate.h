@@ -220,7 +220,9 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 #ifdef __SHADOW_TRICKS__
 	L->path_total = make_float3(0.0f, 0.0f, 0.0f);
 	L->path_total_shaded = make_float3(0.0f, 0.0f, 0.0f);
-	L->shadow_color = make_float3(0.0f, 0.0f, 0.0f);
+	L->shadow_background_color = make_float3(0.0f, 0.0f, 0.0f);
+	L->shadow_radiance_sum = make_float3(0.0f, 0.0f, 0.0f);
+	L->shadow_throughput = 0.0f;
 #endif
 
 #ifdef __DENOISING_FEATURES__
@@ -680,11 +682,12 @@ ccl_device_inline float3 path_radiance_sum_shadowcatcher(KernelGlobals *kg,
 	const float shadow = path_radiance_sum_shadow(L);
 	float3 L_sum;
 	if(kernel_data.background.transparent) {
-		*alpha = 1.0f-shadow;
-		L_sum = make_float3(0.0f, 0.0f, 0.0f);
+		*alpha = 1.0f - L->shadow_throughput * shadow;
+		L_sum = L->shadow_radiance_sum;
 	}
 	else {
-		L_sum = L->shadow_color * shadow;
+		L_sum = L->shadow_background_color * L->shadow_throughput * shadow +
+		        L->shadow_radiance_sum;
 	}
 	return L_sum;
 }
