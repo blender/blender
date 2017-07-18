@@ -100,6 +100,7 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 #define STRINGIFY_OPCODE(name) case DEG_OPCODE_##name: return #name
 		/* Generic Operations. */
 		STRINGIFY_OPCODE(OPERATION);
+		STRINGIFY_OPCODE(PARAMETERS_EVAL);
 		STRINGIFY_OPCODE(PLACEHOLDER);
 		/* Animation, Drivers, etc. */
 		STRINGIFY_OPCODE(ANIMATION);

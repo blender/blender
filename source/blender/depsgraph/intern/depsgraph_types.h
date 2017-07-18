@@ -141,6 +141,9 @@ typedef enum eDepsOperation_Code {
 	/* Placeholder for operations which don't need special mention */
 	DEG_OPCODE_OPERATION = 0,
 
+	/* Generic parameters evaluation. */
+	DEG_OPCODE_PARAMETERS_EVAL,
+
 	// XXX: Placeholder while porting depsgraph code
 	DEG_OPCODE_PLACEHOLDER,
 
