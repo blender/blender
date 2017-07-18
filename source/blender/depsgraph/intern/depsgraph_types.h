@@ -136,7 +136,7 @@ typedef enum eDepsNode_Type {
 
 /* Identifiers for common operations (as an enum). */
 typedef enum eDepsOperation_Code {
-	/* Generic Operations ------------------------------ */
+	/* Generic Operations. ------------------------------ */
 
 	/* Placeholder for operations which don't need special mention */
 	DEG_OPCODE_OPERATION = 0,
@@ -150,7 +150,7 @@ typedef enum eDepsOperation_Code {
 	/* Driver */
 	DEG_OPCODE_DRIVER,
 
-	/* Transform --------------------------------------- */
+	/* Transform. -------------------------------------- */
 	/* Transform entry point - local transforms only */
 	DEG_OPCODE_TRANSFORM_LOCAL,
 	/* Parenting */
@@ -162,20 +162,20 @@ typedef enum eDepsOperation_Code {
 	/* Handle object-level updates, mainly proxies hacks and recalc flags.  */
 	DEG_OPCODE_OBJECT_UBEREVAL,
 
-	/* Rigid body -------------------------------------- */
+	/* Rigid body. -------------------------------------- */
 	/* Perform Simulation */
 	DEG_OPCODE_RIGIDBODY_REBUILD,
 	DEG_OPCODE_RIGIDBODY_SIM,
 	/* Copy results to object */
 	DEG_OPCODE_TRANSFORM_RIGIDBODY,
 
-	/* Geometry ---------------------------------------- */
+	/* Geometry. ---------------------------------------- */
 	/* Evaluate the whole geometry, including modifiers. */
 	DEG_OPCODE_GEOMETRY_UBEREVAL,
 	/* Curve Objects - Path Calculation (used for path-following tools, */
 	DEG_OPCODE_GEOMETRY_PATH,
 
-	/* Pose -------------------------------------------- */
+	/* Pose. -------------------------------------------- */
 	/* Init IK Trees, etc. */
 	DEG_OPCODE_POSE_INIT,
 	/* Free IK Trees + Compute Deform Matrices */
@@ -184,7 +184,7 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_POSE_IK_SOLVER,
 	DEG_OPCODE_POSE_SPLINE_IK_SOLVER,
 
-	/* Bone -------------------------------------------- */
+	/* Bone. -------------------------------------------- */
 	/* Bone local transforms - entry point */
 	DEG_OPCODE_BONE_LOCAL,
 	/* Pose-space conversion (includes parent + restpose, */
@@ -205,19 +205,19 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_BONE_READY,
 	DEG_OPCODE_BONE_DONE,
 
-	/* Particles --------------------------------------- */
+	/* Particles. --------------------------------------- */
 	/* Particle System evaluation. */
 	DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 
-	/* Collections ------------------------------------- */
+	/* Collections. ------------------------------------- */
 	DEG_OPCODE_SCENE_LAYER_INIT,
 	DEG_OPCODE_SCENE_LAYER_EVAL,
 	DEG_OPCODE_SCENE_LAYER_DONE,
 
-	/* Copy on Write ------------------------- */
+	/* Copy on Write. ------------------------------------ */
 	DEG_OPCODE_COPY_ON_WRITE,
 
-	/* Shading operations  ------------------------- */
+	/* Shading. ------------------------------------------- */
 	DEG_OPCODE_SHADING,
 
 	DEG_NUM_OPCODES,
