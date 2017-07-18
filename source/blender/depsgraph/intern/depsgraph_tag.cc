@@ -153,6 +153,7 @@ void id_tag_update_object_data(Depsgraph *graph, IDDepsNode *id_node)
 				case OB_CURVE:
 				case OB_SURF:
 				case OB_FONT:
+				case OB_MBALL:
 					data_comp = id_node->find_component(DEG_NODE_TYPE_GEOMETRY);
 					break;
 				case OB_ARMATURE:
@@ -165,6 +166,8 @@ void id_tag_update_object_data(Depsgraph *graph, IDDepsNode *id_node)
 		case ID_ME:
 			data_comp = id_node->find_component(DEG_NODE_TYPE_GEOMETRY);
 			break;
+		case ID_PA:
+			return;
 	}
 	if (data_comp == NULL) {
 		DEG_ERROR_PRINTF("ERROR: Unable to find data component for %s\n",
@@ -188,6 +191,19 @@ void id_tag_update_object_time(Depsgraph *graph, IDDepsNode *id_node)
 	}
 	animation_comp->tag_update(graph);
 	/* TODO(sergey): More components to tag here? */
+}
+
+void id_tag_update_particle(Depsgraph *graph, IDDepsNode *id_node)
+{
+	ComponentDepsNode *particle_comp =
+	        id_node->find_component(DEG_NODE_TYPE_PARAMETERS);
+	if (particle_comp == NULL) {
+		DEG_ERROR_PRINTF("ERROR: Unable to find particle component for %s\n",
+		                 id_node->id_orig->name);
+		BLI_assert(!"This is not supposed to happen!");
+		return;
+	}
+	particle_comp->tag_update(graph);
 }
 
 #ifdef WITH_COPY_ON_WRITE
@@ -226,12 +242,15 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	if (flag & OB_RECALC_TIME) {
 		id_tag_update_object_time(graph, id_node);
 	}
+	if (flag & PSYS_RECALC) {
+		/* TODO(sergey): Differentiate between different particle updates tags. */
+		id_tag_update_particle(graph, id_node);
+	}
 #ifdef WITH_COPY_ON_WRITE
 	if (flag & DEG_TAG_COPY_ON_WRITE) {
 		id_tag_update_copy_on_write(graph, id_node);
 	}
 #endif
-	// node->tag_update(deg_graph);
 }
 
 void deg_id_tag_update(Main *bmain, ID *id, int flag)
@@ -246,6 +265,44 @@ void deg_id_tag_update(Main *bmain, ID *id, int flag)
 			deg_graph_id_tag_update(bmain, graph, id, flag);
 		}
 	}
+}
+
+void deg_graph_on_visible_update(Main *bmain, Scene *scene, Depsgraph *graph)
+{
+	/* Nake sure objects are up to date. */
+	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
+	{
+		const short idtype = GS(id_node->id_orig->name);
+		if (idtype != ID_OB) {
+			/* Ignore non-object nodes on visibility changes. */
+			continue;
+		}
+		int flag = 0;
+		/* We only tag components which needs an update. Tagging everything is
+		 * not a good idea because that might reset particles cache (or any
+		 * other type of cache).
+		 *
+		 * TODO(sergey): Need to generalize this somehow.
+		 */
+		if (idtype == ID_OB) {
+			Object *object = (Object *)id_node->id_orig;
+			flag |= OB_RECALC_OB;
+			if (ELEM(object->type, OB_MESH,
+			                       OB_CURVE,
+			                       OB_SURF,
+			                       OB_FONT,
+			                       OB_MBALL))
+			{
+				flag |= OB_RECALC_DATA;
+			}
+		}
+		deg_graph_id_tag_update(bmain, graph, id_node->id_orig, flag);
+	}
+	GHASH_FOREACH_END();
+	/* Make sure collection properties are up to date. */
+	IDDepsNode *scene_id_node = graph->find_id_node(&scene->id);
+	BLI_assert(scene_id_node != NULL);
+	scene_id_node->tag_update(graph);
 }
 
 }  /* namespace */
@@ -301,13 +358,8 @@ void DEG_ids_flush_tagged(Main *bmain, Scene *scene)
 /* Update dependency graph when visible scenes/layers changes. */
 void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 {
-	(void) bmain;
-	DEG::Depsgraph *graph = reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph_legacy);
-	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
-	{
-		id_node->tag_update(graph);
-	}
-	GHASH_FOREACH_END();
+	DEG::Depsgraph *graph = (DEG::Depsgraph *)scene->depsgraph_legacy;
+	DEG::deg_graph_on_visible_update(bmain, scene, graph);
 }
 
 void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
