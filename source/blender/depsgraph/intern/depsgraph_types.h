@@ -160,14 +160,14 @@ typedef enum eDepsOperation_Code {
 	/* Transform exit point */
 	DEG_OPCODE_TRANSFORM_FINAL,
 	/* Handle object-level updates, mainly proxies hacks and recalc flags.  */
-	DEG_OPCODE_OBJECT_UBEREVAL,
+	DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL,
 
 	/* Rigid body. -------------------------------------- */
 	/* Perform Simulation */
 	DEG_OPCODE_RIGIDBODY_REBUILD,
 	DEG_OPCODE_RIGIDBODY_SIM,
 	/* Copy results to object */
-	DEG_OPCODE_TRANSFORM_RIGIDBODY,
+	DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY,
 
 	/* Geometry. ---------------------------------------- */
 	/* Evaluate the whole geometry, including modifiers. */

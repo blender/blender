@@ -475,7 +475,7 @@ void DepsgraphNodeBuilder::build_object_transform(Scene *scene, Object *ob)
 	                   function_bind(BKE_object_eval_uber_transform,
 	                                 _1,
 	                                 scene_cow, ob_cow),
-	                   DEG_OPCODE_OBJECT_UBEREVAL);
+	                   DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
 
 	/* object transform is done */
 	op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
@@ -679,7 +679,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 			                                 _1,
 			                                 scene_cow,
 			                                 get_cow_datablock(ob)),
-			                   DEG_OPCODE_TRANSFORM_RIGIDBODY);
+			                   DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY);
 		}
 	}
 }
