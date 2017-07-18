@@ -90,15 +90,6 @@ SceneLayer *BKE_scene_layer_from_workspace_get(const struct WorkSpace *workspace
  * This is a placeholder to know which areas of the code need to be addressed for the Workspace changes.
  * Never use this, you should either use BKE_scene_layer_workspace_active or get SceneLayer explicitly.
  */
-SceneLayer *BKE_scene_layer_context_active_ex_PLACEHOLDER(const Main *UNUSED(bmain), const Scene *scene)
-{
-	return BKE_scene_layer_from_scene_get(scene);
-}
-
-/**
- * This is a placeholder to know which areas of the code need to be addressed for the Workspace changes.
- * Never use this, you should either use BKE_scene_layer_workspace_active or get SceneLayer explicitly.
- */
 SceneLayer *BKE_scene_layer_context_active_PLACEHOLDER(const Scene *scene)
 {
 	return BKE_scene_layer_from_scene_get(scene);

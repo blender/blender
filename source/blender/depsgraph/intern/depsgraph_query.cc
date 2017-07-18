@@ -92,8 +92,7 @@ SceneLayer *DEG_get_evaluated_scene_layer(Depsgraph *graph)
 {
 	Scene *scene = DEG_get_evaluated_scene(graph);
 	if (scene != NULL) {
-		DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-		return BKE_scene_layer_context_active_ex_PLACEHOLDER(deg_graph->bmain, scene);
+		return BKE_scene_layer_context_active_PLACEHOLDER(scene);
 	}
 	return NULL;
 }

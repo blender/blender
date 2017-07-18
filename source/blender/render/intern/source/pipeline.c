@@ -3796,8 +3796,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 {
 	Object *camera;
-	/* TODO(sergey): Get proper scene layer here. */
-	SceneLayer *scene_layer = BKE_scene_layer_context_active_ex_PLACEHOLDER(bmain, sce);
+	SceneLayer *scene_layer = BKE_scene_layer_from_scene_get(sce);
 	int winx, winy;
 
 	winx = (sce->r.size * sce->r.xsch) / 100;
