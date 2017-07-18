@@ -343,7 +343,7 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 					add_relation(mod_key, key, name);
 				}
 				else if (eff->psys != psys) {
-					OperationKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, eff->psys->name);
+					OperationKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PARTICLE_SYSTEM_EVAL, eff->psys->name);
 					add_relation(eff_key, key, name);
 				}
 			}
@@ -1253,7 +1253,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		build_animdata(&part->id);
 
 		/* this particle system */
-		OperationKey psys_key(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, psys->name);
+		OperationKey psys_key(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PARTICLE_SYSTEM_EVAL, psys->name);
 
 		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
 		if (!psys_check_enabled(ob, psys, G.is_rendering))

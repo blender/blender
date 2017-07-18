@@ -725,7 +725,7 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 		                                 scene_cow,
 		                                 ob_cow,
 		                                 psys),
-		                   DEG_OPCODE_PSYS_EVAL,
+		                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 		                   psys->name);
 	}
 
