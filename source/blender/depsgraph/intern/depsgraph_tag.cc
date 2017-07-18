@@ -70,7 +70,7 @@ extern "C" {
 /* *********************** */
 /* Update Tagging/Flushing */
 
-namespace {
+namespace DEG {
 
 /* Data-Based Tagging ------------------------------- */
 
@@ -85,6 +85,8 @@ void lib_id_recalc_data_tag(Main *bmain, ID *id)
 	id->tag |= LIB_TAG_ID_RECALC_DATA;
 	DEG_id_type_tag(bmain, GS(id->name));
 }
+
+namespace {
 
 void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 {
@@ -122,17 +124,19 @@ void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 void id_tag_copy_on_write_update(Main *bmain, Depsgraph *graph, ID *id)
 {
 	lib_id_recalc_tag(bmain, id);
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-	DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
-	DEG::ComponentDepsNode *cow_comp =
+	Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	IDDepsNode *id_node = deg_graph->find_id_node(id);
+	ComponentDepsNode *cow_comp =
 	        id_node->find_component(DEG::DEG_NODE_TYPE_COPY_ON_WRITE);
-	DEG::OperationDepsNode *cow_node = cow_comp->get_entry_operation();
+	OperationDepsNode *cow_node = cow_comp->get_entry_operation();
 	cow_node->tag_update(deg_graph);
-	cow_node->flag |= DEG::DEPSOP_FLAG_SKIP_FLUSH;
+	cow_node->flag |= DEPSOP_FLAG_SKIP_FLUSH;
 }
 #endif
 
 }  /* namespace */
+
+}  // namespace DEG
 
 /* Tag all nodes in ID-block for update.
  * This is a crude measure, but is most convenient for old code.
@@ -141,7 +145,7 @@ void DEG_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	DEG::IDDepsNode *node = deg_graph->find_id_node(id);
-	lib_id_recalc_tag(bmain, id);
+	DEG::lib_id_recalc_tag(bmain, id);
 	if (node != NULL) {
 		node->tag_update(deg_graph);
 	}
@@ -160,7 +164,7 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, int flag)
 		return;
 	}
 	DEG_DEBUG_PRINTF("%s: id=%s flag=%d\n", __func__, id->name, flag);
-	lib_id_recalc_tag_flag(bmain, id, flag);
+	DEG::lib_id_recalc_tag_flag(bmain, id, flag);
 	for (Scene *scene = (Scene *)bmain->scene.first;
 	     scene != NULL;
 	     scene = (Scene *)scene->id.next)

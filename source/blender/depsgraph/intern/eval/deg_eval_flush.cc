@@ -54,23 +54,6 @@ extern "C" {
 
 namespace DEG {
 
-namespace {
-
-// TODO(sergey): De-duplicate with depsgraph_tag,cc
-void lib_id_recalc_tag(Main *bmain, ID *id)
-{
-	id->tag |= LIB_TAG_ID_RECALC;
-	DEG_id_type_tag(bmain, GS(id->name));
-}
-
-void lib_id_recalc_data_tag(Main *bmain, ID *id)
-{
-	id->tag |= LIB_TAG_ID_RECALC_DATA;
-	DEG_id_type_tag(bmain, GS(id->name));
-}
-
-}  /* namespace */
-
 typedef std::deque<OperationDepsNode *> FlushQueue;
 
 static void flush_init_func(void *data_v, int i)
