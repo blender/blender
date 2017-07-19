@@ -49,18 +49,19 @@ static void EEVEE_engine_init(void *ved)
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+	}
+	stl->g_data->background_alpha = 1.0f;
+	stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
+
 	DRWFboTexture tex = {&txl->color, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
 
 	const float *viewport_size = DRW_viewport_size_get();
 	DRW_framebuffer_init(&fbl->main, &draw_engine_eevee_type,
 	                    (int)viewport_size[0], (int)viewport_size[1],
 	                    &tex, 1);
-
-	if (!stl->g_data) {
-		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
-	}
-	stl->g_data->background_alpha = 1.0f;
 
 	EEVEE_materials_init(stl);
 	EEVEE_lights_init(sldata);

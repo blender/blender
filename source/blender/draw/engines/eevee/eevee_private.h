@@ -138,6 +138,7 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *planarref_fb;
 
 	struct GPUFrameBuffer *main;
+	struct GPUFrameBuffer *double_buffer;
 } EEVEE_FramebufferList;
 
 typedef struct EEVEE_TextureList {
@@ -160,6 +161,7 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *planar_pool;
 
 	struct GPUTexture *color; /* R16_G16_B16 */
+	struct GPUTexture *color_double_buffer;
 } EEVEE_TextureList;
 
 typedef struct EEVEE_StorageList {
@@ -351,6 +353,7 @@ enum {
 	EFFECT_DOF                 = (1 << 2),
 	EFFECT_VOLUMETRIC          = (1 << 3),
 	EFFECT_SSR                 = (1 << 4),
+	EFFECT_DOUBLE_BUFFER       = (1 << 5), /* Not really an effect but a feature */
 };
 
 /* ************** SCENE LAYER DATA ************** */
@@ -447,6 +450,10 @@ typedef struct EEVEE_PrivateData {
 	float viewvecs[2][4];
 	/* For planar probes */
 	float texel_size[2];
+	/* For double buffering */
+	bool valid_double_buffer;
+	float prev_persmat[4][4];
+	float next_persmat[4][4];
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */

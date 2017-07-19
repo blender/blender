@@ -97,6 +97,7 @@ mat3 mul(mat3 m1, mat3 m2) { return m1 * m2; }
 vec3 transform_point(mat4 m, vec3 v) { return (m * vec4(v, 1.0)).xyz; }
 
 float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
+float max_v2(vec2 v) { return max(v.x, v.y); }
 
 float saturate(float a) { return clamp(a, 0.0, 1.0); }
 vec2 saturate(vec2 a) { return clamp(a, 0.0, 1.0); }
@@ -123,6 +124,11 @@ float fast_acos(float x)
 	float res = -0.156583 * abs(x) + M_PI_2;
 	res *= fast_sqrt(1.0 - abs(x));
 	return (x >= 0) ? res : M_PI - res;
+}
+
+float point_plane_projection_dist(vec3 lineorigin, vec3 planeorigin, vec3 planenormal)
+{
+	return dot(planenormal, planeorigin - lineorigin);
 }
 
 float line_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec3 planeorigin, vec3 planenormal)

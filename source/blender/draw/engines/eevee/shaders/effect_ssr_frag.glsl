@@ -17,13 +17,13 @@ void main()
 {
 	ivec2 fullres_texel = ivec2(gl_FragCoord.xy) * 2;
 	ivec2 halfres_texel = ivec2(gl_FragCoord.xy);
-	float depth = texelFetch(depthBuffer, halfres_texel, 0).r;
+	float depth = texelFetch(depthBuffer, fullres_texel, 0).r;
 
 	/* Early discard */
 	if (depth == 1.0)
 		discard;
 
-	vec2 uvs = gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0));
+	vec2 uvs = gl_FragCoord.xy * 2.0 / vec2(textureSize(depthBuffer, 0));
 
 	/* Using view space */
 	vec3 viewPosition = get_view_space_from_depth(uvs, depth);
@@ -61,6 +61,7 @@ void main()
 
 #else /* STEP_RESOLVE */
 
+uniform sampler2D colorBuffer; /* previous frame */
 uniform sampler2D depthBuffer;
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
@@ -71,6 +72,7 @@ uniform sampler2D pdfBuffer;
 uniform int probe_count;
 
 uniform mat4 ViewProjectionMatrix;
+uniform mat4 PastViewProjectionMatrix;
 
 out vec4 fragColor;
 
@@ -98,6 +100,62 @@ void fallback_cubemap(vec3 N, vec3 V, vec3 W, float roughness, float roughnessSq
 	}
 }
 
+#if 0 /* Finish reprojection with motion vectors */
+vec3 get_motion_vector(vec3 pos)
+{
+}
+
+/* http://bitsquid.blogspot.fr/2017/06/reprojecting-reflections_22.html */
+vec3 find_reflection_incident_point(vec3 cam, vec3 hit, vec3 pos, vec3 N)
+{
+	float d_cam = point_plane_projection_dist(cam, pos, N);
+	float d_hit = point_plane_projection_dist(hit, pos, N);
+
+	if (d_hit < d_cam) {
+		/* Swap */
+		float tmp = d_cam;
+		d_cam = d_hit;
+		d_hit = tmp;
+	}
+
+	vec3 proj_cam = cam - (N * d_cam);
+	vec3 proj_hit = hit - (N * d_hit);
+
+	return (proj_hit - proj_cam) * d_cam / (d_cam + d_hit) + proj_cam;
+}
+#endif
+
+vec2 get_reprojected_reflection(vec3 hit, vec3 pos, vec3 N)
+{
+	/* TODO real motion vectors */
+	/* Transform to viewspace */
+	// vec4(get_view_space_from_depth(uvcoords, depth), 1.0);
+	// vec4(get_view_space_from_depth(uvcoords, depth), 1.0);
+
+	/* Reproject */
+	// vec3 hit_reprojected = find_reflection_incident_point(cameraPos, hit, pos, N);
+
+	vec4 hit_co = PastViewProjectionMatrix * vec4(hit, 1.0);
+	return (hit_co.xy / hit_co.w) * 0.5 + 0.5;
+}
+
+float screen_border_mask(vec2 past_hit_co, vec3 hit)
+{
+	/* Fade on current and past screen edges */
+	vec4 hit_co = ViewProjectionMatrix * vec4(hit, 1.0);
+	hit_co.xy = (hit_co.xy / hit_co.w) * 0.5 + 0.5;
+	hit_co.zw = past_hit_co;
+
+	const float margin = 0.002;
+	const float atten = 0.05 + margin; /* Screen percentage */
+	hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
+	vec2 atten_fac = min(hit_co.xy, hit_co.zw);
+
+	float screenfade = atten_fac.x * atten_fac.y;
+
+	return screenfade;
+}
+
 void main()
 {
 	ivec2 halfres_texel = ivec2(gl_FragCoord.xy / 2.0);
@@ -122,17 +180,16 @@ void main()
 
 	/* Resolve SSR and compute contribution */
 
-	/* We generate the same rays that has been genearted in the raycast step.
+	/* We generate the same rays that has been generated in the raycast step.
 	 * But we add this ray from our resolve pixel position, increassing accuracy. */
 	vec3 R = generate_ray(-V, N);
 	float ray_length = texelFetch(hitBuffer, halfres_texel, 0).r;
 
 	if (ray_length != -1.0) {
 		vec3 hit_pos = worldPosition + R * ray_length;
-		vec4 hit_co = ViewProjectionMatrix * vec4(hit_pos, 1.0);
-		spec_accum.xy = (hit_co.xy / hit_co.w) * 0.5 + 0.5;
-		spec_accum.xyz = vec3(mod(dot(floor(hit_pos.xyz * 5.0), vec3(1.0)), 2.0));
-		spec_accum.a = 1.0;
+		vec2 ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
+		spec_accum.a = screen_border_mask(ref_uvs, hit_pos);
+		spec_accum.xyz = textureLod(colorBuffer, ref_uvs, 0.0).rgb * spec_accum.a;
 	}
 
 	/* If SSR contribution is not 1.0, blend with cubemaps */

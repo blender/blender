@@ -45,6 +45,7 @@
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
+#include "GPU_framebuffer.h"
 
 #define SHADER_DEFINES \
 	"#define EEVEE_ENGINE\n" \
@@ -513,6 +514,9 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	if (BKE_collection_engine_property_value_get_bool(props, "ssr_enable")) {
 		effects->enabled_effects |= EFFECT_SSR;
 
+		/* Enable double buffering to be able to read previous frame color */
+		effects->enabled_effects |= EFFECT_DOUBLE_BUFFER;
+
 		int tracing_res[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
 		const bool record_two_hit = false;
 		const bool high_qual_input = true; /* TODO dither low quality input */
@@ -522,19 +526,26 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		if (txl->ssr_normal_input == NULL) {
 			DRWTextureFormat nor_format = DRW_TEX_RG_16;
 			txl->ssr_normal_input = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1], nor_format, 0, NULL);
-			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
 		}
 
 		if (txl->ssr_specrough_input == NULL) {
 			DRWTextureFormat specrough_format = (high_qual_input) ? DRW_TEX_RGBA_16 : DRW_TEX_RGBA_8;
 			txl->ssr_specrough_input = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1], specrough_format, 0, NULL);
-			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
 		}
+
+		/* Reattach textures to the right buffer (because we are alternating between buffers) */
+		/* TODO multiple FBO per texture!!!! */
+		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
+		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
+		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
+		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
 
 		/* Raytracing output */
 		/* TODO try integer format for hit coord to increase precision */
 		DRWFboTexture tex_output[2] = {{&txl->ssr_hit_output, (record_two_hit) ? DRW_TEX_RGBA_16 : DRW_TEX_RG_16, 0},
 		                               {&txl->ssr_pdf_output, (record_two_hit) ? DRW_TEX_RG_16 : DRW_TEX_R_16, 0}};
+
+		DRW_framebuffer_init(&fbl->screen_tracing_fb, &draw_engine_eevee_type, tracing_res[0], tracing_res[1], tex_output, 2);
 
 		/* Compute pixel projection matrix */
 		{
@@ -547,14 +558,12 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 			/* UVs to pixels */
 			unit_m4(uvpix);
-			uvpix[0][0] = tracing_res[0];
-			uvpix[1][1] = tracing_res[1];
+			uvpix[0][0] = viewport_size[0];
+			uvpix[1][1] = viewport_size[1];
 
 			mul_m4_m4m4(tmp, uvpix, ndcuv);
 			mul_m4_m4m4(e_data.pixelprojmat, tmp, winmat);
 		}
-
-		DRW_framebuffer_init(&fbl->screen_tracing_fb, &draw_engine_eevee_type, tracing_res[0], tracing_res[1], tex_output, 2);
 	}
 	else {
 		/* Cleanup to release memory */
@@ -563,6 +572,23 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_TEXTURE_FREE_SAFE(txl->ssr_hit_output);
 		DRW_TEXTURE_FREE_SAFE(txl->ssr_pdf_output);
 		DRW_FRAMEBUFFER_FREE_SAFE(fbl->screen_tracing_fb);
+	}
+
+	/* Setup double buffer so we can access last frame as it was before post processes */
+	if ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) {
+		DRWFboTexture tex_double_buffer = {&txl->color_double_buffer, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
+
+		DRW_framebuffer_init(&fbl->double_buffer, &draw_engine_eevee_type,
+		                    (int)viewport_size[0], (int)viewport_size[1],
+		                    &tex_double_buffer, 1);
+
+		copy_m4_m4(stl->g_data->prev_persmat, stl->g_data->next_persmat);
+		DRW_viewport_matrix_get(stl->g_data->next_persmat, DRW_MAT_PERS);
+	}
+	else {
+		/* Cleanup to release memory */
+		DRW_TEXTURE_FREE_SAFE(txl->color_double_buffer);
+		DRW_FRAMEBUFFER_FREE_SAFE(fbl->double_buffer);
 	}
 }
 
@@ -667,8 +693,10 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &txl->color_double_buffer);
 		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &txl->ssr_hit_output);
 		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &txl->ssr_pdf_output);
+		DRW_shgroup_uniform_mat4(grp, "PastViewProjectionMatrix", (float *)stl->g_data->prev_persmat);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_int(grp, "probe_count", &sldata->probes->num_render_cube, 1);
 		DRW_shgroup_uniform_float(grp, "lodCubeMax", &sldata->probes->lod_cube_max, 1);
@@ -795,17 +823,6 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 }
 
-#define SWAP_BUFFERS() {                           \
-	if (effects->source_buffer == txl->color) {    \
-		effects->source_buffer = txl->color_post;  \
-		effects->target_buffer = fbl->main;        \
-	}                                              \
-	else {                                         \
-		effects->source_buffer = txl->color;       \
-		effects->target_buffer = fbl->effect_fb;   \
-	}                                              \
-} ((void)0)
-
 static void minmax_downsample_cb(void *vedata, int UNUSED(level))
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
@@ -878,11 +895,12 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
-	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
+	if ((effects->enabled_effects & EFFECT_SSR) != 0 && stl->g_data->valid_double_buffer) {
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 		/* Raytrace at halfres. */
-		e_data.depth_src = stl->g_data->minmaxz;
+		e_data.depth_src = dtxl->depth;
+		// e_data.depth_src = stl->g_data->minmaxz;
 		DRW_framebuffer_bind(fbl->screen_tracing_fb);
 		DRW_draw_pass(psl->ssr_raytrace);
 
@@ -901,6 +919,26 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 	}
 }
 
+#define SWAP_DOUBLE_BUFFERS() {                                       \
+	if (swap_double_buffer) {                                         \
+		SWAP(struct GPUFrameBuffer *, fbl->main, fbl->double_buffer); \
+		SWAP(GPUTexture *, txl->color, txl->color_double_buffer);     \
+		swap_double_buffer = false;                                   \
+	}                                                                 \
+} ((void)0)
+
+#define SWAP_BUFFERS() {                           \
+	if (effects->source_buffer == txl->color) {    \
+		effects->source_buffer = txl->color_post;  \
+		effects->target_buffer = fbl->main;        \
+	}                                              \
+	else {                                         \
+		effects->source_buffer = txl->color;       \
+		effects->target_buffer = fbl->effect_fb;   \
+	}                                              \
+	SWAP_DOUBLE_BUFFERS();                         \
+} ((void)0)
+
 void EEVEE_draw_effects(EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
@@ -908,6 +946,9 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
+
+	/* only once per frame after the first post process */
+	bool swap_double_buffer = ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0);
 
 	/* Default framebuffer and texture */
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
@@ -1020,6 +1061,15 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 
 	/* Tonemapping */
 	DRW_transform_to_display(effects->source_buffer);
+
+	/* If no post processes is enabled, buffers are still not swapped, do it now. */
+	SWAP_DOUBLE_BUFFERS();
+
+	if (!stl->g_data->valid_double_buffer) {
+		/* If history buffer is not valid request another frame.
+		 * This fix black reflections on area resize. */
+		DRW_viewport_request_redraw();
+	}
 }
 
 void EEVEE_effects_free(void)
