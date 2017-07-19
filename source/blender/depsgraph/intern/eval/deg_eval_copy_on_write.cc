@@ -586,7 +586,11 @@ ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	ntree_hack_remap_pointers(depsgraph, id_cow);
 #endif
-
+	/* Do it now, so remapping will understand that possibly remapped self ID
+	 * is not to be remapped again.
+	 */
+	deg_tag_copy_on_write_id(id_cow, id_orig);
+	/* Perform remapping of the nodes. */
 	RemapCallbackUserData user_data;
 	user_data.depsgraph = depsgraph;
 	user_data.temp_id = newid;
@@ -605,9 +609,6 @@ ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
 	if (newid != NULL) {
 		MEM_freeN(newid);
 	}
-	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
-	/* TODO(sergey): Is it safe to re-use newid for original ID link? */
-	id_cow->newid = (ID *)id_orig;
 	return id_cow;
 }
 
@@ -731,6 +732,13 @@ bool deg_validate_copy_on_write_datablock(ID *id_cow)
 	                            &data,
 	                            IDWALK_NOP);
 	return data.is_valid;
+}
+
+void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
+{
+	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
+	/* TODO(sergey): Is it safe to re-use newid for original ID link? */
+	id_cow->newid = (ID *)id_orig;
 }
 
 }  // namespace DEG
