@@ -279,13 +279,13 @@ IDDepsNode *Depsgraph::find_id_node(const ID *id) const
 	return reinterpret_cast<IDDepsNode *>(BLI_ghash_lookup(id_hash, id));
 }
 
-IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name, bool do_tag)
+IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag)
 {
 	BLI_assert((id->tag & LIB_TAG_COPY_ON_WRITE) == 0);
 	IDDepsNode *id_node = find_id_node(id);
 	if (!id_node) {
 		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_ID_REF);
-		id_node = (IDDepsNode *)factory->create_node(id, "", name);
+		id_node = (IDDepsNode *)factory->create_node(id, "", id->name);
 		if (do_tag) {
 			id->tag |= LIB_TAG_DOIT;
 		}
@@ -462,8 +462,7 @@ ID *Depsgraph::ensure_cow_id(ID *id_orig)
 		/* ID is already remapped to copy-on-write. */
 		return id_orig;
 	}
-	/* TODO()sergey): What name we should use here? */
-	IDDepsNode *id_node = add_id_node(id_orig, id_orig->name, false);
+	IDDepsNode *id_node = add_id_node(id_orig, false);
 	return id_node->id_cow;
 }
 

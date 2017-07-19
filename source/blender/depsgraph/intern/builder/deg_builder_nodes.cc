@@ -163,7 +163,7 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-	IDDepsNode *id_node = m_graph->add_id_node(id, id->name);
+	IDDepsNode *id_node = m_graph->add_id_node(id);
 #ifdef WITH_COPY_ON_WRITE
 	/* Currently all ID nodes are supposed to have copy-on-write logic.
 	 *
