@@ -90,6 +90,7 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_bsdf_common_lib_glsl[];
+extern char datatoc_bsdf_sampling_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
 extern char datatoc_effect_ssr_frag_glsl[];
 extern char datatoc_effect_minmaxz_frag_glsl[];
@@ -178,6 +179,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	if (!e_data.motion_blur_sh) {
 		DynStr *ds_frag = BLI_dynstr_new();
 		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_raytrace_lib_glsl);
@@ -683,7 +685,8 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.ssr_raytrace_sh, psl->ssr_raytrace);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
-		DRW_shgroup_uniform_buffer(grp, "specRoughBuffer", &txl->ssr_specrough_input);
+		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_mat4(grp, "PixelProjMatrix", (float *)&e_data.pixelprojmat);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -693,6 +696,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &txl->color_double_buffer);
 		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &txl->ssr_hit_output);
 		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &txl->ssr_pdf_output);

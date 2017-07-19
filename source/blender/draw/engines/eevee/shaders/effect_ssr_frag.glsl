@@ -1,7 +1,16 @@
 
-vec3 generate_ray(vec3 V, vec3 N)
+#ifndef UTIL_TEX
+#define UTIL_TEX
+uniform sampler2DArray utilTex;
+#endif /* UTIL_TEX */
+
+vec3 generate_ray(ivec2 pix, vec3 V, vec3 N, float roughnessSquared)
 {
-	return -reflect(-V, N);
+	vec3 T, B;
+	make_orthonormal_basis(N, T, B); /* Generate tangent space */
+	vec3 rand = texelFetch(utilTex, ivec3(pix % LUT_SIZE, 2), 0).rba;
+	vec3 H = sample_ggx(rand, roughnessSquared, N, T, B); /* Microfacet normal */
+	return -reflect(-V, H);
 }
 
 #ifdef STEP_RAYTRACE
@@ -19,7 +28,7 @@ void main()
 	ivec2 halfres_texel = ivec2(gl_FragCoord.xy);
 	float depth = texelFetch(depthBuffer, fullres_texel, 0).r;
 
-	/* Early discard */
+	/* Early out */
 	if (depth == 1.0)
 		discard;
 
@@ -36,7 +45,7 @@ void main()
 	float roughnessSquared = roughness * roughness;
 
 	/* Generate Ray */
-	vec3 R = generate_ray(V, N);
+	vec3 R = generate_ray(halfres_texel, V, N, roughnessSquared);
 
 	/* Search for the planar reflection affecting this pixel */
 	/* If no planar is found, fallback to screen space */
@@ -164,7 +173,7 @@ void main()
 
 	float depth = textureLod(depthBuffer, uvs, 0.0).r;
 
-	/* Early discard */
+	/* Early out */
 	if (depth == 1.0)
 		discard;
 
@@ -182,7 +191,7 @@ void main()
 
 	/* We generate the same rays that has been generated in the raycast step.
 	 * But we add this ray from our resolve pixel position, increassing accuracy. */
-	vec3 R = generate_ray(-V, N);
+	vec3 R = generate_ray(halfres_texel, -V, N, roughnessSquared);
 	float ray_length = texelFetch(hitBuffer, halfres_texel, 0).r;
 
 	if (ray_length != -1.0) {
