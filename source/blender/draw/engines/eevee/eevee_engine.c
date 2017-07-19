@@ -108,10 +108,20 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 		}
 	}
 	else if (ob->type == OB_LIGHTPROBE) {
-		EEVEE_lightprobes_cache_add(sldata, ob);
+		if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
+			/* TODO: Special case for dupli objects because we cannot save the object pointer. */
+		}
+		else {
+			EEVEE_lightprobes_cache_add(sldata, ob);
+		}
 	}
 	else if (ob->type == OB_LAMP) {
-		EEVEE_lights_cache_add(sldata, ob);
+		if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
+			/* TODO: Special case for dupli objects because we cannot save the object pointer. */
+		}
+		else {
+			EEVEE_lights_cache_add(sldata, ob);
+		}
 	}
 }
 
