@@ -227,3 +227,29 @@ bool GPU_select_is_cached(void)
 {
 	return g_select_state.use_cache && gpu_select_pick_is_cached();
 }
+
+
+/* ----------------------------------------------------------------------------
+ * Utilities
+ */
+
+/**
+ * Helper function, nothing special but avoids doing inline since hit's aren't sorted by depth
+ * and purpose of 4x buffer indices isn't so clear.
+ *
+ * Note that comparing depth as uint is fine.
+ */
+const uint *GPU_select_buffer_near(const uint *buffer, int hits)
+{
+	const uint *buffer_near = NULL;
+	uint depth_min = (uint)-1;
+	for (int i = 0; i < hits; i++) {
+		if (buffer[1] < depth_min) {
+			BLI_assert(buffer[3] != -1);
+			depth_min = buffer[1];
+			buffer_near = buffer;
+		}
+		buffer += 4;
+	}
+	return buffer_near;
+}
