@@ -89,6 +89,9 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 			base->object->select_color = select_color++;
 		}
 	}
+	if (scene->camera != NULL) {
+		build_object(scene, scene->camera);
+	}
 
 	/* rigidbody */
 	if (scene->rigidbody_world) {

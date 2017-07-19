@@ -84,6 +84,9 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 			build_object(bmain, scene, base->object);
 		}
 	}
+	if (scene->camera != NULL) {
+		build_object(bmain, scene, scene->camera);
+	}
 
 	/* rigidbody */
 	if (scene->rigidbody_world) {
