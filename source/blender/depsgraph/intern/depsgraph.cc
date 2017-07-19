@@ -275,19 +275,23 @@ IDDepsNode *Depsgraph::find_id_node(const ID *id) const
 	return reinterpret_cast<IDDepsNode *>(BLI_ghash_lookup(id_hash, id));
 }
 
-IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name)
+IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name, bool do_tag)
 {
 	IDDepsNode *id_node = find_id_node(id);
 	if (!id_node) {
 		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", name);
-		id->tag |= LIB_TAG_DOIT;
+		if (do_tag) {
+			id->tag |= LIB_TAG_DOIT;
+		}
 		/* Register node in ID hash.
 		 *
 		 * NOTE: We address ID nodes by the original ID pointer they are
 		 * referencing to.
 		 */
 		BLI_ghash_insert(id_hash, id, id_node);
+	} else if (do_tag) {
+		id->tag |= LIB_TAG_DOIT;
 	}
 	return id_node;
 }
@@ -389,9 +393,9 @@ DepsRelation::~DepsRelation()
 void Depsgraph::add_entry_tag(OperationDepsNode *node)
 {
 	/* Sanity check. */
-	if (!node)
+	if (node == NULL) {
 		return;
-
+	}
 	/* Add to graph-level set of directly modified nodes to start searching from.
 	 * NOTE: this is necessary since we have several thousand nodes to play with...
 	 */
@@ -424,6 +428,17 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 		}
 		return (ID *)id_orig;
 	}
+	return id_node->id_cow;
+}
+
+ID *Depsgraph::ensure_cow_id(ID *id_orig)
+{
+	if (id_orig->tag & LIB_TAG_COPY_ON_WRITE) {
+		/* ID is already remapped to copy-on-write. */
+		return id_orig;
+	}
+	/* TODO()sergey): What name we should use here? */
+	IDDepsNode *id_node = add_id_node(id_orig, id_orig->name, false);
 	return id_node->id_cow;
 }
 

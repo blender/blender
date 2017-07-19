@@ -521,10 +521,12 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 	if (adt == NULL) {
 		return;
 	}
-	ID *id_cow = get_cow_id(id);
 
 	/* animation */
 	if (adt->action || adt->nla_tracks.first || adt->drivers.first) {
+		(void) add_id_node(id);
+		ID *id_cow = get_cow_id(id);
+
 		// XXX: Hook up specific update callbacks for special properties which
 		// may need it...
 

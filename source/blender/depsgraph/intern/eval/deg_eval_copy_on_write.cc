@@ -321,7 +321,7 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 
 struct RemapCallbackUserData {
 	/* Dependency graph for which remapping is happening. */
-	const Depsgraph *depsgraph;
+	Depsgraph *depsgraph;
 	/* Temporarily allocated memory for copying purposes. This ID will
 	 * be discarded after expanding is done, so need to make sure temp_id
 	 * is replaced with proper real_id.
@@ -333,6 +333,12 @@ struct RemapCallbackUserData {
 	 */
 	const ID *temp_id;
 	ID *real_id;
+	/* Create placeholder for ID nodes for cases when we need to remap original
+	 * ID to it[s CoW version but we don't have required ID node yet.
+	 *
+	 * This happens when expansion happens a ta construction time.
+	 */
+	bool create_placeholders;
 };
 
 int foreach_libblock_remap_callback(void *user_data_v,
@@ -341,16 +347,22 @@ int foreach_libblock_remap_callback(void *user_data_v,
                                     int /*cb_flag*/)
 {
 	RemapCallbackUserData *user_data = (RemapCallbackUserData *)user_data_v;
-	const Depsgraph *depsgraph = user_data->depsgraph;
+	Depsgraph *depsgraph = user_data->depsgraph;
 	if (*id_p != NULL) {
-		const ID *id_orig = *id_p;
+		ID *id_orig = *id_p;
 		if (id_orig == user_data->temp_id) {
 			DEG_COW_PRINT("    Remapping datablock for %s: id_temp=%p id_cow=%p\n",
 			              id_orig->name, id_orig, user_data->real_id);
 			*id_p = user_data->real_id;
 		}
 		else if (check_datablocks_copy_on_writable(id_orig)) {
-			ID *id_cow = depsgraph->get_cow_id(id_orig);
+			ID *id_cow;
+			if (user_data->create_placeholders) {
+				id_cow = depsgraph->ensure_cow_id(id_orig);
+			}
+			else {
+				id_cow = depsgraph->get_cow_id(id_orig);
+			}
 			BLI_assert(id_cow != NULL);
 			DEG_COW_PRINT("    Remapping datablock for %s: id_orig=%p id_cow=%p\n",
 			              id_orig->name, id_orig, id_cow);
@@ -498,9 +510,12 @@ int foreach_libblock_validate_callback(void *user_data,
  *
  * NOTE: Expects that CoW datablock is empty.
  */
-ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
-                                       const IDDepsNode *id_node)
+ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
+                                       const IDDepsNode *id_node,
+                                       bool create_placeholders)
 {
+	BLI_assert(!create_placeholders ||
+	           check_datablock_expanded_at_construction(id_node->id_orig));
 	const ID *id_orig = id_node->id_orig;
 	ID *id_cow = id_node->id_cow;
 	DEG_COW_PRINT("Expanding datablock for %s: id_orig=%p id_cow=%p\n",
@@ -575,6 +590,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	user_data.depsgraph = depsgraph;
 	user_data.temp_id = newid;
 	user_data.real_id = id_cow;
+	user_data.create_placeholders = create_placeholders;
 	BKE_library_foreach_ID_link(NULL,
 	                            id_cow,
 	                            foreach_libblock_remap_callback,
@@ -593,14 +609,18 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 }
 
 /* NOTE: Depsgraph is supposed to have ID node already. */
-ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph, ID *id_orig)
+ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
+                                       ID *id_orig,
+                                       bool create_placeholders)
 {
 	DEG::IDDepsNode *id_node = depsgraph->find_id_node(id_orig);
 	BLI_assert(id_node != NULL);
-	return deg_expand_copy_on_write_datablock(depsgraph, id_node);
+	return deg_expand_copy_on_write_datablock(depsgraph,
+	                                          id_node,
+	                                          create_placeholders);
 }
 
-ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
+ID *deg_update_copy_on_write_datablock(/*const*/ Depsgraph *depsgraph,
                                        const IDDepsNode *id_node)
 {
 	const ID *id_orig = id_node->id_orig;
@@ -619,12 +639,13 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * - Perform full datablock copy.
 	 */
 	deg_free_copy_on_write_datablock(id_cow);
-	deg_expand_copy_on_write_datablock(depsgraph, id_node);
+	deg_expand_copy_on_write_datablock(depsgraph, id_node, false);
 	return id_cow;
 }
 
 /* NOTE: Depsgraph is supposed to have ID node already. */
-ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, ID *id_orig)
+ID *deg_update_copy_on_write_datablock(/*const*/ Depsgraph *depsgraph,
+                                       ID *id_orig)
 {
 	DEG::IDDepsNode *id_node = depsgraph->find_id_node(id_orig);
 	BLI_assert(id_node != NULL);
@@ -686,8 +707,8 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 	id_cow->name[0] = '\0';
 }
 
-void deg_evaluate_copy_on_write(EvaluationContext * /*eval_ctx*/,
-                                const Depsgraph *depsgraph,
+void deg_evaluate_copy_on_write(const EvaluationContext * /*eval_ctx*/,
+                                /*const*/ Depsgraph *depsgraph,
                                 const IDDepsNode *id_node)
 {
 	DEBUG_PRINT("%s on %s\n", __func__, id_node->id_orig->name);
