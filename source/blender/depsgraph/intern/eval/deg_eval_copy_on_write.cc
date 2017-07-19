@@ -289,16 +289,40 @@ Scene *scene_copy_no_main(Scene *scene)
 /* Callback for BKE_library_foreach_ID_link which remaps original ID pointer
  * with the one created by CoW system.
  */
-int foreach_libblock_remap_callback(void *user_data,
+
+struct RemapCallbackUserData {
+	/* Dependency graph for which remapping is happening. */
+	const Depsgraph *depsgraph;
+	/* Temporarily allocated memory for copying purposes. This ID will
+	 * be discarded after expanding is done, so need to make sure temp_id
+	 * is replaced with proper real_id.
+	 *
+	 * NOTE: This is due to our logic of "inplace" duplication, where we
+	 * use generic duplication routines (which gives us new ID) which then
+	 * is followed with copying data to a placeholder we prepared before and
+	 * discarding pointer returned by duplication routines.
+	 */
+	const ID *temp_id;
+	ID *real_id;
+};
+
+int foreach_libblock_remap_callback(void *user_data_v,
                                     ID * /*id_self*/,
                                     ID **id_p,
                                     int /*cb_flag*/)
 {
-	Depsgraph *depsgraph = (Depsgraph *)user_data;
+	RemapCallbackUserData *user_data = (RemapCallbackUserData *)user_data_v;
+	const Depsgraph *depsgraph = user_data->depsgraph;
 	if (*id_p != NULL) {
 		const ID *id_orig = *id_p;
-		ID *id_cow = depsgraph->get_cow_id(id_orig);
-		if (id_cow != NULL) {
+		if (id_orig == user_data->temp_id) {
+			DEG_COW_PRINT("    Remapping datablock for %s: id_temp=%p id_cow=%p\n",
+			              id_orig->name, id_orig, id_cow);
+			*id_p = user_data->real_id;
+		}
+		else {
+			ID *id_cow = depsgraph->get_cow_id(id_orig);
+			BLI_assert(id_cow != NULL);
 			DEG_COW_PRINT("    Remapping datablock for %s: id_orig=%p id_cow=%p\n",
 			              id_orig->name, id_orig, id_cow);
 			*id_p = id_cow;
@@ -484,6 +508,11 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * - We don't want bmain's content to be freed when main is freed.
 	 */
 	bool done = false;
+	/* Need to make sure the possibly temporary allocated memory is correct for
+	 * until we are fully done with remapping original pointers with copied on
+	 * write ones.
+	 */
+	ID *newid = NULL;
 	/* First we handle special cases which are not covered by id_copy() yet.
 	 * or cases where we want to do something smarter than simple datablock
 	 * copy.
@@ -507,7 +536,6 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 		}
 	}
 	if (!done) {
-		ID *newid;
 		if (id_copy_no_main(id_orig, &newid)) {
 			/* We copy contents of new ID to our CoW placeholder and free ID memory
 			 * returned by id_copy().
@@ -517,7 +545,6 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 			 */
 			const size_t size = BKE_libblock_get_alloc_info(GS(newid->name), NULL);
 			memcpy(id_cow, newid, size);
-			MEM_freeN(newid);
 			done = true;
 		}
 	}
@@ -532,15 +559,23 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	ntree_hack_remap_pointers(depsgraph, id_cow);
 #endif
 
+	RemapCallbackUserData user_data;
+	user_data.depsgraph = depsgraph;
+	user_data.temp_id = newid;
+	user_data.real_id = id_cow;
 	BKE_library_foreach_ID_link(NULL,
 	                            id_cow,
 	                            foreach_libblock_remap_callback,
-	                            (void *)depsgraph,
+	                            (void *)&user_data,
 	                            IDWALK_NOP);
 	/* Correct or tweak some pointers which are not taken care by foreach
 	 * from above.
 	 */
 	update_special_pointers(depsgraph, id_orig, id_cow);
+	/* Now we can safely discard temporary memory used for copying. */
+	if (newid != NULL) {
+		MEM_freeN(newid);
+	}
 	return id_cow;
 }
 
