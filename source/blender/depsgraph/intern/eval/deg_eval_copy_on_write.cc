@@ -317,7 +317,7 @@ int foreach_libblock_remap_callback(void *user_data_v,
 		const ID *id_orig = *id_p;
 		if (id_orig == user_data->temp_id) {
 			DEG_COW_PRINT("    Remapping datablock for %s: id_temp=%p id_cow=%p\n",
-			              id_orig->name, id_orig, id_cow);
+			              id_orig->name, id_orig, user_data->real_id);
 			*id_p = user_data->real_id;
 		}
 		else {
