@@ -49,7 +49,8 @@ extern "C" {
  * generate with simple calls, and then convert to the theirs
  * specific structure on the fly.
  */
-#define RTBUILD_MAX_CHILDS 32
+#define RTBUILD_MAX_CHILDS     32
+#define RTBUILD_MAX_SAH_DEPTH  256
 
 
 typedef struct RTBuilder {
@@ -79,6 +80,8 @@ typedef struct RTBuilder {
 	
 	float bb[6];
 
+	/* current depth */
+	int depth;
 } RTBuilder;
 
 /* used during creation */

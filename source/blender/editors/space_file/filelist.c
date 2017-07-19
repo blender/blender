@@ -1116,7 +1116,10 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
 	preview->img = IMB_thumb_manage(preview->path, THB_LARGE, source);
 	IMB_thumb_path_unlock(preview->path);
 
-	preview->flags = 0;  /* Used to tell free func to not free anything! */
+	/* Used to tell free func to not free anything.
+	 * Note that we do not care about cas result here,
+	 * we only want value attribution itself to be atomic (and memory barier).*/
+	atomic_cas_uint32(&preview->flags, preview->flags, 0);
 	BLI_thread_queue_push(cache->previews_done, preview);
 
 //	printf("%s: End (%d)...\n", __func__, threadid);

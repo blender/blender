@@ -59,6 +59,7 @@ static void rtbuild_init(RTBuilder *b)
 	b->primitives.begin   = NULL;
 	b->primitives.end     = NULL;
 	b->primitives.maxsize = 0;
+	b->depth = 0;
 	
 	for (int i = 0; i < RTBUILD_MAX_CHILDS; i++)
 		b->child_offset[i] = 0;
@@ -177,6 +178,8 @@ RayObject *rtbuild_get_primitive(RTBuilder *b, int index)
 RTBuilder *rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 {
 	rtbuild_init(tmp);
+
+	tmp->depth = b->depth + 1;
 
 	for (int i = 0; i < 3; i++)
 		if (b->sorted_begin[i]) {
@@ -336,6 +339,15 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 	int baxis = -1, boffset = 0;
 
 	if (size > nchilds) {
+		if (b->depth > RTBUILD_MAX_SAH_DEPTH) {
+			// for degenerate cases we avoid running out of stack space
+			// by simply splitting the children in the middle
+			b->child_offset[0] = 0;
+			b->child_offset[1] = (size+1)/2;
+			b->child_offset[2] = size;
+			return 2;
+		}
+
 		float bcost = FLT_MAX;
 		baxis = -1;
 		boffset = size / 2;
