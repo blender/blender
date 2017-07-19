@@ -72,14 +72,21 @@ struct DepsgraphNodeBuilder {
 	DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph);
 	~DepsgraphNodeBuilder();
 
-	void begin_build(Main *bmain);
-
 	ID *get_cow_id(const ID *id_orig) const;
-
 	template<typename T>
 	T *get_cow_datablock(const T *orig) const {
 		return (T *)get_cow_id(&orig->id);
 	}
+	template<typename T>
+	T *get_orig_datablock(const T *cow) const {
+#ifdef WITH_COPY_ON_WRITE
+		return (T *)cow->id.newid;
+#else
+		return cow;
+#endif
+	}
+
+	void begin_build(Main *bmain);
 
 	IDDepsNode *add_id_node(ID *id);
 	TimeSourceDepsNode *add_time_source();

@@ -210,7 +210,7 @@ struct DepsgraphRelationBuilder
 	                         bPoseChannel *pchan,
 	                         bConstraint *con,
 	                         RootPChanMap *root_map);
-	void build_rig(Scene *scene, Object *ob);
+	void build_rig(Main *bmain, Scene *scene, Object *ob);
 	void build_proxy_rig(Object *ob);
 	void build_shapekeys(ID *obdata, Key *key);
 	void build_obdata_geom(Main *bmain, Scene *scene, Object *ob);

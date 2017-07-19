@@ -312,7 +312,8 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 	return !ELEM(id_type, ID_BR,
 	                      ID_TE,
 	                      ID_IM,
-	                      ID_LS);
+	                      ID_LS,
+	                      ID_AC);
 }
 
 /* Callback for BKE_library_foreach_ID_link which remaps original ID pointer
@@ -605,6 +606,8 @@ ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
 		MEM_freeN(newid);
 	}
 	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
+	/* TODO(sergey): Is it safe to re-use newid for original ID link? */
+	id_cow->newid = (ID *)id_orig;
 	return id_cow;
 }
 

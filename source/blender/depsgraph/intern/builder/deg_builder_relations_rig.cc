@@ -291,7 +291,7 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *ob,
 }
 
 /* Pose/Armature Bones Graph */
-void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_rig(Main *bmain, Scene *scene, Object *ob)
 {
 	/* Armature-Data */
 	bArmature *arm = (bArmature *)ob->data;
@@ -379,16 +379,12 @@ void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
 		OperationKey bone_pose_key(&ob->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_POSE_PARENT);
 		OperationKey bone_ready_key(&ob->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_READY);
 		OperationKey bone_done_key(&ob->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_DONE);
-
 		pchan->flag &= ~POSE_DONE;
-
-		/* pose init to bone local */
+		/* Pose init to bone local. */
 		add_relation(init_key, bone_local_key, "PoseEval Source-Bone Link");
-
-		/* local to pose parenting operation */
+		/* Local to pose parenting operation. */
 		add_relation(bone_local_key, bone_pose_key, "Bone Local - PoseSpace Link");
-
-		/* parent relation */
+		/* Parent relation. */
 		if (pchan->parent != NULL) {
 			eDepsOperation_Code parent_key_opcode;
 
@@ -403,8 +399,7 @@ void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
 			OperationKey parent_key(&ob->id, DEG_NODE_TYPE_BONE, pchan->parent->name, parent_key_opcode);
 			add_relation(parent_key, bone_pose_key, "[Parent Bone -> Child Bone]");
 		}
-
-		/* constraints */
+		/* Buil constraints. */
 		if (pchan->constraints.first != NULL) {
 			/* constraints stack and constraint dependencies */
 			build_constraints(scene, &ob->id, DEG_NODE_TYPE_BONE, pchan->name, &pchan->constraints, &root_map);
@@ -431,6 +426,10 @@ void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
 
 		/* assume that all bones must be done for the pose to be ready (for deformers) */
 		add_relation(bone_done_key, flush_key, "PoseEval Result-Bone Link");
+		/* Custom shape. */
+		if (pchan->custom != NULL) {
+			build_object(bmain, scene, pchan->custom);
+		}
 	}
 }
 
