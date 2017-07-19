@@ -82,7 +82,7 @@ struct DepsgraphNodeBuilder {
 #ifdef WITH_COPY_ON_WRITE
 		return (T *)cow->id.newid;
 #else
-		return cow;
+		return (T *)cow;
 #endif
 	}
 
