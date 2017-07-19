@@ -67,11 +67,14 @@ void main()
 	/* Raycast over screen */
 	float hit_dist = raycast(depthBuffer, viewPosition, R);
 
-	/* TODO Check if has hit a backface */
-
 	vec2 hit_co = project_point(ProjectionMatrix, viewPosition + R * hit_dist).xy * 0.5 + 0.5;
+
+	/* Check if has hit a backface */
+	vec3 hit_N = normal_decode(textureLod(normalBuffer, hit_co, 0.0).rg, V);
+	pdf *= step(0.0, dot(-R, hit_N));
+
 	hitData = hit_co.xyxy;
-	pdfData = vec4(pdf) * step(-0.1, hit_dist);
+	pdfData = vec4(pdf) * step(0.0, hit_dist);
 }
 
 #else /* STEP_RESOLVE */

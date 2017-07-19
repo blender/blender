@@ -111,7 +111,10 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 		raw_depth = texelFetch(depth_texture, ivec2(hitpixel), 0).r;
 		view_depth = get_view_z_from_depth(raw_depth);
 
-		if (zmax < view_depth) {
+		/* TODO user threshold */
+		const float threshold = 0.5; /* In view space */
+		/* Check if we are somewhere near the surface. */
+		if ((zmax < view_depth) && (zmax > view_depth - threshold)) {
 			/* Below surface, cannot trace further */
 			hit = true;
 		}
@@ -137,18 +140,14 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 			raw_depth = texelFetch(depth_texture, ivec2(hitpixel), 0).r;
 			view_depth = get_view_z_from_depth(raw_depth);
 
-			if (zmax < view_depth) {
+			/* TODO user threshold */
+			const float threshold = 0.5; /* In view space */
+			/* Check if we are somewhere near the surface. */
+			if ((zmax < view_depth) && (zmax > view_depth - threshold)) {
 				/* Below surface, cannot trace further */
 				break;
 			}
 		}
-	}
-
-	/* Check if we are somewhere near the surface. */
-	/* TODO user threshold */
-	float threshold = 0.1; /* In clip space */
-	if (zmax < view_depth - threshold) {
-		hit = false;
 	}
 
 	/* Check failure cases (out of screen, hit background) */
