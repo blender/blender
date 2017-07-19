@@ -80,7 +80,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 	vec4 pqk = vec4(P0, Q0.z, k0);
 
 	/* Scale derivatives by the desired pixel stride */
-	vec4 dPQK = vec4(dP, dQ.z, dk) * 4.0;
+	vec4 dPQK = vec4(dP, dQ.z, dk) * 8.0;
 
 	/* We track the ray depth at +/- 1/2 pixel to treat pixels as clip-space solid
 	 * voxels. Because the depth at -1/2 for a given pixel will be the same as at
@@ -94,7 +94,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 	float end = P1.x * step_sign;
 
 	bool hit = false;
-	float hitstep, refinestep, raw_depth, view_depth;
+	float hitstep, raw_depth, view_depth;
 	for (hitstep = 0.0; hitstep < MAX_STEP && !hit; hitstep++) {
 		/* Ray finished & no hit*/
 		if ((pqk.x * step_sign) > end) break;
@@ -122,9 +122,9 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 		pqk -= dPQK;
 
 		/* And do a finer trace over this segment */
-		dPQK /= 4.0;
+		dPQK /= 16.0;
 
-		for (refinestep = 0.0; refinestep < 4.0; refinestep++) {
+		for (float refinestep = 0.0; refinestep < 16.0; refinestep++) {
 			/* step through current cell */
 			pqk += dPQK;
 
@@ -146,8 +146,8 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 
 	/* Check if we are somewhere near the surface. */
 	/* TODO user threshold */
-	float threshold = 0.05 / pqk.w; /* In view space */
-	if (zmax < (view_depth - threshold)) {
+	float threshold = 0.1; /* In clip space */
+	if (zmax < view_depth - threshold) {
 		hit = false;
 	}
 
