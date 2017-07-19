@@ -286,6 +286,35 @@ Scene *scene_copy_no_main(Scene *scene)
 	return new_scene;
 }
 
+/* Check whether given ID is expanded or still a shallow copy. */
+BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
+{
+	return (id_cow->name[0] != '\0');
+}
+
+/* Check whether datablock was already expanded during depsgraph
+ * construction.
+ */
+static bool check_datablock_expanded_at_construction(const ID *id_orig)
+{
+	const short id_type = GS(id_orig->name);
+	return (id_type == ID_SCE) ||
+	       (id_type == ID_OB && ((Object *)id_orig)->type == OB_ARMATURE) ||
+	       (id_type == ID_AR);
+}
+
+/* Those are datablocks which are not covered by dependency graph and hence
+ * does not need any remapping or anything.
+ */
+static bool check_datablocks_copy_on_writable(const ID *id_orig)
+{
+	const short id_type = GS(id_orig->name);
+	return !ELEM(id_type, ID_BR,
+	                      ID_TE,
+	                      ID_IM,
+	                      ID_LS);
+}
+
 /* Callback for BKE_library_foreach_ID_link which remaps original ID pointer
  * with the one created by CoW system.
  */
@@ -320,7 +349,7 @@ int foreach_libblock_remap_callback(void *user_data_v,
 			              id_orig->name, id_orig, user_data->real_id);
 			*id_p = user_data->real_id;
 		}
-		else {
+		else if (check_datablocks_copy_on_writable(id_orig)) {
 			ID *id_cow = depsgraph->get_cow_id(id_orig);
 			BLI_assert(id_cow != NULL);
 			DEG_COW_PRINT("    Remapping datablock for %s: id_orig=%p id_cow=%p\n",
@@ -329,23 +358,6 @@ int foreach_libblock_remap_callback(void *user_data_v,
 		}
 	}
 	return IDWALK_RET_NOP;
-}
-
-/* Check whether given ID is expanded or still a shallow copy. */
-BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
-{
-	return (id_cow->name[0] != '\0');
-}
-
-/* Check whether datablock was already expanded during depsgraph
- * construction.
- */
-static bool check_datablock_expanded_at_construction(const ID *id_orig)
-{
-	const short id_type = GS(id_orig->name);
-	return (id_type == ID_SCE) ||
-	       (id_type == ID_OB && ((Object *)id_orig)->type == OB_ARMATURE) ||
-	       (id_type == ID_AR);
 }
 
 /* Do some special treatment of data transfer from original ID to it's

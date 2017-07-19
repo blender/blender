@@ -786,8 +786,6 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 // XXX: what happens if the datablock is shared!
 void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 {
-	ID *obdata = (ID *)ob->data;
-	ID *obdata_cow = get_cow_id(obdata);
 	OperationDepsNode *op_node;
 	Scene *scene_cow = get_cow_datablock(scene);
 	Object *object_cow = get_cow_datablock(ob);
@@ -858,9 +856,14 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		// add geometry collider relations
 	}
 
+	ID *obdata = (ID *)ob->data;
 	if (obdata->tag & LIB_TAG_DOIT) {
 		return;
 	}
+	obdata->tag |= LIB_TAG_DOIT;
+	/* Make sure we've got an ID node before requesting CoW pointer. */
+	(void) add_id_node((ID *)obdata);
+	ID *obdata_cow = get_cow_id(obdata);
 
 	/* ShapeKeys */
 	Key *key = BKE_key_from_object(ob);

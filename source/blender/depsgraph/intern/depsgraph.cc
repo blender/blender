@@ -412,6 +412,16 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 {
 	IDDepsNode *id_node = find_id_node(id_orig);
 	if (id_node == NULL) {
+		/* This function is used from places where we expect ID to be either
+		 * already a copy-on-write version or have a corresponding copy-on-write
+		 * version.
+		 *
+		 * We try to enforce that in debug builds, for for release we play a bit
+		 * safer game here.
+		 */
+		if ((id_orig->tag & LIB_TAG_COPY_ON_WRITE) == 0) {
+			BLI_assert(!"Request for non-existing copy-on-write ID");
+		}
 		return (ID *)id_orig;
 	}
 	return id_node->id_cow;
