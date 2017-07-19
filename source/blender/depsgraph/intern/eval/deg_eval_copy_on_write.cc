@@ -670,6 +670,9 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 		return;
 	}
 	const short type = GS(id_cow->name);
+#ifdef NESTED_ID_NASTY_WORKAROUND
+	nested_id_hack_discard_pointers(id_cow);
+#endif
 	switch (type) {
 		case ID_OB:
 		{
@@ -696,15 +699,13 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 			/* Special case for scene: we use explicit function call which
 			 * ensures no access to other datablocks is done.
 			 */
-			BKE_scene_free_ex((Scene *)id_cow, false);
+			Scene *scene = (Scene *)id_cow;
+			BKE_scene_free_ex(scene, false);
 			BKE_libblock_free_data(id_cow, false);
 			id_cow->name[0] = '\0';
 			return;
 		}
 	}
-#ifdef NESTED_ID_NASTY_WORKAROUND
-	nested_id_hack_discard_pointers(id_cow);
-#endif
 	BKE_libblock_free_datablock(id_cow);
 	BKE_libblock_free_data(id_cow, false);
 	/* Signal datablock as not being expanded. */
