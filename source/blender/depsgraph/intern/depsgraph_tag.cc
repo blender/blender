@@ -227,7 +227,6 @@ void id_tag_update_copy_on_write(Depsgraph *graph, IDDepsNode *id_node)
 	        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
 	OperationDepsNode *cow_node = cow_comp->get_entry_operation();
 	cow_node->tag_update(graph);
-	cow_node->flag |= DEPSOP_FLAG_SKIP_FLUSH;
 }
 #endif
 

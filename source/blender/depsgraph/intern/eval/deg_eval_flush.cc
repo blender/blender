@@ -105,10 +105,8 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	 */
 	GSET_FOREACH_BEGIN(OperationDepsNode *, op_node, graph->entry_tags)
 	{
-		if ((op_node->flag & DEPSOP_FLAG_SKIP_FLUSH) == 0) {
-			queue.push_back(op_node);
-			op_node->scheduled = true;
-		}
+		queue.push_back(op_node);
+		op_node->scheduled = true;
 	}
 	GSET_FOREACH_END();
 

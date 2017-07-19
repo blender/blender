@@ -50,11 +50,6 @@ typedef enum eDepsOperation_Flag {
 	 * implications...
 	 */
 	DEPSOP_FLAG_USES_PYTHON        = (1 << 2),
-
-	/* Special flag which indicates that update tag sohuld not be flushed
-	 * up to the dependent nodes.
-	 */
-	DEPSOP_FLAG_SKIP_FLUSH         = (1 << 3),
 } eDepsOperation_Flag;
 
 /* Atomic Operation - Base type for all operations */

@@ -76,9 +76,6 @@ string OperationDepsNode::full_identifier() const
 
 void OperationDepsNode::tag_update(Depsgraph *graph)
 {
-	if (flag & DEPSOP_FLAG_SKIP_FLUSH) {
-		flag &= ~DEPSOP_FLAG_SKIP_FLUSH;
-	}
 	if (flag & DEPSOP_FLAG_NEEDS_UPDATE) {
 		return;
 	}
