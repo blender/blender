@@ -40,9 +40,10 @@
 #include "UI_interface_icons.h"
 
 #include "clay_engine.h"
-#include "../eevee/eevee_lut.h" /* TODO find somewhere to share blue noise Table */
 
 #ifdef WITH_CLAY_ENGINE
+#include "../eevee/eevee_lut.h" /* TODO find somewhere to share blue noise Table */
+
 /* Shaders */
 
 #define CLAY_ENGINE "BLENDER_CLAY"
