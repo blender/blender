@@ -2711,7 +2711,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	wmWindow *win = CTX_wm_window(C);
 
 	/* only allow 1 file selector open per window */
-	for (handler = win->handlers.first; handler; handler = handlernext) {
+	for (handler = win->modalhandlers.first; handler; handler = handlernext) {
 		handlernext = handler->next;
 		
 		if (handler->type == WM_HANDLER_FILESELECT) {
@@ -2725,7 +2725,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 
 					if (sfile->op == handler->op) {
 						CTX_wm_area_set(C, sa);
-						wm_handler_fileselect_do(C, &win->handlers, handler, EVT_FILESELECT_CANCEL);
+						wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
 						break;
 					}
 				}
@@ -2733,7 +2733,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 
 			/* if not found we stop the handler without changing the screen */
 			if (!sa)
-				wm_handler_fileselect_do(C, &win->handlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
+				wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
 		}
 	}
 	
@@ -2744,7 +2744,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	handler->op_area = CTX_wm_area(C);
 	handler->op_region = CTX_wm_region(C);
 	
-	BLI_addhead(&win->handlers, handler);
+	BLI_addhead(&win->modalhandlers, handler);
 	
 	/* check props once before invoking if check is available
 	 * ensures initial properties are valid */
@@ -2794,7 +2794,8 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 void WM_event_modal_handler_area_replace(wmWindow *win, const ScrArea *old_area, ScrArea *new_area)
 {
 	for (wmEventHandler *handler = win->modalhandlers.first; handler; handler = handler->next) {
-		if (handler->op_area == old_area) {
+		/* fileselect handler is quite special... it needs to keep old area stored in handler, so don't change it */
+		if ((handler->op_area == old_area) && (handler->type != WM_HANDLER_FILESELECT)) {
 			handler->op_area = new_area;
 		}
 	}
