@@ -223,9 +223,10 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	filelist_setdir(sfile->files, params->dir);
 	filelist_setrecursion(sfile->files, params->recursion_level);
 	filelist_setsorting(sfile->files, params->sort);
-	filelist_setfilter_options(sfile->files, (params->flag & FILE_HIDE_DOT) != 0,
+	filelist_setfilter_options(sfile->files, (params->flag & FILE_FILTER) != 0,
+	                                         (params->flag & FILE_HIDE_DOT) != 0,
 	                                         false, /* TODO hide_parent, should be controllable? */
-	                                         (params->flag & FILE_FILTER) ? params->filter : 0,
+	                                         params->filter,
 	                                         params->filter_id,
 	                                         params->filter_glob,
 	                                         params->filter_search);

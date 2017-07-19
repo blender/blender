@@ -277,9 +277,10 @@ typedef struct FileListFilter {
 
 /* FileListFilter.flags */
 enum {
-	FLF_HIDE_DOT     = 1 << 0,
-	FLF_HIDE_PARENT  = 1 << 1,
-	FLF_HIDE_LIB_DIR = 1 << 2,
+	FLF_DO_FILTER    = 1 << 0,
+	FLF_HIDE_DOT     = 1 << 1,
+	FLF_HIDE_PARENT  = 1 << 2,
+	FLF_HIDE_LIB_DIR = 1 << 3,
 };
 
 typedef struct FileList {
@@ -594,22 +595,25 @@ static bool is_filtered_file(FileListInternEntry *file, const char *UNUSED(root)
 {
 	bool is_filtered = !is_hidden_file(file->relpath, filter);
 
-	if (is_filtered && filter->filter && !FILENAME_IS_CURRPAR(file->relpath)) {
-		if (file->typeflag & FILE_TYPE_DIR) {
-			if (file->typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
-				if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
-					is_filtered = false;
+	if (is_filtered && (filter->flags & FLF_DO_FILTER) && !FILENAME_IS_CURRPAR(file->relpath)) {
+		/* We only check for types if some type are enabled in filtering. */
+		if (filter->filter) {
+			if (file->typeflag & FILE_TYPE_DIR) {
+				if (file->typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
+					if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
+						is_filtered = false;
+					}
+				}
+				else {
+					if (!(filter->filter & FILE_TYPE_FOLDER)) {
+						is_filtered = false;
+					}
 				}
 			}
 			else {
-				if (!(filter->filter & FILE_TYPE_FOLDER)) {
+				if (!(file->typeflag & filter->filter)) {
 					is_filtered = false;
 				}
-			}
-		}
-		else {
-			if (!(file->typeflag & filter->filter)) {
-				is_filtered = false;
 			}
 		}
 		if (is_filtered && (filter->filter_search[0] != '\0')) {
@@ -631,27 +635,30 @@ static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileLis
 
 	if (BLO_library_path_explode(path, dir, &group, &name)) {
 		is_filtered = !is_hidden_file(file->relpath, filter);
-		if (is_filtered && filter->filter && !FILENAME_IS_CURRPAR(file->relpath)) {
-			if (file->typeflag & FILE_TYPE_DIR) {
-				if (file->typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
-					if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
-						is_filtered = false;
+		if (is_filtered && (filter->flags & FLF_DO_FILTER) && !FILENAME_IS_CURRPAR(file->relpath)) {
+			/* We only check for types if some type are enabled in filtering. */
+			if (filter->filter || filter->filter_id) {
+				if (file->typeflag & FILE_TYPE_DIR) {
+					if (file->typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
+						if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
+							is_filtered = false;
+						}
+					}
+					else {
+						if (!(filter->filter & FILE_TYPE_FOLDER)) {
+							is_filtered = false;
+						}
 					}
 				}
-				else {
-					if (!(filter->filter & FILE_TYPE_FOLDER)) {
+				if (is_filtered && group) {
+					if (!name && (filter->flags & FLF_HIDE_LIB_DIR)) {
 						is_filtered = false;
 					}
-				}
-			}
-			if (is_filtered && group) {
-				if (!name && (filter->flags & FLF_HIDE_LIB_DIR)) {
-					is_filtered = false;
-				}
-				else {
-					unsigned int filter_id = groupname_to_filter_id(group);
-					if (!(filter_id & filter->filter_id)) {
-						is_filtered = false;
+					else {
+						unsigned int filter_id = groupname_to_filter_id(group);
+						if (!(filter_id & filter->filter_id)) {
+							is_filtered = false;
+						}
 					}
 				}
 			}
@@ -729,12 +736,17 @@ void filelist_filter(FileList *filelist)
 	MEM_freeN(filtered_tmp);
 }
 
-void filelist_setfilter_options(FileList *filelist, const bool hide_dot, const bool hide_parent,
+void filelist_setfilter_options(FileList *filelist, const bool do_filter,
+                                const bool hide_dot, const bool hide_parent,
                                 const unsigned int filter, const unsigned int filter_id,
                                 const char *filter_glob, const char *filter_search)
 {
 	bool update = false;
 
+	if (((filelist->filter_data.flags & FLF_DO_FILTER) != 0) != (do_filter != 0)) {
+		filelist->filter_data.flags ^= FLF_DO_FILTER;
+		update = true;
+	}
 	if (((filelist->filter_data.flags & FLF_HIDE_DOT) != 0) != (hide_dot != 0)) {
 		filelist->filter_data.flags ^= FLF_HIDE_DOT;
 		update = true;

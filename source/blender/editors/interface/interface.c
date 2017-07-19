@@ -2144,9 +2144,14 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 
 /**
  * \param float_precision  For number buttons the precision to use or -1 to fallback to the button default.
+ * \param use_exp_float  Use exponent representation of floats when out of reasonable range (outside of 1e3/1e-3).
  */
-void ui_but_string_get_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision)
+void ui_but_string_get_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision, const bool use_exp_float, bool *r_use_exp_float)
 {
+	if (r_use_exp_float) {
+		*r_use_exp_float = false;
+	}
+
 	if (but->rnaprop && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
 		PropertyType type;
 		const char *buf = NULL;
@@ -2215,16 +2220,31 @@ void ui_but_string_get_ex(uiBut *but, char *str, const size_t maxlen, const int 
 			}
 			else {
 				const int prec = (float_precision == -1) ? ui_but_calc_float_precision(but, value) : float_precision;
-				BLI_snprintf(str, maxlen, "%.*f", prec, value);
+				if (use_exp_float) {
+					const int l10 = (int)log10(fabs(value));
+					if (l10 < -6 || l10 > 12) {
+						BLI_snprintf(str, maxlen, "%.*g", prec, value);
+						if (r_use_exp_float) {
+							*r_use_exp_float = true;
+						}
+					}
+					else {
+						BLI_snprintf(str, maxlen, "%.*f", prec - l10 + (int)(l10 < 0), value);
+					}
+				}
+				else {
+					BLI_snprintf(str, maxlen, "%.*f", prec, value);
+				}
 			}
 		}
-		else
+		else {
 			BLI_snprintf(str, maxlen, "%d", (int)value);
+		}
 	}
 }
 void ui_but_string_get(uiBut *but, char *str, const size_t maxlen)
 {
-	ui_but_string_get_ex(but, str, maxlen, -1);
+	ui_but_string_get_ex(but, str, maxlen, -1, false, NULL);
 }
 
 /**
