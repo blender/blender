@@ -86,4 +86,10 @@ bool deg_validate_copy_on_write_datablock(ID *id_cow);
 /* Tag given ID block as being copy-on-wtritten. */
 void deg_tag_copy_on_write_id(struct ID *id_cow, const struct ID *id_orig);
 
+/* Check whether ID datablock is expanded.
+ *
+ * TODO(sergey): Make it an inline function or a macro.
+ */
+bool deg_copy_on_write_is_expanded(const struct ID *id_cow);
+
 }  // namespace DEG

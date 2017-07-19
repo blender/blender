@@ -191,6 +191,15 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 /* Free 'id' node. */
 IDDepsNode::~IDDepsNode()
 {
+	destroy();
+}
+
+void IDDepsNode::destroy()
+{
+	if (id_orig == NULL) {
+		return;
+	}
+
 	BLI_ghash_free(components,
 	               id_deps_node_hash_key_free,
 	               id_deps_node_hash_value_free);
@@ -202,6 +211,8 @@ IDDepsNode::~IDDepsNode()
 	DEG_COW_PRINT("Destroy CoW for %s: id_orig=%p id_cow=%p\n",
 	              id_orig->name, id_orig, id_cow);
 #endif
+	/* Tag that the node is freed. */
+	id_orig = NULL;
 }
 
 ComponentDepsNode *IDDepsNode::find_component(eDepsNode_Type type,

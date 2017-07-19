@@ -742,4 +742,9 @@ void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
 	id_cow->newid = (ID *)id_orig;
 }
 
+bool deg_copy_on_write_is_expanded(const struct ID *id_cow)
+{
+	return check_datablock_expanded(id_cow);
+}
+
 }  // namespace DEG

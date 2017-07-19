@@ -53,6 +53,8 @@ extern "C" {
 
 #include "DEG_depsgraph.h"
 
+#include "intern/eval/deg_eval_copy_on_write.h"
+
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"
@@ -250,11 +252,13 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
 
 /* Node Management ---------------------------- */
 
+#ifndef WITH_COPY_ON_WRITE
 static void id_node_deleter(void *value)
 {
 	IDDepsNode *id_node = reinterpret_cast<IDDepsNode *>(value);
 	OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
 }
+#endif
 
 TimeSourceDepsNode *Depsgraph::add_time_source()
 {
@@ -299,7 +303,27 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name, bool do_tag)
 
 void Depsgraph::clear_id_nodes()
 {
+#ifndef WITH_COPY_ON_WRITE
 	BLI_ghash_clear(id_hash, NULL, id_node_deleter);
+#else
+	/* Stupid workaround to ensure we free IDs in a proper order. */
+	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, id_hash)
+	{
+		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
+			continue;
+		}
+		const short id_type = GS(id_node->id_cow->name);
+		if (id_type != ID_PA) {
+			id_node->destroy();
+		}
+	}
+	GHASH_FOREACH_END();
+	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, id_hash)
+	{
+		OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
+	}
+	GHASH_FOREACH_END();
+#endif
 }
 
 /* Add new relationship between two nodes. */
