@@ -345,7 +345,18 @@ static void do_version_layer_collections_idproperties(ListBase *lb)
 
 void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 {
+
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			if (STREQ(scene->r.engine, RE_engine_id_BLENDER_RENDER)) {
+#ifdef WITH_CLAY_ENGINE
+				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_CLAY, sizeof(scene->r.engine));
+#else
+				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+#endif
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "render_layers")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				/* Master Collection */
