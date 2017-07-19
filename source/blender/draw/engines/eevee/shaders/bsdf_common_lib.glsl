@@ -29,7 +29,7 @@ flat in int shFace; /* Shadow layer we are rendering to. */
 #define cameraForward   normalize(ViewMatrixInverse[2].xyz)
 #define cameraPos       ViewMatrixInverse[3].xyz
 #define cameraVec      ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)
-#define viewCameraVec  ((ProjectionMatrix[3][3] == 0.0) ? normalize(viewPosition) : vec3(0.0, 0.0, -1.0))
+#define viewCameraVec  ((ProjectionMatrix[3][3] == 0.0) ? normalize(-viewPosition) : vec3(0.0, 0.0, 1.0))
 
 /* ------- Structures -------- */
 struct LightData {
@@ -95,6 +95,10 @@ struct ShadowCascadeData {
 vec3 mul(mat3 m, vec3 v) { return m * v; }
 mat3 mul(mat3 m1, mat3 m2) { return m1 * m2; }
 vec3 transform_point(mat4 m, vec3 v) { return (m * vec4(v, 1.0)).xyz; }
+vec3 project_point(mat4 m, vec3 v) {
+	vec4 tmp = m * vec4(v, 1.0);
+	return tmp.xyz / tmp.w;
+}
 
 float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
 float max_v2(vec2 v) { return max(v.x, v.y); }

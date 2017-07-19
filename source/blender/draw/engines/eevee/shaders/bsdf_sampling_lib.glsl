@@ -46,7 +46,7 @@ float pdf_hemisphere()
 	return 0.5 * M_1_PI;
 }
 
-vec3 sample_ggx(vec3 rand, float a2, vec3 N, vec3 T, vec3 B)
+vec3 sample_ggx(vec3 rand, float a2)
 {
 	/* Theta is the aperture angle of the cone */
 	float z = sqrt( (1.0 - rand.x) / ( 1.0 + a2 * rand.x - rand.x ) ); /* cos theta */
@@ -55,7 +55,13 @@ vec3 sample_ggx(vec3 rand, float a2, vec3 N, vec3 T, vec3 B)
 	float y = r * rand.z;
 
 	/* Microfacet Normal */
-	vec3 Ht = vec3(x, y, z);
+	return vec3(x, y, z);
+}
+
+vec3 sample_ggx(vec3 rand, float a2, vec3 N, vec3 T, vec3 B, out float NH)
+{
+	vec3 Ht = sample_ggx(rand, a2);
+	NH = Ht.z;
 	return tangent_to_world(Ht, N, T, B);
 }
 
@@ -63,7 +69,8 @@ vec3 sample_ggx(vec3 rand, float a2, vec3 N, vec3 T, vec3 B)
 vec3 sample_ggx(float nsample, float a2, vec3 N, vec3 T, vec3 B)
 {
 	vec3 Xi = hammersley_3d(nsample);
-	return sample_ggx(Xi, a2, N, T, B);
+	vec3 Ht = sample_ggx(Xi, a2);
+	return tangent_to_world(Ht, N, T, B);
 }
 
 vec3 sample_hemisphere(float nsample, vec3 N, vec3 T, vec3 B)
