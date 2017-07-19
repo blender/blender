@@ -576,6 +576,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	if (newid != NULL) {
 		MEM_freeN(newid);
 	}
+	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
 	return id_cow;
 }
 

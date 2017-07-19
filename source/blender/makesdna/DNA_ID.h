@@ -363,6 +363,9 @@ enum {
 	LIB_TAG_ID_RECALC_DATA  = 1 << 13,
 	LIB_TAG_ANIM_NO_RECALC  = 1 << 14,
 	LIB_TAG_ID_RECALC_ALL   = (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA),
+
+	/* The datablock is a copy-on-write version. */
+	LIB_TAG_COPY_ON_WRITE  = (1 << 15),
 };
 
 /* To filter ID types (filter_id) */

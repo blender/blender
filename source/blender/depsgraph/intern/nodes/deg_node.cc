@@ -182,6 +182,7 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	id_cow = (ID *)BKE_libblock_alloc_notest(GS(id->name));
 	DEG_COW_PRINT("Create shallow copy for %s: id_orig=%p id_cow=%p\n",
 	              id_orig->name, id_orig, id_cow);
+	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
 #else
 	id_cow = id_orig;
 #endif
