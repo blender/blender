@@ -393,6 +393,12 @@ static int rna_Manipulator_name_length(PointerRNA *ptr)
 	return strlen(mpr->name);
 }
 
+static PointerRNA rna_Manipulator_group_get(PointerRNA *ptr)
+{
+	wmManipulator *mpr = ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_ManipulatorGroup, mpr->parent_mgroup);
+}
+
 #ifdef WITH_PYTHON
 
 static void rna_Manipulator_unregister(struct Main *bmain, StructRNA *type);
@@ -997,6 +1003,12 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+
+	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "ManipulatorGroup");
+	RNA_def_property_pointer_funcs(prop, "rna_Manipulator_group_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "", "Manipulator group this manipulator is a member of");
 
 	/* Color & Alpha */
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
