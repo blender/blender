@@ -361,7 +361,7 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 			/* Copy materials so render engines can access them. */
 			new_mesh->mat = MEM_dupallocN(mesh->mat);
 			new_mesh->totcol = mesh->totcol;
-			DM_to_mesh(dm, new_mesh, ob, ob->lastDataMask, true);
+			DM_to_mesh(dm, new_mesh, ob, CD_MASK_MESH, true);
 			new_mesh->edit_btmesh = mesh->edit_btmesh;
 			/* Store result mesh as derived_mesh of object. This way we have
 			 * explicit  way to query final object evaluated data and know for sure
