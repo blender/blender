@@ -664,9 +664,38 @@ ID *deg_update_copy_on_write_datablock(/*const*/ Depsgraph *depsgraph,
 	/* For the rest if datablock types we use simple logic:
 	 * - Free previously expanded data, if any.
 	 * - Perform full datablock copy.
+	 *
+	 * Note that we never free GPU materials from here since that's not
+	 * safe for threading and GPU materials are likely to be re-used.
 	 */
+	ListBase gpumaterial_backup;
+	ListBase *gpumaterial_ptr = NULL;
+	if (check_datablock_expanded(id_cow)) {
+		switch (GS(id_orig->name)) {
+			case ID_MA:
+			{
+				Material *material = (Material *)id_cow;
+				gpumaterial_ptr = &material->gpumaterial;
+				break;
+			}
+			case ID_WO:
+			{
+				World *world = (World *)id_cow;
+				gpumaterial_ptr = &world->gpumaterial;
+				break;
+			}
+		}
+		if (gpumaterial_ptr != NULL) {
+			gpumaterial_backup = *gpumaterial_ptr;
+			gpumaterial_ptr->first = gpumaterial_ptr->last = NULL;
+		}
+	}
 	deg_free_copy_on_write_datablock(id_cow);
 	deg_expand_copy_on_write_datablock(depsgraph, id_node, false);
+	/* Restore GPU materials. */
+	if (gpumaterial_ptr != NULL) {
+		*gpumaterial_ptr = gpumaterial_backup;
+	}
 	return id_cow;
 }
 
