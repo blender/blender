@@ -313,7 +313,8 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 	                      ID_TE,
 	                      ID_IM,
 	                      ID_LS,
-	                      ID_AC);
+	                      ID_AC,
+	                      ID_GR);
 }
 
 /* Callback for BKE_library_foreach_ID_link which remaps original ID pointer
