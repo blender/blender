@@ -374,6 +374,22 @@ void accumulate_light(vec3 light, float fac, inout vec4 accum)
 	accum += vec4(light, 1.0) * min(fac, (1.0 - accum.a));
 }
 
+/* ----------- Cone Apperture Approximation --------- */
+
+/* Return a fitted cone angle given the input roughness */
+float cone_cosine(float r)
+{
+	/* Using phong gloss
+	 * roughness = sqrt(2/(gloss+2)) */
+	float gloss = -2 + 2 / (r * r);
+	/* Drobot 2014 in GPUPro5 */
+	// return cos(2.0 * sqrt(2.0 / (gloss + 2)));
+	/* Uludag 2014 in GPUPro5 */
+	// return pow(0.244, 1 / (gloss + 1));
+	/* Jimenez 2016 in Practical Realtime Strategies for Accurate Indirect Occlusion*/
+	return exp2(-3.32193 * r * r);
+}
+
 /* --------- Closure ---------- */
 #ifdef VOLUMETRICS
 

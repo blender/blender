@@ -4,16 +4,24 @@
 uniform sampler2DArray utilTex;
 #endif /* UTIL_TEX */
 
-vec3 generate_ray(ivec2 pix, vec3 V, vec3 N, float roughnessSquared, out float pdf)
+#define BRDF_BIAS 0.7
+
+vec3 generate_ray(ivec2 pix, vec3 V, vec3 N, float a2, out float pdf)
 {
 	float NH;
 	vec3 T, B;
 	make_orthonormal_basis(N, T, B); /* Generate tangent space */
 	vec3 rand = texelFetch(utilTex, ivec3(pix % LUT_SIZE, 2), 0).rba;
-	vec3 H = sample_ggx(rand, roughnessSquared, N, T, B, NH); /* Microfacet normal */
-	pdf = max(32e32, pdf_ggx_reflect(NH, roughnessSquared)); /* Theoretical limit of 10bit float (not in practice?) */
+
+	/* Importance sampling bias */
+	rand.x = mix(rand.x, 0.0, BRDF_BIAS);
+
+	vec3 H = sample_ggx(rand, a2, N, T, B, NH); /* Microfacet normal */
+	pdf = min(1024e32, pdf_ggx_reflect(NH, a2)); /* Theoretical limit of 16bit float */
 	return reflect(-V, H);
 }
+
+#define MAX_MIP 5.0
 
 #ifdef STEP_RAYTRACE
 
@@ -44,11 +52,12 @@ void main()
 	/* Retrieve pixel data */
 	vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
 	float roughness = speccol_roughness.a;
-	float roughnessSquared = roughness * roughness;
+	float roughnessSquared = max(1e-3, roughness * roughness);
+	float a2 = roughnessSquared * roughnessSquared;
 
 	/* Generate Ray */
 	float pdf;
-	vec3 R = generate_ray(halfres_texel, V, N, roughnessSquared, pdf);
+	vec3 R = generate_ray(halfres_texel, V, N, a2, pdf);
 
 	/* Search for the planar reflection affecting this pixel */
 	/* If no planar is found, fallback to screen space */
@@ -65,7 +74,11 @@ void main()
 	//float hit_dist = raycast(depthBuffer, W, R);
 
 	/* Raycast over screen */
-	float hit_dist = raycast(depthBuffer, viewPosition, R);
+	float hit_dist = -1.0;
+	if (dot(R, N) > 0.0001) {
+		/* Only raytrace if ray is above the surface normal */
+		hit_dist = raycast(depthBuffer, viewPosition, R);
+	}
 
 	vec2 hit_co = project_point(ProjectionMatrix, viewPosition + R * hit_dist).xy * 0.5 + 0.5;
 
@@ -164,7 +177,7 @@ float screen_border_mask(vec2 past_hit_co, vec3 hit)
 	hit_co.zw = past_hit_co;
 
 	const float margin = 0.002;
-	const float atten = 0.05 + margin; /* Screen percentage */
+	const float atten = 0.1 + margin; /* Screen percentage */
 	hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
 	vec2 atten_fac = min(hit_co.xy, hit_co.zw);
 
@@ -179,7 +192,9 @@ void main()
 {
 	ivec2 halfres_texel = ivec2(gl_FragCoord.xy / 2.0);
 	ivec2 fullres_texel = ivec2(gl_FragCoord.xy);
-	vec2 uvs = gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0));
+	vec2 texture_size = vec2(textureSize(depthBuffer, 0));
+	vec2 uvs = gl_FragCoord.xy / texture_size;
+	vec3 rand = texelFetch(utilTex, ivec3(fullres_texel % LUT_SIZE, 2), 0).rba;
 
 	float depth = textureLod(depthBuffer, uvs, 0.0).r;
 
@@ -194,48 +209,67 @@ void main()
 	vec3 N = mat3(ViewMatrixInverse) * normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, viewCameraVec);
 	vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
 	float roughness = speccol_roughness.a;
-	float roughnessSquared = roughness * roughness;
+	float roughnessSquared = max(1e-3, roughness * roughness);
 
 	vec4 spec_accum = vec4(0.0);
 
-	/* Resolve SSR and compute contribution */
+	/* Resolve SSR */
+	float cone_cos = cone_cosine(roughness);
+	float cone_tan = sqrt(1 - cone_cos * cone_cos) / cone_cos;
+	cone_tan *= mix(saturate(dot(N, V) * 2.0), 1.0, sqrt(roughness)); /* Elongation fit */
 
-	/* We generate the same rays that has been generated in the raycast step.
-	 * But we add this ray from our resolve pixel position, increassing accuracy. */
 	vec3 ssr_accum = vec3(0.0);
 	float weight_acc = 0.0;
-	float mask = 0.0;
-	const ivec2 neighbors[7] = ivec2[7](ivec2(0, 0), ivec2(2, 1), ivec2(-2, 1), ivec2(0, -2), ivec2(-2, -1), ivec2(2, -1), ivec2(0, 2));
-	int invert_neighbor = ((((fullres_texel.x & 0x1) + (fullres_texel.y & 0x1)) & 0x1) == 0) ? 1 : -1;
+	float mask_acc = 0.0;
+	float dist_acc = 0.0;
+	float hit_acc = 0.0;
+	const ivec2 neighbors[4] = ivec2[4](ivec2(0, 0), ivec2(1, 1), ivec2(0, 1), ivec2(1, 0));
+	ivec2 invert_neighbor;
+	invert_neighbor.x = ((fullres_texel.x & 0x1) == 0) ? 1 : -1;
+	invert_neighbor.y = ((fullres_texel.y & 0x1) == 0) ? 1 : -1;
 	for (int i = 0; i < NUM_NEIGHBORS; i++) {
 		ivec2 target_texel = halfres_texel + neighbors[i] * invert_neighbor;
 
 		float pdf = texelFetch(pdfBuffer, target_texel, 0).r;
 
 		/* Check if there was a hit */
-		if (pdf != 0.0) {
+		if (pdf > 0.001) {
 			vec2 hit_co = texelFetch(hitBuffer, target_texel, 0).rg;
 
 			/* Reconstruct ray */
 			float hit_depth = textureLod(depthBuffer, hit_co, 0.0).r;
 			vec3 hit_pos = get_world_space_from_depth(hit_co, hit_depth);
 
-			/* Find hit position in previous frame */
-			vec2 ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
-
 			/* Evaluate BSDF */
 			vec3 L = normalize(hit_pos - worldPosition);
-			float bsdf = bsdf_ggx(N, L, V, max(1e-3, roughness));
+			float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
 
-			float weight = bsdf / max(1e-8, pdf);
-			mask += screen_border_mask(ref_uvs, hit_pos);
-			ssr_accum += textureLod(colorBuffer, ref_uvs, 0.0).rgb * weight;
+			/* Find hit position in previous frame */
+			vec2 ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
+			vec2 source_uvs = project_point(PastViewProjectionMatrix, worldPosition).xy * 0.5 + 0.5;
+
+			/* Estimate a cone footprint to sample a corresponding mipmap level */
+			/* compute cone footprint Using UV distance because we are using screen space filtering */
+			float cone_footprint = cone_tan * distance(ref_uvs, source_uvs);
+			float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
+
+			float border_mask = screen_border_mask(ref_uvs, hit_pos);
+			float weight = border_mask * bsdf / max(1e-8, pdf);
+			ssr_accum += textureLod(colorBuffer, ref_uvs, mip).rgb * weight;
 			weight_acc += weight;
+			dist_acc += distance(hit_pos, worldPosition);
+			mask_acc += border_mask;
+			hit_acc += 1.0;
 		}
 	}
 
+	/* Compute SSR contribution */
 	if (weight_acc > 0.0) {
-		accumulate_light(ssr_accum / weight_acc, mask / float(NUM_NEIGHBORS), spec_accum);
+		/* Fade intensity based on roughness and average distance to hit */
+		float fade = saturate(2.0 - roughness * 2.0); /* fade between 0.5 and 1.0 roughness */
+		fade *= mask_acc / hit_acc;
+		fade *= mask_acc / hit_acc;
+		accumulate_light(ssr_accum / weight_acc, fade, spec_accum);
 	}
 
 	/* If SSR contribution is not 1.0, blend with cubemaps */

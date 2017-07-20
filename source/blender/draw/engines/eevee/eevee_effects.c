@@ -84,7 +84,10 @@ static struct {
 	struct GPUShader *ssr_raytrace_sh;
 	struct GPUShader *ssr_resolve_sh;
 
+	struct GPUShader *downsample_sh;
+
 	struct GPUTexture *depth_src;
+	struct GPUTexture *color_src;
 
 	float pixelprojmat[4][4];
 } e_data = {NULL}; /* Engine data */
@@ -99,6 +102,7 @@ extern char datatoc_effect_bloom_frag_glsl[];
 extern char datatoc_effect_dof_vert_glsl[];
 extern char datatoc_effect_dof_geom_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
+extern char datatoc_effect_downsample_frag_glsl[];
 extern char datatoc_lightprobe_lib_glsl[];
 extern char datatoc_raytrace_lib_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
@@ -191,6 +195,8 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		e_data.ssr_resolve_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n");
 
 		MEM_freeN(ssr_shader_str);
+
+		e_data.downsample_sh = DRW_shader_create_fullscreen(datatoc_effect_downsample_frag_glsl, NULL);
 
 		e_data.volumetric_upsample_sh = DRW_shader_create_fullscreen(datatoc_volumetric_frag_glsl, "#define STEP_UPSAMPLE\n");
 
@@ -578,7 +584,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	/* Setup double buffer so we can access last frame as it was before post processes */
 	if ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) {
-		DRWFboTexture tex_double_buffer = {&txl->color_double_buffer, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
+		DRWFboTexture tex_double_buffer = {&txl->color_double_buffer, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 		DRW_framebuffer_init(&fbl->double_buffer, &draw_engine_eevee_type,
 		                    (int)viewport_size[0], (int)viewport_size[1],
@@ -711,6 +717,13 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 
 	{
+		psl->color_downsample_ps = DRW_pass_create("Downsample", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.downsample_sh, psl->color_downsample_ps);
+		DRW_shgroup_uniform_buffer(grp, "source", &e_data.color_src);
+		DRW_shgroup_call_add(grp, quad, NULL);
+	}
+
+	{
 		psl->minmaxz_downlevel = DRW_pass_create("HiZ Down Level", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.minmaxz_downlevel_sh, psl->minmaxz_downlevel);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &stl->g_data->minmaxz);
@@ -833,6 +846,12 @@ static void minmax_downsample_cb(void *vedata, int UNUSED(level))
 	DRW_draw_pass(psl->minmaxz_downlevel);
 }
 
+static void simple_downsample_cb(void *vedata, int UNUSED(level))
+{
+	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+	DRW_draw_pass(psl->color_downsample_ps);
+}
+
 void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src)
 {
 	EEVEE_PassList *psl = vedata->psl;
@@ -849,6 +868,17 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src)
 
 	/* Create lower levels */
 	DRW_framebuffer_recursive_downsample(fbl->minmaxz_fb, stl->g_data->minmaxz, 6, &minmax_downsample_cb, vedata);
+}
+
+/**
+ * Simple downsampling algorithm. Reconstruct mip chain up to mip level.
+ **/
+void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, GPUTexture *texture_src, int level)
+{
+	e_data.color_src = texture_src;
+
+	/* Create lower levels */
+	DRW_framebuffer_recursive_downsample(fb_src, texture_src, level, &simple_downsample_cb, vedata);
 }
 
 void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
@@ -901,6 +931,8 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0 && stl->g_data->valid_double_buffer) {
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+		EEVEE_downsample_buffer(vedata, fbl->minmaxz_fb, txl->color_double_buffer, 5);
 
 		/* Raytrace at halfres. */
 		e_data.depth_src = dtxl->depth;
@@ -1078,6 +1110,7 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 
 void EEVEE_effects_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.downsample_sh);
 	DRW_SHADER_FREE_SAFE(e_data.ssr_raytrace_sh);
 	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_sh);
 
