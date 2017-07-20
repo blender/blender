@@ -67,6 +67,13 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
+/* Define this in order to have more strict sanitization of what tagging flags
+ * are used for ID databnlocks. Ideally, we would always want this, but there
+ * are cases in generic modules (like IR remapping) where we don't want to spent
+ * lots of time trying to guess which components are to be updated.
+ */
+// #define STRICT_COMPONENT_TAGGING
+
 /* *********************** */
 /* Update Tagging/Flushing */
 
@@ -131,9 +138,11 @@ void id_tag_update_object_transform(Depsgraph *graph, IDDepsNode *id_node)
 	ComponentDepsNode *transform_comp =
 	        id_node->find_component(DEG_NODE_TYPE_TRANSFORM);
 	if (transform_comp == NULL) {
+#ifdef STRICT_COMPONENT_TAGGING
 		DEG_ERROR_PRINTF("ERROR: Unable to find transform component for %s\n",
 		                 id_node->id_orig->name);
 		BLI_assert(!"This is not supposed to happen!");
+#endif
 		return;
 	}
 	transform_comp->tag_update(graph);
@@ -170,9 +179,11 @@ void id_tag_update_object_data(Depsgraph *graph, IDDepsNode *id_node)
 			return;
 	}
 	if (data_comp == NULL) {
+#ifdef STRICT_COMPONENT_TAGGING
 		DEG_ERROR_PRINTF("ERROR: Unable to find data component for %s\n",
 		                 id_node->id_orig->name);
 		BLI_assert(!"This is not supposed to happen!");
+#endif
 		return;
 	}
 	data_comp->tag_update(graph);
@@ -211,9 +222,11 @@ void id_tag_update_particle(Depsgraph *graph, IDDepsNode *id_node)
 	ComponentDepsNode *particle_comp =
 	        id_node->find_component(DEG_NODE_TYPE_PARAMETERS);
 	if (particle_comp == NULL) {
+#ifdef STRICT_COMPONENT_TAGGING
 		DEG_ERROR_PRINTF("ERROR: Unable to find particle component for %s\n",
 		                 id_node->id_orig->name);
 		BLI_assert(!"This is not supposed to happen!");
+#endif
 		return;
 	}
 	particle_comp->tag_update(graph);
