@@ -260,8 +260,9 @@ typedef struct ParticleSettings {
 
 	/* modified dm support */
 	short use_modifier_stack;
-	short pad5[3];
 
+	short pad5;
+	int recalc;
 } ParticleSettings;
 
 typedef struct ParticleSystem {

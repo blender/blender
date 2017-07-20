@@ -217,10 +217,12 @@ void id_tag_update_object_time(Depsgraph *graph, IDDepsNode *id_node)
 	/* TODO(sergey): More components to tag here? */
 }
 
-void id_tag_update_particle(Depsgraph *graph, IDDepsNode *id_node)
+void id_tag_update_particle(Depsgraph *graph, IDDepsNode *id_node, int tag)
 {
 	ComponentDepsNode *particle_comp =
 	        id_node->find_component(DEG_NODE_TYPE_PARAMETERS);
+	ParticleSettings *particle_settings = (ParticleSettings *)id_node->id_orig;
+	particle_settings->recalc |= (tag & PSYS_RECALC);
 	if (particle_comp == NULL) {
 #ifdef STRICT_COMPONENT_TAGGING
 		DEG_ERROR_PRINTF("ERROR: Unable to find particle component for %s\n",
@@ -268,8 +270,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 		id_tag_update_object_time(graph, id_node);
 	}
 	if (flag & PSYS_RECALC) {
-		/* TODO(sergey): Differentiate between different particle updates tags. */
-		id_tag_update_particle(graph, id_node);
+		id_tag_update_particle(graph, id_node, flag);
 	}
 #ifdef WITH_COPY_ON_WRITE
 	if (flag & DEG_TAG_COPY_ON_WRITE) {

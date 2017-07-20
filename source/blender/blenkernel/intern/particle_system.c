@@ -4359,8 +4359,16 @@ void BKE_particle_system_settings_eval(struct EvaluationContext *UNUSED(eval_ctx
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
 		printf("%s on %s (%p)\n", __func__, psys->name, psys);
 	}
-	/* TODO(sergey): Need to do something more granular here.  */
-	psys->recalc |= PSYS_RECALC;
+	psys->recalc |= psys->part->recalc;
+}
+
+void BKE_particle_system_settings_recalc_clear(struct EvaluationContext *UNUSED(eval_ctx),
+                                               ParticleSettings *particle_settings)
+{
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
+		printf("%s on %s (%p)\n", __func__, particle_settings->id.name, particle_settings);
+	}
+	particle_settings->recalc = 0;
 }
 
 void BKE_particle_system_eval(struct EvaluationContext *UNUSED(eval_ctx),

@@ -1265,12 +1265,19 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		OperationKey particle_settings_key(&part->id,
 		                                   DEG_NODE_TYPE_PARAMETERS,
 		                                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
+		OperationKey particle_settings_recalc_clear_key(
+		        &part->id,
+		        DEG_NODE_TYPE_PARAMETERS,
+		        DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR);
 		OperationKey psys_settings_key(&ob->id,
 		                               DEG_NODE_TYPE_EVAL_PARTICLES,
 		                               DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
 		                               psys->name);
 		add_relation(particle_settings_key, psys_settings_key, "Particle Settings Change");
 		add_relation(psys_settings_key, psys_key, "Particle Settings Update");
+		add_relation(psys_key,
+		             particle_settings_recalc_clear_key,
+		             "Particle Settings Recalc Clear");
 
 		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
 		if (!psys_check_enabled(ob, psys, G.is_rendering))
@@ -1289,10 +1296,22 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 		/* collisions */
 		if (part->type != PART_HAIR) {
-			add_collision_relations(psys_key, scene, ob, part->collision_group, true, "Particle Collision");
+			add_collision_relations(psys_key,
+			                        scene,
+			                        ob,
+			                        part->collision_group,
+			                        true,
+			                        "Particle Collision");
 		}
-		else if ((psys->flag & PSYS_HAIR_DYNAMICS) && psys->clmd && psys->clmd->coll_parms) {
-			add_collision_relations(psys_key, scene, ob, psys->clmd->coll_parms->group, true, "Hair Collision");
+		else if ((psys->flag & PSYS_HAIR_DYNAMICS) &&
+		         psys->clmd != NULL &&
+		         psys->clmd->coll_parms != NULL) {
+			add_collision_relations(psys_key,
+			                        scene,
+			                        ob,
+			                        psys->clmd->coll_parms->group,
+			                        true,
+			                        "Hair Collision");
 		}
 
 		/* effectors */
@@ -1350,6 +1369,14 @@ void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
 
 	/* Animation data relations. */
 	build_animdata(&part->id);
+
+	OperationKey eval_key(part_id,
+	                      DEG_NODE_TYPE_PARAMETERS,
+	                      DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
+	OperationKey recalc_clear_key(part_id,
+	                             DEG_NODE_TYPE_PARAMETERS,
+	                             DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR);
+	add_relation(eval_key, recalc_clear_key, "Particle Settings Clear Recalc");
 }
 
 void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,

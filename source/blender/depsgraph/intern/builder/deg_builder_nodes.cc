@@ -757,6 +757,12 @@ void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *part) {
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
+	add_operation_node(part_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   function_bind(BKE_particle_system_settings_recalc_clear,
+	                                 _1,
+	                                 part),
+	                   DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR);
 }
 
 void DepsgraphNodeBuilder::build_cloth(Scene *scene, Object *object)
