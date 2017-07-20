@@ -110,7 +110,18 @@ void nested_id_hack_discard_pointers(ID *id_cow)
 		SPECIAL_CASE(ID_LS, FreestyleLineStyle, nodetree)
 		SPECIAL_CASE(ID_LA, Lamp, nodetree)
 		SPECIAL_CASE(ID_MA, Material, nodetree)
+#if 0
 		SPECIAL_CASE(ID_SCE, Scene, nodetree)
+#else
+		case ID_SCE:
+		{
+			Scene *scene_cow = (Scene *)id_cow;
+			scene_cow->nodetree = NULL;
+			scene_cow->base.first = NULL;
+			scene_cow->base.last = NULL;
+			break;
+		}
+#endif
 		SPECIAL_CASE(ID_TE, Tex, nodetree)
 		SPECIAL_CASE(ID_WO, World, nodetree)
 
@@ -142,7 +153,18 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
 		SPECIAL_CASE(ID_LS, FreestyleLineStyle, nodetree, linestyle)
 		SPECIAL_CASE(ID_LA, Lamp, nodetree, lamp)
 		SPECIAL_CASE(ID_MA, Material, nodetree, material)
+#if 0
 		SPECIAL_CASE(ID_SCE, Scene, nodetree, scene)
+#else
+		case ID_SCE:
+		{
+			storage->scene = *(Scene *)id;
+			storage->scene.nodetree = NULL;
+			storage->scene.base.first = NULL;
+			storage->scene.base.last = NULL;
+			return &storage->scene.id;
+		}
+#endif
 		SPECIAL_CASE(ID_TE, Tex, nodetree, tex)
 		SPECIAL_CASE(ID_WO, World, nodetree, world)
 
