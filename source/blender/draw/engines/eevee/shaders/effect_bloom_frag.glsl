@@ -48,13 +48,13 @@ out vec4 FragColor;
 
 float brightness(vec3 c)
 {
-    return max(max(c.r, c.g), c.b);
+	return max(max(c.r, c.g), c.b);
 }
 
 /* 3-tap median filter */
 vec3 median(vec3 a, vec3 b, vec3 c)
 {
-    return a + b + c - min(min(a, b), c) - max(max(a, b), c);
+	return a + b + c - min(min(a, b), c) - max(max(a, b), c);
 }
 
 /* ------------- Filters ------------ */
