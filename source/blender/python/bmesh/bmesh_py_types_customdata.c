@@ -116,6 +116,9 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__skin_doc,
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__paint_mask_doc,
 "Accessor for paint mask layer.\n\ntype: :class:`BMLayerCollection`"
 );
+PyDoc_STRVAR(bpy_bmlayeraccess_collection__face_map_doc,
+"FaceMap custom-data layer.\n\ntype: :class:`BMLayerCollection`"
+);
 #ifdef WITH_FREESTYLE
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__freestyle_edge_doc,
 "Accessor for Freestyle edge layer.\n\ntype: :class:`BMLayerCollection`"
@@ -218,6 +221,7 @@ static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
 	{(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
 	{(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
 	{(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
+	{(char *)"face_map", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__face_map_doc, (void *)CD_FACEMAP},
 
 #ifdef WITH_FREESTYLE
 	{(char *)"freestyle", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__freestyle_face_doc, (void *)CD_FREESTYLE_FACE},
@@ -983,6 +987,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 			break;
 		}
 		case CD_PROP_INT:
+		case CD_FACEMAP:
 		{
 			ret = PyLong_FromLong(*(int *)value);
 			break;
@@ -1063,6 +1068,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 			break;
 		}
 		case CD_PROP_INT:
+		case CD_FACEMAP:
 		{
 			int tmp_val = PyLong_AsLong(py_value);
 			if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
