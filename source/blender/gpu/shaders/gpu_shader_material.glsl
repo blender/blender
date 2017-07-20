@@ -2686,6 +2686,7 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, float ssr_id, out Clo
 {
 #ifdef EEVEE_ENGINE
 	vec3 ssr_spec;
+	roughness = sqrt(roughness);
 	vec3 L = eevee_surface_glossy_lit(N, vec3(1.0), roughness, 1.0, int(ssr_id), ssr_spec);
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
 	result = Closure(L * color.rgb, 1.0, vec4(ssr_spec * color.rgb, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
