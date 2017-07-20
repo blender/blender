@@ -180,7 +180,6 @@ KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_641)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_649)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_657)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_665)
-KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_673)
 
 #  else
 /* bindless textures */
