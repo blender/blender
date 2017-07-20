@@ -218,37 +218,14 @@ int ImageManager::max_flattened_slot(ImageDataType type)
 /* The lower three bits of a device texture slot number indicate its type.
  * These functions convert the slot ids from ImageManager "images" ones
  * to device ones and vice verse.
- *
- * There are special cases for CUDA Fermi, since there we have only 90 image texture
- * slots available and should keep the flattended numbers in the 0-89 range.
  */
 int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 {
-	if(cuda_fermi_limits) {
-		if(type == IMAGE_DATA_TYPE_BYTE4) {
-			return slot + TEX_START_BYTE4_CUDA;
-		}
-		else {
-			return slot;
-		}
-	}
-
 	return (slot << IMAGE_DATA_TYPE_SHIFT) | (type);
 }
 
 int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
 {
-	if(cuda_fermi_limits) {
-		if(flat_slot >= 4) {
-			*type = IMAGE_DATA_TYPE_BYTE4;
-			return flat_slot - TEX_START_BYTE4_CUDA;
-		}
-		else {
-			*type = IMAGE_DATA_TYPE_FLOAT4;
-			return flat_slot;
-		}
-	}
-
 	*type = (ImageDataType)(flat_slot & IMAGE_DATA_TYPE_MASK);
 	return flat_slot >> IMAGE_DATA_TYPE_SHIFT;
 }
