@@ -115,16 +115,18 @@ bool ImageManager::set_animation_frame_update(int frame)
 
 ImageDataType ImageManager::get_image_metadata(const string& filename,
                                                void *builtin_data,
-                                               bool& is_linear)
+                                               bool& is_linear,
+                                               bool& builtin_free_cache)
 {
 	bool is_float = false, is_half = false;
 	is_linear = false;
+	builtin_free_cache = false;
 	int channels = 4;
 
 	if(builtin_data) {
 		if(builtin_image_info_cb) {
 			int width, height, depth;
-			builtin_image_info_cb(filename, builtin_data, is_float, width, height, depth, channels);
+			builtin_image_info_cb(filename, builtin_data, is_float, width, height, depth, channels, builtin_free_cache);
 		}
 
 		if(is_float) {
@@ -272,8 +274,9 @@ int ImageManager::add_image(const string& filename,
 {
 	Image *img;
 	size_t slot;
+	bool builtin_free_cache;
 
-	ImageDataType type = get_image_metadata(filename, builtin_data, is_linear);
+	ImageDataType type = get_image_metadata(filename, builtin_data, is_linear, builtin_free_cache);
 
 	thread_scoped_lock device_lock(device_mutex);
 
@@ -359,6 +362,7 @@ int ImageManager::add_image(const string& filename,
 	img = new Image();
 	img->filename = filename;
 	img->builtin_data = builtin_data;
+	img->builtin_free_cache = builtin_free_cache;
 	img->need_load = true;
 	img->animated = animated;
 	img->frame = frame;
@@ -444,7 +448,12 @@ void ImageManager::tag_reload_image(const string& filename,
 	}
 }
 
-bool ImageManager::file_load_image_generic(Image *img, ImageInput **in, int &width, int &height, int &depth, int &components)
+bool ImageManager::file_load_image_generic(Image *img,
+                                           ImageInput **in,
+                                           int &width,
+                                           int &height,
+                                           int &depth,
+                                           int &components)
 {
 	if(img->filename == "")
 		return false;
@@ -483,8 +492,8 @@ bool ImageManager::file_load_image_generic(Image *img, ImageInput **in, int &wid
 		if(!builtin_image_info_cb || !builtin_image_pixels_cb)
 			return false;
 
-		bool is_float;
-		builtin_image_info_cb(img->filename, img->builtin_data, is_float, width, height, depth, components);
+		bool is_float, free_cache;
+		builtin_image_info_cb(img->filename, img->builtin_data, is_float, width, height, depth, components, free_cache);
 	}
 
 	/* we only handle certain number of components */
@@ -565,13 +574,15 @@ bool ImageManager::file_load_image(Image *img,
 			builtin_image_float_pixels_cb(img->filename,
 			                              img->builtin_data,
 			                              (float*)&pixels[0],
-			                              num_pixels * components);
+			                              num_pixels * components,
+			                              img->builtin_free_cache);
 		}
 		else if(FileFormat == TypeDesc::UINT8) {
 			builtin_image_pixels_cb(img->filename,
 			                        img->builtin_data,
 			                        (uchar*)&pixels[0],
-			                        num_pixels * components);
+			                        num_pixels * components,
+			                        img->builtin_free_cache);
 		}
 		else {
 			/* TODO(dingto): Support half for ImBuf. */

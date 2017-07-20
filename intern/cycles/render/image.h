@@ -57,7 +57,10 @@ public:
 	                      InterpolationType interpolation,
 	                      ExtensionType extension,
 	                      bool use_alpha);
-	ImageDataType get_image_metadata(const string& filename, void *builtin_data, bool& is_linear);
+	ImageDataType get_image_metadata(const string& filename,
+	                                 void *builtin_data,
+	                                 bool& is_linear,
+	                                 bool& builtin_free_cache);
 
 	void device_prepare_update(DeviceScene *dscene);
 	void device_update(Device *device,
@@ -88,19 +91,23 @@ public:
 	              int &width,
 	              int &height,
 	              int &depth,
-	              int &channels)> builtin_image_info_cb;
+	              int &channels,
+	              bool &free_cache)> builtin_image_info_cb;
 	function<bool(const string &filename,
 	              void *data,
 	              unsigned char *pixels,
-	              const size_t pixels_size)> builtin_image_pixels_cb;
+	              const size_t pixels_size,
+	              const bool free_cache)> builtin_image_pixels_cb;
 	function<bool(const string &filename,
 	              void *data,
 	              float *pixels,
-	              const size_t pixels_size)> builtin_image_float_pixels_cb;
+	              const size_t pixels_size,
+	              const bool free_cache)> builtin_image_float_pixels_cb;
 
 	struct Image {
 		string filename;
 		void *builtin_data;
+		bool builtin_free_cache;
 
 		bool use_alpha;
 		bool need_load;
@@ -125,7 +132,12 @@ private:
 	void *osl_texture_system;
 	bool pack_images;
 
-	bool file_load_image_generic(Image *img, ImageInput **in, int &width, int &height, int &depth, int &components);
+	bool file_load_image_generic(Image *img,
+	                             ImageInput **in,
+	                             int &width,
+	                             int &height,
+	                             int &depth,
+	                             int &components);
 
 	template<TypeDesc::BASETYPE FileFormat,
 	         typename StorageType,
