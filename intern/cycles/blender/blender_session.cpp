@@ -1115,7 +1115,6 @@ bool BlenderSession::builtin_image_pixels(const string &builtin_name,
 
 	if(image_pixels && num_pixels * channels == pixels_size) {
 		memcpy(pixels, image_pixels, pixels_size * sizeof(unsigned char));
-		MEM_freeN(image_pixels);
 	}
 	else {
 		if(channels == 1) {
@@ -1134,6 +1133,11 @@ bool BlenderSession::builtin_image_pixels(const string &builtin_name,
 			}
 		}
 	}
+
+	if(image_pixels) {
+		MEM_freeN(image_pixels);
+	}
+
 	/* Premultiply, byte images are always straight for Blender. */
 	unsigned char *cp = pixels;
 	for(size_t i = 0; i < num_pixels; i++, cp += channels) {
@@ -1172,7 +1176,6 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 
 		if(image_pixels && num_pixels * channels == pixels_size) {
 			memcpy(pixels, image_pixels, pixels_size * sizeof(float));
-			MEM_freeN(image_pixels);
 		}
 		else {
 			if(channels == 1) {
@@ -1190,6 +1193,10 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 					}
 				}
 			}
+		}
+
+		if(image_pixels) {
+			MEM_freeN(image_pixels);
 		}
 
 		return true;
