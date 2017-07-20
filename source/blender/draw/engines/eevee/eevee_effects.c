@@ -929,16 +929,23 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
-	if ((effects->enabled_effects & EFFECT_SSR) != 0 && stl->g_data->valid_double_buffer) {
+	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-		EEVEE_downsample_buffer(vedata, fbl->minmaxz_fb, txl->color_double_buffer, 5);
+		if (stl->g_data->valid_double_buffer) {
+			EEVEE_downsample_buffer(vedata, fbl->minmaxz_fb, txl->color_double_buffer, 9);
 
-		/* Raytrace at halfres. */
-		e_data.depth_src = dtxl->depth;
-		// e_data.depth_src = stl->g_data->minmaxz;
-		DRW_framebuffer_bind(fbl->screen_tracing_fb);
-		DRW_draw_pass(psl->ssr_raytrace);
+			/* Raytrace at halfres. */
+			e_data.depth_src = dtxl->depth;
+			// e_data.depth_src = stl->g_data->minmaxz;
+			DRW_framebuffer_bind(fbl->screen_tracing_fb);
+			DRW_draw_pass(psl->ssr_raytrace);
+		}
+		else {
+			float clear_col[4] = {-1.0f, -1.0f, -1.0f, -1.0f};
+			DRW_framebuffer_bind(fbl->screen_tracing_fb);
+			DRW_framebuffer_clear(true, false, false, clear_col, 0.0f);
+		}
 
 		/* Resolve at fullres */
 		e_data.depth_src = dtxl->depth;
