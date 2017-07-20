@@ -4754,6 +4754,9 @@ static void *do_projectpaint_thread(void *ph_v)
 							copy_v3_v3(texrgb, texrgba);
 							mask *= texrgba[3];
 						}
+						else {
+							zero_v3(texrgb);
+						}
 
 						/* extra mask for normal, layer stencil, .. */
 						mask *= ((float)projPixel->mask) * (1.0f / 65535.0f);

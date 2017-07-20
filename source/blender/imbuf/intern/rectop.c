@@ -301,8 +301,8 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
                    int destx,  int desty, int origx, int origy, int srcx, int srcy, int width, int height,
                    IMB_BlendMode mode, bool accumulate)
 {
-	unsigned int *drect = NULL, *orect, *srect = NULL, *dr, *or, *sr;
-	float *drectf = NULL, *orectf, *srectf = NULL, *drf, *orf, *srf;
+	unsigned int *drect = NULL, *orect = NULL, *srect = NULL, *dr, *or, *sr;
+	float *drectf = NULL, *orectf = NULL, *srectf = NULL, *drf, *orf, *srf;
 	unsigned short *cmaskrect = curvemask, *cmr;
 	unsigned short *dmaskrect = dmask, *dmr;
 	unsigned short *texmaskrect = texmask, *tmr;

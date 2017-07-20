@@ -51,8 +51,8 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
                                       bool calc_undeformed,
                                       Mesh::SubdivisionType subdivision_type)
 {
-	bool subsurf_mod_show_render;
-	bool subsurf_mod_show_viewport;
+	bool subsurf_mod_show_render = false;
+	bool subsurf_mod_show_viewport = false;
 
 	if(subdivision_type != Mesh::SUBDIVISION_NONE) {
 		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
