@@ -6658,6 +6658,17 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 		Py_RETURN_NONE;
 	}
 	else {
+		/* New in 2.8x, since not many types support instancing
+		 * we may want to use a flag to avoid looping over all classes. - campbell */
+		{
+			void **instance = RNA_struct_instance(ptr);
+			if (instance && *instance) {
+				pyrna = *instance;
+				Py_INCREF(pyrna);
+				return (PyObject *)pyrna;
+			}
+		}
+
 		PyTypeObject *tp = (PyTypeObject *)pyrna_struct_Subtype(ptr);
 
 		if (tp) {
