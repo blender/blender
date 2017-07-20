@@ -1513,8 +1513,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 				if (ob->type == OB_MESH) {
 					OperationKey material_key(&ma->id,
 					                          DEG_NODE_TYPE_SHADING,
-					                          DEG_OPCODE_PLACEHOLDER,
-					                          "Material Update");
+					                          DEG_OPCODE_MATERIAL_UPDATE);
 					OperationKey shading_key(&ob->id, DEG_NODE_TYPE_SHADING, DEG_OPCODE_SHADING);
 					add_relation(material_key, shading_key, "Material Update");
 				}
@@ -1754,8 +1753,7 @@ void DepsgraphRelationBuilder::build_material(Material *ma)
 		                       DEG_OPCODE_PARAMETERS_EVAL);
 		OperationKey material_key(&ma->id,
 		                          DEG_NODE_TYPE_SHADING,
-		                          DEG_OPCODE_PLACEHOLDER,
-		                          "Material Update");
+		                          DEG_OPCODE_MATERIAL_UPDATE);
 		add_relation(ntree_key, material_key, "Material's NTree");
 	}
 }

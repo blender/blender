@@ -1097,8 +1097,10 @@ void DepsgraphNodeBuilder::build_material(Material *ma)
 	/* material itself */
 	add_id_node(ma_id);
 
-	add_operation_node(ma_id, DEG_NODE_TYPE_SHADING, NULL,
-	                   DEG_OPCODE_PLACEHOLDER, "Material Update");
+	add_operation_node(ma_id,
+	                   DEG_NODE_TYPE_SHADING,
+	                   NULL,
+	                   DEG_OPCODE_MATERIAL_UPDATE);
 
 	/* material animation */
 	build_animdata(ma_id);

@@ -298,10 +298,6 @@ static void material_changed(Main *bmain, Material *ma)
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&ma->id));
 
-	/* glsl */
-	if (ma->gpumaterial.first)
-		GPU_material_free(&ma->gpumaterial);
-
 	/* find node materials using this */
 	for (parent = bmain->mat.first; parent; parent = parent->id.next) {
 		if (parent->use_nodes && parent->nodetree && nodes_use_material(parent->nodetree, ma)) {
