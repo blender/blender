@@ -332,11 +332,20 @@ static void setup_app_data(
 			}
 		}
 	}
+
+	/* Setting scene might require having a dependency graph, with copy on write
+	 * we need to make sure we ensure scene has correct color management before
+	 * constructing dependency graph.
+	 */
+	if (mode != LOAD_UNDO) {
+		IMB_colormanagement_check_file_config(G.main);
+	}
+
 	BKE_scene_set_background(G.main, curscene);
 
 	if (mode != LOAD_UNDO) {
+		/* TODO(sergey): Can this be also move above? */
 		RE_FreeAllPersistentData();
-		IMB_colormanagement_check_file_config(G.main);
 	}
 
 	MEM_freeN(bfd);
