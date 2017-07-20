@@ -1136,7 +1136,7 @@ void DepsgraphRelationBuilder::build_world(World *world)
 	if (world->nodetree != NULL) {
 		build_nodetree(world->nodetree);
 		ComponentKey ntree_key(&world->nodetree->id, DEG_NODE_TYPE_PARAMETERS);
-		ComponentKey world_key(world_id, DEG_NODE_TYPE_PARAMETERS);
+		ComponentKey world_key(world_id, DEG_NODE_TYPE_SHADING);
 		add_relation(ntree_key, world_key, "NTree->World Parameters");
 	}
 }

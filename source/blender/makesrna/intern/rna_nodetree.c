@@ -66,6 +66,8 @@
 
 #include "NOD_composite.h"
 
+#include "DEG_depsgraph.h"
+
 EnumPropertyItem rna_enum_node_socket_in_out_items[] = {
 	{ SOCK_IN, "IN", 0, "Input", "" },
 	{ SOCK_OUT, "OUT", 0, "Output", "" },
@@ -2277,28 +2279,18 @@ static void rna_NodeSocketStandard_vector_range(PointerRNA *ptr, float *min, flo
 
 static void rna_NodeSocket_value_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	/* XXX: TODO (sergey/dalai) move this to depsgraph. */
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 	if (ntree->type == NTREE_SHADER) {
 		FOREACH_NODETREE(bmain, tntree, id) {
-			if (GS(id->name) == ID_WO) {
-				World *wo = (World *)id;
-				if ((BLI_listbase_is_empty(&wo->gpumaterial) == false) &&
-				    ntreeHasTree(tntree, ntree))
-				{
-					wo->update_flag = 1;
-					GPU_material_uniform_buffer_tag_dirty(&wo->gpumaterial);
+			switch (GS(id->name)) {
+				case ID_WO:
+					DEG_id_tag_update_ex(bmain, id, 0);
 					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
-				}
-			}
-			else if (GS(id->name) == ID_MA) {
-				Material *ma = (Material *)id;
-				if ((BLI_listbase_is_empty(&ma->gpumaterial) == false) &&
-				    ntreeHasTree(tntree, ntree))
-				{
-					GPU_material_uniform_buffer_tag_dirty(&ma->gpumaterial);
-					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
-				}
+					break;
+				case ID_MA:
+					DEG_id_tag_update_ex(bmain, id, 0);
+					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
+					break;
 			}
 		} FOREACH_NODETREE_END
 	}

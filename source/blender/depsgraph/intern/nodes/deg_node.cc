@@ -255,7 +255,9 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 			/* TODO(sergey): For until we properly handle granular flags for DEG_id_tag_update()
 			 * we skip flushing here to keep Luca happy.
 			 */
-			if (GS(id_orig->name) != ID_MA) {
+			if (GS(id_orig->name) != ID_MA &&
+			    GS(id_orig->name) != ID_WO)
+			{
 				do_component_tag = false;
 			}
 		}

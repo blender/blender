@@ -142,6 +142,7 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 		/* Shading. */
 		STRINGIFY_OPCODE(SHADING);
 		STRINGIFY_OPCODE(MATERIAL_UPDATE);
+		STRINGIFY_OPCODE(WORLD_UPDATE);
 
 		case DEG_NUM_OPCODES: return "SpecialCase";
 #undef STRINGIFY_OPCODE

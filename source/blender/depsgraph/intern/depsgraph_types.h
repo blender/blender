@@ -225,6 +225,7 @@ typedef enum eDepsOperation_Code {
 	/* Shading. ------------------------------------------- */
 	DEG_OPCODE_SHADING,
 	DEG_OPCODE_MATERIAL_UPDATE,
+	DEG_OPCODE_WORLD_UPDATE,
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;

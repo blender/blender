@@ -175,3 +175,14 @@ void BKE_world_make_local(Main *bmain, World *wrld, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &wrld->id, true, lib_local);
 }
+
+void BKE_world_eval(struct EvaluationContext *UNUSED(eval_ctx), World *world)
+{
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
+		printf("%s on %s (%p)\n", __func__, world->id.name, world);
+	}
+	if (!BLI_listbase_is_empty(&world->gpumaterial)) {
+		world->update_flag = 1;
+		GPU_material_uniform_buffer_tag_dirty(&world->gpumaterial);
+	}
+}

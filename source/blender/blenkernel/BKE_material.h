@@ -118,6 +118,12 @@ void free_matcopybuf(void);
 void copy_matcopybuf(struct Material *ma);
 void paste_matcopybuf(struct Material *ma);
 
+/* Evaluation. */
+
+struct EvaluationContext;
+
+void BKE_material_eval(struct EvaluationContext *eval_ctx, struct Material *material);
+
 #ifdef __cplusplus
 }
 #endif

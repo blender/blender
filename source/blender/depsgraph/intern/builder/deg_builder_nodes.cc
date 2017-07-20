@@ -604,11 +604,10 @@ void DepsgraphNodeBuilder::build_world(World *world)
 	build_animdata(world_id);
 
 	/* world itself */
-	add_component_node(world_id, DEG_NODE_TYPE_PARAMETERS);
 	add_operation_node(world_id,
-	                   DEG_NODE_TYPE_PARAMETERS,
-	                   NULL,
-	                   DEG_OPCODE_PARAMETERS_EVAL);
+	                   DEG_NODE_TYPE_SHADING,
+	                   function_bind(BKE_world_eval, _1, world),
+	                   DEG_OPCODE_WORLD_UPDATE);
 
 	/* textures */
 	build_texture_stack(world->mtex);
@@ -1099,7 +1098,7 @@ void DepsgraphNodeBuilder::build_material(Material *ma)
 
 	add_operation_node(ma_id,
 	                   DEG_NODE_TYPE_SHADING,
-	                   NULL,
+	                   function_bind(BKE_material_eval, _1, ma),
 	                   DEG_OPCODE_MATERIAL_UPDATE);
 
 	/* material animation */
