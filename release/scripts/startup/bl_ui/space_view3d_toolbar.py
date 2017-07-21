@@ -1236,7 +1236,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
                 if slot and slot.index != -1:
                     col.label("UV Map:")
-                    col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
+                    col.prop_search(slot, "uv_layer", ob.data, "uv_layers", text="")
 
         elif settings.mode == 'IMAGE':
             mesh = ob.data
