@@ -234,7 +234,7 @@ void id_tag_update_particle(Depsgraph *graph, IDDepsNode *id_node, int tag)
 	particle_comp->tag_update(graph);
 }
 
-void id_tag_update_shading(Depsgraph *graph, IDDepsNode *id_node, int tag)
+void id_tag_update_shading(Depsgraph *graph, IDDepsNode *id_node)
 {
 	ComponentDepsNode *shading_comp =
 	        id_node->find_component(DEG_NODE_TYPE_SHADING);
@@ -288,7 +288,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 		id_tag_update_particle(graph, id_node, flag);
 	}
 	if (flag & DEG_TAG_SHADING_UPDATE) {
-		id_tag_update_shading(graph, id_node, flag);
+		id_tag_update_shading(graph, id_node);
 	}
 #ifdef WITH_COPY_ON_WRITE
 	if (flag & DEG_TAG_COPY_ON_WRITE) {
