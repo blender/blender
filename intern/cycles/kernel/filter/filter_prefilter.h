@@ -61,8 +61,8 @@ ccl_device void kernel_filter_divide_shadow(int sample,
 		varA = max(0.0f, varA - unfilteredA[idx]*unfilteredA[idx]*odd_sample);
 		varB = max(0.0f, varB - unfilteredB[idx]*unfilteredB[idx]*even_sample);
 	}
-	varA /= (odd_sample - 1);
-	varB /= (even_sample - 1);
+	varA /= max(odd_sample - 1, 1);
+	varB /= max(even_sample - 1, 1);
 
 	sampleVariance[idx]  = 0.5f*(varA + varB) / sample;
 	sampleVarianceV[idx] = 0.5f * (varA - varB) * (varA - varB) / (sample*sample);
@@ -96,11 +96,17 @@ ccl_device void kernel_filter_get_feature(int sample,
 	int idx = (y-rect.y)*buffer_w + (x - rect.x);
 
 	mean[idx] = center_buffer[m_offset] / sample;
-	if(use_split_variance) {
-		variance[idx] = max(0.0f, (center_buffer[v_offset] - mean[idx]*mean[idx]*sample) / (sample * (sample-1)));
+	if (sample > 1) {
+		if(use_split_variance) {
+			variance[idx] = max(0.0f, (center_buffer[v_offset] - mean[idx]*mean[idx]*sample) / (sample * (sample-1)));
+		}
+		else {
+			variance[idx] = center_buffer[v_offset] / (sample * (sample-1));
+		}
 	}
 	else {
-		variance[idx] = center_buffer[v_offset] / (sample * (sample-1));
+		/* Can't compute variance with single sample, just set it very high. */
+		variance[idx] = 1e10f;
 	}
 }
 
