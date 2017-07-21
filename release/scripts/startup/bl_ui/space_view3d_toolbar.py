@@ -1243,7 +1243,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
             uv_text = mesh.uv_textures.active.name if mesh.uv_textures.active else ""
             col.label("Canvas Image:")
             # todo this should be combinded into a single row
-            col.template_ID(settings, "canvas", col.template_ID)
+            col.template_ID(settings, "canvas", open="image.open")
             col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
             col.label("UV Map:")
             col.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
