@@ -75,7 +75,11 @@ vec3 get_floor_pos(vec2 uv, out vec3 wPos)
 		camera_vec = normalize(eye);
 	}
 
-	float p = -dot(planeNormal, camera_pos) / dot(planeNormal, camera_vec);
+	float plane_normal_dot_camera_vec = dot(planeNormal, camera_vec);
+	float p = -dot(planeNormal, camera_pos);
+	if (plane_normal_dot_camera_vec != 0) {
+		p /= plane_normal_dot_camera_vec;
+	}
 	vec3 plane = camera_pos + camera_vec * p;
 
 	/* fix residual imprecision */
