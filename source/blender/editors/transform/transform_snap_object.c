@@ -365,7 +365,7 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 
 static bool raycastDerivedMesh(
         SnapObjectContext *sctx,
-        const float ray_orig[3], const float ray_start[3], const float ray_dir[3], const float depth_range[2],
+        const float ray_orig[3], const float ray_start[3], const float ray_dir[3],
         Object *ob, DerivedMesh *dm, float obmat[4][4], const unsigned int ob_index,
         /* read/write args */
         float *ray_depth,
@@ -483,18 +483,11 @@ static bool raycastDerivedMesh(
 	 * because even in the Orthografic view, in some cases,
 	 * the ray can start inside the object (see T50486) */
 	if (len_diff > 400.0f) {
-		float ray_org_local[3];
-
-		copy_v3_v3(ray_org_local, ray_orig);
-		mul_m4_v3(imat, ray_org_local);
-
 		/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
 		 * very far away ray_start values (as returned in case of ortho view3d), see T38358.
 		 */
 		len_diff -= local_scale; /* make temp start point a bit away from bbox hit point. */
-		madd_v3_v3v3fl(
-		        ray_start_local, ray_org_local, ray_normal_local,
-		        len_diff + depth_range[0] * local_scale);
+		madd_v3_v3fl(ray_start_local, ray_normal_local, len_diff);
 		local_depth -= len_diff;
 	}
 	else {
@@ -556,7 +549,7 @@ static bool raycastDerivedMesh(
 
 static bool raycastEditMesh(
         SnapObjectContext *sctx,
-        const float ray_orig[3], const float ray_start[3], const float ray_dir[3], const float depth_range[2],
+        const float ray_orig[3], const float ray_start[3], const float ray_dir[3],
         Object *ob, BMEditMesh *em, float obmat[4][4], const unsigned int ob_index,
         /* read/write args */
         float *ray_depth,
@@ -646,18 +639,11 @@ static bool raycastEditMesh(
 		 * because even in the Orthografic view, in some cases,
 		 * the ray can start inside the object (see T50486) */
 		if (len_diff > 400.0f) {
-			float ray_org_local[3];
-
-			copy_v3_v3(ray_org_local, ray_orig);
-			mul_m4_v3(imat, ray_org_local);
-
 			/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
 			 * very far away ray_start values (as returned in case of ortho view3d), see T38358.
 			 */
 			len_diff -= local_scale; /* make temp start point a bit away from bbox hit point. */
-			madd_v3_v3v3fl(
-			        ray_start_local, ray_org_local, ray_normal_local,
-			        len_diff + depth_range[0] * local_scale);
+			madd_v3_v3fl(ray_start_local, ray_normal_local, len_diff);
 			local_depth -= len_diff;
 		}
 		else len_diff = 0.0f;
@@ -724,7 +710,7 @@ static bool raycastEditMesh(
  */
 static bool raycastObj(
         SnapObjectContext *sctx,
-        const float ray_orig[3], const float ray_start[3], const float ray_dir[3], const float depth_range[2],
+        const float ray_orig[3], const float ray_start[3], const float ray_dir[3],
         Object *ob, float obmat[4][4], const unsigned int ob_index,
         bool use_obedit,
         /* read/write args */
@@ -743,7 +729,7 @@ static bool raycastObj(
 			em = BKE_editmesh_from_object(ob);
 			retval = raycastEditMesh(
 			        sctx,
-			        ray_orig, ray_start, ray_dir, depth_range,
+			        ray_orig, ray_start, ray_dir,
 			        ob, em, obmat, ob_index,
 			        ray_depth, r_loc, r_no, r_index, r_hit_list);
 		}
@@ -760,7 +746,7 @@ static bool raycastObj(
 			}
 			retval = raycastDerivedMesh(
 			        sctx,
-			        ray_orig, ray_start, ray_dir, depth_range,
+			        ray_orig, ray_start, ray_dir,
 			        ob, dm, obmat, ob_index,
 			        ray_depth, r_loc, r_no, r_index, r_hit_list);
 
@@ -783,7 +769,6 @@ struct RaycastObjUserData {
 	const float *ray_orig;
 	const float *ray_start;
 	const float *ray_dir;
-	const float *depth_range;
 	unsigned int ob_index;
 	/* read/write args */
 	float *ray_depth;
@@ -802,7 +787,7 @@ static void raycast_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, 
 	struct RaycastObjUserData *dt = data;
 	dt->ret |= raycastObj(
 	        sctx,
-	        dt->ray_orig, dt->ray_start, dt->ray_dir, dt->depth_range,
+	        dt->ray_orig, dt->ray_start, dt->ray_dir,
 	        ob, obmat, dt->ob_index++, is_obedit,
 	        dt->ray_depth,
 	        dt->r_loc, dt->r_no, dt->r_index,
@@ -841,7 +826,7 @@ static void raycast_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, 
  */
 static bool raycastObjects(
         SnapObjectContext *sctx,
-        const float ray_orig[3], const float ray_start[3], const float ray_dir[3], const float depth_range[2],
+        const float ray_orig[3], const float ray_start[3], const float ray_dir[3],
         const SnapSelect snap_select, const bool use_object_edit_cage,
         /* read/write args */
         float *ray_depth,
@@ -856,7 +841,6 @@ static bool raycastObjects(
 		.ray_orig = ray_orig,
 		.ray_start = ray_start,
 		.ray_dir = ray_dir,
-		.depth_range = depth_range,
 		.ob_index = 0,
 		.ray_depth = ray_depth,
 		.r_loc = r_loc,
@@ -2221,11 +2205,9 @@ bool ED_transform_snap_object_project_ray_ex(
         float r_loc[3], float r_no[3], int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
-	const float depth_range[2] = {0.0f, FLT_MAX};
-
 	return raycastObjects(
 	        sctx,
-	        ray_start, ray_start, ray_normal, depth_range,
+	        ray_start, ray_start, ray_normal,
 	        params->snap_select, params->use_object_edit_cage,
 	        ray_depth, r_loc, r_no, r_index, r_ob, r_obmat, NULL);
 }
@@ -2244,7 +2226,6 @@ bool ED_transform_snap_object_project_ray_all(
         float ray_depth, bool sort,
         ListBase *r_hit_list)
 {
-	const float depth_range[2] = {0.0f, FLT_MAX};
 	if (ray_depth == -1.0f) {
 		ray_depth = BVH_RAYCAST_DIST_MAX;
 	}
@@ -2255,7 +2236,7 @@ bool ED_transform_snap_object_project_ray_all(
 
 	bool retval = raycastObjects(
 	        sctx,
-	        ray_start, ray_start, ray_normal, depth_range,
+	        ray_start, ray_start, ray_normal,
 	        params->snap_select, params->use_object_edit_cage,
 	        &ray_depth, NULL, NULL, NULL, NULL, NULL,
 	        r_hit_list);
@@ -2438,7 +2419,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 	if (snap_to == SCE_SNAP_MODE_FACE) {
 		return raycastObjects(
 		        sctx,
-		        ray_origin, ray_start, ray_normal, depth_range,
+		        ray_origin, ray_start, ray_normal,
 		        params->snap_select, params->use_object_edit_cage,
 		        ray_depth, r_loc, r_no, r_index, NULL, NULL, NULL);
 	}
