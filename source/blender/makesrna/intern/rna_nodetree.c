@@ -2284,11 +2284,11 @@ static void rna_NodeSocket_value_update(Main *bmain, Scene *scene, PointerRNA *p
 		FOREACH_NODETREE(bmain, tntree, id) {
 			switch (GS(id->name)) {
 				case ID_WO:
-					DEG_id_tag_update_ex(bmain, id, 0);
+					DEG_id_tag_update_ex(bmain, id, DEG_TAG_SHADING_UPDATE);
 					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
 					break;
 				case ID_MA:
-					DEG_id_tag_update_ex(bmain, id, 0);
+					DEG_id_tag_update_ex(bmain, id, DEG_TAG_SHADING_UPDATE);
 					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
 					break;
 			}

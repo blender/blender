@@ -234,6 +234,21 @@ void id_tag_update_particle(Depsgraph *graph, IDDepsNode *id_node, int tag)
 	particle_comp->tag_update(graph);
 }
 
+void id_tag_update_shading(Depsgraph *graph, IDDepsNode *id_node, int tag)
+{
+	ComponentDepsNode *shading_comp =
+	        id_node->find_component(DEG_NODE_TYPE_SHADING);
+	if (shading_comp == NULL) {
+#ifdef STRICT_COMPONENT_TAGGING
+		DEG_ERROR_PRINTF("ERROR: Unable to find shading component for %s\n",
+		                 id_node->id_orig->name);
+		BLI_assert(!"This is not supposed to happen!");
+#endif
+		return;
+	}
+	shading_comp->tag_update(graph);
+}
+
 #ifdef WITH_COPY_ON_WRITE
 /* Tag corresponding to DEG_TAG_COPY_ON_WRITE. */
 void id_tag_update_copy_on_write(Depsgraph *graph, IDDepsNode *id_node)
@@ -271,6 +286,9 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	}
 	if (flag & PSYS_RECALC) {
 		id_tag_update_particle(graph, id_node, flag);
+	}
+	if (flag & DEG_TAG_SHADING_UPDATE) {
+		id_tag_update_shading(graph, id_node, flag);
 	}
 #ifdef WITH_COPY_ON_WRITE
 	if (flag & DEG_TAG_COPY_ON_WRITE) {

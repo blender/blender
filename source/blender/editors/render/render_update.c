@@ -298,6 +298,13 @@ static void material_changed(Main *bmain, Material *ma)
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&ma->id));
 
+	/* glsl */
+	if (ma->id.tag & LIB_TAG_ID_RECALC) {
+		if (!BLI_listbase_is_empty(&ma->gpumaterial)) {
+			GPU_material_free(&ma->gpumaterial);
+		}
+	}
+
 	/* find node materials using this */
 	for (parent = bmain->mat.first; parent; parent = parent->id.next) {
 		if (parent->use_nodes && parent->nodetree && nodes_use_material(parent->nodetree, ma)) {
@@ -474,6 +481,16 @@ static void world_changed(Main *UNUSED(bmain), World *wo)
 
 	/* XXX temporary flag waiting for depsgraph proper tagging */
 	wo->update_flag = 1;
+
+	/* glsl */
+	if (wo->id.tag & LIB_TAG_ID_RECALC) {
+		if (!BLI_listbase_is_empty(&defmaterial.gpumaterial)) {
+			GPU_material_free(&defmaterial.gpumaterial);
+		}
+		if (!BLI_listbase_is_empty(&wo->gpumaterial)) {
+			GPU_material_free(&wo->gpumaterial);
+		}
+	}
 }
 
 static void image_changed(Main *bmain, Image *ima)

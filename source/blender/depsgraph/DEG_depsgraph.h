@@ -157,6 +157,11 @@ enum {
 
 	/* Update copy on write component without flushing down the road. */
 	DEG_TAG_COPY_ON_WRITE = (1 << 8),
+
+	/* Tag shading components for update.
+	 * Only parameters of material changed).
+	 */
+	DEG_TAG_SHADING_UPDATE  = (1 << 9),
 };
 void DEG_id_tag_update(struct ID *id, int flag);
 void DEG_id_tag_update_ex(struct Main *bmain,
