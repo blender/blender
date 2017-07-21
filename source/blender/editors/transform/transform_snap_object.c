@@ -369,7 +369,7 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 
 static bool raycastDerivedMesh(
         SnapObjectContext *sctx,
-        const float ray_orig[3], const float ray_start[3], const float ray_dir[3],
+        const float ray_start[3], const float ray_dir[3],
         Object *ob, DerivedMesh *dm, float obmat[4][4], const unsigned int ob_index,
         /* read/write args */
         float *ray_depth,
@@ -553,7 +553,7 @@ static bool raycastDerivedMesh(
 
 static bool raycastEditMesh(
         SnapObjectContext *sctx,
-        const float ray_orig[3], const float ray_start[3], const float ray_dir[3],
+        const float ray_start[3], const float ray_dir[3],
         Object *ob, BMEditMesh *em, float obmat[4][4], const unsigned int ob_index,
         /* read/write args */
         float *ray_depth,
@@ -714,7 +714,7 @@ static bool raycastEditMesh(
  */
 static bool raycastObj(
         const bContext *C, SnapObjectContext *sctx,
-        const float ray_orig[3], const float ray_start[3], const float ray_dir[3],
+        const float ray_start[3], const float ray_dir[3],
         Object *ob, float obmat[4][4], const unsigned int ob_index,
         bool use_obedit,
         /* read/write args */
@@ -736,7 +736,7 @@ static bool raycastObj(
 			em = BKE_editmesh_from_object(ob);
 			retval = raycastEditMesh(
 			        sctx,
-			        ray_orig, ray_start, ray_dir,
+			        ray_start, ray_dir,
 			        ob, em, obmat, ob_index,
 			        ray_depth, r_loc, r_no, r_index, r_hit_list);
 		}
@@ -753,7 +753,7 @@ static bool raycastObj(
 			}
 			retval = raycastDerivedMesh(
 			        sctx,
-			        ray_orig, ray_start, ray_dir,
+			        ray_start, ray_dir,
 			        ob, dm, obmat, ob_index,
 			        ray_depth, r_loc, r_no, r_index, r_hit_list);
 
@@ -773,7 +773,6 @@ static bool raycastObj(
 
 
 struct RaycastObjUserData {
-	const float *ray_orig;
 	const float *ray_start;
 	const float *ray_dir;
 	unsigned int ob_index;
@@ -794,7 +793,7 @@ static void raycast_obj_cb(const bContext *C, SnapObjectContext *sctx, bool is_o
 	struct RaycastObjUserData *dt = data;
 	dt->ret |= raycastObj(
 	        C, sctx,
-	        dt->ray_orig, dt->ray_start, dt->ray_dir,
+	        dt->ray_start, dt->ray_dir,
 	        ob, obmat, dt->ob_index++, is_obedit,
 	        dt->ray_depth,
 	        dt->r_loc, dt->r_no, dt->r_index,
@@ -833,7 +832,7 @@ static void raycast_obj_cb(const bContext *C, SnapObjectContext *sctx, bool is_o
  */
 static bool raycastObjects(
         const bContext *C, SnapObjectContext *sctx,
-        const float ray_orig[3], const float ray_start[3], const float ray_dir[3],
+        const float ray_start[3], const float ray_dir[3],
         const SnapSelect snap_select, const bool use_object_edit_cage,
         /* read/write args */
         float *ray_depth,
@@ -845,7 +844,6 @@ static bool raycastObjects(
 	Object *obedit = use_object_edit_cage ? sctx->scene->obedit : NULL;
 
 	struct RaycastObjUserData data = {
-		.ray_orig = ray_orig,
 		.ray_start = ray_start,
 		.ray_dir = ray_dir,
 		.ob_index = 0,
@@ -2218,7 +2216,7 @@ bool ED_transform_snap_object_project_ray_ex(
 {
 	return raycastObjects(
 	        C, sctx,
-	        ray_start, ray_start, ray_normal,
+	        ray_start, ray_normal,
 	        params->snap_select, params->use_object_edit_cage,
 	        ray_depth, r_loc, r_no, r_index, r_ob, r_obmat, NULL);
 }
@@ -2247,7 +2245,7 @@ bool ED_transform_snap_object_project_ray_all(
 
 	bool retval = raycastObjects(
 	        C, sctx,
-	        ray_start, ray_start, ray_normal,
+	        ray_start, ray_normal,
 	        params->snap_select, params->use_object_edit_cage,
 	        &ray_depth, NULL, NULL, NULL, NULL, NULL,
 	        r_hit_list);
@@ -2430,7 +2428,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 	if (snap_to == SCE_SNAP_MODE_FACE) {
 		return raycastObjects(
 		        C, sctx,
-		        ray_origin, ray_start, ray_normal,
+		        ray_start, ray_normal,
 		        params->snap_select, params->use_object_edit_cage,
 		        ray_depth, r_loc, r_no, r_index, NULL, NULL, NULL);
 	}
