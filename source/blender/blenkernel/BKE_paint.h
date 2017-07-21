@@ -58,6 +58,7 @@ struct StrokeCache;
 struct Tex;
 struct ImagePool;
 struct UnifiedPaintSettings;
+struct EvaluationContext;
 
 enum OverlayFlags;
 
@@ -208,7 +209,7 @@ void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
-void BKE_sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob,
+void BKE_sculpt_update_mesh_elements(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Sculpt *sd, struct Object *ob,
                                      bool need_pmap, bool need_mask);
 struct MultiresModifierData *BKE_sculpt_multires_active(struct Scene *scene, struct Object *ob);
 int BKE_sculpt_mask_layers_ensure(struct Object *ob,

@@ -57,7 +57,8 @@ void ED_manipulator_draw_preset_arrow(
 void ED_manipulator_draw_preset_circle(
         const struct wmManipulator *mpr, float mat[4][4], int axis, int select_id);
 void ED_manipulator_draw_preset_facemap(
-        const struct wmManipulator *mpr, struct Scene *scene, struct Object *ob,  const int facemap, int select_id);
+        const struct bContext *C, const struct wmManipulator *mpr, struct Scene *scene,
+        struct Object *ob,  const int facemap, int select_id);
 
 
 /* -------------------------------------------------------------------- */

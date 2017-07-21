@@ -93,6 +93,9 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 {
 	Object workob;
 	Scene *sce = CTX_data_scene(C);
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 	
 	if (!par || bc_test_parent_loop(par, ob))
 		return false;
@@ -105,7 +108,7 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	if (is_parent_space) {
 		float mat[4][4];
 		// calc par->obmat
-		BKE_object_where_is_calc(sce, par);
+		BKE_object_where_is_calc(&eval_ctx, sce, par);
 
 		// move child obmat into world space
 		mul_m4_m4m4(mat, par->obmat, ob->obmat);
@@ -113,10 +116,10 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	}
 	
 	// apply child obmat (i.e. decompose it into rot/loc/size)
-	BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
+	BKE_object_apply_mat4(&eval_ctx, ob, ob->obmat, 0, 0);
 
 	// compute parentinv
-	BKE_object_workob_calc_parent(sce, ob, &workob);
+	BKE_object_workob_calc_parent(&eval_ctx, sce, ob, &workob);
 	invert_m4_m4(ob->parentinv, workob.obmat);
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);

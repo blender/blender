@@ -823,7 +823,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 /**
  * \param need_mask So the DerivedMesh thats returned has mask data
  */
-void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
+void BKE_sculpt_update_mesh_elements(EvaluationContext *eval_ctx, Scene *scene, Sculpt *sd, Object *ob,
                                      bool need_pmap, bool need_mask)
 {
 	DerivedMesh *dm;
@@ -860,7 +860,7 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 
 	ss->kb = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
 
-	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+	dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH);
 
 	if (mmd) {
 		ss->multires = mmd;
@@ -893,7 +893,7 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 
 			ss->orig_cos = (ss->kb) ? BKE_keyblock_convert_to_vertcos(ob, ss->kb) : BKE_mesh_vertexCos_get(me, NULL);
 
-			BKE_crazyspace_build_sculpt(scene, ob, &ss->deform_imats, &ss->deform_cos);
+			BKE_crazyspace_build_sculpt(eval_ctx, scene, ob, &ss->deform_imats, &ss->deform_cos);
 			BKE_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos);
 
 			for (a = 0; a < me->totvert; ++a) {

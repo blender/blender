@@ -88,7 +88,7 @@ extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
 #endif
 
-bool ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob,
+bool ED_object_parent_set(struct ReportList *reports, const struct bContext *C, struct Scene *scene, struct Object *ob,
                           struct Object *par, int partype, const bool xmirror, const bool keep_transform,
                           const int vert_par[3]);
 void ED_object_parent_clear(struct Object *ob, const int type);
@@ -200,7 +200,7 @@ int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, 
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
                                struct SceneLayer *sl, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene,
+int ED_object_modifier_apply(struct ReportList *reports, const struct bContext *C, struct Scene *scene,
                              struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 

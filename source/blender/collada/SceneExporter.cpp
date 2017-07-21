@@ -43,17 +43,17 @@ void SceneExporter::setExportTransformationType(BC_export_transformation_type tr
 	this->transformation_type = transformation_type;
 }
 
-void SceneExporter::exportScene(Scene *sce)
+void SceneExporter::exportScene(EvaluationContext *eval_ctx, Scene *sce)
 {
 	// <library_visual_scenes> <visual_scene>
 	std::string id_naming = id_name(sce);
 	openVisualScene(translate_id(id_naming), id_naming);
-	exportHierarchy(sce);
+	exportHierarchy(eval_ctx, sce);
 	closeVisualScene();
 	closeLibrary();
 }
 
-void SceneExporter::exportHierarchy(Scene *sce)
+void SceneExporter::exportHierarchy(EvaluationContext *eval_ctx, Scene *sce)
 {	
 	LinkNode *node;
 	std::vector<Object *> base_objects;
@@ -85,13 +85,13 @@ void SceneExporter::exportHierarchy(Scene *sce)
 		Object *ob = base_objects[index];
 		if (bc_is_marked(ob)) {
 			bc_remove_mark(ob);
-			writeNodes(ob, sce);
+			writeNodes(eval_ctx, ob, sce);
 		}
 	}
 }
 
 
-void SceneExporter::writeNodes(Object *ob, Scene *sce)
+void SceneExporter::writeNodes(EvaluationContext *eval_ctx, Object *ob, Scene *sce)
 {
 	// Add associated armature first if available
 	bool armature_exported = false;
@@ -100,7 +100,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		armature_exported = bc_is_in_Export_set(this->export_settings->export_set, ob_arm);
 		if (armature_exported && bc_is_marked(ob_arm)) {
 			bc_remove_mark(ob_arm);
-			writeNodes(ob_arm, sce);
+			writeNodes(eval_ctx, ob_arm, sce);
 			armature_exported = true;
 		}
 	}
@@ -159,7 +159,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 
 	// <instance_controller>
 	else if (ob->type == OB_ARMATURE) {
-		arm_exporter->add_armature_bones(ob, sce, this, child_objects);
+		arm_exporter->add_armature_bones(eval_ctx, ob, sce, this, child_objects);
 	}
 
 	// <instance_camera>
@@ -237,7 +237,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	for (std::list<Object *>::iterator i = child_objects.begin(); i != child_objects.end(); ++i) {
 		if (bc_is_marked(*i)) {
 			bc_remove_mark(*i);
-			writeNodes(*i, sce);
+			writeNodes(*i, eval_ctx, sce);
 		}
 	}
 

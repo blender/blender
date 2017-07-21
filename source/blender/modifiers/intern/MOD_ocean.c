@@ -540,8 +540,8 @@ static DerivedMesh *doOcean(ModifierData *md, Object *UNUSED(ob),
 }
 #endif /* WITH_OCEANSIM */
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-                                  DerivedMesh *derivedData,
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                                  Object *ob, DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;

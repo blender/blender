@@ -372,7 +372,7 @@ static int manipulator_find_intersected_3d_intern(
 	rect.ymin = co[1] - hotspot;
 	rect.ymax = co[1] + hotspot;
 
-	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_scene(C), ar, v3d, NULL, NULL, &rect);
+	ED_view3d_draw_setup_view(CTX_wm_window(C), C, CTX_data_scene(C), ar, v3d, NULL, NULL, &rect);
 
 	if (do_passes)
 		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
@@ -389,7 +389,7 @@ static int manipulator_find_intersected_3d_intern(
 		GPU_select_end();
 	}
 
-	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_scene(C), ar, v3d, NULL, NULL, NULL);
+	ED_view3d_draw_setup_view(CTX_wm_window(C), C, CTX_data_scene(C), ar, v3d, NULL, NULL, NULL);
 
 	const GLuint *hit_near = GPU_select_buffer_near(buffer, hits);
 

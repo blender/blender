@@ -41,11 +41,12 @@ extern "C" {
 struct Object;
 struct bPoseChannel;
 struct Scene;
+struct EvaluationContext;
 
 
 struct IKPlugin {
-	void (*initialize_tree_func)(struct Scene *scene, struct Object *ob, float ctime);
-	void (*execute_tree_func)(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime);
+	void (*initialize_tree_func)(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, float ctime);
+	void (*execute_tree_func)(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime);
 	void (*release_tree_func)(struct Scene *scene, struct Object *ob, float ctime);
 	void (*remove_armature_func)(struct bPose *pose);
 	void (*clear_cache)(struct bPose *pose);

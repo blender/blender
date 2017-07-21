@@ -36,12 +36,15 @@
 #include "ED_screen.h"
 #include "ED_text.h"
 
-static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
+static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
 {
 	bScreen *sc = (bScreen *)id;
+	EvaluationContext eval_ctx;
 
 	ScrArea *sa;
 	ARegion *ar;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	area_region_from_regiondata(sc, rv3d, &sa, &ar);
 
@@ -49,7 +52,7 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
 		View3D *v3d = sa->spacedata.first;
 		Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
 
-		ED_view3d_update_viewmat(scene, v3d, ar, NULL, NULL, NULL);
+		ED_view3d_update_viewmat(&eval_ctx, scene, v3d, ar, NULL, NULL, NULL);
 	}
 }
 
@@ -73,7 +76,7 @@ void RNA_api_region_view3d(StructRNA *srna)
 	FunctionRNA *func;
 
 	func = RNA_def_function(srna, "update", "rna_RegionView3D_update");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Recalculate the view matrices");
 }
 

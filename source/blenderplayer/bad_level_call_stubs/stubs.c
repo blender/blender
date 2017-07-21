@@ -384,7 +384,7 @@ void WM_manipulatortype_remove_ptr(struct bContext *C, struct Main *bmain, struc
 void ED_manipulator_draw_preset_box(const struct wmManipulator *mpr, float mat[4][4], int select_id) RET_NONE
 void ED_manipulator_draw_preset_arrow(const struct wmManipulator *mpr, float mat[4][4], int axis, int select_id) RET_NONE
 void ED_manipulator_draw_preset_circle(const struct wmManipulator *mpr, float mat[4][4], int axis, int select_id) RET_NONE
-void ED_manipulator_draw_preset_facemap(const struct wmManipulator *mpr, struct Scene *scene, struct Object *ob, const int facemap, int select_id) RET_NONE
+void ED_manipulator_draw_preset_facemap(const struct bContext *C, const struct wmManipulator *mpr, struct Scene *scene, struct Object *ob, const int facemap, int select_id) RET_NONE
 
 struct wmManipulatorMapType *WM_manipulatormaptype_find(const struct wmManipulatorMapType_Params *wmap_params) RET_NULL
 struct wmManipulatorMapType *WM_manipulatormaptype_ensure(const struct wmManipulatorMapType_Params *wmap_params) RET_NULL
@@ -469,7 +469,7 @@ char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry) RET_NULL
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name) RET_NONE
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct SceneLayer *sl, struct Object *ob) RET_NULL
-void PE_current_changed(struct Scene *scene, struct Object *ob) RET_NONE
+void PE_current_changed(const struct bContext *C, struct Scene *scene, struct Object *ob) RET_NONE
 
 /* rna keymap */
 struct wmKeyMap *WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap) RET_NULL
@@ -536,7 +536,7 @@ void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d) RET_NULL
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic) RET_NONE
 void ED_view3D_background_image_clear(struct View3D *v3d) RET_NONE
-void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4], const struct rcti *rect) RET_NONE
+void ED_view3d_update_viewmat(struct EvaluationContext *eval_ctx, struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4], const struct rcti *rect) RET_NONE
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit) RET_ZERO
 void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View3D *v3d, struct ScrArea *sa) RET_NONE
 void ED_node_shader_default(const struct bContext *C, struct ID *id) RET_NONE
@@ -609,6 +609,7 @@ SnapObjectContext *ED_transform_snap_object_context_create_view3d(
         const struct ARegion *ar, const struct View3D *v3d) RET_NULL
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx) RET_NONE
 bool ED_transform_snap_object_project_ray_ex(
+        const struct bContext *C,
         struct SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
@@ -751,14 +752,15 @@ void RE_engine_update_memory_stats(struct RenderEngine *engine, float mem_used, 
 struct RenderEngine *RE_engine_create(struct RenderEngineType *type) RET_NULL
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe) RET_NONE
 void RE_FreePersistentData(void) RET_NONE
-void RE_point_density_cache(struct Scene *scene, struct PointDensity *pd, const bool use_render_params) RET_NONE
-void RE_point_density_minmax(struct Scene *scene, struct PointDensity *pd, const bool use_render_params, float r_min[3], float r_max[3]) RET_NONE
-void RE_point_density_sample(struct Scene *scene, struct PointDensity *pd, const int resolution, const bool use_render_params, float *values) RET_NONE
+void RE_point_density_cache(struct Scene *scene, struct SceneLayer *sl, struct PointDensity *pd, const bool use_render_params) RET_NONE
+void RE_point_density_minmax(struct Scene *scene, struct SceneLayer *sl, struct PointDensity *pd, const bool use_render_params, float r_min[3], float r_max[3]) RET_NONE
+void RE_point_density_sample(struct Scene *scene, struct SceneLayer *sl, struct PointDensity *pd, const int resolution, const bool use_render_params, float *values) RET_NONE
 void RE_point_density_free(struct PointDensity *pd) RET_NONE
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
 void RE_FreeAllPersistentData(void) RET_NONE
 float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta) RET_ZERO
 void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl, const char *name, int channels, const char *chanid, int type) RET_NONE
+struct SceneLayer *RE_engine_get_scene_layer(struct Render *re) RET_NULL
 
 /* Draw */
 void OBJECT_collection_settings_create(struct IDProperty *properties) RET_NONE
@@ -807,7 +809,8 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C, const char *title,
                              const char *propname, const struct wmEvent *event) RET_ZERO
 
 /* RNA COLLADA dependency */
-int collada_export(struct Scene *sce,
+int collada_export(struct EvaluationContext *eval_ctx,
+                   struct Scene *sce,
                    struct SceneLayer *scene_layer,
                    const char *filepath,
                    int apply_modifiers,

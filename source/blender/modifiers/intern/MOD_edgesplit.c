@@ -120,7 +120,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob), DerivedMesh *dm,
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                                  Object *UNUSED(ob), DerivedMesh *dm,
                                   ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;

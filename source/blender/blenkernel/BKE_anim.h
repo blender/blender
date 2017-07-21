@@ -41,6 +41,7 @@ struct bAnimVizSettings;
 struct bMotionPath;
 struct bPoseChannel;
 struct ReportList;
+struct bContext;
 
 /* ---------------------------------------------------- */
 /* Animation Visualization */
@@ -53,7 +54,7 @@ void animviz_free_motionpath(struct bMotionPath *mpath);
 struct bMotionPath *animviz_verify_motionpaths(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan);
 
 void animviz_get_object_motionpaths(struct Object *ob, ListBase *targets);
-void animviz_calc_motionpaths(struct Scene *scene, ListBase *targets);
+void animviz_calc_motionpaths(struct bContext *C, struct Scene *scene, ListBase *targets);
 
 /* ---------------------------------------------------- */
 /* Curve Paths */
@@ -80,7 +81,7 @@ typedef struct DupliApplyData {
 	DupliExtraData *extra;
 } DupliApplyData;
 
-DupliApplyData *duplilist_apply(struct Object *ob, struct Scene *scene, struct ListBase *duplilist);
+DupliApplyData *duplilist_apply(struct EvaluationContext *eval_ctx, struct Object *ob, struct Scene *scene, struct ListBase *duplilist);
 void duplilist_restore(struct ListBase *duplilist, DupliApplyData *apply_data);
 void duplilist_free_apply_data(DupliApplyData *apply_data);
 

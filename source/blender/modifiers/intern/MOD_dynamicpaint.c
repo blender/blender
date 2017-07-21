@@ -41,6 +41,8 @@
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
+#include "DEG_depsgraph.h"
+
 #include "DEG_depsgraph_build.h"
 
 
@@ -111,15 +113,15 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
-                                  DerivedMesh *dm,
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *eval_ctx,
+                                  Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
 
 	/* dont apply dynamic paint on orco dm stack */
 	if (!(flag & MOD_APPLY_ORCO)) {
-		return dynamicPaint_Modifier_do(pmd, md->scene, BKE_scene_layer_context_active_PLACEHOLDER(md->scene), ob, dm);
+		return dynamicPaint_Modifier_do(pmd, eval_ctx, md->scene, ob, dm);
 	}
 	return dm;
 }

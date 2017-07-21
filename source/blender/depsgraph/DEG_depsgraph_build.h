@@ -42,6 +42,7 @@ struct Depsgraph;
 
 struct CacheFile;
 struct EffectorWeights;
+struct EvaluationContext;
 struct Group;
 struct Main;
 struct ModifierData;

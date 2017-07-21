@@ -92,8 +92,8 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (mcmd->cache_file == NULL) || (mcmd->object_path[0] == '\0');
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-                                  DerivedMesh *dm,
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                                  Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
 #ifdef WITH_ALEMBIC

@@ -1628,10 +1628,10 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 	}
 }
 
-void BKE_mesh_to_curve(Scene *scene, Object *ob)
+void BKE_mesh_to_curve(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	/* make new mesh data from the original copy */
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_MESH);
+	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_MESH);
 	ListBase nurblist = {NULL, NULL};
 	bool needsFree = false;
 
@@ -2466,7 +2466,7 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 
 /* settings: 1 - preview, 2 - render */
 Mesh *BKE_mesh_new_from_object(
-        Main *bmain, Scene *sce, Object *ob,
+        EvaluationContext *eval_ctx, Main *bmain, Scene *sce, Object *ob,
         int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
 	Mesh *tmpmesh;
@@ -2518,7 +2518,7 @@ Mesh *BKE_mesh_new_from_object(
 			copycu->editnurb = tmpcu->editnurb;
 
 			/* get updated display list, and convert to a mesh */
-			BKE_displist_make_curveTypes_forRender(sce, tmpobj, &dispbase, &derivedFinal, false, render);
+			BKE_displist_make_curveTypes_forRender(eval_ctx, sce, tmpobj, &dispbase, &derivedFinal, false, render);
 
 			copycu->editfont = NULL;
 			copycu->editnurb = NULL;
@@ -2569,13 +2569,7 @@ Mesh *BKE_mesh_new_from_object(
 
 			if (render) {
 				ListBase disp = {NULL, NULL};
-				/* TODO(sergey): This is gonna to work for until EvaluationContext
-				 *               only contains for_render flag. As soon as CoW is
-				 *               implemented, this is to be rethinked.
-				 */
-				EvaluationContext eval_ctx;
-				DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_RENDER);
-				BKE_displist_make_mball_forRender(&eval_ctx, sce, ob, &disp);
+				BKE_displist_make_mball_forRender(eval_ctx, sce, ob, &disp);
 				BKE_mesh_from_metaball(&disp, tmpmesh);
 				BKE_displist_free(&disp);
 			}
@@ -2614,9 +2608,9 @@ Mesh *BKE_mesh_new_from_object(
 
 				/* Write the display mesh into the dummy mesh */
 				if (render)
-					dm = mesh_create_derived_render(sce, ob, mask);
+					dm = mesh_create_derived_render(eval_ctx, sce, ob, mask);
 				else
-					dm = mesh_create_derived_view(sce, ob, mask);
+					dm = mesh_create_derived_view(eval_ctx, sce, ob, mask);
 
 				tmpmesh = BKE_mesh_add(bmain, ((ID *)ob->data)->name + 2);
 				DM_to_mesh(dm, tmpmesh, ob, mask, true);

@@ -614,8 +614,14 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, R
 	}
 }
 
-static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Scene *scene, Object *object, int resolution)
+static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Scene *scene, SceneLayer *sl, Object *object, int resolution)
 {
+	EvaluationContext eval_ctx;
+
+	DEG_evaluation_context_init(&eval_ctx, resolution);
+	eval_ctx.ctime = (float)scene->r.cfra + scene->r.subframe;
+	eval_ctx.scene_layer = sl;
+
 	if (resolution == eModifierMode_Render) {
 		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
 		float mat[4][4];
@@ -624,7 +630,7 @@ static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Sc
 
 		psys_render_set(object, particlesystem, mat, mat, 1, 1, 0.f);
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(scene, object, particlesystem, true);
+		particle_system_update(&eval_ctx, scene, object, particlesystem, true);
 	}
 	else {
 		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
@@ -634,7 +640,7 @@ static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Sc
 		}
 		
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(scene, object, particlesystem, false);
+		particle_system_update(&eval_ctx, scene, object, particlesystem, false);
 	}
 }
 
@@ -3547,6 +3553,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	func = RNA_def_function(srna, "set_resolution", "rna_ParticleSystem_set_resolution");
 	RNA_def_function_ui_description(func, "Set the resolution to use for the number of particles");
 	RNA_def_pointer(func, "scene", "Scene", "", "Scene");
+	RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "SceneLayer");
 	RNA_def_pointer(func, "object", "Object", "", "Object");
 	RNA_def_enum(func, "resolution", resolution_items, 0, "", "Resolution settings to apply");
 

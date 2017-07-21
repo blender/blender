@@ -55,6 +55,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
+#include "DEG_depsgraph.h"
+
 #include "LBM_fluidsim.h"
 
 #include "ED_screen.h"
@@ -244,7 +246,7 @@ static void set_channel(float *channel, float time, float *value, int i, int siz
 	}
 }
 
-static void set_vertex_channel(float *channel, float time, struct Scene *scene, struct FluidObject *fobj, int i)
+static void set_vertex_channel(EvaluationContext *eval_ctx, float *channel, float time, struct Scene *scene, struct FluidObject *fobj, int i)
 {
 	Object *ob = fobj->object;
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
@@ -257,7 +259,7 @@ static void set_vertex_channel(float *channel, float time, struct Scene *scene, 
 	if (channel == NULL)
 		return;
 	
-	initElbeemMesh(scene, ob, &numVerts, &verts, &numTris, &tris, 1, modifierIndex);
+	initElbeemMesh(eval_ctx, scene, ob, &numVerts, &verts, &numTris, &tris, 1, modifierIndex);
 	
 	/* don't allow mesh to change number of verts in anim sequence */
 	if (numVerts != fobj->numVerts) {
@@ -330,10 +332,13 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
+	EvaluationContext eval_ctx;
 	Base *base;
 	int i;
 	int length = channels->length;
 	float eval_time;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 	
 	/* init time values (assuming that time moves at a constant speed; may be overridden later) */
 	init_time(domainSettings, channels);
@@ -374,7 +379,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 				float *verts=NULL;
 				int *tris=NULL, modifierIndex = BLI_findindex(&ob->modifiers, (ModifierData *)fluidmd);
 
-				initElbeemMesh(scene, ob, &fobj->numVerts, &verts, &fobj->numTris, &tris, 0, modifierIndex);
+				initElbeemMesh(&eval_ctx, scene, ob, &fobj->numVerts, &verts, &fobj->numTris, &tris, 0, modifierIndex);
 				fobj->VertexCache = MEM_callocN(length *((fobj->numVerts*CHANNEL_VEC)+1) * sizeof(float), "fluidobject VertexCache");
 				
 				MEM_freeN(verts);
@@ -462,15 +467,18 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 			}
 			
 			if (fluid_is_animated_mesh(fluidmd->fss)) {
-				set_vertex_channel(fobj->VertexCache, timeAtFrame, scene, fobj, i);
+				set_vertex_channel(&eval_ctx, fobj->VertexCache, timeAtFrame, scene, fobj, i);
 			}
 		}
 	}
 }
 
-static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
+static void export_fluid_objects(const bContext *C, ListBase *fobjects, Scene *scene, int length)
 {
 	FluidObject *fobj;
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 	
 	for (fobj=fobjects->first; fobj; fobj=fobj->next) {
 		Object *ob = fobj->object;
@@ -492,7 +500,7 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 		fsmesh.type = fluidmd->fss->type;
 		fsmesh.name = ob->id.name;
 		
-		initElbeemMesh(scene, ob, &numVerts, &verts, &numTris, &tris, 0, modifierIndex);
+		initElbeemMesh(&eval_ctx, scene, ob, &numVerts, &verts, &numTris, &tris, 0, modifierIndex);
 		
 		fsmesh.numVertices   = numVerts;
 		fsmesh.numTriangles  = numTris;
@@ -1036,7 +1044,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	elbeemAddDomain(fsset);
 	
 	/* ******** export all fluid objects to elbeem ******** */
-	export_fluid_objects(fobjects, scene, channels->length);
+	export_fluid_objects(C, fobjects, scene, channels->length);
 	
 	/* custom data for fluid bake job */
 	fb->settings = fsset;

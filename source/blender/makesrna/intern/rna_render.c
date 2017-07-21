@@ -385,6 +385,16 @@ static PointerRNA rna_RenderEngine_render_get(PointerRNA *ptr)
 	}
 }
 
+static PointerRNA rna_RenderEngine_scene_layer_get(PointerRNA *ptr)
+{
+	RenderEngine *engine = (RenderEngine *)ptr->data;
+	if (engine->re != NULL) {
+		SceneLayer* scene_layer = RE_engine_get_scene_layer(engine->re);
+		return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, scene_layer);
+	}
+	return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, NULL);
+}
+
 static PointerRNA rna_RenderEngine_camera_override_get(PointerRNA *ptr)
 {
 	RenderEngine *engine = (RenderEngine *)ptr->data;
@@ -728,6 +738,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	prop = RNA_def_enum(func, "type", render_pass_type_items, SOCK_FLOAT, "Type", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+	prop = RNA_def_property(srna, "scene_layer", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "SceneLayer");
+	RNA_def_property_pointer_funcs(prop, "rna_RenderEngine_scene_layer_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Scene layer", "");
 
 	/* registration */
 

@@ -43,6 +43,7 @@ struct Scene;
 struct DerivedMesh;
 struct BPoint;
 struct MDeformVert;
+struct EvaluationContext;
 
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 void BKE_lattice_init(struct Lattice *lt);
@@ -60,10 +61,10 @@ void end_latt_deform(struct LatticeDeformData *lattice_deform_data);
 bool object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
-void curve_deform_verts(struct Scene *scene, struct Object *cuOb, struct Object *target,
+void curve_deform_verts(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *cuOb, struct Object *target,
                         struct DerivedMesh *dm, float (*vertexCos)[3],
                         int numVerts, const char *vgroup, short defaxis);
-void curve_deform_vector(struct Scene *scene, struct Object *cuOb, struct Object *target,
+void curve_deform_vector(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *cuOb, struct Object *target,
                          float orco[3], float vec[3], float mat[3][3], int no_rot_axis);
 
 void lattice_deform_verts(struct Object *laOb, struct Object *target,
@@ -76,7 +77,7 @@ void armature_deform_verts(struct Object *armOb, struct Object *target,
 
 float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3];
 void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
-void    BKE_lattice_modifiers_calc(struct Scene *scene, struct Object *ob);
+void    BKE_lattice_modifiers_calc(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
 
 struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *lattice);
 struct BPoint *BKE_lattice_active_point_get(struct Lattice *lt);

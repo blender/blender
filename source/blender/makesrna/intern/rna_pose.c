@@ -673,7 +673,7 @@ static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
 	Object *ob = (Object *)ptr->id.data;
 	float tmat[4][4];
 
-	BKE_armature_mat_pose_to_bone_ex(ob, pchan, (float (*)[4])values, tmat);
+	BKE_armature_mat_pose_to_bone_ex(NULL, ob, pchan, (float (*)[4])values, tmat);
 
 	BKE_pchan_apply_mat4(pchan, tmat, false); /* no compat for predictable result */
 }

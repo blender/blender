@@ -44,6 +44,7 @@ protected:
 	Object *m_object;
 	ExportSettings &m_settings;
 
+	EvaluationContext *m_eval_ctx;
 	Scene *m_scene;
 	uint32_t m_time_sampling;
 
@@ -56,7 +57,8 @@ protected:
 	std::string m_name;
 
 public:
-	AbcObjectWriter(Scene *scene,
+	AbcObjectWriter(EvaluationContext *eval_ctx,
+	                Scene *scene,
 	                Object *ob,
 	                uint32_t time_sampling,
 	                ExportSettings &settings,

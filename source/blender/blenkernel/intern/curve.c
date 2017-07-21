@@ -1625,7 +1625,7 @@ float *BKE_curve_surf_make_orco(Object *ob)
 /* NOTE: This routine is tied to the order of vertex
  * built by displist and as passed to the renderer.
  */
-float *BKE_curve_make_orco(Scene *scene, Object *ob, int *r_numVerts)
+float *BKE_curve_make_orco(EvaluationContext *eval_ctx, Scene *scene, Object *ob, int *r_numVerts)
 {
 	Curve *cu = ob->data;
 	DispList *dl;
@@ -1633,7 +1633,7 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob, int *r_numVerts)
 	float *fp, *coord_array;
 	ListBase disp = {NULL, NULL};
 
-	BKE_displist_make_curveTypes_forOrco(scene, ob, &disp);
+	BKE_displist_make_curveTypes_forOrco(eval_ctx, scene, ob, &disp);
 
 	numVerts = 0;
 	for (dl = disp.first; dl; dl = dl->next) {
@@ -1724,7 +1724,7 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob, int *r_numVerts)
 
 /* ***************** BEVEL ****************** */
 
-void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
+void BKE_curve_bevel_make(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *disp,
                           const bool for_render, const bool use_render_resolution)
 {
 	DispList *dl, *dlnew;
@@ -1749,7 +1749,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
 			facy = cu->bevobj->size[1];
 
 			if (for_render) {
-				BKE_displist_make_curveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, false, use_render_resolution);
+				BKE_displist_make_curveTypes_forRender(eval_ctx, scene, cu->bevobj, &bevdisp, NULL, false, use_render_resolution);
 				dl = bevdisp.first;
 			}
 			else if (cu->bevobj->curve_cache) {

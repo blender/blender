@@ -71,12 +71,13 @@ using Alembic::AbcGeom::OV2fGeomParam;
 
 /* ************************************************************************** */
 
-AbcCurveWriter::AbcCurveWriter(Scene *scene,
+AbcCurveWriter::AbcCurveWriter(EvaluationContext *eval_ctx,
+                               Scene *scene,
                                Object *ob,
                                AbcTransformWriter *parent,
                                uint32_t time_sampling,
                                ExportSettings &settings)
-    : AbcObjectWriter(scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(eval_ctx, scene, ob, time_sampling, settings, parent)
 {
 	OCurves curves(parent->alembicXform(), m_name, m_time_sampling);
 	m_schema = curves.getSchema();

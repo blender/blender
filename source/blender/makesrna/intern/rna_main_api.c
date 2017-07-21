@@ -299,9 +299,15 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 1 - preview, 2 - render */
 Mesh *rna_Main_meshes_new_from_object(
-        Main *bmain, ReportList *reports, Scene *sce,
+        Main *bmain, ReportList *reports, Scene *sce, SceneLayer *sl,
         Object *ob, int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
+	EvaluationContext eval_ctx;
+
+	DEG_evaluation_context_init(&eval_ctx, settings);
+	eval_ctx.ctime = (float)sce->r.cfra + sce->r.subframe;
+	eval_ctx.scene_layer = sl;
+
 	switch (ob->type) {
 		case OB_FONT:
 		case OB_CURVE:
@@ -314,7 +320,7 @@ Mesh *rna_Main_meshes_new_from_object(
 			return NULL;
 	}
 
-	return BKE_mesh_new_from_object(bmain, sce, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
+	return BKE_mesh_new_from_object(&eval_ctx, bmain, sce, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
 }
 
 static Lamp *rna_Main_lamps_new(Main *bmain, const char *name, int type)
@@ -878,6 +884,8 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new mesh created from object with modifiers applied");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "Scene layer within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to create mesh from");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);

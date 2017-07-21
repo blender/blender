@@ -68,7 +68,7 @@ static void rna_manipulator_draw_preset_facemap(
         wmManipulator *mpr, struct bContext *C, struct Object *ob, int facemap, int select_id)
 {
 	struct Scene *scene = CTX_data_scene(C);
-	ED_manipulator_draw_preset_facemap(mpr, scene, ob, facemap, select_id);
+	ED_manipulator_draw_preset_facemap(C, mpr, scene, ob, facemap, select_id);
 }
 
 static void rna_manipulator_target_set_prop(

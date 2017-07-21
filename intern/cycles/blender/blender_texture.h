@@ -22,7 +22,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-void point_density_texture_space(BL::Scene& b_scene,
+void point_density_texture_space(BL::Scene& b_scene, BL::SceneLayer& b_scene_layer,
                                  BL::ShaderNodeTexPointDensity& b_point_density_node,
                                  const int settings,
                                  float3& loc,

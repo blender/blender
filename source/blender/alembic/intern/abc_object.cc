@@ -58,13 +58,15 @@ using Alembic::AbcGeom::OStringProperty;
 
 /* ************************************************************************** */
 
-AbcObjectWriter::AbcObjectWriter(Scene *scene,
+AbcObjectWriter::AbcObjectWriter(EvaluationContext *eval_ctx,
+                                 Scene *scene,
                                  Object *ob,
                                  uint32_t time_sampling,
                                  ExportSettings &settings,
                                  AbcObjectWriter *parent)
     : m_object(ob)
     , m_settings(settings)
+    , m_eval_ctx(eval_ctx)
     , m_scene(scene)
     , m_time_sampling(time_sampling)
     , m_first_frame(true)

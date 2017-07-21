@@ -43,7 +43,6 @@
 
 #include "BLI_utildefines.h"
 
-
 #include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
@@ -70,7 +69,7 @@ static void initData(ModifierData *md)
 	cloth_init(clmd);
 }
 
-static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
+static void deformVerts(ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
                         int numVerts, ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm;
@@ -110,7 +109,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 
 	CDDM_apply_vert_coords(dm, vertexCos);
 
-	clothModifier_do(clmd, md->scene, ob, dm, vertexCos);
+	clothModifier_do(clmd, eval_ctx, md->scene, ob, dm, vertexCos);
 
 	dm->release(dm);
 }

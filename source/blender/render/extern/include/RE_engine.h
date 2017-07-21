@@ -189,5 +189,7 @@ struct RenderData *RE_engine_get_render_data(struct Render *re);
 void RE_bake_engine_set_engine_parameters(
         struct Render *re, struct Main *bmain, struct Depsgraph *graph, struct Scene *scene);
 
+struct SceneLayer *RE_engine_get_scene_layer(struct Render *re);
+
 #endif /* __RE_ENGINE_H__ */
 

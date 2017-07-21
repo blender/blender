@@ -1005,7 +1005,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 	if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
 		float size;
 		if (peelObjectsSnapContext(
-		        snap_context, mvalf,
+		        C, snap_context, mvalf,
 		        &(const struct SnapObjectParams){
 		            .snap_select = SNAP_NOT_SELECTED,
 		            .use_object_edit_cage = false,
@@ -1045,7 +1045,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		/* try to snap to closer object */
 		{
 			if (ED_transform_snap_object_project_view3d(
-			        snap_context,
+			        C, snap_context,
 			        ts->snap_mode,
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_NOT_SELECTED,
@@ -1931,7 +1931,7 @@ static bool sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], c
 
 	BLI_rcti_init_pt_radius(&rect, mval, 5);
 
-	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
+	hits = view3d_opengl_select(C, &vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
 
 	if (hits > 0) {
 		int besthitresult = -1;

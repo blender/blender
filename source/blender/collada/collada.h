@@ -49,6 +49,7 @@ typedef enum BC_export_transformation_type {
 struct bContext;
 struct Scene;
 struct SceneLayer;
+struct EvaluationContext;
 
 /*
  * both return 1 on success, 0 on error
@@ -63,7 +64,8 @@ int collada_import(struct bContext *C,
 
 				   int keep_bind_info);
 
-int collada_export(struct Scene *sce,
+int collada_export(struct EvaluationContext *eval_ctx,
+                   struct Scene *sce,
                    struct SceneLayer *scene_layer,
                    const char *filepath,
                    int apply_modifiers,

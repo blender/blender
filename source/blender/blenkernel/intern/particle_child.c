@@ -702,7 +702,7 @@ void do_child_modifiers(ParticleThreadContext *ctx, ParticleSimulationData *sim,
 
 	if (part->flag & PART_CHILD_EFFECT)
 		/* state is safe to cast, since only co and vel are used */
-		guided = do_guides(sim->psys->part, sim->psys->effectors, (ParticleKey *)state, cpa->parent, t);
+		guided = do_guides(sim->eval_ctx, sim->psys->part, sim->psys->effectors, (ParticleKey *)state, cpa->parent, t);
 
 	if (guided == 0) {
 		float orco_offset[3];

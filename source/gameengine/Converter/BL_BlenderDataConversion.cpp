@@ -45,7 +45,9 @@
  * This workaround will make sure that curve_cache for curves
  * is up-to-date.
  */
-#define THREADED_DAG_WORKAROUND
+
+/* TODO: Disabled for now, because of eval_ctx. */
+//#define THREADED_DAG_WORKAROUND
 
 #include <math.h>
 #include <vector>

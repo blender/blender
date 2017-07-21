@@ -89,20 +89,20 @@ static IKPlugin *get_plugin(bPose *pose)
 /*----------------------------------------*/
 /* Plugin API							  */
 
-void BIK_initialize_tree(Scene *scene, Object *ob, float ctime) 
+void BIK_initialize_tree(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime)
 {
 	IKPlugin *plugin = get_plugin(ob->pose);
 
 	if (plugin && plugin->initialize_tree_func)
-		plugin->initialize_tree_func(scene, ob, ctime);
+		plugin->initialize_tree_func(eval_ctx, scene, ob, ctime);
 }
 
-void BIK_execute_tree(struct Scene *scene, Object *ob, bPoseChannel *pchan, float ctime) 
+void BIK_execute_tree(struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob, bPoseChannel *pchan, float ctime)
 {
 	IKPlugin *plugin = get_plugin(ob->pose);
 
 	if (plugin && plugin->execute_tree_func)
-		plugin->execute_tree_func(scene, ob, pchan, ctime);
+		plugin->execute_tree_func(eval_ctx, scene, ob, pchan, ctime);
 }
 
 void BIK_release_tree(struct Scene *scene, Object *ob, float ctime) 

@@ -54,6 +54,8 @@
 #include "BKE_editmesh_bvh.h"
 #include "BKE_report.h"
 
+#include "DEG_depsgraph.h"
+
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
@@ -1812,7 +1814,7 @@ static void knife_input_ray_segment(KnifeTool_OpData *kcd, const float mval[2], 
 	mul_m4_v3(kcd->ob->imat, r_origin_ofs);
 }
 
-static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float cageco[3], bool *is_space)
+static BMFace *knife_find_closest_face(const bContext *C, KnifeTool_OpData *kcd, float co[3], float cageco[3], bool *is_space)
 {
 	BMFace *f;
 	float dist = KMAXDIST;
@@ -1837,7 +1839,7 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 	if (!f) {
 		if (kcd->is_interactive) {
 			/* try to use backbuffer selection method if ray casting failed */
-			f = EDBM_face_find_nearest(&kcd->vc, &dist);
+			f = EDBM_face_find_nearest(C, &kcd->vc, &dist);
 
 			/* cheat for now; just put in the origin instead
 			 * of a true coordinate on the face.
@@ -1851,7 +1853,7 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 
 /* find the 2d screen space density of vertices within a radius.  used to scale snapping
  * distance for picking edges/verts.*/
-static int knife_sample_screen_density(KnifeTool_OpData *kcd, const float radius)
+static int knife_sample_screen_density(const bContext *C, KnifeTool_OpData *kcd, const float radius)
 {
 	BMFace *f;
 	bool is_space;
@@ -1859,7 +1861,7 @@ static int knife_sample_screen_density(KnifeTool_OpData *kcd, const float radius
 
 	BLI_assert(kcd->is_interactive == true);
 
-	f = knife_find_closest_face(kcd, co, cageco, &is_space);
+	f = knife_find_closest_face(C, kcd, co, cageco, &is_space);
 
 	if (f && !is_space) {
 		const float radius_sq = radius * radius;
@@ -1902,15 +1904,15 @@ static int knife_sample_screen_density(KnifeTool_OpData *kcd, const float radius
 
 /* returns snapping distance for edges/verts, scaled by the density of the
  * surrounding mesh (in screen space)*/
-static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
+static float knife_snap_size(const bContext *C, KnifeTool_OpData *kcd, float maxsize)
 {
-	float density = (float)knife_sample_screen_density(kcd, maxsize * 2.0f);
+	float density = (float)knife_sample_screen_density(C, kcd, maxsize * 2.0f);
 
 	return min_ff(maxsize / (density * 0.5f), maxsize);
 }
 
 /* p is closest point on edge to the mouse cursor */
-static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], float cagep[3],
+static KnifeEdge *knife_find_closest_edge(const bContext *C, KnifeTool_OpData *kcd, float p[3], float cagep[3],
                                           BMFace **fptr, bool *is_space)
 {
 	BMFace *f;
@@ -1918,7 +1920,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 	float maxdist;
 
 	if (kcd->is_interactive) {
-		maxdist = knife_snap_size(kcd, kcd->ethresh);
+		maxdist = knife_snap_size(C, kcd, kcd->ethresh);
 
 		if (kcd->ignore_vert_snapping) {
 			maxdist *= 0.5f;
@@ -1928,7 +1930,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 		maxdist = KNIFE_FLT_EPS;
 	}
 
-	f = knife_find_closest_face(kcd, co, cageco, NULL);
+	f = knife_find_closest_face(C, kcd, co, cageco, NULL);
 	*is_space = !f;
 
 	kcd->curr.bmface = f;
@@ -2042,7 +2044,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 }
 
 /* find a vertex near the mouse cursor, if it exists */
-static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], float cagep[3], BMFace **fptr,
+static KnifeVert *knife_find_closest_vert(const bContext *C, KnifeTool_OpData *kcd, float p[3], float cagep[3], BMFace **fptr,
                                           bool *is_space)
 {
 	BMFace *f;
@@ -2050,7 +2052,7 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 	float maxdist;
 
 	if (kcd->is_interactive) {
-		maxdist = knife_snap_size(kcd, kcd->vthresh);
+		maxdist = knife_snap_size(C, kcd, kcd->vthresh);
 		if (kcd->ignore_vert_snapping) {
 			maxdist *= 0.5f;
 		}
@@ -2059,7 +2061,7 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 		maxdist = KNIFE_FLT_EPS;
 	}
 
-	f = knife_find_closest_face(kcd, co, cageco, is_space);
+	f = knife_find_closest_face(C, kcd, co, cageco, is_space);
 
 	kcd->curr.bmface = f;
 
@@ -2181,7 +2183,7 @@ static bool knife_snap_angle(KnifeTool_OpData *kcd)
 }
 
 /* update active knife edge/vert pointers */
-static int knife_update_active(KnifeTool_OpData *kcd)
+static int knife_update_active(const bContext *C, KnifeTool_OpData *kcd)
 {
 	knife_pos_data_clear(&kcd->curr);
 	copy_v2_v2(kcd->curr.mval, kcd->mval);
@@ -2196,13 +2198,13 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 		kcd->is_angle_snapping = false;
 	}
 
-	kcd->curr.vert = knife_find_closest_vert(kcd, kcd->curr.co, kcd->curr.cage, &kcd->curr.bmface, &kcd->curr.is_space);
+	kcd->curr.vert = knife_find_closest_vert(C, kcd, kcd->curr.co, kcd->curr.cage, &kcd->curr.bmface, &kcd->curr.is_space);
 
 	if (!kcd->curr.vert &&
 	    /* no edge snapping while dragging (edges are too sticky when cuts are immediate) */
 	    !kcd->is_drag_hold)
 	{
-		kcd->curr.edge = knife_find_closest_edge(kcd, kcd->curr.co, kcd->curr.cage,
+		kcd->curr.edge = knife_find_closest_edge(C, kcd, kcd->curr.co, kcd->curr.cage,
 		                                         &kcd->curr.bmface, &kcd->curr.is_space);
 	}
 
@@ -2569,27 +2571,30 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static void knifetool_update_mval(KnifeTool_OpData *kcd, const float mval[2])
+static void knifetool_update_mval(const bContext *C, KnifeTool_OpData *kcd, const float mval[2])
 {
 	knife_recalc_projmat(kcd);
 	copy_v2_v2(kcd->mval, mval);
 
-	if (knife_update_active(kcd)) {
+	if (knife_update_active(C, kcd)) {
 		ED_region_tag_redraw(kcd->ar);
 	}
 }
 
-static void knifetool_update_mval_i(KnifeTool_OpData *kcd, const int mval_i[2])
+static void knifetool_update_mval_i(const bContext *C, KnifeTool_OpData *kcd, const int mval_i[2])
 {
 	float mval[2] = {UNPACK2(mval_i)};
-	knifetool_update_mval(kcd, mval);
+	knifetool_update_mval(C, kcd, mval);
 }
 
-static void knifetool_init_bmbvh(KnifeTool_OpData *kcd)
+static void knifetool_init_bmbvh(const bContext *C, KnifeTool_OpData *kcd)
 {
+	EvaluationContext eval_ctx;
 	BM_mesh_elem_index_ensure(kcd->em->bm, BM_VERT);
 
-	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(kcd->em, kcd->scene, NULL);
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(&eval_ctx, kcd->em, kcd->scene, NULL);
 
 	kcd->bmbvh = BKE_bmbvh_new_from_editmesh(
 	        kcd->em,
@@ -2632,7 +2637,7 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 	kcd->cut_through = cut_through;
 	kcd->only_select = only_select;
 
-	knifetool_init_bmbvh(kcd);
+	knifetool_init_bmbvh(C, kcd);
 
 	kcd->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 15), "knife");
 #ifdef USE_NET_ISLAND_CONNECT
@@ -2704,7 +2709,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	WM_cursor_modal_set(CTX_wm_window(C), BC_KNIFECURSOR);
 	WM_event_add_modal_handler(C, op);
 
-	knifetool_update_mval_i(kcd, event->mval);
+	knifetool_update_mval_i(C, kcd, event->mval);
 
 	knife_update_header(C, op, kcd);
 
@@ -2810,7 +2815,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				kcd->snap_midpoints = true;
 
 				knife_recalc_projmat(kcd);
-				knife_update_active(kcd);
+				knife_update_active(C, kcd);
 				knife_update_header(C, op, kcd);
 				ED_region_tag_redraw(kcd->ar);
 				do_refresh = true;
@@ -2819,7 +2824,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				kcd->snap_midpoints = false;
 
 				knife_recalc_projmat(kcd);
-				knife_update_active(kcd);
+				knife_update_active(C, kcd);
 				knife_update_header(C, op, kcd);
 				ED_region_tag_redraw(kcd->ar);
 				do_refresh = true;
@@ -2874,7 +2879,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					kcd->is_drag_hold = false;
 
 					/* needed because the last face 'hit' is ignored when dragging */
-					knifetool_update_mval(kcd, kcd->curr.mval);
+					knifetool_update_mval(C, kcd, kcd->curr.mval);
 				}
 
 				ED_region_tag_redraw(kcd->ar);
@@ -2885,14 +2890,14 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					/* shouldn't be possible with default key-layout, just incase... */
 					if (kcd->is_drag_hold) {
 						kcd->is_drag_hold = false;
-						knifetool_update_mval(kcd, kcd->curr.mval);
+						knifetool_update_mval(C, kcd, kcd->curr.mval);
 					}
 
 					kcd->prev = kcd->curr;
 					kcd->curr = kcd->init;
 
 					knife_project_v2(kcd, kcd->curr.cage, kcd->curr.mval);
-					knifetool_update_mval(kcd, kcd->curr.mval);
+					knifetool_update_mval(C, kcd, kcd->curr.mval);
 
 					knife_add_cut(kcd);
 
@@ -2926,7 +2931,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				return OPERATOR_PASS_THROUGH;
 			case MOUSEMOVE: /* mouse moved somewhere to select another loop */
 				if (kcd->mode != MODE_PANNING) {
-					knifetool_update_mval_i(kcd, event->mval);
+					knifetool_update_mval_i(C, kcd, event->mval);
 
 					if (kcd->is_drag_hold) {
 						if (kcd->totlinehit >= 2) {
@@ -2949,7 +2954,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if (do_refresh) {
 		/* we don't really need to update mval,
 		 * but this happens to be the best way to refresh at the moment */
-		knifetool_update_mval_i(kcd, event->mval);
+		knifetool_update_mval_i(C, kcd, event->mval);
 	}
 
 	/* keep going until the user confirms */
@@ -3037,7 +3042,7 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
 			int i;
 
 			for (i = 0; i < mval_tot; i++) {
-				knifetool_update_mval(kcd, mval_fl[i]);
+				knifetool_update_mval(C, kcd, mval_fl[i]);
 				if (i == 0) {
 					knife_start_cut(kcd);
 					kcd->mode = MODE_DRAGGING;
@@ -3068,7 +3073,7 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
 
 			/* freed on knifetool_finish_ex, but we need again to check if points are visible */
 			if (kcd->cut_through == false) {
-				knifetool_init_bmbvh(kcd);
+				knifetool_init_bmbvh(C, kcd);
 			}
 
 			ED_view3d_ob_project_mat_get(kcd->ar->regiondata, kcd->ob, projmat);

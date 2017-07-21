@@ -858,9 +858,11 @@ static void rna_Object_active_particle_system_index_set(PointerRNA *ptr, int val
 
 static void rna_Object_particle_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
+	/* TODO: Disabled for now, because bContext is not available. */
+#if 0
 	Object *ob = (Object *)ptr->id.data;
-
-	PE_current_changed(scene, ob);
+	PE_current_changed(NULL, scene, ob);
+#endif
 }
 
 /* rotation - axis-angle */

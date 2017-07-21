@@ -103,8 +103,8 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 	walk(userData, ob, &smd->auxTarget, IDWALK_CB_NOP);
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
-                        DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                        Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
                         ModifierApplyFlag flag)
@@ -124,7 +124,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 		dm->release(dm);
 }
 
-static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editData, DerivedMesh *derivedData,
+static void deformVertsEM(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx), Object *ob,
+                          struct BMEditMesh *editData, DerivedMesh *derivedData,
                           float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;

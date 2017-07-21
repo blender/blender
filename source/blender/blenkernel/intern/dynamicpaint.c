@@ -74,6 +74,8 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
+#include "DEG_depsgraph.h"
+
 /* for image output	*/
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -1973,7 +1975,7 @@ static void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMe
 /*
  *	Updates derived mesh copy and processes dynamic paint step / caches.
  */
-static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene, SceneLayer *sl, Object *ob, DerivedMesh *dm)
+static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	if (pmd->canvas) {
 		DynamicPaintCanvasSettings *canvas = pmd->canvas;
@@ -2036,7 +2038,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 				else if (can_simulate) {
 					/* calculate surface frame */
 					canvas->flags |= MOD_DPAINT_BAKING;
-					dynamicPaint_calculateFrame(surface, scene, sl, ob, current_frame);
+					dynamicPaint_calculateFrame(surface, eval_ctx, scene, ob, current_frame);
 					canvas->flags &= ~MOD_DPAINT_BAKING;
 
 					/* restore canvas derivedmesh if required */
@@ -2055,7 +2057,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 }
 
 /* Modifier call. Processes dynamic paint modifier step. */
-DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scene, SceneLayer *sl, Object *ob, DerivedMesh *dm)
+DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	if (pmd->canvas) {
 		DerivedMesh *ret;
@@ -2064,7 +2066,7 @@ DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scen
 		DM_ensure_looptri(dm);
 
 		/* Update canvas data for a new frame */
-		dynamicPaint_frameUpdate(pmd, scene, sl, ob, dm);
+		dynamicPaint_frameUpdate(pmd, eval_ctx, scene, ob, dm);
 
 		/* Return output mesh */
 		ret = dynamicPaint_Modifier_apply(pmd, ob, dm);
@@ -2076,7 +2078,7 @@ DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scen
 		DM_ensure_looptri(dm);
 
 		/* Update canvas data for a new frame */
-		dynamicPaint_frameUpdate(pmd, scene, sl, ob, dm);
+		dynamicPaint_frameUpdate(pmd, eval_ctx, scene, ob, dm);
 
 		/* Return output mesh */
 		return dynamicPaint_Modifier_apply(pmd, ob, dm);
@@ -3582,7 +3584,7 @@ static void dynamic_paint_brush_velocity_compute_cb(void *userdata, const int i)
 }
 
 static void dynamicPaint_brushMeshCalculateVelocity(
-        Scene *scene, Object *ob, DynamicPaintBrushSettings *brush, Vec3f **brushVel, float timescale)
+        struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DynamicPaintBrushSettings *brush, Vec3f **brushVel, float timescale)
 {
 	float prev_obmat[4][4];
 	DerivedMesh *dm_p, *dm_c;
@@ -3604,7 +3606,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(
 	scene->r.subframe = prev_sfra;
 
 	BKE_object_modifier_update_subframe(
-	            scene, ob, true, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
+	            eval_ctx, scene, ob, true, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
 	dm_p = CDDM_copy(brush->dm);
 	numOfVerts_p = dm_p->getNumVerts(dm_p);
 	mvert_p = dm_p->getVertArray(dm_p);
@@ -3615,7 +3617,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(
 	scene->r.subframe = cur_sfra;
 
 	BKE_object_modifier_update_subframe(
-	            scene, ob, true, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
+	            eval_ctx, scene, ob, true, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
 	dm_c = brush->dm;
 	numOfVerts_c = dm_c->getNumVerts(dm_c);
 	mvert_c = dm_p->getVertArray(dm_c);
@@ -3640,7 +3642,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(
 }
 
 /* calculate velocity for object center point */
-static void dynamicPaint_brushObjectCalculateVelocity(Scene *scene, Object *ob, Vec3f *brushVel, float timescale)
+static void dynamicPaint_brushObjectCalculateVelocity(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, Vec3f *brushVel, float timescale)
 {
 	float prev_obmat[4][4];
 	float cur_loc[3] = {0.0f}, prev_loc[3] = {0.0f};
@@ -3659,14 +3661,14 @@ static void dynamicPaint_brushObjectCalculateVelocity(Scene *scene, Object *ob, 
 	scene->r.cfra = prev_fra;
 	scene->r.subframe = prev_sfra;
 	BKE_object_modifier_update_subframe(
-	            scene, ob, false, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
+	            eval_ctx, scene, ob, false, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
 	copy_m4_m4(prev_obmat, ob->obmat);
 
 	/* current frame dm */
 	scene->r.cfra = cur_fra;
 	scene->r.subframe = cur_sfra;
 	BKE_object_modifier_update_subframe(
-	            scene, ob, false, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
+	            eval_ctx, scene, ob, false, SUBFRAME_RECURSION, BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
 
 	/* calculate speed */
 	mul_m4_v3(prev_obmat, prev_loc);
@@ -4036,7 +4038,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 	}
 }
 
-static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
+static int dynamicPaint_paintMesh(struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface,
                                   DynamicPaintBrushSettings *brush,
                                   Object *brushOb,
                                   BrushMaterials *bMats,
@@ -4052,7 +4054,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 	const MLoop *mloop = NULL;
 
 	if (brush->flags & MOD_DPAINT_USES_VELOCITY)
-		dynamicPaint_brushMeshCalculateVelocity(scene, brushOb, brush, &brushVelocity, timescale);
+		dynamicPaint_brushMeshCalculateVelocity(eval_ctx, scene, brushOb, brush, &brushVelocity, timescale);
 
 	if (!brush->dm)
 		return 0;
@@ -4530,7 +4532,7 @@ static void dynamic_paint_paint_single_point_cb_ex(
 }
 
 static int dynamicPaint_paintSinglePoint(
-        DynamicPaintSurface *surface, float *pointCoord, DynamicPaintBrushSettings *brush,
+        struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface, float *pointCoord, DynamicPaintBrushSettings *brush,
         Object *brushOb, BrushMaterials *bMats, Scene *scene, float timescale)
 {
 	PaintSurfaceData *sData = surface->data;
@@ -4538,7 +4540,7 @@ static int dynamicPaint_paintSinglePoint(
 	Vec3f brushVel;
 
 	if (brush->flags & MOD_DPAINT_USES_VELOCITY)
-		dynamicPaint_brushObjectCalculateVelocity(scene, brushOb, &brushVel, timescale);
+		dynamicPaint_brushObjectCalculateVelocity(eval_ctx, scene, brushOb, &brushVel, timescale);
 
 	const MVert *mvert = brush->dm->getVertArray(brush->dm);
 
@@ -4845,7 +4847,7 @@ static void dynamic_paint_prepare_effect_cb(void *userdata, const int index)
 }
 
 static int dynamicPaint_prepareEffectStep(
-        DynamicPaintSurface *surface, Scene *scene, Object *ob, float **force, float timescale)
+        struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface, Scene *scene, Object *ob, float **force, float timescale)
 {
 	double average_force = 0.0f;
 	float shrink_speed = 0.0f, spread_speed = 0.0f;
@@ -4856,7 +4858,7 @@ static int dynamicPaint_prepareEffectStep(
 
 	/* Init force data if required */
 	if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
-		ListBase *effectors = pdInitEffectors(scene, ob, NULL, surface->effector_weights, true);
+		ListBase *effectors = pdInitEffectors(eval_ctx, scene, ob, NULL, surface->effector_weights, true);
 
 		/* allocate memory for force data (dir vector + strength) */
 		*force = MEM_mallocN(sData->total_points * 4 * sizeof(float), "PaintEffectForces");
@@ -5758,7 +5760,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Sce
 /*
  * Do Dynamic Paint step. Paints scene brush objects of current state/frame to the surface.
  */
-static int dynamicPaint_doStep(Scene *scene, SceneLayer *sl, Object *ob, DynamicPaintSurface *surface, float timescale, float subframe)
+static int dynamicPaint_doStep(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DynamicPaintSurface *surface, float timescale, float subframe)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
@@ -5782,6 +5784,7 @@ static int dynamicPaint_doStep(Scene *scene, SceneLayer *sl, Object *ob, Dynamic
 		GroupObject *go = NULL;
 		Object *brushObj = NULL;
 		ModifierData *md = NULL;
+		SceneLayer *sl = eval_ctx->scene_layer;
 
 		/* backup current scene frame */
 		int scene_frame = scene->r.cfra;
@@ -5836,7 +5839,7 @@ static int dynamicPaint_doStep(Scene *scene, SceneLayer *sl, Object *ob, Dynamic
 					/* update object data on this subframe */
 					if (subframe) {
 						scene_setSubframe(scene, subframe);
-						BKE_object_modifier_update_subframe(scene, brushObj, true, SUBFRAME_RECURSION,
+						BKE_object_modifier_update_subframe(eval_ctx, scene, brushObj, true, SUBFRAME_RECURSION,
 						                                    BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
 					}
 					/* Prepare materials if required	*/
@@ -5855,11 +5858,11 @@ static int dynamicPaint_doStep(Scene *scene, SceneLayer *sl, Object *ob, Dynamic
 						}
 					/* Object center distance: */
 					if (brush->collision == MOD_DPAINT_COL_POINT && brushObj != ob) {
-						dynamicPaint_paintSinglePoint(surface, brushObj->loc, brush, brushObj, &bMats, scene, timescale);
+						dynamicPaint_paintSinglePoint(eval_ctx, surface, brushObj->loc, brush, brushObj, &bMats, scene, timescale);
 					}
 					/* Mesh volume/proximity: */
 					else if (brushObj != ob) {
-						dynamicPaint_paintMesh(surface, brush, brushObj, &bMats, scene, timescale);
+						dynamicPaint_paintMesh(eval_ctx, surface, brush, brushObj, &bMats, scene, timescale);
 					}
 
 					/* free temp material data */
@@ -5869,7 +5872,7 @@ static int dynamicPaint_doStep(Scene *scene, SceneLayer *sl, Object *ob, Dynamic
 					if (subframe) {
 						scene->r.cfra = scene_frame;
 						scene->r.subframe = scene_subframe;
-						BKE_object_modifier_update_subframe(scene, brushObj, true, SUBFRAME_RECURSION,
+						BKE_object_modifier_update_subframe(eval_ctx, scene, brushObj, true, SUBFRAME_RECURSION,
 						                                    BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
 					}
 
@@ -5904,7 +5907,7 @@ static int dynamicPaint_doStep(Scene *scene, SceneLayer *sl, Object *ob, Dynamic
 				return setError(canvas, N_("Not enough free memory"));
 
 			/* Prepare effects and get number of required steps */
-			steps = dynamicPaint_prepareEffectStep(surface, scene, ob, &force, timescale);
+			steps = dynamicPaint_prepareEffectStep(eval_ctx, surface, scene, ob, &force, timescale);
 			for (s = 0; s < steps; s++) {
 				dynamicPaint_doEffectStep(surface, force, prevPoint, timescale, (float)steps);
 			}
@@ -5928,7 +5931,7 @@ static int dynamicPaint_doStep(Scene *scene, SceneLayer *sl, Object *ob, Dynamic
 /*
  * Calculate a single frame and included subframes for surface
  */
-int dynamicPaint_calculateFrame(DynamicPaintSurface *surface, Scene *scene, SceneLayer *sl, Object *cObject, int frame)
+int dynamicPaint_calculateFrame(DynamicPaintSurface *surface, struct EvaluationContext *eval_ctx, Scene *scene, Object *cObject, int frame)
 {
 	float timescale = 1.0f;
 
@@ -5937,7 +5940,7 @@ int dynamicPaint_calculateFrame(DynamicPaintSurface *surface, Scene *scene, Scen
 		dynamicPaint_applySurfaceDisplace(surface, surface->canvas->dm);
 
 	/* update bake data */
-	dynamicPaint_generateBakeData(surface, sl, cObject);
+	dynamicPaint_generateBakeData(surface, eval_ctx->scene_layer, cObject);
 
 	/* don't do substeps for first frame */
 	if (surface->substeps && (frame != surface->start_frame)) {
@@ -5946,10 +5949,10 @@ int dynamicPaint_calculateFrame(DynamicPaintSurface *surface, Scene *scene, Scen
 
 		for (st = 1; st <= surface->substeps; st++) {
 			float subframe = ((float) st) / (surface->substeps + 1);
-			if (!dynamicPaint_doStep(scene, sl, cObject, surface, timescale, subframe))
+			if (!dynamicPaint_doStep(eval_ctx, scene, cObject, surface, timescale, subframe))
 				return 0;
 		}
 	}
 
-	return dynamicPaint_doStep(scene, sl, cObject, surface, timescale, 0.0f);
+	return dynamicPaint_doStep(eval_ctx, scene, cObject, surface, timescale, 0.0f);
 }

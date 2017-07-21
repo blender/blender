@@ -272,7 +272,7 @@ static void meshdeform_vert_task(void *userdata, const int iter)
 }
 
 static void meshdeformModifier_do(
-        ModifierData *md, Object *ob, DerivedMesh *dm,
+        ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob, DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
@@ -299,7 +299,7 @@ static void meshdeformModifier_do(
 	 */
 	if (mmd->object == md->scene->obedit) {
 		BMEditMesh *em = BKE_editmesh_from_object(mmd->object);
-		tmpdm = editbmesh_get_derived_cage_and_final(md->scene, mmd->object, em, 0, &cagedm);
+		tmpdm = editbmesh_get_derived_cage_and_final(eval_ctx, md->scene, mmd->object, em, 0, &cagedm);
 		if (tmpdm)
 			tmpdm->release(tmpdm);
 	}
@@ -402,7 +402,7 @@ static void meshdeformModifier_do(
 	cagedm->release(cagedm);
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
+static void deformVerts(ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob,
                         DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
@@ -412,13 +412,13 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 
-	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
+	meshdeformModifier_do(md, eval_ctx, ob, dm, vertexCos, numVerts);
 
 	if (dm && dm != derivedData)
 		dm->release(dm);
 }
 
-static void deformVertsEM(ModifierData *md, Object *ob,
+static void deformVertsEM(ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob,
                           struct BMEditMesh *UNUSED(editData),
                           DerivedMesh *derivedData,
                           float (*vertexCos)[3],
@@ -426,7 +426,7 @@ static void deformVertsEM(ModifierData *md, Object *ob,
 {
 	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 
-	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
+	meshdeformModifier_do(md, eval_ctx, ob, dm, vertexCos, numVerts);
 
 	if (dm && dm != derivedData)
 		dm->release(dm);

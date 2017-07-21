@@ -4394,10 +4394,13 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 	SculptSession *ss = ob->sculpt;
 
 	if (ss->kb || ss->modifiers_active) {
+		EvaluationContext eval_ctx;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = BKE_paint_brush(&sd->paint);
 
-		BKE_sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
+		CTX_data_eval_ctx(C, &eval_ctx);
+
+		BKE_sculpt_update_mesh_elements(&eval_ctx, CTX_data_scene(C), sd, ob,
 		                            sculpt_any_smooth_mode(brush, ss->cache, 0), false);
 	}
 }
@@ -4554,11 +4557,14 @@ static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+	EvaluationContext eval_ctx;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	int mode = RNA_enum_get(op->ptr, "mode");
 	bool is_smooth;
 	bool need_mask = false;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
 		need_mask = true;
@@ -4568,7 +4574,7 @@ static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	sculpt_brush_init_tex(scene, sd, ss);
 
 	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
-	BKE_sculpt_update_mesh_elements(scene, sd, ob, is_smooth, need_mask);
+	BKE_sculpt_update_mesh_elements(&eval_ctx, scene, sd, ob, is_smooth, need_mask);
 
 	return 1;
 }
@@ -4995,10 +5001,13 @@ void sculpt_update_after_dynamic_topology_toggle(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
+	EvaluationContext eval_ctx;
 	Sculpt *sd = scene->toolsettings->sculpt;
 
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* Create the PBVH */
-	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, false);
+	BKE_sculpt_update_mesh_elements(&eval_ctx, scene, sd, ob, false, false);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 }
 
@@ -5332,11 +5341,15 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
 /**** Toggle operator for turning sculpt mode on or off ****/
 
-static void sculpt_init_session(Scene *scene, Object *ob)
+static void sculpt_init_session(const bContext *C, Scene *scene, Object *ob)
 {
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-	BKE_sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, false);
+	BKE_sculpt_update_mesh_elements(&eval_ctx, scene, scene->toolsettings->sculpt, ob, 0, false);
 }
 
 
@@ -5428,7 +5441,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		if (ob->sculpt)
 			BKE_sculptsession_free(ob);
 
-		sculpt_init_session(scene, ob);
+		sculpt_init_session(C, scene, ob);
 
 		/* Mask layer is required */
 		if (mmd) {

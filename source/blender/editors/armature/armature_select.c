@@ -177,7 +177,7 @@ void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel)
 	rect.xmin = rect.xmax = xy[0];
 	rect.ymin = rect.ymax = xy[1];
 	
-	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
+	hits = view3d_opengl_select(C, &vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
 
 	if (hits > 0)
 		return get_bone_from_selectbuffer(vc.scene, vc.scene_layer->basact, buffer, hits, findunsel, true);
@@ -291,7 +291,7 @@ static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits12, const
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
 static EditBone *get_nearest_editbonepoint(
-        ViewContext *vc, const int mval[2],
+        const bContext *C, ViewContext *vc, const int mval[2],
         ListBase *edbo, bool findunsel, bool use_cycle, int *r_selmask)
 {
 	bArmature *arm = (bArmature *)vc->obedit->data;
@@ -344,7 +344,7 @@ static EditBone *get_nearest_editbonepoint(
 	view3d_opengl_select_cache_begin();
 
 	BLI_rcti_init_pt_radius(&rect, mval, 12);
-	hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
+	hits12 = view3d_opengl_select(C, vc, buffer, MAXPICKBUF, &rect, select_mode);
 	if (hits12 == 1) {
 		hits = selectbuffer_ret_hits_12(buffer, hits12);
 		goto cache_end;
@@ -354,7 +354,7 @@ static EditBone *get_nearest_editbonepoint(
 
 		offs = 4 * hits12;
 		BLI_rcti_init_pt_radius(&rect, mval, 5);
-		hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
+		hits5 = view3d_opengl_select(C, vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
 
 		if (hits5 == 1) {
 			hits = selectbuffer_ret_hits_5(buffer, hits12, hits5);
@@ -492,7 +492,7 @@ bool ED_armature_select_pick(bContext *C, const int mval[2], bool extend, bool d
 		return true;
 	}
 
-	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, true, true, &selmask);
+	nearBone = get_nearest_editbonepoint(C, &vc, mval, arm->edbo, true, true, &selmask);
 	if (nearBone) {
 
 		if (!extend && !deselect && !toggle) {

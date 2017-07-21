@@ -36,7 +36,8 @@ class AbcCurveWriter : public AbcObjectWriter {
 	Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
 
 public:
-	AbcCurveWriter(Scene *scene,
+	AbcCurveWriter(EvaluationContext *eval_ctx,
+	               Scene *scene,
 	               Object *ob,
 	               AbcTransformWriter *parent,
 	               uint32_t time_sampling,

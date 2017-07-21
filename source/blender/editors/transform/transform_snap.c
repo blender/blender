@@ -1197,7 +1197,7 @@ bool snapObjectsTransform(
         float r_loc[3], float r_no[3])
 {
 	return ED_transform_snap_object_project_view3d_ex(
-	        t->tsnap.object_context,
+	        t->context, t->tsnap.object_context,
 	        t->scene->toolsettings->snap_mode,
 	        &(const struct SnapObjectParams){
 	            .snap_select = t->tsnap.modeSelect,
@@ -1211,7 +1211,7 @@ bool snapObjectsTransform(
 /******************** PEELING *********************************/
 
 bool peelObjectsSnapContext(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const float mval[2],
         const struct SnapObjectParams *params,
         const bool use_peel_object,
@@ -1220,7 +1220,7 @@ bool peelObjectsSnapContext(
 {
 	ListBase depths_peel = {0};
 	ED_transform_snap_object_project_all_view3d_ex(
-	        sctx,
+	        C, sctx,
 	        params,
 	        mval, -1.0f, false,
 	        &depths_peel);
@@ -1287,7 +1287,7 @@ bool peelObjectsTransform(
         float r_loc[3], float r_no[3], float *r_thickness)
 {
 	return peelObjectsSnapContext(
-	        t->tsnap.object_context,
+	        t->context, t->tsnap.object_context,
 	        mval,
 	        &(const struct SnapObjectParams){
 	            .snap_select = t->tsnap.modeSelect,

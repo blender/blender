@@ -38,7 +38,10 @@
 #include "BLI_task.h"
 #include "BLI_ghash.h"
 
+#include "DNA_object_types.h"
+
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "atomic_ops.h"
 
@@ -275,6 +278,7 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 
 	/* Set time for the current graph evaluation context. */
 	TimeSourceDepsNode *time_src = graph->find_time_source();
+	eval_ctx->scene_layer = DEG_get_evaluated_scene_layer((::Depsgraph *)graph);
 	eval_ctx->ctime = time_src->cfra;
 
 	/* XXX could use a separate pool for each eval context */

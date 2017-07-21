@@ -97,8 +97,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 }
 
 /* saves the current emitter state for a particle system and calculates particles */
-static void deformVerts(ModifierData *md, Object *ob,
-                        DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, struct EvaluationContext *eval_ctx,
+                        Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int UNUSED(numVerts),
                         ModifierApplyFlag flag)
@@ -186,7 +186,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	if (!(ob->transflag & OB_NO_PSYS_UPDATE)) {
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(md->scene, ob, psys, (flag & MOD_APPLY_RENDER) != 0);
+		particle_system_update(eval_ctx, md->scene, ob, psys, (flag & MOD_APPLY_RENDER) != 0);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
 	}
 }

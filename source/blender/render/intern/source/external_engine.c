@@ -791,3 +791,8 @@ void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, s
 		}
 	}
 }
+
+SceneLayer *RE_engine_get_scene_layer(Render *re)
+{
+	return re->eval_ctx->scene_layer;
+}

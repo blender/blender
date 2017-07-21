@@ -1229,3 +1229,11 @@ Depsgraph *CTX_data_depsgraph(const bContext *C)
 	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	return BKE_scene_get_depsgraph(scene, scene_layer);
 }
+
+void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)
+{
+	BLI_assert(C);
+
+	*eval_ctx = *CTX_data_main(C)->eval_ctx;
+	eval_ctx->scene_layer = CTX_data_scene_layer(C);
+}

@@ -60,6 +60,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
   b_render(b_engine.render()),
   b_depsgraph(b_depsgraph),
   b_scene(b_scene),
+  b_scene_layer(b_engine.scene_layer()),
   b_v3d(PointerRNA_NULL),
   b_rv3d(PointerRNA_NULL),
   python_thread_state(NULL)
@@ -89,6 +90,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
   b_render(b_scene.render()),
   b_depsgraph(b_depsgraph),
   b_scene(b_scene),
+  b_scene_layer(b_engine.scene_layer()),
   b_v3d(b_v3d),
   b_rv3d(b_rv3d),
   width(width),
@@ -1301,7 +1303,7 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 			BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
 			int length;
 			int settings = background ? 1 : 0;  /* 1 - render settings, 0 - vewport settings. */
-			b_point_density_node.calc_point_density(b_scene, settings, &length, &pixels);
+			b_point_density_node.calc_point_density(b_scene, b_scene_layer, settings, &length, &pixels);
 		}
 	}
 

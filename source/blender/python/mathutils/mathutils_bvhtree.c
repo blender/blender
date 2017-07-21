@@ -1049,6 +1049,8 @@ static DerivedMesh *bvh_get_derived_mesh(
         const char *funcname, struct Scene *scene, Object *ob,
         bool use_deform, bool use_render, bool use_cage)
 {
+	/* TODO: This doesn't work currently because of eval_ctx. */
+#if 0
 	/* we only need minimum mesh data for topology and vertex locations */
 	CustomDataMask mask = CD_MASK_BAREMESH;
 
@@ -1096,6 +1098,9 @@ static DerivedMesh *bvh_get_derived_mesh(
 			}
 		}
 	}
+#endif
+
+	return NULL;
 }
 
 PyDoc_STRVAR(C_BVHTree_FromObject_doc,

@@ -80,8 +80,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-                                  DerivedMesh *dm,
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                                  Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;

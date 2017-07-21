@@ -35,6 +35,7 @@
 
 struct bPose;
 struct Bone;
+struct EvaluationContext;
 struct GHash;
 struct Main;
 struct bArmature;
@@ -98,8 +99,8 @@ void BKE_armature_where_is(struct bArmature *arm);
 void BKE_armature_where_is_bone(struct Bone *bone, struct Bone *prevbone, const bool use_recursion);
 void BKE_pose_clear_pointers(struct bPose *pose);
 void BKE_pose_rebuild(struct Object *ob, struct bArmature *arm);
-void BKE_pose_where_is(struct Scene *scene, struct Object *ob);
-void BKE_pose_where_is_bone(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime, bool do_extra);
+void BKE_pose_where_is(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+void BKE_pose_where_is_bone(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime, bool do_extra);
 void BKE_pose_where_is_bone_tail(struct bPoseChannel *pchan);
 
 /* get_objectspace_bone_matrix has to be removed still */
@@ -116,7 +117,7 @@ void BKE_armature_loc_pose_to_bone(struct bPoseChannel *pchan, const float inloc
 void BKE_armature_mat_bone_to_pose(struct bPoseChannel *pchan, float inmat[4][4], float outmat[4][4]);
 void BKE_armature_mat_pose_to_delta(float delta_mat[4][4], float pose_mat[4][4], float arm_mat[4][4]);
 
-void BKE_armature_mat_pose_to_bone_ex(struct Object *ob, struct bPoseChannel *pchan, float inmat[4][4], float outmat[4][4]);
+void BKE_armature_mat_pose_to_bone_ex(struct EvaluationContext *eval_ctx, struct Object *ob, struct bPoseChannel *pchan, float inmat[4][4], float outmat[4][4]);
 
 void BKE_pchan_mat3_to_rot(struct bPoseChannel *pchan, float mat[3][3], bool use_compat);
 void BKE_pchan_apply_mat4(struct bPoseChannel *pchan, float mat[4][4], bool use_comat);
@@ -154,7 +155,6 @@ void b_bone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 result_array
 struct bKinematicConstraint;
 struct bPose;
 struct bSplineIKConstraint;
-struct EvaluationContext;
 
 struct bPoseChannel *BKE_armature_ik_solver_find_root(
         struct bPoseChannel *pchan,
@@ -164,7 +164,7 @@ struct bPoseChannel *BKE_armature_splineik_solver_find_root(
         struct bSplineIKConstraint *data);
 
 void BKE_pose_splineik_init_tree(struct Scene *scene, struct Object *ob, float ctime);
-void BKE_splineik_execute_tree(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan_root, float ctime);
+void BKE_splineik_execute_tree(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan_root, float ctime);
 
 void BKE_pose_eval_init(struct EvaluationContext *eval_ctx,
                         struct Scene *scene,

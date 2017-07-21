@@ -55,6 +55,8 @@
 #include "BKE_sequencer.h"
 #include "BKE_writeavi.h"
 
+#include "DEG_depsgraph.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -261,7 +263,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 	RE_ReleaseResult(oglrender->re);
 }
 
-static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
+static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, RenderResult *rr)
 {
 	Scene *scene = oglrender->scene;
 	SceneLayer *sl = oglrender->scene_layer;
@@ -277,6 +279,9 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	unsigned char *rect = NULL;
 	const char *viewname = RE_GetActiveRenderView(oglrender->re);
 	ImBuf *ibuf_result = NULL;
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (oglrender->is_sequencer) {
 		SpaceSeq *sseq = oglrender->sseq;
@@ -346,7 +351,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 
 		if (view_context) {
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
-			       scene, sl, v3d, ar, sizex, sizey,
+			       &eval_ctx, scene, sl, v3d, ar, sizex, sizey,
 			       IB_rect, draw_bgpic,
 			       alpha_mode, oglrender->ofs_samples, oglrender->ofs_full_samples, viewname,
 			       oglrender->fx, oglrender->ofs, err_out);
@@ -358,7 +363,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		}
 		else {
 			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
-			        scene, sl, scene->camera, oglrender->sizex, oglrender->sizey,
+			        &eval_ctx, scene, sl, scene->camera, oglrender->sizex, oglrender->sizey,
 			        IB_rect, OB_SOLID, false, true, true,
 			        alpha_mode, oglrender->ofs_samples, oglrender->ofs_full_samples, viewname,
 			        oglrender->fx, oglrender->ofs, err_out);
@@ -421,7 +426,7 @@ static void addAlphaOverFloat(float dest[4], const float source[4])
 }
 
 /* add renderlayer and renderpass for each grease pencil layer for using in composition */
-static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, RenderView *rv)
+static void add_gpencil_renderpass(const bContext *C, OGLRender *oglrender, RenderResult *rr, RenderView *rv)
 {
 	bGPdata *gpd = oglrender->scene->gpd;
 	Scene *scene = oglrender->scene;
@@ -465,7 +470,7 @@ static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, Rende
 		}
 
 		/* render this gp layer */
-		screen_opengl_render_doit(oglrender, rr);
+		screen_opengl_render_doit(C, oglrender, rr);
 		
 		/* add RendePass composite */
 		RenderPass *rp = RE_create_gp_pass(rr, gpl->info, rv->name);
@@ -505,7 +510,7 @@ static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, Rende
 	scene->r.alphamode = oldalphamode;
 }
 
-static void screen_opengl_render_apply(OGLRender *oglrender)
+static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
 {
 	RenderResult *rr;
 	RenderView *rv;
@@ -543,10 +548,10 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		/* add grease pencil passes. For sequencer, the render does not include renderpasses
 		 * TODO: The sequencer render of grease pencil should be rethought */
 		if (!oglrender->is_sequencer) {
-			add_gpencil_renderpass(oglrender, rr, rv);
+			add_gpencil_renderpass(C, oglrender, rr, rv);
 		}
 		/* render composite */
-		screen_opengl_render_doit(oglrender, rr);
+		screen_opengl_render_doit(C, oglrender, rr);
 	}
 
 	RE_ReleaseResult(oglrender->re);
@@ -1048,7 +1053,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	}
 
 	/* render into offscreen buffer */
-	screen_opengl_render_apply(oglrender);
+	screen_opengl_render_apply(C, oglrender);
 
 	/* save to disk */
 	rr = RE_AcquireResultRead(oglrender->re);
@@ -1098,7 +1103,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
 	
 	if (anim == 0) {
-		screen_opengl_render_apply(op->customdata);
+		screen_opengl_render_apply(C, op->customdata);
 		screen_opengl_render_end(C, op->customdata);
 		return OPERATOR_FINISHED;
 	}
@@ -1149,7 +1154,7 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
 
 	if (!is_animation) { /* same as invoke */
 		/* render image */
-		screen_opengl_render_apply(op->customdata);
+		screen_opengl_render_apply(C, op->customdata);
 		screen_opengl_render_end(C, op->customdata);
 
 		return OPERATOR_FINISHED;

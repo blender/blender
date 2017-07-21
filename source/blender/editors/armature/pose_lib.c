@@ -1069,6 +1069,9 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, tPoseLib_PreviewData 
 static void poselib_preview_apply(bContext *C, wmOperator *op)
 {
 	tPoseLib_PreviewData *pld = (tPoseLib_PreviewData *)op->customdata;
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 	
 	/* only recalc pose (and its dependencies) if pose has changed */
 	if (pld->redraw == PL_PREVIEW_REDRAWALL) {
@@ -1093,7 +1096,7 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 		if ((pld->arm->flag & ARM_DELAYDEFORM) == 0)
 			DEG_id_tag_update(&pld->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
-			BKE_pose_where_is(pld->scene, pld->ob);
+			BKE_pose_where_is(&eval_ctx, pld->scene, pld->ob);
 	}
 	
 	/* do header print - if interactively previewing */
@@ -1584,6 +1587,9 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 	bArmature *arm = pld->arm;
 	bAction *act = pld->act;
 	TimeMarker *marker = pld->marker;
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 	
 	/* redraw the header so that it doesn't show any of our stuff anymore */
 	ED_area_headerprint(pld->sa, NULL);
@@ -1601,7 +1607,7 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 		if ((arm->flag & ARM_DELAYDEFORM) == 0)
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		else
-			BKE_pose_where_is(scene, ob);
+			BKE_pose_where_is(&eval_ctx, scene, ob);
 	}
 	else if (pld->state == PL_PREVIEW_CONFIRM) {
 		/* tag poses as appropriate */
@@ -1619,7 +1625,7 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 			//remake_action_ipos(ob->action);
 		}
 		else
-			BKE_pose_where_is(scene, ob);
+			BKE_pose_where_is(&eval_ctx, scene, ob);
 	}
 	
 	/* Request final redraw of the view. */

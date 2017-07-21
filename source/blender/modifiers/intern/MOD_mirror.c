@@ -319,8 +319,8 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 	return result;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-                                  DerivedMesh *derivedData,
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                                  Object *ob, DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;

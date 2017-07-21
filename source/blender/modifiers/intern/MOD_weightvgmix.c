@@ -215,8 +215,8 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (wmd->defgrp_name_a[0] == '\0');
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx), Object *ob,
+                                  DerivedMesh *derivedData, ModifierApplyFlag UNUSED(flag))
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	DerivedMesh *dm = derivedData;

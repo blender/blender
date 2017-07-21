@@ -61,7 +61,8 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 	}
 }
 
-void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, BC_export_transformation_type transformation_type)
+void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob,
+                                            BC_export_transformation_type transformation_type)
 {
 #if 0
 	float rot[3], loc[3], scale[3];

@@ -43,6 +43,7 @@
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -282,10 +283,11 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
  */
 
 /* tweak the object ordering to trick depsgraph into making MotionPath calculations run faster */
-static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
+static void motionpaths_calc_optimise_depsgraph(bContext *C, Scene *scene, ListBase *targets)
 {
 	BaseLegacy *base, *baseNext;
 	MPathTarget *mpt;
+	Main *bmain = CTX_data_main(C);
 	
 	/* make sure our temp-tag isn't already in use */
 	for (base = scene->base.first; base; base = base->next)
@@ -309,7 +311,7 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 	}
 	
 	/* "brew me a list that's sorted a bit faster now depsy" */
-	DEG_scene_relations_rebuild(G.main, scene);
+	DEG_scene_relations_rebuild(bmain, scene);
 }
 
 /* update scene for current frame */
@@ -373,7 +375,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
  *	- recalc: whether we need to
  */
 /* TODO: include reports pointer? */
-void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
+void animviz_calc_motionpaths(bContext *C, Scene *scene, ListBase *targets)
 {
 	MPathTarget *mpt;
 	int sfra, efra;
@@ -399,7 +401,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	
 	/* optimize the depsgraph for faster updates */
 	/* TODO: whether this is used should depend on some setting for the level of optimizations used */
-	motionpaths_calc_optimise_depsgraph(scene, targets);
+	motionpaths_calc_optimise_depsgraph(C, scene, targets);
 	
 	/* calculate path over requested range */
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {

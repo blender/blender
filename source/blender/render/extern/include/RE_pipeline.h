@@ -38,6 +38,7 @@
 struct bMovieHandle;
 struct bNodeTree;
 struct Depsgraph;
+struct EvaluationContext;
 struct Image;
 struct ImageFormatData;
 struct Main;
@@ -369,6 +370,7 @@ void RE_DataBase_GetView(struct Render *re, float mat[4][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[4][4]);
 void RE_GetCameraModelMatrix(struct Render *re, struct Object *camera, float r_mat[4][4]);
 struct Scene *RE_GetScene(struct Render *re);
+struct EvaluationContext *RE_GetEvalCtx(struct Render *re);
 
 bool RE_force_single_renderlayer(struct Scene *scene);
 bool RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);

@@ -152,7 +152,7 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	DT_TYPE_SHARP_FACE \
 )
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob, DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
 	DataTransferModifierData *dtmd = (DataTransferModifierData *) md;
@@ -184,7 +184,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	BKE_reports_init(&reports, RPT_STORE);
 
 	/* Note: no islands precision for now here. */
-	BKE_object_data_transfer_dm(md->scene, dtmd->ob_source, ob, dm, dtmd->data_types, false,
+	BKE_object_data_transfer_dm(eval_ctx, md->scene, dtmd->ob_source, ob, dm, dtmd->data_types, false,
 	                     dtmd->vmap_mode, dtmd->emap_mode, dtmd->lmap_mode, dtmd->pmap_mode,
 	                     space_transform, false, max_dist, dtmd->map_ray_radius, 0.0f,
 	                     dtmd->layers_select_src, dtmd->layers_select_dst,

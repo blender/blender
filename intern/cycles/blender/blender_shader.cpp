@@ -243,6 +243,7 @@ static ShaderNode *add_node(Scene *scene,
                             BL::RenderEngine& b_engine,
                             BL::BlendData& b_data,
                             BL::Scene& b_scene,
+                            BL::SceneLayer b_scene_layer,
                             const bool background,
                             ShaderGraph *graph,
                             BL::ShaderNodeTree& b_ntree,
@@ -839,7 +840,7 @@ static ShaderNode *add_node(Scene *scene,
 
 		/* TODO(sergey): Use more proper update flag. */
 		if(true) {
-			b_point_density_node.cache_point_density(b_scene, settings);
+			b_point_density_node.cache_point_density(b_scene, b_scene_layer, settings);
 			scene->image_manager->tag_reload_image(
 			        point_density->filename.string(),
 			        point_density->builtin_data,
@@ -857,7 +858,7 @@ static ShaderNode *add_node(Scene *scene,
 		BL::Object b_ob(b_point_density_node.object());
 		if(b_ob) {
 			float3 loc, size;
-			point_density_texture_space(b_scene,
+			point_density_texture_space(b_scene, b_scene_layer,
 			                            b_point_density_node,
 			                            settings,
 			                            loc,
@@ -954,6 +955,7 @@ static void add_nodes(Scene *scene,
                       BL::RenderEngine& b_engine,
                       BL::BlendData& b_data,
                       BL::Scene& b_scene,
+                      BL::SceneLayer& b_scene_layer,
                       const bool background,
                       ShaderGraph *graph,
                       BL::ShaderNodeTree& b_ntree,
@@ -1044,6 +1046,7 @@ static void add_nodes(Scene *scene,
 				          b_engine,
 				          b_data,
 				          b_scene,
+				          b_scene_layer,
 				          background,
 				          graph,
 				          b_group_ntree,
@@ -1093,6 +1096,7 @@ static void add_nodes(Scene *scene,
 				                b_engine,
 				                b_data,
 				                b_scene,
+				                b_scene_layer,
 				                background,
 				                graph,
 				                b_ntree,
@@ -1156,6 +1160,7 @@ static void add_nodes(Scene *scene,
                       BL::RenderEngine& b_engine,
                       BL::BlendData& b_data,
                       BL::Scene& b_scene,
+                      BL::SceneLayer& b_scene_layer,
                       const bool background,
                       ShaderGraph *graph,
                       BL::ShaderNodeTree& b_ntree)
@@ -1165,6 +1170,7 @@ static void add_nodes(Scene *scene,
 	          b_engine,
 	          b_data,
 	          b_scene,
+	          b_scene_layer,
 	          background,
 	          graph,
 	          b_ntree,
@@ -1203,7 +1209,7 @@ void BlenderSync::sync_materials(bool update_all)
 			if(b_mat->use_nodes() && b_mat->node_tree()) {
 				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
 
-				add_nodes(scene, b_engine, b_data, b_scene, !preview, graph, b_ntree);
+				add_nodes(scene, b_engine, b_data, b_scene, b_scene_layer, !preview, graph, b_ntree);
 			}
 			else {
 				DiffuseBsdfNode *diffuse = new DiffuseBsdfNode();
@@ -1274,7 +1280,7 @@ void BlenderSync::sync_world(bool update_all)
 		if(b_world && b_world.use_nodes() && b_world.node_tree()) {
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-			add_nodes(scene, b_engine, b_data, b_scene, !preview, graph, b_ntree);
+			add_nodes(scene, b_engine, b_data, b_scene, b_scene_layer, !preview, graph, b_ntree);
 
 			/* volume */
 			PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
@@ -1369,7 +1375,7 @@ void BlenderSync::sync_lamps(bool update_all)
 
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
 
-				add_nodes(scene, b_engine, b_data, b_scene, !preview, graph, b_ntree);
+				add_nodes(scene, b_engine, b_data, b_scene, b_scene_layer, !preview, graph, b_ntree);
 			}
 			else {
 				float strength = 1.0f;

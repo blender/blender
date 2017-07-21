@@ -179,7 +179,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 // COLLADA allows this through multiple <channel>s in <animation>.
 // For this to work, we need to know objects that use a certain action.
 
-int DocumentExporter::exportCurrentScene(Scene *sce)
+int DocumentExporter::exportCurrentScene(EvaluationContext *eval_ctx, Scene *sce)
 {
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
@@ -316,7 +316,7 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 		se.setExportTransformationType(this->export_settings->export_transformation_type);
 	}
 
-	se.exportScene(sce);
+	se.exportScene(eval_ctx, sce);
 	
 	// <scene>
 	std::string scene_name(translate_id(id_name(sce)));

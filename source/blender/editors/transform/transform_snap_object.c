@@ -51,6 +51,9 @@
 #include "BKE_editmesh.h"
 #include "BKE_main.h"
 #include "BKE_tracking.h"
+#include "BKE_context.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_transform.h"
 #include "ED_transform_snap_object_context.h"
@@ -140,7 +143,7 @@ struct SnapObjectContext {
 * \{ */
 
 
-typedef void(*IterSnapObjsCallback)(SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data);
+typedef void(*IterSnapObjsCallback)(const bContext *C, SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data);
 
 /**
  * Walks through all objects in the scene to create the list of objets to snap.
@@ -150,6 +153,7 @@ typedef void(*IterSnapObjsCallback)(SnapObjectContext *sctx, bool is_obedit, Obj
  * \param obedit : Object Edited to use its coordinates of BMesh(if any) to do the snapping.
  */
 static void iter_snap_objects(
+        const bContext *C,
         SnapObjectContext *sctx,
         const SnapSelect snap_select,
         Object *obedit,
@@ -163,7 +167,7 @@ static void iter_snap_objects(
 	 * To solve that problem, we do it first as an exception.
 	 * */
 	if (base_act && base_act->object && base_act->object->mode & OB_MODE_PARTICLE_EDIT) {
-		sob_callback(sctx, false, base_act->object, base_act->object->obmat, data);
+		sob_callback(C, sctx, false, base_act->object, base_act->object->obmat, data);
 	}
 
 	for (Base *base = sctx->scene_layer->object_bases.first; base != NULL; base = base->next) {
@@ -178,13 +182,13 @@ static void iter_snap_objects(
 				ListBase *lb = object_duplilist(sctx->bmain->eval_ctx, sctx->scene, obj);
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					use_obedit = obedit && dupli_ob->ob->data == obedit->data;
-					sob_callback(sctx, use_obedit, use_obedit ? obedit : dupli_ob->ob, dupli_ob->mat, data);
+					sob_callback(C, sctx, use_obedit, use_obedit ? obedit : dupli_ob->ob, dupli_ob->mat, data);
 				}
 				free_object_duplilist(lb);
 			}
 
 			use_obedit = obedit && obj->data == obedit->data;
-			sob_callback(sctx, use_obedit, use_obedit ? obedit : obj, obj->obmat, data);
+			sob_callback(C, sctx, use_obedit, use_obedit ? obedit : obj, obj->obmat, data);
 		}
 	}
 }
@@ -723,7 +727,7 @@ static bool raycastEditMesh(
  * \note Duplicate args here are documented at #snapObjectsRay
  */
 static bool raycastObj(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const float ray_orig[3], const float ray_start[3], const float ray_dir[3], const float depth_range[2],
         Object *ob, float obmat[4][4], const unsigned int ob_index,
         bool use_obedit,
@@ -734,7 +738,10 @@ static bool raycastObj(
         Object **r_ob, float r_obmat[4][4],
         ListBase *r_hit_list)
 {
+	EvaluationContext eval_ctx;
 	bool retval = false;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (ob->type == OB_MESH) {
 		BMEditMesh *em;
@@ -753,10 +760,10 @@ static bool raycastObj(
 			DerivedMesh *dm;
 			em = BKE_editmesh_from_object(ob);
 			if (em) {
-				editbmesh_get_derived_cage_and_final(sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
+				editbmesh_get_derived_cage_and_final(&eval_ctx, sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
 			}
 			else {
-				dm = mesh_get_derived_final(sctx->scene, ob, CD_MASK_BAREMESH);
+				dm = mesh_get_derived_final(&eval_ctx, sctx->scene, ob, CD_MASK_BAREMESH);
 			}
 			retval = raycastDerivedMesh(
 			        sctx,
@@ -797,11 +804,11 @@ struct RaycastObjUserData {
 	bool ret;
 };
 
-static void raycast_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data)
+static void raycast_obj_cb(const bContext *C, SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data)
 {
 	struct RaycastObjUserData *dt = data;
 	dt->ret |= raycastObj(
-	        sctx,
+	        C, sctx,
 	        dt->ray_orig, dt->ray_start, dt->ray_dir, dt->depth_range,
 	        ob, obmat, dt->ob_index++, is_obedit,
 	        dt->ray_depth,
@@ -840,7 +847,7 @@ static void raycast_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, 
  *
  */
 static bool raycastObjects(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const float ray_orig[3], const float ray_start[3], const float ray_dir[3], const float depth_range[2],
         const SnapSelect snap_select, const bool use_object_edit_cage,
         /* read/write args */
@@ -868,7 +875,7 @@ static bool raycastObjects(
 		.ret = false,
 	};
 
-	iter_snap_objects(sctx, snap_select, obedit, raycast_obj_cb, &data);
+	iter_snap_objects(C, sctx, snap_select, obedit, raycast_obj_cb, &data);
 
 	return data.ret;
 }
@@ -1961,7 +1968,7 @@ static bool snapEditMesh(
  * \note Duplicate args here are documented at #snapObjectsRay
  */
 static bool snapObject(
-        SnapObjectContext *sctx, SnapData *snapdata,
+        const bContext *C, SnapObjectContext *sctx, SnapData *snapdata,
         Object *ob, float obmat[4][4],
         bool use_obedit,
         /* read/write args */
@@ -1970,7 +1977,10 @@ static bool snapObject(
         float r_loc[3], float r_no[3],
         Object **r_ob, float r_obmat[4][4])
 {
+	EvaluationContext eval_ctx;
 	bool retval = false;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (ob->type == OB_MESH) {
 		BMEditMesh *em;
@@ -1988,10 +1998,10 @@ static bool snapObject(
 			DerivedMesh *dm;
 			em = BKE_editmesh_from_object(ob);
 			if (em) {
-				editbmesh_get_derived_cage_and_final(sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
+				editbmesh_get_derived_cage_and_final(&eval_ctx, sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
 			}
 			else {
-				dm = mesh_get_derived_final(sctx->scene, ob, CD_MASK_BAREMESH);
+				dm = mesh_get_derived_final(&eval_ctx, sctx->scene, ob, CD_MASK_BAREMESH);
 			}
 			retval = snapDerivedMesh(
 			        sctx, snapdata, ob, dm, obmat,
@@ -2055,11 +2065,11 @@ struct SnapObjUserData {
 	bool ret;
 };
 
-static void sanp_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data)
+static void sanp_obj_cb(const bContext *C, SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data)
 {
 	struct SnapObjUserData *dt = data;
 	dt->ret |= snapObject(
-	        sctx, dt->snapdata,
+	        C, sctx, dt->snapdata,
 	        ob, obmat, is_obedit,
 	        /* read/write args */
 	        dt->ray_depth, dt->dist_px,
@@ -2098,7 +2108,7 @@ static void sanp_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, flo
  *
  */
 static bool snapObjectsRay(
-        SnapObjectContext *sctx, SnapData *snapdata,
+        const bContext *C, SnapObjectContext *sctx, SnapData *snapdata,
         const SnapSelect snap_select, const bool use_object_edit_cage,
         /* read/write args */
         float *ray_depth, float *dist_px,
@@ -2119,7 +2129,7 @@ static bool snapObjectsRay(
 		.ret = false,
 	};
 
-	iter_snap_objects(sctx, snap_select, obedit, sanp_obj_cb, &data);
+	iter_snap_objects(C, sctx, snap_select, obedit, sanp_obj_cb, &data);
 
 	return data.ret;
 }
@@ -2215,7 +2225,7 @@ void ED_transform_snap_object_context_set_editmesh_callbacks(
 }
 
 bool ED_transform_snap_object_project_ray_ex(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float ray_start[3], const float ray_normal[3],
         float *ray_depth,
@@ -2225,7 +2235,7 @@ bool ED_transform_snap_object_project_ray_ex(
 	const float depth_range[2] = {0.0f, FLT_MAX};
 
 	return raycastObjects(
-	        sctx,
+	        C, sctx,
 	        ray_start, ray_start, ray_normal, depth_range,
 	        params->snap_select, params->use_object_edit_cage,
 	        ray_depth, r_loc, r_no, r_index, r_ob, r_obmat, NULL);
@@ -2239,7 +2249,7 @@ bool ED_transform_snap_object_project_ray_ex(
  * \param r_hit_list: List of #SnapObjectHitDepth (caller must free).
  */
 bool ED_transform_snap_object_project_ray_all(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float ray_start[3], const float ray_normal[3],
         float ray_depth, bool sort,
@@ -2255,7 +2265,7 @@ bool ED_transform_snap_object_project_ray_all(
 #endif
 
 	bool retval = raycastObjects(
-	        sctx,
+	        C, sctx,
 	        ray_start, ray_start, ray_normal, depth_range,
 	        params->snap_select, params->use_object_edit_cage,
 	        &ray_depth, NULL, NULL, NULL, NULL, NULL,
@@ -2281,7 +2291,7 @@ bool ED_transform_snap_object_project_ray_all(
  * \return Snap success
  */
 static bool transform_snap_context_project_ray_impl(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_co[3], float r_no[3])
@@ -2290,7 +2300,7 @@ static bool transform_snap_context_project_ray_impl(
 
 	/* try snap edge, then face if it fails */
 	ret = ED_transform_snap_object_project_ray_ex(
-	        sctx,
+	        C, sctx,
 	        params,
 	        ray_start, ray_normal, ray_depth,
 	        r_co, r_no, NULL,
@@ -2300,7 +2310,7 @@ static bool transform_snap_context_project_ray_impl(
 }
 
 bool ED_transform_snap_object_project_ray(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float ray_origin[3], const float ray_direction[3], float *ray_depth,
         float r_co[3], float r_no[3])
@@ -2312,14 +2322,14 @@ bool ED_transform_snap_object_project_ray(
 	}
 
 	return transform_snap_context_project_ray_impl(
-	        sctx,
+	        C, sctx,
 	        params,
 	        ray_origin, ray_direction, ray_depth,
 	        r_co, r_no);
 }
 
 static bool transform_snap_context_project_view3d_mixed_impl(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const unsigned short snap_to_flag,
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
@@ -2343,7 +2353,7 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 					*dist_px = dist_px_orig;
 				}
 				if (ED_transform_snap_object_project_view3d(
-				        sctx,
+				        C, sctx,
 				        elem_type[i], params,
 				        mval, dist_px, &ray_depth,
 				        r_co, r_no))
@@ -2360,7 +2370,7 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 		for (int i = 0; i < 3; i++) {
 			if (snap_to_flag & (1 << i)) {
 				if (ED_transform_snap_object_project_view3d(
-				        sctx,
+				        C, sctx,
 				        elem_type[i], params,
 				        mval, dist_px, &ray_depth,
 				        r_co, r_no))
@@ -2389,7 +2399,7 @@ static bool transform_snap_context_project_view3d_mixed_impl(
  * \return Snap success
  */
 bool ED_transform_snap_object_project_view3d_mixed(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const unsigned short snap_to_flag,
         const struct SnapObjectParams *params,
         const float mval_fl[2], float *dist_px,
@@ -2397,14 +2407,14 @@ bool ED_transform_snap_object_project_view3d_mixed(
         float r_co[3], float r_no[3])
 {
 	return transform_snap_context_project_view3d_mixed_impl(
-	        sctx,
+	        C, sctx,
 	        snap_to_flag, params,
 	        mval_fl, dist_px, use_depth,
 	        r_co, r_no);
 }
 
 bool ED_transform_snap_object_project_view3d_ex(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const unsigned short snap_to,
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
@@ -2438,7 +2448,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 
 	if (snap_to == SCE_SNAP_MODE_FACE) {
 		return raycastObjects(
-		        sctx,
+		        C, sctx,
 		        ray_origin, ray_start, ray_normal, depth_range,
 		        params->snap_select, params->use_object_edit_cage,
 		        ray_depth, r_loc, r_no, r_index, NULL, NULL, NULL);
@@ -2450,14 +2460,14 @@ bool ED_transform_snap_object_project_view3d_ex(
 		        ray_origin, ray_start, ray_normal, depth_range);
 
 		return snapObjectsRay(
-		        sctx, &snapdata,
+		        C, sctx, &snapdata,
 		        params->snap_select, params->use_object_edit_cage,
 		        ray_depth, dist_px, r_loc, r_no, NULL, NULL);
 	}
 }
 
 bool ED_transform_snap_object_project_view3d(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const unsigned short snap_to,
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
@@ -2465,7 +2475,7 @@ bool ED_transform_snap_object_project_view3d(
         float r_loc[3], float r_no[3])
 {
 	return ED_transform_snap_object_project_view3d_ex(
-	        sctx,
+	        C, sctx,
 	        snap_to,
 	        params,
 	        mval, dist_px,
@@ -2477,7 +2487,7 @@ bool ED_transform_snap_object_project_view3d(
  * see: #ED_transform_snap_object_project_ray_all
  */
 bool ED_transform_snap_object_project_all_view3d_ex(
-        SnapObjectContext *sctx,
+        const bContext *C, SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float mval[2],
         float ray_depth, bool sort,
@@ -2493,7 +2503,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(
 	}
 
 	return ED_transform_snap_object_project_ray_all(
-	        sctx,
+	        C, sctx,
 	        params,
 	        ray_start, ray_normal, ray_depth, sort,
 	        r_hit_list);

@@ -272,8 +272,8 @@ static void meshcache_do(
 	}
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
-                        DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                        Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
@@ -284,7 +284,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 }
 
 static void deformVertsEM(
-        ModifierData *md, Object *ob, struct BMEditMesh *UNUSED(editData),
+        ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx), Object *ob, struct BMEditMesh *UNUSED(editData),
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;

@@ -348,7 +348,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   int skip_forcefield,
                                   const char *name)
 {
-	ListBase *effectors = pdInitEffectors(scene, ob, NULL, effector_weights, false);
+	ListBase *effectors = pdInitEffectors(NULL, scene, ob, NULL, effector_weights, false);
 
 	if (effectors) {
 		for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {

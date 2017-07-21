@@ -67,7 +67,8 @@ int collada_import(bContext *C,
 	return 0;
 }
 
-int collada_export(Scene *sce,
+int collada_export(EvaluationContext *eval_ctx,
+                   Scene *sce,
                    SceneLayer *scene_layer,
                    const char *filepath,
 
@@ -140,7 +141,7 @@ int collada_export(Scene *sce,
 	}
 
 	DocumentExporter exporter(&export_settings);
-	int status = exporter.exportCurrentScene(sce);
+	int status = exporter.exportCurrentScene(eval_ctx, sce);
 
 	BLI_linklist_free(export_settings.export_set, NULL);
 

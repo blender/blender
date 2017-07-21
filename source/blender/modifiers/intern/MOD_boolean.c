@@ -402,8 +402,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(
 }
 
 static DerivedMesh *applyModifier(
-        ModifierData *md, Object *ob,
-        DerivedMesh *derivedData,
+        ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+        Object *ob, DerivedMesh *derivedData,
         ModifierApplyFlag flag)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *)md;

@@ -131,9 +131,14 @@ static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
 	fclose(f);
 }
 
-static void rna_Depsgraph_debug_rebuild(Depsgraph *UNUSED(graph), Main *bmain)
+static void rna_Depsgraph_debug_rebuild(Depsgraph *UNUSED(graph), bContext *C)
 {
+	Main *bmain = CTX_data_main(C);
+	EvaluationContext eval_ctx;
 	Scene *sce;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	DEG_relations_tag_update(bmain);
 	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 		DEG_scene_relations_rebuild(bmain, sce);
@@ -307,7 +312,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "debug_rebuild", "rna_Depsgraph_debug_rebuild");
-	RNA_def_function_flag(func, FUNC_USE_MAIN);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 	func = RNA_def_function(srna, "debug_stats", "rna_Depsgraph_debug_stats");
 	RNA_def_function_ui_description(func, "Report the number of elements in the Dependency Graph");

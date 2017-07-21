@@ -47,6 +47,7 @@ struct MovieDistortion;
 struct Camera;
 struct Object;
 struct Scene;
+struct EvaluationContext;
 struct rcti;
 
 /* **** Common functions **** */

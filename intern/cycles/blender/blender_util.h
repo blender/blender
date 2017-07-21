@@ -46,6 +46,7 @@ void python_thread_state_restore(void **python_thread_state);
 static inline BL::Mesh object_to_mesh(BL::BlendData& data,
                                       BL::Object& object,
                                       BL::Scene& scene,
+                                      BL::SceneLayer scene_layer,
                                       bool apply_modifiers,
                                       bool render,
                                       bool calc_undeformed,
@@ -64,7 +65,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 		subsurf_mod.show_viewport(false);
 	}
 
-	BL::Mesh me = data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1, false, calc_undeformed);
+	BL::Mesh me = data.meshes.new_from_object(scene, scene_layer, object, apply_modifiers, (render)? 2: 1, false, calc_undeformed);
 
 	if(subdivision_type != Mesh::SUBDIVISION_NONE) {
 		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];

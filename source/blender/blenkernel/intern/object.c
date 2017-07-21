@@ -1709,13 +1709,16 @@ static bool ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 	Curve *cu = par->data;
 	float vec[4], dir[3], quat[4], radius, ctime;
 
+	/* TODO: Make sure this doesn't crash. */
+#if 0
 	/* only happens on reload file, but violates depsgraph still... fix! */
 	if (par->curve_cache == NULL) {
 		if (scene == NULL) {
 			return false;
 		}
-		BKE_displist_make_curveTypes(scene, par, 0);
+		BKE_displist_make_curveTypes(eval_ctx, scene, par, 0);
 	}
+#endif
 
 	if (par->curve_cache->path == NULL) {
 		return false;
@@ -2096,7 +2099,7 @@ static bool where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat
 }
 
 /* note, scene is the active scene while actual_scene is the scene the object resides in */
-void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
+void BKE_object_where_is_calc_time_ex(EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime,
                                       RigidBodyWorld *rbw, float r_originmat[3][3])
 {
 	if (ob == NULL) return;
@@ -2132,7 +2135,7 @@ void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
 	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
 		cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		BKE_constraints_solve(&ob->constraints, cob, ctime);
+		BKE_constraints_solve(eval_ctx, &ob->constraints, cob, ctime);
 		BKE_constraints_clear_evalob(cob);
 	}
 	
@@ -2141,9 +2144,9 @@ void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
 	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
-void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
+void BKE_object_where_is_calc_time(EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime)
 {
-	BKE_object_where_is_calc_time_ex(scene, ob, ctime, NULL, NULL);
+	BKE_object_where_is_calc_time_ex(eval_ctx, scene, ob, ctime, NULL, NULL);
 }
 
 /* get object transformation matrix without recalculating dependencies and
@@ -2168,17 +2171,17 @@ void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
 	}
 }
 
-void BKE_object_where_is_calc_ex(Scene *scene, RigidBodyWorld *rbw, Object *ob, float r_originmat[3][3])
+void BKE_object_where_is_calc_ex(EvaluationContext *eval_ctx, Scene *scene, RigidBodyWorld *rbw, Object *ob, float r_originmat[3][3])
 {
-	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), rbw, r_originmat);
+	BKE_object_where_is_calc_time_ex(eval_ctx, scene, ob, BKE_scene_frame_get(scene), rbw, r_originmat);
 }
-void BKE_object_where_is_calc(Scene *scene, Object *ob)
+void BKE_object_where_is_calc(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), NULL, NULL);
+	BKE_object_where_is_calc_time_ex(eval_ctx, scene, ob, BKE_scene_frame_get(scene), NULL, NULL);
 }
 
 /* for calculation of the inverse parent transform, only used for editor */
-void BKE_object_workob_calc_parent(Scene *scene, Object *ob, Object *workob)
+void BKE_object_workob_calc_parent(EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *workob)
 {
 	BKE_object_workob_clear(workob);
 	
@@ -2200,7 +2203,7 @@ void BKE_object_workob_calc_parent(Scene *scene, Object *ob, Object *workob)
 
 	BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 
-	BKE_object_where_is_calc(scene, workob);
+	BKE_object_where_is_calc(eval_ctx, scene, workob);
 }
 
 /* see BKE_pchan_apply_mat4() for the equivalent 'pchan' function */
@@ -2679,7 +2682,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 					copy_m4_m4(ob->obmat, ob->proxy_from->obmat);
 			}
 			else
-				BKE_object_where_is_calc_ex(scene, rbw, ob, NULL);
+				BKE_object_where_is_calc_ex(eval_ctx, scene, rbw, ob, NULL);
 		}
 		
 		if (ob->recalc & OB_RECALC_DATA) {
@@ -3625,7 +3628,7 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 /* Note: this function should eventually be replaced by depsgraph functionality.
  * Avoid calling this in new code unless there is a very good reason for it!
  */
-bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_mesh,
+bool BKE_object_modifier_update_subframe(EvaluationContext *eval_ctx, Scene *scene, Object *ob, bool update_mesh,
                                          int parent_recursion, float frame,
                                          int type)
 {
@@ -3650,8 +3653,8 @@ bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_m
 	if (parent_recursion) {
 		int recursion = parent_recursion - 1;
 		bool no_update = false;
-		if (ob->parent) no_update |= BKE_object_modifier_update_subframe(scene, ob->parent, 0, recursion, frame, type);
-		if (ob->track) no_update |= BKE_object_modifier_update_subframe(scene, ob->track, 0, recursion, frame, type);
+		if (ob->parent) no_update |= BKE_object_modifier_update_subframe(eval_ctx, scene, ob->parent, 0, recursion, frame, type);
+		if (ob->track) no_update |= BKE_object_modifier_update_subframe(eval_ctx, scene, ob->track, 0, recursion, frame, type);
 
 		/* skip subframe if object is parented
 		 *  to vertex of a dynamic paint canvas */
@@ -3668,7 +3671,7 @@ bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_m
 				cti->get_constraint_targets(con, &targets);
 				for (ct = targets.first; ct; ct = ct->next) {
 					if (ct->tar)
-						BKE_object_modifier_update_subframe(scene, ct->tar, 0, recursion, frame, type);
+						BKE_object_modifier_update_subframe(eval_ctx, scene, ct->tar, 0, recursion, frame, type);
 				}
 				/* free temp targets */
 				if (cti->flush_constraint_targets)
@@ -3688,7 +3691,7 @@ bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_m
 		object_cacheIgnoreClear(ob, 0);
 	}
 	else
-		BKE_object_where_is_calc_time(scene, ob, frame);
+		BKE_object_where_is_calc_time(eval_ctx, scene, ob, frame);
 
 	/* for curve following objects, parented curve has to be updated too */
 	if (ob->type == OB_CURVE) {
@@ -3699,7 +3702,7 @@ bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_m
 	if (ob->type == OB_ARMATURE) {
 		bArmature *arm = ob->data;
 		BKE_animsys_evaluate_animdata(scene, &arm->id, arm->adt, frame, ADT_RECALC_ANIM);
-		BKE_pose_where_is(scene, ob);
+		BKE_pose_where_is(eval_ctx, scene, ob);
 	}
 
 	return false;

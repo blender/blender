@@ -354,6 +354,15 @@ Scene *RE_GetScene(Render *re)
 	return NULL;
 }
 
+EvaluationContext *RE_GetEvalCtx(Render *re)
+{
+	if (re) {
+		return re->eval_ctx;
+	}
+
+	return NULL;
+}
+
 /**
  * Same as #RE_AcquireResultImage but creating the necessary views to store the result
  * fill provided result struct with a copy of thew views of what is done so far the

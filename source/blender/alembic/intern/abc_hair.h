@@ -40,7 +40,8 @@ class AbcHairWriter : public AbcObjectWriter {
 	bool m_uv_warning_shown;
 
 public:
-	AbcHairWriter(Scene *scene,
+	AbcHairWriter(EvaluationContext *eval_ctx,
+	              Scene *scene,
 	              Object *ob,
 	              AbcTransformWriter *parent,
 	              uint32_t time_sampling,

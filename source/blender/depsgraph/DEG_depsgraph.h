@@ -65,6 +65,7 @@ struct Main;
 
 struct PointerRNA;
 struct PropertyRNA;
+struct SceneLayer;
 
 /* Dependency graph evaluation context
  *
@@ -74,6 +75,8 @@ struct PropertyRNA;
 typedef struct EvaluationContext {
 	int mode;
 	float ctime;
+
+	struct SceneLayer *scene_layer;
 } EvaluationContext;
 
 typedef enum eEvaluationMode {

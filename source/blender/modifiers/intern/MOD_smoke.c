@@ -54,6 +54,7 @@
 #include "BKE_modifier.h"
 #include "BKE_smoke.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 static void initData(ModifierData *md) 
@@ -100,8 +101,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
-                                  DerivedMesh *dm,
+static DerivedMesh *applyModifier(ModifierData *md, EvaluationContext *eval_ctx,
+                                  Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
@@ -109,7 +110,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (flag & MOD_APPLY_ORCO)
 		return dm;
 
-	return smokeModifier_do(smd, md->scene, BKE_scene_layer_context_active_PLACEHOLDER(md->scene), ob, dm);
+	return smokeModifier_do(smd, eval_ctx, md->scene, ob, dm);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

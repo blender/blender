@@ -345,7 +345,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	return 1;
 }
 
-static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
+static int do_step_cloth(struct EvaluationContext *eval_ctx, Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
 {
 	ClothVertex *verts = NULL;
 	Cloth *cloth;
@@ -370,7 +370,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
-	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
+	effectors = pdInitEffectors(eval_ctx, clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH )
 		cloth_update_verts ( ob, clmd, result );
@@ -400,7 +400,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 /************************************************
  * clothModifier_do - main simulation function
  ************************************************/
-void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
+void clothModifier_do(ClothModifierData *clmd, struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
 {
 	PointCache *cache;
 	PTCacheID pid;
@@ -489,7 +489,7 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 	/* do simulation */
 	BKE_ptcache_validate(cache, framenr);
 
-	if (!do_step_cloth(ob, clmd, dm, framenr)) {
+	if (!do_step_cloth(eval_ctx, ob, clmd, dm, framenr)) {
 		BKE_ptcache_invalidate(cache);
 	}
 	else

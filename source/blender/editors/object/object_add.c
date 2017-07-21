@@ -224,8 +224,11 @@ void ED_object_base_init_transform(bContext *C, Base *base, const float loc[3], 
 {
 	Object *ob = base->object;
 	Scene *scene = CTX_data_scene(C);
+	EvaluationContext eval_ctx;
 
 	if (!scene) return;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (loc)
 		copy_v3_v3(ob->loc, loc);
@@ -233,7 +236,7 @@ void ED_object_base_init_transform(bContext *C, Base *base, const float loc[3], 
 	if (rot)
 		copy_v3_v3(ob->rot, rot);
 
-	BKE_object_where_is_calc(scene, ob);
+	BKE_object_where_is_calc(&eval_ctx, scene, ob);
 }
 
 /* Uses context to figure out transform for primitive.
@@ -1639,14 +1642,14 @@ static EnumPropertyItem convert_target_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static void convert_ensure_curve_cache(Main *bmain, Scene *scene, Object *ob)
+static void convert_ensure_curve_cache(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, Object *ob)
 {
 	if (ob->curve_cache == NULL) {
 		/* Force creation. This is normally not needed but on operator
 		 * redo we might end up with an object which isn't evaluated yet.
 		 */
 		if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
-			BKE_displist_make_curveTypes(scene, ob, false);
+			BKE_displist_make_curveTypes(eval_ctx, scene, ob, false);
 		}
 		else if (ob->type == OB_MBALL) {
 			BKE_displist_make_mball(bmain->eval_ctx, scene, ob);
@@ -1654,9 +1657,9 @@ static void convert_ensure_curve_cache(Main *bmain, Scene *scene, Object *ob)
 	}
 }
 
-static void curvetomesh(Main *bmain, Scene *scene, Object *ob)
+static void curvetomesh(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, Object *ob)
 {
-	convert_ensure_curve_cache(bmain, scene, ob);
+	convert_ensure_curve_cache(eval_ctx, bmain, scene, ob);
 	BKE_mesh_from_nurbs(ob); /* also does users */
 
 	if (ob->type == OB_MESH) {
@@ -1702,6 +1705,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
+	EvaluationContext eval_ctx;
 	Base *basen = NULL, *basact = NULL;
 	Object *ob, *ob1, *newob, *obact = CTX_data_active_object(C);
 	DerivedMesh *dm;
@@ -1712,6 +1716,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	const short target = RNA_enum_get(op->ptr, "target");
 	bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
 	int a, mballConverted = 0;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	/* don't forget multiple users! */
 
@@ -1807,7 +1813,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob = ob;
 			}
 
-			BKE_mesh_to_curve(scene, newob);
+			BKE_mesh_to_curve(&eval_ctx, scene, newob);
 
 			if (newob->type == OB_CURVE) {
 				BKE_object_free_modifiers(newob);   /* after derivedmesh calls! */
@@ -1837,7 +1843,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			/* note: get the mesh from the original, not from the copy in some
 			 * cases this doesnt give correct results (when MDEF is used for eg)
 			 */
-			dm = mesh_get_derived_final(scene, newob, CD_MASK_MESH);
+			dm = mesh_get_derived_final(&eval_ctx, scene, newob, CD_MASK_MESH);
 
 			DM_to_mesh(dm, newob->data, newob, CD_MASK_MESH, true);
 
@@ -1909,7 +1915,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			BKE_curve_curve_dimension_update(cu);
 
 			if (target == OB_MESH) {
-				curvetomesh(bmain, scene, newob);
+				curvetomesh(&eval_ctx, bmain, scene, newob);
 
 				/* meshes doesn't use displist */
 				BKE_object_free_curve_cache(newob);
@@ -1933,7 +1939,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					newob = ob;
 				}
 
-				curvetomesh(bmain, scene, newob);
+				curvetomesh(&eval_ctx, bmain, scene, newob);
 
 				/* meshes doesn't use displist */
 				BKE_object_free_curve_cache(newob);
@@ -1971,7 +1977,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					for (a = 0; a < newob->totcol; a++) id_us_plus((ID *)me->mat[a]);
 				}
 
-				convert_ensure_curve_cache(bmain, scene, baseob);
+				convert_ensure_curve_cache(&eval_ctx, bmain, scene, baseob);
 				BKE_mesh_from_metaball(&baseob->curve_cache->disp, newob->data);
 
 				if (obact->type == OB_MBALL) {

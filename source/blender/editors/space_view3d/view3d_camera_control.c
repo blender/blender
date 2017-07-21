@@ -54,6 +54,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_object.h"
+#include "BKE_context.h"
 
 #include "DEG_depsgraph.h"
 
@@ -137,10 +138,13 @@ Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
  * the view for first-person style navigation.
  */
 struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
-        Scene *scene, View3D *v3d, RegionView3D *rv3d,
+        const bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d,
         const bool use_parent_root)
 {
 	View3DCameraControl *vctrl;
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	vctrl = MEM_callocN(sizeof(View3DCameraControl), __func__);
 
@@ -177,7 +181,7 @@ struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
 		/* store the original camera loc and rot */
 		vctrl->obtfm = BKE_object_tfm_backup(ob_back);
 
-		BKE_object_where_is_calc(scene, v3d->camera);
+		BKE_object_where_is_calc(&eval_ctx, scene, v3d->camera);
 		negate_v3_v3(rv3d->ofs, v3d->camera->obmat[3]);
 
 		rv3d->dist = 0.0;

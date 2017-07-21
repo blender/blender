@@ -1350,10 +1350,11 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if (!(psmd->modifier.mode & eModifierMode_Render))
 		return 0;
 
-	sim.scene= re->scene;
-	sim.ob= ob;
-	sim.psys= psys;
-	sim.psmd= psmd;
+	sim.eval_ctx = re->eval_ctx;
+	sim.scene = re->scene;
+	sim.ob = ob;
+	sim.psys = psys;
+	sim.psmd = psmd;
 
 	if (part->phystype==PART_PHYS_KEYED)
 		psys_count_keyed_targets(&sim);
@@ -2600,13 +2601,13 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
-	BKE_displist_make_surf(re->scene, ob, &displist, &dm, 1, 0, 1);
+	BKE_displist_make_surf(re->eval_ctx, re->scene, ob, &displist, &dm, 1, 0, 1);
 
 	if (dm) {
 		if (need_orco) {
 			orco = get_object_orco(re, ob);
 			if (!orco) {
-				orco= BKE_displist_make_orco(re->scene, ob, dm, true, true);
+				orco= BKE_displist_make_orco(re->eval_ctx, re->scene, ob, dm, true, true);
 				if (orco) {
 					set_object_orco(re, ob, orco);
 				}
@@ -2658,7 +2659,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	if (ob->type==OB_FONT && cu->str==NULL) return;
 	else if (ob->type==OB_CURVE && cu->nurb.first==NULL) return;
 
-	BKE_displist_make_curveTypes_forRender(re->scene, ob, &disp, &dm, false, true);
+	BKE_displist_make_curveTypes_forRender(re->eval_ctx, re->scene, ob, &disp, &dm, false, true);
 	dl= disp.first;
 	if (dl==NULL) return;
 	
@@ -2685,7 +2686,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		if (need_orco) {
 			orco = get_object_orco(re, ob);
 			if (!orco) {
-				orco = BKE_displist_make_orco(re->scene, ob, dm, true, true);
+				orco = BKE_displist_make_orco(re->eval_ctx, re->scene, ob, dm, true, true);
 				if (orco) {
 					set_object_orco(re, ob, orco);
 				}
@@ -2699,7 +2700,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		if (need_orco) {
 			orco = get_object_orco(re, ob);
 			if (!orco) {
-				orco = BKE_curve_make_orco(re->scene, ob, NULL);
+				orco = BKE_curve_make_orco(re->eval_ctx, re->scene, ob, NULL);
 				set_object_orco(re, ob, orco);
 			}
 		}
@@ -3199,9 +3200,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 #endif
 
 	if (re->r.scemode & R_VIEWPORT_PREVIEW)
-		dm= mesh_create_derived_view(re->scene, ob, mask);
+		dm= mesh_create_derived_view(re->eval_ctx, re->scene, ob, mask);
 	else
-		dm= mesh_create_derived_render(re->scene, ob, mask);
+		dm= mesh_create_derived_render(re->eval_ctx, re->scene, ob, mask);
 	if (dm==NULL) return;	/* in case duplicated object fails? */
 
 	mvert= dm->getVertArray(dm);
@@ -4619,9 +4620,9 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 			const CustomDataMask mask = CD_MASK_RENDER_INTERNAL;
 
 			if (re->r.scemode & R_VIEWPORT_PREVIEW)
-				dm = mesh_create_derived_view(re->scene, ob, mask);
+				dm = mesh_create_derived_view(re->eval_ctx, re->scene, ob, mask);
 			else
-				dm = mesh_create_derived_render(re->scene, ob, mask);
+				dm = mesh_create_derived_render(re->eval_ctx, re->scene, ob, mask);
 			dm->release(dm);
 		}
 
@@ -4930,7 +4931,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 			/* this is to make sure we get render level duplis in groups:
 			 * the derivedmesh must be created before init_render_mesh,
 			 * since object_duplilist does dupliparticles before that */
-			dm = mesh_create_derived_render(re->scene, ob, CD_MASK_RENDER_INTERNAL);
+			dm = mesh_create_derived_render(re->eval_ctx, re->scene, ob, CD_MASK_RENDER_INTERNAL);
 			dm->release(dm);
 
 			for (psys=ob->particlesystem.first; psys; psys=psys->next)
@@ -5053,7 +5054,7 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 				 * system need to have render settings set for dupli particles */
 				dupli_render_particle_set(re, ob, timeoffset, 0, 1);
 				duplilist = object_duplilist(re->eval_ctx, re->scene, ob);
-				duplilist_apply_data = duplilist_apply(ob, NULL, duplilist);
+				duplilist_apply_data = duplilist_apply(re->eval_ctx, ob, NULL, duplilist);
 				/* postpone 'dupli_render_particle_set', since RE_addRenderInstance reads
 				 * index values from 'dob->persistent_id[0]', referencing 'psys->child' which
 				 * may be smaller once the particle system is restored, see: T45563. */

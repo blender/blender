@@ -356,7 +356,7 @@ static void dm_merge_transform(
 }
 
 static DerivedMesh *arrayModifier_doArray(
-        ArrayModifierData *amd,
+        ArrayModifierData *amd, EvaluationContext *eval_ctx,
         Scene *scene, Object *ob, DerivedMesh *dm,
         ModifierApplyFlag flag)
 {
@@ -462,7 +462,7 @@ static DerivedMesh *arrayModifier_doArray(
 		if (cu) {
 #ifdef CYCLIC_DEPENDENCY_WORKAROUND
 			if (amd->curve_ob->curve_cache == NULL) {
-				BKE_displist_make_curveTypes(scene, amd->curve_ob, false);
+				BKE_displist_make_curveTypes(eval_ctx, scene, amd->curve_ob, false);
 			}
 #endif
 
@@ -725,12 +725,12 @@ static DerivedMesh *arrayModifier_doArray(
 }
 
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-                                  DerivedMesh *dm,
+static DerivedMesh *applyModifier(ModifierData *md, EvaluationContext *eval_ctx,
+                                  Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
-	return arrayModifier_doArray(amd, md->scene, ob, dm, flag);
+	return arrayModifier_doArray(amd, eval_ctx, md->scene, ob, dm, flag);
 }
 
 

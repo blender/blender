@@ -73,8 +73,8 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
-                                  DerivedMesh *derivedData,
+static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                                  Object *UNUSED(ob), DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm = derivedData;

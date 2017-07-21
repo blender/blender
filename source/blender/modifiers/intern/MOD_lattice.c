@@ -103,8 +103,8 @@ static void updateDepsgraph(ModifierData *md,
 	DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
-                        DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                        Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
@@ -119,14 +119,14 @@ static void deformVerts(ModifierData *md, Object *ob,
 }
 
 static void deformVertsEM(
-        ModifierData *md, Object *ob, struct BMEditMesh *em,
+        ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob, struct BMEditMesh *em,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
 	if (!derivedData) dm = CDDM_from_editbmesh(em, false, false);
 
-	deformVerts(md, ob, dm, vertexCos, numVerts, 0);
+	deformVerts(md, eval_ctx, ob, dm, vertexCos, numVerts, 0);
 
 	if (!derivedData) dm->release(dm);
 }

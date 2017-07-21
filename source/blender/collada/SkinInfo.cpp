@@ -226,6 +226,9 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	ModifierData *md = ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Armature);
 	ArmatureModifierData *amd = (ArmatureModifierData *)md;
@@ -247,7 +250,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 #endif
 	copy_m4_m4(ob->obmat, bind_shape_matrix);
-	BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
+	BKE_object_apply_mat4(&eval_ctx, ob, ob->obmat, 0, 0);
 
 	amd->deformflag = ARM_DEF_VGROUP;
 

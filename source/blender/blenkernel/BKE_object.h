@@ -51,7 +51,7 @@ struct HookModifierData;
 struct ModifierData;
 
 void BKE_object_workob_clear(struct Object *workob);
-void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
+void BKE_object_workob_calc_parent(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct Object *workob);
 
 void BKE_object_transform_copy(struct Object *ob_tar, const struct Object *ob_src);
 struct SoftBody *copy_softbody(const struct SoftBody *sb, bool copy_caches);
@@ -126,11 +126,12 @@ void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4]);
 bool BKE_object_pose_context_check(struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
 
-void BKE_object_get_parent_matrix(struct Scene *scene, struct Object *ob, struct Object *par, float parentmat[4][4]);
-void BKE_object_where_is_calc(struct Scene *scene, struct Object *ob);
-void BKE_object_where_is_calc_ex(struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob, float r_originmat[3][3]);
-void BKE_object_where_is_calc_time(struct Scene *scene, struct Object *ob, float ctime);
-void BKE_object_where_is_calc_time_ex(struct Scene *scene, struct Object *ob, float ctime,
+void BKE_object_get_parent_matrix(struct Scene *scene, struct Object *ob,
+                                  struct Object *par, float parentmat[4][4]);
+void BKE_object_where_is_calc(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+void BKE_object_where_is_calc_ex(struct EvaluationContext *eval_ctx, struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob, float r_originmat[3][3]);
+void BKE_object_where_is_calc_time(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, float ctime);
+void BKE_object_where_is_calc_time_ex(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, float ctime,
                                       struct RigidBodyWorld *rbw, float r_originmat[3][3]);
 void BKE_object_where_is_calc_mat4(struct Scene *scene, struct Object *ob, float obmat[4][4]);
 
@@ -261,9 +262,8 @@ struct KDTree *BKE_object_as_kdtree(struct Object *ob, int *r_tot);
 
 bool BKE_object_modifier_use_time(struct Object *ob, struct ModifierData *md);
 
-bool BKE_object_modifier_update_subframe(struct Scene *scene, struct Object *ob, bool update_mesh,
-                                         int parent_recursion, float frame,
-                                         int type);
+bool BKE_object_modifier_update_subframe(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob,
+                                         bool update_mesh, int parent_recursion, float frame, int type);
 
 #ifdef __cplusplus
 }

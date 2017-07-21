@@ -714,6 +714,9 @@ static void recalcData_spaceclip(TransInfo *t)
 static void recalcData_objects(TransInfo *t)
 {
 	Base *base = t->scene_layer->basact;
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(t->context, &eval_ctx);
 
 	if (t->obedit) {
 		if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
@@ -898,7 +901,7 @@ static void recalcData_objects(TransInfo *t)
 			BIK_clear_data(ob->pose);
 		}
 		else
-			BKE_pose_where_is(t->scene, ob);
+			BKE_pose_where_is(&eval_ctx, t->scene, ob);
 	}
 	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, t->scene_layer, base->object)) {
 		if (t->state != TRANS_CANCEL) {

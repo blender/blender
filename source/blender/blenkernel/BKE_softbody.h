@@ -34,6 +34,7 @@
 struct Object;
 struct Scene;
 struct SoftBody;
+struct EvaluationContext;
 
 typedef struct BodyPoint {
 	float origS[3], origE[3], origT[3], pos[3], vec[3], force[3];
@@ -59,7 +60,7 @@ extern void             sbFree(struct SoftBody *sb);
 extern void             sbFreeSimulation(struct SoftBody *sb);
 
 /* do one simul step, reading and writing vertex locs from given array */
-extern void             sbObjectStep(struct Scene *scene, struct SceneLayer *sl, struct Object *ob,
+extern void             sbObjectStep(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob,
                                      float framnr, float (*vertexCos)[3], int numVerts);
 
 /* makes totally fresh start situation, resets time */

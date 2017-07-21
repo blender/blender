@@ -42,6 +42,8 @@
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RNA_define.h"
 #include "RNA_access.h"
 
@@ -56,13 +58,17 @@
 #include "mesh_intern.h"  /* own include */
 
 
-static LinkNode *knifeproject_poly_from_object(ARegion *ar, Scene *scene, Object *ob, LinkNode *polys)
+static LinkNode *knifeproject_poly_from_object(const bContext *C, Scene *scene, Object *ob, LinkNode *polys)
 {
+	ARegion *ar = CTX_wm_region(C);
+	EvaluationContext eval_ctx;
 	DerivedMesh *dm;
 	bool dm_needsFree;
 
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	if (ob->type == OB_MESH || ob->derivedFinal) {
-		dm = ob->derivedFinal ? ob->derivedFinal : mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+		dm = ob->derivedFinal ? ob->derivedFinal : mesh_get_derived_final(&eval_ctx, scene, ob, CD_MASK_BAREMESH);
 		dm_needsFree = false;
 	}
 	else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
@@ -116,7 +122,6 @@ static LinkNode *knifeproject_poly_from_object(ARegion *ar, Scene *scene, Object
 
 static int knifeproject_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -127,7 +132,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
 		if (ob != obedit) {
-			polys = knifeproject_poly_from_object(ar, scene, ob, polys);
+			polys = knifeproject_poly_from_object(C, scene, ob, polys);
 		}
 	}
 	CTX_DATA_END;

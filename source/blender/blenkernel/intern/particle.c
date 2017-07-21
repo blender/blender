@@ -1845,7 +1845,7 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 	}
 }
 
-int do_guides(ParticleSettings *part, ListBase *effectors, ParticleKey *state, int index, float time)
+int do_guides(EvaluationContext *eval_ctx, ParticleSettings *part, ListBase *effectors, ParticleKey *state, int index, float time)
 {
 	CurveMapping *clumpcurve = (part->child_flag & PART_CHILD_USE_CLUMP_CURVE) ? part->clumpcurve : NULL;
 	CurveMapping *roughcurve = (part->child_flag & PART_CHILD_USE_ROUGH_CURVE) ? part->roughcurve : NULL;
@@ -1908,7 +1908,7 @@ int do_guides(ParticleSettings *part, ListBase *effectors, ParticleKey *state, i
 		
 		/* curve taper */
 		if (cu->taperobj)
-			mul_v3_fl(vec_to_point, BKE_displist_calc_taper(eff->scene, cu->taperobj, (int)(data->strength * guidetime * 100.0f), 100));
+			mul_v3_fl(vec_to_point, BKE_displist_calc_taper(eval_ctx, eff->scene, cu->taperobj, (int)(data->strength * guidetime * 100.0f), 100));
 		
 		else { /* curve size*/
 			if (cu->flag & CU_PATH_RADIUS) {
@@ -2709,7 +2709,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 			if (sim->psys->effectors && (psys->part->flag & PART_CHILD_EFFECT) == 0) {
 				for (k = 0, ca = cache[p]; k <= segments; k++, ca++)
 					/* ca is safe to cast, since only co and vel are used */
-					do_guides(sim->psys->part, sim->psys->effectors, (ParticleKey *)ca, p, (float)k / (float)segments);
+					do_guides(sim->eval_ctx, sim->psys->part, sim->psys->effectors, (ParticleKey *)ca, p, (float)k / (float)segments);
 			}
 
 			/* lattices have to be calculated separately to avoid mixups between effector calculations */
@@ -2757,7 +2757,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 	if (vg_length)
 		MEM_freeN(vg_length);
 }
-void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cfra, const bool use_render_params)
+void psys_cache_edit_paths(EvaluationContext *eval_ctx, Scene *scene, Object *ob, PTCacheEdit *edit, float cfra, const bool use_render_params)
 {
 	ParticleCacheKey *ca, **cache = edit->pathcache;
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
@@ -2948,6 +2948,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 	if (psys) {
 		ParticleSimulationData sim = {0};
+		sim.eval_ctx = eval_ctx;
 		sim.scene = scene;
 		sim.ob = ob;
 		sim.psys = psys;
@@ -3779,7 +3780,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 					mul_mat3_m4_v3(hairmat, state->vel);
 
 					if (sim->psys->effectors && (part->flag & PART_CHILD_GUIDE) == 0) {
-						do_guides(sim->psys->part, sim->psys->effectors, state, p, state->time);
+						do_guides(sim->eval_ctx, sim->psys->part, sim->psys->effectors, state, p, state->time);
 						/* TODO: proper velocity handling */
 					}
 
@@ -4306,9 +4307,10 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	madd_v3_v3fl(center, yvec, bb->offset[1]);
 }
 
-void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys)
+void psys_apply_hair_lattice(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSimulationData sim = {0};
+	sim.eval_ctx = eval_ctx;
 	sim.scene = scene;
 	sim.ob = ob;
 	sim.psys = psys;

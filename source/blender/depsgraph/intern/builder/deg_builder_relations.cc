@@ -324,7 +324,7 @@ void DepsgraphRelationBuilder::add_collision_relations(const OperationKey &key, 
 
 void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key, Scene *scene, Object *ob, ParticleSystem *psys, EffectorWeights *eff, bool add_absorption, const char *name)
 {
-	ListBase *effectors = pdInitEffectors(scene, ob, psys, eff, false);
+	ListBase *effectors = pdInitEffectors(NULL, scene, ob, psys, eff, false);
 
 	if (effectors) {
 		for (EffectorCache *eff = (EffectorCache *)effectors->first; eff; eff = eff->next) {

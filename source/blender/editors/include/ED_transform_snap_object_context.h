@@ -36,6 +36,7 @@ struct Main;
 struct Object;
 struct ARegion;
 struct View3D;
+struct bContext;
 
 /* transform_snap_object.c */
 
@@ -84,34 +85,34 @@ void ED_transform_snap_object_context_set_editmesh_callbacks(
         void *user_data);
 
 bool ED_transform_snap_object_project_ray_ex(
-        struct SnapObjectContext *sctx,
+        const struct bContext *C, struct SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         /* return args */
         float r_loc[3], float r_no[3], int *r_index,
         struct Object **r_ob, float r_obmat[4][4]);
 bool ED_transform_snap_object_project_ray(
-        SnapObjectContext *sctx,
+        const struct bContext *C, SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float ray_origin[3], const float ray_direction[3], float *ray_depth,
         float r_co[3], float r_no[3]);
 
 bool ED_transform_snap_object_project_ray_all(
-        SnapObjectContext *sctx,
+        const struct bContext *C, SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float ray_start[3], const float ray_normal[3],
         float ray_depth, bool sort,
         struct ListBase *r_hit_list);
 
 bool ED_transform_snap_object_project_view3d_ex(
-        struct SnapObjectContext *sctx,
+        const struct bContext *C, struct SnapObjectContext *sctx,
         const unsigned short snap_to,
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
         float *ray_depth,
         float r_loc[3], float r_no[3], int *r_index);
 bool ED_transform_snap_object_project_view3d(
-        struct SnapObjectContext *sctx,
+        const struct bContext *C, struct SnapObjectContext *sctx,
         const unsigned short snap_to,
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
@@ -119,7 +120,7 @@ bool ED_transform_snap_object_project_view3d(
         /* return args */
         float r_loc[3], float r_no[3]);
 bool ED_transform_snap_object_project_view3d_mixed(
-        SnapObjectContext *sctx,
+        const struct bContext *C, SnapObjectContext *sctx,
         const unsigned short snap_to_flag,
         const struct SnapObjectParams *params,
         const float mval_fl[2], float *dist_px,
@@ -127,7 +128,7 @@ bool ED_transform_snap_object_project_view3d_mixed(
         float r_co[3], float r_no[3]);
 
 bool ED_transform_snap_object_project_all_view3d_ex(
-        SnapObjectContext *sctx,
+        const struct bContext *C, SnapObjectContext *sctx,
         const struct SnapObjectParams *params,
         const float mval[2],
         float ray_depth, bool sort,

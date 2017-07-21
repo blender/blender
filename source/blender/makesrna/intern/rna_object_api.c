@@ -197,14 +197,16 @@ static void rna_Object_camera_fit_coords(
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
 static Mesh *rna_Object_to_mesh(
-        Object *ob, ReportList *reports, Scene *sce,
+        Object *ob, bContext *C, ReportList *reports, Scene *sce, SceneLayer *sl,
         int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
-	return rna_Main_meshes_new_from_object(G.main, reports, sce, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
+	Main *bmain = CTX_data_main(C);
+
+	return rna_Main_meshes_new_from_object(bmain, reports, sce, sl, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
 }
 
 /* mostly a copy from convertblender.c */
-static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int enable)
+static void dupli_render_particle_set(EvaluationContext *eval_ctx, Scene *scene, Object *ob, int level, int enable)
 {
 	/* ugly function, but we need to set particle systems to their render
 	 * settings before calling object_duplilist, to get render level duplis */
@@ -233,7 +235,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 			/* this is to make sure we get render level duplis in groups:
 			 * the derivedmesh must be created before init_render_mesh,
 			 * since object_duplilist does dupliparticles before that */
-			dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL);
+			dm = mesh_create_derived_render(eval_ctx, scene, ob, CD_MASK_BAREMESH | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL);
 			dm->release(dm);
 
 			for (psys = ob->particlesystem.first; psys; psys = psys->next)
@@ -245,14 +247,17 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 	group = ob->dup_group;
 
 	for (go = group->gobject.first; go; go = go->next)
-		dupli_render_particle_set(scene, go->ob, level + 1, enable);
+		dupli_render_particle_set(eval_ctx, scene, go->ob, level + 1, enable);
 }
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
-static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, int settings)
+static void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *reports, Scene *sce, int settings)
 {
 	bool for_render = (settings == DAG_EVAL_RENDER);
 	EvaluationContext eval_ctx;
-	DEG_evaluation_context_init(&eval_ctx, settings);
+
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	eval_ctx.mode = settings;
 
 	if (!(ob->transflag & OB_DUPLI)) {
 		BKE_report(reports, RPT_ERROR, "Object does not have duplis");
@@ -267,10 +272,10 @@ static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *
 		ob->duplilist = NULL;
 	}
 	if (for_render)
-		dupli_render_particle_set(sce, ob, 0, 1);
+		dupli_render_particle_set(&eval_ctx, sce, ob, 0, 1);
 	ob->duplilist = object_duplilist(&eval_ctx, sce, ob);
 	if (for_render)
-		dupli_render_particle_set(sce, ob, 0, 0);
+		dupli_render_particle_set(&eval_ctx, sce, ob, 0, 0);
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
 
@@ -644,8 +649,10 @@ void RNA_api_object(StructRNA *srna)
 	/* mesh */
 	func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh data-block with modifiers applied");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "Scene layer within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -665,7 +672,7 @@ void RNA_api_object(StructRNA *srna)
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	RNA_def_enum(func, "settings", dupli_eval_mode_items, 0, "", "Generate texture coordinates for rendering");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
 
 	func = RNA_def_function(srna, "dupli_list_clear", "rna_Object_free_duplilist");
 	RNA_def_function_ui_description(func, "Free the list of dupli objects");

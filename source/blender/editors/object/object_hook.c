@@ -467,15 +467,18 @@ static Object *add_hook_object_new(Main *bmain, Scene *scene, SceneLayer *sl, Ob
 	return ob;
 }
 
-static int add_hook_object(Main *bmain, Scene *scene, SceneLayer *sl, Object *obedit, Object *ob, int mode, ReportList *reports)
+static int add_hook_object(const bContext *C, Main *bmain, Scene *scene, SceneLayer *sl, Object *obedit, Object *ob, int mode, ReportList *reports)
 {
 	ModifierData *md = NULL;
 	HookModifierData *hmd = NULL;
+	EvaluationContext eval_ctx;
 	float cent[3];
 	float pose_mat[4][4];
 	int tot, ok, *indexar;
 	char name[MAX_NAME];
 	
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
 
 	if (!ok) {
@@ -544,7 +547,7 @@ static int add_hook_object(Main *bmain, Scene *scene, SceneLayer *sl, Object *ob
 	/* matrix calculus */
 	/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
 	/*        (parentinv         )                          */
-	BKE_object_where_is_calc(scene, ob);
+	BKE_object_where_is_calc(&eval_ctx, scene, ob);
 	
 	invert_m4_m4(ob->imat, ob->obmat);
 	/* apparently this call goes from right to left... */
@@ -584,7 +587,7 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	if (add_hook_object(bmain, scene, sl, obedit, obsel, mode, op->reports)) {
+	if (add_hook_object(C, bmain, scene, sl, obedit, obsel, mode, op->reports)) {
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
 		return OPERATOR_FINISHED;
 	}
@@ -618,7 +621,7 @@ static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 
-	if (add_hook_object(bmain, scene, sl, obedit, NULL, OBJECT_ADDHOOK_NEWOB, op->reports)) {
+	if (add_hook_object(C, bmain, scene, sl, obedit, NULL, OBJECT_ADDHOOK_NEWOB, op->reports)) {
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
 		return OPERATOR_FINISHED;

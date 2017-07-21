@@ -90,6 +90,7 @@ class AbcExporter {
 
 	unsigned int m_trans_sampling_index, m_shape_sampling_index;
 
+	EvaluationContext *m_eval_ctx;
 	Scene *m_scene;
 
 	ArchiveWriter *m_writer;
@@ -101,7 +102,7 @@ class AbcExporter {
 	std::vector<AbcObjectWriter *> m_shapes;
 
 public:
-	AbcExporter(Scene *scene, const char *filename, ExportSettings &settings);
+	AbcExporter(EvaluationContext *eval_ctx, Scene *scene, const char *filename, ExportSettings &settings);
 	~AbcExporter();
 
 	void operator()(Main *bmain, float &progress, bool &was_canceled);
@@ -116,7 +117,7 @@ private:
 	Alembic::Abc::TimeSamplingPtr createTimeSampling(double step);
 
 	void createTransformWritersHierarchy(EvaluationContext *eval_ctx);
-	AbcTransformWriter * createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
+	AbcTransformWriter * createTransformWriter(EvaluationContext *eval_ctx, Object *ob,  Object *parent, Object *dupliObParent);
 	void exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, Object *parent, Object *dupliObParent);
 	void exploreObject(EvaluationContext *eval_ctx, Base *ob_base, Object *dupliObParent);
 	void createShapeWriters(EvaluationContext *eval_ctx);

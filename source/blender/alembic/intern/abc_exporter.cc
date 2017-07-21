@@ -163,11 +163,12 @@ static bool export_object(const ExportSettings * const settings, const Base * co
 
 /* ************************************************************************** */
 
-AbcExporter::AbcExporter(Scene *scene, const char *filename, ExportSettings &settings)
+AbcExporter::AbcExporter(EvaluationContext *eval_ctx, Scene *scene, const char *filename, ExportSettings &settings)
     : m_settings(settings)
     , m_filename(filename)
     , m_trans_sampling_index(0)
     , m_shape_sampling_index(0)
+    , m_eval_ctx(eval_ctx)
     , m_scene(scene)
     , m_writer(NULL)
 {}
@@ -383,7 +384,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, O
 	}
 
 	if (object_type_is_exportable(ob)) {
-		createTransformWriter(ob, parent, dupliObParent);
+		createTransformWriter(eval_ctx, ob, parent, dupliObParent);
 	}
 
 	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
@@ -415,7 +416,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, O
 	free_object_duplilist(lb);
 }
 
-AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupliObParent)
+AbcTransformWriter * AbcExporter::createTransformWriter(EvaluationContext *eval_ctx, Object *ob, Object *parent, Object *dupliObParent)
 {
 	/* An object should not be its own parent, or we'll get infinite loops. */
 	BLI_assert(ob != parent);
@@ -450,29 +451,29 @@ AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *pare
 		 * return the parent's AbcTransformWriter pointer. */
 		if (parent->parent) {
 			if (parent == dupliObParent) {
-				parent_writer = createTransformWriter(parent, parent->parent, NULL);
+				parent_writer = createTransformWriter(eval_ctx, parent, parent->parent, NULL);
 			}
 			else {
-				parent_writer = createTransformWriter(parent, parent->parent, dupliObParent);
+				parent_writer = createTransformWriter(eval_ctx, parent, parent->parent, dupliObParent);
 			}
 		}
 		else if (parent == dupliObParent) {
 			if (dupliObParent->parent == NULL) {
-				parent_writer = createTransformWriter(parent, NULL, NULL);
+				parent_writer = createTransformWriter(eval_ctx, parent, NULL, NULL);
 			}
 			else {
-				parent_writer = createTransformWriter(parent, dupliObParent->parent, dupliObParent->parent);
+				parent_writer = createTransformWriter(eval_ctx, parent, dupliObParent->parent, dupliObParent->parent);
 			}
 		}
 		else {
-			parent_writer = createTransformWriter(parent, dupliObParent, dupliObParent);
+			parent_writer = createTransformWriter(eval_ctx, parent, dupliObParent, dupliObParent);
 		}
 
 		BLI_assert(parent_writer);
 		alembic_parent = parent_writer->alembicXform();
 	}
 
-	my_writer = new AbcTransformWriter(ob, alembic_parent, parent_writer,
+	my_writer = new AbcTransformWriter(eval_ctx, ob, alembic_parent, parent_writer,
 	                                   m_trans_sampling_index, m_settings);
 
 	/* When flattening, the matrix of the dupliobject has to be added. */
@@ -540,10 +541,10 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
 
 		if (m_settings.export_hair && psys->part->type == PART_HAIR) {
 			m_settings.export_child_hairs = true;
-			m_shapes.push_back(new AbcHairWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
+			m_shapes.push_back(new AbcHairWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
 		}
 		else if (m_settings.export_particles && psys->part->type == PART_EMITTER) {
-			m_shapes.push_back(new AbcPointsWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
+			m_shapes.push_back(new AbcPointsWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
 		}
 	}
 }
@@ -583,7 +584,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 				return;
 			}
 
-			m_shapes.push_back(new AbcMeshWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings));
+			m_shapes.push_back(new AbcMeshWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			break;
 		}
 		case OB_SURF:
@@ -594,7 +595,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 				return;
 			}
 
-			m_shapes.push_back(new AbcNurbsWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings));
+			m_shapes.push_back(new AbcNurbsWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			break;
 		}
 		case OB_CURVE:
@@ -605,7 +606,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 				return;
 			}
 
-			m_shapes.push_back(new AbcCurveWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings));
+			m_shapes.push_back(new AbcCurveWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			break;
 		}
 		case OB_CAMERA:
@@ -613,7 +614,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 			Camera *cam = static_cast<Camera *>(ob->data);
 
 			if (cam->type == CAM_PERSP) {
-				m_shapes.push_back(new AbcCameraWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings));
+				m_shapes.push_back(new AbcCameraWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			}
 
 			break;

@@ -1162,16 +1162,16 @@ static void surfacedeformModifier_do(ModifierData *md, float (*vertexCos)[3], un
 	}
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
-                        DerivedMesh *UNUSED(derivedData),
+static void deformVerts(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                        Object *ob, DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3], int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
 	surfacedeformModifier_do(md, vertexCos, numVerts, ob);
 }
 
-static void deformVertsEM(ModifierData *md, Object *ob,
-                          struct BMEditMesh *UNUSED(editData),
+static void deformVertsEM(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+                          Object *ob, struct BMEditMesh *UNUSED(editData),
                           DerivedMesh *UNUSED(derivedData),
                           float (*vertexCos)[3], int numVerts)
 {

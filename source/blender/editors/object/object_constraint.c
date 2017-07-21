@@ -775,8 +775,12 @@ void CONSTRAINT_OT_limitdistance_reset(wmOperatorType *ot)
 
 /* ------------- Child-Of Constraint ------------------ */
 
-static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con, float invmat[4][4], const int owner)
+static void child_get_inverse_matrix(const bContext *C, Scene *scene, Object *ob, bConstraint *con, float invmat[4][4], const int owner)
 {
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* nullify inverse matrix first */
 	unit_m4(invmat);
 	
@@ -802,7 +806,7 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 			 * to use as baseline ("pmat") to derive delta from. This extra calc saves users
 			 * from having pressing "Clear Inverse" first
 			 */
-			BKE_pose_where_is(scene, ob);
+			BKE_pose_where_is(&eval_ctx, scene, ob);
 			copy_m4_m4(pmat, pchan->pose_mat);
 
 			/* 2. knock out constraints starting from this one */
@@ -819,7 +823,7 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 			}
 
 			/* 3. solve pose without disabled constraints */
-			BKE_pose_where_is(scene, ob);
+			BKE_pose_where_is(&eval_ctx, scene, ob);
 
 			/* 4. determine effect of constraint by removing the newly calculated
 			 * pchan->pose_mat from the original pchan->pose_mat, thus determining
@@ -842,7 +846,7 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 			}
 
 			/* 6. recalculate pose with new inv-mat applied */
-			BKE_pose_where_is(scene, ob);
+			BKE_pose_where_is(&eval_ctx, scene, ob);
 		}
 	}
 	if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
@@ -853,7 +857,7 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 			BLI_assert(BLI_findindex(&ob->constraints, con) != -1);
 
 			/* use BKE_object_workob_calc_parent to find inverse - just like for normal parenting */
-			BKE_object_workob_calc_parent(scene, ob, &workob);
+			BKE_object_workob_calc_parent(&eval_ctx, scene, ob, &workob);
 			invert_m4_m4(invmat, workob.obmat);
 		}
 	}
@@ -875,7 +879,7 @@ static int childof_set_inverse_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	child_get_inverse_matrix(scene, ob, con, data->invmat, owner);
+	child_get_inverse_matrix(C, scene, ob, con, data->invmat, owner);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 	
@@ -1097,7 +1101,7 @@ static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	child_get_inverse_matrix(scene, ob, con, data->invmat, owner);
+	child_get_inverse_matrix(C, scene, ob, con, data->invmat, owner);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 

@@ -43,6 +43,7 @@ class Mesh;
 class Object;
 class ParticleSystem;
 class Scene;
+class SceneLayer;
 class Shader;
 class ShaderGraph;
 class ShaderNode;
@@ -165,6 +166,7 @@ private:
 	BL::BlendData b_data;
 	BL::Depsgraph b_depsgraph;
 	BL::Scene b_scene;
+	BL::SceneLayer b_scene_layer;
 
 	id_map<void*, Shader> shader_map;
 	id_map<ObjectKey, Object> object_map;

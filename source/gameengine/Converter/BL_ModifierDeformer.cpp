@@ -133,6 +133,8 @@ bool BL_ModifierDeformer::HasArmatureDeformer(Object *ob)
 // return a deformed mesh that supports mapping (with a valid CD_ORIGINDEX layer)
 struct DerivedMesh* BL_ModifierDeformer::GetPhysicsMesh()
 {
+	/* TODO: This doesn't work currently because of eval_ctx. */
+#if 0
 	/* we need to compute the deformed mesh taking into account the current
 	 * shape and skin deformers, we cannot just call mesh_create_derived_physics()
 	 * because that would use the m_transvers already deformed previously by BL_ModifierDeformer::Update(),
@@ -152,10 +154,14 @@ struct DerivedMesh* BL_ModifierDeformer::GetPhysicsMesh()
 	/* m_transverts is correct here (takes into account deform only modifiers) */
 	/* the derived mesh returned by this function must be released by the caller !!! */
 	return dm;
+#endif
+	return NULL;
 }
 
 bool BL_ModifierDeformer::Update(void)
 {
+	/* TODO: This doesn't work currently because of eval_ctx. */
+#if 0
 	bool bShapeUpdate = BL_ShapeDeformer::Update();
 
 	if (bShapeUpdate || m_lastModifierUpdate != m_gameobj->GetLastFrame()) {
@@ -208,6 +214,8 @@ bool BL_ModifierDeformer::Update(void)
 		}
 	}
 	return bShapeUpdate;
+#endif
+	return false;
 }
 
 bool BL_ModifierDeformer::Apply(RAS_IPolyMaterial *mat)

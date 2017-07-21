@@ -129,6 +129,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
+	EvaluationContext eval_ctx;
 	BMVert *eve;
 	BMIter iter;
 	Curve *cu;
@@ -137,6 +138,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	BPoint *bp;
 	Object *par;
 	int a, v1 = 0, v2 = 0, v3 = 0, v4 = 0, nr = 1;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	/* we need 1 to 3 selected vertices */
 
@@ -156,7 +159,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
 		/* derivedMesh might be needed for solving parenting,
 		 * so re-create it here */
-		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX, false);
+		makeDerivedMesh(&eval_ctx, scene, obedit, em, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX, false);
 
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
@@ -252,7 +255,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 					ob->par3 = v3 - 1;
 
 					/* inverse parent matrix */
-					BKE_object_workob_calc_parent(scene, ob, &workob);
+					BKE_object_workob_calc_parent(&eval_ctx, scene, ob, &workob);
 					invert_m4_m4(ob->parentinv, workob.obmat);
 				}
 				else {
@@ -260,7 +263,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 					ob->par1 = v1 - 1;
 
 					/* inverse parent matrix */
-					BKE_object_workob_calc_parent(scene, ob, &workob);
+					BKE_object_workob_calc_parent(&eval_ctx, scene, ob, &workob);
 					invert_m4_m4(ob->parentinv, workob.obmat);
 				}
 			}
@@ -612,11 +615,15 @@ EnumPropertyItem prop_make_parent_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-bool ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par,
+bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, Object *ob, Object *par,
                           int partype, const bool xmirror, const bool keep_transform, const int vert_par[3])
 {
+	Main *bmain = CTX_data_main(C);
+	EvaluationContext eval_ctx;
 	bPoseChannel *pchan = NULL;
 	const bool pararm = ELEM(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	DEG_id_tag_update(&par->id, OB_RECALC_OB);
 
@@ -629,7 +636,7 @@ bool ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object
 
 			if ((cu->flag & CU_PATH) == 0) {
 				cu->flag |= CU_PATH | CU_FOLLOW;
-				BKE_displist_make_curveTypes(scene, par, 0);  /* force creation of path data */
+				BKE_displist_make_curveTypes(&eval_ctx, scene, par, 0);  /* force creation of path data */
 			}
 			else {
 				cu->flag |= CU_FOLLOW;
@@ -771,30 +778,30 @@ bool ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object
 				data = con->data;
 				data->tar = par;
 
-				BKE_constraint_target_matrix_get(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
+				BKE_constraint_target_matrix_get(&eval_ctx, scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
 				sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
 
 				copy_v3_v3(ob->loc, vec);
 			}
 			else if (pararm && (ob->type == OB_MESH) && (par->type == OB_ARMATURE)) {
 				if (partype == PAR_ARMATURE_NAME)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, false);
+					create_vgroups_from_armature(reports, C, scene, ob, par, ARM_GROUPS_NAME, false);
 				else if (partype == PAR_ARMATURE_ENVELOPE)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
+					create_vgroups_from_armature(reports, C, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
 				else if (partype == PAR_ARMATURE_AUTO) {
 					WM_cursor_wait(1);
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
+					create_vgroups_from_armature(reports, C, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
 					WM_cursor_wait(0);
 				}
 				/* get corrected inverse */
 				ob->partype = PAROBJECT;
-				BKE_object_workob_calc_parent(scene, ob, &workob);
+				BKE_object_workob_calc_parent(&eval_ctx, scene, ob, &workob);
 
 				invert_m4_m4(ob->parentinv, workob.obmat);
 			}
 			else {
 				/* calculate inverse parent matrix */
-				BKE_object_workob_calc_parent(scene, ob, &workob);
+				BKE_object_workob_calc_parent(&eval_ctx, scene, ob, &workob);
 				invert_m4_m4(ob->parentinv, workob.obmat);
 			}
 
@@ -869,7 +876,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				parent_set_vert_find(tree, ob, vert_par, is_tri);
 			}
 
-			if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror, keep_transform, vert_par_p)) {
+			if (!ED_object_parent_set(op->reports, C, scene, ob, par, partype, xmirror, keep_transform, vert_par_p)) {
 				ok = false;
 				break;
 			}
@@ -1052,13 +1059,16 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 static int object_slow_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
 		if (ob->parent) {
 			if (ob->partype & PARSLOW) {
 				ob->partype -= PARSLOW;
-				BKE_object_where_is_calc(scene, ob);
+				BKE_object_where_is_calc(&eval_ctx, scene, ob);
 				ob->partype |= PARSLOW;
 				DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}

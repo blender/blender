@@ -556,10 +556,10 @@ static void loopcut_update_edge(RingSelOpData *lcd, BMEdge *e, const int preview
 	}
 }
 
-static void loopcut_mouse_move(RingSelOpData *lcd, const int previewlines)
+static void loopcut_mouse_move(const bContext *C, RingSelOpData *lcd, const int previewlines)
 {
 	float dist = ED_view3d_select_dist_px();
-	BMEdge *e = EDBM_edge_find_nearest(&lcd->vc, &dist);
+	BMEdge *e = EDBM_edge_find_nearest(C, &lcd->vc, &dist);
 	loopcut_update_edge(lcd, e, previewlines);
 }
 
@@ -597,7 +597,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (is_interactive) {
 		copy_v2_v2_int(lcd->vc.mval, event->mval);
-		loopcut_mouse_move(lcd, is_interactive ? 1 : 0);
+		loopcut_mouse_move(C, lcd, is_interactive ? 1 : 0);
 	}
 	else {
 		const int e_index = RNA_int_get(op->ptr, "edge_index");
@@ -761,7 +761,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				if (!has_numinput) {
 					lcd->vc.mval[0] = event->mval[0];
 					lcd->vc.mval[1] = event->mval[1];
-					loopcut_mouse_move(lcd, (int)lcd->cuts);
+					loopcut_mouse_move(C, lcd, (int)lcd->cuts);
 
 					ED_region_tag_redraw(lcd->ar);
 					handled = true;

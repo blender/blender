@@ -1042,7 +1042,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	CTX_DATA_END;
 	
 	/* recalculate paths, then free */
-	animviz_calc_motionpaths(scene, &targets);
+	animviz_calc_motionpaths(C, scene, &targets);
 	BLI_freelistN(&targets);
 }
 

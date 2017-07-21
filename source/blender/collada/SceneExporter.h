@@ -96,15 +96,15 @@ class SceneExporter: COLLADASW::LibraryVisualScenes, protected TransformWriter, 
 {
 public:
 	SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings);
-	void exportScene(Scene *sce);
+	void exportScene(struct EvaluationContext *eval_ctx, Scene *sce);
 	void setExportTransformationType(BC_export_transformation_type transformation_type);
 
 private:
 	BC_export_transformation_type transformation_type;
 	// required for writeNodes() for bone-parented objects
 	friend class ArmatureExporter;
-	void exportHierarchy(Scene *sce);
-	void writeNodes(Object *ob, Scene *sce);
+	void exportHierarchy(struct EvaluationContext *eval_ctx, Scene *sce);
+	void writeNodes(struct EvaluationContext *eval_ctx, Object *ob, Scene *sce);
 	
 	ArmatureExporter *arm_exporter;
 	const ExportSettings *export_settings;

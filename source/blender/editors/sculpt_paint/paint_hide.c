@@ -52,6 +52,8 @@
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"
 
+#include "DEG_depsgraph.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -360,6 +362,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
 	Object *ob = CTX_data_active_object(C);
+	EvaluationContext eval_ctx;
 	Mesh *me = ob->data;
 	PartialVisAction action;
 	PartialVisArea area;
@@ -371,6 +374,8 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	int totnode, i;
 
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* read operator properties */
 	action = RNA_enum_get(op->ptr, "action");
 	area = RNA_enum_get(op->ptr, "area");
@@ -378,7 +383,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
 	clip_planes_from_rect(C, clip_planes, &rect);
 
-	dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
+	dm = mesh_get_derived_final(&eval_ctx, CTX_data_scene(C), ob, CD_MASK_BAREMESH);
 	pbvh = dm->getPBVH(ob, dm);
 	ob->sculpt->pbvh = pbvh;
 

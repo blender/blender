@@ -33,6 +33,8 @@
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
 
+#include "DEG_depsgraph.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
 #include "GPU_matrix.h"
@@ -191,6 +193,9 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
+		EvaluationContext eval_ctx;
+
+		CTX_data_eval_ctx(draw_ctx->evil_C, &eval_ctx);
 
 		if (ob->sculpt && (ob == draw_ctx->obact)) {
 
@@ -201,7 +206,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 				 * but this avoids waiting on first stroke) */
 				Scene *scene = draw_ctx->scene;
 
-				BKE_sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, false, false);
+				BKE_sculpt_update_mesh_elements(&eval_ctx, scene, scene->toolsettings->sculpt, ob, false, false);
 			}
 
 			PBVH *pbvh = ob->sculpt->pbvh;

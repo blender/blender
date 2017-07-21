@@ -94,8 +94,11 @@ static EnumPropertyItem DT_layer_items[] = {
 static EnumPropertyItem *dt_layers_select_src_itemf(
         bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
+	EvaluationContext eval_ctx;
 	EnumPropertyItem *item = NULL, tmp_item = {0};
 	int totitem = 0;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	const int data_type = RNA_enum_get(ptr, "data_type");
 
@@ -140,7 +143,7 @@ static EnumPropertyItem *dt_layers_select_src_itemf(
 			int num_data, i;
 
 			/* XXX Is this OK? */
-			dm_src = mesh_get_derived_final(scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPUV);
+			dm_src = mesh_get_derived_final(&eval_ctx, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPUV);
 			ldata = dm_src->getLoopDataLayout(dm_src);
 			num_data = CustomData_number_of_layers(ldata, CD_MLOOPUV);
 
@@ -163,7 +166,7 @@ static EnumPropertyItem *dt_layers_select_src_itemf(
 			int num_data, i;
 
 			/* XXX Is this OK? */
-			dm_src = mesh_get_derived_final(scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
+			dm_src = mesh_get_derived_final(&eval_ctx, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
 			ldata = dm_src->getLoopDataLayout(dm_src);
 			num_data = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
 
@@ -345,6 +348,9 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_src = ED_object_active_context(C);
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	ListBase ctx_objects;
 	CollectionPointerLink *ctx_ob_dst;
@@ -413,7 +419,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 			}
 
 			if (BKE_object_data_transfer_mesh(
-			        scene, ob_src, ob_dst, data_type, use_create,
+			        &eval_ctx, scene, ob_src, ob_dst, data_type, use_create,
 			        map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode,
 			        space_transform, use_auto_transform,
 			        max_distance, ray_radius, islands_precision,
@@ -623,7 +629,10 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = ED_object_active_context(C);
+	EvaluationContext eval_ctx;
 	DataTransferModifierData *dtmd;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	dtmd = (DataTransferModifierData *)edit_modifier_property_get(op, ob_act, eModifierType_DataTransfer);
 
@@ -639,7 +648,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 
-		BKE_object_data_transfer_layout(scene, ob_src, ob_dst, dtmd->data_types, use_delete,
+		BKE_object_data_transfer_layout(&eval_ctx, scene, ob_src, ob_dst, dtmd->data_types, use_delete,
 		                                dtmd->layers_select_src, dtmd->layers_select_dst);
 
 		DEG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
@@ -669,7 +678,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 		for (ctx_ob_dst = ctx_objects.first; ctx_ob_dst; ctx_ob_dst = ctx_ob_dst->next) {
 			Object *ob_dst = ctx_ob_dst->ptr.data;
 			if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, false)) {
-				BKE_object_data_transfer_layout(scene, ob_src, ob_dst, data_type, use_delete,
+				BKE_object_data_transfer_layout(&eval_ctx, scene, ob_src, ob_dst, data_type, use_delete,
 				                                layers_select_src, layers_select_dst);
 			}
 

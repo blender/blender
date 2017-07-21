@@ -1182,7 +1182,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 				/* needed or else the draw matrix can be incorrect */
 				view3d_operator_needs_opengl(C);
 
-				ED_view3d_autodist_init(cdd->vc.depsgraph, cdd->vc.ar, cdd->vc.v3d, 0);
+				ED_view3d_autodist_init(C, cdd->vc.depsgraph, cdd->vc.ar, cdd->vc.v3d, 0);
 
 				if (cdd->vc.rv3d->depths) {
 					cdd->vc.rv3d->depths->damaged = true;

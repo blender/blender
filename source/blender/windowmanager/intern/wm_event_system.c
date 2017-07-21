@@ -335,7 +335,7 @@ void wm_event_do_notifiers(bContext *C)
 				}
 			}
 			if (ELEM(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_WM)) {
-				SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
+				SceneLayer *sl = CTX_data_scene_layer(C);
 				ED_info_stats_clear(sl);
 				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
 			}

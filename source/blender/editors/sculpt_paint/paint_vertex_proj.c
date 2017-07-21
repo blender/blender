@@ -42,6 +42,8 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -98,13 +100,16 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(void *userData, int index, co
 	}
 }
 
-static void vpaint_proj_dm_map_cosnos_init(Scene *scene, Object *ob,
+static void vpaint_proj_dm_map_cosnos_init(const bContext *C, Scene *scene, Object *ob,
                                            struct VertProjHandle *vp_handle)
 {
+	EvaluationContext eval_ctx;
 	Mesh *me = ob->data;
 	DerivedMesh *dm;
 
-	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	dm = mesh_get_derived_final(&eval_ctx, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 	if (dm->foreachMappedVert) {
 		memset(vp_handle->vcosnos, 0, sizeof(DMCoNo) * me->totvert);
@@ -169,10 +174,13 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData, int index, 
 	}
 }
 
-static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
+static void vpaint_proj_dm_map_cosnos_update(const bContext *C, struct VertProjHandle *vp_handle,
                                              ARegion *ar, const float mval_fl[2])
 {
+	EvaluationContext eval_ctx;
 	struct VertProjUpdate vp_update = {vp_handle, ar, mval_fl};
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	Scene *scene = vp_handle->scene;
 	Object *ob = vp_handle->ob;
@@ -182,7 +190,7 @@ static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
 	/* quick sanity check - we shouldn't have to run this if there are no modifiers */
 	BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);
 
-	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+	dm = mesh_get_derived_final(&eval_ctx, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 	/* highly unlikely this will become unavailable once painting starts (perhaps with animated modifiers) */
 	if (LIKELY(dm->foreachMappedVert)) {
@@ -198,7 +206,7 @@ static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
 /* -------------------------------------------------------------------- */
 /* Public Functions */
 
-struct VertProjHandle *ED_vpaint_proj_handle_create(Scene *scene, Object *ob,
+struct VertProjHandle *ED_vpaint_proj_handle_create(const bContext *C, Scene *scene, Object *ob,
                                                     DMCoNo **r_vcosnos)
 {
 	struct VertProjHandle *vp_handle = MEM_mallocN(sizeof(struct VertProjHandle), __func__);
@@ -209,7 +217,7 @@ struct VertProjHandle *ED_vpaint_proj_handle_create(Scene *scene, Object *ob,
 	vp_handle->use_update = false;
 
 	/* sets 'use_update' if needed */
-	vpaint_proj_dm_map_cosnos_init(scene, ob, vp_handle);
+	vpaint_proj_dm_map_cosnos_init(C, scene, ob, vp_handle);
 
 	if (vp_handle->use_update) {
 		vp_handle->dists_sq = MEM_mallocN(sizeof(float) * me->totvert, __func__);
@@ -228,11 +236,11 @@ struct VertProjHandle *ED_vpaint_proj_handle_create(Scene *scene, Object *ob,
 	return vp_handle;
 }
 
-void  ED_vpaint_proj_handle_update(struct VertProjHandle *vp_handle,
+void  ED_vpaint_proj_handle_update(const bContext *C, struct VertProjHandle *vp_handle,
                                    ARegion *ar, const float mval_fl[2])
 {
 	if (vp_handle->use_update) {
-		vpaint_proj_dm_map_cosnos_update(vp_handle, ar, mval_fl);
+		vpaint_proj_dm_map_cosnos_update(C, vp_handle, ar, mval_fl);
 	}
 }
 

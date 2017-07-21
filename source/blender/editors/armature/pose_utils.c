@@ -182,6 +182,9 @@ void poseAnim_mapping_free(ListBase *pfLinks)
 void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 {
 	bArmature *arm = (bArmature *)ob->data;
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 	
 	/* old optimize trick... this enforces to bypass the depgraph 
 	 *	- note: code copied from transform_generics.c -> recalcData()
@@ -190,7 +193,7 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 	if ((arm->flag & ARM_DELAYDEFORM) == 0)
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 	else
-		BKE_pose_where_is(scene, ob);
+		BKE_pose_where_is(&eval_ctx, scene, ob);
 	
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -263,7 +266,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, Object *ob, ListBa
 		 */
 		if (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
 			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
-			ED_pose_recalculate_paths(scene, ob);
+			ED_pose_recalculate_paths(C, scene, ob);
 		}
 	}
 }

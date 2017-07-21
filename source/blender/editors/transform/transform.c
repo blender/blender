@@ -66,6 +66,8 @@
 #include "BKE_report.h"
 #include "BKE_workspace.h"
 
+#include "DEG_depsgraph.h"
+
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
@@ -2623,6 +2625,9 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 	if (td->con) {
 		const bConstraintTypeInfo *ctiLoc = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_LOCLIMIT);
 		const bConstraintTypeInfo *ctiDist = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_DISTLIMIT);
+		EvaluationContext eval_ctx;
+
+		CTX_data_eval_ctx(t->context, &eval_ctx);
 		
 		bConstraintOb cob = {NULL};
 		bConstraint *con;
@@ -2672,7 +2677,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				}
 				
 				/* get constraint targets if needed */
-				BKE_constraint_targets_for_solving_get(con, &cob, &targets, ctime);
+				BKE_constraint_targets_for_solving_get(&eval_ctx, con, &cob, &targets, ctime);
 				
 				/* do constraint */
 				cti->evaluate_constraint(con, &cob, &targets);

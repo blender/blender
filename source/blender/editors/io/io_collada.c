@@ -78,6 +78,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 /* function used for WM_OT_save_mainfile too */
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
 	char filepath[FILE_MAX];
 	int apply_modifiers;
 	int export_mesh_type;
@@ -102,6 +103,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int keep_bind_info;
 
 	int export_count;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -156,7 +159,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	ED_object_editmode_load(CTX_data_edit_object(C));
 
 
-	export_count = collada_export(CTX_data_scene(C),
+	export_count = collada_export(&eval_ctx,
+		CTX_data_scene(C),
 		CTX_data_scene_layer(C),
 		filepath,
 		apply_modifiers,

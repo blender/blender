@@ -39,6 +39,8 @@
 #include "BKE_animsys.h"
 #include "BKE_screen.h"
 
+#include "DEG_depsgraph.h"
+
 #include "BLI_dynstr.h"
 
 #include "eevee_private.h"
@@ -84,8 +86,9 @@ extern char datatoc_tonemap_frag_glsl[];
 extern char datatoc_volumetric_frag_glsl[];
 
 static void eevee_motion_blur_camera_get_matrix_at_time(
-        Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, Object *camera, float time, float r_mat[4][4])
+        const bContext *C, Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, Object *camera, float time, float r_mat[4][4])
 {
+	EvaluationContext eval_ctx;
 	float obmat[4][4];
 
 	/* HACK */
@@ -94,12 +97,14 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
 	memcpy(&camdata_cpy, camera->data, sizeof(camdata_cpy));
 	cam_cpy.data = &camdata_cpy;
 
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* Past matrix */
 	/* FIXME : This is a temporal solution that does not take care of parent animations */
 	/* Recalc Anim manualy */
 	BKE_animsys_evaluate_animdata(scene, &cam_cpy.id, cam_cpy.adt, time, ADT_RECALC_ALL);
 	BKE_animsys_evaluate_animdata(scene, &camdata_cpy.id, camdata_cpy.adt, time, ADT_RECALC_ALL);
-	BKE_object_where_is_calc_time(scene, &cam_cpy, time);
+	BKE_object_where_is_calc_time(&eval_ctx, scene, &cam_cpy, time);
 
 	/* Compute winmat */
 	CameraParams params;
@@ -202,7 +207,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 			float delta = BKE_collection_engine_property_value_get_float(props, "motion_blur_shutter");
 
 			/* Current matrix */
-			eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime, effects->current_ndc_to_world);
+			eevee_motion_blur_camera_get_matrix_at_time(draw_ctx->evil_C, scene, ar, rv3d, v3d, v3d->camera, ctime, effects->current_ndc_to_world);
 
 			/* Viewport Matrix */
 			DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
@@ -211,7 +216,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 			if (compare_m4m4(persmat, effects->current_ndc_to_world, 0.0001f)) {
 
 				/* Past matrix */
-				eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime - delta, effects->past_world_to_ndc);
+				eevee_motion_blur_camera_get_matrix_at_time(draw_ctx->evil_C, scene, ar, rv3d, v3d, v3d->camera, ctime - delta, effects->past_world_to_ndc);
 
 #if 0       /* for future high quality blur */
 				/* Future matrix */

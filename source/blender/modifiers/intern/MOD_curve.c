@@ -113,8 +113,8 @@ static void updateDepsgraph(ModifierData *md,
 	DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "Curve Modifier");
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
-                        DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, struct EvaluationContext *eval_ctx,
+                        Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
@@ -123,19 +123,19 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	/* silly that defaxis and curve_deform_verts are off by 1
 	 * but leave for now to save having to call do_versions */
-	curve_deform_verts(md->scene, cmd->object, ob, derivedData, vertexCos, numVerts,
+	curve_deform_verts(eval_ctx, md->scene, cmd->object, ob, derivedData, vertexCos, numVerts,
 	                   cmd->name, cmd->defaxis - 1);
 }
 
 static void deformVertsEM(
-        ModifierData *md, Object *ob, struct BMEditMesh *em,
+        ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob, struct BMEditMesh *em,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
 	if (!derivedData) dm = CDDM_from_editbmesh(em, false, false);
 
-	deformVerts(md, ob, dm, vertexCos, numVerts, 0);
+	deformVerts(md, eval_ctx, ob, dm, vertexCos, numVerts, 0);
 
 	if (!derivedData) dm->release(dm);
 }

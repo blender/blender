@@ -44,17 +44,18 @@
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(ModifierData *md, Object *ob,
+static void deformVerts(ModifierData *md, EvaluationContext *eval_ctx, Object *ob,
                         DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
-	sbObjectStep(md->scene, BKE_scene_layer_context_active_PLACEHOLDER(md->scene), ob, (float)md->scene->r.cfra, vertexCos, numVerts);
+	sbObjectStep(eval_ctx, md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
