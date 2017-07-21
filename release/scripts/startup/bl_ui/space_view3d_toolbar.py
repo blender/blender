@@ -916,16 +916,18 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
                 col.separator()
                 col.label("Missing Canvas", icon='INFO')
                 col.label("Add or assign a canvas image below")
-                col.label("Canvas Image")
-                col.template_ID(toolsettings, "canvas")
+                col.label("Canvas Image:")
+                # todo this should be combinded into a single row
+                col.template_ID(toolsettings, "canvas", open="image.open")
                 col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
 
         if toolsettings.missing_stencil:
             col.separator()
             col.label("Missing Stencil", icon='INFO')
             col.label("Add or assign a stencil image below")
-            col.label("Stencil Image")
-            col.template_ID(toolsettings, "stencil_image")
+            col.label("Stencil Image:")
+            # todo this should be combinded into a single row
+            col.template_ID(toolsettings, "stencil_image", open="image.open")
             col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
 
@@ -1200,20 +1202,20 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         ob = context.active_object
         col = layout.column()
 
-        col.label("Painting Mode")
+        col.label("Painting Mode:")
         col.prop(settings, "mode", text="")
         col.separator()
 
         if settings.mode == 'MATERIAL':
             if len(ob.material_slots) > 1:
-                col.label("Materials")
+                col.label("Materials:")
                 col.template_list("MATERIAL_UL_matslots", "layers",
                                   ob, "material_slots",
                                   ob, "active_material_index", rows=2)
 
             mat = ob.active_material
             if mat:
-                col.label("Available Paint Slots")
+                col.label("Available Paint Slots:")
                 col.template_list("TEXTURE_UL_texpaintslots", "",
                                   mat, "texture_paint_images",
                                   mat, "paint_active_slot", rows=2)
@@ -1233,16 +1235,17 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                         col.separator()
 
                 if slot and slot.index != -1:
-                    col.label("UV Map")
+                    col.label("UV Map:")
                     col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
 
         elif settings.mode == 'IMAGE':
             mesh = ob.data
             uv_text = mesh.uv_textures.active.name if mesh.uv_textures.active else ""
-            col.label("Canvas Image")
-            col.template_ID(settings, "canvas")
+            col.label("Canvas Image:")
+            # todo this should be combinded into a single row
+            col.template_ID(settings, "canvas", col.template_ID)
             col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
-            col.label("UV Map")
+            col.label("UV Map:")
             col.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
 
         col.separator()
@@ -1276,14 +1279,15 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         col.active = ipaint.use_stencil_layer
 
         stencil_text = mesh.uv_texture_stencil.name if mesh.uv_texture_stencil else ""
-        col.label("UV Map")
+        col.label("UV Map:")
         col.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
-        col.label("Stencil Image")
-        col.template_ID(ipaint, "stencil_image")
+        col.label("Stencil Image:")
+        # todo this should be combinded into a single row
+        col.template_ID(ipaint, "stencil_image", open="image.open")
         col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
-        col.label("Visualization")
+        col.label("Visualization:")
         row = col.row(align=True)
         row.prop(ipaint, "stencil_color", text="")
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
