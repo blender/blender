@@ -4,8 +4,13 @@
  * http://casual-effects.blogspot.fr/2014/08/screen-space-ray-tracing.html */
 
 #define MAX_STEP 256
+#define MAX_REFINE_STEP 32 /* Should be max allowed stride */
 
 uniform mat4 PixelProjMatrix; /* View > NDC > Texel : maps view coords to texel coord */
+uniform vec2 ssrParameters;
+
+#define ssrStride     ssrParameters.x
+#define ssrThickness  ssrParameters.y
 
 void swapIfBigger(inout float a, inout float b)
 {
@@ -48,9 +53,6 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 
 	/* [Optional clipping to frustum sides here] */
 
-	/* Initialize to off screen */
-	vec2 hitpixel = vec2(-1.0, -1.0);
-
 	/* If the line is degenerate, make it cover at least one pixel
 	 * to not have to handle zero-pixel extent as a special case later */
 	P1 += vec2((distance_squared(P0, P1) < 0.0001) ? 0.01 : 0.0);
@@ -80,82 +82,83 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 	vec4 pqk = vec4(P0, Q0.z, k0);
 
 	/* Scale derivatives by the desired pixel stride */
-	vec4 dPQK = vec4(dP, dQ.z, dk) * 8.0;
+	vec4 dPQK = vec4(dP, dQ.z, dk) * ssrStride;
 
 	/* We track the ray depth at +/- 1/2 pixel to treat pixels as clip-space solid
 	 * voxels. Because the depth at -1/2 for a given pixel will be the same as at
 	 * +1/2 for the previous iteration, we actually only have to compute one value
 	 * per iteration. */
 	float prev_zmax = ray_origin.z;
-	float zmax, zmin;
+	float zmax;
 
 	/* P1.x is never modified after this point, so pre-scale it by
 	 * the step direction for a signed comparison */
 	float end = P1.x * step_sign;
 
 	bool hit = false;
-	float hitstep, raw_depth, view_depth;
-	for (hitstep = 0.0; hitstep < MAX_STEP && !hit; hitstep++) {
+	float raw_depth;
+	for (float hitstep = 0.0; hitstep < MAX_STEP && !hit; hitstep++) {
 		/* Ray finished & no hit*/
 		if ((pqk.x * step_sign) > end) break;
 
 		/* step through current cell */
 		pqk += dPQK;
 
-		hitpixel = permute ? pqk.yx : pqk.xy;
-		zmin = prev_zmax;
+		ivec2 hitpixel = ivec2(permute ? pqk.yx : pqk.xy);
+		raw_depth = texelFetch(depth_texture, ivec2(hitpixel), 0).r;
+
+		float zmin = prev_zmax;
 		zmax = (dPQK.z * 0.5 + pqk.z) / (dPQK.w * 0.5 + pqk.w);
 		prev_zmax = zmax;
-		swapIfBigger(zmin, zmax);
+		swapIfBigger(zmin, zmax); /* ??? why don't we need this ??? */
 
-		raw_depth = texelFetch(depth_texture, ivec2(hitpixel), 0).r;
-		view_depth = get_view_z_from_depth(raw_depth);
+		float vmax = get_view_z_from_depth(raw_depth);
+		float vmin = vmax - ssrThickness;
 
-		/* TODO user threshold */
-		const float threshold = 0.5; /* In view space */
 		/* Check if we are somewhere near the surface. */
-		if ((zmax < view_depth) && (zmax > view_depth - threshold)) {
+		/* Note: we consider hitting the screen borders (raw_depth == 0.0)
+		 * as valid to check for occluder in the refine pass */
+		if (!((zmin > vmax) || (zmax < vmin)) || (raw_depth == 0.0)) {
 			/* Below surface, cannot trace further */
 			hit = true;
 		}
 	}
 
 	if (hit) {
-		/* Rewind back a step */
+		/* Rewind back a step. */
 		pqk -= dPQK;
 
-		/* And do a finer trace over this segment */
-		dPQK /= 16.0;
+		/* And do a finer trace over this segment. */
+		dPQK /= ssrStride;
 
-		for (float refinestep = 0.0; refinestep < 16.0; refinestep++) {
+		prev_zmax = (dPQK.z * -0.5 + pqk.z) / (dPQK.w * -0.5 + pqk.w);
+
+		for (float refinestep = 0.0; refinestep < ssrStride * 2.0 && refinestep < MAX_REFINE_STEP * 2.0; refinestep++) {
 			/* step through current cell */
 			pqk += dPQK;
 
-			hitpixel = permute ? pqk.yx : pqk.xy;
-			zmin = prev_zmax;
+			ivec2 hitpixel = ivec2(permute ? pqk.yx : pqk.xy);
+			raw_depth = texelFetch(depth_texture, hitpixel, 0).r;
+
+			float zmin = prev_zmax;
 			zmax = (dPQK.z * 0.5 + pqk.z) / (dPQK.w * 0.5 + pqk.w);
 			prev_zmax = zmax;
 			swapIfBigger(zmin, zmax);
 
-			raw_depth = texelFetch(depth_texture, ivec2(hitpixel), 0).r;
-			view_depth = get_view_z_from_depth(raw_depth);
+			float vmax = get_view_z_from_depth(raw_depth);
+			float vmin = vmax - ssrThickness;
 
-			/* TODO user threshold */
-			const float threshold = 0.5; /* In view space */
 			/* Check if we are somewhere near the surface. */
-			if ((zmax < view_depth) && (zmax > view_depth - threshold)) {
+			if (!((zmin > vmax) || (zmax < vmin)) || (raw_depth == 0.0)) {
 				/* Below surface, cannot trace further */
 				break;
 			}
 		}
 	}
 
-	/* Check failure cases (out of screen, hit background) */
-	if (hit && (raw_depth != 1.0) && (raw_depth != 0.0)) {
-		/* Return length */
-		return (zmax - ray_origin.z) / ray_dir.z;
-	}
+	/* Background case. */
+	hit = hit && (raw_depth != 1.0);
 
-	/* Failure, return no hit */
-	return -1.0;
+	/* Return length */
+	return (hit) ? (zmax - ray_origin.z) / ray_dir.z : -1.0;
 }

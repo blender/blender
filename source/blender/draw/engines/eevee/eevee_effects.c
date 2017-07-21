@@ -549,6 +549,8 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		effects->enabled_effects |= EFFECT_DOUBLE_BUFFER;
 
 		effects->reflection_trace_full = true;
+		effects->ssr_stride = (float)BKE_collection_engine_property_value_get_int(props, "ssr_stride");
+		effects->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
 
 		const int divisor = (effects->reflection_trace_full) ? 1 : 2;
 		int tracing_res[2] = {(int)viewport_size[0] / divisor, (int)viewport_size[1] / divisor};
@@ -723,6 +725,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+		DRW_shgroup_uniform_vec2(grp, "ssrParameters", &effects->ssr_stride, 1);
 		DRW_shgroup_uniform_mat4(grp, "PixelProjMatrix", (float *)&e_data.pixelprojmat);
 		DRW_shgroup_call_add(grp, quad, NULL);
 

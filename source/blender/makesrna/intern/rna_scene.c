@@ -2623,6 +2623,8 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_shadows)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(volumetric_shadow_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_colored_transmittance)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_enable)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(ssr_stride)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_thickness)
 
 /* object engine */
 RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
@@ -6182,6 +6184,23 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_ssr_enable_get",
 	                               "rna_LayerEngineSettings_Eevee_ssr_enable_set");
 	RNA_def_property_ui_text(prop, "SSR", "Enable screen space reflection");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "ssr_stride", PROP_INT, PROP_PIXEL);
+	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_ssr_stride_get",
+	                               "rna_LayerEngineSettings_Eevee_ssr_stride_set", NULL);
+	RNA_def_property_ui_text(prop, "Stride", "Step size between two raymarching samples");
+	RNA_def_property_range(prop, 1, 32);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "ssr_thickness", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_ssr_thickness_get",
+	                               "rna_LayerEngineSettings_Eevee_ssr_thickness_set", NULL);
+	RNA_def_property_ui_text(prop, "Thickness", "Pixel thickness used to detect intersection");
+	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 5, 3);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 

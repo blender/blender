@@ -726,6 +726,9 @@ class RENDER_PT_eevee_shading(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(props, "ssr_enable")
+        col.prop(props, "ssr_stride")
+        col.prop(props, "ssr_thickness")
+        col.prop(props, "ssr_border_fade")
 
 
 classes = (
