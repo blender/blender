@@ -1916,12 +1916,30 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 
 		EDBM_selectmode_flush(vc.em);
 
-		/* change active material on object */
-		if (efa && efa->mat_nr != vc.obedit->actcol - 1) {
-			vc.obedit->actcol = efa->mat_nr + 1;
-			vc.em->mat_nr = efa->mat_nr;
+		if (efa) {
+			/* Change active material on object. */
+			if (efa->mat_nr != vc.obedit->actcol - 1) {
+				vc.obedit->actcol = efa->mat_nr + 1;
+				vc.em->mat_nr = efa->mat_nr;
+				WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, NULL);
+			}
 
-			WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, NULL);
+			/* Change active face-map on object. */
+			if (!BLI_listbase_is_empty(&vc.obedit->fmaps)) {
+				const int cd_fmap_offset = CustomData_get_offset(&vc.em->bm->pdata, CD_FACEMAP);
+				if (cd_fmap_offset != -1) {
+					int map = *((int *)BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset));
+					if ((map < -1) || (map > BLI_listbase_count_ex(&vc.obedit->fmaps, map))) {
+						map = -1;
+					}
+					map += 1;
+					if (map != vc.obedit->actfmap) {
+						/* We may want to add notifiers later,
+						 * currently select update handles redraw. */
+						vc.obedit->actfmap = map;
+					}
+				}
+			}
 
 		}
 
