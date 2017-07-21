@@ -494,9 +494,9 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
 	if (ar->manipulator_map == NULL) {
 		ar->manipulator_map = WM_manipulatormap_new_from_type(
 		        &(const struct wmManipulatorMapType_Params) {SPACE_VIEW3D, RGN_TYPE_WINDOW});
-	}
 
-	WM_manipulatormap_add_handlers(ar, ar->manipulator_map);
+		WM_manipulatormap_add_handlers(ar, ar->manipulator_map);
+	}
 
 	/* object ops. */
 	
