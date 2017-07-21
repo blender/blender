@@ -64,6 +64,7 @@ static struct {
 	struct GPUTexture *planar_depth;
 	struct GPUTexture *planar_minmaxz;
 	struct GPUTexture *planar_pool_placeholder;
+	struct GPUTexture *depth_placeholder;
 	struct GPUTexture *cube_face_depth;
 	struct GPUTexture *cube_face_minmaxz;
 
@@ -303,13 +304,16 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 	}
 
 	/* Minmaxz Pyramid */
-	/* Highjacking the minmaxz_fb but that's ok because it's reconfigured before usage. */
 	// DRWFboTexture tex_minmaxz = {&e_data.cube_face_minmaxz, DRW_TEX_RG_32, DRW_TEX_MIPMAP | DRW_TEX_TEMP};
-	// DRW_framebuffer_init(&vedata->fbl->minmaxz_fb, &draw_engine_eevee_type, PROBE_RT_SIZE / 2, PROBE_RT_SIZE / 2, &tex_minmaxz, 1);
+	// DRW_framebuffer_init(&vedata->fbl->downsample_fb, &draw_engine_eevee_type, PROBE_RT_SIZE / 2, PROBE_RT_SIZE / 2, &tex_minmaxz, 1);
 
 	/* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
 	if (!e_data.planar_pool_placeholder) {
 		e_data.planar_pool_placeholder = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGBA_8, DRW_TEX_FILTER, NULL);
+	}
+
+	if (!e_data.depth_placeholder) {
+		e_data.depth_placeholder = DRW_texture_create_2D(1, 1, DRW_TEX_DEPTH_24, 0, NULL);
 	}
 }
 
@@ -972,9 +976,11 @@ static void render_scene_to_probe(
 	/* Avoid using the texture attached to framebuffer when rendering. */
 	/* XXX */
 	GPUTexture *tmp_planar_pool = txl->planar_pool;
-	GPUTexture *tmp_minmaxz = stl->g_data->minmaxz;
+	GPUTexture *tmp_minz = stl->g_data->minzbuffer;
+	GPUTexture *tmp_maxz = txl->maxzbuffer;
 	txl->planar_pool = e_data.planar_pool_placeholder;
-	// stl->g_data->minmaxz = e_data.cube_face_minmaxz;
+	stl->g_data->minzbuffer = e_data.depth_placeholder;
+	txl->maxzbuffer = e_data.depth_placeholder;
 
 	/* Detach to rebind the right cubeface. */
 	DRW_framebuffer_bind(sldata->probe_fb);
@@ -1030,7 +1036,8 @@ static void render_scene_to_probe(
 	/* Restore */
 	sldata->probes->specular_toggle = true;
 	txl->planar_pool = tmp_planar_pool;
-	stl->g_data->minmaxz = tmp_minmaxz;
+	stl->g_data->minzbuffer = tmp_minz;
+	txl->maxzbuffer = tmp_maxz;
 	stl->effects->ao_dist = tmp_ao_dist;
 	stl->effects->ao_samples = tmp_ao_samples;
 }
@@ -1061,9 +1068,11 @@ static void render_scene_to_planar(
 	/* Avoid using the texture attached to framebuffer when rendering. */
 	/* XXX */
 	GPUTexture *tmp_planar_pool = txl->planar_pool;
-	GPUTexture *tmp_minmaxz = stl->g_data->minmaxz;
+	GPUTexture *tmp_minz = stl->g_data->minzbuffer;
+	GPUTexture *tmp_maxz = txl->maxzbuffer;
 	txl->planar_pool = e_data.planar_pool_placeholder;
-	stl->g_data->minmaxz = e_data.planar_minmaxz;
+	stl->g_data->minzbuffer = e_data.depth_placeholder;
+	txl->maxzbuffer = e_data.depth_placeholder;
 	stl->g_data->background_alpha = FLT_MAX; /* Alpha is distance for planar reflections. */
 
 	DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
@@ -1097,7 +1106,8 @@ static void render_scene_to_planar(
 
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
-	stl->g_data->minmaxz = tmp_minmaxz;
+	stl->g_data->minzbuffer = tmp_minz;
+	txl->maxzbuffer = tmp_maxz;
 	stl->g_data->background_alpha = 1.0;
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
@@ -1257,6 +1267,9 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 						ped->need_update = false;
 					}
 
+					printf("Updated Grid %d : cell %d / %d, bounce %d / %d\n",
+						i, ped->updated_cells, ped->num_cell, pinfo->updated_bounce + 1, max_bounce);
+
 					/* Only do one probe per frame */
 					DRW_viewport_request_redraw();
 					goto update_planar;
@@ -1294,6 +1307,8 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 					ped->ready_to_shade = true;
 				}
 
+				printf("Update Cubemap %d\n", i);
+
 				DRW_viewport_request_redraw();
 
 				/* Only do one probe per frame */
@@ -1325,7 +1340,7 @@ update_planar:
 	/* If there is at least one planar probe */
 	if (pinfo->num_planar > 0) {
 		const int max_lod = 5;
-		DRW_framebuffer_recursive_downsample(vedata->fbl->minmaxz_fb, txl->planar_pool, max_lod, &downsample_planar, vedata);
+		DRW_framebuffer_recursive_downsample(vedata->fbl->downsample_fb, txl->planar_pool, max_lod, &downsample_planar, vedata);
 		/* For shading, save max level of the planar map */
 		pinfo->lod_planar_max = (float)(max_lod);
 	}
@@ -1342,4 +1357,5 @@ void EEVEE_lightprobes_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.probe_cube_display_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
 	DRW_TEXTURE_FREE_SAFE(e_data.planar_pool_placeholder);
+	DRW_TEXTURE_FREE_SAFE(e_data.depth_placeholder);
 }

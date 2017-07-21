@@ -16,7 +16,7 @@ uniform vec3 aoParameters;
 
 float get_max_horizon(vec2 co, vec3 x, float h, float lod)
 {
-	float depth = textureLod(minMaxDepthTex, co, floor(lod)).g;
+	float depth = textureLod(minMaxDepthTex, co, floor(lod)).r;
 
 	/* Background case */
 	/* this is really slow and is only a problem

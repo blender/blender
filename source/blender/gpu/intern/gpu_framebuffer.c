@@ -558,8 +558,14 @@ void GPU_framebuffer_recursive_downsample(
 		attachment = GL_COLOR_ATTACHMENT0;
 
 	/* last bound prevails here, better allow explicit control here too */
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	if (GPU_texture_depth(tex)) {
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+	}
+	else {
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+	}
 
 	for (int i=1; i < num_iter+1 && (current_dim[0] > 1 && current_dim[1] > 1); i++) {
 

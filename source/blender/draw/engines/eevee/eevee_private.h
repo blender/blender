@@ -103,15 +103,20 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *dof_down;
 	struct DRWPass *dof_scatter;
 	struct DRWPass *dof_resolve;
-	struct DRWPass *minmaxz_downlevel;
-	struct DRWPass *minmaxz_downdepth;
-	struct DRWPass *minmaxz_copydepth;
 	struct DRWPass *volumetric_integrate_ps;
 	struct DRWPass *volumetric_resolve_ps;
 	struct DRWPass *volumetric_resolve_transmit_ps;
 	struct DRWPass *ssr_raytrace;
 	struct DRWPass *ssr_resolve;
 	struct DRWPass *color_downsample_ps;
+
+	/* HiZ */
+	struct DRWPass *minz_downlevel_ps;
+	struct DRWPass *maxz_downlevel_ps;
+	struct DRWPass *minz_downdepth_ps;
+	struct DRWPass *maxz_downdepth_ps;
+	struct DRWPass *minz_copydepth_ps;
+	struct DRWPass *maxz_copydepth_ps;
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
@@ -125,7 +130,7 @@ typedef struct EEVEE_PassList {
 
 typedef struct EEVEE_FramebufferList {
 	/* Effects */
-	struct GPUFrameBuffer *minmaxz_fb;
+	struct GPUFrameBuffer *downsample_fb;
 	struct GPUFrameBuffer *effect_fb;
 	struct GPUFrameBuffer *bloom_blit_fb;
 	struct GPUFrameBuffer *bloom_down_fb[MAX_BLOOM_STEP];
@@ -160,6 +165,8 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *ssr_pdf_output;
 
 	struct GPUTexture *planar_pool;
+
+	struct GPUTexture *maxzbuffer;
 
 	struct GPUTexture *color; /* R16_G16_B16 */
 	struct GPUTexture *color_double_buffer;
@@ -444,7 +451,7 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *planar_downsample;
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
-	struct GPUTexture *minmaxz;
+	struct GPUTexture *minzbuffer;
 	struct GPUTexture *volumetric;
 	struct GPUTexture *volumetric_transmit;
 	float background_alpha; /* TODO find a better place for this. */

@@ -6,61 +6,50 @@
 
 uniform sampler2D depthBuffer;
 
-out vec4 FragMinMax;
-
-vec2 sampleLowerMip(ivec2 texel)
+float sampleLowerMip(ivec2 texel)
 {
-#ifdef INPUT_DEPTH
-	return texelFetch(depthBuffer, texel, 0).rr;
-#else
-	return texelFetch(depthBuffer, texel, 0).rg;
-#endif
+	return texelFetch(depthBuffer, texel, 0).r;
 }
 
-void minmax(inout vec2 val[2])
+void minmax(inout float out_val, float in_val)
 {
-	val[0].x = min(val[0].x, val[1].x);
-	val[0].y = max(val[0].y, val[1].y);
+#ifdef MIN_PASS
+	out_val = min(out_val, in_val);
+#else /* MAX_PASS */
+	out_val = max(out_val, in_val);
+#endif
 }
 
 void main()
 {
-	vec2 val[2];
 	ivec2 texelPos = ivec2(gl_FragCoord.xy);
 	ivec2 mipsize = textureSize(depthBuffer, 0);
+
 #ifndef COPY_DEPTH
 	texelPos *= 2;
 #endif
 
-	val[0] = sampleLowerMip(texelPos);
+	float val = sampleLowerMip(texelPos);
 #ifndef COPY_DEPTH
-	val[1] = sampleLowerMip(texelPos + ivec2(1, 0));
-	minmax(val);
-	val[1] = sampleLowerMip(texelPos + ivec2(1, 1));
-	minmax(val);
-	val[1] = sampleLowerMip(texelPos + ivec2(0, 1));
-	minmax(val);
+	minmax(val, sampleLowerMip(texelPos + ivec2(1, 0)));
+	minmax(val, sampleLowerMip(texelPos + ivec2(1, 1)));
+	minmax(val, sampleLowerMip(texelPos + ivec2(0, 1)));
 
 	/* if we are reducing an odd-width texture then fetch the edge texels */
 	if (((mipsize.x & 1) != 0) && (int(gl_FragCoord.x) == mipsize.x-3)) {
 		/* if both edges are odd, fetch the top-left corner texel */
 		if (((mipsize.y & 1) != 0) && (int(gl_FragCoord.y) == mipsize.y-3)) {
-			val[1] = sampleLowerMip(texelPos + ivec2(-1, -1));
-			minmax(val);
+			minmax(val, sampleLowerMip(texelPos + ivec2(-1, -1)));
 		}
-		val[1] = sampleLowerMip(texelPos + ivec2(0, -1));
-		minmax(val);
-		val[1] = sampleLowerMip(texelPos + ivec2(1, -1));
-		minmax(val);
+		minmax(val, sampleLowerMip(texelPos + ivec2(0, -1)));
+		minmax(val, sampleLowerMip(texelPos + ivec2(1, -1)));
 	}
 	/* if we are reducing an odd-height texture then fetch the edge texels */
 	else if (((mipsize.y & 1) != 0) && (int(gl_FragCoord.y) == mipsize.y-3)) {
-		val[1] = sampleLowerMip(texelPos + ivec2(0, -1));
-		minmax(val);
-		val[1] = sampleLowerMip(texelPos + ivec2(1, -1));
-		minmax(val);
+		minmax(val, sampleLowerMip(texelPos + ivec2(0, -1)));
+		minmax(val, sampleLowerMip(texelPos + ivec2(1, -1)));
 	}
 #endif
 
-	FragMinMax = vec4(val[0], 0.0, 1.0);
+	gl_FragDepth = val;
 }
