@@ -1098,6 +1098,8 @@ static DerivedMesh *bvh_get_derived_mesh(
 			}
 		}
 	}
+#else
+	UNUSED_VARS(funcname, scene, ob, use_deform, use_render, use_cage);
 #endif
 
 	return NULL;

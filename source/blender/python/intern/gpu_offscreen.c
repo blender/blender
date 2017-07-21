@@ -147,7 +147,7 @@ static PyObject *pygpu_offscreen_unbind(BPy_GPUOffScreen *self, PyObject *args, 
 /**
  * Use with PyArg_ParseTuple's "O&" formatting.
  */
-static int pygpu_offscreen_check_matrix(PyObject *o, void *p)
+static int UNUSED_FUNCTION(pygpu_offscreen_check_matrix)(PyObject *o, void *p)
 {
 	MatrixObject **pymat_p = p;
 	MatrixObject  *pymat = (MatrixObject *)o;
@@ -246,6 +246,8 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	MEM_freeN(rv3d_mats);
 
 	Py_RETURN_NONE;
+#else
+	UNUSED_VARS(self, args, kwds);
 #endif
 	return NULL;
 }

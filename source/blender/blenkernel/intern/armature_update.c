@@ -125,6 +125,8 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 				return;
 			}
 		}
+#else
+		(void) scene;
 #endif
 	}
 

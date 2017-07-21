@@ -1035,6 +1035,8 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 	dm->release(dm);
 
 	Py_RETURN_NONE;
+#else
+	UNUSED_VARS(self, args, kw);
 #endif
 	return NULL;
 }

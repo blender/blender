@@ -204,7 +204,9 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 #else /* !WITH_MOD_REMESH */
 
-static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
+static DerivedMesh *applyModifier(ModifierData *UNUSED(md),
+                                  struct EvaluationContext *UNUSED(eval_ctx),
+                                  Object *UNUSED(ob),
                                   DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
