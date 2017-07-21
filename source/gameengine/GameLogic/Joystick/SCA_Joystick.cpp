@@ -38,7 +38,11 @@
 #include "BLI_path_util.h"
 
 #ifdef WITH_SDL
-#  define SDL_CHECK(x) ((x) != (void *)0)
+#  ifdef WITH_SDL_DYNLOAD
+#    define SDL_CHECK(x) ((x) != (void *)0)
+#  else
+#    define SDL_CHECK(x) true
+#  endif
 #endif
 
 SCA_Joystick::SCA_Joystick(short int index)
