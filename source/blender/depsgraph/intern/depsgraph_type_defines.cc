@@ -119,6 +119,7 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 		STRINGIFY_OPCODE(BONE_READY);
 		STRINGIFY_OPCODE(BONE_DONE);
 		STRINGIFY_OPCODE(PSYS_EVAL);
+		STRINGIFY_OPCODE(PSYS_EVAL_INIT);
 
 		case DEG_NUM_OPCODES: return "SpecialCase";
 #undef STRINGIFY_OPCODE

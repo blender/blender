@@ -219,6 +219,7 @@ typedef enum eDepsOperation_Code {
 	/* Particles --------------------------------------- */
 
 	/* XXX: placeholder - Particle System eval */
+	DEG_OPCODE_PSYS_EVAL_INIT,
 	DEG_OPCODE_PSYS_EVAL,
 
 	DEG_NUM_OPCODES,

@@ -671,6 +671,13 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 	ComponentDepsNode *psys_comp =
 	        add_component_node(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
 
+	add_operation_node(psys_comp,
+	                   function_bind(BKE_particle_system_eval_init,
+	                                 _1,
+	                                 scene,
+	                                 ob),
+	                   DEG_OPCODE_PSYS_EVAL_INIT);
+
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
 		ParticleSettings *part = psys->part;
@@ -682,11 +689,7 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 		/* this particle system */
 		// TODO: for now, this will just be a placeholder "ubereval" node
 		add_operation_node(psys_comp,
-		                   function_bind(BKE_particle_system_eval,
-		                                 _1,
-		                                 scene,
-		                                 ob,
-		                                 psys),
+		                   NULL,
 		                   DEG_OPCODE_PSYS_EVAL,
 		                   psys->name);
 	}
