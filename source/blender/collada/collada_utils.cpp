@@ -116,7 +116,7 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	}
 	
 	// apply child obmat (i.e. decompose it into rot/loc/size)
-	BKE_object_apply_mat4(&eval_ctx, ob, ob->obmat, 0, 0);
+	BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 
 	// compute parentinv
 	BKE_object_workob_calc_parent(&eval_ctx, sce, ob, &workob);
@@ -147,7 +147,7 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	return ob;
 }
 
-Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
+Mesh *bc_get_mesh_copy(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
 {
 	Mesh *tmpmesh;
 	CustomDataMask mask = CD_MASK_MESH;
@@ -157,12 +157,12 @@ Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh
 		switch (export_mesh_type) {
 			case BC_MESH_TYPE_VIEW:
 			{
-				dm = mesh_create_derived_view(scene, ob, mask);
+				dm = mesh_create_derived_view(eval_ctx, scene, ob, mask);
 				break;
 			}
 			case BC_MESH_TYPE_RENDER:
 			{
-				dm = mesh_create_derived_render(scene, ob, mask);
+				dm = mesh_create_derived_render(eval_ctx, scene, ob, mask);
 				break;
 			}
 		}

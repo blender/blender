@@ -54,6 +54,7 @@
 
 #include "BKE_key.h"
 
+struct EvaluationContext;
 class SceneExporter;
 
 class ControllerExporter : public COLLADASW::LibraryControllers, protected TransformWriter, protected InstanceWriter
@@ -65,11 +66,12 @@ public:
 
 	bool add_instance_controller(Object *ob);
 
-	void export_controllers(Scene *sce);
+	void export_controllers(struct EvaluationContext *eval_ctx, Scene *sce);
 
 	void operator()(Object *ob);
 
 private:
+	struct EvaluationContext *eval_ctx;
 	Scene *scene;
 	UnitConverter converter;
 	const ExportSettings *export_settings;

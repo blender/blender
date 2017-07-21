@@ -237,7 +237,7 @@ void SceneExporter::writeNodes(EvaluationContext *eval_ctx, Object *ob, Scene *s
 	for (std::list<Object *>::iterator i = child_objects.begin(); i != child_objects.end(); ++i) {
 		if (bc_is_marked(*i)) {
 			bc_remove_mark(*i);
-			writeNodes(*i, eval_ctx, sce);
+			writeNodes(eval_ctx, *i, sce);
 		}
 	}
 

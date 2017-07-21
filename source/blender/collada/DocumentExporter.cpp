@@ -285,19 +285,19 @@ int DocumentExporter::exportCurrentScene(EvaluationContext *eval_ctx, Scene *sce
 	// <library_geometries>
 	if (bc_has_object_type(export_set, OB_MESH)) {
 		GeometryExporter ge(writer, this->export_settings);
-		ge.exportGeom(sce);
+		ge.exportGeom(eval_ctx, sce);
 	}
 
 	// <library_animations>
 	AnimationExporter ae(writer, this->export_settings);
-	bool has_animations = ae.exportAnimations(sce);
+	bool has_animations = ae.exportAnimations(eval_ctx, sce);
 
 	// <library_controllers>
 	ArmatureExporter arm_exporter(writer, this->export_settings);
 	ControllerExporter controller_exporter(writer, this->export_settings);
 	if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings->include_shapekeys) 
 	{
-		controller_exporter.export_controllers(sce);
+		controller_exporter.export_controllers(eval_ctx, sce);
 	}
 
 	// <library_visual_scenes>

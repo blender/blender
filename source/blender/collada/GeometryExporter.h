@@ -46,6 +46,8 @@
 
 #include "BKE_key.h"
 
+struct EvaluationContext;
+
 extern Object *bc_get_highest_selected_ancestor_or_self(Object *ob);
 
 class Normal
@@ -72,12 +74,13 @@ class GeometryExporter : COLLADASW::LibraryGeometries
 
 	Normal n;
 
+	struct EvaluationContext *mEvalCtx;
 	Scene *mScene;
 
 public:
 	GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 
-	void exportGeom(Scene *sce);
+	void exportGeom(struct EvaluationContext *eval_ctx, Scene *sce);
 
 	void operator()(Object *ob);
 
