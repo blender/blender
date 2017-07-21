@@ -161,8 +161,6 @@ typedef struct EEVEE_TextureList {
 
 	struct GPUTexture *ssr_normal_input;
 	struct GPUTexture *ssr_specrough_input;
-	struct GPUTexture *ssr_hit_output;
-	struct GPUTexture *ssr_pdf_output;
 
 	struct GPUTexture *planar_pool;
 
@@ -321,6 +319,7 @@ typedef struct EEVEE_EffectsInfo {
 	/* SSR */
 	bool use_ssr;
 	bool reflection_trace_full;
+	float ssr_border_fac;
 	float ssr_stride;
 	float ssr_thickness;
 
@@ -455,6 +454,8 @@ typedef struct EEVEE_PrivateData {
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
 	struct GPUTexture *minzbuffer;
+	struct GPUTexture *ssr_hit_output;
+	struct GPUTexture *ssr_pdf_output;
 	struct GPUTexture *volumetric;
 	struct GPUTexture *volumetric_transmit;
 	float background_alpha; /* TODO find a better place for this. */

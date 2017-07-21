@@ -113,6 +113,8 @@ uniform sampler2D pdfBuffer;
 
 uniform int probe_count;
 
+uniform float borderFadeFactor;
+
 uniform mat4 ViewProjectionMatrix;
 uniform mat4 PastViewProjectionMatrix;
 
@@ -192,8 +194,8 @@ float screen_border_mask(vec2 past_hit_co, vec3 hit)
 	hit_co.xy = (hit_co.xy / hit_co.w) * 0.5 + 0.5;
 	hit_co.zw = past_hit_co;
 
-	const float margin = 0.01;
-	const float atten = 0.075 + margin; /* Screen percentage */
+	const float margin = 0.003;
+	float atten = borderFadeFactor + margin; /* Screen percentage */
 	hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
 	vec2 atten_fac = min(hit_co.xy, hit_co.zw);
 
