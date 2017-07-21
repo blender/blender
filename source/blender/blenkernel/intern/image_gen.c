@@ -132,7 +132,7 @@ static void image_buf_fill_checker_slice(unsigned char *rect,
 	float hsv[3] = {0.0f, 0.9f, 0.9f};
 	float rgb[3];
 
-	float dark_linear_color, bright_linear_color;
+	float dark_linear_color = 0.0f, bright_linear_color = 0.0f;
 	if (rect_float != NULL) {
 		dark_linear_color = srgb_to_linearrgb(0.25f);
 		bright_linear_color = srgb_to_linearrgb(0.58f);

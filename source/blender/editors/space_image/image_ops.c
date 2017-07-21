@@ -1172,6 +1172,7 @@ static int image_sequence_get_len(ListBase *frames, int *ofs)
 		}
 		return frame_curr - (*ofs);
 	}
+	*ofs = 0;
 	return 0;
 }
 

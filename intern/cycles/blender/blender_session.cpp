@@ -133,9 +133,9 @@ void BlenderSession::create_session()
 	scene = new Scene(scene_params, session_params.device);
 
 	/* setup callbacks for builtin image support */
-	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3, _4, _5, _6, _7);
-	scene->image_manager->builtin_image_pixels_cb = function_bind(&BlenderSession::builtin_image_pixels, this, _1, _2, _3, _4);
-	scene->image_manager->builtin_image_float_pixels_cb = function_bind(&BlenderSession::builtin_image_float_pixels, this, _1, _2, _3, _4);
+	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3, _4, _5, _6, _7, _8);
+	scene->image_manager->builtin_image_pixels_cb = function_bind(&BlenderSession::builtin_image_pixels, this, _1, _2, _3, _4, _5);
+	scene->image_manager->builtin_image_float_pixels_cb = function_bind(&BlenderSession::builtin_image_float_pixels, this, _1, _2, _3, _4, _5);
 
 	/* create session */
 	session = new Session(session_params);
@@ -1017,7 +1017,8 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
                                         int &width,
                                         int &height,
                                         int &depth,
-                                        int &channels)
+                                        int &channels,
+                                        bool& free_cache)
 {
 	/* empty image */
 	is_float = false;
@@ -1025,6 +1026,7 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
 	height = 1;
 	depth = 0;
 	channels = 0;
+	free_cache = false;
 
 	if(!builtin_data)
 		return;
@@ -1038,6 +1040,7 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
 		/* image data */
 		BL::Image b_image(b_id);
 
+		free_cache = !b_image.has_data();
 		is_float = b_image.is_float();
 		width = b_image.size()[0];
 		height = b_image.size()[1];
@@ -1098,7 +1101,8 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
 bool BlenderSession::builtin_image_pixels(const string &builtin_name,
                                           void *builtin_data,
                                           unsigned char *pixels,
-                                          const size_t pixels_size)
+                                          const size_t pixels_size,
+                                          const bool free_cache)
 {
 	if(!builtin_data) {
 		return false;
@@ -1119,7 +1123,6 @@ bool BlenderSession::builtin_image_pixels(const string &builtin_name,
 
 	if(image_pixels && num_pixels * channels == pixels_size) {
 		memcpy(pixels, image_pixels, pixels_size * sizeof(unsigned char));
-		MEM_freeN(image_pixels);
 	}
 	else {
 		if(channels == 1) {
@@ -1138,6 +1141,16 @@ bool BlenderSession::builtin_image_pixels(const string &builtin_name,
 			}
 		}
 	}
+
+	if(image_pixels) {
+		MEM_freeN(image_pixels);
+	}
+
+	/* Free image buffers to save memory during render. */
+	if(free_cache) {
+		b_image.buffers_free();
+	}
+
 	/* Premultiply, byte images are always straight for Blender. */
 	unsigned char *cp = pixels;
 	for(size_t i = 0; i < num_pixels; i++, cp += channels) {
@@ -1151,7 +1164,8 @@ bool BlenderSession::builtin_image_pixels(const string &builtin_name,
 bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
                                                 void *builtin_data,
                                                 float *pixels,
-                                                const size_t pixels_size)
+                                                const size_t pixels_size,
+                                                const bool free_cache)
 {
 	if(!builtin_data) {
 		return false;
@@ -1176,7 +1190,6 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 
 		if(image_pixels && num_pixels * channels == pixels_size) {
 			memcpy(pixels, image_pixels, pixels_size * sizeof(float));
-			MEM_freeN(image_pixels);
 		}
 		else {
 			if(channels == 1) {
@@ -1194,6 +1207,15 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 					}
 				}
 			}
+		}
+
+		if(image_pixels) {
+			MEM_freeN(image_pixels);
+		}
+
+		/* Free image buffers to save memory during render. */
+		if(free_cache) {
+			b_image.buffers_free();
 		}
 
 		return true;

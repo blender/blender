@@ -1755,7 +1755,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			 * However, changing this is more design than bugfix, not to mention convoluted code below,
 			 * so that will be for later.
 			 * But at the very least, do not do that with linked IDs! */
-			if ((ID_IS_LINKED_DATABLOCK(ob) || ID_IS_LINKED_DATABLOCK(ob->data)) && !keep_original) {
+			if ((ID_IS_LINKED_DATABLOCK(ob) || (ob->data && ID_IS_LINKED_DATABLOCK(ob->data))) && !keep_original) {
 				keep_original = true;
 				BKE_reportf(op->reports, RPT_INFO,
 				            "Converting some linked object/object data, enforcing 'Keep Original' option to True");

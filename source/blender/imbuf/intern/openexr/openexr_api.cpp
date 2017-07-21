@@ -1104,7 +1104,7 @@ void IMB_exr_write_channels(void *handle)
 
 	if (data->channels.first) {
 		const size_t num_pixels = ((size_t)data->width) * data->height;
-		half *rect_half = NULL, *current_rect_half;
+		half *rect_half = NULL, *current_rect_half = NULL;
 
 		/* We allocate teporary storage for half pixels for all the channels at once. */
 		if (data->num_half_channels != 0) {

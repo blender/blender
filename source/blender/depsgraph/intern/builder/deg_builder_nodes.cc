@@ -711,6 +711,13 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 	Scene *scene_cow = get_cow_datablock(scene);
 	Object *ob_cow = get_cow_datablock(ob);
 
+	add_operation_node(psys_comp,
+	                   function_bind(BKE_particle_system_eval_init,
+	                                 _1,
+	                                 scene_cow,
+	                                 ob_cow),
+	                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
+
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
 		ParticleSettings *part = psys->part;
@@ -731,11 +738,7 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 
 		/* Particle system evaluation. */
 		add_operation_node(psys_comp,
-		                   function_bind(BKE_particle_system_eval,
-		                                 _1,
-		                                 scene_cow,
-		                                 ob_cow,
-		                                 psys),
+		                   NULL,
 		                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 		                   psys->name);
 	}

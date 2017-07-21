@@ -210,6 +210,7 @@ typedef enum eDepsOperation_Code {
 
 	/* Particles. --------------------------------------- */
 	/* Particle System evaluation. */
+	DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT,
 	DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 	DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
 	DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR,

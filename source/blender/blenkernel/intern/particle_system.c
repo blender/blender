@@ -4371,13 +4371,12 @@ void BKE_particle_system_settings_recalc_clear(struct EvaluationContext *UNUSED(
 	particle_settings->recalc = 0;
 }
 
-void BKE_particle_system_eval(struct EvaluationContext *UNUSED(eval_ctx),
-                              Scene *scene,
-                              Object *ob,
-                              ParticleSystem *psys)
+void BKE_particle_system_eval_init(struct EvaluationContext *UNUSED(eval_ctx),
+                                   Scene *scene,
+                                   Object *ob)
 {
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
-		printf("%s on %s:%s (%p)\n", __func__, ob->id.name, psys->name, psys);
+		printf("%s on %s (%p)\n", __func__, ob->id.name, ob);
 	}
 	BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
 }
