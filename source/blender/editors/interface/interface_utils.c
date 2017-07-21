@@ -265,7 +265,7 @@ int UI_icon_from_report_type(int type)
  */
 int UI_calc_float_precision(int prec, double value)
 {
-	static const double pow10_neg[UI_PRECISION_FLOAT_MAX + 1] = {1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7};
+	static const double pow10_neg[UI_PRECISION_FLOAT_MAX + 1] = {1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6};
 	static const double max_pow = 10000000.0;  /* pow(10, UI_PRECISION_FLOAT_MAX) */
 
 	BLI_assert(prec <= UI_PRECISION_FLOAT_MAX);
