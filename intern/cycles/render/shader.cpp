@@ -190,6 +190,7 @@ Shader::Shader()
 	has_volume_spatial_varying = false;
 	has_object_dependency = false;
 	has_integrator_dependency = false;
+	has_volume_connected = false;
 
 	displacement_method = DISPLACE_BUMP;
 
