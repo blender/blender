@@ -6,12 +6,11 @@ uniform sampler2DArray utilTex;
 
 #define BRDF_BIAS 0.7
 
-vec3 generate_ray(ivec2 pix, vec3 V, vec3 N, float a2, out float pdf)
+vec3 generate_ray(vec3 V, vec3 N, float a2, vec3 rand, out float pdf)
 {
 	float NH;
 	vec3 T, B;
 	make_orthonormal_basis(N, T, B); /* Generate tangent space */
-	vec3 rand = texelFetch(utilTex, ivec3(pix % LUT_SIZE, 2), 0).rba;
 
 	/* Importance sampling bias */
 	rand.x = mix(rand.x, 0.0, BRDF_BIAS);
@@ -66,7 +65,8 @@ void main()
 
 	/* Generate Ray */
 	float pdf;
-	vec3 R = generate_ray(halfres_texel, V, N, a2, pdf);
+	vec3 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0).rba;
+	vec3 R = generate_ray(V, N, a2, rand, pdf);
 
 	/* Search for the planar reflection affecting this pixel */
 	/* If no planar is found, fallback to screen space */
@@ -88,7 +88,7 @@ void main()
 	/* Note : this still fails in some cases like with normal map.
 	 * We should check against the geometric normal but we don't have it at this stage. */
 	if (dot(R, N) > 0.0001) {
-		hit_dist = raycast(depthBuffer, viewPosition, R);
+		hit_dist = raycast(depthBuffer, viewPosition, R, rand.x);
 	}
 
 	vec2 hit_co = project_point(ProjectionMatrix, viewPosition + R * hit_dist).xy * 0.5 + 0.5;
@@ -192,8 +192,8 @@ float screen_border_mask(vec2 past_hit_co, vec3 hit)
 	hit_co.xy = (hit_co.xy / hit_co.w) * 0.5 + 0.5;
 	hit_co.zw = past_hit_co;
 
-	const float margin = -0.02;
-	const float atten = 0.02 + margin; /* Screen percentage */
+	const float margin = 0.01;
+	const float atten = 0.075 + margin; /* Screen percentage */
 	hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
 	vec2 atten_fac = min(hit_co.xy, hit_co.zw);
 

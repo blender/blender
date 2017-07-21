@@ -22,7 +22,7 @@ void swapIfBigger(inout float a, inout float b)
 }
 
 /* Return the length of the ray if there is a hit, and -1.0 if not hit occured */
-float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
+float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_jitter)
 {
 	float near = get_view_z_from_depth(0.0); /* TODO optimize */
 
@@ -94,6 +94,9 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir)
 	/* P1.x is never modified after this point, so pre-scale it by
 	 * the step direction for a signed comparison */
 	float end = P1.x * step_sign;
+
+	/* Initial offset */
+	pqk += dPQK * ray_jitter;
 
 	bool hit = false;
 	float raw_depth;
