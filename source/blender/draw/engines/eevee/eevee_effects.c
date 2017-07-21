@@ -86,7 +86,9 @@ static struct {
 
 	/* Screen Space Reflection */
 	struct GPUShader *ssr_raytrace_sh;
+	struct GPUShader *ssr_raytrace_full_sh;
 	struct GPUShader *ssr_resolve_sh;
+	struct GPUShader *ssr_resolve_full_sh;
 
 	/* Simple Downsample */
 	struct GPUShader *downsample_sh;
@@ -197,7 +199,11 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		BLI_dynstr_free(ds_frag);
 
 		e_data.ssr_raytrace_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RAYTRACE\n");
+		e_data.ssr_raytrace_full_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RAYTRACE\n"
+		                                                                                          "#define FULLRES\n");
 		e_data.ssr_resolve_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n");
+		e_data.ssr_resolve_full_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n"
+		                                                                                         "#define FULLRES\n");
 
 		MEM_freeN(ssr_shader_str);
 
@@ -542,7 +548,10 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		/* Enable double buffering to be able to read previous frame color */
 		effects->enabled_effects |= EFFECT_DOUBLE_BUFFER;
 
-		int tracing_res[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
+		effects->reflection_trace_full = true;
+
+		const int divisor = (effects->reflection_trace_full) ? 1 : 2;
+		int tracing_res[2] = {(int)viewport_size[0] / divisor, (int)viewport_size[1] / divisor};
 		const bool record_two_hit = false;
 		const bool high_qual_input = true; /* TODO dither low quality input */
 
@@ -704,8 +713,11 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
+		struct GPUShader *trace_shader = (effects->reflection_trace_full) ? e_data.ssr_raytrace_full_sh : e_data.ssr_raytrace_sh;
+		struct GPUShader *resolve_shader = (effects->reflection_trace_full) ? e_data.ssr_resolve_full_sh : e_data.ssr_resolve_sh;
+
 		psl->ssr_raytrace = DRW_pass_create("SSR Raytrace", DRW_STATE_WRITE_COLOR);
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.ssr_raytrace_sh, psl->ssr_raytrace);
+		DRWShadingGroup *grp = DRW_shgroup_create(trace_shader, psl->ssr_raytrace);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
@@ -715,7 +727,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->ssr_resolve = DRW_pass_create("SSR Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
-		grp = DRW_shgroup_create(e_data.ssr_resolve_sh, psl->ssr_resolve);
+		grp = DRW_shgroup_create(resolve_shader, psl->ssr_resolve);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
@@ -1193,7 +1205,9 @@ void EEVEE_effects_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.downsample_sh);
 	DRW_SHADER_FREE_SAFE(e_data.ssr_raytrace_sh);
+	DRW_SHADER_FREE_SAFE(e_data.ssr_raytrace_full_sh);
 	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_sh);
+	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_full_sh);
 
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_upsample_sh);
 

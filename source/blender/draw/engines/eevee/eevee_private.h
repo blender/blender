@@ -320,6 +320,7 @@ typedef struct EEVEE_EffectsInfo {
 
 	/* SSR */
 	bool use_ssr;
+	bool reflection_trace_full;
 
 	/* Ambient Occlusion */
 	bool use_ao, use_bent_normals;

@@ -34,15 +34,24 @@ layout(location = 1) out vec4 pdfData;
 
 void main()
 {
+#ifdef FULLRES
+	ivec2 fullres_texel = ivec2(gl_FragCoord.xy);
+	ivec2 halfres_texel = fullres_texel;
+#else
 	ivec2 fullres_texel = ivec2(gl_FragCoord.xy) * 2;
 	ivec2 halfres_texel = ivec2(gl_FragCoord.xy);
+#endif
+
 	float depth = texelFetch(depthBuffer, fullres_texel, 0).r;
 
 	/* Early out */
 	if (depth == 1.0)
 		discard;
 
-	vec2 uvs = gl_FragCoord.xy * 2.0 / vec2(textureSize(depthBuffer, 0));
+	vec2 uvs = gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0));
+#ifndef FULLRES
+	uvs *= 2.0;
+#endif
 
 	/* Using view space */
 	vec3 viewPosition = get_view_space_from_depth(uvs, depth);
@@ -75,8 +84,10 @@ void main()
 
 	/* Raycast over screen */
 	float hit_dist = -1.0;
+	/* Only raytrace if ray is above the surface normal */
+	/* Note : this still fails in some cases like with normal map.
+	 * We should check against the geometric normal but we don't have it at this stage. */
 	if (dot(R, N) > 0.0001) {
-		/* Only raytrace if ray is above the surface normal */
 		hit_dist = raycast(depthBuffer, viewPosition, R);
 	}
 
@@ -195,8 +206,12 @@ float screen_border_mask(vec2 past_hit_co, vec3 hit)
 
 void main()
 {
-	ivec2 halfres_texel = ivec2(gl_FragCoord.xy / 2.0);
 	ivec2 fullres_texel = ivec2(gl_FragCoord.xy);
+#ifdef FULLRES
+	ivec2 halfres_texel = fullres_texel;
+#else
+	ivec2 halfres_texel = ivec2(gl_FragCoord.xy / 2.0);
+#endif
 	vec2 texture_size = vec2(textureSize(depthBuffer, 0));
 	vec2 uvs = gl_FragCoord.xy / texture_size;
 	vec3 rand = texelFetch(utilTex, ivec3(fullres_texel % LUT_SIZE, 2), 0).rba;
