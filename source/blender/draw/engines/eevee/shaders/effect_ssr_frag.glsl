@@ -91,14 +91,21 @@ void main()
 		hit_dist = raycast(depthBuffer, viewPosition, R, rand.x);
 	}
 
+	/* TODO Do reprojection here */
 	vec2 hit_co = project_point(ProjectionMatrix, viewPosition + R * hit_dist).xy * 0.5 + 0.5;
 
 	/* Check if has hit a backface */
 	vec3 hit_N = normal_decode(textureLod(normalBuffer, hit_co, 0.0).rg, V);
-	pdf *= step(0.0, dot(-R, hit_N));
+	hit_dist *= step(0.0, dot(-R, hit_N));
 
-	hitData = hit_co.xyxy;
-	pdfData = vec4(pdf) * step(0.0, hit_dist);
+	if (hit_dist > 0.0) {
+		hitData = hit_co.xyxy;
+	}
+	else {
+		hitData = vec4(-1.0);
+	}
+
+	pdfData = vec4(pdf);
 }
 
 #else /* STEP_RESOLVE */
@@ -204,6 +211,13 @@ float screen_border_mask(vec2 past_hit_co, vec3 hit)
 	return screenfade;
 }
 
+float view_facing_mask(vec3 V, vec3 R)
+{
+	/* Fade on viewing angle (strange deformations happens at R == V) */
+	return smoothstep(0.95, 0.80, dot(V, R));
+}
+
+
 #define NUM_NEIGHBORS 9
 
 void main()
@@ -259,17 +273,11 @@ void main()
 	for (int i = 0; i < NUM_NEIGHBORS; i++) {
 		ivec2 target_texel = halfres_texel + neighbors[i] * invert_neighbor;
 
-		float pdf = texelFetch(pdfBuffer, target_texel, 0).r;
-
 		vec2 hit_co = texelFetch(hitBuffer, target_texel, 0).rg;
 
 		/* Reconstruct ray */
 		float hit_depth = textureLod(depthBuffer, hit_co, 0.0).r;
 		vec3 hit_pos = get_world_space_from_depth(hit_co, hit_depth);
-
-		/* Evaluate BSDF */
-		vec3 L = normalize(hit_pos - worldPosition);
-		float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
 
 		/* Find hit position in previous frame */
 		vec2 ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
@@ -279,25 +287,27 @@ void main()
 		float cone_footprint = 1.5 * cone_tan * distance(ref_uvs, source_uvs);
 		float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
 
+		vec3 L = normalize(hit_pos - worldPosition);
 #ifdef USE_NORMALIZATION
+		/* Evaluate BSDF */
+		float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
+		float pdf = texelFetch(pdfBuffer, target_texel, 0).r;
+
 		float weight = step(0.001, pdf) * bsdf / pdf;
 #else
 		float weight = 1.0;
 #endif
 
-		float border_mask = screen_border_mask(ref_uvs, hit_pos);
-		vec3 sample = vec3(0.0);
-
-		/* Check if ray is singnificant enough. */
-		if (pdf > 0.001) {
-			sample = textureLod(colorBuffer, ref_uvs, mip).rgb ;
-		}
+		vec3 sample = textureLod(colorBuffer, ref_uvs, mip).rgb ;
 
 		/* Firefly removal */
 		sample /= 1 + brightness(sample);
 
+		float mask = screen_border_mask(ref_uvs, hit_pos);
+		mask *= view_facing_mask(V, N);
+
 		/* Check if there was a hit */
-		ssr_accum += vec4(sample, border_mask) * weight * step(0.001, pdf);
+		ssr_accum += vec4(sample, mask) * weight * step(0.0, hit_co.x);
 		weight_acc += weight;
 	}
 
