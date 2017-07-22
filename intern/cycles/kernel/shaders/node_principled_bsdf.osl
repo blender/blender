@@ -76,8 +76,8 @@ shader node_principled_bsdf(
 		float aspect = sqrt(1.0 - Anisotropic * 0.9);
 		float r2 = Roughness * Roughness;
 
-		float alpha_x = max(0.001, r2 / aspect);
-		float alpha_y = max(0.001, r2 * aspect);
+		float alpha_x = r2 / aspect;
+		float alpha_y = r2 * aspect;
 
 		color tmp_col = color(1.0, 1.0, 1.0) * (1.0 - SpecularTint) + m_ctint * SpecularTint;
 
