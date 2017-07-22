@@ -144,48 +144,54 @@ static void EEVEE_draw_scene(void *vedata)
 	/* Default framebuffer and texture */
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	/* Refresh shadows */
-	EEVEE_draw_shadows(sldata, psl);
+	/* Number of iteration: needed for all temporal effect (SSR, TAA)
+	 * when using opengl render. */
+	int loop_ct = DRW_state_is_image_render() ? 4 : 1;
 
-	/* Refresh Probes */
-	EEVEE_lightprobes_refresh(sldata, vedata);
+	while (loop_ct--) {
+		/* Refresh shadows */
+		EEVEE_draw_shadows(sldata, psl);
 
-	/* Attach depth to the hdr buffer and bind it */	
-	DRW_framebuffer_texture_detach(dtxl->depth);
-	DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
-	DRW_framebuffer_bind(fbl->main);
-	DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
+		/* Refresh Probes */
+		EEVEE_lightprobes_refresh(sldata, vedata);
 
-	/* TODO move background after depth pass to cut some overdraw */
-	DRW_draw_pass(psl->background_pass);
+		/* Attach depth to the hdr buffer and bind it */
+		DRW_framebuffer_texture_detach(dtxl->depth);
+		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
+		DRW_framebuffer_bind(fbl->main);
+		DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
 
-	/* Depth prepass */
-	DRW_draw_pass(psl->depth_pass);
-	DRW_draw_pass(psl->depth_pass_cull);
+		/* TODO move background after depth pass to cut some overdraw */
+		DRW_draw_pass(psl->background_pass);
 
-	/* Create minmax texture */
-	EEVEE_create_minmax_buffer(vedata, dtxl->depth);
+		/* Depth prepass */
+		DRW_draw_pass(psl->depth_pass);
+		DRW_draw_pass(psl->depth_pass_cull);
 
-	/* Restore main FB */
-	DRW_framebuffer_bind(fbl->main);
+		/* Create minmax texture */
+		EEVEE_create_minmax_buffer(vedata, dtxl->depth);
 
-	/* Shading pass */
-	DRW_draw_pass(psl->probe_display);
-	EEVEE_draw_default_passes(psl);
-	DRW_draw_pass(psl->material_pass);
+		/* Restore main FB */
+		DRW_framebuffer_bind(fbl->main);
 
-	/* Screen Space Reflections */
-	EEVEE_effects_do_ssr(sldata, vedata);
+		/* Shading pass */
+		DRW_draw_pass(psl->probe_display);
+		EEVEE_draw_default_passes(psl);
+		DRW_draw_pass(psl->material_pass);
 
-	/* Volumetrics */
-	EEVEE_effects_do_volumetrics(sldata, vedata);
+		/* Screen Space Reflections */
+		EEVEE_effects_do_ssr(sldata, vedata);
 
-	/* Transparent */
-	DRW_pass_sort_shgroup_z(psl->transparent_pass);
-	DRW_draw_pass(psl->transparent_pass);
+		/* Volumetrics */
+		EEVEE_effects_do_volumetrics(sldata, vedata);
 
-	/* Post Process */
-	EEVEE_draw_effects(vedata);
+		/* Transparent */
+		DRW_pass_sort_shgroup_z(psl->transparent_pass);
+		DRW_draw_pass(psl->transparent_pass);
+
+		/* Post Process */
+		EEVEE_draw_effects(vedata);
+	}
 }
 
 static void EEVEE_engine_free(void)

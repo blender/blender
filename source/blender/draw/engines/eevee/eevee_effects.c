@@ -615,6 +615,8 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_TEXTURE_FREE_SAFE(txl->ssr_normal_input);
 		DRW_TEXTURE_FREE_SAFE(txl->ssr_specrough_input);
 		DRW_FRAMEBUFFER_FREE_SAFE(fbl->screen_tracing_fb);
+		stl->g_data->ssr_hit_output = NULL;
+		stl->g_data->ssr_pdf_output = NULL;
 	}
 
 	/* Setup double buffer so we can access last frame as it was before post processes */
@@ -1219,12 +1221,20 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	/* If no post processes is enabled, buffers are still not swapped, do it now. */
 	SWAP_DOUBLE_BUFFERS();
 
-	if (!stl->g_data->valid_double_buffer && ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0)) {
+	if (!stl->g_data->valid_double_buffer &&
+		((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) &&
+		(DRW_state_is_image_render() == false))
+	{
 		/* If history buffer is not valid request another frame.
 		 * This fix black reflections on area resize. */
 		DRW_viewport_request_redraw();
 	}
 
+	/* Update double buffer status if render mode. */
+	if (DRW_state_is_image_render()) {
+		stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
+		DRW_viewport_matrix_get(stl->g_data->prev_persmat, DRW_MAT_PERS);
+	}
 }
 
 void EEVEE_effects_free(void)
