@@ -89,6 +89,8 @@ static struct {
 	struct GPUShader *ssr_raytrace_full_sh;
 	struct GPUShader *ssr_resolve_sh;
 	struct GPUShader *ssr_resolve_full_sh;
+	struct GPUShader *ssr_resolve_norm_sh;
+	struct GPUShader *ssr_resolve_full_norm_sh;
 
 	/* Simple Downsample */
 	struct GPUShader *downsample_sh;
@@ -202,8 +204,13 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		e_data.ssr_raytrace_full_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RAYTRACE\n"
 		                                                                                          "#define FULLRES\n");
 		e_data.ssr_resolve_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n");
+		e_data.ssr_resolve_norm_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n"
+			                                                                                     "#define USE_NORMALIZATION\n");
 		e_data.ssr_resolve_full_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n"
 		                                                                                         "#define FULLRES\n");
+		e_data.ssr_resolve_full_norm_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n"
+		                                                                                              "#define USE_NORMALIZATION\n"
+		                                                                                              "#define FULLRES\n");
 
 		MEM_freeN(ssr_shader_str);
 
@@ -549,6 +556,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		effects->enabled_effects |= EFFECT_DOUBLE_BUFFER;
 
 		effects->reflection_trace_full = !BKE_collection_engine_property_value_get_bool(props, "ssr_halfres");
+		effects->ssr_use_normalization = BKE_collection_engine_property_value_get_bool(props, "ssr_normalize_weight");
 		effects->ssr_stride = (float)BKE_collection_engine_property_value_get_int(props, "ssr_stride");
 		effects->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
 		effects->ssr_border_fac = BKE_collection_engine_property_value_get_float(props, "ssr_border_fade");
@@ -715,7 +723,13 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 		struct GPUShader *trace_shader = (effects->reflection_trace_full) ? e_data.ssr_raytrace_full_sh : e_data.ssr_raytrace_sh;
-		struct GPUShader *resolve_shader = (effects->reflection_trace_full) ? e_data.ssr_resolve_full_sh : e_data.ssr_resolve_sh;
+		struct GPUShader *resolve_shader = NULL;
+		if (effects->ssr_use_normalization) {
+			resolve_shader = (effects->reflection_trace_full) ? e_data.ssr_resolve_full_norm_sh : e_data.ssr_resolve_norm_sh;
+		}
+		else {
+			resolve_shader = (effects->reflection_trace_full) ? e_data.ssr_resolve_full_sh : e_data.ssr_resolve_sh;
+		}
 
 		psl->ssr_raytrace = DRW_pass_create("SSR Raytrace", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(trace_shader, psl->ssr_raytrace);
@@ -1215,6 +1229,8 @@ void EEVEE_effects_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.ssr_raytrace_full_sh);
 	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_sh);
 	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_full_sh);
+	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_norm_sh);
+	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_full_norm_sh);
 
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_upsample_sh);
 

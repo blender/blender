@@ -2624,6 +2624,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(volumetric_shadow_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_colored_transmittance)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_halfres)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_normalize_weight)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(ssr_stride)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_thickness)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_border_fade)
@@ -6193,6 +6194,13 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_ssr_halfres_get",
 	                               "rna_LayerEngineSettings_Eevee_ssr_halfres_set");
 	RNA_def_property_ui_text(prop, "Half Res Trace", "Raytrace at a lower resolution");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "ssr_normalize_weight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_ssr_normalize_weight_get",
+	                               "rna_LayerEngineSettings_Eevee_ssr_normalize_weight_set");
+	RNA_def_property_ui_text(prop, "Weight Normalize", "Fills low resolution in reflection but exhibit harsh transition");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
