@@ -319,6 +319,7 @@ typedef struct EEVEE_EffectsInfo {
 	/* SSR */
 	bool use_ssr;
 	bool reflection_trace_full;
+	bool ssr_use_two_hit;
 	bool ssr_use_normalization;
 	float ssr_border_fac;
 	float ssr_stride;
@@ -466,7 +467,6 @@ typedef struct EEVEE_PrivateData {
 	/* For double buffering */
 	bool valid_double_buffer;
 	float prev_persmat[4][4];
-	float next_persmat[4][4];
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */

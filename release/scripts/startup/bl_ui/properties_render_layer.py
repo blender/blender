@@ -269,6 +269,7 @@ class RENDERLAYER_PT_eevee_shading(RenderLayerButtonsPanel, Panel):
         col = layout.column()
         col.template_override_property(layer_props, scene_props, "ssr_enable")
         col.template_override_property(layer_props, scene_props, "ssr_halfres")
+        col.template_override_property(layer_props, scene_props, "ssr_two_rays")
         col.template_override_property(layer_props, scene_props, "ssr_normalize_weight")
         col.template_override_property(layer_props, scene_props, "ssr_stride")
         col.template_override_property(layer_props, scene_props, "ssr_thickness")

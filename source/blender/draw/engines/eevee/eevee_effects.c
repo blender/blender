@@ -58,6 +58,15 @@ typedef struct EEVEE_LightProbeData {
 	short probe_id, shadow_id;
 } EEVEE_LightProbeData;
 
+/* SSR shader variations */
+enum {
+	SSR_RESOLVE      = (1 << 0),
+	SSR_TWO_HIT      = (1 << 1),
+	SSR_FULL_TRACE   = (1 << 2),
+	SSR_NORMALIZE    = (1 << 3),
+	SSR_MAX_SHADER   = (1 << 4),
+};
+
 static struct {
 	/* Downsample Depth */
 	struct GPUShader *minz_downlevel_sh;
@@ -85,12 +94,7 @@ static struct {
 	struct GPUShader *volumetric_upsample_sh;
 
 	/* Screen Space Reflection */
-	struct GPUShader *ssr_raytrace_sh;
-	struct GPUShader *ssr_raytrace_full_sh;
-	struct GPUShader *ssr_resolve_sh;
-	struct GPUShader *ssr_resolve_full_sh;
-	struct GPUShader *ssr_resolve_norm_sh;
-	struct GPUShader *ssr_resolve_full_norm_sh;
+	struct GPUShader *ssr_sh[SSR_MAX_SHADER];
 
 	/* Simple Downsample */
 	struct GPUShader *downsample_sh;
@@ -171,6 +175,48 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
 	mul_m4_m4m4(r_mat, params.winmat, obmat);
 }
 
+static struct GPUShader *eevee_effects_ssr_shader_get(int options)
+{
+	if (e_data.ssr_sh[options] == NULL) {
+		DynStr *ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_raytrace_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_effect_ssr_frag_glsl);
+		char *ssr_shader_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+
+		DynStr *ds_defines = BLI_dynstr_new();
+		BLI_dynstr_appendf(ds_defines, SHADER_DEFINES);
+		if (options & SSR_RESOLVE) {
+			BLI_dynstr_appendf(ds_defines, "#define STEP_RESOLVE\n");
+		}
+		else {
+			BLI_dynstr_appendf(ds_defines, "#define STEP_RAYTRACE\n");
+		}
+		if (options & SSR_TWO_HIT) {
+			BLI_dynstr_appendf(ds_defines, "#define TWO_HIT\n");
+		}
+		if (options & SSR_FULL_TRACE) {
+			BLI_dynstr_appendf(ds_defines, "#define FULLRES\n");
+		}
+		if (options & SSR_NORMALIZE) {
+			BLI_dynstr_appendf(ds_defines, "#define USE_NORMALIZATION\n");
+		}
+		char *ssr_define_str = BLI_dynstr_get_cstring(ds_defines);
+		BLI_dynstr_free(ds_defines);
+
+		e_data.ssr_sh[options] = DRW_shader_create_fullscreen(ssr_shader_str, ssr_define_str);
+
+		MEM_freeN(ssr_shader_str);
+		MEM_freeN(ssr_define_str);
+	}
+
+	return e_data.ssr_sh[options];
+}
+
 void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
@@ -190,30 +236,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	/* Shaders */
 	if (!e_data.motion_blur_sh) {
-		DynStr *ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_raytrace_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_effect_ssr_frag_glsl);
-		char *ssr_shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.ssr_raytrace_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RAYTRACE\n");
-		e_data.ssr_raytrace_full_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RAYTRACE\n"
-		                                                                                          "#define FULLRES\n");
-		e_data.ssr_resolve_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n");
-		e_data.ssr_resolve_norm_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n"
-			                                                                                     "#define USE_NORMALIZATION\n");
-		e_data.ssr_resolve_full_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n"
-		                                                                                         "#define FULLRES\n");
-		e_data.ssr_resolve_full_norm_sh = DRW_shader_create_fullscreen(ssr_shader_str, SHADER_DEFINES "#define STEP_RESOLVE\n"
-		                                                                                              "#define USE_NORMALIZATION\n"
-		                                                                                              "#define FULLRES\n");
-
-		MEM_freeN(ssr_shader_str);
-
 		e_data.downsample_sh = DRW_shader_create_fullscreen(datatoc_effect_downsample_frag_glsl, NULL);
 
 		e_data.volumetric_upsample_sh = DRW_shader_create_fullscreen(datatoc_volumetric_frag_glsl, "#define STEP_UPSAMPLE\n");
@@ -555,6 +577,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		/* Enable double buffering to be able to read previous frame color */
 		effects->enabled_effects |= EFFECT_DOUBLE_BUFFER;
 
+		effects->ssr_use_two_hit = BKE_collection_engine_property_value_get_bool(props, "ssr_two_rays");
 		effects->reflection_trace_full = !BKE_collection_engine_property_value_get_bool(props, "ssr_halfres");
 		effects->ssr_use_normalization = BKE_collection_engine_property_value_get_bool(props, "ssr_normalize_weight");
 		effects->ssr_stride = (float)BKE_collection_engine_property_value_get_int(props, "ssr_stride");
@@ -563,7 +586,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		const int divisor = (effects->reflection_trace_full) ? 1 : 2;
 		int tracing_res[2] = {(int)viewport_size[0] / divisor, (int)viewport_size[1] / divisor};
-		const bool record_two_hit = false;
 		const bool high_qual_input = true; /* TODO dither low quality input */
 
 		/* MRT for the shading pass in order to output needed data for the SSR pass. */
@@ -587,8 +609,8 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		/* Raytracing output */
 		/* TODO try integer format for hit coord to increase precision */
-		DRWFboTexture tex_output[2] = {{&stl->g_data->ssr_hit_output, (record_two_hit) ? DRW_TEX_RGBA_16 : DRW_TEX_RG_16, DRW_TEX_TEMP},
-		                               {&stl->g_data->ssr_pdf_output, (record_two_hit) ? DRW_TEX_RG_16 : DRW_TEX_R_16, DRW_TEX_TEMP}};
+		DRWFboTexture tex_output[2] = {{&stl->g_data->ssr_hit_output, (effects->ssr_use_two_hit) ? DRW_TEX_RGBA_16 : DRW_TEX_RG_16, DRW_TEX_TEMP},
+		                               {&stl->g_data->ssr_pdf_output, (effects->ssr_use_two_hit) ? DRW_TEX_RG_16 : DRW_TEX_R_16, DRW_TEX_TEMP}};
 
 		DRW_framebuffer_init(&fbl->screen_tracing_fb, &draw_engine_eevee_type, tracing_res[0], tracing_res[1], tex_output, 2);
 
@@ -626,9 +648,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_framebuffer_init(&fbl->double_buffer, &draw_engine_eevee_type,
 		                    (int)viewport_size[0], (int)viewport_size[1],
 		                    &tex_double_buffer, 1);
-
-		copy_m4_m4(stl->g_data->prev_persmat, stl->g_data->next_persmat);
-		DRW_viewport_matrix_get(stl->g_data->next_persmat, DRW_MAT_PERS);
 	}
 	else {
 		/* Cleanup to release memory */
@@ -724,14 +743,13 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
-		struct GPUShader *trace_shader = (effects->reflection_trace_full) ? e_data.ssr_raytrace_full_sh : e_data.ssr_raytrace_sh;
-		struct GPUShader *resolve_shader = NULL;
-		if (effects->ssr_use_normalization) {
-			resolve_shader = (effects->reflection_trace_full) ? e_data.ssr_resolve_full_norm_sh : e_data.ssr_resolve_norm_sh;
-		}
-		else {
-			resolve_shader = (effects->reflection_trace_full) ? e_data.ssr_resolve_full_sh : e_data.ssr_resolve_sh;
-		}
+		int options = 0;
+		options |= (effects->ssr_use_two_hit) ? SSR_TWO_HIT : 0;
+		options |= (effects->reflection_trace_full) ? SSR_FULL_TRACE : 0;
+		options |= (effects->ssr_use_normalization) ? SSR_NORMALIZE : 0;
+
+		struct GPUShader *trace_shader = eevee_effects_ssr_shader_get(options);
+		struct GPUShader *resolve_shader = eevee_effects_ssr_shader_get(SSR_RESOLVE | options);
 
 		psl->ssr_raytrace = DRW_pass_create("SSR Raytrace", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(trace_shader, psl->ssr_raytrace);
@@ -1230,22 +1248,21 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 		DRW_viewport_request_redraw();
 	}
 
+	/* Record pers matrix for the next frame. */
+	DRW_viewport_matrix_get(stl->g_data->prev_persmat, DRW_MAT_PERS);
+
 	/* Update double buffer status if render mode. */
 	if (DRW_state_is_image_render()) {
 		stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
-		DRW_viewport_matrix_get(stl->g_data->prev_persmat, DRW_MAT_PERS);
 	}
 }
 
 void EEVEE_effects_free(void)
 {
+	for (int i = 0; i < SSR_MAX_SHADER; ++i) {
+		DRW_SHADER_FREE_SAFE(e_data.ssr_sh[i]);
+	}
 	DRW_SHADER_FREE_SAFE(e_data.downsample_sh);
-	DRW_SHADER_FREE_SAFE(e_data.ssr_raytrace_sh);
-	DRW_SHADER_FREE_SAFE(e_data.ssr_raytrace_full_sh);
-	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_sh);
-	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_full_sh);
-	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_norm_sh);
-	DRW_SHADER_FREE_SAFE(e_data.ssr_resolve_full_norm_sh);
 
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_upsample_sh);
 

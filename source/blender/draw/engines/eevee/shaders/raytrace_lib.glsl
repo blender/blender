@@ -113,7 +113,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 		float zmin = prev_zmax;
 		zmax = (dPQK.z * 0.5 + pqk.z) / (dPQK.w * 0.5 + pqk.w);
 		prev_zmax = zmax;
-		swapIfBigger(zmin, zmax); /* ??? why don't we need this ??? */
+		swapIfBigger(zmin, zmax);
 
 		float vmax = get_view_z_from_depth(raw_depth);
 		float vmin = vmax - ssrThickness;

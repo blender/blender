@@ -218,6 +218,7 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
 
 	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
+	BKE_collection_engine_property_add_bool(props, "ssr_two_rays", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_normalize_weight", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_halfres", true);
 	BKE_collection_engine_property_add_int(props, "ssr_stride", 16);

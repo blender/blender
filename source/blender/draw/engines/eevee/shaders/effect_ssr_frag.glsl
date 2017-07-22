@@ -72,6 +72,10 @@ void main()
 	float pdf;
 	vec3 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0).rba;
 	vec3 R = generate_ray(V, N, a2, rand, pdf);
+#ifdef TWO_HIT
+	float pdf2;
+	vec3 R2 = generate_ray(V, N, a2, rand * vec3(1.0, -1.0, -1.0), pdf2);
+#endif
 
 	/* Search for the planar reflection affecting this pixel */
 	/* If no planar is found, fallback to screen space */
@@ -89,19 +93,35 @@ void main()
 
 	/* Raycast over screen */
 	float hit_dist = -1.0;
+#ifdef TWO_HIT
+	float hit_dist2 = -1.0;
+#endif
 	/* Only raytrace if ray is above the surface normal */
 	/* Note : this still fails in some cases like with normal map.
 	 * We should check against the geometric normal but we don't have it at this stage. */
 	if (dot(R, N) > 0.0001) {
 		hit_dist = raycast(depthBuffer, viewPosition, R, rand.x);
 	}
+#ifdef TWO_HIT
+	/* TODO do double raytrace at the same time */
+	if (dot(R2, N) > 0.0001) {
+		hit_dist2 = raycast(depthBuffer, viewPosition, R2, rand.x);
+	}
+#endif
 
 	/* TODO Do reprojection here */
 	vec2 hit_co = project_point(ProjectionMatrix, viewPosition + R * hit_dist).xy * 0.5 + 0.5;
+#ifdef TWO_HIT
+	vec2 hit_co2 = project_point(ProjectionMatrix, viewPosition + R2 * hit_dist2).xy * 0.5 + 0.5;
+#endif
 
 	/* Check if has hit a backface */
 	vec3 hit_N = normal_decode(textureLod(normalBuffer, hit_co, 0.0).rg, V);
 	hit_dist *= step(0.0, dot(-R, hit_N));
+#ifdef TWO_HIT
+	hit_N = normal_decode(textureLod(normalBuffer, hit_co2, 0.0).rg, V);
+	hit_dist2 *= step(0.0, dot(-R2, hit_N));
+#endif
 
 	if (hit_dist > 0.0) {
 		hitData = hit_co.xyxy;
@@ -109,8 +129,20 @@ void main()
 	else {
 		hitData = vec4(-1.0);
 	}
+#ifdef TWO_HIT
+	if (hit_dist2 > 0.0) {
+		hitData.zw = hit_co2;
+	}
+	else {
+		hitData.zw = vec2(-1.0);
+	}
+#endif
 
+#ifdef TWO_HIT
+	pdfData = vec4(pdf, pdf2, 0.0, 0.0);
+#else
 	pdfData = vec4(pdf);
+#endif
 }
 
 #else /* STEP_RESOLVE */
@@ -222,6 +254,45 @@ float view_facing_mask(vec3 V, vec3 R)
 	return smoothstep(0.95, 0.80, dot(V, R));
 }
 
+vec4 get_ssr_sample(
+        vec2 hit_co, vec3 worldPosition, vec3 N, vec3 V, float roughnessSquared,
+        float cone_tan, vec2 source_uvs, vec2 texture_size, ivec2 target_texel,
+        out float weight)
+{
+	/* Reconstruct ray */
+	float hit_depth = textureLod(depthBuffer, hit_co, 0.0).r;
+	vec3 hit_pos = get_world_space_from_depth(hit_co, hit_depth);
+
+	/* Find hit position in previous frame */
+	vec2 ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
+
+	/* Estimate a cone footprint to sample a corresponding mipmap level */
+	/* compute cone footprint Using UV distance because we are using screen space filtering */
+	float cone_footprint = 1.5 * cone_tan * distance(ref_uvs, source_uvs);
+	float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
+
+	vec3 L = normalize(hit_pos - worldPosition);
+#ifdef USE_NORMALIZATION
+	/* Evaluate BSDF */
+	float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
+	float pdf = texelFetch(pdfBuffer, target_texel, 0).r;
+
+	weight = step(0.001, pdf) * bsdf / pdf;
+#else
+	weight = 1.0;
+#endif
+
+	vec3 sample = textureLod(colorBuffer, ref_uvs, mip).rgb ;
+
+	/* Firefly removal */
+	sample /= 1.0 + brightness(sample);
+
+	float mask = screen_border_mask(ref_uvs, hit_pos);
+	mask *= view_facing_mask(V, N);
+
+	/* Check if there was a hit */
+	return vec4(sample, mask) * weight * step(0.0, hit_co.x);
+}
 
 #define NUM_NEIGHBORS 9
 
@@ -280,42 +351,24 @@ void main()
 	for (int i = 0; i < NUM_NEIGHBORS; i++) {
 		ivec2 target_texel = halfres_texel + neighbors[i] * invert_neighbor;
 
-		vec2 hit_co = texelFetch(hitBuffer, target_texel, 0).rg;
-
-		/* Reconstruct ray */
-		float hit_depth = textureLod(depthBuffer, hit_co, 0.0).r;
-		vec3 hit_pos = get_world_space_from_depth(hit_co, hit_depth);
-
-		/* Find hit position in previous frame */
-		vec2 ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
-
-		/* Estimate a cone footprint to sample a corresponding mipmap level */
-		/* compute cone footprint Using UV distance because we are using screen space filtering */
-		float cone_footprint = 1.5 * cone_tan * distance(ref_uvs, source_uvs);
-		float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
-
-		vec3 L = normalize(hit_pos - worldPosition);
-#ifdef USE_NORMALIZATION
-		/* Evaluate BSDF */
-		float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
-		float pdf = texelFetch(pdfBuffer, target_texel, 0).r;
-
-		float weight = step(0.001, pdf) * bsdf / pdf;
+#ifdef TWO_HIT
+		vec4 hit_co = texelFetch(hitBuffer, target_texel, 0).rgba;
 #else
-		float weight = 1.0;
+		vec2 hit_co = texelFetch(hitBuffer, target_texel, 0).rg;
 #endif
 
-		vec3 sample = textureLod(colorBuffer, ref_uvs, mip).rgb ;
-
-		/* Firefly removal */
-		sample /= 1.0 + brightness(sample);
-
-		float mask = screen_border_mask(ref_uvs, hit_pos);
-		mask *= view_facing_mask(V, N);
-
-		/* Check if there was a hit */
-		ssr_accum += vec4(sample, mask) * weight * step(0.0, hit_co.x);
+		float weight;
+		ssr_accum += get_ssr_sample(hit_co.xy, worldPosition, N, V,
+		                            roughnessSquared, cone_tan, source_uvs,
+		                            texture_size, target_texel, weight);
 		weight_acc += weight;
+
+#ifdef TWO_HIT
+		ssr_accum += get_ssr_sample(hit_co.zw, worldPosition, N, V,
+		                            roughnessSquared, cone_tan, source_uvs,
+		                            texture_size, target_texel, weight);
+		weight_acc += weight;
+#endif
 	}
 
 	/* Compute SSR contribution */
