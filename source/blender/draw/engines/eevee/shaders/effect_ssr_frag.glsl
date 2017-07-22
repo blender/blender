@@ -268,9 +268,6 @@ void main()
 
 	vec4 ssr_accum = vec4(0.0);
 	float weight_acc = 0.0;
-	float mask_acc = 0.0;
-	float dist_acc = 0.0;
-	float hit_acc = 0.0;
 	const ivec2 neighbors[9] = ivec2[9](
 		ivec2(0, 0),
 		ivec2(-1,  1), ivec2(0,  1), ivec2(1,  1),
@@ -311,7 +308,7 @@ void main()
 		vec3 sample = textureLod(colorBuffer, ref_uvs, mip).rgb ;
 
 		/* Firefly removal */
-		sample /= 1 + brightness(sample);
+		sample /= 1.0 + brightness(sample);
 
 		float mask = screen_border_mask(ref_uvs, hit_pos);
 		mask *= view_facing_mask(V, N);

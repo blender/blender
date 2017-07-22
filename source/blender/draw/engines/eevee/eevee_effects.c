@@ -1013,17 +1013,15 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+		e_data.depth_src = dtxl->depth;
 
 		DRW_framebuffer_texture_attach(fbl->screen_tracing_fb, stl->g_data->ssr_hit_output, 0, 0);
 		DRW_framebuffer_texture_attach(fbl->screen_tracing_fb, stl->g_data->ssr_pdf_output, 1, 0);
 		DRW_framebuffer_bind(fbl->screen_tracing_fb);
 
 		if (stl->g_data->valid_double_buffer) {
-			/* Raytrace at halfres. */
-			e_data.depth_src = dtxl->depth;
+			/* Raytrace. */
 			DRW_draw_pass(psl->ssr_raytrace);
-
-			EEVEE_downsample_buffer(vedata, fbl->downsample_fb, txl->color_double_buffer, 9);
 		}
 		else {
 			float clear_col[4] = {-1.0f, -1.0f, -1.0f, -1.0f};
@@ -1033,8 +1031,9 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 		DRW_framebuffer_texture_detach(stl->g_data->ssr_hit_output);
 		DRW_framebuffer_texture_detach(stl->g_data->ssr_pdf_output);
 
+		EEVEE_downsample_buffer(vedata, fbl->downsample_fb, txl->color_double_buffer, 9);
+
 		/* Resolve at fullres */
-		e_data.depth_src = dtxl->depth;
 		DRW_framebuffer_texture_detach(dtxl->depth);
 		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
 		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
@@ -1191,17 +1190,8 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	/* Tonemapping */
 	DRW_transform_to_display(effects->source_buffer);
 
-	/* If no post processes is enabled, buffers are still not swapped, do it now. */
-	SWAP_DOUBLE_BUFFERS();
-
-	if (!stl->g_data->valid_double_buffer && ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0)) {
-		/* If history buffer is not valid request another frame.
-		 * This fix black reflections on area resize. */
-		DRW_viewport_request_redraw();
-	}
-
 	/* Debug : Ouput buffer to view. */
-	if ((G.debug_value > 0) && (G.debug_value <= 5)) {
+	if ((G.debug_value > 0) && (G.debug_value <= 6)) {
 		switch (G.debug_value) {
 			case 1:
 				if (stl->g_data->minzbuffer) DRW_transform_to_display(stl->g_data->minzbuffer);
@@ -1218,10 +1208,23 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 			case 5:
 				if (txl->ssr_specrough_input) DRW_transform_to_display(txl->ssr_specrough_input);
 				break;
+			case 6:
+				if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer);
+				break;
 			default:
 				break;
 		}
 	}
+
+	/* If no post processes is enabled, buffers are still not swapped, do it now. */
+	SWAP_DOUBLE_BUFFERS();
+
+	if (!stl->g_data->valid_double_buffer && ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0)) {
+		/* If history buffer is not valid request another frame.
+		 * This fix black reflections on area resize. */
+		DRW_viewport_request_redraw();
+	}
+
 }
 
 void EEVEE_effects_free(void)
