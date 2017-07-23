@@ -1071,12 +1071,8 @@ static void render_scene_to_planar(
 	/* XXX */
 	GPUTexture *tmp_planar_pool = txl->planar_pool;
 	GPUTexture *tmp_planar_depth = txl->planar_depth;
-	GPUTexture *tmp_minz = stl->g_data->minzbuffer;
-	GPUTexture *tmp_maxz = txl->maxzbuffer;
 	txl->planar_pool = e_data.planar_pool_placeholder;
-	stl->g_data->minzbuffer = e_data.depth_placeholder;
 	txl->planar_depth = e_data.depth_array_placeholder;
-	txl->maxzbuffer = e_data.depth_placeholder;
 
 	DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
 	DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
@@ -1095,7 +1091,7 @@ static void render_scene_to_planar(
 	DRW_draw_pass(psl->depth_pass_clip);
 	DRW_draw_pass(psl->depth_pass_clip_cull);
 
-	EEVEE_create_minmax_buffer(vedata, txl->planar_depth);
+	EEVEE_create_minmax_buffer(vedata, tmp_planar_depth, layer);
 
 	/* Rebind Planar FB */
 	DRW_framebuffer_bind(fbl->planarref_fb);
@@ -1110,8 +1106,6 @@ static void render_scene_to_planar(
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
 	txl->planar_depth = tmp_planar_depth;
-	stl->g_data->minzbuffer = tmp_minz;
-	txl->maxzbuffer = tmp_maxz;
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);

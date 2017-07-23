@@ -4,11 +4,20 @@
  * Adapted from http://rastergrid.com/blog/2010/10/hierarchical-z-map-based-occlusion-culling/
  **/
 
+#ifdef LAYERED
+uniform sampler2DArray depthBuffer;
+uniform int depthLayer;
+#else
 uniform sampler2D depthBuffer;
+#endif
 
 float sampleLowerMip(ivec2 texel)
 {
+#ifdef LAYERED
+	return texelFetch(depthBuffer, ivec3(texel, depthLayer), 0).r;
+#else
 	return texelFetch(depthBuffer, texel, 0).r;
+#endif
 }
 
 void minmax(inout float out_val, float in_val)
@@ -23,7 +32,7 @@ void minmax(inout float out_val, float in_val)
 void main()
 {
 	ivec2 texelPos = ivec2(gl_FragCoord.xy);
-	ivec2 mipsize = textureSize(depthBuffer, 0);
+	ivec2 mipsize = textureSize(depthBuffer, 0).xy;
 
 #ifndef COPY_DEPTH
 	texelPos *= 2;

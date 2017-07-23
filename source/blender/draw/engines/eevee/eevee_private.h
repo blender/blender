@@ -115,6 +115,8 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *maxz_downlevel_ps;
 	struct DRWPass *minz_downdepth_ps;
 	struct DRWPass *maxz_downdepth_ps;
+	struct DRWPass *minz_downdepth_layer_ps;
+	struct DRWPass *maxz_downdepth_layer_ps;
 	struct DRWPass *minz_copydepth_ps;
 	struct DRWPass *maxz_copydepth_ps;
 
@@ -517,7 +519,7 @@ void EEVEE_lightprobes_free(void);
 /* eevee_effects.c */
 void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src);
+void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src, int layer);
 void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, struct GPUTexture *texture_src, int level);
 void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
