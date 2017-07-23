@@ -632,7 +632,6 @@ static void rna_manipulatorgroup_setup_cb(const bContext *C, wmManipulatorGroup 
 static wmKeyMap *rna_manipulatorgroup_setup_keymap_cb(const wmManipulatorGroupType *wgt, wmKeyConfig *config)
 {
 	extern FunctionRNA rna_ManipulatorGroup_setup_keymap_func;
-	const char *wgroupname = wgt->name;
 	void *ret;
 
 	PointerRNA ptr;
@@ -644,7 +643,6 @@ static wmKeyMap *rna_manipulatorgroup_setup_keymap_cb(const wmManipulatorGroupTy
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "keyconfig", &config);
-	RNA_parameter_set_lookup(&list, "manipulator_group", &wgroupname);
 	wgt->ext.call(NULL, &ptr, func, &list);
 
 	RNA_parameter_get_lookup(&list, "keymap", &ret);
@@ -1193,18 +1191,14 @@ static void rna_def_manipulatorgroup(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
-	/* keymap_init */
+	/* setup_keymap */
 	func = RNA_def_function(srna, "setup_keymap", NULL);
 	RNA_def_function_ui_description(
 	        func,
 	        "Initialize keymaps for this manipulator group, use fallback keymap when not present");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-	parm = RNA_def_pointer(func, "keyconf", "KeyConfig", "", "");
+	parm = RNA_def_pointer(func, "keyconfig", "KeyConfig", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_property(func, "manipulator_group", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(parm, "Manipulator Group", "Manipulator Group ID");
-	// RNA_def_property_string_default(parm, "");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	/* return */
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "", "");
 	RNA_def_property_flag(parm, PROP_NEVER_NULL);
