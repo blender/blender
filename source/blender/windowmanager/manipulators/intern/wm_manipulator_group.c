@@ -202,6 +202,20 @@ bool wm_manipulatorgroup_is_visible_in_drawstep(const wmManipulatorGroup *mgroup
 	}
 }
 
+bool wm_manipulatorgroup_is_any_selected(const wmManipulatorGroup *mgroup)
+{
+	if (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SELECT) {
+		for (const wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
+			if (mpr->state & WM_MANIPULATOR_STATE_SELECT) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/** \} */
+
 /** \name Manipulator operators
  *
  * Basic operators for manipulator interaction with user configurable keymaps.

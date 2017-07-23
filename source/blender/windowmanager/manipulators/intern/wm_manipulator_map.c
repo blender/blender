@@ -135,11 +135,19 @@ const ListBase *WM_manipulatormap_group_list(wmManipulatorMap *mmap)
 	return &mmap->groups;
 }
 
+bool WM_manipulatormap_is_any_selected(const wmManipulatorMap *mmap)
+{
+	return mmap->mmap_context.selected_len != 0;
+}
+
 /**
  * Creates and returns idname hash table for (visible) manipulators in \a mmap
  *
  * \param poll  Polling function for excluding manipulators.
  * \param data  Custom data passed to \a poll
+ *
+ * TODO(campbell): this uses unreliable order,
+ * best we use an iterator function instead of a hash.
  */
 static GHash *WM_manipulatormap_manipulator_hash_new(
         const bContext *C, wmManipulatorMap *mmap,
@@ -752,6 +760,17 @@ void wm_manipulatormap_active_set(
 wmManipulator *wm_manipulatormap_active_get(wmManipulatorMap *mmap)
 {
 	return mmap->mmap_context.active;
+}
+
+wmManipulator **wm_manipulatormap_selected_get(wmManipulatorMap *mmap, int *r_selected_len)
+{
+	*r_selected_len = mmap->mmap_context.selected_len;
+	return mmap->mmap_context.selected;
+}
+
+ListBase *wm_manipulatormap_groups_get(wmManipulatorMap *mmap)
+{
+	return &mmap->groups;
 }
 
 /** \} */ /* wmManipulatorMap */

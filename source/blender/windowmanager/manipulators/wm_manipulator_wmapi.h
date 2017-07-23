@@ -61,6 +61,8 @@ void wm_manipulatorgrouptype_init(void);
 void MANIPULATORGROUP_OT_manipulator_select(struct wmOperatorType *ot);
 void MANIPULATORGROUP_OT_manipulator_tweak(struct wmOperatorType *ot);
 
+bool wm_manipulatorgroup_is_any_selected(const struct wmManipulatorGroup *mgroup);
+
 /* -------------------------------------------------------------------- */
 /* wmManipulatorMap */
 
@@ -83,6 +85,8 @@ void wm_manipulatormap_active_set(
         struct wmManipulatorMap *mmap, bContext *C,
         const struct wmEvent *event, struct wmManipulator *mpr);
 struct wmManipulator *wm_manipulatormap_active_get(struct wmManipulatorMap *mmap);
+struct wmManipulator **wm_manipulatormap_selected_get(wmManipulatorMap *mmap, int *r_selected_len);
+struct ListBase *wm_manipulatormap_groups_get(wmManipulatorMap *mmap);
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorMapType */

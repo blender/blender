@@ -2172,44 +2172,88 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					wm_manipulatormap_highlight_set(mmap, C, mpr, part);
 				}
 				/* handle user configurable manipulator-map keymap */
-				else if (mpr) {
-					/* get user customized keymap from default one */
-					const wmManipulatorGroup *highlightgroup = mpr->parent_mgroup;
-					const wmKeyMap *keymap = WM_keymap_active(wm, highlightgroup->type->keymap);
-					wmKeyMapItem *kmi;
+				else {
+					/* Either we operate on a single highlighted item
+					 * or groups attached to the selected manipulators.
+					 * To simplify things both cases loop over an array of items. */
+					wmManipulatorGroup *mgroup_first;
+					bool is_mgroup_single;
 
-					PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
+					if (ISMOUSE(event->type)) {
+						/* Keep mpr set as-is, just fake single selection. */
+						if (mpr) {
+							mgroup_first = mpr->parent_mgroup;
+						}
+						else {
+							mgroup_first = NULL;
+						}
+						is_mgroup_single = true;
+					}
+					else {
+						if (WM_manipulatormap_is_any_selected(mmap)) {
+							const ListBase *groups = WM_manipulatormap_group_list(mmap);
+							mgroup_first = groups->first;
+						}
+						else {
+							mgroup_first = NULL;
+						}
+						is_mgroup_single = false;
+					}
 
-					if (!keymap->poll || keymap->poll(C)) {
-						PRINT("pass\n");
-						for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
-							if (wm_eventmatch(event, kmi)) {
-								wmOperator *op = handler->op;
+					/* Don't use from now on. */
+					mpr = NULL;
 
-								PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
+					for (wmManipulatorGroup *mgroup = mgroup_first; mgroup; mgroup = mgroup->next) {
+						/* get user customized keymap from default one */
 
-								/* weak, but allows interactive callback to not use rawkey */
-								event->keymap_idname = kmi->idname;
+						if ((is_mgroup_single == false) &&
+						    /* We might want to change the logic here and use some kind of manipulator edit-mode.
+						     * For now just use keymap when a selection exists. */
+						    wm_manipulatorgroup_is_any_selected(mgroup) == false)
+						{
+							continue;
+						}
 
-								/* handler->op is called later, we want keymap op to be triggered here */
-								handler->op = NULL;
-								action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
-								handler->op = op;
+						const wmKeyMap *keymap = WM_keymap_active(wm, mgroup->type->keymap);
+						wmKeyMapItem *kmi;
 
-								if (action & WM_HANDLER_BREAK) {
-									if (action & WM_HANDLER_HANDLED) {
-										if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
-											printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
-									}
-									else {
-										PRINT("%s:       un-handled '%s'\n", __func__, kmi->idname);
+						PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
+
+						if (!keymap->poll || keymap->poll(C)) {
+							PRINT("pass\n");
+							for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+								if (wm_eventmatch(event, kmi)) {
+									wmOperator *op = handler->op;
+
+									PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
+
+									/* weak, but allows interactive callback to not use rawkey */
+									event->keymap_idname = kmi->idname;
+
+									/* handler->op is called later, we want keymap op to be triggered here */
+									handler->op = NULL;
+									action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
+									handler->op = op;
+
+									if (action & WM_HANDLER_BREAK) {
+										if (action & WM_HANDLER_HANDLED) {
+											if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
+												printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
+										}
+										else {
+											PRINT("%s:       un-handled '%s'\n", __func__, kmi->idname);
+										}
 									}
 								}
 							}
 						}
-					}
-					else {
-						PRINT("fail\n");
+						else {
+							PRINT("fail\n");
+						}
+
+						if (is_mgroup_single) {
+							break;
+						}
 					}
 				}
 
