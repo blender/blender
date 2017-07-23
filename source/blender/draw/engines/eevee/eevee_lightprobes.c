@@ -61,10 +61,10 @@ static struct {
 	struct GPUShader *probe_cube_display_sh;
 
 	struct GPUTexture *hammersley;
-	struct GPUTexture *planar_depth;
 	struct GPUTexture *planar_minmaxz;
 	struct GPUTexture *planar_pool_placeholder;
 	struct GPUTexture *depth_placeholder;
+	struct GPUTexture *depth_array_placeholder;
 	struct GPUTexture *cube_face_depth;
 	struct GPUTexture *cube_face_minmaxz;
 
@@ -148,11 +148,14 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 	if (!txl->planar_pool) {
 		if (num_planar_ref > 0) {
 			txl->planar_pool = DRW_texture_create_2D_array(width, height, max_ff(1, num_planar_ref),
-			                                                 DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+			                                                 DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+			txl->planar_depth = DRW_texture_create_2D_array(width, height, max_ff(1, num_planar_ref),
+			                                                DRW_TEX_DEPTH_24, 0, NULL);
 		}
 		else if (num_planar_ref == 0) {
 			/* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still bound to shader. */
 			txl->planar_pool = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGBA_8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+			txl->planar_depth = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_DEPTH_24, 0, NULL);
 		}
 	}
 
@@ -165,11 +168,6 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 		DRWFboTexture tex_minmaxz = {&e_data.planar_minmaxz, DRW_TEX_RG_32, DRW_TEX_MIPMAP | DRW_TEX_TEMP};
 		DRW_framebuffer_init(&fbl->planarref_fb, &draw_engine_eevee_type,
 		                     width / 2, height / 2, &tex_minmaxz, 1);
-
-		/* Note: this is not the configuration used when rendering. */
-		DRWFboTexture tex = {&e_data.planar_depth, DRW_TEX_DEPTH_24, DRW_TEX_TEMP};
-		DRW_framebuffer_init(&fbl->planarref_fb, &draw_engine_eevee_type,
-		                     width, height, &tex, 1);
 	}
 }
 
@@ -314,6 +312,9 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 
 	if (!e_data.depth_placeholder) {
 		e_data.depth_placeholder = DRW_texture_create_2D(1, 1, DRW_TEX_DEPTH_24, 0, NULL);
+	}
+	if (!e_data.depth_array_placeholder) {
+		e_data.depth_array_placeholder = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_DEPTH_24, 0, NULL);
 	}
 }
 
@@ -728,6 +729,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_Data *ve
 
 	if (pinfo->num_planar != pinfo->cache_num_planar) {
 		DRW_TEXTURE_FREE_SAFE(vedata->txl->planar_pool);
+		DRW_TEXTURE_FREE_SAFE(vedata->txl->planar_depth);
 		pinfo->cache_num_planar = pinfo->num_planar;
 	}
 
@@ -1059,7 +1061,7 @@ static void render_scene_to_planar(
 	invert_m4_m4(persinv, persmat);
 
 	/* Attach depth here since it's a DRW_TEX_TEMP */
-	DRW_framebuffer_texture_attach(fbl->planarref_fb, e_data.planar_depth, 0, 0);
+	DRW_framebuffer_texture_layer_attach(fbl->planarref_fb, txl->planar_depth, 0, layer, 0);
 	DRW_framebuffer_texture_layer_attach(fbl->planarref_fb, txl->planar_pool, 0, layer, 0);
 	DRW_framebuffer_bind(fbl->planarref_fb);
 
@@ -1068,12 +1070,13 @@ static void render_scene_to_planar(
 	/* Avoid using the texture attached to framebuffer when rendering. */
 	/* XXX */
 	GPUTexture *tmp_planar_pool = txl->planar_pool;
+	GPUTexture *tmp_planar_depth = txl->planar_depth;
 	GPUTexture *tmp_minz = stl->g_data->minzbuffer;
 	GPUTexture *tmp_maxz = txl->maxzbuffer;
 	txl->planar_pool = e_data.planar_pool_placeholder;
 	stl->g_data->minzbuffer = e_data.depth_placeholder;
+	txl->planar_depth = e_data.depth_array_placeholder;
 	txl->maxzbuffer = e_data.depth_placeholder;
-	stl->g_data->background_alpha = FLT_MAX; /* Alpha is distance for planar reflections. */
 
 	DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
 	DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
@@ -1092,7 +1095,7 @@ static void render_scene_to_planar(
 	DRW_draw_pass(psl->depth_pass_clip);
 	DRW_draw_pass(psl->depth_pass_clip_cull);
 
-	EEVEE_create_minmax_buffer(vedata, e_data.planar_depth);
+	EEVEE_create_minmax_buffer(vedata, txl->planar_depth);
 
 	/* Rebind Planar FB */
 	DRW_framebuffer_bind(fbl->planarref_fb);
@@ -1106,16 +1109,16 @@ static void render_scene_to_planar(
 
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
+	txl->planar_depth = tmp_planar_depth;
 	stl->g_data->minzbuffer = tmp_minz;
 	txl->maxzbuffer = tmp_maxz;
-	stl->g_data->background_alpha = 1.0;
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEWINV);
 
 	DRW_framebuffer_texture_detach(txl->planar_pool);
-	DRW_framebuffer_texture_detach(e_data.planar_depth);
+	DRW_framebuffer_texture_detach(txl->planar_depth);
 }
 
 static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
@@ -1358,4 +1361,5 @@ void EEVEE_lightprobes_free(void)
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
 	DRW_TEXTURE_FREE_SAFE(e_data.planar_pool_placeholder);
 	DRW_TEXTURE_FREE_SAFE(e_data.depth_placeholder);
+	DRW_TEXTURE_FREE_SAFE(e_data.depth_array_placeholder);
 }

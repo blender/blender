@@ -163,6 +163,7 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *ssr_specrough_input;
 
 	struct GPUTexture *planar_pool;
+	struct GPUTexture *planar_depth;
 
 	struct GPUTexture *maxzbuffer;
 

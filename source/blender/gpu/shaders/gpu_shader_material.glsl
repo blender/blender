@@ -4066,12 +4066,7 @@ void node_eevee_specular(
 
 void node_output_eevee_material(Closure surface, out Closure result)
 {
-#if defined(USE_ALPHA_HASH) || defined(USE_ALPHA_CLIP) || defined(USE_ALPHA_BLEND)
 	result = surface;
-#else
-	result = surface;
-	result.opacity = length(viewPosition);
-#endif
 }
 
 #endif /* EEVEE_ENGINE */

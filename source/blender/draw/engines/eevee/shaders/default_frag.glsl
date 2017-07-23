@@ -14,9 +14,5 @@ Closure nodetree_exec(void)
 
 	Closure result = Closure(radiance, 1.0, vec4(ssr_spec, roughness), normal_encode(normalize(viewNormal), viewCameraVec), 0);
 
-#if !defined(USE_ALPHA_BLEND) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP)
-	result.opacity = length(viewPosition);
-#endif
-
 	return result;
 }
