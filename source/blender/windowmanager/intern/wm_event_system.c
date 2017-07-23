@@ -2230,10 +2230,14 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									/* weak, but allows interactive callback to not use rawkey */
 									event->keymap_idname = kmi->idname;
 
+									CTX_wm_manipulator_group_set(C, mgroup);
+
 									/* handler->op is called later, we want keymap op to be triggered here */
 									handler->op = NULL;
 									action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
 									handler->op = op;
+
+									CTX_wm_manipulator_group_set(C, NULL);
 
 									if (action & WM_HANDLER_BREAK) {
 										if (action & WM_HANDLER_HANDLED) {

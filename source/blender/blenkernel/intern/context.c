@@ -77,6 +77,7 @@ struct bContext {
 		struct ScrArea *area;
 		struct ARegion *region;
 		struct ARegion *menu;
+		struct wmManipulatorGroup *manipulator_group;
 		struct bContextStore *store;
 		const char *operator_poll_msg; /* reason for poll failing */
 	} wm;
@@ -671,6 +672,11 @@ struct ARegion *CTX_wm_menu(const bContext *C)
 	return C->wm.menu;
 }
 
+struct wmManipulatorGroup *CTX_wm_manipulator_group(const bContext *C)
+{
+	return C->wm.manipulator_group;
+}
+
 struct ReportList *CTX_wm_reports(const bContext *C)
 {
 	if (C->wm.manager)
@@ -868,6 +874,11 @@ void CTX_wm_region_set(bContext *C, ARegion *region)
 void CTX_wm_menu_set(bContext *C, ARegion *menu)
 {
 	C->wm.menu = menu;
+}
+
+void CTX_wm_manipulator_group_set(bContext *C, struct wmManipulatorGroup *mgroup)
+{
+	C->wm.manipulator_group = mgroup;
 }
 
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
