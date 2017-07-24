@@ -449,7 +449,16 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 		 * safer game here.
 		 */
 		if ((id_orig->tag & LIB_TAG_COPY_ON_WRITE) == 0) {
-			BLI_assert(!"Request for non-existing copy-on-write ID");
+			/* TODO(sergey): This is nice sanity check to have, but it fails
+			 * in following situations:
+			 *
+			 * - Material has link to texture, which is not needed by new
+			 *   shading system and hence can be ignored at construction.
+			 * - Object or mesh has material at a slot which is not used (for
+			 *   example, object has material slot by materials are set to
+			 *   object data).
+			 */
+			// BLI_assert(!"Request for non-existing copy-on-write ID");
 		}
 		return (ID *)id_orig;
 	}
