@@ -2408,10 +2408,12 @@ bool ED_transform_snap_object_project_view3d_ex(
 		return false;
 	}
 
-	float ray_depth_fallback;
+	float ray_end_dist = depth_get(ray_end, ray_start, ray_normal);
 	if (ray_depth == NULL) {
-		ray_depth_fallback = BVH_RAYCAST_DIST_MAX;
-		ray_depth = &ray_depth_fallback;
+		ray_depth = &ray_end_dist;
+	}
+	else if (*ray_depth > ray_end_dist) {
+		*ray_depth = ray_end_dist;
 	}
 
 	if (snap_to == SCE_SNAP_MODE_FACE) {
