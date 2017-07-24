@@ -3069,6 +3069,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
+	const bool is_face_map = ((is_gp_edit == false) && ar->manipulator_map &&
+	                          WM_manipulatormap_is_any_selected(ar->manipulator_map));
 	Object *ob = OBACT_NEW;
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
@@ -3080,8 +3082,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
 	INIT_MINMAX(min, max);
-
-	if (is_gp_edit) {
+	if (is_gp_edit || is_face_map) {
 		ob = NULL;
 	}
 
@@ -3112,6 +3113,9 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 			}
 		}
 		CTX_DATA_END;
+	}
+	else if (is_face_map) {
+		ok = WM_manipulatormap_minmax(ar->manipulator_map, true, true, min, max);
 	}
 	else if (obedit) {
 		ok = ED_view3d_minmax_verts(obedit, min, max);    /* only selected */

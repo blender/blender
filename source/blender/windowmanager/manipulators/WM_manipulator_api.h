@@ -207,6 +207,9 @@ void WM_manipulatormap_add_handlers(struct ARegion *ar, struct wmManipulatorMap 
 bool WM_manipulatormap_select_all(struct bContext *C, struct wmManipulatorMap *mmap, const int action);
 bool WM_manipulatormap_cursor_set(const struct wmManipulatorMap *mmap, struct wmWindow *win);
 bool WM_manipulatormap_is_any_selected(const struct wmManipulatorMap *mmap);
+bool WM_manipulatormap_minmax(
+        const struct wmManipulatorMap *mmap, bool use_hidden, bool use_select,
+        float r_min[3], float r_max[3]);
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorMapType */

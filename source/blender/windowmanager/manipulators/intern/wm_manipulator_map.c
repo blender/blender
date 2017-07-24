@@ -141,6 +141,27 @@ bool WM_manipulatormap_is_any_selected(const wmManipulatorMap *mmap)
 }
 
 /**
+ * \note We could use a callback to define bounds, for now just use matrix location.
+ */
+bool WM_manipulatormap_minmax(
+        const wmManipulatorMap *mmap, bool UNUSED(use_hidden), bool use_select,
+        float r_min[3], float r_max[3])
+{
+	if (use_select) {
+		int i;
+		for (i = 0; i < mmap->mmap_context.selected_len; i++) {
+			minmax_v3v3_v3(r_min, r_max, mmap->mmap_context.selected[i]->matrix_basis[3]);
+		}
+		return i != 0;
+	}
+	else {
+		bool ok = false;
+		BLI_assert(!"TODO");
+		return ok;
+	}
+}
+
+/**
  * Creates and returns idname hash table for (visible) manipulators in \a mmap
  *
  * \param poll  Polling function for excluding manipulators.
