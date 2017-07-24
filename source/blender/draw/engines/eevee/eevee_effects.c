@@ -288,7 +288,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	int enabled_effects = 0;
 
-	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable")) {
+	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable") && (draw_ctx->evil_C != NULL)) {
 		/* Update Motion Blur Matrices */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 			float persmat[4][4];
