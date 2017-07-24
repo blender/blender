@@ -195,9 +195,17 @@ void id_tag_update_object_data(Depsgraph *graph, IDDepsNode *id_node)
 		ID *data_id = (ID *)object->data;
 		if (data_id != NULL) {
 			IDDepsNode *data_id_node = graph->find_id_node(data_id);
-			BLI_assert(data_id_node != NULL);
+			// BLI_assert(data_id_node != NULL);
 			/* TODO(sergey): Do we want more granular tags here? */
-			data_id_node->tag_update(graph);
+			/* TODO(sergey): Hrm, during some operations it's possible to have
+			 * object node existing but not it's data. For example, when making
+			 * objects local. This is valid situation, but how can we distinguish
+			 * that from soneone trying to do stupid things with dependency
+			 * graph?
+			 */
+			if (data_id_node != NULL) {
+				data_id_node->tag_update(graph);
+			}
 		}
 	}
 }
