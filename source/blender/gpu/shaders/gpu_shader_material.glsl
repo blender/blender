@@ -2663,8 +2663,8 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 {
 #ifdef EEVEE_ENGINE
 	vec3 L = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0);
-
-	result = Closure(L * color.rgb, 1.0, vec4(0.0), vec2(0.0), -1);
+	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	result = Closure(L * color.rgb, 1.0, vec4(0.0), normal_encode(N, viewCameraVec), -1);
 #else
 	/* ambient light */
 	vec3 L = vec3(0.2);
@@ -2945,7 +2945,7 @@ void node_emission(vec4 color, float strength, vec3 N, out Closure result)
 #ifndef VOLUMETRICS
 	color *= strength;
 #ifdef EEVEE_ENGINE
-	result = Closure(color.rgb, color.a, vec4(0.0), vec2(0.0), -1);
+	result = Closure(color.rgb, color.a, vec4(0.0), normal_encode(N, viewCameraVec), -1);
 #else
 	result = Closure(color.rgb, color.a);
 #endif

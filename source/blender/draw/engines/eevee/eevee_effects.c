@@ -757,6 +757,8 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_float(grp, "borderFadeFactor", &effects->ssr_border_fac, 1);
 		DRW_shgroup_uniform_float(grp, "lodCubeMax", &sldata->probes->lod_cube_max, 1);
 		DRW_shgroup_uniform_float(grp, "lodPlanarMax", &sldata->probes->lod_planar_max, 1);
+		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_uniform_buffer(grp, "probeCubes", &sldata->probe_pool);
 		DRW_shgroup_uniform_buffer(grp, "probePlanars", &vedata->txl->planar_pool);
 		DRW_shgroup_call_add(grp, quad, NULL);

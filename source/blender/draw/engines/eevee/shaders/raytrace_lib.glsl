@@ -96,7 +96,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 	float end = P1.x * step_sign;
 
 	/* Initial offset */
-	pqk += dPQK * ray_jitter;
+	pqk += dPQK * (0.01 + ray_jitter);
 
 	bool hit = false;
 	float raw_depth;

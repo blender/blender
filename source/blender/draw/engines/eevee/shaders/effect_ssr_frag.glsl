@@ -59,6 +59,11 @@ void main()
 
 	/* Retrieve pixel data */
 	vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
+
+	/* Early out */
+	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0)
+		discard;
+
 	float roughness = speccol_roughness.a;
 	float roughnessSquared = max(1e-3, roughness * roughness);
 	float a2 = roughnessSquared * roughnessSquared;
@@ -244,6 +249,11 @@ void main()
 	vec3 V = cameraVec;
 	vec3 N = mat3(ViewMatrixInverse) * normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, viewCameraVec);
 	vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
+
+	/* Early out */
+	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0)
+		discard;
+
 	float roughness = speccol_roughness.a;
 	float roughnessSquared = max(1e-3, roughness * roughness);
 
