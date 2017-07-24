@@ -19,7 +19,7 @@
 #  Filename : near_lines.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
-#  Purpose  : Draws the lines that are "closer" than a threshold 
+#  Purpose  : Draws the lines that are "closer" than a threshold
 #             (between 0 and 1)
 
 from freestyle.chainingiterators import ChainSilhouetteIterator

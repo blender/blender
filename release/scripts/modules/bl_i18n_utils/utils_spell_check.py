@@ -128,7 +128,7 @@ class SpellChecker:
         "multisampling",
         "multiscatter",
         "multitexture",
-        "multithreaded", 
+        "multithreaded",
         "multiuser",
         "multiview",
         "namespace",

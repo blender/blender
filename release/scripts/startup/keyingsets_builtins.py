@@ -494,7 +494,7 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
     # bendy bone properties
     def doBBone(ksi, context, ks, pchan):
         bone = pchan.bone
-        
+
         # This check is crude, but is the best we can do for now
         # It simply adds all of these if the bbone has segments
         # (and the bone is a control bone). This may lead to some

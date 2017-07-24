@@ -723,7 +723,7 @@ def main(context,
     global USER_FILL_HOLES_QUALITY
     global USER_STRETCH_ASPECT
     global USER_ISLAND_MARGIN
-    
+
     from math import cos
     import time
 
@@ -747,7 +747,7 @@ def main(context,
     USER_FILL_HOLES = 0
     USER_FILL_HOLES_QUALITY = 50 # Only for hole filling.
     USER_VIEW_INIT = 0 # Only for hole filling.
-    
+
     is_editmode = (context.active_object.mode == 'EDIT')
     if is_editmode:
         obList =  [ob for ob in [context.active_object] if ob and ob.type == 'MESH']

@@ -19,7 +19,7 @@
 #  Filename : cartoon.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
-#  Purpose  : Draws colored lines. The color is automatically 
+#  Purpose  : Draws colored lines. The color is automatically
 #             inferred from each object's material in a cartoon-like
 #             fashion.
 
