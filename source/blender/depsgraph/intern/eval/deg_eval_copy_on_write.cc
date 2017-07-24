@@ -327,6 +327,9 @@ static bool check_datablock_expanded_at_construction(const ID *id_orig)
 
 /* Those are datablocks which are not covered by dependency graph and hence
  * does not need any remapping or anything.
+ *
+ * TODO(sergey): How to make it more robust for the future, so we don't have
+ * to maintain exception lists all over the code?
  */
 static bool check_datablocks_copy_on_writable(const ID *id_orig)
 {
@@ -336,7 +339,8 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 	                      ID_IM,
 	                      ID_LS,
 	                      ID_AC,
-	                      ID_GR);
+	                      ID_GR,
+	                      ID_PAL);
 }
 
 /* Callback for BKE_library_foreach_ID_link which remaps original ID pointer
