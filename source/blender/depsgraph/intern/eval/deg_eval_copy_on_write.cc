@@ -333,8 +333,6 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 {
 	const short id_type = GS(id_orig->name);
 	return !ELEM(id_type, ID_BR,
-	                      ID_TE,
-	                      ID_IM,
 	                      ID_LS,
 	                      ID_AC,
 	                      ID_GR,
