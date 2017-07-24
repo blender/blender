@@ -3820,6 +3820,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	re->lay = sce->lay;
 	re->depsgraph = BKE_scene_get_depsgraph(sce, scene_layer);
+	re->eval_ctx->scene_layer = scene_layer;
 
 	camera = RE_GetCamera(re);
 	RE_SetCamera(re, camera);
