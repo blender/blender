@@ -117,8 +117,7 @@ void nested_id_hack_discard_pointers(ID *id_cow)
 		{
 			Scene *scene_cow = (Scene *)id_cow;
 			scene_cow->nodetree = NULL;
-			scene_cow->base.first = NULL;
-			scene_cow->base.last = NULL;
+			BLI_listbase_clear(&scene_cow->base);
 			break;
 		}
 #endif
@@ -160,8 +159,7 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
 		{
 			storage->scene = *(Scene *)id;
 			storage->scene.nodetree = NULL;
-			storage->scene.base.first = NULL;
-			storage->scene.base.last = NULL;
+			BLI_listbase_clear(&storage->scene.base);
 			return &storage->scene.id;
 		}
 #endif
