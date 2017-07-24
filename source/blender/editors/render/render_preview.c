@@ -320,6 +320,9 @@ static void set_preview_layer(SceneLayer *scene_layer, char pr_type)
 
 static World *preview_get_localized_world(ShaderPreview *sp, World *world)
 {
+	if (world == NULL) {
+		return NULL;
+	}
 	if (sp->worldcopy != NULL) {
 		return sp->worldcopy;
 	}
