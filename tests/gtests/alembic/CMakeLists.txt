@@ -27,6 +27,7 @@ set(INC
 	../../../source/blender/blenlib
 	../../../source/blender/alembic
 	../../../source/blender/makesdna
+	../../../source/blender/depsgraph
 	${ALEMBIC_INCLUDE_DIRS}
 	${BOOST_INCLUDE_DIR}
 	${HDF5_INCLUDE_DIRS}

@@ -10,11 +10,16 @@ extern "C" {
 #include "DNA_scene_types.h"
 }
 
+#include "DEG_depsgraph.h"
+
 class TestableAbcExporter : public AbcExporter {
 public:
 	TestableAbcExporter(Scene *scene, const char *filename, ExportSettings &settings)
-	    : AbcExporter(scene, filename, settings)
-	{}
+	    : AbcExporter(&eval_ctx, scene, filename, settings)
+	{
+		/* TODO(sergey): Pass scene layer somehow? */
+		DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_VIEWPORT);
+	}
 
 	void getShutterSamples(unsigned int nr_of_samples,
 	                       bool time_relative,
@@ -28,6 +33,7 @@ public:
 		AbcExporter::getFrameSet(nr_of_samples, frames);
 	}
 
+	EvaluationContext eval_ctx;
 };
 
 
