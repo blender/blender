@@ -50,7 +50,7 @@ extern "C" {
 #endif
 
 /* Check if given ID type was tagged for update. */
-bool DEG_id_type_tagged(struct Main *bmain, short idtype);
+bool DEG_id_type_tagged(struct Main *bmain, short id_type);
 
 /* Get additional evaluation flags for the given ID. */
 short DEG_get_eval_flags_for_id(struct Depsgraph *graph, struct ID *id);

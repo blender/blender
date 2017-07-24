@@ -176,7 +176,7 @@ void DEG_id_tag_update_ex(struct Main *bmain,
  * Used by all sort of render engines to quickly check if
  * IDs of a given type need to be checked for update.
  */
-void DEG_id_type_tag(struct Main *bmain, short idtype);
+void DEG_id_type_tag(struct Main *bmain, short id_type);
 
 void DEG_ids_clear_recalc(struct Main *bmain);
 

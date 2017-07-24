@@ -53,9 +53,9 @@ extern "C" {
 #  include "intern/eval/deg_eval_copy_on_write.h"
 #endif
 
-bool DEG_id_type_tagged(Main *bmain, short idtype)
+bool DEG_id_type_tagged(Main *bmain, short id_type)
 {
-	return bmain->id_tag_update[BKE_idcode_to_index(idtype)] != 0;
+	return bmain->id_tag_update[BKE_idcode_to_index(id_type)] != 0;
 }
 
 short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
