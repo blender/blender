@@ -41,6 +41,7 @@ public:
 		denoised_tiles = 0;
 		start_time = time_dt();
 		render_start_time = time_dt();
+		end_time = 0.0;
 		status = "Initializing";
 		substatus = "";
 		sync_status = "";
@@ -80,6 +81,7 @@ public:
 		denoised_tiles = 0;
 		start_time = time_dt();
 		render_start_time = time_dt();
+		end_time = 0.0;
 		status = "Initializing";
 		substatus = "";
 		sync_status = "";
@@ -146,6 +148,7 @@ public:
 		thread_scoped_lock lock(progress_mutex);
 
 		start_time = time_dt();
+		end_time = 0.0;
 	}
 
 	void set_render_start_time()
@@ -169,8 +172,15 @@ public:
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		total_time_ = time_dt() - start_time;
-		render_time_ = time_dt() - render_start_time;
+		double time = (end_time > 0) ? end_time : time_dt();
+
+		total_time_ = time - start_time;
+		render_time_ = time - render_start_time;
+	}
+
+	void set_end_time()
+	{
+		end_time = time_dt();
 	}
 
 	void reset_sample()
@@ -337,6 +347,8 @@ protected:
 	int rendered_tiles, denoised_tiles;
 
 	double start_time, render_start_time;
+	/* End time written when render is done, so it doesn't keep increasing on redraws. */
+	double end_time;
 
 	string status;
 	string substatus;

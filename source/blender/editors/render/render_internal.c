@@ -1237,7 +1237,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	use_border = render_view3d_disprect(rp->scene, rp->ar, rp->v3d,
 	                                    rp->rv3d, &cliprct);
 
-	if ((update_flag & (PR_UPDATE_RENDERSIZE | PR_UPDATE_DATABASE)) || rstats->convertdone == 0) {
+	if ((update_flag & (PR_UPDATE_RENDERSIZE | PR_UPDATE_DATABASE | PR_UPDATE_VIEW)) || rstats->convertdone == 0) {
 		RenderData rdata;
 
 		/* no osa, blur, seq, layers, savebuffer etc for preview render */
