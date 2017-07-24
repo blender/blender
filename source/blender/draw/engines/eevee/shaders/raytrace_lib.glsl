@@ -21,15 +21,20 @@ void swapIfBigger(inout float a, inout float b)
 	}
 }
 
-/* Return the length of the ray if there is a hit, and -1.0 if not hit occured */
+/* Return the length of the ray if there is a hit, and negate it if not hit occured */
 float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_jitter)
 {
 	float near = get_view_z_from_depth(0.0); /* TODO optimize */
+	float far = get_view_z_from_depth(1.0); /* TODO optimize */
 
-	/* Clip ray to a near plane in 3D */
+	/* Clip ray to a near/far plane in 3D */
 	float ray_length = 1e16;
-	if ((ray_origin.z + ray_dir.z * ray_length) > near)
+	if ((ray_origin.z + ray_dir.z * ray_length) > near) {
 		ray_length = (near - ray_origin.z) / ray_dir.z;
+	}
+	else {
+		ray_length = (ray_origin.z - far) / -ray_dir.z;
+	}
 
 	vec3 ray_end = ray_dir * ray_length + ray_origin;
 
@@ -136,7 +141,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 
 		prev_zmax = (dPQK.z * -0.5 + pqk.z) / (dPQK.w * -0.5 + pqk.w);
 
-		for (float refinestep = 0.0; refinestep < ssrStride * 2.0 && refinestep < MAX_REFINE_STEP * 2.0; refinestep++) {
+		for (float refinestep = 0.0; refinestep < (ssrStride * 2.0) && refinestep < (MAX_REFINE_STEP * 2.0); refinestep++) {
 			/* step through current cell */
 			pqk += dPQK;
 
@@ -159,9 +164,14 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 		}
 	}
 
-	/* Background case. */
-	hit = hit && (raw_depth != 1.0);
+	/* If we did hit the background, get exact ray. */
+	if (raw_depth == 1.0) {
+		zmax = get_view_z_from_depth(1.0); /* TODO optimize */
+	}
+
+	hit = hit && (raw_depth != 0.0);
 
 	/* Return length */
-	return (hit) ? (zmax - ray_origin.z) / ray_dir.z : -1.0;
+	float result = (zmax - ray_origin.z) / ray_dir.z;
+	return (hit) ? result : -result;
 }

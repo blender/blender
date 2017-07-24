@@ -1052,7 +1052,6 @@ static void render_scene_to_planar(
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_PassList *psl = vedata->psl;
-	EEVEE_StorageList *stl = vedata->stl;
 
 	float viewinv[4][4];
 	float persinv[4][4];

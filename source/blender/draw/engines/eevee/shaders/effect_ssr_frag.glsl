@@ -1,8 +1,13 @@
 
+/* Based on Stochastic Screen Space Reflections
+ * https://www.ea.com/frostbite/news/stochastic-screen-space-reflections */
+
 #ifndef UTIL_TEX
 #define UTIL_TEX
 uniform sampler2DArray utilTex;
 #endif /* UTIL_TEX */
+
+uniform int rayCount;
 
 #define BRDF_BIAS 0.7
 
@@ -15,6 +20,7 @@ vec3 generate_ray(vec3 V, vec3 N, float a2, vec3 rand, out float pdf)
 	/* Importance sampling bias */
 	rand.x = mix(rand.x, 0.0, BRDF_BIAS);
 
+	/* TODO distribution of visible normals */
 	vec3 H = sample_ggx(rand, a2, N, T, B, NH); /* Microfacet normal */
 	pdf = min(1024e32, pdf_ggx_reflect(NH, a2)); /* Theoretical limit of 16bit float */
 	return reflect(-V, H);
@@ -28,8 +34,34 @@ uniform sampler2D depthBuffer;
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
 
-layout(location = 0) out vec4 hitData;
-layout(location = 1) out vec4 pdfData;
+uniform mat4 ViewProjectionMatrix;
+
+layout(location = 0) out vec4 hitData0;
+layout(location = 1) out vec4 hitData1;
+layout(location = 2) out vec4 hitData2;
+layout(location = 3) out vec4 hitData3;
+
+bool has_hit_backface(vec3 hit_pos, vec3 R, vec3 V)
+{
+	vec2 hit_co = project_point(ProjectionMatrix, hit_pos).xy * 0.5 + 0.5;
+	vec3 hit_N = normal_decode(textureLod(normalBuffer, hit_co, 0.0).rg, V);
+	return (dot(-R, hit_N) < 0.0);
+}
+
+vec4 do_ssr(sampler2D depthBuffer, vec3 V, vec3 N, vec3 viewPosition, float a2, vec3 rand)
+{
+	float pdf;
+	vec3 R = generate_ray(V, N, a2, rand, pdf);
+
+	float hit_dist = raycast(depthBuffer, viewPosition, R, rand.x);
+	vec3 hit_pos = viewPosition + R * abs(hit_dist);
+
+	if (has_hit_backface(hit_pos, R, V) || (hit_dist <= 0.0)) {
+		hit_pos.z *= -1.0;
+	}
+
+	return vec4(hit_pos, pdf);
+}
 
 void main()
 {
@@ -68,81 +100,13 @@ void main()
 	float roughnessSquared = max(1e-3, roughness * roughness);
 	float a2 = roughnessSquared * roughnessSquared;
 
-	/* Generate Ray */
-	float pdf;
 	vec3 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0).rba;
-	vec3 R = generate_ray(V, N, a2, rand, pdf);
-#ifdef TWO_HIT
-	float pdf2;
-	vec3 R2 = generate_ray(V, N, a2, rand * vec3(1.0, -1.0, -1.0), pdf2);
-#endif
 
-	/* Search for the planar reflection affecting this pixel */
-	/* If no planar is found, fallback to screen space */
-
-	/* Raycast over planar reflection */
-	/* Potentially lots of time waisted here for pixels
-	 * that does not have planar reflections. TODO Profile it. */
-	/* TODO: Idea, rasterize boxes around planar
-	 * reflection volumes (frontface culling to avoid overdraw)
-	 * and do the raycasting, discard pixel that are not in influence.
-	 * Add stencil test to discard the main SSR.
-	 * Cons: - Potentially raytrace multiple times
-	 *         if Planar Influence overlaps. */
-	//float hit_dist = raycast(depthBuffer, W, R);
-
-	/* Raycast over screen */
-	float hit_dist = -1.0;
-#ifdef TWO_HIT
-	float hit_dist2 = -1.0;
-#endif
-	/* Only raytrace if ray is above the surface normal */
-	/* Note : this still fails in some cases like with normal map.
-	 * We should check against the geometric normal but we don't have it at this stage. */
-	if (dot(R, N) > 0.0001) {
-		hit_dist = raycast(depthBuffer, viewPosition, R, rand.x);
-	}
-#ifdef TWO_HIT
-	/* TODO do double raytrace at the same time */
-	if (dot(R2, N) > 0.0001) {
-		hit_dist2 = raycast(depthBuffer, viewPosition, R2, rand.x);
-	}
-#endif
-
-	/* TODO Do reprojection here */
-	vec2 hit_co = project_point(ProjectionMatrix, viewPosition + R * hit_dist).xy * 0.5 + 0.5;
-#ifdef TWO_HIT
-	vec2 hit_co2 = project_point(ProjectionMatrix, viewPosition + R2 * hit_dist2).xy * 0.5 + 0.5;
-#endif
-
-	/* Check if has hit a backface */
-	vec3 hit_N = normal_decode(textureLod(normalBuffer, hit_co, 0.0).rg, V);
-	hit_dist *= step(0.0, dot(-R, hit_N));
-#ifdef TWO_HIT
-	hit_N = normal_decode(textureLod(normalBuffer, hit_co2, 0.0).rg, V);
-	hit_dist2 *= step(0.0, dot(-R2, hit_N));
-#endif
-
-	if (hit_dist > 0.0) {
-		hitData = hit_co.xyxy;
-	}
-	else {
-		hitData = vec4(-1.0);
-	}
-#ifdef TWO_HIT
-	if (hit_dist2 > 0.0) {
-		hitData.zw = hit_co2;
-	}
-	else {
-		hitData.zw = vec2(-1.0);
-	}
-#endif
-
-#ifdef TWO_HIT
-	pdfData = vec4(pdf, pdf2, 0.0, 0.0);
-#else
-	pdfData = vec4(pdf);
-#endif
+	/* TODO : Raytrace together if textureGather is supported. */
+	hitData0 = do_ssr(depthBuffer, V, N, viewPosition, a2, rand);
+	if (rayCount > 1) hitData1 = do_ssr(depthBuffer, V, N, viewPosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0));
+	if (rayCount > 2) hitData2 = do_ssr(depthBuffer, V, N, viewPosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0));
+	if (rayCount > 3) hitData3 = do_ssr(depthBuffer, V, N, viewPosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0));
 }
 
 #else /* STEP_RESOLVE */
@@ -152,12 +116,15 @@ uniform sampler2D depthBuffer;
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
 
-uniform sampler2D hitBuffer;
-uniform sampler2D pdfBuffer;
+uniform sampler2D hitBuffer0;
+uniform sampler2D hitBuffer1;
+uniform sampler2D hitBuffer2;
+uniform sampler2D hitBuffer3;
 
 uniform int probe_count;
 
 uniform float borderFadeFactor;
+uniform float fireflyFactor;
 
 uniform mat4 ViewProjectionMatrix;
 uniform mat4 PastViewProjectionMatrix;
@@ -218,19 +185,6 @@ float brightness(vec3 c)
 	return max(max(c.r, c.g), c.b);
 }
 
-vec2 get_reprojected_reflection(vec3 hit, vec3 pos, vec3 N)
-{
-	/* TODO real motion vectors */
-	/* Transform to viewspace */
-	// vec4(get_view_space_from_depth(uvcoords, depth), 1.0);
-	// vec4(get_view_space_from_depth(uvcoords, depth), 1.0);
-
-	/* Reproject */
-	// vec3 hit_reprojected = find_reflection_incident_point(cameraPos, hit, pos, N);
-
-	return project_point(PastViewProjectionMatrix, hit).xy * 0.5 + 0.5;
-}
-
 float screen_border_mask(vec2 past_hit_co, vec3 hit)
 {
 	/* Fade on current and past screen edges */
@@ -254,44 +208,51 @@ float view_facing_mask(vec3 V, vec3 R)
 	return smoothstep(0.95, 0.80, dot(V, R));
 }
 
-vec4 get_ssr_sample(
-        vec2 hit_co, vec3 worldPosition, vec3 N, vec3 V, float roughnessSquared,
-        float cone_tan, vec2 source_uvs, vec2 texture_size, ivec2 target_texel,
-        out float weight)
+vec2 get_reprojected_reflection(vec3 hit, vec3 pos, vec3 N)
 {
-	/* Reconstruct ray */
-	float hit_depth = textureLod(depthBuffer, hit_co, 0.0).r;
-	vec3 hit_pos = get_world_space_from_depth(hit_co, hit_depth);
+	/* TODO real reprojection with motion vectors, etc... */
+	return project_point(PastViewProjectionMatrix, hit).xy * 0.5 + 0.5;
+}
 
-	/* Find hit position in previous frame */
+vec4 get_ssr_sample(
+        sampler2D hitBuffer, vec3 worldPosition, vec3 N, vec3 V, float roughnessSquared,
+        float cone_tan, vec2 source_uvs, vec2 texture_size, ivec2 target_texel,
+        inout float weight_acc)
+{
+	vec4 hit_co_pdf = texelFetch(hitBuffer, target_texel, 0).rgba;
+	bool has_hit = (hit_co_pdf.z < 0.0);
+	hit_co_pdf.z = -abs(hit_co_pdf.z);
+
+	/* Hit position in world space. */
+	vec3 hit_pos = (ViewMatrixInverse * vec4(hit_co_pdf.xyz, 1.0)).xyz;
+
+	/* Find hit position in previous frame. */
 	vec2 ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
 
-	/* Estimate a cone footprint to sample a corresponding mipmap level */
-	/* compute cone footprint Using UV distance because we are using screen space filtering */
+	/* Estimate a cone footprint to sample a corresponding mipmap level. */
+	/* Compute cone footprint Using UV distance because we are using screen space filtering. */
 	float cone_footprint = 1.5 * cone_tan * distance(ref_uvs, source_uvs);
 	float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
 
+	/* Slide 54 */
 	vec3 L = normalize(hit_pos - worldPosition);
-#ifdef USE_NORMALIZATION
-	/* Evaluate BSDF */
 	float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
-	float pdf = texelFetch(pdfBuffer, target_texel, 0).r;
+	float weight = step(0.001, hit_co_pdf.w) * bsdf / hit_co_pdf.w;
+	weight_acc += weight;
 
-	weight = step(0.001, pdf) * bsdf / pdf;
-#else
-	weight = 1.0;
-#endif
+	vec3 sample = textureLod(colorBuffer, ref_uvs, mip).rgb;
 
-	vec3 sample = textureLod(colorBuffer, ref_uvs, mip).rgb ;
+	/* Do not add light if ray has failed. */
+	sample *= float(has_hit);
 
 	/* Firefly removal */
-	sample /= 1.0 + brightness(sample);
+	sample /= 1.0 + fireflyFactor * brightness(sample);
 
 	float mask = screen_border_mask(ref_uvs, hit_pos);
 	mask *= view_facing_mask(V, N);
+	mask *= float(has_hit);
 
-	/* Check if there was a hit */
-	return vec4(sample, mask) * weight * step(0.0, hit_co.x);
+	return vec4(sample, mask) * weight;
 }
 
 #define NUM_NEIGHBORS 9
@@ -341,34 +302,40 @@ void main()
 	float weight_acc = 0.0;
 	const ivec2 neighbors[9] = ivec2[9](
 		ivec2(0, 0),
-		ivec2(-1,  1), ivec2(0,  1), ivec2(1,  1),
-		ivec2(-1,  0),               ivec2(1,  0),
-		ivec2(-1, -1), ivec2(0, -1), ivec2(1, -1)
+
+		               ivec2(0,  1),
+		ivec2(-1, -1),               ivec2(1, -1),
+
+		ivec2(-1,  1),               ivec2(1,  1),
+		               ivec2(0, -1),
+
+		ivec2(-1,  0),               ivec2(1,  0)
 	);
 	ivec2 invert_neighbor;
 	invert_neighbor.x = ((fullres_texel.x & 0x1) == 0) ? 1 : -1;
 	invert_neighbor.y = ((fullres_texel.y & 0x1) == 0) ? 1 : -1;
+
 	for (int i = 0; i < NUM_NEIGHBORS; i++) {
 		ivec2 target_texel = halfres_texel + neighbors[i] * invert_neighbor;
 
-#ifdef TWO_HIT
-		vec4 hit_co = texelFetch(hitBuffer, target_texel, 0).rgba;
-#else
-		vec2 hit_co = texelFetch(hitBuffer, target_texel, 0).rg;
-#endif
-
-		float weight;
-		ssr_accum += get_ssr_sample(hit_co.xy, worldPosition, N, V,
+		ssr_accum += get_ssr_sample(hitBuffer0, worldPosition, N, V,
 		                            roughnessSquared, cone_tan, source_uvs,
-		                            texture_size, target_texel, weight);
-		weight_acc += weight;
-
-#ifdef TWO_HIT
-		ssr_accum += get_ssr_sample(hit_co.zw, worldPosition, N, V,
-		                            roughnessSquared, cone_tan, source_uvs,
-		                            texture_size, target_texel, weight);
-		weight_acc += weight;
-#endif
+		                            texture_size, target_texel, weight_acc);
+		if (rayCount > 1) {
+			ssr_accum += get_ssr_sample(hitBuffer1, worldPosition, N, V,
+			                            roughnessSquared, cone_tan, source_uvs,
+			                            texture_size, target_texel, weight_acc);
+		}
+		if (rayCount > 2) {
+			ssr_accum += get_ssr_sample(hitBuffer2, worldPosition, N, V,
+			                            roughnessSquared, cone_tan, source_uvs,
+			                            texture_size, target_texel, weight_acc);
+		}
+		if (rayCount > 3) {
+			ssr_accum += get_ssr_sample(hitBuffer3, worldPosition, N, V,
+			                            roughnessSquared, cone_tan, source_uvs,
+			                            texture_size, target_texel, weight_acc);
+		}
 	}
 
 	/* Compute SSR contribution */
@@ -385,8 +352,6 @@ void main()
 	}
 
 	fragColor = vec4(spec_accum.rgb * speccol_roughness.rgb, 1.0);
-	// vec2 _uvs = project_point(PastViewProjectionMatrix, worldPosition).xy * 0.5 + 0.5;
-	// fragColor = vec4(textureLod(colorBuffer, _uvs, roughness * MAX_MIP).rgb, 1.0);
 }
 
 #endif

@@ -322,8 +322,9 @@ typedef struct EEVEE_EffectsInfo {
 	/* SSR */
 	bool use_ssr;
 	bool reflection_trace_full;
-	bool ssr_use_two_hit;
 	bool ssr_use_normalization;
+	int ssr_ray_count;
+	float ssr_firefly_fac;
 	float ssr_border_fac;
 	float ssr_stride;
 	float ssr_thickness;
@@ -459,8 +460,7 @@ typedef struct EEVEE_PrivateData {
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
 	struct GPUTexture *minzbuffer;
-	struct GPUTexture *ssr_hit_output;
-	struct GPUTexture *ssr_pdf_output;
+	struct GPUTexture *ssr_hit_output[4];
 	struct GPUTexture *volumetric;
 	struct GPUTexture *volumetric_transmit;
 	float background_alpha; /* TODO find a better place for this. */

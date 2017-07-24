@@ -710,8 +710,8 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
         col.prop(props, "volumetric_colored_transmittance")
 
 
-class RENDER_PT_eevee_shading(RenderButtonsPanel, Panel):
-    bl_label = "Shading"
+class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
+    bl_label = "Screen Space Reflections"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
@@ -719,19 +719,23 @@ class RENDER_PT_eevee_shading(RenderButtonsPanel, Panel):
         scene = context.scene
         return scene and (scene.render.engine in cls.COMPAT_ENGINES)
 
+    def draw_header(self, context):
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+        self.layout.prop(props, "ssr_enable", text="")
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         props = scene.layer_properties['BLENDER_EEVEE']
 
         col = layout.column()
-        col.prop(props, "ssr_enable")
         col.prop(props, "ssr_halfres")
-        col.prop(props, "ssr_two_rays")
-        col.prop(props, "ssr_normalize_weight")
+        col.prop(props, "ssr_ray_count")
         col.prop(props, "ssr_stride")
         col.prop(props, "ssr_thickness")
         col.prop(props, "ssr_border_fade")
+        col.prop(props, "ssr_firefly_fac")
 
 
 classes = (
@@ -751,10 +755,10 @@ classes = (
     RENDER_PT_bake,
     RENDER_PT_clay_layer_settings,
     RENDER_PT_clay_collection_settings,
+    RENDER_PT_eevee_volumetric,
+    RENDER_PT_eevee_screen_space_reflections,
     RENDER_PT_eevee_poststack_settings,
     RENDER_PT_eevee_postprocess_settings,
-    RENDER_PT_eevee_volumetric,
-    RENDER_PT_eevee_shading,
 )
 
 if __name__ == "__main__":  # only for live edit.
