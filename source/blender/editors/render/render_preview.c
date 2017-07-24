@@ -318,6 +318,16 @@ static void set_preview_layer(SceneLayer *scene_layer, char pr_type)
 	}
 }
 
+static World *preview_get_localized_world(ShaderPreview *sp, World *world)
+{
+	if (sp->worldcopy != NULL) {
+		return sp->worldcopy;
+	}
+	sp->worldcopy = localize_world(world);
+	BLI_addtail(&sp->pr_main->world, sp->worldcopy);
+	return sp->worldcopy;
+}
+
 /* call this with a pointer to initialize preview scene */
 /* call this with NULL to restore assigned ID pointers in preview scene */
 static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_type, ShaderPreview *sp)
@@ -439,8 +449,9 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				}
 				else {
 					/* use current scene world to light sphere */
-					if (mat->pr_type == MA_SPHERE_A)
-						sce->world = scene->world;
+					if (mat->pr_type == MA_SPHERE_A) {
+						sce->world = preview_get_localized_world(sp, scene->world);
+					}
 				}
 				
 				if (sp->pr_method == PR_ICON_RENDER) {
@@ -452,7 +463,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 
 						/* same as above, use current scene world to light sphere */
 						if (BKE_scene_use_new_shading_nodes(scene))
-							sce->world = scene->world;
+							sce->world = preview_get_localized_world(sp, scene->world);
 					}
 				}
 				else {
@@ -541,7 +552,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			if (!BKE_scene_use_new_shading_nodes(scene)) {
 				if (la && la->type == LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
 					set_preview_layer(scene_layer, MA_ATMOS);
-					sce->world = scene->world;
+					sce->world = preview_get_localized_world(sp, scene->world);
 					sce->camera = (Object *)BLI_findstring(&pr_main->object, "CameraAtmo", offsetof(ID, name) + 2);
 				}
 				else {
