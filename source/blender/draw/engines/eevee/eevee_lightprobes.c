@@ -1262,10 +1262,10 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 					if (ped->updated_cells >= ped->num_cell) {
 						ped->need_update = false;
 					}
-
+#if 0
 					printf("Updated Grid %d : cell %d / %d, bounce %d / %d\n",
 						i, ped->updated_cells, ped->num_cell, pinfo->updated_bounce + 1, max_bounce);
-
+#endif
 					/* Only do one probe per frame */
 					DRW_viewport_request_redraw();
 					goto update_planar;
@@ -1302,9 +1302,9 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 					pinfo->num_render_cube++;
 					ped->ready_to_shade = true;
 				}
-
+#if 0
 				printf("Update Cubemap %d\n", i);
-
+#endif
 				DRW_viewport_request_redraw();
 
 				/* Only do one probe per frame */
