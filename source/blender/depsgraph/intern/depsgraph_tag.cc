@@ -200,7 +200,7 @@ void id_tag_update_object_data(Depsgraph *graph, IDDepsNode *id_node)
 			/* TODO(sergey): Hrm, during some operations it's possible to have
 			 * object node existing but not it's data. For example, when making
 			 * objects local. This is valid situation, but how can we distinguish
-			 * that from soneone trying to do stupid things with dependency
+			 * that from someone trying to do stupid things with dependency
 			 * graph?
 			 */
 			if (data_id_node != NULL) {
