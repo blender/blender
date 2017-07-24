@@ -1113,14 +1113,15 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 
 #define SWAP_BUFFERS() {                           \
 	if (effects->source_buffer == txl->color) {    \
+		SWAP_DOUBLE_BUFFERS();                     \
 		effects->source_buffer = txl->color_post;  \
 		effects->target_buffer = fbl->main;        \
 	}                                              \
 	else {                                         \
+		SWAP_DOUBLE_BUFFERS();                     \
 		effects->source_buffer = txl->color;       \
 		effects->target_buffer = fbl->effect_fb;   \
 	}                                              \
-	SWAP_DOUBLE_BUFFERS();                         \
 } ((void)0)
 
 void EEVEE_draw_effects(EEVEE_Data *vedata)
