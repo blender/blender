@@ -206,21 +206,42 @@ static void BASIC_draw_scene(void *vedata)
 	BASIC_PassList *psl = ((BASIC_Data *)vedata)->psl;
 	BASIC_FramebufferList *fbl = ((BASIC_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	const bool is_select = DRW_state_is_select();
+
+	bool use_color = true;
+	bool use_depth = true;
+	bool use_depth_cull = true;
+
+	if (is_select) {
+		/* Needed for depth-picking,
+		 * for other selection types there are no need for extra passes either. */
+		use_color = false;
+		use_depth_cull = false;
+	}
 
 #ifdef USE_DEPTH
 	/* Pass 1 : Depth pre-pass */
-	DRW_draw_pass(psl->depth_pass);
-	DRW_draw_pass(psl->depth_pass_cull);
+	if (use_depth) {
+		DRW_draw_pass(psl->depth_pass);
+	}
+
+	if (use_depth_cull) {
+		DRW_draw_pass(psl->depth_pass_cull);
+	}
 
 	/* Pass 2 : Duplicate depth */
-	/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
-	if (DRW_state_is_fbo()) {
-		DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true);
+	if (use_depth || use_depth_cull) {
+		/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
+		if (DRW_state_is_fbo()) {
+			DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true);
+		}
 	}
 #endif
 
 	/* Pass 3 : Shading */
-	DRW_draw_pass(psl->color_pass);
+	if (use_color) {
+		DRW_draw_pass(psl->color_pass);
+	}
 }
 
 static void BASIC_engine_free(void)
