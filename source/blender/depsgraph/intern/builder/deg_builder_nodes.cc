@@ -560,7 +560,6 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
  */
 OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 {
-	ChannelDriver *driver = fcu->driver;
 	ID *id_cow = get_cow_id(id);
 
 	/* Create data node for this driver */
@@ -582,11 +581,6 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 		                               DEG_OPCODE_DRIVER,
 		                               fcu->rna_path ? fcu->rna_path : "",
 		                               fcu->array_index);
-	}
-
-	/* tag "scripted expression" drivers as needing Python (due to GIL issues, etc.) */
-	if (driver->type == DRIVER_TYPE_PYTHON) {
-		driver_op->flag |= DEPSOP_FLAG_USES_PYTHON;
 	}
 
 	/* return driver node created */
