@@ -238,7 +238,7 @@ typedef struct wmManipulatorType {
 	wmManipulatorFnCursorGet cursor_get;
 
 	/* called when manipulator selection state changes */
-	wmManipulatorFnSelect select;
+	wmManipulatorFnSelectRefresh select_refresh;
 
 	/* RNA for properties */
 	struct StructRNA *srna;

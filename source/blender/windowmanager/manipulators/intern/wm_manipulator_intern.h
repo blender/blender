@@ -38,8 +38,9 @@ struct GHashIterator;
 /* -------------------------------------------------------------------- */
 /* wmManipulator */
 
-bool wm_manipulator_deselect(struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
-bool wm_manipulator_select(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
+
+bool wm_manipulator_select_set_ex(struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select, bool use_array);
+bool wm_manipulator_select_and_highlight(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
 
 void wm_manipulator_calculate_scale(struct wmManipulator *mpr, const bContext *C);
 void wm_manipulator_update(struct wmManipulator *mpr, const bContext *C, const bool refresh_map);
@@ -82,6 +83,11 @@ void wm_manipulatorgrouptype_setup_keymap(
 /* -------------------------------------------------------------------- */
 /* wmManipulatorMap */
 
+typedef struct wmManipulatorMapSelectState {
+	struct wmManipulator **items;
+	int len, len_alloc;
+} wmManipulatorMapSelectState;
+
 struct wmManipulatorMap {
 	struct wmManipulatorMap *next, *prev;
 
@@ -101,10 +107,8 @@ struct wmManipulatorMap {
 		struct wmManipulator *highlight;
 		/* User has clicked this manipulator and it gets all input. */
 		struct wmManipulator *modal;
-		/* array for all selected manipulators
-		 * TODO  check on using BLI_array */
-		struct wmManipulator **selected;
-		int selected_len;
+		/* array for all selected manipulators */
+		struct wmManipulatorMapSelectState select;
 	} mmap_context;
 };
 
@@ -124,7 +128,10 @@ struct wmManipulatorMapType {
 	uchar type_update_flag;
 };
 
-void wm_manipulatormap_selected_clear(struct wmManipulatorMap *mmap);
-bool wm_manipulatormap_deselect_all(struct wmManipulatorMap *mmap, struct wmManipulator ***sel);
+void wm_manipulatormap_select_array_clear(struct wmManipulatorMap *mmap);
+bool wm_manipulatormap_deselect_all(struct wmManipulatorMap *mmap);
+void wm_manipulatormap_select_array_shrink(struct wmManipulatorMap *mmap, int len_subtract);
+void wm_manipulatormap_select_array_push_back(struct wmManipulatorMap *mmap, wmManipulator *mpr);
+void wm_manipulatormap_select_array_remove(struct wmManipulatorMap *mmap, wmManipulator *mpr);
 
 #endif

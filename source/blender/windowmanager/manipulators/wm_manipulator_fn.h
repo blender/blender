@@ -56,7 +56,7 @@ typedef void    (*wmManipulatorFnMatrixWorldGet)(struct wmManipulator *, float[4
 typedef void    (*wmManipulatorFnInvoke)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
 typedef void    (*wmManipulatorFnExit)(struct bContext *, struct wmManipulator *, const bool);
 typedef int     (*wmManipulatorFnCursorGet)(struct wmManipulator *);
-typedef void    (*wmManipulatorFnSelect)(struct bContext *, struct wmManipulator *, const int);
+typedef void    (*wmManipulatorFnSelectRefresh)(struct wmManipulator *);
 
 /* wmManipulatorProperty ('value' type defined by 'wmManipulatorProperty.data_type') */
 typedef void (*wmManipulatorPropertyFnGet)(

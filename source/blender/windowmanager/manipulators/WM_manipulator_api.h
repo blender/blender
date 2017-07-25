@@ -69,6 +69,8 @@ void WM_manipulator_free(
 
 void WM_manipulator_name_set(struct wmManipulatorGroup *mgroup, struct wmManipulator *mpr, const char *name);
 
+bool WM_manipulator_select_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select);
+
 struct PointerRNA *WM_manipulator_set_operator(
         struct wmManipulator *, struct wmOperatorType *ot, struct IDProperty *properties);
 

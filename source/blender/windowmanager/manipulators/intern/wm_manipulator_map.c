@@ -81,6 +81,76 @@ enum eManipulatorMapUpdateFlags {
 
 
 /* -------------------------------------------------------------------- */
+/** \name wmManipulatorMap Selection Array API
+ *
+ * Just handle ``wm_manipulatormap_select_array_*``, not flags or callbacks.
+ *
+ * \{ */
+
+static void wm_manipulatormap_select_array_ensure_len_alloc(wmManipulatorMap *mmap, int len)
+{
+	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	if (len <= msel->len_alloc) {
+		return;
+	}
+	msel->items = MEM_reallocN(msel->items, sizeof(*msel->items) * len);
+	msel->len_alloc = len;
+}
+
+void wm_manipulatormap_select_array_clear(wmManipulatorMap *mmap)
+{
+	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	MEM_SAFE_FREE(msel->items);
+	msel->len = 0;
+	msel->len_alloc = 0;
+}
+
+void wm_manipulatormap_select_array_shrink(wmManipulatorMap *mmap, int len_subtract)
+{
+	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	msel->len -= len_subtract;
+	if (msel->len <= 0) {
+		wm_manipulatormap_select_array_clear(mmap);
+	}
+	else {
+		if (msel->len < msel->len_alloc / 2) {
+			msel->items = MEM_reallocN(msel->items, sizeof(*msel->items) * msel->len);
+			msel->len_alloc = msel->len;
+		}
+	}
+}
+
+void wm_manipulatormap_select_array_push_back(wmManipulatorMap *mmap, wmManipulator *mpr)
+{
+	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	BLI_assert(msel->len <= msel->len_alloc);
+	if (msel->len == msel->len_alloc) {
+		msel->len_alloc = (msel->len + 1) * 2;
+		msel->items = MEM_reallocN(msel->items, sizeof(*msel->items) * msel->len_alloc);
+	}
+	msel->items[msel->len++] = mpr;
+}
+
+void wm_manipulatormap_select_array_remove(wmManipulatorMap *mmap, wmManipulator *mpr)
+{
+	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
+	/* remove manipulator from selected_manipulators array */
+	for (int i = 0; i < msel->len; i++) {
+		if (msel->items[i] == mpr) {
+			for (int j = i; j < (msel->len - 1); j++) {
+				msel->items[j] = msel->items[j + 1];
+			}
+			wm_manipulatormap_select_array_shrink(mmap, 1);
+			break;
+		}
+	}
+
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
 /** \name wmManipulatorMap
  *
  * \{ */
@@ -107,12 +177,6 @@ wmManipulatorMap *WM_manipulatormap_new_from_type(
 	return mmap;
 }
 
-void wm_manipulatormap_selected_clear(wmManipulatorMap *mmap)
-{
-	MEM_SAFE_FREE(mmap->mmap_context.selected);
-	mmap->mmap_context.selected_len = 0;
-}
-
 void wm_manipulatormap_remove(wmManipulatorMap *mmap)
 {
 	if (!mmap)
@@ -125,7 +189,7 @@ void wm_manipulatormap_remove(wmManipulatorMap *mmap)
 	}
 	BLI_assert(BLI_listbase_is_empty(&mmap->groups));
 
-	wm_manipulatormap_selected_clear(mmap);
+	wm_manipulatormap_select_array_clear(mmap);
 
 	MEM_freeN(mmap);
 }
@@ -137,7 +201,7 @@ const ListBase *WM_manipulatormap_group_list(wmManipulatorMap *mmap)
 
 bool WM_manipulatormap_is_any_selected(const wmManipulatorMap *mmap)
 {
-	return mmap->mmap_context.selected_len != 0;
+	return mmap->mmap_context.select.len != 0;
 }
 
 /**
@@ -149,8 +213,8 @@ bool WM_manipulatormap_minmax(
 {
 	if (use_select) {
 		int i;
-		for (i = 0; i < mmap->mmap_context.selected_len; i++) {
-			minmax_v3v3_v3(r_min, r_max, mmap->mmap_context.selected[i]->matrix_basis[3]);
+		for (i = 0; i < mmap->mmap_context.select.len; i++) {
+			minmax_v3v3_v3(r_min, r_max, mmap->mmap_context.select.items[i]->matrix_basis[3]);
 		}
 		return i != 0;
 	}
@@ -544,16 +608,19 @@ void wm_manipulatormaps_handled_modal_update(
  * Deselect all selected manipulators in \a mmap.
  * \return if selection has changed.
  */
-bool wm_manipulatormap_deselect_all(wmManipulatorMap *mmap, wmManipulator ***sel)
+bool wm_manipulatormap_deselect_all(wmManipulatorMap *mmap)
 {
-	if (*sel == NULL || mmap->mmap_context.selected_len == 0)
-		return false;
+	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
 
-	for (int i = 0; i < mmap->mmap_context.selected_len; i++) {
-		(*sel)[i]->state &= ~WM_MANIPULATOR_STATE_SELECT;
-		(*sel)[i] = NULL;
+	if (msel->items == NULL || msel->len == 0) {
+		return false;
 	}
-	wm_manipulatormap_selected_clear(mmap);
+
+	for (int i = 0; i < msel->len; i++) {
+		wm_manipulator_select_set_ex(mmap, msel->items[i], false, false);
+	}
+
+	wm_manipulatormap_select_array_clear(mmap);
 
 	/* always return true, we already checked
 	 * if there's anything to deselect */
@@ -570,36 +637,28 @@ BLI_INLINE bool manipulator_selectable_poll(const wmManipulator *mpr, void *UNUS
  * \return if selection has changed.
  */
 static bool wm_manipulatormap_select_all_intern(
-        bContext *C, wmManipulatorMap *mmap, wmManipulator ***sel,
-        const int action)
+        bContext *C, wmManipulatorMap *mmap)
 {
+	wmManipulatorMapSelectState *msel = &mmap->mmap_context.select;
 	/* GHash is used here to avoid having to loop over all manipulators twice (once to
 	 * get tot_sel for allocating, once for actually selecting). Instead we collect
 	 * selectable manipulators in hash table and use this to get tot_sel and do selection */
 
 	GHash *hash = WM_manipulatormap_manipulator_hash_new(C, mmap, manipulator_selectable_poll, NULL, true);
 	GHashIterator gh_iter;
-	int i, *selected_len = &mmap->mmap_context.selected_len;
+	int i;
 	bool changed = false;
 
-	*selected_len = BLI_ghash_size(hash);
-	*sel = MEM_reallocN(*sel, sizeof(**sel) * (*selected_len));
+	wm_manipulatormap_select_array_ensure_len_alloc(mmap, BLI_ghash_size(hash));
 
 	GHASH_ITER_INDEX (gh_iter, hash, i) {
 		wmManipulator *mpr_iter = BLI_ghashIterator_getValue(&gh_iter);
-
-		if ((mpr_iter->state & WM_MANIPULATOR_STATE_SELECT) == 0) {
-			changed = true;
-		}
-		mpr_iter->state |= WM_MANIPULATOR_STATE_SELECT;
-		if (mpr_iter->type->select) {
-			mpr_iter->type->select(C, mpr_iter, action);
-		}
-		(*sel)[i] = mpr_iter;
-		BLI_assert(i < (*selected_len));
+		WM_manipulator_select_set(mmap, mpr_iter, true);
 	}
 	/* highlight first manipulator */
-	wm_manipulatormap_highlight_set(mmap, C, (*sel)[0], (*sel)[0]->highlight_part);
+	wm_manipulatormap_highlight_set(mmap, C, msel->items[0], msel->items[0]->highlight_part);
+
+	BLI_assert(BLI_ghash_size(hash) == msel->len);
 
 	BLI_ghash_free(hash, NULL, NULL);
 	return changed;
@@ -613,15 +672,14 @@ static bool wm_manipulatormap_select_all_intern(
  */
 bool WM_manipulatormap_select_all(bContext *C, wmManipulatorMap *mmap, const int action)
 {
-	wmManipulator ***sel = &mmap->mmap_context.selected;
 	bool changed = false;
 
 	switch (action) {
 		case SEL_SELECT:
-			changed = wm_manipulatormap_select_all_intern(C, mmap, sel, action);
+			changed = wm_manipulatormap_select_all_intern(C, mmap);
 			break;
 		case SEL_DESELECT:
-			changed = wm_manipulatormap_deselect_all(mmap, sel);
+			changed = wm_manipulatormap_deselect_all(mmap);
 			break;
 		default:
 			BLI_assert(0);
@@ -785,8 +843,8 @@ wmManipulator *wm_manipulatormap_modal_get(wmManipulatorMap *mmap)
 
 wmManipulator **wm_manipulatormap_selected_get(wmManipulatorMap *mmap, int *r_selected_len)
 {
-	*r_selected_len = mmap->mmap_context.selected_len;
-	return mmap->mmap_context.selected;
+	*r_selected_len = mmap->mmap_context.select.len;
+	return mmap->mmap_context.select.items;
 }
 
 ListBase *wm_manipulatormap_groups_get(wmManipulatorMap *mmap)

@@ -210,21 +210,19 @@ static void rna_manipulator_exit_cb(
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_manipulator_select_cb(
-        struct bContext *C, struct wmManipulator *mpr, int action)
+static void rna_manipulator_select_refresh_cb(
+        struct wmManipulator *mpr)
 {
-	extern FunctionRNA rna_Manipulator_select_func;
+	extern FunctionRNA rna_Manipulator_select_refresh_func;
 	wmManipulatorGroup *mgroup = mpr->parent_mgroup;
 	PointerRNA mpr_ptr;
 	ParameterList list;
 	FunctionRNA *func;
 	RNA_pointer_create(NULL, mpr->type->ext.srna, mpr, &mpr_ptr);
-	/* RNA_struct_find_function(&mpr_ptr, "select"); */
-	func = &rna_Manipulator_select_func;
+	/* RNA_struct_find_function(&mpr_ptr, "select_refresh"); */
+	func = &rna_Manipulator_select_refresh_func;
 	RNA_parameter_list_create(&list, &mpr_ptr, func);
-	RNA_parameter_set_lookup(&list, "context", &C);
-	RNA_parameter_set_lookup(&list, "action", &action);
-	mgroup->type->ext.call((bContext *)C, &mpr_ptr, func, &list);
+	mgroup->type->ext.call((bContext *)NULL, &mpr_ptr, func, &list);
 	RNA_parameter_list_free(&list);
 }
 
@@ -375,6 +373,13 @@ RNA_MANIPULATOR_FLAG_RO_DEF(state_is_highlight, state, WM_MANIPULATOR_STATE_HIGH
 RNA_MANIPULATOR_FLAG_RO_DEF(state_is_modal, state, WM_MANIPULATOR_STATE_MODAL);
 RNA_MANIPULATOR_FLAG_RO_DEF(state_select, state, WM_MANIPULATOR_STATE_SELECT);
 
+static void rna_Manipulator_state_select_set(struct PointerRNA *ptr, int value)
+{
+	wmManipulator *mpr = ptr->data;
+	wmManipulatorGroup *mgroup = mpr->parent_mgroup;
+	WM_manipulator_select_set(mgroup->parent_mmap, mpr, value);
+}
+
 static void rna_Manipulator_name_get(PointerRNA *ptr, char *value)
 {
 	wmManipulator *mpr = ptr->data;
@@ -464,7 +469,7 @@ static StructRNA *rna_Manipulator_register(
 		dummywt.setup = (have_function[i++]) ? rna_manipulator_setup_cb : NULL;
 		dummywt.invoke = (have_function[i++]) ? rna_manipulator_invoke_cb : NULL;
 		dummywt.exit = (have_function[i++]) ? rna_manipulator_exit_cb : NULL;
-		dummywt.select = (have_function[i++]) ? rna_manipulator_select_cb : NULL;
+		dummywt.select_refresh = (have_function[i++]) ? rna_manipulator_select_refresh_cb : NULL;
 
 		BLI_assert(i == ARRAY_SIZE(have_function));
 	}
@@ -974,22 +979,10 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	/* wmManipulator.cursor_get */
 	/* TODO */
 
-	/* wmManipulator.select */
-	/* TODO, de-duplicate! */
-	static EnumPropertyItem select_actions[] = {
-		{SEL_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle selection for all elements"},
-		{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
-		{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
-		{SEL_INVERT, "INVERT", 0, "Invert", "Invert selection of all elements"},
-		{0, NULL, 0, NULL, NULL}
-	};
-	func = RNA_def_function(srna, "select", NULL);
+	/* wmManipulator.select_refresh */
+	func = RNA_def_function(srna, "select_refresh", NULL);
 	RNA_def_function_ui_description(func, "");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_enum(func, "action", select_actions, 0, "Action", "Selection action to execute");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 
 	/* -------------------------------------------------------------------- */
@@ -1092,10 +1085,10 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Highlight", "");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	/* WM_MANIPULATOR_STATE_SELECT */
+	/* (note that setting is involved, needs to handle array) */
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_Manipulator_state_select_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_Manipulator_state_select_get", "rna_Manipulator_state_select_set");
 	RNA_def_property_ui_text(prop, "Select", "");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	RNA_api_manipulator(srna);
 
