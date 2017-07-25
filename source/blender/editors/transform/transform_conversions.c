@@ -849,6 +849,7 @@ static void pose_grab_with_ik_clear(Object *ob)
 	bKinematicConstraint *data;
 	bPoseChannel *pchan;
 	bConstraint *con, *next;
+	bool relations_changed = false;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		/* clear all temporary lock flags */
@@ -862,6 +863,8 @@ static void pose_grab_with_ik_clear(Object *ob)
 			if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
 				data = con->data;
 				if (data->flag & CONSTRAINT_IK_TEMP) {
+					relations_changed = true;
+
 					/* iTaSC needs clear for removed constraints */
 					BIK_clear_data(ob->pose);
 
@@ -877,8 +880,10 @@ static void pose_grab_with_ik_clear(Object *ob)
 		}
 	}
 
-	/* TODO(sergey): Consider doing partial update only. */
-	DEG_relations_tag_update(G.main);
+	if (relations_changed) {
+		/* TODO(sergey): Consider doing partial update only. */
+		DEG_relations_tag_update(G.main);
+	}
 }
 
 /* adds the IK to pchan - returns if added */
